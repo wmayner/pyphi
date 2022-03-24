@@ -866,14 +866,16 @@ class AnalyticalRelations(ApproximateRelations):
         return 1.0
 
     def _sum_phi(self):
-        # Keiko's approximate formula
-        # Assumes:
-        #   - small phi = 1 for all relations
-        #   - all overlaps are congruent
-        return self.mean_phi() * sum(
-            (-1) ** (len(subset) - 1) * (2 ** num_purviews)
+        return self.mean_phi() * self._num_relations()
+
+    def _num_relations(self):
+        return sum(
+            (-1) ** (len(subset[0]) - 1) * (2 ** num_purviews - num_purviews - 1)
             for subset, num_purviews in self.purview_inclusion.items()
         )
+
+    def __len__(self):
+        return self._num_relations()
 
 
 class SampledRelations(AnalyticalRelations):

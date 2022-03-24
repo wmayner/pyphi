@@ -38,8 +38,7 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
         self.subsystem = subsystem
         self.time = time
         self._specifiers = None
-        self._purview_inclusion = defaultdict(_zero)
-        self._purview_inclusion_max_order = 0
+        self._purview_inclusion = None
 
     def __len__(self):
         return len(self.concepts)
@@ -102,20 +101,19 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
         label = self.subsystem.node_labels.indices2labels
         return tuple(list(label(mechanism)) for mechanism in self.mechanisms)
 
-    def purview_inclusion(self, degree=None):
+    def purview_inclusion(self):
         """Map subsets of elements to the number of purviews that include that subset."""
         # TODO(4.0) use lattice datastructure here?
-        if degree is None:
-            degree = len(self.subsystem)
-        degree = min(len(self.subsystem), degree)
-        if degree > self._purview_inclusion_max_order:
-            for k in range(self._purview_inclusion_max_order + 1, degree + 1):
-                for subset in combinations(self.subsystem.node_indices, k):
-                    for direction in Direction.both():
-                        for purview in self.purviews(direction):
-                            if set(subset).issubset(set(purview)):
-                                self._purview_inclusion[subset] += 1
-            self._purview_inclusion_max_order = degree
+        if self._purview_inclusion is None:
+            self._purview_inclusion = defaultdict(_zero)
+            for distinction in self:
+                for direction in Direction.both():
+                    mice = distinction.mice(direction)
+                    for subset in utils.powerset(mice.purview, nonempty=True):
+                        substate = utils.purview_substate(
+                            mice.purview, tuple(mice.specified_state[0]), subset
+                        )
+                        self._purview_inclusion[subset, substate] += 1
         return self._purview_inclusion
 
 
