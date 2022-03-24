@@ -5,8 +5,7 @@
 """Subsystem-level objects."""
 
 from collections import defaultdict
-from collections.abc import Sequence
-from itertools import combinations
+from collections.abc import Sequence, Iterable
 
 from toolz import concat
 
@@ -89,10 +88,17 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
         for concept in self:
             yield concept.mechanism
 
-    def purviews(self, direction):
-        """Return the purview of each concept in the given direction."""
+    def _purviews(self, direction):
         for concept in self:
             yield concept.purview(direction)
+
+    def purviews(self, direction):
+        """Return the purview of each concept in the given direction."""
+        if isinstance(direction, Iterable):
+            for _direction in direction:
+                yield from self._purviews(_direction)
+        else:
+            yield self._purview(direction)
 
     @property
     def labeled_mechanisms(self):
