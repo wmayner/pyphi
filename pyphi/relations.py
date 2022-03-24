@@ -4,6 +4,7 @@
 
 """Functions for computing relations between concepts."""
 
+from collections import defaultdict
 import operator
 from enum import Enum, auto, unique
 from itertools import product
@@ -32,6 +33,7 @@ from .models.cuts import RelationPartition
 from .models.subsystem import FlatCauseEffectStructure
 from .registry import Registry
 from .utils import eq, powerset
+from pyphi.direction import Direction
 
 
 @unique
@@ -863,8 +865,17 @@ class AnalyticalRelations(ApproximateRelations):
         return self.distinctions.purview_inclusion()
 
     def mean_phi(self):
-        """This approximation assumes all relation |small_phi| = 1."""
-        return 1.0
+        """This approximation uses the |small_phi| of the largest purviews and assumes all the overlaps are over 1 node."""
+        if len(self.distinctions) == 0:
+            return 0.0
+        phi_by_size = defaultdict(list)
+        for distinction in self.distinctions:
+            for direction in Direction.both():
+                phi_by_size[len(distinction.mice(direction).purview)] += [
+                    distinction.mice(direction).phi
+                ]
+        max_purview_size = max(phi_by_size.keys())
+        return np.mean(phi_by_size[max_purview_size]) / max_purview_size
 
     def _sum_phi(self):
         return self.mean_phi() * self._num_relations()
