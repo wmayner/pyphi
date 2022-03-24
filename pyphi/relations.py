@@ -844,26 +844,6 @@ class ConcreteRelations(HashableOrderedSet, Relations):
         )
 
 
-class RelationApproximationRegistry(Registry):
-    """Storage for approximations of the sum of relation phis.
-
-    Users can define custom schemes:
-
-    Examples:
-        >>> @relation_approximations.register('NONE')  # doctest: +SKIP
-        ... class NoRelations(ApproximateRelations):
-        ...     def _sum_phi(self):
-        ...         return 0
-
-    And use them by setting ``config.RELATION_SUM_PHI_APPROXIMATION = 'NONE'``
-    """
-
-    desc = "approximations of relations"
-
-
-relation_approximations = RelationApproximationRegistry()
-
-
 # TODO(4.0) to_json method
 class ApproximateRelations(Relations):
     def __init__(self, distinctions):
@@ -876,13 +856,10 @@ class ApproximateRelations(Relations):
         return self.__dict__
 
 
-@relation_approximations.register("ANALYTICAL_DEGREE_ALL")
 class AnalyticalRelations(ApproximateRelations):
-    DEGREE = None
-
     @property
     def purview_inclusion(self):
-        return self.distinctions.purview_inclusion(degree=self.DEGREE)
+        return self.distinctions.purview_inclusion()
 
     def mean_phi(self):
         """This approximation assumes all relation |small_phi| = 1."""
@@ -899,35 +876,20 @@ class AnalyticalRelations(ApproximateRelations):
         )
 
 
-@relation_approximations.register("ANALYTICAL_DEGREE_ONE")
-class AnalyticalRelationsDegreeOne(AnalyticalRelations):
-    DEGREE = 1
-
-
-@relation_approximations.register("SAMPLED_DEGREE_ALL")
 class SampledRelations(AnalyticalRelations):
     """Use the analytical approximations, but weight by the average phi of a set
     of sampled relations which are computed exactly.
     """
 
-    DEGREE = None
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._sample = None
-        self._max_degree = None
 
     @classmethod
     def from_json(cls, data):
         instance = cls(data["distinctions"])
         instance.__dict__.update(data)
         return instance
-
-    @property
-    def max_degree(self):
-        if self._max_degree is None:
-            self._max_degree = max(self.purview_inclusion.values(), default=0)
-        return self._max_degree
 
     @staticmethod
     def nonempty_intersection(relata):
@@ -943,7 +905,7 @@ class SampledRelations(AnalyticalRelations):
                     self.distinctions.subsystem, relata
                 ).maximally_irreducible_relation()
 
-    def draw_samples(self, potential_relata, sample_size, target_degrees):
+    def draw_samples(self, potential_relata, sample_size, degrees):
         setset.set_universe(potential_relata)
 
         # Power set of potential relata
@@ -951,12 +913,15 @@ class SampledRelations(AnalyticalRelations):
         # Cannot have singleton relata
         R -= R.set_size(1)
 
-        if target_degrees is None:
-            R_target = R
-        else:
+        if degrees:
+            # Validate
+            if any(degree < 2 for degree in degrees):
+                raise ValueError(f"all degrees must be >= 2; got {degrees}")
             R_target = setset([])
-            for degree in target_degrees:
+            for degree in degrees:
                 R_target |= R.set_size(degree)
+        else:
+            R_target = R
 
         R_iter = R_target.rand_iter()
         sample = []
@@ -970,23 +935,13 @@ class SampledRelations(AnalyticalRelations):
             sample.append(draw)
         return sample
 
-    def sample(self, target_degrees=None):
+    def sample(self, degrees=None):
         if self._sample is None:
-            if target_degrees is None:
-                # Most numerous order is ([max_degree] choose [max_degree // 2])
-                target_degrees = [self.max_degree // 2]
-            if any(degree > self.max_degree for degree in target_degrees):
-                raise ValueError(
-                    f"all degrees must be < max degree = {self.max_degree}; got {target_degrees}"
-                )
-            # if any(degree < 2 for degree in target_degrees):
-            #     raise ValueError(f"all degrees must be > 2; got {target_degrees}")
-            # TODO(4.0) generalize to list of target degrees; need another class var?
             potential_relata = FlatCauseEffectStructure(self.distinctions)
             self._sample = self.draw_samples(
                 potential_relata,
                 config.RELATION_APPROXIMATION_SAMPLE_SIZE,
-                target_degrees,
+                config.RELATION_APPROXIMATION_SAMPLE_DEGREES,
             )
         return self._sample
 
@@ -995,11 +950,6 @@ class SampledRelations(AnalyticalRelations):
             # Either empty distinctions, or sampling failed
             return 0.0
         return np.mean([relation.phi for relation in self.sample()])
-
-
-@relation_approximations.register("SAMPLED_DEGREE_ONE")
-class SampledRelationsDegreeOne(SampledRelations):
-    DEGREE = 1
 
 
 class RelationComputationsRegistry(Registry):
@@ -1021,18 +971,21 @@ class RelationComputationsRegistry(Registry):
 relation_computations = RelationComputationsRegistry()
 
 
-@relation_computations.register("APPROXIMATE")
-def approximate_relations(subsystem, distinctions, **kwargs):
-    return relation_approximations[config.RELATION_APPROXIMATION](
-        distinctions.unflatten()
-    )
-
-
 @relation_computations.register("EXACT")
 def concrete_relations(subsystem, distinctions, **kwargs):
     return ConcreteRelations(
         filter(None, all_relations(subsystem, distinctions, **kwargs))
     )
+
+
+@relation_computations.register("APPROXIMATE_ANALYTICAL")
+def approximate_analytical_relations(subsystem, distinctions, **kwargs):
+    return AnalyticalRelations(distinctions.unflatten())
+
+
+@relation_computations.register("APPROXIMATE_SAMPLED")
+def approximate_sampled_relations(subsystem, distinctions, **kwargs):
+    return SampledRelations(distinctions.unflatten())
 
 
 def relations(subsystem, distinctions, **kwargs):
