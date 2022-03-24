@@ -854,23 +854,12 @@ class PyphiConfig(Config):
 
     RELATION_COMPUTATION = Option(
         "EXACT",
-        values=["APPROXIMATE", "EXACT"],
+        values=["EXACT", "APPROXIMATE_ANALYTICAL", "APPROXIMATE_SAMPLED"],
         doc="""
     Controls how relations are computed.
 
     You can configure custom relation computation functions using the
     ``pyphi.relations.relation_computations.register`` decorator.
-    """,
-    )
-
-    RELATION_APPROXIMATION = Option(
-        "ANALYTICAL_DEGREE_ONE",
-        doc="""
-    Controls the approximation scheme for relations. This option only applies if
-    ``RELATION_COMPUATION = 'APPROXIMATE'``.
-
-    You can configure custom partitioning schemes using the
-    ``pyphi.relations.relation_sum_phi_approximations.register`` decorator.
     """,
     )
 
@@ -880,6 +869,16 @@ class PyphiConfig(Config):
         doc="""
     Controls the sample size for approximated relations. Only applies if
     ``RELATION_APPROXIMATION`` implies a sampling approach.
+    """,
+    )
+
+    RELATION_APPROXIMATION_SAMPLE_DEGREES = Option(
+        False,
+        doc="""
+    Controls the sampled degrees for approximated relations. Only applies if
+    ``RELATION_APPROXIMATION`` implies a sampling approach. Can be either falsy
+    (sample uniformly from all possible relations) or a list of degrees (sample
+    uniformly from possible relations with those degrees).
     """,
     )
 

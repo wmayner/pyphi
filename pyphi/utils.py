@@ -231,17 +231,13 @@ def time_annotated(func, *args, **kwargs):
     result.time = round(end - start, config.PRECISION)
     return result
 
-
-def substate(state, nodes):
-    return tuple(state[i] for i in nodes)
-
-
+  
 def purview_substate(purview, purview_state, subset):
     assert set(subset).issubset(set(purview))
     assert len(purview) == len(purview_state)
     return tuple([purview_state[purview.index(node)] for node in subset])
 
-
+  
 def extremum_with_short_circuit(
     seq,
     value_func=lambda item: item.phi,

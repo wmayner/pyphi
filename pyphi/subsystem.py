@@ -24,9 +24,9 @@ from .models import (
 )
 from .network import irreducible_purviews
 from .node import generate_nodes
-from .partition import mip_partitions, complete_partition
+from .partition import complete_partition, mip_partitions
 from .tpm import condition_tpm, marginalize_out
-from .utils import substate, time_annotated
+from .utils import state_of, time_annotated
 
 log = logging.getLogger(__name__)
 
@@ -597,8 +597,8 @@ class Subsystem:
                 partition=partition,
                 repertoire=repertoire,
                 partitioned_repertoire=partitioned_repertoire,
-                mechanism_state=substate(self.state, mechanism),
-                purview_state=substate(self.state, purview),
+                mechanism_state=state_of(mechanism, self.state),
+                purview_state=state_of(purview, self.state),
                 node_labels=self.node_labels,
             )
 
