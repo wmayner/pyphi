@@ -905,8 +905,8 @@ class AnalyticalRelations(ApproximateRelations):
 
     def _num_relations(self):
         return sum(
-            (-1) ** (len(subset) - 1) * (2 ** num_purviews - num_purviews - 1)
-            for (subset, substate), num_purviews in self.distinctions.purview_inclusion(
+            (-1) ** (len(subset) - 1) * (2 ** len(distinctions) - len(distinctions) - 1)
+            for (subset, substate), distinctions in self.distinctions.purview_inclusion(
                 max_degree=None,
             ).items()
         )
