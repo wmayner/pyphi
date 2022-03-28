@@ -893,10 +893,9 @@ class AnalyticalRelations(ApproximateRelations):
             return 0.0
         phi_by_size = defaultdict(list)
         for distinction in self.distinctions:
-            for direction in Direction.both():
-                phi_by_size[len(distinction.mice(direction).purview)] += [
-                    distinction.mice(direction).phi
-                ]
+            phi_by_size[len(distinction.purview)] += [
+                distinction.phi
+            ]
         max_purview_size = max(phi_by_size.keys())
         return np.mean(phi_by_size[max_purview_size]) / max_purview_size
 
