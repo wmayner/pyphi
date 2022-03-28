@@ -895,12 +895,15 @@ class PyphiConfig(Config):
     """,
     )
 
-    RELATION_ALLOW_DUPLICATE_PURVIEWS = Option(
+    RELATION_ENFORCE_NO_DUPLICATE_PURVIEWS = Option(
         False,
         type=bool,
         doc="""
-    Controls whether to short-circuit when attempting to compute relation among
-    relata that contain duplicate purviews.
+    Controls whether the relation computation checks whether there are duplicate
+    purviews (same elements and direction) in the relata being evaluated and
+    returns a zero-phi relation if so. This case should never arise in normal
+    operation, since relations are normally only computed among distinctions in a
+    nonconflicting set. Defaults to false to avoid the cost of checking.
     """,
     )
 

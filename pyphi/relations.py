@@ -698,10 +698,10 @@ class Relata(HashableOrderedSet):
             )
         # Because of the constraint that there are no duplicate purviews in a
         # compositional state, relations among relata with duplicate purviews
-        # never occur. This is the default setting, but the user can change this
-        # to investigate relations in that case if desired.
+        # never occur during normal operation. However, the user can specify
+        # that this condition be explicitly checked.
         if (
-            not config.RELATION_ALLOW_DUPLICATE_PURVIEWS
+            config.RELATION_ENFORCE_NO_DUPLICATE_PURVIEWS
             and self.contains_duplicate_purviews
         ):
             return self.null_relation(
