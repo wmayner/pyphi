@@ -22,11 +22,6 @@ def _concept_sort_key(concept):
     return (len(concept.mechanism), concept.mechanism)
 
 
-# Need top-level named function for pickling
-def _zero():
-    return 0
-
-
 class CauseEffectStructure(cmp.Orderable, Sequence):
     """A collection of concepts."""
 
@@ -37,7 +32,8 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
         self.subsystem = subsystem
         self.time = time
         self._specifiers = None
-        self._purview_inclusion = None
+        self._purview_inclusion = defaultdict(list)
+        self._purview_inclusion_max_degree = 0
 
     def __len__(self):
         return len(self.concepts)
@@ -107,19 +103,15 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
         label = self.subsystem.node_labels.indices2labels
         return tuple(list(label(mechanism)) for mechanism in self.mechanisms)
 
-    def purview_inclusion(self):
-        """Map subsets of elements to the number of purviews that include that subset."""
-        # TODO(4.0) use lattice datastructure here?
-        if self._purview_inclusion is None:
-            self._purview_inclusion = defaultdict(_zero)
-            for distinction in self:
-                for direction in Direction.both():
-                    mice = distinction.mice(direction)
-                    for subset in utils.powerset(mice.purview, nonempty=True):
-                        substate = utils.purview_substate(
-                            mice.purview, tuple(mice.specified_state[0]), subset
-                        )
-                        self._purview_inclusion[subset, substate] += 1
+    def purview_inclusion(self, max_degree=None):
+        if max_degree is None:
+            max_degree = len(self.subsystem)
+        max_degree = min(len(self.subsystem), max_degree)
+        if max_degree > self._purview_inclusion_max_degree:
+            self.flatten().compute_purview_inclusion(
+                max_degree, purview_inclusion_dct=self._purview_inclusion
+            )
+        self._purview_inclusion_max_degree = max_degree
         return self._purview_inclusion
 
 
@@ -132,13 +124,20 @@ class FlatCauseEffectStructure(CauseEffectStructure):
             subsystem = concepts.subsystem
             time = concepts.time
         if not isinstance(concepts, FlatCauseEffectStructure):
-            concepts = concat(
+            _concepts = concat(
                 (concept.cause, concept.effect)
                 if isinstance(concept, Concept)
                 else concept
                 for concept in concepts
             )
-        super().__init__(concepts=concepts, subsystem=subsystem, time=time)
+        else:
+            _concepts = iter(concepts)
+        super().__init__(concepts=_concepts, subsystem=subsystem, time=time)
+        try:
+            self._purview_inclusion = concepts._purview_inclusion
+            self._purview_inclusion_max_degree = concepts._purview_inclusion_max_degree
+        except AttributeError:
+            pass
 
     def __str__(self):
         return fmt.fmt_ces(self, title="Flat cause-effect structure")
@@ -173,6 +172,9 @@ class FlatCauseEffectStructure(CauseEffectStructure):
         """Return a mapping from each purview to its maximum specifier."""
         return {purview: self.maximum_specifier(purview) for purview in self.purviews}
 
+    def flatten(self):
+        return self
+
     def unflatten(self):
         mechanism_to_mice = defaultdict(dict)
         for mice in self:
@@ -191,8 +193,23 @@ class FlatCauseEffectStructure(CauseEffectStructure):
             time=self.time,
         )
 
-    def purview_occurences(self):
-        raise NotImplementedError
+    def compute_purview_inclusion(self, max_degree, purview_inclusion_dct=None):
+        if purview_inclusion_dct is None:
+            purview_inclusion_dct = self._purview_inclusion
+        for distinction in self:
+            for subset in utils.powerset(
+                distinction.purview,
+                nonempty=True,
+                min_size=(self._purview_inclusion_max_degree + 1),
+                max_size=max_degree,
+            ):
+                # NOTE: This considers "includes" to mean "congruent
+                # with any of the tied states"
+                substates = utils.specified_substate(
+                    distinction.purview, distinction.specified_state, subset
+                )
+                for substate in map(tuple, substates):
+                    purview_inclusion_dct[(subset, substate)].append(distinction)
 
 
 class SystemIrreducibilityAnalysis(cmp.Orderable):
