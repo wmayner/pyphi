@@ -117,6 +117,46 @@ def combinations_with_nonempty_intersection(sets, min_size=0, max_size=None):
     return chain.from_iterable(implicit.values())
 
 
+def powerset_family(X, min_size=1, max_size=None, universe=None):
+    """Return the power set of X as a set family.
+
+    NOTE: The universe is assumed to have been set already.
+    """
+    if universe is None:
+        universe = set(setset.universe())
+
+    # This is necessary since `.set_size(0)` doesn't seem to work
+    if min_size > 0:
+        negation = [[]]
+    else:
+        negation = []
+    P = ~setset(negation)
+
+    for e in universe - set(X):
+        P -= P.join(setset([[e]]))
+
+    exclude = list(range(1, min_size))
+    if max_size is not None:
+        exclude += list(range(max_size + 1, 2 ** len(X) + 1))
+    for k in exclude:
+        P -= P.set_size(k)
+
+    return P
+
+
+def union_powerset_family(sets, min_size=1, max_size=None):
+    """Return union of the power set of each set in ``sets``.
+
+    NOTE: The universe must already have been set to (at least) the union of the
+    ``sets``.
+    """
+    U = set(setset.universe())
+    S = setset([])
+    for s in sets:
+        S |= powerset_family(s, min_size=min_size, max_size=max_size, universe=U)
+    return S
+
+
 def maximal_independent_sets(graph):
     """Yield the maximal independent sets of the graph.
 

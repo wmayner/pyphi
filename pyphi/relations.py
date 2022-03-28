@@ -11,7 +11,6 @@ from itertools import product
 from time import time
 
 import numpy as np
-import scipy.special
 from graphillion import setset
 from joblib import Parallel, delayed
 from toolz import concat, curry
@@ -24,8 +23,7 @@ from pyphi.partition import (
     relation_partition_types,
 )
 
-from . import config, validate
-from .combinatorics import combinations_with_nonempty_intersection
+from . import combinatorics, config, validate
 from .data_structures import HashableOrderedSet
 from .metrics.distribution import absolute_information_density
 from .models import cmp, fmt
@@ -700,10 +698,10 @@ class Relata(HashableOrderedSet):
             )
         # Because of the constraint that there are no duplicate purviews in a
         # compositional state, relations among relata with duplicate purviews
-        # never occur. This is the default setting, but the user can change this
-        # to investigate relations in that case if desired.
+        # never occur during normal operation. However, the user can specify
+        # that this condition be explicitly checked.
         if (
-            not config.RELATION_ALLOW_DUPLICATE_PURVIEWS
+            config.RELATION_ENFORCE_NO_DUPLICATE_PURVIEWS
             and self.contains_duplicate_purviews
         ):
             return self.null_relation(
@@ -744,36 +742,65 @@ def all_relata(subsystem, ces, min_degree=2, max_degree=None):
         yield Relata(subsystem, subset)
 
 
-def potential_relata(subsystem, ces, min_degree=2, max_degree=None):
-    """Return Relata with nonempty overlap."""
-    purviews = list(map(frozenset, ces.purviews))
-    for combination in combinations_with_nonempty_intersection(
-        purviews, min_size=min_degree, max_size=max_degree
+def combinations_with_nonempty_congruent_overlap(
+    distinctions, min_degree=2, max_degree=None
+):
+    """Return combinations of distinctions with nonempty congruent overlap."""
+    distinctions = distinctions.flatten()
+    # Use integers to avoid expensive distinction hashing
+    # TODO(4.0) remove when/if distinctions allow O(1) random access
+    mapping = {distinction: i for i, distinction in enumerate(distinctions)}
+    sets = [
+        list(map(mapping.get, subset))
+        for subset in distinctions.purview_inclusion(max_degree=1).values()
+    ]
+    setset.set_universe(range(len(distinctions)))
+    return combinatorics.union_powerset_family(
+        sets, min_size=min_degree, max_size=max_degree
+    )
+
+
+def potential_relata(subsystem, distinctions, min_degree=2, max_degree=None):
+    """Return Relata with nonempty congruent overlap.
+
+    Arguments:
+        subsystem (Subsystem): The subsystem in question.
+        distinctions (CauseEffectStructure): The distinctions that are potentially related.
+    """
+    distinctions = distinctions.flatten()
+    for combination in combinations_with_nonempty_congruent_overlap(
+        distinctions, min_degree=min_degree, max_degree=max_degree
     ):
-        yield Relata(subsystem, tuple(ces[i] for i in combination))
+        yield Relata(subsystem, (distinctions[i] for i in combination))
 
 
 # TODO: change to candidate_relations?
 def all_relations(
-    subsystem, ces, parallel=False, parallel_kwargs=None, progress=True, **kwargs
+    subsystem,
+    ces,
+    parallel=False,
+    parallel_kwargs=None,
+    progress=True,
+    potential_relata=None,
+    **kwargs,
 ):
     """Return all relations, even those with zero phi."""
     # Relations can be over any combination of causes/effects in the CES, so we
     # get a flat list of all causes and effects
-    ces = FlatCauseEffectStructure(ces)
-    relata = list(potential_relata(subsystem, ces, **kwargs))
+    if potential_relata is None:
+        potential_relata = list(potential_relata(subsystem, ces, **kwargs))
     if progress:
-        relata = tqdm(relata)
+        potential_relata = tqdm(potential_relata)
     # Compute all relations
     n_jobs = get_num_processes()
     parallel_kwargs = {
         "n_jobs": n_jobs,
-        "batch_size": max(len(relata) // (n_jobs - 1), 1),
+        "batch_size": max(len(potential_relata) // (n_jobs - 1), 1),
         **(parallel_kwargs if parallel_kwargs else dict()),
     }
     if parallel:
-        return Parallel(**parallel_kwargs)(map(delayed(relation), relata))
-    return map(relation, relata)
+        return Parallel(**parallel_kwargs)(map(delayed(relation), potential_relata))
+    return map(relation, potential_relata)
 
 
 class Relations:
@@ -850,7 +877,7 @@ class ConcreteRelations(HashableOrderedSet, Relations):
 # TODO(4.0) to_json method
 class ApproximateRelations(Relations):
     def __init__(self, distinctions):
-        self.distinctions = distinctions
+        self.distinctions = distinctions.flatten()
 
     def supported_by(self, distinctions):
         return type(self)(distinctions)
@@ -860,10 +887,6 @@ class ApproximateRelations(Relations):
 
 
 class AnalyticalRelations(ApproximateRelations):
-    @property
-    def purview_inclusion(self):
-        return self.distinctions.purview_inclusion()
-
     def mean_phi(self):
         """This approximation uses the |small_phi| of the largest purviews and assumes all the overlaps are over 1 node."""
         if len(self.distinctions) == 0:
@@ -882,8 +905,10 @@ class AnalyticalRelations(ApproximateRelations):
 
     def _num_relations(self):
         return sum(
-            (-1) ** (len(subset[0]) - 1) * (2 ** num_purviews - num_purviews - 1)
-            for subset, num_purviews in self.purview_inclusion.items()
+            (-1) ** (len(subset) - 1) * (2 ** num_purviews - num_purviews - 1)
+            for (subset, substate), num_purviews in self.distinctions.purview_inclusion(
+                max_degree=None,
+            ).items()
         )
 
     def __len__(self):
@@ -898,6 +923,7 @@ class SampledRelations(AnalyticalRelations):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._sample = None
+        self._max_degree = None
 
     @classmethod
     def from_json(cls, data):
@@ -905,39 +931,58 @@ class SampledRelations(AnalyticalRelations):
         instance.__dict__.update(data)
         return instance
 
-    @staticmethod
-    def nonempty_intersection(relata):
-        return set.intersection(*(set(distinction.purview) for distinction in relata))
+    @property
+    def max_degree(self):
+        """The maximum possible degree of a relation among the given distinctions.
+
+        This is the maximum count of purview inclusion of single elements.
+        """
+        if self._max_degree is None:
+            self._max_degree = max(
+                map(len, self.distinctions.purview_inclusion(max_degree=1).values()),
+                default=0,
+            )
+        return self._max_degree
 
     def draw_sample(self, R_iter, start, timeout):
         while time() < start + timeout:
-            relata = next(R_iter, None)
-            if relata is None:
+            combination = next(R_iter, None)
+            if combination is None:
                 return
-            if self.nonempty_intersection(relata):
-                return Relata(
-                    self.distinctions.subsystem, relata
-                ).maximally_irreducible_relation()
+            return Relata(
+                self.distinctions.subsystem, (self.distinctions[i] for i in combination)
+            ).maximally_irreducible_relation()
 
-    def draw_samples(self, potential_relata, sample_size, degrees, timeout):
-        setset.set_universe(potential_relata)
+    def draw_samples(self, sample_size=None, degrees=None, timeout=None):
+        """Return a new relations sample.
 
-        # Power set of potential relata
-        R = ~setset([[]])
-        # Cannot have singleton relata
-        R -= R.set_size(1)
+        NOTE: This method updates the `sample` attribute in-place.
+        """
+        if sample_size is None:
+            sample_size = config.RELATION_APPROXIMATION_SAMPLE_SIZE
+        if degrees is None:
+            degrees = config.RELATION_APPROXIMATION_SAMPLE_DEGREES
+        if timeout is None:
+            timeout = config.RELATION_APPROXIMATION_SAMPLE_TIMEOUT
+
+        potential_relata = combinations_with_nonempty_congruent_overlap(
+            self.distinctions
+        )
 
         if degrees:
             if any(degree <= 0 for degree in degrees):
                 # Negative or zeros: interpret degrees as relative to most numerous degree
-                # Most numerous degree is the middle-sized degree, n/2
-                middle_degree = len(potential_relata) // 2
+                # Most numerous degree is half the maximum degree, since the (n
+                # choose k) achieves its maximum at k = n/2
+                middle_degree = self.max_degree // 2
                 degrees = [middle_degree + degree for degree in degrees]
+                if any(degree < 2 for degree in degrees):
+                    raise ValueError(f"some implied degrees are < 2: {degrees}")
             R_target = setset([])
             for degree in degrees:
-                R_target |= R.set_size(degree)
+                R_target |= potential_relata.set_size(degree)
         else:
-            R_target = R
+            R_target = potential_relata
 
         # Uniform sampling
         R_iter = R_target.rand_iter()
@@ -949,28 +994,31 @@ class SampledRelations(AnalyticalRelations):
             if draw is None:
                 break
             sample.append(draw)
-        return sample
 
-    def sample(self, degrees=None, timeout=None):
-        if self._sample is None:
-            if degrees is None:
-                degrees = config.RELATION_APPROXIMATION_SAMPLE_DEGREES
-            if timeout is None:
-                timeout = config.RELATION_APPROXIMATION_SAMPLE_TIMEOUT
-            potential_relata = FlatCauseEffectStructure(self.distinctions)
-            self._sample = self.draw_samples(
-                potential_relata,
-                config.RELATION_APPROXIMATION_SAMPLE_SIZE,
-                degrees,
-                timeout,
+        if not len(sample) == sample_size:
+            raise TimeoutError(
+                f"Sampling failed after {timeout} s; try increasing timeout "
+                "length, decreasing sample size, or sampling different degrees"
             )
+        # Update sample in place
+        self._sample = sample
+        return self._sample
+
+    @property
+    def sample(self):
+        """The sampled relations.
+
+        NOTE: To re-sample, use the ``draw_samples()`` method.
+        """
+        if self._sample is None:
+            # Update sample in place
+            self.draw_samples()
         return self._sample
 
     def mean_phi(self):
-        if not self.sample():
-            # Either empty distinctions, or sampling failed
+        if not self.sample:
             return 0.0
-        return np.mean([relation.phi for relation in self.sample()])
+        return np.mean([relation.phi for relation in self.sample])
 
 
 class RelationComputationsRegistry(Registry):
