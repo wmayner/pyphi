@@ -914,6 +914,10 @@ class AnalyticalRelations(ApproximateRelations):
         return self._num_relations()
 
 
+class SampleWarning(Warning):
+    pass
+
+
 class SampledRelations(AnalyticalRelations):
     """Use the analytical approximations, but weight by the average phi of a set
     of sampled relations which are computed exactly.
@@ -995,9 +999,14 @@ class SampledRelations(AnalyticalRelations):
             sample.append(draw)
 
         if not len(sample) == sample_size:
-            raise TimeoutError(
-                f"Sampling failed after {timeout} s; try increasing timeout "
-                "length, decreasing sample size, or sampling different degrees"
+            import warnings
+
+            warnings.warn(
+                message=(
+                    f"Sampling failed after {timeout} s; try increasing timeout "
+                    "length, decreasing sample size, or sampling different degrees"
+                ),
+                category=SampleWarning,
             )
         # Update sample in place
         self._sample = sample
