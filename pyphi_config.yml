@@ -41,7 +41,7 @@ RELATION_PHI_SCHEME: "OVERLAP_RATIO_TIMES_RELATION_INFORMATIVENESS"
 RELATION_COMPUTATION: "EXACT"
 # Controls the sample size for approximated relations. Only applies if
 # RELATION_COMPUTATION implies a sampling approach.
-RELATION_APPROXIMATION_SAMPLE_SIZE: 10
+RELATION_APPROXIMATION_SAMPLE_SIZE: 1000
 # Controls the degrees of sampled relations for the sampled approximation. Can
 # be either falsy (sample uniformly from all possible relations) or a list of
 # degrees (sample uniformly from possible relations with those degrees). If the
@@ -50,7 +50,7 @@ RELATION_APPROXIMATION_SAMPLE_SIZE: 10
 # most numerous), signified by 0.
 RELATION_APPROXIMATION_SAMPLE_DEGREES: false
 # Controls the number of seconds to wait while sampling.
-RELATION_APPROXIMATION_SAMPLE_TIMEOUT: 10.0
+RELATION_APPROXIMATION_SAMPLE_TIMEOUT: 1.0
 # Controls how to resolve phi-ties when computing MICE.
 PICK_SMALLEST_PURVIEW: false
 # The type of system cuts to use
