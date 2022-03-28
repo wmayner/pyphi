@@ -758,8 +758,10 @@ def combinations_with_nonempty_congruent_overlap(
     )
 
 
-def potential_relata(subsystem, distinctions, min_degree=2, max_degree=None):
-    """Return Relata with nonempty congruent overlap.
+def relata_with_nonempty_congruent_overlap(
+    subsystem, distinctions, min_degree=2, max_degree=None
+):
+    """Yield Relata with nonempty congruent overlap.
 
     Arguments:
         subsystem (Subsystem): The subsystem in question.
@@ -786,7 +788,9 @@ def all_relations(
     # Relations can be over any combination of causes/effects in the CES, so we
     # get a flat list of all causes and effects
     if potential_relata is None:
-        potential_relata = list(potential_relata(subsystem, ces, **kwargs))
+        potential_relata = list(
+            relata_with_nonempty_congruent_overlap(subsystem, ces, **kwargs)
+        )
     if progress:
         potential_relata = tqdm(potential_relata)
     # Compute all relations
