@@ -4,8 +4,8 @@
 
 """Functions for computing relations between concepts."""
 
-from collections import defaultdict
 import operator
+import warnings
 from enum import Enum, auto, unique
 from itertools import product
 from time import time
@@ -31,7 +31,6 @@ from .models.cuts import RelationPartition
 from .models.subsystem import FlatCauseEffectStructure
 from .registry import Registry
 from .utils import eq, powerset
-from pyphi.direction import Direction
 
 
 @unique
@@ -891,37 +890,68 @@ class ApproximateRelations(Relations):
 
 
 class AnalyticalRelations(ApproximateRelations):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._mean_phi = None
+        self._num_relations = None
+
+    def _update_mean_phi_and_num_relations(self):
+        self._mean_phi = 0
+        self._num_relations = 0
+        if self.distinctions:
+            sum_min_phi = 0
+            sum_min_purview_size = 0
+            for (
+                overlap,
+                substate,
+            ), overlapping_distinctions in self.distinctions.purview_inclusion(
+                max_degree=None
+            ).items():
+                inclusion_exclusion_alternating_term = (-1) ** (len(overlap) - 1)
+                self._num_relations += (
+                    inclusion_exclusion_alternating_term
+                    * combinatorics.num_subsets_larger_than_one_element(
+                        len(overlapping_distinctions)
+                    )
+                )
+                sum_min_phi += (
+                    inclusion_exclusion_alternating_term
+                    # TODO(4.0) use .phis if this becomes a CES
+                    * combinatorics.sum_of_minimum_among_subsets(
+                        [d.phi for d in overlapping_distinctions]
+                    )
+                )
+                sum_min_purview_size += (
+                    inclusion_exclusion_alternating_term
+                    * combinatorics.sum_of_minimum_among_subsets(
+                        [len(d.purview) for d in overlapping_distinctions]
+                    )
+                )
+            # Equivalent to mean(phi) / mean(purview_size)
+            self._mean_phi = sum_min_phi / sum_min_purview_size
+
     def mean_phi(self):
-        """This approximation uses the |small_phi| of the largest purviews and assumes all the overlaps are over 1 node."""
-        if len(self.distinctions) == 0:
-            return 0.0
-        sum_min_phi = 0
-        sum_min_purview = 0
-        purview_inclusion = self.distinctions.purview_inclusion()
-        for overlap in purview_inclusion:
-            sum_min_phi += (-1) ** (len(overlap[0]) - 1) * combinatorics.sum_min_subset(
-                [d.phi for d in purview_inclusion[overlap]]
-            )
-            sum_min_purview += (-1) ** (
-                len(overlap[0]) - 1
-            ) * combinatorics.sum_min_subset(
-                [len(d.purview) for d in purview_inclusion[overlap]]
-            )
-        return sum_min_phi / sum_min_purview
+        """Mean relation phi is approximated as follows:
+
+        - All relations that can exist, given combinatorial structure of the
+          distinctions, are assumed to exist.
+        - The phi of a relation is assumed to be the ratio of the minimum
+          distinction phi to the minimum purview size.
+        """
+        if self._mean_phi is None:
+            self._update_mean_phi_and_num_relations()
+        return self._mean_phi
 
     def _sum_phi(self):
         return self.mean_phi() * self._num_relations()
 
-    def _num_relations(self):
-        return sum(
-            (-1) ** (len(subset) - 1) * (2 ** len(distinctions) - len(distinctions) - 1)
-            for (subset, substate), distinctions in self.distinctions.purview_inclusion(
-                max_degree=None,
-            ).items()
-        )
+    def num_relations(self):
+        if self._num_relations is None:
+            self._update_mean_phi_and_num_relations()
+        return self._num_relations
 
     def __len__(self):
-        return self._num_relations()
+        return self.num_relations()
 
 
 class SampleWarning(Warning):
@@ -1009,8 +1039,6 @@ class SampledRelations(AnalyticalRelations):
             sample.append(draw)
 
         if not len(sample) == sample_size:
-            import warnings
-
             warnings.warn(
                 message=(
                     f"Sampling failed after {timeout} s; try increasing timeout "

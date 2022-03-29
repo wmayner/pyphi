@@ -4,13 +4,16 @@
 
 """Combinatorial functions."""
 
-# TODO(4.0) move relevant functions from utils here
-
 from collections import defaultdict
 from itertools import chain
-from graphillion import setset
-import networkx as nx
 
+import networkx as nx
+import numpy as np
+from graphillion import setset
+
+from .cache import cache
+
+# TODO(4.0) move relevant functions from utils here
 
 # TODO(docs) finish documenting
 def pair_indices(n, m=None, k=0):
@@ -166,11 +169,23 @@ def maximal_independent_sets(graph):
     return nx.find_cliques(nx.complement(graph))
 
 
-def sum_min_subset(l):
-    """Calculates the sum of minimum of all the possible subsets of size larger than two
-    of a set of elements"""
-    l.sort()
-    sum_min = 0
-    for i, val in enumerate(l):
-        sum_min += (2 ** (len(l) - i - 1) - 1) * val
-    return sum_min
+@cache(cache={}, maxmem=None)
+def num_subsets_larger_than_one_element(n):
+    """Return the number of subsets on N elements with size >1.
+
+    |X| = |P(n)| - |{S ∈ P(n) | |S| = 1}| - |{S ∈ P(n) | |S| = 0}|
+        = 2^n    - (n choose 1)             - |{ø}|
+        = 2^n    - n                        - 1
+    """
+    return 2 ** n - n - 1
+
+
+def sum_of_minimum_among_subsets(values):
+    """Return sum of the minimum of all subsets with size >1 of some values."""
+    # This series counts, from i = 0 to (len(values) - 1), the number of subsets
+    # of values of size >1 such that value i is included in all subsets.
+    # Since each value is fixed to be in all subsets, this formula differs from
+    # `num_subsets_larger_than_one_element`.
+    counts = 2 ** (np.arange(len(values), 0, -1) - 1) - 1
+    # Sorting ensures that we're taking the minimum of values for each subset
+    return np.sum(np.sort(values) * counts)
