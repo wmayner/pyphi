@@ -943,7 +943,7 @@ class AnalyticalRelations(ApproximateRelations):
         return self._mean_phi
 
     def _sum_phi(self):
-        return self.mean_phi() * self._num_relations()
+        return self.mean_phi() * self.num_relations()
 
     def num_relations(self):
         if self._num_relations is None:
