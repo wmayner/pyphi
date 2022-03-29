@@ -18,6 +18,7 @@ install_requires = [
     "decorator >=4.0.0",
     "Graphillion >=1.5",
     "joblib >=0.8.0",
+    "networkx >=2.6.2",
     "numpy >=1.11.0",
     "ordered-set >= 4.0.2",
     "psutil >=2.1.1",
