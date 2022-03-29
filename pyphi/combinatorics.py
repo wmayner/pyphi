@@ -164,3 +164,13 @@ def maximal_independent_sets(graph):
     """
     # Maximal independent sets are cliques in the graph's complement
     return nx.find_cliques(nx.complement(graph))
+
+
+def sum_min_subset(l):
+    """Calculates the sum of minimum of all the possible subsets of size larger than two
+    of a set of elements"""
+    l.sort()
+    sum_min = 0
+    for i, val in enumerate(l):
+        sum_min += (2 ** (len(l) - i - 1) - 1) * val
+    return sum_min
