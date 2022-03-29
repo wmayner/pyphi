@@ -4,6 +4,7 @@
 
 """Functions for computing relations between concepts."""
 
+from collections import defaultdict
 import operator
 from enum import Enum, auto, unique
 from itertools import product
@@ -30,6 +31,7 @@ from .models.cuts import RelationPartition
 from .models.subsystem import FlatCauseEffectStructure
 from .registry import Registry
 from .utils import eq, powerset
+from pyphi.direction import Direction
 
 
 @unique
@@ -890,8 +892,22 @@ class ApproximateRelations(Relations):
 
 class AnalyticalRelations(ApproximateRelations):
     def mean_phi(self):
-        """This approximation assumes all relation |small_phi| = 1."""
-        return 1.0
+        """This approximation uses the |small_phi| of the largest purviews and assumes all the overlaps are over 1 node."""
+        if len(self.distinctions) == 0:
+            return 0.0
+        sum_min_phi = 0
+        sum_min_purview = 0
+        purview_inclusion = self.distinctions.purview_inclusion()
+        for overlap in purview_inclusion:
+            sum_min_phi += (-1) ** (len(overlap[0]) - 1) * combinatorics.sum_min_subset(
+                [d.phi for d in purview_inclusion[overlap]]
+            )
+            sum_min_purview += (-1) ** (
+                len(overlap[0]) - 1
+            ) * combinatorics.sum_min_subset(
+                [len(d.purview) for d in purview_inclusion[overlap]]
+            )
+        return sum_min_phi / sum_min_purview
 
     def _sum_phi(self):
         return self.mean_phi() * self._num_relations()
