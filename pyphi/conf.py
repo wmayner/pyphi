@@ -864,7 +864,7 @@ class PyphiConfig(Config):
     )
 
     RELATION_APPROXIMATION_SAMPLE_SIZE = Option(
-        10,
+        1000,
         type=int,
         doc="""
     Controls the sample size for approximated relations. Only applies if
@@ -888,7 +888,7 @@ class PyphiConfig(Config):
     )
 
     RELATION_APPROXIMATION_SAMPLE_TIMEOUT = Option(
-        5.0,
+        1.0,
         type=(int, float),
         doc="""
     Controls the number of seconds to wait while sampling.
