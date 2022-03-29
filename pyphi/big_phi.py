@@ -228,6 +228,10 @@ class PhiStructure(cmp.Orderable):
     def sum_phi_relations(self):
         return self.relations.sum_phi()
 
+    @_requires_relations
+    def sum_phi(self):
+        return self.sum_phi_distinctions() + self.sum_phi_relations()
+
     def selectivity(self):
         if self._selectivity is None:
             self._selectivity = (
@@ -314,6 +318,7 @@ class PartitionedPhiStructure(PhiStructure):
 
     def partitioned_distinctions(self):
         if self._partitioned_distinctions is None:
+            # TODO(4.0) keep a list of indices instead of a copy?
             self._partitioned_distinctions = unaffected_distinctions(
                 self.distinctions, self.partition
             )
@@ -345,16 +350,16 @@ class PartitionedPhiStructure(PhiStructure):
             self._partitioned_relations = None
         return self._sum_phi_partitioned_relations
 
+    def sum_phi_partitioned(self):
+        return (
+            self.sum_phi_partitioned_distinctions()
+            + self.sum_phi_partitioned_relations()
+        )
+
     # TODO use only a single pass through the distinctions / relations?
     def informativeness(self):
         if self._informativeness is None:
-            distinction_term = (
-                self.sum_phi_distinctions() - self.sum_phi_partitioned_distinctions()
-            )
-            relation_term = (
-                self.sum_phi_relations() - self.sum_phi_partitioned_relations()
-            )
-            self._informativeness = distinction_term + relation_term
+            self._informativeness = self.sum_phi() - self.sum_phi_partitioned()
         return self._informativeness
 
     def phi(self):
