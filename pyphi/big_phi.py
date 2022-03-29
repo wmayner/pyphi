@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # big_phi.py
 
+import functools
 import logging
 import operator
 import pickle
@@ -10,7 +11,6 @@ from dataclasses import dataclass
 import networkx as nx
 import ray
 import scipy
-from importlib_metadata import functools
 from toolz.itertoolz import partition_all
 from tqdm.auto import tqdm
 
