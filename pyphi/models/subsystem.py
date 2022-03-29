@@ -125,9 +125,9 @@ class FlatCauseEffectStructure(CauseEffectStructure):
             time = concepts.time
         if not isinstance(concepts, FlatCauseEffectStructure):
             _concepts = concat(
-                (concept.cause, concept.effect)
+                [concept.cause, concept.effect]
                 if isinstance(concept, Concept)
-                else concept
+                else [concept]
                 for concept in concepts
             )
         else:
