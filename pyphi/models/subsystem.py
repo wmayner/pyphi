@@ -33,8 +33,8 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
         self.time = time
         self._specifiers = None
         self._purview_inclusion = defaultdict(list)
-        self._purview_inclusion_max_degree = 0
-        self._purview_inclusion_by_degree = defaultdict(set)
+        self._purview_inclusion_max_order = 0
+        self._purview_inclusion_by_order = defaultdict(set)
 
     def __len__(self):
         return len(self.concepts)
@@ -104,27 +104,26 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
         label = self.subsystem.node_labels.indices2labels
         return tuple(list(label(mechanism)) for mechanism in self.mechanisms)
 
-    def purview_inclusion(self, max_degree=None):
-        # TODO change degree to order (sigh)
-        if max_degree is None:
-            max_degree = len(self.subsystem)
-        max_degree = min(len(self.subsystem), max_degree)
-        if max_degree > self._purview_inclusion_max_degree:
+    def purview_inclusion(self, max_order=None):
+        if max_order is None:
+            max_order = len(self.subsystem)
+        max_order = min(len(self.subsystem), max_order)
+        if max_order > self._purview_inclusion_max_order:
             self.flatten().compute_purview_inclusion(
-                max_degree,
+                max_order,
                 purview_inclusion_dct=self._purview_inclusion,
-                purview_inclusion_by_degree=self._purview_inclusion_by_degree,
+                purview_inclusion_by_order=self._purview_inclusion_by_order,
             )
-        self._purview_inclusion_max_degree = max_degree
-        if max_degree < len(self.subsystem):
-            # Return only the inclusion structure up to the max degree
+        self._purview_inclusion_max_order = max_order
+        if max_order < len(self.subsystem):
+            # Return only the inclusion structure up to the max order
             return merge(
                 *(
                     {
                         key: self._purview_inclusion[key]
-                        for key in self._purview_inclusion_by_degree[i]
+                        for key in self._purview_inclusion_by_order[i]
                     }
-                    for i in range(1, max_degree + 1)
+                    for i in range(1, max_order + 1)
                 )
             )
         else:
@@ -151,8 +150,8 @@ class FlatCauseEffectStructure(CauseEffectStructure):
         super().__init__(concepts=_concepts, subsystem=subsystem, time=time)
         try:
             self._purview_inclusion = concepts._purview_inclusion
-            self._purview_inclusion_max_degree = concepts._purview_inclusion_max_degree
-            self._purview_inclusion_by_degree = concepts._purview_inclusion_by_degree
+            self._purview_inclusion_max_order = concepts._purview_inclusion_max_order
+            self._purview_inclusion_by_order = concepts._purview_inclusion_by_order
         except AttributeError:
             pass
 
@@ -211,20 +210,20 @@ class FlatCauseEffectStructure(CauseEffectStructure):
         )
 
     def compute_purview_inclusion(
-        self, max_degree, purview_inclusion_dct=None, purview_inclusion_by_degree=None
+        self, max_order, purview_inclusion_dct=None, purview_inclusion_by_order=None
     ):
         # TODO do we need vars for the dicts? from FlatCES init, they should
         # point to the same thing
         if purview_inclusion_dct is None:
             purview_inclusion_dct = self._purview_inclusion
-        if purview_inclusion_by_degree is None:
-            purview_inclusion_by_degree = self._purview_inclusion_by_degree
+        if purview_inclusion_by_order is None:
+            purview_inclusion_by_order = self._purview_inclusion_by_order
         for distinction in self:
             for subset in utils.powerset(
                 distinction.purview,
                 nonempty=True,
-                min_size=(self._purview_inclusion_max_degree + 1),
-                max_size=max_degree,
+                min_size=(self._purview_inclusion_max_order + 1),
+                max_size=max_order,
             ):
                 # NOTE: This considers "includes" to mean "congruent
                 # with any of the tied states"
@@ -234,7 +233,7 @@ class FlatCauseEffectStructure(CauseEffectStructure):
                 for substate in map(tuple, substates):
                     key = (subset, substate)
                     purview_inclusion_dct[key].append(distinction)
-                    purview_inclusion_by_degree[len(subset)].add(key)
+                    purview_inclusion_by_order[len(subset)].add(key)
 
 
 class SystemIrreducibilityAnalysis(cmp.Orderable):

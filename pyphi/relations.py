@@ -746,12 +746,12 @@ def combinations_with_nonempty_congruent_overlap(
 ):
     """Return combinations of distinctions with nonempty congruent overlap."""
     distinctions = distinctions.flatten()
-    # Use integers to avoid expensive distinction hashing
-    # TODO(4.0) remove when/if distinctions allow O(1) random access
+    # TODO(4.0) remove mapping when/if distinctions allow O(1) random access
     mapping = {distinction: i for i, distinction in enumerate(distinctions)}
+    # Use integers to avoid expensive distinction hashing
     sets = [
         list(map(mapping.get, subset))
-        for subset in distinctions.purview_inclusion(max_degree=1).values()
+        for subset in distinctions.purview_inclusion(max_order=1).values()
     ]
     setset.set_universe(range(len(distinctions)))
     return combinatorics.union_powerset_family(
@@ -908,7 +908,7 @@ class AnalyticalRelations(ApproximateRelations):
                 overlap,
                 substate,
             ), overlapping_distinctions in self.distinctions.purview_inclusion(
-                max_degree=None
+                max_order=None
             ).items():
                 inclusion_exclusion_alternating_term = (-1) ** (len(overlap) - 1)
                 self._num_relations += (
@@ -985,7 +985,7 @@ class SampledRelations(AnalyticalRelations):
         """
         if self._max_degree is None:
             self._max_degree = max(
-                map(len, self.distinctions.purview_inclusion(max_degree=1).values()),
+                map(len, self.distinctions.purview_inclusion(max_order=1).values()),
                 default=0,
             )
         return self._max_degree
