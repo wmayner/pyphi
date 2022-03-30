@@ -847,6 +847,9 @@ class ConcreteRelations(HashableOrderedSet, Relations):
     def _sum_phi(self):
         return sum(self.phis)
 
+    def mean_phi(self):
+        return self.sum_phi() / len(self)
+
     def supported_by(self, distinctions):
         # Special case for empty distinctions, for speed
         if not distinctions:
