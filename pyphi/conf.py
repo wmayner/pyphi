@@ -868,7 +868,7 @@ class PyphiConfig(Config):
         type=int,
         doc="""
     Controls the sample size for approximated relations. Only applies if
-    ``RELATION_APPROXIMATION`` implies a sampling approach.
+    ``RELATION_COMPUTATION`` implies a sampling approach.
     """,
     )
 
