@@ -7,7 +7,7 @@
 from collections import defaultdict
 from collections.abc import Sequence, Iterable
 
-from toolz import concat
+from toolz import concat, merge
 
 from pyphi.direction import Direction
 
@@ -34,6 +34,7 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
         self._specifiers = None
         self._purview_inclusion = defaultdict(list)
         self._purview_inclusion_max_degree = 0
+        self._purview_inclusion_by_degree = defaultdict(set)
 
     def __len__(self):
         return len(self.concepts)
@@ -104,15 +105,30 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
         return tuple(list(label(mechanism)) for mechanism in self.mechanisms)
 
     def purview_inclusion(self, max_degree=None):
+        # TODO change degree to order (sigh)
         if max_degree is None:
             max_degree = len(self.subsystem)
         max_degree = min(len(self.subsystem), max_degree)
         if max_degree > self._purview_inclusion_max_degree:
             self.flatten().compute_purview_inclusion(
-                max_degree, purview_inclusion_dct=self._purview_inclusion
+                max_degree,
+                purview_inclusion_dct=self._purview_inclusion,
+                purview_inclusion_by_degree=self._purview_inclusion_by_degree,
             )
         self._purview_inclusion_max_degree = max_degree
-        return self._purview_inclusion
+        if max_degree < len(self.subsystem):
+            # Return only the inclusion structure up to the max degree
+            return merge(
+                *(
+                    {
+                        key: self._purview_inclusion[key]
+                        for key in self._purview_inclusion_by_degree[i]
+                    }
+                    for i in range(1, max_degree + 1)
+                )
+            )
+        else:
+            return self._purview_inclusion
 
 
 class FlatCauseEffectStructure(CauseEffectStructure):
@@ -136,6 +152,7 @@ class FlatCauseEffectStructure(CauseEffectStructure):
         try:
             self._purview_inclusion = concepts._purview_inclusion
             self._purview_inclusion_max_degree = concepts._purview_inclusion_max_degree
+            self._purview_inclusion_by_degree = concepts._purview_inclusion_by_degree
         except AttributeError:
             pass
 
@@ -193,9 +210,15 @@ class FlatCauseEffectStructure(CauseEffectStructure):
             time=self.time,
         )
 
-    def compute_purview_inclusion(self, max_degree, purview_inclusion_dct=None):
+    def compute_purview_inclusion(
+        self, max_degree, purview_inclusion_dct=None, purview_inclusion_by_degree=None
+    ):
+        # TODO do we need vars for the dicts? from FlatCES init, they should
+        # point to the same thing
         if purview_inclusion_dct is None:
             purview_inclusion_dct = self._purview_inclusion
+        if purview_inclusion_by_degree is None:
+            purview_inclusion_by_degree = self._purview_inclusion_by_degree
         for distinction in self:
             for subset in utils.powerset(
                 distinction.purview,
@@ -209,7 +232,9 @@ class FlatCauseEffectStructure(CauseEffectStructure):
                     distinction.purview, distinction.specified_state, subset
                 )
                 for substate in map(tuple, substates):
-                    purview_inclusion_dct[(subset, substate)].append(distinction)
+                    key = (subset, substate)
+                    purview_inclusion_dct[key].append(distinction)
+                    purview_inclusion_by_degree[len(subset)].add(key)
 
 
 class SystemIrreducibilityAnalysis(cmp.Orderable):
