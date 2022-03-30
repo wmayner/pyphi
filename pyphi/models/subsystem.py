@@ -109,11 +109,7 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
             max_order = len(self.subsystem)
         max_order = min(len(self.subsystem), max_order)
         if max_order > self._purview_inclusion_max_order:
-            self.flatten().compute_purview_inclusion(
-                max_order,
-                purview_inclusion_dct=self._purview_inclusion,
-                purview_inclusion_by_order=self._purview_inclusion_by_order,
-            )
+            self.flatten().compute_purview_inclusion(max_order)
         self._purview_inclusion_max_order = max_order
         if max_order < len(self.subsystem):
             # Return only the inclusion structure up to the max order
@@ -149,6 +145,9 @@ class FlatCauseEffectStructure(CauseEffectStructure):
             _concepts = iter(concepts)
         super().__init__(concepts=_concepts, subsystem=subsystem, time=time)
         try:
+            # NOTE: Pointing to the same dictionary is required here, so that
+            # calling `compute_purview_inclusion` on a flattened CES will update
+            # the unflattened CES's properties
             self._purview_inclusion = concepts._purview_inclusion
             self._purview_inclusion_max_order = concepts._purview_inclusion_max_order
             self._purview_inclusion_by_order = concepts._purview_inclusion_by_order
@@ -209,15 +208,7 @@ class FlatCauseEffectStructure(CauseEffectStructure):
             time=self.time,
         )
 
-    def compute_purview_inclusion(
-        self, max_order, purview_inclusion_dct=None, purview_inclusion_by_order=None
-    ):
-        # TODO do we need vars for the dicts? from FlatCES init, they should
-        # point to the same thing
-        if purview_inclusion_dct is None:
-            purview_inclusion_dct = self._purview_inclusion
-        if purview_inclusion_by_order is None:
-            purview_inclusion_by_order = self._purview_inclusion_by_order
+    def compute_purview_inclusion(self, max_order):
         for distinction in self:
             for subset in utils.powerset(
                 distinction.purview,
@@ -232,8 +223,8 @@ class FlatCauseEffectStructure(CauseEffectStructure):
                 )
                 for substate in map(tuple, substates):
                     key = (subset, substate)
-                    purview_inclusion_dct[key].append(distinction)
-                    purview_inclusion_by_order[len(subset)].add(key)
+                    self._purview_inclusion[key].append(distinction)
+                    self._purview_inclusion_by_order[len(subset)].add(key)
 
 
 class SystemIrreducibilityAnalysis(cmp.Orderable):
