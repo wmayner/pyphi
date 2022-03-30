@@ -1041,11 +1041,13 @@ class SampledRelations(AnalyticalRelations):
                 break
             sample.append(draw)
 
-        if not len(sample) == sample_size:
+        if len(sample) != sample_size and sample_size <= R_target.len():
             warnings.warn(
                 message=(
-                    f"Sampling failed after {timeout} s; try increasing timeout "
-                    "length, decreasing sample size, or sampling different degrees"
+                    f"Sampling failed after {timeout} s (got {len(sample)} of "
+                    f"the requested {sample_size}); try increasing timeout "
+                    f"duration, decreasing sample size, or sampling different "
+                    "degrees"
                 ),
                 category=SampleWarning,
             )
