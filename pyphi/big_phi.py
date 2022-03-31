@@ -20,7 +20,7 @@ from .combinatorics import maximal_independent_sets
 from .compute.parallel import as_completed, init
 from .direction import Direction
 from .models import cmp
-from .models.cuts import CompleteSystemPartition
+from .models.cuts import CompleteSystemPartition, SystemPartition
 from .models.subsystem import CauseEffectStructure, FlatCauseEffectStructure
 from .partition import system_partition_types
 from .relations import ConcreteRelations, Relations, relations
