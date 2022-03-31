@@ -14,19 +14,17 @@ import scipy
 from toolz.itertoolz import partition_all
 from tqdm.auto import tqdm
 
-from pyphi import utils
-from pyphi.cache import cache
-from pyphi.models import cmp
-from pyphi.models.cuts import CompleteSystemPartition, SystemPartition
-from pyphi.partition import system_partition_types
-from pyphi.subsystem import Subsystem
-
-from . import config
+from . import config, utils
+from .cache import cache
 from .combinatorics import maximal_independent_sets
 from .compute.parallel import as_completed, init
 from .direction import Direction
+from .models import cmp
+from .models.cuts import CompleteSystemPartition
 from .models.subsystem import CauseEffectStructure, FlatCauseEffectStructure
-from .relations import ConcreteRelations, Relations
+from .partition import system_partition_types
+from .relations import ConcreteRelations, Relations, relations
+from .subsystem import Subsystem
 from .utils import extremum_with_short_circuit
 
 # TODO
