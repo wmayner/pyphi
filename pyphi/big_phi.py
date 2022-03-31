@@ -661,9 +661,10 @@ def sia(
     chunksize=DEFAULT_PHI_STRUCTURE_CHUNKSIZE,
     partition_chunksize=DEFAULT_PARTITION_CHUNKSIZE,
     filter_relations=False,
-    progress=None,
+    progress=False,
 ):
     """Analyze the irreducibility of a system."""
+    progress = config.PROGRESS_BARS or progress
     if isinstance(all_distinctions, FlatCauseEffectStructure):
         all_distinctions = all_distinctions.unflatten()
     # First check that the entire set of distinctions/relations is not trivially reducible
@@ -726,8 +727,6 @@ def sia(
         ]
         log.debug("Done submitting tasks.")
         results = as_completed(tasks)
-        if progress is None:
-            progress = config.PROGRESS_BARS
         if progress:
             results = tqdm(results, total=len(tasks))
         maximum = max(results)
