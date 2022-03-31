@@ -781,11 +781,12 @@ def all_relations(
     ces,
     parallel=False,
     parallel_kwargs=None,
-    progress=True,
+    progress=False,
     potential_relata=None,
     **kwargs,
 ):
     """Return all relations, even those with zero phi."""
+    progress = config.PROGRESS_BARS or progress
     # Relations can be over any combination of causes/effects in the CES, so we
     # get a flat list of all causes and effects
     if potential_relata is None:
