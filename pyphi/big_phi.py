@@ -618,6 +618,9 @@ def evaluate_phi_structures(
 _evaluate_phi_structures = ray.remote(evaluate_phi_structures)
 
 
+_compute_relations = ray.remote(relations)
+
+
 def max_system_intrinsic_information(phi_structures):
     return max(
         phi_structures,
@@ -655,38 +658,30 @@ def find_maximal_compositional_state(
 def sia(
     subsystem,
     all_distinctions,
-    all_relations,
     phi_structures=None,
     check_trivial_reducibility=True,
     chunksize=DEFAULT_PHI_STRUCTURE_CHUNKSIZE,
     partition_chunksize=DEFAULT_PARTITION_CHUNKSIZE,
-    filter_relations=False,
     progress=False,
 ):
     """Analyze the irreducibility of a system."""
     progress = config.PROGRESS_BARS or progress
     if isinstance(all_distinctions, FlatCauseEffectStructure):
         all_distinctions = all_distinctions.unflatten()
-    # First check that the entire set of distinctions/relations is not trivially reducible
+    # First check that the entire set of distinctions is not trivially reducible
     # (since then all subsets must be)
-    full_phi_structure = PhiStructure(all_distinctions, all_relations)
+    full_phi_structure = PhiStructure(all_distinctions)
     if check_trivial_reducibility and is_trivially_reducible(full_phi_structure):
         log.debug("SIA is trivially-reducible; returning early.")
         return _null_sia(subsystem, full_phi_structure)
 
-    # Assume that phi structures passed by the user don't need to have their
-    # relations filtered
     if phi_structures is None:
-        filter_relations = True
-        # Broadcast relations to workers
-        log.debug("Putting relations into all workers...")
-        all_relations = ray.put(all_relations)
-        log.debug("Done putting relations into all workers.")
         phi_structures = (
             PhiStructure(
                 distinctions,
-                all_relations,
-                requires_filter=filter_relations,
+                # Compute relations on workers for each nonconflicting set
+                _compute_relations.remote(subsystem, distinctions),
+                requires_filter=False,
             )
             for distinctions in all_nonconflicting_distinction_sets(all_distinctions)
         )
