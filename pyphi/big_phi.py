@@ -635,8 +635,9 @@ _max_system_intrinsic_information = ray.remote(max_system_intrinsic_information)
 def find_maximal_compositional_state(
     phi_structures,
     chunksize=DEFAULT_PHI_STRUCTURE_CHUNKSIZE,
-    progress=True,
+    progress=False,
 ):
+    progress = config.PROGRESS_BARS or progress
     log.debug("Finding maximal compositional state...")
     tasks = [
         _max_system_intrinsic_information.remote(chunk)
