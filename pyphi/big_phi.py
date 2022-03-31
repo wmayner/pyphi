@@ -434,10 +434,10 @@ def evaluate_partition(subsystem, phi_structure, partition):
     )
 
 
-def has_nonspecified_elements(subsystem, distinctions):
+def has_nonspecified_elements(distinctions):
     """Return whether any elements are not specified by a purview in both
     directions."""
-    elements = set(subsystem.node_indices)
+    elements = set(distinctions.subsystem.node_indices)
     specified = {direction: set() for direction in Direction.both()}
     for distinction in distinctions:
         for direction in Direction.both():
@@ -445,7 +445,7 @@ def has_nonspecified_elements(subsystem, distinctions):
     return any(elements - _specified for _specified in specified.values())
 
 
-def has_no_spanning_specification(subsystem, distinctions):
+def has_no_spanning_specification(distinctions):
     """Return whether the system can be separated into disconnected components.
 
     Here disconnected means that there is no "spanning specification"; some
@@ -456,7 +456,7 @@ def has_no_spanning_specification(subsystem, distinctions):
     return False
 
 
-REDUCIBILITY_CHECKS = [
+REDUCIBILITY_CHECKS_FOR_DISTINCTIONS = [
     has_nonspecified_elements,
     has_no_spanning_specification,
 ]
@@ -556,11 +556,13 @@ def _null_sia(subsystem, phi_structure):
     )
 
 
-def is_trivially_reducible(subsystem, phi_structure):
-    # TODO(4.0) realize phi structure here if anything requires relations?
-    return any(
-        check(subsystem, phi_structure.distinctions) for check in REDUCIBILITY_CHECKS
-    )
+def distinctions_are_trivially_reducible(distinctions):
+    return any(check(distinctions) for check in REDUCIBILITY_CHECKS_FOR_DISTINCTIONS)
+
+
+def is_trivially_reducible(phi_structure):
+    # TODO add relations check when available
+    return distinctions_are_trivially_reducible(phi_structure.distinctions)
 
 
 # TODO configure
@@ -579,7 +581,7 @@ def evaluate_phi_structure(
     # Realize the PhiStructure before distributing tasks
     phi_structure.realize()
 
-    if check_trivial_reducibility and is_trivially_reducible(subsystem, phi_structure):
+    if check_trivial_reducibility and is_trivially_reducible(phi_structure):
         return _null_sia(subsystem, phi_structure)
 
     tasks = [
@@ -667,9 +669,7 @@ def sia(
     # First check that the entire set of distinctions/relations is not trivially reducible
     # (since then all subsets must be)
     full_phi_structure = PhiStructure(all_distinctions, all_relations)
-    if check_trivial_reducibility and is_trivially_reducible(
-        subsystem, full_phi_structure
-    ):
+    if check_trivial_reducibility and is_trivially_reducible(full_phi_structure):
         log.debug("SIA is trivially-reducible; returning early.")
         return _null_sia(subsystem, full_phi_structure)
 
