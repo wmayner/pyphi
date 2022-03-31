@@ -649,7 +649,8 @@ def find_maximal_compositional_state(
     log.debug("Done submitting tasks.")
     results = as_completed(tasks)
     if progress:
-        results = tqdm(results, total=len(tasks))
+        results = tqdm(results, total=len(tasks), desc="Finding maximal compositional state")
+    log.debug("Done finding maximal compositional state.")
     return max_system_intrinsic_information(results)
 
 
@@ -724,7 +725,7 @@ def sia(
         log.debug("Done submitting tasks.")
         results = as_completed(tasks)
         if progress:
-            results = tqdm(results, total=len(tasks))
+            results = tqdm(results, total=len(tasks), desc="Evaluating compositional states")
         maximum = max(results)
         log.debug("Done evaluating all compositional states; returning SIA.")
         return maximum
