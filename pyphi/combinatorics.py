@@ -10,6 +10,7 @@ from itertools import chain
 import networkx as nx
 import numpy as np
 from graphillion import setset
+from itertools import product
 
 from .cache import cache
 
@@ -189,3 +190,42 @@ def sum_of_minimum_among_subsets(values):
     counts = 2 ** (np.arange(len(values), 0, -1) - 1) - 1
     # Sorting ensures that we're taking the minimum of values for each subset
     return np.sum(np.sort(values) * counts)
+
+
+def sum_of_ratio_of_minimums_among_subsets(num_denum_pairs):
+    """Given a list of pairs of numerators and denominators (n_i, d_i) , i=0, ....
+    Returns sum of the ratio of minimum numerator to minimum denominator min_i ni / min_i d_i
+    over all subsets with size >1.
+    Arguments:
+        num_denum_pairs (list[tuples(float, float)]): list of pairs of numerators and denominators (n_i, d_i)
+    Returns:
+        float: Sum of the ratio of minimum numerator to minimum denominator
+    """
+    # For each possible pair of values, we count the number of
+    # times the pair is the minimal pair (sorting makes the counting easier)
+    sorted_num_idx = np.argsort([pair[0] for pair in num_denum_pairs])
+    sorted_denom_idx = np.argsort([pair[1] for pair in num_denum_pairs])
+
+    sum_ratio = 0
+    for i, j in product(range(len(num_denum_pairs)), range(len(num_denum_pairs))):
+        # (num, denom) pairs that contain the current candidate values
+        candiate_elements = set((sorted_num_idx[i], sorted_denom_idx[j]))
+        # the set of elements whose numerator >= this candidate num
+        num_superset = set(sorted_num_idx[i:])
+        # the set of elements whose denominators >= this candidate denom
+        denom_superset = set(sorted_denom_idx[j:])
+
+        superset = num_superset.intersection(denom_superset)
+        if not candiate_elements.issubset(superset):
+            continue
+
+        # number of subsets of size > 1 of the superset that contain the candiate_elements
+        num_occurences = 2 ** len(superset - candiate_elements)
+        if len(candiate_elements) == 1:
+            num_occurences -= 1
+
+        min_num = num_denum_pairs[sorted_num_idx[i]][0]
+        min_denom = num_denum_pairs[sorted_denom_idx[j]][1]
+        sum_ratio += num_occurences * min_num / min_denom
+
+    return sum_ratio
