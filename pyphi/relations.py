@@ -922,7 +922,7 @@ class AnalyticalRelations(ApproximateRelations):
                     inclusion_exclusion_alternating_term
                     # TODO(4.0) use .phis if this becomes a CES
                     * combinatorics.sum_of_minimum_among_subsets(
-                        [d.phi for d in overlapping_distinctions]
+                        [d.parent.phi for d in overlapping_distinctions]
                     )
                 )
                 sum_min_purview_size += (
