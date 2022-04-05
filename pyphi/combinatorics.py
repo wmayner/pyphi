@@ -140,7 +140,7 @@ def powerset_family(X, min_size=1, max_size=None, universe=None):
 
     exclude = list(range(1, min_size))
     if max_size is not None:
-        exclude += list(range(max_size + 1, 2 ** len(X) + 1))
+        exclude += list(range(max_size + 1, len(X) + 1))
     for k in exclude:
         P -= P.set_size(k)
 
