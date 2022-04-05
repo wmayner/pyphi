@@ -69,9 +69,13 @@ def sia_partitions(node_indices, node_labels=None):
             "IIT 4.0 calculations must use one of the following system"
             f"partition schemes: {valid}; got {scheme}"
         )
-    return system_partition_types[config.SYSTEM_PARTITION_TYPE](
-        node_indices, node_labels=node_labels
-    )
+    # Special case for single-element systems
+    if len(node_indices) == 1:
+        yield CompleteSystemPartition()
+    else:
+        return system_partition_types[config.SYSTEM_PARTITION_TYPE](
+            node_indices, node_labels=node_labels
+        )
 
 
 @cache(cache={}, maxmem=None)
