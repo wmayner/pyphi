@@ -853,8 +853,8 @@ class PyphiConfig(Config):
     )
 
     RELATION_COMPUTATION = Option(
-        "EXACT",
-        values=["EXACT", "APPROXIMATE_ANALYTICAL", "APPROXIMATE_SAMPLED"],
+        "CONCRETE",
+        values=["CONCRETE", "ANALYTICAL", "SAMPLED"],
         doc="""
     Controls how relations are computed.
 
@@ -863,20 +863,20 @@ class PyphiConfig(Config):
     """,
     )
 
-    RELATION_APPROXIMATION_SAMPLE_SIZE = Option(
+    RELATION_SAMPLE_SIZE = Option(
         1000,
         type=int,
         doc="""
-    Controls the sample size for approximated relations. Only applies if
+    Controls the sample size for sampled relations. Only applies if
     ``RELATION_COMPUTATION`` implies a sampling approach.
     """,
     )
 
-    RELATION_APPROXIMATION_SAMPLE_DEGREES = Option(
+    RELATION_SAMPLE_DEGREES = Option(
         False,
         doc="""
-    Controls the sampled degrees for approximated relations. Only applies if
-    ``RELATION_APPROXIMATION`` implies a sampling approach.
+    Controls the sampled degrees for relations. Only applies if
+    ``RELATION_COMPUTATION`` implies a sampling approach.
 
     Can be either falsy (sample uniformly from all possible relations) or a list
     of degrees (sample uniformly from possible relations with those degrees).
@@ -887,7 +887,7 @@ class PyphiConfig(Config):
     """,
     )
 
-    RELATION_APPROXIMATION_SAMPLE_TIMEOUT = Option(
+    RELATION_SAMPLE_TIMEOUT = Option(
         1.0,
         type=(int, float),
         doc="""

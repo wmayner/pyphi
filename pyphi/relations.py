@@ -1076,20 +1076,20 @@ class RelationComputationsRegistry(Registry):
 relation_computations = RelationComputationsRegistry()
 
 
-@relation_computations.register("EXACT")
+@relation_computations.register("CONCRETE")
 def concrete_relations(subsystem, distinctions, **kwargs):
     return ConcreteRelations(
         filter(None, all_relations(subsystem, distinctions, **kwargs))
     )
 
 
-@relation_computations.register("APPROXIMATE_ANALYTICAL")
-def approximate_analytical_relations(subsystem, distinctions, **kwargs):
+@relation_computations.register("ANALYTICAL")
+def analytical_relations(subsystem, distinctions, **kwargs):
     return AnalyticalRelations(distinctions.unflatten())
 
 
-@relation_computations.register("APPROXIMATE_SAMPLED")
-def approximate_sampled_relations(subsystem, distinctions, **kwargs):
+@relation_computations.register("SAMPLED")
+def sampled_relations(subsystem, distinctions, **kwargs):
     return SampledRelations(distinctions.unflatten())
 
 
