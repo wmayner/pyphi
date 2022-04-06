@@ -6,7 +6,8 @@
 Functions for generating partitions.
 """
 
-from itertools import chain, cycle, permutations, product
+from itertools import chain, permutations, product
+import functools
 
 import numpy as np
 
@@ -699,6 +700,7 @@ system_partition_types = SystemPartitionRegistry()
 def _bipartitions_to_cuts(func):
     """Decorator to return equivalent Cut objects from a set of bipartitions."""
 
+    @functools.wraps(func)
     def wrapper(*args, node_labels=None, **kwargs):
         bipartitions = func(*args, **kwargs)
         return [
@@ -725,6 +727,7 @@ def system_directed_bipartitions_cut_one(nodes):
 def _bipartitions_to_temporal_system_partitions(func):
     """Decorator to return temporally-directed SystemPartition objects from a set of bipartitions."""
 
+    @functools.wraps(func)
     def wrapper(*args, node_labels=None, **kwargs):
         for bipartition in func(*args, **kwargs):
             for direction in Direction.both():
