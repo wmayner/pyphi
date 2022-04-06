@@ -121,8 +121,8 @@ def test_background_noised():
         network, state, state, (0,), (1,), noise_background=True
     )
 
-    assert transition._ratio(Direction.EFFECT, (0,), (1,)) == 0.415037
-    assert transition._ratio(Direction.CAUSE, (1,), (0,)) == 0.415037
+    assert np.isclose(transition._ratio(Direction.EFFECT, (0,), (1,)), 0.415037)
+    assert np.isclose(transition._ratio(Direction.CAUSE, (1,), (0,)), 0.415037)
 
     # Elements outside the transition are also frozen
     transition = actual.Transition(
