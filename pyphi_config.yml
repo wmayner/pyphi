@@ -31,7 +31,7 @@ RELATION_PARTITION_AGGREGATION: "SUM"
 # nonconflicting set. Defaults to false to avoid the cost of checking.
 RELATION_ENFORCE_NO_DUPLICATE_PURVIEWS: false
 # Controls the partitioning scheme for the system.
-SYSTEM_PARTITION_TYPE: "TEMPORAL_DIRECTED_BI_CUT_ONE"
+SYSTEM_PARTITION_TYPE: "TEMPORAL_DIRECTED_BI"
 # Controls the set of possible purviews for a relation.
 RELATION_POTENTIAL_PURVIEWS: "WHOLE"
 # Controls how relation phi values are computed.
