@@ -899,44 +899,38 @@ class AnalyticalRelations(ApproximateRelations):
         self._mean_phi = None
         self._num_relations = None
 
-    def _update_mean_phi_and_num_relations(self):
-        self._mean_phi = 0
-        self._num_relations = 0
-        if self.distinctions:
-            sum_phi = 0
-            for (
-                overlap,
-                substate,
-            ), overlapping_distinctions in self.distinctions.purview_inclusion(
-                max_order=None
-            ).items():
-                inclusion_exclusion_alternating_term = (-1) ** (len(overlap) - 1)
-                self._num_relations += (
-                    inclusion_exclusion_alternating_term
-                    * combinatorics.num_subsets_larger_than_one_element(
-                        len(overlapping_distinctions)
-                    )
-                )
-                if len(overlap) == 1:
-                    sum_phi += combinatorics.sum_of_ratio_of_minimums_among_subsets(
-                        [
-                            (d.parent.phi, len(d.purview))
-                            for d in overlapping_distinctions
-                        ]
-                    )
-            self._mean_phi = sum_phi / self._num_relations
-
     def mean_phi(self):
         if self._mean_phi is None:
-            self._update_mean_phi_and_num_relations()
+            self._mean_phi = self.sum_phi() / self.num_relations()
         return self._mean_phi
 
     def _sum_phi(self):
-        return self.mean_phi() * self.num_relations()
+        return sum(
+            combinatorics.sum_of_ratio_of_minima_among_subsets(
+                [(d.parent.phi, len(d.purview)) for d in overlapping_distinctions]
+            )
+            for _, overlapping_distinctions in self.distinctions.purview_inclusion(
+                max_order=1
+            ).items()
+        )
 
     def num_relations(self):
         if self._num_relations is None:
-            self._update_mean_phi_and_num_relations()
+            self._num_relations = 0
+            if self.distinctions:
+                for (
+                    overlap,
+                    substate,
+                ), overlapping_distinctions in self.distinctions.purview_inclusion(
+                    max_order=None
+                ).items():
+                    inclusion_exclusion_alternating_term = (-1) ** (len(overlap) - 1)
+                    self._num_relations += (
+                        inclusion_exclusion_alternating_term
+                        * combinatorics.num_subsets_larger_than_one_element(
+                            len(overlapping_distinctions)
+                        )
+                    )
         return self._num_relations
 
     def __len__(self):
