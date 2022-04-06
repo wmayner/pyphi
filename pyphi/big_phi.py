@@ -660,6 +660,17 @@ def find_maximal_compositional_state(
     return max_system_intrinsic_information(results)
 
 
+def nonconflicting_phi_structures(all_distinctions):
+    """Yield nonconflicting PhiStructures."""
+    for distinctions in all_nonconflicting_distinction_sets(all_distinctions):
+        yield PhiStructure(
+            distinctions,
+            # Compute relations on workers for each nonconflicting set
+            _compute_relations.remote(all_distinctions.subsystem, distinctions),
+            requires_filter=False,
+        )
+
+
 # TODO allow choosing whether you provide precomputed distinctions
 # (sometimes faster to compute as you go if many distinctions are killed by conflicts)
 # TODO document args
@@ -684,15 +695,7 @@ def sia(
         return _null_sia(subsystem, full_phi_structure)
 
     if phi_structures is None:
-        phi_structures = (
-            PhiStructure(
-                distinctions,
-                # Compute relations on workers for each nonconflicting set
-                _compute_relations.remote(subsystem, distinctions),
-                requires_filter=False,
-            )
-            for distinctions in all_nonconflicting_distinction_sets(all_distinctions)
-        )
+        phi_structures = nonconflicting_phi_structures(all_distinctions)
 
     if config.IIT_VERSION == "maximal-state-first":
         maximal_compositional_state = find_maximal_compositional_state(
