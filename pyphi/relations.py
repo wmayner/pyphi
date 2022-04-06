@@ -945,12 +945,10 @@ class SampleWarning(Warning):
 
 
 class SampledRelations(AnalyticalRelations):
-    """Represent relations among set of distinctions.
+    """A sample of relations among set of distinctions.
 
-    Provides exact calculation of the number of relations and the sum of their
-    phi values based on the purview inclusion structure of the distinctions.
-
-    Also provides methods for efficiently sampling concrete relations.
+    Provides exact calculation of the number of relations. The sum and mean of
+    relation phi values are taken from the sample.
     """
 
     def __init__(self, *args, **kwargs):
@@ -1052,6 +1050,14 @@ class SampledRelations(AnalyticalRelations):
             # Update sample in place
             self.draw_samples()
         return self._sample
+
+    def sum_phi(self):
+        # Override the public method since we do want to re-compute the sum, in
+        # case the sample has changed
+        return np.sum([relation.phi for relation in self.sample])
+
+    def mean_phi(self):
+        return np.mean([relation.phi for relation in self.sample])
 
 
 class RelationComputationsRegistry(Registry):
