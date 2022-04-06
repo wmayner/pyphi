@@ -903,8 +903,7 @@ class AnalyticalRelations(ApproximateRelations):
         self._mean_phi = 0
         self._num_relations = 0
         if self.distinctions:
-            sum_min_phi = 0
-            sum_min_purview_size = 0
+            sum_phi = 0
             for (
                 overlap,
                 substate,
@@ -918,30 +917,16 @@ class AnalyticalRelations(ApproximateRelations):
                         len(overlapping_distinctions)
                     )
                 )
-                sum_min_phi += (
-                    inclusion_exclusion_alternating_term
-                    # TODO(4.0) use .phis if this becomes a CES
-                    * combinatorics.sum_of_minimum_among_subsets(
-                        [d.parent.phi for d in overlapping_distinctions]
+                if len(overlap) == 1:
+                    sum_phi += combinatorics.sum_of_ratio_of_minimums_among_subsets(
+                        [
+                            (d.parent.phi, len(d.purview))
+                            for d in overlapping_distinctions
+                        ]
                     )
-                )
-                sum_min_purview_size += (
-                    inclusion_exclusion_alternating_term
-                    * combinatorics.sum_of_minimum_among_subsets(
-                        [len(d.purview) for d in overlapping_distinctions]
-                    )
-                )
-            # Equivalent to mean(phi) / mean(purview_size)
-            self._mean_phi = sum_min_phi / sum_min_purview_size
+            self._mean_phi = sum_phi / self._num_relations
 
     def mean_phi(self):
-        """Mean relation phi is approximated as follows:
-
-        - All relations that can exist, given combinatorial structure of the
-          distinctions, are assumed to exist.
-        - The phi of a relation is assumed to be the ratio of the minimum
-          distinction phi to the minimum purview size.
-        """
         if self._mean_phi is None:
             self._update_mean_phi_and_num_relations()
         return self._mean_phi
