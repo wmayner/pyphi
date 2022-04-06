@@ -192,40 +192,48 @@ def sum_of_minimum_among_subsets(values):
     return np.sum(np.sort(values) * counts)
 
 
-def sum_of_ratio_of_minimums_among_subsets(num_denum_pairs):
-    """Given a list of pairs of numerators and denominators (n_i, d_i) , i=0, ....
-    Returns sum of the ratio of minimum numerator to minimum denominator min_i ni / min_i d_i
-    over all subsets with size >1.
-    Arguments:
-        num_denum_pairs (list[tuples(float, float)]): list of pairs of numerators and denominators (n_i, d_i)
-    Returns:
-        float: Sum of the ratio of minimum numerator to minimum denominator
-    """
-    # For each possible pair of values, we count the number of
-    # times the pair is the minimal pair (sorting makes the counting easier)
-    sorted_num_idx = np.argsort([pair[0] for pair in num_denum_pairs])
-    sorted_denom_idx = np.argsort([pair[1] for pair in num_denum_pairs])
+def sum_of_ratio_of_minima_among_subsets(num_denom_pairs):
+    """Returns the sum of the ratio of minima among numerators/denominators.
 
+    Considers all subsets with size >1 of pairs of numerators and denominators
+    (n_i, d_i) and implicitly computes the sum of the ratios of the minimum
+    numerator / minimum denominator, where the minimum is taken within each
+    subset.
+
+    Arguments:
+        num_denom_pairs (list[tuple[float]]): list of pairs of numerators and
+        denominators.
+
+    Returns:
+        float: Sum of the ratios of minimum numerator to minimum denominator
+        over all subsets of size >1.
+    """
+    numerators, denominators = zip(*num_denom_pairs)
+    # For each possible pair of values, we count the number of times the pair is
+    # the minimal pair (sorting makes the counting easier)
+    sorted_num_idx = np.argsort(numerators)
+    sorted_denom_idx = np.argsort(denominators)
     sum_ratio = 0
-    for i, j in product(range(len(num_denum_pairs)), range(len(num_denum_pairs))):
-        # (num, denom) pairs that contain the current candidate values
-        candiate_elements = set((sorted_num_idx[i], sorted_denom_idx[j]))
-        # the set of elements whose numerator >= this candidate num
+    for i, j in product(range(len(num_denom_pairs)), range(len(num_denom_pairs))):
+        # (numerator, denominator) pairs that contain the current candidate
+        # values
+        candiate_elements = set([sorted_num_idx[i], sorted_denom_idx[j]])
+        # The set of elements whose numerator >= candidate numerator
         num_superset = set(sorted_num_idx[i:])
-        # the set of elements whose denominators >= this candidate denom
+        # The set of elements whose denominators >= candidate denominator
         denom_superset = set(sorted_denom_idx[j:])
 
         superset = num_superset.intersection(denom_superset)
         if not candiate_elements.issubset(superset):
             continue
 
-        # number of subsets of size > 1 of the superset that contain the candiate_elements
+        # Number of subsets of size >1 of the superset that contain the candiate
+        # elements
         num_occurences = 2 ** len(superset - candiate_elements)
         if len(candiate_elements) == 1:
             num_occurences -= 1
 
-        min_num = num_denum_pairs[sorted_num_idx[i]][0]
-        min_denom = num_denum_pairs[sorted_denom_idx[j]][1]
+        min_num = numerators[sorted_num_idx[i]]
+        min_denom = denominators[sorted_denom_idx[j]]
         sum_ratio += num_occurences * min_num / min_denom
-
     return sum_ratio
