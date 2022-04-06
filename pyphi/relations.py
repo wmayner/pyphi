@@ -995,11 +995,11 @@ class SampledRelations(AnalyticalRelations):
         NOTE: This method updates the `sample` attribute in-place.
         """
         if sample_size is None:
-            sample_size = config.RELATION_APPROXIMATION_SAMPLE_SIZE
+            sample_size = config.RELATION_SAMPLE_SIZE
         if degrees is None:
-            degrees = config.RELATION_APPROXIMATION_SAMPLE_DEGREES
+            degrees = config.RELATION_SAMPLE_DEGREES
         if timeout is None:
-            timeout = config.RELATION_APPROXIMATION_SAMPLE_TIMEOUT
+            timeout = config.RELATION_SAMPLE_TIMEOUT
 
         potential_relata = combinations_with_nonempty_congruent_overlap(
             self.distinctions
