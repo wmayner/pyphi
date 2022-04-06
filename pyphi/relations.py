@@ -902,13 +902,10 @@ class AnalyticalRelations(AbstractRelations):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._mean_phi = None
         self._num_relations = None
 
     def mean_phi(self):
-        if self._mean_phi is None:
-            self._mean_phi = self.sum_phi() / self.num_relations()
-        return self._mean_phi
+        return self.sum_phi() / self.num_relations()
 
     def _sum_phi(self):
         return sum(
