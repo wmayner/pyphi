@@ -882,7 +882,7 @@ class ConcreteRelations(HashableOrderedSet, Relations):
 
 
 # TODO(4.0) to_json method
-class ApproximateRelations(Relations):
+class AbstractRelations(Relations):
     def __init__(self, distinctions):
         self.distinctions = distinctions.flatten()
 
@@ -893,7 +893,7 @@ class ApproximateRelations(Relations):
         return self.__dict__
 
 
-class AnalyticalRelations(ApproximateRelations):
+class AnalyticalRelations(AbstractRelations):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._mean_phi = None
