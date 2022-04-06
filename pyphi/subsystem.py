@@ -758,15 +758,17 @@ class Subsystem:
         Keyword Args:
             purviews (tuple[int]): Optional subset of purviews of interest.
         """
+        # TODO(4.0) return set from network.potential_purviews?
+        _potential_purviews = set(self.network.potential_purviews(direction, mechanism))
         if purviews is False:
-            purviews = self.network.potential_purviews(direction, mechanism)
-            # Filter out purviews that aren't in the subsystem
-            purviews = [
-                purview
-                for purview in purviews
-                if set(purview).issubset(self.node_indices)
-            ]
-
+            purviews = _potential_purviews
+        else:
+            # Restrict to given purviews
+            purviews = _potential_purviews & set(purviews)
+        # Restrict to purviews within the subsystem
+        purviews = [
+            purview for purview in purviews if set(purview).issubset(self.node_indices)
+        ]
         # Purviews are already filtered in network.potential_purviews
         # over the full network connectivity matrix. However, since the cm
         # is cut/smaller we check again here.
