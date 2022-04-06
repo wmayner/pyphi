@@ -894,6 +894,12 @@ class AbstractRelations(Relations):
 
 
 class AnalyticalRelations(AbstractRelations):
+    """Represent relations among set of distinctions.
+
+    Provides exact calculation of the number of relations and the sum of their
+    phi values based on the purview inclusion structure of the distinctions.
+    """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._mean_phi = None
@@ -942,8 +948,12 @@ class SampleWarning(Warning):
 
 
 class SampledRelations(AnalyticalRelations):
-    """Use the analytical approximations, but weight by the average phi of a set
-    of sampled relations which are computed exactly.
+    """Represent relations among set of distinctions.
+
+    Provides exact calculation of the number of relations and the sum of their
+    phi values based on the purview inclusion structure of the distinctions.
+
+    Also provides methods for efficiently sampling concrete relations.
     """
 
     def __init__(self, *args, **kwargs):
@@ -1045,11 +1055,6 @@ class SampledRelations(AnalyticalRelations):
             # Update sample in place
             self.draw_samples()
         return self._sample
-
-    def mean_phi(self):
-        if not self.sample:
-            return 0.0
-        return np.mean([relation.phi for relation in self.sample])
 
 
 class RelationComputationsRegistry(Registry):
