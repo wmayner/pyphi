@@ -110,8 +110,9 @@ def optimum_sum_small_phi_relations(n):
 @cache(cache={}, maxmem=None)
 def optimum_sum_small_phi_distinctions_one_direction(n):
     """Return the 'best possible' sum of small phi for distinctions in one direction"""
-    # \sum_{k=1}^{n} k(n choose k)
-    return (n / 2) * (2 ** n)
+    # This can be simplified to (n/2)*(2^n), but we don't use that identity so
+    # we can keep things as `int`s
+    return sum(k * int(scipy.special.comb(n, k)) for k in range(1, n + 1))
 
 
 @cache(cache={}, maxmem=None)
