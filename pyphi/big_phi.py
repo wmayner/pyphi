@@ -111,7 +111,7 @@ def optimum_sum_small_phi_relations(n):
 def optimum_sum_small_phi_distinctions_one_direction(n):
     """Return the 'best possible' sum of small phi for distinctions in one direction"""
     # \sum_{k=1}^{n} k(n choose k)
-    return (2 / n) * (2 ** n)
+    return (n / 2) * (2 ** n)
 
 
 @cache(cache={}, maxmem=None)
