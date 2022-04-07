@@ -689,16 +689,24 @@ def find_maximal_compositional_state(
     return max_system_intrinsic_information(results)
 
 
-def nonconflicting_phi_structures(all_distinctions, ties=False):
+def nonconflicting_phi_structures(all_distinctions, ties=False, all_relations=None):
     """Yield nonconflicting PhiStructures."""
     for distinctions in all_nonconflicting_distinction_sets(
         all_distinctions, ties=ties
     ):
+        if all_relations is None:
+            # Compute relations on workers for each nonconflicting set
+            relations = _compute_relations.remote(
+                all_distinctions.subsystem, distinctions
+            )
+            requires_filter = False
+        else:
+            relations = all_relations
+            requires_filter = True
         yield PhiStructure(
             distinctions,
-            # Compute relations on workers for each nonconflicting set
-            _compute_relations.remote(all_distinctions.subsystem, distinctions),
-            requires_filter=False,
+            relations,
+            requires_filter=requires_filter,
         )
 
 
