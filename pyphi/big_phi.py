@@ -7,6 +7,7 @@ import operator
 import pickle
 from collections import UserDict, defaultdict
 from dataclasses import dataclass
+from itertools import product
 
 import networkx as nx
 import ray
@@ -488,6 +489,14 @@ def filter_ces(ces, direction, compositional_state):
             pass
 
 
+def tied_distinction_sets(distinctions):
+    """Yield all combinations of tied distinctions."""
+    for tie in product(*[distinction.ties for distinction in distinctions.flatten()]):
+        yield FlatCauseEffectStructure(
+            tie, subsystem=distinctions.subsystem
+        ).unflatten()
+
+
 def conflict_graph(distinctions):
     """Return a graph where nodes are distinctions and edges are conflicts."""
     # Map mechanisms to distinctions for fast retreival
@@ -512,8 +521,7 @@ def conflict_graph(distinctions):
     return G, mechanism_to_distinction
 
 
-def all_nonconflicting_distinction_sets(distinctions):
-    """Return all maximal non-conflicting sets of distinctions."""
+def _all_nonconflicting_distinction_sets(distinctions):
     # Nonconflicting sets are maximal independent sets of the conflict graph.
     # NOTE: The maximality criterion here depends on the property of big phi
     # that it is monotonic increasing with the number of distinctions. If this
@@ -528,6 +536,25 @@ def all_nonconflicting_distinction_sets(distinctions):
             map(mechanism_to_distinction.get, maximal_independent_set),
             subsystem=distinctions.subsystem,
         )
+
+
+def all_nonconflicting_distinction_sets(distinctions, ties=False):
+    """Return all maximal non-conflicting sets of distinctions.
+
+    Arguments:
+        distinctions (CauseEffectStructure): The set of distinctions to consider.
+
+    Keyword Arguments:
+        ties (bool): Whether to also consider all combinations of tied distinctions.
+
+    Yields:
+        CauseEffectStructure: A CES without conflicts.
+    """
+    if ties:
+        for tie in tied_distinction_sets(distinctions):
+            yield from _all_nonconflicting_distinction_sets(tie)
+    else:
+        yield from _all_nonconflicting_distinction_sets(distinctions)
 
 
 def evaluate_partitions(subsystem, phi_structure, partitions):
@@ -660,9 +687,11 @@ def find_maximal_compositional_state(
     return max_system_intrinsic_information(results)
 
 
-def nonconflicting_phi_structures(all_distinctions):
+def nonconflicting_phi_structures(all_distinctions, ties=False):
     """Yield nonconflicting PhiStructures."""
-    for distinctions in all_nonconflicting_distinction_sets(all_distinctions):
+    for distinctions in all_nonconflicting_distinction_sets(
+        all_distinctions, ties=ties
+    ):
         yield PhiStructure(
             distinctions,
             # Compute relations on workers for each nonconflicting set
@@ -682,6 +711,7 @@ def sia(
     chunksize=DEFAULT_PHI_STRUCTURE_CHUNKSIZE,
     partition_chunksize=DEFAULT_PARTITION_CHUNKSIZE,
     progress=False,
+    ties=False,
 ):
     """Analyze the irreducibility of a system."""
     progress = config.PROGRESS_BARS or progress
@@ -695,7 +725,7 @@ def sia(
         return _null_sia(subsystem, full_phi_structure)
 
     if phi_structures is None:
-        phi_structures = nonconflicting_phi_structures(all_distinctions)
+        phi_structures = nonconflicting_phi_structures(all_distinctions, ties=ties)
 
     if config.IIT_VERSION == "maximal-state-first":
         maximal_compositional_state = find_maximal_compositional_state(
