@@ -715,6 +715,8 @@ def sia(
 ):
     """Analyze the irreducibility of a system."""
     progress = config.PROGRESS_BARS or progress
+    if not isinstance(all_distinctions, CauseEffectStructure):
+        raise ValueError("all_distinctions must be a CauseEffectStructure")
     if isinstance(all_distinctions, FlatCauseEffectStructure):
         all_distinctions = all_distinctions.unflatten()
     # First check that the entire set of distinctions is not trivially reducible
