@@ -88,8 +88,8 @@ def _f(n, k):
 def number_of_possible_relations_of_order(n, k):
     """Return the number of possible relations with overlap of size k."""
     # Alireza's generalization of Will's theorem
-    return scipy.special.comb(n, k) * sum(
-        ((-1) ** i * scipy.special.comb(n - k, i) * _f(n, k + i))
+    return int(scipy.special.comb(n, k)) * sum(
+        ((-1) ** i * int(scipy.special.comb(n - k, i)) * _f(n, k + i))
         for i in range(n - k + 1)
     )
 
