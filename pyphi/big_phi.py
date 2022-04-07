@@ -26,7 +26,7 @@ from .models.subsystem import CauseEffectStructure, FlatCauseEffectStructure
 from .partition import system_partition_types
 from .relations import ConcreteRelations, Relations, relations
 from .subsystem import Subsystem
-from .utils import extremum_with_short_circuit
+from .utils import extremum_with_short_circuit, expsublog
 
 # TODO
 # - cache relations, compute as needed for each nonconflicting CES
@@ -239,9 +239,10 @@ class PhiStructure(cmp.Orderable):
 
     def selectivity(self):
         if self._selectivity is None:
-            self._selectivity = (
-                self.sum_phi_distinctions() + self.sum_phi_relations()
-            ) / optimum_sum_small_phi(self._substrate_size)
+            # Use expsublog to deal with enormous denominator
+            self._selectivity = expsublog(
+                self.sum_phi(), optimum_sum_small_phi(self._substrate_size)
+            )
         return self._selectivity
 
     @_requires_relations

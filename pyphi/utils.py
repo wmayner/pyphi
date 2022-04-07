@@ -8,6 +8,7 @@ external use.
 """
 
 import hashlib
+import math
 import operator
 import os
 from itertools import chain, combinations, product
@@ -260,3 +261,23 @@ def extremum_with_short_circuit(
             extreme_value = value
             extreme_item = item
     return extreme_item
+
+
+def expsublog(x, y):
+    """Computes ``x / y`` as ``exp(log(x) - log(y))``.
+
+    Useful for dividing by extremely large denominators.
+
+    See also ``numpy.logaddexp``.
+    """
+    return math.exp(math.log(x) - math.log(y))
+
+
+def expaddlog(x, y):
+    """Computes ``x * y`` as ``exp(log(x) + log(y))``.
+
+    Useful for dividing by extremely large denominators.
+
+    See also ``numpy.logaddexp``.
+    """
+    return math.exp(math.log(x) + math.log(y))
