@@ -24,7 +24,8 @@ from .models import cmp
 from .models.cuts import CompleteSystemPartition, SystemPartition
 from .models.subsystem import CauseEffectStructure, FlatCauseEffectStructure
 from .partition import system_partition_types
-from .relations import ConcreteRelations, Relations, relations
+from .relations import ConcreteRelations, Relations
+from .relations import relations as compute_relations
 from .subsystem import Subsystem
 from .utils import extremum_with_short_circuit, expsublog
 
@@ -651,7 +652,7 @@ def evaluate_phi_structures(
 _evaluate_phi_structures = ray.remote(evaluate_phi_structures)
 
 
-_compute_relations = ray.remote(relations)
+_compute_relations = ray.remote(compute_relations)
 
 
 def max_system_intrinsic_information(phi_structures):
@@ -689,16 +690,21 @@ def find_maximal_compositional_state(
     return max_system_intrinsic_information(results)
 
 
-def nonconflicting_phi_structures(all_distinctions, ties=False, all_relations=None):
+def nonconflicting_phi_structures(
+    all_distinctions, ties=False, all_relations=None, remote=True
+):
     """Yield nonconflicting PhiStructures."""
     for distinctions in all_nonconflicting_distinction_sets(
         all_distinctions, ties=ties
     ):
         if all_relations is None:
             # Compute relations on workers for each nonconflicting set
-            relations = _compute_relations.remote(
-                all_distinctions.subsystem, distinctions
-            )
+            if remote:
+                relations = _compute_relations.remote(
+                    all_distinctions.subsystem, distinctions
+                )
+            else:
+                relations = compute_relations(all_distinctions.subsystem, distinctions)
             requires_filter = False
         else:
             relations = all_relations
