@@ -116,6 +116,9 @@ def overlap_ratio_times_relation_informativeness(relata, candidate_joint_purview
         - ``(relation informativeness)_{partition} == (sum of small phi of the
           relata) - (sum of small phi of the relata under the partition)``
 
+    Currently the partition scheme used is hard-coded as BI_CUT_ONE; i.e., a
+    single distinction is removed, and there is one partition per distinction.
+
     Note that this scheme implies that phi is a monotonic increasing function of
     the size of the overlap, so in practice there is no need to search over
     subsets of the congruent overlap. Thus, when this scheme is used, the most
@@ -892,6 +895,20 @@ class AbstractRelations(Relations):
     def to_json(self):
         return self.__dict__
 
+    def num_relations(self):
+        raise NotImplementedError
+
+    def __eq__(self, other):
+        return (self.num_relations() == other.num_relations()) and (
+            self.sum_phi() == other.sum_phi()
+        )
+
+    def __hash__(self):
+        return hash((self.num_relations(), self.sum_phi()))
+
+    def __len__(self):
+        return self.num_relations()
+
 
 class AnalyticalRelations(AbstractRelations):
     """Represent relations among set of distinctions.
@@ -935,9 +952,6 @@ class AnalyticalRelations(AbstractRelations):
                         )
                     )
         return self._num_relations
-
-    def __len__(self):
-        return self.num_relations()
 
 
 class SampleWarning(Warning):
