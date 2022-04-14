@@ -27,7 +27,7 @@ from .partition import system_partition_types
 from .relations import ConcreteRelations, Relations
 from .relations import relations as compute_relations
 from .subsystem import Subsystem
-from .utils import extremum_with_short_circuit, expsublog
+from .utils import expsublog, extremum_with_short_circuit
 
 # TODO
 # - cache relations, compute as needed for each nonconflicting CES
@@ -401,6 +401,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
     selectivity: float
     informativeness: float
     phi: float
+    reasons: list = None
 
     _sia_attributes = ["phi", "phi_structure", "partitioned_phi_structure", "subsystem"]
 
@@ -439,6 +440,16 @@ def evaluate_partition(subsystem, phi_structure, partition):
     )
 
 
+@dataclass
+class HAS_NONSPECIFIED_ELEMENTS:
+    elements: list = None
+
+
+@dataclass
+class HAS_NO_SPANNING_SPECIFICATION:
+    elements: list = None
+
+
 def has_nonspecified_elements(distinctions):
     """Return whether any elements are not specified by a purview in both
     directions."""
@@ -447,7 +458,12 @@ def has_nonspecified_elements(distinctions):
     for distinction in distinctions:
         for direction in Direction.both():
             specified[direction].update(set(distinction.purview(direction)))
-    return any(elements - _specified for _specified in specified.values())
+    nonspecified = set()
+    for _specified in specified.values():
+        if elements - _specified:
+            nonspecified |= elements
+    if nonspecified:
+        return HAS_NONSPECIFIED_ELEMENTS(nonspecified)
 
 
 def has_no_spanning_specification(distinctions):
@@ -458,7 +474,7 @@ def has_no_spanning_specification(distinctions):
     other subset.
     """
     # TODO
-    return False
+    pass
 
 
 REDUCIBILITY_CHECKS_FOR_DISTINCTIONS = [
@@ -572,7 +588,7 @@ def evaluate_partitions(subsystem, phi_structure, partitions):
 _evaluate_partitions = ray.remote(evaluate_partitions)
 
 
-def _null_sia(subsystem, phi_structure):
+def _null_sia(subsystem, phi_structure, reasons=None):
     if not subsystem.cut.is_null:
         raise ValueError("subsystem must have no partition")
     partitioned_phi_structure = phi_structure.partition(subsystem.cut)
@@ -584,11 +600,18 @@ def _null_sia(subsystem, phi_structure):
         selectivity=None,
         informativeness=None,
         phi=0.0,
+        reasons=reasons,
     )
 
 
 def distinctions_are_trivially_reducible(distinctions):
-    return any(check(distinctions) for check in REDUCIBILITY_CHECKS_FOR_DISTINCTIONS)
+    """Return a list of reasons that the distinctions are reducible."""
+    reasons = []
+    for check in REDUCIBILITY_CHECKS_FOR_DISTINCTIONS:
+        reason = check(distinctions)
+        if reason:
+            reasons.append(reason)
+    return reasons
 
 
 def is_trivially_reducible(phi_structure):
@@ -732,12 +755,17 @@ def sia(
         raise ValueError("all_distinctions must be a CauseEffectStructure")
     if isinstance(all_distinctions, FlatCauseEffectStructure):
         all_distinctions = all_distinctions.unflatten()
+
     # First check that the entire set of distinctions is not trivially reducible
     # (since then all subsets must be)
     full_phi_structure = PhiStructure(all_distinctions)
-    if check_trivial_reducibility and is_trivially_reducible(full_phi_structure):
-        log.debug("SIA is trivially-reducible; returning early.")
-        return _null_sia(subsystem, full_phi_structure)
+    if check_trivial_reducibility:
+        reasons = is_trivially_reducible(full_phi_structure)
+        if reasons:
+            log.debug(
+                "SIA is trivially-reducible; returning early.\nReasons: {%s}", reasons
+            )
+            return _null_sia(subsystem, full_phi_structure, reasons=reasons)
 
     if phi_structures is None:
         phi_structures = nonconflicting_phi_structures(all_distinctions, ties=ties)
