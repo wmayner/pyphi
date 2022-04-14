@@ -109,7 +109,7 @@ def optimum_sum_small_phi_relations(n):
 
 
 @cache(cache={}, maxmem=None)
-def optimum_sum_small_phi_distinctions_one_direction(n):
+def optimum_sum_small_phi_distinctions(n):
     """Return the 'best possible' sum of small phi for distinctions in one direction"""
     # This can be simplified to (n/2)*(2^n), but we don't use that identity so
     # we can keep things as `int`s
@@ -119,10 +119,7 @@ def optimum_sum_small_phi_distinctions_one_direction(n):
 @cache(cache={}, maxmem=None)
 def optimum_sum_small_phi(n):
     """Return the 'best possible' sum of small phi for the system."""
-    # Double distinction term for cause & effect sides
-    distinction_term = 2 * optimum_sum_small_phi_distinctions_one_direction(n)
-    relation_term = optimum_sum_small_phi_relations(n)
-    return distinction_term + relation_term
+    return optimum_sum_small_phi_distinctions(n) + optimum_sum_small_phi_relations(n)
 
 
 def _requires_relations(func):
