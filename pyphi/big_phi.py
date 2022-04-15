@@ -630,6 +630,8 @@ def evaluate_phi_structure(
     phi_structure,
     check_trivial_reducibility=True,
     chunksize=DEFAULT_PARTITION_CHUNKSIZE,
+    remote=True,
+    progress=False,
 ):
     """Analyze the irreducibility of a PhiStructure."""
     # Realize the PhiStructure before distributing tasks
@@ -638,24 +640,38 @@ def evaluate_phi_structure(
     if check_trivial_reducibility and is_trivially_reducible(phi_structure):
         return _null_sia(subsystem, phi_structure)
 
-    tasks = [
-        _evaluate_partitions.remote(
-            subsystem,
-            phi_structure,
-            partitions,
+    if remote:
+        tasks = [
+            _evaluate_partitions.remote(
+                subsystem,
+                phi_structure,
+                partitions,
+            )
+            for partitions in partition_all(
+                chunksize,
+                sia_partitions(subsystem.cut_indices, subsystem.cut_node_labels),
+            )
+        ]
+        return extremum_with_short_circuit(
+            as_completed(tasks),
+            cmp=operator.lt,
+            initial=float("inf"),
+            shortcircuit_value=0,
+            shortcircuit_callback=lambda: [ray.cancel(task) for task in tasks],
         )
-        for partitions in partition_all(
-            chunksize,
-            sia_partitions(subsystem.cut_indices, subsystem.cut_node_labels),
+    else:
+        partitions = sia_partitions(subsystem.cut_indices, subsystem.cut_node_labels)
+        if progress:
+            partitions = tqdm(partitions, desc="Partitions")
+        return extremum_with_short_circuit(
+            (
+                evaluate_partition(subsystem, phi_structure, partition)
+                for partition in partitions
+            ),
+            cmp=operator.lt,
+            initial=float("inf"),
+            shortcircuit_value=0,
         )
-    ]
-    return extremum_with_short_circuit(
-        as_completed(tasks),
-        cmp=operator.lt,
-        initial=float("inf"),
-        shortcircuit_value=0,
-        shortcircuit_callback=lambda: [ray.cancel(task) for task in tasks],
-    )
 
 
 def evaluate_phi_structures(
@@ -689,29 +705,38 @@ _max_system_intrinsic_information = ray.remote(max_system_intrinsic_information)
 def find_maximal_compositional_state(
     phi_structures,
     chunksize=DEFAULT_PHI_STRUCTURE_CHUNKSIZE,
+    remote=True,
     progress=False,
 ):
     progress = config.PROGRESS_BARS or progress
     log.debug("Finding maximal compositional state...")
-    tasks = [
-        _max_system_intrinsic_information.remote(chunk)
-        for chunk in tqdm(
-            partition_all(chunksize, phi_structures),
-            desc="Submitting compositional states for evaluation",
-        )
-    ]
-    log.debug("Done submitting tasks.")
-    results = as_completed(tasks)
-    if progress:
-        results = tqdm(
-            results, total=len(tasks), desc="Finding maximal compositional state"
-        )
-    log.debug("Done finding maximal compositional state.")
-    return max_system_intrinsic_information(results)
+    if remote:
+        tasks = [
+            _max_system_intrinsic_information.remote(chunk)
+            for chunk in tqdm(
+                partition_all(chunksize, phi_structures),
+                desc="Submitting compositional states for evaluation",
+            )
+        ]
+        log.debug("Done submitting tasks.")
+        results = as_completed(tasks)
+        if progress:
+            results = tqdm(
+                results, total=len(tasks), desc="Finding maximal compositional state"
+            )
+        log.debug("Done finding maximal compositional state.")
+        return max_system_intrinsic_information(results)
+    else:
+        if progress:
+            phi_structures = tqdm(phi_structures, desc="Nonconflicting sets")
+        return max_system_intrinsic_information(phi_structures)
 
 
 def nonconflicting_phi_structures(
-    all_distinctions, ties=False, all_relations=None, remote=True
+    all_distinctions,
+    ties=False,
+    all_relations=None,
+    remote=True,
 ):
     """Yield nonconflicting PhiStructures."""
     for distinctions in all_nonconflicting_distinction_sets(
@@ -748,6 +773,7 @@ def sia(
     partition_chunksize=DEFAULT_PARTITION_CHUNKSIZE,
     progress=False,
     ties=False,
+    remote=True,
 ):
     """Analyze the irreducibility of a system."""
     progress = config.PROGRESS_BARS or progress
@@ -768,13 +794,18 @@ def sia(
             return _null_sia(subsystem, full_phi_structure, reasons=reasons)
 
     if phi_structures is None:
-        phi_structures = nonconflicting_phi_structures(all_distinctions, ties=ties)
+        phi_structures = nonconflicting_phi_structures(
+            all_distinctions,
+            ties=ties,
+            remote=remote,
+        )
 
     if config.IIT_VERSION == "maximal-state-first":
         maximal_compositional_state = find_maximal_compositional_state(
             phi_structures,
             chunksize=chunksize,
             progress=progress,
+            remote=remote,
         )
         log.debug("Evaluating maximal compositional state...")
         analysis = evaluate_phi_structure(
@@ -782,6 +813,8 @@ def sia(
             maximal_compositional_state,
             check_trivial_reducibility=check_trivial_reducibility,
             chunksize=partition_chunksize,
+            remote=remote,
+            progress=progress,
         )
         log.debug("Done evaluating maximal compositional state; returning SIA.")
         return analysis
