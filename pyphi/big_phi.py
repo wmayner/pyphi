@@ -158,7 +158,11 @@ class PhiStructure(cmp.Orderable):
         self._sum_phi_distinctions = None
         self._selectivity = None
         # TODO improve this
-        self._substrate_size = len(distinctions.subsystem)
+        self._substrate_size = len(self.subsystem)
+
+    @property
+    def subsystem(self):
+        return self.distinctions.subsystem
 
     def order_by(self):
         return self.system_intrinsic_information()
