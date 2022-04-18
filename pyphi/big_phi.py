@@ -20,7 +20,7 @@ from .cache import cache
 from .combinatorics import maximal_independent_sets
 from .compute.parallel import as_completed, init
 from .direction import Direction
-from .models import cmp
+from .models import cmp, fmt
 from .models.cuts import CompleteSystemPartition, SystemPartition
 from .models.subsystem import CauseEffectStructure, FlatCauseEffectStructure
 from .partition import system_partition_types
@@ -182,6 +182,9 @@ class PhiStructure(cmp.Orderable):
 
     def __bool__(self):
         return bool(self.distinctions)
+
+    def __repr__(self):
+        return fmt.fmt_phi_structure(self)
 
     def __getstate__(self):
         dct = self.__dict__

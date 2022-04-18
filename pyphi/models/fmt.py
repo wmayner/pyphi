@@ -303,6 +303,36 @@ def fmt_partition(partition):
     return "".join(chain.from_iterable(zip(*elements)))
 
 
+def fmt_phi_structure(ps):
+    distinctions = len(ps.distinctions)
+
+    if ps.requires_filter:
+        relations = sum_phi = sum_phi_r = sii = selectivity = "[requires filter]"
+    elif ps.relations is None:
+        relations = sum_phi = sum_phi_r = sii = selectivity = "[not computed]"
+    else:
+        relations = len(ps.relations)
+        sum_phi = ps.sum_phi()
+        sum_phi_r = ps.relations.sum_phi()
+        sii = ps.system_intrinsic_information()
+        selectivity = ps.selectivity()
+
+    title = "\n".join(["Phi-structure"])
+    body = "\n".join(
+        [
+            f"Distinctions: {distinctions}",
+            f"   Relations: {relations}",
+            f"        Σφ_d: {ps.sum_phi_distinctions()}",
+            f"        Σφ_r: {sum_phi_r}",
+            f"          Σφ: {sum_phi}",
+            f"      S.I.I.: {sii}",
+            f" Selectivity: {selectivity}",
+            f"   Subsystem: {ps.subsystem}",
+        ]
+    )
+    return header(title, body, HEADER_BAR_1, HEADER_BAR_1)
+
+
 def fmt_ces(c, title=None):
     """Format a |CauseEffectStructure|."""
     if not c:
