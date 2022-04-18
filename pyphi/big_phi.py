@@ -419,10 +419,9 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         return hash(
             (
                 self.phi,
-                self.ces,
-                self.partitioned_ces,
+                self.phi_structure,
+                self.partitioned_phi_structure,
                 self.subsystem,
-                self.partitioned_subsystem,
             )
         )
 
