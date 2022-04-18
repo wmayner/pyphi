@@ -176,6 +176,9 @@ class PhiStructure(cmp.Orderable):
     def __hash__(self):
         return hash((self.distinctions, self.relations))
 
+    def __bool__(self):
+        return bool(self.distinctions)
+
     def __getstate__(self):
         dct = self.__dict__
         if isinstance(self.relations, ConcreteRelations):
