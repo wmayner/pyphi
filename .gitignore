@@ -7,6 +7,7 @@ __pycache__
 .tox
 .coverage
 .pytest_cache
+.virtual_documents
 **/*.egg-info
 **/*.log
 **/*.BACKUP
