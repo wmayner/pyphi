@@ -7,7 +7,7 @@ Helper functions for formatting pretty representations of PyPhi models.
 """
 
 from fractions import Fraction
-from itertools import chain
+from itertools import chain, cycle
 
 from .. import config, constants, utils
 from ..direction import Direction
@@ -204,13 +204,109 @@ def labels(indices, node_labels=None):
     return node_labels.indices2labels(indices)
 
 
+def width(lines):
+    """Return the maximum width of the given lines.
+
+    Example:
+        >>> width(["abcde", "abc", "", "abcdefg"])
+        7
+    """
+    return max(map(len, lines))
+
+
+def align(lines, direction="<"):
+    """Align lines by padding with spaces.
+
+    Examples:
+        >>> lines = ["abcde", "abc", "", "abcdefg"]
+        >>> align(lines, direction="<")
+        ['abcde  ', 'abc    ', '       ', 'abcdefg']
+        >>> align(lines, direction=">")
+        ['  abcde', '    abc', '       ', 'abcdefg']
+        >>> align(lines, direction="c")
+        [' abcde ', '  abc  ', '       ', 'abcdefg']
+
+    """
+    w = width(lines)
+    if direction == "c":
+        return [line.center(w) for line in lines]
+    spec = " {direction}{width}".format(direction=direction, width=w)
+    return [format(line, spec) for line in lines]
+
+
+def align_decimals(numbers):
+    """Align numbers on the decimal point.
+
+    Examples:
+        >>> numbers = [0.0, 1, 0.99, 100.5, 80.123]
+        >>> align_decimals(numbers)
+        ['  0.0  ', '  1    ', '  0.99 ', '100.5  ', ' 80.123']
+    """
+    units, decimals = [], []
+    for n in numbers:
+        if isinstance(n, str):
+            # str
+            units.append(""),
+            decimals.append(n)
+        elif float(n).is_integer():
+            # int
+            units.append(int(n))
+            decimals.append("")
+        else:
+            # assume float
+            parts = str(n).split(".")
+            units.append(parts[0])
+            decimals.append(parts[1])
+    points = ["." if unit and decimal else "" for unit, decimal in zip(units, decimals)]
+    units = align(units, direction=">")
+    decimals = align(decimals, direction="<")
+    return ["".join(elements) for elements in zip(units, points, decimals)]
+
+
+def align_columns(lines, delimiter=": ", alignment="><", types="tn"):
+    """Align columns of text.
+
+    Arguments:
+        lines (Iterable): The lines to align.
+
+    Keyword Arguments:
+        delimiter (str): The delimiter of the columns.
+        alignment (str): A string of ">" and "<", indicating the alignment for each column.
+        types (str): A string of "t" (text) and "n" (numeric), indicating the
+            type of each column.
+
+    Examples:
+        >>> lines = [
+        ...     'abc: 0.0',
+        ...     'a: 1',
+        ...     'b: 0.999',
+        ...     'c: 100.5',
+        ...     'xy: 80.12',
+        ... ]
+        >>> align_columns(lines, delimiter=": ", alignment="><", types="tn")
+        ['abc:   0.0  ', '  a:   1    ', '  b:   0.999', '  c: 100.5  ', ' xy:  80.12 ']
+    """
+    columns = list(zip(*(str(line).split(delimiter) for line in lines)))
+    for i, t in enumerate(types):
+        if t == "n":
+            columns[i] = align_decimals(columns[i])
+    alignment = cycle(alignment)
+    columns = [align(column, direction=a) for column, a in zip(columns, alignment)]
+    return [delimiter.join(line) for line in zip(*columns)]
+
+
 def fmt_number(p):
     """Format a number.
 
     It will be printed as a fraction if the denominator isn't too big and as a
     decimal otherwise.
+
+    If formatting fails, return the input unmodified.
     """
-    formatted = "{:n}".format(p)
+    try:
+        formatted = format(p, f".{config.PRECISION}f")
+    except (ValueError, TypeError):
+        return str(p)
 
     if not config.PRINT_FRACTIONS:
         return formatted
@@ -303,7 +399,7 @@ def fmt_partition(partition):
     return "".join(chain.from_iterable(zip(*elements)))
 
 
-def fmt_phi_structure(ps):
+def fmt_phi_structure(ps, title="Phi-structure", subsystem=True):
     distinctions = len(ps.distinctions)
 
     if ps.requires_filter:
@@ -317,19 +413,24 @@ def fmt_phi_structure(ps):
         sii = ps.system_intrinsic_information()
         selectivity = ps.selectivity()
 
-    title = "\n".join(["Phi-structure"])
-    body = "\n".join(
-        [
-            f"Distinctions: {distinctions}",
-            f"   Relations: {relations}",
-            f"        Σφ_d: {ps.sum_phi_distinctions()}",
-            f"        Σφ_r: {sum_phi_r}",
-            f"          Σφ: {sum_phi}",
-            f"      S.I.I.: {sii}",
-            f" Selectivity: {selectivity}",
-            f"   Subsystem: {ps.subsystem}",
-        ]
+    lines = [
+        ("Distinctions", distinctions),
+        ("Relations", relations),
+        ("Σφ_d", ps.sum_phi_distinctions()),
+        ("Σφ_r", sum_phi_r),
+        ("Σφ", sum_phi),
+        ("Selectivity", selectivity),
+        ("S.I.I.", sii),
+    ]
+    lines = align_columns(
+        [": ".join([label, fmt_number(number)]) for label, number in lines]
     )
+    if subsystem:
+        lines = align_columns(
+            lines + [f"Subsystem: {ps.subsystem}"],
+            types="tt",
+        )
+    body = "\n".join(lines)
     return header(title, body, HEADER_BAR_1, HEADER_BAR_1)
 
 
@@ -446,6 +547,55 @@ def fmt_cut(cut, direction=None):
 def fmt_kcut(cut):
     """Format a |KCut|."""
     return "KCut {}\n{}".format(cut.direction, cut.partition)
+
+
+def fmt_sia_4(sia, phi_structure=True, title="System irreducibility analysis"):
+    """Format an IIT 4.0 |SystemIrreducibilityAnalysis|."""
+    if phi_structure:
+        body = (
+            fmt_phi_structure(sia.phi_structure, subsystem=False)
+            + "\n"
+            + fmt_phi_structure(
+                sia.partitioned_phi_structure,
+                title="Partitioned phi-structure",
+                subsystem=False,
+            )
+        )
+    else:
+        body = ""
+
+    selectivity = sia.selectivity
+    if selectivity is None:
+        selectivity = "[not computed]"
+    informativeness = sia.informativeness
+    if informativeness is None:
+        informativeness = "[not computed]"
+
+    lines = [
+        (f"{BIG_PHI}", sia.phi),
+        ("Selectivity", selectivity),
+        ("Informativeness", informativeness),
+    ]
+    lines = align_columns(
+        [": ".join([label, fmt_number(number)]) for label, number in lines]
+    )
+    body = "\n".join(lines) + "\n" + body
+
+    data = [
+        sia.subsystem,
+        sia.partition,
+    ]
+    if sia.reasons:
+        data.append(
+            "[trivially reducible]\n" + "\n".join(map(str, sia.reasons)),
+        )
+    data.append(" ")
+    for line in reversed(data):
+        body = header(str(line), body, center=True)
+    body = header(title, body, under_char=HEADER_BAR_2, center=True)
+    # Center
+    body = "\n".join(align(body.split("\n"), direction="c"))
+    return box(body)
 
 
 def fmt_sia(sia, ces=True):

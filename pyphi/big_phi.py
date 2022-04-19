@@ -435,6 +435,9 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
             )
         )
 
+    def __repr__(self):
+        return fmt.fmt_sia_4(self)
+
 
 def evaluate_partition(subsystem, phi_structure, partition):
     partitioned_phi_structure = phi_structure.partition(partition)
@@ -453,10 +456,16 @@ def evaluate_partition(subsystem, phi_structure, partition):
 class HAS_NONSPECIFIED_ELEMENTS:
     elements: list = None
 
+    def __repr__(self):
+        return f"Nonspecified elements: {self.elements}"
+
 
 @dataclass
 class HAS_NO_SPANNING_SPECIFICATION:
     elements: list = None
+
+    def __repr__(self):
+        return f"No specification spanning partition: {self.elements}"
 
 
 def has_nonspecified_elements(distinctions):
