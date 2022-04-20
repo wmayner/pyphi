@@ -233,20 +233,25 @@ def align(lines, direction="<"):
 def align_decimals(numbers):
     """Align numbers on the decimal point.
 
+    Integers (whether of type `int` or `float`) and floats are aligned. `str`
+    elements are aligned to the right of the decimal point.
+
     Examples:
-        >>> numbers = [0.0, 1, 0.99, 100.5, 80.123]
+        >>> numbers = [0.0, 1, 0.99, 100.5, 80.123, 'string']
         >>> align_decimals(numbers)
-        ['  0.0  ', '  1    ', '  0.99 ', '100.5  ', ' 80.123']
+        ['  0      ', '  1      ', '  0.99    ', '100.5     ', ' 80.123   ', '   string']
+        >>> align_decimals([0.5] + list(map(str, numbers)))
+        ['0.5     ', ' 0.0   ', ' 1     ', ' 0.99  ', ' 100.5 ', ' 80.123', ' string']
     """
     units, decimals = [], []
     for n in numbers:
         if isinstance(n, str):
             # str
             units.append("")
-            decimals.append(n)
+            decimals.append(str(n))
         elif float(n).is_integer():
             # int
-            units.append(int(n))
+            units.append(str(int(n)))
             decimals.append("")
         else:
             # assume float
@@ -259,7 +264,9 @@ def align_decimals(numbers):
     return ["".join(elements) for elements in zip(units, points, decimals)]
 
 
-def align_columns(lines, delimiter=": ", alignment="><", types="tn"):
+def align_columns(
+    lines, delimiter=": ", alignment="><", types="tn", split_columns=False
+):
     """Align columns of text.
 
     Arguments:
@@ -272,6 +279,15 @@ def align_columns(lines, delimiter=": ", alignment="><", types="tn"):
             type of each column.
 
     Examples:
+        >>> columns = [
+        ...     ('abc', 0.0),
+        ...     ('a', 1),
+        ...     ('b', 0.999),
+        ...     ('c', 100.5),
+        ...     ('xy', 80.12),
+        ... ]
+        >>> align_columns(columns, delimiter=": ", alignment="><", types="tn")
+        ['abc:   0    ', '  a:   1    ', '  b:   0.999', '  c: 100.5  ', ' xy:  80.12 ']
         >>> lines = [
         ...     'abc: 0.0',
         ...     'a: 1',
@@ -279,10 +295,12 @@ def align_columns(lines, delimiter=": ", alignment="><", types="tn"):
         ...     'c: 100.5',
         ...     'xy: 80.12',
         ... ]
-        >>> align_columns(lines, delimiter=": ", alignment="><", types="tn")
-        ['abc:   0.0  ', '  a:   1    ', '  b:   0.999', '  c: 100.5  ', ' xy:  80.12 ']
+        >>> align_columns(lines, delimiter=": ", alignment="><", types="tn", split_columns=True)
+        ['abc: 0.0  ', '  a: 1    ', '  b: 0.999', '  c: 100.5', ' xy: 80.12']
     """
-    columns = list(zip(*(str(line).split(delimiter) for line in lines)))
+    if split_columns:
+        lines = [str(line).split(delimiter) for line in lines]
+    columns = list(zip(*lines))
     for i, t in enumerate(types):
         if t == "n":
             columns[i] = align_decimals(columns[i])
@@ -410,7 +428,7 @@ def fmt_phi_structure(ps, title="Phi-structure", subsystem=True):
         sii = ps.system_intrinsic_information()
         selectivity = ps.selectivity()
 
-    lines = [
+    columns = [
         ("Distinctions", distinctions),
         ("Relations", relations),
         ("Σφ_d", ps.sum_phi_distinctions()),
@@ -419,9 +437,7 @@ def fmt_phi_structure(ps, title="Phi-structure", subsystem=True):
         ("Selectivity", selectivity),
         ("S.I.I.", sii),
     ]
-    lines = align_columns(
-        [": ".join([label, fmt_number(number)]) for label, number in lines]
-    )
+    lines = align_columns(columns)
     if subsystem:
         lines = align_columns(
             lines + [f"Subsystem: {ps.subsystem}"],
@@ -558,14 +574,15 @@ def fmt_kcut(cut):
 def fmt_sia_4(sia, phi_structure=True, title="System irreducibility analysis"):
     """Format an IIT 4.0 |SystemIrreducibilityAnalysis|."""
     if phi_structure:
-        body = (
-            fmt_phi_structure(sia.phi_structure, subsystem=False)
-            + "\n"
-            + fmt_phi_structure(
-                sia.partitioned_phi_structure,
-                title="Partitioned phi-structure",
-                subsystem=False,
-            )
+        body = "\n".join(
+            [
+                fmt_phi_structure(sia.phi_structure, subsystem=False),
+                fmt_phi_structure(
+                    sia.partitioned_phi_structure,
+                    title="Partitioned phi-structure",
+                    subsystem=False,
+                ),
+            ]
         )
     else:
         body = ""
@@ -582,20 +599,16 @@ def fmt_sia_4(sia, phi_structure=True, title="System irreducibility analysis"):
         ("Selectivity", selectivity),
         ("Informativeness", informativeness),
     ]
-    lines = align_columns(
-        [": ".join([label, fmt_number(number)]) for label, number in lines]
-    )
-    body = "\n".join(lines) + "\n" + body
+    lines = align_columns(lines)
+    body = "\n".join(["\n".join(lines), body])
 
     data = [
         sia.subsystem,
         sia.partition,
     ]
     if sia.reasons:
-        data.append(
-            "[trivially reducible]\n" + "\n".join(map(str, sia.reasons)),
-        )
-    data.append(" ")
+        data.append("[trivially reducible]\n" + "\n".join(map(str, sia.reasons)))
+    data.append("")
     for line in reversed(data):
         body = header(str(line), body, center=True)
     body = header(title, body, under_char=HEADER_BAR_2, center=True)
