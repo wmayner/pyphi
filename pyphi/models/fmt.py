@@ -447,21 +447,19 @@ def fmt_phi_structure(ps, title="Phi-structure", subsystem=True):
         lines = align_columns(
             lines + [f"Subsystem: {ps.subsystem}"],
             types="tt",
+            split_columns=True,
         )
     body = "\n".join(lines)
     return header(title, body, HEADER_BAR_1, HEADER_BAR_1)
 
 
-def fmt_ces(c, title=None):
+def fmt_ces(ces, title="Cause-effect structure"):
     """Format a |CauseEffectStructure|."""
-    if not c:
+    if not ces:
         return "()\n"
 
-    if title is None:
-        title = "Cause-effect structure"
-
-    concepts = "\n".join(margin(x) for x in c) + "\n"
-    title = "{} ({} concept{})".format(title, len(c), "" if len(c) == 1 else "s")
+    concepts = center("\n".join(margin(x) for x in ces) + "\n")
+    title = "{} ({} concept{})".format(title, len(ces), "" if len(ces) == 1 else "s")
 
     return header(title, concepts, HEADER_BAR_1, HEADER_BAR_1)
 
@@ -616,8 +614,8 @@ def fmt_sia_4(sia, phi_structure=True, title="System irreducibility analysis"):
         data.append("[trivially reducible]\n" + "\n".join(map(str, sia.reasons)))
     data.append("")
     for line in reversed(data):
-        body = header(str(line), body, center=True)
-    body = header(title, body, under_char=HEADER_BAR_2, center=True)
+        body = header(str(line), body)
+    body = header(title, body, under_char=HEADER_BAR_2)
     return box(center(body))
 
 
@@ -639,8 +637,8 @@ def fmt_sia(sia, ces=True, title="System irreducibility analysis"):
         sia.cut,
     ]
     for line in reversed(data):
-        body = header(str(line), body, center=True)
-    body = header(title, body, under_char=HEADER_BAR_2, center=True)
+        body = header(str(line), body)
+    body = header(title, body, under_char=HEADER_BAR_2)
     return box(center(body))
 
 
