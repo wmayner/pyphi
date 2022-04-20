@@ -12,8 +12,6 @@ from itertools import chain, cycle
 from .. import config, constants, utils
 from ..direction import Direction
 
-# pylint: disable=bad-whitespace
-
 # REPR_VERBOSITY levels
 LOW = 0
 MEDIUM = 1
@@ -47,8 +45,6 @@ CUT_SYMBOLS_BY_DIRECTION = {
 }
 
 NICE_DENOMINATORS = list(range(16)) + [16, 32, 64, 128]
-
-# pylint: enable=bad-whitespace
 
 
 def make_repr(self, attrs):
@@ -135,11 +131,11 @@ def box(text):
     """
     lines = text.split("\n")
 
-    width = max(len(l) for l in lines)
-    top_bar = TOP_LEFT_CORNER + HORIZONTAL_BAR * (2 + width) + TOP_RIGHT_CORNER
-    bottom_bar = BOTTOM_LEFT_CORNER + HORIZONTAL_BAR * (2 + width) + BOTTOM_RIGHT_CORNER
+    w = width(lines)
+    top_bar = TOP_LEFT_CORNER + HORIZONTAL_BAR * (2 + w) + TOP_RIGHT_CORNER
+    bottom_bar = BOTTOM_LEFT_CORNER + HORIZONTAL_BAR * (2 + w) + BOTTOM_RIGHT_CORNER
 
-    lines = [LINES_FORMAT_STR.format(line=line, width=width) for line in lines]
+    lines = [LINES_FORMAT_STR.format(line=line, width=w) for line in lines]
 
     return top_bar + "\n" + "\n".join(lines) + "\n" + bottom_bar
 
@@ -172,27 +168,37 @@ def side_by_side(left, right):
     return "\n".join(a + b for a, b in zip(left_lines, right_lines)) + "\n"
 
 
+def width(lines):
+    """Return the maximum width of the given lines.
+
+    Example:
+        >>> width(["abcde", "abc", "", "abcdefg"])
+        7
+    """
+    return max(map(len, lines))
+
+
 def header(head, text, over_char=None, under_char=None, center=True):
     """Center a head over a block of text.
 
     The width of the text is the width of the longest line of the text.
     """
     lines = list(text.split("\n"))
-    width = max(len(l) for l in lines)
+    w = width(lines)
 
     # Center or left-justify
     if center:
-        head = head.center(width) + "\n"
+        head = head.center(w) + "\n"
     else:
-        head = head.ljust(width) + "\n"
+        head = head.ljust(w) + "\n"
 
     # Underline head
     if under_char:
-        head = head + under_char * width + "\n"
+        head = head + under_char * w + "\n"
 
     # 'Overline' head
     if over_char:
-        head = over_char * width + "\n" + head
+        head = over_char * w + "\n" + head
 
     return head + text
 
@@ -202,16 +208,6 @@ def labels(indices, node_labels=None):
     if node_labels is None:
         return tuple(map(str, indices))
     return node_labels.indices2labels(indices)
-
-
-def width(lines):
-    """Return the maximum width of the given lines.
-
-    Example:
-        >>> width(["abcde", "abc", "", "abcdefg"])
-        7
-    """
-    return max(map(len, lines))
 
 
 def align(lines, direction="<"):
@@ -246,7 +242,7 @@ def align_decimals(numbers):
     for n in numbers:
         if isinstance(n, str):
             # str
-            units.append(""),
+            units.append("")
             decimals.append(n)
         elif float(n).is_integer():
             # int
@@ -340,11 +336,11 @@ def fmt_fraction(numer: str, denom: str):
         numer (str): The numerator.
         denom (str): The denominator.
     """
-    width = max(3, len(numer), len(denom))
-    divider = HORIZONTAL_BAR * width
+    w = max(3, len(numer), len(denom))
+    divider = HORIZONTAL_BAR * w
 
     return ("{numer:^{width}}\n" "{divider}\n" "{denom:^{width}}").format(
-        numer=numer, divider=divider, denom=denom, width=width
+        numer=numer, divider=divider, denom=denom, width=w
     )
 
 
@@ -400,6 +396,7 @@ def fmt_partition(partition):
 
 
 def fmt_phi_structure(ps, title="Phi-structure", subsystem=True):
+    """Format a PhiStructure."""
     distinctions = len(ps.distinctions)
 
     if ps.requires_filter:
@@ -465,7 +462,13 @@ def fmt_concept(concept):
 
     mechanism = fmt_mechanism(concept.mechanism, concept.node_labels)
     # TODO(4.0) reconsider using Nodes in the mechanism to facilitate access to their state, etc.
-    title = f"Concept: mechanism = {mechanism}, state = {list(concept.mechanism_state)}, {SMALL_PHI} = {fmt_number(concept.phi)}"
+    title = ", ".join(
+        [
+            f"Concept: mechanism = {mechanism}",
+            f"state = {list(concept.mechanism_state)}",
+            f"{SMALL_PHI} = {fmt_number(concept.phi)}",
+        ]
+    )
 
     # Only center headers for high-verbosity output
     center = config.REPR_VERBOSITY is HIGH
@@ -478,7 +481,10 @@ def fmt_ria(ria, verbose=True, mip=False):
     if verbose:
         mechanism = f"Mechanism: {fmt_mechanism(ria.mechanism, ria.node_labels)}\n"
         direction = f"\nDirection: {ria.direction}"
-        purview_state = f"\nCurrent purview state: {list(ria.purview_state) if ria.purview_state is not None else None}"
+        purview_state = (
+            list(ria.purview_state) if ria.purview_state is not None else None
+        )
+        purview_state = f"\nCurrent purview state: {purview_state}"
     else:
         mechanism = ""
         direction = ""
@@ -645,8 +651,8 @@ def fmt_repertoire(r, mark_states=None):
             state_str += "  "
         lines.append("{0}{1}{2}".format(state_str, space[:-2], fmt_number(r[state])))
 
-    width = max(len(line) for line in lines)
-    lines.insert(1, DOTTED_HEADER * (width + 1))
+    w = width(lines)
+    lines.insert(1, DOTTED_HEADER * (w + 1))
 
     return box("\n".join(lines))
 
