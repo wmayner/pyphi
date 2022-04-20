@@ -17,6 +17,7 @@ with open("./pyphi/__about__.py", encoding="utf-8") as f:
 install_requires = [
     "decorator >=4.0.0",
     "Graphillion >=1.5",
+    "igraph >= 0.9.10",
     "joblib >=0.8.0",
     "networkx >=2.6.2",
     "numpy >=1.11.0",

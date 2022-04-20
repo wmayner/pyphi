@@ -5,12 +5,12 @@
 """Combinatorial functions."""
 
 from collections import defaultdict
-from itertools import chain
+from itertools import chain, product
 
+import igraph as ig
 import networkx as nx
 import numpy as np
 from graphillion import setset
-from itertools import product
 
 from .cache import cache
 
@@ -161,13 +161,18 @@ def union_powerset_family(sets, min_size=1, max_size=None):
     return S
 
 
-def maximal_independent_sets(graph):
-    """Yield the maximal independent sets of the graph.
+def maximal_independent_sets(nx_graph):
+    """Yield the maximal independent sets of a NetworkX graph.
+
+    Uses igraph's implementation of `maximal_independent_vertex_sets`.
 
     Time complexity is exponential in the worst case.
     """
-    # Maximal independent sets are cliques in the graph's complement
-    return nx.find_cliques(nx.complement(graph))
+    # Convert to igraph for faster maximal independent set implementation
+    G = ig.Graph.from_networkx(nx_graph)
+    for vertices in G.maximal_independent_vertex_sets():
+        # Convert node IDs to mechanisms
+        yield G.vs[vertices]["_nx_name"]
 
 
 @cache(cache={}, maxmem=None)
