@@ -230,6 +230,11 @@ def align(lines, direction="<"):
     return [format(line, spec) for line in lines]
 
 
+def center(text):
+    """Center-align a string."""
+    return "\n".join(align(text.split("\n"), direction="c"))
+
+
 def align_decimals(numbers):
     """Align numbers on the decimal point.
 
@@ -478,17 +483,18 @@ def fmt_concept(concept):
 
     mechanism = fmt_mechanism(concept.mechanism, concept.node_labels)
     # TODO(4.0) reconsider using Nodes in the mechanism to facilitate access to their state, etc.
-    title = ", ".join(
-        [
-            f"Concept: mechanism = {mechanism}",
-            f"state = {list(concept.mechanism_state)}",
-            f"{SMALL_PHI} = {fmt_number(concept.phi)}",
-        ]
+    title = "\n".join(
+        align(
+            [
+                f"Concept: mechanism = {mechanism}, state = {list(concept.mechanism_state)}",
+                f"{SMALL_PHI} = {fmt_number(concept.phi)}",
+            ],
+            direction="c",
+        )
     )
 
     # Only center headers for high-verbosity output
     center = config.REPR_VERBOSITY is HIGH
-
     return header(title, ce, HEADER_BAR_2, HEADER_BAR_2, center=center)
 
 
@@ -595,7 +601,7 @@ def fmt_sia_4(sia, phi_structure=True, title="System irreducibility analysis"):
         informativeness = "[not computed]"
 
     lines = [
-        (f"{BIG_PHI}", sia.phi),
+        (BIG_PHI, sia.phi),
         ("Selectivity", selectivity),
         ("Informativeness", informativeness),
     ]
@@ -612,32 +618,30 @@ def fmt_sia_4(sia, phi_structure=True, title="System irreducibility analysis"):
     for line in reversed(data):
         body = header(str(line), body, center=True)
     body = header(title, body, under_char=HEADER_BAR_2, center=True)
-    # Center
-    body = "\n".join(align(body.split("\n"), direction="c"))
-    return box(body)
+    return box(center(body))
 
 
-def fmt_sia(sia, ces=True):
+def fmt_sia(sia, ces=True, title="System irreducibility analysis"):
     """Format a |SystemIrreducibilityAnalysis|."""
     if ces:
-        body = "{ces}" "{partitioned_ces}".format(
+        body = "{ces}\n{partitioned_ces}".format(
             ces=fmt_ces(sia.ces, "Cause-effect structure"),
             partitioned_ces=fmt_ces(
                 sia.partitioned_ces, "Partitioned cause-effect structure"
             ),
         )
-        center_header = True
     else:
         body = ""
-        center_header = False
 
-    title = "System irreducibility analysis: {BIG_PHI} = {phi}".format(
-        BIG_PHI=BIG_PHI, phi=fmt_number(sia.phi)
-    )
-
-    body = header(str(sia.subsystem), body, center=center_header)
-    body = header(str(sia.cut), body, center=center_header)
-    return box(header(title, body, center=center_header))
+    data = [
+        f"{BIG_PHI}: {fmt_number(sia.phi)}",
+        sia.subsystem,
+        sia.cut,
+    ]
+    for line in reversed(data):
+        body = header(str(line), body, center=True)
+    body = header(title, body, under_char=HEADER_BAR_2, center=True)
+    return box(center(body))
 
 
 def fmt_repertoire(r, mark_states=None):
