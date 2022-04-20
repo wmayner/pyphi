@@ -524,8 +524,14 @@ def filter_ces(ces, direction, compositional_state):
 
 
 def tied_distinction_sets(distinctions):
-    """Yield all combinations of tied distinctions."""
-    for tie in product(*[distinction.ties for distinction in distinctions.flatten()]):
+    """Yield all combinations of tied distinctions.
+
+    NOTE: Only considers ties among purviews; ties among MIPs that share the
+    same purview are resolved arbitrarily.
+    """
+    for tie in product(
+        *[distinction.purview_ties for distinction in distinctions.flatten()]
+    ):
         yield FlatCauseEffectStructure(
             tie, subsystem=distinctions.subsystem
         ).unflatten()

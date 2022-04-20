@@ -303,8 +303,20 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
 
     @property
     def ties(self):
-        """list: MICE objects for any other purviews that are maximal."""
+        """list: MICE objects for any other purviews or partitions that are maximal."""
         return self._ties
+
+    @property
+    def purview_ties(self):
+        """list: MICE objects for any other purviews that are maximal.
+
+        NOTE: Partition ties are resolved arbitrarily.
+        """
+        seen = set()
+        for tie in self.ties:
+            if tie.purview not in seen:
+                yield tie
+                seen.add(tie.purview)
 
     @property
     def is_tied(self):
