@@ -129,7 +129,7 @@ def _requires_relations(func):
         if isinstance(self.relations, ray.ObjectRef):
             self.relations = ray.get(self.relations)
         # Filter relations if flag is set
-        if self.requires_filter:
+        if self.requires_filter_relations:
             self.filter_relations()
         return func(self, *args, **kwargs)
 
@@ -137,7 +137,12 @@ def _requires_relations(func):
 
 
 class PhiStructure(cmp.Orderable):
-    def __init__(self, distinctions, relations=None, requires_filter=False):
+    def __init__(
+        self,
+        distinctions,
+        relations=None,
+        requires_filter_relations=False,
+    ):
         if not isinstance(distinctions, CauseEffectStructure):
             raise ValueError(
                 f"distinctions must be a CauseEffectStructure, got {type(distinctions)}"
@@ -151,7 +156,7 @@ class PhiStructure(cmp.Orderable):
                 f"relations must be a Relations object, ray.ObjectRef, or None; "
                 f"got {type(relations)}"
             )
-        self.requires_filter = requires_filter
+        self.requires_filter_relations = requires_filter_relations
         self.distinctions = distinctions
         self.relations = relations
         self._system_intrinsic_information = None
@@ -167,6 +172,7 @@ class PhiStructure(cmp.Orderable):
     def order_by(self):
         return self.system_intrinsic_information()
 
+    @_requires_relations
     def __eq__(self, other):
         return cmp.general_eq(
             self,
@@ -177,6 +183,7 @@ class PhiStructure(cmp.Orderable):
             ],
         )
 
+    @_requires_relations
     def __hash__(self):
         return hash((self.distinctions, self.relations))
 
@@ -193,6 +200,7 @@ class PhiStructure(cmp.Orderable):
             dct["relations"] = self.relations.to_indirect_json(distinctions)
         return dct
 
+    @_requires_relations
     def __setstate__(self, state):
         try:
             distinctions = state["distinctions"]
@@ -230,7 +238,7 @@ class PhiStructure(cmp.Orderable):
         Modifies the relations on this object in-place.
         """
         self.relations = self.relations.supported_by(self.distinctions)
-        self.requires_filter = False
+        self.requires_filter_relations = False
 
     def sum_phi_distinctions(self):
         if self._sum_phi_distinctions is None:
@@ -241,7 +249,6 @@ class PhiStructure(cmp.Orderable):
     def sum_phi_relations(self):
         return self.relations.sum_phi()
 
-    @_requires_relations
     def sum_phi(self):
         return self.sum_phi_distinctions() + self.sum_phi_relations()
 
@@ -262,10 +269,13 @@ class PhiStructure(cmp.Orderable):
         # work. Also very Zen.
         return self
 
-    def partition(self, partition):
-        """Return a PartitionedPhiStructure with the given partition."""
+    def apply_partition(self, partition):
+        """Apply a partition to this PhiStructure."""
         return PartitionedPhiStructure(
-            self, partition, requires_filter=self.requires_filter
+            self.distinctions,
+            self.relations,
+            partition=partition,
+            unpartitioned_phi_structure=self,
         )
 
     def system_intrinsic_information(self):
@@ -274,40 +284,33 @@ class PhiStructure(cmp.Orderable):
         This is the phi of the system with respect to the complete partition.
         """
         if self._system_intrinsic_information is None:
-            self._system_intrinsic_information = self.partition(
+            self._system_intrinsic_information = self.apply_partition(
                 CompleteSystemPartition()
             ).phi()
         return self._system_intrinsic_information
 
 
 class PartitionedPhiStructure(PhiStructure):
-    def __init__(self, unpartitioned_phi_structure, partition, requires_filter=False):
+    def __init__(
+        self,
+        distinctions,
+        relations,
+        partition,
+        unpartitioned_phi_structure,
+    ):
         # We need to realize the underlying PhiStructure in case
         # distinctions/relations are generators which may later become exhausted
-        self.unpartitioned_phi_structure = unpartitioned_phi_structure.realize()
+        unpartitioned_phi_structure = unpartitioned_phi_structure.realize()
+
+        distinctions = unaffected_distinctions(distinctions, partition)
         super().__init__(
-            self.unpartitioned_phi_structure.distinctions,
-            self.unpartitioned_phi_structure.relations,
-            # Relations should have been filtered when `.realize()` was called
-            requires_filter=False,
+            distinctions,
+            relations=relations,
+            requires_filter_relations=True,
         )
+
         self.partition = partition
-        # Lift values from unpartitioned PhiStructure
-        for attr in [
-            "_system_intrinsic_information",
-            "_substrate_size",
-            "_sum_phi_distinctions",
-            "_selectivity",
-        ]:
-            setattr(
-                self,
-                attr,
-                getattr(self.unpartitioned_phi_structure, attr),
-            )
-        self._partitioned_distinctions = None
-        self._partitioned_relations = None
-        self._sum_phi_partitioned_distinctions = None
-        self._sum_phi_partitioned_relations = None
+        self.unpartitioned_phi_structure = unpartitioned_phi_structure
         self._informativeness = None
 
     def order_by(self):
@@ -320,8 +323,8 @@ class PartitionedPhiStructure(PhiStructure):
             [
                 "phi",
                 "partition",
-                "partitioned_distinctions",
-                "partitioned_relations",
+                "distinctions",
+                "relations",
             ],
         )
 
@@ -329,66 +332,24 @@ class PartitionedPhiStructure(PhiStructure):
         return hash((super().__hash__(), self.partition))
 
     def __bool__(self):
-        """A |SystemIrreducibilityAnalysis| is ``True`` if it has |big_phi > 0|."""
+        """A |PartitionedPhiStructure| is ``True`` if it has |big_phi > 0|."""
         return not utils.eq(self.phi(), 0)
 
     def __repr__(self):
         return fmt.fmt_partitioned_phi_structure(self)
 
-    def partitioned_distinctions(self):
-        if self._partitioned_distinctions is None:
-            # TODO(4.0) keep a list of indices instead of a copy?
-            self._partitioned_distinctions = unaffected_distinctions(
-                self.distinctions, self.partition
-            )
-        return self._partitioned_distinctions
-
-    @_requires_relations
-    def partitioned_relations(self):
-        if self._partitioned_relations is None:
-            self._partitioned_relations = self.relations.supported_by(
-                self.partitioned_distinctions()
-            )
-        return self._partitioned_relations
-
-    def sum_phi_partitioned_distinctions(self):
-        if self._sum_phi_partitioned_distinctions is None:
-            self._sum_phi_partitioned_distinctions = sum(
-                self.partitioned_distinctions().phis
-            )
-        return self._sum_phi_partitioned_distinctions
-
-    def sum_phi_partitioned_relations(self):
-        if self._sum_phi_partitioned_relations is None:
-            self._sum_phi_partitioned_relations = self.partitioned_relations().sum_phi()
-            # Remove reference to the (heavy and rather redundant) lists of
-            # partitioned distinctions & relations under the assumption we won't
-            # need them again, since most PartitionedPhiStructures will be used
-            # only once, during SIA calculation
-            self._partitioned_distinctions = None
-            self._partitioned_relations = None
-        return self._sum_phi_partitioned_relations
-
-    def sum_phi_partitioned(self):
-        return (
-            self.sum_phi_partitioned_distinctions()
-            + self.sum_phi_partitioned_relations()
-        )
-
-    # TODO use only a single pass through the distinctions / relations?
     def informativeness(self):
         if self._informativeness is None:
-            self._informativeness = self.sum_phi() - self.sum_phi_partitioned()
+            self._informativeness = (
+                self.unpartitioned_phi_structure.sum_phi() - self.sum_phi()
+            )
         return self._informativeness
 
     def phi(self):
-        return self.selectivity() * self.informativeness()
+        return self.unpartitioned_phi_structure.selectivity() * self.informativeness()
 
     def to_json(self):
-        return {
-            "unpartitioned_phi_structure": self.unpartitioned_phi_structure,
-            "partition": self.partition,
-        }
+        return {**super().to_json(), "partition": self.partition}
 
 
 def selectivity(phi_structure):
@@ -445,7 +406,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
 
 
 def evaluate_partition(subsystem, phi_structure, partition):
-    partitioned_phi_structure = phi_structure.partition(partition)
+    partitioned_phi_structure = phi_structure.apply_partition(partition)
     return SystemIrreducibilityAnalysis(
         subsystem=subsystem,
         phi_structure=phi_structure,
@@ -620,7 +581,7 @@ _evaluate_partitions = ray.remote(evaluate_partitions)
 def _null_sia(subsystem, phi_structure, reasons=None):
     if not subsystem.cut.is_null:
         raise ValueError("subsystem must have no partition")
-    partitioned_phi_structure = phi_structure.partition(subsystem.cut)
+    partitioned_phi_structure = phi_structure.apply_partition(subsystem.cut)
     return SystemIrreducibilityAnalysis(
         subsystem=subsystem,
         phi_structure=phi_structure,
@@ -779,14 +740,14 @@ def nonconflicting_phi_structures(
                 )
             else:
                 relations = compute_relations(all_distinctions.subsystem, distinctions)
-            requires_filter = False
+            requires_filter_relations = False
         else:
             relations = all_relations
-            requires_filter = True
+            requires_filter_relations = True
         yield PhiStructure(
             distinctions,
             relations,
-            requires_filter=requires_filter,
+            requires_filter_relations=requires_filter_relations,
         )
 
 

@@ -422,7 +422,7 @@ def fmt_phi_structure(ps, title="Phi-structure", subsystem=True):
     """Format a PhiStructure."""
     distinctions = len(ps.distinctions)
 
-    if ps.requires_filter:
+    if ps.requires_filter_relations:
         relations = sum_phi = sum_phi_r = sii = selectivity = "[requires filter]"
     elif ps.relations is None:
         relations = sum_phi = sum_phi_r = sii = selectivity = "[not computed]"
