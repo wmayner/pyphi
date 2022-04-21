@@ -230,6 +230,9 @@ class SystemPartition(Cut):
 class CompleteSystemPartition:
     """Represents the SystemPartition that destroys all distinctions & relations."""
 
+    def __repr__(self):
+        return "Complete"
+
 
 class KCut(_CutBase):
     """A cut that severs all connections between parts of a K-partition."""

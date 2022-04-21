@@ -582,16 +582,19 @@ def fmt_cut(cut, direction=None, name=True):
         name = cut.__class__.__name__ + " "
     else:
         name = ""
-    return "{name}{from_nodes} {symbol} {to_nodes}".format(
-        name=name,
-        from_nodes=fmt_mechanism(cut.from_nodes, cut.node_labels),
-        symbol=(
-            FORWARD_CUT_SYMBOL
-            if direction is None
-            else CUT_SYMBOLS_BY_DIRECTION[direction]
-        ),
-        to_nodes=fmt_mechanism(cut.to_nodes, cut.node_labels),
-    )
+    try:
+        return "{name}{from_nodes} {symbol} {to_nodes}".format(
+            name=name,
+            from_nodes=fmt_mechanism(cut.from_nodes, cut.node_labels),
+            symbol=(
+                FORWARD_CUT_SYMBOL
+                if direction is None
+                else CUT_SYMBOLS_BY_DIRECTION[direction]
+            ),
+            to_nodes=fmt_mechanism(cut.to_nodes, cut.node_labels),
+        )
+    except AttributeError:
+        return str(cut)
 
 
 def fmt_kcut(cut):

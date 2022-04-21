@@ -15,7 +15,7 @@ import scipy
 from toolz.itertoolz import partition_all
 from tqdm.auto import tqdm
 
-from . import config, utils
+from . import config, utils, compute
 from .cache import cache
 from .combinatorics import maximal_independent_sets
 from .compute.parallel import as_completed, init
@@ -28,6 +28,7 @@ from .relations import ConcreteRelations, Relations
 from .relations import relations as compute_relations
 from .subsystem import Subsystem
 from .utils import expsublog, extremum_with_short_circuit
+from .compute.network import reachable_subsystems
 
 # TODO
 # - cache relations, compute as needed for each nonconflicting CES
@@ -836,3 +837,20 @@ def sia(
         maximum = max(results)
         log.debug("Done evaluating all compositional states; returning SIA.")
         return maximum
+
+
+def complexes(network, state, **kwargs):
+    for subsystem in reachable_subsystems(network, network.node_indices, state):
+        ces = compute.ces(subsystem)
+        _sia = sia(subsystem, ces, **kwargs)
+        if _sia:
+            yield _sia
+
+
+def major_complex(network, state, **kwargs):
+    result = complexes(network, state, **kwargs)
+    if result:
+        return max(result)
+    else:
+        empty_subsystem = Subsystem(network, state, ())
+        return _null_sia(empty_subsystem)

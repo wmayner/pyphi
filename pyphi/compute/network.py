@@ -18,7 +18,7 @@ from .subsystem import sia
 log = logging.getLogger(__name__)
 
 
-def _reachable_subsystems(network, indices, state):
+def reachable_subsystems(network, indices, state):
     """A generator over all subsystems in a valid state."""
     validate.is_network(network)
 
@@ -46,7 +46,7 @@ def subsystems(network, state):
         Subsystem: A |Subsystem| for each subset of nodes in the network,
         excluding subsystems that would be in an impossible state.
     """
-    return _reachable_subsystems(network, network.node_indices, state)
+    return reachable_subsystems(network, network.node_indices, state)
 
 
 def possible_complexes(network, state):
@@ -68,7 +68,7 @@ def possible_complexes(network, state):
     Yields:
         Subsystem: The next subsystem that could be a complex.
     """
-    return _reachable_subsystems(network, network.causally_significant_nodes, state)
+    return reachable_subsystems(network, network.causally_significant_nodes, state)
 
 
 class FindAllComplexes(MapReduce):
