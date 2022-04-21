@@ -330,6 +330,9 @@ class PartitionedPhiStructure(PhiStructure):
         """A |SystemIrreducibilityAnalysis| is ``True`` if it has |big_phi > 0|."""
         return not utils.eq(self.phi(), 0)
 
+    def __repr__(self):
+        return fmt.fmt_partitioned_phi_structure(self)
+
     def partitioned_distinctions(self):
         if self._partitioned_distinctions is None:
             # TODO(4.0) keep a list of indices instead of a copy?

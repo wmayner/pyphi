@@ -450,7 +450,27 @@ def fmt_phi_structure(ps, title="Phi-structure", subsystem=True):
             split_columns=True,
         )
     body = "\n".join(lines)
-    return header(title, body, HEADER_BAR_1, HEADER_BAR_1)
+    if title:
+        body = header(title, body, HEADER_BAR_1, HEADER_BAR_1)
+    return body
+
+
+def fmt_partitioned_phi_structure(
+    ps,
+    title="Partitioned phi-structure",
+    subsystem=True,
+):
+    """Format a PartitionedPhiStructure."""
+    lines = align_columns(
+        fmt_phi_structure(ps, title=None, subsystem=subsystem).split("\n")
+        + [f"Partition: {fmt_cut(ps.partition, name=False)}"],
+        types="tt",
+        split_columns=True,
+    )
+    body = "\n".join(lines)
+    if title:
+        body = header(title, body, HEADER_BAR_1, HEADER_BAR_1)
+    return body
 
 
 def fmt_ces(ces, title="Cause-effect structure"):
@@ -556,10 +576,14 @@ def fmt_ria(ria, verbose=True, mip=False):
     )
 
 
-def fmt_cut(cut, direction=None):
+def fmt_cut(cut, direction=None, name=True):
     """Format a |Cut|."""
-    return "{name} {from_nodes} {symbol} {to_nodes}".format(
-        name=cut.__class__.__name__,
+    if name:
+        name = cut.__class__.__name__ + " "
+    else:
+        name = ""
+    return "{name}{from_nodes} {symbol} {to_nodes}".format(
+        name=name,
         from_nodes=fmt_mechanism(cut.from_nodes, cut.node_labels),
         symbol=(
             FORWARD_CUT_SYMBOL
@@ -607,8 +631,8 @@ def fmt_sia_4(sia, phi_structure=True, title="System irreducibility analysis"):
     body = "\n".join(["\n".join(lines), body])
 
     data = [
-        sia.subsystem,
-        sia.partition,
+        sia.subsystem.nodes,
+        fmt_cut(sia.partition, name=False),
     ]
     if sia.reasons:
         data.append("[trivially reducible]\n" + "\n".join(map(str, sia.reasons)))
