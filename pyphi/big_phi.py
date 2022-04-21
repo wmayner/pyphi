@@ -248,9 +248,11 @@ class PhiStructure(cmp.Orderable):
     def selectivity(self):
         if self._selectivity is None:
             # Use expsublog to deal with enormous denominator
-            self._selectivity = expsublog(
-                self.sum_phi(), optimum_sum_small_phi(self._substrate_size)
-            )
+            numerator = self.sum_phi()
+            if numerator == 0:
+                return 0
+            denominator = optimum_sum_small_phi(self._substrate_size)
+            self._selectivity = expsublog(numerator, denominator)
         return self._selectivity
 
     @_requires_relations
