@@ -445,7 +445,7 @@ def fmt_phi_structure(ps, title="Phi-structure", subsystem=True):
     lines = align_columns(columns)
     if subsystem:
         lines = align_columns(
-            lines + [f"Subsystem: {ps.subsystem}"],
+            lines + [f"Subsystem: {ps.subsystem.nodes}"],
             types="tt",
             split_columns=True,
         )
