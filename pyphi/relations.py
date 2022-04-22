@@ -126,7 +126,8 @@ def _congruency_ratio_times_relation_informativeness(
     #   over partitions
     #
     overlap_ratio = overlap_ratio_func(relata, candidate_joint_purview)
-    phis = np.array(list(relata.phis))
+    # Use the phi of the full distinction (minimum of cause and effect)
+    phis = np.array([relatum.parent.phi for relatum in relata])
     informativeness = overlap_ratio * phis
     phi = informativeness.min()
     minima = np.nonzero(informativeness == phi)[0]
@@ -147,7 +148,9 @@ def _congruency_ratio_times_relation_informativeness(
 @relation_phi_schemes.register("OVERLAP_RATIO_TIMES_RELATION_INFORMATIVENESS")
 def overlap_ratio_times_relation_informativeness(relata, candidate_joint_purview):
     """Return the relation phi according to the following formula::
+
         min_{partitions} [ (overlap ratio) * (relation informativeness)_{partition} ]
+
     where:
         - ``(overlap ratio)`` is the ratio of the overlap size to the size of the
           smallest purview in the relation (i.e., the maximum-conceivable
