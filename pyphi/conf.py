@@ -843,7 +843,7 @@ class PyphiConfig(Config):
     )
 
     RELATION_PHI_SCHEME = Option(
-        "OVERLAP_RATIO_TIMES_RELATION_INFORMATIVENESS",
+        "CONGRUENCY_RATIO_TIMES_RELATION_INFORMATIVENESS_PURVIEW_RELATIVE",
         doc="""
     Controls how relation phi is evaluated.
 

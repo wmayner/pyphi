@@ -102,14 +102,53 @@ class RelationPhiSchemeRegistry(Registry):
 relation_phi_schemes = RelationPhiSchemeRegistry()
 
 
+def _overlap_ratio_purview_relative(relata, candidate_joint_purview):
+    return len(candidate_joint_purview) / np.array(list(map(len, relata.purviews)))
+
+
+def _overlap_ratio_purview_minimum(relata, candidate_joint_purview):
+    return len(candidate_joint_purview) / relata.minimal_purview_size
+
+
+def _congruency_ratio_times_relation_informativeness(
+    relata, candidate_joint_purview, overlap_ratio_func
+):
+    # NOTE: This implementation relies on several assumptions:
+    #
+    # - Congruency ratio definition implies that only congruent overlaps need to
+    #   be considered because incongruent overlaps will never be chosen, so we
+    #   never need to compute this in practice
+    #
+    # - Overlap ratio does not depend on the partition
+    #
+    # - The minimum of the informativeness term over the set of partitions is
+    #   just the minimal distinction phi, so there's no need to actually search
+    #   over partitions
+    #
+    overlap_ratio = overlap_ratio_func(relata, candidate_joint_purview)
+    phis = np.array(list(relata.phis))
+    informativeness = overlap_ratio * phis
+    phi = informativeness.min()
+    minima = np.nonzero(informativeness == phi)[0]
+    tied_partitions = [
+        relation_partition_one_distinction(
+            relata, candidate_joint_purview, i, node_labels=relata.subsystem.node_labels
+        )
+        for i in minima
+    ]
+    return [
+        Relation(
+            relata=relata, purview=candidate_joint_purview, phi=phi, partition=partition
+        )
+        for partition in tied_partitions
+    ]
+
+
 @relation_phi_schemes.register("OVERLAP_RATIO_TIMES_RELATION_INFORMATIVENESS")
 def overlap_ratio_times_relation_informativeness(relata, candidate_joint_purview):
     """Return the relation phi according to the following formula::
-
         min_{partitions} [ (overlap ratio) * (relation informativeness)_{partition} ]
-
     where:
-
         - ``(overlap ratio)`` is the ratio of the overlap size to the size of the
           smallest purview in the relation (i.e., the maximum-conceivable
           overlap), and
@@ -124,27 +163,25 @@ def overlap_ratio_times_relation_informativeness(relata, candidate_joint_purview
     subsets of the congruent overlap. Thus, when this scheme is used, the most
     efficient setting for RELATION_POSSIBLE_PURVIEWS is "WHOLE".
     """
-    # This implementation relies on several assumptions:
-    # - Overlap ratio does not depend on the partition
-    # - The minimum of the informativeness term over the set of partitions is
-    #   just the minimal distinction phi, so there's no need to actually search
-    #   over partitions
-    overlap_ratio = len(candidate_joint_purview) / relata.minimal_purview_size
-    minimal_distinction_phi = min(relatum.parent.phi for relatum in relata)
-    phi = overlap_ratio * minimal_distinction_phi
-    tied_partitions = [
-        relation_partition_one_distinction(
-            relata, candidate_joint_purview, i, node_labels=relata.subsystem.node_labels
-        )
-        for i in range(len(relata))
-        if relata[i].parent.phi == minimal_distinction_phi
-    ]
-    return [
-        Relation(
-            relata=relata, purview=candidate_joint_purview, phi=phi, partition=partition
-        )
-        for partition in tied_partitions
-    ]
+    return _congruency_ratio_times_relation_informativeness(
+        relata,
+        candidate_joint_purview,
+        _overlap_ratio_purview_minimum,
+    )
+
+
+@relation_phi_schemes.register(
+    "CONGRUENCY_RATIO_TIMES_RELATION_INFORMATIVENESS_PURVIEW_RELATIVE"
+)
+def congruency_ratio_times_relation_informativeness_purview_relative(
+    relata, candidate_joint_purview
+):
+    # TODO(4.0) docstring
+    return _congruency_ratio_times_relation_informativeness(
+        relata,
+        candidate_joint_purview,
+        _overlap_ratio_purview_relative,
+    )
 
 
 @relation_phi_schemes.register("AGGREGATE_DISTINCTION_RELATIVE_DIFFERENCES")
@@ -481,6 +518,11 @@ class Relata(HashableOrderedSet):
     def purviews(self):
         # TODO store
         return (relatum.purview for relatum in self)
+
+    @property
+    def phis(self):
+        # TODO store
+        return (relatum.phi for relatum in self)
 
     @property
     def directions(self):
