@@ -203,7 +203,6 @@ class PhiStructure(cmp.Orderable):
             dct["relations"] = self.relations.to_indirect_json(distinctions)
         return dct
 
-    @_requires_relations
     def __setstate__(self, state):
         try:
             distinctions = state["distinctions"]
