@@ -21,7 +21,7 @@ from .combinatorics import maximal_independent_sets
 from .compute.parallel import as_completed, init
 from .direction import Direction
 from .models import cmp, fmt
-from .models.cuts import CompleteSystemPartition, SystemPartition
+from .models.cuts import CompleteSystemPartition, NullCut, SystemPartition
 from .models.subsystem import CauseEffectStructure, FlatCauseEffectStructure
 from .partition import system_partition_types
 from .relations import ConcreteRelations, Relations
@@ -42,6 +42,8 @@ def is_affected_by_partition(distinction, partition):
     # TODO(4.0) standardize logic for complete partition vs other partition
     if isinstance(partition, CompleteSystemPartition):
         return True
+    if isinstance(partition, NullCut):
+        return False
     coming_from = set(partition.from_nodes) & set(distinction.mechanism)
     going_to = set(partition.to_nodes) & set(distinction.purview(partition.direction))
     return coming_from and going_to
