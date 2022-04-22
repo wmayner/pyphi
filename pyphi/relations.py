@@ -967,14 +967,26 @@ class AnalyticalRelations(AbstractRelations):
         return self.sum_phi() / self.num_relations()
 
     def _sum_phi(self):
-        return sum(
-            combinatorics.sum_of_ratio_of_minima_among_subsets(
-                [(d.parent.phi, len(d.purview)) for d in overlapping_distinctions]
+        if config.RELATION_PHI_SCHEME == "OVERLAP_RATIO_TIMES_RELATION_INFORMATIVENESS":
+            return sum(
+                combinatorics.sum_of_ratio_of_minima_among_subsets(
+                    [(d.parent.phi, len(d.purview)) for d in overlapping_distinctions]
+                )
+                for _, overlapping_distinctions in self.distinctions.purview_inclusion(
+                    max_order=1
+                ).items()
             )
-            for _, overlapping_distinctions in self.distinctions.purview_inclusion(
-                max_order=1
-            ).items()
-        )
+        elif config.RELATION_PHI_SCHEME == "CONGRUENCY_RATIO_TIMES_RELATION_INFORMATIVENESS_PURVIEW_RELATIVE":
+            return sum(
+                combinatorics.sum_of_minimum_among_subsets(
+                    [d.parent.phi/len(d.purview) for d in overlapping_distinctions]
+                )
+                for _, overlapping_distinctions in self.distinctions.purview_inclusion(
+                    max_order=1
+                ).items()
+            )
+        else:
+            raise NotImplementedError
 
     def num_relations(self):
         if self._num_relations is None:
