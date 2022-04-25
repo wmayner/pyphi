@@ -841,7 +841,7 @@ class PyphiConfig(Config):
     )
 
     RELATION_POTENTIAL_PURVIEWS = Option(
-        "ALL",
+        "WHOLE",
         doc="""
     Controls the set of possible purviews for a relation as a function of the
     congruent overlap.
