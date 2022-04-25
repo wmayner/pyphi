@@ -705,8 +705,40 @@ def fmt_relatum(relatum, node_labels=None):
         direction
         + fmt_mechanism(relatum.mechanism, node_labels=node_labels)
         + "/"
-        + fmt_mechanism(relatum.purview)
+        + fmt_mechanism(relatum.purview, node_labels=node_labels)
     )
+
+
+def fmt_relata(relata, node_labels=None):
+    lines = [fmt_relatum(relatum, node_labels=node_labels) for relatum in relata]
+    lines = align_columns(lines, delimiter="/", split_columns=True)
+    # TODO(4.0) align purview nodes?
+    return "\n".join(lines)
+
+
+def fmt_relation(relation):
+    labels = relation.subsystem.node_labels
+    body = fmt_relata(relation.relata, node_labels=labels)
+    data = [
+        ("φ", relation.phi),
+        ("Purview", fmt_mechanism(relation.purview, node_labels=labels)),
+        ("Relata", ""),
+    ]
+    data = "\n".join(align_columns(data))
+    body = center(header(data, body))
+    return header("Relation", body, over_char=HEADER_BAR_3, under_char=HEADER_BAR_3)
+
+
+def fmt_concrete_relations(relations, title="ConcreteRelations"):
+    body = "\n".join(map(fmt_relation, relations))
+    data = [
+        ("#", len(relations)),
+        ("Σφ", relations.sum_phi()),
+    ]
+    data = "\n".join(align_columns(data))
+    body = header(data, body)
+    body = header(title, body, under_char=HEADER_BAR_1)
+    return center(body)
 
 
 def fmt_extended_purview(extended_purview, node_labels=None):

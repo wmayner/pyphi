@@ -402,7 +402,7 @@ class Relation(cmp.Orderable):
         return [relatum.mechanism for relatum in self.relata]
 
     def __repr__(self):
-        return f"{type(self).__name__}(relata={self.relata}, purview={self.purview}, phi={self.phi})"
+        return fmt.fmt_relation(self)
 
     def __str__(self):
         return repr(self)
@@ -541,7 +541,7 @@ class Relata(HashableOrderedSet):
         return (relatum.specified_state for relatum in self)
 
     def __repr__(self):
-        return "Relata({" + ", ".join(map(fmt.fmt_relatum, self)) + "})"
+        return fmt.fmt_relata(self)
 
     # TODO(4.0) pickle relations indirectly
     def __getstate__(self):
@@ -878,6 +878,9 @@ class ConcreteRelations(HashableOrderedSet, Relations):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    def __repr__(self):
+        return fmt.fmt_concrete_relations(self)
+
     @property
     def mechanisms(self):
         for relation in self:
@@ -979,10 +982,13 @@ class AnalyticalRelations(AbstractRelations):
                     max_order=1
                 ).items()
             )
-        elif config.RELATION_PHI_SCHEME == "CONGRUENCY_RATIO_TIMES_RELATION_INFORMATIVENESS_PURVIEW_RELATIVE":
+        elif (
+            config.RELATION_PHI_SCHEME
+            == "CONGRUENCY_RATIO_TIMES_RELATION_INFORMATIVENESS_PURVIEW_RELATIVE"
+        ):
             return sum(
                 combinatorics.sum_of_minimum_among_subsets(
-                    [d.parent.phi/len(d.purview) for d in overlapping_distinctions]
+                    [d.parent.phi / len(d.purview) for d in overlapping_distinctions]
                 )
                 for _, overlapping_distinctions in self.distinctions.purview_inclusion(
                     max_order=1
