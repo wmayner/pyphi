@@ -295,6 +295,12 @@ class Config:
 
         self._loaded_files.append(filename)
 
+    def to_yaml(self, filename):
+        """Write config to a YAML file."""
+        with open(filename, mode="wt") as f:
+            yaml.dump(self._values, f)
+        return filename
+
     def snapshot(self):
         """Return a snapshot of the current values of this configuration."""
         return copy(self._values)
