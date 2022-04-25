@@ -729,16 +729,34 @@ def fmt_relation(relation):
     return header("Relation", body, over_char=HEADER_BAR_3, under_char=HEADER_BAR_3)
 
 
-def fmt_concrete_relations(relations, title="ConcreteRelations"):
-    body = "\n".join(map(fmt_relation, relations))
+def _fmt_relations(relations, title, body, data=None):
+    if title is None:
+        title = relations.__class__.__name__
+    if data is None:
+        data = []
     data = [
         ("#", len(relations)),
         ("Σφ", relations.sum_phi()),
-    ]
+    ] + data
     data = "\n".join(align_columns(data))
     body = header(data, body)
     body = header(title, body, under_char=HEADER_BAR_1)
     return center(body)
+
+
+def fmt_concrete_relations(relations, title=None):
+    body = "\n".join(map(fmt_relation, relations))
+    return _fmt_relations(relations, title, body)
+
+
+def fmt_analytical_relations(relations, title=None):
+    body = ""
+    return _fmt_relations(relations, title, body)
+
+
+def fmt_sampled_relations(relations, title=None):
+    body = "\n".join(map(fmt_relation, relations.sample))
+    return _fmt_relations(relations, title, body, data=[("Sample", "")])
 
 
 def fmt_extended_purview(extended_purview, node_labels=None):

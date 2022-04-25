@@ -969,6 +969,9 @@ class AnalyticalRelations(AbstractRelations):
         super().__init__(*args, **kwargs)
         self._num_relations = None
 
+    def __repr__(self):
+        return fmt.fmt_analytical_relations(self)
+
     def mean_phi(self):
         return self.sum_phi() / self.num_relations()
 
@@ -1038,6 +1041,9 @@ class SampledRelations(AnalyticalRelations):
         instance = cls(data["distinctions"])
         instance.__dict__.update(data)
         return instance
+
+    def __repr__(self):
+        return fmt.fmt_sampled_relations(self)
 
     @property
     def max_degree(self):
