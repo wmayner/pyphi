@@ -15,20 +15,21 @@ import scipy
 from toolz.itertoolz import partition_all
 from tqdm.auto import tqdm
 
-from . import config, utils, compute
+from . import compute, config, utils
 from .cache import cache
 from .combinatorics import maximal_independent_sets
+from .compute.network import reachable_subsystems
 from .compute.parallel import as_completed, init
 from .direction import Direction
 from .models import cmp, fmt
 from .models.cuts import CompleteSystemPartition, NullCut, SystemPartition
 from .models.subsystem import CauseEffectStructure, FlatCauseEffectStructure
 from .partition import system_partition_types
+from .registry import Registry
 from .relations import ConcreteRelations, Relations
 from .relations import relations as compute_relations
 from .subsystem import Subsystem
 from .utils import expsublog, extremum_with_short_circuit
-from .compute.network import reachable_subsystems
 
 # TODO
 # - cache relations, compute as needed for each nonconflicting CES
@@ -83,6 +84,34 @@ def sia_partitions(node_indices, node_labels=None):
         )
 
 
+class PhiUpperBoundRegistry(Registry):
+    """Storage for functions for defining the upper bound of distinction phi
+    when analyzing the system.
+
+    NOTE: Functions should ideally return `int`s, if possible, to take advantage
+    of the unbounded size of Python integers.
+    """
+
+    desc = "phi bounds (system)"
+
+
+phi_upper_bounds = PhiUpperBoundRegistry()
+
+
+@phi_upper_bounds.register("PURVIEW_SIZE")
+def _purview_size(k):
+    return k
+
+
+@phi_upper_bounds.register("ONE")
+def _one(k):
+    return 1
+
+
+def phi_upper_bound(k):
+    return phi_upper_bounds[config.DISTINCTION_SMALL_PHI_UPPER_BOUND_SYSTEM](k)
+
+
 @cache(cache={}, maxmem=None)
 def _f(n, k):
     return (2 ** (2 ** (n - k + 1))) - (1 + 2 ** (n - k + 1))
@@ -98,28 +127,49 @@ def number_of_possible_relations_of_order(n, k):
     )
 
 
+def number_of_possible_distinctions_of_order(n, k):
+    """Return the number of possible distinctions of order k."""
+    # Binomial coefficient
+    return int(scipy.special.comb(n, k))
+
+
+def number_of_possible_distinctions(n):
+    """Return the number of possible distinctions."""
+    return 2 ** n - 1
+
+
 @cache(cache={}, maxmem=None)
 def number_of_possible_relations(n):
-    """Return the total of possible relations of all orders."""
+    """Return the number of possible relations of all orders."""
     return sum(number_of_possible_relations_of_order(n, k) for k in range(1, n + 1))
 
 
-@cache(cache={}, maxmem=None)
 def optimum_sum_small_phi_relations(n):
     """Return the 'best possible' sum of small phi for relations."""
-    # \sum_{k=1}^{n} (size of purview) * (number of relations with that purview size)
-    return sum(k * number_of_possible_relations_of_order(n, k) for k in range(1, n + 1))
+    if config.DISTINCTION_SMALL_PHI_UPPER_BOUND_SYSTEM == "ONE":
+        # Special case for speed with ONE, since we're just counting in that case
+        return number_of_possible_relations(n)
+    # \sum_{k=1}^{n} (upper bound of phi for purview size k) * (number of relations with that purview size)
+    return sum(
+        phi_upper_bound(k) * number_of_possible_relations_of_order(n, k)
+        for k in range(1, n + 1)
+    )
 
 
-@cache(cache={}, maxmem=None)
 def optimum_sum_small_phi_distinctions(n):
     """Return the 'best possible' sum of small phi for distinctions."""
-    # This can be simplified to (n/2)*(2^n), but we don't use that identity so
-    # we can keep things as `int`s
-    return sum(k * int(scipy.special.comb(n, k)) for k in range(1, n + 1))
+    if config.DISTINCTION_SMALL_PHI_UPPER_BOUND_SYSTEM == "ONE":
+        # Special case for speed with ONE, since we're just counting in that case
+        return number_of_possible_distinctions(n)
+    # When using purview size as the upper bound, this can be simplified to
+    # (n/2)*(2^n), but we don't use that identity so we can keep things as
+    # `int`s
+    return sum(
+        phi_upper_bound(k) * number_of_possible_distinctions_of_order(n, k)
+        for k in range(1, n + 1)
+    )
 
 
-@cache(cache={}, maxmem=None)
 def optimum_sum_small_phi(n):
     """Return the 'best possible' sum of small phi for the system."""
     return optimum_sum_small_phi_distinctions(n) + optimum_sum_small_phi_relations(n)

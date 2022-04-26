@@ -35,9 +35,16 @@ SYSTEM_PARTITION_TYPE: "TEMPORAL_DIRECTED_BI"
 # Controls the set of possible purviews for a relation.
 RELATION_POTENTIAL_PURVIEWS: "WHOLE"
 # Controls how relation phi values are computed.
-RELATION_PHI_SCHEME: "PHI_NORMALIZED_CONGRUENCY_RATIO_TIMES_RELATION_INFORMATIVENESS_PURVIEW_RELATIVE"
-# Controls the definition of the upper bound of distinction phi.
-PHI_UPPER_BOUND: "PURVIEW_SIZE"
+RELATION_PHI_SCHEME: "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS"
+# Controls the overlap ratio used in computing relations.
+OVERLAP_RATIO: "PURVIEW_SIZE"
+# Controls the congruence ratio used in computing relations.
+CONGRUENCE_RATIO: "PURVIEW_SIZE"
+# Controls the definition of the upper bound of distinction phi when calculating relations.
+DISTINCTION_SMALL_PHI_UPPER_BOUND_RELATION: "PURVIEW_SIZE"
+# Controls the definition of the upper bound of distinction phi when analyzing a system.
+DISTINCTION_SMALL_PHI_UPPER_BOUND_SYSTEM: "ONE"
+# DISTINCTION_SMALL_PHI_UPPER_BOUND_SYSTEM: "PURVIEW_SIZE"
 # Controls how relations are computed. Can be either "CONCRETE", "ANALYTICAL",
 # or "SAMPLED".
 RELATION_COMPUTATION: "CONCRETE"

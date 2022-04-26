@@ -16,19 +16,18 @@ from joblib import Parallel, delayed
 from toolz import concat, curry
 from tqdm.auto import tqdm
 
-from pyphi.compute.parallel import get_num_processes
-from pyphi.partition import (
-    relation_partition_aggregations,
-    relation_partition_one_distinction,
-    relation_partition_types,
-)
-
 from . import combinatorics, config, validate
+from .compute.parallel import get_num_processes
 from .data_structures import HashableOrderedSet
 from .metrics.distribution import absolute_information_density
 from .models import cmp, fmt
 from .models.cuts import RelationPartition
 from .models.subsystem import FlatCauseEffectStructure
+from .partition import (
+    relation_partition_aggregations,
+    relation_partition_one_distinction,
+    relation_partition_types,
+)
 from .registry import Registry
 from .utils import eq, powerset
 
@@ -86,7 +85,7 @@ def whole_overlap(congruent_overlap):
 class PhiUpperBoundRegistry(Registry):
     """Storage for functions for defining the upper bound of distinction phi."""
 
-    desc = "phi bounds"
+    desc = "phi bounds (relations)"
 
 
 phi_upper_bounds = PhiUpperBoundRegistry()
@@ -97,18 +96,68 @@ def _purview_size(distinction):
     return len(distinction.purview)
 
 
-def phi_upper_bound(distinction):
-    """Return the maximum possible phi for the given MICE.
+@phi_upper_bounds.register("ONE")
+def _one(distinction):
+    return 1
 
-    This is the minimum of the maximum possible phi for the cause and effect
-    sides. The definition for one side is controlled by the PHI_UPPER_BOUND
-    option.
-    """
-    func = phi_upper_bounds[config.PHI_UPPER_BOUND]
-    return min(
-        func(distinction.parent.cause),
-        func(distinction.parent.effect),
+
+def phi_upper_bound(distinction):
+    return phi_upper_bounds[config.DISTINCTION_SMALL_PHI_UPPER_BOUND_RELATION](
+        distinction
     )
+
+
+class OverlapRatioRegistry(Registry):
+    desc = "overlap ratios"
+
+
+overlap_ratios = OverlapRatioRegistry()
+
+
+@overlap_ratios.register("PURVIEW_SIZE")
+def _overlap_ratio_purview_relative(relata, candidate_joint_purview):
+    return len(candidate_joint_purview) / np.array(list(map(len, relata.purviews)))
+
+
+@overlap_ratios.register("MINIMUM_PURVIEW_SIZE")
+def _overlap_ratio_purview_minimum(relata, candidate_joint_purview):
+    return len(candidate_joint_purview) / relata.minimal_purview_size
+
+
+def overlap_ratio(relata, candidate_joint_purview):
+    return overlap_ratios[config.OVERLAP_RATIO](relata, candidate_joint_purview)
+
+
+class CongruenceRatioRegistry(Registry):
+    desc = "congruence ratios"
+
+
+congruence_ratios = CongruenceRatioRegistry()
+
+
+@congruence_ratios.register("PURVIEW_SIZE")
+def _(relata, candidate_joint_purview):
+    _overlap_ratio = overlap_ratio(relata, candidate_joint_purview)
+    numerator = np.sum(_overlap_ratio * np.array(list(relata.parent_phis)))
+
+    if config.DISTINCTION_SMALL_PHI_UPPER_BOUND_RELATION == "PURVIEW_SIZE":
+        # Simplification of:
+        #   sum_{z in relata} (|overlap| / |z|) * phi_max(z)
+        # since |z| = phi_max(z)
+        denominator = len(relata) * len(candidate_joint_purview)
+    else:
+        max_phis = np.array(list(map(phi_upper_bound, relata)))
+        # NOTE: Re-using the overlap ratio relies on the fact that only
+        # congruent overlaps need be considered; strictly speaking the overlap
+        # here should be the joint purview being considered, which is
+        # conceptually distinct from the *congruent* overlap
+        denominator = np.sum(_overlap_ratio * max_phis)
+
+    return numerator / denominator
+
+
+def congruence_ratio(relata, candidate_joint_purview):
+    return congruence_ratios[config.CONGRUENCE_RATIO](relata, candidate_joint_purview)
 
 
 class RelationPhiSchemeRegistry(Registry):
@@ -130,43 +179,7 @@ class RelationPhiSchemeRegistry(Registry):
 relation_phi_schemes = RelationPhiSchemeRegistry()
 
 
-def _overlap_ratio_purview_relative(relata, candidate_joint_purview):
-    return len(candidate_joint_purview) / np.array(list(map(len, relata.purviews)))
-
-
-def _overlap_ratio_purview_minimum(relata, candidate_joint_purview):
-    return len(candidate_joint_purview) / relata.minimal_purview_size
-
-
-def _congruency_ratio_times_relation_informativeness(
-    relata,
-    candidate_joint_purview,
-    overlap_ratio_func,
-    congruency_ratio_func,
-):
-    # NOTE: This implementation relies on several assumptions:
-    #
-    # - Congruency ratio definition implies that only congruent overlaps need to
-    #   be considered because incongruent overlaps will never be chosen, so we
-    #   never need to compute this in practice
-    #
-    # - Overlap ratio does not depend on the partition
-    #
-    # - The minimum of the informativeness term over the set of partitions is
-    #   just the minimal distinction phi, so there's no need to actually search
-    #   over partitions
-    #
-    if congruency_ratio_func is None:
-        congruency_ratio = 1.0
-    else:
-        congruency_ratio = congruency_ratio_func(relata, candidate_joint_purview)
-    overlap_ratio = overlap_ratio_func(relata, candidate_joint_purview)
-    # Use the phi of the parent distinction (minimum of cause and effect)
-    relata_phis = np.array(list(relata.parent_phis))
-    informativeness = overlap_ratio * relata_phis
-    relation_phis = congruency_ratio * informativeness
-    phi = relation_phis.min()
-    minima = np.nonzero(relation_phis == phi)[0]
+def _tied_relations(relata, candidate_joint_purview, minima, phi):
     tied_partitions = [
         relation_partition_one_distinction(
             relata, candidate_joint_purview, i, node_labels=relata.subsystem.node_labels
@@ -181,18 +194,20 @@ def _congruency_ratio_times_relation_informativeness(
     ]
 
 
-@relation_phi_schemes.register("OVERLAP_RATIO_TIMES_RELATION_INFORMATIVENESS")
-def overlap_ratio_times_relation_informativeness(relata, candidate_joint_purview):
+@relation_phi_schemes.register("CONGRUENCE_RATIO_TIMES_INFORMATIVENESS")
+def congruence_ratio_times_informativeness(relata, candidate_joint_purview):
     """Return the relation phi according to the following formula::
 
-        min_{partitions} [ (overlap ratio) * (relation informativeness)_{partition} ]
+        phi = min_{p in partitions} (congruence ratio) * informativeness_{p}
 
-    where:
-        - ``(overlap ratio)`` is the ratio of the overlap size to the size of the
-          smallest purview in the relation (i.e., the maximum-conceivable
-          overlap), and
-        - ``(relation informativeness)_{partition} == (sum of small phi of the
-          relata) - (sum of small phi of the relata under the partition)``
+    where::
+
+        informativeness_{p} =
+            ( sum_{d in relata} (overlap ratio) * phi_d ) -
+            ( sum_{d in relata_{p}} (overlap ratio) * phi_d )
+
+    The definition of the congruence ratio and overlap ratio are controlled by
+    the CONGRUENCE_RATIO and OVERLAP_RATIO configuration settings.
 
     Currently the partition scheme used is hard-coded as BI_CUT_ONE; i.e., a
     single distinction is removed, and there is one partition per distinction.
@@ -202,46 +217,27 @@ def overlap_ratio_times_relation_informativeness(relata, candidate_joint_purview
     subsets of the congruent overlap. Thus, when this scheme is used, the most
     efficient setting for RELATION_POSSIBLE_PURVIEWS is "WHOLE".
     """
-    return _congruency_ratio_times_relation_informativeness(
-        relata,
-        candidate_joint_purview,
-        overlap_ratio_func=_overlap_ratio_purview_minimum,
-        congruency_ratio_func=None,
-    )
-
-
-@relation_phi_schemes.register(
-    "CONGRUENCY_RATIO_TIMES_RELATION_INFORMATIVENESS_PURVIEW_RELATIVE"
-)
-def congruency_ratio_times_relation_informativeness_purview_relative(
-    relata, candidate_joint_purview
-):
-    # TODO(4.0) docstring
-    return _congruency_ratio_times_relation_informativeness(
-        relata,
-        candidate_joint_purview,
-        _overlap_ratio_purview_relative,
-        congruency_ratio_func=None,
-    )
-
-
-def _congruency_ratio_phi_normalized(relata, candidate_joint_purview):
-    return sum(relata.parent_phis) / sum(map(phi_upper_bound, relata))
-
-
-@relation_phi_schemes.register(
-    "PHI_NORMALIZED_CONGRUENCY_RATIO_TIMES_RELATION_INFORMATIVENESS_PURVIEW_RELATIVE"
-)
-def congruency_ratio_times_relation_informativeness_purview_relative(
-    relata, candidate_joint_purview
-):
-    # TODO(4.0) docstring
-    return _congruency_ratio_times_relation_informativeness(
-        relata,
-        candidate_joint_purview,
-        _overlap_ratio_purview_relative,
-        _congruency_ratio_phi_normalized,
-    )
+    # NOTE: This implementation relies on several assumptions:
+    #
+    # - Congruence ratio definition implies that only congruent overlaps need to
+    #   be considered as candidate joint purviews because incongruent overlaps
+    #   will never be chosen
+    #
+    # - Overlap ratio does not depend on the partition
+    #
+    # - The minimum of the informativeness term over the set of partitions is
+    #   just the minimal distinction phi, so there's no need to actually search
+    #   over partitions
+    #
+    _congruence_ratio = congruence_ratio(relata, candidate_joint_purview)
+    _overlap_ratio = overlap_ratio(relata, candidate_joint_purview)
+    # Use the phi of the parent distinction (minimum of cause and effect)
+    relata_phis = np.array(list(relata.parent_phis))
+    informativeness = _overlap_ratio * relata_phis
+    relation_phis = _congruence_ratio * informativeness
+    phi = relation_phis.min()
+    minima = np.nonzero(relation_phis == phi)[0]
+    return _tied_relations(relata, candidate_joint_purview, minima, phi)
 
 
 @relation_phi_schemes.register("AGGREGATE_DISTINCTION_RELATIVE_DIFFERENCES")
@@ -1049,7 +1045,7 @@ class AnalyticalRelations(AbstractRelations):
             )
         elif (
             config.RELATION_PHI_SCHEME
-            == "CONGRUENCY_RATIO_TIMES_RELATION_INFORMATIVENESS_PURVIEW_RELATIVE"
+            == "CONGRUENCE_RATIO_TIMES_RELATION_INFORMATIVENESS_PURVIEW_RELATIVE"
         ):
             return sum(
                 combinatorics.sum_of_minimum_among_subsets(

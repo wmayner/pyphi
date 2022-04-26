@@ -849,12 +849,48 @@ class PyphiConfig(Config):
     )
 
     RELATION_PHI_SCHEME = Option(
-        "CONGRUENCY_RATIO_TIMES_RELATION_INFORMATIVENESS_PURVIEW_RELATIVE",
+        "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS",
+        values=[
+            "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS",
+            "AGGREGATE_DISTINCTION_RELATIVE_DIFFERENCES",
+        ],
         doc="""
     Controls how relation phi is evaluated.
 
     You can configure custom relation phi schemes using the
     ``pyphi.relations.relation_phi_schemes.register`` decorator.
+    """,
+    )
+
+    OVERLAP_RATIO = Option(
+        "PURVIEW_SIZE",
+        values=["PURVIEW_SIZE", "MINIMUM_PURVIEW_SIZE"],
+        doc="""
+    Controls the overlap ratio used in computing relations.
+    """,
+    )
+
+    CONGRUENCE_RATIO = Option(
+        "PURVIEW_SIZE",
+        values=["PURVIEW_SIZE"],
+        doc="""
+    Controls the congruence ratio used in computing relations.
+    """,
+    )
+
+    DISTINCTION_SMALL_PHI_UPPER_BOUND_RELATION = Option(
+        "PURVIEW_SIZE",
+        values=["ONE", "PURVIEW_SIZE"],
+        doc="""
+    Controls the definition of the upper bound of distinction phi when calculating relations.
+    """,
+    )
+
+    DISTINCTION_SMALL_PHI_UPPER_BOUND_SYSTEM = Option(
+        "ONE",
+        values=["ONE", "PURVIEW_SIZE"],
+        doc="""
+    Controls the definition of the upper bound of distinction phi when analyzing a system.
     """,
     )
 
@@ -910,13 +946,6 @@ class PyphiConfig(Config):
     returns a zero-phi relation if so. This case should never arise in normal
     operation, since relations are normally only computed among distinctions in a
     nonconflicting set. Defaults to false to avoid the cost of checking.
-    """,
-    )
-
-    PHI_UPPER_BOUND = Option(
-        "PURVIEW_SIZE",
-        doc="""
-    Controls the definition of the upper bound of distinction phi.
     """,
     )
 
