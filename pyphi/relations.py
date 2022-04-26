@@ -83,6 +83,34 @@ def whole_overlap(congruent_overlap):
     return set(map(tuple, congruent_overlap))
 
 
+class PhiUpperBoundRegistry(Registry):
+    """Storage for functions for defining the upper bound of distinction phi."""
+
+    desc = "phi bounds"
+
+
+phi_upper_bounds = PhiUpperBoundRegistry()
+
+
+@phi_upper_bounds.register("PURVIEW_SIZE")
+def _purview_size(distinction):
+    return len(distinction.purview)
+
+
+def phi_upper_bound(distinction):
+    """Return the maximum possible phi for the given MICE.
+
+    This is the minimum of the maximum possible phi for the cause and effect
+    sides. The definition for one side is controlled by the PHI_UPPER_BOUND
+    option.
+    """
+    func = phi_upper_bounds[config.PHI_UPPER_BOUND]
+    return min(
+        func(distinction.parent.cause),
+        func(distinction.parent.effect),
+    )
+
+
 class RelationPhiSchemeRegistry(Registry):
     """Storage for functions for evaluating a relation.
 
@@ -111,7 +139,10 @@ def _overlap_ratio_purview_minimum(relata, candidate_joint_purview):
 
 
 def _congruency_ratio_times_relation_informativeness(
-    relata, candidate_joint_purview, overlap_ratio_func
+    relata,
+    candidate_joint_purview,
+    overlap_ratio_func,
+    congruency_ratio_func,
 ):
     # NOTE: This implementation relies on several assumptions:
     #
@@ -125,12 +156,17 @@ def _congruency_ratio_times_relation_informativeness(
     #   just the minimal distinction phi, so there's no need to actually search
     #   over partitions
     #
+    if congruency_ratio_func is None:
+        congruency_ratio = 1.0
+    else:
+        congruency_ratio = congruency_ratio_func(relata, candidate_joint_purview)
     overlap_ratio = overlap_ratio_func(relata, candidate_joint_purview)
-    # Use the phi of the full distinction (minimum of cause and effect)
-    phis = np.array([relatum.parent.phi for relatum in relata])
-    informativeness = overlap_ratio * phis
-    phi = informativeness.min()
-    minima = np.nonzero(informativeness == phi)[0]
+    # Use the phi of the parent distinction (minimum of cause and effect)
+    relata_phis = np.array(list(relata.parent_phis))
+    informativeness = overlap_ratio * relata_phis
+    relation_phis = congruency_ratio * informativeness
+    phi = relation_phis.min()
+    minima = np.nonzero(relation_phis == phi)[0]
     tied_partitions = [
         relation_partition_one_distinction(
             relata, candidate_joint_purview, i, node_labels=relata.subsystem.node_labels
@@ -169,7 +205,8 @@ def overlap_ratio_times_relation_informativeness(relata, candidate_joint_purview
     return _congruency_ratio_times_relation_informativeness(
         relata,
         candidate_joint_purview,
-        _overlap_ratio_purview_minimum,
+        overlap_ratio_func=_overlap_ratio_purview_minimum,
+        congruency_ratio_func=None,
     )
 
 
@@ -184,6 +221,26 @@ def congruency_ratio_times_relation_informativeness_purview_relative(
         relata,
         candidate_joint_purview,
         _overlap_ratio_purview_relative,
+        congruency_ratio_func=None,
+    )
+
+
+def _congruency_ratio_phi_normalized(relata, candidate_joint_purview):
+    return sum(relata.parent_phis) / sum(map(phi_upper_bound, relata))
+
+
+@relation_phi_schemes.register(
+    "PHI_NORMALIZED_CONGRUENCY_RATIO_TIMES_RELATION_INFORMATIVENESS_PURVIEW_RELATIVE"
+)
+def congruency_ratio_times_relation_informativeness_purview_relative(
+    relata, candidate_joint_purview
+):
+    # TODO(4.0) docstring
+    return _congruency_ratio_times_relation_informativeness(
+        relata,
+        candidate_joint_purview,
+        _overlap_ratio_purview_relative,
+        _congruency_ratio_phi_normalized,
     )
 
 
@@ -526,6 +583,11 @@ class Relata(HashableOrderedSet):
     def phis(self):
         # TODO store
         return (relatum.phi for relatum in self)
+
+    @property
+    def parent_phis(self):
+        # TODO store
+        return (relatum.parent.phi for relatum in self)
 
     @property
     def directions(self):

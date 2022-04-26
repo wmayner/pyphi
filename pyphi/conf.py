@@ -913,6 +913,13 @@ class PyphiConfig(Config):
     """,
     )
 
+    PHI_UPPER_BOUND = Option(
+        "PURVIEW_SIZE",
+        doc="""
+    Controls the definition of the upper bound of distinction phi.
+    """,
+    )
+
     PICK_SMALLEST_PURVIEW = Option(
         False,
         type=bool,
