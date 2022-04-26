@@ -756,7 +756,9 @@ def fmt_analytical_relations(relations, title=None):
 
 def fmt_sampled_relations(relations, title=None):
     body = "\n".join(map(fmt_relation, relations.sample))
-    return _fmt_relations(relations, title, body, data=[("Sample", "")])
+    return _fmt_relations(
+        relations, title, body, data=[("Sampled", len(relations.sample))]
+    )
 
 
 def fmt_extended_purview(extended_purview, node_labels=None):
