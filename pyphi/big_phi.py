@@ -15,7 +15,7 @@ import scipy
 from toolz.itertoolz import partition_all
 from tqdm.auto import tqdm
 
-from . import compute, config, utils
+from . import combinatorics, compute, config, utils
 from .cache import cache
 from .combinatorics import maximal_independent_sets
 from .compute.network import reachable_subsystems
@@ -95,21 +95,27 @@ class PhiUpperBoundRegistry(Registry):
     desc = "phi bounds (system)"
 
 
-phi_upper_bounds = PhiUpperBoundRegistry()
+distinction_phi_upper_bounds = PhiUpperBoundRegistry()
 
 
-@phi_upper_bounds.register("PURVIEW_SIZE")
+@distinction_phi_upper_bounds.register("PURVIEW_SIZE")
 def _purview_size(k):
     return k
 
 
-@phi_upper_bounds.register("ONE")
+@distinction_phi_upper_bounds.register("ONE")
 def _one(k):
     return 1
 
 
-def phi_upper_bound(k):
-    return phi_upper_bounds[config.DISTINCTION_SMALL_PHI_UPPER_BOUND_SYSTEM](k)
+def distinction_phi_upper_bound(k):
+    return distinction_phi_upper_bounds[
+        config.DISTINCTION_SMALL_PHI_UPPER_BOUND_SYSTEM
+    ](k)
+
+
+def relation_phi_upper_bound():
+    pass
 
 
 @cache(cache={}, maxmem=None)
@@ -147,11 +153,15 @@ def number_of_possible_relations(n):
 def optimum_sum_small_phi_relations(n):
     """Return the 'best possible' sum of small phi for relations."""
     if config.DISTINCTION_SMALL_PHI_UPPER_BOUND_SYSTEM == "ONE":
-        # Special case for speed with ONE, since we're just counting in that case
-        return number_of_possible_relations(n)
+        # Special case: distinction phi <= 1 implies relation phi is bounded by
+        # 1/|z| where z is the largest purview in the relation
+        subsets = [
+            1 / (len(z) + 1) for z in utils.powerset(range(n - 1), nonempty=False)
+        ] * 2
+        return n * combinatorics.sum_of_minimum_among_subsets(subsets)
     # \sum_{k=1}^{n} (upper bound of phi for purview size k) * (number of relations with that purview size)
     return sum(
-        phi_upper_bound(k) * number_of_possible_relations_of_order(n, k)
+        distinction_phi_upper_bound(k) * number_of_possible_relations_of_order(n, k)
         for k in range(1, n + 1)
     )
 
@@ -165,7 +175,7 @@ def optimum_sum_small_phi_distinctions(n):
     # (n/2)*(2^n), but we don't use that identity so we can keep things as
     # `int`s
     return sum(
-        phi_upper_bound(k) * number_of_possible_distinctions_of_order(n, k)
+        distinction_phi_upper_bound(k) * number_of_possible_distinctions_of_order(n, k)
         for k in range(1, n + 1)
     )
 

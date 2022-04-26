@@ -88,21 +88,21 @@ class PhiUpperBoundRegistry(Registry):
     desc = "phi bounds (relations)"
 
 
-phi_upper_bounds = PhiUpperBoundRegistry()
+distinction_phi_upper_bounds = PhiUpperBoundRegistry()
 
 
-@phi_upper_bounds.register("PURVIEW_SIZE")
+@distinction_phi_upper_bounds.register("PURVIEW_SIZE")
 def _purview_size(distinction):
     return len(distinction.purview)
 
 
-@phi_upper_bounds.register("ONE")
+@distinction_phi_upper_bounds.register("ONE")
 def _one(distinction):
     return 1
 
 
-def phi_upper_bound(distinction):
-    return phi_upper_bounds[config.DISTINCTION_SMALL_PHI_UPPER_BOUND_RELATION](
+def distinction_phi_upper_bound(distinction):
+    return distinction_phi_upper_bounds[config.DISTINCTION_SMALL_PHI_UPPER_BOUND_RELATION](
         distinction
     )
 
@@ -146,7 +146,7 @@ def _(relata, candidate_joint_purview):
         # since |z| = phi_max(z)
         denominator = len(relata) * len(candidate_joint_purview)
     else:
-        max_phis = np.array(list(map(phi_upper_bound, relata)))
+        max_phis = np.array(list(map(distinction_phi_upper_bound, relata)))
         # NOTE: Re-using the overlap ratio relies on the fact that only
         # congruent overlaps need be considered; strictly speaking the overlap
         # here should be the joint purview being considered, which is
