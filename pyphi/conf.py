@@ -319,7 +319,7 @@ class Config:
         """Load config from a YAML file."""
         filename = os.path.abspath(filename)
 
-        with open(filename) as f:
+        with open(filename, mode="rt") as f:
             self.load_dict(yaml.safe_load(f))
 
         self._loaded_files.append(filename)
