@@ -221,7 +221,7 @@ class PhiStructure(cmp.Orderable):
             raise ValueError(
                 f"distinctions must be a CauseEffectStructure, got {type(distinctions)}"
             )
-        if not distinctions.subsystem:
+        if distinctions.subsystem is None:
             raise ValueError("CauseEffectStructure must have the `subsystem` attribute")
         if isinstance(distinctions, FlatCauseEffectStructure):
             distinctions = distinctions.unflatten()
