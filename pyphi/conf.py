@@ -216,9 +216,13 @@ class Option:
         return obj._values[self.name]
 
     def __set__(self, obj, value):
-        self._validate(value)
-        obj._values[self.name] = value
-        self._callback(obj)
+        previous = obj._values[self.name]
+        try:
+            self._validate(value)
+            obj._values[self.name] = value
+            self._callback(obj)
+        except ConfigurationError:
+            obj._values[self.name] = previous
 
     def _validate(self, value):
         """Validate the new value."""
