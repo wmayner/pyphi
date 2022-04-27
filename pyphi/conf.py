@@ -894,14 +894,6 @@ class PyphiConfig(Config):
     """,
     )
 
-    RELATION_SUM_PHI_UPPER_BOUND = Option(
-        "ONE",
-        values=["PURVIEW_SIZE", "ONE"],
-        doc="""
-    Controls the definition of the upper bound on the sum of relation phi when analyzing a system.
-    """,
-    )
-
     RELATION_COMPUTATION = Option(
         "CONCRETE",
         values=["CONCRETE", "ANALYTICAL", "SAMPLED"],
