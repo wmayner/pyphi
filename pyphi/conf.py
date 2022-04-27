@@ -221,8 +221,9 @@ class Option:
             self._validate(value)
             obj._values[self.name] = value
             self._callback(obj)
-        except ConfigurationError:
+        except ConfigurationError as e:
             obj._values[self.name] = previous
+            raise e
 
     def _validate(self, value):
         """Validate the new value."""
@@ -1007,45 +1008,60 @@ class PyphiConfig(Config):
         log.info("Current PyPhi configuration:\n %s", str(self))
 
 
-def _validate_combinations(options, values, valid_combinations):
-    if values not in valid_combinations:
-        msg = "invalid combination:\n  {}\nmust form one of the following combinations:\n  {}\nbut got:\n  {}"
-        raise ConfigurationError(
-            msg.format(
-                *(
-                    "\n  ".join(map(str, l))
-                    for l in [
-                        options,
-                        valid_combinations,
-                        values,
-                    ]
-                )
-            )
+def _validate_combinations(config, options, combinations, valid_if_included=True):
+    values = tuple(map(config._values.get, options))
+    if valid_if_included ^ (values in combinations):
+        msg = "\n".join(
+            [
+                "invalid combination:",
+                "{options}",
+                "must {inclusion}form one of the following combinations:",
+                "{combinations}",
+                "got:",
+                "{values}",
+            ]
         )
+        text = {
+            name: "\n  ".join(map(str, value))
+            for name, value in dict(
+                options=options, combinations=combinations, values=values
+            ).items()
+        }
+        raise ConfigurationError(
+            msg.format(valid_if_in=("" if valid_if_included else "NOT "), **text)
+        )
+
+
+def validate_combinations(
+    config, options, valid_combinations=set(), invalid_combinations=set()
+):
+    _validate_combinations(
+        config, options, combinations=valid_combinations, valid_if_included=True
+    )
+    _validate_combinations(
+        config, options, combinations=invalid_combinations, valid_if_included=False
+    )
 
 
 def validate(config):
     # TODO use something like Param objects, e.g. from Bokeh?
-    _validate_combinations(
-        (
+    validate_combinations(
+        config,
+        [
             "RELATION_PHI_SCHEME",
             "DISTINCTION_PHI_UPPER_BOUND_RELATIONS",
             "DISTINCTION_SUM_PHI_UPPER_BOUND",
-        ),
-        (
-            config.RELATION_PHI_SCHEME,
-            config.DISTINCTION_PHI_UPPER_BOUND_RELATIONS,
-            config.DISTINCTION_SUM_PHI_UPPER_BOUND,
-        ),
-        [
+        ],
+        valid_combinations={
             ("CONGRUENCE_RATIO_TIMES_INFORMATIVENESS", "PURVIEW_SIZE", "2^N-1"),
             (
                 "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS",
                 "PURVIEW_SIZE",
                 "(2^N-1)/(N-1)",
             ),
-        ],
+        },
     )
+
     if (
         config.RELATION_PHI_SCHEME == "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS"
         and not config.RELATION_PARTITION_TYPE == "BI_CUT_ONE"
@@ -1055,9 +1071,10 @@ def validate(config):
             "must be used with:"
             "\n  RELATION_PARTITION_TYPE = 'BI_CUT_ONE'"
         )
-    if (
-        config.RELATION_PHI_SCHEME == "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS"
-        and not config.CONGRUENCE_RATIO == "NONE"
+
+    if config.RELATION_COMPUTATION == "ANALYTICAL" and (
+        not config.RELATION_PHI_SCHEME == "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS"
+        or not config.CONGRUENCE_RATIO == "NONE"
     ):
         raise ConfigurationError(
             "RELATION_COMPUTATION = 'ANALYTICAL' "
