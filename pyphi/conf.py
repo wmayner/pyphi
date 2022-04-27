@@ -144,6 +144,7 @@ The ``config`` API
 # pylint: disable=protected-access
 
 import contextlib
+import functools
 import logging
 import logging.config
 import os
@@ -159,6 +160,10 @@ from . import __about__, constants
 log = logging.getLogger(__name__)
 
 _VALID_LOG_LEVELS = [None, "CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"]
+
+
+class ConfigurationError(ValueError):
+    pass
 
 
 class Option:
@@ -218,13 +223,13 @@ class Option:
     def _validate(self, value):
         """Validate the new value."""
         if self.type is not None and not isinstance(value, self.type):
-            raise ValueError(
+            raise ConfigurationError(
                 "{} must be of type {} for {}; got {}".format(
                     value, self.type, self.name, type(value)
                 )
             )
         if self.values and value not in self.values:
-            raise ValueError(
+            raise ConfigurationError(
                 "{} ({}) is not a valid value for {}; must be one of:\n    {}".format(
                     value,
                     type(value),
@@ -245,9 +250,10 @@ class Config:
     See ``PyphiConfig`` for usage.
     """
 
-    def __init__(self):
+    def __init__(self, on_change=None):
         self._values = {}
         self._loaded_files = []
+        self._on_change = on_change
 
         # Set the default value of each ``Option``
         for name, opt in self.options().items():
@@ -260,6 +266,20 @@ class Config:
         for opt in self.options().values():
             opt._callback(self)
 
+            # Insert config-wide hook
+            def hook(func):
+                @functools.wraps(func)
+                def wrapper(*args, **kwargs):
+                    func(*args, **kwargs)
+                    self._callback(self)
+
+                return wrapper
+
+            opt.on_change = hook(on_change)
+
+        # Call config-wide hook
+        self._callback(self)
+
     def __repr__(self):
         return pprint.pformat(self._values, indent=2)
 
@@ -270,7 +290,12 @@ class Config:
         if name.startswith("_") or name in self.options().keys():
             super().__setattr__(name, value)
         else:
-            raise ValueError("{} is not a valid config option".format(name))
+            raise ConfigurationError("{} is not a valid config option".format(name))
+
+    def _callback(self, obj):
+        """Called when any option is changed."""
+        if self._on_change is not None:
+            self._on_change(obj)
 
     @classmethod
     def options(cls):
@@ -812,7 +837,7 @@ class PyphiConfig(Config):
     )
 
     RELATION_PARTITION_TYPE = Option(
-        "TRI",
+        "BI_CUT_ONE",
         doc="""
     Controls the type of partition used for |small_phi| computations.
 
@@ -978,9 +1003,50 @@ class PyphiConfig(Config):
         log.info("Current PyPhi configuration:\n %s", str(self))
 
 
+def _validate_combinations(options, values, valid_combinations):
+    if values not in valid_combinations:
+        msg = "invalid combination:\n  {}\nmust form one of the following combinations:\n  {}\nbut got:\n  {}"
+        raise ConfigurationError(
+            msg.format(
+                *(
+                    "\n  ".join(map(str, l))
+                    for l in [
+                        options,
+                        valid_combinations,
+                        values,
+                    ]
+                )
+            )
+        )
+
+
+def validate(config):
+    # TODO use something like Param objects, e.g. from Bokeh?
+    _validate_combinations(
+        (
+            "RELATION_PHI_SCHEME",
+            "DISTINCTION_PHI_UPPER_BOUND_RELATIONS",
+            "DISTINCTION_SUM_PHI_UPPER_BOUND",
+        ),
+        (
+            config.RELATION_PHI_SCHEME,
+            config.DISTINCTION_PHI_UPPER_BOUND_RELATIONS,
+            config.DISTINCTION_SUM_PHI_UPPER_BOUND,
+        ),
+        [
+            ("CONGRUENCE_RATIO_TIMES_INFORMATIVENESS", "PURVIEW_SIZE", "2^N-1"),
+            (
+                "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS",
+                "PURVIEW_SIZE",
+                "(2^N-1)/(N-1)",
+            ),
+        ],
+    )
+
+
 PYPHI_CONFIG_FILENAME = "pyphi_config.yml"
 
-config = PyphiConfig()
+config = PyphiConfig(on_change=validate)
 
 # Try and load the config file
 if os.path.exists(PYPHI_CONFIG_FILENAME):
