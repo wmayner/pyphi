@@ -102,7 +102,7 @@ def _one(distinction):
 
 
 def distinction_phi_upper_bound(distinction):
-    return distinction_phi_upper_bounds[config.DISTINCTION_SMALL_PHI_UPPER_BOUND_RELATION](
+    return distinction_phi_upper_bounds[config.DISTINCTION_PHI_UPPER_BOUND_RELATIONS](
         distinction
     )
 
@@ -140,7 +140,7 @@ def _(relata, candidate_joint_purview):
     _overlap_ratio = overlap_ratio(relata, candidate_joint_purview)
     numerator = np.sum(_overlap_ratio * np.array(list(relata.parent_phis)))
 
-    if config.DISTINCTION_SMALL_PHI_UPPER_BOUND_RELATION == "PURVIEW_SIZE":
+    if config.DISTINCTION_PHI_UPPER_BOUND_RELATIONS == "PURVIEW_SIZE":
         # Simplification of:
         #   sum_{z in relata} (|overlap| / |z|) * phi_max(z)
         # since |z| = phi_max(z)

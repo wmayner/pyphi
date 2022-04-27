@@ -40,11 +40,15 @@ RELATION_PHI_SCHEME: "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS"
 OVERLAP_RATIO: "PURVIEW_SIZE"
 # Controls the congruence ratio used in computing relations.
 CONGRUENCE_RATIO: "PURVIEW_SIZE"
-# Controls the definition of the upper bound of distinction phi when calculating relations.
-DISTINCTION_SMALL_PHI_UPPER_BOUND_RELATION: "PURVIEW_SIZE"
-# Controls the definition of the upper bound of distinction phi when analyzing a system.
-DISTINCTION_SMALL_PHI_UPPER_BOUND_SYSTEM: "ONE"
-# DISTINCTION_SMALL_PHI_UPPER_BOUND_SYSTEM: "PURVIEW_SIZE"
+# Controls the definition of the upper bound of the sum of distinction phi when
+# calculating relations.
+DISTINCTION_PHI_UPPER_BOUND_RELATIONS: "PURVIEW_SIZE"
+# Controls the definition of the upper bound of the sum of distinction phi when
+# analyzing a system.
+DISTINCTION_SUM_PHI_UPPER_BOUND: "(2^N-1)/(N-1)"
+# Controls the definition of the upper bound of the sum of relation phi when
+# analyzing a system.
+RELATION_SUM_PHI_UPPER_BOUND: "ONE"
 # Controls how relations are computed. Can be either "CONCRETE", "ANALYTICAL",
 # or "SAMPLED".
 RELATION_COMPUTATION: "CONCRETE"

@@ -84,55 +84,6 @@ def sia_partitions(node_indices, node_labels=None):
         )
 
 
-class PhiUpperBoundRegistry(Registry):
-    """Storage for functions for defining the upper bound of distinction phi
-    when analyzing the system.
-
-    NOTE: Functions should ideally return `int`s, if possible, to take advantage
-    of the unbounded size of Python integers.
-    """
-
-    desc = "phi bounds (system)"
-
-
-distinction_phi_upper_bounds = PhiUpperBoundRegistry()
-
-
-@distinction_phi_upper_bounds.register("PURVIEW_SIZE")
-def _purview_size(k):
-    return k
-
-
-@distinction_phi_upper_bounds.register("ONE")
-def _one(k):
-    return 1
-
-
-def distinction_phi_upper_bound(k):
-    return distinction_phi_upper_bounds[
-        config.DISTINCTION_SMALL_PHI_UPPER_BOUND_SYSTEM
-    ](k)
-
-
-def relation_phi_upper_bound():
-    pass
-
-
-@cache(cache={}, maxmem=None)
-def _f(n, k):
-    return (2 ** (2 ** (n - k + 1))) - (1 + 2 ** (n - k + 1))
-
-
-@cache(cache={}, maxmem=None)
-def number_of_possible_relations_of_order(n, k):
-    """Return the number of possible relations with overlap of size k."""
-    # Alireza's generalization of Will's theorem
-    return int(scipy.special.comb(n, k)) * sum(
-        ((-1) ** i * int(scipy.special.comb(n - k, i)) * _f(n, k + i))
-        for i in range(n - k + 1)
-    )
-
-
 def number_of_possible_distinctions_of_order(n, k):
     """Return the number of possible distinctions of order k."""
     # Binomial coefficient
@@ -145,44 +96,101 @@ def number_of_possible_distinctions(n):
 
 
 @cache(cache={}, maxmem=None)
+def _f(n, k):
+    return (2 ** (2 ** (n - k + 1))) - (1 + 2 ** (n - k + 1))
+
+
+class DistinctionSumPhiUpperBoundRegistry(Registry):
+    """Storage for functions for defining the upper bound of the sum of
+    distinction phi when analyzing the system.
+
+    NOTE: Functions should ideally return `int`s, if possible, to take advantage
+    of the unbounded size of Python integers.
+    """
+
+    desc = "distinction sum phi bounds (system)"
+
+
+distinction_sum_phi_upper_bounds = DistinctionSumPhiUpperBoundRegistry()
+
+
+@distinction_sum_phi_upper_bounds.register("PURVIEW_SIZE")
+def _distinction_sum_phi_purview_size(n):
+    # This can be simplified to (n/2)*(2^n), but we don't use that identity so
+    # we can keep things as `int`s
+    return sum(
+        k * number_of_possible_distinctions_of_order(n, k) for k in range(1, n + 1)
+    )
+
+
+_distinction_sum_phi_one = distinction_sum_phi_upper_bounds.register("2^N-1")(
+    number_of_possible_distinctions
+)
+
+
+@distinction_sum_phi_upper_bounds.register("(2^N-1)/(N-1)")
+def _distinction_sum_phi_purview_size(n):
+    return number_of_possible_distinctions(n) / (n - 1)
+
+
+def distinction_sum_phi_upper_bound(n):
+    """Return the 'best possible' sum of small phi for distinctions."""
+    return distinction_sum_phi_upper_bounds[config.DISTINCTION_SUM_PHI_UPPER_BOUND](n)
+
+
+@cache(cache={}, maxmem=None)
+def number_of_possible_relations_of_order(n, k):
+    """Return the number of possible relations with overlap of size k."""
+    # Alireza's generalization of Will's theorem
+    return int(scipy.special.comb(n, k)) * sum(
+        ((-1) ** i * int(scipy.special.comb(n - k, i)) * _f(n, k + i))
+        for i in range(n - k + 1)
+    )
+
+
+@cache(cache={}, maxmem=None)
 def number_of_possible_relations(n):
     """Return the number of possible relations of all orders."""
     return sum(number_of_possible_relations_of_order(n, k) for k in range(1, n + 1))
 
 
-def optimum_sum_small_phi_relations(n):
+class RelationSumPhiUpperBoundRegistry(Registry):
+    """Storage for functions for defining the upper bound of the sum of relation
+    phi when analyzing the system.
+
+    NOTE: Functions should ideally return `int`s, if possible, to take advantage
+    of the unbounded size of Python integers.
+    """
+
+    desc = "relation sum phi bounds (system)"
+
+
+relation_sum_phi_upper_bounds = RelationSumPhiUpperBoundRegistry()
+
+
+@relation_sum_phi_upper_bounds.register("PURVIEW_SIZE")
+def _relation_sum_phi_purview_size(n):
+    return sum(k * number_of_possible_relations_of_order(n, k) for k in range(1, n + 1))
+
+
+@relation_sum_phi_upper_bounds.register("ONE")
+def _relation_sum_phi_one(n):
+    # Distinction phi <= 1 implies relation phi is bounded by 1/|z| where z is
+    # the largest purview in the relation
+    subsets = [
+        1 / (len(z) + 1) for z in utils.powerset(range(n - 1), nonempty=False)
+    ] * 2
+    return n * combinatorics.sum_of_minimum_among_subsets(subsets)
+
+
+def relation_sum_phi_upper_bound(n):
     """Return the 'best possible' sum of small phi for relations."""
-    if config.DISTINCTION_SMALL_PHI_UPPER_BOUND_SYSTEM == "ONE":
-        # Special case: distinction phi <= 1 implies relation phi is bounded by
-        # 1/|z| where z is the largest purview in the relation
-        subsets = [
-            1 / (len(z) + 1) for z in utils.powerset(range(n - 1), nonempty=False)
-        ] * 2
-        return n * combinatorics.sum_of_minimum_among_subsets(subsets)
-    # \sum_{k=1}^{n} (upper bound of phi for purview size k) * (number of relations with that purview size)
-    return sum(
-        distinction_phi_upper_bound(k) * number_of_possible_relations_of_order(n, k)
-        for k in range(1, n + 1)
-    )
+    return relation_sum_phi_upper_bounds[config.RELATION_SUM_PHI_UPPER_BOUND](n)
 
 
-def optimum_sum_small_phi_distinctions(n):
-    """Return the 'best possible' sum of small phi for distinctions."""
-    if config.DISTINCTION_SMALL_PHI_UPPER_BOUND_SYSTEM == "ONE":
-        # Special case for speed with ONE, since we're just counting in that case
-        return number_of_possible_distinctions(n)
-    # When using purview size as the upper bound, this can be simplified to
-    # (n/2)*(2^n), but we don't use that identity so we can keep things as
-    # `int`s
-    return sum(
-        distinction_phi_upper_bound(k) * number_of_possible_distinctions_of_order(n, k)
-        for k in range(1, n + 1)
-    )
-
-
-def optimum_sum_small_phi(n):
+def sum_small_phi_upper_bound(n):
     """Return the 'best possible' sum of small phi for the system."""
-    return optimum_sum_small_phi_distinctions(n) + optimum_sum_small_phi_relations(n)
+    return distinction_sum_phi_upper_bound(n) + relation_sum_phi_upper_bound(n)
 
 
 def _requires_relations(func):
@@ -320,7 +328,7 @@ class PhiStructure(cmp.Orderable):
             numerator = self.sum_phi()
             if numerator == 0:
                 return 0
-            denominator = optimum_sum_small_phi(self._substrate_size)
+            denominator = sum_small_phi_upper_bound(self._substrate_size)
             self._selectivity = expsublog(numerator, denominator)
         return self._selectivity
 

@@ -878,7 +878,7 @@ class PyphiConfig(Config):
     """,
     )
 
-    DISTINCTION_SMALL_PHI_UPPER_BOUND_RELATION = Option(
+    DISTINCTION_PHI_UPPER_BOUND_RELATIONS = Option(
         "PURVIEW_SIZE",
         values=["ONE", "PURVIEW_SIZE"],
         doc="""
@@ -886,11 +886,19 @@ class PyphiConfig(Config):
     """,
     )
 
-    DISTINCTION_SMALL_PHI_UPPER_BOUND_SYSTEM = Option(
-        "ONE",
-        values=["ONE", "PURVIEW_SIZE"],
+    DISTINCTION_SUM_PHI_UPPER_BOUND = Option(
+        "(2^N-1)/(N-1)",
+        values=["PURVIEW_SIZE", "2^N-1", "(2^N-1)/(N-1)"],
         doc="""
-    Controls the definition of the upper bound of distinction phi when analyzing a system.
+    Controls the definition of the upper bound on the sum of distinction phi when analyzing a system.
+    """,
+    )
+
+    RELATION_SUM_PHI_UPPER_BOUND = Option(
+        "ONE",
+        values=["PURVIEW_SIZE", "ONE"],
+        doc="""
+    Controls the definition of the upper bound on the sum of relation phi when analyzing a system.
     """,
     )
 
