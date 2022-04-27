@@ -135,8 +135,13 @@ class CongruenceRatioRegistry(Registry):
 congruence_ratios = CongruenceRatioRegistry()
 
 
+@congruence_ratios.register("NONE")
+def _congruence_ratio_none(relata, candidate_joint_purview):
+    return 1.0
+
+
 @congruence_ratios.register("PURVIEW_SIZE")
-def _(relata, candidate_joint_purview):
+def _congruence_ratio_purview_size(relata, candidate_joint_purview):
     _overlap_ratio = overlap_ratio(relata, candidate_joint_purview)
     numerator = np.sum(_overlap_ratio * np.array(list(relata.parent_phis)))
 
@@ -1034,29 +1039,35 @@ class AnalyticalRelations(AbstractRelations):
         return self.sum_phi() / self.num_relations()
 
     def _sum_phi(self):
-        if config.RELATION_PHI_SCHEME == "OVERLAP_RATIO_TIMES_RELATION_INFORMATIVENESS":
-            return sum(
-                combinatorics.sum_of_ratio_of_minima_among_subsets(
-                    [(d.parent.phi, len(d.purview)) for d in overlapping_distinctions]
-                )
-                for _, overlapping_distinctions in self.distinctions.purview_inclusion(
-                    max_order=1
-                ).items()
-            )
-        elif (
-            config.RELATION_PHI_SCHEME
-            == "CONGRUENCE_RATIO_TIMES_RELATION_INFORMATIVENESS_PURVIEW_RELATIVE"
+        if (
+            config.RELATION_PHI_SCHEME == "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS"
+            and config.CONGRUENCE_RATIO == "NONE"
         ):
-            return sum(
-                combinatorics.sum_of_minimum_among_subsets(
-                    [d.parent.phi / len(d.purview) for d in overlapping_distinctions]
+            if config.OVERLAP_RATIO == "MINIMUM_PURVIEW_SIZE":
+                return sum(
+                    combinatorics.sum_of_ratio_of_minima_among_subsets(
+                        [
+                            (d.parent.phi, len(d.purview))
+                            for d in overlapping_distinctions
+                        ]
+                    )
+                    for _, overlapping_distinctions in self.distinctions.purview_inclusion(
+                        max_order=1
+                    ).items()
                 )
-                for _, overlapping_distinctions in self.distinctions.purview_inclusion(
-                    max_order=1
-                ).items()
-            )
-        else:
-            raise NotImplementedError
+            elif config.OVERLAP_RATIO == "PURVIEW_SIZE":
+                return sum(
+                    combinatorics.sum_of_minimum_among_subsets(
+                        [
+                            d.parent.phi / len(d.purview)
+                            for d in overlapping_distinctions
+                        ]
+                    )
+                    for _, overlapping_distinctions in self.distinctions.purview_inclusion(
+                        max_order=1
+                    ).items()
+                )
+        raise NotImplementedError
 
     def num_relations(self):
         if self._num_relations is None:

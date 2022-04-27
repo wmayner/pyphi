@@ -901,7 +901,7 @@ class PyphiConfig(Config):
 
     CONGRUENCE_RATIO = Option(
         "PURVIEW_SIZE",
-        values=["PURVIEW_SIZE"],
+        values=["PURVIEW_SIZE", "NONE"],
         doc="""
     Controls the congruence ratio used in computing relations.
     """,
@@ -1052,7 +1052,18 @@ def validate(config):
     ):
         raise ConfigurationError(
             "RELATION_PHI_SCHEME = 'CONGRUENCE_RATIO_TIMES_INFORMATIVENESS' "
-            "must be used with RELATION_PARTITION_TYPE = 'BI_CUT_ONE'"
+            "must be used with:"
+            "\n  RELATION_PARTITION_TYPE = 'BI_CUT_ONE'"
+        )
+    if (
+        config.RELATION_PHI_SCHEME == "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS"
+        and not config.CONGRUENCE_RATIO == "NONE"
+    ):
+        raise ConfigurationError(
+            "RELATION_COMPUTATION = 'ANALYTICAL' "
+            "must be used with:"
+            "\n   RELATION_PHI_SCHEME = 'CONGRUENCE_RATIO_TIMES_INFORMATIVENESS'"
+            "\n   CONGRUENCE_RATIO = 'NONE'"
         )
 
 
