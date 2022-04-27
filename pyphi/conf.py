@@ -980,7 +980,7 @@ class PyphiConfig(Config):
     )
 
     PICK_SMALLEST_PURVIEW = Option(
-        False,
+        True,
         type=bool,
         doc="""
     When computing a |MIC| or |MIE|, it is possible for several MIPs to have
