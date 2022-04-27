@@ -1042,6 +1042,14 @@ def validate(config):
             ),
         ],
     )
+    if (
+        config.RELATION_PHI_SCHEME == "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS"
+        and not config.RELATION_PARTITION_TYPE == "BI_CUT_ONE"
+    ):
+        raise ConfigurationError(
+            "RELATION_PHI_SCHEME = 'CONGRUENCE_RATIO_TIMES_INFORMATIVENESS' "
+            "must be used with RELATION_PARTITION_TYPE = 'BI_CUT_ONE'"
+        )
 
 
 PYPHI_CONFIG_FILENAME = "pyphi_config.yml"
