@@ -481,9 +481,9 @@ def evaluate_partition(subsystem, phi_structure, partition):
     return SystemIrreducibilityAnalysis(
         subsystem=subsystem,
         phi_structure=phi_structure,
+        selectivity=phi_structure.selectivity(),
         partitioned_phi_structure=partitioned_phi_structure,
         partition=partitioned_phi_structure.partition,
-        selectivity=partitioned_phi_structure.selectivity(),
         informativeness=partitioned_phi_structure.informativeness(),
         phi=partitioned_phi_structure.phi(),
     )
