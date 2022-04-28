@@ -9,7 +9,7 @@ Functions for computing subsystem-level properties.
 import functools
 import logging
 
-from .. import config, connectivity, memory, utils
+from .. import config, connectivity, utils
 from ..direction import Direction
 from ..metrics.ces import ces_distance
 from ..models import (
@@ -23,7 +23,6 @@ from ..models import (
     fmt,
 )
 from ..partition import mip_partitions, system_partition_types
-from ..utils import time_annotated
 from .parallel import MapReduce
 
 # Create a logger for this module.
@@ -72,7 +71,6 @@ class ComputeCauseEffectStructure(MapReduce):
         return concepts
 
 
-@time_annotated
 def ces(
     subsystem,
     mechanisms=False,
@@ -235,9 +233,7 @@ def _ces(subsystem):
     return ces(subsystem, parallel=config.PARALLEL_CUT_EVALUATION)
 
 
-@memory.cache(ignore=["subsystem"])
-@time_annotated
-def _sia(cache_key, subsystem):
+def _sia(subsystem):
     """Return the minimal information partition of a subsystem.
 
     Args:
@@ -326,36 +322,11 @@ def _sia(cache_key, subsystem):
     return result
 
 
-# TODO(maintainance): don't forget to add any new configuration options here if
-# they can change big-phi values
-def _sia_cache_key(subsystem):
-    """The cache key of the subsystem.
-
-    This includes the native hash of the subsystem and all configuration values
-    which change the results of ``sia``.
-    """
-    return (
-        hash(subsystem),
-        config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS,
-        config.SYSTEM_PARTITION_TYPE,
-        config.REPERTOIRE_DISTANCE,
-        config.PRECISION,
-        config.VALIDATE_SUBSYSTEM_STATES,
-        config.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI,
-        config.PARTITION_TYPE,
-    )
-
-
-# Wrapper to ensure that the cache key is the native hash of the subsystem, so
-# joblib doesn't mistakenly recompute things when the subsystem's MICE cache is
-# changed. The cache is also keyed on configuration values which affect the
-# value of the computation.
 @functools.wraps(_sia)
-def sia(subsystem):  # pylint: disable=missing-docstring
+def sia(subsystem):
     if config.SYSTEM_CUTS == "CONCEPT_STYLE":
         return sia_concept_style(subsystem)
-
-    return _sia(_sia_cache_key(subsystem), subsystem)
+    return _sia(subsystem)
 
 
 def phi(subsystem):

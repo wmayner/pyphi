@@ -12,8 +12,7 @@ branches:
 
 # Setup databases
 services:
-  - mongodb  # port 27017 (default)
-  - redis-server  # port 6379 (default)
+  - redis-server # port 6379 (default)
 
 python:
   - 3.6
@@ -36,6 +35,6 @@ notifications:
   email: false
   slack:
     rooms:
-         secure: "C6PSvK/FEmyD+S71VVzS29NZpD9CFI/f3UMjc6i08xYHjFNMZUplfHyUqNLNqgVVBsKR1En4B8ryuriEnM8wwZzCVdxjh7HDsx8aNE2z1XG5tkqoRP4ppNfqNaYRoMcSZFW89DfVNbIVDM11wKXL7/YnRCmlJy0p1NtKzlncXCM="
+      secure: "C6PSvK/FEmyD+S71VVzS29NZpD9CFI/f3UMjc6i08xYHjFNMZUplfHyUqNLNqgVVBsKR1En4B8ryuriEnM8wwZzCVdxjh7HDsx8aNE2z1XG5tkqoRP4ppNfqNaYRoMcSZFW89DfVNbIVDM11wKXL7/YnRCmlJy0p1NtKzlncXCM="
     on_success: never
     on_failure: always

@@ -15,12 +15,15 @@ import os
 import pickle
 from functools import namedtuple, update_wrapper, wraps
 
+import joblib
 import psutil
 import redis
 
 from . import config, constants
 
 _CacheInfo = namedtuple("CacheInfo", ["hits", "misses", "currsize"])
+
+joblib_memory = joblib.Memory(location=constants.DISK_CACHE_LOCATION, verbose=0)
 
 
 def memory_full():

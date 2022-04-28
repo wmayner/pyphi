@@ -382,3 +382,9 @@ def as_completed(object_refs, num_returns=1):
     while unfinished:
         finished, unfinished = ray.wait(unfinished, num_returns=num_returns)
         yield from ray.get(finished)
+
+
+@ray.remote
+class RemoteConfig:
+    def __init__(config):
+        self.config = config

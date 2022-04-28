@@ -29,9 +29,7 @@ Print the ``config`` object to see the current settings:
 
     >>> print(pyphi.config)  # doctest: +SKIP
     { 'ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS': False,
-      'CACHE_SIAS': False,
       'CACHE_POTENTIAL_PURVIEWS': True,
-      'CACHING_BACKEND': 'fs',
       ...
 
 Setting can be changed on the fly by assigning them a new value:
@@ -101,14 +99,9 @@ Memoization and caching
 
 PyPhi provides a number of ways to cache intermediate results.
 
-- :attr:`~pyphi.conf.PyphiConfig.CACHE_SIAS`
 - :attr:`~pyphi.conf.PyphiConfig.CACHE_REPERTOIRES`
 - :attr:`~pyphi.conf.PyphiConfig.CACHE_POTENTIAL_PURVIEWS`
 - :attr:`~pyphi.conf.PyphiConfig.CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA`
-- :attr:`~pyphi.conf.PyphiConfig.CACHING_BACKEND`
-- :attr:`~pyphi.conf.PyphiConfig.FS_CACHE_VERBOSITY`
-- :attr:`~pyphi.conf.PyphiConfig.FS_CACHE_DIRECTORY`
-- :attr:`~pyphi.conf.PyphiConfig.MONGODB_CONFIG`
 - :attr:`~pyphi.conf.PyphiConfig.REDIS_CACHE`
 - :attr:`~pyphi.conf.PyphiConfig.REDIS_CONFIG`
 
@@ -152,7 +145,6 @@ import pprint
 from copy import copy
 from pathlib import Path
 
-import joblib
 import yaml
 
 from . import __about__, constants
@@ -409,12 +401,6 @@ def configure_logging(conf):
     )
 
 
-def configure_joblib(conf):
-    constants.joblib_memory = joblib.Memory(
-        location=conf.FS_CACHE_DIRECTORY, verbose=conf.FS_CACHE_VERBOSITY
-    )
-
-
 def configure_precision(conf):
     constants.EPSILON = 10 ** (-conf.PRECISION)
 
@@ -540,19 +526,6 @@ class PyphiConfig(Config):
     NOTE: The ``n_workers`` argument defaults to the ``NUMBER_OF_CORES`` option.""",
     )
 
-    CACHE_SIAS = Option(
-        False,
-        type=bool,
-        doc="""
-    PyPhi is equipped with a transparent caching system for
-    |SystemIrreducibilityAnalysis| objects which stores them as they are
-    computed to avoid having to recompute them later. This makes it easy to
-    play around interactively with the program, or to accumulate results with
-    minimal effort. For larger projects, however, it is recommended that you
-    manage the results explicitly, rather than relying on the cache. For this
-    reason it is disabled by default.""",
-    )
-
     CACHE_REPERTOIRES = Option(
         True,
         type=bool,
@@ -580,48 +553,6 @@ class PyphiConfig(Config):
     |SystemIrreducibilityAnalysis|. If you don't need to do any more
     computations after running |compute.sia()|, then enabling this may help
     conserve memory.""",
-    )
-
-    CACHING_BACKEND = Option(
-        "fs",
-        values=["fs", "db"],
-        doc="""
-    Controls whether precomputed results are stored and read from a local
-    filesystem-based cache in the current directory or from a database. Set
-    this to ``'fs'`` for the filesystem, ``'db'`` for the database.""",
-    )
-
-    FS_CACHE_VERBOSITY = Option(
-        0,
-        type=int,
-        on_change=configure_joblib,
-        doc="""
-    Controls how much caching information is printed if the filesystem cache is
-    used. Takes a value between ``0`` and ``11``.""",
-    )
-
-    FS_CACHE_DIRECTORY = Option(
-        "__pyphi_cache__",
-        type=(str, Path),
-        on_change=configure_joblib,
-        doc="""
-    If the filesystem is used for caching, the cache will be stored in this
-    directory. This directory can be copied and moved around if you want to
-    reuse results *e.g.* on a another computer, but it must be in the same
-    directory from which Python is being run.""",
-    )
-
-    MONGODB_CONFIG = Option(
-        {
-            "host": "localhost",
-            "port": 27017,
-            "database_name": "pyphi",
-            "collection_name": "cache",
-        },
-        type=dict,
-        doc="""
-    Set the configuration for the MongoDB database backend (only has an
-    effect if ``CACHING_BACKEND`` is ``'db'``).""",
     )
 
     REDIS_CACHE = Option(

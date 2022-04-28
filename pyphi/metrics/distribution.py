@@ -12,7 +12,8 @@ from pyemd import emd as _emd
 from scipy.spatial.distance import cdist
 from scipy.special import entr, rel_entr
 
-from .. import config, constants, utils, validate
+from .. import config, utils, validate
+from ..cache import joblib_memory
 from ..direction import Direction
 from ..distribution import flatten, marginal_zero
 from ..registry import Registry
@@ -111,7 +112,7 @@ def _hamming_matrix(N):
     return _compute_hamming_matrix(N)
 
 
-@constants.joblib_memory.cache
+@joblib_memory.cache
 def _compute_hamming_matrix(N):
     """Compute and store a Hamming matrix for |N| nodes.
 
@@ -126,7 +127,7 @@ def _compute_hamming_matrix(N):
         13  512
 
     Given these sizes and the fact that large matrices are needed infrequently,
-    we store computed matrices using the Joblib filesystem cache instead of
+    we store computed matrices using the joblib filesystem cache instead of
     adding computed matrices to the ``_hamming_matrices`` global and clogging
     up memory.
 

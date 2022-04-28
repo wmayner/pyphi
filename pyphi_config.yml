@@ -98,8 +98,6 @@ RAY_CONFIG:
 
 # Memoization and caching
 # ~~~~~~~~~~~~~~~~~~~~~~~
-# Controls whether SIAs are cached.
-CACHE_SIAS: false
 # Controls whether cause and effect repertoires are cached.
 CACHE_REPERTOIRES: true
 # Controls whether the potential purviews of the mechanisms of a network are
@@ -109,23 +107,6 @@ CACHE_POTENTIAL_PURVIEWS: true
 # Controls whether subsystem caches are automatically cleared after computing
 # the SIA for the subsystem.
 CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA: false
-# The caching system to use. "fs" means cache the results on the local
-# filesystem, in a subdirectory of the current directory; "db" means connect to
-# a database and store the results there.
-CACHING_BACKEND: "fs"
-# The verbosity of filesystem caching (integer from 0 to 11).
-FS_CACHE_VERBOSITY: 0
-# The directory to use for local persistent caching on the filesystem. This
-# only has an effect if the caching backend is the filesystem and not a
-# database.
-FS_CACHE_DIRECTORY: "__pyphi_cache__"
-# These are the settings for the MongoDB database used in the 'db' caching
-# backend.
-MONGODB_CONFIG:
-  host: "localhost"
-  port: 27017
-  database_name: "pyphi"
-  collection_name: "test"
 # Use a Redis server as a MICE cache
 REDIS_CACHE: false
 # Redis connection configuration

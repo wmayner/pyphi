@@ -1,1 +1,557 @@
-{"concepts":[{"ria":{"phi":0.5,"direction":{"direction":"CAUSE","__class__":"Direction","__version__":"1.2.0","__id__":0},"mechanism":[0,1],"purview":[0,1,2],"partition":{"parts":[{"mechanism":[],"purview":[],"__class__":"Part","__version__":"1.2.0","__id__":9028247024705308198},{"mechanism":[0],"purview":[0,1,2],"__class__":"Part","__version__":"1.2.0","__id__":6592041569594223520},{"mechanism":[1],"purview":[],"__class__":"Part","__version__":"1.2.0","__id__":-4157031232332679764}],"__class__":"Tripartition","__version__":"1.2.0","__id__":-3776175824524320832},"repertoire":[[[0.5,0.0],[0.0,0.0]],[[0.0,0.0],[0.0,0.5]]],"partitioned_repertoire":[[[0.25,0.0],[0.0,0.25]],[[0.25,0.0],[0.0,0.25]]],"__class__":"RepertoireIrreducibilityAnalysis","__version__":"1.2.0","__id__":-7932303444038295213},"__class__":"MaximallyIrreducibleCause","__version__":"1.2.0","__id__":-7932303444038295213},{"ria":{"phi":1.0,"direction":{"direction":"EFFECT","__class__":"Direction","__version__":"1.2.0","__id__":1},"mechanism":[0,1],"purview":[2],"partition":{"parts":[{"mechanism":[],"purview":[],"__class__":"Part","__version__":"1.2.0","__id__":9028247024705308198},{"mechanism":[],"purview":[2],"__class__":"Part","__version__":"1.2.0","__id__":4225733160254446345},{"mechanism":[0,1],"purview":[],"__class__":"Part","__version__":"1.2.0","__id__":-756425342273080151}],"__class__":"Tripartition","__version__":"1.2.0","__id__":-5920123844273525910},"repertoire":[[[1.0,0.0]]],"partitioned_repertoire":[[[0.5,0.5]]],"__class__":"RepertoireIrreducibilityAnalysis","__version__":"1.2.0","__id__":1109386001147167529},"__class__":"MaximallyIrreducibleEffect","__version__":"1.2.0","__id__":1109386001147167529},{"ria":{"phi":0.5,"direction":{"direction":"CAUSE","__class__":"Direction","__version__":"1.2.0","__id__":0},"mechanism":[0,2],"purview":[0,1,2],"partition":{"parts":[{"mechanism":[],"purview":[],"__class__":"Part","__version__":"1.2.0","__id__":9028247024705308198},{"mechanism":[0],"purview":[0,1,2],"__class__":"Part","__version__":"1.2.0","__id__":6592041569594223520},{"mechanism":[2],"purview":[],"__class__":"Part","__version__":"1.2.0","__id__":7084645342196539507}],"__class__":"Tripartition","__version__":"1.2.0","__id__":-3483170104593672644},"repertoire":[[[0.5,0.0],[0.0,0.0]],[[0.0,0.0],[0.0,0.5]]],"partitioned_repertoire":[[[0.25,0.0],[0.0,0.25]],[[0.25,0.0],[0.0,0.25]]],"__class__":"RepertoireIrreducibilityAnalysis","__version__":"1.2.0","__id__":8978331880835878013},"__class__":"MaximallyIrreducibleCause","__version__":"1.2.0","__id__":8978331880835878013},{"ria":{"phi":1.0,"direction":{"direction":"EFFECT","__class__":"Direction","__version__":"1.2.0","__id__":1},"mechanism":[0,2],"purview":[1],"partition":{"parts":[{"mechanism":[],"purview":[],"__class__":"Part","__version__":"1.2.0","__id__":9028247024705308198},{"mechanism":[],"purview":[1],"__class__":"Part","__version__":"1.2.0","__id__":-7715943332640168325},{"mechanism":[0,2],"purview":[],"__class__":"Part","__version__":"1.2.0","__id__":-1793264754545400794}],"__class__":"Tripartition","__version__":"1.2.0","__id__":-2745582686318686816},"repertoire":[[[1.0],[0.0]]],"partitioned_repertoire":[[[0.5],[0.5]]],"__class__":"RepertoireIrreducibilityAnalysis","__version__":"1.2.0","__id__":5476267227813615977},"__class__":"MaximallyIrreducibleEffect","__version__":"1.2.0","__id__":5476267227813615977},{"ria":{"phi":0.5,"direction":{"direction":"CAUSE","__class__":"Direction","__version__":"1.2.0","__id__":0},"mechanism":[1,2],"purview":[0,1,2],"partition":{"parts":[{"mechanism":[],"purview":[],"__class__":"Part","__version__":"1.2.0","__id__":9028247024705308198},{"mechanism":[1],"purview":[0,1,2],"__class__":"Part","__version__":"1.2.0","__id__":5752933289804214147},{"mechanism":[2],"purview":[],"__class__":"Part","__version__":"1.2.0","__id__":7084645342196539507}],"__class__":"Tripartition","__version__":"1.2.0","__id__":-8925448239465077382},"repertoire":[[[0.5,0.0],[0.0,0.0]],[[0.0,0.0],[0.0,0.5]]],"partitioned_repertoire":[[[0.25,0.0],[0.25,0.0]],[[0.0,0.25],[0.0,0.25]]],"__class__":"RepertoireIrreducibilityAnalysis","__version__":"1.2.0","__id__":4677209424800816854},"__class__":"MaximallyIrreducibleCause","__version__":"1.2.0","__id__":4677209424800816854},{"ria":{"phi":1.0,"direction":{"direction":"EFFECT","__class__":"Direction","__version__":"1.2.0","__id__":1},"mechanism":[1,2],"purview":[0],"partition":{"parts":[{"mechanism":[],"purview":[],"__class__":"Part","__version__":"1.2.0","__id__":9028247024705308198},{"mechanism":[],"purview":[0],"__class__":"Part","__version__":"1.2.0","__id__":5705479298745774528},{"mechanism":[1,2],"purview":[],"__class__":"Part","__version__":"1.2.0","__id__":-790606635019059835}],"__class__":"Tripartition","__version__":"1.2.0","__id__":3227077022581517656},"repertoire":[[[1.0]],[[0.0]]],"partitioned_repertoire":[[[0.5]],[[0.5]]],"__class__":"RepertoireIrreducibilityAnalysis","__version__":"1.2.0","__id__":2783260700964493754},"__class__":"MaximallyIrreducibleEffect","__version__":"1.2.0","__id__":2783260700964493754}],"subsystem":null,"time":null,"__class__":"FlatCauseEffectStructure","__version__":"1.2.0","__id__":7638770047224261648}
+{
+	"concepts": [
+		{
+			"ria": {
+				"phi": 0.5,
+				"direction": {
+					"direction": "CAUSE",
+					"__class__": "Direction",
+					"__version__": "1.2.0",
+					"__id__": 0
+				},
+				"mechanism": [
+					0,
+					1
+				],
+				"purview": [
+					0,
+					1,
+					2
+				],
+				"partition": {
+					"parts": [
+						{
+							"mechanism": [],
+							"purview": [],
+							"__class__": "Part",
+							"__version__": "1.2.0",
+							"__id__": 9028247024705308198
+						},
+						{
+							"mechanism": [
+								0
+							],
+							"purview": [
+								0,
+								1,
+								2
+							],
+							"__class__": "Part",
+							"__version__": "1.2.0",
+							"__id__": 6592041569594223520
+						},
+						{
+							"mechanism": [
+								1
+							],
+							"purview": [],
+							"__class__": "Part",
+							"__version__": "1.2.0",
+							"__id__": -4157031232332679764
+						}
+					],
+					"__class__": "Tripartition",
+					"__version__": "1.2.0",
+					"__id__": -3776175824524320832
+				},
+				"repertoire": [
+					[
+						[
+							0.5,
+							0.0
+						],
+						[
+							0.0,
+							0.0
+						]
+					],
+					[
+						[
+							0.0,
+							0.0
+						],
+						[
+							0.0,
+							0.5
+						]
+					]
+				],
+				"partitioned_repertoire": [
+					[
+						[
+							0.25,
+							0.0
+						],
+						[
+							0.0,
+							0.25
+						]
+					],
+					[
+						[
+							0.25,
+							0.0
+						],
+						[
+							0.0,
+							0.25
+						]
+					]
+				],
+				"__class__": "RepertoireIrreducibilityAnalysis",
+				"__version__": "1.2.0",
+				"__id__": -7932303444038295213
+			},
+			"__class__": "MaximallyIrreducibleCause",
+			"__version__": "1.2.0",
+			"__id__": -7932303444038295213
+		},
+		{
+			"ria": {
+				"phi": 1.0,
+				"direction": {
+					"direction": "EFFECT",
+					"__class__": "Direction",
+					"__version__": "1.2.0",
+					"__id__": 1
+				},
+				"mechanism": [
+					0,
+					1
+				],
+				"purview": [
+					2
+				],
+				"partition": {
+					"parts": [
+						{
+							"mechanism": [],
+							"purview": [],
+							"__class__": "Part",
+							"__version__": "1.2.0",
+							"__id__": 9028247024705308198
+						},
+						{
+							"mechanism": [],
+							"purview": [
+								2
+							],
+							"__class__": "Part",
+							"__version__": "1.2.0",
+							"__id__": 4225733160254446345
+						},
+						{
+							"mechanism": [
+								0,
+								1
+							],
+							"purview": [],
+							"__class__": "Part",
+							"__version__": "1.2.0",
+							"__id__": -756425342273080151
+						}
+					],
+					"__class__": "Tripartition",
+					"__version__": "1.2.0",
+					"__id__": -5920123844273525910
+				},
+				"repertoire": [
+					[
+						[
+							1.0,
+							0.0
+						]
+					]
+				],
+				"partitioned_repertoire": [
+					[
+						[
+							0.5,
+							0.5
+						]
+					]
+				],
+				"__class__": "RepertoireIrreducibilityAnalysis",
+				"__version__": "1.2.0",
+				"__id__": 1109386001147167529
+			},
+			"__class__": "MaximallyIrreducibleEffect",
+			"__version__": "1.2.0",
+			"__id__": 1109386001147167529
+		},
+		{
+			"ria": {
+				"phi": 0.5,
+				"direction": {
+					"direction": "CAUSE",
+					"__class__": "Direction",
+					"__version__": "1.2.0",
+					"__id__": 0
+				},
+				"mechanism": [
+					0,
+					2
+				],
+				"purview": [
+					0,
+					1,
+					2
+				],
+				"partition": {
+					"parts": [
+						{
+							"mechanism": [],
+							"purview": [],
+							"__class__": "Part",
+							"__version__": "1.2.0",
+							"__id__": 9028247024705308198
+						},
+						{
+							"mechanism": [
+								0
+							],
+							"purview": [
+								0,
+								1,
+								2
+							],
+							"__class__": "Part",
+							"__version__": "1.2.0",
+							"__id__": 6592041569594223520
+						},
+						{
+							"mechanism": [
+								2
+							],
+							"purview": [],
+							"__class__": "Part",
+							"__version__": "1.2.0",
+							"__id__": 7084645342196539507
+						}
+					],
+					"__class__": "Tripartition",
+					"__version__": "1.2.0",
+					"__id__": -3483170104593672644
+				},
+				"repertoire": [
+					[
+						[
+							0.5,
+							0.0
+						],
+						[
+							0.0,
+							0.0
+						]
+					],
+					[
+						[
+							0.0,
+							0.0
+						],
+						[
+							0.0,
+							0.5
+						]
+					]
+				],
+				"partitioned_repertoire": [
+					[
+						[
+							0.25,
+							0.0
+						],
+						[
+							0.0,
+							0.25
+						]
+					],
+					[
+						[
+							0.25,
+							0.0
+						],
+						[
+							0.0,
+							0.25
+						]
+					]
+				],
+				"__class__": "RepertoireIrreducibilityAnalysis",
+				"__version__": "1.2.0",
+				"__id__": 8978331880835878013
+			},
+			"__class__": "MaximallyIrreducibleCause",
+			"__version__": "1.2.0",
+			"__id__": 8978331880835878013
+		},
+		{
+			"ria": {
+				"phi": 1.0,
+				"direction": {
+					"direction": "EFFECT",
+					"__class__": "Direction",
+					"__version__": "1.2.0",
+					"__id__": 1
+				},
+				"mechanism": [
+					0,
+					2
+				],
+				"purview": [
+					1
+				],
+				"partition": {
+					"parts": [
+						{
+							"mechanism": [],
+							"purview": [],
+							"__class__": "Part",
+							"__version__": "1.2.0",
+							"__id__": 9028247024705308198
+						},
+						{
+							"mechanism": [],
+							"purview": [
+								1
+							],
+							"__class__": "Part",
+							"__version__": "1.2.0",
+							"__id__": -7715943332640168325
+						},
+						{
+							"mechanism": [
+								0,
+								2
+							],
+							"purview": [],
+							"__class__": "Part",
+							"__version__": "1.2.0",
+							"__id__": -1793264754545400794
+						}
+					],
+					"__class__": "Tripartition",
+					"__version__": "1.2.0",
+					"__id__": -2745582686318686816
+				},
+				"repertoire": [
+					[
+						[
+							1.0
+						],
+						[
+							0.0
+						]
+					]
+				],
+				"partitioned_repertoire": [
+					[
+						[
+							0.5
+						],
+						[
+							0.5
+						]
+					]
+				],
+				"__class__": "RepertoireIrreducibilityAnalysis",
+				"__version__": "1.2.0",
+				"__id__": 5476267227813615977
+			},
+			"__class__": "MaximallyIrreducibleEffect",
+			"__version__": "1.2.0",
+			"__id__": 5476267227813615977
+		},
+		{
+			"ria": {
+				"phi": 0.5,
+				"direction": {
+					"direction": "CAUSE",
+					"__class__": "Direction",
+					"__version__": "1.2.0",
+					"__id__": 0
+				},
+				"mechanism": [
+					1,
+					2
+				],
+				"purview": [
+					0,
+					1,
+					2
+				],
+				"partition": {
+					"parts": [
+						{
+							"mechanism": [],
+							"purview": [],
+							"__class__": "Part",
+							"__version__": "1.2.0",
+							"__id__": 9028247024705308198
+						},
+						{
+							"mechanism": [
+								1
+							],
+							"purview": [
+								0,
+								1,
+								2
+							],
+							"__class__": "Part",
+							"__version__": "1.2.0",
+							"__id__": 5752933289804214147
+						},
+						{
+							"mechanism": [
+								2
+							],
+							"purview": [],
+							"__class__": "Part",
+							"__version__": "1.2.0",
+							"__id__": 7084645342196539507
+						}
+					],
+					"__class__": "Tripartition",
+					"__version__": "1.2.0",
+					"__id__": -8925448239465077382
+				},
+				"repertoire": [
+					[
+						[
+							0.5,
+							0.0
+						],
+						[
+							0.0,
+							0.0
+						]
+					],
+					[
+						[
+							0.0,
+							0.0
+						],
+						[
+							0.0,
+							0.5
+						]
+					]
+				],
+				"partitioned_repertoire": [
+					[
+						[
+							0.25,
+							0.0
+						],
+						[
+							0.25,
+							0.0
+						]
+					],
+					[
+						[
+							0.0,
+							0.25
+						],
+						[
+							0.0,
+							0.25
+						]
+					]
+				],
+				"__class__": "RepertoireIrreducibilityAnalysis",
+				"__version__": "1.2.0",
+				"__id__": 4677209424800816854
+			},
+			"__class__": "MaximallyIrreducibleCause",
+			"__version__": "1.2.0",
+			"__id__": 4677209424800816854
+		},
+		{
+			"ria": {
+				"phi": 1.0,
+				"direction": {
+					"direction": "EFFECT",
+					"__class__": "Direction",
+					"__version__": "1.2.0",
+					"__id__": 1
+				},
+				"mechanism": [
+					1,
+					2
+				],
+				"purview": [
+					0
+				],
+				"partition": {
+					"parts": [
+						{
+							"mechanism": [],
+							"purview": [],
+							"__class__": "Part",
+							"__version__": "1.2.0",
+							"__id__": 9028247024705308198
+						},
+						{
+							"mechanism": [],
+							"purview": [
+								0
+							],
+							"__class__": "Part",
+							"__version__": "1.2.0",
+							"__id__": 5705479298745774528
+						},
+						{
+							"mechanism": [
+								1,
+								2
+							],
+							"purview": [],
+							"__class__": "Part",
+							"__version__": "1.2.0",
+							"__id__": -790606635019059835
+						}
+					],
+					"__class__": "Tripartition",
+					"__version__": "1.2.0",
+					"__id__": 3227077022581517656
+				},
+				"repertoire": [
+					[
+						[
+							1.0
+						]
+					],
+					[
+						[
+							0.0
+						]
+					]
+				],
+				"partitioned_repertoire": [
+					[
+						[
+							0.5
+						]
+					],
+					[
+						[
+							0.5
+						]
+					]
+				],
+				"__class__": "RepertoireIrreducibilityAnalysis",
+				"__version__": "1.2.0",
+				"__id__": 2783260700964493754
+			},
+			"__class__": "MaximallyIrreducibleEffect",
+			"__version__": "1.2.0",
+			"__id__": 2783260700964493754
+		}
+	],
+	"subsystem": null,
+	"__class__": "FlatCauseEffectStructure",
+	"__version__": "1.2.0",
+	"__id__": 7638770047224261648
+}
