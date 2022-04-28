@@ -115,7 +115,7 @@ distinction_sum_phi_upper_bounds = DistinctionSumPhiUpperBoundRegistry()
 
 
 @distinction_sum_phi_upper_bounds.register("PURVIEW_SIZE")
-def _distinction_sum_phi_purview_size(n):
+def _(n):
     # This can be simplified to (n/2)*(2^n), but we don't use that identity so
     # we can keep things as `int`s
     return sum(
@@ -123,13 +123,11 @@ def _distinction_sum_phi_purview_size(n):
     )
 
 
-_distinction_sum_phi_one = distinction_sum_phi_upper_bounds.register("2^N-1")(
-    number_of_possible_distinctions
-)
+_ = distinction_sum_phi_upper_bounds.register("2^N-1")(number_of_possible_distinctions)
 
 
 @distinction_sum_phi_upper_bounds.register("(2^N-1)/(N-1)")
-def _distinction_sum_phi_purview_size(n):
+def _(n):
     try:
         return number_of_possible_distinctions(n) / (n - 1)
     except ZeroDivisionError:
