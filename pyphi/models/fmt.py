@@ -9,6 +9,8 @@ Helper functions for formatting pretty representations of PyPhi models.
 from fractions import Fraction
 from itertools import chain, cycle
 
+import numpy as np
+
 from .. import config, constants, utils
 from ..direction import Direction
 
@@ -250,19 +252,23 @@ def align_decimals(numbers):
     """
     units, decimals = [], []
     for n in numbers:
-        if isinstance(n, str):
-            # str
+        if np.isnan(n):
+            # nan
             units.append("")
             decimals.append(str(n))
+        elif isinstance(n, float):
+            # float
+            parts = str(n).split(".")
+            units.append(parts[0])
+            decimals.append(parts[1])
         elif float(n).is_integer():
             # int
             units.append(str(int(n)))
             decimals.append("")
         else:
-            # assume float
-            parts = str(n).split(".")
-            units.append(parts[0])
-            decimals.append(parts[1])
+            # assume str
+            units.append("")
+            decimals.append(str(n))
     points = ["." if unit and decimal else "" for unit, decimal in zip(units, decimals)]
     units = align(units, direction=">")
     decimals = align(decimals, direction="<")
