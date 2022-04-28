@@ -1203,13 +1203,11 @@ class SampledRelations(AnalyticalRelations):
             self.draw_samples()
         return self._sample
 
-    def sum_phi(self):
-        # Override the public method since we do want to re-compute the sum, in
-        # case the sample has changed
-        return np.sum([relation.phi for relation in self.sample])
-
     def mean_phi(self):
         return np.mean([relation.phi for relation in self.sample])
+
+    def sum_phi(self):
+        return self.mean_phi() * self.num_relations()
 
 
 class RelationComputationsRegistry(Registry):
