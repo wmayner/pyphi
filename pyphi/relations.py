@@ -1204,6 +1204,8 @@ class SampledRelations(AnalyticalRelations):
         return self._sample
 
     def mean_phi(self):
+        if not self.sample:
+            return 0.0
         return np.mean([relation.phi for relation in self.sample])
 
     def sum_phi(self):
