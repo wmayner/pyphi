@@ -16,19 +16,18 @@ from joblib import Parallel, delayed
 from toolz import concat, curry
 from tqdm.auto import tqdm
 
-from pyphi.compute.parallel import get_num_processes
-from pyphi.partition import (
-    relation_partition_aggregations,
-    relation_partition_one_distinction,
-    relation_partition_types,
-)
-
 from . import combinatorics, config, validate
+from .compute.parallel import get_num_processes
 from .data_structures import HashableOrderedSet
 from .metrics.distribution import absolute_information_density
 from .models import cmp, fmt
 from .models.cuts import RelationPartition
 from .models.subsystem import FlatCauseEffectStructure
+from .partition import (
+    relation_partition_aggregations,
+    relation_partition_one_distinction,
+    relation_partition_types,
+)
 from .registry import Registry
 from .utils import eq, powerset
 
@@ -83,6 +82,89 @@ def whole_overlap(congruent_overlap):
     return set(map(tuple, congruent_overlap))
 
 
+class PhiUpperBoundRegistry(Registry):
+    """Storage for functions for defining the upper bound of distinction phi."""
+
+    desc = "phi bounds (relations)"
+
+
+distinction_phi_upper_bounds = PhiUpperBoundRegistry()
+
+
+@distinction_phi_upper_bounds.register("PURVIEW_SIZE")
+def _purview_size(distinction):
+    return len(distinction.purview)
+
+
+@distinction_phi_upper_bounds.register("ONE")
+def _one(distinction):
+    return 1
+
+
+def distinction_phi_upper_bound(distinction):
+    return distinction_phi_upper_bounds[config.DISTINCTION_PHI_UPPER_BOUND_RELATIONS](
+        distinction
+    )
+
+
+class OverlapRatioRegistry(Registry):
+    desc = "overlap ratios"
+
+
+overlap_ratios = OverlapRatioRegistry()
+
+
+@overlap_ratios.register("PURVIEW_SIZE")
+def _overlap_ratio_purview_relative(relata, candidate_joint_purview):
+    return len(candidate_joint_purview) / np.array(list(map(len, relata.purviews)))
+
+
+@overlap_ratios.register("MINIMUM_PURVIEW_SIZE")
+def _overlap_ratio_purview_minimum(relata, candidate_joint_purview):
+    return len(candidate_joint_purview) / relata.minimal_purview_size
+
+
+def overlap_ratio(relata, candidate_joint_purview):
+    return overlap_ratios[config.OVERLAP_RATIO](relata, candidate_joint_purview)
+
+
+class CongruenceRatioRegistry(Registry):
+    desc = "congruence ratios"
+
+
+congruence_ratios = CongruenceRatioRegistry()
+
+
+@congruence_ratios.register("NONE")
+def _congruence_ratio_none(relata, candidate_joint_purview):
+    return 1.0
+
+
+@congruence_ratios.register("PURVIEW_SIZE")
+def _congruence_ratio_purview_size(relata, candidate_joint_purview):
+    _overlap_ratio = overlap_ratio(relata, candidate_joint_purview)
+    numerator = np.sum(_overlap_ratio * np.array(list(relata.parent_phis)))
+
+    if config.DISTINCTION_PHI_UPPER_BOUND_RELATIONS == "PURVIEW_SIZE":
+        # Simplification of:
+        #   sum_{z in relata} (|overlap| / |z|) * phi_max(z)
+        # since |z| = phi_max(z)
+        denominator = len(relata) * len(candidate_joint_purview)
+    else:
+        max_phis = np.array(list(map(distinction_phi_upper_bound, relata)))
+        # NOTE: Re-using the overlap ratio relies on the fact that only
+        # congruent overlaps need be considered; strictly speaking the overlap
+        # here should be the joint purview being considered, which is
+        # conceptually distinct from the *congruent* overlap
+        denominator = np.sum(_overlap_ratio * max_phis)
+
+    return numerator / denominator
+
+
+def congruence_ratio(relata, candidate_joint_purview):
+    return congruence_ratios[config.CONGRUENCE_RATIO](relata, candidate_joint_purview)
+
+
 class RelationPhiSchemeRegistry(Registry):
     """Storage for functions for evaluating a relation.
 
@@ -102,35 +184,7 @@ class RelationPhiSchemeRegistry(Registry):
 relation_phi_schemes = RelationPhiSchemeRegistry()
 
 
-def _overlap_ratio_purview_relative(relata, candidate_joint_purview):
-    return len(candidate_joint_purview) / np.array(list(map(len, relata.purviews)))
-
-
-def _overlap_ratio_purview_minimum(relata, candidate_joint_purview):
-    return len(candidate_joint_purview) / relata.minimal_purview_size
-
-
-def _congruency_ratio_times_relation_informativeness(
-    relata, candidate_joint_purview, overlap_ratio_func
-):
-    # NOTE: This implementation relies on several assumptions:
-    #
-    # - Congruency ratio definition implies that only congruent overlaps need to
-    #   be considered because incongruent overlaps will never be chosen, so we
-    #   never need to compute this in practice
-    #
-    # - Overlap ratio does not depend on the partition
-    #
-    # - The minimum of the informativeness term over the set of partitions is
-    #   just the minimal distinction phi, so there's no need to actually search
-    #   over partitions
-    #
-    overlap_ratio = overlap_ratio_func(relata, candidate_joint_purview)
-    # Use the phi of the full distinction (minimum of cause and effect)
-    phis = np.array([relatum.parent.phi for relatum in relata])
-    informativeness = overlap_ratio * phis
-    phi = informativeness.min()
-    minima = np.nonzero(informativeness == phi)[0]
+def _tied_relations(relata, candidate_joint_purview, minima, phi):
     tied_partitions = [
         relation_partition_one_distinction(
             relata, candidate_joint_purview, i, node_labels=relata.subsystem.node_labels
@@ -145,18 +199,20 @@ def _congruency_ratio_times_relation_informativeness(
     ]
 
 
-@relation_phi_schemes.register("OVERLAP_RATIO_TIMES_RELATION_INFORMATIVENESS")
-def overlap_ratio_times_relation_informativeness(relata, candidate_joint_purview):
+@relation_phi_schemes.register("CONGRUENCE_RATIO_TIMES_INFORMATIVENESS")
+def congruence_ratio_times_informativeness(relata, candidate_joint_purview):
     """Return the relation phi according to the following formula::
 
-        min_{partitions} [ (overlap ratio) * (relation informativeness)_{partition} ]
+        phi = min_{p in partitions} (congruence ratio) * informativeness_{p}
 
-    where:
-        - ``(overlap ratio)`` is the ratio of the overlap size to the size of the
-          smallest purview in the relation (i.e., the maximum-conceivable
-          overlap), and
-        - ``(relation informativeness)_{partition} == (sum of small phi of the
-          relata) - (sum of small phi of the relata under the partition)``
+    where::
+
+        informativeness_{p} =
+            ( sum_{d in relata} (overlap ratio) * phi_d ) -
+            ( sum_{d in relata_{p}} (overlap ratio) * phi_d )
+
+    The definition of the congruence ratio and overlap ratio are controlled by
+    the CONGRUENCE_RATIO and OVERLAP_RATIO configuration settings.
 
     Currently the partition scheme used is hard-coded as BI_CUT_ONE; i.e., a
     single distinction is removed, and there is one partition per distinction.
@@ -166,25 +222,27 @@ def overlap_ratio_times_relation_informativeness(relata, candidate_joint_purview
     subsets of the congruent overlap. Thus, when this scheme is used, the most
     efficient setting for RELATION_POSSIBLE_PURVIEWS is "WHOLE".
     """
-    return _congruency_ratio_times_relation_informativeness(
-        relata,
-        candidate_joint_purview,
-        _overlap_ratio_purview_minimum,
-    )
-
-
-@relation_phi_schemes.register(
-    "CONGRUENCY_RATIO_TIMES_RELATION_INFORMATIVENESS_PURVIEW_RELATIVE"
-)
-def congruency_ratio_times_relation_informativeness_purview_relative(
-    relata, candidate_joint_purview
-):
-    # TODO(4.0) docstring
-    return _congruency_ratio_times_relation_informativeness(
-        relata,
-        candidate_joint_purview,
-        _overlap_ratio_purview_relative,
-    )
+    # NOTE: This implementation relies on several assumptions:
+    #
+    # - Congruence ratio definition implies that only congruent overlaps need to
+    #   be considered as candidate joint purviews because incongruent overlaps
+    #   will never be chosen
+    #
+    # - Overlap ratio does not depend on the partition
+    #
+    # - The minimum of the informativeness term over the set of partitions is
+    #   just the minimal distinction phi, so there's no need to actually search
+    #   over partitions
+    #
+    _congruence_ratio = congruence_ratio(relata, candidate_joint_purview)
+    _overlap_ratio = overlap_ratio(relata, candidate_joint_purview)
+    # Use the phi of the parent distinction (minimum of cause and effect)
+    relata_phis = np.array(list(relata.parent_phis))
+    informativeness = _overlap_ratio * relata_phis
+    relation_phis = _congruence_ratio * informativeness
+    phi = relation_phis.min()
+    minima = np.nonzero(relation_phis == phi)[0]
+    return _tied_relations(relata, candidate_joint_purview, minima, phi)
 
 
 @relation_phi_schemes.register("AGGREGATE_DISTINCTION_RELATIVE_DIFFERENCES")
@@ -402,7 +460,7 @@ class Relation(cmp.Orderable):
         return [relatum.mechanism for relatum in self.relata]
 
     def __repr__(self):
-        return f"{type(self).__name__}(relata={self.relata}, purview={self.purview}, phi={self.phi})"
+        return fmt.fmt_relation(self)
 
     def __str__(self):
         return repr(self)
@@ -528,6 +586,11 @@ class Relata(HashableOrderedSet):
         return (relatum.phi for relatum in self)
 
     @property
+    def parent_phis(self):
+        # TODO store
+        return (relatum.parent.phi for relatum in self)
+
+    @property
     def directions(self):
         # TODO store
         return (relatum.direction for relatum in self)
@@ -541,7 +604,7 @@ class Relata(HashableOrderedSet):
         return (relatum.specified_state for relatum in self)
 
     def __repr__(self):
-        return "Relata({" + ", ".join(map(fmt.fmt_relatum, self)) + "})"
+        return fmt.fmt_relata(self)
 
     # TODO(4.0) pickle relations indirectly
     def __getstate__(self):
@@ -878,6 +941,9 @@ class ConcreteRelations(HashableOrderedSet, Relations):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    def __repr__(self):
+        return fmt.fmt_concrete_relations(self)
+
     @property
     def mechanisms(self):
         for relation in self:
@@ -966,30 +1032,42 @@ class AnalyticalRelations(AbstractRelations):
         super().__init__(*args, **kwargs)
         self._num_relations = None
 
+    def __repr__(self):
+        return fmt.fmt_analytical_relations(self)
+
     def mean_phi(self):
         return self.sum_phi() / self.num_relations()
 
     def _sum_phi(self):
-        if config.RELATION_PHI_SCHEME == "OVERLAP_RATIO_TIMES_RELATION_INFORMATIVENESS":
-            return sum(
-                combinatorics.sum_of_ratio_of_minima_among_subsets(
-                    [(d.parent.phi, len(d.purview)) for d in overlapping_distinctions]
+        if (
+            config.RELATION_PHI_SCHEME == "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS"
+            and config.CONGRUENCE_RATIO == "NONE"
+        ):
+            if config.OVERLAP_RATIO == "MINIMUM_PURVIEW_SIZE":
+                return sum(
+                    combinatorics.sum_of_ratio_of_minima_among_subsets(
+                        [
+                            (d.parent.phi, len(d.purview))
+                            for d in overlapping_distinctions
+                        ]
+                    )
+                    for _, overlapping_distinctions in self.distinctions.purview_inclusion(
+                        max_order=1
+                    ).items()
                 )
-                for _, overlapping_distinctions in self.distinctions.purview_inclusion(
-                    max_order=1
-                ).items()
-            )
-        elif config.RELATION_PHI_SCHEME == "CONGRUENCY_RATIO_TIMES_RELATION_INFORMATIVENESS_PURVIEW_RELATIVE":
-            return sum(
-                combinatorics.sum_of_minimum_among_subsets(
-                    [d.parent.phi/len(d.purview) for d in overlapping_distinctions]
+            elif config.OVERLAP_RATIO == "PURVIEW_SIZE":
+                return sum(
+                    combinatorics.sum_of_minimum_among_subsets(
+                        [
+                            d.parent.phi / len(d.purview)
+                            for d in overlapping_distinctions
+                        ]
+                    )
+                    for _, overlapping_distinctions in self.distinctions.purview_inclusion(
+                        max_order=1
+                    ).items()
                 )
-                for _, overlapping_distinctions in self.distinctions.purview_inclusion(
-                    max_order=1
-                ).items()
-            )
-        else:
-            raise NotImplementedError
+        raise NotImplementedError
 
     def num_relations(self):
         if self._num_relations is None:
@@ -1032,6 +1110,9 @@ class SampledRelations(AnalyticalRelations):
         instance = cls(data["distinctions"])
         instance.__dict__.update(data)
         return instance
+
+    def __repr__(self):
+        return fmt.fmt_sampled_relations(self)
 
     @property
     def max_degree(self):
@@ -1122,13 +1203,13 @@ class SampledRelations(AnalyticalRelations):
             self.draw_samples()
         return self._sample
 
-    def sum_phi(self):
-        # Override the public method since we do want to re-compute the sum, in
-        # case the sample has changed
-        return np.sum([relation.phi for relation in self.sample])
-
     def mean_phi(self):
+        if not self.sample:
+            return 0.0
         return np.mean([relation.phi for relation in self.sample])
+
+    def sum_phi(self):
+        return self.mean_phi() * self.num_relations()
 
 
 class RelationComputationsRegistry(Registry):

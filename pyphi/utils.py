@@ -217,22 +217,6 @@ def load_data(directory, num):
     return [np.load(get_path(i), allow_pickle=True) for i in range(num)]
 
 
-# Using ``decorator`` preserves the function signature of the wrapped function,
-# allowing joblib to properly introspect the function arguments.
-@decorator.decorator
-def time_annotated(func, *args, **kwargs):
-    """Annotate the decorated function or method with the total execution
-    time.
-
-    The result is annotated with a `time` attribute.
-    """
-    start = time()
-    result = func(*args, **kwargs)
-    end = time()
-    result.time = round(end - start, config.PRECISION)
-    return result
-
-
 def specified_substate(purview, specified_state, subset):
     purview_relative_subset = [purview.index(node) for node in subset]
     return specified_state[:, purview_relative_subset]

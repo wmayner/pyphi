@@ -15,7 +15,6 @@ with open("./pyphi/__about__.py", encoding="utf-8") as f:
     exec(f.read(), about)
 
 install_requires = [
-    "decorator >=4.0.0",
     "Graphillion >=1.5",
     "igraph >= 0.9.10",
     "joblib >=0.8.0",
@@ -24,7 +23,6 @@ install_requires = [
     "ordered-set >= 4.0.2",
     "psutil >=2.1.1",
     "pyemd >=0.3.0",
-    "pymongo >=2.7.1",
     "pyyaml >=3.13",
     "ray[default] >=1.9.2",
     "redis >=2.10.5",

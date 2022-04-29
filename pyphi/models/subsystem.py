@@ -25,12 +25,11 @@ def _concept_sort_key(concept):
 class CauseEffectStructure(cmp.Orderable, Sequence):
     """A collection of concepts."""
 
-    def __init__(self, concepts=(), subsystem=None, time=None):
+    def __init__(self, concepts=(), subsystem=None):
         # Normalize the order of concepts
         # TODO(4.0) convert to set?
         self.concepts = tuple(sorted(concepts, key=_concept_sort_key))
         self.subsystem = subsystem
-        self.time = time
         self._specifiers = None
         self._purview_inclusion = defaultdict(list)
         self._purview_inclusion_max_order = 0
@@ -47,7 +46,7 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
 
     def __repr__(self):
         # TODO(4.0) remove dependence on subsystem & time
-        return fmt.make_repr(self, ["concepts", "subsystem", "time"])
+        return fmt.make_repr(self, ["concepts", "subsystem"])
 
     def __str__(self):
         return fmt.fmt_ces(self)
@@ -66,7 +65,6 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
         return {
             "concepts": self.concepts,
             "subsystem": self.subsystem,
-            "time": self.time,
         }
 
     def flatten(self):
@@ -130,10 +128,9 @@ class FlatCauseEffectStructure(CauseEffectStructure):
     """A collection of maximally-irreducible components in either causal
     direction."""
 
-    def __init__(self, concepts=(), subsystem=None, time=None):
+    def __init__(self, concepts=(), subsystem=None):
         if isinstance(concepts, CauseEffectStructure):
             subsystem = concepts.subsystem
-            time = concepts.time
         if not isinstance(concepts, FlatCauseEffectStructure):
             _concepts = concat(
                 [concept.cause, concept.effect]
@@ -143,7 +140,7 @@ class FlatCauseEffectStructure(CauseEffectStructure):
             )
         else:
             _concepts = iter(concepts)
-        super().__init__(concepts=_concepts, subsystem=subsystem, time=time)
+        super().__init__(concepts=_concepts, subsystem=subsystem)
         try:
             # NOTE: Pointing to the same dictionary is required here, so that
             # calling `compute_purview_inclusion` on a flattened CES will update
@@ -205,7 +202,6 @@ class FlatCauseEffectStructure(CauseEffectStructure):
                 for mechanism, mice in mechanism_to_mice.items()
             ],
             subsystem=self.subsystem,
-            time=self.time,
         )
 
     def compute_purview_inclusion(self, max_order):
@@ -259,14 +255,12 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         partitioned_ces=None,
         subsystem=None,
         cut_subsystem=None,
-        time=None,
     ):
         self.phi = phi
         self.ces = ces
         self.partitioned_ces = partitioned_ces
         self.subsystem = subsystem
         self.cut_subsystem = cut_subsystem
-        self.time = time
 
     def __repr__(self):
         return fmt.make_repr(self, _sia_attributes)
@@ -279,11 +273,6 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         cause-effect structures.
         """
         print(self.__str__(ces=ces))
-
-    @property
-    def small_phi_time(self):
-        """The number of seconds it took to calculate the CES."""
-        return self.ces.time
 
     @property
     def cut(self):
@@ -325,8 +314,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
     def to_json(self):
         """Return a JSON-serializable representation."""
         return {
-            attr: getattr(self, attr)
-            for attr in _sia_attributes + ["time", "small_phi_time"]
+            attr: getattr(self, attr) for attr in _sia_attributes + ["small_phi_time"]
         }
 
     @classmethod
@@ -337,9 +325,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
 
 def _null_ces(subsystem):
     """Return an empty CES."""
-    ces = CauseEffectStructure((), subsystem=subsystem)
-    ces.time = 0.0
-    return ces
+    return CauseEffectStructure((), subsystem=subsystem)
 
 
 def _null_sia(subsystem, phi=0.0):

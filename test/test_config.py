@@ -163,37 +163,14 @@ def test_reconfigure_precision_on_change():
         assert constants.EPSILON == 1e-123
 
 
-def test_reconfigure_joblib_on_change(capsys):
-    cachedir = "./__testing123__"
-    try:
-        with config.override(FS_CACHE_DIRECTORY=cachedir):
-            assert constants.joblib_memory.location == cachedir
-            assert Path(cachedir).exists()
-    finally:
-        shutil.rmtree(cachedir)
-
-    def f(x):
-        return x + 1
-
-    with config.override(FS_CACHE_VERBOSITY=0):
-        constants.joblib_memory.cache(f)(42)
-    out, err = capsys.readouterr()
-    assert len(out) == 0
-
-    with config.override(FS_CACHE_VERBOSITY=100):
-        constants.joblib_memory.cache(f)(42)
-    out, err = capsys.readouterr()
-    assert len(out) > 0
-
-
 @config.override()
 @pytest.mark.parametrize(
     "name,valid,invalid",
     [
         ("SYSTEM_CUTS", ["3.0_STYLE", "CONCEPT_STYLE"], ["OTHER"]),
         ("REPR_VERBOSITY", [0, 1, 2], [-1, 3]),
-        ("PARALLEL_CUT_EVALUATION", [True, False], ['True', 'False', 'no', 0, 1]),
-        ("LOG_FILE", ['filename', Path('filename')], [0, 1]),
+        ("PARALLEL_CUT_EVALUATION", [True, False], ["True", "False", "no", 0, 1]),
+        ("LOG_FILE", ["filename", Path("filename")], [0, 1]),
     ],
 )
 def test_config_validation(name, valid, invalid):

@@ -29,9 +29,7 @@ Print the ``config`` object to see the current settings:
 
     >>> print(pyphi.config)  # doctest: +SKIP
     { 'ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS': False,
-      'CACHE_SIAS': False,
       'CACHE_POTENTIAL_PURVIEWS': True,
-      'CACHING_BACKEND': 'fs',
       ...
 
 Setting can be changed on the fly by assigning them a new value:
@@ -101,14 +99,9 @@ Memoization and caching
 
 PyPhi provides a number of ways to cache intermediate results.
 
-- :attr:`~pyphi.conf.PyphiConfig.CACHE_SIAS`
 - :attr:`~pyphi.conf.PyphiConfig.CACHE_REPERTOIRES`
 - :attr:`~pyphi.conf.PyphiConfig.CACHE_POTENTIAL_PURVIEWS`
 - :attr:`~pyphi.conf.PyphiConfig.CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA`
-- :attr:`~pyphi.conf.PyphiConfig.CACHING_BACKEND`
-- :attr:`~pyphi.conf.PyphiConfig.FS_CACHE_VERBOSITY`
-- :attr:`~pyphi.conf.PyphiConfig.FS_CACHE_DIRECTORY`
-- :attr:`~pyphi.conf.PyphiConfig.MONGODB_CONFIG`
 - :attr:`~pyphi.conf.PyphiConfig.REDIS_CACHE`
 - :attr:`~pyphi.conf.PyphiConfig.REDIS_CONFIG`
 
@@ -144,6 +137,7 @@ The ``config`` API
 # pylint: disable=protected-access
 
 import contextlib
+import functools
 import logging
 import logging.config
 import os
@@ -151,7 +145,6 @@ import pprint
 from copy import copy
 from pathlib import Path
 
-import joblib
 import yaml
 
 from . import __about__, constants
@@ -159,6 +152,10 @@ from . import __about__, constants
 log = logging.getLogger(__name__)
 
 _VALID_LOG_LEVELS = [None, "CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"]
+
+
+class ConfigurationError(ValueError):
+    pass
 
 
 class Option:
@@ -211,20 +208,25 @@ class Option:
         return obj._values[self.name]
 
     def __set__(self, obj, value):
-        self._validate(value)
-        obj._values[self.name] = value
-        self._callback(obj)
+        previous = obj._values[self.name]
+        try:
+            self._validate(value)
+            obj._values[self.name] = value
+            self._callback(obj)
+        except ConfigurationError as e:
+            obj._values[self.name] = previous
+            raise e
 
     def _validate(self, value):
         """Validate the new value."""
         if self.type is not None and not isinstance(value, self.type):
-            raise ValueError(
+            raise ConfigurationError(
                 "{} must be of type {} for {}; got {}".format(
                     value, self.type, self.name, type(value)
                 )
             )
         if self.values and value not in self.values:
-            raise ValueError(
+            raise ConfigurationError(
                 "{} ({}) is not a valid value for {}; must be one of:\n    {}".format(
                     value,
                     type(value),
@@ -245,9 +247,10 @@ class Config:
     See ``PyphiConfig`` for usage.
     """
 
-    def __init__(self):
+    def __init__(self, on_change=None):
         self._values = {}
         self._loaded_files = []
+        self._on_change = on_change
 
         # Set the default value of each ``Option``
         for name, opt in self.options().items():
@@ -260,6 +263,20 @@ class Config:
         for opt in self.options().values():
             opt._callback(self)
 
+            # Insert config-wide hook
+            def hook(func):
+                @functools.wraps(func)
+                def wrapper(*args, **kwargs):
+                    func(*args, **kwargs)
+                    self._callback(self)
+
+                return wrapper
+
+            opt.on_change = hook(on_change)
+
+        # Call config-wide hook
+        self._callback(self)
+
     def __repr__(self):
         return pprint.pformat(self._values, indent=2)
 
@@ -270,7 +287,12 @@ class Config:
         if name.startswith("_") or name in self.options().keys():
             super().__setattr__(name, value)
         else:
-            raise ValueError("{} is not a valid config option".format(name))
+            raise ConfigurationError("{} is not a valid config option".format(name))
+
+    def _callback(self, obj):
+        """Called when any option is changed."""
+        if self._on_change is not None:
+            self._on_change(obj)
 
     @classmethod
     def options(cls):
@@ -290,10 +312,16 @@ class Config:
         """Load config from a YAML file."""
         filename = os.path.abspath(filename)
 
-        with open(filename) as f:
+        with open(filename, mode="rt") as f:
             self.load_dict(yaml.safe_load(f))
 
         self._loaded_files.append(filename)
+
+    def to_yaml(self, filename):
+        """Write config to a YAML file."""
+        with open(filename, mode="wt") as f:
+            yaml.dump(self._values, f)
+        return filename
 
     def snapshot(self):
         """Return a snapshot of the current values of this configuration."""
@@ -370,12 +398,6 @@ def configure_logging(conf):
                 + (["stdout"] if conf.LOG_STDOUT_LEVEL else []),
             },
         }
-    )
-
-
-def configure_joblib(conf):
-    constants.joblib_memory = joblib.Memory(
-        location=conf.FS_CACHE_DIRECTORY, verbose=conf.FS_CACHE_VERBOSITY
     )
 
 
@@ -504,19 +526,6 @@ class PyphiConfig(Config):
     NOTE: The ``n_workers`` argument defaults to the ``NUMBER_OF_CORES`` option.""",
     )
 
-    CACHE_SIAS = Option(
-        False,
-        type=bool,
-        doc="""
-    PyPhi is equipped with a transparent caching system for
-    |SystemIrreducibilityAnalysis| objects which stores them as they are
-    computed to avoid having to recompute them later. This makes it easy to
-    play around interactively with the program, or to accumulate results with
-    minimal effort. For larger projects, however, it is recommended that you
-    manage the results explicitly, rather than relying on the cache. For this
-    reason it is disabled by default.""",
-    )
-
     CACHE_REPERTOIRES = Option(
         True,
         type=bool,
@@ -544,48 +553,6 @@ class PyphiConfig(Config):
     |SystemIrreducibilityAnalysis|. If you don't need to do any more
     computations after running |compute.sia()|, then enabling this may help
     conserve memory.""",
-    )
-
-    CACHING_BACKEND = Option(
-        "fs",
-        values=["fs", "db"],
-        doc="""
-    Controls whether precomputed results are stored and read from a local
-    filesystem-based cache in the current directory or from a database. Set
-    this to ``'fs'`` for the filesystem, ``'db'`` for the database.""",
-    )
-
-    FS_CACHE_VERBOSITY = Option(
-        0,
-        type=int,
-        on_change=configure_joblib,
-        doc="""
-    Controls how much caching information is printed if the filesystem cache is
-    used. Takes a value between ``0`` and ``11``.""",
-    )
-
-    FS_CACHE_DIRECTORY = Option(
-        "__pyphi_cache__",
-        type=(str, Path),
-        on_change=configure_joblib,
-        doc="""
-    If the filesystem is used for caching, the cache will be stored in this
-    directory. This directory can be copied and moved around if you want to
-    reuse results *e.g.* on a another computer, but it must be in the same
-    directory from which Python is being run.""",
-    )
-
-    MONGODB_CONFIG = Option(
-        {
-            "host": "localhost",
-            "port": 27017,
-            "database_name": "pyphi",
-            "collection_name": "cache",
-        },
-        type=dict,
-        doc="""
-    Set the configuration for the MongoDB database backend (only has an
-    effect if ``CACHING_BACKEND`` is ``'db'``).""",
     )
 
     REDIS_CACHE = Option(
@@ -806,7 +773,7 @@ class PyphiConfig(Config):
     )
 
     RELATION_PARTITION_TYPE = Option(
-        "TRI",
+        "BI_CUT_ONE",
         doc="""
     Controls the type of partition used for |small_phi| computations.
 
@@ -835,7 +802,7 @@ class PyphiConfig(Config):
     )
 
     RELATION_POTENTIAL_PURVIEWS = Option(
-        "ALL",
+        "WHOLE",
         doc="""
     Controls the set of possible purviews for a relation as a function of the
     congruent overlap.
@@ -843,12 +810,48 @@ class PyphiConfig(Config):
     )
 
     RELATION_PHI_SCHEME = Option(
-        "CONGRUENCY_RATIO_TIMES_RELATION_INFORMATIVENESS_PURVIEW_RELATIVE",
+        "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS",
+        values=[
+            "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS",
+            "AGGREGATE_DISTINCTION_RELATIVE_DIFFERENCES",
+        ],
         doc="""
     Controls how relation phi is evaluated.
 
     You can configure custom relation phi schemes using the
     ``pyphi.relations.relation_phi_schemes.register`` decorator.
+    """,
+    )
+
+    OVERLAP_RATIO = Option(
+        "PURVIEW_SIZE",
+        values=["PURVIEW_SIZE", "MINIMUM_PURVIEW_SIZE"],
+        doc="""
+    Controls the overlap ratio used in computing relations.
+    """,
+    )
+
+    CONGRUENCE_RATIO = Option(
+        "PURVIEW_SIZE",
+        values=["PURVIEW_SIZE", "NONE"],
+        doc="""
+    Controls the congruence ratio used in computing relations.
+    """,
+    )
+
+    DISTINCTION_PHI_UPPER_BOUND_RELATIONS = Option(
+        "PURVIEW_SIZE",
+        values=["ONE", "PURVIEW_SIZE"],
+        doc="""
+    Controls the definition of the upper bound of distinction phi when calculating relations.
+    """,
+    )
+
+    DISTINCTION_SUM_PHI_UPPER_BOUND = Option(
+        "(2^N-1)/(N-1)",
+        values=["PURVIEW_SIZE", "2^N-1", "(2^N-1)/(N-1)"],
+        doc="""
+    Controls the definition of the upper bound on the sum of distinction phi when analyzing a system.
     """,
     )
 
@@ -908,7 +911,7 @@ class PyphiConfig(Config):
     )
 
     PICK_SMALLEST_PURVIEW = Option(
-        False,
+        True,
         type=bool,
         doc="""
     When computing a |MIC| or |MIE|, it is possible for several MIPs to have
@@ -936,9 +939,92 @@ class PyphiConfig(Config):
         log.info("Current PyPhi configuration:\n %s", str(self))
 
 
+def _validate_combinations(config, options, combinations, valid_if_included=True):
+    values = tuple(map(config._values.get, options))
+    if valid_if_included ^ (values in combinations):
+        msg = "\n".join(
+            [
+                "invalid combination:",
+                "{options}",
+                "must {valid_if_in}form one of the following combinations:",
+                "{combinations}",
+                "got:",
+                "{values}",
+            ]
+        )
+        text = {
+            name: "\n  " + "\n  ".join(map(str, value))
+            for name, value in dict(
+                options=options,
+                combinations=combinations,
+                values=values,
+            ).items()
+        }
+        raise ConfigurationError(
+            msg.format(valid_if_in=("" if valid_if_included else "NOT "), **text)
+        )
+
+
+def validate_combinations(
+    config, options, valid_combinations=set(), invalid_combinations=set()
+):
+    _validate_combinations(
+        config, options, combinations=valid_combinations, valid_if_included=True
+    )
+    _validate_combinations(
+        config, options, combinations=invalid_combinations, valid_if_included=False
+    )
+
+
+def validate(config):
+    # TODO use something like Param objects, e.g. from Bokeh?
+    validate_combinations(
+        config,
+        [
+            "RELATION_PHI_SCHEME",
+            "DISTINCTION_PHI_UPPER_BOUND_RELATIONS",
+            "DISTINCTION_SUM_PHI_UPPER_BOUND",
+        ],
+        valid_combinations={
+            ("CONGRUENCE_RATIO_TIMES_INFORMATIVENESS", "PURVIEW_SIZE", "2^N-1"),
+            (
+                "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS",
+                "PURVIEW_SIZE",
+                "(2^N-1)/(N-1)",
+            ),
+            (
+                "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS",
+                "PURVIEW_SIZE",
+                "PURVIEW_SIZE",
+            ),
+        },
+    )
+
+    if (
+        config.RELATION_PHI_SCHEME == "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS"
+        and not config.RELATION_PARTITION_TYPE == "BI_CUT_ONE"
+    ):
+        raise ConfigurationError(
+            "RELATION_PHI_SCHEME = 'CONGRUENCE_RATIO_TIMES_INFORMATIVENESS' "
+            "must be used with:"
+            "\n  RELATION_PARTITION_TYPE = 'BI_CUT_ONE'"
+        )
+
+    if config.RELATION_COMPUTATION == "ANALYTICAL" and (
+        not config.RELATION_PHI_SCHEME == "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS"
+        or not config.CONGRUENCE_RATIO == "NONE"
+    ):
+        raise ConfigurationError(
+            "RELATION_COMPUTATION = 'ANALYTICAL' "
+            "must be used with:"
+            "\n   RELATION_PHI_SCHEME = 'CONGRUENCE_RATIO_TIMES_INFORMATIVENESS'"
+            "\n   CONGRUENCE_RATIO = 'NONE'"
+        )
+
+
 PYPHI_CONFIG_FILENAME = "pyphi_config.yml"
 
-config = PyphiConfig()
+config = PyphiConfig(on_change=validate)
 
 # Try and load the config file
 if os.path.exists(PYPHI_CONFIG_FILENAME):

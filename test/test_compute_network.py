@@ -90,8 +90,6 @@ def test_rule152_complexes_no_caching(rule152):
     constants.CACHE_CONCEPTS = False
 
     for state, result in results.items():
-        # Empty the DB.
-        _flushdb()
         # Unpack the state from the results key.
         # Generate the network with the state we're testing.
         net = Network(rule152.tpm, state, cm=rule152.cm)

@@ -9,6 +9,8 @@ Helper functions for formatting pretty representations of PyPhi models.
 from fractions import Fraction
 from itertools import chain, cycle
 
+import numpy as np
+
 from .. import config, constants, utils
 from ..direction import Direction
 
@@ -250,19 +252,23 @@ def align_decimals(numbers):
     """
     units, decimals = [], []
     for n in numbers:
-        if isinstance(n, str):
-            # str
+        if np.isnan(n):
+            # nan
             units.append("")
             decimals.append(str(n))
+        elif isinstance(n, float):
+            # float
+            parts = str(n).split(".")
+            units.append(parts[0])
+            decimals.append(parts[1])
         elif float(n).is_integer():
             # int
             units.append(str(int(n)))
             decimals.append("")
         else:
-            # assume float
-            parts = str(n).split(".")
-            units.append(parts[0])
-            decimals.append(parts[1])
+            # assume str
+            units.append("")
+            decimals.append(str(n))
     points = ["." if unit and decimal else "" for unit, decimal in zip(units, decimals)]
     units = align(units, direction=">")
     decimals = align(decimals, direction="<")
@@ -705,7 +711,59 @@ def fmt_relatum(relatum, node_labels=None):
         direction
         + fmt_mechanism(relatum.mechanism, node_labels=node_labels)
         + "/"
-        + fmt_mechanism(relatum.purview)
+        + fmt_mechanism(relatum.purview, node_labels=node_labels)
+    )
+
+
+def fmt_relata(relata, node_labels=None):
+    lines = [fmt_relatum(relatum, node_labels=node_labels) for relatum in relata]
+    lines = align_columns(lines, delimiter="/", split_columns=True)
+    # TODO(4.0) align purview nodes?
+    return "\n".join(lines)
+
+
+def fmt_relation(relation):
+    labels = relation.subsystem.node_labels
+    body = fmt_relata(relation.relata, node_labels=labels)
+    data = [
+        ("φ", relation.phi),
+        ("Purview", fmt_mechanism(relation.purview, node_labels=labels)),
+        ("Relata", ""),
+    ]
+    data = "\n".join(align_columns(data))
+    body = center(header(data, body))
+    return header("Relation", body, over_char=HEADER_BAR_3, under_char=HEADER_BAR_3)
+
+
+def _fmt_relations(relations, title, body, data=None):
+    if title is None:
+        title = relations.__class__.__name__
+    if data is None:
+        data = []
+    data = [
+        ("#", len(relations)),
+        ("Σφ", relations.sum_phi()),
+    ] + data
+    data = "\n".join(align_columns(data))
+    body = header(data, body)
+    body = header(title, body, under_char=HEADER_BAR_1)
+    return center(body)
+
+
+def fmt_concrete_relations(relations, title=None):
+    body = "\n".join(map(fmt_relation, relations))
+    return _fmt_relations(relations, title, body)
+
+
+def fmt_analytical_relations(relations, title=None):
+    body = ""
+    return _fmt_relations(relations, title, body)
+
+
+def fmt_sampled_relations(relations, title=None):
+    body = "\n".join(map(fmt_relation, relations.sample))
+    return _fmt_relations(
+        relations, title, body, data=[("Sampled", len(relations.sample))]
     )
 
 

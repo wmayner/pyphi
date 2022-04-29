@@ -26,7 +26,7 @@ from .network import irreducible_purviews
 from .node import generate_nodes
 from .partition import complete_partition, mip_partitions
 from .tpm import condition_tpm, marginalize_out
-from .utils import state_of, time_annotated
+from .utils import state_of
 
 log = logging.getLogger(__name__)
 
@@ -888,7 +888,6 @@ class Subsystem:
         # All together now...
         return Concept(mechanism=(), cause=cause, effect=effect, subsystem=self)
 
-    @time_annotated
     def concept(
         self, mechanism, purviews=False, cause_purviews=False, effect_purviews=False
     ):

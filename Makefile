@@ -73,3 +73,4 @@ clean-dist:
 clean:
 	rm -rf __pycache__
 	rm -rf **/__pycache__
+	rm -rf **/pyphi.log

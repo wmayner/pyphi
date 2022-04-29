@@ -15,20 +15,21 @@ import scipy
 from toolz.itertoolz import partition_all
 from tqdm.auto import tqdm
 
-from . import config, utils, compute
+from . import combinatorics, compute, config, utils
 from .cache import cache
 from .combinatorics import maximal_independent_sets
+from .compute.network import reachable_subsystems
 from .compute.parallel import as_completed, init
 from .direction import Direction
 from .models import cmp, fmt
 from .models.cuts import CompleteSystemPartition, NullCut, SystemPartition
 from .models.subsystem import CauseEffectStructure, FlatCauseEffectStructure
 from .partition import system_partition_types
+from .registry import Registry
 from .relations import ConcreteRelations, Relations
 from .relations import relations as compute_relations
 from .subsystem import Subsystem
 from .utils import expsublog, extremum_with_short_circuit
-from .compute.network import reachable_subsystems
 
 # TODO
 # - cache relations, compute as needed for each nonconflicting CES
@@ -83,9 +84,59 @@ def sia_partitions(node_indices, node_labels=None):
         )
 
 
+def number_of_possible_distinctions_of_order(n, k):
+    """Return the number of possible distinctions of order k."""
+    # Binomial coefficient
+    return int(scipy.special.comb(n, k))
+
+
+def number_of_possible_distinctions(n):
+    """Return the number of possible distinctions."""
+    return 2 ** n - 1
+
+
 @cache(cache={}, maxmem=None)
 def _f(n, k):
     return (2 ** (2 ** (n - k + 1))) - (1 + 2 ** (n - k + 1))
+
+
+class DistinctionSumPhiUpperBoundRegistry(Registry):
+    """Storage for functions for defining the upper bound of the sum of
+    distinction phi when analyzing the system.
+
+    NOTE: Functions should ideally return `int`s, if possible, to take advantage
+    of the unbounded size of Python integers.
+    """
+
+    desc = "distinction sum phi bounds (system)"
+
+
+distinction_sum_phi_upper_bounds = DistinctionSumPhiUpperBoundRegistry()
+
+
+@distinction_sum_phi_upper_bounds.register("PURVIEW_SIZE")
+def _(n):
+    # This can be simplified to (n/2)*(2^n), but we don't use that identity so
+    # we can keep things as `int`s
+    return sum(
+        k * number_of_possible_distinctions_of_order(n, k) for k in range(1, n + 1)
+    )
+
+
+_ = distinction_sum_phi_upper_bounds.register("2^N-1")(number_of_possible_distinctions)
+
+
+@distinction_sum_phi_upper_bounds.register("(2^N-1)/(N-1)")
+def _(n):
+    try:
+        return number_of_possible_distinctions(n) / (n - 1)
+    except ZeroDivisionError:
+        return 1
+
+
+def distinction_sum_phi_upper_bound(n):
+    """Return the 'best possible' sum of small phi for distinctions."""
+    return distinction_sum_phi_upper_bounds[config.DISTINCTION_SUM_PHI_UPPER_BOUND](n)
 
 
 @cache(cache={}, maxmem=None)
@@ -100,29 +151,47 @@ def number_of_possible_relations_of_order(n, k):
 
 @cache(cache={}, maxmem=None)
 def number_of_possible_relations(n):
-    """Return the total of possible relations of all orders."""
+    """Return the number of possible relations of all orders."""
     return sum(number_of_possible_relations_of_order(n, k) for k in range(1, n + 1))
 
 
-@cache(cache={}, maxmem=None)
-def optimum_sum_small_phi_relations(n):
-    """Return the 'best possible' sum of small phi for relations."""
-    # \sum_{k=1}^{n} (size of purview) * (number of relations with that purview size)
+def _relation_sum_phi_distinction_phi_is_purview_size(n):
     return sum(k * number_of_possible_relations_of_order(n, k) for k in range(1, n + 1))
 
 
-@cache(cache={}, maxmem=None)
-def optimum_sum_small_phi_distinctions(n):
-    """Return the 'best possible' sum of small phi for distinctions."""
-    # This can be simplified to (n/2)*(2^n), but we don't use that identity so
-    # we can keep things as `int`s
-    return sum(k * int(scipy.special.comb(n, k)) for k in range(1, n + 1))
+def _relation_sum_phi_distinction_phi_is_one(n):
+    # Distinction phi <= 1 implies relation phi is bounded by 1/|z| where z is
+    # the largest purview in the relation
+    subsets = [
+        1 / (len(z) + 1) for z in utils.powerset(range(n - 1), nonempty=False)
+    ] * 2
+    return n * combinatorics.sum_of_minimum_among_subsets(subsets)
 
 
-@cache(cache={}, maxmem=None)
-def optimum_sum_small_phi(n):
+def _relation_sum_phi_distinction_phi_is_one_over_n_minus_one(n):
+    try:
+        return (2 / ((n - 1) ** 2)) * combinatorics.sum_of_minimum_among_subsets(
+            [1 / (len(z) + 1) for z in utils.powerset(range(n - 1), nonempty=False)] * 2
+        )
+    except ZeroDivisionError:
+        return 1
+
+
+RELATION_SUM_PHI_UPPER_BOUNDS = {
+    "PURVIEW_SIZE": _relation_sum_phi_distinction_phi_is_purview_size,
+    "2^N-1": _relation_sum_phi_distinction_phi_is_one,
+    "(2^N-1)/(N-1)": _relation_sum_phi_distinction_phi_is_one_over_n_minus_one,
+}
+
+
+def relation_sum_phi_upper_bound(n):
+    """Return the 'best possible' sum of small phi for relations."""
+    return RELATION_SUM_PHI_UPPER_BOUNDS[config.DISTINCTION_SUM_PHI_UPPER_BOUND](n)
+
+
+def sum_small_phi_upper_bound(n):
     """Return the 'best possible' sum of small phi for the system."""
-    return optimum_sum_small_phi_distinctions(n) + optimum_sum_small_phi_relations(n)
+    return distinction_sum_phi_upper_bound(n) + relation_sum_phi_upper_bound(n)
 
 
 def _requires_relations(func):
@@ -150,7 +219,7 @@ class PhiStructure(cmp.Orderable):
             raise ValueError(
                 f"distinctions must be a CauseEffectStructure, got {type(distinctions)}"
             )
-        if not distinctions.subsystem:
+        if distinctions.subsystem is None:
             raise ValueError("CauseEffectStructure must have the `subsystem` attribute")
         if isinstance(distinctions, FlatCauseEffectStructure):
             distinctions = distinctions.unflatten()
@@ -260,7 +329,7 @@ class PhiStructure(cmp.Orderable):
             numerator = self.sum_phi()
             if numerator == 0:
                 return 0
-            denominator = optimum_sum_small_phi(self._substrate_size)
+            denominator = sum_small_phi_upper_bound(self._substrate_size)
             self._selectivity = expsublog(numerator, denominator)
         return self._selectivity
 
@@ -412,9 +481,9 @@ def evaluate_partition(subsystem, phi_structure, partition):
     return SystemIrreducibilityAnalysis(
         subsystem=subsystem,
         phi_structure=phi_structure,
+        selectivity=phi_structure.selectivity(),
         partitioned_phi_structure=partitioned_phi_structure,
         partition=partitioned_phi_structure.partition,
-        selectivity=partitioned_phi_structure.selectivity(),
         informativeness=partitioned_phi_structure.informativeness(),
         phi=partitioned_phi_structure.phi(),
     )

@@ -466,12 +466,15 @@ class Concept(cmp.Orderable):
     """
 
     def __init__(
-        self, mechanism=None, cause=None, effect=None, subsystem=None, time=None
+        self,
+        mechanism=None,
+        cause=None,
+        effect=None,
+        subsystem=None,
     ):
         self.mechanism = mechanism
         self.cause = cause
         self.effect = effect
-        self.time = time
         self.subsystem = subsystem
         self.node_labels = subsystem.node_labels
         # Attach references to this object on the cause and effect
@@ -619,7 +622,7 @@ class Concept(cmp.Orderable):
 
     def to_json(self):
         """Return a JSON-serializable representation."""
-        return {attr: getattr(self, attr) for attr in _concept_attributes + ["time"]}
+        return {attr: getattr(self, attr) for attr in _concept_attributes}
 
     @classmethod
     def from_json(cls, dct):

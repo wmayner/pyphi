@@ -227,8 +227,6 @@ rst_prolog = "".join(
 .. |convert| replace:: :mod:`~pyphi.convert`
 .. |examples| replace:: :mod:`~pyphi.examples`
 .. |node| replace:: :mod:`~pyphi.node`
-.. |memory| replace:: :mod:`~pyphi.memory`
-.. |db| replace:: :mod:`~pyphi.db`
 .. |utils| replace:: :mod:`~pyphi.utils`
 .. |validate| replace:: :mod:`~pyphi.validate`
 .. |config| replace:: :mod:`~pyphi.config`
