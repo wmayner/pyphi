@@ -953,7 +953,7 @@ def _validate_combinations(config, options, combinations, valid_if_included=True
             ]
         )
         text = {
-            name: "\n  " + "\n  ".join(map(str, value))
+            name: "  " + "\n  ".join(map(str, value))
             for name, value in dict(
                 options=options,
                 combinations=combinations,
