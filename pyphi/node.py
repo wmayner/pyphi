@@ -15,6 +15,7 @@ from . import utils
 from .connectivity import get_inputs_from_cm, get_outputs_from_cm
 from .labels import NodeLabels
 from .tpm import marginalize_out, tpm_indices
+from .__tpm import TPM, SbN
 
 
 # TODO extend to nonbinary nodes
@@ -56,41 +57,10 @@ class Node:
         # Get indices of the inputs.
         self._inputs = frozenset(get_inputs_from_cm(self.index, cm))
         self._outputs = frozenset(get_outputs_from_cm(self.index, cm))
+        
+        # Node TPM has already been generated, take from subsystem list
+        self.tpm = tpm[self.index]
 
-        # Generate the node's TPM.
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        # We begin by getting the part of the subsystem's TPM that gives just
-        # the state of this node. This part is still indexed by network state,
-        # but its last dimension will be gone, since now there's just a single
-        # scalar value (this node's state) rather than a state-vector for all
-        # the network nodes.
-        tpm_on = tpm[..., self.index]
-
-        # TODO extend to nonbinary nodes
-        # Marginalize out non-input nodes that are in the subsystem, since the
-        # external nodes have already been dealt with as boundary conditions in
-        # the subsystem's TPM.
-        non_inputs = set(tpm_indices(tpm)) - self._inputs
-        tpm_on = marginalize_out(non_inputs, tpm_on)
-
-        # Get the TPM that gives the probability of the node being off, rather
-        # than on.
-        tpm_off = 1 - tpm_on
-
-        # Combine the on- and off-TPM so that the first dimension is indexed by
-        # the state of the node's inputs at t, and the last dimension is
-        # indexed by the node's state at t+1. This representation makes it easy
-        # to condition on the node state.
-        self.tpm = np.stack([tpm_off, tpm_on], axis=-1)
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        # Make the TPM immutable (for hashing).
-        utils.np_immutable(self.tpm)
-
-        # Only compute the hash once.
-        self._hash = hash(
-            (index, utils.np_hash(self.tpm), self.state, self._inputs, self._outputs)
-        )
 
     @property
     def tpm_off(self):
@@ -160,7 +130,7 @@ def generate_nodes(tpm, cm, network_state, indices, node_labels=None):
     """Generate |Node| objects for a subsystem.
 
     Args:
-        tpm (np.ndarray): The system's TPM
+        tpm (pyphi.TPM): The system's TPM
         cm (np.ndarray): The corresponding CM.
         network_state (tuple): The state of the network.
         indices (tuple[int]): Indices to generate nodes for.

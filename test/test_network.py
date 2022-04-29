@@ -17,15 +17,15 @@ def network():
 
 
 def test_network_init_validation(network):
-    with pytest.raises(ValueError):
+    with pytest.raises(IndexError): # TODO Do we want to change this error? Is this error guaranteed?
         # Totally wrong shape
         tpm = np.arange(3).astype(float)
         Network(tpm)
-    with pytest.raises(ValueError):
+    # with pytest.raises(ValueError): # This should no longer raise an error, tpm generalized to nb nodes
         # Non-binary nodes (4 states)
-        tpm = np.ones((4, 4, 4, 3)).astype(float)
-        Network(tpm)
-
+    #tpm = np.ones((4, 4, 4, 3)).astype(float)
+    #Network(tpm)
+    
     # Conditionally dependent
     # fmt: off
     tpm = np.array([
@@ -42,7 +42,7 @@ def test_network_init_validation(network):
             Network(tpm)
 
 
-def test_network_creates_fully_connected_cm_by_default():
+def test_network_creates_fully_connected_cm_by_default(): # Deprecated? Now have infer_cm method
     tpm = np.zeros((2 * 2 * 2, 3))
     network = Network(tpm, cm=None)
     target_cm = np.ones((3, 3))
