@@ -946,16 +946,18 @@ def _validate_combinations(config, options, combinations, valid_if_included=True
             [
                 "invalid combination:",
                 "{options}",
-                "must {inclusion}form one of the following combinations:",
+                "must {valid_if_in}form one of the following combinations:",
                 "{combinations}",
                 "got:",
                 "{values}",
             ]
         )
         text = {
-            name: "\n  ".join(map(str, value))
+            name: "\n  " + "\n  ".join(map(str, value))
             for name, value in dict(
-                options=options, combinations=combinations, values=values
+                options=options,
+                combinations=combinations,
+                values=values,
             ).items()
         }
         raise ConfigurationError(
@@ -989,6 +991,11 @@ def validate(config):
                 "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS",
                 "PURVIEW_SIZE",
                 "(2^N-1)/(N-1)",
+            ),
+            (
+                "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS",
+                "PURVIEW_SIZE",
+                "PURVIEW_SIZE",
             ),
         },
     )
