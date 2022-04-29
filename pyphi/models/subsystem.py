@@ -31,7 +31,7 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
         self.concepts = tuple(sorted(concepts, key=_concept_sort_key))
         self.subsystem = subsystem
         self._specifiers = None
-        self._purview_inclusion = defaultdict(list)
+        self._purview_inclusion = defaultdict(set)
         self._purview_inclusion_max_order = 0
         self._purview_inclusion_by_order = defaultdict(set)
 
@@ -219,7 +219,7 @@ class FlatCauseEffectStructure(CauseEffectStructure):
                 )
                 for substate in map(tuple, substates):
                     key = (subset, substate)
-                    self._purview_inclusion[key].append(distinction)
+                    self._purview_inclusion[key].add(distinction)
                     self._purview_inclusion_by_order[len(subset)].add(key)
 
 
