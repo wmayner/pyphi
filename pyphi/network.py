@@ -78,6 +78,7 @@ class Network:
                 p_nodes = node_labels
             if p_states or n_states: # Requires NB state-by-state, could just do only TPM and convert to SbN later?
                 self._tpm = TPM(tpm, p_nodes, p_states, n_nodes, n_states)
+                #validate.tpm(tpm, check_independence=config.VALIDATE_CONDITIONAL_INDEPENDENCE)
             else:
                 self._tpm = SbN(tpm, p_nodes, p_states, n_nodes, n_states)
 

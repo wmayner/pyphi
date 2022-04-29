@@ -264,7 +264,8 @@ class TPM:
 
         node_tpm = TPM(tpm=node_tpm, p_nodes=self._p_nodes, n_nodes=[self._n_nodes[index]], p_states=self.p_states, n_states=[self.all_nodes[node]])
 
-        return node_tpm.marginalize_out(tuple(set(self.p_node_indices) - set(get_inputs_from_cm(index, cm))), rows=True)
+        return node_tpm
+        #return node_tpm.marginalize_out(tuple(set(self.p_node_indices) - set(get_inputs_from_cm(index, cm))), rows=True)
 
     def condition_node_tpm(node_tpm, fixed_nodes, state, col=False):
         """Condition a node TPM object, a special case of asymmetric TPMs
@@ -292,6 +293,10 @@ class TPM:
             fixed_nodes (tuple(int)): The node indicies that are now fixed
             state (tuple(int)): The state of the system when conditioning
         """
+        # Step 0: No conditioning required if fixed_nodes empty
+        if fixed_nodes is ():
+            return tpm_list
+
         # Step 1: Drop rows that do not fit with the conditioned state, for all tpms
         for i in range(len(tpm_list)):
             # Replace TPM in list's tpm with dropped row tpm.
@@ -477,8 +482,6 @@ class TPM:
         return self.tpm.__repr__()
 
 # TODO Better name?
-# TODO make n_nodes optional
-# TODO make p_nodes optional 
 class SbN(TPM):
     """The subclass of <SbN> represents a State-by-Node matrix, only usable for binary 
     systems, where each row represents the probability of each column Node being ON 
@@ -504,7 +507,7 @@ class SbN(TPM):
                 #bin_node_tpms = [self.tpm.sel({node: 1}).sum(self.n_nodes.copy().remove(node)).expand_dims("nodes", axis=-1) 
                 #for node in self.n_nodes]
                 bin_node_tpms=[]
-                # TODO Is there a way to do this with list comp? unfortunately using .copy()
+                # TODO Is there a way to do this with some form of list comp? unfortunately using .copy()
                 # seems to break things if I try list comp
                 # TODO Can we use the coordinates property to name the nodes in the "nodes" dimension?
                 for node in self.n_nodes:

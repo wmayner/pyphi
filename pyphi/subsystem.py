@@ -108,8 +108,12 @@ class Subsystem:
         # Here we need to make a copy of the TPM objects from the network, or else only one Subsystem can be generated
         # Could also be done further downstream, but both function the same.
         # TODO Can we make copies unnecessary?
-        self.tpm = [tpm.copy() for tpm in network.tpm]
-        self.tpm = TPM.condition_list(self.tpm, self.external_indices, self.state) # Returns a list of conditioned Node TPMs
+        if nodes is not ():
+            self.tpm = [tpm.copy() for tpm in network.tpm]
+            self.tpm = TPM.condition_list(self.tpm, self.external_indices, self.state) # Returns a list of conditioned Node TPMs
+        else:
+            # Empty subsystem, no nodes, 100% chance to stay in the state selected always
+            self.tpm = TPM(tpm = np.array([[1]]))
 
         self.states = tuple([tpm.tpm.shape[-1] for tpm in self.tpm]) # Tuple of number of states each node can transition to
 
@@ -129,7 +133,7 @@ class Subsystem:
             self.tpm, self.cm, self.state, self.node_indices, self.node_labels
         )
 
-        # validate.subsystem(self)
+        #validate.subsystem(self)
 
     @property
     def nodes(self):
@@ -307,7 +311,6 @@ class Subsystem:
             raise ValueError("`indices` must be a subset of the Subsystem's indices.")
         return tuple(self._index2node[n] for n in indices)
 
-    # TODO extend to nonbinary nodes
     @cache.method("_single_node_repertoire_cache", Direction.CAUSE)
     def _single_node_cause_repertoire(self, mechanism_node_index, purview):
         # pylint: disable=missing-docstring
@@ -331,7 +334,6 @@ class Subsystem:
             # purview.
             return marginalize_out((mechanism_node.inputs - purview), tpm)
 
-    # TODO extend to nonbinary nodes
     @cache.method("_repertoire_cache", Direction.CAUSE)
     def cause_repertoire(self, mechanism, purview):
         """Return the cause repertoire of a mechanism over a purview.
@@ -381,7 +383,6 @@ class Subsystem:
         # TPM don't necessarily sum to 1, so we normalize.
         return distribution.normalize(joint)
 
-    # TODO extend to nonbinary nodes
     @cache.method("_single_node_repertoire_cache", Direction.EFFECT)
     def _single_node_effect_repertoire(self, mechanism, purview_node_index):
         # pylint: disable=missing-docstring

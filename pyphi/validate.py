@@ -10,6 +10,8 @@ import numpy as np
 
 from . import Direction, config, convert, exceptions
 from .tpm import is_state_by_state
+from itertools import product
+from pyphi.__tpm import TPM
 
 # pylint: disable=redefined-outer-name
 
@@ -29,7 +31,7 @@ def direction(direction, allow_bi=False):
 
     return True
 
-
+# TODO eliminate non-object route? 
 def tpm(tpm, check_independence=True):
     """Validate a TPM.
 
@@ -61,6 +63,8 @@ def tpm(tpm, check_independence=True):
             )
         if tpm.shape[0] == tpm.shape[1] and check_independence:
             conditionally_independent(tpm)
+        elif isinstance(tpm, TPM) and check_independence:
+            conditionally_independent_obj(tpm)
     elif tpm.ndim == (N + 1):
         if tpm.shape != tuple([2] * N + [N]):
             raise ValueError(
@@ -76,6 +80,37 @@ def tpm(tpm, check_independence=True):
         )
     return True
 
+def conditionally_independent_obj(tpm):
+    # Step 0: Cartesian products of potential state combos of the p_nodes and n_nodes for later access
+    p_states = tuple(product(*(tuple(range(tpm.all_nodes[node])) for node in tpm.p_nodes)))
+    n_states = tuple(product(*(tuple(range(tpm.all_nodes[node])) for node in tpm.n_nodes)))
+
+    # Step 1: For each p combo, calculate the state probabilities of each node in the columns
+    for state in p_states:
+        node_distributions = []
+        # ... would rather not have to use this copy method again (as in infer_cm) but python refuses to let me work with
+        # the list like I need to
+        temp_n_nodes = tpm.n_nodes.copy()
+        for n_node in tpm.n_nodes:
+            index = temp_n_nodes.index(n_node)
+            temp_n_nodes.remove(n_node)
+            node_distributions.append(tpm.tpm.groupby(n_node).sum(temp_n_nodes).loc[state])
+            temp_n_nodes.insert(index, n_node)
+
+        # Step 2: Generate the conditionally independent element, then compare with actual element
+
+        for n_state in n_states:
+            independent_probability = 1
+            for node_index in range(len(node_distributions)):
+                independent_probability *= node_distributions[node_index][n_state[node_index]]
+            
+            if tpm[state + n_state] != independent_probability:
+                raise exceptions.ConditionallyDependentError(
+                    "TPM is not conditionally independent.\n"
+                    "See the conditional independence example in the documentation "
+                    "for more info."
+                )
+    return True
 
 def conditionally_independent(tpm):
     """Validate that the TPM is conditionally independent."""
@@ -104,8 +139,6 @@ def connectivity_matrix(cm):
         return True
     if cm.ndim != 2:
         raise ValueError("Connectivity matrix must be 2-dimensional.")
-    if cm.shape[0] != cm.shape[1]:
-        raise ValueError("Connectivity matrix must be square.")
     if not np.all(np.logical_or(cm == 1, cm == 0)):
         raise ValueError("Connectivity matrix must contain only binary " "values.")
     return True
@@ -127,7 +160,7 @@ def network(n):
 
     Checks the TPM and connectivity matrix.
     """
-    # tpm(n.tpm) TODO: Generating a valid TPM implies the tpm was valid, so occurs @ diff loc now
+    # tpm(n.tpm) TODO: Generating a valid TPM list implies the tpm is valid, only 'needed' if network given a non-list
     connectivity_matrix(n.cm)
     if n.cm.shape[0] != n.size:
         raise ValueError(
@@ -180,12 +213,29 @@ def state_reachable(subsystem):
     # If there exists a row in which every node in the subsystem
     # Has a positive probability of being in that state, there is
     # a non-zero chance of reaching that state.
-    # Since nodes external to the system will be conditioned onto the given state
-    # Need only consider those internal to the system.
-    check_nodes = tuple([node for node in subsystem.node_indices if node not in subsystem.external_indices])
-    test = np.array([subsystem.tpm[i].tpm.loc[{subsystem.tpm[i].n_nodes[0]:subsystem.state[i]}].data for i in check_nodes])
-    if not np.any(np.logical_and(0 < test, test <= 1).all(0)):
-        raise exceptions.StateUnreachableError(subsystem.state)
+    
+    # Create state tuples to look thru
+    # If the node is in the subsystem, the tuple will include all its potential states
+    # If it is an external node, however, the tpms have been conditioned to a single state
+    # So access that state from the subsystem and use it in the tuple.
+    p_states = tuple(product(
+        *(tuple(range(subsystem.states[node])) if node in subsystem.node_indices else (subsystem.state[node], ) for node in subsystem.network.node_indices)
+        ))
+
+    reachable = False
+    for p_state in p_states:
+        # Reset reachable so that each state can be tried
+        reachable = True
+        for node in subsystem.node_indicies:
+            if subsystem.tpm[node][p_state + (subsystem.state[node], )] == 0:
+                # If there's any 0 probability, state can't be reached here so break
+                reachable = False
+                break
+        # If there is ever a point where reachable remains True, then it is reachable
+        if reachable:
+            return True    
+    # If no state led to it being reachable, raise the exception  
+    raise exceptions.StateUnreachableError(subsystem.state)
 
 def cut(cut, node_indices):
     """Check that the cut is for only the given nodes."""
