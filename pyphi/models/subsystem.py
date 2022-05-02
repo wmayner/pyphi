@@ -67,6 +67,11 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
             "subsystem": self.subsystem,
         }
 
+    @property
+    def flat(self):
+        """An iterator over causes and effects."""
+        return concat([concept.cause, concept.effect] for concept in self)
+
     def flatten(self):
         """Return this as a FlatCauseEffectStructure."""
         return FlatCauseEffectStructure(self)
