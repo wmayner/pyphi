@@ -1012,13 +1012,11 @@ def validate(config):
 
     if config.RELATION_COMPUTATION == "ANALYTICAL" and (
         not config.RELATION_PHI_SCHEME == "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS"
-        or not config.CONGRUENCE_RATIO == "NONE"
     ):
         raise ConfigurationError(
             "RELATION_COMPUTATION = 'ANALYTICAL' "
             "must be used with:"
             "\n   RELATION_PHI_SCHEME = 'CONGRUENCE_RATIO_TIMES_INFORMATIVENESS'"
-            "\n   CONGRUENCE_RATIO = 'NONE'"
         )
 
 

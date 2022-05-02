@@ -242,3 +242,25 @@ def sum_of_ratio_of_minima_among_subsets(num_denom_pairs):
         min_denom = denominators[sorted_denom_idx[j]]
         sum_ratio += num_occurences * min_num / min_denom
     return sum_ratio
+
+
+def sum_of_min_times_avg_among_subsets(values):
+    """Return sum of the minimum x average of all subsets with size >1 of some values."""
+    # This series counts, from i = 0 to (len(values) - 1), the number of subsets
+    # of values of size >1 such that value i is included in all subsets.
+    values.sort()
+    sum_ = 0
+    for i, min_val in enumerate(values[:-1]):
+        n = len(values[i:])
+        # for each candidate min_val, we add its contibution to the sum of the avg
+        # \sum_k (1/k) * comb(n-1, k-1), k is the size of the subsets k = 2, ...., n-1
+        n_ = n - 1
+        sum_avg_val = min_val * ((2 ** (n_ + 1) - 1) / (n_ + 1) - 1)
+        # contribution of the other elements to the sum of the avg
+        # \sum_k (1/k) * comb(n-2, k-2), k is the size of the subsets k = 2, ...., n-2
+        n_ = n - 2
+        sum_avg_val += (
+            sum(values[i + 1 :]) * (n_ * 2 ** (n_ + 1) + 1) / (n_ ** 2 + 3 * n_ + 2)
+        )
+        sum_ += min_val * sum_avg_val
+    return sum_
