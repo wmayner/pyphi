@@ -1270,8 +1270,10 @@ def sampled_relations(subsystem, distinctions, **kwargs):
     return SampledRelations(distinctions.unflatten())
 
 
-def relations(subsystem, distinctions, **kwargs):
+def relations(subsystem, distinctions, computation=None, **kwargs):
     """Return the irreducible relations among the causes/effects in the CES."""
-    return relation_computations[config.RELATION_COMPUTATION](
+    if computation is None:
+        computation = config.RELATION_COMPUTATION
+    return relation_computations[computation](
         subsystem, distinctions.flatten(), **kwargs
     )
