@@ -187,7 +187,7 @@ def num_subsets_larger_than_one_element(n):
 
 
 def sum_of_minimum_among_subsets(values):
-    """Return sum of the minimum of all subsets with size >1 of some values."""
+    """Return the sum of the minimum of all subsets with size >1 of the values."""
     # This series counts, from i = 0 to (len(values) - 1), the number of subsets
     # of values of size >1 such that value i is included in all subsets.
     # Since each value is fixed to be in all subsets, this formula differs from
@@ -198,7 +198,7 @@ def sum_of_minimum_among_subsets(values):
 
 
 def sum_of_ratio_of_minima_among_subsets(num_denom_pairs):
-    """Returns the sum of the ratio of minima among numerators/denominators.
+    """Return the sum of the ratio of minima among numerators/denominators.
 
     Considers all subsets with size >1 of pairs of numerators and denominators
     (n_i, d_i) and implicitly computes the sum of the ratios of the minimum
@@ -245,22 +245,24 @@ def sum_of_ratio_of_minima_among_subsets(num_denom_pairs):
 
 
 def sum_of_min_times_avg_among_subsets(values):
-    """Return sum of the minimum x average of all subsets with size >1 of some values."""
+    """Return the sum of the product of the minimum and mean of each subset
+    with size >1 of the values."""
     # This series counts, from i = 0 to (len(values) - 1), the number of subsets
     # of values of size >1 such that value i is included in all subsets.
     values.sort()
-    sum_ = 0
+    _sum = 0
     for i, min_val in enumerate(values[:-1]):
         n = len(values[i:])
-        # for each candidate min_val, we add its contibution to the sum of the avg
-        # \sum_k (1/k) * comb(n-1, k-1), k is the size of the subsets k = 2, ...., n-1
-        n_ = n - 1
-        sum_avg_val = min_val * ((2 ** (n_ + 1) - 1) / (n_ + 1) - 1)
-        # contribution of the other elements to the sum of the avg
-        # \sum_k (1/k) * comb(n-2, k-2), k is the size of the subsets k = 2, ...., n-2
-        n_ = n - 2
+        # For each candidate min_val, we add its contibution to the sum of the
+        # average \sum_k (1/k) * comb(n-1, k-1), where k is the size of the
+        # subsets k = 2, ..., n-1
+        _n = n - 1
+        sum_avg_val = min_val * ((2 ** (_n + 1) - 1) / (_n + 1) - 1)
+        # Contribution of the other elements to the sum of the average
+        # \sum_k (1/k) * comb(n-2, k-2), k is the size of the subsets k = 2, ..., n-2
+        _n = n - 2
         sum_avg_val += (
-            sum(values[i + 1 :]) * (n_ * 2 ** (n_ + 1) + 1) / (n_ ** 2 + 3 * n_ + 2)
+            sum(values[i + 1 :]) * (_n * 2 ** (_n + 1) + 1) / (_n ** 2 + 3 * _n + 2)
         )
-        sum_ += min_val * sum_avg_val
-    return sum_
+        _sum += min_val * sum_avg_val
+    return _sum
