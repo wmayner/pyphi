@@ -237,6 +237,27 @@ def center(text):
     return "\n".join(align(text.split("\n"), direction="c"))
 
 
+def split_decimal(n):
+    """Attempt to split an object into unit and decimal parts, handling
+    non-numeric types."""
+    try:
+        if np.isnan(n):
+            # nan
+            return "", str(n)
+    except TypeError:
+        pass
+    if isinstance(n, float):
+        # float
+        return str(n).split(".")
+    try:
+        if float(n).is_integer():
+            # int
+            return str(int(n)), ""
+    except ValueError:
+        # assume str
+        return "", str(n)
+
+
 def align_decimals(numbers):
     """Align numbers on the decimal point.
 
@@ -250,25 +271,7 @@ def align_decimals(numbers):
         >>> align_decimals([0.5] + list(map(str, numbers)))
         ['0.5     ', ' 0.0   ', ' 1     ', ' 0.99  ', ' 100.5 ', ' 80.123', ' string']
     """
-    units, decimals = [], []
-    for n in numbers:
-        if np.isnan(n):
-            # nan
-            units.append("")
-            decimals.append(str(n))
-        elif isinstance(n, float):
-            # float
-            parts = str(n).split(".")
-            units.append(parts[0])
-            decimals.append(parts[1])
-        elif float(n).is_integer():
-            # int
-            units.append(str(int(n)))
-            decimals.append("")
-        else:
-            # assume str
-            units.append("")
-            decimals.append(str(n))
+    units, decimals = zip(*map(split_decimal, numbers))
     points = ["." if unit and decimal else "" for unit, decimal in zip(units, decimals)]
     units = align(units, direction=">")
     decimals = align(decimals, direction="<")
