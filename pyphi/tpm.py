@@ -51,6 +51,33 @@ def condition_tpm(tpm, fixed_nodes, state):
     return tpm[tuple(conditioning_indices)]
 
 
+def subtpm(tpm, fixed_nodes, state):
+    """Return the TPM for a subset of nodes, conditioned on other nodes.
+
+    Arguments:
+        tpm (np.ndarray): The full TPM.
+        free_nodes (tuple[int]): The nodes to select.
+        fixed_state (tuple[int]): The state of the fixed nodes.
+
+    Returns:
+        np.ndarray: The TPM of just the subsystem of the free nodes.
+
+    Examples:
+        >>> from pyphi import examples
+        >>> # Get the TPM for nodes only 1 and 2, conditioned on node 0 = OFF
+        >>> subtpm(examples.grid3_network().tpm, (0,), (0,))
+        array([[[[0.02931223, 0.04742587],
+                 [0.07585818, 0.88079708]],
+        <BLANKLINE>
+                [[0.81757448, 0.11920292],
+                 [0.92414182, 0.95257413]]]])
+    """
+    N = tpm.shape[-1]
+    free_nodes = sorted(set(range(N)) - set(fixed_nodes))
+    conditioned = condition_tpm(tpm, fixed_nodes, state)
+    return conditioned[..., free_nodes]
+
+
 def expand_tpm(tpm):
     """Broadcast a state-by-node TPM so that singleton dimensions are expanded
     over the full network.
