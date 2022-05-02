@@ -79,6 +79,8 @@ from .direction import Direction
 from .network import Network
 from .subsystem import Subsystem
 
+_skip_import = ["visualize"]
+
 
 def _import_submodules(package, recursive=True):
     """Import all submodules of a module, recursively, including subpackages.
@@ -96,10 +98,11 @@ def _import_submodules(package, recursive=True):
         package = importlib.import_module(package)
     results = {}
     for loader, name, is_pkg in pkgutil.walk_packages(package.__path__):
-        full_name = package.__name__ + "." + name
-        results[full_name] = importlib.import_module(full_name)
-        if recursive and is_pkg:
-            results.update(_import_submodules(full_name))
+        if name not in _skip_import:
+            full_name = package.__name__ + "." + name
+            results[full_name] = importlib.import_module(full_name)
+            if recursive and is_pkg:
+                results.update(_import_submodules(full_name))
     return results
 
 
