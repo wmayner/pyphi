@@ -330,8 +330,10 @@ def state_by_node2state_by_state(tpm):
            [0.378, 0.252, 0.162, 0.108, 0.042, 0.028, 0.018, 0.012],
            [0.36 , 0.36 , 0.09 , 0.09 , 0.04 , 0.04 , 0.01 , 0.01 ]])
     """
-    # Overall approach: get the state-by-state TPM for each individual node, then take the product to get the joint
+    # Overall approach: get the state-by-state TPM for each individual node,
+    # then take the product to get the joint
     # TODO extend to nonbinary
+    tpm = tpm.squeeze()
 
     # Get the number of previous nodes
     if tpm.ndim == 2:
