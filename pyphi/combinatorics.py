@@ -8,7 +8,6 @@ from collections import defaultdict
 from itertools import chain, product
 
 import igraph as ig
-import networkx as nx
 import numpy as np
 from graphillion import setset
 
