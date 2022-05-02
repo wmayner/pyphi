@@ -48,7 +48,7 @@ class PotentialPurviewRegistry(Registry):
 
     Examples:
         >>> @relation_potential_purviews.register('NONE')  # doctest: +SKIP
-        ... def no_purviews(congruent_overlap):
+        ... def no_purviews(candidate_overlap):
         ...    return []
 
     And use them by setting ``config.RELATION_POTENTIAL_PURVIEWS = 'NONE'``
@@ -61,25 +61,25 @@ relation_potential_purviews = PotentialPurviewRegistry()
 
 
 @relation_potential_purviews.register("ALL")
-def all_subsets(congruent_overlap):
+def all_subsets(candidate_overlap):
     """Return all subsets of the congruent overlap.
 
     If there are multiple congruent overlaps because of ties, it is the union of
     the powerset of each.
     """
     return set(
-        concat(powerset(overlap, nonempty=True) for overlap in congruent_overlap)
+        concat(powerset(overlap, nonempty=True) for overlap in candidate_overlap)
     )
 
 
 @relation_potential_purviews.register("WHOLE")
-def whole_overlap(congruent_overlap):
+def whole_overlap(candidate_overlap):
     """Return only the congruent overlap.
 
     If there are multiple congruent overlaps because of ties, it is the union of
     all of them.
     """
-    return set(map(tuple, congruent_overlap))
+    return set(map(tuple, candidate_overlap))
 
 
 class PhiUpperBoundRegistry(Registry):
