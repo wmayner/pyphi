@@ -1067,6 +1067,22 @@ class AnalyticalRelations(AbstractRelations):
                         max_order=1
                     ).items()
                 )
+        elif (
+            config.RELATION_PHI_SCHEME == "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS"
+            and config.CONGRUENCE_RATIO == "PURVIEW_SIZE"
+        ):
+            if config.OVERLAP_RATIO == "PURVIEW_SIZE":
+                return sum(
+                    combinatorics.sum_of_min_times_avg_among_subsets(
+                        [
+                            d.parent.phi / len(d.purview)
+                            for d in overlapping_distinctions
+                        ]
+                    )
+                    for _, overlapping_distinctions in self.distinctions.purview_inclusion(
+                        max_order=1
+                    ).items()
+                )
         raise NotImplementedError
 
     def num_relations(self):
