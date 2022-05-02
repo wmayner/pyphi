@@ -268,14 +268,14 @@ class PhiStructure(cmp.Orderable):
     def __getstate__(self):
         dct = self.__dict__
         if isinstance(self.relations, ConcreteRelations):
-            distinctions = FlatCauseEffectStructure(self.distinctions)
+            distinctions = self.distinctions.flatten()
             dct["relations"] = self.relations.to_indirect_json(distinctions)
         return dct
 
     def __setstate__(self, state):
         try:
             distinctions = state["distinctions"]
-            distinctions = FlatCauseEffectStructure(distinctions)
+            distinctions = distinctions.flatten()
             state["relations"] = ConcreteRelations.from_indirect_json(
                 distinctions, state["relations"]
             )

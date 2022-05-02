@@ -970,15 +970,13 @@ class ConcreteRelations(HashableOrderedSet, Relations):
         if not distinctions:
             relations = []
         else:
+            distinctions = distinctions.flatten()
             # TODO use lattice data structure for efficiently finding the union of
             # the lower sets of lost distinctions
             relations = [
                 relation
                 for relation in self
-                if all(
-                    distinction in FlatCauseEffectStructure(distinctions)
-                    for distinction in relation.relata
-                )
+                if all(distinction in distinctions for distinction in relation.relata)
             ]
         return type(self)(relations)
 
@@ -1275,5 +1273,5 @@ def sampled_relations(subsystem, distinctions, **kwargs):
 def relations(subsystem, distinctions, **kwargs):
     """Return the irreducible relations among the causes/effects in the CES."""
     return relation_computations[config.RELATION_COMPUTATION](
-        subsystem, FlatCauseEffectStructure(distinctions), **kwargs
+        subsystem, distinctions.flatten(), **kwargs
     )
