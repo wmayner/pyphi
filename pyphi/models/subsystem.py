@@ -7,7 +7,7 @@
 from collections import defaultdict
 from collections.abc import Sequence, Iterable
 
-from toolz import concat, merge
+from toolz import concat
 
 from pyphi.direction import Direction
 
@@ -22,9 +22,12 @@ def _concept_sort_key(concept):
     return (len(concept.mechanism), concept.mechanism)
 
 
-def compute_purview_inclusion(distinctions, min_order, max_order):
-    purview_inclusion = defaultdict(set)
-    purview_inclusion_by_order = defaultdict(set)
+def defaultdict_set():
+    return defaultdict(set)
+
+
+def purview_inclusion(distinctions, min_order, max_order):
+    purview_inclusion_by_order = defaultdict(defaultdict_set)
     for distinction in distinctions:
         for subset in utils.powerset(
             distinction.purview,
@@ -38,10 +41,10 @@ def compute_purview_inclusion(distinctions, min_order, max_order):
                 distinction.purview, distinction.specified_state, subset
             )
             for substate in map(tuple, substates):
-                key = (subset, substate)
-                purview_inclusion[key].add(distinction)
-                purview_inclusion_by_order[len(subset)].add(key)
-    return purview_inclusion, purview_inclusion_by_order
+                purview_inclusion_by_order[len(subset)][(subset, substate)].add(
+                    distinction
+                )
+    return purview_inclusion_by_order
 
 
 class CauseEffectStructure(cmp.Orderable, Sequence):
@@ -53,9 +56,8 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
         self.concepts = tuple(sorted(concepts, key=_concept_sort_key))
         self.subsystem = subsystem
         self._specifiers = None
-        self._purview_inclusion = defaultdict(set)
+        self._purview_inclusion_by_order = defaultdict(defaultdict_set)
         self._purview_inclusion_max_order = 0
-        self._purview_inclusion_by_order = defaultdict(set)
 
     def __len__(self):
         return len(self.concepts)
@@ -137,25 +139,15 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
             max_order = len(self.subsystem)
         max_order = min(len(self.subsystem), max_order)
         if max_order > self._purview_inclusion_max_order:
-            purview_inclusion, purview_inclusion_by_order = compute_purview_inclusion(
-                self.flat, self._purview_inclusion_max_order + 1, max_order
-            )
-            self._purview_inclusion.update(purview_inclusion)
-            self._purview_inclusion_by_order.update(purview_inclusion_by_order)
-            self._purview_inclusion_max_order = max_order
-        if max_order < len(self.subsystem):
-            # Return only the inclusion structure up to the max order
-            return merge(
-                *(
-                    {
-                        key: self._purview_inclusion[key]
-                        for key in self._purview_inclusion_by_order[i]
-                    }
-                    for i in range(1, max_order + 1)
+            self._purview_inclusion_by_order.update(
+                purview_inclusion(
+                    self.flat, self._purview_inclusion_max_order + 1, max_order
                 )
             )
-        else:
-            return self._purview_inclusion.copy()
+            self._purview_inclusion_max_order = max_order
+        # Yield from items to avoid making a copy
+        for order in range(1, max_order + 1):
+            yield from self._purview_inclusion_by_order[order].items()
 
 
 class FlatCauseEffectStructure(CauseEffectStructure):

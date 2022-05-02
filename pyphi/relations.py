@@ -136,12 +136,12 @@ congruence_ratios = CongruenceRatioRegistry()
 
 
 @congruence_ratios.register("NONE")
-def _congruence_ratio_none(relata, candidate_joint_purview):
+def _(relata, candidate_joint_purview):
     return 1.0
 
 
 @congruence_ratios.register("PURVIEW_SIZE")
-def _congruence_ratio_purview_size(relata, candidate_joint_purview):
+def _(relata, candidate_joint_purview):
     _overlap_ratio = overlap_ratio(relata, candidate_joint_purview)
     numerator = np.sum(_overlap_ratio * np.array(list(relata.parent_phis)))
 
@@ -862,7 +862,7 @@ def combinations_with_nonempty_congruent_overlap(
     # Use integers to avoid expensive distinction hashing
     sets = [
         list(map(mapping.get, subset))
-        for subset in distinctions.purview_inclusion(max_order=1).values()
+        for _, subset in distinctions.purview_inclusion(max_order=1)
     ]
     setset.set_universe(range(len(distinctions)))
     return combinatorics.union_powerset_family(
@@ -1053,7 +1053,7 @@ class AnalyticalRelations(AbstractRelations):
                     )
                     for _, overlapping_distinctions in self.distinctions.purview_inclusion(
                         max_order=1
-                    ).items()
+                    )
                 )
             elif config.OVERLAP_RATIO == "PURVIEW_SIZE":
                 return sum(
@@ -1065,7 +1065,7 @@ class AnalyticalRelations(AbstractRelations):
                     )
                     for _, overlapping_distinctions in self.distinctions.purview_inclusion(
                         max_order=1
-                    ).items()
+                    )
                 )
         raise NotImplementedError
 
@@ -1075,10 +1075,10 @@ class AnalyticalRelations(AbstractRelations):
             if self.distinctions:
                 for (
                     overlap,
-                    substate,
+                    _,
                 ), overlapping_distinctions in self.distinctions.purview_inclusion(
                     max_order=None
-                ).items():
+                ):
                     inclusion_exclusion_alternating_term = (-1) ** (len(overlap) - 1)
                     self._num_relations += (
                         inclusion_exclusion_alternating_term
@@ -1122,7 +1122,15 @@ class SampledRelations(AnalyticalRelations):
         """
         if self._max_degree is None:
             self._max_degree = max(
-                map(len, self.distinctions.purview_inclusion(max_order=1).values()),
+                map(
+                    len,
+                    (
+                        distinctions
+                        for _, distinctions in self.distinctions.purview_inclusion(
+                            max_order=1
+                        )
+                    ),
+                ),
                 default=0,
             )
         return self._max_degree
