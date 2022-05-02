@@ -1079,7 +1079,7 @@ class AnalyticalRelations(AbstractRelations):
                     )
                     for _, overlapping_distinctions in self.distinctions.purview_inclusion(
                         max_order=1
-                    ).items()
+                    )
                 )
         raise NotImplementedError
 
