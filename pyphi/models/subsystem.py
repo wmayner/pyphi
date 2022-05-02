@@ -22,6 +22,28 @@ def _concept_sort_key(concept):
     return (len(concept.mechanism), concept.mechanism)
 
 
+def compute_purview_inclusion(distinctions, min_order, max_order):
+    purview_inclusion = defaultdict(set)
+    purview_inclusion_by_order = defaultdict(set)
+    for distinction in distinctions:
+        for subset in utils.powerset(
+            distinction.purview,
+            nonempty=True,
+            min_size=min_order,
+            max_size=max_order,
+        ):
+            # NOTE: This considers "includes" to mean "congruent
+            # with any of the tied states"
+            substates = utils.specified_substate(
+                distinction.purview, distinction.specified_state, subset
+            )
+            for substate in map(tuple, substates):
+                key = (subset, substate)
+                purview_inclusion[key].add(distinction)
+                purview_inclusion_by_order[len(subset)].add(key)
+    return purview_inclusion, purview_inclusion_by_order
+
+
 class CauseEffectStructure(cmp.Orderable, Sequence):
     """A collection of concepts."""
 
@@ -108,12 +130,19 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
         return tuple(list(label(mechanism)) for mechanism in self.mechanisms)
 
     def purview_inclusion(self, max_order=None):
+        """Return a mapping from (purview, state) pairs to distinctions whose
+        purview inclused that purview in that state.
+        """
         if max_order is None:
             max_order = len(self.subsystem)
         max_order = min(len(self.subsystem), max_order)
         if max_order > self._purview_inclusion_max_order:
-            self.flatten().compute_purview_inclusion(max_order)
-        self._purview_inclusion_max_order = max_order
+            purview_inclusion, purview_inclusion_by_order = compute_purview_inclusion(
+                self.flat, self._purview_inclusion_max_order + 1, max_order
+            )
+            self._purview_inclusion.update(purview_inclusion)
+            self._purview_inclusion_by_order.update(purview_inclusion_by_order)
+            self._purview_inclusion_max_order = max_order
         if max_order < len(self.subsystem):
             # Return only the inclusion structure up to the max order
             return merge(
@@ -126,7 +155,7 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
                 )
             )
         else:
-            return self._purview_inclusion
+            return self._purview_inclusion.copy()
 
 
 class FlatCauseEffectStructure(CauseEffectStructure):
@@ -189,6 +218,10 @@ class FlatCauseEffectStructure(CauseEffectStructure):
         """Return a mapping from each purview to its maximum specifier."""
         return {purview: self.maximum_specifier(purview) for purview in self.purviews}
 
+    @property
+    def flat(self):
+        return self
+
     def flatten(self):
         return self
 
@@ -208,24 +241,6 @@ class FlatCauseEffectStructure(CauseEffectStructure):
             ],
             subsystem=self.subsystem,
         )
-
-    def compute_purview_inclusion(self, max_order):
-        for distinction in self:
-            for subset in utils.powerset(
-                distinction.purview,
-                nonempty=True,
-                min_size=(self._purview_inclusion_max_order + 1),
-                max_size=max_order,
-            ):
-                # NOTE: This considers "includes" to mean "congruent
-                # with any of the tied states"
-                substates = utils.specified_substate(
-                    distinction.purview, distinction.specified_state, subset
-                )
-                for substate in map(tuple, substates):
-                    key = (subset, substate)
-                    self._purview_inclusion[key].add(distinction)
-                    self._purview_inclusion_by_order[len(subset)].add(key)
 
 
 class SystemIrreducibilityAnalysis(cmp.Orderable):
