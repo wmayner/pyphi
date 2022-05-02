@@ -115,12 +115,12 @@ overlap_ratios = OverlapRatioRegistry()
 
 
 @overlap_ratios.register("PURVIEW_SIZE")
-def _overlap_ratio_purview_relative(relata, candidate_joint_purview):
+def _(relata, candidate_joint_purview):
     return len(candidate_joint_purview) / np.array(list(map(len, relata.purviews)))
 
 
 @overlap_ratios.register("MINIMUM_PURVIEW_SIZE")
-def _overlap_ratio_purview_minimum(relata, candidate_joint_purview):
+def _(relata, candidate_joint_purview):
     return len(candidate_joint_purview) / relata.minimal_purview_size
 
 
