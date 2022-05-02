@@ -92,12 +92,12 @@ distinction_phi_upper_bounds = PhiUpperBoundRegistry()
 
 
 @distinction_phi_upper_bounds.register("PURVIEW_SIZE")
-def _purview_size(distinction):
+def _(distinction):
     return len(distinction.purview)
 
 
 @distinction_phi_upper_bounds.register("ONE")
-def _one(distinction):
+def _(distinction):
     return 1
 
 
