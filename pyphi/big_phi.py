@@ -189,7 +189,7 @@ def relation_sum_phi_upper_bound(n):
     return RELATION_SUM_PHI_UPPER_BOUNDS[config.DISTINCTION_SUM_PHI_UPPER_BOUND](n)
 
 
-def sum_small_phi_upper_bound(n):
+def sum_phi_upper_bound(n):
     """Return the 'best possible' sum of small phi for the system."""
     return distinction_sum_phi_upper_bound(n) + relation_sum_phi_upper_bound(n)
 
@@ -329,7 +329,7 @@ class PhiStructure(cmp.Orderable):
             numerator = self.sum_phi()
             if numerator == 0:
                 return 0
-            denominator = sum_small_phi_upper_bound(self._substrate_size)
+            denominator = sum_phi_upper_bound(self._substrate_size)
             self._selectivity = expsublog(numerator, denominator)
         return self._selectivity
 
