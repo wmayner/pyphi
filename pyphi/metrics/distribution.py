@@ -454,6 +454,11 @@ def iit_4_small_phi(p, q, state):
     return absolute_information_density(p, q).squeeze()[state]
 
 
+@np_suppress()
+def pointwise_mutual_information_vector(p, q):
+    return np.nan_to_num(np.log2(p / q), nan=0.0)
+
+
 @actual_causation_measures.register("PMI", asymmetric=True)
 def pointwise_mutual_information(p, q):
     """Compute the pointwise mutual information (PMI).

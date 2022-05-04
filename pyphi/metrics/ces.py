@@ -10,7 +10,6 @@ import numpy as np
 import pyemd
 
 from .. import config, utils
-from ..direction import Direction
 from ..registry import Registry
 from . import distribution
 

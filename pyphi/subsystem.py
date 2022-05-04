@@ -9,7 +9,7 @@ import logging
 
 import numpy as np
 
-from . import cache, distribution, utils, validate
+from . import cache, distribution, utils, validate, resolve_ties
 from .conf import config
 from .direction import Direction
 from .distribution import max_entropy_distribution, repertoire_shape
@@ -833,7 +833,10 @@ class Subsystem:
                     self.find_mip(direction, mechanism, purview) for purview in purviews
                 ]
             max_mip = max(all_mips)
-            ties = tuple(mice_class(mip) for mip in all_mips if mip.phi == max_mip.phi)
+            phi_ties = tuple(
+                mice_class(mip) for mip in all_mips if mip.phi == max_mip.phi
+            )
+            ties = resolve_ties.mice(phi_ties)
 
         for tie in ties:
             tie.set_ties(ties)

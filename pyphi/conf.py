@@ -158,6 +158,10 @@ class ConfigurationError(ValueError):
     pass
 
 
+class ConfigurationWarning(UserWarning):
+    pass
+
+
 class Option:
     """A descriptor implementing PyPhi configuration options.
 
@@ -907,6 +911,18 @@ class PyphiConfig(Config):
     returns a zero-phi relation if so. This case should never arise in normal
     operation, since relations are normally only computed among distinctions in a
     nonconflicting set. Defaults to false to avoid the cost of checking.
+    """,
+    )
+
+    MICE_TIE_RESOLUTION = Option(
+        "MAX_INFORMITAVENESS_THEN_SMALLEST_PURVIEW",
+        values=[
+            "MAX_INFORMITAVENESS_THEN_SMALLEST_PURVIEW",
+            "SMALLEST_PURVIEW",
+            "LARGEST_PURVIEW",
+        ],
+        doc="""
+    Controls how ties among purviews are resolved.
     """,
     )
 
