@@ -48,7 +48,7 @@ DISTINCTION_PHI_UPPER_BOUND_RELATIONS: "PURVIEW_SIZE"
 DISTINCTION_SUM_PHI_UPPER_BOUND: "(2^N-1)/(N-1)"
 # Controls the definition of the upper bound of the sum of relation phi when
 # analyzing a system.
-RELATION_COMPUTATION: "CONCRETE"
+RELATION_COMPUTATION: "ANALYTICAL"
 # Controls the sample size for approximated relations. Only applies if
 # RELATION_COMPUTATION implies a sampling approach.
 RELATION_SAMPLE_SIZE: 1000

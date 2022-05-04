@@ -856,7 +856,7 @@ class PyphiConfig(Config):
     )
 
     RELATION_COMPUTATION = Option(
-        "CONCRETE",
+        "ANALYTICAL",
         values=["CONCRETE", "ANALYTICAL", "SAMPLED"],
         doc="""
     Controls how relations are computed.
