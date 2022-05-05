@@ -589,10 +589,10 @@ def plot_phi_structure(
 
     mechanism_mapping = powerset_coordinates(
         subsystem.node_indices,
-        mechanism_max_radius=theme.mechanism_max_radius,
-        mechanism_z_offset=theme.mechanism_z_offset,
-        mechanism_z_spacing=theme.mechanism_z_spacing,
-        mechanism_radius_func=theme.mechanism_radius_func,
+        max_radius=theme.mechanism_max_radius,
+        z_offset=theme.mechanism_z_offset,
+        z_spacing=theme.mechanism_z_spacing,
+        radius_func=theme.mechanism_radius_func,
     )
     # Mechanisms
     _plot_mechanisms(fig, distinctions, mechanism_mapping, label, theme)
