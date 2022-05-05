@@ -14,9 +14,7 @@ from pyphi.models.subsystem import CauseEffectStructure
 from pyphi.relations import ConcreteRelations
 from pyphi.utils import state_of
 
-DIRECTIONS = [Direction.CAUSE, Direction.EFFECT]
 TWOPI = 2 * np.pi
-PRECISION = 10
 FONT_FAMILY = "MesloLGS NF, Roboto Mono, Menlo"
 
 
@@ -255,7 +253,7 @@ class Labeler:
                         [
                             f"M: {self.nodes(mice.mechanism)}",
                             f"P: {self.nodes(mice.purview, state=mice.specified_state[0])}",
-                            f"φ: {round(mice.phi, PRECISION)}",
+                            f"φ: {round(mice.phi, config.PRECISION)}",
                             f"S: {','.join(map(str, mice.specified_state))}",
                         ]
                     )
@@ -271,7 +269,7 @@ class Labeler:
             "<br>".join(
                 [
                     f"P: {self.nodes(relation.purview)}",
-                    f"φ: {round(relation.phi, PRECISION)}",
+                    f"φ: {round(relation.phi, config.PRECISION)}",
                     "Relata:",
                     indent(self.relata(relation.relata)),
                 ]
@@ -307,7 +305,9 @@ def _plot_distinctions(
     label,
     theme,
 ):
-    for direction, color in zip(DIRECTIONS, [theme.cause_color, theme.effect_color]):
+    for direction, color in zip(
+        Direction.both(), [theme.cause_color, theme.effect_color]
+    ):
         coords = {
             label.nodes(purview): purview_mapping[direction][purview]
             for purview in purviews[direction]
@@ -355,7 +355,7 @@ def _plot_cause_effect_links(
         coords = np.stack(
             [
                 purview_mapping[direction][distinction.purview(direction)]
-                for direction in DIRECTIONS
+                for direction in Direction.both()
             ]
         )
         link_coords.append(coords)
@@ -547,7 +547,7 @@ def plot_phi_structure(
         direction: [
             distinction.purview(direction) for distinction in phi_structure.distinctions
         ]
-        for direction in DIRECTIONS
+        for direction in Direction.both()
     }
     # Group relations by degree
     relations = defaultdict(ConcreteRelations)
@@ -558,7 +558,7 @@ def plot_phi_structure(
 
     # x offsets for causes and effects
     offset = dict(
-        zip(DIRECTIONS, [-theme.direction_offset / 2, theme.direction_offset / 2])
+        zip(Direction.both(), [-theme.direction_offset / 2, theme.direction_offset / 2])
     )
     # Purview coordinates
     purview_mapping = {
@@ -567,7 +567,7 @@ def plot_phi_structure(
             x_offset=offset[direction],
             radius_func=radius_func,
         )
-        for direction in DIRECTIONS
+        for direction in Direction.both()
     }
 
     # Distinctions
