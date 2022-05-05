@@ -64,8 +64,6 @@ RELATION_SAMPLE_DEGREES: false
 RELATION_SAMPLE_TIMEOUT: 1.0
 # Controls how to resolve ties among purviews when computing MICE.
 MICE_TIE_RESOLUTION: "MAX_INFORMITAVENESS_THEN_SMALLEST_PURVIEW"
-# Controls how to resolve phi-ties when computing MICE.
-PICK_SMALLEST_PURVIEW: false
 # The type of system cuts to use
 SYSTEM_CUTS: "3.0_STYLE"
 # In some applications of this library, you may want to allow single

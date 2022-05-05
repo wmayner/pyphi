@@ -360,7 +360,7 @@ def test_ria_ordering_and_equality():
     assert ria(direction=Direction.CAUSE) != ria(direction=Direction.EFFECT)
     assert ria(mechanism=(1,)) != ria(mechanism=(1, 2))
 
-    with config.override(PICK_SMALLEST_PURVIEW=True):
+    with config.override(MICE_TIE_RESOLUTION="SMALLEST_PURVIEW"):
         assert ria(purview=(1, 2)) < ria(purview=(1,))
 
 

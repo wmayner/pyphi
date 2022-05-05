@@ -99,10 +99,8 @@ class AcRepertoireIrreducibilityAnalysis(cmp.Orderable):
     unorderable_unless_eq = ["direction"]
 
     def order_by(self):
-        if config.PICK_SMALLEST_PURVIEW:
-            return [self.alpha, len(self.mechanism), -len(self.purview)]
-
-        return [self.alpha, len(self.mechanism), len(self.purview)]
+        # Here we enforce that ties are broken in favor of smaller purviews
+        return [self.alpha, len(self.mechanism), -len(self.purview)]
 
     def __eq__(self, other):
         # TODO(slipperyhank): include 2nd state here?

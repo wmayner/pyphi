@@ -26,14 +26,12 @@ First, we'll import the modules we need:
 Configuration
 ~~~~~~~~~~~~~
 
-Before we begin we need to set some configuration values. The correct way of
-partitioning for actual causation is using the ``'ALL'`` partitions setting;
-``'TRI'``-partitions are a reasonable approximation. In case of ties the
-smaller purview should be chosen. IIT 3.0 style bipartitions will give
-incorrect results.
+Before we begin we need to configure PyPhi for doing actual causation
+computations. The correct way of partitioning for actual causation is using the
+``'ALL'`` partitions setting; ``'TRI'``-partitions are a reasonable
+approximation. IIT 3.0-style bipartitions will give incorrect results.
 
     >>> config.PARTITION_TYPE = 'TRI'
-    >>> config.PICK_SMALLEST_PURVIEW = True
 
 When calculating a causal account of the transition between a set of elements
 |X| at time |t-1| and a set of elements |Y| at time |t|, with |X| and |Y| being

@@ -60,7 +60,6 @@ These settings control the algorithms PyPhi uses.
 - :attr:`~pyphi.conf.PyphiConfig.RELATION_PARTITION_AGGREGATION`
 - :attr:`~pyphi.conf.PyphiConfig.SYSTEM_PARTITION_TYPE`
 - :attr:`~pyphi.conf.PyphiConfig.RELATION_POTENTIAL_PURVIEWS`
-- :attr:`~pyphi.conf.PyphiConfig.PICK_SMALLEST_PURVIEW`
 - :attr:`~pyphi.conf.PyphiConfig.SYSTEM_CUTS`
 - :attr:`~pyphi.conf.PyphiConfig.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI`
 - :attr:`~pyphi.conf.PyphiConfig.VALIDATE_SUBSYSTEM_STATES`
@@ -924,16 +923,6 @@ class PyphiConfig(Config):
         doc="""
     Controls how ties among purviews are resolved.
     """,
-    )
-
-    PICK_SMALLEST_PURVIEW = Option(
-        True,
-        type=bool,
-        doc="""
-    When computing a |MIC| or |MIE|, it is possible for several MIPs to have
-    the same |small_phi| value. If this setting is set to ``True`` the MIP with
-    the smallest purview is chosen; otherwise, the one with largest purview is
-    chosen.""",
     )
 
     SYSTEM_CUTS = Option(

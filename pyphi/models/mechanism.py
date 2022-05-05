@@ -6,7 +6,7 @@
 
 import numpy as np
 
-from .. import config, connectivity, utils, validate
+from .. import connectivity, utils, validate
 from ..direction import Direction
 from ..exceptions import WrongDirectionError
 from ..metrics import distribution
@@ -28,9 +28,7 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
     purview, for a given partition, in one temporal direction.
 
     These can be compared with the built-in Python comparison operators (``<``,
-    ``>``, etc.). First, |small_phi| values are compared. Then, if these are
-    equal up to |PRECISION|, the size of the mechanism is compared (see the
-    |PICK_SMALLEST_PURVIEW| option in |config|.)
+    ``>``, etc.). Comparison is based on |small_phi| value, then mechanism size.
     """
 
     def __init__(
@@ -154,10 +152,7 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         return self._node_labels
 
     def order_by(self):
-        if config.PICK_SMALLEST_PURVIEW:
-            return [self.phi, len(self.mechanism), -len(self.purview)]
-
-        return [self.phi, len(self.mechanism), len(self.purview)]
+        return (self.phi, len(self.mechanism))
 
     def __eq__(self, other):
         # We don't consider the partition and partitioned repertoire in
@@ -214,9 +209,7 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
     """A maximally irreducible cause or effect (MICE).
 
     These can be compared with the built-in Python comparison operators (``<``,
-    ``>``, etc.). First, |small_phi| values are compared. Then, if these are
-    equal up to |PRECISION|, the size of the mechanism is compared (see the
-    |PICK_SMALLEST_PURVIEW| option in |config|.)
+    ``>``, etc.). Comparison is based on |small_phi| value, then mechanism size.
     """
 
     def __init__(self, ria, ties=None):
@@ -398,9 +391,7 @@ class MaximallyIrreducibleCause(MaximallyIrreducibleCauseOrEffect):
     """A maximally irreducible cause (MIC).
 
     These can be compared with the built-in Python comparison operators (``<``,
-    ``>``, etc.). First, |small_phi| values are compared. Then, if these are
-    equal up to |PRECISION|, the size of the mechanism is compared (see the
-    |PICK_SMALLEST_PURVIEW| option in |config|.)
+    ``>``, etc.). Comparison is based on |small_phi| value, then mechanism size.
     """
 
     def __init__(self, ria, ties=None):
@@ -423,9 +414,7 @@ class MaximallyIrreducibleEffect(MaximallyIrreducibleCauseOrEffect):
     """A maximally irreducible effect (MIE).
 
     These can be compared with the built-in Python comparison operators (``<``,
-    ``>``, etc.). First, |small_phi| values are compared. Then, if these are
-    equal up to |PRECISION|, the size of the mechanism is compared (see the
-    |PICK_SMALLEST_PURVIEW| option in |config|.)
+    ``>``, etc.). Comparison is based on |small_phi| value, then mechanism size.
     """
 
     def __init__(self, ria, ties=None):
@@ -452,8 +441,7 @@ class Concept(cmp.Orderable):
     """The maximally irreducible cause and effect specified by a mechanism.
 
     These can be compared with the built-in Python comparison operators (``<``,
-    ``>``, etc.). First, |small_phi| values are compared. Then, if these are
-    equal up to |PRECISION|, the size of the mechanism is compared.
+    ``>``, etc.). Comparison is based on |small_phi| value, then mechanism size.
 
     Attributes:
         mechanism (tuple[int]): The mechanism that the concept consists of.

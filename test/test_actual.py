@@ -305,8 +305,8 @@ def test_acria_ordering():
     with pytest.raises(TypeError):
         acria(direction=Direction.CAUSE) < acria(direction=Direction.EFFECT)
 
-    with config.override(PICK_SMALLEST_PURVIEW=True):
-        assert acria(purview=(1,)) > acria(purview=(0, 2))
+    # Smaller purviews should be chosen
+    assert acria(purview=(1,)) > acria(purview=(0, 2))
 
 
 def test_acria_hash():

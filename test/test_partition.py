@@ -242,7 +242,9 @@ def test_mip_bipartitions():
 def test_wedge_partitions():
     mechanism, purview = (0,), (1, 2)
     assert set(wedge_partitions(mechanism, purview)) == set(
-        [Tripartition(Part((), ()), Part((), (1, 2)), Part((0,), ())),]
+        [
+            Tripartition(Part((), ()), Part((), (1, 2)), Part((0,), ())),
+        ]
     )
 
     mechanism, purview = (3, 4), (5, 6)
@@ -273,7 +275,7 @@ def test_partitioned_repertoire_with_tripartition(s):
 def test_tripartitions_choses_smallest_purview(s):
     mechanism = (1, 2)
 
-    with config.override(PICK_SMALLEST_PURVIEW=False):
+    with config.override(MICE_TIE_RESOLUTION="SMALLEST_PURVIEW"):
         mie = s.mie(mechanism)
         assert mie.phi == 0.5
         assert mie.purview == (0, 1)
@@ -281,7 +283,7 @@ def test_tripartitions_choses_smallest_purview(s):
     s.clear_caches()
 
     # In phi-tie, chose the smaller purview (0,)
-    with config.override(PICK_SMALLEST_PURVIEW=True):
+    with config.override(MICE_TIE_RESOLUTION="SMALLEST_PURVIEW"):
         mie = s.mie(mechanism)
         assert mie.phi == 0.5
         assert mie.purview == (0,)

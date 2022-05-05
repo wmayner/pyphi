@@ -34,9 +34,9 @@ def _(m):
         msg = """
     'MICE_TIE_RESOLUTION = "MAX_INFORMITAVENESS_THEN_SMALLEST_PURVIEW"
     assumes
-    REPERTOIRE_DISTANCE = "IIT_4.0_SMALL_PHI"
+      REPERTOIRE_DISTANCE = "IIT_4.0_SMALL_PHI"
     since informativeness is defined as the pointwise mutual information, but got
-    REPERTOIRE_DISTANCE = {config.REPERTOIRE_DISTANCE}
+      REPERTOIRE_DISTANCE = {config.REPERTOIRE_DISTANCE}
 """
         # TODO(4.0) tie resolution docs
         warnings.warn(msg, category=ConfigurationWarning)
