@@ -32,7 +32,6 @@ class PhiPlotTheme:
     cause_effect_link_opacity: float = 0.5
     mechanism_purview_link_color: str = "lightgrey"
     mechanism_purview_link_opacity: float = 0.5
-    mechanism_z_spacing: float = 0.5
     mechanism_max_radius: float = 1.0
     mechanism_z_offset: float = 0.0
     mechanism_z_spacing: float = 0.0
