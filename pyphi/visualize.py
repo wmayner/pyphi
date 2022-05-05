@@ -180,6 +180,7 @@ def powerset_coordinates(
     radius_func=log_n_choose_k,
 ):
     """Return a mapping from subsets of the nodes to coordinates."""
+    radius_func = SHAPES.get(radius_func) or radius_func
     N = len(nodes)
     radii = radius_func(N)
     # Normalize overall radius
