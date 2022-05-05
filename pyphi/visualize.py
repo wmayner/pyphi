@@ -34,6 +34,11 @@ class PhiPlotTheme:
     cause_effect_link_opacity: float = 0.5
     mechanism_purview_link_color: str = "lightgrey"
     mechanism_purview_link_opacity: float = 0.5
+    mechanism_z_spacing: float = 0.5
+    mechanism_max_radius: float = 1.0
+    mechanism_z_offset: float = 0.0
+    mechanism_z_spacing: float = 0.0
+    mechanism_radius_func: str = "linear"
     two_relation_colorscale: str = "teal"
     two_relation_opacity: float = 0.2
     two_relations_hoverlabel_font_color: str = "white"
@@ -583,7 +588,11 @@ def plot_phi_structure(
     )
 
     mechanism_mapping = powerset_coordinates(
-        subsystem.node_indices, z_spacing=0, radius_func=linear
+        subsystem.node_indices,
+        mechanism_max_radius=theme.mechanism_max_radius,
+        mechanism_z_offset=theme.mechanism_z_offset,
+        mechanism_z_spacing=theme.mechanism_z_spacing,
+        mechanism_radius_func=theme.mechanism_radius_func,
     )
     # Mechanisms
     _plot_mechanisms(fig, distinctions, mechanism_mapping, label, theme)
