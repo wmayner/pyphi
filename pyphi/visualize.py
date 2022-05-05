@@ -1,18 +1,20 @@
 from collections import Iterable, defaultdict
 from dataclasses import dataclass
 from itertools import combinations
-from math import cos, radians, sin, isclose
+from math import cos, isclose, radians, sin
 
 import numpy as np
 import plotly.colors
 import scipy.special
 from _plotly_utils.basevalidators import ColorscaleValidator
 from plotly import graph_objs as go
-from pyphi.big_phi import PhiStructure
-from pyphi.direction import Direction
-from pyphi.models.subsystem import CauseEffectStructure
-from pyphi.relations import ConcreteRelations
-from pyphi.utils import state_of
+
+from . import config
+from .big_phi import PhiStructure
+from .direction import Direction
+from .models.subsystem import CauseEffectStructure
+from .relations import ConcreteRelations
+from .utils import state_of
 
 TWOPI = 2 * np.pi
 FONT_FAMILY = "MesloLGS NF, Roboto Mono, Menlo"
