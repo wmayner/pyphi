@@ -488,7 +488,9 @@ def fmt_ces(ces, title="Cause-effect structure"):
         return "()\n"
 
     concepts = center("\n".join(margin(x) for x in ces) + "\n")
-    title = "{} ({} concept{})".format(title, len(ces), "" if len(ces) == 1 else "s")
+    title = "{} ({} distinction{})".format(
+        title, len(ces), "" if len(ces) == 1 else "s"
+    )
 
     return header(title, concepts, HEADER_BAR_1, HEADER_BAR_1)
 
@@ -513,7 +515,7 @@ def fmt_concept(concept):
     title = "\n".join(
         align(
             [
-                f"Concept: mechanism = {mechanism}, state = {list(concept.mechanism_state)}",
+                f"Distinction: mechanism = {mechanism}, state = {list(concept.mechanism_state)}",
                 f"{SMALL_PHI} = {fmt_number(concept.phi)}",
             ],
             direction="c",
