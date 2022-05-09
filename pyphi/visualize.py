@@ -9,6 +9,7 @@ import plotly.colors
 import scipy.special
 from _plotly_utils.basevalidators import ColorscaleValidator
 from plotly import graph_objs as go
+from toolz import partition
 
 from . import config
 from .big_phi import PhiStructure
@@ -44,6 +45,7 @@ class PhiPlotTheme:
     two_relations_hoverlabel_font_color: str = "white"
     three_relation_colorscale: str = "teal"
     three_relation_opacity: float = 0.1
+    three_relation_opacity_range: Optional[tuple] = None
     three_relation_intensity_range: tuple = (0, 1)
     three_relation_showlegend: bool = True
     three_relation_showscale: bool = True
@@ -511,6 +513,58 @@ def _plot_three_relations(fig, relation_to_coords, relations, label, theme):
     )
 
 
+def _plot_three_relations_with_opacity(
+    fig, relation_to_coords, relations, label, theme
+):
+    name = "3-relations" + theme.legendgroup_postfix
+    # Build vertices:
+    # Stack the [relation, relata] axes together and tranpose to put the 3D axis
+    # first to get lists of x, y, z coordinates
+    x, y, z = np.vstack(list(map(relation_to_coords, relations))).transpose()
+    phis = np.array(list(relations.phis))
+    intensities = rescale(phis, theme.three_relation_intensity_range)
+    opacities = rescale(phis, theme.three_relation_opacity_range)
+    hovertexts = list(map(label.relation, relations))
+    showlegend = theme.three_relation_showlegend
+    showscale = theme.three_relation_showscale
+    for _x, _y, _z, intensity, opacity, hovertext in zip(
+        partition(3, x),
+        partition(3, y),
+        partition(3, z),
+        intensities,
+        opacities,
+        hovertexts,
+    ):
+        fig.add_trace(
+            go.Mesh3d(
+                x=_x,
+                y=_y,
+                z=_z,
+                i=[0],
+                j=[1],
+                k=[2],
+                showlegend=showlegend,
+                legendgroup=name + theme.legendgroup_postfix,
+                name=name,
+                intensity=[intensity],
+                intensitymode="cell",
+                colorscale=theme.three_relation_colorscale,
+                showscale=showscale,
+                colorbar=dict(
+                    title=dict(text="φ", font_size=2 * theme.fontsize),
+                    x=0.0,
+                    len=1.0,
+                ),
+                opacity=opacity,
+                hoverinfo="text",
+                hovertext=hovertext,
+                lighting=theme.lighting,
+            )
+        )
+        showlegend = False
+        showscale = False
+
+
 # TODO
 # - 4-relations?
 # - think about configuration for visual attributes; seems it can be easily
@@ -632,6 +686,11 @@ def plot_phi_structure(
 
     # 3-relations
     if relations[3]:
-        _plot_three_relations(fig, relation_to_coords, relations[3], label, theme)
+        if theme.three_relation_opacity_range is None:
+            _plot_three_relations(fig, relation_to_coords, relations[3], label, theme)
+        else:
+            _plot_three_relations_with_opacity(
+                fig, relation_to_coords, relations[3], label, theme
+            )
 
     return fig
