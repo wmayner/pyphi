@@ -1,7 +1,8 @@
 from collections import Iterable, defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from itertools import combinations
 from math import cos, isclose, radians, sin
+from typing import Mapping, Optional
 
 import numpy as np
 import plotly.colors
@@ -45,6 +46,11 @@ class PhiPlotTheme:
     three_relation_opacity: float = 0.1
     three_relation_intensity_range: tuple = (0, 1)
     three_relation_showlegend: bool = True
+    lighting: Mapping = field(
+        default_factory=lambda: dict(
+            ambient=0.8, diffuse=0, roughness=0, specular=0, fresnel=0
+        )
+    )
     legendgroup_postfix: str = ""
 
 
@@ -497,6 +503,7 @@ def _plot_three_relations(fig, relation_to_coords, relations, label, theme):
                 len=1.0,
             ),
             opacity=theme.three_relation_opacity,
+            lighting=theme.lighting,
             hoverinfo="text",
             hovertext=hovertext,
         )
