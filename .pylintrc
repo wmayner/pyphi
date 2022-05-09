@@ -61,6 +61,7 @@ disable =
     no-self-use,
     super-on-old-class,
     bad-continuation,
+    missing-function-docstring
 
 
 [REPORTS]
