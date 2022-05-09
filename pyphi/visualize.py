@@ -2,7 +2,7 @@ from collections import Iterable, defaultdict
 from dataclasses import dataclass, field
 from itertools import combinations
 from math import cos, isclose, radians, sin
-from typing import Mapping, Optional
+from typing import Callable, Mapping, Optional, Union
 
 import numpy as np
 import plotly.colors
@@ -15,7 +15,7 @@ from . import config
 from .big_phi import PhiStructure
 from .direction import Direction
 from .models.subsystem import CauseEffectStructure
-from .relations import ConcreteRelations
+from .relations import ConcreteRelations, two_relation_type
 from .utils import state_of
 
 TWOPI = 2 * np.pi
@@ -24,6 +24,8 @@ FONT_FAMILY = "MesloLGS NF, Roboto Mono, Menlo"
 
 @dataclass
 class PhiPlotTheme:
+    """Specifies plot attributes."""
+
     fontsize: int = 12
     direction_offset: float = 0.5
     cause_color: str = "#e21a1a"
@@ -40,7 +42,7 @@ class PhiPlotTheme:
     mechanism_z_offset: float = 0.0
     mechanism_z_spacing: float = 0.0
     mechanism_radius_func: str = "linear"
-    two_relation_colorscale: str = "teal"
+    two_relation_colorscale: Union[str, Callable, Mapping] = "type"
     two_relation_opacity: float = 0.2
     two_relations_hoverlabel_font_color: str = "white"
     three_relation_colorscale: str = "teal"
@@ -72,6 +74,16 @@ GREYS = PhiPlotTheme(
     # three_relation_showlegend=True,
     legendgroup_postfix=" (greyed)",
 )
+
+
+_TYPE_COLORS = {"isotext": "magenta", "inclusion": "indigo", "paratext": "cyan"}
+
+
+def type_color(relation):
+    return _TYPE_COLORS[two_relation_type(relation)]
+
+
+TWO_RELATION_COLORSCHEMES = {"type": type_color}
 
 
 def rgb_to_rgba(color, alpha=0):
@@ -441,9 +453,31 @@ def _plot_mechanism_purview_links(
 def _plot_two_relations(fig, relation_to_coords, relations, label, theme):
     name = "2-relations" + theme.legendgroup_postfix
     phis = np.array(list(relations.phis))
-    scaled_phis = rescale(phis, (0, 1))
     widths = rescale(phis, theme.line_width_range)
-    line_colors = [get_color(theme.two_relation_colorscale, phi) for phi in scaled_phis]
+
+    if isinstance(theme.two_relation_colorscale, Mapping):
+        # Map to relation type
+        line_colors = list(
+            map(theme.two_relation_colorscale.get, map(two_relation_type, relations))
+        )
+    elif (
+        isinstance(theme.two_relation_colorscale, str)
+        and theme.two_relation_colorscale not in TWO_RELATION_COLORSCHEMES
+    ):
+        # Plotly colorscale
+        scaled_phis = rescale(phis, (0, 1))
+        line_colors = [
+            get_color(theme.two_relation_colorscale, phi) for phi in scaled_phis
+        ]
+    elif theme.two_relation_colorscale in TWO_RELATION_COLORSCHEMES:
+        # Library function
+        line_colors = list(
+            map(TWO_RELATION_COLORSCHEMES[theme.two_relation_colorscale], relations)
+        )
+    else:
+        # Callable
+        line_colors = list(map(theme.two_relation_colorscale, relations))
+
     showlegend = True
     for relation, width, line_color in zip(
         relations,

@@ -843,6 +843,21 @@ def relation(relata):
     return relata.maximally_irreducible_relation()
 
 
+def two_relation_type(relation):
+    if len(relation) != 2:
+        raise ValueError(f"must be a 2-relation; got a {len(relation)}-relation")
+    purview = list(map(set, relation.relata.purviews))
+    # Isotext (mutual full-overlap)
+    if purview[0] == purview[1] == relation.purview:
+        return "isotext"
+    # Sub/Supertext (inclusion / full-overlap)
+    elif purview[0].issubset(purview[1]) or purview[0].issuperset(purview[1]):
+        return "inclusion"
+    # Paratext (connection / partial-overlap)
+    else:
+        return "paratext"
+
+
 def all_relata(subsystem, ces, min_degree=2, max_degree=None):
     """Return all relata in the CES, even if they have no ovelap."""
     if min_degree < 2:
