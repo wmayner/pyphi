@@ -471,7 +471,8 @@ def _plot_three_relations(fig, relation_to_coords, relations, label, theme):
     x, y, z = np.vstack(list(map(relation_to_coords, relations))).transpose()
     # Build triangles:
     # The vertices are stacked triples, so we want each (i, j, k) = [0, 1, 2], [3, 4, 5], ...
-    i, j, k = np.tile(np.arange(len(relations)), (3, 1)) + np.arange(3).reshape(3, 1)
+    relata_indices = np.arange(len(relations) * 3, step=3)
+    i, j, k = np.tile(relata_indices, (3, 1)) + np.arange(3).reshape(3, 1)
     phis = np.array(list(relations.phis))
     intensities = rescale(phis, theme.three_relation_intensity_range)
     hovertext = list(map(label.relation, relations))
