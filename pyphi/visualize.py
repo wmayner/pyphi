@@ -46,6 +46,7 @@ class PhiPlotTheme:
     three_relation_opacity: float = 0.1
     three_relation_intensity_range: tuple = (0, 1)
     three_relation_showlegend: bool = True
+    three_relation_showscale: bool = True
     lighting: Mapping = field(
         default_factory=lambda: dict(
             ambient=0.8, diffuse=0, roughness=0, specular=0, fresnel=0
@@ -496,7 +497,7 @@ def _plot_three_relations(fig, relation_to_coords, relations, label, theme):
             intensity=intensities,
             intensitymode="cell",
             colorscale=theme.three_relation_colorscale,
-            showscale=True,
+            showscale=theme.three_relation_showscale,
             colorbar=dict(
                 title=dict(text="φ", font_size=2 * theme.fontsize),
                 x=0.0,
