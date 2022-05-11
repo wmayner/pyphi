@@ -12,7 +12,7 @@ import sys
 import threading
 from itertools import chain, islice
 
-import ray
+# import ray
 from tblib import Traceback
 from tqdm import tqdm
 
@@ -364,27 +364,21 @@ def configure_worker_logging(queue):  # coverage: disable
     )
 
 
-def init(*args, **kwargs):
-    """Initialize Ray if not already initialized."""
-    if not ray.is_initialized():
-        return ray.init(
-            *args,
-            **{
-                "num_cpus": get_num_processes(),
-                **config.RAY_CONFIG,
-                **kwargs,
-            },
-        )
+# def init(*args, **kwargs):
+#     """Initialize Ray if not already initialized."""
+#     if not ray.is_initialized():
+#         return ray.init(
+#             *args,
+#             **{
+#                 "num_cpus": get_num_processes(),
+#                 **config.RAY_CONFIG,
+#                 **kwargs,
+#             },
+#         )
 
 
-def as_completed(object_refs, num_returns=1):
-    unfinished = object_refs
-    while unfinished:
-        finished, unfinished = ray.wait(unfinished, num_returns=num_returns)
-        yield from ray.get(finished)
-
-
-@ray.remote
-class RemoteConfig:
-    def __init__(config):
-        self.config = config
+# def as_completed(object_refs, num_returns=1):
+#     unfinished = object_refs
+#     while unfinished:
+#         finished, unfinished = ray.wait(unfinished, num_returns=num_returns)
+#         yield from ray.get(finished)

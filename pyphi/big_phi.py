@@ -3,6 +3,7 @@
 
 import functools
 import logging
+from multiprocessing.sharedctypes import Value
 import operator
 import pickle
 from collections import UserDict, defaultdict
@@ -10,7 +11,7 @@ from dataclasses import dataclass
 from itertools import product
 
 import networkx as nx
-import ray
+# import ray
 import scipy
 from toolz.itertoolz import partition_all
 from tqdm.auto import tqdm
@@ -198,8 +199,8 @@ def _requires_relations(func):
     @functools.wraps(func)
     def wrapper(self, *args, **kwargs):
         # Get relations from Ray if they're remote
-        if isinstance(self.relations, ray.ObjectRef):
-            self.relations = ray.get(self.relations)
+        # if isinstance(self.relations, ray.ObjectRef):
+        #     self.relations = ray.get(self.relations)
         # Filter relations if flag is set
         if self.requires_filter_relations:
             self.filter_relations()
@@ -223,11 +224,11 @@ class PhiStructure(cmp.Orderable):
             raise ValueError("CauseEffectStructure must have the `subsystem` attribute")
         if isinstance(distinctions, FlatCauseEffectStructure):
             distinctions = distinctions.unflatten()
-        if not isinstance(relations, (Relations, ray.ObjectRef, type(None))):
-            raise ValueError(
-                f"relations must be a Relations object, ray.ObjectRef, or None; "
-                f"got {type(relations)}"
-            )
+        # if not isinstance(relations, (Relations, ray.ObjectRef, type(None))):
+        #     raise ValueError(
+        #         f"relations must be a Relations object, ray.ObjectRef, or None; "
+        #         f"got {type(relations)}"
+        #     )
         self.requires_filter_relations = requires_filter_relations
         self.distinctions = distinctions
         self.relations = relations
@@ -646,7 +647,7 @@ def evaluate_partitions(subsystem, phi_structure, partitions):
     )
 
 
-_evaluate_partitions = ray.remote(evaluate_partitions)
+# _evaluate_partitions = ray.remote(evaluate_partitions)
 
 
 def _null_sia(subsystem, phi_structure, reasons=None):
@@ -691,7 +692,7 @@ def evaluate_phi_structure(
     phi_structure,
     check_trivial_reducibility=True,
     chunksize=DEFAULT_PARTITION_CHUNKSIZE,
-    remote=True,
+    remote=False,
     progress=False,
 ):
     """Analyze the irreducibility of a PhiStructure."""
@@ -702,24 +703,25 @@ def evaluate_phi_structure(
         return _null_sia(subsystem, phi_structure)
 
     if remote:
-        tasks = [
-            _evaluate_partitions.remote(
-                subsystem,
-                phi_structure,
-                partitions,
-            )
-            for partitions in partition_all(
-                chunksize,
-                sia_partitions(subsystem.cut_indices, subsystem.cut_node_labels),
-            )
-        ]
-        return extremum_with_short_circuit(
-            as_completed(tasks),
-            cmp=operator.lt,
-            initial=float("inf"),
-            shortcircuit_value=0,
-            shortcircuit_callback=lambda: [ray.cancel(task) for task in tasks],
-        )
+        raise ValueError('requires ray')
+        # tasks = [
+        #     _evaluate_partitions.remote(
+        #         subsystem,
+        #         phi_structure,
+        #         partitions,
+        #     )
+        #     for partitions in partition_all(
+        #         chunksize,
+        #         sia_partitions(subsystem.cut_indices, subsystem.cut_node_labels),
+        #     )
+        # ]
+        # return extremum_with_short_circuit(
+        #     as_completed(tasks),
+        #     cmp=operator.lt,
+        #     initial=float("inf"),
+        #     shortcircuit_value=0,
+        #     shortcircuit_callback=lambda: [ray.cancel(task) for task in tasks],
+        # )
     else:
         partitions = sia_partitions(subsystem.cut_indices, subsystem.cut_node_labels)
         if progress:
@@ -746,10 +748,10 @@ def evaluate_phi_structures(
     )
 
 
-_evaluate_phi_structures = ray.remote(evaluate_phi_structures)
+# _evaluate_phi_structures = ray.remote(evaluate_phi_structures)
 
 
-_compute_relations = ray.remote(compute_relations)
+# _compute_relations = ray.remote(compute_relations)
 
 
 def max_system_intrinsic_information(phi_structures):
@@ -759,34 +761,35 @@ def max_system_intrinsic_information(phi_structures):
     )
 
 
-_max_system_intrinsic_information = ray.remote(max_system_intrinsic_information)
+# _max_system_intrinsic_information = ray.remote(max_system_intrinsic_information)
 
 
 # TODO refactor into a pattern
 def find_maximal_compositional_state(
     phi_structures,
     chunksize=DEFAULT_PHI_STRUCTURE_CHUNKSIZE,
-    remote=True,
+    remote=False,
     progress=False,
 ):
     progress = config.PROGRESS_BARS or progress
     log.debug("Finding maximal compositional state...")
     if remote:
-        tasks = [
-            _max_system_intrinsic_information.remote(chunk)
-            for chunk in tqdm(
-                partition_all(chunksize, phi_structures),
-                desc="Submitting compositional states for evaluation",
-            )
-        ]
-        log.debug("Done submitting tasks.")
-        results = as_completed(tasks)
-        if progress:
-            results = tqdm(
-                results, total=len(tasks), desc="Finding maximal compositional state"
-            )
-        log.debug("Done finding maximal compositional state.")
-        return max_system_intrinsic_information(results)
+        raise ValueError('requires ray')
+        # tasks = [
+        #     _max_system_intrinsic_information.remote(chunk)
+        #     for chunk in tqdm(
+        #         partition_all(chunksize, phi_structures),
+        #         desc="Submitting compositional states for evaluation",
+        #     )
+        # ]
+        # log.debug("Done submitting tasks.")
+        # results = as_completed(tasks)
+        # if progress:
+        #     results = tqdm(
+        #         results, total=len(tasks), desc="Finding maximal compositional state"
+        #     )
+        # log.debug("Done finding maximal compositional state.")
+        # return max_system_intrinsic_information(results)
     else:
         if progress:
             phi_structures = tqdm(phi_structures, desc="Nonconflicting sets")
@@ -797,7 +800,7 @@ def nonconflicting_phi_structures(
     all_distinctions,
     ties=False,
     all_relations=None,
-    remote=True,
+    remote=False,
 ):
     """Yield nonconflicting PhiStructures."""
     for distinctions in all_nonconflicting_distinction_sets(
@@ -806,9 +809,10 @@ def nonconflicting_phi_structures(
         if all_relations is None:
             # Compute relations on workers for each nonconflicting set
             if remote:
-                relations = _compute_relations.remote(
-                    all_distinctions.subsystem, distinctions
-                )
+                raise ValueError('requires ray')
+                # relations = _compute_relations.remote(
+                #     all_distinctions.subsystem, distinctions
+                # )
             else:
                 relations = compute_relations(all_distinctions.subsystem, distinctions)
             requires_filter_relations = False
@@ -834,7 +838,7 @@ def sia(
     partition_chunksize=DEFAULT_PARTITION_CHUNKSIZE,
     progress=False,
     ties=False,
-    remote=True,
+    remote=False,
 ):
     """Analyze the irreducibility of a system."""
     progress = config.PROGRESS_BARS or progress
@@ -880,33 +884,34 @@ def sia(
         log.debug("Done evaluating maximal compositional state; returning SIA.")
         return analysis
     else:
-        # Broadcast subsystem object to workers
-        log.debug("Putting subsystem into all workers...")
-        subsystem = ray.put(subsystem)
-        log.debug("Done putting subsystem into all workers.")
+        raise ValueError('requires ray')
+        # # Broadcast subsystem object to workers
+        # log.debug("Putting subsystem into all workers...")
+        # subsystem = ray.put(subsystem)
+        # log.debug("Done putting subsystem into all workers.")
 
-        log.debug("Evaluating all compositional states...")
-        tasks = [
-            _evaluate_phi_structures.remote(
-                subsystem,
-                chunk,
-                check_trivial_reducibility=check_trivial_reducibility,
-                chunksize=partition_chunksize,
-            )
-            for chunk in tqdm(
-                partition_all(chunksize, phi_structures),
-                desc="Submitting compositional states for evaluation",
-            )
-        ]
-        log.debug("Done submitting tasks.")
-        results = as_completed(tasks)
-        if progress:
-            results = tqdm(
-                results, total=len(tasks), desc="Evaluating compositional states"
-            )
-        maximum = max(results)
-        log.debug("Done evaluating all compositional states; returning SIA.")
-        return maximum
+        # log.debug("Evaluating all compositional states...")
+        # tasks = [
+        #     _evaluate_phi_structures.remote(
+        #         subsystem,
+        #         chunk,
+        #         check_trivial_reducibility=check_trivial_reducibility,
+        #         chunksize=partition_chunksize,
+        #     )
+        #     for chunk in tqdm(
+        #         partition_all(chunksize, phi_structures),
+        #         desc="Submitting compositional states for evaluation",
+        #     )
+        # ]
+        # log.debug("Done submitting tasks.")
+        # results = as_completed(tasks)
+        # if progress:
+        #     results = tqdm(
+        #         results, total=len(tasks), desc="Evaluating compositional states"
+        #     )
+        # maximum = max(results)
+        # log.debug("Done evaluating all compositional states; returning SIA.")
+        # return maximum
 
 
 def complexes(network, state, **kwargs):
