@@ -24,6 +24,7 @@ install_requires = [
     "psutil >=2.1.1",
     "pyemd >=0.3.0",
     "pyyaml >=3.13",
+    "ray[default] >=1.9.2",
     "redis >=2.10.5",
     "scipy >=0.13.3",
     "tblib >=1.3.2",
