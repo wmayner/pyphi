@@ -20,7 +20,7 @@ from . import combinatorics, compute, config, utils
 from .cache import cache
 from .combinatorics import maximal_independent_sets
 from .compute.network import reachable_subsystems
-from .compute.parallel import as_completed, init
+# from .compute.parallel import as_completed, init
 from .direction import Direction
 from .models import cmp, fmt
 from .models.cuts import CompleteSystemPartition, NullCut, SystemPartition
