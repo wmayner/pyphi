@@ -646,7 +646,7 @@ def fmt_sia_4(sia, phi_structure=True, title="System irreducibility analysis"):
 
     data = [
         sia.subsystem.nodes,
-        fmt_cut(sia.partition, name=False),
+        fmt_cut(sia.partition, direction=sia.partition.direction, name=False),
     ]
     if sia.reasons:
         data.append("[trivially reducible]\n" + "\n".join(map(str, sia.reasons)))
