@@ -827,17 +827,21 @@ def nonconflicting_phi_structures(
 # TODO document args
 def sia(
     subsystem,
-    all_distinctions,
+    all_distinctions=None,
     phi_structures=None,
     check_trivial_reducibility=True,
     chunksize=DEFAULT_PHI_STRUCTURE_CHUNKSIZE,
     partition_chunksize=DEFAULT_PARTITION_CHUNKSIZE,
-    progress=False,
+    progress=None,
     ties=False,
     remote=True,
 ):
     """Analyze the irreducibility of a system."""
     progress = config.PROGRESS_BARS or progress
+
+    if all_distinctions is None:
+        all_distinctions = compute.ces(subsystem)
+
     if not isinstance(all_distinctions, CauseEffectStructure):
         raise ValueError("all_distinctions must be a CauseEffectStructure")
     if isinstance(all_distinctions, FlatCauseEffectStructure):
