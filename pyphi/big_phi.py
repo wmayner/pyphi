@@ -3,7 +3,6 @@
 
 import functools
 import logging
-import operator
 import pickle
 from collections import UserDict, defaultdict
 from dataclasses import dataclass
@@ -18,8 +17,9 @@ from tqdm.auto import tqdm
 from . import combinatorics, compute, config, utils
 from .cache import cache
 from .combinatorics import maximal_independent_sets
+from .compute import parallel as _parallel
 from .compute.network import reachable_subsystems
-from .compute.parallel import as_completed, init
+from .compute.parallel import as_completed, remote
 from .direction import Direction
 from .models import cmp, fmt
 from .models.cuts import CompleteSystemPartition, NullCut, SystemPartition
@@ -29,7 +29,7 @@ from .registry import Registry
 from .relations import ConcreteRelations, Relations
 from .relations import relations as compute_relations
 from .subsystem import Subsystem
-from .utils import expsublog, extremum_with_short_circuit
+from .utils import expsublog
 
 # TODO
 # - cache relations, compute as needed for each nonconflicting CES
@@ -92,7 +92,7 @@ def number_of_possible_distinctions_of_order(n, k):
 
 def number_of_possible_distinctions(n):
     """Return the number of possible distinctions."""
-    return 2 ** n - 1
+    return 2**n - 1
 
 
 @cache(cache={}, maxmem=None)
@@ -476,7 +476,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         return fmt.fmt_sia_4(self)
 
 
-def evaluate_partition(subsystem, phi_structure, partition):
+def evaluate_partition(partition, subsystem, phi_structure):
     partitioned_phi_structure = phi_structure.apply_partition(partition)
     return SystemIrreducibilityAnalysis(
         subsystem=subsystem,
@@ -634,21 +634,6 @@ def all_nonconflicting_distinction_sets(distinctions, ties=False):
         yield from _all_nonconflicting_distinction_sets(distinctions)
 
 
-def evaluate_partitions(subsystem, phi_structure, partitions):
-    return extremum_with_short_circuit(
-        (
-            evaluate_partition(subsystem, phi_structure, partition)
-            for partition in partitions
-        ),
-        cmp=operator.lt,
-        initial=float("inf"),
-        shortcircuit_value=0,
-    )
-
-
-_evaluate_partitions = ray.remote(evaluate_partitions)
-
-
 def _null_sia(subsystem, phi_structure, reasons=None):
     if not subsystem.cut.is_null:
         raise ValueError("subsystem must have no partition")
@@ -662,6 +647,19 @@ def _null_sia(subsystem, phi_structure, reasons=None):
         informativeness=None,
         phi=0.0,
         reasons=reasons,
+    )
+
+
+def _null_complex(network, state):
+    return SystemIrreducibilityAnalysis(
+        subsystem=Subsystem(network, state, ()),
+        phi_structure=None,
+        partitioned_phi_structure=None,
+        partition=None,
+        selectivity=None,
+        informativeness=None,
+        phi=0.0,
+        reasons=None,
     )
 
 
@@ -692,7 +690,7 @@ def evaluate_phi_structure(
     check_trivial_reducibility=True,
     chunksize=DEFAULT_PARTITION_CHUNKSIZE,
     remote=True,
-    progress=False,
+    progress=None,
 ):
     """Analyze the irreducibility of a PhiStructure."""
     # Realize the PhiStructure before distributing tasks
@@ -701,65 +699,26 @@ def evaluate_phi_structure(
     if check_trivial_reducibility and is_trivially_reducible(phi_structure):
         return _null_sia(subsystem, phi_structure)
 
-    if remote:
-        tasks = [
-            _evaluate_partitions.remote(
-                subsystem,
-                phi_structure,
-                partitions,
-            )
-            for partitions in partition_all(
-                chunksize,
-                sia_partitions(subsystem.cut_indices, subsystem.cut_node_labels),
-            )
-        ]
-        return extremum_with_short_circuit(
-            as_completed(tasks),
-            cmp=operator.lt,
-            initial=float("inf"),
-            shortcircuit_value=0,
-            shortcircuit_callback=lambda: [ray.cancel(task) for task in tasks],
-        )
-    else:
-        partitions = sia_partitions(subsystem.cut_indices, subsystem.cut_node_labels)
-        if progress:
-            partitions = tqdm(partitions, desc="Partitions")
-        return extremum_with_short_circuit(
-            (
-                evaluate_partition(subsystem, phi_structure, partition)
-                for partition in partitions
-            ),
-            cmp=operator.lt,
-            initial=float("inf"),
-            shortcircuit_value=0,
-        )
+    partitions = sia_partitions(subsystem.cut_indices, subsystem.cut_node_labels)
+    if progress:
+        partitions = tqdm(partitions, desc="Partitions")
 
-
-def evaluate_phi_structures(
-    subsystem,
-    phi_structures,
-    **kwargs,
-):
-    return max(
-        evaluate_phi_structure(subsystem, phi_structure, **kwargs)
-        for phi_structure in phi_structures
+    return _parallel.map_reduce(
+        evaluate_partition,
+        min,
+        partitions,
+        subsystem=subsystem,
+        phi_structure=phi_structure,
+        chunksize=chunksize,
+        shortcircuit_value=0,
+        parallel=remote,
+        desc="Partitions",
+        progress=progress,
     )
 
 
-_evaluate_phi_structures = ray.remote(evaluate_phi_structures)
-
-
-_compute_relations = ray.remote(compute_relations)
-
-
-def max_system_intrinsic_information(phi_structures):
-    return max(
-        phi_structures,
-        key=lambda phi_structure: phi_structure.system_intrinsic_information(),
-    )
-
-
-_max_system_intrinsic_information = ray.remote(max_system_intrinsic_information)
+def _system_intrinsic_information(phi_structure):
+    return (phi_structure.system_intrinsic_information(), phi_structure)
 
 
 # TODO refactor into a pattern
@@ -767,30 +726,24 @@ def find_maximal_compositional_state(
     phi_structures,
     chunksize=DEFAULT_PHI_STRUCTURE_CHUNKSIZE,
     remote=True,
-    progress=False,
+    progress=None,
 ):
     progress = config.PROGRESS_BARS or progress
     log.debug("Finding maximal compositional state...")
-    if remote:
-        tasks = [
-            _max_system_intrinsic_information.remote(chunk)
-            for chunk in tqdm(
-                partition_all(chunksize, phi_structures),
-                desc="Submitting compositional states for evaluation",
-            )
-        ]
-        log.debug("Done submitting tasks.")
-        results = as_completed(tasks)
-        if progress:
-            results = tqdm(
-                results, total=len(tasks), desc="Finding maximal compositional state"
-            )
-        log.debug("Done finding maximal compositional state.")
-        return max_system_intrinsic_information(results)
-    else:
-        if progress:
-            phi_structures = tqdm(phi_structures, desc="Nonconflicting sets")
-        return max_system_intrinsic_information(phi_structures)
+    _, phi_structure = _parallel.map_reduce(
+        _system_intrinsic_information,
+        max,
+        phi_structures,
+        chunksize=chunksize,
+        shortcircuit_value=0,
+        parallel=remote,
+        desc="Compositional states",
+        progress=progress,
+    )
+    return phi_structure
+
+
+_compute_relations = remote(compute_relations)
 
 
 def nonconflicting_phi_structures(
@@ -925,6 +878,4 @@ def major_complex(network, state, **kwargs):
     result = complexes(network, state, **kwargs)
     if result:
         return max(result)
-    else:
-        empty_subsystem = Subsystem(network, state, ())
-        return _null_sia(empty_subsystem)
+    return _null_complex(network, state)
