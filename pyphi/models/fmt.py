@@ -13,6 +13,7 @@ import numpy as np
 
 from .. import config, constants, utils
 from ..direction import Direction
+from ..big_phi import NullCut
 
 # REPR_VERBOSITY levels
 LOW = 0
@@ -644,9 +645,14 @@ def fmt_sia_4(sia, phi_structure=True, title="System irreducibility analysis"):
     lines = align_columns(lines)
     body = "\n".join(["\n".join(lines), body])
 
+    if cut is NullCut:
+        cut = str(cut)
+    else:
+        cut = fmt_cut(sia.partition, direction=sia.partition.direction, name=False),
+
     data = [
         sia.subsystem.nodes,
-        fmt_cut(sia.partition, direction=sia.partition.direction, name=False),
+        cut,
     ]
     if sia.reasons:
         data.append("[trivially reducible]\n" + "\n".join(map(str, sia.reasons)))
