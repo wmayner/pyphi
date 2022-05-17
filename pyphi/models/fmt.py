@@ -13,7 +13,7 @@ import numpy as np
 
 from .. import config, constants, utils
 from ..direction import Direction
-from ..big_phi import NullCut
+from .cuts import NullCut
 
 # REPR_VERBOSITY levels
 LOW = 0
