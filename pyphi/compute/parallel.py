@@ -368,18 +368,6 @@ def configure_worker_logging(queue):  # coverage: disable
     )
 
 
-RAY_RUNTIME_ENV = {
-    # Signifies that the task is being run remotely and the cached config should
-    # be used
-    "env_vars": {"PYPHI_REMOTE": "1"}
-}
-
-
-def remote(func):
-    """Defines a remote function or an actor class with PyPhi's runtime env."""
-    return ray.remote(runtime_env=RAY_RUNTIME_ENV)(func)
-
-
 def init(*args, **kwargs):
     """Initialize Ray if not already initialized."""
     if not ray.is_initialized():
@@ -493,7 +481,7 @@ def _map_remote(func, *arglists, inflight_limit=1000, **kwargs):
     if not isinstance(
         func, (ray.remote_function.RemoteFunction, ray.actor.ActorHandle)
     ):
-        func = remote(func)
+        func = ray.remote(func)
     result_refs = []
     for i, args in enumerate(zip(*arglists)):
         if len(result_refs) > inflight_limit:
@@ -705,7 +693,7 @@ def _map_reduce_tree(
 
 
 # Stay on driver for first call in case we're given a generator
-_remote_map_reduce_tree = remote(_map_reduce_tree)
+_remote_map_reduce_tree = ray.remote(_map_reduce_tree)
 
 
 @functools.wraps(_map_reduce_tree)
