@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 
 import pytest
+import ray
 
 import pyphi
 from pyphi import cache, config
@@ -101,3 +102,15 @@ def flushcache(request):
     """
     log.info("Flushing caches...")
     _flush_redis_cache()
+
+
+# Ray
+# ================================================================
+
+
+@pytest.fixture(scope="module")
+@pytest.mark.filterwarnings("ignore:.*:PytestUnraisableExceptionWarning")
+def ray_context():
+    context = ray.init(local_mode=True, num_cpus=1)
+    yield context
+    ray.shutdown()
