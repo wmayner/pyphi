@@ -64,35 +64,6 @@ def grid3_subsystem():
     return Subsystem(grid3_network(), state=(0, 0, 0), nodes=(0, 1, 2))
 
 
-# TODO(relations): add docstring
-@register_example
-def pqr_network():
-    # fmt: off
-    tpm = np.array([
-        [0, 0, 0],
-        [0, 0, 1],
-        [1, 0, 1],
-        [1, 0, 0],
-        [1, 1, 0],
-        [1, 1, 1],
-        [1, 1, 1],
-        [1, 1, 0],
-    ])
-    cm = np.array([
-        [0, 0, 1],
-        [1, 0, 1],
-        [1, 1, 0],
-    ])
-    # fmt: on
-    return Network(tpm, cm=cm, node_labels=['P', 'Q', 'R'])
-
-
-# TODO(relations): add docstring
-@register_example
-def pqr_subsystem():
-    return Subsystem(pqr_network(), (1, 0, 0))
-
-
 @register_example
 def basic_network(cm=False):
     """A 3-node network of logic gates.
@@ -187,6 +158,11 @@ def basic_subsystem():
     net = basic_network()
     state = basic_state()
     return Subsystem(net, state)
+
+
+# TODO(relations): add docstring
+pqr_network = basic_network
+pqr_subsystem = basic_subsystem
 
 
 @register_example
