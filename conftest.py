@@ -81,12 +81,9 @@ def protect_caches(request):
     # Initialize a test Redis connection
     original_redis_conn = cache.redis_conn
     cache.redis_conn = cache.redis_init(config.REDIS_CONFIG["test_db"])
-
-    def fin():
-        cache.redis_conn = original_redis_conn
-
+    yield
     # Restore the cache after the last test has run
-    request.addfinalizer(fin)
+    cache.redis_conn = original_redis_conn
 
 
 def _flush_redis_cache():
