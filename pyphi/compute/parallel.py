@@ -6,7 +6,9 @@
 Utilities for parallel computation.
 """
 
+import functools
 import logging
+import math
 import multiprocessing
 import sys
 import threading
@@ -14,11 +16,15 @@ from itertools import chain, islice
 
 import ray
 from tblib import Traceback
-from tqdm import tqdm
+from toolz import concat, partition_all
+from tqdm.auto import tqdm
 
 from .. import config
 
 log = logging.getLogger(__name__)
+
+# Protect reference to builtin map
+_map_builtin = map
 
 
 def get_num_processes():
@@ -39,7 +45,7 @@ def get_num_processes():
         if num <= 0:
             raise ValueError(
                 "Invalid NUMBER_OF_CORES; negative value is too negative: "
-                "requesting {} cores, {} available.".format(num, cpu_count)
+                f"requesting {num} cores, {cpu_count} available."
             )
 
         return num
@@ -265,8 +271,6 @@ class MapReduce:
                         self.complete.set()
 
             self.finish_parallel()
-        except Exception:
-            raise
         finally:
             log.debug("Removing progress bar")
             self.progress.close()
@@ -364,6 +368,18 @@ def configure_worker_logging(queue):  # coverage: disable
     )
 
 
+RAY_RUNTIME_ENV = {
+    # Signifies that the task is being run remotely and the cached config should
+    # be used
+    "env_vars": {"PYPHI_REMOTE": "1"}
+}
+
+
+def remote(func):
+    """Defines a remote function or an actor class with PyPhi's runtime env."""
+    return ray.remote(runtime_env=RAY_RUNTIME_ENV)(func)
+
+
 def init(*args, **kwargs):
     """Initialize Ray if not already initialized."""
     if not ray.is_initialized():
@@ -377,14 +393,334 @@ def init(*args, **kwargs):
         )
 
 
+class _NoShortCircuit:
+    """An object that is not equal to anything."""
+
+    def __eq__(self, other):
+        return False
+
+
 def as_completed(object_refs, num_returns=1):
+    """Yield remote results in order of completion."""
     unfinished = object_refs
     while unfinished:
         finished, unfinished = ray.wait(unfinished, num_returns=num_returns)
         yield from ray.get(finished)
 
 
-@ray.remote
-class RemoteConfig:
-    def __init__(config):
-        self.config = config
+@functools.wraps(ray.cancel)
+def cancel_all(object_refs, *args, **kwargs):
+    try:
+        for ref in object_refs:
+            ray.cancel(ref, *args, **kwargs)
+        # TODO remove the following when ray.cancel is less noisy; see
+        # https://github.com/ray-project/ray/issues/24658
+        object_refs, _ = ray.wait(object_refs, num_returns=len(object_refs))
+        for ref in object_refs:
+            try:
+                ray.get(ref)
+            except (ray.exceptions.RayTaskError, ray.exceptions.TaskCancelledError):
+                pass
+    except TypeError:
+        # Do nothing if the object_refs are not actually ObjectRefs
+        pass
+    return object_refs
+
+
+def shortcircuit(
+    items,
+    shortcircuit_value=_NoShortCircuit(),
+    shortcircuit_callback=None,
+    shortcircuit_callback_args=None,
+):
+    """Yield from an iterable, stopping early if a certain value is found."""
+    for result in items:
+        yield result
+        if result == shortcircuit_value:
+            if shortcircuit_callback:
+                if shortcircuit_callback_args is None:
+                    shortcircuit_callback_args = items
+                shortcircuit_callback(shortcircuit_callback_args)
+            return
+
+
+def _try_len(*iterables):
+    """Return the minimum length of iterables, or None if none has a length."""
+    try:
+        return min(len(iterable) for iterable in iterables)
+    except TypeError:
+        return None
+
+
+def _progress(progress):
+    """Default to PROGRESS_BARS if given progress setting is None."""
+    if progress is None:
+        return config.PROGRESS_BARS
+    return progress
+
+
+def get(
+    object_refs,
+    parallel=True,
+    shortcircuit_value=_NoShortCircuit(),
+    shortcircuit_callback=cancel_all,
+    progress=None,
+    desc=None,
+    total=None,
+):
+    """Get (potentially) remote results.
+
+    Optionally return early if a particular value is found.
+    """
+    if parallel:
+        completed = as_completed(object_refs)
+    else:
+        completed = object_refs
+
+    if _progress(progress):
+        completed = tqdm(completed, total=(total or _try_len(object_refs)), desc=desc)
+
+    return shortcircuit(
+        completed,
+        shortcircuit_value=shortcircuit_value,
+        shortcircuit_callback=shortcircuit_callback,
+        shortcircuit_callback_args=object_refs,
+    )
+
+
+def _map_remote(func, *arglists, inflight_limit=1000, **kwargs):
+    # https://docs.ray.io/en/latest/ray-core/tasks/patterns/limit-tasks.html
+    if not isinstance(
+        func, (ray.remote_function.RemoteFunction, ray.actor.ActorHandle)
+    ):
+        func = remote(func)
+    result_refs = []
+    for i, args in enumerate(zip(*arglists)):
+        if len(result_refs) > inflight_limit:
+            num_ready = i - inflight_limit
+            ray.wait(result_refs, num_returns=num_ready)
+        result_refs.append(func.remote(*args, **kwargs))
+    return result_refs
+
+
+def _map_sequential(func, *arglists, **kwargs):
+    for args in zip(*arglists):
+        yield func(*args, **kwargs)
+
+
+def _flat_list(iterable):
+    return list(concat(iterable))
+
+
+def _map(
+    func,
+    *arglists,
+    parallel=True,
+    chunksize=1,
+    inflight_limit=1000,
+    shortcircuit_value=_NoShortCircuit(),
+    shortcircuit_callback=cancel_all,
+    progress=None,
+    desc="",
+    total=None,
+    **kwargs,
+):
+    """Map a function to some arguments.
+
+    Optionally return early if a particular value is found.
+    """
+    if parallel:
+        if chunksize > 1:
+            return map_reduce(
+                func,
+                _flat_list,
+                *arglists,
+                chunksize=chunksize,
+                inflight_limit=inflight_limit,
+                shortcircuit_value=shortcircuit_value,
+                shortcircuit_callback=shortcircuit_callback,
+                parallel=True,
+                **kwargs,
+            )
+        else:
+            results = _map_remote(
+                func, *arglists, inflight_limit=inflight_limit, **kwargs
+            )
+    else:
+        results = _map_sequential(func, *arglists, **kwargs)
+    return get(
+        results,
+        parallel=parallel,
+        shortcircuit_value=shortcircuit_value,
+        shortcircuit_callback=shortcircuit_callback,
+        progress=progress,
+        total=(total or _try_len(*arglists)),
+        desc=desc,
+    )
+
+
+def tree_size(branch_factor, depth):
+    """Return the number of nodes in a tree."""
+    if branch_factor < 1:
+        return depth
+    return sum(branch_factor**l for l in range(depth))
+
+
+def get_depth(max_size, branch_factor):
+    """Return depth required to not exceed given max tree size."""
+    if max_size is None or math.isinf(max_size):
+        return float("inf")
+    depth = 1
+    while tree_size(branch_factor, depth + 1) < max_size:
+        depth += 1
+    return depth
+
+
+def _map_reduce_sequential(
+    map_func,
+    reduce_func,
+    *arglists,
+    reduce_kwargs=None,
+    **kwargs,
+):
+    return reduce_func(
+        _map(map_func, *arglists, parallel=False, **kwargs),
+        **(reduce_kwargs or dict()),
+    )
+
+
+def _map_reduce_tree(
+    map_func,
+    reduce_func,
+    *arglists,
+    branch_factor=2,
+    max_size=None,
+    min_leaf_size=1,
+    max_depth=None,
+    chunksize=None,
+    shortcircuit_value=_NoShortCircuit(),
+    shortcircuit_callback=cancel_all,
+    inflight_limit=1000,
+    reduce_kwargs=None,
+    parallel=True,
+    progress=None,
+    desc=None,
+    __root__=True,
+    __level__=0,
+    **kwargs,
+):
+    """Recursive map-reduce using a tree structure.
+
+    Useful when the reduction function is expensive or when reducing in one
+    chunk is otherwise problematic.
+
+    Chunksize parameter takes precedence over branch_factor.
+    """
+    if not arglists:
+        raise ValueError("no arguments provided to map over")
+
+    if reduce_kwargs is None:
+        reduce_kwargs = dict()
+
+    # min_leaf_size must be at least 1 to avoid infinite branching
+    min_leaf_size = max(min_leaf_size, 1)
+
+    if __root__ and max_depth is None:
+        max_depth = get_depth(max_size, branch_factor)
+
+    n = _try_len(*arglists)
+
+    if chunksize and chunksize < 1:
+        raise ValueError("chunksize must be positive or None")
+
+    if parallel:
+        if n is None:
+            if not chunksize:
+                raise ValueError("mapping to generator(s); must provide chunksize")
+            n = float("inf")
+    else:
+        # Don't branch; process sequentially
+        max_depth = 0
+
+    # Branch
+    if __level__ < max_depth and min_leaf_size < n and branch_factor > 1:
+        # Add 1 to odd sizes to avoid single-element partitions
+        # NOTE: Adding 1 to even sizes will result in infinite branching
+        _chunksize = chunksize or (n // branch_factor) + n % 2
+        chunked_argslists = zip(*(partition_all(_chunksize, args) for args in arglists))
+
+        if chunksize is not None:
+            # Reduce chunksize by branch factor
+            chunksize = chunksize // (branch_factor**__level__)
+
+        result_refs = [
+            _remote_map_reduce_tree.remote(
+                map_func,
+                reduce_func,
+                *_arglists,
+                branch_factor=branch_factor,
+                max_size=max_size,
+                min_leaf_size=min_leaf_size,
+                max_depth=max_depth,
+                chunksize=chunksize,
+                shortcircuit_value=shortcircuit_value,
+                shortcircuit_callback=shortcircuit_callback,
+                inflight_limit=inflight_limit,
+                reduce_kwargs=reduce_kwargs,
+                progress=progress,
+                desc=desc,
+                __root__=False,
+                __level__=__level__ + 1,
+                **kwargs,
+            )
+            for _arglists in chunked_argslists
+        ]
+        return reduce_func(
+            get(
+                result_refs,
+                shortcircuit_value=shortcircuit_value,
+                shortcircuit_callback=shortcircuit_callback,
+                parallel=True,
+                progress=False,
+            ),
+            **reduce_kwargs,
+        )
+
+    # Leaf
+    return reduce_func(
+        _map(
+            map_func,
+            *arglists,
+            parallel=False,
+            chunksize=1,
+            shortcircuit_value=shortcircuit_value,
+            shortcircuit_callback=None,
+            progress=_progress(progress),
+            desc=desc,
+            total=n,
+            **kwargs,
+        ),
+        **reduce_kwargs,
+    )
+
+
+# Stay on driver for first call in case we're given a generator
+_remote_map_reduce_tree = remote(_map_reduce_tree)
+
+
+@functools.wraps(_map_reduce_tree)
+def map_reduce(
+    *args,
+    parallel=True,
+    **kwargs,
+):
+    if parallel:
+        return _map_reduce_tree(
+            *args,
+            **kwargs,
+        )
+    return _map_reduce_sequential(*args, **kwargs)
+
+
+# Export `_map` from the module as `map`
+map = _map
