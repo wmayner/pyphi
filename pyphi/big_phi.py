@@ -155,38 +155,14 @@ def number_of_possible_relations(n):
     return sum(number_of_possible_relations_of_order(n, k) for k in range(1, n + 1))
 
 
-def _relation_sum_phi_distinction_phi_is_purview_size(n):
-    return sum(k * number_of_possible_relations_of_order(n, k) for k in range(1, n + 1))
-
-
-def _relation_sum_phi_distinction_phi_is_one(n):
-    # Distinction phi <= 1 implies relation phi is bounded by 1/|z| where z is
-    # the largest purview in the relation
-    subsets = [
-        1 / (len(z) + 1) for z in utils.powerset(range(n - 1), nonempty=False)
-    ] * 2
-    return n * combinatorics.sum_of_minimum_among_subsets(subsets)
-
-
-def _relation_sum_phi_distinction_phi_is_one_over_n_minus_one(n):
-    try:
-        return (2 / ((n - 1) ** 2)) * combinatorics.sum_of_minimum_among_subsets(
-            [1 / (len(z) + 1) for z in utils.powerset(range(n - 1), nonempty=False)] * 2
-        )
-    except ZeroDivisionError:
-        return 1
-
-
-RELATION_SUM_PHI_UPPER_BOUNDS = {
-    "PURVIEW_SIZE": _relation_sum_phi_distinction_phi_is_purview_size,
-    "2^N-1": _relation_sum_phi_distinction_phi_is_one,
-    "(2^N-1)/(N-1)": _relation_sum_phi_distinction_phi_is_one_over_n_minus_one,
-}
-
-
 def relation_sum_phi_upper_bound(n):
-    """Return the 'best possible' sum of small phi for relations."""
-    return RELATION_SUM_PHI_UPPER_BOUNDS[config.DISTINCTION_SUM_PHI_UPPER_BOUND](n)
+    """Return the 'best possible' sum of small phi for relations, given
+    the best possible sum of small phi for distinctions."""
+    distinction_sum_phi = distinction_sum_phi_upper_bound(n)
+    correction_factor = (distinction_sum_phi / (n * 2 ** (n - 1))) ** 2
+    return correction_factor * sum(
+        k * number_of_possible_relations_of_order(n, k) for k in range(1, n + 1)
+    )
 
 
 def sum_phi_upper_bound(n):
