@@ -13,7 +13,7 @@ import numpy as np
 
 from .. import config, constants, utils
 from ..direction import Direction
-from .cuts import NullCut
+from .cuts import NullCut, CompleteSystemPartition
 
 # REPR_VERBOSITY levels
 LOW = 0
@@ -645,7 +645,7 @@ def fmt_sia_4(sia, phi_structure=True, title="System irreducibility analysis"):
     lines = align_columns(lines)
     body = "\n".join(["\n".join(lines), body])
 
-    if sia.partition is NullCut:
+    if sia.partition is NullCut or sia.partition is CompleteSystemPartition:
         cut = str(sia.partition)
     else:
         cut = fmt_cut(sia.partition, direction=sia.partition.direction, name=False),
