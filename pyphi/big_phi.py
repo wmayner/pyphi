@@ -14,12 +14,12 @@ import scipy
 from toolz.itertoolz import partition_all
 from tqdm.auto import tqdm
 
-from . import combinatorics, compute, config, utils
+from . import compute, config, utils
 from .cache import cache
 from .combinatorics import maximal_independent_sets
 from .compute import parallel as _parallel
 from .compute.network import reachable_subsystems
-from .compute.parallel import as_completed, remote
+from .compute.parallel import as_completed
 from .direction import Direction
 from .models import cmp, fmt
 from .models.cuts import CompleteSystemPartition, NullCut, SystemPartition
@@ -536,14 +536,17 @@ def filter_ces(ces, direction, compositional_state):
             pass
 
 
-def tied_distinction_sets(distinctions):
+def tied_distinction_sets(distinctions, purview=True, state=True, partition=False):
     """Yield all combinations of tied distinctions.
 
     NOTE: Only considers ties among purviews; ties among MIPs that share the
     same purview are resolved arbitrarily.
     """
     for tie in product(
-        *[distinction.purview_ties for distinction in distinctions.flatten()]
+        *[
+            distinction.ties(purview=purview, state=state, partition=partition)
+            for distinction in distinctions.flat
+        ]
     ):
         yield FlatCauseEffectStructure(
             tie, subsystem=distinctions.subsystem
@@ -591,7 +594,14 @@ def _all_nonconflicting_distinction_sets(distinctions):
         )
 
 
-def all_nonconflicting_distinction_sets(distinctions, ties=False):
+def all_nonconflicting_distinction_sets(
+    distinctions,
+    purview_ties=False,
+    state_ties=False,
+    partition_ties=False,
+    all_ties=False,
+):
+    # TODO docstring
     """Return all maximal non-conflicting sets of distinctions.
 
     Arguments:
@@ -603,11 +613,15 @@ def all_nonconflicting_distinction_sets(distinctions, ties=False):
     Yields:
         CauseEffectStructure: A CES without conflicts.
     """
-    if ties:
-        for tie in tied_distinction_sets(distinctions):
-            yield from _all_nonconflicting_distinction_sets(tie)
-    else:
-        yield from _all_nonconflicting_distinction_sets(distinctions)
+    if all_ties:
+        purview_ties = state_ties = partition_ties = True
+    for tie in tied_distinction_sets(
+        distinctions,
+        purview=purview_ties,
+        state=state_ties,
+        partition=partition_ties,
+    ):
+        yield from _all_nonconflicting_distinction_sets(tie)
 
 
 def _null_sia(subsystem, phi_structure, reasons=None):
@@ -719,18 +733,25 @@ def find_maximal_compositional_state(
     return phi_structure
 
 
-_compute_relations = remote(compute_relations)
+_compute_relations = ray.remote(compute_relations)
 
 
 def nonconflicting_phi_structures(
     all_distinctions,
-    ties=False,
     all_relations=None,
+    purview_ties=False,
+    state_ties=False,
+    partition_ties=False,
+    all_ties=False,
     remote=True,
 ):
     """Yield nonconflicting PhiStructures."""
     for distinctions in all_nonconflicting_distinction_sets(
-        all_distinctions, ties=ties
+        all_distinctions,
+        purview_ties=purview_ties,
+        state_ties=state_ties,
+        partition_ties=partition_ties,
+        all_ties=all_ties,
     ):
         if all_relations is None:
             # Compute relations on workers for each nonconflicting set
@@ -762,7 +783,10 @@ def sia(
     chunksize=DEFAULT_PHI_STRUCTURE_CHUNKSIZE,
     partition_chunksize=DEFAULT_PARTITION_CHUNKSIZE,
     progress=None,
-    ties=False,
+    purview_ties=False,
+    state_ties=False,
+    partition_ties=False,
+    all_ties=False,
     remote=True,
 ):
     """Analyze the irreducibility of a system."""
@@ -790,7 +814,10 @@ def sia(
     if phi_structures is None:
         phi_structures = nonconflicting_phi_structures(
             all_distinctions,
-            ties=ties,
+            purview_ties=purview_ties,
+            state_ties=state_ties,
+            partition_ties=partition_ties,
+            all_ties=all_ties,
             remote=remote,
         )
 
