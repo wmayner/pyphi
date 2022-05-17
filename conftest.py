@@ -3,6 +3,7 @@
 
 import logging
 import os
+from pathlib import Path
 
 import pytest
 
@@ -13,8 +14,8 @@ log = logging.getLogger("pyphi.test")
 
 collect_ignore = ["setup.py", ".pythonrc.py"]
 # Also ignore everything that git ignores.
-git_ignore = os.path.join(os.path.dirname(__file__), ".gitignore")
-collect_ignore += list(filter(None, open(git_ignore).read().split("\n")))
+with open(Path(__file__).parent / ".gitignore", mode="rt") as f:
+    collect_ignore += list(filter(None, f.read().split("\n")))
 
 
 # Run slow tests separately with command-line option, filter tests
