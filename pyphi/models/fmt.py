@@ -645,7 +645,7 @@ def fmt_sia_4(sia, phi_structure=True, title="System irreducibility analysis"):
     lines = align_columns(lines)
     body = "\n".join(["\n".join(lines), body])
 
-    if sia.partition is NullCut or sia.partition is CompleteSystemPartition:
+    if isinstance(sia.partition, (NullCut, CompleteSystemPartition)):
         cut = str(sia.partition)
     else:
         cut = fmt_cut(sia.partition, direction=sia.partition.direction, name=False)
