@@ -146,7 +146,7 @@ from pathlib import Path
 
 import yaml
 
-from . import __about__, constants
+from . import __about__, constants, utils
 
 log = logging.getLogger(__name__)
 
@@ -1025,13 +1025,35 @@ def validate(config):
         )
 
 
-PYPHI_CONFIG_FILENAME = "pyphi_config.yml"
+PYPHI_USER_CONFIG_PATH = Path("pyphi_config.yml")
+PYPHI_MANAGED_CONFIG_PATH = (
+    constants.DISK_CACHE_LOCATION / "config" / PYPHI_USER_CONFIG_PATH
+)
+PYPHI_MANAGED_CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
 
-config = PyphiConfig(on_change=validate)
+# Flag to prevent writing to the managed config until we've tried to load an
+# existing one
+_LOADED = False
 
-# Try and load the config file
-if os.path.exists(PYPHI_CONFIG_FILENAME):
-    config.load_file(PYPHI_CONFIG_FILENAME)
+
+def on_change_global(config):
+    validate(config)
+    if _LOADED:
+        # Write any changes to disk for remote processes to load
+        utils.atomic_write_yaml(config.snapshot(), PYPHI_MANAGED_CONFIG_PATH)
+
+
+config = PyphiConfig(on_change=on_change_global)
+
+if utils.on_driver():
+    # We're a main instance; load the user config
+    config.load_file(PYPHI_USER_CONFIG_PATH)
+else:
+    # We're in a remote instance; load the PyPhi-managed config
+    config.load_file(PYPHI_MANAGED_CONFIG_PATH)
+
+# Now we can allow loading
+_LOADED = True
 
 # Log the PyPhi version and loaded configuration
 config.log()
