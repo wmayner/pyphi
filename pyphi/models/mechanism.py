@@ -40,6 +40,8 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         partition,
         repertoire,
         partitioned_repertoire,
+        specified_index=None,
+        specified_state=None,
         mechanism_state=None,
         purview_state=None,
         node_labels=None,
@@ -66,11 +68,19 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
             self._specified_index = None
             self._specified_state = None
         else:
-            self._specified_index = distribution.specified_index(
-                self.repertoire, self.partitioned_repertoire
+            self._specified_index = (
+                distribution.specified_index(
+                    self.repertoire, self.partitioned_repertoire
+                )
+                if specified_index is None
+                else specified_index
             )
-            self._specified_state = distribution.specified_state(
-                self.repertoire, self.partitioned_repertoire
+            self._specified_state = (
+                distribution.specified_state(
+                    self.repertoire, self.partitioned_repertoire
+                )
+                if specified_state is None
+                else specified_state
             )
 
         # Optional labels - only used to generate nice labeled reprs
@@ -146,6 +156,23 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
     def set_specified_state(self, state):
         self._specified_state = state
 
+    def state_ties(self):
+        for index, state in zip(self.specified_index, self.specified_state):
+            yield RepertoireIrreducibilityAnalysis(
+                self.phi,
+                self.direction,
+                self.mechanism,
+                self.purview,
+                self.partition,
+                self.repertoire,
+                self.partitioned_repertoire,
+                specified_index=index.reshape(1, -1),
+                specified_state=state.reshape(1, -1),
+                mechanism_state=self.mechanism_state,
+                purview_state=self.purview_state,
+                node_labels=self.node_labels,
+            )
+
     @property
     def node_labels(self):
         """|NodeLabels| for this system."""
@@ -214,7 +241,7 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
 
     def __init__(self, ria, ties=None):
         self._ria = ria
-        self._ties = ties
+        self._all_ties = ties
 
     @property
     def phi(self):
@@ -291,13 +318,8 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
         return self._ria
 
     def set_ties(self, ties):
-        """Set the ``ties`` attribute."""
-        self._ties = ties
-
-    @property
-    def ties(self):
-        """list: MICE objects for any other purviews or partitions that are maximal."""
-        return self._ties
+        """Set the ``purview_partition_ties`` attribute."""
+        self._all_ties = ties
 
     @property
     def purview_ties(self):
@@ -306,10 +328,54 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
         NOTE: Partition ties are resolved arbitrarily.
         """
         seen = set()
-        for tie in self.ties:
+        for tie in self._all_ties:
             if tie.purview not in seen:
                 yield tie
                 seen.add(tie.purview)
+
+    @property
+    def partition_ties(self):
+        """list: MICE objects for any other purviews that are maximal.
+
+        NOTE: Partition ties are resolved arbitrarily.
+        """
+        seen = set()
+        for tie in self._all_ties:
+            if tie.purview == self.purview and tie.mip not in seen:
+                yield tie
+                seen.add(tie.mip)
+
+    @property
+    def state_ties(self):
+        cls = type(self)
+        for ria in self.ria.state_ties():
+            yield cls(ria, ties=self._all_ties)
+
+    def ties(self, purview=True, state=True, partition=True):
+        """Return MICE for any other purviews, partitions, or states that are maximal."""
+        if purview and partition:
+            ties = []
+            # TODO(4.0) Currently the logic in subsystem.find_mice will add
+            # duplicate MIPE to the ties, one for each state. This should be
+            # made more sensible when the logic stabilizes, but for now we just
+            # filter out the duplicates.
+            seen = set()
+            for tie in self._all_ties:
+                if tie not in seen:
+                    ties.append(tie)
+                    seen.add(tie)
+        elif purview:
+            ties = self.purview_ties
+        elif partition:
+            ties = self.partition_ties
+        else:
+            ties = [self]
+
+        if state:
+            for mice in ties:
+                yield from mice.state_ties
+        else:
+            yield from ties
 
     @property
     def is_tied(self):
