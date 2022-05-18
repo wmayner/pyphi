@@ -20,6 +20,7 @@ from toolz import concat, partition_all
 from tqdm.auto import tqdm
 
 from .. import config
+from ..conf import fallback
 
 log = logging.getLogger(__name__)
 
@@ -440,13 +441,6 @@ def _try_len(*iterables):
         return None
 
 
-def _progress(progress):
-    """Default to PROGRESS_BARS if given progress setting is None."""
-    if progress is None:
-        return config.PROGRESS_BARS
-    return progress
-
-
 def get(
     object_refs,
     parallel=True,
@@ -465,7 +459,7 @@ def get(
     else:
         completed = object_refs
 
-    if _progress(progress):
+    if fallback(progress, config.PROGRESS_BARS):
         completed = tqdm(completed, total=(total or _try_len(object_refs)), desc=desc)
 
     return shortcircuit(
@@ -683,7 +677,7 @@ def _map_reduce_tree(
             chunksize=1,
             shortcircuit_value=shortcircuit_value,
             shortcircuit_callback=None,
-            progress=_progress(progress),
+            progress=progress,
             desc=desc,
             total=n,
             **kwargs,

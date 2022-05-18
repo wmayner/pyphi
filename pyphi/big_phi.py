@@ -21,6 +21,7 @@ from .combinatorics import maximal_independent_sets
 from .compute import parallel as _parallel
 from .compute.network import reachable_subsystems
 from .compute.parallel import as_completed
+from .conf import fallback
 from .direction import Direction
 from .models import cmp, fmt
 from .models.cuts import CompleteSystemPartition, NullCut, SystemPartition
@@ -719,8 +720,7 @@ def find_maximal_compositional_state(
     remote=True,
     progress=None,
 ):
-    progress = config.PROGRESS_BARS or progress
-    if progress:
+    if fallback(progress, config.PROGRESS_BARS):
         phi_structures = tqdm(phi_structures, desc="Compositional states")
     log.debug("Finding maximal compositional state...")
     _, phi_structure = _parallel.map_reduce(
@@ -798,7 +798,7 @@ def sia(
             "may result in incorrect values for the sum of relation phis!"
         )
 
-    progress = config.PROGRESS_BARS or progress
+    progress = fallback(progress, config.PROGRESS_BARS)
 
     if all_distinctions is None:
         all_distinctions = compute.ces(subsystem)

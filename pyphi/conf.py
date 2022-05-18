@@ -1057,3 +1057,10 @@ _LOADED = True
 
 # Log the PyPhi version and loaded configuration
 config.log()
+
+
+def fallback(a, b):
+    """Return the second value if the first is ``None``."""
+    if a is None:
+        return b
+    return a
