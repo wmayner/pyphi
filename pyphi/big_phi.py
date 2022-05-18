@@ -597,9 +597,9 @@ def _all_nonconflicting_distinction_sets(distinctions):
 
 def all_nonconflicting_distinction_sets(
     distinctions,
-    purview_ties=False,
-    state_ties=False,
-    partition_ties=False,
+    purview_ties=True,
+    state_ties=True,
+    partition_ties=True,
     all_ties=False,
 ):
     # TODO docstring
@@ -741,9 +741,9 @@ _compute_relations = ray.remote(compute_relations)
 def nonconflicting_phi_structures(
     all_distinctions,
     all_relations=None,
-    purview_ties=False,
-    state_ties=False,
-    partition_ties=False,
+    purview_ties=True,
+    state_ties=True,
+    partition_ties=True,
     all_ties=False,
     remote=True,
 ):
