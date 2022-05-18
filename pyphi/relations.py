@@ -18,6 +18,7 @@ from tqdm.auto import tqdm
 
 from . import combinatorics, config, validate
 from .compute.parallel import get_num_processes
+from .conf import fallback
 from .data_structures import HashableOrderedSet
 from .metrics.distribution import absolute_information_density
 from .models import cmp, fmt
@@ -907,20 +908,19 @@ def all_relations(
     ces,
     parallel=False,
     parallel_kwargs=None,
-    progress=False,
+    progress=None,
     potential_relata=None,
     **kwargs,
 ):
     """Return all relations, even those with zero phi."""
-    progress = config.PROGRESS_BARS or progress
     # Relations can be over any combination of causes/effects in the CES, so we
     # get a flat list of all causes and effects
     if potential_relata is None:
         potential_relata = list(
             relata_with_nonempty_congruent_overlap(subsystem, ces, **kwargs)
         )
-    if progress:
-        potential_relata = tqdm(potential_relata)
+    if fallback(progress, config.PROGRESS_BARS):
+        potential_relata = tqdm(potential_relata, desc="Potential relata")
     # Compute all relations
     n_jobs = get_num_processes()
     parallel_kwargs = {
