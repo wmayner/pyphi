@@ -670,6 +670,7 @@ def is_trivially_reducible(phi_structure):
 
 
 # TODO configure
+# TODO optimize
 DEFAULT_PARTITION_CHUNKSIZE = 500
 DEFAULT_PHI_STRUCTURE_CHUNKSIZE = 50
 
@@ -703,8 +704,7 @@ def evaluate_phi_structure(
         chunksize=chunksize,
         shortcircuit_value=0,
         parallel=remote,
-        desc="Partitions",
-        progress=progress,
+        progress=False,
     )
 
 
@@ -720,6 +720,8 @@ def find_maximal_compositional_state(
     progress=None,
 ):
     progress = config.PROGRESS_BARS or progress
+    if progress:
+        phi_structures = tqdm(phi_structures, desc="Compositional states")
     log.debug("Finding maximal compositional state...")
     _, phi_structure = _parallel.map_reduce(
         _system_intrinsic_information,
@@ -728,8 +730,7 @@ def find_maximal_compositional_state(
         chunksize=chunksize,
         shortcircuit_value=0,
         parallel=remote,
-        desc="Compositional states",
-        progress=progress,
+        progress=False,
     )
     return phi_structure
 
