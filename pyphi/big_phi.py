@@ -4,6 +4,7 @@
 import functools
 import logging
 import pickle
+import warnings
 from collections import UserDict, defaultdict
 from dataclasses import dataclass
 from itertools import product
@@ -783,13 +784,19 @@ def sia(
     chunksize=DEFAULT_PHI_STRUCTURE_CHUNKSIZE,
     partition_chunksize=DEFAULT_PARTITION_CHUNKSIZE,
     progress=None,
-    purview_ties=False,
-    state_ties=False,
-    partition_ties=False,
+    purview_ties=True,
+    state_ties=True,
+    partition_ties=True,
     all_ties=False,
     remote=True,
 ):
     """Analyze the irreducibility of a system."""
+    if not state_ties and config.RELATION_COMPUTATION == "ANALYTICAL":
+        warnings.warn(
+            "Using RELATION_COMPUTATION = 'ANALYTICAL' without setting state_ties=True "
+            "may result in incorrect values for the sum of relation phis!"
+        )
+
     progress = config.PROGRESS_BARS or progress
 
     if all_distinctions is None:
