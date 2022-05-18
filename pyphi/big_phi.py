@@ -762,7 +762,9 @@ def nonconflicting_phi_structures(
                     all_distinctions.subsystem, distinctions
                 )
             else:
-                relations = compute_relations(all_distinctions.subsystem, distinctions)
+                relations = compute_relations(
+                    all_distinctions.subsystem, distinctions, progress=False
+                )
             requires_filter_relations = False
         else:
             relations = all_relations
