@@ -8,4 +8,5 @@ argh
 pylint
 isort
 black
+hypothesis
 git+https://github.com/wmayner/sphinx_rtd_theme.git
