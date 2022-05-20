@@ -380,7 +380,7 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
     @property
     def is_tied(self):
         """Whether this MICE is non-unique."""
-        return len(self.ties) > 1
+        return len(self.ties()) > 1
 
     def __repr__(self):
         return fmt.make_repr(self, ["ria"])
