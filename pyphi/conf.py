@@ -851,7 +851,7 @@ class PyphiConfig(Config):
     )
 
     DISTINCTION_SUM_PHI_UPPER_BOUND = Option(
-        "(2^N-1)/(N-1)",
+        "2^N-1",
         values=["PURVIEW_SIZE", "2^N-1", "(2^N-1)/(N-1)"],
         doc="""
     Controls the definition of the upper bound on the sum of distinction phi when analyzing a system.
