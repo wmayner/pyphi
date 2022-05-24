@@ -1047,7 +1047,10 @@ config = PyphiConfig(on_change=on_change_global)
 
 if utils.on_driver():
     # We're a main instance; load the user config
-    config.load_file(PYPHI_USER_CONFIG_PATH)
+    try:
+        config.load_file(PYPHI_USER_CONFIG_PATH)
+    except FileNotFoundError:
+        pass
 else:
     # We're in a remote instance; load the PyPhi-managed config
     config.load_file(PYPHI_MANAGED_CONFIG_PATH)
