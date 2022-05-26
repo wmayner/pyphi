@@ -17,7 +17,7 @@ from tqdm.auto import tqdm
 
 from . import compute, config, utils
 from .cache import cache
-from .combinatorics import maximal_independent_sets
+from .combinatorics import largest_independent_sets, maximal_independent_sets
 from .compute import parallel as _parallel
 from .compute.network import reachable_subsystems
 from .compute.parallel import as_completed
@@ -587,6 +587,19 @@ def _all_nonconflicting_distinction_sets(distinctions):
     # not just the maximal ones.
     graph, mechanism_to_distinction = conflict_graph(distinctions)
     for maximal_independent_set in maximal_independent_sets(graph):
+        yield CauseEffectStructure(
+            # Though distinctions are hashable, the hash function is relatively
+            # expensive (since repertoires are hashed), so we work with
+            # mechanisms instead
+            map(mechanism_to_distinction.get, maximal_independent_set),
+            subsystem=distinctions.subsystem,
+        )
+
+
+#TODO refactor
+def largest_nonconflicting_distinction_sets(distinctions):
+    graph, mechanism_to_distinction = conflict_graph(distinctions)
+    for maximal_independent_set in largest_independent_sets(graph):
         yield CauseEffectStructure(
             # Though distinctions are hashable, the hash function is relatively
             # expensive (since repertoires are hashed), so we work with
