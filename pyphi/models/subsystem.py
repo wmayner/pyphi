@@ -122,7 +122,7 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
             for _direction in direction:
                 yield from self._purviews(_direction)
         else:
-            yield self._purview(direction)
+            yield from self._purviews(direction)
 
     @property
     def labeled_mechanisms(self):
