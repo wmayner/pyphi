@@ -538,7 +538,7 @@ def filter_ces(ces, direction, compositional_state):
             pass
 
 
-def tied_distinction_sets(distinctions, purview=True, state=True, partition=False):
+def tied_distinction_sets(distinctions, purview=True, state=True, partition=True):
     """Yield all combinations of tied distinctions.
 
     NOTE: Only considers ties among purviews; ties among MIPs that share the
