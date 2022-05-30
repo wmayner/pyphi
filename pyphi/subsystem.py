@@ -802,8 +802,7 @@ class Subsystem:
             validate.direction(direction)
 
         if not purviews:
-            max_mip = _null_ria(direction, mechanism, ())
-            ties = ()
+            max_mice = mice_class(_null_ria(direction, mechanism, ()), ties=())
         else:
             if config.IIT_VERSION == 4:
                 # TODO(4.0)
@@ -832,16 +831,13 @@ class Subsystem:
                 all_mips = [
                     self.find_mip(direction, mechanism, purview) for purview in purviews
                 ]
-            max_mip = max(all_mips)
-            phi_ties = tuple(
-                mice_class(mip) for mip in all_mips if mip.phi == max_mip.phi
-            )
-            ties = resolve_ties.mice(phi_ties)
 
-        for tie in ties:
-            tie.set_ties(ties)
+            ties = resolve_ties.mice(list(map(mice_class, all_mips)))
+            for tie in ties:
+                tie.set_ties(ties)
+            max_mice = ties[0]
 
-        return mice_class(max_mip, ties=ties)
+        return max_mice
 
     def mic(self, mechanism, purviews=False):
         """Return the mechanism's maximally-irreducible cause (|MIC|).

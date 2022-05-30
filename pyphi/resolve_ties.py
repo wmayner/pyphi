@@ -4,7 +4,7 @@
 
 import warnings
 
-from . import config, metrics
+from . import config, metrics, utils
 from .conf import ConfigurationWarning
 from .registry import Registry
 
@@ -47,6 +47,7 @@ def _(m):
         )[m.specified_index]
     )
     return (
+        m.phi,
         informativeness,
         -len(m.purview),
     )
@@ -54,12 +55,12 @@ def _(m):
 
 @mice_resolution.register("LARGEST_PURVIEW")
 def _(m):
-    return len(m.purview)
+    return (m.phi, len(m.purview))
 
 
 @mice_resolution.register("SMALLEST_PURVIEW")
 def _(m):
-    return -len(m.purview)
+    return (m.phi, -len(m.purview))
 
 
 def resolve(mice, sort_key):
@@ -69,8 +70,7 @@ def resolve(mice, sort_key):
     keys = list(map(sort_key, mice))
     mice = sorted(zip(keys, mice), reverse=True)
     max_key = mice[0][0]
-    ties = [m for (k, m) in mice if k == max_key]
-    return ties
+    return [m for (k, m) in mice if all(utils.eq(_k1, _k2) for _k1, _k2 in zip(k, max_key))]
 
 
 def mice(tied_mice):
