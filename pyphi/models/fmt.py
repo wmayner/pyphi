@@ -533,19 +533,17 @@ def fmt_ria(ria, verbose=True, mip=False):
     if verbose:
         mechanism = f"Mechanism: {fmt_mechanism(ria.mechanism, ria.node_labels)}\n"
         direction = f"\nDirection: {ria.direction}"
-        purview_state = (
-            list(ria.purview_state) if ria.purview_state is not None else None
-        )
-        purview_state = f"\nCurrent purview state: {purview_state}"
     else:
         mechanism = ""
         direction = ""
-        purview_state = ""
 
     if ria.specified_state is None:
         specified_states = []
+        specified_states_str = str(specified_states)
     else:
         specified_states = [tuple(state) for state in ria.specified_state]
+        specified_states_str = '\n  ' + '\n  '.join(map(str, map(list, specified_states)))
+
 
     # TODO(4.0):  position repertoire and partitioned repertoire side by side
     if config.REPR_VERBOSITY is HIGH:
@@ -570,7 +568,7 @@ def fmt_ria(ria, verbose=True, mip=False):
         "{SMALL_PHI} = {phi}\n"
         "{mechanism}"
         "Purview: {purview}"
-        "{purview_state}"
+        "\nSpecified state(s): {specified_states}"
         "{direction}"
         "{partition}"
         "{repertoire}"
@@ -579,7 +577,7 @@ def fmt_ria(ria, verbose=True, mip=False):
         SMALL_PHI=SMALL_PHI,
         mechanism=mechanism,
         purview=fmt_mechanism(ria.purview, ria.node_labels),
-        purview_state=purview_state,
+        specified_states=specified_states_str,
         direction=direction,
         phi=fmt_number(ria.phi),
         partition=partition,
