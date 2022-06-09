@@ -345,7 +345,7 @@ def fmt_number(p):
     return (
         str(nice)
         if (
-            abs(fraction - nice) < constants.EPSILON
+            utils.eq(fraction, nice)
             and nice.denominator in NICE_DENOMINATORS
         )
         else formatted

@@ -412,7 +412,8 @@ class Transition:
                 )
 
             # Then take closest to 0
-            if (abs(alpha_min) - abs(alpha)) > constants.EPSILON:
+            # TODO(4.0)
+            if (abs(alpha_min) - abs(alpha)) > 10**(-config.PRECISION):
                 alpha_min = alpha
                 acria = AcRepertoireIrreducibilityAnalysis(
                     state=self.mechanism_state(direction),
