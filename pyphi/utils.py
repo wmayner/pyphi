@@ -11,16 +11,12 @@ import hashlib
 import math
 import operator
 import os
-import tempfile
 from itertools import chain, combinations, product
-from pathlib import Path
 
 import numpy as np
-import ray
-import yaml
 from scipy.special import comb
 
-from . import constants
+from . import config
 
 
 def state_of(nodes, network_state):
@@ -87,7 +83,9 @@ class np_hashable:
 
 def eq(x, y):
     """Compare two values up to |PRECISION|."""
-    return abs(x - y) <= constants.EPSILON
+    # TODO just use float value in config
+    epsilon = 10**(-config.PRECISION)
+    return math.isclose(x, y, rel_tol=epsilon, abs_tol=epsilon)
 
 
 # see http://stackoverflow.com/questions/16003217
@@ -267,23 +265,3 @@ def expaddlog(x, y):
     See also ``numpy.logaddexp``.
     """
     return math.exp(math.log(x) + math.log(y))
-
-
-def atomic_write_yaml(data, path):
-    try:
-        # delete=True in case there's an error, but ignore if we fail to delete
-        # after successfully renaming the file
-        with tempfile.NamedTemporaryFile(mode="wt", delete=True) as f:
-            yaml.dump(data, f)
-            Path(f.name).rename(path)
-    except FileNotFoundError:
-        pass
-    return path
-
-
-def on_driver():
-    try:
-        ray.get_runtime_context().task_id
-        return False
-    except AssertionError:
-        return True

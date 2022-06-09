@@ -141,12 +141,14 @@ import logging
 import logging.config
 import os
 import pprint
+import tempfile
 from copy import copy
 from pathlib import Path
 
+import ray
 import yaml
 
-from . import __about__, constants, utils
+from . import __about__, constants
 
 log = logging.getLogger(__name__)
 
@@ -404,10 +406,6 @@ def configure_logging(conf):
     )
 
 
-def configure_precision(conf):
-    constants.EPSILON = 10 ** (-conf.PRECISION)
-
-
 class PyphiConfig(Config):
     """``pyphi.config`` is an instance of this class."""
 
@@ -638,18 +636,18 @@ class PyphiConfig(Config):
     )
 
     PRECISION = Option(
-        15,
+        13,
         type=int,
-        on_change=configure_precision,
+        # TODO(4.0) update docstring
         doc="""
-    If ``REPERTOIRE_DISTANCE`` is ``EMD``, then the Earth Mover's Distance is calculated
-    with an external C++ library that a numerical optimizer to find a good
-    approximation. Consequently, systems with analytically zero |big_phi| will
-    sometimes be numerically found to have a small but non-zero amount. This
-    setting controls the number of decimal places to which PyPhi will consider
-    EMD calculations accurate. Values of |big_phi| lower than ``10e-PRECISION``
-    will be considered insignificant and treated as zero. The default value is
-    about as accurate as the EMD computations get.""",
+    If ``REPERTOIRE_DISTANCE`` is ``EMD``, then the Earth Mover's Distance is
+    calculated with an external C++ library that a numerical optimizer to find a
+    good approximation. Consequently, systems with analytically zero |big_phi|
+    will sometimes be numerically found to have a small but non-zero amount.
+    This setting controls the number of decimal places to which PyPhi will
+    consider EMD calculations accurate. Values of |big_phi| lower than
+    ``10**(-PRECISION)`` will be considered insignificant and treated as zero.
+    The default value is about as accurate as the EMD computations get.""",
     )
 
     VALIDATE_SUBSYSTEM_STATES = Option(
@@ -1036,16 +1034,37 @@ PYPHI_MANAGED_CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
 _LOADED = False
 
 
+def atomic_write_yaml(data, path):
+    try:
+        # delete=True in case there's an error, but ignore if we fail to delete
+        # after successfully renaming the file
+        with tempfile.NamedTemporaryFile(mode="wt", delete=True) as f:
+            yaml.dump(data, f)
+            Path(f.name).rename(path)
+    except FileNotFoundError:
+        pass
+    return path
+
+
 def on_change_global(config):
     validate(config)
     if _LOADED:
         # Write any changes to disk for remote processes to load
-        utils.atomic_write_yaml(config.snapshot(), PYPHI_MANAGED_CONFIG_PATH)
+        atomic_write_yaml(config.snapshot(), PYPHI_MANAGED_CONFIG_PATH)
 
 
 config = PyphiConfig(on_change=on_change_global)
 
-if utils.on_driver():
+
+def on_driver():
+    try:
+        ray.get_runtime_context().task_id
+        return False
+    except AssertionError:
+        return True
+
+
+if on_driver():
     # We're a main instance; load the user config
     try:
         config.load_file(PYPHI_USER_CONFIG_PATH)

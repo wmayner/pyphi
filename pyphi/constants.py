@@ -9,11 +9,6 @@ Package-wide constants.
 import pickle
 from pathlib import Path
 
-#: The threshold below which we consider differences in phi values to be zero.
-EPSILON = None
-# NOTE: This is set dynamically by `conf.py` when PRECISION is changed; see
-# `conf.py` for default value.
-
 #: The protocol used for pickling objects.
 PICKLE_PROTOCOL = pickle.HIGHEST_PROTOCOL
 

@@ -136,4 +136,4 @@ PRINT_FRACTIONS: true
 # Numerical precision
 # ~~~~~~~~~~~~~~~~~~~
 # The number of decimal places to which Phi values are considered accurate.
-PRECISION: 15
+PRECISION: 13
