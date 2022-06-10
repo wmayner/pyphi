@@ -7,9 +7,10 @@ import pickle
 import warnings
 from collections import UserDict, defaultdict
 from dataclasses import dataclass
-from itertools import product
+from itertools import combinations, product
 
 import networkx as nx
+import numpy as np
 import ray
 import scipy
 from toolz.itertoolz import partition_all
@@ -94,7 +95,7 @@ def number_of_possible_distinctions_of_order(n, k):
 
 def number_of_possible_distinctions(n):
     """Return the number of possible distinctions."""
-    return 2**n - 1
+    return 2 ** n - 1
 
 
 @cache(cache={}, maxmem=None)
@@ -555,8 +556,8 @@ def tied_distinction_sets(distinctions, purview=True, state=True, partition=True
         ).unflatten()
 
 
-def conflict_graph(distinctions):
-    """Return a graph where nodes are distinctions and edges are conflicts."""
+def _purview_mapping(distinctions):
+    """Return {purview: mechanism} and {mechanism: distinction} mappings."""
     # Map mechanisms to distinctions for fast retreival
     mechanism_to_distinction = dict()
     # Map purviews to mechanisms that specify them, on both cause and effect sides
@@ -570,12 +571,66 @@ def conflict_graph(distinctions):
             purview_to_mechanisms[direction][distinction.purview(direction)].append(
                 distinction.mechanism
             )
-    # Construct graph where nodes are distinctions and edges are conflicts
+    return purview_to_mechanisms, mechanism_to_distinction
+
+
+class CompositionalStateConflicts(Registry):
+    """Storage for functions for defining when distinctions conflict."""
+
+    desc = "conflict definitions"
+
+
+compositional_state_conflict_definitions = CompositionalStateConflicts()
+
+
+@compositional_state_conflict_definitions.register("SAME_PURVIEW")
+def _(mice1, mice2):
+    """Conflicts specify the same purview."""
+    # Any two distinctions that share a purview conflict
+    return True
+
+
+@compositional_state_conflict_definitions.register("SAME_PURVIEW_AND_INCONGRUENT_STATE")
+def _(mice1, mice2):
+    """Conflicts specify the same purview and different states."""
+    if any(len(mice.specified_state) > 1 for mice in [mice1, mice2]):
+        raise ValueError(
+            "Multiple specified states; expected only one. "
+            "Nonconflicting sets should be computed with `state_ties=True` to "
+            "consider each tied state separately."
+        )
+    return not np.array_equal(mice1.specified_state, mice2.specified_state)
+
+
+def are_conflicting(mice1, mice2):
+    """Return whether two MICE conflict.
+
+    The definition of 'conflict' is controlled by the
+    COMPOSITIONAL_STATE_CONFLICTS option.
+    """
+    return compositional_state_conflict_definitions[
+        config.COMPOSITIONAL_STATE_CONFLICTS
+    ](mice1, mice2)
+
+
+def conflict_graph(distinctions):
+    """Return a graph where nodes are distinctions and edges are conflicts.
+
+    What defines a conflict is controlled by the COMPOSITIONAL_STATE_CONFLICTS
+    option.
+    """
     G = nx.Graph()
-    for direction, mapping in purview_to_mechanisms.items():
-        for mechanisms in mapping.values():
-            # Conflicting distinctions on one side form a clique
-            G.update(nx.complete_graph(mechanisms))
+    G.add_nodes_from(distinctions.mechanisms)
+    purview_to_mechanisms, mechanism_to_distinction = _purview_mapping(distinctions)
+    for direction, submapping in purview_to_mechanisms.items():
+        for purview, mechanisms in submapping.items():
+            # Pairs of mechanisms specifying the same purview in the same
+            # direction
+            for mechanism1, mechanism2 in combinations(mechanisms, 2):
+                mice1 = mechanism_to_distinction[mechanism1].mice(direction)
+                mice2 = mechanism_to_distinction[mechanism2].mice(direction)
+                if are_conflicting(mice1, mice2):
+                    G.add_edge(mechanism1, mechanism2)
     return G, mechanism_to_distinction
 
 

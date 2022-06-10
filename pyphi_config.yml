@@ -30,6 +30,8 @@ RELATION_PARTITION_AGGREGATION: "SUM"
 # operation, since relations are normally only computed among distinctions in a
 # nonconflicting set. Defaults to false to avoid the cost of checking.
 RELATION_ENFORCE_NO_DUPLICATE_PURVIEWS: false
+# Controls the definition of conflicts among distinctions.
+COMPOSITIONAL_STATE_CONFLICTS: "SAME_PURVIEW"
 # Controls the partitioning scheme for the system.
 SYSTEM_PARTITION_TYPE: "TEMPORAL_DIRECTED_BI"
 # Controls the set of possible purviews for a relation.
