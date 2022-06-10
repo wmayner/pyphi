@@ -382,6 +382,10 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
         """Whether this MICE is non-unique."""
         return len(self._all_ties) > 1
 
+    def flip(self):
+        """Return the linked MICE in the other direction."""
+        return self.parent.mice(self.direction.flip())
+
     def __repr__(self):
         return fmt.make_repr(self, ["ria"])
 
