@@ -54,3 +54,10 @@ class Direction(IntEnum):
     @classmethod
     def both(cls):
         return (cls.CAUSE, cls.EFFECT)
+
+    def flip(self):
+        """Return the other direction."""
+        if self == Direction.CAUSE:
+            return Direction.EFFECT
+        else:
+            return Direction.CAUSE
