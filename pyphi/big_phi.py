@@ -599,7 +599,14 @@ def _(mice1, mice2):
             "Nonconflicting sets should be computed with `state_ties=True` to "
             "consider each tied state separately."
         )
-    return not np.array_equal(mice1.specified_state, mice2.specified_state)
+    # Conditions for conflict:
+    # - Incongruent state
+    # - They share the same purview in the other direction (they are not
+    #   distinct, and they conflict even if they're congruent)
+    # TODO(4.0) is_congruent() method on MICE?
+    return (not np.array_equal(mice1.specified_state, mice2.specified_state)) or (
+        mice1.flip().purview == mice2.flip().purview
+    )
 
 
 def are_conflicting(mice1, mice2):
