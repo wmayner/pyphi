@@ -1,4 +1,5 @@
-from collections import Iterable, defaultdict
+from collections import defaultdict
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from itertools import combinations
 from math import cos, isclose, radians, sin
