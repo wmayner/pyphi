@@ -5,8 +5,9 @@
 import numpy as np
 import pytest
 
-from pyphi import Direction, compute
-from pyphi.constants import EPSILON
+from pyphi import Direction, compute, config
+
+EPSILON = 10**(-config.PRECISION)
 
 CD = (2, 3)
 BCD = (1, 2, 3)

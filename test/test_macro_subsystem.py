@@ -5,10 +5,11 @@ import numpy as np
 import pytest
 
 import pyphi
-from pyphi import convert, macro, models, timescale
+from pyphi import convert, macro, models, timescale, config
 from pyphi.convert import state_by_node2state_by_state as sbn2sbs
 from pyphi.convert import state_by_state2state_by_node as sbs2sbn
 
+EPSILON = 10**(-config.PRECISION)
 
 @pytest.fixture()
 def macro_subsystem():
@@ -111,7 +112,7 @@ def test_macro_subsystem(macro_subsystem):
     assert np.allclose(
         macro_subsystem.tpm.reshape([4] + [2], order="f"),
         answer_tpm,
-        rtol=pyphi.constants.EPSILON,
+        rtol=EPSILON,
     )
 
 
@@ -130,7 +131,7 @@ def test_macro_cut_subsystem(macro_subsystem):
     assert np.allclose(
         cut_subsystem.tpm.reshape([4] + [2], order="f"),
         answer_tpm,
-        rtol=pyphi.constants.EPSILON,
+        rtol=EPSILON,
     )
 
 
