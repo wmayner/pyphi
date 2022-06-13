@@ -9,8 +9,6 @@ from pyphi import convert, macro, models, timescale, config
 from pyphi.convert import state_by_node2state_by_state as sbn2sbs
 from pyphi.convert import state_by_state2state_by_node as sbs2sbn
 
-EPSILON = 10**(-config.PRECISION)
-
 @pytest.fixture()
 def macro_subsystem():
 
@@ -97,6 +95,8 @@ def test_node_labels(macro_subsystem):
 # TODO: using universal connectivity until we clarify how to handle
 # connectivity for hidden and coarse-grained elements.
 answer_cm = np.ones((2, 2))
+
+EPSILON = 10**(-config.PRECISION)
 
 
 def test_macro_subsystem(macro_subsystem):
