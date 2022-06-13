@@ -141,6 +141,7 @@ import logging
 import logging.config
 import os
 import pprint
+import shutil
 import tempfile
 from copy import copy
 from pathlib import Path
@@ -1048,7 +1049,9 @@ def atomic_write_yaml(data, path):
         # after successfully renaming the file
         with tempfile.NamedTemporaryFile(mode="wt", delete=True) as f:
             yaml.dump(data, f)
-            Path(f.name).rename(path)
+            # Use `shutil.move()` instead of `rename()` to properly deal with
+            # atomic writes across filesystems
+            shutil.move(f.name, path)
     except FileNotFoundError:
         pass
     return path
