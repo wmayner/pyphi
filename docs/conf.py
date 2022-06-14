@@ -204,7 +204,6 @@ rst_prolog = "".join(
         r"""
 .. |CAUSE| replace:: :const:`~pyphi.direction.Direction.CAUSE`
 .. |EFFECT| replace:: :const:`~pyphi.direction.Direction.EFFECT`
-.. |EPSILON| replace:: :const:`~pyphi.constants.EPSILON`
 .. |PARTITION_TYPE| replace:: :const:`~pyphi.config.PARTITION_TYPE`
 .. |PRECISION| replace:: :const:`~pyphi.config.PRECISION`
 """,

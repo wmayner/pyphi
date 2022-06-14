@@ -151,18 +151,6 @@ def test_reconfigure_logging_on_change(capsys):
     out, err = capsys.readouterr()
     assert err == ""
 
-
-def test_reconfigure_precision_on_change():
-    with config.override(PRECISION=100):
-        assert constants.EPSILON == 1e-100
-
-    with config.override(PRECISION=3):
-        assert constants.EPSILON == 1e-3
-
-    with config.override(PRECISION=123):
-        assert constants.EPSILON == 1e-123
-
-
 @config.override()
 @pytest.mark.parametrize(
     "name,valid,invalid",

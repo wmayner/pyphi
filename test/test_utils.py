@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import numpy as np
 
-from pyphi import constants, utils
+from pyphi import constants, utils, config
 
 
 def test_all_states():
@@ -30,8 +30,9 @@ def test_all_states():
 
 def test_eq():
     phi = 0.5
-    close_enough = phi - constants.EPSILON / 2
-    not_quite = phi - constants.EPSILON * 2
+    epsilon = 10**(-config.PRECISION)
+    close_enough = phi - epsilon / 2
+    not_quite = phi - epsilon * 2
     assert utils.eq(phi, close_enough)
     assert not utils.eq(phi, not_quite)
     assert not utils.eq(phi, (phi - phi))

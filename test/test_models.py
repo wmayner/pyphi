@@ -22,6 +22,7 @@ from pyphi import (
 )
 from pyphi.labels import NodeLabels
 
+EPSILON = 10**(-config.PRECISION)
 
 # Helper functions for constructing PyPhi objects
 
@@ -182,12 +183,12 @@ def test_general_eq_different_attributes():
 
 
 def test_general_eq_phi_precision_comparison_true():
-    b = nt(a.this, a.that, (a.phi - constants.EPSILON / 2), a.mechanism, a.purview)
+    b = nt(a.this, a.that, (a.phi - EPSILON / 2), a.mechanism, a.purview)
     assert models.cmp.general_eq(a, b, nt_attributes)
 
 
 def test_general_eq_phi_precision_comparison_false():
-    b = nt(a.this, a.that, (a.phi - constants.EPSILON * 2), a.mechanism, a.purview)
+    b = nt(a.this, a.that, (a.phi - EPSILON * 2), a.mechanism, a.purview)
     assert not models.cmp.general_eq(a, b, nt_attributes)
 
 
@@ -355,8 +356,8 @@ def test_ria_ordering_and_equality():
     assert ria(purview=(1, 2)) >= ria(purview=(1,))
 
     assert ria(phi=1.0) == ria(phi=1.0)
-    assert ria(phi=1.0) == ria(phi=(1.0 - constants.EPSILON / 2))
-    assert ria(phi=1.0) != ria(phi=(1.0 - constants.EPSILON * 2))
+    assert ria(phi=1.0) == ria(phi=(1.0 - EPSILON / 2))
+    assert ria(phi=1.0) != ria(phi=(1.0 - EPSILON * 2))
     assert ria(direction=Direction.CAUSE) != ria(direction=Direction.EFFECT)
     assert ria(mechanism=(1,)) != ria(mechanism=(1, 2))
 
@@ -389,7 +390,7 @@ def test_ria_repr_str():
 
 def test_mice_ordering_by_phi():
     phi1 = mice()
-    phi2 = mice(phi=(1.0 + constants.EPSILON * 2), partition=())
+    phi2 = mice(phi=(1.0 + EPSILON * 2), partition=())
     assert phi1 < phi2
     assert phi2 > phi1
     assert phi1 <= phi2
@@ -423,8 +424,8 @@ def test_mice_ordering_by_purview():
 
 def test_mice_equality():
     m = mice(phi=1.0)
-    close_enough = mice(phi=(1.0 - constants.EPSILON / 2))
-    not_quite = mice(phi=(1.0 - constants.EPSILON * 2))
+    close_enough = mice(phi=(1.0 - EPSILON / 2))
+    not_quite = mice(phi=(1.0 - EPSILON * 2))
     assert m == close_enough
     assert m != not_quite
 
@@ -532,7 +533,7 @@ def test_specified_states_and_indices():
 
 def test_concept_ordering(s, micro_s):
     phi1 = concept(subsystem=s)
-    phi2 = concept(mechanism=(0,), phi=(1.0 + constants.EPSILON * 2), subsystem=s)
+    phi2 = concept(mechanism=(0,), phi=(1.0 + EPSILON * 2), subsystem=s)
 
     assert phi1 < phi2
     assert phi2 > phi1
@@ -668,7 +669,7 @@ def test_ces_ordering(s):
 
 def test_sia_ordering(s, s_noised, subsys_n0n2, subsys_n1n2):
     phi1 = sia(subsystem=s)
-    phi2 = sia(subsystem=s, phi=1.0 + constants.EPSILON * 2)
+    phi2 = sia(subsystem=s, phi=1.0 + EPSILON * 2)
     assert phi1 < phi2
     assert phi2 > phi1
     assert phi1 <= phi2
@@ -695,8 +696,8 @@ def test_sia_ordering_by_subsystem_size(s, s_single):
 
 def test_sia_equality(s):
     bm = sia(subsystem=s)
-    close_enough = sia(subsystem=s, phi=(1.0 - constants.EPSILON / 2))
-    not_quite = sia(subsystem=s, phi=(1.0 - constants.EPSILON * 2))
+    close_enough = sia(subsystem=s, phi=(1.0 - EPSILON / 2))
+    not_quite = sia(subsystem=s, phi=(1.0 - EPSILON * 2))
     assert bm == close_enough
     assert bm != not_quite
 
