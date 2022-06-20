@@ -13,10 +13,11 @@ import multiprocessing
 import sys
 import threading
 from itertools import chain, islice
+from typing import Iterable, List
 
 import ray
+from more_itertools import chunked, flatten as iflatten
 from tblib import Traceback
-from toolz import concat, partition_all
 from tqdm.auto import tqdm
 
 from .. import config
@@ -383,13 +384,33 @@ def init(*args, **kwargs):
 
 
 class _NoShortCircuit:
-    """An object that is not equal to anything."""
+    """An object that is not equal to anything and is falsy."""
 
     def __eq__(self, other):
         return False
 
+    def __bool__(self):
+        return False
 
-def as_completed(object_refs, num_returns=1):
+
+def shortcircuit(
+    items,
+    shortcircuit_value=_NoShortCircuit(),
+    shortcircuit_callback=None,
+    shortcircuit_callback_args=None,
+):
+    """Yield from an iterable, stopping early if a certain value is found."""
+    for result in items:
+        yield result
+        if result == shortcircuit_value:
+            if shortcircuit_callback is not None:
+                if shortcircuit_callback_args is None:
+                    shortcircuit_callback_args = items
+                shortcircuit_callback(shortcircuit_callback_args)
+            return
+
+
+def as_completed(object_refs: List[ray.ObjectRef], num_returns: int = 1):
     """Yield remote results in order of completion."""
     unfinished = object_refs
     while unfinished:
@@ -398,7 +419,7 @@ def as_completed(object_refs, num_returns=1):
 
 
 @functools.wraps(ray.cancel)
-def cancel_all(object_refs, *args, **kwargs):
+def cancel_all(object_refs: Iterable, *args, **kwargs):
     try:
         for ref in object_refs:
             ray.cancel(ref, *args, **kwargs)
@@ -416,36 +437,26 @@ def cancel_all(object_refs, *args, **kwargs):
     return object_refs
 
 
-def shortcircuit(
-    items,
-    shortcircuit_value=_NoShortCircuit(),
-    shortcircuit_callback=None,
-    shortcircuit_callback_args=None,
-):
-    """Yield from an iterable, stopping early if a certain value is found."""
-    for result in items:
-        yield result
-        if result == shortcircuit_value:
-            if shortcircuit_callback:
-                if shortcircuit_callback_args is None:
-                    shortcircuit_callback_args = items
-                shortcircuit_callback(shortcircuit_callback_args)
-            return
-
-
-def _try_len(*iterables):
-    """Return the minimum length of iterables, or None if none has a length."""
+def _try_len(iterable):
     try:
-        return min(len(iterable) for iterable in iterables)
+        return len(iterable)
     except TypeError:
         return None
 
 
+def _try_lens(*iterables):
+    """Return the minimum length of iterables, or ``None`` if none has a length."""
+    return min(
+        filter(lambda l: l is not None, _map_builtin(_try_len, iterables)), default=None
+    )
+
+
 def get(
     object_refs,
-    parallel=True,
+    parallel=False,
     shortcircuit_value=_NoShortCircuit(),
     shortcircuit_callback=cancel_all,
+    shortcircuit_callback_args=None,
     progress=None,
     desc=None,
     total=None,
@@ -454,28 +465,29 @@ def get(
 
     Optionally return early if a particular value is found.
     """
+    if shortcircuit_callback_args is None:
+        shortcircuit_callback_args = object_refs
+
     if parallel:
-        completed = as_completed(object_refs)
+        completed = as_completed(list(object_refs))
     else:
         completed = object_refs
 
     if fallback(progress, config.PROGRESS_BARS):
-        completed = tqdm(completed, total=(total or _try_len(object_refs)), desc=desc)
+        completed = tqdm(completed, total=(total or _try_lens(object_refs)), desc=desc)
 
-    return shortcircuit(
-        completed,
-        shortcircuit_value=shortcircuit_value,
-        shortcircuit_callback=shortcircuit_callback,
-        shortcircuit_callback_args=object_refs,
+    return list(
+        shortcircuit(
+            completed,
+            shortcircuit_value=shortcircuit_value,
+            shortcircuit_callback=shortcircuit_callback,
+            shortcircuit_callback_args=shortcircuit_callback_args,
+        )
     )
 
 
-def _map_remote(func, *arglists, inflight_limit=1000, **kwargs):
+def backpressure(func, *arglists, inflight_limit=1000, **kwargs):
     # https://docs.ray.io/en/latest/ray-core/tasks/patterns/limit-tasks.html
-    if not isinstance(
-        func, (ray.remote_function.RemoteFunction, ray.actor.ActorHandle)
-    ):
-        func = ray.remote(func)
     result_refs = []
     for i, args in enumerate(zip(*arglists)):
         if len(result_refs) > inflight_limit:
@@ -490,44 +502,49 @@ def _map_sequential(func, *arglists, **kwargs):
         yield func(*args, **kwargs)
 
 
-def _flat_list(iterable):
-    return list(concat(iterable))
+def flatten(*args, **kwargs):
+    return list(iflatten(*args, **kwargs))
 
 
-def _map(
+def map(
     func,
     *arglists,
-    parallel=True,
     chunksize=1,
-    inflight_limit=1000,
+    sequential_threshold=1,
+    max_size=None,
+    max_depth=None,
+    branch_factor=2,
     shortcircuit_value=_NoShortCircuit(),
     shortcircuit_callback=cancel_all,
+    inflight_limit=1000,
+    parallel=True,
     progress=None,
     desc="",
     total=None,
     **kwargs,
-):
+):  # pylint: disable=redefined-builtin
     """Map a function to some arguments.
 
     Optionally return early if a particular value is found.
     """
+    if not arglists:
+        raise ValueError("no arguments")
     if parallel:
-        if chunksize > 1:
-            return map_reduce(
-                func,
-                _flat_list,
-                *arglists,
-                chunksize=chunksize,
-                inflight_limit=inflight_limit,
-                shortcircuit_value=shortcircuit_value,
-                shortcircuit_callback=shortcircuit_callback,
-                parallel=True,
-                **kwargs,
-            )
-        else:
-            results = _map_remote(
-                func, *arglists, inflight_limit=inflight_limit, **kwargs
-            )
+        return map_reduce(
+            func,
+            None,
+            *arglists,
+            chunksize=chunksize,
+            sequential_threshold=sequential_threshold,
+            max_size=max_size,
+            max_depth=max_depth,
+            branch_factor=branch_factor,
+            inflight_limit=inflight_limit,
+            shortcircuit_value=shortcircuit_value,
+            shortcircuit_callback=shortcircuit_callback,
+            parallel=True,
+            **kwargs,
+        )
     else:
         results = _map_sequential(func, *arglists, **kwargs)
     return get(
@@ -536,7 +553,7 @@ def _map(
         shortcircuit_value=shortcircuit_value,
         shortcircuit_callback=shortcircuit_callback,
         progress=progress,
-        total=(total or _try_len(*arglists)),
+        total=(total or _try_lens(*arglists)),
         desc=desc,
     )
 
@@ -545,7 +562,7 @@ def tree_size(branch_factor, depth):
     """Return the number of nodes in a tree."""
     if branch_factor < 1:
         return depth
-    return sum(branch_factor**l for l in range(depth))
+    return sum(branch_factor ** l for l in range(depth))
 
 
 def get_depth(max_size, branch_factor):
@@ -566,20 +583,24 @@ def _map_reduce_sequential(
     **kwargs,
 ):
     return reduce_func(
-        _map(map_func, *arglists, parallel=False, **kwargs),
+        map(map_func, *arglists, parallel=False, **kwargs),
         **(reduce_kwargs or dict()),
     )
+
+
+def _enforce_positive_integer(i):
+    return min(max(int(i), 1), sys.maxsize)
 
 
 def _map_reduce_tree(
     map_func,
     reduce_func,
     *arglists,
-    branch_factor=2,
-    max_size=None,
-    min_leaf_size=1,
-    max_depth=None,
     chunksize=None,
+    sequential_threshold=1,
+    max_size=None,
+    max_depth=None,
+    branch_factor=2,
     shortcircuit_value=_NoShortCircuit(),
     shortcircuit_callback=cancel_all,
     inflight_limit=1000,
@@ -599,21 +620,21 @@ def _map_reduce_tree(
     Chunksize parameter takes precedence over branch_factor.
     """
     if not arglists:
-        raise ValueError("no arguments provided to map over")
+        raise ValueError("no arguments provided")
+
+    n = _try_lens(*arglists)
 
     if reduce_kwargs is None:
         reduce_kwargs = dict()
 
-    # min_leaf_size must be at least 1 to avoid infinite branching
-    min_leaf_size = max(min_leaf_size, 1)
+    # Must be at least 1 to avoid infinite branching
+    sequential_threshold = _enforce_positive_integer(sequential_threshold)
+
+    if chunksize is not None:
+        chunksize = _enforce_positive_integer(chunksize)
 
     if __root__ and max_depth is None:
         max_depth = get_depth(max_size, branch_factor)
-
-    n = _try_len(*arglists)
-
-    if chunksize and chunksize < 1:
-        raise ValueError("chunksize must be positive or None")
 
     if parallel:
         if n is None:
@@ -625,16 +646,18 @@ def _map_reduce_tree(
         max_depth = 0
 
     # Branch
-    if __level__ < max_depth and min_leaf_size < n and branch_factor > 1:
-        # Add 1 to odd sizes to avoid single-element partitions
-        # NOTE: Adding 1 to even sizes will result in infinite branching
-        _chunksize = chunksize or (n // branch_factor) + n % 2
-        chunked_argslists = zip(*(partition_all(_chunksize, args) for args in arglists))
-
+    if __level__ < max_depth and sequential_threshold < n and branch_factor > 1:
         if chunksize is not None:
-            # Reduce chunksize by branch factor
-            chunksize = chunksize // (branch_factor**__level__)
-
+            _chunksize = max(chunksize, sequential_threshold)
+            # Reduce chunksize by branch factor, down to sequential threshold
+            chunksize = chunksize // (branch_factor ** (__level__ + 1))
+        else:
+            # Add 1 to odd sizes to avoid single-element partitions
+            # NOTE: Adding 1 to even sizes will result in infinite branching
+            assert math.isfinite(n)
+            _chunksize = (n // branch_factor) + n % 2
+        chunked_argslists = zip(*(chunked(args, _chunksize) for args in arglists))
+        # TODO backpressure
         result_refs = [
             _remote_map_reduce_tree.remote(
                 map_func,
@@ -642,8 +665,8 @@ def _map_reduce_tree(
                 *_arglists,
                 branch_factor=branch_factor,
                 max_size=max_size,
-                min_leaf_size=min_leaf_size,
                 max_depth=max_depth,
+                sequential_threshold=sequential_threshold,
                 chunksize=chunksize,
                 shortcircuit_value=shortcircuit_value,
                 shortcircuit_callback=shortcircuit_callback,
@@ -657,6 +680,8 @@ def _map_reduce_tree(
             )
             for _arglists in chunked_argslists
         ]
+        if not reduce_func:
+            reduce_func = flatten
         return reduce_func(
             get(
                 result_refs,
@@ -669,19 +694,23 @@ def _map_reduce_tree(
         )
 
     # Leaf
-    return reduce_func(
-        _map(
+    result = list(
+        map(
             map_func,
             *arglists,
             parallel=False,
-            chunksize=1,
             shortcircuit_value=shortcircuit_value,
-            shortcircuit_callback=None,
+            shortcircuit_callback=shortcircuit_callback,
             progress=progress,
             desc=desc,
             total=n,
             **kwargs,
-        ),
+        )
+    )
+    if not reduce_func:
+        return result
+    return reduce_func(
+        result,
         **reduce_kwargs,
     )
 
@@ -702,7 +731,3 @@ def map_reduce(
             **kwargs,
         )
     return _map_reduce_sequential(*args, **kwargs)
-
-
-# Export `_map` from the module as `map`
-map = _map
