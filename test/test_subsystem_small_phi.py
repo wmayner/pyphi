@@ -5,7 +5,7 @@ import example_networks
 import numpy as np
 import pytest
 
-from pyphi import Direction, constants
+from pyphi import Direction, constants, utils
 from pyphi.models import Bipartition, Part, RepertoireIrreducibilityAnalysis
 
 s = example_networks.s()
@@ -332,7 +332,7 @@ def test_phi_effect_mip_reducible(s):
 def test_phi(s):
     mechanism = s.node_indices
     purview = s.node_indices
-    assert abs(0.5 - s.phi(mechanism, purview)) < constants.EPSILON
+    assert utils.eq(0.5, s.phi(mechanism, purview))
 
 
 # }}}

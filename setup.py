@@ -22,6 +22,7 @@ install_requires = [
     "more_itertools >= 8.13.0",
     "numpy >=1.11.0",
     "ordered-set >= 4.0.2",
+    "plotly >= 5.8.2",
     "psutil >=2.1.1",
     "pyemd >=0.3.0",
     "pyyaml >=3.13",
