@@ -108,9 +108,15 @@ def flushcache(request):
 # ================================================================
 
 
-@pytest.fixture(scope="module")
-@pytest.mark.filterwarnings("ignore:.*:PytestUnraisableExceptionWarning")
+@pytest.fixture(scope="function")
 def ray_context():
-    context = ray.init(local_mode=True, num_cpus=1)
+    context = ray.init(num_cpus=3)
+    yield context
+    ray.shutdown()
+
+
+@pytest.fixture(scope="function")
+def ray_context_local():
+    context = ray.init(local_mode=True)
     yield context
     ray.shutdown()

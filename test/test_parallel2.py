@@ -1,0 +1,415 @@
+import pickle
+import time
+from datetime import timedelta
+from decimal import Decimal
+from functools import partial
+from itertools import tee as _tee
+from typing import Hashable
+from unittest.mock import Mock, patch, sentinel
+
+import pytest
+import ray
+from hypothesis import HealthCheck, assume, given, settings
+from hypothesis import strategies as st
+from hypothesis.strategies import composite
+
+from pyphi.compute import parallel
+
+
+class PrettyIter:
+    """An iterator that displays its contents."""
+
+    def __init__(self, values):
+        self._values, _repr = _tee(values, 2)
+        self._repr = list(_repr)
+        self._iter = iter(self._values)
+
+    def __iter__(self):
+        return self._iter
+
+    def __next__(self):
+        return next(self._iter)
+
+    def __repr__(self):
+        return f"iter({self._repr!r})"
+
+
+def everything_except(*excluded_types):
+    return (
+        st.from_type(type)
+        .flatmap(st.from_type)
+        .filter(lambda x: not isinstance(x, excluded_types))
+    )
+
+
+def anything():
+    return everything_except()
+
+
+@composite
+def anything_comparable(draw):
+    example = draw(anything())
+    try:
+        assume(example == example)
+    except:
+        assume(False)
+    return example
+
+
+@composite
+def anything_pickleable(draw):
+    example = draw(anything())
+    try:
+        assume(example == pickle.loads(pickle.dumps(example)))
+    except:
+        assume(False)
+    return example
+
+
+@composite
+def anything_pickleable_and_hashable(draw):
+    example = draw(anything())
+    try:
+        assume(
+            isinstance(example, Hashable)
+            and example == pickle.loads(pickle.dumps(example))
+        )
+    except:
+        assume(False)
+    return example
+
+
+@composite
+def list_and_index(draw, elements):
+    l = draw(st.lists(elements))
+    n = len(l)
+    index = draw(st.integers(min_value=0, max_value=(n - 1) if n else 0))
+    return (l, index)
+
+
+def iterable_or_list(elements):
+    return st.iterables(elements) | st.iterables(elements)
+
+
+def tee(iterable, n=2):
+    return tuple(map(PrettyIter, _tee(iterable, n)))
+
+
+def teed(strategy, n=2):
+    return strategy.map(partial(tee, n=n))
+
+
+@given(iterable_or_list(anything()))
+def test_try_len(iterable):
+    expected = len(iterable) if hasattr(iterable, "__len__") else None
+    assert parallel._try_len(iterable) == expected
+
+
+@given(st.lists(iterable_or_list(anything())))
+def test_try_lens(iterables):
+    expected = min(
+        map(len, filter(lambda iterable: hasattr(iterable, "__len__"), iterables)),
+        default=None,
+    )
+    assert parallel._try_lens(*iterables) == expected
+
+
+@given(anything())
+def test_noshortcircuit(x):
+    assert x != parallel._NoShortCircuit()
+    assert not parallel._NoShortCircuit()
+
+
+def shortcircuit_tester(func, list_and_index, ordered=True, shortcircuit_value=None):
+    items, idx = list_and_index
+
+    expected = list(items)
+    actual = list(func(items))
+
+    if ordered:
+        assert expected == actual
+    else:
+        assert set(expected) == set(actual)
+
+    if items and shortcircuit_value is None:
+        idx = items.index(items[idx])
+        shortcircuit_value = items[idx]
+    else:
+        items.insert(idx, shortcircuit_value)
+
+    expected = list(items)
+
+    if shortcircuit_value is not None:
+        actual = list(func(items, shortcircuit_value=shortcircuit_value))
+        if ordered:
+            assert expected[: idx + 1] == actual
+        else:
+            assert shortcircuit_value in actual
+
+        # TODO call not detected whne parallel
+        mock = Mock()
+        actual = list(
+            func(
+                items,
+                shortcircuit_value=shortcircuit_value,
+                shortcircuit_callback=mock,
+            )
+        )
+        # mock.assert_called()
+        if ordered:
+            assert expected[: idx + 1] == actual
+        else:
+            assert shortcircuit_value in actual
+
+
+@given(
+    list_and_index=list_and_index(anything_comparable()),
+)
+def test_shortcircuit(list_and_index):
+    shortcircuit_tester(parallel.shortcircuit, list_and_index)
+
+
+@ray.remote
+def remote_sleep(x, t=0.1):
+    for _ in range(int(x)):
+        time.sleep(t)
+    return x
+
+
+@settings(
+    suppress_health_check=[HealthCheck.function_scoped_fixture],
+    deadline=timedelta(seconds=10),
+)
+@given(args=st.lists(st.integers(min_value=0, max_value=1), max_size=2))
+@pytest.mark.filterwarnings("ignore:.*:pytest.PytestUnraisableExceptionWarning")
+def test_as_completed(ray_context, args):
+    args = sorted(args, reverse=True)
+    expected = sorted(args)
+    actual = list(parallel.as_completed([remote_sleep.remote(i) for i in args]))
+    assert expected == actual
+
+
+def test_cancel_all():
+    tasks = [remote_sleep.remote(i) for i in [10] * 10]
+    parallel.cancel_all(tasks)
+    with pytest.raises(
+        (ray.exceptions.TaskCancelledError, ray.exceptions.RayTaskError)
+    ):
+        ray.get(tasks[0])
+
+
+@given(st.lists(everything_except(Decimal)))
+def test_get_local(items):
+    with patch("pyphi.compute.parallel.cancel_all") as mock:
+        expected = list(items)
+        actual = list(parallel.get(items))
+        mock.assert_not_called()
+        assert expected == actual
+
+
+@settings(
+    suppress_health_check=[HealthCheck.function_scoped_fixture],
+)
+@given(
+    st.lists(st.integers()),
+)
+@pytest.mark.filterwarnings("ignore:.*:pytest.PytestUnraisableExceptionWarning")
+def test_get_parallel(ray_context, expected):
+    @ray.remote
+    def f(x):
+        return x
+
+    refs = [f.remote(x) for x in expected]
+    assert set(expected) == set(parallel.get(refs, parallel=True))
+
+
+def test_map_with_no_args():
+    with pytest.raises(ValueError):
+        list(parallel.map(lambda x: x))
+
+
+@pytest.mark.filterwarnings("ignore:.*:pytest.PytestUnraisableExceptionWarning")
+def test_map_with_iterator_no_chunksize(ray_context, func):
+    with pytest.raises(ValueError):
+        parallel.map(func, iter([1, 2, 3]), parallel=True, chunksize=None)
+
+
+def arglists(elements):
+    return st.lists(teed(iterable_or_list(elements), n=2), min_size=1).map(
+        lambda _: list(zip(*_))
+    )
+
+
+@pytest.fixture
+def func():
+    def func(*args):
+        if args:
+            return args[0]
+        return args
+
+    return func
+
+
+@settings(
+    suppress_health_check=[HealthCheck.function_scoped_fixture],
+)
+@given(
+    arglists=arglists(anything()),
+)
+def test_map_sequential(
+    func,
+    arglists,
+):
+    expected = list(map(func, *arglists[0]))
+    actual = list(parallel._map_sequential(func, *arglists[1]))
+    assert expected == actual
+
+
+@pytest.mark.filterwarnings("ignore:.*:pytest.PytestUnraisableExceptionWarning")
+def test_map_with_lambda(ray_context):
+    expected = set([1, 2, 3])
+    actual = set(parallel.map(lambda x: x, expected, parallel=True))
+    assert expected == actual
+
+
+def test_map_with_iterators_and_empty_args(func):
+    assert [] == parallel.map(func, iter([]), parallel=True, chunksize=100)
+
+
+@settings(
+    suppress_health_check=[HealthCheck.function_scoped_fixture],
+    deadline=None,
+)
+@given(
+    arglists=arglists(anything_pickleable_and_hashable()),
+    _parallel=st.booleans(),
+    max_size=st.integers() | st.none(),
+    max_depth=st.integers() | st.none(),
+    branch_factor=st.integers(),
+    chunksize=st.integers(),
+    sequential_threshold=st.integers(),
+    inflight_limit=st.integers(),
+)
+@pytest.mark.filterwarnings("ignore:.*:pytest.PytestUnraisableExceptionWarning")
+def test_map_with_iterators(
+    ray_context,
+    func,
+    arglists,
+    _parallel,
+    max_size,
+    max_depth,
+    branch_factor,
+    chunksize,
+    sequential_threshold,
+    inflight_limit,
+):
+    expected = set(map(func, *arglists[0]))
+    actual = set(
+        parallel.map(
+            func,
+            *arglists[1],
+            max_size=max_size,
+            max_depth=max_depth,
+            branch_factor=branch_factor,
+            chunksize=chunksize,
+            sequential_threshold=sequential_threshold,
+            inflight_limit=inflight_limit,
+            parallel=_parallel,
+        )
+    )
+    assert expected == actual
+
+
+@settings(
+    suppress_health_check=[HealthCheck.function_scoped_fixture],
+    deadline=None,
+)
+@given(
+    list_and_index=list_and_index(anything_pickleable_and_hashable()),
+    _parallel=st.booleans(),
+    max_size=st.integers() | st.none(),
+    max_depth=st.integers() | st.none(),
+    branch_factor=st.integers(),
+    chunksize=st.integers() | st.none(),
+    sequential_threshold=st.integers(),
+    inflight_limit=st.integers(),
+)
+@pytest.mark.filterwarnings("ignore:.*:pytest.PytestUnraisableExceptionWarning")
+def test_map_with_shortcircuit(
+    ray_context,
+    func,
+    list_and_index,
+    max_size,
+    max_depth,
+    branch_factor,
+    _parallel,
+    chunksize,
+    sequential_threshold,
+    inflight_limit,
+):
+    def _func(items, **kwargs):
+        return parallel.map(
+            func,
+            items,
+            **kwargs,
+            max_size=max_size,
+            max_depth=max_depth,
+            branch_factor=branch_factor,
+            chunksize=chunksize,
+            sequential_threshold=sequential_threshold,
+            inflight_limit=inflight_limit,
+            parallel=_parallel,
+        )
+
+    shortcircuit_tester(
+        _func,
+        list_and_index,
+        shortcircuit_value=sentinel.shortcircuit,
+        ordered=(not _parallel),
+    )
+
+
+@settings(
+    suppress_health_check=[HealthCheck.function_scoped_fixture],
+    deadline=None,
+)
+@given(
+    arglists=arglists(st.integers()),
+    max_size=st.integers() | st.none(),
+    max_depth=st.integers() | st.none(),
+    branch_factor=st.integers(),
+    chunksize=st.integers(),
+    _parallel=st.booleans(),
+    sequential_threshold=st.integers(),
+    inflight_limit=st.integers(),
+)
+@pytest.mark.filterwarnings("ignore:.*:pytest.PytestUnraisableExceptionWarning")
+def test_map_reduce(
+    ray_context,
+    func,
+    arglists,
+    max_size,
+    max_depth,
+    branch_factor,
+    _parallel,
+    chunksize,
+    sequential_threshold,
+    inflight_limit,
+):
+    def reduce_func(x):
+        return max(x, default=None)
+
+    expected = reduce_func(map(func, *arglists[0]))
+    actual = parallel.map_reduce(
+        func,
+        reduce_func,
+        *arglists[1],
+        max_size=max_size,
+        max_depth=max_depth,
+        branch_factor=branch_factor,
+        chunksize=chunksize,
+        sequential_threshold=sequential_threshold,
+        inflight_limit=inflight_limit,
+        parallel=_parallel,
+    )
+    assert expected == actual
