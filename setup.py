@@ -19,6 +19,7 @@ install_requires = [
     "igraph >= 0.9.10",
     "joblib >=0.8.0",
     "networkx >=2.6.2",
+    "more_itertools >= 8.13.0",
     "numpy >=1.11.0",
     "ordered-set >= 4.0.2",
     "psutil >=2.1.1",
