@@ -628,7 +628,7 @@ def _agree_on_global_state(distinctions, n):
 
     Arguments:
         distinctions (Iterable): The distinctions to consider.
-        n (int): The size of the system.
+        n (int): The maximum node index in the system.
     """
     # Initialize and mask the specification array. We use a mask to indicate
     # that the node is not specified (i.e., not in the purview)
@@ -675,7 +675,8 @@ def _global_conflict_graph(distinctions):
         ) or not all(
             # Are they incongruent globally?
             _agree_on_global_state(
-                [d1.mice(direction), d2.mice(direction)], len(distinctions.subsystem)
+                [d1.mice(direction), d2.mice(direction)],
+                max(distinctions.subsystem.node_indices) + 1,
             )
             for direction in Direction.both()
         ):
