@@ -804,8 +804,8 @@ class PyphiConfig(Config):
     )
 
     COMPOSITIONAL_STATE_CONFLICTS = Option(
-        "SAME_PURVIEW",
-        values=["SAME_PURVIEW", "SAME_PURVIEW_AND_INCONGRUENT_STATE"],
+        "GLOBAL",
+        values=["GLOBAL", "SAME_PURVIEW", "SAME_PURVIEW_AND_INCONGRUENT_STATE"],
         doc="""
     Controls the defintion of conflicts among distinctions.
     """,

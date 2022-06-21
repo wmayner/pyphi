@@ -4,7 +4,6 @@
 import functools
 import logging
 import pickle
-import warnings
 from collections import UserDict, defaultdict
 from dataclasses import dataclass
 from itertools import combinations, product
@@ -13,6 +12,8 @@ import networkx as nx
 import numpy as np
 import ray
 import scipy
+from more_itertools import all_equal
+from numpy import ma
 from toolz.itertoolz import partition_all
 from tqdm.auto import tqdm
 
@@ -620,6 +621,66 @@ def are_conflicting(mice1, mice2):
     ](mice1, mice2)
 
 
+def _agree_on_global_state(distinctions, n):
+    """Return whether the given MICE agree on a global state.
+
+    Assumes the MICE all have the same direction.
+
+    Arguments:
+        distinctions (Iterable): The distinctions to consider.
+        n (int): The size of the system.
+    """
+    # Initialize and mask the specification array. We use a mask to indicate
+    # that the node is not specified (i.e., not in the purview)
+    specification = np.empty([len(distinctions), n])
+    specification.fill(np.nan)
+    specification = ma.masked_invalid(specification)
+
+    for i, distinction in enumerate(distinctions):
+        specification[i, list(distinction.purview)] = distinction.specified_state[0]
+
+    # Are all non-masked entries are equal?
+    is_congruent = lambda column: all_equal(column[~column.mask])
+
+    # Check congruence for all nodes (apply to columns, i.e. along rows)
+    return np.all(ma.apply_along_axis(is_congruent, 0, specification))
+
+
+# TODO refactor to combine with other conflict graph logic
+# TODO optimize: if any node's state is not specified, we can shortcircuit since
+#      there must be a cut
+def _global_conflict_graph(distinctions):
+    """Return a graph where conflicts are defined by global incongruence."""
+    G = nx.Graph()
+    G.add_nodes_from(distinctions.mechanisms)
+
+    mechanism_to_distinction = dict()
+    for distinction in distinctions:
+        mechanism_to_distinction[distinction.mechanism] = distinction
+        if any(
+            len(distinction.mice(direction).specified_state) > 1
+            for direction in Direction.both()
+        ):
+            raise ValueError(
+                "found unexpected state tie for mechanism {distinction.mechanism}: "
+                "when COMPOSITIONAL_STATE_CONFLICTS = 'GLOBAL', must generate "
+                "nonconflicting phi structures with `state_ties=True`"
+            )
+
+    for d1, d2 in combinations(distinctions, 2):
+        # Check that the two distinctions agree on the global state in both
+        # directions; otherwise add a conflict edge
+        if not all(
+            _agree_on_global_state(
+                [d1.mice(direction), d2.mice(direction)], len(distinctions.subsystem)
+            )
+            for direction in Direction.both()
+        ):
+            G.add_edge(d1.mechanism, d2.mechanism)
+
+    return G, mechanism_to_distinction
+
+
 def conflict_graph(distinctions):
     """Return a graph where nodes are distinctions and edges are conflicts.
 
@@ -628,6 +689,9 @@ def conflict_graph(distinctions):
     """
     G = nx.Graph()
     G.add_nodes_from(distinctions.mechanisms)
+    # TODO(4.0) possibly refactor to avoid special case
+    if config.COMPOSITIONAL_STATE_CONFLICTS == "GLOBAL":
+        return _global_conflict_graph(distinctions)
     purview_to_mechanisms, mechanism_to_distinction = _purview_mapping(distinctions)
     for direction, submapping in purview_to_mechanisms.items():
         for purview, mechanisms in submapping.items():
@@ -658,7 +722,7 @@ def _all_nonconflicting_distinction_sets(distinctions):
         )
 
 
-#TODO refactor
+# TODO refactor
 def largest_nonconflicting_distinction_sets(distinctions):
     graph, mechanism_to_distinction = conflict_graph(distinctions)
     for maximal_independent_set in largest_independent_sets(graph):
