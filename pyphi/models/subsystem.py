@@ -133,7 +133,7 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
 
     def purview_inclusion(self, max_order=None):
         """Return a mapping from (purview, state) pairs to distinctions whose
-        purview inclused that purview in that state.
+        purview includes that purview in that state.
         """
         if max_order is None:
             max_order = len(self.subsystem)
