@@ -668,9 +668,12 @@ def _global_conflict_graph(distinctions):
             )
 
     for d1, d2 in combinations(distinctions, 2):
-        # Check that the two distinctions agree on the global state in both
-        # directions; otherwise add a conflict edge
-        if not all(
+        if all(
+            # Do they the same cause & effect purviews?
+            d1.purview(direction) == d2.purview(direction)
+            for direction in Direction.both()
+        ) or not all(
+            # Are they incongruent globally?
             _agree_on_global_state(
                 [d1.mice(direction), d2.mice(direction)], len(distinctions.subsystem)
             )
