@@ -656,30 +656,38 @@ def _map_reduce_tree(
             # NOTE: Adding 1 to even sizes will result in infinite branching
             assert math.isfinite(n)
             _chunksize = (n // branch_factor) + n % 2
+
         chunked_argslists = zip(*(chunked(args, _chunksize) for args in arglists))
-        # TODO backpressure
-        result_refs = [
-            _remote_map_reduce_tree.remote(
-                map_func,
-                reduce_func,
-                *_arglists,
-                branch_factor=branch_factor,
-                max_size=max_size,
-                max_depth=max_depth,
-                sequential_threshold=sequential_threshold,
-                chunksize=chunksize,
-                shortcircuit_value=shortcircuit_value,
-                shortcircuit_callback=shortcircuit_callback,
-                inflight_limit=inflight_limit,
-                reduce_kwargs=reduce_kwargs,
-                progress=progress,
-                desc=desc,
-                __root__=False,
-                __level__=__level__ + 1,
-                **kwargs,
+
+        # Submit tasks with backpressure
+        # TODO refactor?
+        result_refs = []
+        for i, _arglists in enumerate(chunked_argslists):
+            if len(result_refs) > inflight_limit:
+                num_ready = i - inflight_limit
+                ray.wait(result_refs, num_returns=num_ready)
+            result_refs.append(
+                _remote_map_reduce_tree.remote(
+                    map_func,
+                    reduce_func,
+                    *_arglists,
+                    branch_factor=branch_factor,
+                    max_size=max_size,
+                    max_depth=max_depth,
+                    sequential_threshold=sequential_threshold,
+                    chunksize=chunksize,
+                    shortcircuit_value=shortcircuit_value,
+                    shortcircuit_callback=shortcircuit_callback,
+                    inflight_limit=inflight_limit,
+                    reduce_kwargs=reduce_kwargs,
+                    progress=progress,
+                    desc=desc,
+                    __root__=False,
+                    __level__=__level__ + 1,
+                    **kwargs,
+                )
             )
-            for _arglists in chunked_argslists
-        ]
+
         if not reduce_func:
             reduce_func = flatten
         return reduce_func(
