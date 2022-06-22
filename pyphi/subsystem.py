@@ -680,10 +680,13 @@ class Subsystem:
         return tuple(full_index)
 
     def find_maximally_irreducible_state(self, direction, mechanism, purview):
-        required_repertoire_distance = "IIT_4.0_SMALL_PHI"
-        if not config.REPERTOIRE_DISTANCE == required_repertoire_distance:
+        required_repertoire_distances = [
+            "IIT_4.0_SMALL_PHI",
+            "IIT_4.0_SMALL_PHI_NO_ABS",
+        ]
+        if config.REPERTOIRE_DISTANCE not in required_repertoire_distances:
             raise ValueError(
-                f'REPERTOIRE_DISTANCE must be set to "{required_repertoire_distance}"'
+                f'REPERTOIRE_DISTANCE must be set to one of "{required_repertoire_distances}"'
             )
 
         state_to_mip = {
@@ -712,8 +715,11 @@ class Subsystem:
     def find_maximal_state_under_complete_partition(
         self, direction, mechanism, purview
     ):
-        required_repertoire_distance = "IIT_4.0_SMALL_PHI"
-        if not config.REPERTOIRE_DISTANCE == required_repertoire_distance:
+        required_repertoire_distances = [
+            "IIT_4.0_SMALL_PHI",
+            "IIT_4.0_SMALL_PHI_NO_ABS",
+        ]
+        if config.REPERTOIRE_DISTANCE not in required_repertoire_distance:
             raise ValueError(
                 f'REPERTOIRE_DISTANCE must be set to "{required_repertoire_distance}"'
             )
