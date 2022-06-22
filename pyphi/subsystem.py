@@ -719,9 +719,9 @@ class Subsystem:
             "IIT_4.0_SMALL_PHI",
             "IIT_4.0_SMALL_PHI_NO_ABS",
         ]
-        if config.REPERTOIRE_DISTANCE not in required_repertoire_distance:
+        if config.REPERTOIRE_DISTANCE not in required_repertoire_distances:
             raise ValueError(
-                f'REPERTOIRE_DISTANCE must be set to "{required_repertoire_distance}"'
+                f'REPERTOIRE_DISTANCE must be set to "{required_repertoire_distances}"'
             )
 
         repertoire = self.repertoire(direction, mechanism, purview)
