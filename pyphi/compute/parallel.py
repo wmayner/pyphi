@@ -542,6 +542,7 @@ def map(
             shortcircuit_value=shortcircuit_value,
             shortcircuit_callback=shortcircuit_callback,
             parallel=True,
+            progress=progress,
             **kwargs,
         )
     else:
