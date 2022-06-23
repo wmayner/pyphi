@@ -966,7 +966,7 @@ def sia(
     phi_structures=None,
     check_trivial_reducibility=True,
     chunksize=DEFAULT_PHI_STRUCTURE_CHUNKSIZE,
-    sequential_threhsold=DEFAULT_PHI_STRUCTURE_SEQUENTIAL_THRESHOLD,
+    sequential_threshold=DEFAULT_PHI_STRUCTURE_SEQUENTIAL_THRESHOLD,
     partition_chunksize=DEFAULT_PARTITION_CHUNKSIZE,
     partition_sequential_threshold=DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
     progress=None,
