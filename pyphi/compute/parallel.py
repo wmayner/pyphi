@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # compute/parallel.py
 
@@ -655,7 +654,7 @@ def _map_reduce_tree(
             # Add 1 to odd sizes to avoid single-element partitions
             # NOTE: Adding 1 to even sizes will result in infinite branching
             assert math.isfinite(n)
-            _chunksize = (n // branch_factor) + n % 2
+            _chunksize = max(1, (n // branch_factor) + n % 2)
 
         chunked_argslists = zip(*(chunked(args, _chunksize) for args in arglists))
 
@@ -702,7 +701,7 @@ def _map_reduce_tree(
         )
 
     # Leaf
-    result = list(
+    results = list(
         map(
             map_func,
             *arglists,
@@ -716,9 +715,9 @@ def _map_reduce_tree(
         )
     )
     if not reduce_func:
-        return result
+        return results
     return reduce_func(
-        result,
+        results,
         **reduce_kwargs,
     )
 
