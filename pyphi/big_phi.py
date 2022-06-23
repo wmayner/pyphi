@@ -906,6 +906,7 @@ def nonconflicting_phi_structures(
     state_ties=True,
     partition_ties=True,
     all_ties=False,
+    only_largest=False,
     parallel=True,
     progress=None,
     desc=None,
@@ -918,6 +919,7 @@ def nonconflicting_phi_structures(
         state_ties=state_ties,
         partition_ties=partition_ties,
         all_ties=all_ties,
+        only_largest=only_largest,
     )
     if progress:
         distinction_sets = tqdm(distinction_sets, desc=desc)
