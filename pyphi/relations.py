@@ -12,12 +12,11 @@ from time import time
 
 import numpy as np
 from graphillion import setset
-from joblib import Parallel, delayed
 from toolz import concat, curry
 from tqdm.auto import tqdm
 
 from . import combinatorics, config, validate
-from .compute.parallel import get_num_processes
+from .compute import parallel as _parallel
 from .conf import fallback
 from .data_structures import HashableOrderedSet
 from .metrics.distribution import absolute_information_density
@@ -907,30 +906,30 @@ def all_relations(
     subsystem,
     ces,
     parallel=False,
-    parallel_kwargs=None,
+    # TODO configure
+    chunksize=1000,
+    sequential_threshold=1000,
     progress=None,
     potential_relata=None,
     **kwargs,
 ):
     """Return all relations, even those with zero phi."""
-    # Relations can be over any combination of causes/effects in the CES, so we
-    # get a flat list of all causes and effects
     if potential_relata is None:
-        potential_relata = list(
-            relata_with_nonempty_congruent_overlap(subsystem, ces, **kwargs)
+        potential_relata = relata_with_nonempty_congruent_overlap(
+            subsystem, ces, **kwargs
         )
-    if fallback(progress, config.PROGRESS_BARS):
-        potential_relata = tqdm(potential_relata, desc="Potential relata")
-    # Compute all relations
-    n_jobs = get_num_processes()
-    parallel_kwargs = {
-        "n_jobs": n_jobs,
-        "batch_size": max(len(potential_relata) // (n_jobs - 1), 1),
-        **(parallel_kwargs if parallel_kwargs else dict()),
-    }
-    if parallel:
-        return Parallel(**parallel_kwargs)(map(delayed(relation), potential_relata))
-    return map(relation, potential_relata)
+    progress = fallback(progress, config.PROGRESS_BARS)
+    if progress:
+        potential_relata = tqdm(potential_relata, desc="Submitting possible relations")
+    return _parallel.map(
+        relation,
+        potential_relata,
+        chunksize=chunksize,
+        sequential_threshold=sequential_threshold,
+        parallel=parallel,
+        progress=progress,
+        desc="Evaluating possible relations",
+    )
 
 
 class Relations:
