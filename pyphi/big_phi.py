@@ -843,7 +843,7 @@ def evaluate_phi_structure(
     phi_structure,
     check_trivial_reducibility=True,
     chunksize=DEFAULT_PARTITION_CHUNKSIZE,
-    remote=True,
+    parallel=True,
     progress=None,
 ):
     """Analyze the irreducibility of a PhiStructure."""
@@ -865,7 +865,7 @@ def evaluate_phi_structure(
         phi_structure=phi_structure,
         chunksize=chunksize,
         shortcircuit_value=0,
-        parallel=remote,
+        parallel=parallel,
         progress=progress,
         desc="Evaluating partitions",
     )
@@ -879,7 +879,7 @@ def _system_intrinsic_information(phi_structure):
 def find_maximal_compositional_state(
     phi_structures,
     chunksize=DEFAULT_PHI_STRUCTURE_CHUNKSIZE,
-    remote=True,
+    parallel=True,
     progress=None,
 ):
     log.debug("Finding maximal compositional state...")
@@ -889,7 +889,7 @@ def find_maximal_compositional_state(
         phi_structures,
         chunksize=chunksize,
         shortcircuit_value=0,
-        parallel=remote,
+        parallel=parallel,
         progress=progress,
         desc="Evaluating compositional states",
     )
@@ -906,7 +906,7 @@ def nonconflicting_phi_structures(
     state_ties=True,
     partition_ties=True,
     all_ties=False,
-    remote=True,
+    parallel=True,
     progress=None,
     desc=None,
 ):
@@ -924,7 +924,7 @@ def nonconflicting_phi_structures(
     for distinctions in distinction_sets:
         if all_relations is None:
             # Compute relations on workers for each nonconflicting set
-            if remote:
+            if parallel:
                 # Non-blocking task so we can yield immediately
                 relations = _compute_relations.remote(
                     all_distinctions.subsystem,
@@ -965,7 +965,7 @@ def sia(
     partition_ties=True,
     all_ties=False,
     only_largest=False,
-    remote=True,
+    parallel=True,
 ):
     """Analyze the irreducibility of a system."""
     if not state_ties and config.RELATION_COMPUTATION == "ANALYTICAL":
@@ -1003,7 +1003,7 @@ def sia(
             partition_ties=partition_ties,
             all_ties=all_ties,
             only_largest=only_largest,
-            remote=remote,
+            parallel=parallel,
             progress=progress,
             desc="Generating nonconflicting phi-structures",
         )
@@ -1013,7 +1013,7 @@ def sia(
             phi_structures,
             chunksize=chunksize,
             progress=progress,
-            remote=remote,
+            parallel=parallel,
         )
         log.debug("Evaluating maximal compositional state...")
         analysis = evaluate_phi_structure(
@@ -1021,7 +1021,7 @@ def sia(
             maximal_compositional_state,
             check_trivial_reducibility=check_trivial_reducibility,
             chunksize=partition_chunksize,
-            remote=remote,
+            parallel=parallel,
             progress=progress,
         )
         log.debug("Done evaluating maximal compositional state; returning SIA.")
