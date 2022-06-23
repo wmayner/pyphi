@@ -966,7 +966,9 @@ def sia(
     phi_structures=None,
     check_trivial_reducibility=True,
     chunksize=DEFAULT_PHI_STRUCTURE_CHUNKSIZE,
+    sequential_threhsold=DEFAULT_PHI_STRUCTURE_SEQUENTIAL_THRESHOLD,
     partition_chunksize=DEFAULT_PARTITION_CHUNKSIZE,
+    partition_sequential_threshold=DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
     progress=None,
     purview_ties=True,
     state_ties=True,
@@ -1020,6 +1022,7 @@ def sia(
         maximal_compositional_state = find_maximal_compositional_state(
             phi_structures,
             chunksize=chunksize,
+            sequential_threshold=sequential_threshold,
             progress=progress,
             parallel=parallel,
         )
@@ -1029,6 +1032,7 @@ def sia(
             maximal_compositional_state,
             check_trivial_reducibility=check_trivial_reducibility,
             chunksize=partition_chunksize,
+            sequential_threshold=partition_sequential_threshold,
             parallel=parallel,
             progress=progress,
         )
