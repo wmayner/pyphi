@@ -629,6 +629,8 @@ def _map_reduce_tree(
     # Must be at least 1 to avoid infinite branching
     sequential_threshold = _enforce_positive_integer(sequential_threshold)
 
+    inflight_limit = _enforce_positive_integer(inflight_limit)
+
     if chunksize is not None:
         chunksize = _enforce_positive_integer(chunksize)
 
