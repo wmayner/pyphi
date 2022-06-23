@@ -4,6 +4,7 @@
 import functools
 import logging
 import pickle
+import warnings
 from collections import UserDict, defaultdict
 from dataclasses import dataclass
 from itertools import combinations, product
@@ -848,7 +849,8 @@ def evaluate_phi_structure(
         chunksize=chunksize,
         shortcircuit_value=0,
         parallel=remote,
-        progress=False,
+        progress=progress,
+        desc="Evaluating partitions",
     )
 
 
@@ -873,7 +875,8 @@ def find_maximal_compositional_state(
         chunksize=chunksize,
         shortcircuit_value=0,
         parallel=remote,
-        progress=False,
+        progress=progress,
+        desc="Evaluating compositional states",
     )
     return phi_structure
 
@@ -889,6 +892,7 @@ def nonconflicting_phi_structures(
     partition_ties=True,
     all_ties=False,
     remote=True,
+    progress=None,
 ):
     """Yield nonconflicting PhiStructures."""
     for distinctions in all_nonconflicting_distinction_sets(
@@ -901,12 +905,18 @@ def nonconflicting_phi_structures(
         if all_relations is None:
             # Compute relations on workers for each nonconflicting set
             if remote:
+                # Non-blocking task so we can yield immediately
                 relations = _compute_relations.remote(
-                    all_distinctions.subsystem, distinctions
+                    all_distinctions.subsystem,
+                    distinctions,
+                    progress=progress,
+                    parallel=True,
                 )
             else:
                 relations = compute_relations(
-                    all_distinctions.subsystem, distinctions, progress=False
+                    all_distinctions.subsystem,
+                    distinctions,
+                    progress=progress,
                 )
             requires_filter_relations = False
         else:
@@ -972,6 +982,7 @@ def sia(
             partition_ties=partition_ties,
             all_ties=all_ties,
             remote=remote,
+            progress=progress,
         )
 
     if config.IIT_VERSION == "maximal-state-first":
@@ -993,6 +1004,7 @@ def sia(
         log.debug("Done evaluating maximal compositional state; returning SIA.")
         return analysis
     else:
+        # TODO(4.0) remove this block?
         # Broadcast subsystem object to workers
         log.debug("Putting subsystem into all workers...")
         subsystem = ray.put(subsystem)

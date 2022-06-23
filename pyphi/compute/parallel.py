@@ -518,7 +518,7 @@ def map(
     inflight_limit=1000,
     parallel=True,
     progress=None,
-    desc="",
+    desc=None,
     total=None,
     **kwargs,
 ):  # pylint: disable=redefined-builtin
@@ -543,6 +543,7 @@ def map(
             shortcircuit_callback=shortcircuit_callback,
             parallel=True,
             progress=progress,
+            desc=desc,
             **kwargs,
         )
     else:
