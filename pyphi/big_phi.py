@@ -964,6 +964,7 @@ def sia(
     state_ties=True,
     partition_ties=True,
     all_ties=False,
+    only_largest=False,
     remote=True,
 ):
     """Analyze the irreducibility of a system."""
@@ -1001,6 +1002,7 @@ def sia(
             state_ties=state_ties,
             partition_ties=partition_ties,
             all_ties=all_ties,
+            only_largest=only_largest,
             remote=remote,
             progress=progress,
             desc="Generating nonconflicting phi-structures",
