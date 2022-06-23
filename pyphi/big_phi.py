@@ -865,8 +865,6 @@ def find_maximal_compositional_state(
     remote=True,
     progress=None,
 ):
-    if fallback(progress, config.PROGRESS_BARS):
-        phi_structures = tqdm(phi_structures, desc="Compositional states")
     log.debug("Finding maximal compositional state...")
     _, phi_structure = _parallel.map_reduce(
         _system_intrinsic_information,
@@ -893,15 +891,20 @@ def nonconflicting_phi_structures(
     all_ties=False,
     remote=True,
     progress=None,
+    desc=None,
 ):
     """Yield nonconflicting PhiStructures."""
-    for distinctions in all_nonconflicting_distinction_sets(
+    progress = fallback(progress, config.PROGRESS_BARS)
+    distinction_sets = all_nonconflicting_distinction_sets(
         all_distinctions,
         purview_ties=purview_ties,
         state_ties=state_ties,
         partition_ties=partition_ties,
         all_ties=all_ties,
-    ):
+    )
+    if progress:
+        distinction_sets = tqdm(distinction_sets, desc=desc)
+    for distinctions in distinction_sets:
         if all_relations is None:
             # Compute relations on workers for each nonconflicting set
             if remote:
@@ -909,8 +912,8 @@ def nonconflicting_phi_structures(
                 relations = _compute_relations.remote(
                     all_distinctions.subsystem,
                     distinctions,
-                    progress=progress,
                     parallel=True,
+                    progress=progress,
                 )
             else:
                 relations = compute_relations(
@@ -983,6 +986,7 @@ def sia(
             all_ties=all_ties,
             remote=remote,
             progress=progress,
+            desc="Generating nonconflicting phi-structures",
         )
 
     if config.IIT_VERSION == "maximal-state-first":
