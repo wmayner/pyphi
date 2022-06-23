@@ -833,8 +833,10 @@ def is_trivially_reducible(phi_structure):
 
 # TODO configure
 # TODO optimize
-DEFAULT_PARTITION_CHUNKSIZE = 500
-DEFAULT_PHI_STRUCTURE_CHUNKSIZE = 50
+DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD = 256
+DEFAULT_PARTITION_CHUNKSIZE = 4 * DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD
+DEFAULT_PHI_STRUCTURE_SEQUENTIAL_THRESHOLD = 8
+DEFAULT_PHI_STRUCTURE_CHUNKSIZE = 4 * DEFAULT_PHI_STRUCTURE_SEQUENTIAL_THRESHOLD
 
 
 # TODO document args
@@ -842,8 +844,9 @@ def evaluate_phi_structure(
     subsystem,
     phi_structure,
     check_trivial_reducibility=True,
-    chunksize=DEFAULT_PARTITION_CHUNKSIZE,
     parallel=True,
+    chunksize=DEFAULT_PARTITION_CHUNKSIZE,
+    sequential_threshold=DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
     progress=None,
 ):
     """Analyze the irreducibility of a PhiStructure."""
@@ -864,6 +867,7 @@ def evaluate_phi_structure(
         subsystem=subsystem,
         phi_structure=phi_structure,
         chunksize=chunksize,
+        sequential_threshold=sequential_threshold,
         shortcircuit_value=0,
         parallel=parallel,
         progress=progress,
@@ -878,8 +882,9 @@ def _system_intrinsic_information(phi_structure):
 # TODO refactor into a pattern
 def find_maximal_compositional_state(
     phi_structures,
-    chunksize=DEFAULT_PHI_STRUCTURE_CHUNKSIZE,
     parallel=True,
+    chunksize=DEFAULT_PHI_STRUCTURE_CHUNKSIZE,
+    sequential_threshold=DEFAULT_PHI_STRUCTURE_SEQUENTIAL_THRESHOLD,
     progress=None,
 ):
     log.debug("Finding maximal compositional state...")
@@ -887,9 +892,10 @@ def find_maximal_compositional_state(
         _system_intrinsic_information,
         max,
         phi_structures,
-        chunksize=chunksize,
         shortcircuit_value=0,
         parallel=parallel,
+        chunksize=chunksize,
+        sequential_threshold=sequential_threshold,
         progress=progress,
         desc="Evaluating compositional states",
     )
