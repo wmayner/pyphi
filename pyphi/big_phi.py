@@ -728,7 +728,9 @@ def _all_nonconflicting_distinction_sets(distinctions):
 
 
 # TODO refactor
-def largest_nonconflicting_distinction_sets(distinctions):
+def largest_nonconflicting_distinction_sets(
+    distinctions,
+):
     graph, mechanism_to_distinction = conflict_graph(distinctions)
     for maximal_independent_set in largest_independent_sets(graph):
         yield CauseEffectStructure(
@@ -746,6 +748,7 @@ def all_nonconflicting_distinction_sets(
     state_ties=True,
     partition_ties=True,
     all_ties=False,
+    only_largest=False,
 ):
     # TODO docstring
     """Return all maximal non-conflicting sets of distinctions.
@@ -754,7 +757,18 @@ def all_nonconflicting_distinction_sets(
         distinctions (CauseEffectStructure): The set of distinctions to consider.
 
     Keyword Arguments:
-        ties (bool): Whether to also consider all combinations of tied distinctions.
+        purview_ties (bool): Whether to also consider all resolutions of purview
+            ties.
+        state_ties (bool): Whether to also consider all resolutions of state
+            ties.
+        partition_ties (bool): Whether to also consider all resolutions of
+            partition ties.
+        all_ties (bool): Whether to consider all kinds of ties. Overrides the
+            individual tie options.
+        only_largest (bool): Whether to consider only the distinction sets with
+            the most distinctions. This can greatly speed up the calculation,
+            but the largest sets are not necessarily those that maximize system
+            intrinsic information, and so this is an approximation.
 
     Yields:
         CauseEffectStructure: A CES without conflicts.
@@ -767,7 +781,10 @@ def all_nonconflicting_distinction_sets(
         state=state_ties,
         partition=partition_ties,
     ):
-        yield from _all_nonconflicting_distinction_sets(tie)
+        if only_largest:
+            yield from largest_nonconflicting_distinction_sets(tie)
+        else:
+            yield from _all_nonconflicting_distinction_sets(tie)
 
 
 def _null_sia(subsystem, phi_structure, reasons=None):
