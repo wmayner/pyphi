@@ -294,7 +294,7 @@ def test_map_with_iterators_and_empty_args(func):
 )
 @pytest.mark.filterwarnings("ignore:.*:pytest.PytestUnraisableExceptionWarning")
 def test_map_with_iterators(
-    ray_context,
+    ray_context_local,
     func,
     arglists,
     _parallel,
@@ -338,7 +338,7 @@ def test_map_with_iterators(
 )
 @pytest.mark.filterwarnings("ignore:.*:pytest.PytestUnraisableExceptionWarning")
 def test_map_with_shortcircuit(
-    ray_context,
+    ray_context_local,
     func,
     list_and_index,
     max_size,
@@ -387,7 +387,7 @@ def test_map_with_shortcircuit(
 )
 @pytest.mark.filterwarnings("ignore:.*:pytest.PytestUnraisableExceptionWarning")
 def test_map_reduce(
-    ray_context,
+    ray_context_local,
     func,
     arglists,
     max_size,
