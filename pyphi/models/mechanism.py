@@ -602,15 +602,18 @@ class Concept(cmp.Orderable):
         return [self.phi, len(self.mechanism)]
 
     def __eq__(self, other):
-        return (
-            self.phi == other.phi
-            and self.mechanism == other.mechanism
-            and self.mechanism_state == other.mechanism_state
-            and self.cause_purview == other.cause_purview
-            and self.effect_purview == other.effect_purview
-            and self.eq_repertoires(other)
-            and self.subsystem.network == other.subsystem.network
-        )
+        try:
+            return (
+                self.phi == other.phi
+                and self.mechanism == other.mechanism
+                and self.mechanism_state == other.mechanism_state
+                and self.cause_purview == other.cause_purview
+                and self.effect_purview == other.effect_purview
+                and self.eq_repertoires(other)
+                and self.subsystem.network == other.subsystem.network
+            )
+        except AttributeError:
+            return False
 
     def __hash__(self):
         return hash(
