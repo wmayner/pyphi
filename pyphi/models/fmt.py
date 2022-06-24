@@ -344,10 +344,7 @@ def fmt_number(p):
     nice = fraction.limit_denominator(128)
     return (
         str(nice)
-        if (
-            utils.eq(fraction, nice)
-            and nice.denominator in NICE_DENOMINATORS
-        )
+        if (utils.eq(fraction, nice) and nice.denominator in NICE_DENOMINATORS)
         else formatted
     )
 
@@ -471,9 +468,13 @@ def fmt_partitioned_phi_structure(
     subsystem=True,
 ):
     """Format a PartitionedPhiStructure."""
+    if isinstance(ps.partition, (NullCut, CompleteSystemPartition)):
+        cut = str(ps.partition)
+    else:
+        cut = fmt_cut(ps.partition, direction=ps.partition.direction, name=False)
     lines = align_columns(
         fmt_phi_structure(ps, title=None, subsystem=subsystem).split("\n")
-        + [f"Partition: {fmt_cut(ps.partition, name=False)}"],
+        + [f"Partition: {cut}"],
         types="tt",
         split_columns=True,
     )
@@ -542,8 +543,9 @@ def fmt_ria(ria, verbose=True, mip=False):
         specified_states_str = str(specified_states)
     else:
         specified_states = [tuple(state) for state in ria.specified_state]
-        specified_states_str = '\n  ' + '\n  '.join(map(str, map(list, specified_states)))
-
+        specified_states_str = "\n  " + "\n  ".join(
+            map(str, map(list, specified_states))
+        )
 
     # TODO(4.0):  position repertoire and partitioned repertoire side by side
     if config.REPR_VERBOSITY is HIGH:
