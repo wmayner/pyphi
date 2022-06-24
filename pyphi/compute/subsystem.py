@@ -9,7 +9,10 @@ Functions for computing subsystem-level properties.
 import functools
 import logging
 
+from more_itertools import collapse
+
 from .. import config, connectivity, utils
+from ..conf import fallback
 from ..direction import Direction
 from ..metrics.ces import ces_distance
 from ..models import (
@@ -23,12 +26,14 @@ from ..models import (
     fmt,
 )
 from ..partition import mip_partitions, system_partition_types
+from . import parallel as _parallel
 from .parallel import MapReduce
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
 
 
+# TODO(4.0) remove
 class ComputeCauseEffectStructure(MapReduce):
     """Engine for computing a |CauseEffectStructure|."""
 
@@ -71,6 +76,10 @@ class ComputeCauseEffectStructure(MapReduce):
         return concepts
 
 
+DEFAULT_CES_SEQUENTIAL_THRESHOLD = 4
+DEFAULT_CES_CHUNKSIZE = 2 * DEFAULT_CES_SEQUENTIAL_THRESHOLD
+
+
 def ces(
     subsystem,
     mechanisms=False,
@@ -78,6 +87,9 @@ def ces(
     cause_purviews=False,
     effect_purviews=False,
     parallel=False,
+    progress=None,
+    chunksize=DEFAULT_CES_CHUNKSIZE,
+    sequential_threshold=DEFAULT_CES_SEQUENTIAL_THRESHOLD,
 ):
     """Return the conceptual structure of this subsystem, optionally restricted
     to concepts with the mechanisms and purviews given in keyword arguments.
@@ -102,16 +114,28 @@ def ces(
         CauseEffectStructure: A tuple of every |Concept| in the cause-effect
         structure.
     """
+    progress = fallback(progress, config.PROGRESS_BARS)
+
     if mechanisms is False:
         mechanisms = utils.powerset(subsystem.node_indices, nonempty=True)
 
-    engine = ComputeCauseEffectStructure(
-        mechanisms, subsystem, purviews, cause_purviews, effect_purviews
-    )
+    def nonzero_phi(concepts):
+        return list(filter(None, collapse(concepts)))
 
-    return CauseEffectStructure(
-        engine.run(parallel or config.PARALLEL_CONCEPT_EVALUATION), subsystem=subsystem
+    concepts = _parallel.map_reduce(
+        subsystem.concept,
+        nonzero_phi,
+        mechanisms,
+        purviews=purviews,
+        cause_purviews=cause_purviews,
+        effect_purviews=effect_purviews,
+        chunksize=chunksize,
+        sequential_threshold=sequential_threshold,
+        parallel=parallel,
+        progress=progress,
+        desc="Computing concepts",
     )
+    return CauseEffectStructure(concepts, subsystem=subsystem)
 
 
 def conceptual_info(subsystem):
