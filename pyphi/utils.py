@@ -84,8 +84,13 @@ class np_hashable:
 def eq(x, y):
     """Compare two values up to |PRECISION|."""
     # TODO just use float value in config
-    epsilon = 10**(-config.PRECISION)
+    epsilon = 10 ** (-config.PRECISION)
     return math.isclose(x, y, rel_tol=epsilon, abs_tol=epsilon)
+
+
+def is_positive(x):
+    """Return whether ``x`` is positive up to |PRECISION|."""
+    return not eq(x, 0) and x > 0
 
 
 # see http://stackoverflow.com/questions/16003217

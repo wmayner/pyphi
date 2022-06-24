@@ -191,7 +191,7 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         """A |RepertoireIrreducibilityAnalysis| is ``True`` if it has
         |small_phi > 0|.
         """
-        return not utils.eq(self.phi, 0)
+        return utils.is_positive(self.phi)
 
     def __hash__(self):
         return hash(
@@ -631,7 +631,7 @@ class Concept(cmp.Orderable):
 
     def __bool__(self):
         """A concept is ``True`` if |small_phi > 0|."""
-        return not utils.eq(self.phi, 0)
+        return utils.is_positive(self.phi)
 
     def eq_repertoires(self, other):
         """Return whether this concept has the same repertoires as another.
