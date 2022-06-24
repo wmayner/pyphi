@@ -682,7 +682,7 @@ class Subsystem:
     def find_maximally_irreducible_state(self, direction, mechanism, purview):
         required_repertoire_distances = [
             "IIT_4.0_SMALL_PHI",
-            "IIT_4.0_SMALL_PHI_NO_ABS",
+            "IIT_4.0_SMALL_PHI_ABSOLUTE_VALUE",
         ]
         if config.REPERTOIRE_DISTANCE not in required_repertoire_distances:
             raise ValueError(
@@ -717,7 +717,7 @@ class Subsystem:
     ):
         required_repertoire_distances = [
             "IIT_4.0_SMALL_PHI",
-            "IIT_4.0_SMALL_PHI_NO_ABS",
+            "IIT_4.0_SMALL_PHI_ABSOLUTE_VALUE",
         ]
         if config.REPERTOIRE_DISTANCE not in required_repertoire_distances:
             raise ValueError(

@@ -451,13 +451,13 @@ def absolute_intrinsic_difference(p, q):
 @measures.register("IIT_4.0_SMALL_PHI", asymmetric=True)
 def iit_4_small_phi(p, q, state):
     # TODO docstring
-    return absolute_information_density(p, q).squeeze()[state]
+    return information_density(p, q).squeeze()[state]
 
 
-@measures.register("IIT_4.0_SMALL_PHI_NO_ABS", asymmetric=True)
+@measures.register("IIT_4.0_SMALL_PHI_ABSOLUTE_VALUE", asymmetric=True)
 def iit_4_small_phi(p, q, state):
     # TODO docstring
-    return information_density(p, q).squeeze()[state]
+    return absolute_information_density(p, q).squeeze()[state]
 
 
 @np_suppress()
