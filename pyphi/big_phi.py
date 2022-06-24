@@ -385,7 +385,7 @@ class PartitionedPhiStructure(PhiStructure):
 
     def __bool__(self):
         """A |PartitionedPhiStructure| is ``True`` if it has |big_phi > 0|."""
-        return not utils.eq(self.phi(), 0)
+        return utils.is_positive(self.phi())
 
     def __repr__(self):
         return fmt.fmt_partitioned_phi_structure(self)
@@ -441,7 +441,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
 
     def __bool__(self):
         """A |SystemIrreducibilityAnalysis| is ``True`` if it has |big_phi > 0|."""
-        return not utils.eq(self.phi, 0)
+        return utils.is_positive(self.phi)
 
     def __hash__(self):
         return hash(
