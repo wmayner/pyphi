@@ -90,7 +90,7 @@ def eq(x, y):
 
 def is_positive(x):
     """Return whether ``x`` is positive up to |PRECISION|."""
-    return not eq(x, 0) and x > 0
+    return not eq(x, 0) and bool(x > 0)
 
 
 # see http://stackoverflow.com/questions/16003217
