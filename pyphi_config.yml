@@ -13,6 +13,7 @@ IIT_VERSION: "maximal-state-first"
 ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS: false
 # The measure to use when computing phi ("EMD", "KLD", "L1", ...)
 REPERTOIRE_DISTANCE: "IIT_4.0_SMALL_PHI"
+REPERTOIRE_DISTANCE_INFORMATION: "IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE"
 # The measure to use when computing big-phi.
 CES_DISTANCE: "SUM_SMALL_PHI"
 # The measure to use when computing actual causation alpha values.

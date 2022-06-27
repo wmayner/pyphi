@@ -14,6 +14,7 @@ from scipy.special import entr, rel_entr
 
 from .. import config, utils, validate
 from ..cache import joblib_memory
+from ..conf import fallback
 from ..direction import Direction
 from ..distribution import flatten, marginal_zero
 from ..registry import Registry
@@ -451,13 +452,13 @@ def absolute_intrinsic_difference(p, q):
 @measures.register("IIT_4.0_SMALL_PHI", asymmetric=True)
 def iit_4_small_phi(p, q, state):
     # TODO docstring
-    return information_density(p, q).squeeze()[state]
-
-
-@measures.register("IIT_4.0_SMALL_PHI_ABSOLUTE_VALUE", asymmetric=True)
-def iit_4_small_phi(p, q, state):
-    # TODO docstring
     return absolute_information_density(p, q).squeeze()[state]
+
+
+@measures.register("IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE", asymmetric=True)
+def iit_4_small_phi_no_absolute_value(p, q, state):
+    # TODO docstring
+    return information_density(p, q).squeeze()[state]
 
 
 @np_suppress()
@@ -509,7 +510,7 @@ def weighted_pointwise_mutual_information(p, q):
     return p * pointwise_mutual_information(p, q)
 
 
-def repertoire_distance(r1, r2, direction=None, **kwargs):
+def repertoire_distance(r1, r2, direction=None, repertoire_distance=None, **kwargs):
     """Compute the distance between two repertoires for the given direction.
 
     Args:
@@ -520,7 +521,8 @@ def repertoire_distance(r1, r2, direction=None, **kwargs):
     Returns:
         float: The distance between ``r1`` and ``r2``, rounded to |PRECISION|.
     """
-    func = measures[config.REPERTOIRE_DISTANCE]
+    func_key = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
+    func = measures[func_key]
     try:
         distance = func(r1, r2, direction=direction, **kwargs)
     except TypeError:

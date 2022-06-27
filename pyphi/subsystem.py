@@ -13,7 +13,7 @@ from . import cache, distribution, utils, validate, resolve_ties
 from .conf import config
 from .direction import Direction
 from .distribution import max_entropy_distribution, repertoire_shape
-from .metrics.distribution import repertoire_distance
+from .metrics.distribution import repertoire_distance as _repertoire_distance
 from .models import (
     Concept,
     MaximallyIrreducibleCause,
@@ -499,7 +499,7 @@ class Subsystem:
 
     def cause_info(self, mechanism, purview):
         """Return the cause information for a mechanism over a purview."""
-        return repertoire_distance(
+        return _repertoire_distance(
             self.cause_repertoire(mechanism, purview),
             self.unconstrained_cause_repertoire(purview),
             direction=Direction.CAUSE,
@@ -507,7 +507,7 @@ class Subsystem:
 
     def effect_info(self, mechanism, purview):
         """Return the effect information for a mechanism over a purview."""
-        return repertoire_distance(
+        return _repertoire_distance(
             self.effect_repertoire(mechanism, purview),
             self.unconstrained_effect_repertoire(purview),
             direction=Direction.EFFECT,
@@ -532,6 +532,7 @@ class Subsystem:
         purview,
         partition,
         repertoire=None,
+        repertoire_distance=None,
         **kwargs,
     ):
         """Return the |small_phi| of a mechanism over a purview for the given
@@ -556,10 +557,11 @@ class Subsystem:
 
         partitioned_repertoire = self.partitioned_repertoire(direction, partition)
 
-        phi = repertoire_distance(
+        phi = _repertoire_distance(
             repertoire,
             partitioned_repertoire,
             direction=direction,
+            repertoire_distance=repertoire_distance,
             **kwargs,
         )
 
@@ -679,10 +681,11 @@ class Subsystem:
             full_index[i] = index
         return tuple(full_index)
 
+
     def find_maximally_irreducible_state(self, direction, mechanism, purview):
         required_repertoire_distances = [
             "IIT_4.0_SMALL_PHI",
-            "IIT_4.0_SMALL_PHI_ABSOLUTE_VALUE",
+            "IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE",
         ]
         if config.REPERTOIRE_DISTANCE not in required_repertoire_distances:
             raise ValueError(
@@ -713,15 +716,15 @@ class Subsystem:
         return max_mip
 
     def find_maximal_state_under_complete_partition(
-        self, direction, mechanism, purview
+        self, direction, mechanism, purview,
     ):
         required_repertoire_distances = [
             "IIT_4.0_SMALL_PHI",
-            "IIT_4.0_SMALL_PHI_ABSOLUTE_VALUE",
+            "IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE",
         ]
-        if config.REPERTOIRE_DISTANCE not in required_repertoire_distances:
+        if config.REPERTOIRE_DISTANCE_INFORMATION not in required_repertoire_distances:
             raise ValueError(
-                f'REPERTOIRE_DISTANCE must be set to "{required_repertoire_distances}"'
+                f'REPERTOIRE_DISTANCE_INFORMATION must be set to "{required_repertoire_distances}"'
             )
 
         repertoire = self.repertoire(direction, mechanism, purview)
@@ -734,6 +737,7 @@ class Subsystem:
                 purview,
                 partition,
                 repertoire=repertoire,
+                repertoire_distance=config.REPERTOIRE_DISTANCE_INFORMATION,
                 state=state,
             )
             return information

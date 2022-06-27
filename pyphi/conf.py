@@ -451,6 +451,14 @@ class PyphiConfig(Config):
     """,
     )
 
+    REPERTOIRE_DISTANCE_INFORMATION = Option(
+        "IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE",
+        doc="""
+        The repertoire distance used for evaluating information specified by a
+        mechanism (i.e., finding the maximal state with respect to a purview).
+    """,
+    )
+
     CES_DISTANCE = Option(
         "SUM_SMALL_PHI",
         doc="""
