@@ -481,11 +481,18 @@ class PyphiConfig(Config):
     )
 
     PARALLEL_CONCEPT_EVALUATION = Option(
-        False,
+        True,
         type=bool,
         doc="""
     Controls whether concepts are evaluated in parallel when computing
     cause-effect structures.""",
+    )
+
+    PARALLEL_COMPOSITIONAL_STATE_EVALUATION = Option(
+        True,
+        type=bool,
+        doc="""
+    Controls whether compositional states are evaluated in parallel.""",
     )
 
     PARALLEL_CUT_EVALUATION = Option(
@@ -498,7 +505,7 @@ class PyphiConfig(Config):
     )
 
     PARALLEL_COMPLEX_EVALUATION = Option(
-        False,
+        True,
         type=bool,
         doc="""
     Controls whether systems are evaluated in parallel when computing

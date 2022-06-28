@@ -844,12 +844,14 @@ def evaluate_phi_structure(
     subsystem,
     phi_structure,
     check_trivial_reducibility=True,
-    parallel=True,
+    parallel=None,
     chunksize=DEFAULT_PARTITION_CHUNKSIZE,
     sequential_threshold=DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
     progress=None,
 ):
     """Analyze the irreducibility of a PhiStructure."""
+    parallel = fallback(parallel, config.PARALLEL_CUT_EVALUATION)
+
     # Realize the PhiStructure before distributing tasks
     phi_structure.realize()
 
@@ -882,11 +884,12 @@ def _system_intrinsic_information(phi_structure):
 # TODO refactor into a pattern
 def find_maximal_compositional_state(
     phi_structures,
-    parallel=True,
+    parallel=None,
     chunksize=DEFAULT_PHI_STRUCTURE_CHUNKSIZE,
     sequential_threshold=DEFAULT_PHI_STRUCTURE_SEQUENTIAL_THRESHOLD,
     progress=None,
 ):
+    parallel = fallback(parallel, config.PARALLEL_COMPOSITIONAL_STATE_EVALUATION)
     log.debug("Finding maximal compositional state...")
     _, phi_structure = _parallel.map_reduce(
         _system_intrinsic_information,
@@ -913,11 +916,12 @@ def nonconflicting_phi_structures(
     partition_ties=True,
     all_ties=False,
     only_largest=False,
-    parallel=True,
+    parallel=None,
     progress=None,
     desc=None,
 ):
     """Yield nonconflicting PhiStructures."""
+    parallel = fallback(parallel, config.PARALLEL_COMPOSITIONAL_STATE_EVALUATION)
     progress = fallback(progress, config.PROGRESS_BARS)
     distinction_sets = all_nonconflicting_distinction_sets(
         all_distinctions,
@@ -975,7 +979,7 @@ def sia(
     partition_ties=True,
     all_ties=False,
     only_largest=False,
-    parallel=True,
+    parallel=None,
 ):
     """Analyze the irreducibility of a system."""
     if not state_ties and config.RELATION_COMPUTATION == "ANALYTICAL":
@@ -1070,6 +1074,7 @@ def sia(
 
 
 def complexes(network, state, **kwargs):
+    # TODO(4.0) parallelize
     for subsystem in reachable_subsystems(network, network.node_indices, state):
         ces = compute.ces(subsystem)
         _sia = sia(subsystem, ces, **kwargs)

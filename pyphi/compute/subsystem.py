@@ -87,7 +87,7 @@ def ces(
     purviews=False,
     cause_purviews=False,
     effect_purviews=False,
-    parallel=False,
+    parallel=None,
     progress=None,
     chunksize=DEFAULT_CES_CHUNKSIZE,
     sequential_threshold=DEFAULT_CES_SEQUENTIAL_THRESHOLD,
@@ -115,6 +115,7 @@ def ces(
         CauseEffectStructure: A tuple of every |Concept| in the cause-effect
         structure.
     """
+    parallel = fallback(parallel, config.PARALLEL_CONCEPT_EVALUATION)
     progress = fallback(progress, config.PROGRESS_BARS)
 
     if mechanisms is False:
