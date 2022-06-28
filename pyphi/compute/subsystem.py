@@ -26,6 +26,7 @@ from ..models import (
     fmt,
 )
 from ..partition import mip_partitions, system_partition_types
+from ..utils import try_len
 from . import parallel as _parallel
 from .parallel import MapReduce
 

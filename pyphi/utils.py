@@ -270,3 +270,10 @@ def expaddlog(x, y):
     See also ``numpy.logaddexp``.
     """
     return math.exp(math.log(x) + math.log(y))
+
+
+def try_len(iterable):
+    try:
+        return len(iterable)
+    except TypeError:
+        return None
