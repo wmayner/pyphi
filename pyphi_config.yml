@@ -48,7 +48,10 @@ CONGRUENCE_RATIO: "PURVIEW_SIZE"
 DISTINCTION_PHI_UPPER_BOUND_RELATIONS: "PURVIEW_SIZE"
 # Controls the definition of the upper bound of the sum of distinction phi when
 # analyzing a system.
-DISTINCTION_SUM_PHI_UPPER_BOUND: "(2^N-1)/(N-1)"
+DISTINCTION_SUM_PHI_UPPER_BOUND: "DISTINCT_AND_CONGRUENT_PURVIEWS"
+# Controls the definition of the upper bound of the sum of relation phi when
+# analyzing a system.
+RELATION_SUM_PHI_UPPER_BOUND: "DISTINCT_AND_CONGRUENT_PURVIEWS"
 # Controls the definition of the upper bound of the sum of relation phi when
 # analyzing a system.
 RELATION_COMPUTATION: "ANALYTICAL"
