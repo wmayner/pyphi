@@ -65,8 +65,10 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
     def __iter__(self):
         return iter(self.concepts)
 
-    def __getitem__(self, i):
-        return self.concepts[i]
+    def __getitem__(self, value):
+        if isinstance(value, slice):
+            return type(self)(self.concepts[value], subsystem=self.subsystem)
+        return self.concepts[value]
 
     def __repr__(self):
         # TODO(4.0) remove dependence on subsystem & time
