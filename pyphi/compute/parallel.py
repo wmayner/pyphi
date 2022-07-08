@@ -15,12 +15,14 @@ from itertools import chain, islice
 from typing import Iterable, List
 
 import ray
-from more_itertools import chunked, flatten as iflatten
+from more_itertools import chunked
+from more_itertools import flatten as iflatten
 from tblib import Traceback
 from tqdm.auto import tqdm
 
 from .. import config
 from ..conf import fallback
+from ..utils import try_len
 
 log = logging.getLogger(__name__)
 
@@ -436,17 +438,10 @@ def cancel_all(object_refs: Iterable, *args, **kwargs):
     return object_refs
 
 
-def _try_len(iterable):
-    try:
-        return len(iterable)
-    except TypeError:
-        return None
-
-
 def _try_lens(*iterables):
     """Return the minimum length of iterables, or ``None`` if none has a length."""
     return min(
-        filter(lambda l: l is not None, _map_builtin(_try_len, iterables)), default=None
+        filter(lambda l: l is not None, _map_builtin(try_len, iterables)), default=None
     )
 
 

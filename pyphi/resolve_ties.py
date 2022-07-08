@@ -40,11 +40,15 @@ def _(m):
         # TODO(4.0) tie resolution docs
         warnings.warn(msg, category=ConfigurationWarning)
 
-    informativeness = max(
-        metrics.distribution.pointwise_mutual_information_vector(
-            m.repertoire, m.partitioned_repertoire
-        )[m.specified_index]
-    )
+    if m.partitioned_repertoire is not None:
+        informativeness = max(
+            metrics.distribution.pointwise_mutual_information_vector(
+                m.repertoire, m.partitioned_repertoire
+            )[m.specified_index]
+        )
+    else:
+        informativeness = 0.0
+
     return (
         m.phi,
         informativeness,
@@ -69,7 +73,9 @@ def resolve(mice, sort_key):
     keys = list(map(sort_key, mice))
     mice = sorted(zip(keys, mice), reverse=True)
     max_key = mice[0][0]
-    return [m for (k, m) in mice if all(utils.eq(_k1, _k2) for _k1, _k2 in zip(k, max_key))]
+    return [
+        m for (k, m) in mice if all(utils.eq(_k1, _k2) for _k1, _k2 in zip(k, max_key))
+    ]
 
 
 def mice(tied_mice):

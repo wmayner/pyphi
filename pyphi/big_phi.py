@@ -12,14 +12,12 @@ from itertools import combinations, product
 import networkx as nx
 import numpy as np
 import ray
-import scipy
 from more_itertools import all_equal
 from numpy import ma
 from toolz.itertoolz import partition_all
 from tqdm.auto import tqdm
 
-from . import compute, config, utils
-from .cache import cache
+from . import compute, config, upper_bounds, utils
 from .combinatorics import largest_independent_sets, maximal_independent_sets
 from .compute import parallel as _parallel
 from .compute.network import reachable_subsystems
@@ -87,92 +85,6 @@ def sia_partitions(node_indices, node_labels=None):
         yield from system_partition_types[config.SYSTEM_PARTITION_TYPE](
             node_indices, node_labels=node_labels
         )
-
-
-def number_of_possible_distinctions_of_order(n, k):
-    """Return the number of possible distinctions of order k."""
-    # Binomial coefficient
-    return int(scipy.special.comb(n, k))
-
-
-def number_of_possible_distinctions(n):
-    """Return the number of possible distinctions."""
-    return 2 ** n - 1
-
-
-@cache(cache={}, maxmem=None)
-def _f(n, k):
-    return (2 ** (2 ** (n - k + 1))) - (1 + 2 ** (n - k + 1))
-
-
-class DistinctionSumPhiUpperBoundRegistry(Registry):
-    """Storage for functions for defining the upper bound of the sum of
-    distinction phi when analyzing the system.
-
-    NOTE: Functions should ideally return `int`s, if possible, to take advantage
-    of the unbounded size of Python integers.
-    """
-
-    desc = "distinction sum phi bounds (system)"
-
-
-distinction_sum_phi_upper_bounds = DistinctionSumPhiUpperBoundRegistry()
-
-
-@distinction_sum_phi_upper_bounds.register("PURVIEW_SIZE")
-def _(n):
-    # This can be simplified to (n/2)*(2^n), but we don't use that identity so
-    # we can keep things as `int`s
-    return sum(
-        k * number_of_possible_distinctions_of_order(n, k) for k in range(1, n + 1)
-    )
-
-
-_ = distinction_sum_phi_upper_bounds.register("2^N-1")(number_of_possible_distinctions)
-
-
-@distinction_sum_phi_upper_bounds.register("(2^N-1)/(N-1)")
-def _(n):
-    try:
-        return number_of_possible_distinctions(n) / (n - 1)
-    except ZeroDivisionError:
-        return 1
-
-
-def distinction_sum_phi_upper_bound(n):
-    """Return the 'best possible' sum of small phi for distinctions."""
-    return distinction_sum_phi_upper_bounds[config.DISTINCTION_SUM_PHI_UPPER_BOUND](n)
-
-
-@cache(cache={}, maxmem=None)
-def number_of_possible_relations_of_order(n, k):
-    """Return the number of possible relations with overlap of size k."""
-    # Alireza's generalization of Will's theorem
-    return int(scipy.special.comb(n, k)) * sum(
-        ((-1) ** i * int(scipy.special.comb(n - k, i)) * _f(n, k + i))
-        for i in range(n - k + 1)
-    )
-
-
-@cache(cache={}, maxmem=None)
-def number_of_possible_relations(n):
-    """Return the number of possible relations of all orders."""
-    return sum(number_of_possible_relations_of_order(n, k) for k in range(1, n + 1))
-
-
-def relation_sum_phi_upper_bound(n):
-    """Return the 'best possible' sum of small phi for relations, given
-    the best possible sum of small phi for distinctions."""
-    distinction_sum_phi = distinction_sum_phi_upper_bound(n)
-    correction_factor = (distinction_sum_phi / (n * 2 ** (n - 1))) ** 2
-    return correction_factor * sum(
-        k * number_of_possible_relations_of_order(n, k) for k in range(1, n + 1)
-    )
-
-
-def sum_phi_upper_bound(n):
-    """Return the 'best possible' sum of small phi for the system."""
-    return distinction_sum_phi_upper_bound(n) + relation_sum_phi_upper_bound(n)
 
 
 def _requires_relations(func):
@@ -310,7 +222,7 @@ class PhiStructure(cmp.Orderable):
             numerator = self.sum_phi()
             if numerator == 0:
                 return 0
-            denominator = sum_phi_upper_bound(self._substrate_size)
+            denominator = upper_bounds.sum_phi_upper_bound(self._substrate_size)
             self._selectivity = expsublog(numerator, denominator)
         return self._selectivity
 
@@ -844,12 +756,14 @@ def evaluate_phi_structure(
     subsystem,
     phi_structure,
     check_trivial_reducibility=True,
-    parallel=True,
+    parallel=None,
     chunksize=DEFAULT_PARTITION_CHUNKSIZE,
     sequential_threshold=DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
     progress=None,
 ):
     """Analyze the irreducibility of a PhiStructure."""
+    parallel = fallback(parallel, config.PARALLEL_CUT_EVALUATION)
+
     # Realize the PhiStructure before distributing tasks
     phi_structure.realize()
 
@@ -882,11 +796,12 @@ def _system_intrinsic_information(phi_structure):
 # TODO refactor into a pattern
 def find_maximal_compositional_state(
     phi_structures,
-    parallel=True,
+    parallel=None,
     chunksize=DEFAULT_PHI_STRUCTURE_CHUNKSIZE,
     sequential_threshold=DEFAULT_PHI_STRUCTURE_SEQUENTIAL_THRESHOLD,
     progress=None,
 ):
+    parallel = fallback(parallel, config.PARALLEL_COMPOSITIONAL_STATE_EVALUATION)
     log.debug("Finding maximal compositional state...")
     _, phi_structure = _parallel.map_reduce(
         _system_intrinsic_information,
@@ -913,11 +828,12 @@ def nonconflicting_phi_structures(
     partition_ties=True,
     all_ties=False,
     only_largest=False,
-    parallel=True,
+    parallel=None,
     progress=None,
     desc=None,
 ):
     """Yield nonconflicting PhiStructures."""
+    parallel = fallback(parallel, config.PARALLEL_COMPOSITIONAL_STATE_EVALUATION)
     progress = fallback(progress, config.PROGRESS_BARS)
     distinction_sets = all_nonconflicting_distinction_sets(
         all_distinctions,
@@ -975,7 +891,7 @@ def sia(
     partition_ties=True,
     all_ties=False,
     only_largest=False,
-    parallel=True,
+    parallel=None,
 ):
     """Analyze the irreducibility of a system."""
     if not state_ties and config.RELATION_COMPUTATION == "ANALYTICAL":
@@ -1070,6 +986,7 @@ def sia(
 
 
 def complexes(network, state, **kwargs):
+    # TODO(4.0) parallelize
     for subsystem in reachable_subsystems(network, network.node_indices, state):
         ces = compute.ces(subsystem)
         _sia = sia(subsystem, ces, **kwargs)

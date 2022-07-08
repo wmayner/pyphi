@@ -481,11 +481,18 @@ class PyphiConfig(Config):
     )
 
     PARALLEL_CONCEPT_EVALUATION = Option(
-        False,
+        True,
         type=bool,
         doc="""
     Controls whether concepts are evaluated in parallel when computing
     cause-effect structures.""",
+    )
+
+    PARALLEL_COMPOSITIONAL_STATE_EVALUATION = Option(
+        True,
+        type=bool,
+        doc="""
+    Controls whether compositional states are evaluated in parallel.""",
     )
 
     PARALLEL_CUT_EVALUATION = Option(
@@ -498,7 +505,7 @@ class PyphiConfig(Config):
     )
 
     PARALLEL_COMPLEX_EVALUATION = Option(
-        False,
+        True,
         type=bool,
         doc="""
     Controls whether systems are evaluated in parallel when computing
@@ -866,10 +873,23 @@ class PyphiConfig(Config):
     )
 
     DISTINCTION_SUM_PHI_UPPER_BOUND = Option(
-        "2^N-1",
-        values=["PURVIEW_SIZE", "2^N-1", "(2^N-1)/(N-1)"],
+        "DISTINCT_AND_CONGRUENT_PURVIEWS",
+        values=[
+            "PURVIEW_SIZE",
+            "2^N-1",
+            "(2^N-1)/(N-1)",
+            "DISTINCT_AND_CONGRUENT_PURVIEWS",
+        ],
         doc="""
     Controls the definition of the upper bound on the sum of distinction phi when analyzing a system.
+    """,
+    )
+
+    RELATION_SUM_PHI_UPPER_BOUND = Option(
+        "DISTINCT_AND_CONGRUENT_PURVIEWS",
+        values=["UNIQUE_PURVIEWS", "DISTINCT_AND_CONGRUENT_PURVIEWS"],
+        doc="""
+    Controls the definition of the upper bound on the sum of relation phi when analyzing a system.
     """,
     )
 
@@ -1006,6 +1026,11 @@ def validate(config):
             "DISTINCTION_SUM_PHI_UPPER_BOUND",
         ],
         valid_combinations={
+            (
+                "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS",
+                "PURVIEW_SIZE",
+                "DISTINCT_AND_CONGRUENT_PURVIEWS",
+            ),
             ("CONGRUENCE_RATIO_TIMES_INFORMATIVENESS", "PURVIEW_SIZE", "2^N-1"),
             (
                 "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS",
@@ -1018,6 +1043,16 @@ def validate(config):
                 "PURVIEW_SIZE",
             ),
         },
+    )
+    validate_combinations(
+        config,
+        ["RELATION_SUM_PHI_UPPER_BOUND", "DISTINCTION_SUM_PHI_UPPER_BOUND"],
+        valid_combinations=[
+            ("DISTINCT_AND_CONGRUENT_PURVIEWS", "DISTINCT_AND_CONGRUENT_PURVIEWS"),
+            ("UNIQUE_PURVIEWS", "2^N-1"),
+            ("UNIQUE_PURVIEWS", "(2^N-1)/(N-1)"),
+            ("UNIQUE_PURVIEWS", "PURVIEW_SIZE"),
+        ],
     )
 
     if (

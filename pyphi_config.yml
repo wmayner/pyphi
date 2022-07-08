@@ -48,7 +48,10 @@ CONGRUENCE_RATIO: "PURVIEW_SIZE"
 DISTINCTION_PHI_UPPER_BOUND_RELATIONS: "PURVIEW_SIZE"
 # Controls the definition of the upper bound of the sum of distinction phi when
 # analyzing a system.
-DISTINCTION_SUM_PHI_UPPER_BOUND: "(2^N-1)/(N-1)"
+DISTINCTION_SUM_PHI_UPPER_BOUND: "DISTINCT_AND_CONGRUENT_PURVIEWS"
+# Controls the definition of the upper bound of the sum of relation phi when
+# analyzing a system.
+RELATION_SUM_PHI_UPPER_BOUND: "DISTINCT_AND_CONGRUENT_PURVIEWS"
 # Controls the definition of the upper bound of the sum of relation phi when
 # analyzing a system.
 RELATION_COMPUTATION: "ANALYTICAL"
@@ -82,13 +85,15 @@ VALIDATE_CONDITIONAL_INDEPENDENCE: true
 # Parallelization and system resources
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Controls whether concepts are evaluated in parallel.
-PARALLEL_CONCEPT_EVALUATION: false
+PARALLEL_CONCEPT_EVALUATION: true
+# Controls whether compositional states are evaluated in parallel.
+PARALLEL_COMPOSITIONAL_STATE_EVALUATION: true
 # Controls whether cuts are evaluated in parallel, which requires more memory.
 # If cuts are evaluated sequentially, only two SIAs need to be in memory at a
 # time.
-PARALLEL_CUT_EVALUATION: false
+PARALLEL_CUT_EVALUATION: true
 # Controls whether complexes are evaluated in parallel.
-PARALLEL_COMPLEX_EVALUATION: false
+PARALLEL_COMPLEX_EVALUATION: true
 # The number of CPU cores to use in parallel.
 # -1 means all available cores, -2 means all but one available cores, etc.
 NUMBER_OF_CORES: -1

@@ -606,9 +606,11 @@ def _plot_three_relations_with_opacity(
 #   done post-hoc by user on the figure object
 def plot_phi_structure(
     phi_structure,
+    node_indices=None,
     fig=None,
     shape="log_n_choose_k",
     theme=None,
+    system_size=None,
 ):
     """Plot a PhiStructure.
 
@@ -640,6 +642,8 @@ def plot_phi_structure(
 
     distinctions = phi_structure.distinctions
     subsystem = distinctions.subsystem
+    if node_indices is None:
+        node_indices = subsystem.node_indices
 
     # Group purviews by direction
     purviews = {
@@ -662,7 +666,7 @@ def plot_phi_structure(
     # Purview coordinates
     purview_mapping = {
         direction: powerset_coordinates(
-            subsystem.node_indices,
+            node_indices,
             x_offset=offset[direction],
             radius_func=radius_func,
         )
@@ -688,7 +692,7 @@ def plot_phi_structure(
     )
 
     mechanism_mapping = powerset_coordinates(
-        subsystem.node_indices,
+        node_indices,
         max_radius=theme.mechanism_max_radius,
         z_offset=theme.mechanism_z_offset,
         z_spacing=theme.mechanism_z_spacing,
