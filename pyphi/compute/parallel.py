@@ -5,6 +5,7 @@
 Utilities for parallel computation.
 """
 
+
 import functools
 import logging
 import math
@@ -23,6 +24,7 @@ from tqdm.auto import tqdm
 from .. import config
 from ..conf import fallback
 from ..utils import try_len
+from .progress import ProgressBar
 
 log = logging.getLogger(__name__)
 
@@ -588,6 +590,7 @@ def _enforce_positive_integer(i):
     return min(max(int(i), 1), sys.maxsize)
 
 
+# TODO use Actors and Events to allow proper short-circuiting?
 def _map_reduce_tree(
     map_func,
     reduce_func,
@@ -604,6 +607,7 @@ def _map_reduce_tree(
     parallel=True,
     progress=None,
     desc=None,
+    total=None,
     __root__=True,
     __level__=0,
     **kwargs,
@@ -619,6 +623,9 @@ def _map_reduce_tree(
         raise ValueError("no arguments provided")
 
     n = _try_lens(*arglists)
+
+    if total is None:
+        total = n
 
     if reduce_kwargs is None:
         reduce_kwargs = dict()
@@ -642,6 +649,24 @@ def _map_reduce_tree(
     else:
         # Don't branch; process sequentially
         max_depth = 0
+
+    if __root__ and parallel and progress:
+        progress_bar = ProgressBar(total, desc=desc)
+
+        _map_func = map_func
+
+        def map_func(*args, **kwargs):
+            result = _map_func(*args, **kwargs)
+            progress_bar.actor.update.remote(1)
+            return result
+
+        _shortciruit_callback = shortcircuit_callback
+
+        def shortcircuit_callback(*args, **kwargs):
+            progress_bar.actor.finish.remote()
+            result = _shortciruit_callback(*args, **kwargs)
+            return result
+
 
     # Branch
     if __level__ < max_depth and sequential_threshold < n and branch_factor > 1:
@@ -678,8 +703,7 @@ def _map_reduce_tree(
                     shortcircuit_callback=shortcircuit_callback,
                     inflight_limit=inflight_limit,
                     reduce_kwargs=reduce_kwargs,
-                    progress=progress,
-                    desc=desc,
+                    progress=False,
                     __root__=False,
                     __level__=__level__ + 1,
                     **kwargs,
@@ -688,6 +712,19 @@ def _map_reduce_tree(
 
         if not reduce_func:
             reduce_func = flatten
+
+        if __root__ and parallel and progress:
+            @ray.remote
+            def check_finished(object_refs):
+                ray.wait(object_refs, num_returns=len(object_refs))
+                progress_bar.actor.finish.remote()
+
+            check_finished.remote(result_refs)
+            progress_bar.print_until_done()
+            # TODO this should be 'exit_actor', but the method doesn't seem to
+            # have been injected
+            progress_bar.actor.__ray_terminate__.remote()
+
         return reduce_func(
             get(
                 result_refs,
@@ -707,18 +744,16 @@ def _map_reduce_tree(
             parallel=False,
             shortcircuit_value=shortcircuit_value,
             shortcircuit_callback=shortcircuit_callback,
-            progress=progress,
-            desc=desc,
-            total=n,
+            progress=False,
             **kwargs,
         )
     )
-    if not reduce_func:
-        return results
-    return reduce_func(
-        results,
-        **reduce_kwargs,
-    )
+    if reduce_func:
+        results = reduce_func(
+            results,
+            **reduce_kwargs,
+        )
+    return results
 
 
 # Stay on driver for first call in case we're given a generator

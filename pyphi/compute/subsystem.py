@@ -10,6 +10,7 @@ import functools
 import logging
 
 from more_itertools import collapse
+from tqdm.auto import tqdm
 
 from .. import config, connectivity, utils
 from ..conf import fallback
@@ -118,8 +119,10 @@ def ces(
     parallel = fallback(parallel, config.PARALLEL_CONCEPT_EVALUATION)
     progress = fallback(progress, config.PROGRESS_BARS)
 
+    total = None
     if mechanisms is False:
         mechanisms = utils.powerset(subsystem.node_indices, nonempty=True)
+        total = 2**len(subsystem.node_indices) - 1
 
     def nonzero_phi(concepts):
         return list(filter(None, collapse(concepts)))
@@ -136,6 +139,7 @@ def ces(
         parallel=parallel,
         progress=progress,
         desc="Computing concepts",
+        total=total,
     )
     return CauseEffectStructure(concepts, subsystem=subsystem)
 
