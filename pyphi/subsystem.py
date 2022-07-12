@@ -497,29 +497,31 @@ class Subsystem:
         """Alias for |expand_repertoire()| with ``direction`` set to |EFFECT|."""
         return self.expand_repertoire(Direction.EFFECT, repertoire, new_purview)
 
-    def cause_info(self, mechanism, purview):
+    def cause_info(self, mechanism, purview, **kwargs):
         """Return the cause information for a mechanism over a purview."""
         return _repertoire_distance(
             self.cause_repertoire(mechanism, purview),
             self.unconstrained_cause_repertoire(purview),
             direction=Direction.CAUSE,
+            **kwargs,
         )
 
-    def effect_info(self, mechanism, purview):
+    def effect_info(self, mechanism, purview, **kwargs):
         """Return the effect information for a mechanism over a purview."""
         return _repertoire_distance(
             self.effect_repertoire(mechanism, purview),
             self.unconstrained_effect_repertoire(purview),
             direction=Direction.EFFECT,
+            **kwargs,
         )
 
-    def cause_effect_info(self, mechanism, purview):
+    def cause_effect_info(self, mechanism, purview, **kwargs):
         """Return the cause-effect information for a mechanism over a purview.
 
         This is the minimum of the cause and effect information.
         """
         return min(
-            self.cause_info(mechanism, purview), self.effect_info(mechanism, purview)
+            self.cause_info(mechanism, purview, **kwargs), self.effect_info(mechanism, purview, **kwargs)
         )
 
     # MIP methods
@@ -632,43 +634,43 @@ class Subsystem:
 
         return mip
 
-    def cause_mip(self, mechanism, purview):
+    def cause_mip(self, mechanism, purview, **kwargs):
         """Return the irreducibility analysis for the cause MIP.
 
         Alias for |find_mip()| with ``direction`` set to |CAUSE|.
         """
-        return self.find_mip(Direction.CAUSE, mechanism, purview)
+        return self.find_mip(Direction.CAUSE, mechanism, purview, **kwargs)
 
-    def effect_mip(self, mechanism, purview):
+    def effect_mip(self, mechanism, purview, **kwargs):
         """Return the irreducibility analysis for the effect MIP.
 
         Alias for |find_mip()| with ``direction`` set to |EFFECT|.
         """
-        return self.find_mip(Direction.EFFECT, mechanism, purview)
+        return self.find_mip(Direction.EFFECT, mechanism, purview, **kwargs)
 
-    def phi_cause_mip(self, mechanism, purview):
+    def phi_cause_mip(self, mechanism, purview, **kwargs):
         """Return the |small_phi| of the cause MIP.
 
         This is the distance between the unpartitioned cause repertoire and the
         MIP cause repertoire.
         """
-        mip = self.cause_mip(mechanism, purview)
+        mip = self.cause_mip(mechanism, purview, **kwargs)
         return mip.phi if mip else 0
 
-    def phi_effect_mip(self, mechanism, purview):
+    def phi_effect_mip(self, mechanism, purview, **kwargs):
         """Return the |small_phi| of the effect MIP.
 
         This is the distance between the unpartitioned effect repertoire and
         the MIP cause repertoire.
         """
-        mip = self.effect_mip(mechanism, purview)
+        mip = self.effect_mip(mechanism, purview, **kwargs)
         return mip.phi if mip else 0
 
-    def phi(self, mechanism, purview):
+    def phi(self, mechanism, purview, **kwargs):
         """Return the |small_phi| of a mechanism over a purview."""
         return min(
-            self.phi_cause_mip(mechanism, purview),
-            self.phi_effect_mip(mechanism, purview),
+            self.phi_cause_mip(mechanism, purview, **kwargs),
+            self.phi_effect_mip(mechanism, purview, **kwargs),
         )
 
     # Maximal state methods
