@@ -3,10 +3,12 @@ from asyncio import Event
 from typing import Optional, Tuple
 
 import ray
+
 # For typing purposes
 from ray.actor import ActorHandle
 from tqdm.auto import tqdm
 
+from ..conf import fallback
 
 
 @ray.remote
@@ -85,9 +87,10 @@ class ProgressBar:
         When the progress meter reaches 100%, this method returns.
         """
         pbar = tqdm(desc=self.desc, total=self.total)
+        total = fallback(self.total, float("inf"))
         while True:
             delta, counter, finished = ray.get(self.actor.wait_for_update.remote())
             pbar.update(delta)
-            if finished or counter >= self.total:
+            if finished or counter >= total:
                 pbar.close()
                 return
