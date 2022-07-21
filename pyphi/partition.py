@@ -584,10 +584,16 @@ def all_partitions(mechanism, purview, node_labels=None):
                     yield KPartition(*parts, node_labels=node_labels)
 
 
+class CompletePartition(KPartition):
+    """Represents the partition that completely separates mechanism and purview."""
+
+    pass
+
+
 def complete_partition(mechanism, purview):
     n_parts = len(next(mip_partitions(mechanism, purview)))
     parts = [Part((), ())] * (n_parts - 2) + [Part((), purview), Part(mechanism, ())]
-    return KPartition(*parts)
+    return CompletePartition(*parts)
 
 
 # Relation partitions
