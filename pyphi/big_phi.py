@@ -910,14 +910,13 @@ def sia(
     if isinstance(all_distinctions, FlatCauseEffectStructure):
         all_distinctions = all_distinctions.unflatten()
 
-    # First check that the entire set of distinctions is not trivially reducible
-    # (since then all subsets must be)
-    full_phi_structure = PhiStructure(all_distinctions)
-
     # TODO(4.0) disable this check for now because it doesn't take ties into
-    # account need to figure out a good way of checking this if possible, but
+    # account. Need to figure out a good way of checking this if possible, but
     # ties make it potentially expensive; maybe just check things that don't
     # have ties, or see if the number of tied combinations is small, etc.
+    # First check that the entire set of distinctions is not trivially reducible
+    # (since then all subsets must be)
+    # full_phi_structure = PhiStructure(all_distinctions)
     # if check_trivial_reducibility:
     #     reasons = is_trivially_reducible(full_phi_structure)
     #     if reasons:
@@ -940,6 +939,7 @@ def sia(
         )
 
     if config.IIT_VERSION == "maximal-state-first":
+
         maximal_compositional_state = find_maximal_compositional_state(
             phi_structures,
             chunksize=chunksize,
