@@ -10,7 +10,6 @@ import functools
 import logging
 
 from more_itertools import collapse
-from tqdm.auto import tqdm
 
 from .. import config, connectivity, utils
 from ..conf import fallback
@@ -27,7 +26,6 @@ from ..models import (
     fmt,
 )
 from ..partition import mip_partitions, system_partition_types
-from ..utils import try_len
 from . import parallel as _parallel
 from .parallel import MapReduce
 
@@ -122,7 +120,7 @@ def ces(
     total = None
     if mechanisms is False:
         mechanisms = utils.powerset(subsystem.node_indices, nonempty=True)
-        total = 2**len(subsystem.node_indices) - 1
+        total = 2 ** len(subsystem.node_indices) - 1
 
     def nonzero_phi(concepts):
         return list(filter(None, collapse(concepts)))
