@@ -173,6 +173,11 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
                 node_labels=self.node_labels,
             )
 
+    def is_congruent(self, state):
+        """Return whether the given state is congruent to the specified state."""
+        purview_state = np.array(utils.state_of(self.purview, state))
+        return (self.specified_state == purview_state).all(axis=1).any()
+
     @property
     def node_labels(self):
         """|NodeLabels| for this system."""
@@ -385,6 +390,10 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
     def flip(self):
         """Return the linked MICE in the other direction."""
         return self.parent.mice(self.direction.flip())
+
+    def is_congruent(self, state):
+        """Return whether the state specified by this MICE is congruent."""
+        return self.ria.is_congruent(state)
 
     def __repr__(self):
         return fmt.make_repr(self, ["ria"])
