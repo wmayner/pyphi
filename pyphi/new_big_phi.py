@@ -15,7 +15,7 @@ from . import Direction, Subsystem, compute, config, metrics, utils
 from .conf import fallback
 from .models import cmp, fmt
 from .models.cuts import CompleteSystemPartition, KPartition, Part, SystemPartition
-from .partition import system_partition_types
+from .partition import system_partition_types, complete_partition
 
 # TODO change SystemPartition
 from .relations import Relations
@@ -163,6 +163,9 @@ def find_mip_vertical(
     parallel = fallback(parallel, config.PARALLEL_CUT_EVALUATION)
     progress = fallback(progress, config.PROGRESS_BARS)
 
+    if len(subsystem) == 1:
+        raise ValueError("Phi of single-node system is not defined yet")
+
     # TODO(4.0) implement
     # if check_trivial_reducibility and is_trivially_reducible(phi_structure):
     #     return NullSystemIrreducibilityAnalysis()
@@ -234,19 +237,27 @@ def sia_partitions_hybrid_horizontal(
 ) -> Generator[SystemPartition, None, None]:
     """Yield all system partitions."""
     for part, direction in product(
-        # Use max_size to exclude the full system as a part
         utils.powerset(
             node_indices,
             nonempty=True,
-            max_size=(len(node_indices) - 1),
         ),
         Direction.both(),
     ):
-        yield HybridHorizontalSystemPartition(
-            direction,
-            Part(mechanism=part, purview=part),
-            node_labels=node_labels,
-        )
+        if len(part) == len(node_indices):
+            # Complete partition
+            yield HybridHorizontalSystemPartition(
+                direction,
+                # NOTE: Order is important here
+                Part(mechanism=(), purview=part),
+                Part(mechanism=part, purview=()),
+                node_labels=node_labels,
+            )
+        else:
+            yield HybridHorizontalSystemPartition(
+                direction,
+                Part(mechanism=part, purview=part),
+                node_labels=node_labels,
+            )
 
 
 def normalization_factor_hybrid_horizontal(
