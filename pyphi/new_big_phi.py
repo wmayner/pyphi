@@ -2,7 +2,9 @@
 
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Generator, Iterable, Optional
+from functools import wraps
+from itertools import product
+from typing import Dict, Generator, Iterable, Optional
 
 from numpy.typing import ArrayLike
 
@@ -12,12 +14,15 @@ from pyphi.models.subsystem import CauseEffectStructure
 from . import Direction, Subsystem, compute, config, metrics, utils
 from .conf import fallback
 from .models import cmp, fmt
-from .models.cuts import CompleteSystemPartition, SystemPartition
+from .models.cuts import CompleteSystemPartition, KPartition, Part, SystemPartition
 from .partition import system_partition_types
 
 # TODO change SystemPartition
 from .relations import Relations
 from .relations import relations as compute_relations
+
+DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD = 256
+DEFAULT_PARTITION_CHUNKSIZE = 4 * DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD
 
 
 @dataclass
@@ -46,24 +51,29 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
             )
         )
 
+
+class NullSystemIrreducibilityAnalysis(SystemIrreducibilityAnalysis):
+    def __init__(self):
+        super().__init__(
+            partition=None,
+            phi=0.0,
+            reasons=[],
+        )
+
+
+##############################################################################
+# Vertical
+##############################################################################
+
+
+class SystemIrreducibilityAnalysisVertical(SystemIrreducibilityAnalysis):
     def __repr__(self):
-        # body = ""
-        # for line in reversed(
-        #     [
-        #         f" Cause state: {self.cause_state}",
-        #         f"Effect state: {self.effect_state}",
-        #         f" Effect only: {self.effect_only}",
-        #     ]
-        # ):
-        #     body = fmt.header(line, body)
         body = str(self.partition)
         body = (
             "\n".join(
                 fmt.align_columns(
                     [
                         (fmt.BIG_PHI, self.phi),
-                        # ("Norm", self.norm),
-                        # (f"Normalized {fmt.BIG_PHI}", self.normalized_phi),
                     ]
                 )
             )
@@ -76,22 +86,15 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         return fmt.box(fmt.center(body))
 
 
-class NullSystemIrreducibilityAnalysis(SystemIrreducibilityAnalysis):
-    def __init__(self):
-        super().__init__(
-            partition=None,
-            phi=0.0,
-            reasons=[],
-        )
-
-
-def normalization_factor(subsystem: Subsystem, partition: SystemPartition) -> float:
+def normalization_factor_vertical(
+    subsystem: Subsystem, partition: SystemPartition
+) -> float:
     """Normalize the phi value according to the partition."""
     smallest_part_size = min(len(partition.from_nodes), len(partition.to_nodes))
     return len(subsystem) / smallest_part_size
 
 
-def integration_value(
+def integration_value_vertical(
     subsystem: Subsystem,
     partition: SystemPartition,
     unpartitioned_repertoire: ArrayLike,
@@ -99,13 +102,13 @@ def integration_value(
 ) -> float:
     """Return the (normalized) integration value of a partition and associated repertoires."""
     kld = metrics.distribution.kld(unpartitioned_repertoire, partitioned_repertoire)
-    norm = normalization_factor(subsystem, partition)
+    norm = normalization_factor_vertical(subsystem, partition)
     return kld * norm
 
 
-def evaluate_partition(
+def evaluate_partition_vertical(
     partition: SystemPartition, subsystem: Subsystem
-) -> SystemIrreducibilityAnalysis:
+) -> SystemIrreducibilityAnalysisVertical:
     mechanism = partition.from_nodes
     purview = partition.to_nodes
     unpartitioned_system_repertoire = subsystem.repertoire(
@@ -114,20 +117,20 @@ def evaluate_partition(
     partitioned_system_repertoire = subsystem.unconstrained_repertoire(
         partition.direction, purview
     )
-    phi = integration_value(
+    phi = integration_value_vertical(
         subsystem,
         partition,
         unpartitioned_system_repertoire,
         partitioned_system_repertoire,
     )
     # TODO(4.0) configure repertoire distance
-    return SystemIrreducibilityAnalysis(
+    return SystemIrreducibilityAnalysisVertical(
         partition=partition,
         phi=phi,
     )
 
 
-def sia_partitions(
+def sia_partitions_vertical(
     node_indices: Iterable, node_labels: Optional[NodeLabels] = None
 ) -> Generator[SystemPartition, None, None]:
     """Yield all system partitions."""
@@ -148,18 +151,14 @@ def sia_partitions(
         )
 
 
-DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD = 256
-DEFAULT_PARTITION_CHUNKSIZE = 4 * DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD
-
-
-def find_mip(
+def find_mip_vertical(
     subsystem: Subsystem,
     parallel: Optional[bool] = None,
     progress: Optional[bool] = None,
     check_trivial_reducibility: Optional[bool] = True,
     chunksize: int = DEFAULT_PARTITION_CHUNKSIZE,
     sequential_threshold: int = DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
-) -> SystemIrreducibilityAnalysis:
+) -> SystemIrreducibilityAnalysisVertical:
     """Find the minimum information partition of a system."""
     parallel = fallback(parallel, config.PARALLEL_CUT_EVALUATION)
     progress = fallback(progress, config.PROGRESS_BARS)
@@ -168,10 +167,10 @@ def find_mip(
     # if check_trivial_reducibility and is_trivially_reducible(phi_structure):
     #     return NullSystemIrreducibilityAnalysis()
 
-    partitions = sia_partitions(subsystem.cut_indices, subsystem.cut_node_labels)
+    partitions = sia_partitions_vertical(subsystem.node_indices, subsystem.node_labels)
 
     return compute.parallel.map_reduce(
-        evaluate_partition,
+        evaluate_partition_vertical,
         min,
         partitions,
         subsystem=subsystem,
@@ -182,6 +181,187 @@ def find_mip(
         progress=progress,
         desc="Evaluating partitions",
     )
+
+
+##############################################################################
+# Hybrid horizontal
+##############################################################################
+
+
+class SystemIrreducibilityAnalysisHybridHorizontal(SystemIrreducibilityAnalysis):
+    def __init__(self, system_state, *args, **kwargs):
+        self.system_state = system_state
+        super().__init__(*args, **kwargs)
+
+    def __repr__(self):
+        body = ""
+        for line in reversed(
+            [
+                f"{fmt.BIG_PHI}: {self.phi}",
+                f"   Partition: {self.partition}",
+                f" Cause state: {self.system_state[Direction.CAUSE]}",
+                f"Effect state: {self.system_state[Direction.EFFECT]}",
+            ]
+        ):
+            body = fmt.header(line, body)
+        body = fmt.header(
+            "System irreducibility analysis", body, under_char=fmt.HEADER_BAR_2
+        )
+        return fmt.box(fmt.center(body))
+
+
+class HybridHorizontalSystemPartition(KPartition):
+    """Represents a "hybrid horizontal" system partition where one part is cut
+    away from the system in a particular direction.
+    """
+
+    def __init__(self, direction, *args, **kwargs):
+        self.direction = direction
+        super().__init__(*args, **kwargs)
+
+    def __repr__(self):
+        part = self[0].purview
+        if self.node_labels:
+            part = self.node_labels.coerce_to_labels(part)
+        return f"{','.join(map(str, part))} ({self.direction})"
+
+    def __str__(self):
+        return repr(self)
+
+
+def sia_partitions_hybrid_horizontal(
+    node_indices: Iterable, node_labels: Optional[NodeLabels] = None
+) -> Generator[SystemPartition, None, None]:
+    """Yield all system partitions."""
+    for part, direction in product(
+        # Use max_size to exclude the full system as a part
+        utils.powerset(
+            node_indices,
+            nonempty=True,
+            max_size=(len(node_indices) - 1),
+        ),
+        Direction.both(),
+    ):
+        yield HybridHorizontalSystemPartition(
+            direction,
+            Part(mechanism=part, purview=part),
+            node_labels=node_labels,
+        )
+
+
+def normalization_factor_hybrid_horizontal(
+    subsystem: Subsystem, partition: SystemPartition
+) -> float:
+    """Normalize the phi value according to the partition."""
+    part = partition[0].purview
+    if len(part) == len(subsystem):
+        return 1 / len(subsystem) ** 2
+    return 1 / (len(part) * (len(subsystem) - len(part)))
+
+
+def evaluate_partition_hybrid_horizontal(
+    partition: HybridHorizontalSystemPartition,
+    subsystem: Subsystem,
+    system_state: Dict[Direction, tuple],
+) -> SystemIrreducibilityAnalysisHybridHorizontal:
+    # TODO(4.0) configure repertoire distance
+    assert (
+        config.REPERTOIRE_DISTANCE == "IIT_4.0_SMALL_PHI"
+    ), 'Must set config.REPERTOIRE_DISTANCE = "IIT_4.0_SMALL_PHI"'
+    purview = partition[0].purview
+    state = utils.state_of(purview, system_state[partition.direction])
+    phi, _ = subsystem.evaluate_partition(
+        direction=partition.direction,
+        mechanism=subsystem.node_indices,
+        purview=purview,
+        partition=partition,
+        state=state,
+    )
+    phi = phi * normalization_factor_hybrid_horizontal(subsystem, partition)
+    return SystemIrreducibilityAnalysisHybridHorizontal(
+        system_state=system_state,
+        partition=partition,
+        phi=phi,
+    )
+
+
+def find_mip_hybrid_horizontal(
+    subsystem: Subsystem,
+    parallel: Optional[bool] = None,
+    progress: Optional[bool] = None,
+    check_trivial_reducibility: Optional[bool] = True,
+    chunksize: int = DEFAULT_PARTITION_CHUNKSIZE,
+    sequential_threshold: int = DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
+) -> SystemIrreducibilityAnalysisHybridHorizontal:
+    """Find the minimum information partition of a system."""
+    parallel = fallback(parallel, config.PARALLEL_CUT_EVALUATION)
+    progress = fallback(progress, config.PROGRESS_BARS)
+
+    # TODO(4.0) implement
+    # if check_trivial_reducibility and is_trivially_reducible(phi_structure):
+    #     return NullSystemIrreducibilityAnalysis()
+
+    # NOTE: tie-breaking happens here
+    system_state = {
+        direction: subsystem.find_maximal_state_under_complete_partition(
+            direction,
+            mechanism=subsystem.node_indices,
+            purview=subsystem.node_indices,
+        )[0]
+        for direction in Direction.both()
+    }
+
+    partitions = sia_partitions_hybrid_horizontal(
+        node_indices=subsystem.node_indices,
+        node_labels=subsystem.node_labels,
+    )
+
+    return compute.parallel.map_reduce(
+        evaluate_partition_hybrid_horizontal,
+        min,
+        partitions,
+        system_state=system_state,
+        subsystem=subsystem,
+        chunksize=chunksize,
+        sequential_threshold=sequential_threshold,
+        shortcircuit_value=0.0,
+        parallel=parallel,
+        progress=progress,
+        desc="Evaluating partitions",
+    )
+
+
+##############################################################################
+
+
+def find_mip(
+    subsystem: Subsystem,
+    parallel: Optional[bool] = None,
+    progress: Optional[bool] = None,
+    check_trivial_reducibility: Optional[bool] = True,
+    chunksize: int = DEFAULT_PARTITION_CHUNKSIZE,
+    sequential_threshold: int = DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
+    version: str = "hybrid_horizontal",
+) -> SystemIrreducibilityAnalysis:
+    if version == "hybrid_horizontal":
+        return find_mip_hybrid_horizontal(
+            subsystem=subsystem,
+            parallel=parallel,
+            progress=progress,
+            check_trivial_reducibility=check_trivial_reducibility,
+            chunksize=chunksize,
+            sequential_threshold=sequential_threshold,
+        )
+    elif version == "vertical":
+        return find_mip_vertical(
+            subsystem=subsystem,
+            parallel=parallel,
+            progress=progress,
+            check_trivial_reducibility=check_trivial_reducibility,
+            chunksize=chunksize,
+            sequential_threshold=sequential_threshold,
+        )
+    raise ValueError(f"Unknown version: {version}")
 
 
 def congruent_subset(distinctions, direction, state):

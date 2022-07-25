@@ -521,7 +521,8 @@ class Subsystem:
         This is the minimum of the cause and effect information.
         """
         return min(
-            self.cause_info(mechanism, purview, **kwargs), self.effect_info(mechanism, purview, **kwargs)
+            self.cause_info(mechanism, purview, **kwargs),
+            self.effect_info(mechanism, purview, **kwargs),
         )
 
     # MIP methods
@@ -683,7 +684,6 @@ class Subsystem:
             full_index[i] = index
         return tuple(full_index)
 
-
     def find_maximally_irreducible_state(self, direction, mechanism, purview):
         required_repertoire_distances = [
             "IIT_4.0_SMALL_PHI",
@@ -718,7 +718,10 @@ class Subsystem:
         return max_mip
 
     def find_maximal_state_under_complete_partition(
-        self, direction, mechanism, purview,
+        self,
+        direction,
+        mechanism,
+        purview,
     ):
         required_repertoire_distances = [
             "IIT_4.0_SMALL_PHI",
