@@ -536,6 +536,7 @@ class Subsystem:
         partition,
         repertoire=None,
         repertoire_distance=None,
+        return_unpartitioned_repertoire=False,
         **kwargs,
     ):
         """Return the |small_phi| of a mechanism over a purview for the given
@@ -568,6 +569,8 @@ class Subsystem:
             **kwargs,
         )
 
+        if return_unpartitioned_repertoire:
+            return (phi, partitioned_repertoire, repertoire)
         return (phi, partitioned_repertoire)
 
     def find_mip(self, direction, mechanism, purview, **kwargs):

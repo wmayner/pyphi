@@ -2,7 +2,6 @@
 
 from collections import defaultdict
 from dataclasses import dataclass
-from functools import wraps
 from itertools import product
 from typing import Dict, Generator, Iterable, Optional
 
@@ -27,8 +26,11 @@ DEFAULT_PARTITION_CHUNKSIZE = 4 * DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD
 
 @dataclass
 class SystemIrreducibilityAnalysis(cmp.Orderable):
-    partition: SystemPartition
     phi: float
+    partition: SystemPartition
+    repertoire: ArrayLike
+    partitioned_repertoire: ArrayLike
+    system_state: Optional[tuple[int]] = None
     reasons: Optional[list] = None
 
     _sia_attributes = ["phi", "partition"]
@@ -125,8 +127,10 @@ def evaluate_partition_vertical(
     )
     # TODO(4.0) configure repertoire distance
     return SystemIrreducibilityAnalysisVertical(
-        partition=partition,
         phi=phi,
+        partition=partition,
+        repertoire=unpartitioned_system_repertoire,
+        partitioned_repertoire=partitioned_system_repertoire,
     )
 
 
@@ -192,10 +196,6 @@ def find_mip_vertical(
 
 
 class SystemIrreducibilityAnalysisHybridHorizontal(SystemIrreducibilityAnalysis):
-    def __init__(self, system_state, *args, **kwargs):
-        self.system_state = system_state
-        super().__init__(*args, **kwargs)
-
     def __repr__(self):
         body = ""
         for line in reversed(
@@ -276,23 +276,25 @@ def evaluate_partition_hybrid_horizontal(
     system_state: Dict[Direction, tuple],
 ) -> SystemIrreducibilityAnalysisHybridHorizontal:
     # TODO(4.0) configure repertoire distance
-    assert (
-        config.REPERTOIRE_DISTANCE == "IIT_4.0_SMALL_PHI"
-    ), 'Must set config.REPERTOIRE_DISTANCE = "IIT_4.0_SMALL_PHI"'
+    if not config.REPERTOIRE_DISTANCE == "IIT_4.0_SMALL_PHI":
+        raise ValueError('Must set config.REPERTOIRE_DISTANCE = "IIT_4.0_SMALL_PHI"')
     purview = partition[0].purview
     state = utils.state_of(purview, system_state[partition.direction])
-    phi, _ = subsystem.evaluate_partition(
+    phi, partitioned_repertoire, repertoire = subsystem.evaluate_partition(
         direction=partition.direction,
         mechanism=subsystem.node_indices,
         purview=purview,
         partition=partition,
         state=state,
+        return_unpartitioned_repertoire=True,
     )
     phi = phi * normalization_factor_hybrid_horizontal(subsystem, partition)
     return SystemIrreducibilityAnalysisHybridHorizontal(
-        system_state=system_state,
-        partition=partition,
         phi=phi,
+        partition=partition,
+        repertoire=repertoire,
+        partitioned_repertoire=partitioned_repertoire,
+        system_state=system_state,
     )
 
 
