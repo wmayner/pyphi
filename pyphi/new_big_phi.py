@@ -27,16 +27,24 @@ DEFAULT_PARTITION_CHUNKSIZE = 4 * DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD
 @dataclass
 class SystemIrreducibilityAnalysis(cmp.Orderable):
     phi: float
+    normalized_phi: float
     partition: SystemPartition
     repertoire: ArrayLike
     partitioned_repertoire: ArrayLike
     system_state: Optional[tuple[int]] = None
     reasons: Optional[list] = None
 
-    _sia_attributes = ["phi", "partition"]
+    _sia_attributes = [
+        "phi",
+        "normalized_phi",
+        "partition",
+        "repertoire",
+        "partitioned_repertoire",
+        "system_state",
+    ]
 
     def order_by(self):
-        return self.phi
+        return self.normalized_phi
 
     def __eq__(self, other):
         return cmp.general_eq(self, other, self._sia_attributes)
@@ -126,6 +134,7 @@ def evaluate_partition_vertical(
         partitioned_system_repertoire,
     )
     # TODO(4.0) configure repertoire distance
+    # TODO separate normalization from integration
     return SystemIrreducibilityAnalysisVertical(
         phi=phi,
         partition=partition,
@@ -200,7 +209,8 @@ class SystemIrreducibilityAnalysisHybridHorizontal(SystemIrreducibilityAnalysis)
         body = ""
         for line in reversed(
             [
-                f"{fmt.BIG_PHI}: {self.phi}",
+                f"           {fmt.BIG_PHI}: {self.phi}",
+                f"Normalized {fmt.BIG_PHI}: {self.normalized_phi}",
                 f"   Partition: {self.partition}",
                 f" Cause state: {self.system_state[Direction.CAUSE]}",
                 f"Effect state: {self.system_state[Direction.EFFECT]}",
@@ -266,6 +276,7 @@ def normalization_factor_hybrid_horizontal(
     """Normalize the phi value according to the partition."""
     part = partition[0].purview
     if len(part) == len(subsystem):
+        # len(subsystem) / len(subsystem)**2
         return 1 / len(subsystem)
     return len(subsystem) / (len(part) * (len(subsystem) - len(part)))
 
@@ -288,9 +299,10 @@ def evaluate_partition_hybrid_horizontal(
         state=state,
         return_unpartitioned_repertoire=True,
     )
-    phi = phi * normalization_factor_hybrid_horizontal(subsystem, partition)
+    normalized_phi = phi * normalization_factor_hybrid_horizontal(subsystem, partition)
     return SystemIrreducibilityAnalysisHybridHorizontal(
         phi=phi,
+        normalized_phi=normalized_phi,
         partition=partition,
         repertoire=repertoire,
         partitioned_repertoire=partitioned_repertoire,
