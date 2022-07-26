@@ -155,6 +155,10 @@ log = logging.getLogger(__name__)
 
 _VALID_LOG_LEVELS = [None, "CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"]
 
+# Flag to prevent writing to the managed config until we've tried to load an
+# existing one
+_LOADED = False
+
 
 class ConfigurationError(ValueError):
     pass
@@ -1081,10 +1085,6 @@ PYPHI_MANAGED_CONFIG_PATH = (
 )
 PYPHI_MANAGED_CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
 
-# Flag to prevent writing to the managed config until we've tried to load an
-# existing one
-_LOADED = False
-
 
 def atomic_write_yaml(data, path):
     try:
@@ -1100,13 +1100,18 @@ def atomic_write_yaml(data, path):
     return path
 
 
+def write_to_cache(config):
+    atomic_write_yaml(config.snapshot(), PYPHI_MANAGED_CONFIG_PATH)
+
+
 def on_change_global(config):
     validate(config)
     if _LOADED:
         # Write any changes to disk for remote processes to load
-        atomic_write_yaml(config.snapshot(), PYPHI_MANAGED_CONFIG_PATH)
+        write_to_cache(config)
 
 
+# Instantiate the config object
 config = PyphiConfig(on_change=on_change_global)
 
 
@@ -1124,11 +1129,14 @@ if on_driver():
         config.load_file(PYPHI_USER_CONFIG_PATH)
     except FileNotFoundError:
         pass
+    # Ensure write to disk in case no config was loaded (i.e. onchange was not
+    # triggered)
+    write_to_cache(config)
 else:
     # We're in a remote instance; load the PyPhi-managed config
     config.load_file(PYPHI_MANAGED_CONFIG_PATH)
 
-# Now we can allow loading
+# We've loaded/written; now we can allow loading
 _LOADED = True
 
 # Log the PyPhi version and loaded configuration
