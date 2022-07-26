@@ -266,8 +266,8 @@ def normalization_factor_hybrid_horizontal(
     """Normalize the phi value according to the partition."""
     part = partition[0].purview
     if len(part) == len(subsystem):
-        return 1 / len(subsystem) ** 2
-    return 1 / (len(part) * (len(subsystem) - len(part)))
+        return 1 / len(subsystem)
+    return len(subsystem) / (len(part) * (len(subsystem) - len(part)))
 
 
 def evaluate_partition_hybrid_horizontal(
