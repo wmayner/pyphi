@@ -344,18 +344,17 @@ def normalization_factor_hybrid_horizontal(
     subsystem: Subsystem, partition: SystemPartition
 ) -> float:
     """Normalize the phi value according to the partition."""
-    part = partition[0].purview
+    part = partition.purview
     if len(part) == len(subsystem):
         return 1 / len(subsystem) ** 2
     return 1 / (len(part) * (len(subsystem) - len(part)))
 
 
-def evaluate_partition_hybrid_horizontal(
+def integration_value(
     partition: HybridHorizontalSystemPartition,
     subsystem: Subsystem,
     system_state: SystemState,
-    atomic_integration: Optional[Dict[Direction, float]] = None,
-) -> SystemIrreducibilityAnalysisHybridHorizontal:
+) -> tuple[float, ArrayLike, ArrayLike]:
     # TODO(4.0) configure repertoire distance
     if not config.REPERTOIRE_DISTANCE == "IIT_4.0_SMALL_PHI":
         raise ValueError('Must set config.REPERTOIRE_DISTANCE = "IIT_4.0_SMALL_PHI"')
@@ -373,6 +372,21 @@ def evaluate_partition_hybrid_horizontal(
         state=purview_state,
         return_unpartitioned_repertoire=True,
     )
+    return phi, partitioned_repertoire, repertoire
+
+
+def evaluate_partition_hybrid_horizontal(
+    partition: HybridHorizontalSystemPartition,
+    subsystem: Subsystem,
+    system_state: SystemState,
+    atomic_integration: Optional[Dict[Direction, float]] = None,
+) -> SystemIrreducibilityAnalysisHybridHorizontal:
+    # TODO(4.0) configure repertoire distance
+    if not config.REPERTOIRE_DISTANCE == "IIT_4.0_SMALL_PHI":
+        raise ValueError('Must set config.REPERTOIRE_DISTANCE = "IIT_4.0_SMALL_PHI"')
+    phi, partitioned_repertoire, repertoire = integration_value(
+        partition, subsystem, system_state
+    )
     normalized_phi = phi * normalization_factor_hybrid_horizontal(subsystem, partition)
     return SystemIrreducibilityAnalysisHybridHorizontal(
         phi=phi,
@@ -385,6 +399,20 @@ def evaluate_partition_hybrid_horizontal(
         node_labels=subsystem.node_labels,
         atomic_integration=atomic_integration,
     )
+
+
+def atomic_integration_value(
+    direction: Direction, subsystem: Subsystem, system_state: SystemState
+) -> float:
+    """Return the integration value for the atomic partition."""
+    phi, _, _ = integration_value(
+        partition=AtomicPartition(
+            direction, subsystem.node_indices, node_labels=subsystem.node_labels
+        ),
+        subsystem=subsystem,
+        system_state=system_state,
+    )
+    return phi
 
 
 def find_mip_hybrid_horizontal(
@@ -424,13 +452,7 @@ def find_mip_hybrid_horizontal(
 
     # Compute atomic integration with the atomic partition
     atomic_integration = {
-        direction: evaluate_partition_hybrid_horizontal(
-            partition=AtomicPartition(
-                direction, subsystem.node_indices, node_labels=subsystem.node_labels
-            ),
-            subsystem=subsystem,
-            system_state=system_state,
-        ).phi
+        direction: atomic_integration_value(direction, subsystem, system_state)
         for direction in Direction.both()
     }
 
