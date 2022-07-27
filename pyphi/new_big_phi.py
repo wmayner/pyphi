@@ -246,29 +246,34 @@ def sia_partitions_hybrid_horizontal(
     node_indices: Iterable, node_labels: Optional[NodeLabels] = None
 ) -> Generator[SystemPartition, None, None]:
     """Yield all system partitions."""
+    # Special case for single-element systems
+    if len(node_indices) == 1:
+        # Complete partition
+        part = tuple(node_indices)
+        for direction in Direction.both():
+            yield HybridHorizontalSystemPartition(
+                direction,
+                # NOTE: Order is important here
+                Part(mechanism=(), purview=part),
+                Part(mechanism=part, purview=()),
+                node_labels=node_labels,
+            )
+        return
+
     for part, direction in product(
         utils.powerset(
             node_indices,
             nonempty=True,
+            max_size=(len(node_indices) - 1),
         ),
         Direction.both(),
     ):
-        # if len(part) == len(node_indices):
-        #     # Complete partition
-        #     yield HybridHorizontalSystemPartition(
-        #         direction,
-        #         # NOTE: Order is important here
-        #         Part(mechanism=(), purview=part),
-        #         Part(mechanism=part, purview=()),
-        #         node_labels=node_labels,
-        #     )
-        if len(part) != len(node_indices):
-            # Compare π(part|system) vs π(part|part)
-            yield HybridHorizontalSystemPartition(
-                direction,
-                Part(mechanism=part, purview=part),
-                node_labels=node_labels,
-            )
+        # Compare π(part|system) vs π(part|part)
+        yield HybridHorizontalSystemPartition(
+            direction,
+            Part(mechanism=part, purview=part),
+            node_labels=node_labels,
+        )
 
 
 def normalization_factor_hybrid_horizontal(
@@ -276,6 +281,8 @@ def normalization_factor_hybrid_horizontal(
 ) -> float:
     """Normalize the phi value according to the partition."""
     part = partition[0].purview
+    # TODO: Take out numerator, since it's a constant function, and we don't use
+    # it for exclusion
     if len(part) == len(subsystem):
         # len(subsystem) / len(subsystem)**2
         return 1 / len(subsystem)
