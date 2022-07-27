@@ -721,10 +721,7 @@ class Subsystem:
         return max_mip
 
     def find_maximal_state_under_complete_partition(
-        self,
-        direction,
-        mechanism,
-        purview,
+        self, direction, mechanism, purview, return_information=False
     ):
         required_repertoire_distances = [
             "IIT_4.0_SMALL_PHI",
@@ -755,11 +752,14 @@ class Subsystem:
         }
         max_information = max(state_to_information.values())
         # Return all tied states
-        return [
+        tied_states = [
             state
             for state, information in state_to_information.items()
             if information == max_information
         ]
+        if return_information:
+            return tied_states, max_information
+        return tied_states
 
     # Phi_max methods
     # =========================================================================

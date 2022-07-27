@@ -31,6 +31,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
     partition: SystemPartition
     repertoire: ArrayLike
     partitioned_repertoire: ArrayLike
+    atomic_integration: Optional[Dict[Direction, float]] = None
     system_state: Optional[tuple[int]] = None
     node_indices: Optional[tuple[int]] = None
     node_labels: Optional[NodeLabels] = None
@@ -206,6 +207,20 @@ def find_mip_vertical(
 ##############################################################################
 
 
+@dataclass
+class SystemState:
+    cause: tuple
+    effect: tuple
+    intrinsic_information: Dict[Direction, float]
+
+    def __getitem__(self, direction: Direction) -> tuple:
+        if direction == Direction.CAUSE:
+            return self.cause
+        elif direction == Direction.EFFECT:
+            return self.effect
+        raise KeyError("Invalid direction")
+
+
 class SystemIrreducibilityAnalysisHybridHorizontal(SystemIrreducibilityAnalysis):
     def __repr__(self):
         body = "\n".join(
@@ -215,11 +230,21 @@ class SystemIrreducibilityAnalysisHybridHorizontal(SystemIrreducibilityAnalysis)
                         "Subsystem",
                         ",".join(self.node_labels.coerce_to_labels(self.node_indices)),
                     ),
+                    ("Partition", str(self.partition)),
                     (f"           {fmt.BIG_PHI}", self.phi),
                     (f"Normalized {fmt.BIG_PHI}", self.normalized_phi),
-                    ("Partition", str(self.partition)),
-                    (" Cause state", str(self.system_state[Direction.CAUSE])),
-                    ("Effect state", str(self.system_state[Direction.EFFECT])),
+                    (str(Direction.CAUSE), str(self.system_state[Direction.CAUSE])),
+                    ("II_c", self.system_state.intrinsic_information[Direction.CAUSE]),
+                    (
+                        f"Atomic {fmt.BIG_PHI}_c",
+                        self.atomic_integration[Direction.CAUSE],
+                    ),
+                    (str(Direction.EFFECT), str(self.system_state[Direction.EFFECT])),
+                    ("II_e", self.system_state.intrinsic_information[Direction.EFFECT]),
+                    (
+                        f"Atomic {fmt.BIG_PHI}_e",
+                        self.atomic_integration[Direction.EFFECT],
+                    ),
                 ]
             )
         )
@@ -238,14 +263,54 @@ class HybridHorizontalSystemPartition(KPartition):
         self.direction = direction
         super().__init__(*args, **kwargs)
 
-    def __repr__(self):
+    def __str__(self):
         part = self[0].purview
         if self.node_labels:
             part = self.node_labels.coerce_to_labels(part)
         return f"{','.join(map(str, part))} ({self.direction})"
 
+    # def __str__(self):
+    #     return repr(self)
+
+
+class CompletePartition(HybridHorizontalSystemPartition):
+    """The partition that severs all connections."""
+
+    def __init__(self, direction, node_indices, **kwargs):
+        self.direction = direction
+        super().__init__(
+            direction,
+            # NOTE: Order is important here
+            Part(mechanism=(), purview=tuple(node_indices)),
+            Part(mechanism=tuple(node_indices), purview=()),
+            **kwargs,
+        )
+
     def __str__(self):
-        return repr(self)
+        return (
+            super(HybridHorizontalSystemPartition, self).__str__()
+            + f" ({self.direction})"
+        )
+
+
+class AtomicPartition(HybridHorizontalSystemPartition):
+    """The partition that severs all connections between elements (not
+    self-loops).
+    """
+
+    def __init__(self, direction, node_indices, **kwargs):
+        self.direction = direction
+        super().__init__(
+            direction,
+            *[Part(mechanism=(n,), purview=(n,)) for n in node_indices],
+            **kwargs,
+        )
+
+    def __str__(self):
+        return (
+            super(HybridHorizontalSystemPartition, self).__str__()
+            + f" ({self.direction})"
+        )
 
 
 def sia_partitions_hybrid_horizontal(
@@ -255,15 +320,8 @@ def sia_partitions_hybrid_horizontal(
     # Special case for single-element systems
     if len(node_indices) == 1:
         # Complete partition
-        part = tuple(node_indices)
         for direction in Direction.both():
-            yield HybridHorizontalSystemPartition(
-                direction,
-                # NOTE: Order is important here
-                Part(mechanism=(), purview=part),
-                Part(mechanism=part, purview=()),
-                node_labels=node_labels,
-            )
+            yield CompletePartition(direction, node_indices, node_labels=node_labels)
         return
 
     for part, direction in product(
@@ -295,22 +353,22 @@ def normalization_factor_hybrid_horizontal(
 def evaluate_partition_hybrid_horizontal(
     partition: HybridHorizontalSystemPartition,
     subsystem: Subsystem,
-    system_state: Dict[Direction, tuple],
+    system_state: SystemState,
+    atomic_integration: Optional[Dict[Direction, float]] = None,
 ) -> SystemIrreducibilityAnalysisHybridHorizontal:
     # TODO(4.0) configure repertoire distance
     if not config.REPERTOIRE_DISTANCE == "IIT_4.0_SMALL_PHI":
         raise ValueError('Must set config.REPERTOIRE_DISTANCE = "IIT_4.0_SMALL_PHI"')
-    purview = partition[0].purview
     purview_state = utils.state_of(
         # Get purview indices relative to subsystem indices
-        [subsystem.node_indices.index(n) for n in purview],
+        [subsystem.node_indices.index(n) for n in partition.purview],
         system_state[partition.direction],
     )
     # Compare π(part|system) vs π(part|part)
     phi, partitioned_repertoire, repertoire = subsystem.evaluate_partition(
         direction=partition.direction,
         mechanism=subsystem.node_indices,
-        purview=purview,
+        purview=partition.purview,
         partition=partition,
         state=purview_state,
         return_unpartitioned_repertoire=True,
@@ -325,6 +383,7 @@ def evaluate_partition_hybrid_horizontal(
         system_state=system_state,
         node_indices=subsystem.node_indices,
         node_labels=subsystem.node_labels,
+        atomic_integration=atomic_integration,
     )
 
 
@@ -344,13 +403,34 @@ def find_mip_hybrid_horizontal(
     # if check_trivial_reducibility and is_trivially_reducible(phi_structure):
     #     return NullSystemIrreducibilityAnalysis()
 
-    # NOTE: tie-breaking happens here
-    system_state = {
-        direction: subsystem.find_maximal_state_under_complete_partition(
-            direction,
-            mechanism=subsystem.node_indices,
-            purview=subsystem.node_indices,
-        )[0]
+    cause_states, ii_cause = subsystem.find_maximal_state_under_complete_partition(
+        Direction.CAUSE,
+        mechanism=subsystem.node_indices,
+        purview=subsystem.node_indices,
+        return_information=True,
+    )
+    effect_states, ii_effect = subsystem.find_maximal_state_under_complete_partition(
+        Direction.EFFECT,
+        mechanism=subsystem.node_indices,
+        purview=subsystem.node_indices,
+        return_information=True,
+    )
+    system_state = SystemState(
+        # NOTE: tie-breaking happens here
+        cause=cause_states[0],
+        effect=effect_states[0],
+        intrinsic_information={Direction.CAUSE: ii_cause, Direction.EFFECT: ii_effect},
+    )
+
+    # Compute atomic integration with the atomic partition
+    atomic_integration = {
+        direction: evaluate_partition_hybrid_horizontal(
+            partition=AtomicPartition(
+                direction, subsystem.node_indices, node_labels=subsystem.node_labels
+            ),
+            subsystem=subsystem,
+            system_state=system_state,
+        ).phi
         for direction in Direction.both()
     }
 
@@ -365,6 +445,7 @@ def find_mip_hybrid_horizontal(
         partitions,
         system_state=system_state,
         subsystem=subsystem,
+        atomic_integration=atomic_integration,
         chunksize=chunksize,
         sequential_threshold=sequential_threshold,
         shortcircuit_value=0.0,
