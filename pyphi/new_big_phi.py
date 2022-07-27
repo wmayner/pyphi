@@ -281,12 +281,9 @@ def normalization_factor_hybrid_horizontal(
 ) -> float:
     """Normalize the phi value according to the partition."""
     part = partition[0].purview
-    # TODO: Take out numerator, since it's a constant function, and we don't use
-    # it for exclusion
     if len(part) == len(subsystem):
-        # len(subsystem) / len(subsystem)**2
-        return 1 / len(subsystem)
-    return len(subsystem) / (len(part) * (len(subsystem) - len(part)))
+        return 1 / len(subsystem) ** 2
+    return 1 / (len(part) * (len(subsystem) - len(part)))
 
 
 def evaluate_partition_hybrid_horizontal(
