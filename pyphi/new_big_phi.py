@@ -32,6 +32,8 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
     repertoire: ArrayLike
     partitioned_repertoire: ArrayLike
     system_state: Optional[tuple[int]] = None
+    node_indices: Optional[tuple[int]] = None
+    node_labels: Optional[NodeLabels] = None
     reasons: Optional[list] = None
 
     _sia_attributes = [
@@ -209,9 +211,10 @@ class SystemIrreducibilityAnalysisHybridHorizontal(SystemIrreducibilityAnalysis)
         body = ""
         for line in reversed(
             [
+                f"Subsystem: {','.join(self.node_labels.coerce_to_labels(self.node_indices))}",
                 f"           {fmt.BIG_PHI}: {self.phi}",
                 f"Normalized {fmt.BIG_PHI}: {self.normalized_phi}",
-                f"   Partition: {self.partition}",
+                f"Partition: {self.partition}",
                 f" Cause state: {self.system_state[Direction.CAUSE]}",
                 f"Effect state: {self.system_state[Direction.EFFECT]}",
             ]
@@ -317,6 +320,8 @@ def evaluate_partition_hybrid_horizontal(
         repertoire=repertoire,
         partitioned_repertoire=partitioned_repertoire,
         system_state=system_state,
+        node_indices=subsystem.node_indices,
+        node_labels=subsystem.node_labels,
     )
 
 
