@@ -208,18 +208,21 @@ def find_mip_vertical(
 
 class SystemIrreducibilityAnalysisHybridHorizontal(SystemIrreducibilityAnalysis):
     def __repr__(self):
-        body = ""
-        for line in reversed(
-            [
-                f"Subsystem: {','.join(self.node_labels.coerce_to_labels(self.node_indices))}",
-                f"           {fmt.BIG_PHI}: {self.phi}",
-                f"Normalized {fmt.BIG_PHI}: {self.normalized_phi}",
-                f"Partition: {self.partition}",
-                f" Cause state: {self.system_state[Direction.CAUSE]}",
-                f"Effect state: {self.system_state[Direction.EFFECT]}",
-            ]
-        ):
-            body = fmt.header(line, body)
+        body = "\n".join(
+            fmt.align_columns(
+                [
+                    (
+                        "Subsystem",
+                        ",".join(self.node_labels.coerce_to_labels(self.node_indices)),
+                    ),
+                    (f"           {fmt.BIG_PHI}", self.phi),
+                    (f"Normalized {fmt.BIG_PHI}", self.normalized_phi),
+                    ("Partition", str(self.partition)),
+                    (" Cause state", str(self.system_state[Direction.CAUSE])),
+                    ("Effect state", str(self.system_state[Direction.EFFECT])),
+                ]
+            )
+        )
         body = fmt.header(
             "System irreducibility analysis", body, under_char=fmt.HEADER_BAR_2
         )
