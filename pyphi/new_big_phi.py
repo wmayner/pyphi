@@ -295,14 +295,18 @@ def evaluate_partition_hybrid_horizontal(
     if not config.REPERTOIRE_DISTANCE == "IIT_4.0_SMALL_PHI":
         raise ValueError('Must set config.REPERTOIRE_DISTANCE = "IIT_4.0_SMALL_PHI"')
     purview = partition[0].purview
-    state = utils.state_of(purview, system_state[partition.direction])
+    purview_state = utils.state_of(
+        # Get purview indices relative to subsystem indices
+        [subsystem.node_indices.index(n) for n in purview],
+        system_state[partition.direction],
+    )
     # Compare π(part|system) vs π(part|part)
     phi, partitioned_repertoire, repertoire = subsystem.evaluate_partition(
         direction=partition.direction,
         mechanism=subsystem.node_indices,
         purview=purview,
         partition=partition,
-        state=state,
+        state=purview_state,
         return_unpartitioned_repertoire=True,
     )
     normalized_phi = phi * normalization_factor_hybrid_horizontal(subsystem, partition)
