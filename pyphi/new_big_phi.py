@@ -253,16 +253,17 @@ def sia_partitions_hybrid_horizontal(
         ),
         Direction.both(),
     ):
-        if len(part) == len(node_indices):
-            # Complete partition
-            yield HybridHorizontalSystemPartition(
-                direction,
-                # NOTE: Order is important here
-                Part(mechanism=(), purview=part),
-                Part(mechanism=part, purview=()),
-                node_labels=node_labels,
-            )
-        else:
+        # if len(part) == len(node_indices):
+        #     # Complete partition
+        #     yield HybridHorizontalSystemPartition(
+        #         direction,
+        #         # NOTE: Order is important here
+        #         Part(mechanism=(), purview=part),
+        #         Part(mechanism=part, purview=()),
+        #         node_labels=node_labels,
+        #     )
+        if len(part) != len(node_indices):
+            # Compare π(part|system) vs π(part|part)
             yield HybridHorizontalSystemPartition(
                 direction,
                 Part(mechanism=part, purview=part),
@@ -291,6 +292,7 @@ def evaluate_partition_hybrid_horizontal(
         raise ValueError('Must set config.REPERTOIRE_DISTANCE = "IIT_4.0_SMALL_PHI"')
     purview = partition[0].purview
     state = utils.state_of(purview, system_state[partition.direction])
+    # Compare π(part|system) vs π(part|part)
     phi, partitioned_repertoire, repertoire = subsystem.evaluate_partition(
         direction=partition.direction,
         mechanism=subsystem.node_indices,
