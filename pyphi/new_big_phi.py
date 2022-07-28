@@ -14,7 +14,7 @@ from . import Direction, Subsystem, compute, config, metrics, utils
 from .conf import fallback
 from .models import cmp, fmt
 from .models.cuts import CompleteSystemPartition, KPartition, Part, SystemPartition
-from .partition import system_partition_types, complete_partition
+from .partition import system_partition_types
 
 # TODO change SystemPartition
 from .relations import Relations
@@ -313,7 +313,7 @@ class AtomicPartition(HybridHorizontalSystemPartition):
         )
 
 
-def sia_partitions_hybrid_horizontal(
+def _sia_partitions_hybrid_horizontal_excluding_complete(
     node_indices: Iterable, node_labels: Optional[NodeLabels] = None
 ) -> Generator[SystemPartition, None, None]:
     """Yield all system partitions."""
@@ -340,13 +340,51 @@ def sia_partitions_hybrid_horizontal(
         )
 
 
+def _sia_partitions_hybrid_horizontal_including_complete(
+    node_indices: Iterable, node_labels: Optional[NodeLabels] = None
+) -> Generator[SystemPartition, None, None]:
+    """Yield all system partitions (including the complete partition)."""
+    for part, direction in product(
+        utils.powerset(
+            node_indices,
+            nonempty=True,
+        ),
+        Direction.both(),
+    ):
+        if len(part) == len(node_indices):
+            # Complete partition
+            yield CompletePartition(direction, node_indices, node_labels=node_labels)
+        else:
+            # Compare π(part|system) vs π(part|part)
+            yield HybridHorizontalSystemPartition(
+                direction,
+                Part(mechanism=part, purview=part),
+                node_labels=node_labels,
+            )
+
+
+def sia_partitions_hybrid_horizontal(
+    node_indices: Iterable,
+    node_labels: Optional[NodeLabels] = None,
+    include_complete=True,
+) -> Generator[SystemPartition, None, None]:
+    if include_complete:
+        yield from _sia_partitions_hybrid_horizontal_including_complete(
+            node_indices, node_labels=node_labels
+        )
+    else:
+        yield from _sia_partitions_hybrid_horizontal_excluding_complete(
+            node_indices, node_labels=node_labels
+        )
+
+
 def normalization_factor_hybrid_horizontal(
     subsystem: Subsystem, partition: SystemPartition
 ) -> float:
     """Normalize the phi value according to the partition."""
+    if isinstance(partition, CompletePartition):
+        return 1 / len(subsystem)
     part = partition.purview
-    if len(part) == len(subsystem):
-        return 1 / len(subsystem) ** 2
     return 1 / (len(part) * (len(subsystem) - len(part)))
 
 
