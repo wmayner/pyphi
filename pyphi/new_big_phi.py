@@ -369,7 +369,7 @@ def _sia_partitions_hybrid_horizontal_including_complete(
 def sia_partitions_hybrid_horizontal(
     node_indices: Iterable,
     node_labels: Optional[NodeLabels] = None,
-    include_complete=True,
+    include_complete=False,
 ) -> Generator[SystemPartition, None, None]:
     if include_complete:
         yield from _sia_partitions_hybrid_horizontal_including_complete(
@@ -398,7 +398,10 @@ def integration_value(
 ) -> tuple[float, ArrayLike, ArrayLike]:
     # TODO(4.0) configure repertoire distance
     if not config.REPERTOIRE_DISTANCE == "IIT_4.0_SMALL_PHI":
-        raise ValueError('Must set config.REPERTOIRE_DISTANCE = "IIT_4.0_SMALL_PHI"')
+        raise ValueError(
+            'Must set config.REPERTOIRE_DISTANCE = "IIT_4.0_SMALL_PHI"; '
+            f" got {config.REPERTOIRE_DISTANCE}"
+        )
     purview_state = utils.state_of(
         # Get purview indices relative to subsystem indices
         [subsystem.node_indices.index(n) for n in partition.purview],
@@ -463,6 +466,7 @@ def find_mip_hybrid_horizontal(
     check_trivial_reducibility: Optional[bool] = True,
     chunksize: int = DEFAULT_PARTITION_CHUNKSIZE,
     sequential_threshold: int = DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
+    include_complete=False,
 ) -> SystemIrreducibilityAnalysisHybridHorizontal:
     """Find the minimum information partition of a system."""
     parallel = fallback(parallel, config.PARALLEL_CUT_EVALUATION)
@@ -500,6 +504,7 @@ def find_mip_hybrid_horizontal(
     partitions = sia_partitions_hybrid_horizontal(
         node_indices=subsystem.node_indices,
         node_labels=subsystem.node_labels,
+        include_complete=False,
     )
 
     return compute.parallel.map_reduce(
