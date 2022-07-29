@@ -426,9 +426,6 @@ def evaluate_partition_hybrid_horizontal(
     system_state: SystemState,
     atomic_integration: Optional[Dict[Direction, float]] = None,
 ) -> SystemIrreducibilityAnalysisHybridHorizontal:
-    # TODO(4.0) configure repertoire distance
-    if not config.REPERTOIRE_DISTANCE == "IIT_4.0_SMALL_PHI":
-        raise ValueError('Must set config.REPERTOIRE_DISTANCE = "IIT_4.0_SMALL_PHI"')
     phi, partitioned_repertoire, repertoire = integration_value(
         partition, subsystem, system_state
     )
