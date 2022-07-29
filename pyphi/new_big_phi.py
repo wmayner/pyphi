@@ -397,10 +397,11 @@ def integration_value(
     system_state: SystemState,
 ) -> tuple[float, ArrayLike, ArrayLike]:
     # TODO(4.0) configure repertoire distance
-    if not config.REPERTOIRE_DISTANCE == "IIT_4.0_SMALL_PHI":
+    valid_distances = ["IIT_4.0_SMALL_PHI", "IIT_4.0_SMALL_PHI"]
+    if config.REPERTOIRE_DISTANCE not in valid_distances:
         raise ValueError(
-            'Must set config.REPERTOIRE_DISTANCE = "IIT_4.0_SMALL_PHI"; '
-            f" got {config.REPERTOIRE_DISTANCE}"
+            f"Must set config.REPERTOIRE_DISTANCE to one of {valid_distances}; "
+            f"got {config.REPERTOIRE_DISTANCE}"
         )
     purview_state = utils.state_of(
         # Get purview indices relative to subsystem indices
