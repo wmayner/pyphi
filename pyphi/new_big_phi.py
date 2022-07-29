@@ -69,9 +69,11 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
 class NullSystemIrreducibilityAnalysis(SystemIrreducibilityAnalysis):
     def __init__(self):
         super().__init__(
+            phi=0,
+            normalized_phi=0,
             partition=None,
-            phi=0.0,
-            reasons=[],
+            repertoire=None,
+            partitioned_repertoire=None,
         )
 
 
