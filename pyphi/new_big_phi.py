@@ -369,7 +369,7 @@ def _sia_partitions_hybrid_horizontal_including_complete(
 def sia_partitions_hybrid_horizontal(
     node_indices: Iterable,
     node_labels: Optional[NodeLabels] = None,
-    include_complete=False,
+    include_complete: bool = False,
 ) -> Generator[SystemPartition, None, None]:
     if include_complete:
         yield from _sia_partitions_hybrid_horizontal_including_complete(
@@ -466,7 +466,7 @@ def find_mip_hybrid_horizontal(
     check_trivial_reducibility: Optional[bool] = True,
     chunksize: int = DEFAULT_PARTITION_CHUNKSIZE,
     sequential_threshold: int = DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
-    include_complete=False,
+    include_complete: bool = False,
 ) -> SystemIrreducibilityAnalysisHybridHorizontal:
     """Find the minimum information partition of a system."""
     parallel = fallback(parallel, config.PARALLEL_CUT_EVALUATION)
@@ -504,7 +504,7 @@ def find_mip_hybrid_horizontal(
     partitions = sia_partitions_hybrid_horizontal(
         node_indices=subsystem.node_indices,
         node_labels=subsystem.node_labels,
-        include_complete=False,
+        include_complete=include_complete,
     )
 
     return compute.parallel.map_reduce(
