@@ -87,7 +87,7 @@ def bipartition_indices(N):
 
 
 # TODO? rename to `bipartitions`
-def bipartition(seq):
+def bipartition(seq, nontrivial=False):
     """Return a list of bipartitions for a sequence.
 
     Args:
@@ -101,10 +101,13 @@ def bipartition(seq):
         >>> bipartition((1,2,3))
         [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,))]
     """
-    return [
+    bipartitions = [
         (tuple(seq[i] for i in part0_idx), tuple(seq[j] for j in part1_idx))
         for part0_idx, part1_idx in bipartition_indices(len(seq))
     ]
+    if nontrivial:
+        return bipartitions[1:]
+    return bipartitions
 
 
 @cache(cache={}, maxmem=None)
