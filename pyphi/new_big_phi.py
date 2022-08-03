@@ -347,6 +347,7 @@ def code_number_to_part(number, node_indices, part1, part2=None):
 def sia_partitions_horizontal(
     node_indices: Iterable,
     node_labels: Optional[NodeLabels] = None,
+    directions=None,
     code=None,
 ) -> Generator[SystemPartition, None, None]:
     """Yield 'horizontal-type' system partitions."""
@@ -357,6 +358,9 @@ def sia_partitions_horizontal(
             "partitioned repertoires don't match"
         )
 
+    if directions is None:
+        directions = Direction.both()
+
     # Special case for single-element systems
     if len(node_indices) == 1:
         # Complete partition
@@ -365,7 +369,7 @@ def sia_partitions_horizontal(
         return
 
     if _PART_ONE not in code and _PART_TWO not in code:
-        for direction in Direction.both():
+        for direction in directions:
             yield HorizontalSystemPartition(
                 direction=direction,
                 purview=node_indices,
@@ -376,7 +380,7 @@ def sia_partitions_horizontal(
     if _PART_ONE in code and _PART_TWO in code:
         # Directed bipartitions
         for (part1, part2), direction in product(
-            directed_bipartition(node_indices, nontrivial=True), Direction.both()
+            directed_bipartition(node_indices, nontrivial=True), directions
         ):
             purview = code_number_to_part(code[0], node_indices, part1, part2=part2)
             unpartitioned_mechanism = code_number_to_part(
@@ -395,7 +399,7 @@ def sia_partitions_horizontal(
     else:
         # Undirected bipartitions
         for (part1, part2), direction in product(
-            bipartition(node_indices, nontrivial=True), Direction.both()
+            bipartition(node_indices, nontrivial=True), direction
         ):
             purview = code_number_to_part(code[0], node_indices, part1)
             unpartitioned_mechanism = code_number_to_part(code[1], node_indices, part1)

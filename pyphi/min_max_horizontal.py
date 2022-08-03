@@ -189,6 +189,7 @@ def find_mip(
     chunksize: int = DEFAULT_PARTITION_CHUNKSIZE,
     sequential_threshold: int = DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
     repertoire_distance: str = None,
+    directions=None,
     code=HORIZONTAL_PARTITION_CODE,
 ) -> SystemIrreducibilityAnalysis:
     """Find the minimum information partition of a system."""
@@ -198,7 +199,10 @@ def find_mip(
 
     system_state = find_system_state(subsystem)
     partitions = sia_partitions_horizontal(
-        subsystem.node_indices, node_labels=subsystem.node_labels, code=code
+        subsystem.node_indices,
+        node_labels=subsystem.node_labels,
+        code=code,
+        directions=directions,
     )
     return compute.parallel.map_reduce(
         evaluate_partition,
