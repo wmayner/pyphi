@@ -25,8 +25,8 @@ from .utils import is_positive
 from .relations import Relations
 from .relations import relations as compute_relations
 
-DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD = 256
-DEFAULT_PARTITION_CHUNKSIZE = 4 * DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD
+DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD = 2 ** 8
+DEFAULT_PARTITION_CHUNKSIZE = 2 ** 2 * DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD
 
 
 ##############################################################################
@@ -161,9 +161,13 @@ class NullSystemIrreducibilityAnalysis(SystemIrreducibilityAnalysis):
         super().__init__(
             phi=0,
             normalized_phi=0,
+            phi_cause=0,
+            phi_effect=0,
             partition=None,
-            repertoire=None,
-            partitioned_repertoire=None,
+            repertoire_cause=None,
+            partitioned_repertoire_cause=None,
+            repertoire_effect=None,
+            partitioned_repertoire_effect=None,
         )
 
 
@@ -220,6 +224,7 @@ class HorizontalSystemPartition(SystemPartition):
     purview: tuple[int]
     unpartitioned_mechanism: tuple[int]
     partitioned_mechanism: tuple[int]
+    node_labels: Optional[NodeLabels] = None
 
     def normalization_factor(self):
         return 1 / len(self.purview)
@@ -255,6 +260,18 @@ class HorizontalSystemPartition(SystemPartition):
         )
         normalized_phi = phi * self.normalization_factor()
         return (phi, normalized_phi, unpartitioned_repertoire, partitioned_repertoire)
+
+    def __repr__(self):
+        purview = "".join(self.node_labels.coerce_to_labels(self.purview))
+        unpartitioned_mechanism = "".join(
+            self.node_labels.coerce_to_labels(self.unpartitioned_mechanism)
+        )
+        partitioned_mechanism = (
+            "∅"
+            if not self.partitioned_mechanism
+            else "".join(self.node_labels.coerce_to_labels(self.partitioned_mechanism))
+        )
+        return f"π({purview}|{unpartitioned_mechanism}) || π({purview}|{partitioned_mechanism})"
 
 
 # TODO
@@ -362,7 +379,6 @@ def sia_partitions_horizontal(
             directed_bipartition(node_indices, nontrivial=True), Direction.both()
         ):
             purview = code_number_to_part(code[0], node_indices, part1, part2=part2)
-            print(purview)
             unpartitioned_mechanism = code_number_to_part(
                 code[1], node_indices, part1, part2=part2
             )
@@ -374,6 +390,7 @@ def sia_partitions_horizontal(
                 purview=purview,
                 unpartitioned_mechanism=unpartitioned_mechanism,
                 partitioned_mechanism=partitioned_mechanism,
+                node_labels=node_labels,
             )
     else:
         # Undirected bipartitions
@@ -388,6 +405,7 @@ def sia_partitions_horizontal(
                 purview=purview,
                 unpartitioned_mechanism=unpartitioned_mechanism,
                 partitioned_mechanism=partitioned_mechanism,
+                node_labels=node_labels,
             )
 
 
