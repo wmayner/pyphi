@@ -3,7 +3,9 @@
 
 """Generate different weight matrices."""
 
+import functools
 from itertools import product
+
 import numpy as np
 
 
@@ -15,17 +17,28 @@ def normalize_outputs(W):
     return np.nan_to_num(W / W.sum(axis=1, keepdims=True), nan=0.0)
 
 
+def _optionally_normalize_inputs(func):
+    @functools.wraps(func)
+    def wrapper(*args, normalize_input_weights=False, **kwargs):
+        W = func(*args, **kwargs)
+        if normalize_input_weights:
+            W = normalize_inputs(W)
+        return W
+
+    return wrapper
+
+
 def pareto_distribution(n, alpha=1.0):
     return np.ones(n) / np.arange(1, n + 1) ** alpha
 
 
+@_optionally_normalize_inputs
 def nearest_neighbor(
     size,
     w_self,
     w_lateral,
     k=1,
     periodic=False,
-    normalize_input_weights=False,
     **kwargs,
 ):
     if periodic:
@@ -42,12 +55,11 @@ def nearest_neighbor(
             # Don't double-weight farthest laterals if periodic
             if periodic and i < (size / 2):
                 W += w_lateral * np.eye(size, k=j * (size - i))
-    if normalize_input_weights:
-        W = normalize_inputs(W)
     return W
 
 
-def pareto(size, alpha=1.0, periodic=False, normalize=False):
+@_optionally_normalize_inputs
+def pareto(size, alpha=1.0, periodic=False):
     W = np.zeros([size, size])
     p = pareto_distribution(size, alpha=alpha)
     if periodic:
@@ -62,8 +74,6 @@ def pareto(size, alpha=1.0, periodic=False, normalize=False):
         W += np.eye(size, k=k) * w
         if k:
             W += np.eye(size, k=-k) * w
-    if normalize:
-        W = normalize_inputs(W)
     return W
 
 
@@ -172,6 +182,7 @@ def compensatory_pareto(
     )
 
 
+@_optionally_normalize_inputs
 def bridge(weights1, weights2, w_connection, bidirectional=True):
     N, M = weights1.shape[0], weights2.shape[0]
     W = np.zeros([N + M] * 2)
