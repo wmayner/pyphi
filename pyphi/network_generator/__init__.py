@@ -6,7 +6,7 @@ import numpy as np
 
 from ..network import Network
 from ..utils import all_states
-from . import ising, utils
+from . import ising, utils, weights
 
 
 def logical_or_function(element, weights, state):
