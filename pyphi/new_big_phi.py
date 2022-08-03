@@ -10,11 +10,13 @@ from numpy.typing import ArrayLike
 from pyphi.labels import NodeLabels
 from pyphi.models.subsystem import CauseEffectStructure
 
-from . import Direction, Subsystem, compute, config, metrics, utils
-from .conf import fallback
+from . import Direction, Subsystem, compute, config, utils
+from .conf import ConfigurationError, fallback
 from .models import cmp, fmt
-from .models.cuts import CompleteSystemPartition, KPartition, Part, SystemPartition
-from .partition import system_partition_types
+from .models.cuts import SystemPartition
+from .partition import bipartition, directed_bipartition
+from .registry import Registry
+from .metrics.distribution import repertoire_distance
 
 # TODO change SystemPartition
 from .relations import Relations
@@ -24,13 +26,65 @@ DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD = 256
 DEFAULT_PARTITION_CHUNKSIZE = 4 * DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD
 
 
+##############################################################################
+# System state and intrinsic information
+##############################################################################
+
+
+@dataclass
+class SystemState:
+    cause: tuple
+    effect: tuple
+    intrinsic_information: Dict[Direction, float]
+
+    def __getitem__(self, direction: Direction) -> tuple:
+        if direction == Direction.CAUSE:
+            return self.cause
+        elif direction == Direction.EFFECT:
+            return self.effect
+        raise KeyError("Invalid direction")
+
+
+def find_system_state(
+    subsystem: Subsystem,
+) -> SystemState:
+    # NOTE: Uses config.REPERTOIRE_DISTANCE_INFORMATION
+    cause_states, ii_cause = subsystem.find_maximal_state_under_complete_partition(
+        Direction.CAUSE,
+        mechanism=subsystem.node_indices,
+        purview=subsystem.node_indices,
+        return_information=True,
+    )
+    effect_states, ii_effect = subsystem.find_maximal_state_under_complete_partition(
+        Direction.EFFECT,
+        mechanism=subsystem.node_indices,
+        purview=subsystem.node_indices,
+        return_information=True,
+    )
+    return SystemState(
+        # NOTE: tie-breaking happens here
+        cause=cause_states[0],
+        effect=effect_states[0],
+        intrinsic_information={Direction.CAUSE: ii_cause, Direction.EFFECT: ii_effect},
+    )
+
+
+##############################################################################
+# System irreducible analysis
+##############################################################################
+
+
 @dataclass
 class SystemIrreducibilityAnalysis(cmp.Orderable):
     phi: float
     normalized_phi: float
-    partition: SystemPartition
-    repertoire: ArrayLike
-    partitioned_repertoire: ArrayLike
+    phi_cause: float
+    phi_effect: float
+    partition: Cut
+    repertoire_cause: ArrayLike
+    partitioned_repertoire_cause: ArrayLike
+    repertoire_effect: ArrayLike
+    partitioned_repertoire_effect: ArrayLike
     atomic_integration: Optional[Dict[Direction, float]] = None
     system_state: Optional[tuple[int]] = None
     node_indices: Optional[tuple[int]] = None
@@ -55,7 +109,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
 
     def __bool__(self):
         """Whether |big_phi > 0|."""
-        return utils.is_positive(self.phi)
+        return is_positive(self.phi)
 
     def __hash__(self):
         return hash(
