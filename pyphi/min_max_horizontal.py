@@ -156,7 +156,11 @@ def evaluate_partition(
     # sequential_threshold: int = DEFAULT_PURVIEW_SEQUENTIAL_THRESHOLD,
     **kwargs,
 ) -> SystemIrreducibilityAnalysis:
-    valid_distances = ["IIT_4.0_SMALL_PHI", "IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE"]
+    valid_distances = [
+        "IIT_4.0_SMALL_PHI",
+        "IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE",
+        "APMI",
+    ]
     if config.REPERTOIRE_DISTANCE not in valid_distances:
         raise ValueError(
             f"Must set config.REPERTOIRE_DISTANCE to one of {valid_distances}; "
