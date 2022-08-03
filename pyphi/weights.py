@@ -170,3 +170,20 @@ def compensatory_pareto(
         self_amount=w_self_potentiation,
         lateral_amount=w_lateral_potentiation,
     )
+
+
+def bridge(weights1, weights2, w_connection, bidirectional=True):
+    N, M = weights1.shape[0], weights2.shape[0]
+    W = np.zeros([N + M] * 2)
+    W[:N, :N] = weights1
+    W[N:, N:] = weights2
+    W[0, N] = w_connection
+    if bidirectional:
+        W[N, 0] = w_connection
+    return W
+
+
+def copy_loop(size):
+    W = np.eye(size, size, k=1)
+    W[-1, 0] = 1.0
+    return W
