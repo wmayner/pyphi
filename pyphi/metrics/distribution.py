@@ -461,6 +461,24 @@ def iit_4_small_phi_no_absolute_value(p, q, state):
     return information_density(p, q).squeeze()[state]
 
 
+@measures.register("APMI", asymmetric=True)
+@np_suppress()
+def absolute_pointwise_mutual_information(p, q, state):
+    """Computes the state-specific absolute pointwise mutual information between
+    two distributions.
+
+    This is the same as the MI, but with the absolute value.
+
+    Args:
+        p (np.ndarray[float]): The first probability distribution.
+        q (np.ndarray[float]): The second probability distribution.
+
+    Returns:
+        float: The maximum absolute pointwise mutual information.
+    """
+    return np.abs(np.nan_to_num(np.log2(p / q), nan=0.0)).squeeze()[state]
+
+
 @np_suppress()
 def pointwise_mutual_information_vector(p, q):
     return np.nan_to_num(np.log2(p / q), nan=0.0)
