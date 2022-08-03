@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# weights.py
+# network_generator/weights.py
 
 """Generate different weight matrices."""
 

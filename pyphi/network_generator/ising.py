@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # network_generator/ising.py
 
 import numpy as np

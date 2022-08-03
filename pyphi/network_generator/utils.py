@@ -1,4 +1,5 @@
-# utils.py
+# -*- coding: utf-8 -*-
+# network_generator/utils.py
 
 import numpy as np
 

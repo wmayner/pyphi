@@ -1,4 +1,5 @@
-# network_generator.py
+# -*- coding: utf-8 -*-
+# network_generator/__init__.py
 
 import string
 
