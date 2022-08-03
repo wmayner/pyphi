@@ -5,6 +5,7 @@ from itertools import combinations
 from math import cos, isclose, radians, sin
 from typing import Callable, Mapping, Optional, Union
 
+import networkx as nx
 import numpy as np
 import plotly.colors
 import scipy.special
@@ -733,3 +734,39 @@ def plot_phi_structure(
             )
 
     return fig
+
+
+###############################################################################
+# Connectivity
+###############################################################################
+
+
+NODE_COLORS = {
+    # (in subsystem, state)
+    (False, 0): "lightgrey",
+    (False, 1): "darkgrey",
+    (True, 0): "lightblue",
+    (True, 1): "darkblue",
+}
+
+
+def plot_subsystem(subsystem):
+    # TODO highlight nodes in subsystem
+    g = nx.from_numpy_matrix(subsystem.cm, create_using=nx.DiGraph)
+    nx.relabel_nodes(
+        g, dict(zip(range(subsystem.network.size), subsystem.node_labels)), copy=False
+    )
+    node_colors = [
+        NODE_COLORS[(i in subsystem.node_indices, subsystem.state[i])]
+        for i in range(subsystem.network.size)
+    ]
+    fig = nx.draw(
+        g,
+        with_labels=True,
+        arrowsize=20,
+        node_size=600,
+        font_color="white",
+        node_color=node_colors,
+    )
+    return g, fig
+
