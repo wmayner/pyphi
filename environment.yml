@@ -10,5 +10,5 @@ dependencies:
   - python=3.9
   - pip
   - pip:
-      - -e -r requirements.txt
+      - -r requirements.txt
       - blackcellmagic
