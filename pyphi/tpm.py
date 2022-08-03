@@ -10,6 +10,7 @@ from itertools import chain
 
 import numpy as np
 
+from .convert import to_multidimensional
 from .constants import OFF, ON
 from .utils import all_states
 
@@ -164,3 +165,10 @@ def reconstitute_tpm(subsystem):
     # We concatenate the node TPMs along a new axis to get a multidimensional
     # state-by-node TPM (where the last axis corresponds to nodes).
     return np.concatenate(node_tpms, axis=-1)
+
+
+def print_tpm(tpm):
+    """Print states next to their corresponding row in the TPM."""
+    tpm = to_multidimensional(tpm)
+    for state in all_states(tpm.shape[-1]):
+        print(f"{state}: {tpm[state]}")
