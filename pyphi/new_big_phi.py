@@ -49,9 +49,16 @@ class SystemState:
 
 
 def find_system_state(
-    subsystem: Subsystem,
+    subsystem: Subsystem, repertoire_distance: Optional[str] = None
 ) -> SystemState:
-    # NOTE: Uses config.REPERTOIRE_DISTANCE_INFORMATION
+    """Return the cause/effect states specified by the system.
+
+    NOTE: Uses ``config.REPERTOIRE_DISTANCE_INFORMATION``.
+    NOTE: State ties are arbitrarily broken (for now).
+    """
+    repertoire_distance = fallback(
+        repertoire_distance, config.REPERTOIRE_DISTANCE_INFORMATION
+    )
     cause_states, ii_cause = subsystem.find_maximal_state_under_complete_partition(
         Direction.CAUSE,
         mechanism=subsystem.node_indices,
@@ -80,14 +87,14 @@ def find_system_state(
 @dataclass
 class SystemIrreducibilityAnalysis(cmp.Orderable):
     phi: float
-    normalized_phi: float
-    phi_cause: float
-    phi_effect: float
     partition: Union[Cut, SystemPartition]
-    repertoire_cause: ArrayLike
-    partitioned_repertoire_cause: ArrayLike
-    repertoire_effect: ArrayLike
-    partitioned_repertoire_effect: ArrayLike
+    normalized_phi: Optional[float] = None
+    phi_cause: Optional[float] = None
+    phi_effect: Optional[float] = None
+    repertoire_cause: Optional[ArrayLike] = None
+    partitioned_repertoire_cause: Optional[ArrayLike] = None
+    repertoire_effect: Optional[ArrayLike] = None
+    partitioned_repertoire_effect: Optional[ArrayLike] = None
     atomic_integration: Optional[Dict[Direction, float]] = None
     system_state: Optional[tuple[int]] = None
     node_indices: Optional[tuple[int]] = None
@@ -122,34 +129,39 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
             )
         )
 
+    def _repr_columns(self):
+        return [
+            (
+                "Subsystem",
+                ",".join(self.node_labels.coerce_to_labels(self.node_indices)),
+            ),
+            ("Partition", str(self.partition)),
+            (f"           {fmt.BIG_PHI}", str(self.phi)),
+            (f"Normalized {fmt.BIG_PHI}", str(self.normalized_phi)),
+            (str(Direction.CAUSE), str(self.system_state[Direction.CAUSE])),
+            (f"           {fmt.BIG_PHI}_c", str(self.phi_cause)),
+            (
+                "II_c",
+                str(self.system_state.intrinsic_information[Direction.CAUSE]),
+            ),
+            # (
+            #     f"Atomic {fmt.BIG_PHI}_c",
+            #     self.atomic_integration[Direction.CAUSE],
+            # ),
+            (str(Direction.EFFECT), str(self.system_state[Direction.EFFECT])),
+            (f"           {fmt.BIG_PHI}_e", str(self.phi_effect)),
+            (
+                "II_e",
+                str(self.system_state.intrinsic_information[Direction.EFFECT]),
+            ),
+            # (
+            #     f"Atomic {fmt.BIG_PHI}_e",
+            #     self.atomic_integration[Direction.EFFECT],
+            # ),
+        ]
+
     def __repr__(self):
-        body = "\n".join(
-            fmt.align_columns(
-                [
-                    (
-                        "Subsystem",
-                        ",".join(self.node_labels.coerce_to_labels(self.node_indices)),
-                    ),
-                    ("Partition", str(self.partition)),
-                    (f"           {fmt.BIG_PHI}", self.phi),
-                    (f"Normalized {fmt.BIG_PHI}", self.normalized_phi),
-                    (str(Direction.CAUSE), str(self.system_state[Direction.CAUSE])),
-                    (f"           {fmt.BIG_PHI}_c", self.phi_cause),
-                    ("II_c", self.system_state.intrinsic_information[Direction.CAUSE]),
-                    # (
-                    #     f"Atomic {fmt.BIG_PHI}_c",
-                    #     self.atomic_integration[Direction.CAUSE],
-                    # ),
-                    (str(Direction.EFFECT), str(self.system_state[Direction.EFFECT])),
-                    (f"           {fmt.BIG_PHI}_e", self.phi_effect),
-                    ("II_e", self.system_state.intrinsic_information[Direction.EFFECT]),
-                    # (
-                    #     f"Atomic {fmt.BIG_PHI}_e",
-                    #     self.atomic_integration[Direction.EFFECT],
-                    # ),
-                ]
-            )
-        )
+        body = "\n".join(fmt.align_columns(self._repr_columns))
         body = fmt.header(
             "System irreducibility analysis", body, under_char=fmt.HEADER_BAR_2
         )
@@ -160,10 +172,10 @@ class NullSystemIrreducibilityAnalysis(SystemIrreducibilityAnalysis):
     def __init__(self):
         super().__init__(
             phi=0,
+            partition=None,
             normalized_phi=0,
             phi_cause=0,
             phi_effect=0,
-            partition=None,
             repertoire_cause=None,
             partitioned_repertoire_cause=None,
             repertoire_effect=None,
@@ -271,7 +283,7 @@ class HorizontalSystemPartition(SystemPartition):
             if not self.partitioned_mechanism
             else "".join(self.node_labels.coerce_to_labels(self.partitioned_mechanism))
         )
-        return f"π({purview}|{unpartitioned_mechanism}) || π({purview}|{partitioned_mechanism})"
+        return f"π({purview}|{unpartitioned_mechanism}) || π({purview}|{partitioned_mechanism}) [{self.direction}]"
 
 
 # TODO
@@ -377,11 +389,10 @@ def sia_partitions_horizontal(
                 partitioned_mechanism=(),
             )
         return
-    if _PART_ONE in code and _PART_TWO in code:
-        # Directed bipartitions
-        for (part1, part2), direction in product(
-            directed_bipartition(node_indices, nontrivial=True), directions
-        ):
+    for (part1, part2), direction in product(
+        directed_bipartition(node_indices, nontrivial=True), directions
+    ):
+        if _PART_ONE in code and _PART_TWO in code:
             purview = code_number_to_part(code[0], node_indices, part1, part2=part2)
             unpartitioned_mechanism = code_number_to_part(
                 code[1], node_indices, part1, part2=part2
@@ -396,11 +407,7 @@ def sia_partitions_horizontal(
                 partitioned_mechanism=partitioned_mechanism,
                 node_labels=node_labels,
             )
-    else:
-        # Undirected bipartitions
-        for (part1, part2), direction in product(
-            bipartition(node_indices, nontrivial=True), directions
-        ):
+        else:
             purview = code_number_to_part(code[0], node_indices, part1)
             unpartitioned_mechanism = code_number_to_part(code[1], node_indices, part1)
             partitioned_mechanism = code_number_to_part(code[2], node_indices, part1)
