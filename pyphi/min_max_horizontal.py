@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, Union
+from typing import Iterable, Optional, Union
 
 from numpy.typing import ArrayLike
 
@@ -150,10 +150,6 @@ def evaluate_partition(
     subsystem: Subsystem,
     system_state: SystemState,
     repertoire_distance: str = None,
-    # parallel: Optional[bool] = None,
-    # progress: Optional[bool] = None,
-    # chunksize: int = DEFAULT_PURVIEW_CHUNKSIZE,
-    # sequential_threshold: int = DEFAULT_PURVIEW_SEQUENTIAL_THRESHOLD,
     **kwargs,
 ) -> SystemIrreducibilityAnalysis:
     valid_distances = [
@@ -166,22 +162,13 @@ def evaluate_partition(
             f"Must set config.REPERTOIRE_DISTANCE to one of {valid_distances}; "
             f"got {config.REPERTOIRE_DISTANCE}"
         )
-    purviews = utils.powerset(partition.purview, nonempty=True)
     # TODO parallel args?
-    # Find maximal purview
-    return compute.parallel.map_reduce(
-        evaluate_purview,
-        max,
-        purviews,
+    return evaluate_purview(
+        partition.purview,
         partition=partition,
         subsystem=subsystem,
         system_state=system_state,
         repertoire_distance=repertoire_distance,
-        # chunksize=chunksize,
-        # sequential_threshold=sequential_threshold,
-        parallel=False,
-        progress=False,
-        desc="Evaluating purviews",
         **kwargs,
     )
 
@@ -189,12 +176,13 @@ def evaluate_partition(
 def find_mip(
     subsystem: Subsystem,
     parallel: Optional[bool] = None,
-    progress: Optional[bool] = None,
     chunksize: int = DEFAULT_PARTITION_CHUNKSIZE,
     sequential_threshold: int = DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
+    progress: Optional[bool] = None,
     repertoire_distance: str = None,
-    directions=None,
-    code=HORIZONTAL_PARTITION_CODE,
+    directions: Optional[Iterable[Direction]] = None,
+    code: str = HORIZONTAL_PARTITION_CODE,
+    **kwargs,
 ) -> SystemIrreducibilityAnalysis:
     """Find the minimum information partition of a system."""
     parallel = fallback(parallel, config.PARALLEL_CUT_EVALUATION)
@@ -202,13 +190,15 @@ def find_mip(
     # TODO: trivial reducibility
 
     system_state = find_system_state(subsystem)
+
+    # Find MIP
     partitions = sia_partitions_horizontal(
         subsystem.node_indices,
         node_labels=subsystem.node_labels,
         code=code,
         directions=directions,
     )
-    return compute.parallel.map_reduce(
+    mip = compute.parallel.map_reduce(
         evaluate_partition,
         min,
         partitions,
@@ -216,10 +206,28 @@ def find_mip(
         system_state=system_state,
         repertoire_distance=repertoire_distance,
         # atomic_integration=atomic_integration,
+        parallel=parallel,
         chunksize=chunksize,
         sequential_threshold=sequential_threshold,
         shortcircuit_value=0.0,
-        parallel=parallel,
         progress=progress,
         desc="Evaluating partitions",
+    ).partition
+
+    # Find maximal purview for the minimum information partition
+    purviews = utils.powerset(mip.purview, nonempty=True)
+    return compute.parallel.map_reduce(
+        evaluate_purview,
+        max,
+        purviews,
+        partition=mip,
+        subsystem=subsystem,
+        system_state=system_state,
+        repertoire_distance=repertoire_distance,
+        parallel=parallel,
+        chunksize=chunksize,
+        sequential_threshold=sequential_threshold,
+        progress=progress,
+        desc="Evaluating purviews",
+        **kwargs,
     )
