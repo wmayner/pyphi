@@ -399,7 +399,7 @@ def sia_partitions_horizontal(
     else:
         # Undirected bipartitions
         for (part1, part2), direction in product(
-            bipartition(node_indices, nontrivial=True), direction
+            bipartition(node_indices, nontrivial=True), directions
         ):
             purview = code_number_to_part(code[0], node_indices, part1)
             unpartitioned_mechanism = code_number_to_part(code[1], node_indices, part1)
