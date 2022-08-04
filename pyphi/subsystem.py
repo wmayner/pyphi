@@ -731,14 +731,6 @@ class Subsystem:
         repertoire_distance = fallback(
             repertoire_distance, config.REPERTOIRE_DISTANCE_INFORMATION
         )
-        required_repertoire_distances = [
-            "IIT_4.0_SMALL_PHI",
-            "IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE",
-        ]
-        if repertoire_distance not in required_repertoire_distances:
-            raise ValueError(
-                f'REPERTOIRE_DISTANCE_INFORMATION must be set to "{required_repertoire_distances}"'
-            )
 
         repertoire = self.repertoire(direction, mechanism, purview)
         partition = complete_partition(mechanism, purview)
