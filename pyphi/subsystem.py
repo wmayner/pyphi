@@ -10,7 +10,7 @@ import logging
 import numpy as np
 
 from . import cache, distribution, utils, validate, resolve_ties
-from .conf import config
+from .conf import config, fallback
 from .direction import Direction
 from .distribution import max_entropy_distribution, repertoire_shape
 from .metrics.distribution import repertoire_distance as _repertoire_distance
@@ -721,13 +721,21 @@ class Subsystem:
         return max_mip
 
     def find_maximal_state_under_complete_partition(
-        self, direction, mechanism, purview, return_information=False
+        self,
+        direction,
+        mechanism,
+        purview,
+        return_information=False,
+        repertoire_distance=None,
     ):
+        repertoire_distance = fallback(
+            repertoire_distance, config.REPERTOIRE_DISTANCE_INFORMATION
+        )
         required_repertoire_distances = [
             "IIT_4.0_SMALL_PHI",
             "IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE",
         ]
-        if config.REPERTOIRE_DISTANCE_INFORMATION not in required_repertoire_distances:
+        if repertoire_distance not in required_repertoire_distances:
             raise ValueError(
                 f'REPERTOIRE_DISTANCE_INFORMATION must be set to "{required_repertoire_distances}"'
             )
@@ -742,7 +750,7 @@ class Subsystem:
                 purview,
                 partition,
                 repertoire=repertoire,
-                repertoire_distance=config.REPERTOIRE_DISTANCE_INFORMATION,
+                repertoire_distance=repertoire_distance,
                 state=state,
             )
             return information
