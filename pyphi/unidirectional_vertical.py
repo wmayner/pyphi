@@ -54,6 +54,8 @@ def evaluate_partition(
     repertoire_distance: str = None,
     directions: Optional[Iterable[Direction]] = None,
 ) -> SystemIrreducibilityAnalysis:
+    directions = fallback(directions, Direction.both())
+
     cut_subsystem = subsystem.apply_cut(partition)
 
     integration = {
@@ -66,13 +68,13 @@ def evaluate_partition(
         )
         for direction in Direction.both()
     }
+    phi_c, repertoire_c, partitioned_repertoire_c = integration[Direction.CAUSE]
+    phi_e, repertoire_e, partitioned_repertoire_e = integration[Direction.EFFECT]
 
-    phi = min(integration[direction] for direction in directions)
+    phi = min(integration[direction][0] for direction in directions)
     norm = normalization_factor(partition)
     normalized_phi = phi * norm
 
-    phi_c, repertoire_c, partitioned_repertoire_c = integration[Direction.CAUSE]
-    phi_e, repertoire_e, partitioned_repertoire_e = integration[Direction.EFFECT]
     return SystemIrreducibilityAnalysis(
         phi=phi,
         normalized_phi=normalized_phi,
