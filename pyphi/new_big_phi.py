@@ -366,7 +366,7 @@ _horizontal_normalizations = {
 
 def normalization_factor_horizontal(partition, directions=None):
     directions = fallback(directions, Direction.both())
-    return min(
+    return 1 / min(
         _horizontal_normalizations[direction](partition) for direction in directions
     )
 
