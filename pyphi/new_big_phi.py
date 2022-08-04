@@ -1,31 +1,30 @@
 # new_big_phi.py
 
-from typing import Union
-
 from collections import defaultdict
 from dataclasses import dataclass
 from itertools import product
-from typing import Dict, Generator, Iterable, Optional
+from typing import Dict, Generator, Iterable, Optional, Union
 
 from numpy.typing import ArrayLike
+from toolz import concat
 
 from pyphi.labels import NodeLabels
 from pyphi.models.subsystem import CauseEffectStructure
 
 from . import Direction, Subsystem, compute, config, utils
 from .conf import ConfigurationError, fallback
-from .models import cmp, fmt
-from .models.cuts import SystemPartition, Cut
-from .partition import bipartition, directed_bipartition
-from .registry import Registry
 from .metrics.distribution import repertoire_distance
-from .utils import is_positive
+from .models import cmp, fmt
+from .models.cuts import Cut, SystemPartition
+from .partition import directed_bipartition
+from .registry import Registry
 
 # TODO change SystemPartition
 from .relations import Relations
 from .relations import relations as compute_relations
+from .utils import is_positive
 
-DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD = 2 ** 8
+DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD = 2 ** 4
 DEFAULT_PARTITION_CHUNKSIZE = 2 ** 2 * DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD
 
 
@@ -47,6 +46,30 @@ class SystemState:
             return self.effect
         raise KeyError("Invalid direction")
 
+    def _repr_columns(self, prefix=""):
+        return list(
+            concat(
+                [
+                    [
+                        (
+                            f"{prefix}{direction}",
+                            str(self[direction]),
+                        ),
+                        (
+                            f"{prefix}II_{str(direction)[:1].lower()}",
+                            self.intrinsic_information[direction],
+                        ),
+                    ]
+                    for direction in Direction.both()
+                ]
+            )
+        )
+
+    def __repr__(self):
+        body = "\n".join(fmt.align_columns(self._repr_columns()))
+        body = fmt.header("System state", body, under_char=fmt.HEADER_BAR_3)
+        return fmt.box(fmt.center(body))
+
 
 def find_system_state(
     subsystem: Subsystem, repertoire_distance: Optional[str] = None
@@ -63,12 +86,14 @@ def find_system_state(
         Direction.CAUSE,
         mechanism=subsystem.node_indices,
         purview=subsystem.node_indices,
+        repertoire_distance=repertoire_distance,
         return_information=True,
     )
     effect_states, ii_effect = subsystem.find_maximal_state_under_complete_partition(
         Direction.EFFECT,
         mechanism=subsystem.node_indices,
         purview=subsystem.node_indices,
+        repertoire_distance=repertoire_distance,
         return_information=True,
     )
     return SystemState(
@@ -88,9 +113,9 @@ def find_system_state(
 class SystemIrreducibilityAnalysis(cmp.Orderable):
     phi: float
     partition: Union[Cut, SystemPartition]
-    normalized_phi: Optional[float] = None
-    phi_cause: Optional[float] = None
-    phi_effect: Optional[float] = None
+    normalized_phi: float = 0
+    phi_cause: float = 0
+    phi_effect: float = 0
     repertoire_cause: Optional[ArrayLike] = None
     partitioned_repertoire_cause: Optional[ArrayLike] = None
     repertoire_effect: Optional[ArrayLike] = None
@@ -136,32 +161,12 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
                 ",".join(self.node_labels.coerce_to_labels(self.node_indices)),
             ),
             ("Partition", str(self.partition)),
-            (f"           {fmt.BIG_PHI}", str(self.phi)),
-            (f"Normalized {fmt.BIG_PHI}", str(self.normalized_phi)),
-            (str(Direction.CAUSE), str(self.system_state[Direction.CAUSE])),
-            (f"           {fmt.BIG_PHI}_c", str(self.phi_cause)),
-            (
-                "II_c",
-                str(self.system_state.intrinsic_information[Direction.CAUSE]),
-            ),
-            # (
-            #     f"Atomic {fmt.BIG_PHI}_c",
-            #     self.atomic_integration[Direction.CAUSE],
-            # ),
-            (str(Direction.EFFECT), str(self.system_state[Direction.EFFECT])),
-            (f"           {fmt.BIG_PHI}_e", str(self.phi_effect)),
-            (
-                "II_e",
-                str(self.system_state.intrinsic_information[Direction.EFFECT]),
-            ),
-            # (
-            #     f"Atomic {fmt.BIG_PHI}_e",
-            #     self.atomic_integration[Direction.EFFECT],
-            # ),
-        ]
+            (f"           {fmt.BIG_PHI}", self.phi),
+            (f"Normalized {fmt.BIG_PHI}", self.normalized_phi),
+        ] + self.system_state._repr_columns()
 
     def __repr__(self):
-        body = "\n".join(fmt.align_columns(self._repr_columns))
+        body = "\n".join(fmt.align_columns(self._repr_columns()))
         body = fmt.header(
             "System irreducibility analysis", body, under_char=fmt.HEADER_BAR_2
         )

@@ -16,10 +16,8 @@ from .new_big_phi import (
     SystemState,
     find_system_state,
     sia_partitions_horizontal,
+    normalization_factor_horizontal,
 )
-
-DEFAULT_PURVIEW_CHUNKSIZE = 2 ** 8
-DEFAULT_PURVIEW_SEQUENTIAL_THRESHOLD = 2 ** 2 * DEFAULT_PURVIEW_CHUNKSIZE
 
 HORIZONTAL_PARTITION_CODE = "1210"
 
@@ -32,7 +30,6 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
     maximal_purview: tuple[int]
     repertoire: ArrayLike
     partitioned_repertoire: ArrayLike
-    # atomic_integration: Optional[Dict[Direction, float]] = None
     system_state: Optional[tuple[int]] = None
     node_indices: Optional[tuple[int]] = None
     node_labels: Optional[NodeLabels] = None
@@ -104,10 +101,6 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         return fmt.box(fmt.center(body))
 
 
-def normalization_factor(partition):
-    return 1.0
-
-
 def evaluate_purview(purview, partition, subsystem, system_state, **kwargs):
     purview_state = utils.state_of(
         # Get purview indices relative to subsystem indices
@@ -131,7 +124,7 @@ def evaluate_purview(purview, partition, subsystem, system_state, **kwargs):
         state=purview_state,
         **kwargs,
     )
-    normalized_phi = phi * normalization_factor(partition)
+    normalized_phi = phi * normalization_factor_horizontal(partition)
     return SystemIrreducibilityAnalysis(
         phi=phi,
         normalized_phi=normalized_phi,
