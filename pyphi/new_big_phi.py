@@ -347,14 +347,12 @@ class CompletePartition(HorizontalSystemPartition):
 
 
 def _cause_normalization_horizontal(partition):
-    print("cause-partition", partition)
     if not partition.partitioned_mechanism:
         return len(partition.purview)
     return float("inf")
 
 
 def _effect_normalization_horizontal(partition):
-    print("effect-partition", partition)
     return len(partition.purview) * (
         len(partition.unpartitioned_mechanism) - len(partition.partitioned_mechanism)
     )
