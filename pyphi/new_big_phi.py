@@ -345,6 +345,34 @@ class CompletePartition(HorizontalSystemPartition):
 #             + f" ({self.direction})"
 #         )
 
+
+def _cause_normalization_horizontal(partition):
+    print("cause-partition", partition)
+    if not partition.partitioned_mechanism:
+        return len(partition.purview)
+    return float("inf")
+
+
+def _effect_normalization_horizontal(partition):
+    print("effect-partition", partition)
+    return len(partition.purview) * (
+        len(partition.unpartitioned_mechanism) - len(partition.partitioned_mechanism)
+    )
+
+
+_horizontal_normalizations = {
+    Direction.CAUSE: _cause_normalization_horizontal,
+    Direction.EFFECT: _effect_normalization_horizontal,
+}
+
+
+def normalization_factor_horizontal(partition, directions=None):
+    directions = fallback(directions, Direction.both())
+    return min(
+        _horizontal_normalizations[direction](partition) for direction in directions
+    )
+
+
 # TODO use enum?
 _EMPTY_SET = "0"
 _PART_ONE = "1"
