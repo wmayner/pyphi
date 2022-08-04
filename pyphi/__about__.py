@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # __about__.py
 
@@ -10,7 +9,7 @@ __description__ = "Python library for computing integrated information."
 __author__ = "William GP Mayner"
 __author_email__ = "wmayner@gmail.com"
 __author_website__ = "http://willmayner.com"
-__copyright__ = "Copyright 2014-2019 William GP Mayner"
+__copyright__ = "Copyright 2014-2022 William GP Mayner"
 __license__ = "GNU General Public License v3.0"
 __url__ = "http://github.com/wmayner/pyphi"
 
