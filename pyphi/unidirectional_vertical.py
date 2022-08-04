@@ -1,6 +1,6 @@
 # unidirectional_vertical.py
 
-from typing import Optional
+from typing import Optional, Iterable
 
 from . import compute
 from .conf import config, fallback
@@ -11,12 +11,15 @@ from .new_big_phi import (
     SystemIrreducibilityAnalysis,
     SystemState,
     find_system_state,
+    DEFAULT_PARTITION_CHUNKSIZE,
+    DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
 )
 from .partition import system_directed_bipartitions
 from .subsystem import Subsystem
 
-DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD = 256
-DEFAULT_PARTITION_CHUNKSIZE = 4 * DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD
+
+def normalization_factor(partition: Cut) -> float:
+    return 1 / (len(partition.from_nodes) * len(partition.to_nodes))
 
 
 def integration_value(
@@ -44,17 +47,15 @@ def integration_value(
     )
 
 
-def normalization_factor(partition: Cut) -> float:
-    return 1 / (len(partition.from_nodes) * len(partition.to_nodes))
-
-
 def evaluate_partition(
     partition: Cut,
     subsystem: Subsystem,
     system_state: SystemState,
     repertoire_distance: str = None,
+    directions: Optional[Iterable[Direction]] = None,
 ) -> SystemIrreducibilityAnalysis:
     cut_subsystem = subsystem.apply_cut(partition)
+
     integration = {
         direction: integration_value(
             direction,
@@ -65,11 +66,13 @@ def evaluate_partition(
         )
         for direction in Direction.both()
     }
+
+    phi = min(integration[direction] for direction in directions)
+    norm = normalization_factor(partition)
+    normalized_phi = phi * norm
+
     phi_c, repertoire_c, partitioned_repertoire_c = integration[Direction.CAUSE]
     phi_e, repertoire_e, partitioned_repertoire_e = integration[Direction.EFFECT]
-    norm = normalization_factor(partition)
-    phi = min(phi_c, phi_e)
-    normalized_phi = phi * norm
     return SystemIrreducibilityAnalysis(
         phi=phi,
         normalized_phi=normalized_phi,
@@ -93,7 +96,7 @@ def find_mip(
     chunksize: int = DEFAULT_PARTITION_CHUNKSIZE,
     sequential_threshold: int = DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
     repertoire_distance: str = None,
-    # include_complete: bool = False,
+    directions: Optional[Iterable[Direction]] = None,
 ) -> SystemIrreducibilityAnalysis:
     """Find the minimum information partition of a system."""
     parallel = fallback(parallel, config.PARALLEL_CUT_EVALUATION)
@@ -101,15 +104,7 @@ def find_mip(
     # TODO: trivial reducibility
 
     system_state = find_system_state(subsystem)
-
-    # Compute atomic integration with the atomic partition
-    # atomic_integration = {
-    #     direction: atomic_integration_value(direction, subsystem, system_state)
-    #     for direction in Direction.both()
-    # }
-
     partitions = system_directed_bipartitions(subsystem.node_indices)
-
     return compute.parallel.map_reduce(
         evaluate_partition,
         min,
@@ -117,7 +112,7 @@ def find_mip(
         subsystem=subsystem,
         system_state=system_state,
         repertoire_distance=repertoire_distance,
-        # atomic_integration=atomic_integration,
+        directions=directions,
         chunksize=chunksize,
         sequential_threshold=sequential_threshold,
         shortcircuit_value=0.0,
