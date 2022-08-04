@@ -420,6 +420,13 @@ class PyphiConfig(Config):
     The version of the theory to use.""",
     )
 
+    HORIZONTAL_PARTITION_CODE = Option(
+        "1210",
+        type=str,
+        doc="""
+    The type of horizontal system partition scheme to use.""",
+    )
+
     ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS = Option(
         False,
         type=bool,
