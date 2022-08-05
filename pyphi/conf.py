@@ -1150,8 +1150,8 @@ _LOADED = True
 config.log()
 
 
-def fallback(a, b):
-    """Return the second value if the first is ``None``."""
-    if a is None:
-        return b
-    return a
+def fallback(*args):
+    """Return the first argument that is not ``None``."""
+    for arg in args:
+        if arg is not None:
+            return arg
