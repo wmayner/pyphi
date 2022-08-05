@@ -72,7 +72,9 @@ class SystemState:
 
 
 def find_system_state(
-    subsystem: Subsystem, repertoire_distance: Optional[str] = None
+    subsystem: Subsystem,
+    repertoire_distance: Optional[str] = None,
+    system_state: Optional[SystemState] = None,
 ) -> SystemState:
     """Return the cause/effect states specified by the system.
 
@@ -82,12 +84,21 @@ def find_system_state(
     repertoire_distance = fallback(
         repertoire_distance, config.REPERTOIRE_DISTANCE_INFORMATION
     )
+
+    if system_state is None:
+        cause_states = None
+        effect_states = None
+    else:
+        cause_states = [system_state[Direction.CAUSE]]
+        effect_states = [system_state[Direction.EFFECT]]
+
     cause_states, ii_cause = subsystem.find_maximal_state_under_complete_partition(
         Direction.CAUSE,
         mechanism=subsystem.node_indices,
         purview=subsystem.node_indices,
         repertoire_distance=repertoire_distance,
         return_information=True,
+        states=cause_states,
     )
     effect_states, ii_effect = subsystem.find_maximal_state_under_complete_partition(
         Direction.EFFECT,
@@ -95,6 +106,7 @@ def find_system_state(
         purview=subsystem.node_indices,
         repertoire_distance=repertoire_distance,
         return_information=True,
+        states=effect_states,
     )
     return SystemState(
         # NOTE: tie-breaking happens here
