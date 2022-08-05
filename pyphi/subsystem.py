@@ -6,6 +6,7 @@
 
 import functools
 import logging
+from re import I
 
 import numpy as np
 
@@ -720,6 +721,7 @@ class Subsystem:
 
         return max_mip
 
+    # TODO rename to intrinsic information?
     def find_maximal_state_under_complete_partition(
         self,
         direction,
@@ -727,10 +729,13 @@ class Subsystem:
         purview,
         return_information=False,
         repertoire_distance=None,
+        states=None,
     ):
         repertoire_distance = fallback(
             repertoire_distance, config.REPERTOIRE_DISTANCE_INFORMATION
         )
+        if states is None:
+            states = utils.all_states(len(purview))
 
         repertoire = self.repertoire(direction, mechanism, purview)
         partition = complete_partition(mechanism, purview)
@@ -747,9 +752,7 @@ class Subsystem:
             )
             return information
 
-        state_to_information = {
-            state: evaluate_state(state) for state in utils.all_states(len(purview))
-        }
+        state_to_information = {state: evaluate_state(state) for state in states}
         max_information = max(state_to_information.values())
         # Return all tied states
         tied_states = [
