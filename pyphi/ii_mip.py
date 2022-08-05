@@ -1,17 +1,13 @@
 # ii_mip.py
 
-from typing import Optional, Iterable
+from typing import Iterable, Optional
 
 from . import compute
 from .conf import config, fallback
 from .direction import Direction
 from .models.cuts import Cut
-from .new_big_phi import (
-    SystemIrreducibilityAnalysis,
-    SystemState,
-    find_system_state,
-)
-from .partition import system_directed_bipartitions
+from .new_big_phi import SystemIrreducibilityAnalysis, SystemState, find_system_state
+from .partition import system_partitions
 from .subsystem import Subsystem
 
 DEFAULT_SEQUENTIAL_THRESHOLD = 2 ** 4
@@ -84,6 +80,7 @@ def find_mip(
     sequential_threshold: int = DEFAULT_SEQUENTIAL_THRESHOLD,
     repertoire_distance: str = None,
     directions: Optional[Iterable[Direction]] = None,
+    partitions=None,
     **kwargs,
 ) -> SystemIrreducibilityAnalysis:
     """Find the minimum information partition of a system."""
@@ -91,8 +88,13 @@ def find_mip(
     progress = fallback(progress, config.PROGRESS_BARS)
     # TODO: trivial reducibility
 
+    partitions = system_partitions(
+        subsystem.node_indices,
+        node_labels=subsystem.node_labels,
+        partition_scheme=partitions,
+    )
+
     system_state = find_system_state(subsystem, repertoire_distance=repertoire_distance)
-    partitions = system_directed_bipartitions(subsystem.node_indices)
 
     return compute.parallel.map_reduce(
         evaluate_partition,
