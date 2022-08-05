@@ -32,7 +32,6 @@ class SystemIrreducibilityAnalysisII(SystemIrreducibilityAnalysis):
 
 
 def normalization_factor(partition: Cut) -> float:
-    # TODO!!!
     return 1 / (len(partition.from_nodes) * len(partition.to_nodes))
 
 
@@ -48,7 +47,9 @@ def evaluate_partition(
 
     cut_subsystem = subsystem.apply_cut(partition)
     partitioned_system_state = find_system_state(
-        cut_subsystem, repertoire_distance=repertoire_distance
+        cut_subsystem,
+        repertoire_distance=repertoire_distance,
+        system_state=system_state,
     )
 
     integration = {
@@ -83,6 +84,7 @@ def find_mip(
     sequential_threshold: int = DEFAULT_SEQUENTIAL_THRESHOLD,
     repertoire_distance: str = None,
     directions: Optional[Iterable[Direction]] = None,
+    **kwargs,
 ) -> SystemIrreducibilityAnalysis:
     """Find the minimum information partition of a system."""
     parallel = fallback(parallel, config.PARALLEL_CUT_EVALUATION)
@@ -106,4 +108,5 @@ def find_mip(
         parallel=parallel,
         progress=progress,
         desc="Evaluating partitions",
+        **kwargs,
     )
