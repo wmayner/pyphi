@@ -6,13 +6,14 @@
 Functions for generating partitions.
 """
 
-from itertools import chain, permutations, product
 import functools
+from itertools import chain, permutations, product
 
 import numpy as np
 
 from . import config
 from .cache import cache
+from .conf import fallback
 from .direction import Direction
 from .models.cuts import (
     Bipartition,
@@ -777,3 +778,9 @@ def system_temporal_directed_bipartitions(nodes):
 @_bipartitions_to_temporal_system_partitions
 def system_temporal_directed_bipartitions_cut_one(nodes):
     return directed_bipartition_of_one(nodes)
+
+
+def system_partitions(nodes, node_labels=None, partition_scheme=None):
+    """Return the currently configured system partitions for the given nodes."""
+    partition_scheme = fallback(partition_scheme, config.SYSTEM_PARTITION_TYPE)
+    return system_partition_types[partition_scheme](nodes, node_labels=node_labels)
