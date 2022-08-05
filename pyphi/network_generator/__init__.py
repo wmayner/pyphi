@@ -19,7 +19,7 @@ def logical_or_function(element, weights, state):
 
 def logical_and_function(element, weights, state):
     # Convention: i,j means i -> j
-    num_inputs = (weights[:, element] > 1).sum()
+    num_inputs = (weights[:, element] > 0).sum()
     return utils.input_weight(element, weights, state) >= num_inputs
 
 
