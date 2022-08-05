@@ -733,6 +733,22 @@ def system_directed_bipartitions_cut_one(nodes):
     return directed_bipartition_of_one(nodes)
 
 
+@system_partition_types.register("DIRECTED_BI_SIMPLE")
+def system_bipartitions_simple(nodes, node_labels=None):
+    # Use a list instead of generator for progress bar totals since it's linear
+    # in the size of the system
+    partitions = []
+    for n in range(1, len(nodes)):
+        part1, part2 = nodes[:n], nodes[n:]
+        partitions.append(
+            Cut(from_nodes=part1, to_nodes=part2, node_labels=node_labels)
+        )
+        partitions.append(
+            Cut(from_nodes=part2, to_nodes=part1, node_labels=node_labels)
+        )
+    return partitions
+
+
 def _bipartitions_to_temporal_system_partitions(func):
     """Decorator to return temporally-directed SystemPartition objects from a set of bipartitions."""
 
