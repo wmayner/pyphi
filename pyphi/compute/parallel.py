@@ -505,7 +505,7 @@ def flatten(*args, **kwargs):
 def map(
     func,
     *arglists,
-    chunksize=1,
+    chunksize=None,
     sequential_threshold=1,
     max_size=None,
     max_depth=None,
