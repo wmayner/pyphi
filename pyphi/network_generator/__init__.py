@@ -10,28 +10,17 @@ from numpy.typing import ArrayLike
 from ..labels import NodeLabels
 from ..network import Network
 from ..utils import all_states
-from . import ising, utils, weights
-
-
-def logical_or_function(element, weights, state):
-    return utils.input_weight(element, weights, state) >= 1
-
-
-def logical_and_function(element, weights, state):
-    # Convention: i,j means i -> j
-    num_inputs = (weights[:, element] > 0).sum()
-    return utils.input_weight(element, weights, state) >= num_inputs
-
-
-def logical_parity_function(element, weights, state):
-    return utils.input_weight(element, weights, state) % 2 >= 1
+from . import ising, weights, unit_functions
 
 
 UNIT_FUNCTIONS = {
     "ising": ising.probability,
-    "or": logical_or_function,
-    "and": logical_and_function,
-    "parity": logical_parity_function,
+    "or": unit_functions.logical_or_function,
+    "and": unit_functions.logical_and_function,
+    "parity": unit_functions.logical_parity_function,
+    "nor": unit_functions.logical_nor_function,
+    "nand": unit_functions.logical_nand_function,
+    "nparity": unit_functions.logical_nparity_function,
 }
 
 
