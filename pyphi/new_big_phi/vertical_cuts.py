@@ -1,13 +1,21 @@
-import pyphi
+# new_big_phi/vertical_cuts.py
+
 from dataclasses import dataclass
-from pyphi import Direction
-from pyphi.conf import fallback
-from pyphi.models import cmp, fmt
-from pyphi.models.cuts import KPartition
+
+from .. import Direction, compute, config, utils
+from ..conf import fallback
+from ..models import cmp, fmt
+from ..partition import (
+    CompletePartition,
+    KPartition,
+    Part,
+    complete_partition,
+    partitions,
+)
 
 
 def normalization_factor(subsystem, partition):
-    if isinstance(partition, pyphi.partition.CompletePartition):
+    if isinstance(partition, CompletePartition):
         return len(subsystem) ** 2
     return sum(
         [
@@ -20,13 +28,13 @@ def normalization_factor(subsystem, partition):
 
 def system_set_partitions(collection, node_labels=None):
     collection = tuple(collection)
-    set_partitions = pyphi.partition.partitions(collection)
+    set_partitions = partitions(collection)
     for partition in set_partitions:
         if len(partition) == 1:
-            yield pyphi.partition.complete_partition(collection, collection)
+            yield complete_partition(collection, collection)
         else:
-            yield pyphi.partition.KPartition(
-                *[pyphi.partition.Part(tuple(part), tuple(part)) for part in partition],
+            yield KPartition(
+                *[Part(tuple(part), tuple(part)) for part in partition],
                 node_labels=node_labels,
             )
 
@@ -89,7 +97,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
 
     def __bool__(self):
         """A |SystemIrreducibilityAnalysis| is ``True`` if it has |big_phi > 0|."""
-        return pyphi.utils.is_positive(self.phi)
+        return utils.is_positive(self.phi)
 
     def __hash__(self):
         return hash(
@@ -155,7 +163,7 @@ def find_mip(subsystem, effect_only=False, parallel=None, progress=True):
         mechanism=subsystem.node_indices,
         purview=subsystem.node_indices,
     )[0]
-    return pyphi.compute.parallel.map_reduce(
+    return compute.parallel.map_reduce(
         evaluate_system_partition,
         min,
         system_set_partitions(
@@ -170,6 +178,6 @@ def find_mip(subsystem, effect_only=False, parallel=None, progress=True):
         sequential_threshold=2 ** 14,
         parallel=parallel,
         shortcircuit_value=null_sia(),
-        progress=fallback(progress, pyphi.config.PROGRESS_BARS),
+        progress=fallback(progress, config.PROGRESS_BARS),
         desc="Partitions",
     )

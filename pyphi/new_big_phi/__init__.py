@@ -1,4 +1,4 @@
-# new_big_phi.py
+# new_big_phi/__init__.py
 
 from collections import defaultdict
 from dataclasses import dataclass
@@ -8,21 +8,18 @@ from typing import Dict, Generator, Iterable, Optional, Union
 from numpy.typing import ArrayLike
 from toolz import concat
 
-from pyphi.labels import NodeLabels
-from pyphi.models.subsystem import CauseEffectStructure
-
-from . import Direction, Subsystem, compute, config, utils
-from .conf import ConfigurationError, fallback
-from .metrics.distribution import repertoire_distance
-from .models import cmp, fmt
-from .models.cuts import Cut, SystemPartition
-from .partition import directed_bipartition
-from .registry import Registry
-
-# TODO change SystemPartition
-from .relations import Relations
-from .relations import relations as compute_relations
-from .utils import is_positive
+from .. import Direction, Subsystem, compute, config, utils
+from ..conf import ConfigurationError, fallback
+from ..labels import NodeLabels
+from ..metrics.distribution import repertoire_distance
+from ..models import cmp, fmt
+from ..models.cuts import Cut, SystemPartition
+from ..models.subsystem import CauseEffectStructure
+from ..partition import directed_bipartition
+from ..registry import Registry
+from ..relations import Relations
+from ..relations import relations as compute_relations
+from ..utils import is_positive
 
 DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD = 2 ** 4
 DEFAULT_PARTITION_CHUNKSIZE = 2 ** 2 * DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD

@@ -1,15 +1,17 @@
+# new_big_phi/min_max_horizontal.py
+
 from dataclasses import dataclass
 from typing import Iterable, Optional, Union
 
 from numpy.typing import ArrayLike
 
-from . import Direction, Subsystem, compute, config, utils
-from .conf import fallback
-from .labels import NodeLabels
-from .metrics.distribution import repertoire_distance as _repertoire_distance
-from .models import cmp, fmt
-from .models.cuts import Cut, SystemPartition
-from .new_big_phi import (
+from .. import Direction, Subsystem, compute, config, utils
+from ..conf import fallback
+from ..labels import NodeLabels
+from ..metrics.distribution import repertoire_distance as _repertoire_distance
+from ..models import cmp, fmt
+from ..models.cuts import Cut, SystemPartition
+from ..new_big_phi import (
     DEFAULT_PARTITION_CHUNKSIZE,
     DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
     HorizontalSystemPartition,

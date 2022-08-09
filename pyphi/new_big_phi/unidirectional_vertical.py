@@ -1,21 +1,21 @@
-# unidirectional_vertical.py
+# new_big_phi/unidirectional_vertical.py
 
 from typing import Optional, Iterable
 
-from . import compute
-from .conf import config, fallback
-from .direction import Direction
-from .metrics.distribution import repertoire_distance as _repertoire_distance
-from .models.cuts import Cut
-from .new_big_phi import (
+from .. import compute
+from ..conf import config, fallback
+from ..direction import Direction
+from ..metrics.distribution import repertoire_distance as _repertoire_distance
+from ..models.cuts import Cut
+from ..new_big_phi import (
     SystemIrreducibilityAnalysis,
     SystemState,
     find_system_state,
     DEFAULT_PARTITION_CHUNKSIZE,
     DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
 )
-from .partition import system_partitions
-from .subsystem import Subsystem
+from ..partition import system_partitions
+from ..subsystem import Subsystem
 
 
 def normalization_factor(partition: Cut) -> float:
