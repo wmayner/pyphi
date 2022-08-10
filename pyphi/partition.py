@@ -8,7 +8,6 @@ Functions for generating partitions.
 
 import functools
 import itertools
-import math
 from itertools import chain, permutations, product
 
 import numpy as np
@@ -804,23 +803,23 @@ def system_temporal_directed_bipartitions_cut_one(nodes):
     return directed_bipartition_of_one(nodes)
 
 
-def _pairs_to_direction(parts):
-    num_pairs = math.comb(len(parts), 2)
-    direction_assignments = product(
-        [Direction.CAUSE, Direction.EFFECT, Direction.BIDIRECTIONAL],
-        repeat=num_pairs,
-    )
-    for assignment in direction_assignments:
-        yield tuple(zip(pairs(parts, k=1), assignment))
+def _cut_matrices(n):
+    # Skip first all-zero combination since they are all zeros
+    repeat = n ** 2 - n
+    mid = repeat // 2
+    for combination in itertools.islice(product([0, 1], repeat=repeat), 1, None):
+        cm = np.empty([n, n], dtype=int)
+        cm[np.diag_indices(n)] = 0
+        cm[np.triu_indices(n, k=1)] = combination[:mid]
+        cm[np.tril_indices(n, k=-1)] = combination[mid:]
+        yield cm
 
 
 @system_partition_types.register("GENERAL")
 def general(node_indices, node_labels=None):
     yield CompleteGeneralKCut(node_indices, node_labels=node_labels)
-    for set_partition in partitions(node_indices, nontrivial=True):
-        set_partition = tuple(map(tuple, set_partition))
-        for mapping in _pairs_to_direction(set_partition):
-            yield GeneralKCut(set_partition, mapping, node_labels=node_labels)
+    for cut_matrix in _cut_matrices(len(node_indices)):
+        yield GeneralKCut(node_indices, cut_matrix, node_labels=node_labels)
 
 
 def system_partitions(nodes, node_labels=None, partition_scheme=None, filter_func=None):

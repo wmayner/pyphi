@@ -288,51 +288,41 @@ class ActualCut(KCut):
 
 
 class GeneralKCut(_CutBase):
-    """A cut that severs directed connections between parts of a K-partition."""
+    """A cut defined by a matrix of cut connections."""
 
-    def __init__(self, parts, part_pairs_to_direction, node_labels=None):
-        self.parts = parts
-        self.part_pairs_to_direction = part_pairs_to_direction
+    def __init__(self, node_indices, cut_matrix, node_labels=None):
+        self.node_indices = node_indices
+        self._cut_matrix = cut_matrix
         self.node_labels = node_labels
+
+    def normalization_factor(self):
+        """The normalization factor for this cut."""
+        return 1 / np.sum(self._cut_matrix)
 
     @property
     def indices(self):
-        return tuple(sorted(concat(self.parts)))
+        return self.node_indices
 
     def cut_matrix(self, n):
         """The matrix of connections that are severed by this cut."""
-        cm = np.zeros((n, n))
-        for (part1, part2), direction in self.part_pairs_to_direction:
-            if part1 == part2:
-                break
-            if direction is Direction.CAUSE:
-                from_ = part1
-                to = part2
-            elif direction is Direction.EFFECT:
-                from_ = part2
-                to = part1
-            elif direction is Direction.BIDIRECTIONAL:
-                from_ = part1
-                to = part2
-                cm[np.ix_(to, from_)] = 1
-            else:
-                raise ValueError(f"Unknown direction: {direction}")
-            cm[np.ix_(from_, to)] = 1
-        return cm
+        assert n == len(self.node_indices)
+        return self._cut_matrix
 
     @cmp.sametype
     def __eq__(self, other):
-        return self.part_pairs_to_direction == other.part_pairs_to_direction
+        return self.node_indices == other.node_indices and np.array_equal(
+            self._cut_matrix, other._cut_matrix
+        )
 
     def __hash__(self):
-        return hash(self.part_pairs_to_direction)
+        return hash((self.node_indices, utils.np_hash(self.cut_matrix)))
 
     def __repr__(self):
-        return fmt.make_repr(self, ["parts", "part_pairs_to_direction"])
+        return fmt.make_repr(self, ["node_indices", "_cut_matrix"])
 
     def __str__(self):
         # TODO: improve
-        return str(dict(self.part_pairs_to_direction))
+        return str(self._cut_matrix)
 
     def to_json(self):
         raise NotImplemented
@@ -342,24 +332,11 @@ class CompleteGeneralKCut(GeneralKCut):
     def __init__(self, node_indices, node_labels=None):
         self.node_indices = node_indices
         self.node_labels = node_labels
+        self._cut_matrix = np.ones([len(node_indices), len(node_indices)], dtype=int)
 
-    @property
-    def indices(self):
-        return self.node_indices
-
-    def cut_matrix(self, n):
-        """The matrix of connections that are severed by this cut."""
-        return np.ones((n, n))
-
-    def __hash__(self):
-        return hash(("CompleteGeneralKCut", None))
-
-    def __str__(self):
-        return f"CompleteGeneralKCut({','.join(map(str, self.node_labels.coerce_to_labels(self.node_indices)))})"
-
-    @cmp.sametype
-    def __eq__(self, other):
-        return isinstance(other, CompleteGeneralKCut)
+    def normalization_factor(self):
+        """The normalization factor for this cut."""
+        return 1 / len(self.node_indices)
 
 
 @dataclass(order=True)

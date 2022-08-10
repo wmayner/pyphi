@@ -1,12 +1,12 @@
 # new_big_phi/unidirectional_vertical.py
 
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Union
 
 from .. import compute, connectivity
 from ..conf import config, fallback
 from ..direction import Direction
 from ..metrics.distribution import repertoire_distance as _repertoire_distance
-from ..models.cuts import Cut
+from ..models.cuts import Cut, GeneralKCut
 from ..new_big_phi import (
     DEFAULT_PARTITION_CHUNKSIZE,
     DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
@@ -18,7 +18,9 @@ from ..partition import system_partitions
 from ..subsystem import Subsystem
 
 
-def normalization_factor(partition: Cut) -> float:
+def normalization_factor(partition: Union[Cut, GeneralKCut]) -> float:
+    if hasattr(partition, "normalization_factor"):
+        return partition.normalization_factor()
     return 1 / (len(partition.from_nodes) * len(partition.to_nodes))
 
 
