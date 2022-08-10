@@ -1,18 +1,18 @@
 # new_big_phi/unidirectional_vertical.py
 
-from typing import Optional, Iterable
+from typing import Iterable, Optional
 
-from .. import compute
+from .. import compute, connectivity
 from ..conf import config, fallback
 from ..direction import Direction
 from ..metrics.distribution import repertoire_distance as _repertoire_distance
 from ..models.cuts import Cut
 from ..new_big_phi import (
+    DEFAULT_PARTITION_CHUNKSIZE,
+    DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
     SystemIrreducibilityAnalysis,
     SystemState,
     find_system_state,
-    DEFAULT_PARTITION_CHUNKSIZE,
-    DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
 )
 from ..partition import system_partitions
 from ..subsystem import Subsystem
@@ -104,12 +104,22 @@ def find_mip(
     """Find the minimum information partition of a system."""
     parallel = fallback(parallel, config.PARALLEL_CUT_EVALUATION)
     progress = fallback(progress, config.PROGRESS_BARS)
+    partitions = fallback(partitions, config.SYSTEM_PARTITION_TYPE)
     # TODO: trivial reducibility
+
+    filter_func = None
+    if partitions == "GENERAL":
+
+        def is_disconnecting_partition(partition):
+            return not connectivity.is_strong(subsystem.apply_cut(partition).cm)
+
+        filter_func = is_disconnecting_partition
 
     partitions = system_partitions(
         subsystem.node_indices,
         node_labels=subsystem.node_labels,
         partition_scheme=partitions,
+        filter_func=filter_func,
     )
 
     system_state = find_system_state(subsystem)

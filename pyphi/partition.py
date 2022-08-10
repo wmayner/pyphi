@@ -7,17 +7,22 @@ Functions for generating partitions.
 """
 
 import functools
+import itertools
+import math
 from itertools import chain, permutations, product
 
 import numpy as np
 
 from . import config
 from .cache import cache
+from .combinatorics import pairs
 from .conf import fallback
 from .direction import Direction
 from .models.cuts import (
     Bipartition,
+    CompleteGeneralKCut,
     Cut,
+    GeneralKCut,
     KPartition,
     Part,
     RelationPart,
@@ -27,10 +32,10 @@ from .models.cuts import (
 )
 from .registry import Registry
 
-# TODO move purely combinatorial functions to `combinatorics`
 
+# TODO move purely combinatorial functions to `combinatorics`
 # From stackoverflow.com/questions/19368375/set-partitions-in-python
-def partitions(collection):
+def _partitions(collection):
     """Generate all set partitions of a collection.
 
     Example:
@@ -56,6 +61,13 @@ def partitions(collection):
         for n, subset in enumerate(smaller):
             yield smaller[:n] + [[first] + subset] + smaller[n + 1 :]
         yield [[first]] + smaller
+
+
+@functools.wraps(_partitions)
+def partitions(collection, nontrivial=False):
+    if nontrivial:
+        return itertools.islice(_partitions(collection), 1, None)
+    return _partitions(collection)
 
 
 @cache(cache={}, maxmem=None)
@@ -600,6 +612,16 @@ def complete_partition(mechanism, purview):
     return CompletePartition(*parts)
 
 
+class AtomicPartition(KPartition):
+    """Represents the partition that separates all inter-element connections."""
+
+    pass
+
+
+def atomic_partition(elements):
+    return AtomicPartition(*[Part((elt,), (elt,)) for elt in elements])
+
+
 # Relation partitions
 # ~~~~~~~~~~~~~~~~~~~
 
@@ -751,7 +773,9 @@ def system_bipartitions_simple(nodes, node_labels=None):
 
 
 def _bipartitions_to_temporal_system_partitions(func):
-    """Decorator to return temporally-directed SystemPartition objects from a set of bipartitions."""
+    """Decorator to return temporally-directed SystemPartition objects from a
+    set of bipartitions.
+    """
 
     @functools.wraps(func)
     def wrapper(*args, node_labels=None, **kwargs):
@@ -780,7 +804,31 @@ def system_temporal_directed_bipartitions_cut_one(nodes):
     return directed_bipartition_of_one(nodes)
 
 
-def system_partitions(nodes, node_labels=None, partition_scheme=None):
+def _pairs_to_direction(parts):
+    num_pairs = math.comb(len(parts), 2)
+    direction_assignments = product(
+        [Direction.CAUSE, Direction.EFFECT, Direction.BIDIRECTIONAL],
+        repeat=num_pairs,
+    )
+    for assignment in direction_assignments:
+        yield tuple(zip(pairs(parts, k=1), assignment))
+
+
+@system_partition_types.register("GENERAL")
+def general(node_indices, node_labels=None):
+    yield CompleteGeneralKCut(node_indices, node_labels=node_labels)
+    for set_partition in partitions(node_indices, nontrivial=True):
+        set_partition = tuple(map(tuple, set_partition))
+        for mapping in _pairs_to_direction(set_partition):
+            yield GeneralKCut(set_partition, mapping, node_labels=node_labels)
+
+
+def system_partitions(nodes, node_labels=None, partition_scheme=None, filter_func=None):
     """Return the currently configured system partitions for the given nodes."""
     partition_scheme = fallback(partition_scheme, config.SYSTEM_PARTITION_TYPE)
-    return system_partition_types[partition_scheme](nodes, node_labels=node_labels)
+    partitions = system_partition_types[partition_scheme](
+        nodes, node_labels=node_labels
+    )
+    if filter_func is not None:
+        return filter(filter_func, partitions)
+    return partitions
