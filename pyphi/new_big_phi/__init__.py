@@ -165,7 +165,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         )
 
     def _repr_columns(self):
-        return [
+        columns = [
             (
                 "Subsystem",
                 ",".join(self.node_labels.coerce_to_labels(self.node_indices)),
@@ -174,28 +174,35 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
             (f"           {fmt.BIG_PHI}", self.phi),
             (f"Normalized {fmt.BIG_PHI}", self.normalized_phi),
         ] + self.system_state._repr_columns()
+        if self.reasons:
+            columns.append(("Reasons", ", ".join(self.reasons)))
+        return columns
 
     def __repr__(self):
         body = "\n".join(fmt.align_columns(self._repr_columns()))
-        body = fmt.header(
-            "System irreducibility analysis", body, under_char=fmt.HEADER_BAR_2
-        )
+        body = fmt.header(self.__class__.__name__, body, under_char=fmt.HEADER_BAR_2)
         return fmt.box(fmt.center(body))
 
 
 class NullSystemIrreducibilityAnalysis(SystemIrreducibilityAnalysis):
-    def __init__(self):
+    def __init__(self, **kwargs):
         super().__init__(
             phi=0,
             partition=None,
-            normalized_phi=0,
-            phi_cause=0,
-            phi_effect=0,
-            repertoire_cause=None,
-            partitioned_repertoire_cause=None,
-            repertoire_effect=None,
-            partitioned_repertoire_effect=None,
+            **kwargs,
         )
+
+    def _repr_columns(self):
+        columns = [
+            (
+                "Subsystem",
+                ",".join(self.node_labels.coerce_to_labels(self.node_indices)),
+            ),
+            (f"           {fmt.BIG_PHI}", self.phi),
+        ]
+        if self.reasons:
+            columns.append(("Reasons", ", ".join([r.name for r in self.reasons])))
+        return columns
 
 
 ##############################################################################

@@ -1,5 +1,6 @@
 # new_big_phi/unidirectional_vertical.py
 
+from enum import Enum, auto, unique
 from typing import Iterable, Optional, Union
 
 from .. import compute, connectivity
@@ -10,6 +11,7 @@ from ..models.cuts import Cut, GeneralKCut
 from ..new_big_phi import (
     DEFAULT_PARTITION_CHUNKSIZE,
     DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
+    NullSystemIrreducibilityAnalysis,
     SystemIrreducibilityAnalysis,
     SystemState,
     find_system_state,
@@ -93,6 +95,11 @@ def evaluate_partition(
     )
 
 
+@unique
+class ShortCircuitConditions(Enum):
+    NO_VALID_PARTITIONS = auto()
+
+
 def find_mip(
     subsystem: Subsystem,
     parallel: Optional[bool] = None,
@@ -126,10 +133,16 @@ def find_mip(
 
     system_state = find_system_state(subsystem)
 
+    default_sia = NullSystemIrreducibilityAnalysis(
+        reasons=[ShortCircuitConditions.NO_VALID_PARTITIONS],
+        node_indices=subsystem.node_indices,
+        node_labels=subsystem.node_labels,
+    )
     return compute.parallel.map_reduce(
         evaluate_partition,
         min,
         partitions,
+        reduce_kwargs=dict(default=default_sia),
         subsystem=subsystem,
         system_state=system_state,
         repertoire_distance=repertoire_distance,
