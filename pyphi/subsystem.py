@@ -6,11 +6,10 @@
 
 import functools
 import logging
-from re import I
 
 import numpy as np
 
-from . import cache, distribution, utils, validate, resolve_ties
+from . import cache, connectivity, distribution, resolve_ties, utils, validate
 from .conf import config, fallback
 from .direction import Direction
 from .distribution import max_entropy_distribution, repertoire_shape
@@ -101,6 +100,8 @@ class Subsystem:
 
         # The network's connectivity matrix with cut applied
         self.cm = self.cut.apply_cut(network.cm)
+        # The subsystem's connectivity matrix with the cut applied
+        self.proper_cm = connectivity.subadjacency(self.cm, self.node_indices)
 
         # Reusable cache for maximally-irreducible causes and effects
         self._mice_cache = cache.MICECache(self, mice_cache)
