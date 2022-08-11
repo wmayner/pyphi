@@ -14,7 +14,6 @@ import numpy as np
 
 from . import config
 from .cache import cache
-from .combinatorics import pairs
 from .conf import fallback
 from .direction import Direction
 from .models.cuts import (

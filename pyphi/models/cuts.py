@@ -9,10 +9,8 @@ from dataclasses import dataclass
 from itertools import chain
 
 import numpy as np
-from toolz import concat
 
 from .. import connectivity, utils
-from ..direction import Direction
 from ..labels import NodeLabels
 from . import cmp, fmt
 
@@ -305,8 +303,9 @@ class GeneralKCut(_CutBase):
 
     def cut_matrix(self, n):
         """The matrix of connections that are severed by this cut."""
-        assert n == len(self.node_indices)
-        return self._cut_matrix
+        cm = np.zeros([n, n])
+        cm[np.ix_(self.node_indices, self.node_indices)] = self._cut_matrix
+        return cm
 
     @cmp.sametype
     def __eq__(self, other):
@@ -325,7 +324,7 @@ class GeneralKCut(_CutBase):
         return str(self._cut_matrix)
 
     def to_json(self):
-        raise NotImplemented
+        raise NotImplementedError
 
 
 class CompleteGeneralKCut(GeneralKCut):
