@@ -120,7 +120,10 @@ def find_mip(
     if partitions == "GENERAL":
 
         def is_disconnecting_partition(partition):
-            return not connectivity.is_strong(subsystem.apply_cut(partition).proper_cm)
+            # Special case for length 1 subsystems so complete partition is included
+            return (
+                not connectivity.is_strong(subsystem.apply_cut(partition).proper_cm)
+            ) or len(subsystem) == 1
 
         filter_func = is_disconnecting_partition
 
