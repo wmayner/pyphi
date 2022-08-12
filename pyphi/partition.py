@@ -821,6 +821,10 @@ def general(node_indices, node_labels=None):
         yield GeneralKCut(node_indices, cut_matrix, node_labels=node_labels)
 
 
+def num_general_partitions(n):
+    return 2 ** (n ** 2 - n)
+
+
 def system_partitions(nodes, node_labels=None, partition_scheme=None, filter_func=None):
     """Return the currently configured system partitions for the given nodes."""
     partition_scheme = fallback(partition_scheme, config.SYSTEM_PARTITION_TYPE)
