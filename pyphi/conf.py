@@ -823,7 +823,7 @@ class PyphiConfig(Config):
 
     # TODO(4.0) finish documenting
     SYSTEM_PARTITION_TYPE = Option(
-        "TEMPORAL_DIRECTED_BI",
+        "GENERAL",
         doc="""
     Controls the system partitioning scheme.
     """,
