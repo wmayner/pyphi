@@ -16,7 +16,7 @@ from ..new_big_phi import (
     SystemState,
     find_system_state,
 )
-from ..partition import system_partitions
+from ..partition import system_partitions, num_general_partitions
 from ..subsystem import Subsystem
 
 
@@ -100,6 +100,13 @@ class ShortCircuitConditions(Enum):
     NO_VALID_PARTITIONS = auto()
 
 
+def sia_minimization_key(sia):
+    """Return a sorting key that minimizes the normalized phi value.
+
+    Ties are broken by maximizing the phi value."""
+    return (sia.normalized_phi, -sia.phi)
+
+
 def find_mip(
     subsystem: Subsystem,
     parallel: Optional[bool] = None,
@@ -145,7 +152,7 @@ def find_mip(
         evaluate_partition,
         min,
         partitions,
-        reduce_kwargs=dict(default=default_sia),
+        reduce_kwargs=dict(key=sia_minimization_key, default=default_sia),
         subsystem=subsystem,
         system_state=system_state,
         repertoire_distance=repertoire_distance,

@@ -145,9 +145,8 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
     ]
 
     def order_by(self):
-        # TODO deal with exclusion maximization here when we get to that
         # Break ties using negative phi (i.e. reverse order)
-        return (self.normalized_phi, -self.phi)
+        return self.phi
 
     def __eq__(self, other):
         return cmp.general_eq(self, other, self._sia_attributes)
