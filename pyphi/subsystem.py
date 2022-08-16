@@ -92,6 +92,8 @@ class Subsystem:
 
         # The TPM conditioned on the state of the external nodes.
         self.tpm = condition_tpm(self.network.tpm, self.external_indices, self.state)
+        # The TPM for just the nodes in the subsystem.
+        self.proper_tpm = self.tpm.squeeze()[..., list(self.node_indices)]
 
         # The unidirectional cut applied for phi evaluation
         self.cut = (
@@ -367,7 +369,7 @@ class Subsystem:
         return tpm.reshape(repertoire_shape([purview_node.index], self.tpm_size))
 
     @cache.method("_repertoire_cache", Direction.EFFECT)
-    def effect_repertoire(self, mechanism, purview):
+    def _effect_repertoire_virtualized(self, mechanism, purview):
         """Return the effect repertoire of a mechanism over a purview.
 
         Args:
@@ -400,6 +402,40 @@ class Subsystem:
             np.multiply,
             [self._single_node_effect_repertoire(mechanism, p) for p in purview],
         )
+
+    def _effect_repertoire_no_virtual_units(self, mechanism, purview):
+        # If the purview is empty, the distribution is empty, so return the
+        # multiplicative identity.
+        if not purview:
+            return np.array([1.0])
+        # Use a frozenset so the arguments to `_single_node_effect_repertoire`
+        # can be hashed and cached.
+        mechanism = frozenset(mechanism)
+        # Marginalize-out non-purview nodes
+        tpm = self.tpm[..., list(purview)]
+        # Condition on the state of the mechanism
+        tpm = condition_tpm(self.tpm, mechanism, self.state)
+        # Get the joint distribution
+        shapes = np.ones([len(purview)] * 2, dtype=int)
+        shapes[np.diag_indices(len(purview))] = 2
+        print(shapes)
+        print(tpm.shape)
+        single_node_repertoires = [
+            np.array([1 - tpm[..., i], tpm[..., i]]).reshape(shapes[i])
+            for i in range(len(purview))
+        ]
+        joint = functools.reduce(np.multiply, single_node_repertoires)
+        # Marginalize-out non-mechanism nodes
+        # NOTE: This step must happen after multiplying to get the joint
+        # distribution, so that virtualization is NOT done
+        nonmechanism_nodes = frozenset(self.node_indices) - mechanism
+        joint = marginalize_out(nonmechanism_nodes, joint)
+        return joint
+
+    def effect_repertoire(self, mechanism, purview, virtual_units=True):
+        if virtual_units:
+            return self._effect_repertoire_virtualized(mechanism, purview)
+        return self._effect_repertoire_no_virtual_units(mechanism, purview)
 
     def repertoire(self, direction, mechanism, purview):
         """Return the cause or effect repertoire based on a direction.
