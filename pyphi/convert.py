@@ -329,11 +329,18 @@ def state_by_node2state_by_state(tpm):
            [0.168, 0.112, 0.072, 0.048, 0.252, 0.168, 0.108, 0.072],
            [0.378, 0.252, 0.162, 0.108, 0.042, 0.028, 0.018, 0.012],
            [0.36 , 0.36 , 0.09 , 0.09 , 0.04 , 0.04 , 0.01 , 0.01 ]])
+    >>> tpm = np.array([[1],
+                        [0]])
+    array([[0, 1],
+           [1, 0]])
     """
     # Overall approach: get the state-by-state TPM for each individual node,
     # then take the product to get the joint
     # TODO extend to nonbinary
-    tpm = tpm.squeeze()
+    if tpm.size != 2:
+        # Don't squeeze 1-element TPMs, since their last dimension will be a
+        # singleton.
+        tpm = tpm.squeeze()
 
     # Get the number of previous nodes
     if tpm.ndim == 2:
@@ -342,12 +349,14 @@ def state_by_node2state_by_state(tpm):
     else:
         n_prev = tpm.ndim - 1
         n_next = tpm.shape[-1]
-    # First make the OFF probabilities explicit; the last dimension will correpsond to OFF/ON probability
+    # First make the OFF probabilities explicit; the last dimension will
+    # correpsond to OFF/ON probability
     tpm = np.stack([1 - tpm, tpm], axis=-1)
-    # Now efficiently construct indices that correspond to each of the next states;
-    # these can be thought of as 'state coordinates', so we can use mgrid
+    # Now efficiently construct indices that correspond to each of the next
+    # states; these can be thought of as 'state coordinates', so we can use
+    # mgrid
     # NOTE: Reverse the list so that the first node's state varies the fastest
-    indices = reversed(np.mgrid[[slice(0, 2)] * n_next])
+    indices = list(reversed(np.mgrid[[slice(0, 2)] * n_next]))
     # Index into the OFF/ON dimension using the 'state coordinates'
     # NOTE: Flatten with `.reshape(-1)` to avoid copying
     marginal_sbs_tpms = [tpm[..., i, idx.reshape(-1)] for i, idx in enumerate(indices)]
