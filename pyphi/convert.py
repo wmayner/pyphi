@@ -194,7 +194,7 @@ def to_multidimensional(tpm):
 
 
 def sbs_to_multidimensional(tpm):
-    return tpm.reshape([2] * (2 ** int(log2(tpm.shape[0]))), order="F")
+    return tpm.reshape([2] * (2 * int(log2(tpm.shape[0]))), order="F")
 
 
 def to_2dimensional(tpm):
