@@ -316,7 +316,7 @@ class Subsystem:
 
     # TODO extend to nonbinary nodes
     @cache.method("_repertoire_cache", Direction.CAUSE)
-    def cause_repertoire(self, mechanism, purview, **kwargs):
+    def _cause_repertoire(self, mechanism, purview):
         """Return the cause repertoire of a mechanism over a purview.
 
         Args:
@@ -357,6 +357,11 @@ class Subsystem:
         # rows in the TPM, so the distribution is a column. The columns of a
         # TPM don't necessarily sum to 1, so we normalize.
         return distribution.normalize(joint)
+
+    @functools.wraps(_cause_repertoire)
+    def cause_repertoire(self, mechanism, purview, **kwargs):
+        # Drop kwargs
+        return self._cause_repertoire(mechanism, purview)
 
     # TODO extend to nonbinary nodes
     @cache.method("_single_node_repertoire_cache", Direction.EFFECT)
