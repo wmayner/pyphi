@@ -409,18 +409,26 @@ class Subsystem:
     # TODO extend to nonbinary nodes
     @cache.method("_repertoire_no_virtual_units_cache", Direction.EFFECT)
     def _effect_repertoire_no_virtual_units(self, mechanism, purview):
-        # Ignore non-purview nodes
-        joint = self.tpm[..., list(purview)]
         # Convert to state-by-state to get explicit joint probabilities
-        joint = convert.sbn2sbs(joint)
+        joint = convert.sbn2sbs(self.proper_tpm)
         # Reshape to multidimensional form
         joint = convert.sbs_to_multidimensional(joint)
+        # Marginalize out non-purview nodes
+        # NOTE: We don't use `marginalize_out()` here because that function
+        # assumes we're marginalizing over 'rows' and thus renormalizes, but here
+        # we're marginalizing over 'columns'
+        nonpurview_nodes = tuple(
+            # Add n to index into 'column' section of the indices
+            len(self) + p
+            for p in set(self.node_indices) - set(purview)
+        )
+        joint = joint.sum(nonpurview_nodes, keepdims=True)
         # Condition on the state of the mechanism
-        joint = condition_tpm(joint, mechanism, self.state)
+        joint = condition_tpm(joint, mechanism, self.proper_state)
         # Marginalize-out non-mechanism nodes
         nonmechanism_nodes = frozenset(self.node_indices) - mechanism
         joint = marginalize_out(nonmechanism_nodes, joint)
-        return joint.squeeze()
+        return joint.reshape(repertoire_shape(purview, self.tpm_size))
 
     def effect_repertoire(self, mechanism, purview, virtual_units=True):
         # If the purview is empty, the distribution is empty, so return the
