@@ -193,6 +193,10 @@ def to_multidimensional(tpm):
     return tpm.reshape([2] * Np + [Nn], order="F").astype(float)
 
 
+def sbs_to_multidimensional(tpm):
+    return tpm.reshape([2] * (2 ** int(log2(tpm.shape[0]))), order="F")
+
+
 def to_2dimensional(tpm):
     """Reshape a state-by-node TPM to the 2-dimensional form.
 
