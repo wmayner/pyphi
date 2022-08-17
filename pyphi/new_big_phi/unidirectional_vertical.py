@@ -16,7 +16,7 @@ from ..new_big_phi import (
     SystemState,
     find_system_state,
 )
-from ..partition import system_partitions, num_general_partitions
+from ..partition import system_partitions
 from ..subsystem import Subsystem
 
 
