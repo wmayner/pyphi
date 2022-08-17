@@ -429,7 +429,7 @@ class Subsystem:
             return self._effect_repertoire_virtualized(mechanism, purview)
         return self._effect_repertoire_no_virtual_units(mechanism, purview)
 
-    def repertoire(self, direction, mechanism, purview):
+    def repertoire(self, direction, mechanism, purview, **kwargs):
         """Return the cause or effect repertoire based on a direction.
 
         Args:
@@ -447,34 +447,34 @@ class Subsystem:
             ValueError: If ``direction`` is invalid.
         """
         if direction == Direction.CAUSE:
-            return self.cause_repertoire(mechanism, purview)
+            return self.cause_repertoire(mechanism, purview, **kwargs)
         elif direction == Direction.EFFECT:
-            return self.effect_repertoire(mechanism, purview)
+            return self.effect_repertoire(mechanism, purview, **kwargs)
 
         return validate.direction(direction)
 
-    def unconstrained_repertoire(self, direction, purview):
+    def unconstrained_repertoire(self, direction, purview, **kwargs):
         """Return the unconstrained cause/effect repertoire over a purview."""
-        return self.repertoire(direction, (), purview)
+        return self.repertoire(direction, (), purview, **kwargs)
 
-    def unconstrained_cause_repertoire(self, purview):
+    def unconstrained_cause_repertoire(self, purview, **kwargs):
         """Return the unconstrained cause repertoire for a purview.
 
         This is just the cause repertoire in the absence of any mechanism.
         """
-        return self.unconstrained_repertoire(Direction.CAUSE, purview)
+        return self.unconstrained_repertoire(Direction.CAUSE, purview, **kwargs)
 
-    def unconstrained_effect_repertoire(self, purview):
+    def unconstrained_effect_repertoire(self, purview, **kwargs):
         """Return the unconstrained effect repertoire for a purview.
 
         This is just the effect repertoire in the absence of any mechanism.
         """
-        return self.unconstrained_repertoire(Direction.EFFECT, purview)
+        return self.unconstrained_repertoire(Direction.EFFECT, purview, **kwargs)
 
-    def partitioned_repertoire(self, direction, partition):
+    def partitioned_repertoire(self, direction, partition, **kwargs):
         """Compute the repertoire of a partitioned mechanism and purview."""
         repertoires = [
-            self.repertoire(direction, part.mechanism, part.purview)
+            self.repertoire(direction, part.mechanism, part.purview, **kwargs)
             for part in partition
         ]
         return functools.reduce(np.multiply, repertoires)
