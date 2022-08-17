@@ -9,7 +9,7 @@ import logging
 
 import numpy as np
 
-from . import cache, connectivity, distribution, resolve_ties, utils, validate
+from . import cache, connectivity, distribution, resolve_ties, utils, validate, convert
 from .conf import config, fallback
 from .direction import Direction
 from .distribution import max_entropy_distribution, repertoire_shape
@@ -65,6 +65,7 @@ class Subsystem:
         mice_cache=None,
         repertoire_cache=None,
         single_node_repertoire_cache=None,
+        repertoire_no_virtual_units_cache=None,
         _external_indices=None,
     ):
         # The network this subsystem belongs to.
@@ -115,6 +116,9 @@ class Subsystem:
             single_node_repertoire_cache or cache.DictCache()
         )
         self._repertoire_cache = repertoire_cache or cache.DictCache()
+        self._repertoire_no_virtual_units_cache = (
+            repertoire_no_virtual_units_cache or cache.DictCache()
+        )
 
         self.nodes = generate_nodes(
             self.tpm, self.cm, self.state, self.node_indices, self.node_labels
@@ -386,13 +390,7 @@ class Subsystem:
             The returned repertoire is a distribution over purview node states,
             not the states of the whole network.
         """
-        # If the purview is empty, the distribution is empty, so return the
-        # multiplicative identity.
-        if not purview:
-            return np.array([1.0])
-        # Use a frozenset so the arguments to `_single_node_effect_repertoire`
-        # can be hashed and cached.
-        mechanism = frozenset(mechanism)
+        # pylint: disable=missing-docstring
         # Preallocate the repertoire with the proper shape, so that
         # probabilities are broadcasted appropriately.
         joint = np.ones(repertoire_shape(purview, self.tpm_size))
@@ -403,7 +401,23 @@ class Subsystem:
             [self._single_node_effect_repertoire(mechanism, p) for p in purview],
         )
 
+    # TODO extend to nonbinary nodes
+    @cache.method("_repertoire_no_virtual_units_cache", Direction.EFFECT)
     def _effect_repertoire_no_virtual_units(self, mechanism, purview):
+        # Ignore non-purview nodes
+        joint = self.tpm[..., list(purview)]
+        # Convert to state-by-state to get explicit joint probabilities
+        joint = convert.sbn2sbs(joint)
+        # Reshape to multidimensional form
+        joint = convert.sbs_to_multidimensional(joint)
+        # Condition on the state of the mechanism
+        joint = condition_tpm(joint, mechanism, self.state)
+        # Marginalize-out non-mechanism nodes
+        nonmechanism_nodes = frozenset(self.node_indices) - mechanism
+        joint = marginalize_out(nonmechanism_nodes, joint)
+        return joint.squeeze()
+
+    def effect_repertoire(self, mechanism, purview, virtual_units=True):
         # If the purview is empty, the distribution is empty, so return the
         # multiplicative identity.
         if not purview:
@@ -411,28 +425,6 @@ class Subsystem:
         # Use a frozenset so the arguments to `_single_node_effect_repertoire`
         # can be hashed and cached.
         mechanism = frozenset(mechanism)
-        # Marginalize-out non-purview nodes
-        tpm = self.tpm[..., list(purview)]
-        # Condition on the state of the mechanism
-        tpm = condition_tpm(self.tpm, mechanism, self.state)
-        # Get the joint distribution
-        shapes = np.ones([len(purview)] * 2, dtype=int)
-        shapes[np.diag_indices(len(purview))] = 2
-        print(shapes)
-        print(tpm.shape)
-        single_node_repertoires = [
-            np.array([1 - tpm[..., i], tpm[..., i]]).reshape(shapes[i])
-            for i in range(len(purview))
-        ]
-        joint = functools.reduce(np.multiply, single_node_repertoires)
-        # Marginalize-out non-mechanism nodes
-        # NOTE: This step must happen after multiplying to get the joint
-        # distribution, so that virtualization is NOT done
-        nonmechanism_nodes = frozenset(self.node_indices) - mechanism
-        joint = marginalize_out(nonmechanism_nodes, joint)
-        return joint
-
-    def effect_repertoire(self, mechanism, purview, virtual_units=True):
         if virtual_units:
             return self._effect_repertoire_virtualized(mechanism, purview)
         return self._effect_repertoire_no_virtual_units(mechanism, purview)
