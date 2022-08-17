@@ -316,7 +316,7 @@ class Subsystem:
 
     # TODO extend to nonbinary nodes
     @cache.method("_repertoire_cache", Direction.CAUSE)
-    def cause_repertoire(self, mechanism, purview):
+    def cause_repertoire(self, mechanism, purview, **kwargs):
         """Return the cause repertoire of a mechanism over a purview.
 
         Args:
@@ -567,6 +567,7 @@ class Subsystem:
         repertoire=None,
         repertoire_distance=None,
         return_unpartitioned_repertoire=False,
+        partitioned_repertoire_kwargs=None,
         **kwargs,
     ):
         """Return the |small_phi| of a mechanism over a purview for the given
@@ -589,7 +590,10 @@ class Subsystem:
         if repertoire is None:
             repertoire = self.repertoire(direction, mechanism, purview)
 
-        partitioned_repertoire = self.partitioned_repertoire(direction, partition)
+        partitioned_repertoire_kwargs = partitioned_repertoire_kwargs or dict()
+        partitioned_repertoire = self.partitioned_repertoire(
+            direction, partition, **partitioned_repertoire_kwargs
+        )
 
         phi = _repertoire_distance(
             repertoire,
@@ -759,6 +763,7 @@ class Subsystem:
         return_information=False,
         repertoire_distance=None,
         states=None,
+        virtual_units=False,
     ):
         repertoire_distance = fallback(
             repertoire_distance, config.REPERTOIRE_DISTANCE_INFORMATION
@@ -775,6 +780,9 @@ class Subsystem:
                 mechanism,
                 purview,
                 partition,
+                partitioned_repertoire_kwargs=dict(
+                    virtual_units=virtual_units,
+                ),
                 repertoire=repertoire,
                 repertoire_distance=repertoire_distance,
                 state=state,
