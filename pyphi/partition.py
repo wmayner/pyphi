@@ -827,6 +827,10 @@ def general(node_indices, node_labels=None):
         yield GeneralKCut(node_indices, cut_matrix, node_labels=node_labels)
 
 
+def num_general_partitions(n):
+    return 2 ** (n ** 2 - n)
+
+
 @system_partition_types.register("GENERAL_BIDIRECTIONAL")
 def general_bidirectional(node_indices, node_labels=None):
     yield CompleteGeneralKCut(node_indices, node_labels=node_labels)
@@ -834,8 +838,27 @@ def general_bidirectional(node_indices, node_labels=None):
         yield GeneralKCut(node_indices, cut_matrix, node_labels=node_labels)
 
 
-def num_general_partitions(n):
-    return 2 ** (n ** 2 - n)
+def _unidirectional_set_partitions(node_indices, node_labels=None):
+    """Generate all unidirectional set partitions of a set of nodes."""
+    _node_indices = set(node_indices)
+    for partition in partitions(node_indices, nontrivial=True):
+        for directions in product(Direction.all(), repeat=len(partition)):
+            cut_matrix = np.zeros([len(_node_indices), len(_node_indices)], dtype=int)
+            for part, direction in zip(partition, directions):
+                nonpart = list(_node_indices - set(part))
+                if direction == Direction.CAUSE:
+                    source, target = nonpart, part
+                else:
+                    source, target = part, nonpart
+                cut_matrix[np.ix_(source, target)] = 1
+                if direction == Direction.BIDIRECTIONAL:
+                    cut_matrix[np.ix_(target, source)] = 1
+            yield GeneralKCut(node_indices, cut_matrix, node_labels=node_labels)
+
+
+@functools.wraps(_unidirectional_set_partitions)
+def unidirectional_set_partitions(node_indices, node_labels=None):
+    return set(_unidirectional_set_partitions(node_indices, node_labels=node_labels))
 
 
 def system_partitions(nodes, node_labels=None, partition_scheme=None, filter_func=None):
