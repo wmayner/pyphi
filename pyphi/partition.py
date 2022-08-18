@@ -856,6 +856,7 @@ def _unidirectional_set_partitions(node_indices, node_labels=None):
             yield GeneralKCut(node_indices, cut_matrix, node_labels=node_labels)
 
 
+@system_partition_types.register("SET_UNI/BI")
 @functools.wraps(_unidirectional_set_partitions)
 def unidirectional_set_partitions(node_indices, node_labels=None):
     return set(_unidirectional_set_partitions(node_indices, node_labels=node_labels))
