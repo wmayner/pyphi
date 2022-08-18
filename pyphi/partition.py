@@ -802,15 +802,21 @@ def system_temporal_directed_bipartitions_cut_one(nodes):
     return directed_bipartition_of_one(nodes)
 
 
-def _cut_matrices(n):
-    # Skip first all-zero combination since they are all zeros
+def _cut_matrices(n, symmetric=False):
     repeat = n ** 2 - n
+    if symmetric:
+        repeat = repeat // 2
     mid = repeat // 2
+    # Skip first all-zero combination since they are all zeros
     for combination in itertools.islice(product([0, 1], repeat=repeat), 1, None):
-        cm = np.empty([n, n], dtype=int)
-        cm[np.diag_indices(n)] = 0
-        cm[np.triu_indices(n, k=1)] = combination[:mid]
-        cm[np.tril_indices(n, k=-1)] = combination[mid:]
+        cm = np.zeros([n, n], dtype=int)
+        if symmetric:
+            triu = tril = combination
+        else:
+            triu = combination[:mid]
+            tril = combination[mid:]
+        cm[np.triu_indices(n, k=1)] = triu
+        cm[np.tril_indices(n, k=-1)] = tril
         yield cm
 
 
@@ -818,6 +824,13 @@ def _cut_matrices(n):
 def general(node_indices, node_labels=None):
     yield CompleteGeneralKCut(node_indices, node_labels=node_labels)
     for cut_matrix in _cut_matrices(len(node_indices)):
+        yield GeneralKCut(node_indices, cut_matrix, node_labels=node_labels)
+
+
+@system_partition_types.register("GENERAL_BIDIRECTIONAL")
+def general_bidirectional(node_indices, node_labels=None):
+    yield CompleteGeneralKCut(node_indices, node_labels=node_labels)
+    for cut_matrix in _cut_matrices(len(node_indices), symmetric=True):
         yield GeneralKCut(node_indices, cut_matrix, node_labels=node_labels)
 
 
