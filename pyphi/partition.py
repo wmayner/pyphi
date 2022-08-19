@@ -841,8 +841,8 @@ def general_bidirectional(node_indices, node_labels=None):
 def _unidirectional_set_partitions(node_indices, node_labels=None):
     """Generate all unidirectional set partitions of a set of nodes."""
     yield CompleteGeneralKCut(node_indices, node_labels=node_labels)
-    _node_indices = set(node_indices)
-    for partition in partitions(node_indices, nontrivial=True):
+    _node_indices = set(range(len(node_indices)))
+    for partition in partitions(_node_indices, nontrivial=True):
         for directions in product(Direction.all(), repeat=len(partition)):
             cut_matrix = np.zeros([len(_node_indices), len(_node_indices)], dtype=int)
             for part, direction in zip(partition, directions):
