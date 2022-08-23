@@ -6,10 +6,12 @@
 
 import functools
 import logging
+from math import log2
+from typing import Iterable
 
 import numpy as np
 
-from . import cache, connectivity, distribution, resolve_ties, utils, validate, convert
+from . import cache, connectivity, convert, distribution, resolve_ties, utils, validate
 from .conf import config, fallback
 from .direction import Direction
 from .distribution import max_entropy_distribution, repertoire_shape
@@ -65,7 +67,7 @@ class Subsystem:
         mice_cache=None,
         repertoire_cache=None,
         single_node_repertoire_cache=None,
-        repertoire_no_virtual_units_cache=None,
+        repertoire_nonvirtualized_cache=None,
         _external_indices=None,
     ):
         # The network this subsystem belongs to.
@@ -116,8 +118,8 @@ class Subsystem:
             single_node_repertoire_cache or cache.DictCache()
         )
         self._repertoire_cache = repertoire_cache or cache.DictCache()
-        self._repertoire_no_virtual_units_cache = (
-            repertoire_no_virtual_units_cache or cache.DictCache()
+        self._repertoire_nonvirtualized_cache = (
+            repertoire_nonvirtualized_cache or cache.DictCache()
         )
 
         self.nodes = generate_nodes(
@@ -365,7 +367,9 @@ class Subsystem:
 
     # TODO extend to nonbinary nodes
     @cache.method("_single_node_repertoire_cache", Direction.EFFECT)
-    def _single_node_effect_repertoire(self, mechanism, purview_node_index):
+    def _single_node_effect_repertoire(
+        self, mechanism: frozenset[int], purview_node_index: int
+    ):
         # pylint: disable=missing-docstring
         purview_node = self._index2node[purview_node_index]
         # Condition on the state of the inputs that are in the mechanism.
@@ -378,7 +382,9 @@ class Subsystem:
         return tpm.reshape(repertoire_shape([purview_node.index], self.tpm_size))
 
     @cache.method("_repertoire_cache", Direction.EFFECT)
-    def _effect_repertoire_virtualized(self, mechanism, purview):
+    def _effect_repertoire_virtualized(
+        self, mechanism: frozenset[int], purview: tuple[int]
+    ):
         """Return the effect repertoire of a mechanism over a purview.
 
         Args:
@@ -407,30 +413,35 @@ class Subsystem:
         )
 
     # TODO extend to nonbinary nodes
-    @cache.method("_repertoire_no_virtual_units_cache", Direction.EFFECT)
-    def _effect_repertoire_no_virtual_units(self, mechanism, purview):
-        # Convert to state-by-state to get explicit joint probabilities
-        joint = convert.sbn2sbs(self.proper_tpm)
-        # Reshape to multidimensional form
+    @cache.method("_repertoire_nonvirtualized_cache", Direction.EFFECT)
+    def _effect_repertoire_nonvirtualized(
+        self,
+        mechanism: frozenset[int],
+        purview: tuple[int],
+        nonvirtualized_units: frozenset[int],
+    ):
+        # First, marginalize out virtualized nonmechanism units as normal.
+        virtualized_units = set(self.node_indices) - mechanism - nonvirtualized_units
+        tpm = marginalize_out(virtualized_units, self.tpm)
+        # Ignore any units outside the purview.
+        tpm = tpm[..., list(purview)]
+        # Convert to state-by-state to get explicit joint probabilities.
+        joint = convert.sbn2sbs(tpm)
+        # Reshape to multidimensional form.
+        n_prev = int(log2(joint.shape[0]))
         joint = convert.sbs_to_multidimensional(joint)
-        # Marginalize out non-purview nodes
-        # NOTE: We don't use `marginalize_out()` here because that function
-        # assumes we're marginalizing over 'rows' and thus renormalizes, but here
-        # we're marginalizing over 'columns'
-        nonpurview_nodes = tuple(
-            # Add n to index into 'column' section of the indices
-            len(self) + p
-            for p in set(self.node_indices) - set(purview)
-        )
-        joint = joint.sum(nonpurview_nodes, keepdims=True)
-        # Condition on the state of the mechanism
-        joint = condition_tpm(joint, mechanism, self.proper_state)
-        # Marginalize-out non-mechanism nodes
-        nonmechanism_nodes = frozenset(self.node_indices) - mechanism
-        joint = marginalize_out(nonmechanism_nodes, joint)
+        # Condition on the state of the mechanism.
+        mechanism_state = utils.state_of(mechanism, self.state)
+        joint = joint[mechanism_state]
+        # Marginalize over non-mechanism states.
+        previous_state_axes = tuple(range(n_prev))
+        joint = joint.sum(axis=previous_state_axes)
+        # Renormalize, since we summed along rows.
+        joint /= joint.sum()
+        # Reshape into a multidimensional repertoire.
         return joint.reshape(repertoire_shape(purview, self.tpm_size))
 
-    def effect_repertoire(self, mechanism, purview, virtual_units=True):
+    def effect_repertoire(self, mechanism, purview, nonvirtualized_units=()):
         # If the purview is empty, the distribution is empty, so return the
         # multiplicative identity.
         if not purview:
@@ -438,9 +449,12 @@ class Subsystem:
         # Use a frozenset so the arguments to `_single_node_effect_repertoire`
         # can be hashed and cached.
         mechanism = frozenset(mechanism)
-        if virtual_units:
+        if not nonvirtualized_units:
             return self._effect_repertoire_virtualized(mechanism, purview)
-        return self._effect_repertoire_no_virtual_units(mechanism, purview)
+        nonvirtualized_units = frozenset(nonvirtualized_units)
+        return self._effect_repertoire_nonvirtualized(
+            mechanism, purview, nonvirtualized_units
+        )
 
     def repertoire(self, direction, mechanism, purview, **kwargs):
         """Return the cause or effect repertoire based on a direction.
@@ -770,19 +784,27 @@ class Subsystem:
     # TODO rename to intrinsic information?
     def find_maximal_state_under_complete_partition(
         self,
-        direction,
-        mechanism,
-        purview,
-        return_information=False,
-        repertoire_distance=None,
-        states=None,
-        virtual_units=False,
+        direction: Direction,
+        mechanism: tuple[int],
+        purview: tuple[int],
+        return_information: bool = False,
+        repertoire_distance: str = None,
+        states: Iterable[Iterable[int]] = None,
+        virtual_units: Iterable[int] = None,
     ):
         repertoire_distance = fallback(
             repertoire_distance, config.REPERTOIRE_DISTANCE_INFORMATION
         )
         if states is None:
             states = utils.all_states(len(purview))
+
+        # Default to not virtualizing mechanism units
+        if virtual_units is None:
+            nonvirtualized_units = mechanism
+        else:
+            nonvirtualized_units = frozenset(self.node_indices) - frozenset(
+                virtual_units
+            )
 
         repertoire = self.repertoire(direction, mechanism, purview)
         partition = complete_partition(mechanism, purview)
@@ -794,7 +816,7 @@ class Subsystem:
                 purview,
                 partition,
                 partitioned_repertoire_kwargs=dict(
-                    virtual_units=virtual_units,
+                    nonvirtualized_units=nonvirtualized_units,
                 ),
                 repertoire=repertoire,
                 repertoire_distance=repertoire_distance,
