@@ -15,6 +15,8 @@ from math import log2
 
 import numpy as np
 
+from .utils import all_states
+
 # Create a logger for this module.
 log = logging.getLogger(__name__)
 
@@ -183,18 +185,22 @@ def to_multidimensional(tpm):
     # Cast to np.array
     tpm = np.array(tpm)
     # Get the number of nodes in the previous state
-    Np = int(log2(np.prod(tpm.shape[:-1])))
+    n_prev = int(log2(np.prod(tpm.shape[:-1])))
     # Get the number of nodes in the next state
-    Nn = tpm.shape[-1]
+    n_next = tpm.shape[-1]
     # Reshape. We use Fortran ordering here so that the rows use the
     # little-endian convention (least-significant bits correspond to low-index
     # nodes). Note that this does not change the actual memory layout (C- or
     # Fortran-contiguous), so there is no performance loss.
-    return tpm.reshape([2] * Np + [Nn], order="F").astype(float)
+    return tpm.reshape([2] * n_prev + [n_next], order="F").astype(float)
 
 
 def sbs_to_multidimensional(tpm):
-    return tpm.reshape([2] * (2 * int(log2(tpm.shape[0]))), order="F")
+    if not tpm.ndim == 2:
+        raise ValueError("tpm must be 2-dimensional")
+    m = int(log2(tpm.shape[0]))
+    n = int(log2(tpm.shape[1]))
+    return tpm.reshape([2] * (m + n), order="F")
 
 
 def to_2dimensional(tpm):
@@ -273,7 +279,7 @@ def state_by_state2state_by_node(tpm):
     return sbn_tpm
 
 
-def state_by_node2state_by_state(tpm):
+def state_by_node2state_by_state(sbn):
     """Convert a state-by-node TPM to a state-by-state TPM.
 
     .. important::
@@ -334,39 +340,57 @@ def state_by_node2state_by_state(tpm):
            [0.378, 0.252, 0.162, 0.108, 0.042, 0.028, 0.018, 0.012],
            [0.36 , 0.36 , 0.09 , 0.09 , 0.04 , 0.04 , 0.01 , 0.01 ]])
     >>> tpm = np.array([[1],
-                        [0]])
+    ...                 [0]])
     array([[0, 1],
            [1, 0]])
+    >>> tpm = np.array([[[[0.5, 0.5]]]])
+    array([[0.25, 0.25, 0.25, 0.25]])
     """
-    # Overall approach: get the state-by-state TPM for each individual node,
-    # then take the product to get the joint
-    # TODO extend to nonbinary
-    if tpm.size != 2:
-        # Don't squeeze 1-element TPMs, since their last dimension will be a
-        # singleton.
-        tpm = tpm.squeeze()
+    # First convert to multidimensional form
+    sbn = to_multidimensional(sbn)
 
-    # Get the number of previous nodes
-    if tpm.ndim == 2:
-        n_prev = int(log2(tpm.shape[0]))
-        n_next = tpm.shape[1]
-    else:
-        n_prev = tpm.ndim - 1
-        n_next = tpm.shape[-1]
+    # Squeeze all but the last axis (i.e., the node axis), since for a
+    # single-node system that axis will be a singleton but we want to keep
+    # it.
+    squeeze_axes = tuple(i for i in range(sbn.ndim - 1) if sbn.shape[i] == 1)
+    sbn = sbn.squeeze(axis=squeeze_axes)
+
+    # Get the number of previous and next nodes
+    n_prev = sbn.ndim - 1
+    n_next = sbn.shape[-1]
+
     # First make the OFF probabilities explicit; the last dimension will
     # correpsond to OFF/ON probability
-    tpm = np.stack([1 - tpm, tpm], axis=-1)
-    # Now efficiently construct indices that correspond to each of the next
-    # states; these can be thought of as 'state coordinates', so we can use
-    # mgrid
-    # NOTE: Reverse the list so that the first node's state varies the fastest
-    indices = list(reversed(np.mgrid[[slice(0, 2)] * n_next]))
-    # Index into the OFF/ON dimension using the 'state coordinates'
-    # NOTE: Flatten with `.reshape(-1)` to avoid copying
-    marginal_sbs_tpms = [tpm[..., i, idx.reshape(-1)] for i, idx in enumerate(indices)]
-    return np.prod(marginal_sbs_tpms, axis=0).reshape(
-        [2 ** n_prev, 2 ** n_next], order="F"
-    )
+    sbn = np.stack([1 - sbn, sbn], axis=-1)
+
+    # Preallocate the state-by-state TPM
+    sbs = np.empty([2 ** n_prev, 2 ** n_next], dtype=sbn.dtype)
+
+    def fill_row(sbs_row_idx, prev_state):
+        # Overall approach: get the marginal conditional probabilities for each
+        # node, then take the product to get the joint
+
+        # Condition on the previous state corresponding to this row
+        pr_conditioned_on_mech = sbn[prev_state]
+        # Get indices for the next states
+        sbs_col_idx = list(reversed(np.mgrid[[slice(0, 2)] * n_next]))
+        # Get the marginal distributions over next states for each element
+        pr_marginal = [
+            pr_conditioned_on_mech[i, idx.reshape(-1)]
+            for i, idx in enumerate(sbs_col_idx)
+        ]
+        # Take the product across elements to get the conditional joint distribution
+        row = np.prod(pr_marginal, axis=0)
+        # Fill state-by-state row with the joint distribution
+        sbs[sbs_row_idx, :] = row
+
+    if not n_prev:
+        fill_row(0, ())
+    else:
+        for sbs_row_idx, prev_state in enumerate(all_states(n_prev)):
+            fill_row(sbs_row_idx, prev_state)
+
+    return sbs
 
 
 # Short aliases
