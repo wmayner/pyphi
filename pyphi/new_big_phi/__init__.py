@@ -3,6 +3,7 @@
 from collections import defaultdict
 from dataclasses import dataclass
 from itertools import product
+from textwrap import indent
 from typing import Dict, Generator, Iterable, Optional, Union
 
 from numpy.typing import ArrayLike
@@ -165,16 +166,19 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         )
 
     def _repr_columns(self):
-        columns = [
-            (
-                "Subsystem",
-                ",".join(self.node_labels.coerce_to_labels(self.node_indices)),
-            ),
-            ("Current state", ",".join(map(str, self.current_state))),
-            ("Partition", str(self.partition)),
-            (f"           {fmt.BIG_PHI}", self.phi),
-            (f"Normalized {fmt.BIG_PHI}", self.normalized_phi),
-        ] + self.system_state._repr_columns()
+        columns = (
+            [
+                (
+                    "Subsystem",
+                    ",".join(self.node_labels.coerce_to_labels(self.node_indices)),
+                ),
+                ("Current state", ",".join(map(str, self.current_state))),
+                (f"           {fmt.BIG_PHI}", self.phi),
+                (f"Normalized {fmt.BIG_PHI}", self.normalized_phi),
+            ]
+            + self.system_state._repr_columns()
+            + [("Partition", "")]
+        )
         if self.reasons:
             columns.append(("Reasons", ", ".join(self.reasons)))
         return columns
@@ -182,7 +186,10 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
     def __repr__(self):
         body = "\n".join(fmt.align_columns(self._repr_columns()))
         body = fmt.header(self.__class__.__name__, body, under_char=fmt.HEADER_BAR_2)
-        return fmt.box(fmt.center(body))
+        body = fmt.center(body)
+        column_extent = body.split("\n")[2].index(":")
+        body += "\n" + indent(str(self.partition), " " * (column_extent + 2))
+        return fmt.box(body)
 
 
 class NullSystemIrreducibilityAnalysis(SystemIrreducibilityAnalysis):
