@@ -170,7 +170,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
                 "Subsystem",
                 ",".join(self.node_labels.coerce_to_labels(self.node_indices)),
             ),
-            ("Current state:", "".join(map(str, self.current_state))),
+            ("Current state", ",".join(map(str, self.current_state))),
             ("Partition", str(self.partition)),
             (f"           {fmt.BIG_PHI}", self.phi),
             (f"Normalized {fmt.BIG_PHI}", self.normalized_phi),
