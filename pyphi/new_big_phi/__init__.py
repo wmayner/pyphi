@@ -130,7 +130,8 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
     repertoire_effect: Optional[ArrayLike] = None
     partitioned_repertoire_effect: Optional[ArrayLike] = None
     atomic_integration: Optional[Dict[Direction, float]] = None
-    system_state: Optional[tuple[int]] = None
+    system_state: Optional[SystemState] = None
+    current_state: Optional[tuple[int]] = None
     node_indices: Optional[tuple[int]] = None
     node_labels: Optional[NodeLabels] = None
     reasons: Optional[list] = None
@@ -169,6 +170,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
                 "Subsystem",
                 ",".join(self.node_labels.coerce_to_labels(self.node_indices)),
             ),
+            ("Current state:", "".join(map(str, self.current_state))),
             ("Partition", str(self.partition)),
             (f"           {fmt.BIG_PHI}", self.phi),
             (f"Normalized {fmt.BIG_PHI}", self.normalized_phi),

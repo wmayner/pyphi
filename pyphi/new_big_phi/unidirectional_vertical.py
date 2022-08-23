@@ -90,6 +90,7 @@ def evaluate_partition(
         repertoire_effect=repertoire_e,
         partitioned_repertoire_effect=partitioned_repertoire_e,
         system_state=system_state,
+        current_state=subsystem.proper_state,
         node_indices=subsystem.node_indices,
         node_labels=subsystem.node_labels,
     )
