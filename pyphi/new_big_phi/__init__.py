@@ -147,8 +147,18 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
     ]
 
     def order_by(self):
-        # Break ties using negative phi (i.e. reverse order)
         return self.phi
+
+    @property
+    def ties(self):
+        try:
+            return self._ties
+        except AttributeError:
+            self._ties = [self]
+            return self._ties
+
+    def set_ties(self, ties):
+        self._ties = ties
 
     def __eq__(self, other):
         return cmp.general_eq(self, other, self._sia_attributes)
@@ -177,7 +187,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
                 (f"Normalized {fmt.BIG_PHI}", self.normalized_phi),
             ]
             + self.system_state._repr_columns()
-            + [("Partition", "")]
+            + [("# tied MIPs", len(self.ties)), ("Partition", "")]
         )
         if self.reasons:
             columns.append(("Reasons", ", ".join(self.reasons)))
