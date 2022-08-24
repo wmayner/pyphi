@@ -21,6 +21,7 @@ from .models.cuts import (
     CompleteGeneralKCut,
     Cut,
     GeneralKCut,
+    GeneralSetPartition,
     KPartition,
     Part,
     RelationPart,
@@ -854,7 +855,12 @@ def _unidirectional_set_partitions(node_indices, node_labels=None):
                 cut_matrix[np.ix_(source, target)] = 1
                 if direction == Direction.BIDIRECTIONAL:
                     cut_matrix[np.ix_(target, source)] = 1
-            yield GeneralKCut(node_indices, cut_matrix, node_labels=node_labels)
+            yield GeneralSetPartition(
+                node_indices,
+                cut_matrix,
+                node_labels=node_labels,
+                set_partition=partition,
+            )
 
 
 @system_partition_types.register("SET_UNI/BI")

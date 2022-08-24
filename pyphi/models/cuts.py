@@ -338,6 +338,29 @@ class CompleteGeneralKCut(GeneralKCut):
         return 1 / len(self.node_indices)
 
 
+class GeneralSetPartition(GeneralKCut):
+    def __init__(self, *args, set_partition=None, **kwargs):
+        self.set_partition = set_partition
+        super().__init__(*args, **kwargs)
+
+    @property
+    def num_parts(self):
+        return len(self.set_partition)
+
+    def __str__(self):
+        if self.node_labels is not None:
+            parts = map(self.node_labels.coerce_to_labels, self.set_partition)
+        else:
+            parts = map(str, self.set_partition)
+        return (
+            f"{self.num_parts} parts: "
+            + "{"
+            + ",".join("".join(part) for part in parts)
+            + "}\n"
+            + super().__str__()
+        )
+
+
 @dataclass(order=True)
 class Part:
     """Represents one part of a |Bipartition|.
