@@ -175,5 +175,6 @@ def find_mip(
             ties = [mip_sia]
         elif candidate_key == mip_key:
             ties.append(candidate_mip_sia)
-    mip_sia.set_ties(ties)
+    for tied_mip in ties:
+        tied_mip.set_ties(ties)
     return mip_sia
