@@ -736,7 +736,7 @@ class PyphiConfig(Config):
     )
 
     PARTITION_TYPE = Option(
-        "TRI",
+        "ALL",
         doc="""
     Controls the type of partition used for |small_phi| computations.
 
@@ -823,7 +823,7 @@ class PyphiConfig(Config):
 
     # TODO(4.0) finish documenting
     SYSTEM_PARTITION_TYPE = Option(
-        "GENERAL",
+        "SET_UNI/BI",
         doc="""
     Controls the system partitioning scheme.
     """,
