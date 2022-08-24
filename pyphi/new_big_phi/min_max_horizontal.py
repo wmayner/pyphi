@@ -1,7 +1,7 @@
 # new_big_phi/min_max_horizontal.py
 
 from dataclasses import dataclass
-from typing import Iterable, Optional, Union
+from typing import Iterable, Optional, Union, Generator
 
 from numpy.typing import ArrayLike
 
@@ -14,12 +14,225 @@ from ..models.cuts import Cut, SystemPartition
 from ..new_big_phi import (
     DEFAULT_PARTITION_CHUNKSIZE,
     DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
-    HorizontalSystemPartition,
     SystemState,
     find_system_state,
-    sia_partitions_horizontal,
-    normalization_factor_horizontal,
 )
+from ..registry import Registry
+
+##############################################################################
+# Partition schemes and integration
+##############################################################################
+
+
+class PartitionSchemeRegistry(Registry):
+    """Storage for partition schemes registered with PyPhi.
+
+    Users can define custom partitions:
+
+    Examples:
+        >>> @pyphi.new_big_phi.partition_types.register('NONE')  # doctest: +SKIP
+        ... def no_partitions(mechanism, purview):
+        ...    return []
+
+    And use them by setting ``config.IIT_4_SYSTEM_PARTITION_TYPE = 'NONE'``
+    """
+
+    desc = "IIT 4.0 system partition schemes"
+
+
+partition_schemes = PartitionSchemeRegistry()
+
+
+def system_partitions(
+    node_indices: tuple[int], node_labels: NodeLabels
+) -> Generator[SystemPartition, None, None]:
+    """Generate system partitions."""
+    return partition_schemes[config.IIT_4_SYSTEM_PARTITION_TYPE](
+        node_indices, node_labels
+    )
+
+
+class SystemPartition:
+    """Abstract base class representing a partition of the system."""
+
+    def normalization_factor(self):
+        raise NotImplementedError
+
+    def evaluate(
+        self, subsystem: Subsystem, system_state: SystemState, **kwargs
+    ) -> tuple[float, ArrayLike, ArrayLike]:
+        raise NotImplementedError
+
+
+@dataclass
+class HorizontalSystemPartition(SystemPartition):
+    """A 'horizontal' system partition."""
+
+    direction: Direction
+    purview: tuple[int]
+    unpartitioned_mechanism: tuple[int]
+    partitioned_mechanism: tuple[int]
+    node_labels: Optional[NodeLabels] = None
+
+    def normalization_factor(self):
+        return 1 / len(self.purview)
+
+    def evaluate(
+        self, subsystem: Subsystem, system_state: SystemState, **kwargs
+    ) -> tuple[float, ArrayLike, ArrayLike]:
+        valid_distances = ["IIT_4.0_SMALL_PHI", "IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE"]
+        if config.REPERTOIRE_DISTANCE not in valid_distances:
+            raise ValueError(
+                f"Must set config.REPERTOIRE_DISTANCE to one of {valid_distances}; "
+                f"got {config.REPERTOIRE_DISTANCE}"
+            )
+        purview_state = utils.state_of(
+            # Get purview indices relative to subsystem indices
+            [subsystem.node_indices.index(n) for n in self.purview],
+            system_state[self.direction],
+        )
+        unpartitioned_repertoire = subsystem.repertoire(
+            self.direction, self.unpartitioned_mechanism, self.purview
+        )
+        partitioned_repertoire = subsystem.repertoire(
+            self.direction,
+            self.partitioned_mechanism,
+            self.purview,
+        )
+        phi = repertoire_distance(
+            unpartitioned_repertoire,
+            partitioned_repertoire,
+            direction=self.direction,
+            state=purview_state,
+            **kwargs,
+        )
+        normalized_phi = phi * self.normalization_factor()
+        return (phi, normalized_phi, unpartitioned_repertoire, partitioned_repertoire)
+
+    def __repr__(self):
+        purview = "".join(self.node_labels.coerce_to_labels(self.purview))
+        unpartitioned_mechanism = "".join(
+            self.node_labels.coerce_to_labels(self.unpartitioned_mechanism)
+        )
+        partitioned_mechanism = (
+            "∅"
+            if not self.partitioned_mechanism
+            else "".join(self.node_labels.coerce_to_labels(self.partitioned_mechanism))
+        )
+        return f"π({purview}|{unpartitioned_mechanism}) || π({purview}|{partitioned_mechanism}) [{self.direction}]"
+
+
+# TODO
+class CompletePartition(HorizontalSystemPartition):
+    """The partition that severs all connections."""
+
+    pass
+
+
+def _cause_normalization_horizontal(partition):
+    if not partition.partitioned_mechanism:
+        return len(partition.purview)
+    return float("inf")
+
+
+def _effect_normalization_horizontal(partition):
+    return len(partition.purview) * (
+        len(partition.unpartitioned_mechanism) - len(partition.partitioned_mechanism)
+    )
+
+
+_horizontal_normalizations = {
+    Direction.CAUSE: _cause_normalization_horizontal,
+    Direction.EFFECT: _effect_normalization_horizontal,
+}
+
+
+def normalization_factor_horizontal(partition, directions=None):
+    directions = fallback(directions, Direction.both())
+    return 1 / min(
+        _horizontal_normalizations[direction](partition) for direction in directions
+    )
+
+
+# TODO use enum?
+_EMPTY_SET = "0"
+_PART_ONE = "1"
+_PART_TWO = "2"
+_FULL_SYSTEM = "3"
+
+
+def code_number_to_part(number, node_indices, part1, part2=None):
+    return {
+        _EMPTY_SET: (),
+        _PART_ONE: part1,
+        _PART_TWO: part2,
+        _FULL_SYSTEM: node_indices,
+    }[number]
+
+
+def sia_partitions_horizontal(
+    node_indices: Iterable,
+    node_labels: Optional[NodeLabels] = None,
+    directions=None,
+    code=None,
+) -> Generator[SystemPartition, None, None]:
+    """Yield 'horizontal-type' system partitions."""
+    code = fallback(code, config.HORIZONTAL_PARTITION_CODE)
+    if code[0] != code[2]:
+        raise ConfigurationError(
+            "Invalid horizontal partition code: purview of unpartitioned and "
+            "partitioned repertoires don't match"
+        )
+
+    if directions is None:
+        directions = Direction.both()
+
+    # Special case for single-element systems
+    if len(node_indices) == 1:
+        # Complete partition
+        for direction in Direction.both():
+            yield CompletePartition(direction, node_indices, node_labels=node_labels)
+        return
+
+    if _PART_ONE not in code and _PART_TWO not in code:
+        for direction in directions:
+            yield HorizontalSystemPartition(
+                direction=direction,
+                purview=node_indices,
+                unpartitioned_mechanism=node_indices,
+                partitioned_mechanism=(),
+            )
+        return
+    for (part1, part2), direction in product(
+        directed_bipartition(node_indices, nontrivial=True), directions
+    ):
+        if _PART_ONE in code and _PART_TWO in code:
+            purview = code_number_to_part(code[0], node_indices, part1, part2=part2)
+            unpartitioned_mechanism = code_number_to_part(
+                code[1], node_indices, part1, part2=part2
+            )
+            partitioned_mechanism = code_number_to_part(
+                code[3], node_indices, part1, part2=part2
+            )
+            yield HorizontalSystemPartition(
+                direction,
+                purview=purview,
+                unpartitioned_mechanism=unpartitioned_mechanism,
+                partitioned_mechanism=partitioned_mechanism,
+                node_labels=node_labels,
+            )
+        else:
+            purview = code_number_to_part(code[0], node_indices, part1)
+            unpartitioned_mechanism = code_number_to_part(code[1], node_indices, part1)
+            partitioned_mechanism = code_number_to_part(code[2], node_indices, part1)
+            yield HorizontalSystemPartition(
+                direction,
+                purview=purview,
+                unpartitioned_mechanism=unpartitioned_mechanism,
+                partitioned_mechanism=partitioned_mechanism,
+                node_labels=node_labels,
+            )
+
 
 HORIZONTAL_PARTITION_CODE = "1210"
 
