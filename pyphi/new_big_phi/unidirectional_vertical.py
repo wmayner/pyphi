@@ -149,11 +149,9 @@ def find_mip(
         node_indices=subsystem.node_indices,
         node_labels=subsystem.node_labels,
     )
-    return compute.parallel.map_reduce(
+    sias = compute.parallel.map(
         evaluate_partition,
-        min,
         partitions,
-        reduce_kwargs=dict(key=sia_minimization_key, default=default_sia),
         subsystem=subsystem,
         system_state=system_state,
         repertoire_distance=repertoire_distance,
@@ -165,3 +163,17 @@ def find_mip(
         progress=progress,
         desc="Evaluating partitions",
     )
+    # Find MIP in one pass, keeping track of ties
+    mip_sia = default_sia
+    mip_key = (float("inf"), float("-inf"))
+    ties = []
+    for candidate_mip_sia in sias:
+        candidate_key = sia_minimization_key(candidate_mip_sia)
+        if candidate_key < mip_key:
+            mip_sia = candidate_mip_sia
+            mip_key = candidate_key
+            ties = []
+        elif candidate_key == mip_key:
+            ties.append(candidate_mip_sia)
+    mip_sia.ties = ties
+    return mip_sia
