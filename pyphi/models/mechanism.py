@@ -156,9 +156,16 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
     def set_specified_state(self, state):
         self._specified_state = state
 
-    def state_ties(self):
+    def is_congruent(self, state):
+        """Return whether the given state is congruent to the specified state."""
+        # TODO(4.0) use DistanceResult.is_congruent
+        # TODO(4.0) configure ties with kwargs?
+        purview_state = utils.state_of(self.purview, state)
+        return any(tuple(state) == purview_state for state in self.specified_state)
+
+    def state_ties(self, congruent_with=None):
         for index, state in zip(self.specified_index, self.specified_state):
-            yield RepertoireIrreducibilityAnalysis(
+            ria = RepertoireIrreducibilityAnalysis(
                 self.phi,
                 self.direction,
                 self.mechanism,
@@ -172,13 +179,8 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
                 purview_state=self.purview_state,
                 node_labels=self.node_labels,
             )
-
-    def is_congruent(self, state):
-        """Return whether the given state is congruent to the specified state."""
-        # TODO(4.0) use DistanceResult.is_congruent
-        # TODO(4.0) configure ties with kwargs?
-        purview_state = utils.state_of(self.purview, state)
-        return any(tuple(state) == purview_state for state in self.specified_state)
+            if (congruent_with is None) or ria.is_congruent(congruent_with):
+                yield ria
 
     @property
     def node_labels(self):
@@ -352,18 +354,17 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
                 yield tie
                 seen.add(tie.mip)
 
-    @property
-    def state_ties(self):
+    def state_ties(self, congruent_with=None):
         cls = type(self)
-        for ria in self.ria.state_ties():
+        for ria in self.ria.state_ties(congruent_with=congruent_with):
             yield cls(ria, ties=self._all_ties)
 
-    def ties(self, purview=True, state=True, partition=True):
+    def ties(self, purview=True, state=True, partition=True, congruent_with=None):
         """Return MICE for any other purviews, partitions, or states that are maximal."""
         if purview and partition:
             ties = []
             # TODO(4.0) Currently the logic in subsystem.find_mice will add
-            # duplicate MIPE to the ties, one for each state. This should be
+            # duplicate MICE to the ties, one for each state. This should be
             # made more sensible when the logic stabilizes, but for now we just
             # filter out the duplicates.
             seen = set()
@@ -380,7 +381,7 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
 
         if state:
             for mice in ties:
-                yield from mice.state_ties
+                yield from mice.state_ties(congruent_with=congruent_with)
         else:
             yield from ties
 
@@ -648,6 +649,24 @@ class Concept(cmp.Orderable):
         return all(
             self.mice(direction).is_congruent(system_state[direction])
             for direction in Direction.both()
+        )
+
+    def resolve_congruence(self, system_state):
+        """Choose the MIC/MIE that are congruent, if any."""
+        cause, effect = [
+            next(
+                self.mice(direction).state_ties(congruent_with=system_state[direction]),
+                None,
+            )
+            for direction in Direction.both()
+        ]
+        if cause is None or effect is None:
+            return None
+        return type(self)(
+            mechanism=self.mechanism,
+            cause=cause,
+            effect=effect,
+            subsystem=self.subsystem,
         )
 
     def eq_repertoires(self, other):
