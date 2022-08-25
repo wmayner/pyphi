@@ -419,11 +419,23 @@ class PhiStructure(cmp.Orderable):
             self._big_phi = sum(self.distinctions.phis) + self.relations.sum_phis()
 
 
-def phi_structure(subsystem: Subsystem) -> PhiStructure:
+def phi_structure(
+    subsystem: Subsystem,
+    parallel: bool = True,
+    sia_kwargs: dict = None,
+    ces_kwargs: dict = None,
+    relations_kwargs: dict = None,
+) -> PhiStructure:
     """Analyze the irreducible cause-effect structure of a system."""
-    mip = find_mip(subsystem)
-    distinctions = compute.ces(subsystem)
-    relations = compute_relations(subsystem, distinctions)
+    defaults = dict(parallel=parallel)
+    sia_kwargs = fallback(sia_kwargs, defaults)
+    ces_kwargs = fallback(ces_kwargs, defaults)
+    relations_kwargs = fallback(relations_kwargs, defaults)
+
+    mip = sia(subsystem, **sia_kwargs)
+    distinctions = compute.ces(subsystem, **ces_kwargs)
+    relations = compute_relations(subsystem, distinctions, **relations_kwargs)
+
     return PhiStructure(
         sia=mip,
         distinctions=distinctions,
