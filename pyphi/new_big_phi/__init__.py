@@ -182,11 +182,11 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
                     ",".join(self.node_labels.coerce_to_labels(self.node_indices)),
                 ),
                 ("Current state", ",".join(map(str, self.current_state))),
-                (f"           {fmt.BIG_PHI}", self.phi),
-                (f"Normalized {fmt.BIG_PHI}", self.normalized_phi),
+                (f"           {fmt.SMALL_PHI}_s", self.phi),
+                (f"Normalized {fmt.SMALL_PHI}_s", self.normalized_phi),
             ]
             + self.system_state._repr_columns()
-            + [("# tied MIPs", len(self.ties)), ("Partition", "")]
+            + [("#(tied MIPs)", len(self.ties)), ("Partition", "")]
         )
         if self.reasons:
             columns.append(("Reasons", ", ".join(self.reasons)))
