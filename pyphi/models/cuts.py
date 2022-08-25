@@ -342,6 +342,9 @@ class GeneralSetPartition(GeneralKCut):
     def __init__(self, *args, set_partition=None, **kwargs):
         self.set_partition = set_partition
         super().__init__(*args, **kwargs)
+        self.parts = [
+            [self.node_indices[i] for i in part] for part in self.set_partition
+        ]
 
     @property
     def num_parts(self):
@@ -349,9 +352,9 @@ class GeneralSetPartition(GeneralKCut):
 
     def __str__(self):
         if self.node_labels is not None:
-            parts = map(self.node_labels.coerce_to_labels, self.set_partition)
+            parts = map(self.node_labels.coerce_to_labels, self.parts)
         else:
-            parts = map(str, self.set_partition)
+            parts = map(str, self.parts)
         return (
             f"{self.num_parts} parts: "
             + "{"
