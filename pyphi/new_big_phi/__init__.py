@@ -493,6 +493,8 @@ def resolve_congruence(
 def phi_structure(
     subsystem: Subsystem,
     parallel: bool = True,
+    distinctions: CauseEffectStructure = None,
+    relations: Relations = None,
     sia_kwargs: dict = None,
     ces_kwargs: dict = None,
     relations_kwargs: dict = None,
@@ -503,11 +505,18 @@ def phi_structure(
     ces_kwargs = fallback(ces_kwargs, defaults)
     relations_kwargs = fallback(relations_kwargs, defaults)
 
+    # Analyze irreducibility
     mip = sia(subsystem, **sia_kwargs)
-    distinctions = resolve_congruence(
-        compute.ces(subsystem, **ces_kwargs), mip.system_state
+
+    # Compute distinctions if not provided
+    distinctions = fallback(distinctions, compute.ces(subsystem, **ces_kwargs))
+    # Filter out incongruent distinctions
+    distinctions = resolve_congruence(distinctions, mip.system_state)
+
+    # Compute relations if not provided
+    relations = fallback(
+        relations, compute_relations(subsystem, distinctions, **relations_kwargs)
     )
-    relations = compute_relations(subsystem, distinctions, **relations_kwargs)
 
     return PhiStructure(
         sia=mip,
