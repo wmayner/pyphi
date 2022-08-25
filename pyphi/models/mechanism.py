@@ -642,6 +642,12 @@ class Concept(cmp.Orderable):
         """A concept is ``True`` if |small_phi > 0|."""
         return utils.is_positive(self.phi)
 
+    def is_congruent(self, system_state):
+        return all(
+            self.mice(direction).is_congruent(system_state[direction])
+            for direction in Direction.both()
+        )
+
     def eq_repertoires(self, other):
         """Return whether this concept has the same repertoires as another.
 
