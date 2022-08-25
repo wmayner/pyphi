@@ -8,7 +8,8 @@ Functions for generating partitions.
 
 import functools
 import itertools
-from itertools import chain, permutations, product
+from itertools import chain, product
+from more_itertools import distinct_permutations
 
 import numpy as np
 
@@ -571,6 +572,7 @@ def all_partitions(mechanism, purview, node_labels=None):
     Yields:
         KPartition: A partition of this mechanism and purview into ``k`` parts.
     """
+    # TODO(4.0): yield complete partition directly, then use nontrivial set partitions
     for mechanism_partition in partitions(mechanism):
         mechanism_partition.append([])
         n_mechanism_parts = len(mechanism_partition)
@@ -578,24 +580,21 @@ def all_partitions(mechanism, purview, node_labels=None):
         for n_purview_parts in range(1, max_purview_partition + 1):
             n_empty = n_mechanism_parts - n_purview_parts
             for purview_partition in k_partitions(purview, n_purview_parts):
-                purview_partition = [tuple(_list) for _list in purview_partition]
+                purview_partition = [tuple(part) for part in purview_partition]
                 # Extend with empty tuples so purview partition has same size
                 # as mechanism purview
                 purview_partition.extend([()] * n_empty)
-
-                # Unique permutations to avoid duplicates empties
-                for purview_permutation in set(permutations(purview_partition)):
-
+                # Unique permutations to avoid duplicate empties
+                for purview_permutation in distinct_permutations(purview_partition):
                     parts = [
                         Part(tuple(m), tuple(p), node_labels=node_labels)
                         for m, p in zip(mechanism_partition, purview_permutation)
                     ]
-
                     # Must partition the mechanism, unless the purview is fully
                     # cut away from the mechanism.
+                    # TODO(4.0) find a way to avoid generating these in the first place
                     if parts[0].mechanism == mechanism and parts[0].purview:
                         continue
-
                     yield KPartition(*parts, node_labels=node_labels)
 
 
