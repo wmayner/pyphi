@@ -314,7 +314,7 @@ class GeneralKCut(_CutBase):
         )
 
     def __hash__(self):
-        return hash((self.node_indices, utils.np_hash(self.cut_matrix)))
+        return hash((self.node_indices, utils.np_hash(self._cut_matrix)))
 
     def __repr__(self):
         return fmt.make_repr(self, ["node_indices", "_cut_matrix"])
