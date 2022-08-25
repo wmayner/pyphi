@@ -365,8 +365,8 @@ class GeneralSetPartition(GeneralKCut):
 
 
 class CompleteGeneralSetPartition(CompleteGeneralKCut):
-    def __repr__(self):
-        return "Complete\n" + super().__repr__()
+    def __str__(self):
+        return "Complete\n" + super().__str__()
 
 
 @dataclass(order=True)
