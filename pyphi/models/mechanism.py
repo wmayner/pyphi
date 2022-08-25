@@ -175,8 +175,10 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
 
     def is_congruent(self, state):
         """Return whether the given state is congruent to the specified state."""
-        purview_state = np.array(utils.state_of(self.purview, state))
-        return (self.specified_state == purview_state).all(axis=1).any()
+        # TODO(4.0) use DistanceResult.is_congruent
+        # TODO(4.0) configure ties with kwargs?
+        purview_state = utils.state_of(self.purview, state)
+        return any(tuple(state) == purview_state for state in self.specified_state)
 
     @property
     def node_labels(self):
