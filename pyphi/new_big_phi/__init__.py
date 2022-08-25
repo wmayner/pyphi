@@ -409,14 +409,60 @@ class PhiStructure(cmp.Orderable):
     def __getattr__(self, attr):
         if attr in self._SIA_INHERITED_ATTRIBUTES:
             return getattr(self.sia, attr)
-        return super().__getattr__(attr)
+        return super().__getattribute__(attr)
+
+    def __hash__(self):
+        return hash((self.distinctions, self.relations))
+
+    def __bool__(self):
+        return bool(self.sia)
+
+    def __eq__(self, other):
+        return cmp.general_eq(
+            self,
+            other,
+            [
+                "sia",
+                "distinctions",
+                "relations",
+            ],
+        )
+
+    def _repr_columns(self):
+        return [
+            ("Φ", self.big_phi),
+            ("#(distinctions)", len(self.distinctions)),
+            ("Σ φ_d", self.sum_phi_distinctions),
+            ("#(relations)", len(self.relations)),
+            ("Σ φ_r", self.sum_phi_relations),
+        ]
+
+    def __repr__(self):
+        body = "\n".join(fmt.align_columns(self._repr_columns()))
+        body = fmt.header(self.__class__.__name__, body, under_char=fmt.HEADER_BAR_1)
+        body += "\n" + str(self.sia)
+        return fmt.box(fmt.center(body))
+
+    @property
+    def sum_phi_relations(self):
+        return self.relations.sum_phi()
+
+    @property
+    def sum_phi_distinctions(self):
+        try:
+            return self._sum_phi_distinctions
+        except AttributeError:
+            # TODO delegate sum to distinctions
+            self._sum_phi_distinctions = sum(self.distinctions.phis)
+            return self._sum_phi_distinctions
 
     @property
     def big_phi(self):
         try:
             return self._big_phi
         except AttributeError:
-            self._big_phi = sum(self.distinctions.phis) + self.relations.sum_phis()
+            self._big_phi = self.sum_phi_distinctions + self.sum_phi_relations
+            return self._big_phi
 
 
 def phi_structure(
