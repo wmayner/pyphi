@@ -17,7 +17,7 @@ from ..labels import NodeLabels
 from ..metrics.distribution import repertoire_distance as _repertoire_distance
 from ..models import cmp, fmt
 from ..models.cuts import Cut, GeneralKCut, SystemPartition
-from ..models.subsystem import CauseEffectStructure, FlatCauseEffectStructure
+from ..models.subsystem import CauseEffectStructure
 from ..partition import system_partitions
 from ..relations import ConcreteRelations, Relations
 from ..relations import relations as compute_relations
