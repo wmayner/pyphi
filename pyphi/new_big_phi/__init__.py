@@ -310,7 +310,7 @@ def sia_minimization_key(sia):
     return (sia.normalized_phi, -sia.phi)
 
 
-def find_mip(
+def sia(
     subsystem: Subsystem,
     parallel: Optional[bool] = None,
     progress: Optional[bool] = None,
