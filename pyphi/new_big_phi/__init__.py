@@ -1,6 +1,6 @@
 # new_big_phi/__init__.py
 
-from collections import defaultdict
+import itertools
 from dataclasses import dataclass
 from enum import Enum, auto, unique
 from textwrap import indent
@@ -8,6 +8,7 @@ from typing import Dict, Iterable, Optional, Union
 
 from numpy.typing import ArrayLike
 from toolz import concat
+from tqdm.auto import tqdm
 
 from .. import Direction, Subsystem, compute, config, connectivity, utils
 from ..compute.network import reachable_subsystems
@@ -16,7 +17,7 @@ from ..labels import NodeLabels
 from ..metrics.distribution import repertoire_distance as _repertoire_distance
 from ..models import cmp, fmt
 from ..models.cuts import Cut, GeneralKCut, SystemPartition
-from ..models.subsystem import CauseEffectStructure
+from ..models.subsystem import CauseEffectStructure, FlatCauseEffectStructure
 from ..partition import system_partitions
 from ..relations import ConcreteRelations, Relations
 from ..relations import relations as compute_relations
@@ -387,17 +388,6 @@ def sia(
 ##############################################################################
 
 
-def congruent_subset(distinctions, direction, state):
-    """Find the subset(s) of distinctions congruent with the given system state(s)."""
-    # Map states to congruent subsets of distinctions
-    tied_states = defaultdict(set)
-    for distinction in distinctions:
-        for state in tied_states:
-            if distinction.mice(direction).is_congruent(state):
-                tied_states[state].add(distinction)
-    # TODO HERE finish
-
-
 @dataclass
 class PhiStructure(cmp.Orderable):
     sia: SystemIrreducibilityAnalysis
@@ -478,6 +468,28 @@ class NullPhiStructure(PhiStructure):
         )
 
 
+# TODO make this a method of CES
+def resolve_congruence(
+    distinctions: CauseEffectStructure,
+    system_state: SystemState,
+):
+    """Filter out incongruent distinctions.
+
+    If a distinction has tied states, the congruent one is kept.
+    """
+    # TODO(4.0) parallelize
+    return type(distinctions)(
+        filter(
+            lambda d: d is not None,
+            [
+                distinction.resolve_congruence(system_state)
+                for distinction in distinctions
+            ],
+        ),
+        subsystem=distinctions.subsystem,
+    )
+
+
 def phi_structure(
     subsystem: Subsystem,
     parallel: bool = True,
@@ -492,7 +504,9 @@ def phi_structure(
     relations_kwargs = fallback(relations_kwargs, defaults)
 
     mip = sia(subsystem, **sia_kwargs)
-    distinctions = compute.ces(subsystem, **ces_kwargs)
+    distinctions = resolve_congruence(
+        compute.ces(subsystem, **ces_kwargs), mip.system_state
+    )
     relations = compute_relations(subsystem, distinctions, **relations_kwargs)
 
     return PhiStructure(
