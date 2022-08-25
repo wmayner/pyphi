@@ -364,6 +364,11 @@ class GeneralSetPartition(GeneralKCut):
         )
 
 
+class CompleteGeneralSetPartition(CompleteGeneralKCut):
+    def __repr__(self):
+        return "Complete\n" + super().__repr__()
+
+
 @dataclass(order=True)
 class Part:
     """Represents one part of a |Bipartition|.
