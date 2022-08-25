@@ -9,7 +9,8 @@ from typing import Dict, Iterable, Optional, Union
 from numpy.typing import ArrayLike
 from toolz import concat
 
-from .. import Direction, Subsystem, compute, config, connectivity
+from .. import Direction, Subsystem, compute, config, connectivity, utils
+from ..compute.network import reachable_subsystems
 from ..conf import fallback
 from ..labels import NodeLabels
 from ..metrics.distribution import repertoire_distance as _repertoire_distance
@@ -17,9 +18,8 @@ from ..models import cmp, fmt
 from ..models.cuts import Cut, GeneralKCut, SystemPartition
 from ..models.subsystem import CauseEffectStructure
 from ..partition import system_partitions
-from ..relations import Relations
+from ..relations import ConcreteRelations, Relations
 from ..relations import relations as compute_relations
-from ..utils import is_positive
 
 DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD = 2 ** 4
 DEFAULT_PARTITION_CHUNKSIZE = 2 ** 2 * DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD
@@ -164,7 +164,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
 
     def __bool__(self):
         """Whether |big_phi > 0|."""
-        return is_positive(self.phi)
+        return utils.is_positive(self.phi)
 
     def __hash__(self):
         return hash(
@@ -411,6 +411,9 @@ class PhiStructure(cmp.Orderable):
             return getattr(self.sia, attr)
         return super().__getattribute__(attr)
 
+    def order_by(self):
+        return self.phi
+
     def __hash__(self):
         return hash((self.distinctions, self.relations))
 
@@ -465,6 +468,16 @@ class PhiStructure(cmp.Orderable):
             return self._big_phi
 
 
+class NullPhiStructure(PhiStructure):
+    def __init__(self, **kwargs):
+        super().__init__(
+            sia=NullSystemIrreducibilityAnalysis(),
+            distinctions=CauseEffectStructure([]),
+            relations=ConcreteRelations([]),
+            **kwargs,
+        )
+
+
 def phi_structure(
     subsystem: Subsystem,
     parallel: bool = True,
@@ -486,4 +499,24 @@ def phi_structure(
         sia=mip,
         distinctions=distinctions,
         relations=relations,
+    )
+
+
+def all_complexes(network, state, **kwargs):
+    """Yield SIAs for all subsystems of the network."""
+    # TODO(4.0) parallelize
+    for subsystem in reachable_subsystems(network, network.node_indices, state):
+        yield sia(subsystem, **kwargs)
+
+
+def irreducible_complexes(network, state, **kwargs):
+    """Yield SIAs for irreducible subsystems of the network."""
+    # TODO(4.0) parallelize
+    yield from filter(None, all_complexes(network, state, **kwargs))
+
+
+def major_complex(network, state, **kwargs):
+    # TODO(4.0) parallelize
+    return max(
+        irreducible_complexes(network, state, **kwargs), default=NullPhiStructure()
     )
