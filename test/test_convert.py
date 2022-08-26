@@ -185,6 +185,36 @@ def test_state_by_state2state_by_node():
     assert np.array_equal(result, expected)
 
 
+def test_state_by_node2state_by_state_single_element():
+    # fmt: off
+    tpm = np.array([
+        [0],
+        [1],
+    ])
+    expected = np.array([
+        [1, 0],
+        [0, 1],
+    ]).astype(float)
+    # fmt: on
+    result = convert.state_by_node2state_by_state(tpm)
+    assert np.array_equal(result, expected)
+
+
+def test_state_by_node2state_by_state_asymmetric():
+    # fmt: off
+    tpm = np.array([
+        [1, 0, 1, 0],
+        [0, 1, 0, 1],
+    ])
+    expected = np.array([
+        [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+    ]).astype(float)
+    # fmt: on
+    result = convert.state_by_node2state_by_state(tpm)
+    assert np.array_equal(result, expected)
+
+
 def test_state_by_node2state_by_state():
     # fmt: off
     sbn_tpm = np.array([
