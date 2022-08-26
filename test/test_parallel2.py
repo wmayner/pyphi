@@ -17,12 +17,6 @@ from hypothesis_utils import (
 from pyphi.compute import parallel
 
 
-@given(iterable_or_list(anything()))
-def test_try_len(iterable):
-    expected = len(iterable) if hasattr(iterable, "__len__") else None
-    assert parallel._try_len(iterable) == expected
-
-
 @given(st.lists(iterable_or_list(anything())))
 def test_try_lens(iterables):
     expected = min(
