@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 # test/test_utils.py
 
-from unittest.mock import patch
-
 import numpy as np
+from hypothesis import given
+from hypothesis_utils import anything, iterable_or_list
 
-from pyphi import constants, utils, config
+from pyphi import config, utils
 
 
 def test_all_states():
@@ -30,7 +30,7 @@ def test_all_states():
 
 def test_eq():
     phi = 0.5
-    epsilon = 10**(-config.PRECISION)
+    epsilon = 10 ** (-config.PRECISION)
     close_enough = phi - epsilon / 2
     not_quite = phi - epsilon * 2
     assert utils.eq(phi, close_enough)
@@ -101,3 +101,9 @@ def test_np_hashable():
     c_hashable = utils.np_hashable(c)
     assert c_hashable == b_hashable
     assert c_hashable in s
+
+
+@given(iterable_or_list(anything()))
+def test_try_len(iterable):
+    expected = len(iterable) if hasattr(iterable, "__len__") else None
+    assert utils.try_len(iterable) == expected
