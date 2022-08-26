@@ -231,10 +231,6 @@ def test_state_by_node2state_by_state():
     ]).astype(float)
     # fmt: on
     result = convert.state_by_node2state_by_state(sbn_tpm)
-    print("Result:")
-    print(result)
-    print("Expected:")
-    print(expected)
     assert np.array_equal(result, expected)
 
 
@@ -242,10 +238,6 @@ def test_nondet_state_by_node2state_by_state():
     # Test for nondeterministic TPM.
     result = convert.state_by_node2state_by_state(state_by_node_nondet)
     expected = state_by_state_nondet
-    print("Result:")
-    print(result)
-    print("Expected:")
-    print(expected)
     assert np.array_equal(result, expected)
 
 
@@ -253,10 +245,6 @@ def test_nondet_state_by_state2state_by_node():
     # Test for nondeterministic TPM.
     result = convert.state_by_state2state_by_node(state_by_state_nondet)
     expected = convert.to_multidimensional(state_by_node_nondet)
-    print("Result:")
-    print(result)
-    print("Expected:")
-    print(expected)
     assert np.array_equal(result, expected)
 
 
@@ -264,10 +252,6 @@ def test_2_d_state_by_node2state_by_state():
     # Check with 2-D form.
     result = convert.state_by_node2state_by_state(state_by_node)
     expected = state_by_state
-    print("Result:")
-    print(result)
-    print("Expected:")
-    print(expected)
     assert np.array_equal(result, expected)
 
 
@@ -276,10 +260,6 @@ def test_n_d_state_by_node2state_by_state():
     sbn = convert.to_multidimensional(state_by_node)
     result = convert.state_by_node2state_by_state(sbn)
     expected = state_by_state
-    print("Result:")
-    print(result)
-    print("Expected:")
-    print(expected)
     assert np.array_equal(result, expected)
 
 
