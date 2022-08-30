@@ -21,6 +21,7 @@ UNIT_FUNCTIONS = {
     "nor": unit_functions.logical_nor_function,
     "nand": unit_functions.logical_nand_function,
     "nparity": unit_functions.logical_nparity_function,
+    "naka_rushton": unit_functions.naka_rushton,
 }
 
 

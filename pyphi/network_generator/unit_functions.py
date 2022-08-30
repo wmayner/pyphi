@@ -28,3 +28,8 @@ def logical_nand_function(element, weights, state):
 
 def logical_nparity_function(element, weights, state):
     return not (logical_parity_function(element, weights, state))
+
+
+def naka_rushton(element, weights, state, exponent=2.0, threshold=1.0):
+    x = utils.input_weight(element, weights, state) ** exponent
+    return x / (x + threshold)
