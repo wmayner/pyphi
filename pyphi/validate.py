@@ -32,8 +32,8 @@ def direction(direction, allow_bi=False):
     return True
 
 
-def tpm(tpm, check_independence=True):
-    """Validate a TPM.
+def tpm_shape(tpm, check_independence=True):
+    """Validate a TPM's shape.
 
     The TPM can be in
 
@@ -77,6 +77,20 @@ def tpm(tpm, check_independence=True):
             "{}".format(see_tpm_docs)
         )
     return True
+
+
+def tpm_probabilities(tpm):
+    """Check that the probabilities in a TPM are valid."""
+    if (tpm < 0.0).any() or (tpm > 1.0).any():
+        raise ValueError("Invalid TPM: probabilities must be in the interval [0, 1].")
+    if is_state_by_state(tpm) and np.any(np.sum(tpm, axis=1) != 1.0):
+        raise ValueError("Invalid TPM: probabilities must sum to 1.")
+    return True
+
+
+def tpm(tpm, **kwargs):
+    """Validate a TPM."""
+    return tpm_probabilities(tpm) and tpm_shape(tpm, **kwargs)
 
 
 def conditionally_independent(tpm):
