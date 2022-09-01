@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # network_generator/unit_functions.py
 
+import numpy as np
+
 from . import utils
 
 
@@ -33,3 +35,30 @@ def logical_nparity_function(element, weights, state):
 def naka_rushton(element, weights, state, exponent=2.0, threshold=1.0):
     x = utils.input_weight(element, weights, state) ** exponent
     return x / (x + threshold)
+
+
+def boolean_function(element, weights, state, on_inputs=()):
+    """An arbitrary boolean function.
+
+    Arguments:
+        element (int): The index of the element whose output is being computed.
+        weights (np.ndarray): The weight matrix.
+        state (np.ndarray): The state of the network.
+
+    Keyword Arguments:
+        on_inputs (tuple): The input states that return True.
+
+    Returns:
+        bool: The output of the element.
+    """
+    if np.any((weights != 1) & (weights != 0)):
+        raise NotImplementedError("weights must be 0 or 1")
+    if len(set(map(len, on_inputs))) != 1:
+        raise ValueError("on_inputs must all be the same length")
+
+    inputs = tuple(utils.inputs(element, weights, state))
+
+    if len(inputs) != len(next(iter(on_inputs), len(inputs))):
+        raise ValueError("nonzero input weights and on_input lengths must match")
+
+    return inputs in on_inputs

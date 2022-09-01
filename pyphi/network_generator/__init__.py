@@ -15,18 +15,21 @@ from . import ising, weights, unit_functions
 
 UNIT_FUNCTIONS = {
     "ising": ising.probability,
+    "boolean": unit_functions.boolean_function,
+    "naka_rushton": unit_functions.naka_rushton,
     "or": unit_functions.logical_or_function,
     "and": unit_functions.logical_and_function,
     "parity": unit_functions.logical_parity_function,
     "nor": unit_functions.logical_nor_function,
     "nand": unit_functions.logical_nand_function,
     "nparity": unit_functions.logical_nparity_function,
-    "naka_rushton": unit_functions.naka_rushton,
 }
 
 
 def build_tpm(
-    unit_functions: Union[Callable, Iterable[Callable]], weights: ArrayLike, **kwargs
+    unit_functions: Union[str, Callable, Iterable[Callable]],
+    weights: ArrayLike,
+    **kwargs,
 ):
     if weights.ndim != 2 or weights.shape[0] != weights.shape[1]:
         raise ValueError("weights must be a square matrix")
@@ -46,6 +49,8 @@ def build_tpm(
     tpm = np.zeros([2] * N + [N])
     for state in all_states(N):
         for element, func in enumerate(unit_functions):
+            if isinstance(func, str):
+                func = UNIT_FUNCTIONS[func]
             tpm[state + (element,)] = func(element, weights, state, **kwargs)
     return tpm
 

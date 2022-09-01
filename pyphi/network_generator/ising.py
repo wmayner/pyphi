@@ -118,5 +118,5 @@ try:
 
         return fig
 
-except ImportError:
+except (ImportError, DeprecationWarning):
     pass
