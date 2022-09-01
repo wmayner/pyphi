@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # network_generator/unit_functions.py
 
+import numpy as np
+
 from . import utils
 
 
@@ -28,3 +30,29 @@ def logical_nand_function(element, weights, state):
 
 def logical_nparity_function(element, weights, state):
     return not (logical_parity_function(element, weights, state))
+
+
+def boolean_function(element, weights, state, on_inputs=()):
+    """Returns the output of a Boolean function.
+
+    Args:
+        element (int): The index of the node whose output is being computed.
+        weights (np.ndarray): The weight matrix.
+        state (np.ndarray): The state of the network.
+        function (Callable): A function that takes a list of inputs and returns
+            a boolean.
+
+    Returns:
+        int: The output of the node.
+    """
+    if np.any((weights != 1) & (weights != 0)):
+        raise NotImplementedError("weights must be 0 or 1")
+    if len(set(map(len, on_inputs))) != 1:
+        raise ValueError("on_inputs must all be the same length")
+
+    inputs = tuple(utils.inputs(element, weights, state))
+
+    if len(inputs) != len(next(iter(on_inputs), len(inputs))):
+        raise ValueError("nonzero input weights and on_input lengths must match")
+
+    return inputs in on_inputs
