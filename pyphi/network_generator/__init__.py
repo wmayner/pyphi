@@ -26,7 +26,9 @@ UNIT_FUNCTIONS = {
 
 
 def build_tpm(
-    unit_functions: Union[Callable, Iterable[Callable]], weights: ArrayLike, **kwargs
+    unit_functions: Union[str, Callable, Iterable[Callable]],
+    weights: ArrayLike,
+    **kwargs,
 ):
     if weights.ndim != 2 or weights.shape[0] != weights.shape[1]:
         raise ValueError("weights must be a square matrix")
@@ -46,6 +48,8 @@ def build_tpm(
     tpm = np.zeros([2] * N + [N])
     for state in all_states(N):
         for element, func in enumerate(unit_functions):
+            if isinstance(func, str):
+                func = UNIT_FUNCTIONS[func]
             tpm[state + (element,)] = func(element, weights, state, **kwargs)
     return tpm
 
