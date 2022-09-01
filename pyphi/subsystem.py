@@ -788,6 +788,7 @@ class Subsystem:
         mechanism: tuple[int],
         purview: tuple[int],
         return_information: bool = False,
+        return_repertoires: bool = False,
         repertoire_distance: str = None,
         states: Iterable[Iterable[int]] = None,
         virtual_units: Iterable[int] = None,
@@ -810,7 +811,8 @@ class Subsystem:
         partition = complete_partition(mechanism, purview)
 
         def evaluate_state(state):
-            information, _ = self.evaluate_partition(
+            # TODO(4.0) only need to compute partitioned_repertoire once!
+            information, partitioned_repertoire = self.evaluate_partition(
                 direction,
                 mechanism,
                 purview,
@@ -822,18 +824,26 @@ class Subsystem:
                 repertoire_distance=repertoire_distance,
                 state=state,
             )
-            return information
+            return information, partitioned_repertoire
 
         state_to_information = {state: evaluate_state(state) for state in states}
-        max_information = max(state_to_information.values())
+        max_information = max(
+            [information for information, _ in state_to_information.values()]
+        )
         # Return all tied states
-        tied_states = [
-            state
-            for state, information in state_to_information.items()
+        ties = [
+            (state, partitioned_repertoire)
+            for state, (
+                information,
+                partitioned_repertoire,
+            ) in state_to_information.items()
             if information == max_information
         ]
+        tied_states, partitioned_repertoires = zip(*ties)
         if return_information:
             return tied_states, max_information
+        if return_repertoires:
+            return tied_states, max_information, repertoire, partitioned_repertoires
         return tied_states
 
     # Phi_max methods

@@ -36,6 +36,8 @@ class SystemState:
     cause: tuple
     effect: tuple
     intrinsic_information: Dict[Direction, float]
+    repertoires: Dict[Direction, ArrayLike]
+    partitioned_repertoires: Dict[Direction, ArrayLike]
 
     def __getitem__(self, direction: Direction) -> tuple:
         if direction == Direction.CAUSE:
@@ -69,6 +71,7 @@ class SystemState:
         return fmt.box(fmt.center(body))
 
 
+# TODO(4.0) refactor
 def find_system_state(
     subsystem: Subsystem,
     repertoire_distance: Optional[str] = None,
@@ -90,20 +93,30 @@ def find_system_state(
         cause_states = [system_state[Direction.CAUSE]]
         effect_states = [system_state[Direction.EFFECT]]
 
-    cause_states, ii_cause = subsystem.find_maximal_state_under_complete_partition(
+    (
+        cause_states,
+        ii_cause,
+        cause_repertoire,
+        partitioned_cause_repertoires,
+    ) = subsystem.find_maximal_state_under_complete_partition(
         Direction.CAUSE,
         mechanism=subsystem.node_indices,
         purview=subsystem.node_indices,
         repertoire_distance=repertoire_distance,
-        return_information=True,
+        return_repertoires=True,
         states=cause_states,
     )
-    effect_states, ii_effect = subsystem.find_maximal_state_under_complete_partition(
+    (
+        effect_states,
+        ii_effect,
+        effect_repertoire,
+        partitioned_effect_repertoires,
+    ) = subsystem.find_maximal_state_under_complete_partition(
         Direction.EFFECT,
         mechanism=subsystem.node_indices,
         purview=subsystem.node_indices,
         repertoire_distance=repertoire_distance,
-        return_information=True,
+        return_repertoires=True,
         states=effect_states,
     )
     return SystemState(
@@ -111,6 +124,14 @@ def find_system_state(
         cause=cause_states[0],
         effect=effect_states[0],
         intrinsic_information={Direction.CAUSE: ii_cause, Direction.EFFECT: ii_effect},
+        repertoires={
+            Direction.CAUSE: cause_repertoire,
+            Direction.EFFECT: effect_repertoire,
+        },
+        partitioned_repertoires={
+            Direction.CAUSE: partitioned_cause_repertoires[0],
+            Direction.EFFECT: partitioned_effect_repertoires[0],
+        },
     )
 
 
