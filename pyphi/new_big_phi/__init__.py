@@ -1,6 +1,5 @@
 # new_big_phi/__init__.py
 
-import itertools
 from dataclasses import dataclass
 from enum import Enum, auto, unique
 from textwrap import indent
