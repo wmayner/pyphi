@@ -420,6 +420,12 @@ class PyphiConfig(Config):
     The version of the theory to use.""",
     )
 
+    INTEGRATION_VALUE = Option(
+        "SUM",
+        doc="""
+    The method of combining cause and effect integration values.""",
+    )
+
     HORIZONTAL_PARTITION_CODE = Option(
         "1210",
         type=str,

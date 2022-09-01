@@ -7,8 +7,8 @@ from typing import Dict, Iterable, Optional, Union
 
 from numpy.typing import ArrayLike
 from toolz import concat
-from tqdm.auto import tqdm
 
+from ..registry import Registry
 from .. import Direction, Subsystem, compute, config, connectivity, utils
 from ..compute.network import reachable_subsystems
 from ..conf import fallback
@@ -28,6 +28,19 @@ DEFAULT_PARTITION_CHUNKSIZE = 2 ** 2 * DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD
 ##############################################################################
 # Information
 ##############################################################################
+
+
+class IntegrationValueRegistry(Registry):
+    """Storage for integration schemes."""
+
+    desc = "integration values"
+
+
+integration_values = IntegrationValueRegistry()
+
+
+integration_values.register("SUM")(sum)
+integration_values.register("MIN")(min)
 
 
 @dataclass
@@ -277,7 +290,9 @@ def evaluate_partition(
     phi_c, repertoire_c, partitioned_repertoire_c = integration[Direction.CAUSE]
     phi_e, repertoire_e, partitioned_repertoire_e = integration[Direction.EFFECT]
 
-    phi = min(integration[direction][0] for direction in directions)
+    phi = integration_values[config.INTEGRATION_VALUE](
+        integration[direction][0] for direction in directions
+    )
     norm = normalization_factor(partition)
     normalized_phi = phi * norm
 
