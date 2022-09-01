@@ -883,7 +883,7 @@ def plot_distribution(
             pd.DataFrame(dict(probability=d, state=states, hue=[label] * len(d)))
             for d, label in zip(distributions, labels)
         ]
-    )
+    ).reset_index(drop=True)
 
     if len(d) > lineplot_threshold:
         ax = _plot_distribution_line(data, ax, hue="hue", **kwargs)
