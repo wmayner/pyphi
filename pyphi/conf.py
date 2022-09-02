@@ -827,6 +827,16 @@ class PyphiConfig(Config):
     """,
     )
 
+    SYSTEM_PARTITION_INCLUDE_COMPLETE = Option(
+        False,
+        type=bool,
+        doc="""
+    Whether to include the complete partition in partition set.
+
+    Currently only applies to "SET_UNI/BI".
+    """,
+    )
+
     # TODO(4.0) finish documenting
     SYSTEM_PARTITION_TYPE = Option(
         "SET_UNI/BI",

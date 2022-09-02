@@ -841,7 +841,8 @@ def general_bidirectional(node_indices, node_labels=None):
 
 def _unidirectional_set_partitions(node_indices, node_labels=None):
     """Generate all unidirectional set partitions of a set of nodes."""
-    yield CompleteGeneralSetPartition(node_indices, node_labels=node_labels)
+    if len(node_indices) == 1 or config.SYSTEM_PARTITION_INCLUDE_COMPLETE:
+        yield CompleteGeneralSetPartition(node_indices, node_labels=node_labels)
     _node_indices = set(range(len(node_indices)))
     for partition in partitions(_node_indices, nontrivial=True):
         for directions in product(Direction.all(), repeat=len(partition)):
