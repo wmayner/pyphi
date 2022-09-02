@@ -421,7 +421,7 @@ class PyphiConfig(Config):
     )
 
     INTEGRATION_VALUE = Option(
-        "SUM",
+        "MIN",
         doc="""
     The method of combining cause and effect integration values.""",
     )
