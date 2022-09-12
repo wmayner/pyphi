@@ -44,6 +44,8 @@ def condition_tpm(tpm, fixed_nodes, state):
     conditioning_indices = [[slice(None)]] * len(state)
     for i in fixed_nodes:
         # Preserve singleton dimensions with `np.newaxis`
+        # TODO use utils.state_of and refactor nonvirtualized effect repertoire
+        # to use this
         conditioning_indices[i] = [state[i], np.newaxis]
     # Flatten the indices.
     conditioning_indices = list(chain.from_iterable(conditioning_indices))

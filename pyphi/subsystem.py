@@ -10,6 +10,7 @@ from math import log2
 from typing import Iterable
 
 import numpy as np
+from more_itertools import flatten
 
 from . import cache, connectivity, convert, distribution, resolve_ties, utils, validate
 from .conf import config, fallback
@@ -431,8 +432,10 @@ class Subsystem:
         n_prev = int(log2(joint.shape[0]))
         joint = convert.sbs_to_multidimensional(joint)
         # Condition on the state of the mechanism.
-        mechanism_state = utils.state_of(mechanism, self.state)
-        joint = joint[mechanism_state]
+        conditioning_indices = flatten(
+            [[s, np.newaxis] for s in utils.state_of(mechanism, self.state)]
+        )
+        joint = joint[tuple(conditioning_indices)]
         # Marginalize over non-mechanism states.
         previous_state_axes = tuple(range(n_prev))
         joint = joint.sum(axis=previous_state_axes)
