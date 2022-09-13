@@ -845,12 +845,7 @@ def plot_distribution(
     """
     if validate and not all(np.allclose(d.sum(), 1, rtol=1e-4) for d in distributions):
         raise ValueError("a distribution does not sum to 1!")
-    if validate and not all(
-        (distributions[0].index == d.index).all() for d in distributions
-    ):
-        raise ValueError("distribution indices do not match")
 
-    # defaults = dict(color="#666")
     defaults = dict()
     # Overrride defaults with keyword arguments
     kwargs = {**defaults, **kwargs}
@@ -862,8 +857,14 @@ def plot_distribution(
     if ax is None:
         ax = plt.gca()
 
-    distributions = [pyphi.distribution.flatten(d) for d in distributions]
+    distributions = [pd.Series(pyphi.distribution.flatten(d)) for d in distributions]
     d = distributions[0]
+
+    if validate and not all(
+        (distributions[0].index == d.index).all() for d in distributions
+    ):
+        raise ValueError("distribution indices do not match")
+
 
     N = log2(np.prod(d.shape))
     if states is None:
