@@ -14,3 +14,13 @@ def inputs(element, weights, state):
     input_weights = weights[:, element]
     idx = input_weights > 0
     return input_weights[idx] * np.array(state)[idx]
+
+
+def binary2spin(binary_state):
+    """Return the Ising spin state corresponding to the given binary state.
+
+    This just replaces 0 with -1.
+    """
+    state = np.array(binary_state)
+    state[np.where(state == 0)] = -1
+    return state

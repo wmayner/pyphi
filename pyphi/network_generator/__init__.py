@@ -16,6 +16,7 @@ from . import ising, weights, unit_functions
 UNIT_FUNCTIONS = {
     "ising": ising.probability,
     "boolean": unit_functions.boolean_function,
+    "gaussian": unit_functions.gaussian,
     "naka_rushton": unit_functions.naka_rushton,
     "or": unit_functions.logical_or_function,
     "and": unit_functions.logical_and_function,

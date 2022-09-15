@@ -20,16 +20,6 @@ def energy(element, weights, state, field):
     return utils.input_weight(element, weights, state) + field
 
 
-def binary2spin(binary_state):
-    """Return the Ising spin state corresponding to the given binary state.
-
-    This just replaces 0 with -1.
-    """
-    state = np.array(binary_state)
-    state[np.where(state == 0)] = -1
-    return state
-
-
 def probability(
     element,
     weights,
@@ -50,7 +40,7 @@ def probability(
             # all inputs to a node are ON, is constant regardless of total weight
             temperature = temperature * total_input_weight
 
-    state = binary2spin(state)
+    state = utils.binary2spin(state)
     E = energy(element, weights, state, field)
     return sigmoid(E, temperature)
 

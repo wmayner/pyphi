@@ -62,3 +62,18 @@ def boolean_function(element, weights, state, on_inputs=()):
         raise ValueError("nonzero input weights and on_input lengths must match")
 
     return inputs in on_inputs
+
+
+def gauss(x, mu, sigma):
+    return np.exp(-0.5 * (((x - mu) / sigma) ** 2))
+
+def gaussian(
+    element,
+    weights,
+    state,
+    mu=0.0,
+    sigma=0.5,
+):
+    state = utils.binary2spin(state)
+    x = utils.input_weight(element, weights, state)
+    return gauss(x, mu, sigma)
