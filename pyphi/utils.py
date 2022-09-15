@@ -272,8 +272,26 @@ def expaddlog(x, y):
     return math.exp(math.log(x) + math.log(y))
 
 
-def try_len(iterable):
+def _try_len(iterable):
     try:
         return len(iterable)
     except TypeError:
         return None
+
+
+def try_len(*iterables):
+    """Return the minimum length of iterables, or ``None`` if none have a length."""
+    lengths = (_try_len(it) for it in iterables)
+    return min((l for l in lengths if l is not None), default=None)
+
+
+def enforce_integer(i, name="", min=float("-inf")):
+    if not isinstance(i, int) or i < min:
+        raise ValueError(f"{name} must be a positive integer")
+    return i
+
+
+def enforce_integer_or_none(i, **kwargs):
+    if i is None:
+        return i
+    return enforce_integer(i, **kwargs)

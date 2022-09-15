@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import logging
-import os
 from pathlib import Path
 
 import pytest
@@ -108,15 +107,9 @@ def flushcache(request):
 # ================================================================
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="module")
 def ray_context():
+    print('calling ray_context()')
     context = ray.init(num_cpus=3)
-    yield context
-    ray.shutdown()
-
-
-@pytest.fixture(scope="function")
-def ray_context_local():
-    context = ray.init(local_mode=True)
     yield context
     ray.shutdown()

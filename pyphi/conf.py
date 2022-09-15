@@ -549,9 +549,7 @@ class PyphiConfig(Config):
     )
 
     RAY_CONFIG = Option(
-        dict(
-            address="auto",
-        ),
+        dict(),
         type=dict,
         doc="""
     Keyword arguments to ``dask.distributed.Client()``. Controls the deployment
