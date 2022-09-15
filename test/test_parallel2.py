@@ -1,29 +1,26 @@
+# test/test_parallel.py
+
 import time
 from datetime import timedelta
 from decimal import Decimal
-from unittest.mock import Mock, patch, sentinel
+from unittest.mock import Mock, patch
 
 import pytest
 import ray
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
+from hypothesis.strategies import composite
 from hypothesis_utils import (
     anything,
     anything_comparable,
     anything_pickleable_and_hashable,
+    everything_except,
     iterable_or_list,
+    list_and_index,
+    teed,
 )
 
-from pyphi.compute import parallel
-
-
-@given(st.lists(iterable_or_list(anything())))
-def test_try_lens(iterables):
-    expected = min(
-        map(len, filter(lambda iterable: hasattr(iterable, "__len__"), iterables)),
-        default=None,
-    )
-    assert parallel._try_lens(*iterables) == expected
+from pyphi.compute import parallel2 as parallel
 
 
 @given(anything())
@@ -35,29 +32,30 @@ def test_noshortcircuit(x):
 def shortcircuit_tester(func, list_and_index, ordered=True, shortcircuit_value=None):
     items, idx = list_and_index
 
+    # No shortcircuiting
     expected = list(items)
     actual = list(func(items))
-
     if ordered:
         assert expected == actual
     else:
         assert set(expected) == set(actual)
 
+    # With shortcircuiting
     if items and shortcircuit_value is None:
         idx = items.index(items[idx])
         shortcircuit_value = items[idx]
     else:
         items.insert(idx, shortcircuit_value)
-
     expected = list(items)
+    actual = list(func(items, shortcircuit_value=shortcircuit_value))
+    if ordered:
+        assert expected[: idx + 1] == actual
+    else:
+        assert shortcircuit_value in actual
 
-    if shortcircuit_value is not None:
-        actual = list(func(items, shortcircuit_value=shortcircuit_value))
-        if ordered:
-            assert expected[: idx + 1] == actual
-        else:
-            assert shortcircuit_value in actual
-
+    # Check callback was called
+    # TODO(4.0) call not detected when parallel; used SharedMock or similar
+    if ordered:
         mock = Mock()
         actual = list(
             func(
@@ -66,12 +64,8 @@ def shortcircuit_tester(func, list_and_index, ordered=True, shortcircuit_value=N
                 shortcircuit_callback=mock,
             )
         )
-        # TODO(4.0) call not detected when parallel; used SharedMock or similar
-        # mock.assert_called()
-        if ordered:
-            assert expected[: idx + 1] == actual
-        else:
-            assert shortcircuit_value in actual
+        mock.assert_called()
+        assert expected[: idx + 1] == actual
 
 
 @given(
@@ -128,24 +122,31 @@ def test_get_local(items):
     st.lists(st.integers()),
 )
 @pytest.mark.filterwarnings("ignore:.*:pytest.PytestUnraisableExceptionWarning")
-def test_get_parallel(ray_context, expected):
+def test_get_remote(ray_context, expected):
     @ray.remote
     def f(x):
         return x
 
     refs = [f.remote(x) for x in expected]
-    assert set(expected) == set(parallel.get(refs, parallel=True))
+    assert set(expected) == set(parallel.get(refs, remote=True))
+
+
+def test_map_repr():
+    mr = parallel.MapReduce(lambda x: x, [1, 2, 3])
+    str(mr)
+    repr(mr)
+    print(mr)
 
 
 def test_map_with_no_args():
-    with pytest.raises(ValueError):
-        list(parallel.map(lambda x: x))
+    with pytest.raises(TypeError):
+        list(parallel.MapReduce(lambda x: x))
 
 
 @pytest.mark.filterwarnings("ignore:.*:pytest.PytestUnraisableExceptionWarning")
 def test_map_with_iterator_no_chunksize(ray_context, func):
     with pytest.raises(ValueError):
-        parallel.map(func, iter([1, 2, 3]), parallel=True, chunksize=None)
+        parallel.MapReduce(func, iter([1, 2, 3]), parallel=True, chunksize=None)
 
 
 def arglists(elements):
@@ -168,68 +169,87 @@ def func():
     suppress_health_check=[HealthCheck.function_scoped_fixture],
 )
 @given(
-    arglists=arglists(anything()),
+    args=arglists(anything()),
 )
 def test_map_sequential(
     func,
-    arglists,
+    args,
 ):
-    expected = list(map(func, *arglists[0]))
-    actual = list(parallel._map_sequential(func, *arglists[1]))
+    iterables1, iterables2 = args
+    expected = list(map(func, *iterables1))
+    actual = list(parallel.MapReduce(func, *iterables2, parallel=False).run())
     assert expected == actual
 
 
 @pytest.mark.filterwarnings("ignore:.*:pytest.PytestUnraisableExceptionWarning")
 def test_map_with_lambda(ray_context):
     expected = set([1, 2, 3])
-    actual = set(parallel.map(lambda x: x, expected, parallel=True))
+    actual = set(parallel.MapReduce(lambda x: x, expected, parallel=True).run())
     assert expected == actual
 
 
+@pytest.mark.filterwarnings("ignore:.*:pytest.PytestUnraisableExceptionWarning")
 def test_map_with_iterators_and_empty_args(func):
-    assert [] == parallel.map(func, iter([]), parallel=True, chunksize=100)
+    assert [] == parallel.MapReduce(func, iter([]), parallel=True, chunksize=100).run()
 
+
+@composite
+def map_reduce_kwargs_common(draw):
+    return dict(
+        chunksize=draw(st.integers(min_value=1)),
+        sequential_threshold=draw(st.integers(min_value=1)),
+        max_depth=draw(st.integers(min_value=1) | st.none()),
+        branch_factor=draw(st.integers(min_value=2)),
+        inflight_limit=draw(st.integers(min_value=1)),
+    )
+
+
+@composite
+def map_reduce_kwargs_iterators(draw):
+    return {
+        **draw(map_reduce_kwargs_common()),
+        **dict(
+            max_size=None,
+            max_leaves=None,
+            total=None,
+        )
+    }
+
+@composite
+def map_reduce_kwargs_sequences(draw):
+    return {
+        **draw(map_reduce_kwargs_common()),
+        **dict(
+            max_size=draw(st.integers(min_value=1)),
+            max_leaves=draw(st.integers(min_value=1)),
+            total=None,
+        )
+    }
 
 @settings(
     suppress_health_check=[HealthCheck.function_scoped_fixture],
     deadline=None,
 )
 @given(
-    arglists=arglists(anything_pickleable_and_hashable()),
-    _parallel=st.booleans(),
-    max_size=st.integers() | st.none(),
-    max_depth=st.integers() | st.none(),
-    branch_factor=st.integers(),
-    chunksize=st.integers(),
-    sequential_threshold=st.integers(),
-    inflight_limit=st.integers(),
+    args=arglists(anything_pickleable_and_hashable()),
+    kwargs=map_reduce_kwargs_iterators(),
 )
 @pytest.mark.filterwarnings("ignore:.*:pytest.PytestUnraisableExceptionWarning")
 def test_map_with_iterators(
-    ray_context_local,
+    ray_context,
     func,
-    arglists,
-    _parallel,
-    max_size,
-    max_depth,
-    branch_factor,
-    chunksize,
-    sequential_threshold,
-    inflight_limit,
+    args,
+    kwargs,
 ):
-    expected = set(map(func, *arglists[0]))
+    iterables1, iterables2 = args
+    expected = set(map(func, *iterables1))
     actual = set(
-        parallel.map(
+        parallel.MapReduce(
             func,
-            *arglists[1],
-            max_size=max_size,
-            max_depth=max_depth,
-            branch_factor=branch_factor,
-            chunksize=chunksize,
-            sequential_threshold=sequential_threshold,
-            inflight_limit=inflight_limit,
-            parallel=_parallel,
-        )
+            *iterables2,
+            parallel=True,
+            **kwargs,
+        ).run()
     )
     assert expected == actual
 
@@ -240,45 +260,28 @@ def test_map_with_iterators(
 )
 @given(
     list_and_index=list_and_index(anything_pickleable_and_hashable()),
-    _parallel=st.booleans(),
-    max_size=st.integers() | st.none(),
-    max_depth=st.integers() | st.none(),
-    branch_factor=st.integers(),
-    chunksize=st.integers() | st.none(),
-    sequential_threshold=st.integers(),
-    inflight_limit=st.integers(),
+    kwargs=map_reduce_kwargs_sequences(),
+    _parallel=st.booleans() | st.none(),
 )
 @pytest.mark.filterwarnings("ignore:.*:pytest.PytestUnraisableExceptionWarning")
 def test_map_with_shortcircuit(
-    ray_context_local,
+    ray_context,
     func,
     list_and_index,
-    max_size,
-    max_depth,
-    branch_factor,
+    kwargs,
     _parallel,
-    chunksize,
-    sequential_threshold,
-    inflight_limit,
 ):
-    def _func(items, **kwargs):
-        return parallel.map(
+    def _func(items, **additional_kwargs):
+        return parallel.MapReduce(
             func,
             items,
             **kwargs,
-            max_size=max_size,
-            max_depth=max_depth,
-            branch_factor=branch_factor,
-            chunksize=chunksize,
-            sequential_threshold=sequential_threshold,
-            inflight_limit=inflight_limit,
-            parallel=_parallel,
-        )
+            **additional_kwargs,
+        ).run()
 
     shortcircuit_tester(
         _func,
         list_and_index,
-        shortcircuit_value=sentinel.shortcircuit,
         ordered=(not _parallel),
     )
 
@@ -288,42 +291,33 @@ def test_map_with_shortcircuit(
     deadline=None,
 )
 @given(
-    arglists=arglists(st.integers()),
-    max_size=st.integers() | st.none(),
-    max_depth=st.integers() | st.none(),
-    branch_factor=st.integers(),
-    chunksize=st.integers(),
-    _parallel=st.booleans(),
-    sequential_threshold=st.integers(),
-    inflight_limit=st.integers(),
+    args=arglists(st.integers()),
+    kwargs=map_reduce_kwargs_iterators(),
+    _parallel=st.booleans() | st.none(),
 )
 @pytest.mark.filterwarnings("ignore:.*:pytest.PytestUnraisableExceptionWarning")
 def test_map_reduce(
-    ray_context_local,
+    ray_context,
     func,
-    arglists,
-    max_size,
-    max_depth,
-    branch_factor,
+    args,
+    kwargs,
     _parallel,
-    chunksize,
-    sequential_threshold,
-    inflight_limit,
 ):
-    def reduce_func(x):
+    iterables1, iterables2 = args
+
+    def reduce_func(x, some_kwarg=None):
+        assert some_kwarg is not None
         return max(x, default=None)
 
-    expected = reduce_func(map(func, *arglists[0]))
-    actual = parallel.map_reduce(
+    expected = reduce_func(map(func, *iterables1), some_kwarg=1)
+    actual = parallel.MapReduce(
         func,
-        reduce_func,
-        *arglists[1],
-        max_size=max_size,
-        max_depth=max_depth,
-        branch_factor=branch_factor,
-        chunksize=chunksize,
-        sequential_threshold=sequential_threshold,
-        inflight_limit=inflight_limit,
+        *iterables2,
+        reduce_func=reduce_func,
+        reduce_kwargs=dict(some_kwarg=1),
+        **kwargs,
         parallel=_parallel,
-    )
+    ).run()
     assert expected == actual
+
+# TODO(4.0) unit tests for tree.py
