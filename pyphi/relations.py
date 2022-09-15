@@ -16,7 +16,7 @@ from toolz import concat, curry
 from tqdm.auto import tqdm
 
 from . import combinatorics, config, validate
-from .compute import parallel as _parallel
+from .compute.parallel import MapReduce
 from .conf import fallback
 from .data_structures import HashableOrderedSet
 from .metrics.distribution import absolute_information_density
@@ -921,7 +921,7 @@ def all_relations(
     progress = fallback(progress, config.PROGRESS_BARS)
     if progress:
         potential_relata = tqdm(potential_relata, desc="Submitting possible relations")
-    return _parallel.map(
+    return MapReduce(
         relation,
         potential_relata,
         chunksize=chunksize,
@@ -929,7 +929,7 @@ def all_relations(
         parallel=parallel,
         progress=progress,
         desc="Evaluating possible relations",
-    )
+    ).run()
 
 
 class Relations:

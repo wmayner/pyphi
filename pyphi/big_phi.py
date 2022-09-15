@@ -19,7 +19,7 @@ from tqdm.auto import tqdm
 
 from . import compute, config, upper_bounds, utils
 from .combinatorics import largest_independent_sets, maximal_independent_sets
-from .compute import parallel as _parallel
+from .compute.parallel import MapReduce
 from .compute.network import reachable_subsystems
 from .compute.parallel import as_completed
 from .conf import fallback
@@ -774,19 +774,19 @@ def evaluate_phi_structure(
     if progress:
         partitions = tqdm(partitions, desc="Partitions")
 
-    return _parallel.map_reduce(
+    return MapReduce(
         evaluate_partition,
-        min,
         partitions,
         subsystem=subsystem,
         phi_structure=phi_structure,
+        reduce_func=min,
+        shortcircuit_value=0,
         chunksize=chunksize,
         sequential_threshold=sequential_threshold,
-        shortcircuit_value=0,
         parallel=parallel,
         progress=progress,
         desc="Evaluating partitions",
-    )
+    ).run()
 
 
 def _system_intrinsic_information(phi_structure):
@@ -803,17 +803,17 @@ def find_maximal_compositional_state(
 ):
     parallel = fallback(parallel, config.PARALLEL_COMPOSITIONAL_STATE_EVALUATION)
     log.debug("Finding maximal compositional state...")
-    _, phi_structure = _parallel.map_reduce(
+    _, phi_structure = MapReduce(
         _system_intrinsic_information,
-        max,
         phi_structures,
+        reduce_func=max,
         shortcircuit_value=0,
         parallel=parallel,
         chunksize=chunksize,
         sequential_threshold=sequential_threshold,
         progress=progress,
         desc="Evaluating compositional states",
-    )
+    ).run()
     return phi_structure
 
 

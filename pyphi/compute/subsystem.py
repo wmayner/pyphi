@@ -26,54 +26,10 @@ from ..models import (
     fmt,
 )
 from ..partition import mip_partitions, system_partition_types
-from . import parallel as _parallel
 from .parallel import MapReduce
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
-
-
-# TODO(4.0) remove
-class ComputeCauseEffectStructure(MapReduce):
-    """Engine for computing a |CauseEffectStructure|."""
-
-    # pylint: disable=unused-argument,arguments-differ
-
-    description = "Computing concepts"
-
-    @property
-    def subsystem(self):
-        return self.context[0]
-
-    def empty_result(self, *args):
-        return []
-
-    @staticmethod
-    def compute(mechanism, subsystem, purviews, cause_purviews, effect_purviews):
-        """Compute a |Concept| for a mechanism, in this |Subsystem| with the
-        provided purviews.
-        """
-        concept = subsystem.concept(
-            mechanism,
-            purviews=purviews,
-            cause_purviews=cause_purviews,
-            effect_purviews=effect_purviews,
-        )
-        # Don't serialize the subsystem.
-        # This is replaced on the other side of the queue, and ensures
-        # that all concepts in the CES reference the same subsystem.
-        concept.subsystem = None
-        return concept
-
-    def process_result(self, new_concept, concepts):
-        """Save all concepts with non-zero |small_phi| to the
-        |CauseEffectStructure|.
-        """
-        if new_concept.phi > 0:
-            # Replace the subsystem
-            new_concept.subsystem = self.subsystem
-            concepts.append(new_concept)
-        return concepts
 
 
 DEFAULT_CES_SEQUENTIAL_THRESHOLD = 4
@@ -125,20 +81,31 @@ def ces(
     def nonzero_phi(concepts):
         return list(filter(None, collapse(concepts)))
 
-    concepts = _parallel.map_reduce(
-        subsystem.concept,
-        nonzero_phi,
+    def compute_concept(*args, **kwargs):
+        # Don't serialize the subsystem; this is replaced after returning.
+        # TODO(4.0) remove when subsystem reference is removed from Concept
+        concept = subsystem.concept(*args, **kwargs)
+        concept.subsystem = None
+        return concept
+
+    concepts = MapReduce(
+        compute_concept,
         mechanisms,
         purviews=purviews,
         cause_purviews=cause_purviews,
         effect_purviews=effect_purviews,
+        reduce_func=nonzero_phi,
         chunksize=chunksize,
         sequential_threshold=sequential_threshold,
         parallel=parallel,
         progress=progress,
         desc="Computing concepts",
         total=total,
-    )
+    ).run()
+    # Replace subsystem references
+    # TODO(4.0) remove when subsystem reference is removed from Concept
+    for concept in concepts:
+        concept.subsystem = subsystem
     return CauseEffectStructure(concepts, subsystem=subsystem)
 
 

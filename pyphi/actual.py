@@ -24,8 +24,8 @@ from itertools import chain
 
 import numpy as np
 
-from . import config, connectivity, constants, compute, exceptions, utils, validate
-from .compute import parallel
+from . import config, connectivity, compute, exceptions, utils, validate
+from .compute.parallel import MapReduce
 from .direction import Direction
 from .metrics.distribution import actual_causation_measures as measures
 from .models import (
@@ -597,7 +597,7 @@ def account_distance(A1, A2):
 
 
 def _evaluate_cut(
-    transition, cut, unpartitioned_account, direction=Direction.BIDIRECTIONAL
+    cut, transition, unpartitioned_account, direction=Direction.BIDIRECTIONAL
 ):
     """Find the |AcSystemIrreducibilityAnalysis| for a given cut."""
     cut_transition = transition.apply_cut(cut)
@@ -639,7 +639,11 @@ def _get_cuts(transition, direction):
             yield ActualCut(direction, partition, transition.node_labels)
 
 
-def sia(transition, direction=Direction.BIDIRECTIONAL):
+DEFAULT_AC_SIA_SEQUENTIAL_THRESHOLD = 4
+DEFAULT_AC_SIA_CHUNKSIZE = 2 * DEFAULT_AC_SIA_SEQUENTIAL_THRESHOLD
+
+# TODO(4.0) change parallel default to True?
+def sia(transition, direction=Direction.BIDIRECTIONAL, parallel=False):
     """Return the minimal information partition of a transition in a specific
     direction.
 
@@ -676,39 +680,23 @@ def sia(transition, direction=Direction.BIDIRECTIONAL):
         return _null_ac_sia(transition, direction)
 
     cuts = _get_cuts(transition, direction)
-    engine = ComputeACSystemIrreducibility(
-        cuts, transition, direction, unpartitioned_account
-    )
-    result = engine.run_sequential()
+
+    result = MapReduce(
+        _evaluate_cut,
+        cuts,
+        transition=transition,
+        direction=direction,
+        unpartitioned_account=unpartitioned_account,
+        reduce_func=min,
+        reduce_kwargs=dict(default=_null_ac_sia(transition, direction, alpha=float("inf"))),
+        chunksize=DEFAULT_AC_SIA_CHUNKSIZE,
+        sequential_threshold=DEFAULT_AC_SIA_SEQUENTIAL_THRESHOLD,
+        progress=config.PROGRESS_BARS,
+        # TODO(4.0) parallel: shortcircuit_func
+    ).run()
     log.info("Finished calculating big-ac-phi data for %s.", transition)
     log.debug("RESULT: \n%s", result)
     return result
-
-
-class ComputeACSystemIrreducibility(parallel.MapReduce):
-    """Computation engine for AC SIAs."""
-
-    # pylint: disable=unused-argument,arguments-differ
-
-    description = "Evaluating AC cuts"
-
-    def empty_result(self, transition, direction, unpartitioned_account):
-        return _null_ac_sia(transition, direction, alpha=float("inf"))
-
-    @staticmethod
-    def compute(cut, transition, direction, unpartitioned_account):
-        return _evaluate_cut(transition, cut, unpartitioned_account, direction)
-
-    def process_result(self, new_sia, min_sia):
-        # Check a new result against the running minimum
-        if not new_sia:  # alpha == 0
-            self.done = True
-            return new_sia
-
-        elif new_sia < min_sia:
-            return new_sia
-
-        return min_sia
 
 
 # =============================================================================
