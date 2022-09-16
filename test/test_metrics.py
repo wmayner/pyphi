@@ -18,13 +18,26 @@ def test_default_distribution_measures():
             "KLM",
             "BLD",
             "ID",
+            'IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE',
+            'IIT_4.0_SMALL_PHI',
+            'APMI',
         ]
     )
 
 
 def test_default_asymmetric_distribution_measures():
     assert set(metrics.distribution.measures.asymmetric()) == set(
-        ["KLD", "MP2Q", "AID", "KLM", "BLD", "ID"]
+        [
+            'IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE',
+            'IIT_4.0_SMALL_PHI',
+            'APMI',
+            "KLD",
+            "MP2Q",
+            "AID",
+            "KLM",
+            "BLD",
+            "ID"
+        ]
     )
 
 
@@ -38,7 +51,7 @@ def test_default_ces_measures():
 
 
 def test_default_actual_causation_measures():
-    assert set(metrics.actual.measures.all()) == set(
+    assert set(metrics.distribution.actual_causation_measures.all()) == set(
         [
             "PMI",
             "WPMI",
