@@ -122,9 +122,9 @@ def test_combinations_with_nonempty_intersection(
 def test_explicit_combinations_with_nonempty_intersection(
     sets, nonempty_intersection_answer, min_size, max_size
 ):
-    result = combinatorics.combinations_with_nonempty_intersection(
+    result = list(combinatorics.combinations_with_nonempty_intersection(
         sets, min_size=min_size, max_size=max_size
-    )
+    ))
     if max_size is None:
         max_size = max(map(len, nonempty_intersection_answer))
     answer = [
