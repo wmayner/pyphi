@@ -10,7 +10,10 @@ import ray
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 from hypothesis.strategies import composite
-from hypothesis_utils import (
+
+from pyphi.compute import parallel
+
+from .hypothesis_utils import (
     anything,
     anything_comparable,
     anything_pickleable_and_hashable,
@@ -19,8 +22,6 @@ from hypothesis_utils import (
     list_and_index,
     teed,
 )
-
-from pyphi.compute import parallel
 
 
 @given(anything())

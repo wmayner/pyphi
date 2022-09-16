@@ -7,7 +7,6 @@ import tempfile
 
 import numpy as np
 import pytest
-from test_actual import transition
 
 from pyphi import (
     Direction,
@@ -20,6 +19,8 @@ from pyphi import (
     models,
     network,
 )
+
+from .test_actual import transition
 
 
 def test_jsonify_native():

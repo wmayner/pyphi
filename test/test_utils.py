@@ -4,9 +4,10 @@
 
 import numpy as np
 from hypothesis import given
-from hypothesis_utils import anything, iterable_or_list
 
 from pyphi import config, utils
+
+from .hypothesis_utils import anything, iterable_or_list
 
 
 def test_all_states():

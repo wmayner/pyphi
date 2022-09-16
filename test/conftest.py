@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # conftest.py
 
-import example_networks
+from . import example_networks
 import pytest
 
 # Test fixtures from example networks

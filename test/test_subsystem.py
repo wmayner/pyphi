@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 # test_subsystem.py
 
-import example_networks
 import numpy as np
 import pytest
 
@@ -15,6 +14,8 @@ from pyphi.models import (
     RepertoireIrreducibilityAnalysis,
 )
 from pyphi.subsystem import Subsystem
+
+from . import example_networks
 
 
 @config.override(VALIDATE_SUBSYSTEM_STATES=True)

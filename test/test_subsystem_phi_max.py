@@ -3,12 +3,13 @@
 
 from itertools import chain
 
-import example_networks
 import pytest
 
 from pyphi import Direction, Subsystem, config
 from pyphi.models import Cut, MaximallyIrreducibleCauseOrEffect, _null_ria
 from pyphi.utils import eq
+
+from . import example_networks
 
 # Expected results {{{
 # ====================

@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import example_networks
 import numpy as np
 import pytest
 
 from pyphi import Direction, constants, utils
 from pyphi.models import Bipartition, Part, RepertoireIrreducibilityAnalysis
+
+from . import example_networks
 
 s = example_networks.s()
 

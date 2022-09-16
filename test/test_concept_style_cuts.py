@@ -2,10 +2,11 @@ import pickle
 
 import numpy as np
 import pytest
-from test_models import sia
 
 from pyphi import Direction, compute, config
 from pyphi.models import KCut, KPartition, Part
+
+from .test_models import sia
 
 
 @pytest.fixture()
