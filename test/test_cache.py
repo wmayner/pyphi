@@ -195,7 +195,7 @@ def test_mice_cache_keys(s):
     assert c.key(Direction.CAUSE, (0,), purviews=(0, 1)) == answer
 
     c = cache.RedisMICECache(s)
-    answer = "subsys:{}:None:0:(0,):(0, 1)".format(hash(s))
+    answer = "subsys:{}:None:CAUSE:(0,):(0, 1)".format(hash(s))
     assert c.key(Direction.CAUSE, (0,), purviews=(0, 1)) == answer
 
 
