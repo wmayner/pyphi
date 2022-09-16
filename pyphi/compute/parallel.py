@@ -63,26 +63,20 @@ def init(*args, **kwargs):
         )
 
 
-class _NoShortCircuit:
-    """An object that is not equal to anything and is falsey."""
-
-    def __eq__(self, other):
-        return False
-
-    def __bool__(self):
-        return False
+def false(*args, **kwargs):
+    return False
 
 
 def shortcircuit(
     items,
-    shortcircuit_value=_NoShortCircuit(),
+    shortcircuit_func=false,
     shortcircuit_callback=None,
     shortcircuit_callback_args=None,
 ):
     """Yield from an iterable, stopping early if a certain value is found."""
     for result in items:
         yield result
-        if result == shortcircuit_value:
+        if shortcircuit_func(result):
             if shortcircuit_callback is not None:
                 if shortcircuit_callback_args is None:
                     shortcircuit_callback_args = items
@@ -120,7 +114,7 @@ def cancel_all(object_refs: Iterable, *args, **kwargs):
 def get(
     items,
     remote=False,
-    shortcircuit_value=_NoShortCircuit(),
+    shortcircuit_func=false,
     shortcircuit_callback=cancel_all,
     shortcircuit_callback_args=None,
 ):
@@ -133,7 +127,7 @@ def get(
         items = as_completed(items)
     return shortcircuit(
         items,
-        shortcircuit_value=shortcircuit_value,
+        shortcircuit_func=shortcircuit_func,
         shortcircuit_callback=shortcircuit_callback,
         shortcircuit_callback_args=shortcircuit_callback_args,
     )
@@ -174,7 +168,7 @@ def _map_reduce_tree(
     constraints,
     tree,
     chunksize,
-    shortcircuit_value,
+    shortcircuit_func,
     shortcircuit_callback,
     shortcircuit_callback_args,
     inflight_limit,
@@ -206,7 +200,7 @@ def _map_reduce_tree(
             cycle([constraints]),
             cycle([tree]),
             cycle([chunksize]),
-            cycle([shortcircuit_value]),
+            cycle([shortcircuit_func]),
             cycle([shortcircuit_callback]),
             cycle([shortcircuit_callback_args]),
             cycle([inflight_limit]),
@@ -230,7 +224,7 @@ def _map_reduce_tree(
     results = get(
         results,
         remote=branch,
-        shortcircuit_value=shortcircuit_value,
+        shortcircuit_func=shortcircuit_func,
         shortcircuit_callback=shortcircuit_callback,
         shortcircuit_callback_args=shortcircuit_callback_args,
     )
@@ -241,6 +235,16 @@ def _map_reduce_tree(
 
 
 _remote_map_reduce_tree = ray.remote(_map_reduce_tree)
+
+
+def progress_hook(progress_bar):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            progress_bar.actor.finish.remote(interrupted=True)
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
 
 
 class MapReduce:
@@ -264,7 +268,7 @@ class MapReduce:
         max_size: Optional[int] = None,
         max_leaves: Optional[int] = None,
         branch_factor: int = 2,
-        shortcircuit_value: Any = _NoShortCircuit(),
+        shortcircuit_func: Callable = false,
         shortcircuit_callback: Callable = cancel_all,
         shortcircuit_callback_args: Any = None,
         inflight_limit: int = 1000,
@@ -282,13 +286,15 @@ class MapReduce:
         self.reduce_kwargs = fallback(reduce_kwargs, dict())
         self.parallel = parallel
         self.total = fallback(try_len(*self.iterables), total)
-        self.shortcircuit_value = shortcircuit_value
+        self.shortcircuit_func = shortcircuit_func
         self.shortcircuit_callback = shortcircuit_callback
         self.shortcircuit_callback_args = shortcircuit_callback_args
         self.inflight_limit = inflight_limit
         self.progress = progress
         self.desc = desc
         self.map_kwargs = kwargs
+
+        self._shortcircuit_callback = shortcircuit_callback
 
         if self.parallel:
             self.constraints = get_constraints(
@@ -322,7 +328,7 @@ class MapReduce:
                 "reduce_kwargs",
                 "parallel",
                 "total",
-                "shortcircuit_value",
+                "shortcircuit_func",
                 "shortcircuit_callback",
                 "shortcircuit_callback_args",
                 "inflight_limit",
@@ -349,15 +355,11 @@ class MapReduce:
         if self.progress:
             # Set up remote progress bar actor
             self.progress_bar = ProgressBar(self.total, desc=self.desc)
-
             # Insert a hook into the shortcircuit callback to finish the
             # progress bar
-            user_callback = self.shortcircuit_callback
-            def _shortcircuit_callback(*args, **kwargs):
-                self.progress_bar.actor.finish.remote(interrupted=True)
-                user_callback(*args, **kwargs)
-
-            self.shortcircuit_callback = _shortcircuit_callback
+            self.shortcircuit_callback = progress_hook(self.progress_bar)(
+                self.shortcircuit_callback
+            )
         try:
             self.result = _map_reduce_tree(
                 self.iterables,
@@ -366,7 +368,7 @@ class MapReduce:
                 self.constraints,
                 self.tree,
                 self.chunksize,
-                self.shortcircuit_value,
+                self.shortcircuit_func,
                 self.shortcircuit_callback,
                 self.shortcircuit_callback_args,
                 self.inflight_limit,
@@ -395,7 +397,7 @@ class MapReduce:
             results = get(
                 results,
                 remote=False,
-                shortcircuit_value=self.shortcircuit_value,
+                shortcircuit_func=self.shortcircuit_func,
                 shortcircuit_callback=self.shortcircuit_callback,
                 shortcircuit_callback_args=self.shortcircuit_callback_args
             )

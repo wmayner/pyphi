@@ -24,13 +24,7 @@ from .hypothesis_utils import (
 )
 
 
-@given(anything())
-def test_noshortcircuit(x):
-    assert x != parallel._NoShortCircuit()
-    assert not parallel._NoShortCircuit()
-
-
-def shortcircuit_tester(func, list_and_index, ordered=True, shortcircuit_value=None):
+def shortcircuit_tester(func, list_and_index, ordered=True):
     items, idx = list_and_index
 
     # No shortcircuiting
@@ -41,32 +35,36 @@ def shortcircuit_tester(func, list_and_index, ordered=True, shortcircuit_value=N
     else:
         assert set(expected) == set(actual)
 
+    # Skip if list is empty
+    if not items:
+        return
+
+    # Get first index of item and define shortcircuit func as checking for that
+    # item
+    idx = items.index(items[idx])
+    shortcircuit_func = lambda x: x == items[idx]
+
     # With shortcircuiting
-    if items and shortcircuit_value is None:
-        idx = items.index(items[idx])
-        shortcircuit_value = items[idx]
-    else:
-        items.insert(idx, shortcircuit_value)
     expected = list(items)
-    actual = list(func(items, shortcircuit_value=shortcircuit_value))
+    actual = list(func(items, shortcircuit_func=shortcircuit_func))
     if ordered:
         assert expected[: idx + 1] == actual
-    else:
-        assert shortcircuit_value in actual
 
-    # Check callback was called
-    # TODO(4.0) call not detected when parallel; used SharedMock or similar
-    if ordered:
+        # Check callback was called
+        # TODO(4.0) call not detected when parallel; used SharedMock or similar
         mock = Mock()
         actual = list(
             func(
                 items,
-                shortcircuit_value=shortcircuit_value,
+                shortcircuit_func=shortcircuit_func,
                 shortcircuit_callback=mock,
             )
         )
         mock.assert_called()
         assert expected[: idx + 1] == actual
+    else:
+        assert items[idx] in actual
+
 
 
 @given(

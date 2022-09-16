@@ -396,7 +396,7 @@ def sia(
         directions=directions,
         chunksize=chunksize,
         sequential_threshold=sequential_threshold,
-        shortcircuit_value=0.0,
+        shortcircuit_func=utils.is_falsy,
         parallel=parallel,
         progress=progress,
         desc="Evaluating partitions",

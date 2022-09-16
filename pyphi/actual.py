@@ -24,7 +24,7 @@ from itertools import chain
 
 import numpy as np
 
-from . import config, connectivity, compute, exceptions, utils, validate
+from . import compute, config, connectivity, exceptions, utils, validate
 from .compute.parallel import MapReduce
 from .direction import Direction
 from .metrics.distribution import actual_causation_measures as measures
@@ -642,6 +642,7 @@ def _get_cuts(transition, direction):
 DEFAULT_AC_SIA_SEQUENTIAL_THRESHOLD = 4
 DEFAULT_AC_SIA_CHUNKSIZE = 2 * DEFAULT_AC_SIA_SEQUENTIAL_THRESHOLD
 
+
 # TODO(4.0) change parallel default to True?
 def sia(transition, direction=Direction.BIDIRECTIONAL, parallel=False):
     """Return the minimal information partition of a transition in a specific
@@ -689,10 +690,10 @@ def sia(transition, direction=Direction.BIDIRECTIONAL, parallel=False):
         unpartitioned_account=unpartitioned_account,
         reduce_func=min,
         reduce_kwargs=dict(default=_null_ac_sia(transition, direction, alpha=float("inf"))),
+        shortcircuit_func=utils.is_falsy,
         chunksize=DEFAULT_AC_SIA_CHUNKSIZE,
         sequential_threshold=DEFAULT_AC_SIA_SEQUENTIAL_THRESHOLD,
         progress=config.PROGRESS_BARS,
-        # TODO(4.0) parallel: shortcircuit_func
     ).run()
     log.info("Finished calculating big-ac-phi data for %s.", transition)
     log.debug("RESULT: \n%s", result)

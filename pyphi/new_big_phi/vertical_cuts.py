@@ -177,7 +177,7 @@ def find_mip(subsystem, effect_only=False, parallel=None, progress=True):
         chunksize=2 ** 15,
         sequential_threshold=2 ** 14,
         parallel=parallel,
-        shortcircuit_value=null_sia(),
+        shortcircuit_func=utils.is_falsy,
         progress=fallback(progress, config.PROGRESS_BARS),
         desc="Partitions",
     )

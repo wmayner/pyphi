@@ -417,7 +417,7 @@ def find_mip(
         parallel=parallel,
         chunksize=chunksize,
         sequential_threshold=sequential_threshold,
-        shortcircuit_value=0.0,
+        shortcircuit_func=utils.is_falsy,
         progress=progress,
         desc="Evaluating partitions",
     ).partition

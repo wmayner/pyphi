@@ -295,3 +295,8 @@ def enforce_integer_or_none(i, **kwargs):
     if i is None:
         return i
     return enforce_integer(i, **kwargs)
+
+
+def is_falsy(x):
+    """Return True if x is a falsy value."""
+    return not x

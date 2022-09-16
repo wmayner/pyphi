@@ -2,7 +2,7 @@
 
 from typing import Iterable, Optional
 
-from .. import compute
+from .. import compute, utils
 from ..conf import config, fallback
 from ..direction import Direction
 from ..models.cuts import Cut
@@ -106,7 +106,7 @@ def find_mip(
         directions=directions,
         chunksize=chunksize,
         sequential_threshold=sequential_threshold,
-        shortcircuit_value=0.0,
+        shortcircuit_func=utils.is_falsy,
         parallel=parallel,
         progress=progress,
         desc="Evaluating partitions",

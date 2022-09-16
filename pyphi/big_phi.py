@@ -32,7 +32,7 @@ from .registry import Registry
 from .relations import ConcreteRelations, Relations
 from .relations import relations as compute_relations
 from .subsystem import Subsystem
-from .utils import expsublog
+from .utils import expsublog, is_falsy
 
 # TODO
 # - cache relations, compute as needed for each nonconflicting CES
@@ -75,7 +75,7 @@ def sia_partitions(node_indices, node_labels=None):
     valid = ["TEMPORAL_DIRECTED_BI", "TEMPORAL_DIRECTED_BI_CUT_ONE"]
     if scheme not in valid:
         raise ValueError(
-            "IIT 4.0 calculations must use one of the following system"
+            "IIT 4.0 calculations must use one of the following system "
             f"partition schemes: {valid}; got {scheme}"
         )
     # Special case for single-element systems
@@ -751,6 +751,7 @@ DEFAULT_PHI_STRUCTURE_SEQUENTIAL_THRESHOLD = 8
 DEFAULT_PHI_STRUCTURE_CHUNKSIZE = 4 * DEFAULT_PHI_STRUCTURE_SEQUENTIAL_THRESHOLD
 
 
+
 # TODO document args
 def evaluate_phi_structure(
     subsystem,
@@ -780,7 +781,7 @@ def evaluate_phi_structure(
         subsystem=subsystem,
         phi_structure=phi_structure,
         reduce_func=min,
-        shortcircuit_value=0,
+        shortcircuit_func=utils.is_falsy,
         chunksize=chunksize,
         sequential_threshold=sequential_threshold,
         parallel=parallel,
@@ -807,7 +808,7 @@ def find_maximal_compositional_state(
         _system_intrinsic_information,
         phi_structures,
         reduce_func=max,
-        shortcircuit_value=0,
+        shortcircuit_func=utils.is_falsy,
         parallel=parallel,
         chunksize=chunksize,
         sequential_threshold=sequential_threshold,
