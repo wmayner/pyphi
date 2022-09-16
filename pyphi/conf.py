@@ -552,10 +552,8 @@ class PyphiConfig(Config):
         dict(),
         type=dict,
         doc="""
-    Keyword arguments to ``dask.distributed.Client()``. Controls the deployment
-    of the dask scheduler.
-
-    NOTE: The ``n_workers`` argument defaults to the ``NUMBER_OF_CORES`` option.""",
+    Keyword arguments to ``ray.init()``. Controls the initialization of the ray
+    cluster.""",
     )
 
     CACHE_REPERTOIRES = Option(
