@@ -31,7 +31,7 @@ mice_resolution = MICETieResolutionRegistry()
 @mice_resolution.register("MAX_INFORMITAVENESS_THEN_SMALLEST_PURVIEW")
 def _(m):
     if not config.REPERTOIRE_DISTANCE.startswith("IIT_4.0_SMALL_PHI"):
-        msg = """
+        msg = f"""
     'MICE_TIE_RESOLUTION = "MAX_INFORMITAVENESS_THEN_SMALLEST_PURVIEW"
     assumes REPERTOIRE_DISTANCE is one of the "IIT_4.0_SMALL_PHI" measures,
     since informativeness is defined as the pointwise mutual information, but got
