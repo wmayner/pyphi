@@ -23,7 +23,6 @@ from ..models import (
     SystemIrreducibilityAnalysis,
     _null_sia,
     cmp,
-    fmt,
 )
 from ..partition import mip_partitions, system_partition_types
 from .parallel import MapReduce
@@ -42,10 +41,7 @@ def ces(
     purviews=False,
     cause_purviews=False,
     effect_purviews=False,
-    parallel=None,
-    progress=None,
-    chunksize=DEFAULT_CES_CHUNKSIZE,
-    sequential_threshold=DEFAULT_CES_SEQUENTIAL_THRESHOLD,
+    **kwargs,
 ):
     """Return the conceptual structure of this subsystem, optionally restricted
     to concepts with the mechanisms and purviews given in keyword arguments.
@@ -70,13 +66,15 @@ def ces(
         CauseEffectStructure: A tuple of every |Concept| in the cause-effect
         structure.
     """
-    parallel = fallback(parallel, config.PARALLEL_CONCEPT_EVALUATION)
-    progress = fallback(progress, config.PROGRESS_BARS)
-
     total = None
     if mechanisms is False:
         mechanisms = utils.powerset(subsystem.node_indices, nonempty=True)
         total = 2 ** len(subsystem.node_indices) - 1
+    else:
+        try:
+            total = len(mechanisms)
+        except TypeError:
+            pass
 
     def nonzero_phi(concepts):
         return list(filter(None, collapse(concepts)))
@@ -88,19 +86,24 @@ def ces(
         concept.subsystem = None
         return concept
 
+    kwargs = {
+        'chunksize': DEFAULT_CES_CHUNKSIZE,
+        'sequential_threshold': DEFAULT_CES_SEQUENTIAL_THRESHOLD,
+        'parallel': config.PARALLEL_CONCEPT_EVALUATION,
+        **kwargs,
+    }
     concepts = MapReduce(
         compute_concept,
         mechanisms,
-        purviews=purviews,
-        cause_purviews=cause_purviews,
-        effect_purviews=effect_purviews,
+        map_kwargs=dict(
+            purviews=purviews,
+            cause_purviews=cause_purviews,
+            effect_purviews=effect_purviews,
+        ),
         reduce_func=nonzero_phi,
-        chunksize=chunksize,
-        sequential_threshold=sequential_threshold,
-        parallel=parallel,
-        progress=progress,
         desc="Computing concepts",
         total=total,
+        **kwargs,
     ).run()
     # Replace subsystem references
     # TODO(4.0) remove when subsystem reference is removed from Concept
@@ -119,7 +122,7 @@ def conceptual_info(subsystem):
     return round(ci, config.PRECISION)
 
 
-def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
+def evaluate_cut(cut, uncut_subsystem, unpartitioned_ces):
     """Compute the system irreducibility for a given cut.
 
     Args:
@@ -145,7 +148,7 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
             list(unpartitioned_ces.mechanisms) + list(cut_subsystem.cut_mechanisms)
         )
 
-    partitioned_ces = ces(cut_subsystem, mechanisms)
+    partitioned_ces = ces(cut_subsystem, mechanisms, progress=False)
 
     log.debug("Finished evaluating %s.", cut)
 
@@ -158,38 +161,6 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
         subsystem=uncut_subsystem,
         cut_subsystem=cut_subsystem,
     )
-
-
-class ComputeSystemIrreducibility(MapReduce):
-    """Computation engine for system-level irreducibility."""
-
-    # pylint: disable=unused-argument,arguments-differ
-
-    description = "Evaluating {} cuts".format(fmt.BIG_PHI)
-
-    def empty_result(self, subsystem, unpartitioned_ces):
-        """Begin with a |SIA| with infinite |big_phi|; all actual SIAs will
-        have less.
-        """
-        return _null_sia(subsystem, phi=float("inf"))
-
-    @staticmethod
-    def compute(cut, subsystem, unpartitioned_ces):
-        """Evaluate a cut."""
-        return evaluate_cut(subsystem, cut, unpartitioned_ces)
-
-    def process_result(self, new_sia, min_sia):
-        """Check if the new SIA has smaller |big_phi| than the standing
-        result.
-        """
-        if new_sia.phi == 0:
-            self.done = True  # Short-circuit
-            return new_sia
-
-        elif abs(new_sia.phi) < abs(min_sia.phi):
-            return new_sia
-
-        return min_sia
 
 
 def sia_partitions(nodes, node_labels=None):
@@ -220,15 +191,35 @@ def sia_partitions(nodes, node_labels=None):
     )
 
 
-def _ces(subsystem):
+def _ces(subsystem, **kwargs):
     """Parallelize the unpartitioned |CauseEffectStructure| if parallelizing
     cuts, since we have free processors because we're not computing any cuts
     yet.
     """
-    return ces(subsystem, parallel=config.PARALLEL_CUT_EVALUATION)
+    kwargs = {
+        'parallel': config.PARALLEL_CUT_EVALUATION,
+        **kwargs
+    }
+    return ces(subsystem, **kwargs)
 
 
-def _sia(subsystem):
+def _sia_map_reduce(cuts, subsystem, unpartitioned_ces, **kwargs):
+    return MapReduce(
+        evaluate_cut,
+        cuts,
+        map_kwargs=dict(
+            uncut_subsystem=subsystem,
+            unpartitioned_ces=unpartitioned_ces,
+        ),
+        reduce_func=min,
+        reduce_kwargs=dict(default=_null_sia(subsystem)),
+        shortcircuit_func=utils.is_falsy,
+        desc='Evaluating cuts',
+        **kwargs,
+    ).run()
+
+
+def _sia(subsystem, **kwargs):
     """Return the minimal information partition of a subsystem.
 
     Args:
@@ -284,7 +275,7 @@ def _sia(subsystem):
     # =========================================================================
 
     log.debug("Finding unpartitioned CauseEffectStructure...")
-    unpartitioned_ces = _ces(subsystem)
+    unpartitioned_ces = _ces(subsystem, progress=kwargs.get('progress'))
 
     if not unpartitioned_ces:
         log.info(
@@ -305,8 +296,8 @@ def _sia(subsystem):
     else:
         cuts = sia_partitions(subsystem.cut_indices, subsystem.cut_node_labels)
 
-    engine = ComputeSystemIrreducibility(cuts, subsystem, unpartitioned_ces)
-    result = engine.run(config.PARALLEL_CUT_EVALUATION)
+    # TODO(4.0): parallel: expose options
+    result = _sia_map_reduce(cuts, subsystem, unpartitioned_ces, **kwargs)
 
     if config.CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA:
         log.debug("Clearing subsystem caches.")
@@ -318,10 +309,10 @@ def _sia(subsystem):
 
 
 @functools.wraps(_sia)
-def sia(subsystem):
+def sia(subsystem, **kwargs):
     if config.SYSTEM_CUTS == "CONCEPT_STYLE":
-        return sia_concept_style(subsystem)
-    return _sia(subsystem)
+        return sia_concept_style(subsystem, **kwargs)
+    return _sia(subsystem, **kwargs)
 
 
 def phi(subsystem):
@@ -391,7 +382,7 @@ def concept_cuts(direction, node_indices, node_labels=None):
         yield KCut(direction, partition, node_labels)
 
 
-def directional_sia(subsystem, direction, unpartitioned_ces=None):
+def directional_sia(subsystem, direction, unpartitioned_ces=None, **kwargs):
     """Calculate a concept-style SystemIrreducibilityAnalysisCause or
     SystemIrreducibilityAnalysisEffect.
     """
@@ -401,10 +392,7 @@ def directional_sia(subsystem, direction, unpartitioned_ces=None):
     c_system = ConceptStyleSystem(subsystem, direction)
     cuts = concept_cuts(direction, c_system.cut_indices, subsystem.node_labels)
 
-    # Run the default SIA engine
-    # TODO: verify that short-cutting works correctly?
-    engine = ComputeSystemIrreducibility(cuts, c_system, unpartitioned_ces)
-    return engine.run(config.PARALLEL_CUT_EVALUATION)
+    return _sia_map_reduce(cuts, c_system, unpartitioned_ces, **kwargs)
 
 
 # TODO: only return the minimal SIA, instead of both

@@ -71,26 +71,8 @@ def possible_complexes(network, state):
     return reachable_subsystems(network, network.causally_significant_nodes, state)
 
 
-class FindAllComplexes(MapReduce):
-    """Computation engine for finding all complexes."""
-
-    # pylint: disable=unused-argument,arguments-differ
-
-    description = "Finding complexes"
-
-    def empty_result(self):
-        return []
-
-    @staticmethod
-    def compute(subsystem):
-        return sia(subsystem)
-
-    def process_result(self, new_sia, sias):
-        sias.append(new_sia)
-        return sias
-
-
-def all_complexes(network, state):
+# TODO(4.0) parallel: expose args in config
+def all_complexes(network, state, **kwargs):
     """Return a generator for all complexes of the network.
 
     .. note::
@@ -105,20 +87,15 @@ def all_complexes(network, state):
         SystemIrreducibilityAnalysis: A |SIA| for each |Subsystem| of the
         |Network|.
     """
-    engine = FindAllComplexes(subsystems(network, state))
-    return engine.run(config.PARALLEL_COMPLEX_EVALUATION)
+    return MapReduce(
+        sia,
+        possible_complexes(network, state),
+        total=2**len(network) - 1,
+        **kwargs,
+    ).run()
 
 
-class FindIrreducibleComplexes(FindAllComplexes):
-    """Computation engine for finding irreducible complexes of a network."""
-
-    def process_result(self, new_sia, sias):
-        if new_sia.phi > 0:
-            sias.append(new_sia)
-        return sias
-
-
-def complexes(network, state):
+def complexes(network, state, **kwargs):
     """Return all irreducible complexes of the network.
 
     Args:
@@ -129,11 +106,10 @@ def complexes(network, state):
         SystemIrreducibilityAnalysis: A |SIA| for each |Subsystem| of the
         |Network|, excluding those with |big_phi = 0|.
     """
-    engine = FindIrreducibleComplexes(possible_complexes(network, state))
-    return engine.run(config.PARALLEL_COMPLEX_EVALUATION)
+    return list(filter(None, all_complexes(network, state, **kwargs)))
 
 
-def major_complex(network, state):
+def major_complex(network, state, **kwargs):
     """Return the major complex of the network.
 
     Args:
@@ -145,16 +121,21 @@ def major_complex(network, state):
         maximal |big_phi|.
     """
     log.info("Calculating major complex...")
-
-    result = complexes(network, state)
-    if result:
-        result = max(result)
-    else:
-        empty_subsystem = Subsystem(network, state, ())
-        result = _null_sia(empty_subsystem)
-
+    empty_subsystem = Subsystem(network, state, ())
+    default = _null_sia(empty_subsystem)
+    # TODO(4.0) parallel: expose args in config
+    result = MapReduce(
+        sia,
+        possible_complexes(network, state),
+        map_kwargs=dict(progress=False),
+        reduce_func=max,
+        reduce_kwargs=dict(default=default),
+        total=2**len(network) - 1,
+        parallel=config.PARALLEL_COMPLEX_EVALUATION,
+        desc='Evaluating complexes',
+        **kwargs,
+    ).run()
     log.info("Finished calculating major complex.")
-
     return result
 
 

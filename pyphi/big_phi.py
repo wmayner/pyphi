@@ -778,8 +778,10 @@ def evaluate_phi_structure(
     return MapReduce(
         evaluate_partition,
         partitions,
-        subsystem=subsystem,
-        phi_structure=phi_structure,
+        map_kwargs=dict(
+            subsystem=subsystem,
+            phi_structure=phi_structure,
+        ),
         reduce_func=min,
         shortcircuit_func=utils.is_falsy,
         chunksize=chunksize,

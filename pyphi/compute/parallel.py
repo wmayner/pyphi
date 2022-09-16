@@ -274,7 +274,7 @@ class MapReduce:
         inflight_limit: int = 1000,
         progress: Optional[bool] = None,
         desc: Optional[str] = None,
-        **kwargs,
+        map_kwargs: Optional[dict] = None,
     ):
         """
         Specifying tree size: order of precedence:
@@ -290,9 +290,9 @@ class MapReduce:
         self.shortcircuit_callback = shortcircuit_callback
         self.shortcircuit_callback_args = shortcircuit_callback_args
         self.inflight_limit = inflight_limit
-        self.progress = progress
+        self.progress = fallback(progress, config.PROGRESS_BARS)
         self.desc = desc
-        self.map_kwargs = kwargs
+        self.map_kwargs = fallback(map_kwargs, dict())
 
         self._shortcircuit_callback = shortcircuit_callback
 

@@ -685,9 +685,11 @@ def sia(transition, direction=Direction.BIDIRECTIONAL, parallel=False):
     result = MapReduce(
         _evaluate_cut,
         cuts,
-        transition=transition,
-        direction=direction,
-        unpartitioned_account=unpartitioned_account,
+        map_kwargs=dict(
+            transition=transition,
+            direction=direction,
+            unpartitioned_account=unpartitioned_account,
+        ),
         reduce_func=min,
         reduce_kwargs=dict(default=_null_ac_sia(transition, direction, alpha=float("inf"))),
         shortcircuit_func=utils.is_falsy,
