@@ -7,10 +7,17 @@ this example is to highlight an unexpected behaviour of system cuts: that the
 minimum information partition of a system can result in new concepts being
 created.
 
-First let's create the the Rule 110 network, with all nodes OFF in the current
-state.
+We'll start by importing PyPhi, loading the IIT 3.0 configuration, and disabling parallelization:
 
     >>> import pyphi
+    >>> pyphi.config.load_file('pyphi_config_3.0.yml')
+    >>> pyphi.config.PARALLEL_CONCEPT_EVALUATION = False
+    >>> pyphi.config.PARALLEL_CUT_EVALUATION = False
+    >>> pyphi.config.PARALLEL_COMPLEX_EVALUATION = False
+
+Now let's create the the Rule 110 network, with all nodes OFF in the current
+state.
+
     >>> network = pyphi.examples.rule110_network()
     >>> state = (0, 0, 0)
 
@@ -175,7 +182,7 @@ Calculating the MIP of the system,
     >>> sia.phi
     0.217829
     >>> sia.cut
-    Cut [A,E] ━━/ /━━➤ [B]
+    Cut [A,E] ━━/ /━━▶ [B]
 
 we see that this subsystem has a |big_phi| value of 0.15533, and the MIP cuts
 the connections from |AE| to |B|. Investigating the concepts in both the
