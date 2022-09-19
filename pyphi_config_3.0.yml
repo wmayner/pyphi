@@ -19,10 +19,12 @@ CES_DISTANCE: "EMD"
 ACTUAL_CAUSATION_MEASURE: "PMI"
 # Controls the partitioning scheme for distinctions.
 PARTITION_TYPE: "BI"
-# The type of system cuts to use
+# The type of system cuts to use.
 SYSTEM_PARTITION_TYPE: "DIRECTED_BI"
-# The type of system cuts to use
+# The type of system cuts to use.
 SYSTEM_CUTS: "3.0_STYLE"
+# Controls how ties among MICE are broken.
+MICE_TIE_RESOLUTION: "LARGEST_PURVIEW"
 # In some applications of this library, you may want to allow single
 # micro-nodes with a self-loop to have nonzero Phi. See ``pyphi.config`` for
 # details.
