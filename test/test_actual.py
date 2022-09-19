@@ -175,16 +175,20 @@ def test_potential_purviews(background_3_node):
     transition = actual.Transition(
         background_3_node, (1, 1, 1), (1, 1, 1), (0, 1), (0, 2)
     )
-    assert transition.potential_purviews(Direction.CAUSE, (0, 2)) == [
-        (0,),
-        (1,),
-        (0, 1),
-    ]
-    assert transition.potential_purviews(Direction.EFFECT, (0, 1)) == [
-        (0,),
-        (2,),
-        (0, 2),
-    ]
+    assert set(transition.potential_purviews(Direction.CAUSE, (0, 2))) == set(
+        [
+            (0,),
+            (1,),
+            (0, 1),
+        ]
+    )
+    assert set(transition.potential_purviews(Direction.EFFECT, (0, 1))) == set(
+        [
+            (0,),
+            (2,),
+            (0, 2),
+        ]
+    )
 
 
 # Tests
@@ -479,7 +483,7 @@ def test_ac_ex1_transition(transition):
     assert cria.purview == (1,)
     assert cria.direction == Direction.CAUSE
     assert cria.state == (1, 0, 0)
-    assert cria.alpha == 0.415037
+    assert np.isclose(cria.alpha, 0.415037)
     assert cria.probability == 0.66666666666666663
     assert cria.partitioned_probability == 0.5
     assert cria.partition == models.Bipartition(
@@ -496,7 +500,7 @@ def test_ac_ex1_transition(transition):
     assert eria0.purview == (0,)
     assert eria0.direction == Direction.EFFECT
     assert eria0.state == (0, 1, 1)
-    assert eria0.alpha == 0.415037
+    assert np.isclose(eria0.alpha, 0.415037)
     assert eria0.probability == 1.0
     assert eria0.partitioned_probability == 0.75
     assert eria0.partition == models.Bipartition(
@@ -508,7 +512,7 @@ def test_ac_ex1_transition(transition):
     assert eria1.purview == (0,)
     assert eria1.direction == Direction.EFFECT
     assert eria1.state == (0, 1, 1)
-    assert eria1.alpha == 0.415037
+    assert np.isclose(eria1.alpha, 0.415037)
     assert eria1.probability == 1.0
     assert eria1.partitioned_probability == 0.75
     assert eria1.partition == models.Bipartition(
