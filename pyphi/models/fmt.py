@@ -240,23 +240,40 @@ def center(text):
 
 def split_decimal(n):
     """Attempt to split an object into unit and decimal parts, handling
-    non-numeric types."""
+    non-numeric types.
+
+    Examples:
+        >>> split_decimal(1.5)
+        ['1', '5']
+        >>> split_decimal('1.5')
+        ['1', '5']
+        >>> split_decimal(1)
+        ['1', '']
+        >>> split_decimal(1.0)
+        ['1', '0']
+        >>> split_decimal(np.nan)
+        ['', 'nan']
+    """
     try:
         if np.isnan(n):
             # nan
-            return "", str(n)
+            return ["", str(n)]
     except TypeError:
         pass
     if isinstance(n, float):
         # float
         return str(n).split(".")
     try:
-        if float(n).is_integer():
+        n = float(n)
+        if n.is_integer():
             # int
-            return str(int(n)), ""
+            return [str(int(n)), ""]
+        # float
+        return str(n).split(".")
     except ValueError:
-        # assume str
-        return "", str(n)
+        pass
+    # Assume str
+    return ["", str(n)]
 
 
 def align_decimals(numbers):
@@ -268,9 +285,9 @@ def align_decimals(numbers):
     Examples:
         >>> numbers = [0.0, 1, 0.99, 100.5, 80.123, 'string']
         >>> align_decimals(numbers)
-        ['  0      ', '  1      ', '  0.99    ', '100.5     ', ' 80.123   ', '   string']
+        ['  0.0     ', '  1      ', '  0.99    ', '100.5     ', ' 80.123   ', '   string']
         >>> align_decimals([0.5] + list(map(str, numbers)))
-        ['0.5     ', ' 0.0   ', ' 1     ', ' 0.99  ', ' 100.5 ', ' 80.123', ' string']
+        ['  0.5     ', '  0      ', '  1      ', '  0.99    ', '100.5     ', ' 80.123   ', '   string']
     """
     units, decimals = zip(*map(split_decimal, numbers))
     points = ["." if unit and decimal else "" for unit, decimal in zip(units, decimals)]
@@ -301,8 +318,8 @@ def align_columns(
         ...     ('c', 100.5),
         ...     ('xy', 80.12),
         ... ]
-        >>> align_columns(columns, delimiter=": ", alignment="><", types="tn")
-        ['abc:   0    ', '  a:   1    ', '  b:   0.999', '  c: 100.5  ', ' xy:  80.12 ']
+        >>> align_columns(columns)
+        ['abc:   0.0  ', '  a:   1    ', '  b:   0.999', '  c: 100.5  ', ' xy:  80.12 ']
         >>> lines = [
         ...     'abc: 0.0',
         ...     'a: 1',
@@ -310,8 +327,8 @@ def align_columns(
         ...     'c: 100.5',
         ...     'xy: 80.12',
         ... ]
-        >>> align_columns(lines, delimiter=": ", alignment="><", types="tn", split_columns=True)
-        ['abc: 0.0  ', '  a: 1    ', '  b: 0.999', '  c: 100.5', ' xy: 80.12']
+        >>> align_columns(lines, split_columns=True)
+        ['abc:   0    ', '  a:   1    ', '  b:   0.999', '  c: 100.5  ', ' xy:  80.12 ']
     """
     if split_columns:
         lines = [str(line).split(delimiter) for line in lines]
