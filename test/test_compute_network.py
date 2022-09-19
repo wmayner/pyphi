@@ -22,7 +22,7 @@ def test_possible_complexes(s):
 
 
 def test_complexes_standard(s):
-    complexes = list(compute.network.complexes(s.network, s.state))
+    complexes = list(compute.network.complexes(s.network, s.state), parallel=False)
     check_sia(complexes[0], standard_answer)
 
 
