@@ -87,10 +87,13 @@ def all_complexes(network, state, **kwargs):
         SystemIrreducibilityAnalysis: A |SIA| for each |Subsystem| of the
         |Network|.
     """
+    kwargs = {"parallel": config.PARALLEL_COMPLEX_EVALUATION, **kwargs}
     return MapReduce(
         sia,
         possible_complexes(network, state),
         total=2 ** len(network) - 1,
+        map_kwargs=dict(progress=False),
+        desc="Evaluating complexes",
         **kwargs,
     ).run()
 
@@ -123,7 +126,7 @@ def major_complex(network, state, **kwargs):
     log.info("Calculating major complex...")
     empty_subsystem = Subsystem(network, state, ())
     default = _null_sia(empty_subsystem)
-    # TODO(4.0) parallel: expose args in config
+    kwargs = {"parallel": config.PARALLEL_COMPLEX_EVALUATION, **kwargs}
     result = MapReduce(
         sia,
         possible_complexes(network, state),
@@ -131,7 +134,6 @@ def major_complex(network, state, **kwargs):
         reduce_func=max,
         reduce_kwargs=dict(default=default),
         total=2 ** len(network) - 1,
-        parallel=config.PARALLEL_COMPLEX_EVALUATION,
         desc="Evaluating complexes",
         **kwargs,
     ).run()
@@ -139,7 +141,7 @@ def major_complex(network, state, **kwargs):
     return result
 
 
-def condensed(network, state):
+def condensed(network, state, **kwargs):
     """Return a list of maximal non-overlapping complexes.
 
     Args:
@@ -153,7 +155,7 @@ def condensed(network, state):
     result = []
     covered_nodes = set()
 
-    for c in reversed(sorted(complexes(network, state))):
+    for c in reversed(sorted(complexes(network, state, **kwargs))):
         if not any(n in covered_nodes for n in c.subsystem.node_indices):
             result.append(c)
             covered_nodes = covered_nodes | set(c.subsystem.node_indices)

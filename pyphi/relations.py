@@ -921,6 +921,7 @@ def all_relations(
     progress = fallback(progress, config.PROGRESS_BARS)
     if progress:
         potential_relata = tqdm(potential_relata, desc="Submitting possible relations")
+    # TODO pass kwargs with defaults
     return MapReduce(
         relation,
         potential_relata,

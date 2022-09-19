@@ -112,17 +112,19 @@ def ces(
     return CauseEffectStructure(concepts, subsystem=subsystem)
 
 
-def conceptual_info(subsystem):
+def conceptual_info(subsystem, **kwargs):
     """Return the conceptual information for a |Subsystem|.
 
     This is the distance from the subsystem's |CauseEffectStructure| to the
     null concept.
     """
-    ci = ces_distance(ces(subsystem), CauseEffectStructure((), subsystem=subsystem))
+    ci = ces_distance(
+        ces(subsystem, **kwargs), CauseEffectStructure((), subsystem=subsystem)
+    )
     return round(ci, config.PRECISION)
 
 
-def evaluate_cut(cut, uncut_subsystem, unpartitioned_ces):
+def evaluate_cut(cut, uncut_subsystem, unpartitioned_ces, **kwargs):
     """Compute the system irreducibility for a given cut.
 
     Args:
@@ -148,7 +150,8 @@ def evaluate_cut(cut, uncut_subsystem, unpartitioned_ces):
             list(unpartitioned_ces.mechanisms) + list(cut_subsystem.cut_mechanisms)
         )
 
-    partitioned_ces = ces(cut_subsystem, mechanisms, progress=False)
+    kwargs = {"progress": False, **kwargs}
+    partitioned_ces = ces(cut_subsystem, mechanisms, **kwargs)
 
     log.debug("Finished evaluating %s.", cut)
 
@@ -201,6 +204,7 @@ def _ces(subsystem, **kwargs):
 
 
 def _sia_map_reduce(cuts, subsystem, unpartitioned_ces, **kwargs):
+    kwargs = {"parallel": config.PARALLEL_CUT_EVALUATION, **kwargs}
     return MapReduce(
         evaluate_cut,
         cuts,
