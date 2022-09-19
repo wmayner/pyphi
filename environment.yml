@@ -2,6 +2,7 @@ name: pyphi
 channels:
   - conda-forge
 dependencies:
+  - blackcellmagic
   - ipywidgets
   - jupyterlab
   - jupyterlab-lsp
@@ -11,4 +12,3 @@ dependencies:
   - pip
   - pip:
       - -r requirements.txt
-      - blackcellmagic
