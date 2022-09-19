@@ -644,7 +644,7 @@ DEFAULT_AC_SIA_CHUNKSIZE = 2 * DEFAULT_AC_SIA_SEQUENTIAL_THRESHOLD
 
 
 # TODO(4.0) change parallel default to True?
-def sia(transition, direction=Direction.BIDIRECTIONAL, parallel=False):
+def sia(transition, direction=Direction.BIDIRECTIONAL, **kwargs):
     """Return the minimal information partition of a transition in a specific
     direction.
 
@@ -682,6 +682,11 @@ def sia(transition, direction=Direction.BIDIRECTIONAL, parallel=False):
 
     cuts = _get_cuts(transition, direction)
 
+    kwargs = {
+        "parallel": config.PARALLEL_CUT_EVALUATION,
+        "progress": config.PROGRESS_BARS,
+        **kwargs,
+    }
     result = MapReduce(
         _evaluate_cut,
         cuts,
@@ -697,7 +702,7 @@ def sia(transition, direction=Direction.BIDIRECTIONAL, parallel=False):
         shortcircuit_func=utils.is_falsy,
         chunksize=DEFAULT_AC_SIA_CHUNKSIZE,
         sequential_threshold=DEFAULT_AC_SIA_SEQUENTIAL_THRESHOLD,
-        progress=config.PROGRESS_BARS,
+        **kwargs,
     ).run()
     log.info("Finished calculating big-ac-phi data for %s.", transition)
     log.debug("RESULT: \n%s", result)
