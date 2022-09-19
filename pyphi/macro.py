@@ -13,7 +13,7 @@ from collections import namedtuple
 import numpy as np
 from scipy.stats import entropy
 
-from . import compute, config, constants, convert, distribution, utils, validate
+from . import compute, config, convert, distribution, utils, validate
 from .exceptions import ConditionallyDependentError, StateUnreachableError
 from .labels import NodeLabels
 from .network import irreducible_purviews
@@ -964,7 +964,7 @@ def emergence(
     ):
         phi = compute.phi(subsystem)
 
-        if (phi - max_phi) > 10 ** (-constants.PRECISION):
+        if (phi - max_phi) > 10 ** (-config.PRECISION):
             max_phi = phi
             max_network = MacroNetwork(
                 network=network,
