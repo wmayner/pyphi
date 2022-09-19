@@ -23,7 +23,7 @@ def number_of_possible_distinctions_of_order(n, k):
 
 def number_of_possible_distinctions(n):
     """Return the number of possible distinctions."""
-    return 2 ** n - 1
+    return 2**n - 1
 
 
 @cache(cache={}, maxmem=None)
@@ -111,7 +111,7 @@ def optimal_purview_inclusion(N):
             if k1 >= N or k2 >= N:
                 break
             for z_e, z_c in _generate_all_purview_pairs(nodes, k1, k2):
-                if n_distinctions >= 2 ** N - 1:
+                if n_distinctions >= 2**N - 1:
                     return purview_inclusion, min_z
                 purview_inclusion, min_z = _add_distinction(
                     purview_inclusion, min_z, z_e, z_c
@@ -120,7 +120,7 @@ def optimal_purview_inclusion(N):
             if k1 == k2:
                 continue
             for z_e, z_c in _generate_all_purview_pairs(nodes, k2, k1):
-                if n_distinctions >= 2 ** N - 1:
+                if n_distinctions >= 2**N - 1:
                     return purview_inclusion, min_z
                 purview_inclusion, min_z = _add_distinction(
                     purview_inclusion, min_z, z_e, z_c
@@ -201,7 +201,7 @@ def _(N):
     purview_inclusion, min_z = optimal_purview_inclusion(N)
     sum_phi_d = distinction_sum_phi_upper_bound(N)
     alpha = sum_phi_d / sum(min_z)
-    return sum([2 ** p - p - 1 for p in purview_inclusion]) * alpha ** 2
+    return sum([2**p - p - 1 for p in purview_inclusion]) * alpha**2
 
 
 ##############################################################################

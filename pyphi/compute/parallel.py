@@ -217,7 +217,8 @@ def _map_reduce_tree(
             **map_kwargs,
         )
     if progress_bar and _level == 1:
-        # We're on root node: block on the progress bar before blocking on results.
+        # We're on root node: block on the progress bar before blocking on
+        # results.
         wait_then_finish.remote(progress_bar, results)
         progress_bar.print_until_done()
     # Get (potentially remote) results.
@@ -243,7 +244,9 @@ def progress_hook(progress_bar):
         def wrapper(*args, **kwargs):
             progress_bar.actor.finish.remote(interrupted=True)
             return func(*args, **kwargs)
+
         return wrapper
+
     return decorator
 
 
@@ -321,29 +324,26 @@ class MapReduce:
 
     def _repr_attrs(self):
         attrs = [
-                "map_func",
-                "map_kwargs",
-                "iterables",
-                "reduce_func",
-                "reduce_kwargs",
-                "parallel",
-                "total",
-                "shortcircuit_func",
-                "shortcircuit_callback",
-                "shortcircuit_callback_args",
-                "inflight_limit",
-                "progress",
-                "desc",
-            ]
+            "map_func",
+            "map_kwargs",
+            "iterables",
+            "reduce_func",
+            "reduce_kwargs",
+            "parallel",
+            "total",
+            "shortcircuit_func",
+            "shortcircuit_callback",
+            "shortcircuit_callback_args",
+            "inflight_limit",
+            "progress",
+            "desc",
+        ]
         if self.parallel:
             attrs += ["constraints", "tree"]
         return attrs
 
     def __repr__(self):
-        data = [
-            f"{attr}={getattr(self, attr)}"
-            for attr in self._repr_attrs()
-        ]
+        data = [f"{attr}={getattr(self, attr)}" for attr in self._repr_attrs()]
         return "\n".join(
             [f"{self.__class__.__name__}(", indent("\n".join(data), "  "), ")"]
         )
@@ -399,9 +399,11 @@ class MapReduce:
                 remote=False,
                 shortcircuit_func=self.shortcircuit_func,
                 shortcircuit_callback=self.shortcircuit_callback,
-                shortcircuit_callback_args=self.shortcircuit_callback_args
+                shortcircuit_callback_args=self.shortcircuit_callback_args,
             )
-            self.result = _reduce(results, self.reduce_func, self.reduce_kwargs, branch=False)
+            self.result = _reduce(
+                results, self.reduce_func, self.reduce_kwargs, branch=False
+            )
             self.done = True
             return self.result
         except Exception as e:

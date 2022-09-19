@@ -10,7 +10,7 @@ from ..new_big_phi import SystemIrreducibilityAnalysis, SystemState, find_system
 from ..partition import system_partitions
 from ..subsystem import Subsystem
 
-DEFAULT_SEQUENTIAL_THRESHOLD = 2 ** 4
+DEFAULT_SEQUENTIAL_THRESHOLD = 2**4
 DEFAULT_CHUNKSIZE = 4 * DEFAULT_SEQUENTIAL_THRESHOLD
 
 

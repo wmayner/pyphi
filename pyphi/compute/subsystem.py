@@ -87,9 +87,9 @@ def ces(
         return concept
 
     kwargs = {
-        'chunksize': DEFAULT_CES_CHUNKSIZE,
-        'sequential_threshold': DEFAULT_CES_SEQUENTIAL_THRESHOLD,
-        'parallel': config.PARALLEL_CONCEPT_EVALUATION,
+        "chunksize": DEFAULT_CES_CHUNKSIZE,
+        "sequential_threshold": DEFAULT_CES_SEQUENTIAL_THRESHOLD,
+        "parallel": config.PARALLEL_CONCEPT_EVALUATION,
         **kwargs,
     }
     concepts = MapReduce(
@@ -196,10 +196,7 @@ def _ces(subsystem, **kwargs):
     cuts, since we have free processors because we're not computing any cuts
     yet.
     """
-    kwargs = {
-        'parallel': config.PARALLEL_CUT_EVALUATION,
-        **kwargs
-    }
+    kwargs = {"parallel": config.PARALLEL_CUT_EVALUATION, **kwargs}
     return ces(subsystem, **kwargs)
 
 
@@ -214,7 +211,7 @@ def _sia_map_reduce(cuts, subsystem, unpartitioned_ces, **kwargs):
         reduce_func=min,
         reduce_kwargs=dict(default=_null_sia(subsystem)),
         shortcircuit_func=utils.is_falsy,
-        desc='Evaluating cuts',
+        desc="Evaluating cuts",
         **kwargs,
     ).run()
 
@@ -275,7 +272,7 @@ def _sia(subsystem, **kwargs):
     # =========================================================================
 
     log.debug("Finding unpartitioned CauseEffectStructure...")
-    unpartitioned_ces = _ces(subsystem, progress=kwargs.get('progress'))
+    unpartitioned_ces = _ces(subsystem, progress=kwargs.get("progress"))
 
     if not unpartitioned_ces:
         log.info(

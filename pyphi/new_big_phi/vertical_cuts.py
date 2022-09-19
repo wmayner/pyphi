@@ -174,8 +174,8 @@ def find_mip(subsystem, effect_only=False, parallel=None, progress=True):
         sys_effect_state=sys_effect_state,
         effect_only=effect_only,
         # Parallel kwargs
-        chunksize=2 ** 15,
-        sequential_threshold=2 ** 14,
+        chunksize=2**15,
+        sequential_threshold=2**14,
         parallel=parallel,
         shortcircuit_func=utils.is_falsy,
         progress=fallback(progress, config.PROGRESS_BARS),

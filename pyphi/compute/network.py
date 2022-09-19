@@ -90,7 +90,7 @@ def all_complexes(network, state, **kwargs):
     return MapReduce(
         sia,
         possible_complexes(network, state),
-        total=2**len(network) - 1,
+        total=2 ** len(network) - 1,
         **kwargs,
     ).run()
 
@@ -130,9 +130,9 @@ def major_complex(network, state, **kwargs):
         map_kwargs=dict(progress=False),
         reduce_func=max,
         reduce_kwargs=dict(default=default),
-        total=2**len(network) - 1,
+        total=2 ** len(network) - 1,
         parallel=config.PARALLEL_COMPLEX_EVALUATION,
-        desc='Evaluating complexes',
+        desc="Evaluating complexes",
         **kwargs,
     ).run()
     log.info("Finished calculating major complex.")

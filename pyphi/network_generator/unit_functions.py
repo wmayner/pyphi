@@ -67,6 +67,7 @@ def boolean_function(element, weights, state, on_inputs=()):
 def gauss(x, mu, sigma):
     return np.exp(-0.5 * (((x - mu) / sigma) ** 2))
 
+
 def gaussian(
     element,
     weights,

@@ -93,7 +93,9 @@ class ProgressBar:
         pbar = tqdm(desc=self.desc, total=self.total)
         total = fallback(self.total, float("inf"))
         while True:
-            delta, counter, finished, interrupted = ray.get(self.actor.wait_for_update.remote())
+            delta, counter, finished, interrupted = ray.get(
+                self.actor.wait_for_update.remote()
+            )
             pbar.update(delta)
             if finished or counter >= total:
                 # Explicitly set total since finish signal may arrive before the

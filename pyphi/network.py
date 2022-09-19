@@ -134,7 +134,7 @@ class Network:
     @property
     def num_states(self):
         """int: The number of possible states of the network."""
-        return 2 ** self.size
+        return 2**self.size
 
     @property
     def node_indices(self):

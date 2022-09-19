@@ -766,18 +766,20 @@ def plot_graph(g, **kwargs):
         **kwargs,
     )
 
+
 def plot_subsystem(subsystem, **kwargs):
     g = nx.from_numpy_matrix(subsystem.cm, create_using=nx.DiGraph)
     nx.relabel_nodes(
         g, dict(zip(range(subsystem.network.size), subsystem.node_labels)), copy=False
     )
-    if 'node_color' not in kwargs:
-        kwargs['node_color'] = [
+    if "node_color" not in kwargs:
+        kwargs["node_color"] = [
             NODE_COLORS[(i in subsystem.node_indices, subsystem.state[i])]
             for i in range(subsystem.network.size)
         ]
     plot_graph(g, **kwargs)
     return g
+
 
 ###############################################################################
 # Distributions
@@ -866,7 +868,6 @@ def plot_distribution(
         (distributions[0].index == d.index).all() for d in distributions
     ):
         raise ValueError("distribution indices do not match")
-
 
     N = log2(np.prod(d.shape))
     if states is None:

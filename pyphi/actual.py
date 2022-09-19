@@ -413,7 +413,7 @@ class Transition:
 
             # Then take closest to 0
             # TODO(4.0)
-            if (abs(alpha_min) - abs(alpha)) > 10**(-config.PRECISION):
+            if (abs(alpha_min) - abs(alpha)) > 10 ** (-config.PRECISION):
                 alpha_min = alpha
                 acria = AcRepertoireIrreducibilityAnalysis(
                     state=self.mechanism_state(direction),
@@ -691,7 +691,9 @@ def sia(transition, direction=Direction.BIDIRECTIONAL, parallel=False):
             unpartitioned_account=unpartitioned_account,
         ),
         reduce_func=min,
-        reduce_kwargs=dict(default=_null_ac_sia(transition, direction, alpha=float("inf"))),
+        reduce_kwargs=dict(
+            default=_null_ac_sia(transition, direction, alpha=float("inf"))
+        ),
         shortcircuit_func=utils.is_falsy,
         chunksize=DEFAULT_AC_SIA_CHUNKSIZE,
         sequential_threshold=DEFAULT_AC_SIA_SEQUENTIAL_THRESHOLD,

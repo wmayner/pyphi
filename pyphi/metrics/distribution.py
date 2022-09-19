@@ -284,8 +284,8 @@ def psq2(p, q):
         p (np.ndarray): The first distribution.
         q (np.ndarray): The second distribution.
     """
-    fp = (p * (-1.0 * entr(p))).sum() / _LN_OF_2 + (p ** 2 * log2(len(p))).sum()
-    fq = (q * (-1.0 * entr(q))).sum() / _LN_OF_2 + (q ** 2 * log2(len(q))).sum()
+    fp = (p * (-1.0 * entr(p))).sum() / _LN_OF_2 + (p**2 * log2(len(p))).sum()
+    fq = (q * (-1.0 * entr(q))).sum() / _LN_OF_2 + (q**2 * log2(len(q))).sum()
     return abs(fp - fq)
 
 

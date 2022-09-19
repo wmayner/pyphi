@@ -364,7 +364,7 @@ def state_by_node2state_by_state(sbn):
     sbn = np.stack([1 - sbn, sbn], axis=-1)
 
     # Preallocate the state-by-state TPM
-    sbs = np.empty([2 ** n_prev, 2 ** n_next], dtype=sbn.dtype)
+    sbs = np.empty([2**n_prev, 2**n_next], dtype=sbn.dtype)
 
     def fill_row(sbs_row_idx, prev_state):
         # Overall approach: get the marginal conditional probabilities for each

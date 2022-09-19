@@ -196,7 +196,7 @@ def num_subsets_larger_than_one_element(n):
         = 2^n    - (n choose 1)             - |{ø}|
         = 2^n    - n                        - 1
     """
-    return 2 ** n - n - 1
+    return 2**n - n - 1
 
 
 def sum_of_minimum_among_subsets(values):
@@ -275,7 +275,7 @@ def sum_of_min_times_avg_among_subsets(values):
         # \sum_k (1/k) * comb(n-2, k-2), k is the size of the subsets k = 2, ..., n-2
         _n = n - 2
         sum_avg_val += (
-            sum(values[i + 1 :]) * (_n * 2 ** (_n + 1) + 1) / (_n ** 2 + 3 * _n + 2)
+            sum(values[i + 1 :]) * (_n * 2 ** (_n + 1) + 1) / (_n**2 + 3 * _n + 2)
         )
         _sum += min_val * sum_avg_val
     return _sum

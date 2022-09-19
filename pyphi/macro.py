@@ -876,7 +876,7 @@ def coarse_graining(network, state, internal_indices):
             continue
 
         phi = compute.phi(subsystem)
-        if (phi - max_phi) > 10**(-config.PRECISION):
+        if (phi - max_phi) > 10 ** (-config.PRECISION):
             max_phi = phi
             max_coarse_grain = coarse_grain
 
@@ -964,7 +964,7 @@ def emergence(
     ):
         phi = compute.phi(subsystem)
 
-        if (phi - max_phi) > 10**(-constants.PRECISION):
+        if (phi - max_phi) > 10 ** (-constants.PRECISION):
             max_phi = phi
             max_network = MacroNetwork(
                 network=network,

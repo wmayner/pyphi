@@ -40,7 +40,7 @@ def uniform_distribution(number_of_nodes):
         np.ndarray: The uniform distribution over the set of nodes.
     """
     # The size of the state space for binary nodes is 2^(number of nodes).
-    number_of_states = 2 ** number_of_nodes
+    number_of_states = 2**number_of_nodes
     # Generate the maximum entropy distribution
     # TODO extend to nonbinary nodes
     return (np.ones(number_of_states) / number_of_states).reshape([2] * number_of_nodes)
