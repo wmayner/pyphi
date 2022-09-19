@@ -1135,11 +1135,13 @@ config = PyphiConfig(on_change=on_change_global)
 
 
 def on_driver():
-    try:
-        ray.get_runtime_context().task_id
-        return False
-    except AssertionError:
-        return True
+    if ray.is_initialized():
+        try:
+            ray.get_runtime_context().task_id
+            return False
+        except AssertionError:
+            pass
+    return True
 
 
 if on_driver():
