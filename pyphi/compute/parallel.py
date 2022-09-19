@@ -78,9 +78,7 @@ def shortcircuit(
         yield result
         if shortcircuit_func(result):
             if shortcircuit_callback is not None:
-                if shortcircuit_callback_args is None:
-                    shortcircuit_callback_args = items
-                shortcircuit_callback(shortcircuit_callback_args)
+                shortcircuit_callback(fallback(shortcircuit_callback_args, items))
             return
 
 
@@ -115,7 +113,7 @@ def get(
     items,
     remote=False,
     shortcircuit_func=false,
-    shortcircuit_callback=cancel_all,
+    shortcircuit_callback=None,
     shortcircuit_callback_args=None,
 ):
     """Get (potentially) remote results.
@@ -272,7 +270,7 @@ class MapReduce:
         max_leaves: Optional[int] = None,
         branch_factor: int = 2,
         shortcircuit_func: Callable = false,
-        shortcircuit_callback: Callable = cancel_all,
+        shortcircuit_callback: Optional[Callable] = None,
         shortcircuit_callback_args: Any = None,
         inflight_limit: int = 1000,
         progress: Optional[bool] = None,
@@ -313,6 +311,9 @@ class MapReduce:
             self.tree = self.constraints.simulate()
             # Get the chunksize
             self.chunksize = self.constraints.get_initial_chunksize()
+            # Default to cancelling all remote tasks
+            if self.shortcircuit_callback is None:
+                self.shortcircuit_callback = cancel_all
 
         self.progress_bar = None
         # Store errors
