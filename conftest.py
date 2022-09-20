@@ -109,7 +109,6 @@ def flushcache(request):
 
 @pytest.fixture(scope="module")
 def ray_context():
-    print('calling ray_context()')
     context = ray.init(num_cpus=3)
     yield context
     ray.shutdown()
