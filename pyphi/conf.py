@@ -803,7 +803,7 @@ class PyphiConfig(Config):
     )
 
     RELATION_PARTITION_TYPE = Option(
-        "BI_CUT_ONE",
+        "TRI",
         doc="""
     Controls the type of partition used for |small_phi| computations.
 
@@ -858,7 +858,7 @@ class PyphiConfig(Config):
     )
 
     RELATION_PHI_SCHEME = Option(
-        "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS",
+        "AGGREGATE_DISTINCTION_RELATIVE_DIFFERENCES",
         values=[
             "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS",
             "AGGREGATE_DISTINCTION_RELATIVE_DIFFERENCES",
@@ -917,7 +917,7 @@ class PyphiConfig(Config):
     )
 
     RELATION_COMPUTATION = Option(
-        "ANALYTICAL",
+        "CONCRETE",
         values=["CONCRETE", "ANALYTICAL", "SAMPLED"],
         doc="""
     Controls how relations are computed.
@@ -1041,51 +1041,47 @@ def validate_combinations(
 
 def validate(config):
     # TODO use something like Param objects, e.g. from Bokeh?
-    validate_combinations(
-        config,
-        [
-            "RELATION_PHI_SCHEME",
-            "DISTINCTION_PHI_UPPER_BOUND_RELATIONS",
-            "DISTINCTION_SUM_PHI_UPPER_BOUND",
-        ],
-        valid_combinations={
-            (
-                "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS",
-                "PURVIEW_SIZE",
-                "DISTINCT_AND_CONGRUENT_PURVIEWS",
-            ),
-            ("CONGRUENCE_RATIO_TIMES_INFORMATIVENESS", "PURVIEW_SIZE", "2^N-1"),
-            (
-                "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS",
-                "PURVIEW_SIZE",
-                "(2^N-1)/(N-1)",
-            ),
-            (
-                "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS",
-                "PURVIEW_SIZE",
-                "PURVIEW_SIZE",
-            ),
-        },
-    )
-    validate_combinations(
-        config,
-        ["RELATION_SUM_PHI_UPPER_BOUND", "DISTINCTION_SUM_PHI_UPPER_BOUND"],
-        valid_combinations=[
-            ("DISTINCT_AND_CONGRUENT_PURVIEWS", "DISTINCT_AND_CONGRUENT_PURVIEWS"),
-            ("UNIQUE_PURVIEWS", "2^N-1"),
-            ("UNIQUE_PURVIEWS", "(2^N-1)/(N-1)"),
-            ("UNIQUE_PURVIEWS", "PURVIEW_SIZE"),
-        ],
-    )
-
-    if (
-        config.RELATION_PHI_SCHEME == "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS"
-        and not config.RELATION_PARTITION_TYPE == "BI_CUT_ONE"
-    ):
-        raise ConfigurationError(
-            "RELATION_PHI_SCHEME = 'CONGRUENCE_RATIO_TIMES_INFORMATIVENESS' "
-            "must be used with:"
-            "\n  RELATION_PARTITION_TYPE = 'BI_CUT_ONE'"
+    if config.RELATION_PHI_SCHEME == "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS":
+        if not config.RELATION_PARTITION_TYPE == "BI_CUT_ONE":
+            raise ConfigurationError(
+                "RELATION_PHI_SCHEME = 'CONGRUENCE_RATIO_TIMES_INFORMATIVENESS' "
+                "must be used with:"
+                "\n  RELATION_PARTITION_TYPE = 'BI_CUT_ONE'"
+            )
+        validate_combinations(
+            config,
+            [
+                "DISTINCTION_PHI_UPPER_BOUND_RELATIONS",
+                "DISTINCTION_SUM_PHI_UPPER_BOUND",
+            ],
+            valid_combinations={
+                (
+                    "PURVIEW_SIZE",
+                    "DISTINCT_AND_CONGRUENT_PURVIEWS",
+                ),
+                (
+                    "PURVIEW_SIZE",
+                    "2^N-1",
+                ),
+                (
+                    "PURVIEW_SIZE",
+                    "(2^N-1)/(N-1)",
+                ),
+                (
+                    "PURVIEW_SIZE",
+                    "PURVIEW_SIZE",
+                ),
+            },
+        )
+        validate_combinations(
+            config,
+            ["RELATION_SUM_PHI_UPPER_BOUND", "DISTINCTION_SUM_PHI_UPPER_BOUND"],
+            valid_combinations=[
+                ("DISTINCT_AND_CONGRUENT_PURVIEWS", "DISTINCT_AND_CONGRUENT_PURVIEWS"),
+                ("UNIQUE_PURVIEWS", "2^N-1"),
+                ("UNIQUE_PURVIEWS", "(2^N-1)/(N-1)"),
+                ("UNIQUE_PURVIEWS", "PURVIEW_SIZE"),
+            ],
         )
 
     if config.RELATION_COMPUTATION == "ANALYTICAL" and (
