@@ -1,4 +1,5 @@
 -e .
--r test_requirements.txt
+-r test/requirements.txt
+-r docs/requirements.txt
 -r dev_requirements.txt
 -r visualization_requirements.txt
