@@ -16,9 +16,6 @@ coverage:
 	coverage html
 	open htmlcov/index.html
 
-lint:
-	pylint $(src)
-
 watch-tests:
 	watchmedo shell-command \
 		--command='make coverage' \
