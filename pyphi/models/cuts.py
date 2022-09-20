@@ -592,3 +592,36 @@ class RelationPartition(Tripartition):
             ],
             node_labels=node_labels,
         )
+
+
+class CompleteRelationPartition(RelationPartition):
+    def __init__(self, relata, candidate_joint_purview, node_labels=None):
+        self.relata = relata
+        self._purview = candidate_joint_purview
+        self.node_labels = node_labels
+
+    def __repr__(self):
+        return f"CompleteRelationPartition"
+
+    # TODO(4.0) refactor to use relatum objects themselves, rather than indices
+    # - avoids need for O(1) integer indexing of OrderedSet; can replace with
+    #   simpler implementation, maybe just a >3.7 dict
+    def for_relatum(self, i):
+        """Return the implied `Tripartition` with respect to just a single mechanism.
+
+        Arguments:
+            i (int): The index of the relatum in the relata object.
+        """
+        relatum = self.relata[i]
+        return Tripartition(
+            Part(
+                mechanism=relatum.mechanism,
+                purview=(),
+                node_labels=self.node_labels,
+            ),
+            Part(
+                mechanism=(),
+                purview=tuple(relatum.purview),
+                node_labels=self.node_labels,
+            ),
+        )

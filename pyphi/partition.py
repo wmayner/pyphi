@@ -28,6 +28,7 @@ from .models.cuts import (
     Part,
     RelationPart,
     RelationPartition,
+    CompleteRelationPartition,
     SystemPartition,
     Tripartition,
 )
@@ -629,11 +630,14 @@ relation_partition_types = PartitionRegistry()
 
 @relation_partition_types.register("TRI")
 def relation_tripartitions(relata, candidate_joint_purview, node_labels=None):
+    yield CompleteRelationPartition(
+        relata, candidate_joint_purview, node_labels=node_labels
+    )
     overlap_partitions = wedge_partitions(
         tuple(range(len(relata))), candidate_joint_purview
     )
-    return (
-        RelationPartition(
+    for partition in overlap_partitions:
+        yield RelationPartition(
             relata,
             *(
                 RelationPart(
@@ -646,8 +650,6 @@ def relation_tripartitions(relata, candidate_joint_purview, node_labels=None):
             ),
             node_labels=node_labels,
         )
-        for partition in overlap_partitions
-    )
 
 
 def relation_partition_one_distinction(
@@ -673,6 +675,9 @@ def relation_partition_one_distinction(
 
 @relation_partition_types.register("BI_CUT_ONE")
 def relation_bipartitions_of_one(relata, candidate_joint_purview, node_labels=None):
+    yield CompleteRelationPartition(
+        relata, candidate_joint_purview, node_labels=node_labels
+    )
     for i in range(len(relata)):
         yield relation_partition_one_distinction(
             relata, candidate_joint_purview, i, node_labels=node_labels
