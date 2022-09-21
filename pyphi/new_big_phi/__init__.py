@@ -11,6 +11,7 @@ from toolz import concat
 from ..registry import Registry
 from .. import Direction, Subsystem, compute, config, connectivity, utils
 from ..compute.network import reachable_subsystems
+from ..compute.parallel import MapReduce
 from ..conf import fallback
 from ..labels import NodeLabels
 from ..metrics.distribution import repertoire_distance as _repertoire_distance
@@ -348,18 +349,14 @@ def sia_minimization_key(sia):
 
 def sia(
     subsystem: Subsystem,
-    parallel: Optional[bool] = None,
-    progress: Optional[bool] = None,
-    chunksize: int = DEFAULT_PARTITION_CHUNKSIZE,
-    sequential_threshold: int = DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
     repertoire_distance: str = None,
     directions: Optional[Iterable[Direction]] = None,
     partitions: str = None,
+    **kwargs,
 ) -> SystemIrreducibilityAnalysis:
     """Find the minimum information partition of a system."""
-    parallel = fallback(parallel, config.PARALLEL_CUT_EVALUATION)
-    progress = fallback(progress, config.PROGRESS_BARS)
     partitions = fallback(partitions, config.SYSTEM_PARTITION_TYPE)
+
     # TODO: trivial reducibility
 
     filter_func = None
@@ -387,20 +384,28 @@ def sia(
         node_indices=subsystem.node_indices,
         node_labels=subsystem.node_labels,
     )
-    sias = compute.parallel.map(
+
+    kwargs = {
+        "parallel": config.PARALLEL_CUT_EVALUATION,
+        "progress": config.PROGRESS_BARS,
+        "chunksize": DEFAULT_PARTITION_CHUNKSIZE,
+        "sequential_threshold": DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
+        **kwargs,
+    }
+    sias = MapReduce(
         evaluate_partition,
         partitions,
-        subsystem=subsystem,
-        system_state=system_state,
-        repertoire_distance=repertoire_distance,
-        directions=directions,
-        chunksize=chunksize,
-        sequential_threshold=sequential_threshold,
+        map_kwargs=dict(
+            subsystem=subsystem,
+            system_state=system_state,
+            repertoire_distance=repertoire_distance,
+            directions=directions,
+        ),
         shortcircuit_func=utils.is_falsy,
-        parallel=parallel,
-        progress=progress,
         desc="Evaluating partitions",
-    )
+        **kwargs,
+    ).run()
+
     # Find MIP in one pass, keeping track of ties
     mip_sia = default_sia
     mip_key = (float("inf"), float("-inf"))
