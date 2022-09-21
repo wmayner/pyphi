@@ -8,7 +8,6 @@ from typing import Dict, Iterable, Optional, Union
 from numpy.typing import ArrayLike
 from toolz import concat
 
-from ..registry import Registry
 from .. import Direction, Subsystem, compute, config, connectivity, utils
 from ..compute.network import reachable_subsystems
 from ..compute.parallel import MapReduce
@@ -19,6 +18,7 @@ from ..models import cmp, fmt
 from ..models.cuts import Cut, GeneralKCut, SystemPartition
 from ..models.subsystem import CauseEffectStructure
 from ..partition import system_partitions
+from ..registry import Registry
 from ..relations import ConcreteRelations, Relations
 from ..relations import relations as compute_relations
 

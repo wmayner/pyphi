@@ -2,9 +2,15 @@
 
 from dataclasses import dataclass
 
-from .. import Direction, compute, config, utils
-from ..conf import fallback
+from .. import Direction, config, utils
+from ..compute.parallel import MapReduce
 from ..models import cmp, fmt
+from ..new_big_phi import (
+    DEFAULT_PARTITION_CHUNKSIZE,
+    DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
+    NullSystemIrreducibilityAnalysis,
+    ShortCircuitConditions,
+)
 from ..partition import (
     CompletePartition,
     KPartition,
@@ -140,18 +146,15 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         return fmt.box(fmt.center(body))
 
 
-def null_sia():
-    return SystemIrreducibilityAnalysis(
-        phi=0.0,
-        normalized_phi=0.0,
-        norm=0.0,
-        cause_state=None,
-        effect_state=None,
-        partition=None,
-    )
+def sia(subsystem, effect_only=False, **kwargs):
+    kwargs = {
+        "parallel": config.PARALLEL_CUT_EVALUATION,
+        "progress": config.PROGRESS_BARS,
+        "chunksize": DEFAULT_PARTITION_CHUNKSIZE,
+        "sequential_threshold": DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
+        **kwargs,
+    }
 
-
-def find_mip(subsystem, effect_only=False, parallel=None, progress=True):
     # NOTE: Tie-breaking happens here when we access the first element.
     sys_effect_state = subsystem.find_maximal_state_under_complete_partition(
         Direction.EFFECT,
@@ -163,21 +166,26 @@ def find_mip(subsystem, effect_only=False, parallel=None, progress=True):
         mechanism=subsystem.node_indices,
         purview=subsystem.node_indices,
     )[0]
-    return compute.parallel.map_reduce(
+
+    default_sia = NullSystemIrreducibilityAnalysis(
+        reasons=[ShortCircuitConditions.NO_VALID_PARTITIONS],
+        node_indices=subsystem.node_indices,
+        node_labels=subsystem.node_labels,
+    )
+    return MapReduce(
         evaluate_system_partition,
-        min,
         system_set_partitions(
             subsystem.node_indices, node_labels=subsystem.node_labels
         ),
-        subsystem=subsystem,
-        sys_cause_state=sys_cause_state,
-        sys_effect_state=sys_effect_state,
-        effect_only=effect_only,
-        # Parallel kwargs
-        chunksize=2**15,
-        sequential_threshold=2**14,
-        parallel=parallel,
+        map_kwargs=dict(
+            subsystem=subsystem,
+            sys_cause_state=sys_cause_state,
+            sys_effect_state=sys_effect_state,
+            effect_only=effect_only,
+        ),
+        reduce_func=min,
+        reduce_kwargs=dict(default=default_sia),
         shortcircuit_func=utils.is_falsy,
-        progress=fallback(progress, config.PROGRESS_BARS),
-        desc="Partitions",
+        desc="Evaluating partitions",
+        **kwargs,
     )

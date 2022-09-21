@@ -1,11 +1,12 @@
 # new_big_phi/min_max_horizontal.py
 
 from dataclasses import dataclass
-from typing import Iterable, Optional, Union, Generator
+from typing import Generator, Iterable, Optional, Union
 
 from numpy.typing import ArrayLike
 
-from .. import Direction, Subsystem, compute, config, utils
+from .. import Direction, Subsystem, config, utils
+from ..compute.parallel import MapReduce
 from ..conf import fallback
 from ..labels import NodeLabels
 from ..metrics.distribution import repertoire_distance as _repertoire_distance
@@ -14,6 +15,8 @@ from ..models.cuts import Cut, SystemPartition
 from ..new_big_phi import (
     DEFAULT_PARTITION_CHUNKSIZE,
     DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
+    NullSystemIrreducibilityAnalysis,
+    ShortCircuitConditions,
     SystemState,
     find_system_state,
 )
@@ -381,20 +384,22 @@ def evaluate_partition(
     )
 
 
-def find_mip(
+def sia(
     subsystem: Subsystem,
-    parallel: Optional[bool] = None,
-    chunksize: int = DEFAULT_PARTITION_CHUNKSIZE,
-    sequential_threshold: int = DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
-    progress: Optional[bool] = None,
     repertoire_distance: str = None,
     directions: Optional[Iterable[Direction]] = None,
     code: str = HORIZONTAL_PARTITION_CODE,
     **kwargs,
 ) -> SystemIrreducibilityAnalysis:
     """Find the minimum information partition of a system."""
-    parallel = fallback(parallel, config.PARALLEL_CUT_EVALUATION)
-    progress = fallback(progress, config.PROGRESS_BARS)
+    kwargs = {
+        "parallel": config.PARALLEL_CUT_EVALUATION,
+        "progress": config.PROGRESS_BARS,
+        "chunksize": DEFAULT_PARTITION_CHUNKSIZE,
+        "sequential_threshold": DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
+        **kwargs,
+    }
+
     # TODO: trivial reducibility
 
     system_state = find_system_state(subsystem)
@@ -406,36 +411,41 @@ def find_mip(
         code=code,
         directions=directions,
     )
-    mip = compute.parallel.map_reduce(
+
+    default_sia = NullSystemIrreducibilityAnalysis(
+        reasons=[ShortCircuitConditions.NO_VALID_PARTITIONS],
+        node_indices=subsystem.node_indices,
+        node_labels=subsystem.node_labels,
+    )
+
+    min_sia = MapReduce(
         evaluate_partition,
-        min,
         partitions,
-        subsystem=subsystem,
-        system_state=system_state,
-        repertoire_distance=repertoire_distance,
-        # atomic_integration=atomic_integration,
-        parallel=parallel,
-        chunksize=chunksize,
-        sequential_threshold=sequential_threshold,
+        map_kwargs=dict(
+            subsystem=subsystem,
+            system_state=system_state,
+            repertoire_distance=repertoire_distance,
+            directions=directions,
+        ),
+        reduce_func=min,
+        reduce_kwargs=dict(default=default_sia),
         shortcircuit_func=utils.is_falsy,
-        progress=progress,
         desc="Evaluating partitions",
-    ).partition
+        **kwargs,
+    ).run()
 
     # Find maximal purview for the minimum information partition
-    purviews = utils.powerset(mip.purview, nonempty=True)
-    return compute.parallel.map_reduce(
+    purviews = utils.powerset(min_sia.partition.purview, nonempty=True)
+    return MapReduce(
         evaluate_purview,
-        max,
         purviews,
-        partition=mip,
-        subsystem=subsystem,
-        system_state=system_state,
-        repertoire_distance=repertoire_distance,
-        parallel=parallel,
-        chunksize=chunksize,
-        sequential_threshold=sequential_threshold,
-        progress=progress,
+        reduce_func=max,
+        map_kwargs=dict(
+            partition=min_sia.partition,
+            subsystem=subsystem,
+            system_state=system_state,
+            repertoire_distance=repertoire_distance,
+        ),
         desc="Evaluating purviews",
         **kwargs,
-    )
+    ).run()

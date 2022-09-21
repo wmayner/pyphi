@@ -3,15 +3,21 @@
 from typing import Iterable, Optional
 
 from .. import compute, utils
+from ..compute.parallel import MapReduce
 from ..conf import config, fallback
 from ..direction import Direction
 from ..models.cuts import Cut
-from ..new_big_phi import SystemIrreducibilityAnalysis, SystemState, find_system_state
+from ..new_big_phi import (
+    NullSystemIrreducibilityAnalysis,
+    ShortCircuitConditions,
+    SystemIrreducibilityAnalysis,
+    SystemState,
+    find_system_state,
+    DEFAULT_PARTITION_CHUNKSIZE,
+    DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
+)
 from ..partition import system_partitions
 from ..subsystem import Subsystem
-
-DEFAULT_SEQUENTIAL_THRESHOLD = 2**4
-DEFAULT_CHUNKSIZE = 4 * DEFAULT_SEQUENTIAL_THRESHOLD
 
 
 class SystemIrreducibilityAnalysisII(SystemIrreducibilityAnalysis):
@@ -72,20 +78,14 @@ def evaluate_partition(
     )
 
 
-def find_mip(
+def sia(
     subsystem: Subsystem,
-    parallel: Optional[bool] = None,
-    progress: Optional[bool] = None,
-    chunksize: int = DEFAULT_CHUNKSIZE,
-    sequential_threshold: int = DEFAULT_SEQUENTIAL_THRESHOLD,
     repertoire_distance: str = None,
     directions: Optional[Iterable[Direction]] = None,
     partitions=None,
     **kwargs,
 ) -> SystemIrreducibilityAnalysis:
     """Find the minimum information partition of a system."""
-    parallel = fallback(parallel, config.PARALLEL_CUT_EVALUATION)
-    progress = fallback(progress, config.PROGRESS_BARS)
     # TODO: trivial reducibility
 
     partitions = system_partitions(
@@ -96,19 +96,31 @@ def find_mip(
 
     system_state = find_system_state(subsystem, repertoire_distance=repertoire_distance)
 
-    return compute.parallel.map_reduce(
+    default_sia = NullSystemIrreducibilityAnalysis(
+        reasons=[ShortCircuitConditions.NO_VALID_PARTITIONS],
+        node_indices=subsystem.node_indices,
+        node_labels=subsystem.node_labels,
+    )
+
+    kwargs = {
+        "parallel": config.PARALLEL_CUT_EVALUATION,
+        "progress": config.PROGRESS_BARS,
+        "chunksize": DEFAULT_PARTITION_CHUNKSIZE,
+        "sequential_threshold": DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
+        **kwargs,
+    }
+    return MapReduce(
         evaluate_partition,
-        min,
         partitions,
-        subsystem=subsystem,
-        system_state=system_state,
-        repertoire_distance=repertoire_distance,
-        directions=directions,
-        chunksize=chunksize,
-        sequential_threshold=sequential_threshold,
+        map_kwargs=dict(
+            subsystem=subsystem,
+            system_state=system_state,
+            repertoire_distance=repertoire_distance,
+            directions=directions,
+        ),
+        reduce_func=min,
+        reduce_kwargs=dict(default=default_sia),
         shortcircuit_func=utils.is_falsy,
-        parallel=parallel,
-        progress=progress,
         desc="Evaluating partitions",
         **kwargs,
-    )
+    ).run()
