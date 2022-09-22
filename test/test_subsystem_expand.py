@@ -7,14 +7,14 @@ import pytest
 
 from pyphi import Direction, compute, config
 
-EPSILON = 10**(-config.PRECISION)
+EPSILON = 10 ** (-config.PRECISION)
 
 CD = (2, 3)
 BCD = (1, 2, 3)
 ABCD = (0, 1, 2, 3)
 
 
-def test_expand_cause_repertoire(micro_s_all_off):
+def test_expand_cause_repertoire(use_iit_3_config, micro_s_all_off):
     sia = compute.subsystem.sia(micro_s_all_off)
     A = sia.ces[0]
     cause = A.cause_repertoire
