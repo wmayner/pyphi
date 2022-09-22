@@ -70,7 +70,7 @@ def disable_progress_bars():
         yield
 
 
-@pytest.fixture(scope="function", autouse=True)
+@pytest.fixture(scope="function")
 def use_iit_3_config():
     """Use the IIT-3 configuration for all tests."""
     with open(IIT_3_CONFIG, mode="rt") as f:
