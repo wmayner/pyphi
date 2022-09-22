@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 import ray
+import yaml
 
 import pyphi
 from pyphi import cache, config
@@ -17,6 +18,8 @@ collect_ignore = ["setup.py", ".pythonrc.py"]
 with open(Path(__file__).parent / ".gitignore", mode="rt") as f:
     collect_ignore += list(filter(None, f.read().split("\n")))
 
+
+IIT_3_CONFIG = "pyphi_config_3.0.yml"
 
 # Run slow tests separately with command-line option, filter tests
 # ================================================================
@@ -64,6 +67,15 @@ def disable_progress_bars():
     work differently, I think because of output redirection.
     """
     with pyphi.config.override(PROGRESS_BARS=False):
+        yield
+
+
+@pytest.fixture(scope="function", autouse=True)
+def use_iit_3_config():
+    """Use the IIT-3 configuration for all tests."""
+    with open(IIT_3_CONFIG, mode="rt") as f:
+        iit3_config = yaml.load(f, Loader=yaml.SafeLoader)
+    with pyphi.config.override(**iit3_config):
         yield
 
 
