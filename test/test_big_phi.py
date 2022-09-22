@@ -351,12 +351,12 @@ def test_find_sia_sequential_micro(micro_s_ComputeSystemIrreducibility):
     check_sia(sia, micro_answer)
 
 
-def test_sia_complete_graph_standard_example(s_complete):
+def test_sia_complete_graph_standard_example(use_iit_3_config, s_complete):
     sia = compute.subsystem.sia(s_complete)
     check_sia(sia, standard_answer)
 
 
-def test_sia_complete_graph_s_noised(s_noised):
+def test_sia_complete_graph_s_noised(use_iit_3_config, s_noised):
     sia = compute.subsystem.sia(s_noised)
     check_sia(sia, noised_answer)
 
@@ -429,7 +429,7 @@ def test_sia_bipartitions():
         assert compute.subsystem.sia_bipartitions((1, 2, 3, 4)) == answer
 
 
-def test_system_cut_styles(s):
+def test_system_cut_styles(use_iit_3_config, s):
     with config.override(SYSTEM_CUTS="3.0_STYLE"):
         assert compute.subsystem.phi(s) == 2.3125
 
