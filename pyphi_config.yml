@@ -2,62 +2,99 @@
 # ~~~~~~~~~~~~~~~~~~~
 # See the documentation for ``pyphi.config`` for more info.
 ---
-# Approximations and theoretical options
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# The version of the theory to use
-IIT_VERSION: "maximal-state-first"
+# The measure to use when computing actual causation alpha values.
+ACTUAL_CAUSATION_MEASURE: PMI
 # In certain cases, making a cut can actually cause a previously reducible
 # concept to become a proper, irreducible concept. Assuming this can never
 # happen can increase performance significantly, however the obtained results
-# are not strictly accurate.
+# are not strictly accurate (IIT 3.0).
 ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS: false
-# The measure to use when computing phi ("EMD", "KLD", "L1", ...)
-REPERTOIRE_DISTANCE: "IIT_4.0_SMALL_PHI"
-REPERTOIRE_DISTANCE_INFORMATION: "IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE"
-# The measure to use when computing big-phi.
-CES_DISTANCE: "SUM_SMALL_PHI"
-# The measure to use when computing actual causation alpha values.
-ACTUAL_CAUSATION_MEASURE: "PMI"
+# Controls whether the potential purviews of the mechanisms of a network are
+# cached. Speeds up calculations when the same network is used repeatedly, but
+# takes up additional memory, and makes network initialization slow.
+CACHE_POTENTIAL_PURVIEWS: true
+# Controls whether cause and effect repertoires are cached.
+CACHE_REPERTOIRES: true
+# The measure to use when computing big-phi (IIT 3.0).
+CES_DISTANCE: SUM_SMALL_PHI
+# Controls whether subsystem caches are automatically cleared after computing
+# the SIA for the subsystem.
+CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA: false
+# Controls the definition of conflicts among distinctions.
+COMPOSITIONAL_STATE_CONFLICTS: GLOBAL
+# Controls the congruence ratio used in computing relations.
+CONGRUENCE_RATIO: PURVIEW_SIZE
+# Controls the definition of the upper bound of the sum of distinction phi when
+# calculating relations.
+DISTINCTION_PHI_UPPER_BOUND_RELATIONS: PURVIEW_SIZE
+# Controls the definition of the upper bound of the sum of distinction phi when
+# analyzing a system.
+DISTINCTION_SUM_PHI_UPPER_BOUND: DISTINCT_AND_CONGRUENT_PURVIEWS
+HORIZONTAL_PARTITION_CODE: "1210"
+# The version of the theory to use.
+IIT_VERSION: maximal-state-first
+INTEGRATION_VALUE: MIN
+LOG_FILE: "pyphi.log"
+# The path for the log file.
+LOG_FILE: pyphi.log
+# The log level to write to `LOG_FILE`.
+LOG_FILE_LEVEL: INFO
+# The log level to write to stdout.
+LOG_STDOUT_LEVEL: WARNING
+# Some functions are memoized using an in-memory cache. This is the maximum
+# percentage of memory that these caches can collectively use.
+MAXIMUM_CACHE_MEMORY_PERCENTAGE: 50
+# Controls how to resolve ties among purviews when computing MICE.
+MICE_TIE_RESOLUTION: MAX_INFORMITAVENESS_THEN_SMALLEST_PURVIEW
+# The number of CPU cores to use in parallel.
+# -1 means all available cores, -2 means all but one available cores, etc.
+NUMBER_OF_CORES: -1
+# Controls the overlap ratio used in computing relations.
+OVERLAP_RATIO: PURVIEW_SIZE
+# Controls whether complexes are evaluated in parallel.
+PARALLEL_COMPLEX_EVALUATION: true
+# Controls whether compositional states are evaluated in parallel.
+PARALLEL_COMPOSITIONAL_STATE_EVALUATION: true
+# Controls whether concepts are evaluated in parallel.
+PARALLEL_CONCEPT_EVALUATION: true
+# Controls whether cuts are evaluated in parallel, which requires more memory.
+# If cuts are evaluated sequentially, only two SIAs need to be in memory at a
+# time.
+PARALLEL_CUT_EVALUATION: true
 # Controls the partitioning scheme for distinctions.
-PARTITION_TYPE: "TRI"
-# Controls the partitioning scheme for relations.
-RELATION_PARTITION_TYPE: "BI_CUT_ONE"
-# Controls the way in which distinction-relative differences are combined to
-# obtain a relation phi value.
-RELATION_PARTITION_AGGREGATION: "SUM"
+PARTITION_TYPE: ALL
+PRECISION: 13
+PRINT_FRACTIONS: true
+# Enable/disable progress bars.
+PROGRESS_BARS: true
+# Arguments to `ray.init()`
+RAY_CONFIG: {}
+# Use a Redis server as a MICE cache.
+REDIS_CACHE: false
+# Redis connection configuration
+REDIS_CONFIG:
+  db: 0
+  host: localhost
+  port: 6379
+  test_db: 1
+# Controls the definition of the upper bound of the sum of relation phi when
+# analyzing a system.
+RELATION_COMPUTATION: CONCRETE
 # Controls whether the relation computation checks whether there are duplicate
 # purviews (same elements and direction) in the relata being evaluated and
 # returns a zero-phi relation if so. This case should never arise in normal
 # operation, since relations are normally only computed among distinctions in a
 # nonconflicting set. Defaults to false to avoid the cost of checking.
 RELATION_ENFORCE_NO_DUPLICATE_PURVIEWS: false
-# Controls the definition of conflicts among distinctions.
-COMPOSITIONAL_STATE_CONFLICTS: "GLOBAL"
-# Controls the partitioning scheme for the system.
-SYSTEM_PARTITION_TYPE: "TEMPORAL_DIRECTED_BI"
-# Controls the set of possible purviews for a relation.
-RELATION_POTENTIAL_PURVIEWS: "WHOLE"
+# Controls the way in which distinction-relative differences are combined to
+# obtain a relation phi value.
+RELATION_PARTITION_AGGREGATION: SUM
+# Controls the partitioning scheme for relations.
+RELATION_PARTITION_TYPE: TRI
 # Controls how relation phi values are computed.
-RELATION_PHI_SCHEME: "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS"
-# Controls the overlap ratio used in computing relations.
-OVERLAP_RATIO: "PURVIEW_SIZE"
-# Controls the congruence ratio used in computing relations.
-CONGRUENCE_RATIO: "PURVIEW_SIZE"
-# Controls the definition of the upper bound of the sum of distinction phi when
-# calculating relations.
-DISTINCTION_PHI_UPPER_BOUND_RELATIONS: "PURVIEW_SIZE"
-# Controls the definition of the upper bound of the sum of distinction phi when
-# analyzing a system.
-DISTINCTION_SUM_PHI_UPPER_BOUND: "DISTINCT_AND_CONGRUENT_PURVIEWS"
-# Controls the definition of the upper bound of the sum of relation phi when
-# analyzing a system.
-RELATION_SUM_PHI_UPPER_BOUND: "DISTINCT_AND_CONGRUENT_PURVIEWS"
-# Controls the definition of the upper bound of the sum of relation phi when
-# analyzing a system.
-RELATION_COMPUTATION: "ANALYTICAL"
-# Controls the sample size for approximated relations. Only applies if
-# RELATION_COMPUTATION implies a sampling approach.
-RELATION_SAMPLE_SIZE: 1000
+RELATION_PHI_SCHEME: AGGREGATE_DISTINCTION_RELATIVE_DIFFERENCES
+# Controls the set of possible purviews for a relation.
+RELATION_POTENTIAL_PURVIEWS: WHOLE
 # Controls the sampled degrees for sampled relations. Only applies if
 # ``RELATION_COMPUTATION`` implies a sampling approach.  Can be either falsy
 # (sample uniformly from all possible relations) or a list of degrees (sample
@@ -66,82 +103,33 @@ RELATION_SAMPLE_SIZE: 1000
 # otherwise they are interpreted as relative to the middle degree (the most
 # numerous), signified by 0.
 RELATION_SAMPLE_DEGREES: false
+# Controls the sample size for approximated relations. Only applies if
+# RELATION_COMPUTATION implies a sampling approach.
+RELATION_SAMPLE_SIZE: 1000
 # Controls the number of seconds to wait while sampling.
 RELATION_SAMPLE_TIMEOUT: 1.0
-# Controls how to resolve ties among purviews when computing MICE.
-MICE_TIE_RESOLUTION: "MAX_INFORMITAVENESS_THEN_SMALLEST_PURVIEW"
-# The type of system cuts to use
-SYSTEM_CUTS: "3.0_STYLE"
+# Controls the definition of the upper bound of the sum of relation phi when
+# analyzing a system.
+RELATION_SUM_PHI_UPPER_BOUND: DISTINCT_AND_CONGRUENT_PURVIEWS
+# The measure to use when computing integration ("EMD", "KLD", "L1", ...)
+REPERTOIRE_DISTANCE: IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE
+# The measure to use when computing intrinsic information and findind the
+# specified state
+REPERTOIRE_DISTANCE_INFORMATION: IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE
+REPR_VERBOSITY: 2
 # In some applications of this library, you may want to allow single
 # micro-nodes with a self-loop to have nonzero Phi. See ``pyphi.config`` for
 # details.
 SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI: false
+# The type of system cuts to use (IIT 3.0)
+SYSTEM_CUTS: 3.0_STYLE
+SYSTEM_PARTITION_INCLUDE_COMPLETE: false
+# Controls the partitioning scheme for the system.
+SYSTEM_PARTITION_TYPE: SET_UNI/BI
+# Controls whether a system is validated for conditional independence.
+VALIDATE_CONDITIONAL_INDEPENDENCE: true
 # Controls whether a subsystem's state is validated when the subsystem is
 # created.
 VALIDATE_SUBSYSTEM_STATES: true
-# Controls whether a system is validated for conditional independence.
-VALIDATE_CONDITIONAL_INDEPENDENCE: true
-
-# Parallelization and system resources
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Controls whether concepts are evaluated in parallel.
-PARALLEL_CONCEPT_EVALUATION: true
-# Controls whether compositional states are evaluated in parallel.
-PARALLEL_COMPOSITIONAL_STATE_EVALUATION: true
-# Controls whether cuts are evaluated in parallel, which requires more memory.
-# If cuts are evaluated sequentially, only two SIAs need to be in memory at a
-# time.
-PARALLEL_CUT_EVALUATION: true
-# Controls whether complexes are evaluated in parallel.
-PARALLEL_COMPLEX_EVALUATION: true
-# The number of CPU cores to use in parallel.
-# -1 means all available cores, -2 means all but one available cores, etc.
-NUMBER_OF_CORES: -1
-# Some functions are memoized using an in-memory cache. This is the maximum
-# percentage of memory that these caches can collectively use.
-MAXIMUM_CACHE_MEMORY_PERCENTAGE: 100
-# Arguments to `ray.init()`
-RAY_CONFIG:
-  address: "auto"
-
-# Memoization and caching
-# ~~~~~~~~~~~~~~~~~~~~~~~
-# Controls whether cause and effect repertoires are cached.
-CACHE_REPERTOIRES: true
-# Controls whether the potential purviews of the mechanisms of a network are
-# cached. Speeds up calculations when the same network is used repeatedly, but
-# takes up additional memory, and makes network initialization slow.
-CACHE_POTENTIAL_PURVIEWS: true
-# Controls whether subsystem caches are automatically cleared after computing
-# the SIA for the subsystem.
-CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA: false
-# Use a Redis server as a MICE cache
-REDIS_CACHE: false
-# Redis connection configuration
-REDIS_CONFIG:
-  host: "localhost"
-  port: 6379
-  db: 0
-  test_db: 1
-
-# Logging
-# ~~~~~~~
 # Whether to suppress the welcome message.
 WELCOME_OFF: false
-# The log level to write to stdout.
-LOG_STDOUT_LEVEL: "WARNING"
-# The log level to write to `LOG_FILE`.
-LOG_FILE_LEVEL: "INFO"
-# The file to log to.
-LOG_FILE: "pyphi.log"
-# Enable/disable progress bars
-PROGRESS_BARS: true
-# Use pretty __str__-like formatting in repr calls.
-REPR_VERBOSITY: 2
-# Print numbers as fractions if the denominator isn't too big.
-PRINT_FRACTIONS: true
-
-# Numerical precision
-# ~~~~~~~~~~~~~~~~~~~
-# The number of decimal places to which Phi values are considered accurate.
-PRECISION: 13
