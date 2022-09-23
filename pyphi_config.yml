@@ -30,13 +30,14 @@ DISTINCTION_PHI_UPPER_BOUND_RELATIONS: PURVIEW_SIZE
 # Controls the definition of the upper bound of the sum of distinction phi when
 # analyzing a system.
 DISTINCTION_SUM_PHI_UPPER_BOUND: DISTINCT_AND_CONGRUENT_PURVIEWS
+# The type of horizontal system partition scheme to use.
 HORIZONTAL_PARTITION_CODE: "1210"
 # The version of the theory to use.
 IIT_VERSION: maximal-state-first
+# The method of combining cause and effect integration values.
 INTEGRATION_VALUE: MIN
-LOG_FILE: "pyphi.log"
 # The path for the log file.
-LOG_FILE: pyphi.log
+LOG_FILE: "pyphi.log"
 # The log level to write to `LOG_FILE`.
 LOG_FILE_LEVEL: INFO
 # The log level to write to stdout.
@@ -63,7 +64,10 @@ PARALLEL_CONCEPT_EVALUATION: true
 PARALLEL_CUT_EVALUATION: true
 # Controls the partitioning scheme for distinctions.
 PARTITION_TYPE: ALL
+# Controls the numerical precision with which to compare phi values against each
+# other and zero.
 PRECISION: 13
+# Print numbers as fractions if the denominator isn't too big.
 PRINT_FRACTIONS: true
 # Enable/disable progress bars.
 PROGRESS_BARS: true
@@ -116,6 +120,7 @@ REPERTOIRE_DISTANCE: IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE
 # The measure to use when computing intrinsic information and findind the
 # specified state
 REPERTOIRE_DISTANCE_INFORMATION: IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE
+# Controls whether pretty __str__-like formatting is used in repr calls.
 REPR_VERBOSITY: 2
 # In some applications of this library, you may want to allow single
 # micro-nodes with a self-loop to have nonzero Phi. See ``pyphi.config`` for
@@ -123,6 +128,8 @@ REPR_VERBOSITY: 2
 SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI: false
 # The type of system cuts to use (IIT 3.0)
 SYSTEM_CUTS: 3.0_STYLE
+# Whether to include the complete partition in partition set; currently only
+# applies to "SET_UNI/BI".
 SYSTEM_PARTITION_INCLUDE_COMPLETE: false
 # Controls the partitioning scheme for the system.
 SYSTEM_PARTITION_TYPE: SET_UNI/BI
