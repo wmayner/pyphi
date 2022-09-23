@@ -34,7 +34,7 @@ def test_all_complexes_standard(s):
 
 
 @config.override(PARALLEL_CUT_EVALUATION=False)
-def test_all_complexes_parallelization(s):
+def test_all_complexes_parallelization(use_iit_3_config, s):
     with config.override(PARALLEL_COMPLEX_EVALUATION=False):
         serial = compute.network.all_complexes(s.network, s.state)
 
