@@ -50,7 +50,7 @@ def test_jsonify_numpy():
     assert answer == json.loads(jsonify.dumps(x))
 
 
-def test_json_deserialization(s, transition):
+def test_json_deserialization(use_iit_3_config, s, transition):
     objects = [
         Direction.CAUSE,
         s.network,  # Network
@@ -90,7 +90,7 @@ def test_json_deserialization_non_pyphi_clasess():
     assert loaded == {"x": 1}
 
 
-def test_deserialization_memoizes_duplicate_objects(s):
+def test_deserialization_memoizes_duplicate_objects(use_iit_3_config, s):
     with config.override(PARALLEL_CUT_EVALUATION=True):
         sia = compute.subsystem.sia(s)
 
