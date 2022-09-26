@@ -228,7 +228,7 @@ def test_sia_cache_key_includes_config_dependencies(s):
     assert l1_big_phi != emd_big_phi
 
 
-def test_clear_subsystem_caches_after_computing_sia_config_option(s):
+def test_clear_subsystem_caches_after_computing_sia_config_option(use_iit_3_config, s):
     with config.override(
         CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA=False,
         PARALLEL_CONCEPT_EVALUATION=False,
