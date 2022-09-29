@@ -628,9 +628,16 @@ def atomic_partition(elements):
 relation_partition_types = PartitionRegistry()
 
 
+def complete_relation_partitions(relata, candidate_joint_purview, node_labels=None):
+    for i in range(len(relata)):
+        yield CompleteRelationPartition(
+            relata, candidate_joint_purview, i, node_labels=node_labels
+        )
+
+
 @relation_partition_types.register("TRI")
 def relation_tripartitions(relata, candidate_joint_purview, node_labels=None):
-    yield CompleteRelationPartition(
+    yield from complete_relation_partitions(
         relata, candidate_joint_purview, node_labels=node_labels
     )
     overlap_partitions = wedge_partitions(
@@ -675,7 +682,7 @@ def relation_partition_one_distinction(
 
 @relation_partition_types.register("BI_CUT_ONE")
 def relation_bipartitions_of_one(relata, candidate_joint_purview, node_labels=None):
-    yield CompleteRelationPartition(
+    yield from complete_relation_partitions(
         relata, candidate_joint_purview, node_labels=node_labels
     )
     for i in range(len(relata)):

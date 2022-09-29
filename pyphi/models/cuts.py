@@ -595,13 +595,20 @@ class RelationPartition(Tripartition):
 
 
 class CompleteRelationPartition(RelationPartition):
-    def __init__(self, relata, candidate_joint_purview, node_labels=None):
+    """A partition of a relation that cuts a singel relatum away from its entire
+    mechanism and leaves the others untouched.
+    """
+
+    def __init__(self, relata, candidate_joint_purview, i, node_labels=None):
+        if i >= len(relata):
+            raise ValueError(f"i must be < len(relata) = {len(relata)}; got {i}")
         self.relata = relata
+        self.i = i
         self._purview = candidate_joint_purview
         self.node_labels = node_labels
 
     def __repr__(self):
-        return f"CompleteRelationPartition"
+        return f"CompleteRelationPartition[{self.i}]"
 
     # TODO(4.0) refactor to use relatum objects themselves, rather than indices
     # - avoids need for O(1) integer indexing of OrderedSet; can replace with
@@ -613,14 +620,22 @@ class CompleteRelationPartition(RelationPartition):
             i (int): The index of the relatum in the relata object.
         """
         relatum = self.relata[i]
+        if i == self.i:
+            return Tripartition(
+                Part(
+                    mechanism=relatum.mechanism,
+                    purview=(),
+                    node_labels=self.node_labels,
+                ),
+                Part(
+                    mechanism=(),
+                    purview=tuple(relatum.purview),
+                    node_labels=self.node_labels,
+                ),
+            )
         return Tripartition(
             Part(
-                mechanism=relatum.mechanism,
-                purview=(),
-                node_labels=self.node_labels,
-            ),
-            Part(
-                mechanism=(),
+                mechanism=tuple(relatum.mechanism),
                 purview=tuple(relatum.purview),
                 node_labels=self.node_labels,
             ),
