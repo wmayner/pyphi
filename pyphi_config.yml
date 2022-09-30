@@ -96,7 +96,7 @@ RELATION_PARTITION_AGGREGATION: SUM
 # Controls the partitioning scheme for relations.
 RELATION_PARTITION_TYPE: TRI
 # Controls how relation phi values are computed.
-RELATION_PHI_SCHEME: AGGREGATE_DISTINCTION_RELATIVE_DIFFERENCES
+RELATION_PHI_SCHEME: MINIMAL_OVERLAP_RATIO_TIMES_DISTINCTION_PHI
 # Controls the set of possible purviews for a relation.
 RELATION_POTENTIAL_PURVIEWS: WHOLE
 # Controls the sampled degrees for sampled relations. Only applies if

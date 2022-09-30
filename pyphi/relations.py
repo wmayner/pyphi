@@ -265,6 +265,22 @@ def aggregate_distinction_relative_repertoire_differences(
     )
 
 
+@relation_phi_schemes.register("MINIMAL_OVERLAP_RATIO_TIMES_DISTINCTION_PHI")
+def minimal_overlap_ratio_times_distinction_phi(relata, candidate_joint_purview):
+    overlap_ratios = overlap_ratio(relata, candidate_joint_purview)
+    relata_phis = np.array(list(relata.parent_phis))
+    relation_phis = overlap_ratios * relata_phis
+    return all_minima(
+        Relation(
+            relata=relata,
+            purview=candidate_joint_purview,
+            phi=phi,
+            partition=[relatum],
+        )
+        for relatum, phi in zip(relata, relation_phis)
+    )
+
+
 # TODO there should be an option to resolve ties at different levels
 
 # TODO Requests from Matteo
@@ -738,6 +754,7 @@ class Relata(HashableOrderedSet):
             differences, axis=0
         )
 
+    # TODO(4.0) remove if not used
     def evaluate_partition(self, partition):
         specified = np.stack(
             [
