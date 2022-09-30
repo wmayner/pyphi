@@ -22,8 +22,6 @@ CES_DISTANCE: SUM_SMALL_PHI
 CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA: false
 # Controls the definition of conflicts among distinctions.
 COMPOSITIONAL_STATE_CONFLICTS: GLOBAL
-# Controls the congruence ratio used in computing relations.
-CONGRUENCE_RATIO: PURVIEW_SIZE
 # Controls the definition of the upper bound of the sum of distinction phi when
 # calculating relations.
 DISTINCTION_PHI_UPPER_BOUND_RELATIONS: PURVIEW_SIZE
