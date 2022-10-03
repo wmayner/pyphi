@@ -183,15 +183,24 @@ def compensatory_pareto(
 
 
 @_optionally_normalize_inputs
-def bridge(weights1, weights2, w_connection, bidirectional=True):
-    N, M = weights1.shape[0], weights2.shape[0]
+def join_weights(weights_1, weights_2, weights_feedforward, weights_feedback):
+    N, M = weights_1.shape[0], weights_2.shape[0]
     W = np.zeros([N + M] * 2)
-    W[:N, :N] = weights1
-    W[N:, N:] = weights2
-    W[0, N] = w_connection
-    if bidirectional:
-        W[N, 0] = w_connection
+    W[:N, :N] = weights_1
+    W[N:, N:] = weights_2
+    W[:N, N:] = weights_feedforward
+    W[N:, :N] = weights_feedback
     return W
+
+
+@_optionally_normalize_inputs
+def bridge(weights1, weights2, w_forward=1, w_back=0.0):
+    N, M = weights1.shape[0], weights2.shape[0]
+    feedforward = np.zeros([N, M])
+    feedforward[0, 0] = w_forward
+    feedback = np.zeros([M, N])
+    feedback[0, 0] = w_back
+    return join_weights(weights1, weights2, feedforward, feedback)
 
 
 def copy_loop(size):
