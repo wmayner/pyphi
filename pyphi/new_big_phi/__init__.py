@@ -51,6 +51,7 @@ class SystemState:
     intrinsic_information: Dict[Direction, float]
     repertoires: Dict[Direction, ArrayLike]
     partitioned_repertoires: Dict[Direction, ArrayLike]
+    node_indices: tuple[int]
 
     def __getitem__(self, direction: Direction) -> tuple:
         if direction == Direction.CAUSE:
@@ -145,6 +146,7 @@ def find_system_state(
             Direction.CAUSE: partitioned_cause_repertoires[0],
             Direction.EFFECT: partitioned_effect_repertoires[0],
         },
+        node_indices=subsystem.node_indices,
     )
 
 
