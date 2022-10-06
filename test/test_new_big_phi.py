@@ -3,7 +3,6 @@
 # test_new_big_phi.py
 
 import json
-from copy import copy
 
 import pytest
 
