@@ -82,6 +82,31 @@ class SystemState:
         body = "\n".join(fmt.align_columns(self._repr_columns()))
         body = fmt.header("System state", body, under_char=fmt.HEADER_BAR_3)
         return fmt.box(fmt.center(body))
+    
+    def __hash__(self):
+        return hash((
+            self.cause, 
+            self.effect, 
+            self.intrinsic_information[Direction.CAUSE],
+            self.intrinsic_information[Direction.EFFECT]
+        ))
+    
+    def to_json(self):
+        json = {}
+        raw_dict = self.__dict__
+        
+        for key, value in raw_dict.items():
+            if isinstance(value, dict):
+                json[key] = {}
+                for direction, data in value.items():
+                    if direction == Direction.CAUSE:
+                        json[key]["CAUSE"] = data
+                    elif direction == Direction.EFFECT:
+                        json[key]["EFFECT"] = data
+            else:
+                json[key] = raw_dict[key]
+        
+        return json
 
 
 # TODO(4.0) refactor

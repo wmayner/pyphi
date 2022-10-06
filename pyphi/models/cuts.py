@@ -362,6 +362,9 @@ class GeneralSetPartition(GeneralKCut):
             + "}\n"
             + super().__str__()
         )
+        
+    def to_json(self):
+        return self.set_partition
 
 
 class CompleteGeneralSetPartition(CompleteGeneralKCut):
