@@ -24,6 +24,16 @@ def state_of(nodes, network_state):
     return tuple(network_state[n] for n in nodes) if nodes else ()
 
 
+def state_of_subsystem_nodes(node_indices, nodes, subsystem_state):
+    """Return the state of the nodes, given a subsystem state-tuple.
+
+    Deals with using the network-relative node indices nodes with a state-tuple
+    for only the subsystem nodes.
+    """
+    # Get indices relative to subsystem indices
+    return state_of([node_indices.index(n) for n in nodes], subsystem_state)
+
+
 def all_states(n, big_endian=False):
     """Return all binary states for a system.
 

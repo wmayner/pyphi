@@ -89,10 +89,8 @@ class HorizontalSystemPartition(SystemPartition):
                 f"Must set config.REPERTOIRE_DISTANCE to one of {valid_distances}; "
                 f"got {config.REPERTOIRE_DISTANCE}"
             )
-        purview_state = utils.state_of(
-            # Get purview indices relative to subsystem indices
-            [subsystem.node_indices.index(n) for n in self.purview],
-            system_state[self.direction],
+        purview_state = utils.state_of_subsystem_nodes(
+            subsystem, self.purview, system_state[self.direction]
         )
         unpartitioned_repertoire = subsystem.repertoire(
             self.direction, self.unpartitioned_mechanism, self.purview

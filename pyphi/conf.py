@@ -858,9 +858,9 @@ class PyphiConfig(Config):
     )
 
     RELATION_PHI_SCHEME = Option(
-        "AGGREGATE_DISTINCTION_RELATIVE_DIFFERENCES",
+        "MINIMAL_OVERLAP_RATIO_TIMES_DISTINCTION_PHI",
         values=[
-            "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS",
+            "MINIMAL_OVERLAP_RATIO_TIMES_DISTINCTION_PHI",
             "AGGREGATE_DISTINCTION_RELATIVE_DIFFERENCES",
         ],
         doc="""
@@ -876,14 +876,6 @@ class PyphiConfig(Config):
         values=["PURVIEW_SIZE", "MINIMUM_PURVIEW_SIZE"],
         doc="""
     Controls the overlap ratio used in computing relations.
-    """,
-    )
-
-    CONGRUENCE_RATIO = Option(
-        "PURVIEW_SIZE",
-        values=["PURVIEW_SIZE", "NONE"],
-        doc="""
-    Controls the congruence ratio used in computing relations.
     """,
     )
 
@@ -1041,57 +1033,14 @@ def validate_combinations(
 
 def validate(config):
     # TODO use something like Param objects, e.g. from Bokeh?
-    if config.RELATION_PHI_SCHEME == "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS":
-        if not config.RELATION_PARTITION_TYPE == "BI_CUT_ONE":
+    if config.RELATION_COMPUTATION == "ANALYTICAL":
+        required_schemes = ["MINIMAL_OVERLAP_RATIO_TIMES_DISTINCTION_PHI"]
+        if config.RELATION_PHI_SCHEME not in required_schemes:
             raise ConfigurationError(
-                "RELATION_PHI_SCHEME = 'CONGRUENCE_RATIO_TIMES_INFORMATIVENESS' "
+                "RELATION_COMPUTATION = 'ANALYTICAL' "
                 "must be used with:"
-                "\n  RELATION_PARTITION_TYPE = 'BI_CUT_ONE'"
+                "\n   RELATION_PHI_SCHEME = 'CONGRUENCE_RATIO_TIMES_INFORMATIVENESS'"
             )
-        validate_combinations(
-            config,
-            [
-                "DISTINCTION_PHI_UPPER_BOUND_RELATIONS",
-                "DISTINCTION_SUM_PHI_UPPER_BOUND",
-            ],
-            valid_combinations={
-                (
-                    "PURVIEW_SIZE",
-                    "DISTINCT_AND_CONGRUENT_PURVIEWS",
-                ),
-                (
-                    "PURVIEW_SIZE",
-                    "2^N-1",
-                ),
-                (
-                    "PURVIEW_SIZE",
-                    "(2^N-1)/(N-1)",
-                ),
-                (
-                    "PURVIEW_SIZE",
-                    "PURVIEW_SIZE",
-                ),
-            },
-        )
-        validate_combinations(
-            config,
-            ["RELATION_SUM_PHI_UPPER_BOUND", "DISTINCTION_SUM_PHI_UPPER_BOUND"],
-            valid_combinations=[
-                ("DISTINCT_AND_CONGRUENT_PURVIEWS", "DISTINCT_AND_CONGRUENT_PURVIEWS"),
-                ("UNIQUE_PURVIEWS", "2^N-1"),
-                ("UNIQUE_PURVIEWS", "(2^N-1)/(N-1)"),
-                ("UNIQUE_PURVIEWS", "PURVIEW_SIZE"),
-            ],
-        )
-
-    if config.RELATION_COMPUTATION == "ANALYTICAL" and (
-        not config.RELATION_PHI_SCHEME == "CONGRUENCE_RATIO_TIMES_INFORMATIVENESS"
-    ):
-        raise ConfigurationError(
-            "RELATION_COMPUTATION = 'ANALYTICAL' "
-            "must be used with:"
-            "\n   RELATION_PHI_SCHEME = 'CONGRUENCE_RATIO_TIMES_INFORMATIVENESS'"
-        )
 
 
 PYPHI_USER_CONFIG_PATH = Path("pyphi_config.yml")

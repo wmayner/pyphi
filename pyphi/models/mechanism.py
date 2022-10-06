@@ -156,14 +156,16 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
     def set_specified_state(self, state):
         self._specified_state = state
 
-    def is_congruent(self, state):
+    def is_congruent(self, node_indices, state):
         """Return whether the given state is congruent to the specified state."""
         # TODO(4.0) use DistanceResult.is_congruent
         # TODO(4.0) configure ties with kwargs?
-        purview_state = utils.state_of(self.purview, state)
+        purview_state = utils.state_of_subsystem_nodes(
+            node_indices, self.purview, state
+        )
         return any(tuple(state) == purview_state for state in self.specified_state)
 
-    def state_ties(self, congruent_with=None):
+    def state_ties(self, congruent_with=None, node_indices=None):
         for index, state in zip(self.specified_index, self.specified_state):
             ria = RepertoireIrreducibilityAnalysis(
                 self.phi,
@@ -179,7 +181,9 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
                 purview_state=self.purview_state,
                 node_labels=self.node_labels,
             )
-            if (congruent_with is None) or ria.is_congruent(congruent_with):
+            if (congruent_with is None) or ria.is_congruent(
+                node_indices, congruent_with
+            ):
                 yield ria
 
     @property
@@ -354,12 +358,21 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
                 yield tie
                 seen.add(tie.mip)
 
-    def state_ties(self, congruent_with=None):
+    def state_ties(self, congruent_with=None, node_indices=None):
         cls = type(self)
-        for ria in self.ria.state_ties(congruent_with=congruent_with):
+        for ria in self.ria.state_ties(
+            congruent_with=congruent_with, node_indices=node_indices
+        ):
             yield cls(ria, ties=self._all_ties)
 
-    def ties(self, purview=True, state=True, partition=True, congruent_with=None):
+    def ties(
+        self,
+        purview=True,
+        state=True,
+        partition=True,
+        congruent_with=None,
+        node_indices=None,
+    ):
         """Return MICE for any other purviews, partitions, or states that are maximal."""
         if purview and partition:
             ties = []
@@ -381,7 +394,9 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
 
         if state:
             for mice in ties:
-                yield from mice.state_ties(congruent_with=congruent_with)
+                yield from mice.state_ties(
+                    congruent_with=congruent_with, node_indices=node_indices
+                )
         else:
             yield from ties
 
@@ -394,9 +409,9 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
         """Return the linked MICE in the other direction."""
         return self.parent.mice(self.direction.flip())
 
-    def is_congruent(self, state):
+    def is_congruent(self, node_indices, state):
         """Return whether the state specified by this MICE is congruent."""
-        return self.ria.is_congruent(state)
+        return self.ria.is_congruent(node_indices, state)
 
     def __repr__(self):
         return fmt.make_repr(self, ["ria"])
@@ -647,7 +662,9 @@ class Concept(cmp.Orderable):
 
     def is_congruent(self, system_state):
         return all(
-            self.mice(direction).is_congruent(system_state[direction])
+            self.mice(direction).is_congruent(
+                system_state.node_indices, system_state[direction]
+            )
             for direction in Direction.both()
         )
 
@@ -655,7 +672,10 @@ class Concept(cmp.Orderable):
         """Choose the MIC/MIE that are congruent, if any."""
         cause, effect = [
             next(
-                self.mice(direction).state_ties(congruent_with=system_state[direction]),
+                self.mice(direction).state_ties(
+                    congruent_with=system_state[direction],
+                    node_indices=system_state.node_indices,
+                ),
                 None,
             )
             for direction in Direction.both()

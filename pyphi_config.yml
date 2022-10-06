@@ -22,8 +22,6 @@ CES_DISTANCE: SUM_SMALL_PHI
 CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA: false
 # Controls the definition of conflicts among distinctions.
 COMPOSITIONAL_STATE_CONFLICTS: GLOBAL
-# Controls the congruence ratio used in computing relations.
-CONGRUENCE_RATIO: PURVIEW_SIZE
 # Controls the definition of the upper bound of the sum of distinction phi when
 # calculating relations.
 DISTINCTION_PHI_UPPER_BOUND_RELATIONS: PURVIEW_SIZE
@@ -96,7 +94,7 @@ RELATION_PARTITION_AGGREGATION: SUM
 # Controls the partitioning scheme for relations.
 RELATION_PARTITION_TYPE: TRI
 # Controls how relation phi values are computed.
-RELATION_PHI_SCHEME: AGGREGATE_DISTINCTION_RELATIVE_DIFFERENCES
+RELATION_PHI_SCHEME: MINIMAL_OVERLAP_RATIO_TIMES_DISTINCTION_PHI
 # Controls the set of possible purviews for a relation.
 RELATION_POTENTIAL_PURVIEWS: WHOLE
 # Controls the sampled degrees for sampled relations. Only applies if
