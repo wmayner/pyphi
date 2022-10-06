@@ -48,17 +48,12 @@ def test_sia(example_subsystem, expected_sia):
     actual_sia = sia(example_func(), parallel=False)
     
     # convert SIA object to JSON format
-    actual_sia = copy(actual_sia.__dict__)
-    del actual_sia["_ties"]
     actual_sia = jsonify(actual_sia)
     
     del actual_sia["node_labels"]["__id__"]
     del expected_sia[example_subsystem]["node_labels"]["__id__"]
     
-    assert actual_sia.keys() == expected_sia[example_subsystem].keys()
-    
-    for key in expected_sia[example_subsystem]:
-        assert actual_sia[key] == expected_sia[example_subsystem][key]
+    assert actual_sia == expected_sia[example_subsystem]
 
 @pytest.mark.parametrize(
     "example_subsystem", # TODO more parameters

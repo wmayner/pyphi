@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from enum import Enum, auto, unique
 from textwrap import indent
 from typing import Dict, Iterable, Optional, Union
+from copy import copy
 
 from numpy.typing import ArrayLike
 from toolz import concat
@@ -262,6 +263,11 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         column_extent = body.split("\n")[2].index(":")
         body += "\n" + indent(str(self.partition), " " * (column_extent + 2))
         return fmt.box(body)
+    
+    def to_json(self):
+        as_dict = copy(self.__dict__)
+        del as_dict["_ties"]
+        return as_dict
 
 
 class NullSystemIrreducibilityAnalysis(SystemIrreducibilityAnalysis):
