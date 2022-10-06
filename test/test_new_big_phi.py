@@ -52,6 +52,7 @@ def test_sia(example_subsystem, expected_sia):
     actual_sia = jsonify(actual_sia)
     
     for key in expected_sia[example_subsystem]:
+        # ignore node_labels.__id__
         if key == "node_labels":
             for attr in expected_sia[example_subsystem]["node_labels"]:
                 if attr != "__id__":

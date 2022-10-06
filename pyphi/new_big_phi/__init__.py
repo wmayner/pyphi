@@ -93,21 +93,22 @@ class SystemState:
         ))
     
     def to_json(self):
-        json = {}
         raw_dict = self.__dict__
+        new_dict = {}
         
+        # serialize direction keys of nested dictionaries
         for key, value in raw_dict.items():
             if isinstance(value, dict):
-                json[key] = {}
+                new_dict[key] = {}
                 for direction, data in value.items():
                     if direction == Direction.CAUSE:
-                        json[key]["CAUSE"] = data
+                        new_dict[key]["CAUSE"] = data
                     elif direction == Direction.EFFECT:
-                        json[key]["EFFECT"] = data
+                        new_dict[key]["EFFECT"] = data
             else:
-                json[key] = raw_dict[key]
+                new_dict[key] = raw_dict[key]
         
-        return json
+        return new_dict
 
 
 # TODO(4.0) refactor
