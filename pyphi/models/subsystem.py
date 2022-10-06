@@ -152,13 +152,13 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
         for order in range(1, max_order + 1):
             yield from self._purview_inclusion_by_order[order].items()
             
-        def to_json(self):
-            as_dict = jsonify(self)
+    def to_json(self):
+        as_dict = jsonify(self)
+        
+        for key, value in as_dict.items():
+            as_dict[key] = jsonify(value)
             
-            for key, value in as_dict.items():
-                as_dict[key] = jsonify(value)
-                
-            return as_dict
+        return as_dict
             
 
 
