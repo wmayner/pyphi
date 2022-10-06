@@ -48,12 +48,13 @@ def test_sia(example_subsystem, expected_sia):
     
     actual_sia = jsonify(actual_sia)
     
-    # node_labels not expected to match
+    # node_labels.__id__ not expected to match
     del actual_sia["node_labels"]["__id__"]
     del expected_sia[example_subsystem]["node_labels"]["__id__"]
     
     assert actual_sia == expected_sia[example_subsystem]
 
+# TODO failing via PyTest, but passing in notebook; nested equal dicts flagged not equal
 @pytest.mark.parametrize(
     "example_subsystem", # TODO more parameters
     example_subsystems
@@ -69,5 +70,5 @@ def test_compute_subsystem_ces(example_subsystem, expected_ces):
     
     assert actual_ces == expected_ces[example_subsystem]
 
-def test_relations():
+def test_phi_structure_match(example_subsystem):
     assert False # TODO
