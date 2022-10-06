@@ -10,6 +10,7 @@ from collections.abc import Sequence, Iterable
 from toolz import concat
 
 from pyphi.direction import Direction
+from pyphi.jsonify import jsonify
 
 from .. import utils
 from . import cmp, fmt
@@ -150,6 +151,15 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
         # Yield from items to avoid making a copy
         for order in range(1, max_order + 1):
             yield from self._purview_inclusion_by_order[order].items()
+            
+        def to_json(self):
+            as_dict = jsonify(self)
+            
+            for key, value in as_dict.items():
+                as_dict[key] = jsonify(value)
+                
+            return as_dict
+            
 
 
 class FlatCauseEffectStructure(CauseEffectStructure):
