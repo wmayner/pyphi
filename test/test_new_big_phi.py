@@ -13,17 +13,13 @@ from pyphi.jsonify import jsonify
 from pyphi.new_big_phi import sia
 from pyphi.compute.subsystem import ces
 
+sia_examples = ["grid3", "basic", "basic_noisy_selfloop", "xor", "fig4"]
+
 @pytest.fixture
 def expected_sia():
     cases = {}
     
-    for example in [
-        "grid3",
-        "basic",
-        "basic_noisy_selfloop",
-        "xor",
-        "fig4"
-    ]:
+    for example in sia_examples:
         with open(f"test/data/sia/sia_{example}.json") as f:
             cases[example] = json.load(f)
     
@@ -34,13 +30,7 @@ def expected_sia():
 
 @pytest.mark.parametrize(
     "example_subsystem", # TODO more parameters
-    [
-        "grid3",
-        "basic",
-        "basic_noisy_selfloop",
-        "xor",
-        "fig4"
-    ]
+    sia_examples
 )
 def test_sia(example_subsystem, expected_sia):
     example_func = EXAMPLES["subsystem"][example_subsystem]
@@ -50,6 +40,8 @@ def test_sia(example_subsystem, expected_sia):
     actual_sia = copy(actual_sia.__dict__)
     del actual_sia["_ties"]
     actual_sia = jsonify(actual_sia)
+    
+    assert actual_sia.keys() == expected_sia[example_subsystem].keys()
     
     for key in expected_sia[example_subsystem]:
         # ignore node_labels.__id__
