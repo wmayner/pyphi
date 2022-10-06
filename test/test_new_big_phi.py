@@ -43,12 +43,12 @@ def test_sia(example_subsystem, expected_sia):
     
     assert actual_sia.keys() == expected_sia[example_subsystem].keys()
     
-    for key in expected_sia[example_subsystem]:
+    for key, value in expected_sia[example_subsystem].items():
         # ignore node_labels.__id__
         if key == "node_labels":
-            for attr in expected_sia[example_subsystem]["node_labels"]:
+            for attr in value:
                 if attr != "__id__":
-                    assert actual_sia[key][attr] == expected_sia[example_subsystem][key][attr]
+                    assert actual_sia[key][attr] == value[attr]
         else:
             assert actual_sia[key] == expected_sia[example_subsystem][key]
 
