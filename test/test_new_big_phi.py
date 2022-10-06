@@ -46,9 +46,9 @@ def test_sia(example_subsystem, expected_sia):
     example_func = EXAMPLES["subsystem"][example_subsystem]
     actual_sia = sia(example_func(), parallel=False)
     
-    # convert SIA object to JSON format
     actual_sia = jsonify(actual_sia)
     
+    # node_labels not expected to match
     del actual_sia["node_labels"]["__id__"]
     del expected_sia[example_subsystem]["node_labels"]["__id__"]
     
@@ -62,11 +62,10 @@ def test_compute_subsystem_ces(example_subsystem, expected_ces):
     example_func = EXAMPLES["subsystem"][example_subsystem]
     actual_ces = ces(example_func())
     
-    # convert CES object to JSON format
-    jsonify(actual_ces)
+    actual_ces = jsonify(actual_ces)
     
-    del actual_ces["node_labels"]["__id__"]
-    del actual_ces[example_subsystem]["node_labels"]["__id__"]
+    for key, value in actual_ces.items():
+        actual_ces[key] = jsonify(value)
     
     assert actual_ces == expected_ces[example_subsystem]
 
