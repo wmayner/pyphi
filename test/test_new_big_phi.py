@@ -64,9 +64,6 @@ def test_compute_subsystem_ces(example_subsystem, expected_ces):
     
     actual_ces = jsonify(actual_ces)
     
-    for key, value in actual_ces.items():
-        actual_ces[key] = jsonify(value)
-    
     assert actual_ces == expected_ces[example_subsystem]
 
 def test_phi_structure_match(example_subsystem):
