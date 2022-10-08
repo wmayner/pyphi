@@ -78,5 +78,5 @@ def build_network(
     if node_labels is None:
         node_labels = string.ascii_uppercase[: weights.shape[0]]
     tpm = build_tpm(unit_functions, weights, **kwargs)
-    cm = (weights > 0.0).astype(int)
+    cm = (weights != 0).astype(int)
     return Network(tpm, cm=cm, node_labels=node_labels)
