@@ -46,7 +46,7 @@ def test_sia(example_subsystem):
     
     # node_labels.__id__ not expected to match
     del actual["node_labels"]["__id__"]
-    del expected[example_subsystem]["node_labels"]["__id__"]
+    del expected["node_labels"]["__id__"]
     
     assert actual == expected
 
