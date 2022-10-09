@@ -14,7 +14,6 @@ from pyphi.compute.subsystem import ces
 
 example_subsystems = ["basic", "basic_noisy_selfloop", "fig4", "grid3", "xor"]
 
-@pytest.fixture
 def expected_sia(example):
     SIA_PATH = f"test/data/sia_{example}.json"
     
@@ -23,7 +22,6 @@ def expected_sia(example):
     
     return expected
 
-@pytest.fixture
 def expected_ces(example):
     CES_PATH = f"test/data/sia_{example}.json"
     
