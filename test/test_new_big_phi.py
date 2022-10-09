@@ -15,43 +15,42 @@ from pyphi.compute.subsystem import ces
 example_subsystems = ["basic", "basic_noisy_selfloop", "fig4", "grid3", "xor"]
 
 @pytest.fixture
-def expected_sia():
-    cases = {}
+def expected_sia(example):
+    SIA_PATH = f"test/data/sia_{example}.json"
     
-    for example in example_subsystems:
-        with open(f"test/data/sia/sia_{example}.json") as f:
-            cases[example] = json.load(f)
+    with open(SIA_PATH) as f:
+        expected = json.load(f)
     
-    return cases
+    return expected
 
 @pytest.fixture
-def expected_ces():
-    cases = {}
+def expected_ces(example):
+    CES_PATH = f"test/data/sia_{example}.json"
     
-    for example in example_subsystems:
-        with open(f"test/data/ces/ces_{example}.json") as f:
-            cases[example] = json.load(f)
+    with open(CES_PATH) as f:
+        expected = json.load(f)
     
-    return cases
+    return expected
 
 # Tests
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 @pytest.mark.parametrize(
-    "example_subsystem", # TODO more parameters
-    example_subsystems
+    "example_subsystem" # TODO more parameters
+    [example_subsystems]
 )
-def test_sia(example_subsystem, expected_sia):
+def test_sia(example_subsystem):
     example_func = EXAMPLES["subsystem"][example_subsystem]
-    actual_sia = sia(example_func(), parallel=False)
+    actual = sia(example_func(), parallel=False)
+    expected = expected_sia(example_subsystem)
     
-    actual_sia = jsonify(actual_sia)
+    actual = jsonify(actual)
     
     # node_labels.__id__ not expected to match
-    del actual_sia["node_labels"]["__id__"]
+    del actual["node_labels"]["__id__"]
     del expected_sia[example_subsystem]["node_labels"]["__id__"]
     
-    assert actual_sia == expected_sia[example_subsystem]
+    assert actual == expected
 
 # TODO failing via PyTest, but passing in notebook; nested equal dicts flagged not equal
 @pytest.mark.parametrize(
@@ -60,11 +59,12 @@ def test_sia(example_subsystem, expected_sia):
 )
 def test_compute_subsystem_ces(example_subsystem, expected_ces):
     example_func = EXAMPLES["subsystem"][example_subsystem]
-    actual_ces = ces(example_func())
+    actual = ces(example_func())
+    expected = expected_ces(example_subsystem)
     
-    actual_ces = jsonify(actual_ces)
+    actual = jsonify(actual)
     
-    assert actual_ces == expected_ces[example_subsystem]
+    assert actual == expected
 
 def test_phi_structure_match(example_subsystem):
     assert False # TODO
