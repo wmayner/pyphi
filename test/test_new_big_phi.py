@@ -34,7 +34,7 @@ def expected_ces(example):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 @pytest.mark.parametrize(
-    "example_subsystem" # TODO more parameters
+    "example_subsystem", # TODO more parameters
     [example_subsystems]
 )
 def test_sia(example_subsystem):
