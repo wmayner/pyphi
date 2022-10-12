@@ -149,7 +149,7 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
             self._purview_inclusion_max_order = max_order
         # Yield from items to avoid making a copy
         for order in range(1, max_order + 1):
-            yield from self._purview_inclusion_by_order[order].items()        
+            yield from self._purview_inclusion_by_order[order].items()
 
 
 class FlatCauseEffectStructure(CauseEffectStructure):
