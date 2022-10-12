@@ -34,13 +34,13 @@ def expected_ces(example):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 @pytest.mark.parametrize(
-    "example_network", # TODO more parameters
+    "case_name", # TODO more parameters
     NETWORKS
 )
-def test_sia(example_network):
-    example_func = EXAMPLES["subsystem"][example_network]
+def test_sia(case_name):
+    example_func = EXAMPLES["subsystem"][case_name]
     actual = sia(example_func(), parallel=False)
-    expected = expected_sia(example_network)
+    expected = expected_sia(case_name)
     
     actual = jsonify(actual)
     
@@ -52,13 +52,13 @@ def test_sia(example_network):
 
 # TODO failing via PyTest, but passing in notebook; nested equal dicts flagged not equal
 @pytest.mark.parametrize(
-    "example_network", # TODO more parameters
+    "case_name", # TODO more parameters
     NETWORKS
 )
-def test_compute_subsystem_ces(example_network, expected_ces):
-    example_func = EXAMPLES["subsystem"][example_network]
+def test_compute_subsystem_ces(case_name):
+    example_func = EXAMPLES["subsystem"][case_name]
     actual = ces(example_func())
-    expected = expected_ces(example_network)
+    expected = expected_ces(case_name)
     
     actual = jsonify(actual)
     
