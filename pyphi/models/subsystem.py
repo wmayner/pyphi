@@ -10,7 +10,6 @@ from collections.abc import Sequence, Iterable
 from toolz import concat
 
 from pyphi.direction import Direction
-from pyphi.jsonify import jsonify
 
 from .. import utils
 from . import cmp, fmt
