@@ -28,31 +28,41 @@ class MICETieResolutionRegistry(Registry):
 mice_resolution = MICETieResolutionRegistry()
 
 
-@mice_resolution.register("MAX_INFORMITAVENESS_THEN_SMALLEST_PURVIEW")
-def _(m):
+def max_informativeness(m):
     if not config.REPERTOIRE_DISTANCE.startswith("IIT_4.0_SMALL_PHI"):
         msg = f"""
-    'MICE_TIE_RESOLUTION = "MAX_INFORMITAVENESS_THEN_SMALLEST_PURVIEW"
-    assumes REPERTOIRE_DISTANCE is one of the "IIT_4.0_SMALL_PHI" measures,
-    since informativeness is defined as the pointwise mutual information, but got
-      REPERTOIRE_DISTANCE = {config.REPERTOIRE_DISTANCE}
-"""
+        'MICE_TIE_RESOLUTION = "{config.MICE_TIE_RESOLUTION}"'
+        assumes REPERTOIRE_DISTANCE is one of the "IIT_4.0_SMALL_PHI" measures,
+        since informativeness is defined as the pointwise mutual information, but
+        got REPERTOIRE_DISTANCE = {config.REPERTOIRE_DISTANCE}
+        """
         # TODO(4.0) tie resolution docs
         warnings.warn(msg, category=ConfigurationWarning)
 
     if m.partitioned_repertoire is not None:
-        informativeness = max(
+        return max(
             metrics.distribution.pointwise_mutual_information_vector(
                 m.repertoire, m.partitioned_repertoire
             )[m.specified_index]
         )
-    else:
-        informativeness = 0.0
+    return 0.0
 
+
+@mice_resolution.register("MAX_INFORMATIVENESS_THEN_SMALLEST_PURVIEW")
+def _(m):
     return (
         m.phi,
-        informativeness,
+        max_informativeness(m),
         -len(m.purview),
+    )
+
+
+@mice_resolution.register("MAX_INFORMATIVENESS_THEN_LARGEST_PURVIEW")
+def _(m):
+    return (
+        m.phi,
+        max_informativeness(m),
+        len(m.purview),
     )
 
 
@@ -64,6 +74,11 @@ def _(m):
 @mice_resolution.register("SMALLEST_PURVIEW")
 def _(m):
     return (m.phi, -len(m.purview))
+
+
+@mice_resolution.register("PHI")
+def _(m):
+    return m.phi
 
 
 def resolve(mice, sort_key):
