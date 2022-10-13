@@ -44,7 +44,7 @@ LOG_STDOUT_LEVEL: WARNING
 # percentage of memory that these caches can collectively use.
 MAXIMUM_CACHE_MEMORY_PERCENTAGE: 50
 # Controls how to resolve ties among purviews when computing MICE.
-MICE_TIE_RESOLUTION: MAX_INFORMITAVENESS_THEN_SMALLEST_PURVIEW
+MICE_TIE_RESOLUTION: MAX_INFORMATIVENESS_THEN_SMALLEST_PURVIEW
 # The number of CPU cores to use in parallel.
 # -1 means all available cores, -2 means all but one available cores, etc.
 NUMBER_OF_CORES: -1
