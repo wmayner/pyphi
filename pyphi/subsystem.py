@@ -938,7 +938,10 @@ class Subsystem:
                     self.find_mip(direction, mechanism, purview) for purview in purviews
                 ]
 
-            ties = resolve_ties.mice(list(map(mice_class, all_mips)))
+            # Record phi-ties
+            ties = list(
+                resolve_ties.mice(list(map(mice_class, all_mips)), strategy="PHI")
+            )
             for tie in ties:
                 tie.set_ties(ties)
             max_mice = ties[0]
