@@ -72,10 +72,9 @@ def test_compute_subsystem_ces(case_name):
     actual = jsonify(actual)
     
     assert actual == expected
-    
-NETWORKS.remove("fig4")  # TODO jsonify(fig4) results in infinite loop
 
 # TODO failing via PyTest, but passing in notebook
+@pytest.mark('slow')
 @pytest.mark.parametrize(
     "case_name",  # TODO more parameters
     NETWORKS
