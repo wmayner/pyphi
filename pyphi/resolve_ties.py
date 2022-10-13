@@ -4,9 +4,10 @@
 
 import warnings
 
-from . import config, metrics, utils
-from .conf import ConfigurationWarning
+from . import config, metrics
+from .conf import ConfigurationWarning, fallback
 from .registry import Registry
+from .utils import all_maxima
 
 
 class MICETieResolutionRegistry(Registry):
@@ -85,17 +86,16 @@ def resolve(mice, sort_key):
     """Return MICE that are tied after sorting by the given key."""
     if not mice:
         return mice
-    keys = list(map(sort_key, mice))
-    mice = sorted(zip(keys, mice), reverse=True)
-    max_key = mice[0][0]
-    return [
-        m for (k, m) in mice if all(utils.eq(_k1, _k2) for _k1, _k2 in zip(k, max_key))
-    ]
+    keys = map(sort_key, mice)
+    maxima = all_maxima(zip(keys, mice))
+    for _, m in maxima:
+        yield m
 
 
-def mice(tied_mice):
+def mice(tied_mice, strategy=None):
     """Resolve ties among MICE.
 
     Controlled by the MICE_TIE_RESOLUTION configuration option.
     """
-    return resolve(tied_mice, sort_key=mice_resolution[config.MICE_TIE_RESOLUTION])
+    strategy = fallback(strategy, config.MICE_TIE_RESOLUTION)
+    yield from resolve(tied_mice, sort_key=mice_resolution[strategy])
