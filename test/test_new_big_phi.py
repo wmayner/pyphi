@@ -74,7 +74,7 @@ def test_compute_subsystem_ces(case_name):
     assert actual == expected
 
 # TODO failing via PyTest, but passing in notebook
-@pytest.mark('slow')
+@pytest.mark.veryslow
 @pytest.mark.parametrize(
     "case_name",  # TODO more parameters
     NETWORKS
