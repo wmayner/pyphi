@@ -12,7 +12,7 @@ from time import time
 
 import numpy as np
 from graphillion import setset
-from toolz import concat, curry
+from toolz import concat
 from tqdm.auto import tqdm
 
 from . import combinatorics, config, validate
@@ -29,7 +29,7 @@ from .partition import (
     relation_partition_types,
 )
 from .registry import Registry
-from .utils import eq, powerset
+from .utils import all_are_equal, all_are_identical, all_maxima, all_minima, powerset
 
 
 @unique
@@ -234,58 +234,6 @@ def minimal_overlap_ratio_times_distinction_phi(relata, candidate_joint_purview)
 # - NodeLabels on RIA?
 # - make all cut.mechanism and .purviews sets, throughout
 # - fix __str__ of RelationPartition
-
-
-@curry
-def _all_same(comparison, seq):
-    sentinel = object()
-    first = next(seq, sentinel)
-    if first is sentinel:
-        # Vacuously
-        return True
-    return all(comparison(first, other) for other in seq)
-
-
-# Compare equality up to precision
-all_are_equal = _all_same(eq)
-all_are_identical = _all_same(operator.is_)
-
-
-# TODO test
-@curry
-def _all_extrema(comparison, seq):
-    """Return the extrema of ``seq``.
-
-    Use ``<`` as the comparison to obtain the minima; use ``>`` as the
-    comparison to obtain the maxima.
-
-    Uses only one pass through ``seq``.
-
-    Args:
-        comparison (callable): A comparison operator.
-        seq (iterator): An iterator over a sequence.
-
-    Returns:
-        list: The maxima/minima in ``seq``.
-    """
-    extrema = []
-    sentinel = object()
-    current_extremum = next(seq, sentinel)
-    if current_extremum is sentinel:
-        # Return an empty list if the sequence is empty
-        return extrema
-    extrema.append(current_extremum)
-    for element in seq:
-        if comparison(element, current_extremum):
-            extrema = [element]
-            current_extremum = element
-        elif element == current_extremum:
-            extrema.append(element)
-    return extrema
-
-
-all_minima = _all_extrema(operator.lt)
-all_maxima = _all_extrema(operator.gt)
 
 
 # TODO(4.0) move to combinatorics

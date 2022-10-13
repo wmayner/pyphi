@@ -15,6 +15,7 @@ from itertools import chain, combinations, product
 
 import numpy as np
 from scipy.special import comb
+from toolz import curry
 
 from . import config
 
@@ -310,3 +311,55 @@ def enforce_integer_or_none(i, **kwargs):
 def is_falsy(x):
     """Return True if x is a falsy value."""
     return not x
+
+
+@curry
+def all_same(comparison, seq):
+    sentinel = object()
+    first = next(seq, sentinel)
+    if first is sentinel:
+        # Vacuously
+        return True
+    return all(comparison(first, other) for other in seq)
+
+
+# Compare equality up to precision
+all_are_equal = all_same(eq)
+all_are_identical = all_same(operator.is_)
+
+
+# TODO test
+@curry
+def all_extrema(comparison, seq):
+    """Return the extrema of ``seq``.
+
+    Use ``<`` as the comparison to obtain the minima; use ``>`` as the
+    comparison to obtain the maxima.
+
+    Uses only one pass through ``seq``.
+
+    Args:
+        comparison (callable): A comparison operator.
+        seq (iterator): An iterator over a sequence.
+
+    Returns:
+        list: The maxima/minima in ``seq``.
+    """
+    extrema = []
+    sentinel = object()
+    current_extremum = next(seq, sentinel)
+    if current_extremum is sentinel:
+        # Return an empty list if the sequence is empty
+        return extrema
+    extrema.append(current_extremum)
+    for element in seq:
+        if comparison(element, current_extremum):
+            extrema = [element]
+            current_extremum = element
+        elif element == current_extremum:
+            extrema.append(element)
+    return extrema
+
+
+all_minima = all_extrema(operator.lt)
+all_maxima = all_extrema(operator.gt)
