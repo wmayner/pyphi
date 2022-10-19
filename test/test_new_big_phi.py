@@ -62,7 +62,7 @@ def remove_ids(dct: dict):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 @pytest.mark.parametrize(
-    "case_name", # TODO more parameters
+    "case_name",
     NETWORKS
 )
 def test_sia(case_name):
@@ -77,9 +77,8 @@ def test_sia(case_name):
     
     assert actual == expected
 
-# TODO failing via PyTest, but passing in notebook; nested equal dicts flagged not equal
 @pytest.mark.parametrize(
-    "case_name", # TODO more parameters
+    "case_name",
     NETWORKS
 )
 def test_compute_subsystem_ces(case_name):
@@ -94,12 +93,11 @@ def test_compute_subsystem_ces(case_name):
     
     assert actual == expected
 
-# TODO failing via PyTest, but passing in notebook
 @pytest.mark.parametrize(
-    "case_name",  # TODO more parameters
+    "case_name",
     NETWORKS
 )
-def test_relations(case_name):  # TODO more descriptive name
+def test_relations(case_name):
     subsystem = EXAMPLES["subsystem"][case_name]()
     ces_obj = ces(subsystem)
     actual = relations(subsystem, ces_obj, parallel=False)
