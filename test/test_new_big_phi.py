@@ -47,6 +47,11 @@ def remove_ids(dct: dict):
         if isinstance(value, dict):
             remove_ids(value)
             
+        if isinstance(value, list):
+            for item in value:
+                if isinstance(item, dict):
+                    remove_ids(item)
+            
         if key == "__id__":
             has_id = True
             
@@ -90,7 +95,6 @@ def test_compute_subsystem_ces(case_name):
     assert actual == expected
 
 # TODO failing via PyTest, but passing in notebook
-@pytest.mark.veryslow
 @pytest.mark.parametrize(
     "case_name",  # TODO more parameters
     NETWORKS
@@ -103,7 +107,8 @@ def test_relations(case_name):  # TODO more descriptive name
     
     actual = jsonify(actual)
     
-    remove_ids(actual)
-    remove_ids(expected)
+    for item in actual + expected:
+        if isinstance(item, dict):
+            remove_ids(item)
     
     assert actual == expected
