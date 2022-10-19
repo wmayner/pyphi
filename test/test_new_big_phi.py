@@ -3,6 +3,7 @@
 # test_new_big_phi.py
 
 import json
+from pyrsistent import v
 
 import pytest
 
@@ -39,6 +40,19 @@ def expected_relations(example):
     
     return expected
 
+def remove_ids(dct: dict):
+    has_id = False
+    
+    for key, value in dct.items():
+        if isinstance(value, dict):
+            remove_ids(value)
+            
+        if key == "__id__":
+            has_id = True
+            
+    if has_id:
+        del dct["__id__"]
+
 # Tests
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -53,9 +67,8 @@ def test_sia(case_name):
     
     actual = jsonify(actual)
     
-    # node_labels.__id__ not expected to match
-    del actual["node_labels"]["__id__"]
-    del expected["node_labels"]["__id__"]
+    remove_ids(actual)
+    remove_ids(expected)
     
     assert actual == expected
 
@@ -70,6 +83,9 @@ def test_compute_subsystem_ces(case_name):
     expected = expected_ces(case_name)
     
     actual = jsonify(actual)
+    
+    remove_ids(actual)
+    remove_ids(expected)
     
     assert actual == expected
 
@@ -86,5 +102,8 @@ def test_relations(case_name):  # TODO more descriptive name
     expected = expected_relations(case_name)
     
     actual = jsonify(actual)
+    
+    remove_ids(actual)
+    remove_ids(expected)
     
     assert actual == expected
