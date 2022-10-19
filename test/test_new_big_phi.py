@@ -33,26 +33,10 @@ def remove_ids(dct: dict):
     if has_id:
         del dct["__id__"]
 
-def expected_sia(example):
-    SIA_PATH = f"test/data/new_big_phi/sia/sia_{example}.json"
+def expected_json(type, example):
+    PATH = f"test/data/new_big_phi/{type}/{type}_{example}.json"
     
-    with open(SIA_PATH) as f:
-        expected = json.load(f)
-    
-    return expected
-
-def expected_ces(example):
-    CES_PATH = f"test/data/new_big_phi/ces/ces_{example}.json"
-    
-    with open(CES_PATH) as f:
-        expected = json.load(f)
-    
-    return expected
-
-def expected_relations(example):
-    RELATIONS_PATH = f"test/data/new_big_phi/relations/relations_{example}.json"
-    
-    with open(RELATIONS_PATH) as f:
+    with open(PATH) as f:
         expected = json.load(f)
     
     return expected
@@ -89,7 +73,7 @@ def assert_equality(actual, expected):
 def test_sia(case_name):
     example_func = EXAMPLES["subsystem"][case_name]
     actual = sia(example_func(), parallel=False)
-    expected = expected_sia(case_name)
+    expected = expected_json("sia", case_name)
     
     assert_equality(actual, expected)
 
@@ -100,7 +84,7 @@ def test_sia(case_name):
 def test_compute_subsystem_ces(case_name):
     example_func = EXAMPLES["subsystem"][case_name]
     actual = ces(example_func())
-    expected = expected_ces(case_name)
+    expected = expected_json("ces", case_name)
     
     assert_equality(actual, expected)
 
@@ -112,6 +96,6 @@ def test_relations(case_name):
     subsystem = EXAMPLES["subsystem"][case_name]()
     ces_obj = ces(subsystem)
     actual = relations(subsystem, ces_obj, parallel=False)
-    expected = expected_relations(case_name)
+    expected = expected_json("relations", case_name)
     
     assert_equality(actual, expected)
