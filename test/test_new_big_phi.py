@@ -3,7 +3,7 @@
 # test_new_big_phi.py
 
 import json
-from pyrsistent import v
+from pyrsistent import thaw
 
 import pytest
 
@@ -15,6 +15,24 @@ from pyphi.compute.subsystem import ces
 from pyphi.relations import relations
 
 NETWORKS = ["basic", "basic_noisy_selfloop", "fig4", "grid3", "xor"]
+
+def remove_ids(dct: dict):
+    has_id = False
+    
+    for key, value in dct.items():
+        if isinstance(value, dict):
+            remove_ids(value)
+            
+        if isinstance(value, list):
+            for item in value:
+                if isinstance(item, dict):
+                    remove_ids(item)
+            
+        if key == "__id__":
+            has_id = True
+            
+    if has_id:
+        del dct["__id__"]
 
 def expected_sia(example):
     SIA_PATH = f"test/data/new_big_phi/sia/sia_{example}.json"
@@ -40,23 +58,27 @@ def expected_relations(example):
     
     return expected
 
-def remove_ids(dct: dict):
-    has_id = False
+def assert_equality(actual, expected):
+    actual = jsonify(actual)
     
-    for key, value in dct.items():
-        if isinstance(value, dict):
-            remove_ids(value)
-            
-        if isinstance(value, list):
-            for item in value:
-                if isinstance(item, dict):
-                    remove_ids(item)
-            
-        if key == "__id__":
-            has_id = True
-            
-    if has_id:
-        del dct["__id__"]
+    if isinstance(actual, dict):
+        assert isinstance(expected, dict)
+        
+        remove_ids(actual)
+        remove_ids(expected)
+        
+    else:
+        assert isinstance(expected, list)
+        
+        for item in actual:
+            if isinstance(item, dict):
+                remove_ids(item)
+                
+        for item in expected:
+            if isinstance(item, dict):
+                remove_ids(item)
+    
+    assert actual == expected
 
 # Tests
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -70,12 +92,7 @@ def test_sia(case_name):
     actual = sia(example_func(), parallel=False)
     expected = expected_sia(case_name)
     
-    actual = jsonify(actual)
-    
-    remove_ids(actual)
-    remove_ids(expected)
-    
-    assert actual == expected
+    assert_equality(actual, expected)
 
 @pytest.mark.parametrize(
     "case_name",
@@ -86,12 +103,7 @@ def test_compute_subsystem_ces(case_name):
     actual = ces(example_func())
     expected = expected_ces(case_name)
     
-    actual = jsonify(actual)
-    
-    remove_ids(actual)
-    remove_ids(expected)
-    
-    assert actual == expected
+    assert_equality(actual, expected)
 
 @pytest.mark.parametrize(
     "case_name",
@@ -103,10 +115,4 @@ def test_relations(case_name):
     actual = relations(subsystem, ces_obj, parallel=False)
     expected = expected_relations(case_name)
     
-    actual = jsonify(actual)
-    
-    for item in actual + expected:
-        if isinstance(item, dict):
-            remove_ids(item)
-    
-    assert actual == expected
+    assert_equality(actual, expected)
