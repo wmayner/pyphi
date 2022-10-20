@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from enum import Enum, auto, unique
 from textwrap import indent
 from typing import Dict, Iterable, Optional, Union
+from copy import copy
 
 from numpy.typing import ArrayLike
 from toolz import concat
@@ -83,6 +84,32 @@ class SystemState:
         body = "\n".join(fmt.align_columns(self._repr_columns()))
         body = fmt.header("System state", body, under_char=fmt.HEADER_BAR_3)
         return fmt.box(fmt.center(body))
+    
+    def __hash__(self):
+        return hash((
+            self.cause, 
+            self.effect, 
+            self.intrinsic_information[Direction.CAUSE],
+            self.intrinsic_information[Direction.EFFECT]
+        ))
+    
+    def to_json(self):
+        raw_dict = self.__dict__
+        new_dict = {}
+        
+        # serialize direction keys of nested dictionaries
+        for key, value in raw_dict.items():
+            if isinstance(value, dict):
+                new_dict[key] = {}
+                for direction, data in value.items():
+                    if direction == Direction.CAUSE:
+                        new_dict[key]["CAUSE"] = data
+                    elif direction == Direction.EFFECT:
+                        new_dict[key]["EFFECT"] = data
+            else:
+                new_dict[key] = raw_dict[key]
+        
+        return new_dict
 
 
 # TODO(4.0) refactor
@@ -236,6 +263,11 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         column_extent = body.split("\n")[2].index(":")
         body += "\n" + indent(str(self.partition), " " * (column_extent + 2))
         return fmt.box(body)
+    
+    def to_json(self):
+        as_dict = copy(self.__dict__)
+        del as_dict["_ties"]
+        return as_dict
 
 
 class NullSystemIrreducibilityAnalysis(SystemIrreducibilityAnalysis):
