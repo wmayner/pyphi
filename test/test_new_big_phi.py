@@ -33,7 +33,7 @@ def remove_ids(dct: dict):
     if has_id:
         del dct["__id__"]
 
-def expected_json(type, example) -> dict:
+def expected_json(type, example):
     PATH = f"test/data/new_big_phi/{type}/{type}_{example}.json"
     
     with open(PATH) as f:
