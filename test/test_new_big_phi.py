@@ -50,15 +50,11 @@ def assert_equality(actual, expected):
         remove_ids(actual)
         remove_ids(expected)
         
-    else:  # will be lists if not dictionaries
+    else:  # should be lists if not dictionaries
         assert isinstance(actual, list)
         assert isinstance(expected, list)
         
-        for item in actual:
-            if isinstance(item, dict):
-                remove_ids(item)
-                
-        for item in expected:
+        for item in actual + expected:
             if isinstance(item, dict):
                 remove_ids(item)
     
