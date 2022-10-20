@@ -15,6 +15,7 @@ from pyphi.relations import relations
 
 NETWORKS = ["basic", "basic_noisy_selfloop", "fig4", "grid3", "xor"]
 
+
 def remove_ids(dct: dict):
     has_id = False
     
@@ -33,6 +34,7 @@ def remove_ids(dct: dict):
     if has_id:
         del dct["__id__"]
 
+
 def expected_json(type, example):
     PATH = f"test/data/new_big_phi/{type}/{type}_{example}.json"
     
@@ -40,6 +42,7 @@ def expected_json(type, example):
         expected = json.load(f)
     
     return expected
+
 
 def assert_equality(actual, expected):
     actual = jsonify(actual)
@@ -63,6 +66,7 @@ def assert_equality(actual, expected):
 # Tests
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+
 @pytest.mark.parametrize(
     "case_name",
     NETWORKS
@@ -74,6 +78,7 @@ def test_sia(case_name):
     
     assert_equality(actual, expected)
 
+
 @pytest.mark.parametrize(
     "case_name",
     NETWORKS
@@ -84,6 +89,7 @@ def test_compute_subsystem_ces(case_name):
     expected = expected_json("ces", case_name)
     
     assert_equality(actual, expected)
+
 
 @pytest.mark.parametrize(
     "case_name",
