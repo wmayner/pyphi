@@ -2,6 +2,7 @@
 # network_generator/ising.py
 
 import numpy as np
+from toolz import curry
 
 from ..utils import all_states
 from . import utils
@@ -20,6 +21,7 @@ def energy(element, weights, state, field):
     return utils.input_weight(element, weights, state) + field
 
 
+@curry
 def probability(
     element,
     weights,
