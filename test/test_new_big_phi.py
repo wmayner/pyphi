@@ -6,7 +6,6 @@ import json
 
 import pytest
 
-import pyphi
 from pyphi.examples import EXAMPLES
 from pyphi.jsonify import jsonify
 from pyphi.new_big_phi import sia
