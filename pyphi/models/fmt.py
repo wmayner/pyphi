@@ -555,14 +555,17 @@ def fmt_ria(ria, verbose=True, mip=False):
         mechanism = ""
         direction = ""
 
-    if ria.specified_state is None:
-        specified_states = []
-        specified_states_str = str(specified_states)
-    else:
-        specified_states = [tuple(state) for state in ria.specified_state]
-        specified_states_str = "\n  " + "\n  ".join(
-            map(str, map(list, specified_states))
-        )
+    # TODO(ties)
+    specified_states = [tie.specified_state for tie in ria.ties]
+    specified_states_str = f"\n{ria.specified_state}"
+    # if ria.specified_state is None:
+    #     specified_states = []
+    #     specified_states_str = str(specified_states)
+    # else:
+    #     specified_states = [tuple(state) for state in ria.specified_state]
+    #     specified_states_str = "\n  " + "\n  ".join(
+    #         map(str, map(list, specified_states))
+    #     )
 
     # TODO(4.0):  position repertoire and partitioned repertoire side by side
     if config.REPR_VERBOSITY is HIGH:
@@ -592,6 +595,7 @@ def fmt_ria(ria, verbose=True, mip=False):
         "{partition}"
         "{repertoire}"
         "{partitioned_repertoire}"
+        "\n#(ties): {num_ties}"
     ).format(
         SMALL_PHI=SMALL_PHI,
         mechanism=mechanism,
@@ -602,6 +606,7 @@ def fmt_ria(ria, verbose=True, mip=False):
         partition=partition,
         repertoire=repertoire,
         partitioned_repertoire=partitioned_repertoire,
+        num_ties=ria.num_ties,
     )
 
 

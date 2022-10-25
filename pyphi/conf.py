@@ -145,6 +145,7 @@ import shutil
 import tempfile
 from copy import copy
 from pathlib import Path
+from warnings import warn
 
 import ray
 import yaml
@@ -166,6 +167,18 @@ class ConfigurationError(ValueError):
 
 class ConfigurationWarning(UserWarning):
     pass
+
+
+# TODO(4.0) deprecate options
+def deprecated(option):
+    # Don't warn until config is loaded
+    # TODO onchange is not triggered?
+    if _LOADED:
+        warn(
+            f"The {option} configuration option is deprecated and will be removed in a future version.",
+            FutureWarning,
+            stacklevel=2,
+        )
 
 
 class Option:
@@ -508,6 +521,7 @@ class PyphiConfig(Config):
     PARALLEL_COMPOSITIONAL_STATE_EVALUATION = Option(
         True,
         type=bool,
+        on_change=deprecated,
         doc="""
     Controls whether compositional states are evaluated in parallel.""",
     )
@@ -963,14 +977,22 @@ class PyphiConfig(Config):
     """,
     )
 
-    MICE_TIE_RESOLUTION = Option(
-        "MAX_INFORMATIVENESS_THEN_LARGEST_PURVIEW",
-        values=[
-            "MAX_INFORMATIVENESS_THEN_SMALLEST_PURVIEW",
-            "MAX_INFORMATIVENESS_THEN_LARGEST_PURVIEW",
-            "SMALLEST_PURVIEW",
-            "LARGEST_PURVIEW",
-        ],
+    STATE_TIE_RESOLUTION = Option(
+        "PHI",
+        doc="""
+    Controls how ties among states are resolved.
+    """,
+    )
+
+    MIP_TIE_RESOLUTION = Option(
+        "PHI",
+        doc="""
+    Controls how ties among mechanism partitions are resolved.
+    """,
+    )
+
+    PURVIEW_TIE_RESOLUTION = Option(
+        "PHI",
         doc="""
     Controls how ties among purviews are resolved.
     """,

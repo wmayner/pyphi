@@ -328,9 +328,11 @@ all_are_equal = all_same(eq)
 all_are_identical = all_same(operator.is_)
 
 
+NO_DEFAULT = object()
+
 # TODO test
 @curry
-def all_extrema(comparison, seq):
+def all_extrema(comparison, seq, default=NO_DEFAULT):
     """Return the extrema of ``seq``.
 
     Use ``<`` as the comparison to obtain the minima; use ``>`` as the
@@ -349,8 +351,10 @@ def all_extrema(comparison, seq):
     sentinel = object()
     current_extremum = next(seq, sentinel)
     if current_extremum is sentinel:
-        # Return an empty list if the sequence is empty
-        return extrema
+        if default is NO_DEFAULT:
+            raise ValueError("Cannot find extrema of empty sequence without default")
+        else:
+            return [default]
     extrema.append(current_extremum)
     for element in seq:
         if comparison(element, current_extremum):
@@ -363,3 +367,15 @@ def all_extrema(comparison, seq):
 
 all_minima = all_extrema(operator.lt)
 all_maxima = all_extrema(operator.gt)
+
+
+def iter_with_default(seq, default):
+    """Iterate over ``seq``, yielding ``default`` if ``seq`` is empty."""
+    yielded = False
+    for item in seq:
+        yield item
+        yielded = True
+    if not yielded:
+        if default is NO_DEFAULT:
+            raise ValueError("Cannot iterate over empty sequence without default")
+        yield default

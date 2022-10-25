@@ -29,7 +29,7 @@ from .network import irreducible_purviews
 from .node import generate_nodes
 from .partition import complete_partition, mip_partitions
 from .tpm import condition_tpm, marginalize_out
-from .utils import state_of
+from .utils import all_minima, state_of
 
 log = logging.getLogger(__name__)
 
@@ -658,6 +658,7 @@ class Subsystem:
         repertoire = self.repertoire(direction, mechanism, purview)
 
         def _mip(phi, partition, partitioned_repertoire):
+            state = kwargs.get("state")
             # Prototype of MIP with already known data
             # TODO: Use properties here to infer mechanism and purview from
             # partition yet access them with `.mechanism` and `.purview`.
@@ -672,17 +673,17 @@ class Subsystem:
                 mechanism_state=state_of(mechanism, self.state),
                 purview_state=state_of(purview, self.state),
                 node_labels=self.node_labels,
+                specified_state=state,
             )
+
+        null_mip = _mip(0, None, None)
 
         # State is unreachable - return 0 instead of giving nonsense results
         if direction == Direction.CAUSE and np.all(repertoire == 0):
-            return _mip(0, None, None)
+            return null_mip
 
-        mip = _null_ria(direction, mechanism, purview, phi=float("inf"))
-
-        for partition in mip_partitions(mechanism, purview, self.node_labels):
-            # Find the distance between the unpartitioned and partitioned
-            # repertoire.
+        # TODO(ties) refactor?
+        def _evaluate_partition(partition):
             phi, partitioned_repertoire = self.evaluate_partition(
                 direction,
                 mechanism,
@@ -691,16 +692,20 @@ class Subsystem:
                 repertoire=repertoire,
                 **kwargs,
             )
+            return _mip(phi, partition, partitioned_repertoire)
 
-            # Return immediately if mechanism is reducible.
-            if phi == 0:
-                return _mip(0.0, partition, partitioned_repertoire)
-
-            # Update MIP if it's more minimal.
-            if phi < mip.phi:
-                mip = _mip(phi, partition, partitioned_repertoire)
-
-        return mip
+        ties = tuple(
+            resolve_ties.partitions(
+                map(
+                    _evaluate_partition,
+                    mip_partitions(mechanism, purview, self.node_labels),
+                ),
+                default=null_mip,
+            )
+        )
+        for tie in ties:
+            tie.set_partition_ties(ties)
+        return ties[0]
 
     def cause_mip(self, mechanism, purview, **kwargs):
         """Return the irreducibility analysis for the cause MIP.
@@ -784,7 +789,7 @@ class Subsystem:
 
         return max_mip
 
-    # TODO rename to intrinsic information?
+    # TODO(4.0) rename to intrinsic information?
     def find_maximal_state_under_complete_partition(
         self,
         direction: Direction,
@@ -907,43 +912,49 @@ class Subsystem:
         else:
             validate.direction(direction)
 
+        null_mice = mice_class(_null_ria(direction, mechanism, ()))
+
         if not purviews:
-            max_mice = mice_class(_null_ria(direction, mechanism, ()), ties=())
+            max_mice = null_mice
         else:
             if config.IIT_VERSION == 4:
                 # TODO(4.0)
-                all_mips = [
+                all_mips = (
                     self.find_maximally_irreducible_state(direction, mechanism, purview)
                     for purview in purviews
-                ]
+                )
             elif config.IIT_VERSION == "maximal-state-first":
-                # TODO(4.0) keep track of MIPs with respect to all tied states:
-                # confirm that current strategy of simply including all ties in
-                # `all_mips` and taking max is correct
                 all_mips = []
                 for purview in purviews:
+                    # TODO(4.0) refactor
                     maximal_states = self.find_maximal_state_under_complete_partition(
                         direction, mechanism, purview
                     )
-                    mips = [
-                        self.find_mip(direction, mechanism, purview, state=state)
-                        for state in maximal_states
-                    ]
-                    maximal_states = np.array(maximal_states)
-                    for mip in mips:
-                        mip.set_specified_state(maximal_states)
-                    all_mips.extend(mips)
+                    ties = tuple(
+                        resolve_ties.states(
+                            (
+                                self.find_mip(
+                                    direction, mechanism, purview, state=state
+                                )
+                                for state in maximal_states
+                            )
+                        )
+                    )
+                    for tie in ties:
+                        tie.set_state_ties(ties)
+                    mip = ties[0]
+                    all_mips.append(mip)
             else:
-                all_mips = [
+                all_mips = (
                     self.find_mip(direction, mechanism, purview) for purview in purviews
-                ]
+                )
 
-            # Record phi-ties
-            ties = list(
-                resolve_ties.mice(list(map(mice_class, all_mips)), strategy="PHI")
-            )
+            all_mice = map(mice_class, all_mips)
+            # Record purview ties
+            ties = tuple(resolve_ties.purviews(all_mice, default=null_mice))
+            # TODO(ties) refactor this into `resolve_ties.purviews`?
             for tie in ties:
-                tie.set_ties(ties)
+                tie.set_purview_ties(ties)
             max_mice = ties[0]
 
         return max_mice
