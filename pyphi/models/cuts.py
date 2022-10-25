@@ -362,7 +362,7 @@ class GeneralSetPartition(GeneralKCut):
             + "}\n"
             + super().__str__()
         )
-        
+
     def to_json(self):
         return self.set_partition
 
@@ -461,6 +461,16 @@ class KPartition(Sequence):
     def normalize(self):
         """Normalize the order of parts in the partition."""
         return type(self)(*sorted(self), node_labels=self.node_labels)
+
+    def num_connections_cut(self):
+        """The number of connections cut by this partition."""
+        n = 0
+        purview_lengths = [len(part.purview) for part in self.parts]
+        for i, part in enumerate(self.parts):
+            n += len(part.mechanism) * (
+                sum(purview_lengths[:i]) + sum(purview_lengths[i + 1 :])
+            )
+        return n
 
     def to_json(self):
         return {"parts": list(self)}

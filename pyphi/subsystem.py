@@ -657,6 +657,7 @@ class Subsystem:
         # partitioned ones.
         repertoire = self.repertoire(direction, mechanism, purview)
 
+        # TODO(4.0) return from evaluate_partition?
         def _mip(phi, partition, partitioned_repertoire):
             # Prototype of MIP with already known data
             # TODO: Use properties here to infer mechanism and purview from
@@ -691,14 +692,15 @@ class Subsystem:
                 repertoire=repertoire,
                 **kwargs,
             )
+            candidate_mip = _mip(phi, partition, partitioned_repertoire)
 
             # Return immediately if mechanism is reducible.
-            if phi == 0:
-                return _mip(0.0, partition, partitioned_repertoire)
+            if utils.eq(candidate_mip.normalized_phi, 0):
+                return candidate_mip
 
             # Update MIP if it's more minimal.
-            if phi < mip.phi:
-                mip = _mip(phi, partition, partitioned_repertoire)
+            if candidate_mip.normalized_phi < mip.normalized_phi:
+                mip = candidate_mip
 
         return mip
 
