@@ -19,7 +19,7 @@ from .labels import NodeLabels
 from .network import irreducible_purviews
 from .node import expand_node_tpm, generate_nodes
 from .subsystem import Subsystem
-from .tpm import is_state_by_state, marginalize_out, tpm_indices
+from .tpm import ExplicitTPM, is_state_by_state, marginalize_out, tpm_indices
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
@@ -79,7 +79,7 @@ def run_tpm(system, steps, blackbox):
     noised_tpm = rebuild_system_tpm(node_tpms)
     noised_tpm = convert.state_by_node2state_by_state(noised_tpm)
 
-    tpm = convert.state_by_node2state_by_state(system.tpm)
+    tpm = convert.state_by_node2state_by_state(system.tpm.tpm)
 
     # Muliply by noise
     tpm = np.dot(tpm, np.linalg.matrix_power(noised_tpm, steps - 1))
@@ -104,7 +104,7 @@ class SystemAttrs(namedtuple("SystemAttrs", ["tpm", "cm", "node_indices", "state
     @property
     def nodes(self):
         return generate_nodes(
-            self.tpm, self.cm, self.state, self.node_indices, self.node_labels
+            self.tpm.tpm, self.cm, self.state, self.node_indices, self.node_labels
         )
 
     @staticmethod
@@ -214,7 +214,7 @@ class MacroSubsystem(Subsystem):
 
         internal_indices = tpm_indices(system.tpm)
 
-        tpm = remove_singleton_dimensions(system.tpm)
+        tpm = ExplicitTPM(remove_singleton_dimensions(system.tpm.tpm))
 
         # The connectivity matrix is the network's connectivity matrix, with
         # cut applied, with all connections to/from external nodes severed,
@@ -225,10 +225,10 @@ class MacroSubsystem(Subsystem):
 
         # Re-index the subsystem nodes with the external nodes removed
         node_indices = reindex(internal_indices)
-        nodes = generate_nodes(tpm, cm, state, node_indices)
+        nodes = generate_nodes(tpm.tpm, cm, state, node_indices)
 
         # Re-calcuate the tpm based on the results of the cut
-        tpm = rebuild_system_tpm(node.tpm_on for node in nodes)
+        tpm = ExplicitTPM(rebuild_system_tpm(node.tpm_on for node in nodes))
 
         return SystemAttrs(tpm, cm, node_indices, state)
 
@@ -245,7 +245,7 @@ class MacroSubsystem(Subsystem):
 
             node_tpms.append(node_tpm)
 
-        tpm = rebuild_system_tpm(node_tpms)
+        tpm = ExplicitTPM(rebuild_system_tpm(node_tpms))
 
         return system._replace(tpm=tpm)
 
@@ -254,7 +254,7 @@ class MacroSubsystem(Subsystem):
         """Black box the CM and TPM over the given time_scale."""
         blackbox = blackbox.reindex()
 
-        tpm = run_tpm(system, time_scale, blackbox)
+        tpm = ExplicitTPM(run_tpm(system, time_scale, blackbox))
 
         # Universal connectivity, for now.
         n = len(system.node_indices)
@@ -274,7 +274,7 @@ class MacroSubsystem(Subsystem):
         there is only `len(output_indices)` dimensions in the TPM and in the
         state of the subsystem.
         """
-        tpm = marginalize_out(blackbox.hidden_indices, system.tpm)
+        tpm = marginalize_out(blackbox.hidden_indices, system.tpm.tpm)
 
         assert blackbox.output_indices == tpm_indices(tpm)
 
@@ -291,12 +291,13 @@ class MacroSubsystem(Subsystem):
         state = blackbox.macro_state(system.state)
         node_indices = blackbox.macro_indices
 
+        tpm = ExplicitTPM(tpm)
         return SystemAttrs(tpm, cm, node_indices, state)
 
     @staticmethod
     def _coarsegrain_space(coarse_grain, is_cut, system):
         """Spatially coarse-grain the TPM and CM."""
-        tpm = coarse_grain.macro_tpm(system.tpm, check_independence=(not is_cut))
+        tpm = coarse_grain.macro_tpm(system.tpm.tpm, check_independence=(not is_cut))
 
         node_indices = coarse_grain.macro_indices
         state = coarse_grain.macro_state(system.state)
@@ -305,6 +306,7 @@ class MacroSubsystem(Subsystem):
         n = len(node_indices)
         cm = np.ones((n, n))
 
+        tpm = ExplicitTPM(tpm)
         return SystemAttrs(tpm, cm, node_indices, state)
 
     @property

@@ -8,9 +8,9 @@ Methods for validating arguments.
 
 import numpy as np
 
-from . import config, convert, exceptions
+from . import config, exceptions
 from .direction import Direction
-from .tpm import is_state_by_state
+from .tpm import ExplicitTPM
 from .models.mechanism import MaximallyIrreducibleCauseOrEffect
 
 # pylint: disable=redefined-outer-name
@@ -33,7 +33,7 @@ def direction(direction, allow_bi=False):
 
 
 def tpm_shape(tpm, check_independence=True):
-    """Validate a TPM's shape.
+    """Validate this TPM's shape.
 
     The TPM can be in
 
@@ -41,76 +41,22 @@ def tpm_shape(tpm, check_independence=True):
         * 2-dimensional state-by-node form, or
         * multidimensional state-by-node form.
     """
-    see_tpm_docs = (
-        "See the documentation on TPM conventions and the `pyphi.Network` "
-        "object for more information on TPM forms."
-    )
-    # Cast to np.array.
-    tpm = np.array(tpm)
-    # Get the number of nodes from the state-by-node TPM.
-    N = tpm.shape[-1]
-    if tpm.ndim == 2:
-        if not (
-            (tpm.shape[0] == 2 ** N and tpm.shape[1] == N)
-            or (tpm.shape[0] == tpm.shape[1])
-        ):
-            raise ValueError(
-                "Invalid shape for 2-D TPM: {}\nFor a state-by-node TPM, "
-                "there must be "
-                "2^N rows and N columns, where N is the "
-                "number of nodes. State-by-state TPM must be square. "
-                "{}".format(tpm.shape, see_tpm_docs)
-            )
-        if tpm.shape[0] == tpm.shape[1] and check_independence:
-            conditionally_independent(tpm)
-    elif tpm.ndim == (N + 1):
-        if tpm.shape != tuple([2] * N + [N]):
-            raise ValueError(
-                "Invalid shape for multidimensional state-by-node TPM: {}\n"
-                "The shape should be {} for {} nodes. {}".format(
-                    tpm.shape, ([2] * N) + [N], N, see_tpm_docs
-                )
-            )
-    else:
-        raise ValueError(
-            "Invalid TPM: Must be either 2-dimensional or multidimensional. "
-            "{}".format(see_tpm_docs)
-        )
-    return True
+    return ExplicitTPM._validate_shape(tpm, check_independence=check_independence)
 
 
 def tpm_probabilities(tpm):
     """Check that the probabilities in a TPM are valid."""
-    if (tpm < 0.0).any() or (tpm > 1.0).any():
-        raise ValueError("Invalid TPM: probabilities must be in the interval [0, 1].")
-    if is_state_by_state(tpm) and np.any(np.sum(tpm, axis=1) != 1.0):
-        raise ValueError("Invalid TPM: probabilities must sum to 1.")
-    return True
+    return ExplicitTPM._validate_probabilities(tpm)
 
 
 def tpm(tpm, **kwargs):
     """Validate a TPM."""
-    return tpm_probabilities(tpm) and tpm_shape(tpm, **kwargs)
+    return ExplicitTPM._validate(tpm, **kwargs)
 
 
 def conditionally_independent(tpm):
     """Validate that the TPM is conditionally independent."""
-    tpm = np.array(tpm)
-    if is_state_by_state(tpm):
-        there_and_back_again = convert.state_by_node2state_by_state(
-            convert.state_by_state2state_by_node(tpm)
-        )
-    else:
-        there_and_back_again = convert.state_by_state2state_by_node(
-            convert.state_by_node2state_by_state(tpm)
-        )
-    if not np.allclose((tpm - there_and_back_again), 0.0):
-        raise exceptions.ConditionallyDependentError(
-            "TPM is not conditionally independent.\n"
-            "See the conditional independence example in the documentation "
-            "for more info."
-        )
-    return True
+    return ExplicitTPM._conditionally_independent(tpm)
 
 
 def connectivity_matrix(cm):
@@ -143,7 +89,7 @@ def network(n):
 
     Checks the TPM and connectivity matrix.
     """
-    tpm(n.tpm)
+    n.tpm.validate()
     connectivity_matrix(n.cm)
     if n.cm.shape[0] != n.size:
         raise ValueError(
@@ -187,7 +133,7 @@ def state_reachable(subsystem):
     # reached from some state.
     # First we take the submatrix of the conditioned TPM that corresponds to
     # the nodes that are actually in the subsystem...
-    tpm = subsystem.tpm[..., subsystem.node_indices]
+    tpm = subsystem.tpm.tpm[..., subsystem.node_indices]
     # Then we do the subtraction and test.
     test = tpm - np.array(subsystem.proper_state)
     if not np.any(np.logical_and(-1 < test, test < 1).all(-1)):
