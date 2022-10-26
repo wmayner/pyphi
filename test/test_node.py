@@ -40,16 +40,16 @@ def test_node_init_inputs(s):
 
 
 def test_node_eq(s):
-    assert s.nodes[1] == Node(s.tpm, s.cm, 1, 0, "B")
+    assert s.nodes[1] == Node(s.tpm.tpm, s.cm, 1, 0, "B")
 
 
 def test_node_neq_by_index(s):
-    assert s.nodes[0] != Node(s.tpm, s.cm, 1, 0, "B")
+    assert s.nodes[0] != Node(s.tpm.tpm, s.cm, 1, 0, "B")
 
 
 def test_node_neq_by_state(s):
     other_s = Subsystem(s.network, (1, 1, 1), s.node_indices)
-    assert other_s.nodes[1] != Node(s.tpm, s.cm, 1, 0, "B")
+    assert other_s.nodes[1] != Node(s.tpm.tpm, s.cm, 1, 0, "B")
 
 
 def test_repr(s):
@@ -76,7 +76,7 @@ def test_expand_tpm():
 
 
 def test_generate_nodes(s):
-    nodes = generate_nodes(s.tpm, s.cm, s.state, s.node_indices, s.node_labels)
+    nodes = generate_nodes(s.tpm.tpm, s.cm, s.state, s.node_indices, s.node_labels)
 
     # fmt: off
     node0_tpm = np.array([
@@ -117,5 +117,5 @@ def test_generate_nodes(s):
 
 
 def test_generate_nodes_default_labels(s):
-    nodes = generate_nodes(s.tpm, s.cm, s.state, s.node_indices)
+    nodes = generate_nodes(s.tpm.tpm, s.cm, s.state, s.node_indices)
     assert [n.label for n in nodes] == ["n0", "n1", "n2"]

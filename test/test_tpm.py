@@ -43,7 +43,7 @@ def test_expand_tpm():
 
 
 def test_marginalize_out(s):
-    marginalized_distribution = marginalize_out([0], s.tpm)
+    marginalized_distribution = marginalize_out([0], s.tpm.tpm)
     # fmt: off
     answer = np.array([
         [[[0.0, 0.0, 0.5],
@@ -54,7 +54,7 @@ def test_marginalize_out(s):
     # fmt: on
     assert np.array_equal(marginalized_distribution, answer)
 
-    marginalized_distribution = marginalize_out([0, 1], s.tpm)
+    marginalized_distribution = marginalize_out([0, 1], s.tpm.tpm)
     # fmt: off
     answer = np.array([
         [[[0.5, 0.0, 0.5],
@@ -71,7 +71,7 @@ def test_infer_cm(rule152):
 def test_reconstitute_tpm(standard, s_complete, rule152, noised):
     # Check subsystem and network TPM are the same when the subsystem is the
     # whole network
-    assert np.array_equal(reconstitute_tpm(s_complete), standard.tpm)
+    assert np.array_equal(reconstitute_tpm(s_complete), standard.tpm.tpm)
 
     # Regression tests
     # fmt: off
