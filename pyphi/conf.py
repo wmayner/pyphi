@@ -985,14 +985,14 @@ class PyphiConfig(Config):
     )
 
     MIP_TIE_RESOLUTION = Option(
-        "PHI",
+        "NORMALIZED_PHI,PHI",
         doc="""
     Controls how ties among mechanism partitions are resolved.
     """,
     )
 
     PURVIEW_TIE_RESOLUTION = Option(
-        "PHI",
+        "NORMALIZED_PHI",
         doc="""
     Controls how ties among purviews are resolved.
     """,
