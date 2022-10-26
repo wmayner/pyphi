@@ -312,6 +312,9 @@ class Config:
         else:
             raise ConfigurationError("{} is not a valid config option".format(name))
 
+    def __getitem__(self, name):
+        return self._values[name]
+
     def _callback(self, obj):
         """Called when any option is changed."""
         if self._on_change is not None:
