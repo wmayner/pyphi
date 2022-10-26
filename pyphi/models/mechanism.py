@@ -7,6 +7,8 @@
 import numpy as np
 from toolz import concat, unique
 
+from pyphi.models.cuts import KPartition
+
 from .. import connectivity, utils, validate
 from ..conf import fallback
 from ..direction import Direction
@@ -26,8 +28,14 @@ _ria_attributes = [
 ]
 
 
-# TODO(4.0)
-# class representing MIP? now that we're picking state, RIA could represent that
+# TODO(4.0) configure
+def normalization_factor(partition):
+    try:
+        return 1 / partition.num_connections_cut()
+    except ZeroDivisionError:
+        return 1
+    except AttributeError:
+        return None
 
 
 class RepertoireIrreducibilityAnalysis(cmp.Orderable):
@@ -87,6 +95,13 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         self._partition_ties = (self,)
         self._state_ties = (self,)
 
+        norm = normalization_factor(self._partition)
+
+        if norm is None:
+            self._normalized_phi = None
+        else:
+            self._normalized_phi = self._phi * norm
+
         # Optional labels - only used to generate nice labeled reprs
         self._node_labels = node_labels
 
@@ -96,6 +111,11 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         and partitioned repertoires.
         """
         return self._phi
+
+    @property
+    def normalized_phi(self):
+        """float: Normalized |small_phi| value."""
+        return self._normalized_phi
 
     @property
     def direction(self):
@@ -247,7 +267,7 @@ def _null_ria(direction, mechanism, purview, repertoire=None, phi=0.0):
         direction=direction,
         mechanism=mechanism,
         purview=purview,
-        partition=None,
+        partition=KPartition(),
         repertoire=repertoire,
         partitioned_repertoire=None,
         phi=phi,
@@ -274,6 +294,11 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
         partitioned repertoires.
         """
         return self._ria.phi
+
+    @property
+    def normalized_phi(self):
+        """float: Normalized |small_phi| value."""
+        return self._ria.normalized_phi
 
     @property
     def direction(self):

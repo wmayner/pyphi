@@ -657,6 +657,7 @@ class Subsystem:
         # partitioned ones.
         repertoire = self.repertoire(direction, mechanism, purview)
 
+        # TODO(4.0) return from evaluate_partition?
         def _mip(phi, partition, partitioned_repertoire):
             state = kwargs.get("state")
             # Prototype of MIP with already known data
@@ -1001,8 +1002,8 @@ class Subsystem:
         )
         # Null effect.
         effect = MaximallyIrreducibleEffect(
-            _null_ria(Direction.EFFECT, (), (), effect_repertoire)
         )
+            _null_ria(Direction.EFFECT, (), (), effect_repertoire)
 
         # All together now...
         return Concept(mechanism=(), cause=cause, effect=effect, subsystem=self)
