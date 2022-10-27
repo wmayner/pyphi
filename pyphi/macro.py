@@ -542,7 +542,8 @@ class CoarseGrain(namedtuple("CoarseGrain", ["partition", "grouping"])):
         Returns:
             np.ndarray: The state-by-state TPM of the macro-system.
         """
-        validate.tpm(state_by_state_micro_tpm, check_independence=False)
+        tpm = ExplicitTPM(state_by_state_micro_tpm, validate=False)
+        tpm.validate(check_independence=False)
 
         mapping = self.make_mapping()
 
@@ -584,7 +585,8 @@ class CoarseGrain(namedtuple("CoarseGrain", ["partition", "grouping"])):
         macro_tpm = self.macro_tpm_sbs(micro_tpm)
 
         if check_independence:
-            validate.conditionally_independent(macro_tpm)
+            tpm = ExplicitTPM(macro_tpm, validate=False)
+            tpm.conditionally_independent()
 
         return convert.state_by_state2state_by_node(macro_tpm)
 

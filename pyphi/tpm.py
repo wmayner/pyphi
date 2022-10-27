@@ -17,22 +17,17 @@ from .constants import OFF, ON
 
 class TPM:
     """A transition probability matrix."""
-    def __init__(self, tpm, validate=True):
-        self._tpm = self._build_tpm(tpm, validate)
+    def __init__(self, tpm):
+        pass
 
     @property
     def tpm(self):
         """Return the underlying `tpm` object."""
         return self._tpm
 
-    def _build_tpm(self, tpm, validate=True):
-        """Validate the TPM passed by the user and convert to
-        multidimensional form."""
-        raise NotImplementedError
-
     def conditionally_independent(self):
         """Validate that this TPM is conditionally independent."""
-        return self._conditionally_independent(self.tpm)
+        raise NotImplementedError
 
     def validate(self):
         """Ensure the tpm is well-formed."""
@@ -46,6 +41,7 @@ class TPM:
 
     def marginalize_out(self, node_indices):
         """Return a TPM marginalized with respect to some nodes."""
+        raise NotImplementedError
 
     def __repr__(self):
         raise NotImplementedError
@@ -60,37 +56,29 @@ class TPM:
 class ExplicitTPM(TPM):
     """An explicit network TPM in multidimensional form."""
     def __init__(self, tpm, validate=True):
-        super().__init__(tpm, validate=validate)
-        self._hash = np_hash(self.tpm)
-
-    def _build_tpm(self, tpm, validate=True):
-        """Validate the TPM passed by the user and convert to
-        multidimensional form."""
-        tpm = np.array(tpm)
+        super().__init__(tpm)
+        self._tpm = np.array(tpm)
 
         if validate:
-            self._validate(
-                tpm,
+            self.validate(
                 check_independence=config.VALIDATE_CONDITIONAL_INDEPENDENCE
             )
 
-            # Convert to multidimensional state-by-node form
             if is_state_by_state(tpm):
-                tpm = convert.state_by_state2state_by_node(tpm)
+                self._tpm = convert.state_by_state2state_by_node(self._tpm)
             else:
-                tpm = convert.to_multidimensional(tpm)
+                self._tpm = convert.to_multidimensional(self._tpm)
 
-        np_immutable(tpm)
-
-        return tpm
+        self._tpm = np_immutable(self._tpm)
+        self._hash = np_hash(self.tpm)
 
     @property
     def shape(self):
         return self.tpm.shape
 
-    @classmethod
-    def _conditionally_independent(cls, tpm):
+    def conditionally_independent(self):
         """Validate that the TPM is conditionally independent."""
+        tpm = self.tpm
         tpm = np.array(tpm)
         if is_state_by_state(tpm):
             there_and_back_again = convert.state_by_node2state_by_state(
@@ -108,8 +96,7 @@ class ExplicitTPM(TPM):
             )
         return True
 
-    @classmethod
-    def _validate_shape(cls, tpm, check_independence=True):
+    def _validate_shape(self, check_independence=True):
         """Validate this TPM's shape.
 
         The TPM can be in
@@ -122,6 +109,7 @@ class ExplicitTPM(TPM):
             'See the documentation on TPM conventions and the `pyphi.Network` '
             'object for more information on TPM forms.'
         )
+        tpm = self.tpm
         # Get the number of nodes from the state-by-node TPM.
         N = tpm.shape[-1]
         if tpm.ndim == 2:
@@ -137,7 +125,7 @@ class ExplicitTPM(TPM):
                     "{}".format(tpm.shape, see_tpm_docs)
                 )
             if tpm.shape[0] == tpm.shape[1] and check_independence:
-                cls._conditionally_independent(tpm)
+                self.conditionally_independent()
         elif tpm.ndim == (N + 1):
             if tpm.shape != tuple([2] * N + [N]):
                 raise ValueError(
@@ -155,30 +143,21 @@ class ExplicitTPM(TPM):
             )
         return True
 
-    @classmethod
-    def _validate_probabilities(cls, tpm):
+    def _validate_probabilities(self):
         """Check that the probabilities in a TPM are valid."""
+        tpm = self.tpm
         if (tpm < 0.0).any() or (tpm > 1.0).any():
             raise ValueError("Invalid TPM: probabilities must be in the interval [0, 1].")
         if is_state_by_state(tpm) and np.any(np.sum(tpm, axis=1) != 1.0):
             raise ValueError("Invalid TPM: probabilities must sum to 1.")
         return True
 
-    @classmethod
-    # Temporary static method to retain some compatibility with old API
-    # `pyphi.validate.tpm`, while also moving the function definition inside
-    # this class method, instead of making the latter a sham.
-    def _validate(cls, tpm, **kwargs):
-        """Validate a TPM."""
-        return (
-            cls._validate_probabilities(tpm)
-            and cls._validate_shape(tpm, **kwargs)
-        )
-
-    # Wrapper around _validate
-    def validate(self, **kwargs):
+    def validate(self, check_independence=True):
         """Validate this TPM."""
-        return self._validate(self.tpm, **kwargs)
+        return (
+            self._validate_probabilities()
+            and self._validate_shape(check_independence)
+        )
 
     # Temporary static method to retain some compatibility with old API
     # `pyphi.tpm.condition_tpm`, while also moving the function definition

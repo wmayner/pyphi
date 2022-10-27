@@ -32,33 +32,6 @@ def direction(direction, allow_bi=False):
     return True
 
 
-def tpm_shape(tpm, check_independence=True):
-    """Validate this TPM's shape.
-
-    The TPM can be in
-
-        * 2-dimensional state-by-state form,
-        * 2-dimensional state-by-node form, or
-        * multidimensional state-by-node form.
-    """
-    return ExplicitTPM._validate_shape(tpm, check_independence=check_independence)
-
-
-def tpm_probabilities(tpm):
-    """Check that the probabilities in a TPM are valid."""
-    return ExplicitTPM._validate_probabilities(tpm)
-
-
-def tpm(tpm, **kwargs):
-    """Validate a TPM."""
-    return ExplicitTPM._validate(tpm, **kwargs)
-
-
-def conditionally_independent(tpm):
-    """Validate that the TPM is conditionally independent."""
-    return ExplicitTPM._conditionally_independent(tpm)
-
-
 def connectivity_matrix(cm):
     """Validate the given connectivity matrix."""
     # Special case for empty matrices.

@@ -174,7 +174,7 @@ class Network:
         return not self.__eq__(other)
 
     def __hash__(self):
-        return hash((self._tpm.__hash__(), self._cm_hash))
+        return hash((hash(self.tpm), self._cm_hash))
 
     def to_json(self):
         """Return a JSON-serializable representation."""

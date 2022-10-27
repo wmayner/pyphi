@@ -14,6 +14,7 @@ from pyphi import (
     macro,
     validate,
 )
+from pyphi.tpm import ExplicitTPM
 
 
 def test_validate_direction():
@@ -29,31 +30,34 @@ def test_validate_direction():
 
 
 def test_validate_tpm_wrong_shape():
-    tpm = np.arange(3 ** 3).reshape(3, 3, 3)
     with pytest.raises(ValueError):
-        assert validate.tpm(tpm)
+        tpm = ExplicitTPM(np.arange(3 ** 3).reshape(3, 3, 3), validate=False)
+        assert tpm.validate()
 
 
 def test_validate_tpm_nonbinary_nodes():
-    tpm = np.arange(3 * 3 * 2).reshape(3, 3, 2)
     with pytest.raises(ValueError):
-        assert validate.tpm(tpm)
+        tpm = ExplicitTPM(np.arange(3 * 3 * 2).reshape(3, 3, 2), validate=False)
+        assert tpm.validate()
 
 
 def test_validate_tpm_conditional_independence():
     # fmt: off
-    tpm = np.array([
-        [1, 0.0, 0.0, 0],
-        [0, 0.5, 0.5, 0],
-        [0, 0.5, 0.5, 0],
-        [0, 0.0, 0.0, 1],
-    ])
+    tpm = ExplicitTPM(
+        np.array([
+            [1, 0.0, 0.0, 0],
+            [0, 0.5, 0.5, 0],
+            [0, 0.5, 0.5, 0],
+            [0, 0.0, 0.0, 1],
+        ]),
+        validate=False
+    )
     # fmt: on
     with pytest.raises(exceptions.ConditionallyDependentError):
-        validate.conditionally_independent(tpm)
+        tpm.conditionally_independent()
     with pytest.raises(exceptions.ConditionallyDependentError):
-        validate.tpm(tpm)
-    validate.tpm(tpm, check_independence=False)
+        tpm.validate()
+    tpm.validate(check_independence=False)
 
 
 def test_validate_connectivity_matrix_valid(s):
