@@ -112,7 +112,7 @@ class TPM:
         """
         return self._tpm.ndim == 2 and self._tpm.shape[0] == self._tpm.shape[1]
 
-        def subtpm(self, fixed_nodes, state):
+    def subtpm(self, fixed_nodes, state):
         """Return the TPM for a subset of nodes, conditioned on other nodes.
 
         Arguments:
@@ -302,133 +302,6 @@ def tpm_indices(tpm):
     return tuple(np.where(np.array(tpm.shape[:-1]) == 2)[0])
 
 
-def is_deterministic(tpm):
-    """Return whether the TPM is deterministic."""
-    return np.all(np.logical_or(tpm == 1, tpm == 0))
-
-
-def is_state_by_state(tpm):
-    """Return ``True`` if ``tpm`` is in state-by-state form, otherwise
-    ``False``.
-    """
-    return tpm.ndim == 2 and tpm.shape[0] == tpm.shape[1]
-
-
-def condition_tpm(tpm, fixed_nodes, state):
-    """Return a TPM conditioned on the given fixed node indices, whose states
-    are fixed according to the given state-tuple.
-
-    The dimensions of the new TPM that correspond to the fixed nodes are
-    collapsed onto their state, making those dimensions singletons suitable for
-    broadcasting. The number of dimensions of the conditioned TPM will be the
-    same as the unconditioned TPM.
-
-    Args:
-        tpm (np.ndarray): The TPM to condition on given nodes
-            in a state.
-        fixed_nodes (Iterable[int]): The nodes the TPM will be conditioned on.
-        state (Iterable[int]): The state of the fixed nodes.
-
-    Returns:
-        np.ndarray: A conditioned TPM with the same number of dimensions,
-        with singleton dimensions for nodes in a fixed state.
-    """
-    return ExplicitTPM._condition_tpm(tpm, fixed_nodes, state)
-
-
-def subtpm(tpm, fixed_nodes, state):
-    """Return the TPM for a subset of nodes, conditioned on other nodes.
-
-    Arguments:
-        tpm (np.ndarray): The full TPM.
-        free_nodes (tuple[int]): The nodes to select.
-        fixed_state (tuple[int]): The state of the fixed nodes.
-
-    Returns:
-        np.ndarray: The TPM of just the subsystem of the free nodes.
-
-    Examples:
-        >>> from pyphi import examples
-        >>> # Get the TPM for nodes only 1 and 2, conditioned on node 0 = OFF
-        >>> subtpm(examples.grid3_network().tpm.tpm, (0,), (0,))
-        array([[[[0.02931223, 0.04742587],
-                 [0.07585818, 0.88079708]],
-        <BLANKLINE>
-                [[0.81757448, 0.11920292],
-                 [0.92414182, 0.95257413]]]])
-    """
-    N = tpm.shape[-1]
-    free_nodes = sorted(set(range(N)) - set(fixed_nodes))
-    conditioned = condition_tpm(tpm, fixed_nodes, state)
-    return conditioned[..., free_nodes]
-
-
-def expand_tpm(tpm):
-    """Broadcast a state-by-node TPM so that singleton dimensions are expanded
-    over the full network.
-    """
-    unconstrained = np.ones([2] * (tpm.ndim - 1) + [tpm.shape[-1]])
-    return tpm * unconstrained
-
-
-def marginalize_out(node_indices, tpm):
-    """Marginalize out nodes from a TPM.
-
-    Args:
-        node_indices (list[int]): The indices of nodes to be marginalized out.
-        "tpm (np.ndarray): The TPM to marginalize the node out of."
-
-    Returns:
-        np.ndarray: A TPM with the same number of dimensions, with the nodes
-        marginalized out.
-    """
-    return ExplicitTPM._marginalize_out(node_indices, tpm)
-
-
-def infer_edge(tpm, a, b, contexts):
-    """Infer the presence or absence of an edge from node A to node B.
-
-    Let |S| be the set of all nodes in a network. Let |A' = S - {A}|. We call
-    the state of |A'| the context |C| of |A|. There is an edge from |A| to |B|
-    if there exists any context |C(A)| such that |Pr(B | C(A), A=0) != Pr(B |
-    C(A), A=1)|.
-
-    Args:
-        tpm (np.ndarray): The TPM in state-by-node, multidimensional form.
-        a (int): The index of the putative source node.
-        b (int): The index of the putative sink node.
-    Returns:
-        bool: ``True`` if the edge |A -> B| exists, ``False`` otherwise.
-    """
-
-    def a_in_context(context):
-        """Given a context C(A), return the states of the full system with A
-        OFF and ON, respectively.
-        """
-        a_off = context[:a] + OFF + context[a:]
-        a_on = context[:a] + ON + context[a:]
-        return (a_off, a_on)
-
-    def a_affects_b_in_context(context):
-        """Return ``True`` if A has an effect on B, given a context."""
-        a_off, a_on = a_in_context(context)
-        return tpm.tpm[a_off][b] != tpm.tpm[a_on][b]
-
-    return any(a_affects_b_in_context(context) for context in contexts)
-
-
-def infer_cm(tpm):
-    """Infer the connectivity matrix associated with a state-by-node TPM in
-    multidimensional form.
-    """
-    network_size = tpm.shape[-1]
-    all_contexts = tuple(all_states(network_size - 1))
-    cm = np.empty((network_size, network_size), dtype=int)
-    for a, b in np.ndindex(cm.shape):
-        cm[a][b] = infer_edge(tpm, a, b, all_contexts)
-    return cm
-
-
 def reconstitute_tpm(subsystem):
     """Reconstitute the TPM of a subsystem using the individual node TPMs."""
     # The last axis of the node TPMs correponds to ON or OFF probabilities
@@ -447,10 +320,3 @@ def reconstitute_tpm(subsystem):
     # We concatenate the node TPMs along a new axis to get a multidimensional
     # state-by-node TPM (where the last axis corresponds to nodes).
     return np.concatenate(node_tpms, axis=-1)
-
-
-def print_tpm(tpm):
-    """Print states next to their corresponding row in the TPM."""
-    tpm = convert.to_multidimensional(tpm)
-    for state in all_states(tpm.shape[-1]):
-        print(f"{state}: {tpm[state]}")
