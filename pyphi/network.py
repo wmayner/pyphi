@@ -9,9 +9,9 @@ context of all |small_phi| and |big_phi| computation.
 
 import numpy as np
 
-from . import cache, config, connectivity, convert, jsonify, utils, validate
+from . import cache, connectivity, jsonify, utils, validate
 from .labels import NodeLabels
-from .tpm import is_state_by_state
+from .tpm import ExplicitTPM
 
 
 class Network:
@@ -58,7 +58,7 @@ class Network:
 
     # TODO make tpm also optional when implementing logical network definition
     def __init__(self, tpm, cm=None, node_labels=None, purview_cache=None):
-        self._tpm, self._tpm_hash = self._build_tpm(tpm)
+        self._tpm = ExplicitTPM(tpm)
         self._cm, self._cm_hash = self._build_cm(cm)
         self._node_indices = tuple(range(self.size))
         self._node_labels = NodeLabels(node_labels, self._node_indices)
@@ -68,29 +68,11 @@ class Network:
 
     @property
     def tpm(self):
-        """np.ndarray: The network's transition probability matrix, in
-        multidimensional form.
-        """
-        return self._tpm
-
-    @staticmethod
-    def _build_tpm(tpm):
-        """Validate the TPM passed by the user and convert to multidimensional
+        """pyphi.tpm.ExplicitTPM: The TPM object which contains this
+        network's transition probability matrix, in multidimensional
         form.
         """
-        tpm = np.array(tpm)
-
-        validate.tpm(tpm, check_independence=config.VALIDATE_CONDITIONAL_INDEPENDENCE)
-
-        # Convert to multidimensional state-by-node form
-        if is_state_by_state(tpm):
-            tpm = convert.state_by_state2state_by_node(tpm)
-        else:
-            tpm = convert.to_multidimensional(tpm)
-
-        utils.np_immutable(tpm)
-
-        return (tpm, utils.np_hash(tpm))
+        return self._tpm
 
     @property
     def cm(self):
@@ -192,7 +174,7 @@ class Network:
         return not self.__eq__(other)
 
     def __hash__(self):
-        return hash((self._tpm_hash, self._cm_hash))
+        return hash((hash(self.tpm), self._cm_hash))
 
     def to_json(self):
         """Return a JSON-serializable representation."""

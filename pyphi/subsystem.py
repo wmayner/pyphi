@@ -28,7 +28,7 @@ from .models import (
 from .network import irreducible_purviews
 from .node import generate_nodes
 from .partition import complete_partition, mip_partitions
-from .tpm import condition_tpm, marginalize_out
+from .tpm import ExplicitTPM, marginalize_out, condition_tpm
 from .utils import state_of
 
 log = logging.getLogger(__name__)
@@ -50,8 +50,8 @@ class Subsystem:
 
     Attributes:
         network (Network): The network the subsystem belongs to.
-        tpm (np.ndarray): The TPM conditioned on the state of the external
-            nodes.
+        tpm (pyphi.tpm.ExplicitTPM): The TPM conditioned on the state
+            of the external nodes.
         cm (np.ndarray): The connectivity matrix after applying the cut.
         state (tuple[int]): The state of the network.
         node_indices (tuple[int]): The indices of the nodes in the subsystem.
@@ -95,9 +95,13 @@ class Subsystem:
             self.external_indices = _external_indices
 
         # The TPM conditioned on the state of the external nodes.
-        self.tpm = condition_tpm(self.network.tpm, self.external_indices, self.state)
+        self.tpm = self.network.tpm.condition_tpm(
+            self.external_indices, self.state
+        )
         # The TPM for just the nodes in the subsystem.
-        self.proper_tpm = self.tpm.squeeze()[..., list(self.node_indices)]
+        self.proper_tpm = ExplicitTPM(
+            self.tpm.tpm.squeeze()[..., list(self.node_indices)]
+        )
 
         # The unidirectional cut applied for phi evaluation
         self.cut = (
@@ -124,7 +128,7 @@ class Subsystem:
         )
 
         self.nodes = generate_nodes(
-            self.tpm, self.cm, self.state, self.node_indices, self.node_labels
+            self.tpm.tpm, self.cm, self.state, self.node_indices, self.node_labels
         )
 
         validate.subsystem(self)
@@ -423,7 +427,7 @@ class Subsystem:
     ):
         # First, marginalize out virtualized nonmechanism units as normal.
         virtualized_units = set(self.node_indices) - mechanism - nonvirtualized_units
-        tpm = marginalize_out(virtualized_units, self.tpm)
+        tpm = marginalize_out(virtualized_units, self.tpm.tpm)
         # Ignore any units outside the purview.
         tpm = tpm[..., list(purview)]
         # Convert to state-by-state to get explicit joint probabilities.
