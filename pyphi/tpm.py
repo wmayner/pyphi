@@ -26,8 +26,24 @@ class TPM:
         return self._tpm
 
     def conditionally_independent(self):
-        """Validate that this TPM is conditionally independent."""
-        raise NotImplementedError
+        """Validate that the TPM is conditionally independent."""
+        tpm = self._tpm
+        tpm = np.array(tpm)
+        if is_state_by_state(tpm):
+            there_and_back_again = convert.state_by_node2state_by_state(
+                convert.state_by_state2state_by_node(tpm)
+            )
+        else:
+            there_and_back_again = convert.state_by_state2state_by_node(
+                convert.state_by_node2state_by_state(tpm)
+            )
+        if not np.allclose((tpm - there_and_back_again), 0.0):
+            raise exceptions.ConditionallyDependentError(
+                "TPM is not conditionally independent.\n"
+                "See the conditional independence example in the documentation "
+                "for more info."
+            )
+        return True
 
     def validate(self):
         """Ensure the tpm is well-formed."""
@@ -36,12 +52,150 @@ class TPM:
     def condition_tpm(self, fixed_nodes, state):
         """Return a TPM conditioned on the given fixed node indices, whose
         states are fixed according to the given state-tuple.
+
+        The dimensions of the new TPM that correspond to the fixed nodes are
+        collapsed onto their state, making those dimensions singletons suitable
+        for broadcasting. The number of dimensions of the conditioned TPM will
+        be the same as the unconditioned TPM.
+
+        Args:
+            fixed_nodes (Iterable[int]): The nodes the TPM will be conditioned on.
+            state (Iterable[int]): The state of the fixed nodes.
+
+        Returns:
+            TPM: A conditioned TPM with the same number of dimensions,
+            with singleton dimensions for nodes in a fixed state.
         """
-        raise NotImplementedError
+        conditioning_indices = [[slice(None)]] * len(state)
+        for i in fixed_nodes:
+            # Preserve singleton dimensions with `np.newaxis`
+            # TODO use utils.state_of and refactor nonvirtualized effect
+            # repertoire to use this
+            conditioning_indices[i] = [state[i], np.newaxis]
+        # Flatten the indices.
+        conditioning_indices = list(chain.from_iterable(conditioning_indices))
+        # Obtain the actual conditioned TPM by indexing with the conditioning
+        # indices.
+        tpm = self._tpm[tuple(conditioning_indices)]
+        # Create new TPM object of the same type as self.
+        # self.tpm has already been validated and converted to multidimensional
+        # state-by-node form. Further validation would be problematic for
+        # singleton dimensions.
+        return type(self)(tpm, validate=False)
 
     def marginalize_out(self, node_indices):
-        """Return a TPM marginalized with respect to some nodes."""
-        raise NotImplementedError
+        """Marginalize out nodes from this TPM.
+
+        Args:
+            node_indices (list[int]): The indices of nodes to be marginalized out.
+
+        Returns:
+            ExplicitTPM: A TPM with the same number of dimensions, with the nodes
+            marginalized out.
+        """
+        tpm = self._tpm.sum(tuple(node_indices), keepdims=True) / (
+            np.array(self._tpm.shape)[list(node_indices)].prod()
+        )
+        # Return new TPM object of the same type as self.
+        # self._tpm has already been validated and converted to multidimensional
+        # state-by-node form. Further validation would be problematic for
+        # singleton dimensions.
+        return type(self)(tpm, validate=False)
+
+    def is_deterministic(self):
+        """Return whether the TPM is deterministic."""
+        return np.all(np.logical_or(self._tpm == 1, self._tpm == 0))
+
+    def is_state_by_state(self):
+        """Return ``True`` if ``tpm`` is in state-by-state form, otherwise
+        ``False``.
+        """
+        return self._tpm.ndim == 2 and self._tpm.shape[0] == self._tpm.shape[1]
+
+        def subtpm(self, fixed_nodes, state):
+        """Return the TPM for a subset of nodes, conditioned on other nodes.
+
+        Arguments:
+            fixed_nodes (tuple[int]): The nodes to select.
+            state (tuple[int]): The state of the fixed nodes.
+
+        Returns:
+            ExplicitTPM: The TPM of just the subsystem of the free nodes.
+
+        Examples:
+            >>> from pyphi import examples
+            >>> # Get the TPM for nodes only 1 and 2, conditioned on node 0 = OFF
+            >>> subtpm(examples.grid3_network().tpm.tpm, (0,), (0,))
+            ExplicitTPM(array([[[[0.02931223, 0.04742587],
+                                 [0.07585818, 0.88079708]],
+            <BLANKLINE>
+                                [[0.81757448, 0.11920292],
+                                 [0.92414182, 0.95257413]]]]))
+        """
+        N = self._tpm.shape[-1]
+        free_nodes = sorted(set(range(N)) - set(fixed_nodes))
+        conditioned = self.condition_tpm(fixed_nodes, state)
+        # TODO test indicing behavior on xr.DataArray
+        return conditioned[..., free_nodes]
+
+    def expand_tpm(self):
+        """Broadcast a state-by-node TPM so that singleton dimensions are expanded
+        over the full network.
+        """
+        unconstrained = np.ones([2] * (self._tpm.ndim - 1) + [self._tpm.shape[-1]])
+        return type(self)(self._tpm * unconstrained)
+
+    def infer_edge(self, a, b, contexts):
+        """Infer the presence or absence of an edge from node A to node B.
+
+        Let |S| be the set of all nodes in a network. Let |A' = S - {A}|. We
+        call the state of |A'| the context |C| of |A|. There is an edge from |A|
+        to |B| if there exists any context |C(A)| such that
+        |Pr(B | C(A), A=0) != Pr(B | C(A), A=1)|.
+
+        Args:
+            a (int): The index of the putative source node.
+            b (int): The index of the putative sink node.
+            contexts (tuple[tuple[int]]): The tuple of states of ``a``
+        Returns:
+            bool: ``True`` if the edge |A -> B| exists, ``False`` otherwise.
+        """
+
+        def a_in_context(context):
+            """Given a context C(A), return the states of the full system with A
+            OFF and ON, respectively.
+            """
+            a_off = context[:a] + OFF + context[a:]
+            a_on = context[:a] + ON + context[a:]
+            return (a_off, a_on)
+
+        def a_affects_b_in_context(context):
+            """Return ``True`` if A has an effect on B, given a context."""
+            a_off, a_on = a_in_context(context)
+            return self._tpm[a_off][b] != self._tpm[a_on][b]
+
+        return any(a_affects_b_in_context(context) for context in contexts)
+
+    def infer_cm(self):
+        # TODO This assumes tpm is in multidimensional SbN form (i.e. assumes
+        # `validate=True` was passed to the constructor)
+        """Infer the connectivity matrix associated with a state-by-node TPM in
+        multidimensional form.
+        """
+        network_size = self._tpm.shape[-1]
+        all_contexts = tuple(all_states(network_size - 1))
+        cm = np.empty((network_size, network_size), dtype=int)
+        for a, b in np.ndindex(cm.shape):
+            cm[a][b] = self.infer_edge(a, b, all_contexts)
+        return cm
+
+    def print(self):
+        tpm = convert.to_multidimensional(self._tpm)
+        for state in all_states(tpm.shape[-1]):
+            print(f"{state}: {tpm[state]}")
+
+    def __getitem__(self, i):
+        return type(self)(self._tpm[i])
 
     def __repr__(self):
         raise NotImplementedError
@@ -70,31 +224,13 @@ class ExplicitTPM(TPM):
                 self._tpm = convert.to_multidimensional(self._tpm)
 
         self._tpm = np_immutable(self._tpm)
-        self._hash = np_hash(self.tpm)
+        self._hash = np_hash(self._tpm)
 
+    # TODO Should this be in the parent class? (E.g., the shape of the
+    # equivalent ExplicitTPM for ImplicitTPMs)
     @property
     def shape(self):
-        return self.tpm.shape
-
-    def conditionally_independent(self):
-        """Validate that the TPM is conditionally independent."""
-        tpm = self.tpm
-        tpm = np.array(tpm)
-        if is_state_by_state(tpm):
-            there_and_back_again = convert.state_by_node2state_by_state(
-                convert.state_by_state2state_by_node(tpm)
-            )
-        else:
-            there_and_back_again = convert.state_by_state2state_by_node(
-                convert.state_by_node2state_by_state(tpm)
-            )
-        if not np.allclose((tpm - there_and_back_again), 0.0):
-            raise exceptions.ConditionallyDependentError(
-                "TPM is not conditionally independent.\n"
-                "See the conditional independence example in the documentation "
-                "for more info."
-            )
-        return True
+        return self._tpm.shape
 
     def _validate_shape(self, check_independence=True):
         """Validate this TPM's shape.
@@ -109,7 +245,7 @@ class ExplicitTPM(TPM):
             'See the documentation on TPM conventions and the `pyphi.Network` '
             'object for more information on TPM forms.'
         )
-        tpm = self.tpm
+        tpm = self._tpm
         # Get the number of nodes from the state-by-node TPM.
         N = tpm.shape[-1]
         if tpm.ndim == 2:
@@ -143,7 +279,7 @@ class ExplicitTPM(TPM):
 
     def _validate_probabilities(self):
         """Check that the probabilities in a TPM are valid."""
-        tpm = self.tpm
+        tpm = self._tpm
         if (tpm < 0.0).any() or (tpm > 1.0).any():
             raise ValueError("Invalid TPM: probabilities must be in the interval [0, 1].")
         if is_state_by_state(tpm) and np.any(np.sum(tpm, axis=1) != 1.0):
@@ -157,106 +293,8 @@ class ExplicitTPM(TPM):
             and self._validate_shape(check_independence)
         )
 
-    # Temporary static method to retain some compatibility with old API
-    # `pyphi.tpm.condition_tpm`, while also moving the function definition
-    # inside this class method, instead of making the latter a sham.
-    @staticmethod
-    def _condition_tpm(tpm, fixed_nodes, state):
-        """Return a TPM conditioned on the given fixed node indices, whose
-        states are fixed according to the given state-tuple.
-
-        The dimensions of the new TPM that correspond to the fixed nodes are
-        collapsed onto their state, making those dimensions singletons suitable
-        for broadcasting. The number of dimensions of the conditioned TPM will
-        be the same as the unconditioned TPM.
-
-        Args:
-            tpm (np.ndarray): The TPM to condition on given nodes
-                in a state.
-            fixed_nodes (Iterable[int]): The nodes the TPM will be conditioned on.
-            state (Iterable[int]): The state of the fixed nodes.
-
-        Returns:
-            np.ndarray: A conditioned TPM with the same number of dimensions,
-            with singleton dimensions for nodes in a fixed state.
-
-        """
-        conditioning_indices = [[slice(None)]] * len(state)
-        for i in fixed_nodes:
-            # Preserve singleton dimensions with `np.newaxis`
-            # TODO use utils.state_of and refactor nonvirtualized effect
-            # repertoire to use this
-            conditioning_indices[i] = [state[i], np.newaxis]
-        # Flatten the indices.
-        conditioning_indices = list(chain.from_iterable(conditioning_indices))
-        # Obtain the actual conditioned TPM by indexing with the conditioning
-        # indices.
-        return tpm[tuple(conditioning_indices)]
-
-    # Wrapper around _condition_tpm
-    def condition_tpm(self, fixed_nodes, state):
-        """Return a TPM conditioned on the given fixed node indices, whose
-        states are fixed according to the given state-tuple.
-
-        The dimensions of the new TPM that correspond to the fixed nodes are
-        collapsed onto their state, making those dimensions singletons suitable
-        for broadcasting. The number of dimensions of the conditioned TPM will
-        be the same as the unconditioned TPM.
-
-        Args:
-            fixed_nodes (Iterable[int]): The nodes the TPM will be conditioned on.
-            state (Iterable[int]): The state of the fixed nodes.
-
-        Returns:
-            ExplicitTPM: A conditioned TPM with the same number of dimensions,
-            with singleton dimensions for nodes in a fixed state.
-        """
-        # Create new TPM object of the same type as self.
-        # self.tpm has already been validated and converted to multidimensional
-        # state-by-node form. Further validation would be problematic for
-        # singleton dimensions.
-        conditioned_tpm_array = self._condition_tpm(self.tpm, fixed_nodes, state)
-        return type(self)(conditioned_tpm_array, validate=False)
-
-    # Temporary static method to retain some compatibility with old API
-    # `pyphi.tpm.marginalize_out`, while also moving the function definition
-    # inside this class method, instead of making the latter a sham.
-    @staticmethod
-    def _marginalize_out(node_indices, tpm):
-        """Marginalize out nodes from a TPM.
-
-        Args:
-            node_indices (list[int]): The indices of nodes to be marginalized out.
-            "tpm (np.ndarray): The TPM to marginalize the node out of."
-
-        Returns:
-            np.ndarray: A TPM with the same number of dimensions, with the nodes
-            marginalized out.
-        """
-        return tpm.sum(tuple(node_indices), keepdims=True) / (
-            np.array(tpm.shape)[list(node_indices)].prod()
-        )
-
-    # Wrapper around _marginalize_out
-    def marginalize_out(self, node_indices):
-        """Marginalize out nodes from a TPM.
-
-        Args:
-            node_indices (list[int]): The indices of nodes to be marginalized out.
-
-        Returns:
-            ExplicitTPM: A TPM with the same number of dimensions, with the nodes
-            marginalized out.
-        """
-        marginalized_tpm_array = self._marginalize_out(node_indices, self.tpm)
-        # Create new TPM object of the same type as self.
-        # self.tpm has already been validated and converted to multidimensional
-        # state-by-node form. Further validation would be problematic for
-        # singleton dimensions.
-        return type(self)(marginalized_tpm_array, validate=False)
-
     def __repr__(self):
-        return "ExplicitTPM({})".format(self.tpm)
+        return "ExplicitTPM({})".format(self._tpm)
 
 
 def tpm_indices(tpm):
