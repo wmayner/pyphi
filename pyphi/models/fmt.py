@@ -555,29 +555,19 @@ def fmt_ria(ria, verbose=True, mip=False):
         mechanism = ""
         direction = ""
 
-    # TODO(ties)
-    specified_states = [tie.specified_state for tie in ria.ties]
-    specified_states_str = f"\n{ria.specified_state}"
-    # if ria.specified_state is None:
-    #     specified_states = []
-    #     specified_states_str = str(specified_states)
-    # else:
-    #     specified_states = [tuple(state) for state in ria.specified_state]
-    #     specified_states_str = "\n  " + "\n  ".join(
-    #         map(str, map(list, specified_states))
-    #     )
-
     # TODO(4.0):  position repertoire and partitioned repertoire side by side
     if config.REPR_VERBOSITY is HIGH:
         partition = "\n{}:\n{}".format(
             ("MIP" if mip else "Partition"), indent(fmt_partition(ria.partition))
         )
         repertoire = "\nRepertoire:\n{}".format(
-            indent(fmt_repertoire(ria.repertoire, mark_states=specified_states))
+            indent(fmt_repertoire(ria.repertoire, mark_states=[ria.specified_state]))
         )
         partitioned_repertoire = "\nPartitioned repertoire:\n{}".format(
             indent(
-                fmt_repertoire(ria.partitioned_repertoire, mark_states=specified_states)
+                fmt_repertoire(
+                    ria.partitioned_repertoire, mark_states=[ria.specified_state]
+                )
             )
         )
     else:
@@ -590,7 +580,7 @@ def fmt_ria(ria, verbose=True, mip=False):
         "{SMALL_PHI} = {phi}\n"
         "{mechanism}"
         "Purview: {purview}"
-        "\nSpecified state(s): {specified_states}"
+        "\nSpecified state: {specified_state}"
         "{direction}"
         "{partition}"
         "{repertoire}"
@@ -600,7 +590,7 @@ def fmt_ria(ria, verbose=True, mip=False):
         SMALL_PHI=SMALL_PHI,
         mechanism=mechanism,
         purview=fmt_mechanism(ria.purview, ria.node_labels),
-        specified_states=specified_states_str,
+        specified_state=ria.specified_state,
         direction=direction,
         phi=fmt_number(ria.phi),
         partition=partition,
