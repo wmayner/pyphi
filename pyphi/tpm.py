@@ -173,20 +173,20 @@ class TPM:
             a_on = context[:a] + ON + context[a:]
             return (a_off, a_on)
 
-        def a_affects_b_in_context(context):
+        def a_affects_b_in_context(tpm, context):
             """Return ``True`` if A has an effect on B, given a context."""
             a_off, a_on = a_in_context(context)
-            return self._tpm[a_off][b] != self._tpm[a_on][b]
+            return tpm[a_off][b] != tpm[a_on][b]
 
-        return any(a_affects_b_in_context(context) for context in contexts)
+        tpm = self.to_multidimensional_state_by_node()
+        return any(a_affects_b_in_context(tpm, context) for context in contexts)
 
     def infer_cm(self):
-        # TODO This assumes tpm is in multidimensional SbN form (i.e. assumes
-        # `validate=True` was passed to the constructor)
         """Infer the connectivity matrix associated with a state-by-node TPM in
         multidimensional form.
         """
-        network_size = self._tpm.shape[-1]
+        tpm = self.to_multidimensional_state_by_node()
+        network_size = tpm.shape[-1]
         all_contexts = tuple(all_states(network_size - 1))
         cm = np.empty((network_size, network_size), dtype=int)
         for a, b in np.ndindex(cm.shape):
@@ -221,11 +221,7 @@ class ExplicitTPM(TPM):
             self.validate(
                 check_independence=config.VALIDATE_CONDITIONAL_INDEPENDENCE
             )
-
-            if self.is_state_by_state():
-                self._tpm = convert.state_by_state2state_by_node(self._tpm)
-            else:
-                self._tpm = convert.to_multidimensional(self._tpm)
+            self._tpm = self.to_multidimensional_state_by_node()
 
         self._tpm = np_immutable(self._tpm)
         self._hash = np_hash(self._tpm)
@@ -289,6 +285,23 @@ class ExplicitTPM(TPM):
             self._validate_probabilities()
             and self._validate_shape(check_independence)
         )
+
+    def to_multidimensional_state_by_node(self):
+        """Return the current TPM re-represented in multidimensional
+        state-by-node form.
+
+        See the PyPhi documentation on :ref:`tpm-conventions` for more
+        information.
+
+        Returns:
+            np.ndarray: The TPM in multidimensional state-by-node format.
+        """
+        if self.is_state_by_state():
+            tpm = convert.state_by_state2state_by_node(self._tpm)
+        else:
+            tpm = convert.to_multidimensional(self._tpm)
+
+        return tpm
 
     def __repr__(self):
         return "ExplicitTPM({})".format(self._tpm)
