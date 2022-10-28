@@ -25,11 +25,15 @@ class TPM:
         """Return the underlying `tpm` object."""
         return self._tpm
 
+    @property
+    def shape(self):
+        return self._tpm.shape
+
     def conditionally_independent(self):
         """Validate that the TPM is conditionally independent."""
         tpm = self._tpm
         tpm = np.array(tpm)
-        if is_state_by_state(tpm):
+        if self.is_state_by_state():
             there_and_back_again = convert.state_by_node2state_by_state(
                 convert.state_by_state2state_by_node(tpm)
             )
@@ -218,19 +222,13 @@ class ExplicitTPM(TPM):
                 check_independence=config.VALIDATE_CONDITIONAL_INDEPENDENCE
             )
 
-            if is_state_by_state(tpm):
+            if self.is_state_by_state():
                 self._tpm = convert.state_by_state2state_by_node(self._tpm)
             else:
                 self._tpm = convert.to_multidimensional(self._tpm)
 
         self._tpm = np_immutable(self._tpm)
         self._hash = np_hash(self._tpm)
-
-    # TODO Should this be in the parent class? (E.g., the shape of the
-    # equivalent ExplicitTPM for ImplicitTPMs)
-    @property
-    def shape(self):
-        return self._tpm.shape
 
     def _validate_shape(self, check_independence=True):
         """Validate this TPM's shape.
@@ -279,10 +277,9 @@ class ExplicitTPM(TPM):
 
     def _validate_probabilities(self):
         """Check that the probabilities in a TPM are valid."""
-        tpm = self._tpm
-        if (tpm < 0.0).any() or (tpm > 1.0).any():
+        if (self._tpm < 0.0).any() or (self._tpm > 1.0).any():
             raise ValueError("Invalid TPM: probabilities must be in the interval [0, 1].")
-        if is_state_by_state(tpm) and np.any(np.sum(tpm, axis=1) != 1.0):
+        if self.is_state_by_state() and np.any(np.sum(self._tpm, axis=1) != 1.0):
             raise ValueError("Invalid TPM: probabilities must sum to 1.")
         return True
 
