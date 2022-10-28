@@ -8,10 +8,11 @@ import numpy as np
 
 from pyphi.models.cuts import KPartition
 
-from .. import connectivity, utils, validate
+from .. import config, connectivity, utils, validate
 from ..direction import Direction
 from ..exceptions import WrongDirectionError
 from ..metrics import distribution
+from ..registry import Registry
 from . import cmp, fmt
 
 _ria_attributes = [
@@ -25,14 +26,34 @@ _ria_attributes = [
 ]
 
 
-# TODO(4.0) configure
-def normalization_factor(partition):
+class DistinctionPhiNormalizationRegistry(Registry):
+    """Storage for distinction |small_phi| normalizations."""
+
+    desc = "functions for normalizing distinction |small_phi| values"
+
+
+distinction_phi_normalizations = DistinctionPhiNormalizationRegistry()
+
+
+@distinction_phi_normalizations.register("NONE")
+def _(partition):
+    return 1
+
+
+@distinction_phi_normalizations.register("NUM_CONNECTIONS_CUT")
+def _(partition):
     try:
         return 1 / partition.num_connections_cut()
     except ZeroDivisionError:
         return 1
     except AttributeError:
         return None
+
+
+def normalization_factor(partition):
+    return distinction_phi_normalizations[config.DISTINCTION_PHI_NORMALIZATION](
+        partition
+    )
 
 
 class RepertoireIrreducibilityAnalysis(cmp.Orderable):

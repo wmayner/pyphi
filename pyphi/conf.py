@@ -143,6 +143,7 @@ import os
 import pprint
 import shutil
 import tempfile
+import warnings
 from copy import copy
 from pathlib import Path
 
@@ -412,6 +413,21 @@ def configure_logging(conf):
             },
         }
     )
+
+
+def on_change_distinction_phi_normalization(obj):
+    if _LOADED:
+        warnings.warn(
+            """
+    IMPORTANT: Changes to `DISTINCTION_PHI_NORMALIZATION` will not be reflected in
+    new MICE computations for existing Subsystem objects if the MICE have been
+    previously computed, since they are cached.
+
+    Make sure to call `subsystem.clear_caches()` before re-computing MICE with
+    the new setting.
+            """,
+            stacklevel=6,
+        )
 
 
 class PyphiConfig(Config):
@@ -879,6 +895,15 @@ class PyphiConfig(Config):
         values=["PURVIEW_SIZE", "MINIMUM_PURVIEW_SIZE"],
         doc="""
     Controls the overlap ratio used in computing relations.
+    """,
+    )
+
+    DISTINCTION_PHI_NORMALIZATION = Option(
+        "NUM_CONNECTIONS_CUT",
+        on_change=on_change_distinction_phi_normalization,
+        values=["NONE", "NUM_CONNECTIONS_CUT"],
+        doc="""
+    Controls how distinction |small_phi| values are normalized for determining the MIP.
     """,
     )
 
