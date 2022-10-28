@@ -275,6 +275,9 @@ class Config:
 
             # Insert config-wide hook
             def hook(func):
+                if func is None:
+                    return self._callback
+
                 @functools.wraps(func)
                 def wrapper(*args, **kwargs):
                     func(*args, **kwargs)
@@ -282,7 +285,7 @@ class Config:
 
                 return wrapper
 
-            opt.on_change = hook(on_change)
+            opt.on_change = hook(opt.on_change)
 
         # Call config-wide hook
         self._callback(self)
