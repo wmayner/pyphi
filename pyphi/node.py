@@ -14,7 +14,7 @@ import numpy as np
 from . import utils
 from .connectivity import get_inputs_from_cm, get_outputs_from_cm
 from .labels import NodeLabels
-from .tpm import marginalize_out, tpm_indices
+from .tpm import ExplicitTPM, tpm_indices
 
 
 # TODO extend to nonbinary nodes
@@ -23,14 +23,14 @@ class Node:
     """A node in a subsystem.
 
     Args:
-        tpm (np.ndarray): The TPM of the subsystem.
+        tpm (ExplicitTPM): The TPM of the subsystem.
         cm (np.ndarray): The CM of the subsystem.
         index (int): The node's index in the network.
         state (int): The state of this node.
         node_labels (|NodeLabels|): Labels for these nodes.
 
     Attributes:
-        tpm (np.ndarray): The node TPM is an array with shape ``(2,)*(n + 1)``,
+        tpm (ExplicitTPM): The node TPM is an array with shape ``(2,)*(n + 1)``,
             where ``n`` is the size of the |Network|. The first ``n``
             dimensions correspond to each node in the system. Dimensions
             corresponding to nodes that provide input to this node are of size
@@ -70,18 +70,18 @@ class Node:
         # Marginalize out non-input nodes that are in the subsystem, since the
         # external nodes have already been dealt with as boundary conditions in
         # the subsystem's TPM.
-        non_inputs = set(tpm_indices(tpm)) - self._inputs
-        tpm_on = marginalize_out(non_inputs, tpm_on)
+        non_inputs = set(tpm_indices(tpm)) - self._inputs  # TODO use names rather than indices
+        tpm_on = tpm_on.marginalize_out(non_inputs)
 
         # Get the TPM that gives the probability of the node being off, rather
         # than on.
-        tpm_off = 1 - tpm_on
+        tpm_off = 1 - tpm_on.tpm
 
         # Combine the on- and off-TPM so that the first dimension is indexed by
         # the state of the node's inputs at t, and the last dimension is
         # indexed by the node's state at t+1. This representation makes it easy
         # to condition on the node state.
-        self.tpm = np.stack([tpm_off, tpm_on], axis=-1)
+        self.tpm = ExplicitTPM(np.stack([tpm_off.tpm, tpm_on.tpm], axis=-1))
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         # Make the TPM immutable (for hashing).
@@ -135,7 +135,7 @@ class Node:
         """
         return (
             self.index == other.index
-            and np.array_equal(self.tpm, other.tpm)
+            and self.tpm == other.tpm
             and self.state == other.state
             and self.inputs == other.inputs
             and self.outputs == other.outputs
@@ -160,7 +160,7 @@ def generate_nodes(tpm, cm, network_state, indices, node_labels=None):
     """Generate |Node| objects for a subsystem.
 
     Args:
-        tpm (np.ndarray): The system's TPM
+        tpm (ExplicitTPM): The system's TPM
         cm (np.ndarray): The corresponding CM.
         network_state (tuple): The state of the network.
         indices (tuple[int]): Indices to generate nodes for.
@@ -190,4 +190,4 @@ def expand_node_tpm(tpm):
     of *this* node being on, rather than the probabilities for each node.
     """
     uc = np.ones([2 for node in tpm.shape])
-    return uc * tpm
+    return uc * tpm.tpm
