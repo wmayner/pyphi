@@ -135,8 +135,6 @@ class ExplicitTPM(TPM):
                     )
                 )
         else:
-            print(tpm)
-            print(tpm.shape)
             raise ValueError(
                 "Invalid TPM: Must be either 2-dimensional or multidimensional. "
                 "{}".format(see_tpm_docs)
