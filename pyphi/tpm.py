@@ -311,7 +311,9 @@ def tpm_indices(tpm):
     """Return the indices of nodes in the TPM."""
     return tuple(np.where(np.array(tpm.shape[:-1]) == 2)[0])
 
-
+# TODO call to expand_tpm() is broken.
+# Fix tpm attribute in node_tpms and decide on a return type for expand_tpm()
+# before calling map(subsystem.tpm.expand_tpm, node_tpms)
 def reconstitute_tpm(subsystem):
     """Reconstitute the TPM of a subsystem using the individual node TPMs."""
     # The last axis of the node TPMs correponds to ON or OFF probabilities
