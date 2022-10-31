@@ -187,9 +187,15 @@ def generate_nodes(tpm, cm, network_state, indices, node_labels=None):
 def expand_node_tpm(tpm):
     """Broadcast a node TPM over the full network.
 
+    Args:
+        tpm (ExplicitTPM): The node TPM to expand.
+
     This is different from broadcasting the TPM of a full system since the last
     dimension (containing the state of the node) contains only the probability
     of *this* node being on, rather than the probabilities for each node.
     """
-    uc = np.ones([2 for node in tpm.shape])
-    return uc * tpm.tpm
+    uc = ExplicitTPM(
+        np.ones([2 for node in tpm.shape]),
+        validate=False
+    )
+    return uc * tpm

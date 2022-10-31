@@ -317,16 +317,27 @@ class ExplicitTPM(TPM):
         """Remove axes of length one from the TPM."""
         return type(self)(self._tpm.squeeze(**kwargs), validate=False)
 
-    def __eq__(self, __o: object):
+    def __eq__(self, o: object):
         """Return whether this TPM equals the other object.
 
         Two TPMs are equal if they are instances of the ExplicitTPM class
         and their numpy arrays are equal.
         """
         return (
-            isinstance(__o, ExplicitTPM)
-            and np.array_equal(self._tpm, __o._tpm)
+            isinstance(o, ExplicitTPM)
+            and np.array_equal(self._tpm, o._tpm)
         )
+
+    def __ne__(self, o: object):
+        """Return whether this TPM is different from the other object.
+
+        Two TPMs are equal if they are instances of the ExplicitTPM class
+        and their numpy arrays are equal. Otherwise they are different.
+        """
+        return not self.__eq__(o)
+
+    def __mul__(self, o: np.ndarray):
+        return ExplicitTPM(self.tpm * o._tpm, validate=False)
 
     def __repr__(self):
         return "ExplicitTPM({})".format(self._tpm)

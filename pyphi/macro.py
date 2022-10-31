@@ -35,8 +35,17 @@ def reindex(indices):
 
 
 def rebuild_system_tpm(node_tpms):
-    """Reconstruct the network TPM from a collection of node TPMs."""
-    return np.stack([expand_node_tpm(tpm) for tpm in node_tpms], axis=-1)
+    """Reconstruct the network TPM from a collection of node TPMs.
+
+    Args:
+        node_tpms (Iterable[ExplicitTPM]): The collection of node TPMs.
+
+    Returns:
+        ExplicitTPM: The system TPM which comprises the input node TPMs.
+    """
+    return ExplicitTPM(
+        np.stack([expand_node_tpm(tpm).tpm for tpm in node_tpms], axis=-1)
+    )
 
 
 # TODO This should be a method of the TPM class in tpm.py
@@ -62,7 +71,7 @@ def run_tpm(system, steps, blackbox):
     """Iterate the TPM for the given number of timesteps.
 
     Returns:
-        np.ndarray: tpm * (noise_tpm^(t-1))
+        ExplicitTPM: tpm * (noise_tpm^(t-1))
     """
     # Generate noised TPM
     # Noise the connections from every output element to elements in other
@@ -78,14 +87,14 @@ def run_tpm(system, steps, blackbox):
         node_tpms.append(node_tpm)
 
     noised_tpm = rebuild_system_tpm(node_tpms)
-    noised_tpm = convert.state_by_node2state_by_state(noised_tpm)
+    noised_tpm = convert.state_by_node2state_by_state(noised_tpm.tpm)
 
     tpm = convert.state_by_node2state_by_state(system.tpm.tpm)
 
     # Muliply by noise
     tpm = np.dot(tpm, np.linalg.matrix_power(noised_tpm, steps - 1))
 
-    return convert.state_by_state2state_by_node(tpm)
+    return ExplicitTPM(convert.state_by_state2state_by_node(tpm))
 
 
 class SystemAttrs(namedtuple("SystemAttrs", ["tpm", "cm", "node_indices", "state"])):
@@ -105,7 +114,7 @@ class SystemAttrs(namedtuple("SystemAttrs", ["tpm", "cm", "node_indices", "state
     @property
     def nodes(self):
         return generate_nodes(
-            self.tpm.tpm, self.cm, self.state, self.node_indices, self.node_labels
+            self.tpm, self.cm, self.state, self.node_indices, self.node_labels
         )
 
     @staticmethod
@@ -229,7 +238,7 @@ class MacroSubsystem(Subsystem):
         nodes = generate_nodes(tpm, cm, state, node_indices)
 
         # Re-calcuate the tpm based on the results of the cut
-        tpm = ExplicitTPM(rebuild_system_tpm(node.tpm_on for node in nodes))
+        tpm = rebuild_system_tpm(node.tpm_on for node in nodes)
 
         return SystemAttrs(tpm, cm, node_indices, state)
 
@@ -246,7 +255,7 @@ class MacroSubsystem(Subsystem):
 
             node_tpms.append(node_tpm)
 
-        tpm = ExplicitTPM(rebuild_system_tpm(node_tpms))
+        tpm = rebuild_system_tpm(node_tpms)
 
         return system._replace(tpm=tpm)
 
@@ -255,7 +264,7 @@ class MacroSubsystem(Subsystem):
         """Black box the CM and TPM over the given time_scale."""
         blackbox = blackbox.reindex()
 
-        tpm = ExplicitTPM(run_tpm(system, time_scale, blackbox))
+        tpm = run_tpm(system, time_scale, blackbox)
 
         # Universal connectivity, for now.
         n = len(system.node_indices)
@@ -579,7 +588,7 @@ class CoarseGrain(namedtuple("CoarseGrain", ["partition", "grouping"])):
         Returns:
             np.ndarray: The state-by-node TPM of the macro-system.
         """
-        if not micro_tpm.is_state_by_state():
+        if not ExplicitTPM(micro_tpm, validate=False).is_state_by_state():
             micro_tpm = convert.state_by_node2state_by_state(micro_tpm)
 
         macro_tpm = self.macro_tpm_sbs(micro_tpm)
@@ -1026,7 +1035,7 @@ def effective_info(network):
     """
     validate.is_network(network)
 
-    sbs_tpm = convert.state_by_node2state_by_state(network.tpm)
+    sbs_tpm = convert.state_by_node2state_by_state(network.tpm.tpm)
     avg_repertoire = np.mean(sbs_tpm, 0)
 
     return np.mean([entropy(repertoire, avg_repertoire, 2.0) for repertoire in sbs_tpm])
