@@ -33,6 +33,10 @@ class TPM:
     def ndim(self):
         return self._tpm.ndim
 
+    @property
+    def size(self):
+        return self._tpm.size
+
     def conditionally_independent(self):
         """Validate that the TPM is conditionally independent."""
         tpm = self._tpm
