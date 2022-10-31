@@ -216,9 +216,6 @@ class TPM:
     def __str__(self):
         return self.__repr__()
 
-    def __hash__(self):
-        return self._hash
-
 
 class ExplicitTPM(TPM):
     """An explicit network TPM in multidimensional form."""
@@ -317,10 +314,18 @@ class ExplicitTPM(TPM):
         return type(self)(self._tpm.squeeze(**kwargs), validate=False)
 
     def __eq__(self, __o: object):
-        return isinstance(__o, TPM) and self._tpm.equals(__o._tpm)
+        """Return whether this TPM equals the other object.
+
+        Two TPMs are equal if they are instances of the ExplicitTPM class
+        and their numpy arrays are equal.
+        """
+        return isinstance(__o, ExplicitTPM) and self._tpm.equals(__o._tpm)
 
     def __repr__(self):
         return "ExplicitTPM({})".format(self._tpm)
+
+    def __hash__(self):
+        return self._hash
 
 def expand_tpm(tpm):
     """Broadcast a state-by-node TPM so that singleton dimensions are expanded
