@@ -323,7 +323,10 @@ class ExplicitTPM(TPM):
         Two TPMs are equal if they are instances of the ExplicitTPM class
         and their numpy arrays are equal.
         """
-        return isinstance(__o, ExplicitTPM) and self._tpm.equals(__o._tpm)
+        return (
+            isinstance(__o, ExplicitTPM)
+            and np.array_equal(self._tpm, __o._tpm)
+        )
 
     def __repr__(self):
         return "ExplicitTPM({})".format(self._tpm)
