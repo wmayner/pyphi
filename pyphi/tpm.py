@@ -336,8 +336,8 @@ class ExplicitTPM(TPM):
         """
         return not self.__eq__(o)
 
-    def __mul__(self, o: np.ndarray):
-        return ExplicitTPM(self.tpm * o._tpm, validate=False)
+    def __mul__(self, o):
+        return type(self)(self._tpm * o._tpm, validate=False)
 
     def __repr__(self):
         return "ExplicitTPM({})".format(self._tpm)
@@ -360,7 +360,7 @@ def reconstitute_tpm(subsystem):
     # The last axis of the node TPMs correponds to ON or OFF probabilities
     # (used in the conditioning step when calculating the repertoires); we want
     # ON probabilities.
-    node_tpms = [node.tpm[..., 1] for node in subsystem.nodes]
+    node_tpms = [node.tpm.tpm[..., 1] for node in subsystem.nodes]
     # Remove the singleton dimensions corresponding to external nodes
     node_tpms = [tpm.squeeze(axis=subsystem.external_indices) for tpm in node_tpms]
     # We add a new singleton axis at the end so that we can use
