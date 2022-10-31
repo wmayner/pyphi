@@ -19,7 +19,7 @@ from .labels import NodeLabels
 from .network import irreducible_purviews
 from .node import expand_node_tpm, generate_nodes
 from .subsystem import Subsystem
-from .tpm import ExplicitTPM, is_state_by_state, marginalize_out, tpm_indices
+from .tpm import ExplicitTPM
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
@@ -39,6 +39,7 @@ def rebuild_system_tpm(node_tpms):
     return np.stack([expand_node_tpm(tpm) for tpm in node_tpms], axis=-1)
 
 
+# TODO This should be a method of the TPM class in tpm.py
 def remove_singleton_dimensions(tpm):
     """Remove singleton dimensions from the TPM.
 
@@ -54,7 +55,7 @@ def remove_singleton_dimensions(tpm):
     if tpm.ndim <= 2:
         return tpm
 
-    return tpm.squeeze()[..., tpm_indices(tpm)]
+    return tpm.squeeze()[..., tpm.tpm_indices()]
 
 
 def run_tpm(system, steps, blackbox):
@@ -72,7 +73,7 @@ def run_tpm(system, steps, blackbox):
         for input_node in node.inputs:
             if not blackbox.in_same_box(node.index, input_node):
                 if input_node in blackbox.output_indices:
-                    node_tpm = marginalize_out([input_node], node_tpm)
+                    node_tpm = node_tpm.marginalize_out([input_node])
 
         node_tpms.append(node_tpm)
 
@@ -210,11 +211,11 @@ class MacroSubsystem(Subsystem):
         Reindexes the subsystem so that the nodes are ``0..n`` where ``n`` is
         the number of internal indices in the system.
         """
-        assert system.node_indices == tpm_indices(system.tpm)
+        assert system.node_indices == system.tpm.tpm_indices()
 
-        internal_indices = tpm_indices(system.tpm)
+        internal_indices = system.tpm.tpm_indices()
 
-        tpm = ExplicitTPM(remove_singleton_dimensions(system.tpm.tpm))
+        tpm = remove_singleton_dimensions(system.tpm)
 
         # The connectivity matrix is the network's connectivity matrix, with
         # cut applied, with all connections to/from external nodes severed,
@@ -225,7 +226,7 @@ class MacroSubsystem(Subsystem):
 
         # Re-index the subsystem nodes with the external nodes removed
         node_indices = reindex(internal_indices)
-        nodes = generate_nodes(tpm.tpm, cm, state, node_indices)
+        nodes = generate_nodes(tpm, cm, state, node_indices)
 
         # Re-calcuate the tpm based on the results of the cut
         tpm = ExplicitTPM(rebuild_system_tpm(node.tpm_on for node in nodes))
@@ -241,7 +242,7 @@ class MacroSubsystem(Subsystem):
             node_tpm = node.tpm_on
             for input_node in node.inputs:
                 if blackbox.hidden_from(input_node, node.index):
-                    node_tpm = marginalize_out([input_node], node_tpm)
+                    node_tpm = node_tpm.marginalize_out([input_node])
 
             node_tpms.append(node_tpm)
 
@@ -274,9 +275,9 @@ class MacroSubsystem(Subsystem):
         there is only `len(output_indices)` dimensions in the TPM and in the
         state of the subsystem.
         """
-        tpm = marginalize_out(blackbox.hidden_indices, system.tpm.tpm)
+        tpm = system.tpm.marginalize_out(blackbox.hidden_indices)
 
-        assert blackbox.output_indices == tpm_indices(tpm)
+        assert blackbox.output_indices == tpm.tpm_indices()
 
         tpm = remove_singleton_dimensions(tpm)
         n = len(blackbox)
@@ -291,7 +292,6 @@ class MacroSubsystem(Subsystem):
         state = blackbox.macro_state(system.state)
         node_indices = blackbox.macro_indices
 
-        tpm = ExplicitTPM(tpm)
         return SystemAttrs(tpm, cm, node_indices, state)
 
     @staticmethod
@@ -579,7 +579,7 @@ class CoarseGrain(namedtuple("CoarseGrain", ["partition", "grouping"])):
         Returns:
             np.ndarray: The state-by-node TPM of the macro-system.
         """
-        if not is_state_by_state(micro_tpm):
+        if not micro_tpm.is_state_by_state():
             micro_tpm = convert.state_by_node2state_by_state(micro_tpm)
 
         macro_tpm = self.macro_tpm_sbs(micro_tpm)
