@@ -29,6 +29,10 @@ class TPM:
     def shape(self):
         return self._tpm.shape
 
+    @property
+    def ndim(self):
+        return self._tpm.ndim
+
     def conditionally_independent(self):
         """Validate that the TPM is conditionally independent."""
         tpm = self._tpm
@@ -147,7 +151,7 @@ class TPM:
         over the full network.
         """
         unconstrained = np.ones([2] * (self._tpm.ndim - 1) + [self._tpm.shape[-1]])
-        return type(self)(self._tpm * unconstrained)
+        return type(self)(self._tpm * unconstrained, validate=False)
 
     def infer_edge(self, a, b, contexts):
         """Infer the presence or absence of an edge from node A to node B.
@@ -193,13 +197,18 @@ class TPM:
             cm[a][b] = self.infer_edge(a, b, all_contexts)
         return cm
 
+    def tpm_indices(self):
+        """Return the indices of nodes in the TPM."""
+        # TODO This currently assumes binary elements (2)
+        return tuple(np.where(np.array(self.shape[:-1]) == 2)[0])
+
     def print(self):
         tpm = convert.to_multidimensional(self._tpm)
         for state in all_states(tpm.shape[-1]):
             print(f"{state}: {tpm[state]}")
 
     def __getitem__(self, i):
-        return type(self)(self._tpm[i])
+        return type(self)(self._tpm[i], validate=False)
 
     def __repr__(self):
         raise NotImplementedError
@@ -303,13 +312,22 @@ class ExplicitTPM(TPM):
 
         return tpm
 
+    def squeeze(self, **kwargs):
+        """Remove axes of length one from the TPM."""
+        return type(self)(self._tpm.squeeze(**kwargs), validate=False)
+
+    def __eq__(self, __o: object):
+        return isinstance(__o, TPM) and self._tpm.equals(__o._tpm)
+
     def __repr__(self):
         return "ExplicitTPM({})".format(self._tpm)
 
-
-def tpm_indices(tpm):
-    """Return the indices of nodes in the TPM."""
-    return tuple(np.where(np.array(tpm.shape[:-1]) == 2)[0])
+def expand_tpm(tpm):
+    """Broadcast a state-by-node TPM so that singleton dimensions are expanded
+    over the full network.
+    """
+    unconstrained = np.ones([2] * (tpm.ndim - 1) + [tpm.shape[-1]])
+    return tpm * unconstrained
 
 # TODO call to expand_tpm() is broken.
 # Fix tpm attribute in node_tpms and decide on a return type for expand_tpm()
