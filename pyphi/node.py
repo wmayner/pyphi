@@ -14,7 +14,7 @@ import numpy as np
 from . import utils
 from .connectivity import get_inputs_from_cm, get_outputs_from_cm
 from .labels import NodeLabels
-from .tpm import ExplicitTPM, tpm_indices
+from .tpm import ExplicitTPM
 
 
 # TODO extend to nonbinary nodes
@@ -70,26 +70,28 @@ class Node:
         # Marginalize out non-input nodes that are in the subsystem, since the
         # external nodes have already been dealt with as boundary conditions in
         # the subsystem's TPM.
-        non_inputs = set(tpm_indices(tpm)) - self._inputs  # TODO use names rather than indices
-        tpm_on = tpm_on.marginalize_out(non_inputs)
+
+        # TODO use names rather than indices
+        non_inputs = set(tpm.tpm_indices()) - self._inputs
+        tpm_on = tpm_on.marginalize_out(non_inputs).tpm
 
         # Get the TPM that gives the probability of the node being off, rather
         # than on.
-        tpm_off = 1 - tpm_on.tpm
+        tpm_off = 1 - tpm_on
 
         # Combine the on- and off-TPM so that the first dimension is indexed by
         # the state of the node's inputs at t, and the last dimension is
         # indexed by the node's state at t+1. This representation makes it easy
         # to condition on the node state.
-        self.tpm = ExplicitTPM(np.stack([tpm_off.tpm, tpm_on.tpm], axis=-1))
+        self.tpm = ExplicitTPM(
+            np.stack([tpm_off, tpm_on], axis=-1),
+            validate=False,
+        )
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        # Make the TPM immutable (for hashing).
-        utils.np_immutable(self.tpm)
 
         # Only compute the hash once.
         self._hash = hash(
-            (index, utils.np_hash(self.tpm), self.state, self._inputs, self._outputs)
+            (index, hash(self.tpm), self.state, self._inputs, self._outputs)
         )
 
     @property

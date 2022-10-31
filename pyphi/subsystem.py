@@ -28,7 +28,7 @@ from .models import (
 from .network import irreducible_purviews
 from .node import generate_nodes
 from .partition import complete_partition, mip_partitions
-from .tpm import ExplicitTPM, marginalize_out, condition_tpm
+from .tpm import ExplicitTPM
 from .utils import state_of
 
 log = logging.getLogger(__name__)
@@ -99,9 +99,7 @@ class Subsystem:
             self.external_indices, self.state
         )
         # The TPM for just the nodes in the subsystem.
-        self.proper_tpm = ExplicitTPM(
-            self.tpm.tpm.squeeze()[..., list(self.node_indices)]
-        )
+        self.proper_tpm = self.tpm.squeeze()[..., list(self.node_indices)]
 
         # The unidirectional cut applied for phi evaluation
         self.cut = (
@@ -128,7 +126,7 @@ class Subsystem:
         )
 
         self.nodes = generate_nodes(
-            self.tpm.tpm, self.cm, self.state, self.node_indices, self.node_labels
+            self.tpm, self.cm, self.state, self.node_indices, self.node_labels
         )
 
         validate.subsystem(self)
@@ -319,7 +317,7 @@ class Subsystem:
         tpm = mechanism_node.tpm[..., mechanism_node.state]
         # Marginalize-out all parents of this mechanism node that aren't in the
         # purview.
-        return marginalize_out((mechanism_node.inputs - purview), tpm)
+        return tpm.marginalize_out((mechanism_node.inputs - purview)).tpm
 
     # TODO extend to nonbinary nodes
     @cache.method("_repertoire_cache", Direction.CAUSE)
@@ -379,10 +377,10 @@ class Subsystem:
         purview_node = self._index2node[purview_node_index]
         # Condition on the state of the inputs that are in the mechanism.
         mechanism_inputs = purview_node.inputs & mechanism
-        tpm = condition_tpm(purview_node.tpm, mechanism_inputs, self.state)
+        tpm = purview_node.tpm.condition_tpm(mechanism_inputs, self.state)
         # Marginalize-out the inputs that aren't in the mechanism.
         nonmechanism_inputs = purview_node.inputs - mechanism
-        tpm = marginalize_out(nonmechanism_inputs, tpm)
+        tpm = tpm.marginalize_out(nonmechanism_inputs).tpm
         # Reshape so that the distribution is over next states.
         return tpm.reshape(repertoire_shape([purview_node.index], self.tpm_size))
 
@@ -427,7 +425,7 @@ class Subsystem:
     ):
         # First, marginalize out virtualized nonmechanism units as normal.
         virtualized_units = set(self.node_indices) - mechanism - nonvirtualized_units
-        tpm = marginalize_out(virtualized_units, self.tpm.tpm)
+        tpm = self.tpm.marginalize_out(virtualized_units).tpm
         # Ignore any units outside the purview.
         tpm = tpm[..., list(purview)]
         # Convert to state-by-state to get explicit joint probabilities.
