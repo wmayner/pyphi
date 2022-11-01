@@ -43,9 +43,8 @@ def rebuild_system_tpm(node_tpms):
     Returns:
         ExplicitTPM: The system TPM which comprises the input node TPMs.
     """
-    return ExplicitTPM(
-        np.stack([expand_node_tpm(tpm).tpm for tpm in node_tpms], axis=-1)
-    )
+    tpm = np.stack([expand_node_tpm(tpm).tpm for tpm in node_tpms], axis=-1)
+    return ExplicitTPM(tpm)
 
 
 # TODO This should be a method of the TPM class in tpm.py

@@ -225,6 +225,7 @@ class ExplicitTPM(TPM):
     """An explicit network TPM in multidimensional form."""
     def __init__(self, tpm, validate=True):
         super().__init__(tpm)
+
         self._tpm = np.array(tpm)
 
         if validate:
