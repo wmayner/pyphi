@@ -28,9 +28,10 @@ def test_node_init_tpm(s):
                [[1, 0]]],
         ]),
     ]
+    answer = [ExplicitTPM(tpm, validate=False) for tpm in answer]
     # fmt: on
     for node in s.nodes:
-        assert np.array_equal(node.tpm.tpm, answer[node.index])
+        assert node.tpm == answer[node.index]
 
 
 def test_node_init_inputs(s):
