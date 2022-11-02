@@ -346,16 +346,6 @@ class ExplicitTPM(TPM):
     def __hash__(self):
         return self._hash
 
-def expand_tpm(tpm):
-    """Broadcast a state-by-node TPM so that singleton dimensions are expanded
-    over the full network.
-    """
-    unconstrained = np.ones([2] * (tpm.ndim - 1) + [tpm.shape[-1]])
-    return tpm * unconstrained
-
-# TODO call to expand_tpm() is broken.
-# Fix tpm attribute in node_tpms and decide on a return type for expand_tpm()
-# before calling map(subsystem.tpm.expand_tpm, node_tpms)
 def reconstitute_tpm(subsystem):
     """Reconstitute the TPM of a subsystem using the individual node TPMs."""
     # The last axis of the node TPMs correponds to ON or OFF probabilities
@@ -370,7 +360,7 @@ def reconstitute_tpm(subsystem):
     node_tpms = [np.expand_dims(tpm, -1) for tpm in node_tpms]
     # Now we expand the node TPMs to the full state space, so we can combine
     # them all (this uses the maximum entropy distribution).
-    node_tpms = list(map(expand_tpm, node_tpms))
+    node_tpms = [tpm * np.ones([2] * (tpm.ndim - 1) + [tpm.shape[-1]]) for tpm in node_tpms]
     # We concatenate the node TPMs along a new axis to get a multidimensional
     # state-by-node TPM (where the last axis corresponds to nodes).
     return np.concatenate(node_tpms, axis=-1)
