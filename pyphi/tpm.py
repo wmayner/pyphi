@@ -337,7 +337,7 @@ class ExplicitTPM(TPM):
         """
         return not self.__eq__(o)
 
-    def __mul__(self, o):
+    def __mul__(self, o: object):
         return type(self)(self._tpm * o._tpm, validate=False)
 
     def __repr__(self):
