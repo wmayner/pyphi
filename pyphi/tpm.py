@@ -25,18 +25,6 @@ class TPM:
         """Return the underlying `tpm` object."""
         return self._tpm
 
-    @property
-    def shape(self):
-        return self._tpm.shape
-
-    @property
-    def ndim(self):
-        return self._tpm.ndim
-
-    @property
-    def size(self):
-        return self._tpm.size
-
     def conditionally_independent(self):
         """Validate that the TPM is conditionally independent."""
         tpm = self._tpm
@@ -106,7 +94,7 @@ class TPM:
             marginalized out.
         """
         tpm = self._tpm.sum(tuple(node_indices), keepdims=True) / (
-            np.array(self._tpm.shape)[list(node_indices)].prod()
+            np.array(self.shape)[list(node_indices)].prod()
         )
         # Return new TPM object of the same type as self.
         # self._tpm has already been validated and converted to multidimensional
@@ -122,7 +110,7 @@ class TPM:
         """Return ``True`` if ``tpm`` is in state-by-state form, otherwise
         ``False``.
         """
-        return self._tpm.ndim == 2 and self._tpm.shape[0] == self._tpm.shape[1]
+        return self.ndim == 2 and self.shape[0] == self.shape[1]
 
     def subtpm(self, fixed_nodes, state):
         """Return the TPM for a subset of nodes, conditioned on other nodes.
@@ -210,6 +198,9 @@ class TPM:
         tpm = convert.to_multidimensional(self._tpm)
         for state in all_states(tpm.shape[-1]):
             print(f"{state}: {tpm[state]}")
+            
+    def __getattr__(self, name):
+        return getattr(self._tpm, name)
 
     def __getitem__(self, i):
         return type(self)(self._tpm[i], validate=False)
