@@ -757,12 +757,17 @@ NODE_COLORS = {
 
 
 def plot_graph(g, **kwargs):
+    kwargs = {
+        **dict(
+            with_labels=True,
+            arrowsize=20,
+            node_size=600,
+            font_color="white",
+        ),
+        **kwargs,
+    }
     nx.draw(
         g,
-        with_labels=True,
-        arrowsize=20,
-        node_size=600,
-        font_color="white",
         **kwargs,
     )
 
