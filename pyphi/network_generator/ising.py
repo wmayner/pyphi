@@ -85,7 +85,7 @@ try:
         probabilities = []
         states = list(all_states(N))
         for state in states:
-            spin_state = binary2spin(state)
+            spin_state = utils.binary2spin(state)
             # Compute probability that i'th spin is "on" in the next micro-timestep
             E = energy(spin, weights, spin_state, field)
             energies.append(E)
