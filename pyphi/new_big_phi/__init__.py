@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from enum import Enum, auto, unique
 from textwrap import indent
 from typing import Dict, Iterable, Optional, Union
+import numpy as np
 from copy import copy
 
 from numpy.typing import ArrayLike
@@ -84,19 +85,21 @@ class SystemState:
         body = "\n".join(fmt.align_columns(self._repr_columns()))
         body = fmt.header("System state", body, under_char=fmt.HEADER_BAR_3)
         return fmt.box(fmt.center(body))
-    
+
     def __hash__(self):
-        return hash((
-            self.cause, 
-            self.effect, 
-            self.intrinsic_information[Direction.CAUSE],
-            self.intrinsic_information[Direction.EFFECT]
-        ))
-    
+        return hash(
+            (
+                self.cause,
+                self.effect,
+                self.intrinsic_information[Direction.CAUSE],
+                self.intrinsic_information[Direction.EFFECT],
+            )
+        )
+
     def to_json(self):
         raw_dict = self.__dict__
         new_dict = {}
-        
+
         # serialize direction keys of nested dictionaries
         for key, value in raw_dict.items():
             if isinstance(value, dict):
@@ -108,7 +111,7 @@ class SystemState:
                         new_dict[key]["EFFECT"] = data
             else:
                 new_dict[key] = raw_dict[key]
-        
+
         return new_dict
 
 
@@ -263,7 +266,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         column_extent = body.split("\n")[2].index(":")
         body += "\n" + indent(str(self.partition), " " * (column_extent + 2))
         return fmt.box(body)
-    
+
     def to_json(self):
         as_dict = copy(self.__dict__)
         del as_dict["_ties"]
@@ -297,6 +300,19 @@ def normalization_factor(partition: Union[Cut, GeneralKCut]) -> float:
     return 1 / (len(partition.from_nodes) * len(partition.to_nodes))
 
 
+def forward_probability(subsystem, prev, next):
+    marginal_prs = [
+        node.tpm[tuple(prev) + (s,)] for node, s in zip(subsystem.nodes, next)
+    ]
+    return np.prod(marginal_prs)
+
+
+def forward_difference(subsystem, cut_subsystem, prev, next):
+    return forward_probability(subsystem, prev, next) - forward_probability(
+        cut_subsystem, prev, next
+    )
+
+
 def integration_value(
     direction: Direction,
     subsystem: Subsystem,
@@ -304,22 +320,31 @@ def integration_value(
     system_state: SystemState,
     repertoire_distance: str = None,
 ) -> float:
+    # TODO(4.0) clean up this mess
     unpartitioned_repertoire = subsystem.repertoire(
         direction, subsystem.node_indices, subsystem.node_indices
     )
     partitioned_repertoire = cut_subsystem.repertoire(
         direction, subsystem.node_indices, subsystem.node_indices
     )
-    return (
-        _repertoire_distance(
+    if config.SYSTEM_INTEGRATION_SCHEME == "FORWARD_DIFFERENCE":
+        if direction == Direction.CAUSE:
+            prev, next = system_state[direction], subsystem.proper_state
+        elif direction == Direction.EFFECT:
+            prev, next = subsystem.proper_state, system_state[direction]
+        phi = forward_difference(subsystem, cut_subsystem, prev, next)
+        return phi, unpartitioned_repertoire, partitioned_repertoire
+    else:
+        return (
+            _repertoire_distance(
+                unpartitioned_repertoire,
+                partitioned_repertoire,
+                repertoire_distance=repertoire_distance,
+                state=system_state[direction],
+            ),
             unpartitioned_repertoire,
             partitioned_repertoire,
-            repertoire_distance=repertoire_distance,
-            state=system_state[direction],
-        ),
-        unpartitioned_repertoire,
-        partitioned_repertoire,
-    )
+        )
 
 
 def evaluate_partition(
@@ -385,11 +410,12 @@ def sia(
     subsystem: Subsystem,
     repertoire_distance: str = None,
     directions: Optional[Iterable[Direction]] = None,
-    partitions: str = None,
+    partition_scheme: str = None,
+    partitions: Optional[Iterable] = None,
     **kwargs,
 ) -> SystemIrreducibilityAnalysis:
     """Find the minimum information partition of a system."""
-    partitions = fallback(partitions, config.SYSTEM_PARTITION_TYPE)
+    partition_scheme = fallback(partition_scheme, config.SYSTEM_PARTITION_TYPE)
 
     # TODO: trivial reducibility
 
@@ -404,11 +430,14 @@ def sia(
 
         filter_func = is_disconnecting_partition
 
-    partitions = system_partitions(
-        subsystem.node_indices,
-        node_labels=subsystem.node_labels,
-        partition_scheme=partitions,
-        filter_func=filter_func,
+    partitions = fallback(
+        partitions,
+        system_partitions(
+            subsystem.node_indices,
+            node_labels=subsystem.node_labels,
+            partition_scheme=partition_scheme,
+            filter_func=filter_func,
+        ),
     )
 
     system_state = find_system_state(subsystem)

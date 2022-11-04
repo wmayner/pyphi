@@ -439,6 +439,13 @@ class PyphiConfig(Config):
     The version of the theory to use.""",
     )
 
+    SYSTEM_INTEGRATION_SCHEME = Option(
+        "REPERTOIRE_DISTANCE",
+        values=["REPERTOIRE_DISTANCE", "FORWARD_DIFFERENCE"],
+        # TODO(4.0)
+        doc="",
+    )
+
     INTEGRATION_VALUE = Option(
         "MIN",
         doc="""
