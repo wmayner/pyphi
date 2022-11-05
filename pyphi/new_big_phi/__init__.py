@@ -300,11 +300,19 @@ def normalization_factor(partition: Union[Cut, GeneralKCut]) -> float:
     return 1 / (len(partition.from_nodes) * len(partition.to_nodes))
 
 
+def _single_node_forward_probability(subsystem, node, prev, next_node_state):
+    tpm = node.tpm.squeeze(axis=tuple(subsystem.external_indices))
+    prev_idx = tuple(s if size > 1 else 0 for size, s in zip(tpm.shape, prev))
+    return tpm[prev_idx + (next_node_state,)]
+
+
 def forward_probability(subsystem, prev, next):
-    marginal_prs = [
-        node.tpm[tuple(prev) + (s,)] for node, s in zip(subsystem.nodes, next)
-    ]
-    return np.prod(marginal_prs)
+    return np.prod(
+        [
+            _single_node_forward_probability(subsystem, node, prev, next_node_state)
+            for node, next_node_state in zip(subsystem.nodes, next)
+        ]
+    )
 
 
 def forward_difference(subsystem, cut_subsystem, prev, next):
