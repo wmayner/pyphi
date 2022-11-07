@@ -453,6 +453,9 @@ def approximate_specified_state(repertoire, partitioned_repertoire):
 
     """
 
+    # TODO: All the marginalization defeats the whole purpose. Config option
+    # must prevent calculating outer product at `subsystem`, and pass node
+    # marginal repertoires instead.
     def joint_to_marginals(repertoire):
         """Converts a joint repertoire in multidimensional form to a 2D array of
         single-node marginal repertoires.
