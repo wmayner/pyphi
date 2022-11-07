@@ -434,14 +434,16 @@ def approximate_specified_state(repertoire, partitioned_repertoire):
     .. math::
         I_y = \\left( p_k (1-p_z) \\right) \\log_2 \\left( \\frac{p_k (1-p_z)}{q_k(1-q_z)} \\right)
 
-    For state ``1`` to give higher intrinsic information (i.e., :math:`I_y > I_x`),
-    :math:`p_z` and :math:`q_z` must satisfy two equations:
+    For state ``1`` to give higher intrinsic information (i.e., :math:`I_y >
+    I_x`), :math:`p_z` and :math:`q_z` must satisfy two equations:
 
     .. math::
         p_z < 1/2
 
     .. math::
-        \\log_2 \\left( \\frac{p_k}{q_k} \\right) < \\left( \\frac{1}{1-2p_z} \\right) \\left( p_z \\log_2 \\left( \\frac{p_z}{q_z} \\right) - (1-p_z) \\log_2 \\left( \\frac{1-p_z}{1-q_z} \\right) \\right)
+        \\log_2 \\left( \\frac{p_k}{q_k} \\right) < \\left( \\frac{1}{1-2p_z}
+        \\right) \\left( p_z \\log_2 \\left( \\frac{p_z}{q_z} \\right) - (1-p_z)
+        \\log_2 \\left( \\frac{1-p_z}{1-q_z} \\right) \\right)
 
     Otherwise, we should pick the state ``0`` as the state of node :math:`z`.
 
