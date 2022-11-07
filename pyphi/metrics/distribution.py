@@ -5,6 +5,7 @@
 """Metrics on probability distributions."""
 
 from contextlib import ContextDecorator
+from itertools import product
 from math import log2
 
 import numpy as np
@@ -394,6 +395,234 @@ def specified_state(repertoire, partitioned_repertoire):
         repertoire.squeeze(), partitioned_repertoire.squeeze()
     )
     return np.transpose(np.where(density == density.max()))
+
+
+def approximate_specified_state(p, q, abs_condition="without_abs"):
+    """
+    Estimate the purview state that maximizes intrinsic information.
+
+    Args
+        p (np.ndarray): The unpartitioned repertoire.
+        q (np.ndarray): The partitioned repertoire.
+        abs_condition (str): 'with_abs' or 'without_abs'.
+
+    Returns:
+        np.ndarray: A 2D array where each row is a maximal state.
+    """
+
+    def joint_to_marginals(repertoire):
+        """Converts a joint repertoire in multidimensional form to a 2D array of
+        single-node marginal repertoires.
+
+        Args:
+            repertoire (np.ndarray): The joint repertoire of a purview in
+                multidimensional form, e.g., as obtained from
+                :mod:`pyphi.subsystem`. Note that `repertoire` is assumed to be
+                a well-formed probability distribution whose sum over all states
+                equals one.
+        Returns:
+            np.ndarray: A 2D array with one row per node in the purview (the
+                marginalized repertoires) and one column per state, in the same
+                order as the argument.
+        """
+        # Remove singleton dimensions.
+        repertoire = repertoire.squeeze()
+        # Map each dimension in the squeezed repertoire to a local node index.
+        node_indices = set(range(repertoire.ndim))
+        # All the sets of indices of size n - 1 (i.e. combinations(n, n - 1)).
+        complements = [node_indices - set((n,)) for n in tuple(node_indices)]
+        # Marginalize out all the complementary dimensions for each
+        # node in the repertoire.
+        marginals = [repertoire.sum(tuple(c)) for c in complements]
+        return np.vstack(marginals)
+
+    p = joint_to_marginals(p)
+    q = joint_to_marginals(q)
+
+    log2 = np.log2
+    max = np.max
+    argmax = np.argmax
+    abs = np.abs
+
+    MAX_SEARCH_NODE = 0
+    # If the number of undetermined nodes (i.e. not having p>0.5 && p>q and
+    # listed in "non_fixed") is
+    # - less than this number, then we compute all the possible states of
+    #   "non_fixed" nodes.
+    # - more than this number, considering all possible states of "non_fixed"
+    #   nodes gets harder, so determine the state based on the following
+    #   inequality:
+
+    # Consider there are k-nodes already determined (the unpartitioned &
+    # partitioned probabilities are p_k and q_k) and adding a node "z".
+    # Let the node "z" have probablity p_z for the state "x". For the
+    # complementary state "y", the probability is (1 - p_z). We can assume
+    # p_z > q_z without losing generality. We want to know which state of the
+    # node "z" gives higher intrinsic information when it is added to the
+    # k-nodes. In other words, we want to compare I_x and I_y
+    #
+    #       I_x = (p_k * p_z) * log( p_k*p_z / q_k*q_z )
+    #       I_y = (p_k * (1-p_z)) * log( p_k*(1-p_z) / q_k*(1-q_z) )
+    #
+    # If state "y" gives higher intrinsic information, i.e., I_y > I_x,
+    # p_z and q_z need to satisfy the following 2 equations:
+    #       (1) p_z < 1/2
+    #       (2) log(p_k/q_k) < (1/(1-2*p_z)) * { p_z*log(p_z/q_z) - (1-p_z)*log((1-p_z)/(1-q_z)) }
+    # Otherwise, we should pick the state "x" as the state of node "z".  Note
+    # that the result of "z" depends on the already chosen k-nodes and there is
+    # no guarantee to get the optimal state.
+
+
+    # the size of the candidate purview
+    n = p.shape[0]
+    # If r > 1, the probability of the state goes up because of the
+    # connection from the mechanism
+    r = p / q
+
+    # Get the node indices whose state we can determine without searching.
+    # --- If the state gives the highest probability && the state is the one the
+    #     mechanism specifies (i.e., p > q),
+    # --- then the state will be chosen as the optimal state for intrinsic
+    #     information no matter what nodes are selected.
+    p_state = 1 * (p >= 1/2)
+    r_state = 1 * (r >= 1)
+
+    fixed_node_lid = np.where(np.sum(p_state * r_state, axis=1) > 0)[0]
+
+    optimal_state = np.zeros((n,1)) * np.nan
+    optimal_p = np.ones((n,1))
+    optimal_q = np.ones((n,1))
+
+    for tmp_lid in fixed_node_lid:
+        opt_state_col = np.where(p_state[tmp_lid, :] * r_state[tmp_lid, :])[0]
+
+        # If "opt_state_col" has 2 elements, that means (p_on=p_off=0.5 &&
+        # q_on=q_off=0.5).  In this case, both ON and OFF are equally good in
+        # terms of the intrinsic information.  Since it is impossible to
+        # determine the state based on the intrinsic infromation, we simply set
+        # the state with an arbitrary state.
+        if opt_state_col.size > 1:
+            opt_state_col = 0
+
+        optimal_state[tmp_lid] = opt_state_col
+        optimal_p[tmp_lid] = p[tmp_lid, opt_state_col]
+
+        tmp_r = np.where(r_state[tmp_lid, :] == 1)[0]
+
+        if tmp_r.size > 1:
+            tmp_r = tmp_r[0]
+
+        optimal_q[tmp_lid] = q[tmp_lid, tmp_r]
+
+
+    # Find the node whose states can be determined by knowing
+    # "temporary-informativeness".
+    # --- For a node, about the state that acheives p>q,
+    # --- if the following equation is satisfied, we can select a state that
+    #     does not give p>q.
+
+    non_fixed = np.setdiff1d(np.arange(n), fixed_node_lid)
+    if non_fixed.size == 0:
+        return optimal_state.astype(int).flatten()
+
+    # Approximate method
+    if non_fixed.size > MAX_SEARCH_NODE:
+
+        val_p = np.zeros((non_fixed.size, 1))
+        val_q = np.zeros((non_fixed.size, 1))
+
+        for i in range(non_fixed.size):
+            tmp_lid = non_fixed[i]
+            tmp_state = np.where(r_state[tmp_lid, :] == 1)[0]
+            val_p[i, 0] = p[tmp_lid, tmp_state]
+            val_q[i, 0] = q[tmp_lid, tmp_state]
+
+        val = (1/(1-2*val_p)) * (val_p*log2(val_p/val_q) - (1-val_p)*log2((1-val_p)/(1-val_q)))
+
+
+        # For the nodes whose states could not be determined ("non_fixed")
+        # --- compute "val" and compare it to the temporary informativeness
+        #     "tmp_inform".
+        # --- if val < tmp_inform, its state most probably will be the one that
+        #     gives p<q.
+        # --- "tmp_inform" can decrease slightly by adding more nodes in
+        #     "non_fixed"
+        # --- A node that has small "val" is more likely to be in "p<q" state
+        #     than higher "val" nodes.
+        # --- Thus, we sort nodes based on "val" and determine its state from
+        #     the smallest "val" node.
+        val_sort = np.sort(val)  # ascending
+        idx_sort = np.argsort(val)
+        for i in range(non_fixed.size):
+
+            # Compute the "temporary-informativeness"
+            tmp_inform = log2(optimal_p.prod()) - log2(optimal_q.prod())
+
+            tmp_val = val_sort[i]
+            tmp_lid = non_fixed[idx_sort[i]]
+            tmp_state_col = np.where(r_state[tmp_lid, :] == 1)[0]
+
+            if tmp_val < tmp_inform:
+                opt_state = np.array(tmp_state_col == 0, dtype='int')
+                optimal_state[tmp_lid] = opt_state
+                optimal_p[tmp_lid] = p[tmp_lid, opt_state]
+                optimal_q[tmp_lid] = q[tmp_lid, opt_state]
+            else:
+                opt_state = tmp_state_col
+                optimal_state[tmp_lid] = opt_state
+                optimal_p[tmp_lid] = p[tmp_lid, opt_state]
+                optimal_q[tmp_lid] = q[tmp_lid, opt_state]
+
+    # non_fixed.size <= MAX_SEARCH_NODE
+    else:
+
+        num_non_fixed = non_fixed.size
+        non_fixed_state_all = np.array([
+            s[::-1] for s in product((0, 1), repeat=num_non_fixed)
+        ])
+        tmp_non_fixed_p = np.zeros(non_fixed_state_all.shape)
+        tmp_non_fixed_q = np.zeros(non_fixed_state_all.shape)
+
+        for l in range(num_non_fixed):
+            idx = non_fixed[l]
+            tmp_p = p[idx, :].T
+            tmp_q = q[idx, :].T
+            tmp_non_fixed_p[:, l] = tmp_p[non_fixed_state_all[:, l]]
+            tmp_non_fixed_q[:, l] = tmp_q[non_fixed_state_all[:, l]]
+
+        fixed_p = np.prod(optimal_p)
+        fixed_q = np.prod(optimal_q)
+        non_fixed_p = np.prod(tmp_non_fixed_p, axis=1)
+        non_fixed_q = np.prod(tmp_non_fixed_q, axis=1)
+
+        if abs_condition == 'without_abs':
+            optimal_ii = max(
+                (fixed_p * non_fixed_p) * (log2(fixed_p * non_fixed_p) - log2(fixed_q * non_fixed_q))
+            )
+            opt_idx = argmax(
+                (fixed_p * non_fixed_p) * (log2(fixed_p * non_fixed_p) - log2(fixed_q * non_fixed_q))
+            )
+        elif abs_condition == 'with_abs':
+            optimal_ii = max(
+                (fixed_p * non_fixed_p) * abs(log2(fixed_p * non_fixed_p) - log2(fixed_q * non_fixed_q))
+            )
+            opt_idx = max(
+                (fixed_p * non_fixed_p) * abs(log2(fixed_p * non_fixed_p) - log2(fixed_q * non_fixed_q))
+            )
+        else:
+            print('Specify "with" or "without" for the 4th input argument'
+                  ' "abs_condition"')
+
+        non_fixed_state = non_fixed_state_all[opt_idx, :]
+
+        for l in range(num_non_fixed):
+            idx = non_fixed[l]
+            tmp_state = non_fixed_state[l]
+            optimal_state[idx] = tmp_state
+            optimal_p[idx] = p[idx, tmp_state]
+            optimal_q[idx] = q[idx, tmp_state]
+
+    return optimal_state.astype(int).flatten()
 
 
 @measures.register("ID", asymmetric=True)
