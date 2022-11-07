@@ -1,8 +1,8 @@
 .. _compute.distance:
 
-:mod:`compute.distance`
+:mod:`metrics.distribution`
 =======================
 
-.. automodule:: pyphi.compute.distance
+.. automodule:: pyphi.metrics.distribution
     :members:
     :undoc-members:

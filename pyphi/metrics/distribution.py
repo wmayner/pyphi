@@ -415,8 +415,9 @@ def approximate_specified_state(repertoire, partitioned_repertoire):
     determined according to the following heuristics:
 
     If the most probable state in the unpartitioned repertoire (:math:`p > 1/2`)
-    becomes less probable in the partitioned one (:math:`p > q`), we
-    should pick that state for that node.
+    becomes less probable in the partitioned one (:math:`p > q`), we should pick
+    that state for that node. Note that there can be ties. In that case, the
+    state with the lowest index is arbitrarily chosen.
 
     Now suppose that was enough to specify the state of only :math:`k` nodes,
     with joint point unpartitioned probability :math:`p_k` and partitioned
@@ -434,7 +435,7 @@ def approximate_specified_state(repertoire, partitioned_repertoire):
         I_y = \\left( p_k (1-p_z) \\right) \\log_2 \\left( \\frac{p_k (1-p_z)}{q_k(1-q_z)} \\right)
 
     For state ``1`` to give higher intrinsic information (i.e., :math:`I_y > I_x`),
-    :math:`p_z` and :math:`q_z` must satisfy the following two equations:
+    :math:`p_z` and :math:`q_z` must satisfy two equations:
 
     .. math::
         p_z < 1/2
