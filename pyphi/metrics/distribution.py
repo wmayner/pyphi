@@ -5,7 +5,6 @@
 """Metrics on probability distributions."""
 
 from contextlib import ContextDecorator
-from itertools import product
 from math import log2
 
 import numpy as np
