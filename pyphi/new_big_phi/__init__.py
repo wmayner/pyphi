@@ -23,6 +23,7 @@ from ..partition import system_partitions
 from ..registry import Registry
 from ..relations import ConcreteRelations, Relations
 from ..relations import relations as compute_relations
+from ..metrics.distribution import information_density
 
 DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD = 2**4
 DEFAULT_PARTITION_CHUNKSIZE = 2**2 * DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD
@@ -316,9 +317,9 @@ def forward_probability(subsystem, prev, next):
 
 
 def forward_difference(subsystem, cut_subsystem, prev, next):
-    return forward_probability(subsystem, prev, next) - forward_probability(
-        cut_subsystem, prev, next
-    )
+    p = forward_probability(subsystem, prev, next)
+    q = forward_probability(cut_subsystem, prev, next)
+    return information_density(p, q), p, q
 
 
 def integration_value(
@@ -329,20 +330,19 @@ def integration_value(
     repertoire_distance: str = None,
 ) -> float:
     # TODO(4.0) clean up this mess
-    unpartitioned_repertoire = subsystem.repertoire(
-        direction, subsystem.node_indices, subsystem.node_indices
-    )
-    partitioned_repertoire = cut_subsystem.repertoire(
-        direction, subsystem.node_indices, subsystem.node_indices
-    )
     if config.SYSTEM_INTEGRATION_SCHEME == "FORWARD_DIFFERENCE":
         if direction == Direction.CAUSE:
             prev, next = system_state[direction], subsystem.proper_state
         elif direction == Direction.EFFECT:
             prev, next = subsystem.proper_state, system_state[direction]
-        phi = forward_difference(subsystem, cut_subsystem, prev, next)
-        return phi, unpartitioned_repertoire, partitioned_repertoire
+        return forward_difference(subsystem, cut_subsystem, prev, next)
     else:
+        unpartitioned_repertoire = subsystem.repertoire(
+            direction, subsystem.node_indices, subsystem.node_indices
+        )
+        partitioned_repertoire = cut_subsystem.repertoire(
+            direction, subsystem.node_indices, subsystem.node_indices
+        )
         return (
             _repertoire_distance(
                 unpartitioned_repertoire,
