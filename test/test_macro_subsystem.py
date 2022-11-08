@@ -6,6 +6,7 @@ import pytest
 
 import pyphi
 from pyphi import convert, macro, models, timescale, config
+from pyphi.tpm import ExplicitTPM
 from pyphi.convert import state_by_node2state_by_state as sbn2sbs
 from pyphi.convert import state_by_state2state_by_node as sbs2sbn
 

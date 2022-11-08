@@ -58,7 +58,17 @@ class Network:
 
     # TODO make tpm also optional when implementing logical network definition
     def __init__(self, tpm, cm=None, node_labels=None, purview_cache=None):
-        self._tpm = ExplicitTPM(tpm)
+        # Initialize _tpm according to argument type.
+        if isinstance(tpm, ExplicitTPM):
+            self._tpm = tpm
+        elif isinstance(tpm, np.ndarray):
+            self._tpm = ExplicitTPM(tpm)
+        elif isinstance(tpm, dict):
+            # From JSON.
+            self._tpm = ExplicitTPM(tpm['_tpm'])
+        else:
+            raise TypeError(f"Invalid tpm of type {type(tpm)}.")
+
         self._cm, self._cm_hash = self._build_cm(cm)
         self._node_indices = tuple(range(self.size))
         self._node_labels = NodeLabels(node_labels, self._node_indices)

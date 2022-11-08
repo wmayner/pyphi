@@ -4,68 +4,73 @@
 
 import numpy as np
 
-from pyphi import Subsystem
-from pyphi.tpm import (
-    expand_tpm,
-    infer_cm,
-    is_state_by_state,
-    marginalize_out,
-    reconstitute_tpm,
-)
+from pyphi import Subsystem, ExplicitTPM
+from pyphi.tpm import reconstitute_tpm
 
 
 def test_is_state_by_state():
     # State-by-state
-    tpm = np.ones((8, 8))
-    assert is_state_by_state(tpm)
+    tpm = ExplicitTPM(np.ones((8, 8)), validate=False)
+    assert tpm.is_state_by_state()
 
     # State-by-node, multidimensional
-    tpm = np.ones((2, 2, 2, 3))
-    assert not is_state_by_state(tpm)
+    tpm = ExplicitTPM(np.ones((2, 2, 2, 3)), validate=False)
+    assert not tpm.is_state_by_state()
 
     # State-by-node, 2-dimensional
-    tpm = np.ones((8, 3))
-    assert not is_state_by_state(tpm)
+    tpm = ExplicitTPM(np.ones((8, 3)), validate=False)
+    assert not tpm.is_state_by_state()
 
 
 def test_expand_tpm():
     tpm = np.ones((2, 1, 2))
     tpm[(0, 0)] = (0, 1)
+    tpm = ExplicitTPM(tpm, validate=False)
     # fmt: off
-    answer = np.array([
-        [[0, 1],
-         [0, 1]],
-        [[1, 1],
-         [1, 1]],
-    ])
+    answer = ExplicitTPM(
+        np.array([
+            [[0, 1],
+             [0, 1]],
+            [[1, 1],
+             [1, 1]],
+        ]),
+        validate=False
+    )
     # fmt: on
-    assert np.array_equal(expand_tpm(tpm), answer)
+    assert tpm.expand_tpm() == answer
 
 
 def test_marginalize_out(s):
-    marginalized_distribution = marginalize_out([0], s.tpm.tpm)
+    marginalized_distribution = s.tpm.marginalize_out([0])
     # fmt: off
-    answer = np.array([
-        [[[0.0, 0.0, 0.5],
-          [1.0, 1.0, 0.5]],
-         [[1.0, 0.0, 0.5],
-          [1.0, 1.0, 0.5]]],
-    ])
-    # fmt: on
-    assert np.array_equal(marginalized_distribution, answer)
+    answer = ExplicitTPM(
+        np.array([
+            [[[0.0, 0.0, 0.5],
+              [1.0, 1.0, 0.5]],
+             [[1.0, 0.0, 0.5],
+              [1.0, 1.0, 0.5]]],
+        ]),
+        validate=False
+    )
 
-    marginalized_distribution = marginalize_out([0, 1], s.tpm.tpm)
-    # fmt: off
-    answer = np.array([
-        [[[0.5, 0.0, 0.5],
-          [1.0, 1.0, 0.5]]],
-    ])
     # fmt: on
-    assert np.array_equal(marginalized_distribution, answer)
+    assert marginalized_distribution == answer
+
+    marginalized_distribution = s.tpm.marginalize_out([0, 1])
+    # fmt: off
+    answer = ExplicitTPM(
+        np.array([
+            [[[0.5, 0.0, 0.5],
+              [1.0, 1.0, 0.5]]],
+        ]),
+        validate=False
+    )
+    # fmt: on
+    assert marginalized_distribution == answer
 
 
 def test_infer_cm(rule152):
-    assert np.array_equal(infer_cm(rule152.tpm), rule152.cm)
+    assert np.array_equal(rule152.tpm.infer_cm(), rule152.cm)
 
 
 def test_reconstitute_tpm(standard, s_complete, rule152, noised):
