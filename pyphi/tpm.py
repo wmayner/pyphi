@@ -203,7 +203,10 @@ class TPM:
         return getattr(self._tpm, name)
 
     def __getitem__(self, i):
-        return type(self)(self._tpm[i], validate=False)
+        item = self._tpm[i]
+        if isinstance(item, type(self._tpm)):
+            item = type(self)(item, validate=False)
+        return item
 
     def __repr__(self):
         raise NotImplementedError
