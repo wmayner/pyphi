@@ -409,7 +409,7 @@ class Part:
         return {"mechanism": self.mechanism, "purview": self.purview}
 
 
-class KPartition(Sequence):
+class KPartition(Sequence, _CutBase):
     """A partition with an arbitrary number of parts."""
 
     __slots__ = ["parts", "node_labels", "_mechanism", "_purview"]
@@ -458,6 +458,10 @@ class KPartition(Sequence):
             self._purview = tuple(chain.from_iterable(part.purview for part in self))
         return self._purview
 
+    @property
+    def indices(self):
+        return self.mechanism + self.purview
+
     def normalize(self):
         """Normalize the order of parts in the partition."""
         return type(self)(*sorted(self), node_labels=self.node_labels)
@@ -471,6 +475,18 @@ class KPartition(Sequence):
                 sum(purview_lengths[:i]) + sum(purview_lengths[i + 1 :])
             )
         return n
+
+    # TODO(4.0) consolidate cut classes
+    def cut_matrix(self, n):
+        """The matrix of connections that are severed by this cut."""
+        cm = np.zeros((n, n))
+
+        for part in self.parts:
+            # Indices of all other part's purviews
+            outside_part = tuple(set(self.purview) - set(part.purview))
+            cm[np.ix_(part.mechanism, outside_part)] = 1
+
+        return cm
 
     def to_json(self):
         return {"parts": list(self)}
