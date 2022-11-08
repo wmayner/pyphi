@@ -10,7 +10,7 @@ from copy import copy
 from numpy.typing import ArrayLike
 from toolz import concat
 
-from .. import Direction, Subsystem, compute, config, connectivity, utils
+from .. import Direction, Subsystem, compute, config, connectivity, utils, metrics
 from ..compute.network import reachable_subsystems
 from ..compute.parallel import MapReduce
 from ..conf import fallback
@@ -23,7 +23,6 @@ from ..partition import system_partitions
 from ..registry import Registry
 from ..relations import ConcreteRelations, Relations
 from ..relations import relations as compute_relations
-from ..metrics.distribution import information_density
 
 DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD = 2**4
 DEFAULT_PARTITION_CHUNKSIZE = 2**2 * DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD
@@ -301,27 +300,6 @@ def normalization_factor(partition: Union[Cut, GeneralKCut]) -> float:
     return 1 / (len(partition.from_nodes) * len(partition.to_nodes))
 
 
-def _single_node_forward_probability(subsystem, node, prev, next_node_state):
-    tpm = node.tpm.squeeze(axis=tuple(subsystem.external_indices))
-    prev_idx = tuple(s if size > 1 else 0 for size, s in zip(tpm.shape, prev))
-    return tpm[prev_idx + (next_node_state,)]
-
-
-def forward_probability(subsystem, prev, next):
-    return np.prod(
-        [
-            _single_node_forward_probability(subsystem, node, prev, next_node_state)
-            for node, next_node_state in zip(subsystem.nodes, next)
-        ]
-    )
-
-
-def forward_difference(subsystem, cut_subsystem, prev, next):
-    p = forward_probability(subsystem, prev, next)
-    q = forward_probability(cut_subsystem, prev, next)
-    return information_density(p, q), p, q
-
-
 def integration_value(
     direction: Direction,
     subsystem: Subsystem,
@@ -330,29 +308,30 @@ def integration_value(
     repertoire_distance: str = None,
 ) -> float:
     # TODO(4.0) clean up this mess
+    unpartitioned_repertoire = subsystem.repertoire(
+        direction, subsystem.node_indices, subsystem.node_indices
+    )
+    partitioned_repertoire = cut_subsystem.repertoire(
+        direction, subsystem.node_indices, subsystem.node_indices
+    )
     if config.SYSTEM_INTEGRATION_SCHEME == "FORWARD_DIFFERENCE":
         if direction == Direction.CAUSE:
             prev, next = system_state[direction], subsystem.proper_state
         elif direction == Direction.EFFECT:
             prev, next = subsystem.proper_state, system_state[direction]
-        return forward_difference(subsystem, cut_subsystem, prev, next)
+        phi = metrics.distribution.forward_difference(subsystem, cut_subsystem, prev, next)
     else:
-        unpartitioned_repertoire = subsystem.repertoire(
-            direction, subsystem.node_indices, subsystem.node_indices
-        )
-        partitioned_repertoire = cut_subsystem.repertoire(
-            direction, subsystem.node_indices, subsystem.node_indices
-        )
-        return (
-            _repertoire_distance(
+        phi = _repertoire_distance(
                 unpartitioned_repertoire,
                 partitioned_repertoire,
                 repertoire_distance=repertoire_distance,
                 state=system_state[direction],
             ),
-            unpartitioned_repertoire,
-            partitioned_repertoire,
-        )
+    return (
+        phi,
+        unpartitioned_repertoire,
+        partitioned_repertoire,
+    )
 
 
 def evaluate_partition(

@@ -12,13 +12,23 @@ from typing import Iterable
 import numpy as np
 from more_itertools import flatten
 
-from . import cache, connectivity, convert, distribution, resolve_ties, utils, validate
+from . import (
+    cache,
+    connectivity,
+    convert,
+    distribution,
+    metrics,
+    resolve_ties,
+    utils,
+    validate,
+)
 from .conf import config, fallback
 from .direction import Direction
 from .distribution import max_entropy_distribution, repertoire_shape
 from .metrics.distribution import repertoire_distance as _repertoire_distance
 from .models import (
     Concept,
+    KCut,
     MaximallyIrreducibleCause,
     MaximallyIrreducibleEffect,
     NullCut,
@@ -28,7 +38,6 @@ from .models import (
 from .network import irreducible_purviews
 from .node import generate_nodes
 from .partition import complete_partition, mip_partitions
-from .tpm import ExplicitTPM
 from .utils import state_of
 
 log = logging.getLogger(__name__)
@@ -306,6 +315,21 @@ class Subsystem:
         if set(indices) - set(self.node_indices):
             raise ValueError("`indices` must be a subset of the Subsystem's indices.")
         return tuple(self._index2node[n] for n in indices)
+
+
+    def _single_node_forward_probability(self, node, prev, next_node_state):
+        tpm = node.tpm.squeeze(axis=tuple(self.external_indices))
+        prev_idx = tuple(s if size > 1 else 0 for size, s in zip(tpm.shape, prev))
+        return tpm[prev_idx + (next_node_state,)]
+
+
+    def forward_probability(self, prev, next):
+        return np.prod(
+            [
+                self._single_node_forward_probability(node, prev, next_node_state)
+                for node, next_node_state in zip(self.nodes, next)
+            ]
+        )
 
     # TODO extend to nonbinary nodes
     @cache.method("_single_node_repertoire_cache", Direction.CAUSE)
@@ -619,22 +643,28 @@ class Subsystem:
             tuple[int, np.ndarray]: The distance between the unpartitioned and
             partitioned repertoires, and the partitioned repertoire.
         """
+        repertoire_distance = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
+        # TODO(4.0) refactor
         if repertoire is None:
             repertoire = self.repertoire(direction, mechanism, purview)
-
         partitioned_repertoire_kwargs = partitioned_repertoire_kwargs or dict()
         partitioned_repertoire = self.partitioned_repertoire(
             direction, partition, **partitioned_repertoire_kwargs
         )
-
-        phi = _repertoire_distance(
-            repertoire,
-            partitioned_repertoire,
-            direction=direction,
-            repertoire_distance=repertoire_distance,
-            **kwargs,
-        )
-
+        if repertoire_distance == 'FORWARD_DIFFERENCE':
+            prev, next = direction.order(self.state, kwargs['state'])
+            cut_subsystem = self.apply_cut(partition)
+            p = self.forward_probability(prev, next)
+            q = cut_subsystem.forward_probability(prev, next)
+            phi = metrics.distribution.information_density(p, q)
+        else:
+            phi = _repertoire_distance(
+                repertoire,
+                partitioned_repertoire,
+                direction=direction,
+                repertoire_distance=repertoire_distance,
+                **kwargs,
+            )
         if return_unpartitioned_repertoire:
             return (phi, partitioned_repertoire, repertoire)
         return (phi, partitioned_repertoire)

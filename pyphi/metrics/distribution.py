@@ -628,6 +628,12 @@ def iit_4_small_phi_no_absolute_value(p, q, state):
     return information_density(p, q).squeeze()[state]
 
 
+def forward_difference(subsystem, cut_subsystem, prev, next):
+    p = subsystem.forward_probability(prev, next)
+    q = cut_subsystem.forward_probability(prev, next)
+    return information_density(p, q)
+
+
 @measures.register("APMI", asymmetric=True)
 @np_suppress()
 def absolute_pointwise_mutual_information(p, q, state):
