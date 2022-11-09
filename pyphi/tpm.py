@@ -17,6 +17,7 @@ from .constants import OFF, ON
 
 class TPM:
     """A transition probability matrix."""
+
     def __init__(self):
         raise NotImplementedError
 
@@ -66,17 +67,18 @@ class TPM:
             TPM: A conditioned TPM with the same number of dimensions,
             with singleton dimensions for nodes in a fixed state.
         """
-        conditioning_indices = [[slice(None)]] * len(state)
-        for i in fixed_nodes:
+        # Assumes multidimensional form
+        conditioning_indices = [[slice(None)]] * (self.ndim - 1)
+        for i, state_i in zip(fixed_nodes, state):
             # Preserve singleton dimensions with `np.newaxis`
             # TODO use utils.state_of and refactor nonvirtualized effect
             # repertoire to use this
-            conditioning_indices[i] = [state[i], np.newaxis]
+            conditioning_indices[i] = [state_i, np.newaxis]
         # Flatten the indices.
-        conditioning_indices = list(chain.from_iterable(conditioning_indices))
+        conditioning_indices = tuple(chain.from_iterable(conditioning_indices))
         # Obtain the actual conditioned TPM by indexing with the conditioning
         # indices.
-        tpm = self._tpm[tuple(conditioning_indices)]
+        tpm = self._tpm[conditioning_indices]
         # Create new TPM object of the same type as self.
         # self.tpm has already been validated and converted to multidimensional
         # state-by-node form. Further validation would be problematic for
@@ -217,13 +219,12 @@ class TPM:
 
 class ExplicitTPM(TPM):
     """An explicit network TPM in multidimensional form."""
+
     def __init__(self, tpm, validate=True):
         self._tpm = np.array(tpm)
 
         if validate:
-            self.validate(
-                check_independence=config.VALIDATE_CONDITIONAL_INDEPENDENCE
-            )
+            self.validate(check_independence=config.VALIDATE_CONDITIONAL_INDEPENDENCE)
             self._tpm = self.to_multidimensional_state_by_node()
 
         self._tpm = np_immutable(self._tpm)
@@ -239,15 +240,15 @@ class ExplicitTPM(TPM):
             * multidimensional state-by-node form.
         """
         see_tpm_docs = (
-            'See the documentation on TPM conventions and the `pyphi.Network` '
-            'object for more information on TPM forms.'
+            "See the documentation on TPM conventions and the `pyphi.Network` "
+            "object for more information on TPM forms."
         )
         tpm = self._tpm
         # Get the number of nodes from the state-by-node TPM.
         N = tpm.shape[-1]
         if tpm.ndim == 2:
             if not (
-                (tpm.shape[0] == 2**N and tpm.shape[1] == N)
+                (tpm.shape[0] == 2 ** N and tpm.shape[1] == N)
                 or (tpm.shape[0] == tpm.shape[1])
             ):
                 raise ValueError(
@@ -277,16 +278,17 @@ class ExplicitTPM(TPM):
     def _validate_probabilities(self):
         """Check that the probabilities in a TPM are valid."""
         if (self._tpm < 0.0).any() or (self._tpm > 1.0).any():
-            raise ValueError("Invalid TPM: probabilities must be in the interval [0, 1].")
+            raise ValueError(
+                "Invalid TPM: probabilities must be in the interval [0, 1]."
+            )
         if self.is_state_by_state() and np.any(np.sum(self._tpm, axis=1) != 1.0):
             raise ValueError("Invalid TPM: probabilities must sum to 1.")
         return True
 
     def validate(self, check_independence=True):
         """Validate this TPM."""
-        return (
-            self._validate_probabilities()
-            and self._validate_shape(check_independence)
+        return self._validate_probabilities() and self._validate_shape(
+            check_independence
         )
 
     def to_multidimensional_state_by_node(self):
@@ -316,10 +318,7 @@ class ExplicitTPM(TPM):
         Two TPMs are equal if they are instances of the ExplicitTPM class
         and their numpy arrays are equal.
         """
-        return (
-            isinstance(o, ExplicitTPM)
-            and np.array_equal(self._tpm, o._tpm)
-        )
+        return isinstance(o, ExplicitTPM) and np.array_equal(self._tpm, o._tpm)
 
     def __ne__(self, o: object):
         """Return whether this TPM is different from the other object.
@@ -338,6 +337,7 @@ class ExplicitTPM(TPM):
     def __hash__(self):
         return self._hash
 
+
 def reconstitute_tpm(subsystem):
     """Reconstitute the TPM of a subsystem using the individual node TPMs."""
     # The last axis of the node TPMs correponds to ON or OFF probabilities
@@ -352,7 +352,9 @@ def reconstitute_tpm(subsystem):
     node_tpms = [np.expand_dims(tpm, -1) for tpm in node_tpms]
     # Now we expand the node TPMs to the full state space, so we can combine
     # them all (this uses the maximum entropy distribution).
-    node_tpms = [tpm * np.ones([2] * (tpm.ndim - 1) + [tpm.shape[-1]]) for tpm in node_tpms]
+    node_tpms = [
+        tpm * np.ones([2] * (tpm.ndim - 1) + [tpm.shape[-1]]) for tpm in node_tpms
+    ]
     # We concatenate the node TPMs along a new axis to get a multidimensional
     # state-by-node TPM (where the last axis corresponds to nodes).
     return np.concatenate(node_tpms, axis=-1)
