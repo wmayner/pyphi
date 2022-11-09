@@ -504,9 +504,7 @@ def approximate_specified_state(repertoire, partitioned_repertoire):
     fixed_nodes = np.where(np.sum(is_selective * is_informative, axis=1))[0]
 
     def informative_state(node):
-        return np.where(
-            informativeness[node, :] == informativeness[node, :].max()
-        )[0]
+        return np.where(informativeness[node, :] == informativeness[node, :].max())[0]
 
     for fixed_node in fixed_nodes:
         specified_state = np.where(
@@ -534,9 +532,9 @@ def approximate_specified_state(repertoire, partitioned_repertoire):
     # discriminant will be compared to the temporary informativeness.
     p = np.array([P[n, informative_state(n)] for n in nonfixed_nodes]).flatten()
     q = np.array([Q[n, informative_state(n)] for n in nonfixed_nodes]).flatten()
-    discriminants = (
-        p * np.log2(p / q) - (1 - p) * np.log2((1 - p) / (1 - q))
-    ) / (1 - 2 * p)
+    discriminants = (p * np.log2(p / q) - (1 - p) * np.log2((1 - p) / (1 - q))) / (
+        1 - 2 * p
+    )
 
     # The smaller the discriminant of a purview node, the more likely its true
     # specified state is to violate p > q. Thus we consider nodes in that order.
@@ -628,9 +626,13 @@ def iit_4_small_phi_no_absolute_value(p, q, state):
     return information_density(p, q).squeeze()[state]
 
 
-def forward_difference(subsystem, cut_subsystem, prev, next):
-    p = subsystem.forward_probability(prev, next)
-    q = cut_subsystem.forward_probability(prev, next)
+def forward_difference(
+    subsystem, cut_subsystem, prev_nodes, prev_state, next_nodes, next_state
+):
+    p = subsystem.forward_probability(prev_nodes, prev_state, next_nodes, next_state)
+    q = cut_subsystem.forward_probability(
+        prev_nodes, prev_state, next_nodes, next_state
+    )
     return information_density(p, q)
 
 

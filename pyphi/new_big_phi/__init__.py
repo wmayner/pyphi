@@ -316,17 +316,26 @@ def integration_value(
     )
     if config.SYSTEM_INTEGRATION_SCHEME == "FORWARD_DIFFERENCE":
         if direction == Direction.CAUSE:
-            prev, next = system_state[direction], subsystem.proper_state
+            prev_state, next_state = system_state[direction], subsystem.proper_state
         elif direction == Direction.EFFECT:
-            prev, next = subsystem.proper_state, system_state[direction]
-        phi = metrics.distribution.forward_difference(subsystem, cut_subsystem, prev, next)
+            prev_state, next_state = subsystem.proper_state, system_state[direction]
+        phi = metrics.distribution.forward_difference(
+            subsystem,
+            cut_subsystem,
+            subsystem.node_indices,
+            prev_state,
+            subsystem.node_indices,
+            next_state,
+        )
     else:
-        phi = _repertoire_distance(
+        phi = (
+            _repertoire_distance(
                 unpartitioned_repertoire,
                 partitioned_repertoire,
                 repertoire_distance=repertoire_distance,
                 state=system_state[direction],
             ),
+        )
     return (
         phi,
         unpartitioned_repertoire,

@@ -104,9 +104,7 @@ class Subsystem:
             self.external_indices = _external_indices
 
         # The TPM conditioned on the state of the external nodes.
-        self.tpm = self.network.tpm.condition_tpm(
-            self.external_indices, self.state
-        )
+        self.tpm = self.network.tpm.condition_tpm(self.external_indices, self.state)
         # The TPM for just the nodes in the subsystem.
         self.proper_tpm = self.tpm.squeeze()[..., list(self.node_indices)]
 
@@ -316,18 +314,30 @@ class Subsystem:
             raise ValueError("`indices` must be a subset of the Subsystem's indices.")
         return tuple(self._index2node[n] for n in indices)
 
+    def _single_node_forward_repertoire(
+        self, conditioning_nodes, conditioning_state, node_index
+    ):
+        # tpm = node.tpm.squeeze(axis=tuple(self.external_indices))
+        if not len(conditioning_nodes) == len(conditioning_state):
+            raise ValueError("Conditioning nodes and state must be the same length.")
+        node = self.nodes[node_index]
+        # Condition
+        conditioning_nodes = set(conditioning_nodes) & node.inputs
+        tpm = node.tpm.condition_tpm(conditioning_nodes, conditioning_state)
+        # Marginalize out non-conditioning nodes
+        nonconditioning_nodes = set(node.inputs) - set(conditioning_nodes)
+        tpm = tpm.marginalize_out(nonconditioning_nodes)
+        tpm = tpm.squeeze()
+        assert tpm.shape == (2,)
+        return tpm
 
-    def _single_node_forward_probability(self, node, prev, next_node_state):
-        tpm = node.tpm.squeeze(axis=tuple(self.external_indices))
-        prev_idx = tuple(s if size > 1 else 0 for size, s in zip(tpm.shape, prev))
-        return tpm[prev_idx + (next_node_state,)]
-
-
-    def forward_probability(self, prev, next):
+    def forward_probability(self, prev_nodes, prev_state, next_nodes, next_state):
         return np.prod(
             [
-                self._single_node_forward_probability(node, prev, next_node_state)
-                for node, next_node_state in zip(self.nodes, next)
+                self._single_node_forward_repertoire(prev_nodes, prev_state, i)[
+                    next_node_state
+                ]
+                for i, next_node_state in zip(next_nodes, next_state)
             ]
         )
 
@@ -395,7 +405,9 @@ class Subsystem:
     # TODO extend to nonbinary nodes
     @cache.method("_single_node_repertoire_cache", Direction.EFFECT)
     def _single_node_effect_repertoire(
-        self, mechanism: frozenset[int], purview_node_index: int
+        self,
+        mechanism: frozenset[int],
+        purview_node_index: int,
     ):
         # pylint: disable=missing-docstring
         purview_node = self._index2node[purview_node_index]
@@ -651,11 +663,14 @@ class Subsystem:
         partitioned_repertoire = self.partitioned_repertoire(
             direction, partition, **partitioned_repertoire_kwargs
         )
-        if repertoire_distance == 'FORWARD_DIFFERENCE':
-            prev, next = direction.order(self.state, kwargs['state'])
+        if repertoire_distance == "FORWARD_DIFFERENCE":
+            prev_nodes, next_nodes = direction.order(mechanism, purview)
+            prev_state, next_state = direction.order(self.state, kwargs["state"])
             cut_subsystem = self.apply_cut(partition)
-            p = self.forward_probability(prev, next)
-            q = cut_subsystem.forward_probability(prev, next)
+            p = self.forward_probability(prev_nodes, prev_state, next_nodes, next_state)
+            q = cut_subsystem.forward_probability(
+                prev_nodes, prev_state, next_nodes, next_state
+            )
             phi = metrics.distribution.information_density(p, q)
         else:
             phi = _repertoire_distance(
