@@ -28,7 +28,6 @@ from .distribution import max_entropy_distribution, repertoire_shape
 from .metrics.distribution import repertoire_distance as _repertoire_distance
 from .models import (
     Concept,
-    KCut,
     MaximallyIrreducibleCause,
     MaximallyIrreducibleEffect,
     NullCut,
@@ -663,9 +662,22 @@ class Subsystem:
         partitioned_repertoire = self.partitioned_repertoire(
             direction, partition, **partitioned_repertoire_kwargs
         )
+        # TODO(4.0) consolidate logic with system level partitions
         if repertoire_distance == "FORWARD_DIFFERENCE":
-            prev_nodes, next_nodes = direction.order(mechanism, purview)
-            prev_state, next_state = direction.order(self.state, kwargs["state"])
+            if direction == Direction.CAUSE:
+                prev_nodes, next_nodes = purview, mechanism
+                prev_state, next_state = (
+                    kwargs["state"],
+                    utils.state_of(mechanism, self.state),
+                )
+            elif direction == Direction.EFFECT:
+                prev_nodes, next_nodes = mechanism, purview
+                prev_state, next_state = (
+                    utils.state_of(mechanism, self.state),
+                    kwargs["state"],
+                )
+            else:
+                validate.direction(direction)
             cut_subsystem = self.apply_cut(partition)
             p = self.forward_probability(prev_nodes, prev_state, next_nodes, next_state)
             q = cut_subsystem.forward_probability(
