@@ -127,7 +127,7 @@ def subsystem(s):
     Checks its state and cut.
     """
     node_states(s.state)
-    cut(s.cut, s.cut_indices)
+    # cut(s.cut, s.cut_indices)
     if config.VALIDATE_SUBSYSTEM_STATES:
         state_reachable(s)
     return True
