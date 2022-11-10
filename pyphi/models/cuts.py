@@ -65,7 +65,7 @@ class _CutBase:
             a (tuple[int]): A set of nodes.
             b (tuple[int]): A set of nodes.
         """
-        n = max(self.indices) + 1
+        n = max(self.indices + a + b) + 1
         return self.cut_matrix(n)[np.ix_(a, b)].any()
 
     def splits_mechanism(self, mechanism):
