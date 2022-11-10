@@ -679,11 +679,14 @@ class Subsystem:
             else:
                 validate.direction(direction)
             cut_subsystem = self.apply_cut(partition)
-            p = self.forward_probability(prev_nodes, prev_state, next_nodes, next_state)
-            q = cut_subsystem.forward_probability(
-                prev_nodes, prev_state, next_nodes, next_state
+            phi = metrics.distribution.forward_difference(
+                self,
+                cut_subsystem,
+                prev_nodes,
+                prev_state,
+                next_nodes,
+                next_state,
             )
-            phi = metrics.distribution.information_density(p, q)
         else:
             phi = _repertoire_distance(
                 repertoire,
