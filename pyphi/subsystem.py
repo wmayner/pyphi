@@ -319,7 +319,7 @@ class Subsystem:
         # tpm = node.tpm.squeeze(axis=tuple(self.external_indices))
         if not len(conditioning_nodes) == len(conditioning_state):
             raise ValueError("Conditioning nodes and state must be the same length.")
-        node = self.nodes[node_index]
+        node = self._index2node[node_index]
         # Condition
         conditioning_nodes = set(conditioning_nodes) & node.inputs
         tpm = node.tpm.condition_tpm(conditioning_nodes, conditioning_state)
