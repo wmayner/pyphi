@@ -328,13 +328,11 @@ def integration_value(
             next_state,
         )
     else:
-        phi = (
-            _repertoire_distance(
-                unpartitioned_repertoire,
-                partitioned_repertoire,
-                repertoire_distance=repertoire_distance,
-                state=system_state[direction],
-            ),
+        phi = _repertoire_distance(
+            unpartitioned_repertoire,
+            partitioned_repertoire,
+            repertoire_distance=repertoire_distance,
+            state=system_state[direction],
         )
     return (
         phi,
