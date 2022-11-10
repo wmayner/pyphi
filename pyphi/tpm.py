@@ -202,6 +202,8 @@ class TPM:
             print(f"{state}: {tpm[state]}")
 
     def __getattr__(self, name):
+        if not "_tpm" in vars(self):
+            raise AttributeError
         return getattr(self._tpm, name)
 
     def __getitem__(self, i):
