@@ -460,7 +460,7 @@ class KPartition(Sequence, _CutBase):
 
     @property
     def indices(self):
-        return self.mechanism + self.purview
+        return tuple(sorted(set(self.mechanism + self.purview)))
 
     def normalize(self):
         """Normalize the order of parts in the partition."""
