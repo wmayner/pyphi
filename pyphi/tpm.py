@@ -202,7 +202,7 @@ class TPM:
             print(f"{state}: {tpm[state]}")
 
     def __getattr__(self, name):
-        if not "_tpm" in vars(self):
+        if "_tpm" not in vars(self):
             raise AttributeError
         return getattr(self._tpm, name)
 
