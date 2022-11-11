@@ -204,7 +204,19 @@ class TPM:
     def __getattr__(self, name):
         if "_tpm" not in vars(self):
             raise AttributeError
-        return getattr(self._tpm, name)
+
+        attribute = getattr(self._tpm, name)
+
+        if name in {"squeeze", "__mul__"}:
+            overriding_method = lambda *args, **kwargs: type(self)(
+                attribute(*args, **kwargs),
+                validate=False
+            )
+            overriding_method.__doc__ = attribute.__doc__
+
+            return overriding_method
+
+        return attribute
 
     def __getitem__(self, i):
         item = self._tpm[i]
@@ -310,10 +322,6 @@ class ExplicitTPM(TPM):
 
         return tpm
 
-    def squeeze(self, **kwargs):
-        """Remove axes of length one from the TPM."""
-        return type(self)(self._tpm.squeeze(**kwargs), validate=False)
-
     def __eq__(self, o: object):
         """Return whether this TPM equals the other object.
 
@@ -331,7 +339,7 @@ class ExplicitTPM(TPM):
         return not self.__eq__(o)
 
     def __mul__(self, o):
-        return type(self)(self._tpm * o._tpm, validate=False)
+        return self.__getattr__("__mul__")(o)
 
     def __repr__(self):
         return "ExplicitTPM({})".format(self._tpm)
