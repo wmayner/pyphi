@@ -315,18 +315,26 @@ def integration_value(
         direction, subsystem.node_indices, subsystem.node_indices
     )
     if config.SYSTEM_INTEGRATION_SCHEME == "FORWARD_DIFFERENCE":
+        prev_nodes = next_nodes = subsystem.node_indices
         if direction == Direction.CAUSE:
             prev_state, next_state = system_state[direction], subsystem.proper_state
         elif direction == Direction.EFFECT:
             prev_state, next_state = subsystem.proper_state, system_state[direction]
+        p = subsystem.forward_probability(
+            prev_nodes, prev_state, next_nodes, next_state
+        )
+        q = cut_subsystem.forward_probability(
+            prev_nodes, prev_state, next_nodes, next_state
+        )
         phi = metrics.distribution.forward_difference(
             subsystem,
             cut_subsystem,
-            subsystem.node_indices,
+            prev_nodes,
             prev_state,
-            subsystem.node_indices,
+            next_nodes,
             next_state,
         )
+        return (phi, p, q)
     else:
         phi = _repertoire_distance(
             unpartitioned_repertoire,
