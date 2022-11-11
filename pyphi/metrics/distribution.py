@@ -626,14 +626,48 @@ def iit_4_small_phi_no_absolute_value(p, q, state):
     return information_density(p, q).squeeze()[state]
 
 
+@measures.register("FORWARD_DIFFERENCE", asymmetric=True)
 def forward_difference(
-    subsystem, cut_subsystem, prev_nodes, prev_state, next_nodes, next_state
+    subsystem,
+    cut_subsystem,
+    prev_nodes,
+    prev_state,
+    next_nodes,
+    next_state,
+    return_probabilities=False,
 ):
     p = subsystem.forward_probability(prev_nodes, prev_state, next_nodes, next_state)
     q = cut_subsystem.forward_probability(
         prev_nodes, prev_state, next_nodes, next_state
     )
-    return information_density(p, q)
+    value = information_density(p, q)
+    if return_probabilities:
+        return value, p, q
+    return value
+
+
+@measures.register("GENERALIZED_INTRINSIC_DIFFERENCE", asymmetric=True)
+def generalized_intrinsic_difference(
+    subsystem,
+    cut_subsystem,
+    prev_nodes,
+    prev_state,
+    next_nodes,
+    next_state,
+    selectivity_repertoire,
+    state,
+    return_probabilities=False,
+):
+    selectivity = selectivity_repertoire.squeeze()[state]
+    p = subsystem.forward_probability(prev_nodes, prev_state, next_nodes, next_state)
+    q = cut_subsystem.forward_probability(
+        prev_nodes, prev_state, next_nodes, next_state
+    )
+    informativeness = pointwise_mutual_information(p, q)
+    value = selectivity * informativeness
+    if return_probabilities:
+        return value, p, q
+    return value
 
 
 @measures.register("APMI", asymmetric=True)

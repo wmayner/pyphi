@@ -625,6 +625,69 @@ class Subsystem:
     # MIP methods
     # =========================================================================
 
+    def order_states(self, direction, mechanism, purview, purview_state):
+        if direction == Direction.CAUSE:
+            prev_nodes, next_nodes = purview, mechanism
+            prev_state, next_state = (
+                purview_state,
+                utils.state_of(mechanism, self.state),
+            )
+            selectivity_state = prev_state
+        elif direction == Direction.EFFECT:
+            prev_nodes, next_nodes = mechanism, purview
+            prev_state, next_state = (
+                utils.state_of(mechanism, self.state),
+                purview_state,
+            )
+            selectivity_state = next_state
+        else:
+            validate.direction(direction)
+        return prev_nodes, prev_state, next_nodes, next_state, selectivity_state
+
+    def _forward_difference(
+        self,
+        repertoire_distance,
+        direction,
+        mechanism,
+        purview,
+        partition,
+        repertoire=None,
+        **kwargs,
+    ):
+        cut_subsystem = self.apply_cut(partition)
+        (
+            prev_nodes,
+            prev_state,
+            next_nodes,
+            next_state,
+            selectivity_state,
+        ) = self.order_states(direction, mechanism, purview, kwargs.pop("state"))
+        if repertoire_distance == "FORWARD_DIFFERENCE":
+            phi, p, q = metrics.distribution.forward_difference(
+                self,
+                cut_subsystem,
+                prev_nodes,
+                prev_state,
+                next_nodes,
+                next_state,
+                return_probabilities=True,
+                **kwargs,
+            )
+        elif repertoire_distance == "GENERALIZED_INTRINSIC_DIFFERENCE":
+            phi, p, q = metrics.distribution.generalized_intrinsic_difference(
+                self,
+                cut_subsystem,
+                prev_nodes,
+                prev_state,
+                next_nodes,
+                next_state,
+                repertoire,
+                selectivity_state,
+                return_probabilities=True,
+                **kwargs,
+            )
+        return phi, p, q
+
     def evaluate_partition(
         self,
         direction,
@@ -632,8 +695,10 @@ class Subsystem:
         purview,
         partition,
         repertoire=None,
+        partitioned_repertoire=None,
         repertoire_distance=None,
         return_unpartitioned_repertoire=False,
+        return_partitioned_repertoire=True,
         partitioned_repertoire_kwargs=None,
         **kwargs,
     ):
@@ -658,36 +723,26 @@ class Subsystem:
         # TODO(4.0) refactor
         if repertoire is None:
             repertoire = self.repertoire(direction, mechanism, purview)
-        partitioned_repertoire_kwargs = partitioned_repertoire_kwargs or dict()
-        partitioned_repertoire = self.partitioned_repertoire(
-            direction, partition, **partitioned_repertoire_kwargs
-        )
         # TODO(4.0) consolidate logic with system level partitions
-        if repertoire_distance == "FORWARD_DIFFERENCE":
-            if direction == Direction.CAUSE:
-                prev_nodes, next_nodes = purview, mechanism
-                prev_state, next_state = (
-                    kwargs["state"],
-                    utils.state_of(mechanism, self.state),
-                )
-            elif direction == Direction.EFFECT:
-                prev_nodes, next_nodes = mechanism, purview
-                prev_state, next_state = (
-                    utils.state_of(mechanism, self.state),
-                    kwargs["state"],
-                )
-            else:
-                validate.direction(direction)
-            cut_subsystem = self.apply_cut(partition)
-            phi = metrics.distribution.forward_difference(
-                self,
-                cut_subsystem,
-                prev_nodes,
-                prev_state,
-                next_nodes,
-                next_state,
+        if repertoire_distance in [
+            "FORWARD_DIFFERENCE",
+            "GENERALIZED_INTRINSIC_DIFFERENCE",
+        ]:
+            phi, repertoire, partitioned_repertoire = self._forward_difference(
+                repertoire_distance,
+                direction,
+                mechanism,
+                purview,
+                partition,
+                repertoire=repertoire,
+                **kwargs,
             )
         else:
+            if partitioned_repertoire is None:
+                partitioned_repertoire_kwargs = partitioned_repertoire_kwargs or dict()
+                partitioned_repertoire = self.partitioned_repertoire(
+                    direction, partition, **partitioned_repertoire_kwargs
+                )
             phi = _repertoire_distance(
                 repertoire,
                 partitioned_repertoire,
@@ -695,9 +750,12 @@ class Subsystem:
                 repertoire_distance=repertoire_distance,
                 **kwargs,
             )
+        return_value = (phi,)
+        if return_partitioned_repertoire:
+            return_value += (partitioned_repertoire,)
         if return_unpartitioned_repertoire:
-            return (phi, partitioned_repertoire, repertoire)
-        return (phi, partitioned_repertoire)
+            return_value += (repertoire,)
+        return return_value
 
     def find_mip(self, direction, mechanism, purview, **kwargs):
         """Return the minimum information partition for a mechanism over a

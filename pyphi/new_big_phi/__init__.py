@@ -307,45 +307,18 @@ def integration_value(
     system_state: SystemState,
     repertoire_distance: str = None,
 ) -> float:
-    # TODO(4.0) clean up this mess
-    unpartitioned_repertoire = subsystem.repertoire(
-        direction, subsystem.node_indices, subsystem.node_indices
-    )
     partitioned_repertoire = cut_subsystem.repertoire(
         direction, subsystem.node_indices, subsystem.node_indices
     )
-    if config.SYSTEM_INTEGRATION_SCHEME == "FORWARD_DIFFERENCE":
-        prev_nodes = next_nodes = subsystem.node_indices
-        if direction == Direction.CAUSE:
-            prev_state, next_state = system_state[direction], subsystem.proper_state
-        elif direction == Direction.EFFECT:
-            prev_state, next_state = subsystem.proper_state, system_state[direction]
-        p = subsystem.forward_probability(
-            prev_nodes, prev_state, next_nodes, next_state
-        )
-        q = cut_subsystem.forward_probability(
-            prev_nodes, prev_state, next_nodes, next_state
-        )
-        phi = metrics.distribution.forward_difference(
-            subsystem,
-            cut_subsystem,
-            prev_nodes,
-            prev_state,
-            next_nodes,
-            next_state,
-        )
-        return (phi, p, q)
-    else:
-        phi = _repertoire_distance(
-            unpartitioned_repertoire,
-            partitioned_repertoire,
-            repertoire_distance=repertoire_distance,
-            state=system_state[direction],
-        )
-    return (
-        phi,
-        unpartitioned_repertoire,
-        partitioned_repertoire,
+    return subsystem.evaluate_partition(
+        direction,
+        subsystem.node_indices,
+        subsystem.node_indices,
+        cut_subsystem.cut,
+        partitioned_repertoire=partitioned_repertoire,
+        repertoire_distance=repertoire_distance,
+        state=system_state[direction],
+        return_unpartitioned_repertoire=True,
     )
 
 
@@ -357,9 +330,7 @@ def evaluate_partition(
     directions: Optional[Iterable[Direction]] = None,
 ) -> SystemIrreducibilityAnalysis:
     directions = fallback(directions, Direction.both())
-
     cut_subsystem = subsystem.apply_cut(partition)
-
     integration = {
         direction: integration_value(
             direction,
@@ -370,8 +341,8 @@ def evaluate_partition(
         )
         for direction in Direction.both()
     }
-    phi_c, repertoire_c, partitioned_repertoire_c = integration[Direction.CAUSE]
-    phi_e, repertoire_e, partitioned_repertoire_e = integration[Direction.EFFECT]
+    phi_c, partitioned_repertoire_c, repertoire_c = integration[Direction.CAUSE]
+    phi_e, partitioned_repertoire_e, repertoire_e = integration[Direction.EFFECT]
 
     phi = integration_values[config.INTEGRATION_VALUE](
         integration[direction][0] for direction in directions
