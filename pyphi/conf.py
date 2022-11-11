@@ -490,8 +490,8 @@ class PyphiConfig(Config):
     REPERTOIRE_DISTANCE_INFORMATION = Option(
         "GENERALIZED_INTRINSIC_DIFFERENCE",
         doc="""
-        The repertoire distance used for evaluating information specified by a
-        mechanism (i.e., finding the maximal state with respect to a purview).
+    The repertoire distance used for evaluating information specified by a
+    mechanism (i.e., finding the maximal state with respect to a purview).
     """,
     )
 
