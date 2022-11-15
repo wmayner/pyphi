@@ -407,12 +407,13 @@ class Subsystem:
         self,
         mechanism: frozenset[int],
         purview_node_index: int,
+        conditioning_state: tuple[int],
     ):
         # pylint: disable=missing-docstring
         purview_node = self._index2node[purview_node_index]
         # Condition on the state of the inputs that are in the mechanism.
         mechanism_inputs = purview_node.inputs & mechanism
-        tpm = purview_node.tpm.condition_tpm(mechanism_inputs, self.state)
+        tpm = purview_node.tpm.condition_tpm(mechanism_inputs, conditioning_state)
         # Marginalize-out the inputs that aren't in the mechanism.
         nonmechanism_inputs = purview_node.inputs - mechanism
         tpm = tpm.marginalize_out(nonmechanism_inputs).tpm
@@ -421,7 +422,10 @@ class Subsystem:
 
     @cache.method("_repertoire_cache", Direction.EFFECT)
     def _effect_repertoire_virtualized(
-        self, mechanism: frozenset[int], purview: tuple[int]
+        self,
+        mechanism: frozenset[int],
+        purview: tuple[int],
+        conditioning_state: tuple[int],
     ):
         """Return the effect repertoire of a mechanism over a purview.
 
@@ -447,7 +451,10 @@ class Subsystem:
         # individual nodes.
         return joint * functools.reduce(
             np.multiply,
-            [self._single_node_effect_repertoire(mechanism, p) for p in purview],
+            [
+                self._single_node_effect_repertoire(mechanism, p, conditioning_state)
+                for p in purview
+            ],
         )
 
     # TODO extend to nonbinary nodes
@@ -457,10 +464,13 @@ class Subsystem:
         mechanism: frozenset[int],
         purview: tuple[int],
         nonvirtualized_units: frozenset[int],
+        conditioning_state: tuple[int],
     ):
         # First, marginalize out virtualized nonmechanism units as normal.
-        virtualized_units = set(self.node_indices) - mechanism - nonvirtualized_units
-        tpm = self.tpm.marginalize_out(virtualized_units).tpm
+        virtualized_nonmechanism_units = (
+            set(self.node_indices) - mechanism - nonvirtualized_units
+        )
+        tpm = self.tpm.marginalize_out(virtualized_nonmechanism_units).tpm
         # Ignore any units outside the purview.
         tpm = tpm[..., list(purview)]
         # Convert to state-by-state to get explicit joint probabilities.
@@ -469,9 +479,7 @@ class Subsystem:
         n_prev = int(log2(joint.shape[0]))
         joint = convert.sbs_to_multidimensional(joint)
         # Condition on the state of the mechanism.
-        conditioning_indices = flatten(
-            [[s, np.newaxis] for s in utils.state_of(mechanism, self.state)]
-        )
+        conditioning_indices = flatten([[s, np.newaxis] for s in conditioning_state])
         joint = joint[tuple(conditioning_indices)]
         # Marginalize over non-mechanism states.
         previous_state_axes = tuple(range(n_prev))
@@ -481,19 +489,25 @@ class Subsystem:
         # Reshape into a multidimensional repertoire.
         return joint.reshape(repertoire_shape(purview, self.tpm_size))
 
-    def effect_repertoire(self, mechanism, purview, nonvirtualized_units=()):
+    def effect_repertoire(
+        self, mechanism, purview, nonvirtualized_units=(), mechanism_state=None
+    ):
         # If the purview is empty, the distribution is empty, so return the
         # multiplicative identity.
         if not purview:
             return np.array([1.0])
+        if mechanism_state is None:
+            mechanism_state = utils.state_of(mechanism, self.state)
         # Use a frozenset so the arguments to `_single_node_effect_repertoire`
         # can be hashed and cached.
         mechanism = frozenset(mechanism)
         if not nonvirtualized_units:
-            return self._effect_repertoire_virtualized(mechanism, purview)
+            return self._effect_repertoire_virtualized(
+                mechanism, purview, mechanism_state
+            )
         nonvirtualized_units = frozenset(nonvirtualized_units)
         return self._effect_repertoire_nonvirtualized(
-            mechanism, purview, nonvirtualized_units
+            mechanism, purview, nonvirtualized_units, mechanism_state
         )
 
     def repertoire(self, direction, mechanism, purview, **kwargs):
@@ -644,14 +658,13 @@ class Subsystem:
             validate.direction(direction)
         return prev_nodes, prev_state, next_nodes, next_state, selectivity_state
 
+    # TODO(4.0) remove
     def _forward_difference(
         self,
-        repertoire_distance,
         direction,
         mechanism,
         purview,
         partition,
-        repertoire=None,
         **kwargs,
     ):
         cut_subsystem = self.apply_cut(partition)
@@ -660,33 +673,58 @@ class Subsystem:
             prev_state,
             next_nodes,
             next_state,
+            _,
+        ) = self.order_states(direction, mechanism, purview, kwargs.pop("state"))
+        return metrics.distribution.forward_difference(
+            self,
+            cut_subsystem,
+            prev_nodes,
+            prev_state,
+            next_nodes,
+            next_state,
+            return_probabilities=True,
+            **kwargs,
+        )
+
+    def _generalized_intrinsic_difference(
+        self,
+        direction,
+        mechanism,
+        purview,
+        partition,
+        selectivity_repertoire,
+        partitioned_repertoire=None,
+        **kwargs,
+    ):
+        (
+            prev_nodes,
+            prev_state,
+            next_nodes,
+            next_state,
             selectivity_state,
         ) = self.order_states(direction, mechanism, purview, kwargs.pop("state"))
-        if repertoire_distance == "FORWARD_DIFFERENCE":
-            phi, p, q = metrics.distribution.forward_difference(
-                self,
-                cut_subsystem,
+        forward_repertoire = self.effect_repertoire(
+            prev_nodes,
+            next_nodes,
+            mechanism_state=prev_state,
+            **kwargs,
+        )
+        if partitioned_repertoire is None:
+            cut_subsystem = self.apply_cut(partition)
+            partitioned_forward_repertoire = cut_subsystem.effect_repertoire(
                 prev_nodes,
-                prev_state,
                 next_nodes,
-                next_state,
-                return_probabilities=True,
+                mechanism_state=prev_state,
                 **kwargs,
             )
-        elif repertoire_distance == "GENERALIZED_INTRINSIC_DIFFERENCE":
-            phi, p, q = metrics.distribution.generalized_intrinsic_difference(
-                self,
-                cut_subsystem,
-                prev_nodes,
-                prev_state,
-                next_nodes,
-                next_state,
-                repertoire,
-                selectivity_state,
-                return_probabilities=True,
-                **kwargs,
-            )
-        return phi, p, q
+        phi = metrics.distribution.generalized_intrinsic_difference(
+            forward_repertoire,
+            partitioned_forward_repertoire,
+            next_state,
+            selectivity_repertoire,
+            selectivity_state,
+        )
+        return phi, forward_repertoire, partitioned_forward_repertoire
 
     def evaluate_partition(
         self,
@@ -721,20 +759,29 @@ class Subsystem:
         """
         repertoire_distance = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
         # TODO(4.0) refactor
+        # TODO(4.0) consolidate logic with system level partitions
         if repertoire is None:
             repertoire = self.repertoire(direction, mechanism, purview)
-        # TODO(4.0) consolidate logic with system level partitions
-        if repertoire_distance in [
-            "FORWARD_DIFFERENCE",
-            "GENERALIZED_INTRINSIC_DIFFERENCE",
-        ]:
+        if repertoire_distance == "FORWARD_DIFFERENCE":
             phi, repertoire, partitioned_repertoire = self._forward_difference(
-                repertoire_distance,
                 direction,
                 mechanism,
                 purview,
                 partition,
-                repertoire=repertoire,
+                partitioned_repertoire=partitioned_repertoire,
+                **kwargs,
+            )
+        elif repertoire_distance == "GENERALIZED_INTRINSIC_DIFFERENCE":
+            (
+                phi,
+                repertoire,
+                partitioned_repertoire,
+            ) = self._generalized_intrinsic_difference(
+                direction,
+                mechanism,
+                purview,
+                partition,
+                selectivity_repertoire=repertoire,
                 **kwargs,
             )
         else:
