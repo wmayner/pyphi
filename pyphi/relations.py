@@ -4,7 +4,6 @@
 
 """Functions for computing relations between concepts."""
 
-import operator
 import warnings
 from enum import Enum, auto, unique
 from itertools import product
