@@ -330,6 +330,7 @@ class Subsystem:
         assert tpm.shape == (2,)
         return tpm
 
+    # TODO(4.0): remove when forward difference is removed
     def forward_probability(self, prev_nodes, prev_state, next_nodes, next_state):
         return np.prod(
             [
@@ -953,8 +954,7 @@ class Subsystem:
 
         return max_mip
 
-    # TODO rename to intrinsic information?
-    def find_maximal_state_under_complete_partition(
+    def intrinsic_information(
         self,
         direction: Direction,
         mechanism: tuple[int],
@@ -1091,7 +1091,7 @@ class Subsystem:
                 # `all_mips` and taking max is correct
                 all_mips = []
                 for purview in purviews:
-                    maximal_states = self.find_maximal_state_under_complete_partition(
+                    maximal_states = self.intrinsic_information(
                         direction, mechanism, purview
                     )
                     mips = [

@@ -142,7 +142,7 @@ def find_system_state(
         ii_cause,
         cause_repertoire,
         partitioned_cause_repertoires,
-    ) = subsystem.find_maximal_state_under_complete_partition(
+    ) = subsystem.intrinsic_information(
         Direction.CAUSE,
         mechanism=subsystem.node_indices,
         purview=subsystem.node_indices,
@@ -155,7 +155,7 @@ def find_system_state(
         ii_effect,
         effect_repertoire,
         partitioned_effect_repertoires,
-    ) = subsystem.find_maximal_state_under_complete_partition(
+    ) = subsystem.intrinsic_information(
         Direction.EFFECT,
         mechanism=subsystem.node_indices,
         purview=subsystem.node_indices,

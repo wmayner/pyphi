@@ -628,6 +628,7 @@ def iit_4_small_phi_no_absolute_value(p, q, state):
     return information_density(p, q).squeeze()[state]
 
 
+# TODO(4.0) remove
 @measures.register("FORWARD_DIFFERENCE", asymmetric=True)
 def forward_difference(
     subsystem,
