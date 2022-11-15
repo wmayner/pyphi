@@ -493,23 +493,21 @@ class Subsystem:
     def effect_repertoire(
         self, mechanism, purview, nonvirtualized_units=(), mechanism_state=None
     ):
-        # If the purview is empty, the distribution is empty, so return the
-        # multiplicative identity.
-        if not purview:
-            return np.array([1.0])
         if mechanism_state is None:
             mechanism_state = utils.state_of(mechanism, self.state)
         # Use a frozenset so the arguments to `_single_node_effect_repertoire`
         # can be hashed and cached.
         mechanism = frozenset(mechanism)
-        if not nonvirtualized_units:
-            return self._effect_repertoire_virtualized(
-                mechanism, purview, mechanism_state
+        if nonvirtualized_units:
+            nonvirtualized_units = frozenset(nonvirtualized_units)
+            return self._effect_repertoire_nonvirtualized(
+                mechanism, purview, nonvirtualized_units, mechanism_state
             )
-        nonvirtualized_units = frozenset(nonvirtualized_units)
-        return self._effect_repertoire_nonvirtualized(
-            mechanism, purview, nonvirtualized_units, mechanism_state
-        )
+        # If the purview is empty, the distribution is empty, so return the
+        # multiplicative identity.
+        if not purview:
+            return np.array([1.0])
+        return self._effect_repertoire_virtualized(mechanism, purview, mechanism_state)
 
     def repertoire(self, direction, mechanism, purview, **kwargs):
         """Return the cause or effect repertoire based on a direction.
@@ -532,7 +530,13 @@ class Subsystem:
             return self.cause_repertoire(mechanism, purview, **kwargs)
         elif direction == Direction.EFFECT:
             return self.effect_repertoire(mechanism, purview, **kwargs)
+        return validate.direction(direction)
 
+    def forward_repertoire(self, direction, mechanism, purview, **kwargs):
+        if direction == Direction.CAUSE:
+            return self.effect_repertoire(purview, mechanism, **kwargs)
+        elif direction == Direction.EFFECT:
+            return self.effect_repertoire(mechanism, purview, **kwargs)
         return validate.direction(direction)
 
     def unconstrained_repertoire(self, direction, purview, **kwargs):
@@ -687,14 +691,26 @@ class Subsystem:
             **kwargs,
         )
 
+    # TODO refactor
+    # def forward_repertoire(self, direction, mechanism, purview, state, **kwargs):
+    #     (
+    #         prev_nodes,
+    #         prev_state,
+    #         next_nodes,
+    #         next_state,
+    #         _,
+    #     ) = self.order_states(direction, mechanism, purview, state)
+    #     return self.effect_repertoire(prev_nodes, next_nodes, **kwargs)
+
     def _generalized_intrinsic_difference(
         self,
         direction,
         mechanism,
         purview,
-        partition,
         selectivity_repertoire,
-        partitioned_repertoire=None,
+        partition=None,
+        forward_repertoire=None,
+        partitioned_forward_repertoire=None,
         **kwargs,
     ):
         (
@@ -704,13 +720,14 @@ class Subsystem:
             next_state,
             selectivity_state,
         ) = self.order_states(direction, mechanism, purview, kwargs.pop("state"))
-        forward_repertoire = self.effect_repertoire(
-            prev_nodes,
-            next_nodes,
-            mechanism_state=prev_state,
-            **kwargs,
-        )
-        if partitioned_repertoire is None:
+        if forward_repertoire is None:
+            forward_repertoire = self.effect_repertoire(
+                prev_nodes,
+                next_nodes,
+                mechanism_state=prev_state,
+                **kwargs,
+            )
+        if partitioned_forward_repertoire is None:
             cut_subsystem = self.apply_cut(partition)
             partitioned_forward_repertoire = cut_subsystem.effect_repertoire(
                 prev_nodes,
@@ -781,8 +798,8 @@ class Subsystem:
                 direction,
                 mechanism,
                 purview,
-                partition,
                 selectivity_repertoire=repertoire,
+                partition=partition,
                 **kwargs,
             )
         else:
@@ -979,25 +996,74 @@ class Subsystem:
                 virtual_units
             )
 
-        repertoire = self.repertoire(direction, mechanism, purview)
-        partition = complete_partition(mechanism, purview)
+        # partition = complete_partition(mechanism, purview)
+        #
+        # def evaluate_state(state):
+        #     # TODO(4.0) only need to compute partitioned_repertoire once!
+        #     information, partitioned_repertoire = self.evaluate_partition(
+        #         direction,
+        #         mechanism,
+        #         purview,
+        #         partition,
+        #         partitioned_repertoire_kwargs=dict(
+        #             nonvirtualized_units=nonvirtualized_units,
+        #         ),
+        #         repertoire=repertoire,
+        #         repertoire_distance=repertoire_distance,
+        #         state=state,
+        #     )
+        #     return information, partitioned_repertoire
+        if repertoire_distance == "GENERALIZED_INTRINSIC_DIFFERENCE":
+            selectivity_repertoire = self.repertoire(
+                direction, mechanism, purview, nonvirtualized_units=nonvirtualized_units
+            )
+            repertoire = self.forward_repertoire(
+                direction, mechanism, purview, nonvirtualized_units=nonvirtualized_units
+            )
+            prev_nodes = ()
+            if direction == Direction.CAUSE:
+                next_nodes = mechanism
+            elif direction == Direction.EFFECT:
+                next_nodes = purview
+            unconstrained_repertoire = self.effect_repertoire(
+                prev_nodes,
+                next_nodes,
+                nonvirtualized_units=nonvirtualized_units,
+            )
 
-        def evaluate_state(state):
-            # TODO(4.0) only need to compute partitioned_repertoire once!
-            information, partitioned_repertoire = self.evaluate_partition(
+            def evaluate_state(state):
+                (
+                    information,
+                    _,
+                    partitioned_forward_repertoire,
+                ) = self._generalized_intrinsic_difference(
+                    direction,
+                    mechanism,
+                    purview,
+                    selectivity_repertoire,
+                    forward_repertoire=repertoire,
+                    partitioned_forward_repertoire=unconstrained_repertoire,
+                    state=state,
+                )
+                return information, partitioned_forward_repertoire
+
+        else:
+            repertoire = self.repertoire(
+                direction, mechanism, purview, nonvirtualized_units=nonvirtualized_units
+            )
+            unconstrained_repertoire = self.repertoire(
                 direction,
                 mechanism,
                 purview,
-                partition,
-                partitioned_repertoire_kwargs=dict(
-                    nonvirtualized_units=nonvirtualized_units,
-                ),
-                repertoire=repertoire,
-                repertoire_distance=repertoire_distance,
-                state=state,
+                nonvirtualized_units=nonvirtualized_units,
             )
-            return information, partitioned_repertoire
 
+            def evaluate_state(state):
+                return _repertoire_distance(
+                    repertoire, unconstrained_repertoire, state=state
+                )
+
+        # TODO(4.0): compute arraywise once, then find max; requires refactoring state kwarg to metrics
         state_to_information = {state: evaluate_state(state) for state in states}
         max_information = max(
             [information for information, _ in state_to_information.values()]
