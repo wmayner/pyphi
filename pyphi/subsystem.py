@@ -36,7 +36,7 @@ from .models import (
 )
 from .network import irreducible_purviews
 from .node import generate_nodes
-from .partition import complete_partition, mip_partitions
+from .partition import mip_partitions
 from .utils import state_of
 
 log = logging.getLogger(__name__)
