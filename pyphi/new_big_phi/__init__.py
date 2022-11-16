@@ -262,7 +262,8 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         body = fmt.header(self.__class__.__name__, body, under_char=fmt.HEADER_BAR_2)
         body = fmt.center(body)
         column_extent = body.split("\n")[2].index(":")
-        body += "\n" + indent(str(self.partition), " " * (column_extent + 2))
+        if self.partition:
+            body += "\n" + indent(str(self.partition), " " * (column_extent + 2))
         return fmt.box(body)
 
     def to_json(self):
@@ -275,6 +276,8 @@ class NullSystemIrreducibilityAnalysis(SystemIrreducibilityAnalysis):
     def __init__(self, **kwargs):
         super().__init__(
             phi=0,
+            phi_cause=0,
+            phi_effect=0,
             partition=None,
             **kwargs,
         )
@@ -286,7 +289,7 @@ class NullSystemIrreducibilityAnalysis(SystemIrreducibilityAnalysis):
                 ",".join(self.node_labels.coerce_to_labels(self.node_indices)),
             ),
             (f"           {fmt.BIG_PHI}", self.phi),
-        ]
+        ] + self.system_state._repr_columns()
         if self.reasons:
             columns.append(("Reasons", ", ".join([r.name for r in self.reasons])))
         return columns
@@ -368,6 +371,19 @@ def evaluate_partition(
 @unique
 class ShortCircuitConditions(Enum):
     NO_VALID_PARTITIONS = auto()
+    NO_CAUSE = auto()
+    NO_EFFECT = auto()
+
+
+def _has_no_cause_or_effect(system_state):
+    reasons = []
+    for direction, reason in zip(
+        Direction.both(),
+        [ShortCircuitConditions.NO_CAUSE, ShortCircuitConditions.NO_EFFECT],
+    ):
+        if system_state.intrinsic_information[direction] <= 0:
+            reasons.append(reason)
+    return reasons
 
 
 def sia_minimization_key(sia):
@@ -413,11 +429,19 @@ def sia(
 
     system_state = find_system_state(subsystem)
 
-    default_sia = NullSystemIrreducibilityAnalysis(
-        reasons=[ShortCircuitConditions.NO_VALID_PARTITIONS],
-        node_indices=subsystem.node_indices,
-        node_labels=subsystem.node_labels,
-    )
+    def _null_sia(**kwargs):
+        return NullSystemIrreducibilityAnalysis(
+            system_state=system_state,
+            node_indices=subsystem.node_indices,
+            node_labels=subsystem.node_labels,
+            **kwargs,
+        )
+
+    shortcircuit_reasons = _has_no_cause_or_effect(system_state)
+    if shortcircuit_reasons:
+        return _null_sia(reasons=shortcircuit_reasons)
+
+    default_sia = _null_sia(reasons=[ShortCircuitConditions.NO_VALID_PARTITIONS])
 
     kwargs = {
         "parallel": config.PARALLEL_CUT_EVALUATION,
