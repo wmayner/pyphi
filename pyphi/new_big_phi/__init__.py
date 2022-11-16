@@ -4,18 +4,16 @@ from dataclasses import dataclass
 from enum import Enum, auto, unique
 from textwrap import indent
 from typing import Dict, Iterable, Optional, Union
-import numpy as np
 from copy import copy
 
 from numpy.typing import ArrayLike
 from toolz import concat
 
-from .. import Direction, Subsystem, compute, config, connectivity, utils, metrics
+from .. import Direction, Subsystem, compute, config, connectivity, utils
 from ..compute.network import reachable_subsystems
 from ..compute.parallel import MapReduce
 from ..conf import fallback
 from ..labels import NodeLabels
-from ..metrics.distribution import repertoire_distance as _repertoire_distance
 from ..models import cmp, fmt
 from ..models.cuts import Cut, GeneralKCut, SystemPartition
 from ..models.subsystem import CauseEffectStructure
