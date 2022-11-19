@@ -67,6 +67,8 @@ class TPM:
             TPM: A conditioned TPM with the same number of dimensions,
             with singleton dimensions for nodes in a fixed state.
         """
+        # NOTE: Node indices must be in sorted order so that the state matches!
+        fixed_nodes = sorted(fixed_nodes)
         # Assumes multidimensional form
         conditioning_indices = [[slice(None)]] * (self.ndim - 1)
         for i, state_i in zip(fixed_nodes, state):
