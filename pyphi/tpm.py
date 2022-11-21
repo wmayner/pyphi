@@ -11,8 +11,9 @@ from itertools import chain
 import numpy as np
 
 from . import config, convert, exceptions
-from .utils import all_states, np_hash, np_immutable
 from .constants import OFF, ON
+from .data_structures import FrozenMap
+from .utils import all_states, np_hash, np_immutable
 
 
 class TPM:
@@ -50,7 +51,7 @@ class TPM:
         """Ensure the tpm is well-formed."""
         raise NotImplementedError
 
-    def condition_tpm(self, fixed_nodes, state):
+    def condition_tpm(self, condition: FrozenMap[int, int]):
         """Return a TPM conditioned on the given fixed node indices, whose
         states are fixed according to the given state-tuple.
 
@@ -60,24 +61,20 @@ class TPM:
         be the same as the unconditioned TPM.
 
         Args:
-            fixed_nodes (Iterable[int]): The nodes the TPM will be conditioned on.
-            state (Iterable[int]): The state of the fixed nodes.
+            condition (dict[int, int]): A mapping from node indices to the state
+                to condition on for that node.
 
         Returns:
-            TPM: A conditioned TPM with the same number of dimensions,
-            with singleton dimensions for nodes in a fixed state.
+            TPM: A conditioned TPM with the same number of dimensions, with
+            singleton dimensions for nodes in a fixed state.
         """
-        if len(fixed_nodes) != len(state):
-            raise ValueError(
-                "conditioning state must be the same length as the conditioning nodes"
-            )
-        # NOTE: Node indices must be in sorted order so that the state matches!
-        fixed_nodes = sorted(fixed_nodes)
         # Assumes multidimensional form
         conditioning_indices = [[slice(None)]] * (self.ndim - 1)
-        for i, state_i in zip(fixed_nodes, state):
-            # Preserve singleton dimensions with `np.newaxis`
-            conditioning_indices[i] = [state_i, np.newaxis]
+        for i, state_i in condition.items():
+            # Ignore dimensions that are already singletons
+            if self.shape[i] != 1:
+                # Preserve singleton dimensions in output array with `np.newaxis`
+                conditioning_indices[i] = [state_i, np.newaxis]
         # Flatten the indices.
         conditioning_indices = tuple(chain.from_iterable(conditioning_indices))
         # Obtain the actual conditioned TPM by indexing with the conditioning

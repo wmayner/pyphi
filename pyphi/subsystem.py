@@ -23,6 +23,7 @@ from . import (
     validate,
 )
 from .conf import config, fallback
+from .data_structures import FrozenMap
 from .direction import Direction
 from .distribution import max_entropy_distribution, repertoire_shape
 from .metrics.distribution import repertoire_distance as _repertoire_distance
@@ -104,7 +105,8 @@ class Subsystem:
 
         # Get the TPM conditioned on the state of the external nodes.
         external_state = utils.state_of(self.external_indices, self.state)
-        self.tpm = self.network.tpm.condition_tpm(self.external_indices, external_state)
+        background_conditions = dict(zip(self.external_indices, external_state))
+        self.tpm = self.network.tpm.condition_tpm(background_conditions)
         # The TPM for just the nodes in the subsystem.
         self.proper_tpm = self.tpm.squeeze()[..., list(self.node_indices)]
 
@@ -407,17 +409,16 @@ class Subsystem:
     @cache.method("_single_node_repertoire_cache", Direction.EFFECT)
     def _single_node_effect_repertoire(
         self,
-        mechanism: frozenset[int],
+        condition: FrozenMap[int, int],
         purview_node_index: int,
-        conditioning_state: tuple[int],
     ):
         # pylint: disable=missing-docstring
         purview_node = self._index2node[purview_node_index]
-        # Condition on the state of the inputs that are in the mechanism.
-        mechanism_inputs = purview_node.inputs & mechanism
-        tpm = purview_node.tpm.condition_tpm(mechanism_inputs, conditioning_state)
+        # Condition on the state of the purview inputs that are in the mechanism
+        tpm = purview_node.tpm.condition_tpm(condition)
+        # TODO(4.0) remove reference to TPM
         # Marginalize-out the inputs that aren't in the mechanism.
-        nonmechanism_inputs = purview_node.inputs - mechanism
+        nonmechanism_inputs = purview_node.inputs - set(condition)
         tpm = tpm.marginalize_out(nonmechanism_inputs).tpm
         # Reshape so that the distribution is over next states.
         return tpm.reshape(repertoire_shape([purview_node.index], self.tpm_size))
@@ -425,9 +426,8 @@ class Subsystem:
     @cache.method("_repertoire_cache", Direction.EFFECT)
     def _effect_repertoire_virtualized(
         self,
-        mechanism: frozenset[int],
+        condition: FrozenMap[int, int],
         purview: tuple[int],
-        conditioning_state: tuple[int],
     ):
         """Return the effect repertoire of a mechanism over a purview.
 
@@ -453,24 +453,31 @@ class Subsystem:
         # individual nodes.
         return joint * functools.reduce(
             np.multiply,
-            [
-                self._single_node_effect_repertoire(mechanism, p, conditioning_state)
-                for p in purview
-            ],
+            [self._single_node_effect_repertoire(condition, p) for p in purview],
         )
+
+    def _condition_sbs_md_tpm(tpm, condition):
+        if not (tpm.ndim / 2).is_integer():
+            raise ValueError(
+                "Multidimensional state-by-state TPM must have an even number of dimensions."
+            )
+        conditioning_indices = [[slice(None)]] * tpm.ndim // 2
+        for node, state in condition.items():
+            conditioning_indices[node] = [state, np.newaxis]
+        conditioning_indices = tuple(flatten(conditioning_indices))
+        joint = joint[conditioning_indices]
 
     # TODO extend to nonbinary nodes
     @cache.method("_repertoire_nonvirtualized_cache", Direction.EFFECT)
     def _effect_repertoire_nonvirtualized(
         self,
-        mechanism: frozenset[int],
+        condition: FrozenMap[int, int],
         purview: tuple[int],
         nonvirtualized_units: frozenset[int],
-        conditioning_state: tuple[int],
     ):
         # First, marginalize out virtualized nonmechanism units as normal.
         virtualized_nonmechanism_units = (
-            set(self.node_indices) - mechanism - nonvirtualized_units
+            set(self.node_indices) - set(condition) - nonvirtualized_units
         )
         tpm = self.tpm.marginalize_out(virtualized_nonmechanism_units).tpm
         # Ignore any units outside the purview.
@@ -480,7 +487,15 @@ class Subsystem:
         # Reshape to multidimensional form.
         n_prev = int(log2(joint.shape[0]))
         joint = convert.sbs_to_multidimensional(joint)
-        # Condition on the state of the mechanism.
+        # TODO(tpm) refactor conditioning to SBS TPM object when available
+        # Get conditioning state in order of conditioning node indices (since
+        # the TPM is no longer in the network-wide dimensionality reference
+        # frame)
+        if condition:
+            condition = sorted(condition.items())
+            _, conditioning_state = zip(*condition)
+        else:
+            conditioning_state = ()
         conditioning_indices = flatten([[s, np.newaxis] for s in conditioning_state])
         joint = joint[tuple(conditioning_indices)]
         # Marginalize over non-mechanism states.
@@ -496,19 +511,19 @@ class Subsystem:
     ):
         if mechanism_state is None:
             mechanism_state = utils.state_of(mechanism, self.state)
+        condition = FrozenMap(zip(mechanism, mechanism_state))
         # Use a frozenset so the arguments to `_single_node_effect_repertoire`
         # can be hashed and cached.
-        mechanism = frozenset(mechanism)
         if nonvirtualized_units:
             nonvirtualized_units = frozenset(nonvirtualized_units)
             return self._effect_repertoire_nonvirtualized(
-                mechanism, purview, nonvirtualized_units, mechanism_state
+                condition, purview, nonvirtualized_units
             )
         # If the purview is empty, the distribution is empty, so return the
         # multiplicative identity.
         if not purview:
             return np.array([1.0])
-        return self._effect_repertoire_virtualized(mechanism, purview, mechanism_state)
+        return self._effect_repertoire_virtualized(condition, purview)
 
     def repertoire(self, direction, mechanism, purview, **kwargs):
         """Return the cause or effect repertoire based on a direction.
