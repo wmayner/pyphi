@@ -67,6 +67,10 @@ class TPM:
             TPM: A conditioned TPM with the same number of dimensions,
             with singleton dimensions for nodes in a fixed state.
         """
+        if len(fixed_nodes) != len(state):
+            raise ValueError(
+                "conditioning state must be the same length as the conditioning nodes"
+            )
         # NOTE: Node indices must be in sorted order so that the state matches!
         fixed_nodes = sorted(fixed_nodes)
         # Assumes multidimensional form

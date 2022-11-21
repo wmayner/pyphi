@@ -102,8 +102,9 @@ class Subsystem:
         else:
             self.external_indices = _external_indices
 
-        # The TPM conditioned on the state of the external nodes.
-        self.tpm = self.network.tpm.condition_tpm(self.external_indices, self.state)
+        # Get the TPM conditioned on the state of the external nodes.
+        external_state = utils.state_of(self.external_indices, self.state)
+        self.tpm = self.network.tpm.condition_tpm(self.external_indices, external_state)
         # The TPM for just the nodes in the subsystem.
         self.proper_tpm = self.tpm.squeeze()[..., list(self.node_indices)]
 
