@@ -456,17 +456,6 @@ class Subsystem:
             [self._single_node_effect_repertoire(condition, p) for p in purview],
         )
 
-    def _condition_sbs_md_tpm(tpm, condition):
-        if not (tpm.ndim / 2).is_integer():
-            raise ValueError(
-                "Multidimensional state-by-state TPM must have an even number of dimensions."
-            )
-        conditioning_indices = [[slice(None)]] * tpm.ndim // 2
-        for node, state in condition.items():
-            conditioning_indices[node] = [state, np.newaxis]
-        conditioning_indices = tuple(flatten(conditioning_indices))
-        joint = joint[conditioning_indices]
-
     # TODO extend to nonbinary nodes
     @cache.method("_repertoire_nonvirtualized_cache", Direction.EFFECT)
     def _effect_repertoire_nonvirtualized(
