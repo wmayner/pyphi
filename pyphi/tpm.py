@@ -110,6 +110,10 @@ class ProxyMetaclass(type):
 
 class Wrapper(metaclass=ProxyMetaclass):
     """Proxy to the array inside PyPhi's custom TPM class.
+
+    This is also where overloading of non-magic methods (e.g. tpm.sum(),
+    tpm.squeeze()) happens, providing a single interface to support, among other
+    things, proper type semantics for TPM operations.
     """
 
     __wraps__  = None
