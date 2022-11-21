@@ -34,7 +34,7 @@ class ProxyMetaclass(type):
 
         # Casting semantics: values belonging to our custom TPM class should
         # remain closed under the following methods:
-        __closures__ = {
+        __closures__ = frozenset({
             # 1-ary
             "__abs__", "__copy__", "__invert__", "__neg__", "__pos__",
             # 2-ary
@@ -57,7 +57,7 @@ class ProxyMetaclass(type):
             "__pow__", "__ipow__", "__rpow__",
             # 2-ary, 2-valued
             "__divmod__", "__rdivmod__"
-        }
+        })
 
         def make_proxy(name):
             """Returns a function that acts as a proxy for the given method name.
@@ -130,14 +130,14 @@ class ExplicitTPM(Wrapper):
 
     # Casting semantics: values belonging to our custom TPM class should
     # remain closed under the following methods:
-    __closures__ =  {
+    __closures__ =  frozenset({
         "argpartition", "astype", "byteswap", "choose", "clip", "compress",
         "conj", "conjugate", "copy", "cumprod", "cumsum", "diagonal", "dot",
         "fill", "flatten", "getfield", "item", "itemset", "max", "mean", "min",
         "newbyteorder", "partition", "prod", "ptp", "put", "ravel", "repeat",
         "reshape", "resize", "round", "setfield", "sort", "squeeze", "std",
         "sum", "swapaxes", "take", "transpose", "var", "view"
-    }
+    })
     # TODO: data, real, imag return arrays that should be casted, however they
     # are not callable.
 
