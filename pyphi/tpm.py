@@ -14,17 +14,247 @@ from . import config, convert, exceptions
 from .utils import all_states, np_hash, np_immutable
 from .constants import OFF, ON
 
+class ProxyMetaclass(type):
+    """A metaclass to create wrappers for the TPM array's special attributes.
 
-class TPM:
-    """A transition probability matrix."""
+    The CPython interpreter resolves double-underscore attributes (e.g., the
+    method definitions of mathematical operators) by looking up in the class'
+    static methods, not in the instance methods. This makes it impossible to
+    intercept calls to them when an instance's __getattr__() is implicitly
+    invoked, which in turn means there are only two options to wrap the special
+    methods of the array inside our custom objects (e.g., to perform
+    arithmetic operations with the TPM while also casting the result to our
+    custom class type):
 
-    def __init__(self):
-        raise NotImplementedError
+    - Manually overload all the necessary methods.
+    - Use this metaclass to automatically introspect the underlying array
+      methods and overload them in our custom TPM class definition.
+    """
+    def __init__(cls, type_name, bases, dct):
+
+        # Casting semantics: values belonging to our custom TPM class should
+        # remain closed under the following methods:
+        __closures__ = {
+            # 1-ary
+            "__abs__", "__copy__", "__invert__", "__neg__", "__pos__",
+            # 2-ary
+            "__add__", "__iadd__", "__radd__",
+            "__sub__", "__isub__", "__rsub__",
+            "__mul__", "__imul__", "__rmul__",
+            "__matmul__", "__imatmul__", "__rmatmul__",
+            "__truediv__", "__itruediv__", "__rtruediv__",
+            "__floordiv__", "__ifloordiv__", "__rfloordiv__",
+            "__mod__", "__imod__", "__rmod__",
+            "__and__", "__iand__", "__rand__",
+            "__lshift__", "__ilshift__", "__irshift__",
+            "__rlshift__", "__rrshift__", "__rshift__",
+            "__ior__", "__or__", "__ror__",
+            "__xor__", "__ixor__", "__rxor__",
+            # __eq__ and __ne__ are explicitly overloaded
+            "__ge__", "__gt__", "__lt__", "__le__",
+            "__deepcopy__",
+            # 3-ary
+            "__pow__", "__ipow__", "__rpow__",
+            # 2-ary, 2-valued
+            "__divmod__", "__rdivmod__"
+        }
+
+        def make_proxy(name):
+            """Returns a function that acts as a proxy for the given method name.
+
+            Args:
+                name (str): The name of the method to introspect in self._tpm.
+
+            Returns:
+                function: The wrapping function.
+            """
+            def proxy(self):
+                attribute = getattr(self._tpm, name)
+
+                if not name in __closures__:
+                    return attribute
+
+                def overriding_attribute(*args):
+                    # If second operand is a custom TPM, use its array instead.
+                    if args and isinstance(args[0], type(self)):
+                        args = list(args)
+                        args[0] = args[0]._tpm
+                        args = tuple(args)
+
+                    # Evaluate n-ary operator with self and rest of operands.
+                    result = attribute(*args)
+
+                    # Cast result to our custom TPM class.
+                    if isinstance(result, tuple):
+                        # Multivalued "functions" result in a tuple, e.g., the
+                        # 2-tuple (quotients, remainders) from __divmod__
+                        return (type(self)(r, validate=False) for r in result)
+
+                    return type(self)(result, validate=False)
+
+                return overriding_attribute
+
+            return proxy
+
+        type.__init__(cls, type_name, bases, dct)
+
+        if cls.__wraps__:
+            ignore = cls.__ignore__
+            # Go through all the attribute strings in the wrapped array type.
+            for name in dir(cls.__wraps__):
+                # Filter special attributes. The rest will be handled by Wrapper.
+                if name.startswith("__") and name not in ignore and name not in dct:
+                    # Create proxy function for `name` and bind it to future
+                    # instances of cls.
+                    setattr(cls, name, property(make_proxy(name)))
+
+class Wrapper(metaclass=ProxyMetaclass):
+    """Proxy to the array inside PyPhi's custom TPM class.
+
+    This is also where overloading of non-magic methods (e.g. tpm.sum(),
+    tpm.squeeze()) happens, providing a single interface to support, among other
+    things, proper type semantics for TPM operations.
+    """
+
+    __wraps__  = None
+    __ignore__ = {"class", "mro", "new", "init", "setattr", "getattr", "getattribute"}
+    __ignore__ = frozenset(f"__{i}__" for i in __ignore__)
+
+    def __init__(self, tpm):
+        if self.__wraps__ is None:
+            raise TypeError("Base class Wrapper may not be instantiated.")
+        if not isinstance(tpm, self.__wraps__):
+            raise ValueError(f"Wrapped object must be of type {self.__wraps__}")
+
+
+class ExplicitTPM(Wrapper):
+    """An explicit network TPM in multidimensional form."""
+
+    __wraps__ = np.ndarray
+
+    # Casting semantics: values belonging to our custom TPM class should
+    # remain closed under the following methods:
+    __closures__ =  {
+        "argpartition", "astype", "byteswap", "choose", "clip", "compress",
+        "conj", "conjugate", "copy", "cumprod", "cumsum", "diagonal", "dot",
+        "fill", "flatten", "getfield", "item", "itemset", "max", "mean", "min",
+        "newbyteorder", "partition", "prod", "ptp", "put", "ravel", "repeat",
+        "reshape", "resize", "round", "setfield", "sort", "squeeze", "std",
+        "sum", "swapaxes", "take", "transpose", "var", "view"
+    }
+    # TODO: data, real, imag return arrays that should be casted, however they
+    # are not callable.
+
+    # Proxy access to regular attributes of the wrapped array.
+    def __getattr__(self, name):
+        # Fix error with serialization. TODO: Implement dumps(), tobytes()?
+        if "_tpm" not in vars(self):
+            raise AttributeError
+
+        attribute = getattr(self._tpm, name)
+
+        if name not in self.__closures__:
+            return attribute
+
+        def overriding_method(*args, **kwargs):
+            # If second operand is a custom TPM, use its array instead.
+            if args and isinstance(args[0], type(self)):
+                args = list(args)
+                args[0] = args[0]._tpm
+                args = tuple(args)
+
+            result = attribute(*args, **kwargs)
+
+            # Test type of result. Reducing operations (e.g. sum(), max())
+            # return a scalar unless performed along an axis in a
+            # multidimensional array. Similarly, dot() may not return a scalar
+            # in general, because it is implemented in a polymorphic way.
+            if isinstance(result, self.__wraps__):
+                return type(self)(result, validate=False)
+
+            return result
+
+        # TODO search and replace return type.
+        overriding_method.__doc__ = attribute.__doc__
+
+        return overriding_method
+
+    def __init__(self, tpm, validate=True):
+        super().__init__(tpm)
+        self._tpm = np.array(tpm)
+
+        if validate:
+            self.validate(check_independence=config.VALIDATE_CONDITIONAL_INDEPENDENCE)
+            self._tpm = self.to_multidimensional_state_by_node()
+
+        self._tpm = np_immutable(self._tpm)
+        self._hash = np_hash(self._tpm)
 
     @property
     def tpm(self):
         """Return the underlying `tpm` object."""
         return self._tpm
+
+    def validate(self, check_independence=True):
+        """Validate this TPM."""
+        return self._validate_probabilities() and self._validate_shape(
+            check_independence
+        )
+
+    def _validate_probabilities(self):
+        """Check that the probabilities in a TPM are valid."""
+        if (self._tpm < 0.0).any() or (self._tpm > 1.0).any():
+            raise ValueError(
+                "Invalid TPM: probabilities must be in the interval [0, 1]."
+            )
+        if self.is_state_by_state() and np.any(np.sum(self._tpm, axis=1) != 1.0):
+            raise ValueError("Invalid TPM: probabilities must sum to 1.")
+        return True
+
+    def _validate_shape(self, check_independence=True):
+        """Validate this TPM's shape.
+
+        The TPM can be in
+
+            * 2-dimensional state-by-state form,
+            * 2-dimensional state-by-node form, or
+            * multidimensional state-by-node form.
+        """
+        see_tpm_docs = (
+            "See the documentation on TPM conventions and the `pyphi.Network` "
+            "object for more information on TPM forms."
+        )
+        tpm = self._tpm
+        # Get the number of nodes from the state-by-node TPM.
+        N = tpm.shape[-1]
+        if tpm.ndim == 2:
+            if not (
+                (tpm.shape[0] == 2 ** N and tpm.shape[1] == N)
+                or (tpm.shape[0] == tpm.shape[1])
+            ):
+                raise ValueError(
+                    "Invalid shape for 2-D TPM: {}\nFor a state-by-node TPM, "
+                    "there must be "
+                    "2^N rows and N columns, where N is the "
+                    "number of nodes. State-by-state TPM must be square. "
+                    "{}".format(tpm.shape, see_tpm_docs)
+                )
+            if tpm.shape[0] == tpm.shape[1] and check_independence:
+                self.conditionally_independent()
+        elif tpm.ndim == (N + 1):
+            if tpm.shape != tuple([2] * N + [N]):
+                raise ValueError(
+                    "Invalid shape for multidimensional state-by-node TPM: {}\n"
+                    "The shape should be {} for {} nodes. {}".format(
+                        tpm.shape, ([2] * N) + [N], N, see_tpm_docs
+                    )
+                )
+        else:
+            raise ValueError(
+                "Invalid TPM: Must be either 2-dimensional or multidimensional. "
+                "{}".format(see_tpm_docs)
+            )
+        return True
 
     def conditionally_independent(self):
         """Validate that the TPM is conditionally independent."""
@@ -46,9 +276,22 @@ class TPM:
             )
         return True
 
-    def validate(self):
-        """Ensure the tpm is well-formed."""
-        raise NotImplementedError
+    def to_multidimensional_state_by_node(self):
+        """Return the current TPM re-represented in multidimensional
+        state-by-node form.
+
+        See the PyPhi documentation on :ref:`tpm-conventions` for more
+        information.
+
+        Returns:
+            np.ndarray: The TPM in multidimensional state-by-node format.
+        """
+        if self.is_state_by_state():
+            tpm = convert.state_by_state2state_by_node(self._tpm)
+        else:
+            tpm = convert.to_multidimensional(self._tpm)
+
+        return tpm
 
     def condition_tpm(self, fixed_nodes, state):
         """Return a TPM conditioned on the given fixed node indices, whose
@@ -201,126 +444,11 @@ class TPM:
         for state in all_states(tpm.shape[-1]):
             print(f"{state}: {tpm[state]}")
 
-    def __getattr__(self, name):
-        if "_tpm" not in vars(self):
-            raise AttributeError
-
-        attribute = getattr(self._tpm, name)
-
-        if name in {"squeeze", "__mul__"}:
-            overriding_method = lambda *args, **kwargs: type(self)(
-                attribute(*args, **kwargs),
-                validate=False
-            )
-            overriding_method.__doc__ = attribute.__doc__
-
-            return overriding_method
-
-        return attribute
-
     def __getitem__(self, i):
         item = self._tpm[i]
         if isinstance(item, type(self._tpm)):
             item = type(self)(item, validate=False)
         return item
-
-    def __repr__(self):
-        raise NotImplementedError
-
-    def __str__(self):
-        return self.__repr__()
-
-
-class ExplicitTPM(TPM):
-    """An explicit network TPM in multidimensional form."""
-
-    def __init__(self, tpm, validate=True):
-        self._tpm = np.array(tpm)
-
-        if validate:
-            self.validate(check_independence=config.VALIDATE_CONDITIONAL_INDEPENDENCE)
-            self._tpm = self.to_multidimensional_state_by_node()
-
-        self._tpm = np_immutable(self._tpm)
-        self._hash = np_hash(self._tpm)
-
-    def _validate_shape(self, check_independence=True):
-        """Validate this TPM's shape.
-
-        The TPM can be in
-
-            * 2-dimensional state-by-state form,
-            * 2-dimensional state-by-node form, or
-            * multidimensional state-by-node form.
-        """
-        see_tpm_docs = (
-            "See the documentation on TPM conventions and the `pyphi.Network` "
-            "object for more information on TPM forms."
-        )
-        tpm = self._tpm
-        # Get the number of nodes from the state-by-node TPM.
-        N = tpm.shape[-1]
-        if tpm.ndim == 2:
-            if not (
-                (tpm.shape[0] == 2 ** N and tpm.shape[1] == N)
-                or (tpm.shape[0] == tpm.shape[1])
-            ):
-                raise ValueError(
-                    "Invalid shape for 2-D TPM: {}\nFor a state-by-node TPM, "
-                    "there must be "
-                    "2^N rows and N columns, where N is the "
-                    "number of nodes. State-by-state TPM must be square. "
-                    "{}".format(tpm.shape, see_tpm_docs)
-                )
-            if tpm.shape[0] == tpm.shape[1] and check_independence:
-                self.conditionally_independent()
-        elif tpm.ndim == (N + 1):
-            if tpm.shape != tuple([2] * N + [N]):
-                raise ValueError(
-                    "Invalid shape for multidimensional state-by-node TPM: {}\n"
-                    "The shape should be {} for {} nodes. {}".format(
-                        tpm.shape, ([2] * N) + [N], N, see_tpm_docs
-                    )
-                )
-        else:
-            raise ValueError(
-                "Invalid TPM: Must be either 2-dimensional or multidimensional. "
-                "{}".format(see_tpm_docs)
-            )
-        return True
-
-    def _validate_probabilities(self):
-        """Check that the probabilities in a TPM are valid."""
-        if (self._tpm < 0.0).any() or (self._tpm > 1.0).any():
-            raise ValueError(
-                "Invalid TPM: probabilities must be in the interval [0, 1]."
-            )
-        if self.is_state_by_state() and np.any(np.sum(self._tpm, axis=1) != 1.0):
-            raise ValueError("Invalid TPM: probabilities must sum to 1.")
-        return True
-
-    def validate(self, check_independence=True):
-        """Validate this TPM."""
-        return self._validate_probabilities() and self._validate_shape(
-            check_independence
-        )
-
-    def to_multidimensional_state_by_node(self):
-        """Return the current TPM re-represented in multidimensional
-        state-by-node form.
-
-        See the PyPhi documentation on :ref:`tpm-conventions` for more
-        information.
-
-        Returns:
-            np.ndarray: The TPM in multidimensional state-by-node format.
-        """
-        if self.is_state_by_state():
-            tpm = convert.state_by_state2state_by_node(self._tpm)
-        else:
-            tpm = convert.to_multidimensional(self._tpm)
-
-        return tpm
 
     def __eq__(self, o: object):
         """Return whether this TPM equals the other object.
@@ -338,15 +466,14 @@ class ExplicitTPM(TPM):
         """
         return not self.__eq__(o)
 
-    def __mul__(self, o):
-        return self.__getattr__("__mul__")(o)
+    def __str__(self):
+        return self.__repr__()
 
     def __repr__(self):
-        return "ExplicitTPM({})".format(self._tpm)
+        return f"ExplicitTPM({self._tpm})"
 
     def __hash__(self):
         return self._hash
-
 
 def reconstitute_tpm(subsystem):
     """Reconstitute the TPM of a subsystem using the individual node TPMs."""
