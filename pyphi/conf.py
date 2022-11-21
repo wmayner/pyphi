@@ -149,6 +149,7 @@ from pathlib import Path
 
 import ray
 import yaml
+import toolz
 
 from . import __about__, constants
 
@@ -303,6 +304,9 @@ class Config:
         else:
             raise ConfigurationError("{} is not a valid config option".format(name))
 
+    def __eq__(self, other):
+        return self._values == other._values
+
     def _callback(self, obj):
         """Called when any option is changed."""
         if self._on_change is not None:
@@ -341,6 +345,8 @@ class Config:
         """Return a snapshot of the current values of this configuration."""
         return copy(self._values)
 
+    to_dict = snapshot
+
     def override(self, **new_values):
         """Decorator and context manager to override configuration values.
 
@@ -361,6 +367,20 @@ class Config:
             ...
         """
         return _override(self, **new_values)
+
+    def diff(self, other):
+        """Return differences between this configuration and another.
+
+        Returns:
+            tuple[dict]: A tuple of two dictionaries. The first contains the
+            differing values of this configuration; the second contains those of
+            the other.
+        """
+        different_items = toolz.diff(
+            self.to_dict().items(), other.to_dict().items(), default=None
+        )
+        left, right = zip(*different_items)
+        return dict(left), dict(right)
 
 
 class _override(contextlib.ContextDecorator):
