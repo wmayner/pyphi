@@ -149,6 +149,7 @@ from pathlib import Path
 
 import ray
 import yaml
+import toolz
 
 from . import __about__, constants
 
@@ -303,6 +304,9 @@ class Config:
         else:
             raise ConfigurationError("{} is not a valid config option".format(name))
 
+    def __eq__(self, other):
+        return self._values == other._values
+
     def _callback(self, obj):
         """Called when any option is changed."""
         if self._on_change is not None:
@@ -341,6 +345,8 @@ class Config:
         """Return a snapshot of the current values of this configuration."""
         return copy(self._values)
 
+    to_dict = snapshot
+
     def override(self, **new_values):
         """Decorator and context manager to override configuration values.
 
@@ -361,6 +367,20 @@ class Config:
             ...
         """
         return _override(self, **new_values)
+
+    def diff(self, other):
+        """Return differences between this configuration and another.
+
+        Returns:
+            tuple[dict]: A tuple of two dictionaries. The first contains the
+            differing values of this configuration; the second contains those of
+            the other.
+        """
+        different_items = toolz.diff(
+            self.to_dict().items(), other.to_dict().items(), default=None
+        )
+        left, right = zip(*different_items)
+        return dict(left), dict(right)
 
 
 class _override(contextlib.ContextDecorator):
@@ -439,13 +459,6 @@ class PyphiConfig(Config):
     The version of the theory to use.""",
     )
 
-    SYSTEM_INTEGRATION_SCHEME = Option(
-        "REPERTOIRE_DISTANCE",
-        values=["REPERTOIRE_DISTANCE", "FORWARD_DIFFERENCE"],
-        # TODO(4.0)
-        doc="",
-    )
-
     INTEGRATION_VALUE = Option(
         "MIN",
         doc="""
@@ -470,7 +483,7 @@ class PyphiConfig(Config):
     )
 
     REPERTOIRE_DISTANCE = Option(
-        "IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE",
+        "GENERALIZED_INTRINSIC_DIFFERENCE",
         doc="""
     The measure to use when computing distances between repertoires and
     concepts. A full list of currently installed measures is available by
@@ -495,10 +508,10 @@ class PyphiConfig(Config):
     )
 
     REPERTOIRE_DISTANCE_INFORMATION = Option(
-        "IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE",
+        "GENERALIZED_INTRINSIC_DIFFERENCE",
         doc="""
-        The repertoire distance used for evaluating information specified by a
-        mechanism (i.e., finding the maximal state with respect to a purview).
+    The repertoire distance used for evaluating information specified by a
+    mechanism (i.e., finding the maximal state with respect to a purview).
     """,
     )
 

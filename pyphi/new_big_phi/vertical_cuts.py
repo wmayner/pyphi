@@ -156,12 +156,12 @@ def sia(subsystem, effect_only=False, **kwargs):
     }
 
     # NOTE: Tie-breaking happens here when we access the first element.
-    sys_effect_state = subsystem.find_maximal_state_under_complete_partition(
+    sys_effect_state = subsystem.intrinsic_information(
         Direction.EFFECT,
         mechanism=subsystem.node_indices,
         purview=subsystem.node_indices,
     )[0]
-    sys_cause_state = subsystem.find_maximal_state_under_complete_partition(
+    sys_cause_state = subsystem.intrinsic_information(
         Direction.CAUSE,
         mechanism=subsystem.node_indices,
         purview=subsystem.node_indices,

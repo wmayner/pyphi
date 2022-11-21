@@ -4,18 +4,16 @@ from dataclasses import dataclass
 from enum import Enum, auto, unique
 from textwrap import indent
 from typing import Dict, Iterable, Optional, Union
-import numpy as np
 from copy import copy
 
 from numpy.typing import ArrayLike
 from toolz import concat
 
-from .. import Direction, Subsystem, compute, config, connectivity, utils, metrics
+from .. import Direction, Subsystem, compute, config, connectivity, utils
 from ..compute.network import reachable_subsystems
 from ..compute.parallel import MapReduce
 from ..conf import fallback
 from ..labels import NodeLabels
-from ..metrics.distribution import repertoire_distance as _repertoire_distance
 from ..models import cmp, fmt
 from ..models.cuts import Cut, GeneralKCut, SystemPartition
 from ..models.subsystem import CauseEffectStructure
@@ -24,8 +22,8 @@ from ..registry import Registry
 from ..relations import ConcreteRelations, Relations
 from ..relations import relations as compute_relations
 
-DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD = 2**4
-DEFAULT_PARTITION_CHUNKSIZE = 2**2 * DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD
+DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD = 2 ** 4
+DEFAULT_PARTITION_CHUNKSIZE = 2 ** 2 * DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD
 
 
 ##############################################################################
@@ -142,7 +140,7 @@ def find_system_state(
         ii_cause,
         cause_repertoire,
         partitioned_cause_repertoires,
-    ) = subsystem.find_maximal_state_under_complete_partition(
+    ) = subsystem.intrinsic_information(
         Direction.CAUSE,
         mechanism=subsystem.node_indices,
         purview=subsystem.node_indices,
@@ -155,7 +153,7 @@ def find_system_state(
         ii_effect,
         effect_repertoire,
         partitioned_effect_repertoires,
-    ) = subsystem.find_maximal_state_under_complete_partition(
+    ) = subsystem.intrinsic_information(
         Direction.EFFECT,
         mechanism=subsystem.node_indices,
         purview=subsystem.node_indices,
@@ -264,7 +262,8 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         body = fmt.header(self.__class__.__name__, body, under_char=fmt.HEADER_BAR_2)
         body = fmt.center(body)
         column_extent = body.split("\n")[2].index(":")
-        body += "\n" + indent(str(self.partition), " " * (column_extent + 2))
+        if self.partition:
+            body += "\n" + indent(str(self.partition), " " * (column_extent + 2))
         return fmt.box(body)
 
     def to_json(self):
@@ -277,6 +276,8 @@ class NullSystemIrreducibilityAnalysis(SystemIrreducibilityAnalysis):
     def __init__(self, **kwargs):
         super().__init__(
             phi=0,
+            phi_cause=0,
+            phi_effect=0,
             partition=None,
             **kwargs,
         )
@@ -288,7 +289,7 @@ class NullSystemIrreducibilityAnalysis(SystemIrreducibilityAnalysis):
                 ",".join(self.node_labels.coerce_to_labels(self.node_indices)),
             ),
             (f"           {fmt.BIG_PHI}", self.phi),
-        ]
+        ] + self.system_state._repr_columns()
         if self.reasons:
             columns.append(("Reasons", ", ".join([r.name for r in self.reasons])))
         return columns
@@ -307,37 +308,18 @@ def integration_value(
     system_state: SystemState,
     repertoire_distance: str = None,
 ) -> float:
-    # TODO(4.0) clean up this mess
-    unpartitioned_repertoire = subsystem.repertoire(
-        direction, subsystem.node_indices, subsystem.node_indices
-    )
     partitioned_repertoire = cut_subsystem.repertoire(
         direction, subsystem.node_indices, subsystem.node_indices
     )
-    if config.SYSTEM_INTEGRATION_SCHEME == "FORWARD_DIFFERENCE":
-        if direction == Direction.CAUSE:
-            prev_state, next_state = system_state[direction], subsystem.proper_state
-        elif direction == Direction.EFFECT:
-            prev_state, next_state = subsystem.proper_state, system_state[direction]
-        phi = metrics.distribution.forward_difference(
-            subsystem,
-            cut_subsystem,
-            subsystem.node_indices,
-            prev_state,
-            subsystem.node_indices,
-            next_state,
-        )
-    else:
-        phi = _repertoire_distance(
-            unpartitioned_repertoire,
-            partitioned_repertoire,
-            repertoire_distance=repertoire_distance,
-            state=system_state[direction],
-        )
-    return (
-        phi,
-        unpartitioned_repertoire,
-        partitioned_repertoire,
+    return subsystem.evaluate_partition(
+        direction,
+        subsystem.node_indices,
+        subsystem.node_indices,
+        cut_subsystem.cut,
+        partitioned_repertoire=partitioned_repertoire,
+        repertoire_distance=repertoire_distance,
+        state=system_state[direction],
+        return_unpartitioned_repertoire=True,
     )
 
 
@@ -349,9 +331,7 @@ def evaluate_partition(
     directions: Optional[Iterable[Direction]] = None,
 ) -> SystemIrreducibilityAnalysis:
     directions = fallback(directions, Direction.both())
-
     cut_subsystem = subsystem.apply_cut(partition)
-
     integration = {
         direction: integration_value(
             direction,
@@ -362,8 +342,8 @@ def evaluate_partition(
         )
         for direction in Direction.both()
     }
-    phi_c, repertoire_c, partitioned_repertoire_c = integration[Direction.CAUSE]
-    phi_e, repertoire_e, partitioned_repertoire_e = integration[Direction.EFFECT]
+    phi_c, partitioned_repertoire_c, repertoire_c = integration[Direction.CAUSE]
+    phi_e, partitioned_repertoire_e, repertoire_e = integration[Direction.EFFECT]
 
     phi = integration_values[config.INTEGRATION_VALUE](
         integration[direction][0] for direction in directions
@@ -391,6 +371,19 @@ def evaluate_partition(
 @unique
 class ShortCircuitConditions(Enum):
     NO_VALID_PARTITIONS = auto()
+    NO_CAUSE = auto()
+    NO_EFFECT = auto()
+
+
+def _has_no_cause_or_effect(system_state):
+    reasons = []
+    for direction, reason in zip(
+        Direction.both(),
+        [ShortCircuitConditions.NO_CAUSE, ShortCircuitConditions.NO_EFFECT],
+    ):
+        if system_state.intrinsic_information[direction] <= 0:
+            reasons.append(reason)
+    return reasons
 
 
 def sia_minimization_key(sia):
@@ -436,11 +429,19 @@ def sia(
 
     system_state = find_system_state(subsystem)
 
-    default_sia = NullSystemIrreducibilityAnalysis(
-        reasons=[ShortCircuitConditions.NO_VALID_PARTITIONS],
-        node_indices=subsystem.node_indices,
-        node_labels=subsystem.node_labels,
-    )
+    def _null_sia(**kwargs):
+        return NullSystemIrreducibilityAnalysis(
+            system_state=system_state,
+            node_indices=subsystem.node_indices,
+            node_labels=subsystem.node_labels,
+            **kwargs,
+        )
+
+    shortcircuit_reasons = _has_no_cause_or_effect(system_state)
+    if shortcircuit_reasons:
+        return _null_sia(reasons=shortcircuit_reasons)
+
+    default_sia = _null_sia(reasons=[ShortCircuitConditions.NO_VALID_PARTITIONS])
 
     kwargs = {
         "parallel": config.PARALLEL_CUT_EVALUATION,

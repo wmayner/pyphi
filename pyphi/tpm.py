@@ -11,8 +11,9 @@ from itertools import chain
 import numpy as np
 
 from . import config, convert, exceptions
-from .utils import all_states, np_hash, np_immutable
 from .constants import OFF, ON
+from .data_structures import FrozenMap
+from .utils import all_states, np_hash, np_immutable
 
 
 class TPM:
@@ -50,7 +51,7 @@ class TPM:
         """Ensure the tpm is well-formed."""
         raise NotImplementedError
 
-    def condition_tpm(self, fixed_nodes, state):
+    def condition_tpm(self, condition: FrozenMap[int, int]):
         """Return a TPM conditioned on the given fixed node indices, whose
         states are fixed according to the given state-tuple.
 
@@ -60,20 +61,20 @@ class TPM:
         be the same as the unconditioned TPM.
 
         Args:
-            fixed_nodes (Iterable[int]): The nodes the TPM will be conditioned on.
-            state (Iterable[int]): The state of the fixed nodes.
+            condition (dict[int, int]): A mapping from node indices to the state
+                to condition on for that node.
 
         Returns:
-            TPM: A conditioned TPM with the same number of dimensions,
-            with singleton dimensions for nodes in a fixed state.
+            TPM: A conditioned TPM with the same number of dimensions, with
+            singleton dimensions for nodes in a fixed state.
         """
         # Assumes multidimensional form
         conditioning_indices = [[slice(None)]] * (self.ndim - 1)
-        for i, state_i in zip(fixed_nodes, state):
-            # Preserve singleton dimensions with `np.newaxis`
-            # TODO use utils.state_of and refactor nonvirtualized effect
-            # repertoire to use this
-            conditioning_indices[i] = [state_i, np.newaxis]
+        for i, state_i in condition.items():
+            # Ignore dimensions that are already singletons
+            if self.shape[i] != 1:
+                # Preserve singleton dimensions in output array with `np.newaxis`
+                conditioning_indices[i] = [state_i, np.newaxis]
         # Flatten the indices.
         conditioning_indices = tuple(chain.from_iterable(conditioning_indices))
         # Obtain the actual conditioned TPM by indexing with the conditioning
@@ -200,6 +201,19 @@ class TPM:
         tpm = convert.to_multidimensional(self._tpm)
         for state in all_states(tpm.shape[-1]):
             print(f"{state}: {tpm[state]}")
+
+    # TODO(4.0) docstring
+    def permute_nodes(self, permutation):
+        if not len(permutation) == self.ndim - 1:
+            raise ValueError(
+                f"Permutation must have length {self.ndim - 1}, but has length "
+                f"{len(permutation)}."
+            )
+        dimension_permutation = tuple(permutation) + (self.ndim - 1,)
+        return type(self)(
+            self._tpm.transpose(dimension_permutation)[..., list(permutation)],
+            validate=False,
+        )
 
     def __getattr__(self, name):
         if "_tpm" not in vars(self):

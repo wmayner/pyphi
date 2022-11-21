@@ -116,10 +116,10 @@ RELATION_SAMPLE_TIMEOUT: 1.0
 # analyzing a system.
 RELATION_SUM_PHI_UPPER_BOUND: DISTINCT_AND_CONGRUENT_PURVIEWS
 # The measure to use when computing integration ("EMD", "KLD", "L1", ...)
-REPERTOIRE_DISTANCE: IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE
+REPERTOIRE_DISTANCE: GENERALIZED_INTRINSIC_DIFFERENCE
 # The measure to use when computing intrinsic information and findind the
 # specified state
-REPERTOIRE_DISTANCE_INFORMATION: IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE
+REPERTOIRE_DISTANCE_INFORMATION: GENERALIZED_INTRINSIC_DIFFERENCE
 # Controls whether pretty __str__-like formatting is used in repr calls.
 REPR_VERBOSITY: 2
 # In some applications of this library, you may want to allow single
