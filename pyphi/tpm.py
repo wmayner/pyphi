@@ -73,8 +73,6 @@ class TPM:
         conditioning_indices = [[slice(None)]] * (self.ndim - 1)
         for i, state_i in zip(fixed_nodes, state):
             # Preserve singleton dimensions with `np.newaxis`
-            # TODO use utils.state_of and refactor nonvirtualized effect
-            # repertoire to use this
             conditioning_indices[i] = [state_i, np.newaxis]
         # Flatten the indices.
         conditioning_indices = tuple(chain.from_iterable(conditioning_indices))
@@ -202,6 +200,19 @@ class TPM:
         tpm = convert.to_multidimensional(self._tpm)
         for state in all_states(tpm.shape[-1]):
             print(f"{state}: {tpm[state]}")
+
+    # TODO(4.0) docstring
+    def permute_nodes(self, permutation):
+        if not len(permutation) == self.ndim - 1:
+            raise ValueError(
+                f"Permutation must have length {self.ndim - 1}, but has length "
+                f"{len(permutation)}."
+            )
+        dimension_permutation = tuple(permutation) + (self.ndim - 1,)
+        return type(self)(
+            self._tpm.transpose(dimension_permutation)[..., list(permutation)],
+            validate=False,
+        )
 
     def __getattr__(self, name):
         if "_tpm" not in vars(self):
