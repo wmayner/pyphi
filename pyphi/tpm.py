@@ -117,11 +117,11 @@ class Wrapper(metaclass=ProxyMetaclass):
     __ignore__ = {"class", "mro", "new", "init", "setattr", "getattr", "getattribute"}
     __ignore__ = frozenset(f"__{i}__" for i in __ignore__)
 
-    def __init__(self, tpm):
+    def __init__(self):
         if self.__wraps__ is None:
             raise TypeError("Base class Wrapper may not be instantiated.")
 
-        if not isinstance(tpm, self.__wraps__):
+        if not isinstance(self._tpm, self.__wraps__):
             raise ValueError(f"Wrapped object must be of type {self.__wraps__}")
 
 
@@ -178,8 +178,8 @@ class ExplicitTPM(Wrapper):
         return overriding_method
 
     def __init__(self, tpm, validate=True):
-        super().__init__(tpm)
         self._tpm = np.array(tpm)
+        super().__init__()
 
         if validate:
             self.validate(check_independence=config.VALIDATE_CONDITIONAL_INDEPENDENCE)
