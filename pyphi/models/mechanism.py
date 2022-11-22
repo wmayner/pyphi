@@ -4,18 +4,23 @@
 
 """Mechanism-level objects."""
 
+from dataclasses import dataclass
+from typing import Iterable
+
 import numpy as np
+from numpy.typing import ArrayLike
 from toolz import concat, unique
 
 from pyphi.models.cuts import KPartition
 
-from .. import connectivity, utils, validate
+from .. import config, connectivity, utils, validate
 from ..conf import fallback
 from ..direction import Direction
 from ..exceptions import WrongDirectionError
 from ..metrics import distribution
 from ..models import fmt
-from . import cmp
+from ..registry import Registry
+from . import cmp, fmt
 
 _ria_attributes = [
     "phi",
@@ -28,14 +33,69 @@ _ria_attributes = [
 ]
 
 
-# TODO(4.0) configure
-def normalization_factor(partition):
+class DistinctionPhiNormalizationRegistry(Registry):
+    """Storage for distinction |small_phi| normalizations."""
+
+    desc = "functions for normalizing distinction |small_phi| values"
+
+
+distinction_phi_normalizations = DistinctionPhiNormalizationRegistry()
+
+
+@distinction_phi_normalizations.register("NONE")
+def _(partition):
+    return 1
+
+
+@distinction_phi_normalizations.register("NUM_CONNECTIONS_CUT")
+def _(partition):
     try:
         return 1 / partition.num_connections_cut()
     except ZeroDivisionError:
         return 1
     except AttributeError:
         return None
+
+
+def normalization_factor(partition):
+    return distinction_phi_normalizations[config.DISTINCTION_PHI_NORMALIZATION](
+        partition
+    )
+
+
+@dataclass
+class StateSpecification:
+    direction: Direction
+    intrinsic_information: float
+    state: tuple[tuple[int]]
+    repertoire: ArrayLike
+    unconstrained_repertoire: ArrayLike
+
+    def set_ties(self, ties: Iterable):
+        self._ties = ties
+
+    @property
+    def ties(self):
+        return self._ties
+
+    def __getitem__(self, i):
+        return self.state[i]
+
+    def _repr_columns(self, prefix=""):
+        return [
+            (f"{prefix}{self.direction}", str(self.state)),
+            (
+                f"{prefix}II_{str(self.direction)[:1].lower()}",
+                self.intrinsic_information,
+            ),
+        ]
+
+    def __repr__(self):
+        body = "\n".join(fmt.align_columns(self._repr_columns()))
+        body = fmt.header(
+            f"Specified {self.direction}", body, under_char=fmt.HEADER_BAR_3
+        )
+        return fmt.box(fmt.center(body))
 
 
 class RepertoireIrreducibilityAnalysis(cmp.Orderable):

@@ -143,12 +143,14 @@ import os
 import pprint
 import shutil
 import tempfile
+import warnings
 from copy import copy
 from pathlib import Path
 from warnings import warn
 
 import ray
 import yaml
+import toolz
 
 from . import __about__, constants
 
@@ -288,6 +290,9 @@ class Config:
 
             # Insert config-wide hook
             def hook(func):
+                if func is None:
+                    return self._callback
+
                 @functools.wraps(func)
                 def wrapper(*args, **kwargs):
                     func(*args, **kwargs)
@@ -295,7 +300,7 @@ class Config:
 
                 return wrapper
 
-            opt.on_change = hook(on_change)
+            opt.on_change = hook(opt.on_change)
 
         # Call config-wide hook
         self._callback(self)
@@ -314,6 +319,9 @@ class Config:
 
     def __getitem__(self, name):
         return self._values[name]
+
+    def __eq__(self, other):
+        return self._values == other._values
 
     def _callback(self, obj):
         """Called when any option is changed."""
@@ -353,6 +361,8 @@ class Config:
         """Return a snapshot of the current values of this configuration."""
         return copy(self._values)
 
+    to_dict = snapshot
+
     def override(self, **new_values):
         """Decorator and context manager to override configuration values.
 
@@ -373,6 +383,20 @@ class Config:
             ...
         """
         return _override(self, **new_values)
+
+    def diff(self, other):
+        """Return differences between this configuration and another.
+
+        Returns:
+            tuple[dict]: A tuple of two dictionaries. The first contains the
+            differing values of this configuration; the second contains those of
+            the other.
+        """
+        different_items = toolz.diff(
+            self.to_dict().items(), other.to_dict().items(), default=None
+        )
+        left, right = zip(*different_items)
+        return dict(left), dict(right)
 
 
 class _override(contextlib.ContextDecorator):
@@ -427,6 +451,21 @@ def configure_logging(conf):
     )
 
 
+def on_change_distinction_phi_normalization(obj):
+    if _LOADED:
+        warnings.warn(
+            """
+    IMPORTANT: Changes to `DISTINCTION_PHI_NORMALIZATION` will not be reflected in
+    new MICE computations for existing Subsystem objects if the MICE have been
+    previously computed, since they are cached.
+
+    Make sure to call `subsystem.clear_caches()` before re-computing MICE with
+    the new setting.
+            """,
+            stacklevel=6,
+        )
+
+
 class PyphiConfig(Config):
     """``pyphi.config`` is an instance of this class."""
 
@@ -460,7 +499,7 @@ class PyphiConfig(Config):
     )
 
     REPERTOIRE_DISTANCE = Option(
-        "IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE",
+        "GENERALIZED_INTRINSIC_DIFFERENCE",
         doc="""
     The measure to use when computing distances between repertoires and
     concepts. A full list of currently installed measures is available by
@@ -485,10 +524,10 @@ class PyphiConfig(Config):
     )
 
     REPERTOIRE_DISTANCE_INFORMATION = Option(
-        "IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE",
+        "GENERALIZED_INTRINSIC_DIFFERENCE",
         doc="""
-        The repertoire distance used for evaluating information specified by a
-        mechanism (i.e., finding the maximal state with respect to a purview).
+    The repertoire distance used for evaluating information specified by a
+    mechanism (i.e., finding the maximal state with respect to a purview).
     """,
     )
 
@@ -893,6 +932,15 @@ class PyphiConfig(Config):
         values=["PURVIEW_SIZE", "MINIMUM_PURVIEW_SIZE"],
         doc="""
     Controls the overlap ratio used in computing relations.
+    """,
+    )
+
+    DISTINCTION_PHI_NORMALIZATION = Option(
+        "NUM_CONNECTIONS_CUT",
+        on_change=on_change_distinction_phi_normalization,
+        values=["NONE", "NUM_CONNECTIONS_CUT"],
+        doc="""
+    Controls how distinction |small_phi| values are normalized for determining the MIP.
     """,
     )
 

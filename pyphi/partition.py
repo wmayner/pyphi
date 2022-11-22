@@ -816,7 +816,7 @@ def system_temporal_directed_bipartitions_cut_one(nodes):
 
 
 def _cut_matrices(n, symmetric=False):
-    repeat = n**2 - n
+    repeat = n ** 2 - n
     if symmetric:
         repeat = repeat // 2
     mid = repeat // 2
@@ -841,7 +841,7 @@ def general(node_indices, node_labels=None):
 
 
 def num_general_partitions(n):
-    return 2 ** (n**2 - n)
+    return 2 ** (n ** 2 - n)
 
 
 @system_partition_types.register("GENERAL_BIDIRECTIONAL")
@@ -879,6 +879,7 @@ def _unidirectional_set_partitions(node_indices, node_labels=None):
 @system_partition_types.register("SET_UNI/BI")
 @functools.wraps(_unidirectional_set_partitions)
 def unidirectional_set_partitions(node_indices, node_labels=None):
+    # TODO(4.0) generate properly without using set
     return set(_unidirectional_set_partitions(node_indices, node_labels=node_labels))
 
 

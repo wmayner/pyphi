@@ -101,7 +101,19 @@ def eq(x, y):
 
 def is_positive(x):
     """Return whether ``x`` is positive up to |PRECISION|."""
+    # Need `bool` to cast from numpy to native Boolean
     return not eq(x, 0) and bool(x > 0)
+
+
+def is_nonpositive(x):
+    """Return True if x is a nonpositive value."""
+    # Need `bool` to cast from numpy to native Boolean
+    return bool(x <= 0)
+
+
+def is_falsy(x):
+    """Return True if x is a falsy value."""
+    return not x
 
 
 # see http://stackoverflow.com/questions/16003217
@@ -306,11 +318,6 @@ def enforce_integer_or_none(i, **kwargs):
     if i is None:
         return i
     return enforce_integer(i, **kwargs)
-
-
-def is_falsy(x):
-    """Return True if x is a falsy value."""
-    return not x
 
 
 @curry

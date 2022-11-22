@@ -358,6 +358,7 @@ def absolute_information_density(p, q):
     return np.abs(information_density(p, q))
 
 
+# TODO(4.0) remove
 def specified_index(repertoire, partitioned_repertoire):
     """Return the indices of the state(s) with the maximal AID between the repertoires.
 
@@ -377,6 +378,7 @@ def specified_index(repertoire, partitioned_repertoire):
     return (density == density.max()).nonzero()
 
 
+# TODO(4.0) remove
 def specified_state(repertoire, partitioned_repertoire):
     """Return the state(s) with the maximal AID between the repertoires.
 
@@ -394,6 +396,171 @@ def specified_state(repertoire, partitioned_repertoire):
         repertoire.squeeze(), partitioned_repertoire.squeeze()
     )
     return np.transpose(np.where(density == density.max()))
+
+
+def approximate_specified_state(repertoire, partitioned_repertoire):
+    """Estimate the purview state that maximizes the AID between the repertoires.
+
+    This returns only the state of the purview nodes (i.e., there is one element
+    in the state vector for each purview node, not for each node in the
+    network).
+
+    .. note::
+        Although deterministic, *results are only a good guess*. This function
+        should only be used in cases where running :func:`specified_state`
+        becomes unfeasible.
+
+    This algorithm runs in linear time as a function of purview size, as opposed
+    to the exponential (on average) exhaustive exact search. Single-node
+    (i.e. marginal) repertoires are considered one by one, and their state is
+    determined according to the following heuristics:
+
+    If the most probable state in the unpartitioned repertoire (:math:`p > 1/2`)
+    becomes less probable in the partitioned one (:math:`p > q`), we should pick
+    that state for that node. Note that there can be ties. In that case, the
+    state with the lowest index is arbitrarily chosen.
+
+    Now suppose that was enough to specify the state of only :math:`k` nodes,
+    with joint point unpartitioned probability :math:`p_k` and partitioned
+    probability :math:`q_k`, and suppose we add node :math:`z`.  Let the node
+    :math:`z` have probability :math:`p_z` for the state ``0``. For the
+    complementary state ``1``, the probability is :math:`1 - p_z`.  We want to
+    know which state of :math:`z` gives higher intrinsic information when it is
+    added to the :math:`k` nodes. In other words, we want to compare :math:`I_x`
+    and :math:`I_y`:
+
+    .. math::
+        I_x = \\left( p_k p_z \\right) \\log_2 \\left( \\frac{p_k p_z}{q_k q_z} \\right)
+
+    .. math::
+        I_y = \\left( p_k (1-p_z) \\right) \\log_2 \\left( \\frac{p_k (1-p_z)}{q_k(1-q_z)} \\right)
+
+    For state ``1`` to give higher intrinsic information (i.e., :math:`I_y >
+    I_x`), :math:`p_z` and :math:`q_z` must satisfy two equations:
+
+    .. math::
+        p_z < 1/2
+
+    .. math::
+        \\log_2 \\left( \\frac{p_k}{q_k} \\right) < \\left( \\frac{1}{1-2p_z}
+        \\right) \\left( p_z \\log_2 \\left( \\frac{p_z}{q_z} \\right) - (1-p_z)
+        \\log_2 \\left( \\frac{1-p_z}{1-q_z} \\right) \\right)
+
+    Otherwise, we should pick the state ``0`` as the state of node :math:`z`.
+
+    Args:
+        repertoire (np.ndarray): The first probability distribution.
+        partitioned_repertoire (np.ndarray): The second probability distribution.
+
+    Returns:
+        np.ndarray: A 2D array where the single row is the approximate :func:`specified_state`.
+
+    """
+
+    # TODO: All the marginalization defeats the whole purpose. Config option
+    # must prevent calculating outer product at `subsystem`, and pass node
+    # marginal repertoires instead.
+    def joint_to_marginals(repertoire):
+        """Converts a joint repertoire in multidimensional form to a 2D array of
+        single-node marginal repertoires.
+
+        Args:
+            repertoire (np.ndarray): The joint repertoire of a purview in
+                multidimensional form, e.g., as obtained from
+                :mod:`pyphi.subsystem`. Note that `repertoire` is assumed to be
+                a well-formed probability distribution whose sum over all states
+                equals one.
+        Returns:
+            np.ndarray: A 2D array with one row per node in the purview (the
+                marginalized repertoires) and one column per state, in the same
+                order as the argument.
+        """
+        # Remove singleton dimensions.
+        repertoire = repertoire.squeeze()
+        # Map each dimension in the squeezed repertoire to a local node index.
+        node_indices = set(range(repertoire.ndim))
+        # All the sets of indices of size n - 1 (i.e. combinations(n, n - 1)).
+        complements = [node_indices - set((n,)) for n in tuple(node_indices)]
+        # Marginalize out all the complementary dimensions for each
+        # node in the repertoire.
+        marginals = [repertoire.sum(tuple(c)) for c in complements]
+        return np.vstack(marginals)
+
+    P = joint_to_marginals(repertoire)
+    Q = joint_to_marginals(partitioned_repertoire)
+
+    # Preallocate arrays for the specified states and their corresponding point
+    # probabilities in P and Q.
+    purview_size = P.shape[0]
+    specified_states = np.zeros((purview_size, 1)) * np.nan
+    specified_P = np.ones((purview_size, 1))
+    specified_Q = np.ones((purview_size, 1))
+
+    # Find "fixed" nodes. A fixed node is defined as one for which its most
+    # selective state according to the unpartitioned repertoire (p > 0.5) is
+    # also informative for the node itself, as revealed by partitioning the
+    # mechanism (i.e., p > q).
+    is_selective = P >= (1 / 2)
+    informativeness = P / Q
+    is_informative = informativeness >= 1
+    fixed_nodes = np.where(np.sum(is_selective * is_informative, axis=1))[0]
+
+    def informative_state(node):
+        return np.where(informativeness[node, :] == informativeness[node, :].max())[0]
+
+    for fixed_node in fixed_nodes:
+        specified_state = np.where(
+            is_selective[fixed_node, :] * is_informative[fixed_node, :]
+        )[0]
+
+        # TODO: state ties.
+        # If P[ON] == P[OFF] == Q[ON] == Q[OFF] then |specified_state| > 1.
+        # Arbitrarily pick the first state.
+        specified_state = specified_state[0]
+
+        specified_states[fixed_node] = specified_state
+        specified_P[fixed_node] = P[fixed_node, specified_state]
+        specified_Q[fixed_node] = Q[fixed_node, informative_state(fixed_node)[0]]
+
+    if fixed_nodes.size == purview_size:
+        return specified_states.astype(int).T
+
+    # Estimate the state of the remaining (i.e. non-fixed) nodes, one by one,
+    # based on a greedy search on their impact on "temporary informativeness".
+
+    nonfixed_nodes = np.setdiff1d(np.arange(purview_size), fixed_nodes)
+
+    # First, compute discriminant values for every non-fixed node. This
+    # discriminant will be compared to the temporary informativeness.
+    p = np.array([P[n, informative_state(n)] for n in nonfixed_nodes]).flatten()
+    q = np.array([Q[n, informative_state(n)] for n in nonfixed_nodes]).flatten()
+    discriminants = (p * np.log2(p / q) - (1 - p) * np.log2((1 - p) / (1 - q))) / (
+        1 - 2 * p
+    )
+
+    # The smaller the discriminant of a purview node, the more likely its true
+    # specified state is to violate p > q. Thus we consider nodes in that order.
+    discriminant_indices = np.argsort(discriminants)
+    discriminants = np.sort(discriminants)  # ascending
+
+    for index, discriminant in zip(discriminant_indices, discriminants):
+        # The temporary-informativeness, updated as new nodes are included.
+        tmp_inform = np.log2(specified_P.prod()) - np.log2(specified_Q.prod())
+
+        nonfixed_node = nonfixed_nodes[index]
+
+        # TODO: nonbinary states.
+        # If discriminant < tmp_inform, select the state that gives p < q.
+        if discriminant < tmp_inform:
+            specified_state = int(not informative_state(nonfixed_node)[0])
+        else:
+            specified_state = informative_state(nonfixed_node)[0]
+
+        specified_states[nonfixed_node] = specified_state
+        specified_P[nonfixed_node] = P[nonfixed_node, specified_state]
+        specified_Q[nonfixed_node] = Q[nonfixed_node, specified_state]
+
+    return specified_states.astype(int).T
 
 
 @measures.register("ID", asymmetric=True)
@@ -459,6 +626,55 @@ def iit_4_small_phi(p, q, state):
 def iit_4_small_phi_no_absolute_value(p, q, state):
     # TODO docstring
     return information_density(p, q).squeeze()[state]
+
+
+# TODO(4.0) remove
+@measures.register("FORWARD_DIFFERENCE", asymmetric=True)
+def forward_difference(
+    subsystem,
+    cut_subsystem,
+    prev_nodes,
+    prev_state,
+    next_nodes,
+    next_state,
+    return_probabilities=False,
+):
+    p = subsystem.forward_probability(prev_nodes, prev_state, next_nodes, next_state)
+    q = cut_subsystem.forward_probability(
+        prev_nodes, prev_state, next_nodes, next_state
+    )
+    value = information_density(p, q)
+    if return_probabilities:
+        return value, p, q
+    return value
+
+
+@measures.register("GENERALIZED_INTRINSIC_DIFFERENCE", asymmetric=True)
+def generalized_intrinsic_difference(
+    p,
+    q,
+    next_state,
+    selectivity_repertoire,
+    selectivity_state,
+):
+    selectivity_repertoire = selectivity_repertoire.squeeze()
+    if len(selectivity_state) != selectivity_repertoire.ndim:
+        raise ValueError(
+            "The selectivity state must have the same dimensionality as the "
+            "selectivity repertoire."
+        )
+    selectivity = selectivity_repertoire[selectivity_state]
+    p = p.squeeze()
+    q = q.squeeze()
+    if len(next_state) != p.ndim or len(next_state) != q.ndim:
+        raise ValueError(
+            "The next state must have the same dimensionality as the "
+            "unpartitioned and partitioned repertoires."
+        )
+    p = p[next_state]
+    q = q[next_state]
+    informativeness = pointwise_mutual_information(p, q)
+    return selectivity * informativeness
 
 
 @measures.register("APMI", asymmetric=True)

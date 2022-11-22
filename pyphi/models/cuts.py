@@ -65,7 +65,7 @@ class _CutBase:
             a (tuple[int]): A set of nodes.
             b (tuple[int]): A set of nodes.
         """
-        n = max(self.indices) + 1
+        n = max(self.indices + a + b) + 1
         return self.cut_matrix(n)[np.ix_(a, b)].any()
 
     def splits_mechanism(self, mechanism):
@@ -366,6 +366,19 @@ class GeneralSetPartition(GeneralKCut):
     def to_json(self):
         return self.set_partition
 
+    # TODO(4.0) add to other classes after consolidating partitions
+    def relabel(self, node_indices, node_labels=None):
+        if node_labels is None:
+            node_labels = self.node_labels
+        if not len(node_indices) == len(self.node_indices):
+            raise ValueError("New node indices must have same length as the old.")
+        return GeneralSetPartition(
+            node_indices,
+            self._cut_matrix,
+            set_partition=self.set_partition,
+            node_labels=node_labels,
+        )
+
 
 class CompleteGeneralSetPartition(CompleteGeneralKCut):
     def __str__(self):
@@ -409,7 +422,7 @@ class Part:
         return {"mechanism": self.mechanism, "purview": self.purview}
 
 
-class KPartition(Sequence):
+class KPartition(Sequence, _CutBase):
     """A partition with an arbitrary number of parts."""
 
     __slots__ = ["parts", "node_labels", "_mechanism", "_purview"]
@@ -458,6 +471,10 @@ class KPartition(Sequence):
             self._purview = tuple(chain.from_iterable(part.purview for part in self))
         return self._purview
 
+    @property
+    def indices(self):
+        return tuple(sorted(set(self.mechanism + self.purview)))
+
     def normalize(self):
         """Normalize the order of parts in the partition."""
         return type(self)(*sorted(self), node_labels=self.node_labels)
@@ -471,6 +488,18 @@ class KPartition(Sequence):
                 sum(purview_lengths[:i]) + sum(purview_lengths[i + 1 :])
             )
         return n
+
+    # TODO(4.0) consolidate cut classes
+    def cut_matrix(self, n):
+        """The matrix of connections that are severed by this cut."""
+        cm = np.zeros((n, n))
+
+        for part in self.parts:
+            # Indices of all other part's purviews
+            outside_part = tuple(set(self.purview) - set(part.purview))
+            cm[np.ix_(part.mechanism, outside_part)] = 1
+
+        return cm
 
     def to_json(self):
         return {"parts": list(self)}

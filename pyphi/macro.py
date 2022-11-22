@@ -19,7 +19,7 @@ from .labels import NodeLabels
 from .network import irreducible_purviews
 from .node import expand_node_tpm, generate_nodes
 from .subsystem import Subsystem
-from .tpm import is_state_by_state, marginalize_out, tpm_indices
+from .tpm import ExplicitTPM
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
@@ -35,10 +35,19 @@ def reindex(indices):
 
 
 def rebuild_system_tpm(node_tpms):
-    """Reconstruct the network TPM from a collection of node TPMs."""
-    return np.stack([expand_node_tpm(tpm) for tpm in node_tpms], axis=-1)
+    """Reconstruct the network TPM from a collection of node TPMs.
+
+    Args:
+        node_tpms (Iterable[ExplicitTPM]): The collection of node TPMs.
+
+    Returns:
+        ExplicitTPM: The system TPM which comprises the input node TPMs.
+    """
+    tpm = np.stack([expand_node_tpm(tpm).tpm for tpm in node_tpms], axis=-1)
+    return ExplicitTPM(tpm)
 
 
+# TODO This should be a method of the TPM class in tpm.py
 def remove_singleton_dimensions(tpm):
     """Remove singleton dimensions from the TPM.
 
@@ -54,14 +63,14 @@ def remove_singleton_dimensions(tpm):
     if tpm.ndim <= 2:
         return tpm
 
-    return tpm.squeeze()[..., tpm_indices(tpm)]
+    return tpm.squeeze()[..., tpm.tpm_indices()]
 
 
 def run_tpm(system, steps, blackbox):
     """Iterate the TPM for the given number of timesteps.
 
     Returns:
-        np.ndarray: tpm * (noise_tpm^(t-1))
+        ExplicitTPM: tpm * (noise_tpm^(t-1))
     """
     # Generate noised TPM
     # Noise the connections from every output element to elements in other
@@ -72,19 +81,19 @@ def run_tpm(system, steps, blackbox):
         for input_node in node.inputs:
             if not blackbox.in_same_box(node.index, input_node):
                 if input_node in blackbox.output_indices:
-                    node_tpm = marginalize_out([input_node], node_tpm)
+                    node_tpm = node_tpm.marginalize_out([input_node])
 
         node_tpms.append(node_tpm)
 
     noised_tpm = rebuild_system_tpm(node_tpms)
-    noised_tpm = convert.state_by_node2state_by_state(noised_tpm)
+    noised_tpm = convert.state_by_node2state_by_state(noised_tpm.tpm)
 
-    tpm = convert.state_by_node2state_by_state(system.tpm)
+    tpm = convert.state_by_node2state_by_state(system.tpm.tpm)
 
     # Muliply by noise
     tpm = np.dot(tpm, np.linalg.matrix_power(noised_tpm, steps - 1))
 
-    return convert.state_by_state2state_by_node(tpm)
+    return ExplicitTPM(convert.state_by_state2state_by_node(tpm))
 
 
 class SystemAttrs(namedtuple("SystemAttrs", ["tpm", "cm", "node_indices", "state"])):
@@ -210,9 +219,9 @@ class MacroSubsystem(Subsystem):
         Reindexes the subsystem so that the nodes are ``0..n`` where ``n`` is
         the number of internal indices in the system.
         """
-        assert system.node_indices == tpm_indices(system.tpm)
+        assert system.node_indices == system.tpm.tpm_indices()
 
-        internal_indices = tpm_indices(system.tpm)
+        internal_indices = system.tpm.tpm_indices()
 
         tpm = remove_singleton_dimensions(system.tpm)
 
@@ -241,7 +250,7 @@ class MacroSubsystem(Subsystem):
             node_tpm = node.tpm_on
             for input_node in node.inputs:
                 if blackbox.hidden_from(input_node, node.index):
-                    node_tpm = marginalize_out([input_node], node_tpm)
+                    node_tpm = node_tpm.marginalize_out([input_node])
 
             node_tpms.append(node_tpm)
 
@@ -274,9 +283,9 @@ class MacroSubsystem(Subsystem):
         there is only `len(output_indices)` dimensions in the TPM and in the
         state of the subsystem.
         """
-        tpm = marginalize_out(blackbox.hidden_indices, system.tpm)
+        tpm = system.tpm.marginalize_out(blackbox.hidden_indices)
 
-        assert blackbox.output_indices == tpm_indices(tpm)
+        assert blackbox.output_indices == tpm.tpm_indices()
 
         tpm = remove_singleton_dimensions(tpm)
         n = len(blackbox)
@@ -296,7 +305,7 @@ class MacroSubsystem(Subsystem):
     @staticmethod
     def _coarsegrain_space(coarse_grain, is_cut, system):
         """Spatially coarse-grain the TPM and CM."""
-        tpm = coarse_grain.macro_tpm(system.tpm, check_independence=(not is_cut))
+        tpm = coarse_grain.macro_tpm(system.tpm.tpm, check_independence=(not is_cut))
 
         node_indices = coarse_grain.macro_indices
         state = coarse_grain.macro_state(system.state)
@@ -305,6 +314,7 @@ class MacroSubsystem(Subsystem):
         n = len(node_indices)
         cm = np.ones((n, n))
 
+        tpm = ExplicitTPM(tpm)
         return SystemAttrs(tpm, cm, node_indices, state)
 
     @property
@@ -540,7 +550,8 @@ class CoarseGrain(namedtuple("CoarseGrain", ["partition", "grouping"])):
         Returns:
             np.ndarray: The state-by-state TPM of the macro-system.
         """
-        validate.tpm(state_by_state_micro_tpm, check_independence=False)
+        tpm = ExplicitTPM(state_by_state_micro_tpm, validate=False)
+        tpm.validate(check_independence=False)
 
         mapping = self.make_mapping()
 
@@ -576,13 +587,14 @@ class CoarseGrain(namedtuple("CoarseGrain", ["partition", "grouping"])):
         Returns:
             np.ndarray: The state-by-node TPM of the macro-system.
         """
-        if not is_state_by_state(micro_tpm):
+        if not ExplicitTPM(micro_tpm, validate=False).is_state_by_state():
             micro_tpm = convert.state_by_node2state_by_state(micro_tpm)
 
         macro_tpm = self.macro_tpm_sbs(micro_tpm)
 
         if check_independence:
-            validate.conditionally_independent(macro_tpm)
+            tpm = ExplicitTPM(macro_tpm, validate=False)
+            tpm.conditionally_independent()
 
         return convert.state_by_state2state_by_node(macro_tpm)
 
@@ -1022,7 +1034,7 @@ def effective_info(network):
     """
     validate.is_network(network)
 
-    sbs_tpm = convert.state_by_node2state_by_state(network.tpm)
+    sbs_tpm = convert.state_by_node2state_by_state(network.tpm.tpm)
     avg_repertoire = np.mean(sbs_tpm, 0)
 
     return np.mean([entropy(repertoire, avg_repertoire, 2.0) for repertoire in sbs_tpm])

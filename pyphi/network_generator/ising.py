@@ -74,18 +74,17 @@ try:
             plt.text(x=row[x], y=row[y] + seen[row[x]], s=row[label])
         return ax
 
-    def plot(weights, temperature, field, N=None):
+    def plot(weights, temperature, field, N=None, spin=0):
         if N is None:
             N = weights.shape[0]
         else:
             weights = weights[:N, :N]
 
-        spin = 0
         energies = []
         probabilities = []
         states = list(all_states(N))
         for state in states:
-            spin_state = binary2spin(state)
+            spin_state = utils.binary2spin(state)
             # Compute probability that i'th spin is "on" in the next micro-timestep
             E = energy(spin, weights, spin_state, field)
             energies.append(E)
