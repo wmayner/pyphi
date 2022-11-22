@@ -377,7 +377,8 @@ class ExplicitTPM(Wrapper):
         """
         N = self._tpm.shape[-1]
         free_nodes = sorted(set(range(N)) - set(fixed_nodes))
-        conditioned = self.condition_tpm(fixed_nodes, state)
+        condition = FrozenMap(zip(fixed_nodes, state))
+        conditioned = self.condition_tpm(condition)
         # TODO test indicing behavior on xr.DataArray
         return conditioned[..., free_nodes]
 
