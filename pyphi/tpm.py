@@ -368,12 +368,12 @@ class ExplicitTPM(Wrapper):
         Examples:
             >>> from pyphi import examples
             >>> # Get the TPM for nodes only 1 and 2, conditioned on node 0 = OFF
-            >>> subtpm(examples.grid3_network().tpm.tpm, (0,), (0,))
-            ExplicitTPM(array([[[[0.02931223, 0.04742587],
-                                 [0.07585818, 0.88079708]],
+            >>> examples.grid3_network().tpm.subtpm((0,), (0,))
+            ExplicitTPM([[[[0.02931223 0.04742587]
+               [0.07585818 0.88079708]]
             <BLANKLINE>
-                                [[0.81757448, 0.11920292],
-                                 [0.92414182, 0.95257413]]]]))
+              [[0.81757448 0.11920292]
+               [0.92414182 0.95257413]]]])
         """
         N = self._tpm.shape[-1]
         free_nodes = sorted(set(range(N)) - set(fixed_nodes))
