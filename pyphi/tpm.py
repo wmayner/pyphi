@@ -160,7 +160,7 @@ class ExplicitTPM(Wrapper):
                 args = tuple(args)
 
             # TODO attributes data, real and imag return arrays that should
-            # also be casted, even though they are not callable.
+            # also be cast, even though they are not callable.
             result = attribute(*args, **kwargs)
 
             # Test type of result. Reducing operations (e.g. sum(), max())
