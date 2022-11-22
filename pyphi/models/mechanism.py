@@ -4,7 +4,11 @@
 
 """Mechanism-level objects."""
 
+from dataclasses import dataclass
+from typing import Iterable
+
 import numpy as np
+from numpy.typing import ArrayLike
 
 from pyphi.models.cuts import KPartition
 
@@ -54,6 +58,41 @@ def normalization_factor(partition):
     return distinction_phi_normalizations[config.DISTINCTION_PHI_NORMALIZATION](
         partition
     )
+
+
+@dataclass
+class StateSpecification:
+    direction: Direction
+    intrinsic_information: float
+    state: tuple[tuple[int]]
+    repertoire: ArrayLike
+    unconstrained_repertoire: ArrayLike
+
+    def set_ties(self, ties: Iterable):
+        self._ties = ties
+
+    @property
+    def ties(self):
+        return self._ties
+
+    def __getitem__(self, i):
+        return self.state[i]
+
+    def _repr_columns(self, prefix=""):
+        return [
+            (f"{prefix}{self.direction}", str(self.state)),
+            (
+                f"{prefix}II_{str(self.direction)[:1].lower()}",
+                self.intrinsic_information,
+            ),
+        ]
+
+    def __repr__(self):
+        body = "\n".join(fmt.align_columns(self._repr_columns()))
+        body = fmt.header(
+            f"Specified {self.direction}", body, under_char=fmt.HEADER_BAR_3
+        )
+        return fmt.box(fmt.center(body))
 
 
 class RepertoireIrreducibilityAnalysis(cmp.Orderable):

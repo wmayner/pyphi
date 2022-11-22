@@ -11,8 +11,8 @@ from ..new_big_phi import (
     NullSystemIrreducibilityAnalysis,
     ShortCircuitConditions,
     SystemIrreducibilityAnalysis,
-    SystemState,
-    find_system_state,
+    SystemStateSpecification,
+    system_intrinsic_information,
     DEFAULT_PARTITION_CHUNKSIZE,
     DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
 )
@@ -22,7 +22,10 @@ from ..subsystem import Subsystem
 
 class SystemIrreducibilityAnalysisII(SystemIrreducibilityAnalysis):
     def __init__(
-        self, *args, partitioned_system_state: Optional[SystemState] = None, **kwargs
+        self,
+        *args,
+        partitioned_system_state: Optional[SystemStateSpecification] = None,
+        **kwargs,
     ):
         self.partitioned_system_state = partitioned_system_state
         super().__init__(*args, **kwargs)
@@ -40,7 +43,7 @@ def normalization_factor(partition: Cut) -> float:
 def evaluate_partition(
     partition: Cut,
     subsystem: Subsystem,
-    system_state: SystemState,
+    system_state: SystemStateSpecification,
     repertoire_distance: str = None,
     directions: Optional[Iterable[Direction]] = None,
 ) -> SystemIrreducibilityAnalysisII:
@@ -48,7 +51,7 @@ def evaluate_partition(
     directions = fallback(directions, Direction.both())
 
     cut_subsystem = subsystem.apply_cut(partition)
-    partitioned_system_state = find_system_state(
+    partitioned_system_state = system_intrinsic_information(
         cut_subsystem,
         repertoire_distance=repertoire_distance,
         system_state=system_state,
@@ -94,7 +97,9 @@ def sia(
         partition_scheme=partitions,
     )
 
-    system_state = find_system_state(subsystem, repertoire_distance=repertoire_distance)
+    system_state = system_intrinsic_information(
+        subsystem, repertoire_distance=repertoire_distance
+    )
 
     default_sia = NullSystemIrreducibilityAnalysis(
         reasons=[ShortCircuitConditions.NO_VALID_PARTITIONS],

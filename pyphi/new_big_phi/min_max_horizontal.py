@@ -17,8 +17,8 @@ from ..new_big_phi import (
     DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
     NullSystemIrreducibilityAnalysis,
     ShortCircuitConditions,
-    SystemState,
-    find_system_state,
+    SystemStateSpecification,
+    system_intrinsic_information,
 )
 from ..registry import Registry
 
@@ -62,7 +62,7 @@ class SystemPartition:
         raise NotImplementedError
 
     def evaluate(
-        self, subsystem: Subsystem, system_state: SystemState, **kwargs
+        self, subsystem: Subsystem, system_state: SystemStateSpecification, **kwargs
     ) -> tuple[float, ArrayLike, ArrayLike]:
         raise NotImplementedError
 
@@ -81,7 +81,7 @@ class HorizontalSystemPartition(SystemPartition):
         return 1 / len(self.purview)
 
     def evaluate(
-        self, subsystem: Subsystem, system_state: SystemState, **kwargs
+        self, subsystem: Subsystem, system_state: SystemStateSpecification, **kwargs
     ) -> tuple[float, ArrayLike, ArrayLike]:
         valid_distances = ["IIT_4.0_SMALL_PHI", "IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE"]
         if config.REPERTOIRE_DISTANCE not in valid_distances:
@@ -357,7 +357,7 @@ def evaluate_purview(purview, partition, subsystem, system_state, **kwargs):
 def evaluate_partition(
     partition: HorizontalSystemPartition,
     subsystem: Subsystem,
-    system_state: SystemState,
+    system_state: SystemStateSpecification,
     repertoire_distance: str = None,
     **kwargs,
 ) -> SystemIrreducibilityAnalysis:
@@ -400,7 +400,7 @@ def sia(
 
     # TODO: trivial reducibility
 
-    system_state = find_system_state(subsystem)
+    system_state = system_intrinsic_information(subsystem)
 
     # Find MIP
     partitions = sia_partitions_horizontal(

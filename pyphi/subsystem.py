@@ -35,6 +35,7 @@ from .models import (
     RepertoireIrreducibilityAnalysis,
     _null_ria,
 )
+from .models.mechanism import StateSpecification
 from .network import irreducible_purviews
 from .node import generate_nodes
 from .partition import mip_partitions
@@ -758,8 +759,6 @@ class Subsystem:
         repertoire=None,
         partitioned_repertoire=None,
         repertoire_distance=None,
-        return_unpartitioned_repertoire=False,
-        return_partitioned_repertoire=True,
         partitioned_repertoire_kwargs=None,
         **kwargs,
     ):
@@ -820,12 +819,18 @@ class Subsystem:
                 repertoire_distance=repertoire_distance,
                 **kwargs,
             )
-        return_value = (phi,)
-        if return_partitioned_repertoire:
-            return_value += (partitioned_repertoire,)
-        if return_unpartitioned_repertoire:
-            return_value += (repertoire,)
-        return return_value
+        return RepertoireIrreducibilityAnalysis(
+            phi=phi,
+            direction=direction,
+            mechanism=mechanism,
+            purview=purview,
+            partition=partition,
+            repertoire=repertoire,
+            partitioned_repertoire=partitioned_repertoire,
+            mechanism_state=state_of(mechanism, self.state),
+            purview_state=state_of(purview, self.state),
+            node_labels=self.node_labels,
+        )
 
     def find_mip(self, direction, mechanism, purview, **kwargs):
         """Return the minimum information partition for a mechanism over a
@@ -847,34 +852,18 @@ class Subsystem:
         # partitioned ones.
         repertoire = self.repertoire(direction, mechanism, purview)
 
-        # TODO(4.0) return from evaluate_partition?
-        def _mip(phi, partition, partitioned_repertoire):
-            # Prototype of MIP with already known data
-            # TODO: Use properties here to infer mechanism and purview from
-            # partition yet access them with `.mechanism` and `.purview`.
-            return RepertoireIrreducibilityAnalysis(
-                phi=phi,
-                direction=direction,
-                mechanism=mechanism,
-                purview=purview,
-                partition=partition,
-                repertoire=repertoire,
-                partitioned_repertoire=partitioned_repertoire,
-                mechanism_state=state_of(mechanism, self.state),
-                purview_state=state_of(purview, self.state),
-                node_labels=self.node_labels,
-            )
-
         # State is unreachable - return 0 instead of giving nonsense results
+        # TODO(4.0) re-evaluate this with the GID
+        # TODO(4.0) record shortcircuit reasons
         if direction == Direction.CAUSE and np.all(repertoire == 0):
-            return _mip(0, None, None)
+            return _null_ria(direction, mechanism, purview, phi=0)
 
         mip = _null_ria(direction, mechanism, purview, phi=float("inf"))
 
         for partition in mip_partitions(mechanism, purview, self.node_labels):
             # Find the distance between the unpartitioned and partitioned
             # repertoire.
-            phi, partitioned_repertoire = self.evaluate_partition(
+            candidate_mip = self.evaluate_partition(
                 direction,
                 mechanism,
                 purview,
@@ -882,12 +871,10 @@ class Subsystem:
                 repertoire=repertoire,
                 **kwargs,
             )
-            candidate_mip = _mip(phi, partition, partitioned_repertoire)
-
+            # TODO(4.0) use shortcircuit conditions?
             # Return immediately if mechanism is reducible.
             if utils.eq(candidate_mip.normalized_phi, 0):
                 return candidate_mip
-
             # Update MIP if it's more minimal.
             if candidate_mip.normalized_phi < mip.normalized_phi:
                 mip = candidate_mip
@@ -981,8 +968,6 @@ class Subsystem:
         direction: Direction,
         mechanism: tuple[int],
         purview: tuple[int],
-        return_information: bool = False,
-        return_repertoires: bool = False,
         repertoire_distance: str = None,
         states: Iterable[Iterable[int]] = None,
         virtual_units: Iterable[int] = None,
@@ -1001,23 +986,6 @@ class Subsystem:
                 virtual_units
             )
 
-        # partition = complete_partition(mechanism, purview)
-        #
-        # def evaluate_state(state):
-        #     # TODO(4.0) only need to compute partitioned_repertoire once!
-        #     information, partitioned_repertoire = self.evaluate_partition(
-        #         direction,
-        #         mechanism,
-        #         purview,
-        #         partition,
-        #         partitioned_repertoire_kwargs=dict(
-        #             nonvirtualized_units=nonvirtualized_units,
-        #         ),
-        #         repertoire=repertoire,
-        #         repertoire_distance=repertoire_distance,
-        #         state=state,
-        #     )
-        #     return information, partitioned_repertoire
         if repertoire_distance == "GENERALIZED_INTRINSIC_DIFFERENCE":
             selectivity_repertoire = self.repertoire(
                 direction, mechanism, purview, nonvirtualized_units=nonvirtualized_units
@@ -1075,19 +1043,18 @@ class Subsystem:
         )
         # Return all tied states
         ties = [
-            (state, partitioned_repertoire)
+            StateSpecification(
+                direction, information, state, repertoire, partitioned_repertoire
+            )
             for state, (
                 information,
                 partitioned_repertoire,
             ) in state_to_information.items()
             if information == max_information
         ]
-        tied_states, partitioned_repertoires = zip(*ties)
-        if return_information:
-            return tied_states, max_information
-        if return_repertoires:
-            return tied_states, max_information, repertoire, partitioned_repertoires
-        return tied_states
+        for tie in ties:
+            tie.set_ties(ties)
+        return ties[0]
 
     # Phi_max methods
     # =========================================================================
@@ -1162,16 +1129,22 @@ class Subsystem:
                 # `all_mips` and taking max is correct
                 all_mips = []
                 for purview in purviews:
-                    maximal_states = self.intrinsic_information(
-                        direction, mechanism, purview
-                    )
-                    mips = [
-                        self.find_mip(direction, mechanism, purview, state=state)
-                        for state in maximal_states
+                    # TODO(ties) refactor to use full 'Specification' object
+                    specified_states = [
+                        specified.state
+                        for specified in self.intrinsic_information(
+                            direction, mechanism, purview
+                        ).ties
                     ]
-                    maximal_states = np.array(maximal_states)
+                    mips = [
+                        self.find_mip(
+                            direction, mechanism, purview, state=specified_state
+                        )
+                        for specified_state in specified_states
+                    ]
+                    specified_states = np.array(specified_states)
                     for mip in mips:
-                        mip.set_specified_state(maximal_states)
+                        mip.set_specified_state(specified_states)
                     all_mips.extend(mips)
             else:
                 all_mips = [

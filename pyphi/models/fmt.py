@@ -421,25 +421,29 @@ def fmt_partition(partition):
     Returns:
         str: A human-readable string representation of the partition.
     """
+    # TODO(4.0) deprecate
     if not partition:
         return ""
+    try:
 
-    parts = [
-        # TODO(4.0)
-        # str(part).split("\n")
-        fmt_part(part, node_labels=partition.node_labels).split("\n")
-        for part in partition
-    ]
+        parts = [
+            # TODO(4.0)
+            # str(part).split("\n")
+            fmt_part(part, node_labels=partition.node_labels).split("\n")
+            for part in partition
+        ]
 
-    times = ("   ", " {} ".format(MULTIPLY), "   ")
-    breaks = ("\n", "\n", "")  # No newline at the end of string
-    between = [times] * (len(parts) - 1) + [breaks]
+        times = ("   ", " {} ".format(MULTIPLY), "   ")
+        breaks = ("\n", "\n", "")  # No newline at the end of string
+        between = [times] * (len(parts) - 1) + [breaks]
 
-    # Alternate [part, break, part, ..., end]
-    elements = chain.from_iterable(zip(parts, between))
+        # Alternate [part, break, part, ..., end]
+        elements = chain.from_iterable(zip(parts, between))
 
-    # Transform vertical stacks into horizontal lines
-    return "".join(chain.from_iterable(zip(*elements)))
+        # Transform vertical stacks into horizontal lines
+        return "".join(chain.from_iterable(zip(*elements)))
+    except TypeError:
+        return repr(partition)
 
 
 def fmt_phi_structure(ps, title="Phi-structure", subsystem=True):
