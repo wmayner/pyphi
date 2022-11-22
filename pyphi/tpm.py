@@ -51,7 +51,7 @@ class ProxyMetaclass(type):
             "__rlshift__", "__rrshift__", "__rshift__",
             "__ior__", "__or__", "__ror__",
             "__xor__", "__ixor__", "__rxor__",
-            # __eq__ and __ne__ are explicitly implemented
+            "__eq__", "__ne__",
             "__ge__", "__gt__", "__lt__", "__le__",
             "__deepcopy__",
             # 3-ary
@@ -461,22 +461,6 @@ class ExplicitTPM(Wrapper):
         if isinstance(item, type(self._tpm)):
             item = type(self)(item, validate=False)
         return item
-
-    def __eq__(self, o: object):
-        """Return whether this TPM equals the other object.
-
-        Two TPMs are equal if they are instances of the ExplicitTPM class
-        and their numpy arrays are equal.
-        """
-        return isinstance(o, ExplicitTPM) and np.array_equal(self._tpm, o._tpm)
-
-    def __ne__(self, o: object):
-        """Return whether this TPM is different from the other object.
-
-        Two TPMs are equal if they are instances of the ExplicitTPM class
-        and their numpy arrays are equal. Otherwise they are different.
-        """
-        return not self.__eq__(o)
 
     def __str__(self):
         return self.__repr__()
