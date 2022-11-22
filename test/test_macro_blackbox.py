@@ -347,7 +347,7 @@ def test_degenerate(degenerate):
         validate=False
     )
     # fmt: on
-    assert degenerate.tpm == answer
+    assert degenerate.tpm.array_equal(answer)
     # fmt: off
     answer = np.array([
         [0, 1],

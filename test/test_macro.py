@@ -294,10 +294,10 @@ def test_rebuild_system_tpm(s):
         validate=False
     )
     # fmt: on
-    assert macro.rebuild_system_tpm(node_tpms) == answer
+    assert macro.rebuild_system_tpm(node_tpms).array_equal(answer)
 
     node_tpms = [node.tpm_on for node in s.nodes]
-    assert macro.rebuild_system_tpm(node_tpms) == s.tpm
+    assert macro.rebuild_system_tpm(node_tpms).array_equal(s.tpm)
 
 
 def test_remove_singleton_dimensions():
@@ -312,7 +312,7 @@ def test_remove_singleton_dimensions():
     )
     # fmt: on
     assert tpm.tpm_indices() == (0,)
-    assert macro.remove_singleton_dimensions(tpm) == tpm
+    assert macro.remove_singleton_dimensions(tpm).array_equal(tpm)
 
     # fmt: off
     tpm = ExplicitTPM(
@@ -331,7 +331,7 @@ def test_remove_singleton_dimensions():
     )
     # fmt: on
     assert tpm.tpm_indices() == (1,)
-    assert macro.remove_singleton_dimensions(tpm) == answer
+    assert macro.remove_singleton_dimensions(tpm).array_equal(answer)
 
     # fmt: off
     tpm = ExplicitTPM(
@@ -354,12 +354,12 @@ def test_remove_singleton_dimensions():
     )
     # fmt: on
     assert tpm.tpm_indices() == (0, 2)
-    assert macro.remove_singleton_dimensions(tpm) == answer
+    assert macro.remove_singleton_dimensions(tpm).array_equal(answer)
 
 
 def test_pack_attrs(s):
     attrs = macro.SystemAttrs.pack(s)
-    assert attrs.tpm == s.tpm
+    assert attrs.tpm.array_equal(s.tpm)
     assert np.array_equal(attrs.cm, s.cm)
     assert attrs.node_indices == s.node_indices
     assert attrs.state == s.state
@@ -375,7 +375,7 @@ def test_apply_attrs(s):
     target = SomeSystem()
 
     attrs.apply(target)
-    assert target.tpm == s.tpm
+    assert target.tpm.array_equal(s.tpm)
     assert np.array_equal(target.cm, s.cm)
     assert target.node_indices == s.node_indices
     assert target.state == s.state
