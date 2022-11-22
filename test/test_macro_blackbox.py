@@ -1,7 +1,9 @@
 import numpy as np
 import pytest
 
-from pyphi import Network, compute, config, convert, macro, models, utils
+from pyphi import (
+    Network, compute, config, convert, ExplicitTPM, macro, models, utils
+)
 
 
 # TODO: move these to examples.py
@@ -335,14 +337,17 @@ def test_coarsegrain_spatial_degenerate():
 @pytest.mark.slow
 def test_degenerate(degenerate):
     # fmt: off
-    answer = convert.to_multidimensional(np.array([
-        [0, 0],
-        [0, 1],
-        [1, 0],
-        [1, 1],
-    ]))
+    answer = ExplicitTPM(
+        np.array(
+            [[0, 0],
+             [0, 1],
+             [1, 0],
+             [1, 1]]
+        ),
+        validate=False
+    )
     # fmt: on
-    assert np.array_equal(degenerate.tpm, answer)
+    assert degenerate.tpm == answer
     # fmt: off
     answer = np.array([
         [0, 1],

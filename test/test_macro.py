@@ -359,7 +359,7 @@ def test_remove_singleton_dimensions():
 
 def test_pack_attrs(s):
     attrs = macro.SystemAttrs.pack(s)
-    assert np.array_equal(attrs.tpm, s.tpm)
+    assert attrs.tpm == s.tpm
     assert np.array_equal(attrs.cm, s.cm)
     assert attrs.node_indices == s.node_indices
     assert attrs.state == s.state
