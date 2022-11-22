@@ -7,12 +7,12 @@ Provides the TPM, ExplicitTPM, and ImplicitTPM classes.
 """
 
 from itertools import chain
+from typing import Mapping
 
 import numpy as np
 
 from . import config, convert, exceptions
 from .constants import OFF, ON
-from .data_structures import FrozenMap
 from .utils import all_states, np_hash, np_immutable
 
 
@@ -51,7 +51,7 @@ class TPM:
         """Ensure the tpm is well-formed."""
         raise NotImplementedError
 
-    def condition_tpm(self, condition: FrozenMap[int, int]):
+    def condition_tpm(self, condition: Mapping[int, int]):
         """Return a TPM conditioned on the given fixed node indices, whose
         states are fixed according to the given state-tuple.
 
