@@ -462,6 +462,14 @@ class ExplicitTPM(Wrapper):
             item = type(self)(item, validate=False)
         return item
 
+    def array_equal(self, o: object):
+        """Return whether this TPM equals the other object.
+
+        Two TPMs are equal if they are instances of the ExplicitTPM class
+        and their numpy arrays are equal.
+        """
+        return isinstance(o, type(self)) and np.array_equal(self._tpm, o._tpm)
+
     def __str__(self):
         return self.__repr__()
 
