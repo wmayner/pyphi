@@ -109,13 +109,17 @@ class ProxyMetaclass(type):
                     # instances of cls.
                     setattr(cls, name, property(make_proxy(name)))
 
+
 class Wrapper(metaclass=ProxyMetaclass):
     """Proxy to the array inside PyPhi's custom TPM class.
     """
 
     __wraps__  = None
-    __ignore__ = {"class", "mro", "new", "init", "setattr", "getattr", "getattribute"}
-    __ignore__ = frozenset(f"__{i}__" for i in __ignore__)
+
+    __ignore__ = frozenset({
+        "__class__", "__mro__", "__new__", "__init__", "__setattr__",
+        "__getattr__", "__getattribute__"
+    })
 
     def __init__(self):
         if self.__wraps__ is None:
