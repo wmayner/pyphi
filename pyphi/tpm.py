@@ -88,7 +88,7 @@ class ProxyMetaclass(type):
                     # Cast result to our custom TPM class.
                     if isinstance(result, tuple):
                         # Multivalued "functions" result in a tuple, e.g., the
-                        # 2-tuple (quotients, remainders) from __divmod__().
+                        # 2-tuple (quotients, remainders) from `__divmod__()`.
                         return (type(self)(r, validate=False) for r in result)
 
                     return type(self)(result, validate=False)
@@ -103,7 +103,8 @@ class ProxyMetaclass(type):
             ignore = cls.__ignore__
             # Go through all the attribute strings in the wrapped array type.
             for name in dir(cls.__wraps__):
-                # Filter special attributes. The rest will be handled by Wrapper.
+                # Filter special attributes. The rest will be handled
+                # by `__getattr__()`.
                 if name.startswith("__") and name not in ignore and name not in dct:
                     # Create proxy function for `name` and bind it to future
                     # instances of cls.
@@ -482,7 +483,7 @@ class ExplicitTPM(Wrapper):
         to type-checking the input.
         """
         if not isinstance(tpm, cls):
-            return ExplicitTPM(tpm, validate=False)
+            return cls(tpm, validate=False)
         return tpm
 
     def __str__(self):
