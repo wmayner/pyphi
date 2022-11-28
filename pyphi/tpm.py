@@ -15,6 +15,7 @@ from .constants import OFF, ON
 from .data_structures import FrozenMap
 from .utils import all_states, np_hash, np_immutable
 
+
 class ProxyMetaclass(type):
     """A metaclass to create wrappers for the TPM array's special attributes.
 
@@ -70,30 +71,7 @@ class ProxyMetaclass(type):
                 function: The wrapping function.
             """
             def proxy(self):
-                attribute = getattr(self._tpm, name)
-
-                if not name in __closures__:
-                    return attribute
-
-                def overriding_attribute(*args):
-                    # If second operand is a custom TPM object, access its array.
-                    if args and isinstance(args[0], type(self)):
-                        args = list(args)
-                        args[0] = args[0]._tpm
-                        args = tuple(args)
-
-                    # Evaluate n-ary operator with self and rest of operands.
-                    result = attribute(*args)
-
-                    # Cast result to our custom TPM class.
-                    if isinstance(result, tuple):
-                        # Multivalued "functions" result in a tuple, e.g., the
-                        # 2-tuple (quotients, remainders) from `__divmod__()`.
-                        return (type(self)(r, validate=False) for r in result)
-
-                    return type(self)(result, validate=False)
-
-                return overriding_attribute
+                return _new_attribute(name, __closures__, self._tpm)
 
             return proxy
 
@@ -137,6 +115,9 @@ class ExplicitTPM(Wrapper):
 
     # Casting semantics: values belonging to our custom TPM class should
     # remain closed under the following methods:
+
+    # TODO attributes data, real and imag return arrays that should also be
+    # cast, even though they are not callable.
     __closures__ =  frozenset({
         "argpartition", "astype", "byteswap", "choose", "clip", "compress",
         "conj", "conjugate", "copy", "cumprod", "cumsum", "diagonal", "dot",
@@ -152,35 +133,7 @@ class ExplicitTPM(Wrapper):
         if "_tpm" not in vars(self):
             raise AttributeError
 
-        attribute = getattr(self._tpm, name)
-
-        if name not in self.__closures__:
-            return attribute
-
-        def overriding_method(*args, **kwargs):
-            # If second operand is a custom TPM, use its array instead.
-            if args and isinstance(args[0], type(self)):
-                args = list(args)
-                args[0] = args[0]._tpm
-                args = tuple(args)
-
-            # TODO attributes data, real and imag return arrays that should
-            # also be cast, even though they are not callable.
-            result = attribute(*args, **kwargs)
-
-            # Test type of result. Reducing operations (e.g. sum(), max())
-            # return a scalar unless performed along an axis in a
-            # multidimensional array. Similarly, dot() may not return a scalar
-            # in general, because it is implemented in a polymorphic way.
-            if isinstance(result, self.__wraps__):
-                return type(self)(result, validate=False)
-
-            return result
-
-        # TODO search and replace return type.
-        overriding_method.__doc__ = attribute.__doc__
-
-        return overriding_method
+        return _new_attribute(name, self.__closures__, self._tpm)
 
     def __init__(self, tpm, validate=True):
         self._tpm = np.array(tpm)
@@ -516,3 +469,58 @@ def reconstitute_tpm(subsystem):
     # We concatenate the node TPMs along a new axis to get a multidimensional
     # state-by-node TPM (where the last axis corresponds to nodes).
     return np.concatenate(node_tpms, axis=-1)
+
+
+def _new_attribute(
+        name: str,
+        closures: set[str],
+        tpm: ExplicitTPM.__wraps__,
+        cls=ExplicitTPM
+) -> object:
+    """Helper function to return adequate proxy attributes for TPM arrays.
+
+    Args:
+        name (str): The name of the attribute to  proxy.
+        closures (set[str]): Attribute names which should return a PyPhi TPM.
+        tpm (np.ndarray): The array to introspect for attributes.
+        cls (type): The TPM type that the proxied attribute should return.
+
+    Returns:
+        object: A proxy to the underlying array's attribute, whether unmodified
+            or decorated with casting to `cls`.
+    """
+    attribute = getattr(tpm, name)
+
+    if name not in closures:
+        return attribute
+
+    def overriding_attribute(*args, **kwargs):
+        # If second operand is a custom TPM object, access its array.
+        if args and isinstance(args[0], cls):
+            args = list(args)
+            args[0] = args[0]._tpm
+            args = tuple(args)
+
+        # Evaluate n-ary operator with self and rest of operands.
+        result = attribute(*args, **kwargs)
+
+        # Test type of result and cast (or not) accordingly.
+
+        # Array.
+        if isinstance(result, cls.__wraps__):
+            return cls(result, validate=False)
+
+        # Multivalued "functions" returning a tuple (__divmod__()).
+        if isinstance(result, tuple):
+            return (cls(r, validate=False) for r in result)
+
+        # Scalars (e.g. sum(), max()), etc.
+        return result
+
+    try:
+        # TODO search and replace return type.
+        overriding_attribute.__doc__ = attribute.__doc__
+    except AttributeError:
+        pass
+
+    return overriding_attribute
