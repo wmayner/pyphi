@@ -366,6 +366,19 @@ class GeneralSetPartition(GeneralKCut):
     def to_json(self):
         return self.set_partition
 
+    # TODO(4.0) add to other classes after consolidating partitions
+    def relabel(self, node_indices, node_labels=None):
+        if node_labels is None:
+            node_labels = self.node_labels
+        if not len(node_indices) == len(self.node_indices):
+            raise ValueError("New node indices must have same length as the old.")
+        return GeneralSetPartition(
+            node_indices,
+            self._cut_matrix,
+            set_partition=self.set_partition,
+            node_labels=node_labels,
+        )
+
 
 class CompleteGeneralSetPartition(CompleteGeneralKCut):
     def __str__(self):

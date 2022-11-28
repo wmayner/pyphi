@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 # data_structures.py
 
-from ordered_set import OrderedSet
-import collections.abc
 import typing
+
+from ordered_set import OrderedSet
 
 
 class HashableOrderedSet(OrderedSet):
@@ -57,7 +57,9 @@ K = typing.TypeVar("K")
 V = typing.TypeVar("V")
 
 
-class FrozenMap(typing.Generic[K, V], collections.abc.Mapping[K, V]):
+class FrozenMap(typing.Mapping[K, V]):
+    """An immutable mapping from keys to values."""
+
     __slots__ = ("_dict", "_hash")
 
     def __init__(self, *args, **kwargs):

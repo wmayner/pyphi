@@ -459,7 +459,8 @@ def sia(
             repertoire_distance=repertoire_distance,
             directions=directions,
         ),
-        shortcircuit_func=utils.is_falsy,
+        # TODO decide how to handle shortcircuiting
+        # shortcircuit_func=utils.is_falsy,
         desc="Evaluating partitions",
         **kwargs,
     ).run()
