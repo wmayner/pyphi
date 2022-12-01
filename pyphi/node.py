@@ -137,7 +137,7 @@ class Node:
         """
         return (
             self.index == other.index
-            and self.tpm == other.tpm
+            and self.tpm.array_equal(other.tpm)
             and self.state == other.state
             and self.inputs == other.inputs
             and self.outputs == other.outputs

@@ -37,7 +37,7 @@ def test_expand_tpm():
         validate=False
     )
     # fmt: on
-    assert tpm.expand_tpm() == answer
+    assert tpm.expand_tpm().array_equal(answer)
 
 
 def test_marginalize_out(s):
@@ -54,7 +54,7 @@ def test_marginalize_out(s):
     )
 
     # fmt: on
-    assert marginalized_distribution == answer
+    assert marginalized_distribution.array_equal(answer)
 
     marginalized_distribution = s.tpm.marginalize_out([0, 1])
     # fmt: off
@@ -66,7 +66,7 @@ def test_marginalize_out(s):
         validate=False
     )
     # fmt: on
-    assert marginalized_distribution == answer
+    assert marginalized_distribution.array_equal(answer)
 
 
 def test_infer_cm(rule152):
