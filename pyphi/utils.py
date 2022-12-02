@@ -308,6 +308,13 @@ def try_len(*iterables):
     return min((l for l in lengths if l is not None), default=None)
 
 
+def assume_integer(x):
+    """Attempt cast to integer, raising an error if it is not an integer."""
+    if isinstance(x, float) and not x.is_integer():
+            raise ValueError(f"expected integer, got {type(x)} {x}")
+    return int(x)
+
+
 def enforce_integer(i, name="", min=float("-inf")):
     if not isinstance(i, int) or i < min:
         raise ValueError(f"{name} must be a positive integer")
