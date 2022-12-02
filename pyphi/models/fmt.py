@@ -560,17 +560,20 @@ def fmt_ria(ria, verbose=True, mip=False):
         direction = ""
 
     # TODO(4.0):  position repertoire and partitioned repertoire side by side
+    # TODO(ties) fix state-marking logic
     if config.REPR_VERBOSITY is HIGH:
         partition = "\n{}:\n{}".format(
             ("MIP" if mip else "Partition"), indent(fmt_partition(ria.partition))
         )
+        mark_states = [tuple(state) for state in ria.specified_state]
         repertoire = "\nRepertoire:\n{}".format(
-            indent(fmt_repertoire(ria.repertoire, mark_states=[ria.specified_state]))
+            indent(fmt_repertoire(ria.repertoire, mark_states=mark_states))
         )
         partitioned_repertoire = "\nPartitioned repertoire:\n{}".format(
             indent(
                 fmt_repertoire(
-                    ria.partitioned_repertoire, mark_states=[ria.specified_state]
+                    ria.partitioned_repertoire,
+                    mark_states=mark_states,
                 )
             )
         )
