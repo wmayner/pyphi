@@ -1,125 +1,93 @@
 # -*- coding: utf-8 -*-
 # repertoire.py
 
-import functools
-
 import numpy as np
+from numpy.typing import ArrayLike
+from typing import Callable
 
-from . import convert, utils, validate
-from .data_structures import FrozenMap
+from . import utils, validate
 from .direction import Direction
-from .distribution import max_entropy_distribution, repertoire_shape
-
+from .distribution import repertoire_shape
 
 # TODO(repertoire) refactor to be more independent of subsystem when TPM
 # overhaul is done; e.g. no longer need 'tpm_size' with named dimensions
 
 
-def forward_repertoire(subsystem, direction, mechanism, purview, **kwargs):
-    """Main interface to forward repertoire calculation."""
-    if direction == Direction.CAUSE:
-        return forward_cause_repertoire(subsystem, mechanism, purview, **kwargs)
-    elif direction == Direction.EFFECT:
-        return forward_effect_repertoire(subsystem, mechanism, purview, **kwargs)
-    return validate.direction(direction)
+# TODO(4.0) use this pattern with subsystem methods
+def _directional_dispatch(cause_func: Callable, effect_func: Callable) -> Callable:
+    # Assumes signatures of cause_func and effect_func are compatible
+    def wrapper(direction, *args, **kwargs):
+        if direction == Direction.CAUSE:
+            return cause_func(*args, **kwargs)
+        elif direction == Direction.EFFECT:
+            return effect_func(*args, **kwargs)
+        return validate.direction(direction)
+
+    return wrapper
 
 
-def forward_effect_repertoire(subsystem, mechanism, purview, **kwargs):
+def forward_effect_repertoire(
+    subsystem, mechanism: tuple[int], purview: tuple[int], **kwargs
+) -> ArrayLike:
     return subsystem.effect_repertoire(mechanism, purview, **kwargs)
 
 
-def forward_cause_repertoire(subsystem, mechanism, purview):
-    # Preallocate the repertoire with the proper shape, so that
-    # probabilities are broadcasted appropriately.
-    joint = np.ones(repertoire_shape(purview, subsystem.tpm_size))
-    # The effect repertoire is the product of the effect repertoires of the
-    # individual nodes.
-    joint = joint * functools.reduce(
-        np.multiply,
-        [
-            _single_node_forward_cause_repertoire(subsystem, mechanism_node, purview)
-            for mechanism_node in mechanism
-        ],
-    )
-    return joint
-
-
-def _single_node_forward_cause_repertoire(subsystem, mechanism_node, purview):
-    # TODO(repertoire) refactor to take any mechanism state, then maybe default to subsystem state
+def forward_cause_repertoire(subsystem, mechanism, purview, **kwargs):
     # TODO(nonbinary) extend to nonbinary nodes
     repertoire = np.empty([2] * len(purview))
     for purview_state in utils.all_states(len(purview)):
-        repertoire[purview_state] = _single_node_forward_cause_probability(
-            subsystem, mechanism_node, purview, purview_state
-        )
-    repertoire = repertoire / 2 ** len(purview)
-    return repertoire.reshape(repertoire_shape(purview, subsystem.tpm_size))
+        # We compute forward probabilities, but mechanism and purview roles are
+        # switched
+        repertoire[purview_state] = subsystem.effect_repertoire(
+            mechanism=purview,
+            purview=mechanism,
+            mechanism_state=purview_state,
+        ).squeeze()[utils.state_of(mechanism, subsystem.state)]
+    return repertoire.reshape(repertoire_shape(purview, len(subsystem)))
 
 
-def _single_node_forward_cause_probability(
-    subsystem, mechanism_node, purview, purview_state
-):
-    mechanism = (mechanism_node,)
-    mechanism_state = (subsystem.state[mechanism_node],)
-    return forward_effect_repertoire(
-        subsystem=subsystem,
-        # Switch mechanism and purview
-        mechanism=purview,
-        purview=mechanism,
-        # TODO(repertoire) refactor
-        mechanism_state=purview_state,
-        nonvirtualized_units=purview,
-    ).squeeze()[mechanism_state]
+forward_repertoire = _directional_dispatch(
+    forward_cause_repertoire, forward_effect_repertoire
+)
 
 
-def unconstrained_forward_repertoire(
-    subsystem, direction, mechanism, purview, **kwargs
-):
-    if direction == Direction.CAUSE:
-        return unconstrained_forward_cause_repertoire(subsystem, purview, **kwargs)
-    elif direction == Direction.EFFECT:
-        return unconstrained_forward_effect_repertoire(
-            subsystem, mechanism, purview, **kwargs
-        )
-    return validate.direction(direction)
-
-
-def unconstrained_forward_cause_repertoire(subsystem, purview):
-    return max_entropy_distribution(purview, subsystem.tpm_size)
-
-
-def unconstrained_forward_effect_repertoire(subsystem, mechanism, purview, **kwargs):
-    if not mechanism:
-        return _fully_unconstrained_forward_effect_repertoire(subsystem, purview)
-    return _partially_unconstrained_forward_effect_repertoire(
-        subsystem, mechanism, purview, **kwargs
-    )
-
-
-def _fully_unconstrained_forward_effect_repertoire(subsystem, purview):
-    # Ignore units outside the purview.
-    nonpurview_nodes = set(subsystem.node_indices) - set(purview)
-    tpm = subsystem.tpm.marginalize_out(nonpurview_nodes).tpm
-    tpm = tpm[..., list(purview)]
-    # Convert to state-by-state to get explicit joint probabilities.
-    joint = convert.sbn2sbs(tpm)
-    joint = convert.sbs_to_multidimensional(joint)
-    # Marginalize over all states at t to get a marginal repertoire over purview states at t+1.
-    repertoire = joint.mean(axis=tuple(purview))
-    return repertoire.reshape(repertoire_shape(purview, subsystem.tpm_size))
-
-
-def _partially_unconstrained_forward_effect_repertoire(
-    subsystem, mechanism, purview, **kwargs
-):
+def unconstrained_forward_effect_repertoire(subsystem, mechanism, purview):
     # Get the effect repertoire for each mechanism state.
     repertoires = np.stack(
         [
             forward_effect_repertoire(
-                subsystem, mechanism, purview, mechanism_state=state, **kwargs
+                subsystem, mechanism, purview, mechanism_state=state
             )
+            # TODO(nonbinary) extend to nonbinary nodes
             for state in utils.all_states(len(mechanism))
         ]
     )
     # Marginalize over all mechanism states.
     return repertoires.mean(axis=0)
+
+
+def unconstrained_forward_cause_repertoire(subsystem, mechanism, purview):
+    # See Eq. 32 in 4.0 paper.
+    # Here, the roles of `m` and `z` in the equation are switched, so the
+    # probability within the average is conditioned on `z`. So here, we are
+    # averaging over all states `\Omega_Z`. Since `m` is fixed, this means the
+    # probabilities for each `z` do not actually depend on `z`; they are all
+    # equal to the average value over all `Z`. So we compute this average value
+    # and fill the repertoire with it.
+    mean_forward_cause_probability = forward_cause_repertoire(
+        subsystem, mechanism, purview
+    ).mean()
+    repertoire = np.empty(repertoire_shape(purview, len(subsystem)))
+    repertoire.fill(mean_forward_cause_probability)
+    return repertoire
+
+
+unconstrained_forward_repertoire = _directional_dispatch(
+    unconstrained_forward_cause_repertoire, unconstrained_forward_effect_repertoire
+)
+
+
+# TODO(4.0) test the following invariants:
+# - in a causally perfect system, unconstrained m,z and z,m should be the same (eqs 33, 34)
+# - informativeness (ii, not partitioned) of the full system) should be the same
+#   between cause and effect
