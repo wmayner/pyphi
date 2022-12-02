@@ -37,7 +37,7 @@ IIT_VERSION: maximal-state-first
 # The method of combining cause and effect integration values.
 INTEGRATION_VALUE: MIN
 # The path for the log file.
-LOG_FILE: "pyphi.log"
+LOG_FILE: pyphi.log
 # The log level to write to `LOG_FILE`.
 LOG_FILE_LEVEL: INFO
 # The log level to write to stdout.
@@ -45,8 +45,12 @@ LOG_STDOUT_LEVEL: WARNING
 # Some functions are memoized using an in-memory cache. This is the maximum
 # percentage of memory that these caches can collectively use.
 MAXIMUM_CACHE_MEMORY_PERCENTAGE: 50
-# Controls how to resolve ties among purviews when computing MICE.
-PURVIEW_TIE_RESOLUTION: MAX_INFORMATIVENESS_THEN_SMALLEST_PURVIEW
+
+# TODO(ties): Document this.
+STATE_TIE_RESOLUTION: PHI
+MIP_TIE_RESOLUTION: [NORMALIZED_PHI, PHI]
+PURVIEW_TIE_RESOLUTION: PHI
+
 # The number of CPU cores to use in parallel.
 # -1 means all available cores, -2 means all but one available cores, etc.
 NUMBER_OF_CORES: -1
