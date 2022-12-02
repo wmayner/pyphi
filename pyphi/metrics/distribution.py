@@ -284,8 +284,8 @@ def psq2(p, q):
         p (np.ndarray): The first distribution.
         q (np.ndarray): The second distribution.
     """
-    fp = (p * (-1.0 * entr(p))).sum() / _LN_OF_2 + (p**2 * log2(len(p))).sum()
-    fq = (q * (-1.0 * entr(q))).sum() / _LN_OF_2 + (q**2 * log2(len(q))).sum()
+    fp = (p * (-1.0 * entr(p))).sum() / _LN_OF_2 + (p ** 2 * log2(len(p))).sum()
+    fq = (q * (-1.0 * entr(q))).sum() / _LN_OF_2 + (q ** 2 * log2(len(q))).sum()
     return abs(fp - fq)
 
 
@@ -628,53 +628,20 @@ def iit_4_small_phi_no_absolute_value(p, q, state):
     return information_density(p, q).squeeze()[state]
 
 
-# TODO(4.0) remove
-@measures.register("FORWARD_DIFFERENCE", asymmetric=True)
-def forward_difference(
-    subsystem,
-    cut_subsystem,
-    prev_nodes,
-    prev_state,
-    next_nodes,
-    next_state,
-    return_probabilities=False,
-):
-    p = subsystem.forward_probability(prev_nodes, prev_state, next_nodes, next_state)
-    q = cut_subsystem.forward_probability(
-        prev_nodes, prev_state, next_nodes, next_state
-    )
-    value = information_density(p, q)
-    if return_probabilities:
-        return value, p, q
-    return value
-
-
 @measures.register("GENERALIZED_INTRINSIC_DIFFERENCE", asymmetric=True)
 def generalized_intrinsic_difference(
-    p,
-    q,
-    next_state,
+    forward_repertoire,
+    partitioned_forward_repertoire,
     selectivity_repertoire,
-    selectivity_state,
+    state=None,
 ):
-    selectivity_repertoire = selectivity_repertoire.squeeze()
-    if len(selectivity_state) != selectivity_repertoire.ndim:
-        raise ValueError(
-            "The selectivity state must have the same dimensionality as the "
-            "selectivity repertoire."
-        )
-    selectivity = selectivity_repertoire[selectivity_state]
-    p = p.squeeze()
-    q = q.squeeze()
-    if len(next_state) != p.ndim or len(next_state) != q.ndim:
-        raise ValueError(
-            "The next state must have the same dimensionality as the "
-            "unpartitioned and partitioned repertoires."
-        )
-    p = p[next_state]
-    q = q[next_state]
-    informativeness = pointwise_mutual_information(p, q)
-    return selectivity * informativeness
+    informativeness = information_density(
+        forward_repertoire, partitioned_forward_repertoire
+    )
+    gid = selectivity_repertoire * informativeness
+    if state is None:
+        return gid
+    return gid[state]
 
 
 @measures.register("APMI", asymmetric=True)
