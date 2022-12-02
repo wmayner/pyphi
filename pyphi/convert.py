@@ -15,7 +15,7 @@ from math import log2
 
 import numpy as np
 
-from .utils import all_states
+from .utils import all_states, assume_integer
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
@@ -198,9 +198,9 @@ def to_multidimensional(tpm):
 def sbs_to_multidimensional(tpm):
     if not tpm.ndim == 2:
         raise ValueError("tpm must be 2-dimensional")
-    m = int(log2(tpm.shape[0]))
-    n = int(log2(tpm.shape[1]))
-    return tpm.reshape([2] * (m + n), order="F")
+    num_prev_nodes = assume_integer(log2(tpm.shape[0]))
+    num_next_nodes = assume_integer(log2(tpm.shape[1]))
+    return tpm.reshape([2] * num_prev_nodes + [2] * num_next_nodes, order="F")
 
 
 def to_2dimensional(tpm):
