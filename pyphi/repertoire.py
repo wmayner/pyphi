@@ -49,7 +49,7 @@ def forward_cause_repertoire(subsystem, mechanism, purview, **kwargs):
             mechanism_state=purview_state,
         )
         repertoire[purview_state] = er.squeeze()[mechanism_state]
-    return repertoire.reshape(repertoire_shape(purview, len(subsystem)))
+    return repertoire.reshape(repertoire_shape(subsystem.network.node_indices, purview))
 
 
 forward_repertoire = _directional_dispatch(
@@ -83,7 +83,7 @@ def unconstrained_forward_cause_repertoire(subsystem, mechanism, purview):
     mean_forward_cause_probability = forward_cause_repertoire(
         subsystem, mechanism, purview
     ).mean()
-    repertoire = np.empty(repertoire_shape(purview, len(subsystem)))
+    repertoire = np.empty(repertoire_shape(subsystem.network.node_indices, purview))
     repertoire.fill(mean_forward_cause_probability)
     return repertoire
 

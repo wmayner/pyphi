@@ -10,15 +10,7 @@ from typing import Iterable
 
 import numpy as np
 
-from . import (
-    cache,
-    connectivity,
-    distribution,
-    metrics,
-    resolve_ties,
-    utils,
-    validate,
-)
+from . import cache, connectivity, distribution, metrics, resolve_ties, utils, validate
 from .conf import config, fallback
 from .data_structures import FrozenMap
 from .direction import Direction
@@ -36,8 +28,8 @@ from .models.mechanism import StateSpecification
 from .network import irreducible_purviews
 from .node import generate_nodes
 from .partition import mip_partitions
-from .utils import state_of
 from .repertoire import forward_repertoire, unconstrained_forward_repertoire
+from .utils import state_of
 
 log = logging.getLogger(__name__)
 
@@ -331,7 +323,7 @@ class Subsystem:
         purview = frozenset(purview)
         # Preallocate the repertoire with the proper shape, so that
         # probabilities are broadcasted appropriately.
-        joint = np.ones(repertoire_shape(purview, self.tpm_size))
+        joint = np.ones(repertoire_shape(self.network.node_indices, purview))
         # The cause repertoire is the product of the cause repertoires of the
         # individual nodes.
         joint *= functools.reduce(
@@ -367,7 +359,7 @@ class Subsystem:
         # state of the purview; return the purview's maximum entropy
         # distribution.
         if not mechanism:
-            return max_entropy_distribution(purview, self.tpm_size)
+            return max_entropy_distribution(self.node_indices, purview)
         # Drop kwargs
         return self._cause_repertoire(mechanism, purview)
 
@@ -387,7 +379,9 @@ class Subsystem:
         nonmechanism_inputs = purview_node.inputs - set(condition)
         tpm = tpm.marginalize_out(nonmechanism_inputs).tpm
         # Reshape so that the distribution is over next states.
-        return tpm.reshape(repertoire_shape((purview_node_index,), self.tpm_size))
+        return tpm.reshape(
+            repertoire_shape(self.network.node_indices, (purview_node_index,))
+        )
 
     @cache.method("_repertoire_cache", Direction.EFFECT)
     def _effect_repertoire(
@@ -397,7 +391,7 @@ class Subsystem:
     ):
         # Preallocate the repertoire with the proper shape, so that
         # probabilities are broadcasted appropriately.
-        joint = np.ones(repertoire_shape(purview, self.tpm_size))
+        joint = np.ones(repertoire_shape(self.network.node_indices, purview))
         # The effect repertoire is the product of the effect repertoires of the
         # individual nodes.
         return joint * functools.reduce(
