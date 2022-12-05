@@ -32,7 +32,7 @@ from .registry import Registry
 from .relations import ConcreteRelations, Relations
 from .relations import relations as compute_relations
 from .subsystem import Subsystem
-from .utils import expsublog, is_falsy
+from .utils import expsublog
 
 # TODO
 # - cache relations, compute as needed for each nonconflicting CES
