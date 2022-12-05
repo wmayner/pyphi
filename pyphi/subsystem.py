@@ -466,12 +466,23 @@ class Subsystem:
         """
         return self.unconstrained_repertoire(Direction.EFFECT, purview, **kwargs)
 
-    def partitioned_repertoire(self, direction, partition, **kwargs):
+    def partitioned_repertoire(
+        self, direction, partition, repertoire_distance=None, **kwargs
+    ):
         """Compute the repertoire of a partitioned mechanism and purview."""
-        repertoires = [
-            self.repertoire(direction, part.mechanism, part.purview, **kwargs)
-            for part in partition
-        ]
+        repertoire_distance = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
+        if repertoire_distance == "GENERALIZED_INTRINSIC_DIFFERENCE":
+            repertoires = [
+                forward_repertoire(
+                    direction, self, part.mechanism, part.purview, **kwargs
+                )
+                for part in partition
+            ]
+        else:
+            repertoires = [
+                self.repertoire(direction, part.mechanism, part.purview, **kwargs)
+                for part in partition
+            ]
         return functools.reduce(np.multiply, repertoires)
 
     def expand_repertoire(self, direction, repertoire, new_purview=None):
@@ -610,16 +621,9 @@ class Subsystem:
         if repertoire_distance == "GENERALIZED_INTRINSIC_DIFFERENCE":
             selectivity_repertoire = repertoire
             repertoire = forward_repertoire(direction, self, mechanism, purview)
-
             if partitioned_repertoire is None:
-                partitioned_repertoire_kwargs = partitioned_repertoire_kwargs or dict()
-                partitioned_subsystem = self.apply_cut(partition)
-                partitioned_repertoire = forward_repertoire(
-                    direction,
-                    partitioned_subsystem,
-                    mechanism,
-                    purview,
-                    **partitioned_repertoire_kwargs,
+                partitioned_repertoire = self.partitioned_repertoire(
+                    direction, partition
                 )
             gid = metrics.distribution.generalized_intrinsic_difference(
                 forward_repertoire=repertoire,
