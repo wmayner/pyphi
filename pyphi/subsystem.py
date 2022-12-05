@@ -39,6 +39,7 @@ from .models.mechanism import StateSpecification
 from .network import irreducible_purviews
 from .node import generate_nodes
 from .partition import mip_partitions
+from .tpm import ExplicitTPM
 from .utils import state_of
 
 log = logging.getLogger(__name__)
@@ -83,6 +84,7 @@ class Subsystem:
     ):
         # The network this subsystem belongs to.
         validate.is_network(network)
+        network._tpm = ExplicitTPM.enforce(network.tpm)
         self.network = network
 
         self.node_labels = network.node_labels
@@ -416,6 +418,7 @@ class Subsystem:
         # pylint: disable=missing-docstring
         purview_node = self._index2node[purview_node_index]
         # Condition on the state of the purview inputs that are in the mechanism
+        purview_node.tpm = ExplicitTPM.enforce(purview_node.tpm)
         tpm = purview_node.tpm.condition_tpm(condition)
         # TODO(4.0) remove reference to TPM
         # Marginalize-out the inputs that aren't in the mechanism.

@@ -31,7 +31,7 @@ def test_node_init_tpm(s):
     answer = [ExplicitTPM(tpm, validate=False) for tpm in answer]
     # fmt: on
     for node in s.nodes:
-        assert node.tpm == answer[node.index]
+        assert node.tpm.array_equal(answer[node.index])
 
 
 def test_node_init_inputs(s):
@@ -79,7 +79,7 @@ def test_expand_tpm():
         validate=False
     )
     # fmt: on
-    assert expand_node_tpm(tpm) == answer
+    assert expand_node_tpm(tpm).array_equal(answer)
 
 
 def test_generate_nodes(s):
@@ -96,7 +96,7 @@ def test_generate_nodes(s):
         validate=False
     )
     # fmt: on
-    assert nodes[0].tpm == node0_tpm
+    assert nodes[0].tpm.array_equal(node0_tpm)
     assert nodes[0].inputs == set([1, 2])
     assert nodes[0].outputs == set([2])
     assert nodes[0].label == "A"
@@ -110,7 +110,7 @@ def test_generate_nodes(s):
         validate=False
     )
     # fmt: on
-    assert nodes[1].tpm == node1_tpm
+    assert nodes[1].tpm.array_equal(node1_tpm)
     assert nodes[1].inputs == set([2])
     assert nodes[1].outputs == set([0, 2])
     assert nodes[1].label == "B"
@@ -126,7 +126,7 @@ def test_generate_nodes(s):
         validate=False
     )
     # fmt: on
-    assert nodes[2].tpm == node2_tpm
+    assert nodes[2].tpm.array_equal(node2_tpm)
     assert nodes[2].inputs == set([0, 1])
     assert nodes[2].outputs == set([0, 1])
     assert nodes[2].label == "C"
