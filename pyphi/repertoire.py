@@ -33,16 +33,22 @@ def forward_effect_repertoire(
 
 
 def forward_cause_repertoire(subsystem, mechanism, purview, **kwargs):
-    # TODO(nonbinary) extend to nonbinary nodes
-    repertoire = np.empty([2] * len(purview))
-    for purview_state in utils.all_states(len(purview)):
+    mechanism_state = utils.state_of(mechanism, subsystem.state)
+    if purview:
+        repertoire = np.empty([2] * len(purview))
+        purview_states = utils.all_states(len(purview))
+    else:
+        repertoire = np.empty([1])
+        purview_states = [()]
+    for purview_state in purview_states:
         # We compute forward probabilities, but mechanism and purview roles are
         # switched
-        repertoire[purview_state] = subsystem.effect_repertoire(
+        er = subsystem.effect_repertoire(
             mechanism=purview,
             purview=mechanism,
             mechanism_state=purview_state,
-        ).squeeze()[utils.state_of(mechanism, subsystem.state)]
+        )
+        repertoire[purview_state] = er.squeeze()[mechanism_state]
     return repertoire.reshape(repertoire_shape(purview, len(subsystem)))
 
 
