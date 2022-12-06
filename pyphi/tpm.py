@@ -10,12 +10,14 @@ from itertools import chain
 from typing import Mapping
 
 import numpy as np
+from numpy.lib.mixins import NDArrayOperatorsMixin
 
 from . import config, convert, exceptions
 from .constants import OFF, ON
 from .utils import all_states, np_hash, np_immutable
 
 
+# TODO(tpm) remove pending ArrayLike refactor
 class ProxyMetaclass(type):
     """A metaclass to create wrappers for the TPM array's special attributes.
 
@@ -30,36 +32,74 @@ class ProxyMetaclass(type):
 
     1. Manually "overload" all the necessary methods.
     2. Use this metaclass to introspect the underlying array
-      and automatically overload methods in our custom TPM class definition.
+       and automatically overload methods in our custom TPM class definition.
     """
+
     def __init__(cls, type_name, bases, dct):
 
         # Casting semantics: values belonging to our custom TPM class should
         # remain closed under the following methods:
-        __closures__ = frozenset({
-            # 1-ary
-            "__abs__", "__copy__", "__invert__", "__neg__", "__pos__",
-            # 2-ary
-            "__add__", "__iadd__", "__radd__",
-            "__sub__", "__isub__", "__rsub__",
-            "__mul__", "__imul__", "__rmul__",
-            "__matmul__", "__imatmul__", "__rmatmul__",
-            "__truediv__", "__itruediv__", "__rtruediv__",
-            "__floordiv__", "__ifloordiv__", "__rfloordiv__",
-            "__mod__", "__imod__", "__rmod__",
-            "__and__", "__iand__", "__rand__",
-            "__lshift__", "__ilshift__", "__irshift__",
-            "__rlshift__", "__rrshift__", "__rshift__",
-            "__ior__", "__or__", "__ror__",
-            "__xor__", "__ixor__", "__rxor__",
-            "__eq__", "__ne__",
-            "__ge__", "__gt__", "__lt__", "__le__",
-            "__deepcopy__",
-            # 3-ary
-            "__pow__", "__ipow__", "__rpow__",
-            # 2-ary, 2-valued
-            "__divmod__", "__rdivmod__"
-        })
+        __closures__ = frozenset(
+            {
+                # 1-ary
+                "__abs__",
+                "__copy__",
+                "__invert__",
+                "__neg__",
+                "__pos__",
+                # 2-ary
+                "__add__",
+                "__iadd__",
+                "__radd__",
+                "__sub__",
+                "__isub__",
+                "__rsub__",
+                "__mul__",
+                "__imul__",
+                "__rmul__",
+                "__matmul__",
+                "__imatmul__",
+                "__rmatmul__",
+                "__truediv__",
+                "__itruediv__",
+                "__rtruediv__",
+                "__floordiv__",
+                "__ifloordiv__",
+                "__rfloordiv__",
+                "__mod__",
+                "__imod__",
+                "__rmod__",
+                "__and__",
+                "__iand__",
+                "__rand__",
+                "__lshift__",
+                "__ilshift__",
+                "__irshift__",
+                "__rlshift__",
+                "__rrshift__",
+                "__rshift__",
+                "__ior__",
+                "__or__",
+                "__ror__",
+                "__xor__",
+                "__ixor__",
+                "__rxor__",
+                "__eq__",
+                "__ne__",
+                "__ge__",
+                "__gt__",
+                "__lt__",
+                "__le__",
+                "__deepcopy__",
+                # 3-ary
+                "__pow__",
+                "__ipow__",
+                "__rpow__",
+                # 2-ary, 2-valued
+                "__divmod__",
+                "__rdivmod__",
+            }
+        )
 
         def make_proxy(name):
             """Returns a function that acts as a proxy for the given method name.
@@ -70,6 +110,7 @@ class ProxyMetaclass(type):
             Returns:
                 function: The wrapping function.
             """
+
             def proxy(self):
                 return _new_attribute(name, __closures__, self._tpm)
 
@@ -90,15 +131,21 @@ class ProxyMetaclass(type):
 
 
 class Wrapper(metaclass=ProxyMetaclass):
-    """Proxy to the array inside PyPhi's custom TPM class.
-    """
+    """Proxy to the array inside PyPhi's custom TPM class."""
 
-    __wraps__  = None
+    __wraps__ = None
 
-    __ignore__ = frozenset({
-        "__class__", "__mro__", "__new__", "__init__", "__setattr__",
-        "__getattr__", "__getattribute__"
-    })
+    __ignore__ = frozenset(
+        {
+            "__class__",
+            "__mro__",
+            "__new__",
+            "__init__",
+            "__setattr__",
+            "__getattr__",
+            "__getattribute__",
+        }
+    )
 
     def __init__(self):
         if self.__wraps__ is None:
@@ -108,32 +155,146 @@ class Wrapper(metaclass=ProxyMetaclass):
             raise ValueError(f"Wrapped object must be of type {self.__wraps__}")
 
 
-class ExplicitTPM(Wrapper):
+class ArrayLike(NDArrayOperatorsMixin):
+    # Only support operations with instances of _HANDLED_TYPES.
+    _HANDLED_TYPES = (np.ndarray, list)
+
+    # Holds the underlying array
+    _VALUE_ATTR = "value"
+
+    def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
+        print(
+            f"array_ufunc called with ufunc={ufunc}, method={method}, inputs={inputs}, kwargs={kwargs}"
+        )
+        out = kwargs.get("out", ())
+        for x in inputs + out:
+            # Only support operations with instances of _HANDLED_TYPES.
+            # Use ArrayLike instead of type(self) for isinstance to
+            # allow subclasses that don't override __array_ufunc__ to
+            # handle ArrayLike objects.
+            if not isinstance(x, self._HANDLED_TYPES + (ArrayLike,)):
+                return NotImplemented
+
+        # Defer to the implementation of the ufunc on unwrapped values.
+        inputs = tuple(self._unwrap_arraylike(inputs))
+        if out:
+            kwargs["out"] = tuple(self._unwrap_arraylike(out))
+        result = getattr(ufunc, method)(*inputs, **kwargs)
+
+        if type(result) is tuple:
+            # Multiple return values
+            return tuple(type(self)(x) for x in result)
+        elif method == "at":
+            # No return value
+            return None
+        else:
+            # one return value
+            return type(self)(result)
+
+    @staticmethod
+    def _unwrap_arraylike(values):
+        return (
+            getattr(x, x._VALUE_ATTR) if isinstance(x, ArrayLike) else x for x in values
+        )
+
+    def __array_function__(self, func, types, args, kwargs):
+        if func not in self.HANDLED_FUNCTIONS:
+            return NotImplemented
+        # Note: this allows subclasses that don't override
+        # __array_function__ to handle MyArray objects
+        if not all(issubclass(t, ArrayLike) for t in types):
+            return NotImplemented
+        return self.HANDLED_FUNCTIONS[func](*args, **kwargs)
+
+    def __array__(self, dtype=None):
+        # TODO(tpm) We should use `np.asarray` instead of accessing `.tpm`
+        # whenever the underlying array is needed
+        return np.asarray(self.__getattribute__(self._VALUE_ATTR), dtype=dtype)
+
+    def __getattr__(self, name):
+        return getattr(self.__getattribute__(self._VALUE_ATTR), name)
+
+
+# TODO implement handled functions
+HANDLED_FUNCTIONS = {}
+
+
+def implements(numpy_function):
+    """Register an __array_function__ implementation for ArrayLike objects."""
+
+    def decorator(func):
+        HANDLED_FUNCTIONS[numpy_function] = func
+        return func
+
+    return decorator
+
+
+@implements(np.concatenate)
+def concatenate(arrays, axis=0, out=None):
+    # implementation of concatenate for ArrayLike objects
+    raise NotImplementedError
+
+
+class ExplicitTPM(ArrayLike):
+
     """An explicit network TPM in multidimensional form."""
 
+    _VALUE_ATTR = "_tpm"
+
+    # TODO(tpm) remove pending ArrayLike refactor
     __wraps__ = np.ndarray
 
+    # TODO(tpm) remove pending ArrayLike refactor
     # Casting semantics: values belonging to our custom TPM class should
     # remain closed under the following methods:
 
     # TODO attributes data, real and imag return arrays that should also be
     # cast, even though they are not callable.
-    __closures__ =  frozenset({
-        "argpartition", "astype", "byteswap", "choose", "clip", "compress",
-        "conj", "conjugate", "copy", "cumprod", "cumsum", "diagonal", "dot",
-        "fill", "flatten", "getfield", "item", "itemset", "max", "mean", "min",
-        "newbyteorder", "partition", "prod", "ptp", "put", "ravel", "repeat",
-        "reshape", "resize", "round", "setfield", "sort", "squeeze", "std",
-        "sum", "swapaxes", "take", "transpose", "var", "view"
-    })
-
-    # Proxy access to regular attributes of the wrapped array.
-    def __getattr__(self, name):
-        # Fix error with serialization. TODO: Implement dumps(), tobytes()?
-        if "_tpm" not in vars(self):
-            raise AttributeError
-
-        return _new_attribute(name, self.__closures__, self._tpm)
+    __closures__ = frozenset(
+        {
+            "argpartition",
+            "astype",
+            "byteswap",
+            "choose",
+            "clip",
+            "compress",
+            "conj",
+            "conjugate",
+            "copy",
+            "cumprod",
+            "cumsum",
+            "diagonal",
+            "dot",
+            "fill",
+            "flatten",
+            "getfield",
+            "item",
+            "itemset",
+            "max",
+            "mean",
+            "min",
+            "newbyteorder",
+            "partition",
+            "prod",
+            "ptp",
+            "put",
+            "ravel",
+            "repeat",
+            "reshape",
+            "resize",
+            "round",
+            "setfield",
+            "sort",
+            "squeeze",
+            "std",
+            "sum",
+            "swapaxes",
+            "take",
+            "transpose",
+            "var",
+            "view",
+        }
+    )
 
     def __init__(self, tpm, validate=True):
         self._tpm = np.array(tpm)
@@ -471,11 +632,9 @@ def reconstitute_tpm(subsystem):
     return np.concatenate(node_tpms, axis=-1)
 
 
+# TODO(tpm) remove pending ArrayLike refactor
 def _new_attribute(
-        name: str,
-        closures: set[str],
-        tpm: ExplicitTPM.__wraps__,
-        cls=ExplicitTPM
+    name: str, closures: set[str], tpm: ExplicitTPM.__wraps__, cls=ExplicitTPM
 ) -> object:
     """Helper function to return adequate proxy attributes for TPM arrays.
 
