@@ -1,13 +1,10 @@
 # new_big_phi/__init__.py
 
+from copy import copy
 from dataclasses import dataclass
 from enum import Enum, auto, unique
 from textwrap import indent
-from typing import Dict, Iterable, Optional, Union
-from copy import copy
-
-from numpy.typing import ArrayLike
-from toolz import concat
+from typing import Iterable, Optional, Union
 
 from .. import Direction, Subsystem, compute, config, connectivity, utils
 from ..compute.network import reachable_subsystems
@@ -16,8 +13,8 @@ from ..conf import fallback
 from ..labels import NodeLabels
 from ..models import cmp, fmt
 from ..models.cuts import Cut, GeneralKCut, SystemPartition
+from ..models.mechanism import RepertoireIrreducibilityAnalysis, StateSpecification
 from ..models.subsystem import CauseEffectStructure
-from ..models.mechanism import StateSpecification, RepertoireIrreducibilityAnalysis
 from ..partition import system_partitions
 from ..registry import Registry
 from ..relations import ConcreteRelations, Relations
