@@ -380,11 +380,11 @@ class Subsystem:
         # TODO(4.0) remove reference to TPM
         # Marginalize-out the inputs that aren't in the mechanism.
         nonmechanism_inputs = purview_node.inputs - set(condition)
-        tpm = tpm.marginalize_out(nonmechanism_inputs).tpm
+        tpm = tpm.marginalize_out(nonmechanism_inputs)
         # Reshape so that the distribution is over next states.
         return tpm.reshape(
             repertoire_shape(self.network.node_indices, (purview_node_index,))
-        )
+        ).tpm
 
     @cache.method("_repertoire_cache", Direction.EFFECT)
     def _effect_repertoire(
@@ -397,6 +397,9 @@ class Subsystem:
         joint = np.ones(repertoire_shape(self.network.node_indices, purview))
         # The effect repertoire is the product of the effect repertoires of the
         # individual nodes.
+        # TODO(tpm) Currently the single-node repertoires need to be bare numpy
+        # arrays here because reducing with np.multiply throws an error; this
+        # should be fixed
         return joint * functools.reduce(
             np.multiply,
             [self._single_node_effect_repertoire(condition, p) for p in purview],
