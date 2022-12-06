@@ -32,34 +32,72 @@ class ProxyMetaclass(type):
     2. Use this metaclass to introspect the underlying array
       and automatically overload methods in our custom TPM class definition.
     """
+
     def __init__(cls, type_name, bases, dct):
 
         # Casting semantics: values belonging to our custom TPM class should
         # remain closed under the following methods:
-        __closures__ = frozenset({
-            # 1-ary
-            "__abs__", "__copy__", "__invert__", "__neg__", "__pos__",
-            # 2-ary
-            "__add__", "__iadd__", "__radd__",
-            "__sub__", "__isub__", "__rsub__",
-            "__mul__", "__imul__", "__rmul__",
-            "__matmul__", "__imatmul__", "__rmatmul__",
-            "__truediv__", "__itruediv__", "__rtruediv__",
-            "__floordiv__", "__ifloordiv__", "__rfloordiv__",
-            "__mod__", "__imod__", "__rmod__",
-            "__and__", "__iand__", "__rand__",
-            "__lshift__", "__ilshift__", "__irshift__",
-            "__rlshift__", "__rrshift__", "__rshift__",
-            "__ior__", "__or__", "__ror__",
-            "__xor__", "__ixor__", "__rxor__",
-            "__eq__", "__ne__",
-            "__ge__", "__gt__", "__lt__", "__le__",
-            "__deepcopy__",
-            # 3-ary
-            "__pow__", "__ipow__", "__rpow__",
-            # 2-ary, 2-valued
-            "__divmod__", "__rdivmod__"
-        })
+        __closures__ = frozenset(
+            {
+                # 1-ary
+                "__abs__",
+                "__copy__",
+                "__invert__",
+                "__neg__",
+                "__pos__",
+                # 2-ary
+                "__add__",
+                "__iadd__",
+                "__radd__",
+                "__sub__",
+                "__isub__",
+                "__rsub__",
+                "__mul__",
+                "__imul__",
+                "__rmul__",
+                "__matmul__",
+                "__imatmul__",
+                "__rmatmul__",
+                "__truediv__",
+                "__itruediv__",
+                "__rtruediv__",
+                "__floordiv__",
+                "__ifloordiv__",
+                "__rfloordiv__",
+                "__mod__",
+                "__imod__",
+                "__rmod__",
+                "__and__",
+                "__iand__",
+                "__rand__",
+                "__lshift__",
+                "__ilshift__",
+                "__irshift__",
+                "__rlshift__",
+                "__rrshift__",
+                "__rshift__",
+                "__ior__",
+                "__or__",
+                "__ror__",
+                "__xor__",
+                "__ixor__",
+                "__rxor__",
+                "__eq__",
+                "__ne__",
+                "__ge__",
+                "__gt__",
+                "__lt__",
+                "__le__",
+                "__deepcopy__",
+                # 3-ary
+                "__pow__",
+                "__ipow__",
+                "__rpow__",
+                # 2-ary, 2-valued
+                "__divmod__",
+                "__rdivmod__",
+            }
+        )
 
         def make_proxy(name):
             """Returns a function that acts as a proxy for the given method name.
@@ -70,6 +108,7 @@ class ProxyMetaclass(type):
             Returns:
                 function: The wrapping function.
             """
+
             def proxy(self):
                 return _new_attribute(name, __closures__, self._tpm)
 
@@ -90,15 +129,21 @@ class ProxyMetaclass(type):
 
 
 class Wrapper(metaclass=ProxyMetaclass):
-    """Proxy to the array inside PyPhi's custom TPM class.
-    """
+    """Proxy to the array inside PyPhi's custom TPM class."""
 
-    __wraps__  = None
+    __wraps__ = None
 
-    __ignore__ = frozenset({
-        "__class__", "__mro__", "__new__", "__init__", "__setattr__",
-        "__getattr__", "__getattribute__"
-    })
+    __ignore__ = frozenset(
+        {
+            "__class__",
+            "__mro__",
+            "__new__",
+            "__init__",
+            "__setattr__",
+            "__getattr__",
+            "__getattribute__",
+        }
+    )
 
     def __init__(self):
         if self.__wraps__ is None:
@@ -118,14 +163,51 @@ class ExplicitTPM(Wrapper):
 
     # TODO attributes data, real and imag return arrays that should also be
     # cast, even though they are not callable.
-    __closures__ =  frozenset({
-        "argpartition", "astype", "byteswap", "choose", "clip", "compress",
-        "conj", "conjugate", "copy", "cumprod", "cumsum", "diagonal", "dot",
-        "fill", "flatten", "getfield", "item", "itemset", "max", "mean", "min",
-        "newbyteorder", "partition", "prod", "ptp", "put", "ravel", "repeat",
-        "reshape", "resize", "round", "setfield", "sort", "squeeze", "std",
-        "sum", "swapaxes", "take", "transpose", "var", "view"
-    })
+    __closures__ = frozenset(
+        {
+            "argpartition",
+            "astype",
+            "byteswap",
+            "choose",
+            "clip",
+            "compress",
+            "conj",
+            "conjugate",
+            "copy",
+            "cumprod",
+            "cumsum",
+            "diagonal",
+            "dot",
+            "fill",
+            "flatten",
+            "getfield",
+            "item",
+            "itemset",
+            "max",
+            "mean",
+            "min",
+            "newbyteorder",
+            "partition",
+            "prod",
+            "ptp",
+            "put",
+            "ravel",
+            "repeat",
+            "reshape",
+            "resize",
+            "round",
+            "setfield",
+            "sort",
+            "squeeze",
+            "std",
+            "sum",
+            "swapaxes",
+            "take",
+            "transpose",
+            "var",
+            "view",
+        }
+    )
 
     # Proxy access to regular attributes of the wrapped array.
     def __getattr__(self, name):
@@ -472,10 +554,7 @@ def reconstitute_tpm(subsystem):
 
 
 def _new_attribute(
-        name: str,
-        closures: set[str],
-        tpm: ExplicitTPM.__wraps__,
-        cls=ExplicitTPM
+    name: str, closures: set[str], tpm: ExplicitTPM.__wraps__, cls=ExplicitTPM
 ) -> object:
     """Helper function to return adequate proxy attributes for TPM arrays.
 
