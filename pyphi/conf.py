@@ -78,6 +78,7 @@ long time!), resulting in data loss.
 - :attr:`~pyphi.conf.PyphiConfig.PARALLEL_CONCEPT_EVALUATION`
 - :attr:`~pyphi.conf.PyphiConfig.PARALLEL_CUT_EVALUATION`
 - :attr:`~pyphi.conf.PyphiConfig.PARALLEL_COMPLEX_EVALUATION`
+- :attr:`~pyphi.conf.PyphiConfig.PARALLEL_PURVIEW_EVALUATION`
 - :attr:`~pyphi.conf.PyphiConfig.NUMBER_OF_CORES`
 - :attr:`~pyphi.conf.PyphiConfig.MAXIMUM_CACHE_MEMORY_PERCENTAGE`
 
@@ -139,6 +140,7 @@ import contextlib
 import functools
 import logging
 import logging.config
+import math
 import os
 import pprint
 import shutil
@@ -583,6 +585,16 @@ class PyphiConfig(Config):
         doc="""
     Controls whether systems are evaluated in parallel when computing
     complexes.""",
+    )
+
+    PARALLEL_PURVIEW_EVALUATION = Option(
+        4.0,
+        type=float,
+        doc="""
+    Controls whether candidate purviews of mechanisms are evaluated in parallel
+    when computing maximally irreducible causes and effects (MICE).
+    Parallel evaluation will be performed if mechanism size is equal or greater
+    than this value. A value of ``math.inf`` disables parallelization.""",
     )
 
     NUMBER_OF_CORES = Option(

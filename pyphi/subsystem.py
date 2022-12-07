@@ -6,6 +6,7 @@
 
 import functools
 import logging
+from itertools import chain
 from typing import Iterable
 
 import numpy as np
@@ -30,6 +31,7 @@ from .models import (
 from .models.mechanism import StateSpecification
 from .network import irreducible_purviews
 from .node import generate_nodes
+from .compute.parallel import MapReduce
 from .partition import mip_partitions
 from .repertoire import forward_repertoire, unconstrained_forward_repertoire
 from .tpm import ExplicitTPM
@@ -958,7 +960,7 @@ class Subsystem:
         return irreducible_purviews(self.cm, direction, mechanism, purviews)
 
     @cache.method("_mice_cache")
-    def find_mice(self, direction, mechanism, purviews=False):
+    def find_mice(self, direction, mechanism, purviews=False, **kwargs):
         """Return the |MIC| or |MIE| for a mechanism.
 
         Args:
@@ -975,6 +977,74 @@ class Subsystem:
         Returns:
             MaximallyIrreducibleCauseOrEffect: The |MIC| or |MIE|.
         """
+
+        def _find_maximally_irreducible_state(
+                purview,
+                subsystem=None,
+                direction=None,
+                mechanism=None
+        ):
+            return subsystem.find_maximally_irreducible_state(
+                direction,
+                mechanism,
+                purview
+            )
+
+        def _find_tied_mips(
+                purview,
+                subsystem=None,
+                direction=None,
+                mechanism=None
+        ):
+            # TODO(4.0) refactor
+            # TODO(ties) refactor to use full 'Specification' object
+            all_mips = []
+            specified_states = [
+                specified.state
+                for specified in subsystem.intrinsic_information(
+                    direction, mechanism, purview
+                ).ties
+            ]
+            ties = tuple(
+                resolve_ties.states(
+                    (
+                        subsystem.find_mip(
+                            direction, mechanism, purview, state=specified_state
+                        )
+                        for specified_state in specified_states
+                    )
+                )
+            )
+            for tie in ties:
+                tie.set_state_ties(ties)
+            mip = ties[0]
+            all_mips.append(mip)
+            return all_mips
+
+        def _find_mip(
+                purview,
+                subsystem=None,
+                direction=None,
+                mechanism=None
+        ):
+            return subsystem.find_mip(direction, mechanism, purview)
+
+        def CurriedMapReduce(map_func):
+            parallel = len(mechanism) >= config.PARALLEL_PURVIEW_EVALUATION
+            return MapReduce(
+                map_func,
+                purviews,
+                total=len(purviews),
+                desc="Evaluating purviews",
+                parallel=parallel,
+                map_kwargs=dict(
+                    subsystem=self,
+                    direction=direction,
+                    mechanism=mechanism
+                ),
+                **kwargs
+            )
+
         purviews = self.potential_purviews(direction, mechanism, purviews)
 
         if direction == Direction.CAUSE:
@@ -991,39 +1061,13 @@ class Subsystem:
         else:
             if config.IIT_VERSION == 4:
                 # TODO(4.0)
-                all_mips = (
-                    self.find_maximally_irreducible_state(direction, mechanism, purview)
-                    for purview in purviews
-                )
+                map_func = _find_maximally_irreducible_state
             elif config.IIT_VERSION == "maximal-state-first":
-                all_mips = []
-                for purview in purviews:
-                    # TODO(4.0) refactor
-                    # TODO(ties) refactor to use full 'Specification' object
-                    specified_states = [
-                        specified.state
-                        for specified in self.intrinsic_information(
-                            direction, mechanism, purview
-                        ).ties
-                    ]
-                    ties = tuple(
-                        resolve_ties.states(
-                            (
-                                self.find_mip(
-                                    direction, mechanism, purview, state=specified_state
-                                )
-                                for specified_state in specified_states
-                            )
-                        )
-                    )
-                    for tie in ties:
-                        tie.set_state_ties(ties)
-                    mip = ties[0]
-                    all_mips.append(mip)
+                map_func = _find_tied_mips
             else:
-                all_mips = (
-                    self.find_mip(direction, mechanism, purview) for purview in purviews
-                )
+                map_func = _find_mip
+
+            all_mips = list(chain.from_iterable(CurriedMapReduce(map_func).run()))
 
             all_mice = map(mice_class, all_mips)
             # Record purview ties
