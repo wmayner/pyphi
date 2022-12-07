@@ -168,7 +168,16 @@ def test_macro_tpm_sbs():
     ])
     # fmt: on
     partition = ((0,), (1, 2))
-    grouping = (((0,), (1,)), ((0,), (1, 2,)))
+    grouping = (
+        ((0,), (1,)),
+        (
+            (0,),
+            (
+                1,
+                2,
+            ),
+        ),
+    )
     coarse_grain = macro.CoarseGrain(partition, grouping)
     macro_tpm = coarse_grain.macro_tpm_sbs(micro_tpm)
     assert np.array_equal(answer_tpm, macro_tpm)
@@ -272,13 +281,11 @@ def test_rebuild_system_tpm(s):
             [0, 1],
             [0, 0],
         ]),
-        validate=False
     )
     node1_tpm = ExplicitTPM(
         np.array([
             [0, 1],  # Singleton first dimension
         ]),
-        validate=False
     )
     # fmt: on
     node_tpms = [node0_tpm, node1_tpm]
@@ -291,7 +298,6 @@ def test_rebuild_system_tpm(s):
             [[0, 0],
              [0, 1]],
         ]),
-        validate=False
     )
     # fmt: on
     assert macro.rebuild_system_tpm(node_tpms).array_equal(answer)
@@ -308,7 +314,6 @@ def test_remove_singleton_dimensions():
             [0],
             [1],
         ]),
-        validate=False
     )
     # fmt: on
     assert tpm.tpm_indices() == (0,)
@@ -320,14 +325,12 @@ def test_remove_singleton_dimensions():
             [[[0.,  0.,  1.]],
              [[1.,  0.,  0.]]]
         ]),
-        validate=False
     )
     answer = ExplicitTPM(
         np.array([
             [0],
             [0],
         ]),
-        validate=False
     )
     # fmt: on
     assert tpm.tpm_indices() == (1,)
@@ -341,7 +344,6 @@ def test_remove_singleton_dimensions():
             [[[0., 0., 1.],
               [1., 1., 1.]]],
         ]),
-        validate=False
     )
     answer = ExplicitTPM(
         np.array([
@@ -350,7 +352,6 @@ def test_remove_singleton_dimensions():
             [[0., 1.],
              [1., 1.]],
         ]),
-        validate=False
     )
     # fmt: on
     assert tpm.tpm_indices() == (0, 2)

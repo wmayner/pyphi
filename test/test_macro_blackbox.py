@@ -1,9 +1,7 @@
 import numpy as np
 import pytest
 
-from pyphi import (
-    Network, compute, config, convert, ExplicitTPM, macro, models, utils
-)
+from pyphi import Network, compute, config, convert, ExplicitTPM, macro, models, utils
 
 
 # TODO: move these to examples.py
@@ -344,7 +342,6 @@ def test_degenerate(degenerate):
              [1, 0],
              [1, 1]]
         ),
-        validate=False
     )
     # fmt: on
     assert degenerate.tpm.array_equal(answer)
