@@ -588,13 +588,12 @@ class PyphiConfig(Config):
     )
 
     PARALLEL_PURVIEW_EVALUATION = Option(
-        4.0,
+        4.,
         type=float,
         doc="""
-    Controls whether candidate purviews of mechanisms are evaluated in parallel
-    when computing maximally irreducible causes and effects (MICE).
-    Parallel evaluation will be performed if mechanism size is equal or greater
-    than this value. A value of ``math.inf`` disables parallelization.""",
+    Controls parallel evaluation of candidate purviews. If mechanism size is
+    greater or equal than this floating point value, parallelization will occur. A
+    value of .inf will enforce sequential processing.""",
     )
 
     NUMBER_OF_CORES = Option(
