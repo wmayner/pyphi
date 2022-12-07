@@ -7,6 +7,27 @@ import numpy as np
 from pyphi import Subsystem, ExplicitTPM
 from pyphi.tpm import reconstitute_tpm
 
+def test_array_ufunc():
+    tpm = ExplicitTPM(np.array([[0,1],[0,1]]), validate=False)
+    actual = tpm * tpm
+    expected = ExplicitTPM(np.array([[1.0],[1.0]]))
+    
+    assert actual.array_equal(expected)
+    
+def test_numpy_operations():
+    tpm = ExplicitTPM(np.array([[0,1],[0,1]]), validate=False)
+    actual = np.multiply(tpm, tpm)
+    expected = ExplicitTPM(np.array([[1.0],[1.0]]))
+    
+    assert actual.array_equal(expected)
+    
+def test_getattr():
+    tpm = ExplicitTPM(np.array([[0,1]]), validate=False)
+    actual = tpm.real
+    expected = np.array([[0,1]])
+    
+    assert actual == expected
+
 
 def test_is_state_by_state():
     # State-by-state
