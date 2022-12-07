@@ -32,7 +32,9 @@ def forward_effect_repertoire(
     return subsystem.effect_repertoire(mechanism, purview, **kwargs)
 
 
-def forward_cause_repertoire(subsystem, mechanism, purview, **kwargs):
+def forward_cause_repertoire(
+    subsystem, mechanism: tuple[int], purview: tuple[int]
+) -> ArrayLike:
     mechanism_state = utils.state_of(mechanism, subsystem.state)
     if purview:
         repertoire = np.empty([2] * len(purview))
@@ -57,7 +59,9 @@ forward_repertoire = _directional_dispatch(
 )
 
 
-def unconstrained_forward_effect_repertoire(subsystem, mechanism, purview):
+def unconstrained_forward_effect_repertoire(
+    subsystem, mechanism: tuple[int], purview: tuple[int]
+) -> ArrayLike:
     # Get the effect repertoire for each mechanism state.
     repertoires = np.stack(
         [
@@ -72,7 +76,9 @@ def unconstrained_forward_effect_repertoire(subsystem, mechanism, purview):
     return repertoires.mean(axis=0)
 
 
-def unconstrained_forward_cause_repertoire(subsystem, mechanism, purview):
+def unconstrained_forward_cause_repertoire(
+    subsystem, mechanism: tuple[int], purview: tuple[int]
+) -> ArrayLike:
     # See Eq. 32 in 4.0 paper.
     # Here, the roles of `m` and `z` in the equation are switched, so the
     # probability within the average is conditioned on `z`. So here, we are
