@@ -44,7 +44,7 @@ def rebuild_system_tpm(node_tpms):
         ExplicitTPM: The system TPM which comprises the input node TPMs.
     """
     tpm = np.stack([expand_node_tpm(tpm).tpm for tpm in node_tpms], axis=-1)
-    return ExplicitTPM(tpm)
+    return ExplicitTPM(tpm, validate=True)
 
 
 # TODO This should be a method of the TPM class in tpm.py
@@ -93,7 +93,7 @@ def run_tpm(system, steps, blackbox):
     # Muliply by noise
     tpm = np.dot(tpm, np.linalg.matrix_power(noised_tpm, steps - 1))
 
-    return ExplicitTPM(convert.state_by_state2state_by_node(tpm))
+    return ExplicitTPM(convert.state_by_state2state_by_node(tpm), validate=True)
 
 
 class SystemAttrs(namedtuple("SystemAttrs", ["tpm", "cm", "node_indices", "state"])):
@@ -314,7 +314,7 @@ class MacroSubsystem(Subsystem):
         n = len(node_indices)
         cm = np.ones((n, n))
 
-        tpm = ExplicitTPM(tpm)
+        tpm = ExplicitTPM(tpm, validate=True)
         return SystemAttrs(tpm, cm, node_indices, state)
 
     @property
@@ -550,7 +550,7 @@ class CoarseGrain(namedtuple("CoarseGrain", ["partition", "grouping"])):
         Returns:
             np.ndarray: The state-by-state TPM of the macro-system.
         """
-        tpm = ExplicitTPM(state_by_state_micro_tpm, validate=False)
+        tpm = ExplicitTPM(state_by_state_micro_tpm)
         tpm.validate(check_independence=False)
 
         mapping = self.make_mapping()
@@ -587,13 +587,13 @@ class CoarseGrain(namedtuple("CoarseGrain", ["partition", "grouping"])):
         Returns:
             np.ndarray: The state-by-node TPM of the macro-system.
         """
-        if not ExplicitTPM(micro_tpm, validate=False).is_state_by_state():
+        if not ExplicitTPM(micro_tpm).is_state_by_state():
             micro_tpm = convert.state_by_node2state_by_state(micro_tpm)
 
         macro_tpm = self.macro_tpm_sbs(micro_tpm)
 
         if check_independence:
-            tpm = ExplicitTPM(macro_tpm, validate=False)
+            tpm = ExplicitTPM(macro_tpm)
             tpm.conditionally_independent()
 
         return convert.state_by_state2state_by_node(macro_tpm)

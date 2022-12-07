@@ -217,7 +217,7 @@ class ExplicitTPM(Wrapper):
 
         return _new_attribute(name, self.__closures__, self._tpm)
 
-    def __init__(self, tpm, validate=True):
+    def __init__(self, tpm, validate=False):
         self._tpm = np.array(tpm)
         super().__init__()
 
@@ -364,7 +364,7 @@ class ExplicitTPM(Wrapper):
         # self.tpm has already been validated and converted to multidimensional
         # state-by-node form. Further validation would be problematic for
         # singleton dimensions.
-        return type(self)(tpm, validate=False)
+        return type(self)(tpm)
 
     def marginalize_out(self, node_indices):
         """Marginalize out nodes from this TPM.
@@ -383,7 +383,7 @@ class ExplicitTPM(Wrapper):
         # self._tpm has already been validated and converted to multidimensional
         # state-by-node form. Further validation would be problematic for
         # singleton dimensions.
-        return type(self)(tpm, validate=False)
+        return type(self)(tpm)
 
     def is_deterministic(self):
         """Return whether the TPM is deterministic."""
@@ -427,7 +427,7 @@ class ExplicitTPM(Wrapper):
         over the full network.
         """
         unconstrained = np.ones([2] * (self._tpm.ndim - 1) + [self._tpm.shape[-1]])
-        return type(self)(self._tpm * unconstrained, validate=False)
+        return type(self)(self._tpm * unconstrained)
 
     def infer_edge(self, a, b, contexts):
         """Infer the presence or absence of an edge from node A to node B.
@@ -493,13 +493,12 @@ class ExplicitTPM(Wrapper):
         dimension_permutation = tuple(permutation) + (self.ndim - 1,)
         return type(self)(
             self._tpm.transpose(dimension_permutation)[..., list(permutation)],
-            validate=False,
         )
 
     def __getitem__(self, i):
         item = self._tpm[i]
         if isinstance(item, type(self._tpm)):
-            item = type(self)(item, validate=False)
+            item = type(self)(item)
         return item
 
     def array_equal(self, o: object):
@@ -518,7 +517,7 @@ class ExplicitTPM(Wrapper):
         to type-checking the input.
         """
         if not isinstance(tpm, cls):
-            return cls(tpm, validate=False)
+            return cls(tpm)
         return tpm
 
     def __str__(self):
@@ -587,11 +586,11 @@ def _new_attribute(
 
         # Array.
         if isinstance(result, cls.__wraps__):
-            return cls(result, validate=False)
+            return cls(result)
 
         # Multivalued "functions" returning a tuple (__divmod__()).
         if isinstance(result, tuple):
-            return (cls(r, validate=False) for r in result)
+            return (cls(r) for r in result)
 
         # Scalars (e.g. sum(), max()), etc.
         return result
