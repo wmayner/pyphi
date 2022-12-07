@@ -223,7 +223,13 @@ def integration_value(
     system_state: SystemStateSpecification,
     repertoire_distance: str = None,
 ) -> float:
-    partitioned_repertoire = cut_subsystem.repertoire(
+    repertoire_distance = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
+    # TODO(4.0) deal with proliferation of special cases for GID
+    if repertoire_distance == "GENERALIZED_INTRINSIC_DIFFERENCE":
+        repertoire_func = cut_subsystem.forward_repertoire
+    else:
+        repertoire_func = cut_subsystem.repertoire
+    partitioned_repertoire = repertoire_func(
         direction, subsystem.node_indices, subsystem.node_indices
     )
     return subsystem.evaluate_partition(
