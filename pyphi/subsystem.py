@@ -9,8 +9,11 @@ import logging
 from typing import Iterable
 
 import numpy as np
+from numpy.typing import ArrayLike
 
-from . import cache, connectivity, distribution, metrics, resolve_ties, utils, validate
+from . import cache, connectivity, distribution, metrics
+from . import repertoire as _repertoire
+from . import resolve_ties, utils, validate
 from .conf import config, fallback
 from .data_structures import FrozenMap
 from .direction import Direction
@@ -67,8 +70,11 @@ class Subsystem:
         nodes=None,
         cut=None,
         mice_cache=None,
+        # TODO(4.0): refactor repertoire caches
         repertoire_cache=None,
         single_node_repertoire_cache=None,
+        forward_repertoire_cache=None,
+        unconstrained_forward_repertoire_cache=None,
         _external_indices=None,
     ):
         # The network this subsystem belongs to.
@@ -122,6 +128,10 @@ class Subsystem:
             single_node_repertoire_cache or cache.DictCache()
         )
         self._repertoire_cache = repertoire_cache or cache.DictCache()
+        self._forward_repertoire_cache = forward_repertoire_cache or cache.DictCache()
+        self._unconstrained_forward_repertoire_cache = (
+            unconstrained_forward_repertoire_cache or cache.DictCache()
+        )
 
         self.nodes = generate_nodes(
             self.tpm, self.cm, self.state, self.node_indices, self.node_labels
@@ -490,6 +500,46 @@ class Subsystem:
                 for part in partition
             ]
         return functools.reduce(np.multiply, repertoires)
+
+    def forward_repertoire(
+        self, direction: Direction, mechanism: tuple[int], purview: tuple[int], **kwargs
+    ) -> ArrayLike:
+        if direction == Direction.CAUSE:
+            return self.forward_cause_repertoire(mechanism, purview)
+        elif direction == Direction.EFFECT:
+            return self.forward_effect_repertoire(mechanism, purview, **kwargs)
+        return validate.direction(direction)
+
+    @cache.method("_forward_repertoire_cache", Direction.CAUSE)
+    def forward_cause_repertoire(
+        self, mechanism: tuple[int], purview: tuple[int]
+    ) -> ArrayLike:
+        return _repertoire.forward_cause_repertoire(self, mechanism, purview)
+
+    # NOTE: No caching is required here because the forward effect repertoire is
+    # the same as the effect repertoire.
+    def forward_effect_repertoire(
+        self, mechanism: tuple[int], purview: tuple[int], **kwargs
+    ) -> ArrayLike:
+        return _repertoire.forward_effect_repertoire(self, mechanism, purview, **kwargs)
+
+    @cache.method("_unconstrained_forward_repertoire_cache", Direction.CAUSE)
+    def unconstrained_forward_repertoire(
+        self, direction: Direction, mechanism: tuple[int], purview: tuple[int]
+    ) -> ArrayLike:
+        if direction == Direction.CAUSE:
+            return self.unconstrained_forward_cause_repertoire(mechanism, purview)
+        elif direction == Direction.EFFECT:
+            return self.unconstrained_forward_effect_repertoire(mechanism, purview)
+        return validate.direction(direction)
+
+    @cache.method("_unconstrained_forward_repertoire_cache", Direction.EFFECT)
+    def unconstrained_forward_effect_repertoire(
+        self, mechanism: tuple[int], purview: tuple[int]
+    ) -> ArrayLike:
+        return _repertoire.unconstrained_forward_effect_repertoire(
+            self, mechanism, purview
+        )
 
     def expand_repertoire(self, direction, repertoire, new_purview=None):
         """Distribute an effect repertoire over a larger purview.

@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 # repertoire.py
 
+from typing import Callable
+
 import numpy as np
 from numpy.typing import ArrayLike
-from typing import Callable
 
 from . import utils, validate
 from .direction import Direction
@@ -65,8 +66,8 @@ def unconstrained_forward_effect_repertoire(
     # Get the effect repertoire for each mechanism state.
     repertoires = np.stack(
         [
-            forward_effect_repertoire(
-                subsystem, mechanism, purview, mechanism_state=state
+            subsystem.forward_effect_repertoire(
+                mechanism, purview, mechanism_state=state
             )
             # TODO(nonbinary) extend to nonbinary nodes
             for state in utils.all_states(len(mechanism))
@@ -86,8 +87,8 @@ def unconstrained_forward_cause_repertoire(
     # probabilities for each `z` do not actually depend on `z`; they are all
     # equal to the average value over all `Z`. So we compute this average value
     # and fill the repertoire with it.
-    mean_forward_cause_probability = forward_cause_repertoire(
-        subsystem, mechanism, purview
+    mean_forward_cause_probability = subsystem.forward_cause_repertoire(
+        mechanism, purview
     ).mean()
     repertoire = np.empty(repertoire_shape(subsystem.network.node_indices, purview))
     repertoire.fill(mean_forward_cause_probability)
