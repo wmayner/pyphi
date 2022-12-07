@@ -635,7 +635,7 @@ def generalized_intrinsic_difference(
     selectivity_repertoire,
     state=None,
 ):
-    informativeness = information_density(
+    informativeness = pointwise_mutual_information_vector(
         forward_repertoire, partitioned_forward_repertoire
     )
     gid = selectivity_repertoire * informativeness
