@@ -14,7 +14,7 @@ def test_array_ufunc():
     
     assert actual.array_equal(expected)
     
-def test_numpy_operations():
+def test_np_operations():
     tpm = ExplicitTPM(np.array([[0,1],[0,1]]), validate=False)
     actual = np.multiply(tpm, tpm)
     expected = ExplicitTPM(np.array([[1.0],[1.0]]))
@@ -26,7 +26,7 @@ def test_getattr():
     actual = tpm.real
     expected = np.array([[0,1]])
     
-    assert actual == expected
+    assert actual.all() == expected.all()
 
 
 def test_is_state_by_state():
