@@ -322,7 +322,7 @@ class Subsystem:
         mechanism_node = self._index2node[mechanism_node_index]
         # We're conditioning on this node's state, so take the TPM for the node
         # being in that state.
-        tpm = mechanism_node.tpm[..., mechanism_node.state]
+        tpm = ExplicitTPM.enforce(mechanism_node.tpm[..., mechanism_node.state])
         # Marginalize-out all parents of this mechanism node that aren't in the
         # purview.
         return tpm.marginalize_out((mechanism_node.inputs - purview)).tpm
