@@ -8,7 +8,7 @@ dependencies:
   - jupyterlab-lsp
   - python-lsp-server
   - nodejs
-  - python=3.9
+  - python=3.10
   - pip
   - pip:
       - -r requirements.txt
