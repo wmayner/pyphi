@@ -525,7 +525,6 @@ class Subsystem:
     ) -> ArrayLike:
         return _repertoire.forward_effect_repertoire(self, mechanism, purview, **kwargs)
 
-    @cache.method("_unconstrained_forward_repertoire_cache", Direction.CAUSE)
     def unconstrained_forward_repertoire(
         self, direction: Direction, mechanism: tuple[int], purview: tuple[int]
     ) -> ArrayLike:
@@ -540,6 +539,14 @@ class Subsystem:
         self, mechanism: tuple[int], purview: tuple[int]
     ) -> ArrayLike:
         return _repertoire.unconstrained_forward_effect_repertoire(
+            self, mechanism, purview
+        )
+
+    @cache.method("_unconstrained_forward_repertoire_cache", Direction.CAUSE)
+    def unconstrained_forward_cause_repertoire(
+        self, mechanism: tuple[int], purview: tuple[int]
+    ) -> ArrayLike:
+        return _repertoire.unconstrained_forward_cause_repertoire(
             self, mechanism, purview
         )
 
