@@ -979,23 +979,13 @@ class Subsystem:
         """
 
         def _find_maximally_irreducible_state(
-                purview,
-                subsystem=None,
-                direction=None,
-                mechanism=None
+            purview, subsystem=None, direction=None, mechanism=None
         ):
             return subsystem.find_maximally_irreducible_state(
-                direction,
-                mechanism,
-                purview
+                direction, mechanism, purview
             )
 
-        def _find_tied_mips(
-                purview,
-                subsystem=None,
-                direction=None,
-                mechanism=None
-        ):
+        def _find_tied_mips(purview, subsystem=None, direction=None, mechanism=None):
             # TODO(4.0) refactor
             # TODO(ties) refactor to use full 'Specification' object
             all_mips = []
@@ -1021,12 +1011,7 @@ class Subsystem:
             all_mips.append(mip)
             return all_mips
 
-        def _find_mip(
-                purview,
-                subsystem=None,
-                direction=None,
-                mechanism=None
-        ):
+        def _find_mip(purview, subsystem=None, direction=None, mechanism=None):
             return subsystem.find_mip(direction, mechanism, purview)
 
         def CurriedMapReduce(map_func):
@@ -1034,15 +1019,13 @@ class Subsystem:
             return MapReduce(
                 map_func,
                 purviews,
+                map_kwargs=dict(
+                    subsystem=self, direction=direction, mechanism=mechanism
+                ),
+                parallel=parallel,
                 total=len(purviews),
                 desc="Evaluating purviews",
-                parallel=parallel,
-                map_kwargs=dict(
-                    subsystem=self,
-                    direction=direction,
-                    mechanism=mechanism
-                ),
-                **kwargs
+                **kwargs,
             )
 
         purviews = self.potential_purviews(direction, mechanism, purviews)
