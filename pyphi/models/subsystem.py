@@ -35,15 +35,12 @@ def purview_inclusion(distinctions, min_order, max_order):
             min_size=min_order,
             max_size=max_order,
         ):
-            # NOTE: This considers "includes" to mean "congruent
-            # with any of the tied states"
-            substates = utils.specified_substate(
-                distinction.purview, distinction.specified_state, subset
+            substate = utils.substate(
+                distinction.specified_state.purview,
+                distinction.specified_state.state,
+                subset,
             )
-            for substate in map(tuple, substates):
-                purview_inclusion_by_order[len(subset)][(subset, substate)].add(
-                    distinction
-                )
+            purview_inclusion_by_order[len(subset)][(subset, substate)].add(distinction)
     return purview_inclusion_by_order
 
 

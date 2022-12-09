@@ -67,6 +67,7 @@ def normalization_factor(partition):
 class StateSpecification:
     direction: Direction
     intrinsic_information: float
+    purview: tuple[int]
     state: tuple[tuple[int]]
     repertoire: ArrayLike
     unconstrained_repertoire: ArrayLike
@@ -82,6 +83,7 @@ class StateSpecification:
         return self.state[i]
 
     def _repr_columns(self, prefix=""):
+        # TODO(fmt) include purview
         return [
             (f"{prefix}{self.direction}", str(self.state)),
             (
@@ -96,6 +98,14 @@ class StateSpecification:
             f"Specified {self.direction}", body, under_char=fmt.HEADER_BAR_3
         )
         return fmt.box(fmt.center(body))
+
+    def is_congruent(self, other):
+        ours = dict(zip(self.purview, self.state))
+        theirs = dict(zip(other.purview, other.state))
+        mutual = set(ours.keys()) & set(theirs.keys())
+        return self.direction == other.direction and all(
+            ours[purview_node] == theirs[purview_node] for purview_node in mutual
+        )
 
 
 class RepertoireIrreducibilityAnalysis(cmp.Orderable):
@@ -236,15 +246,9 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         the unpartitioned and partitioned repertoires among all ties."""
         return self._specified_state
 
-    def is_congruent(self, node_indices, state):
-        """Return whether the given state is congruent to the specified state."""
-        # TODO(4.0) use DistanceResult.is_congruent
-        # TODO(4.0) configure ties with kwargs?
-        # TODO(ties) update specified state logic
-        purview_state = utils.state_of_subsystem_nodes(
-            node_indices, self.purview, state
-        )
-        return any(tuple(state) == purview_state for state in self.specified_state)
+    def is_congruent(self, specified_state):
+        """Whether the state specified by this RIA is congruent to the given one."""
+        return self.specified_state.is_congruent(specified_state)
 
     @property
     def state_ties(self):
@@ -522,9 +526,9 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
         """Return the linked MICE in the other direction."""
         return self.parent.mice(self.direction.flip())
 
-    def is_congruent(self, node_indices, state):
+    def is_congruent(self, specified_state):
         """Return whether the state specified by this MICE is congruent."""
-        return self.ria.is_congruent(node_indices, state)
+        return self.ria.is_congruent(specified_state)
 
     def __repr__(self):
         return fmt.make_repr(self, ["ria"])
@@ -775,20 +779,18 @@ class Concept(cmp.Orderable):
 
     def is_congruent(self, system_state):
         return all(
-            self.mice(direction).is_congruent(
-                system_state.node_indices, system_state[direction]
-            )
+            self.mice(direction).is_congruent(system_state[direction])
             for direction in Direction.both()
         )
 
-    # TODO(ties) update
+    # TODO(ties) refactor
     def resolve_congruence(self, system_state):
         """Choose the MIC/MIE that are congruent, if any."""
         cause, effect = [
             next(
-                self.mice(direction).state_ties(
-                    congruent_with=system_state[direction],
-                    node_indices=system_state.node_indices,
+                filter(
+                    lambda mice: mice.is_congruent(system_state[direction]),
+                    self.mice(direction).state_ties,
                 ),
                 None,
             )

@@ -565,7 +565,7 @@ def fmt_ria(ria, verbose=True, mip=False):
         partition = "\n{}:\n{}".format(
             ("MIP" if mip else "Partition"), indent(fmt_partition(ria.partition))
         )
-        mark_states = [tuple(state) for state in ria.specified_state]
+        mark_states = [specified.state for specified in ria.specified_state.ties]
         # TODO(refactor)
         if ria.repertoire.size == 1:
             repertoire = f"\nForward probability: \n    {ria.repertoire}"
@@ -594,7 +594,7 @@ def fmt_ria(ria, verbose=True, mip=False):
         "{SMALL_PHI} = {phi}\n"
         "{mechanism}"
         "Purview: {purview}"
-        "\nSpecified state: {specified_state}"
+        "\nSpecified state:\n{specified_state}"
         "{direction}"
         "{partition}"
         "{repertoire}"

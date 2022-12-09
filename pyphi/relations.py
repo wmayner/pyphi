@@ -258,14 +258,13 @@ def overlap_states(specified_states, purviews, overlap):
     idx = overlap - minimum
 
     states = []
-    for state, purview in zip(specified_states, purviews):
+    for specified, purview in zip(specified_states, purviews):
         # Construct the specified state in a common reference frame
-        global_state = np.empty([state.shape[0], n])
+        global_state = np.empty([len(specified.state), n])
         relative_idx = [p - minimum for p in purview]
-        global_state[:, relative_idx] = state
+        global_state[:, relative_idx] = specified.state
         # Retrieve only the overlap
         states.append(global_state[:, idx])
-
     return states
 
 

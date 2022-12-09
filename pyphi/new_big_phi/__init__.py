@@ -240,7 +240,7 @@ def integration_value(
         cut_subsystem.cut,
         partitioned_repertoire=partitioned_repertoire,
         repertoire_distance=repertoire_distance,
-        state=system_state[direction].state,
+        state=system_state[direction],
     )
 
 
@@ -485,18 +485,15 @@ def resolve_congruence(
     distinctions: CauseEffectStructure,
     system_state: SystemStateSpecification,
 ):
-    """Filter out incongruent distinctions.
-
-    If a distinction has tied states, the congruent one is kept.
-    """
+    """Filter out incongruent distinctions."""
     # TODO(4.0) parallelize
     return type(distinctions)(
         filter(
             lambda d: d is not None,
-            [
+            (
                 distinction.resolve_congruence(system_state)
                 for distinction in distinctions
-            ],
+            ),
         ),
         subsystem=distinctions.subsystem,
     )
@@ -513,9 +510,9 @@ def phi_structure(
 ) -> PhiStructure:
     """Analyze the irreducible cause-effect structure of a system."""
     defaults = dict(parallel=parallel)
-    sia_kwargs = fallback(sia_kwargs, defaults)
-    ces_kwargs = fallback(ces_kwargs, defaults)
-    relations_kwargs = fallback(relations_kwargs, defaults)
+    sia_kwargs = {**defaults, **(sia_kwargs or {})}
+    ces_kwargs = {**defaults, **(ces_kwargs or {})}
+    relations_kwargs = {**defaults, **(relations_kwargs or {})}
 
     # Analyze irreducibility
     mip = sia(subsystem, **sia_kwargs)

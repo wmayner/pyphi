@@ -748,7 +748,7 @@ class Subsystem:
             repertoire = self.repertoire(direction, mechanism, purview)
         # TODO(4.0) use same partitioned_repertoire func
         if repertoire_distance == "GENERALIZED_INTRINSIC_DIFFERENCE":
-            purview_state = kwargs["state"]
+            purview_state = kwargs["state"].state
             selectivity = repertoire.squeeze()[purview_state]
             forward_pr = self.forward_probability(
                 direction, mechanism, purview, purview_state
@@ -791,7 +791,7 @@ class Subsystem:
             mechanism_state=state_of(mechanism, self.state),
             purview_state=state_of(purview, self.state),
             # TODO(4.0) refactor
-            specified_state=np.array([kwargs.get("state")]),
+            specified_state=kwargs.get("state"),
             node_labels=self.node_labels,
         )
 
@@ -981,7 +981,12 @@ class Subsystem:
         # Return all tied states
         ties = [
             StateSpecification(
-                direction, information, state, repertoire, unconstrained_repertoire
+                direction,
+                information,
+                purview,
+                state,
+                repertoire,
+                unconstrained_repertoire,
             )
             for state, information in state_to_information.items()
             if information == max_information
@@ -1044,12 +1049,9 @@ class Subsystem:
             # TODO(4.0) refactor
             # TODO(ties) refactor to use full 'Specification' object
             all_mips = []
-            specified_states = [
-                specified.state
-                for specified in subsystem.intrinsic_information(
-                    direction, mechanism, purview
-                ).ties
-            ]
+            specified_states = subsystem.intrinsic_information(
+                direction, mechanism, purview
+            ).ties
             ties = tuple(
                 resolve_ties.states(
                     (
