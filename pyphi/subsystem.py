@@ -757,6 +757,8 @@ class Subsystem:
                 partitioned_pr = self.partitioned_repertoire(
                     direction, partition, state=purview_state
                 )
+            else:
+                partitioned_pr = partitioned_repertoire
             phi = metrics.distribution.generalized_intrinsic_difference(
                 forward_repertoire=forward_pr,
                 partitioned_forward_repertoire=partitioned_pr,
