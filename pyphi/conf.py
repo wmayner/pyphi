@@ -472,7 +472,7 @@ class PyphiConfig(Config):
     """``pyphi.config`` is an instance of this class."""
 
     IIT_VERSION = Option(
-        "maximal-state-first",
+        4.0,
         doc="""
     The version of the theory to use.""",
     )

@@ -940,7 +940,7 @@ def sia(
             desc="Generating nonconflicting phi-structures",
         )
 
-    if config.IIT_VERSION == "maximal-state-first":
+    if config.IIT_VERSION == 4.0:
 
         maximal_compositional_state = find_maximal_compositional_state(
             phi_structures,

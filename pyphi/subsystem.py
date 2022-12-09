@@ -913,46 +913,6 @@ class Subsystem:
     # Maximal state methods
     # =========================================================================
 
-    def _specified_states_to_specified_index(self, states, purview):
-        full_index = [np.zeros(len(states), dtype=int) for i in self.node_indices]
-        specified_indices = states.transpose()
-        for i, index in zip(purview, specified_indices):
-            full_index[i] = index
-        return tuple(full_index)
-
-    def find_maximally_irreducible_state(self, direction, mechanism, purview):
-        required_repertoire_distances = [
-            "IIT_4.0_SMALL_PHI",
-            "IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE",
-        ]
-        if config.REPERTOIRE_DISTANCE not in required_repertoire_distances:
-            raise ValueError(
-                f'REPERTOIRE_DISTANCE must be set to one of "{required_repertoire_distances}"'
-            )
-
-        state_to_mip = {
-            state: self.find_mip(direction, mechanism, purview, state=state)
-            for state in utils.all_states(len(purview))
-        }
-        _, max_mip = max(state_to_mip.items())
-
-        # Record ties
-        tied_states, tied_mips = zip(
-            *(
-                (state, mip)
-                for state, mip in state_to_mip.items()
-                if mip.phi == max_mip.phi
-            )
-        )
-        tied_states = np.array(tied_states)
-        tied_index = self._specified_states_to_specified_index(tied_states, purview)
-        for mip in tied_mips:
-            # TODO change definition of specified state
-            mip._specified_state = tied_states
-            mip._specified_index = tied_index
-
-        return max_mip
-
     def intrinsic_information(
         self,
         direction: Direction,
@@ -1080,13 +1040,6 @@ class Subsystem:
             MaximallyIrreducibleCauseOrEffect: The |MIC| or |MIE|.
         """
 
-        def _find_maximally_irreducible_state(
-            purview, subsystem=None, direction=None, mechanism=None
-        ):
-            return subsystem.find_maximally_irreducible_state(
-                direction, mechanism, purview
-            )
-
         def _find_tied_mips(purview, subsystem=None, direction=None, mechanism=None):
             # TODO(4.0) refactor
             # TODO(ties) refactor to use full 'Specification' object
@@ -1146,9 +1099,6 @@ class Subsystem:
             max_mice = null_mice
         else:
             if config.IIT_VERSION == 4:
-                # TODO(4.0)
-                map_func = _find_maximally_irreducible_state
-            elif config.IIT_VERSION == "maximal-state-first":
                 map_func = _find_tied_mips
             else:
                 map_func = _find_mip
