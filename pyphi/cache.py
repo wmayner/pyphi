@@ -444,10 +444,7 @@ def method(cache_name, key_prefix=None):
     """
 
     def decorator(func):
-        if (
-            func.__name__ in ["cause_repertoire", "effect_repertoire"]
-            and not config.CACHE_REPERTOIRES
-        ):
+        if not config.CACHE_REPERTOIRES and "repertoire" in func.__name__:
             return func
 
         @wraps(func)
