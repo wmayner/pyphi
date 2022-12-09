@@ -593,7 +593,7 @@ class PyphiConfig(Config):
         doc="""
     Controls parallel evaluation of candidate purviews. If mechanism size is
     greater or equal than this floating point value, parallelization will occur. A
-    value of .inf will enforce sequential processing.""",
+    value of ``math.inf`` will enforce sequential processing.""",
     )
 
     NUMBER_OF_CORES = Option(
