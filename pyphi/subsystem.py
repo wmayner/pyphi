@@ -39,6 +39,12 @@ from .utils import state_of
 
 log = logging.getLogger(__name__)
 
+# TODO move to defaults
+DEFAULT_MECHANISM_PARTITION_SEQUENTIAL_THRESHOLD = 2**8
+DEFAULT_MECHANISM_PARTITION_CHUNKSIZE = (
+    2**2 * DEFAULT_MECHANISM_PARTITION_SEQUENTIAL_THRESHOLD
+)
+
 
 class Subsystem:
     """A set of nodes in a network.
@@ -724,7 +730,7 @@ class Subsystem:
             node_labels=self.node_labels,
         )
 
-    def find_mip(self, direction, mechanism, purview, **kwargs):
+    def find_mip(self, direction, mechanism, purview, partitions=None, **kwargs):
         """Return the minimum information partition for a mechanism over a
         purview.
 
@@ -732,6 +738,10 @@ class Subsystem:
             direction (Direction): |CAUSE| or |EFFECT|.
             mechanism (tuple[int]): The nodes in the mechanism.
             purview (tuple[int]): The nodes in the purview.
+
+        Keyword Args:
+            **kwargs: MapReduce kwargs control parallelization; others are
+                passed to |evaluate_partition|.
 
         Returns:
             RepertoireIrreducibilityAnalysis: The irreducibility analysis for
@@ -752,7 +762,18 @@ class Subsystem:
         if direction == Direction.CAUSE and np.all(repertoire == 0):
             return null_mip
 
-        # TODO(ties) refactor?
+        parallel_kwargs = {
+            "parallel": config.PARALLEL_MECHANISM_PARTITION_EVALUATION,
+            "progress": config.PROGRESS_BARS,
+            "chunksize": DEFAULT_MECHANISM_PARTITION_CHUNKSIZE,
+            "sequential_threshold": DEFAULT_MECHANISM_PARTITION_SEQUENTIAL_THRESHOLD,
+        }
+        parallel_kwargs.update(
+            {kwarg: kwargs.pop(kwarg, None) for kwarg in parallel_kwargs}
+        )
+
+        # TODO(ties) refactor: make partition the first positional arg and use
+        # map_kwargs in MapReduce
         def _evaluate_partition(partition):
             return self.evaluate_partition(
                 direction,
@@ -763,15 +784,19 @@ class Subsystem:
                 **kwargs,
             )
 
-        ties = tuple(
-            resolve_ties.partitions(
-                map(
-                    _evaluate_partition,
-                    mip_partitions(mechanism, purview, self.node_labels),
-                ),
-                default=null_mip,
-            )
+        partitions = fallback(
+            partitions, mip_partitions(mechanism, purview, self.node_labels)
         )
+
+        candidate_mips = MapReduce(
+            _evaluate_partition,
+            partitions,
+            shortcircuit_func=utils.is_falsy,
+            desc="Evaluating mechanism partitions",
+            **parallel_kwargs,
+        ).run()
+
+        ties = tuple(resolve_ties.partitions(candidate_mips, default=null_mip))
         for tie in ties:
             tie.set_partition_ties(ties)
         return ties[0]
@@ -971,7 +996,7 @@ class Subsystem:
         """Return the |MIC| or |MIE| for a mechanism.
 
         Args:
-            direction (Direction): :|CAUSE| or |EFFECT|.
+            direction (Direction): |CAUSE| or |EFFECT|.
             mechanism (tuple[int]): The mechanism to be tested for
                 irreducibility.
 

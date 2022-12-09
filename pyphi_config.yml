@@ -70,6 +70,8 @@ PARALLEL_CUT_EVALUATION: true
 # greater or equal than this floating point value, parallelization will occur. A
 # value of .inf will enforce sequential processing.
 PARALLEL_PURVIEW_EVALUATION: 4.0
+# Controls parallel evaluation of mechanism partitions.
+PARALLEL_MECHANISM_PARTITION_EVALUATION: true
 # Controls the partitioning scheme for distinctions.
 PARTITION_TYPE: ALL
 # Controls the numerical precision with which to compare phi values against each

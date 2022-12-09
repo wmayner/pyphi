@@ -588,12 +588,19 @@ class PyphiConfig(Config):
     )
 
     PARALLEL_PURVIEW_EVALUATION = Option(
-        4.,
+        4.0,
         type=float,
         doc="""
     Controls parallel evaluation of candidate purviews. If mechanism size is
     greater or equal than this floating point value, parallelization will occur. A
     value of .inf will enforce sequential processing.""",
+    )
+
+    PARALLEL_MECHANISM_PARTITION_EVALUATION = Option(
+        True,
+        type=bool,
+        doc="""
+    Controls parallel evaluation of mechanism partitions.""",
     )
 
     NUMBER_OF_CORES = Option(
