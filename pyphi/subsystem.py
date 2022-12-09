@@ -496,18 +496,76 @@ class Subsystem:
         """Compute the repertoire of a partitioned mechanism and purview."""
         repertoire_distance = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
         if repertoire_distance == "GENERALIZED_INTRINSIC_DIFFERENCE":
-            repertoires = [
-                forward_repertoire(
-                    direction, self, part.mechanism, part.purview, **kwargs
+            if "state" not in kwargs:
+                raise ValueError(
+                    "must provide purview state for generalized intrinsic difference"
+                )
+            purview_state = kwargs.pop("state")
+            prs = [
+                self.forward_probability(
+                    direction,
+                    part.mechanism,
+                    part.purview,
+                    purview_state=utils.substate(
+                        partition.purview, purview_state, part.purview
+                    ),
+                    **kwargs,
                 )
                 for part in partition
             ]
+            return np.prod(prs)
+            # repertoires = [
+            #     forward_repertoire(
+            #         direction, self, part.mechanism, part.purview, **kwargs
+            #     )
+            #     for part in partition
+            # ]
         else:
             repertoires = [
                 self.repertoire(direction, part.mechanism, part.purview, **kwargs)
                 for part in partition
             ]
         return functools.reduce(np.multiply, repertoires)
+
+    def forward_probability(
+        self,
+        direction: Direction,
+        mechanism: tuple[int],
+        purview: tuple[int],
+        purview_state: tuple[int],
+        **kwargs,
+    ) -> float:
+        if direction == Direction.CAUSE:
+            return self.forward_cause_probability(
+                mechanism, purview, purview_state, **kwargs
+            )
+        elif direction == Direction.EFFECT:
+            return self.forward_effect_probability(
+                mechanism, purview, purview_state, **kwargs
+            )
+        return validate.direction(direction)
+
+    def forward_effect_probability(
+        self,
+        mechanism: tuple[int],
+        purview: tuple[int],
+        purview_state: tuple[int],
+        **kwargs,
+    ) -> float:
+        return _repertoire.forward_effect_probability(
+            self, mechanism, purview, purview_state, **kwargs
+        )
+
+    def forward_cause_probability(
+        self,
+        mechanism: tuple[int],
+        purview: tuple[int],
+        purview_state: tuple[int],
+        **kwargs,
+    ) -> float:
+        return _repertoire.forward_cause_probability(
+            self, mechanism, purview, purview_state, **kwargs
+        )
 
     def forward_repertoire(
         self, direction: Direction, mechanism: tuple[int], purview: tuple[int], **kwargs
@@ -690,20 +748,23 @@ class Subsystem:
             repertoire = self.repertoire(direction, mechanism, purview)
         # TODO(4.0) use same partitioned_repertoire func
         if repertoire_distance == "GENERALIZED_INTRINSIC_DIFFERENCE":
-            selectivity_repertoire = repertoire
-            repertoire = forward_repertoire(direction, self, mechanism, purview)
-            if partitioned_repertoire is None:
-                partitioned_repertoire = self.partitioned_repertoire(
-                    direction, partition
-                )
-            gid = metrics.distribution.generalized_intrinsic_difference(
-                forward_repertoire=repertoire,
-                partitioned_forward_repertoire=partitioned_repertoire,
-                selectivity_repertoire=selectivity_repertoire,
+            purview_state = kwargs["state"]
+            selectivity = repertoire.squeeze()[purview_state]
+            forward_pr = self.forward_probability(
+                direction, mechanism, purview, purview_state
             )
-            # Remove singleton dimensions since we'll index with purview state
-            gid = gid.squeeze()
-            phi = gid[kwargs["state"]]
+            if partitioned_repertoire is None:
+                partitioned_pr = self.partitioned_repertoire(
+                    direction, partition, state=purview_state
+                )
+            phi = metrics.distribution.generalized_intrinsic_difference(
+                forward_repertoire=forward_pr,
+                partitioned_forward_repertoire=partitioned_pr,
+                selectivity_repertoire=selectivity,
+            )
+            repertoire = forward_pr
+            # TODO(4.0) refactor
+            partitioned_repertoire = partitioned_pr
         else:
             if partitioned_repertoire is None:
                 partitioned_repertoire_kwargs = partitioned_repertoire_kwargs or dict()
@@ -727,6 +788,8 @@ class Subsystem:
             partitioned_repertoire=partitioned_repertoire,
             mechanism_state=state_of(mechanism, self.state),
             purview_state=state_of(purview, self.state),
+            # TODO(4.0) refactor
+            specified_state=np.array([kwargs.get("state")]),
             node_labels=self.node_labels,
         )
 
@@ -746,15 +809,20 @@ class Subsystem:
         Returns:
             RepertoireIrreducibilityAnalysis: The irreducibility analysis for
             the mininum-information partition in one temporal direction.
+
         """
         if not purview:
-            return _null_ria(direction, mechanism, purview)
+            return _null_ria(
+                direction, mechanism, purview, specified_state=kwargs.get("state")
+            )
 
         # Calculate the unpartitioned repertoire to compare against the
         # partitioned ones.
         repertoire = self.repertoire(direction, mechanism, purview)
 
-        null_mip = _null_ria(direction, mechanism, purview, phi=0)
+        null_mip = _null_ria(
+            direction, mechanism, purview, phi=0, specified_state=kwargs.get("state")
+        )
 
         # State is unreachable - return 0 instead of giving nonsense results
         # TODO(4.0) re-evaluate this with the GID
@@ -1069,6 +1137,7 @@ class Subsystem:
         else:
             validate.direction(direction)
 
+        # TODO(ties) put specified state in here
         null_mice = mice_class(_null_ria(direction, mechanism, ()))
 
         if not purviews:

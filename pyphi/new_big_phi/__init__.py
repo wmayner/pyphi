@@ -20,8 +20,8 @@ from ..registry import Registry
 from ..relations import ConcreteRelations, Relations
 from ..relations import relations as compute_relations
 
-DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD = 2 ** 4
-DEFAULT_PARTITION_CHUNKSIZE = 2 ** 2 * DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD
+DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD = 2**4
+DEFAULT_PARTITION_CHUNKSIZE = 2**2 * DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD
 
 
 ##############################################################################

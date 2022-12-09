@@ -566,17 +566,24 @@ def fmt_ria(ria, verbose=True, mip=False):
             ("MIP" if mip else "Partition"), indent(fmt_partition(ria.partition))
         )
         mark_states = [tuple(state) for state in ria.specified_state]
-        repertoire = "\nRepertoire:\n{}".format(
-            indent(fmt_repertoire(ria.repertoire, mark_states=mark_states))
-        )
-        partitioned_repertoire = "\nPartitioned repertoire:\n{}".format(
-            indent(
-                fmt_repertoire(
-                    ria.partitioned_repertoire,
-                    mark_states=mark_states,
+        # TODO(refactor)
+        if ria.repertoire.size == 1:
+            repertoire = f"\nForward probability: \n    {ria.repertoire}"
+            partitioned_repertoire = (
+                f"\nPartitioned forward probability:\n    {ria.partitioned_repertoire}"
+            )
+        else:
+            repertoire = "\nRepertoire:\n{}".format(
+                indent(fmt_repertoire(ria.repertoire, mark_states=mark_states))
+            )
+            partitioned_repertoire = "\nPartitioned repertoire:\n{}".format(
+                indent(
+                    fmt_repertoire(
+                        ria.partitioned_repertoire,
+                        mark_states=mark_states,
+                    )
                 )
             )
-        )
     else:
         partition = ""
         repertoire = ""
