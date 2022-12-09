@@ -20,6 +20,13 @@ from toolz import curry
 from . import config
 
 
+# TODO(states) refactor
+def substate(
+    nodes: tuple[int], state: tuple[int], node_subset: tuple[int]
+) -> tuple[int]:
+    return tuple(state[nodes.index(n)] for n in node_subset)
+
+
 def state_of(nodes, network_state):
     """Return the state-tuple of the given nodes."""
     return tuple(network_state[n] for n in nodes) if nodes else ()
@@ -311,7 +318,7 @@ def try_len(*iterables):
 def assume_integer(x):
     """Attempt cast to integer, raising an error if it is not an integer."""
     if isinstance(x, float) and not x.is_integer():
-            raise ValueError(f"expected integer, got {type(x)} {x}")
+        raise ValueError(f"expected integer, got {type(x)} {x}")
     return int(x)
 
 
