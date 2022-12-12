@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from .. import Direction, config, utils
+from .. import Direction, combinatorics, config, utils
 from ..compute.parallel import MapReduce
 from ..models import cmp, fmt
 from ..new_big_phi import (
@@ -11,13 +11,7 @@ from ..new_big_phi import (
     NullSystemIrreducibilityAnalysis,
     ShortCircuitConditions,
 )
-from ..partition import (
-    CompletePartition,
-    KPartition,
-    Part,
-    complete_partition,
-    partitions,
-)
+from ..partition import CompletePartition, KPartition, Part, complete_partition
 
 
 def normalization_factor(subsystem, partition):
@@ -34,8 +28,8 @@ def normalization_factor(subsystem, partition):
 
 def system_set_partitions(collection, node_labels=None):
     collection = tuple(collection)
-    set_partitions = partitions(collection)
-    for partition in set_partitions:
+    partitions = combinatorics.set_partitions(collection)
+    for partition in partitions:
         if len(partition) == 1:
             yield complete_partition(collection, collection)
         else:
