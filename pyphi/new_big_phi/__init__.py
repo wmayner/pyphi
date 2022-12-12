@@ -318,7 +318,7 @@ def sia(
     """Find the minimum information partition of a system."""
     partition_scheme = fallback(partition_scheme, config.SYSTEM_PARTITION_TYPE)
 
-    # TODO: trivial reducibility
+    # TODO(4.0): trivial reducibility
 
     filter_func = None
     if partitions == "GENERAL":
@@ -393,6 +393,9 @@ def sia(
     for tied_mip in ties:
         tied_mip.set_ties(ties)
     return mip_sia
+
+
+_sia = sia
 
 
 ##############################################################################
@@ -502,6 +505,7 @@ def resolve_congruence(
 def phi_structure(
     subsystem: Subsystem,
     parallel: bool = True,
+    sia: SystemIrreducibilityAnalysis = None,
     distinctions: CauseEffectStructure = None,
     relations: Relations = None,
     sia_kwargs: dict = None,
@@ -514,21 +518,22 @@ def phi_structure(
     ces_kwargs = {**defaults, **(ces_kwargs or {})}
     relations_kwargs = {**defaults, **(relations_kwargs or {})}
 
-    # Analyze irreducibility
-    mip = sia(subsystem, **sia_kwargs)
+    # Analyze irreducibility if not provided
+    if sia is None:
+        sia = _sia(subsystem, **sia_kwargs)
 
     # Compute distinctions if not provided
-    distinctions = fallback(distinctions, compute.ces(subsystem, **ces_kwargs))
+    if distinctions is None:
+        distinctions = compute.ces(subsystem, **ces_kwargs)
     # Filter out incongruent distinctions
-    distinctions = resolve_congruence(distinctions, mip.system_state)
+    distinctions = resolve_congruence(distinctions, sia.system_state)
 
     # Compute relations if not provided
-    relations = fallback(
-        relations, compute_relations(subsystem, distinctions, **relations_kwargs)
-    )
+    if relations is None:
+        relations = compute_relations(subsystem, distinctions, **relations_kwargs)
 
     return PhiStructure(
-        sia=mip,
+        sia=sia,
         distinctions=distinctions,
         relations=relations,
     )
