@@ -235,17 +235,6 @@ def minimal_overlap_ratio_times_distinction_phi(relata, candidate_joint_purview)
 # - fix __str__ of RelationPartition
 
 
-# TODO(4.0) move to combinatorics
-def only_nonsubsets(sets):
-    """Find sets that are not proper subsets of any other set."""
-    sets = sorted(map(set, sets), key=len, reverse=True)
-    keep = []
-    for a in sets:
-        if all(not a.issubset(b) for b in keep):
-            keep.append(a)
-    return keep
-
-
 def overlap_states(specified_states, purviews, overlap):
     """Return the specified states of only the elements in the overlap."""
     overlap = np.array(list(overlap), dtype=int)
@@ -288,7 +277,7 @@ def congruent_overlap(specified_states, overlap):
         tuple(elements.nonzero()[0]) for elements in congruence[congruent_indices]
     )
     # Remove any congruent overlaps that are subsets of another congruent overlap
-    congruent_subsets = only_nonsubsets(map(set, congruent_subsets))
+    congruent_subsets = combinatorics.only_nonsubsets(map(set, congruent_subsets))
     # Convert overlap indices to purview element indices
     overlap = np.array(list(overlap))
     return [overlap[list(subset)] for subset in congruent_subsets]

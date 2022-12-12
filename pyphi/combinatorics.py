@@ -279,3 +279,13 @@ def sum_of_min_times_avg_among_subsets(values):
         )
         _sum += min_val * sum_avg_val
     return _sum
+
+
+def only_nonsubsets(sets):
+    """Find sets that are not proper subsets of any other set."""
+    sets = sorted(map(set, sets), key=len, reverse=True)
+    keep = []
+    for a in sets:
+        if all(not a.issubset(b) for b in keep):
+            keep.append(a)
+    return keep
