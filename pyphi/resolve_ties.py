@@ -2,11 +2,10 @@
 
 """Functions for resolving ties."""
 
-import warnings
 from itertools import tee
 
 from . import config, metrics
-from .conf import ConfigurationWarning, fallback
+from .conf import fallback
 from .registry import Registry
 from .utils import all_maxima, all_minima, NO_DEFAULT, iter_with_default
 
