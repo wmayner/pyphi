@@ -466,9 +466,14 @@ class KPartition(Sequence, _CutBase):
     @property
     def purview(self):
         """tuple[int]: The nodes of the purview in the partition."""
-        # TODO(4.0) do we need to sort here? slow
         if self._purview is None:
-            self._purview = tuple(chain.from_iterable(part.purview for part in self))
+            # NOTE: Must sort here as long as states are tuples and not
+            # mappings; we need to be able to combine a purview and a state in
+            # order, e.g. in `Subsystem.partitioned_repertoire`.
+            # TODO(states) remove sorting once states are mappings?
+            self._purview = tuple(
+                sorted(chain.from_iterable(part.purview for part in self))
+            )
         return self._purview
 
     @property
