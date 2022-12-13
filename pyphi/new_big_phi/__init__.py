@@ -13,8 +13,8 @@ from ..conf import fallback
 from ..labels import NodeLabels
 from ..models import cmp, fmt
 from ..models.cuts import Cut, GeneralKCut, SystemPartition
-from ..models.mechanism import RepertoireIrreducibilityAnalysis, StateSpecification
-from ..models.subsystem import CauseEffectStructure
+from ..models.mechanism import RepertoireIrreducibilityAnalysis
+from ..models.subsystem import CauseEffectStructure, SystemStateSpecification
 from ..partition import system_partitions
 from ..registry import Registry
 from ..relations import ConcreteRelations, Relations
@@ -40,36 +40,6 @@ integration_values = IntegrationValueRegistry()
 
 integration_values.register("SUM")(sum)
 integration_values.register("MIN")(min)
-
-
-@dataclass
-class SystemStateSpecification:
-    cause: StateSpecification
-    effect: StateSpecification
-
-    def __getitem__(self, direction: Direction) -> StateSpecification:
-        if direction == Direction.CAUSE:
-            return self.cause
-        elif direction == Direction.EFFECT:
-            return self.effect
-        raise KeyError("Invalid direction")
-
-    def _repr_columns(self, prefix=""):
-        return self.cause._repr_columns(prefix) + self.effect._repr_columns(prefix)
-
-    def __repr__(self):
-        body = "\n".join(fmt.align_columns(self._repr_columns()))
-        body = fmt.header("Specified System State", body, under_char=fmt.HEADER_BAR_3)
-        return fmt.box(fmt.center(body))
-
-    def __hash__(self):
-        return hash((self.cause, self.effect))
-
-    def to_json(self):
-        return {
-            "cause": self.cause,
-            "effect": self.effect,
-        }
 
 
 # TODO(4.0) refactor
