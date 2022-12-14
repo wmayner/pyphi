@@ -136,7 +136,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
                 (f"Normalized {fmt.SMALL_PHI}_s", self.normalized_phi),
             ]
             + self.system_state._repr_columns()
-            + [("#(tied MIPs)", len(self.ties)), ("Partition", "")]
+            + [("#(tied MIPs)", len(self.ties) - 1), ("Partition", "")]
         )
         if self.reasons:
             columns.append(("Reasons", ", ".join(self.reasons)))
@@ -349,6 +349,7 @@ def sia(
     ).run()
 
     # Find MIP in one pass, keeping track of ties
+    # TODO(ties) refactor into resolve_ties module
     mip_sia = default_sia
     mip_key = (float("inf"), float("-inf"))
     ties = [default_sia]
