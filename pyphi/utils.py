@@ -101,7 +101,7 @@ class np_hashable:
 
 def eq(x, y):
     """Compare two values up to |PRECISION|."""
-    # TODO just use float value in config
+    # TODO(4.0) just use float value in config
     epsilon = 10 ** (-config.PRECISION)
     return math.isclose(x, y, rel_tol=epsilon, abs_tol=epsilon)
 
