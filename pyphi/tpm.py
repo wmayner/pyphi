@@ -10,9 +10,8 @@ from itertools import chain
 from typing import Mapping
 
 import numpy as np
-from numpy.lib.mixins import NDArrayOperatorsMixin
 
-from . import config, convert, exceptions
+from . import config, convert, data_structures, exceptions
 from .constants import OFF, ON
 from .utils import all_states, np_hash, np_immutable
 
@@ -155,87 +154,7 @@ class Wrapper(metaclass=ProxyMetaclass):
             raise ValueError(f"Wrapped object must be of type {self.__wraps__}")
 
 
-class ArrayLike(NDArrayOperatorsMixin):
-    # Only support operations with instances of _HANDLED_TYPES.
-    _HANDLED_TYPES = (np.ndarray, list)
-
-    # Holds the underlying array
-    _VALUE_ATTR = "value"
-
-    def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
-        print(
-            f"array_ufunc called with ufunc={ufunc}, method={method}, inputs={inputs}, kwargs={kwargs}"
-        )
-        out = kwargs.get("out", ())
-        for x in inputs + out:
-            # Only support operations with instances of _HANDLED_TYPES.
-            # Use ArrayLike instead of type(self) for isinstance to
-            # allow subclasses that don't override __array_ufunc__ to
-            # handle ArrayLike objects.
-            if not isinstance(x, self._HANDLED_TYPES + (ArrayLike,)):
-                return NotImplemented
-
-        # Defer to the implementation of the ufunc on unwrapped values.
-        inputs = tuple(self._unwrap_arraylike(inputs))
-        if out:
-            kwargs["out"] = tuple(self._unwrap_arraylike(out))
-        result = getattr(ufunc, method)(*inputs, **kwargs)
-
-        if type(result) is tuple:
-            # Multiple return values
-            return tuple(type(self)(x) for x in result)
-        elif method == "at":
-            # No return value
-            return None
-        else:
-            # one return value
-            return type(self)(result)
-
-    @staticmethod
-    def _unwrap_arraylike(values):
-        return (
-            getattr(x, x._VALUE_ATTR) if isinstance(x, ArrayLike) else x for x in values
-        )
-
-    def __array_function__(self, func, types, args, kwargs):
-        if func not in self.HANDLED_FUNCTIONS:
-            return NotImplemented
-        # Note: this allows subclasses that don't override
-        # __array_function__ to handle MyArray objects
-        if not all(issubclass(t, ArrayLike) for t in types):
-            return NotImplemented
-        return self.HANDLED_FUNCTIONS[func](*args, **kwargs)
-
-    def __array__(self, dtype=None):
-        # TODO(tpm) We should use `np.asarray` instead of accessing `.tpm`
-        # whenever the underlying array is needed
-        return np.asarray(self.__getattribute__(self._VALUE_ATTR), dtype=dtype)
-
-    def __getattr__(self, name):
-        return getattr(self.__getattribute__(self._VALUE_ATTR), name)
-
-
-# TODO implement handled functions
-HANDLED_FUNCTIONS = {}
-
-
-def implements(numpy_function):
-    """Register an __array_function__ implementation for ArrayLike objects."""
-
-    def decorator(func):
-        HANDLED_FUNCTIONS[numpy_function] = func
-        return func
-
-    return decorator
-
-
-@implements(np.concatenate)
-def concatenate(arrays, axis=0, out=None):
-    # implementation of concatenate for ArrayLike objects
-    raise NotImplementedError
-
-
-class ExplicitTPM(ArrayLike):
+class ExplicitTPM(data_structures.ArrayLike):
 
     """An explicit network TPM in multidimensional form."""
 
