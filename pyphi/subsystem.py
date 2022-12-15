@@ -6,7 +6,6 @@
 
 import functools
 import logging
-from itertools import chain
 from typing import Iterable
 
 import numpy as np
@@ -15,6 +14,7 @@ from numpy.typing import ArrayLike
 from . import cache, connectivity, distribution, metrics
 from . import repertoire as _repertoire
 from . import resolve_ties, utils, validate
+from .compute.parallel import MapReduce
 from .conf import config, fallback
 from .data_structures import FrozenMap
 from .direction import Direction
@@ -31,7 +31,6 @@ from .models import (
 from .models.mechanism import StateSpecification
 from .network import irreducible_purviews
 from .node import generate_nodes
-from .compute.parallel import MapReduce
 from .partition import mip_partitions
 from .repertoire import forward_repertoire, unconstrained_forward_repertoire
 from .tpm import ExplicitTPM
@@ -514,12 +513,6 @@ class Subsystem:
                 for part in partition
             ]
             return np.prod(prs)
-            # repertoires = [
-            #     forward_repertoire(
-            #         direction, self, part.mechanism, part.purview, **kwargs
-            #     )
-            #     for part in partition
-            # ]
         else:
             repertoires = [
                 self.repertoire(direction, part.mechanism, part.purview, **kwargs)
@@ -795,7 +788,64 @@ class Subsystem:
             node_labels=self.node_labels,
         )
 
-    def find_mip(self, direction, mechanism, purview, partitions=None, **kwargs):
+    def _find_mip_single_state(
+        self,
+        specified_state,
+        direction,
+        mechanism,
+        purview,
+        repertoire,
+        partitions,
+        parallel_kwargs,
+        **kwargs,
+    ):
+        # TODO(4.0) allow IIT 3.0 calculations
+        partitions = fallback(
+            partitions, mip_partitions(mechanism, purview, self.node_labels)
+        )
+
+        # TODO(ties) refactor: make partition the first positional arg and use
+        # map_kwargs in MapReduce
+        def _evaluate_partition(partition):
+            return self.evaluate_partition(
+                direction,
+                mechanism,
+                purview,
+                partition,
+                repertoire=repertoire,
+                state=specified_state,
+                **kwargs,
+            )
+
+        # TODO here
+        candidate_mips = MapReduce(
+            _evaluate_partition,
+            partitions,
+            shortcircuit_func=utils.is_falsy,
+            desc="Evaluating mechanism partitions",
+            **parallel_kwargs,
+        ).run()
+
+        ties = tuple(
+            resolve_ties.partitions(
+                candidate_mips,
+                default=_null_ria(
+                    direction,
+                    mechanism,
+                    purview,
+                    phi=0,
+                    specified_state=specified_state,
+                ),
+            )
+        )
+        for tie in ties:
+            # TODO(ties) do this assignment in resolve_ties
+            tie.set_partition_ties(ties)
+        return ties[0]
+
+    def find_mip(
+        self, direction, mechanism, purview, partitions=None, state=None, **kwargs
+    ):
         """Return the minimum information partition for a mechanism over a
         purview.
 
@@ -813,24 +863,33 @@ class Subsystem:
             the mininum-information partition in one temporal direction.
 
         """
+        null_mip = _null_ria(
+            direction, mechanism, purview, specified_state=kwargs.get("state")
+        )
         if not purview:
-            return _null_ria(
-                direction, mechanism, purview, specified_state=kwargs.get("state")
-            )
+            return null_mip
 
         # Calculate the unpartitioned repertoire to compare against the
         # partitioned ones.
         repertoire = self.repertoire(direction, mechanism, purview)
-
-        null_mip = _null_ria(
-            direction, mechanism, purview, phi=0, specified_state=kwargs.get("state")
-        )
 
         # State is unreachable - return 0 instead of giving nonsense results
         # TODO(4.0) re-evaluate this with the GID
         # TODO(4.0) record shortcircuit reasons
         if direction == Direction.CAUSE and np.all(repertoire == 0):
             return null_mip
+
+        if state is None:
+            specified_states = self.intrinsic_information(
+                direction, mechanism, purview
+            ).ties
+        else:
+            specified_states = [state]
+
+        if partitions is not None:
+            # Must convert to list to allow for multiple iterations in case of
+            # tied states
+            partitions = list(partitions)
 
         parallel_kwargs = {
             "parallel": config.PARALLEL_MECHANISM_PARTITION_EVALUATION,
@@ -841,34 +900,25 @@ class Subsystem:
         parallel_kwargs.update(
             {kwarg: kwargs.pop(kwarg, None) for kwarg in parallel_kwargs}
         )
+        if config.IIT_VERSION == 4:
+            mips = MapReduce(
+                self._find_mip_single_state,
+                specified_states,
+                map_kwargs=dict(
+                    direction=direction,
+                    mechanism=mechanism,
+                    purview=purview,
+                    repertoire=repertoire,
+                    partitions=partitions,
+                    parallel_kwargs=parallel_kwargs,
+                ),
+                desc="Finding MIP for maximum intrinsic information states",
+                **parallel_kwargs,
+            ).run()
 
-        # TODO(ties) refactor: make partition the first positional arg and use
-        # map_kwargs in MapReduce
-        def _evaluate_partition(partition):
-            return self.evaluate_partition(
-                direction,
-                mechanism,
-                purview,
-                partition,
-                repertoire=repertoire,
-                **kwargs,
-            )
-
-        partitions = fallback(
-            partitions, mip_partitions(mechanism, purview, self.node_labels)
-        )
-
-        candidate_mips = MapReduce(
-            _evaluate_partition,
-            partitions,
-            shortcircuit_func=utils.is_falsy,
-            desc="Evaluating mechanism partitions",
-            **parallel_kwargs,
-        ).run()
-
-        ties = tuple(resolve_ties.partitions(candidate_mips, default=null_mip))
+        ties = tuple(resolve_ties.states(mips))
         for tie in ties:
-            tie.set_partition_ties(ties)
+            tie.set_state_ties(ties)
         return ties[0]
 
     def cause_mip(self, mechanism, purview, **kwargs):
@@ -1044,46 +1094,7 @@ class Subsystem:
         Returns:
             MaximallyIrreducibleCauseOrEffect: The |MIC| or |MIE|.
         """
-
-        def _find_tied_mips(purview, subsystem=None, direction=None, mechanism=None):
-            # TODO(4.0) refactor
-            # TODO(ties) refactor to use full 'Specification' object
-            all_mips = []
-            specified_states = subsystem.intrinsic_information(
-                direction, mechanism, purview
-            ).ties
-            ties = tuple(
-                resolve_ties.states(
-                    (
-                        subsystem.find_mip(
-                            direction, mechanism, purview, state=specified_state
-                        )
-                        for specified_state in specified_states
-                    )
-                )
-            )
-            for tie in ties:
-                tie.set_state_ties(ties)
-            mip = ties[0]
-            all_mips.append(mip)
-            return all_mips
-
-        def _find_mip(purview, subsystem=None, direction=None, mechanism=None):
-            return subsystem.find_mip(direction, mechanism, purview)
-
-        def CurriedMapReduce(map_func):
-            parallel = len(mechanism) >= config.PARALLEL_PURVIEW_EVALUATION
-            return MapReduce(
-                map_func,
-                purviews,
-                map_kwargs=dict(
-                    subsystem=self, direction=direction, mechanism=mechanism
-                ),
-                parallel=parallel,
-                total=len(purviews),
-                desc="Evaluating purviews",
-                **kwargs,
-            )
+        parallel = len(mechanism) >= config.PARALLEL_PURVIEW_EVALUATION
 
         purviews = self.potential_purviews(direction, mechanism, purviews)
 
@@ -1098,24 +1109,27 @@ class Subsystem:
         null_mice = mice_class(_null_ria(direction, mechanism, ()))
 
         if not purviews:
-            max_mice = null_mice
-        else:
-            if config.IIT_VERSION == 4:
-                map_func = _find_tied_mips
-            else:
-                map_func = _find_mip
+            return null_mice
 
-            all_mips = list(chain.from_iterable(CurriedMapReduce(map_func).run()))
+        def _find_mip(purview):
+            return self.find_mip(direction, mechanism, purview)
 
-            all_mice = map(mice_class, all_mips)
-            # Record purview ties
-            ties = tuple(resolve_ties.purviews(all_mice, default=null_mice))
-            # TODO(ties) refactor this into `resolve_ties.purviews`?
-            for tie in ties:
-                tie.set_purview_ties(ties)
-            max_mice = ties[0]
+        map_reduce = MapReduce(
+            _find_mip,
+            purviews,
+            parallel=parallel,
+            total=len(purviews),
+            desc="Evaluating purviews",
+            **kwargs,
+        )
 
-        return max_mice
+        all_mice = map(mice_class, map_reduce.run())
+        # Record purview ties
+        ties = tuple(resolve_ties.purviews(all_mice, default=null_mice))
+        # TODO(ties) refactor this into `resolve_ties.purviews`?
+        for tie in ties:
+            tie.set_purview_ties(ties)
+        return ties[0]
 
     def mic(self, mechanism, purviews=False):
         """Return the mechanism's maximally-irreducible cause (|MIC|).
