@@ -296,7 +296,7 @@ class ExplicitTPM(ArrayLike):
         }
     )
 
-    def __init__(self, tpm, validate=True):
+    def __init__(self, tpm, validate=False):
         self._tpm = np.array(tpm)
         super().__init__()
 
