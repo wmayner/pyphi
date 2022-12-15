@@ -15,6 +15,7 @@ class ArrayLike(NDArrayOperatorsMixin):
         np.concatenate,
         np.stack,
         np.all,
+        np.sum,
     )
 
     # Holds the underlying array
@@ -59,8 +60,22 @@ class ArrayLike(NDArrayOperatorsMixin):
         # __array_function__ to handle MyArray objects
         if not all(issubclass(t, ArrayLike) for t in types):
             return NotImplemented
-        # Defer to NumPy implementation
-        return type(self)(func(*args, **kwargs))
+        # extract wrapped array-like objects from args
+        updated_args = []
+                
+        for arg in args:
+            try:
+                # attempt to grab an underlying array-like object
+                underlying_val = arg.__getattribute__(arg._VALUE_ATTR)
+                updated_args.append(underlying_val)
+            except AttributeError:
+                updated_args.append(arg)
+            
+        # defer to NumPy implementation
+        result = func(*updated_args, **kwargs)
+        
+        # cast to original wrapper if possible
+        return type(self)(result) if type(result) in self._HANDLED_TYPES else result
 
     def __array__(self, dtype=None):
         # TODO(tpm) We should use `np.asarray` instead of accessing `.tpm`
