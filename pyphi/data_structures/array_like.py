@@ -3,11 +3,12 @@
 
 import numpy as np
 from numpy.lib.mixins import NDArrayOperatorsMixin
+from numbers import Number
 
 
 class ArrayLike(NDArrayOperatorsMixin):
     # Only support operations with instances of _HANDLED_TYPES.
-    _HANDLED_TYPES = (np.ndarray, list)
+    _HANDLED_TYPES = (np.ndarray, list, Number)
 
     # TODO(tpm) populate this lis
     _TYPE_CLOSED_FUNCTIONS = (
