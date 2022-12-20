@@ -10,6 +10,7 @@ from .. import Direction, Subsystem, compute, config, connectivity, utils
 from ..compute.network import reachable_subsystems
 from ..compute.parallel import MapReduce
 from ..conf import fallback
+from ..exceptions import warn_about_tie_serialization
 from ..labels import NodeLabels
 from ..models import cmp, fmt
 from ..models.cuts import Cut, GeneralKCut, SystemPartition
@@ -48,6 +49,16 @@ class PyPhiFloat(float):
 
     def __ge__(self, other):
         return super().__ge__(other) or utils.eq(self, other)
+
+    def __hash__(self):
+        return super().__hash__()
+
+    def to_json(self):
+        return {"value": float(self)}
+
+    @classmethod
+    def from_json(cls, data):
+        return cls(data["value"])
 
 
 ##############################################################################
@@ -182,9 +193,12 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         return fmt.box(body)
 
     def to_json(self):
-        as_dict = copy(self.__dict__)
-        del as_dict["_ties"]
-        return as_dict
+        warn_about_tie_serialization(self)
+        dct = self.__dict__.copy()
+        # TODO(ties) implement serialization of ties
+        # Remove ties because of circular references
+        del dct["_ties"]
+        return dct
 
 
 class NullSystemIrreducibilityAnalysis(SystemIrreducibilityAnalysis):

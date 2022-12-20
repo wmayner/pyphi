@@ -16,30 +16,19 @@ from pyphi.models.cuts import KPartition
 from .. import config, connectivity, utils, validate
 from ..conf import fallback
 from ..direction import Direction
-from ..exceptions import WrongDirectionError
+from ..exceptions import WrongDirectionError, warn_about_tie_serialization
 from ..metrics import distribution
 from ..models import fmt
 from ..registry import Registry
 from . import cmp, fmt
 
-_ria_attributes = [
-    "phi",
-    "direction",
-    "mechanism",
-    "purview",
-    "partition",
-    "repertoire",
-    "partitioned_repertoire",
-]
-
-
 
 @dataclass
 class StateSpecification:
     direction: Direction
-    intrinsic_information: float
     purview: tuple[int]
     state: tuple[tuple[int]]
+    intrinsic_information: float
     repertoire: ArrayLike
     unconstrained_repertoire: ArrayLike
 
@@ -52,6 +41,11 @@ class StateSpecification:
 
     def __getitem__(self, i):
         return self.state[i]
+
+    def __hash__(self):
+        return hash(
+            (self.direction, self.purview, self.state, self.intrinsic_information)
+        )
 
     def _repr_columns(self, prefix=""):
         # TODO(fmt) include purview
@@ -77,6 +71,23 @@ class StateSpecification:
         return self.direction == other.direction and all(
             ours[purview_node] == theirs[purview_node] for purview_node in mutual
         )
+
+    def to_json(self):
+        warn_about_tie_serialization(self)
+        dct = self.__dict__.copy()
+        # TODO(ties) implement serialization of ties
+        # Remove ties because of circular references
+        del dct["_ties"]
+        return dct
+
+    @classmethod
+    def from_json(cls, data):
+        for key in ["repertoire", "unconstrained_repertoire"]:
+            data[key] = np.array(data[key])
+        instance = cls(**data)
+        instance._ties = (instance,)
+        return instance
+
 
 class DistinctionPhiNormalizationRegistry(Registry):
     """Storage for distinction |small_phi| normalizations."""
@@ -107,6 +118,21 @@ def normalization_factor(partition):
         partition
     )
 
+
+_ria_attributes = [
+    "phi",
+    "direction",
+    "mechanism",
+    "purview",
+    "partition",
+    "repertoire",
+    "partitioned_repertoire",
+    "specified_state",
+    "specified_index",
+    "mechanism_state",
+    "purview_state",
+    "node_labels",
+]
 
 
 class RepertoireIrreducibilityAnalysis(cmp.Orderable):
@@ -147,22 +173,8 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
 
         self._repertoire = _repertoire(repertoire)
         self._partitioned_repertoire = _repertoire(partitioned_repertoire)
-
-        # TODO(4.0)
-        # - use DistanceResult?
-        if self._partitioned_repertoire is None:
-            self._specified_index = None
-            self._specified_state = None
-        else:
-            self._specified_state = fallback(
-                specified_state,
-                distribution.specified_state(repertoire, partitioned_repertoire),
-            )
-            self._specified_index = fallback(
-                specified_index,
-                distribution.specified_index(repertoire, partitioned_repertoire),
-            )
-
+        self._specified_state = specified_state
+        self._specified_index = specified_index
         self._partition_ties = (self,)
         self._state_ties = (self,)
 
@@ -321,6 +333,8 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         return "Repertoire irreducibility analysis\n" + fmt.indent(fmt.fmt_ria(self))
 
     def to_json(self):
+        # TODO(ties) implement serialization of ties
+        warn_about_tie_serialization(self)
         return {attr: getattr(self, attr) for attr in _ria_attributes}
 
 
@@ -612,7 +626,7 @@ class MaximallyIrreducibleCause(MaximallyIrreducibleCauseOrEffect):
     def __init__(self, ria):
         if ria.direction != Direction.CAUSE:
             raise WrongDirectionError(
-                "A MIC must be initialized with a RIA " "in the cause direction."
+                "A MIC must be initialized with a RIA in the cause direction."
             )
         super().__init__(ria)
 

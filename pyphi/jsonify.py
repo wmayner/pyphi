@@ -85,6 +85,10 @@ def _loadable_models():
         pyphi.models.AcSystemIrreducibilityAnalysis,
         pyphi.models.cuts.RelationPart,
         pyphi.models.cuts.RelationPartition,
+        pyphi.models.cuts.GeneralKCut,
+        pyphi.models.cuts.GeneralSetPartition,
+        pyphi.models.mechanism.StateSpecification,
+        pyphi.models.subsystem.SystemStateSpecification,
         pyphi.relations.Relata,
         pyphi.relations.Relation,
         pyphi.relations.ConcreteRelations,
@@ -92,6 +96,8 @@ def _loadable_models():
         pyphi.relations.SampledRelations,
         pyphi.big_phi.SystemPartition,
         pyphi.big_phi.PhiStructure,
+        pyphi.new_big_phi.SystemIrreducibilityAnalysis,
+        pyphi.new_big_phi.PyPhiFloat,
     ]
     return {cls.__name__: cls for cls in classes}
 
@@ -242,6 +248,7 @@ class PyPhiJSONDecoder(json.JSONDecoder):
             if _is_model(obj):
                 return self._load_model(obj)
 
+        # TODO(4.0) remove?
         elif isinstance(obj, list):
             return tuple(self._load_object(item) for item in obj)
 

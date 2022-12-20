@@ -1031,12 +1031,12 @@ class Subsystem:
         # Return all tied states
         ties = [
             StateSpecification(
-                direction,
-                information,
-                purview,
-                state,
-                repertoire,
-                unconstrained_repertoire,
+                direction=direction,
+                purview=purview,
+                state=state,
+                intrinsic_information=information,
+                repertoire=repertoire,
+                unconstrained_repertoire=unconstrained_repertoire,
             )
             for state, information in state_to_information.items()
             if information == max_information
