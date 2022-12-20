@@ -5,6 +5,7 @@
 """Functions for computing relations between concepts."""
 
 import warnings
+from collections import UserDict, defaultdict
 from enum import Enum, auto, unique
 from itertools import product
 from time import time
@@ -1143,3 +1144,63 @@ def relations(subsystem, distinctions, computation=None, **kwargs):
     return relation_computations[computation](
         subsystem, distinctions.flatten(), **kwargs
     )
+
+
+class NewConcreteRelations(UserDict, Relations):
+    def __init__(self, old_concrete_relations):
+        self.data = group_faces(old_concrete_relations)
+        self.phis = {
+            distinctions: phi_r(distinctions, faces)
+            for distinctions, faces in self.items()
+        }
+
+    def _sum_phi(self):
+        return sum(self.phis.values())
+
+    @property
+    def num_relations(self):
+        self.num_relations = len(self.relations)
+
+    def __repr__(self):
+        return fmt._fmt_relations(self)
+
+
+def group_faces(old_relations):
+    new_relations = defaultdict(list)
+    for face in old_relations:
+        new_relations[distinctions_of(face)].append(face)
+    return new_relations
+
+
+def distinctions_of(face):
+    return frozenset(mice.parent for mice in face.relata)
+
+
+def phi_r(relata, faces):
+    if len(relata) > 1:
+        num_possible_faces = 3 ** len(relata)
+    else:
+        num_possible_faces = 1
+
+    sum_overlap_sizes = sum((overlap_size(face) for face in faces))
+
+    phi_over_union_size_per_distinction = np.array(
+        [distinction.phi for distinction in relata]
+    ) / np.array([purview_union_size(distinction) for distinction in relata])
+
+    phi_r = (
+        # Sum of overlap sizes can be taken out of the sum and the minimum in the formula
+        sum_overlap_sizes
+        * min(phi_over_union_size_per_distinction)
+        / num_possible_faces
+    )
+    assert all(phi_r <= distinction.phi for distinction in relata)
+    return phi_r
+
+
+def overlap_size(relation_face):
+    return len(relation_face.relata.congruent_overlap[0])
+
+
+def purview_union_size(distinction):
+    return len(set(distinction.cause.purview) | set(distinction.effect.purview))

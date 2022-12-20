@@ -772,7 +772,7 @@ def fmt_relation(relation):
     return header("Relation", body, over_char=HEADER_BAR_3, under_char=HEADER_BAR_3)
 
 
-def _fmt_relations(relations, title, body, data=None):
+def _fmt_relations(relations, title=None, body='', data=None):
     if title is None:
         title = relations.__class__.__name__
     if data is None:
