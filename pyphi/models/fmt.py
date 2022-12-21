@@ -592,6 +592,7 @@ def fmt_ria(ria, verbose=True, mip=False):
     # TODO? print the two repertoires side-by-side
     return (
         "{SMALL_PHI} = {phi}\n"
+        "Normalized {SMALL_PHI} = {normalized_phi}\n"
         "{mechanism}"
         "Purview: {purview}"
         "\nSpecified state:\n{specified_state}"
@@ -602,6 +603,7 @@ def fmt_ria(ria, verbose=True, mip=False):
         "\n#(ties): {num_ties}"
     ).format(
         SMALL_PHI=SMALL_PHI,
+        normalized_phi=fmt_number(ria.normalized_phi),
         mechanism=mechanism,
         purview=fmt_mechanism(ria.purview, ria.node_labels),
         specified_state=ria.specified_state,
@@ -772,7 +774,7 @@ def fmt_relation(relation):
     return header("Relation", body, over_char=HEADER_BAR_3, under_char=HEADER_BAR_3)
 
 
-def _fmt_relations(relations, title=None, body='', data=None):
+def _fmt_relations(relations, title=None, body="", data=None):
     if title is None:
         title = relations.__class__.__name__
     if data is None:
