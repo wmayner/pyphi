@@ -686,25 +686,6 @@ class Subsystem:
     # MIP methods
     # =========================================================================
 
-    def order_states(self, direction, mechanism, purview, purview_state):
-        if direction == Direction.CAUSE:
-            prev_nodes, next_nodes = purview, mechanism
-            prev_state, next_state = (
-                purview_state,
-                utils.state_of(mechanism, self.state),
-            )
-            selectivity_state = prev_state
-        elif direction == Direction.EFFECT:
-            prev_nodes, next_nodes = mechanism, purview
-            prev_state, next_state = (
-                utils.state_of(mechanism, self.state),
-                purview_state,
-            )
-            selectivity_state = next_state
-        else:
-            validate.direction(direction)
-        return prev_nodes, prev_state, next_nodes, next_state, selectivity_state
-
     def evaluate_partition(
         self,
         direction,
