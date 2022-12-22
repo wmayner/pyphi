@@ -945,6 +945,17 @@ class PyphiConfig(Config):
     """,
     )
 
+    NEW_RELATION_SCHEME = Option(
+        "SUM_FACEWISE_OVERLAP",
+        values=[
+            "SUM_FACEWISE_OVERLAP",
+            "FACE_WEIGHTED_UNION",
+        ],
+        doc="""
+        Controls the method for computing new-style relation phi.
+        """,
+    )
+
     OVERLAP_RATIO = Option(
         "PURVIEW_SIZE",
         values=["PURVIEW_SIZE", "MINIMUM_PURVIEW_SIZE"],

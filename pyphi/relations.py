@@ -1177,6 +1177,14 @@ def distinctions_of(face):
 
 
 def phi_r(relata, faces):
+    if config.NEW_RELATION_SCHEME == "SUM_FACEWISE_OVERLAP":
+        return phi_r_sum_facewise_overlap(relata, faces)
+    elif config.NEW_RELATION_SCHEME == "FACE_WEIGHTED_UNION":
+        return phi_r_face_weighted_union(relata, faces)
+    raise ValueError('unrecognized config value for "NEW_RELATION_TYPE"')
+
+
+def phi_r_sum_facewise_overlap(relata, faces):
     if len(relata) > 1:
         num_possible_faces = 3 ** len(relata)
     else:
@@ -1184,15 +1192,38 @@ def phi_r(relata, faces):
 
     sum_overlap_sizes = sum((overlap_size(face) for face in faces))
 
-    phi_over_union_size_per_distinction = np.array(
+    phi_over_purview_union_size_per_distinction = np.array(
         [distinction.phi for distinction in relata]
     ) / np.array([purview_union_size(distinction) for distinction in relata])
 
     phi_r = (
         # Sum of overlap sizes can be taken out of the sum and the minimum in the formula
         sum_overlap_sizes
-        * min(phi_over_union_size_per_distinction)
         / num_possible_faces
+        * min(phi_over_purview_union_size_per_distinction)
+    )
+    assert all(phi_r <= distinction.phi for distinction in relata)
+    return phi_r
+
+
+def phi_r_face_weighted_union(relata, faces):
+    if len(relata) > 1:
+        num_possible_faces = 3 ** len(relata)
+    else:
+        num_possible_faces = 1
+
+    union_of_facewise_overlaps = set.union(*(set(face.purview) for face in faces))
+
+    phi_over_purview_union_size_per_distinction = np.array(
+        [distinction.phi for distinction in relata]
+    ) / np.array([purview_union_size(distinction) for distinction in relata])
+
+    phi_r = (
+        len(faces)
+        / num_possible_faces
+        * len(union_of_facewise_overlaps)
+        # Sum of overlap sizes can be taken out of the sum and the minimum in the formula
+        * min(phi_over_purview_union_size_per_distinction)
     )
     assert all(phi_r <= distinction.phi for distinction in relata)
     return phi_r
