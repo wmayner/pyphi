@@ -1061,13 +1061,18 @@ class PyphiConfig(Config):
         "PHI",
         doc="""
     Controls how ties among states are resolved.
+
+    NOTE: Operation is `max`.
     """,
     )
 
     MIP_TIE_RESOLUTION = Option(
-        ["NORMALIZED_PHI", "PHI"],
+        ["NORMALIZED_PHI", "NEGATIVE_PHI"],
         doc="""
     Controls how ties among mechanism partitions are resolved.
+
+    NOTE: Operation is `min`; with the default values, the minimum normalized
+    phi is taken, then in case of ties, the maximal un-normalized phi is taken.
     """,
     )
 
@@ -1075,6 +1080,8 @@ class PyphiConfig(Config):
         "PHI",
         doc="""
     Controls how ties among purviews are resolved.
+
+    NOTE: Operation is `max`.
     """,
     )
 

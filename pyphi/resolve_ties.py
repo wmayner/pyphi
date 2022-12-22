@@ -45,9 +45,19 @@ def _(m):
     return m.phi
 
 
+@phi_object_tie_resolution_strategies.register("NEGATIVE_PHI")
+def _(m):
+    return -m.phi
+
+
 @phi_object_tie_resolution_strategies.register("NORMALIZED_PHI")
 def _(m):
     return m.normalized_phi
+
+
+@phi_object_tie_resolution_strategies.register("NEGATIVE_NORMALIZED_PHI")
+def _(m):
+    return -m.normalized_phi
 
 
 @phi_object_tie_resolution_strategies.register("NONE")
@@ -117,6 +127,7 @@ class CESTieResolutionRegistry(Registry):
     desc = "functions for resolving ties among purviews"
 
 
+# TODO(ties)
 def ces(ces, system_state, strategy=None):
     """Resolve ties among CESs.
 
