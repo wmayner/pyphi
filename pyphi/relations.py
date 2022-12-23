@@ -1157,10 +1157,6 @@ class NewConcreteRelations(UserDict, Relations):
     def _sum_phi(self):
         return sum(self.phis.values())
 
-    @property
-    def num_relations(self):
-        self.num_relations = len(self.relations)
-
     def __repr__(self):
         return fmt._fmt_relations(self)
 
