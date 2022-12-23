@@ -798,7 +798,6 @@ class Subsystem:
                 **kwargs,
             )
 
-        # TODO here
         candidate_mips = MapReduce(
             _evaluate_partition,
             partitions,
@@ -896,6 +895,8 @@ class Subsystem:
                 desc="Finding MIP for maximum intrinsic information states",
                 **parallel_kwargs,
             ).run()
+        else:
+            raise NotImplementedError
 
         ties = tuple(resolve_ties.states(mips))
         for tie in ties:
