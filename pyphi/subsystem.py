@@ -6,7 +6,7 @@
 
 import functools
 import logging
-from typing import Iterable
+from typing import Iterable, Tuple
 
 import numpy as np
 from numpy.typing import ArrayLike
