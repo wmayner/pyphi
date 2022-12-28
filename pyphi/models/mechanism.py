@@ -5,7 +5,7 @@
 """Mechanism-level objects."""
 
 from dataclasses import dataclass
-from typing import Iterable
+from typing import Iterable, Tuple
 
 import numpy as np
 from numpy.typing import ArrayLike
@@ -26,8 +26,8 @@ from . import cmp, fmt
 @dataclass
 class StateSpecification:
     direction: Direction
-    purview: tuple[int]
-    state: tuple[tuple[int]]
+    purview: Tuple[int]
+    state: Tuple[Tuple[int]]
     intrinsic_information: float
     repertoire: ArrayLike
     unconstrained_repertoire: ArrayLike

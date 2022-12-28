@@ -4,7 +4,7 @@ from copy import copy
 from dataclasses import dataclass
 from enum import Enum, auto, unique
 from textwrap import indent
-from typing import Iterable, Optional, Union
+from typing import Iterable, Optional, Tuple, Union
 
 from .. import Direction, Subsystem, compute, config, connectivity, utils
 from ..compute.network import reachable_subsystems
@@ -118,8 +118,8 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
     cause: Optional[RepertoireIrreducibilityAnalysis] = None
     effect: Optional[RepertoireIrreducibilityAnalysis] = None
     system_state: Optional[SystemStateSpecification] = None
-    current_state: Optional[tuple[int]] = None
-    node_indices: Optional[tuple[int]] = None
+    current_state: Optional[Tuple[int]] = None
+    node_indices: Optional[Tuple[int]] = None
     node_labels: Optional[NodeLabels] = None
     reasons: Optional[list] = None
 
