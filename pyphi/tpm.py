@@ -7,7 +7,7 @@ Provides the TPM, ExplicitTPM, and ImplicitTPM classes.
 """
 
 from itertools import chain
-from typing import Mapping
+from typing import Mapping, Set
 
 import numpy as np
 
@@ -553,7 +553,7 @@ def reconstitute_tpm(subsystem):
 
 
 def _new_attribute(
-    name: str, closures: set[str], tpm: ExplicitTPM.__wraps__, cls=ExplicitTPM
+    name: str, closures: Set[str], tpm: ExplicitTPM.__wraps__, cls=ExplicitTPM
 ) -> object:
     """Helper function to return adequate proxy attributes for TPM arrays.
 
