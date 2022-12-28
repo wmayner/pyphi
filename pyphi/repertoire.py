@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # repertoire.py
 
-from typing import Callable
+from typing import Callable, Tuple
 
 import numpy as np
 from numpy.typing import ArrayLike
@@ -35,9 +35,9 @@ def _directional_dispatch(cause_func: Callable, effect_func: Callable) -> Callab
 
 def forward_effect_probability(
     subsystem,
-    mechanism: tuple[int],
-    purview: tuple[int],
-    purview_state: tuple[int],
+    mechanism: Tuple[int],
+    purview: Tuple[int],
+    purview_state: Tuple[int],
     **kwargs
 ) -> float:
     return forward_effect_repertoire(subsystem, mechanism, purview, **kwargs).squeeze()[
@@ -46,16 +46,16 @@ def forward_effect_probability(
 
 
 def forward_effect_repertoire(
-    subsystem, mechanism: tuple[int], purview: tuple[int], **kwargs
+    subsystem, mechanism: Tuple[int], purview: Tuple[int], **kwargs
 ) -> ArrayLike:
     return subsystem.effect_repertoire(mechanism, purview, **kwargs)
 
 
 def forward_cause_probability(
     subsystem,
-    mechanism: tuple[int],
-    purview: tuple[int],
-    purview_state: tuple[int],
+    mechanism: Tuple[int],
+    purview: Tuple[int],
+    purview_state: Tuple[int],
     mechanism_state=None,
 ) -> float:
     if mechanism_state is None:
@@ -71,7 +71,7 @@ def forward_cause_probability(
 
 
 def forward_cause_repertoire(
-    subsystem, mechanism: tuple[int], purview: tuple[int], purview_state=None
+    subsystem, mechanism: Tuple[int], purview: Tuple[int], purview_state=None
 ) -> ArrayLike:
     mechanism_state = utils.state_of(mechanism, subsystem.state)
     if purview:
@@ -97,7 +97,7 @@ forward_repertoire = _directional_dispatch(
 
 
 def unconstrained_forward_effect_repertoire(
-    subsystem, mechanism: tuple[int], purview: tuple[int]
+    subsystem, mechanism: Tuple[int], purview: Tuple[int]
 ) -> ArrayLike:
     # Get the effect repertoire for each mechanism state.
     repertoires = np.stack(
@@ -114,7 +114,7 @@ def unconstrained_forward_effect_repertoire(
 
 
 def unconstrained_forward_cause_repertoire(
-    subsystem, mechanism: tuple[int], purview: tuple[int]
+    subsystem, mechanism: Tuple[int], purview: Tuple[int]
 ) -> ArrayLike:
     # See Eq. 32 in 4.0 paper.
     # Here, the roles of `m` and `z` in the equation are switched, so the
