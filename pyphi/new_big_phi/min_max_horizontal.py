@@ -63,7 +63,7 @@ class SystemPartition:
 
     def evaluate(
         self, subsystem: Subsystem, system_state: SystemStateSpecification, **kwargs
-    ) -> tuple[float, ArrayLike, ArrayLike]:
+    ) -> Tuple[float, ArrayLike, ArrayLike]:
         raise NotImplementedError
 
 
@@ -82,7 +82,7 @@ class HorizontalSystemPartition(SystemPartition):
 
     def evaluate(
         self, subsystem: Subsystem, system_state: SystemStateSpecification, **kwargs
-    ) -> tuple[float, ArrayLike, ArrayLike]:
+    ) -> Tuple[float, ArrayLike, ArrayLike]:
         valid_distances = ["IIT_4.0_SMALL_PHI", "IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE"]
         if config.REPERTOIRE_DISTANCE not in valid_distances:
             raise ValueError(
