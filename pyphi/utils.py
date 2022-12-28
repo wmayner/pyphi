@@ -12,6 +12,7 @@ import math
 import operator
 import os
 from itertools import chain, combinations, product
+from typing import Tuple
 
 import numpy as np
 from scipy.special import comb
@@ -22,8 +23,8 @@ from . import config
 
 # TODO(states) refactor
 def substate(
-    nodes: tuple[int], state: tuple[int], node_subset: tuple[int]
-) -> tuple[int]:
+    nodes: Tuple[int], state: Tuple[int], node_subset: Tuple[int]
+) -> Tuple[int]:
     return tuple(state[nodes.index(n)] for n in node_subset)
 
 
@@ -51,7 +52,7 @@ def all_states(n, big_endian=False):
             instead of little-endian order.
 
     Yields:
-        tuple[int]: The next state of an ``n``-element system, in little-endian
+        Tuple[int]: The next state of an ``n``-element system, in little-endian
         order unless ``big_endian`` is ``True``.
     """
     if n == 0:
