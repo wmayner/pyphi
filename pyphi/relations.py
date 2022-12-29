@@ -29,7 +29,14 @@ from .partition import (
     relation_partition_types,
 )
 from .registry import Registry
-from .utils import all_are_equal, all_are_identical, all_maxima, all_minima, powerset
+from .utils import (
+    PyPhiFloat,
+    all_are_equal,
+    all_are_identical,
+    all_maxima,
+    all_minima,
+    powerset,
+)
 
 
 @unique
@@ -1181,6 +1188,7 @@ def phi_r(relata, faces):
         phi_r = _phi_r_union(relata, faces)
     else:
         raise ValueError('unrecognized config value for "NEW_RELATION_TYPE"')
+    phi_r = PyPhiFloat(phi_r)
     assert all(phi_r <= distinction.phi for distinction in relata)
     return phi_r
 
@@ -1190,10 +1198,9 @@ def _phi_r_union(relata, faces):
     phi_over_purview_union_size_per_distinction = np.array(
         [distinction.phi for distinction in relata]
     ) / np.array([purview_union_size(distinction) for distinction in relata])
-    phi_r = len(union_of_facewise_overlaps) * min(
+    return len(union_of_facewise_overlaps) * min(
         phi_over_purview_union_size_per_distinction
     )
-    return phi_r
 
 
 def _phi_r_sum_facewise_overlap(relata, faces):
@@ -1208,13 +1215,12 @@ def _phi_r_sum_facewise_overlap(relata, faces):
         [distinction.phi for distinction in relata]
     ) / np.array([purview_union_size(distinction) for distinction in relata])
 
-    phi_r = (
+    return (
         # Sum of overlap sizes can be taken out of the sum and the minimum in the formula
         sum_overlap_sizes
         / num_possible_faces
         * min(phi_over_purview_union_size_per_distinction)
     )
-    return phi_r
 
 
 def _phi_r_face_weighted_union(relata, faces):
@@ -1229,14 +1235,13 @@ def _phi_r_face_weighted_union(relata, faces):
         [distinction.phi for distinction in relata]
     ) / np.array([purview_union_size(distinction) for distinction in relata])
 
-    phi_r = (
+    return (
         len(faces)
         / num_possible_faces
         * len(union_of_facewise_overlaps)
         # Sum of overlap sizes can be taken out of the sum and the minimum in the formula
         * min(phi_over_purview_union_size_per_distinction)
     )
-    return phi_r
 
 
 def overlap_size(relation_face):
