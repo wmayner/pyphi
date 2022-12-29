@@ -600,7 +600,7 @@ def test_get_actual_cuts(direction, answer, transition):
 
 def test_sia(transition):
     sia = actual.sia(transition)
-    assert sia.alpha == 0.415037
+    assert sia.alpha == 0.4150374992788
     assert sia.cut == ac_cut(Direction.CAUSE, Part((), (1,)), Part((0,), (2,)))
     assert len(sia.account) == 3
     assert len(sia.partitioned_account) == 2

@@ -13,6 +13,7 @@ import numpy as np
 
 from . import config, convert, data_structures, exceptions
 from .constants import OFF, ON
+from .data_structures import FrozenMap
 from .utils import all_states, np_hash, np_immutable
 
 
