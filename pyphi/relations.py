@@ -164,7 +164,7 @@ def aggregate_distinction_relative_repertoire_differences(
         )
     )
     return all_minima(
-        Relation(
+        RelationFace(
             relata=relata,
             purview=candidate_joint_purview,
             phi=relata.evaluate_partition(partition),
@@ -182,7 +182,7 @@ def _tied_relations(relata, candidate_joint_purview, minima, phi):
         for i in minima
     ]
     return [
-        Relation(
+        RelationFace(
             relata=relata, purview=candidate_joint_purview, phi=phi, partition=partition
         )
         for partition in tied_partitions
@@ -301,8 +301,8 @@ def partitions(relata, candidate_joint_purview, node_labels=None):
     )
 
 
-class Relation(cmp.Orderable):
-    """A relation among causes/effects."""
+class RelationFace(cmp.Orderable):
+    """An overlap among a set of causes/effects."""
 
     def __init__(self, relata, purview, phi, partition, ties=None):
         self._relata = relata
@@ -373,7 +373,7 @@ class Relation(cmp.Orderable):
 
     @staticmethod
     def union(tied_relations):
-        """Return the 'union' of tied relations.
+        """Return the 'union' of tied relation faces.
 
         This is a new Relation object that contains the purviews of all tied
         relations in the ``ties`` attribute.
@@ -386,7 +386,7 @@ class Relation(cmp.Orderable):
             raise ValueError("tied relations must be among the same relata.")
         first = tied_relations[0]
         tied_purviews = set(r.purview for r in tied_relations)
-        return Relation(
+        return RelationFace(
             first.relata, first.purview, first.phi, first.partition, ties=tied_purviews
         )
 
@@ -429,7 +429,7 @@ class Relation(cmp.Orderable):
         )
 
 
-class NullRelation(Relation):
+class NullRelation(RelationFace):
     """A zero-phi relation that was returned early because of a short-circuit
     condition.
 
@@ -723,7 +723,7 @@ class Relata(HashableOrderedSet):
             )
         )
         # Keep track of ties
-        return Relation.union(tied_relations)
+        return RelationFace.union(tied_relations)
 
 
 def relation(relata):
