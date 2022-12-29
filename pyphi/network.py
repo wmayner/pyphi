@@ -62,7 +62,7 @@ class Network:
         if isinstance(tpm, ExplicitTPM):
             self._tpm = tpm
         elif isinstance(tpm, np.ndarray):
-            self._tpm = ExplicitTPM(tpm)
+            self._tpm = ExplicitTPM(tpm, validate=True)
         elif isinstance(tpm, dict):
             # From JSON.
             self._tpm = ExplicitTPM(tpm['_tpm'])
