@@ -836,10 +836,6 @@ class Relations:
             self._sum_phi_cached = self._sum_phi()
         return self._sum_phi_cached
 
-    def supported_by(self):
-        """Return only relations that are supported by the given CES."""
-        raise NotImplementedError
-
 
 class ConcreteRelations(HashableOrderedSet, Relations):
     """A concrete set of relations."""
@@ -871,21 +867,6 @@ class ConcreteRelations(HashableOrderedSet, Relations):
     def mean_phi(self):
         return self.sum_phi() / len(self)
 
-    def supported_by(self, distinctions):
-        # Special case for empty distinctions, for speed
-        if not distinctions:
-            relations = []
-        else:
-            distinctions = distinctions.flatten()
-            # TODO use lattice data structure for efficiently finding the union of
-            # the lower sets of lost distinctions
-            relations = [
-                relation
-                for relation in self
-                if all(distinction in distinctions for distinction in relation.relata)
-            ]
-        return type(self)(relations)
-
     def to_json(self):
         return list(self)
 
@@ -903,9 +884,6 @@ class ConcreteRelations(HashableOrderedSet, Relations):
 class AbstractRelations(Relations):
     def __init__(self, distinctions):
         self.distinctions = distinctions.flatten()
-
-    def supported_by(self, distinctions):
-        return type(self)(distinctions)
 
     def to_json(self):
         return self.__dict__
