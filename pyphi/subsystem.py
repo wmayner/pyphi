@@ -6,7 +6,7 @@
 
 import functools
 import logging
-from typing import Iterable
+from typing import Iterable, Tuple
 
 import numpy as np
 from numpy.typing import ArrayLike
@@ -407,7 +407,7 @@ class Subsystem:
     def _effect_repertoire(
         self,
         condition: FrozenMap[int, int],
-        purview: tuple[int],
+        purview: Tuple[int],
     ):
         # Preallocate the repertoire with the proper shape, so that
         # probabilities are broadcasted appropriately.
@@ -523,9 +523,9 @@ class Subsystem:
     def forward_probability(
         self,
         direction: Direction,
-        mechanism: tuple[int],
-        purview: tuple[int],
-        purview_state: tuple[int],
+        mechanism: Tuple[int],
+        purview: Tuple[int],
+        purview_state: Tuple[int],
         **kwargs,
     ) -> float:
         if direction == Direction.CAUSE:
@@ -540,9 +540,9 @@ class Subsystem:
 
     def forward_effect_probability(
         self,
-        mechanism: tuple[int],
-        purview: tuple[int],
-        purview_state: tuple[int],
+        mechanism: Tuple[int],
+        purview: Tuple[int],
+        purview_state: Tuple[int],
         **kwargs,
     ) -> float:
         return _repertoire.forward_effect_probability(
@@ -551,9 +551,9 @@ class Subsystem:
 
     def forward_cause_probability(
         self,
-        mechanism: tuple[int],
-        purview: tuple[int],
-        purview_state: tuple[int],
+        mechanism: Tuple[int],
+        purview: Tuple[int],
+        purview_state: Tuple[int],
         **kwargs,
     ) -> float:
         return _repertoire.forward_cause_probability(
@@ -561,7 +561,7 @@ class Subsystem:
         )
 
     def forward_repertoire(
-        self, direction: Direction, mechanism: tuple[int], purview: tuple[int], **kwargs
+        self, direction: Direction, mechanism: Tuple[int], purview: Tuple[int], **kwargs
     ) -> ArrayLike:
         if direction == Direction.CAUSE:
             return self.forward_cause_repertoire(mechanism, purview)
@@ -571,19 +571,19 @@ class Subsystem:
 
     @cache.method("_forward_repertoire_cache", Direction.CAUSE)
     def forward_cause_repertoire(
-        self, mechanism: tuple[int], purview: tuple[int]
+        self, mechanism: Tuple[int], purview: Tuple[int]
     ) -> ArrayLike:
         return _repertoire.forward_cause_repertoire(self, mechanism, purview)
 
     # NOTE: No caching is required here because the forward effect repertoire is
     # the same as the effect repertoire.
     def forward_effect_repertoire(
-        self, mechanism: tuple[int], purview: tuple[int], **kwargs
+        self, mechanism: Tuple[int], purview: Tuple[int], **kwargs
     ) -> ArrayLike:
         return _repertoire.forward_effect_repertoire(self, mechanism, purview, **kwargs)
 
     def unconstrained_forward_repertoire(
-        self, direction: Direction, mechanism: tuple[int], purview: tuple[int]
+        self, direction: Direction, mechanism: Tuple[int], purview: Tuple[int]
     ) -> ArrayLike:
         if direction == Direction.CAUSE:
             return self.unconstrained_forward_cause_repertoire(mechanism, purview)
@@ -593,7 +593,7 @@ class Subsystem:
 
     @cache.method("_unconstrained_forward_repertoire_cache", Direction.EFFECT)
     def unconstrained_forward_effect_repertoire(
-        self, mechanism: tuple[int], purview: tuple[int]
+        self, mechanism: Tuple[int], purview: Tuple[int]
     ) -> ArrayLike:
         return _repertoire.unconstrained_forward_effect_repertoire(
             self, mechanism, purview
@@ -601,7 +601,7 @@ class Subsystem:
 
     @cache.method("_unconstrained_forward_repertoire_cache", Direction.CAUSE)
     def unconstrained_forward_cause_repertoire(
-        self, mechanism: tuple[int], purview: tuple[int]
+        self, mechanism: Tuple[int], purview: Tuple[int]
     ) -> ArrayLike:
         return _repertoire.unconstrained_forward_cause_repertoire(
             self, mechanism, purview
@@ -948,8 +948,8 @@ class Subsystem:
     def intrinsic_information(
         self,
         direction: Direction,
-        mechanism: tuple[int],
-        purview: tuple[int],
+        mechanism: Tuple[int],
+        purview: Tuple[int],
         repertoire_distance: str = None,
         states: Iterable[Iterable[int]] = None,
     ):
