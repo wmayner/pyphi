@@ -1,6 +1,5 @@
 # new_big_phi/__init__.py
 
-from copy import copy
 from dataclasses import dataclass
 from enum import Enum, auto, unique
 from textwrap import indent
@@ -20,45 +19,10 @@ from ..partition import system_partitions
 from ..registry import Registry
 from ..relations import ConcreteRelations, Relations
 from ..relations import relations as compute_relations
+from ..utils import PyPhiFloat
 
 DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD = 2**4
 DEFAULT_PARTITION_CHUNKSIZE = 2**2 * DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD
-
-
-# TODO(4.0) use throughout
-class PyPhiFloat(float):
-    """A floating-point value that's compared using config.PRECISION."""
-
-    # NOTE: Cannot use functools.total_ordering because it doesn't re-implement
-    # existing comparison methods
-
-    def __eq__(self, other):
-        return utils.eq(self, other)
-
-    def __ne__(self, other):
-        return not utils.eq(self, other)
-
-    def __lt__(self, other):
-        return super().__lt__(other) and not utils.eq(self, other)
-
-    def __gt__(self, other):
-        return super().__gt__(other) and not utils.eq(self, other)
-
-    def __le__(self, other):
-        return super().__le__(other) or utils.eq(self, other)
-
-    def __ge__(self, other):
-        return super().__ge__(other) or utils.eq(self, other)
-
-    def __hash__(self):
-        return super().__hash__()
-
-    def to_json(self):
-        return {"value": float(self)}
-
-    @classmethod
-    def from_json(cls, data):
-        return cls(data["value"])
 
 
 ##############################################################################
