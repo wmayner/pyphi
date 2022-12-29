@@ -1174,18 +1174,18 @@ def distinctions_of(face):
 
 def phi_r(relata, faces):
     if config.NEW_RELATION_SCHEME == "SUM_FACEWISE_OVERLAP":
-        phi_r = phi_r_sum_facewise_overlap(relata, faces)
+        phi_r = _phi_r_sum_facewise_overlap(relata, faces)
     elif config.NEW_RELATION_SCHEME == "FACE_WEIGHTED_UNION":
-        phi_r = phi_r_face_weighted_union(relata, faces)
+        phi_r = _phi_r_face_weighted_union(relata, faces)
     elif config.NEW_RELATION_SCHEME == "UNION_WEIGHTED":
-        phi_r = phi_r_union(relata, faces)
+        phi_r = _phi_r_union(relata, faces)
     else:
         raise ValueError('unrecognized config value for "NEW_RELATION_TYPE"')
     assert all(phi_r <= distinction.phi for distinction in relata)
     return phi_r
 
 
-def phi_r_union(relata, faces):
+def _phi_r_union(relata, faces):
     union_of_facewise_overlaps = set.union(*(set(face.purview) for face in faces))
     phi_over_purview_union_size_per_distinction = np.array(
         [distinction.phi for distinction in relata]
@@ -1196,7 +1196,7 @@ def phi_r_union(relata, faces):
     return phi_r
 
 
-def phi_r_sum_facewise_overlap(relata, faces):
+def _phi_r_sum_facewise_overlap(relata, faces):
     if len(relata) > 1:
         num_possible_faces = 3 ** len(relata)
     else:
@@ -1217,7 +1217,7 @@ def phi_r_sum_facewise_overlap(relata, faces):
     return phi_r
 
 
-def phi_r_face_weighted_union(relata, faces):
+def _phi_r_face_weighted_union(relata, faces):
     if len(relata) > 1:
         num_possible_faces = 3 ** len(relata)
     else:
