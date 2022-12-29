@@ -3,9 +3,17 @@
 # test/test_tpm.py
 
 import numpy as np
+import pickle
 
 from pyphi import Subsystem, ExplicitTPM
 from pyphi.tpm import reconstitute_tpm
+
+def test_serialization():
+    tpm = ExplicitTPM(np.random.rand(42))
+    assert tpm.array_equal(pickle.loads(pickle.dumps(tpm)))
+
+    tpm = ExplicitTPM(np.arange(42))
+    assert tpm.array_equal(pickle.loads(pickle.dumps(tpm)))
 
 def test_array_ufunc():
     tpm = ExplicitTPM(np.array([[3, 3], [3, 3]]))
@@ -22,9 +30,9 @@ def test_np_operations():
     assert actual.array_equal(expected)
 
 def test_getattr():
-    tpm = ExplicitTPM(np.array([[0,1]]))
+    tpm = ExplicitTPM(np.array([[0, 1]]))
     actual = tpm.real
-    expected = np.array([[0,1]])
+    expected = np.array([[0, 1]])
 
     assert actual.all() == expected.all()
 
