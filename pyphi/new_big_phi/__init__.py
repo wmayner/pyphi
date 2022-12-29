@@ -531,7 +531,7 @@ def irreducible_complexes(network, state, **kwargs):
     yield from filter(None, all_complexes(network, state, **kwargs))
 
 
-def major_complex(network, state, **kwargs):
+def maximal_complex(network, state, **kwargs):
     # TODO(4.0) parallelize
     return max(
         irreducible_complexes(network, state, **kwargs), default=NullPhiStructure()
