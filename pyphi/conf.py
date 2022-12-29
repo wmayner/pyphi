@@ -946,8 +946,9 @@ class PyphiConfig(Config):
     )
 
     NEW_RELATION_SCHEME = Option(
-        "SUM_FACEWISE_OVERLAP",
+        "UNION_WEIGHTED",
         values=[
+            "UNION_WEIGHTED",
             "SUM_FACEWISE_OVERLAP",
             "FACE_WEIGHTED_UNION",
         ],

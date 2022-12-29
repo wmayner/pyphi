@@ -1174,10 +1174,26 @@ def distinctions_of(face):
 
 def phi_r(relata, faces):
     if config.NEW_RELATION_SCHEME == "SUM_FACEWISE_OVERLAP":
-        return phi_r_sum_facewise_overlap(relata, faces)
+        phi_r = phi_r_sum_facewise_overlap(relata, faces)
     elif config.NEW_RELATION_SCHEME == "FACE_WEIGHTED_UNION":
-        return phi_r_face_weighted_union(relata, faces)
-    raise ValueError('unrecognized config value for "NEW_RELATION_TYPE"')
+        phi_r = phi_r_face_weighted_union(relata, faces)
+    elif config.NEW_RELATION_SCHEME == "UNION_WEIGHTED":
+        phi_r = phi_r_union(relata, faces)
+    else:
+        raise ValueError('unrecognized config value for "NEW_RELATION_TYPE"')
+    assert all(phi_r <= distinction.phi for distinction in relata)
+    return phi_r
+
+
+def phi_r_union(relata, faces):
+    union_of_facewise_overlaps = set.union(*(set(face.purview) for face in faces))
+    phi_over_purview_union_size_per_distinction = np.array(
+        [distinction.phi for distinction in relata]
+    ) / np.array([purview_union_size(distinction) for distinction in relata])
+    phi_r = len(union_of_facewise_overlaps) * min(
+        phi_over_purview_union_size_per_distinction
+    )
+    return phi_r
 
 
 def phi_r_sum_facewise_overlap(relata, faces):
@@ -1198,7 +1214,6 @@ def phi_r_sum_facewise_overlap(relata, faces):
         / num_possible_faces
         * min(phi_over_purview_union_size_per_distinction)
     )
-    assert all(phi_r <= distinction.phi for distinction in relata)
     return phi_r
 
 
@@ -1221,7 +1236,6 @@ def phi_r_face_weighted_union(relata, faces):
         # Sum of overlap sizes can be taken out of the sum and the minimum in the formula
         * min(phi_over_purview_union_size_per_distinction)
     )
-    assert all(phi_r <= distinction.phi for distinction in relata)
     return phi_r
 
 
