@@ -29,10 +29,10 @@ class PyPhiFloat(float):
     # existing comparison methods
 
     def __eq__(self, other):
-        return utils.eq(self, other)
+        return eq(self, other)
 
     def __ne__(self, other):
-        return not utils.eq(self, other)
+        return not eq(self, other)
 
     def __lt__(self, other):
         return super().__lt__(other) and not eq(self, other)
