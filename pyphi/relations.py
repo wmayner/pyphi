@@ -89,31 +89,6 @@ def whole_overlap(candidate_overlap):
     return set(map(tuple, candidate_overlap))
 
 
-class PhiUpperBoundRegistry(Registry):
-    """Storage for functions for defining the upper bound of distinction phi."""
-
-    desc = "phi bounds (relations)"
-
-
-distinction_phi_upper_bounds = PhiUpperBoundRegistry()
-
-
-@distinction_phi_upper_bounds.register("PURVIEW_SIZE")
-def _(distinction):
-    return len(distinction.purview)
-
-
-@distinction_phi_upper_bounds.register("ONE")
-def _(distinction):
-    return 1
-
-
-def distinction_phi_upper_bound(distinction):
-    return distinction_phi_upper_bounds[config.DISTINCTION_PHI_UPPER_BOUND_RELATIONS](
-        distinction
-    )
-
-
 class OverlapRatioRegistry(Registry):
     desc = "overlap ratios"
 

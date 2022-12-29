@@ -974,14 +974,6 @@ class PyphiConfig(Config):
     """,
     )
 
-    DISTINCTION_PHI_UPPER_BOUND_RELATIONS = Option(
-        "PURVIEW_SIZE",
-        values=["ONE", "PURVIEW_SIZE"],
-        doc="""
-    Controls the definition of the upper bound of distinction phi when calculating relations.
-    """,
-    )
-
     DISTINCTION_SUM_PHI_UPPER_BOUND = Option(
         "DISTINCT_AND_CONGRUENT_PURVIEWS",
         values=[
