@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from typing import Iterable, Tuple
 
 import numpy as np
+from more_itertools import flatten
 from numpy.typing import ArrayLike
 from toolz import concat, unique
 
@@ -268,7 +269,11 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         return self._state_ties
 
     def set_state_ties(self, ties):
-        self._state_ties = tuple(ties)
+        ties = tuple(ties)
+        self._state_ties = ties
+        # Update tie references in partition ties
+        for tie in self.partition_ties:
+            tie._state_ties = ties
 
     # TODO(ties)
     # def state_ties(self, congruent_with=None, node_indices=None):
@@ -284,7 +289,11 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         return self._partition_ties
 
     def set_partition_ties(self, ties):
-        self._partition_ties = tuple(ties)
+        ties = tuple(ties)
+        self._partition_ties = ties
+        # Update tie references in state ties
+        for tie in self.state_ties:
+            tie._partition_ties = ties
 
     @property
     def ties(self):
@@ -361,6 +370,7 @@ def _null_ria(direction, mechanism, purview, repertoire=None, phi=0.0, **kwargs)
 # =============================================================================
 
 
+# TODO(4.0) implement as a subclass of RIA?
 class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
     """A maximally irreducible cause or effect (MICE).
 
@@ -370,7 +380,9 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
 
     def __init__(self, ria):
         self._ria = ria
-        self._purview_ties = (self,)
+        self._state_ties = None
+        self._partition_ties = None
+        self._purview_ties = None
 
     @property
     def phi(self):
@@ -453,11 +465,36 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
 
     @property
     def state_ties(self):
-        return tuple(map(self.__class__, self._ria.state_ties))
+        if self._state_ties is None:
+            self._state_ties = (self,) + tuple(
+                type(self)(tie) for tie in self.ria.state_ties if tie is not self.ria
+            )
+        return self._state_ties
+
+    def set_state_ties(self, ties):
+        # Update state ties on other tied objects
+        ties = tuple(ties)
+        self._state_ties = ties
+        # Update state ties on other tied objects
+        for tie in flatten([self.partition_ties, self.purview_ties]):
+            tie._state_ties = ties
 
     @property
     def partition_ties(self):
-        return tuple(map(self.__class__, self._ria.partition_ties))
+        if self._partition_ties is None:
+            self._partition_ties = (self,) + tuple(
+                type(self)(tie)
+                for tie in self.ria.partition_ties
+                if tie is not self.ria
+            )
+        return self._partition_ties
+
+    def set_partition_ties(self, ties):
+        ties = tuple(ties)
+        self._partition_ties = ties
+        # Update partition ties on other tied objects
+        for tie in flatten([self.state_ties, self.purview_ties]):
+            tie._partition_ties = ties
 
     @property
     def purview_ties(self):
@@ -469,6 +506,9 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
     def set_purview_ties(self, ties):
         """Set the ties."""
         self._purview_ties = tuple(ties)
+        # Update purview ties on other tied objects
+        for tie in flatten([self.state_ties, self.partition_ties]):
+            tie._purview_ties = ties
 
     @property
     def num_purview_ties(self):
@@ -817,7 +857,12 @@ class Concept(cmp.Orderable):
             next(
                 filter(
                     lambda mice: mice.is_congruent(system_state[direction]),
-                    self.mice(direction).state_ties,
+                    flatten(
+                        [
+                            self.mice(direction).state_ties,
+                            self.mice(direction).purview_ties,
+                        ]
+                    ),
                 ),
                 None,
             )
