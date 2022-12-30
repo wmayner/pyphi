@@ -7,7 +7,7 @@ from itertools import tee
 from . import config, metrics
 from .conf import fallback
 from .registry import Registry
-from .utils import all_maxima, all_minima, NO_DEFAULT, iter_with_default
+from .utils import NO_DEFAULT, iter_with_default
 
 
 class PhiObjectTieResolutionRegistry(Registry):
@@ -135,20 +135,3 @@ def purviews(mice, strategy=None, **kwargs):
     """
     strategy = fallback(strategy, config.PURVIEW_TIE_RESOLUTION)
     yield from resolve(mice, strategy, operation=max, **kwargs)
-
-
-class CESTieResolutionRegistry(Registry):
-    """Storage for functions for resolving ties in cause-effect structures."""
-
-    desc = "functions for resolving ties among purviews"
-
-
-# TODO(ties)
-def ces(ces, system_state, strategy=None):
-    """Resolve ties among CESs.
-
-    Controlled by the CES_TIE_RESOLUTION configuration option.
-    """
-    strategy = fallback(strategy, config.CES_TIE_RESOLUTION)
-    # - resolve based on congruence
-    yield from all_maxima
