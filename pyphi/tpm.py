@@ -509,17 +509,6 @@ class ExplicitTPM(data_structures.ArrayLike):
         """
         return isinstance(o, type(self)) and np.array_equal(self._tpm, o._tpm)
 
-    @classmethod
-    def enforce(cls, tpm: object):
-        """Create a new TPM object if necessary.
-
-        This acts as a partially applied ternary operator with the condition set
-        to type-checking the input.
-        """
-        if not isinstance(tpm, cls):
-            return cls(tpm, validate=False)
-        return tpm
-
     def __str__(self):
         return self.__repr__()
 
