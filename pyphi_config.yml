@@ -25,9 +25,6 @@ COMPOSITIONAL_STATE_CONFLICTS: GLOBAL
 # Controls how distinction phi is normalized.
 DISTINCTION_PHI_NORMALIZATION: NUM_CONNECTIONS_CUT
 # Controls the definition of the upper bound of the sum of distinction phi when
-# calculating relations.
-DISTINCTION_PHI_UPPER_BOUND_RELATIONS: PURVIEW_SIZE
-# Controls the definition of the upper bound of the sum of distinction phi when
 # analyzing a system.
 DISTINCTION_SUM_PHI_UPPER_BOUND: DISTINCT_AND_CONGRUENT_PURVIEWS
 # The type of horizontal system partition scheme to use.
