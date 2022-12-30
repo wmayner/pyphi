@@ -3,7 +3,7 @@
 # tpm.py
 
 """
-Provides the TPM, ExplicitTPM, and ImplicitTPM classes.
+Provides the ExplicitTPM and related classes.
 """
 
 from itertools import chain
