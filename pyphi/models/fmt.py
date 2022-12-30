@@ -421,25 +421,29 @@ def fmt_partition(partition):
     Returns:
         str: A human-readable string representation of the partition.
     """
+    # TODO(4.0) deprecate
     if not partition:
         return ""
+    try:
 
-    parts = [
-        # TODO(4.0)
-        # str(part).split("\n")
-        fmt_part(part, node_labels=partition.node_labels).split("\n")
-        for part in partition
-    ]
+        parts = [
+            # TODO(4.0)
+            # str(part).split("\n")
+            fmt_part(part, node_labels=partition.node_labels).split("\n")
+            for part in partition
+        ]
 
-    times = ("   ", " {} ".format(MULTIPLY), "   ")
-    breaks = ("\n", "\n", "")  # No newline at the end of string
-    between = [times] * (len(parts) - 1) + [breaks]
+        times = ("   ", " {} ".format(MULTIPLY), "   ")
+        breaks = ("\n", "\n", "")  # No newline at the end of string
+        between = [times] * (len(parts) - 1) + [breaks]
 
-    # Alternate [part, break, part, ..., end]
-    elements = chain.from_iterable(zip(parts, between))
+        # Alternate [part, break, part, ..., end]
+        elements = chain.from_iterable(zip(parts, between))
 
-    # Transform vertical stacks into horizontal lines
-    return "".join(chain.from_iterable(zip(*elements)))
+        # Transform vertical stacks into horizontal lines
+        return "".join(chain.from_iterable(zip(*elements)))
+    except TypeError:
+        return repr(partition)
 
 
 def fmt_phi_structure(ps, title="Phi-structure", subsystem=True):
@@ -555,28 +559,31 @@ def fmt_ria(ria, verbose=True, mip=False):
         mechanism = ""
         direction = ""
 
-    if ria.specified_state is None:
-        specified_states = []
-        specified_states_str = str(specified_states)
-    else:
-        specified_states = [tuple(state) for state in ria.specified_state]
-        specified_states_str = "\n  " + "\n  ".join(
-            map(str, map(list, specified_states))
-        )
-
     # TODO(4.0):  position repertoire and partitioned repertoire side by side
+    # TODO(ties) fix state-marking logic
     if config.REPR_VERBOSITY is HIGH:
         partition = "\n{}:\n{}".format(
             ("MIP" if mip else "Partition"), indent(fmt_partition(ria.partition))
         )
-        repertoire = "\nRepertoire:\n{}".format(
-            indent(fmt_repertoire(ria.repertoire, mark_states=specified_states))
-        )
-        partitioned_repertoire = "\nPartitioned repertoire:\n{}".format(
-            indent(
-                fmt_repertoire(ria.partitioned_repertoire, mark_states=specified_states)
+        mark_states = [specified.state for specified in ria.specified_state.ties]
+        # TODO(refactor)
+        if ria.repertoire.size == 1:
+            repertoire = f"\nForward probability: \n    {ria.repertoire}"
+            partitioned_repertoire = (
+                f"\nPartitioned forward probability:\n    {ria.partitioned_repertoire}"
             )
-        )
+        else:
+            repertoire = "\nRepertoire:\n{}".format(
+                indent(fmt_repertoire(ria.repertoire, mark_states=mark_states))
+            )
+            partitioned_repertoire = "\nPartitioned repertoire:\n{}".format(
+                indent(
+                    fmt_repertoire(
+                        ria.partitioned_repertoire,
+                        mark_states=mark_states,
+                    )
+                )
+            )
     else:
         partition = ""
         repertoire = ""
@@ -585,23 +592,27 @@ def fmt_ria(ria, verbose=True, mip=False):
     # TODO? print the two repertoires side-by-side
     return (
         "{SMALL_PHI} = {phi}\n"
+        "Normalized {SMALL_PHI} = {normalized_phi}\n"
         "{mechanism}"
         "Purview: {purview}"
-        "\nSpecified state(s): {specified_states}"
+        "\nSpecified state:\n{specified_state}"
         "{direction}"
         "{partition}"
         "{repertoire}"
         "{partitioned_repertoire}"
+        "\n#(ties): {num_ties}"
     ).format(
         SMALL_PHI=SMALL_PHI,
+        normalized_phi=fmt_number(ria.normalized_phi),
         mechanism=mechanism,
         purview=fmt_mechanism(ria.purview, ria.node_labels),
-        specified_states=specified_states_str,
+        specified_state=ria.specified_state,
         direction=direction,
         phi=fmt_number(ria.phi),
         partition=partition,
         repertoire=repertoire,
         partitioned_repertoire=partitioned_repertoire,
+        num_ties=ria.num_ties,
     )
 
 
@@ -763,7 +774,7 @@ def fmt_relation(relation):
     return header("Relation", body, over_char=HEADER_BAR_3, under_char=HEADER_BAR_3)
 
 
-def _fmt_relations(relations, title, body, data=None):
+def _fmt_relations(relations, title=None, body="", data=None):
     if title is None:
         title = relations.__class__.__name__
     if data is None:

@@ -33,11 +33,11 @@ DISTINCTION_SUM_PHI_UPPER_BOUND: DISTINCT_AND_CONGRUENT_PURVIEWS
 # The type of horizontal system partition scheme to use.
 HORIZONTAL_PARTITION_CODE: "1210"
 # The version of the theory to use.
-IIT_VERSION: maximal-state-first
+IIT_VERSION: 4.0
 # The method of combining cause and effect integration values.
 INTEGRATION_VALUE: MIN
 # The path for the log file.
-LOG_FILE: "pyphi.log"
+LOG_FILE: pyphi.log
 # The log level to write to `LOG_FILE`.
 LOG_FILE_LEVEL: INFO
 # The log level to write to stdout.
@@ -45,8 +45,12 @@ LOG_STDOUT_LEVEL: WARNING
 # Some functions are memoized using an in-memory cache. This is the maximum
 # percentage of memory that these caches can collectively use.
 MAXIMUM_CACHE_MEMORY_PERCENTAGE: 50
-# Controls how to resolve ties among purviews when computing MICE.
-MICE_TIE_RESOLUTION: MAX_INFORMATIVENESS_THEN_SMALLEST_PURVIEW
+
+# TODO(ties): Document this.
+STATE_TIE_RESOLUTION: PHI
+MIP_TIE_RESOLUTION: [NORMALIZED_PHI, NEGATIVE_PHI]
+PURVIEW_TIE_RESOLUTION: PHI
+
 # The number of CPU cores to use in parallel.
 # -1 means all available cores, -2 means all but one available cores, etc.
 NUMBER_OF_CORES: -1
@@ -62,6 +66,12 @@ PARALLEL_CONCEPT_EVALUATION: true
 # If cuts are evaluated sequentially, only two SIAs need to be in memory at a
 # time.
 PARALLEL_CUT_EVALUATION: true
+# Controls parallel evaluation of candidate purviews. If mechanism size is
+# greater or equal than this floating point value, parallelization will occur. A
+# value of .inf will enforce sequential processing.
+PARALLEL_PURVIEW_EVALUATION: 4.0
+# Controls parallel evaluation of mechanism partitions.
+PARALLEL_MECHANISM_PARTITION_EVALUATION: true
 # Controls the partitioning scheme for distinctions.
 PARTITION_TYPE: ALL
 # Controls the numerical precision with which to compare phi values against each

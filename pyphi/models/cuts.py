@@ -324,7 +324,15 @@ class GeneralKCut(_CutBase):
         return str(self._cut_matrix)
 
     def to_json(self):
-        raise NotImplementedError
+        return self.__dict__.copy()
+
+    @classmethod
+    def from_json(cls, data):
+        return cls(
+            node_indices=data["node_indices"],
+            cut_matrix=data["_cut_matrix"],
+            node_labels=data["node_labels"],
+        )
 
 
 class CompleteGeneralKCut(GeneralKCut):
@@ -364,7 +372,14 @@ class GeneralSetPartition(GeneralKCut):
         )
 
     def to_json(self):
-        return self.set_partition
+        dct = self.__dict__.copy()
+        del dct["parts"]
+        return dct
+
+    @classmethod
+    def from_json(cls, data):
+        data["cut_matrix"] = np.array(data.pop("_cut_matrix"))
+        return cls(**data)
 
     # TODO(4.0) add to other classes after consolidating partitions
     def relabel(self, node_indices, node_labels=None):
@@ -466,9 +481,14 @@ class KPartition(Sequence, _CutBase):
     @property
     def purview(self):
         """tuple[int]: The nodes of the purview in the partition."""
-        # TODO(4.0) do we need to sort here? slow
         if self._purview is None:
-            self._purview = tuple(chain.from_iterable(part.purview for part in self))
+            # NOTE: Must sort here as long as states are tuples and not
+            # mappings; we need to be able to combine a purview and a state in
+            # order, e.g. in `Subsystem.partitioned_repertoire`.
+            # TODO(states) remove sorting once states are mappings?
+            self._purview = tuple(
+                sorted(chain.from_iterable(part.purview for part in self))
+            )
         return self._purview
 
     @property

@@ -7,7 +7,7 @@ Provides the TPM, ExplicitTPM, and ImplicitTPM classes.
 """
 
 from itertools import chain
-from typing import Mapping
+from typing import Mapping, Set
 
 import numpy as np
 
@@ -363,7 +363,7 @@ class ExplicitTPM(data_structures.ArrayLike):
         # self.tpm has already been validated and converted to multidimensional
         # state-by-node form. Further validation would be problematic for
         # singleton dimensions.
-        return type(self)(tpm, validate=False)
+        return type(self)(tpm)
 
     def marginalize_out(self, node_indices):
         """Marginalize out nodes from this TPM.
@@ -382,7 +382,7 @@ class ExplicitTPM(data_structures.ArrayLike):
         # self._tpm has already been validated and converted to multidimensional
         # state-by-node form. Further validation would be problematic for
         # singleton dimensions.
-        return type(self)(tpm, validate=False)
+        return type(self)(tpm)
 
     def is_deterministic(self):
         """Return whether the TPM is deterministic."""
@@ -426,7 +426,7 @@ class ExplicitTPM(data_structures.ArrayLike):
         over the full network.
         """
         unconstrained = np.ones([2] * (self._tpm.ndim - 1) + [self._tpm.shape[-1]])
-        return type(self)(self._tpm * unconstrained, validate=False)
+        return type(self)(self._tpm * unconstrained)
 
     def infer_edge(self, a, b, contexts):
         """Infer the presence or absence of an edge from node A to node B.
@@ -492,13 +492,12 @@ class ExplicitTPM(data_structures.ArrayLike):
         dimension_permutation = tuple(permutation) + (self.ndim - 1,)
         return type(self)(
             self._tpm.transpose(dimension_permutation)[..., list(permutation)],
-            validate=False,
         )
 
     def __getitem__(self, i):
         item = self._tpm[i]
         if isinstance(item, type(self._tpm)):
-            item = type(self)(item, validate=False)
+            item = type(self)(item)
         return item
 
     def array_equal(self, o: object):
@@ -543,7 +542,7 @@ def reconstitute_tpm(subsystem):
 
 # TODO(tpm) remove pending ArrayLike refactor
 def _new_attribute(
-    name: str, closures: set[str], tpm: ExplicitTPM.__wraps__, cls=ExplicitTPM
+    name: str, closures: Set[str], tpm: ExplicitTPM.__wraps__, cls=ExplicitTPM
 ) -> object:
     """Helper function to return adequate proxy attributes for TPM arrays.
 
@@ -576,11 +575,11 @@ def _new_attribute(
 
         # Array.
         if isinstance(result, cls.__wraps__):
-            return cls(result, validate=False)
+            return cls(result)
 
         # Multivalued "functions" returning a tuple (__divmod__()).
         if isinstance(result, tuple):
-            return (cls(r, validate=False) for r in result)
+            return (cls(r) for r in result)
 
         # Scalars (e.g. sum(), max()), etc.
         return result

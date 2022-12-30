@@ -4,26 +4,89 @@
 
 """Mechanism-level objects."""
 
+from dataclasses import dataclass
+from typing import Iterable, Tuple
+
 import numpy as np
+from numpy.typing import ArrayLike
+from toolz import concat, unique
 
 from pyphi.models.cuts import KPartition
 
 from .. import config, connectivity, utils, validate
+from ..conf import fallback
 from ..direction import Direction
-from ..exceptions import WrongDirectionError
+from ..exceptions import WrongDirectionError, warn_about_tie_serialization
 from ..metrics import distribution
+from ..models import fmt
 from ..registry import Registry
 from . import cmp, fmt
 
-_ria_attributes = [
-    "phi",
-    "direction",
-    "mechanism",
-    "purview",
-    "partition",
-    "repertoire",
-    "partitioned_repertoire",
-]
+
+@dataclass
+class StateSpecification:
+    direction: Direction
+    purview: Tuple[int]
+    state: Tuple[Tuple[int]]
+    intrinsic_information: float
+    repertoire: ArrayLike
+    unconstrained_repertoire: ArrayLike
+
+    def set_ties(self, ties: Iterable):
+        self._ties = ties
+
+    @property
+    def ties(self):
+        return self._ties
+
+    def __getitem__(self, i):
+        return self.state[i]
+
+    def __hash__(self):
+        return hash(
+            (self.direction, self.purview, self.state, self.intrinsic_information)
+        )
+
+    def _repr_columns(self, prefix=""):
+        # TODO(fmt) include purview
+        return [
+            (f"{prefix}{self.direction}", str(self.state)),
+            (
+                f"{prefix}II_{str(self.direction)[:1].lower()}",
+                self.intrinsic_information,
+            ),
+        ]
+
+    def __repr__(self):
+        body = "\n".join(fmt.align_columns(self._repr_columns()))
+        body = fmt.header(
+            f"Specified {self.direction}", body, under_char=fmt.HEADER_BAR_3
+        )
+        return fmt.box(fmt.center(body))
+
+    def is_congruent(self, other):
+        ours = dict(zip(self.purview, self.state))
+        theirs = dict(zip(other.purview, other.state))
+        mutual = set(ours.keys()) & set(theirs.keys())
+        return self.direction == other.direction and all(
+            ours[purview_node] == theirs[purview_node] for purview_node in mutual
+        )
+
+    def to_json(self):
+        warn_about_tie_serialization(self)
+        dct = self.__dict__.copy()
+        # TODO(ties) implement serialization of ties
+        # Remove ties because of circular references
+        del dct["_ties"]
+        return dct
+
+    @classmethod
+    def from_json(cls, data):
+        for key in ["repertoire", "unconstrained_repertoire"]:
+            data[key] = np.array(data[key])
+        instance = cls(**data)
+        instance._ties = (instance,)
+        return instance
 
 
 class DistinctionPhiNormalizationRegistry(Registry):
@@ -56,6 +119,22 @@ def normalization_factor(partition):
     )
 
 
+_ria_attributes = [
+    "phi",
+    "direction",
+    "mechanism",
+    "purview",
+    "partition",
+    "repertoire",
+    "partitioned_repertoire",
+    "specified_state",
+    "specified_index",
+    "mechanism_state",
+    "purview_state",
+    "node_labels",
+]
+
+
 class RepertoireIrreducibilityAnalysis(cmp.Orderable):
     """An analysis of the irreducibility (|small_phi|) of a mechanism over a
     purview, for a given partition, in one temporal direction.
@@ -73,8 +152,8 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         partition,
         repertoire,
         partitioned_repertoire,
-        specified_index=None,
         specified_state=None,
+        specified_index=None,
         mechanism_state=None,
         purview_state=None,
         node_labels=None,
@@ -94,27 +173,10 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
 
         self._repertoire = _repertoire(repertoire)
         self._partitioned_repertoire = _repertoire(partitioned_repertoire)
-
-        # TODO(4.0)
-        # - use DistanceResult?
-        if self._partitioned_repertoire is None:
-            self._specified_index = None
-            self._specified_state = None
-        else:
-            self._specified_index = (
-                distribution.specified_index(
-                    self.repertoire, self.partitioned_repertoire
-                )
-                if specified_index is None
-                else specified_index
-            )
-            self._specified_state = (
-                distribution.specified_state(
-                    self.repertoire, self.partitioned_repertoire
-                )
-                if specified_state is None
-                else specified_state
-            )
+        self._specified_state = specified_state
+        self._specified_index = specified_index
+        self._partition_ties = (self,)
+        self._state_ties = (self,)
 
         norm = normalization_factor(self._partition)
 
@@ -187,49 +249,51 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
 
     @property
     def specified_index(self):
-        """The state(s) with the maximal absolute intrinsic difference
+        """The state with the maximal absolute intrinsic difference
         between the unpartitioned and partitioned repertoires."""
         return self._specified_index
 
     @property
     def specified_state(self):
-        """The state(s) with the maximal absolute intrinsic difference
-        between the unpartitioned and partitioned repertoires."""
+        """The state with the maximal absolute intrinsic difference between
+        the unpartitioned and partitioned repertoires among all ties."""
         return self._specified_state
 
-    # TODO(4.0) clean up specified state logic once it stabilizes
-    def set_specified_state(self, state):
-        self._specified_state = state
+    def is_congruent(self, specified_state):
+        """Whether the state specified by this RIA is congruent to the given one."""
+        return self.specified_state.is_congruent(specified_state)
 
-    def is_congruent(self, node_indices, state):
-        """Return whether the given state is congruent to the specified state."""
-        # TODO(4.0) use DistanceResult.is_congruent
-        # TODO(4.0) configure ties with kwargs?
-        purview_state = utils.state_of_subsystem_nodes(
-            node_indices, self.purview, state
-        )
-        return any(tuple(state) == purview_state for state in self.specified_state)
+    @property
+    def state_ties(self):
+        return self._state_ties
 
-    def state_ties(self, congruent_with=None, node_indices=None):
-        for index, state in zip(self.specified_index, self.specified_state):
-            ria = RepertoireIrreducibilityAnalysis(
-                self.phi,
-                self.direction,
-                self.mechanism,
-                self.purview,
-                self.partition,
-                self.repertoire,
-                self.partitioned_repertoire,
-                specified_index=index.reshape(1, -1),
-                specified_state=state.reshape(1, -1),
-                mechanism_state=self.mechanism_state,
-                purview_state=self.purview_state,
-                node_labels=self.node_labels,
-            )
-            if (congruent_with is None) or ria.is_congruent(
-                node_indices, congruent_with
-            ):
-                yield ria
+    def set_state_ties(self, ties):
+        self._state_ties = tuple(ties)
+
+    # TODO(ties)
+    # def state_ties(self, congruent_with=None, node_indices=None):
+    #     for tie in self.ties:
+    #         if tie.purview == self.purview:
+    #             if (congruent_with is None) or tie.is_congruent(
+    #                 node_indices, congruent_with
+    #             ):
+    #                 yield tie
+
+    @property
+    def partition_ties(self):
+        return self._partition_ties
+
+    def set_partition_ties(self, ties):
+        self._partition_ties = tuple(ties)
+
+    @property
+    def ties(self):
+        # TODO(ties) check unique usage here
+        return unique(concat([self._state_ties, self._partition_ties]))
+
+    @property
+    def num_ties(self):
+        return len(self._state_ties) + len(self._partition_ties) - 2
 
     @property
     def node_labels(self):
@@ -269,10 +333,12 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         return "Repertoire irreducibility analysis\n" + fmt.indent(fmt.fmt_ria(self))
 
     def to_json(self):
+        # TODO(ties) implement serialization of ties
+        warn_about_tie_serialization(self)
         return {attr: getattr(self, attr) for attr in _ria_attributes}
 
 
-def _null_ria(direction, mechanism, purview, repertoire=None, phi=0.0):
+def _null_ria(direction, mechanism, purview, repertoire=None, phi=0.0, **kwargs):
     """The irreducibility analysis for a reducible mechanism."""
     # TODO Use properties here to infer mechanism and purview from
     # partition yet access them with .mechanism and .partition
@@ -284,6 +350,7 @@ def _null_ria(direction, mechanism, purview, repertoire=None, phi=0.0):
         repertoire=repertoire,
         partitioned_repertoire=None,
         phi=phi,
+        **kwargs,
     )
 
 
@@ -297,9 +364,9 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
     ``>``, etc.). Comparison is based on |small_phi| value, then mechanism size.
     """
 
-    def __init__(self, ria, ties=None):
+    def __init__(self, ria):
         self._ria = ria
-        self._all_ties = ties
+        self._purview_ties = (self,)
 
     @property
     def phi(self):
@@ -380,88 +447,103 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
         """
         return self._ria
 
-    def set_ties(self, ties):
-        """Set the ``purview_partition_ties`` attribute."""
-        self._all_ties = ties
-
     @property
-    def purview_ties(self):
-        """list: MICE objects for any other purviews that are maximal.
-
-        NOTE: Partition ties are resolved arbitrarily.
-        """
-        seen = set()
-        for tie in self._all_ties:
-            if tie.purview not in seen:
-                yield tie
-                seen.add(tie.purview)
+    def state_ties(self):
+        return tuple(map(self.__class__, self._ria.state_ties))
 
     @property
     def partition_ties(self):
-        """list: MICE objects for any other purviews that are maximal.
-
-        NOTE: Partition ties are resolved arbitrarily.
-        """
-        seen = set()
-        for tie in self._all_ties:
-            if tie.purview == self.purview and tie.mip not in seen:
-                yield tie
-                seen.add(tie.mip)
-
-    def state_ties(self, congruent_with=None, node_indices=None):
-        cls = type(self)
-        for ria in self.ria.state_ties(
-            congruent_with=congruent_with, node_indices=node_indices
-        ):
-            yield cls(ria, ties=self._all_ties)
-
-    def ties(
-        self,
-        purview=True,
-        state=True,
-        partition=True,
-        congruent_with=None,
-        node_indices=None,
-    ):
-        """Return MICE for any other purviews, partitions, or states that are maximal."""
-        if purview and partition:
-            ties = []
-            # TODO(4.0) Currently the logic in subsystem.find_mice will add
-            # duplicate MICE to the ties, one for each state. This should be
-            # made more sensible when the logic stabilizes, but for now we just
-            # filter out the duplicates.
-            seen = set()
-            for tie in self._all_ties:
-                if tie not in seen:
-                    ties.append(tie)
-                    seen.add(tie)
-        elif purview:
-            ties = self.purview_ties
-        elif partition:
-            ties = self.partition_ties
-        else:
-            ties = [self]
-
-        if state:
-            for mice in ties:
-                yield from mice.state_ties(
-                    congruent_with=congruent_with, node_indices=node_indices
-                )
-        else:
-            yield from ties
+        return tuple(map(self.__class__, self._ria.partition_ties))
 
     @property
-    def is_tied(self):
-        """Whether this MICE is non-unique."""
-        return len(self._all_ties) > 1
+    def purview_ties(self):
+        """tuple[MaximallyIrreducibleCauseOrEffect]: The purviews that are tied
+        for maximal |small_phi| value.
+        """
+        return self._purview_ties
+
+    def set_purview_ties(self, ties):
+        """Set the ties."""
+        self._purview_ties = tuple(ties)
+
+    # @property
+    # def purview_ties(self):
+    #     """list: MICE objects for any other purviews that are maximal.
+
+    #     NOTE: Partition ties are resolved arbitrarily.
+    #     """
+    #     seen = set()
+    #     for tie in self._all_ties:
+    #         if tie.purview not in seen:
+    #             yield tie
+    #             seen.add(tie.purview)
+
+    # @property
+    # def partition_ties(self):
+    #     """list: MICE objects for any other purviews that are maximal.
+
+    #     NOTE: Partition ties are resolved arbitrarily.
+    #     """
+    #     seen = set()
+    #     for tie in self._all_ties:
+    #         if tie.purview == self.purview and tie.mip not in seen:
+    #             yield tie
+    #             seen.add(tie.mip)
+
+    # def state_ties(self, congruent_with=None, node_indices=None):
+    #     cls = type(self)
+    #     for ria in self.ria.state_ties(
+    #         congruent_with=congruent_with, node_indices=node_indices
+    #     ):
+    #         yield cls(ria, ties=self._all_ties)
+
+    # def ties(
+    #     self,
+    #     purview=True,
+    #     state=True,
+    #     partition=True,
+    #     congruent_with=None,
+    #     node_indices=None,
+    # ):
+    #     """Return MICE for any other purviews, partitions, or states that are maximal."""
+    #     if purview and partition:
+    #         ties = []
+    #         # TODO(4.0) Currently the logic in subsystem.find_mice will add
+    #         # duplicate MICE to the ties, one for each state. This should be
+    #         # made more sensible when the logic stabilizes, but for now we just
+    #         # filter out the duplicates.
+    #         seen = set()
+    #         for tie in self._all_ties:
+    #             if tie not in seen:
+    #                 ties.append(tie)
+    #                 seen.add(tie)
+    #     elif purview:
+    #         ties = self.purview_ties
+    #     elif partition:
+    #         ties = self.partition_ties
+    #     else:
+    #         ties = [self]
+
+    #     if state:
+    #         for mice in ties:
+    #             yield from mice.state_ties(
+    #                 congruent_with=congruent_with, node_indices=node_indices
+    #             )
+    #     else:
+    #         yield from ties
+
+    # @property
+    # def is_tied(self):
+    #     """Whether this MICE is non-unique."""
+    #     return len(self._all_ties) > 1
 
     def flip(self):
         """Return the linked MICE in the other direction."""
         return self.parent.mice(self.direction.flip())
 
-    def is_congruent(self, node_indices, state):
+    def is_congruent(self, specified_state):
         """Return whether the state specified by this MICE is congruent."""
-        return self.ria.is_congruent(node_indices, state)
+        return self.ria.is_congruent(specified_state)
 
     def __repr__(self):
         return fmt.make_repr(self, ["ria"])
@@ -541,12 +623,12 @@ class MaximallyIrreducibleCause(MaximallyIrreducibleCauseOrEffect):
     ``>``, etc.). Comparison is based on |small_phi| value, then mechanism size.
     """
 
-    def __init__(self, ria, ties=None):
+    def __init__(self, ria):
         if ria.direction != Direction.CAUSE:
             raise WrongDirectionError(
-                "A MIC must be initialized with a RIA " "in the cause direction."
+                "A MIC must be initialized with a RIA in the cause direction."
             )
-        super().__init__(ria, ties=ties)
+        super().__init__(ria)
 
     def order_by(self):
         return self.ria.order_by()
@@ -564,12 +646,12 @@ class MaximallyIrreducibleEffect(MaximallyIrreducibleCauseOrEffect):
     ``>``, etc.). Comparison is based on |small_phi| value, then mechanism size.
     """
 
-    def __init__(self, ria, ties=None):
+    def __init__(self, ria):
         if ria.direction != Direction.EFFECT:
             raise WrongDirectionError(
                 "A MIE must be initialized with a RIA in the effect direction."
             )
-        super().__init__(ria, ties=ties)
+        super().__init__(ria)
 
     @property
     def direction(self):
@@ -712,19 +794,18 @@ class Concept(cmp.Orderable):
 
     def is_congruent(self, system_state):
         return all(
-            self.mice(direction).is_congruent(
-                system_state.node_indices, system_state[direction]
-            )
+            self.mice(direction).is_congruent(system_state[direction])
             for direction in Direction.both()
         )
 
+    # TODO(ties) refactor
     def resolve_congruence(self, system_state):
         """Choose the MIC/MIE that are congruent, if any."""
         cause, effect = [
             next(
-                self.mice(direction).state_ties(
-                    congruent_with=system_state[direction],
-                    node_indices=system_state.node_indices,
+                filter(
+                    lambda mice: mice.is_congruent(system_state[direction]),
+                    self.mice(direction).state_ties,
                 ),
                 None,
             )

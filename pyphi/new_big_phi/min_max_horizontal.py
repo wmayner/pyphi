@@ -1,7 +1,7 @@
 # new_big_phi/min_max_horizontal.py
 
 from dataclasses import dataclass
-from typing import Generator, Iterable, Optional, Union
+from typing import Generator, Iterable, Optional, Tuple, Union
 
 from numpy.typing import ArrayLike
 
@@ -17,8 +17,8 @@ from ..new_big_phi import (
     DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
     NullSystemIrreducibilityAnalysis,
     ShortCircuitConditions,
-    SystemState,
-    find_system_state,
+    SystemStateSpecification,
+    system_intrinsic_information,
 )
 from ..registry import Registry
 
@@ -47,7 +47,7 @@ partition_schemes = PartitionSchemeRegistry()
 
 
 def system_partitions(
-    node_indices: tuple[int], node_labels: NodeLabels
+    node_indices: Tuple[int], node_labels: NodeLabels
 ) -> Generator[SystemPartition, None, None]:
     """Generate system partitions."""
     return partition_schemes[config.IIT_4_SYSTEM_PARTITION_TYPE](
@@ -62,8 +62,8 @@ class SystemPartition:
         raise NotImplementedError
 
     def evaluate(
-        self, subsystem: Subsystem, system_state: SystemState, **kwargs
-    ) -> tuple[float, ArrayLike, ArrayLike]:
+        self, subsystem: Subsystem, system_state: SystemStateSpecification, **kwargs
+    ) -> Tuple[float, ArrayLike, ArrayLike]:
         raise NotImplementedError
 
 
@@ -72,17 +72,17 @@ class HorizontalSystemPartition(SystemPartition):
     """A 'horizontal' system partition."""
 
     direction: Direction
-    purview: tuple[int]
-    unpartitioned_mechanism: tuple[int]
-    partitioned_mechanism: tuple[int]
+    purview: Tuple[int]
+    unpartitioned_mechanism: Tuple[int]
+    partitioned_mechanism: Tuple[int]
     node_labels: Optional[NodeLabels] = None
 
     def normalization_factor(self):
         return 1 / len(self.purview)
 
     def evaluate(
-        self, subsystem: Subsystem, system_state: SystemState, **kwargs
-    ) -> tuple[float, ArrayLike, ArrayLike]:
+        self, subsystem: Subsystem, system_state: SystemStateSpecification, **kwargs
+    ) -> Tuple[float, ArrayLike, ArrayLike]:
         valid_distances = ["IIT_4.0_SMALL_PHI", "IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE"]
         if config.REPERTOIRE_DISTANCE not in valid_distances:
             raise ValueError(
@@ -243,11 +243,11 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
     phi: float
     normalized_phi: float
     partition: Union[Cut, SystemPartition]
-    maximal_purview: tuple[int]
+    maximal_purview: Tuple[int]
     repertoire: ArrayLike
     partitioned_repertoire: ArrayLike
-    system_state: Optional[tuple[int]] = None
-    node_indices: Optional[tuple[int]] = None
+    system_state: Optional[Tuple[int]] = None
+    node_indices: Optional[Tuple[int]] = None
     node_labels: Optional[NodeLabels] = None
     reasons: Optional[list] = None
 
@@ -357,7 +357,7 @@ def evaluate_purview(purview, partition, subsystem, system_state, **kwargs):
 def evaluate_partition(
     partition: HorizontalSystemPartition,
     subsystem: Subsystem,
-    system_state: SystemState,
+    system_state: SystemStateSpecification,
     repertoire_distance: str = None,
     **kwargs,
 ) -> SystemIrreducibilityAnalysis:
@@ -400,7 +400,7 @@ def sia(
 
     # TODO: trivial reducibility
 
-    system_state = find_system_state(subsystem)
+    system_state = system_intrinsic_information(subsystem)
 
     # Find MIP
     partitions = sia_partitions_horizontal(

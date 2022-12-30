@@ -5,7 +5,8 @@
 """Subsystem-level objects."""
 
 from collections import defaultdict
-from collections.abc import Sequence, Iterable
+from collections.abc import Iterable, Sequence
+from dataclasses import dataclass
 
 from toolz import concat
 
@@ -13,9 +14,39 @@ from pyphi.direction import Direction
 
 from .. import utils
 from . import cmp, fmt
-from .mechanism import Concept
+from .mechanism import Concept, StateSpecification
 
 _sia_attributes = ["phi", "ces", "partitioned_ces", "subsystem", "cut_subsystem"]
+
+
+@dataclass
+class SystemStateSpecification:
+    cause: StateSpecification
+    effect: StateSpecification
+
+    def __getitem__(self, direction: Direction) -> StateSpecification:
+        if direction == Direction.CAUSE:
+            return self.cause
+        elif direction == Direction.EFFECT:
+            return self.effect
+        raise KeyError("Invalid direction")
+
+    def _repr_columns(self, prefix=""):
+        return self.cause._repr_columns(prefix) + self.effect._repr_columns(prefix)
+
+    def __repr__(self):
+        body = "\n".join(fmt.align_columns(self._repr_columns()))
+        body = fmt.header("Specified System State", body, under_char=fmt.HEADER_BAR_3)
+        return fmt.box(fmt.center(body))
+
+    def __hash__(self):
+        return hash((self.cause, self.effect))
+
+    def to_json(self):
+        return {
+            "cause": self.cause,
+            "effect": self.effect,
+        }
 
 
 def _concept_sort_key(concept):
@@ -35,15 +66,12 @@ def purview_inclusion(distinctions, min_order, max_order):
             min_size=min_order,
             max_size=max_order,
         ):
-            # NOTE: This considers "includes" to mean "congruent
-            # with any of the tied states"
-            substates = utils.specified_substate(
-                distinction.purview, distinction.specified_state, subset
+            substate = utils.substate(
+                distinction.specified_state.purview,
+                distinction.specified_state.state,
+                subset,
             )
-            for substate in map(tuple, substates):
-                purview_inclusion_by_order[len(subset)][(subset, substate)].add(
-                    distinction
-                )
+            purview_inclusion_by_order[len(subset)][(subset, substate)].add(distinction)
     return purview_inclusion_by_order
 
 

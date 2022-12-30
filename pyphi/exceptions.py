@@ -4,6 +4,8 @@
 
 """PyPhi exceptions."""
 
+import warnings
+
 
 class StateUnreachableError(ValueError):
     """The current state cannot be reached from any previous state."""
@@ -24,3 +26,12 @@ class JSONVersionError(ValueError):
 
 class WrongDirectionError(ValueError):
     """The wrong direction was provided."""
+
+
+def warn_about_tie_serialization(obj):
+    warnings.warn(
+        f"Serializing ties in {obj.__class__} is not currently supported; "
+        "tie information will be lost.",
+        UserWarning,
+        stacklevel=3,
+    )

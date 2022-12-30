@@ -31,13 +31,13 @@ def test_validate_direction():
 
 def test_validate_tpm_wrong_shape():
     with pytest.raises(ValueError):
-        tpm = ExplicitTPM(np.arange(3 ** 3).reshape(3, 3, 3), validate=False)
+        tpm = ExplicitTPM(np.arange(3 ** 3).reshape(3, 3, 3))
         assert tpm.validate()
 
 
 def test_validate_tpm_nonbinary_nodes():
     with pytest.raises(ValueError):
-        tpm = ExplicitTPM(np.arange(3 * 3 * 2).reshape(3, 3, 2), validate=False)
+        tpm = ExplicitTPM(np.arange(3 * 3 * 2).reshape(3, 3, 2))
         assert tpm.validate()
 
 
@@ -49,8 +49,7 @@ def test_validate_tpm_conditional_independence():
             [0, 0.5, 0.5, 0],
             [0, 0.5, 0.5, 0],
             [0, 0.0, 0.0, 1],
-        ]),
-        validate=False
+        ])
     )
     # fmt: on
     with pytest.raises(exceptions.ConditionallyDependentError):

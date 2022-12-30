@@ -9,9 +9,10 @@ Functions for generating partitions.
 import functools
 import itertools
 from itertools import chain, product
-from more_itertools import distinct_permutations
 
 import numpy as np
+from . import combinatorics
+from more_itertools import distinct_permutations
 
 from . import config
 from .cache import cache
@@ -21,6 +22,7 @@ from .models.cuts import (
     Bipartition,
     CompleteGeneralKCut,
     CompleteGeneralSetPartition,
+    CompleteRelationPartition,
     Cut,
     GeneralKCut,
     GeneralSetPartition,
@@ -28,48 +30,12 @@ from .models.cuts import (
     Part,
     RelationPart,
     RelationPartition,
-    CompleteRelationPartition,
     SystemPartition,
     Tripartition,
 )
 from .registry import Registry
 
-
-# TODO move purely combinatorial functions to `combinatorics`
-# From stackoverflow.com/questions/19368375/set-partitions-in-python
-def _partitions(collection):
-    """Generate all set partitions of a collection.
-
-    Example:
-        >>> list(partitions(range(3)))  # doctest: +NORMALIZE_WHITESPACE
-        [[[0, 1, 2]],
-         [[0], [1, 2]],
-         [[0, 1], [2]],
-         [[1], [0, 2]],
-         [[0], [1], [2]]]
-    """
-    collection = list(collection)
-
-    # Special cases
-    if not collection:
-        return
-
-    if len(collection) == 1:
-        yield [collection]
-        return
-
-    first = collection[0]
-    for smaller in partitions(collection[1:]):
-        for n, subset in enumerate(smaller):
-            yield smaller[:n] + [[first] + subset] + smaller[n + 1 :]
-        yield [[first]] + smaller
-
-
-@functools.wraps(_partitions)
-def partitions(collection, nontrivial=False):
-    if nontrivial:
-        return itertools.islice(_partitions(collection), 1, None)
-    return _partitions(collection)
+# TODO(4.0) move purely combinatorial functions to `combinatorics`
 
 
 @cache(cache={}, maxmem=None)
@@ -575,7 +541,7 @@ def all_partitions(mechanism, purview, node_labels=None):
         KPartition: A partition of this mechanism and purview into ``k`` parts.
     """
     # TODO(4.0): yield complete partition directly, then use nontrivial set partitions
-    for mechanism_partition in partitions(mechanism):
+    for mechanism_partition in combinatorics.set_partitions(mechanism):
         mechanism_partition.append([])
         n_mechanism_parts = len(mechanism_partition)
         max_purview_partition = min(len(purview), n_mechanism_parts)
@@ -816,7 +782,7 @@ def system_temporal_directed_bipartitions_cut_one(nodes):
 
 
 def _cut_matrices(n, symmetric=False):
-    repeat = n ** 2 - n
+    repeat = n**2 - n
     if symmetric:
         repeat = repeat // 2
     mid = repeat // 2
@@ -841,7 +807,7 @@ def general(node_indices, node_labels=None):
 
 
 def num_general_partitions(n):
-    return 2 ** (n ** 2 - n)
+    return 2 ** (n**2 - n)
 
 
 @system_partition_types.register("GENERAL_BIDIRECTIONAL")
@@ -856,7 +822,7 @@ def _unidirectional_set_partitions(node_indices, node_labels=None):
     if len(node_indices) == 1 or config.SYSTEM_PARTITION_INCLUDE_COMPLETE:
         yield CompleteGeneralSetPartition(node_indices, node_labels=node_labels)
     _node_indices = set(range(len(node_indices)))
-    for partition in partitions(_node_indices, nontrivial=True):
+    for partition in combinatorics.set_partitions(_node_indices, nontrivial=True):
         for directions in product(Direction.all(), repeat=len(partition)):
             cut_matrix = np.zeros([len(_node_indices), len(_node_indices)], dtype=int)
             for part, direction in zip(partition, directions):

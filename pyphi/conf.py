@@ -78,6 +78,7 @@ long time!), resulting in data loss.
 - :attr:`~pyphi.conf.PyphiConfig.PARALLEL_CONCEPT_EVALUATION`
 - :attr:`~pyphi.conf.PyphiConfig.PARALLEL_CUT_EVALUATION`
 - :attr:`~pyphi.conf.PyphiConfig.PARALLEL_COMPLEX_EVALUATION`
+- :attr:`~pyphi.conf.PyphiConfig.PARALLEL_PURVIEW_EVALUATION`
 - :attr:`~pyphi.conf.PyphiConfig.NUMBER_OF_CORES`
 - :attr:`~pyphi.conf.PyphiConfig.MAXIMUM_CACHE_MEMORY_PERCENTAGE`
 
@@ -139,6 +140,7 @@ import contextlib
 import functools
 import logging
 import logging.config
+import math
 import os
 import pprint
 import shutil
@@ -146,6 +148,7 @@ import tempfile
 import warnings
 from copy import copy
 from pathlib import Path
+from warnings import warn
 
 import ray
 import yaml
@@ -168,6 +171,18 @@ class ConfigurationError(ValueError):
 
 class ConfigurationWarning(UserWarning):
     pass
+
+
+# TODO(4.0) deprecate options
+def deprecated(option):
+    # Don't warn until config is loaded
+    # TODO onchange is not triggered?
+    if _LOADED:
+        warn(
+            f"The {option} configuration option is deprecated and will be removed in a future version.",
+            FutureWarning,
+            stacklevel=2,
+        )
 
 
 class Option:
@@ -303,6 +318,9 @@ class Config:
             super().__setattr__(name, value)
         else:
             raise ConfigurationError("{} is not a valid config option".format(name))
+
+    def __getitem__(self, name):
+        return self._values[name]
 
     def __eq__(self, other):
         return self._values == other._values
@@ -454,7 +472,7 @@ class PyphiConfig(Config):
     """``pyphi.config`` is an instance of this class."""
 
     IIT_VERSION = Option(
-        "maximal-state-first",
+        4.0,
         doc="""
     The version of the theory to use.""",
     )
@@ -547,6 +565,7 @@ class PyphiConfig(Config):
     PARALLEL_COMPOSITIONAL_STATE_EVALUATION = Option(
         True,
         type=bool,
+        on_change=deprecated,
         doc="""
     Controls whether compositional states are evaluated in parallel.""",
     )
@@ -566,6 +585,22 @@ class PyphiConfig(Config):
         doc="""
     Controls whether systems are evaluated in parallel when computing
     complexes.""",
+    )
+
+    PARALLEL_PURVIEW_EVALUATION = Option(
+        4.0,
+        type=float,
+        doc="""
+    Controls parallel evaluation of candidate purviews. If mechanism size is
+    greater or equal than this floating point value, parallelization will occur. A
+    value of ``math.inf`` will enforce sequential processing.""",
+    )
+
+    PARALLEL_MECHANISM_PARTITION_EVALUATION = Option(
+        True,
+        type=bool,
+        doc="""
+    Controls parallel evaluation of mechanism partitions.""",
     )
 
     NUMBER_OF_CORES = Option(
@@ -910,6 +945,18 @@ class PyphiConfig(Config):
     """,
     )
 
+    NEW_RELATION_SCHEME = Option(
+        "UNION_WEIGHTED",
+        values=[
+            "UNION_WEIGHTED",
+            "SUM_FACEWISE_OVERLAP",
+            "FACE_WEIGHTED_UNION",
+        ],
+        doc="""
+        Controls the method for computing new-style relation phi.
+        """,
+    )
+
     OVERLAP_RATIO = Option(
         "PURVIEW_SIZE",
         values=["PURVIEW_SIZE", "MINIMUM_PURVIEW_SIZE"],
@@ -1011,16 +1058,31 @@ class PyphiConfig(Config):
     """,
     )
 
-    MICE_TIE_RESOLUTION = Option(
-        "MAX_INFORMATIVENESS_THEN_LARGEST_PURVIEW",
-        values=[
-            "MAX_INFORMATIVENESS_THEN_SMALLEST_PURVIEW",
-            "MAX_INFORMATIVENESS_THEN_LARGEST_PURVIEW",
-            "SMALLEST_PURVIEW",
-            "LARGEST_PURVIEW",
-        ],
+    STATE_TIE_RESOLUTION = Option(
+        "PHI",
+        doc="""
+    Controls how ties among states are resolved.
+
+    NOTE: Operation is `max`.
+    """,
+    )
+
+    MIP_TIE_RESOLUTION = Option(
+        ["NORMALIZED_PHI", "NEGATIVE_PHI"],
+        doc="""
+    Controls how ties among mechanism partitions are resolved.
+
+    NOTE: Operation is `min`; with the default values, the minimum normalized
+    phi is taken, then in case of ties, the maximal un-normalized phi is taken.
+    """,
+    )
+
+    PURVIEW_TIE_RESOLUTION = Option(
+        "PHI",
         doc="""
     Controls how ties among purviews are resolved.
+
+    NOTE: Operation is `max`.
     """,
     )
 

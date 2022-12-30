@@ -2,44 +2,25 @@
 
 """Functions for resolving ties."""
 
-import warnings
+from itertools import tee
 
 from . import config, metrics
-from .conf import ConfigurationWarning, fallback
+from .conf import fallback
 from .registry import Registry
-from .utils import all_maxima
+from .utils import all_maxima, all_minima, NO_DEFAULT, iter_with_default
 
 
-class MICETieResolutionRegistry(Registry):
-    """Storage for functions for resolving ties among purviews (MICE).
+class PhiObjectTieResolutionRegistry(Registry):
+    """Storage for functions for resolving ties among phi-objects."""
 
-    Users can define custom schemes:
-
-    Examples:
-        >>> @mice_resolution_registry.register('NONE')  # doctest: +SKIP
-        ... def all_ties(mips):
-        ...    return mips
-
-    And use them by setting ``config.MICE_TIE_RESOLUTION = 'NONE'``
-    """
-
-    desc = "functions for resolving ties among purviews"
+    desc = "functions for resolving ties among phi-objects"
 
 
-mice_resolution = MICETieResolutionRegistry()
+phi_object_tie_resolution_strategies = PhiObjectTieResolutionRegistry()
 
 
+@phi_object_tie_resolution_strategies.register("MAX_INFORMATIVENESS")
 def max_informativeness(m):
-    if not config.REPERTOIRE_DISTANCE.startswith("IIT_4.0_SMALL_PHI"):
-        msg = f"""
-        'MICE_TIE_RESOLUTION = "{config.MICE_TIE_RESOLUTION}"'
-        assumes REPERTOIRE_DISTANCE is one of the "IIT_4.0_SMALL_PHI" measures,
-        since informativeness is defined as the pointwise mutual information, but
-        got REPERTOIRE_DISTANCE = {config.REPERTOIRE_DISTANCE}
-        """
-        # TODO(4.0) tie resolution docs
-        warnings.warn(msg, category=ConfigurationWarning)
-
     if m.partitioned_repertoire is not None:
         return max(
             metrics.distribution.pointwise_mutual_information_vector(
@@ -49,53 +30,125 @@ def max_informativeness(m):
     return 0.0
 
 
-@mice_resolution.register("MAX_INFORMATIVENESS_THEN_SMALLEST_PURVIEW")
+@phi_object_tie_resolution_strategies.register("PURVIEW_SIZE")
 def _(m):
-    return (
-        m.phi,
-        max_informativeness(m),
-        -len(m.purview),
-    )
+    return len(m.purview)
 
 
-@mice_resolution.register("MAX_INFORMATIVENESS_THEN_LARGEST_PURVIEW")
+@phi_object_tie_resolution_strategies.register("NEGATIVE_PURVIEW_SIZE")
 def _(m):
-    return (
-        m.phi,
-        max_informativeness(m),
-        len(m.purview),
-    )
+    return -len(m.purview)
 
 
-@mice_resolution.register("LARGEST_PURVIEW")
-def _(m):
-    return (m.phi, len(m.purview))
-
-
-@mice_resolution.register("SMALLEST_PURVIEW")
-def _(m):
-    return (m.phi, -len(m.purview))
-
-
-@mice_resolution.register("PHI")
+@phi_object_tie_resolution_strategies.register("PHI")
 def _(m):
     return m.phi
 
 
-def resolve(mice, sort_key):
-    """Return MICE that are tied after sorting by the given key."""
-    if not mice:
-        return mice
-    keys = map(sort_key, mice)
-    maxima = all_maxima(zip(keys, mice))
-    for _, m in maxima:
-        yield m
+@phi_object_tie_resolution_strategies.register("NEGATIVE_PHI")
+def _(m):
+    return -m.phi
 
 
-def mice(tied_mice, strategy=None):
-    """Resolve ties among MICE.
+@phi_object_tie_resolution_strategies.register("NORMALIZED_PHI")
+def _(m):
+    return m.normalized_phi
 
-    Controlled by the MICE_TIE_RESOLUTION configuration option.
+
+@phi_object_tie_resolution_strategies.register("NEGATIVE_NORMALIZED_PHI")
+def _(m):
+    return -m.normalized_phi
+
+
+@phi_object_tie_resolution_strategies.register("NONE")
+def _(m):
+    raise NotImplementedError(
+        'tie resolution strategy "NONE" should never be called; '
+        "it must be special-cased in the resolve() function"
+    )
+
+
+def _strategies_to_key_function(strategies):
+    """Convert a tie resolution strategy to a key function."""
+    if isinstance(strategies, str):
+        # Allow a single strategy to be specified as a bare string
+        strategies = [strategies]
+    return lambda obj: tuple(
+        phi_object_tie_resolution_strategies[s](obj) for s in strategies
+    )
+
+
+# TODO(4.0) docstring
+# TODO(4.0) fix this implementation so we only need one pass; currently,
+# all_maxima only works if equality semantics are correct for this purpose, and
+# RIA equality checks purview equality, so they are not.
+# def resolve(objects, strategy, operation=all_maxima, default=NO_DEFAULT):
+#     """Filter phi-objects according to a strategy."""
+#     if strategy == "NONE":
+#         yield from iter_with_default(objects, default=default)
+#         return
+#     sort_key = _strategies_to_key_function(strategy)
+#     key_args, objects = tee(objects)
+#     keys = map(sort_key, key_args)
+#     if default is not NO_DEFAULT:
+#         default = (sort_key(default), default)
+#     ties = operation(zip(keys, objects), default=default)
+#     for _, obj in ties:
+#         yield obj
+
+
+def resolve(objects, strategy, operation, default=NO_DEFAULT):
+    """Filter phi-objects according to a strategy."""
+    if strategy == "NONE":
+        yield from iter_with_default(objects, default=default)
+        return
+    sort_key = _strategies_to_key_function(strategy)
+    objects, to_transform = tee(objects)
+    values = list(map(sort_key, to_transform))
+    extremum = operation(values)
+    ties = (obj for obj, value in zip(objects, values) if value == extremum)
+    yield from iter_with_default(ties, default=default)
+
+
+def states(rias, strategy=None, **kwargs):
+    """Resolve ties among states (RIAs).
+
+    Controlled by the STATE_TIE_RESOLUTION configuration option.
     """
-    strategy = fallback(strategy, config.MICE_TIE_RESOLUTION)
-    yield from resolve(tied_mice, sort_key=mice_resolution[strategy])
+    strategy = fallback(strategy, config.STATE_TIE_RESOLUTION)
+    return resolve(rias, strategy, operation=max, **kwargs)
+
+
+def partitions(mips, strategy=None, **kwargs):
+    """Resolve ties among mechanism partitions (MIPs).
+
+    Controlled by the MIP_TIE_RESOLUTION configuration option.
+    """
+    strategy = fallback(strategy, config.MIP_TIE_RESOLUTION)
+    return resolve(mips, strategy, operation=min, **kwargs)
+
+
+def purviews(mice, strategy=None, **kwargs):
+    """Resolve ties among purviews (MICEs).
+
+    Controlled by the PURVIEW_TIE_RESOLUTION configuration option.
+    """
+    strategy = fallback(strategy, config.PURVIEW_TIE_RESOLUTION)
+    yield from resolve(mice, strategy, operation=max, **kwargs)
+
+
+class CESTieResolutionRegistry(Registry):
+    """Storage for functions for resolving ties in cause-effect structures."""
+
+    desc = "functions for resolving ties among purviews"
+
+
+# TODO(ties)
+def ces(ces, system_state, strategy=None):
+    """Resolve ties among CESs.
+
+    Controlled by the CES_TIE_RESOLUTION configuration option.
+    """
+    strategy = fallback(strategy, config.CES_TIE_RESOLUTION)
+    # - resolve based on congruence
+    yield from all_maxima

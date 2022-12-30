@@ -4,6 +4,7 @@
 
 """Combinatorial functions."""
 
+import itertools
 from collections import defaultdict
 from itertools import chain, product
 
@@ -279,3 +280,48 @@ def sum_of_min_times_avg_among_subsets(values):
         )
         _sum += min_val * sum_avg_val
     return _sum
+
+
+def only_nonsubsets(sets):
+    """Find sets that are not proper subsets of any other set."""
+    sets = sorted(map(set, sets), key=len, reverse=True)
+    keep = []
+    for a in sets:
+        if all(not a.issubset(b) for b in keep):
+            keep.append(a)
+    return keep
+
+
+# From stackoverflow.com/questions/19368375/set-partitions-in-python
+def _set_partitions(collection):
+    collection = list(collection)
+
+    # Special cases
+    if not collection:
+        return
+
+    if len(collection) == 1:
+        yield [collection]
+        return
+
+    first = collection[0]
+    for smaller in set_partitions(collection[1:]):
+        for n, subset in enumerate(smaller):
+            yield smaller[:n] + [[first] + subset] + smaller[n + 1 :]
+        yield [[first]] + smaller
+
+
+def set_partitions(collection, nontrivial=False):
+    """Generate all set partitions of a collection.
+
+    Example:
+        >>> list(set_partitions(range(3)))  # doctest: +NORMALIZE_WHITESPACE
+        [[[0, 1, 2]],
+         [[0], [1, 2]],
+         [[0, 1], [2]],
+         [[1], [0, 2]],
+         [[0], [1], [2]]]
+    """
+    if nontrivial:
+        return itertools.islice(_set_partitions(collection), 1, None)
+    return _set_partitions(collection)

@@ -65,7 +65,7 @@ class Network:
             self._tpm = ExplicitTPM(tpm, validate=True)
         elif isinstance(tpm, dict):
             # From JSON.
-            self._tpm = ExplicitTPM(tpm['_tpm'])
+            self._tpm = ExplicitTPM(tpm["_tpm"], validate=True)
         else:
             raise TypeError(f"Invalid tpm of type {type(tpm)}.")
 
@@ -126,7 +126,7 @@ class Network:
     @property
     def num_states(self):
         """int: The number of possible states of the network."""
-        return 2**self.size
+        return 2 ** self.size
 
     @property
     def node_indices(self):

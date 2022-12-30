@@ -5,6 +5,7 @@
 """Functions for computing relations between concepts."""
 
 import warnings
+from collections import UserDict, defaultdict
 from enum import Enum, auto, unique
 from itertools import product
 from time import time
@@ -28,7 +29,14 @@ from .partition import (
     relation_partition_types,
 )
 from .registry import Registry
-from .utils import all_are_equal, all_are_identical, all_maxima, all_minima, powerset
+from .utils import (
+    PyPhiFloat,
+    all_are_equal,
+    all_are_identical,
+    all_maxima,
+    all_minima,
+    powerset,
+)
 
 
 @unique
@@ -235,17 +243,6 @@ def minimal_overlap_ratio_times_distinction_phi(relata, candidate_joint_purview)
 # - fix __str__ of RelationPartition
 
 
-# TODO(4.0) move to combinatorics
-def only_nonsubsets(sets):
-    """Find sets that are not proper subsets of any other set."""
-    sets = sorted(map(set, sets), key=len, reverse=True)
-    keep = []
-    for a in sets:
-        if all(not a.issubset(b) for b in keep):
-            keep.append(a)
-    return keep
-
-
 def overlap_states(specified_states, purviews, overlap):
     """Return the specified states of only the elements in the overlap."""
     overlap = np.array(list(overlap), dtype=int)
@@ -258,14 +255,13 @@ def overlap_states(specified_states, purviews, overlap):
     idx = overlap - minimum
 
     states = []
-    for state, purview in zip(specified_states, purviews):
+    for specified, purview in zip(specified_states, purviews):
         # Construct the specified state in a common reference frame
-        global_state = np.empty([state.shape[0], n])
+        global_state = np.empty([len(specified.state), n])
         relative_idx = [p - minimum for p in purview]
-        global_state[:, relative_idx] = state
+        global_state[:, relative_idx] = specified.state
         # Retrieve only the overlap
         states.append(global_state[:, idx])
-
     return states
 
 
@@ -289,7 +285,7 @@ def congruent_overlap(specified_states, overlap):
         tuple(elements.nonzero()[0]) for elements in congruence[congruent_indices]
     )
     # Remove any congruent overlaps that are subsets of another congruent overlap
-    congruent_subsets = only_nonsubsets(map(set, congruent_subsets))
+    congruent_subsets = combinatorics.only_nonsubsets(map(set, congruent_subsets))
     # Convert overlap indices to purview element indices
     overlap = np.array(list(overlap))
     return [overlap[list(subset)] for subset in congruent_subsets]
@@ -1150,8 +1146,106 @@ def sampled_relations(subsystem, distinctions, **kwargs):
 
 def relations(subsystem, distinctions, computation=None, **kwargs):
     """Return the irreducible relations among the causes/effects in the CES."""
-    if computation is None:
-        computation = config.RELATION_COMPUTATION
+    computation = fallback(computation, config.RELATION_COMPUTATION)
     return relation_computations[computation](
         subsystem, distinctions.flatten(), **kwargs
     )
+
+
+class NewConcreteRelations(UserDict, Relations):
+    def __init__(self, old_concrete_relations):
+        self.data = group_faces(old_concrete_relations)
+        self.phis = {
+            distinctions: phi_r(distinctions, faces)
+            for distinctions, faces in self.items()
+        }
+
+    def _sum_phi(self):
+        return sum(self.phis.values())
+
+    def __repr__(self):
+        return fmt._fmt_relations(self)
+
+
+def group_faces(old_relations):
+    new_relations = defaultdict(list)
+    for face in old_relations:
+        new_relations[distinctions_of(face)].append(face)
+    return new_relations
+
+
+def distinctions_of(face):
+    return frozenset(mice.parent for mice in face.relata)
+
+
+def phi_r(relata, faces):
+    if config.NEW_RELATION_SCHEME == "SUM_FACEWISE_OVERLAP":
+        phi_r = _phi_r_sum_facewise_overlap(relata, faces)
+    elif config.NEW_RELATION_SCHEME == "FACE_WEIGHTED_UNION":
+        phi_r = _phi_r_face_weighted_union(relata, faces)
+    elif config.NEW_RELATION_SCHEME == "UNION_WEIGHTED":
+        phi_r = _phi_r_union(relata, faces)
+    else:
+        raise ValueError('unrecognized config value for "NEW_RELATION_TYPE"')
+    phi_r = PyPhiFloat(phi_r)
+    assert all(phi_r <= distinction.phi for distinction in relata)
+    return phi_r
+
+
+def _phi_r_union(relata, faces):
+    union_of_facewise_overlaps = set.union(*(set(face.purview) for face in faces))
+    phi_over_purview_union_size_per_distinction = np.array(
+        [distinction.phi for distinction in relata]
+    ) / np.array([purview_union_size(distinction) for distinction in relata])
+    return len(union_of_facewise_overlaps) * min(
+        phi_over_purview_union_size_per_distinction
+    )
+
+
+def _phi_r_sum_facewise_overlap(relata, faces):
+    if len(relata) > 1:
+        num_possible_faces = 3 ** len(relata)
+    else:
+        num_possible_faces = 1
+
+    sum_overlap_sizes = sum((overlap_size(face) for face in faces))
+
+    phi_over_purview_union_size_per_distinction = np.array(
+        [distinction.phi for distinction in relata]
+    ) / np.array([purview_union_size(distinction) for distinction in relata])
+
+    return (
+        # Sum of overlap sizes can be taken out of the sum and the minimum in the formula
+        sum_overlap_sizes
+        / num_possible_faces
+        * min(phi_over_purview_union_size_per_distinction)
+    )
+
+
+def _phi_r_face_weighted_union(relata, faces):
+    if len(relata) > 1:
+        num_possible_faces = 3 ** len(relata)
+    else:
+        num_possible_faces = 1
+
+    union_of_facewise_overlaps = set.union(*(set(face.purview) for face in faces))
+
+    phi_over_purview_union_size_per_distinction = np.array(
+        [distinction.phi for distinction in relata]
+    ) / np.array([purview_union_size(distinction) for distinction in relata])
+
+    return (
+        len(faces)
+        / num_possible_faces
+        * len(union_of_facewise_overlaps)
+        # Sum of overlap sizes can be taken out of the sum and the minimum in the formula
+        * min(phi_over_purview_union_size_per_distinction)
+    )
+
+
+def overlap_size(relation_face):
+    return len(relation_face.relata.congruent_overlap[0])
+
+
+def purview_union_size(distinction):
+    return len(set(distinction.cause.purview) | set(distinction.effect.purview))

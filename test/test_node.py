@@ -8,6 +8,7 @@ from pyphi.node import Node, expand_node_tpm, generate_nodes
 from pyphi.subsystem import Subsystem
 from pyphi.tpm import ExplicitTPM
 
+
 def test_node_init_tpm(s):
     # fmt: off
     answer = [
@@ -28,7 +29,7 @@ def test_node_init_tpm(s):
                [[1, 0]]],
         ]),
     ]
-    answer = [ExplicitTPM(tpm, validate=False) for tpm in answer]
+    answer = [ExplicitTPM(tpm) for tpm in answer]
     # fmt: on
     for node in s.nodes:
         assert node.tpm.array_equal(answer[node.index])
@@ -66,8 +67,7 @@ def test_expand_tpm():
     tpm = ExplicitTPM(
         np.array([
             [[0, 1]],
-        ]),
-        validate=False
+        ])
     )
     answer = ExplicitTPM(
         np.array([
@@ -75,8 +75,7 @@ def test_expand_tpm():
              [0, 1]],
             [[0, 1],
              [0, 1]],
-        ]),
-        validate=False
+        ])
     )
     # fmt: on
     assert expand_node_tpm(tpm).array_equal(answer)
@@ -92,8 +91,7 @@ def test_generate_nodes(s):
               [0, 1]],
              [[0, 1],
               [0, 1]]],
-        ]),
-        validate=False
+        ])
     )
     # fmt: on
     assert nodes[0].tpm.array_equal(node0_tpm)
@@ -106,8 +104,7 @@ def test_generate_nodes(s):
         np.array([
             [[[1, 0],
               [0, 1]]],
-        ]),
-        validate=False
+        ])
     )
     # fmt: on
     assert nodes[1].tpm.array_equal(node1_tpm)
@@ -122,8 +119,7 @@ def test_generate_nodes(s):
              [[0, 1]]],
             [[[0, 1]],
              [[1, 0]]]
-        ]),
-        validate=False
+        ])
     )
     # fmt: on
     assert nodes[2].tpm.array_equal(node2_tpm)

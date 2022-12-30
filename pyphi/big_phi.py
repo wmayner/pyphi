@@ -32,7 +32,7 @@ from .registry import Registry
 from .relations import ConcreteRelations, Relations
 from .relations import relations as compute_relations
 from .subsystem import Subsystem
-from .utils import expsublog, is_falsy
+from .utils import expsublog
 
 # TODO
 # - cache relations, compute as needed for each nonconflicting CES
@@ -940,7 +940,7 @@ def sia(
             desc="Generating nonconflicting phi-structures",
         )
 
-    if config.IIT_VERSION == "maximal-state-first":
+    if config.IIT_VERSION == 4.0:
 
         maximal_compositional_state = find_maximal_compositional_state(
             phi_structures,

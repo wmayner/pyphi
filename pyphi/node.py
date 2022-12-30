@@ -85,7 +85,6 @@ class Node:
         # to condition on the node state.
         self.tpm = ExplicitTPM(
             np.stack([tpm_off, tpm_on], axis=-1),
-            validate=False,
         )
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -194,8 +193,5 @@ def expand_node_tpm(tpm):
     dimension (containing the state of the node) contains only the probability
     of *this* node being on, rather than the probabilities for each node.
     """
-    uc = ExplicitTPM(
-        np.ones([2 for node in tpm.shape]),
-        validate=False
-    )
+    uc = ExplicitTPM(np.ones([2 for node in tpm.shape]))
     return uc * tpm
