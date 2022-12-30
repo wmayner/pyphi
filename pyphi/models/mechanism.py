@@ -275,15 +275,6 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         for tie in self.partition_ties:
             tie._state_ties = ties
 
-    # TODO(ties)
-    # def state_ties(self, congruent_with=None, node_indices=None):
-    #     for tie in self.ties:
-    #         if tie.purview == self.purview:
-    #             if (congruent_with is None) or tie.is_congruent(
-    #                 node_indices, congruent_with
-    #             ):
-    #                 yield tie
-
     @property
     def partition_ties(self):
         return self._partition_ties
@@ -513,77 +504,6 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
     @property
     def num_purview_ties(self):
         return len(self._purview_ties) - 1
-
-    # @property
-    # def purview_ties(self):
-    #     """list: MICE objects for any other purviews that are maximal.
-
-    #     NOTE: Partition ties are resolved arbitrarily.
-    #     """
-    #     seen = set()
-    #     for tie in self._all_ties:
-    #         if tie.purview not in seen:
-    #             yield tie
-    #             seen.add(tie.purview)
-
-    # @property
-    # def partition_ties(self):
-    #     """list: MICE objects for any other purviews that are maximal.
-
-    #     NOTE: Partition ties are resolved arbitrarily.
-    #     """
-    #     seen = set()
-    #     for tie in self._all_ties:
-    #         if tie.purview == self.purview and tie.mip not in seen:
-    #             yield tie
-    #             seen.add(tie.mip)
-
-    # def state_ties(self, congruent_with=None, node_indices=None):
-    #     cls = type(self)
-    #     for ria in self.ria.state_ties(
-    #         congruent_with=congruent_with, node_indices=node_indices
-    #     ):
-    #         yield cls(ria, ties=self._all_ties)
-
-    # def ties(
-    #     self,
-    #     purview=True,
-    #     state=True,
-    #     partition=True,
-    #     congruent_with=None,
-    #     node_indices=None,
-    # ):
-    #     """Return MICE for any other purviews, partitions, or states that are maximal."""
-    #     if purview and partition:
-    #         ties = []
-    #         # TODO(4.0) Currently the logic in subsystem.find_mice will add
-    #         # duplicate MICE to the ties, one for each state. This should be
-    #         # made more sensible when the logic stabilizes, but for now we just
-    #         # filter out the duplicates.
-    #         seen = set()
-    #         for tie in self._all_ties:
-    #             if tie not in seen:
-    #                 ties.append(tie)
-    #                 seen.add(tie)
-    #     elif purview:
-    #         ties = self.purview_ties
-    #     elif partition:
-    #         ties = self.partition_ties
-    #     else:
-    #         ties = [self]
-
-    #     if state:
-    #         for mice in ties:
-    #             yield from mice.state_ties(
-    #                 congruent_with=congruent_with, node_indices=node_indices
-    #             )
-    #     else:
-    #         yield from ties
-
-    # @property
-    # def is_tied(self):
-    #     """Whether this MICE is non-unique."""
-    #     return len(self._all_ties) > 1
 
     def flip(self):
         """Return the linked MICE in the other direction."""
