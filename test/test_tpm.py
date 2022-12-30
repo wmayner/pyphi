@@ -3,50 +3,59 @@
 # test/test_tpm.py
 
 import numpy as np
+import pickle
+import pytest
 
 from pyphi import Subsystem, ExplicitTPM
 from pyphi.tpm import reconstitute_tpm
 
+@pytest.mark.parametrize(
+    "tpm",
+    [ExplicitTPM(np.random.rand(42)), ExplicitTPM(np.arange(42))]
+)
+def test_serialization(tpm):
+    assert tpm.array_equal(pickle.loads(pickle.dumps(tpm)))
+
 def test_array_ufunc():
-    tpm = ExplicitTPM(np.array([[0,1],[0,1]]), validate=False)
+    tpm = ExplicitTPM(np.array([[3, 3], [3, 3]]))
     actual = tpm * tpm
-    expected = ExplicitTPM(np.array([[1.0],[1.0]]))
-    
+    expected = ExplicitTPM(np.array([[9, 9], [9, 9]]))
+
     assert actual.array_equal(expected)
-    
+
 def test_np_operations():
-    tpm = ExplicitTPM(np.array([[0,1],[0,1]]), validate=False)
+    tpm = ExplicitTPM(np.array([[3, 3], [3, 3]]))
     actual = np.multiply(tpm, tpm)
-    expected = ExplicitTPM(np.array([[1.0],[1.0]]))
-    
+    expected = ExplicitTPM(np.array([[9, 9], [9, 9]]))
+
     assert actual.array_equal(expected)
-    
+
 def test_getattr():
-    tpm = ExplicitTPM(np.array([[0,1]]), validate=False)
+    tpm = ExplicitTPM(np.array([[0, 1]]))
     actual = tpm.real
-    expected = np.array([[0,1]])
-    
+    expected = np.array([[0, 1]])
+
     assert actual.all() == expected.all()
 
 
 def test_is_state_by_state():
     # State-by-state
-    tpm = ExplicitTPM(np.ones((8, 8)), validate=False)
+    tpm = ExplicitTPM(np.ones((8, 8)))
     assert tpm.is_state_by_state()
 
     # State-by-node, multidimensional
-    tpm = ExplicitTPM(np.ones((2, 2, 2, 3)), validate=False)
+    tpm = ExplicitTPM(np.ones((2, 2, 2, 3)))
     assert not tpm.is_state_by_state()
 
     # State-by-node, 2-dimensional
-    tpm = ExplicitTPM(np.ones((8, 3)), validate=False)
+    tpm = ExplicitTPM(np.ones((8, 3)))
     assert not tpm.is_state_by_state()
 
 
 def test_expand_tpm():
     tpm = np.ones((2, 1, 2))
     tpm[(0, 0)] = (0, 1)
-    tpm = ExplicitTPM(tpm, validate=False)
+    tpm = ExplicitTPM(tpm)
     # fmt: off
     answer = ExplicitTPM(
         np.array([
@@ -54,8 +63,7 @@ def test_expand_tpm():
              [0, 1]],
             [[1, 1],
              [1, 1]],
-        ]),
-        validate=False
+        ])
     )
     # fmt: on
     assert tpm.expand_tpm().array_equal(answer)
@@ -70,8 +78,7 @@ def test_marginalize_out(s):
               [1.0, 1.0, 0.5]],
              [[1.0, 0.0, 0.5],
               [1.0, 1.0, 0.5]]],
-        ]),
-        validate=False
+        ])
     )
 
     # fmt: on
@@ -83,8 +90,7 @@ def test_marginalize_out(s):
         np.array([
             [[[0.5, 0.0, 0.5],
               [1.0, 1.0, 0.5]]],
-        ]),
-        validate=False
+        ])
     )
     # fmt: on
     assert marginalized_distribution.array_equal(answer)
