@@ -118,16 +118,19 @@ class ProxyMetaclass(type):
 
         type.__init__(cls, type_name, bases, dct)
 
-        if cls.__wraps__:
-            ignore = cls.__ignore__
-            # Go through all the attribute strings in the wrapped array type.
-            for name in dir(cls.__wraps__):
-                # Filter special attributes. The rest will be handled
-                # by `__getattr__()`.
-                if name.startswith("__") and name not in ignore and name not in dct:
-                    # Create proxy function for `name` and bind it to future
-                    # instances of cls.
-                    setattr(cls, name, property(make_proxy(name)))
+        if not cls.__wraps__:
+            return
+
+        ignore = cls.__ignore__
+
+        # Go through all the attribute strings in the wrapped array type.
+        for name in dir(cls.__wraps__):
+            # Filter special attributes, rest will be handled by `__getattr__()`
+            if any([not name.startswith("__"), name in ignore, name in dct]):
+                continue
+
+            # Create function for `name` and bind to future instances of `cls`.
+            setattr(cls, name, property(make_proxy(name)))
 
 
 class Wrapper(metaclass=ProxyMetaclass):
