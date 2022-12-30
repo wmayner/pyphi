@@ -600,7 +600,8 @@ def fmt_ria(ria, verbose=True, mip=False):
         "{partition}"
         "{repertoire}"
         "{partitioned_repertoire}"
-        "\n#(ties): {num_ties}"
+        "\n#(state ties): {num_state_ties}"
+        "\n#(partition ties): {num_partition_ties}"
     ).format(
         SMALL_PHI=SMALL_PHI,
         normalized_phi=fmt_number(ria.normalized_phi),
@@ -612,7 +613,8 @@ def fmt_ria(ria, verbose=True, mip=False):
         partition=partition,
         repertoire=repertoire,
         partitioned_repertoire=partitioned_repertoire,
-        num_ties=ria.num_ties,
+        num_state_ties=ria.num_state_ties,
+        num_partition_ties=ria.num_partition_ties,
     )
 
 

@@ -292,8 +292,12 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         return unique(concat([self._state_ties, self._partition_ties]))
 
     @property
-    def num_ties(self):
-        return len(self._state_ties) + len(self._partition_ties) - 2
+    def num_state_ties(self):
+        return len(self._state_ties) - 1
+
+    @property
+    def num_partition_ties(self):
+        return len(self._partition_ties) - 1
 
     @property
     def node_labels(self):
@@ -465,6 +469,10 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
     def set_purview_ties(self, ties):
         """Set the ties."""
         self._purview_ties = tuple(ties)
+
+    @property
+    def num_purview_ties(self):
+        return len(self._purview_ties) - 1
 
     # @property
     # def purview_ties(self):
