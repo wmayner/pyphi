@@ -557,9 +557,13 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
         return fmt.make_repr(self, ["ria"])
 
     def __str__(self):
-        return "Maximally-irreducible {}\n".format(
-            str(self.direction).lower()
-        ) + fmt.indent(fmt.fmt_ria(self.ria, mip=True))
+        return "\n".join(
+            [
+                "Maximally-irreducible {}".format(str(self.direction).lower()),
+                fmt.indent(fmt.fmt_ria(self.ria, mip=True)),
+                fmt.indent(f"#(purview ties): {self.num_purview_ties}"),
+            ]
+        )
 
     unorderable_unless_eq = RepertoireIrreducibilityAnalysis.unorderable_unless_eq
 
