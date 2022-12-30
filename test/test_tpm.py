@@ -4,15 +4,16 @@
 
 import numpy as np
 import pickle
+import pytest
 
 from pyphi import Subsystem, ExplicitTPM
 from pyphi.tpm import reconstitute_tpm
 
-def test_serialization():
-    tpm = ExplicitTPM(np.random.rand(42))
-    assert tpm.array_equal(pickle.loads(pickle.dumps(tpm)))
-
-    tpm = ExplicitTPM(np.arange(42))
+@pytest.mark.parametrize(
+    "tpm",
+    [ExplicitTPM(np.random.rand(42)), ExplicitTPM(np.arange(42))]
+)
+def test_serialization(tpm):
     assert tpm.array_equal(pickle.loads(pickle.dumps(tpm)))
 
 def test_array_ufunc():
