@@ -64,11 +64,9 @@ class ArrayLike(NDArrayOperatorsMixin):
         updated_args = []
                 
         for arg in args:
-            try:
-                # attempt to grab an underlying array-like object
-                underlying_val = arg.__getattribute__(arg._VALUE_ATTR)
-                updated_args.append(underlying_val)
-            except AttributeError:
+            if hasattr(arg, self._VALUE_ATTR):
+                updated_args.append(arg.__getattribute__(self._VALUE_ATTR))
+            else:
                 updated_args.append(arg)
             
         # defer to NumPy implementation
