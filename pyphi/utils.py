@@ -47,7 +47,7 @@ class PyPhiFloat(float):
         return super().__ge__(other) or eq(self, other)
 
     def __hash__(self):
-        return super().__hash__()
+        return hash(round(self, config.PRECISION))
 
     def to_json(self):
         return {"value": float(self)}
