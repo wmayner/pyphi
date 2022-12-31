@@ -10,7 +10,7 @@ class ArrayLike(NDArrayOperatorsMixin):
     # Only support operations with instances of _HANDLED_TYPES.
     _HANDLED_TYPES = (np.ndarray, list, Number)
 
-    # TODO(tpm) populate this lis
+    # TODO(tpm) populate this list
     _TYPE_CLOSED_FUNCTIONS = (
         np.concatenate,
         np.stack,
@@ -62,16 +62,16 @@ class ArrayLike(NDArrayOperatorsMixin):
             return NotImplemented
         # extract wrapped array-like objects from args
         updated_args = []
-                
+
         for arg in args:
             if hasattr(arg, self._VALUE_ATTR):
                 updated_args.append(arg.__getattribute__(self._VALUE_ATTR))
             else:
                 updated_args.append(arg)
-            
+
         # defer to NumPy implementation
         result = func(*updated_args, **kwargs)
-        
+
         # cast to original wrapper if possible
         return type(self)(result) if type(result) in self._HANDLED_TYPES else result
 
