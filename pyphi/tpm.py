@@ -219,6 +219,12 @@ class ExplicitTPM(data_structures.ArrayLike):
         }
     )
 
+    def __getattr__(self, name):
+        if name in self.__closures__:
+            return _new_attribute(name, self.__closures__, self._tpm)
+        else:
+            return getattr(self.__getattribute__(self._VALUE_ATTR), name)
+
     def __init__(self, tpm, validate=False):
         self._tpm = np.array(tpm)
         super().__init__()
@@ -545,7 +551,10 @@ def reconstitute_tpm(subsystem):
 
 # TODO(tpm) remove pending ArrayLike refactor
 def _new_attribute(
-    name: str, closures: Set[str], tpm: ExplicitTPM.__wraps__, cls=ExplicitTPM
+    name: str,
+    closures: Set[str],
+    tpm: ExplicitTPM.__wraps__,
+    cls=ExplicitTPM
 ) -> object:
     """Helper function to return adequate proxy attributes for TPM arrays.
 
