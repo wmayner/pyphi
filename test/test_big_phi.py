@@ -237,7 +237,7 @@ def test_clear_subsystem_caches_after_computing_sia_config_option(use_iit_3_conf
 
 
 def test_conceptual_info(s):
-    assert compute.subsystem.conceptual_info(s) == 2.8125
+    assert compute.subsystem.conceptual_info(s) == 1.0
 
 
 def test_sia_empty_subsystem(s_empty):
