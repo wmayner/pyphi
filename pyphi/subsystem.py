@@ -1076,7 +1076,10 @@ class Subsystem:
         Returns:
             MaximallyIrreducibleCauseOrEffect: The |MIC| or |MIE|.
         """
-        parallel = len(mechanism) >= config.PARALLEL_PURVIEW_EVALUATION
+        parallel = (
+            bool(config.PARALLEL_PURVIEW_EVALUATION)
+            and len(mechanism) >= config.PARALLEL_PURVIEW_EVALUATION
+        )
 
         purviews = self.potential_purviews(direction, mechanism, purviews)
 
