@@ -86,7 +86,7 @@ class Subsystem:
     ):
         # The network this subsystem belongs to.
         validate.is_network(network)
-        network._tpm = ExplicitTPM.enforce(network.tpm)
+        network._tpm = network.tpm
         self.network = network
 
         self.node_labels = network.node_labels
@@ -329,7 +329,7 @@ class Subsystem:
         mechanism_node = self._index2node[mechanism_node_index]
         # We're conditioning on this node's state, so take the TPM for the node
         # being in that state.
-        tpm = ExplicitTPM.enforce(mechanism_node.tpm[..., mechanism_node.state])
+        tpm = mechanism_node.tpm[..., mechanism_node.state]
         # Marginalize-out all parents of this mechanism node that aren't in the
         # purview.
         return tpm.marginalize_out((mechanism_node.inputs - purview)).tpm
@@ -392,7 +392,7 @@ class Subsystem:
         # pylint: disable=missing-docstring
         purview_node = self._index2node[purview_node_index]
         # Condition on the state of the purview inputs that are in the mechanism
-        purview_node.tpm = ExplicitTPM.enforce(purview_node.tpm)
+        purview_node.tpm = purview_node.tpm
         tpm = purview_node.tpm.condition_tpm(condition)
         # TODO(4.0) remove reference to TPM
         # Marginalize-out the inputs that aren't in the mechanism.
@@ -1076,7 +1076,10 @@ class Subsystem:
         Returns:
             MaximallyIrreducibleCauseOrEffect: The |MIC| or |MIE|.
         """
-        parallel = len(mechanism) >= config.PARALLEL_PURVIEW_EVALUATION
+        parallel = (
+            bool(config.PARALLEL_PURVIEW_EVALUATION)
+            and len(mechanism) >= config.PARALLEL_PURVIEW_EVALUATION
+        )
 
         purviews = self.potential_purviews(direction, mechanism, purviews)
 
