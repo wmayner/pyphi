@@ -63,10 +63,9 @@ PARALLEL_CONCEPT_EVALUATION: true
 # If cuts are evaluated sequentially, only two SIAs need to be in memory at a
 # time.
 PARALLEL_CUT_EVALUATION: true
-# Controls parallel evaluation of candidate purviews. If mechanism size is
-# greater or equal than this floating point value, parallelization will occur. A
-# value of .inf will enforce sequential processing.
-PARALLEL_PURVIEW_EVALUATION: 4.0
+# Controls parallel evaluation of candidate purviews. A numeric value may be
+# used to threshold parallelization on mechanism size (inclusive).
+PARALLEL_PURVIEW_EVALUATION: false
 # Controls parallel evaluation of mechanism partitions.
 PARALLEL_MECHANISM_PARTITION_EVALUATION: true
 # Controls the partitioning scheme for distinctions.

@@ -3,10 +3,83 @@
 # test/test_tpm.py
 
 import numpy as np
+import pickle
+import pytest
 
 from pyphi import Subsystem, ExplicitTPM
 from pyphi.tpm import reconstitute_tpm
 
+@pytest.mark.parametrize(
+    "tpm",
+    [ExplicitTPM(np.random.rand(42)), ExplicitTPM(np.arange(42))]
+)
+def test_serialization(tpm):
+    assert tpm.array_equal(pickle.loads(pickle.dumps(tpm)))
+
+
+def test_np_operations():
+    # fmt: off
+    tpm = ExplicitTPM(
+        np.array([
+            [3, 3],
+            [3, 3]
+        ])
+    )
+    # fmt: on
+    actual = tpm * tpm
+    # fmt: off
+    expected = ExplicitTPM(
+        np.array([
+            [9, 9],
+            [9, 9]
+        ])
+    )
+    # fmt: on
+
+    assert actual.array_equal(expected)
+
+
+def test_array_ufunc():
+    # fmt: off
+    tpm = ExplicitTPM(
+        np.array([
+            [3, 3],
+            [3, 3]
+        ])
+    )
+    # fmt: on
+    actual = np.multiply(tpm, tpm)
+    # fmt: off
+    expected = ExplicitTPM(
+        np.array([
+            [9, 9],
+            [9, 9]
+        ])
+    )
+    # fmt: on
+
+    assert expected.array_equal(actual)
+
+
+def test_getattr():
+    tpm = ExplicitTPM(np.array([[0, 1]]))
+    actual = tpm.real
+    expected = np.array([[0, 1]])
+
+    assert actual.all() == expected.all()
+
+    # fmt: off
+    tpm = ExplicitTPM(
+        np.array([
+            [3, 3],
+            [3, 3]
+        ])
+    )
+    # fmt: on
+    actual = tpm.sum(axis=0)
+    expected = ExplicitTPM(np.array([6, 6]))
+
+    assert expected.array_equal(expected)
 
 def test_is_state_by_state():
     # State-by-state

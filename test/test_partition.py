@@ -7,6 +7,7 @@ import itertools
 import numpy as np
 
 from pyphi import Direction, config
+from pyphi.combinatorics import set_partitions as partitions
 from pyphi.models import Bipartition, KPartition, Part, Tripartition
 from pyphi.partition import (
     all_partitions,
@@ -15,7 +16,6 @@ from pyphi.partition import (
     k_partitions,
     mip_bipartitions,
     partition_types,
-    partitions,
     wedge_partitions,
 )
 

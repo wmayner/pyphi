@@ -3,7 +3,7 @@
 # tpm.py
 
 """
-Provides the TPM, ExplicitTPM, and ImplicitTPM classes.
+Provides the ExplicitTPM and related classes.
 """
 
 from itertools import chain
@@ -11,11 +11,13 @@ from typing import Mapping, Set
 
 import numpy as np
 
-from . import config, convert, exceptions
+from . import config, convert, data_structures, exceptions
 from .constants import OFF, ON
+from .data_structures import FrozenMap
 from .utils import all_states, np_hash, np_immutable
 
 
+# TODO(tpm) remove pending ArrayLike refactor
 class ProxyMetaclass(type):
     """A metaclass to create wrappers for the TPM array's special attributes.
 
@@ -30,7 +32,7 @@ class ProxyMetaclass(type):
 
     1. Manually "overload" all the necessary methods.
     2. Use this metaclass to introspect the underlying array
-      and automatically overload methods in our custom TPM class definition.
+       and automatically overload methods in our custom TPM class definition.
     """
 
     def __init__(cls, type_name, bases, dct):
@@ -116,16 +118,19 @@ class ProxyMetaclass(type):
 
         type.__init__(cls, type_name, bases, dct)
 
-        if cls.__wraps__:
-            ignore = cls.__ignore__
-            # Go through all the attribute strings in the wrapped array type.
-            for name in dir(cls.__wraps__):
-                # Filter special attributes. The rest will be handled
-                # by `__getattr__()`.
-                if name.startswith("__") and name not in ignore and name not in dct:
-                    # Create proxy function for `name` and bind it to future
-                    # instances of cls.
-                    setattr(cls, name, property(make_proxy(name)))
+        if not cls.__wraps__:
+            return
+
+        ignore = cls.__ignore__
+
+        # Go through all the attribute strings in the wrapped array type.
+        for name in dir(cls.__wraps__):
+            # Filter special attributes, rest will be handled by `__getattr__()`
+            if any([not name.startswith("__"), name in ignore, name in dct]):
+                continue
+
+            # Create function for `name` and bind to future instances of `cls`.
+            setattr(cls, name, property(make_proxy(name)))
 
 
 class Wrapper(metaclass=ProxyMetaclass):
@@ -153,11 +158,16 @@ class Wrapper(metaclass=ProxyMetaclass):
             raise ValueError(f"Wrapped object must be of type {self.__wraps__}")
 
 
-class ExplicitTPM(Wrapper):
+class ExplicitTPM(data_structures.ArrayLike):
+
     """An explicit network TPM in multidimensional form."""
 
+    _VALUE_ATTR = "_tpm"
+
+    # TODO(tpm) remove pending ArrayLike refactor
     __wraps__ = np.ndarray
 
+    # TODO(tpm) remove pending ArrayLike refactor
     # Casting semantics: values belonging to our custom TPM class should
     # remain closed under the following methods:
 
@@ -209,13 +219,11 @@ class ExplicitTPM(Wrapper):
         }
     )
 
-    # Proxy access to regular attributes of the wrapped array.
     def __getattr__(self, name):
-        # Fix error with serialization. TODO: Implement dumps(), tobytes()?
-        if "_tpm" not in vars(self):
-            raise AttributeError
-
-        return _new_attribute(name, self.__closures__, self._tpm)
+        if name in self.__closures__:
+            return _new_attribute(name, self.__closures__, self._tpm)
+        else:
+            return getattr(self.__getattribute__(self._VALUE_ATTR), name)
 
     def __init__(self, tpm, validate=False):
         self._tpm = np.array(tpm)
@@ -509,17 +517,6 @@ class ExplicitTPM(Wrapper):
         """
         return isinstance(o, type(self)) and np.array_equal(self._tpm, o._tpm)
 
-    @classmethod
-    def enforce(cls, tpm: object):
-        """Create a new TPM object if necessary.
-
-        This acts as a partially applied ternary operator with the condition set
-        to type-checking the input.
-        """
-        if not isinstance(tpm, cls):
-            return cls(tpm)
-        return tpm
-
     def __str__(self):
         return self.__repr__()
 
@@ -552,8 +549,12 @@ def reconstitute_tpm(subsystem):
     return np.concatenate(node_tpms, axis=-1)
 
 
+# TODO(tpm) remove pending ArrayLike refactor
 def _new_attribute(
-    name: str, closures: Set[str], tpm: ExplicitTPM.__wraps__, cls=ExplicitTPM
+    name: str,
+    closures: Set[str],
+    tpm: ExplicitTPM.__wraps__,
+    cls=ExplicitTPM
 ) -> object:
     """Helper function to return adequate proxy attributes for TPM arrays.
 

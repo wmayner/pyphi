@@ -725,7 +725,10 @@ def repertoire_distance(r1, r2, direction=None, repertoire_distance=None, **kwar
     func_key = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
     func = measures[func_key]
     try:
-        distance = func(r1, r2, direction=direction, **kwargs)
+        try:
+            distance = func(r1, r2, direction=direction, **kwargs)
+        except TypeError:
+            distance = func(r1, r2, **kwargs)
     except TypeError:
-        distance = func(r1, r2, **kwargs)
+        distance = func(r1, r2, direction=direction)
     return round(distance, config.PRECISION)
