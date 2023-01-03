@@ -24,7 +24,7 @@ class ProxyMetaclass(type):
     The CPython interpreter resolves double-underscore attributes (e.g., the
     method definitions of mathematical operators) by looking up in the class'
     static methods, not in the instance methods. This makes it impossible to
-    intercept calls to them when an instance's __getattr__() is implicitly
+    intercept calls to them when an instance's ``__getattr__()`` is implicitly
     invoked, which in turn means there are only two options to wrap the special
     methods of the array inside our custom objects (in order to perform
     arithmetic operations with the TPM while also casting the result to our
@@ -134,7 +134,7 @@ class ProxyMetaclass(type):
 
 
 class Wrapper(metaclass=ProxyMetaclass):
-    """Proxy to the array inside PyPhi's custom TPM class."""
+    """Proxy to the array inside PyPhi's custom ExplicitTPM class."""
 
     __wraps__ = None
 
@@ -160,7 +160,20 @@ class Wrapper(metaclass=ProxyMetaclass):
 
 class ExplicitTPM(data_structures.ArrayLike):
 
-    """An explicit network TPM in multidimensional form."""
+    """An explicit network TPM in multidimensional form.
+
+    Args:
+        tpm (np.array): The transition probability matrix of the |Network|.
+
+    Keyword Args:
+        validate (bool): Whether to check the shape and content of the input
+            array for correctness.
+
+    Attributes:
+        _VALUE_ATTR (str): The key of the attribute holding the TPM array value.
+        __wraps__ (type): The class of the array referenced by ``_VALUE_ATTR``.
+        __closures__ (frozenset): np.ndarray method names proxied by this class.
+    """
 
     _VALUE_ATTR = "_tpm"
 
@@ -170,9 +183,6 @@ class ExplicitTPM(data_structures.ArrayLike):
     # TODO(tpm) remove pending ArrayLike refactor
     # Casting semantics: values belonging to our custom TPM class should
     # remain closed under the following methods:
-
-    # TODO attributes data, real and imag return arrays that should also be
-    # cast, even though they are not callable.
     __closures__ = frozenset(
         {
             "argpartition",
