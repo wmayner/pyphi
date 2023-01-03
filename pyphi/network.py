@@ -21,25 +21,7 @@ class Network:
 
     Args:
         tpm (np.ndarray): The transition probability matrix of the network.
-
-            The TPM can be provided in any of three forms: **state-by-state**,
-            **state-by-node**, or **multidimensional state-by-node** form.
-            In the state-by-node forms, row indices must follow the
-            little-endian convention (see :ref:`little-endian-convention`). In
-            state-by-state form, column indices must also follow the
-            little-endian convention.
-
-            If the TPM is given in state-by-node form, it can be either
-            2-dimensional, so that ``tpm[i]`` gives the probabilities of each
-            node being ON if the previous state is encoded by |i| according to
-            the little-endian convention, or in multidimensional form, so that
-            ``tpm[(0, 0, 1)]`` gives the probabilities of each node being ON if
-            the previous state is |N_0 = 0, N_1 = 0, N_2 = 1|.
-
-            The shape of the 2-dimensional form of a state-by-node TPM must be
-            ``(s, n)``, and the shape of the multidimensional form of the TPM
-            must be ``[2] * n + [n]``, where ``s`` is the number of states and
-            ``n`` is the number of nodes in the network.
+            See :func:`pyphi.tpm.ExplicitTPM`.
 
     Keyword Args:
         cm (np.ndarray): A square binary adjacency matrix indicating the
@@ -49,11 +31,6 @@ class Network:
             is connected to every node (including itself)**.
         node_labels (tuple[str] or |NodeLabels|): Human-readable labels for
             each node in the network.
-
-    Example:
-        In a 3-node network, ``the_network.tpm[(0, 0, 1)]`` gives the
-        transition probabilities for each node at |t| given that state at |t-1|
-        was |N_0 = 0, N_1 = 0, N_2 = 1|.
     """
 
     # TODO make tpm also optional when implementing logical network definition
