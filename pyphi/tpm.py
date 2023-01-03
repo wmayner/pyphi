@@ -126,7 +126,7 @@ class ProxyMetaclass(type):
         # Go through all the attribute strings in the wrapped array type.
         for name in dir(cls.__wraps__):
             # Filter special attributes, rest will be handled by `__getattr__()`
-            if any([not name.startswith("__"), name in ignore, name in dct]):
+            if any((not name.startswith("__"), name in ignore, name in dct)):
                 continue
 
             # Create function for `name` and bind to future instances of `cls`.
