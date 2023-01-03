@@ -18,19 +18,47 @@ def test_serialization(tpm):
 
 
 def test_array_ufunc():
-    tpm = ExplicitTPM(np.array([[3, 3], [3, 3]]))
+    # fmt: off
+    tpm = ExplicitTPM(
+        np.array([
+            [3, 3],
+            [3, 3]
+        ])
+    )
+    # fmt: on
     actual = tpm * tpm
-    expected = ExplicitTPM(np.array([[9, 9], [9, 9]]))
+    # fmt: off
+    expected = ExplicitTPM(
+        np.array([
+            [9, 9],
+            [9, 9]
+        ])
+    )
+    # fmt: on
 
     assert actual.array_equal(expected)
 
 
 def test_np_operations():
-    tpm = ExplicitTPM(np.array([[3, 3], [3, 3]]))
+    # fmt: off
+    tpm = ExplicitTPM(
+        np.array([
+            [3, 3],
+            [3, 3]
+        ])
+    )
+    # fmt: on
     actual = np.multiply(tpm, tpm)
-    expected = ExplicitTPM(np.array([[9, 9], [9, 9]]))
+    # fmt: off
+    expected = ExplicitTPM(
+        np.array([
+            [9, 9],
+            [9, 9]
+        ])
+    )
+    # fmt: on
 
-    assert actual.array_equal(expected)
+    assert expected.array_equal(actual)
 
 
 def test_getattr():
@@ -40,6 +68,18 @@ def test_getattr():
 
     assert actual.all() == expected.all()
 
+    # fmt: off
+    tpm = ExplicitTPM(
+        np.array([
+            [3, 3],
+            [3, 3]
+        ])
+    )
+    # fmt: on
+    actual = tpm.sum(axis=0)
+    expected = ExplicitTPM(np.array([6, 6]))
+
+    assert expected.array_equal(expected)
 
 def test_is_state_by_state():
     # State-by-state
