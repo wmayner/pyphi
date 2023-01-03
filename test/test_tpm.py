@@ -16,6 +16,7 @@ from pyphi.tpm import reconstitute_tpm
 def test_serialization(tpm):
     assert tpm.array_equal(pickle.loads(pickle.dumps(tpm)))
 
+
 def test_array_ufunc():
     tpm = ExplicitTPM(np.array([[3, 3], [3, 3]]))
     actual = tpm * tpm
@@ -23,12 +24,14 @@ def test_array_ufunc():
 
     assert actual.array_equal(expected)
 
+
 def test_np_operations():
     tpm = ExplicitTPM(np.array([[3, 3], [3, 3]]))
     actual = np.multiply(tpm, tpm)
     expected = ExplicitTPM(np.array([[9, 9], [9, 9]]))
 
     assert actual.array_equal(expected)
+
 
 def test_getattr():
     tpm = ExplicitTPM(np.array([[0, 1]]))
