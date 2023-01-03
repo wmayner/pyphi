@@ -17,7 +17,7 @@ def test_serialization(tpm):
     assert tpm.array_equal(pickle.loads(pickle.dumps(tpm)))
 
 
-def test_array_ufunc():
+def test_np_operations():
     # fmt: off
     tpm = ExplicitTPM(
         np.array([
@@ -39,7 +39,7 @@ def test_array_ufunc():
     assert actual.array_equal(expected)
 
 
-def test_np_operations():
+def test_array_ufunc():
     # fmt: off
     tpm = ExplicitTPM(
         np.array([
