@@ -261,7 +261,6 @@ class ExplicitTPM(data_structures.ArrayLike):
 
     def __init__(self, tpm, validate=False):
         self._tpm = np.array(tpm)
-        super().__init__()
 
         if validate:
             self.validate(check_independence=config.VALIDATE_CONDITIONAL_INDEPENDENCE)
