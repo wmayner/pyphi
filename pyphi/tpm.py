@@ -554,7 +554,7 @@ class ExplicitTPM(data_structures.ArrayLike):
         return self.__repr__()
 
     def __repr__(self):
-        return "ExplicitTPM({})".format(self._tpm)
+        return "ExplicitTPM(\n{}\n)".format(self._tpm)
 
     def __hash__(self):
         return self._hash
