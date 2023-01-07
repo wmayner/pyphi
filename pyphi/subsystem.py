@@ -328,10 +328,10 @@ class Subsystem:
         mechanism_node = self._index2node[mechanism_node_index]
         # We're conditioning on this node's state, so take the TPM for the node
         # being in that state.
-        tpm = mechanism_node.tpm[..., mechanism_node.state]
+        tpm = mechanism_node.pyphi.tpm[..., mechanism_node.state]
         # Marginalize-out all parents of this mechanism node that aren't in the
         # purview.
-        return tpm.marginalize_out((mechanism_node.inputs - purview)).tpm
+        return tpm.marginalize_out((mechanism_node.pyphi.inputs - purview)).tpm
 
     # TODO extend to nonbinary nodes
     @cache.method("_repertoire_cache", Direction.CAUSE)
@@ -391,10 +391,10 @@ class Subsystem:
         # pylint: disable=missing-docstring
         purview_node = self._index2node[purview_node_index]
         # Condition on the state of the purview inputs that are in the mechanism
-        tpm = purview_node.tpm.condition_tpm(condition)
+        tpm = purview_node.pyphi.tpm.condition_tpm(condition)
         # TODO(4.0) remove reference to TPM
         # Marginalize-out the inputs that aren't in the mechanism.
-        nonmechanism_inputs = purview_node.inputs - set(condition)
+        nonmechanism_inputs = purview_node.pyphi.inputs - set(condition)
         tpm = tpm.marginalize_out(nonmechanism_inputs)
         # Reshape so that the distribution is over next states.
         return tpm.reshape(
