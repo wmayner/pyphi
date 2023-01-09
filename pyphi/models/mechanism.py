@@ -72,7 +72,7 @@ class StateSpecification:
         )
 
     def to_json(self):
-        warn_about_tie_serialization(self)
+        warn_about_tie_serialization(self.__class__.__name__, serialize=True)
         dct = self.__dict__.copy()
         # TODO(ties) implement serialization of ties
         # Remove ties because of circular references
@@ -81,6 +81,7 @@ class StateSpecification:
 
     @classmethod
     def from_json(cls, data):
+        warn_about_tie_serialization(cls.__name__, deserialize=True)
         for key in ["repertoire", "unconstrained_repertoire"]:
             data[key] = np.array(data[key])
         instance = cls(**data)
@@ -340,7 +341,7 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
 
     def to_json(self):
         # TODO(ties) implement serialization of ties
-        warn_about_tie_serialization(self)
+        warn_about_tie_serialization(self.__class__.__name__, serialize=True)
         return {attr: getattr(self, attr) for attr in _ria_attributes}
 
 
