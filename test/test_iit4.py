@@ -6,10 +6,10 @@ import json
 
 import pytest
 
+from pyphi import compute
 from pyphi.examples import EXAMPLES
 from pyphi.jsonify import jsonify
 from pyphi.new_big_phi import sia
-from pyphi.compute.subsystem import ces
 from pyphi.relations import relations
 
 NETWORKS = ["basic", "basic_noisy_selfloop", "fig4", "grid3", "xor"]
@@ -79,7 +79,7 @@ def test_sia(case_name):
 @pytest.mark.parametrize("case_name", NETWORKS)
 def test_compute_subsystem_ces(case_name):
     example_func = EXAMPLES["subsystem"][case_name]
-    actual = ces(example_func())
+    actual = compute.ces(example_func())
     expected = expected_json("ces", case_name)
 
     assert_equality(actual, expected)
@@ -88,8 +88,8 @@ def test_compute_subsystem_ces(case_name):
 @pytest.mark.parametrize("case_name", NETWORKS)
 def test_relations(case_name):
     subsystem = EXAMPLES["subsystem"][case_name]()
-    ces_obj = ces(subsystem)
-    actual = relations(subsystem, ces_obj, parallel=False)
+    ces = compute.ces(subsystem)
+    actual = relations(ces, parallel=False)
     expected = expected_json("relations", case_name)
 
     assert_equality(actual, expected)
