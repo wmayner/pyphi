@@ -19,17 +19,6 @@ class PhiObjectTieResolutionRegistry(Registry):
 phi_object_tie_resolution_strategies = PhiObjectTieResolutionRegistry()
 
 
-@phi_object_tie_resolution_strategies.register("MAX_INFORMATIVENESS")
-def max_informativeness(m):
-    if m.partitioned_repertoire is not None:
-        return max(
-            metrics.distribution.pointwise_mutual_information_vector(
-                m.repertoire, m.partitioned_repertoire
-            )[m.specified_index]
-        )
-    return 0.0
-
-
 @phi_object_tie_resolution_strategies.register("PURVIEW_SIZE")
 def _(m):
     return len(m.purview)
