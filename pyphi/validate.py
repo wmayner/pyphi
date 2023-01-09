@@ -214,7 +214,3 @@ def relata(relata):
     """Validate a set of relata."""
     if not relata:
         raise ValueError("relata cannot be empty")
-    if not all(
-        isinstance(relatum, MaximallyIrreducibleCauseOrEffect) for relatum in relata
-    ):
-        raise ValueError("relata must be an iterable of MICEs")
