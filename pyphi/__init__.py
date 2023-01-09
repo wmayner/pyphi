@@ -115,9 +115,10 @@ _submodules = _import_submodules(__name__)
 _submodule_names = set([name.split(".")[1] for name in _submodules.keys()])
 __all__ = [
     "config",
+    "Direction",
+    "ExplicitTPM",
     "Network",
     "Subsystem",
-    "Direction",
     "Transition",
 ] + [name for name in _submodule_names if not name.startswith("_")]
 
