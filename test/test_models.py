@@ -22,7 +22,7 @@ from pyphi import (
 )
 from pyphi.labels import NodeLabels
 
-EPSILON = 10**(-config.PRECISION)
+EPSILON = 10 ** (-config.PRECISION)
 
 # Helper functions for constructing PyPhi objects
 
@@ -361,7 +361,7 @@ def test_ria_ordering_and_equality():
     assert ria(direction=Direction.CAUSE) != ria(direction=Direction.EFFECT)
     assert ria(mechanism=(1,)) != ria(mechanism=(1, 2))
 
-    with config.override(MICE_TIE_RESOLUTION="SMALLEST_PURVIEW"):
+    with config.override(PURVIEW_TIE_RESOLUTION=["PHI", "NEGATIVE_PURVIEW_SIZE"]):
         assert ria(purview=(1, 2)) < ria(purview=(1,))
 
 
