@@ -291,10 +291,14 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
 
     @property
     def num_state_ties(self):
+        if self._state_ties is None:
+            return np.nan
         return len(self._state_ties) - 1
 
     @property
     def num_partition_ties(self):
+        if self._partition_ties is None:
+            return np.nan
         return len(self._partition_ties) - 1
 
     @property
@@ -501,6 +505,8 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
 
     @property
     def num_purview_ties(self):
+        if self._purview_ties is None:
+            return np.nan
         return len(self._purview_ties) - 1
 
     def flip(self):
