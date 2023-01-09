@@ -73,6 +73,12 @@ class NodeLabels(Sequence):
     def __hash__(self):
         return hash((self.labels, self.node_indices))
 
+    def index2label(self, index):
+        return self._i2l[index]
+
+    def label2index(self, label):
+        return self._l2i[label]
+
     def labels2indices(self, labels):
         """Convert a tuple of node labels to node indices."""
         return tuple(self._l2i[label] for label in labels)
