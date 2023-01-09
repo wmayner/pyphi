@@ -565,7 +565,6 @@ def all_partitions(mechanism, purview, node_labels=None):
 class CompletePartition(KPartition):
     """Represents the partition that completely separates mechanism and purview."""
 
-    pass
 
 
 def complete_partition(mechanism, purview):
@@ -577,7 +576,6 @@ def complete_partition(mechanism, purview):
 class AtomicPartition(KPartition):
     """Represents the partition that separates all inter-element connections."""
 
-    pass
 
 
 def atomic_partition(elements):

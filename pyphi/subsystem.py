@@ -33,7 +33,6 @@ from .network import irreducible_purviews
 from .node import generate_nodes
 from .partition import mip_partitions
 from .repertoire import forward_repertoire, unconstrained_forward_repertoire
-from .tpm import ExplicitTPM
 from .utils import state_of
 
 log = logging.getLogger(__name__)

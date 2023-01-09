@@ -9,7 +9,7 @@ Objects that represent structures used in actual causation.
 from collections import namedtuple
 from collections.abc import Sequence
 
-from .. import config, utils
+from .. import utils
 from ..direction import Direction
 from . import cmp, fmt
 
@@ -309,7 +309,6 @@ class DirectedAccount(Account):
     transition.
     """
 
-    pass
 
 
 _ac_sia_attributes = [

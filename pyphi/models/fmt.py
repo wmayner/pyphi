@@ -11,7 +11,7 @@ from itertools import chain, cycle
 
 import numpy as np
 
-from .. import config, constants, utils
+from .. import config, utils
 from ..direction import Direction
 from .cuts import CompleteSystemPartition, NullCut
 
