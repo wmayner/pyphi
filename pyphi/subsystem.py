@@ -868,7 +868,11 @@ class Subsystem:
             "sequential_threshold": DEFAULT_MECHANISM_PARTITION_SEQUENTIAL_THRESHOLD,
         }
         parallel_kwargs.update(
-            {kwarg: kwargs.pop(kwarg, None) for kwarg in parallel_kwargs}
+            {
+                kwarg: value
+                for kwarg, value in kwargs.items()
+                if kwarg in parallel_kwargs
+            }
         )
         if config.IIT_VERSION == 4:
             if state is None:
