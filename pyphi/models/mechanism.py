@@ -26,7 +26,7 @@ from . import cmp, fmt
 class StateSpecification:
     direction: Direction
     purview: Tuple[int]
-    state: Tuple[Tuple[int]]
+    state: Tuple[int]
     intrinsic_information: float
     repertoire: ArrayLike
     unconstrained_repertoire: ArrayLike
