@@ -280,6 +280,17 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         the unpartitioned and partitioned repertoires among all ties."""
         return self._specified_state
 
+    @property
+    def purview_units(self):
+        return frozenset(
+            (
+                Unit(index, state, label=self.node_labels.index2label(index))
+                for index, state in zip(
+                    self.specified_state.purview, self.specified_state
+                )
+            )
+        )
+
     def is_congruent(self, specified_state):
         """Whether the state specified by this RIA is congruent to the given one."""
         return self.specified_state.is_congruent(specified_state)
@@ -442,6 +453,11 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
         """
         return self._ria.purview
 
+    @property
+    def purview_units(self):
+        return self.ria.purview_units
+
+    # TODO(4.0) remove or rename to "purview_current_state"
     @property
     def purview_state(self):
         """tuple[int]: The current state of the purview."""
