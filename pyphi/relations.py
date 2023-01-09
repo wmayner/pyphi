@@ -851,7 +851,10 @@ class ConcreteRelations(HashableOrderedSet, Relations):
     @classmethod
     def from_indirect_json(cls, ces, data):
         return cls(
-            [Relation.from_indirect_json(ces, relation_data) for relation_data in data]
+            [
+                RelationFace.from_indirect_json(ces, relation_data)
+                for relation_data in data
+            ]
         )
 
 

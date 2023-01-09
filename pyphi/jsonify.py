@@ -90,7 +90,7 @@ def _loadable_models():
         pyphi.models.mechanism.StateSpecification,
         pyphi.models.subsystem.SystemStateSpecification,
         pyphi.relations.Relata,
-        pyphi.relations.Relation,
+        pyphi.relations.RelationFace,
         pyphi.relations.ConcreteRelations,
         pyphi.relations.AnalyticalRelations,
         pyphi.relations.SampledRelations,
@@ -98,6 +98,8 @@ def _loadable_models():
         pyphi.big_phi.PhiStructure,
         pyphi.new_big_phi.SystemIrreducibilityAnalysis,
         pyphi.new_big_phi.PyPhiFloat,
+        pyphi.new_relations.Relation,
+        pyphi.new_relations.RelationFace,
     ]
     return {cls.__name__: cls for cls in classes}
 

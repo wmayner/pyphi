@@ -13,6 +13,7 @@ from toolz import concat
 from pyphi.direction import Direction
 
 from .. import utils
+from ..conf import fallback
 from . import cmp, fmt
 from .mechanism import Concept, StateSpecification
 
@@ -57,21 +58,19 @@ def defaultdict_set():
     return defaultdict(set)
 
 
-def purview_inclusion(distinctions, min_order, max_order):
+def _purview_inclusion(distinction_attr, distinctions, min_order, max_order):
     purview_inclusion_by_order = defaultdict(defaultdict_set)
     for distinction in distinctions:
-        for subset in utils.powerset(
-            distinction.purview,
-            nonempty=True,
-            min_size=min_order,
-            max_size=max_order,
+        for subset in map(
+            frozenset,
+            utils.powerset(
+                getattr(distinction, distinction_attr),
+                nonempty=True,
+                min_size=min_order,
+                max_size=max_order,
+            ),
         ):
-            substate = utils.substate(
-                distinction.specified_state.purview,
-                distinction.specified_state.state,
-                subset,
-            )
-            purview_inclusion_by_order[len(subset)][(subset, substate)].add(distinction)
+            purview_inclusion_by_order[len(subset)][subset].add(distinction)
     return purview_inclusion_by_order
 
 
@@ -85,7 +84,6 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
         self.subsystem = subsystem
         self._specifiers = None
         self._purview_inclusion_by_order = defaultdict(defaultdict_set)
-        self._purview_inclusion_max_order = 0
 
     def __len__(self):
         return len(self.concepts)
@@ -130,6 +128,11 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
         """Return this as a FlatCauseEffectStructure."""
         return FlatCauseEffectStructure(self)
 
+    def unflatten(self):
+        """Return self."""
+        # No-op; already unflattened
+        return self
+
     @property
     def phis(self):
         """The |small_phi| values of each concept."""
@@ -161,23 +164,38 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
         label = self.subsystem.node_labels.indices2labels
         return tuple(list(label(mechanism)) for mechanism in self.mechanisms)
 
+    def _purview_inclusion(self, min_order, max_order):
+        return _purview_inclusion(
+            "purview_union", distinctions=self, min_order=min_order, max_order=max_order
+        )
+
     def purview_inclusion(self, max_order=None):
-        """Return a mapping from (purview, state) pairs to distinctions whose
-        purview includes that purview in that state.
+        """Return a mapping:
+
+        {order: {frozenset[Unit]: {distinctions whose cause/effect purview
+                                   union includes those Units}}}
         """
-        if max_order is None:
-            max_order = len(self.subsystem)
-        max_order = min(len(self.subsystem), max_order)
-        if max_order > self._purview_inclusion_max_order:
+        if max_order is None or max_order not in self._purview_inclusion_by_order:
             self._purview_inclusion_by_order.update(
-                purview_inclusion(
-                    self.flat, self._purview_inclusion_max_order + 1, max_order
+                # NOTE: We use the union of the cause/effect purviews
+                self._purview_inclusion(
+                    min_order=max(self._purview_inclusion_by_order, default=0) + 1,
+                    max_order=max_order,
                 )
             )
-            self._purview_inclusion_max_order = max_order
-        # Yield from items to avoid making a copy
-        for order in range(1, max_order + 1):
-            yield from self._purview_inclusion_by_order[order].items()
+        max_order = fallback(max_order, float("inf"))
+        for order, mapping in self._purview_inclusion_by_order.items():
+            if order <= max_order:
+                yield from mapping.items()
+
+
+def flatten_distinctions(distinctions):
+    return concat(
+        [distinction.cause, distinction.effect]
+        if isinstance(distinction, Concept)
+        else [distinction]
+        for distinction in distinctions
+    )
 
 
 class FlatCauseEffectStructure(CauseEffectStructure):
@@ -188,24 +206,10 @@ class FlatCauseEffectStructure(CauseEffectStructure):
         if isinstance(concepts, CauseEffectStructure):
             subsystem = concepts.subsystem
         if not isinstance(concepts, FlatCauseEffectStructure):
-            _concepts = concat(
-                [concept.cause, concept.effect]
-                if isinstance(concept, Concept)
-                else [concept]
-                for concept in concepts
-            )
+            _concepts = flatten_distinctions(concepts)
         else:
             _concepts = iter(concepts)
         super().__init__(concepts=_concepts, subsystem=subsystem)
-        try:
-            # NOTE: Pointing to the same dictionary is required here, so that
-            # calling `compute_purview_inclusion` on a flattened CES will update
-            # the unflattened CES's properties
-            self._purview_inclusion = concepts._purview_inclusion
-            self._purview_inclusion_max_order = concepts._purview_inclusion_max_order
-            self._purview_inclusion_by_order = concepts._purview_inclusion_by_order
-        except AttributeError:
-            pass
 
     def __str__(self):
         return fmt.fmt_ces(self, title="Flat cause-effect structure")
@@ -242,9 +246,11 @@ class FlatCauseEffectStructure(CauseEffectStructure):
 
     @property
     def flat(self):
+        # No-op; already flat
         return self
 
     def flatten(self):
+        # No-op; already flat
         return self
 
     def unflatten(self):
@@ -262,6 +268,11 @@ class FlatCauseEffectStructure(CauseEffectStructure):
                 for mechanism, mice in mechanism_to_mice.items()
             ],
             subsystem=self.subsystem,
+        )
+
+    def _purview_inclusion(self, min_order, max_order):
+        return _purview_inclusion(
+            "purview_units", distinctions=self, min_order=min_order, max_order=max_order
         )
 
 
