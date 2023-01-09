@@ -24,7 +24,7 @@ SYSTEM_PARTITION_TYPE: "DIRECTED_BI"
 # The type of system cuts to use.
 SYSTEM_CUTS: "3.0_STYLE"
 # Controls how ties among MICE are broken.
-MICE_TIE_RESOLUTION: "LARGEST_PURVIEW"
+PURVIEW_TIE_RESOLUTION: ["PHI", "PURVIEW_SIZE"]
 # In some applications of this library, you may want to allow single
 # micro-nodes with a self-loop to have nonzero Phi. See ``pyphi.config`` for
 # details.
