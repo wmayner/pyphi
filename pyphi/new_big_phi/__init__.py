@@ -5,10 +5,12 @@ from enum import Enum, auto, unique
 from textwrap import indent
 from typing import Iterable, Optional, Tuple, Union
 
-from .. import Direction, Subsystem, compute, config, connectivity, utils
+from .. import compute, connectivity, utils
 from ..compute.network import reachable_subsystems
 from ..compute.parallel import MapReduce
-from ..conf import fallback
+from ..conf import config, fallback
+from ..data_structures import PyPhiFloat
+from ..direction import Direction
 from ..exceptions import warn_about_tie_serialization
 from ..labels import NodeLabels
 from ..models import cmp, fmt
@@ -19,7 +21,7 @@ from ..partition import system_partitions
 from ..registry import Registry
 from ..relations import ConcreteRelations, Relations
 from ..relations import relations as compute_relations
-from ..utils import PyPhiFloat
+from ..subsystem import Subsystem
 
 DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD = 2**4
 DEFAULT_PARTITION_CHUNKSIZE = 2**2 * DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD

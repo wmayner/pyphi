@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # utils.py
 
 """
@@ -17,6 +15,8 @@ from typing import Tuple
 import numpy as np
 from scipy.special import comb
 from toolz import curry
+
+from .conf import config
 
 
 # TODO(states) refactor

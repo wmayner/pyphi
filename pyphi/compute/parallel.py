@@ -15,8 +15,7 @@ import ray
 from more_itertools import chunked_even, flatten
 from tqdm.auto import tqdm
 
-from .. import config
-from ..conf import fallback
+from ..conf import config, fallback
 from ..utils import try_len
 from .progress import ProgressBar, throttled_update, wait_then_finish
 from .tree import get_constraints

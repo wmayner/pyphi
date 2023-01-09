@@ -11,7 +11,8 @@ from typing import Mapping, Set
 
 import numpy as np
 
-from . import config, convert, data_structures, exceptions
+from . import convert, data_structures, exceptions
+from .conf import config
 from .constants import OFF, ON
 from .data_structures import FrozenMap
 from .utils import all_states, np_hash, np_immutable
@@ -551,10 +552,7 @@ def reconstitute_tpm(subsystem):
 
 # TODO(tpm) remove pending ArrayLike refactor
 def _new_attribute(
-    name: str,
-    closures: Set[str],
-    tpm: ExplicitTPM.__wraps__,
-    cls=ExplicitTPM
+    name: str, closures: Set[str], tpm: ExplicitTPM.__wraps__, cls=ExplicitTPM
 ) -> object:
     """Helper function to return adequate proxy attributes for TPM arrays.
 

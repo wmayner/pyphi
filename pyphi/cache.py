@@ -19,7 +19,8 @@ import joblib
 import psutil
 import redis
 
-from . import config, constants
+from . import constants
+from .conf import config
 
 _CacheInfo = namedtuple("CacheInfo", ["hits", "misses", "currsize"])
 

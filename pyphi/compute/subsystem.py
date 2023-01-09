@@ -11,7 +11,8 @@ import logging
 
 from more_itertools import collapse
 
-from .. import config, connectivity, utils
+from .. import connectivity, utils
+from ..conf import config
 from ..direction import Direction
 from ..metrics.ces import ces_distance
 from ..models import (

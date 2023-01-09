@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # validate.py
 
 """
@@ -8,7 +6,8 @@ Methods for validating arguments.
 
 import numpy as np
 
-from . import config, exceptions
+from . import exceptions
+from .conf import config
 from .direction import Direction
 
 # pylint: disable=redefined-outer-name

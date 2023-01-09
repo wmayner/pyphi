@@ -15,7 +15,8 @@ from toolz import concat, unique
 
 from pyphi.models.cuts import KPartition
 
-from .. import config, connectivity, utils, validate
+from .. import connectivity, utils, validate
+from ..conf import config
 from ..direction import Direction
 from ..exceptions import WrongDirectionError, warn_about_tie_serialization
 from ..models import fmt

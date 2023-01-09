@@ -4,8 +4,7 @@
 
 from itertools import tee
 
-from . import config
-from .conf import fallback
+from .conf import config, fallback
 from .registry import Registry
 from .utils import NO_DEFAULT, iter_with_default
 

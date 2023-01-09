@@ -6,12 +6,12 @@ from functools import cached_property
 
 from graphillion import setset
 
-from . import combinatorics, config, utils
-from .conf import fallback
+from . import combinatorics, utils
+from .conf import config, fallback
+from .data_structures import PyPhiFloat
 from .models import cmp, fmt
 from .models.subsystem import FlatCauseEffectStructure
 from .registry import Registry
-from .utils import PyPhiFloat
 
 
 class RelationFace(frozenset):

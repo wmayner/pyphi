@@ -12,9 +12,9 @@ from pyemd import emd as _emd
 from scipy.spatial.distance import cdist
 from scipy.special import entr, rel_entr
 
-from .. import config, utils, validate
+from .. import utils, validate
 from ..cache import joblib_memory
-from ..conf import fallback
+from ..conf import config, fallback
 from ..direction import Direction
 from ..distribution import flatten, marginal_zero
 from ..registry import Registry
@@ -284,8 +284,8 @@ def psq2(p, q):
         p (np.ndarray): The first distribution.
         q (np.ndarray): The second distribution.
     """
-    fp = (p * (-1.0 * entr(p))).sum() / _LN_OF_2 + (p ** 2 * log2(len(p))).sum()
-    fq = (q * (-1.0 * entr(q))).sum() / _LN_OF_2 + (q ** 2 * log2(len(q))).sum()
+    fp = (p * (-1.0 * entr(p))).sum() / _LN_OF_2 + (p**2 * log2(len(p))).sum()
+    fq = (q * (-1.0 * entr(q))).sum() / _LN_OF_2 + (q**2 * log2(len(q))).sum()
     return abs(fp - fq)
 
 

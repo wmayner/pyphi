@@ -1,6 +1,6 @@
 # pyphi_float.py
 
-from .. import config
+from ..conf import config
 from ..utils import eq
 
 

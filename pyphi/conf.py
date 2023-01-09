@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # conf.py
 
 # TODO(4.0) update this docstring

@@ -19,8 +19,8 @@ from toolz import partition
 
 import pyphi
 
-from . import config
 from .big_phi import PhiStructure
+from .conf import config
 from .direction import Direction
 from .models.subsystem import CauseEffectStructure
 from .relations import ConcreteRelations, two_relation_type

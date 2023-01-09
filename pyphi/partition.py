@@ -13,9 +13,9 @@ from itertools import chain, product
 import numpy as np
 from more_itertools import distinct_permutations
 
-from . import combinatorics, config
+from . import combinatorics
 from .cache import cache
-from .conf import fallback
+from .conf import config, fallback
 from .direction import Direction
 from .models.cuts import (
     Bipartition,
@@ -566,7 +566,6 @@ class CompletePartition(KPartition):
     """Represents the partition that completely separates mechanism and purview."""
 
 
-
 def complete_partition(mechanism, purview):
     n_parts = len(next(mip_partitions(mechanism, purview)))
     parts = [Part((), ())] * (n_parts - 2) + [Part((), purview), Part(mechanism, ())]
@@ -577,10 +576,8 @@ class AtomicPartition(KPartition):
     """Represents the partition that separates all inter-element connections."""
 
 
-
 def atomic_partition(elements):
     return AtomicPartition(*[Part((elt,), (elt,)) for elt in elements])
-
 
 
 # System partitions
