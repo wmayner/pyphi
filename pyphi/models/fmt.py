@@ -561,7 +561,10 @@ def fmt_ria(ria, verbose=True, mip=False):
         partition = "\n{}:\n{}".format(
             ("MIP" if mip else "Partition"), indent(fmt_partition(ria.partition))
         )
-        mark_states = [specified.state for specified in ria.specified_state.ties]
+        if ria.specified_state is not None:
+            mark_states = [specified.state for specified in ria.specified_state.ties]
+        else:
+            mark_states = []
         # TODO(refactor)
         if ria.repertoire.size == 1:
             repertoire = f"\nForward probability: \n    {ria.repertoire}"

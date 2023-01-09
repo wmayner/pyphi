@@ -842,9 +842,7 @@ class Subsystem:
             the mininum-information partition in one temporal direction.
 
         """
-        null_mip = _null_ria(
-            direction, mechanism, purview, specified_state=kwargs.get("state")
-        )
+        null_mip = _null_ria(direction, mechanism, purview, specified_state=state)
         if not purview:
             return null_mip
 
@@ -857,13 +855,6 @@ class Subsystem:
         # TODO(4.0) record shortcircuit reasons
         if direction == Direction.CAUSE and np.all(repertoire == 0):
             return null_mip
-
-        if state is None:
-            specified_states = self.intrinsic_information(
-                direction, mechanism, purview
-            ).ties
-        else:
-            specified_states = [state]
 
         if partitions is not None:
             # Must convert to list to allow for multiple iterations in case of
@@ -880,6 +871,13 @@ class Subsystem:
             {kwarg: kwargs.pop(kwarg, None) for kwarg in parallel_kwargs}
         )
         if config.IIT_VERSION == 4:
+            if state is None:
+                specified_states = self.intrinsic_information(
+                    direction, mechanism, purview
+                ).ties
+            else:
+                specified_states = [state]
+
             mips = MapReduce(
                 self._find_mip_single_state,
                 specified_states,
@@ -894,6 +892,18 @@ class Subsystem:
                 desc="Finding MIP for maximum intrinsic information states",
                 **parallel_kwargs,
             ).run()
+        elif config.IIT_VERSION == 3:
+            if state is not None:
+                raise ValueError("passing `state` is not supported with IIT 3.0")
+            return self._find_mip_single_state(
+                None,
+                direction,
+                mechanism,
+                purview,
+                repertoire,
+                partitions,
+                parallel_kwargs,
+            )
         else:
             raise NotImplementedError
 
