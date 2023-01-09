@@ -10,6 +10,7 @@ from typing import Iterable, Tuple
 import numpy as np
 from more_itertools import flatten
 from numpy.typing import ArrayLike
+from functools import total_ordering
 from toolz import concat, unique
 
 from pyphi.models.cuts import KPartition
@@ -20,6 +21,26 @@ from ..exceptions import WrongDirectionError, warn_about_tie_serialization
 from ..models import fmt
 from ..registry import Registry
 from . import cmp, fmt
+
+
+@total_ordering
+@dataclass
+class Unit:
+    """A unit in a state."""
+
+    index: int
+    state: int
+    label: str = None
+
+    def __hash__(self):
+        return hash((self.index, self.state))
+
+    def __lt__(self, other):
+        return (self.index, self.state) < (other.index, other.state)
+
+    def __repr__(self):
+        label = str(self.index) if self.label is None else self.label
+        return label.lower() if self.state == 0 else label.upper()
 
 
 @dataclass
