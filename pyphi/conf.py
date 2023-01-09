@@ -148,8 +148,8 @@ from pathlib import Path
 from warnings import warn
 
 import ray
-import yaml
 import toolz
+import yaml
 
 from . import __about__, constants
 

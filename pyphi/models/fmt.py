@@ -13,7 +13,7 @@ import numpy as np
 
 from .. import config, constants, utils
 from ..direction import Direction
-from .cuts import NullCut, CompleteSystemPartition
+from .cuts import CompleteSystemPartition, NullCut
 
 # REPR_VERBOSITY levels
 LOW = 0

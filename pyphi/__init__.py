@@ -71,9 +71,8 @@ import os
 import pkgutil
 
 from .__about__ import *
-
-from .conf import config
 from .actual import Transition
+from .conf import config
 from .direction import Direction
 from .network import Network
 from .subsystem import Subsystem

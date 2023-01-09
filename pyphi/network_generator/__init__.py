@@ -10,8 +10,7 @@ from numpy.typing import ArrayLike
 from ..labels import NodeLabels
 from ..network import Network
 from ..utils import all_states
-from . import ising, weights, unit_functions
-
+from . import ising, unit_functions, weights
 
 UNIT_FUNCTIONS = {
     "ising": ising.probability,

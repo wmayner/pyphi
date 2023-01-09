@@ -5,12 +5,12 @@
 """Mechanism-level objects."""
 
 from dataclasses import dataclass
+from functools import total_ordering
 from typing import Iterable, Tuple
 
 import numpy as np
 from more_itertools import flatten
 from numpy.typing import ArrayLike
-from functools import total_ordering
 from toolz import concat, unique
 
 from pyphi.models.cuts import KPartition

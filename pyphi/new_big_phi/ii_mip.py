@@ -8,13 +8,13 @@ from ..conf import config, fallback
 from ..direction import Direction
 from ..models.cuts import Cut
 from ..new_big_phi import (
+    DEFAULT_PARTITION_CHUNKSIZE,
+    DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
     NullSystemIrreducibilityAnalysis,
     ShortCircuitConditions,
     SystemIrreducibilityAnalysis,
     SystemStateSpecification,
     system_intrinsic_information,
-    DEFAULT_PARTITION_CHUNKSIZE,
-    DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
 )
 from ..partition import system_partitions
 from ..subsystem import Subsystem

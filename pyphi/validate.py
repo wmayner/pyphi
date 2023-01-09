@@ -10,8 +10,8 @@ import numpy as np
 
 from . import config, exceptions
 from .direction import Direction
-from .tpm import ExplicitTPM
 from .models.mechanism import MaximallyIrreducibleCauseOrEffect
+from .tpm import ExplicitTPM
 
 # pylint: disable=redefined-outer-name
 
