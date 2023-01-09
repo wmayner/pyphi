@@ -595,6 +595,16 @@ class PyphiConfig(Config):
     Controls parallel evaluation of mechanism partitions.""",
     )
 
+    PARALLEL_RELATION_EVALUATION = Option(
+        False,
+        type=bool,
+        doc="""
+    Controls parallel evaluation of mechanism partitions.
+
+    Only applies if RELATION_COMPUTATION = 'CONCRETE'.
+    """,
+    )
+
     NUMBER_OF_CORES = Option(
         -1,
         type=int,

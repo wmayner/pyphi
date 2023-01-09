@@ -7,6 +7,7 @@ from functools import cached_property
 from graphillion import setset
 
 from . import combinatorics, utils
+from .compute.parallel import MapReduce
 from .conf import config, fallback
 from .data_structures import PyPhiFloat
 from .models import cmp, fmt
@@ -131,16 +132,40 @@ class Relation(frozenset, cmp.Orderable):
         return fmt.box(body)
 
 
-def all_relations(distinctions, min_degree=2, max_degree=None):
+DEFAULT_RELATION_CHUNKSIZE = 2**14
+DEFAULT_RELATION_SEQUENTIAL_THRESHOLD = 2**12
+
+
+def all_relations(distinctions, min_degree=2, max_degree=None, **kwargs):
     """Yield causal relations among a set of distinctions."""
     distinctions = distinctions.unflatten()
     # Self relations
     yield from _self_relations(distinctions)
     # Non-self relations
-    for combination in _combinations_with_nonempty_congruent_overlap(
+    combinations = _combinations_with_nonempty_congruent_overlap(
         distinctions, min_degree=min_degree, max_degree=max_degree
-    ):
-        yield Relation((distinctions[i] for i in combination))
+    )
+    # TODO(refactor) make into pattern
+    parallel_kwargs = {
+        "parallel": config.PARALLEL_RELATION_EVALUATION,
+        "progress": config.PROGRESS_BARS,
+        "chunksize": DEFAULT_RELATION_CHUNKSIZE,
+        "sequential_threshold": DEFAULT_RELATION_SEQUENTIAL_THRESHOLD,
+        "desc": "Evaluating relations",
+    }
+    parallel_kwargs.update(
+        {kwarg: value for kwarg, value in kwargs.items() if kwarg in parallel_kwargs}
+    )
+
+    def worker(combination):
+        return Relation((distinctions[i] for i in combination))
+
+    yield from MapReduce(
+        worker,
+        combinations,
+        # TODO(relations): use analytical solution to show total?
+        **parallel_kwargs,
+    ).run()
 
 
 def _self_relations(distinctions):
