@@ -361,6 +361,7 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
                 self.direction,
                 self.mechanism,
                 self.purview,
+                self.specified_state,
                 utils.np_hash(self.repertoire),
             )
         )
