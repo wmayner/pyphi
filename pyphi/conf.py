@@ -556,14 +556,6 @@ class PyphiConfig(Config):
     cause-effect structures.""",
     )
 
-    PARALLEL_COMPOSITIONAL_STATE_EVALUATION = Option(
-        True,
-        type=bool,
-        on_change=deprecated,
-        doc="""
-    Controls whether compositional states are evaluated in parallel.""",
-    )
-
     PARALLEL_CUT_EVALUATION = Option(
         True,
         type=bool,
@@ -893,14 +885,6 @@ class PyphiConfig(Config):
         "SET_UNI/BI",
         doc="""
     Controls the system partitioning scheme.
-    """,
-    )
-
-    COMPOSITIONAL_STATE_CONFLICTS = Option(
-        "GLOBAL",
-        values=["GLOBAL", "SAME_PURVIEW", "SAME_PURVIEW_AND_INCONGRUENT_STATE"],
-        doc="""
-    Controls the defintion of conflicts among distinctions.
     """,
     )
 
