@@ -19,12 +19,31 @@ from toolz import partition
 
 import pyphi
 
-from .big_phi import PhiStructure
 from .conf import config
 from .direction import Direction
 from .models.subsystem import CauseEffectStructure
-from .relations import ConcreteRelations, two_relation_type
+from .new_big_phi import PhiStructure
+from .relations import ConcreteRelations
 from .utils import state_of
+
+
+# TODO(viz): Update to use new relations
+
+
+def two_relation_face_type(relation_face):
+    if len(relation_face) != 2:
+        raise ValueError(f"must be a 2-relation; got a {len(relation_face)}-relation")
+    purview = list(map(set, relation_face.relata.purviews))
+    # Isotext (mutual full-overlap)
+    if purview[0] == purview[1] == relation_face.purview:
+        return "isotext"
+    # Sub/Supertext (inclusion / full-overlap)
+    elif purview[0].issubset(purview[1]) or purview[0].issuperset(purview[1]):
+        return "inclusion"
+    # Paratext (connection / partial-overlap)
+    else:
+        return "paratext"
+
 
 TWOPI = 2 * np.pi
 FONT_FAMILY = "MesloLGS NF, Roboto Mono, Menlo"
@@ -88,7 +107,7 @@ _TYPE_COLORS = {"isotext": "magenta", "inclusion": "indigo", "paratext": "cyan"}
 
 
 def type_color(relation):
-    return _TYPE_COLORS[two_relation_type(relation)]
+    return _TYPE_COLORS[two_relation_face_type(relation)]
 
 
 TWO_RELATION_COLORSCHEMES = {"type": type_color}
@@ -466,7 +485,10 @@ def _plot_two_relations(fig, relation_to_coords, relations, label, theme):
     if isinstance(theme.two_relation_colorscale, Mapping):
         # Map to relation type
         line_colors = list(
-            map(theme.two_relation_colorscale.get, map(two_relation_type, relations))
+            map(
+                theme.two_relation_colorscale.get,
+                map(two_relation_face_type, relations),
+            )
         )
     elif (
         isinstance(theme.two_relation_colorscale, str)
