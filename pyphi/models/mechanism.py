@@ -756,6 +756,12 @@ class Concept(cmp.Orderable):
         return getattr(self.effect, "purview", None)
 
     @property
+    def purview_union(self):
+        return set.union(
+            *(set(self.mice(direction).purview_units) for direction in Direction.both())
+        )
+
+    @property
     def cause_repertoire(self):
         """np.ndarray: The cause repertoire."""
         return getattr(self.cause, "repertoire", None)
