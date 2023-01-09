@@ -11,10 +11,9 @@ import itertools
 from itertools import chain, product
 
 import numpy as np
-from . import combinatorics
 from more_itertools import distinct_permutations
 
-from . import config
+from . import combinatorics, config
 from .cache import cache
 from .conf import fallback
 from .direction import Direction
@@ -22,14 +21,11 @@ from .models.cuts import (
     Bipartition,
     CompleteGeneralKCut,
     CompleteGeneralSetPartition,
-    CompleteRelationPartition,
     Cut,
     GeneralKCut,
     GeneralSetPartition,
     KPartition,
     Part,
-    RelationPart,
-    RelationPartition,
     SystemPartition,
     Tripartition,
 )
@@ -587,97 +583,6 @@ class AtomicPartition(KPartition):
 def atomic_partition(elements):
     return AtomicPartition(*[Part((elt,), (elt,)) for elt in elements])
 
-
-# Relation partitions
-# ~~~~~~~~~~~~~~~~~~~
-
-relation_partition_types = PartitionRegistry()
-
-
-def complete_relation_partitions(relata, candidate_joint_purview, node_labels=None):
-    for i in range(len(relata)):
-        yield CompleteRelationPartition(
-            relata, candidate_joint_purview, i, node_labels=node_labels
-        )
-
-
-@relation_partition_types.register("TRI")
-def relation_tripartitions(relata, candidate_joint_purview, node_labels=None):
-    yield from complete_relation_partitions(
-        relata, candidate_joint_purview, node_labels=node_labels
-    )
-    overlap_partitions = wedge_partitions(
-        tuple(range(len(relata))), candidate_joint_purview
-    )
-    for partition in overlap_partitions:
-        yield RelationPartition(
-            relata,
-            *(
-                RelationPart(
-                    mechanism=part.mechanism,
-                    purview=part.purview,
-                    relata=relata,
-                    node_labels=node_labels,
-                )
-                for part in partition
-            ),
-            node_labels=node_labels,
-        )
-
-
-def relation_partition_one_distinction(
-    relata, candidate_joint_purview, i, node_labels=None
-):
-    relata_indices = tuple(range(len(relata)))
-    mechanism_parts = [(i,), relata_indices[:i] + relata_indices[(i + 1) :]]
-    purview_parts = [(), candidate_joint_purview]
-    return RelationPartition(
-        relata,
-        *(
-            RelationPart(
-                mechanism=mechanism,
-                purview=purview,
-                relata=relata,
-                node_labels=node_labels,
-            )
-            for mechanism, purview in zip(mechanism_parts, purview_parts)
-        ),
-        node_labels=node_labels,
-    )
-
-
-@relation_partition_types.register("BI_CUT_ONE")
-def relation_bipartitions_of_one(relata, candidate_joint_purview, node_labels=None):
-    yield from complete_relation_partitions(
-        relata, candidate_joint_purview, node_labels=node_labels
-    )
-    for i in range(len(relata)):
-        yield relation_partition_one_distinction(
-            relata, candidate_joint_purview, i, node_labels=node_labels
-        )
-
-
-class AggregationRegistry(Registry):
-    """Storage for relation partition aggregation schemes registered with PyPhi.
-
-    Users can define custom aggregations:
-
-    Examples:
-        >>> @relation_partition_aggregations.register('ZEROS')  # doctest: +SKIP
-        ... def all_zeros(specified):
-        ...    return np.zeros(specified.shape[1:])
-
-    And use them by setting ``config.RELATION_PARTITION_AGGREGATION = 'NONE'``
-    """
-
-    desc = "partition aggregations"
-
-
-relation_partition_aggregations = AggregationRegistry()
-
-
-summation = relation_partition_aggregations.register("SUM")(np.sum)
-minimum = relation_partition_aggregations.register("MIN")(np.min)
 
 
 # System partitions

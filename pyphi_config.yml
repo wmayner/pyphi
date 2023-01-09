@@ -90,37 +90,6 @@ REDIS_CONFIG:
 # Controls the definition of the upper bound of the sum of relation phi when
 # analyzing a system.
 RELATION_COMPUTATION: CONCRETE
-# Controls whether the relation computation checks whether there are duplicate
-# purviews (same elements and direction) in the relata being evaluated and
-# returns a zero-phi relation if so. This case should never arise in normal
-# operation, since relations are normally only computed among distinctions in a
-# nonconflicting set. Defaults to false to avoid the cost of checking.
-RELATION_ENFORCE_NO_DUPLICATE_PURVIEWS: false
-# Controls the way in which distinction-relative differences are combined to
-# obtain a relation phi value.
-RELATION_PARTITION_AGGREGATION: SUM
-# Controls the partitioning scheme for relations.
-RELATION_PARTITION_TYPE: TRI
-# Controls how relation phi values are computed.
-RELATION_PHI_SCHEME: MINIMAL_OVERLAP_RATIO_TIMES_DISTINCTION_PHI
-# Controls the set of possible purviews for a relation.
-RELATION_POTENTIAL_PURVIEWS: WHOLE
-# Controls the sampled degrees for sampled relations. Only applies if
-# ``RELATION_COMPUTATION`` implies a sampling approach.  Can be either falsy
-# (sample uniformly from all possible relations) or a list of degrees (sample
-# uniformly from possible relations with those degrees).  If the list contains
-# only nonnegative integers, then they are interpreted as absolute degrees;
-# otherwise they are interpreted as relative to the middle degree (the most
-# numerous), signified by 0.
-RELATION_SAMPLE_DEGREES: false
-# Controls the sample size for approximated relations. Only applies if
-# RELATION_COMPUTATION implies a sampling approach.
-RELATION_SAMPLE_SIZE: 1000
-# Controls the number of seconds to wait while sampling.
-RELATION_SAMPLE_TIMEOUT: 1.0
-# Controls the definition of the upper bound of the sum of relation phi when
-# analyzing a system.
-RELATION_SUM_PHI_UPPER_BOUND: DISTINCT_AND_CONGRUENT_PURVIEWS
 # The measure to use when computing integration ("EMD", "KLD", "L1", ...)
 REPERTOIRE_DISTANCE: GENERALIZED_INTRINSIC_DIFFERENCE
 # The measure to use when computing intrinsic information and findind the

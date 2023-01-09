@@ -56,10 +56,7 @@ These settings control the algorithms PyPhi uses.
 - :attr:`~pyphi.conf.PyphiConfig.CES_DISTANCE`
 - :attr:`~pyphi.conf.PyphiConfig.ACTUAL_CAUSATION_MEASURE`
 - :attr:`~pyphi.conf.PyphiConfig.PARTITION_TYPE`
-- :attr:`~pyphi.conf.PyphiConfig.RELATION_PARTITION_TYPE`
-- :attr:`~pyphi.conf.PyphiConfig.RELATION_PARTITION_AGGREGATION`
 - :attr:`~pyphi.conf.PyphiConfig.SYSTEM_PARTITION_TYPE`
-- :attr:`~pyphi.conf.PyphiConfig.RELATION_POTENTIAL_PURVIEWS`
 - :attr:`~pyphi.conf.PyphiConfig.SYSTEM_CUTS`
 - :attr:`~pyphi.conf.PyphiConfig.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI`
 - :attr:`~pyphi.conf.PyphiConfig.VALIDATE_SUBSYSTEM_STATES`
@@ -874,27 +871,6 @@ class PyphiConfig(Config):
     See :mod:`~pyphi.partition` for more examples.""",
     )
 
-    RELATION_PARTITION_TYPE = Option(
-        "TRI",
-        doc="""
-    Controls the type of partition used for |small_phi| computations.
-
-    You can configure custom partitioning schemes using the
-    ``pyphi.partition.relation_partition_types.register`` decorator.
-    """,
-    )
-
-    RELATION_PARTITION_AGGREGATION = Option(
-        "SUM",
-        doc="""
-    Controls the how distinction-relative partitions are aggregated to determine
-    the |small_phi| of a relation.
-
-    You can configure custom partitioning schemes using the
-    ``pyphi.partition.relation_partition_aggregations.register`` decorator.
-    """,
-    )
-
     SYSTEM_PARTITION_INCLUDE_COMPLETE = Option(
         False,
         type=bool,
@@ -919,40 +895,6 @@ class PyphiConfig(Config):
         doc="""
     Controls the defintion of conflicts among distinctions.
     """,
-    )
-
-    RELATION_POTENTIAL_PURVIEWS = Option(
-        "WHOLE",
-        doc="""
-    Controls the set of possible purviews for a relation as a function of the
-    congruent overlap.
-    """,
-    )
-
-    RELATION_PHI_SCHEME = Option(
-        "MINIMAL_OVERLAP_RATIO_TIMES_DISTINCTION_PHI",
-        values=[
-            "MINIMAL_OVERLAP_RATIO_TIMES_DISTINCTION_PHI",
-            "AGGREGATE_DISTINCTION_RELATIVE_DIFFERENCES",
-        ],
-        doc="""
-    Controls how relation phi is evaluated.
-
-    You can configure custom relation phi schemes using the
-    ``pyphi.relations.relation_phi_schemes.register`` decorator.
-    """,
-    )
-
-    NEW_RELATION_SCHEME = Option(
-        "UNION_WEIGHTED",
-        values=[
-            "UNION_WEIGHTED",
-            "SUM_FACEWISE_OVERLAP",
-            "FACE_WEIGHTED_UNION",
-        ],
-        doc="""
-        Controls the method for computing new-style relation phi.
-        """,
     )
 
     OVERLAP_RATIO = Option(
@@ -985,69 +927,13 @@ class PyphiConfig(Config):
     """,
     )
 
-    RELATION_SUM_PHI_UPPER_BOUND = Option(
-        "DISTINCT_AND_CONGRUENT_PURVIEWS",
-        values=["UNIQUE_PURVIEWS", "DISTINCT_AND_CONGRUENT_PURVIEWS"],
-        doc="""
-    Controls the definition of the upper bound on the sum of relation phi when analyzing a system.
-    """,
-    )
-
     RELATION_COMPUTATION = Option(
         "CONCRETE",
-        values=["CONCRETE", "ANALYTICAL", "SAMPLED"],
+        values=["CONCRETE", "ANALYTICAL"],
         doc="""
     Controls how relations are computed.
-
-    You can configure custom relation computation functions using the
-    ``pyphi.relations.relation_computations.register`` decorator.
     """,
     )
-
-    RELATION_SAMPLE_SIZE = Option(
-        1000,
-        type=int,
-        doc="""
-    Controls the sample size for sampled relations. Only applies if
-    ``RELATION_COMPUTATION`` implies a sampling approach.
-    """,
-    )
-
-    RELATION_SAMPLE_DEGREES = Option(
-        False,
-        doc="""
-    Controls the sampled degrees for relations. Only applies if
-    ``RELATION_COMPUTATION`` implies a sampling approach.
-
-    Can be either falsy (sample uniformly from all possible relations) or a list
-    of degrees (sample uniformly from possible relations with those degrees).
-
-    If the list contains only nonnegative integers, then they are interpreted as
-    absolute degrees; otherwise they are interpreted as relative to the middle
-    degree (the most numerous), signified by 0.
-    """,
-    )
-
-    RELATION_SAMPLE_TIMEOUT = Option(
-        1.0,
-        type=(int, float),
-        doc="""
-    Controls the number of seconds to wait while sampling.
-    """,
-    )
-
-    RELATION_ENFORCE_NO_DUPLICATE_PURVIEWS = Option(
-        False,
-        type=bool,
-        doc="""
-    Controls whether the relation computation checks whether there are duplicate
-    purviews (same elements and direction) in the relata being evaluated and
-    returns a zero-phi relation if so. This case should never arise in normal
-    operation, since relations are normally only computed among distinctions in a
-    nonconflicting set. Defaults to false to avoid the cost of checking.
-    """,
-    )
-
     STATE_TIE_RESOLUTION = Option(
         "PHI",
         doc="""
@@ -1133,15 +1019,7 @@ def validate_combinations(
 
 
 def validate(config):
-    # TODO use something like Param objects, e.g. from Bokeh?
-    if config.RELATION_COMPUTATION == "ANALYTICAL":
-        required_schemes = ["MINIMAL_OVERLAP_RATIO_TIMES_DISTINCTION_PHI"]
-        if config.RELATION_PHI_SCHEME not in required_schemes:
-            raise ConfigurationError(
-                "RELATION_COMPUTATION = 'ANALYTICAL' "
-                "must be used with:"
-                "\n   RELATION_PHI_SCHEME = 'CONGRUENCE_RATIO_TIMES_INFORMATIVENESS'"
-            )
+    pass
 
 
 PYPHI_USER_CONFIG_PATH = Path("pyphi_config.yml")
