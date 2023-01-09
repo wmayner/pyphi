@@ -344,6 +344,15 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         warn_about_tie_serialization(self.__class__.__name__, serialize=True)
         return {attr: getattr(self, attr) for attr in _ria_attributes}
 
+    @classmethod
+    def from_json(cls, data):
+        # TODO(ties) implement serialization of ties
+        warn_about_tie_serialization(cls.__name__, deserialize=True)
+        instance = cls(**data)
+        instance._partition_ties = None
+        instance._state_ties = None
+        return instance
+
 
 def _null_ria(direction, mechanism, purview, repertoire=None, phi=0.0, **kwargs):
     """The irreducibility analysis for a reducible mechanism."""
