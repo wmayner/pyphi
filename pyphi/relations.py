@@ -14,6 +14,7 @@ from .data_structures import PyPhiFloat
 from .models import cmp, fmt
 from .models.subsystem import FlatCauseEffectStructure
 from .registry import Registry
+from .warnings import PyPhiWarning
 
 
 class RelationFace(frozenset):
@@ -291,7 +292,7 @@ _CONGRUENCE_WARNING_MSG = (
 def relations(distinctions, relation_computation=None, **kwargs):
     """Return causal relations among a set of distinctions."""
     if not distinctions.resolved_congruence:
-        warnings.warn(_CONGRUENCE_WARNING_MSG, stacklevel=2)
+        warnings.warn(_CONGRUENCE_WARNING_MSG, PyPhiWarning, stacklevel=2)
     return relation_computations[
         fallback(relation_computation, config.RELATION_COMPUTATION)
     ](distinctions, **kwargs)

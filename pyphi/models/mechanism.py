@@ -18,9 +18,10 @@ from pyphi.models.cuts import KPartition
 from .. import connectivity, utils, validate
 from ..conf import config
 from ..direction import Direction
-from ..exceptions import WrongDirectionError, warn_about_tie_serialization
+from ..exceptions import WrongDirectionError
 from ..models import fmt
 from ..registry import Registry
+from ..warnings import warn_about_tie_serialization
 from . import cmp, fmt
 
 

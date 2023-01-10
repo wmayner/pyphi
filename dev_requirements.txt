@@ -1,6 +1,10 @@
+argh
+flake8
+flake8-bugbear
+hypothesis
+pre-commit
+pylint
 setuptools
 twine
-wheel
 watchdog
-argh
-hypothesis
+wheel

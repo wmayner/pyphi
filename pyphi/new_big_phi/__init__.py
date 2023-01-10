@@ -11,7 +11,6 @@ from ..compute.parallel import MapReduce
 from ..conf import config, fallback
 from ..data_structures import PyPhiFloat
 from ..direction import Direction
-from ..exceptions import warn_about_tie_serialization
 from ..labels import NodeLabels
 from ..models import cmp, fmt
 from ..models.cuts import Cut, GeneralKCut, SystemPartition
@@ -22,6 +21,7 @@ from ..registry import Registry
 from ..relations import ConcreteRelations, Relations
 from ..relations import relations as compute_relations
 from ..subsystem import Subsystem
+from ..warnings import warn_about_tie_serialization
 
 DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD = 2**4
 DEFAULT_PARTITION_CHUNKSIZE = 2**2 * DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD
