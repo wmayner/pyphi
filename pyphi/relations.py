@@ -116,6 +116,7 @@ class Relation(frozenset, cmp.Orderable):
     def __bool__(self):
         return utils.is_positive(self.phi)
 
+    # TODO(4.0) need to also implement __eq__ here
     def order_by(self):
         return self.phi
 
