@@ -2,6 +2,7 @@
 
 """Functions for computing relations among distinctions."""
 
+import warnings
 from functools import cached_property
 
 from graphillion import setset
@@ -279,8 +280,18 @@ class AnalyticalRelations(Relations):
         return fmt.box(fmt.header("AnalyticalRelations", body, "", fmt.HEADER_BAR_2))
 
 
+_CONGRUENCE_WARNING_MSG = (
+    "distinctions.resolve_congruence() has not been called; results may "
+    "include relations that do not exist after filtering out distinctions "
+    "incongruent with the SIA specified state. Consider using "
+    "`new_big_phi.phi_structure()` to obtain a consistent structure."
+)
+
+
 def relations(distinctions, relation_computation=None, **kwargs):
     """Return causal relations among a set of distinctions."""
+    if not distinctions.resolved_congruence:
+        warnings.warn(_CONGRUENCE_WARNING_MSG, stacklevel=2)
     return relation_computations[
         fallback(relation_computation, config.RELATION_COMPUTATION)
     ](distinctions, **kwargs)
