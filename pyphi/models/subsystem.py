@@ -77,13 +77,17 @@ def _purview_inclusion(distinction_attr, distinctions, min_order, max_order):
 class CauseEffectStructure(cmp.Orderable, Sequence):
     """A collection of concepts."""
 
-    def __init__(self, concepts=(), subsystem=None):
+    def __init__(self, concepts=(), subsystem=None, resolved_congruence=False):
         # Normalize the order of concepts
         # TODO(4.0) convert to set?
         self.concepts = tuple(sorted(concepts, key=_concept_sort_key))
         self.subsystem = subsystem
         self._specifiers = None
         self._purview_inclusion_by_order = defaultdict(defaultdict_set)
+        # Flag to indicate whether distinctions have been filtered according to
+        # congruence with a SIA specified state
+        # TODO(4.0) use a subclass instead, as with MICE?
+        self._resolved_congruence = resolved_congruence
 
     def __len__(self):
         return len(self.concepts)
@@ -187,6 +191,22 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
         for order, mapping in self._purview_inclusion_by_order.items():
             if order <= max_order:
                 yield from mapping.items()
+
+    def resolve_congruence(self, system_state: SystemStateSpecification):
+        """Filter out incongruent distinctions."""
+        # TODO(4.0) parallelize
+        return type(self)(
+            filter(
+                lambda d: d is not None,
+                (distinction.resolve_congruence(system_state) for distinction in self),
+            ),
+            subsystem=self.subsystem,
+            resolved_congruence=True,
+        )
+
+    @property
+    def resolved_congruence(self):
+        return self._resolved_congruence
 
 
 def flatten_distinctions(distinctions):

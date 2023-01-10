@@ -464,25 +464,6 @@ class NullPhiStructure(PhiStructure):
         )
 
 
-# TODO make this a method of CES
-def resolve_congruence(
-    distinctions: CauseEffectStructure,
-    system_state: SystemStateSpecification,
-):
-    """Filter out incongruent distinctions."""
-    # TODO(4.0) parallelize
-    return type(distinctions)(
-        filter(
-            lambda d: d is not None,
-            (
-                distinction.resolve_congruence(system_state)
-                for distinction in distinctions
-            ),
-        ),
-        subsystem=distinctions.subsystem,
-    )
-
-
 def phi_structure(
     subsystem: Subsystem,
     parallel: bool = True,
@@ -507,7 +488,7 @@ def phi_structure(
     if distinctions is None:
         distinctions = compute.ces(subsystem, **ces_kwargs)
     # Filter out incongruent distinctions
-    distinctions = resolve_congruence(distinctions, sia.system_state)
+    distinctions = distinctions.resolve_congruence(sia.system_state)
 
     # Compute relations if not provided
     if relations is None:
