@@ -159,7 +159,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         return fmt.box(body)
 
     def to_json(self):
-        warn_about_tie_serialization(self, serialize=True)
+        warn_about_tie_serialization(self.__class__.__name__, serialize=True)
         dct = self.__dict__.copy()
         # TODO(ties) implement serialization of ties
         # Remove ties because of circular references
