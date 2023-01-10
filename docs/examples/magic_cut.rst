@@ -118,15 +118,15 @@ into existence.
     >>> C = (2,)
     >>> AB = (0, 1)
 
-The cut applied to the subsystem severs the connections going to |C| from
-either |A| or |B|. In this circumstance, knowing the state of |A| or |B| does
-not tell us anything about the state of |C|; only the previous state of |C| can
-tell us about the next state of |C|. ``C_node.tpm_on`` gives us the probability
-of |C| being ON in the next state, while ``C_node.tpm_off`` would give us the
+The cut applied to the subsystem severs the connections going to |C| from either
+|A| or |B|. In this circumstance, knowing the state of |A| or |B| does not tell
+us anything about the state of |C|; only the previous state of |C| can tell us
+about the next state of |C|. ``C_node.tpm[..., 1]`` gives us the probability of
+|C| being ON in the next state, while ``C_node.tpm[..., 0]`` would give us the
 probability of |C| being OFF.
 
     >>> C_node = cut_subsystem.indices2nodes(C)[0]
-    >>> C_node.tpm_on.flatten()
+    >>> C_node.tpm[..., 1].flatten()
     array([0.5 , 0.75])
 
 This states that |C| has a 50% chance of being ON in the next state if it

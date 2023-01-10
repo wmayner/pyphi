@@ -302,7 +302,7 @@ def test_rebuild_system_tpm(s):
     # fmt: on
     assert macro.rebuild_system_tpm(node_tpms).array_equal(answer)
 
-    node_tpms = [node.tpm_on for node in s.nodes]
+    node_tpms = [node.tpm[..., 1] for node in s.nodes]
     assert macro.rebuild_system_tpm(node_tpms).array_equal(s.tpm)
 
 
