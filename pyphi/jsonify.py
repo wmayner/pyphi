@@ -32,6 +32,7 @@ the stream to a nested PyPhi object structure. The decoder will raise an
 exception if current PyPhi version doesn't match the version in the JSON data.
 """
 
+import functools
 import json
 
 import numpy as np
@@ -51,6 +52,7 @@ ID_KEY = "__id__"
 # TODO(4.0): to_dict() instead?
 
 
+@functools.cache
 def _loadable_models():
     """A dictionary of loadable PyPhi models.
 
@@ -86,6 +88,7 @@ def _loadable_models():
         pyphi.models.SystemIrreducibilityAnalysis,
         pyphi.models.Tripartition,
         pyphi.Network,
+        pyphi.new_big_phi.PhiStructure,
         pyphi.new_big_phi.SystemIrreducibilityAnalysis,
         pyphi.relations.AnalyticalRelations,
         pyphi.relations.ConcreteRelations,
@@ -148,7 +151,11 @@ def jsonify(obj):  # pylint: disable=too-many-return-statements
 
     # Recurse over object dictionaries.
     if hasattr(obj, "__dict__"):
-        return _jsonify_dict(obj.__dict__)
+        dct = _jsonify_dict(obj.__dict__)
+        # Push metadata if the model is registered as loadable
+        if _is_loadable_model_object(obj):
+            _push_metadata(dct, obj)
+        return dct
 
     # Recurse over lists, tuples, sets, and frozensets.
     if isinstance(obj, (list, tuple, set, frozenset)):
@@ -201,9 +208,8 @@ def _check_version(version):
         )
 
 
-def _is_model(dct):
-    """Check if ``dct`` is a PyPhi model serialization."""
-    return CLASS_KEY in dct
+def _is_loadable_model_object(obj):
+    return obj.__class__.__name__ in _loadable_models()
 
 
 class _ObjectCache(cache.DictCache):
@@ -222,9 +228,6 @@ class PyPhiJSONDecoder(json.JSONDecoder):
         kwargs["object_hook"] = self._load_object
         super().__init__(*args, **kwargs)
 
-        # Memoize available models
-        self._models = _loadable_models()
-
         # Cache for loaded objects
         self._object_cache = _ObjectCache()
 
@@ -240,7 +243,7 @@ class PyPhiJSONDecoder(json.JSONDecoder):
         if isinstance(obj, dict):
             obj = {k: self._load_object(v) for k, v in obj.items()}
             # Load a serialized PyPhi model
-            if _is_model(obj):
+            if _is_loadable_model_dict(obj):
                 return self._load_model(obj)
 
         # TODO(4.0) remove?
@@ -258,7 +261,7 @@ class PyPhiJSONDecoder(json.JSONDecoder):
         classname, version, _ = _pop_metadata(dct)
 
         _check_version(version)
-        cls = self._models[classname]
+        cls = _loadable_models()[classname]
 
         # Use `from_json` if available
         if hasattr(cls, "from_json"):
@@ -266,6 +269,11 @@ class PyPhiJSONDecoder(json.JSONDecoder):
 
         # Default to object constructor
         return cls(**dct)
+
+
+def _is_loadable_model_dict(dct):
+    """Check if ``dct`` is a PyPhi model serialization."""
+    return CLASS_KEY in dct
 
 
 def loads(string):
