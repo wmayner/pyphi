@@ -511,7 +511,7 @@ def phi_structure(
 
     # Compute relations if not provided
     if relations is None:
-        relations = compute_relations(subsystem, distinctions, **relations_kwargs)
+        relations = compute_relations(distinctions, **relations_kwargs)
 
     return PhiStructure(
         sia=sia,
