@@ -36,12 +36,12 @@ LOG_STDOUT_LEVEL: WARNING
 # Some functions are memoized using an in-memory cache. This is the maximum
 # percentage of memory that these caches can collectively use.
 MAXIMUM_CACHE_MEMORY_PERCENTAGE: 50
-
-# TODO(ties): Document this.
+# Determine how ties among specified states are broken.
 STATE_TIE_RESOLUTION: PHI
+# Determine how ties among MIPs are broken.
 MIP_TIE_RESOLUTION: [NORMALIZED_PHI, NEGATIVE_PHI]
+# Determine how ties among maximally irreducible purviews are broken.
 PURVIEW_TIE_RESOLUTION: PHI
-
 # The number of CPU cores to use in parallel.
 # -1 means all available cores, -2 means all but one available cores, etc.
 NUMBER_OF_CORES: -1
