@@ -875,14 +875,6 @@ class PyphiConfig(Config):
     """,
     )
 
-    OVERLAP_RATIO = Option(
-        "PURVIEW_SIZE",
-        values=["PURVIEW_SIZE", "MINIMUM_PURVIEW_SIZE"],
-        doc="""
-    Controls the overlap ratio used in computing relations.
-    """,
-    )
-
     DISTINCTION_PHI_NORMALIZATION = Option(
         "NUM_CONNECTIONS_CUT",
         on_change=on_change_distinction_phi_normalization,

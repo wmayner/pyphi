@@ -45,8 +45,6 @@ PURVIEW_TIE_RESOLUTION: PHI
 # The number of CPU cores to use in parallel.
 # -1 means all available cores, -2 means all but one available cores, etc.
 NUMBER_OF_CORES: -1
-# Controls the overlap ratio used in computing relations.
-OVERLAP_RATIO: PURVIEW_SIZE
 # Controls whether complexes are evaluated in parallel.
 PARALLEL_COMPLEX_EVALUATION: true
 # Controls whether concepts are evaluated in parallel.
