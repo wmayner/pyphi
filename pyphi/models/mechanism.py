@@ -26,7 +26,7 @@ from . import cmp, fmt
 
 
 @total_ordering
-@dataclass
+@dataclass(frozen=True)
 class Unit:
     """A unit in a state."""
 
@@ -36,6 +36,9 @@ class Unit:
 
     def __hash__(self):
         return hash((self.index, self.state))
+
+    def __eq__(self, other):
+        return (self.index, self.state) == (other.index, other.state)
 
     def __lt__(self, other):
         return (self.index, self.state) < (other.index, other.state)
