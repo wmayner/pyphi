@@ -91,7 +91,7 @@ def node(tpm, cm, index, state=None, network_state_space=None, node_labels=None)
     # For each dimension, compute the relevant state labels (coordinates in
     # xarray terminology) from the perspective of this node and its direct
     # inputs.
-    singleton_state_space = ["_marginalized_"]
+    singleton_state_space = ["_singleton_"]
 
     coordinates = [
         network_state_space[node] if tpm.shape[node] > 1
