@@ -1,9 +1,8 @@
 # conf.py
 
-# TODO(4.0) update this docstring
 """
-Loading a configuration
-~~~~~~~~~~~~~~~~~~~~~~~
+Configuring PyPhi
+~~~~~~~~~~~~~~~~~
 
 Various aspects of PyPhi's behavior can be configured.
 
@@ -41,88 +40,6 @@ It is also possible to manually load a configuration file:
 Or load a dictionary of configuration values:
 
     >>> pyphi.config.load_dict({'PRECISION': 1})
-
-
-Approximations and theoretical options
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-These settings control the algorithms PyPhi uses.
-
-- :attr:`~pyphi.conf.PyphiConfig.IIT_VERSION`
-- :attr:`~pyphi.conf.PyphiConfig.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS`
-- :attr:`~pyphi.conf.PyphiConfig.REPERTOIRE_DISTANCE`
-- :attr:`~pyphi.conf.PyphiConfig.CES_DISTANCE`
-- :attr:`~pyphi.conf.PyphiConfig.ACTUAL_CAUSATION_MEASURE`
-- :attr:`~pyphi.conf.PyphiConfig.PARTITION_TYPE`
-- :attr:`~pyphi.conf.PyphiConfig.SYSTEM_PARTITION_TYPE`
-- :attr:`~pyphi.conf.PyphiConfig.SYSTEM_CUTS`
-- :attr:`~pyphi.conf.PyphiConfig.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI`
-- :attr:`~pyphi.conf.PyphiConfig.VALIDATE_SUBSYSTEM_STATES`
-- :attr:`~pyphi.conf.PyphiConfig.VALIDATE_CONDITIONAL_INDEPENDENCE`
-
-
-Parallelization and system resources
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-These settings control how much processing power and memory is available for
-PyPhi to use. The default values may not be appropriate for your use-case or
-machine, so **please check these settings before running anything**. Otherwise,
-there is a risk that simulations might crash (potentially after running for a
-long time!), resulting in data loss.
-
-- :attr:`~pyphi.conf.PyphiConfig.PARALLEL_CONCEPT_EVALUATION`
-- :attr:`~pyphi.conf.PyphiConfig.PARALLEL_CUT_EVALUATION`
-- :attr:`~pyphi.conf.PyphiConfig.PARALLEL_COMPLEX_EVALUATION`
-- :attr:`~pyphi.conf.PyphiConfig.PARALLEL_PURVIEW_EVALUATION`
-- :attr:`~pyphi.conf.PyphiConfig.NUMBER_OF_CORES`
-- :attr:`~pyphi.conf.PyphiConfig.MAXIMUM_CACHE_MEMORY_PERCENTAGE`
-
-  .. important::
-    Only one of ``PARALLEL_CONCEPT_EVALUATION``, ``PARALLEL_CUT_EVALUATION``,
-    and ``PARALLEL_COMPLEX_EVALUATION`` can be set to ``True`` at a time.
-
-    **For most networks,** ``PARALLEL_CUT_EVALUATION`` **is the most
-    efficient.** This is because the algorithm is exponential time in the
-    number of nodes, so most of the time is spent on the largest subsystem.
-
-    You should only parallelize concept evaluation if you are just computing a
-    |CauseEffectStructure|.
-
-
-Memoization and caching
-~~~~~~~~~~~~~~~~~~~~~~~
-
-PyPhi provides a number of ways to cache intermediate results.
-
-- :attr:`~pyphi.conf.PyphiConfig.CACHE_REPERTOIRES`
-- :attr:`~pyphi.conf.PyphiConfig.CACHE_POTENTIAL_PURVIEWS`
-- :attr:`~pyphi.conf.PyphiConfig.CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA`
-- :attr:`~pyphi.conf.PyphiConfig.REDIS_CACHE`
-- :attr:`~pyphi.conf.PyphiConfig.REDIS_CONFIG`
-
-
-Logging
-~~~~~~~
-
-These settings control how PyPhi handles messages. Logs can be written to
-standard output, a file, both, or none. If these simple default controls are
-not flexible enough for you, you can override the entire logging configuration.
-See the `documentation on Python's logger
-<https://docs.python.org/3/library/logging.html>`_ for more information.
-
-- :attr:`~pyphi.conf.PyphiConfig.WELCOME_OFF`
-- :attr:`~pyphi.conf.PyphiConfig.LOG_STDOUT_LEVEL`
-- :attr:`~pyphi.conf.PyphiConfig.LOG_FILE_LEVEL`
-- :attr:`~pyphi.conf.PyphiConfig.LOG_FILE`
-- :attr:`~pyphi.conf.PyphiConfig.PROGRESS_BARS`
-- :attr:`~pyphi.conf.PyphiConfig.REPR_VERBOSITY`
-- :attr:`~pyphi.conf.PyphiConfig.PRINT_FRACTIONS`
-
-
-Numerical precision
-~~~~~~~~~~~~~~~~~~~
-
-- :attr:`~pyphi.conf.PyphiConfig.PRECISION`
 
 
 The ``config`` API
