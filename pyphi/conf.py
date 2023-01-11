@@ -884,19 +884,6 @@ class PyphiConfig(Config):
     """,
     )
 
-    DISTINCTION_SUM_PHI_UPPER_BOUND = Option(
-        "DISTINCT_AND_CONGRUENT_PURVIEWS",
-        values=[
-            "PURVIEW_SIZE",
-            "2^N-1",
-            "(2^N-1)/(N-1)",
-            "DISTINCT_AND_CONGRUENT_PURVIEWS",
-        ],
-        doc="""
-    Controls the definition of the upper bound on the sum of distinction phi when analyzing a system.
-    """,
-    )
-
     RELATION_COMPUTATION = Option(
         "CONCRETE",
         values=["CONCRETE", "ANALYTICAL"],
@@ -904,6 +891,7 @@ class PyphiConfig(Config):
     Controls how relations are computed.
     """,
     )
+
     STATE_TIE_RESOLUTION = Option(
         "PHI",
         doc="""
