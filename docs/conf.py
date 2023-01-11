@@ -64,7 +64,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "PyPhi"
-copyright = "2014--2018 {}".format(__author__)
+copyright = "2014--2023 {}".format(__author__)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
