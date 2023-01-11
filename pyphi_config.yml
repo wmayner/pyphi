@@ -29,8 +29,6 @@ DISTINCTION_SUM_PHI_UPPER_BOUND: DISTINCT_AND_CONGRUENT_PURVIEWS
 HORIZONTAL_PARTITION_CODE: "1210"
 # The version of the theory to use.
 IIT_VERSION: 4.0
-# The method of combining cause and effect integration values.
-INTEGRATION_VALUE: MIN
 # The path for the log file.
 LOG_FILE: pyphi.log
 # The log level to write to `LOG_FILE`.

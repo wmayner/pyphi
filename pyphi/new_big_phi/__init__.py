@@ -32,19 +32,6 @@ DEFAULT_PARTITION_CHUNKSIZE = 2**2 * DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD
 ##############################################################################
 
 
-class IntegrationValueRegistry(Registry):
-    """Storage for integration schemes."""
-
-    desc = "integration values"
-
-
-integration_values = IntegrationValueRegistry()
-
-
-integration_values.register("SUM")(sum)
-integration_values.register("MIN")(min)
-
-
 # TODO(4.0) refactor
 def system_intrinsic_information(
     subsystem: Subsystem,
@@ -243,9 +230,7 @@ def evaluate_partition(
         )
         for direction in Direction.both()
     }
-    phi = integration_values[config.INTEGRATION_VALUE](
-        integration[direction].phi for direction in directions
-    )
+    phi = min(integration[direction].phi for direction in directions)
     norm = normalization_factor(partition)
     normalized_phi = phi * norm
 
