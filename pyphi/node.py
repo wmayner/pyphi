@@ -127,7 +127,7 @@ class Node:
     Attributes:
         index (int):
         label (str):
-        tpm (pyphi.tpm.ExplicitTPM): The node TPM is an array with shape
+        tpm (pyphi.tpm.ExplicitTPM): The node TPM is an array with
             |n + 1| dimensions, where ``n`` is the size of the |Network|. The
             first ``n`` dimensions correspond to each node in the
             system. Dimensions corresponding to nodes that provide input to this
