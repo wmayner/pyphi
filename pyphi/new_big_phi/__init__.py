@@ -158,9 +158,9 @@ class NullSystemIrreducibilityAnalysis(SystemIrreducibilityAnalysis):
     def __init__(self, **kwargs):
         super().__init__(
             phi=0,
+            partition=None,
             cause=None,
             effect=None,
-            partition=None,
             **kwargs,
         )
 

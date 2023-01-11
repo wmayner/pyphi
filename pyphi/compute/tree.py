@@ -7,7 +7,7 @@ from ..conf import fallback
 from ..utils import enforce_integer, enforce_integer_or_none
 
 
-@dataclass
+@dataclass(frozen=True)
 class TreeSpec:
     depth: int
     size: int

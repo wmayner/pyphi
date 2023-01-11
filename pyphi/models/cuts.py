@@ -400,7 +400,7 @@ class CompleteGeneralSetPartition(CompleteGeneralKCut):
         return "Complete\n" + super().__str__()
 
 
-@dataclass(order=True)
+@dataclass(order=True, frozen=True)
 class Part:
     """Represents one part of a |Bipartition|.
 

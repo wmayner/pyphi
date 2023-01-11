@@ -20,7 +20,7 @@ from .mechanism import Concept, StateSpecification
 _sia_attributes = ["phi", "ces", "partitioned_ces", "subsystem", "cut_subsystem"]
 
 
-@dataclass
+@dataclass(frozen=True)
 class SystemStateSpecification:
     cause: StateSpecification
     effect: StateSpecification
