@@ -22,9 +22,6 @@ CES_DISTANCE: SUM_SMALL_PHI
 CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA: false
 # Controls how distinction phi is normalized.
 DISTINCTION_PHI_NORMALIZATION: NUM_CONNECTIONS_CUT
-# Controls the definition of the upper bound of the sum of distinction phi when
-# analyzing a system.
-DISTINCTION_SUM_PHI_UPPER_BOUND: DISTINCT_AND_CONGRUENT_PURVIEWS
 # The version of the theory to use.
 IIT_VERSION: 4.0
 # The path for the log file.
