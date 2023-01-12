@@ -17,7 +17,6 @@ from ..models.cuts import Cut, GeneralKCut, SystemPartition
 from ..models.mechanism import RepertoireIrreducibilityAnalysis
 from ..models.subsystem import CauseEffectStructure, SystemStateSpecification
 from ..partition import system_partitions
-from ..registry import Registry
 from ..relations import ConcreteRelations, Relations
 from ..relations import relations as compute_relations
 from ..subsystem import Subsystem
