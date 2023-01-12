@@ -10,6 +10,7 @@ from itertools import chain
 from typing import Mapping, Set
 
 import numpy as np
+import xarray as xr
 
 from . import config, convert, data_structures, exceptions
 from .constants import OFF, ON
@@ -536,12 +537,6 @@ class ExplicitTPM(data_structures.ArrayLike):
             self._tpm.transpose(dimension_permutation)[..., list(permutation)],
         )
 
-    def __getitem__(self, i):
-        item = self._tpm[i]
-        if isinstance(item, type(self._tpm)):
-            item = type(self)(item)
-        return item
-
     def array_equal(self, o: object):
         """Return whether this TPM equals the other object.
 
@@ -549,6 +544,12 @@ class ExplicitTPM(data_structures.ArrayLike):
         and their numpy arrays are equal.
         """
         return isinstance(o, type(self)) and np.array_equal(self._tpm, o._tpm)
+
+    def __getitem__(self, i):
+        item = self._tpm[i]
+        if isinstance(item, type(self._tpm)):
+            item = type(self)(item)
+        return item
 
     def __str__(self):
         return self.__repr__()
@@ -558,6 +559,89 @@ class ExplicitTPM(data_structures.ArrayLike):
 
     def __hash__(self):
         return self._hash
+
+
+def implicit_tpm(nodes, validate=False):
+
+    """Instantiate an implicit network TPM Dataset."""
+
+    return xr.Dataset(
+        data_vars = {node.name: node for node in nodes}
+    )
+
+@xr.register_dataset_accessor("pyphi")
+class ImplicitTPM:
+
+    """An implicit network TPM containing |Node| TPMs in multidimensional form.
+
+    Args:
+        dataset (xr.Dataset):
+
+    Attributes:
+    """
+
+    def validate(self, check_independence):
+        raise NotImplementedError
+
+    def _validate_probabilities(self):
+        raise NotImplementedError
+
+    def _validate_shape(self, check_independence=True):
+        raise NotImplementedError
+
+    def to_multidimensional_state_by_node(self):
+        raise NotImplementedError
+
+    def conditionally_independent(self):
+        raise NotImplementedError
+
+    def condition_tpm(self, condition: Mapping[int, int]):
+        raise NotImplementedError
+
+    def marginalize_out(self, node_indices):
+        raise NotImplementedError
+
+    def is_deterministic(self):
+        raise NotImplementedError
+
+    def is_state_by_state(self):
+        """Return ``True`` if ``tpm`` is in state-by-state form, otherwise
+        ``False``.
+        """
+        return False
+
+    def subtpm(self, fixed_nodes, state):
+        raise NotImplementedError
+
+    def expand_tpm(self):
+        raise NotImplementedError
+
+    def infer_edge(self, a, b, contexts):
+        raise NotImplementedError
+
+    def infer_cm(self):
+        raise NotImplementedError
+
+    def tpm_indices(self):
+        raise NotImplementedError
+
+    def print(self):
+        raise NotImplementedError
+
+    def permute_nodes(self, permutation):
+        raise NotImplementedError
+
+    def __getitem__(self, i):
+        raise NotImplementedError
+
+    def __str__(self):
+        raise NotImplementedError
+
+    def __repr__(self):
+        raise NotImplementedError
+
+    def __hash__(self):
+        raise NotImplementedError
 
 
 def reconstitute_tpm(subsystem):
