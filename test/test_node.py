@@ -82,7 +82,14 @@ def test_expand_tpm():
 
 
 def test_generate_nodes(s):
-    nodes = generate_nodes(s.tpm, s.cm, s.state, s.node_indices, s.node_labels)
+    nodes = generate_nodes(
+        s.tpm,
+        s.cm,
+        s.state_space,
+        s.node_indices,
+        network_state=s.state,
+        node_labels=s.node_labels
+    )
 
     # fmt: off
     node0_tpm = ExplicitTPM(
@@ -129,5 +136,7 @@ def test_generate_nodes(s):
 
 
 def test_generate_nodes_default_labels(s):
-    nodes = generate_nodes(s.tpm, s.cm, s.state, s.node_indices)
+    nodes = generate_nodes(
+        s.tpm, s.cm, s.state_space, s.node_indices, network_state=s.state
+    )
     assert [n.pyphi.label for n in nodes] == ["n0", "n1", "n2"]

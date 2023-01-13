@@ -9,9 +9,12 @@ context of all |small_phi| and |big_phi| computation.
 
 import numpy as np
 
+from typing import Iterable, Optional, Union
+
 from . import cache, connectivity, jsonify, utils, validate
 from .labels import NodeLabels
-from .tpm import ExplicitTPM
+from .node import generate_nodes
+from .tpm import ExplicitTPM, ImplicitTPM, implicit_tpm
 
 
 class Network:
@@ -31,27 +34,61 @@ class Network:
             is connected to every node (including itself)**.
         node_labels (tuple[str] or |NodeLabels|): Human-readable labels for
             each node in the network.
+        state_space (Optional[tuple[tuple[Union[int|str]]]]):
+            Labels for the state space of each node in the network. If ``None``,
+            states will be automatically labeled using a zero-based integer
+            index per node.
     """
 
     # TODO make tpm also optional when implementing logical network definition
-    def __init__(self, tpm, cm=None, node_labels=None, purview_cache=None):
-        # Initialize _tpm according to argument type.
-        if isinstance(tpm, ExplicitTPM):
-            self._tpm = tpm
-        elif isinstance(tpm, np.ndarray):
-            self._tpm = ExplicitTPM(tpm, validate=True)
-        elif isinstance(tpm, dict):
-            # From JSON.
-            self._tpm = ExplicitTPM(tpm["_tpm"], validate=True)
-        else:
-            raise TypeError(f"Invalid tpm of type {type(tpm)}.")
-
+    def __init__(
+            self,
+            tpm,
+            cm=None,
+            node_labels=None,
+            state_space=None,
+            purview_cache=None
+    ):
         self._cm, self._cm_hash = self._build_cm(cm)
         self._node_indices = tuple(range(self.size))
         self._node_labels = NodeLabels(node_labels, self._node_indices)
+
+        # Initialize _tpm according to argument type.
+
+        if isinstance(tpm, (np.ndarray, ExplicitTPM)):
+            # Validate tpm even if an ExplicitTPM was provided. ExplicitTPM
+            # accepts instantiation from either another object of its class or
+            # np.ndarray, so the following achieves validation in general.
+            tpm = ExplicitTPM(tpm, validate=True)
+
+            self._state_space, _ = build_state_space(
+                tpm.shape[:-1], state_space
+            )
+
+            nodes = generate_nodes(
+                tpm,
+                self._cm,
+                self._state_space,
+                self._node_indices,
+                node_labels=self._node_labels
+            )
+
+            self._tpm = nodes
+
+        elif isinstance(tpm, ImplicitTPM):
+            self._tpm = tpm
+
+        elif isinstance(tpm, dict):
+            # From JSON.
+            self._tpm = ImplicitTPM(tpm["_tpm"], validate=True)
+
+        else:
+            raise TypeError(f"Invalid tpm of type {type(tpm)}.")
+
         self.purview_cache = purview_cache or cache.PurviewCache()
 
-        validate.network(self)
+        # TODO
+        # validate.network(self)
 
     @property
     def tpm(self):
@@ -99,11 +136,18 @@ class Network:
         """int: The number of nodes in the network."""
         return len(self)
 
-    # TODO extend to nonbinary nodes
+    @property
+    def state_space(self):
+        """tuple[tuple[Union[int|str]]: Labels for the state space of each node.
+        """
+        return self._state_space
+
     @property
     def num_states(self):
         """int: The number of possible states of the network."""
-        return 2 ** self.size
+        return np.prod(
+            [len(node_states) for node_states in self._state_space]
+        )
 
     @property
     def node_indices(self):
@@ -138,10 +182,12 @@ class Network:
 
     def __len__(self):
         """int: The number of nodes in the network."""
-        return self.tpm.shape[-1]
+        return self.cm.shape[0]
 
     def __repr__(self):
-        return "Network({}, cm={})".format(self.tpm, self.cm)
+        # TODO implement a cleaner repr, similar to analyses objects,
+        # distinctions, etc.
+        return "Network(\n{},\ncm=\n{}\n)".format(self.tpm, self.cm)
 
     def __str__(self):
         return self.__repr__()
@@ -177,6 +223,39 @@ class Network:
         """Return a |Network| object from a JSON dictionary representation."""
         del json_dict["size"]
         return Network(**json_dict)
+
+
+def build_state_space(
+        nodes_shape: Iterable[int],
+        state_space: Optional[Iterable[Iterable[Union[int|str]]]] = None,
+) -> tuple[tuple[tuple[Union[int|str]]], int]:
+    """Format the passed state space labels or construct defaults if none.
+
+    Arguments:
+        nodes_shape (Iterable[int]): The first |n| components in the shape of
+            a network's multidimensional TPM, where |n| is the number of nodes.
+
+    Keyword Args:
+        state_space (Optional[Iterable[Iterable[Union[int|str]]]]): The
+            network's state space labels as provided by the user.
+
+    Returns:
+        tuple[tuple[tuple[Union[int|str]]], int]: State space for the network of
+            interest and its hash.
+    """
+    if state_space is None:
+        state_space = tuple(tuple(range(dim)) for dim in nodes_shape)
+    else:
+        # Enforce tuple.
+        state_space = tuple(map(tuple, state_space))
+        # Filter out states of singleton dimensions.
+        shape_state_map = zip(nodes_shape, state_space)
+        state_space = tuple(
+            node_states for dim, node_states in shape_state_map
+            if dim > 1
+        )
+
+    return (state_space, hash(state_space))
 
 
 def irreducible_purviews(cm, direction, mechanism, purviews):

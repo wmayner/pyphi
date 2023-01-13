@@ -29,7 +29,7 @@ from .models import (
     _null_ria,
 )
 from .models.mechanism import StateSpecification
-from .network import irreducible_purviews
+from .network import irreducible_purviews, build_state_space
 from .node import generate_nodes
 from .partition import mip_partitions
 from .repertoire import forward_repertoire, unconstrained_forward_repertoire
@@ -114,6 +114,12 @@ class Subsystem:
         # The TPM for just the nodes in the subsystem.
         self.proper_tpm = self.tpm.squeeze()[..., list(self.node_indices)]
 
+        # The state space of the nodes in the candidate system.
+        self.proper_state_space = build_state_space(
+            self.tpm[:-1],
+            self.network.state_space
+        )
+
         # The unidirectional cut applied for phi evaluation
         self.cut = (
             cut if cut is not None else NullCut(self.node_indices, self.node_labels)
@@ -140,7 +146,12 @@ class Subsystem:
         )
 
         self.nodes = generate_nodes(
-            self.tpm, self.cm, self.state, self.node_indices, self.node_labels
+            self.tpm,
+            self.cm,
+            self.proper_state_space,
+            self.node_indices,
+            network_state=self.state,
+            node_labels=self.node_labels
         )
 
         validate.subsystem(self)

@@ -16,7 +16,7 @@ from scipy.stats import entropy
 from . import compute, config, convert, distribution, utils, validate
 from .exceptions import ConditionallyDependentError, StateUnreachableError
 from .labels import NodeLabels
-from .network import irreducible_purviews
+from .network import irreducible_purviews, build_state_space
 from .node import expand_node_tpm, generate_nodes
 from .subsystem import Subsystem
 from .tpm import ExplicitTPM
@@ -97,7 +97,11 @@ def run_tpm(system, steps, blackbox):
     return ExplicitTPM(convert.state_by_state2state_by_node(tpm), validate=True)
 
 
-class SystemAttrs(namedtuple("SystemAttrs", ["tpm", "cm", "node_indices", "state"])):
+class SystemAttrs(
+        namedtuple(
+            "SystemAttrs", ["tpm", "cm", "node_indices", "state", "state_space"]
+        )
+):
     """An immutable container that holds all the attributes of a subsystem.
 
     Versions of this object are passed down the steps of the micro-to-macro
@@ -114,12 +118,23 @@ class SystemAttrs(namedtuple("SystemAttrs", ["tpm", "cm", "node_indices", "state
     @property
     def nodes(self):
         return generate_nodes(
-            self.tpm, self.cm, self.state, self.node_indices, self.node_labels
+            self.tpm,
+            self.cm,
+            self.state_space,
+            self.node_indices,
+            network_state=self.state,
+            node_labels=self.node_labels
         )
 
     @staticmethod
     def pack(system):
-        return SystemAttrs(system.tpm, system.cm, system.node_indices, system.state)
+        return SystemAttrs(
+            system.tpm,
+            system.cm,
+            system.node_indices,
+            system.state,
+            system.state_space,
+        )
 
     def apply(self, system):
         system.tpm = self.tpm
@@ -128,6 +143,7 @@ class SystemAttrs(namedtuple("SystemAttrs", ["tpm", "cm", "node_indices", "state
         system.node_labels = self.node_labels
         system.nodes = self.nodes
         system.state = self.state
+        system.state_space = self.state_space
 
 
 class MacroSubsystem(Subsystem):
@@ -233,15 +249,23 @@ class MacroSubsystem(Subsystem):
 
         state = utils.state_of(internal_indices, system.state)
 
+        state_space = build_state_space(system.tpm[:-1], system.state_space)
+
         # Re-index the subsystem nodes with the external nodes removed
         node_indices = reindex(internal_indices)
-        nodes = generate_nodes(tpm, cm, state, node_indices)
+        nodes = generate_nodes(
+            tpm,
+            cm,
+            state_space,
+            node_indices,
+            network_state=state
+        )
 
         # Re-calcuate the tpm based on the results of the cut
         # TODO: nonbinary nodes.
         tpm = rebuild_system_tpm(node.pyphi.tpm[..., 1] for node in nodes)
 
-        return SystemAttrs(tpm, cm, node_indices, state)
+        return SystemAttrs(tpm, cm, node_indices, state, state_space)
 
     @staticmethod
     def _blackbox_partial_noise(blackbox, system):
@@ -272,7 +296,13 @@ class MacroSubsystem(Subsystem):
         n = len(system.node_indices)
         cm = np.ones((n, n))
 
-        return SystemAttrs(tpm, cm, system.node_indices, system.state)
+        return SystemAttrs(
+            tpm,
+            cm,
+            system.node_indices,
+            system.state,
+            system.state_space
+        )
 
     def _blackbox_space(self, blackbox, system):
         """Blackbox the TPM and CM in space.
@@ -290,7 +320,8 @@ class MacroSubsystem(Subsystem):
 
         assert blackbox.output_indices == tpm.tpm_indices()
 
-        tpm = remove_singleton_dimensions(tpm)
+        new_tpm = remove_singleton_dimensions(tpm)
+        state_space = build_state_space(tpm[:-1], system.state_space)
         n = len(blackbox)
         cm = np.zeros((n, n))
         for i, j in itertools.product(range(n), repeat=2):
@@ -303,7 +334,7 @@ class MacroSubsystem(Subsystem):
         state = blackbox.macro_state(system.state)
         node_indices = blackbox.macro_indices
 
-        return SystemAttrs(tpm, cm, node_indices, state)
+        return SystemAttrs(new_tpm, cm, node_indices, state, state_space)
 
     @staticmethod
     def _coarsegrain_space(coarse_grain, is_cut, system):
