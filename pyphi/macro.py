@@ -16,10 +16,11 @@ from scipy.stats import entropy
 from . import compute, config, convert, distribution, utils, validate
 from .exceptions import ConditionallyDependentError, StateUnreachableError
 from .labels import NodeLabels
-from .network import irreducible_purviews, build_state_space
+from .network import irreducible_purviews
 from .node import expand_node_tpm, generate_nodes
 from .subsystem import Subsystem
 from .tpm import ExplicitTPM
+from .utils import build_state_space
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
@@ -249,7 +250,7 @@ class MacroSubsystem(Subsystem):
 
         state = utils.state_of(internal_indices, system.state)
 
-        state_space = build_state_space(system.tpm[:-1], system.state_space)
+        state_space, _ = build_state_space(system.tpm[:-1], system.state_space)
 
         # Re-index the subsystem nodes with the external nodes removed
         node_indices = reindex(internal_indices)
@@ -321,7 +322,7 @@ class MacroSubsystem(Subsystem):
         assert blackbox.output_indices == tpm.tpm_indices()
 
         new_tpm = remove_singleton_dimensions(tpm)
-        state_space = build_state_space(tpm[:-1], system.state_space)
+        state_space, _ = build_state_space(tpm[:-1], system.state_space)
         n = len(blackbox)
         cm = np.zeros((n, n))
         for i, j in itertools.product(range(n), repeat=2):

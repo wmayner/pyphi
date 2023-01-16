@@ -29,12 +29,12 @@ from .models import (
     _null_ria,
 )
 from .models.mechanism import StateSpecification
-from .network import irreducible_purviews, build_state_space
+from .network import irreducible_purviews
 from .node import generate_nodes
 from .partition import mip_partitions
 from .repertoire import forward_repertoire, unconstrained_forward_repertoire
 from .tpm import ExplicitTPM
-from .utils import state_of
+from .utils import build_state_space, state_of
 
 log = logging.getLogger(__name__)
 
@@ -115,7 +115,7 @@ class Subsystem:
         self.proper_tpm = self.tpm.squeeze()[..., list(self.node_indices)]
 
         # The state space of the nodes in the candidate system.
-        self.proper_state_space = build_state_space(
+        self.proper_state_space, _ = build_state_space(
             self.tpm[:-1],
             self.network.state_space
         )

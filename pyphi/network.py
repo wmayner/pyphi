@@ -9,12 +9,11 @@ context of all |small_phi| and |big_phi| computation.
 
 import numpy as np
 
-from typing import Iterable, Optional, Union
-
 from . import cache, connectivity, jsonify, utils, validate
 from .labels import NodeLabels
 from .node import generate_nodes
 from .tpm import ExplicitTPM, ImplicitTPM, implicit_tpm
+from .utils import build_state_space
 
 
 class Network:
@@ -223,39 +222,6 @@ class Network:
         """Return a |Network| object from a JSON dictionary representation."""
         del json_dict["size"]
         return Network(**json_dict)
-
-
-def build_state_space(
-        nodes_shape: Iterable[int],
-        state_space: Optional[Iterable[Iterable[Union[int|str]]]] = None,
-) -> tuple[tuple[tuple[Union[int|str]]], int]:
-    """Format the passed state space labels or construct defaults if none.
-
-    Arguments:
-        nodes_shape (Iterable[int]): The first |n| components in the shape of
-            a network's multidimensional TPM, where |n| is the number of nodes.
-
-    Keyword Args:
-        state_space (Optional[Iterable[Iterable[Union[int|str]]]]): The
-            network's state space labels as provided by the user.
-
-    Returns:
-        tuple[tuple[tuple[Union[int|str]]], int]: State space for the network of
-            interest and its hash.
-    """
-    if state_space is None:
-        state_space = tuple(tuple(range(dim)) for dim in nodes_shape)
-    else:
-        # Enforce tuple.
-        state_space = tuple(map(tuple, state_space))
-        # Filter out states of singleton dimensions.
-        shape_state_map = zip(nodes_shape, state_space)
-        state_space = tuple(
-            node_states for dim, node_states in shape_state_map
-            if dim > 1
-        )
-
-    return (state_space, hash(state_space))
 
 
 def irreducible_purviews(cm, direction, mechanism, purviews):
