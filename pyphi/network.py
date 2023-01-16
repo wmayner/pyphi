@@ -215,6 +215,7 @@ class Network:
             "cm": self.cm,
             "size": self.size,
             "node_labels": self.node_labels,
+            "state_space": self.state_space,
         }
 
     @classmethod
