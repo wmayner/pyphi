@@ -181,7 +181,7 @@ class Network:
 
     def __len__(self):
         """int: The number of nodes in the network."""
-        return self.cm.shape[0]
+        return len(self.tpm)
 
     def __repr__(self):
         # TODO implement a cleaner repr, similar to analyses objects,
