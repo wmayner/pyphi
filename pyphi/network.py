@@ -64,15 +64,15 @@ class Network:
                 tpm.shape[:-1], state_space
             )
 
-            nodes = generate_nodes(
-                tpm,
-                self._cm,
-                self._state_space,
-                self._node_indices,
-                node_labels=self._node_labels
+            self._tpm = implicit_tpm(
+                generate_nodes(
+                    tpm,
+                    self._cm,
+                    self._state_space,
+                    self._node_indices,
+                    node_labels=self._node_labels
+                )
             )
-
-            self._tpm = nodes
 
         elif isinstance(tpm, ImplicitTPM):
             self._tpm = tpm
