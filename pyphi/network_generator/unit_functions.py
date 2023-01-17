@@ -8,17 +8,17 @@ from . import utils
 
 
 def logical_or_function(element, weights, state):
-    return utils.input_weight(element, weights, state) >= 1
+    return utils.total_weighted_input(element, weights, state) >= 1
 
 
 def logical_and_function(element, weights, state):
     # Convention: i,j means i -> j
     num_inputs = (weights[:, element] > 0).sum()
-    return utils.input_weight(element, weights, state) >= num_inputs
+    return utils.total_weighted_input(element, weights, state) >= num_inputs
 
 
 def logical_parity_function(element, weights, state):
-    return utils.input_weight(element, weights, state) % 2 >= 1
+    return utils.total_weighted_input(element, weights, state) % 2 >= 1
 
 
 def logical_nor_function(element, weights, state):
@@ -35,7 +35,7 @@ def logical_nparity_function(element, weights, state):
 
 @curry
 def naka_rushton(element, weights, state, exponent=2.0, threshold=1.0):
-    x = utils.input_weight(element, weights, state) ** exponent
+    x = utils.total_weighted_input(element, weights, state) ** exponent
     return x / (x + threshold)
 
 
@@ -59,7 +59,7 @@ def boolean_function(element, weights, state, on_inputs=()):
     if len(set(map(len, on_inputs))) != 1:
         raise ValueError("on_inputs must all be the same length")
 
-    inputs = tuple(utils.inputs(element, weights, state))
+    inputs = tuple(utils.weighted_inputs(element, weights, state))
 
     if len(inputs) != len(next(iter(on_inputs), len(inputs))):
         raise ValueError("nonzero input weights and on_input lengths must match")
@@ -80,5 +80,5 @@ def gaussian(
     sigma=0.5,
 ):
     state = utils.binary2spin(state)
-    x = utils.input_weight(element, weights, state)
+    x = utils.total_weighted_input(element, weights, state)
     return gauss(x, mu, sigma)
