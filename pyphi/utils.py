@@ -92,14 +92,14 @@ def build_state_space(
             in the network.
 
     Keyword Args:
-        state_space (Optional[Iterable[Iterable[Union[int|str]]]]): The
+        state_space (Optional[Iterable[Iterable[Union[int, str]]]]): The
             network's state space labels as provided by the user.
-        singleton_state_space (Optional[Iterable[Union[int|str]]]): The label to
+        singleton_state_space (Optional[Iterable[Union[int, str]]]): The label to
             be used for singleton dimensions. If ``None``, singleton dimensions
             will be discarded.
 
     Returns:
-        Tuple[Tuple[Tuple[Union[int|str]]], int]: State space for the network of
+        Tuple[Tuple[Tuple[Union[int, str]]], int]: State space for the network of
             interest and its hash.
     """
     if state_space is None:

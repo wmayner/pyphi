@@ -33,7 +33,7 @@ class Network:
             is connected to every node (including itself)**.
         node_labels (tuple[str] or |NodeLabels|): Human-readable labels for
             each node in the network.
-        state_space (Optional[tuple[tuple[Union[int|str]]]]):
+        state_space (Optional[tuple[tuple[Union[int, str]]]]):
             Labels for the state space of each node in the network. If ``None``,
             states will be automatically labeled using a zero-based integer
             index per node.
@@ -137,7 +137,7 @@ class Network:
 
     @property
     def state_space(self):
-        """tuple[tuple[Union[int|str]]: Labels for the state space of each node.
+        """tuple[tuple[Union[int, str]]: Labels for the state space of each node.
         """
         return self._state_space
 
