@@ -81,9 +81,9 @@ def state_of_subsystem_nodes(node_indices, nodes, subsystem_state):
 
 def build_state_space(
         nodes_shape: Iterable[int],
-        state_space: Optional[Iterable[Iterable[Union[int|str]]]] = None,
-        singleton_state_space: Optional[Iterable[Union[int|str]]] = None,
-) -> Tuple[Tuple[Tuple[Union[int|str]]], int]:
+        state_space: Optional[Iterable[Iterable[Union[int, str]]]] = None,
+        singleton_state_space: Optional[Iterable[Union[int, str]]] = None,
+) -> Tuple[Tuple[Tuple[Union[int, str]]], int]:
     """Format the passed state space labels or construct defaults if none.
 
     Arguments:
