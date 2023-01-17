@@ -927,3 +927,39 @@ def plot_distribution(
     ax.legend(bbox_to_anchor=(1.1, 1.05))
 
     return fig, ax
+
+
+def plot_repertoires(subsystem, sia, **kwargs):
+    if config.REPERTOIRE_DISTANCE != "GENERALIZED_INTRINSIC_DIFFERENCE":
+        raise NotImplementedError(
+            "Only REPERTOIRE_DISTANCE = "
+            "GENERALIZED_INTRINSIC_DIFFERENCE is supported"
+        )
+    cut_subsystem = subsystem.apply_cut(sia.partition)
+
+    labels = ["unpartitioned", "partitioned"]
+    subsystems = dict(zip(labels, [subsystem, cut_subsystem]))
+    repertoires = {
+        direction: {
+            label: s.forward_repertoire(direction, s.node_indices, s.node_indices)
+            for label, s in subsystems.items()
+        }
+        for direction in Direction.both()
+    }
+
+    fig = plt.figure(figsize=(12, 9))
+    axes = fig.subplots(2, 1)
+    for ax, direction in zip(axes, Direction.both()):
+        plot_distribution(
+            repertoires[direction][labels[0]],
+            repertoires[direction][labels[1]],
+            validate=False,
+            title=str(direction),
+            labels=labels,
+            ax=ax,
+            **kwargs,
+        )
+    fig.tight_layout(h_pad=0.5)
+    for ax in axes:
+        ax.legend(bbox_to_anchor=(1.1, 1.1))
+    return fig, axes, repertoires
