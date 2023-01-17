@@ -201,24 +201,30 @@ def node(
         xr.DataArray: The node in question.
     """
 
-    if node_labels is None:
-        indices = tuple(range(cm.shape[0]))
-        node_labels = NodeLabels(None, indices)
-
     # Get indices of the inputs and outputs.
     inputs = frozenset(get_inputs_from_cm(index, cm))
     outputs = frozenset(get_outputs_from_cm(index, cm))
 
     # Generate DataArray structure for this node
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # The names of the n nodes in the network (whose state we can condition this
-    # node's TPM on), plus the last dimension with the probability ("Pr") for
-    # each possible state of this node in the next timestep.
+    # Dimensions are the names of this node's parents (whose state we
+    # can condition this node's TPM on), plus the last dimension with
+    # the probability ("Pr") for each possible state of this node in
+    # the next timestep.
 
     # data_vars (xr.DataArray node names) and dimension names share the same
     # dictionary-like namespace in xr.Dataset. Prepend constant "input_" string
     # to avoid the conflict.
-    dimensions = ["input_" + label for label in node_labels] + ["Pr"]
+    if node_labels is None:
+        indices = tuple(range(cm.shape[0]))
+        node_labels = NodeLabels(None, indices)
+
+    parent_node_labels = tuple(
+        label for dim, label in zip(tpm.shape[:-1], node_labels)
+        if dim > 1
+    )
+
+    dimensions = ["input_" + label for label in parent_node_labels] + ["Pr"]
 
     # For each dimension, compute the relevant state labels (coordinates in
     # xarray terminology) from the perspective of this node and its direct
@@ -226,8 +232,9 @@ def node(
     state_space, _ = build_state_space(
         tpm.shape[:-1],
         network_state_space,
-        SINGLETON_STATE
+        singleton_state_space = None,
     )
+
     node_state_space = network_state_space[index]
 
     coordinates = [*state_space, node_state_space]
@@ -237,7 +244,7 @@ def node(
     # np.asarray().
     return xr.DataArray(
         name = node_labels[index],
-        data = np.asarray(tpm),
+        data = np.asarray(tpm.squeeze()),
         dims = dimensions,
         coords = list(map(list, coordinates)),
         attrs = {
