@@ -212,9 +212,6 @@ def node(
     # the probability ("Pr") for each possible state of this node in
     # the next timestep.
 
-    # data_vars (xr.DataArray node names) and dimension names share the same
-    # dictionary-like namespace in xr.Dataset. Prepend constant "input_" string
-    # to avoid the conflict.
     if node_labels is None:
         indices = tuple(range(cm.shape[0]))
         node_labels = NodeLabels(None, indices)
@@ -224,6 +221,9 @@ def node(
         if dim > 1
     )
 
+    # data_vars (xr.DataArray node names) and dimension names share the same
+    # dictionary-like namespace in xr.Dataset. Prepend constant "input_" string
+    # to avoid the conflict.
     dimensions = ["input_" + label for label in parent_node_labels] + ["Pr"]
 
     # For each dimension, compute the relevant state labels (coordinates in
@@ -244,7 +244,7 @@ def node(
     # np.asarray().
     return xr.DataArray(
         name = node_labels[index],
-        data = np.asarray(tpm.squeeze()),
+        data = tpm.squeeze(),
         dims = dimensions,
         coords = list(map(list, coordinates)),
         attrs = {

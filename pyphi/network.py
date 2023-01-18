@@ -57,7 +57,8 @@ class Network:
         if isinstance(tpm, (np.ndarray, ExplicitTPM)):
             # Validate tpm even if an ExplicitTPM was provided. ExplicitTPM
             # accepts instantiation from either another object of its class or
-            # np.ndarray, so the following achieves validation in general.
+            # np.ndarray, so the following achieves validation in general (and
+            # converstion to multidimensional form, as a side effect).
             tpm = ExplicitTPM(tpm, validate=True)
 
             self._state_space, _ = build_state_space(
@@ -86,8 +87,7 @@ class Network:
 
         self.purview_cache = purview_cache or cache.PurviewCache()
 
-        # TODO
-        # validate.network(self)
+        validate.network(self)
 
     @property
     def tpm(self):
@@ -181,7 +181,10 @@ class Network:
 
     def __len__(self):
         """int: The number of nodes in the network."""
-        return len(self.tpm)
+        try:
+            return len(self.tpm)
+        except AttributeError:
+            return self._cm.shape[0]
 
     def __repr__(self):
         # TODO implement a cleaner repr, similar to analyses objects,

@@ -18,6 +18,76 @@ from .data_structures import FrozenMap
 from .utils import all_states, np_hash, np_immutable
 
 
+class TPM:
+    """TPM interface for derived classes."""
+
+    _ERROR_MSG_PROBABILITY_IMAGE = (
+        "Invalid TPM: probabilities must be in the interval [0, 1]."
+    )
+
+    _ERROR_MSG_PROBABILITY_SUM = "Invalid TPM: probabilities must sum to 1."
+
+    def validate(self, check_independence=True):
+        raise NotImplementedError
+
+    def _validate_probabilities(self):
+        raise NotImplementedError
+
+    def _validate_shape(self, check_independence=True):
+        raise NotImplementedError
+
+    def to_multidimensional_state_by_node(self):
+        raise NotImplementedError
+
+    def conditionally_independent(self):
+        raise NotImplementedError
+
+    def condition_tpm(self, condition: Mapping[int, int]):
+        raise NotImplementedError
+
+    def marginalize_out(self, node_indices):
+        raise NotImplementedError
+
+    def is_deterministic(self):
+        raise NotImplementedError
+
+    def is_state_by_state(self):
+        raise NotImplementedError
+
+    def subtpm(self, fixed_nodes, state):
+        raise NotImplementedError
+
+    def expand_tpm(self):
+        raise NotImplementedError
+
+    def infer_edge(self, a, b, contexts):
+        raise NotImplementedError
+
+    def infer_cm(self):
+        raise NotImplementedError
+
+    def tpm_indices(self):
+        raise NotImplementedError
+
+    def print(self):
+        raise NotImplementedError
+
+    def permute_nodes(self, permutation):
+        raise NotImplementedError
+
+    def __getitem__(self, i):
+        raise NotImplementedError
+
+    def __str__(self):
+        raise NotImplementedError
+
+    def __repr__(self):
+        raise NotImplementedError
+
+    def __hash__(self):
+        raise NotImplementedError
+
+
 # TODO(tpm) remove pending ArrayLike refactor
 class ProxyMetaclass(type):
     """A metaclass to create wrappers for the TPM array's special attributes.
@@ -159,7 +229,7 @@ class Wrapper(metaclass=ProxyMetaclass):
             raise ValueError(f"Wrapped object must be of type {self.__wraps__}")
 
 
-class ExplicitTPM(data_structures.ArrayLike):
+class ExplicitTPM(data_structures.ArrayLike, TPM):
 
     """An explicit network TPM in multidimensional form.
 
@@ -284,11 +354,9 @@ class ExplicitTPM(data_structures.ArrayLike):
     def _validate_probabilities(self):
         """Check that the probabilities in a TPM are valid."""
         if (self._tpm < 0.0).any() or (self._tpm > 1.0).any():
-            raise ValueError(
-                "Invalid TPM: probabilities must be in the interval [0, 1]."
-            )
+            raise ValueError(self._ERROR_MSG_PROBABILITY_IMAGE)
         if self.is_state_by_state() and np.any(np.sum(self._tpm, axis=1) != 1.0):
-            raise ValueError("Invalid TPM: probabilities must sum to 1.")
+            raise ValueError(self._ERROR_MSG_PROBABILITY_SUM)
         return True
 
     def _validate_shape(self, check_independence=True):
@@ -569,8 +637,9 @@ def implicit_tpm(nodes, validate=False):
         data_vars = {node.name: node for node in nodes}
     )
 
+
 @xr.register_dataset_accessor("pyphi")
-class ImplicitTPM:
+class ImplicitTPM(TPM):
 
     """An implicit network TPM containing |Node| TPMs in multidimensional form.
 
@@ -580,11 +649,31 @@ class ImplicitTPM:
     Attributes:
     """
 
-    def validate(self, check_independence):
-        raise NotImplementedError
+    def __init__(self, dataset: xr.Dataset):
+        self._tpm = dataset
+
+    def validate(self, check_independence=True):
+        """Validate this TPM."""
+        return self._validate_probabilities()
 
     def _validate_probabilities(self):
-        raise NotImplementedError
+        """Check that the probabilities in a TPM are valid."""
+        # An implicitTPM contains valid probabilities if individual node TPMs
+        # are valid.
+        if any(
+                (np.asarray(node_tpm).sum(axis=-1) != 1.0).any()
+                for node_tpm in self._tpm.data_vars.values()
+        ):
+            raise ValueError(self._ERROR_MSG_PROBABILITY_SUM)
+
+        # Leverage method in ExplicitTPM to distribute validation of
+        # TPM image within [0, 1].
+        if all(
+                node.data._validate_probabilities()
+                for node in self._tpm.data_vars.values()
+        ):
+            return True
+
 
     def _validate_shape(self, check_independence=True):
         raise NotImplementedError
