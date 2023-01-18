@@ -78,6 +78,7 @@ class Network:
         elif isinstance(tpm, ImplicitTPM):
             self._tpm = tpm
 
+        # FIXME(TPM) initialization from JSON
         elif isinstance(tpm, dict):
             # From JSON.
             self._tpm = ImplicitTPM(tpm["_tpm"], validate=True)
@@ -201,13 +202,14 @@ class Network:
         """
         return (
             isinstance(other, Network)
-            and self.tpm.array_equal(other.tpm)
+            and self.tpm.equals(other.tpm)
             and np.array_equal(self.cm, other.cm)
         )
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    # TODO(tpm): Immutability in xarray.
     def __hash__(self):
         return hash((hash(self.tpm), self._cm_hash))
 
