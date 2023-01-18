@@ -35,8 +35,7 @@ def pareto_distribution(n, alpha=1.0):
 @_optionally_normalize_inputs
 def nearest_neighbor(
     size,
-    w_self,
-    w_lateral,
+    weights,
     k=1,
     periodic=False,
     **kwargs,
@@ -48,13 +47,16 @@ def nearest_neighbor(
     if k >= k_limit:
         raise ValueError(f"k must be <= {k_limit} (n={size}, periodic={periodic})")
 
-    W = w_self * np.eye(size)
+    weights = np.ones(k + 1) * weights
+    # Self loops
+    W = weights[0] * np.eye(size)
+    # Laterals
     for i in range(1, k + 1):
         for j in [-1, 1]:
-            W += w_lateral * np.eye(size, k=j * i)
+            W += weights[i] * np.eye(size, k=j * i)
             # Don't double-weight farthest laterals if periodic
             if periodic and i < (size / 2):
-                W += w_lateral * np.eye(size, k=j * (size - i))
+                W += weights[i] * np.eye(size, k=j * (size - i))
     return W
 
 
