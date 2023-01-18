@@ -14,6 +14,7 @@ import scipy.special
 import seaborn as sb
 from _plotly_utils.basevalidators import ColorscaleValidator
 from matplotlib import pyplot as plt
+from numpy.typing import ArrayLike
 from plotly import graph_objs as go
 from toolz import partition
 
@@ -25,7 +26,6 @@ from .models.subsystem import CauseEffectStructure
 from .new_big_phi import PhiStructure
 from .relations import ConcreteRelations
 from .utils import state_of
-
 
 # TODO(viz): Update to use new relations
 
@@ -963,3 +963,24 @@ def plot_repertoires(subsystem, sia, **kwargs):
     for ax in axes:
         ax.legend(bbox_to_anchor=(1.1, 1.1))
     return fig, axes, repertoires
+
+
+def plot_dynamics(data: ArrayLike, node_labels=None, title=""):
+    """Plot an array of states over time.
+
+    Arguments:
+        data (ArrayLike): An array of states with shape (timesteps, units).
+    """
+    # Plot time horizontally
+    data = np.transpose(data)
+    fig = plt.figure(figsize=(25, 5))
+    ax = plt.imshow(data, aspect="auto", interpolation="none", vmin=0, vmax=1)
+    plt.grid(False)
+    plt.title(title)
+    plt.ylabel("Substrate state")
+    plt.xlabel("Time")
+    if node_labels is not None:
+        plt.yticks(range(len(node_labels)), node_labels)
+    plt.colorbar()
+    plt.show()
+    return fig, ax
