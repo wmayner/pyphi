@@ -684,8 +684,36 @@ class ImplicitTPM(TPM):
     def conditionally_independent(self):
         raise NotImplementedError
 
+    # TODO accept label-state mapping as argument. Current solution
+    # relies on correct node order in data_vars.
+    #
+    # TODO(tpm) Refactor codebase to call tpm[Mapping] directly?
     def condition_tpm(self, condition: Mapping[int, int]):
-        raise NotImplementedError
+        """Return a TPM conditioned on the given fixed node indices, whose
+        states are fixed according to the given state-tuple.
+
+        The dimensions of the new TPM that correspond to the fixed nodes are
+        collapsed onto their state, making those dimensions singletons suitable
+        for broadcasting. The number of dimensions of the conditioned TPM will
+        be the same as the unconditioned TPM.
+
+        Args:
+            condition (dict[int, int]): A mapping from node indices to the state
+                to condition on for that node.
+
+        Returns:
+            TPM: A conditioned TPM with the same number of dimensions, with
+            singleton dimensions for nodes in a fixed state.
+        """
+        node_dimensions = ["input_" + dim for dim in self._tpm.data_vars.keys()]
+
+        condition = {
+            node_dimensions[node_index]: state
+            for node_index, state in condition.items()
+        }
+
+        # TODO: broadcasting
+        return self._tpm[condition]
 
     def marginalize_out(self, node_indices):
         raise NotImplementedError
