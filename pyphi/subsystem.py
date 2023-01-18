@@ -33,7 +33,6 @@ from .network import irreducible_purviews
 from .node import generate_nodes
 from .partition import mip_partitions
 from .repertoire import forward_repertoire, unconstrained_forward_repertoire
-from .tpm import ExplicitTPM
 from .utils import build_state_space, state_of
 
 log = logging.getLogger(__name__)
@@ -61,7 +60,7 @@ class Subsystem:
 
     Attributes:
         network (Network): The network the subsystem belongs to.
-        tpm (pyphi.tpm.ExplicitTPM): The TPM conditioned on the state
+        tpm (ImplicitTPM): The TPM conditioned on the state
             of the external nodes.
         cm (np.ndarray): The connectivity matrix after applying the cut.
         state (tuple[int]): The state of the network.
