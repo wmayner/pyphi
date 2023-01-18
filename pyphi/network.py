@@ -190,7 +190,7 @@ class Network:
     def __repr__(self):
         # TODO implement a cleaner repr, similar to analyses objects,
         # distinctions, etc.
-        return "Network(\n{},\ncm=\n{}\n)".format(self.tpm, self.cm)
+        return "Network({}, cm={})".format(self.tpm, self.cm)
 
     def __str__(self):
         return self.__repr__()
