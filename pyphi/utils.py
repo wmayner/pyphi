@@ -81,9 +81,9 @@ def state_of_subsystem_nodes(node_indices, nodes, subsystem_state):
 
 def build_state_space(
         nodes_shape: Iterable[int],
-        state_space: Optional[Iterable[Iterable[Union[int|str]]]] = None,
-        singleton_state_space: Optional[Iterable[Union[int|str]]] = None,
-) -> Tuple[Tuple[Tuple[Union[int|str]]], int]:
+        state_space: Optional[Iterable[Iterable[Union[int, str]]]] = None,
+        singleton_state_space: Optional[Iterable[Union[int, str]]] = None,
+) -> Tuple[Tuple[Tuple[Union[int, str]]], int]:
     """Format the passed state space labels or construct defaults if none.
 
     Arguments:
@@ -92,14 +92,14 @@ def build_state_space(
             in the network.
 
     Keyword Args:
-        state_space (Optional[Iterable[Iterable[Union[int|str]]]]): The
+        state_space (Optional[Iterable[Iterable[Union[int, str]]]]): The
             network's state space labels as provided by the user.
-        singleton_state_space (Optional[Iterable[Union[int|str]]]): The label to
+        singleton_state_space (Optional[Iterable[Union[int, str]]]): The label to
             be used for singleton dimensions. If ``None``, singleton dimensions
             will be discarded.
 
     Returns:
-        Tuple[Tuple[Tuple[Union[int|str]]], int]: State space for the network of
+        Tuple[Tuple[Tuple[Union[int, str]]], int]: State space for the network of
             interest and its hash.
     """
     if state_space is None:
