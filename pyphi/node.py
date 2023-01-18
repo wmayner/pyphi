@@ -82,7 +82,7 @@ class Node:
     @property
     def label(self):
         """str: The textual label for this node."""
-        return self.node_labels[self.index]
+        return self._node_labels[self.index]
 
     @property
     def tpm(self):
@@ -127,7 +127,7 @@ class Node:
 
     @state.setter
     def state(self, value):
-        if value not in self.state_space:
+        if value not in (*self.state_space, None):
             raise ValueError(
                 f"Invalid node state. Possible states are {self.state_space}."
             )
