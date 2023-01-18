@@ -226,6 +226,9 @@ class ExplicitTPM(data_structures.ArrayLike):
         else:
             return getattr(self.__getattribute__(self._VALUE_ATTR), name)
 
+    def __len__(self):
+        return len(self.__getattribute__(self._VALUE_ATTR))
+
     def __init__(self, tpm, validate=False):
         self._tpm = np.array(tpm)
         super().__init__()
