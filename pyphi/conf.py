@@ -955,6 +955,8 @@ if on_driver():
 else:
     # We're in a remote instance; load the PyPhi-managed config
     config.load_file(PYPHI_MANAGED_CONFIG_PATH)
+    # Disable progress bars on remote processes
+    config.PROGRESS_BARS = False
 
 # We've loaded/written; now we can allow loading
 _LOADED = True
