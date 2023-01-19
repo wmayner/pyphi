@@ -75,7 +75,6 @@ class Subsystem:
         state,
         nodes=None,
         cut=None,
-        mice_cache=None,
         # TODO(4.0): refactor repertoire caches
         repertoire_cache=None,
         single_node_repertoire_cache=None,
@@ -123,9 +122,6 @@ class Subsystem:
         self.cm = self.cut.apply_cut(network.cm)
         # The subsystem's connectivity matrix with the cut applied
         self.proper_cm = connectivity.subadjacency(self.cm, self.node_indices)
-
-        # Reusable cache for maximally-irreducible causes and effects
-        self._mice_cache = cache.MICECache(self, mice_cache)
 
         # Cause & effect repertoire caches
         # TODO: if repertoire caches are never reused, there's no reason to
@@ -218,14 +214,12 @@ class Subsystem:
         return {
             "single_node_repertoire": self._single_node_repertoire_cache.info(),
             "repertoire": self._repertoire_cache.info(),
-            "mice": self._mice_cache.info(),
         }
 
     def clear_caches(self):
         """Clear the mice and repertoire caches."""
         self._single_node_repertoire_cache.clear()
         self._repertoire_cache.clear()
-        self._mice_cache.clear()
 
     def __repr__(self):
         return "Subsystem(" + ", ".join(map(repr, self.nodes)) + ")"
@@ -302,7 +296,6 @@ class Subsystem:
             self.state,
             self.node_indices,
             cut=cut,
-            mice_cache=self._mice_cache,
         )
 
     def indices2nodes(self, indices):
@@ -1071,7 +1064,6 @@ class Subsystem:
         # is cut/smaller we check again here.
         return irreducible_purviews(self.cm, direction, mechanism, purviews)
 
-    @cache.method("_mice_cache")
     def find_mice(self, direction, mechanism, purviews=False, **kwargs):
         """Return the |MIC| or |MIE| for a mechanism.
 

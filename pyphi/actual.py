@@ -451,8 +451,6 @@ class Transition:
             if set(purview).issubset(self.purview_indices(direction))
         ]
 
-    # TODO: Implement mice cache
-    # @cache.method('_mice_cache')
     def find_causal_link(self, direction, mechanism, purviews=False, allow_neg=False):
         """Return the maximally irreducible cause or effect ratio for a
         mechanism.
