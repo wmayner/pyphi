@@ -24,7 +24,7 @@ from itertools import chain
 
 import numpy as np
 
-from . import compute, connectivity, exceptions, utils, validate
+from . import compute, conf, connectivity, exceptions, utils, validate
 from .compute.parallel import MapReduce
 from .conf import config
 from .direction import Direction
@@ -638,10 +638,6 @@ def _get_cuts(transition, direction):
             yield ActualCut(direction, partition, transition.node_labels)
 
 
-DEFAULT_AC_SIA_SEQUENTIAL_THRESHOLD = 4
-DEFAULT_AC_SIA_CHUNKSIZE = 2 * DEFAULT_AC_SIA_SEQUENTIAL_THRESHOLD
-
-
 # TODO(4.0) change parallel default to True?
 def sia(transition, direction=Direction.BIDIRECTIONAL, **kwargs):
     """Return the minimal information partition of a transition in a specific
@@ -681,11 +677,7 @@ def sia(transition, direction=Direction.BIDIRECTIONAL, **kwargs):
 
     cuts = _get_cuts(transition, direction)
 
-    kwargs = {
-        "parallel": config.PARALLEL_CUT_EVALUATION,
-        "progress": config.PROGRESS_BARS,
-        **kwargs,
-    }
+    parallel_kwargs = conf.parallel_kwargs(config.PARALLEL_CUT_EVALUATION, **kwargs)
     result = MapReduce(
         _evaluate_cut,
         cuts,
@@ -699,9 +691,7 @@ def sia(transition, direction=Direction.BIDIRECTIONAL, **kwargs):
             default=_null_ac_sia(transition, direction, alpha=float("inf"))
         ),
         shortcircuit_func=utils.is_falsy,
-        chunksize=DEFAULT_AC_SIA_CHUNKSIZE,
-        sequential_threshold=DEFAULT_AC_SIA_SEQUENTIAL_THRESHOLD,
-        **kwargs,
+        **parallel_kwargs,
     ).run()
     log.info("Finished calculating big-ac-phi data for %s.", transition)
     log.debug("RESULT: \n%s", result)

@@ -11,7 +11,7 @@ from typing import Iterable, Tuple
 import numpy as np
 from numpy.typing import ArrayLike
 
-from . import cache, connectivity, distribution, metrics
+from . import cache, conf, connectivity, distribution, metrics
 from . import repertoire as _repertoire
 from . import resolve_ties, utils, validate
 from .compute.parallel import MapReduce
@@ -36,12 +36,6 @@ from .repertoire import forward_repertoire, unconstrained_forward_repertoire
 from .utils import state_of
 
 log = logging.getLogger(__name__)
-
-# TODO move to defaults
-DEFAULT_MECHANISM_PARTITION_SEQUENTIAL_THRESHOLD = 2**8
-DEFAULT_MECHANISM_PARTITION_CHUNKSIZE = (
-    2**2 * DEFAULT_MECHANISM_PARTITION_SEQUENTIAL_THRESHOLD
-)
 
 
 class Subsystem:
@@ -854,18 +848,8 @@ class Subsystem:
             # tied states
             partitions = list(partitions)
 
-        parallel_kwargs = {
-            "parallel": config.PARALLEL_MECHANISM_PARTITION_EVALUATION,
-            "progress": config.PROGRESS_BARS,
-            "chunksize": DEFAULT_MECHANISM_PARTITION_CHUNKSIZE,
-            "sequential_threshold": DEFAULT_MECHANISM_PARTITION_SEQUENTIAL_THRESHOLD,
-        }
-        parallel_kwargs.update(
-            {
-                kwarg: value
-                for kwarg, value in kwargs.items()
-                if kwarg in parallel_kwargs
-            }
+        parallel_kwargs = conf.parallel_kwargs(
+            config.PARALLEL_MECHANISM_PARTITION_EVALUATION, **kwargs
         )
         if config.IIT_VERSION == 4:
             if state is None:
@@ -1081,11 +1065,6 @@ class Subsystem:
         Returns:
             MaximallyIrreducibleCauseOrEffect: The |MIC| or |MIE|.
         """
-        parallel = (
-            bool(config.PARALLEL_PURVIEW_EVALUATION)
-            and len(mechanism) >= config.PARALLEL_PURVIEW_EVALUATION
-        )
-
         purviews = self.potential_purviews(direction, mechanism, purviews)
 
         if direction == Direction.CAUSE:
@@ -1104,13 +1083,15 @@ class Subsystem:
         def _find_mip(purview):
             return self.find_mip(direction, mechanism, purview)
 
+        parallel_kwargs = conf.parallel_kwargs(
+            config.PARALLEL_PURVIEW_EVALUATION, **kwargs
+        )
         map_reduce = MapReduce(
             _find_mip,
             purviews,
-            parallel=parallel,
             total=len(purviews),
             desc="Evaluating purviews",
-            **kwargs,
+            **parallel_kwargs,
         )
 
         all_mice = map(mice_class, map_reduce.run())
@@ -1121,14 +1102,14 @@ class Subsystem:
             tie.set_purview_ties(ties)
         return ties[0]
 
-    def mic(self, mechanism, purviews=False):
+    def mic(self, mechanism, purviews=False, **kwargs):
         """Return the mechanism's maximally-irreducible cause (|MIC|).
 
         Alias for |find_mice()| with ``direction`` set to |CAUSE|.
         """
-        return self.find_mice(Direction.CAUSE, mechanism, purviews=purviews)
+        return self.find_mice(Direction.CAUSE, mechanism, purviews=purviews, **kwargs)
 
-    def mie(self, mechanism, purviews=False):
+    def mie(self, mechanism, purviews=False, **kwargs):
         """Return the mechanism's maximally-irreducible effect (|MIE|).
 
         Alias for |find_mice()| with ``direction`` set to |EFFECT|.
@@ -1170,7 +1151,12 @@ class Subsystem:
         return Concept(mechanism=(), cause=cause, effect=effect, subsystem=self)
 
     def concept(
-        self, mechanism, purviews=False, cause_purviews=False, effect_purviews=False
+        self,
+        mechanism,
+        purviews=False,
+        cause_purviews=False,
+        effect_purviews=False,
+        **kwargs,
     ):
         """Return the concept specified by a mechanism within this subsytem.
 
@@ -1199,10 +1185,10 @@ class Subsystem:
             return self.null_concept
 
         # Calculate the maximally irreducible cause repertoire.
-        cause = self.mic(mechanism, purviews=(cause_purviews or purviews))
+        cause = self.mic(mechanism, purviews=(cause_purviews or purviews), **kwargs)
 
         # Calculate the maximally irreducible effect repertoire.
-        effect = self.mie(mechanism, purviews=(effect_purviews or purviews))
+        effect = self.mie(mechanism, purviews=(effect_purviews or purviews), **kwargs)
 
         log.debug("Found concept %s", mechanism)
 

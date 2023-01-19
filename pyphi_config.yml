@@ -39,22 +39,51 @@ STATE_TIE_RESOLUTION: PHI
 MIP_TIE_RESOLUTION: [NORMALIZED_PHI, NEGATIVE_PHI]
 # Determine how ties among maximally irreducible purviews are broken.
 PURVIEW_TIE_RESOLUTION: PHI
-# The number of CPU cores to use in parallel.
-# -1 means all available cores, -2 means all but one available cores, etc.
+# Controls the number of CPU cores used in parallel evaluation. Negative
+# numbers count backwards from the total number of available cores, with
+# ``-1`` meaning all available cores.
 NUMBER_OF_CORES: -1
-# Controls whether complexes are evaluated in parallel.
-PARALLEL_COMPLEX_EVALUATION: true
-# Controls whether concepts are evaluated in parallel.
-PARALLEL_CONCEPT_EVALUATION: true
-# Controls whether cuts are evaluated in parallel, which requires more memory.
-# If cuts are evaluated sequentially, only two SIAs need to be in memory at a
-# time.
-PARALLEL_CUT_EVALUATION: true
-# Controls parallel evaluation of candidate purviews. A numeric value may be
-# used to threshold parallelization on mechanism size (inclusive).
-PARALLEL_PURVIEW_EVALUATION: false
+# Global switch to turn off parallelization: if ``False``, parallelization is
+# never used, regardless of parallelization settings for individual options;
+# otherwise parallelization is determined by those settings.
+PARALLEL: true
+# Controls parallel evaluation of candidate systems within a network.
+PARALLEL_COMPLEX_EVALUATION:
+  chunksize: 64
+  parallel: true
+  sequential_threshold: 16
+  progress: true
+# Controls parallel evaluation of candidate mechanisms.
+PARALLEL_CONCEPT_EVALUATION:
+  chunksize: 256
+  parallel: true
+  sequential_threshold: 64
+  progress: true
+# Controls parallel evaluation of system partitions.
+PARALLEL_CUT_EVALUATION:
+  chunksize: 4096
+  parallel: true
+  sequential_threshold: 1024
+  progress: true
+# Controls parallel evaluation of candidate purviews.
+PARALLEL_PURVIEW_EVALUATION:
+  chunksize: 256
+  parallel: true
+  sequential_threshold: 64
+  progress: true
 # Controls parallel evaluation of mechanism partitions.
-PARALLEL_MECHANISM_PARTITION_EVALUATION: true
+PARALLEL_MECHANISM_PARTITION_EVALUATION:
+  chunksize: 4096
+  parallel: true
+  sequential_threshold: 1024
+  progress: true
+# Controls parallel evaluation of relations.
+# Only applies if RELATION_COMPUTATION = 'CONCRETE'.
+PARALLEL_RELATION_EVALUATION:
+  chunksize: 4096
+  parallel: true
+  sequential_threshold: 1024
+  progress: true
 # Controls the partitioning scheme for distinctions.
 PARTITION_TYPE: ALL
 # Controls the numerical precision with which to compare phi values against each
@@ -62,9 +91,12 @@ PARTITION_TYPE: ALL
 PRECISION: 13
 # Print numbers as fractions if the denominator isn't too big.
 PRINT_FRACTIONS: true
-# Enable/disable progress bars.
+# Global switch to turn off progress bars: if ``False``, progress bars are never
+# used, regardless of progress settings for individual options; otherwise the
+# use of progress bars is determined by those settings.
 PROGRESS_BARS: true
-# Arguments to `ray.init()`
+# Keyword arguments to ``ray.init()``. Controls the initialization of the Ray
+# cluster used for parallelization / distributed computation.
 RAY_CONFIG: {}
 # Use a Redis server as a MICE cache.
 REDIS_CACHE: false

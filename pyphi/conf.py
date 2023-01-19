@@ -59,6 +59,7 @@ import tempfile
 import warnings
 from copy import copy
 from pathlib import Path
+from typing import Mapping
 from warnings import warn
 
 import ray
@@ -379,6 +380,7 @@ def on_change_distinction_phi_normalization(obj):
         )
 
 
+# TODO(configuration) actual causation parallel config
 class PyphiConfig(Config):
     """``pyphi.config`` is an instance of this class."""
 
@@ -452,50 +454,85 @@ class PyphiConfig(Config):
     """,
     )
 
-    PARALLEL_CONCEPT_EVALUATION = Option(
+    PARALLEL = Option(
         True,
         type=bool,
         doc="""
-    Controls whether concepts are evaluated in parallel when computing
-    cause-effect structures.""",
-    )
-
-    PARALLEL_CUT_EVALUATION = Option(
-        True,
-        type=bool,
-        doc="""
-    Controls whether system cuts are evaluated in parallel, which is faster but
-    requires more memory. If cuts are evaluated sequentially, only two
-    |SystemIrreducibilityAnalysis| instances need to be in memory at once.""",
+    Global switch to turn off parallelization: if ``False``, parallelization is
+    never used, regardless of parallelization settings for individual options;
+    otherwise parallelization is determined by those settings.""",
     )
 
     PARALLEL_COMPLEX_EVALUATION = Option(
-        True,
-        type=bool,
+        dict(
+            parallel=True,
+            sequential_threshold=2**4,
+            chunksize=2**6,
+            progress=True,
+        ),
+        type=Mapping,
         doc="""
-    Controls whether systems are evaluated in parallel when computing
-    complexes.""",
+    Controls parallel evaluation of candidate systems within a network.""",
+    )
+
+    PARALLEL_CUT_EVALUATION = Option(
+        dict(
+            parallel=True,
+            sequential_threshold=2**10,
+            chunksize=2**12,
+            progress=True,
+        ),
+        type=Mapping,
+        doc="""
+    Controls parallel evaluation of system partitions.""",
+    )
+
+    PARALLEL_CONCEPT_EVALUATION = Option(
+        dict(
+            parallel=True,
+            sequential_threshold=2**6,
+            chunksize=2**8,
+            progress=True,
+        ),
+        type=Mapping,
+        doc="""
+    Controls parallel evaluation of candidate mechanisms.""",
     )
 
     PARALLEL_PURVIEW_EVALUATION = Option(
-        False,
+        dict(
+            parallel=True,
+            sequential_threshold=2**6,
+            chunksize=2**8,
+            progress=True,
+        ),
+        type=Mapping,
         doc="""
-    Controls parallel evaluation of candidate purviews. A numeric value may
-    be used to threshold parallelization on mechanism size (inclusive).""",
+    Controls parallel evaluation of candidate purviews.""",
     )
 
     PARALLEL_MECHANISM_PARTITION_EVALUATION = Option(
-        True,
-        type=bool,
+        dict(
+            parallel=True,
+            sequential_threshold=2**10,
+            chunksize=2**12,
+            progress=True,
+        ),
+        type=Mapping,
         doc="""
     Controls parallel evaluation of mechanism partitions.""",
     )
 
     PARALLEL_RELATION_EVALUATION = Option(
-        False,
-        type=bool,
+        dict(
+            parallel=True,
+            sequential_threshold=2**10,
+            chunksize=2**12,
+            progress=True,
+        ),
+        type=Mapping,
         doc="""
-    Controls parallel evaluation of mechanism partitions.
+    Controls parallel evaluation of relations.
 
     Only applies if RELATION_COMPUTATION = 'CONCRETE'.
     """,
@@ -505,9 +542,9 @@ class PyphiConfig(Config):
         -1,
         type=int,
         doc="""
-    Controls the number of CPU cores used to evaluate unidirectional cuts.
-    Negative numbers count backwards from the total number of available cores,
-    with ``-1`` meaning 'use all available cores.'""",
+    Controls the number of CPU cores used in parallel evaluation. Negative
+    numbers count backwards from the total number of available cores, with
+    ``-1`` meaning all available cores.""",
     )
 
     MAXIMUM_CACHE_MEMORY_PERCENTAGE = Option(
@@ -524,8 +561,8 @@ class PyphiConfig(Config):
         dict(),
         type=dict,
         doc="""
-    Keyword arguments to ``ray.init()``. Controls the initialization of the ray
-    cluster.""",
+    Keyword arguments to ``ray.init()``. Controls the initialization of the Ray
+    cluster used for parallelization / distributed computation.""",
     )
 
     CACHE_REPERTOIRES = Option(
@@ -970,3 +1007,23 @@ def fallback(*args):
     for arg in args:
         if arg is not None:
             return arg
+
+
+def parallel_kwargs(option_kwargs, **user_kwargs):
+    """Return the kwargs for a parallel function call.
+
+    Applies user overrides to the global configuration.
+    """
+    kwargs = copy(option_kwargs)
+    if not config.PROGRESS_BARS:
+        kwargs["progress"] = False
+    if not config.PARALLEL:
+        kwargs["parallel"] = False
+    kwargs.update(
+        {
+            user_kwarg: value
+            for user_kwarg, value in user_kwargs.items()
+            if user_kwarg in kwargs
+        }
+    )
+    return kwargs

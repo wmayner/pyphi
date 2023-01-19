@@ -126,7 +126,7 @@ class Network:
     @property
     def num_states(self):
         """int: The number of possible states of the network."""
-        return 2 ** self.size
+        return 2**self.size
 
     @property
     def node_indices(self):
@@ -224,6 +224,7 @@ def irreducible_purviews(cm, direction, mechanism, purviews):
         _from, to = direction.order(mechanism, purview)
         return connectivity.block_reducible(cm, _from, to)
 
+    # TODO(4.0) use generator?
     return [purview for purview in purviews if not reducible(purview)]
 
 

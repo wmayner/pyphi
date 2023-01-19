@@ -11,6 +11,7 @@ import logging
 
 from more_itertools import collapse
 
+from .. import conf
 from .. import connectivity, utils
 from ..conf import config
 from ..direction import Direction
@@ -29,10 +30,6 @@ from .parallel import MapReduce
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
-
-
-DEFAULT_CES_SEQUENTIAL_THRESHOLD = 4
-DEFAULT_CES_CHUNKSIZE = 2 * DEFAULT_CES_SEQUENTIAL_THRESHOLD
 
 
 def ces(
@@ -82,16 +79,11 @@ def ces(
     def compute_concept(*args, **kwargs):
         # Don't serialize the subsystem; this is replaced after returning.
         # TODO(4.0) remove when subsystem reference is removed from Concept
-        concept = subsystem.concept(*args, **kwargs)
+        concept = subsystem.concept(*args, **kwargs, progress=False)
         concept.subsystem = None
         return concept
 
-    kwargs = {
-        "chunksize": DEFAULT_CES_CHUNKSIZE,
-        "sequential_threshold": DEFAULT_CES_SEQUENTIAL_THRESHOLD,
-        "parallel": config.PARALLEL_CONCEPT_EVALUATION,
-        **kwargs,
-    }
+    parallel_kwargs = conf.parallel_kwargs(config.PARALLEL_CONCEPT_EVALUATION, **kwargs)
     concepts = MapReduce(
         compute_concept,
         mechanisms,
@@ -103,7 +95,7 @@ def ces(
         reduce_func=nonzero_phi,
         desc="Computing concepts",
         total=total,
-        **kwargs,
+        **parallel_kwargs,
     ).run()
     # Replace subsystem references
     # TODO(4.0) remove when subsystem reference is removed from Concept

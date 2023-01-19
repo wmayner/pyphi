@@ -157,7 +157,6 @@ class MacroSubsystem(Subsystem):
         state,
         nodes=None,
         cut=None,
-        mice_cache=None,
         time_scale=1,
         blackbox=None,
         coarse_grain=None,
@@ -173,7 +172,7 @@ class MacroSubsystem(Subsystem):
         self.blackbox = blackbox
         self.coarse_grain = coarse_grain
 
-        super().__init__(network, state, micro_node_indices, cut, mice_cache)
+        super().__init__(network, state, micro_node_indices, cut)
 
         validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
 

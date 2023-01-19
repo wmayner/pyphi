@@ -8,7 +8,7 @@ Functions for computing network-level properties.
 
 import logging
 
-from .. import exceptions, utils, validate
+from .. import conf, exceptions, utils, validate
 from ..conf import config
 from ..models import _null_sia
 from ..subsystem import Subsystem
@@ -72,7 +72,6 @@ def possible_complexes(network, state):
     return reachable_subsystems(network, network.causally_significant_nodes, state)
 
 
-# TODO(4.0) parallel: expose args in config
 def all_complexes(network, state, **kwargs):
     """Return a generator for all complexes of the network.
 
@@ -88,14 +87,14 @@ def all_complexes(network, state, **kwargs):
         SystemIrreducibilityAnalysis: A |SIA| for each |Subsystem| of the
         |Network|.
     """
-    kwargs = {"parallel": config.PARALLEL_COMPLEX_EVALUATION, **kwargs}
+    parallel_kwargs = conf.parallel_kwargs(config.PARALLEL_COMPLEX_EVALUATION, **kwargs)
     return MapReduce(
         sia,
         possible_complexes(network, state),
         total=2 ** len(network) - 1,
         map_kwargs=dict(progress=False),
         desc="Evaluating complexes",
-        **kwargs,
+        **parallel_kwargs,
     ).run()
 
 
@@ -127,7 +126,7 @@ def major_complex(network, state, **kwargs):
     log.info("Calculating major complex...")
     empty_subsystem = Subsystem(network, state, ())
     default = _null_sia(empty_subsystem)
-    kwargs = {"parallel": config.PARALLEL_COMPLEX_EVALUATION, **kwargs}
+    parallel_kwargs = conf.parallel_kwargs(config.PARALLEL_COMPLEX_EVALUATION, **kwargs)
     result = MapReduce(
         sia,
         possible_complexes(network, state),
@@ -136,7 +135,7 @@ def major_complex(network, state, **kwargs):
         reduce_kwargs=dict(default=default),
         total=2 ** len(network) - 1,
         desc="Evaluating complexes",
-        **kwargs,
+        **parallel_kwargs,
     ).run()
     log.info("Finished calculating major complex.")
     return result

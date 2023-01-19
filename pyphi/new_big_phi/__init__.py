@@ -5,7 +5,7 @@ from enum import Enum, auto, unique
 from textwrap import indent
 from typing import Iterable, Optional, Tuple, Union
 
-from .. import compute, connectivity, utils
+from .. import compute, conf, connectivity, utils
 from ..compute.network import reachable_subsystems
 from ..compute.parallel import MapReduce
 from ..conf import config, fallback
@@ -21,10 +21,6 @@ from ..relations import ConcreteRelations, Relations
 from ..relations import relations as compute_relations
 from ..subsystem import Subsystem
 from ..warnings import warn_about_tie_serialization
-
-DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD = 2**4
-DEFAULT_PARTITION_CHUNKSIZE = 2**2 * DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD
-
 
 ##############################################################################
 # Information
@@ -321,13 +317,7 @@ def sia(
 
     default_sia = _null_sia(reasons=[ShortCircuitConditions.NO_VALID_PARTITIONS])
 
-    kwargs = {
-        "parallel": config.PARALLEL_CUT_EVALUATION,
-        "progress": config.PROGRESS_BARS,
-        "chunksize": DEFAULT_PARTITION_CHUNKSIZE,
-        "sequential_threshold": DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
-        **kwargs,
-    }
+    parallel_kwargs = conf.parallel_kwargs(config.PARALLEL_CUT_EVALUATION, **kwargs)
     sias = MapReduce(
         evaluate_partition,
         partitions,
@@ -339,7 +329,7 @@ def sia(
         ),
         shortcircuit_func=utils.is_falsy,
         desc="Evaluating partitions",
-        **kwargs,
+        **parallel_kwargs,
     ).run()
 
     # Find MIP in one pass, keeping track of ties
