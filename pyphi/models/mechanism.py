@@ -154,7 +154,6 @@ _ria_attributes = [
     "repertoire",
     "partitioned_repertoire",
     "specified_state",
-    "specified_index",
     "mechanism_state",
     "purview_state",
     "node_labels",
@@ -179,7 +178,6 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         repertoire,
         partitioned_repertoire,
         specified_state=None,
-        specified_index=None,
         mechanism_state=None,
         purview_state=None,
         node_labels=None,
@@ -200,7 +198,6 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         self._repertoire = _repertoire(repertoire)
         self._partitioned_repertoire = _repertoire(partitioned_repertoire)
         self._specified_state = specified_state
-        self._specified_index = specified_index
         self._partition_ties = (self,)
         self._state_ties = (self,)
 
@@ -272,12 +269,6 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         partition.
         """
         return self._partitioned_repertoire
-
-    @property
-    def specified_index(self):
-        """The state with the maximal absolute intrinsic difference
-        between the unpartitioned and partitioned repertoires."""
-        return self._specified_index
 
     @property
     def specified_state(self):
@@ -489,12 +480,6 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
         purview.
         """
         return self._ria.partitioned_repertoire
-
-    @property
-    def specified_index(self):
-        """The state(s) with the maximal absolute intrinsic difference
-        between the unpartitioned and partitioned repertoires."""
-        return self._ria.specified_index
 
     @property
     def specified_state(self):

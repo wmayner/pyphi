@@ -3,7 +3,6 @@
 # test_models.py
 
 from collections import namedtuple
-from pyphi.metrics.distribution import specified_state
 from pyphi.models.subsystem import FlatCauseEffectStructure
 
 import numpy as np
@@ -508,21 +507,8 @@ def test_specified_states_and_indices():
         np.array([[0, 0, 1]]),
     ]
 
-    specified_index_results = [mice.specified_index for mice in ces]
-    specified_index_answers = [
-        (np.array([0]), np.array([0]), np.array([0])),
-        (np.array([0]), np.array([0]), np.array([0])),
-        (np.array([0, 1]), np.array([0, 1]), np.array([0, 0])),
-        (np.array([0]), np.array([0]), np.array([0])),
-        (np.array([0]), np.array([1]), np.array([0])),
-        (np.array([0]), np.array([0]), np.array([1])),
-        (np.array([1]), np.array([1]), np.array([0])),
-        (np.array([0]), np.array([0]), np.array([1])),
-    ]
-
     for results, answers in [
         (specified_state_results, specified_state_answers),
-        (specified_index_results, specified_index_answers),
     ]:
         for result, answer in zip(results, answers):
             assert np.array_equal(result, answer)
