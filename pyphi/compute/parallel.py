@@ -55,7 +55,6 @@ def init(*args, **kwargs):
         return ray.init(
             *args,
             **{
-                "num_cpus": get_num_processes(),
                 **config.RAY_CONFIG,
                 **kwargs,
             },
