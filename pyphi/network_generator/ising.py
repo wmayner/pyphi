@@ -35,7 +35,7 @@ def probability(
             temperature = temperature * total_input_weight
 
     state = utils.binary2spin(state)
-    E = energy(element, weights, state, field)
+    E = energy(element, weights, state)
     return utils.sigmoid(E, temperature=temperature, field=field)
 
 
