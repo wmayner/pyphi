@@ -17,6 +17,7 @@ from pyphi.models.cuts import KPartition
 
 from .. import connectivity, utils, validate
 from ..conf import config
+from ..data_structures import PyPhiFloat
 from ..direction import Direction
 from ..exceptions import WrongDirectionError
 from ..models import fmt
@@ -53,9 +54,12 @@ class StateSpecification:
     direction: Direction
     purview: Tuple[int]
     state: Tuple[int]
-    intrinsic_information: float
+    intrinsic_information: PyPhiFloat
     repertoire: ArrayLike
     unconstrained_repertoire: ArrayLike
+
+    def __post_init__(self):
+        self.intrinsic_information = PyPhiFloat(self.intrinsic_information)
 
     def set_ties(self, ties: Iterable):
         self._ties = ties
@@ -182,7 +186,7 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         purview_state=None,
         node_labels=None,
     ):
-        self._phi = phi
+        self._phi = PyPhiFloat(phi)
         self._direction = direction
         self._mechanism = mechanism
         self._purview = purview
@@ -206,14 +210,14 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         if norm is None:
             self._normalized_phi = None
         else:
-            self._normalized_phi = self._phi * norm
+            self._normalized_phi = PyPhiFloat(self._phi * norm)
 
         # Optional labels - only used to generate nice labeled reprs
         self._node_labels = node_labels
 
     @property
     def phi(self):
-        """float: This is the difference between the mechanism's unpartitioned
+        """PyPhiFloat: This is the difference between the mechanism's unpartitioned
         and partitioned repertoires.
         """
         return self._phi
