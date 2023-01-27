@@ -30,10 +30,9 @@ from .models import (
 )
 from .models.mechanism import StateSpecification
 from .network import irreducible_purviews
-from .node import generate_nodes
 from .partition import mip_partitions
 from .repertoire import forward_repertoire, unconstrained_forward_repertoire
-from .utils import build_state_space, state_of
+from .utils import state_of
 
 log = logging.getLogger(__name__)
 
@@ -109,15 +108,10 @@ class Subsystem:
         # Get the TPM conditioned on the state of the external nodes.
         external_state = utils.state_of(self.external_indices, self.state)
         background_conditions = dict(zip(self.external_indices, external_state))
-        self.tpm = self.network.tpm.condition_tpm(background_conditions)
+        self.tpm = self.network.tpm.pyphi.condition_tpm(background_conditions)
         # The TPM for just the nodes in the subsystem.
-        self.proper_tpm = self.tpm.squeeze()[..., list(self.node_indices)]
-
-        # The state space of the nodes in the candidate system.
-        self.proper_state_space, _ = build_state_space(
-            self.tpm[:-1],
-            self.network.state_space
-        )
+        labels_in_subsystem = self.node_labels.indices2labels(self.node_indices)
+        self.proper_tpm = self.tpm[list(labels_in_subsystem)]
 
         # The unidirectional cut applied for phi evaluation
         self.cut = (
@@ -144,14 +138,7 @@ class Subsystem:
             unconstrained_forward_repertoire_cache or cache.DictCache()
         )
 
-        self.nodes = generate_nodes(
-            self.tpm,
-            self.cm,
-            self.proper_state_space,
-            self.node_indices,
-            network_state=self.state,
-            node_labels=self.node_labels
-        )
+        self.nodes = tuple(self.tpm.data_vars.values())
 
         validate.subsystem(self)
 
@@ -167,7 +154,7 @@ class Subsystem:
         """
         # pylint: disable=attribute-defined-outside-init
         self._nodes = value
-        self._index2node = {node.index: node for node in self._nodes}
+        self._index2node = {node.pyphi.index: node for node in self._nodes}
 
     @property
     def proper_state(self):

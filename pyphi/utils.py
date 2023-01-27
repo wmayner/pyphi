@@ -12,7 +12,7 @@ import math
 import operator
 import os
 from itertools import chain, combinations, product
-from typing import Iterable, Optional, Union, Tuple
+from typing import Tuple
 
 import numpy as np
 from scipy.special import comb
@@ -77,54 +77,6 @@ def state_of_subsystem_nodes(node_indices, nodes, subsystem_state):
     """
     # Get indices relative to subsystem indices
     return state_of([node_indices.index(n) for n in nodes], subsystem_state)
-
-
-def build_state_space(
-        nodes_shape: Iterable[int],
-        state_space: Optional[Iterable[Iterable[Union[int, str]]]] = None,
-        singleton_state_space: Optional[Iterable[Union[int, str]]] = None,
-) -> Tuple[Tuple[Tuple[Union[int, str]]], int]:
-    """Format the passed state space labels or construct defaults if none.
-
-    Arguments:
-        nodes_shape (Iterable[int]): The first |n| components in the shape of
-            a multidimensional |ExplicitTPM|, where |n| is the number of nodes
-            in the network.
-
-    Keyword Args:
-        state_space (Optional[Iterable[Iterable[Union[int, str]]]]): The
-            network's state space labels as provided by the user.
-        singleton_state_space (Optional[Iterable[Union[int, str]]]): The label to
-            be used for singleton dimensions. If ``None``, singleton dimensions
-            will be discarded.
-
-    Returns:
-        Tuple[Tuple[Tuple[Union[int, str]]], int]: State space for the network of
-            interest and its hash.
-    """
-    if state_space is None:
-        state_space = tuple(tuple(range(dim)) for dim in nodes_shape)
-    else:
-        # Enforce tuples.
-        state_space = map(tuple, state_space)
-
-        # Filter out states of singleton dimensions.
-        shape_state_map = zip(nodes_shape, state_space)
-
-        if singleton_state_space is None:
-            state_space = tuple(
-                node_states
-                for dim, node_states in shape_state_map
-                if dim > 1
-            )
-
-        else:
-            state_space = tuple(
-                node_states if dim > 1 else singleton_state_space
-                for dim, node_states in shape_state_map
-            )
-
-    return (state_space, hash(state_space))
 
 
 # TODO: nonbinary states

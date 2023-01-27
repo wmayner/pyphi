@@ -20,7 +20,7 @@ from .network import irreducible_purviews
 from .node import expand_node_tpm, generate_nodes
 from .subsystem import Subsystem
 from .tpm import ExplicitTPM
-from .utils import build_state_space
+from .state_space import build_state_space
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)

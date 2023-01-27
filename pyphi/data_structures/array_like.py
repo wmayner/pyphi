@@ -19,6 +19,7 @@ class ArrayLike(NDArrayOperatorsMixin):
         np.stack,
         np.sum,
         np.result_type,
+        np.broadcast_to,
     )
 
     # Holds the underlying array

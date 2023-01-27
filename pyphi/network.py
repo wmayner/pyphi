@@ -13,7 +13,7 @@ from . import cache, connectivity, jsonify, utils, validate
 from .labels import NodeLabels
 from .node import generate_nodes
 from .tpm import ExplicitTPM, ImplicitTPM, implicit_tpm
-from .utils import build_state_space
+from .state_space import build_state_space
 
 
 class Network:
@@ -62,7 +62,9 @@ class Network:
             tpm = ExplicitTPM(tpm, validate=True)
 
             self._state_space, _ = build_state_space(
-                tpm.shape[:-1], state_space
+                self._node_labels,
+                tpm.shape[:-1],
+                state_space
             )
 
             self._tpm = implicit_tpm(
@@ -84,7 +86,7 @@ class Network:
             self._tpm = ImplicitTPM(tpm["_tpm"], validate=True)
 
         else:
-            raise TypeError(f"Invalid tpm of type {type(tpm)}.")
+            raise TypeError(f"Invalid TPM of type {type(tpm)}.")
 
         self.purview_cache = purview_cache or cache.PurviewCache()
 

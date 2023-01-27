@@ -9,16 +9,16 @@ the network's list of nodes.
 
 import functools
 
-from typing import Optional, Tuple, Union
+from typing import Mapping, Optional, Tuple, Union
 
 import numpy as np
 import xarray as xr
 
 from .connectivity import get_inputs_from_cm, get_outputs_from_cm
-from .constants import SINGLETON_STATE
 from .labels import NodeLabels
+from .state_space import build_state_space, dimension_labels
 from .tpm import ExplicitTPM
-from .utils import build_state_space, state_of
+from .utils import state_of
 
 @xr.register_dataarray_accessor("pyphi")
 @functools.total_ordering
@@ -31,15 +31,15 @@ class Node:
     Attributes:
         index (int):
         label (str):
-        tpm (|ExplicitTPM|): The node TPM is an array with
-            |n + 1| dimensions, where ``n`` is the size of the |Network|. The
-            first ``n`` dimensions correspond to each node in the
-            system. Dimensions corresponding to nodes that provide input to this
-            node are of size > 1, while those that do not correspond to inputs are
-            of size 1. The last dimension corresponds to the state of the
-            node in the next timestep, so that ``node.tpm[..., 0]`` gives
-            probabilities that the node will be 'OFF' and ``node.tpm[..., 1]``
-            gives probabilities that the node will be 'ON'.
+        tpm (|ExplicitTPM|): The node TPM is an array with |n + 1| dimensions,
+            where ``n`` is the size of the |Network|. The first ``n`` dimensions
+            correspond to each node in the system. Dimensions corresponding to
+            nodes that provide input to this node are of size > 1, while those
+            that do not correspond to inputs are of size 1. The last dimension
+            corresponds to the state of the node in the next timestep, so that
+            ``node.tpm[..., 0]`` gives probabilities that the node will be 'OFF'
+            and ``node.tpm[..., 1]`` gives probabilities that the node will be
+            'ON'.
         inputs (frozenset):
         outputs (frozenset):
         state_space (Tuple[Union[int, str]]):
@@ -178,7 +178,7 @@ class Node:
 def node(
         tpm: ExplicitTPM,
         cm: np.ndarray,
-        network_state_space: Tuple[Tuple[Union[int, str]]],
+        network_state_space: Mapping[str, Tuple[Union[int, str]]],
         index: int,
         state: Optional[Union[int, str]] = None,
         node_labels: Optional[NodeLabels] = None
@@ -189,64 +189,46 @@ def node(
     Args:
         tpm (|ExplicitTPM|): The TPM of this node.
         cm (np.ndarray): The CM of the network.
-        network_state_space (Tuple[Tuple[Union[int, str]]]): Labels for the state
-            space of each node in the network.
+        network_state_space (Mapping[str, Tuple[Union[int, str]]]):
+            Labels for the state space of each node in the network.
         index (int): The node's index in the network.
 
     Keyword Args:
         state (Optional[Union[int, str]]): The state of this node.
-        node_labels (Optional[|NodeLabels|]): Labels for these nodes.
+        node_labels (Iterable[str]): Textual labels for each node in the network.
 
     Returns:
         xr.DataArray: The node in question.
     """
+    # Generate DataArray structure for this node
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Dimensions are the names of this node's parents (whose state this node's
+    # TPM can be conditioned on), plus the last dimension with the probability
+    # for each possible state of this node in the next timestep.
+    dimensions = dimension_labels(node_labels)
+
+    # Compute the relevant state labels (coordinates in xarray terminology) from
+    # the perspective of this node and its direct inputs.
+    new_network_state_space, _ = build_state_space(
+        node_labels,
+        tpm.shape[:-1],
+        network_state_space.values(),
+        singleton_state_space = None,
+    )
+
+    node_state_space = {dimensions[-1]: network_state_space[dimensions[index]]}
+
+    coordinates = {**new_network_state_space, **node_state_space}
 
     # Get indices of the inputs and outputs.
     inputs = frozenset(get_inputs_from_cm(index, cm))
     outputs = frozenset(get_outputs_from_cm(index, cm))
 
-    # Generate DataArray structure for this node
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # Dimensions are the names of this node's parents (whose state we
-    # can condition this node's TPM on), plus the last dimension with
-    # the probability ("Pr") for each possible state of this node in
-    # the next timestep.
-
-    if node_labels is None:
-        indices = tuple(range(cm.shape[0]))
-        node_labels = NodeLabels(None, indices)
-
-    parent_node_labels = tuple(
-        label for dim, label in zip(tpm.shape[:-1], node_labels)
-        if dim > 1
-    )
-
-    # data_vars (xr.DataArray node names) and dimension names share the same
-    # dictionary-like namespace in xr.Dataset. Prepend constant "input_" string
-    # to avoid the conflict.
-    dimensions = ["input_" + label for label in parent_node_labels] + ["Pr"]
-
-    # For each dimension, compute the relevant state labels (coordinates in
-    # xarray terminology) from the perspective of this node and its direct
-    # inputs.
-    state_space, _ = build_state_space(
-        tpm.shape[:-1],
-        network_state_space,
-        singleton_state_space = None,
-    )
-
-    node_state_space = network_state_space[index]
-
-    coordinates = [*state_space, node_state_space]
-
-    # TODO(tpm) implement np.result_type() in
-    # data_structures.array_like.__array_function__ to avoid converting with
-    # np.asarray().
     return xr.DataArray(
         name = node_labels[index],
-        data = tpm.squeeze(),
+        data = tpm,
         dims = dimensions,
-        coords = list(map(list, coordinates)),
+        coords = coordinates,
         attrs = {
             "index": index,
             "node_labels": node_labels,
@@ -261,7 +243,7 @@ def node(
 def generate_nodes(
         tpm: ExplicitTPM,
         cm: np.ndarray,
-        state_space: Tuple[Tuple[Union[int, str]]],
+        state_space: Mapping[str, Tuple[Union[int, str]]],
         indices: Tuple[int],
         network_state: Optional[Tuple[Union[int, str]]] = None,
         node_labels: Optional[NodeLabels] = None
@@ -271,20 +253,18 @@ def generate_nodes(
     Args:
         tpm (|ExplicitTPM|): The system's TPM.
         cm (np.ndarray): The CM of the network.
-        state_space (Tuple[Tuple[Union[int, str]]]): Labels for the state
-            space of each node in the network.
+        state_space (Mapping[str, Tuple[Union[int, str]]]): Labels
+            for the state space of each node in the network.
         indices (Tuple[int]): Indices to generate nodes for.
 
     Keyword Args:
-        network_state (Optional[Tuple[Union[int, str]]]): The state of the network.
+        network_state (Optional[Tuple[Union[int, str]]]): The state of
+            the network.
         node_labels (|NodeLabels|): Textual labels for each node.
 
     Returns:
         Tuple[xr.DataArray]: The nodes of the system.
     """
-    if node_labels is None:
-        node_labels = NodeLabels(None, indices)
-
     if network_state is None:
         network_state = (None,) * cm.shape[0]
 

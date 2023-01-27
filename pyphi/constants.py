@@ -21,6 +21,3 @@ ON = (1,)
 # Probability value below which we issue a warning about precision.
 # TODO(4.0)
 TPM_WARNING_THRESHOLD = 1e-10
-
-# State space used for singleton dimensions in per-node TPMs.
-SINGLETON_STATE = ("_",)
