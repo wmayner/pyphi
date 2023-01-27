@@ -49,16 +49,15 @@ def get_num_processes():
     return config.NUMBER_OF_CORES
 
 
+RAY_CLIENT = None
+
+
 def init(*args, **kwargs):
     """Initialize Ray if not already initialized."""
+    global RAY_CLIENT
     if not ray.is_initialized():
-        return ray.init(
-            *args,
-            **{
-                **config.RAY_CONFIG,
-                **kwargs,
-            },
-        )
+        RAY_CLIENT = ray.init(*args, **{**config.RAY_CONFIG, **kwargs})
+        return RAY_CLIENT
 
 
 def false(*args, **kwargs):
