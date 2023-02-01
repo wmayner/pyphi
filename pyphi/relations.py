@@ -82,10 +82,19 @@ class Relation(frozenset, cmp.Orderable):
     @cached_property
     def faces(self):
         mice = FlatCauseEffectStructure(self)
-        return frozenset(
+        faces = set(
             RelationFace((mice[i] for i in combination))
             for combination in _combinations_with_nonempty_congruent_overlap(mice)
         )
+        # Remove self-faces unless this is a self-relation
+        if not self.is_self_relation:
+            faces -= set(
+                [
+                    RelationFace([distinction.cause, distinction.effect])
+                    for distinction in self
+                ]
+            )
+        return frozenset(faces)
 
     @property
     def num_faces(self):
