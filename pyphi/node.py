@@ -66,7 +66,7 @@ class Node:
         self._hash = hash(
             (
                 self.index,
-                hash(self.tpm),
+                hash(ExplicitTPM(self.tpm)),
                 self._inputs,
                 self._outputs,
                 self.state_space,
