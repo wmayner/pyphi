@@ -213,12 +213,12 @@ def node(
         node_labels,
         tpm.shape[:-1],
         network_state_space.values(),
-        singleton_state_space = None,
+        singleton_state_space = ("_",),
     )
 
-    node_state_space = {dimensions[-1]: network_state_space[dimensions[index]]}
+    node_state_space = network_state_space[dimensions[index]]
 
-    coordinates = {**new_network_state_space, **node_state_space}
+    coordinates = {**new_network_state_space, dimensions[-1]: node_state_space}
 
     # Get indices of the inputs and outputs.
     inputs = frozenset(get_inputs_from_cm(index, cm))
@@ -226,7 +226,7 @@ def node(
 
     return xr.DataArray(
         name = node_labels[index],
-        data = tpm,
+        data = np.asarray(tpm),
         dims = dimensions,
         coords = coordinates,
         attrs = {
@@ -234,7 +234,7 @@ def node(
             "node_labels": node_labels,
             "inputs": inputs,
             "outputs": outputs,
-            "state_space": node_state_space,
+            "state_space": tuple(node_state_space),
             "state": state,
         }
     )

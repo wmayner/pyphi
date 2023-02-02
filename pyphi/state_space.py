@@ -55,7 +55,7 @@ def build_state_space(
             dimensions will be discarded.
 
     Returns:
-        Tuple[Tuple[Tuple[Union[int, str]]], int]: State space for the network
+        Tuple[FrozenMap[str, Tuple[Union[int, str]]], int]: State space for the network
             of interest and its hash.
     """
     if node_states is None:
@@ -70,17 +70,17 @@ def build_state_space(
     shape_state_map = zip(nodes_shape, state_space)
 
     if singleton_state_space is None:
-        state_space = dict(
+        state_space = {
             node_states
             for dim, node_states in shape_state_map
             if dim > 1
-        )
+        }
 
     else:
-        state_space = dict(
-            node_states if dim > 1 else singleton_state_space
+        state_space = {
+            node_states if dim > 1 else (node_states[0], singleton_state_space)
             for dim, node_states in shape_state_map
-        )
+        }
 
     state_space = FrozenMap(state_space)
     state_space_hash = hash(state_space)

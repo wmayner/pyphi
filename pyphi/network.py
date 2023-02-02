@@ -90,7 +90,7 @@ class Network:
 
         self.purview_cache = purview_cache or cache.PurviewCache()
 
-        validate.network(self)
+        # validate.network(self)
 
     @property
     def tpm(self):
