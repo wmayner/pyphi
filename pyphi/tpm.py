@@ -257,7 +257,7 @@ class ExplicitTPM(data_structures.ArrayLike):
             raise ValueError(
                 "Invalid TPM: probabilities must be in the interval [0, 1]."
             )
-        if self.is_state_by_state() and np.any(np.sum(self._tpm, axis=1) != 1.0):
+        if self.is_state_by_state() and np.any(np.logical_not(np.isclose(np.sum(self._tpm, axis=1), 1.0, rtol=1e-15))):            
             raise ValueError("Invalid TPM: probabilities must sum to 1.")
         return True
 
