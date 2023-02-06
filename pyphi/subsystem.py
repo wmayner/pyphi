@@ -99,9 +99,6 @@ class Subsystem:
             )
         else:
             self.external_indices = _external_indices
-            
-        if cut is not None and set(cut.indices) != set(self.node_indices):
-            raise ValueError
 
         # Get the TPM conditioned on the state of the external nodes.
         external_state = utils.state_of(self.external_indices, self.state)
