@@ -445,6 +445,11 @@ class PhiStructure(cmp.Orderable):
             self._big_phi = self.sum_phi_distinctions + self.sum_phi_relations
             return self._big_phi
 
+    def to_json(self):
+        return dict(
+            sia=self.sia, distinctions=self.distinctions, relations=self.relations
+        )
+
 
 class NullPhiStructure(PhiStructure):
     def __init__(self, **kwargs):
