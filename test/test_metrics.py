@@ -18,9 +18,10 @@ def test_default_distribution_measures():
             "KLM",
             "BLD",
             "ID",
-            'IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE',
-            'IIT_4.0_SMALL_PHI',
-            'APMI',
+            "IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE",
+            "IIT_4.0_SMALL_PHI",
+            "APMI",
+            "GENERALIZED_INTRINSIC_DIFFERENCE"
         ]
     )
 
@@ -28,15 +29,16 @@ def test_default_distribution_measures():
 def test_default_asymmetric_distribution_measures():
     assert set(metrics.distribution.measures.asymmetric()) == set(
         [
-            'IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE',
-            'IIT_4.0_SMALL_PHI',
-            'APMI',
+            "IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE",
+            "IIT_4.0_SMALL_PHI",
+            "APMI",
             "KLD",
             "MP2Q",
             "AID",
             "KLM",
             "BLD",
-            "ID"
+            "ID",
+            "GENERALIZED_INTRINSIC_DIFFERENCE"
         ]
     )
 
