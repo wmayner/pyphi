@@ -340,7 +340,11 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         return self._node_labels
 
     def order_by(self):
-        return (self.phi, len(self.mechanism))
+        return (
+            self.phi, 
+            len(self.mechanism), 
+            -len(self.purview) if "NEGATIVE_PURVIEW_SIZE" in config.PURVIEW_TIE_RESOLUTION else len(self.purview)
+        )
 
     def __eq__(self, other):
         # We don't consider the partition and partitioned repertoire in

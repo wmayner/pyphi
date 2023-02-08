@@ -3,6 +3,7 @@
 # test_models.py
 
 from collections import namedtuple
+from pyphi.models.cuts import KPartition
 from pyphi.models.subsystem import FlatCauseEffectStructure
 
 import numpy as np
@@ -373,7 +374,7 @@ def test_null_ria():
     assert null_ria.direction == direction
     assert null_ria.mechanism == mechanism
     assert null_ria.purview == purview
-    assert null_ria.partition is None
+    assert null_ria.partition == KPartition()
     assert null_ria.repertoire == "repertoire"
     assert null_ria.partitioned_repertoire is None
     assert null_ria.phi == 0
