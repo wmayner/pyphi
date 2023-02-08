@@ -17,12 +17,12 @@ def warn_about_tie_serialization(
         raise ValueError("Exactly one of ``serialize``, ``deserialize`` must be True")
     if serialize:
         msg = (
-            "Serializing ties to JSON in {name} is not currently "
-            "supported; tie information will be lost."
+            "Serializing ties in {name} is not currently supported; tie "
+            "information will be lost."
         )
     if deserialize:
         msg = (
-            "Deserializing ties in {name} from JSON is not currently "
-            "supported; tie information was lost during serialization."
+            "Deserializing ties in {name} is not currently supported; tie "
+            "information was lost during serialization."
         )
-    warnings.warn(msg.format(name=name), UserWarning, stacklevel=stacklevel)
+    warnings.warn(msg.format(name=name), PyPhiWarning, stacklevel=stacklevel)
