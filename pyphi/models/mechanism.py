@@ -382,8 +382,8 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         # TODO(ties) implement serialization of ties
         warn_about_tie_serialization(cls.__name__, deserialize=True)
         instance = cls(**data)
-        instance._partition_ties = None
-        instance._state_ties = None
+        instance._partition_ties = (instance,)
+        instance._state_ties = (instance,)
         return instance
 
 
@@ -584,6 +584,12 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
 
     def to_json(self):
         return {"ria": self.ria}
+
+    @classmethod
+    def from_json(cls, data):
+        instance = cls(data["ria"])
+        instance._purview_ties = (instance,)
+        return instance
 
     def _relevant_connections(self, subsystem):
         """Identify connections that “matter” to this concept.

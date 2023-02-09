@@ -358,13 +358,31 @@ _sia = sia
 ##############################################################################
 
 
-@dataclass
 class PhiStructure(cmp.Orderable):
-    sia: SystemIrreducibilityAnalysis
-    distinctions: CauseEffectStructure
-    relations: Relations
 
     _SIA_INHERITED_ATTRIBUTES = ["phi", "partition", "system_state"]
+
+    def __init__(
+        self,
+        sia: SystemIrreducibilityAnalysis,
+        distinctions: CauseEffectStructure,
+        relations: Relations,
+    ):
+        self._sia = sia
+        self._distinctions = distinctions
+        self._relations = relations
+
+    @property
+    def sia(self):
+        return self._sia
+
+    @property
+    def distinctions(self):
+        return self._distinctions
+
+    @property
+    def relations(self):
+        return self._relations
 
     def __getattr__(self, attr):
         if attr in self._SIA_INHERITED_ATTRIBUTES:
@@ -426,6 +444,11 @@ class PhiStructure(cmp.Orderable):
         except AttributeError:
             self._big_phi = self.sum_phi_distinctions + self.sum_phi_relations
             return self._big_phi
+
+    def to_json(self):
+        return dict(
+            sia=self.sia, distinctions=self.distinctions, relations=self.relations
+        )
 
 
 class NullPhiStructure(PhiStructure):
