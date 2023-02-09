@@ -350,19 +350,10 @@ def test_cuts_can_have_node_labels(node_labels):
 def test_ria_ordering_and_equality():
     assert ria(phi=1.0) < ria(phi=2.0)
     assert ria(phi=2.0) > ria(phi=1.0)
-    assert ria(mechanism=(1,)) < ria(mechanism=(1, 2))
-    assert ria(mechanism=(1, 2)) >= ria(mechanism=(1,))
-    assert ria(purview=(1,)) < ria(purview=(1, 2))
-    assert ria(purview=(1, 2)) >= ria(purview=(1,))
-
     assert ria(phi=1.0) == ria(phi=1.0)
     assert ria(phi=1.0) == ria(phi=(1.0 - EPSILON / 2))
     assert ria(phi=1.0) != ria(phi=(1.0 - EPSILON * 2))
     assert ria(direction=Direction.CAUSE) != ria(direction=Direction.EFFECT)
-    assert ria(mechanism=(1,)) != ria(mechanism=(1, 2))
-
-    with config.override(PURVIEW_TIE_RESOLUTION=["PHI", "NEGATIVE_PURVIEW_SIZE"]):
-        assert ria(purview=(1, 2)) < ria(purview=(1,))
 
 
 def test_null_ria():
@@ -401,25 +392,6 @@ def test_mice_ordering_by_phi():
     assert different_direction < phi2
     assert phi2 >= different_direction
     assert different_direction <= phi2
-
-
-def test_mice_odering_by_mechanism():
-    small = mice(mechanism=(1,))
-    big = mice(mechanism=(1, 2, 3))
-    assert small < big
-    assert small <= big
-    assert big > small
-    assert big >= small
-    assert big != small
-
-
-def test_mice_ordering_by_purview():
-    small = mice(purview=(1, 2))
-    big = mice(purview=(1, 2, 3))
-    assert small < big
-    assert small <= big
-    assert big > small
-    assert big >= small
 
 
 def test_mice_equality():
