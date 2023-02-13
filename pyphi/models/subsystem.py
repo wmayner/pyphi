@@ -296,7 +296,7 @@ class FlatCauseEffectStructure(CauseEffectStructure):
         )
 
 
-class SystemIrreducibilityAnalysis(cmp.Orderable):
+class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
     """An analysis of system irreducibility (|big_phi|).
 
     Contains the |big_phi| value of the |Subsystem|, the cause-effect
@@ -360,9 +360,6 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         return self.subsystem.network
 
     unorderable_unless_eq = ["network"]
-
-    def order_by(self):
-        return [self.phi, len(self.subsystem), self.subsystem.node_indices]
 
     def __eq__(self, other):
         return cmp.general_eq(self, other, _sia_attributes)

@@ -379,7 +379,7 @@ def test_ria_repr_str():
 # Test MaximallyIrreducibleCauseOrEffect
 
 
-def test_mice_ordering_by_phi():
+def test_mice_ordering():
     phi1 = mice()
     phi2 = mice(phi=(1.0 + EPSILON * 2), partition=())
     assert phi1 < phi2

@@ -85,6 +85,16 @@ class Orderable:
 
     def __ne__(self, other):
         return not self == other
+    
+    
+class OrderableByPhi(Orderable):
+    """Mixin for implementing rich object comparisons on phi-objects that are ordered by their phi values.
+    
+    Inherits from Orderable.
+    """
+    
+    def order_by(self):
+        return self.phi
 
 
 # Equality helpers

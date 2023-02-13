@@ -164,7 +164,7 @@ _ria_attributes = [
 ]
 
 
-class RepertoireIrreducibilityAnalysis(cmp.Orderable):
+class RepertoireIrreducibilityAnalysis(cmp.OrderableByPhi):
     """An analysis of the irreducibility (|small_phi|) of a mechanism over a
     purview, for a given partition, in one temporal direction.
 
@@ -338,9 +338,6 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
     def node_labels(self):
         """|NodeLabels| for this system."""
         return self._node_labels
-
-    def order_by(self):
-        return self.phi
 
     def __eq__(self, other):
         # We don't consider the partition and partitioned repertoire in
@@ -690,7 +687,7 @@ _concept_attributes = ["phi", "mechanism", "cause", "effect", "subsystem"]
 
 # TODO: make mechanism a property
 # TODO: make phi a property
-class Concept(cmp.Orderable):
+class Concept(cmp.OrderableByPhi):
     """The maximally irreducible cause and effect specified by a mechanism.
 
     These can be compared with the built-in Python comparison operators (``<``,
@@ -786,9 +783,6 @@ class Concept(cmp.Orderable):
         raise ValueError("invalid direction")
 
     unorderable_unless_eq = ["subsystem"]
-
-    def order_by(self):
-        return [self.phi, len(self.mechanism)]
 
     def __eq__(self, other):
         try:
