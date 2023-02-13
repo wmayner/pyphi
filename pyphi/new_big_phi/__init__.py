@@ -59,7 +59,7 @@ def system_intrinsic_information(
 
 
 @dataclass
-class SystemIrreducibilityAnalysis(cmp.Orderable):
+class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
     phi: float
     partition: Union[Cut, SystemPartition]
     normalized_phi: float = 0

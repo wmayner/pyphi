@@ -507,16 +507,6 @@ def test_concept_ordering(s, micro_s):
         phi1 > micro_phi1
 
 
-def test_concept_ordering_by_mechanism(s):
-    small = concept(mechanism=(0, 1), subsystem=s)
-    big = concept(mechanism=(0, 1, 2), subsystem=s)
-    assert small < big
-    assert small <= big
-    assert big > small
-    assert big >= small
-    assert big != small
-
-
 def test_concept_equality(s):
     assert concept(subsystem=s) == concept(subsystem=s)
 
@@ -634,23 +624,11 @@ def test_sia_ordering(s, s_noised, subsys_n0n2, subsys_n1n2):
     assert phi1 <= phi2
     assert phi2 >= phi1
 
-    assert sia(subsystem=subsys_n0n2) < sia(subsystem=subsys_n1n2)
-
     different_system = sia(subsystem=s_noised)
     with pytest.raises(TypeError):
         phi1 <= different_system
     with pytest.raises(TypeError):
         phi1 >= different_system
-
-
-def test_sia_ordering_by_subsystem_size(s, s_single):
-    small = sia(subsystem=s_single)
-    big = sia(subsystem=s)
-    assert small < big
-    assert small <= big
-    assert big > small
-    assert big >= small
-    assert big != small
 
 
 def test_sia_equality(s):
