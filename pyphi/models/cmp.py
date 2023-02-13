@@ -88,7 +88,7 @@ class Orderable:
     
     
 class OrderableByPhi(Orderable):
-    """Mixin for implementing rich object comparisons on phi-objects that are ordered by their phi values.
+    """Mixin for implementing rich object comparisons on phi-objects that are ordered solely by their phi values.
     
     Inherits from Orderable.
     """
