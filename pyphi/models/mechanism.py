@@ -164,7 +164,7 @@ _ria_attributes = [
 ]
 
 
-class RepertoireIrreducibilityAnalysis(cmp.Orderable):
+class RepertoireIrreducibilityAnalysis(cmp.OrderableByPhi):
     """An analysis of the irreducibility (|small_phi|) of a mechanism over a
     purview, for a given partition, in one temporal direction.
 
@@ -339,9 +339,6 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         """|NodeLabels| for this system."""
         return self._node_labels
 
-    def order_by(self):
-        return (self.phi, len(self.mechanism))
-
     def __eq__(self, other):
         # We don't consider the partition and partitioned repertoire in
         # checking for RIA equality.
@@ -382,8 +379,8 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         # TODO(ties) implement serialization of ties
         warn_about_tie_serialization(cls.__name__, deserialize=True)
         instance = cls(**data)
-        instance._partition_ties = None
-        instance._state_ties = None
+        instance._partition_ties = (instance,)
+        instance._state_ties = (instance,)
         return instance
 
 
@@ -585,6 +582,12 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
     def to_json(self):
         return {"ria": self.ria}
 
+    @classmethod
+    def from_json(cls, data):
+        instance = cls(data["ria"])
+        instance._purview_ties = (instance,)
+        return instance
+
     def _relevant_connections(self, subsystem):
         """Identify connections that “matter” to this concept.
 
@@ -684,7 +687,7 @@ _concept_attributes = ["phi", "mechanism", "cause", "effect", "subsystem"]
 
 # TODO: make mechanism a property
 # TODO: make phi a property
-class Concept(cmp.Orderable):
+class Concept(cmp.OrderableByPhi):
     """The maximally irreducible cause and effect specified by a mechanism.
 
     These can be compared with the built-in Python comparison operators (``<``,
@@ -780,9 +783,6 @@ class Concept(cmp.Orderable):
         raise ValueError("invalid direction")
 
     unorderable_unless_eq = ["subsystem"]
-
-    def order_by(self):
-        return [self.phi, len(self.mechanism)]
 
     def __eq__(self, other):
         try:

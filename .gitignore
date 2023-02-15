@@ -8,6 +8,7 @@
 .pytest_cache
 .virtual_documents
 .hypothesis
+.ipynb_checkpoints
 
 **/*.egg-info
 **/*.log

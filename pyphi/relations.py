@@ -76,7 +76,7 @@ class RelationFace(frozenset):
         return cls(data["relata"])
 
 
-class Relation(frozenset, cmp.Orderable):
+class Relation(frozenset, cmp.OrderableByPhi):
     """A set of relation faces forming the relation among a set of distinctions."""
 
     @cached_property
@@ -126,8 +126,6 @@ class Relation(frozenset, cmp.Orderable):
         return utils.is_positive(self.phi)
 
     # TODO(4.0) need to also implement __eq__ here
-    def order_by(self):
-        return self.phi
 
     def _repr_columns(self):
         return [
