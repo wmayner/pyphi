@@ -66,7 +66,6 @@ def shortcircuit_tester(func, list_and_index, ordered=True):
         assert items[idx] in actual
 
 
-
 @given(
     list_and_index=list_and_index(anything_comparable()),
 )
@@ -200,6 +199,7 @@ def map_reduce_kwargs_common(draw):
         max_depth=draw(st.integers(min_value=1) | st.none()),
         branch_factor=draw(st.integers(min_value=2)),
         inflight_limit=draw(st.integers(min_value=1)),
+        ordered=draw(st.booleans()),
     )
 
 
@@ -211,8 +211,9 @@ def map_reduce_kwargs_iterators(draw):
             max_size=None,
             max_leaves=None,
             total=None,
-        )
+        ),
     }
+
 
 @composite
 def map_reduce_kwargs_sequences(draw):
@@ -222,8 +223,9 @@ def map_reduce_kwargs_sequences(draw):
             max_size=draw(st.integers(min_value=1)),
             max_leaves=draw(st.integers(min_value=1)),
             total=None,
-        )
+        ),
     }
+
 
 @settings(
     suppress_health_check=[HealthCheck.function_scoped_fixture],
@@ -241,16 +243,17 @@ def test_map_with_iterators(
     kwargs,
 ):
     iterables1, iterables2 = args
-    expected = set(map(func, *iterables1))
-    actual = set(
-        parallel.MapReduce(
-            func,
-            *iterables2,
-            parallel=True,
-            **kwargs,
-        ).run()
-    )
-    assert expected == actual
+    expected = list(map(func, *iterables1))
+    actual = parallel.MapReduce(
+        func,
+        *iterables2,
+        parallel=True,
+        **kwargs,
+    ).run()
+    if kwargs["ordered"]:
+        assert expected == actual
+    else:
+        assert set(expected) == set(actual)
 
 
 @settings(
@@ -318,5 +321,6 @@ def test_map_reduce(
         parallel=_parallel,
     ).run()
     assert expected == actual
+
 
 # TODO(4.0) unit tests for tree.py

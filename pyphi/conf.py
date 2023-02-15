@@ -1010,24 +1010,26 @@ def fallback(*args):
 
 
 PARALLEL_KWARGS = [
-    'reduce_func',
-    'reduce_kwargs',
-    'parallel',
-    'total',
-    'chunksize',
-    'sequential_threshold',
-    'max_depth',
-    'max_size',
-    'max_leaves',
-    'branch_factor',
-    'shortcircuit_func',
-    'shortcircuit_callback',
-    'shortcircuit_callback_args',
-    'inflight_limit',
-    'progress',
-    'desc',
-    'map_kwargs',
+    "reduce_func",
+    "reduce_kwargs",
+    "parallel",
+    "ordered",
+    "total",
+    "chunksize",
+    "sequential_threshold",
+    "max_depth",
+    "max_size",
+    "max_leaves",
+    "branch_factor",
+    "shortcircuit_func",
+    "shortcircuit_callback",
+    "shortcircuit_callback_args",
+    "inflight_limit",
+    "progress",
+    "desc",
+    "map_kwargs",
 ]
+
 
 def parallel_kwargs(option_kwargs, **user_kwargs):
     """Return the kwargs for a parallel function call.
