@@ -658,8 +658,10 @@ class ImplicitTPM(TPM):
 
     def _validate_probabilities(self):
         """Check that the probabilities in a TPM are valid."""
-        # An implicitTPM contains valid probabilities if individual node TPMs
-        # are valid.
+        # An implicit TPM contains valid probabilities if and only if
+        # individual node TPMs contain valid probabilities, for every node.
+
+        # Validate that probabilities sum to 1.
         if any(
                 (np.asarray(node_tpm).sum(axis=-1) != 1.0).any()
                 for node_tpm in self._tpm.data_vars.values()

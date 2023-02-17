@@ -11,26 +11,39 @@ from typing import Iterable, List, Optional, Union, Tuple
 from .data_structures import FrozenMap
 
 
-PARENT_DIMENSION_PREFIX = "input_"
-PROBABILITY_DIMENSION_LABEL = "Pr"
+INPUT_DIMENSION_PREFIX = "input_"
+PROBABILITY_DIMENSION = "Pr"
+SINGLETON_COORDINATE = "_"
 
 
-def dimension_labels(node_labels: Iterable[str]) -> List[str]:
-    """Generate labels for each dimension in the |ImplicitTPM|.
+def input_dimension_label(node_label: str) -> str:
+    """Generate label for an input dimension in the |ImplicitTPM|.
 
     data_vars (xr.DataArray node names) and dimension names share the
     same dictionary-like namespace in xr.Dataset. Prepend constant
     string to avoid the conflict.
 
-    Arguments:
+    Args:
+        node_label (str): Textual label for a node in the network.
+
+    Returns:
+        str: Textual label for the same dimension in the multidimensional TPM.
+    """
+    return INPUT_DIMENSION_PREFIX + str(node_label)
+
+def dimension_labels(node_labels: Iterable[str]) -> List[str]:
+    """Generate labels for each dimension in the |ImplicitTPM|.
+
+    Args:
         node_labels (Iterable[str]): Textual labels for each node in the network.
 
     Returns:
-        List[str]: Textual labels for each dimension in a multidimensional TPM.
+        List[str]: Textual labels for each dimension in the multidimensional TPM.
     """
-    return [PARENT_DIMENSION_PREFIX + label for label in node_labels] + [
-        PROBABILITY_DIMENSION_LABEL
-    ]
+    return (
+        list(map(input_dimension_label, node_labels))
+        + [PROBABILITY_DIMENSION]
+    )
 
 
 def build_state_space(
@@ -41,7 +54,7 @@ def build_state_space(
 ) -> Tuple[FrozenMap[str, Tuple[Union[int, str]]], int]:
     """Format the passed state space labels or construct defaults if none.
 
-    Arguments:
+    Args:
         node_labels (Iterable[str]): Textual labels for each node in the network.
         nodes_shape (Iterable[int]): The first |n| components in the shape of
             a multidimensional |ExplicitTPM|, where |n| is the number of nodes

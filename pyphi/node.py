@@ -16,7 +16,13 @@ import xarray as xr
 
 from .connectivity import get_inputs_from_cm, get_outputs_from_cm
 from .labels import NodeLabels
-from .state_space import build_state_space, dimension_labels
+from .state_space import (
+    dimension_labels,
+    input_dimension_label,
+    build_state_space,
+    PROBABILITY_DIMENSION,
+    SINGLETON_COORDINATE,
+)
 from .tpm import ExplicitTPM
 from .utils import state_of
 
@@ -55,6 +61,7 @@ class Node:
         self._inputs = dataarray.attrs["inputs"]
         self._outputs = dataarray.attrs["outputs"]
 
+        self._dataarray = dataarray
         self._tpm = dataarray.data
 
         self.state_space = dataarray.attrs["state_space"]
@@ -106,19 +113,19 @@ class Node:
 
     @state_space.setter
     def state_space(self, value):
-        state_space = tuple(value)
+        _state_space = tuple(value)
 
-        if len(set(state_space)) < len(state_space):
+        if len(set(_state_space)) < len(_state_space):
             raise ValueError(
                 "Invalid node state space tuple. Repeated states are ambiguous."
             )
 
-        if len(state_space) < 2:
+        if len(_state_space) < 2:
             raise ValueError(
                 "Invalid node state space with less than 2 states."
             )
 
-        self._state_space = state_space
+        self._state_space = _state_space
 
     @property
     def state(self):
@@ -133,6 +140,42 @@ class Node:
             )
 
         self._state = value
+
+    def streamline(self):
+        """Remove superfluous coordinates from an unaligned |Node| TPM.
+
+        Returns:
+            xr.DataArray: The |Node| TPM re-represented without coordinates
+                introduced during xr.Dataset alignment.
+        """
+        node_labels = self._node_labels
+
+        node_indices = frozenset(range(len(node_labels)))
+        inputs = self.inputs
+        noninputs = node_indices - inputs
+
+        input_dims = [input_dimension_label(node_labels[i]) for i in inputs]
+        noninput_dims = [input_dimension_label(node_labels[i]) for i in noninputs]
+
+        new_input_coords = {
+            dim: [
+                coord for coord in self._dataarray.coords[dim].data
+                if coord != SINGLETON_COORDINATE
+            ]
+            for dim in input_dims
+        }
+        new_noninput_coords = {
+            dim: [SINGLETON_COORDINATE] for dim in noninput_dims
+        }
+        probability_coords = list(self._dataarray.coords[PROBABILITY_DIMENSION].data)
+
+        new_coords = {
+            **new_input_coords,
+            **new_noninput_coords,
+            PROBABILITY_DIMENSION: probability_coords,
+        }
+
+        return self._dataarray.reindex(new_coords)
 
     def __repr__(self):
         return self.label
@@ -149,7 +192,6 @@ class Node:
 
         Labels are for display only, so two equal nodes may have different
         labels.
-
         """
         return (
             self.index == other.index
@@ -213,7 +255,7 @@ def node(
         node_labels,
         tpm.shape[:-1],
         network_state_space.values(),
-        singleton_state_space = ("_",),
+        singleton_state_space = (SINGLETON_COORDINATE,),
     )
 
     node_state_space = network_state_space[dimensions[index]]
