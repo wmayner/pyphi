@@ -167,12 +167,16 @@ class Node:
         new_noninput_coords = {
             dim: [SINGLETON_COORDINATE] for dim in noninput_dims
         }
-        probability_coords = list(self._dataarray.coords[PROBABILITY_DIMENSION].data)
+        probability_coords = {
+            PROBABILITY_DIMENSION: list(
+                self._dataarray.coords[PROBABILITY_DIMENSION].data
+            )
+        }
 
         new_coords = {
             **new_input_coords,
             **new_noninput_coords,
-            PROBABILITY_DIMENSION: probability_coords,
+            **probability_coords,
         }
 
         return self._dataarray.reindex(new_coords)
