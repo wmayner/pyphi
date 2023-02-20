@@ -91,7 +91,7 @@ class Network:
             invalid = [i for i in tpm if not isinstance(i, (np.ndarray, ExplicitTPM))]
             
             if invalid:
-                raise TypeError(f"Invalid set of nodes containing type {', type '.join(str(i) for i in invalid)}.")
+                raise TypeError(f"Invalid set of nodes containing {', '.join(str(i) for i in invalid)}.")
             
             tpm = tuple(ExplicitTPM(node_tpm, validate=True) for node_tpm in tpm)
                 
