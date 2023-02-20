@@ -7,7 +7,7 @@ Provides the ExplicitTPM and related classes.
 """
 
 from itertools import chain
-from typing import Mapping, Set
+from typing import Mapping, Set, Tuple
 
 import numpy as np
 import xarray as xr
@@ -73,9 +73,6 @@ class TPM:
         raise NotImplementedError
 
     def permute_nodes(self, permutation):
-        raise NotImplementedError
-
-    def __getitem__(self, i):
         raise NotImplementedError
 
     def __str__(self):
@@ -629,16 +626,6 @@ class ExplicitTPM(data_structures.ArrayLike, TPM):
         return self._hash
 
 
-def implicit_tpm(nodes, validate=False):
-
-    """Instantiate an implicit network TPM Dataset."""
-
-    return xr.Dataset(
-        data_vars = {node.name: node for node in nodes}
-    )
-
-
-@xr.register_dataset_accessor("pyphi")
 class ImplicitTPM(TPM):
 
     """An implicit network TPM containing |Node| TPMs in multidimensional form.
@@ -649,8 +636,13 @@ class ImplicitTPM(TPM):
     Attributes:
     """
 
-    def __init__(self, dataset: xr.Dataset):
-        self._tpm = dataset
+    def __init__(self, nodes: Tuple[xr.DataArray]):
+        self._nodes = nodes
+
+    @property
+    def nodes(self):
+        """Tuple[xr.DataArray]: The node TPMs in this ImplicitTPM"""
+        return self._nodes
 
     def validate(self, check_independence=True):
         """Validate this TPM."""
@@ -664,15 +656,15 @@ class ImplicitTPM(TPM):
         # Validate that probabilities sum to 1.
         if any(
                 (np.asarray(node_tpm).sum(axis=-1) != 1.0).any()
-                for node_tpm in self._tpm.data_vars.values()
+                for node_tpm in self._nodes
         ):
             raise ValueError(self._ERROR_MSG_PROBABILITY_SUM)
 
         # Leverage method in ExplicitTPM to distribute validation of
         # TPM image within [0, 1].
         if all(
-                node.data._validate_probabilities()
-                for node in self._tpm.data_vars.values()
+                node_tpm.data._validate_probabilities()
+                for node_tpm in self._nodes
         ):
             return True
 
@@ -707,15 +699,15 @@ class ImplicitTPM(TPM):
             TPM: A conditioned TPM with the same number of dimensions, with
             singleton dimensions for nodes in a fixed state.
         """
-        node_dimensions = ["input_" + dim for dim in self._tpm.data_vars.keys()]
+        node_dimensions = ["input_" + node.label for node in self.nodes]
 
-        condition = {
+        conditioning_index = {
             node_dimensions[node_index]: state
             for node_index, state in condition.items()
         }
 
         # TODO: broadcasting
-        return self._tpm[condition]
+        return self[conditioning_index]
 
     def marginalize_out(self, node_indices):
         raise NotImplementedError
@@ -754,10 +746,10 @@ class ImplicitTPM(TPM):
         raise NotImplementedError
 
     def __str__(self):
-        raise NotImplementedError
+        return self.__repr__()
 
     def __repr__(self):
-        raise NotImplementedError
+        return "ImplicitTPM({})".format(self._nodes)
 
     def __hash__(self):
         raise NotImplementedError

@@ -272,7 +272,7 @@ def node(
 
     return xr.DataArray(
         name = node_labels[index],
-        data = np.asarray(tpm),
+        data = tpm,
         dims = dimensions,
         coords = coordinates,
         attrs = {
