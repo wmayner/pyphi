@@ -7,11 +7,13 @@ Represents the network of interest. This is the primary object of PyPhi and the
 context of all |small_phi| and |big_phi| computation.
 """
 
+from typing import Iterable
 import numpy as np
+import xarray as xr
 
 from . import cache, connectivity, jsonify, utils, validate
 from .labels import NodeLabels
-from .node import generate_nodes
+from .node import Node, generate_nodes
 from .tpm import ExplicitTPM, ImplicitTPM
 from .state_space import build_state_space
 
@@ -84,6 +86,29 @@ class Network:
         elif isinstance(tpm, dict):
             # From JSON.
             self._tpm = ImplicitTPM(tpm["_tpm"], validate=True)
+
+        elif isinstance(tpm, Iterable):
+            invalid = [i for i in tpm if not isinstance(i, (np.ndarray, ExplicitTPM))]
+            
+            if invalid:
+                raise TypeError(f"Invalid set of nodes containing {', '.join(str(i) for i in invalid)}.")
+            
+            tpm = tuple(ExplicitTPM(node_tpm, validate=True) for node_tpm in tpm)
+                
+            shapes = [node.shape for node in tpm]
+            
+            if not all(len(shape) == len(shapes[0]) for shape in shapes):
+                raise ValueError("Provided set of nodes contains varying number of dimensions.")
+                
+            network_tpm_shape = [max(shape[i] for shape in shapes) for i in range(len(shapes[0]))]
+                
+            self.state_space, _ = build_state_space(
+                self._node_labels,
+                network_tpm_shape,
+                state_space
+            )
+            
+            self._tpm = ImplicitTPM(tpm)
 
         else:
             raise TypeError(f"Invalid TPM of type {type(tpm)}.")
