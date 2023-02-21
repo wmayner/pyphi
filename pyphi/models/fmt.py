@@ -506,8 +506,10 @@ def fmt_partitioned_phi_structure(
     return body
 
 
-def fmt_ces(ces, title="Cause-effect structure"):
+def fmt_ces(ces, title=None):
     """Format a |CauseEffectStructure|."""
+    if title is None:
+        title = ces.__class__.__name__
     if not ces:
         return "()\n"
 
