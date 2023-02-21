@@ -141,6 +141,45 @@ class Node:
 
         self._state = value
 
+    def project_index(self, index):
+        """Convert absolute TPM index to a valid index relative to this node."""
+
+        # Supported index coordinates (in the right dimension order) respective
+        # to this node, to be used as an AND mask, with 0 being
+        # SINGLETON_COORDINATE.
+
+        # TODO(tpm) make a Node attribute? (similar to `state_space`).
+        support = {
+            dim: tuple(self._dataarray.coords[dim].values)
+            for dim in self._dataarray.dims
+        }
+
+        if isinstance(index, dict):
+            projected_index = {
+                key: value if support[key] != (SINGLETON_COORDINATE,)
+                else SINGLETON_COORDINATE
+                for key, value in index.items()
+            }
+
+            print(projected_index)
+            return projected_index
+
+        # Assume regular index otherwise.
+        if not isinstance(index, tuple):
+            # Index is a single int, slice, ellipsis or intra-dimension list.
+            index = (index,)
+
+        index_support_map = zip(index, support.values())
+
+        projected_index = tuple(
+            i if support != (SINGLETON_COORDINATE,)
+            else slice(None)
+            for i, support in index_support_map
+        )
+
+        print(projected_index)
+        return projected_index
+
     def streamline(self):
         """Remove superfluous coordinates from an unaligned |Node| TPM.
 

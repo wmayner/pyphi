@@ -742,14 +742,27 @@ class ImplicitTPM(TPM):
     def permute_nodes(self, permutation):
         raise NotImplementedError
 
-    def __getitem__(self, i):
-        raise NotImplementedError
+    def __getitem__(self, index):
+        if isinstance(index, (int, slice, type(...), tuple)):
+            return ImplicitTPM(
+                tuple(
+                    node[node.pyphi.project_index(index)]
+                    for node in self.nodes
+                )
+            )
+        if isinstance(index, dict):
+            return ImplicitTPM(
+                tuple(
+                    node.loc[node.pyphi.project_index(index)]
+                    for node in self.nodes
+                )
+            )
 
     def __str__(self):
         return self.__repr__()
 
     def __repr__(self):
-        return "ImplicitTPM({})".format(self._nodes)
+        return "ImplicitTPM({})".format(self.nodes)
 
     def __hash__(self):
         raise NotImplementedError

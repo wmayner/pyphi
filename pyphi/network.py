@@ -129,7 +129,7 @@ class Network:
         # FIXME(TPM) initialization from JSON
         elif isinstance(tpm, dict):
             # From JSON.
-            self._tpm = ImplicitTPM(tpm["_tpm"], validate=True)
+            self._tpm = ImplicitTPM(tpm["_tpm"])
 
         else:
             raise TypeError(f"Invalid TPM of type {type(tpm)}.")
