@@ -534,7 +534,7 @@ def fmt_concept(concept):
     title = "\n".join(
         align(
             [
-                f"Distinction: mechanism = {mechanism}, state = {list(concept.mechanism_state)}",
+                f"{concept.__class__.__name__}: mechanism = {mechanism}, state = {list(concept.mechanism_state)}",
                 f"{SMALL_PHI} = {fmt_number(concept.phi)}",
             ],
             direction="c",
@@ -569,9 +569,7 @@ def fmt_ria(ria, verbose=True, mip=False):
         if ria.repertoire is not None:
             if ria.repertoire.size == 1:
                 repertoire = f"\nForward probability: \n    {ria.repertoire}"
-                partitioned_repertoire = (
-                    f"\nPartitioned forward probability:\n    {ria.partitioned_repertoire}"
-                )
+                partitioned_repertoire = f"\nPartitioned forward probability:\n    {ria.partitioned_repertoire}"
             else:
                 repertoire = "\nRepertoire:\n{}".format(
                     indent(fmt_repertoire(ria.repertoire, mark_states=mark_states))
