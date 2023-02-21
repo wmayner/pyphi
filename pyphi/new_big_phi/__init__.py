@@ -463,7 +463,6 @@ class NullPhiStructure(PhiStructure):
 
 def phi_structure(
     subsystem: Subsystem,
-    parallel: bool = True,
     sia: SystemIrreducibilityAnalysis = None,
     distinctions: CauseEffectStructure = None,
     relations: Relations = None,
@@ -472,10 +471,9 @@ def phi_structure(
     relations_kwargs: dict = None,
 ) -> PhiStructure:
     """Analyze the irreducible cause-effect structure of a system."""
-    defaults = dict(parallel=parallel)
-    sia_kwargs = {**defaults, **(sia_kwargs or {})}
-    ces_kwargs = {**defaults, **(ces_kwargs or {})}
-    relations_kwargs = {**defaults, **(relations_kwargs or {})}
+    sia_kwargs = sia_kwargs or dict()
+    ces_kwargs = ces_kwargs or dict()
+    relations_kwargs = relations_kwargs or dict()
 
     # Analyze irreducibility if not provided
     if sia is None:
