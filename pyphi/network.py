@@ -13,7 +13,7 @@ import xarray as xr
 
 from . import cache, connectivity, jsonify, utils, validate
 from .labels import NodeLabels
-from .node import Node, generate_nodes
+from .node import generate_nodes, node
 from .tpm import ExplicitTPM, ImplicitTPM
 from .state_space import build_state_space
 
@@ -97,7 +97,7 @@ class Network:
 
             if not all(len(shape) == len(shapes[0]) for shape in shapes):
                 raise ValueError(
-                    "Provided set of nodes contains varying number of dimensions."
+                    "The provided node TPMs contain varying number of dimensions."
                 )
 
             network_tpm_shape = [
@@ -110,7 +110,18 @@ class Network:
                 state_space
             )
 
-            self._tpm = ImplicitTPM(tpm)
+            self._tpm = ImplicitTPM(
+                tuple(
+                    node(
+                        node_tpm,
+                        self._cm,
+                        self._state_space,
+                        index,
+                        node_labels=self._node_labels
+                    )
+                    for index, node_tpm in zip(self._node_indices, tpm)
+                )
+            )
 
         elif isinstance(tpm, ImplicitTPM):
             self._tpm = tpm
