@@ -226,7 +226,9 @@ class ConcreteRelations(frozenset, Relations):
         body = "\n".join(
             fmt.align_columns(self._repr_columns()) + [fmt.margin(r) for r in self]
         )
-        return fmt.header("ConcreteRelations", body, fmt.HEADER_BAR_1, fmt.HEADER_BAR_1)
+        return fmt.header(
+            self.__class__.__name__, body, fmt.HEADER_BAR_1, fmt.HEADER_BAR_1
+        )
 
 
 class AnalyticalRelations(Relations):
