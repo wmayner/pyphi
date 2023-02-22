@@ -172,7 +172,7 @@ class Node:
 
         projected_index = tuple(
             i if support != (SINGLETON_COORDINATE,)
-            else slice(None)
+            else 0
             for i, support in index_support_map
         )
 
