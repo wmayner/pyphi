@@ -643,6 +643,11 @@ class ImplicitTPM(TPM):
         """Tuple[xr.DataArray]: The node TPMs in this ImplicitTPM"""
         return self._nodes
 
+    @property
+    def ndim(self):
+        """int: The number of dimensions of the TPM."""
+        return len(self) + 1
+
     def validate(self, check_independence=True):
         """Validate this TPM."""
         return self._validate_probabilities()
@@ -700,7 +705,7 @@ class ImplicitTPM(TPM):
         """
         node_dimensions = [
             state_space.INPUT_DIMENSION_PREFIX + node.label
-            for node in self.nodes
+            for node in self._nodes
         ]
 
         conditioning_index = {
