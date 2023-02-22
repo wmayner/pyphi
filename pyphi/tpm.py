@@ -760,6 +760,10 @@ class ImplicitTPM(TPM):
                 )
             )
 
+    def __len__(self):
+        """int: The number of nodes in the TPM."""
+        return len(self._nodes)
+
     def __str__(self):
         return self.__repr__()
 
