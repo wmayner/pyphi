@@ -7,7 +7,7 @@ Provides the ExplicitTPM and related classes.
 """
 
 from itertools import chain
-from typing import Mapping, Set, Tuple
+from typing import Iterable, Mapping, Set, Tuple
 
 import numpy as np
 import xarray as xr
@@ -647,6 +647,37 @@ class ImplicitTPM(TPM):
     def ndim(self):
         """int: The number of dimensions of the TPM."""
         return len(self) + 1
+
+    @property
+    def shape(self):
+        """Tuple[int]: The size or number of coordinates in each dimension."""
+        shapes = [node.shape for node in self._nodes]
+        return self._node_shapes_to_shape(shapes)
+
+    @staticmethod
+    def _node_shapes_to_shape(shapes: Iterable[Iterable[int]]) -> Tuple[int]:
+        """Infer the shape of the equivalent multidimensional |ExplicitTPM|.
+
+        Args:
+            shapes (Iterable[Iterable[int]]): The shapes of the individual node
+                TPMs in the network, ordered by node index.
+
+        Returns:
+            Tuple[int]: The inferred shape of the equivalent TPM.
+        """
+        # This should recompute the network TPM shape from individual node
+        # shapes, as opposed to measuring the size of the state space.
+
+        if not all(len(shape) == len(shapes[0]) for shape in shapes):
+            raise ValueError(
+                "The provided shapes contain varying number of dimensions."
+            )
+
+        network_tpm_shape = tuple(
+            max(shape[i] for shape in shapes) for i in range(len(shapes[0]))
+        )
+
+        return network_tpm_shape
 
     def validate(self, check_independence=True):
         """Validate this TPM."""

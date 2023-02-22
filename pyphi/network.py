@@ -94,15 +94,7 @@ class Network:
             )
 
             shapes = [node.shape for node in tpm]
-
-            if not all(len(shape) == len(shapes[0]) for shape in shapes):
-                raise ValueError(
-                    "The provided node TPMs contain varying number of dimensions."
-                )
-
-            network_tpm_shape = [
-                max(shape[i] for shape in shapes) for i in range(len(shapes[0]))
-            ]
+            network_tpm_shape = ImplicitTPM._node_shapes_to_shape(shapes)
 
             self._state_space, _ = build_state_space(
                 self._node_labels,
