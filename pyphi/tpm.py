@@ -12,11 +12,10 @@ from typing import Mapping, Set, Tuple
 import numpy as np
 import xarray as xr
 
-from . import config, convert, data_structures, exceptions
+from . import config, convert, data_structures, exceptions, state_space
 from .constants import OFF, ON
 from .data_structures import FrozenMap
 from .utils import all_states, np_hash, np_immutable
-
 
 class TPM:
     """TPM interface for derived classes."""
@@ -655,7 +654,7 @@ class ImplicitTPM(TPM):
 
         # Validate that probabilities sum to 1.
         if any(
-                (np.asarray(node_tpm).sum(axis=-1) != 1.0).any()
+                (node_tpm.data.sum(axis=-1) != 1.0).any()
                 for node_tpm in self._nodes
         ):
             raise ValueError(self._ERROR_MSG_PROBABILITY_SUM)
@@ -699,7 +698,10 @@ class ImplicitTPM(TPM):
             TPM: A conditioned TPM with the same number of dimensions, with
             singleton dimensions for nodes in a fixed state.
         """
-        node_dimensions = ["input_" + node.label for node in self.nodes]
+        node_dimensions = [
+            state_space.INPUT_DIMENSION_PREFIX + node.label
+            for node in self.nodes
+        ]
 
         conditioning_index = {
             node_dimensions[node_index]: state
