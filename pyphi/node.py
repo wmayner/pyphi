@@ -161,7 +161,6 @@ class Node:
                 for key, value in index.items()
             }
 
-            print(projected_index)
             return projected_index
 
         # Assume regular index otherwise.
@@ -177,7 +176,6 @@ class Node:
             for i, support in index_support_map
         )
 
-        print(projected_index)
         return projected_index
 
     def streamline(self):
