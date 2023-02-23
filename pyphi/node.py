@@ -145,10 +145,10 @@ class Node:
         """Convert absolute TPM index to a valid index relative to this node."""
 
         # Supported index coordinates (in the right dimension order) respective
-        # to this node, to be used as an AND mask, with 0 being
-        # SINGLETON_COORDINATE.
+        # to this node, to be used like an AND mask, with 0 being
+        # `singleton_coordinate`.
 
-        # TODO(tpm) make a Node attribute? (similar to `state_space`).
+        # TODO(tpm) make this a Node attribute? (similar to `state_space`).
         support = {
             dim: tuple(self._dataarray.coords[dim].values)
             for dim in self._dataarray.dims
@@ -159,11 +159,17 @@ class Node:
                 [SINGLETON_COORDINATE] if preserve_singletons
                 else SINGLETON_COORDINATE
             )
-            projected_index = {
-                key: value if support[key] != (SINGLETON_COORDINATE,)
-                else singleton_coordinate
-                for key, value in index.items()
-            }
+            try:
+                projected_index = {
+                    key: value if support[key] != (SINGLETON_COORDINATE,)
+                    else singleton_coordinate
+                    for key, value in index.items()
+                }
+            except KeyError as e:
+                raise ValueError(
+                    "Dimension {} does not exist. Expected one or more of: "
+                    "{}.".format(e, self._dataarray.dims)
+                )
 
             return projected_index
 
