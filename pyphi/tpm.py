@@ -41,7 +41,7 @@ class TPM:
     def conditionally_independent(self):
         raise NotImplementedError
 
-    def condition_tpm(self, condition: Mapping[int, int]):
+    def condition_tpm(self, condition):
         raise NotImplementedError
 
     def marginalize_out(self, node_indices):
@@ -465,12 +465,12 @@ class ExplicitTPM(data_structures.ArrayLike, TPM):
         conditioning_indices = tuple(chain.from_iterable(conditioning_indices))
         # Obtain the actual conditioned TPM by indexing with the conditioning
         # indices.
-        tpm = self._tpm[conditioning_indices]
+        tpm = self[conditioning_indices]
         # Create new TPM object of the same type as self.
         # self.tpm has already been validated and converted to multidimensional
         # state-by-node form. Further validation would be problematic for
         # singleton dimensions.
-        return type(self)(tpm)
+        return tpm
 
     def marginalize_out(self, node_indices):
         """Marginalize out nodes from this TPM.
@@ -636,7 +636,7 @@ class ImplicitTPM(TPM):
     """
 
     def __init__(self, nodes: Tuple[xr.DataArray]):
-        self._nodes = nodes
+        self._nodes = tuple(nodes)
 
     @property
     def nodes(self):
@@ -713,10 +713,7 @@ class ImplicitTPM(TPM):
     def conditionally_independent(self):
         raise NotImplementedError
 
-    # TODO accept label-state mapping as argument. Current solution
-    # relies on correct node order in data_vars.
-    #
-    # TODO(tpm) Refactor codebase to call tpm[Mapping] directly?
+    # TODO(tpm) accept node labels and state labels in the map.
     def condition_tpm(self, condition: Mapping[int, int]):
         """Return a TPM conditioned on the given fixed node indices, whose
         states are fixed according to the given state-tuple.
@@ -734,18 +731,17 @@ class ImplicitTPM(TPM):
             TPM: A conditioned TPM with the same number of dimensions, with
             singleton dimensions for nodes in a fixed state.
         """
-        node_dimensions = [
-            state_space.INPUT_DIMENSION_PREFIX + node.label
-            for node in self._nodes
-        ]
+        sorted_index = [state_i for i, state_i in sorted(condition.items())]
 
-        conditioning_index = {
-            node_dimensions[node_index]: state
-            for node_index, state in condition.items()
-        }
+        # Wrapping index elements in a list is the xarray equivalent
+        # of inserting a numpy.newaxis, which preserves the singleton even
+        # after selection of a single state.
+        conditioning_indices = tuple(
+            (state_i if isinstance(state_i, list) else [state_i])
+            for state_i in sorted_index
+        )
 
-        # TODO: broadcasting
-        return self[conditioning_index]
+        return self.__getitem__(conditioning_indices, preserve_singletons=True)
 
     def marginalize_out(self, node_indices):
         raise NotImplementedError
@@ -780,18 +776,18 @@ class ImplicitTPM(TPM):
     def permute_nodes(self, permutation):
         raise NotImplementedError
 
-    def __getitem__(self, index):
+    def __getitem__(self, index, **kwargs):
         if isinstance(index, (int, slice, type(...), tuple)):
             return ImplicitTPM(
                 tuple(
-                    node[node.pyphi.project_index(index)]
+                    node[node.pyphi.project_index(index, **kwargs)]
                     for node in self.nodes
                 )
             )
         if isinstance(index, dict):
             return ImplicitTPM(
                 tuple(
-                    node.loc[node.pyphi.project_index(index)]
+                    node.loc[node.pyphi.project_index(index, **kwargs)]
                     for node in self.nodes
                 )
             )

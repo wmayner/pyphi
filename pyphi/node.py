@@ -141,7 +141,7 @@ class Node:
 
         self._state = value
 
-    def project_index(self, index):
+    def project_index(self, index, preserve_singletons=False):
         """Convert absolute TPM index to a valid index relative to this node."""
 
         # Supported index coordinates (in the right dimension order) respective
@@ -155,24 +155,30 @@ class Node:
         }
 
         if isinstance(index, dict):
+            singleton_coordinate = (
+                [SINGLETON_COORDINATE] if preserve_singletons
+                else SINGLETON_COORDINATE
+            )
             projected_index = {
                 key: value if support[key] != (SINGLETON_COORDINATE,)
-                else SINGLETON_COORDINATE
+                else singleton_coordinate
                 for key, value in index.items()
             }
 
             return projected_index
 
         # Assume regular index otherwise.
+
         if not isinstance(index, tuple):
-            # Index is a single int, slice, ellipsis or intra-dimension list.
+            # Index is a single int, slice, ellipsis, etc. Make it
+            # amenable to zip().
             index = (index,)
 
         index_support_map = zip(index, support.values())
-
+        singleton_coordinate = [0] if preserve_singletons else 0
         projected_index = tuple(
             i if support != (SINGLETON_COORDINATE,)
-            else 0
+            else singleton_coordinate
             for i, support in index_support_map
         )
 
