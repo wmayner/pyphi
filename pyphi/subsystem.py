@@ -108,10 +108,7 @@ class Subsystem:
         # Get the TPM conditioned on the state of the external nodes.
         external_state = utils.state_of(self.external_indices, self.state)
         background_conditions = dict(zip(self.external_indices, external_state))
-        self.tpm = self.network.tpm.pyphi.condition_tpm(background_conditions)
-        # The TPM for just the nodes in the subsystem.
-        labels_in_subsystem = self.node_labels.indices2labels(self.node_indices)
-        self.proper_tpm = self.tpm[list(labels_in_subsystem)]
+        self.tpm = self.network.tpm.condition_tpm(background_conditions)
 
         # The unidirectional cut applied for phi evaluation
         self.cut = (
