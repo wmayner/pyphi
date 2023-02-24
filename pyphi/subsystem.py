@@ -135,7 +135,10 @@ class Subsystem:
             unconstrained_forward_repertoire_cache or cache.DictCache()
         )
 
-        self.nodes = self.tpm.nodes
+        self.nodes = tuple(
+            node.pyphi for i, node in enumerate(self.tpm.nodes)
+            if i in self.node_indices
+        )
 
         # validate.subsystem(self)
 
