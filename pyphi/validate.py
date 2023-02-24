@@ -62,7 +62,7 @@ def network(n):
 
     Checks the TPM and connectivity matrix.
     """
-    n.tpm.pyphi.validate()
+    n.tpm.validate()
     connectivity_matrix(n.cm)
     if n.cm.shape[0] != n.size:
         raise ValueError(

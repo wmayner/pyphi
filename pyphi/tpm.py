@@ -10,9 +10,8 @@ from itertools import chain
 from typing import Iterable, Mapping, Set, Tuple
 
 import numpy as np
-import xarray as xr
 
-from . import config, convert, data_structures, exceptions, state_space
+from . import config, convert, data_structures, exceptions
 from .constants import OFF, ON
 from .data_structures import FrozenMap
 from .utils import all_states, np_hash, np_immutable
@@ -635,7 +634,10 @@ class ImplicitTPM(TPM):
     Attributes:
     """
 
-    def __init__(self, nodes: Tuple[xr.DataArray]):
+    def __init__(self, nodes):
+        """Args:
+            nodes (pyphi.node.Node)
+        """
         self._nodes = tuple(nodes)
 
     @property
@@ -651,7 +653,7 @@ class ImplicitTPM(TPM):
     @property
     def shape(self):
         """Tuple[int]: The size or number of coordinates in each dimension."""
-        shapes = [node.shape for node in self._nodes]
+        shapes = [node.tpm.shape for node in self._nodes]
         return self._node_shapes_to_shape(shapes)
 
     @staticmethod
@@ -777,17 +779,18 @@ class ImplicitTPM(TPM):
         if isinstance(index, (int, slice, type(...), tuple)):
             return ImplicitTPM(
                 tuple(
-                    node[node.pyphi.project_index(index, **kwargs)]
+                    node.dataarray[node.project_index(index, **kwargs)].pyphi
                     for node in self.nodes
                 )
             )
         if isinstance(index, dict):
             return ImplicitTPM(
                 tuple(
-                    node.loc[node.pyphi.project_index(index, **kwargs)]
+                    node.dataarray.loc[node.project_index(index, **kwargs)].pyphi
                     for node in self.nodes
                 )
             )
+        raise TypeError(f"Invalid index {index} of type {type(index)}.")
 
     def __len__(self):
         """int: The number of nodes in the TPM."""
@@ -808,7 +811,7 @@ def reconstitute_tpm(subsystem):
     # The last axis of the node TPMs correponds to ON or OFF probabilities
     # (used in the conditioning step when calculating the repertoires); we want
     # ON probabilities.
-    node_tpms = [node.pyphi.tpm[..., 1] for node in subsystem.nodes]
+    node_tpms = [node.tpm[..., 1] for node in subsystem.nodes]
     # Remove the singleton dimensions corresponding to external nodes
     node_tpms = [tpm.squeeze(axis=subsystem.external_indices) for tpm in node_tpms]
     # We add a new singleton axis at the end so that we can use

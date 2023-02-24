@@ -79,9 +79,9 @@ def run_tpm(system, steps, blackbox):
     node_tpms = []
     for node in system.nodes:
         # TODO: nonbinary nodes.
-        node_tpm = node.pyphi.tpm[..., 1]
-        for input_node in node.pyphi.inputs:
-            if not blackbox.in_same_box(node.pyphi.index, input_node):
+        node_tpm = node.tpm[..., 1]
+        for input_node in node.inputs:
+            if not blackbox.in_same_box(node.index, input_node):
                 if input_node in blackbox.output_indices:
                     node_tpm = node_tpm.marginalize_out([input_node])
 
@@ -264,7 +264,7 @@ class MacroSubsystem(Subsystem):
 
         # Re-calcuate the tpm based on the results of the cut
         # TODO: nonbinary nodes.
-        tpm = rebuild_system_tpm(node.pyphi.tpm[..., 1] for node in nodes)
+        tpm = rebuild_system_tpm(node.tpm[..., 1] for node in nodes)
 
         return SystemAttrs(tpm, cm, node_indices, state, state_space)
 
@@ -275,9 +275,9 @@ class MacroSubsystem(Subsystem):
         node_tpms = []
         for node in system.nodes:
             # TODO: nonbinary nodes.
-            node_tpm = node.pyphi.tpm[..., 1]
-            for input_node in node.pyphi.inputs:
-                if blackbox.hidden_from(input_node, node.pyphi.index):
+            node_tpm = node.tpm[..., 1]
+            for input_node in node.inputs:
+                if blackbox.hidden_from(input_node, node.index):
                     node_tpm = node_tpm.marginalize_out([input_node])
 
             node_tpms.append(node_tpm)

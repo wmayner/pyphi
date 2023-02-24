@@ -62,7 +62,7 @@ class Node:
         self._outputs = dataarray.attrs["outputs"]
 
         self._dataarray = dataarray
-        self._tpm = dataarray.data
+        self._tpm = self._dataarray
 
         self.state_space = dataarray.attrs["state_space"]
 
@@ -90,6 +90,11 @@ class Node:
     def label(self):
         """str: The textual label for this node."""
         return self._node_labels[self.index]
+
+    @property
+    def dataarray(self):
+        """|xr.DataArray|: The xarray DataArray for this node."""
+        return self._dataarray
 
     @property
     def tpm(self):
@@ -196,6 +201,9 @@ class Node:
         )
 
         return projected_index
+
+    def __getitem__(self, index):
+        return self._dataarray[index].pyphi
 
     def streamline(self):
         """Remove superfluous coordinates from an unaligned |Node| TPM.
@@ -412,7 +420,7 @@ def generate_nodes(
                 index,
                 state=state,
                 node_labels=node_labels
-            )
+            ).pyphi
         )
 
     return tuple(nodes)
