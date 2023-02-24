@@ -7,6 +7,7 @@
 from collections import defaultdict
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
+from functools import cached_property
 
 from toolz import concat
 
@@ -88,6 +89,7 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
         # congruence with a SIA specified state
         # TODO(4.0) use a subclass instead, as with MICE?
         self._resolved_congruence = resolved_congruence
+        self._sum_phi = None
 
     def __len__(self):
         return len(self.concepts)
@@ -136,6 +138,11 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
         """Return self."""
         # No-op; already unflattened
         return self
+
+    def sum_phi(self):
+        if self._sum_phi is None:
+            self._sum_phi = sum(self.phis)
+        return self._sum_phi
 
     @property
     def phis(self):
