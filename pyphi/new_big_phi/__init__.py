@@ -434,7 +434,7 @@ class PhiStructure(cmp.Orderable):
             return self._sum_phi_distinctions
         except AttributeError:
             # TODO delegate sum to distinctions
-            self._sum_phi_distinctions = sum(self.distinctions.phis)
+            self._sum_phi_distinctions = self.distinctions.sum_phi()
             return self._sum_phi_distinctions
 
     @property
