@@ -135,9 +135,7 @@ class Subsystem:
             unconstrained_forward_repertoire_cache or cache.DictCache()
         )
 
-        self.nodes = tuple(
-            node.pyphi.streamline() for node in self.tpm.data_vars.values()
-        )
+        self.nodes = self.tpm.nodes
 
         # validate.subsystem(self)
 
@@ -153,9 +151,7 @@ class Subsystem:
         """
         # pylint: disable=attribute-defined-outside-init
         self._nodes = value
-        self._index2node = {
-            node.pyphi.index: node.pyphi.streamline() for node in self._nodes
-        }
+        self._index2node = {node.pyphi.index: node for node in self._nodes}
 
     @property
     def proper_state(self):

@@ -703,7 +703,6 @@ class ImplicitTPM(TPM):
         ):
             return True
 
-
     def _validate_shape(self, check_independence=True):
         raise NotImplementedError
 
@@ -731,15 +730,13 @@ class ImplicitTPM(TPM):
             TPM: A conditioned TPM with the same number of dimensions, with
             singleton dimensions for nodes in a fixed state.
         """
-        sorted_index = [state_i for i, state_i in sorted(condition.items())]
-
         # Wrapping index elements in a list is the xarray equivalent
         # of inserting a numpy.newaxis, which preserves the singleton even
         # after selection of a single state.
-        conditioning_indices = tuple(
-            (state_i if isinstance(state_i, list) else [state_i])
-            for state_i in sorted_index
-        )
+        conditioning_indices = {
+            i: (state_i if isinstance(state_i, list) else [state_i])
+            for i, state_i in condition.items()
+        }
 
         return self.__getitem__(conditioning_indices, preserve_singletons=True)
 

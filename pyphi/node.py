@@ -147,28 +147,35 @@ class Node:
         # Supported index coordinates (in the right dimension order) respective
         # to this node, to be used like an AND mask, with 0 being
         # `singleton_coordinate`.
-
+        dimensions = self._dataarray.dims
+        coordinates = self._dataarray.coords
         # TODO(tpm) make this a Node attribute? (similar to `state_space`).
-        support = {
-            dim: tuple(self._dataarray.coords[dim].values)
-            for dim in self._dataarray.dims
-        }
+        support = {dim: tuple(coordinates[dim].values) for dim in dimensions}
 
         if isinstance(index, dict):
             singleton_coordinate = (
                 [SINGLETON_COORDINATE] if preserve_singletons
                 else SINGLETON_COORDINATE
             )
+
             try:
+                # Convert potential int dimension indices to common currency of
+                # string dimension labels.
+                keys = [
+                    k if isinstance(k, str) else dimensions[k]
+                    for k in index.keys()
+                ]
+
                 projected_index = {
                     key: value if support[key] != (SINGLETON_COORDINATE,)
                     else singleton_coordinate
-                    for key, value in index.items()
+                    for key, value in zip(keys, index.values())
                 }
+
             except KeyError as e:
                 raise ValueError(
                     "Dimension {} does not exist. Expected one or more of: "
-                    "{}.".format(e, self._dataarray.dims)
+                    "{}.".format(e, dimensions)
                 )
 
             return projected_index
