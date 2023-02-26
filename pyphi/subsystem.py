@@ -1114,7 +1114,7 @@ class Subsystem:
 
         Alias for |find_mice()| with ``direction`` set to |EFFECT|.
         """
-        return self.find_mice(Direction.EFFECT, mechanism, purviews=purviews)
+        return self.find_mice(Direction.EFFECT, mechanism, purviews=purviews, **kwargs)
 
     def phi_max(self, mechanism):
         """Return the |small_phi_max| of a mechanism.
