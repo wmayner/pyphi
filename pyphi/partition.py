@@ -12,6 +12,7 @@ from itertools import chain, product
 
 import numpy as np
 from more_itertools import distinct_permutations
+from toolz import unique
 
 from . import combinatorics
 from .cache import cache
@@ -746,7 +747,9 @@ def _unidirectional_set_partitions(node_indices, node_labels=None):
 @functools.wraps(_unidirectional_set_partitions)
 def unidirectional_set_partitions(node_indices, node_labels=None):
     # TODO(4.0) generate properly without using set
-    return set(_unidirectional_set_partitions(node_indices, node_labels=node_labels))
+    yield from unique(
+        _unidirectional_set_partitions(node_indices, node_labels=node_labels)
+    )
 
 
 def system_partitions(nodes, node_labels=None, partition_scheme=None, filter_func=None):
