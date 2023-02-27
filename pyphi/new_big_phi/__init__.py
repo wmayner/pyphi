@@ -280,26 +280,24 @@ def sia(
 
     # TODO(4.0): trivial reducibility
 
-    filter_func = None
-    if partitions == "GENERAL":
+    if partitions is None:
+        filter_func = None
+        if partitions == "GENERAL":
 
-        def is_disconnecting_partition(partition):
-            # Special case for length 1 subsystems so complete partition is included
-            return (
-                not connectivity.is_strong(subsystem.apply_cut(partition).proper_cm)
-            ) or len(subsystem) == 1
+            def is_disconnecting_partition(partition):
+                # Special case for length 1 subsystems so complete partition is included
+                return (
+                    not connectivity.is_strong(subsystem.apply_cut(partition).proper_cm)
+                ) or len(subsystem) == 1
 
-        filter_func = is_disconnecting_partition
+            filter_func = is_disconnecting_partition
 
-    partitions = fallback(
-        partitions,
-        system_partitions(
+        partitions = system_partitions(
             subsystem.node_indices,
             node_labels=subsystem.node_labels,
             partition_scheme=partition_scheme,
             filter_func=filter_func,
-        ),
-    )
+        )
 
     system_state = system_intrinsic_information(subsystem)
 
