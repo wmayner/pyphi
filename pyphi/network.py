@@ -237,7 +237,7 @@ class Network:
     def __repr__(self):
         # TODO implement a cleaner repr, similar to analyses objects,
         # distinctions, etc.
-        return "Network({}, cm={}, node_labels={}, state_space={}, purview_cache={})".format(
+        return "Network(\n{},\ncm={},\nnode_labels={},\nstate_space={},\npurview_cache={}\n)".format(
             self.tpm, self.cm, self.node_labels, self.state_space, self.purview_cache
         )
 
