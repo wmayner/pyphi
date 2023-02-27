@@ -95,7 +95,7 @@ class Network:
             shapes = [node.shape for node in tpm]
             
             for i, shape in enumerate(shapes):
-                for j, val in enumerate(self.cm[i]):
+                for j, val in enumerate(self.cm[..., i]):
                     if (val == 0 and shape[j] != 1) or (val != 0 and shape[j] == 1):
                         raise ValueError(f"Node shape {shape[j]} does not correspond to connectivity matrix at index [{i}][{j}].")
 
@@ -237,8 +237,8 @@ class Network:
     def __repr__(self):
         # TODO implement a cleaner repr, similar to analyses objects,
         # distinctions, etc.
-        return "Network(\n{},\ncm={},\nnode_labels={},\nstate_space={},\npurview_cache={}\n)".format(
-            self.tpm, self.cm, self.node_labels, self.state_space, self.purview_cache
+        return "Network(\n{},\ncm={},\nnode_labels={},\nstate_space={}\n)".format(
+            self.tpm, self.cm, self.node_labels, self.state_space
         )
 
     def __eq__(self, other):
