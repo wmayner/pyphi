@@ -101,7 +101,7 @@ class Network:
 
             network_tpm_shape = ImplicitTPM._node_shapes_to_shape(shapes)
                 
-            self.state_space, _ = build_state_space(
+            self._state_space, _ = build_state_space(
                 self._node_labels,
                 network_tpm_shape,
                 state_space
