@@ -49,10 +49,6 @@ class Network:
             state_space=None,
             purview_cache=None
     ):
-        self._cm, self._cm_hash = self._build_cm(cm, tpm)
-        self._node_indices = tuple(range(self.size))
-        self._node_labels = NodeLabels(node_labels, self._node_indices)
-
         # Initialize _tpm according to argument type.
 
         if isinstance(tpm, (np.ndarray, ExplicitTPM)):
@@ -61,6 +57,10 @@ class Network:
             # np.ndarray, so the following achieves validation in general (and
             # converstion to multidimensional form, as a side effect).
             tpm = ExplicitTPM(tpm, validate=True)
+            self._cm, self._cm_hash = self._build_cm(cm, tpm)
+            
+            self._node_indices = tuple(range(self.size))
+            self._node_labels = NodeLabels(node_labels, self._node_indices)
 
             self._state_space, _ = build_state_space(
                 self._node_labels,
@@ -94,12 +94,12 @@ class Network:
 
             shapes = [node.shape for node in tpm]
             
-            for i, shape in enumerate(shapes):
-                for j, val in enumerate(self.cm[..., i]):
-                    if (val == 0 and shape[j] != 1) or (val != 0 and shape[j] == 1):
-                        raise ValueError(f"Node shape of {shape[j]} does not correspond to connectivity matrix.")
+            self._cm, self._cm_hash = self._build_cm(cm, tpm, shapes)
 
             network_tpm_shape = ImplicitTPM._node_shapes_to_shape(shapes)
+                
+            self._node_indices = tuple(range(self.size))
+            self._node_labels = NodeLabels(node_labels, self._node_indices)
                 
             self._state_space, _ = build_state_space(
                 self._node_labels,
@@ -122,11 +122,17 @@ class Network:
 
         elif isinstance(tpm, ImplicitTPM):
             self._tpm = tpm
+            self._cm, self._cm_hash = self._build_cm(cm, tpm)
+            self._node_indices = tuple(range(self.size))
+            self._node_labels = NodeLabels(node_labels, self._node_indices)
 
         # FIXME(TPM) initialization from JSON
         elif isinstance(tpm, dict):
             # From JSON.
             self._tpm = ImplicitTPM(tpm["_tpm"])
+            self._cm, self._cm_hash = self._build_cm(cm, tpm)
+            self._node_indices = tuple(range(self.size))
+            self._node_labels = NodeLabels(node_labels, self._node_indices)
 
         else:
             raise TypeError(f"Invalid TPM of type {type(tpm)}.")
@@ -152,7 +158,7 @@ class Network:
         """
         return self._cm
 
-    def _build_cm(self, cm, tpm):
+    def _build_cm(self, cm, tpm, shapes=None):
         """Convert the passed CM to the proper format, or construct the
         unitary CM if none was provided.
         """
@@ -162,9 +168,22 @@ class Network:
             except AttributeError:
                 size = len(tpm)
 
-            # Assume all are connected.
-            cm = np.ones((size, size))
+            if shapes is None:
+                # Assume all are connected.
+                cm = np.ones((size, size))
+            else:
+                cm = np.zeros((len(shapes), len(shapes)), dtype=int)
+    
+                for i, shape in enumerate(shapes):
+                    for j in range(len(shapes)):
+                        if shape[j] != 1:
+                            cm[j][i] = 1
         else:
+            for i, shape in enumerate(shapes):
+                for j, val in enumerate(self.cm[..., i]):
+                    if (val == 0 and shape[j] != 1) or (val != 0 and shape[j] == 1):
+                        raise ValueError(f"Node shape of {shape[j]} does not correspond to connectivity matrix.")
+            
             cm = np.array(cm)
 
         utils.np_immutable(cm)
