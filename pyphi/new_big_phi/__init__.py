@@ -269,10 +269,11 @@ def sia_minimization_key(sia):
 
 def sia(
     subsystem: Subsystem,
-    repertoire_distance: str = None,
+    repertoire_distance: Optional[str] = None,
     directions: Optional[Iterable[Direction]] = None,
-    partition_scheme: str = None,
+    partition_scheme: Optional[str] = None,
     partitions: Optional[Iterable] = None,
+    system_state: Optional[SystemStateSpecification] = None,
     **kwargs,
 ) -> SystemIrreducibilityAnalysis:
     """Find the minimum information partition of a system."""
@@ -299,7 +300,8 @@ def sia(
             filter_func=filter_func,
         )
 
-    system_state = system_intrinsic_information(subsystem)
+    if system_state is None:
+        system_state = system_intrinsic_information(subsystem)
 
     def _null_sia(**kwargs):
         return NullSystemIrreducibilityAnalysis(
