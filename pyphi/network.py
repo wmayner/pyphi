@@ -9,7 +9,6 @@ context of all |small_phi| and |big_phi| computation.
 
 from typing import Iterable
 import numpy as np
-import xarray as xr
 
 from . import cache, connectivity, jsonify, utils, validate
 from .labels import NodeLabels
@@ -94,8 +93,14 @@ class Network:
             )
 
             shapes = [node.shape for node in tpm]
-            network_tpm_shape = ImplicitTPM._node_shapes_to_shape(shapes)
+            
+            for i, shape in enumerate(shapes):
+                for j, val in enumerate(self.cm[..., i]):
+                    if (val == 0 and shape[j] != 1) or (val != 0 and shape[j] == 1):
+                        raise ValueError(f"Node shape of {shape[j]} does not correspond to connectivity matrix.")
 
+            network_tpm_shape = ImplicitTPM._node_shapes_to_shape(shapes)
+                
             self._state_space, _ = build_state_space(
                 self._node_labels,
                 network_tpm_shape,
@@ -232,10 +237,9 @@ class Network:
     def __repr__(self):
         # TODO implement a cleaner repr, similar to analyses objects,
         # distinctions, etc.
-        return "Network({}, cm={})".format(self.tpm, self.cm)
-
-    def __str__(self):
-        return self.__repr__()
+        return "Network(\n{},\ncm={},\nnode_labels={},\nstate_space={}\n)".format(
+            self.tpm, self.cm, self.node_labels, self.state_space
+        )
 
     def __eq__(self, other):
         """Return whether this network equals the other object.
