@@ -122,11 +122,17 @@ class Network:
 
         elif isinstance(tpm, ImplicitTPM):
             self._tpm = tpm
+            self._cm, self._cm_hash = self._build_cm(cm, tpm)
+            self._node_indices = tuple(range(self.size))
+            self._node_labels = NodeLabels(node_labels, self._node_indices)
 
         # FIXME(TPM) initialization from JSON
         elif isinstance(tpm, dict):
             # From JSON.
             self._tpm = ImplicitTPM(tpm["_tpm"])
+            self._cm, self._cm_hash = self._build_cm(cm, tpm)
+            self._node_indices = tuple(range(self.size))
+            self._node_labels = NodeLabels(node_labels, self._node_indices)
 
         else:
             raise TypeError(f"Invalid TPM of type {type(tpm)}.")
