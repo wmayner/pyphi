@@ -153,7 +153,7 @@ class Transition:
 
         self.cause_system.state = after_state
         for node in self.cause_system.nodes:
-            node.pyphi.state = after_state[node.pyphi.index]
+            node.state = after_state[node.index]
 
         # Validate the cause system
         # The state of the effect system does not need to be reachable

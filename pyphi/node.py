@@ -62,7 +62,7 @@ class Node:
         self._outputs = dataarray.attrs["outputs"]
 
         self._dataarray = dataarray
-        self._tpm = dataarray.data
+        self._tpm = self._dataarray
 
         self.state_space = dataarray.attrs["state_space"]
 
@@ -90,6 +90,11 @@ class Node:
     def label(self):
         """str: The textual label for this node."""
         return self._node_labels[self.index]
+
+    @property
+    def dataarray(self):
+        """|xr.DataArray|: The xarray DataArray for this node."""
+        return self._dataarray
 
     @property
     def tpm(self):
@@ -140,6 +145,65 @@ class Node:
             )
 
         self._state = value
+
+    def project_index(self, index, preserve_singletons=False):
+        """Convert absolute TPM index to a valid index relative to this node."""
+
+        # Supported index coordinates (in the right dimension order) respective
+        # to this node, to be used like an AND mask, with 0 being
+        # `singleton_coordinate`.
+        dimensions = self._dataarray.dims
+        coordinates = self._dataarray.coords
+        # TODO(tpm) make this a Node attribute? (similar to `state_space`).
+        support = {dim: tuple(coordinates[dim].values) for dim in dimensions}
+
+        if isinstance(index, dict):
+            singleton_coordinate = (
+                [SINGLETON_COORDINATE] if preserve_singletons
+                else SINGLETON_COORDINATE
+            )
+
+            try:
+                # Convert potential int dimension indices to common currency of
+                # string dimension labels.
+                keys = [
+                    k if isinstance(k, str) else dimensions[k]
+                    for k in index.keys()
+                ]
+
+                projected_index = {
+                    key: value if support[key] != (SINGLETON_COORDINATE,)
+                    else singleton_coordinate
+                    for key, value in zip(keys, index.values())
+                }
+
+            except KeyError as e:
+                raise ValueError(
+                    "Dimension {} does not exist. Expected one or more of: "
+                    "{}.".format(e, dimensions)
+                )
+
+            return projected_index
+
+        # Assume regular index otherwise.
+
+        if not isinstance(index, tuple):
+            # Index is a single int, slice, ellipsis, etc. Make it
+            # amenable to zip().
+            index = (index,)
+
+        index_support_map = zip(index, support.values())
+        singleton_coordinate = [0] if preserve_singletons else 0
+        projected_index = tuple(
+            i if support != (SINGLETON_COORDINATE,)
+            else singleton_coordinate
+            for i, support in index_support_map
+        )
+
+        return projected_index
+
+    def __getitem__(self, index):
+        return self._dataarray[index].pyphi
 
     def streamline(self):
         """Remove superfluous coordinates from an unaligned |Node| TPM.
@@ -356,7 +420,7 @@ def generate_nodes(
                 index,
                 state=state,
                 node_labels=node_labels
-            )
+            ).pyphi
         )
 
     return tuple(nodes)

@@ -7,16 +7,14 @@ Provides the ExplicitTPM and related classes.
 """
 
 from itertools import chain
-from typing import Mapping, Set, Tuple
+from typing import Iterable, Mapping, Set, Tuple
 
 import numpy as np
-import xarray as xr
 
 from . import config, convert, data_structures, exceptions
 from .constants import OFF, ON
 from .data_structures import FrozenMap
 from .utils import all_states, np_hash, np_immutable
-
 
 class TPM:
     """TPM interface for derived classes."""
@@ -42,7 +40,7 @@ class TPM:
     def conditionally_independent(self):
         raise NotImplementedError
 
-    def condition_tpm(self, condition: Mapping[int, int]):
+    def condition_tpm(self, condition):
         raise NotImplementedError
 
     def marginalize_out(self, node_indices):
@@ -466,12 +464,12 @@ class ExplicitTPM(data_structures.ArrayLike, TPM):
         conditioning_indices = tuple(chain.from_iterable(conditioning_indices))
         # Obtain the actual conditioned TPM by indexing with the conditioning
         # indices.
-        tpm = self._tpm[conditioning_indices]
+        tpm = self[conditioning_indices]
         # Create new TPM object of the same type as self.
         # self.tpm has already been validated and converted to multidimensional
         # state-by-node form. Further validation would be problematic for
         # singleton dimensions.
-        return type(self)(tpm)
+        return tpm
 
     def marginalize_out(self, node_indices):
         """Marginalize out nodes from this TPM.
@@ -636,13 +634,52 @@ class ImplicitTPM(TPM):
     Attributes:
     """
 
-    def __init__(self, nodes: Tuple[xr.DataArray]):
-        self._nodes = nodes
+    def __init__(self, nodes):
+        """Args:
+            nodes (pyphi.node.Node)
+        """
+        self._nodes = tuple(nodes)
 
     @property
     def nodes(self):
         """Tuple[xr.DataArray]: The node TPMs in this ImplicitTPM"""
         return self._nodes
+
+    @property
+    def ndim(self):
+        """int: The number of dimensions of the TPM."""
+        return len(self) + 1
+
+    @property
+    def shape(self):
+        """Tuple[int]: The size or number of coordinates in each dimension."""
+        shapes = [node.tpm.shape for node in self._nodes]
+        return self._node_shapes_to_shape(shapes)
+
+    @staticmethod
+    def _node_shapes_to_shape(shapes: Iterable[Iterable[int]]) -> Tuple[int]:
+        """Infer the shape of the equivalent multidimensional |ExplicitTPM|.
+
+        Args:
+            shapes (Iterable[Iterable[int]]): The shapes of the individual node
+                TPMs in the network, ordered by node index.
+
+        Returns:
+            Tuple[int]: The inferred shape of the equivalent TPM.
+        """
+        # This should recompute the network TPM shape from individual node
+        # shapes, as opposed to measuring the size of the state space.
+
+        if not all(len(shape) == len(shapes[0]) for shape in shapes):
+            raise ValueError(
+                "The provided shapes contain varying number of dimensions."
+            )
+
+        network_tpm_shape = tuple(
+            max(shape[i] for shape in shapes) for i in range(len(shapes[0]))
+        )
+
+        return network_tpm_shape
 
     def validate(self, check_independence=True):
         """Validate this TPM."""
@@ -655,7 +692,7 @@ class ImplicitTPM(TPM):
 
         # Validate that probabilities sum to 1.
         if any(
-                (np.asarray(node_tpm).sum(axis=-1) != 1.0).any()
+                (node_tpm.data.sum(axis=-1) != 1.0).any()
                 for node_tpm in self._nodes
         ):
             raise ValueError(self._ERROR_MSG_PROBABILITY_SUM)
@@ -668,7 +705,6 @@ class ImplicitTPM(TPM):
         ):
             return True
 
-
     def _validate_shape(self, check_independence=True):
         raise NotImplementedError
 
@@ -678,10 +714,7 @@ class ImplicitTPM(TPM):
     def conditionally_independent(self):
         raise NotImplementedError
 
-    # TODO accept label-state mapping as argument. Current solution
-    # relies on correct node order in data_vars.
-    #
-    # TODO(tpm) Refactor codebase to call tpm[Mapping] directly?
+    # TODO(tpm) accept node labels and state labels in the map.
     def condition_tpm(self, condition: Mapping[int, int]):
         """Return a TPM conditioned on the given fixed node indices, whose
         states are fixed according to the given state-tuple.
@@ -699,15 +732,15 @@ class ImplicitTPM(TPM):
             TPM: A conditioned TPM with the same number of dimensions, with
             singleton dimensions for nodes in a fixed state.
         """
-        node_dimensions = ["input_" + node.label for node in self.nodes]
-
-        conditioning_index = {
-            node_dimensions[node_index]: state
-            for node_index, state in condition.items()
+        # Wrapping index elements in a list is the xarray equivalent
+        # of inserting a numpy.newaxis, which preserves the singleton even
+        # after selection of a single state.
+        conditioning_indices = {
+            i: (state_i if isinstance(state_i, list) else [state_i])
+            for i, state_i in condition.items()
         }
 
-        # TODO: broadcasting
-        return self[conditioning_index]
+        return self.__getitem__(conditioning_indices, preserve_singletons=True)
 
     def marginalize_out(self, node_indices):
         raise NotImplementedError
@@ -742,14 +775,32 @@ class ImplicitTPM(TPM):
     def permute_nodes(self, permutation):
         raise NotImplementedError
 
-    def __getitem__(self, i):
-        raise NotImplementedError
+    def __getitem__(self, index, **kwargs):
+        if isinstance(index, (int, slice, type(...), tuple)):
+            return ImplicitTPM(
+                tuple(
+                    node.dataarray[node.project_index(index, **kwargs)].pyphi
+                    for node in self.nodes
+                )
+            )
+        if isinstance(index, dict):
+            return ImplicitTPM(
+                tuple(
+                    node.dataarray.loc[node.project_index(index, **kwargs)].pyphi
+                    for node in self.nodes
+                )
+            )
+        raise TypeError(f"Invalid index {index} of type {type(index)}.")
+
+    def __len__(self):
+        """int: The number of nodes in the TPM."""
+        return len(self._nodes)
 
     def __str__(self):
         return self.__repr__()
 
     def __repr__(self):
-        return "ImplicitTPM({})".format(self._nodes)
+        return "ImplicitTPM({})".format(self.nodes)
 
     def __hash__(self):
         raise NotImplementedError
@@ -760,7 +811,7 @@ def reconstitute_tpm(subsystem):
     # The last axis of the node TPMs correponds to ON or OFF probabilities
     # (used in the conditioning step when calculating the repertoires); we want
     # ON probabilities.
-    node_tpms = [node.pyphi.tpm[..., 1] for node in subsystem.nodes]
+    node_tpms = [node.tpm[..., 1] for node in subsystem.nodes]
     # Remove the singleton dimensions corresponding to external nodes
     node_tpms = [tpm.squeeze(axis=subsystem.external_indices) for tpm in node_tpms]
     # We add a new singleton axis at the end so that we can use

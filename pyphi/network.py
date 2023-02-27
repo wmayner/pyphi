@@ -12,7 +12,7 @@ import numpy as np
 
 from . import cache, connectivity, jsonify, utils, validate
 from .labels import NodeLabels
-from .node import Node, generate_nodes
+from .node import generate_nodes, node
 from .tpm import ExplicitTPM, ImplicitTPM
 from .state_space import build_state_space
 
@@ -49,7 +49,7 @@ class Network:
             state_space=None,
             purview_cache=None
     ):
-        self._cm, self._cm_hash = self._build_cm(cm)
+        self._cm, self._cm_hash = self._build_cm(cm, tpm)
         self._node_indices = tuple(range(self.size))
         self._node_labels = NodeLabels(node_labels, self._node_indices)
 
@@ -78,22 +78,20 @@ class Network:
                 )
             )
 
-        elif isinstance(tpm, ImplicitTPM):
-            self._tpm = tpm
-
-        # FIXME(TPM) initialization from JSON
-        elif isinstance(tpm, dict):
-            # From JSON.
-            self._tpm = ImplicitTPM(tpm["_tpm"], validate=True)
-
         elif isinstance(tpm, Iterable):
-            invalid = [i for i in tpm if not isinstance(i, (np.ndarray, ExplicitTPM))]
-            
+            invalid = [
+                i for i in tpm if not isinstance(i, (np.ndarray, ExplicitTPM))
+            ]
+
             if invalid:
-                raise TypeError(f"Invalid set of nodes containing {', '.join(str(i) for i in invalid)}.")
-            
-            tpm = tuple(ExplicitTPM(node_tpm, validate=True) for node_tpm in tpm)
-                
+                raise TypeError("Invalid set of nodes containing {}.".format(
+                    ', '.join(str(i) for i in invalid)
+                ))
+
+            tpm = tuple(
+                ExplicitTPM(node_tpm, validate=False) for node_tpm in tpm
+            )
+
             shapes = [node.shape for node in tpm]
             
             if not all(len(shape) == len(shapes[0]) for shape in shapes):
@@ -111,8 +109,27 @@ class Network:
                 network_tpm_shape,
                 state_space
             )
-            
-            self._tpm = ImplicitTPM(tpm)
+
+            self._tpm = ImplicitTPM(
+                tuple(
+                    node(
+                        node_tpm,
+                        self._cm,
+                        self._state_space,
+                        index,
+                        node_labels=self._node_labels
+                    ).pyphi
+                    for index, node_tpm in zip(self._node_indices, tpm)
+                )
+            )
+
+        elif isinstance(tpm, ImplicitTPM):
+            self._tpm = tpm
+
+        # FIXME(TPM) initialization from JSON
+        elif isinstance(tpm, dict):
+            # From JSON.
+            self._tpm = ImplicitTPM(tpm["_tpm"])
 
         else:
             raise TypeError(f"Invalid TPM of type {type(tpm)}.")
@@ -138,13 +155,18 @@ class Network:
         """
         return self._cm
 
-    def _build_cm(self, cm):
+    def _build_cm(self, cm, tpm):
         """Convert the passed CM to the proper format, or construct the
         unitary CM if none was provided.
         """
         if cm is None:
+            try:
+                size = tpm.shape[-1]
+            except AttributeError:
+                size = len(tpm)
+
             # Assume all are connected.
-            cm = np.ones((self.size, self.size))
+            cm = np.ones((size, size))
         else:
             cm = np.array(cm)
 
@@ -169,7 +191,7 @@ class Network:
 
     @property
     def state_space(self):
-        """tuple[tuple[Union[int, str]]: Labels for the state space of each node.
+        """tuple[tuple[Union[int, str]]]: Labels for the state space of each node.
         """
         return self._state_space
 
@@ -213,10 +235,7 @@ class Network:
 
     def __len__(self):
         """int: The number of nodes in the network."""
-        try:
-            return len(self.tpm)
-        except AttributeError:
-            return self._cm.shape[0]
+        return self._cm.shape[0]
 
     def __repr__(self):
         # TODO implement a cleaner repr, similar to analyses objects,
