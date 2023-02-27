@@ -9,7 +9,6 @@ context of all |small_phi| and |big_phi| computation.
 
 from typing import Iterable
 import numpy as np
-import xarray as xr
 
 from . import cache, connectivity, jsonify, utils, validate
 from .labels import NodeLabels
@@ -99,7 +98,12 @@ class Network:
             
             if not all(len(shape) == len(shapes[0]) for shape in shapes):
                 raise ValueError("Provided set of nodes contains varying number of dimensions.")
-                
+            
+            for i, shape in enumerate(shapes):
+                for j, val in enumerate(self.cm[i]):
+                    if (val == 0 and shape[j] != 1) or (val != 0 and shape[j] == 1):
+                        raise ValueError(f"Node shape {shape[j]} does not correspond to connectivity matrix at index [{i}][{j}].")
+
             network_tpm_shape = [max(shape[i] for shape in shapes) for i in range(len(shapes[0]))]
                 
             self.state_space, _ = build_state_space(
