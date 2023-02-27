@@ -176,7 +176,8 @@ class Network:
     
                 for i, shape in enumerate(shapes):
                     for j in range(len(shapes)):
-                        cm[j][i] = 0 if shape[j] == 1 else 1
+                        if shape[j] != 1:
+                            cm[j][i] = 1
         else:
             for i, shape in enumerate(shapes):
                 for j, val in enumerate(self.cm[..., i]):
