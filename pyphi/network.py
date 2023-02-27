@@ -94,15 +94,12 @@ class Network:
 
             shapes = [node.shape for node in tpm]
             
-            if not all(len(shape) == len(shapes[0]) for shape in shapes):
-                raise ValueError("Provided set of nodes contains varying number of dimensions.")
-            
             for i, shape in enumerate(shapes):
                 for j, val in enumerate(self.cm[i]):
                     if (val == 0 and shape[j] != 1) or (val != 0 and shape[j] == 1):
                         raise ValueError(f"Node shape {shape[j]} does not correspond to connectivity matrix at index [{i}][{j}].")
 
-            network_tpm_shape = [max(shape[i] for shape in shapes) for i in range(len(shapes[0]))]
+            network_tpm_shape = ImplicitTPM._node_shapes_to_shape(shapes)
                 
             self.state_space, _ = build_state_space(
                 self._node_labels,
