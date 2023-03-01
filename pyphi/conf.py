@@ -973,7 +973,11 @@ config = PyphiConfig(on_change=on_change_global)
 def on_driver():
     if ray.is_initialized():
         try:
-            ray.get_runtime_context().task_id
+            # Ignore warning log
+            current_level = ray.runtime_context.logger.level
+            ray.runtime_context.logger.setLevel("ERROR")
+            ray.get_runtime_context().get_task_id()
+            ray.runtime_context.logger.setLevel(current_level)
             return False
         except AssertionError:
             pass
