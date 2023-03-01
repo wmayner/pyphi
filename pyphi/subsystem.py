@@ -140,6 +140,9 @@ class Subsystem:
             if i in self.node_indices
         )
 
+        for node, node_state in zip(self.nodes, self.state):
+            node.state = node_state
+
         # validate.subsystem(self)
 
     @property
