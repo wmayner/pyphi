@@ -58,7 +58,7 @@ class Network:
             # converstion to multidimensional form, as a side effect).
             tpm = ExplicitTPM(tpm, validate=True)
             self._cm, self._cm_hash = self._build_cm(cm, tpm)
-            
+
             self._node_indices = tuple(range(self.size))
             self._node_labels = NodeLabels(node_labels, self._node_indices)
 
@@ -93,14 +93,14 @@ class Network:
             )
 
             shapes = [node.shape for node in tpm]
-            
+
             self._cm, self._cm_hash = self._build_cm(cm, tpm, shapes)
 
             network_tpm_shape = ImplicitTPM._node_shapes_to_shape(shapes)
-                
+
             self._node_indices = tuple(range(self.size))
             self._node_labels = NodeLabels(node_labels, self._node_indices)
-                
+
             self._state_space, _ = build_state_space(
                 self._node_labels,
                 network_tpm_shape,
@@ -173,7 +173,7 @@ class Network:
                 cm = np.ones((size, size))
             else:
                 cm = np.zeros((len(shapes), len(shapes)), dtype=int)
-    
+
                 for i, shape in enumerate(shapes):
                     for j in range(len(shapes)):
                         if shape[j] != 1:
@@ -182,8 +182,11 @@ class Network:
             for i, shape in enumerate(shapes):
                 for j, val in enumerate(self.cm[..., i]):
                     if (val == 0 and shape[j] != 1) or (val != 0 and shape[j] == 1):
-                        raise ValueError(f"Node shape of {shape[j]} does not correspond to connectivity matrix.")
-            
+                        raise ValueError(
+                            "Node TPM {} of shape {} does not match the "
+                            "connectivity matrix.".format(i, shape)
+                        )
+
             cm = np.array(cm)
 
         utils.np_immutable(cm)
