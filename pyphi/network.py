@@ -180,7 +180,7 @@ class Network:
                             cm[j][i] = 1
         else:
             for i, shape in enumerate(shapes):
-                for j, val in enumerate(self.cm[..., i]):
+                for j, val in enumerate(cm[..., i]):
                     if (val == 0 and shape[j] != 1) or (val != 0 and shape[j] == 1):
                         raise ValueError(f"Node shape of {shape[j]} does not correspond to connectivity matrix.")
             
