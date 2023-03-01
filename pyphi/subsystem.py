@@ -740,6 +740,7 @@ class Subsystem:
                 repertoire_distance=repertoire_distance,
                 **kwargs,
             )
+            selectivity = None
         return RepertoireIrreducibilityAnalysis(
             phi=phi,
             direction=direction,
@@ -753,6 +754,7 @@ class Subsystem:
             # TODO(4.0) refactor
             specified_state=kwargs.get("state"),
             node_labels=self.node_labels,
+            selectivity=selectivity,
         )
 
     def _find_mip_single_state(

@@ -426,7 +426,6 @@ def fmt_partition(partition):
     if not partition:
         return ""
     try:
-
         parts = [
             # TODO(4.0)
             # str(part).split("\n")
@@ -551,8 +550,8 @@ def fmt_concept(concept):
 def fmt_ria(ria, verbose=True, mip=False):
     """Format a |RepertoireIrreducibilityAnalysis|."""
     if verbose:
-        mechanism = f"Mechanism: {fmt_mechanism(ria.mechanism, ria.node_labels)}\n"
-        direction = f"\nDirection: {ria.direction}"
+        mechanism = f"Mechanism: {fmt_mechanism(ria.mechanism, ria.node_labels)}"
+        direction = f"Direction: {ria.direction}"
     else:
         mechanism = ""
         direction = ""
@@ -560,7 +559,7 @@ def fmt_ria(ria, verbose=True, mip=False):
     # TODO(4.0):  position repertoire and partitioned repertoire side by side
     # TODO(ties) fix state-marking logic
     if config.REPR_VERBOSITY is HIGH:
-        partition = "\n{}:\n{}".format(
+        partition = "{}:\n{}".format(
             ("MIP" if mip else "Partition"), indent(fmt_partition(ria.partition))
         )
         if ria.specified_state is not None:
@@ -570,13 +569,13 @@ def fmt_ria(ria, verbose=True, mip=False):
         # TODO(refactor)
         if ria.repertoire is not None:
             if ria.repertoire.size == 1:
-                repertoire = f"\nForward probability: \n    {ria.repertoire}"
-                partitioned_repertoire = f"\nPartitioned forward probability:\n    {ria.partitioned_repertoire}"
+                repertoire = f"Forward probability:\n    {ria.repertoire}"
+                partitioned_repertoire = f"Partitioned forward probability:\n    {ria.partitioned_repertoire}"
             else:
-                repertoire = "\nRepertoire:\n{}".format(
+                repertoire = "Repertoire:\n{}".format(
                     indent(fmt_repertoire(ria.repertoire, mark_states=mark_states))
                 )
-                partitioned_repertoire = "\nPartitioned repertoire:\n{}".format(
+                partitioned_repertoire = "Partitioned repertoire:\n{}".format(
                     indent(
                         fmt_repertoire(
                             ria.partitioned_repertoire,
@@ -592,33 +591,22 @@ def fmt_ria(ria, verbose=True, mip=False):
         repertoire = ""
         partitioned_repertoire = ""
 
-    # TODO? print the two repertoires side-by-side
-    return (
-        "{SMALL_PHI} = {phi}\n"
-        "Normalized {SMALL_PHI} = {normalized_phi}\n"
-        "{mechanism}"
-        "Purview: {purview}"
-        "\nSpecified state:\n{specified_state}"
-        "{direction}"
-        "{partition}"
-        "{repertoire}"
-        "{partitioned_repertoire}"
-        "\n#(state ties): {num_state_ties}"
-        "\n#(partition ties): {num_partition_ties}"
-    ).format(
-        SMALL_PHI=SMALL_PHI,
-        normalized_phi=fmt_number(ria.normalized_phi),
-        mechanism=mechanism,
-        purview=fmt_mechanism(ria.purview, ria.node_labels),
-        specified_state=ria.specified_state,
-        direction=direction,
-        phi=fmt_number(ria.phi),
-        partition=partition,
-        repertoire=repertoire,
-        partitioned_repertoire=partitioned_repertoire,
-        num_state_ties=ria.num_state_ties,
-        num_partition_ties=ria.num_partition_ties,
-    )
+    data = [
+        f"{SMALL_PHI} = {fmt_number(ria.phi)}",
+        f"Normalized {SMALL_PHI} = {fmt_number(ria.normalized_phi)}",
+        f"{mechanism}",
+        f"Purview: {fmt_mechanism(ria.purview, ria.node_labels)}",
+        f"Specified state:\n{ria.specified_state}",
+        f"{direction}",
+        f"{partition}",
+        f"{repertoire}",
+        f"{partitioned_repertoire}",
+        f"#(state ties): {ria.num_state_ties}",
+        f"#(partition ties): {ria.num_partition_ties}",
+    ]
+    if ria.selectivity is not None:
+        data.insert(7, f"Selectivity: {ria.selectivity}")
+    return "\n".join(data)
 
 
 def fmt_cut(cut, direction=None, name=True):

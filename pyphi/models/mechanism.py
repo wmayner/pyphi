@@ -185,6 +185,7 @@ class RepertoireIrreducibilityAnalysis(cmp.OrderableByPhi):
         mechanism_state=None,
         purview_state=None,
         node_labels=None,
+        selectivity=None,
     ):
         self._phi = PyPhiFloat(phi)
         self._direction = direction
@@ -193,6 +194,7 @@ class RepertoireIrreducibilityAnalysis(cmp.OrderableByPhi):
         self._partition = partition
         self._mechanism_state = mechanism_state
         self._purview_state = purview_state
+        self._selectivity = selectivity
 
         def _repertoire(repertoire):
             if repertoire is None:
@@ -273,6 +275,11 @@ class RepertoireIrreducibilityAnalysis(cmp.OrderableByPhi):
         partition.
         """
         return self._partitioned_repertoire
+
+    @property
+    def selectivity(self):
+        """float: The selectivity factor."""
+        return self._selectivity
 
     @property
     def specified_state(self):
@@ -481,6 +488,11 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
         purview.
         """
         return self._ria.partitioned_repertoire
+
+    @property
+    def selectivity(self):
+        """float: The selectivity factor."""
+        return self._ria.selectivity
 
     @property
     def specified_state(self):
