@@ -194,7 +194,7 @@ class Network:
 
         # ImplicitTPM with connectivity matrix: validate against node TPM shapes.
         for i, shape in enumerate(shapes):
-            for j, val in enumerate(self._cm[..., i]):
+            for j, val in enumerate(cm[..., i]):
                 if (val == 0 and shape[j] != 1) or (val != 0 and shape[j] == 1):
                     raise ValueError(
                         "Node TPM {} of shape {} does not match the connectivity "
