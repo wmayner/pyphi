@@ -322,7 +322,7 @@ def node(
     new_network_state_space, _ = build_state_space(
         node_labels,
         tpm.shape[:-1],
-        network_state_space.values(),
+        [network_state_space[dim] for dim in dimensions[:-1]],
         singleton_state_space = (SINGLETON_COORDINATE,),
     )
 

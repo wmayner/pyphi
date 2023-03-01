@@ -103,7 +103,7 @@ class Network:
 
             self._state_space, _ = build_state_space(
                 self._node_labels,
-                network_tpm_shape,
+                network_tpm_shape[:-1],
                 state_space
             )
 
