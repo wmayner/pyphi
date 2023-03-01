@@ -160,38 +160,46 @@ class Network:
 
     def _build_cm(self, cm, tpm, shapes=None):
         """Convert the passed CM to the proper format, or construct the
-        unitary CM if none was provided.
+        unitary CM if none was provided (explicit TPM), or infer from node TPMs.
         """
         if cm is None:
             try:
-                size = tpm.shape[-1]
+                network_size = tpm.shape[-1]
             except AttributeError:
-                size = len(tpm)
+                network_size = len(tpm)
 
+            # Explicit TPM without connectivity matrix: assume all are connected.
             if shapes is None:
-                # Assume all are connected.
-                cm = np.ones((size, size))
-            else:
-                cm = np.zeros((len(shapes), len(shapes)), dtype=int)
-
-                for i, shape in enumerate(shapes):
-                    for j in range(len(shapes)):
-                        if shape[j] != 1:
-                            cm[j][i] = 1
-        else:
-            cm = np.array(cm)
-            utils.np_immutable(cm)
-
-            if shapes is None:
+                cm = np.ones((network_size, network_size), dtype=int)
+                utils.np_immutable(cm)
                 return (cm, utils.np_hash(cm))
 
+            # ImplicitTPM without connectivity matrix: infer from node TPMs.
+            cm = np.zeros((network_size, network_size), dtype=int)
+
             for i, shape in enumerate(shapes):
-                for j, val in enumerate(self.cm[..., i]):
-                    if (val == 0 and shape[j] != 1) or (val != 0 and shape[j] == 1):
-                        raise ValueError(
-                            "Node TPM {} of shape {} does not match the "
-                            "connectivity matrix.".format(i, shape)
-                        )
+                for j in range(len(shapes)):
+                    if shape[j] != 1:
+                        cm[j][i] = 1
+
+            utils.np_immutable(cm)
+            return (cm, utils.np_hash(cm))
+
+        cm = np.array(cm)
+        utils.np_immutable(cm)
+
+        # Explicit TPM with connectivity matrix: return.
+        if shapes is None:
+            return (cm, utils.np_hash(cm))
+
+        # ImplicitTPM with connectivity matrix: validate against node TPM shapes.
+        for i, shape in enumerate(shapes):
+            for j, val in enumerate(self._cm[..., i]):
+                if (val == 0 and shape[j] != 1) or (val != 0 and shape[j] == 1):
+                    raise ValueError(
+                        "Node TPM {} of shape {} does not match the connectivity "
+                        " matrix.".format(i, shape)
+                    )
 
         return (cm, utils.np_hash(cm))
 
