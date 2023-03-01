@@ -8,8 +8,10 @@ Helper functions for formatting pretty representations of PyPhi models.
 
 from fractions import Fraction
 from itertools import chain, cycle
+from typing import Iterable
 
 import numpy as np
+from toolz import concat
 
 from .. import utils
 from ..conf import config
@@ -214,19 +216,29 @@ def labels(indices, node_labels=None):
     return node_labels.indices2labels(indices)
 
 
-def align(lines, direction="<"):
+def is_multiline(text):
+    """Return True if the text contains newlines."""
+    return "\n" in text
+
+
+def align(lines: Iterable[str], direction="<"):
     """Align lines by padding with spaces.
 
     Examples:
         >>> lines = ["abcde", "abc", "", "abcdefg"]
         >>> align(lines, direction="<")
         ['abcde  ', 'abc    ', '       ', 'abcdefg']
+        >>> align(["abcde", "abc\\ndef", "abcdefg"], direction="<")
+        ['abcde  ', 'abc    ', 'def    ', 'abcdefg']
         >>> align(lines, direction=">")
         ['  abcde', '    abc', '       ', 'abcdefg']
         >>> align(lines, direction="c")
         [' abcde ', '  abc  ', '       ', 'abcdefg']
 
     """
+    lines = list(
+        concat([text.split("\n") if is_multiline(text) else [text] for text in lines])
+    )
     w = width(lines)
     if direction == "c":
         return [line.center(w) for line in lines]
@@ -254,7 +266,11 @@ def split_decimal(n):
         ['1', '0']
         >>> split_decimal(np.nan)
         ['', 'nan']
+        >>> split_decimal(None)
+        ['', 'None']
     """
+    if n is None:
+        return ["", str(None)]
     try:
         if np.isnan(n):
             # nan
@@ -297,19 +313,45 @@ def align_decimals(numbers):
     return ["".join(elements) for elements in zip(units, points, decimals)]
 
 
+def _multiline_string_to_columns(text):
+    return [("", line) for line in text.split("\n")]
+
+
+def _expand_multiline_strings(left, right):
+    """Expand a multiline 'right side' string into a list of columns with empty
+    left sides.
+    """
+    # TODO deal with multiline left?
+    if not isinstance(right, str) or not is_multiline(right):
+        return [(left, right)]
+    columns = _multiline_string_to_columns(right)
+    columns[0] = (left, columns[0][1])
+    return columns
+
+
 def align_columns(
-    lines, delimiter=": ", alignment="><", types="tn", split_columns=False
+    lines,
+    delimiter=": ",
+    alignment="><",
+    types="tn",
+    split_columns=False,
 ):
     """Align columns of text.
+
+    # If a line does not contain the delimiter, it will be assumed to belong to
+    # the previous line and will be indented.
 
     Arguments:
         lines (Iterable): The lines to align.
 
     Keyword Arguments:
         delimiter (str): The delimiter of the columns.
-        alignment (str): A string of ">" and "<", indicating the alignment for each column.
+        alignment (str): A string of ">" and "<", indicating the alignment for
+            each column.
         types (str): A string of "t" (text) and "n" (numeric), indicating the
             type of each column.
+        split_columns (bool): If True, assume lines are single strings rather
+            than tuples, and split them on the delimiter beforehand.
 
     Examples:
         >>> columns = [
@@ -333,6 +375,9 @@ def align_columns(
     """
     if split_columns:
         lines = [str(line).split(delimiter) for line in lines]
+    # Expand multiline strings into new columns
+    lines = concat([_expand_multiline_strings(left, right) for left, right in lines])
+    # Reorient into columns
     columns = list(zip(*lines))
     for i, t in enumerate(types):
         if t == "n":
@@ -524,7 +569,7 @@ def fmt_concept(concept):
     """Format a |Concept|."""
 
     def fmt_cause_or_effect(x):  # pylint: disable=missing-docstring
-        return box(indent(str(x), amount=1))
+        return indent(str(x), amount=1)
 
     cause = fmt_cause_or_effect(concept.cause)
     effect = fmt_cause_or_effect(concept.effect)
@@ -559,9 +604,12 @@ def fmt_ria(ria, verbose=True, mip=False):
     # TODO(4.0):  position repertoire and partitioned repertoire side by side
     # TODO(ties) fix state-marking logic
     if config.REPR_VERBOSITY is HIGH:
-        partition = "{}:\n{}".format(
-            ("MIP" if mip else "Partition"), indent(fmt_partition(ria.partition))
-        )
+        partition_name = "MIP" if mip else "Partition"
+        partition = f"{partition_name}: "
+        if ria.partition:
+            partition += f"\n{indent(fmt_partition(ria.partition))}"
+        else:
+            partition += "empty"
         if ria.specified_state is not None:
             mark_states = [specified.state for specified in ria.specified_state.ties]
         else:
@@ -591,21 +639,28 @@ def fmt_ria(ria, verbose=True, mip=False):
         repertoire = ""
         partitioned_repertoire = ""
 
-    data = [
-        f"{SMALL_PHI} = {fmt_number(ria.phi)}",
-        f"Normalized {SMALL_PHI} = {fmt_number(ria.normalized_phi)}",
-        f"{mechanism}",
-        f"Purview: {fmt_mechanism(ria.purview, ria.node_labels)}",
-        f"Specified state:\n{ria.specified_state}",
-        f"{direction}",
-        f"{partition}",
-        f"{repertoire}",
-        f"{partitioned_repertoire}",
-        f"#(state ties): {ria.num_state_ties}",
-        f"#(partition ties): {ria.num_partition_ties}",
-    ]
-    if ria.selectivity is not None:
-        data.insert(7, f"Selectivity: {ria.selectivity}")
+    data = (
+        [
+            f"{SMALL_PHI} = {fmt_number(ria.phi)}",
+            f"Normalized {SMALL_PHI} = {fmt_number(ria.normalized_phi)}",
+            f"{mechanism}",
+            f"Purview: {fmt_mechanism(ria.purview, ria.node_labels)}",
+            f"Specified state:\n{ria.specified_state}",
+            f"{direction}",
+            f"{partition}",
+        ]
+        + ([f"Selectivity: {ria.selectivity}"] if ria.selectivity is not None else [])
+        + [
+            f"{repertoire}",
+            f"{partitioned_repertoire}",
+            f"#(state ties): {ria.num_state_ties}",
+            f"#(partition ties): {ria.num_partition_ties}",
+        ]
+    )
+    if hasattr(ria, "num_purview_ties"):
+        data.append(f"#(purview ties): {ria.num_purview_ties}")
+    if ria.reasons is not None:
+        data.append("Reasons: " + ", ".join(map(str, ria.reasons)))
     return "\n".join(data)
 
 
