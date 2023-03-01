@@ -105,11 +105,7 @@ def test_build_cm_explicit_tpm():
         [1, 1, 1],
         [1, 1, 0]
     ])
-    cm = np.array([
-        [1, 1, 1],
-        [1, 1, 1],
-        [1, 1, 1]
-    ])
+    cm = np.ones((3, 3), dtype=int)
     network = Network(tpm)
     assert((network.cm == cm).all())
     # provided CM
