@@ -91,6 +91,35 @@ def test_len(standard):
 
 def test_size(standard):
     assert standard.size == 3
+    
+    
+def test_build_cm_explicit_tpm():
+    # no CM
+    tpm = np.array([
+        [0, 0, 0],
+        [0, 0, 1],
+        [1, 0, 1],
+        [1, 0, 0],
+        [1, 1, 0],
+        [1, 1, 1],
+        [1, 1, 1],
+        [1, 1, 0]
+    ])
+    cm = np.array([
+        [1, 1, 1],
+        [1, 1, 1],
+        [1, 1, 1]
+    ])
+    network = Network(tpm)
+    assert((network.cm == cm).all())
+    # provided CM
+    cm = np.array([
+        [0, 1, 1],
+        [1, 1, 0],
+        [1, 1, 1]
+    ])
+    network = Network(tpm, cm)
+    assert((network.cm == cm).all())
 
 
 def test_build_cm_implicit_tpm():
