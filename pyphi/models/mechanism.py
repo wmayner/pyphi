@@ -525,6 +525,13 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
         """
         return self._ria
 
+    @property
+    def node_labels(self):
+        return self.ria.node_labels
+
+    @property
+    def partition(self):
+        return self.ria.partition
 
     @property
     def reasons(self):
@@ -547,6 +554,10 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
             tie._state_ties = ties
 
     @property
+    def num_state_ties(self):
+        return self.ria.num_state_ties
+
+    @property
     def partition_ties(self):
         if self._partition_ties is None:
             self._partition_ties = (self,) + tuple(
@@ -562,6 +573,10 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
         # Update partition ties on other tied objects
         for tie in flatten([self.state_ties, self.purview_ties]):
             tie._partition_ties = ties
+
+    @property
+    def num_partition_ties(self):
+        return self.ria.num_partition_ties
 
     @property
     def purview_ties(self):
