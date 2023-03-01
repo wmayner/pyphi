@@ -451,6 +451,9 @@ class KPartition(Sequence, _CutBase):
     def __len__(self):
         return len(self.parts)
 
+    def __bool__(self):
+        return len(self) > 0
+
     def __getitem__(self, index):
         return self.parts[index]
 
