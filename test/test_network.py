@@ -3,10 +3,12 @@
 # test_network.py
 
 import numpy as np
+import xarray as xr
 import pytest
 
 from pyphi import Direction, config, exceptions
 from pyphi.network import Network
+from pyphi.tpm import ExplicitTPM, ImplicitTPM
 
 
 @pytest.fixture()
@@ -91,6 +93,95 @@ def test_len(standard):
 
 def test_size(standard):
     assert standard.size == 3
+    
+    
+def test_network_init_with_explicit_tpm():
+    tpm = ExplicitTPM([
+        [0, 0, 0],
+        [0, 0, 1],
+        [1, 0, 1],
+        [1, 0, 0],
+        [1, 1, 0],
+        [1, 1, 1],
+        [1, 1, 1],
+        [1, 1, 0]
+    ], validate=True)
+
+    network = Network(tpm)
+
+    assert type(network.tpm) == ImplicitTPM
+
+    expected_nodes = (
+        xr.DataArray([
+            [
+                [
+                    [1., 0.],
+                    [0., 1.]
+                ],
+                [
+                    [0., 1.],
+                    [0., 1.]
+                ]
+            ],
+            [
+                [
+                    [1., 0.],
+                    [0., 1.]
+                ],
+                [
+                    [0., 1.],
+                    [0., 1.]
+                ]
+            ]
+        ]),
+        xr.DataArray([
+            [
+                [
+                    [1., 0.],
+                    [0., 1.]
+                ],
+                [
+                    [1., 0.],
+                    [0., 1.]
+                ]
+            ],
+            [
+                [
+                    [1., 0.],
+                    [0., 1.]
+                ],
+                [
+                    [1., 0.],
+                    [0., 1.]
+                ]
+            ]
+        ]),
+        xr.DataArray([
+            [
+                [
+                    [1., 0.],
+                    [1., 0.]
+                ],
+                [
+                    [0., 1.],
+                    [0., 1.]
+                ]
+            ],
+            [
+                [
+                    [0., 1.],
+                    [0., 1.]
+                ],
+                [
+                    [1., 0.],
+                    [1., 0.]
+                ]
+            ]
+        ])
+    )
+
+    for i, node in enumerate(network.tpm.nodes):
+        assert (node.dataarray.values == expected_nodes[i].values).all()
     
     
 def test_build_cm():
