@@ -5,6 +5,7 @@
 """Mechanism-level objects."""
 
 from dataclasses import dataclass
+from enum import Enum, auto, unique as unique_enum
 from functools import total_ordering
 from typing import Iterable, Tuple
 
@@ -149,6 +150,16 @@ def normalization_factor(partition):
     )
 
 
+@unique_enum
+class ShortCircuitConditions(Enum):
+    # MICE level reasons
+    NO_PURVIEWS = auto()
+    NO_PARTITIONS = auto()
+    # MIP level reasons
+    EMPTY_PURVIEW = auto()
+    UNREACHABLE_STATE = auto()
+
+
 _ria_attributes = [
     "phi",
     "direction",
@@ -186,6 +197,7 @@ class RepertoireIrreducibilityAnalysis(cmp.OrderableByPhi):
         purview_state=None,
         node_labels=None,
         selectivity=None,
+        reasons=None,
     ):
         self._phi = PyPhiFloat(phi)
         self._direction = direction
@@ -194,7 +206,6 @@ class RepertoireIrreducibilityAnalysis(cmp.OrderableByPhi):
         self._partition = partition
         self._mechanism_state = mechanism_state
         self._purview_state = purview_state
-        self._selectivity = selectivity
 
         def _repertoire(repertoire):
             if repertoire is None:
@@ -206,6 +217,8 @@ class RepertoireIrreducibilityAnalysis(cmp.OrderableByPhi):
         self._specified_state = specified_state
         self._partition_ties = (self,)
         self._state_ties = (self,)
+        self._selectivity = selectivity
+        self._reasons = reasons
 
         norm = normalization_factor(self._partition)
 
@@ -280,6 +293,11 @@ class RepertoireIrreducibilityAnalysis(cmp.OrderableByPhi):
     def selectivity(self):
         """float: The selectivity factor."""
         return self._selectivity
+
+    @property
+    def reasons(self):
+        """Reasons why the computation short-circuited."""
+        return self._reasons
 
     @property
     def specified_state(self):
@@ -506,6 +524,11 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
         this mechanism.
         """
         return self._ria
+
+
+    @property
+    def reasons(self):
+        return self.ria.reasons
 
     @property
     def state_ties(self):
