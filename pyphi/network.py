@@ -270,7 +270,7 @@ class Network:
         # TODO implement a cleaner repr, similar to analyses objects,
         # distinctions, etc.
         return "Network(\n{},\ncm={},\nnode_labels={},\nstate_space={}\n)".format(
-            self.tpm, self.cm, self.node_labels, self.state_space
+            self.tpm, self.cm, self.node_labels, self.state_space._dict
         )
 
     def __eq__(self, other):
