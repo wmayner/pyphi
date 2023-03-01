@@ -93,7 +93,7 @@ def resolve(objects, strategy, operation, default=NO_DEFAULT):
     sort_key = _strategies_to_key_function(strategy)
     objects, to_transform = tee(objects)
     values = list(map(sort_key, to_transform))
-    extremum = operation(values)
+    extremum = operation(values, default=default)
     ties = (obj for obj, value in zip(objects, values) if value == extremum)
     yield from iter_with_default(ties, default=default)
 
