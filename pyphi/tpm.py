@@ -675,11 +675,12 @@ class ImplicitTPM(TPM):
                 "The provided shapes contain varying number of dimensions."
             )
 
-        network_tpm_shape = tuple(
-            max(shape[i] for shape in shapes) for i in range(len(shapes[0]))
+        number_of_nodes = len(shapes)
+        shape_from_inputs = tuple(
+            max(shape[i] for shape in shapes) for i in range(number_of_nodes)
         )
 
-        return network_tpm_shape
+        return shape_from_inputs + (number_of_nodes,)
 
     def validate(self, check_independence=True):
         """Validate this TPM."""
