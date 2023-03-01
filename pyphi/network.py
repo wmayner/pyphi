@@ -179,6 +179,12 @@ class Network:
                         if shape[j] != 1:
                             cm[j][i] = 1
         else:
+            cm = np.array(cm)
+            utils.np_immutable(cm)
+
+            if shapes is None:
+                return (cm, utils.np_hash(cm))
+
             for i, shape in enumerate(shapes):
                 for j, val in enumerate(self.cm[..., i]):
                     if (val == 0 and shape[j] != 1) or (val != 0 and shape[j] == 1):
@@ -186,10 +192,6 @@ class Network:
                             "Node TPM {} of shape {} does not match the "
                             "connectivity matrix.".format(i, shape)
                         )
-
-            cm = np.array(cm)
-
-        utils.np_immutable(cm)
 
         return (cm, utils.np_hash(cm))
 
