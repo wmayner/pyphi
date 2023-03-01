@@ -93,8 +93,8 @@ def test_size(standard):
     assert standard.size == 3
     
     
-def test_build_cm_explicit_tpm():
-    # no CM
+def test_build_cm():
+    # ExplicitTPM, no CM
     tpm = np.array([
         [0, 0, 0],
         [0, 0, 1],
@@ -108,7 +108,7 @@ def test_build_cm_explicit_tpm():
     cm = np.ones((3, 3), dtype=int)
     network = Network(tpm)
     assert((network.cm == cm).all())
-    # provided CM
+    # ExplicitTPM, provided CM
     cm = np.array([
         [0, 1, 1],
         [1, 1, 0],
@@ -116,10 +116,7 @@ def test_build_cm_explicit_tpm():
     ])
     network = Network(tpm, cm)
     assert((network.cm == cm).all())
-
-
-def test_build_cm_implicit_tpm():
-    # no CM
+    # ImplicitTPM, no CM
     tpm = [
         np.array([
             [
@@ -177,10 +174,10 @@ def test_build_cm_implicit_tpm():
     ])
     network = Network(tpm)
     assert((network.cm == cm).all())
-    # correct CM
+    # ImplicitTPM, correct CM
     network = Network(tpm, cm)
     assert((network.cm == cm).all())
-    # incorrect CM
+    # ImplicitTPM, incorrect CM
     cm = np.array([
         [1, 0, 0],
         [1, 1, 0],
