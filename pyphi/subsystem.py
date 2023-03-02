@@ -28,6 +28,7 @@ from .models import (
     RepertoireIrreducibilityAnalysis,
     _null_ria,
 )
+from .node import node as Node
 from .models.mechanism import StateSpecification
 from .network import irreducible_purviews
 from .partition import mip_partitions
@@ -135,10 +136,23 @@ class Subsystem:
             unconstrained_forward_repertoire_cache or cache.DictCache()
         )
 
-        self.nodes = tuple(
-            node for i, node in enumerate(self.tpm.nodes)
-            if i in self.node_indices
-        )
+        if cut:
+            self.nodes = tuple(
+                Node(
+                    node.tpm,
+                    self.cm,
+                    self.network.state_space,
+                    i,
+                    node_labels=self.node_labels
+                ).pyphi
+                for i, node in enumerate(self.tpm.nodes)
+                if i in self.node_indices
+            )
+        else:
+            self.nodes = tuple(
+                node for i, node in enumerate(self.tpm.nodes)
+                if i in self.node_indices
+            )
 
         for node, node_state in zip(self.nodes, self.state):
             node.state = node_state

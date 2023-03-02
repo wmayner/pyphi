@@ -12,7 +12,7 @@ import numpy as np
 
 from . import cache, connectivity, jsonify, utils, validate
 from .labels import NodeLabels
-from .node import generate_nodes, node
+from .node import generate_nodes, node as Node
 from .tpm import ExplicitTPM, ImplicitTPM
 from .state_space import build_state_space
 
@@ -109,7 +109,7 @@ class Network:
 
             self._tpm = ImplicitTPM(
                 tuple(
-                    node(
+                    Node(
                         node_tpm,
                         self._cm,
                         self._state_space,
