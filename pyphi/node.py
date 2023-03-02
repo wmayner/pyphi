@@ -62,7 +62,7 @@ class Node:
         self._outputs = dataarray.attrs["outputs"]
 
         self._dataarray = dataarray
-        self._tpm = self._dataarray
+        self._tpm = self._dataarray.data
 
         self.state_space = dataarray.attrs["state_space"]
 
