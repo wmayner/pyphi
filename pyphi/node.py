@@ -312,6 +312,15 @@ def node(
     """
     # Generate DataArray structure for this node
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # Get indices of the inputs and outputs.
+    inputs = frozenset(get_inputs_from_cm(index, cm))
+    outputs = frozenset(get_outputs_from_cm(index, cm))
+
+    # Marginalize out non-input nodes.
+    non_inputs = set(tpm.tpm_indices()) - inputs
+    tpm = tpm.marginalize_out(non_inputs)
+
     # Dimensions are the names of this node's parents (whose state this node's
     # TPM can be conditioned on), plus the last dimension with the probability
     # for each possible state of this node in the next timestep.
@@ -319,20 +328,17 @@ def node(
 
     # Compute the relevant state labels (coordinates in xarray terminology) from
     # the perspective of this node and its direct inputs.
+    node_states = [network_state_space[dim] for dim in dimensions[:-1]]
     new_network_state_space, _ = build_state_space(
         node_labels,
         tpm.shape[:-1],
-        [network_state_space[dim] for dim in dimensions[:-1]],
+        node_states,
         singleton_state_space = (SINGLETON_COORDINATE,),
     )
 
     node_state_space = network_state_space[dimensions[index]]
 
     coordinates = {**new_network_state_space, dimensions[-1]: node_state_space}
-
-    # Get indices of the inputs and outputs.
-    inputs = frozenset(get_inputs_from_cm(index, cm))
-    outputs = frozenset(get_outputs_from_cm(index, cm))
 
     return xr.DataArray(
         name = node_labels[index],
@@ -383,21 +389,12 @@ def generate_nodes(
     nodes = []
 
     for index, state in zip(indices, node_state):
-        # Generate the node's TPM.
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # We begin by getting the part of the subsystem's TPM that gives just
         # the state of this node. This part is still indexed by network state,
         # but its last dimension will be gone, since now there's just a single
         # scalar value (this node's state) rather than a state-vector for all
         # the network nodes.
         tpm_on = tpm[..., index]
-
-        # Marginalize out non-input nodes.
-
-        # TODO use names rather than indices
-        inputs = frozenset(get_inputs_from_cm(index, cm))
-        non_inputs = set(tpm.tpm_indices()) - inputs
-        tpm_on = tpm_on.marginalize_out(non_inputs).tpm
 
         # Get the TPM that gives the probability of the node being off, rather
         # than on.
@@ -408,9 +405,8 @@ def generate_nodes(
         # indexed by the node's state at t+1. This representation makes it easy
         # to condition on the node state.
         node_tpm = ExplicitTPM(
-            np.stack([tpm_off, tpm_on], axis=-1)
+            np.stack([np.asarray(tpm_off), np.asarray(tpm_on)], axis=-1)
         )
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         nodes.append(
             node(
