@@ -65,7 +65,8 @@ class TPM:
         raise NotImplementedError
 
     def tpm_indices(self):
-        raise NotImplementedError
+        """Return the indices of nodes in the TPM."""
+        return tuple(np.where(np.array(self.shape[:-1]) != 1)[0])
 
     def print(self):
         raise NotImplementedError
@@ -578,11 +579,6 @@ class ExplicitTPM(data_structures.ArrayLike, TPM):
             cm[a][b] = self.infer_edge(a, b, all_contexts)
         return cm
 
-    def tpm_indices(self):
-        """Return the indices of nodes in the TPM."""
-        # TODO This currently assumes binary elements (2)
-        return tuple(np.where(np.array(self.shape[:-1]) == 2)[0])
-
     def print(self):
         tpm = convert.to_multidimensional(self._tpm)
         for state in all_states(tpm.shape[-1]):
@@ -765,9 +761,6 @@ class ImplicitTPM(TPM):
         raise NotImplementedError
 
     def infer_cm(self):
-        raise NotImplementedError
-
-    def tpm_indices(self):
         raise NotImplementedError
 
     def print(self):

@@ -148,6 +148,7 @@ class Subsystem:
                 for i, node in enumerate(self.tpm.nodes)
                 if i in self.node_indices
             )
+        # TODO(tpm): Does memory optimization justify maintaining the `else`?
         else:
             self.nodes = tuple(
                 node for i, node in enumerate(self.tpm.nodes)
