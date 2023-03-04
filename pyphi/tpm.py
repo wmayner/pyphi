@@ -25,13 +25,7 @@ class TPM:
 
     _ERROR_MSG_PROBABILITY_SUM = "Invalid TPM: probabilities must sum to 1."
 
-    def validate(self, check_independence=True):
-        raise NotImplementedError
-
-    def _validate_probabilities(self):
-        raise NotImplementedError
-
-    def _validate_shape(self, check_independence=True):
+    def validate(self, cm, check_independence=True):
         raise NotImplementedError
 
     def to_multidimensional_state_by_node(self):
@@ -341,7 +335,7 @@ class ExplicitTPM(data_structures.ArrayLike, TPM):
         """np.ndarray: The underlying `tpm` object."""
         return self._tpm
 
-    def validate(self, check_independence=True):
+    def validate(self, cm=None, check_independence=True):
         """Validate this TPM."""
         return self._validate_probabilities() and self._validate_shape(
             check_independence
@@ -644,7 +638,7 @@ class ImplicitTPM(TPM):
     @property
     def ndim(self):
         """int: The number of dimensions of the TPM."""
-        return len(self) + 1
+        return len(self.shape)
 
     @property
     def shape(self):
@@ -678,9 +672,9 @@ class ImplicitTPM(TPM):
 
         return shape_from_inputs + (number_of_nodes,)
 
-    def validate(self, check_independence=True):
+    def validate(self, cm=None, check_independence=True):
         """Validate this TPM."""
-        return self._validate_probabilities()
+        return self._validate_probabilities() and self._validate_shape(cm)
 
     def _validate_probabilities(self):
         """Check that the probabilities in a TPM are valid."""
@@ -689,21 +683,46 @@ class ImplicitTPM(TPM):
 
         # Validate that probabilities sum to 1.
         if any(
-                (node_tpm.data.sum(axis=-1) != 1.0).any()
-                for node_tpm in self._nodes
+                (node.tpm.sum(axis=-1) != 1.0).any()
+                for node in self._nodes
         ):
             raise ValueError(self._ERROR_MSG_PROBABILITY_SUM)
 
         # Leverage method in ExplicitTPM to distribute validation of
         # TPM image within [0, 1].
         if all(
-                node_tpm.data._validate_probabilities()
-                for node_tpm in self._nodes
+                node.tpm._validate_probabilities()
+                for node in self._nodes
         ):
             return True
 
-    def _validate_shape(self, check_independence=True):
-        raise NotImplementedError
+    def _validate_shape(self, cm):
+        """Validate this TPM's shape.
+
+        The shapes of the individual node TPMs in multidimensional form are
+        validated against the connectivity matrix specification. Additionally,
+        the inferred shape of the implicit network TPM must be in
+        multidimensional state-by-node form, nonbinary and heterogeneous units
+        supported.
+        """
+        # Validate individual node TPM shapes.
+        shapes = shapes = [node.tpm.shape for node in self.nodes]
+
+        for i, shape in enumerate(shapes):
+            for j, val in enumerate(cm[..., i]):
+                if (val == 0 and shape[j] != 1) or (val != 0 and shape[j] == 1):
+                    raise ValueError(
+                        "Node TPM {} of shape {} does not match the connectivity "
+                        " matrix.".format(i, shape)
+                    )
+
+        # Validate whole network's shape.
+        N = len(self.nodes)
+        if N + 1 != self.ndim:
+            raise ValueError(
+                "Invalid TPM shape: {} nodes were provided, but their shapes"
+                "suggest a {}-node network.".format(N, self.ndim - 1)
+            )
 
     def to_multidimensional_state_by_node(self):
         raise NotImplementedError

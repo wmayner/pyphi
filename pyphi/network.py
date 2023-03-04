@@ -139,7 +139,7 @@ class Network:
 
         self.purview_cache = purview_cache or cache.PurviewCache()
 
-        # validate.network(self)
+        validate.network(self)
 
     @property
     def tpm(self):
@@ -185,22 +185,10 @@ class Network:
             utils.np_immutable(cm)
             return (cm, utils.np_hash(cm))
 
+        # Explicit TPM with connectivity matrix: return.
+        # ImplicitTPM with connectivity matrix: return (validate later).
         cm = np.array(cm)
         utils.np_immutable(cm)
-
-        # Explicit TPM with connectivity matrix: return.
-        if shapes is None:
-            return (cm, utils.np_hash(cm))
-
-        # ImplicitTPM with connectivity matrix: validate against node TPM shapes.
-        for i, shape in enumerate(shapes):
-            for j, val in enumerate(cm[..., i]):
-                if (val == 0 and shape[j] != 1) or (val != 0 and shape[j] == 1):
-                    raise ValueError(
-                        "Node TPM {} of shape {} does not match the connectivity "
-                        " matrix.".format(i, shape)
-                    )
-
         return (cm, utils.np_hash(cm))
 
     @property
