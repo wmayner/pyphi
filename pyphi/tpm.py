@@ -666,11 +666,22 @@ class ImplicitTPM(TPM):
             )
 
         number_of_nodes = len(shapes)
-        shape_from_inputs = tuple(
-            max(shape[i] for shape in shapes) for i in range(number_of_nodes)
+        states_per_node = tuple(shape[-1] for shape in shapes)
+
+        dimensions_from_shapes = tuple(
+            set(shape[node_index] for shape in shapes)
+            for node_index in range(number_of_nodes)
         )
 
-        return shape_from_inputs + (number_of_nodes,)
+        for node_index in range(number_of_nodes):
+            valid_cardinalities = {1, max(dimensions_from_shapes[node_index])}
+            if dimensions_from_shapes[node_index] != valid_cardinalities:
+                raise ValueError(
+                    "The provided shapes disagree on the number of states of "
+                    "node {}.".format(node_index)
+                )
+
+        return states_per_node + (number_of_nodes,)
 
     def validate(self, cm=None, check_independence=True):
         """Validate this TPM."""
