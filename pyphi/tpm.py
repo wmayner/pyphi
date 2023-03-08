@@ -804,6 +804,9 @@ class ImplicitTPM(TPM):
     def permute_nodes(self, permutation):
         raise NotImplementedError
 
+    def equals(self, o: object):
+        return isinstance(o, type(self)) and self.nodes == o.nodes
+
     def __getitem__(self, index, **kwargs):
         if isinstance(index, (int, slice, type(...), tuple)):
             return ImplicitTPM(
