@@ -42,16 +42,16 @@ def test_node_init_inputs(s):
 
 
 def test_node_eq(s):
-    assert s.nodes[1] == node(s.tpm, s.cm, 1, 0, "B")
+    assert s.nodes[1] == node(s.tpm, s.cm, s.state_space, 1, 0, "B")
 
 
 def test_node_neq_by_index(s):
-    assert s.nodes[0] != node(s.tpm, s.cm, 1, 0, "B")
+    assert s.nodes[0] != node(s.tpm, s.cm, s.state_space, 1, 0, "B")
 
 
 def test_node_neq_by_state(s):
     other_s = Subsystem(s.network, (1, 1, 1), s.node_indices)
-    assert other_s.nodes[1] != node(s.tpm, s.cm, 1, 0, "B")
+    assert other_s.nodes[1] != node(s.tpm, s.cm, s.state_space, 1, 0, "B")
 
 
 def test_repr(s):
