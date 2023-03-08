@@ -32,7 +32,6 @@ the stream to a nested PyPhi object structure. The decoder will raise an
 exception if current PyPhi version doesn't match the version in the JSON data.
 """
 
-import functools
 import json
 
 import numpy as np
@@ -52,7 +51,6 @@ ID_KEY = "__id__"
 # TODO(4.0): to_dict() instead?
 
 
-@functools.cache
 def _loadable_models():
     """A dictionary of loadable PyPhi models.
 
