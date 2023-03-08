@@ -673,14 +673,22 @@ class ImplicitTPM(TPM):
         number_of_nodes = len(shapes)
         states_per_node = tuple(shape[-1] for shape in shapes)
 
+        # Check consistency of shapes across nodes.
+
         dimensions_from_shapes = tuple(
-            set(shape[node_index] for shape in shapes)
+            tuple(set(shape[node_index] for shape in shapes))
             for node_index in range(number_of_nodes)
         )
 
         for node_index in range(number_of_nodes):
-            valid_cardinalities = {1, max(dimensions_from_shapes[node_index])}
-            if dimensions_from_shapes[node_index] != valid_cardinalities:
+            # Valid cardinalities for a dimension can be either {1, s_i != 1}
+            # when a node provides input to some nodes but not others, or
+            # {s_i != 1} if it provides input to all other nodes.
+            valid_cardinalities = {
+                (max(dimensions_from_shapes[node_index]), 1),
+                (max(dimensions_from_shapes[node_index]),)
+            }
+            if dimensions_from_shapes[node_index] not in valid_cardinalities:
                 raise ValueError(
                     "The provided shapes disagree on the number of states of "
                     "node {}.".format(node_index)
