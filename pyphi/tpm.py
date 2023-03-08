@@ -643,8 +643,13 @@ class ImplicitTPM(TPM):
     @property
     def shape(self):
         """Tuple[int]: The size or number of coordinates in each dimension."""
-        shapes = [node.tpm.shape for node in self._nodes]
+        shapes = self.shapes
         return self._node_shapes_to_shape(shapes)
+
+    @property
+    def shapes(self):
+        """Tuple[Tuple[int]]: The shapes of each node TPM in this TPM."""
+        return [node.tpm.shape for node in self._nodes]
 
     @staticmethod
     def _node_shapes_to_shape(shapes: Iterable[Iterable[int]]) -> Tuple[int]:
@@ -717,7 +722,7 @@ class ImplicitTPM(TPM):
         supported.
         """
         # Validate individual node TPM shapes.
-        shapes = shapes = [node.tpm.shape for node in self.nodes]
+        shapes = self.shapes
 
         for i, shape in enumerate(shapes):
             for j, val in enumerate(cm[..., i]):
