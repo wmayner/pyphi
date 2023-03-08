@@ -163,9 +163,9 @@ class Network:
         unitary CM if none was provided (explicit TPM), or infer from node TPMs.
         """
         if cm is None:
-            try:
+            if hasattr(tpm, "shape"):
                 network_size = tpm.shape[-1]
-            except AttributeError:
+            else:
                 network_size = len(tpm)
 
             # Explicit TPM without connectivity matrix: assume all are connected.
