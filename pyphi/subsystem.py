@@ -227,6 +227,10 @@ class Subsystem:
     def tpm_size(self):
         """int: The number of nodes in the TPM."""
         return self.tpm.shape[-1]
+    
+    @property
+    def state_space(self):
+        return self.network.state_space
 
     def cache_info(self):
         """Report repertoire cache statistics."""
