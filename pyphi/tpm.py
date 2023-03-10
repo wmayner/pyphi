@@ -46,8 +46,12 @@ class TPM:
     def is_state_by_state(self):
         raise NotImplementedError
 
-    def subtpm(self, fixed_nodes, state):
-        raise NotImplementedError
+    def _subtpm(self, fixed_nodes, state):
+        N = self.shape[-1]
+        free_nodes = sorted(set(range(N)) - set(fixed_nodes))
+        condition = FrozenMap(zip(fixed_nodes, state))
+        conditioned = self.condition_tpm(condition)
+        return conditioned, free_nodes
 
     def expand_tpm(self):
         raise NotImplementedError
@@ -508,18 +512,16 @@ class ExplicitTPM(data_structures.ArrayLike, TPM):
         Examples:
             >>> from pyphi import examples
             >>> # Get the TPM for nodes only 1 and 2, conditioned on node 0 = OFF
-            >>> examples.grid3_network().tpm.subtpm((0,), (0,))
-            ExplicitTPM([[[[0.02931223 0.04742587]
+            >>> reconstitute_tpm(examples.grid3_network().tpm).subtpm((0,), (0,))
+            ExplicitTPM(
+            [[[[0.02931223 0.04742587]
                [0.07585818 0.88079708]]
             <BLANKLINE>
               [[0.81757448 0.11920292]
-               [0.92414182 0.95257413]]]])
+               [0.92414182 0.95257413]]]]
+            )
         """
-        N = self._tpm.shape[-1]
-        free_nodes = sorted(set(range(N)) - set(fixed_nodes))
-        condition = FrozenMap(zip(fixed_nodes, state))
-        conditioned = self.condition_tpm(condition)
-        # TODO test indicing behavior on xr.DataArray
+        conditioned, free_nodes = self._subtpm(fixed_nodes, state)
         return conditioned[..., free_nodes]
 
     def expand_tpm(self):
@@ -798,7 +800,10 @@ class ImplicitTPM(TPM):
         return False
 
     def subtpm(self, fixed_nodes, state):
-        raise NotImplementedError
+        conditioned, free_nodes = self._subtpm(fixed_nodes, state)
+        return type(self)(
+            tuple(node for node in conditioned.nodes if node.index in free_nodes)
+        )
 
     def expand_tpm(self):
         raise NotImplementedError
@@ -854,9 +859,16 @@ def reconstitute_tpm(subsystem):
     # The last axis of the node TPMs correponds to ON or OFF probabilities
     # (used in the conditioning step when calculating the repertoires); we want
     # ON probabilities.
-    node_tpms = [node.tpm[..., 1] for node in subsystem.nodes]
+
+    # TODO nonbinary nodes
+    node_tpms = [np.asarray(node.tpm)[..., 1] for node in subsystem.nodes]
+
+    external_indices = ()
+    if hasattr(subsystem, "external_indices"):
+        external_indices = subsystem.external_indices
+
     # Remove the singleton dimensions corresponding to external nodes
-    node_tpms = [tpm.squeeze(axis=subsystem.external_indices) for tpm in node_tpms]
+    node_tpms = [tpm.squeeze(axis=external_indices) for tpm in node_tpms]
     # We add a new singleton axis at the end so that we can use
     # pyphi.tpm.expand_tpm, which expects a state-by-node TPM (where the last
     # axis corresponds to nodes.)
@@ -868,7 +880,7 @@ def reconstitute_tpm(subsystem):
     ]
     # We concatenate the node TPMs along a new axis to get a multidimensional
     # state-by-node TPM (where the last axis corresponds to nodes).
-    return np.concatenate(node_tpms, axis=-1)
+    return ExplicitTPM(np.concatenate(node_tpms, axis=-1))
 
 
 # TODO(tpm) remove pending ArrayLike refactor
