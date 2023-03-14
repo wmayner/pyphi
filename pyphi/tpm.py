@@ -14,6 +14,7 @@ import numpy as np
 from . import config, convert, data_structures, exceptions
 from .constants import OFF, ON
 from .data_structures import FrozenMap
+from .node import node as Node
 from .utils import all_states, np_hash, np_immutable
 
 class TPM:
@@ -518,13 +519,12 @@ class ExplicitTPM(data_structures.ArrayLike, TPM):
             ExplicitTPM: A TPM with the same number of dimensions, with the nodes
             marginalized out.
         """
-        tpm = self._tpm.sum(tuple(node_indices), keepdims=True) / (
+        tpm = self.sum(tuple(node_indices), keepdims=True) / (
             np.array(self.shape)[list(node_indices)].prod()
         )
-        # Return new TPM object of the same type as self.
-        # self._tpm has already been validated and converted to multidimensional
-        # state-by-node form. Further validation would be problematic for
-        # singleton dimensions.
+        # Return new TPM object of the same type as self. Assume self had
+        # already been validated and converted formatted. Further validation
+        # would be problematic for singleton dimensions.
         return type(self)(tpm)
 
     def is_deterministic(self):
@@ -791,7 +791,29 @@ class ImplicitTPM(TPM):
         return self.__getitem__(conditioning_indices, preserve_singletons=True)
 
     def marginalize_out(self, node_indices):
-        raise NotImplementedError
+        """Marginalize out nodes from this TPM.
+
+        Args:
+            node_indices (list[int]): The indices of nodes to be marginalized out.
+
+        Returns:
+            ImplicitTPM: A TPM with the same number of dimensions, with the nodes
+            marginalized out.
+        """
+        # Leverage ExplicitTPM.marginalize_out() to distribute operation to
+        # individual nodes, then assemble into a new ImplicitTPM.
+        return type(self)(
+            tuple(
+                Node(
+                    node.tpm.marginalize_out(node_indices),
+                    node.dataarray.attrs["cm"],
+                    node.dataarray.attrs["network_state_space"],
+                    node.index,
+                    node_labels=node.dataarray.attrs["node_labels"],
+                ).pyphi
+                for node in self.nodes
+            )
+        )
 
     def is_deterministic(self):
         raise NotImplementedError

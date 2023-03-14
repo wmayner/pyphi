@@ -116,28 +116,28 @@ def test_expand_tpm():
 def test_marginalize_out(s):
     marginalized_distribution = s.tpm.marginalize_out([0])
     # fmt: off
-    answer = ExplicitTPM(
-        np.array([
+    answer = np.array([
             [[[0.0, 0.0, 0.5],
               [1.0, 1.0, 0.5]],
              [[1.0, 0.0, 0.5],
               [1.0, 1.0, 0.5]]],
         ])
-    )
 
     # fmt: on
-    assert marginalized_distribution.array_equal(answer)
+    assert np.array_equal(
+        np.asarray(reconstitute_tpm(marginalized_distribution)), answer
+    )
 
     marginalized_distribution = s.tpm.marginalize_out([0, 1])
     # fmt: off
-    answer = ExplicitTPM(
-        np.array([
+    answer = np.array([
             [[[0.5, 0.0, 0.5],
               [1.0, 1.0, 0.5]]],
         ])
-    )
     # fmt: on
-    assert marginalized_distribution.array_equal(answer)
+    assert np.array_equal(
+        np.asarray(reconstitute_tpm(marginalized_distribution)), answer
+    )
 
 
 def test_infer_cm(rule152):

@@ -14,8 +14,8 @@ from typing import Mapping, Optional, Tuple, Union
 import numpy as np
 import xarray as xr
 
+import pyphi.tpm
 from .connectivity import get_inputs_from_cm, get_outputs_from_cm
-from .labels import NodeLabels
 from .state_space import (
     dimension_labels,
     input_dimension_label,
@@ -23,7 +23,6 @@ from .state_space import (
     PROBABILITY_DIMENSION,
     SINGLETON_COORDINATE,
 )
-from .tpm import ExplicitTPM
 from .utils import state_of
 
 @xr.register_dataarray_accessor("pyphi")
@@ -35,8 +34,10 @@ class Node:
         dataarray (xr.DataArray):
 
     Attributes:
-        index (int):
-        label (str):
+        index (int): The node's index in the network.
+        label (str): The textual label for this node.
+        node_labels (Tuple[str]): The textual labels for the nodes in the network.
+        dataarray (xr.DataArray): the xarray DataArray for this node.
         tpm (|ExplicitTPM|): The node TPM is an array with |n + 1| dimensions,
             where ``n`` is the size of the |Network|. The first ``n`` dimensions
             correspond to each node in the system. Dimensions corresponding to
@@ -46,10 +47,11 @@ class Node:
             ``node.tpm[..., 0]`` gives probabilities that the node will be 'OFF'
             and ``node.tpm[..., 1]`` gives probabilities that the node will be
             'ON'.
-        inputs (frozenset):
-        outputs (frozenset):
-        state_space (Tuple[Union[int, str]]):
-        state (Optional[Union[int, str]]):
+        inputs (frozenset): The set of nodes with connections to this node.
+        outputs (frozenset): The set of nodes this node has connections to.
+        state_space (Tuple[Union[int, str]]): The space of states this node can
+            inhabit.
+        state (Optional[Union[int, str]]): The current state of this node.
     """
 
     def __init__(self, dataarray: xr.DataArray):
@@ -73,7 +75,7 @@ class Node:
         self._hash = hash(
             (
                 self.index,
-                hash(ExplicitTPM(self.tpm)),
+                hash(pyphi.tpm.ExplicitTPM(self.tpm)),
                 self._inputs,
                 self._outputs,
                 self.state_space,
@@ -286,12 +288,12 @@ class Node:
 
 
 def node(
-        tpm: ExplicitTPM,
+        tpm,
         cm: np.ndarray,
         network_state_space: Mapping[str, Tuple[Union[int, str]]],
         index: int,
         state: Optional[Union[int, str]] = None,
-        node_labels: Optional[NodeLabels] = None
+        node_labels: Optional[Tuple[str]] = None
 ) -> xr.DataArray:
     """
     Instantiate a node TPM DataArray.
@@ -305,7 +307,7 @@ def node(
 
     Keyword Args:
         state (Optional[Union[int, str]]): The state of this node.
-        node_labels (Iterable[str]): Textual labels for each node in the network.
+        node_labels (Tuple[str]): Textual labels for each node in the network.
 
     Returns:
         xr.DataArray: The node in question.
@@ -329,7 +331,7 @@ def node(
     # Compute the relevant state labels (coordinates in xarray terminology) from
     # the perspective of this node and its direct inputs.
     node_states = [network_state_space[dim] for dim in dimensions[:-1]]
-    new_network_state_space, _ = build_state_space(
+    input_coordinates, _ = build_state_space(
         node_labels,
         tpm.shape[:-1],
         node_states,
@@ -338,7 +340,7 @@ def node(
 
     node_state_space = network_state_space[dimensions[index]]
 
-    coordinates = {**new_network_state_space, dimensions[-1]: node_state_space}
+    coordinates = {**input_coordinates, dimensions[-1]: node_state_space}
 
     return xr.DataArray(
         name = node_labels[index],
@@ -348,26 +350,28 @@ def node(
         attrs = {
             "index": index,
             "node_labels": node_labels,
+            "cm": cm,
             "inputs": inputs,
             "outputs": outputs,
             "state_space": tuple(node_state_space),
             "state": state,
+            "network_state_space": network_state_space
         }
     )
 
 
 def generate_nodes(
-        tpm: ExplicitTPM,
+        network_tpm,
         cm: np.ndarray,
         state_space: Mapping[str, Tuple[Union[int, str]]],
         indices: Tuple[int],
         network_state: Optional[Tuple[Union[int, str]]] = None,
-        node_labels: Optional[NodeLabels] = None
+        node_labels: Optional[Tuple[str]] = None
 ) -> Tuple[xr.DataArray]:
     """Generate |Node| objects out of a binary network |ExplicitTPM|.
 
     Args:
-        tpm (|ExplicitTPM|): The system's TPM.
+        network_tpm (|ExplicitTPM|): The system's TPM.
         cm (np.ndarray): The CM of the network.
         state_space (Mapping[str, Tuple[Union[int, str]]]): Labels
             for the state space of each node in the network.
@@ -376,7 +380,7 @@ def generate_nodes(
     Keyword Args:
         network_state (Optional[Tuple[Union[int, str]]]): The state of
             the network.
-        node_labels (|NodeLabels|): Textual labels for each node.
+        node_labels (Optional[Tuple[str]]): Textual labels for each node.
 
     Returns:
         Tuple[xr.DataArray]: The nodes of the system.
@@ -394,7 +398,7 @@ def generate_nodes(
         # but its last dimension will be gone, since now there's just a single
         # scalar value (this node's state) rather than a state-vector for all
         # the network nodes.
-        tpm_on = tpm[..., index]
+        tpm_on = network_tpm[..., index]
 
         # Get the TPM that gives the probability of the node being off, rather
         # than on.
@@ -404,7 +408,7 @@ def generate_nodes(
         # the state of the node's inputs at t, and the last dimension is
         # indexed by the node's state at t+1. This representation makes it easy
         # to condition on the node state.
-        node_tpm = ExplicitTPM(
+        node_tpm = pyphi.tpm.ExplicitTPM(
             np.stack([np.asarray(tpm_off), np.asarray(tpm_on)], axis=-1)
         )
 
@@ -433,5 +437,5 @@ def expand_node_tpm(tpm):
     dimension (containing the state of the node) contains only the probability
     of *this* node being on, rather than the probabilities for each node.
     """
-    uc = ExplicitTPM(np.ones([2 for node in tpm.shape]))
+    uc = pyphi.tpm.ExplicitTPM(np.ones([2 for node in tpm.shape]))
     return uc * tpm
