@@ -81,6 +81,7 @@ def test_getattr():
 
     assert expected.array_equal(expected)
 
+
 def test_is_state_by_state():
     # State-by-state
     tpm = ExplicitTPM(np.ones((8, 8)))
@@ -146,7 +147,10 @@ def test_infer_cm(rule152):
 def test_reconstitute_tpm(standard, s_complete, rule152, noised):
     # Check subsystem and network TPM are the same when the subsystem is the
     # whole network
-    assert np.array_equal(reconstitute_tpm(s_complete), standard.tpm.tpm)
+    assert np.array_equal(
+        np.asarray(reconstitute_tpm(s_complete)),
+        np.asarray(reconstitute_tpm(standard.tpm))
+    )
 
     # Regression tests
     # fmt: off
@@ -162,7 +166,7 @@ def test_reconstitute_tpm(standard, s_complete, rule152, noised):
     ])
     # fmt: on
     subsystem = Subsystem(rule152, (0,) * 5, (0, 1, 2))
-    assert np.array_equal(answer, reconstitute_tpm(subsystem))
+    assert np.array_equal(answer, np.asarray(reconstitute_tpm(subsystem)))
 
     subsystem = Subsystem(noised, (0, 0, 0), (0, 1))
     # fmt: off
@@ -173,4 +177,4 @@ def test_reconstitute_tpm(standard, s_complete, rule152, noised):
          [1. , 0. ]],
     ])
     # fmt: on
-    assert np.array_equal(answer, reconstitute_tpm(subsystem))
+    assert np.array_equal(answer, np.asarray(reconstitute_tpm(subsystem)))
