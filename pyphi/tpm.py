@@ -666,20 +666,20 @@ class ImplicitTPM(TPM):
                 "The provided shapes contain varying number of dimensions."
             )
 
-        number_of_nodes = len(shapes)
+        N = len(shapes)
         states_per_node = tuple(shape[-1] for shape in shapes)
 
         # Check consistency of shapes across nodes.
 
         dimensions_from_shapes = tuple(
             set(shape[node_index] for shape in shapes)
-            for node_index in range(number_of_nodes)
+            for node_index in range(N)
         )
 
-        for node_index in range(number_of_nodes):
-            # Valid cardinalities for a dimension can be either {1, s_i != 1}
-            # when a node provides input to some nodes but not others, or
-            # {s_i != 1} if it provides input to all other nodes.
+        for node_index in range(N):
+            # Valid state cardinalities along a dimension can be either:
+            #  {1, s_i}, s_i != 1  iff node provides input to only some nodes,
+            #  {s_i}, s_i != 1     iff node provides input to all nodes.
             valid_cardinalities = (
                 {max(dimensions_from_shapes[node_index]), 1},
                 {max(dimensions_from_shapes[node_index])}
@@ -693,7 +693,7 @@ class ImplicitTPM(TPM):
                     "node {}.".format(node_index)
                 )
 
-        return states_per_node + (number_of_nodes,)
+        return states_per_node + (N,)
 
     def validate(self, cm=None, check_independence=True):
         """Validate this TPM."""
@@ -894,8 +894,10 @@ def reconstitute_tpm(subsystem):
     node_tpms = [np.expand_dims(tpm, -1) for tpm in node_tpms]
     # Now we expand the node TPMs to the full state space, so we can combine
     # them all (this uses the maximum entropy distribution).
+    shapes = tuple(tpm.shape[:-1] for tpm in node_tpms)
+    network_shape = tuple(max(dim) for dim in zip(*shapes))
     node_tpms = [
-        tpm * np.ones([2] * (tpm.ndim - 1) + [tpm.shape[-1]]) for tpm in node_tpms
+        tpm * np.ones(network_shape + (1,)) for tpm in node_tpms
     ]
     # We concatenate the node TPMs along a new axis to get a multidimensional
     # state-by-node TPM (where the last axis corresponds to nodes).
