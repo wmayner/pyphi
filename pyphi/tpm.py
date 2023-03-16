@@ -47,6 +47,9 @@ class TPM:
     def is_state_by_state(self):
         raise NotImplementedError
 
+    def remove_singleton_dimensions(self):
+        raise NotImplementedError
+
     def _subtpm(self, fixed_nodes, state):
         N = self.shape[-1]
         free_nodes = sorted(set(range(N)) - set(fixed_nodes))
@@ -537,6 +540,23 @@ class ExplicitTPM(data_structures.ArrayLike, TPM):
         """
         return self.ndim == 2 and self.shape[0] == self.shape[1]
 
+    def remove_singleton_dimensions(self):
+        """Remove singleton dimensions from the TPM.
+
+        Singleton dimensions are created by conditioning on a set of elements.
+        This removes those elements from the TPM, leaving a TPM that only
+        describes the non-conditioned elements.
+
+        Note that indices used in the original TPM must be reindexed for the
+        smaller TPM.
+        """
+        # Don't squeeze out the final dimension (which contains the probability)
+        # for networks with one element.
+        if self.ndim <= 2:
+            return self
+
+        return self.squeeze()[..., self.tpm_indices()]
+
     def subtpm(self, fixed_nodes, state):
         """Return the TPM for a subset of nodes, conditioned on other nodes.
 
@@ -835,7 +855,53 @@ class ImplicitTPM(TPM):
         """
         return False
 
+    def remove_singleton_dimensions(self):
+        """Remove singleton dimensions from the TPM.
+
+        Singleton dimensions are created by conditioning on a set of elements.
+        This removes those elements from the TPM, leaving a TPM that only
+        describes the non-conditioned elements.
+
+        Note that indices used in the original TPM must be reindexed for the
+        smaller TPM.
+        """
+        # Don't squeeze out the final dimension (which contains the probability)
+        # for networks with one element.
+        if self.ndim <= 2:
+            return self
+
+        shape = self._reconstituted_shape
+        singletons = set(np.where(np.array(shape) == 1)[0])
+
+        return type(self)(
+            tuple(
+                node for node in self.squeeze().nodes
+                if node.index in singletons
+            )
+        )
+
     def subtpm(self, fixed_nodes, state):
+        """Return the TPM for a subset of nodes, conditioned on other nodes.
+
+        Arguments:
+            fixed_nodes (tuple[int]): The nodes to select.
+            state (tuple[int]): The state of the fixed nodes.
+
+        Returns:
+            ExplicitTPM: The TPM of just the subsystem of the free nodes.
+
+        Examples:
+            >>> from pyphi import examples
+            >>> # Get the TPM for nodes only 1 and 2, conditioned on node 0 = OFF
+            >>> reconstitute_tpm(examples.grid3_network().tpm.subtpm((0,), (0,)))
+            ExplicitTPM(
+            [[[[0.02931223 0.04742587]
+               [0.07585818 0.88079708]]
+            <BLANKLINE>
+              [[0.81757448 0.11920292]
+               [0.92414182 0.95257413]]]]
+            )
+        """
         conditioned, free_nodes = self._subtpm(fixed_nodes, state)
         return type(self)(
             tuple(node for node in conditioned.nodes if node.index in free_nodes)
@@ -863,7 +929,8 @@ class ImplicitTPM(TPM):
 
         # Subtract non-singleton dimensions from `axis`, including fake
         # singletons (dimensions that are singletons only for a proper subset of
-        # the nodes), since those should not be squeezed from the ImplicitTPM.
+        # the nodes), since those should not be squeezed, not even within
+        # individual node TPMs.
         shape = self._reconstituted_shape
         nonsingletons = set(np.where(np.array(shape) != 1)[0])
         axis = tuple(axis - nonsingletons)

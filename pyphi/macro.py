@@ -48,25 +48,6 @@ def rebuild_system_tpm(node_tpms):
     return ExplicitTPM(tpm, validate=True)
 
 
-# TODO This should be a method of the TPM class in tpm.py
-def remove_singleton_dimensions(tpm):
-    """Remove singleton dimensions from the TPM.
-
-    Singleton dimensions are created by conditioning on a set of elements.
-    This removes those elements from the TPM, leaving a TPM that only
-    describes the non-conditioned elements.
-
-    Note that indices used in the original TPM must be reindexed for the
-    smaller TPM.
-    """
-    # Don't squeeze out the final dimension (which contains the probability)
-    # for networks with one element.
-    if tpm.ndim <= 2:
-        return tpm
-
-    return tpm.squeeze()[..., tpm.tpm_indices()]
-
-
 def run_tpm(system, steps, blackbox):
     """Iterate the TPM for the given number of timesteps.
 
@@ -241,7 +222,7 @@ class MacroSubsystem(Subsystem):
 
         internal_indices = system.tpm.tpm_indices()
 
-        tpm = remove_singleton_dimensions(system.tpm)
+        tpm = system.tpm.remove_singleton_dimensions()
 
         # The connectivity matrix is the network's connectivity matrix, with
         # cut applied, with all connections to/from external nodes severed,
@@ -321,7 +302,7 @@ class MacroSubsystem(Subsystem):
 
         assert blackbox.output_indices == tpm.tpm_indices()
 
-        new_tpm = remove_singleton_dimensions(tpm)
+        new_tpm = tpm.remove_singleton_dimensions()
         state_space, _ = build_state_space(tpm[:-1], system.state_space)
         n = len(blackbox)
         cm = np.zeros((n, n))
