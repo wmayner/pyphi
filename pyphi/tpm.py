@@ -7,7 +7,7 @@ Provides the ExplicitTPM and related classes.
 """
 
 from itertools import chain
-from typing import Iterable, Mapping, Set, Tuple
+from typing import Iterable, Mapping, Optional, Set, Tuple
 
 import numpy as np
 
@@ -643,12 +643,20 @@ class ImplicitTPM(TPM):
         return self._node_shapes_to_shape(shapes)
 
     @property
+    def _reconstituted_shape(self):
+        shapes = self.shapes
+        return self._node_shapes_to_shape(shapes, reconstituted=True)
+
+    @property
     def shapes(self):
         """Tuple[Tuple[int]]: The shapes of each node TPM in this TPM."""
         return [node.tpm.shape for node in self._nodes]
 
     @staticmethod
-    def _node_shapes_to_shape(shapes: Iterable[Iterable[int]]) -> Tuple[int]:
+    def _node_shapes_to_shape(
+            shapes: Iterable[Iterable[int]],
+            reconstituted: Optional[bool]=None
+    ) -> Tuple[int]:
         """Infer the shape of the equivalent multidimensional |ExplicitTPM|.
 
         Args:
@@ -667,7 +675,10 @@ class ImplicitTPM(TPM):
             )
 
         N = len(shapes)
-        states_per_node = tuple(shape[-1] for shape in shapes)
+        if reconstituted:
+            states_per_node = tuple(max(dim) for dim in zip(*shapes))
+        else:
+            states_per_node = tuple(shape[-1] for shape in shapes)
 
         # Check consistency of shapes across nodes.
 
@@ -842,16 +853,45 @@ class ImplicitTPM(TPM):
     def equals(self, o: object):
         return isinstance(o, type(self)) and self.nodes == o.nodes
 
+    def squeeze(self, axis=None):
+        """Wrapper around numpy.squeeze."""
+        # If axis is None, all axis should be considered.
+        if axis is None:
+            axis = set(range(len(self)))
+        else:
+            axis = set(axis) if isinstance(axis, Iterable) else set([axis])
+
+        # Subtract non-singleton dimensions from `axis`, including fake
+        # singletons (dimensions that are singletons only for a proper subset of
+        # the nodes), since those should not be squeezed from the ImplicitTPM.
+        shape = self._reconstituted_shape
+        nonsingletons = set(np.where(np.array(shape) != 1)[0])
+        axis = tuple(axis - nonsingletons)
+
+        # Leverage ExplicitTPM.squeeze to distribute squeezing to every node.
+        return type(self)(
+            tuple(
+                Node(
+                    node.tpm.squeeze(axis=axis),
+                    node.dataarray.attrs["cm"],
+                    node.dataarray.attrs["network_state_space"],
+                    node.index,
+                    node_labels=node.dataarray.attrs["node_labels"],
+                ).pyphi
+                for node in self.nodes
+            )
+        )
+
     def __getitem__(self, index, **kwargs):
         if isinstance(index, (int, slice, type(...), tuple)):
-            return ImplicitTPM(
+            return type(self)(
                 tuple(
                     node.dataarray[node.project_index(index, **kwargs)].pyphi
                     for node in self.nodes
                 )
             )
         if isinstance(index, dict):
-            return ImplicitTPM(
+            return type(self)(
                 tuple(
                     node.dataarray.loc[node.project_index(index, **kwargs)].pyphi
                     for node in self.nodes
