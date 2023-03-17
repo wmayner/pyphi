@@ -231,14 +231,12 @@ class MacroSubsystem(Subsystem):
 
         state = utils.state_of(internal_indices, system.state)
 
-        state_space, _ = build_state_space(system.tpm[:-1], system.state_space)
-
         # Re-index the subsystem nodes with the external nodes removed
         node_indices = reindex(internal_indices)
         nodes = generate_nodes(
             tpm,
             cm,
-            state_space,
+            system.state_space,
             node_indices,
             network_state=state
         )
@@ -247,7 +245,7 @@ class MacroSubsystem(Subsystem):
         # TODO: nonbinary nodes.
         tpm = rebuild_system_tpm(node.tpm[..., 1] for node in nodes)
 
-        return SystemAttrs(tpm, cm, node_indices, state, state_space)
+        return SystemAttrs(tpm, cm, node_indices, state, system.state_space)
 
     @staticmethod
     def _blackbox_partial_noise(blackbox, system):
@@ -303,7 +301,7 @@ class MacroSubsystem(Subsystem):
         assert blackbox.output_indices == tpm.tpm_indices()
 
         new_tpm = tpm.remove_singleton_dimensions()
-        state_space, _ = build_state_space(tpm[:-1], system.state_space)
+
         n = len(blackbox)
         cm = np.zeros((n, n))
         for i, j in itertools.product(range(n), repeat=2):
@@ -315,6 +313,10 @@ class MacroSubsystem(Subsystem):
 
         state = blackbox.macro_state(system.state)
         node_indices = blackbox.macro_indices
+        state_space, _ = build_state_space(
+            NodeLabels(None, node_indices),
+            tpm[:-1]
+        )
 
         return SystemAttrs(new_tpm, cm, node_indices, state, state_space)
 

@@ -317,7 +317,7 @@ def test_remove_singleton_dimensions():
     )
     # fmt: on
     assert tpm.tpm_indices() == (0,)
-    assert macro.remove_singleton_dimensions(tpm).array_equal(tpm)
+    assert tpm.remove_singleton_dimensions().array_equal(tpm)
 
     # fmt: off
     tpm = ExplicitTPM(
@@ -334,7 +334,7 @@ def test_remove_singleton_dimensions():
     )
     # fmt: on
     assert tpm.tpm_indices() == (1,)
-    assert macro.remove_singleton_dimensions(tpm).array_equal(answer)
+    assert tpm.remove_singleton_dimensions().array_equal(answer)
 
     # fmt: off
     tpm = ExplicitTPM(
@@ -355,7 +355,7 @@ def test_remove_singleton_dimensions():
     )
     # fmt: on
     assert tpm.tpm_indices() == (0, 2)
-    assert macro.remove_singleton_dimensions(tpm).array_equal(answer)
+    assert tpm.remove_singleton_dimensions().array_equal(answer)
 
 
 def test_pack_attrs(s):
