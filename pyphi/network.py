@@ -74,7 +74,7 @@ class Network:
                     self._cm,
                     self._state_space,
                     self._node_indices,
-                    node_labels=self._node_labels
+                    self._node_labels
                 )
             )
 
