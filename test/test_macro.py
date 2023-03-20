@@ -5,8 +5,9 @@
 import numpy as np
 import pytest
 
-from pyphi import convert, macro, ExplicitTPM
+from pyphi import convert, macro
 from pyphi.exceptions import ConditionallyDependentError
+from pyphi.tpm import ExplicitTPM
 
 # flake8: noqa
 

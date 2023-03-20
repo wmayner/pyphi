@@ -6,8 +6,8 @@ import numpy as np
 import pickle
 import pytest
 
-from pyphi import Subsystem, ExplicitTPM
-from pyphi.tpm import reconstitute_tpm
+from pyphi import Subsystem
+from pyphi.tpm import ExplicitTPM, reconstitute_tpm
 
 @pytest.mark.parametrize(
     "tpm",
