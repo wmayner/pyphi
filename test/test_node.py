@@ -6,7 +6,7 @@ import numpy as np
 
 from pyphi.node import node, expand_node_tpm, generate_nodes
 from pyphi.subsystem import Subsystem
-from pyphi.tpm import ExplicitTPM
+from pyphi.tpm import ExplicitTPM, reconstitute_tpm
 
 
 def test_node_init_tpm(s):
@@ -42,7 +42,8 @@ def test_node_init_inputs(s):
 
 
 def test_node_eq(s):
-    assert s.nodes[1] == node(s.tpm, s.cm, s.state_space, 1, 0, "B")
+    expected = node(s.tpm, s.cm, s.state_space, 1, 0, "B")
+    assert s.nodes[1] == expected
 
 
 def test_node_neq_by_index(s):
@@ -83,7 +84,7 @@ def test_expand_tpm():
 
 def test_generate_nodes(s):
     nodes = generate_nodes(
-        s.tpm,
+        reconstitute_tpm(s.tpm),
         s.cm,
         s.state_space,
         s.node_indices,
@@ -137,6 +138,12 @@ def test_generate_nodes(s):
 
 def test_generate_nodes_default_labels(s):
     nodes = generate_nodes(
-        s.tpm, s.cm, s.state_space, s.node_indices, network_state=s.state
+        reconstitute_tpm(s.tpm),
+        s.cm,
+        s.state_space,
+        s.node_indices,
+        network_state=s.state,
+        node_labels=s.node_labels
     )
-    assert [n.label for n in nodes] == ["n0", "n1", "n2"]
+    
+    assert [n.label for n in nodes] == ["A", "B", "C"]
