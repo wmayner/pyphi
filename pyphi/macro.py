@@ -18,9 +18,11 @@ from .exceptions import ConditionallyDependentError, StateUnreachableError
 from .labels import NodeLabels
 from .network import irreducible_purviews
 from .node import expand_node_tpm, generate_nodes
-from .subsystem import Subsystem
-from .tpm import ExplicitTPM, reconstitute_tpm
 from .state_space import build_state_space
+from .subsystem import Subsystem
+
+# TODO(tpm) use ImplicitTPM type consistently throughout module
+from .tpm import ExplicitTPM, ImplicitTPM, reconstitute_tpm
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
@@ -81,7 +83,7 @@ def run_tpm(system, steps, blackbox):
 
 class SystemAttrs(
         namedtuple(
-            "SystemAttrs", ["tpm", "cm", "node_indices", "state", "state_space"]
+            "SystemAttrs", ["tpm", "cm", "node_indices", "state"]
         )
 ):
     """An immutable container that holds all the attributes of a subsystem.
@@ -98,14 +100,28 @@ class SystemAttrs(
         return NodeLabels(labels, self.node_indices)
 
     @property
+    def state_space(self):
+        state_space, _ = build_state_space(
+            self.node_labels,
+            self.tpm.shape[:-1],
+            node_states=None,
+        )
+        return state_space
+
+    @property
     def nodes(self):
+        tpm = self.tpm
+
+        if isinstance(tpm, ImplicitTPM):
+            tpm = reconstitute_tpm(tpm)
+
         return generate_nodes(
-            reconstitute_tpm(self.tpm),
+            tpm,
             self.cm,
             self.state_space,
             self.node_indices,
+            self.node_labels,
             network_state=self.state,
-            node_labels=self.node_labels
         )
 
     @staticmethod
@@ -115,7 +131,6 @@ class SystemAttrs(
             system.cm,
             system.node_indices,
             system.state,
-            system.state_space,
         )
 
     def apply(self, system):
@@ -125,7 +140,6 @@ class SystemAttrs(
         system.node_labels = self.node_labels
         system.nodes = self.nodes
         system.state = self.state
-        system.state_space = self.state_space
 
 
 class MacroSubsystem(Subsystem):
@@ -233,11 +247,21 @@ class MacroSubsystem(Subsystem):
 
         # Re-index the subsystem nodes with the external nodes removed
         node_indices = reindex(internal_indices)
+        node_labels = NodeLabels(None, node_indices)
+        state_space, _ = build_state_space(
+            node_labels,
+            tpm.shape[:-1],
+        )
+
+        if isinstance(tpm, ImplicitTPM):
+            tpm = reconstitute_tpm(tpm)
+
         nodes = generate_nodes(
             tpm,
             cm,
-            system.state_space,
+            state_space,
             node_indices,
+            node_labels,
             network_state=state
         )
 
@@ -245,7 +269,7 @@ class MacroSubsystem(Subsystem):
         # TODO: nonbinary nodes.
         tpm = rebuild_system_tpm(node.tpm[..., 1] for node in nodes)
 
-        return SystemAttrs(tpm, cm, node_indices, state, system.state_space)
+        return SystemAttrs(tpm, cm, node_indices, state)
 
     @staticmethod
     def _blackbox_partial_noise(blackbox, system):
@@ -281,7 +305,6 @@ class MacroSubsystem(Subsystem):
             cm,
             system.node_indices,
             system.state,
-            system.state_space
         )
 
     def _blackbox_space(self, blackbox, system):
@@ -315,10 +338,10 @@ class MacroSubsystem(Subsystem):
         node_indices = blackbox.macro_indices
         state_space, _ = build_state_space(
             NodeLabels(None, node_indices),
-            tpm[:-1]
+            tpm.shape[:-1]
         )
 
-        return SystemAttrs(new_tpm, cm, node_indices, state, state_space)
+        return SystemAttrs(new_tpm, cm, node_indices, state)
 
     @staticmethod
     def _coarsegrain_space(coarse_grain, is_cut, system):

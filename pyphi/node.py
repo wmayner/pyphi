@@ -292,8 +292,8 @@ def node(
         cm: np.ndarray,
         network_state_space: Mapping[str, Tuple[Union[int, str]]],
         index: int,
+        node_labels: Tuple[str],
         state: Optional[Union[int, str]] = None,
-        node_labels: Optional[Tuple[str]] = None
 ) -> xr.DataArray:
     """
     Instantiate a node TPM DataArray.
@@ -304,10 +304,10 @@ def node(
         network_state_space (Mapping[str, Tuple[Union[int, str]]]):
             Labels for the state space of each node in the network.
         index (int): The node's index in the network.
+        node_labels (Tuple[str]): Textual labels for each node in the network.
 
     Keyword Args:
         state (Optional[Union[int, str]]): The state of this node.
-        node_labels (Tuple[str]): Textual labels for each node in the network.
 
     Returns:
         xr.DataArray: The node in question.
@@ -365,8 +365,8 @@ def generate_nodes(
         cm: np.ndarray,
         state_space: Mapping[str, Tuple[Union[int, str]]],
         indices: Tuple[int],
+        node_labels: Tuple[str],
         network_state: Optional[Tuple[Union[int, str]]] = None,
-        node_labels: Optional[Tuple[str]] = None
 ) -> Tuple[xr.DataArray]:
     """Generate |Node| objects out of a binary network |ExplicitTPM|.
 
@@ -376,11 +376,11 @@ def generate_nodes(
         state_space (Mapping[str, Tuple[Union[int, str]]]): Labels
             for the state space of each node in the network.
         indices (Tuple[int]): Indices to generate nodes for.
+        node_labels (Optional[Tuple[str]]): Textual labels for each node.
 
     Keyword Args:
         network_state (Optional[Tuple[Union[int, str]]]): The state of
             the network.
-        node_labels (Optional[Tuple[str]]): Textual labels for each node.
 
     Returns:
         Tuple[xr.DataArray]: The nodes of the system.

@@ -696,7 +696,7 @@ class ImplicitTPM(TPM):
 
         N = len(shapes)
         if reconstituted:
-            states_per_node = tuple(max(dim) for dim in zip(*shapes))
+            states_per_node = tuple(max(dim) for dim in zip(*shapes))[:-1]
         else:
             states_per_node = tuple(shape[-1] for shape in shapes)
 
@@ -870,13 +870,16 @@ class ImplicitTPM(TPM):
         if self.ndim <= 2:
             return self
 
+        # Find the set of singleton dimensions for this TPM.
         shape = self._reconstituted_shape
         singletons = set(np.where(np.array(shape) == 1)[0])
 
+        # Squeeze out singleton dimensions and return a new TPM with
+        # the surviving nodes.
         return type(self)(
             tuple(
                 node for node in self.squeeze().nodes
-                if node.index in singletons
+                if node.index not in singletons
             )
         )
 
