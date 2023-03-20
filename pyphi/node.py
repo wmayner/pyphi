@@ -14,7 +14,8 @@ from typing import Mapping, Optional, Tuple, Union
 import numpy as np
 import xarray as xr
 
-from pyphi.tpm import ImplicitTPM, reconstitute_tpm
+import pyphi.tpm
+
 from .connectivity import get_inputs_from_cm, get_outputs_from_cm
 from .state_space import (
     dimension_labels,
@@ -385,8 +386,8 @@ def generate_nodes(
     Returns:
         Tuple[xr.DataArray]: The nodes of the system.
     """
-    if isinstance(network_tpm, ImplicitTPM):
-        network_tpm = reconstitute_tpm(network_tpm)
+    if isinstance(network_tpm, pyphi.tpm.ImplicitTPM):
+        network_tpm = pyphi.tpm.reconstitute_tpm(network_tpm)
     
     if network_state is None:
         network_state = (None,) * cm.shape[0]
