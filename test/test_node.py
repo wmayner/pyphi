@@ -84,7 +84,7 @@ def test_expand_tpm():
 
 def test_generate_nodes(s):
     nodes = generate_nodes(
-        reconstitute_tpm(s.tpm),
+        s.tpm,
         s.cm,
         s.state_space,
         s.node_indices,
@@ -138,7 +138,7 @@ def test_generate_nodes(s):
 
 def test_generate_nodes_default_labels(s):
     nodes = generate_nodes(
-        reconstitute_tpm(s.tpm),
+        s.tpm,
         s.cm,
         s.state_space,
         s.node_indices,
