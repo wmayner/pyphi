@@ -18,9 +18,11 @@ from .exceptions import ConditionallyDependentError, StateUnreachableError
 from .labels import NodeLabels
 from .network import irreducible_purviews
 from .node import expand_node_tpm, generate_nodes
-from .subsystem import Subsystem
-from .tpm import ExplicitTPM, reconstitute_tpm
 from .state_space import build_state_space
+from .subsystem import Subsystem
+
+# TODO(tpm) use ImplicitTPM type consistently throughout module
+from .tpm import ExplicitTPM, ImplicitTPM, reconstitute_tpm
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
@@ -108,8 +110,13 @@ class SystemAttrs(
 
     @property
     def nodes(self):
+        tpm = self.tpm
+
+        if isinstance(tpm, ImplicitTPM):
+            tpm = reconstitute_tpm(tpm)
+
         return generate_nodes(
-            self.tpm,
+            tpm,
             self.cm,
             self.state_space,
             self.node_indices,
@@ -246,8 +253,11 @@ class MacroSubsystem(Subsystem):
             tpm.shape[:-1],
         )
 
+        if isinstance(tpm, ImplicitTPM):
+            tpm = reconstitute_tpm(tpm)
+
         nodes = generate_nodes(
-            reconstitute_tpm(tpm),
+            tpm,
             cm,
             state_space,
             node_indices,
