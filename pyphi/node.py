@@ -14,7 +14,7 @@ from typing import Mapping, Optional, Tuple, Union
 import numpy as np
 import xarray as xr
 
-import pyphi.tpm
+from pyphi.tpm import ImplicitTPM, reconstitute_tpm
 from .connectivity import get_inputs_from_cm, get_outputs_from_cm
 from .state_space import (
     dimension_labels,
@@ -368,10 +368,10 @@ def generate_nodes(
         node_labels: Tuple[str],
         network_state: Optional[Tuple[Union[int, str]]] = None,
 ) -> Tuple[xr.DataArray]:
-    """Generate |Node| objects out of a binary network |ExplicitTPM|.
+    """Generate |Node| objects out of a binary network |TPM|.
 
     Args:
-        network_tpm (|ExplicitTPM|): The system's TPM.
+        network_tpm (|ExplicitTPM, ImplicitTPM|): The system's TPM.
         cm (np.ndarray): The CM of the network.
         state_space (Mapping[str, Tuple[Union[int, str]]]): Labels
             for the state space of each node in the network.
@@ -385,6 +385,9 @@ def generate_nodes(
     Returns:
         Tuple[xr.DataArray]: The nodes of the system.
     """
+    if isinstance(network_tpm, ImplicitTPM):
+        network_tpm = reconstitute_tpm(network_tpm)
+    
     if network_state is None:
         network_state = (None,) * cm.shape[0]
 

@@ -253,9 +253,6 @@ class MacroSubsystem(Subsystem):
             tpm.shape[:-1],
         )
 
-        if isinstance(tpm, ImplicitTPM):
-            tpm = reconstitute_tpm(tpm)
-
         nodes = generate_nodes(
             tpm,
             cm,
