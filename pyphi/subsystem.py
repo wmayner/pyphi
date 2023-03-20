@@ -136,27 +136,23 @@ class Subsystem:
             unconstrained_forward_repertoire_cache or cache.DictCache()
         )
 
-        if cut:
-            self.nodes = tuple(
-                Node(
-                    node.tpm,
-                    self.cm,
-                    self.network.state_space,
-                    i,
-                    node_labels=self.node_labels
-                ).pyphi
-                for i, node in enumerate(self.tpm.nodes)
-                if i in self.node_indices
-            )
-        # TODO(tpm): Does memory optimization justify maintaining the `else`?
-        else:
-            self.nodes = tuple(
-                node for i, node in enumerate(self.tpm.nodes)
-                if i in self.node_indices
-            )
+        # Set the state of the |Node|s.
+        for tpm_node, node_state in zip(self.tpm.nodes, self.state):
+            tpm_node.state = node_state
 
-        for node, node_state in zip(self.nodes, self.state):
-            node.state = node_state
+        # Generate |Node|s for this subsystem and this particular cut to the cm.
+        self.nodes = tuple(
+            Node(
+                node.tpm,
+                self.cm,
+                self.network.state_space,
+                i,
+                self.node_labels,
+                state=node.state
+            ).pyphi
+            for i, node in enumerate(self.tpm.nodes)
+            if i in self.node_indices
+        )
 
         # validate.subsystem(self)
 
@@ -227,7 +223,7 @@ class Subsystem:
     def tpm_size(self):
         """int: The number of nodes in the TPM."""
         return self.tpm.shape[-1]
-    
+
     @property
     def state_space(self):
         return self.network.state_space
