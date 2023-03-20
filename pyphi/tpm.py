@@ -920,7 +920,15 @@ class ImplicitTPM(TPM):
         raise NotImplementedError
 
     def equals(self, o: object):
+        """Return whether this TPM equals the other object.
+
+        Two TPMs are equal if they are instances of the same class
+        and their tuple of node TPMs are equal.
+        """
         return isinstance(o, type(self)) and self.nodes == o.nodes
+
+    def array_equal(self, o: object):
+        return self.equals(o)
 
     def squeeze(self, axis=None):
         """Wrapper around numpy.squeeze."""

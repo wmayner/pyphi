@@ -268,7 +268,7 @@ class Network:
         """
         return (
             isinstance(other, Network)
-            and self.tpm.equals(other.tpm)
+            and self.tpm.array_equal(other.tpm)
             and np.array_equal(self.cm, other.cm)
         )
 
