@@ -19,7 +19,7 @@ from .labels import NodeLabels
 from .network import irreducible_purviews
 from .node import expand_node_tpm, generate_nodes
 from .subsystem import Subsystem
-from .tpm import ExplicitTPM
+from .tpm import ExplicitTPM, reconstitute_tpm
 from .state_space import build_state_space
 
 # Create a logger for this module.
@@ -100,7 +100,7 @@ class SystemAttrs(
     @property
     def nodes(self):
         return generate_nodes(
-            self.tpm,
+            reconstitute_tpm(self.tpm),
             self.cm,
             self.state_space,
             self.node_indices,
