@@ -22,7 +22,7 @@ from .state_space import build_state_space
 from .subsystem import Subsystem
 
 # TODO(tpm) use ImplicitTPM type consistently throughout module
-from .tpm import ExplicitTPM, ImplicitTPM, reconstitute_tpm
+from .tpm import ExplicitTPM
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
@@ -110,13 +110,8 @@ class SystemAttrs(
 
     @property
     def nodes(self):
-        tpm = self.tpm
-
-        if isinstance(tpm, ImplicitTPM):
-            tpm = reconstitute_tpm(tpm)
-
         return generate_nodes(
-            tpm,
+            self.tpm,
             self.cm,
             self.state_space,
             self.node_indices,

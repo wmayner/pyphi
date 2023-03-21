@@ -388,7 +388,7 @@ def generate_nodes(
     """
     if isinstance(network_tpm, pyphi.tpm.ImplicitTPM):
         network_tpm = pyphi.tpm.reconstitute_tpm(network_tpm)
-    
+
     if network_state is None:
         network_state = (None,) * cm.shape[0]
 
