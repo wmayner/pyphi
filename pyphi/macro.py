@@ -232,7 +232,7 @@ class MacroSubsystem(Subsystem):
         Reindexes the subsystem so that the nodes are ``0..n`` where ``n`` is
         the number of internal indices in the system.
         """
-        assert system.node_indices == system.tpm.tpm_indices()
+        assert system.node_indices == system.tpm.tpm_indices(reconstituted=True)
 
         internal_indices = system.tpm.tpm_indices()
 

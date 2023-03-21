@@ -104,9 +104,10 @@ class TPM:
             cm[a][b] = self.infer_edge(a, b, all_contexts)
         return cm
 
-    def tpm_indices(self):
+    def tpm_indices(self, reconstituted=False):
         """Return the indices of nodes in the TPM."""
-        return tuple(np.where(np.array(self.shape[:-1]) != 1)[0])
+        shape = self._reconstituted_shape if reconstituted else self.shape
+        return tuple(np.where(np.array(shape[:-1]) != 1)[0])
 
     def print(self):
         raise NotImplementedError
