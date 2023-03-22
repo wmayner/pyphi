@@ -1001,9 +1001,10 @@ class ImplicitTPM(TPM):
 
     def __repr__(self):
         return "ImplicitTPM({})".format(self.nodes)
-
+    
     def __hash__(self):
-        raise NotImplementedError
+        return hash(tuple(hash(node for node in self.nodes)))
+
 
 
 def reconstitute_tpm(subsystem):
