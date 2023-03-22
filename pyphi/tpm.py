@@ -1003,7 +1003,7 @@ class ImplicitTPM(TPM):
         return "ImplicitTPM({})".format(self.nodes)
     
     def __hash__(self):
-        return hash(tuple(hash(node for node in self.nodes)))
+        return hash(tuple(hash(node) for node in self.nodes))
 
 
 
