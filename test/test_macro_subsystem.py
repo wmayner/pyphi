@@ -6,7 +6,6 @@ import pytest
 
 import pyphi
 from pyphi import convert, macro, models, timescale, config
-from pyphi.tpm import ExplicitTPM
 from pyphi.convert import state_by_node2state_by_state as sbn2sbs
 from pyphi.convert import state_by_state2state_by_node as sbs2sbn
 
@@ -280,7 +279,7 @@ def test_blackbox(s):
     ms = macro.MacroSubsystem(
         s.network, s.state, s.node_indices, blackbox=macro.Blackbox(((0, 1, 2),), (1,))
     )
-    assert np.array_equal(ms.tpm.tpm, np.array([[0.5], [0.5]]))
+    assert np.array_equal(np.asarray(ms.tpm), np.array([[0.5], [0.5]]))
     assert np.array_equal(ms.cm, np.array([[1]]))
     assert ms.node_indices == (0,)
     assert ms.state == (0,)
@@ -291,7 +290,7 @@ def test_blackbox_external(s):
     ms = macro.MacroSubsystem(
         s.network, s.state, (1, 2), blackbox=macro.Blackbox(((1, 2),), (1,))
     )
-    assert np.array_equal(ms.tpm.tpm, np.array([[0.5], [0.5]]))
+    assert np.array_equal(np.asarray(ms.tpm), np.array([[0.5], [0.5]]))
     assert np.array_equal(ms.cm, np.array([[1]]))
     assert ms.node_indices == (0,)
     assert ms.state == (0,)

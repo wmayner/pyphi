@@ -229,9 +229,10 @@ class MacroSubsystem(Subsystem):
         """
         assert system.node_indices == system.tpm.tpm_indices(reconstituted=True)
 
-        internal_indices = system.tpm.tpm_indices()
-
+        internal_indices = system.tpm.tpm_indices(reconstituted=True)
         tpm = system.tpm.remove_singleton_dimensions()
+
+        # TODO(tpm): deduplicate commonalities with tpm.ImplicitTPM.squeeze.
 
         # The connectivity matrix is the network's connectivity matrix, with
         # cut applied, with all connections to/from external nodes severed,

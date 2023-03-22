@@ -9,11 +9,14 @@ the network's list of nodes.
 
 import functools
 
-from typing import Mapping, Optional, Tuple, Union
+from typing import Iterable, Mapping, Optional, Tuple, Union
 
 import numpy as np
 import xarray as xr
 
+# TODO rework circular dependency between node.py and tpm.py, instead
+# of importing all of pyphi.tpm and relying on late binding of pyphi.tpm.<NAME>
+# to avoid the circular import error.
 import pyphi.tpm
 
 from .connectivity import get_inputs_from_cm, get_outputs_from_cm
@@ -152,12 +155,12 @@ class Node:
     def project_index(self, index, preserve_singletons=False):
         """Convert absolute TPM index to a valid index relative to this node."""
 
-        # Supported index coordinates (in the right dimension order) respective
-        # to this node, to be used like an AND mask, with 0 being
-        # `singleton_coordinate`.
+        # Supported index coordinates (in the right dimension order)
+        # respective to this node, to be used like an AND mask, with
+        # `singleton_coordinate` acting like 0.
         dimensions = self._dataarray.dims
         coordinates = self._dataarray.coords
-        # TODO(tpm) make this a Node attribute? (similar to `state_space`).
+
         support = {dim: tuple(coordinates[dim].values) for dim in dimensions}
 
         if isinstance(index, dict):
@@ -293,7 +296,7 @@ def node(
         cm: np.ndarray,
         network_state_space: Mapping[str, Tuple[Union[int, str]]],
         index: int,
-        node_labels: Tuple[str],
+        node_labels: Iterable[str],
         state: Optional[Union[int, str]] = None,
 ) -> xr.DataArray:
     """
@@ -305,7 +308,7 @@ def node(
         network_state_space (Mapping[str, Tuple[Union[int, str]]]):
             Labels for the state space of each node in the network.
         index (int): The node's index in the network.
-        node_labels (Tuple[str]): Textual labels for each node in the network.
+        node_labels (Iterable[str]): Textual labels for each node in the network.
 
     Keyword Args:
         state (Optional[Union[int, str]]): The state of this node.

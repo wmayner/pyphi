@@ -12,6 +12,7 @@ from typing import Iterable, Mapping, Optional, Set, Tuple
 import numpy as np
 
 from . import config, convert, data_structures, exceptions
+from .connectivity import subadjacency
 from .constants import OFF, ON
 from .data_structures import FrozenMap
 from .node import node as Node
@@ -878,10 +879,7 @@ class ImplicitTPM(TPM):
         # Squeeze out singleton dimensions and return a new TPM with
         # the surviving nodes.
         return type(self)(
-            tuple(
-                node for node in self.squeeze().nodes
-                if node.index not in singletons
-            )
+            tuple(node for node in self.squeeze().nodes)
         )
 
     def subtpm(self, fixed_nodes, state):
@@ -944,20 +942,36 @@ class ImplicitTPM(TPM):
         # the nodes), since those should not be squeezed, not even within
         # individual node TPMs.
         shape = self._reconstituted_shape
-        nonsingletons = set(np.where(np.array(shape) != 1)[0])
-        axis = tuple(axis - nonsingletons)
+        nonsingletons = tuple(np.where(np.array(shape) > 1)[0])
+        axis = tuple(axis - set(nonsingletons))
+
+        # From now on, we will only care about the first n-1 dimensions (parents).
+        if shape[-1] > 1:
+            nonsingletons = nonsingletons[:-1]
+
+        # Recompute connectivity matrix and subset of node labels.
+        # TODO(tpm) deduplicate commonalities with macro.MacroSubsystem._squeeze.
+        some_node = self.nodes[0]
+
+        new_cm = subadjacency(some_node.dataarray.attrs["cm"], nonsingletons)
+
+        new_node_indices = iter(range(len(nonsingletons)))
+        new_node_labels = tuple(some_node._node_labels[n] for n in nonsingletons)
+
+        state_space = some_node.dataarray.attrs["network_state_space"]
+        new_state_space = {n: state_space[n] for n in new_node_labels}
 
         # Leverage ExplicitTPM.squeeze to distribute squeezing to every node.
         return type(self)(
             tuple(
                 Node(
                     node.tpm.squeeze(axis=axis),
-                    node.dataarray.attrs["cm"],
-                    node.dataarray.attrs["network_state_space"],
-                    node.index,
-                    node_labels=node.dataarray.attrs["node_labels"],
+                    new_cm,
+                    new_state_space,
+                    next(new_node_indices),
+                    new_node_labels,
                 ).pyphi
-                for node in self.nodes
+                for node in self.nodes if node.index in nonsingletons
             )
         )
 

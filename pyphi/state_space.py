@@ -11,7 +11,7 @@ from typing import Iterable, List, Optional, Union, Tuple
 from .data_structures import FrozenMap
 
 
-INPUT_DIMENSION_PREFIX = "input_"
+INPUT_DIMENSION_PREFIX = ""
 PROBABILITY_DIMENSION = "Pr"
 SINGLETON_COORDINATE = "_"
 
