@@ -10,7 +10,7 @@ import numpy as np
 
 from . import config, exceptions
 from .direction import Direction
-from .tpm import ExplicitTPM, reconstitute_tpm
+from .tpm import ImplicitTPM, reconstitute_tpm
 from .models.mechanism import MaximallyIrreducibleCauseOrEffect
 
 # pylint: disable=redefined-outer-name
@@ -101,12 +101,18 @@ def state_length(state, size):
 
 def state_reachable(subsystem):
     """Return whether a state can be reached according to the network's TPM."""
+    # TODO(tpm) Change consumers of this function, so that only ImplicitTPMs
+    # are passed.
+    tpm = (
+        reconstitute_tpm(subsystem.tpm) if isinstance(subsystem.tpm, ImplicitTPM)
+        else subsystem.tpm
+    )
     # If there is a row `r` in the TPM such that all entries of `r - state` are
     # between -1 and 1, then the given state has a nonzero probability of being
     # reached from some state.
     # First we take the submatrix of the conditioned TPM that corresponds to
     # the nodes that are actually in the subsystem...
-    tpm = reconstitute_tpm(subsystem.tpm)[..., subsystem.node_indices]
+    tpm = tpm[..., subsystem.node_indices]
     # Then we do the subtraction and test.
     test = tpm - np.array(subsystem.proper_state)
     if not np.any(np.logical_and(-1 < test, test < 1).all(-1)):

@@ -1001,14 +1001,14 @@ class ImplicitTPM(TPM):
 
     def __repr__(self):
         return "ImplicitTPM({})".format(self.nodes)
-    
+
     def __hash__(self):
         return hash(tuple(hash(node) for node in self.nodes))
 
 
 
 def reconstitute_tpm(subsystem):
-    """Reconstitute the TPM of a subsystem using the individual node TPMs."""
+    """Reconstitute the ExplicitTPM of a subsystem using individual node TPMs."""
     # The last axis of the node TPMs correponds to ON or OFF probabilities
     # (used in the conditioning step when calculating the repertoires); we want
     # ON probabilities.
