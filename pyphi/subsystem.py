@@ -154,7 +154,7 @@ class Subsystem:
             if i in self.node_indices
         )
 
-        # validate.subsystem(self)
+        validate.subsystem(self)
 
     @property
     def nodes(self):
