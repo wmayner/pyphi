@@ -23,7 +23,7 @@ def is_unitary(a):
     Returns:
         bool: Whether the sum of entries in ``a`` is close enough to 1.
     """
-    measure = a.ravel().sum()
+    measure = a.sum()
     return eq(measure, 1.0)
 
 
