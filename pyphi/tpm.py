@@ -27,7 +27,7 @@ class TPM:
 
     _ERROR_MSG_PROBABILITY_SUM = "Invalid TPM: probabilities must sum to 1."
 
-    def validate(self, cm, check_independence=True):
+    def validate(self, check_independence=True):
         raise NotImplementedError
 
     def to_multidimensional_state_by_node(self):
@@ -383,7 +383,7 @@ class ExplicitTPM(data_structures.ArrayLike, TPM):
         """np.ndarray: The underlying `tpm` object."""
         return self._tpm
 
-    def validate(self, cm=None, check_independence=True):
+    def validate(self, check_independence=True):
         """Validate this TPM."""
         return self._validate_probabilities() and self._validate_shape(
             check_independence
@@ -745,9 +745,9 @@ class ImplicitTPM(TPM):
 
         return states_per_node + (N,)
 
-    def validate(self, cm=None, check_independence=True):
+    def validate(self, check_independence=True):
         """Validate this TPM."""
-        return self._validate_probabilities() and self._validate_shape(cm)
+        return self._validate_probabilities() and self._validate_shape()
 
     def _validate_probabilities(self):
         """Check that the probabilities in a TPM are valid."""
@@ -772,33 +772,21 @@ class ImplicitTPM(TPM):
             node.tpm.is_unitary(implicit_tpm=True) for node in self._nodes
         )
 
-    def _validate_shape(self, cm):
+    def _validate_shape(self):
         """Validate this TPM's shape.
 
-        The shapes of the individual node TPMs in multidimensional form are
-        validated against the connectivity matrix specification. Additionally,
-        the inferred shape of the implicit network TPM must be in
+        The inferred shape of the implicit network TPM must be in
         multidimensional state-by-node form, nonbinary and heterogeneous units
         supported.
         """
-        # Validate individual node TPM shapes.
-        shapes = self.shapes
-
-        for i, shape in enumerate(shapes):
-            for j, val in enumerate(cm[..., i]):
-                if (val == 0 and shape[j] != 1) or (val != 0 and shape[j] == 1):
-                    raise ValueError(
-                        "Node TPM {} of shape {} does not match the connectivity "
-                        " matrix.".format(i, shape)
-                    )
-
-        # Validate whole network's shape.
         N = len(self.nodes)
         if N + 1 != self.ndim:
             raise ValueError(
                 "Invalid TPM shape: {} nodes were provided, but their shapes"
                 "suggest a {}-node network.".format(N, self.ndim - 1)
             )
+
+        return True
 
     def to_multidimensional_state_by_node(self):
         """Return the current TPM re-represented in multidimensional
@@ -811,9 +799,6 @@ class ImplicitTPM(TPM):
             np.ndarray: The TPM in multidimensional state-by-node format.
         """
         return reconstitute_tpm(self)
-
-    def conditionally_independent(self):
-        raise NotImplementedError
 
     # TODO(tpm) accept node labels and state labels in the map.
     def condition_tpm(self, condition: Mapping[int, int]):
@@ -867,9 +852,6 @@ class ImplicitTPM(TPM):
                 for node in self.nodes
             )
         )
-
-    def is_deterministic(self):
-        raise NotImplementedError
 
     def is_state_by_state(self):
         """Return ``True`` if ``tpm`` is in state-by-state form, otherwise
@@ -928,15 +910,6 @@ class ImplicitTPM(TPM):
         return type(self)(
             tuple(node for node in conditioned.nodes if node.index in free_nodes)
         )
-
-    def expand_tpm(self):
-        raise NotImplementedError
-
-    def print(self):
-        raise NotImplementedError
-
-    def permute_nodes(self, permutation):
-        raise NotImplementedError
 
     def equals(self, o: object):
         """Return whether this TPM equals the other object.

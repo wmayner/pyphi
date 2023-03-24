@@ -32,20 +32,6 @@ def direction(direction, allow_bi=False):
     return True
 
 
-def connectivity_matrix(cm):
-    """Validate the given connectivity matrix."""
-    # Special case for empty matrices.
-    if cm.size == 0:
-        return True
-    if cm.ndim != 2:
-        raise ValueError("Connectivity matrix must be 2-dimensional.")
-    if cm.shape[0] != cm.shape[1]:
-        raise ValueError("Connectivity matrix must be square.")
-    if not np.all(np.logical_or(cm == 1, cm == 0)):
-        raise ValueError("Connectivity matrix must contain only binary " "values.")
-    return True
-
-
 def node_labels(node_labels, node_indices):
     """Validate that there is a label for each node."""
     if len(node_labels) != len(node_indices):
@@ -62,13 +48,40 @@ def network(n):
 
     Checks the TPM and connectivity matrix.
     """
-    n.tpm.validate(cm=n.cm)
+    n.tpm.validate()
     connectivity_matrix(n.cm)
+    shapes(n.tpm.shapes, n.cm)
     if n.cm.shape[0] != n.size:
         raise ValueError(
             "Connectivity matrix must be NxN, where N is the "
             "number of nodes in the network."
         )
+    return True
+
+
+def connectivity_matrix(cm):
+    """Validate the given connectivity matrix."""
+    # Special case for empty matrices.
+    if cm.size == 0:
+        return True
+    if cm.ndim != 2:
+        raise ValueError("Connectivity matrix must be 2-dimensional.")
+    if cm.shape[0] != cm.shape[1]:
+        raise ValueError("Connectivity matrix must be square.")
+    if not np.all(np.logical_or(cm == 1, cm == 0)):
+        raise ValueError("Connectivity matrix must contain only binary " "values.")
+    return True
+
+
+def shapes(shapes, cm):
+    """Validate consistency between node TPM shapes and a user-provided cm."""
+    for i, shape in enumerate(shapes):
+        for j, con in enumerate(cm[..., i]):
+            if (con == 0 and shape[j] != 1) or (con != 0 and shape[j] == 1):
+                raise ValueError(
+                    "Node TPM {} of shape {} does not match the connectivity "
+                    "matrix.".format(i, shape)
+                )
     return True
 
 

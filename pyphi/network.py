@@ -40,7 +40,6 @@ class Network:
             index per node.
     """
 
-    # TODO make tpm also optional when implementing logical network definition
     def __init__(
             self,
             tpm,
@@ -185,10 +184,16 @@ class Network:
             utils.np_immutable(cm)
             return (cm, utils.np_hash(cm))
 
-        # Explicit TPM with connectivity matrix: return.
-        # ImplicitTPM with connectivity matrix: return (validate later).
         cm = np.array(cm)
         utils.np_immutable(cm)
+
+        # Explicit TPM with connectivity matrix: return.
+        if shapes is None:
+            return (cm, utils.np_hash(cm))
+
+        # ImplicitTPM with connectivity matrix: validate against node shapes.
+        validate.shapes(shapes, cm)
+
         return (cm, utils.np_hash(cm))
 
     @property
