@@ -126,147 +126,6 @@ class TPM:
         raise NotImplementedError
 
 
-# TODO(tpm) remove pending ArrayLike refactor
-class ProxyMetaclass(type):
-    """A metaclass to create wrappers for the TPM array's special attributes.
-
-    The CPython interpreter resolves double-underscore attributes (e.g., the
-    method definitions of mathematical operators) by looking up in the class'
-    static methods, not in the instance methods. This makes it impossible to
-    intercept calls to them when an instance's ``__getattr__()`` is implicitly
-    invoked, which in turn means there are only two options to wrap the special
-    methods of the array inside our custom objects (in order to perform
-    arithmetic operations with the TPM while also casting the result to our
-    custom class type):
-
-    1. Manually "overload" all the necessary methods.
-    2. Use this metaclass to introspect the underlying array
-       and automatically overload methods in our custom TPM class definition.
-    """
-
-    def __init__(cls, type_name, bases, dct):
-
-        # Casting semantics: values belonging to our custom TPM class should
-        # remain closed under the following methods:
-        __closures__ = frozenset(
-            {
-                # 1-ary
-                "__abs__",
-                "__copy__",
-                "__invert__",
-                "__neg__",
-                "__pos__",
-                # 2-ary
-                "__add__",
-                "__iadd__",
-                "__radd__",
-                "__sub__",
-                "__isub__",
-                "__rsub__",
-                "__mul__",
-                "__imul__",
-                "__rmul__",
-                "__matmul__",
-                "__imatmul__",
-                "__rmatmul__",
-                "__truediv__",
-                "__itruediv__",
-                "__rtruediv__",
-                "__floordiv__",
-                "__ifloordiv__",
-                "__rfloordiv__",
-                "__mod__",
-                "__imod__",
-                "__rmod__",
-                "__and__",
-                "__iand__",
-                "__rand__",
-                "__lshift__",
-                "__ilshift__",
-                "__irshift__",
-                "__rlshift__",
-                "__rrshift__",
-                "__rshift__",
-                "__ior__",
-                "__or__",
-                "__ror__",
-                "__xor__",
-                "__ixor__",
-                "__rxor__",
-                "__eq__",
-                "__ne__",
-                "__ge__",
-                "__gt__",
-                "__lt__",
-                "__le__",
-                "__deepcopy__",
-                # 3-ary
-                "__pow__",
-                "__ipow__",
-                "__rpow__",
-                # 2-ary, 2-valued
-                "__divmod__",
-                "__rdivmod__",
-            }
-        )
-
-        def make_proxy(name):
-            """Returns a function that acts as a proxy for the given method name.
-
-            Args:
-                name (str): The name of the method to introspect in self._tpm.
-
-            Returns:
-                function: The wrapping function.
-            """
-
-            def proxy(self):
-                return _new_attribute(name, __closures__, self._tpm)
-
-            return proxy
-
-        type.__init__(cls, type_name, bases, dct)
-
-        if not cls.__wraps__:
-            return
-
-        ignore = cls.__ignore__
-
-        # Go through all the attribute strings in the wrapped array type.
-        for name in dir(cls.__wraps__):
-            # Filter special attributes, rest will be handled by `__getattr__()`
-            if any((not name.startswith("__"), name in ignore, name in dct)):
-                continue
-
-            # Create function for `name` and bind to future instances of `cls`.
-            setattr(cls, name, property(make_proxy(name)))
-
-
-class Wrapper(metaclass=ProxyMetaclass):
-    """Proxy to the array inside PyPhi's custom ExplicitTPM class."""
-
-    __wraps__ = None
-
-    __ignore__ = frozenset(
-        {
-            "__class__",
-            "__mro__",
-            "__new__",
-            "__init__",
-            "__setattr__",
-            "__getattr__",
-            "__getattribute__",
-        }
-    )
-
-    def __init__(self):
-        if self.__wraps__ is None:
-            raise TypeError("Base class Wrapper may not be instantiated.")
-
-        if not isinstance(self._tpm, self.__wraps__):
-            raise ValueError(f"Wrapped object must be of type {self.__wraps__}")
-
-
 class ExplicitTPM(data_structures.ArrayLike, TPM):
 
     """An explicit network TPM in multidimensional form.
@@ -1035,7 +894,7 @@ def reconstitute_tpm(subsystem):
 def _new_attribute(
     name: str,
     closures: Set[str],
-    tpm: ExplicitTPM.__wraps__,
+    tpm: np.ndarray,
     cls=ExplicitTPM
 ) -> object:
     """Helper function to return adequate proxy attributes for TPM arrays.
@@ -1068,7 +927,7 @@ def _new_attribute(
         # Test type of result and cast (or not) accordingly.
 
         # Array.
-        if isinstance(result, cls.__wraps__):
+        if isinstance(result, np.ndarray):
             return cls(result)
 
         # Multivalued "functions" returning a tuple (__divmod__()).
