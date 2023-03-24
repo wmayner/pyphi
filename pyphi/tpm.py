@@ -11,12 +11,12 @@ from typing import Iterable, Mapping, Optional, Set, Tuple
 
 import numpy as np
 
-from . import config, convert, data_structures, exceptions
+from . import config, convert, distribution, data_structures, exceptions
 from .connectivity import subadjacency
 from .constants import OFF, ON
 from .data_structures import FrozenMap
 from .node import node as Node
-from .utils import all_states, np_hash, np_immutable
+from .utils import all_states, eq, np_hash, np_immutable
 
 class TPM:
     """TPM interface for derived classes."""
@@ -393,9 +393,26 @@ class ExplicitTPM(data_structures.ArrayLike, TPM):
         """Check that the probabilities in a TPM are valid."""
         if (self._tpm < 0.0).any() or (self._tpm > 1.0).any():
             raise ValueError(self._ERROR_MSG_PROBABILITY_IMAGE)
-        if self.is_state_by_state() and np.any(np.sum(self._tpm, axis=1) != 1.0):
+
+        # Validate that probabilities sum to 1.
+        if not self.is_unitary():
             raise ValueError(self._ERROR_MSG_PROBABILITY_SUM)
+
         return True
+
+    def is_unitary(self, implicit_tpm=False):
+        """Whether the TPM satisfies the second axiom of probability theory."""
+        if implicit_tpm:
+            measures = self.sum(axis=-1).ravel()
+            return all(eq(p, 1.0) for p in measures)
+
+        if not self.is_state_by_state():
+            tpm = convert.state_by_node2state_by_state(self)
+        else:
+            tpm = self
+
+        distributions = (d for d in tpm)
+        return all(distribution.is_unitary(d) for d in distributions)
 
     def _validate_shape(self, check_independence=True):
         """Validate this TPM's shape.
@@ -738,10 +755,7 @@ class ImplicitTPM(TPM):
         # individual node TPMs contain valid probabilities, for every node.
 
         # Validate that probabilities sum to 1.
-        if any(
-                (node.tpm.sum(axis=-1) != 1.0).any()
-                for node in self._nodes
-        ):
+        if not self.is_unitary():
             raise ValueError(self._ERROR_MSG_PROBABILITY_SUM)
 
         # Leverage method in ExplicitTPM to distribute validation of
@@ -751,6 +765,12 @@ class ImplicitTPM(TPM):
                 for node in self._nodes
         ):
             return True
+
+    def is_unitary(self):
+        """Whether the TPM satisfies the second axiom of probability theory."""
+        return all(
+            node.tpm.is_unitary(implicit_tpm=True) for node in self._nodes
+        )
 
     def _validate_shape(self, cm):
         """Validate this TPM's shape.

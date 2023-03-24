@@ -9,6 +9,22 @@ Functions for manipulating probability distributions.
 import numpy as np
 
 from .cache import cache
+from .utils import eq
+
+
+def is_unitary(a):
+    """Whether the distribution satisfies the second axiom of probability theory.
+
+    This uses utils.eq and config.PRECISION to compare floats up to a tolerance.
+
+    Args:
+        a (np.ndarray): The array to verify for unit measure.
+
+    Returns:
+        bool: Whether the sum of entries in ``a`` is close enough to 1.
+    """
+    measure = a.ravel().sum()
+    return eq(measure, 1.0)
 
 
 def normalize(a):
