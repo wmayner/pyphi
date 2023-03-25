@@ -120,8 +120,18 @@ def state_reachable(subsystem):
     # First we take the submatrix of the conditioned TPM that corresponds to
     # the nodes that are actually in the subsystem...
     tpm = tpm[..., subsystem.node_indices]
+    # Make sure the state is translated in terms of integer indices.
+    # TODO(tpm) Simplify conversion with a state_space class?
+    state_space = [
+        node.state_space for node in subsystem.nodes
+        if node.index in subsystem.node_indices
+    ]
+    state = np.array([
+        state_space[node].index(state)
+        for node, state in enumerate(subsystem.proper_state)
+    ])
     # Then we do the subtraction and test.
-    test = tpm - np.array(subsystem.proper_state)
+    test = tpm - state
     if not np.any(np.logical_and(-1 < test, test < 1).all(-1)):
         raise exceptions.StateUnreachableError(subsystem.state)
 
