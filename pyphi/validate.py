@@ -95,12 +95,6 @@ def is_network(network):
         )
 
 
-def node_states(state):
-    """Check that the state contains only zeros and ones."""
-    if not all(n in (0, 1) for n in state):
-        raise ValueError("Invalid state: states must consist of only zeros and ones.")
-
-
 def state_length(state, size):
     """Check that the state is the given size."""
     if len(state) != size:
@@ -145,7 +139,6 @@ def subsystem(s):
 
     Checks its state and cut.
     """
-    node_states(s.state)
     # cut(s.cut, s.cut_indices)
     if config.VALIDATE_SUBSYSTEM_STATES:
         state_reachable(s)
