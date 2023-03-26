@@ -211,46 +211,6 @@ class Node:
     def __getitem__(self, index):
         return self._dataarray[index].pyphi
 
-    def streamline(self):
-        """Remove superfluous coordinates from an unaligned |Node| TPM.
-
-        Returns:
-            xr.DataArray: The |Node| TPM re-represented without coordinates
-                introduced during xr.Dataset alignment.
-        """
-        node_labels = self._node_labels
-
-        node_indices = frozenset(range(len(node_labels)))
-        inputs = self.inputs
-        noninputs = node_indices - inputs
-
-        input_dims = [input_dimension_label(node_labels[i]) for i in inputs]
-        noninput_dims = [input_dimension_label(node_labels[i]) for i in noninputs]
-
-        new_input_coords = {
-            dim: [
-                coord for coord in self._dataarray.coords[dim].data
-                if coord != SINGLETON_COORDINATE
-            ]
-            for dim in input_dims
-        }
-        new_noninput_coords = {
-            dim: [SINGLETON_COORDINATE] for dim in noninput_dims
-        }
-        probability_coords = {
-            PROBABILITY_DIMENSION: list(
-                self._dataarray.coords[PROBABILITY_DIMENSION].data
-            )
-        }
-
-        new_coords = {
-            **new_input_coords,
-            **new_noninput_coords,
-            **probability_coords,
-        }
-
-        return self._dataarray.reindex(new_coords)
-
     def __repr__(self):
         return self.label
 
