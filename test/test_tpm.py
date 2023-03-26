@@ -5,9 +5,52 @@
 import numpy as np
 import pickle
 import pytest
+import random
 
 from pyphi import Subsystem
+from pyphi.distribution import normalize
 from pyphi.tpm import ExplicitTPM, reconstitute_tpm
+
+
+@pytest.fixture()
+def implicit_tpm(size, degree, node_states, seed=1337, deterministic=False):
+    rng = random.Random(seed)
+
+    def random_deterministic_repertoire():
+        """Assign all probability to a single purview state at random."""
+        repertoire = rng.sample([1] + (node_states - 1) * [0], node_states)
+        return repertoire
+
+    def random_repertoire(deterministic):
+        if deterministic:
+            return random_deterministic_repertoire()
+
+        repertoire = np.array([rng.uniform(0, 1) for s in range(node_states)])
+        # Normalize using L1 metric.
+        return normalize(repertoire)
+
+    tpm = []
+
+    for node_index in range(size):
+        # Generate |node_states| repertoires for each combination of parent
+        # states at t - 1.
+        node_tpm = [
+            random_repertoire(deterministic)
+            for j in range(node_states ** degree)
+        ]
+
+        # Select |degree| nodes at random as parents to this node, then reshape
+        # node TPM to multidimensional form.
+        node_shape = np.ones(size, dtype=int)
+        parents = rng.sample(range(size), degree)
+        node_shape[parents] = node_states
+
+        node_tpm = np.array(node_tpm).reshape(tuple(node_shape) + (node_states,))
+
+        tpm.append(node_tpm)
+
+    return tpm
+
 
 @pytest.mark.parametrize(
     "tpm",

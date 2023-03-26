@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 # test_network.py
 
-import random
-
 import numpy as np
 import xarray as xr
 import pytest
@@ -18,48 +16,6 @@ def network():
     size = 3
     tpm = np.ones([2] * size + [size]).astype(float) / 2
     return Network(tpm)
-
-
-@pytest.fixture()
-def implicit_tpm(size, degree, node_states, seed=1337, deterministic_units=False):
-    rng = random.Random(seed)
-
-    def random_deterministic_repertoire():
-        repertoire = rng.sample([1] + (node_states - 1) * [0], node_states)
-        return repertoire
-
-    def random_repertoire(deterministic_units):
-        if deterministic_units:
-            return random_deterministic_repertoire()
-
-        repertoire = np.array([rng.uniform(0, 1) for s in range(node_states)])
-        # Normalize using L1 (probabilities accross node_states must sum to 1)
-        repertoire = repertoire / repertoire.sum()
-
-        return (
-            repertoire if repertoire.sum() == 1.0
-            else random_deterministic_repertoire()
-        )
-
-    tpm = []
-
-    for node_index in range(size):
-        # Generate |node_states| pseudo-probabilities for each combination of
-        # parent states at t - 1.
-        node_tpm = [
-            random_repertoire(deterministic_units)
-            for j in range(node_states ** degree)
-        ]
-        # Select |degree| nodes at random as parents to this node, then reshape
-        # node TPM to multidimensional form.
-        node_shape = np.ones(size, dtype=int)
-        parents = rng.sample(range(size), degree)
-        node_shape[parents] = node_states
-        node_tpm = np.array(node_tpm).reshape(tuple(node_shape) + (node_states,))
-
-        tpm.append(node_tpm)
-
-    return tpm
 
 
 def test_network_init_validation(network):
