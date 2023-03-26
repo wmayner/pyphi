@@ -95,11 +95,10 @@ class Network:
 
             self._cm, self._cm_hash = self._build_cm(cm, tpm, shapes)
 
-            network_tpm_shape = ImplicitTPM._node_shapes_to_shape(shapes)
-
             self._node_indices = tuple(range(self.size))
             self._node_labels = NodeLabels(node_labels, self._node_indices)
 
+            network_tpm_shape = ImplicitTPM._node_shapes_to_shape(shapes)
             self._state_space, _ = build_state_space(
                 self._node_labels,
                 network_tpm_shape[:-1],
@@ -121,9 +120,14 @@ class Network:
 
         elif isinstance(tpm, ImplicitTPM):
             self._tpm = tpm
-            self._cm, self._cm_hash = self._build_cm(cm, tpm)
+            self._cm, self._cm_hash = self._build_cm(cm, self._tpm)
             self._node_indices = tuple(range(self.size))
             self._node_labels = NodeLabels(node_labels, self._node_indices)
+            self._state_space, _ = build_state_space(
+                self._node_labels,
+                self._tpm.shape[:-1],
+                state_space
+            )
 
         # FIXME(TPM) initialization from JSON
         elif isinstance(tpm, dict):

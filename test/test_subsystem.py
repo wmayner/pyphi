@@ -148,7 +148,13 @@ def test_cut_node_labels(s):
 
 
 def test_specify_elements_with_labels(standard):
-    network = Network(standard.tpm, node_labels=("A", "B", "C"))
+    cm = np.array([
+        [0, 0, 1],
+        [1, 0, 1],
+        [1, 1, 0]
+    ])
+    print(standard.tpm)
+    network = Network(standard.tpm, cm, node_labels=("A", "B", "C"))
     subsystem = Subsystem(network, (0, 0, 0), ("B", "C"))
     assert subsystem.node_indices == (1, 2)
     assert tuple(node.label for node in subsystem.nodes) == ("B", "C")
