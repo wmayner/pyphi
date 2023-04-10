@@ -6,6 +6,8 @@
 Methods for validating arguments.
 """
 
+from  warnings import warn
+
 import numpy as np
 
 from . import config, exceptions
@@ -151,7 +153,9 @@ def subsystem(s):
     """
     # cut(s.cut, s.cut_indices)
     if config.VALIDATE_SUBSYSTEM_STATES:
-        state_reachable(s)
+        # TODO(tpm) Reimplement in a way that never reconstitutes the full TPM.
+        # state_reachable(s)
+        warn("Validation of state reachability didn't take place.")
     return True
 
 
