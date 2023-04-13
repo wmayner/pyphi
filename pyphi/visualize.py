@@ -1,5 +1,5 @@
 import string
-from collections import defaultdict
+from collections import Counter, defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from itertools import combinations
@@ -725,6 +725,7 @@ def plot_phi_structure(
         )
         for direction in Direction.both()
     }
+
     # Since there can be different distinctions that have the same purview on
     # one side, and there can be relation faces among those copies of the same
     # purview, we offset each distinction's purview so they don't overlap.
@@ -737,11 +738,20 @@ def plot_phi_structure(
         ),
         strict=True,
     )
+    purview_multiplicities = {
+        direction: Counter(distinctions.purviews(direction))
+        for direction in Direction.both()
+    }
     purview_mapping = {
         direction: {
             distinction.mechanism: offset_mapping(
                 purview_mapping_base[direction],
-                purview_offset_mapping[distinction.mechanism],
+                (
+                    purview_offset_mapping[distinction.mechanism]
+                    if purview_multiplicities[direction][distinction.purview(direction)]
+                    > 1
+                    else 0
+                ),
             )
             for distinction in phi_structure.distinctions
         }
