@@ -208,6 +208,8 @@ def rescale(values, target_range):
 
 # Radius scaling function
 def log_n_choose_k(N):
+    if N == 1:
+        return 1.0
     return np.log(scipy.special.binom(N, np.arange(1, N + 1)))
 
 
