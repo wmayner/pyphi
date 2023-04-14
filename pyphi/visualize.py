@@ -348,9 +348,8 @@ class Labeler:
         )
 
 
-def scatter_from_mapping(mapping, fontsize=12, **kwargs):
-    """Return a Scatter3d from a {subset: coords} mapping."""
-    labels, coords = zip(*mapping.items())
+def scatter_from_coords(coords, labels=None, fontsize=12, **kwargs):
+    """Return a Scatter3d given labels and coordinates."""
     x, y, z = np.stack(coords).transpose()
     defaults = dict(
         mode="text",
@@ -378,14 +377,16 @@ def _plot_distinctions(
     for direction, color in zip(
         Direction.both(), [theme.cause_color, theme.effect_color]
     ):
-        coords = {
-            label.nodes(purview): purview_mapping[direction][purview]
-            for purview in distinctions.purviews(direction)
-        }
-        # NOTE: Assumes ordering of coords and distinctions is the same
-        _distinctions = CauseEffectStructure(
-            distinction.mice(direction) for distinction in distinctions
-        )
+        coords = []
+        labels = []
+        _distinctions = []
+        for distinction in distinctions:
+            _distinctions.append(distinction.mice(direction))
+            purview = distinction.purview(direction)
+            coords.append(purview_mapping[direction][purview])
+            labels.append(label.nodes(purview))
+
+        _distinctions = CauseEffectStructure(_distinctions)
         hovertext = [label.hover(distinction) for distinction in _distinctions]
         text = [label.mice(distinction) for distinction in _distinctions]
         phis = np.array(list(_distinctions.phis))
@@ -397,8 +398,9 @@ def _plot_distinctions(
             for loc, opacity in zip(scaled_phis, opacities)
         ]
         fig.add_trace(
-            scatter_from_mapping(
+            scatter_from_coords(
                 coords,
+                labels=labels,
                 name=f"{direction} distinctions" + theme.legendgroup_postfix,
                 hovertext=hovertext,
                 text=text,
@@ -453,13 +455,15 @@ def _plot_cause_effect_links(
 
 def _plot_mechanisms(fig, distinctions, mechanism_mapping, label, theme):
     name = "Mechanisms" + theme.legendgroup_postfix
-    coords = {
-        label.nodes(mechanism): mechanism_mapping[mechanism]
-        for mechanism in distinctions.mechanisms
-    }
+    labels = []
+    coords = []
+    for mechanism in distinctions.mechanisms:
+        labels.append(label.nodes(mechanism))
+        coords.append(mechanism_mapping[mechanism])
     fig.add_trace(
-        scatter_from_mapping(
+        scatter_from_coords(
             coords,
+            labels=labels,
             legendgroup=name + theme.legendgroup_postfix,
             name=name,
             hoverinfo="skip",
@@ -613,13 +617,13 @@ def _plot_three_relation_faces_with_opacity(
     x, y, z = np.vstack(
         list(map(relation_to_coords, [face for face, _ in relation_faces]))
     ).transpose()
-    phis = np.array(phi for _, phi in relation_faces)
+    phis = np.array(list(phi for _, phi in relation_faces))
     intensities = rescale(phis, theme.three_relation_intensity_range)
     opacities = rescale(phis, theme.three_relation_opacity_range)
     # hovertexts = list(map(label.relation, relation_faces))
     showlegend = theme.three_relation_showlegend
     showscale = theme.three_relation_showscale
-    for _x, _y, _z, intensity, opacity, hovertext in zip(
+    for _x, _y, _z, intensity, opacity in zip(
         partition(3, x),
         partition(3, y),
         partition(3, z),
@@ -702,16 +706,10 @@ def plot_phi_structure(
     if node_indices is None:
         node_indices = subsystem.node_indices
 
-    # Group relations by degree
-    relations = defaultdict(set)
-    for relation in phi_structure.relations:
-        for face in relation.faces:
-            relations[len(face)].add((face, relation.phi))
-
     label = Labeler(subsystem)
 
     # x offsets for causes and effects
-    offset = dict(
+    direction_offset = dict(
         zip(Direction.both(), [-theme.direction_offset / 2, theme.direction_offset / 2])
     )
 
@@ -719,7 +717,7 @@ def plot_phi_structure(
     purview_mapping_base = {
         direction: powerset_coordinates(
             node_indices,
-            x_offset=offset[direction],
+            x_offset=direction_offset[direction],
             radius_func=radius_func,
             purview_radius_mod=theme.purview_radius_mod,
         )
@@ -789,6 +787,12 @@ def plot_phi_structure(
     _plot_mechanism_purview_links(
         fig, distinctions, cause_effect_link_coords, mechanism_mapping, theme
     )
+
+    # Group relations by degree
+    relations = defaultdict(set)
+    for relation in phi_structure.relations:
+        for face in relation.faces:
+            relations[len(face)].add((face, relation.phi))
 
     def face_to_coords(face):
         return np.array(
