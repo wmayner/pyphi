@@ -17,6 +17,7 @@ from matplotlib import pyplot as plt
 from numpy.typing import ArrayLike
 from plotly import graph_objs as go
 from toolz import partition
+from tqdm.auto import tqdm
 
 import pyphi
 
@@ -24,10 +25,7 @@ from .conf import config
 from .direction import Direction
 from .models.subsystem import CauseEffectStructure
 from .new_big_phi import PhiStructure
-from .relations import ConcreteRelations
 from .utils import state_of
-
-# TODO(viz): Update to use new relations
 
 
 def two_relation_face_type(relation_face):
@@ -59,27 +57,40 @@ class PhiPlotTheme:
     cause_color: str = "#e21a1a"
     effect_color: str = "#14b738"
     point_size_range: tuple = (5, 30)
+    distinction_on: bool = True
     distinction_colorscale: str = "mint"
     distinction_opacity_range: tuple = (0.1, 0.9)
     line_width_range: tuple = (3, 10)
+    cause_effect_link_on: bool = True
     cause_effect_link_color: str = "lightgrey"
     cause_effect_link_opacity: float = 0.5
+    mechanism_purview_link_on: bool = True
     mechanism_purview_link_color: str = "lightgrey"
     mechanism_purview_link_opacity: float = 0.5
+    mechanism_on: bool = True
     mechanism_max_radius: float = 1.0
     mechanism_z_offset: float = 0.0
     mechanism_z_spacing: float = 0.0
     mechanism_radius_func: Union[Callable, str] = "linear"
     purview_radius_mod: float = 1.0
+    """Controls whether a single trace is used to plot 2-relation faces,
+    precluding visual indications of their phi value."""
+    two_relation_on: bool = True
+    two_relation_detail_threshold: int = 1000
+    two_relation_opacity: float = 0.1
+    two_relation_line_width: float = 1
     two_relation_colorscale: Union[str, Callable, Mapping] = "type"
-    two_relation_opacity: float = 0.2
-    two_relations_hoverlabel_font_color: str = "white"
+    two_relation_showscale: bool = True
+    two_relation_reversescale: bool = False
+    two_relation_hoverlabel_font_color: str = "white"
+    three_relation_on: bool = True
     three_relation_colorscale: str = "teal"
+    three_relation_reversescale: bool = False
+    three_relation_showscale: bool = True
     three_relation_opacity: float = 0.1
     three_relation_opacity_range: Optional[tuple] = None
     three_relation_intensity_range: tuple = (0, 1)
     three_relation_showlegend: bool = True
-    three_relation_showscale: bool = True
     lighting: Mapping = field(
         default_factory=lambda: dict(
             ambient=0.8, diffuse=0, roughness=0, specular=0, fresnel=0
@@ -367,6 +378,43 @@ def scatter_from_coords(coords, labels=None, fontsize=12, **kwargs):
     )
 
 
+def lines_from_coords(coords, **kwargs):
+    """Return a Scatter3d line plot given labels and coordinates.
+
+    Assumes ``coords`` has shape (<num_lines>, 2, 3), where the second dimension
+    indexes start and end, and the third dimension indexes x, y, and z
+    coordinates.
+    """
+    x = _individual_lines_from_one_dimensional_coords(coords[:, :, 0])
+    y = _individual_lines_from_one_dimensional_coords(coords[:, :, 1])
+    z = _individual_lines_from_one_dimensional_coords(coords[:, :, 2])
+    defaults = dict(
+        mode="lines",
+        hoverinfo="text",
+        showlegend=True,
+    )
+    return go.Scatter3d(
+        x=x,
+        y=y,
+        z=z,
+        **{**defaults, **kwargs},
+    )
+
+
+def _individual_lines_from_one_dimensional_coords(one_dimensional_coords):
+    """Return a single coordinate list with gaps to plot unconnected lines with
+    Scatter3d.
+
+    ``one_dimensional_coords`` assumed to have shape (<num_lines>, 2), where the
+    second dimension indexes start and end points.
+    """
+    x = np.empty(len(one_dimensional_coords) * 3)
+    x[0::3] = one_dimensional_coords[:, 0]
+    x[1::3] = one_dimensional_coords[:, 1]
+    x[2::3] = np.nan
+    return x
+
+
 def _plot_distinctions(
     fig,
     distinctions,
@@ -473,17 +521,19 @@ def _plot_mechanisms(fig, distinctions, mechanism_mapping, label, theme):
 
 
 def _plot_mechanism_purview_links(
-    fig, distinctions, cause_effect_link_coords, mechanism_mapping, theme
+    fig, distinctions, purview_mapping, mechanism_mapping, theme
 ):
     name = "Mechanism-purview links" + theme.legendgroup_postfix
     # TODO make this scaling consistent with 2-relation phi?
     widths = rescale(np.array(list(distinctions.phis)), theme.line_width_range)
     showlegend = True
-    for distinction, width, coords in zip(
-        distinctions, widths, cause_effect_link_coords
-    ):
+    for distinction, width in zip(distinctions, widths):
         coords = np.stack(
-            [coords[0], mechanism_mapping[distinction.mechanism], coords[1]]
+            [
+                purview_mapping[Direction.CAUSE][distinction.cause.purview],
+                mechanism_mapping[distinction.mechanism],
+                purview_mapping[Direction.EFFECT][distinction.effect.purview],
+            ]
         )
         x, y, z = coords.transpose()
         fig.add_trace(
@@ -506,62 +556,93 @@ def _plot_mechanism_purview_links(
 
 def _plot_two_relation_faces(fig, relation_to_coords, relation_faces, label, theme):
     name = "2-relations" + theme.legendgroup_postfix
-    phis = np.array(list(phi for _, phi in relation_faces))
-    widths = rescale(phis, theme.line_width_range)
-    faces = [face for face, _ in relation_faces]
-
-    if isinstance(theme.two_relation_colorscale, Mapping):
-        # Map to relation type
-        line_colors = list(
-            map(
-                theme.two_relation_colorscale.get,
-                map(two_relation_face_type, faces),
-            )
-        )
-    elif (
-        isinstance(theme.two_relation_colorscale, str)
-        and theme.two_relation_colorscale not in TWO_RELATION_COLORSCHEMES
-    ):
-        # Plotly colorscale
-        scaled_phis = rescale(phis, (0, 1))
-        line_colors = [
-            get_color(theme.two_relation_colorscale, phi) for phi in scaled_phis
-        ]
-    elif theme.two_relation_colorscale in TWO_RELATION_COLORSCHEMES:
-        # Library function
-        line_colors = list(
-            map(TWO_RELATION_COLORSCHEMES[theme.two_relation_colorscale], faces)
-        )
-    else:
-        # Callable
-        line_colors = list(map(theme.two_relation_colorscale, faces))
+    faces, phis = list(zip(*relation_faces, strict=True))
+    phis = np.array(phis)
 
     showlegend = True
-    for face, width, line_color in zip(
-        faces,
-        widths,
-        line_colors,
-    ):
-        x, y, z = relation_to_coords(face).transpose()
+    if len(faces) >= theme.two_relation_detail_threshold:
+        coords = np.array([relation_to_coords(face) for face in faces])
+        # Single trace for all faces
         fig.add_trace(
-            go.Scatter3d(
-                x=x,
-                y=y,
-                z=z,
+            lines_from_coords(
+                coords,
                 showlegend=showlegend,
                 legendgroup=name + theme.legendgroup_postfix,
                 name=name,
                 mode="lines",
-                line_color=line_color,
+                line=go.scatter3d.Line(
+                    width=theme.two_relation_line_width,
+                    color=phis,
+                    colorscale=theme.two_relation_colorscale,
+                    showscale=theme.two_relation_showscale,
+                    reversescale=theme.two_relation_reversescale,
+                    colorbar=dict(
+                        title=dict(text="2-face φ_r", font_size=theme.fontsize),
+                        x=-0.1,
+                        len=1.0,
+                    ),
+                ),
                 opacity=theme.two_relation_opacity,
-                line_width=width,
                 hoverinfo="text",
                 # hovertext=label.relation(faces),
-                # hoverlabel_font_color=theme.two_relations_hoverlabel_font_color,
+                # hoverlabel_font_color=theme.two_relation_hoverlabel_font_color,
             )
         )
-        # Only show the first trace in the legend
-        showlegend = False
+    else:
+        line_colors = _two_relation_line_colors(theme, faces, phis)
+        widths = rescale(phis, theme.line_width_range)
+        # Individual trace for each face
+        for face, width, line_color in zip(
+            faces,
+            widths,
+            line_colors,
+            strict=True,
+        ):
+            x, y, z = relation_to_coords(face).transpose()
+            fig.add_trace(
+                go.Scatter3d(
+                    x=x,
+                    y=y,
+                    z=z,
+                    showlegend=showlegend,
+                    legendgroup=name + theme.legendgroup_postfix,
+                    name=name,
+                    mode="lines",
+                    line_color=line_color,
+                    opacity=theme.two_relation_opacity,
+                    line_width=width,
+                    hoverinfo="text",
+                    # hovertext=label.relation(faces),
+                    # hoverlabel_font_color=theme.two_relation_hoverlabel_font_color,
+                )
+            )
+            # Only show the first trace in the legend
+            showlegend = False
+
+
+def _two_relation_line_colors(theme, faces, phis):
+    if isinstance(theme.two_relation_colorscale, Mapping):
+        # Map to relation type
+        line_colors = map(
+            theme.two_relation_colorscale.get, map(two_relation_face_type, faces)
+        )
+    elif theme.two_relation_colorscale in TWO_RELATION_COLORSCHEMES:
+        # Library function
+        line_colors = map(
+            TWO_RELATION_COLORSCHEMES[theme.two_relation_colorscale], faces
+        )
+    elif isinstance(theme.two_relation_colorscale, str):
+        # Plotly colorscale
+        scaled_phis = rescale(phis, (0, 1))
+
+        def colorize(phi):
+            return get_color(theme.two_relation_colorscale, phi)
+
+        line_colors = map(colorize, scaled_phis)
+    else:
+        # Callable
+        line_colors = map(theme.two_relation_colorscale, faces)
+    return list(line_colors)
 
 
 def _plot_three_relation_faces(fig, relation_to_coords, relation_faces, label, theme):
@@ -594,8 +675,9 @@ def _plot_three_relation_faces(fig, relation_to_coords, relation_faces, label, t
             intensitymode="cell",
             colorscale=theme.three_relation_colorscale,
             showscale=theme.three_relation_showscale,
+            reversescale=theme.two_relation_reversescale,
             colorbar=dict(
-                title=dict(text="φ", font_size=2 * theme.fontsize),
+                title=dict(text="3-face φ_r", font_size=theme.fontsize),
                 x=0.0,
                 len=1.0,
             ),
@@ -647,7 +729,7 @@ def _plot_three_relation_faces_with_opacity(
                 colorscale=theme.three_relation_colorscale,
                 showscale=showscale,
                 colorbar=dict(
-                    title=dict(text="φ", font_size=2 * theme.fontsize),
+                    title=dict(text="φ", font_size=theme.fontsize),
                     x=0.0,
                     len=1.0,
                 ),
@@ -733,8 +815,8 @@ def plot_phi_structure(
             regular_polygon(
                 len(phi_structure.distinctions), radius=theme.purview_offset_radius
             ),
+            strict=True,
         ),
-        strict=True,
     )
     purview_multiplicities = {
         direction: Counter(distinctions.purviews(direction))
@@ -757,69 +839,80 @@ def plot_phi_structure(
     }
 
     # Distinctions
-    _plot_distinctions(
-        fig,
-        distinctions,
-        purview_mapping_base,
-        label,
-        theme,
-    )
-
-    # Cause-effect links
-    cause_effect_link_coords = _plot_cause_effect_links(
-        fig,
-        distinctions,
-        purview_mapping_base,
-        theme,
-    )
-
-    mechanism_mapping = powerset_coordinates(
-        node_indices,
-        max_radius=theme.mechanism_max_radius,
-        z_offset=theme.mechanism_z_offset,
-        z_spacing=theme.mechanism_z_spacing,
-        radius_func=theme.mechanism_radius_func,
-        # purview_radius_mod=1,
-    )
-    # Mechanisms
-    _plot_mechanisms(fig, distinctions, mechanism_mapping, label, theme)
-    # Mechanism-purview links
-    _plot_mechanism_purview_links(
-        fig, distinctions, cause_effect_link_coords, mechanism_mapping, theme
-    )
-
-    # Group relations by degree
-    relations = defaultdict(set)
-    for relation in phi_structure.relations:
-        for face in relation.faces:
-            relations[len(face)].add((face, relation.phi))
-
-    def face_to_coords(face):
-        return np.array(
-            [
-                purview_mapping[relatum.direction][relatum.mechanism][relatum.purview]
-                for relatum in face
-            ]
-        )
-
-    # 2-relations
-    if relations[2]:
-        _plot_two_relation_faces(
+    if theme.distinction_on:
+        _plot_distinctions(
             fig,
-            face_to_coords,
-            relations[2],
+            distinctions,
+            purview_mapping_base,
             label,
             theme,
         )
 
-    # 3-relations
-    if relations[3]:
-        if theme.three_relation_opacity_range is None:
-            _plot_three_relation_faces(fig, face_to_coords, relations[3], label, theme)
-        else:
-            _plot_three_relation_faces_with_opacity(
-                fig, face_to_coords, relations[3], label, theme
+    # Cause-effect links
+    if theme.cause_effect_link_on:
+        _plot_cause_effect_links(
+            fig,
+            distinctions,
+            purview_mapping_base,
+            theme,
+        )
+
+    if theme.mechanism_on:
+        mechanism_mapping = powerset_coordinates(
+            node_indices,
+            max_radius=theme.mechanism_max_radius,
+            z_offset=theme.mechanism_z_offset,
+            z_spacing=theme.mechanism_z_spacing,
+            radius_func=theme.mechanism_radius_func,
+            # purview_radius_mod=1,
+        )
+        # Mechanisms
+        _plot_mechanisms(fig, distinctions, mechanism_mapping, label, theme)
+        # Mechanism-purview links
+        if theme.mechanism_purview_link_on:
+            _plot_mechanism_purview_links(
+                fig, distinctions, purview_mapping_base, mechanism_mapping, theme
             )
+
+    if theme.two_relation_on or theme.three_relation_on:
+        # Group relations by degree
+        relations = defaultdict(set)
+        for relation in tqdm(
+            phi_structure.relations, desc="Grouping relation faces by degree"
+        ):
+            for face in relation.faces:
+                relations[len(face)].add((face, relation.phi))
+
+        def face_to_coords(face):
+            return np.array(
+                [
+                    purview_mapping[relatum.direction][relatum.mechanism][
+                        relatum.purview
+                    ]
+                    for relatum in face
+                ]
+            )
+
+        # 2-relations
+        if theme.two_relation_on and relations[2]:
+            _plot_two_relation_faces(
+                fig,
+                face_to_coords,
+                relations[2],
+                label,
+                theme,
+            )
+
+        # 3-relations
+        if theme.three_relation_on and relations[3]:
+            if theme.three_relation_opacity_range is None:
+                _plot_three_relation_faces(
+                    fig, face_to_coords, relations[3], label, theme
+                )
+            else:
+                _plot_three_relation_faces_with_opacity(
+                    fig, face_to_coords, relations[3], label, theme
+                )
 
     return fig
 
