@@ -7,7 +7,6 @@
 from collections import defaultdict
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
-from functools import cached_property
 
 from toolz import concat
 
@@ -17,12 +16,13 @@ from .. import utils
 from ..conf import fallback
 from . import cmp, fmt
 from .mechanism import Concept, StateSpecification
+from .pandas import ToDictMixin, ToPandasMixin
 
 _sia_attributes = ["phi", "ces", "partitioned_ces", "subsystem", "cut_subsystem"]
 
 
 @dataclass(frozen=True)
-class SystemStateSpecification:
+class SystemStateSpecification(ToDictMixin, ToPandasMixin):
     cause: StateSpecification
     effect: StateSpecification
 
@@ -45,10 +45,7 @@ class SystemStateSpecification:
         return hash((self.cause, self.effect))
 
     def to_json(self):
-        return {
-            "cause": self.cause,
-            "effect": self.effect,
-        }
+        return self.to_dict()
 
 
 def _concept_sort_key(concept):
@@ -75,7 +72,7 @@ def _purview_inclusion(distinction_attr, distinctions, min_order, max_order):
     return purview_inclusion_by_order
 
 
-class CauseEffectStructure(cmp.Orderable, Sequence):
+class CauseEffectStructure(cmp.Orderable, Sequence, ToPandasMixin):
     """A collection of concepts."""
 
     def __init__(self, concepts=(), subsystem=None, resolved_congruence=False):
@@ -120,10 +117,7 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
         return [self.concepts]
 
     def to_json(self):
-        return {
-            "concepts": self.concepts,
-            "subsystem": self.subsystem,
-        }
+        return self.concepts
 
     @property
     def flat(self):

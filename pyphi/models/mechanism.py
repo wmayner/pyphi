@@ -5,7 +5,8 @@
 """Mechanism-level objects."""
 
 from dataclasses import dataclass
-from enum import Enum, auto, unique as unique_enum
+from enum import Enum, auto
+from enum import unique as unique_enum
 from functools import total_ordering
 from typing import Iterable, Tuple
 
@@ -25,6 +26,11 @@ from ..models import fmt
 from ..registry import Registry
 from ..warnings import warn_about_tie_serialization
 from . import cmp, fmt
+from .pandas import (
+    ToDictMixin,
+    ToDictFromExplicitAttrsMixin,
+    ToPandasMixin,
+)
 
 
 @total_ordering
@@ -51,7 +57,7 @@ class Unit:
 
 
 @dataclass
-class StateSpecification:
+class StateSpecification(ToDictMixin, ToPandasMixin):
     direction: Direction
     purview: Tuple[int]
     state: Tuple[int]
@@ -104,10 +110,8 @@ class StateSpecification:
 
     def to_json(self):
         warn_about_tie_serialization(self.__class__.__name__, serialize=True)
-        dct = self.__dict__.copy()
+        dct = self.to_dict()
         # TODO(ties) implement serialization of ties
-        # Remove ties because of circular references
-        del dct["_ties"]
         return dct
 
     @classmethod
@@ -160,22 +164,26 @@ class ShortCircuitConditions(Enum):
     UNREACHABLE_STATE = auto()
 
 
-_ria_attributes = [
+_ria_dict_attrs = [
     "phi",
     "direction",
     "mechanism",
+    "mechanism_label",
+    "mechanism_state",
     "purview",
+    "purview_label",
+    "purview_state",
     "partition",
     "repertoire",
     "partitioned_repertoire",
     "specified_state",
-    "mechanism_state",
-    "purview_state",
     "node_labels",
 ]
 
 
-class RepertoireIrreducibilityAnalysis(cmp.OrderableByPhi):
+class RepertoireIrreducibilityAnalysis(
+    cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin
+):
     """An analysis of the irreducibility (|small_phi|) of a mechanism over a
     purview, for a given partition, in one temporal direction.
 
@@ -253,6 +261,11 @@ class RepertoireIrreducibilityAnalysis(cmp.OrderableByPhi):
         return self._mechanism
 
     @property
+    def mechanism_label(self):
+        """tuple[str]: The labels of the mechanism nodes."""
+        return self.node_labels.label_string(self.mechanism, self.mechanism_state)
+
+    @property
     def mechanism_state(self):
         """tuple[int]: The current state of the mechanism."""
         return self._mechanism_state
@@ -263,6 +276,11 @@ class RepertoireIrreducibilityAnalysis(cmp.OrderableByPhi):
         analyzed.
         """
         return self._purview
+
+    @property
+    def purview_label(self):
+        """tuple[str]: The labels of the mechanism nodes."""
+        return self.node_labels.label_string(self.purview, self.purview_state)
 
     @property
     def purview_state(self):
@@ -464,10 +482,12 @@ class RepertoireIrreducibilityAnalysis(cmp.OrderableByPhi):
     def __str__(self):
         return repr(self)
 
+    _dict_attrs = _ria_dict_attrs
+
     def to_json(self):
         # TODO(ties) implement serialization of ties
         warn_about_tie_serialization(self.__class__.__name__, serialize=True)
-        return {attr: getattr(self, attr) for attr in _ria_attributes}
+        return self.to_dict()
 
     @classmethod
     def from_json(cls, data):
@@ -499,7 +519,9 @@ def _null_ria(direction, mechanism, purview, repertoire=None, phi=0.0, **kwargs)
 
 
 # TODO(4.0) implement as a subclass of RIA?
-class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
+class MaximallyIrreducibleCauseOrEffect(
+    cmp.Orderable, ToDictFromExplicitAttrsMixin, ToPandasMixin
+):
     """A maximally irreducible cause or effect (MICE).
 
     These can be compared with the built-in Python comparison operators (``<``,
@@ -535,6 +557,11 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
         return self._ria.mechanism
 
     @property
+    def mechanism_label(self):
+        """list[int]: The mechanism for which the MICE is evaluated."""
+        return self._ria.mechanism_label
+
+    @property
     def mechanism_state(self):
         """tuple[int]: The current state of the mechanism."""
         return self._ria.mechanism_state
@@ -545,6 +572,10 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
         maximal.
         """
         return self._ria.purview
+
+    @property
+    def purview_label(self):
+        return self.ria.purview_label
 
     @property
     def purview_units(self):
@@ -701,9 +732,19 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
     def __hash__(self):
         return hash(self._ria)
 
-    def to_json(self):
-        return {"ria": self.ria}
+    _dict_attrs = _ria_dict_attrs
 
+    def to_dict(self):
+        dct = super().to_dict()
+        dct["is_mice"] = True
+        return dct
+
+    def to_json(self):
+        return self.to_dict()
+
+    # TODO(to_pandas): This is currently broken; MICE should become a subclass
+    # of RIA, and then a consistent implementation of `from_json` can be used
+    # there
     @classmethod
     def from_json(cls, data):
         instance = cls(data["ria"])
@@ -804,12 +845,19 @@ class MaximallyIrreducibleEffect(MaximallyIrreducibleCauseOrEffect):
 
 # =============================================================================
 
-_concept_attributes = ["phi", "mechanism", "cause", "effect", "subsystem"]
+_concept_attributes = [
+    "phi",
+    "mechanism",
+    "mechanism_label",
+    "cause",
+    "effect",
+    "subsystem",
+]
 
 
 # TODO: make mechanism a property
 # TODO: make phi a property
-class Concept(cmp.OrderableByPhi):
+class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
     """The maximally irreducible cause and effect specified by a mechanism.
 
     These can be compared with the built-in Python comparison operators (``<``,
@@ -895,6 +943,11 @@ class Concept(cmp.OrderableByPhi):
     def mechanism_state(self):
         """tuple(int): The state of this mechanism."""
         return utils.state_of(self.mechanism, self.subsystem.state)
+
+    @property
+    def mechanism_label(self):
+        """tuple[str]: The labels of the mechanism nodes."""
+        return self.node_labels.label_string(self.mechanism, self.mechanism_state)
 
     def purview(self, direction):
         """Return the purview in the given direction."""
@@ -1019,9 +1072,11 @@ class Concept(cmp.OrderableByPhi):
             self.effect.ria.partitioned_repertoire
         )
 
+    _dict_attrs = list(set(_concept_attributes) - {"subsystem"})
+
     def to_json(self):
         """Return a JSON-serializable representation."""
-        return {attr: getattr(self, attr) for attr in _concept_attributes}
+        return self.to_dict()
 
     @classmethod
     def from_json(cls, dct):
