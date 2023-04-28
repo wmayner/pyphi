@@ -719,6 +719,13 @@ class PyphiConfig(Config):
     circumstances.""",
     )
 
+    LABEL_SEPARATOR = Option(
+        "",
+        type=str,
+        doc="""
+    Separator to use between labels in the string representation of a set of nodes.""",
+    )
+
     REPR_VERBOSITY = Option(
         2,
         type=int,
