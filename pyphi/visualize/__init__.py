@@ -1,10 +1,9 @@
 import string
 from collections import Counter, defaultdict
 from collections.abc import Iterable
-from dataclasses import dataclass, field
 from itertools import combinations
 from math import cos, isclose, log2, radians, sin
-from typing import Callable, Mapping, Optional, Union
+from typing import Mapping
 
 import networkx as nx
 import numpy as np
@@ -21,11 +20,11 @@ from tqdm.auto import tqdm
 
 import pyphi
 
-from .conf import config
-from .direction import Direction
-from .models.subsystem import CauseEffectStructure
-from .new_big_phi import PhiStructure
-from .utils import state_of
+from ..conf import config
+from ..direction import Direction
+from ..new_big_phi import PhiStructure
+from ..utils import state_of
+from .theme import Theme
 
 
 def two_relation_face_type(relation_face):
@@ -43,77 +42,10 @@ def two_relation_face_type(relation_face):
         return "paratext"
 
 
+DEFAULT_THEME = Theme()
+
+
 TWOPI = 2 * np.pi
-FONT_FAMILY = "MesloLGS NF, Roboto Mono, Menlo"
-
-
-@dataclass
-class PhiPlotTheme:
-    """Specifies plot attributes."""
-
-    fontsize: int = 12
-    direction_offset: float = 0.5
-    purview_offset_radius: float = 0.1
-    cause_color: str = "#e21a1a"
-    effect_color: str = "#14b738"
-    point_size_range: tuple = (5, 30)
-    distinction_on: bool = True
-    distinction_colorscale: str = "mint"
-    distinction_opacity_range: tuple = (0.1, 0.9)
-    line_width_range: tuple = (3, 10)
-    cause_effect_link_on: bool = True
-    cause_effect_link_color: str = "lightgrey"
-    cause_effect_link_opacity: float = 0.5
-    mechanism_purview_link_on: bool = True
-    mechanism_purview_link_color: str = "lightgrey"
-    mechanism_purview_link_opacity: float = 0.5
-    mechanism_on: bool = True
-    mechanism_max_radius: float = 1.0
-    mechanism_z_offset: float = 0.0
-    mechanism_z_spacing: float = 0.0
-    mechanism_radius_func: Union[Callable, str] = "linear"
-    purview_radius_mod: float = 1.0
-    """Controls whether a single trace is used to plot 2-relation faces,
-    precluding visual indications of their phi value."""
-    two_relation_on: bool = True
-    two_relation_detail_threshold: int = 1000
-    two_relation_opacity: float = 0.1
-    two_relation_line_width: float = 1
-    two_relation_colorscale: Union[str, Callable, Mapping] = "type"
-    two_relation_showscale: bool = True
-    two_relation_reversescale: bool = False
-    two_relation_hoverlabel_font_color: str = "white"
-    three_relation_on: bool = True
-    three_relation_colorscale: str = "teal"
-    three_relation_reversescale: bool = False
-    three_relation_showscale: bool = True
-    three_relation_opacity: float = 0.1
-    three_relation_opacity_range: Optional[tuple] = None
-    three_relation_intensity_range: tuple = (0, 1)
-    three_relation_showlegend: bool = True
-    lighting: Mapping = field(
-        default_factory=lambda: dict(
-            ambient=0.8, diffuse=0, roughness=0, specular=0, fresnel=0
-        )
-    )
-    legendgroup_postfix: str = ""
-
-
-GREYS = PhiPlotTheme(
-    distinction_colorscale="greys",
-    distinction_opacity_range=(0.1, 0.2),
-    # cause_effect_link_color="grey",
-    cause_effect_link_opacity=0.1,
-    # mechanism_purview_link_color="grey",
-    mechanism_purview_link_opacity=0.1,
-    two_relation_colorscale="greys",
-    two_relation_opacity=0.1,
-    three_relation_colorscale="greys",
-    three_relation_opacity=0.05,
-    three_relation_intensity_range=(0, 0.5),
-    # three_relation_showlegend=True,
-    legendgroup_postfix=" (greyed)",
-)
 
 
 _TYPE_COLORS = {"isotext": "magenta", "inclusion": "indigo", "paratext": "cyan"}
@@ -207,6 +139,7 @@ def regular_polygon(n, radius=1.0, center=(0, 0), z=0, angle=0):
 
 
 def rescale(values, target_range):
+    values = np.array(list(values))
     _min = values.min()
     _max = values.max()
     if isclose(_min, _max, rel_tol=1e-9, abs_tol=1e-9):
@@ -270,12 +203,7 @@ def powerset_coordinates(
     return mapping
 
 
-def offset_mapping(mapping, offset):
-    """Offset each coordinate in a mapping."""
-    return {key: value + offset for key, value in mapping.items()}
-
-
-def make_layout(width=900, aspect=1.62, eye=None, fontsize=12):
+def make_layout(width=900, aspect=1.62, eye=None, theme=DEFAULT_THEME):
     if eye is not None:
         eye = dict(zip("xyz", spherical_to_cartesian(eye)))
     height = width / aspect
@@ -294,7 +222,7 @@ def make_layout(width=900, aspect=1.62, eye=None, fontsize=12):
         autosize=True,
         showlegend=True,
         hovermode="x",
-        hoverlabel_font=dict(family=FONT_FAMILY, size=int(0.75 * fontsize)),
+        hoverlabel_font=dict(family=theme.fontfamily, size=int(0.75 * theme.fontsize)),
         title="",
         width=width,
         height=height,
@@ -359,14 +287,13 @@ class Labeler:
         )
 
 
-def scatter_from_coords(coords, labels=None, fontsize=12, **kwargs):
+def scatter_from_coords(coords, theme=DEFAULT_THEME, **kwargs):
     """Return a Scatter3d given labels and coordinates."""
     x, y, z = np.stack(coords).transpose()
     defaults = dict(
         mode="text",
-        text=labels,
         textposition="middle center",
-        textfont=dict(family=FONT_FAMILY, size=fontsize),
+        textfont=dict(family=theme.fontfamily, size=theme.fontsize),
         hoverinfo="text",
         showlegend=True,
     )
@@ -385,9 +312,9 @@ def lines_from_coords(coords, **kwargs):
     indexes start and end, and the third dimension indexes x, y, and z
     coordinates.
     """
-    x = _individual_lines_from_one_dimensional_coords(coords[:, :, 0])
-    y = _individual_lines_from_one_dimensional_coords(coords[:, :, 1])
-    z = _individual_lines_from_one_dimensional_coords(coords[:, :, 2])
+    x, y, z = [
+        _individual_lines_from_one_dimensional_coords(coords[:, :, i]) for i in range(3)
+    ]
     defaults = dict(
         mode="lines",
         hoverinfo="text",
@@ -422,42 +349,42 @@ def _plot_distinctions(
     label,
     theme,
 ):
+    phis = list(distinctions.phis)
+    marker_size = rescale(phis, theme.point_size_range)
     for direction, color in zip(
         Direction.both(), [theme.cause_color, theme.effect_color]
     ):
-        coords = []
-        labels = []
-        _distinctions = []
-        for distinction in distinctions:
-            _distinctions.append(distinction.mice(direction))
-            purview = distinction.purview(direction)
-            coords.append(purview_mapping[direction][purview])
-            labels.append(label.nodes(purview))
-
-        _distinctions = CauseEffectStructure(_distinctions)
-        hovertext = [label.hover(distinction) for distinction in _distinctions]
-        text = [label.mice(distinction) for distinction in _distinctions]
-        phis = np.array(list(_distinctions.phis))
-        scaled_phis = rescale(phis, (0, 1))
-        opacities = rescale(phis, theme.distinction_opacity_range)
-        marker_size = rescale(phis, theme.point_size_range)
-        marker_colors = [
-            rgb_to_rgba(get_color(theme.distinction_colorscale, loc), alpha=opacity)
-            for loc, opacity in zip(scaled_phis, opacities)
+        coords = [
+            purview_mapping[direction][distinction.mechanism]
+            for distinction in distinctions
+        ]
+        labels = [
+            # TODO currently labeling current state only; decide if that's right and and refactor
+            label.nodes(distinction.purview(direction))
+            for distinction in distinctions
+        ]
+        hovertext = [
+            label.hover(distinction.mice(direction)) for distinction in distinctions
         ]
         fig.add_trace(
             scatter_from_coords(
                 coords,
-                labels=labels,
+                theme=theme,
                 name=f"{direction} distinctions" + theme.legendgroup_postfix,
-                hovertext=hovertext,
-                text=text,
-                hoverlabel_bgcolor=color,
+                text=labels,
                 textfont_color=color,
-                opacity=0.99,
+                hovertext=hovertext,
+                hoverlabel_bgcolor=color,
+                opacity=theme.distinction_opacity,
                 mode="text+markers",
-                marker=dict(symbol="circle", color=marker_colors, size=marker_size),
-                fontsize=theme.fontsize,
+                marker=dict(
+                    symbol="circle",
+                    color=phis,
+                    colorscale=theme.distinction_colorscale,
+                    size=marker_size,
+                    cmin=theme.distinction_color_range[0],
+                    cmax=theme.distinction_color_range[0],
+                ),
             )
         )
 
@@ -470,13 +397,13 @@ def _plot_cause_effect_links(
 ):
     # TODO make this scaling consistent with 2-relation phi?
     name = "Cause-effect links" + theme.legendgroup_postfix
-    widths = rescale(np.array(list(distinctions.phis)), theme.line_width_range)
+    widths = rescale(distinctions.phis, theme.line_width_range)
     showlegend = True
     link_coords = []
     for distinction, width in zip(distinctions, widths):
         coords = np.stack(
             [
-                purview_mapping[direction][distinction.purview(direction)]
+                purview_mapping[direction][distinction.mechanism]
                 for direction in Direction.both()
             ]
         )
@@ -525,7 +452,7 @@ def _plot_mechanism_purview_links(
 ):
     name = "Mechanism-purview links" + theme.legendgroup_postfix
     # TODO make this scaling consistent with 2-relation phi?
-    widths = rescale(np.array(list(distinctions.phis)), theme.line_width_range)
+    widths = rescale(distinctions.phis, theme.line_width_range)
     showlegend = True
     for distinction, width in zip(distinctions, widths):
         coords = np.stack(
@@ -554,14 +481,14 @@ def _plot_mechanism_purview_links(
         showlegend = False
 
 
-def _plot_two_relation_faces(fig, relation_to_coords, relation_faces, label, theme):
+def _plot_two_relation_faces(fig, face_to_coords, relation_faces, label, theme):
     name = "2-relations" + theme.legendgroup_postfix
     faces, phis = list(zip(*relation_faces, strict=True))
     phis = np.array(phis)
 
     showlegend = True
     if len(faces) >= theme.two_relation_detail_threshold:
-        coords = np.array([relation_to_coords(face) for face in faces])
+        coords = np.array([face_to_coords(face) for face in faces])
         # Single trace for all faces
         fig.add_trace(
             lines_from_coords(
@@ -598,7 +525,7 @@ def _plot_two_relation_faces(fig, relation_to_coords, relation_faces, label, the
             line_colors,
             strict=True,
         ):
-            x, y, z = relation_to_coords(face).transpose()
+            x, y, z = face_to_coords(face).transpose()
             fig.add_trace(
                 go.Scatter3d(
                     x=x,
@@ -645,13 +572,13 @@ def _two_relation_line_colors(theme, faces, phis):
     return list(line_colors)
 
 
-def _plot_three_relation_faces(fig, relation_to_coords, relation_faces, label, theme):
+def _plot_three_relation_faces(fig, face_to_coords, relation_faces, label, theme):
     name = "3-relations" + theme.legendgroup_postfix
     # Build vertices:
     # Stack the [relation, relata] axes together and tranpose to put the 3D axis
     # first to get lists of x, y, z coordinates
     x, y, z = np.vstack(
-        list(map(relation_to_coords, [face for face, _ in relation_faces]))
+        list(map(face_to_coords, [face for face, _ in relation_faces]))
     ).transpose()
     # Build triangles:
     # The vertices are stacked triples, so we want each (i, j, k) = [0, 1, 2], [3, 4, 5], ...
@@ -690,14 +617,14 @@ def _plot_three_relation_faces(fig, relation_to_coords, relation_faces, label, t
 
 
 def _plot_three_relation_faces_with_opacity(
-    fig, relation_to_coords, relation_faces, label, theme
+    fig, face_to_coords, relation_faces, label, theme
 ):
     name = "3-relations" + theme.legendgroup_postfix
     # Build vertices:
     # Stack the [relation, relata] axes together and tranpose to put the 3D axis
     # first to get lists of x, y, z coordinates
     x, y, z = np.vstack(
-        list(map(relation_to_coords, [face for face, _ in relation_faces]))
+        list(map(face_to_coords, [face for face, _ in relation_faces]))
     ).transpose()
     phis = np.array(list(phi for _, phi in relation_faces))
     intensities = rescale(phis, theme.three_relation_intensity_range)
@@ -743,52 +670,9 @@ def _plot_three_relation_faces_with_opacity(
         showscale = False
 
 
-# TODO
-# - 4-relations?
-# - think about configuration for visual attributes; seems it can be easily
-#   done post-hoc by user on the figure object
-def plot_phi_structure(
-    phi_structure,
-    node_indices=None,
-    fig=None,
-    shape="log_n_choose_k",
-    theme=None,
-    system_size=None,
-):
-    """Plot a PhiStructure.
-
-    Keyword Arguments:
-        fig (plotly.graph_objects.Figure): The figure to use. Defaults to None,
-            which creates a new figure.
-        shape (string | Callable): Function determining the shape of the
-            structure; specifically, how the radii scale with purview order. Can
-            be the name of an existing function in the SHAPES dictionary, or a
-            user-supplied function.
-        plot_mechanisms (bool): Whether to plot mechanisms.
-    """
-    if not isinstance(phi_structure, PhiStructure):
-        raise ValueError(
-            f"phi_structure must be a PhiStructure; got {type(phi_structure)}"
-        )
-    if not phi_structure.distinctions:
-        raise ValueError("No distinctions; cannot plot")
-
-    if theme is None:
-        theme = PhiPlotTheme()
-
-    if fig is None:
-        fig = go.Figure()
-    fig.update_layout(make_layout(fontsize=theme.fontsize))
-
+def get_purview_mapping(node_indices, distinctions, theme):
     # Use named shape function if available; otherwise assume `shape` is a function and use it
-    radius_func = SHAPES.get(shape, shape)
-
-    distinctions = phi_structure.distinctions
-    subsystem = distinctions.subsystem
-    if node_indices is None:
-        node_indices = subsystem.node_indices
-
-    label = Labeler(subsystem)
+    radius_func = SHAPES.get(theme.purview_shape, theme.purview_shape)
 
     # x offsets for causes and effects
     direction_offset = dict(
@@ -811,10 +695,8 @@ def plot_phi_structure(
     # purview, we offset each distinction's purview so they don't overlap.
     purview_offset_mapping = dict(
         zip(
-            phi_structure.distinctions.mechanisms,
-            regular_polygon(
-                len(phi_structure.distinctions), radius=theme.purview_offset_radius
-            ),
+            distinctions.mechanisms,
+            regular_polygon(len(distinctions), radius=theme.purview_offset_radius),
             strict=True,
         ),
     )
@@ -824,26 +706,72 @@ def plot_phi_structure(
     }
     purview_mapping = {
         direction: {
-            distinction.mechanism: offset_mapping(
-                purview_mapping_base[direction],
-                (
+            distinction.mechanism: (
+                purview_mapping_base[direction][distinction.purview(direction)]
+                + (
                     purview_offset_mapping[distinction.mechanism]
                     if purview_multiplicities[direction][distinction.purview(direction)]
                     > 1
                     else 0
-                ),
+                )
             )
-            for distinction in phi_structure.distinctions
+            for distinction in distinctions
         }
         for direction in Direction.both()
     }
+    return purview_mapping_base, purview_mapping
+
+
+# TODO
+# - 4-relations?
+# - think about configuration for visual attributes; seems it can be easily
+#   done post-hoc by user on the figure object
+def plot_phi_structure(
+    phi_structure,
+    node_indices=None,
+    fig=None,
+    theme=DEFAULT_THEME,
+    system_size=None,
+):
+    """Plot a PhiStructure.
+
+    Keyword Arguments:
+        fig (plotly.graph_objects.Figure): The figure to use. Defaults to None,
+            which creates a new figure.
+        shape (string | Callable): Function determining the shape of the
+            structure; specifically, how the radii scale with purview order. Can
+            be the name of an existing function in the SHAPES dictionary, or a
+            user-supplied function.
+        plot_mechanisms (bool): Whether to plot mechanisms.
+    """
+    if not isinstance(phi_structure, PhiStructure):
+        raise ValueError(
+            f"phi_structure must be a PhiStructure; got {type(phi_structure)}"
+        )
+    if not phi_structure.distinctions:
+        raise ValueError("No distinctions; cannot plot")
+
+    if fig is None:
+        fig = go.Figure()
+    fig.update_layout(make_layout(theme=theme))
+
+    distinctions = phi_structure.distinctions
+    subsystem = distinctions.subsystem
+    if node_indices is None:
+        node_indices = subsystem.node_indices
+
+    label = Labeler(subsystem)
+
+    purview_mapping_base, purview_mapping = get_purview_mapping(
+        node_indices, distinctions, theme
+    )
 
     # Distinctions
     if theme.distinction_on:
         _plot_distinctions(
             fig,
             distinctions,
-            purview_mapping_base,
+            purview_mapping,
             label,
             theme,
         )
@@ -886,9 +814,7 @@ def plot_phi_structure(
         def face_to_coords(face):
             return np.array(
                 [
-                    purview_mapping[relatum.direction][relatum.mechanism][
-                        relatum.purview
-                    ]
+                    purview_mapping[relatum.direction][relatum.mechanism]
                     for relatum in face
                 ]
             )
