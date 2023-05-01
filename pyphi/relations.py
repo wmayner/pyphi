@@ -138,6 +138,10 @@ class Relation(frozenset, cmp.OrderableByPhi):
 
     # TODO(4.0) need to also implement __eq__ here
 
+    @cached_property
+    def mechanisms(self):
+        return {distinction.mechanism for distinction in self}
+
     def _repr_columns(self):
         return [
             (fmt.SMALL_PHI + "_r", self.phi),
