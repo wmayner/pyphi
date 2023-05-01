@@ -85,7 +85,7 @@ def make_repr(self, attrs):
     raise ValueError("Invalid value for `config.REPR_VERBOSITY`")
 
 
-def indent(lines, amount=2, char=" "):
+def indent(lines, amount=2, char=" ", newline="\n"):
     r"""Indent a string.
 
     Prepends whitespace to every line in the passed string. (Lines are
