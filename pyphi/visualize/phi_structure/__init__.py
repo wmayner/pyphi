@@ -1,6 +1,7 @@
 # visualize/phi_structure/__init__.py
 
-from collections import Counter, defaultdict
+import dataclasses
+from collections import defaultdict
 from typing import Mapping
 
 import numpy as np
@@ -10,33 +11,59 @@ from tqdm.auto import tqdm
 
 from ...direction import Direction
 from ...new_big_phi import PhiStructure
-from . import colors, geometry, text, utils
-from .theme import Theme
+from . import colors, geometry, text, theme, utils
 
-DEFAULT_THEME = Theme()
+DEFAULT_THEME = theme.Theme()
+GREY_THEME = theme.Grey()
 
 
-# TODO
-# - 4-relations?
-# - think about configuration for visual attributes; seems it can be easily
-#   done post-hoc by user on the figure object
+def highlight_phi_fold(
+    phi_fold,
+    phi_structure,
+    highlight_theme=DEFAULT_THEME,
+    background_theme=GREY_THEME,
+    fig=None,
+    background_theme_overrides=None,
+    **theme_overrides,
+):
+    """Plot a PhiStructure with a PhiFold highlighted."""
+    if background_theme_overrides is None:
+        background_theme_overrides = dict()
+    fig, purview_coords, mechanism_coords = plot_phi_structure(
+        phi_structure,
+        fig=fig,
+        theme=background_theme,
+        return_coords=True,
+        **background_theme_overrides,
+    )
+    fig = plot_phi_structure(
+        phi_fold,
+        fig=fig,
+        theme=highlight_theme,
+        purview_coords=purview_coords,
+        mechanism_coords=mechanism_coords,
+        **theme_overrides,
+    )
+    return fig
+
+
 def plot_phi_structure(
     phi_structure,
-    node_indices=None,
     fig=None,
     theme=DEFAULT_THEME,
-    system_size=None,
+    purview_coords=None,
+    mechanism_coords=None,
+    return_coords=False,
+    **theme_overrides,
 ):
     """Plot a PhiStructure.
 
     Keyword Arguments:
+        node_indices (tuple[int]): The node indices to use when arranging
+            purviews. Defaults to the subsystem's node indices.
         fig (plotly.graph_objects.Figure): The figure to use. Defaults to None,
             which creates a new figure.
-        shape (string | Callable): Function determining the shape of the
-            structure; specifically, how the radii scale with purview order. Can
-            be the name of an existing function in the SHAPES dictionary, or a
-            user-supplied function.
-        plot_mechanisms (bool): Whether to plot mechanisms.
+        theme (Theme): The visual theme to use.
     """
     if not isinstance(phi_structure, PhiStructure):
         raise ValueError(
@@ -45,27 +72,38 @@ def plot_phi_structure(
     if not phi_structure.distinctions:
         raise ValueError("No distinctions; cannot plot")
 
+    if theme_overrides:
+        theme = dataclasses.replace(theme, **theme_overrides)
+
     if fig is None:
         fig = go.Figure()
     fig.update_layout(make_layout(theme=theme))
 
     distinctions = phi_structure.distinctions
     subsystem = distinctions.subsystem
-    if node_indices is None:
-        node_indices = subsystem.node_indices
+    node_indices = subsystem.node_indices
 
     label = text.Labeler(subsystem)
 
-    purview_mapping_base, purview_mapping = get_purview_mapping(
-        node_indices, distinctions, theme
-    )
+    if purview_coords is None:
+        purview_mapping = geometry.powerset_coordinates(
+            node_indices,
+            radius_func=geometry.SHAPES.get(theme.purview_shape, theme.purview_shape),
+            purview_radius_mod=theme.purview_radius_mod,
+        )
+        purview_coords = geometry.Coordinates(
+            purview_mapping,
+            offset_subsets=distinctions.mechanisms,
+            subset_offset_radius=theme.purview_offset_radius,
+            direction_offset_amount=theme.direction_offset,
+        )
 
     # Distinctions
     if theme.distinction:
         _plot_distinctions(
             fig,
             distinctions,
-            purview_mapping,
+            purview_coords,
             label,
             theme,
         )
@@ -75,25 +113,28 @@ def plot_phi_structure(
         _plot_cause_effect_links(
             fig,
             distinctions,
-            purview_mapping_base,
+            purview_coords,
             theme,
         )
 
     if theme.mechanism:
-        mechanism_mapping = geometry.powerset_coordinates(
-            node_indices,
-            max_radius=theme.mechanism_max_radius,
-            z_offset=theme.mechanism_z_offset,
-            z_spacing=theme.mechanism_z_spacing,
-            radius_func=theme.mechanism_radius_func,
-            # purview_radius_mod=1,
-        )
+        if mechanism_coords is None:
+            mechanism_mapping = geometry.powerset_coordinates(
+                node_indices,
+                max_radius=theme.mechanism_max_radius,
+                z_offset=theme.mechanism_z_offset,
+                z_spacing=theme.mechanism_z_spacing,
+                radius_func=geometry.SHAPES.get(
+                    theme.mechanism_shape, theme.mechanism_shape
+                ),
+            )
+            mechanism_coords = geometry.Coordinates(mechanism_mapping)
         # Mechanisms
-        _plot_mechanisms(fig, distinctions, mechanism_mapping, label, theme)
+        _plot_mechanisms(fig, distinctions, mechanism_coords, label, theme)
         # Mechanism-purview links
         if theme.mechanism_purview_link:
             _plot_mechanism_purview_links(
-                fig, distinctions, purview_mapping_base, mechanism_mapping, theme
+                fig, distinctions, purview_coords, mechanism_coords, theme
             )
 
     if theme.two_relation or theme.three_relation:
@@ -108,7 +149,11 @@ def plot_phi_structure(
         def face_to_coords(face):
             return np.array(
                 [
-                    purview_mapping[relatum.direction][relatum.mechanism]
+                    purview_coords.get(
+                        relatum.purview,
+                        offset_subset=relatum.mechanism,
+                        direction=relatum.direction,
+                    )
                     for relatum in face
                 ]
             )
@@ -134,61 +179,9 @@ def plot_phi_structure(
                     fig, face_to_coords, relations[3], label, theme
                 )
 
+    if return_coords:
+        return fig, purview_coords, mechanism_coords
     return fig
-
-
-def get_purview_mapping(node_indices, distinctions, theme):
-    # Use named shape function if available; otherwise assume `shape` is a function and use it
-    radius_func = geometry.SHAPES.get(theme.purview_shape, theme.purview_shape)
-
-    # x offsets for causes and effects
-    direction_offset = dict(
-        zip(Direction.both(), [-theme.direction_offset / 2, theme.direction_offset / 2])
-    )
-
-    # Base purview coordinates
-    purview_mapping_base = {
-        direction: geometry.powerset_coordinates(
-            node_indices,
-            x_offset=direction_offset[direction],
-            radius_func=radius_func,
-            purview_radius_mod=theme.purview_radius_mod,
-        )
-        for direction in Direction.both()
-    }
-
-    # Since there can be different distinctions that have the same purview on
-    # one side, and there can be relation faces among those copies of the same
-    # purview, we offset each distinction's purview so they don't overlap.
-    purview_offset_mapping = dict(
-        zip(
-            distinctions.mechanisms,
-            geometry.regular_polygon(
-                len(distinctions), radius=theme.purview_offset_radius
-            ),
-            strict=True,
-        ),
-    )
-    purview_multiplicities = {
-        direction: Counter(distinctions.purviews(direction))
-        for direction in Direction.both()
-    }
-    purview_mapping = {
-        direction: {
-            distinction.mechanism: (
-                purview_mapping_base[direction][distinction.purview(direction)]
-                + (
-                    purview_offset_mapping[distinction.mechanism]
-                    if purview_multiplicities[direction][distinction.purview(direction)]
-                    > 1
-                    else 0
-                )
-            )
-            for distinction in distinctions
-        }
-        for direction in Direction.both()
-    }
-    return purview_mapping_base, purview_mapping
 
 
 def make_layout(width=900, aspect=1.62, eye=None, theme=DEFAULT_THEME):
@@ -277,17 +270,22 @@ def _individual_lines_from_one_dimensional_coords(one_dimensional_coords):
 def _plot_distinctions(
     fig,
     distinctions,
-    purview_mapping,
+    purview_coords,
     label,
     theme,
 ):
     phis = list(distinctions.phis)
     marker_size = utils.rescale(phis, theme.point_size_range)
+    # TODO convert to flat CES and plot as one trace
     for direction, color in zip(
         Direction.both(), [theme.cause_color, theme.effect_color]
     ):
         coords = [
-            purview_mapping[direction][distinction.mechanism]
+            purview_coords.get(
+                distinction.purview(direction),
+                offset_subset=distinction.mechanism,
+                direction=direction,
+            )
             for distinction in distinctions
         ]
         labels = [
@@ -308,7 +306,7 @@ def _plot_distinctions(
                 hovertext=hovertext,
                 hoverlabel_bgcolor=color,
                 opacity=theme.distinction_opacity,
-                mode="text+markers",
+                mode=theme.distinction_mode,
                 marker=dict(
                     symbol="circle",
                     color=phis,
@@ -324,7 +322,7 @@ def _plot_distinctions(
 def _plot_cause_effect_links(
     fig,
     distinctions,
-    purview_mapping,
+    purview_coords,
     theme,
 ):
     # TODO make this scaling consistent with 2-relation phi?
@@ -335,7 +333,11 @@ def _plot_cause_effect_links(
     for distinction, width in zip(distinctions, widths):
         coords = np.stack(
             [
-                purview_mapping[direction][distinction.mechanism]
+                purview_coords.get(
+                    distinction.purview(direction),
+                    offset_subset=distinction.mechanism,
+                    direction=direction,
+                )
                 for direction in Direction.both()
             ]
         )
@@ -360,13 +362,13 @@ def _plot_cause_effect_links(
     return link_coords
 
 
-def _plot_mechanisms(fig, distinctions, mechanism_mapping, label, theme):
+def _plot_mechanisms(fig, distinctions, mechanism_coords, label, theme):
     name = "Mechanisms" + theme.legendgroup_postfix
     labels = []
     coords = []
     for mechanism in distinctions.mechanisms:
         labels.append(label.nodes(mechanism))
-        coords.append(mechanism_mapping[mechanism])
+        coords.append(mechanism_coords.get(mechanism))
     fig.add_trace(
         scatter_from_coords(
             coords,
@@ -380,7 +382,7 @@ def _plot_mechanisms(fig, distinctions, mechanism_mapping, label, theme):
 
 
 def _plot_mechanism_purview_links(
-    fig, distinctions, purview_mapping, mechanism_mapping, theme
+    fig, distinctions, purview_coords, mechanism_coords, theme
 ):
     name = "Mechanism-purview links" + theme.legendgroup_postfix
     # TODO make this scaling consistent with 2-relation phi?
@@ -389,9 +391,17 @@ def _plot_mechanism_purview_links(
     for distinction, width in zip(distinctions, widths):
         coords = np.stack(
             [
-                purview_mapping[Direction.CAUSE][distinction.cause.purview],
-                mechanism_mapping[distinction.mechanism],
-                purview_mapping[Direction.EFFECT][distinction.effect.purview],
+                purview_coords.get(
+                    distinction.purview(Direction.CAUSE),
+                    offset_subset=distinction.mechanism,
+                    direction=Direction.CAUSE,
+                ),
+                mechanism_coords.get(distinction.mechanism),
+                purview_coords.get(
+                    distinction.purview(Direction.EFFECT),
+                    offset_subset=distinction.mechanism,
+                    direction=Direction.EFFECT,
+                ),
             ]
         )
         x, y, z = coords.transpose()
@@ -431,7 +441,11 @@ def _plot_two_relation_faces(fig, face_to_coords, relation_faces, label, theme):
                 mode="lines",
                 line=go.scatter3d.Line(
                     width=theme.two_relation_line_width,
-                    color=phis,
+                    color=(
+                        phis
+                        if not theme.two_relation_color
+                        else theme.two_relation_color
+                    ),
                     colorscale=theme.two_relation_colorscale,
                     showscale=theme.two_relation_showscale,
                     reversescale=theme.two_relation_reversescale,
@@ -483,12 +497,12 @@ def _two_relation_line_colors(theme, faces, phis):
     if isinstance(theme.two_relation_colorscale, Mapping):
         # Map to relation type
         line_colors = map(
-            theme.two_relation_colorscale.get, map(two_relation_face_type, faces)
+            theme.two_relation_colorscale.get, map(colors.two_relation_face_type, faces)
         )
-    elif theme.two_relation_colorscale in TWO_RELATION_COLORSCHEMES:
+    elif theme.two_relation_colorscale in colors.TWO_RELATION_COLORSCHEMES:
         # Library function
         line_colors = map(
-            TWO_RELATION_COLORSCHEMES[theme.two_relation_colorscale], faces
+            colors.TWO_RELATION_COLORSCHEMES[theme.two_relation_colorscale], faces
         )
     elif isinstance(theme.two_relation_colorscale, str):
         # Plotly colorscale

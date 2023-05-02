@@ -1,6 +1,6 @@
 # visualize/theme.py
 
-"""Provides visualization themes."""
+"""Provides visualization themes for plotting phi structures."""
 
 from dataclasses import dataclass, field
 from typing import Callable, Mapping, Optional, Union
@@ -21,6 +21,7 @@ class Theme:
     effect_color: str = "#14b738"
     point_size_range: tuple = (5, 30)
     distinction: bool = True
+    distinction_mode: str = "text+markers"
     distinction_opacity: float = 0.75
     distinction_colorscale: str = "viridis"
     distinction_color_range: tuple[float] = (0, 0.8)
@@ -36,7 +37,7 @@ class Theme:
     mechanism_max_radius: float = 1.0
     mechanism_z_offset: float = 0.0
     mechanism_z_spacing: float = 0.0
-    mechanism_radius_func: Union[Callable, str] = "linear"
+    mechanism_shape: Union[Callable, str] = "linear"
     purview_radius_mod: float = 1.0
     """Controls whether a single trace is used to plot 2-relation faces,
     precluding visual indications of their phi value."""
@@ -44,6 +45,7 @@ class Theme:
     two_relation_detail_threshold: int = 1000
     two_relation_opacity: float = 0.1
     two_relation_line_width: float = 1
+    two_relation_color: str = None
     two_relation_colorscale: Union[str, Callable, Mapping] = "type"
     two_relation_showscale: bool = True
     two_relation_reversescale: bool = False
@@ -65,21 +67,21 @@ class Theme:
 
 
 @dataclass(kw_only=True)
-class GreyTheme(Theme):
+class Grey(Theme):
     """A grey theme."""
 
     cause_color: str = "grey"
     effect_color: str = "grey"
     distinction_colorscale: str = "greys"
     distinction_opacity_range: tuple[float] = (0.1, 0.2)
-    # cause_effect_link_color="grey",
+    cause_effect_link_color = "grey"
     cause_effect_link_opacity: float = 0.1
-    # mechanism_purview_link_color="grey",
+    mechanism_purview_link_color = "grey"
     mechanism_purview_link_opacity: float = 0.1
     two_relation_colorscale: str = "greys"
     two_relation_opacity: float = 0.1
+    two_relation_showscale: bool = False
     three_relation_colorscale: str = "greys"
     three_relation_opacity: float = 0.05
     three_relation_intensity_range: tuple[float] = (0, 0.5)
-    # three_relation_showlegend=True,
     legendgroup_postfix: str = " (greyed)"
