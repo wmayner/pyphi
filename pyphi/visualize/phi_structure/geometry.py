@@ -127,18 +127,6 @@ def powerset_coordinates(
     return mapping
 
 
-# TODO remove
-def powerset_polygon(nodes, **kwargs):
-    """Return a mapping from subsets to vertex coordinates of a regular polygon."""
-    return dict(
-        zip(
-            powerset(nodes),
-            regular_polygon(2 ** len(nodes), **kwargs),
-            strict=True,
-        ),
-    )
-
-
 def regular_polygon(n, radius=1.0, center=(0, 0), z=0, angle=0):
     angles = (TWOPI / n) * np.arange(n) - angle
     points = np.empty([n, 3])
