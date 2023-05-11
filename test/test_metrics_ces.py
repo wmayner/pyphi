@@ -65,7 +65,9 @@ def test_ces_distance_uses_simple_vs_emd(mock_emd_distance, mock_simple_distance
     )
 
     lone_concept = models.Concept(
-        cause=make_mice(), effect=make_mice(), mechanism=(0, 1), subsystem=s
+        cause=make_mice(),
+        effect=make_mice(),
+        mechanism=(0, 1),
     )
     # lone concept -> null concept
     ces_distance((lone_concept,), ())
@@ -74,7 +76,9 @@ def test_ces_distance_uses_simple_vs_emd(mock_emd_distance, mock_simple_distance
     mock_simple_distance.reset_mock()
 
     other_concept = models.Concept(
-        cause=make_mice(), effect=make_mice(), mechanism=(0, 1, 2), subsystem=s
+        cause=make_mice(),
+        effect=make_mice(),
+        mechanism=(0, 1, 2),
     )
     # different concepts in CES
     ces_distance((lone_concept,), (other_concept,))

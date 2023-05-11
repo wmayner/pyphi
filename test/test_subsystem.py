@@ -179,7 +179,9 @@ def test_null_concept(s):
         )
     )
     assert s.null_concept == Concept(
-        mechanism=(), cause=cause, effect=effect, subsystem=s
+        mechanism=(),
+        cause=cause,
+        effect=effect,
     )
 
 

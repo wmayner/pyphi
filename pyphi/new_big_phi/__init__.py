@@ -2,7 +2,6 @@
 
 from dataclasses import dataclass
 from enum import Enum, auto, unique
-from textwrap import indent
 from typing import Iterable, Optional, Tuple, Union
 
 from .. import compute, conf, connectivity, utils
@@ -77,11 +76,13 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
 
     _sia_attributes = [
         "phi",
-        "normalized_phi",
         "partition",
-        "repertoire",
-        "partitioned_repertoire",
+        "normalized_phi",
+        "cause",
+        "effect",
         "system_state",
+        "current_state",
+        "node_indices",
     ]
 
     def order_by(self):
@@ -359,7 +360,6 @@ _sia = sia
 
 
 class PhiStructure(cmp.Orderable):
-
     _SIA_INHERITED_ATTRIBUTES = ["phi", "partition", "system_state"]
 
     def __init__(
@@ -399,14 +399,10 @@ class PhiStructure(cmp.Orderable):
         return bool(self.sia)
 
     def __eq__(self, other):
-        return cmp.general_eq(
-            self,
-            other,
-            [
-                "sia",
-                "distinctions",
-                "relations",
-            ],
+        return (
+            self.sia == other.sia
+            and self.distinctions == other.distinctions
+            and self.relations == other.relations
         )
 
     def _repr_columns(self):

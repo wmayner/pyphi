@@ -1159,7 +1159,11 @@ class Subsystem:
         )
 
         # All together now...
-        return Concept(mechanism=(), cause=cause, effect=effect, subsystem=self)
+        return Concept(
+            mechanism=(),
+            cause=cause,
+            effect=effect,
+        )
 
     def concept(
         self,
@@ -1206,4 +1210,8 @@ class Subsystem:
         # NOTE: Make sure to expand the repertoires to the size of the
         # subsystem when calculating concept distance. For now, they must
         # remain un-expanded so the concept doesn't depend on the subsystem.
-        return Concept(mechanism=mechanism, cause=cause, effect=effect, subsystem=self)
+        return Concept(
+            mechanism=mechanism,
+            cause=cause,
+            effect=effect,
+        )

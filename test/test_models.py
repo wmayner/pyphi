@@ -81,7 +81,6 @@ def concept(
             phi=phi,
             direction=Direction.EFFECT,
         ),
-        subsystem=subsystem,
     )
 
 
@@ -533,8 +532,16 @@ def test_concept_equality_repertoires(s):
         phi=phi, repertoire=np.array([1, 2]), partitioned_repertoire=np.array([2, 3])
     )
     mice2 = mice(phi=phi, repertoire=np.array([0, 0]), partitioned_repertoire=None)
-    concept = models.Concept(mechanism=(), cause=mice1, effect=mice2, subsystem=s)
-    another = models.Concept(mechanism=(), cause=mice2, effect=mice1, subsystem=s)
+    concept = models.Concept(
+        mechanism=(),
+        cause=mice1,
+        effect=mice2,
+    )
+    another = models.Concept(
+        mechanism=(),
+        cause=mice2,
+        effect=mice1,
+    )
     assert concept != another
 
 

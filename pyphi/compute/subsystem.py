@@ -363,7 +363,11 @@ class ConceptStyleSystem:
             mechanism, purviews=(effect_purviews or purviews)
         )
 
-        return Concept(mechanism=mechanism, cause=cause, effect=effect, subsystem=self)
+        return Concept(
+            mechanism=mechanism,
+            cause=cause,
+            effect=effect,
+        )
 
     def __str__(self):
         return "ConceptStyleSystem{}".format(self.node_indices)

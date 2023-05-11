@@ -7,7 +7,7 @@
 from dataclasses import dataclass
 from enum import Enum, auto
 from enum import unique as unique_enum
-from functools import total_ordering
+from functools import cached_property, total_ordering
 from typing import Iterable, Tuple
 
 import numpy as np
@@ -26,11 +26,7 @@ from ..models import fmt
 from ..registry import Registry
 from ..warnings import warn_about_tie_serialization
 from . import cmp, fmt
-from .pandas import (
-    ToDictMixin,
-    ToDictFromExplicitAttrsMixin,
-    ToPandasMixin,
-)
+from .pandas import ToDictFromExplicitAttrsMixin, ToDictMixin, ToPandasMixin
 
 
 @total_ordering
@@ -77,6 +73,20 @@ class StateSpecification(ToDictMixin, ToPandasMixin):
 
     def __getitem__(self, i):
         return self.state[i]
+
+    def __eq__(self, other):
+        return cmp.general_eq(
+            self,
+            other,
+            [
+                "direction",
+                "purview",
+                "state",
+                "intrinsic_information",
+                "repertoire",
+                "unconstrained_repertoire",
+            ],
+        )
 
     def __hash__(self):
         return hash(
@@ -799,6 +809,11 @@ class MaximallyIrreducibleCauseOrEffect(
             == 1
         )
 
+    def __getstate__(self):
+        dct = self.__dict__.copy()
+        dct["parent"] = None
+        return dct
+
 
 class MaximallyIrreducibleCause(MaximallyIrreducibleCauseOrEffect):
     """A maximally irreducible cause (MIC).
@@ -848,10 +863,10 @@ class MaximallyIrreducibleEffect(MaximallyIrreducibleCauseOrEffect):
 _concept_attributes = [
     "phi",
     "mechanism",
+    "mechanism_state",
     "mechanism_label",
     "cause",
     "effect",
-    "subsystem",
 ]
 
 
@@ -878,13 +893,10 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
         mechanism=None,
         cause=None,
         effect=None,
-        subsystem=None,
     ):
         self.mechanism = mechanism
         self.cause = cause
         self.effect = effect
-        self.subsystem = subsystem
-        self.node_labels = subsystem.node_labels
         # Attach references to this object on the cause and effect
         # TODO(4.0) document this
         self.cause.parent = self
@@ -923,7 +935,7 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
         """tuple[int]: The effect purview."""
         return getattr(self.effect, "purview", None)
 
-    @property
+    @cached_property
     def purview_union(self):
         return set.union(
             *(set(self.mice(direction).purview_units) for direction in Direction.both())
@@ -942,9 +954,11 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
     @property
     def mechanism_state(self):
         """tuple(int): The state of this mechanism."""
-        return utils.state_of(self.mechanism, self.subsystem.state)
+        if self.cause.mechanism_state != self.effect.mechanism_state:
+            raise ValueError("Inconsistent cause and effect mechanism states!")
+        return self.cause.mechanism_state
 
-    @property
+    @cached_property
     def mechanism_label(self):
         """tuple[str]: The labels of the mechanism nodes."""
         return self.node_labels.label_string(self.mechanism, self.mechanism_state)
@@ -957,6 +971,12 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
             return self.effect.purview
         raise ValueError("invalid direction")
 
+    @property
+    def node_labels(self):
+        if self.cause.node_labels != self.effect.node_labels:
+            raise ValueError("Inconsistent cause and effect node labels!")
+        return self.cause.node_labels
+
     unorderable_unless_eq = ["subsystem"]
 
     def __eq__(self, other):
@@ -968,7 +988,6 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
                 and self.cause_purview == other.cause_purview
                 and self.effect_purview == other.effect_purview
                 and self.eq_repertoires(other)
-                and self.subsystem.network == other.subsystem.network
             )
         except AttributeError:
             return False
@@ -983,7 +1002,6 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
                 self.effect_purview,
                 utils.np_hash(self.cause_repertoire),
                 utils.np_hash(self.effect_repertoire),
-                self.subsystem.network,
             )
         )
 
@@ -1021,7 +1039,6 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
             mechanism=self.mechanism,
             cause=cause,
             effect=effect,
-            subsystem=self.subsystem,
         )
 
     def eq_repertoires(self, other):
@@ -1046,33 +1063,34 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
             and self.eq_repertoires(other)
         )
 
-    # These methods are used by phiserver
-    # TODO Rename to expanded_cause_repertoire, etc
-    def expand_cause_repertoire(self, new_purview=None):
-        """See |Subsystem.expand_repertoire()|."""
-        return self.subsystem.expand_cause_repertoire(
-            self.cause.repertoire, new_purview
-        )
+    # TODO(4.0) REMOVE
+    # # These methods are used by phiserver
+    # # TODO Rename to expanded_cause_repertoire, etc
+    # def expand_cause_repertoire(self, new_purview=None):
+    #     """See |Subsystem.expand_repertoire()|."""
+    #     return self.subsystem.expand_cause_repertoire(
+    #         self.cause.repertoire, new_purview
+    #     )
 
-    def expand_effect_repertoire(self, new_purview=None):
-        """See |Subsystem.expand_repertoire()|."""
-        return self.subsystem.expand_effect_repertoire(
-            self.effect.repertoire, new_purview
-        )
+    # def expand_effect_repertoire(self, new_purview=None):
+    #     """See |Subsystem.expand_repertoire()|."""
+    #     return self.subsystem.expand_effect_repertoire(
+    #         self.effect.repertoire, new_purview
+    #     )
 
-    def expand_partitioned_cause_repertoire(self):
-        """See |Subsystem.expand_repertoire()|."""
-        return self.subsystem.expand_cause_repertoire(
-            self.cause.ria.partitioned_repertoire
-        )
+    # def expand_partitioned_cause_repertoire(self):
+    #     """See |Subsystem.expand_repertoire()|."""
+    #     return self.subsystem.expand_cause_repertoire(
+    #         self.cause.ria.partitioned_repertoire
+    #     )
 
-    def expand_partitioned_effect_repertoire(self):
-        """See |Subsystem.expand_repertoire()|."""
-        return self.subsystem.expand_effect_repertoire(
-            self.effect.ria.partitioned_repertoire
-        )
+    # def expand_partitioned_effect_repertoire(self):
+    #     """See |Subsystem.expand_repertoire()|."""
+    #     return self.subsystem.expand_effect_repertoire(
+    #         self.effect.ria.partitioned_repertoire
+    #     )
 
-    _dict_attrs = list(set(_concept_attributes) - {"subsystem"})
+    _dict_attrs = _concept_attributes
 
     def to_json(self):
         """Return a JSON-serializable representation."""
@@ -1082,3 +1100,10 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
     def from_json(cls, dct):
         del dct["phi"]
         return cls(**dct)
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        # Restore parent references to MICEs
+        self.cause.parent = self
+        self.effect.parent = self
+        return self

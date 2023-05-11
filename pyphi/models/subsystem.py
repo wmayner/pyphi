@@ -79,7 +79,7 @@ class CauseEffectStructure(cmp.Orderable, Sequence, ToPandasMixin):
         # Normalize the order of concepts
         # TODO(4.0) convert to set?
         self.concepts = tuple(sorted(concepts, key=_concept_sort_key))
-        self.subsystem = subsystem
+        # self.subsystem = subsystem
         self._specifiers = None
         self._purview_inclusion_by_order = defaultdict(defaultdict_set)
         # Flag to indicate whether distinctions have been filtered according to
@@ -96,7 +96,7 @@ class CauseEffectStructure(cmp.Orderable, Sequence, ToPandasMixin):
 
     def __getitem__(self, value):
         if isinstance(value, slice):
-            return type(self)(self.concepts[value], subsystem=self.subsystem)
+            return type(self)(self.concepts[value])
         return self.concepts[value]
 
     def __repr__(self):
@@ -111,7 +111,7 @@ class CauseEffectStructure(cmp.Orderable, Sequence, ToPandasMixin):
         return self.concepts == other.concepts
 
     def __hash__(self):
-        return hash((self.concepts, self.subsystem))
+        return hash(self.concepts)
 
     def order_by(self):
         return [self.concepts]
@@ -201,7 +201,6 @@ class CauseEffectStructure(cmp.Orderable, Sequence, ToPandasMixin):
                 lambda d: d is not None,
                 (distinction.resolve_congruence(system_state) for distinction in self),
             ),
-            subsystem=self.subsystem,
             resolved_congruence=True,
         )
 
@@ -284,11 +283,10 @@ class FlatCauseEffectStructure(CauseEffectStructure):
                     mechanism=mechanism,
                     cause=mice[Direction.CAUSE],
                     effect=mice[Direction.EFFECT],
-                    subsystem=self.subsystem,
                 )
                 for mechanism, mice in mechanism_to_mice.items()
             ],
-            subsystem=self.subsystem,
+            # subsystem=self.subsystem,
         )
 
     def _purview_inclusion(self, min_order, max_order):
