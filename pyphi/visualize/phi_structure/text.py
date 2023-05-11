@@ -11,23 +11,16 @@ def indent(lines, amount=2, char="&nbsp;", newline="<br>"):
 
 
 class Labeler:
-    def __init__(self, subsystem):
-        self.subsystem = subsystem
+    def __init__(self, state, node_labels):
+        self.state = state
+        self.node_labels = node_labels
 
     def nodes(self, nodes, state=None):
         if state is None:
-            state = utils.state_of(nodes, self.subsystem.state)
-        # print(
-        #     "".join(
-        #         f"{n.upper() if state[i] else n.lower()}, {n}"
-        #         for i, n in enumerate(
-        #             self.subsystem.node_labels.coerce_to_labels(nodes)
-        #         )
-        #     )
-        # )
+            state = utils.state_of(nodes, self.state)
         return "".join(
             n.upper() if state[i] else n.lower()
-            for i, n in enumerate(self.subsystem.node_labels.coerce_to_labels(nodes))
+            for i, n in enumerate(self.node_labels.coerce_to_labels(nodes))
         )
 
     def hover(self, mice):
