@@ -63,14 +63,14 @@ def highlight_phi_fold(
 
 def plot_phi_structure(
     phi_structure,
+    state,
+    node_indices,
+    node_labels,
     fig=None,
     theme=DEFAULT_THEME,
     purview_coords=None,
     mechanism_coords=None,
     return_coords=False,
-    node_indices=None,
-    state=None,
-    node_labels=None,
     value_attr="phi",
     **theme_overrides,
 ):
@@ -108,14 +108,6 @@ def plot_phi_structure(
     fig.update_layout(make_layout(theme=theme))
 
     distinctions = phi_structure.distinctions
-    subsystem = distinctions.subsystem
-    if node_indices is None:
-        node_indices = subsystem.node_indices
-    if state is None:
-        state = subsystem.state
-    if node_labels is None:
-        node_labels = subsystem.node_labels
-
     label = text.Labeler(state, node_labels)
 
     if purview_coords is None:
@@ -173,12 +165,22 @@ def plot_phi_structure(
 
     if theme.two_relation or theme.three_relation:
         # Group relations by degree
-        relations = defaultdict(set)
+        grouped_relations = defaultdict(list)
         for relation in tqdm(
-            phi_structure.relations, desc="Grouping relation faces by degree"
+            phi_structure.relations,
+            desc="Grouping relation faces by degree",
+            leave=False,
         ):
             for face in relation.faces:
-                relations[len(face)].add((face, getattr(relation, value_attr)))
+                grouped_relations[len(face)].append(
+                    (getattr(relation, value_attr), face)
+                )
+
+        # Sort relations for deterministic traversal
+        for degree in grouped_relations:
+            grouped_relations[degree] = sorted(
+                grouped_relations[degree], key=lambda x: x[0]
+            )
 
         def face_to_coords(face):
             return np.array(
@@ -193,24 +195,24 @@ def plot_phi_structure(
             )
 
         # 2-relations
-        if theme.two_relation and relations[2]:
+        if theme.two_relation and grouped_relations[2]:
             _plot_two_relation_faces(
                 fig,
                 face_to_coords,
-                relations[2],
+                grouped_relations[2],
                 label,
                 theme,
             )
 
         # 3-relations
-        if theme.three_relation and relations[3]:
+        if theme.three_relation and grouped_relations[3]:
             if theme.three_relation_opacity_range is None:
                 _plot_three_relation_faces(
-                    fig, face_to_coords, relations[3], label, theme
+                    fig, face_to_coords, grouped_relations[3], label, theme
                 )
             else:
                 _plot_three_relation_faces_with_opacity(
-                    fig, face_to_coords, relations[3], label, theme
+                    fig, face_to_coords, grouped_relations[3], label, theme
                 )
 
     if return_coords:
@@ -218,7 +220,7 @@ def plot_phi_structure(
     return fig
 
 
-def make_layout(width=900, aspect=1.62, eye=None, theme=DEFAULT_THEME):
+def make_layout(width=1000, aspect=1, eye=None, theme=DEFAULT_THEME):
     if eye is not None:
         eye = dict(zip("xyz", geometry.spherical_to_cartesian(eye), strict=True))
     height = width / aspect
@@ -346,9 +348,9 @@ def _plot_distinctions(
                 marker=dict(
                     symbol="circle",
                     color=values,
-                    colorscale=theme.distinction_colorscale,
+                    # colorscale=theme.distinction_colorscale,
                     size=marker_size,
-                    # coloraxis="coloraxis",
+                    coloraxis="coloraxis",
                     # cmin=theme.distinction_color_range[0],
                     # cmax=theme.distinction_color_range[0],
                 ),
@@ -468,13 +470,14 @@ def _plot_mechanism_purview_links(
 
 def _plot_two_relation_faces(fig, face_to_coords, relation_faces, label, theme):
     name = "2-relations" + theme.legendgroup_postfix
-    faces, values = list(zip(*relation_faces, strict=True))
+    values, faces = zip(*relation_faces, strict=True)
     values = np.array(values)
 
     showlegend = True
     if len(faces) >= theme.two_relation_detail_threshold:
-        coords = np.array([face_to_coords(face) for face in faces])
         # Single trace for all faces
+        coords = np.array([face_to_coords(face) for face in faces])
+        values = line_color_values(values)
         fig.add_trace(
             lines_from_coords(
                 coords,
@@ -482,22 +485,22 @@ def _plot_two_relation_faces(fig, face_to_coords, relation_faces, label, theme):
                 legendgroup=name + theme.legendgroup_postfix,
                 name=name,
                 mode="lines",
-                line=go.scatter3d.Line(
+                line=dict(
                     width=theme.two_relation_line_width,
                     color=(
                         values
                         if not theme.two_relation_color
                         else theme.two_relation_color
                     ),
-                    # colorscale=theme.two_relation_colorscale,
                     coloraxis="coloraxis2",
-                    # showscale=theme.two_relation_showscale,
-                    # reversescale=theme.two_relation_reversescale,
-                    # colorbar=dict(
-                    #     title=dict(text="2-face φ_r", font_size=theme.fontsize),
-                    #     x=-0.1,
-                    #     len=1.0,
-                    # ),
+                    colorscale=theme.two_relation_colorscale,
+                    showscale=theme.two_relation_showscale,
+                    reversescale=theme.two_relation_reversescale,
+                    colorbar=dict(
+                        title=dict(text="2-face φ_r", font_size=theme.fontsize),
+                        x=-0.2,
+                        len=1.0,
+                    ),
                 ),
                 opacity=theme.two_relation_opacity,
                 hoverinfo="text",
@@ -535,6 +538,17 @@ def _plot_two_relation_faces(fig, face_to_coords, relation_faces, label, theme):
             )
             # Only show the first trace in the legend
             showlegend = False
+
+
+def line_color_values(values):
+    """Convert a list of values to a list of colors that will color each line as
+    a single solid color, rather than interpolating colors from one marker to
+    the next.
+    """
+    values = np.array(values, dtype=float)
+    colors = np.repeat(values, 3)
+    colors[2::3] = np.nan
+    return colors
 
 
 def _two_relation_line_colors(theme, faces, values):
