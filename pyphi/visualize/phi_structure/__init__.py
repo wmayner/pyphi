@@ -62,10 +62,12 @@ def highlight_phi_fold(
 
 
 def plot_phi_structure(
-    phi_structure,
-    state,
-    node_indices,
-    node_labels,
+    phi_structure=None,
+    distinctions=None,
+    relations=None,
+    state=None,
+    node_indices=None,
+    node_labels=None,
     fig=None,
     theme=DEFAULT_THEME,
     purview_coords=None,
@@ -93,12 +95,12 @@ def plot_phi_structure(
             for plotting.
         **theme_overrides (Mapping): Overrides for the theme.
     """
-    if not isinstance(phi_structure, PhiStructure):
+    if phi_structure is None and (distinctions is None or relations is None):
         raise ValueError(
-            f"phi_structure must be a PhiStructure; got {type(phi_structure)}"
+            "Either phi_structure or distinctions and relations are required"
         )
-    if not phi_structure.distinctions:
-        raise ValueError("No distinctions; cannot plot")
+    if any(variable is None for variable in [state, node_indices, node_labels]):
+        raise ValueError("state, node_indices, and node_labels are required")
 
     if theme_overrides:
         theme = dataclasses.replace(theme, **theme_overrides)
@@ -107,7 +109,14 @@ def plot_phi_structure(
         fig = go.Figure()
     fig.update_layout(make_layout(theme=theme))
 
-    distinctions = phi_structure.distinctions
+    if distinctions is None:
+        distinctions = phi_structure.distinctions
+    if not distinctions:
+        raise ValueError("No distinctions; cannot plot")
+
+    if relations is None:
+        relations = phi_structure.relations
+
     label = text.Labeler(state, node_labels)
 
     if purview_coords is None:
@@ -167,7 +176,7 @@ def plot_phi_structure(
         # Group relations by degree
         grouped_relations = defaultdict(list)
         for relation in tqdm(
-            phi_structure.relations,
+            relations,
             desc="Grouping relation faces by degree",
             leave=False,
         ):
