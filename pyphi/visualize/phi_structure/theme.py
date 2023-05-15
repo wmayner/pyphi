@@ -30,6 +30,31 @@ class Theme(AttrDeepChainMap):
         )
 
     DEFAULTS = dict(
+        layout={
+            **dict(
+                autosize=True,
+                showlegend=True,
+                hovermode="x",
+                title="",
+                width=1000,
+                height=800,
+                paper_bgcolor="rgba(0, 0, 0, 0)",
+                plot_bgcolor="rgba(0, 0, 0, 0)",
+            ),
+            **{
+                ("scene" + (str(i) if i else "")): {
+                    name: dict(
+                        showbackground=False,
+                        showgrid=False,
+                        showticklabels=False,
+                        showspikes=False,
+                        title="",
+                    )
+                    for name in ["xaxis", "yaxis", "zaxis"]
+                }
+                for i in range(8)
+            },
+        },
         fontfamily="MesloLGS NF, Roboto Mono, Menlo",
         fontsize=12,
         cause_color="#e21a1a",
@@ -91,26 +116,6 @@ class Theme(AttrDeepChainMap):
             fresnel=0,
         ),
         legendgroup_postfix="",
-        layout=dict(
-            scene={
-                name: dict(
-                    showbackground=False,
-                    showgrid=False,
-                    showticklabels=False,
-                    showspikes=False,
-                    title="",
-                )
-                for name in ["xaxis", "yaxis", "zaxis"]
-            },
-            autosize=True,
-            showlegend=True,
-            hovermode="x",
-            title="",
-            width=1000,
-            height=800,
-            paper_bgcolor="rgba(0, 0, 0, 0)",
-            plot_bgcolor="rgba(0, 0, 0, 0)",
-        ),
     )
 
 
