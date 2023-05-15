@@ -950,4 +950,4 @@ def fmt_transition(t):
 
 def state(state):
     """Format a state."""
-    return ",".join(map(str, state))
+    return "(" + ",".join(map(str, state)) + ")"
