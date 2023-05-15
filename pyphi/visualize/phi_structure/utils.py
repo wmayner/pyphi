@@ -17,10 +17,3 @@ def rescale(values, target_range):
     return target_range[0] + (
         ((values - _min) * (target_range[1] - target_range[0])) / (_max - _min)
     )
-
-
-def indent(lines, amount=2, char="&nbsp;", newline="<br>"):
-    """Indent a string."""
-    lines = str(lines)
-    padding = amount * char
-    return padding + (newline + padding).join(lines.split(newline))
