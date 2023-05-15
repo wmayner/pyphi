@@ -126,7 +126,7 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
         columns = (
             [
                 ("Subsystem", subsystem_label),
-                ("Current state", ",".join(map(str, self.current_state))),
+                ("Current state", fmt.state(self.current_state)),
                 (f"           {fmt.SMALL_PHI}_s", self.phi),
                 (f"Normalized {fmt.SMALL_PHI}_s", self.normalized_phi),
             ]

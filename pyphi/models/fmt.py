@@ -946,3 +946,8 @@ def fmt_transition(t):
         ARROW_RIGHT,
         fmt_mechanism(t.effect_indices, t.node_labels),
     )
+
+
+def state(state):
+    """Format a state."""
+    return ",".join(map(str, state))

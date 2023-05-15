@@ -96,7 +96,7 @@ class StateSpecification(ToDictMixin, ToPandasMixin):
     def _repr_columns(self, prefix=""):
         # TODO(fmt) include purview
         return [
-            (f"{prefix}{self.direction}", str(self.state)),
+            (f"{prefix}{self.direction}", fmt.state(self.state)),
             (
                 f"{prefix}II_{str(self.direction)[:1].lower()}",
                 self.intrinsic_information,
