@@ -143,7 +143,7 @@ def plot_phi_structure(
 
     # Distinctions
     if theme.distinction:
-        _plot_distinctions(
+        fig = _plot_distinctions(
             fig,
             distinctions,
             purview_coords,
@@ -154,7 +154,7 @@ def plot_phi_structure(
 
     # Cause-effect links
     if theme.cause_effect_link:
-        _plot_cause_effect_links(
+        fig = _plot_cause_effect_links(
             fig,
             distinctions,
             purview_coords,
@@ -174,10 +174,10 @@ def plot_phi_structure(
             )
             mechanism_coords = geometry.Coordinates(mechanism_mapping)
         # Mechanisms
-        _plot_mechanisms(fig, distinctions, mechanism_coords, label, theme)
+        fig = _plot_mechanisms(fig, distinctions, mechanism_coords, label, theme)
         # Mechanism-purview links
         if theme.mechanism_purview_link:
-            _plot_mechanism_purview_links(
+            fig = _plot_mechanism_purview_links(
                 fig, distinctions, purview_coords, mechanism_coords, theme, value_attr
             )
 
@@ -214,7 +214,7 @@ def plot_phi_structure(
 
         # 2-relations
         if theme.two_relation and grouped_relations[2]:
-            _plot_two_relation_faces(
+            fig = _plot_two_relation_faces(
                 fig,
                 face_to_coords,
                 grouped_relations[2],
@@ -224,7 +224,7 @@ def plot_phi_structure(
 
         # 3-relations
         if theme.three_relation and grouped_relations[3]:
-            _plot_three_relation_faces(
+            fig = _plot_three_relation_faces(
                 fig, face_to_coords, grouped_relations[3], label, theme
             )
 
@@ -327,6 +327,7 @@ def _plot_distinctions(
     values = [getattr(distinction, value_attr) for distinction in distinctions]
     marker_size = utils.rescale(values, theme.point_size_range)
     # TODO convert to flat CES and plot as one trace
+    traces = []
     for direction, color in zip(
         Direction.both(), [theme.cause_color, theme.effect_color], strict=True
     ):
@@ -347,7 +348,7 @@ def _plot_distinctions(
         hovertext = [
             label.hover(distinction.mice(direction)) for distinction in distinctions
         ]
-        fig.add_trace(
+        traces.append(
             scatter_from_coords(
                 coords,
                 theme=theme,
@@ -369,6 +370,7 @@ def _plot_distinctions(
                 ),
             )
         )
+    return fig.add_traces(traces)
 
 
 def _plot_cause_effect_links(
@@ -381,7 +383,7 @@ def _plot_cause_effect_links(
     name = "Cause-effect links" + theme.legendgroup_postfix
     widths = utils.rescale(distinctions.phis, theme.line_width_range)
     showlegend = True
-    link_coords = []
+    traces = []
     for distinction, width in zip(distinctions, widths, strict=True):
         coords = np.stack(
             [
@@ -393,9 +395,8 @@ def _plot_cause_effect_links(
                 for direction in Direction.both()
             ]
         )
-        link_coords.append(coords)
         x, y, z = coords.transpose()
-        fig.add_trace(
+        traces.append(
             go.Scatter3d(
                 x=x,
                 y=y,
@@ -411,7 +412,7 @@ def _plot_cause_effect_links(
             )
         )
         showlegend = False
-    return link_coords
+    return fig.add_traces(traces)
 
 
 def _plot_mechanisms(fig, distinctions, mechanism_coords, label, theme):
@@ -421,7 +422,7 @@ def _plot_mechanisms(fig, distinctions, mechanism_coords, label, theme):
     for mechanism in distinctions.mechanisms:
         labels.append(label.nodes(mechanism))
         coords.append(mechanism_coords.get(mechanism))
-    fig.add_trace(
+    return fig.add_trace(
         scatter_from_coords(
             coords,
             theme=theme,
@@ -446,6 +447,7 @@ def _plot_mechanism_purview_links(
     values = [getattr(distinction, value_attr) for distinction in distinctions]
     widths = utils.rescale(values, theme.line_width_range)
     showlegend = True
+    traces = []
     for distinction, width in zip(distinctions, widths, strict=True):
         coords = np.stack(
             [
@@ -463,7 +465,7 @@ def _plot_mechanism_purview_links(
             ]
         )
         x, y, z = coords.transpose()
-        fig.add_trace(
+        traces.append(
             go.Scatter3d(
                 x=x,
                 y=y,
@@ -479,6 +481,7 @@ def _plot_mechanism_purview_links(
             )
         )
         showlegend = False
+    return fig.add_traces(traces)
 
 
 def _plot_two_relation_faces(fig, face_to_coords, relation_faces, label, theme):
@@ -486,11 +489,11 @@ def _plot_two_relation_faces(fig, face_to_coords, relation_faces, label, theme):
     values, faces = zip(*relation_faces, strict=True)
     values = np.array(values)
     if len(faces) >= theme.two_relation_detail_threshold:
-        _plot_two_relation_faces_single_trace(
+        return _plot_two_relation_faces_single_trace(
             fig, face_to_coords, label, theme, values, faces, name
         )
     else:
-        _plot_two_relation_faces_multiple_traces(
+        return _plot_two_relation_faces_multiple_traces(
             fig, face_to_coords, label, theme, values, faces, name
         )
 
@@ -501,7 +504,7 @@ def _plot_two_relation_faces_single_trace(
     # Single trace for all faces
     coords = np.array([face_to_coords(face) for face in faces])
     values = line_color_values(values)
-    fig.add_trace(
+    return fig.add_trace(
         lines_from_coords(
             coords,
             showlegend=True,
@@ -538,6 +541,7 @@ def _plot_two_relation_faces_multiple_traces(
     widths = utils.rescale(values, theme.line_width_range)
     # Individual trace for each face
     showlegend = True
+    traces = []
     for face, width, line_color in zip(
         faces,
         widths,
@@ -545,7 +549,7 @@ def _plot_two_relation_faces_multiple_traces(
         strict=True,
     ):
         x, y, z = face_to_coords(face).transpose()
-        fig.add_trace(
+        traces.append(
             go.Scatter3d(
                 x=x,
                 y=y,
@@ -564,6 +568,7 @@ def _plot_two_relation_faces_multiple_traces(
         )
         # Only show the first trace in the legend
         showlegend = False
+    return fig.add_traces(traces)
 
 
 def line_color_values(values):
@@ -613,7 +618,7 @@ def _plot_three_relation_faces(fig, face_to_coords, relation_faces, label, theme
     intensities = utils.rescale(values, theme.three_relation_intensity_range)
 
     if theme.three_relation_opacity_range is None:
-        _plot_three_relation_faces_single_trace(
+        return _plot_three_relation_faces_single_trace(
             fig=fig,
             label=label,
             theme=theme,
@@ -623,18 +628,17 @@ def _plot_three_relation_faces(fig, face_to_coords, relation_faces, label, theme
             y=y,
             z=z,
         )
-    else:
-        _plot_three_relation_faces_multiple_traces(
-            fig=fig,
-            label=label,
-            theme=theme,
-            name=name,
-            values=values,
-            intensities=intensities,
-            x=x,
-            y=y,
-            z=z,
-        )
+    return _plot_three_relation_faces_multiple_traces(
+        fig=fig,
+        label=label,
+        theme=theme,
+        name=name,
+        values=values,
+        intensities=intensities,
+        x=x,
+        y=y,
+        z=z,
+    )
 
 
 def _plot_three_relation_faces_single_trace(
@@ -646,7 +650,7 @@ def _plot_three_relation_faces_single_trace(
     relata_indices = np.arange(len(intensities) * 3, step=3)
     i, j, k = np.tile(relata_indices, (3, 1)) + np.arange(3).reshape(3, 1)
     # hovertext = list(map(label.relation, relation_faces))
-    fig.add_trace(
+    return fig.add_trace(
         go.Mesh3d(
             x=x,
             y=y,
@@ -690,6 +694,7 @@ def _plot_three_relation_faces_multiple_traces(
     # hovertexts = list(map(label.relation, relation_faces))
     showlegend = theme.three_relation_showlegend
     showscale = theme.three_relation_showscale
+    traces = []
     for _x, _y, _z, intensity, opacity in zip(
         partition(3, x),
         partition(3, y),
@@ -699,7 +704,7 @@ def _plot_three_relation_faces_multiple_traces(
         # hovertexts,
         strict=True,
     ):
-        fig.add_trace(
+        traces.append(
             go.Mesh3d(
                 x=_x,
                 y=_y,
@@ -727,3 +732,4 @@ def _plot_three_relation_faces_multiple_traces(
         )
         showlegend = False
         showscale = False
+    return fig.add_traces(traces)
