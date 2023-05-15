@@ -122,7 +122,7 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
         elif self.node_indices is not None:
             subsystem_label = ",".join(map(str, self.node_indices))
         else:
-            subsystem_label = "None"
+            subsystem_label = None
         columns = (
             [
                 ("Subsystem", subsystem_label),
