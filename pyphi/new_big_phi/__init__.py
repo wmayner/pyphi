@@ -115,12 +115,17 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
         )
 
     def _repr_columns(self):
+        if self.node_labels is not None:
+            subsystem_label = ",".join(
+                self.node_labels.coerce_to_labels(self.node_indices)
+            )
+        elif self.node_indices is not None:
+            subsystem_label = ",".join(map(str, self.node_indices))
+        else:
+            subsystem_label = "None"
         columns = (
             [
-                (
-                    "Subsystem",
-                    ",".join(self.node_labels.coerce_to_labels(self.node_indices)),
-                ),
+                ("Subsystem", subsystem_label),
                 ("Current state", ",".join(map(str, self.current_state))),
                 (f"           {fmt.SMALL_PHI}_s", self.phi),
                 (f"Normalized {fmt.SMALL_PHI}_s", self.normalized_phi),
