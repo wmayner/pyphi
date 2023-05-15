@@ -138,7 +138,7 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
         body = fmt.center(body)
         column_extent = body.split("\n")[2].index(":")
         if self.partition:
-            body += "\n" + indent(str(self.partition), " " * (column_extent + 2))
+            body += "\n" + fmt.indent(str(self.partition), column_extent + 2)
         return fmt.box(body)
 
     def to_json(self):
