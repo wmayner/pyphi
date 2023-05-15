@@ -97,14 +97,13 @@ def powerset_coordinates(
     x_offset=0.0,
     y_offset=0.0,
     radius_func=log_n_choose_k,
-    purview_radius_mod=1,
 ):
     """Return a mapping from subsets of the nodes to coordinates."""
     radius_func = SHAPES.get(radius_func) or radius_func
     N = len(nodes)
     radii = radius_func(N)
     # Normalize overall radius
-    radii = radii * max_radius / radii.max() * purview_radius_mod
+    radii = radii * max_radius / radii.max()
     z = aspect_ratio * max_radius * np.cumsum(np.ones(N) * z_spacing) + z_offset
     mapping = dict()
     for k in range(N):

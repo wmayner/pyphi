@@ -52,7 +52,6 @@ class Theme(AttrDeepChainMap):
         purview=dict(
             shape="log_n_choose_k",
             offset_radius=0.1,
-            radius_mod=1.0,
         ),
         mechanism_purview_link=dict(
             color="lightgrey",

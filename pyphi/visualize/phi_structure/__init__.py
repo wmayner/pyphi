@@ -135,7 +135,6 @@ def plot_phi_structure(
             radius_func=geometry.SHAPES.get(
                 theme["purview"]["shape"], theme["purview"]["shape"]
             ),
-            purview_radius_mod=theme["purview"]["radius_mod"],
         )
         purview_coords = geometry.Coordinates(
             purview_mapping,
