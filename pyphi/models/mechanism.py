@@ -121,7 +121,6 @@ class StateSpecification(ToDictMixin, ToPandasMixin):
     def to_json(self):
         warn_about_tie_serialization(self.__class__.__name__, serialize=True)
         dct = self.to_dict()
-        # TODO(ties) implement serialization of ties
         return dct
 
     @classmethod
@@ -497,7 +496,11 @@ class RepertoireIrreducibilityAnalysis(
     def to_json(self):
         # TODO(ties) implement serialization of ties
         warn_about_tie_serialization(self.__class__.__name__, serialize=True)
-        return self.to_dict()
+        return {
+            attr: getattr(self, attr)
+            for attr in self._dict_attrs
+            if attr not in {"mechanism_label", "purview_label"}
+        }
 
     @classmethod
     def from_json(cls, data):
@@ -750,7 +753,7 @@ class MaximallyIrreducibleCauseOrEffect(
         return dct
 
     def to_json(self):
-        return self.to_dict()
+        return {"ria": self.ria}
 
     # TODO(to_pandas): This is currently broken; MICE should become a subclass
     # of RIA, and then a consistent implementation of `from_json` can be used
@@ -1094,12 +1097,19 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
 
     def to_json(self):
         """Return a JSON-serializable representation."""
-        return self.to_dict()
+        return dict(
+            mechanism=self.mechanism,
+            cause=self.cause,
+            effect=self.effect,
+        )
 
     @classmethod
     def from_json(cls, dct):
-        del dct["phi"]
-        return cls(**dct)
+        instance = cls(**dct)
+        # Restore parent references to MICEs
+        instance.cause.parent = instance
+        instance.effect.parent = instance
+        return instance
 
     def __setstate__(self, state):
         self.__dict__.update(state)
