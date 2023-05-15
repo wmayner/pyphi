@@ -8,7 +8,7 @@ from typing import Callable, Mapping, Optional, Union
 # TODO convert to nested structure?
 
 
-@dataclass(kw_only=True)
+@dataclass
 class Theme:
     """Specifies plot attributes."""
 
@@ -66,7 +66,7 @@ class Theme:
     legendgroup_postfix: str = ""
 
 
-@dataclass(kw_only=True)
+@dataclass
 class Grey(Theme):
     """A grey theme."""
 
