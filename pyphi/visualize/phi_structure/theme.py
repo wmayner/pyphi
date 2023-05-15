@@ -29,6 +29,11 @@ class Theme(AttrDeepChainMap):
             ]
         )
 
+
+Theme.SUBMAPPING_TYPE = Theme
+
+
+class DefaultTheme(Theme):
     DEFAULTS = dict(
         layout={
             **dict(
@@ -69,13 +74,17 @@ class Theme(AttrDeepChainMap):
             opacity=0.5,
         ),
         mechanism=dict(
-            max_radius=1.0,
-            z_offset=0.0,
-            z_spacing=0.0,
-            shape="linear",
+            geometry=dict(
+                max_radius=1.0,
+                z_offset=0.0,
+                z_spacing=0.0,
+                radius_func="linear",
+            ),
         ),
         purview=dict(
-            shape="log_n_choose_k",
+            geometry=dict(
+                radius_func="log_n_choose_k",
+            ),
             offset_radius=0.1,
         ),
         mechanism_purview_link=dict(
@@ -119,7 +128,7 @@ class Theme(AttrDeepChainMap):
     )
 
 
-class Grey(Theme):
+class Grey(DefaultTheme):
     DEFAULTS = dict(
         legendgroup_postfix=" (greyed)",
         cause_color="grey",

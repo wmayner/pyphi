@@ -11,7 +11,6 @@ import scipy.special
 from numpy.typing import ArrayLike
 
 from ...direction import Direction
-from ...utils import powerset
 
 TWOPI = 2 * np.pi
 
@@ -99,7 +98,7 @@ def powerset_coordinates(
     radius_func=log_n_choose_k,
 ):
     """Return a mapping from subsets of the nodes to coordinates."""
-    radius_func = SHAPES.get(radius_func) or radius_func
+    radius_func = SHAPES.get(radius_func, radius_func)
     N = len(nodes)
     radii = radius_func(N)
     # Normalize overall radius

@@ -10,9 +10,9 @@ from tqdm.auto import tqdm
 
 from ...direction import Direction
 from . import colors, geometry, text, utils
-from .theme import Grey, Theme
+from .theme import DefaultTheme, Grey, Theme
 
-DEFAULT_THEME = Theme()
+DEFAULT_THEME = DefaultTheme()
 GREY_THEME = Grey()
 
 
@@ -132,9 +132,7 @@ def plot_phi_structure(
     if purview_coords is None:
         purview_mapping = geometry.powerset_coordinates(
             node_indices,
-            radius_func=geometry.SHAPES.get(
-                theme["purview"]["shape"], theme["purview"]["shape"]
-            ),
+            **theme["purview"]["geometry"],
         )
         purview_coords = geometry.Coordinates(
             purview_mapping,
@@ -167,12 +165,7 @@ def plot_phi_structure(
         if mechanism_coords is None:
             mechanism_mapping = geometry.powerset_coordinates(
                 node_indices,
-                max_radius=theme["mechanism"]["max_radius"],
-                z_offset=theme["mechanism"]["z_offset"],
-                z_spacing=theme["mechanism"]["z_spacing"],
-                radius_func=geometry.SHAPES.get(
-                    theme["mechanism"]["shape"], theme["mechanism"]["shape"]
-                ),
+                **theme["mechanism"]["geometry"],
             )
             mechanism_coords = geometry.Coordinates(mechanism_mapping)
         # Mechanisms
