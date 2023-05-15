@@ -1,6 +1,5 @@
 # visualize/phi_structure/__init__.py
 
-import dataclasses
 from collections import defaultdict
 from typing import Mapping
 
@@ -10,17 +9,18 @@ from toolz import partition
 from tqdm.auto import tqdm
 
 from ...direction import Direction
-from . import colors, geometry, text, theme, utils
+from . import colors, geometry, text, utils
+from .theme import Grey, Theme
 
-DEFAULT_THEME = theme.Theme()
-GREY_THEME = theme.Grey()
+DEFAULT_THEME = Theme()
+GREY_THEME = Grey()
 
 
 def combine_figures(fig1, fig2, theme=DEFAULT_THEME, fig=None):
     if fig is None:
         fig = go.Figure()
     fig.data = fig1.data + fig2.data
-    fig.update_layout(make_layout(theme=theme))
+    fig.update_layout(theme["layout"])
     return fig
 
 
@@ -119,30 +119,33 @@ def plot_phi_structure(
     if node_labels is None:
         node_labels = subsystem.node_labels
 
-    if theme_overrides:
-        theme = dataclasses.replace(theme, **theme_overrides)
+    # Need to convert to native dict because Plotly has overly strict type
+    # checking; see https://github.com/plotly/plotly.py/issues/4212
+    theme = Theme(theme, **theme_overrides).to_dict()
 
     if fig is None:
         fig = go.Figure()
-    fig.update_layout(make_layout(theme=theme))
+    fig.update_layout(theme["layout"])
 
     label = text.Labeler(state, node_labels)
 
     if purview_coords is None:
         purview_mapping = geometry.powerset_coordinates(
             node_indices,
-            radius_func=geometry.SHAPES.get(theme.purview_shape, theme.purview_shape),
-            purview_radius_mod=theme.purview_radius_mod,
+            radius_func=geometry.SHAPES.get(
+                theme["purview"]["shape"], theme["purview"]["shape"]
+            ),
+            purview_radius_mod=theme["purview"]["radius_mod"],
         )
         purview_coords = geometry.Coordinates(
             purview_mapping,
             offset_subsets=distinctions.mechanisms,
-            subset_offset_radius=theme.purview_offset_radius,
-            direction_offset_amount=theme.direction_offset,
+            subset_offset_radius=theme["purview"]["offset_radius"],
+            direction_offset_amount=theme["direction"]["offset"],
         )
 
     # Distinctions
-    if theme.distinction:
+    if theme["distinction"]:
         fig = _plot_distinctions(
             fig,
             distinctions,
@@ -153,7 +156,7 @@ def plot_phi_structure(
         )
 
     # Cause-effect links
-    if theme.cause_effect_link:
+    if theme["cause_effect_link"]:
         fig = _plot_cause_effect_links(
             fig,
             distinctions,
@@ -161,27 +164,27 @@ def plot_phi_structure(
             theme,
         )
 
-    if theme.mechanism:
+    if theme["mechanism"]:
         if mechanism_coords is None:
             mechanism_mapping = geometry.powerset_coordinates(
                 node_indices,
-                max_radius=theme.mechanism_max_radius,
-                z_offset=theme.mechanism_z_offset,
-                z_spacing=theme.mechanism_z_spacing,
+                max_radius=theme["mechanism"]["max_radius"],
+                z_offset=theme["mechanism"]["z_offset"],
+                z_spacing=theme["mechanism"]["z_spacing"],
                 radius_func=geometry.SHAPES.get(
-                    theme.mechanism_shape, theme.mechanism_shape
+                    theme["mechanism"]["shape"], theme["mechanism"]["shape"]
                 ),
             )
             mechanism_coords = geometry.Coordinates(mechanism_mapping)
         # Mechanisms
         fig = _plot_mechanisms(fig, distinctions, mechanism_coords, label, theme)
         # Mechanism-purview links
-        if theme.mechanism_purview_link:
+        if theme["mechanism_purview_link"]:
             fig = _plot_mechanism_purview_links(
                 fig, distinctions, purview_coords, mechanism_coords, theme, value_attr
             )
 
-    if theme.two_relation or theme.three_relation:
+    if theme["two_relation"] or theme["three_relation"]:
         # Group relations by degree
         grouped_relations = defaultdict(list)
         for relation in tqdm(
@@ -213,7 +216,7 @@ def plot_phi_structure(
             )
 
         # 2-relations
-        if theme.two_relation and grouped_relations[2]:
+        if theme["two_relation"] and grouped_relations[2]:
             fig = _plot_two_relation_faces(
                 fig,
                 face_to_coords,
@@ -223,7 +226,7 @@ def plot_phi_structure(
             )
 
         # 3-relations
-        if theme.three_relation and grouped_relations[3]:
+        if theme["three_relation"] and grouped_relations[3]:
             fig = _plot_three_relation_faces(
                 fig, face_to_coords, grouped_relations[3], label, theme
             )
@@ -233,41 +236,13 @@ def plot_phi_structure(
     return fig
 
 
-def make_layout(width=1000, aspect=1, eye=None, theme=DEFAULT_THEME):
-    if eye is not None:
-        eye = dict(zip("xyz", geometry.spherical_to_cartesian(eye), strict=True))
-    height = width / aspect
-    return dict(
-        scene={
-            name: dict(
-                showbackground=False,
-                showgrid=False,
-                showticklabels=False,
-                showspikes=False,
-                title="",
-            )
-            for name in ["xaxis", "yaxis", "zaxis"]
-        },
-        scene_camera_eye=eye,
-        autosize=True,
-        showlegend=True,
-        hovermode="x",
-        hoverlabel_font=dict(family=theme.fontfamily, size=int(0.75 * theme.fontsize)),
-        title="",
-        width=width,
-        height=height,
-        paper_bgcolor="rgba(0, 0, 0, 0)",
-        plot_bgcolor="rgba(0, 0, 0, 0)",
-    )
-
-
 def scatter_from_coords(coords, theme=DEFAULT_THEME, **kwargs):
     """Return a Scatter3d given labels and coordinates."""
     x, y, z = np.stack(coords).transpose()
     defaults = dict(
         mode="text",
         textposition="middle center",
-        textfont=dict(family=theme.fontfamily, size=theme.fontsize),
+        textfont=dict(family=theme["fontfamily"], size=theme["fontsize"]),
         hoverinfo="text",
         showlegend=True,
     )
@@ -325,11 +300,11 @@ def _plot_distinctions(
     value_attr,
 ):
     values = [getattr(distinction, value_attr) for distinction in distinctions]
-    marker_size = utils.rescale(values, theme.point_size_range)
+    marker_size = utils.rescale(values, theme["point_size_range"])
     # TODO convert to flat CES and plot as one trace
     traces = []
     for direction, color in zip(
-        Direction.both(), [theme.cause_color, theme.effect_color], strict=True
+        Direction.both(), [theme["cause_color"], theme["effect_color"]], strict=True
     ):
         coords = [
             purview_coords.get(
@@ -340,10 +315,7 @@ def _plot_distinctions(
             for distinction in distinctions
         ]
         labels = [
-            # TODO currently labeling current state only; decide if that's right
-            # and and refactor
-            label.nodes(distinction.purview(direction))
-            for distinction in distinctions
+            label.nodes(distinction.purview(direction)) for distinction in distinctions
         ]
         hovertext = [
             label.hover(distinction.mice(direction)) for distinction in distinctions
@@ -352,21 +324,21 @@ def _plot_distinctions(
             scatter_from_coords(
                 coords,
                 theme=theme,
-                name=f"{direction} distinctions" + theme.legendgroup_postfix,
+                name=f"{direction} distinctions" + theme["legendgroup_postfix"],
                 text=labels,
                 textfont_color=color,
                 hovertext=hovertext,
                 hoverlabel_bgcolor=color,
-                opacity=theme.distinction_opacity,
-                mode=theme.distinction_mode,
+                opacity=theme["distinction"]["opacity"],
+                mode=theme["distinction"]["mode"],
                 marker=dict(
+                    coloraxis="coloraxis",
                     symbol="circle",
                     color=values,
-                    # colorscale=theme.distinction_colorscale,
+                    colorscale=theme["distinction"]["colorscale"],
                     size=marker_size,
-                    coloraxis="coloraxis",
-                    # cmin=theme.distinction_color_range[0],
-                    # cmax=theme.distinction_color_range[0],
+                    # cmin=theme['distinction']['color_range'][0],
+                    # cmax=theme['distinction']['color_range'][0],
                 ),
             )
         )
@@ -380,8 +352,8 @@ def _plot_cause_effect_links(
     theme,
 ):
     # TODO make this scaling consistent with 2-relation phi?
-    name = "Cause-effect links" + theme.legendgroup_postfix
-    widths = utils.rescale(distinctions.phis, theme.line_width_range)
+    name = "Cause-effect links" + theme["legendgroup_postfix"]
+    widths = utils.rescale(distinctions.phis, theme["line_width_range"])
     showlegend = True
     traces = []
     for distinction, width in zip(distinctions, widths, strict=True):
@@ -402,11 +374,11 @@ def _plot_cause_effect_links(
                 y=y,
                 z=z,
                 showlegend=showlegend,
-                legendgroup=name + theme.legendgroup_postfix,
+                legendgroup=name + theme["legendgroup_postfix"],
                 name=name,
                 mode="lines",
-                line_color=theme.cause_effect_link_color,
-                opacity=theme.cause_effect_link_opacity,
+                line_color=theme["cause_effect_link"]["color"],
+                opacity=theme["cause_effect_link"]["opacity"],
                 line_width=width,
                 hoverinfo="skip",
             )
@@ -416,7 +388,7 @@ def _plot_cause_effect_links(
 
 
 def _plot_mechanisms(fig, distinctions, mechanism_coords, label, theme):
-    name = "Mechanisms" + theme.legendgroup_postfix
+    name = "Mechanisms" + theme["legendgroup_postfix"]
     labels = []
     coords = []
     for mechanism in distinctions.mechanisms:
@@ -427,7 +399,7 @@ def _plot_mechanisms(fig, distinctions, mechanism_coords, label, theme):
             coords,
             theme=theme,
             text=labels,
-            legendgroup=name + theme.legendgroup_postfix,
+            legendgroup=name + theme["legendgroup_postfix"],
             name=name,
             hoverinfo="skip",
         )
@@ -442,10 +414,10 @@ def _plot_mechanism_purview_links(
     theme,
     value_attr,
 ):
-    name = "Mechanism-purview links" + theme.legendgroup_postfix
+    name = "Mechanism-purview links" + theme["legendgroup_postfix"]
     # TODO make this scaling consistent with 2-relation phi?
     values = [getattr(distinction, value_attr) for distinction in distinctions]
-    widths = utils.rescale(values, theme.line_width_range)
+    widths = utils.rescale(values, theme["line_width_range"])
     showlegend = True
     traces = []
     for distinction, width in zip(distinctions, widths, strict=True):
@@ -471,11 +443,11 @@ def _plot_mechanism_purview_links(
                 y=y,
                 z=z,
                 showlegend=showlegend,
-                legendgroup=name + theme.legendgroup_postfix,
+                legendgroup=name + theme["legendgroup_postfix"],
                 name=name,
                 mode="lines",
-                line_color=theme.mechanism_purview_link_color,
-                opacity=theme.mechanism_purview_link_opacity,
+                line_color=theme["mechanism_purview_link"]["color"],
+                opacity=theme["mechanism_purview_link"]["opacity"],
                 line_width=width,
                 hoverinfo="skip",
             )
@@ -485,10 +457,10 @@ def _plot_mechanism_purview_links(
 
 
 def _plot_two_relation_faces(fig, face_to_coords, relation_faces, label, theme):
-    name = "2-relations" + theme.legendgroup_postfix
+    name = "2-relations" + theme["legendgroup_postfix"]
     values, faces = zip(*relation_faces, strict=True)
     values = np.array(values)
-    if len(faces) >= theme.two_relation_detail_threshold:
+    if len(faces) >= theme["two_relation"]["detail_threshold"]:
         return _plot_two_relation_faces_single_trace(
             fig, face_to_coords, label, theme, values, faces, name
         )
@@ -508,28 +480,30 @@ def _plot_two_relation_faces_single_trace(
         lines_from_coords(
             coords,
             showlegend=True,
-            legendgroup=name + theme.legendgroup_postfix,
+            legendgroup=name + theme["legendgroup_postfix"],
             name=name,
             mode="lines",
             line=dict(
-                width=theme.two_relation_line_width,
+                width=theme["two_relation"]["line_width"],
                 color=(
-                    values if not theme.two_relation_color else theme.two_relation_color
+                    values
+                    if not theme["two_relation"]["color"]
+                    else theme["two_relation"]["color"]
                 ),
                 coloraxis="coloraxis2",
-                colorscale=theme.two_relation_colorscale,
-                showscale=theme.two_relation_showscale,
-                reversescale=theme.two_relation_reversescale,
+                colorscale=theme["two_relation"]["colorscale"],
+                showscale=theme["two_relation"]["showscale"],
+                reversescale=theme["two_relation"]["reversescale"],
                 colorbar=dict(
-                    title=dict(text="2-face φ_r", font_size=theme.fontsize),
+                    title=dict(text="2-face φ_r", font_size=theme["fontsize"]),
                     x=-0.2,
                     len=1.0,
                 ),
             ),
-            opacity=theme.two_relation_opacity,
+            opacity=theme["two_relation"]["opacity"],
             hoverinfo="text",
             # hovertext=label.relation(faces),
-            # hoverlabel_font_color=theme.two_relation_hoverlabel_font_color,
+            # hoverlabel_font_color=theme['two_relation']['hoverlabel_font_color'],
         )
     )
 
@@ -538,7 +512,7 @@ def _plot_two_relation_faces_multiple_traces(
     fig, face_to_coords, label, theme, values, faces, name
 ):
     line_colors = _two_relation_line_colors(theme, faces, values)
-    widths = utils.rescale(values, theme.line_width_range)
+    widths = utils.rescale(values, theme["line_width_range"])
     # Individual trace for each face
     showlegend = True
     traces = []
@@ -555,15 +529,15 @@ def _plot_two_relation_faces_multiple_traces(
                 y=y,
                 z=z,
                 showlegend=showlegend,
-                legendgroup=name + theme.legendgroup_postfix,
+                legendgroup=name + theme["legendgroup_postfix"],
                 name=name,
                 mode="lines",
                 line_color=line_color,
-                opacity=theme.two_relation_opacity,
+                opacity=theme["two_relation"]["opacity"],
                 line_width=width,
                 hoverinfo="text",
                 # hovertext=label.relation(faces),
-                # hoverlabel_font_color=theme.two_relation_hoverlabel_font_color,
+                # hoverlabel_font_color=theme['two_relation']['hoverlabel_font_color'],
             )
         )
         # Only show the first trace in the legend
@@ -583,41 +557,38 @@ def line_color_values(values):
 
 
 def _two_relation_line_colors(theme, faces, values):
-    if isinstance(theme.two_relation_colorscale, Mapping):
+    colorscale = theme["two_relation"]["colorscale"]
+    if isinstance(colorscale, Mapping):
         # Map to relation type
-        line_colors = map(
-            theme.two_relation_colorscale.get, map(colors.two_relation_face_type, faces)
-        )
-    elif theme.two_relation_colorscale in colors.TWO_RELATION_COLORSCHEMES:
+        line_colors = map(colorscale.get, map(colors.two_relation_face_type, faces))
+    elif colorscale in colors.TWO_RELATION_COLORSCHEMES:
         # Library function
-        line_colors = map(
-            colors.TWO_RELATION_COLORSCHEMES[theme.two_relation_colorscale], faces
-        )
-    elif isinstance(theme.two_relation_colorscale, str):
+        line_colors = map(colors.TWO_RELATION_COLORSCHEMES[colorscale], faces)
+    elif isinstance(colorscale, str):
         # Plotly colorscale
         scaled_values = utils.rescale(values, (0, 1))
 
         def colorize(value):
-            return colors.get_color(theme.two_relation_colorscale, value)
+            return colors.get_color(colorscale, value)
 
         line_colors = map(colorize, scaled_values)
     else:
         # Callable
-        line_colors = map(theme.two_relation_colorscale, faces)
+        line_colors = map(colorscale, faces)
     return list(line_colors)
 
 
 def _plot_three_relation_faces(fig, face_to_coords, relation_faces, label, theme):
-    name = "3-relations" + theme.legendgroup_postfix
+    name = "3-relations" + theme["legendgroup_postfix"]
     # Build vertices:
     # Stack the [relation, relata] axes together and tranpose to put the 3D axis
     # first to get lists of x, y, z coordinates
     values, faces = zip(*relation_faces, strict=True)
     x, y, z = np.vstack(list(map(face_to_coords, faces))).transpose()
     values = np.array(list(values))
-    intensities = utils.rescale(values, theme.three_relation_intensity_range)
+    intensities = utils.rescale(values, theme["three_relation"]["intensity_range"])
 
-    if theme.three_relation_opacity_range is None:
+    if theme["three_relation"]["opacity_range"] is None:
         return _plot_three_relation_faces_single_trace(
             fig=fig,
             label=label,
@@ -658,21 +629,21 @@ def _plot_three_relation_faces_single_trace(
             i=i,
             j=j,
             k=k,
-            showlegend=theme.three_relation_showlegend,
-            legendgroup=name + theme.legendgroup_postfix,
+            showlegend=theme["three_relation"]["showlegend"],
+            legendgroup=name + theme["legendgroup_postfix"],
             name=name,
             intensity=intensities,
             intensitymode="cell",
-            colorscale=theme.three_relation_colorscale,
-            showscale=theme.three_relation_showscale,
-            reversescale=theme.two_relation_reversescale,
+            colorscale=theme["three_relation"]["colorscale"],
+            showscale=theme["three_relation"]["showscale"],
+            reversescale=theme["three_relation"]["reversescale"],
             colorbar=dict(
-                title=dict(text="3-face φ_r", font_size=theme.fontsize),
+                title=dict(text="3-face φ_r", font_size=theme["fontsize"]),
                 x=0.0,
                 len=1.0,
             ),
-            opacity=theme.three_relation_opacity,
-            lighting=theme.lighting,
+            opacity=theme["three_relation"]["opacity"],
+            lighting=theme["lighting"],
             hoverinfo="text",
             # hovertext=hovertext,
         )
@@ -690,10 +661,10 @@ def _plot_three_relation_faces_multiple_traces(
     y,
     z,
 ):
-    opacities = utils.rescale(values, theme.three_relation_opacity_range)
+    opacities = utils.rescale(values, theme["three_relation"]["opacity_range"])
     # hovertexts = list(map(label.relation, relation_faces))
-    showlegend = theme.three_relation_showlegend
-    showscale = theme.three_relation_showscale
+    showlegend = theme["three_relation"]["showlegend"]
+    showscale = theme["three_relation"]["showscale"]
     traces = []
     for _x, _y, _z, intensity, opacity in zip(
         partition(3, x),
@@ -713,21 +684,21 @@ def _plot_three_relation_faces_multiple_traces(
                 j=[1],
                 k=[2],
                 showlegend=showlegend,
-                legendgroup=name + theme.legendgroup_postfix,
+                legendgroup=name + theme["legendgroup_postfix"],
                 name=name,
                 intensity=[intensity],
                 intensitymode="cell",
-                colorscale=theme.three_relation_colorscale,
+                colorscale=theme["three_relation"]["colorscale"],
                 showscale=showscale,
                 colorbar=dict(
-                    title=dict(text="φ", font_size=theme.fontsize),
+                    title=dict(text="φ", font_size=theme["fontsize"]),
                     x=0.0,
                     len=1.0,
                 ),
                 opacity=opacity,
                 hoverinfo="text",
                 # hovertext=hovertext,
-                lighting=theme.lighting,
+                lighting=theme["lighting"],
             )
         )
         showlegend = False

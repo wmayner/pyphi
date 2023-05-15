@@ -2,86 +2,144 @@
 
 """Provides visualization themes for plotting phi structures."""
 
-from dataclasses import dataclass, field
-from typing import Callable, Mapping, Optional, Union
+from inspect import getmro
+from pprint import pformat
 
-# TODO convert to nested structure?
+from ...data_structures import AttrDeepChainMap
+from ...models import fmt
 
 
-@dataclass
-class Theme:
+class Theme(AttrDeepChainMap):
     """Specifies plot attributes."""
 
-    fontfamily: str = "MesloLGS NF, Roboto Mono, Menlo"
-    fontsize: int = 12
-    direction_offset: float = 0.5
-    purview_shape: Union[str, Callable] = "log_n_choose_k"
-    purview_offset_radius: float = 0.1
-    cause_color: str = "#e21a1a"
-    effect_color: str = "#14b738"
-    point_size_range: tuple = (5, 30)
-    distinction: bool = True
-    distinction_mode: str = "text+markers"
-    distinction_opacity: float = 0.75
-    distinction_colorscale: str = "viridis"
-    distinction_color_range: tuple[float] = (0, 0.8)
-    distinction_opacity_range: tuple = (0.1, 0.9)
-    line_width_range: tuple = (3, 10)
-    cause_effect_link: bool = True
-    cause_effect_link_color: str = "lightgrey"
-    cause_effect_link_opacity: float = 0.5
-    mechanism_purview_link: bool = True
-    mechanism_purview_link_color: str = "lightgrey"
-    mechanism_purview_link_opacity: float = 0.5
-    mechanism: bool = True
-    mechanism_max_radius: float = 1.0
-    mechanism_z_offset: float = 0.0
-    mechanism_z_spacing: float = 0.0
-    mechanism_shape: Union[Callable, str] = "linear"
-    purview_radius_mod: float = 1.0
-    """Controls whether a single trace is used to plot 2-relation faces,
-    precluding visual indications of their phi value."""
-    two_relation: bool = True
-    two_relation_detail_threshold: int = 1000
-    two_relation_opacity: float = 0.1
-    two_relation_line_width: float = 1
-    two_relation_color: str = None
-    two_relation_colorscale: Union[str, Callable, Mapping] = "type"
-    two_relation_showscale: bool = True
-    two_relation_reversescale: bool = False
-    two_relation_hoverlabel_font_color: str = "white"
-    three_relation: bool = True
-    three_relation_colorscale: str = "teal"
-    three_relation_reversescale: bool = False
-    three_relation_showscale: bool = True
-    three_relation_opacity: float = 0.1
-    three_relation_opacity_range: Optional[tuple] = None
-    three_relation_intensity_range: tuple = (0, 1)
-    three_relation_showlegend: bool = True
-    lighting: Mapping = field(
-        default_factory=lambda: dict(
-            ambient=0.8, diffuse=0, roughness=0, specular=0, fresnel=0
+    def __init__(self, *maps, **kwargs) -> None:
+        # Combine defaults from all base classes to allow easily overriding
+        # certain defaults by subclassing
+        base_classes = getmro(self.__class__)
+        defaults = [cls.DEFAULTS for cls in base_classes if hasattr(cls, "DEFAULTS")]
+        super().__init__(kwargs, *maps, *defaults)
+
+    def __repr__(self) -> str:
+        body = pformat(self.to_dict())
+        return "\n".join(
+            [
+                f"{self.__class__.__name__}(",
+                fmt.indent(body, amount=2),
+                ")",
+            ]
         )
+
+    DEFAULTS = dict(
+        fontfamily="MesloLGS NF, Roboto Mono, Menlo",
+        fontsize=12,
+        cause_color="#e21a1a",
+        effect_color="#14b738",
+        point_size_range=(5, 30),
+        line_width_range=(3, 10),
+        direction=dict(
+            offset=0.5,
+        ),
+        cause_effect_link=dict(
+            color="lightgrey",
+            opacity=0.5,
+        ),
+        mechanism=dict(
+            max_radius=1.0,
+            z_offset=0.0,
+            z_spacing=0.0,
+            shape="linear",
+        ),
+        purview=dict(
+            shape="log_n_choose_k",
+            offset_radius=0.1,
+            radius_mod=1.0,
+        ),
+        mechanism_purview_link=dict(
+            color="lightgrey",
+            opacity=0.5,
+        ),
+        distinction=dict(
+            mode="text+markers",
+            opacity=0.75,
+            colorscale="viridis",
+            color_range=(0, 0.8),
+            opacity_range=(0.1, 0.9),
+        ),
+        two_relation=dict(
+            detail_threshold=1000,
+            opacity=0.1,
+            line_width=1,
+            color=None,
+            colorscale="type",
+            showscale=True,
+            reversescale=False,
+            hoverlabel_font_color="white",
+        ),
+        three_relation=dict(
+            colorscale="teal",
+            reversescale=False,
+            showscale=True,
+            opacity=0.1,
+            opacity_range=None,
+            intensity_range=(0, 1),
+            showlegend=True,
+        ),
+        lighting=dict(
+            ambient=0.8,
+            diffuse=0,
+            roughness=0,
+            specular=0,
+            fresnel=0,
+        ),
+        legendgroup_postfix="",
+        layout=dict(
+            scene={
+                name: dict(
+                    showbackground=False,
+                    showgrid=False,
+                    showticklabels=False,
+                    showspikes=False,
+                    title="",
+                )
+                for name in ["xaxis", "yaxis", "zaxis"]
+            },
+            autosize=True,
+            showlegend=True,
+            hovermode="x",
+            title="",
+            width=1000,
+            height=800,
+            paper_bgcolor="rgba(0, 0, 0, 0)",
+            plot_bgcolor="rgba(0, 0, 0, 0)",
+        ),
     )
-    legendgroup_postfix: str = ""
 
 
-@dataclass
 class Grey(Theme):
-    """A grey theme."""
-
-    cause_color: str = "grey"
-    effect_color: str = "grey"
-    distinction_colorscale: str = "greys"
-    distinction_opacity_range: tuple[float] = (0.1, 0.2)
-    cause_effect_link_color = "grey"
-    cause_effect_link_opacity: float = 0.1
-    mechanism_purview_link_color = "grey"
-    mechanism_purview_link_opacity: float = 0.1
-    two_relation_colorscale: str = "greys"
-    two_relation_opacity: float = 0.1
-    two_relation_showscale: bool = False
-    three_relation_colorscale: str = "greys"
-    three_relation_opacity: float = 0.05
-    three_relation_intensity_range: tuple[float] = (0, 0.5)
-    legendgroup_postfix: str = " (greyed)"
+    DEFAULTS = dict(
+        legendgroup_postfix=" (greyed)",
+        cause_color="grey",
+        effect_color="grey",
+        distinction=dict(
+            colorscale="greys",
+            opacity_range=(0.1, 0.2),
+        ),
+        cause_effect_link=dict(
+            color="grey",
+            opacity=0.1,
+        ),
+        mechanism_purview_link=dict(
+            color="grey",
+            link_opacity=0.1,
+        ),
+        two_relation=dict(
+            colorscale="greys",
+            opacity=0.1,
+            showscale=False,
+        ),
+        three_relation=dict(
+            colorscale="greys",
+            opacity=0.05,
+            intensity_range=(0, 0.5),
+        ),
+    )
