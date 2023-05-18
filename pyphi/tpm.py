@@ -6,6 +6,7 @@
 Provides the ExplicitTPM and related classes.
 """
 
+import math
 from itertools import chain
 from typing import Mapping, Set
 
@@ -37,7 +38,6 @@ class ProxyMetaclass(type):
     """
 
     def __init__(cls, type_name, bases, dct):
-
         # Casting semantics: values belonging to our custom TPM class should
         # remain closed under the following methods:
         __closures__ = frozenset(
@@ -257,7 +257,9 @@ class ExplicitTPM(data_structures.ArrayLike):
             raise ValueError(
                 "Invalid TPM: probabilities must be in the interval [0, 1]."
             )
-        if self.is_state_by_state() and not np.all(np.isclose(np.sum(self._tpm, axis=1), 1.0, atol=1e-15)):            
+        if self.is_state_by_state() and not np.all(
+            np.isclose(np.sum(self._tpm, axis=1), 1.0, atol=1e-15)
+        ):
             raise ValueError("Invalid TPM: probabilities must sum to 1.")
         return True
 
@@ -305,6 +307,13 @@ class ExplicitTPM(data_structures.ArrayLike):
                 "{}".format(see_tpm_docs)
             )
         return True
+
+    @property
+    def number_of_units(self):
+        if self.is_state_by_state():
+            # Assumes binary nodes
+            return math.log2(self._tpm.shape[1])
+        return self._tpm.shape[-1]
 
     def to_multidimensional_state_by_node(self):
         """Return the current TPM re-represented in multidimensional
