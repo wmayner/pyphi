@@ -1,13 +1,13 @@
 # dynamics.py
 
-from typing import Iterable
+from typing import Iterable, Optional, Mapping
 
 import numpy as np
+import pandas as pd
 from numpy.typing import ArrayLike
 
-from .data_structures import FrozenMap
-from .tpm import ExplicitTPM
 from . import utils
+from .tpm import ExplicitTPM
 
 
 def mean_dynamics(
@@ -17,7 +17,7 @@ def mean_dynamics(
 ):
     """Return a sample of the dynamics averaged over all initial states."""
     tpm = ExplicitTPM(tpm)
-    clamp = kwargs.get("clamp", FrozenMap())
+    clamp = kwargs.get("clamp", dict())
     initial_states = [
         insert_clamp(clamp, state)
         for state in utils.all_states(number_of_units(tpm) - len(clamp))
@@ -36,38 +36,62 @@ def mean_dynamics(
 
 def simulate(
     tpm: ArrayLike,
-    initial_state: tuple[int] = None,
-    timesteps: int = 100,
-    clamp: FrozenMap = None,
+    initial_state: Optional[tuple[int]] = None,
+    timesteps: Optional[int] = 100,
+    clamp: Optional[Iterable[Mapping] | Mapping] = None,
     rng: np.random.Generator = None,
 ):
     """Return a simulated timeseries of system states."""
-    tpm = ExplicitTPM(tpm)
+    if isinstance(tpm, pd.DataFrame):
+        N = len(tpm.index[0])
+        simulate_one_timestep = simulate_one_timestep_from_pandas_state_by_state
+    else:
+        # Assumes state-by-node multidimensional TPM
+        tpm = ExplicitTPM(tpm)
+        N = tpm.number_of_units
+        simulate_one_timestep = simulate_one_timestep_from_explicit_tpm_state_by_node
+
     if rng is None:
         rng = np.random.default_rng(seed=None)
-    if initial_state is None:
-        initial_state = tuple(rng.integers(low=0, high=2, size=number_of_units(tpm)))
-    elif len(initial_state) != number_of_units(tpm):
-        raise ValueError("initial_state must have length equal to the number of units")
 
-    states = [apply_clamp(clamp, initial_state)]
-    for _ in range(timesteps):
-        # Assumes state-by-node multidimensional TPM
-        elementwise_probabilities = tpm[states[-1]]
-        next_state = simulate_one_timestep(elementwise_probabilities, rng)
-        next_state = apply_clamp(clamp, next_state)
+    if clamp is None:
+        clamp = dict()
+
+    if initial_state is None:
+        initial_state = tuple(rng.integers(low=0, high=2, size=tpm.number_of_units))
+    elif len(initial_state) != N:
+        raise ValueError(
+            "initial_state must have length equal to the number of units"
+        )
+
+    if isinstance(clamp, Mapping):
+        clamps = [clamp]*timesteps
+    else:
+        clamps = clamp
+
+    states = [apply_clamp(clamps[0], initial_state)]
+    for current_clamp in clamps[1:]:
+        current_state = states[-1]
+        next_state = simulate_one_timestep(rng, tpm, current_state)
+        next_state = apply_clamp(current_clamp, next_state)
         states.append(next_state)
     return states
 
 
-def simulate_one_timestep(
-    elementwise_probabilities: Iterable[float], rng: np.random.Generator
-):
+def simulate_one_timestep_from_pandas_state_by_state(rng, tpm, state):
+    """Simulate one timestep given a DataFrame containing probabilities indexed
+    by state along both dimensions."""
+    state_probabilities = tpm.loc[state]
+    return state_probabilities.sample(weights=state_probabilities).index[0]
+
+
+def simulate_one_timestep_from_explicit_tpm_state_by_node(rng, tpm, state):
+    """Simulate one timestep given an ExplicitTPM in multidimensional
+    state-by-node form."""
+    # Assumes state-by-node multidimensional TPM
+    elementwise_probabilities = tpm[state]
     thresholds = rng.random(len(elementwise_probabilities))
-    return tuple(
-        1 if probability > threshold else 0
-        for probability, threshold in zip(elementwise_probabilities, thresholds)
-    )
+    return tuple((elementwise_probabilities > thresholds).astype(int))
 
 
 # TODO(4.0): move to tpm module
