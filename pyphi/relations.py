@@ -5,6 +5,7 @@
 import warnings
 from collections import defaultdict
 from functools import cached_property
+from itertools import product
 
 from graphillion import setset
 from tqdm.auto import tqdm
@@ -13,14 +14,19 @@ from . import combinatorics, conf, utils
 from .compute.parallel import MapReduce
 from .conf import config, fallback
 from .data_structures import PyPhiFloat
+from .direction import Direction
 from .models import cmp, fmt
-from .models.subsystem import FlatCauseEffectStructure
 from .registry import Registry
 from .warnings import PyPhiWarning
 
 
 class RelationFace(frozenset):
     """A set of (potentially) related causes/effects."""
+
+    def __new__(cls, *args, phi=None):
+        self = super().__new__(cls, *args)
+        self.phi = phi
+        return self
 
     @cached_property
     def overlap(self):
@@ -92,22 +98,23 @@ class RelationFace(frozenset):
 class Relation(frozenset, cmp.OrderableByPhi):
     """A set of relation faces forming the relation among a set of distinctions."""
 
+    def _faces(self):
+        """Yield faces of the relation."""
+        distinctions = list(self)
+        for directions in product(Direction.all(), repeat=len(self)):
+            mice = []
+            for direction, distinction in zip(directions, distinctions):
+                if direction is Direction.BIDIRECTIONAL:
+                    mice.extend([distinction.cause, distinction.effect])
+                else:
+                    mice.append(distinction.mice(direction))
+            face = RelationFace(mice, phi=self.phi)
+            if face:
+                yield face
+
     @cached_property
     def faces(self):
-        mice = FlatCauseEffectStructure(self)
-        faces = set(
-            RelationFace((mice[i] for i in combination))
-            for combination in _combinations_with_nonempty_congruent_overlap(mice)
-        )
-        # Remove self-faces unless this is a self-relation
-        if not self.is_self_relation:
-            faces -= set(
-                [
-                    RelationFace([distinction.cause, distinction.effect])
-                    for distinction in self
-                ]
-            )
-        return frozenset(faces)
+        return frozenset(self._faces())
 
     @property
     def num_faces(self):
