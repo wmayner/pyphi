@@ -3,9 +3,11 @@
 """Functions for computing relations among distinctions."""
 
 import warnings
+from collections import defaultdict
 from functools import cached_property
 
 from graphillion import setset
+from tqdm.auto import tqdm
 
 from . import combinatorics, conf, utils
 from .compute.parallel import MapReduce
@@ -191,7 +193,8 @@ def _combinations_with_nonempty_congruent_overlap(
     """Return combinations of distinctions with nonempty congruent overlap.
 
     Arguments:
-        components (CauseEffectStructure | FlatCauseEffectStructure): The distinctions or MICE to find overlaps among.
+        components (CauseEffectStructure | FlatCauseEffectStructure): The
+        distinctions or MICE to find overlaps among.
     """
     # TODO(4.0) remove mapping when/if distinctions allow O(1) random access
     mapping = {component: i for i, component in enumerate(components)}
@@ -244,6 +247,20 @@ class ConcreteRelations(frozenset, Relations):
         return fmt.header(
             self.__class__.__name__, body, fmt.HEADER_BAR_1, fmt.HEADER_BAR_1
         )
+
+    @cached_property
+    def faces_by_degree(self):
+        """Return a dictionary mapping degree to relation faces of that degree."""
+        faces = defaultdict(list)
+        for relation in tqdm(
+            self,
+            desc="Grouping relation faces by degree",
+            leave=False,
+        ):
+            for face in relation.faces:
+                faces[len(face)].append(face)
+        return dict(faces)
+
 
 
 class AnalyticalRelations(Relations):
