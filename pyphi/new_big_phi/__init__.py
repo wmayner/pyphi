@@ -389,6 +389,13 @@ class PhiStructure(cmp.Orderable):
     def relations(self):
         return self._relations
 
+    @property
+    def components(self):
+        for distinction in self.distinctions:
+            yield distinction
+        for relation in self.relations:
+            yield relation
+
     def __getattr__(self, attr):
         if attr in self._SIA_INHERITED_ATTRIBUTES:
             return getattr(self.sia, attr)
