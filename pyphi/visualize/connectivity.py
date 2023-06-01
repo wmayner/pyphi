@@ -21,7 +21,7 @@ def plot_graph(g, **kwargs):
         ),
         **kwargs,
     }
-    nx.draw(
+    nx.draw_networkx(
         g,
         **kwargs,
     )
