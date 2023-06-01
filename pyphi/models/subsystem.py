@@ -169,7 +169,12 @@ class CauseEffectStructure(cmp.Orderable, Sequence, ToPandasMixin):
         label = self.subsystem.node_labels.indices2labels
         return tuple(list(label(mechanism)) for mechanism in self.mechanisms)
 
-    def _purview_inclusion(self, min_order, max_order):
+    def purview_inclusion_of_intersection(self, min_order, max_order):
+        return _purview_inclusion(
+            "purview_intersection", distinctions=self, min_order=min_order, max_order=max_order,
+        )
+
+    def _purview_inclusion_of_union(self, min_order, max_order):
         return _purview_inclusion(
             "purview_union", distinctions=self, min_order=min_order, max_order=max_order
         )
@@ -183,7 +188,7 @@ class CauseEffectStructure(cmp.Orderable, Sequence, ToPandasMixin):
         if max_order is None or max_order not in self._purview_inclusion_by_order:
             self._purview_inclusion_by_order.update(
                 # NOTE: We use the union of the cause/effect purviews
-                self._purview_inclusion(
+                self._purview_inclusion_of_union(
                     min_order=max(self._purview_inclusion_by_order, default=0) + 1,
                     max_order=max_order,
                 )
@@ -286,10 +291,9 @@ class FlatCauseEffectStructure(CauseEffectStructure):
                 )
                 for mechanism, mice in mechanism_to_mice.items()
             ],
-            # subsystem=self.subsystem,
         )
 
-    def _purview_inclusion(self, min_order, max_order):
+    def _purview_inclusion_of_union(self, min_order, max_order):
         return _purview_inclusion(
             "purview_units", distinctions=self, min_order=min_order, max_order=max_order
         )

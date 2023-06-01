@@ -939,10 +939,16 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
         return getattr(self.effect, "purview", None)
 
     @cached_property
+    def both_purview_unit_sets(self):
+        return [set(self.mice(direction).purview_units) for direction in Direction.both()]
+
+    @cached_property
     def purview_union(self):
-        return set.union(
-            *(set(self.mice(direction).purview_units) for direction in Direction.both())
-        )
+        return set.union(*self.both_purview_unit_sets)
+
+    @cached_property
+    def purview_intersection(self):
+        return set.intersection(*self.both_purview_unit_sets)
 
     @property
     def cause_repertoire(self):
