@@ -4,7 +4,7 @@
 
 import warnings
 from collections import defaultdict
-from functools import cached_property
+from functools import cached_property, total_ordering
 from itertools import product
 
 from graphillion import setset
@@ -25,8 +25,14 @@ class RelationFace(frozenset):
 
     def __new__(cls, *args, phi=None):
         self = super().__new__(cls, *args)
+        if phi is None:
+            raise ValueError("phi keyword argument is required")
         self.phi = phi
         return self
+
+    @total_ordering
+    def __lt__(self, other):
+        return self.phi < other.phi
 
     @cached_property
     def overlap(self):
