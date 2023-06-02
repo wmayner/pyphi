@@ -108,7 +108,7 @@ def indent(lines, amount=2, char=" ", newline="\n"):
     """
     lines = str(lines)
     padding = amount * char
-    return padding + ("\n" + padding).join(lines.split("\n"))
+    return padding + (newline + padding).join(lines.split(newline))
 
 
 def margin(text):

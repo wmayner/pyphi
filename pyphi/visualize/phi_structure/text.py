@@ -6,7 +6,7 @@ from ... import config, utils
 from ...models import fmt
 
 
-def indent(lines, amount=2, char="&nbsp;", newline="<br>"):
+def indent(lines, amount=4, char="&nbsp;", newline="<br>"):
     return fmt.indent(lines, amount=amount, char=char, newline=newline)
 
 
@@ -23,7 +23,16 @@ class Labeler:
             for i, n in enumerate(self.node_labels.coerce_to_labels(nodes))
         )
 
-    def hover(self, mice):
+    def units(self, units):
+        units = sorted(units)
+        indices = [unit.index for unit in units]
+        state = [unit.state for unit in units]
+        return self.nodes(indices, state=state)
+
+    def mice(self, mice):
+        return f"{self.nodes(mice.purview, state=mice.specified_state)}"
+
+    def hover_mice(self, mice):
         return "<br>".join(
             [
                 f"Distinction ({mice.direction})",
@@ -40,20 +49,29 @@ class Labeler:
             ]
         )
 
-    def mice(self, mice):
-        return f"{self.nodes(mice.purview, state=mice.specified_state)}"
-
-    def relata(self, relata):
+    def hover_relata(self, relata):
         return "<br>".join(map(self.mice, relata))
 
-    def relation(self, relation):
+    def hover_relation(self, relation):
         return f"{len(relation)}-relation<br>" + indent(
             "<br>".join(
                 [
-                    f"P: {self.nodes(relation.purview)}",
+                    f"P: {self.units(relation.purview)}",
                     f"φ: {round(relation.phi, config.PRECISION)}",
                     "Relata:",
-                    indent(self.relata(relation.relata)),
+                    indent(self.relata(relation)),
+                ]
+            )
+        )
+
+    def hover_relation_face(self, face):
+        return f"{len(face)}-face<br>" + indent(
+            "<br>".join(
+                [
+                    f"P: {self.units(face.purview)}",
+                    f"φ: {round(face.phi, config.PRECISION)}",
+                    "Relata:",
+                    indent(self.hover_relata(face)),
                 ]
             )
         )

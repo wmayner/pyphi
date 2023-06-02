@@ -47,7 +47,6 @@ class DefaultTheme(Theme):
             **dict(
                 autosize=True,
                 showlegend=True,
-                hovermode="x",
                 title="",
                 width=1000,
                 height=800,
@@ -83,9 +82,9 @@ class DefaultTheme(Theme):
             },
         },
         fontfamily="Roboto Mono, MesloLGS NF, Menlo",
-        fontsize=12,
-        point_size_range=(5, 30),
-        line_width_range=(3, 10),
+        fontsize=20,
+        pointsizerange=(5, 30),
+        linewidthrange=(3, 10),
         geometry=dict(
             purviews=dict(
                 arrange=dict(
@@ -118,18 +117,22 @@ class DefaultTheme(Theme):
         mechanisms=dict(
             opacity=0.75,
             mode="text",
+            textposition="middle center",
+            hoverinfo="skip",
+            showlegend=True,
             marker=dict(
                 size="phi",
             ),
         ),
         purviews=dict(
             mode="text+markers",
+            opacity=0.75,
+            textposition="middle center",
+            hoverinfo="text",
+            showlegend=True,
             textfont=dict(
-                family="Roboto Mono",
-                size=20,
                 color="direction",
             ),
-            opacity=0.75,
             marker=dict(
                 color="phi",
                 size="phi",
@@ -149,6 +152,8 @@ class DefaultTheme(Theme):
         cause_effect_links=dict(
             opacity=0.25,
             mode="lines",
+            showlegend=True,
+            hoverinfo='skip',
             line=dict(
                 color="direction",
                 width=5,
@@ -157,6 +162,8 @@ class DefaultTheme(Theme):
         mechanism_purview_links=dict(
             opacity=0.25,
             mode="lines",
+            hoverinfo='skip',
+            showlegend=True,
             line=dict(
                 color="direction",
                 width=5,
@@ -165,9 +172,9 @@ class DefaultTheme(Theme):
         two_relations=dict(
             detail_threshold=100,
             opacity=0.75,
-            showlegend=True,
-            hoverinfo="text",
             mode="lines",
+            hoverinfo="text",
+            showlegend=True,
             line=dict(
                 width=5,
                 color="phi",
