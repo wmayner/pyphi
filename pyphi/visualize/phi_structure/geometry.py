@@ -73,7 +73,7 @@ class Coordinates:
         if self._state_offset:
             max_subset_size = max(len(subset) for subset in self.mapping)
             self.state_offset_mapping = {
-                n: regular_polygon(2**n, self.state_offset_radius)
+                n: regular_polygon(2**n, radius=self.state_offset_radius)
                 for n in range(1, max_subset_size + 1)
             }
 

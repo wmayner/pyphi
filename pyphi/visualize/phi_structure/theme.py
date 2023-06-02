@@ -72,8 +72,8 @@ class DefaultTheme(Theme):
                     colorscale="turbo",
                     cmin=0,
                     colorbar=dict(
-                        x=(-0.1) * (i + 1),
-                        len=0.5,
+                        x=1.1,
+                        len=0.25,
                         ticks="outside",
                         ticklen=5,
                     ),
@@ -93,6 +93,7 @@ class DefaultTheme(Theme):
                 coordinate_kwargs=dict(
                     direction_offset=0.5,
                     subset_offset_radius=0.1,
+                    state_offset_radius=0.05,
                     rotation=0.0,
                     rotation_plane="xy",
                 ),
@@ -115,18 +116,18 @@ class DefaultTheme(Theme):
             effect_color="#006146",
         ),
         mechanisms=dict(
-            opacity=0.75,
             mode="text",
             textposition="middle center",
             hoverinfo="skip",
             showlegend=True,
+            opacity=1,
             marker=dict(
+                opacity=0.75,
                 size="phi",
             ),
         ),
         purviews=dict(
             mode="text+markers",
-            opacity=0.75,
             textposition="middle center",
             hoverinfo="text",
             showlegend=True,
@@ -134,6 +135,7 @@ class DefaultTheme(Theme):
                 color="direction",
             ),
             marker=dict(
+                opacity=0.75,
                 color="phi",
                 size="phi",
                 symbol="circle",
@@ -141,29 +143,29 @@ class DefaultTheme(Theme):
                 cmin=0,
                 colorbar=dict(
                     title=dict(text="φ_d"),
-                    x=0.0,
-                    y=1.0,
-                    len=0.5,
+                    x=1.1,
+                    y=0.5,
+                    len=0.25,
                     ticks="outside",
                     ticklen=5,
                 ),
             ),
         ),
         cause_effect_links=dict(
-            opacity=0.25,
             mode="lines",
             showlegend=True,
             hoverinfo='skip',
+            opacity=0.25,
             line=dict(
                 color="direction",
                 width=5,
             ),
         ),
         mechanism_purview_links=dict(
-            opacity=0.25,
             mode="lines",
             hoverinfo='skip',
             showlegend=True,
+            opacity=0.25,
             line=dict(
                 color="direction",
                 width=5,
@@ -182,9 +184,9 @@ class DefaultTheme(Theme):
                 cmin=0,
                 colorbar=dict(
                     title=dict(text="2-face φ_r"),
-                    x=0.0,
-                    y=0.5,
-                    len=0.5,
+                    x=1.1,
+                    y=0.25,
+                    len=0.25,
                     ticks="outside",
                     ticklen=5,
                 ),
@@ -202,9 +204,9 @@ class DefaultTheme(Theme):
             cmin=0,
             colorbar=dict(
                 title=dict(text="3-face φ_r"),
-                x=0.0,
+                x=1.1,
                 y=0.0,
-                len=0.5,
+                len=0.25,
                 ticks="outside",
                 ticklen=5,
             ),
@@ -230,8 +232,8 @@ class Grey(DefaultTheme):
             effect_color="black",
         ),
         purviews=dict(
-            opacity=0.75,
             marker=dict(
+                opacity=0.75,
                 colorscale="greys",
             ),
         ),
