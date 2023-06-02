@@ -11,6 +11,7 @@ import scipy.special
 from numpy.typing import ArrayLike
 
 from ...direction import Direction
+from ...convert import state2le_index
 
 TWOPI = 2 * np.pi
 
@@ -36,34 +37,84 @@ class Coordinates:
     def __init__(
         self,
         mapping: Mapping[tuple[int], ArrayLike],
-        direction_offset_amount: Optional[float] = None,
+        direction_offset: Optional[float] = None,
         subset_offset_radius: Optional[float] = None,
+        subset_offset_scale: Optional[float] = 1.0,
         offset_subsets: Optional[float] = None,
+        state_offset_radius: Optional[float] = None,
+        state_offset_scale: Optional[float] = 1.0,
+        rotation: Optional[float] = 0.0,
+        rotation_plane: Optional[str] = "xy",
+        scale: Optional[ArrayLike] = 1.0,
+        translate: Optional[ArrayLike] = 0.0,
     ):
         self.mapping = mapping
-        if direction_offset_amount is not None:
-            self.direction_offset = _direction_offset_mapping(direction_offset_amount)
+
+        if direction_offset is not None:
+            self.direction_offset = _direction_offset_mapping(direction_offset)
         else:
             self.direction_offset = None
-        if subset_offset_radius:
+
+        self.subset_offset_radius = subset_offset_radius
+        self.subset_offset_scale = subset_offset_scale
+        self.subset_offset_mapping = None
+        self._subset_offset = (
+            self.subset_offset_radius is not None and offset_subsets is not None
+        )
+        if self._subset_offset:
             self.subset_offset_mapping = _subset_offset_mapping(
                 offset_subsets, subset_offset_radius
             )
-        else:
-            self.subset_offset_mapping = None
+
+        self.state_offset_radius = state_offset_radius
+        self.state_offset_scale = state_offset_scale
+        self.state_offset_mapping = None
+        self._state_offset = self.state_offset_radius is not None
+        if self._state_offset:
+            max_subset_size = max(len(subset) for subset in self.mapping)
+            self.state_offset_mapping = {
+                n: regular_polygon(2**n, self.state_offset_radius)
+                for n in range(1, max_subset_size + 1)
+            }
+
+        self.rotation_amount = rotation
+        self.rotation_plane = rotation_plane
+
+        self.scale = scale
+        self.translate = translate
 
     def get(
         self,
         subset: tuple[int],
-        offset_subset: tuple[int] = None,
         direction: Direction = None,
+        offset_subset: tuple[int] = None,
+        offset_state: tuple[int] = None,
     ):
         """Return coordinates for the given subset."""
         coords = self.mapping[subset].copy()
-        if offset_subset is not None and self.subset_offset_mapping is not None:
-            coords += self.subset_offset_mapping[offset_subset]
+
         if direction is not None and self.direction_offset is not None:
             coords += self.direction_offset[direction]
+
+        if offset_subset is not None and self._subset_offset:
+            subset_offset = (
+                self.subset_offset_scale * self.subset_offset_mapping[offset_subset]
+            )
+            coords += subset_offset
+
+        if offset_state is not None and self._state_offset:
+            state_offset = (
+                self.state_offset_scale
+                * self.state_offset_mapping[len(subset)][state2le_index(offset_state)]
+            )
+            coords += state_offset
+
+        coords *= self.scale
+        coords += self.translate
+
+        if self.rotation_amount != 0:
+            coords = rotate(coords, self.rotation_amount, self.rotation_plane)
+
         return coords
 
 
@@ -87,7 +138,38 @@ def _subset_offset_mapping(offset_subsets, subset_offset_radius):
     )
 
 
-def powerset_coordinates(
+def rotate(coordinates, theta, plane):
+    """Return the coordinates rotated theta degrees in the specified plane."""
+    if plane == "xy":
+        rotation_matrix = np.array(
+            [
+                [np.cos(theta), -np.sin(theta), 0],
+                [np.sin(theta), np.cos(theta), 0],
+                [0, 0, 1],
+            ]
+        )
+    elif plane == "yz":
+        rotation_matrix = np.array(
+            [
+                [1, 0, 0],
+                [0, np.cos(theta), -np.sin(theta)],
+                [0, np.sin(theta), np.cos(theta)],
+            ]
+        )
+    elif plane == "xz":
+        rotation_matrix = np.array(
+            [
+                [np.cos(theta), 0, np.sin(theta)],
+                [0, 1, 0],
+                [-np.sin(theta), 0, np.cos(theta)],
+            ]
+        )
+    else:
+        raise ValueError("Invalid plane specified. Must be one of 'xy', 'yz', or 'xz'.")
+    return np.dot(coordinates, rotation_matrix)
+
+
+def arrange(
     nodes,
     max_radius=1.0,
     aspect_ratio=0.5,
@@ -95,11 +177,13 @@ def powerset_coordinates(
     z_spacing=1.0,
     x_offset=0.0,
     y_offset=0.0,
+    N=None,
     radius_func=log_n_choose_k,
 ):
     """Return a mapping from subsets of the nodes to coordinates."""
     radius_func = SHAPES.get(radius_func, radius_func)
-    N = len(nodes)
+    if N is None:
+        N = len(nodes)
     radii = radius_func(N)
     # Normalize overall radius
     radii = radii * max_radius / radii.max()
@@ -145,3 +229,8 @@ def spherical_to_cartesian(coords):
         radius * sin(polar) * sin(azimuth),
         radius * cos(polar),
     )
+
+
+def center_coords(coords):
+    """Center coordinates around the origin."""
+    return coords - coords.mean(axis=0)
