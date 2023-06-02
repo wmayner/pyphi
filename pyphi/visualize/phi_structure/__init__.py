@@ -327,7 +327,7 @@ def _plot_purviews(
         if not isinstance(marker_color, np.ndarray) and marker_color == "direction":
             current_marker_color = direction_color
         current_textfont_color = textfont_color
-        if current_textfont_color == 'direction':
+        if current_textfont_color == "direction":
             current_textfont_color = direction_color
 
         traces.append(
@@ -363,19 +363,17 @@ def _plot_cause_effect_links(
         rescale=theme["line_width_range"],
     )
     if not isinstance(widths, np.ndarray):
-        widths = [widths]*len(distinctions)
+        widths = [widths] * len(distinctions)
 
-    color = theme["cause_effect_links"]['line'].pop("color", 'direction')
-    if color == 'direction':
+    color = theme["cause_effect_links"]["line"].pop("color", "direction")
+    if color == "direction":
         colors = [theme["direction"]["cause_color"], theme["direction"]["effect_color"]]
     else:
-        colors = [color]*2
+        colors = [color] * 2
 
     showlegend = theme["cause_effect_links"].pop("showlegend", True)
     traces = []
-    for distinction, width in zip(
-        distinctions, widths, strict=True
-    ):
+    for distinction, width in zip(distinctions, widths, strict=True):
         coords = np.stack(
             [
                 purview_coords.get(
@@ -460,10 +458,10 @@ def _plot_mechanism_purview_links(
         rescale=theme["line_width_range"],
     )
     if not isinstance(widths, np.ndarray):
-        widths = [widths]*len(distinctions)
+        widths = [widths] * len(distinctions)
 
-    color = theme["mechanism_purview_links"]['line'].pop("color", 'direction')
-    if color == 'direction':
+    color = theme["mechanism_purview_links"]["line"].pop("color", "direction")
+    if color == "direction":
         cause_color, effect_color = validate_colors(
             [theme["direction"]["cause_color"], theme["direction"]["effect_color"]],
             colortype="tuple",
@@ -474,11 +472,9 @@ def _plot_mechanism_purview_links(
             effect_color,
         ]
     else:
-        colors = [color]*3
+        colors = [color] * 3
 
-    for distinction, width in zip(
-        distinctions, widths, strict=True
-    ):
+    for distinction, width in zip(distinctions, widths, strict=True):
         coords = np.stack(
             [
                 purview_coords.get(
@@ -527,7 +523,7 @@ def _plot_two_relation_faces(fig, face_to_coords, relation_faces, label, theme):
     color_spec = theme["two_relations"]["line"].pop("color", None)
     colors = _two_relation_line_colors(relation_faces, color_spec)
     if not isinstance(colors, np.ndarray):
-        colors = [colors]*len(relation_faces)
+        colors = [colors] * len(relation_faces)
 
     widths = get_values(
         relation_faces,
@@ -535,14 +531,14 @@ def _plot_two_relation_faces(fig, face_to_coords, relation_faces, label, theme):
         rescale=theme["line_width_range"],
     )
     if not isinstance(widths, np.ndarray):
-        widths = [widths]*len(relation_faces)
+        widths = [widths] * len(relation_faces)
 
     detail_threshold = theme["two_relations"].pop("detail_threshold", 100)
     if len(relation_faces) >= detail_threshold:
-        if color_spec == 'type':
+        if color_spec == "type":
             raise NotImplementedError(
                 'Cannot use the "type" color scheme for more than '
-                f'`detail_threshold` 2-faces (currently set to {detail_threshold})'
+                f"`detail_threshold` 2-faces (currently set to {detail_threshold})"
             )
         return _plot_two_relation_faces_single_trace(
             fig, face_to_coords, label, theme, relation_faces, name, colors, widths
@@ -577,9 +573,12 @@ def _plot_two_relation_faces_multiple_traces(
     # if not isinstance(widths, np.ndarray):
     #     widths = cycle([widths])
     showlegend = theme["two_relations"].pop("showlegend", True)
-    showscale = theme['two_relations'].pop('showscale', True)
+    showscale = theme["two_relations"].pop("showscale", True)
     traces = []
-    colors = [get_color(theme['two_relations']['line']['colorscale'], value) for value in colors]
+    colors = [
+        get_color(theme["two_relations"]["line"]["colorscale"], value)
+        for value in colors
+    ]
     for face, width, color in zip(
         faces,
         widths,
@@ -665,7 +664,7 @@ def _plot_three_relation_faces(fig, face_to_coords, relation_faces, label, theme
         rescale=theme["three_relations"].pop("opacity_range", None),
     )
     if not isinstance(opacities, np.ndarray):
-        opacities = [opacities]*len(relation_faces)
+        opacities = [opacities] * len(relation_faces)
     if len(relation_faces) >= theme["three_relations"].pop("detail_threshold", 100):
         return _plot_three_relation_faces_single_trace(
             x=x,

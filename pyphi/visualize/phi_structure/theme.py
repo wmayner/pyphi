@@ -127,7 +127,7 @@ class DefaultTheme(Theme):
             textfont=dict(
                 family="Roboto Mono",
                 size=20,
-                color='direction',
+                color="direction",
             ),
             opacity=0.75,
             marker=dict(
@@ -148,7 +148,7 @@ class DefaultTheme(Theme):
         ),
         cause_effect_links=dict(
             opacity=0.25,
-            mode='lines',
+            mode="lines",
             line=dict(
                 color="direction",
                 width=5,
@@ -156,9 +156,9 @@ class DefaultTheme(Theme):
         ),
         mechanism_purview_links=dict(
             opacity=0.25,
-            mode='lines',
+            mode="lines",
             line=dict(
-                color='direction',
+                color="direction",
                 width=5,
             ),
         ),
@@ -170,7 +170,7 @@ class DefaultTheme(Theme):
             mode="lines",
             line=dict(
                 width=5,
-                color='phi',
+                color="phi",
                 colorscale="blues",
                 cmin=0,
                 colorbar=dict(
