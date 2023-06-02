@@ -676,7 +676,6 @@ def _plot_three_relation_faces(fig, face_to_coords, relation_faces, labeler, the
     if not isinstance(opacities, np.ndarray):
         opacities = [opacities] * len(relation_faces)
     hovertexts = list(map(labeler.hover_relation_face, relation_faces))
-    print(hovertexts[0])
     if len(relation_faces) >= theme["three_relations"].pop("detail_threshold", 100):
         return _plot_three_relation_faces_single_trace(
             x=x,
