@@ -686,7 +686,7 @@ def _plot_three_relation_faces(fig, face_to_coords, relation_faces, labeler, the
             theme=theme,
             name=name,
             intensities=intensities,
-            opacity=opacities,
+            opacities=opacities,
             hovertexts=hovertexts,
         )
     return _plot_three_relation_faces_multiple_traces(
