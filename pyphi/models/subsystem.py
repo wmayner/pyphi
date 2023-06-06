@@ -72,6 +72,23 @@ def _purview_inclusion(distinction_attr, distinctions, min_order, max_order):
     return purview_inclusion_by_order
 
 
+def _find_multiplicities(func, distinctions):
+    """Return a mapping from purviews to multiplicities of the values of ``func``."""
+    multiplicities = defaultdict_set()
+    for d in distinctions:
+        for direction in Direction.both():
+            multiplicities[d.purview(direction)].add(func(d.mice(direction)))
+    return multiplicities
+
+
+def _get_mechanism(mice):
+    return mice.mechanism
+
+
+def _get_state(mice):
+    return mice.specified_state.state
+
+
 class CauseEffectStructure(cmp.Orderable, Sequence, ToPandasMixin):
     """A collection of concepts."""
 
@@ -171,7 +188,10 @@ class CauseEffectStructure(cmp.Orderable, Sequence, ToPandasMixin):
 
     def purview_inclusion_of_intersection(self, min_order, max_order):
         return _purview_inclusion(
-            "purview_intersection", distinctions=self, min_order=min_order, max_order=max_order,
+            "purview_intersection",
+            distinctions=self,
+            min_order=min_order,
+            max_order=max_order,
         )
 
     def _purview_inclusion_of_union(self, min_order, max_order):
@@ -208,6 +228,12 @@ class CauseEffectStructure(cmp.Orderable, Sequence, ToPandasMixin):
             ),
             resolved_congruence=True,
         )
+
+    def mechanism_multiplicities(self):
+        return _find_multiplicities(_get_mechanism, self)
+
+    def state_multiplicities(self):
+        return _find_multiplicities(_get_state, self)
 
     @property
     def resolved_congruence(self):
