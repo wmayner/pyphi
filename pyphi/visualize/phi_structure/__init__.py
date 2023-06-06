@@ -124,7 +124,6 @@ def plot_phi_structure(
             node_indices,
             **theme["geometry"]["mechanisms"]["arrange"],
         )
-    offset_subsets = list(mechanism_mapping)
     mechanism_coords = mechanism_coords or theme["mechanisms"].get("coords")
     if mechanism_coords is None:
         mechanism_coords = geometry.Coordinates(
@@ -142,7 +141,8 @@ def plot_phi_structure(
     if purview_coords is None:
         purview_coords = geometry.Coordinates(
             purview_mapping,
-            offset_subsets=offset_subsets,
+            subset_multiplicities=distinctions.mechanism_multiplicities(),
+            state_multiplicities=distinctions.state_multiplicities(),
             **theme["geometry"]["purviews"].get("coordinate_kwargs", dict()),
         )
 

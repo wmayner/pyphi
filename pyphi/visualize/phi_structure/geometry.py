@@ -38,11 +38,10 @@ class Coordinates:
         self,
         mapping: Mapping[tuple[int], ArrayLike],
         direction_offset: Optional[float] = None,
-        subset_offset_radius: Optional[float] = None,
-        subset_offset_scale: Optional[float] = 1.0,
-        offset_subsets: Optional[float] = None,
-        state_offset_radius: Optional[float] = None,
-        state_offset_scale: Optional[float] = 1.0,
+        subset_multiplicities: Optional[float] = None,
+        subset_offset_radius: Optional[float] = 0.0,
+        state_multiplicities: Optional[float] = None,
+        state_offset_radius: Optional[float] = 0.0,
         rotation: Optional[float] = 0.0,
         rotation_plane: Optional[str] = "xy",
         scale: Optional[ArrayLike] = 1.0,
@@ -55,27 +54,21 @@ class Coordinates:
         else:
             self.direction_offset = None
 
-        self.subset_offset_radius = subset_offset_radius
-        self.subset_offset_scale = subset_offset_scale
-        self.subset_offset_mapping = None
         self._subset_offset = (
-            self.subset_offset_radius is not None and offset_subsets is not None
+            subset_offset_radius != 0 and subset_multiplicities is not None
         )
         if self._subset_offset:
-            self.subset_offset_mapping = _subset_offset_mapping(
-                offset_subsets, subset_offset_radius
+            self.subset_offset_mapping = _multiplicity_mapping(
+                subset_multiplicities, subset_offset_radius
             )
 
-        self.state_offset_radius = state_offset_radius
-        self.state_offset_scale = state_offset_scale
-        self.state_offset_mapping = None
-        self._state_offset = self.state_offset_radius is not None
+        self._state_offset = (
+            state_offset_radius != 0.0 and state_multiplicities is not None
+        )
         if self._state_offset:
-            max_subset_size = max(len(subset) for subset in self.mapping)
-            self.state_offset_mapping = {
-                n: regular_polygon(2**n, radius=self.state_offset_radius)
-                for n in range(1, max_subset_size + 1)
-            }
+            self.state_offset_mapping = _multiplicity_mapping(
+                state_multiplicities, state_offset_radius
+            )
 
         self.rotation_amount = rotation
         self.rotation_plane = rotation_plane
@@ -97,17 +90,10 @@ class Coordinates:
             coords += self.direction_offset[direction]
 
         if offset_subset is not None and self._subset_offset:
-            subset_offset = (
-                self.subset_offset_scale * self.subset_offset_mapping[offset_subset]
-            )
-            coords += subset_offset
+            coords += self.subset_offset_mapping[subset][offset_subset]
 
         if offset_state is not None and self._state_offset:
-            state_offset = (
-                self.state_offset_scale
-                * self.state_offset_mapping[len(subset)][state2le_index(offset_state)]
-            )
-            coords += state_offset
+            coords += self.state_offset_mapping[subset][offset_state]
 
         coords *= self.scale
         coords += self.translate
@@ -127,15 +113,27 @@ def _direction_offset_mapping(direction_offset_amount: float):
     }
 
 
-def _subset_offset_mapping(offset_subsets, subset_offset_radius):
-    offset_subsets = list(offset_subsets)
-    return dict(
-        zip(
-            offset_subsets,
-            regular_polygon(len(offset_subsets), radius=subset_offset_radius),
-            strict=True,
+def _multiplicity_mapping(multiplicities, radius, **kwargs):
+    return {
+        subset: dict(
+            zip(
+                sorted(multiples),
+                regular_polygon(len(multiples), radius=radius, **kwargs),
+            )
         )
-    )
+        for subset, multiples in multiplicities.items()
+    }
+
+
+# def _subset_offset_mapping(offset_subsets, subset_offset_radius):
+#     offset_subsets = list(offset_subsets)
+#     return dict(
+#         zip(
+#             offset_subsets,
+#             regular_polygon(len(offset_subsets), radius=subset_offset_radius),
+#             strict=True,
+#         )
+#     )
 
 
 def rotate(coordinates, theta, plane):
