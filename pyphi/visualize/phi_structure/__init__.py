@@ -116,7 +116,7 @@ def plot_phi_structure(
         fig = go.Figure()
     fig.update_layout(theme["layout"])
 
-    labeler = text.Labeler(state, node_labels)
+    labeler = text.Labeler(state, node_labels, **theme["labels"])
 
     mechanism_mapping = theme["geometry"]["mechanisms"].get("mapping")
     if mechanism_mapping is None:

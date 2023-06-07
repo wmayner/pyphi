@@ -2,6 +2,8 @@
 
 """Textual functions for plotting phi structures."""
 
+from toolz import identity
+
 from ... import config, utils
 from ...models import fmt
 
@@ -11,16 +13,19 @@ def indent(lines, amount=4, char="&nbsp;", newline="<br>"):
 
 
 class Labeler:
-    def __init__(self, state, node_labels):
+    def __init__(self, state, node_labels, postprocessor=None):
         self.state = state
         self.node_labels = node_labels
+        self.postprocessor = postprocessor or identity
 
     def nodes(self, nodes, state=None):
         if state is None:
             state = utils.state_of(nodes, self.state)
-        return "".join(
-            n.upper() if state[i] else n.lower()
-            for i, n in enumerate(self.node_labels.coerce_to_labels(nodes))
+        return self.postprocessor(
+            "".join(
+                n.upper() if state[i] else n.lower()
+                for i, n in enumerate(self.node_labels.coerce_to_labels(nodes))
+            )
         )
 
     def units(self, units):
