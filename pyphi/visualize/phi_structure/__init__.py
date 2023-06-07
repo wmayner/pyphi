@@ -1,15 +1,16 @@
 # visualize/phi_structure/__init__.py
 
+import warnings
 from typing import Callable, Iterable
 
 import numpy as np
 from plotly import graph_objs as go
-from plotly.colors import find_intermediate_color, validate_colors
+from plotly.colors import find_intermediate_color
 from toolz import partition
 
 from ...direction import Direction
 from . import colors, geometry, text, utils
-from .colors import get_color
+from .colors import get_color, standardize_colors
 from .theme import DefaultTheme, Grey, Theme
 
 DEFAULT_THEME = DefaultTheme()
@@ -453,7 +454,7 @@ def _plot_mechanism_purview_links(
 
     color = theme["mechanism_purview_links"]["line"].pop("color", "direction")
     if color == "direction":
-        cause_color, effect_color = validate_colors(
+        cause_color, effect_color = standardize_colors(
             [theme["direction"]["cause_color"], theme["direction"]["effect_color"]],
             colortype="tuple",
         )
@@ -583,10 +584,15 @@ def _plot_two_relation_faces_multiple_traces(
 ):
     showlegend = theme["two_relations"].pop("showlegend", True)
     showscale = theme["two_relations"].pop("showscale", True)
-    colors = [
-        get_color(theme["two_relations"]["line"]["colorscale"], value)
-        for value in colors
-    ]
+
+    coloraxis = theme["two_relations"]["line"].get(
+        "coloraxis",
+    )
+    if coloraxis is not None:
+        colorscale = theme["layout"][coloraxis]["colorscale"]
+    else:
+        colorscale = theme["two_relations"]["line"]["colorscale"]
+    colors = [get_color(colorscale, value) for value in utils.rescale(colors, (0, 1))]
 
     traces = []
     for face, width, color, hovertext in zip(
@@ -633,6 +639,11 @@ def _plot_two_relation_faces_single_trace(
     colors = _line_color_values(colors)
     # Cannot plot different widths with a single trace
     width = np.array(widths).mean()
+    if not np.all(widths == width):
+        warnings.warn(
+            f"Cannot plot different widths with a single trace; using mean width {width}. "
+            "Try increasing `detail_threshold`."
+        )
     return fig.add_trace(
         lines_from_coords(
             coords,

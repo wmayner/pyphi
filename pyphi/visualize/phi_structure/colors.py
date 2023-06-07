@@ -44,12 +44,19 @@ def get_color(colorscale, loc):
 
     # convert to rgb strings
     locs, colors = zip(*colorscale)
-    colors, _ = plotly.colors.convert_colors_to_same_type(colors)
+    colors = standardize_colors(colors, colortype="rgb")
     colorscale = list(zip(locs, colors))
 
     if isinstance(loc, Iterable):
         return [_get_color(colorscale, x) for x in loc]
     return _get_color(colorscale, loc)
+
+
+def standardize_colors(colors, colortype="tuple", **kwargs):
+    colors, _ = plotly.colors.convert_colors_to_same_type(
+        colors, colortype=colortype, **kwargs
+    )
+    return colors
 
 
 def _get_color(colorscale, intermed):
@@ -68,18 +75,9 @@ def _get_color(colorscale, intermed):
             high_cutoff, high_color = cutoff, color
             break
 
-    color = find_intermediate_color(
+    return find_intermediate_color(
         lowcolor=low_color,
         highcolor=high_color,
         intermed=((intermed - low_cutoff) / (high_cutoff - low_cutoff)),
         colortype="rgb",
     )
-    return rgb_to_rgba(color)
-
-
-def rgb_to_rgba(color, alpha=1):
-    """Return an RGBA color string from an RGB color string."""
-    channels = plotly.colors.unlabel_rgb(color)
-    channels = tuple(round(c, 7) for c in channels)
-    channels += (alpha,)
-    return f"rgba{channels}"
