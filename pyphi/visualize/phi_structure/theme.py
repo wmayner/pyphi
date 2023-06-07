@@ -84,7 +84,7 @@ class DefaultTheme(Theme):
         fontfamily="Roboto Mono, MesloLGS NF, Menlo",
         fontsize=20,
         pointsizerange=(5, 30),
-        linewidthrange=(3, 10),
+        linewidthrange=(1, 20),
         geometry=dict(
             purviews=dict(
                 arrange=dict(
@@ -154,7 +154,7 @@ class DefaultTheme(Theme):
         cause_effect_links=dict(
             mode="lines",
             showlegend=True,
-            hoverinfo='skip',
+            hoverinfo="skip",
             opacity=0.25,
             line=dict(
                 color="direction",
@@ -163,12 +163,12 @@ class DefaultTheme(Theme):
         ),
         mechanism_purview_links=dict(
             mode="lines",
-            hoverinfo='skip',
+            hoverinfo="skip",
             showlegend=True,
             opacity=0.25,
             line=dict(
                 color="direction",
-                width=5,
+                width="phi",
             ),
         ),
         two_relations=dict(
