@@ -40,8 +40,8 @@ class DefaultTheme(Theme):
             mechanisms=True,
             cause_effect_links=True,
             mechanism_purview_links=True,
-            two_relations=True,
-            three_relations=True,
+            two_faces=True,
+            three_faces=True,
         ),
         layout={
             **dict(
@@ -171,7 +171,7 @@ class DefaultTheme(Theme):
                 width="phi",
             ),
         ),
-        two_relations=dict(
+        two_faces=dict(
             detail_threshold=100,
             opacity=0.75,
             mode="lines",
@@ -193,7 +193,7 @@ class DefaultTheme(Theme):
                 showscale=True,
             ),
         ),
-        three_relations=dict(
+        three_faces=dict(
             detail_threshold=100,
             intensity="phi",
             intensitymode="cell",
@@ -249,13 +249,13 @@ class Grey(DefaultTheme):
                 color="grey",
             ),
         ),
-        two_relations=dict(
+        two_faces=dict(
             opacity=0.1,
             line=dict(
                 colorscale="greys",
             ),
         ),
-        three_relations=dict(
+        three_faces=dict(
             colorscale="greys",
             opacity=0.05,
             intensity_range=(0, 0.5),

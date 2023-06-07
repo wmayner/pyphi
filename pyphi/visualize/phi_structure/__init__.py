@@ -148,7 +148,7 @@ def plot_phi_structure(
         )
 
     # Relations
-    if theme["show"].get("two_relations") or theme["show"].get("three_relations"):
+    if theme["show"].get("two_faces") or theme["show"].get("three_faces"):
         # Sort relations for deterministic traversal
         faces_by_degree = dict()
         for degree, faces in relations.faces_by_degree.items():
@@ -168,7 +168,7 @@ def plot_phi_structure(
             )
 
         # 2-relations
-        if theme["show"].get("two_relations") and faces_by_degree[2]:
+        if theme["show"].get("two_faces") and faces_by_degree[2]:
             fig = _plot_two_relation_faces(
                 fig=fig,
                 face_to_coords=face_to_coords,
@@ -178,7 +178,7 @@ def plot_phi_structure(
             )
 
         # 3-relations
-        if theme["show"].get("three_relations") and faces_by_degree[3]:
+        if theme["show"].get("three_faces") and faces_by_degree[3]:
             fig = _plot_three_relation_faces(
                 fig=fig,
                 face_to_coords=face_to_coords,
@@ -513,14 +513,14 @@ def _plot_mechanism_purview_links(
 def _plot_two_relation_faces(fig, face_to_coords, relation_faces, labeler, theme):
     name = "2-relations" + theme["legendgroup_postfix"]
 
-    color_spec = theme["two_relations"]["line"].pop("color", None)
+    color_spec = theme["two_faces"]["line"].pop("color", None)
     colors = _two_relation_line_colors(relation_faces, color_spec)
     if not isinstance(colors, np.ndarray):
         colors = [colors] * len(relation_faces)
 
     widths = get_values(
         relation_faces,
-        theme["two_relations"]["line"].pop("width", None),
+        theme["two_faces"]["line"].pop("width", None),
         rescale=theme["linewidthrange"],
     )
     if not isinstance(widths, np.ndarray):
@@ -528,7 +528,7 @@ def _plot_two_relation_faces(fig, face_to_coords, relation_faces, labeler, theme
 
     hovertexts = list(map(labeler.hover_relation_face, relation_faces))
 
-    detail_threshold = theme["two_relations"].pop("detail_threshold", 100)
+    detail_threshold = theme["two_faces"].pop("detail_threshold", 100)
     if len(relation_faces) >= detail_threshold:
         if color_spec == "type":
             raise NotImplementedError(
@@ -582,16 +582,16 @@ def _plot_two_relation_faces_multiple_traces(
     widths,
     hovertexts,
 ):
-    showlegend = theme["two_relations"].pop("showlegend", True)
-    showscale = theme["two_relations"].pop("showscale", True)
+    showlegend = theme["two_faces"].pop("showlegend", True)
+    showscale = theme["two_faces"].pop("showscale", True)
 
-    coloraxis = theme["two_relations"]["line"].get(
+    coloraxis = theme["two_faces"]["line"].get(
         "coloraxis",
     )
     if coloraxis is not None:
         colorscale = theme["layout"][coloraxis]["colorscale"]
     else:
-        colorscale = theme["two_relations"]["line"]["colorscale"]
+        colorscale = theme["two_faces"]["line"]["colorscale"]
     colors = [get_color(colorscale, value) for value in utils.rescale(colors, (0, 1))]
 
     traces = []
@@ -615,7 +615,7 @@ def _plot_two_relation_faces_multiple_traces(
                 line_color=color,
                 line_width=width,
                 hovertext=hovertext,
-                **theme["two_relations"],
+                **theme["two_faces"],
             )
         )
         # Only show the first trace in the legend
@@ -652,7 +652,7 @@ def _plot_two_relation_faces_single_trace(
             line_color=colors,
             line_width=width,
             hovertext=hovertexts,
-            **theme["two_relations"],
+            **theme["two_faces"],
         )
     )
 
@@ -676,18 +676,18 @@ def _plot_three_relation_faces(fig, face_to_coords, relation_faces, labeler, the
     x, y, z = np.vstack(list(map(face_to_coords, relation_faces))).transpose()
     intensities = get_values(
         relation_faces,
-        theme["three_relations"].pop("intensity", None),
-        rescale=theme["three_relations"].pop("intensity_range", None),
+        theme["three_faces"].pop("intensity", None),
+        rescale=theme["three_faces"].pop("intensity_range", None),
     )
     opacities = get_values(
         relation_faces,
-        theme["three_relations"].pop("opacity", None),
-        rescale=theme["three_relations"].pop("opacity_range", None),
+        theme["three_faces"].pop("opacity", None),
+        rescale=theme["three_faces"].pop("opacity_range", None),
     )
     if not isinstance(opacities, np.ndarray):
         opacities = [opacities] * len(relation_faces)
     hovertexts = list(map(labeler.hover_relation_face, relation_faces))
-    if len(relation_faces) >= theme["three_relations"].pop("detail_threshold", 100):
+    if len(relation_faces) >= theme["three_faces"].pop("detail_threshold", 100):
         return _plot_three_relation_faces_single_trace(
             x=x,
             y=y,
@@ -746,7 +746,7 @@ def _plot_three_relation_faces_single_trace(
             intensity=intensities,
             opacity=opacity,
             hovertext=hovertexts,
-            **theme["three_relations"],
+            **theme["three_faces"],
         )
     )
 
@@ -763,8 +763,8 @@ def _plot_three_relation_faces_multiple_traces(
     opacities,
     hovertexts,
 ):
-    showlegend = theme["three_relations"].pop("showlegend", True)
-    showscale = theme["three_relations"].pop("showscale", True)
+    showlegend = theme["three_faces"].pop("showlegend", True)
+    showscale = theme["three_faces"].pop("showscale", True)
     traces = []
     for _x, _y, _z, intensity, opacity, hovertext in zip(
         partition(3, x),
@@ -790,7 +790,7 @@ def _plot_three_relation_faces_multiple_traces(
                 intensity=[intensity],
                 opacity=opacity,
                 hovertext=hovertext,
-                **theme["three_relations"],
+                **theme["three_faces"],
             )
         )
         showlegend = False
