@@ -28,11 +28,12 @@ from .models import (
     RepertoireIrreducibilityAnalysis,
     _null_ria,
 )
-from .models.mechanism import StateSpecification, ShortCircuitConditions
+from .models.mechanism import ShortCircuitConditions, StateSpecification
 from .network import irreducible_purviews
 from .node import generate_nodes
 from .partition import mip_partitions
 from .repertoire import forward_repertoire, unconstrained_forward_repertoire
+from .tpm import backward_tpm as _backward_tpm
 from .utils import state_of
 
 log = logging.getLogger(__name__)
@@ -74,6 +75,7 @@ class Subsystem:
         single_node_repertoire_cache=None,
         forward_repertoire_cache=None,
         unconstrained_forward_repertoire_cache=None,
+        backward_tpm=False,
         _external_indices=None,
     ):
         # The network this subsystem belongs to.
@@ -103,7 +105,10 @@ class Subsystem:
         # Get the TPM conditioned on the state of the external nodes.
         external_state = utils.state_of(self.external_indices, self.state)
         background_conditions = dict(zip(self.external_indices, external_state))
-        self.tpm = self.network.tpm.condition_tpm(background_conditions)
+        if backward_tpm:
+            self.tpm = _backward_tpm(self.network.tpm, state, self.node_indices)
+        else:
+            self.tpm = self.network.tpm.condition_tpm(background_conditions)
         # The TPM for just the nodes in the subsystem.
         self.proper_tpm = self.tpm.squeeze()[..., list(self.node_indices)]
 
