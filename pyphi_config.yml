@@ -116,6 +116,9 @@ REPERTOIRE_DISTANCE: GENERALIZED_INTRINSIC_DIFFERENCE
 REPERTOIRE_DISTANCE_INFORMATION: GENERALIZED_INTRINSIC_DIFFERENCE
 # Controls whether pretty __str__-like formatting is used in repr calls.
 REPR_VERBOSITY: 2
+# Controls whether SIA calculations short-circuit if an a-priori reducibility
+# condition is found.
+SHORTCIRCUIT_SIA: true
 # In some applications of this library, you may want to allow single
 # micro-nodes with a self-loop to have nonzero Phi. See ``pyphi.config`` for
 # details.

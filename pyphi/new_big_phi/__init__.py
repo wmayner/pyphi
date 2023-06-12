@@ -317,9 +317,10 @@ def sia(
             **kwargs,
         )
 
-    shortcircuit_reasons = _has_no_cause_or_effect(system_state)
-    if shortcircuit_reasons:
-        return _null_sia(reasons=shortcircuit_reasons)
+    if config.SHORTCIRCUIT_SIA:
+        shortcircuit_reasons = _has_no_cause_or_effect(system_state)
+        if shortcircuit_reasons:
+            return _null_sia(reasons=shortcircuit_reasons)
 
     default_sia = _null_sia(reasons=[ShortCircuitConditions.NO_VALID_PARTITIONS])
 

@@ -890,6 +890,14 @@ class PyphiConfig(Config):
     concept-style system cuts will be used instead.""",
     )
 
+    SHORTCIRCUIT_SIA = Option(
+        True,
+        type=bool,
+        doc="""
+    Controls whether SIA calculations short-circuit if an a-priori reducibility
+    condition is found.""",
+    )
+
     def log(self):
         """Log current settings."""
         log.info("PyPhi v%s", __about__.__version__)
