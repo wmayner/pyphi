@@ -13,18 +13,26 @@ from .direction import Direction
 # pylint: disable=redefined-outer-name
 
 
+# TODO(4.0) move to `Direction`
+def directions(directions, **kwargs):
+    return all(direction(d, **kwargs) for d in directions)
+
+
 def direction(direction, allow_bi=False):
     """Validate that the given direction is one of the allowed constants.
 
     If ``allow_bi`` is ``True`` then ``Direction.BIDIRECTIONAL`` is
     acceptable.
     """
-    valid = [Direction.CAUSE, Direction.EFFECT]
+    valid = set(Direction.both())
     if allow_bi:
-        valid.append(Direction.BIDIRECTIONAL)
+        valid.add(Direction.BIDIRECTIONAL)
 
     if direction not in valid:
-        raise ValueError("`direction` must be one of {}".format(valid))
+        raise ValueError(
+            f"`direction` must be one of `Direction.{valid}`; "
+            f"got {type(direction)} `{direction}`"
+        )
 
     return True
 
