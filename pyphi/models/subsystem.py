@@ -34,7 +34,17 @@ class SystemStateSpecification(ToDictMixin, ToPandasMixin):
         raise KeyError("Invalid direction")
 
     def _repr_columns(self, prefix=""):
-        return self.cause._repr_columns(prefix) + self.effect._repr_columns(prefix)
+        cols = []
+        # TODO(4.0) create NullStateSpecification and use that instead of None
+        if self.cause is not None:
+            cols.extend(self.cause._repr_columns(prefix))
+        else:
+            cols.append((f"{prefix}{Direction.CAUSE}", None))
+        if self.effect is not None:
+            cols.extend(self.effect._repr_columns(prefix))
+        else:
+            cols.append((f"{prefix}{Direction.EFFECT}", None))
+        return cols
 
     def __repr__(self):
         body = "\n".join(fmt.align_columns(self._repr_columns()))
