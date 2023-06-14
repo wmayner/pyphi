@@ -53,7 +53,7 @@ def compute_combined_ces(subsystem_cause, subsystem_effect, **kwargs):
 def combine_system_states(state_cause, state_effect):
     return pyphi.models.subsystem.SystemStateSpecification(
         cause=state_cause.cause,
-        effect=state_cause.effect,
+        effect=state_effect.effect,
     )
 
 
@@ -64,11 +64,12 @@ def combine_sia(sia_cause, sia_effect):
     return pyphi.new_big_phi.SystemIrreducibilityAnalysis(
         phi=min(sia_cause.phi, sia_effect.phi),
         partition=minimal_side.partition,
-        normalized_phi=min(sia_cause.normalized_phi, sia_effect.normalized_phi),
+        normalized_phi=minimal_side.normalized_phi,
         cause=sia_cause.cause,
         effect=sia_effect.effect,
         system_state=combine_system_states(
-            sia_cause.system_state, sia_effect.system_state
+            state_cause=sia_cause.system_state,
+            state_effect=sia_effect.system_state,
         ),
         current_state=minimal_side.current_state,
         node_indices=minimal_side.node_indices,
@@ -83,9 +84,22 @@ def compute_combined_sia(subsystem_cause, subsystem_effect, **kwargs):
         pyphi.Direction.EFFECT: subsystem_effect,
     }
     sias = {
-        direction: pyphi.new_big_phi.sia(subsystems[direction], **kwargs)
+        direction: pyphi.new_big_phi.sia(
+            subsystems[direction], directions=[direction], **kwargs
+        )
         for direction in pyphi.Direction.both()
     }
     return combine_sia(
         sia_cause=sias[pyphi.Direction.CAUSE], sia_effect=sias[pyphi.Direction.EFFECT]
     )
+
+
+def all_combined_complexes(network, state, **kwargs):
+    for subset in pyphi.utils.powerset(
+        network.node_indices, nonempty=True, reverse=True
+    ):
+        yield compute_combined_sia(
+            subsystem_cause=pyphi.Subsystem(network, state, subset, backward_tpm=True),
+            subsystem_effect=pyphi.Subsystem(network, state, subset),
+            **kwargs
+        )
