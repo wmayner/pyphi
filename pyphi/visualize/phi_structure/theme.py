@@ -180,6 +180,7 @@ class DefaultTheme(Theme):
             mode="lines",
             hoverinfo="text",
             showlegend=True,
+            showscale=True,
             line=dict(
                 width=5,
                 color="phi",
@@ -193,7 +194,6 @@ class DefaultTheme(Theme):
                     ticks="outside",
                     ticklen=5,
                 ),
-                showscale=True,
             ),
         ),
         three_relations=dict(
