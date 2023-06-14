@@ -43,6 +43,9 @@ class DefaultTheme(Theme):
             two_relations=True,
             three_relations=True,
         ),
+        labels=dict(
+            postprocessor=None,
+        ),
         layout={
             **dict(
                 autosize=True,
