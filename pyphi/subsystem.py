@@ -105,7 +105,8 @@ class Subsystem:
         # Get the TPM conditioned on the state of the external nodes.
         external_state = utils.state_of(self.external_indices, self.state)
         background_conditions = dict(zip(self.external_indices, external_state))
-        if backward_tpm:
+        self.backward_tpm = backward_tpm
+        if self.backward_tpm:
             self.tpm = _backward_tpm(self.network.tpm, state, self.node_indices)
         else:
             self.tpm = self.network.tpm.condition_tpm(background_conditions)
@@ -295,6 +296,7 @@ class Subsystem:
             self.state,
             self.node_indices,
             cut=cut,
+            backward_tpm=self.backward_tpm,
         )
 
     def indices2nodes(self, indices):
