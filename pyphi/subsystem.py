@@ -1031,7 +1031,7 @@ class Subsystem:
     # Phi_max methods
     # =========================================================================
 
-    def potential_purviews(self, direction, mechanism, purviews=False):
+    def potential_purviews(self, direction, mechanism, purviews=None):
         """Return all purviews that could belong to the |MIC|/|MIE|.
 
         Filters out trivially-reducible purviews.
@@ -1045,7 +1045,7 @@ class Subsystem:
         """
         # TODO(4.0) return set from network.potential_purviews?
         _potential_purviews = set(self.network.potential_purviews(direction, mechanism))
-        if purviews is False:
+        if purviews is None:
             purviews = _potential_purviews
         else:
             # Restrict to given purviews
@@ -1059,7 +1059,7 @@ class Subsystem:
         # is cut/smaller we check again here.
         return irreducible_purviews(self.cm, direction, mechanism, purviews)
 
-    def find_mice(self, direction, mechanism, purviews=False, **kwargs):
+    def find_mice(self, direction, mechanism, purviews=None, **kwargs):
         """Return the |MIC| or |MIE| for a mechanism.
 
         Args:
@@ -1120,14 +1120,14 @@ class Subsystem:
             tie.set_purview_ties(ties)
         return ties[0]
 
-    def mic(self, mechanism, purviews=False, **kwargs):
+    def mic(self, mechanism, purviews=None, **kwargs):
         """Return the mechanism's maximally-irreducible cause (|MIC|).
 
         Alias for |find_mice()| with ``direction`` set to |CAUSE|.
         """
         return self.find_mice(Direction.CAUSE, mechanism, purviews=purviews, **kwargs)
 
-    def mie(self, mechanism, purviews=False, **kwargs):
+    def mie(self, mechanism, purviews=None, **kwargs):
         """Return the mechanism's maximally-irreducible effect (|MIE|).
 
         Alias for |find_mice()| with ``direction`` set to |EFFECT|.
@@ -1175,9 +1175,9 @@ class Subsystem:
     def concept(
         self,
         mechanism,
-        purviews=False,
-        cause_purviews=False,
-        effect_purviews=False,
+        purviews=None,
+        cause_purviews=None,
+        effect_purviews=None,
         **kwargs,
     ):
         """Return the concept specified by a mechanism within this subsytem.
@@ -1206,14 +1206,13 @@ class Subsystem:
             log.debug("Empty concept; returning null concept")
             return self.null_concept
 
-        # Calculate the maximally irreducible cause repertoire.
-        cause = self.mic(mechanism, purviews=(cause_purviews or purviews), **kwargs)
+        cause_purviews = cause_purviews if cause_purviews is not None else purviews
+        cause = self.mic(mechanism, purviews=cause_purviews, **kwargs)
 
-        # Calculate the maximally irreducible effect repertoire.
-        effect = self.mie(mechanism, purviews=(effect_purviews or purviews), **kwargs)
+        effect_purviews = effect_purviews if effect_purviews is not None else purviews
+        effect = self.mie(mechanism, purviews=effect_purviews, **kwargs)
 
         log.debug("Found concept %s", mechanism)
-
         # NOTE: Make sure to expand the repertoires to the size of the
         # subsystem when calculating concept distance. For now, they must
         # remain un-expanded so the concept doesn't depend on the subsystem.

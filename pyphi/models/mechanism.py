@@ -911,6 +911,7 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
     def __str__(self):
         return fmt.fmt_concept(self)
 
+    # TODO use cached_property
     @property
     def phi(self):
         """float: The size of the concept.
@@ -940,7 +941,9 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
 
     @cached_property
     def both_purview_unit_sets(self):
-        return [set(self.mice(direction).purview_units) for direction in Direction.both()]
+        return [
+            set(self.mice(direction).purview_units) for direction in Direction.both()
+        ]
 
     @cached_property
     def purview_union(self):
