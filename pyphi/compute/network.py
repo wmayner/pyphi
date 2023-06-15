@@ -19,7 +19,7 @@ from .subsystem import sia
 log = logging.getLogger(__name__)
 
 
-def reachable_subsystems(network, indices, state):
+def reachable_subsystems(network, indices, state, **kwargs):
     """A generator over all subsystems in a valid state."""
     validate.is_network(network)
 
@@ -27,12 +27,12 @@ def reachable_subsystems(network, indices, state):
     # resource usage.
     for subset in utils.powerset(indices, nonempty=True, reverse=True):
         try:
-            yield Subsystem(network, state, subset)
+            yield Subsystem(network, state, subset, **kwargs)
         except exceptions.StateUnreachableError:
             pass
 
 
-def subsystems(network, state):
+def subsystems(network, state, **kwargs):
     """Return a generator of all **possible** subsystems of a network.
 
     .. note::
@@ -47,10 +47,10 @@ def subsystems(network, state):
         Subsystem: A |Subsystem| for each subset of nodes in the network,
         excluding subsystems that would be in an impossible state.
     """
-    return reachable_subsystems(network, network.node_indices, state)
+    return reachable_subsystems(network, network.node_indices, state, **kwargs)
 
 
-def possible_complexes(network, state):
+def possible_complexes(network, state, **kwargs):
     """Return a generator of subsystems of a network that could be a complex.
 
     This is the just powerset of the nodes that have at least one input and
@@ -69,10 +69,12 @@ def possible_complexes(network, state):
     Yields:
         Subsystem: The next subsystem that could be a complex.
     """
-    return reachable_subsystems(network, network.causally_significant_nodes, state)
+    return reachable_subsystems(
+        network, network.causally_significant_nodes, state, **kwargs
+    )
 
 
-def all_complexes(network, state, **kwargs):
+def all_complexes(network, state, parallel_kwargs=None, **kwargs):
     """Return a generator for all complexes of the network.
 
     .. note::
@@ -87,10 +89,12 @@ def all_complexes(network, state, **kwargs):
         SystemIrreducibilityAnalysis: A |SIA| for each |Subsystem| of the
         |Network|.
     """
-    parallel_kwargs = conf.parallel_kwargs(config.PARALLEL_COMPLEX_EVALUATION, **kwargs)
+    parallel_kwargs = conf.parallel_kwargs(
+        config.PARALLEL_COMPLEX_EVALUATION, **(parallel_kwargs or dict())
+    )
     return MapReduce(
         sia,
-        possible_complexes(network, state),
+        possible_complexes(network, state, **kwargs),
         total=2 ** len(network) - 1,
         map_kwargs=dict(progress=False),
         desc="Evaluating complexes",
