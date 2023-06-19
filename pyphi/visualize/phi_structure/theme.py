@@ -180,11 +180,11 @@ class DefaultTheme(Theme):
             mode="lines",
             hoverinfo="text",
             showlegend=True,
-            showscale=True,
             line=dict(
                 width=5,
                 color="phi",
                 colorscale="blues",
+                showscale=True,
                 cmin=0,
                 colorbar=dict(
                     title=dict(text="2-face φ_r"),

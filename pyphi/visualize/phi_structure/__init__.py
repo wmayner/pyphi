@@ -583,7 +583,7 @@ def _plot_two_relation_faces_multiple_traces(
     hovertexts,
 ):
     showlegend = theme["two_relations"].pop("showlegend", True)
-    showscale = theme["two_relations"].pop("showscale", True)
+    showscale = theme["two_relations"]["line"].pop("showscale", True)
 
     coloraxis = theme["two_relations"]["line"].get(
         "coloraxis",
