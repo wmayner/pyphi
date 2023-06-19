@@ -168,7 +168,7 @@ def plot_phi_structure(
             )
 
         # 2-relations
-        if theme["show"].get("two_relations") and faces_by_degree[2]:
+        if theme["show"].get("two_relations") and faces_by_degree.get(2):
             fig = _plot_two_relation_faces(
                 fig=fig,
                 face_to_coords=face_to_coords,
@@ -178,7 +178,7 @@ def plot_phi_structure(
             )
 
         # 3-relations
-        if theme["show"].get("three_relations") and faces_by_degree[3]:
+        if theme["show"].get("three_relations") and faces_by_degree.get(3):
             fig = _plot_three_relation_faces(
                 fig=fig,
                 face_to_coords=face_to_coords,
