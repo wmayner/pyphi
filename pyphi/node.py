@@ -43,7 +43,6 @@ class Node:
     """
 
     def __init__(self, tpm, cm, index, state, node_labels):
-
         # This node's index in the list of nodes.
         self.index = index
 

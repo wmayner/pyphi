@@ -11,8 +11,7 @@ import logging
 
 from more_itertools import collapse
 
-from .. import conf
-from .. import connectivity, utils
+from .. import conf, connectivity, utils
 from ..conf import config
 from ..direction import Direction
 from ..metrics.ces import ces_distance
@@ -34,10 +33,12 @@ log = logging.getLogger(__name__)
 
 def ces(
     subsystem,
-    mechanisms=False,
-    purviews=False,
-    cause_purviews=False,
-    effect_purviews=False,
+    mechanisms=None,
+    purviews=None,
+    cause_purviews=None,
+    effect_purviews=None,
+    directions=None,
+    only_positive_phi=True,
     **kwargs,
 ):
     """Return the conceptual structure of this subsystem, optionally restricted
@@ -58,13 +59,16 @@ def ces(
         effect_purviews (tuple[tuple[int]]): Same as in |Subsystem.concept()|.
         parallel (bool): Whether to compute concepts in parallel. If ``True``,
             overrides :data:`config.PARALLEL_CONCEPT_EVALUATION`.
+        directions (Iterable[Direction]): Restrict possible directions to these.
+        only_positive_phi (bool): Whether to only return concepts with positive
+            phi.
 
     Returns:
         CauseEffectStructure: A tuple of every |Concept| in the cause-effect
         structure.
     """
     total = None
-    if mechanisms is False:
+    if mechanisms is None:
         mechanisms = utils.powerset(subsystem.node_indices, nonempty=True)
         total = 2 ** len(subsystem.node_indices) - 1
     else:
@@ -73,9 +77,6 @@ def ces(
         except TypeError:
             pass
 
-    def nonzero_phi(concepts):
-        return list(filter(None, collapse(concepts)))
-
     def compute_concept(*args, **kwargs):
         # Don't serialize the subsystem; this is replaced after returning.
         # TODO(4.0) remove when subsystem reference is removed from Concept
@@ -83,6 +84,7 @@ def ces(
         concept.subsystem = None
         return concept
 
+    reduce_func = _only_positive_phi if only_positive_phi else _any_phi
     parallel_kwargs = conf.parallel_kwargs(config.PARALLEL_CONCEPT_EVALUATION, **kwargs)
     concepts = MapReduce(
         compute_concept,
@@ -91,8 +93,9 @@ def ces(
             purviews=purviews,
             cause_purviews=cause_purviews,
             effect_purviews=effect_purviews,
+            directions=directions,
         ),
-        reduce_func=nonzero_phi,
+        reduce_func=reduce_func,
         desc="Computing concepts",
         total=total,
         **parallel_kwargs,
@@ -102,6 +105,14 @@ def ces(
     for concept in concepts:
         concept.subsystem = subsystem
     return CauseEffectStructure(concepts, subsystem=subsystem)
+
+
+def _only_positive_phi(concepts):
+    return list(filter(None, collapse(concepts)))
+
+
+def _any_phi(concepts):
+    return list(collapse(concepts))
 
 
 def conceptual_info(subsystem, **kwargs):

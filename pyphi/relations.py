@@ -275,7 +275,6 @@ class ConcreteRelations(frozenset, Relations):
         return dict(faces)
 
 
-
 class AnalyticalRelations(Relations):
     def __init__(self, distinctions):
         self.distinctions = distinctions.unflatten()

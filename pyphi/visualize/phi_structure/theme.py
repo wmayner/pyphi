@@ -43,6 +43,9 @@ class DefaultTheme(Theme):
             two_faces=True,
             three_faces=True,
         ),
+        labels=dict(
+            postprocessor=None,
+        ),
         layout={
             **dict(
                 autosize=True,
@@ -181,6 +184,7 @@ class DefaultTheme(Theme):
                 width=5,
                 color="phi",
                 colorscale="blues",
+                showscale=True,
                 cmin=0,
                 colorbar=dict(
                     title=dict(text="2-face φ_r"),
@@ -190,7 +194,6 @@ class DefaultTheme(Theme):
                     ticks="outside",
                     ticklen=5,
                 ),
-                showscale=True,
             ),
         ),
         three_faces=dict(

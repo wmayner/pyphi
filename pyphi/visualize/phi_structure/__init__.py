@@ -168,7 +168,7 @@ def plot_phi_structure(
             )
 
         # 2-relations
-        if theme["show"].get("two_faces") and faces_by_degree[2]:
+        if theme["show"].get("two_relations") and faces_by_degree.get(2):
             fig = _plot_two_relation_faces(
                 fig=fig,
                 face_to_coords=face_to_coords,
@@ -178,7 +178,7 @@ def plot_phi_structure(
             )
 
         # 3-relations
-        if theme["show"].get("three_faces") and faces_by_degree[3]:
+        if theme["show"].get("three_relations") and faces_by_degree.get(3):
             fig = _plot_three_relation_faces(
                 fig=fig,
                 face_to_coords=face_to_coords,
@@ -582,8 +582,8 @@ def _plot_two_relation_faces_multiple_traces(
     widths,
     hovertexts,
 ):
-    showlegend = theme["two_faces"].pop("showlegend", True)
-    showscale = theme["two_faces"].pop("showscale", True)
+    showlegend = theme["two_relations"].pop("showlegend", True)
+    showscale = theme["two_relations"]["line"].pop("showscale", True)
 
     coloraxis = theme["two_faces"]["line"].get(
         "coloraxis",

@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from enum import Enum, auto, unique
 from typing import Iterable, Optional, Tuple, Union
 
-from .. import compute, conf, connectivity, utils
+from .. import compute, conf, connectivity, utils, validate
 from ..compute.network import reachable_subsystems
 from ..compute.parallel import MapReduce
 from ..conf import config, fallback
@@ -30,26 +30,34 @@ from ..warnings import warn_about_tie_serialization
 def system_intrinsic_information(
     subsystem: Subsystem,
     repertoire_distance: Optional[str] = None,
+    directions: Optional[Iterable[Direction]] = None,
 ) -> SystemStateSpecification:
     """Return the cause/effect states specified by the system.
 
     NOTE: Uses ``config.REPERTOIRE_DISTANCE_INFORMATION``.
     NOTE: State ties are arbitrarily broken (for now).
     """
+    directions = fallback(directions, Direction.both())
+    directions = tuple(directions)
+    # TODO move to Direction
+    # TODO have validation methods return the validated value
+    validate.directions(directions)
     repertoire_distance = fallback(
         repertoire_distance, config.REPERTOIRE_DISTANCE_INFORMATION
     )
     # TODO(ties) deal with ties here
-    cause, effect = [
-        subsystem.intrinsic_information(
+    ii = {
+        direction: subsystem.intrinsic_information(
             direction,
             mechanism=subsystem.node_indices,
             purview=subsystem.node_indices,
             repertoire_distance=repertoire_distance,
         )
-        for direction in Direction.both()
-    ]
-    return SystemStateSpecification(cause=cause, effect=effect)
+        for direction in directions
+    }
+    return SystemStateSpecification(
+        cause=ii.get(Direction.CAUSE), effect=ii.get(Direction.EFFECT)
+    )
 
 
 ##############################################################################
@@ -220,6 +228,8 @@ def evaluate_partition(
     directions: Optional[Iterable[Direction]] = None,
 ) -> SystemIrreducibilityAnalysis:
     directions = fallback(directions, Direction.both())
+    directions = tuple(directions)
+    validate.directions(directions)
     cut_subsystem = subsystem.apply_cut(partition)
     integration = {
         direction: integration_value(
@@ -229,7 +239,7 @@ def evaluate_partition(
             system_state,
             repertoire_distance=repertoire_distance,
         )
-        for direction in Direction.both()
+        for direction in directions
     }
     phi = min(integration[direction].phi for direction in directions)
     norm = normalization_factor(partition)
@@ -238,8 +248,8 @@ def evaluate_partition(
     return SystemIrreducibilityAnalysis(
         phi=phi,
         normalized_phi=normalized_phi,
-        cause=integration[Direction.CAUSE],
-        effect=integration[Direction.EFFECT],
+        cause=integration.get(Direction.CAUSE),
+        effect=integration.get(Direction.EFFECT),
         partition=partition,
         system_state=system_state,
         current_state=subsystem.proper_state,
@@ -307,7 +317,7 @@ def sia(
         )
 
     if system_state is None:
-        system_state = system_intrinsic_information(subsystem)
+        system_state = system_intrinsic_information(subsystem, directions=directions)
 
     def _null_sia(**kwargs):
         return NullSystemIrreducibilityAnalysis(
@@ -317,9 +327,10 @@ def sia(
             **kwargs,
         )
 
-    shortcircuit_reasons = _has_no_cause_or_effect(system_state)
-    if shortcircuit_reasons:
-        return _null_sia(reasons=shortcircuit_reasons)
+    if config.SHORTCIRCUIT_SIA:
+        shortcircuit_reasons = _has_no_cause_or_effect(system_state)
+        if shortcircuit_reasons:
+            return _null_sia(reasons=shortcircuit_reasons)
 
     default_sia = _null_sia(reasons=[ShortCircuitConditions.NO_VALID_PARTITIONS])
 
