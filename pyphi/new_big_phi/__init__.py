@@ -31,6 +31,7 @@ def system_intrinsic_information(
     subsystem: Subsystem,
     repertoire_distance: Optional[str] = None,
     directions: Optional[Iterable[Direction]] = None,
+    subsystem_cause: Optional[Subsystem] = None,
 ) -> SystemStateSpecification:
     """Return the cause/effect states specified by the system.
 
@@ -45,9 +46,14 @@ def system_intrinsic_information(
     repertoire_distance = fallback(
         repertoire_distance, config.REPERTOIRE_DISTANCE_INFORMATION
     )
+    subsystem_cause = fallback(subsystem_cause, subsystem)
+    subsystems = {
+        Direction.CAUSE: subsystem_cause,
+        Direction.EFFECT: subsystem,
+    }
     # TODO(ties) deal with ties here
     ii = {
-        direction: subsystem.intrinsic_information(
+        direction: subsystems[direction].intrinsic_information(
             direction,
             mechanism=subsystem.node_indices,
             purview=subsystem.node_indices,
@@ -195,11 +201,12 @@ def normalization_factor(partition: Union[Cut, GeneralKCut]) -> float:
 def integration_value(
     direction: Direction,
     subsystem: Subsystem,
-    cut_subsystem: Subsystem,
+    partition: Cut,
     system_state: SystemStateSpecification,
-    repertoire_distance: str = None,
+    repertoire_distance: Optional[str] = None,
 ) -> float:
     repertoire_distance = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
+    cut_subsystem = subsystem.apply_cut(partition)
     # TODO(4.0) deal with proliferation of special cases for GID
     if repertoire_distance == "GENERALIZED_INTRINSIC_DIFFERENCE":
         partitioned_repertoire = cut_subsystem.forward_repertoire(
@@ -213,7 +220,7 @@ def integration_value(
         direction,
         subsystem.node_indices,
         subsystem.node_indices,
-        cut_subsystem.cut,
+        partition,
         partitioned_repertoire=partitioned_repertoire,
         repertoire_distance=repertoire_distance,
         state=system_state[direction],
@@ -226,16 +233,18 @@ def evaluate_partition(
     system_state: SystemStateSpecification,
     repertoire_distance: str = None,
     directions: Optional[Iterable[Direction]] = None,
+    subsystem_cause=None,
 ) -> SystemIrreducibilityAnalysis:
     directions = fallback(directions, Direction.both())
     directions = tuple(directions)
     validate.directions(directions)
-    cut_subsystem = subsystem.apply_cut(partition)
+    subsystem_cause = fallback(subsystem_cause, subsystem)
+    subsystems = {Direction.CAUSE: subsystem_cause, Direction.EFFECT: subsystem}
     integration = {
         direction: integration_value(
             direction,
-            subsystem,
-            cut_subsystem,
+            subsystems[direction],
+            partition,
             system_state,
             repertoire_distance=repertoire_distance,
         )
@@ -290,6 +299,7 @@ def sia(
     partition_scheme: Optional[str] = None,
     partitions: Optional[Iterable] = None,
     system_state: Optional[SystemStateSpecification] = None,
+    subsystem_cause: Optional[Subsystem] = None,
     **kwargs,
 ) -> SystemIrreducibilityAnalysis:
     """Find the minimum information partition of a system."""
@@ -317,7 +327,9 @@ def sia(
         )
 
     if system_state is None:
-        system_state = system_intrinsic_information(subsystem, directions=directions)
+        system_state = system_intrinsic_information(
+            subsystem, directions=directions, subsystem_cause=subsystem_cause
+        )
 
     def _null_sia(**kwargs):
         return NullSystemIrreducibilityAnalysis(
@@ -343,6 +355,7 @@ def sia(
             system_state=system_state,
             repertoire_distance=repertoire_distance,
             directions=directions,
+            subsystem_cause=subsystem_cause,
         ),
         shortcircuit_func=utils.is_falsy,
         desc="Evaluating partitions",
