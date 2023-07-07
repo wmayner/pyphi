@@ -57,6 +57,8 @@ def plot_phi_structure(
     phi_structure=None,
     distinctions=None,
     relations=None,
+    relation_two_faces=None,
+    relation_three_faces=None,
     subsystem=None,
     state=None,
     node_indices=None,
@@ -149,10 +151,17 @@ def plot_phi_structure(
 
     # Relations
     if theme["show"].get("two_faces") or theme["show"].get("three_faces"):
-        # Sort relations for deterministic traversal
-        faces_by_degree = dict()
-        for degree, faces in relations.faces_by_degree.items():
-            faces_by_degree[degree] = sorted(faces)
+        two_faces = relation_two_faces
+        three_faces = relation_three_faces
+        if two_faces is None or three_faces is None:
+            # Sort relations for deterministic traversal
+            faces_by_degree = dict()
+            for degree, faces in relations.faces_by_degree.items():
+                faces_by_degree[degree] = sorted(faces)
+            if two_faces is None:
+                two_faces = faces_by_degree.get(2)
+            if three_faces is None:
+                three_faces = faces_by_degree.get(3)
 
         def face_to_coords(face):
             return np.array(
@@ -168,21 +177,21 @@ def plot_phi_structure(
             )
 
         # 2-relations
-        if theme["show"].get("two_faces") and faces_by_degree.get(2):
+        if theme["show"].get("two_faces") and two_faces:
             fig = _plot_two_relation_faces(
                 fig=fig,
                 face_to_coords=face_to_coords,
-                relation_faces=faces_by_degree[2],
+                relation_faces=two_faces,
                 labeler=labeler,
                 theme=theme,
             )
 
         # 3-relations
-        if theme["show"].get("three_faces") and faces_by_degree.get(3):
+        if theme["show"].get("three_faces") and three_faces:
             fig = _plot_three_relation_faces(
                 fig=fig,
                 face_to_coords=face_to_coords,
-                relation_faces=faces_by_degree[3],
+                relation_faces=three_faces,
                 labeler=labeler,
                 theme=theme,
             )
@@ -592,7 +601,10 @@ def _plot_two_relation_faces_multiple_traces(
         colorscale = theme["layout"][coloraxis]["colorscale"]
     else:
         colorscale = theme["two_faces"]["line"]["colorscale"]
-    colors = [get_color(colorscale, value) for value in utils.rescale(colors, (0, 1))]
+    if colors is None:
+        colors = [
+            get_color(colorscale, value) for value in utils.rescale(colors, (0, 1))
+        ]
 
     traces = []
     for face, width, color, hovertext in zip(
