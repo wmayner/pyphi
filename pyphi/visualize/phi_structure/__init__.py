@@ -594,9 +594,7 @@ def _plot_two_relation_faces_multiple_traces(
     showlegend = theme["two_faces"].pop("showlegend", True)
     showscale = theme["two_faces"]["line"].pop("showscale", True)
 
-    coloraxis = theme["two_faces"]["line"].get(
-        "coloraxis",
-    )
+    coloraxis = theme["two_faces"]["line"].get("coloraxis")
     if coloraxis is not None:
         colorscale = theme["layout"][coloraxis]["colorscale"]
     else:
@@ -605,7 +603,6 @@ def _plot_two_relation_faces_multiple_traces(
         colors = [
             get_color(colorscale, value) for value in utils.rescale(colors, (0, 1))
         ]
-
     traces = []
     for face, width, color, hovertext in zip(
         faces,
@@ -624,7 +621,7 @@ def _plot_two_relation_faces_multiple_traces(
                 legendgroup=name + theme["legendgroup_postfix"],
                 showlegend=showlegend,
                 line_showscale=showscale,
-                line_color=color,
+                line_color=[color]*2,
                 line_width=width,
                 hovertext=hovertext,
                 **theme["two_faces"],
