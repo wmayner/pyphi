@@ -56,16 +56,43 @@ class TPM:
     def expand_tpm(self):
         raise NotImplementedError
 
-    def subtpm(fixed_nodes, state):
-        raise NotImplementedError
+    def subtpm(self, fixed_nodes, state):
+        """Return the TPM for a subset of nodes, conditioned on other nodes.
 
-    def _subtpm(self, fixed_nodes, state):
-        """Helper method shared by subtpm()."""
+        Arguments:
+            fixed_nodes (tuple[int]): The nodes to select.
+            state (tuple[int]): The state of the fixed nodes.
+
+        Returns:
+            ExplicitTPM: The TPM of just the subsystem of the free nodes.
+
+        Examples:
+            >>> from pyphi import examples
+            >>> # Get the TPM for nodes only 1 and 2, conditioned on node 0 = OFF
+            >>> reconstitute_tpm(examples.grid3_network().tpm).subtpm((0,), (0,))
+            ExplicitTPM(
+            [[[[0.02931223 0.04742587]
+               [0.07585818 0.88079708]]
+            <BLANKLINE>
+              [[0.81757448 0.11920292]
+               [0.92414182 0.95257413]]]]
+            )
+        """
         N = self.shape[-1]
         free_nodes = sorted(set(range(N)) - set(fixed_nodes))
         condition = FrozenMap(zip(fixed_nodes, state))
         conditioned_tpm = self.condition_tpm(condition)
-        return conditioned_tpm, free_nodes
+
+        if isinstance(self, ExplicitTPM):
+            return conditioned_tpm[..., free_nodes]
+
+        return type(self)(
+            tuple(
+                node for node in conditioned_tpm.nodes
+                if node.index in free_nodes
+            )
+        )
+
 
     def infer_edge(self, a, b, contexts):
         """Infer the presence or absence of an edge from node A to node B.
@@ -451,31 +478,6 @@ class ExplicitTPM(data_structures.ArrayLike, TPM):
 
         return self.squeeze()[..., self.tpm_indices()]
 
-    def subtpm(self, fixed_nodes, state):
-        """Return the TPM for a subset of nodes, conditioned on other nodes.
-
-        Arguments:
-            fixed_nodes (tuple[int]): The nodes to select.
-            state (tuple[int]): The state of the fixed nodes.
-
-        Returns:
-            ExplicitTPM: The TPM of just the subsystem of the free nodes.
-
-        Examples:
-            >>> from pyphi import examples
-            >>> # Get the TPM for nodes only 1 and 2, conditioned on node 0 = OFF
-            >>> reconstitute_tpm(examples.grid3_network().tpm).subtpm((0,), (0,))
-            ExplicitTPM(
-            [[[[0.02931223 0.04742587]
-               [0.07585818 0.88079708]]
-            <BLANKLINE>
-              [[0.81757448 0.11920292]
-               [0.92414182 0.95257413]]]]
-            )
-        """
-        conditioned_tpm, free_nodes = self._subtpm(fixed_nodes, state)
-        return conditioned_tpm[..., free_nodes]
-
     def expand_tpm(self):
         """Broadcast a state-by-node TPM so that singleton dimensions are expanded
         over the full network.
@@ -757,36 +759,6 @@ class ImplicitTPM(TPM):
         # the surviving nodes.
         return type(self)(
             tuple(node for node in self.squeeze().nodes)
-        )
-
-    def subtpm(self, fixed_nodes, state):
-        """Return the TPM for a subset of nodes, conditioned on other nodes.
-
-        Arguments:
-            fixed_nodes (tuple[int]): The nodes to select.
-            state (tuple[int]): The state of the fixed nodes.
-
-        Returns:
-            ExplicitTPM: The TPM of just the subsystem of the free nodes.
-
-        Examples:
-            >>> from pyphi import examples
-            >>> # Get the TPM for nodes only 1 and 2, conditioned on node 0 = OFF
-            >>> reconstitute_tpm(examples.grid3_network().tpm.subtpm((0,), (0,)))
-            ExplicitTPM(
-            [[[[0.02931223 0.04742587]
-               [0.07585818 0.88079708]]
-            <BLANKLINE>
-              [[0.81757448 0.11920292]
-               [0.92414182 0.95257413]]]]
-            )
-        """
-        conditioned_tpm, free_nodes = self._subtpm(fixed_nodes, state)
-        return type(self)(
-            tuple(
-                node for node in conditioned_tpm.nodes
-                if node.index in free_nodes
-            )
         )
 
     def equals(self, o: object):
