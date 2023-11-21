@@ -10,8 +10,9 @@ from collections.abc import Sequence
 
 import numpy as np
 
-from pyphi import validate
-from pyphi.models import cmp
+from . import validate
+from .conf import config, fallback
+from .models import cmp
 
 
 def default_label(index):
@@ -73,6 +74,12 @@ class NodeLabels(Sequence):
     def __hash__(self):
         return hash((self.labels, self.node_indices))
 
+    def index2label(self, index):
+        return self._i2l[index]
+
+    def label2index(self, label):
+        return self._l2i[label]
+
     def labels2indices(self, labels):
         """Convert a tuple of node labels to node indices."""
         return tuple(self._l2i[label] for label in labels)
@@ -106,6 +113,21 @@ class NodeLabels(Sequence):
         else:
             labels = nodes
         return tuple(labels)
+
+    def label_string(self, nodes, state, sep=None):
+        """Return a single string labeling the nodes."""
+        sep = fallback(
+            sep,
+            config.LABEL_SEPARATOR,
+        )
+        return sep.join(self.set_case_by_state(self.coerce_to_labels(nodes), state))
+
+    def set_case_by_state(self, labels, states):
+        """Return a list of labels with case set by the corresponding state."""
+        return [
+            label.upper() if state else label.lower()
+            for label, state in zip(labels, states, strict=True)
+        ]
 
     def to_json(self):
         return {"labels": self.labels, "node_indices": self.node_indices}

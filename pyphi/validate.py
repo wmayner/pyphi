@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # validate.py
 
 """
@@ -10,12 +8,18 @@ from  warnings import warn
 
 import numpy as np
 
-from . import config, exceptions
+from . import exceptions
+from .conf import config
 from .direction import Direction
 from .tpm import ImplicitTPM, reconstitute_tpm
-from .models.mechanism import MaximallyIrreducibleCauseOrEffect
+
 
 # pylint: disable=redefined-outer-name
+
+
+# TODO(4.0) move to `Direction`
+def directions(directions, **kwargs):
+    return all(direction(d, **kwargs) for d in directions)
 
 
 def direction(direction, allow_bi=False):
@@ -24,12 +28,15 @@ def direction(direction, allow_bi=False):
     If ``allow_bi`` is ``True`` then ``Direction.BIDIRECTIONAL`` is
     acceptable.
     """
-    valid = [Direction.CAUSE, Direction.EFFECT]
+    valid = set(Direction.both())
     if allow_bi:
-        valid.append(Direction.BIDIRECTIONAL)
+        valid.add(Direction.BIDIRECTIONAL)
 
     if direction not in valid:
-        raise ValueError("`direction` must be one of {}".format(valid))
+        raise ValueError(
+            f"`direction` must be one of `Direction.{valid}`; "
+            f"got {type(direction)} `{direction}`"
+        )
 
     return True
 
@@ -240,7 +247,3 @@ def relata(relata):
     """Validate a set of relata."""
     if not relata:
         raise ValueError("relata cannot be empty")
-    if not all(
-        isinstance(relatum, MaximallyIrreducibleCauseOrEffect) for relatum in relata
-    ):
-        raise ValueError("relata must be an iterable of MICEs")

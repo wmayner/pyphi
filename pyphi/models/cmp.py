@@ -87,8 +87,19 @@ class Orderable:
         return not self == other
 
 
+class OrderableByPhi(Orderable):
+    """Mixin for implementing rich object comparisons on phi-objects that are ordered solely by their phi values.
+
+    Inherits from Orderable.
+    """
+
+    def order_by(self):
+        return self.phi
+
+
 # Equality helpers
 # =============================================================================
+
 
 # TODO use builtin numpy methods here
 def numpy_aware_eq(a, b):
@@ -97,6 +108,7 @@ def numpy_aware_eq(a, b):
     """
     if isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
         return np.array_equal(a, b)
+    # TODO(4.0) this is broken if the iterables are sets
     if (
         (isinstance(a, Iterable) and isinstance(b, Iterable))
         and not isinstance(a, str)

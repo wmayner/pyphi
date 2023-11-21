@@ -5,8 +5,7 @@ from typing import Iterable
 
 from .direction import Direction
 from .models.mechanism import Concept
-from .models.subsystem import CauseEffectStructure
-from .models.subsystem import FlatCauseEffectStructure
+from .models.subsystem import CauseEffectStructure, FlatCauseEffectStructure
 
 DIRECTIONS = [
     Direction.CAUSE,

@@ -1,10 +1,6 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # exceptions.py
 
 """PyPhi exceptions."""
-
-import warnings
 
 
 class StateUnreachableError(ValueError):
@@ -26,12 +22,3 @@ class JSONVersionError(ValueError):
 
 class WrongDirectionError(ValueError):
     """The wrong direction was provided."""
-
-
-def warn_about_tie_serialization(obj):
-    warnings.warn(
-        f"Serializing ties in {obj.__class__} is not currently supported; "
-        "tie information will be lost.",
-        UserWarning,
-        stacklevel=3,
-    )

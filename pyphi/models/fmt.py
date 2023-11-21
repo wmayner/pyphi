@@ -8,12 +8,15 @@ Helper functions for formatting pretty representations of PyPhi models.
 
 from fractions import Fraction
 from itertools import chain, cycle
+from typing import Iterable
 
 import numpy as np
+from toolz import concat
 
-from .. import config, constants, utils
+from .. import utils
+from ..conf import config
 from ..direction import Direction
-from .cuts import NullCut, CompleteSystemPartition
+from .cuts import CompleteSystemPartition, NullCut
 
 # REPR_VERBOSITY levels
 LOW = 0
@@ -82,7 +85,7 @@ def make_repr(self, attrs):
     raise ValueError("Invalid value for `config.REPR_VERBOSITY`")
 
 
-def indent(lines, amount=2, char=" "):
+def indent(lines, amount=2, char=" ", newline="\n"):
     r"""Indent a string.
 
     Prepends whitespace to every line in the passed string. (Lines are
@@ -105,7 +108,7 @@ def indent(lines, amount=2, char=" "):
     """
     lines = str(lines)
     padding = amount * char
-    return padding + ("\n" + padding).join(lines.split("\n"))
+    return padding + (newline + padding).join(lines.split(newline))
 
 
 def margin(text):
@@ -213,19 +216,29 @@ def labels(indices, node_labels=None):
     return node_labels.indices2labels(indices)
 
 
-def align(lines, direction="<"):
+def is_multiline(text):
+    """Return True if the text contains newlines."""
+    return "\n" in text
+
+
+def align(lines: Iterable[str], direction="<"):
     """Align lines by padding with spaces.
 
     Examples:
         >>> lines = ["abcde", "abc", "", "abcdefg"]
         >>> align(lines, direction="<")
         ['abcde  ', 'abc    ', '       ', 'abcdefg']
+        >>> align(["abcde", "abc\\ndef", "abcdefg"], direction="<")
+        ['abcde  ', 'abc    ', 'def    ', 'abcdefg']
         >>> align(lines, direction=">")
         ['  abcde', '    abc', '       ', 'abcdefg']
         >>> align(lines, direction="c")
         [' abcde ', '  abc  ', '       ', 'abcdefg']
 
     """
+    lines = list(
+        concat([text.split("\n") if is_multiline(text) else [text] for text in lines])
+    )
     w = width(lines)
     if direction == "c":
         return [line.center(w) for line in lines]
@@ -253,7 +266,11 @@ def split_decimal(n):
         ['1', '0']
         >>> split_decimal(np.nan)
         ['', 'nan']
+        >>> split_decimal(None)
+        ['', 'None']
     """
+    if n is None:
+        return ["", str(None)]
     try:
         if np.isnan(n):
             # nan
@@ -296,19 +313,45 @@ def align_decimals(numbers):
     return ["".join(elements) for elements in zip(units, points, decimals)]
 
 
+def _multiline_string_to_columns(text):
+    return [("", line) for line in text.split("\n")]
+
+
+def _expand_multiline_strings(left, right):
+    """Expand a multiline 'right side' string into a list of columns with empty
+    left sides.
+    """
+    # TODO deal with multiline left?
+    if not isinstance(right, str) or not is_multiline(right):
+        return [(left, right)]
+    columns = _multiline_string_to_columns(right)
+    columns[0] = (left, columns[0][1])
+    return columns
+
+
 def align_columns(
-    lines, delimiter=": ", alignment="><", types="tn", split_columns=False
+    lines,
+    delimiter=": ",
+    alignment="><",
+    types="tn",
+    split_columns=False,
 ):
     """Align columns of text.
+
+    # If a line does not contain the delimiter, it will be assumed to belong to
+    # the previous line and will be indented.
 
     Arguments:
         lines (Iterable): The lines to align.
 
     Keyword Arguments:
         delimiter (str): The delimiter of the columns.
-        alignment (str): A string of ">" and "<", indicating the alignment for each column.
+        alignment (str): A string of ">" and "<", indicating the alignment for
+            each column.
         types (str): A string of "t" (text) and "n" (numeric), indicating the
             type of each column.
+        split_columns (bool): If True, assume lines are single strings rather
+            than tuples, and split them on the delimiter beforehand.
 
     Examples:
         >>> columns = [
@@ -332,6 +375,9 @@ def align_columns(
     """
     if split_columns:
         lines = [str(line).split(delimiter) for line in lines]
+    # Expand multiline strings into new columns
+    lines = concat([_expand_multiline_strings(left, right) for left, right in lines])
+    # Reorient into columns
     columns = list(zip(*lines))
     for i, t in enumerate(types):
         if t == "n":
@@ -425,7 +471,6 @@ def fmt_partition(partition):
     if not partition:
         return ""
     try:
-
         parts = [
             # TODO(4.0)
             # str(part).split("\n")
@@ -505,8 +550,10 @@ def fmt_partitioned_phi_structure(
     return body
 
 
-def fmt_ces(ces, title="Cause-effect structure"):
+def fmt_ces(ces, title=None):
     """Format a |CauseEffectStructure|."""
+    if title is None:
+        title = ces.__class__.__name__
     if not ces:
         return "()\n"
 
@@ -522,15 +569,10 @@ def fmt_concept(concept):
     """Format a |Concept|."""
 
     def fmt_cause_or_effect(x):  # pylint: disable=missing-docstring
-        return box(
-            indent(
-                fmt_ria(x.ria, verbose=False, mip=True),
-                amount=1,
-            )
-        )
+        return indent(str(x), amount=1)
 
-    cause = header("MIC", fmt_cause_or_effect(concept.cause))
-    effect = header("MIE", fmt_cause_or_effect(concept.effect))
+    cause = fmt_cause_or_effect(concept.cause)
+    effect = fmt_cause_or_effect(concept.effect)
     ce = side_by_side(cause, effect)
 
     mechanism = fmt_mechanism(concept.mechanism, concept.node_labels)
@@ -538,7 +580,7 @@ def fmt_concept(concept):
     title = "\n".join(
         align(
             [
-                f"Distinction: mechanism = {mechanism}, state = {list(concept.mechanism_state)}",
+                f"{concept.__class__.__name__}: mechanism = {mechanism}, state = {list(concept.mechanism_state)}",
                 f"{SMALL_PHI} = {fmt_number(concept.phi)}",
             ],
             direction="c",
@@ -553,8 +595,8 @@ def fmt_concept(concept):
 def fmt_ria(ria, verbose=True, mip=False):
     """Format a |RepertoireIrreducibilityAnalysis|."""
     if verbose:
-        mechanism = f"Mechanism: {fmt_mechanism(ria.mechanism, ria.node_labels)}\n"
-        direction = f"\nDirection: {ria.direction}"
+        mechanism = f"Mechanism: {fmt_mechanism(ria.mechanism, ria.node_labels)}"
+        direction = f"Direction: {ria.direction}"
     else:
         mechanism = ""
         direction = ""
@@ -562,58 +604,64 @@ def fmt_ria(ria, verbose=True, mip=False):
     # TODO(4.0):  position repertoire and partitioned repertoire side by side
     # TODO(ties) fix state-marking logic
     if config.REPR_VERBOSITY is HIGH:
-        partition = "\n{}:\n{}".format(
-            ("MIP" if mip else "Partition"), indent(fmt_partition(ria.partition))
-        )
-        mark_states = [specified.state for specified in ria.specified_state.ties]
-        # TODO(refactor)
-        if ria.repertoire.size == 1:
-            repertoire = f"\nForward probability: \n    {ria.repertoire}"
-            partitioned_repertoire = (
-                f"\nPartitioned forward probability:\n    {ria.partitioned_repertoire}"
-            )
+        partition_name = "MIP" if mip else "Partition"
+        partition = f"{partition_name}: "
+        if ria.partition:
+            partition += f"\n{indent(fmt_partition(ria.partition))}"
         else:
-            repertoire = "\nRepertoire:\n{}".format(
-                indent(fmt_repertoire(ria.repertoire, mark_states=mark_states))
-            )
-            partitioned_repertoire = "\nPartitioned repertoire:\n{}".format(
-                indent(
-                    fmt_repertoire(
-                        ria.partitioned_repertoire,
-                        mark_states=mark_states,
+            partition += "empty"
+        if ria.specified_state is not None:
+            mark_states = [specified.state for specified in ria.specified_state.ties]
+        else:
+            mark_states = []
+        # TODO(refactor)
+        if ria.repertoire is not None:
+            if ria.repertoire.size == 1:
+                repertoire = f"Forward probability:\n    {ria.repertoire}"
+                partitioned_repertoire = f"Partitioned forward probability:\n    {ria.partitioned_repertoire}"
+            else:
+                repertoire = "Repertoire:\n{}".format(
+                    indent(fmt_repertoire(ria.repertoire, mark_states=mark_states))
+                )
+                partitioned_repertoire = "Partitioned repertoire:\n{}".format(
+                    indent(
+                        fmt_repertoire(
+                            ria.partitioned_repertoire,
+                            mark_states=mark_states,
+                        )
                     )
                 )
-            )
+        else:
+            repertoire = ""
+            partitioned_repertoire = ""
     else:
         partition = ""
         repertoire = ""
         partitioned_repertoire = ""
 
-    # TODO? print the two repertoires side-by-side
-    return (
-        "{SMALL_PHI} = {phi}\n"
-        "Normalized {SMALL_PHI} = {normalized_phi}\n"
-        "{mechanism}"
-        "Purview: {purview}"
-        "\nSpecified state:\n{specified_state}"
-        "{direction}"
-        "{partition}"
-        "{repertoire}"
-        "{partitioned_repertoire}"
-        "\n#(ties): {num_ties}"
-    ).format(
-        SMALL_PHI=SMALL_PHI,
-        normalized_phi=fmt_number(ria.normalized_phi),
-        mechanism=mechanism,
-        purview=fmt_mechanism(ria.purview, ria.node_labels),
-        specified_state=ria.specified_state,
-        direction=direction,
-        phi=fmt_number(ria.phi),
-        partition=partition,
-        repertoire=repertoire,
-        partitioned_repertoire=partitioned_repertoire,
-        num_ties=ria.num_ties,
+    data = (
+        [
+            f"{SMALL_PHI} = {fmt_number(ria.phi)}",
+            f"Normalized {SMALL_PHI} = {fmt_number(ria.normalized_phi)}",
+            f"{mechanism}",
+            f"Purview: {fmt_mechanism(ria.purview, ria.node_labels)}",
+            f"Specified state:\n{ria.specified_state}",
+            f"{direction}",
+            f"{partition}",
+        ]
+        + ([f"Selectivity: {ria.selectivity}"] if ria.selectivity is not None else [])
+        + [
+            f"{repertoire}",
+            f"{partitioned_repertoire}",
+            f"#(state ties): {ria.num_state_ties}",
+            f"#(partition ties): {ria.num_partition_ties}",
+        ]
     )
+    if hasattr(ria, "num_purview_ties"):
+        data.append(f"#(purview ties): {ria.num_purview_ties}")
+    if ria.reasons is not None:
+        data.append("Reasons: " + ", ".join(map(str, ria.reasons)))
+    return "\n".join(data)
 
 
 def fmt_cut(cut, direction=None, name=True):
@@ -898,3 +946,8 @@ def fmt_transition(t):
         ARROW_RIGHT,
         fmt_mechanism(t.effect_indices, t.node_labels),
     )
+
+
+def state(state):
+    """Format a state."""
+    return "(" + ",".join(map(str, state)) + ")"

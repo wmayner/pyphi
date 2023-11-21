@@ -1,8 +1,21 @@
+# .flake8
+
 [flake8]
-ignore = E203, E501, W503
-max-line-length = 80
-max-complexity = 18
 select = B,C,E,F,W,T4,B9
+ignore =
+  # Closing bracket mismatches opening bracket's line.
+  # This works poorly with type annotations in method declarations.
+  E123, E124
+  # Line over-indented for visual indent.
+  # This works poorly with type annotations in method declarations.
+  E126, E128, E131
+  # Line break after binary operator.
+  # This catches line breaks after "and" / "or" as a means of breaking up
+  # long if statements, which PEP 8 explicitly encourages.
+  W504
+import-order-style = google
+max-complexity = 88
+max-line-length = 89
 exclude =
   __pycache__,
   __pyphi_cache__,

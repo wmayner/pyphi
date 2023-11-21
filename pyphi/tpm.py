@@ -6,13 +6,15 @@
 Provides the ExplicitTPM and related classes.
 """
 
+import math
 from itertools import chain
 from typing import Iterable, Mapping, Optional, Set, Tuple
 
 import numpy as np
 
-from . import config, convert, distribution, data_structures, exceptions
+from . import convert, distribution, data_structures, exceptions
 from .connectivity import subadjacency
+from .conf import config
 from .constants import OFF, ON
 from .data_structures import FrozenMap
 from .node import node as Node
@@ -51,15 +53,19 @@ class TPM:
     def remove_singleton_dimensions(self):
         raise NotImplementedError
 
+    def expand_tpm(self):
+        raise NotImplementedError
+
+    def subtpm(fixed_nodes, state):
+        raise NotImplementedError
+
     def _subtpm(self, fixed_nodes, state):
+        """Helper method shared by subtpm()."""
         N = self.shape[-1]
         free_nodes = sorted(set(range(N)) - set(fixed_nodes))
         condition = FrozenMap(zip(fixed_nodes, state))
-        conditioned = self.condition_tpm(condition)
-        return conditioned, free_nodes
-
-    def expand_tpm(self):
-        raise NotImplementedError
+        conditioned_tpm = self.condition_tpm(condition)
+        return conditioned_tpm, free_nodes
 
     def infer_edge(self, a, b, contexts):
         """Infer the presence or absence of an edge from node A to node B.
@@ -227,6 +233,9 @@ class ExplicitTPM(data_structures.ArrayLike, TPM):
         else:
             return getattr(self.__getattribute__(self._VALUE_ATTR), name)
 
+    def __len__(self):
+        return len(self.__getattribute__(self._VALUE_ATTR))
+
     def __init__(self, tpm, validate=False):
         self._tpm = np.array(tpm)
 
@@ -317,6 +326,13 @@ class ExplicitTPM(data_structures.ArrayLike, TPM):
                 "{}".format(see_tpm_docs)
             )
         return True
+
+    @property
+    def number_of_units(self):
+        if self.is_state_by_state():
+            # Assumes binary nodes
+            return int(math.log2(self._tpm.shape[1]))
+        return self._tpm.shape[-1]
 
     def to_multidimensional_state_by_node(self):
         """Return the current TPM re-represented in multidimensional
@@ -457,8 +473,8 @@ class ExplicitTPM(data_structures.ArrayLike, TPM):
                [0.92414182 0.95257413]]]]
             )
         """
-        conditioned, free_nodes = self._subtpm(fixed_nodes, state)
-        return conditioned[..., free_nodes]
+        conditioned_tpm, free_nodes = self._subtpm(fixed_nodes, state)
+        return conditioned_tpm[..., free_nodes]
 
     def expand_tpm(self):
         """Broadcast a state-by-node TPM so that singleton dimensions are expanded
@@ -765,9 +781,12 @@ class ImplicitTPM(TPM):
                [0.92414182 0.95257413]]]]
             )
         """
-        conditioned, free_nodes = self._subtpm(fixed_nodes, state)
+        conditioned_tpm, free_nodes = self._subtpm(fixed_nodes, state)
         return type(self)(
-            tuple(node for node in conditioned.nodes if node.index in free_nodes)
+            tuple(
+                node for node in conditioned_tpm.nodes
+                if node.index in free_nodes
+            )
         )
 
     def equals(self, o: object):
@@ -944,3 +963,59 @@ def _new_attribute(
         pass
 
     return overriding_attribute
+
+
+def probability_of_current_state(sbn_tpm, current_state):
+    """Return the probability of the current state as a distribution over previous states.
+
+    Arguments:
+        sbn_tpm (ExplicitTPM): State-by-node TPM.
+        current_state (tuple[int]): The current state.
+    """
+    state_probabilities = np.empty(sbn_tpm.shape)
+    if not len(current_state) == sbn_tpm.shape[-1]:
+        raise ValueError(
+            f"current_state must have length {sbn_tpm.shape[-1]}"
+            f"for state-by-node TPM of shape {sbn_tpm.shape}"
+        )
+    for i in range(sbn_tpm.shape[-1]):
+        # TODO extend to nonbinary nodes
+        state_probabilities[..., i] = (
+            sbn_tpm[..., i] if current_state[i] else (1 - sbn_tpm[..., i])
+        )
+    return state_probabilities.prod(axis=-1, keepdims=True)
+
+
+def backward_tpm(
+    forward_tpm: ExplicitTPM,
+    current_state: tuple[int],
+    system_indices: Iterable[int],
+    remove_background: bool = False,
+) -> ExplicitTPM:
+    """Compute the backward TPM for a given network state."""
+    all_indices = tuple(range(forward_tpm.number_of_units))
+    system_indices = tuple(sorted(system_indices))
+    background_indices = tuple(sorted(set(all_indices) - set(system_indices)))
+    if not set(system_indices).issubset(set(all_indices)):
+        raise ValueError(
+            "system_indices must be a subset of `range(forward_tpm.number_of_units))`"
+        )
+
+    # p(u_t | s_{t–1}, w_{t–1})
+    pr_current_state = probability_of_current_state(forward_tpm, current_state)
+    # Σ_{s_{t–1}}  p(u_t | s_{t–1}, w_{t–1})
+    pr_current_state_given_only_background = pr_current_state.sum(
+        axis=tuple(system_indices), keepdims=True
+    )
+    # Σ_{u'_{t–1}} p(u_t | u'_{t–1})
+    normalization = np.sum(pr_current_state)
+    #                                              Σ_{s_{t–1}} p(u_t | s_{t–1}, w_{t–1})
+    # Σ_{w_{t–1}}   p(s_{i,t} | s_{t–1}, w_{t–1}) ———————————————————————————————————————
+    #                                                 Σ_{u'_{t–1}} p(u_t | u'_{t–1})
+    backward_tpm = (
+        forward_tpm * pr_current_state_given_only_background / normalization
+    ).sum(axis=background_indices, keepdims=True)
+    if remove_background:
+        # Remove background units from last dimension of the state-by-node TPM
+        backward_tpm = backward_tpm[..., list(system_indices)]
+    return ExplicitTPM(backward_tpm)

@@ -58,46 +58,42 @@ def _loadable_models():
     circular import issues.
     """
     classes = [
+        pyphi.data_structures.PyPhiFloat,
         pyphi.Direction,
-        pyphi.Network,
-        pyphi.Subsystem,
-        pyphi.Transition,
         pyphi.labels.NodeLabels,
-        pyphi.models.Cut,
-        pyphi.models.KCut,
-        pyphi.models.NullCut,
-        pyphi.models.Part,
-        pyphi.models.Bipartition,
-        pyphi.models.KPartition,
-        pyphi.models.Tripartition,
-        pyphi.models.RepertoireIrreducibilityAnalysis,
-        pyphi.models.MaximallyIrreducibleCauseOrEffect,
-        pyphi.models.MaximallyIrreducibleCause,
-        pyphi.models.MaximallyIrreducibleEffect,
-        pyphi.models.Concept,
-        pyphi.models.CauseEffectStructure,
-        pyphi.models.FlatCauseEffectStructure,
-        pyphi.models.SystemIrreducibilityAnalysis,
-        pyphi.models.ActualCut,
-        pyphi.models.AcRepertoireIrreducibilityAnalysis,
-        pyphi.models.CausalLink,
         pyphi.models.Account,
+        pyphi.models.AcRepertoireIrreducibilityAnalysis,
         pyphi.models.AcSystemIrreducibilityAnalysis,
-        pyphi.models.cuts.RelationPart,
-        pyphi.models.cuts.RelationPartition,
+        pyphi.models.ActualCut,
+        pyphi.models.Bipartition,
+        pyphi.models.CausalLink,
+        pyphi.models.CauseEffectStructure,
+        pyphi.models.Concept,
+        pyphi.models.Cut,
         pyphi.models.cuts.GeneralKCut,
         pyphi.models.cuts.GeneralSetPartition,
+        pyphi.models.FlatCauseEffectStructure,
+        pyphi.models.KCut,
+        pyphi.models.KPartition,
+        pyphi.models.MaximallyIrreducibleCause,
+        pyphi.models.MaximallyIrreducibleCauseOrEffect,
+        pyphi.models.MaximallyIrreducibleEffect,
         pyphi.models.mechanism.StateSpecification,
+        pyphi.models.NullCut,
+        pyphi.models.Part,
+        pyphi.models.RepertoireIrreducibilityAnalysis,
         pyphi.models.subsystem.SystemStateSpecification,
-        pyphi.relations.Relata,
-        pyphi.relations.Relation,
-        pyphi.relations.ConcreteRelations,
-        pyphi.relations.AnalyticalRelations,
-        pyphi.relations.SampledRelations,
-        pyphi.big_phi.SystemPartition,
-        pyphi.big_phi.PhiStructure,
+        pyphi.models.SystemIrreducibilityAnalysis,
+        pyphi.models.Tripartition,
+        pyphi.Network,
+        pyphi.new_big_phi.PhiStructure,
         pyphi.new_big_phi.SystemIrreducibilityAnalysis,
-        pyphi.new_big_phi.PyPhiFloat,
+        pyphi.relations.AnalyticalRelations,
+        pyphi.relations.ConcreteRelations,
+        pyphi.relations.Relation,
+        pyphi.relations.RelationFace,
+        pyphi.Subsystem,
+        pyphi.Transition,
     ]
     return {cls.__name__: cls for cls in classes}
 
@@ -153,7 +149,11 @@ def jsonify(obj):  # pylint: disable=too-many-return-statements
 
     # Recurse over object dictionaries.
     if hasattr(obj, "__dict__"):
-        return _jsonify_dict(obj.__dict__)
+        dct = _jsonify_dict(obj.__dict__)
+        # Push metadata if the model is registered as loadable
+        if _is_loadable_model_object(obj):
+            _push_metadata(dct, obj)
+        return dct
 
     # Recurse over lists, tuples, sets, and frozensets.
     if isinstance(obj, (list, tuple, set, frozenset)):
@@ -206,9 +206,8 @@ def _check_version(version):
         )
 
 
-def _is_model(dct):
-    """Check if ``dct`` is a PyPhi model serialization."""
-    return CLASS_KEY in dct
+def _is_loadable_model_object(obj):
+    return obj.__class__.__name__ in _loadable_models()
 
 
 class _ObjectCache(cache.DictCache):
@@ -227,9 +226,6 @@ class PyPhiJSONDecoder(json.JSONDecoder):
         kwargs["object_hook"] = self._load_object
         super().__init__(*args, **kwargs)
 
-        # Memoize available models
-        self._models = _loadable_models()
-
         # Cache for loaded objects
         self._object_cache = _ObjectCache()
 
@@ -245,7 +241,7 @@ class PyPhiJSONDecoder(json.JSONDecoder):
         if isinstance(obj, dict):
             obj = {k: self._load_object(v) for k, v in obj.items()}
             # Load a serialized PyPhi model
-            if _is_model(obj):
+            if _is_loadable_model_dict(obj):
                 return self._load_model(obj)
 
         # TODO(4.0) remove?
@@ -263,7 +259,7 @@ class PyPhiJSONDecoder(json.JSONDecoder):
         classname, version, _ = _pop_metadata(dct)
 
         _check_version(version)
-        cls = self._models[classname]
+        cls = _loadable_models()[classname]
 
         # Use `from_json` if available
         if hasattr(cls, "from_json"):
@@ -271,6 +267,11 @@ class PyPhiJSONDecoder(json.JSONDecoder):
 
         # Default to object constructor
         return cls(**dct)
+
+
+def _is_loadable_model_dict(dct):
+    """Check if ``dct`` is a PyPhi model serialization."""
+    return CLASS_KEY in dct
 
 
 def loads(string):

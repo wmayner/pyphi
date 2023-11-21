@@ -1,556 +1,45 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # relations.py
 
-"""Functions for computing relations between concepts."""
+"""Functions for computing relations among distinctions."""
 
 import warnings
-from collections import UserDict, defaultdict
-from enum import Enum, auto, unique
+from collections import defaultdict
+from functools import cached_property, total_ordering
 from itertools import product
-from time import time
 
-import numpy as np
 from graphillion import setset
-from toolz import concat
 from tqdm.auto import tqdm
 
-from . import combinatorics, config, validate
+from . import combinatorics, conf, utils
 from .compute.parallel import MapReduce
-from .conf import fallback
-from .data_structures import HashableOrderedSet
-from .metrics.distribution import absolute_information_density
+from .conf import config, fallback
+from .data_structures import PyPhiFloat
+from .direction import Direction
 from .models import cmp, fmt
-from .models.cuts import RelationPartition
-from .models.subsystem import FlatCauseEffectStructure
-from .partition import (
-    relation_partition_aggregations,
-    relation_partition_one_distinction,
-    relation_partition_types,
-)
 from .registry import Registry
-from .utils import (
-    PyPhiFloat,
-    all_are_equal,
-    all_are_identical,
-    all_maxima,
-    all_minima,
-    powerset,
-)
+from .warnings import PyPhiWarning
 
 
-@unique
-class ShortCircuitConditions(Enum):
-    NO_OVERLAP = auto()
-    NO_POSSIBLE_PURVIEWS = auto()
-    RELATA_IS_SINGLETON = auto()
-    RELATA_CONTAINS_DUPLICATE_PURVIEWS = auto()
+class RelationFace(frozenset):
+    """A set of (potentially) related causes/effects."""
 
+    def __new__(cls, *args, phi=None):
+        self = super().__new__(cls, *args)
+        if phi is None:
+            raise ValueError("phi keyword argument is required")
+        self.phi = phi
+        return self
 
-class PotentialPurviewRegistry(Registry):
-    """Storage for potential purview schemes registered with PyPhi.
+    @total_ordering
+    def __lt__(self, other):
+        return self.phi < other.phi
 
-    Users can define custom functions to determine the set of potential purviews
-    for a relation:
-
-    Examples:
-        >>> @relation_potential_purviews.register('NONE')  # doctest: +SKIP
-        ... def no_purviews(candidate_overlap):
-        ...    return []
-
-    And use them by setting ``config.RELATION_POTENTIAL_PURVIEWS = 'NONE'``
-    """
-
-    desc = "potential relation purviews"
-
-
-relation_potential_purviews = PotentialPurviewRegistry()
-
-
-@relation_potential_purviews.register("ALL")
-def all_subsets(candidate_overlap):
-    """Return all subsets of the congruent overlap.
-
-    If there are multiple congruent overlaps because of ties, it is the union of
-    the powerset of each.
-    """
-    return set(
-        concat(powerset(overlap, nonempty=True) for overlap in candidate_overlap)
-    )
-
-
-@relation_potential_purviews.register("WHOLE")
-def whole_overlap(candidate_overlap):
-    """Return only the congruent overlap.
-
-    If there are multiple congruent overlaps because of ties, it is the union of
-    all of them.
-    """
-    return set(map(tuple, candidate_overlap))
-
-
-class PhiUpperBoundRegistry(Registry):
-    """Storage for functions for defining the upper bound of distinction phi."""
-
-    desc = "phi bounds (relations)"
-
-
-distinction_phi_upper_bounds = PhiUpperBoundRegistry()
-
-
-@distinction_phi_upper_bounds.register("PURVIEW_SIZE")
-def _(distinction):
-    return len(distinction.purview)
-
-
-@distinction_phi_upper_bounds.register("ONE")
-def _(distinction):
-    return 1
-
-
-def distinction_phi_upper_bound(distinction):
-    return distinction_phi_upper_bounds[config.DISTINCTION_PHI_UPPER_BOUND_RELATIONS](
-        distinction
-    )
-
-
-class OverlapRatioRegistry(Registry):
-    desc = "overlap ratios"
-
-
-overlap_ratios = OverlapRatioRegistry()
-
-
-@overlap_ratios.register("PURVIEW_SIZE")
-def _(relata, candidate_joint_purview):
-    return len(candidate_joint_purview) / np.array(list(map(len, relata.purviews)))
-
-
-@overlap_ratios.register("MINIMUM_PURVIEW_SIZE")
-def _(relata, candidate_joint_purview):
-    return len(candidate_joint_purview) / relata.minimal_purview_size
-
-
-def overlap_ratio(relata, candidate_joint_purview):
-    return overlap_ratios[config.OVERLAP_RATIO](relata, candidate_joint_purview)
-
-
-class RelationPhiSchemeRegistry(Registry):
-    """Storage for functions for evaluating a relation.
-
-    Users can define custom functions to determine how relations are evaluated:
-
-    Examples:
-        >>> @relation_phi_schemes.register('ALWAYS_ZERO')  # doctest: +SKIP
-        ... def zero(relata):
-        ...    return 0
-
-    And use them by setting ``config.RELATION_PHI_SCHEME = 'ALWAYS_ZERO'``
-    """
-
-    desc = "relation phi schemes"
-
-
-relation_phi_schemes = RelationPhiSchemeRegistry()
-
-
-@relation_phi_schemes.register("AGGREGATE_DISTINCTION_RELATIVE_DIFFERENCES")
-def aggregate_distinction_relative_repertoire_differences(
-    relata, candidate_joint_purview
-):
-    _partitions = list(
-        partitions(
-            relata, candidate_joint_purview, node_labels=relata.subsystem.node_labels
-        )
-    )
-    return all_minima(
-        Relation(
-            relata=relata,
-            purview=candidate_joint_purview,
-            phi=relata.evaluate_partition(partition),
-            partition=partition,
-        )
-        for partition in _partitions
-    )
-
-
-def _tied_relations(relata, candidate_joint_purview, minima, phi):
-    tied_partitions = [
-        relation_partition_one_distinction(
-            relata, candidate_joint_purview, i, node_labels=relata.subsystem.node_labels
-        )
-        for i in minima
-    ]
-    return [
-        Relation(
-            relata=relata, purview=candidate_joint_purview, phi=phi, partition=partition
-        )
-        for partition in tied_partitions
-    ]
-
-
-@relation_phi_schemes.register("MINIMAL_OVERLAP_RATIO_TIMES_DISTINCTION_PHI")
-def minimal_overlap_ratio_times_distinction_phi(relata, candidate_joint_purview):
-    """Return the relation phi according to the following formula::
-
-        phi = min_{p in partitions} (overlap ratio) * (distinction phi)
-
-    The definition of the overlap ratio is controlled by the OVERLAP_RATIO
-    configuration setting.
-
-    Note that this scheme implies that phi is a monotonic increasing function of
-    the size of the overlap, so in practice there is no need to search over
-    subsets of the congruent overlap. Thus, when this scheme is used, the most
-    efficient setting for RELATION_POSSIBLE_PURVIEWS is "WHOLE".
-    """
-    # NOTE: This implementation relies on several assumptions:
-    #
-    # - Overlap ratio definition implies that only congruent overlaps need to
-    #   be considered as candidate joint purviews because incongruent overlaps
-    #   will never be chosen
-    #
-    # - Overlap ratio does not depend on the partition
-    #
-    overlap_ratios = overlap_ratio(relata, candidate_joint_purview)
-    relata_phis = np.array(list(relata.parent_phis))
-    relation_phis = overlap_ratios * relata_phis
-    phi = relation_phis.min()
-    minima = np.nonzero(relation_phis == phi)[0]
-    return _tied_relations(relata, candidate_joint_purview, minima, phi)
-
-
-# TODO there should be an option to resolve ties at different levels
-
-# TODO Requests from Matteo
-# - have relations report their type (supertext, etc.; ask andrew/matteo)
-# - consider refactoring subsystem reference off the concepts for serialization
-# - node labelzzzzz!
-
-# TODO notes from Matteo 2019-02-20
-# - object encapsulating interface to pickled concepts from CHTC for matteo and andrew
-
-# TODO overhaul:
-# - memoize purview
-# - think about whether we can just do the specification calculation once?
-# - and then the for_relatum information calculation?
-# - speed up hash and eq for MICE
-# - make examples renaming consistent in rest of code
-# - check TODOs
-# - move stuff to combinatorics
-# - jsonify cases
-# - NodeLabels on RIA?
-# - make all cut.mechanism and .purviews sets, throughout
-# - fix __str__ of RelationPartition
-
-
-def overlap_states(specified_states, purviews, overlap):
-    """Return the specified states of only the elements in the overlap."""
-    overlap = np.array(list(overlap), dtype=int)
-
-    purviews = list(purviews)
-    minimum = min(min(purview) for purview in purviews)
-    maximum = max(max(purview) for purview in purviews)
-    n = 1 + maximum - minimum
-    # Global-state-relative index of overlap nodes
-    idx = overlap - minimum
-
-    states = []
-    for specified, purview in zip(specified_states, purviews):
-        # Construct the specified state in a common reference frame
-        global_state = np.empty([len(specified.state), n])
-        relative_idx = [p - minimum for p in purview]
-        global_state[:, relative_idx] = specified.state
-        # Retrieve only the overlap
-        states.append(global_state[:, idx])
-    return states
-
-
-def congruent_overlap(specified_states, overlap):
-    if not overlap:
-        return []
-    # Generate combinations of indices of tied states
-    combination_indices = np.array(
-        list(product(*(range(state.shape[0]) for state in specified_states)))
-    )
-    # Form a single array containing all combinations of tied states
-    state_combinations = np.stack(
-        [state[combination_indices[:, i]] for i, state in enumerate(specified_states)]
-    )
-    # Compute congruence (vectorized over combinations of ties)
-    congruence = (state_combinations[0, ...] == state_combinations).all(axis=0)
-    # Find the combinations where some elements are congruent
-    congruent_indices, congruent_elements = congruence.nonzero()
-    # Find the elements that are congruent
-    congruent_subsets = set(
-        tuple(elements.nonzero()[0]) for elements in congruence[congruent_indices]
-    )
-    # Remove any congruent overlaps that are subsets of another congruent overlap
-    congruent_subsets = combinatorics.only_nonsubsets(map(set, congruent_subsets))
-    # Convert overlap indices to purview element indices
-    overlap = np.array(list(overlap))
-    return [overlap[list(subset)] for subset in congruent_subsets]
-
-
-def partitions(relata, candidate_joint_purview, node_labels=None):
-    """Return the set of relation partitions.
-
-    Controlled by the RELATION_PARTITION_TYPE configuration option.
-    """
-    return relation_partition_types[config.RELATION_PARTITION_TYPE](
-        relata, candidate_joint_purview, node_labels=node_labels
-    )
-
-
-class Relation(cmp.Orderable):
-    """A relation among causes/effects."""
-
-    def __init__(self, relata, purview, phi, partition, ties=None):
-        self._relata = relata
-        self._purview = frozenset(purview)
-        self._phi = phi
-        self._partition = partition
-        self._ties = ties
-
-    @property
-    def relata(self):
-        return self._relata
-
-    @property
-    def purview(self):
-        return self._purview
-
-    @property
-    def phi(self):
-        return self._phi
-
-    @property
-    def partition(self):
-        return self._partition
-
-    @property
-    def ties(self):
-        return self._ties
-
-    @property
-    def subsystem(self):
-        return self.relata.subsystem
-
-    @property
-    def degree(self):
-        """The number of relata bound by this relation."""
-        return len(self)
-
-    @property
-    def order(self):
-        """The size of this relation's purview."""
-        return len(self.purview)
-
-    @property
-    def mechanisms(self):
-        return [relatum.mechanism for relatum in self.relata]
-
-    def __repr__(self):
-        return fmt.fmt_relation(self)
-
-    def __str__(self):
-        return repr(self)
-
-    def __bool__(self):
-        return bool(round(self.phi, config.PRECISION) > 0.0)
-
-    def __len__(self):
-        return len(self.relata)
-
-    def __eq__(self, other):
-        return cmp.general_eq(self, other, ["phi", "relata"])
-
-    def __hash__(self):
-        return hash((self.relata, self.purview, round(self.phi, config.PRECISION)))
-
-    def order_by(self):
-        # NOTE: This implementation determines the definition of ties
-        return round(self.phi, config.PRECISION)
-
-    @staticmethod
-    def union(tied_relations):
-        """Return the 'union' of tied relations.
-
-        This is a new Relation object that contains the purviews of all tied
-        relations in the ``ties`` attribute.
-        """
-        if not tied_relations:
-            raise ValueError("tied relations cannot be empty")
-        if not all_are_equal(r.phi for r in tied_relations):
-            raise ValueError("tied relations must have the same phi")
-        if not all_are_identical(r.relata for r in tied_relations):
-            raise ValueError("tied relations must be among the same relata.")
-        first = tied_relations[0]
-        tied_purviews = set(r.purview for r in tied_relations)
-        return Relation(
-            first.relata, first.purview, first.phi, first.partition, ties=tied_purviews
-        )
-
-    def to_json(self):
-        return {
-            "relata": self.relata,
-            "purview": sorted(self.purview),
-            "partition": self.partition,
-            "phi": self.phi,
-            "ties": self.ties,
-        }
-
-    def to_indirect_json(self, ces):
-        """Return an indirect representation of the Relation.
-
-        This uses the integer indices of distinctions in the given CES rather
-        than the objects themselves, which is more efficient for storage on
-        disk.
-        """
-        return [
-            self.relata.to_indirect_json(ces),
-            sorted(self.purview),
-            self.partition.to_indirect_json(),
-            self.phi,
-            [list(purview) for purview in self.ties],
-        ]
-
-    @classmethod
-    def from_indirect_json(cls, ces, data):
-        relata, purview, partition, phi, ties = data
-        relata = Relata.from_indirect_json(ces, relata)
-        return cls(
-            relata,
-            purview,
-            phi,
-            RelationPartition.from_indirect_json(
-                relata, partition, node_labels=ces.subsystem.node_labels
-            ),
-            ties=set(map(frozenset, ties)),
-        )
-
-
-class NullRelation(Relation):
-    """A zero-phi relation that was returned early because of a short-circuit
-    condition.
-
-    The condition is listed in the ``reason`` attribute.
-    """
-
-    def __init__(self, reason, *args, **kwargs):
-        self.reason = reason
-        super().__init__(*args, **kwargs)
-
-    def __repr__(self):
-        return super().__repr__()[:-1] + f", reason={self.reason.name})"
-
-
-class Relata(HashableOrderedSet):
-    """A set of potentially-related causes/effects."""
-
-    def __init__(self, subsystem, relata):
-        self._subsystem = subsystem
-        self._overlap = None
-        self._congruent_overlap = None
-        self._minimal_purview_size = None
-        self._contains_duplicate_purviews_cached = None
-        super().__init__(relata)
-        validate.relata(self)
-
-    @property
-    def subsystem(self):
-        return self._subsystem
-
-    @property
-    def mechanisms(self):
-        # TODO store
-        return (relatum.mechanism for relatum in self)
-
-    @property
-    def purviews(self):
-        # TODO store
-        return (relatum.purview for relatum in self)
-
-    @property
-    def phis(self):
-        # TODO store
-        return (relatum.phi for relatum in self)
-
-    @property
-    def parent_phis(self):
-        # TODO store
-        return (relatum.parent.phi for relatum in self)
-
-    @property
-    def directions(self):
-        # TODO store
-        return (relatum.direction for relatum in self)
-
-    @property
-    def specified_indices(self):
-        return (relatum.specified_index for relatum in self)
-
-    @property
-    def specified_states(self):
-        return (relatum.specified_state for relatum in self)
-
-    def __repr__(self):
-        return fmt.fmt_relata(self)
-
-    # TODO(4.0) pickle relations indirectly
-    def __getstate__(self):
-        return {
-            "relata": list(self),
-            "subsystem": self.subsystem,
-        }
-
-    # TODO(4.0) pickle relations indirectly
-    def __setstate__(self, state):
-        self.__init__(state["subsystem"], state["relata"])
-
-    to_json = __getstate__
-
-    @classmethod
-    def from_json(cls, dct):
-        return cls(dct["subsystem"], dct["relata"])
-
-    def to_indirect_json(self, flat_ces):
-        """Return an indirect representation of the Relata.
-
-        This uses the integer indices of distinctions in the given CES rather
-        than the objects themselves, which is more efficient for storage on
-        disk.
-        """
-        if not isinstance(flat_ces, FlatCauseEffectStructure):
-            raise ValueError("CES must be a FlatCauseEffectStructure")
-        return [flat_ces.index(relatum) for relatum in self]
-
-    @classmethod
-    def from_indirect_json(cls, flat_ces, data):
-        return cls(flat_ces.subsystem, [flat_ces[i] for i in data])
-
-    @property
+    @cached_property
     def overlap(self):
         """The set of elements that are in the purview of every relatum."""
-        if self._overlap is None:
-            self._overlap = set.intersection(*map(set, self.purviews))
-        return self._overlap
+        return set.intersection(*map(set, self.relata_purviews))
 
-    @property
-    def minimal_purview_size(self):
-        """The size of the smallest purview in the relation."""
-        if self._minimal_purview_size is None:
-            self._minimal_purview_size = min(map(len, self.purviews))
-        return self._minimal_purview_size
-
-    def null_relation(self, reason, purview=None, phi=0.0, partition=None):
-        # TODO(4.0): set default for partition to be the null partition
-        if purview is None:
-            purview = frozenset()
-        return NullRelation(reason, self, purview, phi, partition)
-
-    # TODO(4.0) allow indexing directly into relation?
-    # TODO(4.0) make a property for the maximal state of the purview only
-    @property
+    @cached_property
     def congruent_overlap(self):
         """Return the congruent overlap(s) among the relata.
 
@@ -558,554 +47,297 @@ class Relata(HashableOrderedSet):
         states are consistent; that is, the largest subset of the union of the
         purviews such that each relatum specifies the same state for each
         element.
-
-        Note that there can be multiple congruent overlaps.
         """
-        if self._congruent_overlap is None:
-            self._congruent_overlap = congruent_overlap(
-                overlap_states(
-                    self.specified_states,
-                    self.purviews,
-                    self.overlap,
-                ),
-                self.overlap,
-            )
-        return self._congruent_overlap
+        return set.intersection(*self.relata_units)
 
-    def possible_purviews(self):
-        """Return all possible purviews.
-
-        Controlled by the RELATION_POTENTIAL_PURVIEWS configuration option.
-        """
-        # TODO note: ties are included here
-        return relation_potential_purviews[config.RELATION_POTENTIAL_PURVIEWS](
-            self.congruent_overlap
-        )
-
-    def evaluate_partition_for_relatum(self, i, partition):
-        """Evaluate the relation partition with respect to a particular relatum.
-
-        If the relatum specifies multiple (tied) states, we take the maximum
-        over the unpartitioned-partitioned distances for those states.
-
-        Args:
-            purview (set): The set of node indices in the purview.
-            i (int): The index of relatum to consider.
-        """
-        relatum = self[i]
-        partitioned_repertoire = self.subsystem.partitioned_repertoire(
-            relatum.direction, partition.for_relatum(i)
-        )
-        # TODO(4.0) make this configurable?
-        information = absolute_information_density(
-            relatum.repertoire, partitioned_repertoire
-        )
-        # Take the information for only the specified states, leaving -Inf elsewhere
-        specified = np.empty_like(information, dtype=float)
-        specified[:] = -np.inf
-        specified[relatum.specified_index] = information[relatum.specified_index]
-        non_joint_purview_elements = tuple(
-            element for element in relatum.purview if element not in partition.purview
-        )
-        # Propagate specification through to a (potentially) smaller repertoire
-        # over just the joint purview
-        # TODO(4.0) configuration for handling ties?
-        # TODO tie breaking happens here! double-check with andrew
-        specified = np.max(specified, axis=non_joint_purview_elements, keepdims=True)
-        return specified
-
-    def combine_distinction_relative_differences(self, differences):
-        """Return the phi value given a difference for each distinction.
-
-        A RelationPartition implies a distinction-relative partition for each
-        distinction in the relata; this function combines the
-        partitioned-unpartitioned differences across all distinctions into a phi
-        value for the relation.
-
-        Controlled by the RELATION_PARTITION_AGGREGATION configuration option.
-        """
-        return relation_partition_aggregations[config.RELATION_PARTITION_AGGREGATION](
-            differences, axis=0
-        )
-
-    # TODO(4.0) remove if not used
-    def evaluate_partition(self, partition):
-        specified = np.stack(
-            [
-                self.evaluate_partition_for_relatum(i, partition)
-                for i in range(len(self))
-            ]
-        )
-        # Aggregate across relata; any non-specified states will propagate
-        # -np.inf through the aggregation, leaving only tied congruent states
-        # Then we take the max across tied congruent states
-        return np.max(self.combine_distinction_relative_differences(specified))
-
-    # TODO: do we care about ties here?
-    # 2019-05-30: no, according to andrew
-    def minimum_information_relation(self, candidate_joint_purview):
-        """Return the minimal information relation for this purview.
-
-        Behavior is controlled by the RELATION_PHI_SCHEME configuration option.
-
-        Arguments:
-            candidate_joint_purview (set): The purview to consider (subset of
-                the overlap).
-        """
-        if not self.overlap:
-            return self.null_relation(
-                reason=ShortCircuitConditions.NO_OVERLAP,
-                purview=candidate_joint_purview,
-                phi=0,
-            )
-        return relation_phi_schemes[config.RELATION_PHI_SCHEME](
-            self, candidate_joint_purview
-        )
-
-    def _contains_duplicate_purviews(self):
-        seen = set()
-        for relatum in self:
-            purview = (relatum.direction, relatum.purview)
-            if purview in seen:
-                return True
-            seen.add(purview)
-        return False
+    # Alias
+    @property
+    def purview(self):
+        """The purview of the relation face. Alias for ``congruent_overlap``."""
+        return self.congruent_overlap
 
     @property
-    def contains_duplicate_purviews(self):
-        """Return whether there are duplicate purviews (in the same direction)."""
-        if self._contains_duplicate_purviews_cached is None:
-            self._contains_duplicate_purviews_cached = (
-                self._contains_duplicate_purviews()
-            )
-        return self._contains_duplicate_purviews_cached
+    def relata_units(self):
+        """The Units in the purview of each cause/effect in this face."""
+        return (set(relatum.purview_units) for relatum in self)
 
-    def maximally_irreducible_relation(self):
-        """Return the maximally-irreducible relation among these relata.
+    @property
+    def relata_purviews(self):
+        """The purview of each cause/effect in this face."""
+        return (relatum.purview for relatum in self)
 
-        If there are ties, the tied relations will be recorded in the 'ties'
-        attribute of the returned relation.
+    @property
+    def distinctions(self):
+        """The distinctions whose causes/effects are in this face."""
+        return (relatum.parent for relatum in self)
 
-        Returns:
-            Relation: the maximally irreducible relation among these relata,
-            with any tied purviews recorded.
-        """
-        # Short-circuit conditions
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        # Singletons cannot have relations
-        if len(self) == 1:
-            return self.null_relation(
-                reason=ShortCircuitConditions.RELATA_IS_SINGLETON,
-            )
-        # Because of the constraint that there are no duplicate purviews in a
-        # compositional state, relations among relata with duplicate purviews
-        # never occur during normal operation. However, the user can specify
-        # that this condition be explicitly checked.
-        if (
-            config.RELATION_ENFORCE_NO_DUPLICATE_PURVIEWS
-            and self.contains_duplicate_purviews
-        ):
-            return self.null_relation(
-                reason=ShortCircuitConditions.RELATA_CONTAINS_DUPLICATE_PURVIEWS,
-            )
-        # There must be at least one possible purview
-        possible_purviews = self.possible_purviews()
-        if not possible_purviews:
-            return self.null_relation(
-                reason=ShortCircuitConditions.NO_POSSIBLE_PURVIEWS,
-            )
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        # Find maximal relations
-        tied_relations = all_maxima(
-            concat(
-                self.minimum_information_relation(candidate_joint_purview)
-                for candidate_joint_purview in possible_purviews
-            )
+    @property
+    def num_distinctions(self):
+        """The number of distinctions whose causes/effects are in this face."""
+        return len(set(self.distinctions))
+
+    def __bool__(self):
+        return bool(self.congruent_overlap)
+
+    def _repr_columns(self):
+        return [
+            ("Purview", str(sorted(self.purview))),
+            ("Relata", len(self)),
+        ]
+
+    def __repr__(self):
+        # TODO(4.0) refactor into fmt function
+        body = "\n".join(fmt.align_columns(self._repr_columns()))
+        body = fmt.center(body)
+        body += "\n" + fmt.indent(fmt.fmt_relata(self), amount=10)
+        body = fmt.header(self.__class__.__name__, body, under_char=fmt.HEADER_BAR_2)
+        return fmt.box(body)
+
+    def to_json(self):
+        return {"relata": list(self)}
+
+    @classmethod
+    def from_json(cls, data):
+        return cls(data["relata"])
+
+
+class Relation(frozenset, cmp.OrderableByPhi):
+    """A set of relation faces forming the relation among a set of distinctions."""
+
+    def _faces(self):
+        """Yield faces of the relation."""
+        distinctions = list(self)
+        for directions in product(Direction.all(), repeat=len(self)):
+            mice = []
+            for direction, distinction in zip(directions, distinctions):
+                if direction is Direction.BIDIRECTIONAL:
+                    mice.extend([distinction.cause, distinction.effect])
+                else:
+                    mice.append(distinction.mice(direction))
+            face = RelationFace(mice, phi=self.phi)
+            if face:
+                yield face
+
+    @cached_property
+    def faces(self):
+        return frozenset(self._faces())
+
+    @property
+    def num_faces(self):
+        return len(self.faces)
+
+    @cached_property
+    def purview(self):
+        # Special case for self-relations
+        if self.is_self_relation:
+            distinction = next(iter(self))
+            return distinction.cause.purview_units & distinction.effect.purview_units
+
+        return set.intersection(*(distinction.purview_union for distinction in self))
+
+    @property
+    def is_self_relation(self):
+        return len(self) == 1
+
+    @cached_property
+    def phi(self):
+        return PyPhiFloat(
+            len(self.purview) * min(self.distinction_phi_per_unique_purview_unit())
         )
-        # Keep track of ties
-        return Relation.union(tied_relations)
+
+    def distinction_phi_per_unique_purview_unit(self):
+        return (relatum.phi / len(relatum.purview_union) for relatum in self)
+
+    def __bool__(self):
+        return utils.is_positive(self.phi)
+
+    # TODO(4.0) need to also implement __eq__ here
+
+    @cached_property
+    def mechanisms(self):
+        return {distinction.mechanism for distinction in self}
+
+    def _repr_columns(self):
+        return [
+            (fmt.SMALL_PHI + "_r", self.phi),
+            ("Purview", str(sorted(self.purview))),
+            ("#(faces)", self.num_faces),
+        ]
+
+    def __repr__(self):
+        # TODO(4.0) refactor into fmt function
+        body = "\n".join(fmt.align_columns(self._repr_columns()))
+        body = fmt.center(body)
+        body = fmt.header(self.__class__.__name__, body, under_char=fmt.HEADER_BAR_2)
+        return fmt.box(body)
 
 
-def relation(relata):
-    """Return the maximally irreducible relation among the given relata.
+def all_relations(distinctions, min_degree=2, max_degree=None, **kwargs):
+    """Yield causal relations among a set of distinctions."""
+    distinctions = distinctions.unflatten()
+    # Self relations
+    yield from _self_relations(distinctions)
+    # Non-self relations
+    combinations = _combinations_with_nonempty_congruent_overlap(
+        distinctions, min_degree=min_degree, max_degree=max_degree
+    )
 
-    Alias for the ``Relata.maximally_irreducible_relation()`` method.
-    """
-    return relata.maximally_irreducible_relation()
+    def worker(combination):
+        return Relation((distinctions[i] for i in combination))
 
-
-def two_relation_type(relation):
-    if len(relation) != 2:
-        raise ValueError(f"must be a 2-relation; got a {len(relation)}-relation")
-    purview = list(map(set, relation.relata.purviews))
-    # Isotext (mutual full-overlap)
-    if purview[0] == purview[1] == relation.purview:
-        return "isotext"
-    # Sub/Supertext (inclusion / full-overlap)
-    elif purview[0].issubset(purview[1]) or purview[0].issuperset(purview[1]):
-        return "inclusion"
-    # Paratext (connection / partial-overlap)
-    else:
-        return "paratext"
-
-
-def all_relata(subsystem, ces, min_degree=2, max_degree=None):
-    """Return all relata in the CES, even if they have no ovelap."""
-    if min_degree < 2:
-        # Relations are necessarily degree 2 or higher
-        min_degree = 2
-    for subset in powerset(ces, min_size=min_degree, max_size=max_degree):
-        yield Relata(subsystem, subset)
+    parallel_kwargs = conf.parallel_kwargs(
+        config.PARALLEL_RELATION_EVALUATION, **kwargs
+    )
+    yield from MapReduce(
+        worker,
+        combinations,
+        desc="Evaluating relations",
+        **parallel_kwargs,
+    ).run()
 
 
-def combinations_with_nonempty_congruent_overlap(
-    distinctions, min_degree=2, max_degree=None
+def _self_relations(distinctions):
+    return filter(None, (Relation([distinction]) for distinction in distinctions))
+
+
+def _combinations_with_nonempty_congruent_overlap(
+    components, min_degree=2, max_degree=None
 ):
-    """Return combinations of distinctions with nonempty congruent overlap."""
-    distinctions = distinctions.flatten()
+    """Return combinations of distinctions with nonempty congruent overlap.
+
+    Arguments:
+        components (CauseEffectStructure | FlatCauseEffectStructure): The
+        distinctions or MICE to find overlaps among.
+    """
     # TODO(4.0) remove mapping when/if distinctions allow O(1) random access
-    mapping = {distinction: i for i, distinction in enumerate(distinctions)}
+    mapping = {component: i for i, component in enumerate(components)}
     # Use integers to avoid expensive distinction hashing
     sets = [
         list(map(mapping.get, subset))
-        for _, subset in distinctions.purview_inclusion(max_order=1)
+        for _, subset in components.purview_inclusion(max_order=1)
     ]
-    setset.set_universe(range(len(distinctions)))
+    setset.set_universe(range(len(components)))
     return combinatorics.union_powerset_family(
         sets, min_size=min_degree, max_size=max_degree
     )
 
 
-def relata_with_nonempty_congruent_overlap(
-    subsystem, distinctions, min_degree=2, max_degree=None
-):
-    """Yield Relata with nonempty congruent overlap.
-
-    Arguments:
-        subsystem (Subsystem): The subsystem in question.
-        distinctions (CauseEffectStructure): The distinctions that are potentially related.
-    """
-    distinctions = distinctions.flatten()
-    for combination in combinations_with_nonempty_congruent_overlap(
-        distinctions, min_degree=min_degree, max_degree=max_degree
-    ):
-        yield Relata(subsystem, (distinctions[i] for i in combination))
-
-
-# TODO: change to candidate_relations?
-def all_relations(
-    subsystem,
-    ces,
-    parallel=False,
-    # TODO configure
-    chunksize=1000,
-    sequential_threshold=1000,
-    progress=None,
-    potential_relata=None,
-    **kwargs,
-):
-    """Return all relations, even those with zero phi."""
-    if potential_relata is None:
-        potential_relata = relata_with_nonempty_congruent_overlap(
-            subsystem, ces, **kwargs
-        )
-    progress = fallback(progress, config.PROGRESS_BARS)
-    if progress:
-        potential_relata = tqdm(potential_relata, desc="Submitting possible relations")
-    # TODO pass kwargs with defaults
-    return MapReduce(
-        relation,
-        potential_relata,
-        chunksize=chunksize,
-        sequential_threshold=sequential_threshold,
-        parallel=parallel,
-        progress=progress,
-        desc="Evaluating possible relations",
-    ).run()
-
-
 class Relations:
-    """A collection of relations."""
+    """A set of relations among distinctions."""
 
-    def _sum_phi(self):
-        raise NotImplementedError
+    def __init__(self, *args, **kwargs):
+        self._num_relations_cached = None
+        self._sum_phi_cached = None
 
     def sum_phi(self):
-        """The sum of small phi of these relations."""
-        if not getattr(self, "_sum_phi_cached", False):
+        if self._sum_phi_cached is None:
             self._sum_phi_cached = self._sum_phi()
         return self._sum_phi_cached
 
-    def supported_by(self):
-        """Return only relations that are supported by the given CES."""
-        raise NotImplementedError
+    def num_relations(self):
+        if self._num_relations_cached is None:
+            self._num_relations_cached = self._num_relations()
+        return self._num_relations_cached
+
+    def _repr_columns(self):
+        return [
+            (f"Σ{fmt.SMALL_PHI}_r", self.sum_phi()),
+            ("#(relations)", self.num_relations()),
+        ]
 
 
-class ConcreteRelations(HashableOrderedSet, Relations):
-    """A concrete set of relations."""
+class ConcreteRelations(frozenset, Relations):
+    def _sum_phi(self):
+        return sum(relation.phi for relation in self)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def _num_relations(self):
+        return len(self)
 
     def __repr__(self):
-        return fmt.fmt_concrete_relations(self)
+        body = "\n".join(
+            fmt.align_columns(self._repr_columns()) + [fmt.margin(r) for r in self]
+        )
+        return fmt.header(
+            self.__class__.__name__, body, fmt.HEADER_BAR_1, fmt.HEADER_BAR_1
+        )
 
-    @property
-    def mechanisms(self):
-        for relation in self:
-            yield relation.mechanisms
+    @cached_property
+    def faces_by_degree(self):
+        """Return a dictionary mapping degree to relation faces of that degree."""
+        faces = defaultdict(list)
+        for relation in tqdm(
+            self,
+            desc="Grouping relation faces by degree",
+            leave=False,
+        ):
+            for face in relation.faces:
+                faces[len(face)].append(face)
+        return dict(faces)
 
-    @property
-    def purviews(self):
-        for relation in self:
-            yield relation.purviews
 
-    @property
-    def phis(self):
-        for relation in self:
-            yield relation.phi
+class AnalyticalRelations(Relations):
+    def __init__(self, distinctions):
+        self.distinctions = distinctions.unflatten()
+        super().__init__()
+
+    @cached_property
+    def self_relations(self):
+        return tuple(_self_relations(self.distinctions))
 
     def _sum_phi(self):
-        return sum(self.phis)
+        sum_phi = 0
+        # Sum of phi excluding self-relations
+        for _, overlapping_distinctions in self.distinctions.purview_inclusion(
+            max_order=1
+        ):
+            sum_phi += combinatorics.sum_of_minimum_among_subsets(
+                [
+                    distinction.phi / len(distinction.purview_union)
+                    for distinction in overlapping_distinctions
+                ]
+            )
+        # Count self-relations
+        sum_phi += sum(relation.phi for relation in self.self_relations)
+        return sum_phi
 
-    def mean_phi(self):
-        return self.sum_phi() / len(self)
-
-    def supported_by(self, distinctions):
-        # Special case for empty distinctions, for speed
-        if not distinctions:
-            relations = []
-        else:
-            distinctions = distinctions.flatten()
-            # TODO use lattice data structure for efficiently finding the union of
-            # the lower sets of lost distinctions
-            relations = [
-                relation
-                for relation in self
-                if all(distinction in distinctions for distinction in relation.relata)
-            ]
-        return type(self)(relations)
-
-    def to_json(self):
-        return list(self)
-
-    def to_indirect_json(self, ces):
-        return [relation.to_indirect_json(ces) for relation in self]
-
-    @classmethod
-    def from_indirect_json(cls, ces, data):
-        return cls(
-            [Relation.from_indirect_json(ces, relation_data) for relation_data in data]
-        )
-
-
-# TODO(4.0) to_json method
-class AbstractRelations(Relations):
-    def __init__(self, distinctions):
-        self.distinctions = distinctions.flatten()
-
-    def supported_by(self, distinctions):
-        return type(self)(distinctions)
-
-    def to_json(self):
-        return self.__dict__
-
-    def num_relations(self):
-        raise NotImplementedError
-
-    def __eq__(self, other):
-        return (self.num_relations() == other.num_relations()) and (
-            self.sum_phi() == other.sum_phi()
-        )
-
-    def __hash__(self):
-        return hash((self.num_relations(), self.sum_phi()))
+    def _num_relations(self):
+        count = 0
+        # Compute number of relations excluding self-relations
+        for purview, overlapping_distinctions in self.distinctions.purview_inclusion(
+            max_order=None
+        ):
+            inclusion_exclusion_term = (-1) ** (len(purview) - 1)
+            overlap_size_term = (
+                2 ** len(overlapping_distinctions) - len(overlapping_distinctions) - 1
+            )
+            count += inclusion_exclusion_term * overlap_size_term
+        # Count self-relations
+        count += len(self.self_relations)
+        return count
 
     def __len__(self):
         return self.num_relations()
 
-
-class AnalyticalRelations(AbstractRelations):
-    """Represent relations among set of distinctions.
-
-    Provides exact calculation of the number of relations and the sum of their
-    phi values based on the purview inclusion structure of the distinctions.
-    """
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._num_relations = None
-
     def __repr__(self):
-        return fmt.fmt_analytical_relations(self)
-
-    def mean_phi(self):
-        return self.sum_phi() / self.num_relations()
-
-    def _sum_phi(self):
-        if (
-            config.RELATION_PHI_SCHEME == "MINIMAL_OVERLAP_RATIO_TIMES_DISTINCTION_PHI"
-            and config.OVERLAP_RATIO == "PURVIEW_SIZE"
-        ):
-            return sum(
-                combinatorics.sum_of_minimum_among_subsets(
-                    [d.parent.phi / len(d.purview) for d in overlapping_distinctions]
-                )
-                for _, overlapping_distinctions in self.distinctions.purview_inclusion(
-                    max_order=1
-                )
-            )
-        raise NotImplementedError
-
-    def num_relations(self):
-        if self._num_relations is None:
-            self._num_relations = 0
-            if self.distinctions:
-                for (
-                    overlap,
-                    _,
-                ), overlapping_distinctions in self.distinctions.purview_inclusion(
-                    max_order=None
-                ):
-                    inclusion_exclusion_alternating_term = (-1) ** (len(overlap) - 1)
-                    self._num_relations += (
-                        inclusion_exclusion_alternating_term
-                        * combinatorics.num_subsets_larger_than_one_element(
-                            len(overlapping_distinctions)
-                        )
-                    )
-        return self._num_relations
+        body = "\n".join(fmt.align_columns(self._repr_columns()))
+        return fmt.box(fmt.header("AnalyticalRelations", body, "", fmt.HEADER_BAR_2))
 
 
-class SampleWarning(Warning):
-    pass
+_CONGRUENCE_WARNING_MSG = (
+    "distinctions.resolve_congruence() has not been called; results may "
+    "include relations that do not exist after filtering out distinctions "
+    "incongruent with the SIA specified state. Consider using "
+    "`new_big_phi.phi_structure()` to obtain a consistent structure."
+)
 
 
-class SampledRelations(AnalyticalRelations):
-    """A sample of relations among set of distinctions.
-
-    Provides exact calculation of the number of relations. The sum and mean of
-    relation phi values are taken from the sample.
-    """
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._sample = None
-        self._max_degree = None
-
-    @classmethod
-    def from_json(cls, data):
-        instance = cls(data["distinctions"])
-        instance.__dict__.update(data)
-        return instance
-
-    def __repr__(self):
-        return fmt.fmt_sampled_relations(self)
-
-    @property
-    def max_degree(self):
-        """The maximum possible degree of a relation among the given distinctions.
-
-        This is the maximum count of purview inclusion of single elements.
-        """
-        if self._max_degree is None:
-            self._max_degree = max(
-                map(
-                    len,
-                    (
-                        distinctions
-                        for _, distinctions in self.distinctions.purview_inclusion(
-                            max_order=1
-                        )
-                    ),
-                ),
-                default=0,
-            )
-        return self._max_degree
-
-    def draw_sample(self, R_iter, start, timeout):
-        while time() < start + timeout:
-            combination = next(R_iter, None)
-            if combination is None:
-                return
-            return Relata(
-                self.distinctions.subsystem, (self.distinctions[i] for i in combination)
-            ).maximally_irreducible_relation()
-
-    def draw_samples(self, sample_size=None, degrees=None, timeout=None):
-        """Return a new relations sample.
-
-        NOTE: This method updates the `sample` attribute in-place.
-        """
-        if sample_size is None:
-            sample_size = config.RELATION_SAMPLE_SIZE
-        if degrees is None:
-            degrees = config.RELATION_SAMPLE_DEGREES
-        if timeout is None:
-            timeout = config.RELATION_SAMPLE_TIMEOUT
-
-        potential_relata = combinations_with_nonempty_congruent_overlap(
-            self.distinctions
-        )
-
-        if degrees:
-            if any(degree <= 0 for degree in degrees):
-                # Negative or zeros: interpret degrees as relative to most numerous degree
-                # Most numerous degree is half the maximum degree, since the (n
-                # choose k) achieves its maximum at k = n/2
-                middle_degree = self.max_degree // 2
-                degrees = [middle_degree + degree for degree in degrees]
-                if any(degree < 2 for degree in degrees):
-                    raise ValueError(f"some implied degrees are < 2: {degrees}")
-            R_target = setset([])
-            for degree in degrees:
-                R_target |= potential_relata.set_size(degree)
-        else:
-            R_target = potential_relata
-
-        # Uniform sampling
-        R_iter = R_target.rand_iter()
-
-        sample = []
-        start = time()
-        while (len(sample) < sample_size) and (time() < start + timeout):
-            draw = self.draw_sample(R_iter, start, timeout)
-            if draw is None:
-                break
-            sample.append(draw)
-
-        if len(sample) != sample_size and sample_size <= R_target.len():
-            warnings.warn(
-                message=(
-                    f"Sampling failed after {timeout} s (got {len(sample)} of "
-                    f"the requested {sample_size}); try increasing timeout "
-                    f"duration, decreasing sample size, or sampling different "
-                    "degrees"
-                ),
-                category=SampleWarning,
-            )
-        # Update sample in place
-        self._sample = sample
-        return self._sample
-
-    @property
-    def sample(self):
-        """The sampled relations.
-
-        NOTE: To re-sample, use the ``draw_samples()`` method.
-        """
-        if self._sample is None:
-            # Update sample in place
-            self.draw_samples()
-        return self._sample
-
-    def mean_phi(self):
-        if not self.sample:
-            return 0.0
-        return np.mean([relation.phi for relation in self.sample])
-
-    def sum_phi(self):
-        return self.mean_phi() * self.num_relations()
+def relations(distinctions, relation_computation=None, **kwargs):
+    """Return causal relations among a set of distinctions."""
+    if not distinctions.resolved_congruence:
+        warnings.warn(_CONGRUENCE_WARNING_MSG, PyPhiWarning, stacklevel=2)
+    return relation_computations[
+        fallback(relation_computation, config.RELATION_COMPUTATION)
+    ](distinctions, **kwargs)
 
 
 class RelationComputationsRegistry(Registry):
@@ -1121,131 +353,22 @@ class RelationComputationsRegistry(Registry):
     And use them by setting ``config.RELATION_COMPUTATIONS = 'NONE'``
     """
 
-    desc = "approximations of sum of relation phi"
+    desc = "methods for computing relations"
 
 
 relation_computations = RelationComputationsRegistry()
 
 
 @relation_computations.register("CONCRETE")
-def concrete_relations(subsystem, distinctions, **kwargs):
-    return ConcreteRelations(
-        filter(None, all_relations(subsystem, distinctions, **kwargs))
-    )
+def concrete_relations(distinctions, **kwargs):
+    return ConcreteRelations(all_relations(distinctions, **kwargs))
 
 
 @relation_computations.register("ANALYTICAL")
-def analytical_relations(subsystem, distinctions, **kwargs):
-    return AnalyticalRelations(distinctions.unflatten())
+def analytical_relations(distinctions, **kwargs):
+    return AnalyticalRelations(distinctions)
 
 
-@relation_computations.register("SAMPLED")
-def sampled_relations(subsystem, distinctions, **kwargs):
-    return SampledRelations(distinctions.unflatten())
-
-
-def relations(subsystem, distinctions, computation=None, **kwargs):
-    """Return the irreducible relations among the causes/effects in the CES."""
-    computation = fallback(computation, config.RELATION_COMPUTATION)
-    return relation_computations[computation](
-        subsystem, distinctions.flatten(), **kwargs
-    )
-
-
-class NewConcreteRelations(UserDict, Relations):
-    def __init__(self, old_concrete_relations):
-        self.data = group_faces(old_concrete_relations)
-        self.phis = {
-            distinctions: phi_r(distinctions, faces)
-            for distinctions, faces in self.items()
-        }
-
-    def _sum_phi(self):
-        return sum(self.phis.values())
-
-    def __repr__(self):
-        return fmt._fmt_relations(self)
-
-
-def group_faces(old_relations):
-    new_relations = defaultdict(list)
-    for face in old_relations:
-        new_relations[distinctions_of(face)].append(face)
-    return new_relations
-
-
-def distinctions_of(face):
-    return frozenset(mice.parent for mice in face.relata)
-
-
-def phi_r(relata, faces):
-    if config.NEW_RELATION_SCHEME == "SUM_FACEWISE_OVERLAP":
-        phi_r = _phi_r_sum_facewise_overlap(relata, faces)
-    elif config.NEW_RELATION_SCHEME == "FACE_WEIGHTED_UNION":
-        phi_r = _phi_r_face_weighted_union(relata, faces)
-    elif config.NEW_RELATION_SCHEME == "UNION_WEIGHTED":
-        phi_r = _phi_r_union(relata, faces)
-    else:
-        raise ValueError('unrecognized config value for "NEW_RELATION_TYPE"')
-    phi_r = PyPhiFloat(phi_r)
-    assert all(phi_r <= distinction.phi for distinction in relata)
-    return phi_r
-
-
-def _phi_r_union(relata, faces):
-    union_of_facewise_overlaps = set.union(*(set(face.purview) for face in faces))
-    phi_over_purview_union_size_per_distinction = np.array(
-        [distinction.phi for distinction in relata]
-    ) / np.array([purview_union_size(distinction) for distinction in relata])
-    return len(union_of_facewise_overlaps) * min(
-        phi_over_purview_union_size_per_distinction
-    )
-
-
-def _phi_r_sum_facewise_overlap(relata, faces):
-    if len(relata) > 1:
-        num_possible_faces = 3 ** len(relata)
-    else:
-        num_possible_faces = 1
-
-    sum_overlap_sizes = sum((overlap_size(face) for face in faces))
-
-    phi_over_purview_union_size_per_distinction = np.array(
-        [distinction.phi for distinction in relata]
-    ) / np.array([purview_union_size(distinction) for distinction in relata])
-
-    return (
-        # Sum of overlap sizes can be taken out of the sum and the minimum in the formula
-        sum_overlap_sizes
-        / num_possible_faces
-        * min(phi_over_purview_union_size_per_distinction)
-    )
-
-
-def _phi_r_face_weighted_union(relata, faces):
-    if len(relata) > 1:
-        num_possible_faces = 3 ** len(relata)
-    else:
-        num_possible_faces = 1
-
-    union_of_facewise_overlaps = set.union(*(set(face.purview) for face in faces))
-
-    phi_over_purview_union_size_per_distinction = np.array(
-        [distinction.phi for distinction in relata]
-    ) / np.array([purview_union_size(distinction) for distinction in relata])
-
-    return (
-        len(faces)
-        / num_possible_faces
-        * len(union_of_facewise_overlaps)
-        # Sum of overlap sizes can be taken out of the sum and the minimum in the formula
-        * min(phi_over_purview_union_size_per_distinction)
-    )
-
-
-def overlap_size(relation_face):
-    return len(relation_face.relata.congruent_overlap[0])
-
-
-def purview_union_size(distinction):
-    return len(set(distinction.cause.purview) | set(distinction.effect.purview))
+# Functional alias
+def relation(distinctions):
+    return Relation(distinctions)

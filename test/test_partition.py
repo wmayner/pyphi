@@ -275,7 +275,7 @@ def test_partitioned_repertoire_with_tripartition(s):
 def test_tripartitions_choses_smallest_purview(s):
     mechanism = (1, 2)
 
-    with config.override(MICE_TIE_RESOLUTION="SMALLEST_PURVIEW"):
+    with config.override(PURVIEW_TIE_RESOLUTION=["PHI", "NEGATIVE_PURVIEW_SIZE"]):
         mie = s.mie(mechanism)
         assert mie.phi == 0.5
         assert mie.purview == (0, 1)
@@ -283,7 +283,7 @@ def test_tripartitions_choses_smallest_purview(s):
     s.clear_caches()
 
     # In phi-tie, chose the smaller purview (0,)
-    with config.override(MICE_TIE_RESOLUTION="SMALLEST_PURVIEW"):
+    with config.override(PURVIEW_TIE_RESOLUTION=["PHI", "NEGATIVE_PURVIEW_SIZE"]):
         mie = s.mie(mechanism)
         assert mie.phi == 0.5
         assert mie.purview == (0,)

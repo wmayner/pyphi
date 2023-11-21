@@ -3,6 +3,7 @@
 
 from ordered_set import OrderedSet
 
+
 class HashableOrderedSet(OrderedSet):
     """An OrderedSet that implements the hash method.
 

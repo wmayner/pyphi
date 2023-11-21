@@ -47,12 +47,12 @@ class Node:
             correspond to each node in the system. Dimensions corresponding to
             nodes that provide input to this node are of size > 1, while those
             that do not correspond to inputs are of size 1. The last dimension
-            corresponds to the state of the node in the next timestep, so that
+            encodes the state of the node in the next timestep, so that
             ``node.tpm[..., 0]`` gives probabilities that the node will be 'OFF'
             and ``node.tpm[..., 1]`` gives probabilities that the node will be
             'ON'.
-        inputs (frozenset): The set of nodes with connections to this node.
-        outputs (frozenset): The set of nodes this node has connections to.
+        inputs (frozenset): The set of nodes which send connections to this node.
+        outputs (frozenset): The set of nodes this node sends connections to.
         state_space (Tuple[Union[int, str]]): The space of states this node can
             inhabit.
         state (Optional[Union[int, str]]): The current state of this node.

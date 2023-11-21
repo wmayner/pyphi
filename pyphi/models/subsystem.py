@@ -13,14 +13,16 @@ from toolz import concat
 from pyphi.direction import Direction
 
 from .. import utils
+from ..conf import fallback
 from . import cmp, fmt
 from .mechanism import Concept, StateSpecification
+from .pandas import ToDictMixin, ToPandasMixin
 
 _sia_attributes = ["phi", "ces", "partitioned_ces", "subsystem", "cut_subsystem"]
 
 
-@dataclass
-class SystemStateSpecification:
+@dataclass(frozen=True)
+class SystemStateSpecification(ToDictMixin, ToPandasMixin):
     cause: StateSpecification
     effect: StateSpecification
 
@@ -32,7 +34,17 @@ class SystemStateSpecification:
         raise KeyError("Invalid direction")
 
     def _repr_columns(self, prefix=""):
-        return self.cause._repr_columns(prefix) + self.effect._repr_columns(prefix)
+        cols = []
+        # TODO(4.0) create NullStateSpecification and use that instead of None
+        if self.cause is not None:
+            cols.extend(self.cause._repr_columns(prefix))
+        else:
+            cols.append((f"{prefix}{Direction.CAUSE}", None))
+        if self.effect is not None:
+            cols.extend(self.effect._repr_columns(prefix))
+        else:
+            cols.append((f"{prefix}{Direction.EFFECT}", None))
+        return cols
 
     def __repr__(self):
         body = "\n".join(fmt.align_columns(self._repr_columns()))
@@ -43,10 +55,7 @@ class SystemStateSpecification:
         return hash((self.cause, self.effect))
 
     def to_json(self):
-        return {
-            "cause": self.cause,
-            "effect": self.effect,
-        }
+        return self.to_dict()
 
 
 def _concept_sort_key(concept):
@@ -57,35 +66,54 @@ def defaultdict_set():
     return defaultdict(set)
 
 
-def purview_inclusion(distinctions, min_order, max_order):
+def _purview_inclusion(distinction_attr, distinctions, min_order, max_order):
     purview_inclusion_by_order = defaultdict(defaultdict_set)
     for distinction in distinctions:
-        for subset in utils.powerset(
-            distinction.purview,
-            nonempty=True,
-            min_size=min_order,
-            max_size=max_order,
+        for subset in map(
+            frozenset,
+            utils.powerset(
+                getattr(distinction, distinction_attr),
+                nonempty=True,
+                min_size=min_order,
+                max_size=max_order,
+            ),
         ):
-            substate = utils.substate(
-                distinction.specified_state.purview,
-                distinction.specified_state.state,
-                subset,
-            )
-            purview_inclusion_by_order[len(subset)][(subset, substate)].add(distinction)
+            purview_inclusion_by_order[len(subset)][subset].add(distinction)
     return purview_inclusion_by_order
 
 
-class CauseEffectStructure(cmp.Orderable, Sequence):
+def _find_multiplicities(func, distinctions):
+    """Return a mapping from purviews to multiplicities of the values of ``func``."""
+    multiplicities = defaultdict_set()
+    for d in distinctions:
+        for direction in Direction.both():
+            multiplicities[d.purview(direction)].add(func(d.mice(direction)))
+    return multiplicities
+
+
+def _get_mechanism(mice):
+    return mice.mechanism
+
+
+def _get_state(mice):
+    return mice.specified_state.state
+
+
+class CauseEffectStructure(cmp.Orderable, Sequence, ToPandasMixin):
     """A collection of concepts."""
 
-    def __init__(self, concepts=(), subsystem=None):
+    def __init__(self, concepts=(), subsystem=None, resolved_congruence=False):
         # Normalize the order of concepts
         # TODO(4.0) convert to set?
         self.concepts = tuple(sorted(concepts, key=_concept_sort_key))
-        self.subsystem = subsystem
+        # self.subsystem = subsystem
         self._specifiers = None
         self._purview_inclusion_by_order = defaultdict(defaultdict_set)
-        self._purview_inclusion_max_order = 0
+        # Flag to indicate whether distinctions have been filtered according to
+        # congruence with a SIA specified state
+        # TODO(4.0) use a subclass instead, as with MICE?
+        self._resolved_congruence = resolved_congruence
+        self._sum_phi = None
 
     def __len__(self):
         return len(self.concepts)
@@ -95,7 +123,7 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
 
     def __getitem__(self, value):
         if isinstance(value, slice):
-            return type(self)(self.concepts[value], subsystem=self.subsystem)
+            return type(self)(self.concepts[value])
         return self.concepts[value]
 
     def __repr__(self):
@@ -110,16 +138,13 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
         return self.concepts == other.concepts
 
     def __hash__(self):
-        return hash((self.concepts, self.subsystem))
+        return hash(self.concepts)
 
     def order_by(self):
         return [self.concepts]
 
     def to_json(self):
-        return {
-            "concepts": self.concepts,
-            "subsystem": self.subsystem,
-        }
+        return self.concepts
 
     @property
     def flat(self):
@@ -129,6 +154,16 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
     def flatten(self):
         """Return this as a FlatCauseEffectStructure."""
         return FlatCauseEffectStructure(self)
+
+    def unflatten(self):
+        """Return self."""
+        # No-op; already unflattened
+        return self
+
+    def sum_phi(self):
+        if self._sum_phi is None:
+            self._sum_phi = sum(self.phis)
+        return self._sum_phi
 
     @property
     def phis(self):
@@ -161,23 +196,67 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
         label = self.subsystem.node_labels.indices2labels
         return tuple(list(label(mechanism)) for mechanism in self.mechanisms)
 
+    def purview_inclusion_of_intersection(self, min_order, max_order):
+        return _purview_inclusion(
+            "purview_intersection",
+            distinctions=self,
+            min_order=min_order,
+            max_order=max_order,
+        )
+
+    def _purview_inclusion_of_union(self, min_order, max_order):
+        return _purview_inclusion(
+            "purview_union", distinctions=self, min_order=min_order, max_order=max_order
+        )
+
     def purview_inclusion(self, max_order=None):
-        """Return a mapping from (purview, state) pairs to distinctions whose
-        purview includes that purview in that state.
+        """Return a mapping:
+
+        {order: {frozenset[Unit]: {distinctions whose cause/effect purview
+                                   union includes those Units}}}
         """
-        if max_order is None:
-            max_order = len(self.subsystem)
-        max_order = min(len(self.subsystem), max_order)
-        if max_order > self._purview_inclusion_max_order:
+        if max_order is None or max_order not in self._purview_inclusion_by_order:
             self._purview_inclusion_by_order.update(
-                purview_inclusion(
-                    self.flat, self._purview_inclusion_max_order + 1, max_order
+                # NOTE: We use the union of the cause/effect purviews
+                self._purview_inclusion_of_union(
+                    min_order=max(self._purview_inclusion_by_order, default=0) + 1,
+                    max_order=max_order,
                 )
             )
-            self._purview_inclusion_max_order = max_order
-        # Yield from items to avoid making a copy
-        for order in range(1, max_order + 1):
-            yield from self._purview_inclusion_by_order[order].items()
+        max_order = fallback(max_order, float("inf"))
+        for order, mapping in self._purview_inclusion_by_order.items():
+            if order <= max_order:
+                yield from mapping.items()
+
+    def resolve_congruence(self, system_state: SystemStateSpecification):
+        """Filter out incongruent distinctions."""
+        # TODO(4.0) parallelize
+        return type(self)(
+            filter(
+                lambda d: d is not None,
+                (distinction.resolve_congruence(system_state) for distinction in self),
+            ),
+            resolved_congruence=True,
+        )
+
+    def mechanism_multiplicities(self):
+        return _find_multiplicities(_get_mechanism, self)
+
+    def state_multiplicities(self):
+        return _find_multiplicities(_get_state, self)
+
+    @property
+    def resolved_congruence(self):
+        return self._resolved_congruence
+
+
+def flatten_distinctions(distinctions):
+    return concat(
+        [distinction.cause, distinction.effect]
+        if isinstance(distinction, Concept)
+        else [distinction]
+        for distinction in distinctions
+    )
 
 
 class FlatCauseEffectStructure(CauseEffectStructure):
@@ -188,24 +267,10 @@ class FlatCauseEffectStructure(CauseEffectStructure):
         if isinstance(concepts, CauseEffectStructure):
             subsystem = concepts.subsystem
         if not isinstance(concepts, FlatCauseEffectStructure):
-            _concepts = concat(
-                [concept.cause, concept.effect]
-                if isinstance(concept, Concept)
-                else [concept]
-                for concept in concepts
-            )
+            _concepts = flatten_distinctions(concepts)
         else:
             _concepts = iter(concepts)
         super().__init__(concepts=_concepts, subsystem=subsystem)
-        try:
-            # NOTE: Pointing to the same dictionary is required here, so that
-            # calling `compute_purview_inclusion` on a flattened CES will update
-            # the unflattened CES's properties
-            self._purview_inclusion = concepts._purview_inclusion
-            self._purview_inclusion_max_order = concepts._purview_inclusion_max_order
-            self._purview_inclusion_by_order = concepts._purview_inclusion_by_order
-        except AttributeError:
-            pass
 
     def __str__(self):
         return fmt.fmt_ces(self, title="Flat cause-effect structure")
@@ -242,9 +307,11 @@ class FlatCauseEffectStructure(CauseEffectStructure):
 
     @property
     def flat(self):
+        # No-op; already flat
         return self
 
     def flatten(self):
+        # No-op; already flat
         return self
 
     def unflatten(self):
@@ -257,15 +324,18 @@ class FlatCauseEffectStructure(CauseEffectStructure):
                     mechanism=mechanism,
                     cause=mice[Direction.CAUSE],
                     effect=mice[Direction.EFFECT],
-                    subsystem=self.subsystem,
                 )
                 for mechanism, mice in mechanism_to_mice.items()
             ],
-            subsystem=self.subsystem,
+        )
+
+    def _purview_inclusion_of_union(self, min_order, max_order):
+        return _purview_inclusion(
+            "purview_units", distinctions=self, min_order=min_order, max_order=max_order
         )
 
 
-class SystemIrreducibilityAnalysis(cmp.Orderable):
+class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
     """An analysis of system irreducibility (|big_phi|).
 
     Contains the |big_phi| value of the |Subsystem|, the cause-effect
@@ -329,9 +399,6 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         return self.subsystem.network
 
     unorderable_unless_eq = ["network"]
-
-    def order_by(self):
-        return [self.phi, len(self.subsystem), self.subsystem.node_indices]
 
     def __eq__(self, other):
         return cmp.general_eq(self, other, _sia_attributes)

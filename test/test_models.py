@@ -3,7 +3,7 @@
 # test_models.py
 
 from collections import namedtuple
-from pyphi.metrics.distribution import specified_state
+from pyphi.models.cuts import KPartition
 from pyphi.models.subsystem import FlatCauseEffectStructure
 
 import numpy as np
@@ -22,7 +22,7 @@ from pyphi import (
 )
 from pyphi.labels import NodeLabels
 
-EPSILON = 10**(-config.PRECISION)
+EPSILON = 10 ** (-config.PRECISION)
 
 # Helper functions for constructing PyPhi objects
 
@@ -81,7 +81,6 @@ def concept(
             phi=phi,
             direction=Direction.EFFECT,
         ),
-        subsystem=subsystem,
     )
 
 
@@ -350,19 +349,10 @@ def test_cuts_can_have_node_labels(node_labels):
 def test_ria_ordering_and_equality():
     assert ria(phi=1.0) < ria(phi=2.0)
     assert ria(phi=2.0) > ria(phi=1.0)
-    assert ria(mechanism=(1,)) < ria(mechanism=(1, 2))
-    assert ria(mechanism=(1, 2)) >= ria(mechanism=(1,))
-    assert ria(purview=(1,)) < ria(purview=(1, 2))
-    assert ria(purview=(1, 2)) >= ria(purview=(1,))
-
     assert ria(phi=1.0) == ria(phi=1.0)
     assert ria(phi=1.0) == ria(phi=(1.0 - EPSILON / 2))
     assert ria(phi=1.0) != ria(phi=(1.0 - EPSILON * 2))
     assert ria(direction=Direction.CAUSE) != ria(direction=Direction.EFFECT)
-    assert ria(mechanism=(1,)) != ria(mechanism=(1, 2))
-
-    with config.override(MICE_TIE_RESOLUTION="SMALLEST_PURVIEW"):
-        assert ria(purview=(1, 2)) < ria(purview=(1,))
 
 
 def test_null_ria():
@@ -374,7 +364,7 @@ def test_null_ria():
     assert null_ria.direction == direction
     assert null_ria.mechanism == mechanism
     assert null_ria.purview == purview
-    assert null_ria.partition is None
+    assert null_ria.partition == KPartition()
     assert null_ria.repertoire == "repertoire"
     assert null_ria.partitioned_repertoire is None
     assert null_ria.phi == 0
@@ -388,7 +378,7 @@ def test_ria_repr_str():
 # Test MaximallyIrreducibleCauseOrEffect
 
 
-def test_mice_ordering_by_phi():
+def test_mice_ordering():
     phi1 = mice()
     phi2 = mice(phi=(1.0 + EPSILON * 2), partition=())
     assert phi1 < phi2
@@ -401,25 +391,6 @@ def test_mice_ordering_by_phi():
     assert different_direction < phi2
     assert phi2 >= different_direction
     assert different_direction <= phi2
-
-
-def test_mice_odering_by_mechanism():
-    small = mice(mechanism=(1,))
-    big = mice(mechanism=(1, 2, 3))
-    assert small < big
-    assert small <= big
-    assert big > small
-    assert big >= small
-    assert big != small
-
-
-def test_mice_ordering_by_purview():
-    small = mice(purview=(1, 2))
-    big = mice(purview=(1, 2, 3))
-    assert small < big
-    assert small <= big
-    assert big > small
-    assert big >= small
 
 
 def test_mice_equality():
@@ -508,21 +479,8 @@ def test_specified_states_and_indices():
         np.array([[0, 0, 1]]),
     ]
 
-    specified_index_results = [mice.specified_index for mice in ces]
-    specified_index_answers = [
-        (np.array([0]), np.array([0]), np.array([0])),
-        (np.array([0]), np.array([0]), np.array([0])),
-        (np.array([0, 1]), np.array([0, 1]), np.array([0, 0])),
-        (np.array([0]), np.array([0]), np.array([0])),
-        (np.array([0]), np.array([1]), np.array([0])),
-        (np.array([0]), np.array([0]), np.array([1])),
-        (np.array([1]), np.array([1]), np.array([0])),
-        (np.array([0]), np.array([0]), np.array([1])),
-    ]
-
     for results, answers in [
         (specified_state_results, specified_state_answers),
-        (specified_index_results, specified_index_answers),
     ]:
         for result, answer in zip(results, answers):
             assert np.array_equal(result, answer)
@@ -546,16 +504,6 @@ def test_concept_ordering(s, micro_s):
         phi1 <= micro_phi1
     with pytest.raises(TypeError):
         phi1 > micro_phi1
-
-
-def test_concept_ordering_by_mechanism(s):
-    small = concept(mechanism=(0, 1), subsystem=s)
-    big = concept(mechanism=(0, 1, 2), subsystem=s)
-    assert small < big
-    assert small <= big
-    assert big > small
-    assert big >= small
-    assert big != small
 
 
 def test_concept_equality(s):
@@ -584,8 +532,16 @@ def test_concept_equality_repertoires(s):
         phi=phi, repertoire=np.array([1, 2]), partitioned_repertoire=np.array([2, 3])
     )
     mice2 = mice(phi=phi, repertoire=np.array([0, 0]), partitioned_repertoire=None)
-    concept = models.Concept(mechanism=(), cause=mice1, effect=mice2, subsystem=s)
-    another = models.Concept(mechanism=(), cause=mice2, effect=mice1, subsystem=s)
+    concept = models.Concept(
+        mechanism=(),
+        cause=mice1,
+        effect=mice2,
+    )
+    another = models.Concept(
+        mechanism=(),
+        cause=mice2,
+        effect=mice1,
+    )
     assert concept != another
 
 
@@ -675,23 +631,11 @@ def test_sia_ordering(s, s_noised, subsys_n0n2, subsys_n1n2):
     assert phi1 <= phi2
     assert phi2 >= phi1
 
-    assert sia(subsystem=subsys_n0n2) < sia(subsystem=subsys_n1n2)
-
     different_system = sia(subsystem=s_noised)
     with pytest.raises(TypeError):
         phi1 <= different_system
     with pytest.raises(TypeError):
         phi1 >= different_system
-
-
-def test_sia_ordering_by_subsystem_size(s, s_single):
-    small = sia(subsystem=s_single)
-    big = sia(subsystem=s)
-    assert small < big
-    assert small <= big
-    assert big > small
-    assert big >= small
-    assert big != small
 
 
 def test_sia_equality(s):

@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 # data_structures/array_like.py
 
+from numbers import Number
+
 import numpy as np
 from numpy.lib.mixins import NDArrayOperatorsMixin
-from numbers import Number
 
 
 class ArrayLike(NDArrayOperatorsMixin):

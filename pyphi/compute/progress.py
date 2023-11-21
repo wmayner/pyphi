@@ -1,11 +1,10 @@
 # progress.py
 
-from time import time
 from asyncio import Event
+from time import time
 from typing import Optional, Tuple
 
 import ray
-
 # For typing purposes
 from ray.actor import ActorHandle
 from tqdm.auto import tqdm

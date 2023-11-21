@@ -6,4 +6,4 @@
 Distance functions.
 """
 
-from . import distribution, ces
+from . import ces, distribution

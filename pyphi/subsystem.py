@@ -11,7 +11,7 @@ from typing import Iterable, Tuple
 import numpy as np
 from numpy.typing import ArrayLike
 
-from . import cache, connectivity, distribution, metrics
+from . import cache, conf, connectivity, distribution, metrics
 from . import repertoire as _repertoire
 from . import resolve_ties, utils, validate
 from .compute.parallel import MapReduce
@@ -29,19 +29,14 @@ from .models import (
     _null_ria,
 )
 from .node import node as Node
-from .models.mechanism import StateSpecification
+from .models.mechanism import ShortCircuitConditions, StateSpecification
 from .network import irreducible_purviews
 from .partition import mip_partitions
 from .repertoire import forward_repertoire, unconstrained_forward_repertoire
+from .tpm import backward_tpm as _backward_tpm
 from .utils import state_of
 
 log = logging.getLogger(__name__)
-
-# TODO move to defaults
-DEFAULT_MECHANISM_PARTITION_SEQUENTIAL_THRESHOLD = 2**8
-DEFAULT_MECHANISM_PARTITION_CHUNKSIZE = (
-    2**2 * DEFAULT_MECHANISM_PARTITION_SEQUENTIAL_THRESHOLD
-)
 
 
 class Subsystem:
@@ -75,12 +70,12 @@ class Subsystem:
         state,
         nodes=None,
         cut=None,
-        mice_cache=None,
         # TODO(4.0): refactor repertoire caches
         repertoire_cache=None,
         single_node_repertoire_cache=None,
         forward_repertoire_cache=None,
         unconstrained_forward_repertoire_cache=None,
+        backward_tpm=False,
         _external_indices=None,
     ):
         # The network this subsystem belongs to.
@@ -109,7 +104,13 @@ class Subsystem:
         # Get the TPM conditioned on the state of the external nodes.
         external_state = utils.state_of(self.external_indices, self.state)
         background_conditions = dict(zip(self.external_indices, external_state))
-        self.tpm = self.network.tpm.condition_tpm(background_conditions)
+        self.backward_tpm = backward_tpm
+        if self.backward_tpm:
+            self.tpm = _backward_tpm(self.network.tpm, state, self.node_indices)
+        else:
+            self.tpm = self.network.tpm.condition_tpm(background_conditions)
+        # The TPM for just the nodes in the subsystem.
+        self.proper_tpm = self.tpm.squeeze()[..., list(self.node_indices)]
 
         # The unidirectional cut applied for phi evaluation
         self.cut = (
@@ -120,9 +121,6 @@ class Subsystem:
         self.cm = self.cut.apply_cut(network.cm)
         # The subsystem's connectivity matrix with the cut applied
         self.proper_cm = connectivity.subadjacency(self.cm, self.node_indices)
-
-        # Reusable cache for maximally-irreducible causes and effects
-        self._mice_cache = cache.MICECache(self, mice_cache)
 
         # Cause & effect repertoire caches
         # TODO: if repertoire caches are never reused, there's no reason to
@@ -233,14 +231,12 @@ class Subsystem:
         return {
             "single_node_repertoire": self._single_node_repertoire_cache.info(),
             "repertoire": self._repertoire_cache.info(),
-            "mice": self._mice_cache.info(),
         }
 
     def clear_caches(self):
         """Clear the mice and repertoire caches."""
         self._single_node_repertoire_cache.clear()
         self._repertoire_cache.clear()
-        self._mice_cache.clear()
 
     def __repr__(self):
         return "Subsystem(" + ", ".join(map(repr, self.nodes)) + ")"
@@ -317,7 +313,7 @@ class Subsystem:
             self.state,
             self.node_indices,
             cut=cut,
-            mice_cache=self._mice_cache,
+            backward_tpm=self.backward_tpm,
         )
 
     def indices2nodes(self, indices):
@@ -767,6 +763,7 @@ class Subsystem:
                 repertoire_distance=repertoire_distance,
                 **kwargs,
             )
+            selectivity = None
         return RepertoireIrreducibilityAnalysis(
             phi=phi,
             direction=direction,
@@ -780,6 +777,7 @@ class Subsystem:
             # TODO(4.0) refactor
             specified_state=kwargs.get("state"),
             node_labels=self.node_labels,
+            selectivity=selectivity,
         )
 
     def _find_mip_single_state(
@@ -856,11 +854,12 @@ class Subsystem:
             the mininum-information partition in one temporal direction.
 
         """
-        null_mip = _null_ria(
-            direction, mechanism, purview, specified_state=kwargs.get("state")
-        )
+
+        def null_mip(**kwargs):
+            return _null_ria(direction, mechanism, purview, specified_state=state)
+
         if not purview:
-            return null_mip
+            return null_mip(reasons=(ShortCircuitConditions.EMPTY_PURVIEW,))
 
         # Calculate the unpartitioned repertoire to compare against the
         # partitioned ones.
@@ -868,32 +867,25 @@ class Subsystem:
 
         # State is unreachable - return 0 instead of giving nonsense results
         # TODO(4.0) re-evaluate this with the GID
-        # TODO(4.0) record shortcircuit reasons
         if direction == Direction.CAUSE and np.all(repertoire == 0):
-            return null_mip
-
-        if state is None:
-            specified_states = self.intrinsic_information(
-                direction, mechanism, purview
-            ).ties
-        else:
-            specified_states = [state]
+            return null_mip(reasons=(ShortCircuitConditions.UNREACHABLE_STATE,))
 
         if partitions is not None:
-            # Must convert to list to allow for multiple iterations in case of
-            # tied states
+            # NOTE: Must convert to list to allow for multiple iterations in
+            # case of tied states
             partitions = list(partitions)
 
-        parallel_kwargs = {
-            "parallel": config.PARALLEL_MECHANISM_PARTITION_EVALUATION,
-            "progress": config.PROGRESS_BARS,
-            "chunksize": DEFAULT_MECHANISM_PARTITION_CHUNKSIZE,
-            "sequential_threshold": DEFAULT_MECHANISM_PARTITION_SEQUENTIAL_THRESHOLD,
-        }
-        parallel_kwargs.update(
-            {kwarg: kwargs.pop(kwarg, None) for kwarg in parallel_kwargs}
+        parallel_kwargs = conf.parallel_kwargs(
+            config.PARALLEL_MECHANISM_PARTITION_EVALUATION, **kwargs
         )
         if config.IIT_VERSION == 4:
+            if state is None:
+                specified_states = self.intrinsic_information(
+                    direction, mechanism, purview
+                ).ties
+            else:
+                specified_states = [state]
+
             mips = MapReduce(
                 self._find_mip_single_state,
                 specified_states,
@@ -908,6 +900,18 @@ class Subsystem:
                 desc="Finding MIP for maximum intrinsic information states",
                 **parallel_kwargs,
             ).run()
+        elif config.IIT_VERSION == 3:
+            if state is not None:
+                raise ValueError("passing `state` is not supported with IIT 3.0")
+            return self._find_mip_single_state(
+                None,
+                direction,
+                mechanism,
+                purview,
+                repertoire,
+                partitions,
+                parallel_kwargs,
+            )
         else:
             raise NotImplementedError
 
@@ -1043,7 +1047,7 @@ class Subsystem:
     # Phi_max methods
     # =========================================================================
 
-    def potential_purviews(self, direction, mechanism, purviews=False):
+    def potential_purviews(self, direction, mechanism, purviews=None):
         """Return all purviews that could belong to the |MIC|/|MIE|.
 
         Filters out trivially-reducible purviews.
@@ -1057,7 +1061,7 @@ class Subsystem:
         """
         # TODO(4.0) return set from network.potential_purviews?
         _potential_purviews = set(self.network.potential_purviews(direction, mechanism))
-        if purviews is False:
+        if purviews is None:
             purviews = _potential_purviews
         else:
             # Restrict to given purviews
@@ -1071,8 +1075,7 @@ class Subsystem:
         # is cut/smaller we check again here.
         return irreducible_purviews(self.cm, direction, mechanism, purviews)
 
-    @cache.method("_mice_cache")
-    def find_mice(self, direction, mechanism, purviews=False, **kwargs):
+    def find_mice(self, direction, mechanism, purviews=None, **kwargs):
         """Return the |MIC| or |MIE| for a mechanism.
 
         Args:
@@ -1089,11 +1092,6 @@ class Subsystem:
         Returns:
             MaximallyIrreducibleCauseOrEffect: The |MIC| or |MIE|.
         """
-        parallel = (
-            bool(config.PARALLEL_PURVIEW_EVALUATION)
-            and len(mechanism) >= config.PARALLEL_PURVIEW_EVALUATION
-        )
-
         purviews = self.potential_purviews(direction, mechanism, purviews)
 
         if direction == Direction.CAUSE:
@@ -1103,45 +1101,54 @@ class Subsystem:
         else:
             validate.direction(direction)
 
-        # TODO(ties) put specified state in here
-        null_mice = mice_class(_null_ria(direction, mechanism, ()))
+        no_purviews = mice_class(
+            _null_ria(
+                direction,
+                mechanism,
+                (),
+                reasons=(ShortCircuitConditions.NO_PURVIEWS,),
+            )
+        )
 
         if not purviews:
-            return null_mice
+            return no_purviews
 
+        # TODO put purview first in signature to avoid
         def _find_mip(purview):
             return self.find_mip(direction, mechanism, purview)
 
+        parallel_kwargs = conf.parallel_kwargs(
+            config.PARALLEL_PURVIEW_EVALUATION, **kwargs
+        )
         map_reduce = MapReduce(
             _find_mip,
             purviews,
-            parallel=parallel,
             total=len(purviews),
             desc="Evaluating purviews",
-            **kwargs,
+            **parallel_kwargs,
         )
 
         all_mice = map(mice_class, map_reduce.run())
         # Record purview ties
-        ties = tuple(resolve_ties.purviews(all_mice, default=null_mice))
+        ties = tuple(resolve_ties.purviews(all_mice, default=no_purviews))
         # TODO(ties) refactor this into `resolve_ties.purviews`?
         for tie in ties:
             tie.set_purview_ties(ties)
         return ties[0]
 
-    def mic(self, mechanism, purviews=False):
+    def mic(self, mechanism, purviews=None, **kwargs):
         """Return the mechanism's maximally-irreducible cause (|MIC|).
 
         Alias for |find_mice()| with ``direction`` set to |CAUSE|.
         """
-        return self.find_mice(Direction.CAUSE, mechanism, purviews=purviews)
+        return self.find_mice(Direction.CAUSE, mechanism, purviews=purviews, **kwargs)
 
-    def mie(self, mechanism, purviews=False):
+    def mie(self, mechanism, purviews=None, **kwargs):
         """Return the mechanism's maximally-irreducible effect (|MIE|).
 
         Alias for |find_mice()| with ``direction`` set to |EFFECT|.
         """
-        return self.find_mice(Direction.EFFECT, mechanism, purviews=purviews)
+        return self.find_mice(Direction.EFFECT, mechanism, purviews=purviews, **kwargs)
 
     def phi_max(self, mechanism):
         """Return the |small_phi_max| of a mechanism.
@@ -1175,10 +1182,19 @@ class Subsystem:
         )
 
         # All together now...
-        return Concept(mechanism=(), cause=cause, effect=effect, subsystem=self)
+        return Concept(
+            mechanism=(),
+            cause=cause,
+            effect=effect,
+        )
 
     def concept(
-        self, mechanism, purviews=False, cause_purviews=False, effect_purviews=False
+        self,
+        mechanism,
+        purviews=None,
+        cause_purviews=None,
+        effect_purviews=None,
+        **kwargs,
     ):
         """Return the concept specified by a mechanism within this subsytem.
 
@@ -1206,15 +1222,18 @@ class Subsystem:
             log.debug("Empty concept; returning null concept")
             return self.null_concept
 
-        # Calculate the maximally irreducible cause repertoire.
-        cause = self.mic(mechanism, purviews=(cause_purviews or purviews))
+        cause_purviews = cause_purviews if cause_purviews is not None else purviews
+        cause = self.mic(mechanism, purviews=cause_purviews, **kwargs)
 
-        # Calculate the maximally irreducible effect repertoire.
-        effect = self.mie(mechanism, purviews=(effect_purviews or purviews))
+        effect_purviews = effect_purviews if effect_purviews is not None else purviews
+        effect = self.mie(mechanism, purviews=effect_purviews, **kwargs)
 
         log.debug("Found concept %s", mechanism)
-
         # NOTE: Make sure to expand the repertoires to the size of the
         # subsystem when calculating concept distance. For now, they must
         # remain un-expanded so the concept doesn't depend on the subsystem.
-        return Concept(mechanism=mechanism, cause=cause, effect=effect, subsystem=self)
+        return Concept(
+            mechanism=mechanism,
+            cause=cause,
+            effect=effect,
+        )

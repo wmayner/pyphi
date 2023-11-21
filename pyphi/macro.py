@@ -13,7 +13,8 @@ from collections import namedtuple
 import numpy as np
 from scipy.stats import entropy
 
-from . import compute, config, convert, distribution, utils, validate
+from . import compute, convert, distribution, utils, validate
+from .conf import config
 from .exceptions import ConditionallyDependentError, StateUnreachableError
 from .labels import NodeLabels
 from .network import irreducible_purviews
@@ -164,7 +165,6 @@ class MacroSubsystem(Subsystem):
         state,
         nodes=None,
         cut=None,
-        mice_cache=None,
         time_scale=1,
         blackbox=None,
         coarse_grain=None,
@@ -180,7 +180,7 @@ class MacroSubsystem(Subsystem):
         self.blackbox = blackbox
         self.coarse_grain = coarse_grain
 
-        super().__init__(network, state, micro_node_indices, cut, mice_cache)
+        super().__init__(network, state, micro_node_indices, cut)
 
         validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
 

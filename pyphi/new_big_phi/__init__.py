@@ -2,71 +2,68 @@
 
 from dataclasses import dataclass
 from enum import Enum, auto, unique
-from textwrap import indent
 from typing import Iterable, Optional, Tuple, Union
 
-from .. import Direction, Subsystem, compute, config, connectivity, utils
+from .. import compute, conf, connectivity, utils, validate
 from ..compute.network import reachable_subsystems
 from ..compute.parallel import MapReduce
-from ..conf import fallback
-from ..exceptions import warn_about_tie_serialization
+from ..conf import config, fallback
+from ..data_structures import PyPhiFloat
+from ..direction import Direction
 from ..labels import NodeLabels
 from ..models import cmp, fmt
 from ..models.cuts import Cut, GeneralKCut, SystemPartition
 from ..models.mechanism import RepertoireIrreducibilityAnalysis
 from ..models.subsystem import CauseEffectStructure, SystemStateSpecification
 from ..partition import system_partitions
-from ..registry import Registry
 from ..relations import ConcreteRelations, Relations
 from ..relations import relations as compute_relations
-from ..utils import PyPhiFloat
-
-DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD = 2**4
-DEFAULT_PARTITION_CHUNKSIZE = 2**2 * DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD
-
+from ..subsystem import Subsystem
+from ..warnings import warn_about_tie_serialization
 
 ##############################################################################
 # Information
 ##############################################################################
 
 
-class IntegrationValueRegistry(Registry):
-    """Storage for integration schemes."""
-
-    desc = "integration values"
-
-
-integration_values = IntegrationValueRegistry()
-
-
-integration_values.register("SUM")(sum)
-integration_values.register("MIN")(min)
-
-
 # TODO(4.0) refactor
 def system_intrinsic_information(
     subsystem: Subsystem,
     repertoire_distance: Optional[str] = None,
+    directions: Optional[Iterable[Direction]] = None,
+    subsystem_cause: Optional[Subsystem] = None,
 ) -> SystemStateSpecification:
     """Return the cause/effect states specified by the system.
 
     NOTE: Uses ``config.REPERTOIRE_DISTANCE_INFORMATION``.
     NOTE: State ties are arbitrarily broken (for now).
     """
+    directions = fallback(directions, Direction.both())
+    directions = tuple(directions)
+    # TODO move to Direction
+    # TODO have validation methods return the validated value
+    validate.directions(directions)
     repertoire_distance = fallback(
         repertoire_distance, config.REPERTOIRE_DISTANCE_INFORMATION
     )
+    subsystem_cause = fallback(subsystem_cause, subsystem)
+    subsystems = {
+        Direction.CAUSE: subsystem_cause,
+        Direction.EFFECT: subsystem,
+    }
     # TODO(ties) deal with ties here
-    cause, effect = [
-        subsystem.intrinsic_information(
+    ii = {
+        direction: subsystems[direction].intrinsic_information(
             direction,
             mechanism=subsystem.node_indices,
             purview=subsystem.node_indices,
             repertoire_distance=repertoire_distance,
         )
-        for direction in Direction.both()
-    ]
-    return SystemStateSpecification(cause=cause, effect=effect)
+        for direction in directions
+    }
+    return SystemStateSpecification(
+        cause=ii.get(Direction.CAUSE), effect=ii.get(Direction.EFFECT)
+    )
 
 
 ##############################################################################
@@ -75,7 +72,7 @@ def system_intrinsic_information(
 
 
 @dataclass
-class SystemIrreducibilityAnalysis(cmp.Orderable):
+class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
     phi: float
     partition: Union[Cut, SystemPartition]
     normalized_phi: float = 0
@@ -93,11 +90,13 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
 
     _sia_attributes = [
         "phi",
-        "normalized_phi",
         "partition",
-        "repertoire",
-        "partitioned_repertoire",
+        "normalized_phi",
+        "cause",
+        "effect",
         "system_state",
+        "current_state",
+        "node_indices",
     ]
 
     def order_by(self):
@@ -130,13 +129,18 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         )
 
     def _repr_columns(self):
+        if self.node_labels is not None:
+            subsystem_label = ",".join(
+                self.node_labels.coerce_to_labels(self.node_indices)
+            )
+        elif self.node_indices is not None:
+            subsystem_label = ",".join(map(str, self.node_indices))
+        else:
+            subsystem_label = None
         columns = (
             [
-                (
-                    "Subsystem",
-                    ",".join(self.node_labels.coerce_to_labels(self.node_indices)),
-                ),
-                ("Current state", ",".join(map(str, self.current_state))),
+                ("Subsystem", subsystem_label),
+                ("Current state", fmt.state(self.current_state)),
                 (f"           {fmt.SMALL_PHI}_s", self.phi),
                 (f"Normalized {fmt.SMALL_PHI}_s", self.normalized_phi),
             ]
@@ -153,11 +157,11 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         body = fmt.center(body)
         column_extent = body.split("\n")[2].index(":")
         if self.partition:
-            body += "\n" + indent(str(self.partition), " " * (column_extent + 2))
+            body += "\n" + fmt.indent(str(self.partition), column_extent + 2)
         return fmt.box(body)
 
     def to_json(self):
-        warn_about_tie_serialization(self)
+        warn_about_tie_serialization(self.__class__.__name__, serialize=True)
         dct = self.__dict__.copy()
         # TODO(ties) implement serialization of ties
         # Remove ties because of circular references
@@ -169,9 +173,9 @@ class NullSystemIrreducibilityAnalysis(SystemIrreducibilityAnalysis):
     def __init__(self, **kwargs):
         super().__init__(
             phi=0,
+            partition=None,
             cause=None,
             effect=None,
-            partition=None,
             **kwargs,
         )
 
@@ -197,11 +201,12 @@ def normalization_factor(partition: Union[Cut, GeneralKCut]) -> float:
 def integration_value(
     direction: Direction,
     subsystem: Subsystem,
-    cut_subsystem: Subsystem,
+    partition: Cut,
     system_state: SystemStateSpecification,
-    repertoire_distance: str = None,
+    repertoire_distance: Optional[str] = None,
 ) -> float:
     repertoire_distance = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
+    cut_subsystem = subsystem.apply_cut(partition)
     # TODO(4.0) deal with proliferation of special cases for GID
     if repertoire_distance == "GENERALIZED_INTRINSIC_DIFFERENCE":
         partitioned_repertoire = cut_subsystem.forward_repertoire(
@@ -215,7 +220,7 @@ def integration_value(
         direction,
         subsystem.node_indices,
         subsystem.node_indices,
-        cut_subsystem.cut,
+        partition,
         partitioned_repertoire=partitioned_repertoire,
         repertoire_distance=repertoire_distance,
         state=system_state[direction],
@@ -228,30 +233,32 @@ def evaluate_partition(
     system_state: SystemStateSpecification,
     repertoire_distance: str = None,
     directions: Optional[Iterable[Direction]] = None,
+    subsystem_cause=None,
 ) -> SystemIrreducibilityAnalysis:
     directions = fallback(directions, Direction.both())
-    cut_subsystem = subsystem.apply_cut(partition)
+    directions = tuple(directions)
+    validate.directions(directions)
+    subsystem_cause = fallback(subsystem_cause, subsystem)
+    subsystems = {Direction.CAUSE: subsystem_cause, Direction.EFFECT: subsystem}
     integration = {
         direction: integration_value(
             direction,
-            subsystem,
-            cut_subsystem,
+            subsystems[direction],
+            partition,
             system_state,
             repertoire_distance=repertoire_distance,
         )
-        for direction in Direction.both()
+        for direction in directions
     }
-    phi = integration_values[config.INTEGRATION_VALUE](
-        integration[direction].phi for direction in directions
-    )
+    phi = min(integration[direction].phi for direction in directions)
     norm = normalization_factor(partition)
     normalized_phi = phi * norm
 
     return SystemIrreducibilityAnalysis(
         phi=phi,
         normalized_phi=normalized_phi,
-        cause=integration[Direction.CAUSE],
-        effect=integration[Direction.EFFECT],
+        cause=integration.get(Direction.CAUSE),
+        effect=integration.get(Direction.EFFECT),
         partition=partition,
         system_state=system_state,
         current_state=subsystem.proper_state,
@@ -287,10 +294,12 @@ def sia_minimization_key(sia):
 
 def sia(
     subsystem: Subsystem,
-    repertoire_distance: str = None,
+    repertoire_distance: Optional[str] = None,
     directions: Optional[Iterable[Direction]] = None,
-    partition_scheme: str = None,
+    partition_scheme: Optional[str] = None,
     partitions: Optional[Iterable] = None,
+    system_state: Optional[SystemStateSpecification] = None,
+    subsystem_cause: Optional[Subsystem] = None,
     **kwargs,
 ) -> SystemIrreducibilityAnalysis:
     """Find the minimum information partition of a system."""
@@ -298,28 +307,29 @@ def sia(
 
     # TODO(4.0): trivial reducibility
 
-    filter_func = None
-    if partitions == "GENERAL":
+    if partitions is None:
+        filter_func = None
+        if partitions == "GENERAL":
 
-        def is_disconnecting_partition(partition):
-            # Special case for length 1 subsystems so complete partition is included
-            return (
-                not connectivity.is_strong(subsystem.apply_cut(partition).proper_cm)
-            ) or len(subsystem) == 1
+            def is_disconnecting_partition(partition):
+                # Special case for length 1 subsystems so complete partition is included
+                return (
+                    not connectivity.is_strong(subsystem.apply_cut(partition).proper_cm)
+                ) or len(subsystem) == 1
 
-        filter_func = is_disconnecting_partition
+            filter_func = is_disconnecting_partition
 
-    partitions = fallback(
-        partitions,
-        system_partitions(
+        partitions = system_partitions(
             subsystem.node_indices,
             node_labels=subsystem.node_labels,
             partition_scheme=partition_scheme,
             filter_func=filter_func,
-        ),
-    )
+        )
 
-    system_state = system_intrinsic_information(subsystem)
+    if system_state is None:
+        system_state = system_intrinsic_information(
+            subsystem, directions=directions, subsystem_cause=subsystem_cause
+        )
 
     def _null_sia(**kwargs):
         return NullSystemIrreducibilityAnalysis(
@@ -329,19 +339,14 @@ def sia(
             **kwargs,
         )
 
-    shortcircuit_reasons = _has_no_cause_or_effect(system_state)
-    if shortcircuit_reasons:
-        return _null_sia(reasons=shortcircuit_reasons)
+    if config.SHORTCIRCUIT_SIA:
+        shortcircuit_reasons = _has_no_cause_or_effect(system_state)
+        if shortcircuit_reasons:
+            return _null_sia(reasons=shortcircuit_reasons)
 
     default_sia = _null_sia(reasons=[ShortCircuitConditions.NO_VALID_PARTITIONS])
 
-    kwargs = {
-        "parallel": config.PARALLEL_CUT_EVALUATION,
-        "progress": config.PROGRESS_BARS,
-        "chunksize": DEFAULT_PARTITION_CHUNKSIZE,
-        "sequential_threshold": DEFAULT_PARTITION_SEQUENTIAL_THRESHOLD,
-        **kwargs,
-    }
+    parallel_kwargs = conf.parallel_kwargs(config.PARALLEL_CUT_EVALUATION, **kwargs)
     sias = MapReduce(
         evaluate_partition,
         partitions,
@@ -350,10 +355,11 @@ def sia(
             system_state=system_state,
             repertoire_distance=repertoire_distance,
             directions=directions,
+            subsystem_cause=subsystem_cause,
         ),
         shortcircuit_func=utils.is_falsy,
         desc="Evaluating partitions",
-        **kwargs,
+        **parallel_kwargs,
     ).run()
 
     # Find MIP in one pass, keeping track of ties
@@ -382,13 +388,37 @@ _sia = sia
 ##############################################################################
 
 
-@dataclass
 class PhiStructure(cmp.Orderable):
-    sia: SystemIrreducibilityAnalysis
-    distinctions: CauseEffectStructure
-    relations: Relations
-
     _SIA_INHERITED_ATTRIBUTES = ["phi", "partition", "system_state"]
+
+    def __init__(
+        self,
+        sia: SystemIrreducibilityAnalysis,
+        distinctions: CauseEffectStructure,
+        relations: Relations,
+    ):
+        self._sia = sia
+        self._distinctions = distinctions
+        self._relations = relations
+
+    @property
+    def sia(self):
+        return self._sia
+
+    @property
+    def distinctions(self):
+        return self._distinctions
+
+    @property
+    def relations(self):
+        return self._relations
+
+    @property
+    def components(self):
+        for distinction in self.distinctions:
+            yield distinction
+        for relation in self.relations:
+            yield relation
 
     def __getattr__(self, attr):
         if attr in self._SIA_INHERITED_ATTRIBUTES:
@@ -405,14 +435,10 @@ class PhiStructure(cmp.Orderable):
         return bool(self.sia)
 
     def __eq__(self, other):
-        return cmp.general_eq(
-            self,
-            other,
-            [
-                "sia",
-                "distinctions",
-                "relations",
-            ],
+        return (
+            self.sia == other.sia
+            and self.distinctions == other.distinctions
+            and self.relations == other.relations
         )
 
     def _repr_columns(self):
@@ -440,7 +466,7 @@ class PhiStructure(cmp.Orderable):
             return self._sum_phi_distinctions
         except AttributeError:
             # TODO delegate sum to distinctions
-            self._sum_phi_distinctions = sum(self.distinctions.phis)
+            self._sum_phi_distinctions = self.distinctions.sum_phi()
             return self._sum_phi_distinctions
 
     @property
@@ -450,6 +476,11 @@ class PhiStructure(cmp.Orderable):
         except AttributeError:
             self._big_phi = self.sum_phi_distinctions + self.sum_phi_relations
             return self._big_phi
+
+    def to_json(self):
+        return dict(
+            sia=self.sia, distinctions=self.distinctions, relations=self.relations
+        )
 
 
 class NullPhiStructure(PhiStructure):
@@ -462,28 +493,8 @@ class NullPhiStructure(PhiStructure):
         )
 
 
-# TODO make this a method of CES
-def resolve_congruence(
-    distinctions: CauseEffectStructure,
-    system_state: SystemStateSpecification,
-):
-    """Filter out incongruent distinctions."""
-    # TODO(4.0) parallelize
-    return type(distinctions)(
-        filter(
-            lambda d: d is not None,
-            (
-                distinction.resolve_congruence(system_state)
-                for distinction in distinctions
-            ),
-        ),
-        subsystem=distinctions.subsystem,
-    )
-
-
 def phi_structure(
     subsystem: Subsystem,
-    parallel: bool = True,
     sia: SystemIrreducibilityAnalysis = None,
     distinctions: CauseEffectStructure = None,
     relations: Relations = None,
@@ -492,10 +503,9 @@ def phi_structure(
     relations_kwargs: dict = None,
 ) -> PhiStructure:
     """Analyze the irreducible cause-effect structure of a system."""
-    defaults = dict(parallel=parallel)
-    sia_kwargs = {**defaults, **(sia_kwargs or {})}
-    ces_kwargs = {**defaults, **(ces_kwargs or {})}
-    relations_kwargs = {**defaults, **(relations_kwargs or {})}
+    sia_kwargs = sia_kwargs or dict()
+    ces_kwargs = ces_kwargs or dict()
+    relations_kwargs = relations_kwargs or dict()
 
     # Analyze irreducibility if not provided
     if sia is None:
@@ -505,11 +515,11 @@ def phi_structure(
     if distinctions is None:
         distinctions = compute.ces(subsystem, **ces_kwargs)
     # Filter out incongruent distinctions
-    distinctions = resolve_congruence(distinctions, sia.system_state)
+    distinctions = distinctions.resolve_congruence(sia.system_state)
 
     # Compute relations if not provided
     if relations is None:
-        relations = compute_relations(subsystem, distinctions, **relations_kwargs)
+        relations = compute_relations(distinctions, **relations_kwargs)
 
     return PhiStructure(
         sia=sia,

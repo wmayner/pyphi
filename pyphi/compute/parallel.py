@@ -15,8 +15,7 @@ import ray
 from more_itertools import chunked_even, flatten
 from tqdm.auto import tqdm
 
-from .. import config
-from ..conf import fallback
+from ..conf import config, fallback
 from ..utils import try_len
 from .progress import ProgressBar, throttled_update, wait_then_finish
 from .tree import get_constraints
@@ -50,17 +49,15 @@ def get_num_processes():
     return config.NUMBER_OF_CORES
 
 
+RAY_CLIENT = None
+
+
 def init(*args, **kwargs):
     """Initialize Ray if not already initialized."""
+    global RAY_CLIENT
     if not ray.is_initialized():
-        return ray.init(
-            *args,
-            **{
-                "num_cpus": get_num_processes(),
-                **config.RAY_CONFIG,
-                **kwargs,
-            },
-        )
+        RAY_CLIENT = ray.init(*args, **{**config.RAY_CONFIG, **kwargs})
+        return RAY_CLIENT
 
 
 def false(*args, **kwargs):
@@ -112,6 +109,7 @@ def cancel_all(object_refs: Iterable, *args, **kwargs):
 def get(
     items,
     remote=False,
+    ordered=False,
     shortcircuit_func=false,
     shortcircuit_callback=None,
     shortcircuit_callback_args=None,
@@ -119,10 +117,16 @@ def get(
     """Get (potentially) remote results.
 
     Optionally return early if a particular value is found.
+
+    NOTE: If `ordered` is True, all items will be computed regardless of
+    shortcircuiting, though the shortcircuiting logic will still be applied.
     """
     shortcircuit_callback_args = fallback(shortcircuit_callback_args, items)
     if remote:
-        items = as_completed(items)
+        if not ordered:
+            items = as_completed(items)
+        else:
+            items = ray.get(items)
     return shortcircuit(
         items,
         shortcircuit_func=shortcircuit_func,
@@ -169,6 +173,7 @@ def _map_reduce_tree(
     shortcircuit_func,
     shortcircuit_callback,
     shortcircuit_callback_args,
+    ordered,
     inflight_limit,
     map_kwargs,
     reduce_kwargs,
@@ -201,6 +206,7 @@ def _map_reduce_tree(
             cycle([shortcircuit_func]),
             cycle([shortcircuit_callback]),
             cycle([shortcircuit_callback_args]),
+            cycle([ordered]),
             cycle([inflight_limit]),
             cycle([map_kwargs]),
             cycle([reduce_kwargs]),
@@ -223,6 +229,7 @@ def _map_reduce_tree(
     results = get(
         results,
         remote=branch,
+        ordered=ordered,
         shortcircuit_func=shortcircuit_func,
         shortcircuit_callback=shortcircuit_callback,
         shortcircuit_callback_args=shortcircuit_callback_args,
@@ -262,6 +269,7 @@ class MapReduce:
         reduce_func: Optional[Callable] = None,
         reduce_kwargs: Optional[dict] = None,
         parallel: bool = True,
+        ordered: bool = False,
         total: Optional[int] = None,
         chunksize: Optional[int] = None,
         sequential_threshold: int = 1,
@@ -286,6 +294,7 @@ class MapReduce:
         self.reduce_func = fallback(reduce_func, _flatten)
         self.reduce_kwargs = fallback(reduce_kwargs, dict())
         self.parallel = parallel
+        self.ordered = ordered
         self.total = fallback(try_len(*self.iterables), total)
         self.shortcircuit_func = shortcircuit_func
         self.shortcircuit_callback = shortcircuit_callback
@@ -294,7 +303,6 @@ class MapReduce:
         self.progress = fallback(progress, config.PROGRESS_BARS)
         self.desc = desc
         self.map_kwargs = fallback(map_kwargs, dict())
-
         self._shortcircuit_callback = shortcircuit_callback
 
         if self.parallel:
@@ -331,6 +339,7 @@ class MapReduce:
             "reduce_func",
             "reduce_kwargs",
             "parallel",
+            "ordered",
             "total",
             "shortcircuit_func",
             "shortcircuit_callback",
@@ -372,6 +381,7 @@ class MapReduce:
                 self.shortcircuit_func,
                 self.shortcircuit_callback,
                 self.shortcircuit_callback_args,
+                self.ordered,
                 self.inflight_limit,
                 self.map_kwargs,
                 self.reduce_kwargs,

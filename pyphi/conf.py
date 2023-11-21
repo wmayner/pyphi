@@ -1,11 +1,8 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # conf.py
 
-# TODO(4.0) update this docstring
 """
-Loading a configuration
-~~~~~~~~~~~~~~~~~~~~~~~
+Configuring PyPhi
+~~~~~~~~~~~~~~~~~
 
 Various aspects of PyPhi's behavior can be configured.
 
@@ -45,91 +42,6 @@ Or load a dictionary of configuration values:
     >>> pyphi.config.load_dict({'PRECISION': 1})
 
 
-Approximations and theoretical options
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-These settings control the algorithms PyPhi uses.
-
-- :attr:`~pyphi.conf.PyphiConfig.IIT_VERSION`
-- :attr:`~pyphi.conf.PyphiConfig.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS`
-- :attr:`~pyphi.conf.PyphiConfig.REPERTOIRE_DISTANCE`
-- :attr:`~pyphi.conf.PyphiConfig.CES_DISTANCE`
-- :attr:`~pyphi.conf.PyphiConfig.ACTUAL_CAUSATION_MEASURE`
-- :attr:`~pyphi.conf.PyphiConfig.PARTITION_TYPE`
-- :attr:`~pyphi.conf.PyphiConfig.RELATION_PARTITION_TYPE`
-- :attr:`~pyphi.conf.PyphiConfig.RELATION_PARTITION_AGGREGATION`
-- :attr:`~pyphi.conf.PyphiConfig.SYSTEM_PARTITION_TYPE`
-- :attr:`~pyphi.conf.PyphiConfig.RELATION_POTENTIAL_PURVIEWS`
-- :attr:`~pyphi.conf.PyphiConfig.SYSTEM_CUTS`
-- :attr:`~pyphi.conf.PyphiConfig.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI`
-- :attr:`~pyphi.conf.PyphiConfig.VALIDATE_SUBSYSTEM_STATES`
-- :attr:`~pyphi.conf.PyphiConfig.VALIDATE_CONDITIONAL_INDEPENDENCE`
-
-
-Parallelization and system resources
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-These settings control how much processing power and memory is available for
-PyPhi to use. The default values may not be appropriate for your use-case or
-machine, so **please check these settings before running anything**. Otherwise,
-there is a risk that simulations might crash (potentially after running for a
-long time!), resulting in data loss.
-
-- :attr:`~pyphi.conf.PyphiConfig.PARALLEL_CONCEPT_EVALUATION`
-- :attr:`~pyphi.conf.PyphiConfig.PARALLEL_CUT_EVALUATION`
-- :attr:`~pyphi.conf.PyphiConfig.PARALLEL_COMPLEX_EVALUATION`
-- :attr:`~pyphi.conf.PyphiConfig.PARALLEL_PURVIEW_EVALUATION`
-- :attr:`~pyphi.conf.PyphiConfig.NUMBER_OF_CORES`
-- :attr:`~pyphi.conf.PyphiConfig.MAXIMUM_CACHE_MEMORY_PERCENTAGE`
-
-  .. important::
-    Only one of ``PARALLEL_CONCEPT_EVALUATION``, ``PARALLEL_CUT_EVALUATION``,
-    and ``PARALLEL_COMPLEX_EVALUATION`` can be set to ``True`` at a time.
-
-    **For most networks,** ``PARALLEL_CUT_EVALUATION`` **is the most
-    efficient.** This is because the algorithm is exponential time in the
-    number of nodes, so most of the time is spent on the largest subsystem.
-
-    You should only parallelize concept evaluation if you are just computing a
-    |CauseEffectStructure|.
-
-
-Memoization and caching
-~~~~~~~~~~~~~~~~~~~~~~~
-
-PyPhi provides a number of ways to cache intermediate results.
-
-- :attr:`~pyphi.conf.PyphiConfig.CACHE_REPERTOIRES`
-- :attr:`~pyphi.conf.PyphiConfig.CACHE_POTENTIAL_PURVIEWS`
-- :attr:`~pyphi.conf.PyphiConfig.CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA`
-- :attr:`~pyphi.conf.PyphiConfig.REDIS_CACHE`
-- :attr:`~pyphi.conf.PyphiConfig.REDIS_CONFIG`
-
-
-Logging
-~~~~~~~
-
-These settings control how PyPhi handles messages. Logs can be written to
-standard output, a file, both, or none. If these simple default controls are
-not flexible enough for you, you can override the entire logging configuration.
-See the `documentation on Python's logger
-<https://docs.python.org/3/library/logging.html>`_ for more information.
-
-- :attr:`~pyphi.conf.PyphiConfig.WELCOME_OFF`
-- :attr:`~pyphi.conf.PyphiConfig.LOG_STDOUT_LEVEL`
-- :attr:`~pyphi.conf.PyphiConfig.LOG_FILE_LEVEL`
-- :attr:`~pyphi.conf.PyphiConfig.LOG_FILE`
-- :attr:`~pyphi.conf.PyphiConfig.PROGRESS_BARS`
-- :attr:`~pyphi.conf.PyphiConfig.REPR_VERBOSITY`
-- :attr:`~pyphi.conf.PyphiConfig.PRINT_FRACTIONS`
-
-
-Numerical precision
-~~~~~~~~~~~~~~~~~~~
-
-- :attr:`~pyphi.conf.PyphiConfig.PRECISION`
-
-
 The ``config`` API
 ~~~~~~~~~~~~~~~~~~
 """
@@ -140,7 +52,6 @@ import contextlib
 import functools
 import logging
 import logging.config
-import math
 import os
 import pprint
 import shutil
@@ -148,11 +59,12 @@ import tempfile
 import warnings
 from copy import copy
 from pathlib import Path
+from typing import Mapping
 from warnings import warn
 
 import ray
-import yaml
 import toolz
+import yaml
 
 from . import __about__, constants
 
@@ -468,6 +380,7 @@ def on_change_distinction_phi_normalization(obj):
         )
 
 
+# TODO(configuration) actual causation parallel config
 class PyphiConfig(Config):
     """``pyphi.config`` is an instance of this class."""
 
@@ -475,19 +388,6 @@ class PyphiConfig(Config):
         4.0,
         doc="""
     The version of the theory to use.""",
-    )
-
-    INTEGRATION_VALUE = Option(
-        "MIN",
-        doc="""
-    The method of combining cause and effect integration values.""",
-    )
-
-    HORIZONTAL_PARTITION_CODE = Option(
-        "1210",
-        type=str,
-        doc="""
-    The type of horizontal system partition scheme to use.""",
     )
 
     ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS = Option(
@@ -554,60 +454,97 @@ class PyphiConfig(Config):
     """,
     )
 
-    PARALLEL_CONCEPT_EVALUATION = Option(
+    PARALLEL = Option(
         True,
         type=bool,
         doc="""
-    Controls whether concepts are evaluated in parallel when computing
-    cause-effect structures.""",
-    )
-
-    PARALLEL_COMPOSITIONAL_STATE_EVALUATION = Option(
-        True,
-        type=bool,
-        on_change=deprecated,
-        doc="""
-    Controls whether compositional states are evaluated in parallel.""",
-    )
-
-    PARALLEL_CUT_EVALUATION = Option(
-        True,
-        type=bool,
-        doc="""
-    Controls whether system cuts are evaluated in parallel, which is faster but
-    requires more memory. If cuts are evaluated sequentially, only two
-    |SystemIrreducibilityAnalysis| instances need to be in memory at once.""",
+    Global switch to turn off parallelization: if ``False``, parallelization is
+    never used, regardless of parallelization settings for individual options;
+    otherwise parallelization is determined by those settings.""",
     )
 
     PARALLEL_COMPLEX_EVALUATION = Option(
-        True,
-        type=bool,
+        dict(
+            parallel=True,
+            sequential_threshold=2**4,
+            chunksize=2**6,
+            progress=True,
+        ),
+        type=Mapping,
         doc="""
-    Controls whether systems are evaluated in parallel when computing
-    complexes.""",
+    Controls parallel evaluation of candidate systems within a network.""",
+    )
+
+    PARALLEL_CUT_EVALUATION = Option(
+        dict(
+            parallel=True,
+            sequential_threshold=2**10,
+            chunksize=2**12,
+            progress=True,
+        ),
+        type=Mapping,
+        doc="""
+    Controls parallel evaluation of system partitions.""",
+    )
+
+    PARALLEL_CONCEPT_EVALUATION = Option(
+        dict(
+            parallel=True,
+            sequential_threshold=2**6,
+            chunksize=2**8,
+            progress=True,
+        ),
+        type=Mapping,
+        doc="""
+    Controls parallel evaluation of candidate mechanisms.""",
     )
 
     PARALLEL_PURVIEW_EVALUATION = Option(
-        False,
+        dict(
+            parallel=True,
+            sequential_threshold=2**6,
+            chunksize=2**8,
+            progress=True,
+        ),
+        type=Mapping,
         doc="""
-    Controls parallel evaluation of candidate purviews. A numeric value may
-    be used to threshold parallelization on mechanism size (inclusive).""",
+    Controls parallel evaluation of candidate purviews.""",
     )
 
     PARALLEL_MECHANISM_PARTITION_EVALUATION = Option(
-        True,
-        type=bool,
+        dict(
+            parallel=True,
+            sequential_threshold=2**10,
+            chunksize=2**12,
+            progress=True,
+        ),
+        type=Mapping,
         doc="""
     Controls parallel evaluation of mechanism partitions.""",
+    )
+
+    PARALLEL_RELATION_EVALUATION = Option(
+        dict(
+            parallel=True,
+            sequential_threshold=2**10,
+            chunksize=2**12,
+            progress=True,
+        ),
+        type=Mapping,
+        doc="""
+    Controls parallel evaluation of relations.
+
+    Only applies if RELATION_COMPUTATION = 'CONCRETE'.
+    """,
     )
 
     NUMBER_OF_CORES = Option(
         -1,
         type=int,
         doc="""
-    Controls the number of CPU cores used to evaluate unidirectional cuts.
-    Negative numbers count backwards from the total number of available cores,
-    with ``-1`` meaning 'use all available cores.'""",
+    Controls the number of CPU cores used in parallel evaluation. Negative
+    numbers count backwards from the total number of available cores, with
+    ``-1`` meaning all available cores.""",
     )
 
     MAXIMUM_CACHE_MEMORY_PERCENTAGE = Option(
@@ -624,8 +561,8 @@ class PyphiConfig(Config):
         dict(),
         type=dict,
         doc="""
-    Keyword arguments to ``ray.init()``. Controls the initialization of the ray
-    cluster.""",
+    Keyword arguments to ``ray.init()``. Controls the initialization of the Ray
+    cluster used for parallelization / distributed computation.""",
     )
 
     CACHE_REPERTOIRES = Option(
@@ -782,6 +719,13 @@ class PyphiConfig(Config):
     circumstances.""",
     )
 
+    LABEL_SEPARATOR = Option(
+        "",
+        type=str,
+        doc="""
+    Separator to use between labels in the string representation of a set of nodes.""",
+    )
+
     REPR_VERBOSITY = Option(
         2,
         type=int,
@@ -874,27 +818,6 @@ class PyphiConfig(Config):
     See :mod:`~pyphi.partition` for more examples.""",
     )
 
-    RELATION_PARTITION_TYPE = Option(
-        "TRI",
-        doc="""
-    Controls the type of partition used for |small_phi| computations.
-
-    You can configure custom partitioning schemes using the
-    ``pyphi.partition.relation_partition_types.register`` decorator.
-    """,
-    )
-
-    RELATION_PARTITION_AGGREGATION = Option(
-        "SUM",
-        doc="""
-    Controls the how distinction-relative partitions are aggregated to determine
-    the |small_phi| of a relation.
-
-    You can configure custom partitioning schemes using the
-    ``pyphi.partition.relation_partition_aggregations.register`` decorator.
-    """,
-    )
-
     SYSTEM_PARTITION_INCLUDE_COMPLETE = Option(
         False,
         type=bool,
@@ -913,56 +836,6 @@ class PyphiConfig(Config):
     """,
     )
 
-    COMPOSITIONAL_STATE_CONFLICTS = Option(
-        "GLOBAL",
-        values=["GLOBAL", "SAME_PURVIEW", "SAME_PURVIEW_AND_INCONGRUENT_STATE"],
-        doc="""
-    Controls the defintion of conflicts among distinctions.
-    """,
-    )
-
-    RELATION_POTENTIAL_PURVIEWS = Option(
-        "WHOLE",
-        doc="""
-    Controls the set of possible purviews for a relation as a function of the
-    congruent overlap.
-    """,
-    )
-
-    RELATION_PHI_SCHEME = Option(
-        "MINIMAL_OVERLAP_RATIO_TIMES_DISTINCTION_PHI",
-        values=[
-            "MINIMAL_OVERLAP_RATIO_TIMES_DISTINCTION_PHI",
-            "AGGREGATE_DISTINCTION_RELATIVE_DIFFERENCES",
-        ],
-        doc="""
-    Controls how relation phi is evaluated.
-
-    You can configure custom relation phi schemes using the
-    ``pyphi.relations.relation_phi_schemes.register`` decorator.
-    """,
-    )
-
-    NEW_RELATION_SCHEME = Option(
-        "UNION_WEIGHTED",
-        values=[
-            "UNION_WEIGHTED",
-            "SUM_FACEWISE_OVERLAP",
-            "FACE_WEIGHTED_UNION",
-        ],
-        doc="""
-        Controls the method for computing new-style relation phi.
-        """,
-    )
-
-    OVERLAP_RATIO = Option(
-        "PURVIEW_SIZE",
-        values=["PURVIEW_SIZE", "MINIMUM_PURVIEW_SIZE"],
-        doc="""
-    Controls the overlap ratio used in computing relations.
-    """,
-    )
-
     DISTINCTION_PHI_NORMALIZATION = Option(
         "NUM_CONNECTIONS_CUT",
         on_change=on_change_distinction_phi_normalization,
@@ -972,87 +845,11 @@ class PyphiConfig(Config):
     """,
     )
 
-    DISTINCTION_PHI_UPPER_BOUND_RELATIONS = Option(
-        "PURVIEW_SIZE",
-        values=["ONE", "PURVIEW_SIZE"],
-        doc="""
-    Controls the definition of the upper bound of distinction phi when calculating relations.
-    """,
-    )
-
-    DISTINCTION_SUM_PHI_UPPER_BOUND = Option(
-        "DISTINCT_AND_CONGRUENT_PURVIEWS",
-        values=[
-            "PURVIEW_SIZE",
-            "2^N-1",
-            "(2^N-1)/(N-1)",
-            "DISTINCT_AND_CONGRUENT_PURVIEWS",
-        ],
-        doc="""
-    Controls the definition of the upper bound on the sum of distinction phi when analyzing a system.
-    """,
-    )
-
-    RELATION_SUM_PHI_UPPER_BOUND = Option(
-        "DISTINCT_AND_CONGRUENT_PURVIEWS",
-        values=["UNIQUE_PURVIEWS", "DISTINCT_AND_CONGRUENT_PURVIEWS"],
-        doc="""
-    Controls the definition of the upper bound on the sum of relation phi when analyzing a system.
-    """,
-    )
-
     RELATION_COMPUTATION = Option(
         "CONCRETE",
-        values=["CONCRETE", "ANALYTICAL", "SAMPLED"],
+        values=["CONCRETE", "ANALYTICAL"],
         doc="""
     Controls how relations are computed.
-
-    You can configure custom relation computation functions using the
-    ``pyphi.relations.relation_computations.register`` decorator.
-    """,
-    )
-
-    RELATION_SAMPLE_SIZE = Option(
-        1000,
-        type=int,
-        doc="""
-    Controls the sample size for sampled relations. Only applies if
-    ``RELATION_COMPUTATION`` implies a sampling approach.
-    """,
-    )
-
-    RELATION_SAMPLE_DEGREES = Option(
-        False,
-        doc="""
-    Controls the sampled degrees for relations. Only applies if
-    ``RELATION_COMPUTATION`` implies a sampling approach.
-
-    Can be either falsy (sample uniformly from all possible relations) or a list
-    of degrees (sample uniformly from possible relations with those degrees).
-
-    If the list contains only nonnegative integers, then they are interpreted as
-    absolute degrees; otherwise they are interpreted as relative to the middle
-    degree (the most numerous), signified by 0.
-    """,
-    )
-
-    RELATION_SAMPLE_TIMEOUT = Option(
-        1.0,
-        type=(int, float),
-        doc="""
-    Controls the number of seconds to wait while sampling.
-    """,
-    )
-
-    RELATION_ENFORCE_NO_DUPLICATE_PURVIEWS = Option(
-        False,
-        type=bool,
-        doc="""
-    Controls whether the relation computation checks whether there are duplicate
-    purviews (same elements and direction) in the relata being evaluated and
-    returns a zero-phi relation if so. This case should never arise in normal
-    operation, since relations are normally only computed among distinctions in a
-    nonconflicting set. Defaults to false to avoid the cost of checking.
     """,
     )
 
@@ -1091,6 +888,14 @@ class PyphiConfig(Config):
     If set to ``'3.0_STYLE'``, then traditional IIT 3.0 cuts will be used when
     computing |big_phi|. If set to ``'CONCEPT_STYLE'``, then experimental
     concept-style system cuts will be used instead.""",
+    )
+
+    SHORTCIRCUIT_SIA = Option(
+        True,
+        type=bool,
+        doc="""
+    Controls whether SIA calculations short-circuit if an a-priori reducibility
+    condition is found.""",
     )
 
     def log(self):
@@ -1141,15 +946,7 @@ def validate_combinations(
 
 
 def validate(config):
-    # TODO use something like Param objects, e.g. from Bokeh?
-    if config.RELATION_COMPUTATION == "ANALYTICAL":
-        required_schemes = ["MINIMAL_OVERLAP_RATIO_TIMES_DISTINCTION_PHI"]
-        if config.RELATION_PHI_SCHEME not in required_schemes:
-            raise ConfigurationError(
-                "RELATION_COMPUTATION = 'ANALYTICAL' "
-                "must be used with:"
-                "\n   RELATION_PHI_SCHEME = 'CONGRUENCE_RATIO_TIMES_INFORMATIVENESS'"
-            )
+    pass
 
 
 PYPHI_USER_CONFIG_PATH = Path("pyphi_config.yml")
@@ -1191,7 +988,11 @@ config = PyphiConfig(on_change=on_change_global)
 def on_driver():
     if ray.is_initialized():
         try:
-            ray.get_runtime_context().task_id
+            # Ignore warning log
+            current_level = ray.runtime_context.logger.level
+            ray.runtime_context.logger.setLevel("ERROR")
+            ray.get_runtime_context().get_task_id()
+            ray.runtime_context.logger.setLevel(current_level)
             return False
         except AssertionError:
             pass
@@ -1210,6 +1011,8 @@ if on_driver():
 else:
     # We're in a remote instance; load the PyPhi-managed config
     config.load_file(PYPHI_MANAGED_CONFIG_PATH)
+    # Disable progress bars on remote processes
+    config.PROGRESS_BARS = False
 
 # We've loaded/written; now we can allow loading
 _LOADED = True
@@ -1223,3 +1026,45 @@ def fallback(*args):
     for arg in args:
         if arg is not None:
             return arg
+
+
+PARALLEL_KWARGS = [
+    "reduce_func",
+    "reduce_kwargs",
+    "parallel",
+    "ordered",
+    "total",
+    "chunksize",
+    "sequential_threshold",
+    "max_depth",
+    "max_size",
+    "max_leaves",
+    "branch_factor",
+    "shortcircuit_func",
+    "shortcircuit_callback",
+    "shortcircuit_callback_args",
+    "inflight_limit",
+    "progress",
+    "desc",
+    "map_kwargs",
+]
+
+
+def parallel_kwargs(option_kwargs, **user_kwargs):
+    """Return the kwargs for a parallel function call.
+
+    Applies user overrides to the global configuration.
+    """
+    kwargs = copy(option_kwargs)
+    if not config.PROGRESS_BARS:
+        kwargs["progress"] = False
+    if not config.PARALLEL:
+        kwargs["parallel"] = False
+    kwargs.update(
+        {
+            user_kwarg: value
+            for user_kwarg, value in user_kwargs.items()
+            if user_kwarg in PARALLEL_KWARGS
+        }
+    )
+    return kwargs

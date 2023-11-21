@@ -14,8 +14,9 @@ from collections import defaultdict
 
 import numpy as np
 
-from . import actual, config
+from . import actual
 from .actual import Transition
+from .conf import config
 from .network import Network
 from .subsystem import Subsystem
 from .utils import all_states, powerset

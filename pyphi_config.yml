@@ -20,22 +20,10 @@ CES_DISTANCE: SUM_SMALL_PHI
 # Controls whether subsystem caches are automatically cleared after computing
 # the SIA for the subsystem.
 CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA: false
-# Controls the definition of conflicts among distinctions.
-COMPOSITIONAL_STATE_CONFLICTS: GLOBAL
 # Controls how distinction phi is normalized.
 DISTINCTION_PHI_NORMALIZATION: NUM_CONNECTIONS_CUT
-# Controls the definition of the upper bound of the sum of distinction phi when
-# calculating relations.
-DISTINCTION_PHI_UPPER_BOUND_RELATIONS: PURVIEW_SIZE
-# Controls the definition of the upper bound of the sum of distinction phi when
-# analyzing a system.
-DISTINCTION_SUM_PHI_UPPER_BOUND: DISTINCT_AND_CONGRUENT_PURVIEWS
-# The type of horizontal system partition scheme to use.
-HORIZONTAL_PARTITION_CODE: "1210"
 # The version of the theory to use.
 IIT_VERSION: 4.0
-# The method of combining cause and effect integration values.
-INTEGRATION_VALUE: MIN
 # The path for the log file.
 LOG_FILE: pyphi.log
 # The log level to write to `LOG_FILE`.
@@ -45,32 +33,57 @@ LOG_STDOUT_LEVEL: WARNING
 # Some functions are memoized using an in-memory cache. This is the maximum
 # percentage of memory that these caches can collectively use.
 MAXIMUM_CACHE_MEMORY_PERCENTAGE: 50
-
-# TODO(ties): Document this.
+# Determine how ties among specified states are broken.
 STATE_TIE_RESOLUTION: PHI
+# Determine how ties among MIPs are broken.
 MIP_TIE_RESOLUTION: [NORMALIZED_PHI, NEGATIVE_PHI]
+# Determine how ties among maximally irreducible purviews are broken.
 PURVIEW_TIE_RESOLUTION: PHI
-
-# The number of CPU cores to use in parallel.
-# -1 means all available cores, -2 means all but one available cores, etc.
+# Controls the number of CPU cores used in parallel evaluation. Negative
+# numbers count backwards from the total number of available cores, with
+# ``-1`` meaning all available cores.
 NUMBER_OF_CORES: -1
-# Controls the overlap ratio used in computing relations.
-OVERLAP_RATIO: PURVIEW_SIZE
-# Controls whether complexes are evaluated in parallel.
-PARALLEL_COMPLEX_EVALUATION: true
-# Controls whether compositional states are evaluated in parallel.
-PARALLEL_COMPOSITIONAL_STATE_EVALUATION: true
-# Controls whether concepts are evaluated in parallel.
-PARALLEL_CONCEPT_EVALUATION: true
-# Controls whether cuts are evaluated in parallel, which requires more memory.
-# If cuts are evaluated sequentially, only two SIAs need to be in memory at a
-# time.
-PARALLEL_CUT_EVALUATION: true
-# Controls parallel evaluation of candidate purviews. A numeric value may be
-# used to threshold parallelization on mechanism size (inclusive).
-PARALLEL_PURVIEW_EVALUATION: false
+# Global switch to turn off parallelization: if ``False``, parallelization is
+# never used, regardless of parallelization settings for individual options;
+# otherwise parallelization is determined by those settings.
+PARALLEL: true
+# Controls parallel evaluation of candidate systems within a network.
+PARALLEL_COMPLEX_EVALUATION:
+  chunksize: 64
+  parallel: true
+  sequential_threshold: 16
+  progress: true
+# Controls parallel evaluation of candidate mechanisms.
+PARALLEL_CONCEPT_EVALUATION:
+  chunksize: 256
+  parallel: true
+  sequential_threshold: 64
+  progress: true
+# Controls parallel evaluation of system partitions.
+PARALLEL_CUT_EVALUATION:
+  chunksize: 4096
+  parallel: true
+  sequential_threshold: 1024
+  progress: true
+# Controls parallel evaluation of candidate purviews.
+PARALLEL_PURVIEW_EVALUATION:
+  chunksize: 256
+  parallel: true
+  sequential_threshold: 64
+  progress: true
 # Controls parallel evaluation of mechanism partitions.
-PARALLEL_MECHANISM_PARTITION_EVALUATION: true
+PARALLEL_MECHANISM_PARTITION_EVALUATION:
+  chunksize: 4096
+  parallel: true
+  sequential_threshold: 1024
+  progress: true
+# Controls parallel evaluation of relations.
+# Only applies if RELATION_COMPUTATION = 'CONCRETE'.
+PARALLEL_RELATION_EVALUATION:
+  chunksize: 4096
+  parallel: true
+  sequential_threshold: 1024
+  progress: true
 # Controls the partitioning scheme for distinctions.
 PARTITION_TYPE: ALL
 # Controls the numerical precision with which to compare phi values against each
@@ -78,9 +91,12 @@ PARTITION_TYPE: ALL
 PRECISION: 13
 # Print numbers as fractions if the denominator isn't too big.
 PRINT_FRACTIONS: true
-# Enable/disable progress bars.
+# Global switch to turn off progress bars: if ``False``, progress bars are never
+# used, regardless of progress settings for individual options; otherwise the
+# use of progress bars is determined by those settings.
 PROGRESS_BARS: true
-# Arguments to `ray.init()`
+# Keyword arguments to ``ray.init()``. Controls the initialization of the Ray
+# cluster used for parallelization / distributed computation.
 RAY_CONFIG: {}
 # Use a Redis server as a MICE cache.
 REDIS_CACHE: false
@@ -93,37 +109,6 @@ REDIS_CONFIG:
 # Controls the definition of the upper bound of the sum of relation phi when
 # analyzing a system.
 RELATION_COMPUTATION: CONCRETE
-# Controls whether the relation computation checks whether there are duplicate
-# purviews (same elements and direction) in the relata being evaluated and
-# returns a zero-phi relation if so. This case should never arise in normal
-# operation, since relations are normally only computed among distinctions in a
-# nonconflicting set. Defaults to false to avoid the cost of checking.
-RELATION_ENFORCE_NO_DUPLICATE_PURVIEWS: false
-# Controls the way in which distinction-relative differences are combined to
-# obtain a relation phi value.
-RELATION_PARTITION_AGGREGATION: SUM
-# Controls the partitioning scheme for relations.
-RELATION_PARTITION_TYPE: TRI
-# Controls how relation phi values are computed.
-RELATION_PHI_SCHEME: MINIMAL_OVERLAP_RATIO_TIMES_DISTINCTION_PHI
-# Controls the set of possible purviews for a relation.
-RELATION_POTENTIAL_PURVIEWS: WHOLE
-# Controls the sampled degrees for sampled relations. Only applies if
-# ``RELATION_COMPUTATION`` implies a sampling approach.  Can be either falsy
-# (sample uniformly from all possible relations) or a list of degrees (sample
-# uniformly from possible relations with those degrees).  If the list contains
-# only nonnegative integers, then they are interpreted as absolute degrees;
-# otherwise they are interpreted as relative to the middle degree (the most
-# numerous), signified by 0.
-RELATION_SAMPLE_DEGREES: false
-# Controls the sample size for approximated relations. Only applies if
-# RELATION_COMPUTATION implies a sampling approach.
-RELATION_SAMPLE_SIZE: 1000
-# Controls the number of seconds to wait while sampling.
-RELATION_SAMPLE_TIMEOUT: 1.0
-# Controls the definition of the upper bound of the sum of relation phi when
-# analyzing a system.
-RELATION_SUM_PHI_UPPER_BOUND: DISTINCT_AND_CONGRUENT_PURVIEWS
 # The measure to use when computing integration ("EMD", "KLD", "L1", ...)
 REPERTOIRE_DISTANCE: GENERALIZED_INTRINSIC_DIFFERENCE
 # The measure to use when computing intrinsic information and findind the
@@ -131,6 +116,9 @@ REPERTOIRE_DISTANCE: GENERALIZED_INTRINSIC_DIFFERENCE
 REPERTOIRE_DISTANCE_INFORMATION: GENERALIZED_INTRINSIC_DIFFERENCE
 # Controls whether pretty __str__-like formatting is used in repr calls.
 REPR_VERBOSITY: 2
+# Controls whether SIA calculations short-circuit if an a-priori reducibility
+# condition is found.
+SHORTCIRCUIT_SIA: true
 # In some applications of this library, you may want to allow single
 # micro-nodes with a self-loop to have nonzero Phi. See ``pyphi.config`` for
 # details.

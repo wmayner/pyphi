@@ -327,6 +327,7 @@ def irreducible_purviews(cm, direction, mechanism, purviews):
         _from, to = direction.order(mechanism, purview)
         return connectivity.block_reducible(cm, _from, to)
 
+    # TODO(4.0) use generator?
     return [purview for purview in purviews if not reducible(purview)]
 
 

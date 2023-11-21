@@ -4,10 +4,9 @@
 
 from itertools import tee
 
-from . import config, metrics
-from .conf import fallback
+from .conf import config, fallback
 from .registry import Registry
-from .utils import all_maxima, all_minima, NO_DEFAULT, iter_with_default
+from .utils import NO_DEFAULT, iter_with_default
 
 
 class PhiObjectTieResolutionRegistry(Registry):
@@ -17,17 +16,6 @@ class PhiObjectTieResolutionRegistry(Registry):
 
 
 phi_object_tie_resolution_strategies = PhiObjectTieResolutionRegistry()
-
-
-@phi_object_tie_resolution_strategies.register("MAX_INFORMATIVENESS")
-def max_informativeness(m):
-    if m.partitioned_repertoire is not None:
-        return max(
-            metrics.distribution.pointwise_mutual_information_vector(
-                m.repertoire, m.partitioned_repertoire
-            )[m.specified_index]
-        )
-    return 0.0
 
 
 @phi_object_tie_resolution_strategies.register("PURVIEW_SIZE")
@@ -105,7 +93,7 @@ def resolve(objects, strategy, operation, default=NO_DEFAULT):
     sort_key = _strategies_to_key_function(strategy)
     objects, to_transform = tee(objects)
     values = list(map(sort_key, to_transform))
-    extremum = operation(values)
+    extremum = operation(values, default=default)
     ties = (obj for obj, value in zip(objects, values) if value == extremum)
     yield from iter_with_default(ties, default=default)
 
@@ -135,20 +123,3 @@ def purviews(mice, strategy=None, **kwargs):
     """
     strategy = fallback(strategy, config.PURVIEW_TIE_RESOLUTION)
     yield from resolve(mice, strategy, operation=max, **kwargs)
-
-
-class CESTieResolutionRegistry(Registry):
-    """Storage for functions for resolving ties in cause-effect structures."""
-
-    desc = "functions for resolving ties among purviews"
-
-
-# TODO(ties)
-def ces(ces, system_state, strategy=None):
-    """Resolve ties among CESs.
-
-    Controlled by the CES_TIE_RESOLUTION configuration option.
-    """
-    strategy = fallback(strategy, config.CES_TIE_RESOLUTION)
-    # - resolve based on congruence
-    yield from all_maxima

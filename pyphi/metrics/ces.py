@@ -9,7 +9,8 @@ Functions for computing distances between cause-effect structures.
 import numpy as np
 import pyemd
 
-from .. import config, utils
+from .. import utils
+from ..conf import config
 from ..registry import Registry
 from . import distribution
 
