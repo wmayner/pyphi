@@ -51,7 +51,6 @@ def node_labels(node_labels, node_indices):
     if len(node_labels) != len(set(node_labels)):
         raise ValueError("Labels {0} must be unique.".format(node_labels))
 
-
 def network(n):
     """Validate a |Network|.
 

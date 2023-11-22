@@ -267,7 +267,10 @@ class ExplicitTPM(data_structures.ArrayLike, TPM):
         self._tpm = np.array(tpm)
 
         if validate:
-            self.validate(check_independence=config.VALIDATE_CONDITIONAL_INDEPENDENCE)
+            self.validate(
+                check_independence=config.VALIDATE_CONDITIONAL_INDEPENDENCE,
+                network_tpm=True
+            )
             self._tpm = self.to_multidimensional_state_by_node()
 
         self._tpm = np_immutable(self._tpm)
@@ -278,36 +281,33 @@ class ExplicitTPM(data_structures.ArrayLike, TPM):
         """np.ndarray: The underlying `tpm` object."""
         return self._tpm
 
-    def validate(self, check_independence=True):
+    def validate(self, check_independence=True, network_tpm=False):
         """Validate this TPM."""
-        return self._validate_probabilities() and self._validate_shape(
+        return self._validate_probabilities(network_tpm) and self._validate_shape(
             check_independence
         )
 
-    def _validate_probabilities(self):
+    def _validate_probabilities(self, network_tpm=False):
         """Check that the probabilities in a TPM are valid."""
+        # Validate TPM image is within [0, 1] (first axiom of probability).
         if (self._tpm < 0.0).any() or (self._tpm > 1.0).any():
             raise ValueError(self._ERROR_MSG_PROBABILITY_IMAGE)
 
         # Validate that probabilities sum to 1.
-        if not self.is_unitary():
+        if not self.is_unitary(network_tpm):
             raise ValueError(self._ERROR_MSG_PROBABILITY_SUM)
 
         return True
 
-    def is_unitary(self, implicit_tpm=False):
+    def is_unitary(self, network_tpm=False):
         """Whether the TPM satisfies the second axiom of probability theory."""
-        if implicit_tpm:
-            measures = self.sum(axis=-1).ravel()
-            return all(eq(p, 1.0) for p in measures)
-
-        if not self.is_state_by_state():
+        tpm = self
+        if network_tpm and not tpm.is_state_by_state():
             tpm = convert.state_by_node2state_by_state(self)
-        else:
-            tpm = self
 
-        distributions = (d for d in tpm)
-        return all(distribution.is_unitary(d) for d in distributions)
+        # Marginalize last dimension, then check that all integrals are close to 1.
+        measures_over_current_states = tpm.sum(axis=-1).ravel()
+        return all(eq(p, 1.0) for p in measures_over_current_states)
 
     def _validate_shape(self, check_independence=True):
         """Validate this TPM's shape.
@@ -630,13 +630,6 @@ class ImplicitTPM(TPM):
         """Check that the probabilities in a TPM are valid."""
         # An implicit TPM contains valid probabilities if and only if
         # individual node TPMs contain valid probabilities, for every node.
-
-        # Validate that probabilities sum to 1.
-        if not self.is_unitary():
-            raise ValueError(self._ERROR_MSG_PROBABILITY_SUM)
-
-        # Leverage method in ExplicitTPM to distribute validation of
-        # TPM image within [0, 1].
         if all(
                 node.tpm._validate_probabilities()
                 for node in self._nodes
@@ -645,9 +638,7 @@ class ImplicitTPM(TPM):
 
     def is_unitary(self):
         """Whether the TPM satisfies the second axiom of probability theory."""
-        return all(
-            node.tpm.is_unitary(implicit_tpm=True) for node in self._nodes
-        )
+        return all(node.tpm.is_unitary() for node in self._nodes)
 
     def _validate_shape(self):
         """Validate this TPM's shape.
