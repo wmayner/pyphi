@@ -27,6 +27,7 @@ from .state_space import (
 )
 from .utils import state_of
 
+
 @xr.register_dataarray_accessor("pyphi")
 @functools.total_ordering
 class Node:
@@ -185,7 +186,7 @@ class Node:
                 raise ValueError(
                     "Dimension {} does not exist. Expected one or more of: "
                     "{}.".format(e, dimensions)
-                )
+                ) from e
 
             return projected_index
 
@@ -226,12 +227,12 @@ class Node:
         labels.
         """
         return (
-            self.index == other.index
-            and self.tpm.array_equal(other.tpm)
-            and self.inputs == other.inputs
-            and self.outputs == other.outputs
-            and self.state_space == other.state_space
-            and self.state == other.state
+            self.index == other.index and
+            self.tpm.array_equal(other.tpm) and
+            self.inputs == other.inputs and
+            self.outputs == other.outputs and
+            self.state_space == other.state_space and
+            self.state == other.state
         )
 
     def __ne__(self, other):
@@ -297,7 +298,7 @@ def node(
         node_labels,
         tpm.shape[:-1],
         node_states,
-        singleton_state_space = (SINGLETON_COORDINATE,),
+        singleton_state_space=(SINGLETON_COORDINATE,),
     )
 
     node_state_space = network_state_space[dimensions[index]]
@@ -305,11 +306,11 @@ def node(
     coordinates = {**input_coordinates, dimensions[-1]: node_state_space}
 
     return xr.DataArray(
-        name = node_labels[index],
-        data = tpm,
-        dims = dimensions,
-        coords = coordinates,
-        attrs = {
+        name=node_labels[index],
+        data=tpm,
+        dims=dimensions,
+        coords=coordinates,
+        attrs={
             "index": index,
             "node_labels": node_labels,
             "cm": cm,
