@@ -560,6 +560,11 @@ class ImplicitTPM(TPM):
         return self._nodes
 
     @property
+    def tpm(self):
+        """Tuple[np.ndarray]: Verbose representation of all node TPMs."""
+        return tuple(node.tpm for node in self._nodes)
+
+    @property
     def ndim(self):
         """int: The number of dimensions of the TPM."""
         return len(self.shape)
@@ -733,7 +738,7 @@ class ImplicitTPM(TPM):
                     node.dataarray.attrs["network_state_space"],
                     node.index,
                     node_labels=node.dataarray.attrs["node_labels"],
-                ).pyphi
+                ).pyphi_accessor
                 for node in self.nodes
             )
         )
@@ -821,7 +826,7 @@ class ImplicitTPM(TPM):
                     new_state_space,
                     next(new_node_indices),
                     new_node_labels,
-                ).pyphi
+                ).pyphi_accessor
                 for node in self.nodes if node.index in nonsingletons
             )
         )
@@ -830,14 +835,14 @@ class ImplicitTPM(TPM):
         if isinstance(index, (int, slice, type(...), tuple)):
             return type(self)(
                 tuple(
-                    node.dataarray[node.project_index(index, **kwargs)].pyphi
+                    node.dataarray[node.project_index(index, **kwargs)].pyphi_accessor
                     for node in self.nodes
                 )
             )
         if isinstance(index, dict):
             return type(self)(
                 tuple(
-                    node.dataarray.loc[node.project_index(index, **kwargs)].pyphi
+                    node.dataarray.loc[node.project_index(index, **kwargs)].pyphi_accessor
                     for node in self.nodes
                 )
             )

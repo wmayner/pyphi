@@ -28,7 +28,7 @@ from .state_space import (
 from .utils import state_of
 
 
-@xr.register_dataarray_accessor("pyphi")
+@xr.register_dataarray_accessor("pyphi_accessor")
 @functools.total_ordering
 class Node:
     """A node in a Network.
@@ -208,7 +208,7 @@ class Node:
         return projected_index
 
     def __getitem__(self, index):
-        return self._dataarray[index].pyphi
+        return self._dataarray[index].pyphi_accessor
 
     def __repr__(self):
         return self.label
@@ -384,9 +384,9 @@ def generate_nodes(
                 cm,
                 state_space,
                 index,
+                node_labels=node_labels,
                 state=state,
-                node_labels=node_labels
-            ).pyphi
+            ).pyphi_accessor
         )
 
     return tuple(nodes)
