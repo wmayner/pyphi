@@ -300,7 +300,19 @@ class ExplicitTPM(data_structures.ArrayLike, TPM):
         return True
 
     def is_unitary(self, network_tpm=False):
-        """Whether the TPM satisfies the second axiom of probability theory."""
+        """Whether the TPM satisfies the second axiom of probability theory.
+
+        A TPM is unitary if and only if for every current state of the system,
+        the probability distribution over next states conditioned on the current
+        state sums to 1 (up to |config.PRECISION|).
+
+        Keyword Args:
+            network_tpm (bool): Whether ``self`` is an old-style system TPM
+                instead of a node TPM.
+
+        Returns:
+            bool:
+        """
         tpm = self
         if network_tpm and not tpm.is_state_by_state():
             tpm = convert.state_by_node2state_by_state(self)
@@ -637,7 +649,12 @@ class ImplicitTPM(TPM):
             return True
 
     def is_unitary(self):
-        """Whether the TPM satisfies the second axiom of probability theory."""
+        """Whether the TPM satisfies the second axiom of probability theory.
+
+        A TPM is unitary if and only if for every current state of the system,
+        the probability distribution over next states conditioned on the current
+        state sums to 1 (up to |config.PRECISION|).
+        """
         return all(node.tpm.is_unitary() for node in self._nodes)
 
     def _validate_shape(self):

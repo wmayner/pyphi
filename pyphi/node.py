@@ -22,9 +22,7 @@ import pyphi.tpm
 from .connectivity import get_inputs_from_cm, get_outputs_from_cm
 from .state_space import (
     dimension_labels,
-    input_dimension_label,
     build_state_space,
-    PROBABILITY_DIMENSION,
     SINGLETON_COORDINATE,
 )
 from .utils import state_of

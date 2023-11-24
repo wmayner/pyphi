@@ -51,11 +51,9 @@ class Network:
         # Initialize _tpm according to argument type.
 
         if isinstance(tpm, (np.ndarray, ExplicitTPM)):
-            # Validate tpm even if an ExplicitTPM was provided. ExplicitTPM
-            # accepts instantiation from either another object of its class or
-            # np.ndarray, so the following achieves validation in general (and
-            # converstion to multidimensional form, as a side effect).
+            # Validate TPM and convert to state-by-node multidimensional format.
             tpm = ExplicitTPM(tpm, validate=True)
+
             self._cm, self._cm_hash = self._build_cm(cm, tpm)
 
             self._node_indices = tuple(range(self.size))
