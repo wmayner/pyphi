@@ -110,7 +110,7 @@ class Subsystem:
         else:
             self.tpm = self.network.tpm.condition_tpm(background_conditions)
         # The TPM for just the nodes in the subsystem.
-        self.proper_tpm = self.tpm.squeeze()[..., list(self.node_indices)]
+        self.proper_tpm = self.tpm.squeeze()
 
         # The unidirectional cut applied for phi evaluation
         self.cut = (
