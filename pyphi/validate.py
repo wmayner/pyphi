@@ -161,7 +161,8 @@ def subsystem(s):
     if config.VALIDATE_SUBSYSTEM_STATES:
         # TODO(tpm) Reimplement in a way that never reconstitutes the full TPM.
         # state_reachable(s)
-        warn("Validation of state reachability didn't take place.")
+        # warn("Validation of state reachability didn't take place.")
+        pass
     return True
 
 
