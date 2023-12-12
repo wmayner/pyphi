@@ -281,6 +281,13 @@ class ExplicitTPM(data_structures.ArrayLike, TPM):
         """np.ndarray: The underlying `tpm` object."""
         return self._tpm
 
+    @property
+    def number_of_units(self):
+        if self.is_state_by_state():
+            # Assumes binary nodes
+            return int(math.log2(self._tpm.shape[1]))
+        return self._tpm.shape[-1]
+
     def validate(self, check_independence=True, network_tpm=False):
         """Validate this TPM."""
         return self._validate_probabilities(network_tpm) and self._validate_shape(
@@ -365,13 +372,6 @@ class ExplicitTPM(data_structures.ArrayLike, TPM):
                 "{}".format(see_tpm_docs)
             )
         return True
-
-    @property
-    def number_of_units(self):
-        if self.is_state_by_state():
-            # Assumes binary nodes
-            return int(math.log2(self._tpm.shape[1]))
-        return self._tpm.shape[-1]
 
     def to_multidimensional_state_by_node(self):
         """Return the current TPM re-represented in multidimensional
@@ -563,6 +563,10 @@ class ImplicitTPM(TPM):
     def tpm(self):
         """Tuple[np.ndarray]: Verbose representation of all node TPMs."""
         return tuple(node.tpm for node in self._nodes)
+
+    @property
+    def number_of_units(self):
+        return self.ndim - 1
 
     @property
     def ndim(self):
