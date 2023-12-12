@@ -21,6 +21,7 @@ def probability(
     temperature=1.0,
     field=0.0,
     constant_log_odds=False,
+    **kwargs,
 ):
     """Return the probability that the given spin flips."""
     if temperature == 0:

@@ -78,6 +78,7 @@ def gaussian(
     state,
     mu=0.0,
     sigma=0.5,
+    **kwargs,
 ):
     state = utils.binary2spin(state)
     x = utils.total_weighted_input(element, weights, state)
