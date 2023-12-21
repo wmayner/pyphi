@@ -566,7 +566,7 @@ class ImplicitTPM(TPM):
 
     @property
     def number_of_units(self):
-        return self.ndim - 1
+        return len(self.nodes)
 
     @property
     def ndim(self):
@@ -592,7 +592,7 @@ class ImplicitTPM(TPM):
     @staticmethod
     def _node_shapes_to_shape(
             shapes: Iterable[Iterable[int]],
-            reconstituted: Optional[bool]=None
+            reconstituted: Optional[bool] = None
     ) -> Tuple[int]:
         """Infer the shape of the equivalent multidimensional |ExplicitTPM|.
 
