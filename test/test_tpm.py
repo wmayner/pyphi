@@ -14,6 +14,14 @@ from pyphi.tpm import ExplicitTPM, reconstitute_tpm
 
 @pytest.fixture()
 def implicit_tpm(size, degree, node_states, seed=1337, deterministic=False):
+    if degree > size:
+        raise ValueError(
+            f"The number of parrents of each node (degree={degree}) cannot be"
+            f"smaller than the size of the network ({size})."
+        )
+    if node_states < 2:
+        raise ValueError("Nodes must have at least 2 node_states.")
+
     rng = random.Random(seed)
 
     def random_deterministic_repertoire():
