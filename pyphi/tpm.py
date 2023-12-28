@@ -7,6 +7,7 @@ Provides the ExplicitTPM and related classes.
 """
 
 import math
+import functools
 from itertools import chain
 from typing import Iterable, Mapping, Optional, Set, Tuple
 
@@ -954,6 +955,40 @@ def _new_attribute(
     return overriding_attribute
 
 
+def probability_of_current_state2(
+        tpm: ImplicitTPM,
+        current_state: tuple[int]
+) -> tuple[ExplicitTPM]:
+    """Return the probability of the current state as a distribution over previous states.
+
+    Output format is similar to an |ImplicitTPM|, however the last dimension
+    only contains the probability for the current state.
+
+    Arguments:
+        tpm (ImplicitTPM): The TPM of the |Network|.
+        current_state (tuple[int]): The current state.
+    Returns:
+       tuple[ExplicitTPM]: Node-marginal distributions of the current state.
+    """
+    if not len(current_state) == tpm.number_of_units:
+        raise ValueError(
+            f"current_state must have length {tpm.number_of_units}"
+            f"for state-by-node TPM of shape {tpm.shape}"
+        )
+
+    nodes = []
+    for node in tpm.nodes:
+        i = node.index
+        state = [current_state[i]]
+
+        # DataArray indexing: keep last dimension by wrapping index inside list.
+        pr_current_state = node.dataarray[..., [state]].data
+        normalization = np.sum(pr_current_state)
+        nodes.append(pr_current_state / normalization)
+
+    return tuple(nodes)
+
+
 def probability_of_current_state(sbn_tpm, current_state):
     """Return the probability of the current state as a distribution over previous states.
 
@@ -973,6 +1008,59 @@ def probability_of_current_state(sbn_tpm, current_state):
             sbn_tpm[..., i] if current_state[i] else (1 - sbn_tpm[..., i])
         )
     return state_probabilities.prod(axis=-1, keepdims=True)
+
+
+def backward_tpm2(
+    forward_tpm: ImplicitTPM,
+    current_state: tuple[int],
+    system_indices: Iterable[int],
+) -> ImplicitTPM:
+    """Compute the backward TPM for a given network state."""
+    all_indices = tuple(range(forward_tpm.number_of_units))
+    system_indices = tuple(sorted(system_indices))
+    background_indices = tuple(sorted(set(all_indices) - set(system_indices)))
+    if not set(system_indices).issubset(set(all_indices)):
+        raise ValueError(
+            "system_indices must be a subset of `range(forward_tpm.number_of_units))`"
+        )
+    #                                                          p(u_t | s_{t–1}, w_{t–1})
+    pr_current_state_nodes = probability_of_current_state2(forward_tpm, current_state)
+    # TODO Avoid computing the full joint probability. E.g., find uninformative
+    # dimensions after each product and propagate their dismissal.
+    pr_current_state = functools.reduce(np.multiply, pr_current_state_nodes)
+    #                                             Σ_{s_{t–1}}  p(u_t | s_{t–1}, w_{t–1})
+    pr_current_state_given_only_background = pr_current_state.sum(
+        axis=tuple(system_indices), keepdims=True
+    )
+    #                                              Σ_{s_{t–1}} p(u_t | s_{t–1}, w_{t–1})
+    #                                             ———————————————————————————————————————
+    #                                                 Σ_{u'_{t–1}} p(u_t | u'_{t–1})
+    pr_current_state_given_only_background_normalized = (
+        pr_current_state_given_only_background / np.sum(pr_current_state)
+    )
+    #                                              Σ_{s_{t–1}} p(u_t | s_{t–1}, w_{t–1})
+    # Σ_{w_{t–1}}   p(s_{i,t} | s_{t–1}, w_{t–1}) ———————————————————————————————————————
+    #                                                 Σ_{u'_{t–1}} p(u_t | u'_{t–1})
+    backward_tpm = tuple(
+        (node_tpm * pr_current_state_given_only_background_normalized).sum(
+            axis=background_indices, keepdims=True
+        )
+        for node_tpm in forward_tpm.tpm
+    )
+
+    reference_node = forward_tpm.nodes[0].dataarray
+    return ImplicitTPM(
+        tuple(
+            Node(
+                backward_node_tpm,
+                reference_node.attrs["cm"],
+                reference_node.attrs["network_state_space"],
+                i,
+                reference_node.attrs["node_labels"],
+            ).pyphi_accessor
+            for i, backward_node_tpm in enumerate(backward_tpm)
+        )
+    )
 
 
 def backward_tpm(
