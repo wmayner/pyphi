@@ -150,6 +150,9 @@ class TPM:
     def permute_nodes(self, permutation):
         raise NotImplementedError
 
+    def backward_tpm(self, current_state, system_indices):
+        raise NotImplementedError
+
     def __str__(self):
         raise NotImplementedError
 
@@ -515,6 +518,59 @@ class ExplicitTPM(data_structures.ArrayLike, TPM):
             self._tpm.transpose(dimension_permutation)[..., list(permutation)],
         )
 
+    def _probability_of_current_state(self, current_state):
+        """Return the probability of the current state as a distribution over previous states.
+
+        Arguments:
+            current_state (tuple[int]): The current state.
+        """
+        state_probabilities = np.empty(self.shape)
+        if not len(current_state) == self.shape[-1]:
+            raise ValueError(
+                f"current_state must have length {self.shape[-1]}"
+                f"for state-by-node TPM of shape {self.shape}"
+            )
+        for i in range(self.shape[-1]):
+            # TODO extend to nonbinary nodes
+            state_probabilities[..., i] = (
+                self[..., i] if current_state[i] else (1 - self[..., i])
+            )
+        return state_probabilities.prod(axis=-1, keepdims=True)
+
+    def backward_tpm(
+            self,
+            current_state: tuple[int],
+            system_indices: Iterable[int],
+            remove_background: bool = False,
+    ):
+        """Compute the backward TPM for a given network state."""
+        all_indices = tuple(range(self.number_of_units))
+        system_indices = tuple(sorted(system_indices))
+        background_indices = tuple(sorted(set(all_indices) - set(system_indices)))
+        if not set(system_indices).issubset(set(all_indices)):
+            raise ValueError(
+                "system_indices must be a subset of `range(self.number_of_units))`"
+            )
+
+        # p(u_t | s_{t–1}, w_{t–1})
+        pr_current_state = self._probability_of_current_state(current_state)
+        # Σ_{s_{t–1}}  p(u_t | s_{t–1}, w_{t–1})
+        pr_current_state_given_only_background = pr_current_state.sum(
+            axis=tuple(system_indices), keepdims=True
+        )
+        # Σ_{u'_{t–1}} p(u_t | u'_{t–1})
+        normalization = np.sum(pr_current_state)
+        #                                              Σ_{s_{t–1}} p(u_t | s_{t–1}, w_{t–1})
+        # Σ_{w_{t–1}}   p(s_{i,t} | s_{t–1}, w_{t–1}) ———————————————————————————————————————
+        #                                                 Σ_{u'_{t–1}} p(u_t | u'_{t–1})
+        backward_tpm = (
+            self * pr_current_state_given_only_background / normalization
+        ).sum(axis=background_indices, keepdims=True)
+        if remove_background:
+            # Remove background units from last dimension of the state-by-node TPM
+            backward_tpm = backward_tpm[..., list(system_indices)]
+        return ExplicitTPM(backward_tpm)
+
     def array_equal(self, o: object):
         """Return whether this TPM equals the other object.
 
@@ -779,6 +835,86 @@ class ImplicitTPM(TPM):
             tuple(node for node in self.squeeze().nodes)
         )
 
+    def _probability_of_current_state(
+            self,
+            current_state: tuple[int]
+    ) -> tuple[ExplicitTPM]:
+        """Return the probability of the current state as a distribution over previous states.
+
+        Output format is similar to an |ImplicitTPM|, however the last dimension
+        only contains the probability for the current state.
+
+        Arguments:
+           current_state (tuple[int]): The current state.
+        Returns:
+           tuple[ExplicitTPM]: Node-marginal distributions of the current state.
+        """
+        if not len(current_state) == self.number_of_units:
+            raise ValueError(
+                f"current_state must have length {self.number_of_units}"
+                f"for state-by-node TPM of shape {self.shape}"
+            )
+        nodes = []
+        for node in self.nodes:
+            i = node.index
+            state = current_state[i]
+            # DataArray indexing: keep last dimension by wrapping index in list.
+            pr_current_state = node.dataarray[..., [state]].data
+            normalization = np.sum(pr_current_state)
+            nodes.append(pr_current_state / normalization)
+        return tuple(nodes)
+
+    def backward_tpm(
+            self,
+            current_state: tuple[int],
+            system_indices: Iterable[int],
+    ):
+        """Compute the backward TPM for a given network state."""
+        all_indices = tuple(range(self.number_of_units))
+        system_indices = tuple(sorted(system_indices))
+        background_indices = tuple(sorted(set(all_indices) - set(system_indices)))
+        if not set(system_indices).issubset(set(all_indices)):
+            raise ValueError(
+                "system_indices must be a subset of `range(self.number_of_units))`"
+            )
+        #                                                       p(u_t | s_{t–1}, w_{t–1})
+        pr_current_state_nodes = self._probability_of_current_state(current_state)
+        # TODO Avoid computing the full joint probability. Find uninformative
+        # dimensions after each product and propagate their dismissal.
+        pr_current_state = functools.reduce(np.multiply, pr_current_state_nodes)
+        #                                           Σ_{s_{t–1}} p(u_t | s_{t–1}, w_{t–1})
+        pr_current_state_given_only_background = pr_current_state.sum(
+            axis=tuple(system_indices), keepdims=True
+        )
+        #                                           Σ_{s_{t–1}} p(u_t | s_{t–1}, w_{t–1})
+        #                                           —————————————————————————————————————
+        #                                           Σ_{u'_{t–1}} p(u_t | u'_{t–1})
+        pr_current_state_given_only_background_normalized = (
+            pr_current_state_given_only_background / np.sum(pr_current_state)
+        )
+        #                                           Σ_{s_{t–1}} p(u_t | s_{t–1}, w_{t–1})
+        # Σ_{w_{t–1}} p(s_{i,t} | s_{t–1}, w_{t–1}) —————————————————————————————————————
+        #                                           Σ_{u'_{t–1}} p(u_t | u'_{t–1})
+        backward_tpm = tuple(
+            (node_tpm * pr_current_state_given_only_background_normalized).sum(
+                axis=background_indices, keepdims=True
+            )
+            for node_tpm in self.tpm
+        )
+        reference_node = self.nodes[0].dataarray
+        return ImplicitTPM(
+            tuple(
+                Node(
+                    backward_node_tpm,
+                    reference_node.attrs["cm"],
+                    reference_node.attrs["network_state_space"],
+                    i,
+                    reference_node.attrs["node_labels"],
+                ).pyphi_accessor
+                for i, backward_node_tpm in enumerate(backward_tpm)
+            )
+        )
+
     def equals(self, o: object):
         """Return whether this TPM equals the other object.
 
@@ -954,145 +1090,3 @@ def _new_attribute(
 
     return overriding_attribute
 
-
-def probability_of_current_state2(
-        tpm: ImplicitTPM,
-        current_state: tuple[int]
-) -> tuple[ExplicitTPM]:
-    """Return the probability of the current state as a distribution over previous states.
-
-    Output format is similar to an |ImplicitTPM|, however the last dimension
-    only contains the probability for the current state.
-
-    Arguments:
-        tpm (ImplicitTPM): The TPM of the |Network|.
-        current_state (tuple[int]): The current state.
-    Returns:
-       tuple[ExplicitTPM]: Node-marginal distributions of the current state.
-    """
-    if not len(current_state) == tpm.number_of_units:
-        raise ValueError(
-            f"current_state must have length {tpm.number_of_units}"
-            f"for state-by-node TPM of shape {tpm.shape}"
-        )
-
-    nodes = []
-    for node in tpm.nodes:
-        i = node.index
-        state = [current_state[i]]
-
-        # DataArray indexing: keep last dimension by wrapping index inside list.
-        pr_current_state = node.dataarray[..., [state]].data
-        normalization = np.sum(pr_current_state)
-        nodes.append(pr_current_state / normalization)
-
-    return tuple(nodes)
-
-
-def probability_of_current_state(sbn_tpm, current_state):
-    """Return the probability of the current state as a distribution over previous states.
-
-    Arguments:
-        sbn_tpm (ExplicitTPM): State-by-node TPM.
-        current_state (tuple[int]): The current state.
-    """
-    state_probabilities = np.empty(sbn_tpm.shape)
-    if not len(current_state) == sbn_tpm.shape[-1]:
-        raise ValueError(
-            f"current_state must have length {sbn_tpm.shape[-1]}"
-            f"for state-by-node TPM of shape {sbn_tpm.shape}"
-        )
-    for i in range(sbn_tpm.shape[-1]):
-        # TODO extend to nonbinary nodes
-        state_probabilities[..., i] = (
-            sbn_tpm[..., i] if current_state[i] else (1 - sbn_tpm[..., i])
-        )
-    return state_probabilities.prod(axis=-1, keepdims=True)
-
-
-def backward_tpm2(
-    forward_tpm: ImplicitTPM,
-    current_state: tuple[int],
-    system_indices: Iterable[int],
-) -> ImplicitTPM:
-    """Compute the backward TPM for a given network state."""
-    all_indices = tuple(range(forward_tpm.number_of_units))
-    system_indices = tuple(sorted(system_indices))
-    background_indices = tuple(sorted(set(all_indices) - set(system_indices)))
-    if not set(system_indices).issubset(set(all_indices)):
-        raise ValueError(
-            "system_indices must be a subset of `range(forward_tpm.number_of_units))`"
-        )
-    #                                                          p(u_t | s_{t–1}, w_{t–1})
-    pr_current_state_nodes = probability_of_current_state2(forward_tpm, current_state)
-    # TODO Avoid computing the full joint probability. E.g., find uninformative
-    # dimensions after each product and propagate their dismissal.
-    pr_current_state = functools.reduce(np.multiply, pr_current_state_nodes)
-    #                                             Σ_{s_{t–1}}  p(u_t | s_{t–1}, w_{t–1})
-    pr_current_state_given_only_background = pr_current_state.sum(
-        axis=tuple(system_indices), keepdims=True
-    )
-    #                                              Σ_{s_{t–1}} p(u_t | s_{t–1}, w_{t–1})
-    #                                             ———————————————————————————————————————
-    #                                                 Σ_{u'_{t–1}} p(u_t | u'_{t–1})
-    pr_current_state_given_only_background_normalized = (
-        pr_current_state_given_only_background / np.sum(pr_current_state)
-    )
-    #                                              Σ_{s_{t–1}} p(u_t | s_{t–1}, w_{t–1})
-    # Σ_{w_{t–1}}   p(s_{i,t} | s_{t–1}, w_{t–1}) ———————————————————————————————————————
-    #                                                 Σ_{u'_{t–1}} p(u_t | u'_{t–1})
-    backward_tpm = tuple(
-        (node_tpm * pr_current_state_given_only_background_normalized).sum(
-            axis=background_indices, keepdims=True
-        )
-        for node_tpm in forward_tpm.tpm
-    )
-
-    reference_node = forward_tpm.nodes[0].dataarray
-    return ImplicitTPM(
-        tuple(
-            Node(
-                backward_node_tpm,
-                reference_node.attrs["cm"],
-                reference_node.attrs["network_state_space"],
-                i,
-                reference_node.attrs["node_labels"],
-            ).pyphi_accessor
-            for i, backward_node_tpm in enumerate(backward_tpm)
-        )
-    )
-
-
-def backward_tpm(
-    forward_tpm: ExplicitTPM,
-    current_state: tuple[int],
-    system_indices: Iterable[int],
-    remove_background: bool = False,
-) -> ExplicitTPM:
-    """Compute the backward TPM for a given network state."""
-    all_indices = tuple(range(forward_tpm.number_of_units))
-    system_indices = tuple(sorted(system_indices))
-    background_indices = tuple(sorted(set(all_indices) - set(system_indices)))
-    if not set(system_indices).issubset(set(all_indices)):
-        raise ValueError(
-            "system_indices must be a subset of `range(forward_tpm.number_of_units))`"
-        )
-
-    # p(u_t | s_{t–1}, w_{t–1})
-    pr_current_state = probability_of_current_state(forward_tpm, current_state)
-    # Σ_{s_{t–1}}  p(u_t | s_{t–1}, w_{t–1})
-    pr_current_state_given_only_background = pr_current_state.sum(
-        axis=tuple(system_indices), keepdims=True
-    )
-    # Σ_{u'_{t–1}} p(u_t | u'_{t–1})
-    normalization = np.sum(pr_current_state)
-    #                                              Σ_{s_{t–1}} p(u_t | s_{t–1}, w_{t–1})
-    # Σ_{w_{t–1}}   p(s_{i,t} | s_{t–1}, w_{t–1}) ———————————————————————————————————————
-    #                                                 Σ_{u'_{t–1}} p(u_t | u'_{t–1})
-    backward_tpm = (
-        forward_tpm * pr_current_state_given_only_background / normalization
-    ).sum(axis=background_indices, keepdims=True)
-    if remove_background:
-        # Remove background units from last dimension of the state-by-node TPM
-        backward_tpm = backward_tpm[..., list(system_indices)]
-    return ExplicitTPM(backward_tpm)

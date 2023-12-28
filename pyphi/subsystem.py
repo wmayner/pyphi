@@ -33,7 +33,6 @@ from .models.mechanism import ShortCircuitConditions, StateSpecification
 from .network import irreducible_purviews
 from .partition import mip_partitions
 from .repertoire import forward_repertoire, unconstrained_forward_repertoire
-from .tpm import backward_tpm as _backward_tpm
 from .utils import state_of
 
 log = logging.getLogger(__name__)
@@ -106,7 +105,7 @@ class Subsystem:
         background_conditions = dict(zip(self.external_indices, external_state))
         self.backward_tpm = backward_tpm
         if self.backward_tpm:
-            self.tpm = _backward_tpm(self.network.tpm, state, self.node_indices)
+            self.tpm = self.network.tpm.backward_tpm(state, self.node_indices)
         else:
             self.tpm = self.network.tpm.condition_tpm(background_conditions)
         # The TPM for just the nodes in the subsystem.
