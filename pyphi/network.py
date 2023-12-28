@@ -111,7 +111,7 @@ class Network:
                         self._state_space,
                         index,
                         node_labels=self._node_labels
-                    ).pyphi_accessor
+                    ).node
                     for index, node_tpm in zip(self._node_indices, tpm)
                 )
             )

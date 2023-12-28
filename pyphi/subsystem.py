@@ -146,7 +146,7 @@ class Subsystem:
                 i,
                 self.node_labels,
                 state=node.state
-            ).pyphi_accessor
+            ).node
             for i, node in enumerate(self.tpm.nodes)
             if i in self.node_indices
         )

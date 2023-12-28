@@ -799,7 +799,7 @@ class ImplicitTPM(TPM):
                     node.dataarray.attrs["network_state_space"],
                     node.index,
                     node_labels=node.dataarray.attrs["node_labels"],
-                ).pyphi_accessor
+                ).node
                 for node in self.nodes
             )
         )
@@ -839,7 +839,7 @@ class ImplicitTPM(TPM):
             self,
             current_state: tuple[int]
     ) -> tuple[ExplicitTPM]:
-        """Return the probability of the current state as a distribution over previous states.
+        """Return probability of current state as distribution over previous states.
 
         Output format is similar to an |ImplicitTPM|, however the last dimension
         only contains the probability for the current state.
@@ -910,7 +910,7 @@ class ImplicitTPM(TPM):
                     reference_node.attrs["network_state_space"],
                     i,
                     reference_node.attrs["node_labels"],
-                ).pyphi_accessor
+                ).node
                 for i, backward_node_tpm in enumerate(backward_tpm)
             )
         )
@@ -967,7 +967,7 @@ class ImplicitTPM(TPM):
                     new_state_space,
                     next(new_node_indices),
                     new_node_labels,
-                ).pyphi_accessor
+                ).node
                 for node in self.nodes if node.index in nonsingletons
             )
         )
@@ -976,14 +976,14 @@ class ImplicitTPM(TPM):
         if isinstance(index, (int, slice, type(...), tuple)):
             return type(self)(
                 tuple(
-                    node.dataarray[node.project_index(index, **kwargs)].pyphi_accessor
+                    node.dataarray[node.project_index(index, **kwargs)].node
                     for node in self.nodes
                 )
             )
         if isinstance(index, dict):
             return type(self)(
                 tuple(
-                    node.dataarray.loc[node.project_index(index, **kwargs)].pyphi_accessor
+                    node.dataarray.loc[node.project_index(index, **kwargs)].node
                     for node in self.nodes
                 )
             )
