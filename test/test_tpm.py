@@ -7,7 +7,8 @@ import pickle
 import pytest
 import random
 
-from pyphi import Subsystem
+from pyphi import Network, Subsystem
+from pyphi.convert import to_md
 from pyphi.distribution import normalize
 from pyphi.tpm import ExplicitTPM, reconstitute_tpm
 
@@ -16,7 +17,7 @@ from pyphi.tpm import ExplicitTPM, reconstitute_tpm
 def implicit_tpm(size, degree, node_states, seed=1337, deterministic=False):
     if degree > size:
         raise ValueError(
-            f"The number of parrents of each node (degree={degree}) cannot be"
+            f"The number of parents of each node (degree={degree}) cannot be"
             f"smaller than the size of the network ({size})."
         )
     if node_states < 2:
@@ -193,6 +194,60 @@ def test_marginalize_out(s):
 
 def test_infer_cm(rule152):
     assert np.array_equal(rule152.tpm.infer_cm(), rule152.cm)
+
+
+def test_backward_tpm():
+    # fmt: off
+    cm = np.array([
+        [1, 1, 0,],
+        [0, 1, 1,],
+        [1, 1, 1,],
+    ])
+
+    tpm = np.array([
+            [1, 0, 0],
+            [0, 1, 0],
+            [1, 1, 1],
+            [0, 1, 1],
+            [0, 0, 0],
+            [1, 1, 0],
+            [0, 0, 1],
+            [1, 0, 1],
+        ])
+
+    # fmt: on
+    explicit_tpm = ExplicitTPM(to_md(tpm))
+    implicit_tpm = Network(explicit_tpm, cm).tpm
+
+    state = (1, 0, 0)
+
+    # Backward TPM of full network must equal forward TPM.
+    subsystem_indices = (0, 1, 2)
+    backward = explicit_tpm.backward_tpm(state, subsystem_indices)
+    assert backward.array_equal(explicit_tpm)
+    backward = reconstitute_tpm(
+        implicit_tpm.backward_tpm(state, subsystem_indices)
+    )
+    assert backward.array_equal(explicit_tpm)
+
+    # Backward TPM of proper subsystem.
+    # fmt: off
+    answer = ExplicitTPM(
+        np.array(
+            [[[[1, 0, 0,]],
+              [[1, 1, 1,]]],
+             [[[0, 1, 0,]],
+              [[0, 1, 1,]]]],
+        )
+    )
+    # fmt: on
+    subsystem_indices = (0, 1)
+    backward = explicit_tpm.backward_tpm(state, subsystem_indices)
+    assert backward.array_equal(answer)
+    backward = reconstitute_tpm(
+        implicit_tpm.backward_tpm(state, subsystem_indices)
+    )
+    assert backward.array_equal(answer)
 
 
 def test_reconstitute_tpm(standard, s_complete, rule152, noised):
