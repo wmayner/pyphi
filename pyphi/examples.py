@@ -1459,3 +1459,28 @@ def frog_example():
     print(transition)
     account = actual.account(transition)
     print(account)
+
+@register_example
+def functionally_equivalent():
+    """The 2nd deterministic system from Figure 8 of the IIT 4.0 paper:
+    Functionally equivalent networks with different Φ-structures.
+    """
+    node_labels = ("A", "B", "C")
+    # fmt: off
+    cm = np.array([
+        [1, 1, 0,],
+        [0, 1, 1,],
+        [1, 1, 1,],
+    ])
+    tpm = np.array([
+        [1, 0, 0],
+        [0, 1, 0],
+        [1, 1, 1],
+        [0, 1, 1],
+        [0, 0, 0],
+        [1, 1, 0],
+        [0, 0, 1],
+        [1, 0, 1],
+    ])
+    # fmt: on
+    return Network(tpm, cm=cm, node_labels=node_labels)

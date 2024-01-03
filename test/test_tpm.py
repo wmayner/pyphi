@@ -7,7 +7,7 @@ import pickle
 import pytest
 import random
 
-from pyphi import Network, Subsystem
+from pyphi import examples, Network, Subsystem
 from pyphi.convert import to_md
 from pyphi.distribution import normalize
 from pyphi.tpm import ExplicitTPM, reconstitute_tpm
@@ -197,34 +197,18 @@ def test_infer_cm(rule152):
 
 
 def test_backward_tpm():
-    # fmt: off
-    cm = np.array([
-        [1, 1, 0,],
-        [0, 1, 1,],
-        [1, 1, 1,],
-    ])
-
-    tpm = np.array([
-            [1, 0, 0],
-            [0, 1, 0],
-            [1, 1, 1],
-            [0, 1, 1],
-            [0, 0, 0],
-            [1, 1, 0],
-            [0, 0, 1],
-            [1, 0, 1],
-        ])
-
-    # fmt: on
-    explicit_tpm = ExplicitTPM(to_md(tpm))
-    implicit_tpm = Network(explicit_tpm, cm).tpm
+    network = examples.functionally_equivalent()
+    implicit_tpm = network.tpm
+    explicit_tpm = reconstitute_tpm(network.tpm)
 
     state = (1, 0, 0)
 
     # Backward TPM of full network must equal forward TPM.
     subsystem_indices = (0, 1, 2)
+
     backward = explicit_tpm.backward_tpm(state, subsystem_indices)
     assert backward.array_equal(explicit_tpm)
+
     backward = reconstitute_tpm(
         implicit_tpm.backward_tpm(state, subsystem_indices)
     )
@@ -242,8 +226,10 @@ def test_backward_tpm():
     )
     # fmt: on
     subsystem_indices = (0, 1)
+
     backward = explicit_tpm.backward_tpm(state, subsystem_indices)
     assert backward.array_equal(answer)
+
     backward = reconstitute_tpm(
         implicit_tpm.backward_tpm(state, subsystem_indices)
     )
