@@ -64,6 +64,41 @@ def all_states(n, big_endian=False):
             yield state[::-1]  # Convert to little-endian ordering
 
 
+def equivalent_states(state, mask, subsystem):
+    """Generate equivalence class of states given irrelevant dimensions.
+
+    Arguments:
+        state (Iterable[int]): Some state in the equivalence class.
+        mask (Iterable[int]): State mask with 1's representing irrelevant dimensions.
+        subsystem (|Subsystem|): The subsystem of interest.
+
+    Yields:
+        Iterable[tuple[int]]: A generator for the equivalence class of states.
+
+    Examples:
+        >>> import numpy as np
+        >>> from pyphi import Network, Subsystem
+        >>> network = Network(np.ones((16, 4)))
+        >>> subsystem = Subsystem(network, (1, 1, 1, 1))
+        >>> state = (1, 1, 1, 1)
+        >>> mask = (2, 1, 1, 2)
+        >>> list(equivalent_states(state, mask, subsystem))
+        [(1, 0, 0, 1), (1, 0, 1, 1), (1, 1, 0, 1), (1, 1, 1, 1)]
+    """
+    indices_needing_expansion = {
+        i: subsystem.tpm.shape[i] for i in subsystem.node_indices
+        if mask[i] == 1
+    }
+    locally_expanded_states = product(
+        *[range(states) for i, states in indices_needing_expansion.items()]
+    )
+    expanded_indices = list(indices_needing_expansion.keys())
+    state = np.array(state)
+    for s in locally_expanded_states:
+        state[expanded_indices] = s
+        yield tuple(state)
+
+
 def np_immutable(a):
     """Make a NumPy array immutable."""
     a.flags.writeable = False
