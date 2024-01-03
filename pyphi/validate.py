@@ -4,7 +4,7 @@
 Methods for validating arguments.
 """
 
-from  warnings import warn
+from itertools import product
 
 import numpy as np
 
@@ -12,6 +12,7 @@ from . import exceptions
 from .conf import config
 from .direction import Direction
 from .tpm import ImplicitTPM, reconstitute_tpm
+from .utils import equivalent_states
 
 
 # pylint: disable=redefined-outer-name
@@ -115,32 +116,31 @@ def state_length(state, size):
 
 
 def state_reachable(subsystem):
-    """Return whether a state can be reached according to the network's TPM."""
-    # TODO(tpm) Change consumers of this function, so that only ImplicitTPMs
-    # are passed.
-    tpm = (
-        reconstitute_tpm(subsystem.tpm) if isinstance(subsystem.tpm, ImplicitTPM)
-        else subsystem.tpm
-    )
-    # If there is a row `r` in the TPM such that all entries of `r - state` are
-    # between -1 and 1, then the given state has a nonzero probability of being
-    # reached from some state.
-    # First we take the submatrix of the conditioned TPM that corresponds to
-    # the nodes that are actually in the subsystem...
-    tpm = tpm[..., subsystem.node_indices]
-    # Make sure the state is translated in terms of integer indices.
-    # TODO(tpm) Simplify conversion with a state_space class?
-    state_space = [
-        node.state_space for node in subsystem.nodes
-        if node.index in subsystem.node_indices
+    """Raise exception if state cannot be reached according to subsystem's TPM."""
+    # A state s is reachable by Subsystem S if and only if there is at least
+    # one state s_{t-1} with nonzero probability of transitioning to s:
+    #             ∃ s_{t-1} : p(S=s | s_{t-1}, w_{t-1}) > 0
+
+    # Obtain p(S=s | W_{t-1}=w_{t-1}) as node marginals (i.e. implicitly).
+    p = subsystem.proper_tpm.probability_of_current_state(subsystem.proper_state)
+
+    # Avoid computing the joint distribution. For each node n, find the set of
+    # coordinates s_{t-1} for which p_n > 0. The intersection of all such sets
+    # is the set of previous states leading to the current state.
+    past_states = [
+        set(
+            equivalent
+            for equivalent in equivalent_states(
+                    subsystem.proper_state,
+                    node_p.shape[:-1],
+                    subsystem.proper_tpm.shape[:-1]
+            )
+            for state in np.argwhere(np.asarray(node_p) > 0)
+        )
+        for node_p in p
     ]
-    state = np.array([
-        state_space[node].index(state)
-        for node, state in enumerate(subsystem.proper_state)
-    ])
-    # Then we do the subtraction and test.
-    test = tpm - state
-    if not np.any(np.logical_and(-1 < test, test < 1).all(-1)):
+
+    if not set.intersection(*past_states):
         raise exceptions.StateUnreachableError(subsystem.state)
 
 
@@ -159,10 +159,7 @@ def subsystem(s):
     """
     # cut(s.cut, s.cut_indices)
     if config.VALIDATE_SUBSYSTEM_STATES:
-        # TODO(tpm) Reimplement in a way that never reconstitutes the full TPM.
-        # state_reachable(s)
-        # warn("Validation of state reachability didn't take place.")
-        pass
+        state_reachable(s)
     return True
 
 

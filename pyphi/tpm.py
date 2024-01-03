@@ -442,12 +442,7 @@ class ExplicitTPM(data_structures.ArrayLike, TPM):
         conditioning_indices = tuple(chain.from_iterable(conditioning_indices))
         # Obtain the actual conditioned TPM by indexing with the conditioning
         # indices.
-        tpm = self[conditioning_indices]
-        # Create new TPM object of the same type as self.
-        # self.tpm has already been validated and converted to multidimensional
-        # state-by-node form. Further validation would be problematic for
-        # singleton dimensions.
-        return tpm
+        return self[conditioning_indices]
 
     def marginalize_out(self, node_indices):
         """Marginalize out nodes from this TPM.
@@ -518,7 +513,7 @@ class ExplicitTPM(data_structures.ArrayLike, TPM):
             self._tpm.transpose(dimension_permutation)[..., list(permutation)],
         )
 
-    def _probability_of_current_state(self, current_state):
+    def probability_of_current_state(self, current_state):
         """Return the probability of the current state as a distribution over previous states.
 
         Arguments:
@@ -527,7 +522,7 @@ class ExplicitTPM(data_structures.ArrayLike, TPM):
         state_probabilities = np.empty(self.shape)
         if not len(current_state) == self.shape[-1]:
             raise ValueError(
-                f"current_state must have length {self.shape[-1]}"
+                f"current_state must have length {self.shape[-1]} "
                 f"for state-by-node TPM of shape {self.shape}"
             )
         for i in range(self.shape[-1]):
@@ -553,7 +548,7 @@ class ExplicitTPM(data_structures.ArrayLike, TPM):
             )
 
         # p(u_t | s_{t–1}, w_{t–1})
-        pr_current_state = self._probability_of_current_state(current_state)
+        pr_current_state = self.probability_of_current_state(current_state)
         # Σ_{s_{t–1}}  p(u_t | s_{t–1}, w_{t–1})
         pr_current_state_given_only_background = pr_current_state.sum(
             axis=tuple(system_indices), keepdims=True
@@ -835,7 +830,7 @@ class ImplicitTPM(TPM):
             tuple(node for node in self.squeeze().nodes)
         )
 
-    def _probability_of_current_state(
+    def probability_of_current_state(
             self,
             current_state: tuple[int]
     ) -> tuple[ExplicitTPM]:
@@ -851,7 +846,7 @@ class ImplicitTPM(TPM):
         """
         if not len(current_state) == self.number_of_units:
             raise ValueError(
-                f"current_state must have length {self.number_of_units}"
+                f"current_state must have length {self.number_of_units} "
                 f"for state-by-node TPM of shape {self.shape}"
             )
         nodes = []
@@ -878,7 +873,7 @@ class ImplicitTPM(TPM):
                 "system_indices must be a subset of `range(self.number_of_units))`"
             )
         #                                                       p(u_t | s_{t–1}, w_{t–1})
-        pr_current_state_nodes = self._probability_of_current_state(current_state)
+        pr_current_state_nodes = self.probability_of_current_state(current_state)
         # TODO Avoid computing the full joint probability. Find uninformative
         # dimensions after each product and propagate their dismissal.
         pr_current_state = functools.reduce(np.multiply, pr_current_state_nodes)
