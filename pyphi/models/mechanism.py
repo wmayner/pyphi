@@ -26,7 +26,7 @@ from ..models import fmt
 from ..registry import Registry
 from ..warnings import warn_about_tie_serialization
 from . import cmp, fmt
-from .pandas import ToDictFromExplicitAttrsMixin, ToDictMixin, ToPandasMixin
+from .pyphi_pandas import ToDictFromExplicitAttrsMixin, ToDictMixin, ToPandasMixin
 
 
 @total_ordering
