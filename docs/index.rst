@@ -18,7 +18,7 @@ If you use this software in your research, please cite the paper:
     | https://doi.org/10.1371/journal.pcbi.1006343
 
 A `jupyter notebook
-<https://doi.org/10.1371/journal.pcbi.1006343.s001>`_  illustrating how to use PyPhi is available as a
+<https://colab.research.google.com/github/wmayner/pyphi/blob/feature/iit-4.0/docs/examples/IIT_4.0_demo.ipynb>`_  illustrating how to use PyPhi is available as a
 supplement to the `IIT 4.0 paper
 <https://doi.org/10.1371/journal.pcbi.1006343.s001>`_.
 
