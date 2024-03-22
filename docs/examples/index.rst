@@ -3,14 +3,14 @@ Getting started
 
 This page provides a walkthrough of how to use PyPhi in an interactive Python
 session. For a theoretical explanation of the computational steps and a complete overview 
-of the mathematical formalism please consult the `IIT 4.0 paper <https://doi.org/10.1371/journal.pcbi.1006343.s001>`_.
+of the mathematical formalism please consult the `IIT 4.0 paper <https://doi.org/10.1371/journal.pcbi.1011465>`_.
 
 .. tip::
 
     A `jupyter notebook
     <https://colab.research.google.com/github/wmayner/pyphi/blob/feature/iit-4.0/docs/examples/IIT_4.0_demo.ipynb>`_  illustrating how to use PyPhi is available as a
     supplement to the `IIT 4.0 paper
-    <https://doi.org/10.1371/journal.pcbi.1006343.s001>`_.
+    <https://doi.org/10.1371/journal.pcbi.1011465>`_.
 
 To explore the following examples, install `IPython
 <https://ipython.org/install.html>`_ by running ``pip install ipython`` on the

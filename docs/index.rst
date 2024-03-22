@@ -20,7 +20,7 @@ If you use this software in your research, please cite the paper:
 A `jupyter notebook
 <https://colab.research.google.com/github/wmayner/pyphi/blob/feature/iit-4.0/docs/examples/IIT_4.0_demo.ipynb>`_  illustrating how to use PyPhi is available as a
 supplement to the `IIT 4.0 paper
-<https://doi.org/10.1371/journal.pcbi.1006343.s001>`_.
+<https://doi.org/10.1371/journal.pcbi.1011465>`_.
 
 To report issues, use the issue tracker on the `GitHub repository
 <https://github.com/wmayner/pyphi>`_. Bug reports and pull requests are
