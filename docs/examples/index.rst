@@ -88,7 +88,7 @@ we simply include every node in the network in our subsystem (PyPhi does so auto
     >>> subsystem_cause = pyphi.Subsystem(network, state, nodes=node_indices, backward_tpm=True)
     >>> subsystem_effect = pyphi.Subsystem(network, state, nodes=node_indices, backward_tpm=False)
 
-Next we compute the |small_phi_s| of our candidate complex. We can do so using |backwards.compute.sia()|. 
+Next we compute the |small_phi_s| of our candidate complex. We can do so using :func:`~pyphi.backwards.sia`. 
 This returns a nested object, |SystemIrreducibilityAnalysis|, that contains data about the subsystem's
 irreducibility, cause and effect repertoires, etc.
 
