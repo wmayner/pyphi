@@ -115,7 +115,7 @@ irreducibility, cause and effect repertoires, etc.
 
 .. tip::
     Note that if we wanted to apply the postulate of exlusion and find the main complex (the one with maximal |small_phi_s|)
-    we would have to call the |compute.sia()| function on each possible candidate complex, 
+    we would have to call the :func:`~pyphi.backwards.sia` function on each possible candidate complex, 
     creating a subsystem for each possible subset of the network.
 
 We can then apply the composition postulate to unfold the cause-effect structure of our (candidate) complex.
