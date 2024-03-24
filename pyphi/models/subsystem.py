@@ -16,7 +16,7 @@ from .. import utils
 from ..conf import fallback
 from . import cmp, fmt
 from .mechanism import Concept, StateSpecification
-from .pandas import ToDictMixin, ToPandasMixin
+from .pyphi_pandas import ToDictMixin, ToPandasMixin
 
 _sia_attributes = ["phi", "ces", "partitioned_ces", "subsystem", "cut_subsystem"]
 
