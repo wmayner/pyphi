@@ -5,8 +5,9 @@
 import numpy as np
 import pytest
 
-from pyphi import convert, macro, ExplicitTPM
+from pyphi import convert, macro
 from pyphi.exceptions import ConditionallyDependentError
+from pyphi.tpm import ExplicitTPM
 
 # flake8: noqa
 
@@ -302,7 +303,7 @@ def test_rebuild_system_tpm(s):
     # fmt: on
     assert macro.rebuild_system_tpm(node_tpms).array_equal(answer)
 
-    node_tpms = [node.tpm_on for node in s.nodes]
+    node_tpms = [node.tpm[..., 1] for node in s.nodes]
     assert macro.rebuild_system_tpm(node_tpms).array_equal(s.tpm)
 
 
@@ -317,7 +318,7 @@ def test_remove_singleton_dimensions():
     )
     # fmt: on
     assert tpm.tpm_indices() == (0,)
-    assert macro.remove_singleton_dimensions(tpm).array_equal(tpm)
+    assert tpm.remove_singleton_dimensions().array_equal(tpm)
 
     # fmt: off
     tpm = ExplicitTPM(
@@ -334,7 +335,7 @@ def test_remove_singleton_dimensions():
     )
     # fmt: on
     assert tpm.tpm_indices() == (1,)
-    assert macro.remove_singleton_dimensions(tpm).array_equal(answer)
+    assert tpm.remove_singleton_dimensions().array_equal(answer)
 
     # fmt: off
     tpm = ExplicitTPM(
@@ -355,12 +356,12 @@ def test_remove_singleton_dimensions():
     )
     # fmt: on
     assert tpm.tpm_indices() == (0, 2)
-    assert macro.remove_singleton_dimensions(tpm).array_equal(answer)
+    assert tpm.remove_singleton_dimensions().array_equal(answer)
 
 
 def test_pack_attrs(s):
     attrs = macro.SystemAttrs.pack(s)
-    assert attrs.tpm.array_equal(s.tpm)
+    assert attrs.tpm == s.tpm
     assert np.array_equal(attrs.cm, s.cm)
     assert attrs.node_indices == s.node_indices
     assert attrs.state == s.state

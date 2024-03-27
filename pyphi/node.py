@@ -9,113 +9,206 @@ the network's list of nodes.
 
 import functools
 
+from typing import Iterable, Mapping, Optional, Tuple, Union
+
 import numpy as np
+import xarray as xr
 
-from . import utils
+# TODO rework circular dependency between node.py and tpm.py, instead
+# of importing all of pyphi.tpm and relying on late binding of pyphi.tpm.<NAME>
+# to avoid the circular import error.
+import pyphi.tpm
+
 from .connectivity import get_inputs_from_cm, get_outputs_from_cm
-from .labels import NodeLabels
-from .tpm import ExplicitTPM
+from .state_space import (
+    dimension_labels,
+    build_state_space,
+    SINGLETON_COORDINATE,
+)
+from .utils import state_of
 
 
-# TODO extend to nonbinary nodes
+@xr.register_dataarray_accessor("node")
 @functools.total_ordering
 class Node:
-    """A node in a subsystem.
+    """A node in a Network.
 
     Args:
-        tpm (ExplicitTPM): The TPM of the subsystem.
-        cm (np.ndarray): The CM of the subsystem.
-        index (int): The node's index in the network.
-        state (int): The state of this node.
-        node_labels (|NodeLabels|): Labels for these nodes.
+        dataarray (xr.DataArray):
 
     Attributes:
-        tpm (ExplicitTPM): The node TPM is an array with shape ``(2,)*(n + 1)``,
-            where ``n`` is the size of the |Network|. The first ``n``
-            dimensions correspond to each node in the system. Dimensions
-            corresponding to nodes that provide input to this node are of size
-            2, while those that do not correspond to inputs are of size 1, so
-            that the TPM has |2^m x 2| elements where |m| is the number of
-            inputs. The last dimension corresponds to the state of the node in
-            the next timestep, so that ``node.tpm[..., 0]`` gives probabilities
-            that the node will be 'OFF' and ``node.tpm[..., 1]`` gives
-            probabilities that the node will be 'ON'.
+        index (int): The node's index in the network.
+        label (str): The textual label for this node.
+        node_labels (Tuple[str]): The textual labels for the nodes in the network.
+        dataarray (xr.DataArray): the xarray DataArray for this node.
+        tpm (|ExplicitTPM|): The node TPM is an array with |n + 1| dimensions,
+            where ``n`` is the size of the |Network|. The first ``n`` dimensions
+            correspond to each node in the system. Dimensions corresponding to
+            nodes that provide input to this node are of size > 1, while those
+            that do not correspond to inputs are of size 1. The last dimension
+            encodes the state of the node in the next timestep, so that
+            ``node.tpm[..., 0]`` gives probabilities that the node will be 'OFF'
+            and ``node.tpm[..., 1]`` gives probabilities that the node will be
+            'ON'.
+        inputs (frozenset): The set of nodes which send connections to this node.
+        outputs (frozenset): The set of nodes this node sends connections to.
+        state_space (Tuple[Union[int, str]]): The space of states this node can
+            inhabit.
+        state (Optional[Union[int, str]]): The current state of this node.
     """
 
-    def __init__(self, tpm, cm, index, state, node_labels):
-        # This node's index in the list of nodes.
-        self.index = index
-
-        # State of this node.
-        self.state = state
+    def __init__(self, dataarray: xr.DataArray):
+        self._index = dataarray.attrs["index"]
 
         # Node labels used in the system
-        self.node_labels = node_labels
+        self._node_labels = dataarray.attrs["node_labels"]
 
-        # Get indices of the inputs.
-        self._inputs = frozenset(get_inputs_from_cm(self.index, cm))
-        self._outputs = frozenset(get_outputs_from_cm(self.index, cm))
+        self._inputs = dataarray.attrs["inputs"]
+        self._outputs = dataarray.attrs["outputs"]
 
-        # Generate the node's TPM.
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        # We begin by getting the part of the subsystem's TPM that gives just
-        # the state of this node. This part is still indexed by network state,
-        # but its last dimension will be gone, since now there's just a single
-        # scalar value (this node's state) rather than a state-vector for all
-        # the network nodes.
-        tpm_on = tpm[..., self.index]
+        self._dataarray = dataarray
+        self._tpm = self._dataarray.data
 
-        # TODO extend to nonbinary nodes
-        # Marginalize out non-input nodes that are in the subsystem, since the
-        # external nodes have already been dealt with as boundary conditions in
-        # the subsystem's TPM.
+        self.state_space = dataarray.attrs["state_space"]
 
-        # TODO use names rather than indices
-        non_inputs = set(tpm.tpm_indices()) - self._inputs
-        tpm_on = tpm_on.marginalize_out(non_inputs).tpm
-
-        # Get the TPM that gives the probability of the node being off, rather
-        # than on.
-        tpm_off = 1 - tpm_on
-
-        # Combine the on- and off-TPM so that the first dimension is indexed by
-        # the state of the node's inputs at t, and the last dimension is
-        # indexed by the node's state at t+1. This representation makes it easy
-        # to condition on the node state.
-        self.tpm = ExplicitTPM(
-            np.stack([tpm_off, tpm_on], axis=-1),
-        )
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # (Optional) current state of this node.
+        self.state = dataarray.attrs["state"]
 
         # Only compute the hash once.
         self._hash = hash(
-            (index, hash(self.tpm), self.state, self._inputs, self._outputs)
+            (
+                self.index,
+                hash(pyphi.tpm.ExplicitTPM(self.tpm)),
+                self._inputs,
+                self._outputs,
+                self.state_space,
+                self.state
+            )
         )
 
     @property
-    def tpm_off(self):
-        """The TPM of this node containing only the 'OFF' probabilities."""
-        return self.tpm[..., 0]
+    def index(self):
+        """int: The node's index in the network."""
+        return self._index
 
     @property
-    def tpm_on(self):
-        """The TPM of this node containing only the 'ON' probabilities."""
-        return self.tpm[..., 1]
+    def label(self):
+        """str: The textual label for this node."""
+        return self._node_labels[self.index]
+
+    @property
+    def dataarray(self):
+        """|xr.DataArray|: The xarray DataArray for this node."""
+        return self._dataarray
+
+    @property
+    def tpm(self):
+        """|ExplicitTPM|: The TPM of this node."""
+        return self._tpm
 
     @property
     def inputs(self):
-        """The set of nodes with connections to this node."""
+        """frozenset: The set of nodes with connections to this node."""
         return self._inputs
 
     @property
     def outputs(self):
-        """The set of nodes this node has connections to."""
+        """frozenset: The set of nodes this node has connections to."""
         return self._outputs
 
     @property
-    def label(self):
-        """The textual label for this node."""
-        return self.node_labels[self.index]
+    def state_space(self):
+        """Tuple[Union[int, str]]: The space of states this node can inhabit."""
+        return self._state_space
+
+    @state_space.setter
+    def state_space(self, value):
+        _state_space = tuple(value)
+
+        if len(set(_state_space)) < len(_state_space):
+            raise ValueError(
+                "Invalid node state space tuple. Repeated states are ambiguous."
+            )
+
+        if len(_state_space) < 2:
+            raise ValueError(
+                "Invalid node state space with less than 2 states."
+            )
+
+        self._state_space = _state_space
+
+    @property
+    def state(self):
+        """Optional[Union[int, str]]: The current state of this node."""
+        return self._state
+
+    @state.setter
+    def state(self, value):
+        if value not in (*self.state_space, None):
+            raise ValueError(
+                f"Invalid node state. Possible states are {self.state_space}."
+            )
+
+        self._state = value
+
+    def project_index(self, index, preserve_singletons=False):
+        """Convert absolute TPM index to a valid index relative to this node."""
+
+        # Supported index coordinates (in the right dimension order)
+        # respective to this node, to be used like an AND mask, with
+        # `singleton_coordinate` acting like 0.
+        dimensions = self._dataarray.dims
+        coordinates = self._dataarray.coords
+
+        support = {dim: tuple(coordinates[dim].values) for dim in dimensions}
+
+        if isinstance(index, dict):
+            singleton_coordinate = (
+                [SINGLETON_COORDINATE] if preserve_singletons
+                else SINGLETON_COORDINATE
+            )
+
+            try:
+                # Convert potential int dimension indices to common currency of
+                # string dimension labels.
+                keys = [
+                    k if isinstance(k, str) else dimensions[k]
+                    for k in index.keys()
+                ]
+
+                projected_index = {
+                    key: value if support[key] != (SINGLETON_COORDINATE,)
+                    else singleton_coordinate
+                    for key, value in zip(keys, index.values())
+                }
+
+            except KeyError as e:
+                raise ValueError(
+                    "Dimension {} does not exist. Expected one or more of: "
+                    "{}.".format(e, dimensions)
+                ) from e
+
+            return projected_index
+
+        # Assume regular index otherwise.
+
+        if not isinstance(index, tuple):
+            # Index is a single int, slice, ellipsis, etc. Make it
+            # amenable to zip().
+            index = (index,)
+
+        index_support_map = zip(index, support.values())
+        singleton_coordinate = [0] if preserve_singletons else 0
+        projected_index = tuple(
+            i if support != (SINGLETON_COORDINATE,)
+            else singleton_coordinate
+            for i, support in index_support_map
+        )
+
+        return projected_index
+
+    def __getitem__(self, index):
+        return self._dataarray[index].node
 
     def __repr__(self):
         return self.label
@@ -126,19 +219,20 @@ class Node:
     def __eq__(self, other):
         """Return whether this node equals the other object.
 
-        Two nodes are equal if they belong to the same subsystem and have the
-        same index (their TPMs must be the same in that case, so this method
-        doesn't need to check TPM equality).
+        Two nodes are equal if they have the same index, the same
+        inputs and outputs, the same TPM, the same state_space and the
+        same state.
 
         Labels are for display only, so two equal nodes may have different
         labels.
         """
         return (
-            self.index == other.index
-            and self.tpm.array_equal(other.tpm)
-            and self.state == other.state
-            and self.inputs == other.inputs
-            and self.outputs == other.outputs
+            self.index == other.index and
+            self.tpm.array_equal(other.tpm) and
+            self.inputs == other.inputs and
+            self.outputs == other.outputs and
+            self.state_space == other.state_space and
+            self.state == other.state
         )
 
     def __ne__(self, other):
@@ -156,41 +250,158 @@ class Node:
         return self.index
 
 
-def generate_nodes(tpm, cm, network_state, indices, node_labels=None):
-    """Generate |Node| objects for a subsystem.
+def node(
+        tpm,
+        cm: np.ndarray,
+        network_state_space: Mapping[str, Tuple[Union[int, str]]],
+        index: int,
+        node_labels: Iterable[str],
+        state: Optional[Union[int, str]] = None,
+) -> xr.DataArray:
+    """
+    Instantiate a node TPM DataArray.
 
     Args:
-        tpm (ExplicitTPM): The system's TPM
-        cm (np.ndarray): The corresponding CM.
-        network_state (tuple): The state of the network.
-        indices (tuple[int]): Indices to generate nodes for.
+        tpm (|ExplicitTPM|): The TPM of this node.
+        cm (np.ndarray): The CM of the network.
+        network_state_space (Mapping[str, Tuple[Union[int, str]]]):
+            Labels for the state space of each node in the network.
+        index (int): The node's index in the network.
+        node_labels (Iterable[str]): Textual labels for each node in the network.
 
     Keyword Args:
-        node_labels (|NodeLabels|): Textual labels for each node.
+        state (Optional[Union[int, str]]): The state of this node.
 
     Returns:
-        tuple[Node]: The nodes of the system.
+        xr.DataArray: The node in question.
     """
-    if node_labels is None:
-        node_labels = NodeLabels(None, indices)
+    # Generate DataArray structure for this node
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    node_state = utils.state_of(indices, network_state)
+    # Get indices of the inputs and outputs.
+    inputs = frozenset(get_inputs_from_cm(index, cm))
+    outputs = frozenset(get_outputs_from_cm(index, cm))
 
-    return tuple(
-        Node(tpm, cm, index, state, node_labels)
-        for index, state in zip(indices, node_state)
+    # Marginalize out non-input nodes.
+    non_inputs = set(tpm.tpm_indices()) - inputs
+    tpm = tpm.marginalize_out(non_inputs)
+
+    # Dimensions are the names of this node's parents (whose state this node's
+    # TPM can be conditioned on), plus the last dimension with the probability
+    # for each possible state of this node in the next timestep.
+    dimensions = dimension_labels(node_labels)
+
+    # Compute the relevant state labels (coordinates in xarray terminology) from
+    # the perspective of this node and its direct inputs.
+    node_states = [network_state_space[dim] for dim in dimensions[:-1]]
+    input_coordinates, _ = build_state_space(
+        node_labels,
+        tpm.shape[:-1],
+        node_states,
+        singleton_state_space=(SINGLETON_COORDINATE,),
+    )
+
+    node_state_space = network_state_space[dimensions[index]]
+
+    coordinates = {**input_coordinates, dimensions[-1]: node_state_space}
+
+    return xr.DataArray(
+        name=node_labels[index],
+        data=tpm,
+        dims=dimensions,
+        coords=coordinates,
+        attrs={
+            "index": index,
+            "node_labels": node_labels,
+            "cm": cm,
+            "inputs": inputs,
+            "outputs": outputs,
+            "state_space": tuple(node_state_space),
+            "state": state,
+            "network_state_space": network_state_space
+        }
     )
 
 
+def generate_nodes(
+        network_tpm,
+        cm: np.ndarray,
+        state_space: Mapping[str, Tuple[Union[int, str]]],
+        indices: Tuple[int],
+        node_labels: Tuple[str],
+        network_state: Optional[Tuple[Union[int, str]]] = None,
+) -> Tuple[xr.DataArray]:
+    """Generate |Node| objects out of a binary network |TPM|.
+
+    Args:
+        network_tpm (|ExplicitTPM, ImplicitTPM|): The system's TPM.
+        cm (np.ndarray): The CM of the network.
+        state_space (Mapping[str, Tuple[Union[int, str]]]): Labels
+            for the state space of each node in the network.
+        indices (Tuple[int]): Indices to generate nodes for.
+        node_labels (Optional[Tuple[str]]): Textual labels for each node.
+
+    Keyword Args:
+        network_state (Optional[Tuple[Union[int, str]]]): The state of
+            the network.
+
+    Returns:
+        Tuple[xr.DataArray]: The nodes of the system.
+    """
+    if isinstance(network_tpm, pyphi.tpm.ImplicitTPM):
+        network_tpm = pyphi.tpm.reconstitute_tpm(network_tpm)
+
+    if network_state is None:
+        network_state = (None,) * cm.shape[0]
+
+    node_state = state_of(indices, network_state)
+
+    nodes = []
+
+    for index, state in zip(indices, node_state):
+        # We begin by getting the part of the subsystem's TPM that gives just
+        # the state of this node. This part is still indexed by network state,
+        # but its last dimension will be gone, since now there's just a single
+        # scalar value (this node's state) rather than a state-vector for all
+        # the network nodes.
+        tpm_on = network_tpm[..., index]
+
+        # Get the TPM that gives the probability of the node being off, rather
+        # than on.
+        tpm_off = 1 - tpm_on
+
+        # Combine the on- and off-TPM so that the first dimension is indexed by
+        # the state of the node's inputs at t, and the last dimension is
+        # indexed by the node's state at t+1. This representation makes it easy
+        # to condition on the node state.
+        node_tpm = pyphi.tpm.ExplicitTPM(
+            np.stack([np.asarray(tpm_off), np.asarray(tpm_on)], axis=-1)
+        )
+
+        nodes.append(
+            node(
+                node_tpm,
+                cm,
+                state_space,
+                index,
+                node_labels=node_labels,
+                state=state,
+            ).node
+        )
+
+    return tuple(nodes)
+
+
+# TODO: nonbinary nodes
 def expand_node_tpm(tpm):
     """Broadcast a node TPM over the full network.
 
     Args:
-        tpm (ExplicitTPM): The node TPM to expand.
+        tpm (|ExplicitTPM|): The node TPM to expand.
 
     This is different from broadcasting the TPM of a full system since the last
     dimension (containing the state of the node) contains only the probability
     of *this* node being on, rather than the probabilities for each node.
     """
-    uc = ExplicitTPM(np.ones([2 for node in tpm.shape]))
+    uc = pyphi.tpm.ExplicitTPM(np.ones([2 for node in tpm.shape]))
     return uc * tpm

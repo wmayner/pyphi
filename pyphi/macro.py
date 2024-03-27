@@ -19,7 +19,10 @@ from .exceptions import ConditionallyDependentError, StateUnreachableError
 from .labels import NodeLabels
 from .network import irreducible_purviews
 from .node import expand_node_tpm, generate_nodes
+from .state_space import build_state_space
 from .subsystem import Subsystem
+
+# TODO(tpm) use ImplicitTPM type consistently throughout module
 from .tpm import ExplicitTPM
 
 # Create a logger for this module.
@@ -48,25 +51,6 @@ def rebuild_system_tpm(node_tpms):
     return ExplicitTPM(tpm, validate=True)
 
 
-# TODO This should be a method of the TPM class in tpm.py
-def remove_singleton_dimensions(tpm):
-    """Remove singleton dimensions from the TPM.
-
-    Singleton dimensions are created by conditioning on a set of elements.
-    This removes those elements from the TPM, leaving a TPM that only
-    describes the non-conditioned elements.
-
-    Note that indices used in the original TPM must be reindexed for the
-    smaller TPM.
-    """
-    # Don't squeeze out the final dimension (which contains the probability)
-    # for networks with one element.
-    if tpm.ndim <= 2:
-        return tpm
-
-    return tpm.squeeze()[..., tpm.tpm_indices()]
-
-
 def run_tpm(system, steps, blackbox):
     """Iterate the TPM for the given number of timesteps.
 
@@ -78,7 +62,8 @@ def run_tpm(system, steps, blackbox):
     # boxes.
     node_tpms = []
     for node in system.nodes:
-        node_tpm = node.tpm_on
+        # TODO: nonbinary nodes.
+        node_tpm = node.tpm[..., 1]
         for input_node in node.inputs:
             if not blackbox.in_same_box(node.index, input_node):
                 if input_node in blackbox.output_indices:
@@ -97,7 +82,11 @@ def run_tpm(system, steps, blackbox):
     return ExplicitTPM(convert.state_by_state2state_by_node(tpm), validate=True)
 
 
-class SystemAttrs(namedtuple("SystemAttrs", ["tpm", "cm", "node_indices", "state"])):
+class SystemAttrs(
+        namedtuple(
+            "SystemAttrs", ["tpm", "cm", "node_indices", "state"]
+        )
+):
     """An immutable container that holds all the attributes of a subsystem.
 
     Versions of this object are passed down the steps of the micro-to-macro
@@ -112,14 +101,33 @@ class SystemAttrs(namedtuple("SystemAttrs", ["tpm", "cm", "node_indices", "state
         return NodeLabels(labels, self.node_indices)
 
     @property
+    def state_space(self):
+        state_space, _ = build_state_space(
+            self.node_labels,
+            self.tpm.shape[:-1],
+            node_states=None,
+        )
+        return state_space
+
+    @property
     def nodes(self):
         return generate_nodes(
-            self.tpm, self.cm, self.state, self.node_indices, self.node_labels
+            self.tpm,
+            self.cm,
+            self.state_space,
+            self.node_indices,
+            self.node_labels,
+            network_state=self.state,
         )
 
     @staticmethod
     def pack(system):
-        return SystemAttrs(system.tpm, system.cm, system.node_indices, system.state)
+        return SystemAttrs(
+            system.tpm,
+            system.cm,
+            system.node_indices,
+            system.state,
+        )
 
     def apply(self, system):
         system.tpm = self.tpm
@@ -219,11 +227,12 @@ class MacroSubsystem(Subsystem):
         Reindexes the subsystem so that the nodes are ``0..n`` where ``n`` is
         the number of internal indices in the system.
         """
-        assert system.node_indices == system.tpm.tpm_indices()
+        assert system.node_indices == system.tpm.tpm_indices(reconstituted=True)
 
-        internal_indices = system.tpm.tpm_indices()
+        internal_indices = system.tpm.tpm_indices(reconstituted=True)
+        tpm = system.tpm.remove_singleton_dimensions()
 
-        tpm = remove_singleton_dimensions(system.tpm)
+        # TODO(tpm): deduplicate commonalities with tpm.ImplicitTPM.squeeze.
 
         # The connectivity matrix is the network's connectivity matrix, with
         # cut applied, with all connections to/from external nodes severed,
@@ -234,10 +243,24 @@ class MacroSubsystem(Subsystem):
 
         # Re-index the subsystem nodes with the external nodes removed
         node_indices = reindex(internal_indices)
-        nodes = generate_nodes(tpm, cm, state, node_indices)
+        node_labels = NodeLabels(None, node_indices)
+        state_space, _ = build_state_space(
+            node_labels,
+            tpm.shape[:-1],
+        )
+
+        nodes = generate_nodes(
+            tpm,
+            cm,
+            state_space,
+            node_indices,
+            node_labels,
+            network_state=state
+        )
 
         # Re-calcuate the tpm based on the results of the cut
-        tpm = rebuild_system_tpm(node.tpm_on for node in nodes)
+        # TODO: nonbinary nodes.
+        tpm = rebuild_system_tpm(node.tpm[..., 1] for node in nodes)
 
         return SystemAttrs(tpm, cm, node_indices, state)
 
@@ -247,7 +270,8 @@ class MacroSubsystem(Subsystem):
         # Noise inputs from non-output elements hidden in other boxes
         node_tpms = []
         for node in system.nodes:
-            node_tpm = node.tpm_on
+            # TODO: nonbinary nodes.
+            node_tpm = node.tpm[..., 1]
             for input_node in node.inputs:
                 if blackbox.hidden_from(input_node, node.index):
                     node_tpm = node_tpm.marginalize_out([input_node])
@@ -269,7 +293,12 @@ class MacroSubsystem(Subsystem):
         n = len(system.node_indices)
         cm = np.ones((n, n))
 
-        return SystemAttrs(tpm, cm, system.node_indices, system.state)
+        return SystemAttrs(
+            tpm,
+            cm,
+            system.node_indices,
+            system.state,
+        )
 
     def _blackbox_space(self, blackbox, system):
         """Blackbox the TPM and CM in space.
@@ -287,7 +316,8 @@ class MacroSubsystem(Subsystem):
 
         assert blackbox.output_indices == tpm.tpm_indices()
 
-        tpm = remove_singleton_dimensions(tpm)
+        new_tpm = tpm.remove_singleton_dimensions()
+
         n = len(blackbox)
         cm = np.zeros((n, n))
         for i, j in itertools.product(range(n), repeat=2):
@@ -299,8 +329,12 @@ class MacroSubsystem(Subsystem):
 
         state = blackbox.macro_state(system.state)
         node_indices = blackbox.macro_indices
+        state_space, _ = build_state_space(
+            NodeLabels(None, node_indices),
+            tpm.shape[:-1]
+        )
 
-        return SystemAttrs(tpm, cm, node_indices, state)
+        return SystemAttrs(new_tpm, cm, node_indices, state)
 
     @staticmethod
     def _coarsegrain_space(coarse_grain, is_cut, system):

@@ -9,6 +9,7 @@ Functions for manipulating probability distributions.
 import numpy as np
 
 from .cache import cache
+from .utils import eq
 
 
 def normalize(a):

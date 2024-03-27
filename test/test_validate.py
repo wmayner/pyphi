@@ -83,7 +83,7 @@ def test_validate_connectivity_matrix_not_binary():
 
 def test_validate_network_wrong_cm_size(s):
     with pytest.raises(ValueError):
-        Network(s.network.tpm.tpm, np.ones(16).reshape(4, 4))
+        Network(s.network.tpm, np.ones(16).reshape(4, 4))
 
 
 def test_validate_is_network(s):

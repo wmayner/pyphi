@@ -28,12 +28,11 @@ from .models import (
     RepertoireIrreducibilityAnalysis,
     _null_ria,
 )
+from .node import node as Node
 from .models.mechanism import ShortCircuitConditions, StateSpecification
 from .network import irreducible_purviews
-from .node import generate_nodes
 from .partition import mip_partitions
 from .repertoire import forward_repertoire, unconstrained_forward_repertoire
-from .tpm import backward_tpm as _backward_tpm
 from .utils import state_of
 
 log = logging.getLogger(__name__)
@@ -55,7 +54,7 @@ class Subsystem:
 
     Attributes:
         network (Network): The network the subsystem belongs to.
-        tpm (pyphi.tpm.ExplicitTPM): The TPM conditioned on the state
+        tpm (ImplicitTPM): The TPM conditioned on the state
             of the external nodes.
         cm (np.ndarray): The connectivity matrix after applying the cut.
         state (tuple[int]): The state of the network.
@@ -80,7 +79,6 @@ class Subsystem:
     ):
         # The network this subsystem belongs to.
         validate.is_network(network)
-        network._tpm = network.tpm
         self.network = network
 
         self.node_labels = network.node_labels
@@ -107,11 +105,11 @@ class Subsystem:
         background_conditions = dict(zip(self.external_indices, external_state))
         self.backward_tpm = backward_tpm
         if self.backward_tpm:
-            self.tpm = _backward_tpm(self.network.tpm, state, self.node_indices)
+            self.tpm = self.network.tpm.backward_tpm(state, self.node_indices)
         else:
             self.tpm = self.network.tpm.condition_tpm(background_conditions)
         # The TPM for just the nodes in the subsystem.
-        self.proper_tpm = self.tpm.squeeze()[..., list(self.node_indices)]
+        self.proper_tpm = self.tpm.squeeze()
 
         # The unidirectional cut applied for phi evaluation
         self.cut = (
@@ -135,8 +133,22 @@ class Subsystem:
             unconstrained_forward_repertoire_cache or cache.DictCache()
         )
 
-        self.nodes = generate_nodes(
-            self.tpm, self.cm, self.state, self.node_indices, self.node_labels
+        # Set the state of the |Node|s.
+        for tpm_node, node_state in zip(self.tpm.nodes, self.state):
+            tpm_node.state = node_state
+
+        # Generate |Node|s for this subsystem and this particular cut to the cm.
+        self.nodes = tuple(
+            Node(
+                node.tpm,
+                self.cm,
+                self.network.state_space,
+                i,
+                self.node_labels,
+                state=node.state,
+            ).node
+            for i, node in enumerate(self.tpm.nodes)
+            if i in self.node_indices
         )
 
         validate.subsystem(self)
@@ -208,6 +220,10 @@ class Subsystem:
     def tpm_size(self):
         """int: The number of nodes in the TPM."""
         return self.tpm.shape[-1]
+
+    @property
+    def state_space(self):
+        return self.network.state_space
 
     def cache_info(self):
         """Report repertoire cache statistics."""
@@ -385,7 +401,6 @@ class Subsystem:
         # pylint: disable=missing-docstring
         purview_node = self._index2node[purview_node_index]
         # Condition on the state of the purview inputs that are in the mechanism
-        purview_node.tpm = purview_node.tpm
         tpm = purview_node.tpm.condition_tpm(condition)
         # TODO(4.0) remove reference to TPM
         # Marginalize-out the inputs that aren't in the mechanism.
@@ -1076,7 +1091,8 @@ class Subsystem:
         Returns:
             MaximallyIrreducibleCauseOrEffect: The |MIC| or |MIE|.
         """
-        purviews = self.potential_purviews(direction, mechanism, purviews)
+        if purviews is None:
+            purviews = self.potential_purviews(direction, mechanism, purviews)
 
         if direction == Direction.CAUSE:
             mice_class = MaximallyIrreducibleCause

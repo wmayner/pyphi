@@ -33,6 +33,7 @@ install_requires = [
     "tblib >=1.3.2",
     "toolz >=0.9.0",
     "tqdm >=4.20.0",
+    "xarray >=2022.12.0"
 ]
 
 setup(

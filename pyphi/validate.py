@@ -4,11 +4,16 @@
 Methods for validating arguments.
 """
 
+from itertools import product
+
 import numpy as np
 
 from . import exceptions
 from .conf import config
 from .direction import Direction
+from .tpm import ImplicitTPM, reconstitute_tpm
+from .utils import equivalent_states
+
 
 # pylint: disable=redefined-outer-name
 
@@ -37,6 +42,32 @@ def direction(direction, allow_bi=False):
     return True
 
 
+def node_labels(node_labels, node_indices):
+    """Validate that there is a label for each node."""
+    if len(node_labels) != len(node_indices):
+        raise ValueError(
+            "Labels {0} must label every node {1}.".format(node_labels, node_indices)
+        )
+
+    if len(node_labels) != len(set(node_labels)):
+        raise ValueError("Labels {0} must be unique.".format(node_labels))
+
+def network(n):
+    """Validate a |Network|.
+
+    Checks the TPM and connectivity matrix.
+    """
+    n.tpm.validate()
+    connectivity_matrix(n.cm)
+    shapes(n.tpm.shapes, n.cm)
+    if n.cm.shape[0] != n.size:
+        raise ValueError(
+            "Connectivity matrix must be NxN, where N is the "
+            "number of nodes in the network."
+        )
+    return True
+
+
 def connectivity_matrix(cm):
     """Validate the given connectivity matrix."""
     # Special case for empty matrices.
@@ -51,29 +82,15 @@ def connectivity_matrix(cm):
     return True
 
 
-def node_labels(node_labels, node_indices):
-    """Validate that there is a label for each node."""
-    if len(node_labels) != len(node_indices):
-        raise ValueError(
-            "Labels {0} must label every node {1}.".format(node_labels, node_indices)
-        )
-
-    if len(node_labels) != len(set(node_labels)):
-        raise ValueError("Labels {0} must be unique.".format(node_labels))
-
-
-def network(n):
-    """Validate a |Network|.
-
-    Checks the TPM and connectivity matrix.
-    """
-    n.tpm.validate()
-    connectivity_matrix(n.cm)
-    if n.cm.shape[0] != n.size:
-        raise ValueError(
-            "Connectivity matrix must be NxN, where N is the "
-            "number of nodes in the network."
-        )
+def shapes(shapes, cm):
+    """Validate consistency between node TPM shapes and a user-provided cm."""
+    for i, shape in enumerate(shapes):
+        for j, con in enumerate(cm[..., i]):
+            if (con == 0 and shape[j] != 1) or (con != 0 and shape[j] == 1):
+                raise ValueError(
+                    "Node TPM {} of shape {} does not match the connectivity "
+                    "matrix.".format(i, shape)
+                )
     return True
 
 
@@ -85,12 +102,6 @@ def is_network(network):
         raise ValueError(
             "Input must be a Network (perhaps you passed a Subsystem instead?"
         )
-
-
-def node_states(state):
-    """Check that the state contains only zeros and ones."""
-    if not all(n in (0, 1) for n in state):
-        raise ValueError("Invalid state: states must consist of only zeros and ones.")
 
 
 def state_length(state, size):
@@ -105,16 +116,31 @@ def state_length(state, size):
 
 
 def state_reachable(subsystem):
-    """Return whether a state can be reached according to the network's TPM."""
-    # If there is a row `r` in the TPM such that all entries of `r - state` are
-    # between -1 and 1, then the given state has a nonzero probability of being
-    # reached from some state.
-    # First we take the submatrix of the conditioned TPM that corresponds to
-    # the nodes that are actually in the subsystem...
-    tpm = subsystem.tpm.tpm[..., subsystem.node_indices]
-    # Then we do the subtraction and test.
-    test = tpm - np.array(subsystem.proper_state)
-    if not np.any(np.logical_and(-1 < test, test < 1).all(-1)):
+    """Raise exception if state cannot be reached according to subsystem's TPM."""
+    # A state s is reachable by Subsystem S if and only if there is at least
+    # one state s_{t-1} with nonzero probability of transitioning to s:
+    #             ∃ s_{t-1} : p(S=s | s_{t-1}, w_{t-1}) > 0
+
+    # Obtain p(S=s | W_{t-1}=w_{t-1}) as node marginals (i.e. implicitly).
+    p = subsystem.proper_tpm.probability_of_current_state(subsystem.proper_state)
+
+    # Avoid computing the joint distribution. For each node n, find the set of
+    # coordinates s_{t-1} for which p_n > 0. The intersection of all such sets
+    # is the set of previous states leading to the current state.
+    past_states = [
+        set(
+            equivalent
+            for equivalent in equivalent_states(
+                    subsystem.proper_state,
+                    node_p.shape[:-1],
+                    subsystem.proper_tpm.shape[:-1]
+            )
+            for state in np.argwhere(np.asarray(node_p) > 0)
+        )
+        for node_p in p
+    ]
+
+    if not set.intersection(*past_states):
         raise exceptions.StateUnreachableError(subsystem.state)
 
 
@@ -131,7 +157,6 @@ def subsystem(s):
 
     Checks its state and cut.
     """
-    node_states(s.state)
     # cut(s.cut, s.cut_indices)
     if config.VALIDATE_SUBSYSTEM_STATES:
         state_reachable(s)

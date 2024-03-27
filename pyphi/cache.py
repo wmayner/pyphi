@@ -171,10 +171,10 @@ class DictCache:
     Intended to be used as an object-level cache of method results.
     """
 
-    def __init__(self):
-        self.cache = {}
-        self.hits = 0
-        self.misses = 0
+    def __init__(self, cache=None, hits=0, misses=0):
+        self.cache = dict() if cache is None else cache
+        self.hits = hits
+        self.misses = misses
 
     def clear(self):
         self.cache = {}
@@ -216,6 +216,11 @@ class DictCache:
         if kwargs:
             raise NotImplementedError("kwarg cache keys not implemented")
         return (_prefix,) + tuple(args)
+    
+    def __repr__(self):
+        return "{}(cache={}, hits={}, misses={})".format(
+            type(self).__name__, self.cache, self.hits, self.misses
+        )
 
 
 def redis_init(db):

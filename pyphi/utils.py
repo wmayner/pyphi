@@ -41,6 +41,7 @@ def state_of_subsystem_nodes(node_indices, nodes, subsystem_state):
     return state_of([node_indices.index(n) for n in nodes], subsystem_state)
 
 
+# TODO: nonbinary states
 def all_states(n, big_endian=False):
     """Return all binary states for a system.
 
@@ -61,6 +62,43 @@ def all_states(n, big_endian=False):
             yield state
         else:
             yield state[::-1]  # Convert to little-endian ordering
+
+
+def equivalent_states(state, mask, state_space_shape):
+    """Generate the equivalence class of some state, given irrelevant dimensions.
+
+    Arguments:
+        state (Iterable[int]): Some state in the equivalence class.
+        mask (Iterable[int]): State mask with 1's representing irrelevant dimensions.
+        state_space_shape (Iterable[int]): The cardinalities of each dimension
+            in the state space.
+
+    Yields:
+        Iterable[tuple[int]]: A generator for the equivalence class of states.
+
+    Examples:
+        >>> state = (1, 1, 1, 1)
+        >>> mask = (2, 1, 1, 2)
+        >>> state_space_shape = (2, 2, 3, 3)
+        >>> list(equivalent_states(state, mask, state_space_shape))
+        [(1, 0, 0, 1), (1, 0, 1, 1), (1, 0, 2, 1), (1, 1, 0, 1), (1, 1, 1, 1), (1, 1, 2, 1)]
+    """
+    n = len(state)
+    if any(n != len(arg) for arg in [mask, state_space_shape]):
+        raise ValueError(f"Expected mask and state_space_shape of size {n}.")
+
+    indices_needing_expansion = {
+        i: state_space_shape[i] for i, mask in enumerate(mask)
+        if mask == 1
+    }
+    locally_expanded_states = product(
+        *[range(states) for i, states in indices_needing_expansion.items()]
+    )
+    expanded_indices = list(indices_needing_expansion.keys())
+    state = np.array(state)
+    for s in locally_expanded_states:
+        state[expanded_indices] = s
+        yield tuple(state)
 
 
 def np_immutable(a):

@@ -125,8 +125,8 @@ def test_apply_cut(s):
     assert s.network == cut_s.network
     assert s.state == cut_s.state
     assert s.node_indices == cut_s.node_indices
-    assert np.array_equal(cut_s.tpm.tpm, s.tpm.tpm)
-    assert np.array_equal(cut_s.cm, cut.apply_cut(s.cm))
+    assert s.tpm.array_equal(cut_s.tpm)
+    assert np.array_equal(cut.apply_cut(s.cm), cut_s.cm)
 
 
 def test_cut_indices(s, subsys_n1n2):
@@ -148,7 +148,13 @@ def test_cut_node_labels(s):
 
 
 def test_specify_elements_with_labels(standard):
-    network = Network(standard.tpm.tpm, node_labels=("A", "B", "C"))
+    cm = np.array([
+        [0, 0, 1],
+        [1, 0, 1],
+        [1, 1, 0]
+    ])
+    print(standard.tpm)
+    network = Network(standard.tpm, cm, node_labels=("A", "B", "C"))
     subsystem = Subsystem(network, (0, 0, 0), ("B", "C"))
     assert subsystem.node_indices == (1, 2)
     assert tuple(node.label for node in subsystem.nodes) == ("B", "C")
