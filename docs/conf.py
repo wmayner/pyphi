@@ -123,6 +123,7 @@ rst_prolog = "".join(
 .. |big_phi = 0| replace:: :math:`\Phi = 0`
 .. |big_phi_max| replace:: :math:`\Phi^{\textrm{max}}`
 .. |small_phi| replace:: :math:`\varphi`
+.. |small_phi_s| replace:: :math:`\varphi_s`
 .. |small_phi > 0| replace:: :math:`\varphi > 0`
 .. |small_phi = 0| replace:: :math:`\varphi = 0`
 .. |small_phi_max| replace:: :math:`\varphi^{\textrm{max}}`

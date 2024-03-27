@@ -7,40 +7,40 @@ from toolz import curry
 from . import utils
 
 
-def logical_or_function(element, weights, state):
+def logical_or_function(element, weights, state, **kwargs):
     return utils.total_weighted_input(element, weights, state) >= 1
 
 
-def logical_and_function(element, weights, state):
+def logical_and_function(element, weights, state, **kwargs):
     # Convention: i,j means i -> j
     num_inputs = (weights[:, element] > 0).sum()
     return utils.total_weighted_input(element, weights, state) >= num_inputs
 
 
-def logical_parity_function(element, weights, state):
+def logical_parity_function(element, weights, state, **kwargs):
     return utils.total_weighted_input(element, weights, state) % 2 >= 1
 
 
-def logical_nor_function(element, weights, state):
+def logical_nor_function(element, weights, state, **kwargs):
     return not (logical_or_function(element, weights, state))
 
 
-def logical_nand_function(element, weights, state):
+def logical_nand_function(element, weights, state, **kwargs):
     return not (logical_and_function(element, weights, state))
 
 
-def logical_nparity_function(element, weights, state):
+def logical_nparity_function(element, weights, state, **kwargs):
     return not (logical_parity_function(element, weights, state))
 
 
 @curry
-def naka_rushton(element, weights, state, exponent=2.0, threshold=1.0):
+def naka_rushton(element, weights, state, exponent=2.0, threshold=1.0, **kwargs):
     x = utils.total_weighted_input(element, weights, state) ** exponent
     return x / (x + threshold)
 
 
 @curry
-def boolean_function(element, weights, state, on_inputs=()):
+def boolean_function(element, weights, state, on_inputs=(), **kwargs):
     """An arbitrary boolean function.
 
     Arguments:
@@ -78,6 +78,7 @@ def gaussian(
     state,
     mu=0.0,
     sigma=0.5,
+    **kwargs,
 ):
     state = utils.binary2spin(state)
     x = utils.total_weighted_input(element, weights, state)
