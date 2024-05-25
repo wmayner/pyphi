@@ -119,29 +119,30 @@ def state_reachable(subsystem):
     """Raise exception if state cannot be reached according to subsystem's TPM."""
     # A state s is reachable by Subsystem S if and only if there is at least
     # one state s_{t-1} with nonzero probability of transitioning to s:
-    #             ∃ s_{t-1} : p(S=s | s_{t-1}, w_{t-1}) > 0
+    #             ∃ s_{t-1} : p(s | s_{t-1}, w_{t-1}) > 0
 
-    # Obtain p(S=s | W_{t-1}=w_{t-1}) as node marginals (i.e. implicitly).
+    # Obtain p(s | w_{t-1}) as node marginals (i.e. implicitly).
     p = subsystem.proper_tpm.probability_of_current_state(subsystem.proper_state)
 
     # Avoid computing the joint distribution. For each node n, find the set of
     # coordinates s_{t-1} for which p_n > 0. The intersection of all such sets
     # is the set of previous states leading to the current state.
-    past_states = [
-        set(
-            equivalent
-            for equivalent in equivalent_states(
-                    subsystem.proper_state,
-                    node_p.shape[:-1],
-                    subsystem.proper_tpm.shape[:-1]
-            )
-            for state in np.argwhere(np.asarray(node_p) > 0)
-        )
-        for node_p in p
-    ]
 
-    if not set.intersection(*past_states):
-        raise exceptions.StateUnreachableError(subsystem.state)
+    def past_states(p_node):
+        return set(
+            tuple(state) for state in np.argwhere(np.asarray(p_node) > 0)
+        )
+
+    # Initial value.
+    intersection = past_states(p[0])
+
+    for p_node in p[1:]:
+        intersection = set.intersection(intersection, past_states(p_node))
+
+        # Shortcircuit evaluation of intersection as soon as a
+        # pairwise intersection is empty.
+        if not intersection:
+            raise exceptions.StateUnreachableError(subsystem.state)
 
 
 def cut(cut, node_indices):
