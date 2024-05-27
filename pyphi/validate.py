@@ -4,15 +4,12 @@
 Methods for validating arguments.
 """
 
-from itertools import product
-
 import numpy as np
 
 from . import exceptions
 from .conf import config
 from .direction import Direction
-from .tpm import ImplicitTPM, reconstitute_tpm
-from .utils import equivalent_states
+from .tpm import ImplicitTPM
 
 
 # pylint: disable=redefined-outer-name
@@ -129,16 +126,51 @@ def state_reachable(subsystem):
     # is the set of previous states leading to the current state.
 
     def past_states(p_node):
-        return set(
-            tuple(state) for state in np.argwhere(np.asarray(p_node) > 0)
+        # Find s_{t-1} such that p_node > 0.
+        states = list(np.argwhere(np.asarray(p_node) > 0))
+        # Remove last dimension (probability of current state).
+        states = [state[:-1] for state in states]
+        # If node TPM shape at certain parent contains a 1, then
+        # there's no dependency on that parent. Substitute '0' state
+        # with placeholder to encode equivalent states.
+        states = [
+            tuple(
+                '?' if p_node.shape[i] == 1 else s
+                for i, s in enumerate(state)
+            )
+            for state in states
+        ]
+        return set(states)
+
+    def _states_intersection(state1, state2):
+        restricted_state = []
+        for s1_i, s2_i in zip(state1, state2):
+            if s1_i == s2_i:
+                restricted_state.append(s1_i)
+            elif s1_i == '?':
+                restricted_state.append(s2_i)
+            elif s2_i == '?':
+                restricted_state.append(s1_i)
+            else:
+                return None
+        return tuple(restricted_state)
+
+    def states_intersection(states1, states2):
+        # For each unordered pair {s1, s2} in the Cartesian product of
+        # the two state sets, check if s1 and s2 refer to the same
+        # state or a (sub)class of equivalent states. If so, that's a
+        # member of the intersection of states1 and states2.
+        intersection = set(
+            equivalent_state for s1 in states1 for s2 in states2
+            if (equivalent_state := _states_intersection(s1, s2))
         )
+        return intersection
 
     # Initial value.
     intersection = past_states(p[0])
 
     for p_node in p[1:]:
-        intersection = set.intersection(intersection, past_states(p_node))
-
+        intersection = states_intersection(intersection, past_states(p_node))
         # Shortcircuit evaluation of intersection as soon as a
         # pairwise intersection is empty.
         if not intersection:
