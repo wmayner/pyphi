@@ -145,7 +145,7 @@ class Subsystem:
                 self.network.state_space,
                 i,
                 self.node_labels,
-                state=node.state
+                state=node.state,
             ).node
             for i, node in enumerate(self.tpm.nodes)
             if i in self.node_indices
@@ -1091,7 +1091,8 @@ class Subsystem:
         Returns:
             MaximallyIrreducibleCauseOrEffect: The |MIC| or |MIE|.
         """
-        purviews = self.potential_purviews(direction, mechanism, purviews)
+        if purviews is None:
+            purviews = self.potential_purviews(direction, mechanism, purviews)
 
         if direction == Direction.CAUSE:
             mice_class = MaximallyIrreducibleCause
