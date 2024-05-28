@@ -4,9 +4,11 @@
 Methods for validating arguments.
 """
 
+from itertools import product
 import numpy as np
 
-from . import exceptions
+from . import conf, exceptions
+from .compute.parallel import MapReduce
 from .conf import config
 from .direction import Direction
 from .tpm import ImplicitTPM
@@ -132,24 +134,24 @@ def state_reachable(subsystem):
         states = [state[:-1] for state in states]
         # If node TPM shape at certain parent contains a 1, then
         # there's no dependency on that parent. Substitute '0' state
-        # with placeholder to encode equivalent states.
+        # with placeholder -1 to encode equivalent states.
         states = [
             tuple(
-                '?' if p_node.shape[i] == 1 else s
+                -1 if p_node.shape[i] == 1 else s
                 for i, s in enumerate(state)
             )
             for state in states
         ]
         return set(states)
 
-    def _states_intersection(state1, state2):
+    def _states_intersection(state_pair):
         restricted_state = []
-        for s1_i, s2_i in zip(state1, state2):
+        for s1_i, s2_i in zip(*state_pair):
             if s1_i == s2_i:
                 restricted_state.append(s1_i)
-            elif s1_i == '?':
+            elif s1_i == -1:
                 restricted_state.append(s2_i)
-            elif s2_i == '?':
+            elif s2_i == -1:
                 restricted_state.append(s1_i)
             else:
                 return None
@@ -160,11 +162,21 @@ def state_reachable(subsystem):
         # the two state sets, check if s1 and s2 refer to the same
         # state or a (sub)class of equivalent states. If so, that's a
         # member of the intersection of states1 and states2.
-        intersection = set(
-            equivalent_state for s1 in states1 for s2 in states2
-            if (equivalent_state := _states_intersection(s1, s2))
+        state_pairs = set(
+            tuple(sorted(pair)) for pair in product(states1, states2)
         )
-        return intersection
+        parallel_kwargs = conf.parallel_kwargs(
+            config.PARALLEL_STATE_REACHABILITY_EVALUATION
+        )
+        intersection = MapReduce(
+            _states_intersection,
+            state_pairs,
+            total=len(state_pairs),
+            desc="Validating state reachability",
+            **parallel_kwargs,
+        ).run()
+        # Cast to set and filter out None from members of intersection.
+        return set(state for state in intersection if state)
 
     # Initial value.
     intersection = past_states(p[0])

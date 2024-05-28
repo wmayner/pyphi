@@ -538,6 +538,20 @@ class PyphiConfig(Config):
     """,
     )
 
+    PARALLEL_STATE_REACHABILITY_EVALUATION = Option(
+        dict(
+            parallel=True,
+            sequential_threshold=2*10,
+            chunksize=2**12,
+            progress=True,
+        ),
+        type=Mapping,
+        doc="""
+        Controls parallel evaluation of subsystem state reachability.
+
+        Only applies if VALIDATE_SUBSYSTEM_STATES = True.""",
+    )
+
     NUMBER_OF_CORES = Option(
         -1,
         type=int,
