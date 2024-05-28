@@ -114,6 +114,88 @@ def state_length(state, size):
     return True
 
 
+def _past_states(p_node):
+    """Find set of states which could have led to the current state of a node.
+
+    The state of irrelevant dimensions, nodes which don't output to this
+    node, is represented with -1 to encode a whole equivalence class.
+
+    Arguments:
+        p_node (np.ndarray): Node TPM conditioned on the current subsystem state.
+            See also :func:`pyphi.tpm.ImplicitTPM.probability_of_current_state`.
+
+    Returns:
+        set: Set of past states with nonzero probability of transitioning.
+    """
+    # Find s_{t-1} such that p_node > 0.
+    states = list(np.argwhere(np.asarray(p_node) > 0))
+    # Remove last dimension (probability of current state).
+    states = [state[:-1] for state in states]
+    # If node TPM shape at certain parent contains a 1, then
+    # there's no dependency on that parent. Substitute '0' state
+    # with placeholder -1 to encode equivalent states.
+    states = [
+        tuple(-1 if p_node.shape[i] == 1 else s for i, s in enumerate(state))
+        for state in states
+    ]
+    return set(states)
+
+
+def _states_intersection(states1, states2):
+    """Efficient symbolic intersection between two sets of states.
+
+    Arguments:
+        states1 (set[tuple[int]]): First set of states or equivalence classes.
+        states2 (set[tuple[int]]): Second set of states or equivalence classes.
+
+    Returns:
+        set[tuple[int]]: The intersection between the two sets.
+
+    Examples:
+        >>> states1 = {(1, 0, -1), (1, 1, -1)}
+        >>> states2 = {(1, 0, 0), (1, 1, 1)}
+        >>> sorted(list(_states_intersection(states1, states2)))
+        [(1, 0, 0), (1, 1, 1)]
+
+        >>> states1 = {(1, -1, -1)}
+        >>> states2 = {(1, 0, -1), (1, 1, -1)}
+        >>> sorted(list(_states_intersection(states1, states2)))
+        [(1, 0, -1), (1, 1, -1)]
+    """
+    def find_intersection(state_pair):
+        # For each unordered pair |{state1, state2}| in the Cartesian product of
+        # the two sets, check if |state1| and |state2| have a non-empty
+        # (sub)class in common. If so, that is a member of the intersection.
+        subclass = []
+        for i, j in zip(*state_pair):
+            if i == j:
+                subclass.append(i)
+            elif i == -1:
+                subclass.append(j)
+            elif j == -1:
+                subclass.append(i)
+            else:
+                return None
+        return tuple(subclass)
+
+    # Obtain Cartesian product and discard permutations of the same pair.
+    state_pairs = set(
+        tuple(sorted(pair)) for pair in product(states1, states2)
+    )
+    parallel_kwargs = conf.parallel_kwargs(
+        config.PARALLEL_STATE_REACHABILITY_EVALUATION
+    )
+    intersection = MapReduce(
+        find_intersection,
+        state_pairs,
+        total=len(state_pairs),
+        desc="Validating state reachability",
+        **parallel_kwargs,
+    ).run()
+    # Cast to set and filter out None's from members of the intersection.
+    return set(state for state in intersection if state)
+
+
 def state_reachable(subsystem):
     """Raise exception if state cannot be reached according to subsystem's TPM."""
     # A state s is reachable by Subsystem S if and only if there is at least
@@ -127,64 +209,13 @@ def state_reachable(subsystem):
     # coordinates s_{t-1} for which p_n > 0. The intersection of all such sets
     # is the set of previous states leading to the current state.
 
-    def past_states(p_node):
-        # Find s_{t-1} such that p_node > 0.
-        states = list(np.argwhere(np.asarray(p_node) > 0))
-        # Remove last dimension (probability of current state).
-        states = [state[:-1] for state in states]
-        # If node TPM shape at certain parent contains a 1, then
-        # there's no dependency on that parent. Substitute '0' state
-        # with placeholder -1 to encode equivalent states.
-        states = [
-            tuple(
-                -1 if p_node.shape[i] == 1 else s
-                for i, s in enumerate(state)
-            )
-            for state in states
-        ]
-        return set(states)
-
-    def _states_intersection(state_pair):
-        restricted_state = []
-        for s1_i, s2_i in zip(*state_pair):
-            if s1_i == s2_i:
-                restricted_state.append(s1_i)
-            elif s1_i == -1:
-                restricted_state.append(s2_i)
-            elif s2_i == -1:
-                restricted_state.append(s1_i)
-            else:
-                return None
-        return tuple(restricted_state)
-
-    def states_intersection(states1, states2):
-        # For each unordered pair {s1, s2} in the Cartesian product of
-        # the two state sets, check if s1 and s2 refer to the same
-        # state or a (sub)class of equivalent states. If so, that's a
-        # member of the intersection of states1 and states2.
-        state_pairs = set(
-            tuple(sorted(pair)) for pair in product(states1, states2)
-        )
-        parallel_kwargs = conf.parallel_kwargs(
-            config.PARALLEL_STATE_REACHABILITY_EVALUATION
-        )
-        intersection = MapReduce(
-            _states_intersection,
-            state_pairs,
-            total=len(state_pairs),
-            desc="Validating state reachability",
-            **parallel_kwargs,
-        ).run()
-        # Cast to set and filter out None from members of intersection.
-        return set(state for state in intersection if state)
-
     # Initial value.
-    intersection = past_states(p[0])
+    intersection = _past_states(p[0])
 
     for p_node in p[1:]:
-        intersection = states_intersection(intersection, past_states(p_node))
+        intersection = _states_intersection(intersection, _past_states(p_node))
         # Shortcircuit evaluation of intersection as soon as a
-        # pairwise intersection is empty.
+        # 2-ary intersection is empty.
         if not intersection:
             raise exceptions.StateUnreachableError(subsystem.state)
 
