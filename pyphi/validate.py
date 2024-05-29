@@ -99,7 +99,7 @@ def is_network(network):
 
     if not isinstance(network, Network):
         raise ValueError(
-            "Input must be a Network (perhaps you passed a Subsystem instead?"
+            "Input must be a Network (perhaps you passed a Subsystem instead?)"
         )
 
 
@@ -113,6 +113,35 @@ def state_length(state, size):
         )
     return True
 
+
+def state_type(state):
+    """Check that the state only contains integers."""
+    if any(not isinstance(s, int) for s in state):
+        raise TypeError(
+            f"Invalid state {state}: each entry must be of int type."
+        )
+    return True
+
+
+def state_value(state, shape):
+    """Check that each entry in the state falls within the right range."""
+    if any(
+            s not in range(cardinality)
+            for s, cardinality in zip(state, shape)
+    ):
+        raise ValueError(
+            f"Invalid state {state}: entries must be within zero and {shape}."
+        )
+    return True
+
+
+def state(state, size, shape):
+    """Check that the state is of the correct length, type and value."""
+    return (
+        state_length(state, size) and
+        state_type(state) and
+        state_value(state, shape)
+    )
 
 def _past_states(p_node):
     """Find set of states which could have led to the current state of a node.

@@ -86,7 +86,7 @@ class Subsystem:
         # (for JSON serialization).
         self.node_indices = self.node_labels.coerce_to_indices(nodes)
 
-        validate.state_length(state, self.network.size)
+        validate.state(state, self.network.size, self.network.tpm.shape[:-1])
 
         # The state of the network.
         self.state = tuple(state)
