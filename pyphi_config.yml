@@ -84,13 +84,6 @@ PARALLEL_RELATION_EVALUATION:
   parallel: true
   sequential_threshold: 1024
   progress: true
-# Controls parallel evaluation of subsystem state reachability.
-# Only applies if VALIDATE_SUBSYSTEM_STATES = True.
-PARALLEL_STATE_REACHABILITY_EVALUATION:
-  chunksize: 4096
-  parallel: true
-  sequential_threshold: 1024
-  progress: true
 # Controls the partitioning scheme for distinctions.
 PARTITION_TYPE: ALL
 # Controls the numerical precision with which to compare phi values against each

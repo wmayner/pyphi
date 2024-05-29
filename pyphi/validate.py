@@ -182,8 +182,8 @@ def _states_intersection(states1, states2):
         set[tuple[int]]: The intersection between the two sets.
 
     Examples:
-        >>> states1 = {(1, 0, -1), (1, 1, -1)}
-        >>> states2 = {(1, 0, 0), (1, 1, 1)}
+        >>> states1 = {(1, 0, -1), (1, 1, 1)}
+        >>> states2 = {(1, 0, 0), (1, 1, 1), (0, 0, 0)}
         >>> sorted(list(_states_intersection(states1, states2)))
         [(1, 0, 0), (1, 1, 1)]
 
@@ -208,22 +208,13 @@ def _states_intersection(states1, states2):
                 return None
         return tuple(subclass)
 
-    # Obtain Cartesian product and discard permutations of the same pair.
-    state_pairs = set(
-        tuple(sorted(pair)) for pair in product(states1, states2)
+    # Lazy generator of the Cartesian product.
+    state_pairs = product(states1, states2)
+    # Find 2-ary intersections, filter out None's on the fly and return that set.
+    return set(
+        intersection for pair in state_pairs
+        if (intersection := find_intersection(pair))
     )
-    parallel_kwargs = conf.parallel_kwargs(
-        config.PARALLEL_STATE_REACHABILITY_EVALUATION
-    )
-    intersection = MapReduce(
-        find_intersection,
-        state_pairs,
-        total=len(state_pairs),
-        desc="Validating state reachability",
-        **parallel_kwargs,
-    ).run()
-    # Cast to set and filter out None's from members of the intersection.
-    return set(state for state in intersection if state)
 
 
 def state_reachable(subsystem):
