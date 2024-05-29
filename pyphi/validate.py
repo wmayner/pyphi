@@ -130,7 +130,8 @@ def state_value(state, shape):
             for s, cardinality in zip(state, shape)
     ):
         raise ValueError(
-            f"Invalid state {state}: entries must be within zero and {shape}."
+            f"Invalid state {state}: entries must be within zero and "
+            f"{tuple((np.array(shape) - 1).tolist())}."
         )
     return True
 
