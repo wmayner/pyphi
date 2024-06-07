@@ -272,6 +272,7 @@ class ShortCircuitConditions(Enum):
     NO_VALID_PARTITIONS = auto()
     NO_CAUSE = auto()
     NO_EFFECT = auto()
+    NOT_STRONGLY_CONNECTED = auto()
 
 
 def _has_no_cause_or_effect(system_state):
@@ -300,6 +301,7 @@ def sia(
     partitions: Optional[Iterable] = None,
     system_state: Optional[SystemStateSpecification] = None,
     subsystem_cause: Optional[Subsystem] = None,
+    
     **kwargs,
 ) -> SystemIrreducibilityAnalysis:
     """Find the minimum information partition of a system."""
@@ -339,7 +341,17 @@ def sia(
             **kwargs,
         )
 
+
     if config.SHORTCIRCUIT_SIA:
+        
+        #For the case where cm is not offered by an user
+        if subsystem.cm.sum() == subsystem.cm.size:
+            subsystem.cm = subsystem.network.tpm.infer_cm()
+
+        #When subsystem is not strongly connected
+        if not connectivity.is_strong(subsystem.cm, subsystem.node_indices):
+            return _null_sia(reasons=[ShortCircuitConditions.NOT_STRONGLY_CONNECTED])
+
         shortcircuit_reasons = _has_no_cause_or_effect(system_state)
         if shortcircuit_reasons:
             return _null_sia(reasons=shortcircuit_reasons)
