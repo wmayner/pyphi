@@ -1,4 +1,5 @@
 # visualize/distribution.py
+"""Visualize distributions."""
 
 from math import log2
 

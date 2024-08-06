@@ -1,10 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # compute/subsystem.py
-
-"""
-Functions for computing subsystem-level properties.
-"""
+"""Functions for computing subsystem-level properties."""
 
 import functools
 import logging
@@ -25,7 +20,7 @@ from ..models import (
     cmp,
 )
 from ..partition import mip_partitions, system_partition_types
-from .parallel import MapReduce
+from ..parallel import MapReduce
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)

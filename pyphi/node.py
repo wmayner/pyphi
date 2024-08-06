@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # node.py
-
-"""
-Represents a node in a network. Each node has a unique index, its position in
-the network's list of nodes.
-"""
+"""Represents a node in a network."""
 
 import functools
 
@@ -31,17 +25,22 @@ from .utils import state_of
 @xr.register_dataarray_accessor("node")
 @functools.total_ordering
 class Node:
-    """A node in a Network.
+    """A node in a subsystem.
 
     Args:
-        dataarray (xr.DataArray):
+        effect_dataarray (xr.DataArray): the xarray DataArray for the effect TPM.
+
+    Keyword Args:
+        cause_dataarray (xr.DataArray): the xarray DataArray for the cause TPM.
 
     Attributes:
         index (int): The node's index in the network.
         label (str): The textual label for this node.
         node_labels (Tuple[str]): The textual labels for the nodes in the network.
-        dataarray (xr.DataArray): the xarray DataArray for this node.
-        tpm (|ExplicitTPM|): The node TPM is an array with |n + 1| dimensions,
+        cause_dataarray (xr.DataArray): the xarray DataArray for the cause TPM.
+        effect_dataarray (xr.DataArray): the xarray DataArray for the effect TPM.
+        cause_tpm (|ExplicitTPM|),
+        effect_tpm (|ExplicitTPM|): The node TPM is an array with |n + 1| dimensions,
             where ``n`` is the size of the |Network|. The first ``n`` dimensions
             correspond to each node in the system. Dimensions corresponding to
             nodes that provide input to this node are of size > 1, while those
@@ -57,28 +56,40 @@ class Node:
         state (Optional[Union[int, str]]): The current state of this node.
     """
 
-    def __init__(self, dataarray: xr.DataArray):
-        self._index = dataarray.attrs["index"]
+    def __init__(
+        self,
+        effect_dataarray: xr.DataArray,
+        cause_dataarray: Optional[xr.DataArray] = None,
+    ):
+        self._index = effect_dataarray.attrs["index"]
 
         # Node labels used in the system
-        self._node_labels = dataarray.attrs["node_labels"]
+        self._node_labels = effect_dataarray.attrs["node_labels"]
 
-        self._inputs = dataarray.attrs["inputs"]
-        self._outputs = dataarray.attrs["outputs"]
+        self._inputs = effect_dataarray.attrs["inputs"]
+        self._outputs = effect_dataarray.attrs["outputs"]
 
-        self._dataarray = dataarray
-        self._tpm = self._dataarray.data
+        if cause_dataarray is None:
+            self._cause_dataarray = None
+            self._cause_tpm = None
+        else:
+            self._cause_dataarray = cause_dataarray
+            self._cause_tpm = cause_dataarray.data
 
-        self.state_space = dataarray.attrs["state_space"]
+        self._effect_dataarray = effect_dataarray
+        self._effect_tpm = self._effect_dataarray.data
+
+        self.state_space = effect_dataarray.attrs["state_space"]
 
         # (Optional) current state of this node.
-        self.state = dataarray.attrs["state"]
+        self.state = effect_dataarray.attrs["state"]
 
         # Only compute the hash once.
         self._hash = hash(
             (
                 self.index,
-                hash(pyphi.tpm.ExplicitTPM(self.tpm)),
+                hash(pyphi.tpm.ExplicitTPM(self.cause_tpm)),
+                hash(pyphi.tpm.ExplicitTPM(self.effect_tpm)),
                 self._inputs,
                 self._outputs,
                 self.state_space,
@@ -97,14 +108,24 @@ class Node:
         return self._node_labels[self.index]
 
     @property
-    def dataarray(self):
-        """|xr.DataArray|: The xarray DataArray for this node."""
-        return self._dataarray
+    def cause_dataarray(self):
+        """|xr.DataArray|: The cause xarray DataArray for this node."""
+        return self._cause_dataarray
 
     @property
-    def tpm(self):
+    def effect_dataarray(self):
+        """|xr.DataArray|: The effect xarray DataArray for this node."""
+        return self._effect_dataarray
+
+    @property
+    def cause_tpm(self):
         """|ExplicitTPM|: The TPM of this node."""
-        return self._tpm
+        return self._cause_tpm
+
+    @property
+    def effect_tpm(self):
+        """|ExplicitTPM|: The TPM of this node."""
+        return self._effect_tpm
 
     @property
     def inputs(self):
@@ -157,8 +178,8 @@ class Node:
         # Supported index coordinates (in the right dimension order)
         # respective to this node, to be used like an AND mask, with
         # `singleton_coordinate` acting like 0.
-        dimensions = self._dataarray.dims
-        coordinates = self._dataarray.coords
+        dimensions = self._effect_dataarray.dims
+        coordinates = self._effect_dataarray.coords
 
         support = {dim: tuple(coordinates[dim].values) for dim in dimensions}
 
@@ -207,8 +228,8 @@ class Node:
 
         return projected_index
 
-    def __getitem__(self, index):
-        return self._dataarray[index].node
+    # def __getitem__(self, index):
+    #     return self._dataarray[index].node
 
     def __repr__(self):
         return self.label
@@ -220,7 +241,7 @@ class Node:
         """Return whether this node equals the other object.
 
         Two nodes are equal if they have the same index, the same
-        inputs and outputs, the same TPM, the same state_space and the
+        inputs and outputs, the same TPMs, the same state_space and the
         same state.
 
         Labels are for display only, so two equal nodes may have different
@@ -228,7 +249,8 @@ class Node:
         """
         return (
             self.index == other.index and
-            self.tpm.array_equal(other.tpm) and
+            self.cause_tpm.array_equal(other.tpm) and
+            self.effect_tpm.array_equal(other.tpm) and
             self.inputs == other.inputs and
             self.outputs == other.outputs and
             self.state_space == other.state_space and
@@ -250,19 +272,20 @@ class Node:
         return self.index
 
 
-def node(
-        tpm,
+def generate_node(
+        effect_tpm: pyphi.tpm.ExplicitTPM,
         cm: np.ndarray,
         network_state_space: Mapping[str, Tuple[Union[int, str]]],
         index: int,
         node_labels: Iterable[str],
+        cause_tpm: Optional[pyphi.tpm.ExplicitTPM] = None,
         state: Optional[Union[int, str]] = None,
 ) -> xr.DataArray:
     """
     Instantiate a node TPM DataArray.
 
     Args:
-        tpm (|ExplicitTPM|): The TPM of this node.
+        effect_tpm (ExplicitTPM): The effect TPM of this node.
         cm (np.ndarray): The CM of the network.
         network_state_space (Mapping[str, Tuple[Union[int, str]]]):
             Labels for the state space of each node in the network.
@@ -270,21 +293,23 @@ def node(
         node_labels (Iterable[str]): Textual labels for each node in the network.
 
     Keyword Args:
+        cause_tpm (ExplicitTPM): The cause TPM of this node.
         state (Optional[Union[int, str]]): The state of this node.
 
     Returns:
         xr.DataArray: The node in question.
     """
-    # Generate DataArray structure for this node
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
     # Get indices of the inputs and outputs.
     inputs = frozenset(get_inputs_from_cm(index, cm))
     outputs = frozenset(get_outputs_from_cm(index, cm))
 
     # Marginalize out non-input nodes.
-    non_inputs = set(tpm.tpm_indices()) - inputs
-    tpm = tpm.marginalize_out(non_inputs)
+    effect_non_inputs = set(effect_tpm.tpm_indices()) - inputs
+    effect_tpm = effect_tpm.marginalize_out(effect_non_inputs)
+
+    if cause_tpm is not None:
+        cause_non_inputs = set(cause_tpm.tpm_indices()) - inputs
+        cause_tpm = cause_tpm.marginalize_out(cause_non_inputs)
 
     # Dimensions are the names of this node's parents (whose state this node's
     # TPM can be conditioned on), plus the last dimension with the probability
@@ -296,7 +321,7 @@ def node(
     node_states = [network_state_space[dim] for dim in dimensions[:-1]]
     input_coordinates, _ = build_state_space(
         node_labels,
-        tpm.shape[:-1],
+        effect_tpm.shape[:-1],
         node_states,
         singleton_state_space=(SINGLETON_COORDINATE,),
     )
@@ -305,9 +330,26 @@ def node(
 
     coordinates = {**input_coordinates, dimensions[-1]: node_state_space}
 
-    return xr.DataArray(
+    cause_dataarray = xr.DataArray(
         name=node_labels[index],
-        data=tpm,
+        data=cause_tpm,
+        dims=dimensions,
+        coords=coordinates,
+        attrs={
+            "index": index,
+            "node_labels": node_labels,
+            "cm": cm,
+            "inputs": inputs,
+            "outputs": outputs,
+            "state_space": tuple(node_state_space),
+            "state": state,
+            "network_state_space": network_state_space
+        }
+    ) if cause_tpm is not None else None
+
+    effect_dataarray = xr.DataArray(
+        name=node_labels[index],
+        data=effect_tpm,
         dims=dimensions,
         coords=coordinates,
         attrs={
@@ -321,6 +363,8 @@ def node(
             "network_state_space": network_state_space
         }
     )
+
+    return Node(effect_dataarray, cause_dataarray)
 
 
 def generate_nodes(
@@ -379,14 +423,15 @@ def generate_nodes(
         )
 
         nodes.append(
-            node(
+            generate_node(
                 node_tpm,
                 cm,
                 state_space,
                 index,
-                node_labels=node_labels,
+                node_labels,
+                cause_tpm=None,
                 state=state,
-            ).node
+            )
         )
 
     return tuple(nodes)

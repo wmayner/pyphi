@@ -3,9 +3,9 @@ import multiprocessing
 from unittest import mock
 
 import pytest
-import redis
 
 from pyphi import Direction, Subsystem, cache, config, examples, models
+import pyphi.cache.redis as redis
 
 
 def test_cache():
@@ -110,7 +110,7 @@ def test_cache_repertoires_config_option():
 # pytest fixture because they must be constructed with the correct cache
 # config.
 
-redis_available = cache.redis_available()
+redis_available = redis.available()
 
 # Decorator to skip a test if Redis is not available
 require_redis = pytest.mark.skipif(
@@ -144,12 +144,12 @@ def all_caches(test_func):
 
 @require_redis
 def test_redis_singleton_connection():
-    assert cache.redis_available()
+    assert redis.available()
 
 
 @require_redis
 def test_redis_cache_info():
-    c = cache.RedisCache()
+    c = redis.RedisCache()
     assert c.info() == (0, 0, 0)
     key = "key"
     c.get(key)  # miss
@@ -157,6 +157,10 @@ def test_redis_cache_info():
     c.get(key)  # hit
     assert c.size() == 1
     assert c.info() == (1, 1, 1)
+
+
+# TODO(testing) remove MICE cache testing, since no longer exists, but test
+# RedisCache instead
 
 
 @redis_cache

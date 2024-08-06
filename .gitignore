@@ -25,3 +25,4 @@ benchmarks/pyphi_config.yml
 benchmarks/env
 benchmarks/results
 ignore
+matplotlibrc

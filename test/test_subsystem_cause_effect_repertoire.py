@@ -1,7 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# test_subsystem_cause_and_effect_repertoire.py
-
 import numpy as np
 import pytest
 
@@ -315,7 +311,7 @@ scenarios = [
         [0],
         [0, 1, 2],
         np.array([0.75, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0]).reshape(2, 2, 2),
-    )
+    ),
     # }}}
     # }}}
     # }}}

@@ -1,17 +1,12 @@
 # validate.py
-
-"""
-Methods for validating arguments.
-"""
+"""Methods for validating user input."""
 
 from itertools import product
 import numpy as np
 
 from . import conf, exceptions
-from .compute.parallel import MapReduce
 from .conf import config
 from .direction import Direction
-from .tpm import ImplicitTPM
 
 
 # pylint: disable=redefined-outer-name
@@ -224,7 +219,7 @@ def state_reachable(subsystem):
     #             ∃ s_{t-1} : p(s | s_{t-1}, w_{t-1}) > 0
 
     # Obtain p(s | w_{t-1}) as node marginals (i.e. implicitly).
-    p = subsystem.proper_tpm.probability_of_current_state(subsystem.proper_state)
+    p = subsystem.proper_effect_tpm.probability_of_current_state(subsystem.proper_state)
 
     # Avoid computing the joint distribution. For each node n, find the set of
     # coordinates s_{t-1} for which p_n > 0. The intersection of all such sets

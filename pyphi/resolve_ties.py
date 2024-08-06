@@ -1,6 +1,5 @@
 # resolve_ties.py
-
-"""Functions for resolving ties."""
+"""Resolve ties between IIT objects."""
 
 from itertools import tee
 

@@ -1,7 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# test/test_registry.py
-
 import pytest
 
 from pyphi.registry import Registry

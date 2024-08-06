@@ -1,10 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # models/cmp.py
-
-"""
-Utilities for comparing phi-objects.
-"""
+"""Utilities for comparing phi-objects."""
 
 import functools
 from collections.abc import Iterable

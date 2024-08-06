@@ -1,10 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # registry.py
-
-"""
-A function registry for storing custom measures and partition strategies.
-"""
+"""Provides a ``Registry`` class for storing user-provided functions."""
 
 from collections.abc import Mapping
 

@@ -1,14 +1,14 @@
-# -*- coding: utf-8 -*-
 # repertoire.py
+"""Compute cause-effect repertoires."""
 
 from typing import Callable, Tuple
 
 import numpy as np
 from numpy.typing import ArrayLike
 
-from . import utils, validate
-from .direction import Direction
+from . import utils
 from .distribution import repertoire_shape
+from .direction import Direction
 
 # TODO(repertoire) refactor to be more independent of subsystem when TPM
 # overhaul is done; e.g. no longer need 'tpm_size' with named dimensions
@@ -20,25 +20,12 @@ from .distribution import repertoire_shape
 #   between cause and effect
 
 
-# TODO(4.0) use this pattern with subsystem methods
-def _directional_dispatch(cause_func: Callable, effect_func: Callable) -> Callable:
-    # Assumes signatures of cause_func and effect_func are compatible
-    def wrapper(direction, *args, **kwargs):
-        if direction == Direction.CAUSE:
-            return cause_func(*args, **kwargs)
-        elif direction == Direction.EFFECT:
-            return effect_func(*args, **kwargs)
-        return validate.direction(direction)
-
-    return wrapper
-
-
 def forward_effect_probability(
     subsystem,
     mechanism: Tuple[int],
     purview: Tuple[int],
     purview_state: Tuple[int],
-    **kwargs
+    **kwargs,
 ) -> float:
     return forward_effect_repertoire(subsystem, mechanism, purview, **kwargs).squeeze()[
         purview_state
@@ -66,6 +53,7 @@ def forward_cause_probability(
         mechanism=purview,
         purview=mechanism,
         mechanism_state=purview_state,
+        direction=Direction.CAUSE,
     )
     return er.squeeze()[mechanism_state]
 
@@ -89,11 +77,6 @@ def forward_cause_repertoire(
             mechanism_state=mechanism_state,
         )
     return repertoire.reshape(repertoire_shape(subsystem.network.node_indices, purview))
-
-
-forward_repertoire = _directional_dispatch(
-    forward_cause_repertoire, forward_effect_repertoire
-)
 
 
 def unconstrained_forward_effect_repertoire(
@@ -129,8 +112,3 @@ def unconstrained_forward_cause_repertoire(
     repertoire = np.empty(repertoire_shape(subsystem.network.node_indices, purview))
     repertoire.fill(mean_forward_cause_probability)
     return repertoire
-
-
-unconstrained_forward_repertoire = _directional_dispatch(
-    unconstrained_forward_cause_repertoire, unconstrained_forward_effect_repertoire
-)

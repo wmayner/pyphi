@@ -1,13 +1,7 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # metrics/ces.py
-
-"""
-Functions for computing distances between cause-effect structures.
-"""
+"""Functions for computing distances between cause-effect structures."""
 
 import numpy as np
-import pyemd
 
 from .. import utils
 from ..conf import config
@@ -191,7 +185,7 @@ def _emd(unique_C1, unique_C2):
     # The sum of the two signatures should be the same.
     assert utils.eq(sum(d1), sum(d2))
     # Calculate!
-    return pyemd.emd(np.array(d1), np.array(d2), distance_matrix)
+    return distribution.EMD.compute(np.array(d1), np.array(d2), distance_matrix)
 
 
 @measures.register("EMD")
@@ -212,7 +206,7 @@ def emd(C1, C2):
     if not concepts_only_in_C1 or not concepts_only_in_C2:
         dist = _emd_simple(C1, C2)
     else:
-        dist = _emd(concepts_only_in_C1, concepts_only_in_C2)
+        dist = distribution.EMD.compute(concepts_only_in_C1, concepts_only_in_C2)
     return round(dist, config.PRECISION)
 
 

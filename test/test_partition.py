@@ -1,7 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# test/test_partition.py
-
 import itertools
 
 import numpy as np

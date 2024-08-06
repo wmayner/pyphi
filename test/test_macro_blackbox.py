@@ -10,7 +10,7 @@ from pyphi.tpm import ExplicitTPM
 def degenerate():
 
     nodes = 6
-    tpm = np.zeros((2 ** nodes, nodes))
+    tpm = np.zeros((2**nodes, nodes))
 
     for psi, ps in enumerate(utils.all_states(nodes)):
         cs = [0 for i in range(nodes)]
@@ -61,7 +61,7 @@ def test_basic_nor_or():
     # pyphi network
 
     nodes = 12
-    tpm = np.zeros((2 ** nodes, nodes))
+    tpm = np.zeros((2**nodes, nodes))
 
     for psi, ps in enumerate(utils.all_states(nodes)):
         cs = [0 for i in range(nodes)]
@@ -141,7 +141,7 @@ def test_xor_propogation_delay():
     # acting as propagation delays.
 
     nodes = 9
-    tpm = np.zeros((2 ** nodes, nodes))
+    tpm = np.zeros((2**nodes, nodes))
 
     for psi, ps in enumerate(utils.all_states(nodes)):
         cs = [0 for i in range(nodes)]
@@ -217,7 +217,7 @@ def test_soup():
         # and implements AND logic instead of COPY
 
         nodes = 6
-        tpm = np.zeros((2 ** nodes, nodes))
+        tpm = np.zeros((2**nodes, nodes))
 
         for psi, ps in enumerate(utils.all_states(nodes)):
             cs = [0 for i in range(nodes)]
@@ -290,7 +290,7 @@ def test_coarsegrain_spatial_degenerate():
     # mapping ((0, 1), (2))
 
     nodes = 6
-    tpm = np.zeros((2 ** nodes, nodes))
+    tpm = np.zeros((2**nodes, nodes))
 
     for psi, ps in enumerate(utils.all_states(nodes)):
         cs = [0 for i in range(nodes)]

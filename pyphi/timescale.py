@@ -1,10 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # timescale.py
-
-"""
-Functions for converting the timescale of a TPM.
-"""
+"""Functions for manipulating the timescale of TPMs."""
 
 import numpy as np
 from scipy.sparse import csc_matrix

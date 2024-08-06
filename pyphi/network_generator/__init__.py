@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # network_generator/__init__.py
+"""High-level interface for creating systems by specifying architecture."""
 
 import string
 from typing import Callable, Iterable, Union

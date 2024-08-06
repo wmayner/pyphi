@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 import numpy as np
 
 # Unconstrained cause repertoire tests
@@ -14,7 +11,10 @@ def test_unconstrained_cause_repertoire_matlab_0(s):
     # Purview {m0}
     purview = (0,)
     assert np.array_equal(
-        s.unconstrained_cause_repertoire(purview,), np.array([[[0.5]], [[0.5]]])
+        s.unconstrained_cause_repertoire(
+            purview,
+        ),
+        np.array([[[0.5]], [[0.5]]]),
     )
 
 

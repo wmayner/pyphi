@@ -1,5 +1,3 @@
-# test/hypothesis_utils.py
-
 import pickle
 from functools import partial
 from itertools import tee as _tee

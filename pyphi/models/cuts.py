@@ -1,7 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # models/cuts.py
-
 """Objects that represent partitions of sets of nodes."""
 
 from collections.abc import Sequence

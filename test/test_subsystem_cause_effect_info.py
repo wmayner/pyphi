@@ -1,7 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# test_subsystem_cause_effect_info.py
-
 from pyphi.metrics.distribution import hamming_emd
 
 

@@ -1,10 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# test_config.py
-
 import logging
 import os
-import shutil
 from pathlib import Path
 
 import pytest
@@ -150,6 +145,7 @@ def test_reconfigure_logging_on_change(capsys):
         log.warning("Another warning.")
     out, err = capsys.readouterr()
     assert err == ""
+
 
 @config.override()
 @pytest.mark.parametrize(

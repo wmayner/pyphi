@@ -1,10 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # direction.py
-
-"""
-Causal directions.
-"""
+"""Causal directions."""
 
 from enum import IntEnum, unique
 

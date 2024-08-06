@@ -1,6 +1,5 @@
 # visualize/phi_structure/utils.py
-
-"""Utility functions for plotting phi structures."""
+"""Common utilities for plotting |big_phi|-structures."""
 
 from math import isclose
 

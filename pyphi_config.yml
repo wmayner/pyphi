@@ -46,42 +46,45 @@ NUMBER_OF_CORES: -1
 # Global switch to turn off parallelization: if ``False``, parallelization is
 # never used, regardless of parallelization settings for individual options;
 # otherwise parallelization is determined by those settings.
-PARALLEL: true
+# IMPORTANT:
+#   Parallelization requires extra dependencies, which must be
+#   installed with `pyphi[parallel]`.
+PARALLEL: false
 # Controls parallel evaluation of candidate systems within a network.
 PARALLEL_COMPLEX_EVALUATION:
   chunksize: 64
-  parallel: true
+  parallel: false
   sequential_threshold: 16
   progress: true
 # Controls parallel evaluation of candidate mechanisms.
 PARALLEL_CONCEPT_EVALUATION:
   chunksize: 256
-  parallel: true
+  parallel: false
   sequential_threshold: 64
   progress: true
 # Controls parallel evaluation of system partitions.
 PARALLEL_CUT_EVALUATION:
   chunksize: 4096
-  parallel: true
+  parallel: false
   sequential_threshold: 1024
-  progress: true
+  progress: false
 # Controls parallel evaluation of candidate purviews.
 PARALLEL_PURVIEW_EVALUATION:
   chunksize: 256
-  parallel: true
+  parallel: false
   sequential_threshold: 64
   progress: true
 # Controls parallel evaluation of mechanism partitions.
 PARALLEL_MECHANISM_PARTITION_EVALUATION:
   chunksize: 4096
-  parallel: true
+  parallel: false
   sequential_threshold: 1024
   progress: true
 # Controls parallel evaluation of relations.
 # Only applies if RELATION_COMPUTATION = 'CONCRETE'.
 PARALLEL_RELATION_EVALUATION:
   chunksize: 4096
-  parallel: true
+  parallel: false
   sequential_threshold: 1024
   progress: true
 # Controls the partitioning scheme for distinctions.

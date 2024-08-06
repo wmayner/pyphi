@@ -1,5 +1,4 @@
 # conf.py
-
 """
 Configuring PyPhi
 ~~~~~~~~~~~~~~~~~
@@ -56,17 +55,19 @@ import os
 import pprint
 import shutil
 import tempfile
-import warnings
 from copy import copy
+from importlib.metadata import version
 from pathlib import Path
 from typing import Mapping
 from warnings import warn
 
-import ray
 import toolz
 import yaml
 
-from . import __about__, constants
+from . import constants
+from .deferred.ray import ray, NO_RAY
+from .warnings import MissingOptionalDependenciesWarning, PyPhiWarning
+
 
 log = logging.getLogger(__name__)
 
@@ -177,7 +178,7 @@ class Option:
     def _callback(self, obj):
         """Trigger any callbacks."""
         if self.on_change is not None:
-            self.on_change(obj)
+            self.on_change(obj, self)
 
 
 class Config:
@@ -205,7 +206,11 @@ class Config:
             # Insert config-wide hook
             def hook(func):
                 if func is None:
-                    return self._callback
+
+                    def config_callback(*args, **kwargs):
+                        self._callback(self)
+
+                    return config_callback
 
                 @functools.wraps(func)
                 def wrapper(*args, **kwargs):
@@ -238,7 +243,7 @@ class Config:
         return self._values == other._values
 
     def _callback(self, obj):
-        """Called when any option is changed."""
+        """Config-wide callback, called when any option is changed."""
         if self._on_change is not None:
             self._on_change(obj)
 
@@ -331,7 +336,7 @@ class _override(contextlib.ContextDecorator):
         return False
 
 
-def configure_logging(conf):
+def configure_logging(conf, opt):
     """Reconfigure PyPhi logging based on the current configuration."""
     logging.config.dictConfig(
         {
@@ -365,9 +370,9 @@ def configure_logging(conf):
     )
 
 
-def on_change_distinction_phi_normalization(obj):
+def on_change_distinction_phi_normalization(obj, opt):
     if _LOADED:
-        warnings.warn(
+        warn(
             """
     IMPORTANT: Changes to `DISTINCTION_PHI_NORMALIZATION` will not be reflected in
     new MICE computations for existing Subsystem objects if the MICE have been
@@ -376,8 +381,36 @@ def on_change_distinction_phi_normalization(obj):
     Make sure to call `subsystem.clear_caches()` before re-computing MICE with
     the new setting.
             """,
+            category=PyPhiWarning,
             stacklevel=6,
         )
+
+
+def on_change_parallel_global(obj, opt):
+    if NO_RAY and obj[opt.name]:
+        warn(
+            message=(
+                f"""
+    '{opt.name}' option: """
+                + MissingOptionalDependenciesWarning.MSG.format(dependencies="parallel")
+            ),
+            category=MissingOptionalDependenciesWarning,
+            stacklevel=6,
+        )
+
+
+def on_change_parallel_suboption(obj, opt):
+    if NO_RAY and obj[opt.name].get("parallel"):
+        warn(
+            message=(
+                f"""
+    '{opt.name}' option: """
+                + MissingOptionalDependenciesWarning.MSG.format(dependencies="parallel")
+            ),
+            category=MissingOptionalDependenciesWarning,
+            stacklevel=6,
+        )
+        return
 
 
 # TODO(configuration) actual causation parallel config
@@ -455,82 +488,92 @@ class PyphiConfig(Config):
     )
 
     PARALLEL = Option(
-        True,
+        False,
         type=bool,
+        on_change=on_change_parallel_global,
         doc="""
     Global switch to turn off parallelization: if ``False``, parallelization is
     never used, regardless of parallelization settings for individual options;
-    otherwise parallelization is determined by those settings.""",
+    otherwise parallelization is determined by those settings.
+
+    IMPORTANT: Parallelization requires extra dependencies; please install PyPhi
+    with `pyphi[parallel]` to enable parallelization.""",
     )
 
     PARALLEL_COMPLEX_EVALUATION = Option(
         dict(
-            parallel=True,
+            parallel=False,
             sequential_threshold=2**4,
             chunksize=2**6,
             progress=True,
         ),
         type=Mapping,
+        on_change=on_change_parallel_suboption,
         doc="""
     Controls parallel evaluation of candidate systems within a network.""",
     )
 
     PARALLEL_CUT_EVALUATION = Option(
         dict(
-            parallel=True,
+            parallel=False,
             sequential_threshold=2**10,
             chunksize=2**12,
             progress=True,
         ),
         type=Mapping,
+        on_change=on_change_parallel_suboption,
         doc="""
     Controls parallel evaluation of system partitions.""",
     )
 
     PARALLEL_CONCEPT_EVALUATION = Option(
         dict(
-            parallel=True,
+            parallel=False,
             sequential_threshold=2**6,
             chunksize=2**8,
             progress=True,
         ),
         type=Mapping,
+        on_change=on_change_parallel_suboption,
         doc="""
     Controls parallel evaluation of candidate mechanisms.""",
     )
 
     PARALLEL_PURVIEW_EVALUATION = Option(
         dict(
-            parallel=True,
+            parallel=False,
             sequential_threshold=2**6,
             chunksize=2**8,
             progress=True,
         ),
         type=Mapping,
+        on_change=on_change_parallel_suboption,
         doc="""
     Controls parallel evaluation of candidate purviews.""",
     )
 
     PARALLEL_MECHANISM_PARTITION_EVALUATION = Option(
         dict(
-            parallel=True,
+            parallel=False,
             sequential_threshold=2**10,
             chunksize=2**12,
             progress=True,
         ),
         type=Mapping,
+        on_change=on_change_parallel_suboption,
         doc="""
     Controls parallel evaluation of mechanism partitions.""",
     )
 
     PARALLEL_RELATION_EVALUATION = Option(
         dict(
-            parallel=True,
+            parallel=False,
             sequential_threshold=2**10,
             chunksize=2**12,
             progress=True,
         ),
         type=Mapping,
+        on_change=on_change_parallel_suboption,
         doc="""
     Controls parallel evaluation of relations.
 
@@ -900,7 +943,7 @@ class PyphiConfig(Config):
 
     def log(self):
         """Log current settings."""
-        log.info("PyPhi v%s", __about__.__version__)
+        log.info("PyPhi v%s", version("pyphi"))
         if self._loaded_files:
             log.info("Loaded configuration from %s", self._loaded_files)
         else:
@@ -999,7 +1042,8 @@ def on_driver():
     return True
 
 
-if on_driver():
+def driver_config():
+    """Handle configuration for the main instance."""
     # We're a main instance; load the user config
     try:
         config.load_file(PYPHI_USER_CONFIG_PATH)
@@ -1008,11 +1052,20 @@ if on_driver():
     # Ensure write to disk in case no config was loaded (i.e. onchange was not
     # triggered)
     write_to_cache(config)
-else:
+
+
+def remote_config():
+    """Handle configuration for remote instances."""
     # We're in a remote instance; load the PyPhi-managed config
     config.load_file(PYPHI_MANAGED_CONFIG_PATH)
     # Disable progress bars on remote processes
     config.PROGRESS_BARS = False
+
+
+if NO_RAY or on_driver():
+    driver_config()
+else:
+    remote_config()
 
 # We've loaded/written; now we can allow loading
 _LOADED = True

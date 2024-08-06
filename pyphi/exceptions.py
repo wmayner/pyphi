@@ -1,6 +1,11 @@
 # exceptions.py
-
 """PyPhi exceptions."""
+
+
+class MissingOptionalDependenciesError(ModuleNotFoundError):
+    """The user needs to install extra dependencies."""
+
+    MSG = "Please re-install PyPhi with `pyphi[{dependencies}]` to use this feature."
 
 
 class StateUnreachableError(ValueError):

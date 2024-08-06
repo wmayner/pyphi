@@ -1,10 +1,8 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # network.py
+"""Represents the network of interest.
 
-"""
-Represents the network of interest. This is the primary object of PyPhi and the
-context of all |small_phi| and |big_phi| computation.
+This is the primary object of PyPhi and the context of all |small_phi| and
+|big_phi| computation.
 """
 
 from typing import Iterable
@@ -12,7 +10,7 @@ import numpy as np
 
 from . import cache, connectivity, jsonify, utils, validate
 from .labels import NodeLabels
-from .node import generate_nodes, node as Node
+from .node import generate_nodes, generate_node
 from .tpm import ExplicitTPM, ImplicitTPM
 from .state_space import build_state_space
 
@@ -105,13 +103,13 @@ class Network:
 
             self._tpm = ImplicitTPM(
                 tuple(
-                    Node(
+                    generate_node(
                         node_tpm,
                         self._cm,
                         self._state_space,
                         index,
                         node_labels=self._node_labels
-                    ).node
+                    )
                     for index, node_tpm in zip(self._node_indices, tpm)
                 )
             )

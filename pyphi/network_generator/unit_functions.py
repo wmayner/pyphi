@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # network_generator/unit_functions.py
+"""Library of functions for single units."""
 
 import numpy as np
 from toolz import curry

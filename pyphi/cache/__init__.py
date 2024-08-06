@@ -1,88 +1,20 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# cache.py
-
-"""
-Memoization and caching utilities.
-"""
-
-# pylint: disable=redefined-builtin,redefined-outer-name,missing-docstring
-# pylint: disable=no-self-use,arguments-differ
-# pylint: disable=dangerous-default-value,redefined-builtin
-# pylint: disable=abstract-method
+# cache/__init__.py
+"""Memoization and caching utilities."""
 
 import os
-import pickle
-from functools import namedtuple, update_wrapper, wraps
+from functools import update_wrapper, wraps
+
+import psutil
+
+from .. import constants
+from ..conf import config
+
+from .cache_utils import _make_key, _CacheInfo
 
 import joblib
-import psutil
-import redis
 
-from . import constants
-from .conf import config
-
-_CacheInfo = namedtuple("CacheInfo", ["hits", "misses", "currsize"])
-
+# An on-disk cache for distributing pre-computed results with the PyPhi package
 joblib_memory = joblib.Memory(location=constants.DISK_CACHE_LOCATION, verbose=0)
-
-
-def memory_full():
-    """Check if the memory is too full for further caching."""
-    current_process = psutil.Process(os.getpid())
-    return current_process.memory_percent() > config.MAXIMUM_CACHE_MEMORY_PERCENTAGE
-
-
-class _HashedSeq(list):
-    """This class guarantees that ``hash()`` will be called no more than once
-    per element.  This is important because the ``lru_cache()`` will hash the
-    key multiple times on a cache miss.
-    """
-
-    __slots__ = ("hashvalue",)
-
-    def __init__(self, tup, hash=hash):
-        super().__init__()
-        self[:] = tup
-        self.hashvalue = hash(tup)
-
-    def __hash__(self):
-        return self.hashvalue
-
-
-def _make_key(
-    args,
-    kwds,
-    typed,
-    kwd_mark=(object(),),
-    fasttypes={int, str, frozenset, type(None)},
-    sorted=sorted,
-    tuple=tuple,
-    type=type,
-    len=len,
-):
-    """Make a cache key from optionally typed positional and keyword arguments.
-
-    The key is constructed in a way that is flat as possible rather than as a
-    nested structure that would take more memory.
-
-    If there is only a single argument and its data type is known to cache its
-    hash value, then that argument is returned without a wrapper.  This saves
-    space and improves lookup speed.
-    """
-    key = args
-    if kwds:
-        sorted_items = sorted(kwds.items())
-        key += kwd_mark
-        for item in sorted_items:
-            key += item
-    if typed:
-        key += tuple(type(v) for v in args)
-        if kwds:
-            key += tuple(type(v) for k, v in sorted_items)
-    elif len(key) == 1 and type(key[0]) in fasttypes:
-        return key[0]
-    return _HashedSeq(key)
 
 
 def cache(cache={}, maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE, typed=False):
@@ -221,75 +153,6 @@ class DictCache:
         return "{}(cache={}, hits={}, misses={})".format(
             type(self).__name__, self.cache, self.hits, self.misses
         )
-
-
-def redis_init(db):
-    return redis.StrictRedis(
-        host=config.REDIS_CONFIG["host"], port=config.REDIS_CONFIG["port"], db=db
-    )
-
-
-# Expose the StrictRedis API, maintaining one connection pool
-# The connection pool is multi-process safe, and is reinitialized when the
-# client detects a fork. See:
-# https://github.com/andymccurdy/redis-py/blob/5109cb4f/redis/connection.py#L950
-#
-# TODO: rebuild connection after config changes?
-redis_conn = redis_init(config.REDIS_CONFIG["db"])
-
-
-def redis_available():
-    """Check if the Redis server is connected."""
-    try:
-        return redis_conn.ping()
-    except redis.exceptions.ConnectionError:
-        return False
-
-
-# TODO: use a cache prefix?
-# TODO: key schema for easy access/queries
-class RedisCache:
-    def clear(self):
-        """Flush the cache."""
-        redis_conn.flushdb()
-        redis_conn.config_resetstat()
-
-    @staticmethod
-    def size():
-        """Size of the Redis cache.
-
-        .. note:: This is the size of the entire Redis database.
-        """
-        return redis_conn.dbsize()
-
-    def info(self):
-        """Return cache information.
-
-        .. note:: This is not the cache info for the entire Redis key space.
-        """
-        info = redis_conn.info()
-        return _CacheInfo(info["keyspace_hits"], info["keyspace_misses"], self.size())
-
-    def get(self, key):
-        """Get a value from the cache.
-
-        Returns None if the key is not in the cache.
-        """
-        value = redis_conn.get(key)
-
-        if value is not None:
-            value = pickle.loads(value)
-
-        return value
-
-    def set(self, key, value):
-        """Set a value in the cache."""
-        value = pickle.dumps(value, protocol=constants.PICKLE_PROTOCOL)
-        redis_conn.set(key, value)
-
-    def key(self):
-        """Delegate to subclasses."""
-        raise NotImplementedError
 
 
 def validate_parent_cache(parent_cache):

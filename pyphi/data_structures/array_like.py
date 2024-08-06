@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # data_structures/array_like.py
 
 from numbers import Number

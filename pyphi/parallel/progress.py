@@ -1,12 +1,16 @@
-# progress.py
+# parallel/progress.py
+"""Progress bars for distributed computations."""
 
 from asyncio import Event
 from time import time
-from typing import Optional, Tuple
+from typing import Optional, Tuple, TYPE_CHECKING
 
-import ray
-# For typing purposes
-from ray.actor import ActorHandle
+from ..deferred.ray import ray
+
+if TYPE_CHECKING:
+    import ray
+    from ray import ActorHandle
+
 from tqdm.auto import tqdm
 
 from ..conf import fallback
@@ -64,7 +68,7 @@ def wait_then_finish(progress_bar, object_refs):
 class ProgressBar:
     """Handles interactions with a remote ProgressBarActor."""
 
-    _actor: ActorHandle
+    _actor: "ActorHandle"
     total: Optional[int]
     desc: str
     pbar: tqdm
@@ -75,7 +79,7 @@ class ProgressBar:
         self.desc = desc
 
     @property
-    def actor(self) -> ActorHandle:
+    def actor(self) -> "ActorHandle":
         """Returns a reference to the remote `ProgressBarActor`.
 
         When you complete tasks, call `update` on the actor.

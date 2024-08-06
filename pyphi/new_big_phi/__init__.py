@@ -1,4 +1,5 @@
 # new_big_phi/__init__.py
+"""Implements the IIT 4.0 formalism for system-level analysis."""
 
 from dataclasses import dataclass
 from enum import Enum, auto, unique
@@ -6,7 +7,7 @@ from typing import Iterable, Optional, Tuple, Union
 
 from .. import compute, conf, connectivity, utils, validate
 from ..compute.network import reachable_subsystems
-from ..compute.parallel import MapReduce
+from ..parallel import MapReduce
 from ..conf import config, fallback
 from ..data_structures import PyPhiFloat
 from ..direction import Direction
@@ -21,6 +22,7 @@ from ..relations import relations as compute_relations
 from ..subsystem import Subsystem
 from ..warnings import warn_about_tie_serialization
 
+
 ##############################################################################
 # Information
 ##############################################################################
@@ -31,7 +33,6 @@ def system_intrinsic_information(
     subsystem: Subsystem,
     repertoire_distance: Optional[str] = None,
     directions: Optional[Iterable[Direction]] = None,
-    subsystem_cause: Optional[Subsystem] = None,
 ) -> SystemStateSpecification:
     """Return the cause/effect states specified by the system.
 
@@ -46,14 +47,9 @@ def system_intrinsic_information(
     repertoire_distance = fallback(
         repertoire_distance, config.REPERTOIRE_DISTANCE_INFORMATION
     )
-    subsystem_cause = fallback(subsystem_cause, subsystem)
-    subsystems = {
-        Direction.CAUSE: subsystem_cause,
-        Direction.EFFECT: subsystem,
-    }
     # TODO(ties) deal with ties here
     ii = {
-        direction: subsystems[direction].intrinsic_information(
+        direction: subsystem.intrinsic_information(
             direction,
             mechanism=subsystem.node_indices,
             purview=subsystem.node_indices,
@@ -233,17 +229,14 @@ def evaluate_partition(
     system_state: SystemStateSpecification,
     repertoire_distance: str = None,
     directions: Optional[Iterable[Direction]] = None,
-    subsystem_cause=None,
 ) -> SystemIrreducibilityAnalysis:
     directions = fallback(directions, Direction.both())
     directions = tuple(directions)
     validate.directions(directions)
-    subsystem_cause = fallback(subsystem_cause, subsystem)
-    subsystems = {Direction.CAUSE: subsystem_cause, Direction.EFFECT: subsystem}
     integration = {
         direction: integration_value(
             direction,
-            subsystems[direction],
+            subsystem,
             partition,
             system_state,
             repertoire_distance=repertoire_distance,
@@ -299,7 +292,6 @@ def sia(
     partition_scheme: Optional[str] = None,
     partitions: Optional[Iterable] = None,
     system_state: Optional[SystemStateSpecification] = None,
-    subsystem_cause: Optional[Subsystem] = None,
     **kwargs,
 ) -> SystemIrreducibilityAnalysis:
     """Find the minimum information partition of a system."""
@@ -327,9 +319,7 @@ def sia(
         )
 
     if system_state is None:
-        system_state = system_intrinsic_information(
-            subsystem, directions=directions, subsystem_cause=subsystem_cause
-        )
+        system_state = system_intrinsic_information(subsystem, directions=directions)
 
     def _null_sia(**kwargs):
         return NullSystemIrreducibilityAnalysis(
@@ -355,7 +345,6 @@ def sia(
             system_state=system_state,
             repertoire_distance=repertoire_distance,
             directions=directions,
-            subsystem_cause=subsystem_cause,
         ),
         shortcircuit_func=utils.is_falsy,
         desc="Evaluating partitions",

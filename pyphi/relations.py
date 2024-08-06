@@ -1,6 +1,5 @@
 # relations.py
-
-"""Functions for computing relations among distinctions."""
+"""Implements the formalism for computing relations."""
 
 import warnings
 from collections import defaultdict
@@ -11,7 +10,7 @@ from graphillion import setset
 from tqdm.auto import tqdm
 
 from . import combinatorics, conf, utils
-from .compute.parallel import MapReduce
+from .parallel import MapReduce
 from .conf import config, fallback
 from .data_structures import PyPhiFloat
 from .direction import Direction

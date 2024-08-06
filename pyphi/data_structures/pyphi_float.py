@@ -1,4 +1,4 @@
-# pyphi_float.py
+# data_structures/pyphi_float.py
 
 from ..conf import config
 from ..utils import eq

@@ -1,10 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # connectivity.py
-
-"""
-Functions for determining network connectivity properties.
-"""
+"""Functions for determining network connectivity properties. """
 
 import numpy as np
 from scipy.sparse.csgraph import connected_components

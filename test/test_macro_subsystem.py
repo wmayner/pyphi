@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 import numpy as np
 import pytest
 
@@ -8,6 +5,7 @@ import pyphi
 from pyphi import convert, macro, models, timescale, config
 from pyphi.convert import state_by_node2state_by_state as sbn2sbs
 from pyphi.convert import state_by_state2state_by_node as sbs2sbn
+
 
 @pytest.fixture()
 def macro_subsystem():
@@ -96,7 +94,7 @@ def test_node_labels(macro_subsystem):
 # connectivity for hidden and coarse-grained elements.
 answer_cm = np.ones((2, 2))
 
-EPSILON = 10**(-config.PRECISION)
+EPSILON = 10 ** (-config.PRECISION)
 
 
 def test_macro_subsystem(macro_subsystem):
@@ -333,11 +331,19 @@ def test_blackbox_and_coarse_grain(s):
 
 def test_blackbox_and_coarse_grain_external():
     # Larger, with external nodes, blackboxed and coarse-grained
-    tpm = np.zeros((2 ** 6, 6))
+    tpm = np.zeros((2**6, 6))
     network = pyphi.Network(tpm)
     state = (0, 0, 0, 0, 0, 0)
 
-    blackbox = macro.Blackbox(((1, 4), (2,), (3,), (5,),), (1, 2, 3, 5))
+    blackbox = macro.Blackbox(
+        (
+            (1, 4),
+            (2,),
+            (3,),
+            (5,),
+        ),
+        (1, 2, 3, 5),
+    )
     partition = ((1,), (2,), (3, 5))
     grouping = (((0,), (1,)), ((1,), (0,)), ((0,), (1, 2)))
     coarse_grain = macro.CoarseGrain(partition, grouping)
@@ -439,7 +445,13 @@ def test_blackbox_partial_noise(s):
     assert np.array_equal(noised.tpm.tpm, answer)
 
     # No change
-    answer = np.array([[0, 0, 1], [1, 0, 1], [1, 1, 0],])
+    answer = np.array(
+        [
+            [0, 0, 1],
+            [1, 0, 1],
+            [1, 1, 0],
+        ]
+    )
     assert np.array_equal(noised.cm, answer)
 
 

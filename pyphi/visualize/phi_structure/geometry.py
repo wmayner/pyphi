@@ -1,6 +1,5 @@
 # visualize/phi_structure/geometry.py
-
-"""Geometric functions for plotting."""
+"""Utilities for specifying the spatial layout of |big_phi|-structures."""
 
 from itertools import combinations
 from math import cos, radians, sin
@@ -11,7 +10,6 @@ import scipy.special
 from numpy.typing import ArrayLike
 
 from ...direction import Direction
-from ...convert import state2le_index
 
 TWOPI = 2 * np.pi
 

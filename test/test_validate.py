@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 import numpy as np
 import pytest
 
@@ -31,7 +28,7 @@ def test_validate_direction():
 
 def test_validate_tpm_wrong_shape():
     with pytest.raises(ValueError):
-        tpm = ExplicitTPM(np.arange(3 ** 3).reshape(3, 3, 3))
+        tpm = ExplicitTPM(np.arange(3**3).reshape(3, 3, 3))
         assert tpm.validate()
 
 

@@ -1,7 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # actual.py
-
 """
 Methods for computing actual causation of subsystems and mechanisms.
 
@@ -25,7 +22,7 @@ from itertools import chain
 import numpy as np
 
 from . import compute, conf, connectivity, exceptions, utils, validate
-from .compute.parallel import MapReduce
+from .parallel import MapReduce
 from .conf import config
 from .direction import Direction
 from .metrics.distribution import actual_causation_measures as measures
@@ -486,6 +483,7 @@ class Transition:
         ]
         max_ria = max(all_ria)
         purviews = [ria.purview for ria in all_ria if ria.alpha == max_ria.alpha]
+
         # Selected rias whose purview is not a superset of any other
         def is_not_superset(purview):
             return all(

@@ -1,10 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # labels.py
-
-"""
-Helper class representing labels of network nodes.
-"""
+"""Helper class representing labels of network nodes."""
 
 from collections.abc import Sequence
 

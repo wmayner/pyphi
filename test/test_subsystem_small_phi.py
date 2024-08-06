@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 import numpy as np
 import pytest
 
@@ -236,7 +233,7 @@ scenarios = [
             "repertoire": np.array([0.5, 0.5]).reshape(2, 1, 1),
             "phi": 0.25,
         },
-    )
+    ),
     # }}}
     # }}}
 ]

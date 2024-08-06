@@ -1,10 +1,6 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# test_node.py
-
 import numpy as np
 
-from pyphi.node import node, expand_node_tpm, generate_nodes
+from pyphi.node import expand_node_tpm, generate_node, generate_nodes
 from pyphi.subsystem import Subsystem
 from pyphi.tpm import ExplicitTPM, reconstitute_tpm
 
@@ -42,17 +38,17 @@ def test_node_init_inputs(s):
 
 
 def test_node_eq(s):
-    expected = node(s.tpm, s.cm, s.state_space, 1, 0, "B")
+    expected = generate_node(s.tpm, s.cm, s.state_space, 1, 0, "B")
     assert s.nodes[1] == expected
 
 
 def test_node_neq_by_index(s):
-    assert s.nodes[0] != node(s.tpm, s.cm, s.state_space, 1, 0, "B")
+    assert s.nodes[0] != generate_node(s.tpm, s.cm, s.state_space, 1, 0, "B")
 
 
 def test_node_neq_by_state(s):
     other_s = Subsystem(s.network, (1, 1, 1), s.node_indices)
-    assert other_s.nodes[1] != node(s.tpm, s.cm, s.state_space, 1, 0, "B")
+    assert other_s.nodes[1] != generate_node(s.tpm, s.cm, s.state_space, 1, 0, "B")
 
 
 def test_repr(s):

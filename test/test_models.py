@@ -1,7 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# test_models.py
-
 from collections import namedtuple
 from pyphi.models.cuts import KPartition
 from pyphi.models.subsystem import FlatCauseEffectStructure
@@ -13,9 +9,7 @@ from pyphi import (
     Direction,
     Subsystem,
     config,
-    constants,
     compute,
-    relations,
     exceptions,
     models,
     examples,

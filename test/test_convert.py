@@ -1,7 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# test_convert.py
-
 from math import log2
 
 import numpy as np

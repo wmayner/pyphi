@@ -1,7 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # models/subsystem.py
-
 """Subsystem-level objects."""
 
 from collections import defaultdict
@@ -252,9 +249,11 @@ class CauseEffectStructure(cmp.Orderable, Sequence, ToPandasMixin):
 
 def flatten_distinctions(distinctions):
     return concat(
-        [distinction.cause, distinction.effect]
-        if isinstance(distinction, Concept)
-        else [distinction]
+        (
+            [distinction.cause, distinction.effect]
+            if isinstance(distinction, Concept)
+            else [distinction]
+        )
         for distinction in distinctions
     )
 

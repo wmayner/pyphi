@@ -1,20 +1,17 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # combinatorics.py
-
-"""Combinatorial functions."""
+"""Combinatorial utilities."""
 
 import itertools
 from collections import defaultdict
 from itertools import chain, product
 
-import igraph as ig
 import numpy as np
 from graphillion import setset
 
 from .cache import cache
 
 # TODO(4.0) move relevant functions from utils here
+
 
 # TODO(docs) finish documenting
 def pair_indices(n, m=None, k=0):
@@ -159,34 +156,6 @@ def union_powerset_family(sets, min_size=1, max_size=None):
     for s in sets:
         S |= powerset_family(s, min_size=min_size, max_size=max_size, universe=U)
     return S
-
-
-def maximal_independent_sets(nx_graph):
-    """Yield the maximal independent sets of a NetworkX graph.
-
-    Uses igraph's implementation of `maximal_independent_vertex_sets`.
-
-    Time complexity is exponential in the worst case.
-    """
-    # Convert to igraph for faster maximal independent set implementation
-    G = ig.Graph.from_networkx(nx_graph)
-    for vertices in G.maximal_independent_vertex_sets():
-        # Convert node IDs to mechanisms
-        yield G.vs[vertices]["_nx_name"]
-
-
-def largest_independent_sets(nx_graph):
-    """Yield the largest independent set(s) of a NetworkX graph.
-
-    Uses igraph's implementation of `largest_independent_vertex_sets`.
-
-    Time complexity is exponential in the worst case.
-    """
-    # Convert to igraph for faster maximal independent set implementation
-    G = ig.Graph.from_networkx(nx_graph)
-    for vertices in G.largest_independent_vertex_sets():
-        # Convert node IDs to mechanisms
-        yield G.vs[vertices]["_nx_name"]
 
 
 @cache(cache={}, maxmem=None)

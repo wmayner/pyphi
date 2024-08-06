@@ -1,7 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# test/test_metrics_ces.py
-
 from unittest.mock import patch
 import numpy as np
 import pytest

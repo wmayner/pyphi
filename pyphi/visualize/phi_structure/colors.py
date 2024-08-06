@@ -1,12 +1,10 @@
 # visualize/colors.py
-
 """Handle color computations."""
 
 from typing import Iterable
 
-import plotly.colors
+import plotly
 from _plotly_utils.basevalidators import ColorscaleValidator
-from plotly.colors import find_intermediate_color
 
 
 _TYPE_COLORS = {"isotext": "magenta", "inclusion": "indigo", "paratext": "cyan"}
@@ -75,7 +73,7 @@ def _get_color(colorscale, intermed):
             high_cutoff, high_color = cutoff, color
             break
 
-    return find_intermediate_color(
+    return plotly.colors.find_intermediate_color(
         lowcolor=low_color,
         highcolor=high_color,
         intermed=((intermed - low_cutoff) / (high_cutoff - low_cutoff)),

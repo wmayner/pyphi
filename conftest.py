@@ -9,7 +9,8 @@ import ray
 import yaml
 
 import pyphi
-from pyphi import cache, config
+import pyphi.cache.redis as redis
+from pyphi.conf import config
 
 log = logging.getLogger("pyphi.test")
 
@@ -91,17 +92,17 @@ def protect_caches(request):
     This is called before flushcache, ensuring the cache is saved.
     """
     # Initialize a test Redis connection
-    original_redis_conn = cache.redis_conn
-    cache.redis_conn = cache.redis_init(config.REDIS_CONFIG["test_db"])
+    original_redis_conn = redis.conn
+    redis.conn = redis.init(config.REDIS_CONFIG["test_db"])
     yield
     # Restore the cache after the last test has run
-    cache.redis_conn = original_redis_conn
+    redis.conn = original_redis_conn
 
 
 def _flush_redis_cache():
-    if cache.redis_available():
-        cache.redis_conn.flushdb()
-        cache.redis_conn.config_resetstat()
+    if redis.available():
+        redis.conn.flushdb()
+        redis.conn.config_resetstat()
 
 
 # TODO: flush Redis cache

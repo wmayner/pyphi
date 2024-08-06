@@ -1,8 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# test_big_phi.py
-
-
 import pytest
 
 from pyphi import config, compute, models
@@ -215,6 +210,7 @@ def check_sia(sia, answer):
 
 # Tests
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 def test_clear_subsystem_caches_after_computing_sia_config_option(use_iit_3_config, s):
     with config.override(

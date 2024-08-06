@@ -1,6 +1,5 @@
 # visualize/theme.py
-
-"""Provides visualization themes for plotting phi structures."""
+"""Provides visual themes."""
 
 from inspect import getmro
 from pprint import pformat

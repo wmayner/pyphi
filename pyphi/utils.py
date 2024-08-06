@@ -1,9 +1,5 @@
 # utils.py
-
-"""
-Functions used by more than one PyPhi module or class, or that might be of
-external use.
-"""
+"""Package-wide utilities."""
 
 import hashlib
 import math
@@ -387,6 +383,7 @@ all_are_identical = all_same(operator.is_)
 
 
 NO_DEFAULT = object()
+
 
 # TODO test
 @curry

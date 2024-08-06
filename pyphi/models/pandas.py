@@ -1,5 +1,4 @@
 # models/pandas.py
-
 """Utilities for working with Pandas data structures."""
 
 from typing import Sequence

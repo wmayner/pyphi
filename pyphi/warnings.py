@@ -1,8 +1,9 @@
 # warnings.py
-
 """PyPhi warnings."""
 
 import warnings
+
+from . import exceptions
 
 
 class PyPhiWarning(UserWarning):
@@ -26,3 +27,9 @@ def warn_about_tie_serialization(
             "information was lost during serialization."
         )
     warnings.warn(msg.format(name=name), PyPhiWarning, stacklevel=stacklevel)
+
+
+class MissingOptionalDependenciesWarning(PyPhiWarning):
+    """Warn about missing dependencies."""
+
+    MSG = exceptions.MissingOptionalDependenciesError.MSG

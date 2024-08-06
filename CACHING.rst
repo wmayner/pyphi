@@ -4,8 +4,14 @@ Caching
 PyPhi can use Redis as a fast in-memory global LRU cache to store MICE objects,
 reducing the memory load on PyPhi processes.
 
-`Install Redis <http://redis.io/download>`_. The `redis.conf` file provided
-with PyPhi includes the minimum settings needed to run Redis as an LRU cache:
+To use this feature, install PyPhi with the extra dependencies ``[caching]``, *e.g*
+
+.. code:: bash
+
+    pip install "pyphi[caching]""
+
+The ``redis.conf`` file provided with PyPhi includes the minimum settings needed
+to run Redis as an LRU cache:
 
 .. code:: bash
 

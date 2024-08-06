@@ -1,10 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # partition.py
-
-"""
-Functions for generating partitions.
-"""
+"""Utilities for generating partitions."""
 
 import functools
 import itertools

@@ -1,7 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# test/test_utils.py
-
 import numpy as np
 from hypothesis import given
 

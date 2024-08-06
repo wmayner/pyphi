@@ -1,4 +1,5 @@
 # visualize/connectivity.py
+"""Visualize system connectivity information."""
 
 import networkx as nx
 

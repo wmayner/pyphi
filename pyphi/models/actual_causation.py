@@ -1,10 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # models/actual_causation.py
-
-"""
-Objects that represent structures used in actual causation.
-"""
+"""Objects that represent structures used in actual causation."""
 
 from collections import namedtuple
 from collections.abc import Sequence
@@ -308,7 +303,6 @@ class DirectedAccount(Account):
     """The set of |CausalLinks| with |alpha > 0| for one direction of a
     transition.
     """
-
 
 
 _ac_sia_attributes = [

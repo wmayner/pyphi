@@ -1,10 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # examples.py
-
-"""
-Example networks and subsystems to go along with the documentation.
-"""
+"""Example networks and subsystems to go along with the documentation."""
 
 # pylint: disable=too-many-lines
 # flake8: noqa
@@ -25,10 +20,11 @@ LABELS = string.ascii_uppercase
 
 EXAMPLES = defaultdict(dict)
 
+
 def register_example(func):
-    name = func.__name__.split('_')
+    name = func.__name__.split("_")
     obj = name[-1]
-    name = '_'.join(name[:-1])
+    name = "_".join(name[:-1])
     EXAMPLES[obj][name] = func
     return func
 
@@ -58,7 +54,8 @@ def grid3_network():
         [0, 1, 1],
     ])
     # fmt: on
-    return Network(tpm, cm=cm, node_labels=['A', 'B', 'C'])
+    return Network(tpm, cm=cm, node_labels=["A", "B", "C"])
+
 
 @register_example
 def grid3_subsystem():
@@ -143,7 +140,7 @@ def basic_network(cm=False):
     # fmt: on
     else:
         cm = None
-    return Network(tpm, cm=cm, node_labels=LABELS[:tpm.shape[1]])
+    return Network(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
 
 
 def basic_state():
@@ -259,9 +256,7 @@ def residue_network():
     | E | 0 | 1 | 0 | 0 | 0 |
     +---+---+---+---+---+---+
     """
-    tpm = np.array([
-        [int(s) for s in bin(x)[2:].zfill(5)[::-1]] for x in range(32)
-    ])
+    tpm = np.array([[int(s) for s in bin(x)[2:].zfill(5)[::-1]] for x in range(32)])
     tpm[np.where(np.sum(tpm[0:, 2:4], 1) == 2), 0] = 1
     tpm[np.where(np.sum(tpm[0:, 3:5], 1) == 2), 1] = 1
     tpm[np.where(np.sum(tpm[0:, 2:4], 1) < 2), 0] = 0
@@ -271,7 +266,7 @@ def residue_network():
     cm[2:4, 0] = 1
     cm[3:, 1] = 1
 
-    return Network(tpm, cm=cm, node_labels=LABELS[:tpm.shape[1]])
+    return Network(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
 
 
 @register_example
@@ -330,7 +325,7 @@ def xor_network():
         [1, 1, 0],
     ])
     # fmt: on
-    return Network(tpm, cm=cm, node_labels=LABELS[:tpm.shape[1]])
+    return Network(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
 
 
 @register_example
@@ -528,7 +523,7 @@ def propagation_delay_network():
     state ``(0, 0, 1, 0, 1, 0, 0, 0, 0)``.
     """
     num_nodes = 9
-    num_states = 2 ** num_nodes
+    num_states = 2**num_nodes
 
     tpm = np.zeros((num_states, num_nodes))
 
@@ -565,7 +560,7 @@ def propagation_delay_network():
     ])
     # fmt: on
 
-    return Network(tpm, cm=cm, node_labels=LABELS[:tpm.shape[1]])
+    return Network(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
 
 
 @register_example
@@ -593,7 +588,7 @@ def macro_network():
         [1.0, 1.0, 1.0, 1.0],
     ])
     # fmt: on
-    return Network(tpm, node_labels=LABELS[:tpm.shape[1]])
+    return Network(tpm, node_labels=LABELS[: tpm.shape[1]])
 
 
 @register_example
@@ -653,7 +648,7 @@ def blackbox_network():
     In the documentation example, the state is (0, 0, 0, 0, 0, 0).
     """
     num_nodes = 6
-    num_states = 2 ** num_nodes
+    num_states = 2**num_nodes
     tpm = np.zeros((num_states, num_nodes))
 
     for index, previous_state in enumerate(all_states(num_nodes)):
@@ -681,7 +676,7 @@ def blackbox_network():
     ])
     # fmt: on
 
-    return Network(tpm, cm, node_labels=LABELS[:tpm.shape[1]])
+    return Network(tpm, cm, node_labels=LABELS[: tpm.shape[1]])
 
 
 @register_example
@@ -701,7 +696,7 @@ def rule110_network():
         [0, 0, 0]
     ])
     # fmt: on
-    return Network(tpm, node_labels=LABELS[:tpm.shape[1]])
+    return Network(tpm, node_labels=LABELS[: tpm.shape[1]])
 
 
 @register_example
@@ -757,12 +752,12 @@ def rule154_network():
         [1, 0, 0, 1, 1],
     ])
     # fmt: on
-    return Network(tpm, cm=cm, node_labels=LABELS[:tpm.shape[1]])
+    return Network(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
 
 
 @register_example
 def rule154_subsystem():
-    return Subsystem(rule154_network(), (0,)*5)
+    return Subsystem(rule154_network(), (0,) * 5)
 
 
 @register_example
@@ -844,7 +839,7 @@ def fig1a_network():
         [0, 0, 0, 0, 0, 0],
     ])
     # fmt: on
-    return Network(tpm, cm=cm, node_labels=LABELS[:tpm.shape[1]])
+    return Network(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
 
 
 @register_example
@@ -876,7 +871,7 @@ def fig3a_network():
         [1, 0, 0, 0],
     ])
     # fmt: on
-    return Network(tpm, cm=cm, node_labels=LABELS[:tpm.shape[1]])
+    return Network(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
 
 
 @register_example
@@ -908,7 +903,7 @@ def fig3b_network():
         [1, 0, 0, 0],
     ])
     # fmt: on
-    return Network(tpm, cm=cm, node_labels=LABELS[:tpm.shape[1]])
+    return Network(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
 
 
 @register_example
@@ -946,7 +941,7 @@ def fig4_network():
         [1, 1, 0],
     ])
     # fmt: on
-    return Network(tpm, cm=cm, node_labels=LABELS[:tpm.shape[1]])
+    return Network(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
 
 
 @register_example
@@ -988,7 +983,7 @@ def fig5a_network():
         [1, 1, 0],
     ])
     # fmt: on
-    return Network(tpm, cm=cm, node_labels=LABELS[:tpm.shape[1]])
+    return Network(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
 
 
 @register_example
@@ -1030,7 +1025,7 @@ def fig5b_network():
         [0, 1, 0],
     ])
     # fmt: on
-    return Network(tpm, cm=cm, node_labels=LABELS[:tpm.shape[1]])
+    return Network(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
 
 
 @register_example
@@ -1189,11 +1184,12 @@ def fig16_network():
         [0, 0, 0, 0, 0, 1, 1],
     ])
     # fmt: on
-    return Network(tpm, cm=cm, node_labels=LABELS[:tpm.shape[1]])
+    return Network(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
 
 
 # Actual Causation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 @register_example
 def actual_causation_network():
@@ -1212,7 +1208,7 @@ def actual_causation_network():
         [1, 1],
     ])
     # fmt: on
-    return Network(tpm, cm, node_labels=('OR', 'AND'))
+    return Network(tpm, cm, node_labels=("OR", "AND"))
 
 
 @register_example
@@ -1248,7 +1244,7 @@ def disjunction_conjunction_network():
         [0, 0, 0, 0],
     ])
     # fmt: on
-    return Network(tpm, cm, node_labels=LABELS[:tpm.shape[1]])
+    return Network(tpm, cm, node_labels=LABELS[: tpm.shape[1]])
 
 
 @register_example
@@ -1273,7 +1269,7 @@ def prevention_transition():
         [0, 0, 0],
     ])
     # fmt: on
-    network = Network(tpm, cm, node_labels=['A', 'B', 'F'])
+    network = Network(tpm, cm, node_labels=["A", "B", "F"])
     x_state = (1, 1, 1)
     y_state = (1, 1, 1)
 
@@ -1282,10 +1278,10 @@ def prevention_transition():
 
 @register_example
 @config.override(
-    PARTITION_TYPE='TRI',
-    REPERTOIRE_DISTANCE='BLD',
+    PARTITION_TYPE="TRI",
+    REPERTOIRE_DISTANCE="BLD",
     VALIDATE_SUBSYSTEM_STATES=False,
-    ACTUAL_CAUSATION_MEASURE='WPMI',
+    ACTUAL_CAUSATION_MEASURE="WPMI",
 )
 def frog_example():
     """
@@ -1295,20 +1291,36 @@ def frog_example():
         Grasso, M, Albantakis, L, Lang, J, & Tononi, G
 
     """
-    def LogFunc(x,l,k,x0):
-        y = 1/(l+np.e**(-k*(x-x0)))
+
+    def LogFunc(x, l, k, x0):
+        y = 1 / (l + np.e ** (-k * (x - x0)))
         return y
 
     def Gauss(x, mu, si):
-        y = np.exp(-.5*(((x-mu)/si)**2))
+        y = np.exp(-0.5 * (((x - mu) / si) ** 2))
         return y
 
     def NR(x, exponent, threshold):
         x_exp = x**exponent
-        y = x_exp/(threshold + x_exp)
+        y = x_exp / (threshold + x_exp)
         return y
 
-    def get_net(mech_func, weights, mu=None, si=None, exp=None, th=None, l=None, k=None, x0=None, input_nodes=None, input_modifier=None, node_labels=None, network_name=None, pickle_network=True):
+    def get_net(
+        mech_func,
+        weights,
+        mu=None,
+        si=None,
+        exp=None,
+        th=None,
+        l=None,
+        k=None,
+        x0=None,
+        input_nodes=None,
+        input_modifier=None,
+        node_labels=None,
+        network_name=None,
+        pickle_network=True,
+    ):
         """
         Returns a pyphi network (with the specified activation function)
 
@@ -1331,9 +1343,9 @@ def frog_example():
         if node_labels is None:
             node_labels = [string.ascii_uppercase[n] for n in range(len(weights))]
 
-        mechs_pset = list(powerset(range(nodes_n),nonempty=True))
+        mechs_pset = list(powerset(range(nodes_n), nonempty=True))
         states = list(all_states(nodes_n))
-        tpm = np.zeros([2**nodes_n,nodes_n])
+        tpm = np.zeros([2**nodes_n, nodes_n])
 
         for s in range(len(states)):
             state = states[s]
@@ -1341,22 +1353,35 @@ def frog_example():
 
             for z in node_indices:
                 # g = Gaussian
-                if mech_func[z]=='g':
-                    val = Gauss(sum(state*np.array([weights[z][n] for n in node_indices])),mu,si)
+                if mech_func[z] == "g":
+                    val = Gauss(
+                        sum(state * np.array([weights[z][n] for n in node_indices])),
+                        mu,
+                        si,
+                    )
                 # nr = Naka Rushton, s = space
-                elif mech_func[z]=='nr' or mech_func[z]=='s':
-                    input_sum = sum(state*weights[z])
-                    val = NR(input_sum,exp,th)
+                elif mech_func[z] == "nr" or mech_func[z] == "s":
+                    input_sum = sum(state * weights[z])
+                    val = NR(input_sum, exp, th)
                 # l = LogFunc
-                elif mech_func[z]=='l':
-                    val = LogFunc(sum(state*np.array([weights[z][n] for n in node_indices])),l,k,x0)
+                elif mech_func[z] == "l":
+                    val = LogFunc(
+                        sum(state * np.array([weights[z][n] for n in node_indices])),
+                        l,
+                        k,
+                        x0,
+                    )
                 # i = inhibiting input
-                elif mech_func[z]=='i':
+                elif mech_func[z] == "i":
                     non_input_nodes = [n for n in node_indices if n not in input_nodes]
-                    input_weights = [-input_modifier if state[n]==0 else 1 for n in input_nodes]*np.array([weights[z][n] for n in input_nodes])
-                    other_weights = [state[n] for n in non_input_nodes]*np.array([weights[z][n] for n in non_input_nodes])
-                    weights_sum = sum(input_weights)+sum(other_weights)
-                    val = Gauss(weights_sum,mu,si)
+                    input_weights = [
+                        -input_modifier if state[n] == 0 else 1 for n in input_nodes
+                    ] * np.array([weights[z][n] for n in input_nodes])
+                    other_weights = [state[n] for n in non_input_nodes] * np.array(
+                        [weights[z][n] for n in non_input_nodes]
+                    )
+                    weights_sum = sum(input_weights) + sum(other_weights)
+                    val = Gauss(weights_sum, mu, si)
                 else:
                     raise NameError("Mechanism function not recognized")
 
@@ -1364,98 +1389,126 @@ def frog_example():
 
             tpm[s] = tuple(tpm_line)
 
-        cm = np.array([[np.float(1) if w else 0 for w in weights[n]] for n in range(len(weights))])
+        cm = np.array(
+            [[np.float(1) if w else 0 for w in weights[n]] for n in range(len(weights))]
+        )
         cm = cm.T
         network = Network(tpm, cm, node_labels)
 
         return network
 
     # F3 Frog
-    print('F3 frog:\n')
+    print("F3 frog:\n")
     mu = 1
-    si = .3
+    si = 0.3
 
-    mech_func = [
-        'g', 'g', 'g', 'g', 'g', 'g', 'g', 'g']
+    mech_func = ["g", "g", "g", "g", "g", "g", "g", "g"]
     #'S1','S2','S3','H1','H2','H3','M1','M2'
 
-    weights = np.array([
-        [ 0, 0, 0, 1,.5, 0, 0, 0],#S1
-        [ 0, 0, 0,.5,.9,.5, 0, 0],#S2
-        [ 0, 0, 0, 0,.5, 1, 0, 0],#S3
-        [ 0, 0, 0, 0, 0, 0,.8, 0],#H1
-        [ 0, 0, 0, 0, 0, 0,.2,.2],#H3
-        [ 0, 0, 0, 0, 0, 0, 0,.8],#H2
-        [ 0, 0, 0, 0, 0, 0, 0, 0],#M1
-        [ 0, 0, 0, 0, 0, 0, 0, 0],#M2
-    ])  #S1,S2,S3,H1,H3,H2,M1,M2
+    weights = np.array(
+        [
+            [0.0, 0.0, 0.0, 1.0, 0.5, 0.0, 0.0, 0.0],  # S1
+            [0.0, 0.0, 0.0, 0.5, 0.9, 0.5, 0.0, 0.0],  # S2
+            [0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 0.0, 0.0],  # S3
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.8, 0.0],  # H1
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.2],  # H3
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.8],  # H2
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # M1
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # M2
+        ]
+    )  # S1,S2,S3,H1,H3,H2,M1,M2
 
-    node_labels = ['SL','SC','SR','CL','CC','CR','ML','MR']
+    node_labels = ["SL", "SC", "SR", "CL", "CC", "CR", "ML", "MR"]
 
     network = get_net(mech_func, weights, mu=mu, si=si, node_labels=node_labels)
 
-    transition = actual.Transition(network, (1,0,1,1,1,1,1,1),(1,0,1,1,1,1,1,1),(0,1,2,3,4,5),(3,4,5,6,7))
+    transition = actual.Transition(
+        network,
+        (1, 0, 1, 1, 1, 1, 1, 1),
+        (1, 0, 1, 1, 1, 1, 1, 1),
+        (0, 1, 2, 3, 4, 5),
+        (3, 4, 5, 6, 7),
+    )
     print(transition)
     account = actual.account(transition)
     print(account)
 
     # F2 Frog
-    print('F2 frog:\n')
+    print("F2 frog:\n")
 
     mu = 1
-    si = .3
+    si = 0.3
 
     mech_func = [
-        'g', 'g', 'g', 'g', 'g', 'g', 'g',
+        "g",
+        "g",
+        "g",
+        "g",
+        "g",
+        "g",
+        "g",
     ]
     #'S1','S2','S3', N1','N2','M1','M2',
 
-    weights = np.array([
+    weights = np.array(
+        [
+            [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0],  # S1
+            [0.0, 0.0, 0.0, 0.5, 0.5, 0.0, 0.0],  # S2
+            [0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0],  # S3
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.8, 0.2],  # H1
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.8],  # H2
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # M1
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # M2
+        ]
+    )  # S1,S2,S3,H1,H2,M1,M2
 
-        [ 0, 0, 0, 1, 0, 0, 0],#S1
-        [ 0, 0, 0,.5,.5, 0, 0],#S2
-        [ 0, 0, 0, 0, 1, 0, 0],#S3
-        [ 0, 0, 0, 0, 0,.8,.2],#H1
-        [ 0, 0, 0, 0, 0,.2,.8],#H2
-        [ 0, 0, 0, 0, 0, 0, 0],#M1
-        [ 0, 0, 0, 0, 0, 0, 0],#M2
-    ])  #S1,S2,S3,H1,H2,M1,M2
-
-    node_labels = ['SL','SC','SR','CL','CR','ML','MR']
+    node_labels = ["SL", "SC", "SR", "CL", "CR", "ML", "MR"]
 
     network = get_net(mech_func, weights, mu=mu, si=si, node_labels=node_labels)
 
-    transition = actual.Transition(network, (1,0,1,1,1,1,1),(1,0,1,1,1,1,1),(0,1,2,3,4),(3,4,5,6))
+    transition = actual.Transition(
+        network,
+        (1, 0, 1, 1, 1, 1, 1),
+        (1, 0, 1, 1, 1, 1, 1),
+        (0, 1, 2, 3, 4),
+        (3, 4, 5, 6),
+    )
     print(transition)
     account = actual.account(transition)
     print(account)
 
     # F1 Frog
-    print('\n\nF1 frog:\n')
+    print("\n\nF1 frog:\n")
     mu = 1
-    si = .3
+    si = 0.3
 
-    mech_func = [
-        'g', 'g', 'g', 'g', 'g', 'g', 'g', 'g']
+    mech_func = ["g", "g", "g", "g", "g", "g", "g", "g"]
     #'S1','S2','S3','S4','N1','N2','M1','M2',
 
-    weights = np.array([
+    weights = np.array(
+        [
+            [0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0],  # S1
+            [0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0],  # S2
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0],  # S3
+            [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0],  # S4
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0],  # H1
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0],  # H2
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # M1
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # M2
+        ]
+    )  # S1,S2,S3,S4,H1,H2,M1,M2
 
-        [ 0, 0, 0, 0, 1, 0, 0, 0],#S1
-        [ 0, 0, 0, 0,.5, 0, 0, 0],#S2
-        [ 0, 0, 0, 0, 0,.5, 0, 0],#S3
-        [ 0, 0, 0, 0, 0, 1, 0, 0],#S4
-        [ 0, 0, 0, 0, 0, 0, 1, 0],#H1
-        [ 0, 0, 0, 0, 0, 0, 0, 1],#H2
-        [ 0, 0, 0, 0, 0, 0, 0, 0],#M1
-        [ 0, 0, 0, 0, 0, 0, 0, 0],#M2
-    ])  #S1,S2,S3,S4,H1,H2,M1,M2
-
-    node_labels = ['S1','S2','S3','S4','H1','H2','M1','M2']
+    node_labels = ["S1", "S2", "S3", "S4", "H1", "H2", "M1", "M2"]
 
     network = get_net(mech_func, weights, mu=mu, si=si, node_labels=node_labels)
 
-    transition = actual.Transition(network,(1,0,0,1,1,1,1,1),(1,0,0,1,1,1,1,1),(0,1,2,3,4,5),(4,5,6,7))
+    transition = actual.Transition(
+        network,
+        (1, 0, 0, 1, 1, 1, 1, 1),
+        (1, 0, 0, 1, 1, 1, 1, 1),
+        (0, 1, 2, 3, 4, 5),
+        (4, 5, 6, 7),
+    )
     print(transition)
     account = actual.account(transition)
     print(account)

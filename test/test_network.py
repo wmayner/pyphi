@@ -1,7 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# test_network.py
-
 import numpy as np
 import xarray as xr
 import pytest

@@ -1,4 +1,5 @@
 # visualize/dynamics.py
+"""Visualize state trajectories."""
 
 import matplotlib.pyplot as plt
 import numpy as np

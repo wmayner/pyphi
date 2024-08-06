@@ -1,7 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # models/mechanism.py
-
 """Mechanism-level objects."""
 
 from dataclasses import dataclass

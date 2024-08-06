@@ -1,6 +1,5 @@
 # visualize/phi_structure/text.py
-
-"""Textual functions for plotting phi structures."""
+"""Utilities for handling text."""
 
 from toolz import identity
 

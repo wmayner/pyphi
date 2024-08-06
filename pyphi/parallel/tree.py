@@ -1,4 +1,5 @@
-# compute/parallel/tree.py
+# parallel/tree.py
+"""Classes for specifying distributed computations."""
 
 from dataclasses import dataclass
 from typing import Optional

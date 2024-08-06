@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 # network_generator/weights.py
-
 """Generate different weight matrices."""
 
 import functools

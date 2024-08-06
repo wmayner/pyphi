@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # __init__.py
 
 #      _|_|_|
@@ -71,14 +70,14 @@ import os
 import pkgutil
 
 # Lift main interfaces to top-level namespace
-from .__about__ import *
 from .actual import Transition
 from .conf import config
 from .direction import Direction
 from .network import Network
 from .subsystem import Subsystem
 
-_skip_import = ["visualize"]
+# Skip modules that require optional dependencies
+_skip_import = ["visualize", "graphs"]
 
 
 def _import_submodules(package, recursive=True):

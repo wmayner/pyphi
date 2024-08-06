@@ -1,10 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # compute/network.py
-
-"""
-Functions for computing network-level properties.
-"""
+"""Functions for computing network-level properties."""
 
 import logging
 
@@ -12,7 +7,7 @@ from .. import conf, exceptions, utils, validate
 from ..conf import config
 from ..models import _null_sia
 from ..subsystem import Subsystem
-from .parallel import MapReduce
+from ..parallel import MapReduce
 from .subsystem import sia
 
 # Create a logger for this module.

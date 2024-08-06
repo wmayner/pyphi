@@ -1,3 +1,5 @@
+# compositional_state.py
+
 import pprint
 from collections import UserDict
 from copy import deepcopy

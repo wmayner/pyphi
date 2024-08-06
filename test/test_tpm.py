@@ -1,7 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# test/test_tpm.py
-
 import numpy as np
 import pickle
 import pytest
@@ -61,9 +57,9 @@ def implicit_tpm(size, degree, node_states, seed=1337, deterministic=False):
     return tpm
 
 
+
 @pytest.mark.parametrize(
-    "tpm",
-    [ExplicitTPM(np.random.rand(42)), ExplicitTPM(np.arange(42))]
+    "tpm", [ExplicitTPM(np.random.rand(42)), ExplicitTPM(np.arange(42))]
 )
 def test_serialization(tpm):
     assert tpm.array_equal(pickle.loads(pickle.dumps(tpm)))

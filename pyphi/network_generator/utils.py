@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # network_generator/utils.py
+"""Utilities for creating systems."""
 
 import numpy as np
 

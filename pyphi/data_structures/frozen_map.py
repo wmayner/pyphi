@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # data_structures/frozen_map.py
 
 import typing

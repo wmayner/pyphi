@@ -1,7 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # jsonify.py
-
 """
 PyPhi- and NumPy-aware JSON serialization.
 
@@ -32,6 +29,7 @@ the stream to a nested PyPhi object structure. The decoder will raise an
 exception if current PyPhi version doesn't match the version in the JSON data.
 """
 
+from importlib.metadata import version as get_version
 import json
 
 import numpy as np
@@ -42,6 +40,8 @@ from pyphi import cache
 CLASS_KEY = "__class__"
 VERSION_KEY = "__version__"
 ID_KEY = "__id__"
+
+PYPHI_VERSION = get_version("pyphi")
 
 # TODO: extend to `macro` objects
 # TODO: resolve schema issues with `vphi` and other external consumers
@@ -106,7 +106,7 @@ def _push_metadata(dct, obj):
     dct.update(
         {
             CLASS_KEY: obj.__class__.__name__,
-            VERSION_KEY: pyphi.__version__,
+            VERSION_KEY: PYPHI_VERSION,
             ID_KEY: hash(obj),
         }
     )
@@ -197,11 +197,12 @@ def dump(obj, fp, **user_kwargs):
 
 def _check_version(version):
     """Check whether the JSON version matches the PyPhi version."""
-    if version != pyphi.__version__:
+    if version != PYPHI_VERSION:
         raise pyphi.exceptions.JSONVersionError(
             "Cannot load JSON from a different version of PyPhi. "
             "JSON version = {0}, current version = {1}.".format(
-                version, pyphi.__version__
+                version,
+                PYPHI_VERSION,
             )
         )
 

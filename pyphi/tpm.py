@@ -1,10 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # tpm.py
-
-"""
-Provides the ExplicitTPM and related classes.
-"""
+"""Provides classes for representing TPMs."""
 
 import math
 import functools
@@ -18,7 +13,7 @@ from .connectivity import subadjacency
 from .conf import config
 from .constants import OFF, ON
 from .data_structures import FrozenMap
-from .node import node as Node
+import pyphi.node
 from .utils import all_states, eq, np_hash, np_immutable
 
 class TPM:
@@ -93,7 +88,6 @@ class TPM:
                 if node.index in free_nodes
             )
         )
-
 
     def infer_edge(self, a, b, contexts):
         """Infer the presence or absence of an edge from node A to node B.
@@ -614,7 +608,7 @@ class ImplicitTPM(TPM):
     @property
     def tpm(self):
         """Tuple[np.ndarray]: Verbose representation of all node TPMs."""
-        return tuple(node.tpm for node in self._nodes)
+        return tuple(node.effect_tpm for node in self._nodes)
 
     @property
     def number_of_units(self):
@@ -639,7 +633,7 @@ class ImplicitTPM(TPM):
     @property
     def shapes(self):
         """Tuple[Tuple[int]]: The shapes of each node TPM in this TPM."""
-        return [node.tpm.shape for node in self._nodes]
+        return [node.effect_tpm.shape for node in self._nodes]
 
     @staticmethod
     def _node_shapes_to_shape(
@@ -704,7 +698,7 @@ class ImplicitTPM(TPM):
         # An implicit TPM contains valid probabilities if and only if
         # individual node TPMs contain valid probabilities, for every node.
         if all(
-                node.tpm._validate_probabilities()
+                node.effect_tpm._validate_probabilities()
                 for node in self._nodes
         ):
             return True
@@ -716,7 +710,7 @@ class ImplicitTPM(TPM):
         the probability distribution over next states conditioned on the current
         state sums to 1 (up to |config.PRECISION|).
         """
-        return all(node.tpm.is_unitary() for node in self._nodes)
+        return all(node.effect_tpm.is_unitary() for node in self._nodes)
 
     def _validate_shape(self):
         """Validate this TPM's shape.
@@ -788,13 +782,13 @@ class ImplicitTPM(TPM):
         # individual nodes, then assemble into a new ImplicitTPM.
         return type(self)(
             tuple(
-                Node(
-                    node.tpm.marginalize_out(node_indices),
-                    node.dataarray.attrs["cm"],
-                    node.dataarray.attrs["network_state_space"],
+                pyphi.node.generate_node(
+                    node.effect_tpm.marginalize_out(node_indices),
+                    node.effect_dataarray.attrs["cm"],
+                    node.effect_dataarray.attrs["network_state_space"],
                     node.index,
-                    node_labels=node.dataarray.attrs["node_labels"],
-                ).node
+                    node.effect_dataarray.attrs["node_labels"],
+                )
                 for node in self.nodes
             )
         )
@@ -854,7 +848,7 @@ class ImplicitTPM(TPM):
             i = node.index
             state = current_state[i]
             # DataArray indexing: keep last dimension by wrapping index in list.
-            pr_current_state = node.dataarray[..., [state]].data
+            pr_current_state = node.effect_dataarray[..., [state]].data
             normalization = np.sum(pr_current_state)
             nodes.append(pr_current_state / normalization)
         return tuple(nodes)
@@ -896,16 +890,16 @@ class ImplicitTPM(TPM):
             )
             for node_tpm in self.tpm
         )
-        reference_node = self.nodes[0].dataarray
+        reference_node = self.nodes[0].effect_dataarray
         return ImplicitTPM(
             tuple(
-                Node(
+                pyphi.node.generate_node(
                     backward_node_tpm,
                     reference_node.attrs["cm"],
                     reference_node.attrs["network_state_space"],
                     i,
                     reference_node.attrs["node_labels"],
-                ).node
+                )
                 for i, backward_node_tpm in enumerate(backward_tpm)
             )
         )
@@ -945,24 +939,24 @@ class ImplicitTPM(TPM):
         # TODO(tpm) deduplicate commonalities with macro.MacroSubsystem._squeeze.
         some_node = self.nodes[0]
 
-        new_cm = subadjacency(some_node.dataarray.attrs["cm"], nonsingletons)
+        new_cm = subadjacency(some_node.effect_dataarray.attrs["cm"], nonsingletons)
 
         new_node_indices = iter(range(len(nonsingletons)))
         new_node_labels = tuple(some_node._node_labels[n] for n in nonsingletons)
 
-        state_space = some_node.dataarray.attrs["network_state_space"]
+        state_space = some_node.effect_dataarray.attrs["network_state_space"]
         new_state_space = {n: state_space[n] for n in new_node_labels}
 
         # Leverage ExplicitTPM.squeeze to distribute squeezing to every node.
         return type(self)(
             tuple(
-                Node(
-                    node.tpm.squeeze(axis=axis),
+                pyphi.node.generate_node(
+                    node.effect_tpm.squeeze(axis=axis),
                     new_cm,
                     new_state_space,
                     next(new_node_indices),
                     new_node_labels,
-                ).node
+                )
                 for node in self.nodes if node.index in nonsingletons
             )
         )
@@ -971,14 +965,18 @@ class ImplicitTPM(TPM):
         if isinstance(index, (int, slice, type(...), tuple)):
             return type(self)(
                 tuple(
-                    node.dataarray[node.project_index(index, **kwargs)].node
+                    # The nodes in an ImplicitTPM only have "effect"
+                    # node TPMs, even if ImplicitTPM is a cause TPM.
+                    node.effect_dataarray[node.project_index(index, **kwargs)].node
                     for node in self.nodes
                 )
             )
         if isinstance(index, dict):
             return type(self)(
                 tuple(
-                    node.dataarray.loc[node.project_index(index, **kwargs)].node
+                    # The nodes in an ImplicitTPM only have "effect"
+                    # node TPMs, even if ImplicitTPM is a cause TPM.
+                    node.effect_dataarray.loc[node.project_index(index, **kwargs)].node
                     for node in self.nodes
                 )
             )
@@ -1006,7 +1004,7 @@ def reconstitute_tpm(subsystem):
     # ON probabilities.
 
     # TODO nonbinary nodes
-    node_tpms = [np.asarray(node.tpm)[..., 1] for node in subsystem.nodes]
+    node_tpms = [np.asarray(node.effect_tpm)[..., 1] for node in subsystem.nodes]
 
     external_indices = ()
     if hasattr(subsystem, "external_indices"):

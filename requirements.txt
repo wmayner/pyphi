@@ -1,5 +1,0 @@
--e .
--r test/requirements.txt
--r docs/requirements.txt
--r dev_requirements.txt
--r visualization_requirements.txt
