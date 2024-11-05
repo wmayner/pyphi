@@ -652,6 +652,8 @@ def backward_tpm(
     )
     # Σ_{u'_{t–1}} p(u_t | u'_{t–1})
     normalization = np.sum(pr_current_state)
+    if normalization == 0.0:
+        raise exceptions.StateUnreachableError(current_state)
     #                                              Σ_{s_{t–1}} p(u_t | s_{t–1}, w_{t–1})
     # Σ_{w_{t–1}}   p(s_{i,t} | s_{t–1}, w_{t–1}) ———————————————————————————————————————
     #                                                 Σ_{u'_{t–1}} p(u_t | u'_{t–1})
