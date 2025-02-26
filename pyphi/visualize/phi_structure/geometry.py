@@ -205,6 +205,30 @@ def arrange(
     return mapping
 
 
+def arrange_by_mechanism(
+    mechanism_mapping,
+    cause_offset: ArrayLike = [-0.1, 0.0, -0.1],
+    effect_offset: ArrayLike = [0.1, 0.0, 0.1],
+):
+    """Return a mapping from direction to mechanism to coordinates,
+    to be used in initialization of a PurviewCoordinates object"""
+
+    purview_mapping = dict()
+    for direction in Direction.both():
+        purview_mapping[direction] = dict()
+
+        for mechanism in mechanism_mapping:
+            coords = mechanism_mapping[mechanism].copy()
+            if direction == Direction.CAUSE:
+                coords += cause_offset
+            else:
+                coords += effect_offset
+
+            purview_mapping[direction][mechanism] = coords
+
+    return purview_mapping
+
+
 def regular_polygon(n, radius=1.0, center=(0, 0), z=0, angle=0):
     angles = (TWOPI / n) * np.arange(n) - angle
     points = np.empty([n, 3])
@@ -230,3 +254,42 @@ def spherical_to_cartesian(coords):
 def center_coords(coords):
     """Center coordinates around the origin."""
     return coords - coords.mean(axis=0)
+
+
+class PurviewCoordinates:
+    """Map cause and effect purviews, specified by a direction and a mechanism, to 3D coordinates.
+    Does not currently support subset_multiplicities, subset_offset_radius, state_multiplicities, or
+    state_offset_radius args.
+    """
+
+    def __init__(
+        self,
+        mapping: Mapping[Direction, Mapping[tuple[int], ArrayLike]],
+        rotation: Optional[float] = 0.0,
+        rotation_plane: Optional[str] = "xy",
+        scale: Optional[ArrayLike] = 1.0,
+        translate: Optional[ArrayLike] = 0.0,
+    ):
+        self.mapping = mapping
+
+        self.rotation_amount = rotation
+        self.rotation_plane = rotation_plane
+
+        self.scale = scale
+        self.translate = translate
+
+    def get(
+        self,
+        mechanism: tuple[int],
+        direction: Direction,
+    ):
+        """Return cause or effect coordinates for the given purview, specified by its mechanism and direction."""
+        coords = self.mapping[direction][mechanism].copy()
+
+        coords *= self.scale
+        coords += self.translate
+
+        if self.rotation_amount != 0:
+            coords = rotate(coords, self.rotation_amount, self.rotation_plane)
+
+        return coords

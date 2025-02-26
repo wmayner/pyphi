@@ -162,7 +162,8 @@ def test_expand_tpm():
 
 
 def test_marginalize_out(s):
-    marginalized_distribution = s.tpm.marginalize_out([0])
+    assert s.cause_tpm == s.effect_tpm
+    marginalized_distribution = s.effect_tpm.marginalize_out([0])
     # fmt: off
     answer = np.array([
             [[[0.0, 0.0, 0.5],
@@ -176,7 +177,7 @@ def test_marginalize_out(s):
         np.asarray(reconstitute_tpm(marginalized_distribution)), answer
     )
 
-    marginalized_distribution = s.tpm.marginalize_out([0, 1])
+    marginalized_distribution = s.effect_tpm.marginalize_out([0, 1])
     # fmt: off
     answer = np.array([
             [[[0.5, 0.0, 0.5],

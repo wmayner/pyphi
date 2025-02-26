@@ -79,7 +79,6 @@ class Transition:
             compute effect repertoires and coefficients.
         cause_system (Subsystem): The system in ``after_state`` used to compute
             cause repertoires and coefficients.
-        cause_system (Subsystem):
         system (dict): A dictionary mapping causal directions to the system
             used to compute repertoires in that direction.
         cut (ActualCut): The cut that has been applied to this transition.
@@ -354,7 +353,13 @@ class Transition:
     def partitioned_repertoire(self, direction, partition):
         """Compute the repertoire over the partition in the given direction."""
         system = self.system[direction]
-        return system.partitioned_repertoire(direction, partition)
+        if config.REPERTOIRE_DISTANCE == "GENERALIZED_INTRINSIC_DIFFERENCE":
+            purview_state = tuple(self.purview_state(direction)[node] for node in partition.purview)
+            return system.partitioned_repertoire(
+                direction, partition, state=purview_state
+            )
+        else:
+            return system.partitioned_repertoire(direction, partition)
 
     def partitioned_probability(self, direction, partition):
         """Compute the probability of the mechanism over the purview in
@@ -429,7 +434,7 @@ class Transition:
     # Phi_max methods
     # =========================================================================
 
-    def potential_purviews(self, direction, mechanism, purviews=False):
+    def potential_purviews(self, direction, mechanism, purviews=None):
         """Return all purviews that could belong to the |MIC|/|MIE|.
 
         Filters out trivially-reducible purviews.
@@ -448,7 +453,7 @@ class Transition:
             if set(purview).issubset(self.purview_indices(direction))
         ]
 
-    def find_causal_link(self, direction, mechanism, purviews=False, allow_neg=False):
+    def find_causal_link(self, direction, mechanism, purviews=None, allow_neg=False):
         """Return the maximally irreducible cause or effect ratio for a
         mechanism.
 
@@ -495,11 +500,11 @@ class Transition:
         extended_purview = filter(is_not_superset, purviews)
         return CausalLink(max_ria, tuple(extended_purview))
 
-    def find_actual_cause(self, mechanism, purviews=False):
+    def find_actual_cause(self, mechanism, purviews=None):
         """Return the actual cause of a mechanism."""
         return self.find_causal_link(Direction.CAUSE, mechanism, purviews)
 
-    def find_actual_effect(self, mechanism, purviews=False):
+    def find_actual_effect(self, mechanism, purviews=None):
         """Return the actual effect of a mechanism."""
         return self.find_causal_link(Direction.EFFECT, mechanism, purviews)
 
@@ -514,10 +519,10 @@ class Transition:
 
 
 def directed_account(
-    transition, direction, mechanisms=False, purviews=False, allow_neg=False
+    transition, direction, mechanisms=None, purviews=None, allow_neg=False
 ):
     """Return the set of all |CausalLinks| of the specified direction."""
-    if mechanisms is False:
+    if mechanisms is None:
         mechanisms = utils.powerset(
             transition.mechanism_indices(direction), nonempty=True
         )
@@ -789,21 +794,21 @@ def nice_true_ces(tc):
     return true_list
 
 
-def _actual_causes(network, previous_state, current_state, nodes, mechanisms=False):
+def _actual_causes(network, previous_state, current_state, nodes, mechanisms=None):
     log.info("Calculating true causes ...")
     transition = Transition(network, previous_state, current_state, nodes, nodes)
 
     return directed_account(transition, Direction.CAUSE, mechanisms=mechanisms)
 
 
-def _actual_effects(network, current_state, next_state, nodes, mechanisms=False):
+def _actual_effects(network, current_state, next_state, nodes, mechanisms=None):
     log.info("Calculating true effects ...")
     transition = Transition(network, current_state, next_state, nodes, nodes)
 
     return directed_account(transition, Direction.EFFECT, mechanisms=mechanisms)
 
 
-def events(network, previous_state, current_state, next_state, nodes, mechanisms=False):
+def events(network, previous_state, current_state, next_state, nodes, mechanisms=None):
     """Find all events (mechanisms with actual causes and actual effects)."""
     actual_causes = _actual_causes(
         network, previous_state, current_state, nodes, mechanisms

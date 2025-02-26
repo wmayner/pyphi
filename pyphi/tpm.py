@@ -549,6 +549,8 @@ class ExplicitTPM(data_structures.ArrayLike, TPM):
         )
         # Σ_{u'_{t–1}} p(u_t | u'_{t–1})
         normalization = np.sum(pr_current_state)
+        if normalization == 0.0:
+            raise exceptions.StateUnreachableError(current_state)
         #                                              Σ_{s_{t–1}} p(u_t | s_{t–1}, w_{t–1})
         # Σ_{w_{t–1}}   p(s_{i,t} | s_{t–1}, w_{t–1}) ———————————————————————————————————————
         #                                                 Σ_{u'_{t–1}} p(u_t | u'_{t–1})
@@ -850,6 +852,8 @@ class ImplicitTPM(TPM):
             # DataArray indexing: keep last dimension by wrapping index in list.
             pr_current_state = node.effect_dataarray[..., [state]].data
             normalization = np.sum(pr_current_state)
+            if normalization == 0.0:
+                raise exceptions.StateUnreachableError(current_state)
             nodes.append(pr_current_state / normalization)
         return tuple(nodes)
 
@@ -1082,4 +1086,3 @@ def _new_attribute(
         pass
 
     return overriding_attribute
-

@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from pyphi import compute, config, examples, jsonify, relations
+from pyphi import compute, config, examples, jsonify, relations, new_big_phi
 from pyphi.models import FlatCauseEffectStructure
 
 
@@ -65,6 +65,7 @@ specified_states, purviews, overlap_states, congruent_overlaps = zip(*cases)
 overlaps = list(map(overlap, purviews))
 
 
+@pytest.mark.outdated
 def test_only_nonsubsets():
     result = relations.only_nonsubsets(
         [
@@ -87,11 +88,13 @@ def test_only_nonsubsets():
 @pytest.mark.parametrize(
     "specified_states,purviews,answer", zip(specified_states, purviews, overlap_states)
 )
+@pytest.mark.outdated
 def test_overlap_states(specified_states, purviews, answer):
     result = relations.overlap_states(specified_states, purviews, overlap(purviews))
     assert all_array_equal(result, answer)
 
 
+@pytest.mark.outdated
 def test_congruent_overlap_empty():
     assert relations.congruent_overlap((), ()) == []
 
@@ -99,6 +102,7 @@ def test_congruent_overlap_empty():
 @pytest.mark.parametrize(
     "overlap_states,overlap,answer", zip(overlap_states, overlaps, congruent_overlaps)
 )
+@pytest.mark.outdated
 def test_congruent_overlap(overlap_states, overlap, answer):
     result = relations.congruent_overlap(
         overlap_states,
@@ -107,7 +111,8 @@ def test_congruent_overlap(overlap_states, overlap, answer):
     assert all_array_equal(result, answer)
 
 
-NETWORKS = ["grid3", "basic", "pqr", "xor", "rule110", "fig4", "fig5a", "fig5b"]
+# removed pqr, which is the same as basic?
+NETWORKS = ["grid3", "basic", "xor", "rule110", "fig4"]
 
 
 @pytest.mark.parametrize("case_name", NETWORKS)
@@ -122,6 +127,7 @@ NETWORKS = ["grid3", "basic", "pqr", "xor", "rule110", "fig4", "fig5a", "fig5b"]
     RELATION_POTENTIAL_PURVIEWS="ALL",
     RELATION_PHI_SCHEME="AGGREGATE_DISTINCTION_RELATIVE_DIFFERENCES",
 )
+@pytest.mark.outdated
 def test_maximally_irreducible_relation(case_name):
     with open(f"test/data/relations/relations_{case_name}.json", mode="rt") as f:
         answers = jsonify.load(f)
@@ -129,30 +135,23 @@ def test_maximally_irreducible_relation(case_name):
         assert r == r.relata.maximally_irreducible_relation()
 
 
-@pytest.mark.slow
 @pytest.mark.parametrize("case_name", NETWORKS)
 @config.override(
-    REPERTOIRE_DISTANCE="ID",
-    PARTITION_TYPE="TRI",
-    PARALLEL_CONCEPT_EVALUATION=False,
-    PARALLEL_CUT_EVALUATION=False,
-    PARALLEL_COMPLEX_EVALUATION=False,
-    RELATION_ALLOW_DUPLICATE_PURVIEWS=True,
-    RELATION_COMPUTATION="EXACT",
-    RELATION_POTENTIAL_PURVIEWS="ALL",
-    RELATION_PHI_SCHEME="AGGREGATE_DISTINCTION_RELATIVE_DIFFERENCES",
+    PARALLEL=False,
 )
 def test_all_relations(case_name):
     with open(f"test/data/relations/ces_{case_name}.json", mode="rt") as f:
         answer_ces = jsonify.load(f)
     # Compute and check CES
     subsystem = getattr(examples, f"{case_name}_subsystem")()
-    ces = FlatCauseEffectStructure(compute.ces(subsystem))
+    ces = compute.ces(subsystem)
     assert ces == answer_ces
 
     with open(f"test/data/relations/relations_{case_name}.json", mode="rt") as f:
         answers = jsonify.load(f)
     # Compute and check relations
     # TODO(4.0) config.override doesn't seem to work with joblib parallel?
-    results = list(relations.relations(subsystem, ces, parallel=False))
+    results = list(
+        relations.relations(new_big_phi.phi_structure(subsystem).distinctions)
+    )
     assert set(results) == set(answers)

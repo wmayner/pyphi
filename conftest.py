@@ -30,6 +30,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--filter", action="store", help="only run tests with the given mark"
     )
+    parser.addoption("--outdated", action="store_true", help="run outdated tests")
     parser.addoption("--slow", action="store_true", help="run slow tests")
     parser.addoption("--veryslow", action="store_true", help="run very slow tests")
 
@@ -40,6 +41,8 @@ def pytest_runtest_setup(item):
         if filt not in item.keywords:
             pytest.skip("only running tests with the '{}' mark".format(filt))
     else:
+        if "outdated" in item.keywords and not item.config.getoption("--outdated"):
+            pytest.skip("need --outdated option to run")
         if "slow" in item.keywords and not item.config.getoption("--slow"):
             pytest.skip("need --slow option to run")
         if "veryslow" in item.keywords and not item.config.getoption("--veryslow"):

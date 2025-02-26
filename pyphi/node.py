@@ -1,5 +1,5 @@
-# node.py
 """Represents a node in a network."""
+# node.py
 
 import functools
 

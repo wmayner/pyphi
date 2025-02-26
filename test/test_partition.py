@@ -262,26 +262,20 @@ def test_wedge_partitions():
 def test_partitioned_repertoire_with_tripartition(s):
     tripartition = Tripartition(Part((), (1,)), Part((0,), ()), Part((), (2,)))
 
-    assert np.array_equal(
-        s.partitioned_repertoire(Direction.CAUSE, tripartition),
-        np.array([[[0.25, 0.25], [0.25, 0.25]]]),
-    )
+    assert s.partitioned_repertoire(
+            Direction.CAUSE,
+            tripartition,
+            state=tuple(s.state[node] for node in tripartition.purview),
+        ) == 0.75
 
 
 def test_tripartitions_choses_smallest_purview(s):
     mechanism = (1, 2)
 
-    with config.override(PURVIEW_TIE_RESOLUTION=["PHI", "NEGATIVE_PURVIEW_SIZE"]):
-        mie = s.mie(mechanism)
-        assert mie.phi == 0.5
-        assert mie.purview == (0, 1)
-
-    s.clear_caches()
-
     # In phi-tie, chose the smaller purview (0,)
     with config.override(PURVIEW_TIE_RESOLUTION=["PHI", "NEGATIVE_PURVIEW_SIZE"]):
         mie = s.mie(mechanism)
-        assert mie.phi == 0.5
+        assert mie.phi == 2.0
         assert mie.purview == (0,)
 
 

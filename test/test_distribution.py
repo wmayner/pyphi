@@ -20,7 +20,7 @@ def test_uniform_distribution():
 
 
 def test_purview_max_entropy_distribution():
-    max_ent = distribution.max_entropy_distribution((0, 1), 3)
+    max_ent = distribution.max_entropy_distribution((0, 1, 2), (0, 1))
     assert max_ent.shape == (2, 2, 1)
     assert np.array_equal(max_ent, (np.ones(4) / 4).reshape((2, 2, 1)))
     assert max_ent[0][1][0] == 0.25
@@ -99,10 +99,9 @@ def test_purview(s):
 
 
 def test_repertoire_shape():
-    N = 3
-    assert distribution.repertoire_shape((), N) == [1, 1, 1]
-    assert distribution.repertoire_shape((1, 2), N) == [1, 2, 2]
-    assert distribution.repertoire_shape((0, 2), N) == [2, 1, 2]
+    assert distribution.repertoire_shape((0, 1, 2), ()) == [1, 1, 1]
+    assert distribution.repertoire_shape((0, 1, 2), (1, 2)) == [1, 2, 2]
+    assert distribution.repertoire_shape((0, 1, 2), (0, 2)) == [2, 1, 2]
 
 
 def test_flatten():

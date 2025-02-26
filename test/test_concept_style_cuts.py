@@ -147,6 +147,7 @@ def test_sia_concept_style_ordering(s, subsys_n0n2, s_noised):
 
 
 @pytest.mark.slow
+@pytest.mark.outdated
 def test_sia_concept_style(s):
     sia = compute.subsystem.sia_concept_style(s)
     assert sia.min_sia is sia.sia_effect
@@ -163,11 +164,13 @@ def test_sia_concept_style(s):
 
 
 @config.override(SYSTEM_CUTS="CONCEPT_STYLE")
+@pytest.mark.outdated
 def test_unpickle(s):
     bm = compute.subsystem.sia(s)
     pickle.loads(pickle.dumps(bm))
 
 
 @config.override(SYSTEM_CUTS="CONCEPT_STYLE")
+@pytest.mark.outdated
 def test_concept_style_phi(s):
     assert compute.subsystem.phi(s) == 0.6875

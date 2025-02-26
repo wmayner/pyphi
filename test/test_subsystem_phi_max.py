@@ -11,76 +11,75 @@ from . import example_networks
 # Expected results {{{
 # ====================
 
-with config.override(REPERTOIRE_DISTANCE="EMD"):
-    s = example_networks.s()
-    directions = (Direction.CAUSE, Direction.EFFECT)
-    cuts = (None, Cut((1, 2), (0,)))
-    subsystem = {
-        cut: Subsystem(s.network, s.state, s.node_indices, cut=cut) for cut in cuts
-    }
+s = example_networks.s()
+directions = (Direction.CAUSE, Direction.EFFECT)
+cuts = (None, Cut((1, 2), (0,)))
+subsystem = {
+    cut: Subsystem(s.network, s.state, s.node_indices, cut=cut) for cut in cuts
+}
 
-    expected_purview_indices = {
-        cuts[0]: {
-            Direction.CAUSE: {
-                (1,): (2,),
-                (2,): (0, 1),
-                (0, 1): (1, 2),
-                (0, 1, 2): (0, 1, 2),
-            },
-            Direction.EFFECT: {
-                (1,): (0,),
-                (2,): (1,),
-                (0, 1): (2,),
-                (0, 1, 2): (0, 1, 2),
-            },
+expected_purview_indices = {
+    cuts[0]: {
+        Direction.CAUSE: {
+            (1,): (2,),
+            (2,): (0, 1),
+            (0, 1): (1, 2),
+            (0, 1, 2): (0, 1, 2),
         },
-        cuts[1]: {
-            Direction.CAUSE: {
-                (1,): (2,),
-                (2,): (0, 1),
-                (0, 1): (),
-                (0, 1, 2): (),
-            },
-            Direction.EFFECT: {
-                (1,): (2,),
-                (2,): (1,),
-                (0, 1): (2,),
-                (0, 1, 2): (),
-            },
+        Direction.EFFECT: {
+            (1,): (0,),
+            (2,): (1,),
+            (0, 1): (2,),
+            (0, 1, 2): (0, 1, 2),
         },
-    }
-    expected_purviews = {
-        cut: {
-            direction: {
-                mechanism: purview
-                for mechanism, purview in expected_purview_indices[cut][
-                    direction
-                ].items()
-            }
-            for direction in directions
+    },
+    cuts[1]: {
+        Direction.CAUSE: {
+            (1,): (2,),
+            (2,): (0, 1),
+            (0, 1): (),
+            (0, 1, 2): (),
+        },
+        Direction.EFFECT: {
+            (1,): (2,),
+            (2,): (1,),
+            (0, 1): (2,),
+            (0, 1, 2): (),
+        },
+    },
+}
+expected_purviews = {
+    cut: {
+        direction: {
+            mechanism: purview
+            for mechanism, purview in expected_purview_indices[cut][
+                direction
+            ].items()
         }
-        for cut in cuts
+        for direction in directions
     }
-    expected_mips = {
-        cut: {
-            direction: {
-                mechanism: subsystem[cut].find_mip(direction, mechanism, purview)
-                for mechanism, purview in expected_purviews[cut][direction].items()
-            }
-            for direction in directions
+    for cut in cuts
+}
+expected_mips = {
+    cut: {
+        direction: {
+            mechanism: subsystem[cut].find_mip(direction, mechanism, purview)
+            for mechanism, purview in expected_purviews[cut][direction].items()
         }
-        for cut in cuts
+        for direction in directions
     }
-    expected_mice = {
-        cut: {
-            direction: [
-                MaximallyIrreducibleCauseOrEffect(mip)
-                for mechanism, mip in expected_mips[cut][direction].items()
-            ]
-            for direction in directions
-        }
-        for cut in cuts
+    for cut in cuts
+}
+expected_mice = {
+    cut: {
+        direction: [
+            MaximallyIrreducibleCauseOrEffect(mip)
+            for mechanism, mip in expected_mips[cut][direction].items()
+        ]
+        for direction in directions
     }
+    for cut in cuts
+}
 
 # }}}
 # `find_mice` tests {{{

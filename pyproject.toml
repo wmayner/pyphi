@@ -21,7 +21,7 @@ keywords = [
     "integrated-information",
     "modeling"
 ]
-requires-python = ">=3.6"
+requires-python = ">=3.10"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -37,7 +37,7 @@ dependencies = [
     "Graphillion>=1.5",
     "joblib>=0.8.0",
     "more_itertools>=8.13.0",
-    "numpy>=1.11.0",
+    "numpy<2.0.0",
     "ordered-set>=4.0.2",
     "pandas>=2.0.0",
     "psutil>=2.1.1",
@@ -54,7 +54,8 @@ dev = [
     "build",
     "coverage",
     "hypothesis",
-    "pytest",
+    "pytest<8.0.0",
+    "pytest-lazy-fixture",
     "sphinx",
     "sphinx_rtd_theme",
     "twine",

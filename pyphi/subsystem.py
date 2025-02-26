@@ -89,6 +89,7 @@ class Subsystem:
 
         # The state of the network.
         self.state = tuple(state)
+        validate.node_states(self.state)
 
         # Get the external node indices.
         # TODO: don't expose this as an attribute?
@@ -583,19 +584,29 @@ class Subsystem:
         )
 
     def forward_repertoire(
-        self, direction: Direction, mechanism: Tuple[int], purview: Tuple[int], **kwargs
+        self,
+        direction: Direction,
+        mechanism: Tuple[int],
+        purview: Tuple[int],
+        purview_state: Tuple[int],
+        **kwargs,
     ) -> ArrayLike:
         if direction == Direction.CAUSE:
-            return self.forward_cause_repertoire(mechanism, purview)
+            return self.forward_cause_repertoire(mechanism, purview, purview_state)
         elif direction == Direction.EFFECT:
             return self.forward_effect_repertoire(mechanism, purview, **kwargs)
         return validate.direction(direction)
 
     @cache.method("_forward_repertoire_cache", Direction.CAUSE)
     def forward_cause_repertoire(
-        self, mechanism: Tuple[int], purview: Tuple[int]
+        self, mechanism: Tuple[int], purview: Tuple[int], purview_state
     ) -> ArrayLike:
-        return _repertoire.forward_cause_repertoire(self, mechanism, purview)
+        return _repertoire.forward_cause_repertoire(
+            self,
+            mechanism,
+            purview,
+            purview_state=purview_state,
+        )
 
     # NOTE: No caching is required here because the forward effect repertoire is
     # the same as the effect repertoire.
@@ -1001,6 +1012,7 @@ class Subsystem:
                 direction,
                 mechanism,
                 purview,
+                None,
             )
             unconstrained_repertoire = self.unconstrained_forward_repertoire(
                 direction,

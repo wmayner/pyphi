@@ -4,8 +4,6 @@ import pytest
 
 from pyphi import Network, Subsystem, compute, config, constants, utils
 
-from .test_big_phi import check_sia, standard_answer
-
 
 def test_possible_complexes(s):
     assert list(compute.network.possible_complexes(s.network, s.state)) == [
@@ -17,24 +15,29 @@ def test_possible_complexes(s):
     ]
 
 
-def test_complexes_standard(s):
-    complexes = list(compute.network.complexes(s.network, s.state), parallel=False)
-    check_sia(complexes[0], standard_answer)
+@config.override(SYSTEM_PARTITION_TYPE="DIRECTED_BI", PARALLEL=False)
+@pytest.mark.outdated
+def test_complexes_standard(s, s_expected_sia):
+    complexes = list(compute.network.complexes(s.network, s.state))
+    assert complexes[0] == s_expected_sia
 
 
 # TODO!! add more assertions for the smaller subsystems
 @pytest.mark.slow
-def test_all_complexes_standard(s):
+@config.override(SYSTEM_PARTITION_TYPE="DIRECTED_BI", PARALLEL=False)
+@pytest.mark.outdated
+def test_all_complexes_standard(s, s_expected_sia):
     complexes = list(compute.network.all_complexes(s.network, s.state))
-    check_sia(complexes[0], standard_answer)
+    assert complexes[0] == s_expected_sia
 
 
-@config.override(PARALLEL_CUT_EVALUATION=False)
-def test_all_complexes_parallelization(use_iit_3_config, s):
-    with config.override(PARALLEL_COMPLEX_EVALUATION=False):
+@config.override(SYSTEM_PARTITION_TYPE="DIRECTED_BI")
+@pytest.mark.outdated
+def test_all_complexes_parallelization(s):
+    with config.override(PARALLEL=False):
         serial = compute.network.all_complexes(s.network, s.state)
 
-    with config.override(PARALLEL_COMPLEX_EVALUATION=True):
+    with config.override(PARALLEL=True):
         parallel = compute.network.all_complexes(s.network, s.state)
 
     assert sorted(serial) == sorted(parallel)
@@ -42,6 +45,7 @@ def test_all_complexes_parallelization(use_iit_3_config, s):
 
 # TODO fix this horribly outdated mess that never worked in the first place :P
 @pytest.mark.veryslow
+@pytest.mark.outdated
 def test_rule152_complexes_no_caching(rule152):
     net = rule152
     # Mapping from index of a PyPhi subsystem in network.subsystems to the

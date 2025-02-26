@@ -7,7 +7,7 @@ from pyphi.examples import EXAMPLES
 
 EXAMPLE_NAMES = ["basic", "basic_noisy_selfloop", "fig4", "grid3", "xor"]
 
-DATA_PATH = Path("test/data/iit4/phi_structure")
+DATA_PATH = Path("test/data/phi_structure")
 
 
 @pytest.mark.parametrize("example_name", EXAMPLE_NAMES)

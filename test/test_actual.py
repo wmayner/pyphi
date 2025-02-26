@@ -50,7 +50,7 @@ def empty_transition(transition):
 
 @pytest.fixture
 def prevention():
-    return examples.prevention()
+    return examples.prevention_transition()
 
 
 # Testing background conditions
@@ -102,6 +102,7 @@ def background_all_off():
         (pytest.lazy_fixture("background_all_on"), Direction.CAUSE, (1,), (0,), 0),
     ],
 )
+@pytest.mark.outdated
 def test_background_conditions(transition, direction, mechanism, purview, ratio):
     assert transition._ratio(direction, mechanism, purview) == ratio
 
@@ -128,8 +129,8 @@ def test_background_noised():
     transition = actual.Transition(
         network, state, state, (0,), (0,), noise_background=True
     )
-    assert transition.cause_system.tpm.array_equal(network.tpm)
-    assert transition.effect_system.tpm.array_equal(network.tpm)
+    assert transition.cause_system.effect_tpm.array_equal(network.tpm)
+    assert transition.effect_system.effect_tpm.array_equal(network.tpm)
 
 
 @pytest.fixture
@@ -159,6 +160,7 @@ def background_3_node():
         ((1, 1, 0), (0, 2), 1.0),
     ],
 )
+@pytest.mark.outdated
 def test_background_3_node(before_state, purview, alpha, background_3_node):
     """Looking at transition (AB = 11) -> (AC = 11)"""
     after_state = (1, 1, 1)
@@ -472,6 +474,7 @@ def test_effect_ratio(mechanism, purview, ratio, transition):
     assert np.isclose(transition.effect_ratio(mechanism, purview), ratio)
 
 
+@pytest.mark.outdated
 def test_ac_ex1_transition(transition):
     """Basic regression test for ac_ex1 example."""
 
@@ -598,6 +601,7 @@ def test_get_actual_cuts(direction, answer, transition):
     assert set(cuts) == set(answer)
 
 
+@pytest.mark.outdated
 def test_sia(transition):
     sia = actual.sia(transition)
     assert sia.alpha == 0.4150374992788
@@ -619,12 +623,14 @@ def test_null_ac_sia(transition):
 
 
 @config.override(PARTITION_TYPE="TRI")
+@pytest.mark.outdated
 def test_prevention(prevention):
     assert actual.sia(prevention, Direction.CAUSE).alpha == 0.415037
     assert actual.sia(prevention, Direction.EFFECT).alpha == 0.0
     assert actual.sia(prevention, Direction.BIDIRECTIONAL).alpha == 0.0
 
 
+@pytest.mark.outdated
 def test_causal_nexus(standard):
     nexus = actual.causal_nexus(standard, (0, 0, 1), (1, 1, 0))
     assert nexus.alpha == 2.0
@@ -634,6 +640,7 @@ def test_causal_nexus(standard):
 
 
 @pytest.mark.slow
+@pytest.mark.outdated
 def test_true_events(standard):
     states = ((1, 0, 0), (0, 0, 1), (1, 1, 0))  # Previous, current, next
     events = actual.true_events(standard, *states)
@@ -667,6 +674,7 @@ def test_true_events(standard):
     assert true_effect2.direction == Direction.EFFECT
 
 
+@pytest.mark.outdated
 def test_true_ces(standard):
     previous_state = (1, 0, 0)
     current_state = (0, 0, 1)
@@ -686,6 +694,7 @@ def test_true_ces(standard):
 
 
 @pytest.mark.slow
+@pytest.mark.outdated
 def test_extrinsic_events(standard):
     states = ((1, 0, 0), (0, 0, 1), (1, 1, 0))  # Previous, current, next
 

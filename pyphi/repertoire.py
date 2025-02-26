@@ -64,7 +64,10 @@ def forward_cause_repertoire(
     mechanism_state = utils.state_of(mechanism, subsystem.state)
     if purview:
         repertoire = np.empty([2] * len(purview))
-        purview_states = utils.all_states(len(purview))
+        if purview_state is None:
+            purview_states = utils.all_states(len(purview))
+        else:
+            purview_states = [purview_state]
     else:
         repertoire = np.array([1])
         purview_states = [()]
@@ -107,7 +110,7 @@ def unconstrained_forward_cause_repertoire(
     # equal to the average value over all `Z`. So we compute this average value
     # and fill the repertoire with it.
     mean_forward_cause_probability = subsystem.forward_cause_repertoire(
-        mechanism, purview
+        mechanism, purview, None
     ).mean()
     repertoire = np.empty(repertoire_shape(subsystem.network.node_indices, purview))
     repertoire.fill(mean_forward_cause_probability)

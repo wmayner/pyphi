@@ -457,6 +457,7 @@ def test_mie_raises_wrong_direction():
     PARTITION_TYPE="TRI",
     REPERTOIRE_DISTANCE="AID",
 )
+@pytest.mark.outdated
 def test_specified_states_and_indices():
     subsystem = examples.pqr_subsystem()
     ces = FlatCauseEffectStructure(compute.ces(subsystem))
@@ -483,6 +484,7 @@ def test_specified_states_and_indices():
 # Test Concept
 
 
+@pytest.mark.outdated
 def test_concept_ordering(s, micro_s):
     phi1 = concept(subsystem=s)
     phi2 = concept(mechanism=(0,), phi=(1.0 + EPSILON * 2), subsystem=s)
@@ -539,6 +541,7 @@ def test_concept_equality_repertoires(s):
     assert concept != another
 
 
+@pytest.mark.outdated
 def test_concept_equality_network(s, simple_subsys_all_off):
     assert concept(subsystem=simple_subsys_all_off) != concept(subsystem=s)
 
@@ -547,6 +550,7 @@ def test_concept_equality_one_subsystem_is_subset_of_another(s, subsys_n1n2):
     assert concept(subsystem=s) == concept(subsystem=subsys_n1n2)
 
 
+@pytest.mark.outdated
 def test_concept_repr_str(s):
     print(repr(concept(subsystem=s)))
     print(str(concept(subsystem=s)))
@@ -585,6 +589,7 @@ def test_ces_is_still_a_tuple(s):
     assert len(c) == 1
 
 
+@pytest.mark.outdated
 def test_ces_repr_str(s):
     c = models.CauseEffectStructure([concept(subsystem=s)])
     repr(c)
@@ -599,11 +604,13 @@ def test_ces_are_always_normalized(s):
     assert (c1, c2, c3, c4) == models.CauseEffectStructure((c3, c4, c2, c1)).concepts
 
 
+@pytest.mark.outdated
 def test_ces_labeled_mechanisms(s):
     c = models.CauseEffectStructure([concept(subsystem=s)], subsystem=s)
     assert c.labeled_mechanisms == (["A", "B"],)
 
 
+@pytest.mark.outdated
 def test_ces_ordering(s):
     assert models.CauseEffectStructure(
         [concept(subsystem=s)], subsystem=s

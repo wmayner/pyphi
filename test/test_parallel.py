@@ -79,11 +79,9 @@ def remote_sleep(x, t=0.1):
 
 
 @settings(
-    suppress_health_check=[HealthCheck.function_scoped_fixture],
     deadline=timedelta(seconds=10),
 )
 @given(args=st.lists(st.integers(min_value=0, max_value=1), max_size=2))
-@pytest.mark.filterwarnings("ignore:.*:pytest.PytestUnraisableExceptionWarning")
 def test_as_completed(ray_context, args):
     args = sorted(args, reverse=True)
     expected = sorted(args)
@@ -91,15 +89,13 @@ def test_as_completed(ray_context, args):
     assert expected == actual
 
 
-# TODO hangs; maybe just wait for Ray PR to be merged
-# @pytest.mark.filterwarnings("ignore:.*:pytest.PytestUnraisableExceptionWarning")
-# def test_cancel_all(ray_context):
-#     tasks = [remote_sleep.remote(i) for i in [100] * 10]
-#     parallel.cancel_all(tasks)
-#     with pytest.raises(
-#         (ray.exceptions.TaskCancelledError, ray.exceptions.RayTaskError)
-#     ):
-#         ray.get(tasks[0])
+def test_cancel_all(ray_context):
+    tasks = [remote_sleep.remote(i) for i in [100] * 10]
+    parallel.cancel_all(tasks)
+    with pytest.raises(
+        (ray.exceptions.TaskCancelledError, ray.exceptions.RayTaskError)
+    ):
+        ray.get(tasks[0])
 
 
 @given(st.lists(everything_except(Decimal)))
@@ -111,13 +107,10 @@ def test_get_local(items):
         assert expected == actual
 
 
-@settings(
-    suppress_health_check=[HealthCheck.function_scoped_fixture],
-)
+
 @given(
     st.lists(st.integers()),
 )
-@pytest.mark.filterwarnings("ignore:.*:pytest.PytestUnraisableExceptionWarning")
 def test_get_remote(ray_context, expected):
     @ray.remote
     def f(x):
@@ -139,7 +132,6 @@ def test_map_with_no_args():
         list(parallel.MapReduce(lambda x: x))
 
 
-@pytest.mark.filterwarnings("ignore:.*:pytest.PytestUnraisableExceptionWarning")
 def test_map_with_iterator_no_chunksize(ray_context, func):
     with pytest.raises(ValueError):
         parallel.MapReduce(func, iter([1, 2, 3]), parallel=True, chunksize=None)
@@ -177,23 +169,21 @@ def test_map_sequential(
     assert expected == actual
 
 
-@pytest.mark.filterwarnings("ignore:.*:pytest.PytestUnraisableExceptionWarning")
 def test_map_with_lambda(ray_context):
     expected = set([1, 2, 3])
     actual = set(parallel.MapReduce(lambda x: x, expected, parallel=True).run())
     assert expected == actual
 
 
-@pytest.mark.filterwarnings("ignore:.*:pytest.PytestUnraisableExceptionWarning")
-def test_map_with_iterators_and_empty_args(func):
+def test_map_with_iterators_and_empty_args(ray_context, func):
     assert [] == parallel.MapReduce(func, iter([]), parallel=True, chunksize=100).run()
 
 
 @composite
 def map_reduce_kwargs_common(draw):
     return dict(
-        chunksize=draw(st.integers(min_value=1)),
-        sequential_threshold=draw(st.integers(min_value=1)),
+        chunksize=draw(st.integers(min_value=1, max_value=8192)),
+        sequential_threshold=draw(st.integers(min_value=1, max_value=2048)),
         max_depth=draw(st.integers(min_value=1) | st.none()),
         branch_factor=draw(st.integers(min_value=2)),
         inflight_limit=draw(st.integers(min_value=1)),
@@ -233,7 +223,7 @@ def map_reduce_kwargs_sequences(draw):
     args=arglists(anything_pickleable_and_hashable()),
     kwargs=map_reduce_kwargs_iterators(),
 )
-@pytest.mark.filterwarnings("ignore:.*:pytest.PytestUnraisableExceptionWarning")
+@pytest.mark.slow
 def test_map_with_iterators(
     ray_context,
     func,
@@ -263,7 +253,6 @@ def test_map_with_iterators(
     kwargs=map_reduce_kwargs_sequences(),
     _parallel=st.booleans() | st.none(),
 )
-@pytest.mark.filterwarnings("ignore:.*:pytest.PytestUnraisableExceptionWarning")
 def test_map_with_shortcircuit(
     ray_context,
     func,
@@ -295,7 +284,6 @@ def test_map_with_shortcircuit(
     kwargs=map_reduce_kwargs_iterators(),
     _parallel=st.booleans() | st.none(),
 )
-@pytest.mark.filterwarnings("ignore:.*:pytest.PytestUnraisableExceptionWarning")
 def test_map_reduce(
     ray_context,
     func,

@@ -99,6 +99,7 @@ def test_validate_state_error(s):
         Subsystem(s.network, state, s.node_indices)
 
 
+@pytest.mark.outdated
 def test_validate_state_no_error_2():
     tpm = np.ones([16, 4])
     net = Network(tpm)

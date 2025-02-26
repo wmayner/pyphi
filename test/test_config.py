@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from pyphi import config, constants
+from pyphi import config
 from pyphi.conf import Config, Option
 
 
@@ -115,7 +115,7 @@ def test_can_set_private_attributes(c):
 
 def test_on_change():
     class Event:
-        def notify(self, config):
+        def notify(self, config, opt):
             self.notified = config.SPEED
 
     event = Event()
@@ -153,7 +153,7 @@ def test_reconfigure_logging_on_change(capsys):
     [
         ("SYSTEM_CUTS", ["3.0_STYLE", "CONCEPT_STYLE"], ["OTHER"]),
         ("REPR_VERBOSITY", [0, 1, 2], [-1, 3]),
-        ("PARALLEL_CUT_EVALUATION", [True, False], ["True", "False", "no", 0, 1]),
+        ("PARALLEL", [True, False], ["True", "False", "no", 0, 1]),
         ("LOG_FILE", ["filename", Path("filename")], [0, 1]),
     ],
 )

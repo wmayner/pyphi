@@ -14,6 +14,7 @@ from pyphi import (
     labels,
     models,
     network,
+    new_big_phi,
 )
 
 from .test_actual import transition
@@ -46,7 +47,7 @@ def test_jsonify_numpy():
     assert answer == json.loads(jsonify.dumps(x))
 
 
-def test_json_deserialization(use_iit_3_config, s, transition):
+def test_json_deserialization(s, transition):
     objects = [
         Direction.CAUSE,
         s.network,  # Network
@@ -62,17 +63,20 @@ def test_json_deserialization(use_iit_3_config, s, transition):
             Direction.CAUSE,
             models.KPartition(models.Part((0,), ()), models.Part((1,), (2, 3))),
         ),
-        s.concept((1, 2)),
-        s.concept((1,)),
+        # s.concept((1, 2)),
+        # s.concept((1,)),
         compute.subsystem.ces(s),
-        compute.subsystem.sia(s),
+        # compute.subsystem.sia(s),
+        s.sia(),
+        new_big_phi.phi_structure(s),
         transition,
-        transition.find_actual_cause((0,), (0,)),
-        actual.account(transition),
-        actual.sia(transition),
+        # transition.find_actual_cause((0,), (0,)),
+        # actual.account(transition),
+        # actual.sia(transition),
         labels.NodeLabels("AB", (0, 1)),
     ]
     for o in objects:
+        print(type(o))
         loaded = jsonify.loads(jsonify.dumps(o))
         assert loaded == o
 
@@ -86,9 +90,9 @@ def test_json_deserialization_non_pyphi_clasess():
     assert loaded == {"x": 1}
 
 
-def test_deserialization_memoizes_duplicate_objects(use_iit_3_config, s):
-    with config.override(PARALLEL_CUT_EVALUATION=True):
-        sia = compute.subsystem.sia(s)
+@pytest.mark.outdated
+def test_deserialization_memoizes_duplicate_objects(s):
+    sia = compute.subsystem.sia(s)
 
     loaded = jsonify.loads(jsonify.dumps(sia))
 

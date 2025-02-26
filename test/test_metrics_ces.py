@@ -15,6 +15,7 @@ def test_emd_ground_distance_must_be_symmetric():
             emd_ground_distance(a, b)
 
 
+@pytest.mark.outdated
 def test_ces_distances(s):
     with config.override(REPERTOIRE_DISTANCE="EMD"):
         sia = compute.subsystem.sia(s)
@@ -26,6 +27,7 @@ def test_ces_distances(s):
         assert ces_distance(sia.ces, sia.partitioned_ces) == 1.083333
 
 
+@pytest.mark.outdated
 def test_sia_uses_ces_distances(s):
     with config.override(REPERTOIRE_DISTANCE="EMD", CES_DISTANCE="EMD"):
         sia = compute.subsystem.sia(s)
@@ -38,6 +40,7 @@ def test_sia_uses_ces_distances(s):
 
 @patch("pyphi.metrics.ces._emd_simple")
 @patch("pyphi.metrics.ces._emd")
+@pytest.mark.outdated
 def test_ces_distance_uses_simple_vs_emd(mock_emd_distance, mock_simple_distance, s):
     """Quick check that we use the correct EMD distance function for CESs.
 

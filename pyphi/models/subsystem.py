@@ -52,7 +52,7 @@ class SystemStateSpecification(ToDictMixin, ToPandasMixin):
         return hash((self.cause, self.effect))
 
     def to_json(self):
-        return self.to_dict()
+        return self.__dict__
 
 
 def _concept_sort_key(concept):
@@ -141,7 +141,7 @@ class CauseEffectStructure(cmp.Orderable, Sequence, ToPandasMixin):
         return [self.concepts]
 
     def to_json(self):
-        return self.concepts
+        return {"concepts": self.concepts}
 
     @property
     def flat(self):

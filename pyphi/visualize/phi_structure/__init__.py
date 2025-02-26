@@ -134,21 +134,35 @@ def plot_phi_structure(
             mechanism_mapping,
             **theme["geometry"]["mechanisms"].get("coordinate_kwargs", dict()),
         )
+    else:
+        mechanism_mapping = mechanism_coords.mapping
 
     purview_mapping = theme["geometry"]["purviews"].get("mapping")
     if purview_mapping is None:
-        purview_mapping = geometry.arrange(
-            node_indices,
-            **theme["geometry"]["purviews"].get("arrange", dict()),
-        )
+        if theme["geometry"]["purviews"].get("arrange_by_mechanism") is not None:
+            purview_mapping = geometry.arrange_by_mechanism(
+                mechanism_mapping,
+                **theme["geometry"]["purviews"].get("arrange_by_mechanism"),
+            )
+        else:
+            purview_mapping = geometry.arrange(
+                node_indices,
+                **theme["geometry"]["purviews"].get("arrange", dict()),
+            )
     purview_coords = purview_coords or theme["geometry"]["purviews"].get("coords")
     if purview_coords is None:
-        purview_coords = geometry.Coordinates(
-            purview_mapping,
-            subset_multiplicities=distinctions.mechanism_multiplicities(),
-            state_multiplicities=distinctions.state_multiplicities(),
-            **theme["geometry"]["purviews"].get("coordinate_kwargs", dict()),
-        )
+        if theme["geometry"]["purviews"].get("arrange_by_mechanism") is not None:
+            purview_coords = geometry.PurviewCoordinates(
+                purview_mapping,
+                **theme["geometry"]["mechanisms"].get("coordinate_kwargs", dict()),
+            )
+        else:
+            purview_coords = geometry.Coordinates(
+                purview_mapping,
+                subset_multiplicities=distinctions.mechanism_multiplicities(),
+                state_multiplicities=distinctions.state_multiplicities(),
+                **theme["geometry"]["purviews"].get("coordinate_kwargs", dict()),
+            )
 
     # Relations
     if theme["show"].get("two_faces") or theme["show"].get("three_faces"):
@@ -165,17 +179,28 @@ def plot_phi_structure(
                 three_faces = faces_by_degree.get(3)
 
         def face_to_coords(face):
-            return np.array(
-                [
-                    purview_coords.get(
-                        relatum.purview,
-                        direction=relatum.direction,
-                        offset_subset=relatum.mechanism,
-                        offset_state=relatum.specified_state.state,
-                    )
-                    for relatum in face
-                ]
-            )
+            if isinstance(purview_coords, geometry.PurviewCoordinates):
+                return np.array(
+                    [
+                        purview_coords.get(
+                            relatum.mechanism,
+                            relatum.direction,
+                        )
+                        for relatum in face
+                    ]
+                )
+            else:
+                return np.array(
+                    [
+                        purview_coords.get(
+                            relatum.purview,
+                            direction=relatum.direction,
+                            offset_subset=relatum.mechanism,
+                            offset_state=relatum.specified_state.state,
+                        )
+                        for relatum in face
+                    ]
+                )
 
         # 2-relations
         if theme["show"].get("two_faces") and two_faces:
@@ -307,15 +332,24 @@ def _plot_purviews(
         [theme["direction"]["cause_color"], theme["direction"]["effect_color"]],
         strict=True,
     ):
-        coords = [
-            purview_coords.get(
-                distinction.purview(direction),
-                direction=direction,
-                offset_subset=distinction.mechanism,
-                offset_state=distinction.mice(direction).specified_state.state,
-            )
-            for distinction in distinctions
-        ]
+        if isinstance(purview_coords, geometry.PurviewCoordinates):
+            coords = [
+                purview_coords.get(
+                    distinction.mechanism,
+                    direction,
+                )
+                for distinction in distinctions
+            ]
+        else:
+            coords = [
+                purview_coords.get(
+                    distinction.purview(direction),
+                    direction=direction,
+                    offset_subset=distinction.mechanism,
+                    offset_state=distinction.mice(direction).specified_state.state,
+                )
+                for distinction in distinctions
+            ]
         labels = [
             labeler.nodes(
                 distinction.purview(direction),
@@ -378,17 +412,28 @@ def _plot_cause_effect_links(
     showlegend = theme["cause_effect_links"].pop("showlegend", True)
     traces = []
     for distinction, width in zip(distinctions, widths, strict=True):
-        coords = np.stack(
-            [
-                purview_coords.get(
-                    distinction.purview(direction),
-                    direction=direction,
-                    offset_subset=distinction.mechanism,
-                    offset_state=distinction.mice(direction).specified_state.state,
-                )
-                for direction in Direction.both()
-            ]
-        )
+        if isinstance(purview_coords, geometry.PurviewCoordinates):
+            coords = np.stack(
+                [
+                    purview_coords.get(
+                        distinction.mechanism,
+                        direction,
+                    )
+                    for direction in Direction.both()
+                ]
+            )
+        else:
+            coords = np.stack(
+                [
+                    purview_coords.get(
+                        distinction.purview(direction),
+                        direction=direction,
+                        offset_subset=distinction.mechanism,
+                        offset_state=distinction.mice(direction).specified_state.state,
+                    )
+                    for direction in Direction.both()
+                ]
+            )
         x, y, z = coords.transpose()
         traces.append(
             go.Scatter3d(
@@ -478,29 +523,46 @@ def _plot_mechanism_purview_links(
 
     traces = []
     for distinction, width in zip(distinctions, widths, strict=True):
-        coords = np.stack(
-            [
-                purview_coords.get(
-                    distinction.purview(Direction.CAUSE),
-                    direction=Direction.CAUSE,
-                    offset_subset=distinction.mechanism,
-                    offset_state=distinction.mice(
-                        Direction.CAUSE
-                    ).specified_state.state,
-                ),
-                mechanism_coords.get(
-                    distinction.mechanism, offset_state=distinction.mechanism_state
-                ),
-                purview_coords.get(
-                    distinction.purview(Direction.EFFECT),
-                    direction=Direction.EFFECT,
-                    offset_subset=distinction.mechanism,
-                    offset_state=distinction.mice(
-                        Direction.EFFECT
-                    ).specified_state.state,
-                ),
-            ]
-        )
+        if isinstance(purview_coords, geometry.PurviewCoordinates):
+            coords = np.stack(
+                [
+                    purview_coords.get(
+                        distinction.mechanism,
+                        Direction.CAUSE,
+                    ),
+                    mechanism_coords.get(
+                        distinction.mechanism, offset_state=distinction.mechanism_state
+                    ),
+                    purview_coords.get(
+                        distinction.mechanism,
+                        Direction.EFFECT,
+                    ),
+                ]
+            )
+        else:
+            coords = np.stack(
+                [
+                    purview_coords.get(
+                        distinction.purview(Direction.CAUSE),
+                        direction=Direction.CAUSE,
+                        offset_subset=distinction.mechanism,
+                        offset_state=distinction.mice(
+                            Direction.CAUSE
+                        ).specified_state.state,
+                    ),
+                    mechanism_coords.get(
+                        distinction.mechanism, offset_state=distinction.mechanism_state
+                    ),
+                    purview_coords.get(
+                        distinction.purview(Direction.EFFECT),
+                        direction=Direction.EFFECT,
+                        offset_subset=distinction.mechanism,
+                        offset_state=distinction.mice(
+                            Direction.EFFECT
+                        ).specified_state.state,
+                    ),
+                ]
+            )
         x, y, z = coords.transpose()
         traces.append(
             go.Scatter3d(

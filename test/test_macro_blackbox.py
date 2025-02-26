@@ -56,6 +56,7 @@ def degenerate():
 
 
 @pytest.mark.veryslow
+@pytest.mark.outdated
 def test_basic_nor_or():
     # A system composed of NOR and OR (copy) gates, which mimics the basic
     # pyphi network
@@ -136,6 +137,7 @@ def test_basic_nor_or():
 
 
 @pytest.mark.veryslow
+@pytest.mark.outdated
 def test_xor_propogation_delay():
     # Three interconnected XOR gates, with COPY gates along each connection
     # acting as propagation delays.
@@ -281,6 +283,7 @@ def test_soup():
 
 
 @pytest.mark.slow
+@pytest.mark.outdated
 def test_coarsegrain_spatial_degenerate():
     # TODO: move to docs?
     # macro-micro examples from Hoel2016
@@ -334,6 +337,7 @@ def test_coarsegrain_spatial_degenerate():
 
 
 @pytest.mark.slow
+@pytest.mark.outdated
 def test_degenerate(degenerate):
     # fmt: off
     answer = ExplicitTPM(

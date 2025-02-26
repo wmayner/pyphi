@@ -103,10 +103,20 @@ class RelationFace(frozenset):
 class Relation(frozenset, cmp.OrderableByPhi):
     """A set of relation faces forming the relation among a set of distinctions."""
 
+    @property
+    def is_self_relation(self):
+        return len(self) == 1
+
     def _faces(self):
         """Yield faces of the relation."""
+        # Exclude single-relatum faces for self-relations as a special case
+        if self.is_self_relation:
+            direction_set = [Direction.BIDIRECTIONAL]
+        else:
+            direction_set = Direction.all()
+
         distinctions = list(self)
-        for directions in product(Direction.all(), repeat=len(self)):
+        for directions in product(direction_set, repeat=len(self)):
             mice = []
             for direction, distinction in zip(directions, distinctions):
                 if direction is Direction.BIDIRECTIONAL:
@@ -133,10 +143,6 @@ class Relation(frozenset, cmp.OrderableByPhi):
             return distinction.cause.purview_units & distinction.effect.purview_units
 
         return set.intersection(*(distinction.purview_union for distinction in self))
-
-    @property
-    def is_self_relation(self):
-        return len(self) == 1
 
     @cached_property
     def phi(self):
@@ -169,6 +175,14 @@ class Relation(frozenset, cmp.OrderableByPhi):
         body = fmt.center(body)
         body = fmt.header(self.__class__.__name__, body, under_char=fmt.HEADER_BAR_2)
         return fmt.box(body)
+
+    def to_json(self):
+        """Return a JSON-serializable representation."""
+        return dict(distinctions=list(self))
+
+    @classmethod
+    def from_json(cls, data):
+        return cls(data["distinctions"])
 
 
 def all_relations(distinctions, min_degree=2, max_degree=None, **kwargs):
@@ -243,6 +257,14 @@ class Relations:
             (f"Σ{fmt.SMALL_PHI}_r", self.sum_phi()),
             ("#(relations)", self.num_relations()),
         ]
+
+    def to_json(self):
+        """Return a JSON-serializable representation."""
+        return dict(relations=list(self))
+
+    @classmethod
+    def from_json(cls, data):
+        return cls(data["relations"])
 
 
 class ConcreteRelations(frozenset, Relations):

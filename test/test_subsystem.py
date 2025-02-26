@@ -121,7 +121,8 @@ def test_apply_cut(s):
     assert s.network == cut_s.network
     assert s.state == cut_s.state
     assert s.node_indices == cut_s.node_indices
-    assert s.tpm.array_equal(cut_s.tpm)
+    assert s.effect_tpm.array_equal(cut_s.effect_tpm)
+    assert s.cause_tpm.array_equal(cut_s.cause_tpm)
     assert np.array_equal(cut.apply_cut(s.cm), cut_s.cm)
 
 

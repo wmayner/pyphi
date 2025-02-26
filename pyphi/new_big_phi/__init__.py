@@ -182,7 +182,9 @@ class NullSystemIrreducibilityAnalysis(SystemIrreducibilityAnalysis):
                 ",".join(self.node_labels.coerce_to_labels(self.node_indices)),
             ),
             (f"           {fmt.BIG_PHI}", self.phi),
-        ] + self.system_state._repr_columns()
+        ]
+        if self.system_state is not None:
+            columns.append(self.system_state._repr_columns())
         if self.reasons:
             columns.append(("Reasons", ", ".join([r.name for r in self.reasons])))
         return columns
@@ -206,7 +208,10 @@ def integration_value(
     # TODO(4.0) deal with proliferation of special cases for GID
     if repertoire_distance == "GENERALIZED_INTRINSIC_DIFFERENCE":
         partitioned_repertoire = cut_subsystem.forward_repertoire(
-            direction, subsystem.node_indices, subsystem.node_indices
+            direction,
+            subsystem.node_indices,
+            subsystem.node_indices,
+            system_state[direction].state,
         ).squeeze()[system_state[direction].state]
     else:
         partitioned_repertoire = cut_subsystem.repertoire(
@@ -299,6 +304,41 @@ def sia(
 
     # TODO(4.0): trivial reducibility
 
+    # Check for degenerate cases
+    # =========================================================================
+    # Phi is necessarily zero if the subsystem is:
+    #   - not strongly connected;
+    #   - empty;
+    #   - an elementary micro mechanism (i.e. no nontrivial bipartitions).
+    # So in those cases we immediately return a null SIA.
+    def _null_sia(**kwargs):
+        return NullSystemIrreducibilityAnalysis(
+            system_state=system_state,
+            node_indices=subsystem.node_indices,
+            node_labels=subsystem.node_labels,
+            **kwargs,
+        )
+
+    if not subsystem:
+        # subsystem is empty
+        return _null_sia()
+
+    if not connectivity.is_strong(subsystem.cm, subsystem.node_indices):
+        # subsystem is not strongly connected
+        return _null_sia()
+
+    # Handle elementary micro mechanism cases.
+    # Single macro element systems have nontrivial bipartitions because their
+    #   bipartitions are over their micro elements.
+    if len(subsystem.cut_indices) == 1:
+        # If the node lacks a self-loop, phi is trivially zero.
+        if not subsystem.cm[subsystem.node_indices][subsystem.node_indices]:
+            return _null_sia()
+        # Even if the node has a self-loop, we may still define phi to be zero.
+        elif not config.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI:
+            return _null_sia()
+    # =========================================================================
+
     if partitions is None:
         filter_func = None
         if partitions == "GENERAL":
@@ -320,14 +360,6 @@ def sia(
 
     if system_state is None:
         system_state = system_intrinsic_information(subsystem, directions=directions)
-
-    def _null_sia(**kwargs):
-        return NullSystemIrreducibilityAnalysis(
-            system_state=system_state,
-            node_indices=subsystem.node_indices,
-            node_labels=subsystem.node_labels,
-            **kwargs,
-        )
 
     if config.SHORTCIRCUIT_SIA:
         shortcircuit_reasons = _has_no_cause_or_effect(system_state)
@@ -366,6 +398,10 @@ def sia(
             ties.append(candidate_mip_sia)
     for tied_mip in ties:
         tied_mip.set_ties(ties)
+
+    if config.CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA:
+        subsystem.clear_caches()
+
     return mip_sia
 
 
