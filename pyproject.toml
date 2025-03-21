@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling", "hatch-vcs", "numpy"]
+build-backend = "hatchling.build"
 
 [project]
 name = "pyphi"
@@ -37,7 +37,7 @@ dependencies = [
     "Graphillion>=1.5",
     "joblib>=0.8.0",
     "more_itertools>=8.13.0",
-    "numpy<2.0.0",
+    "numpy",
     "ordered-set>=4.0.2",
     "pandas>=2.0.0",
     "psutil>=2.1.1",
