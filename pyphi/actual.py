@@ -353,8 +353,13 @@ class Transition:
     def partitioned_repertoire(self, direction, partition):
         """Compute the repertoire over the partition in the given direction."""
         system = self.system[direction]
-        if config.REPERTOIRE_DISTANCE == "GENERALIZED_INTRINSIC_DIFFERENCE":
-            purview_state = tuple(self.purview_state(direction)[node] for node in partition.purview)
+        if config.REPERTOIRE_DISTANCE in [
+            "GENERALIZED_INTRINSIC_DIFFERENCE",
+            "INTRINSIC_INFORMATION",
+        ]:
+            purview_state = tuple(
+                self.purview_state(direction)[node] for node in partition.purview
+            )
             return system.partitioned_repertoire(
                 direction, partition, state=purview_state
             )

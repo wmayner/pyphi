@@ -110,9 +110,7 @@ class Subsystem:
         if config.VALIDATE_SUBSYSTEM_STATES:
             validate.state_reachable(self)
 
-        self.cause_tpm = _backward_tpm(
-            self.network.tpm, state, self.node_indices
-        )
+        self.cause_tpm = _backward_tpm(self.network.tpm, state, self.node_indices)
 
         # The TPMs for just the nodes in the subsystem.
         self.proper_effect_tpm = self.effect_tpm.squeeze()[..., list(self.node_indices)]
@@ -507,7 +505,10 @@ class Subsystem:
     ):
         """Compute the repertoire of a partitioned mechanism and purview."""
         repertoire_distance = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
-        if repertoire_distance == "GENERALIZED_INTRINSIC_DIFFERENCE":
+        if repertoire_distance in [
+            "GENERALIZED_INTRINSIC_DIFFERENCE",
+            "INTRINSIC_INFORMATION",
+        ]:
             if "state" not in kwargs:
                 raise ValueError(
                     "must provide purview state for generalized intrinsic difference"
@@ -744,7 +745,10 @@ class Subsystem:
         if repertoire is None:
             repertoire = self.repertoire(direction, mechanism, purview)
         # TODO(4.0) use same partitioned_repertoire func
-        if repertoire_distance == "GENERALIZED_INTRINSIC_DIFFERENCE":
+        if repertoire_distance in [
+            "GENERALIZED_INTRINSIC_DIFFERENCE",
+            "INTRINSIC_INFORMATION",
+        ]:
             purview_state = kwargs["state"].state
             selectivity = repertoire.squeeze()[purview_state]
             forward_pr = self.forward_probability(
@@ -991,7 +995,10 @@ class Subsystem:
             states = utils.all_states(len(purview))
 
         # TODO(4.0) refactor for consistent API across metrics
-        if repertoire_distance == "GENERALIZED_INTRINSIC_DIFFERENCE":
+        if repertoire_distance in [
+            "GENERALIZED_INTRINSIC_DIFFERENCE",
+            "INTRINSIC_INFORMATION",
+        ]:
             # TODO(4.0) include selectivity_repertoire in StateSpecification
             selectivity_repertoire = self.repertoire(
                 direction,

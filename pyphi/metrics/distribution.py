@@ -643,9 +643,9 @@ def intrinsic_information(
     )
     intrinsic_specification = selectivity_repertoire * informativeness
 
-    intrinsic_indeterminism = -1 * np.log2(forward_repertoire)
+    intrinsic_differentiation = -1 * np.log2(forward_repertoire)
 
-    ii = np.minimum(intrinsic_specification, intrinsic_indeterminism)
+    ii = np.minimum(intrinsic_specification, intrinsic_differentiation)
     if state is None:
         return ii
     return ii[state]
