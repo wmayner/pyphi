@@ -631,6 +631,26 @@ def generalized_intrinsic_difference(
     return gid[state]
 
 
+@measures.register("INTRINSIC_INFORMATION", asymmetric=True)
+def intrinsic_information(
+    forward_repertoire,
+    partitioned_forward_repertoire,
+    selectivity_repertoire,
+    state=None,
+):
+    informativeness = pointwise_mutual_information_vector(
+        forward_repertoire, partitioned_forward_repertoire
+    )
+    intrinsic_specification = selectivity_repertoire * informativeness
+
+    intrinsic_indeterminism = -1 * np.log2(forward_repertoire)
+
+    ii = np.minimum(intrinsic_specification, intrinsic_indeterminism)
+    if state is None:
+        return ii
+    return ii[state]
+
+
 @measures.register("APMI", asymmetric=True)
 @np_suppress()
 def absolute_pointwise_mutual_information(p, q, state):
