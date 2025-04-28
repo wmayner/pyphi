@@ -511,7 +511,7 @@ class Subsystem:
         ]:
             if "state" not in kwargs:
                 raise ValueError(
-                    "must provide purview state for generalized intrinsic difference"
+                    f"must provide purview state for repertoire distance {repertoire_distance}"
                 )
             purview_state = kwargs.pop("state")
             prs = [
@@ -749,6 +749,7 @@ class Subsystem:
             "GENERALIZED_INTRINSIC_DIFFERENCE",
             "INTRINSIC_INFORMATION",
         ]:
+            func = metrics.distribution.measures[repertoire_distance]
             purview_state = kwargs["state"].state
             selectivity = repertoire.squeeze()[purview_state]
             forward_pr = self.forward_probability(
@@ -760,7 +761,7 @@ class Subsystem:
                 )
             else:
                 partitioned_pr = partitioned_repertoire
-            phi = metrics.distribution.generalized_intrinsic_difference(
+            phi = func(
                 forward_repertoire=forward_pr,
                 partitioned_forward_repertoire=partitioned_pr,
                 selectivity_repertoire=selectivity,
@@ -999,6 +1000,7 @@ class Subsystem:
             "GENERALIZED_INTRINSIC_DIFFERENCE",
             "INTRINSIC_INFORMATION",
         ]:
+            func = metrics.distribution.measures[repertoire_distance]
             # TODO(4.0) include selectivity_repertoire in StateSpecification
             selectivity_repertoire = self.repertoire(
                 direction,
@@ -1016,16 +1018,16 @@ class Subsystem:
                 mechanism,
                 purview,
             )
-            gid = metrics.distribution.generalized_intrinsic_difference(
+            dist = func(
                 repertoire,
                 unconstrained_repertoire,
                 selectivity_repertoire,
             )
             # Remove singleton dimensions since we'll index with purview state
-            gid = gid.squeeze()
+            dist = dist.squeeze()
 
             def evaluate_state(state):
-                return gid[state]
+                return dist[state]
 
         else:
             repertoire = self.repertoire(

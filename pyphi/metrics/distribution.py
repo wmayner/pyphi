@@ -631,6 +631,18 @@ def generalized_intrinsic_difference(
     return gid[state]
 
 
+def pointwise_intrinsic_differentiation(p):
+    return -np.log2(p, where=(p > 0))
+
+
+@measures.register("INTRINSIC_DIFFERENTIATION", asymmetric=True)
+def intrinsic_differentiation(p, q, state=None):
+    positive_entries = pointwise_intrinsic_differentiation(p)[
+        pointwise_intrinsic_differentiation(p) > 0
+    ]
+    return np.min(positive_entries) if positive_entries.size > 0 else 0
+
+
 @measures.register("INTRINSIC_INFORMATION", asymmetric=True)
 def intrinsic_information(
     forward_repertoire,
@@ -643,9 +655,9 @@ def intrinsic_information(
     )
     intrinsic_specification = selectivity_repertoire * informativeness
 
-    intrinsic_differentiation = -1 * np.log2(forward_repertoire)
+    intrinsic_diff = pointwise_intrinsic_differentiation(forward_repertoire)
 
-    ii = np.minimum(intrinsic_specification, intrinsic_differentiation)
+    ii = np.minimum(intrinsic_specification, intrinsic_diff)
     if state is None:
         return ii
     return ii[state]
