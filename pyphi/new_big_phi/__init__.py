@@ -548,7 +548,8 @@ def phi_structure(
     if distinctions is None:
         distinctions = compute.ces(subsystem, **ces_kwargs)
     # Filter out incongruent distinctions
-    distinctions = distinctions.resolve_congruence(sia.system_state)
+    if sia.system_state is not None:
+        distinctions = distinctions.resolve_congruence(sia.system_state)
 
     # Compute relations if not provided
     if relations is None:
