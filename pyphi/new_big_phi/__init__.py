@@ -270,6 +270,10 @@ class ShortCircuitConditions(Enum):
     NO_VALID_PARTITIONS = auto()
     NO_CAUSE = auto()
     NO_EFFECT = auto()
+    NO_SUBSYSTEM = auto()
+    NO_STRONG_CONNECTIVITY = auto()
+    MONAD_WITH_NO_SELFLOOP = auto()
+    MONAD_WITH_SELFLOOP_DEFINED_TO_BE_ZERO_PHI = auto()
 
 
 def _has_no_cause_or_effect(system_state):
@@ -321,11 +325,11 @@ def sia(
 
     if not subsystem:
         # subsystem is empty
-        return _null_sia()
+        return _null_sia(reasons=[ShortCircuitConditions.NO_SUBSYSTEM])
 
     if not connectivity.is_strong(subsystem.cm, subsystem.node_indices):
         # subsystem is not strongly connected
-        return _null_sia()
+        return _null_sia(reasons=[ShortCircuitConditions.NO_STRONG_CONNECTIVITY])
 
     # Handle elementary micro mechanism cases.
     # Single macro element systems have nontrivial bipartitions because their
@@ -333,10 +337,14 @@ def sia(
     if len(subsystem.cut_indices) == 1:
         # If the node lacks a self-loop, phi is trivially zero.
         if not subsystem.cm[subsystem.node_indices][subsystem.node_indices]:
-            return _null_sia()
+            return _null_sia(reasons=[ShortCircuitConditions.MONAD_WITH_NO_SELFLOOP])
         # Even if the node has a self-loop, we may still define phi to be zero.
         elif not config.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI:
-            return _null_sia()
+            return _null_sia(
+                reasons=[
+                    ShortCircuitConditions.MONAD_WITH_SELFLOOP_DEFINED_TO_BE_ZERO_PHI
+                ]
+            )
     # =========================================================================
 
     if partitions is None:
