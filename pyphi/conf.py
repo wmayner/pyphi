@@ -752,7 +752,7 @@ class PyphiConfig(Config):
     )
 
     SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI = Option(
-        False,
+        True,
         type=bool,
         doc="""
     If set to ``True``, the |big_phi| value of single micro-node subsystems is
@@ -857,7 +857,6 @@ class PyphiConfig(Config):
 
     You can use this new partititioning scheme by setting
     ``config.PARTITION_TYPE = 'SINGLE_NODE'``.
-
     See :mod:`~pyphi.partition` for more examples.""",
     )
 

@@ -125,7 +125,7 @@ SHORTCIRCUIT_SIA: true
 # In some applications of this library, you may want to allow single
 # micro-nodes with a self-loop to have nonzero Phi. See ``pyphi.config`` for
 # details.
-SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI: false
+SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI: true
 # The type of system cuts to use (IIT 3.0)
 SYSTEM_CUTS: 3.0_STYLE
 # Whether to include the complete partition in partition set; currently only
