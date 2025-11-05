@@ -4,17 +4,19 @@
 import math
 import functools
 from itertools import chain
-from typing import Iterable, Mapping, Optional, Set, Tuple
+from typing import Any, Iterable, Mapping, Optional, Set, Sequence, Tuple
 
 import numpy as np
 
-from . import convert, distribution, data_structures, exceptions
+import pyphi.node
+from . import convert, data_structures, exceptions
 from .connectivity import subadjacency
 from .conf import config
 from .constants import OFF, ON
 from .data_structures import FrozenMap
-import pyphi.node
+from .labels import NodeLabels
 from .utils import all_states, eq, np_hash, np_immutable
+
 
 class TPM:
     """TPM interface for derived classes."""
@@ -82,12 +84,10 @@ class TPM:
         if isinstance(self, ExplicitTPM):
             return conditioned_tpm[..., free_nodes]
 
-        return type(self)(
-            tuple(
-                node for node in conditioned_tpm.nodes
-                if node.index in free_nodes
-            )
+        nodes = tuple(
+            node for node in conditioned_tpm.nodes if node.index in free_nodes
         )
+        return type(self)(nodes)
 
     def infer_edge(self, a, b, contexts):
         """Infer the presence or absence of an edge from node A to node B.
@@ -427,8 +427,9 @@ class ExplicitTPM(data_structures.ArrayLike, TPM):
         """
         # Assumes multidimensional form
         conditioning_indices = [[slice(None)]] * (self.ndim - 1)
-        for i, state_i in condition.items():
+        for i, state_i in enumerate(condition.values()):
             # Ignore dimensions that are already singletons
+            # TODO (tpm): remove check, singleton dims are no longer expected.
             if self.shape[i] != 1:
                 # Preserve singleton dimensions in output array with `np.newaxis`
                 conditioning_indices[i] = [state_i, np.newaxis]
@@ -451,9 +452,6 @@ class ExplicitTPM(data_structures.ArrayLike, TPM):
         tpm = self.sum(tuple(node_indices), keepdims=True) / (
             np.array(self.shape)[list(node_indices)].prod()
         )
-        # Return new TPM object of the same type as self. Assume self had
-        # already been validated and converted formatted. Further validation
-        # would be problematic for singleton dimensions.
         return type(self)(tpm)
 
     def is_deterministic(self):
@@ -508,10 +506,12 @@ class ExplicitTPM(data_structures.ArrayLike, TPM):
         )
 
     def probability_of_current_state(self, current_state):
-        """Return the probability of the current state as a distribution over previous states.
+        """Return the probability of the current state as a distribution over
+        previous states.
 
         Arguments:
             current_state (tuple[int]): The current state.
+
         """
         state_probabilities = np.empty(self.shape)
         if not len(current_state) == self.shape[-1]:
@@ -529,7 +529,7 @@ class ExplicitTPM(data_structures.ArrayLike, TPM):
     def backward_tpm(
             self,
             current_state: tuple[int],
-            system_indices: Iterable[int],
+            system_indices: Sequence[int],
             remove_background: bool = False,
     ):
         """Compute the backward TPM for a given network state."""
@@ -619,7 +619,7 @@ class ImplicitTPM(TPM):
     @property
     def ndim(self):
         """int: The number of dimensions of the TPM."""
-        return len(self.shape)
+        return len(self.nodes) + 1
 
     @property
     def shape(self):
@@ -635,37 +635,48 @@ class ImplicitTPM(TPM):
     @property
     def shapes(self):
         """Tuple[Tuple[int]]: The shapes of each node TPM in this TPM."""
-        return [node.effect_tpm.shape for node in self._nodes]
+        return tuple(node.shape for node in self.nodes)
+
+    @property
+    def node_labels(self):
+        """tuple[str]: The labels of nodes in the network."""
+        return tuple(node.label for node in self._nodes)
+
+    @property
+    def node_indices(self):
+        """tuple[int]: The labels of nodes in the network."""
+        return tuple(node.index for node in self._nodes)
 
     @staticmethod
     def _node_shapes_to_shape(
-            shapes: Iterable[Iterable[int]],
-            reconstituted: Optional[bool] = None
+            shapes: Sequence[Sequence[int]],
+            reconstituted: bool = False,
     ) -> Tuple[int]:
         """Infer the shape of the equivalent multidimensional |ExplicitTPM|.
 
         Args:
-            shapes (Iterable[Iterable[int]]): The shapes of the individual node
+            shapes (Sequence[Sequence[int]]): The shapes of the individual node
                 TPMs in the network, ordered by node index.
+            reconstituted (Optional[bool]): If True, the number of states per
+                node will be based on the actual data of the equivalent
+                reconstituted ExplicitTPM, as opposed to the number of states
+                reported by the node itself.
 
         Returns:
             Tuple[int]: The inferred shape of the equivalent TPM.
         """
-        # This should recompute the network TPM shape from individual node
-        # shapes, as opposed to measuring the size of the state space.
-
         if not all(len(shape) == len(shapes[0]) for shape in shapes):
             raise ValueError(
                 "The provided shapes contain varying number of dimensions."
             )
 
-        N = len(shapes)
         if reconstituted:
             states_per_node = tuple(max(dim) for dim in zip(*shapes))[:-1]
         else:
             states_per_node = tuple(shape[-1] for shape in shapes)
 
         # Check consistency of shapes across nodes.
+        N = len(shapes)
 
         dimensions_from_shapes = tuple(
             set(shape[node_index] for shape in shapes)
@@ -717,7 +728,7 @@ class ImplicitTPM(TPM):
     def _validate_shape(self):
         """Validate this TPM's shape.
 
-        The inferred shape of the implicit network TPM must be in
+        The inferred shape of the network ImplicitTPM must be in
         multidimensional state-by-node form, nonbinary and heterogeneous units
         supported.
         """
@@ -742,7 +753,7 @@ class ImplicitTPM(TPM):
         """
         return reconstitute_tpm(self)
 
-    # TODO(tpm) accept node labels and state labels in the map.
+    # TODO(tpm) accept node labels in the map.
     def condition_tpm(self, condition: Mapping[int, int]):
         """Return a TPM conditioned on the given fixed node indices, whose
         states are fixed according to the given state-tuple.
@@ -761,14 +772,14 @@ class ImplicitTPM(TPM):
             singleton dimensions for nodes in a fixed state.
         """
         # Wrapping index elements in a list is the xarray equivalent
-        # of inserting a numpy.newaxis, which preserves the singleton even
+        # of inserting a numpy.newaxis, which preserves the dimension even
         # after selection of a single state.
         conditioning_indices = {
             i: (state_i if isinstance(state_i, list) else [state_i])
             for i, state_i in condition.items()
         }
 
-        return self.__getitem__(conditioning_indices, preserve_singletons=True)
+        return self.__getitem__(conditioning_indices)
 
     def marginalize_out(self, node_indices):
         """Marginalize out nodes from this TPM.
@@ -782,18 +793,16 @@ class ImplicitTPM(TPM):
         """
         # Leverage ExplicitTPM.marginalize_out() to distribute operation to
         # individual nodes, then assemble into a new ImplicitTPM.
-        return type(self)(
-            tuple(
-                pyphi.node.generate_node(
-                    node.effect_tpm.marginalize_out(node_indices),
-                    node.effect_dataarray.attrs["cm"],
-                    node.effect_dataarray.attrs["network_state_space"],
-                    node.index,
-                    node.effect_dataarray.attrs["node_labels"],
-                )
-                for node in self.nodes
+        new_nodes = tuple(
+            pyphi.node.generate_node(
+                node.effect_tpm.marginalize_out(node_indices),
+                node.effect_dataarray.attrs["cm"],
+                node.index,
+                node.effect_dataarray.attrs["node_labels"],
             )
+            for node in self.nodes
         )
+        return type(self)(new_nodes)
 
     def is_state_by_state(self):
         """Return ``True`` if ``tpm`` is in state-by-state form, otherwise
@@ -826,6 +835,8 @@ class ImplicitTPM(TPM):
             tuple(node for node in self.squeeze().nodes)
         )
 
+    # TODO(tpm): Divide by 0: Return 0 probability if normalization factor is 0.
+    #            State reachability (no cause) is handled by validate.subsytem.
     def probability_of_current_state(
             self,
             current_state: tuple[int]
@@ -836,9 +847,13 @@ class ImplicitTPM(TPM):
         only contains the probability for the current state.
 
         Arguments:
-           current_state (tuple[int]): The current state.
+            current_state (tuple[int]): The current state.
+
         Returns:
-           tuple[ExplicitTPM]: Node-marginal distributions of the current state.
+            tuple[ExplicitTPM]: Node-marginal distributions of the current state.
+
+        Raises:
+             ValueError: If lengths of `current_state` and `self` don't match.
         """
         if not len(current_state) == self.number_of_units:
             raise ValueError(
@@ -847,66 +862,75 @@ class ImplicitTPM(TPM):
             )
         nodes = []
         for node in self.nodes:
-            i = node.index
-            state = current_state[i]
+            state = current_state[node.index]
             # DataArray indexing: keep last dimension by wrapping index in list.
-            pr_current_state = node.effect_dataarray[..., [state]].data
-            normalization = np.sum(pr_current_state)
+            pr_current_state = node.effect_dataarray[..., state]
+            normalization = np.sum(pr_current_state.data)
             if normalization == 0.0:
                 raise exceptions.StateUnreachableError(current_state)
             nodes.append(pr_current_state / normalization)
         return tuple(nodes)
 
+    # TODO(tpm): Divide by 0: Return 0 probability if normalization factor is 0.
+    #            State reachability (no cause) is handled by validate.subsytem.
     def backward_tpm(
             self,
-            current_state: tuple[int],
-            system_indices: Iterable[int],
-    ):
-        """Compute the backward TPM for a given network state."""
-        all_indices = tuple(range(self.number_of_units))
-        system_indices = tuple(sorted(system_indices))
-        background_indices = tuple(sorted(set(all_indices) - set(system_indices)))
-        if not set(system_indices).issubset(set(all_indices)):
+            current_state: Sequence[int],
+            subsystem_labels: Iterable[str],
+    ) -> 'ImplicitTPM':
+        """
+        Compute the cause TPM for a given network state and subsystem.
+
+        Args:
+            current_state (Sequence[int]): The current state of the network.
+            subsystem_labels (Iterable[str]): Labels of the nodes in the subsystem.
+
+        Returns:
+            ImplicitTPM: The cause TPM for the specified subsystem.
+
+        Raises:
+            ValueError: If `subsystem_labels` is not a subset of network.
+        """
+        if not set(subsystem_labels).issubset(set(self.node_labels)):
             raise ValueError(
                 "system_indices must be a subset of `range(self.number_of_units))`"
             )
         #                                                       p(u_t | s_{t–1}, w_{t–1})
         pr_current_state_nodes = self.probability_of_current_state(current_state)
-        # TODO Avoid computing the full joint probability. Find uninformative
-        # dimensions after each product and propagate their dismissal.
-        pr_current_state = functools.reduce(np.multiply, pr_current_state_nodes)
+        pr_current_state = functools.reduce(
+            lambda x, y: x * y, pr_current_state_nodes
+        )
+        # pr_current_state.data = np.asarray(pr_current_state.data)
         #                                           Σ_{s_{t–1}} p(u_t | s_{t–1}, w_{t–1})
+
         pr_current_state_given_only_background = pr_current_state.sum(
-            axis=tuple(system_indices), keepdims=True
+            dim=subsystem_labels
         )
         #                                           Σ_{s_{t–1}} p(u_t | s_{t–1}, w_{t–1})
         #                                           —————————————————————————————————————
         #                                           Σ_{u'_{t–1}} p(u_t | u'_{t–1})
         pr_current_state_given_only_background_normalized = (
-            pr_current_state_given_only_background / np.sum(pr_current_state)
+            pr_current_state_given_only_background / pr_current_state.sum()
         )
         #                                           Σ_{s_{t–1}} p(u_t | s_{t–1}, w_{t–1})
         # Σ_{w_{t–1}} p(s_{i,t} | s_{t–1}, w_{t–1}) —————————————————————————————————————
         #                                           Σ_{u'_{t–1}} p(u_t | u'_{t–1})
-        backward_tpm = tuple(
-            (node_tpm * pr_current_state_given_only_background_normalized).sum(
-                axis=background_indices, keepdims=True
+        background_dimensions = set(self.node_labels) - set(subsystem_labels)
+        backward_nodes = []
+        for node in self.nodes:
+            node_tpm = node.effect_dataarray
+            unwanted_dimensions = background_dimensions - set(node_tpm.dims)
+            node_tpm = node_tpm * pr_current_state_given_only_background_normalized
+            node_tpm = node_tpm.sum(dim=background_dimensions, keepdims=True)
+            node = pyphi.node.generate_node(
+                node_tpm.squeeze(dim=unwanted_dimensions),
+                node.effect_dataarray.attrs["cm"],
+                node.effect_dataarray.attrs["index"],
+                node.effect_dataarray.attrs["node_labels"],
             )
-            for node_tpm in self.tpm
-        )
-        reference_node = self.nodes[0].effect_dataarray
-        return ImplicitTPM(
-            tuple(
-                pyphi.node.generate_node(
-                    backward_node_tpm,
-                    reference_node.attrs["cm"],
-                    reference_node.attrs["network_state_space"],
-                    i,
-                    reference_node.attrs["node_labels"],
-                )
-                for i, backward_node_tpm in enumerate(backward_tpm)
-            )
-        )
+            backward_nodes.append(node)
+
+        return ImplicitTPM(backward_nodes)
 
     def equals(self, o: object):
         """Return whether this TPM equals the other object.
@@ -919,72 +943,127 @@ class ImplicitTPM(TPM):
     def array_equal(self, o: object):
         return self.equals(o)
 
-    def squeeze(self, axis=None):
-        """Wrapper around numpy.squeeze."""
-        # If axis is None, all axis should be considered.
-        if axis is None:
-            axis = set(range(len(self)))
+    def squeeze(self, dims: Optional[Iterable[str]] = None) -> 'ImplicitTPM':
+        """Remove axes of length one from the ImplicitTPM.
+
+        Args:
+            dims (Optional[Iterable[str]]): Node labels to squeeze. If None, all
+                dimensions are considered.
+
+        Returns:
+            ImplicitTPM: A new TPM with squeezed dimensions.
+
+        Raise:
+            ValueError: If any specified dimension is invalid.
+        """
+        # If dims is None, all dimensions should be considered.
+        if dims is None:
+            dims = set(self.node_labels)
         else:
-            axis = set(axis) if isinstance(axis, Iterable) else set([axis])
+            dims = set(dims)
+            if not dims.issubset(self.node_labels):
+                invalid = dims - self.node_labels
+                raise ValueError(f"Invalid dimensions: {invalid}")
 
-        # Subtract non-singleton dimensions from `axis`, including fake
-        # singletons (dimensions that are singletons only for a proper subset of
-        # the nodes), since those should not be squeezed, not even within
-        # individual node TPMs.
-        shape = self._reconstituted_shape
-        nonsingletons = tuple(np.where(np.array(shape) > 1)[0])
-        axis = tuple(axis - set(nonsingletons))
+        # Reconstruct non-singleton dimensions for the whole ImplicitTPM.
 
-        # From now on, we will only care about the first n-1 dimensions (parents).
-        if shape[-1] > 1:
-            nonsingletons = nonsingletons[:-1]
+        shape = self._reconstituted_shape[:-1]  # Parents are first n-1 dims.
+        nonsingletons = np.where(np.array(shape) > 1)[0]
 
         # Recompute connectivity matrix and subset of node labels.
         # TODO(tpm) deduplicate commonalities with macro.MacroSubsystem._squeeze.
-        some_node = self.nodes[0]
+        new_cm = subadjacency(
+            self.nodes[0].effect_dataarray.attrs["cm"],
+            nonsingletons,
+        )
 
-        new_cm = subadjacency(some_node.effect_dataarray.attrs["cm"], nonsingletons)
-
+        # Convert to textual labels.
+        nonsingletons = tuple(
+            node.label for node in self.nodes if node.index in nonsingletons
+        )
+        new_node_labels = NodeLabels(nonsingletons, range(len(nonsingletons)))
         new_node_indices = iter(range(len(nonsingletons)))
-        new_node_labels = tuple(some_node._node_labels[n] for n in nonsingletons)
 
-        state_space = some_node.effect_dataarray.attrs["network_state_space"]
-        new_state_space = {n: state_space[n] for n in new_node_labels}
+        # Subtract non-singleton dimensions from `dims`.
+        dims_to_squeeze = dims - set(nonsingletons)
+        if not dims_to_squeeze:
+            return self         # TODO(tpm): return copy?
 
-        # Leverage ExplicitTPM.squeeze to distribute squeezing to every node.
-        return type(self)(
-            tuple(
-                pyphi.node.generate_node(
-                    node.effect_tpm.squeeze(axis=axis),
+        # Distribute squeezing to every node.
+        new_nodes = []
+        for node in self.nodes:
+            if node.label in nonsingletons:
+                dims_map = dict(zip(dims_to_squeeze, dims_to_squeeze))
+                node_dims_to_squeeze = set(node.project_index(dims_map).keys())
+                new_tpm = node.effect_dataarray.squeeze(
+                    dim=node_dims_to_squeeze, drop=True,
+                )
+                new_node = pyphi.node.generate_node(
+                    new_tpm.data,
                     new_cm,
-                    new_state_space,
                     next(new_node_indices),
                     new_node_labels,
                 )
-                for node in self.nodes if node.index in nonsingletons
-            )
-        )
+                new_nodes.append(new_node)
 
-    def __getitem__(self, index, **kwargs):
-        if isinstance(index, (int, slice, type(...), tuple)):
-            return type(self)(
-                tuple(
-                    # The nodes in an ImplicitTPM only have "effect"
-                    # node TPMs, even if ImplicitTPM is a cause TPM.
-                    node.effect_dataarray[node.project_index(index, **kwargs)].node
-                    for node in self.nodes
-                )
-            )
+        return type(self)(new_nodes)
+
+    def __getitem__(self, index):
+        # Convert to common currency of named dimensions.
         if isinstance(index, dict):
-            return type(self)(
-                tuple(
-                    # The nodes in an ImplicitTPM only have "effect"
-                    # node TPMs, even if ImplicitTPM is a cause TPM.
-                    node.effect_dataarray.loc[node.project_index(index, **kwargs)].node
-                    for node in self.nodes
-                )
-            )
-        raise TypeError(f"Invalid index {index} of type {type(index)}.")
+            index2label = dict(zip(self.node_indices, self.node_labels))
+            index = {index2label[k]: v for k, v in index.items()}
+        elif isinstance(index, (int, slice, type(...), tuple)):
+            index = self._index_to_dict(index)
+        else:
+            raise TypeError(f"Invalid index {index} of type {type(index)}.")
+
+        new_node_tpms = [
+            node.effect_dataarray.loc[node.project_index(index)].node
+            for node in self._nodes
+        ]
+
+        return type(self)(new_node_tpms)
+
+    def _index_to_dict(self, index: Any) -> Mapping[str, Any]:
+        """Convert a NumPy-style index into a dictionary which maps dimension
+        names to their corresponding indices.
+
+        Args:
+            index (Any): The index as received by __getitem__.
+
+        Returns (Mapping): A dictionary where keys are dimension names
+            and values are indices.
+
+        """
+        ndim = self.ndim
+
+        # Convert single int, slice or Ellipsis to a tuple.
+        if not isinstance(index, tuple):
+            index = (index,)
+
+        # Replace Ellipsis with the appropriate number of slice(None) objects.
+        ellipsis_count = index.count(Ellipsis)
+
+        if ellipsis_count > 1:
+            raise IndexError("an index can only have a single ellipsis ('...')")
+        if ellipsis_count == 1:
+            # Calculate how many dimensions are replaced by the Ellipsis.
+            n_missing = ndim - (len(index) - 1)
+            # Replace Ellipsis with slice(None) for each missing dimension.
+            index = []
+            for idx in index:
+                if idx is Ellipsis:
+                    index.extend([slice(None)] * n_missing)
+                else:
+                    index.append(idx)
+
+        if len(index) > ndim:
+            raise IndexError("too many indices for array.")
+
+        # Create the dictionary.
+        node_labels = [node.label for node in self.nodes]
+        return dict(zip(node_labels, index, strict=False))
 
     def __len__(self):
         """int: The number of nodes in the TPM."""
@@ -998,7 +1077,6 @@ class ImplicitTPM(TPM):
 
     def __hash__(self):
         return hash(tuple(hash(node) for node in self.nodes))
-
 
 
 def reconstitute_tpm(subsystem):

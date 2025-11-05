@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # state_space.py
 
 """
@@ -30,6 +28,7 @@ def input_dimension_label(node_label: str) -> str:
         str: Textual label for the same dimension in the multidimensional TPM.
     """
     return INPUT_DIMENSION_PREFIX + str(node_label)
+
 
 def dimension_labels(node_labels: Iterable[str]) -> List[str]:
     """Generate labels for each dimension in the |ImplicitTPM|.

@@ -5,14 +5,13 @@ This is the primary object of PyPhi and the context of all |small_phi| and
 |big_phi| computation.
 """
 
-from typing import Iterable
+from typing import Any, Dict, Optional, Sequence, Union
 import numpy as np
 
 from . import cache, connectivity, jsonify, utils, validate
 from .labels import NodeLabels
 from .node import generate_nodes, generate_node
 from .tpm import ExplicitTPM, ImplicitTPM
-from .state_space import build_state_space
 
 
 class Network:
@@ -21,8 +20,23 @@ class Network:
     Represents the network under analysis and holds auxilary data about it.
 
     Args:
-        tpm (np.ndarray): The transition probability matrix of the network.
-            See :func:`pyphi.tpm.ExplicitTPM`.
+        tpm (np.ndarray or ExplicitTPM or Sequence[np.ndarray] or ImplicitTPM):
+            The transition probability matrix of the network.
+
+            If a single numpy.ndarray or |ExplicitTPM| is provided, pyphi
+            assumes it is an old-style TPM for the whole network, and it will be
+            converted to an |ImplicitTPM|.
+
+            If an |ImplicitTPM| or a list of numpy.ndarray is provided, it must
+            contain one TPM per node, and their order should match those of
+            ``cm`` and ``node_labels``. For node |j|, the number of dimensions
+            of its TPM must be |inputs(j) + 1| and its shape must be
+            |(s_1, s_2, ... , s_i, s_j)| (also in order), where |inputs(j)| is
+            the number of nodes that are direct inputs of |j| and |s_i| is the
+            number of states for node |i|. In other words ``tpm_j[0, 1, 2, 3]``
+            stands for |Pr(j_{t+1}=3 | a_{t}=0, j_{t}=1, z_{t}=2)|.
+
+            See :ref:`tpm-conventions:`.
 
     Keyword Args:
         cm (np.ndarray): A square binary adjacency matrix indicating the
@@ -30,50 +44,38 @@ class Network:
             that node |i| is connected to node |j| (see :ref:`cm-conventions`).
             **If no connectivity matrix is given, PyPhi assumes that every node
             is connected to every node (including itself)**.
-        node_labels (tuple[str] or |NodeLabels|): Human-readable labels for
+        node_labels (Sequence[str] or |NodeLabels|): Human-readable labels for
             each node in the network.
-        state_space (Optional[tuple[tuple[Union[int, str]]]]):
-            Labels for the state space of each node in the network. If ``None``,
-            states will be automatically labeled using a zero-based integer
-            index per node.
+
     """
 
     def __init__(
             self,
-            tpm,
-            cm=None,
-            node_labels=None,
-            state_space=None,
-            purview_cache=None
+            tpm: Union[np.ndarray, ExplicitTPM, Sequence, ImplicitTPM, Dict[str, Any]],
+            cm: Optional[np.ndarray] = None,
+            node_labels: Optional[Sequence[str]] = None,
+            purview_cache: Optional[cache.PurviewCache] = None,
     ):
+        self._cm, self._cm_hash = self._build_cm(cm)
+        self._node_indices = tuple(range(self.size))
+        self._node_labels = NodeLabels(node_labels, self._node_indices)
+        self.purview_cache = purview_cache or cache.PurviewCache()
+
         # Initialize _tpm according to argument type.
 
         if isinstance(tpm, (np.ndarray, ExplicitTPM)):
-            # Validate TPM and convert to state-by-node multidimensional format.
+            # Old-style TPM: validate and convert to state-by-node format first.
             tpm = ExplicitTPM(tpm, validate=True)
-
-            self._cm, self._cm_hash = self._build_cm(cm, tpm)
-
-            self._node_indices = tuple(range(self.size))
-            self._node_labels = NodeLabels(node_labels, self._node_indices)
-
-            self._state_space, _ = build_state_space(
-                self._node_labels,
-                tpm.shape[:-1],
-                state_space
+            nodes = generate_nodes(
+                tpm,
+                self._cm,
+                self._node_indices,
+                self._node_labels
             )
+            self._tpm = ImplicitTPM(nodes)
 
-            self._tpm = ImplicitTPM(
-                generate_nodes(
-                    tpm,
-                    self._cm,
-                    self._state_space,
-                    self._node_indices,
-                    self._node_labels
-                )
-            )
-
-        elif isinstance(tpm, Iterable):
+        elif isinstance(tpm, Sequence):
+            # Individual node TPMs were provided, format into an ImplicitTPM.
             invalid = [
                 i for i in tpm if not isinstance(i, (np.ndarray, ExplicitTPM))
             ]
@@ -83,66 +85,30 @@ class Network:
                     ', '.join(str(i) for i in invalid)
                 ))
 
-            tpm = tuple(
-                ExplicitTPM(node_tpm, validate=False) for node_tpm in tpm
+            tpm = [ExplicitTPM(node_tpm, validate=False) for node_tpm in tpm]
+
+            nodes = tuple(
+                generate_node(node_tpm, self._cm, index, self._node_labels)
+                for index, node_tpm in zip(self._node_indices, tpm)
             )
-
-            shapes = [node.shape for node in tpm]
-
-            self._cm, self._cm_hash = self._build_cm(cm, tpm, shapes)
-
-            self._node_indices = tuple(range(self.size))
-            self._node_labels = NodeLabels(node_labels, self._node_indices)
-
-            network_tpm_shape = ImplicitTPM._node_shapes_to_shape(shapes)
-            self._state_space, _ = build_state_space(
-                self._node_labels,
-                network_tpm_shape[:-1],
-                state_space
-            )
-
-            self._tpm = ImplicitTPM(
-                tuple(
-                    generate_node(
-                        node_tpm,
-                        self._cm,
-                        self._state_space,
-                        index,
-                        node_labels=self._node_labels
-                    )
-                    for index, node_tpm in zip(self._node_indices, tpm)
-                )
-            )
+            self._tpm = ImplicitTPM(nodes)
 
         elif isinstance(tpm, ImplicitTPM):
             self._tpm = tpm
-            self._cm, self._cm_hash = self._build_cm(cm, self._tpm)
-            self._node_indices = tuple(range(self.size))
-            self._node_labels = NodeLabels(node_labels, self._node_indices)
-            self._state_space, _ = build_state_space(
-                self._node_labels,
-                self._tpm.shape[:-1],
-                state_space
-            )
 
         # FIXME(TPM) initialization from JSON
         elif isinstance(tpm, dict):
             # From JSON.
             self._tpm = ImplicitTPM(tpm["_tpm"])
-            self._cm, self._cm_hash = self._build_cm(cm, tpm)
-            self._node_indices = tuple(range(self.size))
-            self._node_labels = NodeLabels(node_labels, self._node_indices)
 
         else:
             raise TypeError(f"Invalid TPM of type {type(tpm)}.")
-
-        self.purview_cache = purview_cache or cache.PurviewCache()
 
         validate.network(self)
 
     @property
     def tpm(self):
-        """pyphi.tpm.ExplicitTPM: The TPM object which contains this
+        """ExplicitTPM: The TPM object which contains this
         network's transition probability matrix, in multidimensional
         form.
         """
@@ -157,42 +123,17 @@ class Network:
         """
         return self._cm
 
-    def _build_cm(self, cm, tpm, shapes=None):
+    def _build_cm(self, cm):
         """Convert the passed CM to the proper format, or construct the
-        unitary CM if none was provided (explicit TPM), or infer from node TPMs.
+        unitary CM if none was provided.
         """
         if cm is None:
-            if hasattr(tpm, "shape"):
-                network_size = tpm.shape[-1]
-            else:
-                network_size = len(tpm)
+            # Assume all are connected.
+            cm = np.ones((self.size, self.size))
+        else:
+            cm = np.array(cm)
 
-            # Explicit TPM without connectivity matrix: assume all are connected.
-            if shapes is None:
-                cm = np.ones((network_size, network_size), dtype=int)
-                utils.np_immutable(cm)
-                return (cm, utils.np_hash(cm))
-
-            # ImplicitTPM without connectivity matrix: infer from node TPMs.
-            cm = np.zeros((network_size, network_size), dtype=int)
-
-            for i, shape in enumerate(shapes):
-                for j in range(len(shapes)):
-                    if shape[j] != 1:
-                        cm[j][i] = 1
-
-            utils.np_immutable(cm)
-            return (cm, utils.np_hash(cm))
-
-        cm = np.array(cm)
         utils.np_immutable(cm)
-
-        # Explicit TPM with connectivity matrix: return.
-        if shapes is None:
-            return (cm, utils.np_hash(cm))
-
-        # ImplicitTPM with connectivity matrix: validate against node shapes.
-        validate.shapes(shapes, cm)
 
         return (cm, utils.np_hash(cm))
 
@@ -204,7 +145,7 @@ class Network:
     @property
     def causally_significant_nodes(self):
         """See :func:`pyphi.connectivity.causally_significant_nodes`."""
-        return connectivity.causally_significant_nodes(self.cm)
+        return connectivity.causally_significant_nodes(self._cm)
 
     @property
     def size(self):
@@ -212,17 +153,9 @@ class Network:
         return len(self)
 
     @property
-    def state_space(self):
-        """tuple[tuple[Union[int, str]]]: Labels for the state space of each node.
-        """
-        return self._state_space
-
-    @property
     def num_states(self):
         """int: The number of possible states of the network."""
-        return np.prod(
-            [len(node_states) for node_states in self._state_space]
-        )
+        return np.prod(self._tpm.shape)
 
     @property
     def node_indices(self):
@@ -260,10 +193,9 @@ class Network:
         return self._cm.shape[0]
 
     def __repr__(self):
-        # TODO implement a cleaner repr, similar to analyses objects,
-        # distinctions, etc.
-        return "Network(\n{},\ncm={},\nnode_labels={},\nstate_space={}\n)".format(
-            self.tpm, self.cm, self.node_labels, self.state_space._dict
+        cm = str(self.cm).replace('\n', '\n       ')
+        return "Network(\n    {},\n    cm={},\n    node_labels={}\n)".format(
+            self.tpm, cm, self.node_labels.labels
         )
 
     def __eq__(self, other):
@@ -280,7 +212,6 @@ class Network:
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    # TODO(tpm): Immutability in xarray.
     def __hash__(self):
         return hash((hash(self.tpm), self._cm_hash))
 
@@ -291,7 +222,6 @@ class Network:
             "cm": self.cm,
             "size": self.size,
             "node_labels": self.node_labels,
-            "state_space": self.state_space,
         }
 
     @classmethod

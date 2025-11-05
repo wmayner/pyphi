@@ -14,12 +14,14 @@ class ArrayLike(NDArrayOperatorsMixin):
     _TYPE_CLOSED_FUNCTIONS = (
         np.all,
         np.any,
+        np.broadcast_to,
         np.concatenate,
         np.expand_dims,
+        np.result_type,
         np.stack,
         np.sum,
-        np.result_type,
-        np.broadcast_to,
+        np.where,
+        np.zeros_like,
     )
 
     # Holds the underlying array

@@ -148,8 +148,8 @@ def state(state, size, shape):
 def _past_states(p_node):
     """Find set of states which could have led to the current state of a node.
 
-    The state of irrelevant dimensions, nodes which don't output to this
-    node, is represented with -1 to encode a whole equivalence class.
+    The state of irrelevant dimensions (nodes which don't output to this
+    node) is represented with -1 to encode a whole equivalence class.
 
     Arguments:
         p_node (np.ndarray): Node TPM conditioned on the current subsystem state.
@@ -225,7 +225,9 @@ def state_reachable(subsystem):
     #             ∃ s_{t-1} : p(s | s_{t-1}, w_{t-1}) > 0
 
     # Obtain p(s | w_{t-1}) as node marginals (i.e. implicitly).
-    p = subsystem.proper_effect_tpm.probability_of_current_state(subsystem.proper_state)
+    p = subsystem.proper_effect_tpm.probability_of_current_state(
+        subsystem.proper_state
+    )
 
     # Avoid computing the joint distribution. For each node n, find the set of
     # coordinates s_{t-1} for which p_n > 0. The intersection of all such sets
