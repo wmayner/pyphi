@@ -14,7 +14,10 @@ from .exceptions import ConditionallyDependentError, StateUnreachableError
 from .labels import NodeLabels
 from .network import irreducible_purviews
 from .node import expand_node_tpm, generate_nodes
+from .state_space import build_state_space
 from .subsystem import Subsystem
+
+# TODO(tpm) use ImplicitTPM type consistently throughout module
 from .tpm import ExplicitTPM
 from .direction import Direction
 
@@ -44,25 +47,6 @@ def rebuild_system_tpm(node_tpms):
     return ExplicitTPM(tpm, validate=True)
 
 
-# TODO This should be a method of the TPM class in tpm.py
-def remove_singleton_dimensions(tpm):
-    """Remove singleton dimensions from the TPM.
-
-    Singleton dimensions are created by conditioning on a set of elements.
-    This removes those elements from the TPM, leaving a TPM that only
-    describes the non-conditioned elements.
-
-    Note that indices used in the original TPM must be reindexed for the
-    smaller TPM.
-    """
-    # Don't squeeze out the final dimension (which contains the probability)
-    # for networks with one element.
-    if tpm.ndim <= 2:
-        return tpm
-
-    return tpm.squeeze()[..., tpm.tpm_indices()]
-
-
 def run_tpm(system, direction, steps, blackbox):
     """Iterate the TPM for the given number of timesteps.
 
@@ -75,11 +59,12 @@ def run_tpm(system, direction, steps, blackbox):
     node_tpms = []
     for node in system.nodes:
         if direction == Direction.CAUSE:
-            node_tpm = node.cause_tpm_on
+            node_tpm = node.cause_tpm[..., 1]
         elif direction == Direction.EFFECT:
-            node_tpm = node.effect_tpm_on
+            node_tpm = node.effect_tpm[..., 1]
         else:
             return validate.direction(direction)
+
         for input_node in node.inputs:
             if not blackbox.in_same_box(node.index, input_node):
                 if input_node in blackbox.output_indices:
@@ -122,14 +107,23 @@ class SystemAttrs(
         return NodeLabels(labels, self.node_indices)
 
     @property
+    def state_space(self):
+        state_space, _ = build_state_space(
+            self.node_labels,
+            self.tpm.shape[:-1],
+            node_states=None,
+        )
+        return state_space
+
+    @property
     def nodes(self):
         return generate_nodes(
-            self.cause_tpm,
             self.effect_tpm,
             self.cm,
-            self.state,
+            self.state_space,
             self.node_indices,
             self.node_labels,
+            network_state=self.state,
         )
 
     @staticmethod
@@ -241,13 +235,15 @@ class MacroSubsystem(Subsystem):
         Reindexes the subsystem so that the nodes are ``0..n`` where ``n`` is
         the number of internal indices in the system.
         """
-        assert system.node_indices == system.cause_tpm.tpm_indices()
-        assert system.node_indices == system.effect_tpm.tpm_indices()
+        assert system.node_indices == system.effect_tpm.tpm_indices(reconstituted=True)
+        assert system.node_indices == system.cause_tpm.tpm_indices(reconstituted=True)
 
-        internal_indices = system.effect_tpm.tpm_indices()
+        internal_indices = system.tpm.tpm_indices(reconstituted=True)
 
-        cause_tpm = remove_singleton_dimensions(system.cause_tpm)
-        effect_tpm = remove_singleton_dimensions(system.effect_tpm)
+        effect_tpm = system.effect_tpm.remove_singleton_dimensions()
+        cause_tpm = system.cause_tpm.remove_singleton_dimensions()
+
+        # TODO(tpm): deduplicate commonalities with tpm.ImplicitTPM.squeeze.
 
         # The connectivity matrix is the network's connectivity matrix, with
         # cut applied, with all connections to/from external nodes severed,
@@ -258,11 +254,25 @@ class MacroSubsystem(Subsystem):
 
         # Re-index the subsystem nodes with the external nodes removed
         node_indices = reindex(internal_indices)
-        nodes = generate_nodes(cause_tpm, effect_tpm, cm, state, node_indices)
+        node_labels = NodeLabels(None, node_indices)
+        state_space, _ = build_state_space(
+            node_labels,
+            effect_tpm.shape[:-1],
+        )
+
+        nodes = generate_nodes(
+            effect_tpm,
+            cm,
+            state_space,
+            node_indices,
+            node_labels,
+            network_state=state
+        )
 
         # Re-calcuate the tpm based on the results of the cut
-        cause_tpm = rebuild_system_tpm(node.cause_tpm_on for node in nodes)
-        effect_tpm = rebuild_system_tpm(node.effect_tpm_on for node in nodes)
+        # TODO: nonbinary nodes.
+        effect_tpm = rebuild_system_tpm(node.effect_tpm[..., 1] for node in nodes)
+        cause_tpm = rebuild_system_tpm(node.cause_tpm[..., 1] for node in nodes)
 
         return SystemAttrs(cause_tpm, effect_tpm, cm, node_indices, state)
 
@@ -273,8 +283,9 @@ class MacroSubsystem(Subsystem):
         node_cause_tpms = []
         node_effect_tpms = []
         for node in system.nodes:
-            node_cause_tpm = node.cause_tpm_on
-            node_effect_tpm = node.effect_tpm_on
+            # TODO: nonbinary nodes.
+            node_cause_tpm = node.cause_tpm[..., 1]
+            node_effect_tpm = node.effect_tpm[..., 1]
             for input_node in node.inputs:
                 if blackbox.hidden_from(input_node, node.index):
                     node_cause_tpm = node_cause_tpm.marginalize_out([input_node])
@@ -322,8 +333,9 @@ class MacroSubsystem(Subsystem):
         assert blackbox.output_indices == cause_tpm.tpm_indices()
         assert blackbox.output_indices == effect_tpm.tpm_indices()
 
-        cause_tpm = remove_singleton_dimensions(cause_tpm)
-        effect_tpm = remove_singleton_dimensions(effect_tpm)
+        cause_tpm = cause_tpm.remove_singleton_dimensions()
+        effect_tpm = effect_tpm.remove_singleton_dimensions()
+
         n = len(blackbox)
         cm = np.zeros((n, n))
         for i, j in itertools.product(range(n), repeat=2):
@@ -335,6 +347,10 @@ class MacroSubsystem(Subsystem):
 
         state = blackbox.macro_state(system.state)
         node_indices = blackbox.macro_indices
+        state_space, _ = build_state_space(
+            NodeLabels(None, node_indices),
+            tpm.shape[:-1]
+        )
 
         return SystemAttrs(cause_tpm, effect_tpm, cm, node_indices, state)
 

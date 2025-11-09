@@ -3,7 +3,7 @@
 
 import functools
 import logging
-from typing import Iterable, Tuple
+from typing import Iterable, Tuple, Optional, Sequence, Union
 
 import numpy as np
 from numpy.typing import ArrayLike
@@ -20,6 +20,7 @@ from .distribution import max_entropy_distribution, repertoire_shape
 from .metrics.distribution import repertoire_distance as _repertoire_distance
 from .models import (
     Concept,
+    Cut,
     MaximallyIrreducibleCause,
     MaximallyIrreducibleEffect,
     NullCut,
@@ -27,11 +28,11 @@ from .models import (
     _null_ria,
     CauseEffectStructure,
 )
+from .network import Network
+from .node import generate_node
 from .models.mechanism import ShortCircuitConditions, StateSpecification
 from .network import irreducible_purviews
-from .node import generate_nodes
 from .partition import mip_partitions
-from .tpm import backward_tpm as _backward_tpm
 from .utils import state_of
 
 log = logging.getLogger(__name__)
@@ -42,7 +43,7 @@ class Subsystem:
 
     Args:
         network (Network): The network the subsystem belongs to.
-        state (tuple[int]): The state of the network.
+        state (Sequence[int]): The state of the network.
 
     Keyword Args:
         nodes (tuple[int] or tuple[str]): The nodes of the network which are in
@@ -66,20 +67,19 @@ class Subsystem:
 
     def __init__(
         self,
-        network,
-        state,
-        nodes=None,
-        cut=None,
+        network: Network,
+        state: Sequence[int],
+        nodes: Optional[Union[Sequence[int], Sequence[str]]] = None,
+        cut: Optional[Cut] = None,
         # TODO(4.0): refactor repertoire caches
-        repertoire_cache=None,
-        single_node_repertoire_cache=None,
-        forward_repertoire_cache=None,
-        unconstrained_forward_repertoire_cache=None,
-        _external_indices=None,
+        repertoire_cache: Optional[cache.DictCache] = None,
+        single_node_repertoire_cache: Optional[cache.DictCache] = None,
+        forward_repertoire_cache: Optional[cache.DictCache] = None,
+        unconstrained_forward_repertoire_cache: Optional[cache.DictCache] = None,
+        _external_indices: Optional[Sequence[int]] = None,
     ):
         # The network this subsystem belongs to.
         validate.is_network(network)
-        network._tpm = network.tpm
         self.network = network
 
         self.node_labels = network.node_labels
@@ -87,7 +87,7 @@ class Subsystem:
         # (for JSON serialization).
         self.node_indices = self.node_labels.coerce_to_indices(nodes)
 
-        validate.state_length(state, self.network.size)
+        validate.state(state, self.network.size, self.network.tpm.shape[:-1])
 
         # The state of the network.
         self.state = tuple(state)
@@ -105,24 +105,25 @@ class Subsystem:
         # Get the TPMs conditioned on the state of the external nodes.
         external_state = utils.state_of(self.external_indices, self.state)
         background_conditions = dict(zip(self.external_indices, external_state))
+        subsystem_labels = self.node_labels.indices2labels(self.node_indices)
+
         self.effect_tpm = self.network.tpm.condition_tpm(background_conditions)
+        self.cause_tpm = self.network.tpm.backward_tpm(state, subsystem_labels)
 
-        if config.VALIDATE_SUBSYSTEM_STATES:
-            validate.state_reachable(self)
-
-        self.cause_tpm = _backward_tpm(
-            self.network.tpm, state, self.node_indices
-        )
+        # Set the state of the |Node|s.
+        nodes_zip = zip(self.effect_tpm.nodes, self.cause_tpm.nodes, self.state)
+        for effect_node, cause_node, node_state in nodes_zip:
+            effect_node.state = node_state
+            cause_node.state = node_state
 
         # The TPMs for just the nodes in the subsystem.
-        self.proper_effect_tpm = self.effect_tpm.squeeze()[..., list(self.node_indices)]
-        self.proper_cause_tpm = self.cause_tpm.squeeze()[..., list(self.node_indices)]
+        self.proper_effect_tpm = self.effect_tpm.squeeze()
+        self.proper_cause_tpm = self.cause_tpm.squeeze()
 
         # The unidirectional cut applied for phi evaluation
         self.cut = (
             cut if cut is not None else NullCut(self.node_indices, self.node_labels)
         )
-        validate.cut(self.cut, self.cut_indices)
 
         # The network's connectivity matrix with cut applied
         self.cm = self.cut.apply_cut(network.cm)
@@ -141,14 +142,26 @@ class Subsystem:
             unconstrained_forward_repertoire_cache or cache.DictCache()
         )
 
-        self.nodes = generate_nodes(
-            self.cause_tpm,
-            self.effect_tpm,
-            self.cm,
-            self.state,
-            self.node_indices,
-            self.node_labels,
+        # Generate |Node|s for this subsystem and this particular cut to the cm.
+        nodes_enumerate = enumerate(
+            zip(self.cause_tpm.nodes, self.effect_tpm.nodes)
         )
+
+        self.nodes = tuple(
+            generate_node(
+                node[Direction.EFFECT].effect_tpm,
+                self.cm,
+                i,
+                self.node_labels,
+                cause_tpm=node[Direction.CAUSE].effect_tpm,
+                state=node[Direction.EFFECT].state,
+                uncut_cm=network.cm if cut is not None else None,
+            )
+            for i, node in nodes_enumerate
+            if i in self.node_indices
+        )
+
+        # validate.subsystem(self)
 
     @property
     def nodes(self):
@@ -397,21 +410,23 @@ class Subsystem:
         # pylint: disable=missing-docstring
         purview_node = self._index2node[purview_node_index]
         # Condition on the state of the purview inputs that are in the mechanism
+        inputs_condition = {
+            k: v for k, v in condition.items()
+            if k in purview_node.inputs
+        }
         if direction == Direction.CAUSE:
-            tpm = purview_node.cause_tpm.condition_tpm(condition)
+            tpm = purview_node.cause_tpm.condition_tpm(inputs_condition)
         elif direction == Direction.EFFECT:
-            tpm = purview_node.effect_tpm.condition_tpm(condition)
+            tpm = purview_node.effect_tpm.condition_tpm(inputs_condition)
         else:
             return validate.direction(direction)
 
-        # TODO(4.0) remove reference to TPM
         # Marginalize-out the inputs that aren't in the mechanism.
         nonmechanism_inputs = purview_node.inputs - set(condition)
         tpm = tpm.marginalize_out(nonmechanism_inputs)
         # Reshape so that the distribution is over next states.
-        return tpm.reshape(
-            repertoire_shape(self.network.node_indices, (purview_node_index,))
-        ).tpm
+        shape = repertoire_shape(self.network.node_indices, (purview_node_index,))
+        return np.asarray(tpm.reshape(shape))
 
     @cache.method("_repertoire_cache", Direction.EFFECT)
     def _effect_repertoire(
@@ -982,7 +997,7 @@ class Subsystem:
         mechanism: Tuple[int],
         purview: Tuple[int],
         repertoire_distance: str = None,
-        states: Iterable[Iterable[int]] = None,
+        states: Iterable[Sequence[int]] = None,
     ):
         repertoire_distance = fallback(
             repertoire_distance, config.REPERTOIRE_DISTANCE_INFORMATION
@@ -1105,7 +1120,8 @@ class Subsystem:
         Returns:
             MaximallyIrreducibleCauseOrEffect: The |MIC| or |MIE|.
         """
-        purviews = self.potential_purviews(direction, mechanism, purviews)
+        if purviews is None:
+            purviews = self.potential_purviews(direction, mechanism, purviews)
 
         if direction == Direction.CAUSE:
             mice_class = MaximallyIrreducibleCause

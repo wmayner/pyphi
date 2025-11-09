@@ -1,8 +1,8 @@
 import numpy as np
 
-from pyphi.node import Node, expand_node_tpm, generate_nodes
+from pyphi.node import expand_node_tpm, generate_node, generate_nodes
 from pyphi.subsystem import Subsystem
-from pyphi.tpm import ExplicitTPM
+from pyphi.tpm import ExplicitTPM, reconstitute_tpm
 
 
 def test_node_init_tpm(s):
@@ -40,16 +40,17 @@ def test_node_init_inputs(s):
 
 
 def test_node_eq(s):
-    assert s.nodes[1] == Node(s.cause_tpm, s.effect_tpm, s.cm, 1, 0, "B")
+    expected = generate_node(s.effect_tpm, s.cm, s.state_space, 1, "B", state=0)
+    assert s.nodes[1] == expected
 
 
 def test_node_neq_by_index(s):
-    assert s.nodes[0] != Node(s.cause_tpm, s.effect_tpm, s.cm, 1, 0, "B")
+    assert s.nodes[0] != generate_node(s.effect_tpm, s.cm, s.state_space, 1, "B", state=0)
 
 
 def test_node_neq_by_state(s):
     other_s = Subsystem(s.network, (1, 1, 1), s.node_indices)
-    assert other_s.nodes[1] != Node(s.cause_tpm, s.effect_tpm, s.cm, 1, 0, "B")
+    assert other_s.nodes[1] != generate_node(s.effect_tpm, s.cm, s.state_space, 1, "B", state=0)
 
 
 def test_repr(s):
@@ -81,7 +82,12 @@ def test_expand_tpm():
 
 def test_generate_nodes(s):
     nodes = generate_nodes(
-        s.cause_tpm, s.effect_tpm, s.cm, s.state, s.node_indices, s.node_labels
+        s.effect_tpm,
+        s.cm,
+        s.state_space,
+        s.node_indices,
+        node_labels=s.node_labels,
+        network_state=s.state,
     )
 
     # fmt: off
@@ -94,8 +100,6 @@ def test_generate_nodes(s):
         ])
     )
     # fmt: on
-    assert nodes[0].cause_tpm.array_equal(nodes[0].effect_tpm)
-    assert nodes[0].cause_tpm.array_equal(node0_tpm)
     assert nodes[0].effect_tpm.array_equal(node0_tpm)
     assert nodes[0].inputs == set([1, 2])
     assert nodes[0].outputs == set([2])
@@ -109,8 +113,6 @@ def test_generate_nodes(s):
         ])
     )
     # fmt: on
-    assert nodes[1].cause_tpm.array_equal(nodes[1].effect_tpm)
-    assert nodes[1].cause_tpm.array_equal(node1_tpm)
     assert nodes[1].effect_tpm.array_equal(node1_tpm)
     assert nodes[1].inputs == set([2])
     assert nodes[1].outputs == set([0, 2])
@@ -126,8 +128,6 @@ def test_generate_nodes(s):
         ])
     )
     # fmt: on
-    assert nodes[2].cause_tpm.array_equal(nodes[2].effect_tpm)
-    assert nodes[2].cause_tpm.array_equal(node2_tpm)
     assert nodes[2].effect_tpm.array_equal(node2_tpm)
     assert nodes[2].inputs == set([0, 1])
     assert nodes[2].outputs == set([0, 1])
@@ -135,5 +135,13 @@ def test_generate_nodes(s):
 
 
 def test_generate_nodes_default_labels(s):
-    nodes = generate_nodes(s.cause_tpm, s.effect_tpm, s.cm, s.state, s.node_indices)
+    nodes = generate_nodes(
+        s.effect_tpm,
+        s.cm,
+        s.state_space,
+        s.node_indices,
+        node_labels=s.node_labels,
+        network_state=s.state,
+    )
+
     assert [n.label for n in nodes] == ["n0", "n1", "n2"]

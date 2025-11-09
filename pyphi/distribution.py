@@ -4,6 +4,7 @@
 import numpy as np
 
 from .cache import cache
+from .utils import eq
 
 
 def normalize(a):

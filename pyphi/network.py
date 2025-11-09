@@ -5,11 +5,13 @@ This is the primary object of PyPhi and the context of all |small_phi| and
 |big_phi| computation.
 """
 
+from typing import Any, Dict, Optional, Sequence, Union
 import numpy as np
 
 from . import cache, connectivity, jsonify, utils, validate
 from .labels import NodeLabels
-from .tpm import ExplicitTPM
+from .node import generate_nodes, generate_node
+from .tpm import ExplicitTPM, ImplicitTPM
 
 
 class Network:
@@ -18,26 +20,23 @@ class Network:
     Represents the network under analysis and holds auxilary data about it.
 
     Args:
-        tpm (np.ndarray): The transition probability matrix of the network.
+        tpm (np.ndarray or ExplicitTPM or Sequence[np.ndarray] or ImplicitTPM):
+            The transition probability matrix of the network.
 
-            The TPM can be provided in any of three forms: **state-by-state**,
-            **state-by-node**, or **multidimensional state-by-node** form.
-            In the state-by-node forms, row indices must follow the
-            little-endian convention (see :ref:`little-endian-convention`). In
-            state-by-state form, column indices must also follow the
-            little-endian convention.
+            If a single numpy.ndarray or |ExplicitTPM| is provided, pyphi
+            assumes it is an old-style TPM for the whole network, and it will be
+            converted to an |ImplicitTPM|.
 
-            If the TPM is given in state-by-node form, it can be either
-            2-dimensional, so that ``tpm[i]`` gives the probabilities of each
-            node being ON if the previous state is encoded by |i| according to
-            the little-endian convention, or in multidimensional form, so that
-            ``tpm[(0, 0, 1)]`` gives the probabilities of each node being ON if
-            the previous state is |N_0 = 0, N_1 = 0, N_2 = 1|.
+            If an |ImplicitTPM| or a list of numpy.ndarray is provided, it must
+            contain one TPM per node, and their order should match those of
+            ``cm`` and ``node_labels``. For node |j|, the number of dimensions
+            of its TPM must be |inputs(j) + 1| and its shape must be
+            |(s_1, s_2, ... , s_i, s_j)| (also in order), where |inputs(j)| is
+            the number of nodes that are direct inputs of |j| and |s_i| is the
+            number of states for node |i|. In other words ``tpm_j[0, 1, 2, 3]``
+            stands for |Pr(j_{t+1}=3 | a_{t}=0, j_{t}=1, z_{t}=2)|.
 
-            The shape of the 2-dimensional form of a state-by-node TPM must be
-            ``(s, n)``, and the shape of the multidimensional form of the TPM
-            must be ``[2] * n + [n]``, where ``s`` is the number of states and
-            ``n`` is the number of nodes in the network.
+            See :ref:`tpm-conventions:`.
 
     Keyword Args:
         cm (np.ndarray): A square binary adjacency matrix indicating the
@@ -45,38 +44,71 @@ class Network:
             that node |i| is connected to node |j| (see :ref:`cm-conventions`).
             **If no connectivity matrix is given, PyPhi assumes that every node
             is connected to every node (including itself)**.
-        node_labels (tuple[str] or |NodeLabels|): Human-readable labels for
+        node_labels (Sequence[str] or |NodeLabels|): Human-readable labels for
             each node in the network.
 
-    Example:
-        In a 3-node network, ``the_network.tpm[(0, 0, 1)]`` gives the
-        transition probabilities for each node at |t| given that state at |t-1|
-        was |N_0 = 0, N_1 = 0, N_2 = 1|.
     """
 
-    # TODO make tpm also optional when implementing logical network definition
-    def __init__(self, tpm, cm=None, node_labels=None, purview_cache=None):
-        # Initialize _tpm according to argument type.
-        if isinstance(tpm, ExplicitTPM):
-            self._tpm = tpm
-        elif isinstance(tpm, np.ndarray):
-            self._tpm = ExplicitTPM(tpm, validate=True)
-        elif isinstance(tpm, dict):
-            # From JSON.
-            self._tpm = ExplicitTPM(tpm["_tpm"], validate=True)
-        else:
-            raise TypeError(f"Invalid tpm of type {type(tpm)}.")
-
+    def __init__(
+            self,
+            tpm: Union[np.ndarray, ExplicitTPM, Sequence, ImplicitTPM, Dict[str, Any]],
+            cm: Optional[np.ndarray] = None,
+            node_labels: Optional[Sequence[str]] = None,
+            purview_cache: Optional[cache.PurviewCache] = None,
+    ):
         self._cm, self._cm_hash = self._build_cm(cm)
         self._node_indices = tuple(range(self.size))
         self._node_labels = NodeLabels(node_labels, self._node_indices)
         self.purview_cache = purview_cache or cache.PurviewCache()
 
+        # Initialize _tpm according to argument type.
+
+        if isinstance(tpm, (np.ndarray, ExplicitTPM)):
+            # Old-style TPM: validate and convert to state-by-node format first.
+            tpm = ExplicitTPM(tpm, validate=True)
+            nodes = generate_nodes(
+                tpm,
+                self._cm,
+                self._node_indices,
+                self._node_labels
+            )
+            self._tpm = ImplicitTPM(nodes)
+
+        elif isinstance(tpm, Sequence):
+            # Individual node TPMs were provided, format into an ImplicitTPM.
+            invalid = [
+                i for i in tpm if not isinstance(i, (np.ndarray, ExplicitTPM))
+            ]
+
+            if invalid:
+                raise TypeError("Invalid set of nodes containing {}.".format(
+                    ', '.join(str(i) for i in invalid)
+                ))
+
+            tpm = [ExplicitTPM(node_tpm, validate=False) for node_tpm in tpm]
+
+            nodes = tuple(
+                generate_node(node_tpm, self._cm, index, self._node_labels)
+                for index, node_tpm in zip(self._node_indices, tpm)
+            )
+            self._tpm = ImplicitTPM(nodes)
+
+        elif isinstance(tpm, ImplicitTPM):
+            self._tpm = tpm
+
+        # FIXME(TPM) initialization from JSON
+        elif isinstance(tpm, dict):
+            # From JSON.
+            self._tpm = ImplicitTPM(tpm["_tpm"])
+
+        else:
+            raise TypeError(f"Invalid TPM of type {type(tpm)}.")
+
         validate.network(self)
 
     @property
     def tpm(self):
-        """pyphi.tpm.ExplicitTPM: The TPM object which contains this
+        """ExplicitTPM: The TPM object which contains this
         network's transition probability matrix, in multidimensional
         form.
         """
@@ -113,18 +145,17 @@ class Network:
     @property
     def causally_significant_nodes(self):
         """See :func:`pyphi.connectivity.causally_significant_nodes`."""
-        return connectivity.causally_significant_nodes(self.cm)
+        return connectivity.causally_significant_nodes(self._cm)
 
     @property
     def size(self):
         """int: The number of nodes in the network."""
         return len(self)
 
-    # TODO extend to nonbinary nodes
     @property
     def num_states(self):
         """int: The number of possible states of the network."""
-        return 2**self.size
+        return np.prod(self._tpm.shape)
 
     @property
     def node_indices(self):
@@ -159,13 +190,13 @@ class Network:
 
     def __len__(self):
         """int: The number of nodes in the network."""
-        return self.tpm.shape[-1]
+        return self._cm.shape[0]
 
     def __repr__(self):
-        return "Network({}, cm={})".format(self.tpm, self.cm)
-
-    def __str__(self):
-        return self.__repr__()
+        cm = str(self.cm).replace('\n', '\n       ')
+        return "Network(\n    {},\n    cm={},\n    node_labels={}\n)".format(
+            self.tpm, cm, self.node_labels.labels
+        )
 
     def __eq__(self, other):
         """Return whether this network equals the other object.

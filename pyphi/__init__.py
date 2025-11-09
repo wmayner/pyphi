@@ -75,7 +75,6 @@ from .conf import config
 from .direction import Direction
 from .network import Network
 from .subsystem import Subsystem
-from .tpm import ExplicitTPM
 
 # Skip modules that require optional dependencies
 _skip_import = ["visualize", "graphs"]

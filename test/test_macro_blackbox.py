@@ -1,7 +1,8 @@
 import numpy as np
 import pytest
 
-from pyphi import Network, compute, config, convert, ExplicitTPM, macro, models, utils
+from pyphi import Network, compute, config, convert,  macro, models, utils
+from pyphi.tpm import ExplicitTPM
 
 
 # TODO: move these to examples.py

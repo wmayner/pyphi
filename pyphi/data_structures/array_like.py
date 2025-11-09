@@ -12,10 +12,16 @@ class ArrayLike(NDArrayOperatorsMixin):
 
     # TODO(tpm) populate this list
     _TYPE_CLOSED_FUNCTIONS = (
-        np.concatenate,
-        np.stack,
         np.all,
+        np.any,
+        np.broadcast_to,
+        np.concatenate,
+        np.expand_dims,
+        np.result_type,
+        np.stack,
         np.sum,
+        np.where,
+        np.zeros_like,
     )
 
     # Holds the underlying array

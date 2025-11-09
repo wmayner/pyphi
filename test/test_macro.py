@@ -1,8 +1,9 @@
 import numpy as np
 import pytest
 
-from pyphi import convert, macro, ExplicitTPM
+from pyphi import convert, macro
 from pyphi.exceptions import ConditionallyDependentError
+from pyphi.tpm import ExplicitTPM
 
 # flake8: noqa
 
@@ -298,11 +299,10 @@ def test_rebuild_system_tpm(s):
     # fmt: on
     assert macro.rebuild_system_tpm(node_tpms).array_equal(answer)
 
-    cause_node_tpms = [node.cause_tpm_on for node in s.nodes]
-    effect_node_tpms = [node.effect_tpm_on for node in s.nodes]
+    cause_node_tpms = [node.cause_tpm[..., 1] for node in s.nodes]
+    effect_node_tpms = [node.effect_tpm[..., 1] for node in s.nodes]
     assert macro.rebuild_system_tpm(cause_node_tpms).array_equal(s.cause_tpm)
     assert macro.rebuild_system_tpm(effect_node_tpms).array_equal(s.effect_tpm)
-
 
 
 def test_remove_singleton_dimensions():
@@ -316,7 +316,7 @@ def test_remove_singleton_dimensions():
     )
     # fmt: on
     assert tpm.tpm_indices() == (0,)
-    assert macro.remove_singleton_dimensions(tpm).array_equal(tpm)
+    assert tpm.remove_singleton_dimensions().array_equal(tpm)
 
     # fmt: off
     tpm = ExplicitTPM(
@@ -333,7 +333,7 @@ def test_remove_singleton_dimensions():
     )
     # fmt: on
     assert tpm.tpm_indices() == (1,)
-    assert macro.remove_singleton_dimensions(tpm).array_equal(answer)
+    assert tpm.remove_singleton_dimensions().array_equal(answer)
 
     # fmt: off
     tpm = ExplicitTPM(
@@ -354,7 +354,7 @@ def test_remove_singleton_dimensions():
     )
     # fmt: on
     assert tpm.tpm_indices() == (0, 2)
-    assert macro.remove_singleton_dimensions(tpm).array_equal(answer)
+    assert tpm.remove_singleton_dimensions().array_equal(answer)
 
 
 def test_pack_attrs(s):
