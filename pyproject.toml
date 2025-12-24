@@ -4,13 +4,11 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pyphi"
-version = "2.0.0a1"
+dynamic = ["version"]
 description = "A package for integrated information theory"
 readme = "README.md"
-license = {text = "GNU General Public License v3 or later (GPLv3+)"}
-authors = [
-    {name = "William GP Mayner", email = "wmayner@gmail.com"}
-]
+license = { text = "GNU General Public License v3 or later (GPLv3+)" }
+authors = [{ name = "William GP Mayner", email = "wmayner@gmail.com" }]
 keywords = [
     "neuroscience",
     "causality",
@@ -19,7 +17,7 @@ keywords = [
     "integrated-information-theory",
     "iit",
     "integrated-information",
-    "modeling"
+    "modeling",
 ]
 requires-python = ">=3.10"
 classifiers = [
@@ -27,11 +25,10 @@ classifiers = [
     "Intended Audience :: Developers",
     "Natural Language :: English",
     "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Topic :: Scientific/Engineering"
+    "Topic :: Scientific/Engineering",
 ]
 dependencies = [
     "Graphillion>=1.5",
@@ -59,27 +56,13 @@ dev = [
     "sphinx",
     "sphinx_rtd_theme",
     "twine",
-    "watchdog"
+    "watchdog",
 ]
-parallel = [
-    "ray[default]>=1.9.2"
-]
-visualize = [
-    "matplotlib",
-    "networkx>=2.6.2",
-    "plotly>=5.8.2",
-    "seaborn",
-]
-graphs = [
-    "igraph>=0.9.10",
-    "networkx>=2.6.2",
-]
-caching = [
-    "redis>=2.10.5",
-]
-emd = [
-    "pyemd>=0.3.0"
-]
+parallel = ["ray[default]>=1.9.2"]
+visualize = ["matplotlib", "networkx>=2.6.2", "plotly>=5.8.2", "seaborn"]
+graphs = ["igraph>=0.9.10", "networkx>=2.6.2"]
+caching = ["redis>=2.10.5"]
+emd = ["pyemd>=0.3.0"]
 
 [project.urls]
 documentation = "https://pyphi.readthedocs.io"
@@ -87,5 +70,21 @@ bugs = "https://github.com/wmayner/pyphi/issues"
 homepage = "http://integratedinformationtheory.org/"
 discussion = "https://groups.google.com/forum/#!forum/pyphi-users"
 
-[tool.setuptools.packages.find]
-exclude = ["docs", "test"]
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "README.md",
+    "INSTALLATION.rst",
+    "CACHING.rst",
+    "LICENSE.md",
+    "CHANGELOG.md",
+    "pyphi_config.yml",
+    "redis.conf",
+    "pyphi/data/**",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["pyphi"]
+include = ["pyphi/data/**"]
