@@ -1,6 +1,10 @@
 # validate.py
 """Methods for validating user input."""
 
+from __future__ import annotations
+
+from typing import Iterable, Optional, Sequence
+
 import numpy as np
 
 from . import exceptions
@@ -11,11 +15,11 @@ from .direction import Direction
 
 
 # TODO(4.0) move to `Direction`
-def directions(directions, **kwargs):
+def directions(directions: Iterable[Direction], **kwargs) -> bool:
     return all(direction(d, **kwargs) for d in directions)
 
 
-def direction(direction, allow_bi=False):
+def direction(direction: Direction, allow_bi: bool = False) -> bool:
     """Validate that the given direction is one of the allowed constants.
 
     If ``allow_bi`` is ``True`` then ``Direction.BIDIRECTIONAL`` is
@@ -34,7 +38,7 @@ def direction(direction, allow_bi=False):
     return True
 
 
-def connectivity_matrix(cm):
+def connectivity_matrix(cm: np.ndarray) -> bool:
     """Validate the given connectivity matrix."""
     # Special case for empty matrices.
     if cm.size == 0:
@@ -48,7 +52,7 @@ def connectivity_matrix(cm):
     return True
 
 
-def node_labels(node_labels, node_indices):
+def node_labels(node_labels: Sequence[str], node_indices: Sequence[int]) -> None:
     """Validate that there is a label for each node."""
     if len(node_labels) != len(node_indices):
         raise ValueError(
@@ -59,7 +63,7 @@ def node_labels(node_labels, node_indices):
         raise ValueError("Labels {0} must be unique.".format(node_labels))
 
 
-def network(n):
+def network(n) -> bool:
     """Validate a |Network|.
 
     Checks the TPM and connectivity matrix.
@@ -74,7 +78,7 @@ def network(n):
     return True
 
 
-def is_network(network):
+def is_network(network) -> None:
     """Validate that the argument is a |Network|."""
     from . import Network
 
@@ -84,13 +88,13 @@ def is_network(network):
         )
 
 
-def node_states(state):
+def node_states(state: Sequence[int]) -> None:
     """Check that the state contains only zeros and ones."""
     if not all(n in (0, 1) for n in state):
         raise ValueError("Invalid state: states must consist of only zeros and ones.")
 
 
-def state_length(state, size):
+def state_length(state: Sequence[int], size: int) -> bool:
     """Check that the state is the given size."""
     if len(state) != size:
         raise ValueError(
@@ -101,7 +105,7 @@ def state_length(state, size):
     return True
 
 
-def state_reachable(subsystem):
+def state_reachable(subsystem) -> None:
     """Return whether a state can be reached according to the network's TPM."""
     # If there is a row `r` in the TPM such that all entries of `r - state` are
     # between -1 and 1, then the given state has a nonzero probability of being
@@ -115,7 +119,7 @@ def state_reachable(subsystem):
         raise exceptions.StateUnreachableError(subsystem.state)
 
 
-def cut(cut, node_indices):
+def cut(cut, node_indices: Sequence[int]) -> None:
     """Check that the cut is for only the given nodes."""
     if set(cut.indices) != set(node_indices):
         raise ValueError(
@@ -123,7 +127,7 @@ def cut(cut, node_indices):
         )
 
 
-def subsystem(s):
+def subsystem(s) -> bool:
     """Validate a |Subsystem|.
 
     Checks its state and cut.
@@ -135,13 +139,13 @@ def subsystem(s):
     return True
 
 
-def time_scale(time_scale):
+def time_scale(time_scale: int) -> None:
     """Validate a macro temporal time scale."""
     if time_scale <= 0 or isinstance(time_scale, float):
         raise ValueError("time scale must be a positive integer")
 
 
-def partition(partition):
+def partition(partition: Iterable[Iterable[int]]) -> None:
     """Validate a partition - used by blackboxes and coarse grains."""
     nodes = set()
     for part in partition:
@@ -154,7 +158,7 @@ def partition(partition):
             nodes.add(node)
 
 
-def coarse_grain(coarse_grain):
+def coarse_grain(coarse_grain) -> None:
     """Validate a macro coarse-graining."""
     partition(coarse_grain.partition)
 
@@ -171,7 +175,7 @@ def coarse_grain(coarse_grain):
             )
 
 
-def blackbox(blackbox):
+def blackbox(blackbox) -> None:
     """Validate a macro blackboxing."""
     if tuple(sorted(blackbox.output_indices)) != blackbox.output_indices:
         raise ValueError(
@@ -187,7 +191,7 @@ def blackbox(blackbox):
             )
 
 
-def blackbox_and_coarse_grain(blackbox, coarse_grain):
+def blackbox_and_coarse_grain(blackbox, coarse_grain) -> None:
     """Validate that a coarse-graining properly combines the outputs of a
     blackboxing.
     """
@@ -212,7 +216,7 @@ def blackbox_and_coarse_grain(blackbox, coarse_grain):
             )
 
 
-def relata(relata):
+def relata(relata: Optional[Iterable[object]]) -> None:
     """Validate a set of relata."""
     if not relata:
         raise ValueError("relata cannot be empty")

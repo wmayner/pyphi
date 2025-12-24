@@ -2,6 +2,10 @@
 """Provides a ``Registry`` class for storing user-provided functions."""
 
 from collections.abc import Mapping
+from typing import Callable, Dict, Iterator, List, TypeVar
+
+
+T = TypeVar("T")
 
 
 class Registry(Mapping):
@@ -13,33 +17,33 @@ class Registry(Mapping):
 
     desc = ""
 
-    def __init__(self):
-        self.store = {}
+    def __init__(self) -> None:
+        self.store: Dict[str, Callable[..., T]] = {}
 
-    def register(self, name):
+    def register(self, name: str) -> Callable[[Callable[..., T]], Callable[..., T]]:
         """Decorator for registering a function with PyPhi.
 
         Args:
             name (string): The name of the function
         """
 
-        def register_func(func):
+        def register_func(func: Callable[..., T]) -> Callable[..., T]:
             self.store[name] = func
             return func
 
         return register_func
 
-    def all(self):
+    def all(self) -> List[str]:
         """Return a list of all registered functions"""
         return list(self)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
         return iter(self.store)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.store)
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str) -> Callable[..., T]:
         try:
             return self.store[name]
         except KeyError:

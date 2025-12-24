@@ -2,6 +2,7 @@
 """Helper class representing labels of network nodes."""
 
 from collections.abc import Sequence
+from typing import Iterable, Iterator, List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -10,12 +11,12 @@ from .conf import config, fallback
 from .models import cmp
 
 
-def default_label(index):
+def default_label(index: int) -> str:
     """Default label for a node."""
     return "n{}".format(index)
 
 
-def default_labels(indices):
+def default_labels(indices: Sequence[int]) -> Tuple[str, ...]:
     """Default labels for serveral nodes."""
     return tuple(default_label(i) for i in indices)
 
@@ -34,56 +35,63 @@ class NodeLabels(Sequence):
         NodeLabels(('A', 'B'))
     """
 
-    def __init__(self, labels, node_indices):
+    def __init__(
+        self,
+        labels: Optional[Union[str, Sequence[str]]],
+        node_indices: Sequence[int],
+    ) -> None:
         if labels is None:
             labels = default_labels(node_indices)
 
-        self.labels = tuple(label for label in labels)
-        self.node_indices = node_indices
+        self.labels: Tuple[str, ...] = tuple(label for label in labels)
+        self.node_indices: Tuple[int, ...] = tuple(node_indices)
 
-        validate.node_labels(self.labels, node_indices)
+        validate.node_labels(self.labels, self.node_indices)
 
         # Dicts mapping indices to labels and vice versa
         self._l2i = dict(zip(self.labels, self.node_indices))
         self._i2l = dict(zip(self.node_indices, self.labels))
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.labels)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
         return iter(self.labels)
 
-    def __contains__(self, x):
+    def __contains__(self, x: object) -> bool:
         return x in self.labels
 
-    def __getitem__(self, x):
+    def __getitem__(self, x: int) -> str:
         return self.labels[x]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "NodeLabels({})".format(self.labels)
 
     @cmp.sametype
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return self.labels == other.labels and self.node_indices == other.node_indices
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((self.labels, self.node_indices))
 
-    def index2label(self, index):
+    def index2label(self, index: int) -> str:
         return self._i2l[index]
 
-    def label2index(self, label):
+    def label2index(self, label: str) -> int:
         return self._l2i[label]
 
-    def labels2indices(self, labels):
+    def labels2indices(self, labels: Sequence[str]) -> Tuple[int, ...]:
         """Convert a tuple of node labels to node indices."""
         return tuple(self._l2i[label] for label in labels)
 
-    def indices2labels(self, indices):
+    def indices2labels(self, indices: Sequence[int]) -> Tuple[str, ...]:
         """Convert a tuple of node indices to node labels."""
         return tuple(self._i2l[index] for index in indices)
 
-    def coerce_to_indices(self, nodes):
+    def coerce_to_indices(
+        self,
+        nodes: Optional[Iterable[Union[int, str, np.integer]]],
+    ) -> Tuple[int, ...]:
         """Return the nodes indices for nodes, where ``nodes`` is either
         already integer indices or node labels.
         """
@@ -96,7 +104,10 @@ class NodeLabels(Sequence):
             indices = map(int, nodes)
         return tuple(sorted(set(indices)))
 
-    def coerce_to_labels(self, nodes):
+    def coerce_to_labels(
+        self,
+        nodes: Optional[Iterable[Union[int, str, np.integer]]],
+    ) -> Tuple[Union[str, int], ...]:
         """Return the nodes labels for nodes, where ``nodes`` is either
         already labels or node indices.
         """
@@ -109,7 +120,12 @@ class NodeLabels(Sequence):
             labels = nodes
         return tuple(labels)
 
-    def label_string(self, nodes, state, sep=None):
+    def label_string(
+        self,
+        nodes: Optional[Iterable[Union[int, str, np.integer]]],
+        state: Sequence[int],
+        sep: Optional[str] = None,
+    ) -> str:
         """Return a single string labeling the nodes."""
         sep = fallback(
             sep,
@@ -117,12 +133,16 @@ class NodeLabels(Sequence):
         )
         return sep.join(self.set_case_by_state(self.coerce_to_labels(nodes), state))
 
-    def set_case_by_state(self, labels, states):
+    def set_case_by_state(
+        self,
+        labels: Sequence[Union[str, int]],
+        states: Sequence[int],
+    ) -> List[str]:
         """Return a list of labels with case set by the corresponding state."""
         return [
             label.upper() if state else label.lower()
             for label, state in zip(labels, states, strict=True)
         ]
 
-    def to_json(self):
+    def to_json(self) -> dict:
         return {"labels": self.labels, "node_indices": self.node_indices}
