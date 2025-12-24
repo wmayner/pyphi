@@ -5,12 +5,12 @@ import logging
 from pathlib import Path
 
 import pytest
-import ray
 import yaml
 
 import pyphi
 import pyphi.cache.redis as redis
 from pyphi.conf import config
+from pyphi.deferred.ray import ray, NO_RAY
 
 log = logging.getLogger("pyphi.test")
 

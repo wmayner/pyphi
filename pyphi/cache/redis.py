@@ -36,6 +36,8 @@ conn = init(config.REDIS_CONFIG["db"])
 
 def available():
     """Check if the Redis server is connected."""
+    if NO_REDIS or conn is None:
+        return False
     try:
         return conn.ping()
     except redis.exceptions.ConnectionError:
