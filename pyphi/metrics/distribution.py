@@ -3,8 +3,10 @@
 
 from contextlib import ContextDecorator
 from math import log2
+from typing import Callable, Iterable, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
+from numpy.typing import ArrayLike
 from scipy.spatial.distance import cdist
 from scipy.special import entr, rel_entr
 
@@ -25,7 +27,7 @@ class OptionalEMD:
     Allows deferring import of `pyemd` in case it is not needed.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._pyemd = None
 
     @property
@@ -41,8 +43,8 @@ class OptionalEMD:
                 ) from exc
         return self._pyemd
 
-    def compute(self, *args, **kwargs):
-        return self.pyemd.emd(*args, **kwargs)
+    def compute(self, *args, **kwargs) -> float:
+        return float(self.pyemd.emd(*args, **kwargs))
 
 
 # Usage
@@ -66,11 +68,13 @@ class DistributionMeasureRegistry(Registry):
 
     desc = "distance functions between probability distributions"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-        self._asymmetric = []
+        self._asymmetric: List[str] = []
 
-    def register(self, name, asymmetric=False):
+    def register(
+        self, name: str, asymmetric: bool = False
+    ) -> Callable[[Callable[..., float]], Callable[..., float]]:
         """Decorator for registering a distribution measure with PyPhi.
 
         Args:
@@ -80,7 +84,7 @@ class DistributionMeasureRegistry(Registry):
             asymmetric (boolean): ``True`` if the measure is asymmetric.
         """
 
-        def register_func(func):
+        def register_func(func: Callable[..., float]) -> Callable[..., float]:
             if asymmetric:
                 self._asymmetric.append(name)
             self.store[name] = func
@@ -88,7 +92,7 @@ class DistributionMeasureRegistry(Registry):
 
         return register_func
 
-    def asymmetric(self):
+    def asymmetric(self) -> List[str]:
         """Return a list of asymmetric measures."""
         return self._asymmetric
 
@@ -113,11 +117,13 @@ class ActualCausationMeasureRegistry(Registry):
 
     desc = "distance functions for use in actual causation calculations"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-        self._asymmetric = []
+        self._asymmetric: List[str] = []
 
-    def register(self, name, asymmetric=False):
+    def register(
+        self, name: str, asymmetric: bool = False
+    ) -> Callable[[Callable[..., float]], Callable[..., float]]:
         """Decorator for registering an actual causation measure with PyPhi.
 
         Args:
@@ -127,7 +133,7 @@ class ActualCausationMeasureRegistry(Registry):
             asymmetric (boolean): ``True`` if the measure is asymmetric.
         """
 
-        def register_func(func):
+        def register_func(func: Callable[..., float]) -> Callable[..., float]:
             if asymmetric:
                 self._asymmetric.append(name)
             self.store[name] = func
@@ -135,7 +141,7 @@ class ActualCausationMeasureRegistry(Registry):
 
         return register_func
 
-    def asymmetric(self):
+    def asymmetric(self) -> List[str]:
         """Return a list of asymmetric measures."""
         return self._asymmetric
 
@@ -152,7 +158,7 @@ class np_suppress(np.errstate, ContextDecorator):
         warnings are not indicative of deeper issues in your code.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(divide="ignore", invalid="ignore")
 
 
@@ -164,7 +170,7 @@ _hamming_matrices = utils.load_data(
 
 
 # TODO extend to nonbinary nodes
-def _hamming_matrix(N):
+def _hamming_matrix(N: int) -> np.ndarray:
     """Return a matrix of Hamming distances for the possible states of |N|
     binary nodes.
 
@@ -188,7 +194,7 @@ def _hamming_matrix(N):
 
 
 @joblib_memory.cache
-def _compute_hamming_matrix(N):
+def _compute_hamming_matrix(N: int) -> np.ndarray:
     """Compute and store a Hamming matrix for |N| nodes.
 
     Hamming matrices have the following sizes::
@@ -215,7 +221,7 @@ def _compute_hamming_matrix(N):
 
 
 # TODO extend to nonbinary nodes
-def hamming_emd(p, q):
+def hamming_emd(p: ArrayLike, q: ArrayLike) -> float:
     """Return the Earth Mover's Distance between two distributions (indexed
     by state, one dimension per node) using the Hamming distance between states
     as the transportation cost function.
@@ -227,7 +233,7 @@ def hamming_emd(p, q):
     return EMD.compute(p, q, _hamming_matrix(N))
 
 
-def effect_emd(p, q):
+def effect_emd(p: ArrayLike, q: ArrayLike) -> float:
     """Compute the EMD between two effect repertoires.
 
     Because the nodes are independent, the EMD between effect repertoires is
@@ -246,7 +252,7 @@ def effect_emd(p, q):
 
 
 @measures.register("EMD")
-def emd(p, q, direction=None):
+def emd(p: ArrayLike, q: ArrayLike, direction: Optional[Direction] = None) -> float:
     """Compute the EMD between two repertoires for a given direction.
 
     The full EMD computation is used for cause repertoires. A fast analytic
@@ -277,7 +283,7 @@ def emd(p, q, direction=None):
 
 
 @measures.register("L1")
-def l1(p, q):
+def l1(p: ArrayLike, q: ArrayLike) -> float:
     """Return the L1 distance between two distributions.
 
     Args:
@@ -291,7 +297,7 @@ def l1(p, q):
 
 
 @measures.register("ENTROPY_DIFFERENCE")
-def entropy_difference(p, q):
+def entropy_difference(p: ArrayLike, q: ArrayLike) -> float:
     """Return the difference in entropy between two distributions."""
     hp = entr(p).sum() / _LN_OF_2
     hq = entr(q).sum() / _LN_OF_2
@@ -299,7 +305,7 @@ def entropy_difference(p, q):
 
 
 @measures.register("PSQ2")
-def psq2(p, q):
+def psq2(p: ArrayLike, q: ArrayLike) -> float:
     r"""Compute the PSQ2 measure.
 
     This is defined as :math:`\mid f(p) - f(q) \mid`, where
@@ -318,7 +324,7 @@ def psq2(p, q):
 
 @measures.register("MP2Q", asymmetric=True)
 @np_suppress()
-def mp2q(p, q):
+def mp2q(p: ArrayLike, q: ArrayLike) -> float:
     r"""Compute the MP2Q measure.
 
     This is defined as
@@ -339,7 +345,7 @@ def mp2q(p, q):
     return np.sum(p / q * information_density(p, q) / len(p))
 
 
-def information_density(p, q):
+def information_density(p: ArrayLike, q: ArrayLike) -> np.ndarray:
     """Return the information density of p relative to q, in base 2.
 
     This is also known as the element-wise relative entropy; see
@@ -356,7 +362,7 @@ def information_density(p, q):
 
 
 @measures.register("KLD", asymmetric=True)
-def kld(p, q):
+def kld(p: ArrayLike, q: ArrayLike) -> float:
     """Return the Kullback-Leibler Divergence (KLD) between two distributions.
 
     Args:
@@ -369,7 +375,7 @@ def kld(p, q):
     return information_density(p, q).sum()
 
 
-def absolute_information_density(p, q):
+def absolute_information_density(p: ArrayLike, q: ArrayLike) -> np.ndarray:
     """Return the absolute information density function of two distributions.
 
     The information density is also known as the element-wise relative
@@ -385,7 +391,9 @@ def absolute_information_density(p, q):
     return np.abs(information_density(p, q))
 
 
-def approximate_specified_state(repertoire, partitioned_repertoire):
+def approximate_specified_state(
+    repertoire: ArrayLike, partitioned_repertoire: ArrayLike
+) -> np.ndarray:
     """Estimate the purview state that maximizes the AID between the repertoires.
 
     This returns only the state of the purview nodes (i.e., there is one element
@@ -447,7 +455,7 @@ def approximate_specified_state(repertoire, partitioned_repertoire):
     # TODO: All the marginalization defeats the whole purpose. Config option
     # must prevent calculating outer product at `subsystem`, and pass node
     # marginal repertoires instead.
-    def joint_to_marginals(repertoire):
+    def joint_to_marginals(repertoire: np.ndarray) -> np.ndarray:
         """Converts a joint repertoire in multidimensional form to a 2D array of
         single-node marginal repertoires.
 
@@ -551,7 +559,7 @@ def approximate_specified_state(repertoire, partitioned_repertoire):
 
 
 @measures.register("ID", asymmetric=True)
-def intrinsic_difference(p, q):
+def intrinsic_difference(p: ArrayLike, q: ArrayLike) -> float:
     r"""Compute the intrinsic difference (ID) between two distributions.
 
     This is defined as
@@ -583,7 +591,7 @@ def intrinsic_difference(p, q):
 @measures.register("AID", asymmetric=True)
 @measures.register("KLM", asymmetric=True)  # Backwards-compatible alias
 @measures.register("BLD", asymmetric=True)  # Backwards-compatible alias
-def absolute_intrinsic_difference(p, q):
+def absolute_intrinsic_difference(p: ArrayLike, q: ArrayLike) -> float:
     """Compute the absolute intrinsic difference (AID) between two
     distributions.
 
@@ -604,23 +612,25 @@ def absolute_intrinsic_difference(p, q):
 
 
 @measures.register("IIT_4.0_SMALL_PHI", asymmetric=True)
-def iit_4_small_phi(p, q, state):
+def iit_4_small_phi(p: ArrayLike, q: ArrayLike, state: Union[int, Tuple[int, ...]]):
     # TODO docstring
     return absolute_information_density(p, q).squeeze()[state]
 
 
 @measures.register("IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE", asymmetric=True)
-def iit_4_small_phi_no_absolute_value(p, q, state):
+def iit_4_small_phi_no_absolute_value(
+    p: ArrayLike, q: ArrayLike, state: Union[int, Tuple[int, ...]]
+):
     # TODO docstring
     return information_density(p, q).squeeze()[state]
 
 
 @measures.register("GENERALIZED_INTRINSIC_DIFFERENCE", asymmetric=True)
 def generalized_intrinsic_difference(
-    forward_repertoire,
-    partitioned_forward_repertoire,
-    selectivity_repertoire,
-    state=None,
+    forward_repertoire: ArrayLike,
+    partitioned_forward_repertoire: ArrayLike,
+    selectivity_repertoire: ArrayLike,
+    state: Optional[Union[int, Tuple[int, ...]]] = None,
 ):
     informativeness = pointwise_mutual_information_vector(
         forward_repertoire, partitioned_forward_repertoire
@@ -633,7 +643,9 @@ def generalized_intrinsic_difference(
 
 @measures.register("APMI", asymmetric=True)
 @np_suppress()
-def absolute_pointwise_mutual_information(p, q, state):
+def absolute_pointwise_mutual_information(
+    p: ArrayLike, q: ArrayLike, state: Union[int, Tuple[int, ...]]
+) -> float:
     """Computes the state-specific absolute pointwise mutual information between
     two distributions.
 
@@ -650,12 +662,12 @@ def absolute_pointwise_mutual_information(p, q, state):
 
 
 @np_suppress()
-def pointwise_mutual_information_vector(p, q):
+def pointwise_mutual_information_vector(p: ArrayLike, q: ArrayLike) -> np.ndarray:
     return np.nan_to_num(np.log2(p / q), nan=0.0)
 
 
 @actual_causation_measures.register("PMI", asymmetric=True)
-def pointwise_mutual_information(p, q):
+def pointwise_mutual_information(p: float, q: float) -> float:
     """Compute the pointwise mutual information (PMI).
 
     This is defined as
@@ -678,7 +690,7 @@ def pointwise_mutual_information(p, q):
 
 
 @actual_causation_measures.register("WPMI", asymmetric=True)
-def weighted_pointwise_mutual_information(p, q):
+def weighted_pointwise_mutual_information(p: float, q: float) -> float:
     """Compute the weighted pointwise mutual information (WPMI).
 
     This is defined as
@@ -698,7 +710,13 @@ def weighted_pointwise_mutual_information(p, q):
     return p * pointwise_mutual_information(p, q)
 
 
-def repertoire_distance(r1, r2, direction=None, repertoire_distance=None, **kwargs):
+def repertoire_distance(
+    r1: ArrayLike,
+    r2: ArrayLike,
+    direction: Optional[Direction] = None,
+    repertoire_distance: Optional[str] = None,
+    **kwargs,
+) -> float:
     """Compute the distance between two repertoires for the given direction.
 
     Args:
