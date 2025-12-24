@@ -170,6 +170,15 @@ def test_validate_blackbox():
         validate.blackbox(macro.Blackbox(((0,), (1,)), (0,)))
 
 
+def test_validate_relata_empty():
+    with pytest.raises(ValueError):
+        validate.relata([])
+
+
+def test_validate_relata_nonempty():
+    validate.relata([object()])
+
+
 def test_validate_partition():
     # Micro-element appears in two macro-elements
     with pytest.raises(ValueError):

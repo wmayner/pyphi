@@ -38,6 +38,16 @@ def anything():
     return everything_except()
 
 
+def finite_floats(min_value=None, max_value=None):
+    return st.floats(
+        min_value=min_value,
+        max_value=max_value,
+        allow_nan=False,
+        allow_infinity=False,
+        width=64,
+    )
+
+
 @composite
 def anything_comparable(draw):
     example = draw(anything())

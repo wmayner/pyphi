@@ -3,7 +3,7 @@ from hypothesis import given
 
 from pyphi import config, utils
 
-from .hypothesis_utils import anything, iterable_or_list
+from .hypothesis_utils import anything, finite_floats, iterable_or_list
 
 
 def test_all_states():
@@ -33,6 +33,29 @@ def test_eq():
     assert utils.eq(phi, close_enough)
     assert not utils.eq(phi, not_quite)
     assert not utils.eq(phi, (phi - phi))
+
+
+@given(finite_floats())
+def test_eq_reflexive(x):
+    assert utils.eq(x, x)
+
+
+@given(finite_floats(), finite_floats())
+def test_eq_symmetric(x, y):
+    assert utils.eq(x, y) == utils.eq(y, x)
+
+
+@given(finite_floats())
+def test_is_positive_matches_sign(x):
+    if utils.eq(x, 0):
+        assert not utils.is_positive(x)
+    else:
+        assert utils.is_positive(x) == (x > 0)
+
+
+@given(finite_floats())
+def test_is_nonpositive_matches_sign(x):
+    assert utils.is_nonpositive(x) == (x <= 0)
 
 
 def test_combs_for_1D_input():
