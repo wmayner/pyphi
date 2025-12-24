@@ -4,6 +4,7 @@
 import functools
 import itertools
 from itertools import chain, product
+from typing import Generator, Iterator, List, Sequence, Tuple
 
 import numpy as np
 from more_itertools import distinct_permutations
@@ -31,7 +32,7 @@ from .registry import Registry
 
 
 @cache(cache={}, maxmem=None)
-def bipartition_indices(N):
+def bipartition_indices(N: int) -> List[Tuple[Tuple[int, ...], Tuple[int, ...]]]:
     """Return indices for undirected bipartitions of a sequence.
 
     Args:
@@ -60,7 +61,9 @@ def bipartition_indices(N):
 
 
 # TODO? rename to `bipartitions`
-def bipartition(seq, nontrivial=False):
+def bipartition(
+    seq: Sequence, nontrivial: bool = False
+) -> List[Tuple[Tuple, Tuple]]:
     """Return a list of bipartitions for a sequence.
 
     Args:
@@ -84,7 +87,9 @@ def bipartition(seq, nontrivial=False):
 
 
 @cache(cache={}, maxmem=None)
-def directed_bipartition_indices(N):
+def directed_bipartition_indices(
+    N: int,
+) -> List[Tuple[Tuple[int, ...], Tuple[int, ...]]]:
     """Return indices for directed bipartitions of a sequence.
 
     Args:
@@ -111,7 +116,9 @@ def directed_bipartition_indices(N):
 
 
 # TODO? [optimization] optimize this to use indices rather than nodes
-def directed_bipartition(seq, nontrivial=False):
+def directed_bipartition(
+    seq: Sequence, nontrivial: bool = False
+) -> List[Tuple[Tuple, Tuple]]:
     """Return a list of directed bipartitions for a sequence.
 
     Args:
@@ -182,7 +189,9 @@ def directed_bipartition_of_one(seq):
 
 
 @cache(cache={}, maxmem=None)
-def directed_tripartition_indices(N):
+def directed_tripartition_indices(
+    N: int,
+) -> List[Tuple[Tuple[int, ...], Tuple[int, ...], Tuple[int, ...]]]:
     """Return indices for directed tripartitions of a sequence.
 
     Args:
@@ -212,7 +221,9 @@ def directed_tripartition_indices(N):
     return result
 
 
-def directed_tripartition(seq):
+def directed_tripartition(
+    seq: Sequence,
+) -> Generator[Tuple[Tuple, Tuple, Tuple], None, None]:
     """Generator over all directed tripartitions of a sequence.
 
     Args:

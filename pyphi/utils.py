@@ -6,7 +6,7 @@ import math
 import operator
 import os
 from itertools import chain, combinations, product
-from typing import Tuple
+from typing import Generator, Optional, Tuple
 
 import numpy as np
 from scipy.special import comb
@@ -22,22 +22,28 @@ def substate(
     return tuple(state[nodes.index(n)] for n in node_subset)
 
 
-def state_of(nodes, network_state):
+def state_of(nodes: Tuple[int, ...], network_state: Tuple[int, ...]) -> Tuple[int, ...]:
     """Return the state-tuple of the given nodes."""
     return tuple(network_state[n] for n in nodes) if nodes else ()
 
 
-def state_of_subsystem_nodes(node_indices, nodes, subsystem_state):
+def state_of_subsystem_nodes(
+    node_indices: Tuple[int, ...],
+    nodes: Tuple[int, ...],
+    subsystem_state: Tuple[int, ...],
+) -> Tuple[int, ...]:
     """Return the state of the nodes, given a subsystem state-tuple.
 
     Deals with using the network-relative node indices nodes with a state-tuple
     for only the subsystem nodes.
     """
     # Get indices relative to subsystem indices
-    return state_of([node_indices.index(n) for n in nodes], subsystem_state)
+    return state_of(tuple(node_indices.index(n) for n in nodes), subsystem_state)
 
 
-def all_states(n, big_endian=False):
+def all_states(
+    n: int, big_endian: bool = False
+) -> Generator[Tuple[int, ...], None, None]:
     """Return all binary states for a system.
 
     Args:
@@ -59,13 +65,13 @@ def all_states(n, big_endian=False):
             yield state[::-1]  # Convert to little-endian ordering
 
 
-def np_immutable(a):
+def np_immutable(a: np.ndarray) -> np.ndarray:
     """Make a NumPy array immutable."""
     a.flags.writeable = False
     return a
 
 
-def np_hash(a):
+def np_hash(a: Optional[np.ndarray]) -> int:
     """Return a hash of a NumPy array."""
     if a is None:
         return hash(None)
@@ -81,45 +87,45 @@ class np_hashable:
 
     # pylint: disable=protected-access
 
-    def __init__(self, array):
+    def __init__(self, array: np.ndarray) -> None:
         self._array = np_immutable(array.copy())
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return np_hash(self._array)
 
-    def __eq__(self, other):
+    def __eq__(self, other: "np_hashable") -> bool:
         return np.array_equal(self._array, other._array)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return repr(self._array)
 
 
-def eq(x, y):
+def eq(x: float, y: float) -> bool:
     """Compare two values up to |PRECISION|."""
     # TODO(4.0) just use float value in config
     epsilon = 10 ** (-config.PRECISION)
     return math.isclose(x, y, rel_tol=epsilon, abs_tol=epsilon)
 
 
-def is_positive(x):
+def is_positive(x: float) -> bool:
     """Return whether ``x`` is positive up to |PRECISION|."""
     # Need `bool` to cast from numpy to native Boolean
     return not eq(x, 0) and bool(x > 0)
 
 
-def is_nonpositive(x):
+def is_nonpositive(x: float) -> bool:
     """Return True if x is a nonpositive value."""
     # Need `bool` to cast from numpy to native Boolean
     return bool(x <= 0)
 
 
-def is_falsy(x):
+def is_falsy(x) -> bool:
     """Return True if x is a falsy value."""
     return not x
 
 
 # see http://stackoverflow.com/questions/16003217
-def combs(a, r):
+def combs(a: np.ndarray, r: int) -> np.ndarray:
     """NumPy implementation of ``itertools.combinations``.
 
     Return successive ``r``-length combinations of elements in the array ``a``.
@@ -142,7 +148,7 @@ def combs(a, r):
 
 
 # see http://stackoverflow.com/questions/16003217/
-def comb_indices(n, k):
+def comb_indices(n: int, k: int) -> np.ndarray:
     """``n``-dimensional version of itertools.combinations.
 
     Args:
@@ -277,7 +283,7 @@ def extremum_with_short_circuit(
     return extreme_item
 
 
-def expsublog(x, y):
+def expsublog(x: float, y: float) -> float:
     """Computes ``x / y`` as ``exp(log(x) - log(y))``.
 
     Useful for dividing by extremely large denominators.
@@ -287,7 +293,7 @@ def expsublog(x, y):
     return math.exp(math.log(x) - math.log(y))
 
 
-def expaddlog(x, y):
+def expaddlog(x: float, y: float) -> float:
     """Computes ``x * y`` as ``exp(log(x) + log(y))``.
 
     Useful for dividing by extremely large denominators.
@@ -310,20 +316,20 @@ def try_len(*iterables):
     return min((l for l in lengths if l is not None), default=None)
 
 
-def assume_integer(x):
+def assume_integer(x: float) -> int:
     """Attempt cast to integer, raising an error if it is not an integer."""
     if isinstance(x, float) and not x.is_integer():
         raise ValueError(f"expected integer, got {type(x)} {x}")
     return int(x)
 
 
-def enforce_integer(i, name="", min=float("-inf")):
+def enforce_integer(i: int, name: str = "", min: float = float("-inf")) -> int:
     if not isinstance(i, int) or i < min:
         raise ValueError(f"{name} must be a positive integer")
     return i
 
 
-def enforce_integer_or_none(i, **kwargs):
+def enforce_integer_or_none(i: Optional[int], **kwargs) -> Optional[int]:
     if i is None:
         return i
     return enforce_integer(i, **kwargs)
