@@ -19,6 +19,7 @@ from .conf import config
 def substate(
     nodes: Tuple[int], state: Tuple[int], node_subset: Tuple[int]
 ) -> Tuple[int]:
+    """Return the state restricted to ``node_subset`` using ``nodes`` indexing."""
     return tuple(state[nodes.index(n)] for n in node_subset)
 
 
@@ -149,14 +150,15 @@ def combs(a: np.ndarray, r: int) -> np.ndarray:
 
 # see http://stackoverflow.com/questions/16003217/
 def comb_indices(n: int, k: int) -> np.ndarray:
-    """``n``-dimensional version of itertools.combinations.
+    """Return indices that generate the ``k``-combinations of ``n`` elements.
 
     Args:
-        a (np.ndarray): The array from which to get combinations.
-        k (int): The desired length of the combinations.
+        n (int): The total number of elements to choose from.
+        k (int): The length of each combination.
 
     Returns:
-        np.ndarray: Indices that give the ``k``-combinations of ``n`` elements.
+        np.ndarray: A ``(comb(n, k), k)`` array of indices that can be used to
+        select every length-``k`` combination from an array.
 
     Example:
         >>> n, k = 3, 2
@@ -254,6 +256,7 @@ def load_data(directory, num):
 
 
 def specified_substate(purview, specified_state, subset):
+    """Return the specified state restricted to a subset of purview nodes."""
     purview_relative_subset = [purview.index(node) for node in subset]
     return specified_state[:, purview_relative_subset]
 
@@ -266,7 +269,23 @@ def extremum_with_short_circuit(
     shortcircuit_value=0,
     shortcircuit_callback=None,
 ):
-    """Return the extreme value, optionally shortcircuiting."""
+    """Return the extreme item in ``seq``, optionally short-circuiting early.
+
+    Args:
+        seq (Iterable): Items to evaluate.
+        value_func (callable): Function extracting the value to compare from an
+            item. Defaults to ``lambda item: item.phi``.
+        cmp (callable): Comparison operator used to track the extremum; use
+            ``operator.lt`` for minima or ``operator.gt`` for maxima.
+        initial (float): Initial comparison value for the extremum tracker.
+        shortcircuit_value (float): If ``value_func(item)`` equals this, return
+            the item immediately.
+        shortcircuit_callback (callable | None): Callback invoked when
+            short-circuiting, if provided.
+
+    Returns:
+        object: The item with the extreme value according to ``cmp``.
+    """
     extreme_item = None
     extreme_value = initial
     for item in seq:
@@ -304,6 +323,7 @@ def expaddlog(x: float, y: float) -> float:
 
 
 def _try_len(iterable):
+    """Return ``len(iterable)`` if available, otherwise ``None``."""
     try:
         return len(iterable)
     except TypeError:
@@ -324,12 +344,14 @@ def assume_integer(x: float) -> int:
 
 
 def enforce_integer(i: int, name: str = "", min: float = float("-inf")) -> int:
+    """Ensure ``i`` is an int not less than ``min``, raising on violation."""
     if not isinstance(i, int) or i < min:
         raise ValueError(f"{name} must be a positive integer")
     return i
 
 
 def enforce_integer_or_none(i: Optional[int], **kwargs) -> Optional[int]:
+    """Validate ``i`` as an integer or pass through ``None``."""
     if i is None:
         return i
     return enforce_integer(i, **kwargs)
@@ -337,6 +359,7 @@ def enforce_integer_or_none(i: Optional[int], **kwargs) -> Optional[int]:
 
 @curry
 def all_same(comparison, seq):
+    """Return True if all elements compare to the first element."""
     sentinel = object()
     first = next(seq, sentinel)
     if first is sentinel:

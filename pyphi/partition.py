@@ -152,14 +152,22 @@ def directed_bipartition(
 
 
 def bipartition_of_one(seq):
-    """Generate bipartitions where one part is of length 1."""
+    """Generate bipartitions where one part contains exactly one element.
+
+    Args:
+        seq (Iterable): Sequence to partition.
+
+    Yields:
+        tuple[tuple, tuple]: Bipartitions ``(single, remainder)`` covering all
+        elements of ``seq``.
+    """
     seq = list(seq)
     for i, elt in enumerate(seq):
         yield ((elt,), tuple(seq[:i] + seq[(i + 1) :]))
 
 
 def reverse_elements(seq):
-    """Reverse the elements of a sequence."""
+    """Yield each element of ``seq`` reversed."""
     for elt in seq:
         yield elt[::-1]
 
@@ -574,6 +582,15 @@ class CompletePartition(KPartition):
 
 
 def complete_partition(mechanism, purview):
+    """Return the partition that disconnects mechanism and purview entirely.
+
+    Args:
+        mechanism (tuple[int]): Mechanism indices.
+        purview (tuple[int]): Purview indices.
+
+    Returns:
+        CompletePartition: Partition with empty cross-connections.
+    """
     n_parts = len(next(mip_partitions(mechanism, purview)))
     parts = [Part((), ())] * (n_parts - 2) + [Part((), purview), Part(mechanism, ())]
     return CompletePartition(*parts)
@@ -584,6 +601,14 @@ class AtomicPartition(KPartition):
 
 
 def atomic_partition(elements):
+    """Return the partition that isolates every element.
+
+    Args:
+        elements (Iterable[int]): Elements to separate.
+
+    Returns:
+        AtomicPartition: Partition where each element is its own part.
+    """
     return AtomicPartition(*[Part((elt,), (elt,)) for elt in elements])
 
 
@@ -630,6 +655,7 @@ def _bipartitions_to_cuts(func):
 @system_partition_types.register("DIRECTED_BI")
 @_bipartitions_to_cuts
 def system_directed_bipartitions(nodes):
+    """Return nontrivial directed bipartition cuts for the given nodes."""
     # Don't consider trivial partitions where one part is empty
     return directed_bipartition(nodes, nontrivial=True)
 
@@ -637,11 +663,13 @@ def system_directed_bipartitions(nodes):
 @system_partition_types.register("DIRECTED_BI_CUT_ONE")
 @_bipartitions_to_cuts
 def system_directed_bipartitions_cut_one(nodes):
+    """Return directed bipartition cuts where one part has a single node."""
     return directed_bipartition_of_one(nodes)
 
 
 @system_partition_types.register("DIRECTED_BI_SIMPLE")
 def system_bipartitions_simple(nodes, node_labels=None):
+    """Return ordered directed bipartitions by splitting the node list once."""
     # Use a list instead of generator for progress bar totals since it's linear
     # in the size of the system
     partitions = []
@@ -678,6 +706,7 @@ def _bipartitions_to_temporal_system_partitions(func):
 @system_partition_types.register("TEMPORAL_DIRECTED_BI")
 @_bipartitions_to_temporal_system_partitions
 def system_temporal_directed_bipartitions(nodes):
+    """Return temporally directed bipartitions for the given nodes."""
     # Don't consider trivial partitions where one part is empty
     return directed_bipartition(nodes, nontrivial=True)
 
@@ -685,10 +714,20 @@ def system_temporal_directed_bipartitions(nodes):
 @system_partition_types.register("TEMPORAL_DIRECTED_BI_CUT_ONE")
 @_bipartitions_to_temporal_system_partitions
 def system_temporal_directed_bipartitions_cut_one(nodes):
+    """Return temporally directed bipartitions where one part has one node."""
     return directed_bipartition_of_one(nodes)
 
 
 def _cut_matrices(n, symmetric=False):
+    """Generate binary cut matrices for ``n`` nodes.
+
+    Args:
+        n (int): Number of nodes.
+        symmetric (bool): Whether to enforce symmetry (bidirectional cuts).
+
+    Yields:
+        np.ndarray: ``n x n`` binary matrices encoding disconnections.
+    """
     repeat = n**2 - n
     if symmetric:
         repeat = repeat // 2
@@ -708,17 +747,20 @@ def _cut_matrices(n, symmetric=False):
 
 @system_partition_types.register("GENERAL")
 def general(node_indices, node_labels=None):
+    """Yield all general cut-based partitions for a set of nodes."""
     yield CompleteGeneralKCut(node_indices, node_labels=node_labels)
     for cut_matrix in _cut_matrices(len(node_indices)):
         yield GeneralKCut(node_indices, cut_matrix, node_labels=node_labels)
 
 
 def num_general_partitions(n):
+    """Return the number of possible general partitions for ``n`` nodes."""
     return 2 ** (n**2 - n)
 
 
 @system_partition_types.register("GENERAL_BIDIRECTIONAL")
 def general_bidirectional(node_indices, node_labels=None):
+    """Yield all bidirectional general partitions for a set of nodes."""
     yield CompleteGeneralKCut(node_indices, node_labels=node_labels)
     for cut_matrix in _cut_matrices(len(node_indices), symmetric=True):
         yield GeneralKCut(node_indices, cut_matrix, node_labels=node_labels)

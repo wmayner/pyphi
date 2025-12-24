@@ -16,14 +16,27 @@ from .direction import Direction
 
 # TODO(4.0) move to `Direction`
 def directions(directions: Iterable[Direction], **kwargs) -> bool:
+    """Validate each direction in an iterable.
+
+    Args:
+        directions (Iterable[Direction]): Directions to validate.
+        **kwargs: Passed through to |direction|.
+
+    Returns:
+        bool: ``True`` if every element is a valid |Direction|.
+    """
     return all(direction(d, **kwargs) for d in directions)
 
 
 def direction(direction: Direction, allow_bi: bool = False) -> bool:
     """Validate that the given direction is one of the allowed constants.
 
-    If ``allow_bi`` is ``True`` then ``Direction.BIDIRECTIONAL`` is
-    acceptable.
+    Args:
+        direction (Direction): Direction to validate.
+        allow_bi (bool): Whether bidirectional arrows are allowed.
+
+    Returns:
+        bool: ``True`` if the direction is valid; otherwise raises.
     """
     valid = set(Direction.both())
     if allow_bi:
