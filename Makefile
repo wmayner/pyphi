@@ -1,5 +1,6 @@
 .PHONY: test docs dist
 
+UV := uv run
 src = pyphi
 tests = test
 docs = docs
@@ -12,8 +13,8 @@ docs_port = 1337
 test: coverage watch-tests
 
 coverage:
-	coverage run --source $(src) -m py.test
-	coverage html
+	$(UV) coverage run --source $(src) -m pytest
+	$(UV) coverage html
 	open htmlcov/index.html
 
 watch-tests:
@@ -40,7 +41,7 @@ build-docs:
 	cp $(docs)/_static/*.png $(docs_html)/_static
 
 serve-docs: build-docs
-	cd $(docs_html) && python -m http.server $(docs_port)
+	cd $(docs_html) && $(UV) python -m http.server $(docs_port)
 
 open-docs:
 	open http://0.0.0.0:$(docs_port)
@@ -50,19 +51,19 @@ upload-docs: build-docs
 	cd ../pyphi-docs && git commit -a -m 'Update docs' && git push origin gh-pages
 
 benchmark:
-	cd $(benchmarks) && asv continuous develop
+	cd $(benchmarks) && $(UV) asv continuous develop
 
 check-dist:
-	python setup.py check --strict
+	$(UV) twine check $(dist_dir)/*
 
 dist: build-dist check-dist
-	twine upload $(dist_dir)/*
+	$(UV) twine upload $(dist_dir)/*
 
 test-dist: build-dist check-dist
-	twine upload --repository-url https://test.pypi.org/legacy/ $(dist_dir)/*
+	$(UV) twine upload --repository-url https://test.pypi.org/legacy/ $(dist_dir)/*
 
 build-dist: clean-dist
-	python setup.py sdist bdist_wheel --dist-dir=$(dist_dir)
+	uv build --dist-dir=$(dist_dir)
 
 clean-dist:
 	rm -rf $(dist_dir)

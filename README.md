@@ -37,7 +37,27 @@ An [illustrated tutorial on how Φ is calculated](https://doi.org/10.1371/journa
 
 ## Installation
 
-Set up a Python 3 virtual environment and install with
+### Using uv (Recommended)
+
+[uv](https://github.com/astral-sh/uv) is a fast Python package manager. Install it with:
+
+```bash
+# macOS/Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+Then install PyPhi:
+
+```bash
+uv pip install pyphi
+```
+
+### Using pip
+
+Set up a Python 3.12+ virtual environment and install with:
 
 ```bash
 pip install pyphi
@@ -50,10 +70,13 @@ have bugs, run:
 pip install "git+https://github.com/wmayner/pyphi@develop#egg=pyphi"
 ```
 
-**Note:** this software is only supported on Linux and macOS. However, if you
-use Windows, you can run it by using the [Anaconda
+### Legacy: Conda (Deprecated)
+
+**Note:** The conda package is deprecated. Please use uv or pip instead.
+
+If you encounter issues on Windows with older systems, you can use the [Anaconda
 Python](https://www.anaconda.com/what-is-anaconda/) distribution and
-[installing PyPhi with conda](https://anaconda.org/wmayner/pyphi):
+[install PyPhi with conda](https://anaconda.org/wmayner/pyphi):
 
 ```bash
 conda install -c wmayner pyphi
@@ -76,11 +99,19 @@ page](https://github.com/wmayner/pyphi/issues).
 
 ## Contributing
 
-To help develop PyPhi, fork the project on GitHub and install the requirements
-with
+To help develop PyPhi, fork the project on GitHub and install with uv:
 
 ```bash
-pip install -r requirements.txt
+# Install uv if you haven't already
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Clone your fork
+git clone https://github.com/YOUR_USERNAME/pyphi.git
+cd pyphi
+
+# Create virtual environment and install with dev dependencies
+uv venv
+uv pip install -e ".[dev,parallel,visualize,graphs,emd,caching]"
 ```
 
 The `Makefile` defines some tasks to help with development:
@@ -105,32 +136,28 @@ builds the HTML documentation.
 
 ### Developing on Linux
 
-Make sure you install the C headers for Python 3, SciPy, and NumPy
-before installing the requirements:
+With uv, all dependencies including compiled packages are installed automatically
+from pre-built wheels. If you need system headers for development:
 
 ```bash
-sudo apt-get install python3-dev python3-scipy python3-numpy
+sudo apt-get install python3-dev
 ```
 
 ### Developing on Windows
 
-If you're just looking for an editable install, pip may work better than the conda develop utility included in the conda-build package. When using pip on Windows, the build of pyemd may fail. The simplest solution to this is to obtain pyemd through conda.
+All dependencies now have pre-built wheels for Windows, so installation should work
+seamlessly with uv:
 
 ```bash
-conda create -n pyphi_dev
-conda activate pyphi_dev
-conda install -c wmayner pyemd
-cd path/to/local/editable/copy/of/pyphi
-pip install -e .
+# Install uv
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# Install PyPhi for development
+uv venv
+uv pip install -e ".[dev]"
 ```
 
-Unfortunately, pip isn't great at managing the DLLs that some packages (especially scipy) rely on. If you have missing DLL errors, try reinstalling the offending package (here, scipy) with conda.
-
-```bash
-conda activate pyphi_dev
-pip uninstall scipy
-conda install scipy
-```
+If you encounter issues, the legacy conda approach is still available (see Installation section above).
 
 ## Credit
 

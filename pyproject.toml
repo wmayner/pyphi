@@ -19,15 +19,15 @@ keywords = [
     "integrated-information",
     "modeling",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Natural Language :: English",
     "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering",
 ]
 dependencies = [
@@ -88,3 +88,18 @@ include = [
 [tool.hatch.build.targets.wheel]
 packages = ["pyphi"]
 include = ["pyphi/data/**"]
+
+[tool.uv]
+managed = true
+dev-dependencies = [
+    "asv",
+    "build",
+    "coverage",
+    "hypothesis",
+    "pytest<8.0.0",
+    "pytest-lazy-fixture",
+    "sphinx",
+    "sphinx_rtd_theme",
+    "twine",
+    "watchdog",
+]
