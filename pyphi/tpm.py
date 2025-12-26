@@ -569,10 +569,15 @@ def simulate(tpm, initial_state, timesteps, rng):
     Returns:
         list: a list of (decimally-indexed) states.
     """
-    if not is_state_by_state(tpm):
+    # Ensure tpm is an ExplicitTPM
+    if not isinstance(tpm, ExplicitTPM):
+        tpm = ExplicitTPM(tpm)
+
+    if not tpm.is_state_by_state():
         raise ValueError("TPM must be in state-by-state form.")
     # Get the conditional cumulative distributions
-    cumulative_tpm = np.cumsum(tpm, axis=1)
+    # Use .tpm to get the underlying numpy array
+    cumulative_tpm = np.cumsum(tpm.tpm, axis=1)
     # We include the initial state so there are ``timesteps`` total in the
     # output
     timesteps = int(timesteps - 1)

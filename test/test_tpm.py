@@ -1,9 +1,10 @@
 import numpy as np
 import pickle
 import pytest
+from numpy.random import default_rng
 
 from pyphi import Subsystem, ExplicitTPM
-from pyphi.tpm import reconstitute_tpm
+from pyphi.tpm import reconstitute_tpm, simulate
 
 
 @pytest.mark.parametrize(
@@ -75,7 +76,7 @@ def test_getattr():
     actual = tpm.sum(axis=0)
     expected = ExplicitTPM(np.array([6, 6]))
 
-    assert expected.array_equal(expected)
+    assert expected.array_equal(actual)
 
 
 def test_is_state_by_state():
