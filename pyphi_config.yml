@@ -2,116 +2,141 @@
 # ~~~~~~~~~~~~~~~~~~~
 # See the documentation for ``pyphi.config`` for more info.
 ---
-
-# Approximations and theoretical options
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# The measure to use when computing actual causation alpha values.
+ACTUAL_CAUSATION_MEASURE: PMI
 # In certain cases, making a cut can actually cause a previously reducible
 # concept to become a proper, irreducible concept. Assuming this can never
 # happen can increase performance significantly, however the obtained results
-# are not strictly accurate.
+# are not strictly accurate (IIT 3.0).
 ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS: false
-# When determining the MIP for Φ, this restricts the set of system cuts that
-# are considered to only those that cut the inputs or outputs of a single node.
-# This restricted set of cuts scales linearly with the size of the system; the
-# full set of all possible bipartitions scales exponentially. This
-# approximation is more likely to give theoretically accurate results with
-# modular, sparsely-connected, or homogeneous networks.
-CUT_ONE_APPROXIMATION: false
-# The measure to use when computing phi ("EMD", "KLD", "L1", ...)
-MEASURE: "EMD"
-# Controls the number of parts in a partition.
-PARTITION_TYPE: "BI"
-# Controls how to resolve phi-ties when computing MICE.
-PICK_SMALLEST_PURVIEW: false
-# Use the difference in sum of small phi for the cause-effect structure
-# distance
-USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE: false
-# The type of system cuts to use
-SYSTEM_CUTS: "3.0_STYLE"
-# In some applications of this library, you may want to allow single
-# micro-nodes with a self-loop to have nonzero Phi. See ``pyphi.config`` for
-# details.
-SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI: false
-# Controls whether a subsystem's state is validated when the subsystem is
-# created.
-VALIDATE_SUBSYSTEM_STATES: true
-# Controls whether a system is validated for conditional independence.
-VALIDATE_CONDITIONAL_INDEPENDENCE: true
-
-# Parallelization and system resources
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Controls whether concepts are evaluated in parallel.
-PARALLEL_CONCEPT_EVALUATION: false
-# Controls whether cuts are evaluated in parallel, which requires more memory.
-# If cuts are evaluated sequentially, only two SIAs need to be in memory at a
-# time.
-PARALLEL_CUT_EVALUATION: true
-# Controls whether complexes are evaluated in parallel.
-PARALLEL_COMPLEX_EVALUATION: false
-# The number of CPU cores to use in parallel cut evaluation. -1 means all
-# available cores, -2 means all but one available cores, etc.
-NUMBER_OF_CORES: -1
-# Some functions are memoized using an in-memory cache. This is the maximum
-# percentage of memory that these caches can collectively use.
-MAXIMUM_CACHE_MEMORY_PERCENTAGE: 100
-
-# Memoization and caching
-# ~~~~~~~~~~~~~~~~~~~~~~~
-# Controls whether SIAs are cached.
-CACHE_SIAS: false
-# Controls whether cause and effect repertoires are cached.
-CACHE_REPERTOIRES: true
 # Controls whether the potential purviews of the mechanisms of a network are
 # cached. Speeds up calculations when the same network is used repeatedly, but
 # takes up additional memory, and makes network initialization slow.
 CACHE_POTENTIAL_PURVIEWS: true
+# Controls whether cause and effect repertoires are cached.
+CACHE_REPERTOIRES: true
+# The measure to use when computing big-phi (IIT 3.0).
+CES_DISTANCE: SUM_SMALL_PHI
 # Controls whether subsystem caches are automatically cleared after computing
 # the SIA for the subsystem.
 CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA: false
-# The caching system to use. "fs" means cache the results on the local
-# filesystem, in a subdirectory of the current directory; "db" means connect to
-# a database and store the results there.
-CACHING_BACKEND: "fs"
-# The verbosity of filesystem caching (integer from 0 to 11).
-FS_CACHE_VERBOSITY: 0
-# The directory to use for local persistent caching on the filesystem. This
-# only has an effect if the caching backend is the filesystem and not a
-# database.
-FS_CACHE_DIRECTORY: "__pyphi_cache__"
-# These are the settings for the MongoDB database used in the 'db' caching
-# backend.
-MONGODB_CONFIG:
-    host: "localhost"
-    port: 27017
-    database_name: "pyphi"
-    collection_name: "test"
-# Use a Redis server as a MICE cache
+# Controls how distinction phi is normalized.
+DISTINCTION_PHI_NORMALIZATION: NUM_CONNECTIONS_CUT
+# The version of the theory to use.
+IIT_VERSION: 4.0
+# The path for the log file.
+LOG_FILE: pyphi.log
+# The log level to write to `LOG_FILE`.
+LOG_FILE_LEVEL: INFO
+# The log level to write to stdout.
+LOG_STDOUT_LEVEL: WARNING
+# Some functions are memoized using an in-memory cache. This is the maximum
+# percentage of memory that these caches can collectively use.
+MAXIMUM_CACHE_MEMORY_PERCENTAGE: 50
+# Determine how ties among specified states are broken.
+STATE_TIE_RESOLUTION: PHI
+# Determine how ties among MIPs are broken.
+MIP_TIE_RESOLUTION: [NORMALIZED_PHI, NEGATIVE_PHI]
+# Determine how ties among maximally irreducible purviews are broken.
+PURVIEW_TIE_RESOLUTION: PHI
+# Controls the number of CPU cores used in parallel evaluation. Negative
+# numbers count backwards from the total number of available cores, with
+# ``-1`` meaning all available cores.
+NUMBER_OF_CORES: -1
+# Global switch to turn off parallelization: if ``False``, parallelization is
+# never used, regardless of parallelization settings for individual options;
+# otherwise parallelization is determined by those settings.
+# IMPORTANT:
+#   Parallelization requires extra dependencies, which must be
+#   installed with `pyphi[parallel]`.
+PARALLEL: false
+# Controls parallel evaluation of candidate systems within a network.
+PARALLEL_COMPLEX_EVALUATION:
+  chunksize: 64
+  parallel: false
+  sequential_threshold: 16
+  progress: true
+# Controls parallel evaluation of candidate mechanisms.
+PARALLEL_CONCEPT_EVALUATION:
+  chunksize: 256
+  parallel: false
+  sequential_threshold: 64
+  progress: true
+# Controls parallel evaluation of system partitions.
+PARALLEL_CUT_EVALUATION:
+  chunksize: 4096
+  parallel: false
+  sequential_threshold: 1024
+  progress: false
+# Controls parallel evaluation of candidate purviews.
+PARALLEL_PURVIEW_EVALUATION:
+  chunksize: 256
+  parallel: false
+  sequential_threshold: 64
+  progress: true
+# Controls parallel evaluation of mechanism partitions.
+PARALLEL_MECHANISM_PARTITION_EVALUATION:
+  chunksize: 4096
+  parallel: false
+  sequential_threshold: 1024
+  progress: true
+# Controls parallel evaluation of relations.
+# Only applies if RELATION_COMPUTATION = 'CONCRETE'.
+PARALLEL_RELATION_EVALUATION:
+  chunksize: 4096
+  parallel: false
+  sequential_threshold: 1024
+  progress: true
+# Controls the partitioning scheme for distinctions.
+PARTITION_TYPE: ALL
+# Controls the numerical precision with which to compare phi values against each
+# other and zero.
+PRECISION: 13
+# Print numbers as fractions if the denominator isn't too big.
+PRINT_FRACTIONS: true
+# Global switch to turn off progress bars: if ``False``, progress bars are never
+# used, regardless of progress settings for individual options; otherwise the
+# use of progress bars is determined by those settings.
+PROGRESS_BARS: true
+# Keyword arguments to ``ray.init()``. Controls the initialization of the Ray
+# cluster used for parallelization / distributed computation.
+RAY_CONFIG: {}
+# Use a Redis server as a MICE cache.
 REDIS_CACHE: false
 # Redis connection configuration
 REDIS_CONFIG:
-    host: "localhost"
-    port: 6379
-    db: 0
-    test_db: 1
-
-# Logging
-# ~~~~~~~
+  db: 0
+  host: localhost
+  port: 6379
+  test_db: 1
+# Controls the definition of the upper bound of the sum of relation phi when
+# analyzing a system.
+RELATION_COMPUTATION: CONCRETE
+# The measure to use when computing integration ("EMD", "KLD", "L1", ...)
+REPERTOIRE_DISTANCE: GENERALIZED_INTRINSIC_DIFFERENCE
+# The measure to use when computing intrinsic information and findind the
+# specified state
+REPERTOIRE_DISTANCE_INFORMATION: GENERALIZED_INTRINSIC_DIFFERENCE
+# Controls whether pretty __str__-like formatting is used in repr calls.
+REPR_VERBOSITY: 2
+# Controls whether SIA calculations short-circuit if an a-priori reducibility
+# condition is found.
+SHORTCIRCUIT_SIA: true
+# In some applications of this library, you may want to allow single
+# micro-nodes with a self-loop to have nonzero Phi. See ``pyphi.config`` for
+# details.
+SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI: true
+# The type of system cuts to use (IIT 3.0)
+SYSTEM_CUTS: 3.0_STYLE
+# Whether to include the complete partition in partition set; currently only
+# applies to "SET_UNI/BI".
+SYSTEM_PARTITION_INCLUDE_COMPLETE: false
+# Controls the partitioning scheme for the system.
+SYSTEM_PARTITION_TYPE: SET_UNI/BI
+# Controls whether a system is validated for conditional independence.
+VALIDATE_CONDITIONAL_INDEPENDENCE: true
+# Controls whether a subsystem's state is validated when the subsystem is
+# created.
+VALIDATE_SUBSYSTEM_STATES: true
 # Whether to suppress the welcome message.
 WELCOME_OFF: false
-# The log level to write to stdout.
-LOG_STDOUT_LEVEL: "WARNING"
-# The log level to write to `LOG_FILE`.
-LOG_FILE_LEVEL: "INFO"
-# The file to log to.
-LOG_FILE: "pyphi.log"
-# Enable/disable progress bars
-PROGRESS_BARS: true
-# Use pretty __str__-like formatting in repr calls.
-REPR_VERBOSITY: 2
-# Print numbers as fractions if the denominator isn't too big.
-PRINT_FRACTIONS: true
-
-# Numerical precision
-# ~~~~~~~~~~~~~~~~~~~
-# The number of decimal places to which Phi values are considered accurate.
-PRECISION: 6

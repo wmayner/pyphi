@@ -2,21 +2,25 @@
 # -*- coding: utf-8 -*-
 
 import logging
-import os
-import shutil
+from pathlib import Path
 
 import pytest
+import yaml
 
 import pyphi
-from pyphi import cache, config, constants, db
+import pyphi.cache.redis as redis
+from pyphi.conf import config
+from pyphi.deferred.ray import ray, NO_RAY
 
 log = logging.getLogger("pyphi.test")
 
 collect_ignore = ["setup.py", ".pythonrc.py"]
 # Also ignore everything that git ignores.
-git_ignore = os.path.join(os.path.dirname(__file__), ".gitignore")
-collect_ignore += list(filter(None, open(git_ignore).read().split("\n")))
+with open(Path(__file__).parent / ".gitignore", mode="rt") as f:
+    collect_ignore += list(filter(None, f.read().split("\n")))
 
+
+IIT_3_CONFIG = "pyphi_config_3.0.yml"
 
 # Run slow tests separately with command-line option, filter tests
 # ================================================================
@@ -26,6 +30,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--filter", action="store", help="only run tests with the given mark"
     )
+    parser.addoption("--outdated", action="store_true", help="run outdated tests")
     parser.addoption("--slow", action="store_true", help="run slow tests")
     parser.addoption("--veryslow", action="store_true", help="run very slow tests")
 
@@ -36,6 +41,8 @@ def pytest_runtest_setup(item):
         if filt not in item.keywords:
             pytest.skip("only running tests with the '{}' mark".format(filt))
     else:
+        if "outdated" in item.keywords and not item.config.getoption("--outdated"):
+            pytest.skip("need --outdated option to run")
         if "slow" in item.keywords and not item.config.getoption("--slow"):
             pytest.skip("need --slow option to run")
         if "veryslow" in item.keywords and not item.config.getoption("--veryslow"):
@@ -67,68 +74,38 @@ def disable_progress_bars():
         yield
 
 
+@pytest.fixture(scope="function")
+def use_iit_3_config():
+    """Use the IIT-3 configuration for all tests."""
+    with open(IIT_3_CONFIG, mode="rt") as f:
+        iit3_config = yaml.load(f, Loader=yaml.SafeLoader)
+    with pyphi.config.override(**iit3_config):
+        yield
+
+
 # Cache management and fixtures
 # ================================================================
-
-# Use a test database if database caching is enabled.
-if config.CACHING_BACKEND == constants.DATABASE:
-    db.collection = db.database.test
-
-# Backup location for the existing joblib cache directory.
-BACKUP_CACHE_DIR = config.FS_CACHE_DIRECTORY + ".BACKUP"
 
 
 @pytest.fixture(scope="session", autouse=True)
 def protect_caches(request):
-    """Temporarily backup, then restore, the user's joblib, mongo and redis
-    caches before and after the testing session.
+    """Temporarily backup, then restore, the user's Redis caches
+    before and after the testing session.
 
     This is called before flushcache, ensuring the cache is saved.
     """
-    # Move the joblib cache to a backup location and create a fresh cache if
-    # filesystem caching is enabled
-    if config.CACHING_BACKEND == constants.FILESYSTEM:
-        if os.path.exists(BACKUP_CACHE_DIR):
-            raise Exception(
-                "You must move the backup of the filesystem cache "
-                "at {} before running the test suite.".format(BACKUP_CACHE_DIR)
-            )
-        shutil.move(config.FS_CACHE_DIRECTORY, BACKUP_CACHE_DIR)
-        os.mkdir(config.FS_CACHE_DIRECTORY)
-
     # Initialize a test Redis connection
-    original_redis_conn = cache.redis_conn
-    cache.redis_conn = cache.redis_init(config.REDIS_CONFIG["test_db"])
-
-    def fin():
-        if config.CACHING_BACKEND == constants.FILESYSTEM:
-            # Remove the tests' joblib cache directory.
-            shutil.rmtree(config.FS_CACHE_DIRECTORY)
-            # Restore the old joblib cache.
-            shutil.move(BACKUP_CACHE_DIR, config.FS_CACHE_DIRECTORY)
-
-        cache.redis_conn = original_redis_conn
-
+    original_redis_conn = redis.conn
+    redis.conn = redis.init(config.REDIS_CONFIG["test_db"])
+    yield
     # Restore the cache after the last test has run
-    request.addfinalizer(fin)
-
-
-def _flush_joblib_cache():
-    """Remove the old joblib cache directory."""
-    shutil.rmtree(config.FS_CACHE_DIRECTORY)
-    # Make a new, empty one.
-    os.mkdir(config.FS_CACHE_DIRECTORY)
-
-
-def _flush_database_cache():
-    """Flush the `test` collection in the database."""
-    return db.database.test.remove({})
+    redis.conn = original_redis_conn
 
 
 def _flush_redis_cache():
-    if cache.redis_available():
-        cache.redis_conn.flushdb()
-        cache.redis_conn.config_resetstat()
+    if redis.available():
+        redis.conn.flushdb()
+        redis.conn.config_resetstat()
 
 
 # TODO: flush Redis cache
@@ -139,9 +116,15 @@ def flushcache(request):
     This is called before every test case.
     """
     log.info("Flushing caches...")
-    if config.CACHING_BACKEND == constants.DATABASE:
-        _flush_database_cache()
-    elif config.CACHING_BACKEND == constants.FILESYSTEM:
-        _flush_joblib_cache()
-
     _flush_redis_cache()
+
+
+# Ray
+# ================================================================
+
+
+@pytest.fixture(scope="module")
+def ray_context():
+    context = ray.init(num_cpus=3)
+    yield context
+    ray.shutdown()

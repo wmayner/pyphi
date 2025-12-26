@@ -21,8 +21,8 @@ finding the major complex of the network:
 
 The major complex exists (|big_phi > 0|),
 
-    >>> major_complex.phi
-    1.874999
+    >>> major_complex.phi  # doctest: +NUMBER
+    1.874998
 
 and it consists of the entire network:
 

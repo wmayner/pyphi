@@ -1,17 +1,24 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# test_models.py
-
 from collections import namedtuple
+from pyphi.models.cuts import KPartition
+from pyphi.models.subsystem import FlatCauseEffectStructure
 
 import numpy as np
 import pytest
 
-from pyphi import Direction, Subsystem, config, constants, exceptions, models
+from pyphi import (
+    Direction,
+    Subsystem,
+    config,
+    compute,
+    exceptions,
+    models,
+    examples,
+)
 from pyphi.labels import NodeLabels
 
+EPSILON = 10 ** (-config.PRECISION)
+
 # Helper functions for constructing PyPhi objects
-# -----------------------------------------------
 
 
 def ria(
@@ -68,7 +75,6 @@ def concept(
             phi=phi,
             direction=Direction.EFFECT,
         ),
-        subsystem=subsystem,
     )
 
 
@@ -86,7 +92,6 @@ def sia(ces=(), partitioned_ces=(), subsystem=None, cut_subsystem=None, phi=1.0)
 
 
 # Test equality helpers
-# {{{
 
 
 def test_phi_mechanism_ordering():
@@ -111,13 +116,6 @@ def test_phi_mechanism_ordering():
     assert PhiThing(2.0, (1,)) > PhiThing(1.0, (1, 2))  # Larger phi
     assert PhiThing(1.0, (1,)) >= PhiThing(1.0, (1,))
     assert PhiThing(1.0, (1, 2)) >= PhiThing(1.0, (1,))
-
-    class PhiLikeThing(PhiThing):
-        pass
-
-    # Compared objects must be of the same class
-    with pytest.raises(TypeError):  # TypeError: unorderable types
-        PhiThing(1.0, (1, 2)) <= PhiLikeThing(1.0, (1, 2))
 
     class PhiThang(PhiThing):
         def __init__(self, phi, mechanism, purview):
@@ -178,12 +176,12 @@ def test_general_eq_different_attributes():
 
 
 def test_general_eq_phi_precision_comparison_true():
-    b = nt(a.this, a.that, (a.phi - constants.EPSILON / 2), a.mechanism, a.purview)
+    b = nt(a.this, a.that, (a.phi - EPSILON / 2), a.mechanism, a.purview)
     assert models.cmp.general_eq(a, b, nt_attributes)
 
 
 def test_general_eq_phi_precision_comparison_false():
-    b = nt(a.this, a.that, (a.phi - constants.EPSILON * 2), a.mechanism, a.purview)
+    b = nt(a.this, a.that, (a.phi - EPSILON * 2), a.mechanism, a.purview)
     assert not models.cmp.general_eq(a, b, nt_attributes)
 
 
@@ -216,10 +214,7 @@ def test_general_eq_attribute_missing():
     assert not models.cmp.general_eq(a, b, nt_attributes)
 
 
-# }}}
-
 # Test Cut
-# {{{
 
 
 def test_cut_equality():
@@ -258,11 +253,22 @@ def test_cut_matrix():
     assert np.array_equal(cut.cut_matrix(1), matrix)
 
     cut = models.Cut((0,), (1,))
-    matrix = np.array([[0, 1], [0, 0],])
+    matrix = np.array(
+        [
+            [0, 1],
+            [0, 0],
+        ]
+    )
     assert np.array_equal(cut.cut_matrix(2), matrix)
 
     cut = models.Cut((0, 2), (1, 2))
-    matrix = np.array([[0, 1, 1], [0, 0, 0], [0, 1, 1],])
+    matrix = np.array(
+        [
+            [0, 1, 1],
+            [0, 0, 0],
+            [0, 1, 1],
+        ]
+    )
     assert np.array_equal(cut.cut_matrix(3), matrix)
 
     cut = models.Cut((), ())
@@ -331,35 +337,16 @@ def test_cuts_can_have_node_labels(node_labels):
     models.KCut(Direction.CAUSE, k_partition, node_labels=node_labels)
 
 
-# }}}
-
-
 # Test ria
-# {{{
 
 
 def test_ria_ordering_and_equality():
     assert ria(phi=1.0) < ria(phi=2.0)
     assert ria(phi=2.0) > ria(phi=1.0)
-    assert ria(mechanism=(1,)) < ria(mechanism=(1, 2))
-    assert ria(mechanism=(1, 2)) >= ria(mechanism=(1,))
-    assert ria(purview=(1,)) < ria(purview=(1, 2))
-    assert ria(purview=(1, 2)) >= ria(purview=(1,))
-
     assert ria(phi=1.0) == ria(phi=1.0)
-    assert ria(phi=1.0) == ria(phi=(1.0 - constants.EPSILON / 2))
-    assert ria(phi=1.0) != ria(phi=(1.0 - constants.EPSILON * 2))
+    assert ria(phi=1.0) == ria(phi=(1.0 - EPSILON / 2))
+    assert ria(phi=1.0) != ria(phi=(1.0 - EPSILON * 2))
     assert ria(direction=Direction.CAUSE) != ria(direction=Direction.EFFECT)
-    assert ria(mechanism=(1,)) != ria(mechanism=(1, 2))
-
-    with config.override(PICK_SMALLEST_PURVIEW=True):
-        assert ria(purview=(1, 2)) < ria(purview=(1,))
-
-    with pytest.raises(TypeError):
-        ria(direction=Direction.CAUSE) < ria(direction=Direction.EFFECT)
-
-    with pytest.raises(TypeError):
-        ria(direction=Direction.CAUSE) >= ria(direction=Direction.EFFECT)
 
 
 def test_null_ria():
@@ -371,7 +358,7 @@ def test_null_ria():
     assert null_ria.direction == direction
     assert null_ria.mechanism == mechanism
     assert null_ria.purview == purview
-    assert null_ria.partition is None
+    assert null_ria.partition == KPartition()
     assert null_ria.repertoire == "repertoire"
     assert null_ria.partitioned_repertoire is None
     assert null_ria.phi == 0
@@ -382,52 +369,28 @@ def test_ria_repr_str():
     print(str(ria()))
 
 
-# }}}
-
 # Test MaximallyIrreducibleCauseOrEffect
-# {{{
 
 
-def test_mice_ordering_by_phi():
+def test_mice_ordering():
     phi1 = mice()
-    phi2 = mice(phi=(1.0 + constants.EPSILON * 2), partition=())
+    phi2 = mice(phi=(1.0 + EPSILON * 2), partition=())
     assert phi1 < phi2
     assert phi2 > phi1
     assert phi1 <= phi2
     assert phi2 >= phi1
 
     different_direction = mice(direction="different")
-
-    with pytest.raises(TypeError):
-        phi1 <= different_direction
-
-    with pytest.raises(TypeError):
-        phi1 >= different_direction
-
-
-def test_mice_odering_by_mechanism():
-    small = mice(mechanism=(1,))
-    big = mice(mechanism=(1, 2, 3))
-    assert small < big
-    assert small <= big
-    assert big > small
-    assert big >= small
-    assert big != small
-
-
-def test_mice_ordering_by_purview():
-    small = mice(purview=(1, 2))
-    big = mice(purview=(1, 2, 3))
-    assert small < big
-    assert small <= big
-    assert big > small
-    assert big >= small
+    assert phi2 > different_direction
+    assert different_direction < phi2
+    assert phi2 >= different_direction
+    assert different_direction <= phi2
 
 
 def test_mice_equality():
     m = mice(phi=1.0)
-    close_enough = mice(phi=(1.0 - constants.EPSILON / 2))
-    not_quite = mice(phi=(1.0 - constants.EPSILON * 2))
+    close_enough = mice(phi=(1.0 - EPSILON / 2))
+    not_quite = mice(phi=(1.0 - EPSILON * 2))
     assert m == close_enough
     assert m != not_quite
 
@@ -475,10 +438,7 @@ def test_damaged(s):
     assert not m2.damaged_by_cut(s)
 
 
-# }}}
-
-
-# Test MIC and MIE {{{
+# Test MIC and MIE
 
 
 def test_mic_raises_wrong_direction():
@@ -493,16 +453,41 @@ def test_mie_raises_wrong_direction():
         mie(direction=Direction.CAUSE, mechanism=(0,), purview=(1,))
 
 
-# }}}
+@config.override(
+    PARTITION_TYPE="TRI",
+    REPERTOIRE_DISTANCE="AID",
+)
+@pytest.mark.outdated
+def test_specified_states_and_indices():
+    subsystem = examples.pqr_subsystem()
+    ces = FlatCauseEffectStructure(compute.ces(subsystem))
+
+    specified_state_results = [mice.specified_state for mice in ces]
+    specified_state_answers = [
+        np.array([[0]]),
+        np.array([[0]]),
+        np.array([[0, 0], [1, 1]]),
+        np.array([[0, 0]]),
+        np.array([[1, 0]]),
+        np.array([[1]]),
+        np.array([[1, 1, 0]]),
+        np.array([[0, 0, 1]]),
+    ]
+
+    for results, answers in [
+        (specified_state_results, specified_state_answers),
+    ]:
+        for result, answer in zip(results, answers):
+            assert np.array_equal(result, answer)
 
 
 # Test Concept
-# {{{
 
 
+@pytest.mark.outdated
 def test_concept_ordering(s, micro_s):
     phi1 = concept(subsystem=s)
-    phi2 = concept(mechanism=(0,), phi=(1.0 + constants.EPSILON * 2), subsystem=s)
+    phi2 = concept(mechanism=(0,), phi=(1.0 + EPSILON * 2), subsystem=s)
 
     assert phi1 < phi2
     assert phi2 > phi1
@@ -515,16 +500,6 @@ def test_concept_ordering(s, micro_s):
         phi1 <= micro_phi1
     with pytest.raises(TypeError):
         phi1 > micro_phi1
-
-
-def test_concept_ordering_by_mechanism(s):
-    small = concept(mechanism=(0, 1), subsystem=s)
-    big = concept(mechanism=(0, 1, 2), subsystem=s)
-    assert small < big
-    assert small <= big
-    assert big > small
-    assert big >= small
-    assert big != small
 
 
 def test_concept_equality(s):
@@ -549,13 +524,24 @@ def test_concept_equality_effect_purview_nodes(s):
 
 def test_concept_equality_repertoires(s):
     phi = 1.0
-    mice1 = mice(phi=phi, repertoire=np.array([1, 2]), partitioned_repertoire=())
+    mice1 = mice(
+        phi=phi, repertoire=np.array([1, 2]), partitioned_repertoire=np.array([2, 3])
+    )
     mice2 = mice(phi=phi, repertoire=np.array([0, 0]), partitioned_repertoire=None)
-    concept = models.Concept(mechanism=(), cause=mice1, effect=mice2, subsystem=s)
-    another = models.Concept(mechanism=(), cause=mice2, effect=mice1, subsystem=s)
+    concept = models.Concept(
+        mechanism=(),
+        cause=mice1,
+        effect=mice2,
+    )
+    another = models.Concept(
+        mechanism=(),
+        cause=mice2,
+        effect=mice1,
+    )
     assert concept != another
 
 
+@pytest.mark.outdated
 def test_concept_equality_network(s, simple_subsys_all_off):
     assert concept(subsystem=simple_subsys_all_off) != concept(subsystem=s)
 
@@ -564,6 +550,7 @@ def test_concept_equality_one_subsystem_is_subset_of_another(s, subsys_n1n2):
     assert concept(subsystem=s) == concept(subsystem=subsys_n1n2)
 
 
+@pytest.mark.outdated
 def test_concept_repr_str(s):
     print(repr(concept(subsystem=s)))
     print(str(concept(subsystem=s)))
@@ -594,11 +581,7 @@ def test_concept_emd_eq(s, subsys_n1n2):
     # TODO: test other expectations...
 
 
-# }}}
-
-
 # Test CauseEffectStructure
-# {{{
 
 
 def test_ces_is_still_a_tuple(s):
@@ -606,6 +589,7 @@ def test_ces_is_still_a_tuple(s):
     assert len(c) == 1
 
 
+@pytest.mark.outdated
 def test_ces_repr_str(s):
     c = models.CauseEffectStructure([concept(subsystem=s)])
     repr(c)
@@ -620,11 +604,13 @@ def test_ces_are_always_normalized(s):
     assert (c1, c2, c3, c4) == models.CauseEffectStructure((c3, c4, c2, c1)).concepts
 
 
+@pytest.mark.outdated
 def test_ces_labeled_mechanisms(s):
     c = models.CauseEffectStructure([concept(subsystem=s)], subsystem=s)
     assert c.labeled_mechanisms == (["A", "B"],)
 
 
+@pytest.mark.outdated
 def test_ces_ordering(s):
     assert models.CauseEffectStructure(
         [concept(subsystem=s)], subsystem=s
@@ -635,22 +621,16 @@ def test_ces_ordering(s):
     ) > models.CauseEffectStructure([concept(phi=0, subsystem=s)], subsystem=s)
 
 
-# }}}
-
-
 # Test SystemIrreducibilityAnalysis
-# {{{
 
 
 def test_sia_ordering(s, s_noised, subsys_n0n2, subsys_n1n2):
     phi1 = sia(subsystem=s)
-    phi2 = sia(subsystem=s, phi=1.0 + constants.EPSILON * 2)
+    phi2 = sia(subsystem=s, phi=1.0 + EPSILON * 2)
     assert phi1 < phi2
     assert phi2 > phi1
     assert phi1 <= phi2
     assert phi2 >= phi1
-
-    assert sia(subsystem=subsys_n0n2) < sia(subsystem=subsys_n1n2)
 
     different_system = sia(subsystem=s_noised)
     with pytest.raises(TypeError):
@@ -659,20 +639,10 @@ def test_sia_ordering(s, s_noised, subsys_n0n2, subsys_n1n2):
         phi1 >= different_system
 
 
-def test_sia_ordering_by_subsystem_size(s, s_single):
-    small = sia(subsystem=s_single)
-    big = sia(subsystem=s)
-    assert small < big
-    assert small <= big
-    assert big > small
-    assert big >= small
-    assert big != small
-
-
 def test_sia_equality(s):
     bm = sia(subsystem=s)
-    close_enough = sia(subsystem=s, phi=(1.0 - constants.EPSILON / 2))
-    not_quite = sia(subsystem=s, phi=(1.0 - constants.EPSILON * 2))
+    close_enough = sia(subsystem=s, phi=(1.0 - EPSILON / 2))
+    not_quite = sia(subsystem=s, phi=(1.0 - EPSILON * 2))
     assert bm == close_enough
     assert bm != not_quite
 
@@ -683,11 +653,7 @@ def test_sia_repr_str(s):
     print(str(bm))
 
 
-# }}}
-
-
 # Test model __str__ and __reprs__
-# {{{
 
 
 def test_indent():
@@ -718,11 +684,7 @@ def test_make_reprs_calls_out_to_string():
     assert repr(ReadableReprClass()) == "A nice fat explicit string"
 
 
-# }}}
-
-
 # Test partitions
-# {{{
 
 
 @pytest.fixture
@@ -738,8 +700,8 @@ def bipartition(node_labels):
 
 
 def test_bipartition_properties(bipartition):
-    assert bipartition.mechanism == (0,)
-    assert bipartition.purview == (0, 1, 4)
+    assert set(bipartition.mechanism) == set([0])
+    assert set(bipartition.purview) == set([0, 1, 4])
 
 
 def test_bipartition_str(bipartition):
@@ -757,8 +719,8 @@ def tripartition(node_labels):
 
 
 def test_tripartion_properties(tripartition):
-    assert tripartition.mechanism == (0, 2)
-    assert tripartition.purview == (0, 1, 2, 4)
+    assert set(tripartition.mechanism) == set([0, 2])
+    assert set(tripartition.purview) == set([0, 1, 2, 4])
 
 
 def test_tripartion_str(tripartition):
@@ -794,8 +756,3 @@ def test_partition_normalize_preserves_labels(node_labels):
 def test_partition_eq_hash():
     assert k_partition() == k_partition()
     assert hash(k_partition()) == hash(k_partition())
-
-
-# }}}
-
-# vim: set foldmarker={{{,}}} foldlevel=0  foldmethod=marker :

@@ -1,11 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # jsonify.py
-
-# TODO: extend to `macro` objects
-# TODO: resolve schema issues with `vphi` and other external consumers
-# TODO: somehow check schema instead of version?
-
 """
 PyPhi- and NumPy-aware JSON serialization.
 
@@ -36,6 +29,7 @@ the stream to a nested PyPhi object structure. The decoder will raise an
 exception if current PyPhi version doesn't match the version in the JSON data.
 """
 
+from importlib.metadata import version as get_version
 import json
 
 import numpy as np
@@ -47,6 +41,15 @@ CLASS_KEY = "__class__"
 VERSION_KEY = "__version__"
 ID_KEY = "__id__"
 
+PYPHI_VERSION = get_version("pyphi")
+
+# TODO: extend to `macro` objects
+# TODO: resolve schema issues with `vphi` and other external consumers
+# TODO: somehow check schema instead of version?
+# TODO(4.0): ensure that sets/lists/tuples are cast to the correct type in
+#            __init__ methods so loading works properly
+# TODO(4.0): to_dict() instead?
+
 
 def _loadable_models():
     """A dictionary of loadable PyPhi models.
@@ -55,30 +58,42 @@ def _loadable_models():
     circular import issues.
     """
     classes = [
+        pyphi.data_structures.PyPhiFloat,
         pyphi.Direction,
-        pyphi.Network,
-        pyphi.Subsystem,
-        pyphi.Transition,
         pyphi.labels.NodeLabels,
+        pyphi.models.Account,
+        pyphi.models.AcRepertoireIrreducibilityAnalysis,
+        pyphi.models.AcSystemIrreducibilityAnalysis,
+        pyphi.models.ActualCut,
+        pyphi.models.Bipartition,
+        pyphi.models.CausalLink,
+        pyphi.models.CauseEffectStructure,
+        pyphi.models.Concept,
         pyphi.models.Cut,
+        pyphi.models.cuts.GeneralKCut,
+        pyphi.models.cuts.GeneralSetPartition,
+        pyphi.models.FlatCauseEffectStructure,
         pyphi.models.KCut,
+        pyphi.models.KPartition,
+        pyphi.models.MaximallyIrreducibleCause,
+        pyphi.models.MaximallyIrreducibleCauseOrEffect,
+        pyphi.models.MaximallyIrreducibleEffect,
+        pyphi.models.mechanism.StateSpecification,
         pyphi.models.NullCut,
         pyphi.models.Part,
-        pyphi.models.Bipartition,
-        pyphi.models.KPartition,
-        pyphi.models.Tripartition,
         pyphi.models.RepertoireIrreducibilityAnalysis,
-        pyphi.models.MaximallyIrreducibleCauseOrEffect,
-        pyphi.models.MaximallyIrreducibleCause,
-        pyphi.models.MaximallyIrreducibleEffect,
-        pyphi.models.Concept,
-        pyphi.models.CauseEffectStructure,
+        pyphi.models.subsystem.SystemStateSpecification,
         pyphi.models.SystemIrreducibilityAnalysis,
-        pyphi.models.ActualCut,
-        pyphi.models.AcRepertoireIrreducibilityAnalysis,
-        pyphi.models.CausalLink,
-        pyphi.models.Account,
-        pyphi.models.AcSystemIrreducibilityAnalysis,
+        pyphi.models.Tripartition,
+        pyphi.Network,
+        pyphi.new_big_phi.PhiStructure,
+        pyphi.new_big_phi.SystemIrreducibilityAnalysis,
+        pyphi.relations.AnalyticalRelations,
+        pyphi.relations.ConcreteRelations,
+        pyphi.relations.Relation,
+        pyphi.relations.RelationFace,
+        pyphi.Subsystem,
+        pyphi.Transition,
     ]
     return {cls.__name__: cls for cls in classes}
 
@@ -91,7 +106,7 @@ def _push_metadata(dct, obj):
     dct.update(
         {
             CLASS_KEY: obj.__class__.__name__,
-            VERSION_KEY: pyphi.__version__,
+            VERSION_KEY: PYPHI_VERSION,
             ID_KEY: hash(obj),
         }
     )
@@ -114,7 +129,8 @@ def jsonify(obj):  # pylint: disable=too-many-return-statements
     # Call the `to_json` method if available and add metadata.
     if hasattr(obj, "to_json"):
         d = obj.to_json()
-        _push_metadata(d, obj)
+        if isinstance(d, dict):
+            _push_metadata(d, obj)
         return jsonify(d)
 
     # If we have a numpy array, convert it to a list.
@@ -133,10 +149,14 @@ def jsonify(obj):  # pylint: disable=too-many-return-statements
 
     # Recurse over object dictionaries.
     if hasattr(obj, "__dict__"):
-        return _jsonify_dict(obj.__dict__)
+        dct = _jsonify_dict(obj.__dict__)
+        # Push metadata if the model is registered as loadable
+        if _is_loadable_model_object(obj):
+            _push_metadata(dct, obj)
+        return dct
 
-    # Recurse over lists and tuples.
-    if isinstance(obj, (list, tuple)):
+    # Recurse over lists, tuples, sets, and frozensets.
+    if isinstance(obj, (list, tuple, set, frozenset)):
         return [jsonify(item) for item in obj]
 
     # Otherwise, give up and hope it's serializable.
@@ -177,18 +197,18 @@ def dump(obj, fp, **user_kwargs):
 
 def _check_version(version):
     """Check whether the JSON version matches the PyPhi version."""
-    if version != pyphi.__version__:
+    if version != PYPHI_VERSION:
         raise pyphi.exceptions.JSONVersionError(
             "Cannot load JSON from a different version of PyPhi. "
             "JSON version = {0}, current version = {1}.".format(
-                version, pyphi.__version__
+                version,
+                PYPHI_VERSION,
             )
         )
 
 
-def _is_model(dct):
-    """Check if ``dct`` is a PyPhi model serialization."""
-    return CLASS_KEY in dct
+def _is_loadable_model_object(obj):
+    return obj.__class__.__name__ in _loadable_models()
 
 
 class _ObjectCache(cache.DictCache):
@@ -207,9 +227,6 @@ class PyPhiJSONDecoder(json.JSONDecoder):
         kwargs["object_hook"] = self._load_object
         super().__init__(*args, **kwargs)
 
-        # Memoize available models
-        self._models = _loadable_models()
-
         # Cache for loaded objects
         self._object_cache = _ObjectCache()
 
@@ -219,15 +236,16 @@ class PyPhiJSONDecoder(json.JSONDecoder):
         PyPhi models are recursively loaded, using the model metadata to
         recreate the original object relations. Lists are cast to tuples
         because most objects in PyPhi which are serialized to lists (eg.
-        mechanisms and purviews) are ultimately tuples. Other lists (tpms,
+        mechanisms and purviews) are ultimately tuples. Other lists (TPMs,
         repertoires) should be cast to the correct type in init methods.
         """
         if isinstance(obj, dict):
             obj = {k: self._load_object(v) for k, v in obj.items()}
             # Load a serialized PyPhi model
-            if _is_model(obj):
+            if _is_loadable_model_dict(obj):
                 return self._load_model(obj)
 
+        # TODO(4.0) remove?
         elif isinstance(obj, list):
             return tuple(self._load_object(item) for item in obj)
 
@@ -242,7 +260,7 @@ class PyPhiJSONDecoder(json.JSONDecoder):
         classname, version, _ = _pop_metadata(dct)
 
         _check_version(version)
-        cls = self._models[classname]
+        cls = _loadable_models()[classname]
 
         # Use `from_json` if available
         if hasattr(cls, "from_json"):
@@ -250,6 +268,11 @@ class PyPhiJSONDecoder(json.JSONDecoder):
 
         # Default to object constructor
         return cls(**dct)
+
+
+def _is_loadable_model_dict(dct):
+    """Check if ``dct`` is a PyPhi model serialization."""
+    return CLASS_KEY in dct
 
 
 def loads(string):

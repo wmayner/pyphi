@@ -1,13 +1,10 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# test_subsystem_cause_and_effect_repertoire.py
-
-import example_networks
 import numpy as np
 import pytest
 
 from pyphi import Direction, Subsystem
 from pyphi.models import Cut
+
+from . import example_networks
 
 # Get example networks
 standard = example_networks.standard()
@@ -314,7 +311,7 @@ scenarios = [
         [0],
         [0, 1, 2],
         np.array([0.75, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0]).reshape(2, 2, 2),
-    )
+    ),
     # }}}
     # }}}
     # }}}

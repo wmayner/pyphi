@@ -1,4 +1,4 @@
-.. _distance:
+.. _relations:
 
 :mod:`relations`
 ===============

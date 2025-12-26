@@ -1,14 +1,12 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 from itertools import chain
 
-import example_networks
 import pytest
 
-from pyphi import Direction, Subsystem
+from pyphi import Direction, Subsystem, config
 from pyphi.models import Cut, MaximallyIrreducibleCauseOrEffect, _null_ria
 from pyphi.utils import eq
+
+from . import example_networks
 
 # Expected results {{{
 # ====================
@@ -28,18 +26,35 @@ expected_purview_indices = {
             (0, 1): (1, 2),
             (0, 1, 2): (0, 1, 2),
         },
-        Direction.EFFECT: {(1,): (0,), (2,): (1,), (0, 1): (2,), (0, 1, 2): (0, 1, 2)},
+        Direction.EFFECT: {
+            (1,): (0,),
+            (2,): (1,),
+            (0, 1): (2,),
+            (0, 1, 2): (0, 1, 2),
+        },
     },
     cuts[1]: {
-        Direction.CAUSE: {(1,): (2,), (2,): (0, 1), (0, 1): (), (0, 1, 2): (),},
-        Direction.EFFECT: {(1,): (2,), (2,): (1,), (0, 1): (2,), (0, 1, 2): (),},
+        Direction.CAUSE: {
+            (1,): (2,),
+            (2,): (0, 1),
+            (0, 1): (),
+            (0, 1, 2): (),
+        },
+        Direction.EFFECT: {
+            (1,): (2,),
+            (2,): (1,),
+            (0, 1): (2,),
+            (0, 1, 2): (),
+        },
     },
 }
 expected_purviews = {
     cut: {
         direction: {
             mechanism: purview
-            for mechanism, purview in expected_purview_indices[cut][direction].items()
+            for mechanism, purview in expected_purview_indices[cut][
+                direction
+            ].items()
         }
         for direction in directions
     }

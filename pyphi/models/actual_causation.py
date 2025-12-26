@@ -1,14 +1,11 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # models/actual_causation.py
+"""Objects that represent structures used in actual causation."""
 
-"""
-Objects that represent structures used in actual causation.
-"""
+from collections import namedtuple
+from collections.abc import Sequence
 
-import collections
-
-from .. import Direction, config, utils
+from .. import utils
+from ..direction import Direction
 from . import cmp, fmt
 
 # TODO(slipperyhank): add second state
@@ -97,10 +94,8 @@ class AcRepertoireIrreducibilityAnalysis(cmp.Orderable):
     unorderable_unless_eq = ["direction"]
 
     def order_by(self):
-        if config.PICK_SMALLEST_PURVIEW:
-            return [self.alpha, len(self.mechanism), -len(self.purview)]
-
-        return [self.alpha, len(self.mechanism), len(self.purview)]
+        # Here we enforce that ties are broken in favor of smaller purviews
+        return [self.alpha, len(self.mechanism), -len(self.purview)]
 
     def __eq__(self, other):
         # TODO(slipperyhank): include 2nd state here?
@@ -237,7 +232,7 @@ class CausalLink(cmp.Orderable):
         return {"ria": self.ria}
 
 
-class Event(collections.namedtuple("Event", ["actual_cause", "actual_effect"])):
+class Event(namedtuple("Event", ["actual_cause", "actual_effect"])):
     """A mechanism which has both an actual cause and an actual effect.
 
     Attributes:
@@ -252,7 +247,7 @@ class Event(collections.namedtuple("Event", ["actual_cause", "actual_effect"])):
         return self.actual_cause.mechanism
 
 
-class Account(cmp.Orderable, collections.abc.Sequence):
+class Account(cmp.Orderable, Sequence):
     """The set of |CausalLinks| with |alpha > 0|. This includes both actual
     causes and actual effects.
     """
@@ -308,8 +303,6 @@ class DirectedAccount(Account):
     """The set of |CausalLinks| with |alpha > 0| for one direction of a
     transition.
     """
-
-    pass
 
 
 _ac_sia_attributes = [

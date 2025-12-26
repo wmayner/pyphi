@@ -1,7 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # log.py
-
 """Utilities for logging and progress bars."""
 
 import logging

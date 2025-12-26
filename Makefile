@@ -16,9 +16,6 @@ coverage:
 	coverage html
 	open htmlcov/index.html
 
-lint:
-	pylint $(src)
-
 watch-tests:
 	watchmedo shell-command \
 		--command='make coverage' \
@@ -71,4 +68,6 @@ clean-dist:
 	rm -rf $(dist_dir)
 
 clean:
+	rm -rf __pycache__
 	rm -rf **/__pycache__
+	rm -rf **/pyphi.log

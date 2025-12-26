@@ -1,7 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# example_networks.py
-
 import numpy as np
 
 import pyphi
@@ -81,7 +77,7 @@ s_all_off = (0, 0, 0)
 
 
 def simple(cm=False):
-    """ Simple 'AND' network.
+    """Simple 'AND' network.
 
     Diagram:
 
@@ -706,7 +702,7 @@ def propagation_delay():
     the original network, blackboxed over two time steps.
     """
     nodes = 8
-    tpm = np.zeros((2 ** nodes, nodes))
+    tpm = np.zeros((2**nodes, nodes))
 
     for psi, ps in enumerate(utils.all_states(nodes)):
         cs = [0 for i in range(nodes)]

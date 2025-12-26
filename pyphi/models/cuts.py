@@ -1,15 +1,14 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # models/cuts.py
-
 """Objects that represent partitions of sets of nodes."""
 
-import collections
+from collections.abc import Sequence
+from dataclasses import dataclass
 from itertools import chain
 
 import numpy as np
 
 from .. import connectivity, utils
+from ..labels import NodeLabels
 from . import cmp, fmt
 
 
@@ -63,7 +62,7 @@ class _CutBase:
             a (tuple[int]): A set of nodes.
             b (tuple[int]): A set of nodes.
         """
-        n = max(self.indices) + 1
+        n = max(self.indices + a + b) + 1
         return self.cut_matrix(n)[np.ix_(a, b)].any()
 
     def splits_mechanism(self, mechanism):
@@ -182,9 +181,54 @@ class Cut(_CutBase):
     def __str__(self):
         return fmt.fmt_cut(self)
 
+    def __len__(self):
+        """The number of parts in the Cut."""
+        # TODO(4.0) generalize this when/if general Partition object is used
+        return 2
+
+    def format(self, node_labels=None):
+        return fmt.fmt_part(self, node_labels=node_labels)
+
     def to_json(self):
         """Return a JSON-serializable representation."""
         return {"from_nodes": self.from_nodes, "to_nodes": self.to_nodes}
+
+    @classmethod
+    def from_json(cls, data):
+        """Return a Cut object from a JSON-serializable representation."""
+        return cls(data["from_nodes"], data["to_nodes"])
+
+
+class SystemPartition(Cut):
+    """A system partition.
+
+    Same as a IIT 3.0 unidirectional partition, but with a Direction.
+    """
+
+    def __init__(self, direction, *args, **kwargs):
+        self.direction = direction
+        super().__init__(*args, **kwargs)
+
+    def __repr__(self):
+        return fmt.fmt_cut(self, direction=self.direction)
+
+    def to_json(self):
+        return {
+            "direction": self.direction,
+            **super().to_json(),
+        }
+
+    @classmethod
+    def from_json(cls, data):
+        """Return a SystemPartition object from a JSON-serializable representation."""
+        return cls(data["direction"], data["from_nodes"], data["to_nodes"])
+
+
+class CompleteSystemPartition:
+    """Represents the SystemPartition that destroys all distinctions & relations."""
+
+    def __repr__(self):
+        return "Complete"
 
 
 class KCut(_CutBase):
@@ -197,7 +241,7 @@ class KCut(_CutBase):
 
     @property
     def indices(self):
-        assert self.partition.mechanism == self.partition.purview
+        assert set(self.partition.mechanism) == set(self.partition.purview)
         return self.partition.mechanism
 
     def cut_matrix(self, n):
@@ -238,7 +282,123 @@ class ActualCut(KCut):
         return tuple(sorted(set(self.partition.mechanism + self.partition.purview)))
 
 
-class Part(collections.namedtuple("Part", ["mechanism", "purview"])):
+class GeneralKCut(_CutBase):
+    """A cut defined by a matrix of cut connections."""
+
+    def __init__(self, node_indices, cut_matrix, node_labels=None):
+        self.node_indices = node_indices
+        self._cut_matrix = cut_matrix
+        self.node_labels = node_labels
+
+    def normalization_factor(self):
+        """The normalization factor for this cut."""
+        return 1 / np.sum(self._cut_matrix)
+
+    @property
+    def indices(self):
+        return self.node_indices
+
+    def cut_matrix(self, n):
+        """The matrix of connections that are severed by this cut."""
+        cm = np.zeros([n, n])
+        cm[np.ix_(self.node_indices, self.node_indices)] = self._cut_matrix
+        return cm
+
+    @cmp.sametype
+    def __eq__(self, other):
+        return self.node_indices == other.node_indices and np.array_equal(
+            self._cut_matrix, other._cut_matrix
+        )
+
+    def __hash__(self):
+        return hash((self.node_indices, utils.np_hash(self._cut_matrix)))
+
+    def __repr__(self):
+        return fmt.make_repr(self, ["node_indices", "_cut_matrix"])
+
+    def __str__(self):
+        # TODO: improve
+        return str(self._cut_matrix)
+
+    def to_json(self):
+        return self.__dict__.copy()
+
+    @classmethod
+    def from_json(cls, data):
+        return cls(
+            node_indices=data["node_indices"],
+            cut_matrix=data["_cut_matrix"],
+            node_labels=data["node_labels"],
+        )
+
+
+class CompleteGeneralKCut(GeneralKCut):
+    def __init__(self, node_indices, node_labels=None):
+        self.node_indices = node_indices
+        self.node_labels = node_labels
+        self._cut_matrix = np.ones([len(node_indices), len(node_indices)], dtype=int)
+
+    def normalization_factor(self):
+        """The normalization factor for this cut."""
+        return 1 / len(self.node_indices)
+
+
+class GeneralSetPartition(GeneralKCut):
+    def __init__(self, *args, set_partition=None, **kwargs):
+        self.set_partition = set_partition
+        super().__init__(*args, **kwargs)
+        self.parts = [
+            [self.node_indices[i] for i in part] for part in self.set_partition
+        ]
+
+    @property
+    def num_parts(self):
+        return len(self.set_partition)
+
+    def __str__(self):
+        if self.node_labels is not None:
+            parts = map(self.node_labels.coerce_to_labels, self.parts)
+        else:
+            parts = map(str, self.parts)
+        return (
+            f"{self.num_parts} parts: "
+            + "{"
+            + ",".join("".join(part) for part in parts)
+            + "}\n"
+            + super().__str__()
+        )
+
+    def to_json(self):
+        dct = self.__dict__.copy()
+        del dct["parts"]
+        return dct
+
+    @classmethod
+    def from_json(cls, data):
+        data["cut_matrix"] = np.array(data.pop("_cut_matrix"))
+        return cls(**data)
+
+    # TODO(4.0) add to other classes after consolidating partitions
+    def relabel(self, node_indices, node_labels=None):
+        if node_labels is None:
+            node_labels = self.node_labels
+        if not len(node_indices) == len(self.node_indices):
+            raise ValueError("New node indices must have same length as the old.")
+        return GeneralSetPartition(
+            node_indices,
+            self._cut_matrix,
+            set_partition=self.set_partition,
+            node_labels=node_labels,
+        )
+
+
+class CompleteGeneralSetPartition(CompleteGeneralKCut):
+    def __str__(self):
+        return "Complete\n" + super().__str__()
+
+
+@dataclass(order=True, frozen=True)
+class Part:
     """Represents one part of a |Bipartition|.
 
     Attributes:
@@ -256,24 +416,40 @@ class Part(collections.namedtuple("Part", ["mechanism", "purview"])):
         This class represents one term in the above product.
     """
 
-    __slots__ = ()
+    mechanism: tuple
+    purview: tuple
+    node_labels: NodeLabels = None
+
+    def __hash__(self):
+        return hash((self.mechanism, self.purview))
+
+    def __eq__(self, other):
+        return (self.mechanism == other.mechanism) and (self.purview == other.purview)
+
+    def __repr__(self):
+        return fmt.fmt_part(self, node_labels=self.node_labels)
 
     def to_json(self):
         """Return a JSON-serializable representation."""
         return {"mechanism": self.mechanism, "purview": self.purview}
 
 
-class KPartition(collections.abc.Sequence):
+class KPartition(Sequence, _CutBase):
     """A partition with an arbitrary number of parts."""
 
-    __slots__ = ["parts", "node_labels"]
+    __slots__ = ["parts", "node_labels", "_mechanism", "_purview"]
 
     def __init__(self, *parts, node_labels=None):
         self.parts = parts
         self.node_labels = node_labels
+        self._mechanism = None
+        self._purview = None
 
     def __len__(self):
         return len(self.parts)
+
+    def __bool__(self):
+        return len(self) > 0
 
     def __getitem__(self, index):
         return self.parts[index]
@@ -295,16 +471,55 @@ class KPartition(collections.abc.Sequence):
     @property
     def mechanism(self):
         """tuple[int]: The nodes of the mechanism in the partition."""
-        return tuple(sorted(chain.from_iterable(part.mechanism for part in self)))
+        # TODO(4.0) do we need to sort here? slow
+        if self._mechanism is None:
+            self._mechanism = tuple(
+                chain.from_iterable(part.mechanism for part in self)
+            )
+        return self._mechanism
 
     @property
     def purview(self):
         """tuple[int]: The nodes of the purview in the partition."""
-        return tuple(sorted(chain.from_iterable(part.purview for part in self)))
+        if self._purview is None:
+            # NOTE: Must sort here as long as states are tuples and not
+            # mappings; we need to be able to combine a purview and a state in
+            # order, e.g. in `Subsystem.partitioned_repertoire`.
+            # TODO(states) remove sorting once states are mappings?
+            self._purview = tuple(
+                sorted(chain.from_iterable(part.purview for part in self))
+            )
+        return self._purview
+
+    @property
+    def indices(self):
+        return tuple(sorted(set(self.mechanism + self.purview)))
 
     def normalize(self):
         """Normalize the order of parts in the partition."""
         return type(self)(*sorted(self), node_labels=self.node_labels)
+
+    def num_connections_cut(self):
+        """The number of connections cut by this partition."""
+        n = 0
+        purview_lengths = [len(part.purview) for part in self.parts]
+        for i, part in enumerate(self.parts):
+            n += len(part.mechanism) * (
+                sum(purview_lengths[:i]) + sum(purview_lengths[i + 1 :])
+            )
+        return n
+
+    # TODO(4.0) consolidate cut classes
+    def cut_matrix(self, n):
+        """The matrix of connections that are severed by this cut."""
+        cm = np.zeros((n, n))
+
+        for part in self.parts:
+            # Indices of all other part's purviews
+            outside_part = tuple(set(self.purview) - set(part.purview))
+            cm[np.ix_(part.mechanism, outside_part)] = 1
+
+        return cm
 
     def to_json(self):
         return {"parts": list(self)}

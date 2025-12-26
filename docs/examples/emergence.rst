@@ -3,6 +3,17 @@
 Emergence (coarse-graining and blackboxing)
 ===========================================
 
+We'll start by import PyPhi and loading the IIT 3.0 configuration:
+
+    >>> import pyphi
+    >>> pyphi.config.load_file('pyphi_config_3.0.yml')
+
+For these examples, we won't use parallelization:
+
+    >>> pyphi.config.PARALLEL_CONCEPT_EVALUATION = False
+    >>> pyphi.config.PARALLEL_CUT_EVALUATION = False
+    >>> pyphi.config.PARALLEL_COMPLEX_EVALUATION = False
+
 Coarse-graining
 ~~~~~~~~~~~~~~~
 

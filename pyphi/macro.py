@@ -1,10 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # macro.py
-
-"""
-Methods for coarse-graining systems to different levels of spatial analysis.
-"""
+"""Methods for coarse-graining systems to different levels of spatial analysis."""
 
 import itertools
 import logging
@@ -13,13 +8,15 @@ from collections import namedtuple
 import numpy as np
 from scipy.stats import entropy
 
-from . import compute, config, constants, convert, distribution, utils, validate
+from . import compute, convert, distribution, utils, validate
+from .conf import config
 from .exceptions import ConditionallyDependentError, StateUnreachableError
 from .labels import NodeLabels
 from .network import irreducible_purviews
 from .node import expand_node_tpm, generate_nodes
 from .subsystem import Subsystem
-from .tpm import is_state_by_state, marginalize_out, tpm_indices
+from .tpm import ExplicitTPM
+from .direction import Direction
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
@@ -35,10 +32,19 @@ def reindex(indices):
 
 
 def rebuild_system_tpm(node_tpms):
-    """Reconstruct the network TPM from a collection of node TPMs."""
-    return np.stack([expand_node_tpm(tpm) for tpm in node_tpms], axis=-1)
+    """Reconstruct the network TPM from a collection of node TPMs.
+
+    Args:
+        node_tpms (Iterable[ExplicitTPM]): The collection of node TPMs.
+
+    Returns:
+        ExplicitTPM: The system TPM which comprises the input node TPMs.
+    """
+    tpm = np.stack([expand_node_tpm(tpm).tpm for tpm in node_tpms], axis=-1)
+    return ExplicitTPM(tpm, validate=True)
 
 
+# TODO This should be a method of the TPM class in tpm.py
 def remove_singleton_dimensions(tpm):
     """Remove singleton dimensions from the TPM.
 
@@ -54,40 +60,54 @@ def remove_singleton_dimensions(tpm):
     if tpm.ndim <= 2:
         return tpm
 
-    return tpm.squeeze()[..., tpm_indices(tpm)]
+    return tpm.squeeze()[..., tpm.tpm_indices()]
 
 
-def run_tpm(system, steps, blackbox):
+def run_tpm(system, direction, steps, blackbox):
     """Iterate the TPM for the given number of timesteps.
 
     Returns:
-        np.ndarray: tpm * (noise_tpm^(t-1))
+        ExplicitTPM: tpm * (noise_tpm^(t-1))
     """
     # Generate noised TPM
     # Noise the connections from every output element to elements in other
     # boxes.
     node_tpms = []
     for node in system.nodes:
-        node_tpm = node.tpm_on
+        if direction == Direction.CAUSE:
+            node_tpm = node.cause_tpm_on
+        elif direction == Direction.EFFECT:
+            node_tpm = node.effect_tpm_on
+        else:
+            return validate.direction(direction)
         for input_node in node.inputs:
             if not blackbox.in_same_box(node.index, input_node):
                 if input_node in blackbox.output_indices:
-                    node_tpm = marginalize_out([input_node], node_tpm)
+                    node_tpm = node_tpm.marginalize_out([input_node])
 
         node_tpms.append(node_tpm)
 
     noised_tpm = rebuild_system_tpm(node_tpms)
-    noised_tpm = convert.state_by_node2state_by_state(noised_tpm)
+    noised_tpm = convert.state_by_node2state_by_state(noised_tpm.tpm)
 
-    tpm = convert.state_by_node2state_by_state(system.tpm)
+    if direction == Direction.CAUSE:
+        tpm = convert.state_by_node2state_by_state(system.cause_tpm.tpm)
+    elif direction == Direction.EFFECT:
+        tpm = convert.state_by_node2state_by_state(system.effect_tpm.tpm)
+    else:
+        return validate.direction(direction)
 
     # Muliply by noise
     tpm = np.dot(tpm, np.linalg.matrix_power(noised_tpm, steps - 1))
 
-    return convert.state_by_state2state_by_node(tpm)
+    return ExplicitTPM(convert.state_by_state2state_by_node(tpm), validate=True)
 
 
-class SystemAttrs(namedtuple("SystemAttrs", ["tpm", "cm", "node_indices", "state"])):
+class SystemAttrs(
+    namedtuple(
+        "SystemAttrs", ["cause_tpm", "effect_tpm", "cm", "node_indices", "state"]
+    )
+):
     """An immutable container that holds all the attributes of a subsystem.
 
     Versions of this object are passed down the steps of the micro-to-macro
@@ -104,15 +124,27 @@ class SystemAttrs(namedtuple("SystemAttrs", ["tpm", "cm", "node_indices", "state
     @property
     def nodes(self):
         return generate_nodes(
-            self.tpm, self.cm, self.state, self.node_indices, self.node_labels
+            self.cause_tpm,
+            self.effect_tpm,
+            self.cm,
+            self.state,
+            self.node_indices,
+            self.node_labels,
         )
 
     @staticmethod
     def pack(system):
-        return SystemAttrs(system.tpm, system.cm, system.node_indices, system.state)
+        return SystemAttrs(
+            system.cause_tpm,
+            system.effect_tpm,
+            system.cm,
+            system.node_indices,
+            system.state,
+        )
 
     def apply(self, system):
-        system.tpm = self.tpm
+        system.cause_tpm = self.cause_tpm
+        system.effect_tpm = self.effect_tpm
         system.cm = self.cm
         system.node_indices = self.node_indices
         system.node_labels = self.node_labels
@@ -147,7 +179,6 @@ class MacroSubsystem(Subsystem):
         state,
         nodes=None,
         cut=None,
-        mice_cache=None,
         time_scale=1,
         blackbox=None,
         coarse_grain=None,
@@ -163,7 +194,7 @@ class MacroSubsystem(Subsystem):
         self.blackbox = blackbox
         self.coarse_grain = coarse_grain
 
-        super().__init__(network, state, micro_node_indices, cut, mice_cache)
+        super().__init__(network, state, micro_node_indices, cut)
 
         validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
 
@@ -210,11 +241,13 @@ class MacroSubsystem(Subsystem):
         Reindexes the subsystem so that the nodes are ``0..n`` where ``n`` is
         the number of internal indices in the system.
         """
-        assert system.node_indices == tpm_indices(system.tpm)
+        assert system.node_indices == system.cause_tpm.tpm_indices()
+        assert system.node_indices == system.effect_tpm.tpm_indices()
 
-        internal_indices = tpm_indices(system.tpm)
+        internal_indices = system.effect_tpm.tpm_indices()
 
-        tpm = remove_singleton_dimensions(system.tpm)
+        cause_tpm = remove_singleton_dimensions(system.cause_tpm)
+        effect_tpm = remove_singleton_dimensions(system.effect_tpm)
 
         # The connectivity matrix is the network's connectivity matrix, with
         # cut applied, with all connections to/from external nodes severed,
@@ -225,42 +258,51 @@ class MacroSubsystem(Subsystem):
 
         # Re-index the subsystem nodes with the external nodes removed
         node_indices = reindex(internal_indices)
-        nodes = generate_nodes(tpm, cm, state, node_indices)
+        nodes = generate_nodes(cause_tpm, effect_tpm, cm, state, node_indices)
 
         # Re-calcuate the tpm based on the results of the cut
-        tpm = rebuild_system_tpm(node.tpm_on for node in nodes)
+        cause_tpm = rebuild_system_tpm(node.cause_tpm_on for node in nodes)
+        effect_tpm = rebuild_system_tpm(node.effect_tpm_on for node in nodes)
 
-        return SystemAttrs(tpm, cm, node_indices, state)
+        return SystemAttrs(cause_tpm, effect_tpm, cm, node_indices, state)
 
     @staticmethod
     def _blackbox_partial_noise(blackbox, system):
         """Noise connections from hidden elements to other boxes."""
         # Noise inputs from non-output elements hidden in other boxes
-        node_tpms = []
+        node_cause_tpms = []
+        node_effect_tpms = []
         for node in system.nodes:
-            node_tpm = node.tpm_on
+            node_cause_tpm = node.cause_tpm_on
+            node_effect_tpm = node.effect_tpm_on
             for input_node in node.inputs:
                 if blackbox.hidden_from(input_node, node.index):
-                    node_tpm = marginalize_out([input_node], node_tpm)
+                    node_cause_tpm = node_cause_tpm.marginalize_out([input_node])
+                    node_effect_tpm = node_effect_tpm.marginalize_out([input_node])
 
-            node_tpms.append(node_tpm)
+            node_cause_tpms.append(node_cause_tpm)
+            node_effect_tpms.append(node_effect_tpm)
 
-        tpm = rebuild_system_tpm(node_tpms)
+        cause_tpm = rebuild_system_tpm(node_cause_tpms)
+        effect_tpm = rebuild_system_tpm(node_effect_tpms)
 
-        return system._replace(tpm=tpm)
+        system = system._replace(cause_tpm=cause_tpm)
+        system = system._replace(effect_tpm=effect_tpm)
+        return system
 
     @staticmethod
     def _blackbox_time(time_scale, blackbox, system):
         """Black box the CM and TPM over the given time_scale."""
         blackbox = blackbox.reindex()
 
-        tpm = run_tpm(system, time_scale, blackbox)
+        cause_tpm = run_tpm(system, Direction.CAUSE, time_scale, blackbox)
+        effect_tpm = run_tpm(system, Direction.EFFECT, time_scale, blackbox)
 
         # Universal connectivity, for now.
         n = len(system.node_indices)
         cm = np.ones((n, n))
 
-        return SystemAttrs(tpm, cm, system.node_indices, system.state)
+        return SystemAttrs(cause_tpm, effect_tpm, cm, system.node_indices, system.state)
 
     def _blackbox_space(self, blackbox, system):
         """Blackbox the TPM and CM in space.
@@ -274,11 +316,14 @@ class MacroSubsystem(Subsystem):
         there is only `len(output_indices)` dimensions in the TPM and in the
         state of the subsystem.
         """
-        tpm = marginalize_out(blackbox.hidden_indices, system.tpm)
+        cause_tpm = system.cause_tpm.marginalize_out(blackbox.hidden_indices)
+        effect_tpm = system.effect_tpm.marginalize_out(blackbox.hidden_indices)
 
-        assert blackbox.output_indices == tpm_indices(tpm)
+        assert blackbox.output_indices == cause_tpm.tpm_indices()
+        assert blackbox.output_indices == effect_tpm.tpm_indices()
 
-        tpm = remove_singleton_dimensions(tpm)
+        cause_tpm = remove_singleton_dimensions(cause_tpm)
+        effect_tpm = remove_singleton_dimensions(effect_tpm)
         n = len(blackbox)
         cm = np.zeros((n, n))
         for i, j in itertools.product(range(n), repeat=2):
@@ -291,12 +336,17 @@ class MacroSubsystem(Subsystem):
         state = blackbox.macro_state(system.state)
         node_indices = blackbox.macro_indices
 
-        return SystemAttrs(tpm, cm, node_indices, state)
+        return SystemAttrs(cause_tpm, effect_tpm, cm, node_indices, state)
 
     @staticmethod
     def _coarsegrain_space(coarse_grain, is_cut, system):
         """Spatially coarse-grain the TPM and CM."""
-        tpm = coarse_grain.macro_tpm(system.tpm, check_independence=(not is_cut))
+        cause_tpm = coarse_grain.macro_tpm(
+            system.cause_tpm.tpm, check_independence=(not is_cut)
+        )
+        effect_tpm = coarse_grain.macro_tpm(
+            system.effect_tpm.tpm, check_independence=(not is_cut)
+        )
 
         node_indices = coarse_grain.macro_indices
         state = coarse_grain.macro_state(system.state)
@@ -305,7 +355,9 @@ class MacroSubsystem(Subsystem):
         n = len(node_indices)
         cm = np.ones((n, n))
 
-        return SystemAttrs(tpm, cm, node_indices, state)
+        cause_tpm = ExplicitTPM(cause_tpm, validate=True)
+        effect_tpm = ExplicitTPM(effect_tpm, validate=True)
+        return SystemAttrs(cause_tpm, effect_tpm, cm, node_indices, state)
 
     @property
     def cut_indices(self):
@@ -505,9 +557,11 @@ class CoarseGrain(namedtuple("CoarseGrain", ["partition", "grouping"])):
 
         micro_state = np.array(micro_state)
         return tuple(
-            0
-            if sum(micro_state[list(reindexed.partition[i])]) in self.grouping[i][0]
-            else 1
+            (
+                0
+                if sum(micro_state[list(reindexed.partition[i])]) in self.grouping[i][0]
+                else 1
+            )
             for i in self.macro_indices
         )
 
@@ -540,7 +594,8 @@ class CoarseGrain(namedtuple("CoarseGrain", ["partition", "grouping"])):
         Returns:
             np.ndarray: The state-by-state TPM of the macro-system.
         """
-        validate.tpm(state_by_state_micro_tpm, check_independence=False)
+        tpm = ExplicitTPM(state_by_state_micro_tpm)
+        tpm.validate(check_independence=False)
 
         mapping = self.make_mapping()
 
@@ -576,13 +631,14 @@ class CoarseGrain(namedtuple("CoarseGrain", ["partition", "grouping"])):
         Returns:
             np.ndarray: The state-by-node TPM of the macro-system.
         """
-        if not is_state_by_state(micro_tpm):
+        if not ExplicitTPM(micro_tpm).is_state_by_state():
             micro_tpm = convert.state_by_node2state_by_state(micro_tpm)
 
         macro_tpm = self.macro_tpm_sbs(micro_tpm)
 
         if check_independence:
-            validate.conditionally_independent(macro_tpm)
+            tpm = ExplicitTPM(macro_tpm)
+            tpm.conditionally_independent()
 
         return convert.state_by_state2state_by_node(macro_tpm)
 
@@ -876,7 +932,7 @@ def coarse_graining(network, state, internal_indices):
             continue
 
         phi = compute.phi(subsystem)
-        if (phi - max_phi) > constants.EPSILON:
+        if (phi - max_phi) > 10 ** (-config.PRECISION):
             max_phi = phi
             max_coarse_grain = coarse_grain
 
@@ -964,7 +1020,7 @@ def emergence(
     ):
         phi = compute.phi(subsystem)
 
-        if (phi - max_phi) > constants.EPSILON:
+        if (phi - max_phi) > 10 ** (-config.PRECISION):
             max_phi = phi
             max_network = MacroNetwork(
                 network=network,
@@ -1022,7 +1078,7 @@ def effective_info(network):
     """
     validate.is_network(network)
 
-    sbs_tpm = convert.state_by_node2state_by_state(network.tpm)
+    sbs_tpm = convert.state_by_node2state_by_state(network.tpm.tpm)
     avg_repertoire = np.mean(sbs_tpm, 0)
 
     return np.mean([entropy(repertoire, avg_repertoire, 2.0) for repertoire in sbs_tpm])

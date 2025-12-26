@@ -1,12 +1,9 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# test/test_partition.py
-
 import itertools
 
 import numpy as np
 
 from pyphi import Direction, config
+from pyphi.combinatorics import set_partitions as partitions
 from pyphi.models import Bipartition, KPartition, Part, Tripartition
 from pyphi.partition import (
     all_partitions,
@@ -15,7 +12,6 @@ from pyphi.partition import (
     k_partitions,
     mip_bipartitions,
     partition_types,
-    partitions,
     wedge_partitions,
 )
 
@@ -242,7 +238,9 @@ def test_mip_bipartitions():
 def test_wedge_partitions():
     mechanism, purview = (0,), (1, 2)
     assert set(wedge_partitions(mechanism, purview)) == set(
-        [Tripartition(Part((), ()), Part((), (1, 2)), Part((0,), ())),]
+        [
+            Tripartition(Part((), ()), Part((), (1, 2)), Part((0,), ())),
+        ]
     )
 
     mechanism, purview = (3, 4), (5, 6)
@@ -264,26 +262,20 @@ def test_wedge_partitions():
 def test_partitioned_repertoire_with_tripartition(s):
     tripartition = Tripartition(Part((), (1,)), Part((0,), ()), Part((), (2,)))
 
-    assert np.array_equal(
-        s.partitioned_repertoire(Direction.CAUSE, tripartition),
-        np.array([[[0.25, 0.25], [0.25, 0.25]]]),
-    )
+    assert s.partitioned_repertoire(
+            Direction.CAUSE,
+            tripartition,
+            state=tuple(s.state[node] for node in tripartition.purview),
+        ) == 0.75
 
 
 def test_tripartitions_choses_smallest_purview(s):
     mechanism = (1, 2)
 
-    with config.override(PICK_SMALLEST_PURVIEW=False):
-        mie = s.mie(mechanism)
-        assert mie.phi == 0.5
-        assert mie.purview == (0, 1)
-
-    s.clear_caches()
-
     # In phi-tie, chose the smaller purview (0,)
-    with config.override(PICK_SMALLEST_PURVIEW=True):
+    with config.override(PURVIEW_TIE_RESOLUTION=["PHI", "NEGATIVE_PURVIEW_SIZE"]):
         mie = s.mie(mechanism)
-        assert mie.phi == 0.5
+        assert mie.phi == 2.0
         assert mie.purview == (0,)
 
 

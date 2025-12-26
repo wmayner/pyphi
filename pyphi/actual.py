@@ -1,7 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # actual.py
-
 """
 Methods for computing actual causation of subsystems and mechanisms.
 
@@ -24,17 +21,11 @@ from itertools import chain
 
 import numpy as np
 
-from . import (
-    Direction,
-    compute,
-    config,
-    connectivity,
-    constants,
-    exceptions,
-    utils,
-    validate,
-)
-from .distance import pointwise_mutual_information, probability_distance
+from . import compute, conf, connectivity, exceptions, utils, validate
+from .parallel import MapReduce
+from .conf import config
+from .direction import Direction
+from .metrics.distribution import actual_causation_measures as measures
 from .models import (
     Account,
     AcRepertoireIrreducibilityAnalysis,
@@ -88,7 +79,6 @@ class Transition:
             compute effect repertoires and coefficients.
         cause_system (Subsystem): The system in ``after_state`` used to compute
             cause repertoires and coefficients.
-        cause_system (Subsystem):
         system (dict): A dictionary mapping causal directions to the system
             used to compute repertoires in that direction.
         cut (ActualCut): The cut that has been applied to this transition.
@@ -277,7 +267,10 @@ class Transition:
         return system.repertoire(direction, mechanism, purview)
 
     def state_probability(
-        self, direction, repertoire, purview,
+        self,
+        direction,
+        repertoire,
+        purview,
     ):
         """Compute the probability of the purview in its current state given
         the repertoire.
@@ -298,7 +291,7 @@ class Transition:
         return repertoire[index]
 
     def probability(self, direction, mechanism, purview):
-        """Probability that the purview is in it's current state given the
+        """Probability that the purview is in its current state given the
         state of the mechanism.
         """
         repertoire = self.repertoire(direction, mechanism, purview)
@@ -360,7 +353,13 @@ class Transition:
     def partitioned_repertoire(self, direction, partition):
         """Compute the repertoire over the partition in the given direction."""
         system = self.system[direction]
-        return system.partitioned_repertoire(direction, partition)
+        if config.REPERTOIRE_DISTANCE == "GENERALIZED_INTRINSIC_DIFFERENCE":
+            purview_state = tuple(self.purview_state(direction)[node] for node in partition.purview)
+            return system.partitioned_repertoire(
+                direction, partition, state=purview_state
+            )
+        else:
+            return system.partitioned_repertoire(direction, partition)
 
     def partitioned_probability(self, direction, partition):
         """Compute the probability of the mechanism over the purview in
@@ -416,7 +415,8 @@ class Transition:
                 )
 
             # Then take closest to 0
-            if (abs(alpha_min) - abs(alpha)) > constants.EPSILON:
+            # TODO(4.0)
+            if (abs(alpha_min) - abs(alpha)) > 10 ** (-config.PRECISION):
                 alpha_min = alpha
                 acria = AcRepertoireIrreducibilityAnalysis(
                     state=self.mechanism_state(direction),
@@ -434,7 +434,7 @@ class Transition:
     # Phi_max methods
     # =========================================================================
 
-    def potential_purviews(self, direction, mechanism, purviews=False):
+    def potential_purviews(self, direction, mechanism, purviews=None):
         """Return all purviews that could belong to the |MIC|/|MIE|.
 
         Filters out trivially-reducible purviews.
@@ -453,9 +453,7 @@ class Transition:
             if set(purview).issubset(self.purview_indices(direction))
         ]
 
-    # TODO: Implement mice cache
-    # @cache.method('_mice_cache')
-    def find_causal_link(self, direction, mechanism, purviews=False, allow_neg=False):
+    def find_causal_link(self, direction, mechanism, purviews=None, allow_neg=False):
         """Return the maximally irreducible cause or effect ratio for a
         mechanism.
 
@@ -490,6 +488,7 @@ class Transition:
         ]
         max_ria = max(all_ria)
         purviews = [ria.purview for ria in all_ria if ria.alpha == max_ria.alpha]
+
         # Selected rias whose purview is not a superset of any other
         def is_not_superset(purview):
             return all(
@@ -501,11 +500,11 @@ class Transition:
         extended_purview = filter(is_not_superset, purviews)
         return CausalLink(max_ria, tuple(extended_purview))
 
-    def find_actual_cause(self, mechanism, purviews=False):
+    def find_actual_cause(self, mechanism, purviews=None):
         """Return the actual cause of a mechanism."""
         return self.find_causal_link(Direction.CAUSE, mechanism, purviews)
 
-    def find_actual_effect(self, mechanism, purviews=False):
+    def find_actual_effect(self, mechanism, purviews=None):
         """Return the actual effect of a mechanism."""
         return self.find_causal_link(Direction.EFFECT, mechanism, purviews)
 
@@ -520,10 +519,10 @@ class Transition:
 
 
 def directed_account(
-    transition, direction, mechanisms=False, purviews=False, allow_neg=False
+    transition, direction, mechanisms=None, purviews=None, allow_neg=False
 ):
     """Return the set of all |CausalLinks| of the specified direction."""
-    if mechanisms is False:
+    if mechanisms is None:
         mechanisms = utils.powerset(
             transition.mechanism_indices(direction), nonempty=True
         )
@@ -557,6 +556,29 @@ def account(transition, direction=Direction.BIDIRECTIONAL):
     )
 
 
+def probability_distance(p, q, measure=None):
+    """Compute the distance between two probabilities in actual causation.
+
+    The metric that defines this can be configured with
+    ``config.ACTUAL_CAUSATION_MEASURE``.
+
+    Args:
+        p (float): The first probability.
+        q (float): The second probability.
+
+    Keyword Args:
+        measure (str): Optionally override
+        ``config.ACTUAL_CAUSATION_MEASURE`` with another measure name from
+        the registry.
+
+    Returns:
+        float: The probability distance between ``p`` and ``q``.
+    """
+    measure = config.ACTUAL_CAUSATION_MEASURE if measure is None else measure
+    dist = measures[measure](p, q)
+    return round(dist, config.PRECISION)
+
+
 # =============================================================================
 # AcSystemIrreducibilityAnalysiss and System cuts
 # =============================================================================
@@ -577,7 +599,7 @@ def account_distance(A1, A2):
 
 
 def _evaluate_cut(
-    transition, cut, unpartitioned_account, direction=Direction.BIDIRECTIONAL
+    cut, transition, unpartitioned_account, direction=Direction.BIDIRECTIONAL
 ):
     """Find the |AcSystemIrreducibilityAnalysis| for a given cut."""
     cut_transition = transition.apply_cut(cut)
@@ -619,7 +641,8 @@ def _get_cuts(transition, direction):
             yield ActualCut(direction, partition, transition.node_labels)
 
 
-def sia(transition, direction=Direction.BIDIRECTIONAL):
+# TODO(4.0) change parallel default to True?
+def sia(transition, direction=Direction.BIDIRECTIONAL, **kwargs):
     """Return the minimal information partition of a transition in a specific
     direction.
 
@@ -656,39 +679,26 @@ def sia(transition, direction=Direction.BIDIRECTIONAL):
         return _null_ac_sia(transition, direction)
 
     cuts = _get_cuts(transition, direction)
-    engine = ComputeACSystemIrreducibility(
-        cuts, transition, direction, unpartitioned_account
-    )
-    result = engine.run_sequential()
+
+    parallel_kwargs = conf.parallel_kwargs(config.PARALLEL_CUT_EVALUATION, **kwargs)
+    result = MapReduce(
+        _evaluate_cut,
+        cuts,
+        map_kwargs=dict(
+            transition=transition,
+            direction=direction,
+            unpartitioned_account=unpartitioned_account,
+        ),
+        reduce_func=min,
+        reduce_kwargs=dict(
+            default=_null_ac_sia(transition, direction, alpha=float("inf"))
+        ),
+        shortcircuit_func=utils.is_falsy,
+        **parallel_kwargs,
+    ).run()
     log.info("Finished calculating big-ac-phi data for %s.", transition)
     log.debug("RESULT: \n%s", result)
     return result
-
-
-class ComputeACSystemIrreducibility(compute.parallel.MapReduce):
-    """Computation engine for AC SIAs."""
-
-    # pylint: disable=unused-argument,arguments-differ
-
-    description = "Evaluating AC cuts"
-
-    def empty_result(self, transition, direction, unpartitioned_account):
-        return _null_ac_sia(transition, direction, alpha=float("inf"))
-
-    @staticmethod
-    def compute(cut, transition, direction, unpartitioned_account):
-        return _evaluate_cut(transition, cut, unpartitioned_account, direction)
-
-    def process_result(self, new_sia, min_sia):
-        # Check a new result against the running minimum
-        if not new_sia:  # alpha == 0
-            self.done = True
-            return new_sia
-
-        elif new_sia < min_sia:
-            return new_sia
-
-        return min_sia
 
 
 # =============================================================================
@@ -698,8 +708,7 @@ class ComputeACSystemIrreducibility(compute.parallel.MapReduce):
 
 # TODO: Fix this to test whether the transition is possible
 def transitions(network, before_state, after_state):
-    """Return a generator of all **possible** transitions of a network.
-    """
+    """Return a generator of all **possible** transitions of a network."""
     # TODO: Does not return subsystems that are in an impossible transitions.
 
     # Elements without inputs are reducibe effects,
@@ -785,21 +794,21 @@ def nice_true_ces(tc):
     return true_list
 
 
-def _actual_causes(network, previous_state, current_state, nodes, mechanisms=False):
+def _actual_causes(network, previous_state, current_state, nodes, mechanisms=None):
     log.info("Calculating true causes ...")
     transition = Transition(network, previous_state, current_state, nodes, nodes)
 
     return directed_account(transition, Direction.CAUSE, mechanisms=mechanisms)
 
 
-def _actual_effects(network, current_state, next_state, nodes, mechanisms=False):
+def _actual_effects(network, current_state, next_state, nodes, mechanisms=None):
     log.info("Calculating true effects ...")
     transition = Transition(network, current_state, next_state, nodes, nodes)
 
     return directed_account(transition, Direction.EFFECT, mechanisms=mechanisms)
 
 
-def events(network, previous_state, current_state, next_state, nodes, mechanisms=False):
+def events(network, previous_state, current_state, next_state, nodes, mechanisms=None):
     """Find all events (mechanisms with actual causes and actual effects)."""
     actual_causes = _actual_causes(
         network, previous_state, current_state, nodes, mechanisms
@@ -889,7 +898,7 @@ def true_events(
     elif indices:
         nodes = indices
     else:
-        major_complex = compute.major_complex(network, current_state)
+        major_complex = compute.network.major_complex(network, current_state)
         nodes = major_complex.subsystem.node_indices
 
     return events(network, previous_state, current_state, next_state, nodes)
@@ -920,7 +929,7 @@ def extrinsic_events(
     elif indices:
         mc_nodes = indices
     else:
-        major_complex = compute.major_complex(network, current_state)
+        major_complex = compute.network.major_complex(network, current_state)
         mc_nodes = major_complex.subsystem.node_indices
 
     mechanisms = list(utils.powerset(mc_nodes, nonempty=True))

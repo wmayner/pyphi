@@ -1,14 +1,10 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# test/test_registry.py
-
 import pytest
 
-from pyphi import distance
+from pyphi.registry import Registry
 
 
 def test_registry():
-    registry = distance.Registry()
+    registry = Registry()
 
     assert "DIFF" not in registry
     assert len(registry) == 0

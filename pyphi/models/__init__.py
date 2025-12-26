@@ -1,10 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # models/__init__.py
-
-"""
-See |models.subsystem|, |models.mechanism|, and |models.cuts| for
-documentation.
+"""See |models.subsystem|, |models.mechanism|, and |models.cuts| for documentation.
 
 Attributes:
     Account: Alias for :class:`pyphi.models.actual_causation.Account`.
@@ -64,4 +59,9 @@ from .mechanism import (
     RepertoireIrreducibilityAnalysis,
     _null_ria,
 )
-from .subsystem import CauseEffectStructure, SystemIrreducibilityAnalysis, _null_sia
+from .subsystem import (
+    CauseEffectStructure,
+    FlatCauseEffectStructure,
+    SystemIrreducibilityAnalysis,
+    _null_sia,
+)

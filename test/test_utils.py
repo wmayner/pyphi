@@ -1,12 +1,9 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# test/test_utils.py
-
-from unittest.mock import patch
-
 import numpy as np
+from hypothesis import given
 
-from pyphi import constants, utils
+from pyphi import config, utils
+
+from .hypothesis_utils import anything, finite_floats, iterable_or_list
 
 
 def test_all_states():
@@ -30,17 +27,47 @@ def test_all_states():
 
 def test_eq():
     phi = 0.5
-    close_enough = phi - constants.EPSILON / 2
-    not_quite = phi - constants.EPSILON * 2
+    epsilon = 10 ** (-config.PRECISION)
+    close_enough = phi - epsilon / 2
+    not_quite = phi - epsilon * 2
     assert utils.eq(phi, close_enough)
     assert not utils.eq(phi, not_quite)
     assert not utils.eq(phi, (phi - phi))
 
 
+@given(finite_floats())
+def test_eq_reflexive(x):
+    assert utils.eq(x, x)
+
+
+@given(finite_floats(), finite_floats())
+def test_eq_symmetric(x, y):
+    assert utils.eq(x, y) == utils.eq(y, x)
+
+
+@given(finite_floats())
+def test_is_positive_matches_sign(x):
+    if utils.eq(x, 0):
+        assert not utils.is_positive(x)
+    else:
+        assert utils.is_positive(x) == (x > 0)
+
+
+@given(finite_floats())
+def test_is_nonpositive_matches_sign(x):
+    assert utils.is_nonpositive(x) == (x <= 0)
+
+
 def test_combs_for_1D_input():
     n, k = 3, 2
     data = np.arange(n)
-    answer = np.asarray([[0, 1], [0, 2], [1, 2],])
+    answer = np.asarray(
+        [
+            [0, 1],
+            [0, 2],
+            [1, 2],
+        ]
+    )
     assert np.array_equal(utils.combs(data, k), answer)
 
 
@@ -96,18 +123,7 @@ def test_np_hashable():
     assert c_hashable in s
 
 
-def test_time_annotated():
-    class Timeable:
-        time = None
-
-    retval = Timeable()
-
-    @utils.time_annotated
-    def func():
-        return retval
-
-    with patch("pyphi.utils.time", side_effect=[2, 5]):
-        r = func()
-
-    assert r == retval
-    assert r.time == 3
+@given(iterable_or_list(anything()))
+def test_try_len(iterable):
+    expected = len(iterable) if hasattr(iterable, "__len__") else None
+    assert utils.try_len(iterable) == expected

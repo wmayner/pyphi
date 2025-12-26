@@ -1,103 +1,57 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # validate.py
+"""Methods for validating user input."""
 
-"""
-Methods for validating arguments.
-"""
+from __future__ import annotations
+
+from typing import Iterable, Optional, Sequence
 
 import numpy as np
 
-from . import Direction, config, convert, exceptions
-from .tpm import is_state_by_state
+from . import exceptions
+from .conf import config
+from .direction import Direction
 
 # pylint: disable=redefined-outer-name
 
 
-def direction(direction, allow_bi=False):
+# TODO(4.0) move to `Direction`
+def directions(directions: Iterable[Direction], **kwargs) -> bool:
+    """Validate each direction in an iterable.
+
+    Args:
+        directions (Iterable[Direction]): Directions to validate.
+        **kwargs: Passed through to |direction|.
+
+    Returns:
+        bool: ``True`` if every element is a valid |Direction|.
+    """
+    return all(direction(d, **kwargs) for d in directions)
+
+
+def direction(direction: Direction, allow_bi: bool = False) -> bool:
     """Validate that the given direction is one of the allowed constants.
 
-    If ``allow_bi`` is ``True`` then ``Direction.BIDIRECTIONAL`` is
-    acceptable.
+    Args:
+        direction (Direction): Direction to validate.
+        allow_bi (bool): Whether bidirectional arrows are allowed.
+
+    Returns:
+        bool: ``True`` if the direction is valid; otherwise raises.
     """
-    valid = [Direction.CAUSE, Direction.EFFECT]
+    valid = set(Direction.both())
     if allow_bi:
-        valid.append(Direction.BIDIRECTIONAL)
+        valid.add(Direction.BIDIRECTIONAL)
 
     if direction not in valid:
-        raise ValueError("`direction` must be one of {}".format(valid))
-
-    return True
-
-
-def tpm(tpm, check_independence=True):
-    """Validate a TPM.
-
-    The TPM can be in
-
-        * 2-dimensional state-by-state form,
-        * 2-dimensional state-by-node form, or
-        * multidimensional state-by-node form.
-    """
-    see_tpm_docs = (
-        "See the documentation on TPM conventions and the `pyphi.Network` "
-        "object for more information on TPM forms."
-    )
-    # Cast to np.array.
-    tpm = np.array(tpm)
-    # Get the number of nodes from the state-by-node TPM.
-    N = tpm.shape[-1]
-    if tpm.ndim == 2:
-        if not (
-            (tpm.shape[0] == 2 ** N and tpm.shape[1] == N)
-            or (tpm.shape[0] == tpm.shape[1])
-        ):
-            raise ValueError(
-                "Invalid shape for 2-D TPM: {}\nFor a state-by-node TPM, "
-                "there must be "
-                "2^N rows and N columns, where N is the "
-                "number of nodes. State-by-state TPM must be square. "
-                "{}".format(tpm.shape, see_tpm_docs)
-            )
-        if tpm.shape[0] == tpm.shape[1] and check_independence:
-            conditionally_independent(tpm)
-    elif tpm.ndim == (N + 1):
-        if tpm.shape != tuple([2] * N + [N]):
-            raise ValueError(
-                "Invalid shape for multidimensional state-by-node TPM: {}\n"
-                "The shape should be {} for {} nodes. {}".format(
-                    tpm.shape, ([2] * N) + [N], N, see_tpm_docs
-                )
-            )
-    else:
         raise ValueError(
-            "Invalid TPM: Must be either 2-dimensional or multidimensional. "
-            "{}".format(see_tpm_docs)
+            f"`direction` must be one of `Direction.{valid}`; "
+            f"got {type(direction)} `{direction}`"
         )
+
     return True
 
 
-def conditionally_independent(tpm):
-    """Validate that the TPM is conditionally independent."""
-    tpm = np.array(tpm)
-    if is_state_by_state(tpm):
-        there_and_back_again = convert.state_by_node2state_by_state(
-            convert.state_by_state2state_by_node(tpm)
-        )
-    else:
-        there_and_back_again = convert.state_by_state2state_by_node(
-            convert.state_by_node2state_by_state(tpm)
-        )
-    if not np.allclose((tpm - there_and_back_again), 0.0):
-        raise exceptions.ConditionallyDependentError(
-            "TPM is not conditionally independent.\n"
-            "See the conditional independence example in the documentation "
-            "for more info."
-        )
-    return True
-
-
-def connectivity_matrix(cm):
+def connectivity_matrix(cm: np.ndarray) -> bool:
     """Validate the given connectivity matrix."""
     # Special case for empty matrices.
     if cm.size == 0:
@@ -111,7 +65,7 @@ def connectivity_matrix(cm):
     return True
 
 
-def node_labels(node_labels, node_indices):
+def node_labels(node_labels: Sequence[str], node_indices: Sequence[int]) -> None:
     """Validate that there is a label for each node."""
     if len(node_labels) != len(node_indices):
         raise ValueError(
@@ -122,12 +76,12 @@ def node_labels(node_labels, node_indices):
         raise ValueError("Labels {0} must be unique.".format(node_labels))
 
 
-def network(n):
+def network(n) -> bool:
     """Validate a |Network|.
 
     Checks the TPM and connectivity matrix.
     """
-    tpm(n.tpm)
+    n.tpm.validate()
     connectivity_matrix(n.cm)
     if n.cm.shape[0] != n.size:
         raise ValueError(
@@ -137,7 +91,7 @@ def network(n):
     return True
 
 
-def is_network(network):
+def is_network(network) -> None:
     """Validate that the argument is a |Network|."""
     from . import Network
 
@@ -147,13 +101,13 @@ def is_network(network):
         )
 
 
-def node_states(state):
+def node_states(state: Sequence[int]) -> None:
     """Check that the state contains only zeros and ones."""
     if not all(n in (0, 1) for n in state):
         raise ValueError("Invalid state: states must consist of only zeros and ones.")
 
 
-def state_length(state, size):
+def state_length(state: Sequence[int], size: int) -> bool:
     """Check that the state is the given size."""
     if len(state) != size:
         raise ValueError(
@@ -164,29 +118,29 @@ def state_length(state, size):
     return True
 
 
-def state_reachable(subsystem):
+def state_reachable(subsystem) -> None:
     """Return whether a state can be reached according to the network's TPM."""
     # If there is a row `r` in the TPM such that all entries of `r - state` are
     # between -1 and 1, then the given state has a nonzero probability of being
     # reached from some state.
     # First we take the submatrix of the conditioned TPM that corresponds to
     # the nodes that are actually in the subsystem...
-    tpm = subsystem.tpm[..., subsystem.node_indices]
+    tpm = subsystem.effect_tpm.tpm[..., subsystem.node_indices]
     # Then we do the subtraction and test.
     test = tpm - np.array(subsystem.proper_state)
     if not np.any(np.logical_and(-1 < test, test < 1).all(-1)):
         raise exceptions.StateUnreachableError(subsystem.state)
 
 
-def cut(cut, node_indices):
+def cut(cut, node_indices: Sequence[int]) -> None:
     """Check that the cut is for only the given nodes."""
-    if cut.indices != node_indices:
+    if set(cut.indices) != set(node_indices):
         raise ValueError(
             "{} nodes are not equal to subsystem nodes " "{}".format(cut, node_indices)
         )
 
 
-def subsystem(s):
+def subsystem(s) -> bool:
     """Validate a |Subsystem|.
 
     Checks its state and cut.
@@ -198,13 +152,13 @@ def subsystem(s):
     return True
 
 
-def time_scale(time_scale):
+def time_scale(time_scale: int) -> None:
     """Validate a macro temporal time scale."""
     if time_scale <= 0 or isinstance(time_scale, float):
         raise ValueError("time scale must be a positive integer")
 
 
-def partition(partition):
+def partition(partition: Iterable[Iterable[int]]) -> None:
     """Validate a partition - used by blackboxes and coarse grains."""
     nodes = set()
     for part in partition:
@@ -217,7 +171,7 @@ def partition(partition):
             nodes.add(node)
 
 
-def coarse_grain(coarse_grain):
+def coarse_grain(coarse_grain) -> None:
     """Validate a macro coarse-graining."""
     partition(coarse_grain.partition)
 
@@ -234,7 +188,7 @@ def coarse_grain(coarse_grain):
             )
 
 
-def blackbox(blackbox):
+def blackbox(blackbox) -> None:
     """Validate a macro blackboxing."""
     if tuple(sorted(blackbox.output_indices)) != blackbox.output_indices:
         raise ValueError(
@@ -250,7 +204,7 @@ def blackbox(blackbox):
             )
 
 
-def blackbox_and_coarse_grain(blackbox, coarse_grain):
+def blackbox_and_coarse_grain(blackbox, coarse_grain) -> None:
     """Validate that a coarse-graining properly combines the outputs of a
     blackboxing.
     """
@@ -275,7 +229,7 @@ def blackbox_and_coarse_grain(blackbox, coarse_grain):
             )
 
 
-def relata(relata):
+def relata(relata: Optional[Iterable[object]]) -> None:
     """Validate a set of relata."""
     if not relata:
-        raise ValueError("Relata cannot be empty.")
+        raise ValueError("relata cannot be empty")

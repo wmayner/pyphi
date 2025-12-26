@@ -1,10 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # timescale.py
-
-"""
-Functions for converting the timescale of a TPM.
-"""
+"""Functions for manipulating the timescale of TPMs."""
 
 import numpy as np
 from scipy.sparse import csc_matrix
@@ -18,7 +13,7 @@ def sparse(matrix, threshold=0.1):
 
 def sparse_time(tpm, time_scale):
     sparse_tpm = csc_matrix(tpm)
-    return (sparse_tpm ** time_scale).toarray()
+    return (sparse_tpm**time_scale).toarray()
 
 
 def dense_time(tpm, time_scale):

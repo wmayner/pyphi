@@ -1,16 +1,40 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # connectivity.py
+"""Functions for determining network connectivity properties. """
 
-"""
-Functions for determining network connectivity properties.
-"""
+from typing import Optional, Tuple
 
 import numpy as np
+from numpy.typing import ArrayLike
 from scipy.sparse.csgraph import connected_components
 
 
-def apply_boundary_conditions_to_cm(external_indices, cm):
+def subadjacency(cm: ArrayLike, source: Tuple[int, ...], target: Optional[Tuple[int, ...]] = None) -> np.ndarray:
+    """Return the sub-adjacency matrix for two groups of nodes.
+
+    This gives the connections from the first group to the second group.
+
+    Arguments:
+        source (Iterable[int]): The source nodes.
+
+    Keyword Arguments:
+        target (Iterable[int] | None): The target nodes. If ``None``,
+            defaults to be the same as the first.
+
+    Example:
+        >>> cm = np.identity(5)
+        >>> subadjacency(cm, (2, 3))
+        array([[1., 0.],
+               [0., 1.]])
+        >>> subadjacency(cm, (0, 1), (1, 2))
+        array([[0., 0.],
+               [1., 0.]])
+    """
+    if target is None:
+        target = source
+    return cm[np.ix_(source, target)]
+
+
+def apply_boundary_conditions_to_cm(external_indices: Tuple[int, ...], cm: ArrayLike) -> np.ndarray:
     """Remove connections to or from external nodes."""
     cm = cm.copy()
     cm[external_indices, :] = 0  # Zero-out row
@@ -18,17 +42,17 @@ def apply_boundary_conditions_to_cm(external_indices, cm):
     return cm
 
 
-def get_inputs_from_cm(index, cm):
+def get_inputs_from_cm(index: int, cm: ArrayLike) -> Tuple[int, ...]:
     """Return indices of inputs to the node with the given index."""
     return tuple(i for i in range(cm.shape[0]) if cm[i][index])
 
 
-def get_outputs_from_cm(index, cm):
+def get_outputs_from_cm(index: int, cm: ArrayLike) -> Tuple[int, ...]:
     """Return indices of the outputs of node with the given index."""
     return tuple(i for i in range(cm.shape[0]) if cm[index][i])
 
 
-def causally_significant_nodes(cm):
+def causally_significant_nodes(cm: ArrayLike) -> Tuple[int, ...]:
     """Return indices of nodes that have both inputs and outputs."""
     inputs = cm.sum(0)
     outputs = cm.sum(1)
@@ -37,7 +61,7 @@ def causally_significant_nodes(cm):
 
 
 # TODO: better name?
-def relevant_connections(n, _from, to):
+def relevant_connections(n: int, _from: Tuple[int, ...], to: Tuple[int, ...]) -> np.ndarray:
     """Construct a connectivity matrix.
 
     Args:
@@ -60,7 +84,7 @@ def relevant_connections(n, _from, to):
     return cm
 
 
-def block_cm(cm):
+def block_cm(cm: ArrayLike) -> bool:
     """Return whether ``cm`` can be arranged as a block connectivity matrix.
 
     If so, the corresponding mechanism/purview is trivially reducible.
@@ -132,7 +156,7 @@ def block_cm(cm):
 
 # TODO: simplify the conditional validation here and in block_cm
 # TODO: combine with fully_connected
-def block_reducible(cm, nodes1, nodes2):
+def block_reducible(cm: ArrayLike, nodes1: Tuple[int, ...], nodes2: Tuple[int, ...]) -> bool:
     """Return whether connections from ``nodes1`` to ``nodes2`` are reducible.
 
     Args:
@@ -154,16 +178,16 @@ def block_reducible(cm, nodes1, nodes2):
     return False
 
 
-def _connected(cm, nodes, connection):
+def _connected(cm: ArrayLike, nodes: Optional[Tuple[int, ...]], connection: str) -> bool:
     """Test connectivity for the connectivity matrix."""
     if nodes is not None:
-        cm = cm[np.ix_(nodes, nodes)]
+        cm = subadjacency(cm, nodes)
 
     num_components, _ = connected_components(cm, connection=connection)
     return num_components < 2
 
 
-def is_strong(cm, nodes=None):
+def is_strong(cm: ArrayLike, nodes: Optional[Tuple[int, ...]] = None) -> bool:
     """Return whether the connectivity matrix is strongly connected.
 
     Remember that a singleton graph is strongly connected.
@@ -177,7 +201,7 @@ def is_strong(cm, nodes=None):
     return _connected(cm, nodes, "strong")
 
 
-def is_weak(cm, nodes=None):
+def is_weak(cm: ArrayLike, nodes: Optional[Tuple[int, ...]] = None) -> bool:
     """Return whether the connectivity matrix is weakly connected.
 
     Args:
@@ -189,7 +213,7 @@ def is_weak(cm, nodes=None):
     return _connected(cm, nodes, "weak")
 
 
-def is_full(cm, nodes1, nodes2):
+def is_full(cm: ArrayLike, nodes1: Tuple[int, ...], nodes2: Tuple[int, ...]) -> bool:
     """Test connectivity of one set of nodes to another.
 
     Args:
@@ -208,7 +232,7 @@ def is_full(cm, nodes1, nodes2):
     if not nodes1 or not nodes2:
         return True
 
-    cm = cm[np.ix_(nodes1, nodes2)]
+    cm = subadjacency(cm, nodes1, nodes2)
 
     # Do all nodes have at least one connection?
     return cm.sum(0).all() and cm.sum(1).all()

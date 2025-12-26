@@ -5,9 +5,7 @@
 </p>
 
 [![Documentation badge](https://readthedocs.org/projects/pyphi/badge/?style=flat-square&maxAge=600)](https://pyphi.readthedocs.io/)
-[![Travis build badge](https://img.shields.io/travis/wmayner/pyphi.svg?style=flat-square&maxAge=600)](https://travis-ci.org/wmayner/pyphi)
 [![Coveralls.io badge](https://img.shields.io/coveralls/wmayner/pyphi/develop.svg?style=flat-square&maxAge=600)](https://coveralls.io/github/wmayner/pyphi?branch=develop)
-[![License badge](https://img.shields.io/github/license/wmayner/pyphi.svg?style=flat-square&maxAge=86400)](https://github.com/wmayner/pyphi/blob/master/LICENSE.md)
 [![Python versions badge](https://img.shields.io/pypi/pyversions/pyphi.svg?style=flat-square&maxAge=86400)](https://wiki.python.org/moin/Python2orPython3)
 
 PyPhi is a Python library for computing integrated information (𝚽), and the

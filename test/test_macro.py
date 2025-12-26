@@ -1,11 +1,7 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# test_macro.py
-
 import numpy as np
 import pytest
 
-from pyphi import convert, macro
+from pyphi import convert, macro, ExplicitTPM
 from pyphi.exceptions import ConditionallyDependentError
 
 # flake8: noqa
@@ -168,7 +164,16 @@ def test_macro_tpm_sbs():
     ])
     # fmt: on
     partition = ((0,), (1, 2))
-    grouping = (((0,), (1,)), ((0,), (1, 2,)))
+    grouping = (
+        ((0,), (1,)),
+        (
+            (0,),
+            (
+                1,
+                2,
+            ),
+        ),
+    )
     coarse_grain = macro.CoarseGrain(partition, grouping)
     macro_tpm = coarse_grain.macro_tpm_sbs(micro_tpm)
     assert np.array_equal(answer_tpm, macro_tpm)
@@ -267,74 +272,95 @@ def test_blackbox_len(bb, cg_bb):
 
 def test_rebuild_system_tpm(s):
     # fmt: off
-    node0_tpm = np.array([
-        [0, 1],
-        [0, 0],
-    ])
-    node1_tpm = np.array([
-        [0, 1],  # Singleton first dimension
-    ])
+    node0_tpm = ExplicitTPM(
+        np.array([
+            [0, 1],
+            [0, 0],
+        ]),
+    )
+    node1_tpm = ExplicitTPM(
+        np.array([
+            [0, 1],  # Singleton first dimension
+        ]),
+    )
     # fmt: on
     node_tpms = [node0_tpm, node1_tpm]
 
     # fmt: off
-    answer = np.array([
-        [[0, 0],
-         [1, 1]],
-        [[0, 0],
-         [0, 1]],
-    ])
+    answer = ExplicitTPM(
+        np.array([
+            [[0, 0],
+             [1, 1]],
+            [[0, 0],
+             [0, 1]],
+        ]),
+    )
     # fmt: on
-    assert np.array_equal(macro.rebuild_system_tpm(node_tpms), answer)
+    assert macro.rebuild_system_tpm(node_tpms).array_equal(answer)
 
-    node_tpms = [node.tpm_on for node in s.nodes]
-    assert np.array_equal(macro.rebuild_system_tpm(node_tpms), s.tpm)
+    cause_node_tpms = [node.cause_tpm_on for node in s.nodes]
+    effect_node_tpms = [node.effect_tpm_on for node in s.nodes]
+    assert macro.rebuild_system_tpm(cause_node_tpms).array_equal(s.cause_tpm)
+    assert macro.rebuild_system_tpm(effect_node_tpms).array_equal(s.effect_tpm)
+
 
 
 def test_remove_singleton_dimensions():
     # Don't squeeze out last dimension of single-node tpm
     # fmt: off
-    tpm = np.array([
-        [0], 
-        [1],
-    ])
+    tpm = ExplicitTPM(
+        np.array([
+            [0],
+            [1],
+        ]),
+    )
     # fmt: on
-    assert macro.tpm_indices(tpm) == (0,)
-    assert np.array_equal(macro.remove_singleton_dimensions(tpm), tpm)
+    assert tpm.tpm_indices() == (0,)
+    assert macro.remove_singleton_dimensions(tpm).array_equal(tpm)
 
     # fmt: off
-    tpm = np.array([
-        [[[0.,  0.,  1.]],
-         [[1.,  0.,  0.]]]])
-    answer = np.array([
-        [0], 
-        [0],
-    ])
+    tpm = ExplicitTPM(
+        np.array([
+            [[[0.,  0.,  1.]],
+             [[1.,  0.,  0.]]]
+        ]),
+    )
+    answer = ExplicitTPM(
+        np.array([
+            [0],
+            [0],
+        ]),
+    )
     # fmt: on
-    assert macro.tpm_indices(tpm) == (1,)
-    assert np.array_equal(macro.remove_singleton_dimensions(tpm), answer)
+    assert tpm.tpm_indices() == (1,)
+    assert macro.remove_singleton_dimensions(tpm).array_equal(answer)
 
     # fmt: off
-    tpm = np.array([
-        [[[0., 0., 0.],
-          [1., 1., 0.]]],
-        [[[0., 0., 1.],
-          [1., 1., 1.]]],
-    ])
-    answer = np.array([
-        [[0., 0.],
-         [1., 0.]],
-        [[0., 1.],
-         [1., 1.]],
-    ])
+    tpm = ExplicitTPM(
+        np.array([
+            [[[0., 0., 0.],
+              [1., 1., 0.]]],
+            [[[0., 0., 1.],
+              [1., 1., 1.]]],
+        ]),
+    )
+    answer = ExplicitTPM(
+        np.array([
+            [[0., 0.],
+             [1., 0.]],
+            [[0., 1.],
+             [1., 1.]],
+        ]),
+    )
     # fmt: on
-    assert macro.tpm_indices(tpm) == (0, 2)
-    assert np.array_equal(macro.remove_singleton_dimensions(tpm), answer)
+    assert tpm.tpm_indices() == (0, 2)
+    assert macro.remove_singleton_dimensions(tpm).array_equal(answer)
 
 
 def test_pack_attrs(s):
     attrs = macro.SystemAttrs.pack(s)
-    assert np.array_equal(attrs.tpm, s.tpm)
+    assert attrs.cause_tpm.array_equal(s.cause_tpm)
+    assert attrs.effect_tpm.array_equal(s.effect_tpm)
     assert np.array_equal(attrs.cm, s.cm)
     assert attrs.node_indices == s.node_indices
     assert attrs.state == s.state
@@ -350,7 +376,8 @@ def test_apply_attrs(s):
     target = SomeSystem()
 
     attrs.apply(target)
-    assert np.array_equal(target.tpm, s.tpm)
+    assert target.cause_tpm.array_equal(s.cause_tpm)
+    assert target.effect_tpm.array_equal(s.effect_tpm)
     assert np.array_equal(target.cm, s.cm)
     assert target.node_indices == s.node_indices
     assert target.state == s.state

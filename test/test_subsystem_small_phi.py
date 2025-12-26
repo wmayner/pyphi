@@ -1,12 +1,10 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
-import example_networks
 import numpy as np
 import pytest
 
-from pyphi import Direction, constants
+from pyphi import Direction, constants, utils, config
 from pyphi.models import Bipartition, Part, RepertoireIrreducibilityAnalysis
+
+from . import example_networks
 
 s = example_networks.s()
 
@@ -235,7 +233,7 @@ scenarios = [
             "repertoire": np.array([0.5, 0.5]).reshape(2, 1, 1),
             "phi": 0.25,
         },
-    )
+    ),
     # }}}
     # }}}
 ]
@@ -243,6 +241,7 @@ parameter_string = "direction,subsystem,cut,mechanism,purview,expected"
 
 
 @pytest.mark.parametrize(parameter_string, scenarios)
+@config.override(REPERTOIRE_DISTANCE="EMD")
 def test_find_mip(direction, subsystem, cut, mechanism, purview, expected):
     # Set up testing parameters from scenario
     result = subsystem.find_mip(direction, mechanism, purview)
@@ -344,7 +343,7 @@ def test_phi_effect_mip_reducible(s):
 def test_phi(s):
     mechanism = s.node_indices
     purview = s.node_indices
-    assert abs(0.5 - s.phi(mechanism, purview)) < constants.EPSILON
+    assert utils.eq(0, s.phi(mechanism, purview))
 
 
 # }}}

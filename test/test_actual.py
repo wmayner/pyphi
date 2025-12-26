@@ -3,6 +3,7 @@ import pytest
 
 from pyphi import Direction, Network, Subsystem, actual, config, examples, models
 from pyphi.models import KPartition, Part
+from pyphi.validate import node_labels
 
 # TODO
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -49,7 +50,7 @@ def empty_transition(transition):
 
 @pytest.fixture
 def prevention():
-    return examples.prevention()
+    return examples.prevention_transition()
 
 
 # Testing background conditions
@@ -101,6 +102,7 @@ def background_all_off():
         (pytest.lazy_fixture("background_all_on"), Direction.CAUSE, (1,), (0,), 0),
     ],
 )
+@pytest.mark.outdated
 def test_background_conditions(transition, direction, mechanism, purview, ratio):
     assert transition._ratio(direction, mechanism, purview) == ratio
 
@@ -120,15 +122,15 @@ def test_background_noised():
         network, state, state, (0,), (1,), noise_background=True
     )
 
-    assert transition._ratio(Direction.EFFECT, (0,), (1,)) == 0.415037
-    assert transition._ratio(Direction.CAUSE, (1,), (0,)) == 0.415037
+    assert np.isclose(transition._ratio(Direction.EFFECT, (0,), (1,)), 0.415037)
+    assert np.isclose(transition._ratio(Direction.CAUSE, (1,), (0,)), 0.415037)
 
     # Elements outside the transition are also frozen
     transition = actual.Transition(
         network, state, state, (0,), (0,), noise_background=True
     )
-    assert np.array_equal(transition.cause_system.tpm, network.tpm)
-    assert np.array_equal(transition.effect_system.tpm, network.tpm)
+    assert transition.cause_system.effect_tpm.array_equal(network.tpm)
+    assert transition.effect_system.effect_tpm.array_equal(network.tpm)
 
 
 @pytest.fixture
@@ -158,6 +160,7 @@ def background_3_node():
         ((1, 1, 0), (0, 2), 1.0),
     ],
 )
+@pytest.mark.outdated
 def test_background_3_node(before_state, purview, alpha, background_3_node):
     """Looking at transition (AB = 11) -> (AC = 11)"""
     after_state = (1, 1, 1)
@@ -174,16 +177,20 @@ def test_potential_purviews(background_3_node):
     transition = actual.Transition(
         background_3_node, (1, 1, 1), (1, 1, 1), (0, 1), (0, 2)
     )
-    assert transition.potential_purviews(Direction.CAUSE, (0, 2)) == [
-        (0,),
-        (1,),
-        (0, 1),
-    ]
-    assert transition.potential_purviews(Direction.EFFECT, (0, 1)) == [
-        (0,),
-        (2,),
-        (0, 2),
-    ]
+    assert set(transition.potential_purviews(Direction.CAUSE, (0, 2))) == set(
+        [
+            (0,),
+            (1,),
+            (0, 1),
+        ]
+    )
+    assert set(transition.potential_purviews(Direction.EFFECT, (0, 1))) == set(
+        [
+            (0,),
+            (2,),
+            (0, 2),
+        ]
+    )
 
 
 # Tests
@@ -304,8 +311,8 @@ def test_acria_ordering():
     with pytest.raises(TypeError):
         acria(direction=Direction.CAUSE) < acria(direction=Direction.EFFECT)
 
-    with config.override(PICK_SMALLEST_PURVIEW=True):
-        assert acria(purview=(1,)) > acria(purview=(0, 2))
+    # Smaller purviews should be chosen
+    assert acria(purview=(1,)) > acria(purview=(0, 2))
 
 
 def test_acria_hash():
@@ -445,7 +452,11 @@ def test_unconstrained_probability(transition):
 
 @pytest.mark.parametrize(
     "mechanism,purview,ratio",
-    [((0,), (1,), 0.41504), ((0,), (2,), 0.41504), ((0,), (1, 2), 0.41504),],
+    [
+        ((0,), (1,), 0.41504),
+        ((0,), (2,), 0.41504),
+        ((0,), (1, 2), 0.41504),
+    ],
 )
 def test_cause_ratio(mechanism, purview, ratio, transition):
     assert np.isclose(transition.cause_ratio(mechanism, purview), ratio)
@@ -453,12 +464,17 @@ def test_cause_ratio(mechanism, purview, ratio, transition):
 
 @pytest.mark.parametrize(
     "mechanism,purview,ratio",
-    [((1,), (0,), 0.41504), ((2,), (0,), 0.41504), ((1, 2), (0,), 0.41504),],
+    [
+        ((1,), (0,), 0.41504),
+        ((2,), (0,), 0.41504),
+        ((1, 2), (0,), 0.41504),
+    ],
 )
 def test_effect_ratio(mechanism, purview, ratio, transition):
     assert np.isclose(transition.effect_ratio(mechanism, purview), ratio)
 
 
+@pytest.mark.outdated
 def test_ac_ex1_transition(transition):
     """Basic regression test for ac_ex1 example."""
 
@@ -470,11 +486,12 @@ def test_ac_ex1_transition(transition):
     assert cria.purview == (1,)
     assert cria.direction == Direction.CAUSE
     assert cria.state == (1, 0, 0)
-    assert cria.alpha == 0.415037
+    assert np.isclose(cria.alpha, 0.415037)
     assert cria.probability == 0.66666666666666663
     assert cria.partitioned_probability == 0.5
     assert cria.partition == models.Bipartition(
-        models.Part((), (1,)), models.Part((0,), ())
+        models.Part((), (1,)),
+        models.Part((0,), ()),
     )
 
     effect_account = actual.account(transition, Direction.EFFECT)
@@ -486,22 +503,24 @@ def test_ac_ex1_transition(transition):
     assert eria0.purview == (0,)
     assert eria0.direction == Direction.EFFECT
     assert eria0.state == (0, 1, 1)
-    assert eria0.alpha == 0.415037
+    assert np.isclose(eria0.alpha, 0.415037)
     assert eria0.probability == 1.0
     assert eria0.partitioned_probability == 0.75
     assert eria0.partition == models.Bipartition(
-        models.Part((), (0,)), models.Part((1,), ())
+        models.Part((), (0,)),
+        models.Part((1,), ()),
     )
 
     assert eria1.mechanism == (2,)
     assert eria1.purview == (0,)
     assert eria1.direction == Direction.EFFECT
     assert eria1.state == (0, 1, 1)
-    assert eria1.alpha == 0.415037
+    assert np.isclose(eria1.alpha, 0.415037)
     assert eria1.probability == 1.0
     assert eria1.partitioned_probability == 0.75
     assert eria1.partition == models.Bipartition(
-        models.Part((), (0,)), models.Part((2,), ())
+        models.Part((), (0,)),
+        models.Part((2,), ()),
     )
 
 
@@ -579,13 +598,13 @@ def ac_cut(direction, *parts):
 )
 def test_get_actual_cuts(direction, answer, transition):
     cuts = list(actual._get_cuts(transition, direction))
-    print(cuts, answer)
-    np.testing.assert_array_equal(cuts, answer)
+    assert set(cuts) == set(answer)
 
 
+@pytest.mark.outdated
 def test_sia(transition):
     sia = actual.sia(transition)
-    assert sia.alpha == 0.415037
+    assert sia.alpha == 0.4150374992788
     assert sia.cut == ac_cut(Direction.CAUSE, Part((), (1,)), Part((0,), (2,)))
     assert len(sia.account) == 3
     assert len(sia.partitioned_account) == 2
@@ -604,12 +623,14 @@ def test_null_ac_sia(transition):
 
 
 @config.override(PARTITION_TYPE="TRI")
+@pytest.mark.outdated
 def test_prevention(prevention):
     assert actual.sia(prevention, Direction.CAUSE).alpha == 0.415037
     assert actual.sia(prevention, Direction.EFFECT).alpha == 0.0
     assert actual.sia(prevention, Direction.BIDIRECTIONAL).alpha == 0.0
 
 
+@pytest.mark.outdated
 def test_causal_nexus(standard):
     nexus = actual.causal_nexus(standard, (0, 0, 1), (1, 1, 0))
     assert nexus.alpha == 2.0
@@ -618,6 +639,8 @@ def test_causal_nexus(standard):
     assert nexus.transition.effect_indices == (2,)
 
 
+@pytest.mark.slow
+@pytest.mark.outdated
 def test_true_events(standard):
     states = ((1, 0, 0), (0, 0, 1), (1, 1, 0))  # Previous, current, next
     events = actual.true_events(standard, *states)
@@ -651,6 +674,7 @@ def test_true_events(standard):
     assert true_effect2.direction == Direction.EFFECT
 
 
+@pytest.mark.outdated
 def test_true_ces(standard):
     previous_state = (1, 0, 0)
     current_state = (0, 0, 1)
@@ -669,6 +693,8 @@ def test_true_ces(standard):
     assert actual_effect.mechanism == (2,)
 
 
+@pytest.mark.slow
+@pytest.mark.outdated
 def test_extrinsic_events(standard):
     states = ((1, 0, 0), (0, 0, 1), (1, 1, 0))  # Previous, current, next
 

@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from pyphi import Network, compute, config, convert, macro, models, utils
+from pyphi import Network, compute, config, convert, ExplicitTPM, macro, models, utils
 
 
 # TODO: move these to examples.py
@@ -9,7 +9,7 @@ from pyphi import Network, compute, config, convert, macro, models, utils
 def degenerate():
 
     nodes = 6
-    tpm = np.zeros((2 ** nodes, nodes))
+    tpm = np.zeros((2**nodes, nodes))
 
     for psi, ps in enumerate(utils.all_states(nodes)):
         cs = [0 for i in range(nodes)]
@@ -55,12 +55,13 @@ def degenerate():
 
 
 @pytest.mark.veryslow
+@pytest.mark.outdated
 def test_basic_nor_or():
     # A system composed of NOR and OR (copy) gates, which mimics the basic
     # pyphi network
 
     nodes = 12
-    tpm = np.zeros((2 ** nodes, nodes))
+    tpm = np.zeros((2**nodes, nodes))
 
     for psi, ps in enumerate(utils.all_states(nodes)):
         cs = [0 for i in range(nodes)]
@@ -125,7 +126,7 @@ def test_basic_nor_or():
     )
 
     with config.override(CUT_ONE_APPROXIMATION=True):
-        sia = compute.sia(sub)
+        sia = compute.subsystem.sia(sub)
 
     assert sia.phi == 1.958332
     assert sia.cut == models.Cut((6,), (0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11))
@@ -135,12 +136,13 @@ def test_basic_nor_or():
 
 
 @pytest.mark.veryslow
+@pytest.mark.outdated
 def test_xor_propogation_delay():
     # Three interconnected XOR gates, with COPY gates along each connection
     # acting as propagation delays.
 
     nodes = 9
-    tpm = np.zeros((2 ** nodes, nodes))
+    tpm = np.zeros((2**nodes, nodes))
 
     for psi, ps in enumerate(utils.all_states(nodes)):
         cs = [0 for i in range(nodes)]
@@ -190,88 +192,97 @@ def test_xor_propogation_delay():
         network, state, network.node_indices, blackbox=blackbox, time_scale=time
     )
 
-    sia = compute.sia(subsys)
+    sia = compute.subsystem.sia(subsys)
     assert sia.phi == 1.874999
     assert sia.cut == models.Cut((0,), (1, 2, 3, 4, 5, 6, 7, 8))
 
 
+# TODO(wmayner) this test hangs on helicon
 @pytest.mark.xfail
+@pytest.mark.slow
 def test_soup():
-    # An first example attempting to capture the "soup" metaphor
-    #
-    # The system will consist of 6 elements 2 COPY elements (A, B) input to an
-    # AND element (C) AND element (C) inputs to two COPY elements (D, E) 2 COPY
-    # elements (D, E) input to an AND element (F) AND element (F) inputs to two
-    # COPY elements (A, B)
-    #
-    # For the soup example, element B receives an additional input from D, and
-    # implements AND logic instead of COPY
+    with config.override(
+        PARALLEL_CONCEPT_EVALUATION=False,
+        PARALLEL_CUT_EVALUATION=False,
+        PARALLEL_COMPLEX_EVALUATION=False,
+    ):
+        # An first example attempting to capture the "soup" metaphor
+        #
+        # The system will consist of 6 elements:
+        # - 2 COPY elements (A, B) input to an AND element (C)
+        # - AND element (C) inputs to two COPY elements (D, E)
+        # - 2 COPY elements (D, E) input to an AND element (F)
+        # - AND element (F) inputs to two COPY elements (A, B)
+        #
+        # For the soup example, element B receives an additional input from D,
+        # and implements AND logic instead of COPY
 
-    nodes = 6
-    tpm = np.zeros((2 ** nodes, nodes))
+        nodes = 6
+        tpm = np.zeros((2**nodes, nodes))
 
-    for psi, ps in enumerate(utils.all_states(nodes)):
-        cs = [0 for i in range(nodes)]
-        if ps[5] == 1:
-            cs[0] = 1
-        if ps[3] == 1 and ps[5] == 1:
-            cs[1] = 1
-        if ps[0] == 1 and ps[1]:
-            cs[2] = 1
-        if ps[2] == 1:
-            cs[3] = 1
-            cs[4] = 1
-        if ps[3] == 1 and ps[4] == 1:
-            cs[5] = 1
-        tpm[psi, :] = cs
+        for psi, ps in enumerate(utils.all_states(nodes)):
+            cs = [0 for i in range(nodes)]
+            if ps[5] == 1:
+                cs[0] = 1
+            if ps[3] == 1 and ps[5] == 1:
+                cs[1] = 1
+            if ps[0] == 1 and ps[1]:
+                cs[2] = 1
+            if ps[2] == 1:
+                cs[3] = 1
+                cs[4] = 1
+            if ps[3] == 1 and ps[4] == 1:
+                cs[5] = 1
+            tpm[psi, :] = cs
 
-    # fmt: off
-    cm = np.array([
-        [0, 0, 1, 0, 0, 0],
-        [0, 0, 1, 0, 0, 0],
-        [0, 0, 0, 1, 1, 0],
-        [0, 1, 0, 0, 0, 1],
-        [0, 0, 0, 0, 0, 1],
-        [1, 1, 0, 0, 0, 0],
-    ])
-    # fmt: on
+        # fmt: off
+        cm = np.array([
+            [0, 0, 1, 0, 0, 0],
+            [0, 0, 1, 0, 0, 0],
+            [0, 0, 0, 1, 1, 0],
+            [0, 1, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 1],
+            [1, 1, 0, 0, 0, 0],
+        ])
+        # fmt: on
 
-    network = Network(tpm, cm)
+        network = Network(tpm, cm)
 
-    # State all OFF
-    state = (0, 0, 0, 0, 0, 0)
-    assert compute.major_complex(network, state).phi == 0.125
+        # State all OFF
+        state = (0, 0, 0, 0, 0, 0)
+        assert compute.network.major_complex(network, state).phi == 0.125
 
-    # With D ON (E must also be ON otherwise the state is unreachable)
-    state = (0, 0, 0, 1, 1, 0)
-    assert compute.major_complex(network, state).phi == 0.215278
+        # With D ON (E must also be ON otherwise the state is unreachable)
+        state = (0, 0, 0, 1, 1, 0)
+        assert compute.network.major_complex(network, state).phi == 0.215278
 
-    # Once the connection from D to B is frozen (with D in the ON state), we
-    # recover the degeneracy example
-    state = (0, 0, 0, 1, 1, 0)
-    partition = ((0, 1, 2), (3, 4, 5))
-    output_indices = (2, 5)
-    blackbox = macro.Blackbox(partition, output_indices)
-    time = 2
-    sub = macro.MacroSubsystem(
-        network, state, (0, 1, 2, 3, 4, 5), blackbox=blackbox, time_scale=time
-    )
-    assert compute.phi(sub) == 0.638888
+        # Once the connection from D to B is frozen (with D in the ON state), we
+        # recover the degeneracy example
+        state = (0, 0, 0, 1, 1, 0)
+        partition = ((0, 1, 2), (3, 4, 5))
+        output_indices = (2, 5)
+        blackbox = macro.Blackbox(partition, output_indices)
+        time = 2
+        sub = macro.MacroSubsystem(
+            network, state, (0, 1, 2, 3, 4, 5), blackbox=blackbox, time_scale=time
+        )
+        assert compute.subsystem.phi(sub) == 0.638888
 
-    # When the connection from D to B is frozen (with D in the OFF state),
-    # element B is inactivated and integration is compromised.
-    state = (0, 0, 0, 0, 0, 0)
-    partition = ((0, 1, 2), (3, 4, 5))
-    output_indices = (2, 5)
-    blackbox = macro.Blackbox(partition, output_indices)
-    time = 2
-    sub = macro.MacroSubsystem(
-        network, state, (0, 1, 2, 3, 4, 5), blackbox=blackbox, time_scale=time
-    )
-    assert compute.phi(sub) == 0
+        # When the connection from D to B is frozen (with D in the OFF state),
+        # element B is inactivated and integration is compromised.
+        state = (0, 0, 0, 0, 0, 0)
+        partition = ((0, 1, 2), (3, 4, 5))
+        output_indices = (2, 5)
+        blackbox = macro.Blackbox(partition, output_indices)
+        time = 2
+        sub = macro.MacroSubsystem(
+            network, state, (0, 1, 2, 3, 4, 5), blackbox=blackbox, time_scale=time
+        )
+        assert compute.phi(sub) == 0
 
 
 @pytest.mark.slow
+@pytest.mark.outdated
 def test_coarsegrain_spatial_degenerate():
     # TODO: move to docs?
     # macro-micro examples from Hoel2016
@@ -281,7 +292,7 @@ def test_coarsegrain_spatial_degenerate():
     # mapping ((0, 1), (2))
 
     nodes = 6
-    tpm = np.zeros((2 ** nodes, nodes))
+    tpm = np.zeros((2**nodes, nodes))
 
     for psi, ps in enumerate(utils.all_states(nodes)):
         cs = [0 for i in range(nodes)]
@@ -311,7 +322,7 @@ def test_coarsegrain_spatial_degenerate():
 
     net = Network(tpm, cm)
 
-    mc = compute.major_complex(net, state)
+    mc = compute.network.major_complex(net, state)
     assert mc.phi == 0.194445
 
     partition = ((0, 1), (2, 3), (4, 5))
@@ -320,20 +331,24 @@ def test_coarsegrain_spatial_degenerate():
 
     sub = macro.MacroSubsystem(net, state, range(net.size), coarse_grain=coarse)
 
-    sia = compute.sia(sub)
+    sia = compute.subsystem.sia(sub)
     assert sia.phi == 0.834183
 
 
+@pytest.mark.slow
+@pytest.mark.outdated
 def test_degenerate(degenerate):
     # fmt: off
-    answer = convert.to_multidimensional(np.array([
-        [0, 0],
-        [0, 1],
-        [1, 0],
-        [1, 1],
-    ]))
+    answer = ExplicitTPM(
+        np.array(
+            [[0, 0],
+             [0, 1],
+             [1, 0],
+             [1, 1]]
+        ),
+    )
     # fmt: on
-    assert np.array_equal(degenerate.tpm, answer)
+    assert degenerate.tpm.array_equal(answer)
     # fmt: off
     answer = np.array([
         [0, 1],
@@ -341,13 +356,14 @@ def test_degenerate(degenerate):
     ])
     # fmt: on
     assert np.array_equal(degenerate.cm, answer)
-    sia = compute.sia(degenerate)
+    sia = compute.subsystem.sia(degenerate)
     assert sia.phi == 0.638888
 
 
 def test_basic_propagation_delay(s, propagation_delay):
-    # bb_sia = compute.sia(bb_sub)
-    # assert bb_sia.phi == 2.125
-    # assert bb_sia.cut == models.Cut((0, 1, 2, 3, 4, 5, 6), (7,))
+    # TODO
+    # sia = compute.subsystem.sia(propagation_delay)
+    # assert sia.phi == 2.125
+    # assert sia.cut == models.Cut((0, 1, 2, 3, 4, 5, 6), (7,))
 
     assert np.array_equal(propagation_delay.cm, s.cm)

@@ -1,382 +1,395 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # relations.py
+"""Implements the formalism for computing relations."""
 
-"""Functions for computing relations between concepts."""
-
-import operator
+import warnings
+from collections import defaultdict
+from functools import cached_property, total_ordering
 from itertools import product
 
-import numpy as np
-from toolz import concat, curry
+from graphillion import setset
+from tqdm.auto import tqdm
 
-from . import config, validate
-from .models import cmp
-from .models.cuts import Bipartition, Part
-from .models.subsystem import CauseEffectStructure
-from .utils import powerset, eq
-
-# TODO there should be an option to resolve ties at different levels
-
-# TODO Requests from Matteo
-# - have relations report their type (supertext, etc.; ask andrew/matteo)
-# - consider refactoring subsystem reference off the concepts for serialization
-# - node labelzzzzz!
-
-# TODO notes from Matteo 2019-02-20
-# - object encapsulating interface to pickled concepts from CHTC for matteo and andrew
+from . import combinatorics, conf, utils
+from .parallel import MapReduce
+from .conf import config, fallback
+from .data_structures import PyPhiFloat
+from .direction import Direction
+from .models import cmp, fmt
+from .registry import Registry
+from .warnings import PyPhiWarning
 
 
-@curry
-def _all_same(comparison, seq):
-    sentinel = object()
-    first = next(seq, sentinel)
-    if first is sentinel:
-        # Vacuously
-        return True
-    return all(comparison(first, other) for other in seq)
+class RelationFace(frozenset):
+    """A set of (potentially) related causes/effects."""
 
+    def __new__(cls, *args, phi=None):
+        self = super().__new__(cls, *args)
+        if phi is None:
+            raise ValueError("phi keyword argument is required")
+        self.phi = phi
+        return self
 
-# Compare equality up to precision
-all_are_equal = _all_same(eq)
-all_are_identical = _all_same(operator.is_)
+    @total_ordering
+    def __lt__(self, other):
+        return self.phi < other.phi
 
+    @cached_property
+    def overlap(self):
+        """The set of elements that are in the purview of every relatum."""
+        return set.intersection(*map(set, self.relata_purviews))
 
-# TODO test
-@curry
-def _all_extrema(comparison, seq):
-    """Return the extrema of ``seq``.
+    @cached_property
+    def congruent_overlap(self):
+        """Return the congruent overlap(s) among the relata.
 
-    Use ``<`` as the comparison to obtain the minima; use ``>`` as the
-    comparison to obtain the maxima.
+        These are the common purview elements among the relata whose specified
+        states are consistent; that is, the largest subset of the union of the
+        purviews such that each relatum specifies the same state for each
+        element.
+        """
+        return set.intersection(*self.relata_units)
 
-    Uses only one pass through ``seq``.
-
-    Args:
-        comparison (callable): A comparison operator.
-        seq (iterator): An iterator over a sequence.
-
-    Returns:
-        list: The maxima/minima in ``seq``.
-    """
-    extrema = []
-    sentinel = object()
-    current_extremum = next(seq, sentinel)
-    if current_extremum is sentinel:
-        # Return an empty list if the sequence is empty
-        return extrema
-    extrema.append(current_extremum)
-    for element in seq:
-        if comparison(element, current_extremum):
-            extrema = [element]
-            current_extremum = element
-        elif element == current_extremum:
-            extrema.append(element)
-    return extrema
-
-
-all_minima = _all_extrema(operator.lt)
-all_maxima = _all_extrema(operator.gt)
-
-
-def indices(iterable):
-    """Convert an iterable to element indices."""
-    return tuple(sorted(iterable))
-
-
-# TODO rename and hook into config options
-def divergence(p, q):
-    # We don't care if p or q or both are zero
-    with np.errstate(divide="ignore", invalid="ignore"):
-        return np.abs(p * np.nan_to_num(np.log2(p / q)))
-
-
-# TODO this should end up being stored on the MICE object itself when the 4.0
-# branch is finished
-def maximal_state(mice):
-    """Return the maximally divergent state(s) for this MICE.
-
-    Note that there can be ties.
-
-    Returns:
-        np.array: A 2D array where each row is a maximally divergent state.
-    """
-    div = divergence(mice.repertoire, mice.partitioned_repertoire)
-    return np.transpose(np.where(div == div.max()))
-
-
-def congruent_nodes(states):
-    """Return the set of nodes that have the same state in all given states."""
-    return set(np.all(states == states[0], axis=0).nonzero()[0])
-
-
-class Relation(cmp.Orderable):
-    """A relation among causes/effects."""
-
-    def __init__(self, relata, purview, phi, ties=None):
-        self._relata = relata
-        self._purview = indices(purview)
-        self._phi = phi
-        self._ties = ties
-
-    @property
-    def relata(self):
-        return self._relata
-
+    # Alias
     @property
     def purview(self):
-        return self._purview
+        """The purview of the relation face. Alias for ``congruent_overlap``."""
+        return self.congruent_overlap
 
     @property
-    def phi(self):
-        return self._phi
+    def relata_units(self):
+        """The Units in the purview of each cause/effect in this face."""
+        return (set(relatum.purview_units) for relatum in self)
 
     @property
-    def ties(self):
-        return self._ties
-
-    @property
-    def subsystem(self):
-        return self.relata.subsystem
-
-    @property
-    def mechanisms(self):
-        return [relatum.mechanism for relatum in self.relata]
-
-    def __repr__(self):
-        return f"Relation({self.mechanisms}, {self.purview}, {self.phi})"
-
-    def __str__(self):
-        return repr(self)
-
-    def __bool__(self):
-        return bool(round(self.phi, config.PRECISION) > 0.0)
-
-    def __eq__(self, other):
-        attrs = ["phi", "relata"]
-        return cmp.general_eq(self, other, attrs)
-
-    def order_by(self):
-        # TODO check with andrew/matteo about this; what do we want? maybe also
-        # the order?
-        return (round(self.phi, config.PRECISION), len(self.relata))
-
-    @staticmethod
-    def union(tied_relations):
-        """Return the 'union' of tied relations.
-
-        This is a new Relation object that contains the purviews of the other
-        relations in the ``ties`` attribute.
-        """
-        if not tied_relations:
-            raise ValueError("tied relations cannot be empty")
-        if not all_are_equal(r.phi for r in tied_relations):
-            raise ValueError("tied relations must have the same phi")
-        if not all_are_identical(r.relata for r in tied_relations):
-            raise ValueError("tied relations must be among the same relata.")
-        first = tied_relations[0]
-        tied_purviews = set(r.purview for r in tied_relations)
-        return Relation(first.relata, first.purview, first.phi, ties=tied_purviews)
-
-
-class Relata:
-    """A set of potentially-related causes/effects."""
-
-    def __init__(self, subsystem, relata):
-        validate.relata(relata)
-        # TODO do we want to use sorted() here to ensure equality comparisons
-        # are correct?
-        self._relata = relata
-        self._subsystem = subsystem
-        self._maximal_states = None
-
-    @property
-    def subsystem(self):
-        return self._subsystem
-
-    @property
-    def mechanisms(self):
-        return (relatum.mechanism for relatum in self)
-
-    @property
-    def purviews(self):
+    def relata_purviews(self):
+        """The purview of each cause/effect in this face."""
         return (relatum.purview for relatum in self)
 
-    # TODO !!! remove once the maximal states are on the MICE objects
     @property
-    def maximal_states(self):
-        if self._maximal_states is None:
-            self._maximal_states = {mice: maximal_state(mice) for mice in self}
-        return self._maximal_states
+    def distinctions(self):
+        """The distinctions whose causes/effects are in this face."""
+        return (relatum.parent for relatum in self)
+
+    @property
+    def num_distinctions(self):
+        """The number of distinctions whose causes/effects are in this face."""
+        return len(set(self.distinctions))
+
+    def __bool__(self):
+        return bool(self.congruent_overlap)
+
+    def _repr_columns(self):
+        return [
+            ("Purview", str(sorted(self.purview))),
+            ("Relata", len(self)),
+        ]
 
     def __repr__(self):
-        mechanisms = list(self.mechanisms)
-        purviews = list(self.purviews)
-        return f"Relata(mechanisms={mechanisms}, purviews={purviews})"
+        # TODO(4.0) refactor into fmt function
+        body = "\n".join(fmt.align_columns(self._repr_columns()))
+        body = fmt.center(body)
+        body += "\n" + fmt.indent(fmt.fmt_relata(self), amount=10)
+        body = fmt.header(self.__class__.__name__, body, under_char=fmt.HEADER_BAR_2)
+        return fmt.box(body)
 
-    def __str__(self):
-        return repr(self)
+    def to_json(self):
+        return {"relata": list(self)}
 
-    def __iter__(self):
-        """Iterate over relata."""
-        return iter(self._relata)
+    @classmethod
+    def from_json(cls, data):
+        return cls(data["relata"])
 
-    def __getitem__(self, index):
-        return self._relata[index]
+
+class Relation(frozenset, cmp.OrderableByPhi):
+    """A set of relation faces forming the relation among a set of distinctions."""
+
+    @property
+    def is_self_relation(self):
+        return len(self) == 1
+
+    def _faces(self):
+        """Yield faces of the relation."""
+        # Exclude single-relatum faces for self-relations as a special case
+        if self.is_self_relation:
+            direction_set = [Direction.BIDIRECTIONAL]
+        else:
+            direction_set = Direction.all()
+
+        distinctions = list(self)
+        for directions in product(direction_set, repeat=len(self)):
+            mice = []
+            for direction, distinction in zip(directions, distinctions):
+                if direction is Direction.BIDIRECTIONAL:
+                    mice.extend([distinction.cause, distinction.effect])
+                else:
+                    mice.append(distinction.mice(direction))
+            face = RelationFace(mice, phi=self.phi)
+            if face:
+                yield face
+
+    @cached_property
+    def faces(self):
+        return frozenset(self._faces())
+
+    @property
+    def num_faces(self):
+        return len(self.faces)
+
+    @cached_property
+    def purview(self):
+        # Special case for self-relations
+        if self.is_self_relation:
+            distinction = next(iter(self))
+            return distinction.cause.purview_units & distinction.effect.purview_units
+
+        return set.intersection(*(distinction.purview_union for distinction in self))
+
+    @cached_property
+    def phi(self):
+        return PyPhiFloat(
+            len(self.purview) * min(self.distinction_phi_per_unique_purview_unit())
+        )
+
+    def distinction_phi_per_unique_purview_unit(self):
+        return (relatum.phi / len(relatum.purview_union) for relatum in self)
+
+    def __bool__(self):
+        return utils.is_positive(self.phi)
+
+    # TODO(4.0) need to also implement __eq__ here
+
+    @cached_property
+    def mechanisms(self):
+        return {distinction.mechanism for distinction in self}
+
+    def _repr_columns(self):
+        return [
+            (fmt.SMALL_PHI + "_r", self.phi),
+            ("Purview", str(sorted(self.purview))),
+            ("#(faces)", self.num_faces),
+        ]
+
+    def __repr__(self):
+        # TODO(4.0) refactor into fmt function
+        body = "\n".join(fmt.align_columns(self._repr_columns()))
+        body = fmt.center(body)
+        body = fmt.header(self.__class__.__name__, body, under_char=fmt.HEADER_BAR_2)
+        return fmt.box(body)
+
+    def to_json(self):
+        """Return a JSON-serializable representation."""
+        return dict(distinctions=list(self))
+
+    @classmethod
+    def from_json(cls, data):
+        return cls(data["distinctions"])
+
+
+def all_relations(distinctions, min_degree=2, max_degree=None, **kwargs):
+    """Yield causal relations among a set of distinctions."""
+    distinctions = distinctions.unflatten()
+    # Self relations
+    yield from _self_relations(distinctions)
+    # Non-self relations
+    combinations = _combinations_with_nonempty_congruent_overlap(
+        distinctions, min_degree=min_degree, max_degree=max_degree
+    )
+
+    def worker(combination):
+        return Relation((distinctions[i] for i in combination))
+
+    parallel_kwargs = conf.parallel_kwargs(
+        config.PARALLEL_RELATION_EVALUATION, **kwargs
+    )
+    yield from MapReduce(
+        worker,
+        combinations,
+        desc="Evaluating relations",
+        **parallel_kwargs,
+    ).run()
+
+
+def _self_relations(distinctions):
+    return filter(None, (Relation([distinction]) for distinction in distinctions))
+
+
+def _combinations_with_nonempty_congruent_overlap(
+    components, min_degree=2, max_degree=None
+):
+    """Return combinations of distinctions with nonempty congruent overlap.
+
+    Arguments:
+        components (CauseEffectStructure | FlatCauseEffectStructure): The
+        distinctions or MICE to find overlaps among.
+    """
+    # TODO(4.0) remove mapping when/if distinctions allow O(1) random access
+    mapping = {component: i for i, component in enumerate(components)}
+    # Use integers to avoid expensive distinction hashing
+    sets = [
+        list(map(mapping.get, subset))
+        for _, subset in components.purview_inclusion(max_order=1)
+    ]
+    setset.set_universe(range(len(components)))
+    return combinatorics.union_powerset_family(
+        sets, min_size=min_degree, max_size=max_degree
+    )
+
+
+class Relations:
+    """A set of relations among distinctions."""
+
+    def __init__(self, *args, **kwargs):
+        self._num_relations_cached = None
+        self._sum_phi_cached = None
+
+    def sum_phi(self):
+        if self._sum_phi_cached is None:
+            self._sum_phi_cached = self._sum_phi()
+        return self._sum_phi_cached
+
+    def num_relations(self):
+        if self._num_relations_cached is None:
+            self._num_relations_cached = self._num_relations()
+        return self._num_relations_cached
+
+    def _repr_columns(self):
+        return [
+            (f"Σ{fmt.SMALL_PHI}_r", self.sum_phi()),
+            ("#(relations)", self.num_relations()),
+        ]
+
+    def to_json(self):
+        """Return a JSON-serializable representation."""
+        return dict(relations=list(self))
+
+    @classmethod
+    def from_json(cls, data):
+        return cls(data["relations"])
+
+
+class ConcreteRelations(frozenset, Relations):
+    def _sum_phi(self):
+        return sum(relation.phi for relation in self)
+
+    def _num_relations(self):
+        return len(self)
+
+    def __repr__(self):
+        body = "\n".join(
+            fmt.align_columns(self._repr_columns()) + [fmt.margin(r) for r in self]
+        )
+        return fmt.header(
+            self.__class__.__name__, body, fmt.HEADER_BAR_1, fmt.HEADER_BAR_1
+        )
+
+    @cached_property
+    def faces_by_degree(self):
+        """Return a dictionary mapping degree to relation faces of that degree."""
+        faces = defaultdict(list)
+        for relation in tqdm(
+            self,
+            desc="Grouping relation faces by degree",
+            leave=False,
+        ):
+            for face in relation.faces:
+                faces[len(face)].append(face)
+        return dict(faces)
+
+
+class AnalyticalRelations(Relations):
+    def __init__(self, distinctions):
+        self.distinctions = distinctions.unflatten()
+        super().__init__()
+
+    @cached_property
+    def self_relations(self):
+        return tuple(_self_relations(self.distinctions))
+
+    def _sum_phi(self):
+        sum_phi = 0
+        # Sum of phi excluding self-relations
+        for _, overlapping_distinctions in self.distinctions.purview_inclusion(
+            max_order=1
+        ):
+            sum_phi += combinatorics.sum_of_minimum_among_subsets(
+                [
+                    distinction.phi / len(distinction.purview_union)
+                    for distinction in overlapping_distinctions
+                ]
+            )
+        # Count self-relations
+        sum_phi += sum(relation.phi for relation in self.self_relations)
+        return sum_phi
+
+    def _num_relations(self):
+        count = 0
+        # Compute number of relations excluding self-relations
+        for purview, overlapping_distinctions in self.distinctions.purview_inclusion(
+            max_order=None
+        ):
+            inclusion_exclusion_term = (-1) ** (len(purview) - 1)
+            overlap_size_term = (
+                2 ** len(overlapping_distinctions) - len(overlapping_distinctions) - 1
+            )
+            count += inclusion_exclusion_term * overlap_size_term
+        # Count self-relations
+        count += len(self.self_relations)
+        return count
 
     def __len__(self):
-        return len(self._relata)
+        return self.num_relations()
 
-    # TODO this relies on the implementation of equality for MICEs; we should
-    # go back and make sure that implementation is still appropriate
-    def __eq__(self, other):
-        return all(mice == other_mice for mice, other_mice in zip(self, other))
-
-    def overlap(self):
-        """Return the set of elements that are in the purview of every relatum."""
-        return set.intersection(*map(set, self.purviews))
-
-    def null_relation(self, purview=None, phi=0.0):
-        if purview is None:
-            purview = set()
-        return Relation(self._relata, purview, phi)
-
-    def congruent_overlap(self):
-        """Yield the congruent overlap(s) among the relata.
-
-        These are the common purview elements among the relata whose
-        maximally-divergent states are consistent; that is, the largest subset
-        of the union of the purviews such that, for each element, that
-        element's state is the same according to the maximally divergent state
-        of each relatum.
-
-        Note that there can be multiple congruent overlaps.
-        """
-        overlap = self.overlap()
-        # A state set is one state per relatum; a relatum can have multiple
-        # tied states, so we consider every combination
-        for state_set in product(*self.maximal_states.values()):
-            # Get the nodes that have the same state in every maximal state
-            congruent = congruent_nodes(state_set)
-            # Find the largest congruent subset of the full overlap
-            intersection = set.intersection(overlap, congruent)
-            if intersection:
-                yield intersection
-
-    def possible_purviews(self):
-        """Return all possible purviews.
-
-        This is the powerset of the congruent overlap. If there are multiple
-        congruent overlaps because of ties, it is the union of the powerset of
-        each.
-        """
-        # TODO note: ties are included here
-        return map(
-            set,
-            concat(
-                powerset(overlap, nonempty=True) for overlap in self.congruent_overlap()
-            ),
-        )
-
-    def partitioned_divergence(self, purview, mice):
-        """Return the maximal partitioned divergence over this purview.
-
-        The purview is cut away from the MICE and the divergence is computed
-        between the unpartitioned repertoire and partitioned repertoire.
-
-        If the MICE has multiple tied maximally-divergent states, we take the
-        maximum unpartitioned-partitioned divergence across those tied states.
-
-        Args:
-            purview (set): The set of node indices in the purview.
-            mice (|MICE|): The |MICE| object to consider.
-        """
-        non_purview_indices = tuple(set(mice.purview) - purview)
-        partition = Bipartition(
-            Part(mice.mechanism, non_purview_indices), Part((), tuple(purview))
-        )
-        partitioned_repertoire = self.subsystem.partitioned_repertoire(
-            mice.direction, partition
-        )
-        div = divergence(mice.repertoire, partitioned_repertoire)
-        state_indices = tuple(np.transpose(self.maximal_states[mice]))
-        # TODO tie breaking happens here! double-check with andrew
-        return np.max(div[state_indices])
-
-    # TODO: do we care about ties here?
-    # 2019-05-30: no, according to andrew
-    def minimum_information_relation(self, purview):
-        """Return the minimal information relation for this purview.
-
-        Args:
-            relata (Relata): The relata to consider.
-            purview (set): The purview to consider.
-        """
-        phi_min = float("inf")
-        for mice in self:
-            phi = self.partitioned_divergence(purview, mice)
-            # Short circuit if phi is zero
-            if phi == 0.0:
-                return self.null_relation(purview=purview, phi=0.0)
-            # Update the minimal relation if phi is smaller
-            if phi < phi_min:
-                phi_min = phi
-        return Relation(self, purview, phi_min)
-
-    def maximally_irreducible_relation(self):
-        """Return the maximally-irreducible relation among these relata.
-
-        If there are ties, the tied relations will be recorded in the 'ties'
-        attribute of the returned relation.
-
-        Returns:
-            Relation: the maximally irreducible relation among these relata,
-            with any tied purviews recorded.
-        """
-        if len(self) == 1:
-            # Singletons cannot have relations
-            return self.null_relation()
-        # Find maximal relations
-        tied_relations = all_maxima(
-            map(self.minimum_information_relation, self.possible_purviews())
-        )
-        if not tied_relations:
-            return self.null_relation()
-        # Keep track of ties
-        return Relation.union(tied_relations)
+    def __repr__(self):
+        body = "\n".join(fmt.align_columns(self._repr_columns()))
+        return fmt.box(fmt.header("AnalyticalRelations", body, "", fmt.HEADER_BAR_2))
 
 
-def relation(relata):
-    """Return the maximally irreducible relation among the given relata.
+_CONGRUENCE_WARNING_MSG = (
+    "distinctions.resolve_congruence() has not been called; results may "
+    "include relations that do not exist after filtering out distinctions "
+    "incongruent with the SIA specified state. Consider using "
+    "`new_big_phi.phi_structure()` to obtain a consistent structure."
+)
 
-    Alias for the ``Relata.maximally_irreducible_relation()`` method.
+
+def relations(distinctions, relation_computation=None, **kwargs):
+    """Return causal relations among a set of distinctions."""
+    if not distinctions.resolved_congruence:
+        warnings.warn(_CONGRUENCE_WARNING_MSG, PyPhiWarning, stacklevel=2)
+    return relation_computations[
+        fallback(relation_computation, config.RELATION_COMPUTATION)
+    ](distinctions, **kwargs)
+
+
+class RelationComputationsRegistry(Registry):
+    """Storage for functions for computing relations.
+
+    Users can define custom schemes:
+
+    Examples:
+        >>> @relation_computations.register('NONE')  # doctest: +SKIP
+        ... def no_relations(subsystem, ces):
+        ...    return Relations([])
+
+    And use them by setting ``config.RELATION_COMPUTATIONS = 'NONE'``
     """
-    return relata.maximally_irreducible_relation()
+
+    desc = "methods for computing relations"
 
 
-def separate_ces(ces):
-    """Return the individual causes and effects, unpaired, from a CES."""
-    return CauseEffectStructure(
-        concat((concept.cause, concept.effect) for concept in ces)
-    )
+relation_computations = RelationComputationsRegistry()
 
 
-# TODO add order kwarg to restrict to just a certain order
-# TODO: change to candidate_relations?
-def all_relations(subsystem, ces):
-    """Return all relations, even those with zero phi."""
-    # Relations can be over any combination of causes/effects in the CES, so we
-    # get a flat list of all causes and effects
-    ces = separate_ces(ces)
-    # Compute all relations
-    return map(
-        relation, (Relata(subsystem, subset) for subset in filter(
-            lambda purviews: len(purviews) > 1,
-            powerset(ces, nonempty=True))
-        )
-    )
+@relation_computations.register("CONCRETE")
+def concrete_relations(distinctions, **kwargs):
+    return ConcreteRelations(all_relations(distinctions, **kwargs))
 
 
-def relations(subsystem, ces):
-    """Return the irreducible relations among the causes/effects in the CES."""
-    return filter(None, all_relations(subsystem, ces))
+@relation_computations.register("ANALYTICAL")
+def analytical_relations(distinctions, **kwargs):
+    return AnalyticalRelations(distinctions)
+
+
+# Functional alias
+def relation(distinctions):
+    return Relation(distinctions)

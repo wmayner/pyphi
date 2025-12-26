@@ -1,20 +1,18 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# test_subsystem_expand.py
-
 import numpy as np
 import pytest
 
-from pyphi import Direction, compute
-from pyphi.constants import EPSILON
+from pyphi import Direction, compute, config
+
+EPSILON = 10 ** (-config.PRECISION)
 
 CD = (2, 3)
 BCD = (1, 2, 3)
 ABCD = (0, 1, 2, 3)
 
 
+@pytest.mark.outdated
 def test_expand_cause_repertoire(micro_s_all_off):
-    sia = compute.sia(micro_s_all_off)
+    sia = compute.subsystem.sia(micro_s_all_off)
     A = sia.ces[0]
     cause = A.cause_repertoire
 
@@ -38,8 +36,9 @@ def test_expand_cause_repertoire(micro_s_all_off):
     )
 
 
+@pytest.mark.outdated
 def test_expand_effect_repertoire(micro_s_all_off):
-    sia = compute.sia(micro_s_all_off)
+    sia = compute.subsystem.sia(micro_s_all_off)
     A = sia.ces[0]
     effect = A.effect_repertoire
 

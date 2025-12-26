@@ -1,7 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# test_convert.py
-
 from math import log2
 
 import numpy as np
@@ -185,6 +181,36 @@ def test_state_by_state2state_by_node():
     assert np.array_equal(result, expected)
 
 
+def test_state_by_node2state_by_state_single_element():
+    # fmt: off
+    tpm = np.array([
+        [0],
+        [1],
+    ])
+    expected = np.array([
+        [1, 0],
+        [0, 1],
+    ]).astype(float)
+    # fmt: on
+    result = convert.state_by_node2state_by_state(tpm)
+    assert np.array_equal(result, expected)
+
+
+def test_state_by_node2state_by_state_asymmetric():
+    # fmt: off
+    tpm = np.array([
+        [1, 0, 1, 0],
+        [0, 1, 0, 1],
+    ])
+    expected = np.array([
+        [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+    ]).astype(float)
+    # fmt: on
+    result = convert.state_by_node2state_by_state(tpm)
+    assert np.array_equal(result, expected)
+
+
 def test_state_by_node2state_by_state():
     # fmt: off
     sbn_tpm = np.array([
@@ -201,10 +227,6 @@ def test_state_by_node2state_by_state():
     ]).astype(float)
     # fmt: on
     result = convert.state_by_node2state_by_state(sbn_tpm)
-    print("Result:")
-    print(result)
-    print("Expected:")
-    print(expected)
     assert np.array_equal(result, expected)
 
 
@@ -212,10 +234,6 @@ def test_nondet_state_by_node2state_by_state():
     # Test for nondeterministic TPM.
     result = convert.state_by_node2state_by_state(state_by_node_nondet)
     expected = state_by_state_nondet
-    print("Result:")
-    print(result)
-    print("Expected:")
-    print(expected)
     assert np.array_equal(result, expected)
 
 
@@ -223,10 +241,6 @@ def test_nondet_state_by_state2state_by_node():
     # Test for nondeterministic TPM.
     result = convert.state_by_state2state_by_node(state_by_state_nondet)
     expected = convert.to_multidimensional(state_by_node_nondet)
-    print("Result:")
-    print(result)
-    print("Expected:")
-    print(expected)
     assert np.array_equal(result, expected)
 
 
@@ -234,10 +248,6 @@ def test_2_d_state_by_node2state_by_state():
     # Check with 2-D form.
     result = convert.state_by_node2state_by_state(state_by_node)
     expected = state_by_state
-    print("Result:")
-    print(result)
-    print("Expected:")
-    print(expected)
     assert np.array_equal(result, expected)
 
 
@@ -246,10 +256,6 @@ def test_n_d_state_by_node2state_by_state():
     sbn = convert.to_multidimensional(state_by_node)
     result = convert.state_by_node2state_by_state(sbn)
     expected = state_by_state
-    print("Result:")
-    print(result)
-    print("Expected:")
-    print(expected)
     assert np.array_equal(result, expected)
 
 
@@ -257,10 +263,10 @@ def test_nonsquare_deterministic_1_state_by_node2state_by_state():
     result = convert.state_by_node2state_by_state(nonsquare_deterministic_1)
     # fmt: off
     answer = np.array([
-        [0., 1., 0., 0., 0., 0., 0., 0.],
-        [0., 0., 0., 0., 0., 0., 1., 0.],
-        [0., 0., 0., 1., 0., 0., 0., 0.],
-        [0., 0., 0., 0., 1., 0., 0., 0.],
+        [0, 1, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 1, 0],
+        [0, 0, 0, 1, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1, 0, 0, 0],
     ])
     # fmt: on
     assert np.array_equal(result, answer)
@@ -270,14 +276,14 @@ def test_nonsquare_deterministic_2_state_by_node2state_by_state():
     result = convert.state_by_node2state_by_state(nonsquare_deterministic_2)
     # fmt: off
     answer = np.array([
-        [1., 0., 0., 0.],
-        [0., 0., 1., 0.],
-        [0., 1., 0., 0.],
-        [0., 0., 0., 1.],
-        [1., 0., 0., 0.],
-        [0., 0., 1., 0.],
-        [0., 0., 0., 1.],
-        [0., 1., 0., 0.],
+        [1, 0, 0, 0],
+        [0, 0, 1, 0],
+        [0, 1, 0, 0],
+        [0, 0, 0, 1],
+        [1, 0, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1],
+        [0, 1, 0, 0],
     ])
     # fmt: on
     assert np.array_equal(result, answer)

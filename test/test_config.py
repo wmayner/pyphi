@@ -1,15 +1,10 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# test_config.py
-
 import logging
 import os
-import shutil
 from pathlib import Path
 
 import pytest
 
-from pyphi import config, constants
+from pyphi import config
 from pyphi.conf import Config, Option
 
 
@@ -125,7 +120,7 @@ def test_can_set_private_attributes(c):
 
 def test_on_change():
     class Event:
-        def notify(self, config):
+        def notify(self, config, opt):
             self.notified = config.SPEED
 
     event = Event()
@@ -157,47 +152,13 @@ def test_reconfigure_logging_on_change(capsys):
     assert err == ""
 
 
-def test_reconfigure_precision_on_change():
-    with config.override(PRECISION=100):
-        assert constants.EPSILON == 1e-100
-
-    with config.override(PRECISION=3):
-        assert constants.EPSILON == 1e-3
-
-    with config.override(PRECISION=123):
-        assert constants.EPSILON == 1e-123
-
-
-def test_reconfigure_joblib_on_change(capsys):
-    cachedir = "./__testing123__"
-    try:
-        with config.override(FS_CACHE_DIRECTORY=cachedir):
-            assert constants.joblib_memory.location == cachedir
-            assert Path(cachedir).exists()
-    finally:
-        shutil.rmtree(cachedir)
-
-    def f(x):
-        return x + 1
-
-    with config.override(FS_CACHE_VERBOSITY=0):
-        constants.joblib_memory.cache(f)(42)
-    out, err = capsys.readouterr()
-    assert len(out) == 0
-
-    with config.override(FS_CACHE_VERBOSITY=100):
-        constants.joblib_memory.cache(f)(42)
-    out, err = capsys.readouterr()
-    assert len(out) > 0
-
-
 @config.override()
 @pytest.mark.parametrize(
     "name,valid,invalid",
     [
         ("SYSTEM_CUTS", ["3.0_STYLE", "CONCEPT_STYLE"], ["OTHER"]),
         ("REPR_VERBOSITY", [0, 1, 2], [-1, 3]),
-        ("PARALLEL_CUT_EVALUATION", [True, False], ["True", "False", "no", 0, 1]),
+        ("PARALLEL", [True, False], ["True", "False", "no", 0, 1]),
         ("LOG_FILE", ["filename", Path("filename")], [0, 1]),
     ],
 )

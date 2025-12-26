@@ -1,13 +1,20 @@
-__pycache__
 .cache
 .venv
 .env
+.env.leave
 .agignore
 .tox
 .coverage
+.pytest_cache
+.virtual_documents
+.hypothesis
+.ipynb_checkpoints
+
 **/*.egg-info
 **/*.log
 **/*.BACKUP
+
+__pycache__
 __pyphi_cache__
 dist
 build
@@ -18,3 +25,4 @@ benchmarks/pyphi_config.yml
 benchmarks/env
 benchmarks/results
 ignore
+matplotlibrc

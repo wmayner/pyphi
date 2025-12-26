@@ -1,15 +1,12 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # direction.py
+"""Causal directions."""
 
-"""
-Causal directions.
-"""
-
-from enum import Enum
+from enum import IntEnum, unique
+from typing import Dict, Tuple
 
 
-class Direction(Enum):
+@unique
+class Direction(IntEnum):
     """Constant that parametrizes cause and effect methods.
 
     Accessed using ``Direction.CAUSE`` and ``Direction.EFFECT``, etc.
@@ -19,17 +16,22 @@ class Direction(Enum):
     EFFECT = 1
     BIDIRECTIONAL = 2
 
-    def __str__(self):
+    def __repr__(self) -> str:
         return self.name
 
-    def to_json(self):
+    def __str__(self) -> str:
+        return repr(self)
+
+    __format__ = object.__format__
+
+    def to_json(self) -> Dict[str, str]:
         return {"direction": self.name}
 
     @classmethod
-    def from_json(cls, dct):
+    def from_json(cls, dct: Dict[str, str]) -> "Direction":
         return cls[dct["direction"]]
 
-    def order(self, mechanism, purview):
+    def order(self, mechanism: Tuple[int, ...], purview: Tuple[int, ...]) -> Tuple[Tuple[int, ...], Tuple[int, ...]]:
         """Order the mechanism and purview in time.
 
         If the direction is ``CAUSE``, then the purview is at |t-1| and the
@@ -44,3 +46,18 @@ class Direction(Enum):
         from . import validate
 
         return validate.direction(self)
+
+    @classmethod
+    def both(cls) -> Tuple["Direction", "Direction"]:
+        return (cls.CAUSE, cls.EFFECT)
+
+    @classmethod
+    def all(cls) -> Tuple["Direction", "Direction", "Direction"]:
+        return (cls.CAUSE, cls.EFFECT, cls.BIDIRECTIONAL)
+
+    def flip(self) -> "Direction":
+        """Return the other direction."""
+        if self == Direction.CAUSE:
+            return Direction.EFFECT
+        else:
+            return Direction.CAUSE

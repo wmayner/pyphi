@@ -6,10 +6,13 @@ _Next version_
 --------------
 
 ### API additions
+
 - Added `pyphi.tpm.is_deterministic()`
 - Added `pyphi.tpm.simulate()`
 
+
 ### API changes
+
 - Define the minimum information partition at the system level as the
   partition that minimizes the absolute value of Φ, rather than the signed Φ
   value. This is relevant when using non-default system level distance
@@ -17,6 +20,17 @@ _Next version_
 - Updated the implementation of `pyphi.convert.state_by_node2state_by_state()`:
   - Can now handle "TPMs" where the number of nodes in the previous and next states differ
   - Improved performance for nondeterministic TPMs
+- Added `connectivity.subadjacency()`
+- Added `NodeLabels.coerce_to_labels()`
+- Added `Direction.both()`
+
+### Config
+
+- Implemented `__repr__` to allow easier display in Jupyter & IPython.
+
+### Optimizations
+
+- Improve the implementation of `convert.state_by_node2state_by_state`.
 
 ### Fixes
 - Fixed `convert.be2le_state_by_state()` and `convert.le2be_state_by_state()`;

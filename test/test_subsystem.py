@@ -1,8 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# test_subsystem.py
-
-import example_networks
 import numpy as np
 import pytest
 
@@ -15,6 +10,8 @@ from pyphi.models import (
     RepertoireIrreducibilityAnalysis,
 )
 from pyphi.subsystem import Subsystem
+
+from . import example_networks
 
 
 @config.override(VALIDATE_SUBSYSTEM_STATES=True)
@@ -124,7 +121,8 @@ def test_apply_cut(s):
     assert s.network == cut_s.network
     assert s.state == cut_s.state
     assert s.node_indices == cut_s.node_indices
-    assert np.array_equal(cut_s.tpm, s.tpm)
+    assert np.array_equal(cut_s.effect_tpm.tpm, s.effect_tpm.tpm)
+    assert np.array_equal(cut_s.cause_tpm.tpm, s.cause_tpm.tpm)
     assert np.array_equal(cut_s.cm, cut.apply_cut(s.cm))
 
 
@@ -147,7 +145,7 @@ def test_cut_node_labels(s):
 
 
 def test_specify_elements_with_labels(standard):
-    network = Network(standard.tpm, node_labels=("A", "B", "C"))
+    network = Network(standard.tpm.tpm, node_labels=("A", "B", "C"))
     subsystem = Subsystem(network, (0, 0, 0), ("B", "C"))
     assert subsystem.node_indices == (1, 2)
     assert tuple(node.label for node in subsystem.nodes) == ("B", "C")
@@ -178,7 +176,9 @@ def test_null_concept(s):
         )
     )
     assert s.null_concept == Concept(
-        mechanism=(), cause=cause, effect=effect, subsystem=s
+        mechanism=(),
+        cause=cause,
+        effect=effect,
     )
 
 

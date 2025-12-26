@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 import numpy as np
 import pytest
 
@@ -14,6 +11,7 @@ from pyphi import (
     macro,
     validate,
 )
+from pyphi.tpm import ExplicitTPM
 
 
 def test_validate_direction():
@@ -29,31 +27,33 @@ def test_validate_direction():
 
 
 def test_validate_tpm_wrong_shape():
-    tpm = np.arange(3 ** 3).reshape(3, 3, 3)
     with pytest.raises(ValueError):
-        assert validate.tpm(tpm)
+        tpm = ExplicitTPM(np.arange(3**3).reshape(3, 3, 3))
+        assert tpm.validate()
 
 
 def test_validate_tpm_nonbinary_nodes():
-    tpm = np.arange(3 * 3 * 2).reshape(3, 3, 2)
     with pytest.raises(ValueError):
-        assert validate.tpm(tpm)
+        tpm = ExplicitTPM(np.arange(3 * 3 * 2).reshape(3, 3, 2))
+        assert tpm.validate()
 
 
 def test_validate_tpm_conditional_independence():
     # fmt: off
-    tpm = np.array([
-        [1, 0.0, 0.0, 0],
-        [0, 0.5, 0.5, 0],
-        [0, 0.5, 0.5, 0],
-        [0, 0.0, 0.0, 1],
-    ])
+    tpm = ExplicitTPM(
+        np.array([
+            [1, 0.0, 0.0, 0],
+            [0, 0.5, 0.5, 0],
+            [0, 0.5, 0.5, 0],
+            [0, 0.0, 0.0, 1],
+        ])
+    )
     # fmt: on
     with pytest.raises(exceptions.ConditionallyDependentError):
-        validate.conditionally_independent(tpm)
+        tpm.conditionally_independent()
     with pytest.raises(exceptions.ConditionallyDependentError):
-        validate.tpm(tpm)
-    validate.tpm(tpm, check_independence=False)
+        tpm.validate()
+    tpm.validate(check_independence=False)
 
 
 def test_validate_connectivity_matrix_valid(s):
@@ -80,7 +80,7 @@ def test_validate_connectivity_matrix_not_binary():
 
 def test_validate_network_wrong_cm_size(s):
     with pytest.raises(ValueError):
-        Network(s.network.tpm, np.ones(16).reshape(4, 4))
+        Network(s.network.tpm.tpm, np.ones(16).reshape(4, 4))
 
 
 def test_validate_is_network(s):
@@ -99,6 +99,7 @@ def test_validate_state_error(s):
         Subsystem(s.network, state, s.node_indices)
 
 
+@pytest.mark.outdated
 def test_validate_state_no_error_2():
     tpm = np.ones([16, 4])
     net = Network(tpm)
@@ -167,6 +168,15 @@ def test_validate_blackbox():
     # Every box must have an output
     with pytest.raises(ValueError):
         validate.blackbox(macro.Blackbox(((0,), (1,)), (0,)))
+
+
+def test_validate_relata_empty():
+    with pytest.raises(ValueError):
+        validate.relata([])
+
+
+def test_validate_relata_nonempty():
+    validate.relata([object()])
 
 
 def test_validate_partition():

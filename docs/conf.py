@@ -1,5 +1,3 @@
-#!/usr/bin/env python3 # -*- coding: utf-8 -*-
-#
 # PyPhi documentation build configuration file, created by
 # sphinx-quickstart on Fri Jan 17 11:15:55 2014.
 #
@@ -19,13 +17,15 @@
 
 import os
 import sys
-from datetime import datetime
+from importlib.metadata import metadata
+
+meta = metadata("pyphi")
+__author__ = meta["author-email"]
+__version__ = meta["version"]
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 import sphinx_rtd_theme
-
-from pyphi import __author__, __version__
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -124,6 +124,7 @@ rst_prolog = "".join(
 .. |big_phi = 0| replace:: :math:`\Phi = 0`
 .. |big_phi_max| replace:: :math:`\Phi^{\textrm{max}}`
 .. |small_phi| replace:: :math:`\varphi`
+.. |small_phi_s| replace:: :math:`\varphi_s`
 .. |small_phi > 0| replace:: :math:`\varphi > 0`
 .. |small_phi = 0| replace:: :math:`\varphi = 0`
 .. |small_phi_max| replace:: :math:`\varphi^{\textrm{max}}`
@@ -218,7 +219,6 @@ rst_prolog = "".join(
 .. |compute| replace:: :mod:`~pyphi.compute`
 .. |compute.distance| replace:: :mod:`pyphi.compute.distance`
 .. |compute.network| replace:: :mod:`pyphi.compute.network`
-.. |compute.parallel| replace:: :mod:`pyphi.compute.parallel`
 .. |compute.subsystem| replace:: :mod:`pyphi.compute.subsystem`
 
 .. |models.subsystem| replace:: :mod:`pyphi.models.subsystem`
@@ -231,8 +231,6 @@ rst_prolog = "".join(
 .. |convert| replace:: :mod:`~pyphi.convert`
 .. |examples| replace:: :mod:`~pyphi.examples`
 .. |node| replace:: :mod:`~pyphi.node`
-.. |memory| replace:: :mod:`~pyphi.memory`
-.. |db| replace:: :mod:`~pyphi.db`
 .. |utils| replace:: :mod:`~pyphi.utils`
 .. |validate| replace:: :mod:`~pyphi.validate`
 .. |config| replace:: :mod:`~pyphi.config`

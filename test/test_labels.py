@@ -32,6 +32,15 @@ def test_coerce_to_indices(nl):
         nl.coerce_to_indices((0, "A"))
 
 
+def test_coerce_to_labels(nl):
+    assert nl.coerce_to_labels((0, 1)) == ("A", "B")
+    assert nl.coerce_to_labels(("A", "B", "C")) == ("A", "B", "C")
+    assert nl.coerce_to_labels(()) == ()
+
+    with pytest.raises(ValueError):
+        nl.coerce_to_indices((0, "A"))
+
+
 def test_iterable(nl):
     assert [l for l in nl] == ["A", "B", "C"]
 
