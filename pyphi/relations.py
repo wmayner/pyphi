@@ -1,11 +1,15 @@
 # relations.py
 """Implements the formalism for computing relations."""
 
+from __future__ import annotations
+
 import warnings
 from collections import defaultdict
+from collections.abc import Callable, Iterable
 from functools import cached_property
 from functools import total_ordering
 from itertools import product
+from typing import TYPE_CHECKING, Any
 
 from graphillion import setset
 from tqdm.auto import tqdm
@@ -22,6 +26,9 @@ from .models import fmt
 from .parallel import MapReduce
 from .registry import Registry
 from .warnings import PyPhiWarning
+
+if TYPE_CHECKING:
+    from .new_big_phi import Distinction
 
 
 class RelationFace(frozenset):
@@ -355,7 +362,11 @@ _CONGRUENCE_WARNING_MSG = (
 )
 
 
-def relations(distinctions, relation_computation=None, **kwargs):
+def relations(
+    distinctions: Iterable[Distinction],
+    relation_computation: str | None = None,
+    **kwargs: Any,
+) -> Relations:
     """Return causal relations among a set of distinctions."""
     if not distinctions.resolved_congruence:
         warnings.warn(_CONGRUENCE_WARNING_MSG, PyPhiWarning, stacklevel=2)
@@ -384,15 +395,19 @@ relation_computations = RelationComputationsRegistry()
 
 
 @relation_computations.register("CONCRETE")
-def concrete_relations(distinctions, **kwargs):
+def concrete_relations(
+    distinctions: Iterable[Distinction], **kwargs: Any
+) -> ConcreteRelations:
     return ConcreteRelations(all_relations(distinctions, **kwargs))
 
 
 @relation_computations.register("ANALYTICAL")
-def analytical_relations(distinctions, **kwargs):
+def analytical_relations(
+    distinctions: Iterable[Distinction], **kwargs: Any
+) -> AnalyticalRelations:
     return AnalyticalRelations(distinctions)
 
 
 # Functional alias
-def relation(distinctions):
+def relation(distinctions: Iterable[Distinction]) -> Relation:
     return Relation(distinctions)
