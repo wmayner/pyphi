@@ -1,8 +1,12 @@
 # compute/subsystem.py
 """Functions for computing subsystem-level properties."""
 
+from __future__ import annotations
+
 import functools
 import logging
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Any
 
 from more_itertools import collapse
 
@@ -22,21 +26,26 @@ from ..models import cmp
 from ..parallel import MapReduce
 from ..partition import mip_partitions
 from ..partition import system_partition_types
+from ..types import Mechanism, Purview
+
+if TYPE_CHECKING:
+    from ..labels import NodeLabels
+    from ..subsystem import Subsystem
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
 
 
 def ces(
-    subsystem,
-    mechanisms=None,
-    purviews=None,
-    cause_purviews=None,
-    effect_purviews=None,
-    directions=None,
-    only_positive_phi=True,
-    **kwargs,
-):
+    subsystem: Subsystem,
+    mechanisms: Iterable[Mechanism] | None = None,
+    purviews: Iterable[Purview] | None = None,
+    cause_purviews: Iterable[Purview] | None = None,
+    effect_purviews: Iterable[Purview] | None = None,
+    directions: Iterable[Direction] | None = None,
+    only_positive_phi: bool = True,
+    **kwargs: Any,
+) -> CauseEffectStructure:
     """Return the conceptual structure of this subsystem, optionally restricted
     to concepts with the mechanisms and purviews given in keyword arguments.
 
@@ -103,15 +112,15 @@ def ces(
     return CauseEffectStructure(concepts, subsystem=subsystem)
 
 
-def _only_positive_phi(concepts):
+def _only_positive_phi(concepts: Iterable[Any]) -> list[Concept]:
     return list(filter(None, collapse(concepts)))
 
 
-def _any_phi(concepts):
+def _any_phi(concepts: Iterable[Any]) -> list[Concept]:
     return list(collapse(concepts))
 
 
-def conceptual_info(subsystem, **kwargs):
+def conceptual_info(subsystem: Subsystem, **kwargs: Any) -> float:
     """Return the conceptual information for a |Subsystem|.
 
     This is the distance from the subsystem's |CauseEffectStructure| to the
@@ -123,7 +132,12 @@ def conceptual_info(subsystem, **kwargs):
     return round(ci, config.PRECISION)
 
 
-def evaluate_cut(cut, uncut_subsystem, unpartitioned_ces, **kwargs):
+def evaluate_cut(
+    cut: Cut,
+    uncut_subsystem: Subsystem,
+    unpartitioned_ces: CauseEffectStructure,
+    **kwargs: Any,
+) -> SystemIrreducibilityAnalysis:
     """Compute the system irreducibility for a given cut.
 
     Args:
@@ -165,7 +179,9 @@ def evaluate_cut(cut, uncut_subsystem, unpartitioned_ces, **kwargs):
     )
 
 
-def sia_partitions(nodes, node_labels=None):
+def sia_partitions(
+    nodes: tuple[int, ...], node_labels: NodeLabels | None = None
+) -> list[Cut]:
     """Return all |big_phi| cuts for the given nodes.
 
     Controlled by the :const:`config.SYSTEM_PARTITION_TYPE` option.
@@ -193,7 +209,7 @@ def sia_partitions(nodes, node_labels=None):
     )
 
 
-def _ces(subsystem, **kwargs):
+def _ces(subsystem: Subsystem, **kwargs: Any) -> CauseEffectStructure:
     """Parallelize the unpartitioned |CauseEffectStructure| if parallelizing
     cuts, since we have free processors because we're not computing any cuts
     yet.
@@ -202,7 +218,12 @@ def _ces(subsystem, **kwargs):
     return ces(subsystem, **kwargs)
 
 
-def _sia_map_reduce(cuts, subsystem, unpartitioned_ces, **kwargs):
+def _sia_map_reduce(
+    cuts: Iterable[Cut],
+    subsystem: Subsystem,
+    unpartitioned_ces: CauseEffectStructure,
+    **kwargs: Any,
+) -> SystemIrreducibilityAnalysis:
     kwargs = {"parallel": config.PARALLEL_CUT_EVALUATION, **kwargs}
     return MapReduce(
         evaluate_cut,
@@ -219,7 +240,7 @@ def _sia_map_reduce(cuts, subsystem, unpartitioned_ces, **kwargs):
     ).run()
 
 
-def _sia(subsystem, **kwargs):
+def _sia(subsystem: Subsystem, **kwargs: Any) -> SystemIrreducibilityAnalysis:
     """Return the minimal information partition of a subsystem.
 
     Args:
@@ -309,13 +330,15 @@ def _sia(subsystem, **kwargs):
 
 
 @functools.wraps(_sia)
-def sia(subsystem, **kwargs):
+def sia(
+    subsystem: Subsystem, **kwargs: Any
+) -> SystemIrreducibilityAnalysis | SystemIrreducibilityAnalysisConceptStyle:
     if config.SYSTEM_CUTS == "CONCEPT_STYLE":
         return sia_concept_style(subsystem, **kwargs)
     return _sia(subsystem, **kwargs)
 
 
-def phi(subsystem):
+def phi(subsystem: Subsystem) -> float:
     """Return the |big_phi| value of a subsystem."""
     return sia(subsystem).phi
 
@@ -325,16 +348,18 @@ class ConceptStyleSystem:
     system cuts.
     """
 
-    def __init__(self, subsystem, direction, cut=None):
+    def __init__(
+        self, subsystem: Subsystem, direction: Direction, cut: Cut | None = None
+    ) -> None:
         self.subsystem = subsystem
         self.direction = direction
         self.cut = cut
         self.cut_system = subsystem.apply_cut(cut)
 
-    def apply_cut(self, cut):
+    def apply_cut(self, cut: Cut) -> ConceptStyleSystem:
         return ConceptStyleSystem(self.subsystem, self.direction, cut)
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
         """Pass attribute access through to the basic subsystem."""
         # Unpickling calls `__getattr__` before the object's dict is populated;
         # check that `subsystem` exists to avoid a recursion error.
@@ -343,28 +368,36 @@ class ConceptStyleSystem:
             return getattr(self.subsystem, name)
         raise AttributeError(name)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.subsystem)
 
     @property
-    def cause_system(self):
-        return {Direction.CAUSE: self.cut_system, Direction.EFFECT: self.subsystem}[
-            self.direction
-        ]
+    def cause_system(self) -> Subsystem:
+        return {
+            Direction.CAUSE: self.cut_system,
+            Direction.EFFECT: self.subsystem,
+        }[self.direction]
 
     @property
-    def effect_system(self):
-        return {Direction.CAUSE: self.subsystem, Direction.EFFECT: self.cut_system}[
-            self.direction
-        ]
+    def effect_system(self) -> Subsystem:
+        return {
+            Direction.CAUSE: self.subsystem,
+            Direction.EFFECT: self.cut_system,
+        }[self.direction]
 
     def concept(
-        self, mechanism, purviews=False, cause_purviews=False, effect_purviews=False
-    ):
+        self,
+        mechanism: Mechanism,
+        purviews: Iterable[Purview] | bool = False,
+        cause_purviews: Iterable[Purview] | bool = False,
+        effect_purviews: Iterable[Purview] | bool = False,
+    ) -> Concept:
         """Compute a concept, using the appropriate system for each side of the
         cut.
         """
-        cause = self.cause_system.mic(mechanism, purviews=(cause_purviews or purviews))
+        cause = self.cause_system.mic(
+            mechanism, purviews=(cause_purviews or purviews)
+        )
 
         effect = self.effect_system.mie(
             mechanism, purviews=(effect_purviews or purviews)
@@ -376,17 +409,26 @@ class ConceptStyleSystem:
             effect=effect,
         )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"ConceptStyleSystem{self.node_indices}"
 
 
-def concept_cuts(direction, node_indices, node_labels=None):
+def concept_cuts(
+    direction: Direction,
+    node_indices: tuple[int, ...],
+    node_labels: NodeLabels | None = None,
+) -> Iterable[KCut]:
     """Generator over all concept-syle cuts for these nodes."""
     for partition in mip_partitions(node_indices, node_indices):
         yield KCut(direction, partition, node_labels)
 
 
-def directional_sia(subsystem, direction, unpartitioned_ces=None, **kwargs):
+def directional_sia(
+    subsystem: Subsystem,
+    direction: Direction,
+    unpartitioned_ces: CauseEffectStructure | None = None,
+    **kwargs: Any,
+) -> SystemIrreducibilityAnalysis:
     """Calculate a concept-style SystemIrreducibilityAnalysisCause or
     SystemIrreducibilityAnalysisEffect.
     """
@@ -403,41 +445,49 @@ def directional_sia(subsystem, direction, unpartitioned_ces=None, **kwargs):
 class SystemIrreducibilityAnalysisConceptStyle(cmp.Orderable):
     """Represents a |SIA| computed using concept-style system cuts."""
 
-    def __init__(self, sia_cause, sia_effect):
+    def __init__(
+        self,
+        sia_cause: SystemIrreducibilityAnalysis,
+        sia_effect: SystemIrreducibilityAnalysis,
+    ) -> None:
         self.sia_cause = sia_cause
         self.sia_effect = sia_effect
 
     @property
-    def min_sia(self):
+    def min_sia(self) -> SystemIrreducibilityAnalysis:
         return min(self.sia_cause, self.sia_effect, key=lambda m: m.phi)
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
         """Pass attribute access through to the minimal SIA."""
         if "sia_cause" in self.__dict__ and "sia_effect" in self.__dict__:
             return getattr(self.min_sia, name)
         raise AttributeError(name)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return cmp.general_eq(self, other, ["phi"])
 
     unorderable_unless_eq = ["network"]
 
-    def order_by(self):
+    def order_by(self) -> list[Any]:
         return [self.phi, len(self.subsystem)]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return repr(self.min_sia)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.min_sia)
 
 
 # TODO: cache
-def sia_concept_style(subsystem):
+def sia_concept_style(
+    subsystem: Subsystem,
+) -> SystemIrreducibilityAnalysisConceptStyle:
     """Compute a concept-style SystemIrreducibilityAnalysis"""
     unpartitioned_ces = _ces(subsystem)
 
     sia_cause = directional_sia(subsystem, Direction.CAUSE, unpartitioned_ces)
-    sia_effect = directional_sia(subsystem, Direction.EFFECT, unpartitioned_ces)
+    sia_effect = directional_sia(
+        subsystem, Direction.EFFECT, unpartitioned_ces
+    )
 
     return SystemIrreducibilityAnalysisConceptStyle(sia_cause, sia_effect)

@@ -1,12 +1,22 @@
 # metrics/ces.py
 """Functions for computing distances between cause-effect structures."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Callable
+
 import numpy as np
+from numpy.typing import NDArray
 
 from .. import utils
 from ..conf import config
 from ..registry import Registry
+from ..types import Repertoire
 from . import distribution
+
+if TYPE_CHECKING:
+    from ..models.mechanism import Concept
+    from ..models.subsystem import CauseEffectStructure
 
 
 class CESMeasureRegistry(Registry):
@@ -26,11 +36,13 @@ class CESMeasureRegistry(Registry):
 
     desc = "distance functions between cause-effect structures"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-        self._asymmetric = []
+        self._asymmetric: list[str] = []
 
-    def register(self, name, asymmetric=False):
+    def register(
+        self, name: str, asymmetric: bool = False
+    ) -> Callable[[Callable[..., float]], Callable[..., float]]:
         """Decorator for registering a CES measure with PyPhi.
 
         Args:
@@ -40,7 +52,9 @@ class CESMeasureRegistry(Registry):
             asymmetric (boolean): ``True`` if the measure is asymmetric.
         """
 
-        def register_func(func):
+        def register_func(
+            func: Callable[..., float]
+        ) -> Callable[..., float]:
             if asymmetric:
                 self._asymmetric.append(name)
             self.store[name] = func
@@ -48,7 +62,7 @@ class CESMeasureRegistry(Registry):
 
         return register_func
 
-    def asymmetric(self):
+    def asymmetric(self) -> list[str]:
         """Return a list of asymmetric measures."""
         return self._asymmetric
 
@@ -56,7 +70,7 @@ class CESMeasureRegistry(Registry):
 measures = CESMeasureRegistry()
 
 
-def emd_ground_distance(r1, r2):
+def emd_ground_distance(r1: Repertoire, r2: Repertoire) -> float:
     """Compute the distance between two repertoires of a system.
 
     Args:
@@ -68,13 +82,14 @@ def emd_ground_distance(r1, r2):
     """
     if config.REPERTOIRE_DISTANCE in distribution.measures.asymmetric():
         raise ValueError(
-            f"The repertoire-distance {config.REPERTOIRE_DISTANCE} is asymmetric and cannot be used as the "
-            "ground distance for the system-level EMD"
+            f"The repertoire-distance {config.REPERTOIRE_DISTANCE} is "
+            "asymmetric and cannot be used as the ground distance for "
+            "the system-level EMD"
         )
     return distribution.repertoire_distance(r1, r2, direction=None)
 
 
-def emd_concept_distance(c1, c2):
+def emd_concept_distance(c1: Concept, c2: Concept) -> float:
     """Return the EMD distance between two concepts in concept space.
 
     Args:
@@ -99,7 +114,7 @@ def emd_concept_distance(c1, c2):
     )
 
 
-def _emd_simple(C1, C2):
+def _emd_simple(C1: CauseEffectStructure, C2: CauseEffectStructure) -> float:
     """Return the distance between two cause-effect structures.
 
     Assumes the only difference between them is that some concepts have
@@ -110,11 +125,12 @@ def _emd_simple(C1, C2):
         C1, C2 = C2, C1
     destroyed = [c1 for c1 in C1 if not any(c1.emd_eq(c2) for c2 in C2)]
     return sum(
-        c.phi * emd_concept_distance(c, c.subsystem.null_concept) for c in destroyed
+        c.phi * emd_concept_distance(c, c.subsystem.null_concept)
+        for c in destroyed
     )
 
 
-def _emd(unique_C1, unique_C2):
+def _emd(unique_C1: CauseEffectStructure, unique_C2: CauseEffectStructure) -> float:
     """Return the distance between two cause-effect structures.
 
     Uses the generalized EMD.
@@ -162,7 +178,7 @@ def _emd(unique_C1, unique_C2):
     # the distances from each concept to the null concept.
     N, M = len(unique_C1), len(unique_C2)
     # Add one to the side length for the null concept distances.
-    distance_matrix = np.empty([N + M + 1] * 2)
+    distance_matrix: NDArray[np.float64] = np.empty([N + M + 1] * 2)
     # Ensure that concepts are never moved within their own CES.
     distance_matrix[:] = np.max(distances) + 1
     # Set the top-right block to the pairwise CES distances.
@@ -183,11 +199,13 @@ def _emd(unique_C1, unique_C2):
     # The sum of the two signatures should be the same.
     assert utils.eq(sum(d1), sum(d2))
     # Calculate!
-    return distribution.EMD.compute(np.array(d1), np.array(d2), distance_matrix)
+    return distribution.EMD.compute(
+        np.array(d1), np.array(d2), distance_matrix
+    )
 
 
 @measures.register("EMD")
-def emd(C1, C2):
+def emd(C1: CauseEffectStructure, C2: CauseEffectStructure) -> float:
     """Return the generalized EMD between two cause-effect structures.
 
     Args:
@@ -197,24 +215,32 @@ def emd(C1, C2):
     Returns:
         float
     """
-    concepts_only_in_C1 = [c1 for c1 in C1 if not any(c1.emd_eq(c2) for c2 in C2)]
-    concepts_only_in_C2 = [c2 for c2 in C2 if not any(c2.emd_eq(c1) for c1 in C1)]
+    concepts_only_in_C1 = [
+        c1 for c1 in C1 if not any(c1.emd_eq(c2) for c2 in C2)
+    ]
+    concepts_only_in_C2 = [
+        c2 for c2 in C2 if not any(c2.emd_eq(c1) for c1 in C1)
+    ]
     # If the only difference in the CESs is that some concepts
     # disappeared, then we don't need to use the EMD.
     if not concepts_only_in_C1 or not concepts_only_in_C2:
         dist = _emd_simple(C1, C2)
     else:
-        dist = distribution.EMD.compute(concepts_only_in_C1, concepts_only_in_C2)
+        dist = distribution.EMD.compute(
+            concepts_only_in_C1, concepts_only_in_C2
+        )
     return round(dist, config.PRECISION)
 
 
 @measures.register("SUM_SMALL_PHI")
-def sum_small_phi(C1, C2):
+def sum_small_phi(C1: CauseEffectStructure, C2: CauseEffectStructure) -> float:
     """Return the difference in |small_phi| between |CauseEffectStructure|."""
     return sum(C1.phis) - sum(C2.phis)
 
 
-def ces_distance(C1, C2, measure=None):
+def ces_distance(
+    C1: CauseEffectStructure, C2: CauseEffectStructure, measure: str | None = None
+) -> float:
     """Return the distance between two cause-effect structures.
 
     Args:

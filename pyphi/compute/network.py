@@ -1,23 +1,36 @@
 # compute/network.py
 """Functions for computing network-level properties."""
 
+from __future__ import annotations
+
 import logging
+from collections.abc import Generator, Iterable
+from typing import TYPE_CHECKING, Any
 
 from .. import conf
 from .. import exceptions
 from .. import utils
 from .. import validate
 from ..conf import config
-from ..models import _null_sia
+from ..models import SystemIrreducibilityAnalysis, _null_sia
 from ..parallel import MapReduce
 from ..subsystem import Subsystem
+from ..types import State
 from .subsystem import sia
+
+if TYPE_CHECKING:
+    from ..network import Network
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
 
 
-def reachable_subsystems(network, indices, state, **kwargs):
+def reachable_subsystems(
+    network: Network,
+    indices: tuple[int, ...],
+    state: State,
+    **kwargs: Any,
+) -> Generator[Subsystem, None, None]:
     """A generator over all subsystems in a valid state."""
     validate.is_network(network)
 
@@ -30,7 +43,9 @@ def reachable_subsystems(network, indices, state, **kwargs):
             pass
 
 
-def subsystems(network, state, **kwargs):
+def subsystems(
+    network: Network, state: State, **kwargs: Any
+) -> Generator[Subsystem, None, None]:
     """Return a generator of all **possible** subsystems of a network.
 
     .. note::
@@ -48,7 +63,9 @@ def subsystems(network, state, **kwargs):
     return reachable_subsystems(network, network.node_indices, state, **kwargs)
 
 
-def possible_complexes(network, state, **kwargs):
+def possible_complexes(
+    network: Network, state: State, **kwargs: Any
+) -> Generator[Subsystem, None, None]:
     """Return a generator of subsystems of a network that could be a complex.
 
     This is the just powerset of the nodes that have at least one input and
@@ -72,7 +89,12 @@ def possible_complexes(network, state, **kwargs):
     )
 
 
-def all_complexes(network, state, parallel_kwargs=None, **kwargs):
+def all_complexes(
+    network: Network,
+    state: State,
+    parallel_kwargs: dict[str, Any] | None = None,
+    **kwargs: Any,
+) -> list[SystemIrreducibilityAnalysis]:
     """Return a generator for all complexes of the network.
 
     .. note::
@@ -100,7 +122,9 @@ def all_complexes(network, state, parallel_kwargs=None, **kwargs):
     ).run()
 
 
-def complexes(network, state, **kwargs):
+def complexes(
+    network: Network, state: State, **kwargs: Any
+) -> list[SystemIrreducibilityAnalysis]:
     """Return all irreducible complexes of the network.
 
     Args:
@@ -114,7 +138,9 @@ def complexes(network, state, **kwargs):
     return list(filter(None, all_complexes(network, state, **kwargs)))
 
 
-def major_complex(network, state, **kwargs):
+def major_complex(
+    network: Network, state: State, **kwargs: Any
+) -> SystemIrreducibilityAnalysis:
     """Return the major complex of the network.
 
     Args:
@@ -128,7 +154,9 @@ def major_complex(network, state, **kwargs):
     log.info("Calculating major complex...")
     empty_subsystem = Subsystem(network, state, ())
     default = _null_sia(empty_subsystem)
-    parallel_kwargs = conf.parallel_kwargs(config.PARALLEL_COMPLEX_EVALUATION, **kwargs)
+    parallel_kwargs = conf.parallel_kwargs(
+        config.PARALLEL_COMPLEX_EVALUATION, **kwargs
+    )
     result = MapReduce(
         sia,
         possible_complexes(network, state),
@@ -143,7 +171,9 @@ def major_complex(network, state, **kwargs):
     return result
 
 
-def condensed(network, state, **kwargs):
+def condensed(
+    network: Network, state: State, **kwargs: Any
+) -> list[SystemIrreducibilityAnalysis]:
     """Return a list of maximal non-overlapping complexes.
 
     Args:
@@ -154,8 +184,8 @@ def condensed(network, state, **kwargs):
         list[SystemIrreducibilityAnalysis]: A list of |SIA| for non-overlapping
         complexes with maximal |big_phi| values.
     """
-    result = []
-    covered_nodes = set()
+    result: list[SystemIrreducibilityAnalysis] = []
+    covered_nodes: set[int] = set()
 
     for c in reversed(sorted(complexes(network, state, **kwargs))):
         if not any(n in covered_nodes for n in c.subsystem.node_indices):
