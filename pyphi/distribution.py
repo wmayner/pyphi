@@ -1,12 +1,18 @@
 # distribution.py
 """Functions for manipulating probability distributions."""
 
+from __future__ import annotations
+
+from collections.abc import Iterable
+
 import numpy as np
+from numpy.typing import NDArray
 
 from .cache import cache
+from .types import NodeIndices, Purview, Repertoire
 
 
-def normalize(a):
+def normalize(a: Repertoire) -> Repertoire:
     """Normalize a distribution.
 
     Args:
@@ -22,7 +28,7 @@ def normalize(a):
 
 
 # TODO? remove this? doesn't seem to be used anywhere
-def uniform_distribution(number_of_nodes):
+def uniform_distribution(number_of_nodes: int) -> Repertoire:
     """
     Return the uniform distribution for a set of binary nodes, indexed by state
     (so there is one dimension per node, the size of which is the number of
@@ -41,7 +47,7 @@ def uniform_distribution(number_of_nodes):
     return (np.ones(number_of_states) / number_of_states).reshape([2] * number_of_nodes)
 
 
-def marginal_zero(repertoire, node_index):
+def marginal_zero(repertoire: Repertoire, node_index: int) -> np.floating:
     """Return the marginal probability that the node is OFF."""
     index = [slice(None)] * repertoire.ndim
     index[node_index] = 0
@@ -49,14 +55,14 @@ def marginal_zero(repertoire, node_index):
     return repertoire[tuple(index)].sum()
 
 
-def marginal(repertoire, node_index):
+def marginal(repertoire: Repertoire, node_index: int) -> Repertoire:
     """Get the marginal distribution for a node."""
     index = tuple(i for i in range(repertoire.ndim) if i != node_index)
 
     return repertoire.sum(index, keepdims=True)
 
 
-def independent(repertoire):
+def independent(repertoire: Repertoire) -> bool:
     """Check whether the repertoire is independent."""
     marginals = [marginal(repertoire, i) for i in range(repertoire.ndim)]
 
@@ -69,10 +75,10 @@ def independent(repertoire):
     # repertoire = repertoire.round(config.PRECISION)
     # joint = joint.round(config.PRECISION)
 
-    return np.array_equal(repertoire, joint)
+    return bool(np.array_equal(repertoire, joint))
 
 
-def purview(repertoire):
+def purview(repertoire: Repertoire | None) -> Purview | None:
     """The purview of the repertoire.
 
     Args:
@@ -87,7 +93,7 @@ def purview(repertoire):
     return tuple(i for i, dim in enumerate(repertoire.shape) if dim == 2)
 
 
-def purview_size(repertoire):
+def purview_size(repertoire: Repertoire | None) -> int:
     """Return the size of the purview of the repertoire.
 
     Args:
@@ -99,7 +105,9 @@ def purview_size(repertoire):
     return len(purview(repertoire))
 
 
-def repertoire_shape(all_node_indices, purview):  # pylint: disable=redefined-outer-name
+def repertoire_shape(
+    all_node_indices: NodeIndices | Iterable[int], purview: Purview | Iterable[int]
+) -> list[int]:
     """Return the shape a repertoire.
 
     Args:
@@ -119,7 +127,7 @@ def repertoire_shape(all_node_indices, purview):  # pylint: disable=redefined-ou
     return [2 if i in purview else 1 for i in all_node_indices]
 
 
-def flatten(repertoire, big_endian=False):
+def flatten(repertoire: Repertoire | None, big_endian: bool = False) -> Repertoire | None:
     """Flatten a repertoire, removing empty dimensions.
 
     By default, the flattened repertoire is returned in little-endian order.
@@ -143,7 +151,9 @@ def flatten(repertoire, big_endian=False):
     return repertoire.squeeze().ravel(order=order)
 
 
-def unflatten(repertoire, purview, N, big_endian=False):
+def unflatten(
+    repertoire: Repertoire, purview: Purview, N: int, big_endian: bool = False
+) -> Repertoire:
     """Unflatten a repertoire.
 
     By default, the input is assumed to be in little-endian order.
@@ -162,11 +172,11 @@ def unflatten(repertoire, purview, N, big_endian=False):
         np.ndarray: The unflattened repertoire.
     """
     order = "C" if big_endian else "F"
-    return repertoire.reshape(repertoire_shape(purview, N), order=order)
+    return repertoire.reshape(repertoire_shape(range(N), purview), order=order)
 
 
 @cache(cache={}, maxmem=None)
-def max_entropy_distribution(all_node_indices, purview):
+def max_entropy_distribution(all_node_indices: NodeIndices, purview: Purview) -> Repertoire:
     """Return the maximum entropy distribution over a set of nodes.
 
     This is different from the network's uniform distribution because nodes

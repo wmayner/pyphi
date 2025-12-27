@@ -1,12 +1,19 @@
 # repertoire.py
 """Compute cause-effect repertoires."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
 import numpy as np
-from numpy.typing import ArrayLike
 
 from . import utils
 from .direction import Direction
 from .distribution import repertoire_shape
+from .types import Mechanism, Purview, Repertoire, State
+
+if TYPE_CHECKING:
+    from .subsystem import Subsystem
 
 # TODO(repertoire) refactor to be more independent of subsystem when TPM
 # overhaul is done; e.g. no longer need 'tpm_size' with named dimensions
@@ -19,11 +26,11 @@ from .distribution import repertoire_shape
 
 
 def forward_effect_probability(
-    subsystem,
-    mechanism: tuple[int],
-    purview: tuple[int],
-    purview_state: tuple[int],
-    **kwargs,
+    subsystem: Subsystem,
+    mechanism: Mechanism,
+    purview: Purview,
+    purview_state: State,
+    **kwargs: Any,
 ) -> float:
     return forward_effect_repertoire(subsystem, mechanism, purview, **kwargs).squeeze()[
         purview_state
@@ -31,17 +38,17 @@ def forward_effect_probability(
 
 
 def forward_effect_repertoire(
-    subsystem, mechanism: tuple[int], purview: tuple[int], **kwargs
-) -> ArrayLike:
+    subsystem: Subsystem, mechanism: Mechanism, purview: Purview, **kwargs: Any
+) -> Repertoire:
     return subsystem.effect_repertoire(mechanism, purview, **kwargs)
 
 
 def forward_cause_probability(
-    subsystem,
-    mechanism: tuple[int],
-    purview: tuple[int],
-    purview_state: tuple[int],
-    mechanism_state=None,
+    subsystem: Subsystem,
+    mechanism: Mechanism,
+    purview: Purview,
+    purview_state: State,
+    mechanism_state: State | None = None,
 ) -> float:
     if mechanism_state is None:
         mechanism_state = utils.state_of(mechanism, subsystem.state)
@@ -57,8 +64,11 @@ def forward_cause_probability(
 
 
 def forward_cause_repertoire(
-    subsystem, mechanism: tuple[int], purview: tuple[int], purview_state=None
-) -> ArrayLike:
+    subsystem: Subsystem,
+    mechanism: Mechanism,
+    purview: Purview,
+    purview_state: State | None = None,
+) -> Repertoire:
     mechanism_state = utils.state_of(mechanism, subsystem.state)
     if purview:
         repertoire = np.empty([2] * len(purview))
@@ -81,8 +91,8 @@ def forward_cause_repertoire(
 
 
 def unconstrained_forward_effect_repertoire(
-    subsystem, mechanism: tuple[int], purview: tuple[int]
-) -> ArrayLike:
+    subsystem: Subsystem, mechanism: Mechanism, purview: Purview
+) -> Repertoire:
     # Get the effect repertoire for each mechanism state.
     repertoires = np.stack(
         [
@@ -98,8 +108,8 @@ def unconstrained_forward_effect_repertoire(
 
 
 def unconstrained_forward_cause_repertoire(
-    subsystem, mechanism: tuple[int], purview: tuple[int]
-) -> ArrayLike:
+    subsystem: Subsystem, mechanism: Mechanism, purview: Purview
+) -> Repertoire:
     # See Eq. 32 in 4.0 paper.
     # Here, the roles of `m` and `z` in the equation are switched, so the
     # probability within the average is conditioned on `z`. So here, we are

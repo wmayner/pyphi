@@ -1,10 +1,12 @@
 # partition.py
 """Utilities for generating partitions."""
 
+from __future__ import annotations
+
 import functools
 import itertools
+from collections.abc import Generator, Iterator, Sequence
 from itertools import chain, product
-from typing import Generator, Iterator, List, Sequence, Tuple
 
 import numpy as np
 from more_itertools import distinct_permutations
@@ -32,7 +34,7 @@ from .registry import Registry
 
 
 @cache(cache={}, maxmem=None)
-def bipartition_indices(N: int) -> List[Tuple[Tuple[int, ...], Tuple[int, ...]]]:
+def bipartition_indices(N: int) -> list[tuple[tuple[int, ...], tuple[int, ...]]]:
     """Return indices for undirected bipartitions of a sequence.
 
     Args:
@@ -61,7 +63,7 @@ def bipartition_indices(N: int) -> List[Tuple[Tuple[int, ...], Tuple[int, ...]]]
 
 
 # TODO? rename to `bipartitions`
-def bipartition(seq: Sequence, nontrivial: bool = False) -> List[Tuple[Tuple, Tuple]]:
+def bipartition(seq: Sequence, nontrivial: bool = False) -> list[tuple[tuple, tuple]]:
     """Return a list of bipartitions for a sequence.
 
     Args:
@@ -87,7 +89,7 @@ def bipartition(seq: Sequence, nontrivial: bool = False) -> List[Tuple[Tuple, Tu
 @cache(cache={}, maxmem=None)
 def directed_bipartition_indices(
     N: int,
-) -> List[Tuple[Tuple[int, ...], Tuple[int, ...]]]:
+) -> list[tuple[tuple[int, ...], tuple[int, ...]]]:
     """Return indices for directed bipartitions of a sequence.
 
     Args:
@@ -116,7 +118,7 @@ def directed_bipartition_indices(
 # TODO? [optimization] optimize this to use indices rather than nodes
 def directed_bipartition(
     seq: Sequence, nontrivial: bool = False
-) -> List[Tuple[Tuple, Tuple]]:
+) -> list[tuple[tuple, tuple]]:
     """Return a list of directed bipartitions for a sequence.
 
     Args:
@@ -197,7 +199,7 @@ def directed_bipartition_of_one(seq):
 @cache(cache={}, maxmem=None)
 def directed_tripartition_indices(
     N: int,
-) -> List[Tuple[Tuple[int, ...], Tuple[int, ...], Tuple[int, ...]]]:
+) -> list[tuple[tuple[int, ...], tuple[int, ...], tuple[int, ...]]]:
     """Return indices for directed tripartitions of a sequence.
 
     Args:
@@ -229,7 +231,7 @@ def directed_tripartition_indices(
 
 def directed_tripartition(
     seq: Sequence,
-) -> Generator[Tuple[Tuple, Tuple, Tuple], None, None]:
+) -> Generator[tuple[tuple, tuple, tuple], None, None]:
     """Generator over all directed tripartitions of a sequence.
 
     Args:

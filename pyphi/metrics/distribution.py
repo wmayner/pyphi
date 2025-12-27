@@ -1,26 +1,26 @@
 # metrics/distribution.py
 """Metrics on probability distributions."""
 
+from __future__ import annotations
+
 from collections.abc import Callable
 from contextlib import ContextDecorator
 from math import log2
+from typing import Any
 
 import numpy as np
-from numpy.typing import ArrayLike
+from numpy.typing import ArrayLike, NDArray
 from scipy.spatial.distance import cdist
-from scipy.special import entr
-from scipy.special import rel_entr
+from scipy.special import entr, rel_entr
 
-from .. import utils
-from .. import validate
+from .. import utils, validate
 from ..cache import joblib_memory
-from ..conf import config
-from ..conf import fallback
+from ..conf import config, fallback
 from ..direction import Direction
-from ..distribution import flatten
-from ..distribution import marginal_zero
+from ..distribution import flatten, marginal_zero
 from ..exceptions import MissingOptionalDependenciesError
 from ..registry import Registry
+from ..types import Repertoire, State
 
 _LN_OF_2 = np.log(2)
 
@@ -616,15 +616,15 @@ def absolute_intrinsic_difference(p: ArrayLike, q: ArrayLike) -> float:
 
 
 @measures.register("IIT_4.0_SMALL_PHI", asymmetric=True)
-def iit_4_small_phi(p: ArrayLike, q: ArrayLike, state: int | tuple[int, ...]):
+def iit_4_small_phi(p: ArrayLike, q: ArrayLike, state: State) -> np.floating:
     # TODO docstring
     return absolute_information_density(p, q).squeeze()[state]
 
 
 @measures.register("IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE", asymmetric=True)
 def iit_4_small_phi_no_absolute_value(
-    p: ArrayLike, q: ArrayLike, state: int | tuple[int, ...]
-):
+    p: ArrayLike, q: ArrayLike, state: State
+) -> np.floating:
     # TODO docstring
     return information_density(p, q).squeeze()[state]
 
@@ -634,8 +634,8 @@ def generalized_intrinsic_difference(
     forward_repertoire: ArrayLike,
     partitioned_forward_repertoire: ArrayLike,
     selectivity_repertoire: ArrayLike,
-    state: int | tuple[int, ...] | None = None,
-):
+    state: State | None = None,
+) -> Repertoire | np.floating:
     informativeness = pointwise_mutual_information_vector(
         forward_repertoire, partitioned_forward_repertoire
     )

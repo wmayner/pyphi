@@ -235,7 +235,7 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 # Gradually enable stricter checks as type hints are added
 
-# Phase 1, 2 & 3 (partial): Foundation, Standards, Models & Core Abstractions - Strict typing enabled
+# Phase 1, 2, 3 & 4 (partial): Foundation, Standards, Models, Core Abstractions & Computational - Strict typing enabled
 [[tool.mypy.overrides]]
 module = [
     # Phase 1: Foundation & Standards
@@ -250,9 +250,15 @@ module = [
     "pyphi.labels",
     # Phase 2: Models & Data Structures
     "pyphi.models.*",
-    # Phase 3: Core Abstractions (in progress)
+    # Phase 3: Core Abstractions
     "pyphi.tpm",
     "pyphi.network",
+    # pyphi.subsystem - not yet in strict mode (has some dependencies not yet typed)
+    # Phase 4: Computational Modules (partial)
+    "pyphi.repertoire",
+    "pyphi.distribution",
+    "pyphi.metrics.distribution",
+    "pyphi.partition",
 ]
 disallow_untyped_defs = true
 check_untyped_defs = true
