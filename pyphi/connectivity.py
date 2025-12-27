@@ -1,14 +1,16 @@
 # connectivity.py
 """Functions for determining network connectivity properties."""
 
+from __future__ import annotations
+
 import numpy as np
-from numpy.typing import ArrayLike
+from numpy.typing import ArrayLike, NDArray
 from scipy.sparse.csgraph import connected_components
 
 
 def subadjacency(
     cm: ArrayLike, source: tuple[int, ...], target: tuple[int, ...] | None = None
-) -> np.ndarray:
+) -> NDArray[np.int_]:
     """Return the sub-adjacency matrix for two groups of nodes.
 
     This gives the connections from the first group to the second group.
@@ -36,7 +38,7 @@ def subadjacency(
 
 def apply_boundary_conditions_to_cm(
     external_indices: tuple[int, ...], cm: ArrayLike
-) -> np.ndarray:
+) -> NDArray[np.int_]:
     """Remove connections to or from external nodes."""
     cm = cm.copy()
     cm[external_indices, :] = 0  # Zero-out row
@@ -65,7 +67,7 @@ def causally_significant_nodes(cm: ArrayLike) -> tuple[int, ...]:
 # TODO: better name?
 def relevant_connections(
     n: int, _from: tuple[int, ...], to: tuple[int, ...]
-) -> np.ndarray:
+) -> NDArray[np.float64]:
     """Construct a connectivity matrix.
 
     Args:
