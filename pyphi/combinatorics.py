@@ -1,10 +1,14 @@
 # combinatorics.py
 """Combinatorial utilities."""
 
+from __future__ import annotations
+
 import itertools
 from collections import defaultdict
+from collections.abc import Generator, Iterable, Sequence
 from itertools import chain
 from itertools import product
+from typing import Any
 
 import numpy as np
 from graphillion import setset
@@ -15,7 +19,9 @@ from .cache import cache
 
 
 # TODO(docs) finish documenting
-def pair_indices(n, m=None, k=0):
+def pair_indices(
+    n: int, m: int | None = None, k: int = 0
+) -> Generator[tuple[int, int], None, None]:
     """Return indices of unordered pairs."""
     if m is None:
         m = n
@@ -26,7 +32,7 @@ def pair_indices(n, m=None, k=0):
 
 
 # TODO(docs) finish documenting
-def pairs(seq, k=0):
+def pairs(seq: Sequence, k: int = 0) -> Generator[tuple[Any, Any], None, None]:
     """Return unordered pairs of elements from a sequence.
 
     NOTE: This is *not* the Cartesian product.
@@ -35,7 +41,9 @@ def pairs(seq, k=0):
         yield seq[i], seq[j]
 
 
-def combinations_with_nonempty_intersection_by_order(sets, min_size=0, max_size=None):
+def combinations_with_nonempty_intersection_by_order(
+    sets: Sequence[frozenset], min_size: int = 0, max_size: int | None = None
+) -> dict[int, set[frozenset]]:
     """Return combinations of sets that have nonempty intersection.
 
     The returned combinations are sets of the indices of the sets in that
@@ -97,7 +105,9 @@ def combinations_with_nonempty_intersection_by_order(sets, min_size=0, max_size=
     }
 
 
-def combinations_with_nonempty_intersection(sets, min_size=0, max_size=None):
+def combinations_with_nonempty_intersection(
+    sets: Sequence[frozenset], min_size: int = 0, max_size: int | None = None
+) -> chain[frozenset]:
     """Return combinations of sets that have nonempty intersection.
 
     Arguments:
@@ -119,7 +129,9 @@ def combinations_with_nonempty_intersection(sets, min_size=0, max_size=None):
     return chain.from_iterable(implicit.values())
 
 
-def powerset_family(X, min_size=1, max_size=None, universe=None):
+def powerset_family(
+    X: Any, min_size: int = 1, max_size: int | None = None, universe: set | None = None
+) -> setset:
     """Return the power set of X as a set family.
 
     NOTE: The universe is assumed to have been set already.
@@ -128,6 +140,7 @@ def powerset_family(X, min_size=1, max_size=None, universe=None):
         universe = set(setset.universe())
 
     # This is necessary since `.set_size(0)` doesn't seem to work
+    negation: list[list[Any]]
     if min_size > 0:
         negation = [[]]
     else:
@@ -146,7 +159,7 @@ def powerset_family(X, min_size=1, max_size=None, universe=None):
     return P
 
 
-def union_powerset_family(sets, min_size=1, max_size=None):
+def union_powerset_family(sets: Sequence[Any], min_size: int = 1, max_size: int | None = None) -> setset:
     """Return union of the power set of each set in ``sets``.
 
     NOTE: The universe must already have been set to (at least) the union of the
@@ -160,17 +173,17 @@ def union_powerset_family(sets, min_size=1, max_size=None):
 
 
 @cache(cache={}, maxmem=None)
-def num_subsets_larger_than_one_element(n):
+def num_subsets_larger_than_one_element(n: int) -> int:
     """Return the number of subsets on N elements with size >1.
 
     |X| = |P(n)| - |{S ∈ P(n) | |S| = 1}| - |{S ∈ P(n) | |S| = 0}|
         = 2^n    - (n choose 1)             - |{ø}|
         = 2^n    - n                        - 1
     """
-    return 2**n - n - 1
+    return 2**n - n - 1  # type: ignore[no-any-return]
 
 
-def sum_of_minimum_among_subsets(values):
+def sum_of_minimum_among_subsets(values: Sequence[float]) -> float:
     """Return the sum of the minimum of all subsets with size >1 of the values."""
     # This series counts, from i = 0 to (len(values) - 1), the number of subsets
     # of values of size >1 such that value i is included in all subsets.
@@ -178,10 +191,10 @@ def sum_of_minimum_among_subsets(values):
     # `num_subsets_larger_than_one_element`.
     counts = 2 ** (np.arange(len(values), 0, -1) - 1) - 1
     # Sorting ensures that we're taking the minimum of values for each subset
-    return np.sum(np.sort(values) * counts)
+    return float(np.sum(np.sort(values) * counts))
 
 
-def sum_of_ratio_of_minima_among_subsets(num_denom_pairs):
+def sum_of_ratio_of_minima_among_subsets(num_denom_pairs: list[tuple[float, float]]) -> float:
     """Return the sum of the ratio of minima among numerators/denominators.
 
     Considers all subsets with size >1 of pairs of numerators and denominators
@@ -228,7 +241,7 @@ def sum_of_ratio_of_minima_among_subsets(num_denom_pairs):
     return sum_ratio
 
 
-def sum_of_min_times_avg_among_subsets(values):
+def sum_of_min_times_avg_among_subsets(values: list[float]) -> float:
     """Return the sum of the product of the minimum and mean of each subset
     with size >1 of the values."""
     # This series counts, from i = 0 to (len(values) - 1), the number of subsets
@@ -252,10 +265,10 @@ def sum_of_min_times_avg_among_subsets(values):
     return _sum
 
 
-def only_nonsubsets(sets):
+def only_nonsubsets(sets: Iterable[set]) -> list[set]:
     """Find sets that are not proper subsets of any other set."""
     sets = sorted(map(set, sets), key=len, reverse=True)
-    keep = []
+    keep: list[set] = []
     for a in sets:
         if all(not a.issubset(b) for b in keep):
             keep.append(a)
@@ -263,7 +276,7 @@ def only_nonsubsets(sets):
 
 
 # From stackoverflow.com/questions/19368375/set-partitions-in-python
-def _set_partitions(collection):
+def _set_partitions(collection: Sequence[Any]) -> Generator[list[list[Any]], None, None]:
     collection = list(collection)
 
     # Special cases
@@ -281,7 +294,9 @@ def _set_partitions(collection):
         yield [[first]] + smaller
 
 
-def set_partitions(collection, nontrivial=False):
+def set_partitions(
+    collection: Sequence[Any], nontrivial: bool = False
+) -> Generator[list[list[Any]], None, None] | itertools.islice[list[list[Any]]]:
     """Generate all set partitions of a collection.
 
     Example:

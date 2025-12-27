@@ -1,6 +1,8 @@
 # data_structures/array_like.py
 
+from collections.abc import Callable, Iterable
 from numbers import Number
+from typing import Any
 
 import numpy as np
 from numpy.lib.mixins import NDArrayOperatorsMixin
@@ -8,10 +10,10 @@ from numpy.lib.mixins import NDArrayOperatorsMixin
 
 class ArrayLike(NDArrayOperatorsMixin):
     # Only support operations with instances of _HANDLED_TYPES.
-    _HANDLED_TYPES = (np.ndarray, list, Number)
+    _HANDLED_TYPES: tuple[type, ...] = (np.ndarray, list, Number)
 
     # TODO(tpm) populate this list
-    _TYPE_CLOSED_FUNCTIONS = (
+    _TYPE_CLOSED_FUNCTIONS: tuple[Callable, ...] = (
         np.concatenate,
         np.stack,
         np.all,
@@ -19,9 +21,11 @@ class ArrayLike(NDArrayOperatorsMixin):
     )
 
     # Holds the underlying array
-    _VALUE_ATTR = "value"
+    _VALUE_ATTR: str = "value"
 
-    def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
+    def __array_ufunc__(
+        self, ufunc: np.ufunc, method: str, *inputs: Any, **kwargs: Any
+    ) -> "ArrayLike | tuple[ArrayLike, ...] | None | Any":
         out = kwargs.get("out", ())
         for x in inputs + out:
             # Only support operations with instances of _HANDLED_TYPES.
@@ -39,21 +43,27 @@ class ArrayLike(NDArrayOperatorsMixin):
 
         if type(result) is tuple:
             # Multiple return values
-            return tuple(type(self)(x) for x in result)
+            return tuple(type(self)(x) for x in result)  # type: ignore[call-arg]
         elif method == "at":
             # No return value
             return None
         else:
             # one return value
-            return type(self)(result)
+            return type(self)(result)  # type: ignore[call-arg]
 
     @staticmethod
-    def _unwrap_arraylike(values):
+    def _unwrap_arraylike(values: Iterable[Any]) -> Iterable[Any]:
         return (
             getattr(x, x._VALUE_ATTR) if isinstance(x, ArrayLike) else x for x in values
         )
 
-    def __array_function__(self, func, types, args, kwargs):
+    def __array_function__(
+        self,
+        func: Callable,
+        types: tuple[type, ...],
+        args: tuple[Any, ...],
+        kwargs: dict[str, Any],
+    ) -> "ArrayLike | Any":
         if func not in self._TYPE_CLOSED_FUNCTIONS:
             return NotImplemented
         # Note: this allows subclasses that don't override
@@ -61,7 +71,7 @@ class ArrayLike(NDArrayOperatorsMixin):
         if not all(issubclass(t, ArrayLike) for t in types):
             return NotImplemented
         # extract wrapped array-like objects from args
-        updated_args = []
+        updated_args: list[Any] = []
 
         for arg in args:
             if hasattr(arg, self._VALUE_ATTR):
@@ -73,12 +83,12 @@ class ArrayLike(NDArrayOperatorsMixin):
         result = func(*updated_args, **kwargs)
 
         # cast to original wrapper if possible
-        return type(self)(result) if type(result) in self._HANDLED_TYPES else result
+        return type(self)(result) if type(result) in self._HANDLED_TYPES else result  # type: ignore[call-arg]
 
-    def __array__(self, dtype=None):
+    def __array__(self, dtype: np.dtype | None = None) -> np.ndarray:
         # TODO(tpm) We should use `np.asarray` instead of accessing `.tpm`
         # whenever the underlying array is needed
         return np.asarray(self.__getattribute__(self._VALUE_ATTR), dtype=dtype)
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
         return getattr(self.__getattribute__(self._VALUE_ATTR), name)

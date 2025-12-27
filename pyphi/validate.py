@@ -16,7 +16,7 @@ from .direction import Direction
 
 
 # TODO(4.0) move to `Direction`
-def directions(directions: Iterable[Direction], **kwargs) -> bool:
+def directions(directions: Iterable[Direction], **kwargs: bool) -> bool:
     """Validate each direction in an iterable.
 
     Args:
@@ -75,14 +75,14 @@ def node_labels(node_labels: Sequence[str], node_indices: Sequence[int]) -> None
         raise ValueError(f"Labels {node_labels} must be unique.")
 
 
-def network(n) -> bool:
+def network(n: object) -> bool:
     """Validate a |Network|.
 
     Checks the TPM and connectivity matrix.
     """
-    n.tpm.validate()
-    connectivity_matrix(n.cm)
-    if n.cm.shape[0] != n.size:
+    n.tpm.validate()  # type: ignore[attr-defined]
+    connectivity_matrix(n.cm)  # type: ignore[attr-defined]
+    if n.cm.shape[0] != n.size:  # type: ignore[attr-defined]
         raise ValueError(
             "Connectivity matrix must be NxN, where N is the "
             "number of nodes in the network."
@@ -90,7 +90,7 @@ def network(n) -> bool:
     return True
 
 
-def is_network(network) -> None:
+def is_network(network: object) -> None:
     """Validate that the argument is a |Network|."""
     from . import Network
 
@@ -117,35 +117,35 @@ def state_length(state: Sequence[int], size: int) -> bool:
     return True
 
 
-def state_reachable(subsystem) -> None:
+def state_reachable(subsystem: object) -> None:
     """Return whether a state can be reached according to the network's TPM."""
     # If there is a row `r` in the TPM such that all entries of `r - state` are
     # between -1 and 1, then the given state has a nonzero probability of being
     # reached from some state.
     # First we take the submatrix of the conditioned TPM that corresponds to
     # the nodes that are actually in the subsystem...
-    tpm = subsystem.effect_tpm.tpm[..., subsystem.node_indices]
+    tpm = subsystem.effect_tpm.tpm[..., subsystem.node_indices]  # type: ignore[attr-defined]
     # Then we do the subtraction and test.
-    test = tpm - np.array(subsystem.proper_state)
+    test = tpm - np.array(subsystem.proper_state)  # type: ignore[attr-defined]
     if not np.any(np.logical_and(test > -1, test < 1).all(-1)):
-        raise exceptions.StateUnreachableError(subsystem.state)
+        raise exceptions.StateUnreachableError(subsystem.state)  # type: ignore[attr-defined]
 
 
-def cut(cut, node_indices: Sequence[int]) -> None:
+def cut(cut: object, node_indices: Sequence[int]) -> None:
     """Check that the cut is for only the given nodes."""
-    if set(cut.indices) != set(node_indices):
+    if set(cut.indices) != set(node_indices):  # type: ignore[attr-defined]
         raise ValueError(
             f"{cut} nodes are not equal to subsystem nodes " f"{node_indices}"
         )
 
 
-def subsystem(s) -> bool:
+def subsystem(s: object) -> bool:
     """Validate a |Subsystem|.
 
     Checks its state and cut.
     """
-    node_states(s.state)
-    cut(s.cut, s.cut_indices)
+    node_states(s.state)  # type: ignore[attr-defined]
+    cut(s.cut, s.cut_indices)  # type: ignore[attr-defined]
     if config.VALIDATE_SUBSYSTEM_STATES:
         state_reachable(s)
     return True
@@ -170,14 +170,14 @@ def partition(partition: Iterable[Iterable[int]]) -> None:
             nodes.add(node)
 
 
-def coarse_grain(coarse_grain) -> None:
+def coarse_grain(coarse_grain: object) -> None:
     """Validate a macro coarse-graining."""
-    partition(coarse_grain.partition)
+    partition(coarse_grain.partition)  # type: ignore[attr-defined]
 
-    if len(coarse_grain.partition) != len(coarse_grain.grouping):
+    if len(coarse_grain.partition) != len(coarse_grain.grouping):  # type: ignore[attr-defined]
         raise ValueError("output and state groupings must be the same size")
 
-    for part, group in zip(coarse_grain.partition, coarse_grain.grouping, strict=False):
+    for part, group in zip(coarse_grain.partition, coarse_grain.grouping, strict=False):  # type: ignore[attr-defined]
         if set(range(len(part) + 1)) != set(group[0] + group[1]):
             # Check that all elements in the partition are in one of the two
             # state groupings
@@ -187,28 +187,28 @@ def coarse_grain(coarse_grain) -> None:
             )
 
 
-def blackbox(blackbox) -> None:
+def blackbox(blackbox: object) -> None:
     """Validate a macro blackboxing."""
-    if tuple(sorted(blackbox.output_indices)) != blackbox.output_indices:
-        raise ValueError(f"Output indices {blackbox.output_indices} must be ordered")
+    if tuple(sorted(blackbox.output_indices)) != blackbox.output_indices:  # type: ignore[attr-defined]
+        raise ValueError(f"Output indices {blackbox.output_indices} must be ordered")  # type: ignore[attr-defined]
 
-    partition(blackbox.partition)
+    partition(blackbox.partition)  # type: ignore[attr-defined]
 
-    for part in blackbox.partition:
-        if not set(part) & set(blackbox.output_indices):
+    for part in blackbox.partition:  # type: ignore[attr-defined]
+        if not set(part) & set(blackbox.output_indices):  # type: ignore[attr-defined]
             raise ValueError(f"Every blackbox must have an output - {part} does not")
 
 
-def blackbox_and_coarse_grain(blackbox, coarse_grain) -> None:
+def blackbox_and_coarse_grain(blackbox: object | None, coarse_grain: object | None) -> None:
     """Validate that a coarse-graining properly combines the outputs of a
     blackboxing.
     """
     if blackbox is None:
         return
 
-    for box in blackbox.partition:
+    for box in blackbox.partition:  # type: ignore[attr-defined]
         # Outputs of the box
-        outputs = set(box) & set(blackbox.output_indices)
+        outputs = set(box) & set(blackbox.output_indices)  # type: ignore[attr-defined]
 
         if coarse_grain is None and len(outputs) > 1:
             raise ValueError(
@@ -216,7 +216,7 @@ def blackbox_and_coarse_grain(blackbox, coarse_grain) -> None:
             )
 
         if coarse_grain and not any(
-            outputs.issubset(part) for part in coarse_grain.partition
+            outputs.issubset(part) for part in coarse_grain.partition  # type: ignore[attr-defined]
         ):
             raise ValueError(
                 "Multiple outputs from a blackbox must be partitioned into "

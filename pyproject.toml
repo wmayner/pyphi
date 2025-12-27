@@ -234,3 +234,27 @@ no_implicit_optional = false   # Permissive for now
 warn_redundant_casts = true
 warn_unused_ignores = true
 # Gradually enable stricter checks as type hints are added
+
+# Phase 1, 2 & 3 (partial): Foundation, Standards, Models & Core Abstractions - Strict typing enabled
+[[tool.mypy.overrides]]
+module = [
+    # Phase 1: Foundation & Standards
+    "pyphi.types",
+    "pyphi.data_structures.*",
+    "pyphi.utils",
+    "pyphi.constants",
+    "pyphi.exceptions",
+    "pyphi.direction",
+    "pyphi.validate",
+    "pyphi.combinatorics",
+    "pyphi.labels",
+    # Phase 2: Models & Data Structures
+    "pyphi.models.*",
+    # Phase 3: Core Abstractions (in progress)
+    "pyphi.tpm",
+    "pyphi.network",
+]
+disallow_untyped_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+warn_return_any = true

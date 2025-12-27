@@ -1,37 +1,39 @@
 # models/mechanism.py
 """Mechanism-level objects."""
 
+from __future__ import annotations
+
+# TODO(typing): This file needs comprehensive type hints across all 133 methods.
+# Currently only critical interfaces are typed. See Phase 2.3 in PLAN.md.
+
 from collections.abc import Iterable
 from dataclasses import dataclass
-from enum import Enum
-from enum import auto
+from enum import Enum, auto
 from enum import unique as unique_enum
 from functools import cached_property
 from functools import total_ordering
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 from more_itertools import flatten
-from numpy.typing import ArrayLike
+from numpy.typing import ArrayLike, NDArray
 from toolz import concat
 from toolz import unique
 
 from pyphi.models.cuts import KPartition
 
-from .. import connectivity
-from .. import utils
-from .. import validate
+from .. import connectivity, utils, validate
 from ..conf import config
 from ..data_structures import PyPhiFloat
 from ..direction import Direction
 from ..exceptions import WrongDirectionError
-from ..models import fmt
 from ..registry import Registry
 from ..warnings import warn_about_tie_serialization
-from . import cmp
-from . import fmt
-from .pandas import ToDictFromExplicitAttrsMixin
-from .pandas import ToDictMixin
-from .pandas import ToPandasMixin
+from . import cmp, fmt
+from .pandas import ToDictFromExplicitAttrsMixin, ToDictMixin, ToPandasMixin
+
+if TYPE_CHECKING:
+    from ..labels import NodeLabels
 
 
 @total_ordering
@@ -41,18 +43,22 @@ class Unit:
 
     index: int
     state: int
-    label: str = None
+    label: str | None = None
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((self.index, self.state))
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Unit):
+            return NotImplemented
         return (self.index, self.state) == (other.index, other.state)
 
-    def __lt__(self, other):
+    def __lt__(self, other: object) -> bool:
+        if not isinstance(other, Unit):
+            return NotImplemented
         return (self.index, self.state) < (other.index, other.state)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         label = str(self.index) if self.label is None else self.label
         return label.lower() if self.state == 0 else label.upper()
 
@@ -60,26 +66,29 @@ class Unit:
 @dataclass
 class StateSpecification(ToDictMixin, ToPandasMixin):
     direction: Direction
-    purview: tuple[int]
-    state: tuple[int]
+    purview: tuple[int, ...]
+    state: tuple[int, ...]
     intrinsic_information: PyPhiFloat
     repertoire: ArrayLike
     unconstrained_repertoire: ArrayLike
+    _ties: tuple[StateSpecification, ...] = ()
 
-    def __post_init__(self):
-        self.intrinsic_information = PyPhiFloat(self.intrinsic_information)
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self, "intrinsic_information", PyPhiFloat(self.intrinsic_information)
+        )
 
-    def set_ties(self, ties: Iterable):
-        self._ties = ties
+    def set_ties(self, ties: Iterable[StateSpecification]) -> None:
+        object.__setattr__(self, "_ties", tuple(ties))
 
     @property
-    def ties(self):
+    def ties(self) -> tuple[StateSpecification, ...]:
         return self._ties
 
-    def __getitem__(self, i):
+    def __getitem__(self, i: int) -> int:
         return self.state[i]
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return cmp.general_eq(
             self,
             other,
@@ -93,12 +102,12 @@ class StateSpecification(ToDictMixin, ToPandasMixin):
             ],
         )
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(
             (self.direction, self.purview, self.state, self.intrinsic_information)
         )
 
-    def _repr_columns(self, prefix=""):
+    def _repr_columns(self, prefix: str = "") -> list[tuple[str, Any]]:
         # TODO(fmt) include purview
         return [
             (f"{prefix}{self.direction}", fmt.state(self.state)),
@@ -108,14 +117,14 @@ class StateSpecification(ToDictMixin, ToPandasMixin):
             ),
         ]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         body = "\n".join(fmt.align_columns(self._repr_columns()))
         body = fmt.header(
             f"Specified {self.direction}", body, under_char=fmt.HEADER_BAR_3
         )
         return fmt.box(fmt.center(body))
 
-    def is_congruent(self, other):
+    def is_congruent(self, other: StateSpecification) -> bool:
         ours = dict(zip(self.purview, self.state, strict=False))
         theirs = dict(zip(other.purview, other.state, strict=False))
         mutual = set(ours.keys()) & set(theirs.keys())
@@ -123,18 +132,18 @@ class StateSpecification(ToDictMixin, ToPandasMixin):
             ours[purview_node] == theirs[purview_node] for purview_node in mutual
         )
 
-    def to_json(self):
+    def to_json(self) -> dict[str, Any]:
         warn_about_tie_serialization(self.__class__.__name__, serialize=True)
         dct = self.to_dict()
         return dct
 
     @classmethod
-    def from_json(cls, data):
+    def from_json(cls, data: dict[str, Any]) -> StateSpecification:
         warn_about_tie_serialization(cls.__name__, deserialize=True)
         for key in ["repertoire", "unconstrained_repertoire"]:
             data[key] = np.array(data[key])
         instance = cls(**data)
-        instance._ties = (instance,)
+        object.__setattr__(instance, "_ties", (instance,))
         return instance
 
 
@@ -148,24 +157,23 @@ distinction_phi_normalizations = DistinctionPhiNormalizationRegistry()
 
 
 @distinction_phi_normalizations.register("NONE")
-def _(partition):
+def _(partition: object) -> int:
     return 1
 
 
 @distinction_phi_normalizations.register("NUM_CONNECTIONS_CUT")
-def _(partition):
+def _(partition: object) -> int | float | None:
     try:
-        return 1 / partition.num_connections_cut()
+        return 1 / partition.num_connections_cut()  # type: ignore[attr-defined]
     except ZeroDivisionError:
         return 1
     except AttributeError:
         return None
 
 
-def normalization_factor(partition):
-    return distinction_phi_normalizations[config.DISTINCTION_PHI_NORMALIZATION](
-        partition
-    )
+def normalization_factor(partition: object) -> int | float | None:
+    func = distinction_phi_normalizations[config.DISTINCTION_PHI_NORMALIZATION]
+    return func(partition)
 
 
 @unique_enum
@@ -205,22 +213,39 @@ class RepertoireIrreducibilityAnalysis(
     ``>``, etc.). Comparison is based on |small_phi| value, then mechanism size.
     """
 
+    _phi: PyPhiFloat
+    _direction: Direction
+    _mechanism: tuple[int, ...]
+    _purview: tuple[int, ...]
+    _partition: KPartition
+    _mechanism_state: tuple[int, ...] | None
+    _purview_state: tuple[int, ...] | None
+    _repertoire: NDArray[np.float64] | None
+    _partitioned_repertoire: NDArray[np.float64] | None
+    _specified_state: StateSpecification | None
+    _partition_ties: tuple[RepertoireIrreducibilityAnalysis, ...]
+    _state_ties: tuple[RepertoireIrreducibilityAnalysis, ...]
+    _selectivity: float | None
+    _reasons: list[ShortCircuitConditions] | None
+    _normalized_phi: PyPhiFloat | None
+    _node_labels: NodeLabels | None
+
     def __init__(
         self,
-        phi,
-        direction,
-        mechanism,
-        purview,
-        partition,
-        repertoire,
-        partitioned_repertoire,
-        specified_state=None,
-        mechanism_state=None,
-        purview_state=None,
-        node_labels=None,
-        selectivity=None,
-        reasons=None,
-    ):
+        phi: float,
+        direction: Direction,
+        mechanism: tuple[int, ...],
+        purview: tuple[int, ...],
+        partition: KPartition,
+        repertoire: ArrayLike | None,
+        partitioned_repertoire: ArrayLike | None,
+        specified_state: StateSpecification | None = None,
+        mechanism_state: tuple[int, ...] | None = None,
+        purview_state: tuple[int, ...] | None = None,
+        node_labels: NodeLabels | None = None,
+        selectivity: float | None = None,
+        reasons: list[ShortCircuitConditions] | None = None,
+    ) -> None:
         self._phi = PyPhiFloat(phi)
         self._direction = direction
         self._mechanism = mechanism
@@ -229,7 +254,7 @@ class RepertoireIrreducibilityAnalysis(
         self._mechanism_state = mechanism_state
         self._purview_state = purview_state
 
-        def _repertoire(repertoire):
+        def _repertoire(repertoire: ArrayLike | None) -> NDArray[np.float64] | None:
             if repertoire is None:
                 return None
             return np.array(repertoire)

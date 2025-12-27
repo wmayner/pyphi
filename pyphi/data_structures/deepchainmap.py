@@ -22,21 +22,23 @@ def _depth_first_update(target: dict, source: Mapping) -> None:
 class DeepChainMap(ChainMap):
     """A recursive variant of ChainMap."""
 
-    def __getitem__(self, key):
+    SUBMAPPING_TYPE: type["DeepChainMap"] | None = None
+
+    def __getitem__(self, key: Any) -> Any:
         submaps = [mapping for mapping in self.maps if key in mapping]
         if not submaps:
             return self.__missing__(key)
         if isinstance(submaps[0][key], Mapping):
+            if self.SUBMAPPING_TYPE is None:
+                raise TypeError("SUBMAPPING_TYPE is not set")
             return self.SUBMAPPING_TYPE(*(submap[key] for submap in submaps))
         return super().__getitem__(key)
 
     def to_dict(self) -> dict:
-        d = {}
+        d: dict = {}
         for mapping in reversed(self.maps):
             _depth_first_update(d, mapping)
         return d
-
-    SUBMAPPING_TYPE = None
 
 
 DeepChainMap.SUBMAPPING_TYPE = DeepChainMap

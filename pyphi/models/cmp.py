@@ -2,7 +2,8 @@
 """Utilities for comparing phi-objects."""
 
 import functools
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable, Sequence
+from typing import Any, TypeVar
 
 import numpy as np
 
@@ -11,8 +12,10 @@ from .. import utils
 # Rich comparison (ordering) helpers
 # =============================================================================
 
+T = TypeVar("T")
 
-def sametype(func):
+
+def sametype(func: Callable[[T, T], bool]) -> Callable[[T, object], bool | Any]:
     """Method decorator to return ``NotImplemented`` if the args of the wrapped
     method are of different types.
 
@@ -22,10 +25,10 @@ def sametype(func):
     """
 
     @functools.wraps(func)
-    def wrapper(self, other):  # pylint: disable=missing-docstring
+    def wrapper(self: T, other: object) -> bool | Any:  # pylint: disable=missing-docstring
         if type(other) is not type(self):
             return NotImplemented
-        return func(self, other)
+        return func(self, other)  # type: ignore[arg-type]
 
     return wrapper
 
@@ -47,9 +50,9 @@ class Orderable:
     """
 
     # The object is not orderable unless these attributes are all equal
-    unorderable_unless_eq = []
+    unorderable_unless_eq: list[str] = []
 
-    def order_by(self):
+    def order_by(self) -> Any:
         """Return a list of values to compare for ordering.
 
         The first value in the list has the greatest priority; if the first
@@ -57,26 +60,26 @@ class Orderable:
         """
         raise NotImplementedError
 
-    def __lt__(self, other):
+    def __lt__(self, other: object) -> bool:
         if not general_eq(self, other, self.unorderable_unless_eq):
             raise TypeError(
                 f"Unorderable: the following attrs must be equal: {self.unorderable_unless_eq}"
             )
-        return self.order_by() < other.order_by()
+        return self.order_by() < other.order_by()  # type: ignore[attr-defined]
 
-    def __le__(self, other):
+    def __le__(self, other: object) -> bool:
         return self < other or self == other
 
-    def __gt__(self, other):
+    def __gt__(self, other: object) -> bool:
         return other < self
 
-    def __ge__(self, other):
+    def __ge__(self, other: object) -> bool:
         return other < self or self == other
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         raise NotImplementedError
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> bool:
         return not self == other
 
 
@@ -95,7 +98,7 @@ class OrderableByPhi(Orderable):
 
 
 # TODO use builtin numpy methods here
-def numpy_aware_eq(a, b):
+def numpy_aware_eq(a: Any, b: Any) -> bool:
     """Return whether two objects are equal via recursion, using
     :func:`numpy.array_equal` for comparing numpy arays.
     """
@@ -107,13 +110,13 @@ def numpy_aware_eq(a, b):
         and not isinstance(a, str)
         and not isinstance(b, str)
     ):
-        if len(a) != len(b):
+        if len(a) != len(b):  # type: ignore[arg-type]
             return False
         return all(numpy_aware_eq(x, y) for x, y in zip(a, b, strict=False))
     return a == b
 
 
-def general_eq(a, b, attributes):
+def general_eq(a: object, b: object, attributes: Sequence[str]) -> bool:
     """Return whether two objects are equal up to the given attributes.
 
     If an attribute is called ``'phi'``, it is compared up to |PRECISION|.

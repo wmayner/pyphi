@@ -11,14 +11,14 @@ class FrozenMap(typing.Mapping[K, V]):
 
     __slots__ = ("_dict", "_hash")
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         self._dict: dict[K, V] = dict(*args, **kwargs)
         self._hash: int | None = None
 
     def __getitem__(self, key: K) -> V:
         return self._dict[key]
 
-    def __contains__(self, key: K) -> bool:
+    def __contains__(self, key: object) -> bool:
         return key in self._dict
 
     def __iter__(self) -> typing.Iterator[K]:
@@ -37,5 +37,5 @@ class FrozenMap(typing.Mapping[K, V]):
             )
         return self._hash
 
-    def replace(self, /, **changes):
+    def replace(self, /, **changes: V) -> "FrozenMap[K, V]":
         return self.__class__(self, **changes)

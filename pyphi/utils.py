@@ -5,7 +5,7 @@ import hashlib
 import math
 import operator
 import os
-from collections.abc import Generator
+from collections.abc import Callable, Generator
 from itertools import chain
 from itertools import combinations
 from itertools import product
@@ -19,8 +19,8 @@ from .conf import config
 
 # TODO(states) refactor
 def substate(
-    nodes: tuple[int], state: tuple[int], node_subset: tuple[int]
-) -> tuple[int]:
+    nodes: tuple[int, ...], state: tuple[int, ...], node_subset: tuple[int, ...]
+) -> tuple[int, ...]:
     """Return the state restricted to ``node_subset`` using ``nodes`` indexing."""
     return tuple(state[nodes.index(n)] for n in node_subset)
 
@@ -96,7 +96,9 @@ class np_hashable:
     def __hash__(self) -> int:
         return np_hash(self._array)
 
-    def __eq__(self, other: "np_hashable") -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, np_hashable):
+            return NotImplemented
         return np.array_equal(self._array, other._array)
 
     def __repr__(self) -> str:
@@ -122,7 +124,7 @@ def is_nonpositive(x: float) -> bool:
     return bool(x <= 0)
 
 
-def is_falsy(x) -> bool:
+def is_falsy(x: object) -> bool:
     """Return True if x is a falsy value."""
     return not x
 
@@ -185,7 +187,13 @@ def comb_indices(n: int, k: int) -> np.ndarray:
 
 
 # Based on https://docs.python.org/3/library/itertools.html#itertools-recipes
-def powerset(iterable, nonempty=False, reverse=False, min_size=0, max_size=None):
+def powerset(
+    iterable: list | tuple | np.ndarray,
+    nonempty: bool = False,
+    reverse: bool = False,
+    min_size: int = 0,
+    max_size: int | None = None,
+) -> chain:
     """Generate the power set of an iterable.
 
     Args:
@@ -230,16 +238,18 @@ def powerset(iterable, nonempty=False, reverse=False, min_size=0, max_size=None)
     if max_size is None:
         max_size = len(iterable)
 
-    seq_sizes = range(min_size, max_size + 1)
+    _seq_sizes = range(min_size, max_size + 1)
 
     if reverse:
-        seq_sizes = reversed(seq_sizes)
+        seq_sizes: range | reversed[int] = reversed(_seq_sizes)
         iterable.reverse()
+    else:
+        seq_sizes = _seq_sizes
 
     return chain.from_iterable(combinations(iterable, r) for r in seq_sizes)
 
 
-def load_data(directory, num):
+def load_data(directory: str, num: int) -> list[np.ndarray]:
     """Load numpy data from the data directory.
 
     The files should stored in ``../data/<dir>`` and named
@@ -251,26 +261,28 @@ def load_data(directory, num):
     """
     root = os.path.abspath(os.path.dirname(__file__))
 
-    def get_path(i):  # pylint: disable=missing-docstring
+    def get_path(i: int) -> str:  # pylint: disable=missing-docstring
         return os.path.join(root, "data", directory, str(i) + ".npy")
 
     return [np.load(get_path(i), allow_pickle=True) for i in range(num)]
 
 
-def specified_substate(purview, specified_state, subset):
+def specified_substate(
+    purview: tuple[int, ...], specified_state: np.ndarray, subset: tuple[int, ...]
+) -> np.ndarray:
     """Return the specified state restricted to a subset of purview nodes."""
     purview_relative_subset = [purview.index(node) for node in subset]
     return specified_state[:, purview_relative_subset]
 
 
 def extremum_with_short_circuit(
-    seq,
-    value_func=lambda item: item.phi,
-    cmp=operator.lt,
-    initial=float("inf"),
-    shortcircuit_value=0,
-    shortcircuit_callback=None,
-):
+    seq: list,
+    value_func: Callable = lambda item: item.phi,
+    cmp: Callable = operator.lt,
+    initial: float = float("inf"),
+    shortcircuit_value: float = 0,
+    shortcircuit_callback: Callable | None = None,
+) -> object | None:
     """Return the extreme item in ``seq``, optionally short-circuiting early.
 
     Args:
@@ -288,16 +300,14 @@ def extremum_with_short_circuit(
     Returns:
         object: The item with the extreme value according to ``cmp``.
     """
-    extreme_item = None
-    extreme_value = initial
+    extreme_item: object | None = None
+    extreme_value: float = initial
     for item in seq:
         value = value_func(item)
         if value == shortcircuit_value:
-            try:
+            if shortcircuit_callback is not None:
                 shortcircuit_callback()
-            except TypeError:
-                pass
-            return item
+            return item  # type: ignore[no-any-return]
         if cmp(value, extreme_value):
             extreme_value = value
             extreme_item = item
@@ -324,18 +334,18 @@ def expaddlog(x: float, y: float) -> float:
     return math.exp(math.log(x) + math.log(y))
 
 
-def _try_len(iterable):
+def _try_len(iterable: object) -> int | None:
     """Return ``len(iterable)`` if available, otherwise ``None``."""
     try:
-        return len(iterable)
+        return len(iterable)  # type: ignore[arg-type]
     except TypeError:
         return None
 
 
-def try_len(*iterables):
+def try_len(*iterables: object) -> int | None:
     """Return the minimum length of iterables, or ``None`` if none have a length."""
     lengths = (_try_len(it) for it in iterables)
-    return min((l for l in lengths if l is not None), default=None)
+    return min((length for length in lengths if length is not None), default=None)
 
 
 def assume_integer(x: float) -> int:
@@ -352,18 +362,18 @@ def enforce_integer(i: int, name: str = "", min: float = float("-inf")) -> int:
     return i
 
 
-def enforce_integer_or_none(i: int | None, **kwargs) -> int | None:
+def enforce_integer_or_none(i: int | None, **kwargs: str | float) -> int | None:
     """Validate ``i`` as an integer or pass through ``None``."""
     if i is None:
         return i
-    return enforce_integer(i, **kwargs)
+    return enforce_integer(i, **kwargs)  # type: ignore[arg-type]
 
 
 @curry
-def all_same(comparison, seq):
+def all_same(comparison: Callable, seq: Generator | list) -> bool:
     """Return True if all elements compare to the first element."""
     sentinel = object()
-    first = next(seq, sentinel)
+    first = next(iter(seq), sentinel)
     if first is sentinel:
         # Vacuously
         return True
@@ -380,7 +390,9 @@ NO_DEFAULT = object()
 
 # TODO test
 @curry
-def all_extrema(comparison, seq, default=NO_DEFAULT):
+def all_extrema(
+    comparison: Callable, seq: Generator | list, default: object = NO_DEFAULT
+) -> list:
     """Return the extrema of ``seq``.
 
     Use ``<`` as the comparison to obtain the minima; use ``>`` as the
@@ -395,9 +407,9 @@ def all_extrema(comparison, seq, default=NO_DEFAULT):
     Returns:
         list: The maxima/minima in ``seq``.
     """
-    extrema = []
+    extrema: list = []
     sentinel = object()
-    current_extremum = next(seq, sentinel)
+    current_extremum = next(iter(seq), sentinel)
     if current_extremum is sentinel:
         if default is NO_DEFAULT:
             raise ValueError("Cannot find extrema of empty sequence without default")
@@ -416,7 +428,9 @@ all_minima = all_extrema(operator.lt)
 all_maxima = all_extrema(operator.gt)
 
 
-def iter_with_default(seq, default):
+def iter_with_default(
+    seq: Generator | list, default: object
+) -> Generator[object, None, None]:
     """Iterate over ``seq``, yielding ``default`` if ``seq`` is empty."""
     yielded = False
     for item in seq:

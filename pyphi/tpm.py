@@ -1,12 +1,15 @@
 # tpm.py
 """Provides classes for representing TPMs."""
 
+from __future__ import annotations
+
 import math
-from collections.abc import Iterable
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from itertools import chain
+from typing import Any
 
 import numpy as np
+from numpy.typing import ArrayLike, NDArray
 
 from . import convert
 from . import data_structures
@@ -220,15 +223,15 @@ class ExplicitTPM(data_structures.ArrayLike):
         }
     )
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
         if name in self.__closures__:
-            return _new_attribute(name, self.__closures__, self._tpm)
+            return _new_attribute(name, set(self.__closures__), self._tpm)
         return getattr(self.__getattribute__(self._VALUE_ATTR), name)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.__getattribute__(self._VALUE_ATTR))
 
-    def __init__(self, tpm, validate=False):
+    def __init__(self, tpm: ArrayLike, validate: bool = False) -> None:
         self._tpm = np.array(tpm)
         super().__init__()
 
@@ -240,17 +243,17 @@ class ExplicitTPM(data_structures.ArrayLike):
         self._hash = np_hash(self._tpm)
 
     @property
-    def tpm(self):
+    def tpm(self) -> NDArray[np.float64]:
         """Return the underlying `tpm` object."""
         return self._tpm
 
-    def validate(self, check_independence=True):
+    def validate(self, check_independence: bool = True) -> bool:
         """Validate this TPM."""
         return self._validate_probabilities() and self._validate_shape(
             check_independence
         )
 
-    def _validate_probabilities(self):
+    def _validate_probabilities(self) -> bool:
         """Check that the probabilities in a TPM are valid."""
         if (self._tpm < 0.0).any() or (self._tpm > 1.0).any():
             raise ValueError(
@@ -262,7 +265,7 @@ class ExplicitTPM(data_structures.ArrayLike):
             raise ValueError("Invalid TPM: probabilities must sum to 1.")
         return True
 
-    def _validate_shape(self, check_independence=True):
+    def _validate_shape(self, check_independence: bool = True) -> bool:
         """Validate this TPM's shape.
 
         The TPM can be in
@@ -306,13 +309,13 @@ class ExplicitTPM(data_structures.ArrayLike):
         return True
 
     @property
-    def number_of_units(self):
+    def number_of_units(self) -> int:
         if self.is_state_by_state():
             # Assumes binary nodes
             return int(math.log2(self._tpm.shape[1]))
         return self._tpm.shape[-1]
 
-    def to_multidimensional_state_by_node(self):
+    def to_multidimensional_state_by_node(self) -> NDArray[np.float64]:
         """Return the current TPM re-represented in multidimensional
         state-by-node form.
 
@@ -329,7 +332,7 @@ class ExplicitTPM(data_structures.ArrayLike):
 
         return tpm
 
-    def conditionally_independent(self):
+    def conditionally_independent(self) -> bool:
         """Validate that the TPM is conditionally independent."""
         tpm = self._tpm
         tpm = np.array(tpm)
@@ -349,7 +352,7 @@ class ExplicitTPM(data_structures.ArrayLike):
             )
         return True
 
-    def condition_tpm(self, condition: Mapping[int, int]):
+    def condition_tpm(self, condition: Mapping[int, int]) -> ExplicitTPM:
         """Return a TPM conditioned on the given fixed node indices, whose
         states are fixed according to the given state-tuple.
 
@@ -367,7 +370,7 @@ class ExplicitTPM(data_structures.ArrayLike):
             singleton dimensions for nodes in a fixed state.
         """
         # Assumes multidimensional form
-        conditioning_indices = [[slice(None)]] * (self.ndim - 1)
+        conditioning_indices: Any = [[slice(None)]] * (self.ndim - 1)
         for i, state_i in condition.items():
             # Ignore dimensions that are already singletons
             if self.shape[i] != 1:
@@ -384,7 +387,7 @@ class ExplicitTPM(data_structures.ArrayLike):
         # singleton dimensions.
         return type(self)(tpm)
 
-    def marginalize_out(self, node_indices):
+    def marginalize_out(self, node_indices: Iterable[int]) -> ExplicitTPM:
         """Marginalize out nodes from this TPM.
 
         Args:
@@ -403,17 +406,17 @@ class ExplicitTPM(data_structures.ArrayLike):
         # singleton dimensions.
         return type(self)(tpm)
 
-    def is_deterministic(self):
+    def is_deterministic(self) -> bool:
         """Return whether the TPM is deterministic."""
-        return np.all(np.logical_or(self._tpm == 1, self._tpm == 0))
+        return bool(np.all(np.logical_or(self._tpm == 1, self._tpm == 0)))
 
-    def is_state_by_state(self):
+    def is_state_by_state(self) -> bool:
         """Return ``True`` if ``tpm`` is in state-by-state form, otherwise
         ``False``.
         """
         return self.ndim == 2 and self.shape[0] == self.shape[1]
 
-    def subtpm(self, fixed_nodes, state):
+    def subtpm(self, fixed_nodes: tuple[int, ...], state: tuple[int, ...]) -> ExplicitTPM:
         """Return the TPM for a subset of nodes, conditioned on other nodes.
 
         Arguments:
@@ -434,19 +437,19 @@ class ExplicitTPM(data_structures.ArrayLike):
                [0.92414182 0.95257413]]]])
         """
         free_nodes = sorted(set(range(self.number_of_units)) - set(fixed_nodes))
-        condition = FrozenMap(zip(fixed_nodes, state, strict=False))
+        condition: Mapping[int, int] = FrozenMap(zip(fixed_nodes, state, strict=False))
         conditioned = self.condition_tpm(condition)
         # TODO test indicing behavior on xr.DataArray
         return conditioned[..., free_nodes]
 
-    def expand_tpm(self):
+    def expand_tpm(self) -> ExplicitTPM:
         """Broadcast a state-by-node TPM so that singleton dimensions are expanded
         over the full network.
         """
         unconstrained = np.ones([2] * (self._tpm.ndim - 1) + [self._tpm.shape[-1]])
         return type(self)(self._tpm * unconstrained)
 
-    def infer_edge(self, a, b, contexts):
+    def infer_edge(self, a: int, b: int, contexts: tuple[tuple[int, ...], ...]) -> bool:
         """Infer the presence or absence of an edge from node A to node B.
 
         Let |S| be the set of all nodes in a network. Let |A' = S - {A}|. We
@@ -478,7 +481,7 @@ class ExplicitTPM(data_structures.ArrayLike):
         tpm = self.to_multidimensional_state_by_node()
         return any(a_affects_b_in_context(tpm, context) for context in contexts)
 
-    def infer_cm(self):
+    def infer_cm(self) -> NDArray[np.int_]:
         """Infer the connectivity matrix associated with a state-by-node TPM in
         multidimensional form.
         """
@@ -490,18 +493,18 @@ class ExplicitTPM(data_structures.ArrayLike):
             cm[a][b] = self.infer_edge(a, b, all_contexts)
         return cm
 
-    def tpm_indices(self):
+    def tpm_indices(self) -> tuple[int, ...]:
         """Return the indices of nodes in the TPM."""
         # TODO This currently assumes binary elements (2)
         return tuple(np.where(np.array(self.shape[:-1]) == 2)[0])
 
-    def print(self):
+    def print(self) -> None:
         tpm = convert.to_multidimensional(self._tpm)
         for state in all_states(tpm.shape[-1]):
             print(f"{state}: {tpm[state]}")
 
     # TODO(4.0) docstring
-    def permute_nodes(self, permutation):
+    def permute_nodes(self, permutation: tuple[int, ...]) -> ExplicitTPM:
         if not len(permutation) == self.ndim - 1:
             raise ValueError(
                 f"Permutation must have length {self.ndim - 1}, but has length "
@@ -512,13 +515,13 @@ class ExplicitTPM(data_structures.ArrayLike):
             self._tpm.transpose(dimension_permutation)[..., list(permutation)],
         )
 
-    def __getitem__(self, i):
-        item = self._tpm[i]
+    def __getitem__(self, i: int | slice | tuple[Any, ...] | Any) -> ExplicitTPM | Any:
+        item: Any = self._tpm[i]
         if isinstance(item, type(self._tpm)):
             item = type(self)(item)
         return item
 
-    def array_equal(self, o: object):
+    def array_equal(self, o: object) -> bool:
         """Return whether this TPM equals the other object.
 
         Two TPMs are equal if they are instances of the ExplicitTPM class
@@ -526,17 +529,17 @@ class ExplicitTPM(data_structures.ArrayLike):
         """
         return isinstance(o, type(self)) and np.array_equal(self._tpm, o._tpm)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.__repr__()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"ExplicitTPM({self._tpm})"
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return self._hash
 
 
-def reconstitute_tpm(subsystem):
+def reconstitute_tpm(subsystem: Any) -> NDArray[np.float64]:
     """Reconstitute the TPM of a subsystem using the individual node TPMs."""
     # The last axis of the node TPMs correponds to ON or OFF probabilities
     # (used in the conditioning step when calculating the repertoires); we want
@@ -558,7 +561,9 @@ def reconstitute_tpm(subsystem):
     return np.concatenate(node_tpms, axis=-1)
 
 
-def simulate(tpm, initial_state, timesteps, rng):
+def simulate(
+    tpm: ExplicitTPM | ArrayLike, initial_state: int, timesteps: int, rng: np.random.Generator
+) -> list[int]:
     """Simulate the dynamics of a system.
 
     Generates a sequence of states using the TPM and a random number generator.
@@ -603,7 +608,7 @@ def simulate(tpm, initial_state, timesteps, rng):
 
 # TODO(tpm) remove pending ArrayLike refactor
 def _new_attribute(
-    name: str, closures: set[str], tpm: ExplicitTPM.__wraps__, cls=ExplicitTPM
+    name: str, closures: set[str], tpm: NDArray[np.float64], cls: type[ExplicitTPM] = ExplicitTPM
 ) -> object:
     """Helper function to return adequate proxy attributes for TPM arrays.
 
@@ -654,7 +659,7 @@ def _new_attribute(
     return overriding_attribute
 
 
-def probability_of_current_state(sbn_tpm, current_state):
+def probability_of_current_state(sbn_tpm: ExplicitTPM, current_state: tuple[int, ...]) -> NDArray[np.float64]:
     """Return the probability of the current state as a distribution over previous states.
 
     Arguments:

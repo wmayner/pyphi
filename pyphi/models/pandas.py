@@ -2,15 +2,16 @@
 """Utilities for working with Pandas data structures."""
 
 from collections.abc import Sequence
+from typing import Any
 
 import pandas as pd
 
 # TODO Just use `to_json` instead of `to_dict`?
 
 
-def try_to_dict(obj):
+def try_to_dict(obj: object) -> dict[str, Any] | object:
     try:
-        return obj.to_dict()
+        return obj.to_dict()  # type: ignore[attr-defined]
     except AttributeError:
         return obj
 
@@ -18,7 +19,9 @@ def try_to_dict(obj):
 class ToDictFromExplicitAttrsMixin:
     """Mixin class for converting a class to a dict from the `_dict_attrs` list."""
 
-    def to_dict(self):
+    _dict_attrs: list[str]
+
+    def to_dict(self) -> dict[str, Any]:
         """Convert the object to a dict."""
         if hasattr(self, "_dict_attrs"):
             return {attr: try_to_dict(getattr(self, attr)) for attr in self._dict_attrs}
@@ -28,7 +31,7 @@ class ToDictFromExplicitAttrsMixin:
 class ToDictMixin:
     """Mixin class for converting a class to a dict from the object's ___dict___."""
 
-    def to_dict(self):
+    def to_dict(self) -> dict[str, Any]:
         """Convert the object to a dict."""
         return {
             attr: try_to_dict(value)
@@ -40,18 +43,18 @@ class ToDictMixin:
 class ToPandasMixin:
     """Mixin class for converting a class to a Pandas data structure."""
 
-    def to_pandas(self):
+    def to_pandas(self) -> pd.Series | pd.DataFrame:
         """Convert the object to a Pandas data structure."""
-        pandas_type = pd.Series
+        pandas_type: type[pd.Series] | type[pd.DataFrame] = pd.Series
         if hasattr(self, "to_json"):
-            data = self.to_json()
+            data: Any = self.to_json()
             if isinstance(data, Sequence):
                 data = [try_to_dict(d) for d in data]
                 pandas_type = pd.DataFrame
         elif hasattr(self, "to_dict"):
             data = self.to_dict()
 
-        df = pd.json_normalize(data)
+        df: pd.DataFrame = pd.json_normalize(data)
 
         if pandas_type is pd.Series:
             if len(df) == 1:
