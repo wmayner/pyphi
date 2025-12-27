@@ -46,6 +46,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+parallel = ["ray[default]>=1.9.2"]
+visualize = ["matplotlib", "networkx>=2.6.2", "plotly>=5.8.2", "seaborn"]
+graphs = ["igraph>=0.9.10", "networkx>=2.6.2"]
+caching = ["redis>=2.10.5"]
+emd = ["pyemd>=0.3.0"]
+
+[dependency-groups]
 dev = [
     "asv",
     "build",
@@ -53,16 +60,12 @@ dev = [
     "hypothesis",
     "pytest<8.0.0",
     "pytest-lazy-fixture",
+    "ruff",
     "sphinx",
-    "sphinx_rtd_theme",
+    "sphinx-rtd-theme",
     "twine",
     "watchdog",
 ]
-parallel = ["ray[default]>=1.9.2"]
-visualize = ["matplotlib", "networkx>=2.6.2", "plotly>=5.8.2", "seaborn"]
-graphs = ["igraph>=0.9.10", "networkx>=2.6.2"]
-caching = ["redis>=2.10.5"]
-emd = ["pyemd>=0.3.0"]
 
 [project.urls]
 documentation = "https://pyphi.readthedocs.io"
@@ -89,17 +92,43 @@ include = [
 packages = ["pyphi"]
 include = ["pyphi/data/**"]
 
-[tool.uv]
-managed = true
-dev-dependencies = [
-    "asv",
+[tool.ruff]
+line-length = 89
+target-version = "py312"
+exclude = [
+    "__pycache__",
+    "__pyphi_cache__",
+    ".cache",
+    ".git",
+    ".coverage",
     "build",
-    "coverage",
-    "hypothesis",
-    "pytest<8.0.0",
-    "pytest-lazy-fixture",
-    "sphinx",
-    "sphinx_rtd_theme",
-    "twine",
-    "watchdog",
+    "dist",
+    "docs",
+    "htmlcov",
+    "benchmarks",
 ]
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "C90",    # mccabe complexity
+    "UP",     # pyupgrade
+    "T20",    # flake8-print
+    "TID",    # flake8-tidy-imports
+    "SIM",    # flake8-simplify
+]
+# Ruff doesn't have the old flake8 codes E123, E124, E126, E128, E131, W504
+# These were about visual indentation which is now handled by the formatter
+ignore = []
+
+[tool.ruff.lint.mccabe]
+max-complexity = 88
+
+[tool.ruff.lint.isort]
+known-first-party = ["pyphi"]
+force-single-line = true
