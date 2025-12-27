@@ -1,5 +1,14 @@
 exclude: '^$'
 fail_fast: false
+
+ci:
+  autofix_commit_msg: '[pre-commit.ci] auto fixes from pre-commit hooks'
+  autofix_prs: true
+  autoupdate_branch: 'develop'
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: monthly
+  skip: []
+
 repos:
 
 - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -19,10 +28,9 @@ repos:
     # Run the formatter
     - id: ruff-format
 
-- repo: https://github.com/psf/black
-  rev: 24.10.0
+- repo: https://github.com/pre-commit/mirrors-mypy
+  rev: v1.13.0
   hooks:
-    - id: black
-      name: black
-      description: 'Black: The uncompromising Python code formatter'
-      language_version: python3
+    - id: mypy
+      additional_dependencies: [types-PyYAML]
+      args: [--ignore-missing-imports]

@@ -58,6 +58,7 @@ dev = [
     "build",
     "coverage",
     "hypothesis",
+    "mypy",
     "pytest<8.0.0",
     "pytest-lazy-fixture",
     "ruff",
@@ -132,3 +133,70 @@ max-complexity = 88
 [tool.ruff.lint.isort]
 known-first-party = ["pyphi"]
 force-single-line = true
+
+[tool.pytest.ini_options]
+testpaths = ["pyphi", "test"]
+addopts = [
+    "--maxfail=0",
+    "--log-level=INFO",
+    "--strict-markers",
+    "--durations=5",
+    "--color=yes",
+    "--tb=auto",
+    "--doctest-glob=*.rst",
+    "--doctest-modules",
+    "--ignore=./profiling",
+    "--ignore=./benchmarks",
+    "-vv",
+]
+norecursedirs = ["docs/_*"]
+markers = [
+    "outdated: marks tests as outdated (deselect with '-m \"not outdated\"')",
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "veryslow: marks tests as very slow (deselect with '-m \"not veryslow\"')",
+]
+filterwarnings = [
+    "error",
+    "ignore::ImportWarning",
+    "ignore:The distutils package is deprecated:DeprecationWarning",
+    "ignore:distutils Version classes are deprecated:DeprecationWarning",
+    "ignore::FutureWarning",
+    "ignore::UserWarning",
+    "ignore::DeprecationWarning",
+]
+
+[tool.coverage.run]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "coverage: disable",
+    "pragma: no cover",
+    "def __repr__",
+    "def __str__",
+    "def __ne__",
+    "if self\\.DEBUG",
+    "if DEBUG",
+    "def print_",
+    "def dprint",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+]
+ignore_errors = true
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = false
+warn_unused_configs = true
+disallow_untyped_defs = false  # Permissive for now
+check_untyped_defs = false     # Permissive for now
+ignore_missing_imports = true  # Many deps lack stubs
+no_implicit_optional = false   # Permissive for now
+warn_redundant_casts = true
+warn_unused_ignores = true
+# Gradually enable stricter checks as type hints are added

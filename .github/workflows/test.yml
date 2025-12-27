@@ -31,6 +31,10 @@ jobs:
       - name: Install dependencies
         run: uv pip install -e ".[dev]"
 
+      - name: Run type checking
+        run: uv run mypy pyphi
+        continue-on-error: true
+
       - name: Run tests
         run: uv run pytest --tb=short -v --ignore=test/test_parallel.py
         continue-on-error: ${{ matrix.os == 'windows-latest' }}

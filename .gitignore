@@ -6,6 +6,7 @@
 .tox
 .coverage
 .pytest_cache
+.mypy_cache
 .virtual_documents
 .hypothesis
 .ipynb_checkpoints
@@ -26,3 +27,4 @@ benchmarks/env
 benchmarks/results
 ignore
 matplotlibrc
+dump.rdb
