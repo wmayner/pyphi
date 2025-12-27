@@ -6,7 +6,8 @@ from collections.abc import Sequence
 
 from .. import utils
 from ..direction import Direction
-from . import cmp, fmt
+from . import cmp
+from . import fmt
 
 # TODO(slipperyhank): add second state
 _acria_attributes = [

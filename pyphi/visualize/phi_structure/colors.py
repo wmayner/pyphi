@@ -1,11 +1,10 @@
 # visualize/colors.py
 """Handle color computations."""
 
-from typing import Iterable
+from collections.abc import Iterable
 
 import plotly
 from _plotly_utils.basevalidators import ColorscaleValidator
-
 
 _TYPE_COLORS = {"isotext": "magenta", "inclusion": "indigo", "paratext": "cyan"}
 
@@ -25,11 +24,10 @@ def two_relation_face_type(relation_face):
     if purview[0] == purview[1] == relation_face.purview:
         return "isotext"
     # Sub/Supertext (inclusion / full-overlap)
-    elif purview[0].issubset(purview[1]) or purview[0].issuperset(purview[1]):
+    if purview[0].issubset(purview[1]) or purview[0].issuperset(purview[1]):
         return "inclusion"
     # Paratext (connection / partial-overlap)
-    else:
-        return "paratext"
+    return "paratext"
 
 
 def get_color(colorscale, loc):
@@ -41,9 +39,9 @@ def get_color(colorscale, loc):
     colorscale = cv.validate_coerce(colorscale)
 
     # convert to rgb strings
-    locs, colors = zip(*colorscale)
+    locs, colors = zip(*colorscale, strict=False)
     colors = standardize_colors(colors, colortype="rgb")
-    colorscale = list(zip(locs, colors))
+    colorscale = list(zip(locs, colors, strict=False))
 
     if isinstance(loc, Iterable):
         return [_get_color(colorscale, x) for x in loc]

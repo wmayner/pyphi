@@ -1,9 +1,10 @@
 # models/fmt.py
 """Helper functions for formatting pretty representations of PyPhi models."""
 
+from collections.abc import Iterable
 from fractions import Fraction
-from itertools import chain, cycle
-from typing import Iterable
+from itertools import chain
+from itertools import cycle
 
 import numpy as np
 from toolz import concat
@@ -11,7 +12,8 @@ from toolz import concat
 from .. import utils
 from ..conf import config
 from ..direction import Direction
-from .cuts import CompleteSystemPartition, NullCut
+from .cuts import CompleteSystemPartition
+from .cuts import NullCut
 
 # REPR_VERBOSITY levels
 LOW = 0
@@ -19,10 +21,10 @@ MEDIUM = 1
 HIGH = 2
 
 # Unicode symbols
-SMALL_PHI = "\u03C6"
-BIG_PHI = "\u03A6"
-ALPHA = "\u03B1"
-TOP_LEFT_CORNER = "\u250C"
+SMALL_PHI = "\u03c6"
+BIG_PHI = "\u03a6"
+ALPHA = "\u03b1"
+TOP_LEFT_CORNER = "\u250c"
 TOP_RIGHT_CORNER = "\u2510"
 BOTTOM_LEFT_CORNER = "\u2514"
 BOTTOM_RIGHT_CORNER = "\u2518"
@@ -30,11 +32,11 @@ HORIZONTAL_BAR = "\u2500"
 VERTICAL_SIDE = "\u2502"
 HEADER_BAR_1 = "\u2550"
 HEADER_BAR_2 = "\u2501"
-HEADER_BAR_3 = "\u254D"
+HEADER_BAR_3 = "\u254d"
 DOTTED_HEADER = "\u2574"
 LINE = "\u2501"
-ARROW_LEFT = "\u25C0" + LINE * 2
-ARROW_RIGHT = LINE * 2 + "\u25B6"
+ARROW_LEFT = "\u25c0" + LINE * 2
+ARROW_RIGHT = LINE * 2 + "\u25b6"
 BACKWARD_CUT_SYMBOL = ARROW_LEFT + "/ /" + LINE * 2
 FORWARD_CUT_SYMBOL = LINE * 2 + "/ /" + ARROW_RIGHT
 EMPTY_SET = "\u2205"
@@ -71,7 +73,7 @@ def make_repr(self, attrs):
     if config.REPR_VERBOSITY in [MEDIUM, HIGH]:
         return self.__str__()
 
-    elif config.REPR_VERBOSITY is LOW:
+    if config.REPR_VERBOSITY is LOW:
         return "{}({})".format(
             self.__class__.__name__,
             ", ".join(attr + "=" + repr(getattr(self, attr)) for attr in attrs),
@@ -114,7 +116,7 @@ def margin(text):
         '  line1  \n  line2  '
     """
     lines = str(text).split("\n")
-    return "\n".join("  {}  ".format(l) for l in lines)
+    return "\n".join(f"  {l}  " for l in lines)
 
 
 LINES_FORMAT_STR = VERTICAL_SIDE + " {line:<{width}} " + VERTICAL_SIDE
@@ -166,7 +168,7 @@ def side_by_side(left, right):
         fill = " " * len(left_lines[0])
         left_lines += [fill] * diff
 
-    return "\n".join(a + b for a, b in zip(left_lines, right_lines)) + "\n"
+    return "\n".join(a + b for a, b in zip(left_lines, right_lines, strict=False)) + "\n"
 
 
 def width(lines):
@@ -237,7 +239,7 @@ def align(lines: Iterable[str], direction="<"):
     w = width(lines)
     if direction == "c":
         return [line.center(w) for line in lines]
-    spec = " {direction}{width}".format(direction=direction, width=w)
+    spec = f" {direction}{w}"
     return [format(line, spec) for line in lines]
 
 
@@ -301,11 +303,14 @@ def align_decimals(numbers):
         >>> align_decimals([0.5] + list(map(str, numbers)))
         ['  0.5     ', '  0      ', '  1      ', '  0.99    ', '100.5     ', ' 80.123   ', '   string']
     """
-    units, decimals = zip(*map(split_decimal, numbers))
-    points = ["." if unit and decimal else "" for unit, decimal in zip(units, decimals)]
+    units, decimals = zip(*map(split_decimal, numbers), strict=False)
+    points = [
+        "." if unit and decimal else ""
+        for unit, decimal in zip(units, decimals, strict=False)
+    ]
     units = align(units, direction=">")
     decimals = align(decimals, direction="<")
-    return ["".join(elements) for elements in zip(units, points, decimals)]
+    return ["".join(elements) for elements in zip(units, points, decimals, strict=False)]
 
 
 def _multiline_string_to_columns(text):
@@ -373,13 +378,15 @@ def align_columns(
     # Expand multiline strings into new columns
     lines = concat([_expand_multiline_strings(left, right) for left, right in lines])
     # Reorient into columns
-    columns = list(zip(*lines))
+    columns = list(zip(*lines, strict=False))
     for i, t in enumerate(types):
         if t == "n":
             columns[i] = align_decimals(columns[i])
     alignment = cycle(alignment)
-    columns = [align(column, direction=a) for column, a in zip(columns, alignment)]
-    return [delimiter.join(line) for line in zip(*columns)]
+    columns = [
+        align(column, direction=a) for column, a in zip(columns, alignment, strict=False)
+    ]
+    return [delimiter.join(line) for line in zip(*columns, strict=False)]
 
 
 def fmt_number(p):
@@ -473,15 +480,15 @@ def fmt_partition(partition):
             for part in partition
         ]
 
-        times = ("   ", " {} ".format(MULTIPLY), "   ")
+        times = ("   ", f" {MULTIPLY} ", "   ")
         breaks = ("\n", "\n", "")  # No newline at the end of string
         between = [times] * (len(parts) - 1) + [breaks]
 
         # Alternate [part, break, part, ..., end]
-        elements = chain.from_iterable(zip(parts, between))
+        elements = chain.from_iterable(zip(parts, between, strict=False))
 
         # Transform vertical stacks into horizontal lines
-        return "".join(chain.from_iterable(zip(*elements)))
+        return "".join(chain.from_iterable(zip(*elements, strict=False)))
     except TypeError:
         return repr(partition)
 
@@ -553,9 +560,7 @@ def fmt_ces(ces, title=None):
         return "()\n"
 
     concepts = center("\n".join(margin(x) for x in ces) + "\n")
-    title = "{} ({} distinction{})".format(
-        title, len(ces), "" if len(ces) == 1 else "s"
-    )
+    title = "{} ({} distinction{})".format(title, len(ces), "" if len(ces) == 1 else "s")
 
     return header(title, concepts, HEADER_BAR_1, HEADER_BAR_1)
 
@@ -613,11 +618,11 @@ def fmt_ria(ria, verbose=True, mip=False):
         if ria.repertoire is not None:
             if ria.repertoire.size == 1:
                 repertoire = f"Forward probability:\n    {ria.repertoire}"
-                partitioned_repertoire = f"Partitioned forward probability:\n    {ria.partitioned_repertoire}"
-            else:
-                repertoire = "Repertoire:\n{}".format(
-                    indent(fmt_repertoire(ria.repertoire, mark_states=mark_states))
+                partitioned_repertoire = (
+                    f"Partitioned forward probability:\n    {ria.partitioned_repertoire}"
                 )
+            else:
+                repertoire = f"Repertoire:\n{indent(fmt_repertoire(ria.repertoire, mark_states=mark_states))}"
                 partitioned_repertoire = "Partitioned repertoire:\n{}".format(
                     indent(
                         fmt_repertoire(
@@ -682,7 +687,7 @@ def fmt_cut(cut, direction=None, name=True):
 
 def fmt_kcut(cut):
     """Format a |KCut|."""
-    return "KCut {}\n{}".format(cut.direction, cut.partition)
+    return f"KCut {cut.direction}\n{cut.partition}"
 
 
 def fmt_sia_4(sia, phi_structure=True, title="System irreducibility analysis"):
@@ -779,7 +784,7 @@ def fmt_repertoire(r, mark_states=None):
             state_str += " *"
         else:
             state_str += "  "
-        lines.append("{0}{1}{2}".format(state_str, space[:-2], fmt_number(r[state])))
+        lines.append(f"{state_str}{space[:-2]}{fmt_number(r[state])}")
 
     w = width(lines)
     lines.insert(1, DOTTED_HEADER * (w + 1))
@@ -889,9 +894,7 @@ def fmt_ac_ria(ria, extended_purview=None):
     }[ria.direction]
     causality = " ".join(causality)
 
-    return "{ALPHA} = {alpha}  {causality}".format(
-        ALPHA=ALPHA, alpha=round(ria.alpha, 4), causality=causality
-    )
+    return f"{ALPHA} = {round(ria.alpha, 4)}  {causality}"
 
 
 def fmt_account(account, title=None):
@@ -933,18 +936,12 @@ def fmt_ac_sia(ac_sia):
         )
     )
 
-    return box(
-        header("AcSystemIrreducibilityAnalysis", body, under_char=HORIZONTAL_BAR)
-    )
+    return box(header("AcSystemIrreducibilityAnalysis", body, under_char=HORIZONTAL_BAR))
 
 
 def fmt_transition(t):
     """Format a |Transition|."""
-    return "Transition({} {} {})".format(
-        fmt_mechanism(t.cause_indices, t.node_labels),
-        ARROW_RIGHT,
-        fmt_mechanism(t.effect_indices, t.node_labels),
-    )
+    return f"Transition({fmt_mechanism(t.cause_indices, t.node_labels)} {ARROW_RIGHT} {fmt_mechanism(t.effect_indices, t.node_labels)})"
 
 
 def state(state):

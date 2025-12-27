@@ -1,6 +1,8 @@
 import numpy as np
 
-from pyphi.node import Node, expand_node_tpm, generate_nodes
+from pyphi.node import Node
+from pyphi.node import expand_node_tpm
+from pyphi.node import generate_nodes
 from pyphi.subsystem import Subsystem
 from pyphi.tpm import ExplicitTPM
 

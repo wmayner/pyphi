@@ -2,7 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from pyphi import jsonify, new_big_phi
+from pyphi import jsonify
+from pyphi import new_big_phi
 from pyphi.examples import EXAMPLES
 
 EXAMPLE_NAMES = ["basic", "basic_noisy_selfloop", "fig4", "grid3", "xor"]

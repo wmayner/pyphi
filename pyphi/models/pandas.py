@@ -1,7 +1,7 @@
 # models/pandas.py
 """Utilities for working with Pandas data structures."""
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import pandas as pd
 
@@ -58,7 +58,6 @@ class ToPandasMixin:
                 series = df.iloc[0]
                 series.name = self.__class__.__name__
                 return series
-            else:
-                raise ValueError(f"expected single row, got {len(df)}")
+            raise ValueError(f"expected single row, got {len(df)}")
 
         return df

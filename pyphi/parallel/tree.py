@@ -2,10 +2,10 @@
 """Classes for specifying distributed computations."""
 
 from dataclasses import dataclass
-from typing import Optional
 
 from ..conf import fallback
-from ..utils import enforce_integer, enforce_integer_or_none
+from ..utils import enforce_integer
+from ..utils import enforce_integer_or_none
 
 
 @dataclass(frozen=True)
@@ -21,12 +21,12 @@ class TreeConstraints:
 
     def __init__(
         self,
-        total: Optional[int] = None,
-        chunksize: Optional[int] = None,
+        total: int | None = None,
+        chunksize: int | None = None,
         sequential_threshold: int = 1,
-        max_depth: Optional[int] = None,
-        max_size: Optional[int] = None,
-        max_leaves: Optional[int] = None,
+        max_depth: int | None = None,
+        max_size: int | None = None,
+        max_leaves: int | None = None,
         branch_factor: int = 2,
     ) -> None:
         self.total = enforce_integer_or_none(total, name="total", min=0)
@@ -126,12 +126,12 @@ class TreeConstraintsSize(TreeConstraints):
 
 
 def get_constraints(
-    total: Optional[int] = None,
-    chunksize: Optional[int] = None,
+    total: int | None = None,
+    chunksize: int | None = None,
     sequential_threshold: int = 1,
-    max_depth: Optional[int] = None,
-    max_size: Optional[int] = None,
-    max_leaves: Optional[int] = None,
+    max_depth: int | None = None,
+    max_size: int | None = None,
+    max_leaves: int | None = None,
     branch_factor: int = 2,
 ) -> TreeConstraints:
     cls = TreeConstraintsSize

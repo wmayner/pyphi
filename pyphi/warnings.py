@@ -10,9 +10,7 @@ class PyPhiWarning(UserWarning):
     """Class for PyPhi warnings."""
 
 
-def warn_about_tie_serialization(
-    name, serialize=False, deserialize=False, stacklevel=3
-):
+def warn_about_tie_serialization(name, serialize=False, deserialize=False, stacklevel=3):
     # XOR; exactly one of serialize or deserialize must be True
     if not serialize ^ deserialize:
         raise ValueError("Exactly one of ``serialize``, ``deserialize`` must be True")

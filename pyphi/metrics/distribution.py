@@ -1,20 +1,24 @@
 # metrics/distribution.py
 """Metrics on probability distributions."""
 
+from collections.abc import Callable
 from contextlib import ContextDecorator
 from math import log2
-from typing import Callable, Iterable, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 from numpy.typing import ArrayLike
 from scipy.spatial.distance import cdist
-from scipy.special import entr, rel_entr
+from scipy.special import entr
+from scipy.special import rel_entr
 
-from .. import utils, validate
+from .. import utils
+from .. import validate
 from ..cache import joblib_memory
-from ..conf import config, fallback
+from ..conf import config
+from ..conf import fallback
 from ..direction import Direction
-from ..distribution import flatten, marginal_zero
+from ..distribution import flatten
+from ..distribution import marginal_zero
 from ..exceptions import MissingOptionalDependenciesError
 from ..registry import Registry
 
@@ -70,7 +74,7 @@ class DistributionMeasureRegistry(Registry):
 
     def __init__(self) -> None:
         super().__init__()
-        self._asymmetric: List[str] = []
+        self._asymmetric: list[str] = []
 
     def register(
         self, name: str, asymmetric: bool = False
@@ -92,7 +96,7 @@ class DistributionMeasureRegistry(Registry):
 
         return register_func
 
-    def asymmetric(self) -> List[str]:
+    def asymmetric(self) -> list[str]:
         """Return a list of asymmetric measures."""
         return self._asymmetric
 
@@ -119,7 +123,7 @@ class ActualCausationMeasureRegistry(Registry):
 
     def __init__(self) -> None:
         super().__init__()
-        self._asymmetric: List[str] = []
+        self._asymmetric: list[str] = []
 
     def register(
         self, name: str, asymmetric: bool = False
@@ -141,7 +145,7 @@ class ActualCausationMeasureRegistry(Registry):
 
         return register_func
 
-    def asymmetric(self) -> List[str]:
+    def asymmetric(self) -> list[str]:
         """Return a list of asymmetric measures."""
         return self._asymmetric
 
@@ -216,7 +220,7 @@ def _compute_hamming_matrix(N: int) -> np.ndarray:
     ``_NUM_PRECOMPUTED_HAMMING_MATRICES``. Don't call this function directly;
     use |_hamming_matrix| instead.
     """
-    possible_states = np.array(list(utils.all_states((N))))
+    possible_states = np.array(list(utils.all_states(N)))
     return cdist(possible_states, possible_states, "hamming") * N
 
 
@@ -252,7 +256,7 @@ def effect_emd(p: ArrayLike, q: ArrayLike) -> float:
 
 
 @measures.register("EMD")
-def emd(p: ArrayLike, q: ArrayLike, direction: Optional[Direction] = None) -> float:
+def emd(p: ArrayLike, q: ArrayLike, direction: Direction | None = None) -> float:
     """Compute the EMD between two repertoires for a given direction.
 
     The full EMD computation is used for cause repertoires. A fast analytic
@@ -538,7 +542,7 @@ def approximate_specified_state(
     discriminant_indices = np.argsort(discriminants)
     discriminants = np.sort(discriminants)  # ascending
 
-    for index, discriminant in zip(discriminant_indices, discriminants):
+    for index, discriminant in zip(discriminant_indices, discriminants, strict=False):
         # The temporary-informativeness, updated as new nodes are included.
         tmp_inform = np.log2(specified_P.prod()) - np.log2(specified_Q.prod())
 
@@ -612,14 +616,14 @@ def absolute_intrinsic_difference(p: ArrayLike, q: ArrayLike) -> float:
 
 
 @measures.register("IIT_4.0_SMALL_PHI", asymmetric=True)
-def iit_4_small_phi(p: ArrayLike, q: ArrayLike, state: Union[int, Tuple[int, ...]]):
+def iit_4_small_phi(p: ArrayLike, q: ArrayLike, state: int | tuple[int, ...]):
     # TODO docstring
     return absolute_information_density(p, q).squeeze()[state]
 
 
 @measures.register("IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE", asymmetric=True)
 def iit_4_small_phi_no_absolute_value(
-    p: ArrayLike, q: ArrayLike, state: Union[int, Tuple[int, ...]]
+    p: ArrayLike, q: ArrayLike, state: int | tuple[int, ...]
 ):
     # TODO docstring
     return information_density(p, q).squeeze()[state]
@@ -630,7 +634,7 @@ def generalized_intrinsic_difference(
     forward_repertoire: ArrayLike,
     partitioned_forward_repertoire: ArrayLike,
     selectivity_repertoire: ArrayLike,
-    state: Optional[Union[int, Tuple[int, ...]]] = None,
+    state: int | tuple[int, ...] | None = None,
 ):
     informativeness = pointwise_mutual_information_vector(
         forward_repertoire, partitioned_forward_repertoire
@@ -644,7 +648,7 @@ def generalized_intrinsic_difference(
 @measures.register("APMI", asymmetric=True)
 @np_suppress()
 def absolute_pointwise_mutual_information(
-    p: ArrayLike, q: ArrayLike, state: Union[int, Tuple[int, ...]]
+    p: ArrayLike, q: ArrayLike, state: int | tuple[int, ...]
 ) -> float:
     """Computes the state-specific absolute pointwise mutual information between
     two distributions.
@@ -713,8 +717,8 @@ def weighted_pointwise_mutual_information(p: float, q: float) -> float:
 def repertoire_distance(
     r1: ArrayLike,
     r2: ArrayLike,
-    direction: Optional[Direction] = None,
-    repertoire_distance: Optional[str] = None,
+    direction: Direction | None = None,
+    repertoire_distance: str | None = None,
     **kwargs,
 ) -> float:
     """Compute the distance between two repertoires for the given direction.

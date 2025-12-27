@@ -20,9 +20,7 @@ def test_forward_effect_probability_matches_repertoire(s):
     expected = repertoire.forward_effect_repertoire(s, mechanism, purview).squeeze()[
         purview_state
     ]
-    actual = repertoire.forward_effect_probability(
-        s, mechanism, purview, purview_state
-    )
+    actual = repertoire.forward_effect_probability(s, mechanism, purview, purview_state)
     assert np.isclose(actual, expected)
 
 
@@ -33,9 +31,7 @@ def test_forward_cause_probability_matches_repertoire(s):
     expected = repertoire.forward_cause_repertoire(
         s, mechanism, purview, purview_state=purview_state
     ).squeeze()[purview_state]
-    actual = repertoire.forward_cause_probability(
-        s, mechanism, purview, purview_state
-    )
+    actual = repertoire.forward_cause_probability(s, mechanism, purview, purview_state)
     assert np.isclose(actual, expected)
 
 
@@ -56,16 +52,12 @@ def test_unconstrained_forward_effect_repertoire_is_mean(s):
             for state in all_states(len(mechanism))
         ]
     ).mean(axis=0)
-    actual = repertoire.unconstrained_forward_effect_repertoire(
-        s, mechanism, purview
-    )
+    actual = repertoire.unconstrained_forward_effect_repertoire(s, mechanism, purview)
     assert np.allclose(actual, expected)
 
 
 def test_unconstrained_forward_cause_repertoire_is_uniform(s):
     mechanism = (0,)
     purview = (1, 2)
-    actual = repertoire.unconstrained_forward_cause_repertoire(
-        s, mechanism, purview
-    )
+    actual = repertoire.unconstrained_forward_cause_repertoire(s, mechanism, purview)
     assert np.allclose(actual, actual.flat[0])

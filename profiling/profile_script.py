@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Profiling tool for PyPhi."""
 
 import argparse
 import cProfile
 from pathlib import Path
 from time import time
-
-import pyphi
 
 
 def profile_file(path):

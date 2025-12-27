@@ -3,7 +3,6 @@ import pytest
 
 from pyphi.metrics import distribution
 
-
 TEST_DATA = (
     (np.ones((2, 2, 2)) / 8, np.ones((2, 2, 2)) / 8),
     (np.array([[[1.0]], [[0.0]]]), np.array([[[0.25]], [[0.75]]])),
@@ -137,6 +136,7 @@ def test_hamming_emd_validates_distribution_shapes():
             0.5,
             0.0,
         ],
+        strict=False,
         # NOTE: The EMD as currently implemented requires the input to have a
         # size that is a power of 2, so we omit the last two tests in TEST_DATA
         # by not providing an expected value (using behavior of `zip`).
@@ -164,6 +164,7 @@ def test_hamming_emd(pq, answer):
             3.64839424,
             3.4951311999999994,
         ],
+        strict=False,
     ),
 )
 def test_l1(pq, answer):
@@ -188,6 +189,7 @@ def test_l1(pq, answer):
             0.6621482247726478,
             0.5216594185459629,
         ],
+        strict=False,
     ),
 )
 def test_entropy_difference(pq, answer):
@@ -216,6 +218,7 @@ def test_entropy_difference(pq, answer):
             6.989064076830283,
             3.866290893689359,
         ],
+        strict=False,
     ),
 )
 def test_kld(pq, answer):
@@ -240,6 +243,7 @@ def test_kld(pq, answer):
             0.1833287731088058,
             1.7318178465283829,
         ],
+        strict=False,
     ),
 )
 def test_psq2(pq, answer):
@@ -264,6 +268,7 @@ def test_psq2(pq, answer):
             38.83048445250753,
             8.277494548476637,
         ],
+        strict=False,
     ),
 )
 def test_mp2q(pq, answer):
@@ -318,6 +323,7 @@ def test_mp2q(pq, answer):
                 ]
             ),
         ],
+        strict=False,
     ),
 )
 def test_information_density(pq, answer):
@@ -342,6 +348,7 @@ def test_information_density(pq, answer):
             2.7813405239249747,
             4.07682535456649,
         ],
+        strict=False,
     ),
 )
 def test_intrinsic_difference(pq, answer):
@@ -366,6 +373,7 @@ def test_intrinsic_difference(pq, answer):
             2.7813405239249747,
             4.07682535456649,
         ],
+        strict=False,
     ),
 )
 def test_absolute_intrinsic_difference(pq, answer):

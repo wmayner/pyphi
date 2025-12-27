@@ -1,15 +1,14 @@
 # visualize/__init__.py
 """Visualize the Ising model."""
 
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sb
 
-from ..utils import all_states
 from ..network_generator import utils
 from ..network_generator.ising import energy
+from ..utils import all_states
 
 
 def plot_sigmoid(x, temperature=1.0, field=0.0):

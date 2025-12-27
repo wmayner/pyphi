@@ -8,15 +8,21 @@ from collections import namedtuple
 import numpy as np
 from scipy.stats import entropy
 
-from . import compute, convert, distribution, utils, validate
+from . import compute
+from . import convert
+from . import distribution
+from . import utils
+from . import validate
 from .conf import config
-from .exceptions import ConditionallyDependentError, StateUnreachableError
+from .direction import Direction
+from .exceptions import ConditionallyDependentError
+from .exceptions import StateUnreachableError
 from .labels import NodeLabels
 from .network import irreducible_purviews
-from .node import expand_node_tpm, generate_nodes
+from .node import expand_node_tpm
+from .node import generate_nodes
 from .subsystem import Subsystem
 from .tpm import ExplicitTPM
-from .direction import Direction
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
@@ -104,9 +110,7 @@ def run_tpm(system, direction, steps, blackbox):
 
 
 class SystemAttrs(
-    namedtuple(
-        "SystemAttrs", ["cause_tpm", "effect_tpm", "cm", "node_indices", "state"]
-    )
+    namedtuple("SystemAttrs", ["cause_tpm", "effect_tpm", "cm", "node_indices", "state"])
 ):
     """An immutable container that holds all the attributes of a subsystem.
 
@@ -118,7 +122,7 @@ class SystemAttrs(
     def node_labels(self):
         """Return the labels for macro nodes."""
         assert list(self.node_indices)[0] == 0
-        labels = list("m{}".format(i) for i in self.node_indices)
+        labels = list(f"m{i}" for i in self.node_indices)
         return NodeLabels(labels, self.node_indices)
 
     @property
@@ -183,7 +187,6 @@ class MacroSubsystem(Subsystem):
         blackbox=None,
         coarse_grain=None,
     ):
-
         # Ensure indices are not a `range`
         micro_node_indices = network.node_labels.coerce_to_indices(nodes)
 
@@ -428,13 +431,11 @@ class MacroSubsystem(Subsystem):
             return tuple(sorted(micro_indices))
 
         if self.blackbox and self.coarse_grain:
-            cg_micro_indices = from_partition(
-                self.coarse_grain.partition, macro_indices
-            )
+            cg_micro_indices = from_partition(self.coarse_grain.partition, macro_indices)
             return from_partition(self.blackbox.partition, reindex(cg_micro_indices))
-        elif self.blackbox:
+        if self.blackbox:
             return from_partition(self.blackbox.partition, macro_indices)
-        elif self.coarse_grain:
+        if self.coarse_grain:
             return from_partition(self.coarse_grain.partition, macro_indices)
         return macro_indices
 
@@ -522,7 +523,7 @@ class CoarseGrain(namedtuple("CoarseGrain", ["partition", "grouping"])):
             >>> coarse_grain.reindex()
             CoarseGrain(partition=((0, 1),), grouping=(((0,), (1, 2)),))
         """
-        _map = dict(zip(self.micro_indices, reindex(self.micro_indices)))
+        _map = dict(zip(self.micro_indices, reindex(self.micro_indices), strict=False))
         partition = tuple(
             tuple(_map[index] for index in group) for group in self.partition
         )
@@ -609,9 +610,9 @@ class CoarseGrain(namedtuple("CoarseGrain", ["partition", "grouping"])):
         # previous and next macro-state using the mapping and add that
         # probability to the state-by-state macro TPM.
         for previous_state, current_state in micro_state_transitions:
-            macro_tpm[
-                mapping[previous_state], mapping[current_state]
-            ] += state_by_state_micro_tpm[previous_state, current_state]
+            macro_tpm[mapping[previous_state], mapping[current_state]] += (
+                state_by_state_micro_tpm[previous_state, current_state]
+            )
 
         # Re-normalize each row because we're going from larger to smaller TPM
         return np.array([distribution.normalize(row) for row in macro_tpm])
@@ -695,7 +696,7 @@ class Blackbox(namedtuple("Blackbox", ["partition", "output_indices"])):
             >>> blackbox.reindex()
             Blackbox(partition=((1,), (0, 2)), output_indices=(0, 1))
         """
-        _map = dict(zip(self.micro_indices, reindex(self.micro_indices)))
+        _map = dict(zip(self.micro_indices, reindex(self.micro_indices), strict=False))
         partition = tuple(
             tuple(_map[index] for index in group) for group in self.partition
         )
@@ -752,11 +753,10 @@ def _partitions_list(N):
     """
     if N < (_NUM_PRECOMPUTED_PARTITION_LISTS):
         return list(_partition_lists[N])
-    else:
-        raise ValueError(
-            "Partition lists not yet available for system with {} "
-            "nodes or more".format(_NUM_PRECOMPUTED_PARTITION_LISTS)
-        )
+    raise ValueError(
+        f"Partition lists not yet available for system with {_NUM_PRECOMPUTED_PARTITION_LISTS} "
+        "nodes or more"
+    )
 
 
 def all_partitions(indices):
@@ -793,9 +793,7 @@ def all_groupings(partition):
     TODO: document exactly how to interpret the grouping.
     """
     if not all(partition):
-        raise ValueError(
-            "Each part of the partition must have at least one " "element."
-        )
+        raise ValueError("Each part of the partition must have at least one " "element.")
 
     micro_groupings = [
         _partitions_list(len(part) + 1) if len(part) > 1 else [[[0], [1]]]
@@ -891,7 +889,6 @@ class MacroNetwork:
         time_scale=1,
         blackbox=None,
     ):
-
         self.network = network
         self.system = system
         self.phi = macro_phi
@@ -901,7 +898,7 @@ class MacroNetwork:
         self.blackbox = blackbox
 
     def __str__(self):
-        return "MacroNetwork(phi={0}, emergence={1})".format(self.phi, self.emergence)
+        return f"MacroNetwork(phi={self.phi}, emergence={self.emergence})"
 
     @property
     def emergence(self):
@@ -980,9 +977,7 @@ def all_macro_systems(
                         continue
 
 
-def emergence(
-    network, state, do_blackbox=False, do_coarse_grain=True, time_scales=None
-):
+def emergence(network, state, do_blackbox=False, do_coarse_grain=True, time_scales=None):
     """Check for the emergence of a micro-system into a macro-system.
 
     Checks all possible blackboxings and coarse-grainings of a system to find

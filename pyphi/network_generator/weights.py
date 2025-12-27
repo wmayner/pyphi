@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # network_generator/weights.py
 """Generate different weight matrices."""
 
@@ -71,7 +70,7 @@ def pareto(size, alpha=1.0, periodic=False):
         else:
             # Even
             p = np.concatenate([p[: middle + 1], np.flip(p[1:middle])])
-    for k, w in zip(range(size), p):
+    for k, w in zip(range(size), p, strict=False):
         W += np.eye(size, k=k) * w
         if k:
             W += np.eye(size, k=-k) * w

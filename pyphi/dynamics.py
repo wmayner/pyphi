@@ -1,7 +1,8 @@
 # dynamics.py
 """Functions for simulating system state trajectories."""
 
-from typing import Iterable, Optional, Mapping
+from collections.abc import Iterable
+from collections.abc import Mapping
 
 import numpy as np
 import pandas as pd
@@ -37,9 +38,9 @@ def mean_dynamics(
 
 def simulate(
     tpm: ArrayLike,
-    initial_state: Optional[tuple[int]] = None,
-    timesteps: Optional[int] = 100,
-    clamp: Optional[Iterable[Mapping] | Mapping] = None,
+    initial_state: tuple[int] | None = None,
+    timesteps: int | None = 100,
+    clamp: Iterable[Mapping] | Mapping | None = None,
     rng: np.random.Generator = None,
 ):
     """Return a simulated timeseries of system states."""

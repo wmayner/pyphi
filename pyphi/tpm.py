@@ -2,16 +2,22 @@
 """Provides classes for representing TPMs."""
 
 import math
+from collections.abc import Iterable
+from collections.abc import Mapping
 from itertools import chain
-from typing import Mapping, Set, Iterable
 
 import numpy as np
 
-from . import convert, data_structures, exceptions
+from . import convert
+from . import data_structures
+from . import exceptions
 from .conf import config
-from .constants import OFF, ON
+from .constants import OFF
+from .constants import ON
 from .data_structures import FrozenMap
-from .utils import all_states, np_hash, np_immutable
+from .utils import all_states
+from .utils import np_hash
+from .utils import np_immutable
 
 
 # TODO(tpm) remove pending ArrayLike refactor
@@ -217,8 +223,7 @@ class ExplicitTPM(data_structures.ArrayLike):
     def __getattr__(self, name):
         if name in self.__closures__:
             return _new_attribute(name, self.__closures__, self._tpm)
-        else:
-            return getattr(self.__getattribute__(self._VALUE_ATTR), name)
+        return getattr(self.__getattribute__(self._VALUE_ATTR), name)
 
     def __len__(self):
         return len(self.__getattribute__(self._VALUE_ATTR))
@@ -275,30 +280,28 @@ class ExplicitTPM(data_structures.ArrayLike):
         N = tpm.shape[-1]
         if tpm.ndim == 2:
             if not (
-                (tpm.shape[0] == 2 ** N and tpm.shape[1] == N)
+                (tpm.shape[0] == 2**N and tpm.shape[1] == N)
                 or (tpm.shape[0] == tpm.shape[1])
             ):
                 raise ValueError(
-                    "Invalid shape for 2-D TPM: {}\nFor a state-by-node TPM, "
+                    f"Invalid shape for 2-D TPM: {tpm.shape}\nFor a state-by-node TPM, "
                     "there must be "
                     "2^N rows and N columns, where N is the "
                     "number of nodes. State-by-state TPM must be square. "
-                    "{}".format(tpm.shape, see_tpm_docs)
+                    f"{see_tpm_docs}"
                 )
             if tpm.shape[0] == tpm.shape[1] and check_independence:
                 self.conditionally_independent()
         elif tpm.ndim == (N + 1):
             if tpm.shape != tuple([2] * N + [N]):
                 raise ValueError(
-                    "Invalid shape for multidimensional state-by-node TPM: {}\n"
-                    "The shape should be {} for {} nodes. {}".format(
-                        tpm.shape, ([2] * N) + [N], N, see_tpm_docs
-                    )
+                    f"Invalid shape for multidimensional state-by-node TPM: {tpm.shape}\n"
+                    f"The shape should be {([2] * N) + [N]} for {N} nodes. {see_tpm_docs}"
                 )
         else:
             raise ValueError(
                 "Invalid TPM: Must be either 2-dimensional or multidimensional. "
-                "{}".format(see_tpm_docs)
+                f"{see_tpm_docs}"
             )
         return True
 
@@ -431,7 +434,7 @@ class ExplicitTPM(data_structures.ArrayLike):
                [0.92414182 0.95257413]]]])
         """
         free_nodes = sorted(set(range(self.number_of_units)) - set(fixed_nodes))
-        condition = FrozenMap(zip(fixed_nodes, state))
+        condition = FrozenMap(zip(fixed_nodes, state, strict=False))
         conditioned = self.condition_tpm(condition)
         # TODO test indicing behavior on xr.DataArray
         return conditioned[..., free_nodes]
@@ -527,7 +530,7 @@ class ExplicitTPM(data_structures.ArrayLike):
         return self.__repr__()
 
     def __repr__(self):
-        return "ExplicitTPM({})".format(self._tpm)
+        return f"ExplicitTPM({self._tpm})"
 
     def __hash__(self):
         return self._hash
@@ -600,7 +603,7 @@ def simulate(tpm, initial_state, timesteps, rng):
 
 # TODO(tpm) remove pending ArrayLike refactor
 def _new_attribute(
-    name: str, closures: Set[str], tpm: ExplicitTPM.__wraps__, cls=ExplicitTPM
+    name: str, closures: set[str], tpm: ExplicitTPM.__wraps__, cls=ExplicitTPM
 ) -> object:
     """Helper function to return adequate proxy attributes for TPM arrays.
 

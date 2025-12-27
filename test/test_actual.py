@@ -1,9 +1,15 @@
 import numpy as np
 import pytest
 
-from pyphi import Direction, Network, Subsystem, actual, config, examples, models
-from pyphi.models import KPartition, Part
-from pyphi.validate import node_labels
+from pyphi import Direction
+from pyphi import Network
+from pyphi import Subsystem
+from pyphi import actual
+from pyphi import config
+from pyphi import examples
+from pyphi import models
+from pyphi.models import KPartition
+from pyphi.models import Part
 
 # TODO
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -440,9 +446,7 @@ def test_unconstrained_repertoires(transition):
     ],
 )
 def test_probability(direction, mechanism, purview, probability, transition):
-    assert np.isclose(
-        transition.probability(direction, mechanism, purview), probability
-    )
+    assert np.isclose(transition.probability(direction, mechanism, purview), probability)
 
 
 def test_unconstrained_probability(transition):
@@ -568,12 +572,8 @@ def ac_cut(direction, *parts):
             Direction.BIDIRECTIONAL,
             [
                 ac_cut(Direction.CAUSE, Part((), ()), Part((), (1, 2)), Part((0,), ())),
-                ac_cut(
-                    Direction.EFFECT, Part((), ()), Part((1,), (0,)), Part((2,), ())
-                ),
-                ac_cut(
-                    Direction.EFFECT, Part((), ()), Part((1,), ()), Part((2,), (0,))
-                ),
+                ac_cut(Direction.EFFECT, Part((), ()), Part((1,), (0,)), Part((2,), ())),
+                ac_cut(Direction.EFFECT, Part((), ()), Part((1,), ()), Part((2,), (0,))),
             ],
         ),
         (
@@ -583,15 +583,9 @@ def ac_cut(direction, *parts):
         (
             Direction.EFFECT,
             [
-                ac_cut(
-                    Direction.EFFECT, Part((), ()), Part((), (0,)), Part((1, 2), ())
-                ),
-                ac_cut(
-                    Direction.EFFECT, Part((), ()), Part((1,), (0,)), Part((2,), ())
-                ),
-                ac_cut(
-                    Direction.EFFECT, Part((), ()), Part((1,), ()), Part((2,), (0,))
-                ),
+                ac_cut(Direction.EFFECT, Part((), ()), Part((), (0,)), Part((1, 2), ())),
+                ac_cut(Direction.EFFECT, Part((), ()), Part((1,), (0,)), Part((2,), ())),
+                ac_cut(Direction.EFFECT, Part((), ()), Part((1,), ()), Part((2,), (0,))),
             ],
         ),
     ],

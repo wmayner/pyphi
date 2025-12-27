@@ -1,7 +1,7 @@
 import pickle
+from collections.abc import Hashable
 from functools import partial
 from itertools import tee as _tee
-from typing import Hashable
 
 from hypothesis import assume
 from hypothesis import strategies as st

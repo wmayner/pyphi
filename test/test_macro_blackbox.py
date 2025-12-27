@@ -1,13 +1,18 @@
 import numpy as np
 import pytest
 
-from pyphi import Network, compute, config, convert, ExplicitTPM, macro, models, utils
+from pyphi import ExplicitTPM
+from pyphi import Network
+from pyphi import compute
+from pyphi import config
+from pyphi import macro
+from pyphi import models
+from pyphi import utils
 
 
 # TODO: move these to examples.py
 @pytest.fixture
 def degenerate():
-
     nodes = 6
     tpm = np.zeros((2**nodes, nodes))
 

@@ -2,7 +2,12 @@ import pickle
 
 import pytest
 
-from pyphi import Network, Subsystem, compute, config, constants, utils
+from pyphi import Network
+from pyphi import Subsystem
+from pyphi import compute
+from pyphi import config
+from pyphi import constants
+from pyphi import utils
 
 
 def test_possible_complexes(s):
@@ -120,7 +125,13 @@ def test_rule152_complexes_no_caching(rule152):
         )
         # Check that the concept's phi values are the same.
         result_concepts = [c for c in result["concepts"] if c["is_irreducible"]]
-        z = list(zip([c.phi for c in major.ces], [c["phi"] for c in result_concepts]))
+        z = list(
+            zip(
+                [c.phi for c in major.ces],
+                [c["phi"] for c in result_concepts],
+                strict=False,
+            )
+        )
         diff = [i for i in range(len(z)) if not utils.eq(z[i][0], z[i][1])]
         assert all(
             list(

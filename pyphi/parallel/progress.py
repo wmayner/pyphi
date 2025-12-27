@@ -3,7 +3,7 @@
 
 from asyncio import Event
 from time import time
-from typing import Optional, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from ..deferred.ray import ray
 
@@ -45,7 +45,7 @@ class ProgressBarActor:
         self.interrupted = interrupted
         self.event.set()
 
-    async def wait_for_update(self) -> Tuple[int, int]:
+    async def wait_for_update(self) -> tuple[int, int]:
         """Blocking call.
 
         Waits until somebody calls `update` or `finish`, then returns a tuple of
@@ -69,11 +69,11 @@ class ProgressBar:
     """Handles interactions with a remote ProgressBarActor."""
 
     _actor: "ActorHandle"
-    total: Optional[int]
+    total: int | None
     desc: str
     pbar: tqdm
 
-    def __init__(self, total: Optional[int], desc: str = ""):
+    def __init__(self, total: int | None, desc: str = ""):
         self._actor = ProgressBarActor.remote()  # type: ignore
         self.total = total
         self.desc = desc

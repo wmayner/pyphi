@@ -1,4 +1,5 @@
-from pyphi import config, resolve_ties
+from pyphi import config
+from pyphi import resolve_ties
 
 
 class DummyPhiObject:

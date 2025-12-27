@@ -60,9 +60,7 @@ class Orderable:
     def __lt__(self, other):
         if not general_eq(self, other, self.unorderable_unless_eq):
             raise TypeError(
-                "Unorderable: the following attrs must be equal: {}".format(
-                    self.unorderable_unless_eq
-                )
+                f"Unorderable: the following attrs must be equal: {self.unorderable_unless_eq}"
             )
         return self.order_by() < other.order_by()
 
@@ -111,7 +109,7 @@ def numpy_aware_eq(a, b):
     ):
         if len(a) != len(b):
             return False
-        return all(numpy_aware_eq(x, y) for x, y in zip(a, b))
+        return all(numpy_aware_eq(x, y) for x, y in zip(a, b, strict=False))
     return a == b
 
 
@@ -133,11 +131,10 @@ def general_eq(a, b, attributes):
                 if _a is None or _b is None:
                     if _a != _b:
                         return False
-                elif not set(_a) == set(_b):
+                elif set(_a) != set(_b):
                     return False
-            else:
-                if not numpy_aware_eq(_a, _b):
-                    return False
+            elif not numpy_aware_eq(_a, _b):
+                return False
         return True
     except AttributeError:
         return False

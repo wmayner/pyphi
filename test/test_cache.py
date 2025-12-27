@@ -1,11 +1,6 @@
-import functools
-import multiprocessing
-from unittest import mock
-
-import pytest
-import redis
-
-from pyphi import Direction, Subsystem, cache, config, examples, models
+from pyphi import Direction
+from pyphi import cache
+from pyphi import config
 
 
 def test_cache():
@@ -83,7 +78,6 @@ def factory():
 
 
 def test_cache_repertoires_config_option():
-
     with config.override(CACHE_REPERTOIRES=True):
         SomeObject = factory()
         o = SomeObject()
@@ -101,7 +95,6 @@ def test_cache_repertoires_config_option():
         assert o.effect_repertoire(1) == "expensive computation"
         # Repertoire cache should be empty
         assert not o.repertoire_cache.cache
-
 
 
 # Test purview cache

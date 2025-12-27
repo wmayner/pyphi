@@ -68,10 +68,8 @@ def emd_ground_distance(r1, r2):
     """
     if config.REPERTOIRE_DISTANCE in distribution.measures.asymmetric():
         raise ValueError(
-            "The repertoire-distance {} is asymmetric and cannot be used as the "
-            "ground distance for the system-level EMD".format(
-                config.REPERTOIRE_DISTANCE
-            )
+            f"The repertoire-distance {config.REPERTOIRE_DISTANCE} is asymmetric and cannot be used as the "
+            "ground distance for the system-level EMD"
         )
     return distribution.repertoire_distance(r1, r2, direction=None)
 

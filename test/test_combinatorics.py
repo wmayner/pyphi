@@ -2,7 +2,8 @@ from itertools import chain
 
 import pytest
 
-from pyphi import combinatorics, utils
+from pyphi import combinatorics
+from pyphi import utils
 
 pair_indices_answers = [
     (

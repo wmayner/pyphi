@@ -1,7 +1,9 @@
 import numpy as np
 import pytest
 
-from pyphi import Direction, compute, config
+from pyphi import Direction
+from pyphi import compute
+from pyphi import config
 
 EPSILON = 10 ** (-config.PRECISION)
 

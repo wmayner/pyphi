@@ -1,25 +1,26 @@
 import time
 from datetime import timedelta
 from decimal import Decimal
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
+from unittest.mock import patch
 
 import pytest
 import ray
-from hypothesis import HealthCheck, given, settings
+from hypothesis import HealthCheck
+from hypothesis import given
+from hypothesis import settings
 from hypothesis import strategies as st
 from hypothesis.strategies import composite
 
 from pyphi import parallel
 
-from .hypothesis_utils import (
-    anything,
-    anything_comparable,
-    anything_pickleable_and_hashable,
-    everything_except,
-    iterable_or_list,
-    list_and_index,
-    teed,
-)
+from .hypothesis_utils import anything
+from .hypothesis_utils import anything_comparable
+from .hypothesis_utils import anything_pickleable_and_hashable
+from .hypothesis_utils import everything_except
+from .hypothesis_utils import iterable_or_list
+from .hypothesis_utils import list_and_index
+from .hypothesis_utils import teed
 
 
 def shortcircuit_tester(func, list_and_index, ordered=True):
@@ -92,9 +93,7 @@ def test_as_completed(ray_context, args):
 def test_cancel_all(ray_context):
     tasks = [remote_sleep.remote(i) for i in [100] * 10]
     parallel.cancel_all(tasks)
-    with pytest.raises(
-        (ray.exceptions.TaskCancelledError, ray.exceptions.RayTaskError)
-    ):
+    with pytest.raises((ray.exceptions.TaskCancelledError, ray.exceptions.RayTaskError)):
         ray.get(tasks[0])
 
 
@@ -143,7 +142,7 @@ def test_map_with_iterator_no_chunksize(ray_context, func):
 
 def arglists(elements):
     return st.lists(teed(iterable_or_list(elements), n=2), min_size=1).map(
-        lambda _: list(zip(*_))
+        lambda _: list(zip(*_, strict=False))
     )
 
 
@@ -180,7 +179,7 @@ def test_map_with_lambda(ray_context):
 
 
 def test_map_with_iterators_and_empty_args(ray_context, func):
-    assert [] == parallel.MapReduce(func, iter([]), parallel=True, chunksize=100).run()
+    assert parallel.MapReduce(func, iter([]), parallel=True, chunksize=100).run() == []
 
 
 @composite

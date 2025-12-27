@@ -3,7 +3,8 @@
 
 from __future__ import annotations
 
-from typing import Iterable, Optional, Sequence
+from collections.abc import Iterable
+from collections.abc import Sequence
 
 import numpy as np
 
@@ -68,12 +69,10 @@ def connectivity_matrix(cm: np.ndarray) -> bool:
 def node_labels(node_labels: Sequence[str], node_indices: Sequence[int]) -> None:
     """Validate that there is a label for each node."""
     if len(node_labels) != len(node_indices):
-        raise ValueError(
-            "Labels {0} must label every node {1}.".format(node_labels, node_indices)
-        )
+        raise ValueError(f"Labels {node_labels} must label every node {node_indices}.")
 
     if len(node_labels) != len(set(node_labels)):
-        raise ValueError("Labels {0} must be unique.".format(node_labels))
+        raise ValueError(f"Labels {node_labels} must be unique.")
 
 
 def network(n) -> bool:
@@ -112,8 +111,8 @@ def state_length(state: Sequence[int], size: int) -> bool:
     if len(state) != size:
         raise ValueError(
             "Invalid state: there must be one entry per "
-            "node in the network; this state has {} entries, but "
-            "there are {} nodes.".format(len(state), size)
+            f"node in the network; this state has {len(state)} entries, but "
+            f"there are {size} nodes."
         )
     return True
 
@@ -128,7 +127,7 @@ def state_reachable(subsystem) -> None:
     tpm = subsystem.effect_tpm.tpm[..., subsystem.node_indices]
     # Then we do the subtraction and test.
     test = tpm - np.array(subsystem.proper_state)
-    if not np.any(np.logical_and(-1 < test, test < 1).all(-1)):
+    if not np.any(np.logical_and(test > -1, test < 1).all(-1)):
         raise exceptions.StateUnreachableError(subsystem.state)
 
 
@@ -136,7 +135,7 @@ def cut(cut, node_indices: Sequence[int]) -> None:
     """Check that the cut is for only the given nodes."""
     if set(cut.indices) != set(node_indices):
         raise ValueError(
-            "{} nodes are not equal to subsystem nodes " "{}".format(cut, node_indices)
+            f"{cut} nodes are not equal to subsystem nodes " f"{node_indices}"
         )
 
 
@@ -165,8 +164,8 @@ def partition(partition: Iterable[Iterable[int]]) -> None:
         for node in part:
             if node in nodes:
                 raise ValueError(
-                    "Micro-element {} may not be partitioned into multiple "
-                    "macro-elements".format(node)
+                    f"Micro-element {node} may not be partitioned into multiple "
+                    "macro-elements"
                 )
             nodes.add(node)
 
@@ -178,30 +177,26 @@ def coarse_grain(coarse_grain) -> None:
     if len(coarse_grain.partition) != len(coarse_grain.grouping):
         raise ValueError("output and state groupings must be the same size")
 
-    for part, group in zip(coarse_grain.partition, coarse_grain.grouping):
+    for part, group in zip(coarse_grain.partition, coarse_grain.grouping, strict=False):
         if set(range(len(part) + 1)) != set(group[0] + group[1]):
             # Check that all elements in the partition are in one of the two
             # state groupings
             raise ValueError(
-                "elements in output grouping {0} do not match "
-                "elements in state grouping {1}".format(part, group)
+                f"elements in output grouping {part} do not match "
+                f"elements in state grouping {group}"
             )
 
 
 def blackbox(blackbox) -> None:
     """Validate a macro blackboxing."""
     if tuple(sorted(blackbox.output_indices)) != blackbox.output_indices:
-        raise ValueError(
-            "Output indices {} must be ordered".format(blackbox.output_indices)
-        )
+        raise ValueError(f"Output indices {blackbox.output_indices} must be ordered")
 
     partition(blackbox.partition)
 
     for part in blackbox.partition:
         if not set(part) & set(blackbox.output_indices):
-            raise ValueError(
-                "Every blackbox must have an output - {} does not".format(part)
-            )
+            raise ValueError(f"Every blackbox must have an output - {part} does not")
 
 
 def blackbox_and_coarse_grain(blackbox, coarse_grain) -> None:
@@ -229,7 +224,7 @@ def blackbox_and_coarse_grain(blackbox, coarse_grain) -> None:
             )
 
 
-def relata(relata: Optional[Iterable[object]]) -> None:
+def relata(relata: Iterable[object] | None) -> None:
     """Validate a set of relata."""
     if not relata:
         raise ValueError("relata cannot be empty")

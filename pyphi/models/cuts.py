@@ -7,9 +7,11 @@ from itertools import chain
 
 import numpy as np
 
-from .. import connectivity, utils
+from .. import connectivity
+from .. import utils
 from ..labels import NodeLabels
-from . import cmp, fmt
+from . import cmp
+from . import fmt
 
 
 class _CutBase:
@@ -116,7 +118,7 @@ class NullCut(_CutBase):
         return fmt.make_repr(self, ["indices"])
 
     def __str__(self):
-        return "NullCut({})".format(self.indices)
+        return f"NullCut({self.indices})"
 
     @cmp.sametype
     def __eq__(self, other):
@@ -138,7 +140,7 @@ class Cut(_CutBase):
 
     # Don't construct an attribute dictionary; see
     # https://docs.python.org/3.3/reference/datamodel.html#notes-on-using-slots
-    __slots__ = ("from_nodes", "to_nodes", "node_labels")
+    __slots__ = ("from_nodes", "node_labels", "to_nodes")
 
     def __init__(self, from_nodes, to_nodes, node_labels=None):
         self.from_nodes = from_nodes
@@ -437,7 +439,7 @@ class Part:
 class KPartition(Sequence, _CutBase):
     """A partition with an arbitrary number of parts."""
 
-    __slots__ = ["parts", "node_labels", "_mechanism", "_purview"]
+    __slots__ = ["_mechanism", "_purview", "node_labels", "parts"]
 
     def __init__(self, *parts, node_labels=None):
         self.parts = parts
@@ -473,9 +475,7 @@ class KPartition(Sequence, _CutBase):
         """tuple[int]: The nodes of the mechanism in the partition."""
         # TODO(4.0) do we need to sort here? slow
         if self._mechanism is None:
-            self._mechanism = tuple(
-                chain.from_iterable(part.mechanism for part in self)
-            )
+            self._mechanism = tuple(chain.from_iterable(part.mechanism for part in self))
         return self._mechanism
 
     @property

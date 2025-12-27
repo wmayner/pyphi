@@ -3,18 +3,23 @@
 
 import warnings
 from collections import defaultdict
-from functools import cached_property, total_ordering
+from functools import cached_property
+from functools import total_ordering
 from itertools import product
 
 from graphillion import setset
 from tqdm.auto import tqdm
 
-from . import combinatorics, conf, utils
-from .parallel import MapReduce
-from .conf import config, fallback
+from . import combinatorics
+from . import conf
+from . import utils
+from .conf import config
+from .conf import fallback
 from .data_structures import PyPhiFloat
 from .direction import Direction
-from .models import cmp, fmt
+from .models import cmp
+from .models import fmt
+from .parallel import MapReduce
 from .registry import Registry
 from .warnings import PyPhiWarning
 
@@ -118,7 +123,7 @@ class Relation(frozenset, cmp.OrderableByPhi):
         distinctions = list(self)
         for directions in product(direction_set, repeat=len(self)):
             mice = []
-            for direction, distinction in zip(directions, distinctions):
+            for direction, distinction in zip(directions, distinctions, strict=False):
                 if direction is Direction.BIDIRECTIONAL:
                     mice.extend([distinction.cause, distinction.effect])
                 else:
@@ -196,11 +201,9 @@ def all_relations(distinctions, min_degree=2, max_degree=None, **kwargs):
     )
 
     def worker(combination):
-        return Relation((distinctions[i] for i in combination))
+        return Relation(distinctions[i] for i in combination)
 
-    parallel_kwargs = conf.parallel_kwargs(
-        config.PARALLEL_RELATION_EVALUATION, **kwargs
-    )
+    parallel_kwargs = conf.parallel_kwargs(config.PARALLEL_RELATION_EVALUATION, **kwargs)
     yield from MapReduce(
         worker,
         combinations,

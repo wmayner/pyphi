@@ -1,20 +1,25 @@
 # models/mechanism.py
 """Mechanism-level objects."""
 
+from collections.abc import Iterable
 from dataclasses import dataclass
-from enum import Enum, auto
+from enum import Enum
+from enum import auto
 from enum import unique as unique_enum
-from functools import cached_property, total_ordering
-from typing import Iterable, Tuple
+from functools import cached_property
+from functools import total_ordering
 
 import numpy as np
 from more_itertools import flatten
 from numpy.typing import ArrayLike
-from toolz import concat, unique
+from toolz import concat
+from toolz import unique
 
 from pyphi.models.cuts import KPartition
 
-from .. import connectivity, utils, validate
+from .. import connectivity
+from .. import utils
+from .. import validate
 from ..conf import config
 from ..data_structures import PyPhiFloat
 from ..direction import Direction
@@ -22,8 +27,11 @@ from ..exceptions import WrongDirectionError
 from ..models import fmt
 from ..registry import Registry
 from ..warnings import warn_about_tie_serialization
-from . import cmp, fmt
-from .pandas import ToDictFromExplicitAttrsMixin, ToDictMixin, ToPandasMixin
+from . import cmp
+from . import fmt
+from .pandas import ToDictFromExplicitAttrsMixin
+from .pandas import ToDictMixin
+from .pandas import ToPandasMixin
 
 
 @total_ordering
@@ -52,8 +60,8 @@ class Unit:
 @dataclass
 class StateSpecification(ToDictMixin, ToPandasMixin):
     direction: Direction
-    purview: Tuple[int]
-    state: Tuple[int]
+    purview: tuple[int]
+    state: tuple[int]
     intrinsic_information: PyPhiFloat
     repertoire: ArrayLike
     unconstrained_repertoire: ArrayLike
@@ -108,8 +116,8 @@ class StateSpecification(ToDictMixin, ToPandasMixin):
         return fmt.box(fmt.center(body))
 
     def is_congruent(self, other):
-        ours = dict(zip(self.purview, self.state))
-        theirs = dict(zip(other.purview, other.state))
+        ours = dict(zip(self.purview, self.state, strict=False))
+        theirs = dict(zip(other.purview, other.state, strict=False))
         mutual = set(ours.keys()) & set(theirs.keys())
         return self.direction == other.direction and all(
             ours[purview_node] == theirs[purview_node] for purview_node in mutual
@@ -335,7 +343,7 @@ class RepertoireIrreducibilityAnalysis(
             (
                 Unit(index, state, label=self.node_labels.index2label(index))
                 for index, state in zip(
-                    self.specified_state.purview, self.specified_state
+                    self.specified_state.purview, self.specified_state, strict=False
                 )
             )
         )
@@ -672,9 +680,7 @@ class MaximallyIrreducibleCauseOrEffect(
     def partition_ties(self):
         if self._partition_ties is None:
             self._partition_ties = (self,) + tuple(
-                type(self)(tie)
-                for tie in self.ria.partition_ties
-                if tie is not self.ria
+                type(self)(tie) for tie in self.ria.partition_ties if tie is not self.ria
             )
         return self._partition_ties
 

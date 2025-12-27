@@ -2,16 +2,16 @@
 """Memoization and caching utilities."""
 
 import os
-from functools import update_wrapper, wraps
+from functools import update_wrapper
+from functools import wraps
 
+import joblib
 import psutil
 
 from .. import constants
 from ..conf import config
-
-from .cache_utils import _make_key, _CacheInfo
-
-import joblib
+from .cache_utils import _CacheInfo
+from .cache_utils import _make_key
 
 # An on-disk cache for distributing pre-computed results with the PyPhi package
 joblib_memory = joblib.Memory(location=constants.DISK_CACHE_LOCATION, verbose=0)

@@ -304,7 +304,6 @@ def test_rebuild_system_tpm(s):
     assert macro.rebuild_system_tpm(effect_node_tpms).array_equal(s.effect_tpm)
 
 
-
 def test_remove_singleton_dimensions():
     # Don't squeeze out last dimension of single-node tpm
     # fmt: off

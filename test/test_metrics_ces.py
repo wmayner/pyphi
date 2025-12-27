@@ -1,10 +1,13 @@
 from unittest.mock import patch
+
 import numpy as np
 import pytest
 
-from pyphi import compute, config
-from pyphi.metrics.ces import ces_distance, emd_ground_distance
+from pyphi import compute
+from pyphi import config
 from pyphi import models
+from pyphi.metrics.ces import ces_distance
+from pyphi.metrics.ces import emd_ground_distance
 
 
 def test_emd_ground_distance_must_be_symmetric():
@@ -48,8 +51,8 @@ def test_ces_distance_uses_simple_vs_emd(mock_emd_distance, mock_simple_distance
     moved to the null concept and all other concepts are the same then
     we use the simple CES distance. Otherwise, use the EMD.
     """
-    mock_emd_distance.return_value = float()
-    mock_simple_distance.return_value = float()
+    mock_emd_distance.return_value = 0.0
+    mock_simple_distance.return_value = 0.0
 
     make_mice = lambda: models.MaximallyIrreducibleCauseOrEffect(
         models.RepertoireIrreducibilityAnalysis(

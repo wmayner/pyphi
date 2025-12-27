@@ -6,7 +6,8 @@ import functools
 import numpy as np
 
 from . import utils
-from .connectivity import get_inputs_from_cm, get_outputs_from_cm
+from .connectivity import get_inputs_from_cm
+from .connectivity import get_outputs_from_cm
 from .labels import NodeLabels
 from .tpm import ExplicitTPM
 
@@ -201,7 +202,7 @@ def generate_nodes(cause_tpm, effect_tpm, cm, network_state, indices, node_label
 
     return tuple(
         Node(cause_tpm, effect_tpm, cm, index, state, node_labels)
-        for index, state in zip(indices, node_state)
+        for index, state in zip(indices, node_state, strict=False)
     )
 
 

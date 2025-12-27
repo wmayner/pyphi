@@ -31,37 +31,29 @@ Attributes:
 
 # pylint: disable=unused-import
 
-from .actual_causation import (
-    Account,
-    AcRepertoireIrreducibilityAnalysis,
-    AcSystemIrreducibilityAnalysis,
-    CausalLink,
-    DirectedAccount,
-    Event,
-    _null_ac_ria,
-    _null_ac_sia,
-)
-from .cuts import (
-    ActualCut,
-    Bipartition,
-    Cut,
-    KCut,
-    KPartition,
-    NullCut,
-    Part,
-    Tripartition,
-)
-from .mechanism import (
-    Concept,
-    MaximallyIrreducibleCause,
-    MaximallyIrreducibleCauseOrEffect,
-    MaximallyIrreducibleEffect,
-    RepertoireIrreducibilityAnalysis,
-    _null_ria,
-)
-from .subsystem import (
-    CauseEffectStructure,
-    FlatCauseEffectStructure,
-    SystemIrreducibilityAnalysis,
-    _null_sia,
-)
+from .actual_causation import Account
+from .actual_causation import AcRepertoireIrreducibilityAnalysis
+from .actual_causation import AcSystemIrreducibilityAnalysis
+from .actual_causation import CausalLink
+from .actual_causation import DirectedAccount
+from .actual_causation import Event
+from .actual_causation import _null_ac_ria
+from .actual_causation import _null_ac_sia
+from .cuts import ActualCut
+from .cuts import Bipartition
+from .cuts import Cut
+from .cuts import KCut
+from .cuts import KPartition
+from .cuts import NullCut
+from .cuts import Part
+from .cuts import Tripartition
+from .mechanism import Concept
+from .mechanism import MaximallyIrreducibleCause
+from .mechanism import MaximallyIrreducibleCauseOrEffect
+from .mechanism import MaximallyIrreducibleEffect
+from .mechanism import RepertoireIrreducibilityAnalysis
+from .mechanism import _null_ria
+from .subsystem import CauseEffectStructure
+from .subsystem import FlatCauseEffectStructure
+from .subsystem import SystemIrreducibilityAnalysis
+from .subsystem import _null_sia

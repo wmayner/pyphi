@@ -5,7 +5,8 @@ from pathlib import Path
 import pytest
 
 from pyphi import config
-from pyphi.conf import Config, Option
+from pyphi.conf import Config
+from pyphi.conf import Option
 
 
 class ExampleConfig(Config):

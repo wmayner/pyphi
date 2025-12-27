@@ -21,24 +21,27 @@ from itertools import chain
 
 import numpy as np
 
-from . import compute, conf, connectivity, exceptions, utils, validate
-from .parallel import MapReduce
+from . import compute
+from . import conf
+from . import connectivity
+from . import exceptions
+from . import utils
+from . import validate
 from .conf import config
 from .direction import Direction
 from .metrics.distribution import actual_causation_measures as measures
-from .models import (
-    Account,
-    AcRepertoireIrreducibilityAnalysis,
-    AcSystemIrreducibilityAnalysis,
-    ActualCut,
-    CausalLink,
-    DirectedAccount,
-    Event,
-    NullCut,
-    _null_ac_ria,
-    _null_ac_sia,
-    fmt,
-)
+from .models import Account
+from .models import AcRepertoireIrreducibilityAnalysis
+from .models import AcSystemIrreducibilityAnalysis
+from .models import ActualCut
+from .models import CausalLink
+from .models import DirectedAccount
+from .models import Event
+from .models import NullCut
+from .models import _null_ac_ria
+from .models import _null_ac_sia
+from .models import fmt
+from .parallel import MapReduce
 from .partition import mip_partitions
 from .subsystem import Subsystem
 
@@ -100,7 +103,6 @@ class Transition:
         cut=None,
         noise_background=False,
     ):
-
         self.network = network
         self.before_state = before_state
         self.after_state = after_state
@@ -252,16 +254,12 @@ class Transition:
 
         if not set(purview).issubset(self.purview_indices(direction)):
             raise ValueError(
-                "{} is not a {} purview in {}".format(
-                    fmt.fmt_mechanism(purview, node_labels), direction, self
-                )
+                f"{fmt.fmt_mechanism(purview, node_labels)} is not a {direction} purview in {self}"
             )
 
         if not set(mechanism).issubset(self.mechanism_indices(direction)):
             raise ValueError(
-                "{} is no a {} mechanism in {}".format(
-                    fmt.fmt_mechanism(mechanism, node_labels), direction, self
-                )
+                f"{fmt.fmt_mechanism(mechanism, node_labels)} is no a {direction} mechanism in {self}"
             )
 
         return system.repertoire(direction, mechanism, purview)
@@ -354,12 +352,13 @@ class Transition:
         """Compute the repertoire over the partition in the given direction."""
         system = self.system[direction]
         if config.REPERTOIRE_DISTANCE == "GENERALIZED_INTRINSIC_DIFFERENCE":
-            purview_state = tuple(self.purview_state(direction)[node] for node in partition.purview)
+            purview_state = tuple(
+                self.purview_state(direction)[node] for node in partition.purview
+            )
             return system.partitioned_repertoire(
                 direction, partition, state=purview_state
             )
-        else:
-            return system.partitioned_repertoire(direction, partition)
+        return system.partitioned_repertoire(direction, partition)
 
     def partitioned_probability(self, direction, partition):
         """Compute the probability of the mechanism over the purview in
@@ -770,7 +769,7 @@ def nice_true_ces(tc):
         if event.direction == Direction.CAUSE:
             cause_list.append(
                 [
-                    "{0:.4f}".format(round(event.alpha, 4)),
+                    f"{round(event.alpha, 4):.4f}",
                     event.mechanism,
                     cause,
                     event.purview,
@@ -779,7 +778,7 @@ def nice_true_ces(tc):
         elif event.direction == Direction.EFFECT:
             next_list.append(
                 [
-                    "{0:.4f}".format(round(event.alpha, 4)),
+                    f"{round(event.alpha, 4):.4f}",
                     event.mechanism,
                     effect,
                     event.purview,

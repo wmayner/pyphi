@@ -61,9 +61,7 @@ def bipartition_indices(N: int) -> List[Tuple[Tuple[int, ...], Tuple[int, ...]]]
 
 
 # TODO? rename to `bipartitions`
-def bipartition(
-    seq: Sequence, nontrivial: bool = False
-) -> List[Tuple[Tuple, Tuple]]:
+def bipartition(seq: Sequence, nontrivial: bool = False) -> List[Tuple[Tuple, Tuple]]:
     """Return a list of bipartitions for a sequence.
 
     Args:
@@ -675,12 +673,8 @@ def system_bipartitions_simple(nodes, node_labels=None):
     partitions = []
     for n in range(1, len(nodes)):
         part1, part2 = nodes[:n], nodes[n:]
-        partitions.append(
-            Cut(from_nodes=part1, to_nodes=part2, node_labels=node_labels)
-        )
-        partitions.append(
-            Cut(from_nodes=part2, to_nodes=part1, node_labels=node_labels)
-        )
+        partitions.append(Cut(from_nodes=part1, to_nodes=part2, node_labels=node_labels))
+        partitions.append(Cut(from_nodes=part2, to_nodes=part1, node_labels=node_labels))
     return partitions
 
 
@@ -803,9 +797,7 @@ def unidirectional_set_partitions(node_indices, node_labels=None):
 def system_partitions(nodes, node_labels=None, partition_scheme=None, filter_func=None):
     """Return the currently configured system partitions for the given nodes."""
     partition_scheme = fallback(partition_scheme, config.SYSTEM_PARTITION_TYPE)
-    partitions = system_partition_types[partition_scheme](
-        nodes, node_labels=node_labels
-    )
+    partitions = system_partition_types[partition_scheme](nodes, node_labels=node_labels)
     if filter_func is not None:
         return filter(filter_func, partitions)
     return partitions

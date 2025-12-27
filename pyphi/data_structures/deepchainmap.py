@@ -3,8 +3,9 @@
 # From https://github.com/neutrinoceros/deep_chainmap; MIT License
 # Copied here for easier maintainability
 
-from typing import Any, Mapping
 from collections import ChainMap
+from collections.abc import Mapping
+from typing import Any
 
 
 def _depth_first_update(target: dict, source: Mapping) -> None:

@@ -11,7 +11,8 @@ from math import log2
 
 import numpy as np
 
-from .utils import all_states, assume_integer
+from .utils import all_states
+from .utils import assume_integer
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
@@ -260,7 +261,7 @@ def state_by_state2state_by_node(tpm):
     # Get the number of nodes from the number of states.
     N = int(log2(S))
     # Initialize the new state-by node TPM.
-    sbn_tpm = np.zeros(([2] * N + [N]))
+    sbn_tpm = np.zeros([2] * N + [N])
     # Map indices to state-tuples with the little-endian convention.
     states = {i: le_index2state(i, N) for i in range(S)}
     # Get an array for each node with 1 in positions that correspond to that

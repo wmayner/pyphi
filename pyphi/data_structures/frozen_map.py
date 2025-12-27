@@ -12,8 +12,8 @@ class FrozenMap(typing.Mapping[K, V]):
     __slots__ = ("_dict", "_hash")
 
     def __init__(self, *args, **kwargs):
-        self._dict: typing.Dict[K, V] = dict(*args, **kwargs)
-        self._hash: typing.Optional[int] = None
+        self._dict: dict[K, V] = dict(*args, **kwargs)
+        self._hash: int | None = None
 
     def __getitem__(self, key: K) -> V:
         return self._dict[key]
@@ -28,7 +28,7 @@ class FrozenMap(typing.Mapping[K, V]):
         return len(self._dict)
 
     def __repr__(self) -> str:
-        return f"FrozenMap({repr(self._dict)})"
+        return f"FrozenMap({self._dict!r})"
 
     def __hash__(self) -> int:
         if self._hash is None:

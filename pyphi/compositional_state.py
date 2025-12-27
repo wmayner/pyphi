@@ -2,12 +2,13 @@
 
 import pprint
 from collections import UserDict
+from collections.abc import Iterable
 from copy import deepcopy
-from typing import Iterable
 
 from .direction import Direction
 from .models.mechanism import Concept
-from .models.subsystem import CauseEffectStructure, FlatCauseEffectStructure
+from .models.subsystem import CauseEffectStructure
+from .models.subsystem import FlatCauseEffectStructure
 
 DIRECTIONS = [
     Direction.CAUSE,
@@ -101,18 +102,15 @@ class CompositionalState(UserDict):
 
     def _mechanism_has_conflicts(self, mechanism):
         mechanism = self._to_indices(mechanism)
-        return any(
-            any(self[purview].values()) for purview in self.conflicted_purviews()
-        )
+        return any(any(self[purview].values()) for purview in self.conflicted_purviews())
 
     def has_conflicts(self, purview=None, mechanism=None):
         """Return whether the CompositionalState has conflicts."""
         if purview is not None:
             return self._purview_has_conflicts(purview)
-        elif mechanism is not None:
+        if mechanism is not None:
             return self._mechanism_has_conflicts(mechanism)
-        else:
-            return any(self.conflicted_purviews())
+        return any(self.conflicted_purviews())
 
     def conflicted_purviews(self):
         """Return the purviews that are conflicted (specified by >1 distinction)."""

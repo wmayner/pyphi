@@ -2,7 +2,8 @@
 """Subsystem-level objects."""
 
 from collections import defaultdict
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable
+from collections.abc import Sequence
 from dataclasses import dataclass
 
 from toolz import concat
@@ -11,9 +12,12 @@ from pyphi.direction import Direction
 
 from .. import utils
 from ..conf import fallback
-from . import cmp, fmt
-from .mechanism import Concept, StateSpecification
-from .pandas import ToDictMixin, ToPandasMixin
+from . import cmp
+from . import fmt
+from .mechanism import Concept
+from .mechanism import StateSpecification
+from .pandas import ToDictMixin
+from .pandas import ToPandasMixin
 
 _sia_attributes = ["phi", "ces", "partitioned_ces", "subsystem", "cut_subsystem"]
 
@@ -26,7 +30,7 @@ class SystemStateSpecification(ToDictMixin, ToPandasMixin):
     def __getitem__(self, direction: Direction) -> StateSpecification:
         if direction == Direction.CAUSE:
             return self.cause
-        elif direction == Direction.EFFECT:
+        if direction == Direction.EFFECT:
             return self.effect
         raise KeyError("Invalid direction")
 

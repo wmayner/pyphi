@@ -2,7 +2,8 @@
 """Visualize |big_phi|-structures."""
 
 import warnings
-from typing import Callable, Iterable
+from collections.abc import Callable
+from collections.abc import Iterable
 
 import numpy as np
 from plotly import graph_objs as go
@@ -10,9 +11,15 @@ from plotly.colors import find_intermediate_color
 from toolz import partition
 
 from ...direction import Direction
-from . import colors, geometry, text, utils
-from .colors import get_color, standardize_colors
-from .theme import DefaultTheme, Grey, Theme
+from . import colors
+from . import geometry
+from . import text
+from . import utils
+from .colors import get_color
+from .colors import standardize_colors
+from .theme import DefaultTheme
+from .theme import Grey
+from .theme import Theme
 
 DEFAULT_THEME = DefaultTheme()
 GREY_THEME = Grey()
@@ -189,18 +196,17 @@ def plot_phi_structure(
                         for relatum in face
                     ]
                 )
-            else:
-                return np.array(
-                    [
-                        purview_coords.get(
-                            relatum.purview,
-                            direction=relatum.direction,
-                            offset_subset=relatum.mechanism,
-                            offset_state=relatum.specified_state.state,
-                        )
-                        for relatum in face
-                    ]
-                )
+            return np.array(
+                [
+                    purview_coords.get(
+                        relatum.purview,
+                        direction=relatum.direction,
+                        offset_subset=relatum.mechanism,
+                        offset_state=relatum.specified_state.state,
+                    )
+                    for relatum in face
+                ]
+            )
 
         # 2-relations
         if theme["show"].get("two_faces") and two_faces:
@@ -618,18 +624,17 @@ def _plot_two_relation_faces(fig, face_to_coords, relation_faces, labeler, theme
             widths=widths,
             hovertexts=hovertexts,
         )
-    else:
-        return _plot_two_relation_faces_multiple_traces(
-            fig=fig,
-            face_to_coords=face_to_coords,
-            labeler=labeler,
-            theme=theme,
-            faces=relation_faces,
-            name=name,
-            colors=colors,
-            widths=widths,
-            hovertexts=hovertexts,
-        )
+    return _plot_two_relation_faces_multiple_traces(
+        fig=fig,
+        face_to_coords=face_to_coords,
+        labeler=labeler,
+        theme=theme,
+        faces=relation_faces,
+        name=name,
+        colors=colors,
+        widths=widths,
+        hovertexts=hovertexts,
+    )
 
 
 def _two_relation_line_colors(faces, color_spec):

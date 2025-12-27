@@ -5,8 +5,10 @@ import hashlib
 import math
 import operator
 import os
-from itertools import chain, combinations, product
-from typing import Generator, Optional, Tuple
+from collections.abc import Generator
+from itertools import chain
+from itertools import combinations
+from itertools import product
 
 import numpy as np
 from scipy.special import comb
@@ -17,22 +19,22 @@ from .conf import config
 
 # TODO(states) refactor
 def substate(
-    nodes: Tuple[int], state: Tuple[int], node_subset: Tuple[int]
-) -> Tuple[int]:
+    nodes: tuple[int], state: tuple[int], node_subset: tuple[int]
+) -> tuple[int]:
     """Return the state restricted to ``node_subset`` using ``nodes`` indexing."""
     return tuple(state[nodes.index(n)] for n in node_subset)
 
 
-def state_of(nodes: Tuple[int, ...], network_state: Tuple[int, ...]) -> Tuple[int, ...]:
+def state_of(nodes: tuple[int, ...], network_state: tuple[int, ...]) -> tuple[int, ...]:
     """Return the state-tuple of the given nodes."""
     return tuple(network_state[n] for n in nodes) if nodes else ()
 
 
 def state_of_subsystem_nodes(
-    node_indices: Tuple[int, ...],
-    nodes: Tuple[int, ...],
-    subsystem_state: Tuple[int, ...],
-) -> Tuple[int, ...]:
+    node_indices: tuple[int, ...],
+    nodes: tuple[int, ...],
+    subsystem_state: tuple[int, ...],
+) -> tuple[int, ...]:
     """Return the state of the nodes, given a subsystem state-tuple.
 
     Deals with using the network-relative node indices nodes with a state-tuple
@@ -44,7 +46,7 @@ def state_of_subsystem_nodes(
 
 def all_states(
     n: int, big_endian: bool = False
-) -> Generator[Tuple[int, ...], None, None]:
+) -> Generator[tuple[int, ...], None, None]:
     """Return all binary states for a system.
 
     Args:
@@ -72,7 +74,7 @@ def np_immutable(a: np.ndarray) -> np.ndarray:
     return a
 
 
-def np_hash(a: Optional[np.ndarray]) -> int:
+def np_hash(a: np.ndarray | None) -> int:
     """Return a hash of a NumPy array."""
     if a is None:
         return hash(None)
@@ -350,7 +352,7 @@ def enforce_integer(i: int, name: str = "", min: float = float("-inf")) -> int:
     return i
 
 
-def enforce_integer_or_none(i: Optional[int], **kwargs) -> Optional[int]:
+def enforce_integer_or_none(i: int | None, **kwargs) -> int | None:
     """Validate ``i`` as an integer or pass through ``None``."""
     if i is None:
         return i
@@ -399,8 +401,7 @@ def all_extrema(comparison, seq, default=NO_DEFAULT):
     if current_extremum is sentinel:
         if default is NO_DEFAULT:
             raise ValueError("Cannot find extrema of empty sequence without default")
-        else:
-            return [default]
+        return [default]
     extrema.append(current_extremum)
     for element in seq:
         if comparison(element, current_extremum):

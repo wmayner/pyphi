@@ -1,7 +1,8 @@
 import numpy as np
 import pytest
 
-from pyphi import Direction, Subsystem
+from pyphi import Direction
+from pyphi import Subsystem
 from pyphi.models import Cut
 
 from . import example_networks

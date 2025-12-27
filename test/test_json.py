@@ -4,20 +4,14 @@ import tempfile
 import numpy as np
 import pytest
 
-from pyphi import (
-    Direction,
-    actual,
-    compute,
-    config,
-    exceptions,
-    jsonify,
-    labels,
-    models,
-    network,
-    new_big_phi,
-)
-
-from .test_actual import transition
+from pyphi import Direction
+from pyphi import compute
+from pyphi import exceptions
+from pyphi import jsonify
+from pyphi import labels
+from pyphi import models
+from pyphi import network
+from pyphi import new_big_phi
 
 
 def test_jsonify_native():

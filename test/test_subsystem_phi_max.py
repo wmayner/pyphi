@@ -2,8 +2,11 @@ from itertools import chain
 
 import pytest
 
-from pyphi import Direction, Subsystem, config
-from pyphi.models import Cut, MaximallyIrreducibleCauseOrEffect, _null_ria
+from pyphi import Direction
+from pyphi import Subsystem
+from pyphi.models import Cut
+from pyphi.models import MaximallyIrreducibleCauseOrEffect
+from pyphi.models import _null_ria
 from pyphi.utils import eq
 
 from . import example_networks
@@ -14,9 +17,7 @@ from . import example_networks
 s = example_networks.s()
 directions = (Direction.CAUSE, Direction.EFFECT)
 cuts = (None, Cut((1, 2), (0,)))
-subsystem = {
-    cut: Subsystem(s.network, s.state, s.node_indices, cut=cut) for cut in cuts
-}
+subsystem = {cut: Subsystem(s.network, s.state, s.node_indices, cut=cut) for cut in cuts}
 
 expected_purview_indices = {
     cuts[0]: {
@@ -52,9 +53,7 @@ expected_purviews = {
     cut: {
         direction: {
             mechanism: purview
-            for mechanism, purview in expected_purview_indices[cut][
-                direction
-            ].items()
+            for mechanism, purview in expected_purview_indices[cut][direction].items()
         }
         for direction in directions
     }
@@ -133,7 +132,9 @@ phi_max_scenarios = [
     [
         (cut, cause.mechanism, min(cause.phi, effect.phi))
         for cause, effect in zip(
-            expected_mice[cut][Direction.CAUSE], expected_mice[cut][Direction.EFFECT]
+            expected_mice[cut][Direction.CAUSE],
+            expected_mice[cut][Direction.EFFECT],
+            strict=False,
         )
     ]
     for cut in cuts

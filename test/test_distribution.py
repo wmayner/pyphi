@@ -82,7 +82,7 @@ def test_purview_size(s):
     mechanisms = powerset(s.node_indices)
     purviews = powerset(s.node_indices)
 
-    for mechanism, purview in zip(mechanisms, purviews):
+    for mechanism, purview in zip(mechanisms, purviews, strict=False):
         repertoire = s.cause_repertoire(mechanism, purview)
         assert distribution.purview_size(repertoire) == len(purview)
 
@@ -91,7 +91,7 @@ def test_purview(s):
     mechanisms = powerset(s.node_indices)
     purviews = powerset(s.node_indices)
 
-    for mechanism, purview in zip(mechanisms, purviews):
+    for mechanism, purview in zip(mechanisms, purviews, strict=False):
         repertoire = s.cause_repertoire(mechanism, purview)
         assert distribution.purview(repertoire) == purview
 

@@ -1,19 +1,19 @@
 import itertools
 
-import numpy as np
-
-from pyphi import Direction, config
+from pyphi import Direction
+from pyphi import config
 from pyphi.combinatorics import set_partitions as partitions
-from pyphi.models import Bipartition, KPartition, Part, Tripartition
-from pyphi.partition import (
-    all_partitions,
-    directed_bipartition,
-    directed_tripartition_indices,
-    k_partitions,
-    mip_bipartitions,
-    partition_types,
-    wedge_partitions,
-)
+from pyphi.models import Bipartition
+from pyphi.models import KPartition
+from pyphi.models import Part
+from pyphi.models import Tripartition
+from pyphi.partition import all_partitions
+from pyphi.partition import directed_bipartition
+from pyphi.partition import directed_tripartition_indices
+from pyphi.partition import k_partitions
+from pyphi.partition import mip_bipartitions
+from pyphi.partition import partition_types
+from pyphi.partition import wedge_partitions
 
 
 def test_partitions():
@@ -51,7 +51,7 @@ def test_directed_bipartition():
     ]
     assert answer == directed_bipartition((1, 2, 3))
     # Test with empty input
-    assert [] == directed_bipartition(())
+    assert directed_bipartition(()) == []
 
 
 def test_directed_tripartition_indices():
@@ -262,11 +262,14 @@ def test_wedge_partitions():
 def test_partitioned_repertoire_with_tripartition(s):
     tripartition = Tripartition(Part((), (1,)), Part((0,), ()), Part((), (2,)))
 
-    assert s.partitioned_repertoire(
+    assert (
+        s.partitioned_repertoire(
             Direction.CAUSE,
             tripartition,
             state=tuple(s.state[node] for node in tripartition.purview),
-        ) == 0.75
+        )
+        == 0.75
+    )
 
 
 def test_tripartitions_choses_smallest_purview(s):

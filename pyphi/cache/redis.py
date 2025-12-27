@@ -5,14 +5,13 @@ import pickle
 
 from .. import constants
 from ..conf import config
-
 from .cache_utils import _CacheInfo
 
 try:
     import redis
 
     NO_REDIS = False
-except ModuleNotFoundError as exc:
+except ModuleNotFoundError:
     NO_REDIS = True
 
 

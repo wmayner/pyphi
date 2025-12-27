@@ -2,15 +2,17 @@ import numpy as np
 import pytest
 
 import pyphi
-from pyphi import convert, macro, models, timescale, config
-from pyphi.tpm import ExplicitTPM
+from pyphi import config
+from pyphi import convert
+from pyphi import macro
+from pyphi import models
+from pyphi import timescale
 from pyphi.convert import state_by_node2state_by_state as sbn2sbs
 from pyphi.convert import state_by_state2state_by_node as sbs2sbn
 
 
 @pytest.fixture()
 def macro_subsystem():
-
     tpm = np.zeros((16, 4)) + 0.3
     tpm[12:, 0:2] = 1
     tpm[3, 2:4] = 1

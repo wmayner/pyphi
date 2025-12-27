@@ -1,12 +1,16 @@
 import numpy as np
 import pytest
 
-from pyphi import compute, config, examples, jsonify, relations, new_big_phi
-from pyphi.models import FlatCauseEffectStructure
+from pyphi import compute
+from pyphi import config
+from pyphi import examples
+from pyphi import jsonify
+from pyphi import new_big_phi
+from pyphi import relations
 
 
 def all_array_equal(x, y):
-    return all(np.array_equal(a, b) for a, b in zip(x, y))
+    return all(np.array_equal(a, b) for a, b in zip(x, y, strict=False))
 
 
 def overlap(purviews):
@@ -61,7 +65,9 @@ cases = [
     ),
 ]
 
-specified_states, purviews, overlap_states, congruent_overlaps = zip(*cases)
+specified_states, purviews, overlap_states, congruent_overlaps = zip(
+    *cases, strict=False
+)
 overlaps = list(map(overlap, purviews))
 
 
@@ -86,7 +92,8 @@ def test_only_nonsubsets():
 
 
 @pytest.mark.parametrize(
-    "specified_states,purviews,answer", zip(specified_states, purviews, overlap_states)
+    "specified_states,purviews,answer",
+    zip(specified_states, purviews, overlap_states, strict=False),
 )
 @pytest.mark.outdated
 def test_overlap_states(specified_states, purviews, answer):
@@ -100,7 +107,8 @@ def test_congruent_overlap_empty():
 
 
 @pytest.mark.parametrize(
-    "overlap_states,overlap,answer", zip(overlap_states, overlaps, congruent_overlaps)
+    "overlap_states,overlap,answer",
+    zip(overlap_states, overlaps, congruent_overlaps, strict=False),
 )
 @pytest.mark.outdated
 def test_congruent_overlap(overlap_states, overlap, answer):
@@ -129,7 +137,7 @@ NETWORKS = ["grid3", "basic", "xor", "rule110", "fig4"]
 )
 @pytest.mark.outdated
 def test_maximally_irreducible_relation(case_name):
-    with open(f"test/data/relations/relations_{case_name}.json", mode="rt") as f:
+    with open(f"test/data/relations/relations_{case_name}.json") as f:
         answers = jsonify.load(f)
     for r in answers:
         assert r == r.relata.maximally_irreducible_relation()
@@ -140,14 +148,14 @@ def test_maximally_irreducible_relation(case_name):
     PARALLEL=False,
 )
 def test_all_relations(case_name):
-    with open(f"test/data/relations/ces_{case_name}.json", mode="rt") as f:
+    with open(f"test/data/relations/ces_{case_name}.json") as f:
         answer_ces = jsonify.load(f)
     # Compute and check CES
     subsystem = getattr(examples, f"{case_name}_subsystem")()
     ces = compute.ces(subsystem)
     assert ces == answer_ces
 
-    with open(f"test/data/relations/relations_{case_name}.json", mode="rt") as f:
+    with open(f"test/data/relations/relations_{case_name}.json") as f:
         answers = jsonify.load(f)
     # Compute and check relations
     # TODO(4.0) config.override doesn't seem to work with joblib parallel?

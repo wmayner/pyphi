@@ -1,7 +1,9 @@
 import numpy as np
 import pytest
 
-from pyphi import Direction, config, exceptions
+from pyphi import Direction
+from pyphi import config
+from pyphi import exceptions
 from pyphi.network import Network
 
 

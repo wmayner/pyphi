@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Prints the pstats results for the functions in which the most time was spent.
 """

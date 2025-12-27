@@ -1,20 +1,18 @@
 from collections import namedtuple
-from pyphi.models.cuts import KPartition
-from pyphi.models.subsystem import FlatCauseEffectStructure
 
 import numpy as np
 import pytest
 
-from pyphi import (
-    Direction,
-    Subsystem,
-    config,
-    compute,
-    exceptions,
-    models,
-    examples,
-)
+from pyphi import Direction
+from pyphi import Subsystem
+from pyphi import compute
+from pyphi import config
+from pyphi import examples
+from pyphi import exceptions
+from pyphi import models
 from pyphi.labels import NodeLabels
+from pyphi.models.cuts import KPartition
+from pyphi.models.subsystem import FlatCauseEffectStructure
 
 EPSILON = 10 ** (-config.PRECISION)
 
@@ -477,7 +475,7 @@ def test_specified_states_and_indices():
     for results, answers in [
         (specified_state_results, specified_state_answers),
     ]:
-        for result, answer in zip(results, answers):
+        for result, answer in zip(results, answers, strict=False):
             assert np.array_equal(result, answer)
 
 

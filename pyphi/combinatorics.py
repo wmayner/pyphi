@@ -3,7 +3,8 @@
 
 import itertools
 from collections import defaultdict
-from itertools import chain, product
+from itertools import chain
+from itertools import product
 
 import numpy as np
 from graphillion import setset
@@ -196,7 +197,7 @@ def sum_of_ratio_of_minima_among_subsets(num_denom_pairs):
         float: Sum of the ratios of minimum numerator to minimum denominator
         over all subsets of size >1.
     """
-    numerators, denominators = zip(*num_denom_pairs)
+    numerators, denominators = zip(*num_denom_pairs, strict=False)
     # For each possible pair of values, we count the number of times the pair is
     # the minimal pair (sorting makes the counting easier)
     sorted_num_idx = np.argsort(numerators)

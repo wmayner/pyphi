@@ -3,11 +3,14 @@
 
 import logging
 
-from .. import conf, exceptions, utils, validate
+from .. import conf
+from .. import exceptions
+from .. import utils
+from .. import validate
 from ..conf import config
 from ..models import _null_sia
-from ..subsystem import Subsystem
 from ..parallel import MapReduce
+from ..subsystem import Subsystem
 from .subsystem import sia
 
 # Create a logger for this module.

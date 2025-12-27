@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # compute/parallel.py
 
 
@@ -11,7 +10,8 @@ import logging
 import multiprocessing
 import sys
 import threading
-from itertools import chain, islice
+from itertools import chain
+from itertools import islice
 
 from tblib import Traceback
 from tqdm import tqdm
@@ -28,7 +28,7 @@ def get_num_processes():
     if config.NUMBER_OF_CORES == 0:
         raise ValueError("Invalid NUMBER_OF_CORES; value may not be 0.")
 
-    if config.NUMBER_OF_CORES > cpu_count:
+    if cpu_count < config.NUMBER_OF_CORES:
         log.info(
             "Requesting %s cores; only %s available", config.NUMBER_OF_CORES, cpu_count
         )
@@ -39,7 +39,7 @@ def get_num_processes():
         if num <= 0:
             raise ValueError(
                 "Invalid NUMBER_OF_CORES; negative value is too negative: "
-                "requesting {} cores, {} available.".format(num, cpu_count)
+                f"requesting {num} cores, {cpu_count} available."
             )
 
         return num

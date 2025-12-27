@@ -1,14 +1,15 @@
 import numpy as np
 import pytest
 
-from pyphi import Direction, Network, config, exceptions
-from pyphi.models import (
-    Concept,
-    Cut,
-    MaximallyIrreducibleCause,
-    MaximallyIrreducibleEffect,
-    RepertoireIrreducibilityAnalysis,
-)
+from pyphi import Direction
+from pyphi import Network
+from pyphi import config
+from pyphi import exceptions
+from pyphi.models import Concept
+from pyphi.models import Cut
+from pyphi.models import MaximallyIrreducibleCause
+from pyphi.models import MaximallyIrreducibleEffect
+from pyphi.models import RepertoireIrreducibilityAnalysis
 from pyphi.subsystem import Subsystem
 
 from . import example_networks

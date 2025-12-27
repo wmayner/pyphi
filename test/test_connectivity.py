@@ -229,6 +229,4 @@ def test_apply_boundary_conditions():
         [1, 0, 0],
     ])
     # fmt: on
-    assert np.array_equal(
-        connectivity.apply_boundary_conditions_to_cm((1,), cm), answer
-    )
+    assert np.array_equal(connectivity.apply_boundary_conditions_to_cm((1,), cm), answer)

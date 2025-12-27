@@ -7,7 +7,11 @@ This is the primary object of PyPhi and the context of all |small_phi| and
 
 import numpy as np
 
-from . import cache, connectivity, jsonify, utils, validate
+from . import cache
+from . import connectivity
+from . import jsonify
+from . import utils
+from . import validate
 from .labels import NodeLabels
 from .tpm import ExplicitTPM
 
@@ -162,7 +166,7 @@ class Network:
         return self.tpm.shape[-1]
 
     def __repr__(self):
-        return "Network({}, cm={})".format(self.tpm, self.cm)
+        return f"Network({self.tpm}, cm={self.cm})"
 
     def __str__(self):
         return self.__repr__()

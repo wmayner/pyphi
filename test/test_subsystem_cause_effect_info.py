@@ -1,5 +1,5 @@
-from pyphi.metrics.distribution import hamming_emd
 from pyphi import config
+from pyphi.metrics.distribution import hamming_emd
 
 
 @config.override(REPERTOIRE_DISTANCE="EMD")

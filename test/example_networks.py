@@ -2,7 +2,8 @@ import numpy as np
 
 import pyphi
 from pyphi import utils
-from pyphi.macro import Blackbox, MacroSubsystem
+from pyphi.macro import Blackbox
+from pyphi.macro import MacroSubsystem
 from pyphi.network import Network
 from pyphi.subsystem import Subsystem
 

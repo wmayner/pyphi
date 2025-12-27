@@ -29,8 +29,8 @@ the stream to a nested PyPhi object structure. The decoder will raise an
 exception if current PyPhi version doesn't match the version in the JSON data.
 """
 
-from importlib.metadata import version as get_version
 import json
+from importlib.metadata import version as get_version
 
 import numpy as np
 
@@ -200,10 +200,7 @@ def _check_version(version):
     if version != PYPHI_VERSION:
         raise pyphi.exceptions.JSONVersionError(
             "Cannot load JSON from a different version of PyPhi. "
-            "JSON version = {0}, current version = {1}.".format(
-                version,
-                PYPHI_VERSION,
-            )
+            f"JSON version = {version}, current version = {PYPHI_VERSION}."
         )
 
 

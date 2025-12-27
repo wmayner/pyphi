@@ -3,7 +3,8 @@
 
 from toolz import identity
 
-from ... import config, utils
+from ... import config
+from ... import utils
 from ...models import fmt
 
 

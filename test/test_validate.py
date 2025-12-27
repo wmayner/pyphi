@@ -1,16 +1,12 @@
 import numpy as np
 import pytest
 
-from pyphi import (
-    Direction,
-    Network,
-    Subsystem,
-    config,
-    constants,
-    exceptions,
-    macro,
-    validate,
-)
+from pyphi import Direction
+from pyphi import Network
+from pyphi import Subsystem
+from pyphi import exceptions
+from pyphi import macro
+from pyphi import validate
 from pyphi.tpm import ExplicitTPM
 
 

@@ -1,6 +1,8 @@
 import pytest
 
-from pyphi import config, compute, models, new_big_phi, jsonify
+from pyphi import compute
+from pyphi import config
+from pyphi import new_big_phi
 
 # pylint: disable=unused-argument
 
@@ -195,6 +197,7 @@ def test_sia_macro_parallel(macro_s, macro_s_expected_sia):
         ]
         assert compute.subsystem.sia_bipartitions((1, 2, 3, 4)) == answer
 """
+
 
 @pytest.mark.outdated
 @pytest.mark.slow

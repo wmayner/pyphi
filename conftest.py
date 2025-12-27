@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 import logging
 from pathlib import Path
@@ -8,15 +7,15 @@ import pytest
 import yaml
 
 import pyphi
-import pyphi.cache.redis as redis
+from pyphi.cache import redis
 from pyphi.conf import config
-from pyphi.deferred.ray import ray, NO_RAY
+from pyphi.deferred.ray import ray
 
 log = logging.getLogger("pyphi.test")
 
 collect_ignore = ["setup.py", ".pythonrc.py"]
 # Also ignore everything that git ignores.
-with open(Path(__file__).parent / ".gitignore", mode="rt") as f:
+with open(Path(__file__).parent / ".gitignore") as f:
     collect_ignore += list(filter(None, f.read().split("\n")))
 
 
@@ -39,7 +38,7 @@ def pytest_runtest_setup(item):
     filt = item.config.getoption("--filter")
     if filt:
         if filt not in item.keywords:
-            pytest.skip("only running tests with the '{}' mark".format(filt))
+            pytest.skip(f"only running tests with the '{filt}' mark")
     else:
         if "outdated" in item.keywords and not item.config.getoption("--outdated"):
             pytest.skip("need --outdated option to run")
@@ -77,7 +76,7 @@ def disable_progress_bars():
 @pytest.fixture(scope="function")
 def use_iit_3_config():
     """Use the IIT-3 configuration for all tests."""
-    with open(IIT_3_CONFIG, mode="rt") as f:
+    with open(IIT_3_CONFIG) as f:
         iit3_config = yaml.load(f, Loader=yaml.SafeLoader)
     with pyphi.config.override(**iit3_config):
         yield

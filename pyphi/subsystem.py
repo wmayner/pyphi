@@ -3,33 +3,40 @@
 
 import functools
 import logging
-from typing import Iterable, Tuple
+from collections.abc import Iterable
 
 import numpy as np
 from numpy.typing import ArrayLike
 from tqdm.auto import tqdm
 
-from . import cache, conf, connectivity, distribution, metrics
+from . import cache
+from . import conf
+from . import connectivity
+from . import distribution
+from . import metrics
 from . import repertoire as _repertoire
-from . import resolve_ties, utils, validate
-from .parallel import MapReduce
-from .conf import config, fallback
+from . import resolve_ties
+from . import utils
+from . import validate
+from .conf import config
+from .conf import fallback
 from .data_structures import FrozenMap
 from .direction import Direction
-from .distribution import max_entropy_distribution, repertoire_shape
+from .distribution import max_entropy_distribution
+from .distribution import repertoire_shape
 from .metrics.distribution import repertoire_distance as _repertoire_distance
-from .models import (
-    Concept,
-    MaximallyIrreducibleCause,
-    MaximallyIrreducibleEffect,
-    NullCut,
-    RepertoireIrreducibilityAnalysis,
-    _null_ria,
-    CauseEffectStructure,
-)
-from .models.mechanism import ShortCircuitConditions, StateSpecification
+from .models import CauseEffectStructure
+from .models import Concept
+from .models import MaximallyIrreducibleCause
+from .models import MaximallyIrreducibleEffect
+from .models import NullCut
+from .models import RepertoireIrreducibilityAnalysis
+from .models import _null_ria
+from .models.mechanism import ShortCircuitConditions
+from .models.mechanism import StateSpecification
 from .network import irreducible_purviews
 from .node import generate_nodes
+from .parallel import MapReduce
 from .partition import mip_partitions
 from .tpm import backward_tpm as _backward_tpm
 from .utils import state_of
@@ -104,7 +111,9 @@ class Subsystem:
 
         # Get the TPMs conditioned on the state of the external nodes.
         external_state = utils.state_of(self.external_indices, self.state)
-        background_conditions = dict(zip(self.external_indices, external_state))
+        background_conditions = dict(
+            zip(self.external_indices, external_state, strict=False)
+        )
         self.effect_tpm = self.network.tpm.condition_tpm(background_conditions)
 
         if config.VALIDATE_SUBSYSTEM_STATES:
@@ -334,7 +343,7 @@ class Subsystem:
         tpm = mechanism_node.cause_tpm[..., mechanism_node.state]
         # Marginalize-out all parents of this mechanism node that aren't in the
         # purview.
-        return tpm.marginalize_out((mechanism_node.inputs - purview)).tpm
+        return tpm.marginalize_out(mechanism_node.inputs - purview).tpm
 
     # TODO extend to nonbinary nodes
     @cache.method("_repertoire_cache", Direction.CAUSE)
@@ -413,7 +422,7 @@ class Subsystem:
 
     @cache.method("_repertoire_cache", Direction.EFFECT)
     def _effect_repertoire(
-        self, condition: FrozenMap[int, int], purview: Tuple[int], direction: Direction
+        self, condition: FrozenMap[int, int], purview: tuple[int], direction: Direction
     ):
         # Preallocate the repertoire with the proper shape, so that
         # probabilities are broadcasted appropriately.
@@ -456,7 +465,7 @@ class Subsystem:
             return np.array([1.0])
         if mechanism_state is None:
             mechanism_state = utils.state_of(mechanism, self.state)
-        condition = FrozenMap(zip(mechanism, mechanism_state))
+        condition = FrozenMap(zip(mechanism, mechanism_state, strict=False))
         return self._effect_repertoire(condition, purview, direction)
 
     def repertoire(self, direction, mechanism, purview, **kwargs):
@@ -478,7 +487,7 @@ class Subsystem:
         """
         if direction == Direction.CAUSE:
             return self.cause_repertoire(mechanism, purview, **kwargs)
-        elif direction == Direction.EFFECT:
+        if direction == Direction.EFFECT:
             return self.effect_repertoire(mechanism, purview, **kwargs)
         return validate.direction(direction)
 
@@ -524,26 +533,25 @@ class Subsystem:
                 for part in partition
             ]
             return np.prod(prs)
-        else:
-            repertoires = [
-                self.repertoire(direction, part.mechanism, part.purview, **kwargs)
-                for part in partition
-            ]
+        repertoires = [
+            self.repertoire(direction, part.mechanism, part.purview, **kwargs)
+            for part in partition
+        ]
         return functools.reduce(np.multiply, repertoires)
 
     def forward_probability(
         self,
         direction: Direction,
-        mechanism: Tuple[int],
-        purview: Tuple[int],
-        purview_state: Tuple[int],
+        mechanism: tuple[int],
+        purview: tuple[int],
+        purview_state: tuple[int],
         **kwargs,
     ) -> float:
         if direction == Direction.CAUSE:
             return self.forward_cause_probability(
                 mechanism, purview, purview_state, **kwargs
             )
-        elif direction == Direction.EFFECT:
+        if direction == Direction.EFFECT:
             return self.forward_effect_probability(
                 mechanism, purview, purview_state, **kwargs
             )
@@ -551,9 +559,9 @@ class Subsystem:
 
     def forward_effect_probability(
         self,
-        mechanism: Tuple[int],
-        purview: Tuple[int],
-        purview_state: Tuple[int],
+        mechanism: tuple[int],
+        purview: tuple[int],
+        purview_state: tuple[int],
         **kwargs,
     ) -> float:
         return _repertoire.forward_effect_probability(
@@ -562,9 +570,9 @@ class Subsystem:
 
     def forward_cause_probability(
         self,
-        mechanism: Tuple[int],
-        purview: Tuple[int],
-        purview_state: Tuple[int],
+        mechanism: tuple[int],
+        purview: tuple[int],
+        purview_state: tuple[int],
         **kwargs,
     ) -> float:
         return _repertoire.forward_cause_probability(
@@ -574,20 +582,20 @@ class Subsystem:
     def forward_repertoire(
         self,
         direction: Direction,
-        mechanism: Tuple[int],
-        purview: Tuple[int],
-        purview_state: Tuple[int],
+        mechanism: tuple[int],
+        purview: tuple[int],
+        purview_state: tuple[int],
         **kwargs,
     ) -> ArrayLike:
         if direction == Direction.CAUSE:
             return self.forward_cause_repertoire(mechanism, purview, purview_state)
-        elif direction == Direction.EFFECT:
+        if direction == Direction.EFFECT:
             return self.forward_effect_repertoire(mechanism, purview, **kwargs)
         return validate.direction(direction)
 
     @cache.method("_forward_repertoire_cache", Direction.CAUSE)
     def forward_cause_repertoire(
-        self, mechanism: Tuple[int], purview: Tuple[int], purview_state
+        self, mechanism: tuple[int], purview: tuple[int], purview_state
     ) -> ArrayLike:
         return _repertoire.forward_cause_repertoire(
             self,
@@ -599,22 +607,22 @@ class Subsystem:
     # NOTE: No caching is required here because the forward effect repertoire is
     # the same as the effect repertoire.
     def forward_effect_repertoire(
-        self, mechanism: Tuple[int], purview: Tuple[int], **kwargs
+        self, mechanism: tuple[int], purview: tuple[int], **kwargs
     ) -> ArrayLike:
         return _repertoire.forward_effect_repertoire(self, mechanism, purview, **kwargs)
 
     def unconstrained_forward_repertoire(
-        self, direction: Direction, mechanism: Tuple[int], purview: Tuple[int]
+        self, direction: Direction, mechanism: tuple[int], purview: tuple[int]
     ) -> ArrayLike:
         if direction == Direction.CAUSE:
             return self.unconstrained_forward_cause_repertoire(mechanism, purview)
-        elif direction == Direction.EFFECT:
+        if direction == Direction.EFFECT:
             return self.unconstrained_forward_effect_repertoire(mechanism, purview)
         return validate.direction(direction)
 
     @cache.method("_unconstrained_forward_repertoire_cache", Direction.EFFECT)
     def unconstrained_forward_effect_repertoire(
-        self, mechanism: Tuple[int], purview: Tuple[int]
+        self, mechanism: tuple[int], purview: tuple[int]
     ) -> ArrayLike:
         return _repertoire.unconstrained_forward_effect_repertoire(
             self, mechanism, purview
@@ -622,7 +630,7 @@ class Subsystem:
 
     @cache.method("_unconstrained_forward_repertoire_cache", Direction.CAUSE)
     def unconstrained_forward_cause_repertoire(
-        self, mechanism: Tuple[int], purview: Tuple[int]
+        self, mechanism: tuple[int], purview: tuple[int]
     ) -> ArrayLike:
         return _repertoire.unconstrained_forward_cause_repertoire(
             self, mechanism, purview
@@ -977,8 +985,8 @@ class Subsystem:
     def intrinsic_information(
         self,
         direction: Direction,
-        mechanism: Tuple[int],
-        purview: Tuple[int],
+        mechanism: tuple[int],
+        purview: tuple[int],
         repertoire_distance: str = None,
         states: Iterable[Iterable[int]] = None,
     ):

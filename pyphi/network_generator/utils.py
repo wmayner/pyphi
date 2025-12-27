@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # network_generator/utils.py
 """Utilities for creating systems."""
 
@@ -35,7 +34,7 @@ def to_topological_ordering(element, weights, state, layers):
     for layer in layers:
         layer_sizes.add(len(layer))
         if len(layer_sizes) > 1:
-            raise NotImplemented(
+            raise NotImplementedError(
                 "cannot use topological ordering with different layer sizes"
             )
         layer = sorted(layer)

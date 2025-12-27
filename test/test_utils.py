@@ -1,9 +1,12 @@
 import numpy as np
 from hypothesis import given
 
-from pyphi import config, utils
+from pyphi import config
+from pyphi import utils
 
-from .hypothesis_utils import anything, finite_floats, iterable_or_list
+from .hypothesis_utils import anything
+from .hypothesis_utils import finite_floats
+from .hypothesis_utils import iterable_or_list
 
 
 def test_all_states():

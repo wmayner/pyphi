@@ -3,9 +3,11 @@
 
 from itertools import tee
 
-from .conf import config, fallback
+from .conf import config
+from .conf import fallback
 from .registry import Registry
-from .utils import NO_DEFAULT, iter_with_default
+from .utils import NO_DEFAULT
+from .utils import iter_with_default
 
 
 class PhiObjectTieResolutionRegistry(Registry):
@@ -93,7 +95,9 @@ def resolve(objects, strategy, operation, default=NO_DEFAULT):
     objects, to_transform = tee(objects)
     values = list(map(sort_key, to_transform))
     extremum = operation(values, default=default)
-    ties = (obj for obj, value in zip(objects, values) if value == extremum)
+    ties = (
+        obj for obj, value in zip(objects, values, strict=False) if value == extremum
+    )
     yield from iter_with_default(ties, default=default)
 
 

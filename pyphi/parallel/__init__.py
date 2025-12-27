@@ -4,22 +4,32 @@
 import functools
 import logging
 import multiprocessing
+from collections.abc import Callable
+from collections.abc import Iterable
 from itertools import cycle
 from textwrap import indent
-from typing import Any, Callable, Iterable, List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
+from typing import Any
+from typing import List
+from typing import Optional
 
 if TYPE_CHECKING:
     from ray import ObjectRef
 
-from more_itertools import chunked_even, flatten
+from more_itertools import chunked_even
+from more_itertools import flatten
 from tqdm.auto import tqdm
 
+from ..conf import config
+from ..conf import fallback
+from ..deferred.ray import NO_RAY
+from ..deferred.ray import ray
 from ..exceptions import MissingOptionalDependenciesError
-from ..conf import config, fallback
 from ..utils import try_len
-from .progress import ProgressBar, throttled_update, wait_then_finish
+from .progress import ProgressBar
+from .progress import throttled_update
+from .progress import wait_then_finish
 from .tree import get_constraints
-from ..deferred.ray import ray, NO_RAY
 
 log = logging.getLogger(__name__)
 
@@ -31,7 +41,7 @@ def get_num_processes():
     if config.NUMBER_OF_CORES == 0:
         raise ValueError("Invalid NUMBER_OF_CORES; value may not be 0.")
 
-    if config.NUMBER_OF_CORES > cpu_count:
+    if cpu_count < config.NUMBER_OF_CORES:
         log.info(
             "Requesting %s cores; only %s available", config.NUMBER_OF_CORES, cpu_count
         )
@@ -80,7 +90,7 @@ def shortcircuit(
             return
 
 
-def as_completed(object_refs: "List[ObjectRef]", num_returns: int = 1):
+def as_completed(object_refs: "list[ObjectRef]", num_returns: int = 1):
     """Yield remote results in order of completion."""
     unfinished = object_refs
     while unfinished:
@@ -139,7 +149,7 @@ def get(
 def backpressure(func, *argslist, inflight_limit=1000, **kwargs):
     # https://docs.ray.io/en/latest/ray-core/tasks/patterns/limit-tasks.html
     result_refs = []
-    for i, args in enumerate(zip(*argslist)):
+    for i, args in enumerate(zip(*argslist, strict=False)):
         if len(result_refs) > inflight_limit:
             num_ready = i - inflight_limit
             ray.wait(result_refs, num_returns=num_ready)
@@ -154,7 +164,7 @@ def _flatten(items, branch=False):
 
 
 def _map_sequential(func, *arglists, **kwargs):
-    for args in zip(*arglists):
+    for args in zip(*arglists, strict=False):
         yield func(*args, **kwargs)
 
 
@@ -191,7 +201,7 @@ def _map_reduce_tree(
     if branch:
         chunksize = max(chunksize, constraints.sequential_threshold)
         chunked_iterables = zip(
-            *(chunked_even(iterable, chunksize) for iterable in iterables)
+            *(chunked_even(iterable, chunksize) for iterable in iterables), strict=False
         )
         # Reduce chunksize by branch factor, down to sequential threshold
         chunksize = chunksize // constraints.branch_factor
@@ -267,24 +277,24 @@ class MapReduce:
         map_func: Callable,
         iterable: Iterable,
         *iterables,
-        reduce_func: Optional[Callable] = None,
-        reduce_kwargs: Optional[dict] = None,
+        reduce_func: Callable | None = None,
+        reduce_kwargs: dict | None = None,
         parallel: bool = True,
         ordered: bool = False,
-        total: Optional[int] = None,
-        chunksize: Optional[int] = None,
+        total: int | None = None,
+        chunksize: int | None = None,
         sequential_threshold: int = 1,
-        max_depth: Optional[int] = None,
-        max_size: Optional[int] = None,
-        max_leaves: Optional[int] = None,
+        max_depth: int | None = None,
+        max_size: int | None = None,
+        max_leaves: int | None = None,
         branch_factor: int = 2,
         shortcircuit_func: Callable = false,
-        shortcircuit_callback: Optional[Callable] = None,
+        shortcircuit_callback: Callable | None = None,
         shortcircuit_callback_args: Any = None,
         inflight_limit: int = 1000,
-        progress: Optional[bool] = None,
-        desc: Optional[str] = None,
-        map_kwargs: Optional[dict] = None,
+        progress: bool | None = None,
+        desc: str | None = None,
+        map_kwargs: dict | None = None,
     ):
         """
         Specifying tree size: order of precedence:
@@ -309,9 +319,7 @@ class MapReduce:
         if self.parallel:
             if NO_RAY:
                 raise MissingOptionalDependenciesError(
-                    MissingOptionalDependenciesError.MSG.format(
-                        dependencies="parallel"
-                    ),
+                    MissingOptionalDependenciesError.MSG.format(dependencies="parallel"),
                 )
             self.constraints = get_constraints(
                 total=self.total,

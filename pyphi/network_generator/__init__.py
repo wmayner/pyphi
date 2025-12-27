@@ -2,7 +2,9 @@
 """High-level interface for creating systems by specifying architecture."""
 
 import string
-from typing import Callable, Iterable, Union
+from collections.abc import Callable
+from collections.abc import Iterable
+from typing import Union
 
 import numpy as np
 from numpy.typing import ArrayLike
@@ -10,7 +12,9 @@ from numpy.typing import ArrayLike
 from ..labels import NodeLabels
 from ..network import Network
 from ..utils import all_states
-from . import ising, unit_functions, weights
+from . import ising
+from . import unit_functions
+from . import weights
 
 UNIT_FUNCTIONS = {
     "ising": ising.probability,
@@ -27,7 +31,7 @@ UNIT_FUNCTIONS = {
 
 
 def build_tpm(
-    unit_functions: Union[str, Callable, Iterable[Callable]],
+    unit_functions: str | Callable | Iterable[Callable],
     weights: ArrayLike,
     **kwargs,
 ):
@@ -40,8 +44,7 @@ def build_tpm(
         unit_functions = list(unit_functions)
         if len(unit_functions) != weights.shape[0]:
             raise ValueError(
-                "Number of unit functions must match number of nodes in weight "
-                "matrix"
+                "Number of unit functions must match number of nodes in weight " "matrix"
             )
     else:
         unit_functions = [unit_functions] * N
@@ -56,7 +59,7 @@ def build_tpm(
 
 
 def build_network(
-    unit_functions: Union[Callable, Iterable[Callable]],
+    unit_functions: Callable | Iterable[Callable],
     weights: ArrayLike,
     node_labels: NodeLabels = None,
     **kwargs,

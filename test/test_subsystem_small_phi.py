@@ -1,8 +1,12 @@
 import numpy as np
 import pytest
 
-from pyphi import Direction, constants, utils, config
-from pyphi.models import Bipartition, Part, RepertoireIrreducibilityAnalysis
+from pyphi import Direction
+from pyphi import config
+from pyphi import utils
+from pyphi.models import Bipartition
+from pyphi.models import Part
+from pyphi.models import RepertoireIrreducibilityAnalysis
 
 from . import example_networks
 

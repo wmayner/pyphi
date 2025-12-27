@@ -8,7 +8,9 @@ import numpy as np
 import pandas as pd
 import seaborn as sb
 
-from .. import config, distribution, utils
+from .. import config
+from .. import distribution
+from .. import utils
 from ..direction import Direction
 
 
@@ -111,7 +113,7 @@ def plot_distribution(
     data = pd.concat(
         [
             pd.DataFrame(dict(probability=d, state=states, hue=[label] * len(d)))
-            for d, label in zip(distributions, labels)
+            for d, label in zip(distributions, labels, strict=False)
         ]
     ).reset_index(drop=True)
 
@@ -131,13 +133,12 @@ def plot_distribution(
 def plot_repertoires(subsystem, sia, **kwargs):
     if config.REPERTOIRE_DISTANCE != "GENERALIZED_INTRINSIC_DIFFERENCE":
         raise NotImplementedError(
-            "Only REPERTOIRE_DISTANCE = "
-            "GENERALIZED_INTRINSIC_DIFFERENCE is supported"
+            "Only REPERTOIRE_DISTANCE = " "GENERALIZED_INTRINSIC_DIFFERENCE is supported"
         )
     cut_subsystem = subsystem.apply_cut(sia.partition)
 
     labels = ["unpartitioned", "partitioned"]
-    subsystems = dict(zip(labels, [subsystem, cut_subsystem]))
+    subsystems = dict(zip(labels, [subsystem, cut_subsystem], strict=False))
     repertoires = {
         direction: {
             label: s.forward_repertoire(direction, s.node_indices, s.node_indices)
@@ -148,7 +149,7 @@ def plot_repertoires(subsystem, sia, **kwargs):
 
     fig = plt.figure(figsize=(12, 9))
     axes = fig.subplots(2, 1)
-    for ax, direction in zip(axes, Direction.both()):
+    for ax, direction in zip(axes, Direction.both(), strict=False):
         plot_distribution(
             repertoires[direction][labels[0]],
             repertoires[direction][labels[1]],

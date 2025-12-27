@@ -1,10 +1,13 @@
-import numpy as np
 import pickle
+
+import numpy as np
 import pytest
 from numpy.random import default_rng
 
-from pyphi import Subsystem, ExplicitTPM
-from pyphi.tpm import reconstitute_tpm, simulate
+from pyphi import ExplicitTPM
+from pyphi import Subsystem
+from pyphi.tpm import reconstitute_tpm
+from pyphi.tpm import simulate
 
 
 @pytest.mark.parametrize(

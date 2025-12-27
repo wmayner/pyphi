@@ -1,27 +1,41 @@
 # new_big_phi/__init__.py
 """Implements the IIT 4.0 formalism for system-level analysis."""
 
+from collections.abc import Iterable
 from dataclasses import dataclass
-from enum import Enum, auto, unique
-from typing import Iterable, Optional, Tuple, Union
+from enum import Enum
+from enum import auto
+from enum import unique
+from typing import Optional
+from typing import Tuple
+from typing import Union
 
-from .. import compute, conf, connectivity, utils, validate
+from .. import compute
+from .. import conf
+from .. import connectivity
+from .. import utils
+from .. import validate
 from ..compute.network import reachable_subsystems
-from ..parallel import MapReduce
-from ..conf import config, fallback
+from ..conf import config
+from ..conf import fallback
 from ..data_structures import PyPhiFloat
 from ..direction import Direction
 from ..labels import NodeLabels
-from ..models import cmp, fmt
-from ..models.cuts import Cut, GeneralKCut, SystemPartition
+from ..models import cmp
+from ..models import fmt
+from ..models.cuts import Cut
+from ..models.cuts import GeneralKCut
+from ..models.cuts import SystemPartition
 from ..models.mechanism import RepertoireIrreducibilityAnalysis
-from ..models.subsystem import CauseEffectStructure, SystemStateSpecification
+from ..models.subsystem import CauseEffectStructure
+from ..models.subsystem import SystemStateSpecification
+from ..parallel import MapReduce
 from ..partition import system_partitions
-from ..relations import ConcreteRelations, Relations
+from ..relations import ConcreteRelations
+from ..relations import Relations
 from ..relations import relations as compute_relations
 from ..subsystem import Subsystem
 from ..warnings import warn_about_tie_serialization
-
 
 ##############################################################################
 # Information
@@ -31,8 +45,8 @@ from ..warnings import warn_about_tie_serialization
 # TODO(4.0) refactor
 def system_intrinsic_information(
     subsystem: Subsystem,
-    repertoire_distance: Optional[str] = None,
-    directions: Optional[Iterable[Direction]] = None,
+    repertoire_distance: str | None = None,
+    directions: Iterable[Direction] | None = None,
 ) -> SystemStateSpecification:
     """Return the cause/effect states specified by the system.
 
@@ -70,15 +84,15 @@ def system_intrinsic_information(
 @dataclass
 class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
     phi: float
-    partition: Union[Cut, SystemPartition]
+    partition: Cut | SystemPartition
     normalized_phi: float = 0
-    cause: Optional[RepertoireIrreducibilityAnalysis] = None
-    effect: Optional[RepertoireIrreducibilityAnalysis] = None
-    system_state: Optional[SystemStateSpecification] = None
-    current_state: Optional[Tuple[int]] = None
-    node_indices: Optional[Tuple[int]] = None
-    node_labels: Optional[NodeLabels] = None
-    reasons: Optional[list] = None
+    cause: RepertoireIrreducibilityAnalysis | None = None
+    effect: RepertoireIrreducibilityAnalysis | None = None
+    system_state: SystemStateSpecification | None = None
+    current_state: tuple[int] | None = None
+    node_indices: tuple[int] | None = None
+    node_labels: NodeLabels | None = None
+    reasons: list | None = None
 
     def __post_init__(self):
         self.phi = PyPhiFloat(self.phi)
@@ -190,7 +204,7 @@ class NullSystemIrreducibilityAnalysis(SystemIrreducibilityAnalysis):
         return columns
 
 
-def normalization_factor(partition: Union[Cut, GeneralKCut]) -> float:
+def normalization_factor(partition: Cut | GeneralKCut) -> float:
     if hasattr(partition, "normalization_factor"):
         return partition.normalization_factor()
     return 1 / (len(partition.from_nodes) * len(partition.to_nodes))
@@ -201,7 +215,7 @@ def integration_value(
     subsystem: Subsystem,
     partition: Cut,
     system_state: SystemStateSpecification,
-    repertoire_distance: Optional[str] = None,
+    repertoire_distance: str | None = None,
 ) -> float:
     repertoire_distance = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
     cut_subsystem = subsystem.apply_cut(partition)
@@ -233,7 +247,7 @@ def evaluate_partition(
     subsystem: Subsystem,
     system_state: SystemStateSpecification,
     repertoire_distance: str = None,
-    directions: Optional[Iterable[Direction]] = None,
+    directions: Iterable[Direction] | None = None,
 ) -> SystemIrreducibilityAnalysis:
     directions = fallback(directions, Direction.both())
     directions = tuple(directions)
@@ -281,6 +295,7 @@ def _has_no_cause_or_effect(system_state):
     for direction, reason in zip(
         Direction.both(),
         [ShortCircuitConditions.NO_CAUSE, ShortCircuitConditions.NO_EFFECT],
+        strict=False,
     ):
         if system_state[direction].intrinsic_information <= 0:
             reasons.append(reason)
@@ -296,11 +311,11 @@ def sia_minimization_key(sia):
 
 def sia(
     subsystem: Subsystem,
-    repertoire_distance: Optional[str] = None,
-    directions: Optional[Iterable[Direction]] = None,
-    partition_scheme: Optional[str] = None,
-    partitions: Optional[Iterable] = None,
-    system_state: Optional[SystemStateSpecification] = None,
+    repertoire_distance: str | None = None,
+    directions: Iterable[Direction] | None = None,
+    partition_scheme: str | None = None,
+    partitions: Iterable | None = None,
+    system_state: SystemStateSpecification | None = None,
     **kwargs,
 ) -> SystemIrreducibilityAnalysis:
     """Find the minimum information partition of a system."""
@@ -339,7 +354,7 @@ def sia(
         if not subsystem.cm[subsystem.node_indices][subsystem.node_indices]:
             return _null_sia(reasons=[ShortCircuitConditions.MONAD_WITH_NO_SELFLOOP])
         # Even if the node has a self-loop, we may still define phi to be zero.
-        elif not config.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI:
+        if not config.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI:
             return _null_sia(
                 reasons=[
                     ShortCircuitConditions.MONAD_WITH_SELFLOOP_DEFINED_TO_BE_ZERO_PHI

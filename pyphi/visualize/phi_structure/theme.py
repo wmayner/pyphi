@@ -69,8 +69,7 @@ class DefaultTheme(Theme):
                 for i in range(1, 9)
             },
             **{
-                "coloraxis"
-                + (str(i) if i != 1 else ""): dict(
+                "coloraxis" + (str(i) if i != 1 else ""): dict(
                     colorscale="turbo",
                     cmin=0,
                     colorbar=dict(

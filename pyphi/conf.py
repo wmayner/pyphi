@@ -55,19 +55,20 @@ import os
 import pprint
 import shutil
 import tempfile
+from collections.abc import Mapping
 from copy import copy
 from importlib.metadata import version
 from pathlib import Path
-from typing import Mapping
 from warnings import warn
 
 import toolz
 import yaml
 
 from . import constants
-from .deferred.ray import ray, NO_RAY
-from .warnings import MissingOptionalDependenciesWarning, PyPhiWarning
-
+from .deferred.ray import NO_RAY
+from .deferred.ray import ray
+from .warnings import MissingOptionalDependenciesWarning
+from .warnings import PyPhiWarning
 
 log = logging.getLogger(__name__)
 
@@ -126,16 +127,12 @@ class Option:
         self.name = name
 
     def _docstring(self):
-        default = "``default={}``".format(repr(self.default))
+        default = f"``default={self.default!r}``"
 
-        values = (
-            ", ``values={}``".format(repr(self.values))
-            if self.values is not None
-            else ""
-        )
+        values = f", ``values={self.values!r}``" if self.values is not None else ""
 
         on_change = (
-            ", ``on_change={}``".format(self.on_change.__name__)
+            f", ``on_change={self.on_change.__name__}``"
             if self.on_change is not None
             else ""
         )
@@ -161,9 +158,7 @@ class Option:
         """Validate the new value."""
         if self.type is not None and not isinstance(value, self.type):
             raise ConfigurationError(
-                "{} must be of type {} for {}; got {}".format(
-                    value, self.type, self.name, type(value)
-                )
+                f"{value} must be of type {self.type} for {self.name}; got {type(value)}"
             )
         if self.values and value not in self.values:
             raise ConfigurationError(
@@ -171,7 +166,7 @@ class Option:
                     value,
                     type(value),
                     self.name,
-                    "\n    ".join(["{} ({})".format(v, type(v)) for v in self.values]),
+                    "\n    ".join([f"{v} ({type(v)})" for v in self.values]),
                 )
             )
 
@@ -234,7 +229,7 @@ class Config:
         if name.startswith("_") or name in self.options().keys():
             super().__setattr__(name, value)
         else:
-            raise ConfigurationError("{} is not a valid config option".format(name))
+            raise ConfigurationError(f"{name} is not a valid config option")
 
     def __getitem__(self, name):
         return self._values[name]
@@ -268,14 +263,14 @@ class Config:
         """Load config from a YAML file."""
         filename = os.path.abspath(filename)
 
-        with open(filename, mode="rt") as f:
+        with open(filename) as f:
             self.load_dict(yaml.safe_load(f))
 
         self._loaded_files.append(filename)
 
     def to_yaml(self, filename):
         """Write config to a YAML file."""
-        with open(filename, mode="wt") as f:
+        with open(filename, mode="w") as f:
             yaml.dump(self._values, f)
         return filename
 
@@ -317,7 +312,7 @@ class Config:
         different_items = toolz.diff(
             self.to_dict().items(), other.to_dict().items(), default=None
         )
-        left, right = zip(*different_items)
+        left, right = zip(*different_items, strict=False)
         return dict(left), dict(right)
 
 

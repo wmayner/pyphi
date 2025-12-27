@@ -1,9 +1,11 @@
 # visualize/phi_structure/geometry.py
 """Utilities for specifying the spatial layout of |big_phi|-structures."""
 
+from collections.abc import Mapping
 from itertools import combinations
-from math import cos, radians, sin
-from typing import Mapping, Optional
+from math import cos
+from math import radians
+from math import sin
 
 import numpy as np
 import scipy.special
@@ -35,15 +37,15 @@ class Coordinates:
     def __init__(
         self,
         mapping: Mapping[tuple[int], ArrayLike],
-        direction_offset: Optional[float] = None,
-        subset_multiplicities: Optional[float] = None,
-        subset_offset_radius: Optional[float] = 0.0,
-        state_multiplicities: Optional[float] = None,
-        state_offset_radius: Optional[float] = 0.0,
-        rotation: Optional[float] = 0.0,
-        rotation_plane: Optional[str] = "xy",
-        scale: Optional[ArrayLike] = 1.0,
-        translate: Optional[ArrayLike] = 0.0,
+        direction_offset: float | None = None,
+        subset_multiplicities: float | None = None,
+        subset_offset_radius: float | None = 0.0,
+        state_multiplicities: float | None = None,
+        state_offset_radius: float | None = 0.0,
+        rotation: float | None = 0.0,
+        rotation_plane: str | None = "xy",
+        scale: ArrayLike | None = 1.0,
+        translate: ArrayLike | None = 0.0,
     ):
         self.mapping = mapping
 
@@ -117,6 +119,7 @@ def _multiplicity_mapping(multiplicities, radius, **kwargs):
             zip(
                 sorted(multiples),
                 regular_polygon(len(multiples), radius=radius, **kwargs),
+                strict=False,
             )
         )
         for subset, multiples in multiplicities.items()
@@ -265,10 +268,10 @@ class PurviewCoordinates:
     def __init__(
         self,
         mapping: Mapping[Direction, Mapping[tuple[int], ArrayLike]],
-        rotation: Optional[float] = 0.0,
-        rotation_plane: Optional[str] = "xy",
-        scale: Optional[ArrayLike] = 1.0,
-        translate: Optional[ArrayLike] = 0.0,
+        rotation: float | None = 0.0,
+        rotation_plane: str | None = "xy",
+        scale: ArrayLike | None = 1.0,
+        translate: ArrayLike | None = 0.0,
     ):
         self.mapping = mapping
 

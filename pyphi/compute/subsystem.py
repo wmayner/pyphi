@@ -6,21 +6,22 @@ import logging
 
 from more_itertools import collapse
 
-from .. import conf, connectivity, utils
+from .. import conf
+from .. import connectivity
+from .. import utils
 from ..conf import config
 from ..direction import Direction
 from ..metrics.ces import ces_distance
-from ..models import (
-    CauseEffectStructure,
-    Concept,
-    Cut,
-    KCut,
-    SystemIrreducibilityAnalysis,
-    _null_sia,
-    cmp,
-)
-from ..partition import mip_partitions, system_partition_types
+from ..models import CauseEffectStructure
+from ..models import Concept
+from ..models import Cut
+from ..models import KCut
+from ..models import SystemIrreducibilityAnalysis
+from ..models import _null_sia
+from ..models import cmp
 from ..parallel import MapReduce
+from ..partition import mip_partitions
+from ..partition import system_partition_types
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
@@ -264,7 +265,7 @@ def _sia(subsystem, **kwargs):
             )
             return _null_sia(subsystem)
         # Even if the node has a self-loop, we may still define phi to be zero.
-        elif not config.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI:
+        if not config.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI:
             log.info(
                 "Single micro nodes %s with selfloops cannot have "
                 "phi; returning null SIA immediately.",
@@ -376,7 +377,7 @@ class ConceptStyleSystem:
         )
 
     def __str__(self):
-        return "ConceptStyleSystem{}".format(self.node_indices)
+        return f"ConceptStyleSystem{self.node_indices}"
 
 
 def concept_cuts(direction, node_indices, node_labels=None):

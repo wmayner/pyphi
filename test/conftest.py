@@ -1,6 +1,8 @@
-from . import example_networks
 import pytest
+
 from pyphi import jsonify
+
+from . import example_networks
 
 # Test fixtures from example networks
 # =============================================================================
@@ -42,7 +44,7 @@ def subsys_n1n2():
 
 @pytest.fixture
 def s_expected_sia():
-    with open("./test/data/sia/s.json", mode="rt") as f:
+    with open("./test/data/sia/s.json") as f:
         expected = jsonify.load(f)
     return expected
 
@@ -68,7 +70,7 @@ def noisy_selfloop_single():
 
 @pytest.fixture
 def s_noised_expected_sia():
-    with open("./test/data/sia/s_noised.json", mode="rt") as f:
+    with open("./test/data/sia/s_noised.json") as f:
         expected = jsonify.load(f)
     return expected
 
@@ -113,7 +115,7 @@ def big_subsys_0_thru_3():
 
 @pytest.fixture
 def big_subsys_0_thru_3_expected_sia():
-    with open("./test/data/sia/big_subsys_0_thru_3.json", mode="rt") as f:
+    with open("./test/data/sia/big_subsys_0_thru_3.json") as f:
         expected = jsonify.load(f)
     return expected
 
@@ -139,7 +141,7 @@ def rule152_s():
 
 @pytest.fixture
 def rule152_s_expected_sia():
-    with open("./test/data/sia/rule152_s.json", mode="rt") as f:
+    with open("./test/data/sia/rule152_s.json") as f:
         expected = jsonify.load(f)
     return expected
 
@@ -165,7 +167,7 @@ def big_subsys_all_complete():
 
 @pytest.fixture
 def big_subsys_all_complete_expected_sia():
-    with open("./test/data/sia/big_subsys_all_complete.json", mode="rt") as f:
+    with open("./test/data/sia/big_subsys_all_complete.json") as f:
         expected = jsonify.load(f)
     return expected
 
@@ -196,7 +198,7 @@ def macro_s():
 
 @pytest.fixture
 def macro_s_expected_sia():
-    with open("./test/data/sia/macro_s.json", mode="rt") as f:
+    with open("./test/data/sia/macro_s.json") as f:
         expected = jsonify.load(f)
     return expected
 
@@ -213,7 +215,7 @@ def micro_s():
 
 @pytest.fixture
 def micro_s_expected_sia():
-    with open("./test/data/sia/micro_s.json", mode="rt") as f:
+    with open("./test/data/sia/micro_s.json") as f:
         expected = jsonify.load(f)
     return expected
 
