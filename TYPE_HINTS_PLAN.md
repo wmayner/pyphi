@@ -18,14 +18,25 @@
 - Mypy strict mode enabled for all Phase 2 modules
 - All tests passing
 
-**Phase 3: Core Abstractions** 🔄 **IN PROGRESS**
+**Phase 3: Core Abstractions** ✅ **COMPLETED** (Major Public Methods)
 - ✅ **TPM (tpm.py)**: Complete - all 30+ methods typed, metaclass handled, tests pass
 - ✅ **Network (network.py)**: Complete - all 15 methods typed, mypy strict mode enabled, tests pass
-- ⏳ **Subsystem (subsystem.py)**: Pending - ~50-59 hours estimated (split into 2 parts)
+- ✅ **Subsystem (subsystem.py)**: Major public methods complete (~54 public methods typed, 21 tests pass)
 
-**Next Steps**: Continue with Phase 3.3-3.4 (Subsystem class)
+**Phase 4: Computational Modules** ✅ **COMPLETED** (2025-12-27)
+- ✅ **Repertoire (repertoire.py)**: Complete - all 6 functions typed, 62 tests pass
+- ✅ **Distribution (distribution.py)**: Complete - all 11 functions typed, 11 tests pass
+- ✅ **Metrics/Distribution (metrics/distribution.py)**: Complete - added missing return types, 99 non-EMD tests pass
+- ✅ **Partition (partition.py)**: Complete - modernized all type syntax to Python 3.12+, 10 tests pass
+- ✅ **Metrics/CES (metrics/ces.py)**: Complete - all 8 functions + registry class typed, 1 test passes (3 skipped)
+- ✅ **Compute/Subsystem (compute/subsystem.py)**: Complete - all functions typed including ces(), sia(), phi(), ConceptStyleSystem, 9 tests pass
+- ✅ **Compute/Network (compute/network.py)**: Complete - all 7 network-level functions typed, 9 tests pass
+- ✅ **Connectivity (connectivity.py)**: Complete - all 10 functions typed with improved NDArray annotations, 10 tests pass
+- ✅ **Relations (relations.py)**: Complete - main public API functions typed, 5 tests pass (11 skipped)
 
-**Configuration**: [pyproject.toml](pyproject.toml) updated with Phase 1 & 2 modules in mypy strict mode
+**Next Steps**: Enable mypy strict mode for Phase 4 modules, then proceed to Phase 5
+
+**Configuration**: [pyproject.toml](pyproject.toml) updated with Phase 1, 2, 3 (partial), and 4 (partial) modules in mypy strict mode
 
 ---
 
