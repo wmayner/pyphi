@@ -7,11 +7,13 @@ This is the primary object of PyPhi and the context of all |small_phi| and
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable
+from collections.abc import Sequence
 from typing import Any
 
 import numpy as np
-from numpy.typing import ArrayLike, NDArray
+from numpy.typing import ArrayLike
+from numpy.typing import NDArray
 
 from . import cache
 from . import connectivity
@@ -21,7 +23,10 @@ from . import validate
 from .direction import Direction
 from .labels import NodeLabels
 from .tpm import ExplicitTPM
-from .types import ConnectivityMatrix, Mechanism, NodeIndices, Purview
+from .types import ConnectivityMatrix
+from .types import Mechanism
+from .types import NodeIndices
+from .types import Purview
 
 
 class Network:
@@ -109,9 +114,7 @@ class Network:
         """
         return self._cm
 
-    def _build_cm(
-        self, cm: ArrayLike | None
-    ) -> tuple[ConnectivityMatrix, int]:
+    def _build_cm(self, cm: ArrayLike | None) -> tuple[ConnectivityMatrix, int]:
         """Convert the passed CM to the proper format, or construct the
         unitary CM if none was provided.
         """
@@ -145,7 +148,7 @@ class Network:
     @property
     def num_states(self) -> int:
         """int: The number of possible states of the network."""
-        return int(2**self.size)
+        return 2**self.size
 
     @property
     def node_indices(self) -> NodeIndices:
@@ -182,7 +185,7 @@ class Network:
 
     def __len__(self) -> int:
         """int: The number of nodes in the network."""
-        return int(self.tpm.shape[-1])
+        return self.tpm.shape[-1]
 
     def __repr__(self) -> str:
         return f"Network({self.tpm}, cm={self.cm})"

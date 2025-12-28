@@ -40,7 +40,7 @@ class CESMeasureRegistry(Registry):
         super().__init__()
         self._asymmetric: list[str] = []
 
-    def register(
+    def register(  # type: ignore[override]  # Intentionally extends base signature with asymmetric parameter
         self, name: str, asymmetric: bool = False
     ) -> Callable[[Callable[..., float]], Callable[..., float]]:
         """Decorator for registering a CES measure with PyPhi.
@@ -57,7 +57,7 @@ class CESMeasureRegistry(Registry):
         ) -> Callable[..., float]:
             if asymmetric:
                 self._asymmetric.append(name)
-            self.store[name] = func
+            self.store[name] = func  # type: ignore[assignment]  # Registry[T] specialized to float
             return func
 
         return register_func
@@ -106,11 +106,11 @@ def emd_concept_distance(c1: Concept, c2: Concept) -> float:
     effect_purview = tuple(set(c1.effect.purview + c2.effect.purview))
     # Take the sum
     return emd_ground_distance(
-        c1.expand_cause_repertoire(cause_purview),
-        c2.expand_cause_repertoire(cause_purview),
+        c1.expand_cause_repertoire(cause_purview),  # type: ignore[attr-defined]  # Legacy IIT 3.0 code
+        c2.expand_cause_repertoire(cause_purview),  # type: ignore[attr-defined]  # Legacy IIT 3.0 code
     ) + emd_ground_distance(
-        c1.expand_effect_repertoire(effect_purview),
-        c2.expand_effect_repertoire(effect_purview),
+        c1.expand_effect_repertoire(effect_purview),  # type: ignore[attr-defined]  # Legacy IIT 3.0 code
+        c2.expand_effect_repertoire(effect_purview),  # type: ignore[attr-defined]  # Legacy IIT 3.0 code
     )
 
 
@@ -250,6 +250,6 @@ def ces_distance(
     Returns:
         float: The distance between the two cause-effect structures.
     """
-    measure = config.CES_DISTANCE if measure is None else measure
-    dist = measures[measure](C1, C2)
+    measure_name: str = config.CES_DISTANCE if measure is None else measure
+    dist: float = measures[measure_name](C1, C2)
     return round(dist, config.PRECISION)

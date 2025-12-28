@@ -4,7 +4,8 @@
 from __future__ import annotations
 
 import numpy as np
-from numpy.typing import ArrayLike, NDArray
+from numpy.typing import ArrayLike
+from numpy.typing import NDArray
 from scipy.sparse.csgraph import connected_components
 
 
@@ -156,7 +157,7 @@ def block_cm(cm: ArrayLike) -> bool:
             return True
 
         # Recompute sources, sinks, and sink_inputs
-        sources = list(sink_inputs)  # Convert NDArray to list
+        sources = sink_inputs
         sinks = outputs_of(sources)
         sink_inputs = inputs_to(sinks)
 
@@ -197,7 +198,7 @@ def _connected(cm: ArrayLike, nodes: tuple[int, ...] | None, connection: str) ->
     cm_to_check: ArrayLike = subadjacency(cm, nodes) if nodes is not None else cm
 
     num_components, _ = connected_components(cm_to_check, connection=connection)
-    return bool(num_components < 2)
+    return num_components < 2
 
 
 def is_strong(cm: ArrayLike, nodes: tuple[int, ...] | None = None) -> bool:

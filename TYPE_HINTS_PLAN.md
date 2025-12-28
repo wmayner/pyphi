@@ -45,7 +45,7 @@
 - Added TODO comments in pyproject.toml for modules that need strict mode fixes
 
 **Next Steps**:
-1. Fix remaining Phase 4 modules to enable strict mode (ces.py, compute/, relations.py) - OR defer to separate effort
+1. Fix remaining Phase 4 modules to enable strict mode (ces.py, compute/, relations.py)
 2. Proceed to Phase 5: Configuration System (conf.py)
 
 **Configuration**: [pyproject.toml](pyproject.toml) updated with Phase 1, 2, 3 (partial), and 4 (5/9 modules) in mypy strict mode
@@ -589,6 +589,16 @@ warn_unreachable = true       # ✓ Add
 
 ## Type Annotation Standards
 
+### Audit Completed (2025-12-28)
+
+**Status**: All Phase 1-4 modules audited and confirmed to use Python 3.12+ syntax.
+
+**Modernization applied**:
+- ✅ `pyphi/new_big_phi/__init__.py`: Removed `Optional`, `Tuple`, `Union` imports; added `from __future__ import annotations`
+- ✅ `pyphi/parallel/__init__.py`: Removed `List`, `Optional` imports; added `from __future__ import annotations`
+
+**Result**: 100% of typed code now uses modern Python 3.12+ patterns.
+
 ### 1. Modern Python 3.12+ Syntax
 ```python
 # ✅ DO (Python 3.12+)
@@ -768,15 +778,15 @@ Ensure no tests fail due to type changes (should be zero impact since type hints
 
 ## Estimated Timeline & Effort
 
-| Phase | Description | Hours | Weeks |
-|-------|-------------|-------|-------|
-| 1 | Foundation & Standards | 30-40 | 2 |
-| 2 | Models & Data Structures | 60-70 | 2 |
-| 3 | Core Abstractions | 82-97 | 3 |
-| 4 | Computational Modules | 86-100 | 3 |
-| 5 | Supporting Modules | 64-76 | 2 |
-| 6 | Specialized Modules | 30-36 | 2 |
-| **Total** | **Complete Coverage** | **352-419** | **14** |
+| Phase     | Description              | Hours       | Weeks  |
+| --------- | ------------------------ | ----------- | ------ |
+| 1         | Foundation & Standards   | 30-40       | 2      |
+| 2         | Models & Data Structures | 60-70       | 2      |
+| 3         | Core Abstractions        | 82-97       | 3      |
+| 4         | Computational Modules    | 86-100      | 3      |
+| 5         | Supporting Modules       | 64-76       | 2      |
+| 6         | Specialized Modules      | 30-36       | 2      |
+| **Total** | **Complete Coverage**    | **352-419** | **14** |
 
 **Resource Allocation**:
 - **1 FTE developer**: 14 weeks (40 hrs/week)

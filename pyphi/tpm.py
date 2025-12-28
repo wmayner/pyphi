@@ -4,12 +4,14 @@
 from __future__ import annotations
 
 import math
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable
+from collections.abc import Mapping
 from itertools import chain
 from typing import Any
 
 import numpy as np
-from numpy.typing import ArrayLike, NDArray
+from numpy.typing import ArrayLike
+from numpy.typing import NDArray
 
 from . import convert
 from . import data_structures
@@ -408,7 +410,7 @@ class ExplicitTPM(data_structures.ArrayLike):
 
     def is_deterministic(self) -> bool:
         """Return whether the TPM is deterministic."""
-        return bool(np.all(np.logical_or(self._tpm == 1, self._tpm == 0)))
+        return np.all(np.logical_or(self._tpm == 1, self._tpm == 0))
 
     def is_state_by_state(self) -> bool:
         """Return ``True`` if ``tpm`` is in state-by-state form, otherwise
@@ -416,7 +418,9 @@ class ExplicitTPM(data_structures.ArrayLike):
         """
         return self.ndim == 2 and self.shape[0] == self.shape[1]
 
-    def subtpm(self, fixed_nodes: tuple[int, ...], state: tuple[int, ...]) -> ExplicitTPM:
+    def subtpm(
+        self, fixed_nodes: tuple[int, ...], state: tuple[int, ...]
+    ) -> ExplicitTPM:
         """Return the TPM for a subset of nodes, conditioned on other nodes.
 
         Arguments:
@@ -562,7 +566,10 @@ def reconstitute_tpm(subsystem: Any) -> NDArray[np.float64]:
 
 
 def simulate(
-    tpm: ExplicitTPM | ArrayLike, initial_state: int, timesteps: int, rng: np.random.Generator
+    tpm: ExplicitTPM | ArrayLike,
+    initial_state: int,
+    timesteps: int,
+    rng: np.random.Generator,
 ) -> list[int]:
     """Simulate the dynamics of a system.
 
@@ -608,7 +615,10 @@ def simulate(
 
 # TODO(tpm) remove pending ArrayLike refactor
 def _new_attribute(
-    name: str, closures: set[str], tpm: NDArray[np.float64], cls: type[ExplicitTPM] = ExplicitTPM
+    name: str,
+    closures: set[str],
+    tpm: NDArray[np.float64],
+    cls: type[ExplicitTPM] = ExplicitTPM,
 ) -> object:
     """Helper function to return adequate proxy attributes for TPM arrays.
 
@@ -659,7 +669,9 @@ def _new_attribute(
     return overriding_attribute
 
 
-def probability_of_current_state(sbn_tpm: ExplicitTPM, current_state: tuple[int, ...]) -> NDArray[np.float64]:
+def probability_of_current_state(
+    sbn_tpm: ExplicitTPM, current_state: tuple[int, ...]
+) -> NDArray[np.float64]:
     """Return the probability of the current state as a distribution over previous states.
 
     Arguments:

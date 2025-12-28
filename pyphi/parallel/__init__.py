@@ -1,6 +1,8 @@
 # parallel/__init__.py
 """Provides an interface for distributed computation."""
 
+from __future__ import annotations
+
 import functools
 import logging
 import multiprocessing
@@ -10,8 +12,6 @@ from itertools import cycle
 from textwrap import indent
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import List
-from typing import Optional
 
 if TYPE_CHECKING:
     from ray import ObjectRef

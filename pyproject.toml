@@ -58,7 +58,7 @@ dev = [
     "build",
     "coverage",
     "hypothesis",
-    "mypy",
+    "pyright>=1.1.407",
     "pytest<8.0.0",
     "pytest-lazy-fixture",
     "ruff",
@@ -223,50 +223,17 @@ ignore_errors = true
 [tool.coverage.html]
 directory = "htmlcov"
 
-[tool.mypy]
-python_version = "3.12"
-warn_return_any = false
-warn_unused_configs = true
-disallow_untyped_defs = false  # Permissive for now
-check_untyped_defs = false     # Permissive for now
-ignore_missing_imports = true  # Many deps lack stubs
-no_implicit_optional = false   # Permissive for now
-warn_redundant_casts = true
-warn_unused_ignores = true
-# Gradually enable stricter checks as type hints are added
-
-# Phase 1, 2, 3 & 4 (partial): Foundation, Standards, Models, Core Abstractions & Computational - Strict typing enabled
-[[tool.mypy.overrides]]
-module = [
-    # Phase 1: Foundation & Standards
-    "pyphi.types",
-    "pyphi.data_structures.*",
-    "pyphi.utils",
-    "pyphi.constants",
-    "pyphi.exceptions",
-    "pyphi.direction",
-    "pyphi.validate",
-    "pyphi.combinatorics",
-    "pyphi.labels",
-    # Phase 2: Models & Data Structures
-    "pyphi.models.*",
-    # Phase 3: Core Abstractions
-    "pyphi.tpm",
-    "pyphi.network",
-    # pyphi.subsystem - not yet in strict mode (has some dependencies not yet typed)
-    # Phase 4: Computational Modules
-    "pyphi.repertoire",
-    "pyphi.distribution",
-    "pyphi.metrics.distribution",
-    "pyphi.partition",
-    "pyphi.connectivity",
-    # TODO: Enable strict mode for these modules (they have type hints but need fixes):
-    # "pyphi.metrics.ces",
-    # "pyphi.compute.subsystem",
-    # "pyphi.compute.network",
-    # "pyphi.relations",
-]
-disallow_untyped_defs = true
-check_untyped_defs = true
-no_implicit_optional = true
-warn_return_any = true
+[tool.pyright]
+include = ["pyphi"]
+exclude = ["**/__pycache__", "test", "docs", "benchmarks", "profiling"]
+pythonVersion = "3.12"
+typeCheckingMode = "standard"  # Start at standard, not basic
+reportMissingImports = false
+reportMissingTypeStubs = false
+reportUnknownMemberType = false  # Disable for gradual migration
+reportUnknownArgumentType = false
+reportUnknownVariableType = false
+# Enable stricter checks as we progress
+reportGeneralTypeIssues = true
+reportOptionalMemberAccess = true
+reportOptionalSubscript = true

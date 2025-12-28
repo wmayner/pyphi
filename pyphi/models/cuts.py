@@ -3,7 +3,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator, Sequence
+from collections.abc import Iterator
+from collections.abc import Sequence
 from dataclasses import dataclass
 from itertools import chain
 from typing import Any
@@ -11,10 +12,12 @@ from typing import Any
 import numpy as np
 from numpy.typing import NDArray
 
-from .. import connectivity, utils
+from .. import connectivity
+from .. import utils
 from ..direction import Direction
 from ..labels import NodeLabels
-from . import cmp, fmt
+from . import cmp
+from . import fmt
 
 
 class _CutBase:
@@ -348,10 +351,11 @@ class GeneralKCut(_CutBase):
 
     @cmp.sametype
     def __eq__(self, other: object) -> bool:
-        return bool(
+        return (
             self.node_indices == other.node_indices  # type: ignore[attr-defined]
             and np.array_equal(
-                self._cut_matrix, other._cut_matrix  # type: ignore[attr-defined]
+                self._cut_matrix,
+                other._cut_matrix,  # type: ignore[attr-defined]
             )
         )
 

@@ -28,9 +28,8 @@ repos:
     # Run the formatter
     - id: ruff-format
 
-- repo: https://github.com/pre-commit/mirrors-mypy
-  rev: v1.13.0
+- repo: https://github.com/RobertCraigie/pyright-python
+  rev: v1.1.390
   hooks:
-    - id: mypy
+    - id: pyright
       additional_dependencies: [types-PyYAML]
-      args: [--ignore-missing-imports]

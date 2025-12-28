@@ -6,10 +6,10 @@ from __future__ import annotations
 import functools
 import logging
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
+from typing import Any
 
 import numpy as np
-from numpy.typing import ArrayLike
 from tqdm.auto import tqdm
 
 from . import cache
@@ -42,20 +42,19 @@ from .node import generate_nodes
 from .parallel import MapReduce
 from .partition import mip_partitions
 from .tpm import backward_tpm as _backward_tpm
-from .types import (
-    ConnectivityMatrix,
-    Mechanism,
-    NodeIndices,
-    Purview,
-    Repertoire,
-    State,
-)
+from .types import ConnectivityMatrix
+from .types import Mechanism
+from .types import NodeIndices
+from .types import Purview
+from .types import Repertoire
+from .types import State
 from .utils import state_of
 
 if TYPE_CHECKING:
     from .cache import DictCache
     from .labels import NodeLabels
-    from .models.cuts import Bipartition, Cut
+    from .models.cuts import Bipartition
+    from .models.cuts import Cut
     from .network import Network
     from .node import Node
 
@@ -244,7 +243,7 @@ class Subsystem:
         # forward and backward TPM sizes should be the same
         if self.cause_tpm.shape[-1] != self.effect_tpm.shape[-1]:
             raise ValueError("cause and effect TPM sizes should be the same")
-        return int(self.effect_tpm.shape[-1])
+        return self.effect_tpm.shape[-1]
 
     def cache_info(self) -> dict[str, Any]:
         """Report repertoire cache statistics."""
@@ -367,9 +366,7 @@ class Subsystem:
 
     # TODO extend to nonbinary nodes
     @cache.method("_repertoire_cache", Direction.CAUSE)
-    def _cause_repertoire(
-        self, mechanism: Mechanism, purview: Purview
-    ) -> Repertoire:
+    def _cause_repertoire(self, mechanism: Mechanism, purview: Purview) -> Repertoire:
         # Use a frozenset so the arguments to `_single_node_cause_repertoire`
         # can be hashed and cached.
         purview_set: frozenset[int] = frozenset(purview)
@@ -649,9 +646,7 @@ class Subsystem:
     def forward_effect_repertoire(
         self, mechanism: Mechanism, purview: Purview, **kwargs: Any
     ) -> Repertoire:
-        return _repertoire.forward_effect_repertoire(
-            self, mechanism, purview, **kwargs
-        )
+        return _repertoire.forward_effect_repertoire(self, mechanism, purview, **kwargs)
 
     def unconstrained_forward_repertoire(
         self, direction: Direction, mechanism: Mechanism, purview: Purview
@@ -735,9 +730,7 @@ class Subsystem:
         """Alias for |expand_repertoire()| with ``direction`` set to |EFFECT|."""
         return self.expand_repertoire(Direction.EFFECT, repertoire, new_purview)
 
-    def cause_info(
-        self, mechanism: Mechanism, purview: Purview, **kwargs: Any
-    ) -> float:
+    def cause_info(self, mechanism: Mechanism, purview: Purview, **kwargs: Any) -> float:
         """Return the cause information for a mechanism over a purview."""
         return _repertoire_distance(
             self.cause_repertoire(mechanism, purview),
