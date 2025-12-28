@@ -254,11 +254,17 @@ module = [
     "pyphi.tpm",
     "pyphi.network",
     # pyphi.subsystem - not yet in strict mode (has some dependencies not yet typed)
-    # Phase 4: Computational Modules (partial)
+    # Phase 4: Computational Modules
     "pyphi.repertoire",
     "pyphi.distribution",
     "pyphi.metrics.distribution",
     "pyphi.partition",
+    "pyphi.connectivity",
+    # TODO: Enable strict mode for these modules (they have type hints but need fixes):
+    # "pyphi.metrics.ces",
+    # "pyphi.compute.subsystem",
+    # "pyphi.compute.network",
+    # "pyphi.relations",
 ]
 disallow_untyped_defs = true
 check_untyped_defs = true

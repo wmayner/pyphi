@@ -1,14 +1,13 @@
 # new_big_phi/__init__.py
 """Implements the IIT 4.0 formalism for system-level analysis."""
 
+from __future__ import annotations
+
 from collections.abc import Iterable
 from dataclasses import dataclass
 from enum import Enum
 from enum import auto
 from enum import unique
-from typing import Optional
-from typing import Tuple
-from typing import Union
 
 from .. import compute
 from .. import conf

@@ -23,20 +23,32 @@
 - ✅ **Network (network.py)**: Complete - all 15 methods typed, mypy strict mode enabled, tests pass
 - ✅ **Subsystem (subsystem.py)**: Major public methods complete (~54 public methods typed, 21 tests pass)
 
-**Phase 4: Computational Modules** ✅ **COMPLETED** (2025-12-27)
-- ✅ **Repertoire (repertoire.py)**: Complete - all 6 functions typed, 62 tests pass
-- ✅ **Distribution (distribution.py)**: Complete - all 11 functions typed, 11 tests pass
-- ✅ **Metrics/Distribution (metrics/distribution.py)**: Complete - added missing return types, 99 non-EMD tests pass
-- ✅ **Partition (partition.py)**: Complete - modernized all type syntax to Python 3.12+, 10 tests pass
-- ✅ **Metrics/CES (metrics/ces.py)**: Complete - all 8 functions + registry class typed, 1 test passes (3 skipped)
-- ✅ **Compute/Subsystem (compute/subsystem.py)**: Complete - all functions typed including ces(), sia(), phi(), ConceptStyleSystem, 9 tests pass
-- ✅ **Compute/Network (compute/network.py)**: Complete - all 7 network-level functions typed, 9 tests pass
-- ✅ **Connectivity (connectivity.py)**: Complete - all 10 functions typed with improved NDArray annotations, 10 tests pass
-- ✅ **Relations (relations.py)**: Complete - main public API functions typed, 5 tests pass (11 skipped)
+**Phase 4: Computational Modules** 🔄 **PARTIALLY COMPLETED** (2025-12-28)
 
-**Next Steps**: Enable mypy strict mode for Phase 4 modules, then proceed to Phase 5
+**Strict Mode Enabled:**
+- ✅ **Repertoire (repertoire.py)**: Complete - all 6 functions typed, 62 tests pass, **STRICT MODE ✓**
+- ✅ **Distribution (distribution.py)**: Complete - all 11 functions typed, 11 tests pass, **STRICT MODE ✓**
+- ✅ **Metrics/Distribution (metrics/distribution.py)**: Complete - added missing return types, 99 non-EMD tests pass, **STRICT MODE ✓**
+- ✅ **Partition (partition.py)**: Complete - modernized all type syntax to Python 3.12+, 10 tests pass, **STRICT MODE ✓**
+- ✅ **Connectivity (connectivity.py)**: Complete - all 10 functions typed with `np.asarray()` conversions for ArrayLike parameters, 10 tests pass, **STRICT MODE ✓**
 
-**Configuration**: [pyproject.toml](pyproject.toml) updated with Phase 1, 2, 3 (partial), and 4 (partial) modules in mypy strict mode
+**Type Hints Added (Strict Mode Pending):**
+- ⚠️ **Metrics/CES (metrics/ces.py)**: Type hints added but NOT in strict mode - needs fixes for registry override and Concept attribute issues
+- ⚠️ **Compute/Subsystem (compute/subsystem.py)**: Type hints added but NOT in strict mode - needs fixes for return type issues and type narrowing
+- ⚠️ **Compute/Network (compute/network.py)**: Type hints added but NOT in strict mode - needs fixes for return type issues
+- ⚠️ **Relations (relations.py)**: Type hints added but NOT in strict mode - many missing type annotations and property issues
+
+**Key Changes (2025-12-28):**
+- Added `np.asarray()` conversions in connectivity.py to properly handle ArrayLike → NDArray transitions
+- Fixed type issues with numpy integer types (`np.intp` vs `int`) using explicit `int()` conversions where needed
+- Used `bool()` wrapper for numpy boolean scalars to satisfy mypy strict mode
+- Added TODO comments in pyproject.toml for modules that need strict mode fixes
+
+**Next Steps**:
+1. Fix remaining Phase 4 modules to enable strict mode (ces.py, compute/, relations.py) - OR defer to separate effort
+2. Proceed to Phase 5: Configuration System (conf.py)
+
+**Configuration**: [pyproject.toml](pyproject.toml) updated with Phase 1, 2, 3 (partial), and 4 (5/9 modules) in mypy strict mode
 
 ---
 
