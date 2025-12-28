@@ -1,7 +1,7 @@
 # repertoire.py
 """Compute cause-effect repertoires."""
 
-from typing import Callable, Tuple
+from typing import Tuple
 
 import numpy as np
 from numpy.typing import ArrayLike
@@ -59,9 +59,14 @@ def forward_cause_probability(
 
 
 def forward_cause_repertoire(
-    subsystem, mechanism: Tuple[int], purview: Tuple[int], purview_state=None
+    subsystem,
+    mechanism: Tuple[int],
+    purview: Tuple[int],
+    purview_state=None,
+    mechanism_state=None,
 ) -> ArrayLike:
-    mechanism_state = utils.state_of(mechanism, subsystem.state)
+    if mechanism_state is None:
+        mechanism_state = utils.state_of(mechanism, subsystem.state)
     if purview:
         repertoire = np.empty([2] * len(purview))
         if purview_state is None:
@@ -115,3 +120,20 @@ def unconstrained_forward_cause_repertoire(
     repertoire = np.empty(repertoire_shape(subsystem.network.node_indices, purview))
     repertoire.fill(mean_forward_cause_probability)
     return repertoire
+
+
+def forward_repertoire(
+    subsystem,
+    direction: Direction,
+    mechanism: Tuple[int],
+    purview: Tuple[int],
+    mechanism_state=None,
+) -> ArrayLike:
+    """Return the forward repertoire of a mechanism over a purview."""
+    if direction is Direction.CAUSE:
+        func = forward_cause_repertoire
+    elif direction is Direction.EFFECT:
+        func = forward_effect_repertoire
+    else:
+        raise ValueError(f"Invalid direction: {direction}. Must be CAUSE or EFFECT.")
+    return func(subsystem, mechanism, purview, mechanism_state=mechanism_state)

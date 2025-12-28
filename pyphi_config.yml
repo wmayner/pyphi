@@ -113,10 +113,12 @@ REDIS_CONFIG:
 # analyzing a system.
 RELATION_COMPUTATION: CONCRETE
 # The measure to use when computing integration ("EMD", "KLD", "L1", ...)
-REPERTOIRE_DISTANCE: GENERALIZED_INTRINSIC_DIFFERENCE
-# The measure to use when computing intrinsic information and findind the
+REPERTOIRE_DISTANCE: INTRINSIC_INFORMATION
+# The measure to use when computing intrinsic information and finding the
 # specified state
-REPERTOIRE_DISTANCE_INFORMATION: GENERALIZED_INTRINSIC_DIFFERENCE
+REPERTOIRE_DISTANCE_SPECIFICATION: INTRINSIC_SPECIFICATION
+# The measure to use when computing intrinsic differentiation
+REPERTOIRE_DISTANCE_DIFFERENTIATION: INTRINSIC_DIFFERENTIATION
 # Controls whether pretty __str__-like formatting is used in repr calls.
 REPR_VERBOSITY: 2
 # Controls whether SIA calculations short-circuit if an a-priori reducibility

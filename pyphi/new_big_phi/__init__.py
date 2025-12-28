@@ -5,7 +5,18 @@ from dataclasses import dataclass
 from enum import Enum, auto, unique
 from typing import Iterable, Optional, Tuple, Union
 
-from .. import compute, conf, connectivity, utils, validate
+import numpy as np
+
+from .. import (
+    compute,
+    conf,
+    connectivity,
+    utils,
+    validate,
+    metrics,
+    repertoire,
+    distribution,
+)
 from ..compute.network import reachable_subsystems
 from ..parallel import MapReduce
 from ..conf import config, fallback
@@ -36,7 +47,7 @@ def system_intrinsic_information(
 ) -> SystemStateSpecification:
     """Return the cause/effect states specified by the system.
 
-    NOTE: Uses ``config.REPERTOIRE_DISTANCE_INFORMATION``.
+    NOTE: Uses ``config.REPERTOIRE_DISTANCE_SPECIFICATION``.
     NOTE: State ties are arbitrarily broken (for now).
     """
     directions = fallback(directions, Direction.both())
@@ -45,7 +56,7 @@ def system_intrinsic_information(
     # TODO have validation methods return the validated value
     validate.directions(directions)
     repertoire_distance = fallback(
-        repertoire_distance, config.REPERTOIRE_DISTANCE_INFORMATION
+        repertoire_distance, config.REPERTOIRE_DISTANCE_SPECIFICATION
     )
     # TODO(ties) deal with ties here
     ii = {
@@ -69,7 +80,7 @@ def system_intrinsic_information(
 
 @dataclass
 class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
-    phi: float
+    phi: Union[float, metrics.distribution.DistanceResult]
     partition: Union[Cut, SystemPartition]
     normalized_phi: float = 0
     cause: Optional[RepertoireIrreducibilityAnalysis] = None
@@ -78,11 +89,19 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
     current_state: Optional[Tuple[int]] = None
     node_indices: Optional[Tuple[int]] = None
     node_labels: Optional[NodeLabels] = None
+    intrinsic_differentiation: Optional[dict] = None
     reasons: Optional[list] = None
 
     def __post_init__(self):
-        self.phi = PyPhiFloat(self.phi)
-        self.normalized_phi = PyPhiFloat(self.normalized_phi)
+        if not isinstance(self.phi, metrics.distribution.DistanceResult):
+            self.phi = PyPhiFloat(self.phi)
+        if not isinstance(self.normalized_phi, metrics.distribution.DistanceResult):
+            self.normalized_phi = PyPhiFloat(self.normalized_phi)
+        if self.intrinsic_differentiation is None:
+            self.intrinsic_differentiation = {
+                Direction.CAUSE: PyPhiFloat(0),
+                Direction.EFFECT: PyPhiFloat(0),
+            }
 
     _sia_attributes = [
         "phi",
@@ -93,6 +112,7 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
         "system_state",
         "current_state",
         "node_indices",
+        "intrinsic_differentiation",
     ]
 
     def order_by(self):
@@ -139,6 +159,22 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
                 ("Current state", fmt.state(self.current_state)),
                 (f"           {fmt.SMALL_PHI}_s", self.phi),
                 (f"Normalized {fmt.SMALL_PHI}_s", self.normalized_phi),
+                (
+                    f"Int. diff. CAUSE",
+                    (
+                        self.intrinsic_differentiation[Direction.CAUSE]
+                        if self.intrinsic_differentiation
+                        else None
+                    ),
+                ),
+                (
+                    f"Int. diff. EFFECT",
+                    (
+                        self.intrinsic_differentiation[Direction.EFFECT]
+                        if self.intrinsic_differentiation
+                        else None
+                    ),
+                ),
             ]
             + self.system_state._repr_columns()
             + [("#(tied MIPs)", len(self.ties) - 1), ("Partition", "")]
@@ -206,18 +242,22 @@ def integration_value(
     repertoire_distance = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
     cut_subsystem = subsystem.apply_cut(partition)
     # TODO(4.0) deal with proliferation of special cases for GID
-    if repertoire_distance == "GENERALIZED_INTRINSIC_DIFFERENCE":
+    mechanism = purview = subsystem.node_indices
+    if repertoire_distance in [
+        "GENERALIZED_INTRINSIC_DIFFERENCE",
+        "INTRINSIC_INFORMATION",
+    ]:
         partitioned_repertoire = cut_subsystem.forward_repertoire(
             direction,
-            subsystem.node_indices,
-            subsystem.node_indices,
+            mechanism,
+            purview,
             system_state[direction].state,
         ).squeeze()[system_state[direction].state]
     else:
         partitioned_repertoire = cut_subsystem.repertoire(
             direction, subsystem.node_indices, subsystem.node_indices
         )
-    return subsystem.evaluate_partition(
+    ria = subsystem.evaluate_partition(
         direction,
         subsystem.node_indices,
         subsystem.node_indices,
@@ -225,6 +265,35 @@ def integration_value(
         partitioned_repertoire=partitioned_repertoire,
         repertoire_distance=repertoire_distance,
         state=system_state[direction],
+    )
+    return ria
+
+
+def intrinsic_differentiation_value(
+    direction: Direction,
+    subsystem: Subsystem,
+    partition: Cut,
+) -> float:
+    cut_subsystem = subsystem.apply_cut(partition)
+    mechanism = purview = subsystem.node_indices
+
+    unpartitioned_repertoire = repertoire.forward_repertoire(
+        subsystem,
+        direction,
+        mechanism,
+        purview,
+    )
+    partitioned_repertoire = repertoire.forward_repertoire(
+        cut_subsystem,
+        direction,
+        mechanism,
+        purview,
+    )
+
+    return metrics.distribution.intrinsic_differentiation(
+        unpartitioned_repertoire,
+        partitioned_repertoire,
+        state=subsystem.proper_state,
     )
 
 
@@ -252,7 +321,16 @@ def evaluate_partition(
     norm = normalization_factor(partition)
     normalized_phi = phi * norm
 
-    return SystemIrreducibilityAnalysis(
+    intrinsic_differentiation = {
+        direction: intrinsic_differentiation_value(
+            direction,
+            subsystem,
+            partition,
+        )
+        for direction in directions
+    }
+
+    result = SystemIrreducibilityAnalysis(
         phi=phi,
         normalized_phi=normalized_phi,
         cause=integration.get(Direction.CAUSE),
@@ -262,7 +340,9 @@ def evaluate_partition(
         current_state=subsystem.proper_state,
         node_indices=subsystem.node_indices,
         node_labels=subsystem.node_labels,
+        intrinsic_differentiation=intrinsic_differentiation,
     )
+    return result
 
 
 @unique
@@ -560,14 +640,18 @@ def all_complexes(network, state, **kwargs):
         yield sia(subsystem, **kwargs)
 
 
-def irreducible_complexes(network, state, **kwargs):
+def irreducible_complexes(network, state, complexes=None, **kwargs):
     """Yield SIAs for irreducible subsystems of the network."""
     # TODO(4.0) parallelize
-    yield from filter(None, all_complexes(network, state, **kwargs))
+    complexes = (
+        all_complexes(network, state, **kwargs) if complexes is None else complexes
+    )
+    yield from filter(None, complexes)
 
 
-def maximal_complex(network, state, **kwargs):
+def maximal_complex(network, state, complexes=None, **kwargs):
     # TODO(4.0) parallelize
     return max(
-        irreducible_complexes(network, state, **kwargs), default=NullPhiStructure()
+        irreducible_complexes(network, state, complexes=complexes, **kwargs),
+        default=NullPhiStructure(),
     )

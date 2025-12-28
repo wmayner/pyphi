@@ -29,6 +29,7 @@ class PyPhiFloat(float):
     def __ge__(self, other):
         return super().__ge__(other) or eq(self, other)
 
+
     def __hash__(self):
         return hash(round(self, config.PRECISION))
 

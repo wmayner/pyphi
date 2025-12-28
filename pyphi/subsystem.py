@@ -18,6 +18,7 @@ from .data_structures import FrozenMap
 from .direction import Direction
 from .distribution import max_entropy_distribution, repertoire_shape
 from .metrics.distribution import repertoire_distance as _repertoire_distance
+from .metrics.distribution import DistanceResult
 from .models import (
     Concept,
     MaximallyIrreducibleCause,
@@ -990,7 +991,7 @@ class Subsystem:
         states: Iterable[Iterable[int]] = None,
     ):
         repertoire_distance = fallback(
-            repertoire_distance, config.REPERTOIRE_DISTANCE_INFORMATION
+            repertoire_distance, config.REPERTOIRE_DISTANCE_SPECIFICATION
         )
         if states is None:
             states = utils.all_states(len(purview))
@@ -999,6 +1000,7 @@ class Subsystem:
         if repertoire_distance in [
             "GENERALIZED_INTRINSIC_DIFFERENCE",
             "INTRINSIC_INFORMATION",
+            "INTRINSIC_SPECIFICATION",
         ]:
             func = metrics.distribution.measures[repertoire_distance]
             # TODO(4.0) include selectivity_repertoire in StateSpecification

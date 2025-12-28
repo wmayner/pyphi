@@ -434,12 +434,13 @@ class PyphiConfig(Config):
     )
 
     REPERTOIRE_DISTANCE = Option(
-        "GENERALIZED_INTRINSIC_DIFFERENCE",
+        "INTRINSIC_INFORMATION",
         doc="""
-    The measure to use when computing distances between repertoires and
-    concepts. A full list of currently installed measures is available by
-    calling ``print(pyphi.distance.measures.all())``. Note that some measures
-    cannot be used for calculating |big_phi| because they are asymmetric.
+    The measure to use when computing distances between repertoires and concepts
+    for measuring integration. A full list of currently installed measures is
+    available by calling ``print(pyphi.distance.measures.all())``. Note that
+    some measures cannot be used for calculating |big_phi| because they are
+    asymmetric.
 
     Custom measures can be added using the ``pyphi.distance.measures.register``
     decorator. For example::
@@ -458,8 +459,16 @@ class PyphiConfig(Config):
     """,
     )
 
-    REPERTOIRE_DISTANCE_INFORMATION = Option(
-        "GENERALIZED_INTRINSIC_DIFFERENCE",
+    REPERTOIRE_DISTANCE_DIFFERENTIATION = Option(
+        "INTRINSIC_DIFFERENTIATION",
+        doc="""
+    The repertoire distance used for evaluating information specified by a
+    mechanism (i.e., finding the maximal state with respect to a purview).
+    """,
+    )
+
+    REPERTOIRE_DISTANCE_SPECIFICATION = Option(
+        "INTRINSIC_SPECIFICATION",
         doc="""
     The repertoire distance used for evaluating information specified by a
     mechanism (i.e., finding the maximal state with respect to a purview).

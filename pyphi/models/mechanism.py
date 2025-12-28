@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from enum import unique as unique_enum
 from functools import cached_property, total_ordering
-from typing import Iterable, Tuple
+from typing import Iterable, Tuple, Union
 
 import numpy as np
 from more_itertools import flatten
@@ -18,6 +18,7 @@ from .. import connectivity, utils, validate
 from ..conf import config
 from ..data_structures import PyPhiFloat
 from ..direction import Direction
+from ..metrics.distribution import DistanceResult
 from ..exceptions import WrongDirectionError
 from ..models import fmt
 from ..registry import Registry
@@ -54,12 +55,13 @@ class StateSpecification(ToDictMixin, ToPandasMixin):
     direction: Direction
     purview: Tuple[int]
     state: Tuple[int]
-    intrinsic_information: PyPhiFloat
+    intrinsic_information: Union[PyPhiFloat, DistanceResult]
     repertoire: ArrayLike
     unconstrained_repertoire: ArrayLike
 
     def __post_init__(self):
-        self.intrinsic_information = PyPhiFloat(self.intrinsic_information)
+        if not isinstance(self.intrinsic_information, DistanceResult):
+            self.intrinsic_information = PyPhiFloat(self.intrinsic_information)
 
     def set_ties(self, ties: Iterable):
         self._ties = ties
@@ -213,7 +215,11 @@ class RepertoireIrreducibilityAnalysis(
         selectivity=None,
         reasons=None,
     ):
-        self._phi = PyPhiFloat(phi)
+        # Preserve DistanceResult type if possible, otherwise convert to PyPhiFloat
+        if isinstance(phi, DistanceResult):
+            self._phi = phi
+        else:
+            self._phi = PyPhiFloat(phi)
         self._direction = direction
         self._mechanism = mechanism
         self._purview = purview
