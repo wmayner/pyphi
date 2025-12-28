@@ -2,6 +2,7 @@
 """Visualize distributions."""
 
 from math import log2
+import string
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -18,26 +19,44 @@ def all_states_str(*args, **kwargs):
         yield "".join(map(str, state))
 
 
-def _plot_distribution_bar(data, ax, label, **kwargs):
+def _plot_distribution_bar(
+    data,
+    ax,
+    label,
+    show_label=True,
+    label_font="monospace",
+    label_color="black",
+    **kwargs,
+):
     sb.barplot(data=data, x="state", y="probability", ax=ax, **kwargs)
 
-    plt.xticks(rotation=90, ha="center", va="top")
-    # Add state label
+    # Set xtick labels rotation and alignment using correct matplotlib API
     xtick_pad = 6
     xtick_length = 6
     ax.tick_params(axis="x", pad=xtick_pad, length=xtick_length)
-    ax.annotate(
-        str(label) if label is not None else "",
-        xy=(-0.5, 0),
-        xycoords="data",
-        xytext=(0, -(xtick_pad + xtick_length)),
-        textcoords="offset points",
-        annotation_clip=False,
+    plt.setp(
+        ax.get_xticklabels(),
         rotation=90,
-        ha="right",
+        ha="center",
         va="top",
+        fontname=label_font,
     )
 
+    # Add state label
+    if show_label:
+        ax.annotate(
+            str(label) if label is not None else "",
+            xy=(-0.5, 0),
+            xycoords="data",
+            xytext=(0, -(xtick_pad + xtick_length)),
+            textcoords="offset points",
+            annotation_clip=False,
+            rotation=90,
+            ha="right",
+            va="top",
+            fontname=label_font,
+            color=label_color,
+        )
     return ax
 
 
@@ -54,7 +73,7 @@ def plot_distribution(
     fig=None,
     ax=None,
     lineplot_threshold=64,
-    title="State distribution",
+    title=None,
     y_label="Pr(state)",
     validate=True,
     labels=None,
@@ -120,7 +139,8 @@ def plot_distribution(
     else:
         ax = _plot_distribution_bar(data, ax, label, hue="hue", **kwargs)
 
-    ax.set_title(title)
+    if title is not None:
+        ax.set_title(title)
     ax.set_ylabel(y_label, labelpad=12)
     ax.set_xlabel("state", labelpad=12)
     ax.legend(bbox_to_anchor=(1.1, 1.05))
@@ -129,10 +149,13 @@ def plot_distribution(
 
 
 def plot_repertoires(subsystem, sia, **kwargs):
-    if config.REPERTOIRE_DISTANCE != "GENERALIZED_INTRINSIC_DIFFERENCE":
+    if config.REPERTOIRE_DISTANCE not in [
+        "GENERALIZED_INTRINSIC_DIFFERENCE",
+        "INTRINSIC_INFORMATION",
+    ]:
         raise NotImplementedError(
             "Only REPERTOIRE_DISTANCE = "
-            "GENERALIZED_INTRINSIC_DIFFERENCE is supported"
+            "GENERALIZED_INTRINSIC_DIFFERENCE or INTRINSIC_INFORMATION is supported"
         )
     cut_subsystem = subsystem.apply_cut(sia.partition)
 

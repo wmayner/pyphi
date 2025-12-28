@@ -1,7 +1,12 @@
 # visualize/connectivity.py
 """Visualize system connectivity information."""
 
+import numpy as np
 import networkx as nx
+import matplotlib.pyplot as plt
+
+from .distribution import all_states_str
+
 
 NODE_COLORS = {
     # (in subsystem, state)
@@ -40,3 +45,47 @@ def plot_subsystem(subsystem, **kwargs):
         ]
     plot_graph(g, **kwargs)
     return g
+
+
+def plot_tpm(
+    tpm,
+    figsize=(10, 12),
+    clim=None,
+    cmap="viridis",
+    label_fontsize=8,
+    show_label_threshold=64,
+    xticks_top=True,
+):
+    fig = plt.figure(figsize=figsize)
+    ax = plt.axes()
+    im = ax.imshow(tpm, cmap=cmap)
+    plt.grid(False)
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+    cax = fig.add_axes(
+        [
+            ax.get_position().x1 + 0.05,
+            ax.get_position().y0,
+            0.05,
+            ax.get_position().height,
+        ]
+    )
+    plt.colorbar(im, cax=cax)
+    if clim is not None:
+        im.set_clim(*clim)
+    if tpm.shape[1] <= show_label_threshold:
+        ax.set_xticks(
+            list(range(tpm.shape[1])),
+            labels=all_states_str(int(np.log2(tpm.shape[1]))),
+            rotation=90,
+            fontsize=label_fontsize,
+        )
+        ax.xaxis.set_ticks_position("top" if xticks_top else "bottom")
+        ax.xaxis.set_label_position("top" if xticks_top else "bottom")
+    if tpm.shape[0] <= show_label_threshold:
+        ax.set_yticks(
+            list(range(tpm.shape[0])),
+            labels=all_states_str(int(np.log2(tpm.shape[0]))),
+            fontsize=label_fontsize,
+        )
+    return fig, ax
