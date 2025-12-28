@@ -1,3 +1,4 @@
+# pyright: strict
 """Type aliases for PyPhi.
 
 This module provides centralized type aliases used throughout the PyPhi codebase.
@@ -10,7 +11,7 @@ using raw primitive types or numpy types directly.
 from typing import TypeAlias
 
 import numpy as np
-from numpy.typing import ArrayLike, NDArray
+from numpy.typing import NDArray
 
 # =============================================================================
 # Node and State Types

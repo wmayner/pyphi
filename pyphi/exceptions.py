@@ -1,3 +1,4 @@
+# pyright: strict
 # exceptions.py
 """PyPhi exceptions."""
 

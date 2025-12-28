@@ -1,3 +1,4 @@
+# pyright: strict
 # data_structures/frozen_map.py
 
 import typing
@@ -12,7 +13,8 @@ class FrozenMap(typing.Mapping[K, V]):
     __slots__ = ("_dict", "_hash")
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
-        self._dict: dict[K, V] = dict(*args, **kwargs)
+        # Type ignore needed because dict(*args, **kwargs) can create various key types
+        self._dict: dict[K, V] = dict(*args, **kwargs)  # type: ignore[assignment]
         self._hash: int | None = None
 
     def __getitem__(self, key: K) -> V:

@@ -1,3 +1,4 @@
+# pyright: strict
 # constants.py
 """Package-wide constants."""
 

@@ -1,3 +1,4 @@
+# pyright: strict
 # direction.py
 """Causal directions."""
 
@@ -47,7 +48,9 @@ class Direction(IntEnum):
 
         from . import validate
 
-        return validate.direction(self)
+        validate.direction(self)
+        # This should never be reached; validate.direction raises for invalid directions
+        raise AssertionError(f"Unexpected direction: {self}")
 
     @classmethod
     def both(cls) -> tuple["Direction", "Direction"]:

@@ -1,6 +1,6 @@
+# pyright: strict
 # data_structures/hashable_ordered_set.py
 
-from typing import Any
 
 from ordered_set import OrderedSet
 
@@ -43,10 +43,11 @@ class HashableOrderedSet(OrderedSet):
             # If `other` can't be compared, it's not equal.
             return False
 
-    def __getstate__(self) -> tuple[list, ...]:
+    def __getstate__(self) -> tuple[list, ...]:  # type: ignore[override]
         # In pickle, the state can't be an empty list.
         # We need to return a truthy value, or else __setstate__ won't be run.
         # This ensures a truthy value even if the set is empty.
+        # NOTE: Override return type from OrderedSet for pickle compatibility
         return (list(self),)
 
     def __setstate__(self, state: tuple[list, ...]) -> None:

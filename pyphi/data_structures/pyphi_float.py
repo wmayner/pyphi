@@ -1,3 +1,4 @@
+# pyright: strict
 # data_structures/pyphi_float.py
 
 from typing import Any
@@ -36,7 +37,8 @@ class PyPhiFloat(float):
         return super().__ge__(other) or eq(self, other)
 
     def __hash__(self) -> int:
-        return hash(round(self, config.PRECISION))
+        precision = int(config.PRECISION)  # type: ignore[arg-type]  # config.PRECISION is an Option descriptor
+        return hash(round(self, precision))
 
     def to_json(self) -> dict[str, float]:
         return {"value": float(self)}

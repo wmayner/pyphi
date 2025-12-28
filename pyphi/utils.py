@@ -5,7 +5,9 @@ import hashlib
 import math
 import operator
 import os
-from collections.abc import Callable, Generator
+from collections.abc import Callable
+from collections.abc import Generator
+from collections.abc import Iterable
 from itertools import chain
 from itertools import combinations
 from itertools import product
@@ -108,7 +110,8 @@ class np_hashable:
 def eq(x: float, y: float) -> bool:
     """Compare two values up to |PRECISION|."""
     # TODO(4.0) just use float value in config
-    epsilon = 10 ** (-config.PRECISION)
+    precision = int(config.PRECISION)  # type: ignore[arg-type]  # config.PRECISION is an Option descriptor
+    epsilon = 10 ** (-precision)
     return math.isclose(x, y, rel_tol=epsilon, abs_tol=epsilon)
 
 
@@ -241,7 +244,7 @@ def powerset(
     _seq_sizes = range(min_size, max_size + 1)
 
     if reverse:
-        seq_sizes: range | reversed[int] = reversed(_seq_sizes)
+        seq_sizes: Iterable[int] = reversed(_seq_sizes)
         iterable.reverse()
     else:
         seq_sizes = _seq_sizes
