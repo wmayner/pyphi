@@ -46,13 +46,16 @@ class ToPandasMixin:
     def to_pandas(self) -> pd.Series | pd.DataFrame:
         """Convert the object to a Pandas data structure."""
         pandas_type: type[pd.Series] | type[pd.DataFrame] = pd.Series
+        data: Any
         if hasattr(self, "to_json"):
-            data: Any = self.to_json()
+            data = self.to_json()  # type: ignore[attr-defined]
             if isinstance(data, Sequence):
                 data = [try_to_dict(d) for d in data]
                 pandas_type = pd.DataFrame
         elif hasattr(self, "to_dict"):
-            data = self.to_dict()
+            data = self.to_dict()  # type: ignore[attr-defined]
+        else:
+            raise AttributeError("Object must have either 'to_json' or 'to_dict' method")
 
         df: pd.DataFrame = pd.json_normalize(data)
 

@@ -666,7 +666,7 @@ def fmt_ria(ria: object, verbose: bool = True, mip: bool = False) -> str:
         ]
     )
     if hasattr(ria, "num_purview_ties"):
-        data.append(f"#(purview ties): {ria.num_purview_ties}")
+        data.append(f"#(purview ties): {ria.num_purview_ties}")  # type: ignore[attr-defined]
     if ria.reasons is not None:  # type: ignore[attr-defined]
         data.append("Reasons: " + ", ".join(map(str, ria.reasons)))  # type: ignore[attr-defined]
     return "\n".join(data)

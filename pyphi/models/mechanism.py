@@ -172,7 +172,7 @@ def _(partition: object) -> int | float | None:
 
 
 def normalization_factor(partition: object) -> int | float | None:
-    func = distinction_phi_normalizations[config.DISTINCTION_PHI_NORMALIZATION]
+    func = distinction_phi_normalizations[config.DISTINCTION_PHI_NORMALIZATION]  # type: ignore[index]
     return func(partition)
 
 
@@ -278,7 +278,7 @@ class RepertoireIrreducibilityAnalysis(
         self._node_labels = node_labels
 
     @property
-    def phi(self):
+    def phi(self) -> PyPhiFloat:  # type: ignore[override]
         """PyPhiFloat: This is the difference between the mechanism's unpartitioned
         and partitioned repertoires.
         """
@@ -302,7 +302,10 @@ class RepertoireIrreducibilityAnalysis(
     @property
     def mechanism_label(self):
         """tuple[str]: The labels of the mechanism nodes."""
-        return self.node_labels.label_string(self.mechanism, self.mechanism_state)
+        assert self.node_labels is not None
+        return self.node_labels.label_string(
+            self.mechanism, self.mechanism_state  # type: ignore[arg-type]
+        )
 
     @property
     def mechanism_state(self):
@@ -319,7 +322,10 @@ class RepertoireIrreducibilityAnalysis(
     @property
     def purview_label(self):
         """tuple[str]: The labels of the mechanism nodes."""
-        return self.node_labels.label_string(self.purview, self.purview_state)
+        assert self.node_labels is not None
+        return self.node_labels.label_string(
+            self.purview, self.purview_state  # type: ignore[arg-type]
+        )
 
     @property
     def purview_state(self):
@@ -364,17 +370,20 @@ class RepertoireIrreducibilityAnalysis(
 
     @property
     def purview_units(self):
+        assert self.node_labels is not None
+        assert self.specified_state is not None
         return frozenset(
             (
                 Unit(index, state, label=self.node_labels.index2label(index))
                 for index, state in zip(
-                    self.specified_state.purview, self.specified_state, strict=False
+                    self.specified_state.purview, self.specified_state.state, strict=False
                 )
             )
         )
 
     def is_congruent(self, specified_state):
         """Whether the state specified by this RIA is congruent to the given one."""
+        assert self.specified_state is not None
         return self.specified_state.is_congruent(specified_state)
 
     @property
@@ -571,6 +580,8 @@ class MaximallyIrreducibleCauseOrEffect(
     ``>``, etc.). Comparison is based on |small_phi| value, then mechanism size.
     """
 
+    parent: Concept  # Set by Concept.__init__
+
     def __init__(self, ria):
         self._ria = ria
         self._state_ties = None
@@ -694,7 +705,7 @@ class MaximallyIrreducibleCauseOrEffect(
         ties = tuple(ties)
         self._state_ties = ties
         # Update state ties on other tied objects
-        for tie in flatten([self.partition_ties, self.purview_ties]):
+        for tie in concat(filter(None, [self.partition_ties, self.purview_ties])):
             tie._state_ties = ties
 
     @property
@@ -713,7 +724,7 @@ class MaximallyIrreducibleCauseOrEffect(
         ties = tuple(ties)
         self._partition_ties = ties
         # Update partition ties on other tied objects
-        for tie in flatten([self.state_ties, self.purview_ties]):
+        for tie in concat(filter(None, [self.state_ties, self.purview_ties])):
             tie._partition_ties = ties
 
     @property
@@ -767,7 +778,9 @@ class MaximallyIrreducibleCauseOrEffect(
     def order_by(self):
         return self.ria.order_by()
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, MaximallyIrreducibleCauseOrEffect):
+            return NotImplemented
         return self.ria == other.ria
 
     def __hash__(self):
@@ -930,6 +943,8 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
         self.effect = effect
         # Attach references to this object on the cause and effect
         # TODO(4.0) document this
+        assert self.cause is not None
+        assert self.effect is not None
         self.cause.parent = self
         self.effect.parent = self
 
@@ -941,12 +956,14 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
 
     # TODO use cached_property
     @property
-    def phi(self):
+    def phi(self) -> float:  # type: ignore[override]
         """float: The size of the concept.
 
         This is the minimum of the |small_phi| values of the concept's |MIC|
         and |MIE|.
         """
+        assert self.cause is not None
+        assert self.effect is not None
         return min(self.cause.phi, self.effect.phi)
 
     # TODO(4.0) rename?
@@ -970,7 +987,8 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
     @cached_property
     def both_purview_unit_sets(self):
         return [
-            set(self.mice(direction).purview_units) for direction in Direction.both()
+            set(self.mice(direction).purview_units)  # type: ignore[union-attr]
+            for direction in Direction.both()
         ]
 
     @cached_property
@@ -994,6 +1012,8 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
     @property
     def mechanism_state(self):
         """tuple(int): The state of this mechanism."""
+        assert self.cause is not None
+        assert self.effect is not None
         if self.cause.mechanism_state != self.effect.mechanism_state:
             raise ValueError("Inconsistent cause and effect mechanism states!")
         return self.cause.mechanism_state
@@ -1001,10 +1021,12 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
     @cached_property
     def mechanism_label(self):
         """tuple[str]: The labels of the mechanism nodes."""
-        return self.node_labels.label_string(self.mechanism, self.mechanism_state)
+        return self.node_labels.label_string(self.mechanism, self.mechanism_state)  # type: ignore[arg-type]
 
     def purview(self, direction):
         """Return the purview in the given direction."""
+        assert self.cause is not None
+        assert self.effect is not None
         if direction == Direction.CAUSE:
             return self.cause.purview
         if direction == Direction.EFFECT:
@@ -1013,24 +1035,25 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
 
     @property
     def node_labels(self):
+        assert self.cause is not None
+        assert self.effect is not None
         if self.cause.node_labels != self.effect.node_labels:
             raise ValueError("Inconsistent cause and effect node labels!")
         return self.cause.node_labels
 
     unorderable_unless_eq = ["subsystem"]
 
-    def __eq__(self, other):
-        try:
-            return (
-                self.phi == other.phi
-                and self.mechanism == other.mechanism
-                and self.mechanism_state == other.mechanism_state
-                and self.cause_purview == other.cause_purview
-                and self.effect_purview == other.effect_purview
-                and self.eq_repertoires(other)
-            )
-        except AttributeError:
-            return False
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Concept):
+            return NotImplemented
+        return (
+            self.phi == other.phi
+            and self.mechanism == other.mechanism
+            and self.mechanism_state == other.mechanism_state
+            and self.cause_purview == other.cause_purview
+            and self.effect_purview == other.effect_purview
+            and self.eq_repertoires(other)
+        )
 
     def __hash__(self):
         return hash(
@@ -1051,7 +1074,7 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
 
     def is_congruent(self, system_state):
         return all(
-            self.mice(direction).is_congruent(system_state[direction])
+            self.mice(direction).is_congruent(system_state[direction])  # type: ignore[union-attr]
             for direction in Direction.both()
         )
 
@@ -1061,12 +1084,15 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
         cause, effect = [
             next(
                 filter(
-                    lambda mice: mice.is_congruent(system_state[direction]),
-                    flatten(
-                        [
-                            self.mice(direction).state_ties,
-                            self.mice(direction).purview_ties,
-                        ]
+                    lambda mice: mice.is_congruent(system_state[direction]),  # type: ignore[union-attr]
+                    concat(
+                        filter(
+                            None,
+                            [
+                                self.mice(direction).state_ties,  # type: ignore[union-attr]
+                                self.mice(direction).purview_ties,  # type: ignore[union-attr]
+                            ],
+                        )
                     ),
                 ),
                 None,
@@ -1090,8 +1116,10 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
             and purview indices refer to, might be different.
         """
         return np.array_equal(
-            self.cause_repertoire, other.cause_repertoire
-        ) and np.array_equal(self.effect_repertoire, other.effect_repertoire)
+            self.cause_repertoire, other.cause_repertoire  # type: ignore[arg-type]
+        ) and np.array_equal(
+            self.effect_repertoire, other.effect_repertoire  # type: ignore[arg-type]
+        )
 
     def emd_eq(self, other):
         """Return whether this concept is equal to another in the context of
@@ -1144,6 +1172,8 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
     def from_json(cls, dct):
         instance = cls(**dct)
         # Restore parent references to MICEs
+        assert instance.cause is not None
+        assert instance.effect is not None
         instance.cause.parent = instance
         instance.effect.parent = instance
         return instance
@@ -1151,6 +1181,8 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
     def __setstate__(self, state):
         self.__dict__.update(state)
         # Restore parent references to MICEs
+        assert self.cause is not None
+        assert self.effect is not None
         self.cause.parent = self
         self.effect.parent = self
         return self

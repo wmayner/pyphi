@@ -218,7 +218,9 @@ class CausalLink(cmp.Orderable):
     def order_by(self):
         return self.ria.order_by()
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, CausalLink):
+            return NotImplemented
         return self.ria == other.ria
 
     def __hash__(self):
@@ -265,15 +267,17 @@ class Account(cmp.Orderable, Sequence):
     def __getitem__(self, i):
         return self.causal_links[i]
 
-    @cmp.sametype
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Account):
+            return NotImplemented
         return self.causal_links == other.causal_links
 
     def __hash__(self):
         return hash(self.causal_links)
 
-    @cmp.sametype
-    def __add__(self, other):
+    def __add__(self, other: object) -> "Account":
+        if not isinstance(other, Account):
+            return NotImplemented
         return self.__class__(self.causal_links + other.causal_links)
 
     @property
@@ -361,17 +365,20 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
     @property
     def before_state(self):
         """Return the actual previous state of the |Transition|."""
+        assert self.transition is not None
         return self.transition.before_state
 
     @property
     def after_state(self):
         """Return the actual current state of the |Transition|."""
+        assert self.transition is not None
         return self.transition.after_state
 
     unorderable_unless_eq = ["direction"]
 
     # TODO: shouldn't the minimal irreducible account be chosen?
     def order_by(self):
+        assert self.transition is not None
         return [self.alpha, len(self.transition)]
 
     def __eq__(self, other):

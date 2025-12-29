@@ -134,8 +134,9 @@ class CauseEffectStructure(cmp.Orderable, Sequence, ToPandasMixin):
     def __str__(self):
         return fmt.fmt_ces(self)
 
-    @cmp.sametype
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, CauseEffectStructure):
+            return NotImplemented
         return self.concepts == other.concepts
 
     def __hash__(self):
@@ -363,6 +364,8 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
         time (float): The number of seconds it took to calculate.
     """
 
+    phi: float  # Override parent to allow None during init
+
     def __init__(
         self,
         phi=None,
@@ -371,7 +374,7 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
         subsystem=None,
         cut_subsystem=None,
     ):
-        self.phi = phi
+        self.phi = phi  # type: ignore[assignment]
         self.ces = ces
         self.partitioned_ces = partitioned_ces
         self.subsystem = subsystem
@@ -394,11 +397,13 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
         """The unidirectional cut that makes the least difference to the
         subsystem.
         """
+        assert self.cut_subsystem is not None
         return self.cut_subsystem.cut
 
     @property
     def network(self):
         """The network the subsystem belongs to."""
+        assert self.subsystem is not None
         return self.subsystem.network
 
     unorderable_unless_eq = ["network"]

@@ -89,7 +89,9 @@ class OrderableByPhi(Orderable):
     Inherits from Orderable.
     """
 
-    def order_by(self):
+    phi: float  # Must be provided by subclass
+
+    def order_by(self) -> float:
         return self.phi
 
 
