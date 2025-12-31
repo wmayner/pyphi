@@ -78,7 +78,7 @@ def ces(
         total = 2 ** len(subsystem.node_indices) - 1
     else:
         try:
-            total = len(mechanisms)
+            total = len(mechanisms)  # type: ignore[arg-type]  # mechanisms may be generator
         except TypeError:
             pass
 
@@ -94,21 +94,22 @@ def ces(
     concepts = MapReduce(
         compute_concept,
         mechanisms,
-        map_kwargs=dict(
-            purviews=purviews,
-            cause_purviews=cause_purviews,
-            effect_purviews=effect_purviews,
-            directions=directions,
-        ),
+        map_kwargs={  # type: ignore[arg-type]  # None values allowed in map_kwargs
+            "purviews": purviews,
+            "cause_purviews": cause_purviews,
+            "effect_purviews": effect_purviews,
+            "directions": directions,
+        },
         reduce_func=reduce_func,
         desc="Computing concepts",
         total=total,
-        **parallel_kwargs,
+        **parallel_kwargs,  # type: ignore[arg-type]  # parallel_kwargs contains MapReduce params
     ).run()
     # Replace subsystem references
     # TODO(4.0) remove when subsystem reference is removed from Concept
-    for concept in concepts:
-        concept.subsystem = subsystem
+    if concepts is not None:
+        for concept in concepts:
+            concept.subsystem = subsystem  # type: ignore[attr-defined]  # Legacy attribute
     return CauseEffectStructure(concepts, subsystem=subsystem)
 
 
@@ -129,7 +130,7 @@ def conceptual_info(subsystem: Subsystem, **kwargs: Any) -> float:
     ci = ces_distance(
         ces(subsystem, **kwargs), CauseEffectStructure((), subsystem=subsystem)
     )
-    return round(ci, config.PRECISION)
+    return round(ci, config.PRECISION)  # type: ignore[arg-type]  # config.Option descriptor
 
 
 def evaluate_cut(
@@ -204,7 +205,7 @@ def sia_partitions(
             "IIT 3.0 calculations must use one of the following system "
             f"partition schemes: {valid}; got {scheme}"
         )
-    return system_partition_types[config.SYSTEM_PARTITION_TYPE](
+    return system_partition_types[config.SYSTEM_PARTITION_TYPE](  # type: ignore[index]  # config.Option descriptor
         nodes, node_labels=node_labels
     )
 
@@ -225,7 +226,7 @@ def _sia_map_reduce(
     **kwargs: Any,
 ) -> SystemIrreducibilityAnalysis:
     kwargs = {"parallel": config.PARALLEL_CUT_EVALUATION, **kwargs}
-    return MapReduce(
+    result = MapReduce(
         evaluate_cut,
         cuts,
         map_kwargs=dict(
@@ -238,6 +239,8 @@ def _sia_map_reduce(
         desc="Evaluating cuts",
         **kwargs,
     ).run()
+    assert result is not None
+    return result
 
 
 def _sia(subsystem: Subsystem, **kwargs: Any) -> SystemIrreducibilityAnalysis:
@@ -354,7 +357,10 @@ class ConceptStyleSystem:
         self.subsystem = subsystem
         self.direction = direction
         self.cut = cut
-        self.cut_system = subsystem.apply_cut(cut)
+        if cut is not None:
+            self.cut_system = subsystem.apply_cut(cut)
+        else:
+            self.cut_system = subsystem
 
     def apply_cut(self, cut: Cut) -> ConceptStyleSystem:
         return ConceptStyleSystem(self.subsystem, self.direction, cut)
@@ -395,13 +401,12 @@ class ConceptStyleSystem:
         """Compute a concept, using the appropriate system for each side of the
         cut.
         """
-        cause = self.cause_system.mic(
-            mechanism, purviews=(cause_purviews or purviews)
-        )
+        # Convert bool to None for purviews parameters
+        cause_p: Iterable[Purview] | None = cause_purviews or purviews or None  # type: ignore[assignment]
+        effect_p: Iterable[Purview] | None = effect_purviews or purviews or None  # type: ignore[assignment]
 
-        effect = self.effect_system.mie(
-            mechanism, purviews=(effect_purviews or purviews)
-        )
+        cause = self.cause_system.mic(mechanism, purviews=cause_p)
+        effect = self.effect_system.mie(mechanism, purviews=effect_p)
 
         return Concept(
             mechanism=mechanism,
@@ -438,7 +443,8 @@ def directional_sia(
     c_system = ConceptStyleSystem(subsystem, direction)
     cuts = concept_cuts(direction, c_system.cut_indices, subsystem.node_labels)
 
-    return _sia_map_reduce(cuts, c_system, unpartitioned_ces, **kwargs)
+    # Type ignore: ConceptStyleSystem duck-types as Subsystem, KCut as Cut
+    return _sia_map_reduce(cuts, c_system, unpartitioned_ces, **kwargs)  # type: ignore[arg-type]
 
 
 # TODO: only return the minimal SIA, instead of both
