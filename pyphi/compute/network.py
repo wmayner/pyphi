@@ -109,17 +109,19 @@ def all_complexes(
         SystemIrreducibilityAnalysis: A |SIA| for each |Subsystem| of the
         |Network|.
     """
-    parallel_kwargs = conf.parallel_kwargs(
+    pkwargs = conf.parallel_kwargs(
         config.PARALLEL_COMPLEX_EVALUATION, **(parallel_kwargs or dict())
     )
-    return MapReduce(
+    result = MapReduce(
         sia,
         possible_complexes(network, state, **kwargs),
         total=2 ** len(network) - 1,
         map_kwargs=dict(progress=False),
         desc="Evaluating complexes",
-        **parallel_kwargs,
+        **pkwargs,  # type: ignore[arg-type]  # parallel_kwargs contains MapReduce params
     ).run()
+    assert result is not None
+    return result
 
 
 def complexes(
@@ -154,7 +156,7 @@ def major_complex(
     log.info("Calculating major complex...")
     empty_subsystem = Subsystem(network, state, ())
     default = _null_sia(empty_subsystem)
-    parallel_kwargs = conf.parallel_kwargs(
+    pkwargs = conf.parallel_kwargs(
         config.PARALLEL_COMPLEX_EVALUATION, **kwargs
     )
     result = MapReduce(
@@ -165,9 +167,10 @@ def major_complex(
         reduce_kwargs=dict(default=default),
         total=2 ** len(network) - 1,
         desc="Evaluating complexes",
-        **parallel_kwargs,
+        **pkwargs,  # type: ignore[arg-type]  # parallel_kwargs contains MapReduce params
     ).run()
     log.info("Finished calculating major complex.")
+    assert result is not None
     return result
 
 
@@ -188,7 +191,7 @@ def condensed(
     covered_nodes: set[int] = set()
 
     for c in reversed(sorted(complexes(network, state, **kwargs))):
-        if not any(n in covered_nodes for n in c.subsystem.node_indices):
+        if c.subsystem is not None and not any(n in covered_nodes for n in c.subsystem.node_indices):
             result.append(c)
             covered_nodes = covered_nodes | set(c.subsystem.node_indices)
 

@@ -28,22 +28,24 @@ from .registry import Registry
 from .warnings import PyPhiWarning
 
 if TYPE_CHECKING:
-    from .new_big_phi import Distinction
+    from .new_big_phi import Distinction  # type: ignore[attr-defined]
 
 
 class RelationFace(frozenset):
     """A set of (potentially) related causes/effects."""
 
+    phi: float  # Set in __new__
+
     def __new__(cls, *args, phi=None):
         self = super().__new__(cls, *args)
         if phi is None:
             raise ValueError("phi keyword argument is required")
-        self.phi = phi
+        self.phi = phi  # type: ignore[misc]  # frozenset is immutable but we set this in __new__
         return self
 
-    @total_ordering
+    @total_ordering  # type: ignore[arg-type]  # total_ordering expects a class not instance
     def __lt__(self, other):
-        return self.phi < other.phi
+        return self.phi < other.phi  # type: ignore[attr-defined]  # phi is set in __new__
 
     @cached_property
     def overlap(self):
@@ -157,7 +159,7 @@ class Relation(frozenset, cmp.OrderableByPhi):
         return set.intersection(*(distinction.purview_union for distinction in self))
 
     @cached_property
-    def phi(self):
+    def phi(self) -> PyPhiFloat:  # type: ignore[override]  # Overrides OrderableByPhi.phi with cached_property
         return PyPhiFloat(
             len(self.purview) * min(self.distinction_phi_per_unique_purview_unit())
         )
@@ -210,13 +212,15 @@ def all_relations(distinctions, min_degree=2, max_degree=None, **kwargs):
     def worker(combination):
         return Relation(distinctions[i] for i in combination)
 
-    parallel_kwargs = conf.parallel_kwargs(config.PARALLEL_RELATION_EVALUATION, **kwargs)
-    yield from MapReduce(
+    pkwargs = conf.parallel_kwargs(config.PARALLEL_RELATION_EVALUATION, **kwargs)
+    result = MapReduce(
         worker,
         combinations,
         desc="Evaluating relations",
-        **parallel_kwargs,
+        **pkwargs,  # type: ignore[arg-type]  # parallel_kwargs contains MapReduce params
     ).run()
+    if result is not None:
+        yield from result
 
 
 def _self_relations(distinctions):
@@ -254,12 +258,12 @@ class Relations:
 
     def sum_phi(self):
         if self._sum_phi_cached is None:
-            self._sum_phi_cached = self._sum_phi()
+            self._sum_phi_cached = self._sum_phi()  # type: ignore[attr-defined]  # Defined in subclass
         return self._sum_phi_cached
 
     def num_relations(self):
         if self._num_relations_cached is None:
-            self._num_relations_cached = self._num_relations()
+            self._num_relations_cached = self._num_relations()  # type: ignore[attr-defined]  # Defined in subclass
         return self._num_relations_cached
 
     def _repr_columns(self):
@@ -270,7 +274,7 @@ class Relations:
 
     def to_json(self):
         """Return a JSON-serializable representation."""
-        return dict(relations=list(self))
+        return dict(relations=list(self))  # type: ignore[arg-type]  # Self needs __iter__ in subclass
 
     @classmethod
     def from_json(cls, data):
@@ -368,10 +372,10 @@ def relations(
     **kwargs: Any,
 ) -> Relations:
     """Return causal relations among a set of distinctions."""
-    if not distinctions.resolved_congruence:
+    if not distinctions.resolved_congruence:  # type: ignore[attr-defined]  # Expects FlatCauseEffectStructure
         warnings.warn(_CONGRUENCE_WARNING_MSG, PyPhiWarning, stacklevel=2)
     return relation_computations[
-        fallback(relation_computation, config.RELATION_COMPUTATION)
+        fallback(relation_computation, config.RELATION_COMPUTATION)  # type: ignore[index]  # config.Option descriptor
     ](distinctions, **kwargs)
 
 
