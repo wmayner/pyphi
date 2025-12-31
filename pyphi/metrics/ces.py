@@ -3,7 +3,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable
+from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 import numpy as np
 from numpy.typing import NDArray
@@ -52,9 +53,7 @@ class CESMeasureRegistry(Registry):
             asymmetric (boolean): ``True`` if the measure is asymmetric.
         """
 
-        def register_func(
-            func: Callable[..., float]
-        ) -> Callable[..., float]:
+        def register_func(func: Callable[..., float]) -> Callable[..., float]:
             if asymmetric:
                 self._asymmetric.append(name)
             self.store[name] = func  # type: ignore[assignment]  # Registry[T] specialized to float
@@ -102,6 +101,10 @@ def emd_concept_distance(c1: Concept, c2: Concept) -> float:
     # Calculate the sum of the cause and effect EMDs, expanding the repertoires
     # to the combined purview of the two concepts, so that the EMD signatures
     # are the same size.
+    assert c1.cause is not None
+    assert c1.effect is not None
+    assert c2.cause is not None
+    assert c2.effect is not None
     cause_purview = tuple(set(c1.cause.purview + c2.cause.purview))
     effect_purview = tuple(set(c1.effect.purview + c2.effect.purview))
     # Take the sum
@@ -125,8 +128,7 @@ def _emd_simple(C1: CauseEffectStructure, C2: CauseEffectStructure) -> float:
         C1, C2 = C2, C1
     destroyed = [c1 for c1 in C1 if not any(c1.emd_eq(c2) for c2 in C2)]
     return sum(
-        c.phi * emd_concept_distance(c, c.subsystem.null_concept)
-        for c in destroyed
+        c.phi * emd_concept_distance(c, c.subsystem.null_concept) for c in destroyed
     )
 
 
@@ -199,9 +201,7 @@ def _emd(unique_C1: CauseEffectStructure, unique_C2: CauseEffectStructure) -> fl
     # The sum of the two signatures should be the same.
     assert utils.eq(sum(d1), sum(d2))
     # Calculate!
-    return distribution.EMD.compute(
-        np.array(d1), np.array(d2), distance_matrix
-    )
+    return distribution.EMD.compute(np.array(d1), np.array(d2), distance_matrix)
 
 
 @measures.register("EMD")
@@ -215,21 +215,15 @@ def emd(C1: CauseEffectStructure, C2: CauseEffectStructure) -> float:
     Returns:
         float
     """
-    concepts_only_in_C1 = [
-        c1 for c1 in C1 if not any(c1.emd_eq(c2) for c2 in C2)
-    ]
-    concepts_only_in_C2 = [
-        c2 for c2 in C2 if not any(c2.emd_eq(c1) for c1 in C1)
-    ]
+    concepts_only_in_C1 = [c1 for c1 in C1 if not any(c1.emd_eq(c2) for c2 in C2)]
+    concepts_only_in_C2 = [c2 for c2 in C2 if not any(c2.emd_eq(c1) for c1 in C1)]
     # If the only difference in the CESs is that some concepts
     # disappeared, then we don't need to use the EMD.
     if not concepts_only_in_C1 or not concepts_only_in_C2:
         dist = _emd_simple(C1, C2)
     else:
-        dist = distribution.EMD.compute(
-            concepts_only_in_C1, concepts_only_in_C2
-        )
-    return round(dist, config.PRECISION)
+        dist = distribution.EMD.compute(concepts_only_in_C1, concepts_only_in_C2)
+    return round(dist, config.PRECISION)  # type: ignore[arg-type]
 
 
 @measures.register("SUM_SMALL_PHI")
@@ -250,6 +244,6 @@ def ces_distance(
     Returns:
         float: The distance between the two cause-effect structures.
     """
-    measure_name: str = config.CES_DISTANCE if measure is None else measure
+    measure_name: str = config.CES_DISTANCE if measure is None else measure  # type: ignore[assignment]
     dist: float = measures[measure_name](C1, C2)
-    return round(dist, config.PRECISION)
+    return round(dist, config.PRECISION)  # type: ignore[arg-type]

@@ -6,21 +6,25 @@ from __future__ import annotations
 from collections.abc import Callable
 from contextlib import ContextDecorator
 from math import log2
-from typing import Any
 
 import numpy as np
-from numpy.typing import ArrayLike, NDArray
+from numpy.typing import ArrayLike
 from scipy.spatial.distance import cdist
-from scipy.special import entr, rel_entr
+from scipy.special import entr
+from scipy.special import rel_entr
 
-from .. import utils, validate
+from .. import utils
+from .. import validate
 from ..cache import joblib_memory
-from ..conf import config, fallback
+from ..conf import config
+from ..conf import fallback
 from ..direction import Direction
-from ..distribution import flatten, marginal_zero
+from ..distribution import flatten
+from ..distribution import marginal_zero
 from ..exceptions import MissingOptionalDependenciesError
 from ..registry import Registry
-from ..types import Repertoire, State
+from ..types import Repertoire
+from ..types import State
 
 _LN_OF_2 = np.log(2)
 
@@ -232,9 +236,14 @@ def hamming_emd(p: ArrayLike, q: ArrayLike) -> float:
 
     Singleton dimensions are sqeezed out.
     """
+    p = np.asarray(p)
+    q = np.asarray(q)
     N = p.squeeze().ndim
-    p, q = flatten(p), flatten(q)
-    return EMD.compute(p, q, _hamming_matrix(N))
+    p_flat = flatten(p)
+    q_flat = flatten(q)
+    assert p_flat is not None
+    assert q_flat is not None
+    return EMD.compute(p_flat, q_flat, _hamming_matrix(N))
 
 
 def effect_emd(p: ArrayLike, q: ArrayLike) -> float:
@@ -252,7 +261,11 @@ def effect_emd(p: ArrayLike, q: ArrayLike) -> float:
     Returns:
         float: The EMD between ``p`` and ``q``.
     """
-    return sum(abs(marginal_zero(p, i) - marginal_zero(q, i)) for i in range(p.ndim))
+    p = np.asarray(p)
+    q = np.asarray(q)
+    return float(
+        sum(abs(marginal_zero(p, i) - marginal_zero(q, i)) for i in range(p.ndim))
+    )
 
 
 @measures.register("EMD")
@@ -282,8 +295,9 @@ def emd(p: ArrayLike, q: ArrayLike, direction: Direction | None = None) -> float
     else:
         # TODO: test that ValueError is raised
         validate.direction(direction)
+        raise ValueError(f"Invalid direction: {direction}")
 
-    return round(func(p, q), config.PRECISION)
+    return round(func(p, q), config.PRECISION)  # type: ignore[arg-type]
 
 
 @measures.register("L1")
@@ -297,7 +311,9 @@ def l1(p: ArrayLike, q: ArrayLike) -> float:
     Returns:
         float: The sum of absolute differences of ``p`` and ``q``.
     """
-    return np.abs(p - q).sum()
+    p = np.asarray(p)
+    q = np.asarray(q)
+    return float(np.abs(p - q).sum())
 
 
 @measures.register("ENTROPY_DIFFERENCE")
@@ -321,9 +337,11 @@ def psq2(p: ArrayLike, q: ArrayLike) -> float:
         p (np.ndarray): The first distribution.
         q (np.ndarray): The second distribution.
     """
+    p = np.asarray(p)
+    q = np.asarray(q)
     fp = (p * (-1.0 * entr(p))).sum() / _LN_OF_2 + (p**2 * log2(len(p))).sum()
     fq = (q * (-1.0 * entr(q))).sum() / _LN_OF_2 + (q**2 * log2(len(q))).sum()
-    return abs(fp - fq)
+    return float(abs(fp - fq))
 
 
 @measures.register("MP2Q", asymmetric=True)
@@ -344,9 +362,11 @@ def mp2q(p: ArrayLike, q: ArrayLike) -> float:
     Returns:
         float: The distance.
     """
+    p = np.asarray(p)
+    q = np.asarray(q)
     # There is already a factor of p in the `information_density`, so we only
     # multiply by p, not p**2
-    return np.sum(p / q * information_density(p, q) / len(p))
+    return float(np.sum(p / q * information_density(p, q) / len(p)))
 
 
 def information_density(p: ArrayLike, q: ArrayLike) -> np.ndarray:
@@ -485,8 +505,8 @@ def approximate_specified_state(
         marginals = [repertoire.sum(tuple(c)) for c in complements]
         return np.vstack(marginals)
 
-    P = joint_to_marginals(repertoire)
-    Q = joint_to_marginals(partitioned_repertoire)
+    P = joint_to_marginals(np.asarray(repertoire))
+    Q = joint_to_marginals(np.asarray(partitioned_repertoire))
 
     # Preallocate arrays for the specified states and their corresponding point
     # probabilities in P and Q.
@@ -616,33 +636,32 @@ def absolute_intrinsic_difference(p: ArrayLike, q: ArrayLike) -> float:
 
 
 @measures.register("IIT_4.0_SMALL_PHI", asymmetric=True)
-def iit_4_small_phi(p: ArrayLike, q: ArrayLike, state: State) -> np.floating:
+def iit_4_small_phi(p: ArrayLike, q: ArrayLike, state: State) -> float:
     # TODO docstring
-    return absolute_information_density(p, q).squeeze()[state]
+    return float(absolute_information_density(p, q).squeeze()[state])
 
 
 @measures.register("IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE", asymmetric=True)
-def iit_4_small_phi_no_absolute_value(
-    p: ArrayLike, q: ArrayLike, state: State
-) -> np.floating:
+def iit_4_small_phi_no_absolute_value(p: ArrayLike, q: ArrayLike, state: State) -> float:
     # TODO docstring
-    return information_density(p, q).squeeze()[state]
+    return float(information_density(p, q).squeeze()[state])
 
 
-@measures.register("GENERALIZED_INTRINSIC_DIFFERENCE", asymmetric=True)
+@measures.register("GENERALIZED_INTRINSIC_DIFFERENCE", asymmetric=True)  # type: ignore[arg-type]  # Returns Repertoire when state=None, float otherwise
 def generalized_intrinsic_difference(
     forward_repertoire: ArrayLike,
     partitioned_forward_repertoire: ArrayLike,
     selectivity_repertoire: ArrayLike,
     state: State | None = None,
-) -> Repertoire | np.floating:
+) -> Repertoire | float:
+    selectivity_repertoire = np.asarray(selectivity_repertoire)
     informativeness = pointwise_mutual_information_vector(
         forward_repertoire, partitioned_forward_repertoire
     )
     gid = selectivity_repertoire * informativeness
     if state is None:
         return gid
-    return gid[state]
+    return float(gid[state])
 
 
 @measures.register("APMI", asymmetric=True)
@@ -662,11 +681,15 @@ def absolute_pointwise_mutual_information(
     Returns:
         float: The maximum absolute pointwise mutual information.
     """
-    return np.abs(np.nan_to_num(np.log2(p / q), nan=0.0)).squeeze()[state]
+    p = np.asarray(p)
+    q = np.asarray(q)
+    return float(np.abs(np.nan_to_num(np.log2(p / q), nan=0.0)).squeeze()[state])
 
 
 @np_suppress()
 def pointwise_mutual_information_vector(p: ArrayLike, q: ArrayLike) -> np.ndarray:
+    p = np.asarray(p)
+    q = np.asarray(q)
     return np.nan_to_num(np.log2(p / q), nan=0.0)
 
 
@@ -732,7 +755,7 @@ def repertoire_distance(
         float: The distance between ``r1`` and ``r2``, rounded to |PRECISION|.
     """
     func_key = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
-    func = measures[func_key]
+    func = measures[func_key]  # type: ignore[index]
     try:
         try:
             distance = func(r1, r2, direction=direction, **kwargs)
@@ -740,4 +763,4 @@ def repertoire_distance(
             distance = func(r1, r2, **kwargs)
     except TypeError:
         distance = func(r1, r2, direction=direction)
-    return round(distance, config.PRECISION)
+    return round(distance, config.PRECISION)  # type: ignore[arg-type]
