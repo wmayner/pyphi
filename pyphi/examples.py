@@ -1514,3 +1514,28 @@ def frog_example():
     print(transition)
     account = actual.account(transition)
     print(account)
+
+
+def differentiation_micro_tpm(p, epsilon):
+    # Two noisy AND gates connected to each other
+    return np.minimum(
+        1, np.array([[p, p], [p, p + epsilon], [p + epsilon, p], [1 - p, 1 - p]])
+    )
+
+
+def differentiation_macro_tpm(p, epsilon):
+    # Two noisy AND gates connected to each other, macroed into two states:
+    #   (1, 1) -> 1
+    #   all other states -> 0
+    return np.minimum(
+        1, np.array([[(p * p + 2 * p * epsilon) / 3], [(1 - p) * (1 - p)]])
+    )
+
+
+@register_example
+def differentiation_micro_1_subsystem():
+    return Subsystem(
+        network=Network(differentiation_micro_tpm(0.9, 0.01)),
+        state=(0, 0),
+        nodes=(0, 1),
+    )

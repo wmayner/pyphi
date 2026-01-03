@@ -18,6 +18,7 @@ from .. import validate
 from ..cache import joblib_memory
 from ..conf import config
 from ..conf import fallback
+from ..data_structures.pyphi_float import PyPhiFloat
 from ..direction import Direction
 from ..distribution import flatten
 from ..distribution import marginal_zero
@@ -27,6 +28,64 @@ from ..types import Repertoire
 from ..types import State
 
 _LN_OF_2 = np.log(2)
+
+
+class DistanceResult(PyPhiFloat):
+    """A numeric result that can carry auxiliary data.
+
+    This class behaves like a PyPhiFloat for all mathematical operations while
+    allowing additional metadata to be attached to the result. Inherits
+    precision-aware comparison from PyPhiFloat.
+
+    Args:
+        value (float): The numeric value.
+        **kwargs: Auxiliary data to attach to the result.
+
+    Example:
+        >>> result = DistanceResult(0.5, method='EMD', direction='CAUSE')
+        >>> result + 0.3  # returns 0.8
+        >>> result.method  # returns 'EMD'
+        >>> float(result)  # returns 0.5
+
+    Warning:
+        Using DistanceResult objects in NumPy arrays will force object dtype,
+        causing significant performance degradation. Use this class only for
+        final results at API boundaries, not for internal array computations.
+        Convert to float with ``float(result)`` when needed for array operations.
+    """
+
+    def __new__(cls, value, **kwargs):
+        instance = super().__new__(cls, value)
+        for key, val in kwargs.items():
+            setattr(instance, key, val)
+        return instance
+
+    def __repr__(self):
+        aux_data = {k: v for k, v in self.__dict__.items()}
+        if aux_data:
+            aux_str = ", ".join(f"{k}={v!r}" for k, v in aux_data.items())
+            return f"DistanceResult({float(self)}, {aux_str})"
+        return f"DistanceResult({float(self)})"
+
+    def _preserve_aux_data(self, other_result):
+        """Copy auxiliary data from another DistanceResult if this one wins a comparison."""
+        if isinstance(other_result, DistanceResult):
+            for key, val in other_result.__dict__.items():
+                if not hasattr(self, key):
+                    setattr(self, key, val)
+        return self
+
+    def __copy__(self):
+        """Ensure auxiliary data is preserved when copying."""
+        aux_data = {k: v for k, v in self.__dict__.items()}
+        return DistanceResult(float(self), **aux_data)
+
+    def __deepcopy__(self, memo):
+        """Ensure auxiliary data is preserved when deep copying."""
+        import copy
+
+        aux_data = {k: copy.deepcopy(v, memo) for k, v in self.__dict__.items()}
+        return DistanceResult(float(self), **aux_data)
 
 
 class OptionalEMD:
@@ -297,7 +356,7 @@ def emd(p: ArrayLike, q: ArrayLike, direction: Direction | None = None) -> float
         validate.direction(direction)
         raise ValueError(f"Invalid direction: {direction}")
 
-    return round(func(p, q), config.PRECISION)  # type: ignore[arg-type]
+    return DistanceResult(func(p, q), method="EMD", direction=direction)
 
 
 @measures.register("L1")
@@ -313,7 +372,7 @@ def l1(p: ArrayLike, q: ArrayLike) -> float:
     """
     p = np.asarray(p)
     q = np.asarray(q)
-    return float(np.abs(p - q).sum())
+    return DistanceResult(np.abs(p - q).sum(), method="L1")
 
 
 @measures.register("ENTROPY_DIFFERENCE")
@@ -321,7 +380,7 @@ def entropy_difference(p: ArrayLike, q: ArrayLike) -> float:
     """Return the difference in entropy between two distributions."""
     hp = entr(p).sum() / _LN_OF_2
     hq = entr(q).sum() / _LN_OF_2
-    return abs(hp - hq)
+    return DistanceResult(abs(hp - hq), method="ENTROPY_DIFFERENCE")
 
 
 @measures.register("PSQ2")
@@ -341,7 +400,7 @@ def psq2(p: ArrayLike, q: ArrayLike) -> float:
     q = np.asarray(q)
     fp = (p * (-1.0 * entr(p))).sum() / _LN_OF_2 + (p**2 * log2(len(p))).sum()
     fq = (q * (-1.0 * entr(q))).sum() / _LN_OF_2 + (q**2 * log2(len(q))).sum()
-    return float(abs(fp - fq))
+    return DistanceResult(abs(fp - fq), method="PSQ2")
 
 
 @measures.register("MP2Q", asymmetric=True)
@@ -366,7 +425,11 @@ def mp2q(p: ArrayLike, q: ArrayLike) -> float:
     q = np.asarray(q)
     # There is already a factor of p in the `information_density`, so we only
     # multiply by p, not p**2
-    return float(np.sum(p / q * information_density(p, q) / len(p)))
+    return DistanceResult(
+        np.sum(p / q * information_density(p, q) / len(p)),
+        method="MP2Q",
+        asymmetric=True,
+    )
 
 
 def information_density(p: ArrayLike, q: ArrayLike) -> np.ndarray:
@@ -396,7 +459,9 @@ def kld(p: ArrayLike, q: ArrayLike) -> float:
     Returns:
         float: The KLD of ``p`` from ``q``.
     """
-    return information_density(p, q).sum()
+    return DistanceResult(
+        information_density(p, q).sum(), method="KLD", asymmetric=True
+    )
 
 
 def absolute_information_density(p: ArrayLike, q: ArrayLike) -> np.ndarray:
@@ -609,7 +674,9 @@ def intrinsic_difference(p: ArrayLike, q: ArrayLike) -> float:
     Returns:
         float: The intrinsic difference.
     """
-    return np.max(information_density(p, q))
+    return DistanceResult(
+        np.max(information_density(p, q)), method="ID", asymmetric=True
+    )
 
 
 @measures.register("AID", asymmetric=True)
@@ -632,22 +699,37 @@ def absolute_intrinsic_difference(p: ArrayLike, q: ArrayLike) -> float:
     Returns:
         float: The absolute intrinsic difference.
     """
-    return np.max(absolute_information_density(p, q))
+    return DistanceResult(
+        np.max(absolute_information_density(p, q)), method="AID", asymmetric=True
+    )
 
 
 @measures.register("IIT_4.0_SMALL_PHI", asymmetric=True)
 def iit_4_small_phi(p: ArrayLike, q: ArrayLike, state: State) -> float:
     # TODO docstring
-    return float(absolute_information_density(p, q).squeeze()[state])
+    return DistanceResult(
+        absolute_information_density(p, q).squeeze()[state],
+        method="IIT_4.0_SMALL_PHI",
+        asymmetric=True,
+        state=state,
+    )
 
 
 @measures.register("IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE", asymmetric=True)
-def iit_4_small_phi_no_absolute_value(p: ArrayLike, q: ArrayLike, state: State) -> float:
+def iit_4_small_phi_no_absolute_value(
+    p: ArrayLike, q: ArrayLike, state: State
+) -> float:
     # TODO docstring
-    return float(information_density(p, q).squeeze()[state])
+    return DistanceResult(
+        information_density(p, q).squeeze()[state],
+        method="IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE",
+        asymmetric=True,
+        state=state,
+    )
 
 
 @measures.register("GENERALIZED_INTRINSIC_DIFFERENCE", asymmetric=True)  # type: ignore[arg-type]  # Returns Repertoire when state=None, float otherwise
+@measures.register("INTRINSIC_SPECIFICATION", asymmetric=True)
 def generalized_intrinsic_difference(
     forward_repertoire: ArrayLike,
     partitioned_forward_repertoire: ArrayLike,
@@ -661,7 +743,67 @@ def generalized_intrinsic_difference(
     gid = selectivity_repertoire * informativeness
     if state is None:
         return gid
-    return float(gid[state])
+    return DistanceResult(
+        gid[state],
+        method="GENERALIZED_INTRINSIC_DIFFERENCE",
+        asymmetric=True,
+        state=state,
+    )
+
+
+intrinsic_specification = generalized_intrinsic_difference  # alias
+
+
+def pointwise_intrinsic_differentiation(p):
+    return -np.log2(p, where=(p > 0))
+
+
+@measures.register("INTRINSIC_DIFFERENTIATION", asymmetric=True)
+def intrinsic_differentiation(p, q, state=None):
+    if state is not None:
+        p = p.squeeze()[state]
+    positive_entries = pointwise_intrinsic_differentiation(p)[
+        pointwise_intrinsic_differentiation(p) > 0
+    ]
+    return DistanceResult(
+        np.min(positive_entries) if positive_entries.size > 0 else 0.0,
+        method="INTRINSIC_DIFFERENTIATION",
+        asymmetric=True,
+        state=state,
+    )
+
+
+@measures.register("INTRINSIC_INFORMATION", asymmetric=True)
+def intrinsic_information(
+    forward_repertoire,
+    partitioned_forward_repertoire,
+    selectivity_repertoire,
+    state=None,
+):
+    specification_func = measures[config.REPERTOIRE_DISTANCE_SPECIFICATION]
+    differentiation_func = measures[config.REPERTOIRE_DISTANCE_DIFFERENTIATION]
+
+    specification = specification_func(
+        forward_repertoire,
+        partitioned_forward_repertoire,
+        selectivity_repertoire,
+        state=state,
+    )
+    differentiation = differentiation_func(
+        forward_repertoire, partitioned_forward_repertoire, state=state
+    )
+    # Assumes single value at this point; state selection delegated to sub-functions.
+    if not np.isscalar(specification) or not np.isscalar(differentiation):
+        return np.minimum(specification, differentiation)
+    # Single value
+    return DistanceResult(
+        min(specification, differentiation),
+        method="INTRINSIC_INFORMATION",
+        asymmetric=True,
+        state=state,
+        specification=specification,
+        differentiation=differentiation,
+    )
 
 
 @measures.register("APMI", asymmetric=True)

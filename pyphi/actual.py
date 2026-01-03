@@ -351,7 +351,10 @@ class Transition:
     def partitioned_repertoire(self, direction, partition):
         """Compute the repertoire over the partition in the given direction."""
         system = self.system[direction]
-        if config.REPERTOIRE_DISTANCE == "GENERALIZED_INTRINSIC_DIFFERENCE":
+        if config.REPERTOIRE_DISTANCE in [
+            "GENERALIZED_INTRINSIC_DIFFERENCE",
+            "INTRINSIC_INFORMATION",
+        ]:
             purview_state = tuple(
                 self.purview_state(direction)[node] for node in partition.purview
             )
@@ -684,7 +687,9 @@ def sia(transition, direction=Direction.BIDIRECTIONAL, **kwargs):
 
     cuts = _get_cuts(transition, direction)
 
-    parallel_kwargs = conf.parallel_kwargs(dict(config.PARALLEL_CUT_EVALUATION), **kwargs)
+    parallel_kwargs = conf.parallel_kwargs(
+        dict(config.PARALLEL_CUT_EVALUATION), **kwargs
+    )
     result = MapReduce(
         _evaluate_cut,
         cuts,
@@ -903,7 +908,9 @@ def true_events(
         nodes = indices
     else:
         major_complex = compute.network.major_complex(network, current_state)
-        nodes = major_complex.subsystem.node_indices  # pyright: ignore[reportOptionalMemberAccess]
+        nodes = (
+            major_complex.subsystem.node_indices
+        )  # pyright: ignore[reportOptionalMemberAccess]
 
     return events(network, previous_state, current_state, next_state, nodes)
 
@@ -934,7 +941,9 @@ def extrinsic_events(
         mc_nodes = indices
     else:
         major_complex = compute.network.major_complex(network, current_state)
-        mc_nodes = major_complex.subsystem.node_indices  # pyright: ignore[reportOptionalMemberAccess]
+        mc_nodes = (
+            major_complex.subsystem.node_indices
+        )  # pyright: ignore[reportOptionalMemberAccess]
 
     mechanisms = list(utils.powerset(mc_nodes, nonempty=True))
     all_nodes = network.node_indices

@@ -26,6 +26,7 @@ from .. import connectivity, utils, validate
 from ..conf import config
 from ..data_structures import PyPhiFloat
 from ..direction import Direction
+from ..metrics.distribution import DistanceResult
 from ..exceptions import WrongDirectionError
 from ..registry import Registry
 from ..warnings import warn_about_tie_serialization
@@ -68,15 +69,14 @@ class StateSpecification(ToDictMixin, ToPandasMixin):
     direction: Direction
     purview: tuple[int, ...]
     state: tuple[int, ...]
-    intrinsic_information: PyPhiFloat
+    intrinsic_information: PyPhiFloat | DistanceResult
     repertoire: ArrayLike
     unconstrained_repertoire: ArrayLike
     _ties: tuple[StateSpecification, ...] = ()
 
-    def __post_init__(self) -> None:
-        object.__setattr__(
-            self, "intrinsic_information", PyPhiFloat(self.intrinsic_information)
-        )
+    def __post_init__(self):
+        if not isinstance(self.intrinsic_information, DistanceResult):
+            self.intrinsic_information = PyPhiFloat(self.intrinsic_information)
 
     def set_ties(self, ties: Iterable[StateSpecification]) -> None:
         object.__setattr__(self, "_ties", tuple(ties))
@@ -246,7 +246,11 @@ class RepertoireIrreducibilityAnalysis(
         selectivity: float | None = None,
         reasons: list[ShortCircuitConditions] | None = None,
     ) -> None:
-        self._phi = PyPhiFloat(phi)
+        # Preserve DistanceResult type if possible, otherwise convert to PyPhiFloat
+        if isinstance(phi, DistanceResult):
+            self._phi = phi
+        else:
+            self._phi = PyPhiFloat(phi)
         self._direction = direction
         self._mechanism = mechanism
         self._purview = purview
@@ -376,7 +380,9 @@ class RepertoireIrreducibilityAnalysis(
             (
                 Unit(index, state, label=self.node_labels.index2label(index))
                 for index, state in zip(
-                    self.specified_state.purview, self.specified_state.state, strict=False
+                    self.specified_state.purview,
+                    self.specified_state.state,
+                    strict=False,
                 )
             )
         )
@@ -716,7 +722,9 @@ class MaximallyIrreducibleCauseOrEffect(
     def partition_ties(self):
         if self._partition_ties is None:
             self._partition_ties = (self,) + tuple(
-                type(self)(tie) for tie in self.ria.partition_ties if tie is not self.ria
+                type(self)(tie)
+                for tie in self.ria.partition_ties
+                if tie is not self.ria
             )
         return self._partition_ties
 

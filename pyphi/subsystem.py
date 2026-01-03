@@ -29,6 +29,7 @@ from .direction import Direction
 from .distribution import max_entropy_distribution
 from .distribution import repertoire_shape
 from .metrics.distribution import repertoire_distance as _repertoire_distance
+from .metrics.distribution import DistanceResult
 from .models import CauseEffectStructure
 from .models import Concept
 from .models import MaximallyIrreducibleCause
@@ -496,7 +497,11 @@ class Subsystem:
         return self._effect_repertoire(condition, purview, direction)
 
     def repertoire(
-        self, direction: Direction, mechanism: Mechanism, purview: Purview, **kwargs: Any
+        self,
+        direction: Direction,
+        mechanism: Mechanism,
+        purview: Purview,
+        **kwargs: Any,
     ) -> Repertoire:
         """Return the cause or effect repertoire based on a direction.
 
@@ -554,10 +559,13 @@ class Subsystem:
     ) -> Repertoire | float:
         """Compute the repertoire of a partitioned mechanism and purview."""
         repertoire_distance = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
-        if repertoire_distance == "GENERALIZED_INTRINSIC_DIFFERENCE":
+        if repertoire_distance in [
+            "GENERALIZED_INTRINSIC_DIFFERENCE",
+            "INTRINSIC_INFORMATION",
+        ]:
             if "state" not in kwargs:
                 raise ValueError(
-                    "must provide purview state for generalized intrinsic difference"
+                    f"must provide purview state for repertoire distance {repertoire_distance}"
                 )
             purview_state = kwargs.pop("state")
             prs = [
@@ -737,7 +745,9 @@ class Subsystem:
         """Alias for |expand_repertoire()| with ``direction`` set to |EFFECT|."""
         return self.expand_repertoire(Direction.EFFECT, repertoire, new_purview)
 
-    def cause_info(self, mechanism: Mechanism, purview: Purview, **kwargs: Any) -> float:
+    def cause_info(
+        self, mechanism: Mechanism, purview: Purview, **kwargs: Any
+    ) -> float:
         """Return the cause information for a mechanism over a purview."""
         return _repertoire_distance(
             self.cause_repertoire(mechanism, purview),
@@ -807,8 +817,14 @@ class Subsystem:
         if repertoire is None:
             repertoire = self.repertoire(direction, mechanism, purview)
         # TODO(4.0) use same partitioned_repertoire func
-        if repertoire_distance == "GENERALIZED_INTRINSIC_DIFFERENCE":
-            assert not isinstance(repertoire, (int, float)), "GID requires full repertoire"
+        if repertoire_distance in [
+            "GENERALIZED_INTRINSIC_DIFFERENCE",
+            "INTRINSIC_INFORMATION",
+        ]:
+            func = metrics.distribution.measures[repertoire_distance]
+            assert not isinstance(
+                repertoire, (int, float)
+            ), "GID requires full repertoire"
             purview_state = kwargs["state"].state
             selectivity = float(repertoire.squeeze()[purview_state])
             forward_pr = self.forward_probability(
@@ -820,7 +836,7 @@ class Subsystem:
                 )
             else:
                 partitioned_pr = partitioned_repertoire
-            phi = metrics.distribution.generalized_intrinsic_difference(
+            phi = func(
                 forward_repertoire=forward_pr,
                 partitioned_forward_repertoire=partitioned_pr,
                 selectivity_repertoire=selectivity,
@@ -900,7 +916,6 @@ class Subsystem:
         ties = tuple(
             resolve_ties.partitions(
                 candidate_mips,  # type: ignore[arg-type]  # MapReduce generic type not fully inferred
-
                 default=_null_ria(
                     direction,
                     mechanism,
@@ -1066,13 +1081,18 @@ class Subsystem:
         states: Iterable[tuple[int, ...]] | None = None,
     ) -> StateSpecification:
         repertoire_distance = fallback(
-            repertoire_distance, config.REPERTOIRE_DISTANCE_INFORMATION
+            repertoire_distance, config.REPERTOIRE_DISTANCE_SPECIFICATION
         )
         if states is None:
             states = utils.all_states(len(purview))
 
         # TODO(4.0) refactor for consistent API across metrics
-        if repertoire_distance == "GENERALIZED_INTRINSIC_DIFFERENCE":
+        if repertoire_distance in [
+            "GENERALIZED_INTRINSIC_DIFFERENCE",
+            "INTRINSIC_INFORMATION",
+            "INTRINSIC_SPECIFICATION",
+        ]:
+            func = metrics.distribution.measures[repertoire_distance]
             # TODO(4.0) include selectivity_repertoire in StateSpecification
             selectivity_repertoire = self.repertoire(
                 direction,
@@ -1090,18 +1110,20 @@ class Subsystem:
                 mechanism,
                 purview,
             )
-            gid = metrics.distribution.generalized_intrinsic_difference(
+            dist = func(
                 repertoire,
                 unconstrained_repertoire,
                 selectivity_repertoire,
             )
-            # Type narrowing: GID without state parameter returns full repertoire
-            assert not isinstance(gid, (int, float)), "GID should return array when state is None"
+            # Type narrowing: dist without state parameter returns full repertoire
+            assert not isinstance(
+                dist, (int, float)
+            ), "Distance metrics should return array when state is None"
             # Remove singleton dimensions since we'll index with purview state
-            gid = gid.squeeze()
+            dist = dist.squeeze()
 
             def evaluate_state(state: State) -> float:
-                return float(gid[state])
+                return float(dist[state])
 
         else:
             repertoire = self.repertoire(
