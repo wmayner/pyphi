@@ -7,16 +7,24 @@ Utilities for parallel computation.
 """
 
 import logging
+import logging.config
 import multiprocessing
 import sys
 import threading
+from collections.abc import Iterable
 from itertools import chain
 from itertools import islice
+from typing import Any
+from typing import Generic
+from typing import TypeVar
 
 from tblib import Traceback
 from tqdm import tqdm
 
 from .. import config
+
+T = TypeVar("T")
+R = TypeVar("R")
 
 log = logging.getLogger(__name__)
 
@@ -66,10 +74,10 @@ class ExceptionWrapper:
 
 
 POISON_PILL = None
-Q_MAX_SIZE = multiprocessing.synchronize.SEM_VALUE_MAX
+Q_MAX_SIZE = multiprocessing.synchronize.SEM_VALUE_MAX  # pyright: ignore[reportAttributeAccessIssue]
 
 
-class MapReduce:
+class MapReduce(Generic[T, R]):
     """An engine for doing heavy computations over an iterable.
 
     This is similar to ``multiprocessing.Pool``, but allows computations to
@@ -101,7 +109,7 @@ class MapReduce:
     # Description for the tqdm progress bar
     description = ""
 
-    def __init__(self, iterable, *context):
+    def __init__(self, iterable: Iterable[T], *context: Any) -> None:
         self.iterable = iterable
         self.context = context
         self.done = False
@@ -232,20 +240,20 @@ class MapReduce:
         full, so further tasks are enqueued as results are returned.
         """
         # Add a poison pill to shutdown each process.
-        self.tasks = chain(self.iterable, [POISON_PILL] * self.num_processes)
+        self.tasks = chain(self.iterable, [POISON_PILL] * self.num_processes)  # pyright: ignore[reportOperatorIssue]
         for task in islice(self.tasks, Q_MAX_SIZE):
             log.debug("Putting %s on queue", task)
-            self.task_queue.put(task)
+            self.task_queue.put(task)  # pyright: ignore[reportOptionalMemberAccess]
 
     def maybe_put_task(self):
         """Enqueue the next task, if there are any waiting."""
         try:
-            task = next(self.tasks)
+            task = next(self.tasks)  # pyright: ignore[reportArgumentType]
         except StopIteration:
             pass
         else:
             log.debug("Putting %s on queue", task)
-            self.task_queue.put(task)
+            self.task_queue.put(task)  # pyright: ignore[reportOptionalMemberAccess]
 
     def run_parallel(self):
         """Perform the computation in parallel, reading results from the output
@@ -253,6 +261,10 @@ class MapReduce:
         """
         try:
             self.start_parallel()
+            # Type narrowing: start_parallel initializes these attributes
+            assert self.num_processes is not None
+            assert self.result_queue is not None
+            assert self.complete is not None
 
             result = self.empty_result(*self.context)
 
@@ -285,6 +297,12 @@ class MapReduce:
 
     def finish_parallel(self):
         """Orderly shutdown of workers."""
+        assert self.processes is not None, "start_parallel must be called first"
+        assert self.log_queue is not None, "start_parallel must be called first"
+        assert self.log_thread is not None, "start_parallel must be called first"
+        assert self.task_queue is not None, "start_parallel must be called first"
+        assert self.result_queue is not None, "start_parallel must be called first"
+
         for process in self.processes:
             process.join()
 
@@ -321,7 +339,7 @@ class MapReduce:
 
         return result
 
-    def run(self, parallel=True):
+    def run(self, parallel: bool = True) -> R:
         """Perform the computation.
 
         Keyword Args:

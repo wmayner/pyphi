@@ -90,7 +90,7 @@ def shortcircuit(
             return
 
 
-def as_completed(object_refs: "list[ObjectRef]", num_returns: int = 1):
+def as_completed(object_refs: list[ObjectRef], num_returns: int = 1):
     """Yield remote results in order of completion."""
     unfinished = object_refs
     while unfinished:
@@ -105,11 +105,11 @@ def cancel_all(object_refs: Iterable, *args, **kwargs):
             ray.cancel(ref, *args, **kwargs)
         # TODO remove the following when ray.cancel is less noisy; see
         # https://github.com/ray-project/ray/issues/24658
-        object_refs, _ = ray.wait(object_refs, num_returns=len(object_refs))
+        object_refs, _ = ray.wait(object_refs, num_returns=len(object_refs))  # pyright: ignore[reportArgumentType]
         for ref in object_refs:
             try:
                 ray.get(ref)
-            except (ray.exceptions.RayTaskError, ray.exceptions.TaskCancelledError):
+            except (ray.exceptions.RayTaskError, ray.exceptions.TaskCancelledError):  # pyright: ignore[reportAttributeAccessIssue]
                 pass
     except TypeError:
         # Do nothing if the object_refs are not actually ObjectRefs
@@ -251,7 +251,7 @@ def _map_reduce_tree(
     return _reduce(results, reduce_func, reduce_kwargs, branch)
 
 
-_remote_map_reduce_tree = ray.remote(_map_reduce_tree)
+_remote_map_reduce_tree = ray.remote(_map_reduce_tree)  # pyright: ignore[reportCallIssue, reportArgumentType]
 
 
 def progress_hook(progress_bar):
@@ -379,7 +379,7 @@ class MapReduce:
         init()
         if self.progress:
             # Set up remote progress bar actor
-            self.progress_bar = ProgressBar(self.total, desc=self.desc)
+            self.progress_bar = ProgressBar(self.total, desc=self.desc or "")
             # Insert a hook into the shortcircuit callback to finish the
             # progress bar
             self.shortcircuit_callback = progress_hook(self.progress_bar)(
@@ -412,7 +412,7 @@ class MapReduce:
             # TODO this should be 'exit_actor', but the method doesn't seem to
             # have been injected
             if self.progress:
-                self.progress_bar.actor.__ray_terminate__.remote()
+                self.progress_bar.actor.__ray_terminate__.remote()  # pyright: ignore[reportOptionalMemberAccess]
 
     def _run_sequential(self):
         """Perform the computation serially."""

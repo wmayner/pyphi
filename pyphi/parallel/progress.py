@@ -9,7 +9,7 @@ from ..deferred.ray import ray
 
 if TYPE_CHECKING:
     import ray
-    from ray import ActorHandle
+    from ray import ActorHandle  # pyright: ignore[reportAttributeAccessIssue]
 
 from tqdm.auto import tqdm
 
@@ -45,7 +45,7 @@ class ProgressBarActor:
         self.interrupted = interrupted
         self.event.set()
 
-    async def wait_for_update(self) -> tuple[int, int]:
+    async def wait_for_update(self) -> tuple[int, int, bool, bool]:
         """Blocking call.
 
         Waits until somebody calls `update` or `finish`, then returns a tuple of

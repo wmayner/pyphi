@@ -74,7 +74,7 @@ class TreeConstraints:
         raise NotImplementedError
 
     def simulate(self) -> TreeSpec:
-        tree = TreeSpec(depth=1, size=1, leaves=1, leaf_size=self.total)
+        tree = TreeSpec(depth=1, size=1, leaves=1, leaf_size=self.total)  # pyright: ignore[reportArgumentType]
         while True:
             branched = self.branch(tree)
             if not self.validate(branched):
@@ -103,12 +103,12 @@ class TreeConstraintsChunksize(TreeConstraints):
                 depth=self.max_depth,
                 size=self.max_size,
                 leaves=self.max_leaves,
-                leaf_size=None,
+                leaf_size=0,  # pyright: ignore - Set to 0 when using fixed constraints
             )
         return super().simulate()
 
-    def get_initial_chunksize(self):
-        return self.chunksize
+    def get_initial_chunksize(self) -> int:  # pyright: ignore[reportIncompatibleMethodOverride]
+        return self.chunksize or 0
 
 
 class TreeConstraintsSize(TreeConstraints):
@@ -118,11 +118,11 @@ class TreeConstraintsSize(TreeConstraints):
         depth = spec.depth + 1
         leaves = spec.leaves * self.branch_factor
         size = spec.size + leaves
-        leaf_size = self.total // leaves
+        leaf_size = self.total // leaves if self.total is not None else 0  # pyright: ignore[reportOperatorIssue]
         return TreeSpec(depth=depth, size=size, leaves=leaves, leaf_size=leaf_size)
 
-    def get_initial_chunksize(self):
-        return self.total // self.branch_factor
+    def get_initial_chunksize(self) -> int:
+        return self.total // self.branch_factor if self.total is not None else 0  # pyright: ignore[reportOperatorIssue]
 
 
 def get_constraints(
