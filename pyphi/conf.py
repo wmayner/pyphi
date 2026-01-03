@@ -47,6 +47,10 @@ The ``config`` API
 
 # pylint: disable=protected-access
 
+# NOTE: Type annotations for this module are in conf.pyi (type stub file).
+# The Option descriptor pattern requires a stub file to properly expose types
+# to static type checkers like pyright.
+
 import contextlib
 import functools
 import logging
@@ -1029,10 +1033,11 @@ def on_driver():
     if ray.is_initialized():
         try:
             # Ignore warning log
-            current_level = ray.runtime_context.logger.level
-            ray.runtime_context.logger.setLevel("ERROR")
+            # pyright: ignore[reportAttributeAccessIssue] - Optional ray dependency
+            current_level = ray.runtime_context.logger.level  # pyright: ignore[reportAttributeAccessIssue]
+            ray.runtime_context.logger.setLevel("ERROR")  # pyright: ignore[reportAttributeAccessIssue]
             ray.get_runtime_context().get_task_id()
-            ray.runtime_context.logger.setLevel(current_level)
+            ray.runtime_context.logger.setLevel(current_level)  # pyright: ignore[reportAttributeAccessIssue]
             return False
         except AssertionError:
             pass

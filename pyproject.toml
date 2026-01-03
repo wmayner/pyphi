@@ -111,35 +111,35 @@ exclude = [
 
 [tool.ruff.lint]
 select = [
-    "E",      # pycodestyle errors
-    "W",      # pycodestyle warnings
-    "F",      # pyflakes
-    "I",      # isort
-    "B",      # flake8-bugbear
-    "C4",     # flake8-comprehensions
-    "C90",    # mccabe complexity
-    "UP",     # pyupgrade
-    "T20",    # flake8-print
-    "TID",    # flake8-tidy-imports
-    "SIM",    # flake8-simplify
-    "RET",    # flake8-return
-    "ARG",    # flake8-unused-arguments
-    "PTH",    # flake8-use-pathlib
-    "ERA",    # eradicate (commented-out code)
-    "PL",     # pylint
-    "PERF",   # perflint (performance anti-patterns)
-    "RUF",    # Ruff-specific rules
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "B",    # flake8-bugbear
+    "C4",   # flake8-comprehensions
+    "C90",  # mccabe complexity
+    "UP",   # pyupgrade
+    "T20",  # flake8-print
+    "TID",  # flake8-tidy-imports
+    "SIM",  # flake8-simplify
+    "RET",  # flake8-return
+    "ARG",  # flake8-unused-arguments
+    "PTH",  # flake8-use-pathlib
+    "ERA",  # eradicate (commented-out code)
+    "PL",   # pylint
+    "PERF", # perflint (performance anti-patterns)
+    "RUF",  # Ruff-specific rules
 ]
 ignore = [
     # Relax some rules for scientific computing
-    "PLR0913",  # Too many arguments - common in scientific functions
-    "PLR0912",  # Too many branches - common in complex algorithms
-    "PLR0915",  # Too many statements - common in scientific code
-    "PLR2004",  # Magic value comparisons - common with thresholds
-    "RET504",   # Unnecessary variable assignment before return
-    "SIM108",   # Use ternary operator - sometimes less readable
-    "PTH123",   # open() instead of Path.open() - open() is fine
-    "ERA001",   # Commented-out code - allow for scientific exploration
+    "PLR0913", # Too many arguments - common in scientific functions
+    "PLR0912", # Too many branches - common in complex algorithms
+    "PLR0915", # Too many statements - common in scientific code
+    "PLR2004", # Magic value comparisons - common with thresholds
+    "RET504",  # Unnecessary variable assignment before return
+    "SIM108",  # Use ternary operator - sometimes less readable
+    "PTH123",  # open() instead of Path.open() - open() is fine
+    "ERA001",  # Commented-out code - allow for scientific exploration
 ]
 
 [tool.ruff.lint.mccabe]
@@ -158,10 +158,10 @@ max-statements = 100
 [tool.ruff.lint.per-file-ignores]
 # Allow certain rules in test files
 "test/**/*.py" = [
-    "ARG001",   # Unused function arguments (fixtures)
-    "PLR0913",  # Too many arguments (test parametrization)
-    "PLR2004",  # Magic values (test data)
-    "S101",     # Use of assert (standard in pytest)
+    "ARG001",  # Unused function arguments (fixtures)
+    "PLR0913", # Too many arguments (test parametrization)
+    "PLR2004", # Magic values (test data)
+    "S101",    # Use of assert (standard in pytest)
 ]
 # Allow print statements in profiling scripts
 "profiling/**/*.py" = ["T201"]
@@ -227,13 +227,12 @@ directory = "htmlcov"
 include = ["pyphi"]
 exclude = ["**/__pycache__", "test", "docs", "benchmarks", "profiling"]
 pythonVersion = "3.12"
-typeCheckingMode = "standard"  # Start at standard, not basic
+typeCheckingMode = "standard"                                           # Start at standard, not basic
 reportMissingImports = false
 reportMissingTypeStubs = false
-reportUnknownMemberType = false  # Disable for gradual migration
+reportUnknownMemberType = false                                         # Disable for gradual migration
 reportUnknownArgumentType = false
 reportUnknownVariableType = false
-# Enable stricter checks as we progress
 reportGeneralTypeIssues = true
 reportOptionalMemberAccess = true
 reportOptionalSubscript = true

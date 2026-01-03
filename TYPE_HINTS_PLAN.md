@@ -1,12 +1,15 @@
 # PyPhi Type Hints Implementation Plan
 
+> **⚠️ HISTORICAL DOCUMENT**: This plan was implemented using mypy. PyPhi has since migrated to pyright (2025-12-28). See [MIGRATION_FINDINGS.md](MIGRATION_FINDINGS.md) and [PYRIGHT_MIGRATION_SUMMARY.md](PYRIGHT_MIGRATION_SUMMARY.md) for details.
+
 **Scope**: Comprehensive coverage across all modules (95%+ coverage)
-**Strategy**: Phased rollout with progressive mypy strict mode enablement
+**Strategy**: Phased rollout with progressive type checker strict mode enablement
+**Type Checker**: ~~mypy~~ → **pyright** (migrated 2025-12-28)
 **Timeline**: ~350-420 hours over 14 weeks (~3.5 months)
 
 ---
 
-## 🎯 Current Progress (As of 2025-12-27)
+## 🎯 Current Progress (As of 2025-12-28 - Pyright Migration Complete)
 
 **Phase 1: Foundation & Standards** ✅ **COMPLETED**
 - All utilities, data structures, validation, and combinatorics typed
