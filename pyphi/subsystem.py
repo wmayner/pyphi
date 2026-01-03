@@ -24,6 +24,7 @@ from . import validate
 from .conf import config
 from .conf import fallback
 from .data_structures import FrozenMap
+from .data_structures import PyPhiFloat
 from .direction import Direction
 from .distribution import max_entropy_distribution
 from .distribution import repertoire_shape
@@ -228,7 +229,7 @@ class Subsystem:
     @property
     def cut_mechanisms(self) -> list[Mechanism]:
         """list[tuple[int]]: The mechanisms that are cut in this system."""
-        return self.cut.all_cut_mechanisms()
+        return list(self.cut.all_cut_mechanisms())
 
     @property
     def cut_node_labels(self) -> NodeLabels:
@@ -430,7 +431,8 @@ class Subsystem:
         elif direction == Direction.EFFECT:
             tpm = purview_node.effect_tpm.condition_tpm(condition)
         else:
-            return validate.direction(direction)
+            validate.direction(direction)
+            raise AssertionError("unreachable")  # validate.direction raises if invalid
 
         # TODO(4.0) remove reference to TPM
         # Marginalize-out the inputs that aren't in the mechanism.
@@ -516,7 +518,8 @@ class Subsystem:
             return self.cause_repertoire(mechanism, purview, **kwargs)
         if direction == Direction.EFFECT:
             return self.effect_repertoire(mechanism, purview, **kwargs)
-        return validate.direction(direction)
+        validate.direction(direction)
+        raise AssertionError("unreachable")  # validate.direction raises if invalid
 
     def unconstrained_repertoire(
         self, direction: Direction, purview: Purview, **kwargs: Any
@@ -569,7 +572,7 @@ class Subsystem:
                 )
                 for part in partition
             ]
-            return np.prod(prs)
+            return float(np.prod(prs))
         repertoires = [
             self.repertoire(direction, part.mechanism, part.purview, **kwargs)
             for part in partition
@@ -621,18 +624,19 @@ class Subsystem:
         direction: Direction,
         mechanism: Mechanism,
         purview: Purview,
-        purview_state: State,
+        purview_state: State | None,
         **kwargs: Any,
     ) -> Repertoire:
         if direction == Direction.CAUSE:
             return self.forward_cause_repertoire(mechanism, purview, purview_state)
         if direction == Direction.EFFECT:
             return self.forward_effect_repertoire(mechanism, purview, **kwargs)
-        return validate.direction(direction)
+        validate.direction(direction)
+        raise AssertionError("unreachable")  # validate.direction raises if invalid
 
     @cache.method("_forward_repertoire_cache", Direction.CAUSE)
     def forward_cause_repertoire(
-        self, mechanism: Mechanism, purview: Purview, purview_state: State
+        self, mechanism: Mechanism, purview: Purview, purview_state: State | None
     ) -> Repertoire:
         return _repertoire.forward_cause_repertoire(
             self,
@@ -655,7 +659,8 @@ class Subsystem:
             return self.unconstrained_forward_cause_repertoire(mechanism, purview)
         if direction == Direction.EFFECT:
             return self.unconstrained_forward_effect_repertoire(mechanism, purview)
-        return validate.direction(direction)
+        validate.direction(direction)
+        raise AssertionError("unreachable")  # validate.direction raises if invalid
 
     @cache.method("_unconstrained_forward_repertoire_cache", Direction.EFFECT)
     def unconstrained_forward_effect_repertoire(
@@ -702,6 +707,8 @@ class Subsystem:
             return None
 
         purview = distribution.purview(repertoire)
+        if purview is None:
+            return None
 
         if new_purview is None:
             new_purview = self.node_indices  # full subsystem
@@ -771,7 +778,7 @@ class Subsystem:
         mechanism: Mechanism,
         purview: Purview,
         partition: Bipartition,
-        repertoire: Repertoire | None = None,
+        repertoire: Repertoire | float | None = None,
         partitioned_repertoire: Repertoire | float | None = None,
         repertoire_distance: str | None = None,
         partitioned_repertoire_kwargs: dict[str, Any] | None = None,
@@ -801,8 +808,9 @@ class Subsystem:
             repertoire = self.repertoire(direction, mechanism, purview)
         # TODO(4.0) use same partitioned_repertoire func
         if repertoire_distance == "GENERALIZED_INTRINSIC_DIFFERENCE":
+            assert not isinstance(repertoire, (int, float)), "GID requires full repertoire"
             purview_state = kwargs["state"].state
-            selectivity = repertoire.squeeze()[purview_state]
+            selectivity = float(repertoire.squeeze()[purview_state])
             forward_pr = self.forward_probability(
                 direction, mechanism, purview, purview_state
             )
@@ -886,10 +894,13 @@ class Subsystem:
             desc="Evaluating mechanism partitions",
             **parallel_kwargs,
         ).run()
+        # Type narrowing: MapReduce returns Iterable[RepertoireIrreducibilityAnalysis]
+        assert candidate_mips is not None, "MapReduce.run() should not return None"
 
         ties = tuple(
             resolve_ties.partitions(
-                candidate_mips,
+                candidate_mips,  # type: ignore[arg-type]  # MapReduce generic type not fully inferred
+
                 default=_null_ria(
                     direction,
                     mechanism,
@@ -952,7 +963,7 @@ class Subsystem:
             partitions = list(partitions)
 
         parallel_kwargs = conf.parallel_kwargs(
-            config.PARALLEL_MECHANISM_PARTITION_EVALUATION, **kwargs
+            dict(config.PARALLEL_MECHANISM_PARTITION_EVALUATION), **kwargs
         )
         if config.IIT_VERSION == 4:
             if state is None:
@@ -991,7 +1002,7 @@ class Subsystem:
         else:
             raise NotImplementedError
 
-        ties = tuple(resolve_ties.states(mips))
+        ties = tuple(resolve_ties.states(mips))  # type: ignore[arg-type]  # MapReduce generic type not fully inferred
         for tie in ties:
             tie.set_state_ties(ties)
         return ties[0]
@@ -1084,11 +1095,13 @@ class Subsystem:
                 unconstrained_repertoire,
                 selectivity_repertoire,
             )
+            # Type narrowing: GID without state parameter returns full repertoire
+            assert not isinstance(gid, (int, float)), "GID should return array when state is None"
             # Remove singleton dimensions since we'll index with purview state
             gid = gid.squeeze()
 
-            def evaluate_state(state):
-                return gid[state]
+            def evaluate_state(state: State) -> float:
+                return float(gid[state])
 
         else:
             repertoire = self.repertoire(
@@ -1101,7 +1114,7 @@ class Subsystem:
                 purview,
             )
 
-            def evaluate_state(state):
+            def evaluate_state(state: State) -> float:
                 return _repertoire_distance(
                     repertoire, unconstrained_repertoire, state=state
                 )
@@ -1116,7 +1129,7 @@ class Subsystem:
                 direction=direction,
                 purview=purview,
                 state=state,
-                intrinsic_information=information,
+                intrinsic_information=PyPhiFloat(information),
                 repertoire=repertoire,
                 unconstrained_repertoire=unconstrained_repertoire,
             )
@@ -1215,7 +1228,7 @@ class Subsystem:
             return self.find_mip(direction, mechanism, purview)
 
         parallel_kwargs = conf.parallel_kwargs(
-            config.PARALLEL_PURVIEW_EVALUATION, **kwargs
+            dict(config.PARALLEL_PURVIEW_EVALUATION), **kwargs
         )
         map_reduce = MapReduce(
             _find_mip,
@@ -1225,9 +1238,9 @@ class Subsystem:
             **parallel_kwargs,
         )
 
-        all_mice = map(mice_class, map_reduce.run())
+        all_mice = map(mice_class, map_reduce.run())  # type: ignore[arg-type]  # MapReduce generic type not fully inferred
         # Record purview ties
-        ties = tuple(resolve_ties.purviews(all_mice, default=no_purviews))
+        ties = tuple(resolve_ties.purviews(all_mice, default=no_purviews))  # type: ignore[arg-type]  # MapReduce generic type not fully inferred
         # TODO(ties) refactor this into `resolve_ties.purviews`?
         for tie in ties:
             tie.set_purview_ties(ties)
@@ -1376,7 +1389,7 @@ class Subsystem:
         # for progress bar (tqdm)
         if fallback(config.PROGRESS_BARS):
             try:
-                total = len(mechanisms)
+                total = len(mechanisms)  # type: ignore[arg-type]  # chain doesn't support len, handled by try/except
             except TypeError:
                 pass
             mechanisms = tqdm(mechanisms, total=total)

@@ -195,7 +195,7 @@ class CauseEffectStructure(cmp.Orderable, Sequence, ToPandasMixin):
     def labeled_mechanisms(self):
         """The labeled mechanism of each concept."""
         # TODO(4.0) remove dependence on subsystem
-        label = self.subsystem.node_labels.indices2labels
+        label = self.subsystem.node_labels.indices2labels  # pyright: ignore[reportAttributeAccessIssue]
         return tuple(list(label(mechanism)) for mechanism in self.mechanisms)
 
     def purview_inclusion_of_intersection(self, min_order, max_order):
@@ -269,7 +269,7 @@ class FlatCauseEffectStructure(CauseEffectStructure):
 
     def __init__(self, concepts=(), subsystem=None):
         if isinstance(concepts, CauseEffectStructure):
-            subsystem = concepts.subsystem
+            subsystem = concepts.subsystem  # pyright: ignore[reportAttributeAccessIssue]
         if not isinstance(concepts, FlatCauseEffectStructure):
             _concepts = flatten_distinctions(concepts)
         else:
@@ -279,7 +279,7 @@ class FlatCauseEffectStructure(CauseEffectStructure):
     def __str__(self):
         return fmt.fmt_ces(self, title="Flat cause-effect structure")
 
-    @property
+    @property  # type: ignore[override]
     def purviews(self):
         """The purview of each component."""
         for component in self:
@@ -309,7 +309,7 @@ class FlatCauseEffectStructure(CauseEffectStructure):
         """Return a mapping from each purview to its maximum specifier."""
         return {purview: self.maximum_specifier(purview) for purview in self.purviews}
 
-    @property
+    @property  # type: ignore[override]
     def flat(self):
         # No-op; already flat
         return self

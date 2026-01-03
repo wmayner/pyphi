@@ -86,11 +86,11 @@ def ces(
         # Don't serialize the subsystem; this is replaced after returning.
         # TODO(4.0) remove when subsystem reference is removed from Concept
         concept = subsystem.concept(*args, **kwargs, progress=False)
-        concept.subsystem = None
+        concept.subsystem = None  # pyright: ignore[reportAttributeAccessIssue]
         return concept
 
     reduce_func = _only_positive_phi if only_positive_phi else _any_phi
-    parallel_kwargs = conf.parallel_kwargs(config.PARALLEL_CONCEPT_EVALUATION, **kwargs)
+    parallel_kwargs = conf.parallel_kwargs(dict(config.PARALLEL_CONCEPT_EVALUATION), **kwargs)
     concepts = MapReduce(
         compute_concept,
         mechanisms,
