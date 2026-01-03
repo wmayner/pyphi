@@ -4,6 +4,60 @@ from pyphi import jsonify
 
 from . import example_networks
 
+
+# Pytest configuration
+# =============================================================================
+
+
+def pytest_configure(config):
+    """Register custom markers for test categorization.
+
+    Markers:
+    - golden: Golden reference test comparing full structure against JSON fixture
+    - robust: Robust component-level test with intermediate checks
+    """
+    config.addinivalue_line(
+        "markers",
+        "golden: Golden reference test comparing full structure against JSON fixture",
+    )
+    config.addinivalue_line(
+        "markers",
+        "robust: Robust component-level test with intermediate checks",
+    )
+
+
+def pytest_assertrepr_compare(op, left, right):
+    """Custom assertion messages for SIA comparisons.
+
+    Provides detailed diff output when SystemIrreducibilityAnalysis
+    objects are compared, showing exactly which attributes differ.
+    """
+    # Import here to avoid circular imports
+    try:
+        from pyphi.new_big_phi import SystemIrreducibilityAnalysis
+    except ImportError:
+        return None
+
+    # Check if we're comparing two SIA objects
+    if (
+        isinstance(left, SystemIrreducibilityAnalysis)
+        and isinstance(right, SystemIrreducibilityAnalysis)
+        and op == "=="
+    ):
+        try:
+            from .test_helpers import diff_sia_results
+
+            diff_output = diff_sia_results(left, right)
+            return ["Comparing SystemIrreducibilityAnalysis objects:"] + diff_output.split(
+                "\n"
+            )
+        except (ImportError, AttributeError):
+            # If test_helpers not available, fall back to default
+            return None
+
+    return None
+
+
 # Check if pyemd is available
 # =============================================================================
 
