@@ -186,8 +186,8 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
         warn_about_tie_serialization(self.__class__.__name__, serialize=True)
         dct = self.__dict__.copy()
         # TODO(ties) implement serialization of ties
-        # Remove ties because of circular references
-        del dct["_ties"]
+        # Remove ties because of circular references (if present)
+        dct.pop("_ties", None)
         return dct
 
 
@@ -206,6 +206,19 @@ class NullSystemIrreducibilityAnalysis(SystemIrreducibilityAnalysis):
             node_labels=node_labels,
             **kwargs,
         )
+
+    @classmethod
+    def from_json(cls, dct):
+        """Deserialize from JSON.
+
+        The JSON dict contains all attributes including phi, partition, etc.
+        We can construct directly using the parent class since all attributes
+        are already present in the dictionary.
+        """
+        # Use parent class constructor directly with all attributes
+        obj = object.__new__(cls)
+        SystemIrreducibilityAnalysis.__init__(obj, **dct)
+        return obj
 
     def _repr_columns(self):
         columns = []
