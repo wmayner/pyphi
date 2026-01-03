@@ -23,7 +23,8 @@ class NoRay:
         return False
 
     def __repr__(self):
-        return "<NoRay(): " + self.__doc__ + ">"
+        doc = self.__doc__ or "Ray not available"
+        return "<NoRay(): " + doc + ">"
 
 
 try:

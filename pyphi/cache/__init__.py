@@ -17,11 +17,11 @@ from .cache_utils import _make_key
 joblib_memory = joblib.Memory(location=constants.DISK_CACHE_LOCATION, verbose=0)
 
 
-def cache(cache={}, maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE, typed=False):
+def cache(cache={}, maxmem: int | None = config.MAXIMUM_CACHE_MEMORY_PERCENTAGE, typed: bool = False):
     """Memory-limited cache decorator.
 
     ``maxmem`` is a float between 0 and 100, inclusive, specifying the maximum
-    percentage of physical memory that the cache can use.
+    percentage of physical memory that the cache can use. Can be None for unlimited.
 
     If ``typed`` is ``True``, arguments of different types will be cached
     separately. For example, f(3.0) and f(3) will be treated as distinct calls
@@ -60,6 +60,9 @@ def cache(cache={}, maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE, typed=False):
                 return result
 
         else:
+            # Type narrowing: maxmem is not None in this branch
+            assert maxmem is not None, "maxmem should not be None in else branch"
+            maxmem_value = maxmem
 
             def wrapper(*args, **kwds):
                 # Memory-limited caching.
@@ -75,7 +78,7 @@ def cache(cache={}, maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE, typed=False):
                     # Cache is full if the total recursive usage is greater
                     # than the maximum allowed percentage.
                     current_process = psutil.Process(os.getpid())
-                    full = current_process.memory_percent() > maxmem
+                    full = current_process.memory_percent() > maxmem_value
                 misses += 1
                 return result
 
@@ -90,8 +93,8 @@ def cache(cache={}, maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE, typed=False):
             hits = misses = 0
             full = False
 
-        wrapper.cache_info = cache_info
-        wrapper.cache_clear = cache_clear
+        wrapper.cache_info = cache_info  # type: ignore[attr-defined]
+        wrapper.cache_clear = cache_clear  # type: ignore[attr-defined]
         return update_wrapper(wrapper, user_function)
 
     return decorating_function

@@ -30,7 +30,7 @@ class _HashedSeq(list):
         self[:] = tup
         self.hashvalue = hash(tup)
 
-    def __hash__(self):
+    def __hash__(self):  # type: ignore[override]
         return self.hashvalue
 
 
@@ -55,6 +55,7 @@ def _make_key(
     space and improves lookup speed.
     """
     key = args
+    sorted_items = None
     if kwds:
         sorted_items = sorted(kwds.items())
         key += kwd_mark
@@ -63,6 +64,7 @@ def _make_key(
     if typed:
         key += tuple(type(v) for v in args)
         if kwds:
+            assert sorted_items is not None  # Type narrowing: kwds is truthy
             key += tuple(type(v) for k, v in sorted_items)
     elif len(key) == 1 and type(key[0]) in fasttypes:
         return key[0]

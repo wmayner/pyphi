@@ -12,13 +12,14 @@ try:
 
     NO_REDIS = False
 except ModuleNotFoundError:
+    redis = None  # type: ignore[assignment]
     NO_REDIS = True
 
 
 def init(db):
     if NO_REDIS:
         return None
-    return redis.StrictRedis(
+    return redis.StrictRedis(  # pyright: ignore[reportOptionalMemberAccess]
         host=config.REDIS_CONFIG["host"], port=config.REDIS_CONFIG["port"], db=db
     )
 
@@ -39,7 +40,7 @@ def available():
         return False
     try:
         return conn.ping()
-    except redis.exceptions.ConnectionError:
+    except redis.exceptions.ConnectionError:  # type: ignore[union-attr] - Optional redis dependency
         return False
 
 
@@ -48,8 +49,8 @@ def available():
 class RedisCache:
     def clear(self):
         """Flush the cache."""
-        conn.flushdb()
-        conn.config_resetstat()
+        conn.flushdb()  # pyright: ignore[reportOptionalMemberAccess]
+        conn.config_resetstat()  # pyright: ignore[reportOptionalMemberAccess]
 
     @staticmethod
     def size():
@@ -57,32 +58,32 @@ class RedisCache:
 
         .. note:: This is the size of the entire Redis database.
         """
-        return conn.dbsize()
+        return conn.dbsize()  # pyright: ignore[reportOptionalMemberAccess]
 
     def info(self):
         """Return cache information.
 
         .. note:: This is not the cache info for the entire Redis key space.
         """
-        info = conn.info()
-        return _CacheInfo(info["keyspace_hits"], info["keyspace_misses"], self.size())
+        info = conn.info()  # pyright: ignore[reportOptionalMemberAccess]
+        return _CacheInfo(info["keyspace_hits"], info["keyspace_misses"], self.size())  # pyright: ignore[reportIndexIssue]
 
     def get(self, key):
         """Get a value from the cache.
 
         Returns None if the key is not in the cache.
         """
-        value = conn.get(key)
+        value = conn.get(key)  # pyright: ignore[reportOptionalMemberAccess]
 
         if value is not None:
-            value = pickle.loads(value)
+            value = pickle.loads(value)  # pyright: ignore[reportArgumentType]
 
         return value
 
     def set(self, key, value):
         """Set a value in the cache."""
         value = pickle.dumps(value, protocol=constants.PICKLE_PROTOCOL)
-        conn.set(key, value)
+        conn.set(key, value)  # pyright: ignore[reportOptionalMemberAccess]
 
     def key(self):
         """Delegate to subclasses."""

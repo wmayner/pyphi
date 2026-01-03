@@ -88,7 +88,7 @@ class CompositionalState(UserDict):
                 self.data[purview][direction] = set()
             self.data[purview][direction].add(distinction.mechanism)
 
-    def update(self, value):
+    def update(self, value):  # type: ignore[override]
         """Update the CompositionalState with one or more distinctions."""
         if isinstance(value, Iterable):
             for item in value:
