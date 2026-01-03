@@ -174,7 +174,7 @@ def compensatory_pareto(
             size,
             alpha=alpha,
             periodic=periodic,
-            normalize=normalize_input_weights,
+            normalize=normalize_input_weights,  # pyright: ignore[reportCallIssue] - Added by @_optionally_normalize_inputs decorator
         ),
         node_indicator=layer_state,
         self_amount=w_self_potentiation,

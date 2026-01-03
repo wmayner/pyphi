@@ -61,7 +61,9 @@ def boolean_function(element, weights, state, on_inputs=(), **kwargs):
 
     inputs = tuple(utils.weighted_inputs(element, weights, state))
 
-    if len(inputs) != len(next(iter(on_inputs), len(inputs))):
+    # Get the length of the first on_input, or use len(inputs) if on_inputs is empty
+    first_on_input = next(iter(on_inputs), inputs)
+    if len(inputs) != len(first_on_input):
         raise ValueError("nonzero input weights and on_input lengths must match")
 
     return inputs in on_inputs

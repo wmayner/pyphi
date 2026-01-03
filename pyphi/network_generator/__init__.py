@@ -4,10 +4,10 @@
 import string
 from collections.abc import Callable
 from collections.abc import Iterable
-from typing import Union
+from typing import Any, Union
 
 import numpy as np
-from numpy.typing import ArrayLike
+from numpy.typing import NDArray
 
 from ..labels import NodeLabels
 from ..network import Network
@@ -32,7 +32,7 @@ UNIT_FUNCTIONS = {
 
 def build_tpm(
     unit_functions: str | Callable | Iterable[Callable],
-    weights: ArrayLike,
+    weights: NDArray[Any],
     **kwargs,
 ):
     if weights.ndim != 2 or weights.shape[0] != weights.shape[1]:
@@ -40,18 +40,24 @@ def build_tpm(
 
     N = weights.shape[0]
 
-    if isinstance(unit_functions, Iterable):
-        unit_functions = list(unit_functions)
-        if len(unit_functions) != weights.shape[0]:
-            raise ValueError(
-                "Number of unit functions must match number of nodes in weight " "matrix"
-            )
+    # Normalize unit_functions to a list
+    if isinstance(unit_functions, str):
+        # Single function name string - use for all nodes
+        unit_functions_list: list[str | Callable] = [unit_functions] * N
+    elif callable(unit_functions):
+        # Single function - use for all nodes
+        unit_functions_list = [unit_functions] * N
     else:
-        unit_functions = [unit_functions] * N
+        # Iterable of functions
+        unit_functions_list = list(unit_functions)
+        if len(unit_functions_list) != weights.shape[0]:
+            raise ValueError(
+                "Number of unit functions must match number of nodes in weight matrix"
+            )
 
     tpm = np.zeros([2] * N + [N])
     for state in all_states(N):
-        for element, func in enumerate(unit_functions):
+        for element, func in enumerate(unit_functions_list):
             if isinstance(func, str):
                 func = UNIT_FUNCTIONS[func]
             tpm[state + (element,)] = func(element, weights, state, **kwargs)
@@ -60,8 +66,8 @@ def build_tpm(
 
 def build_network(
     unit_functions: Callable | Iterable[Callable],
-    weights: ArrayLike,
-    node_labels: NodeLabels = None,
+    weights: NDArray[Any],
+    node_labels: NodeLabels | None = None,
     **kwargs,
 ):
     """Returns a PyPhi network given a weight matrix and a unit function.
@@ -78,7 +84,9 @@ def build_network(
         Network: A PyPhi network.
     """
     if node_labels is None:
-        node_labels = string.ascii_uppercase[: weights.shape[0]]
+        # Create default labels from uppercase letters
+        N = weights.shape[0]
+        node_labels = NodeLabels(string.ascii_uppercase[:N], range(N))
     tpm = build_tpm(unit_functions, weights, **kwargs)
     cm = (weights != 0).astype(int)
     return Network(tpm, cm=cm, node_labels=node_labels)
