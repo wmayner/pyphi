@@ -41,7 +41,7 @@ from pyphi import cache
 if TYPE_CHECKING:
     # These imports are needed for type checking but cause circular imports at runtime
     # They are dynamically available through pyphi's lazy import system
-    from pyphi import data_structures, exceptions, labels, models, new_big_phi, relations
+    pass
 
 CLASS_KEY = "__class__"
 VERSION_KEY = "__version__"
@@ -98,6 +98,7 @@ def _loadable_models():
         pyphi.Network,
         pyphi.new_big_phi.PhiStructure,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.new_big_phi.SystemIrreducibilityAnalysis,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.new_big_phi.NullSystemIrreducibilityAnalysis,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.relations.AnalyticalRelations,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.relations.ConcreteRelations,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.relations.Relation,  # pyright: ignore[reportAttributeAccessIssue]
@@ -153,6 +154,14 @@ def jsonify(obj):  # pylint: disable=too-many-return-statements
         return int(obj)
     if isinstance(obj, np.floating):  # pyright: ignore[reportArgumentType]
         return float(obj)
+
+    # Handle Python Enums by converting to their name (string)
+    # This prevents circular reference issues with Enum.__dict__
+    # Using .name instead of .value ensures stability across refactoring
+    from enum import Enum
+
+    if isinstance(obj, Enum):
+        return obj.name
 
     # Recurse over dictionaries.
     if isinstance(obj, dict):
