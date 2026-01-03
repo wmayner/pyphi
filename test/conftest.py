@@ -4,6 +4,22 @@ from pyphi import jsonify
 
 from . import example_networks
 
+# Check if pyemd is available
+# =============================================================================
+
+try:
+    import pyemd  # noqa: F401
+
+    PYEMD_AVAILABLE = True
+except ImportError:
+    PYEMD_AVAILABLE = False
+
+# Skip decorator for EMD tests
+skip_if_no_pyemd = pytest.mark.skipif(
+    not PYEMD_AVAILABLE,
+    reason="pyemd not installed (install with: pip install pyphi[emd])",
+)
+
 # Test fixtures from example networks
 # =============================================================================
 

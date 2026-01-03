@@ -8,6 +8,8 @@ from pyphi.models import Bipartition
 from pyphi.models import Part
 from pyphi.models import RepertoireIrreducibilityAnalysis
 
+from .conftest import skip_if_no_pyemd
+
 from . import example_networks
 
 s = example_networks.s()
@@ -244,6 +246,8 @@ scenarios = [
 parameter_string = "direction,subsystem,cut,mechanism,purview,expected"
 
 
+@pytest.mark.emd
+@skip_if_no_pyemd
 @pytest.mark.parametrize(parameter_string, scenarios)
 @config.override(REPERTOIRE_DISTANCE="EMD")
 def test_find_mip(direction, subsystem, cut, mechanism, purview, expected):

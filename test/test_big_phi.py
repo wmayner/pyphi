@@ -4,6 +4,8 @@ from pyphi import compute
 from pyphi import config
 from pyphi import new_big_phi
 
+from .conftest import skip_if_no_pyemd
+
 # pylint: disable=unused-argument
 
 # Tests
@@ -44,6 +46,8 @@ def test_sia_disconnected_network(reducible):
     )
 
 
+@pytest.mark.emd
+@skip_if_no_pyemd
 @config.override(SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=True)
 @config.override(REPERTOIRE_DISTANCE="EMD")
 def test_sia_single_micro_node_selfloops_have_phi(noisy_selfloop_single):

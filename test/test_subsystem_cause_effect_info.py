@@ -1,7 +1,13 @@
+import pytest
+
 from pyphi import config
 from pyphi.metrics.distribution import hamming_emd
 
+from .conftest import skip_if_no_pyemd
 
+
+@pytest.mark.emd
+@skip_if_no_pyemd
 @config.override(REPERTOIRE_DISTANCE="EMD")
 def test_cause_info(s):
     mechanism = (0, 1)
@@ -13,6 +19,8 @@ def test_cause_info(s):
     assert s.cause_info(mechanism, purview) == answer
 
 
+@pytest.mark.emd
+@skip_if_no_pyemd
 @config.override(REPERTOIRE_DISTANCE="EMD")
 def test_effect_info(s):
     mechanism = (0, 1)
@@ -24,6 +32,8 @@ def test_effect_info(s):
     assert s.effect_info(mechanism, purview) == answer
 
 
+@pytest.mark.emd
+@skip_if_no_pyemd
 @config.override(REPERTOIRE_DISTANCE="EMD")
 def test_cause_effect_info(s):
     mechanism = (0, 1)

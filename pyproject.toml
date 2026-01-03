@@ -185,6 +185,7 @@ addopts = [
 ]
 norecursedirs = ["docs/_*"]
 markers = [
+    "emd: marks tests that require the pyemd package (deselect with '-m \"not emd\"')",
     "outdated: marks tests as outdated (deselect with '-m \"not outdated\"')",
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "veryslow: marks tests as very slow (deselect with '-m \"not veryslow\"')",

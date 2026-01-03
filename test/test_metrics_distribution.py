@@ -3,6 +3,8 @@ import pytest
 
 from pyphi.metrics import distribution
 
+from .conftest import skip_if_no_pyemd
+
 TEST_DATA = (
     (np.ones((2, 2, 2)) / 8, np.ones((2, 2, 2)) / 8),
     (np.array([[[1.0]], [[0.0]]]), np.array([[[0.25]], [[0.75]]])),
@@ -113,6 +115,8 @@ def test_large_hamming_matrix():
     distribution._hamming_matrix(n)
 
 
+@pytest.mark.emd
+@skip_if_no_pyemd
 def test_hamming_emd_validates_distribution_shapes():
     a = np.ones((2, 2, 2)) / 8
     b = np.ones((3, 3, 3)) / 27
@@ -120,6 +124,8 @@ def test_hamming_emd_validates_distribution_shapes():
         distribution.hamming_emd(a, b)
 
 
+@pytest.mark.emd
+@skip_if_no_pyemd
 @pytest.mark.parametrize(
     "pq,answer",
     zip(

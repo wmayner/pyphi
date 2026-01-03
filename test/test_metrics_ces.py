@@ -9,7 +9,11 @@ from pyphi import models
 from pyphi.metrics.ces import ces_distance
 from pyphi.metrics.ces import emd_ground_distance
 
+from .conftest import skip_if_no_pyemd
 
+
+@pytest.mark.emd
+@skip_if_no_pyemd
 def test_emd_ground_distance_must_be_symmetric():
     a = np.ones((2, 2, 2)) / 8
     b = np.ones((2, 2, 2)) / 8
@@ -18,6 +22,8 @@ def test_emd_ground_distance_must_be_symmetric():
             emd_ground_distance(a, b)
 
 
+@pytest.mark.emd
+@skip_if_no_pyemd
 @pytest.mark.outdated
 def test_ces_distances(s):
     with config.override(REPERTOIRE_DISTANCE="EMD"):
@@ -30,6 +36,8 @@ def test_ces_distances(s):
         assert ces_distance(sia.ces, sia.partitioned_ces) == 1.083333
 
 
+@pytest.mark.emd
+@skip_if_no_pyemd
 @pytest.mark.outdated
 def test_sia_uses_ces_distances(s):
     with config.override(REPERTOIRE_DISTANCE="EMD", CES_DISTANCE="EMD"):
@@ -41,6 +49,8 @@ def test_sia_uses_ces_distances(s):
         assert sia.phi == 1.083333
 
 
+@pytest.mark.emd
+@skip_if_no_pyemd
 @patch("pyphi.metrics.ces._emd_simple")
 @patch("pyphi.metrics.ces._emd")
 @pytest.mark.outdated
