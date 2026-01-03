@@ -29,7 +29,7 @@ def plot_graph(g, **kwargs):
 
 
 def plot_subsystem(subsystem, **kwargs):
-    g = nx.from_numpy_matrix(subsystem.cm, create_using=nx.DiGraph)
+    g = nx.from_numpy_array(subsystem.cm, create_using=nx.DiGraph)
     nx.relabel_nodes(
         g,
         dict(zip(range(subsystem.network.size), subsystem.node_labels, strict=False)),

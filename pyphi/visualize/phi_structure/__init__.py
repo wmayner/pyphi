@@ -100,10 +100,12 @@ def plot_phi_structure(
             "Either phi_structure or both distinctions and relations are required"
         )
     if distinctions is None:
+        assert phi_structure is not None  # Type narrowing: checked above
         distinctions = phi_structure.distinctions
     if not distinctions:
         raise ValueError("No distinctions; cannot plot")
     if relations is None:
+        assert phi_structure is not None  # Type narrowing: checked above
         relations = phi_structure.relations
 
     if subsystem is None and any(
@@ -113,10 +115,13 @@ def plot_phi_structure(
             "Either subsystem or each of state, node_indices, and node_labels are required"
         )
     if state is None:
+        assert subsystem is not None  # Type narrowing: checked above
         state = subsystem.state
     if node_indices is None:
+        assert subsystem is not None  # Type narrowing: checked above
         node_indices = subsystem.node_indices
     if node_labels is None:
+        assert subsystem is not None  # Type narrowing: checked above
         node_labels = subsystem.node_labels
 
     # Need to convert to native dict because Plotly has overly strict type

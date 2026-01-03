@@ -78,13 +78,13 @@ class Coordinates:
 
     def get(
         self,
-        subset: tuple[int],
-        direction: Direction = None,
-        offset_subset: tuple[int] = None,
-        offset_state: tuple[int] = None,
+        subset: tuple[int, ...],
+        direction: Direction | None = None,
+        offset_subset: tuple[int, ...] | None = None,
+        offset_state: tuple[int, ...] | None = None,
     ):
         """Return coordinates for the given subset."""
-        coords = self.mapping[subset].copy()
+        coords = self.mapping[subset].copy()  # type: ignore[union-attr]
 
         if direction is not None and self.direction_offset is not None:
             coords += self.direction_offset[direction]
@@ -181,6 +181,7 @@ def arrange(
 ):
     """Return a mapping from subsets of the nodes to coordinates."""
     radius_func = SHAPES.get(radius_func, radius_func)
+    assert radius_func is not None  # Type narrowing
     if N is None:
         N = len(nodes)
     radii = radius_func(N)
@@ -287,7 +288,7 @@ class PurviewCoordinates:
         direction: Direction,
     ):
         """Return cause or effect coordinates for the given purview, specified by its mechanism and direction."""
-        coords = self.mapping[direction][mechanism].copy()
+        coords = self.mapping[direction][mechanism].copy()  # type: ignore[union-attr]
 
         coords *= self.scale
         coords += self.translate

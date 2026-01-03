@@ -64,7 +64,7 @@ class Labeler:
                     f"P: {self.units(relation.purview)}",
                     f"φ: {round(relation.phi, config.PRECISION)}",
                     "Relata:",
-                    indent(self.relata(relation)),
+                    indent(self.hover_relata(relation)),
                 ]
             )
         )

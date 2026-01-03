@@ -64,6 +64,10 @@ def _get_color(colorscale, intermed):
     if intermed >= 1:
         return colorscale[-1][1]
 
+    # Initialize to satisfy type checker (loop will always set these)
+    low_cutoff, low_color = 0.0, colorscale[0][1]
+    high_cutoff, high_color = 1.0, colorscale[-1][1]
+
     for cutoff, color in colorscale:
         if intermed > cutoff:
             low_cutoff, low_color = cutoff, color
