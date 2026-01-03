@@ -112,7 +112,12 @@ def directed_bipartition_indices(
          ((0, 1, 2), ())]
     """
     indices = bipartition_indices(N)
-    return indices + [idx[::-1] for idx in indices[::-1]]
+    # Reverse each bipartition to create directed versions
+    # Type annotation: tuple slicing [::-1] creates proper 2-element tuples
+    reversed_indices: list[tuple[tuple[int, ...], tuple[int, ...]]] = [
+        (idx[1], idx[0]) for idx in indices[::-1]
+    ]
+    return indices + reversed_indices
 
 
 # TODO? [optimization] optimize this to use indices rather than nodes
@@ -767,7 +772,8 @@ def _unidirectional_set_partitions(node_indices, node_labels=None):
     if len(node_indices) == 1 or config.SYSTEM_PARTITION_INCLUDE_COMPLETE:
         yield CompleteGeneralSetPartition(node_indices, node_labels=node_labels)
     _node_indices = set(range(len(node_indices)))
-    for partition in combinatorics.set_partitions(_node_indices, nontrivial=True):
+    # Convert set to list for set_partitions which expects Sequence
+    for partition in combinatorics.set_partitions(list(_node_indices), nontrivial=True):
         for directions in product(Direction.all(), repeat=len(partition)):
             cut_matrix = np.zeros([len(_node_indices), len(_node_indices)], dtype=int)
             for part, direction in zip(partition, directions):

@@ -11,6 +11,7 @@ from collections.abc import Iterable
 from itertools import chain
 from itertools import combinations
 from itertools import product
+from typing import Any
 
 import numpy as np
 from scipy.special import comb
@@ -191,12 +192,12 @@ def comb_indices(n: int, k: int) -> np.ndarray:
 
 # Based on https://docs.python.org/3/library/itertools.html#itertools-recipes
 def powerset(
-    iterable: list | tuple | np.ndarray,
+    iterable: Iterable[Any],
     nonempty: bool = False,
     reverse: bool = False,
     min_size: int = 0,
     max_size: int | None = None,
-) -> chain:
+) -> chain[Any]:
     """Generate the power set of an iterable.
 
     Args:
@@ -432,8 +433,8 @@ all_maxima = all_extrema(operator.gt)
 
 
 def iter_with_default(
-    seq: Generator | list, default: object
-) -> Generator[object, None, None]:
+    seq: Iterable[Any], default: object
+) -> Generator[Any, None, None]:
     """Iterate over ``seq``, yielding ``default`` if ``seq`` is empty."""
     yielded = False
     for item in seq:

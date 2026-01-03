@@ -331,6 +331,8 @@ class MacroSubsystem(Subsystem):
         cm = np.zeros((n, n))
         for i, j in itertools.product(range(n), repeat=2):
             # TODO: don't pull cm from self
+            # self.blackbox is guaranteed to exist here since we're in _blackbox_space
+            assert self.blackbox is not None, "_blackbox_space called with self.blackbox=None"
             outputs = self.blackbox.outputs_of(i)
             to = self.blackbox.partition[j]
             if self.cm[np.ix_(outputs, to)].sum() > 0:
@@ -378,13 +380,14 @@ class MacroSubsystem(Subsystem):
         Note that although ``cut_indices`` returns micro indices, this
         returns macro mechanisms.
 
-        Yields:
-            tuple[int]
+        Returns:
+            list[tuple[int, ...]]: The list of cut mechanisms.
         """
-        for mechanism in utils.powerset(self.node_indices, nonempty=True):
-            micro_mechanism = self.macro2micro(mechanism)
-            if self.cut.splits_mechanism(micro_mechanism):
-                yield mechanism
+        return [
+            mechanism
+            for mechanism in utils.powerset(self.node_indices, nonempty=True)
+            if self.cut.splits_mechanism(self.macro2micro(mechanism))
+        ]
 
     @property
     def cut_node_labels(self):
@@ -467,6 +470,8 @@ class MacroSubsystem(Subsystem):
         if type(self) != type(other):  # pylint: disable=unidiomatic-typecheck
             return False
 
+        # Type narrowing: we know other is MacroSubsystem now
+        assert isinstance(other, MacroSubsystem)
         return (
             super().__eq__(other)
             and self.time_scale == other.time_scale

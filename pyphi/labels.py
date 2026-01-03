@@ -24,7 +24,7 @@ def default_labels(indices: Sequence[int]) -> tuple[str, ...]:
     return tuple(default_label(i) for i in indices)
 
 
-class NodeLabels(Sequence):
+class NodeLabels(Sequence[str]):
     """Text labels for nodes in a network.
 
     Labels can either be instantiated as a tuple of strings:
@@ -64,7 +64,7 @@ class NodeLabels(Sequence):
     def __contains__(self, x: object) -> bool:
         return x in self.labels
 
-    def __getitem__(self, x: int | slice) -> str | tuple[str, ...]:
+    def __getitem__(self, x: int | slice) -> str | tuple[str, ...]:  # type: ignore[override]
         return self.labels[x]
 
     def __repr__(self) -> str:

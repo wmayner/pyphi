@@ -49,7 +49,7 @@ def uniform_distribution(number_of_nodes: int) -> Repertoire:
 
 def marginal_zero(repertoire: Repertoire, node_index: int) -> np.floating:
     """Return the marginal probability that the node is OFF."""
-    index = [slice(None)] * repertoire.ndim
+    index: list[slice | int] = [slice(None)] * repertoire.ndim
     index[node_index] = 0
 
     return repertoire[tuple(index)].sum()
@@ -102,7 +102,10 @@ def purview_size(repertoire: Repertoire | None) -> int:
     Returns:
         int: The size of purview that the repertoire was computed over.
     """
-    return len(purview(repertoire))
+    p = purview(repertoire)
+    if p is None:
+        return 0
+    return len(p)
 
 
 def repertoire_shape(

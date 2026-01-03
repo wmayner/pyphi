@@ -27,7 +27,7 @@ def mean_dynamics(
     data = np.array(
         [
             [
-                simulate(tpm, initial_state=initial_state, **kwargs)
+                simulate(tpm, initial_state=initial_state, **kwargs)  # pyright: ignore[reportArgumentType]
                 for initial_state in initial_states
             ]
             for _ in range(repetitions)
@@ -41,7 +41,7 @@ def simulate(
     initial_state: tuple[int] | None = None,
     timesteps: int | None = 100,
     clamp: Iterable[Mapping] | Mapping | None = None,
-    rng: np.random.Generator = None,
+    rng: np.random.Generator | None = None,
 ):
     """Return a simulated timeseries of system states."""
     if isinstance(tpm, pd.DataFrame):
@@ -65,12 +65,12 @@ def simulate(
         raise ValueError("initial_state must have length equal to the number of units")
 
     if isinstance(clamp, Mapping):
-        clamps = [clamp] * timesteps
+        clamps = [clamp] * timesteps  # pyright: ignore[reportOperatorIssue]
     else:
         clamps = clamp
 
-    states = [apply_clamp(clamps[0], initial_state)]
-    for current_clamp in clamps[1:]:
+    states = [apply_clamp(clamps[0], initial_state)]  # pyright: ignore[reportIndexIssue]
+    for current_clamp in clamps[1:]:  # pyright: ignore[reportIndexIssue]
         current_state = states[-1]
         next_state = simulate_one_timestep(rng, tpm, current_state)
         next_state = apply_clamp(current_clamp, next_state)
@@ -96,7 +96,7 @@ def simulate_one_timestep_from_explicit_tpm_state_by_node(rng, tpm, state):
 
 # TODO(4.0): move to tpm module
 def number_of_units(tpm: ArrayLike):
-    return tpm.shape[-1]
+    return tpm.shape[-1]  # pyright: ignore[reportAttributeAccessIssue]
 
 
 def apply_clamp(clamp, state):

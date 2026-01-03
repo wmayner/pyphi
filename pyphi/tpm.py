@@ -125,13 +125,13 @@ class ProxyMetaclass(type):
 
         type.__init__(cls, type_name, bases, dct)
 
-        if not cls.__wraps__:
+        if not cls.__wraps__:  # type: ignore[attr-defined]  # Dynamic metaclass attribute
             return
 
-        ignore = cls.__ignore__
+        ignore = cls.__ignore__  # type: ignore[attr-defined]  # Dynamic metaclass attribute
 
         # Go through all the attribute strings in the wrapped array type.
-        for name in dir(cls.__wraps__):
+        for name in dir(cls.__wraps__):  # type: ignore[attr-defined]  # Dynamic metaclass attribute
             # Filter special attributes, rest will be handled by `__getattr__()`
             if any([not name.startswith("__"), name in ignore, name in dct]):
                 continue
@@ -161,7 +161,7 @@ class Wrapper(metaclass=ProxyMetaclass):
         if self.__wraps__ is None:
             raise TypeError("Base class Wrapper may not be instantiated.")
 
-        if not isinstance(self._tpm, self.__wraps__):
+        if not isinstance(self._tpm, self.__wraps__):  # type: ignore[attr-defined]  # Dynamic wrapper attribute
             raise ValueError(f"Wrapped object must be of type {self.__wraps__}")
 
 
@@ -410,7 +410,7 @@ class ExplicitTPM(data_structures.ArrayLike):
 
     def is_deterministic(self) -> bool:
         """Return whether the TPM is deterministic."""
-        return np.all(np.logical_or(self._tpm == 1, self._tpm == 0))
+        return bool(np.all(np.logical_or(self._tpm == 1, self._tpm == 0)))
 
     def is_state_by_state(self) -> bool:
         """Return ``True`` if ``tpm`` is in state-by-state form, otherwise
@@ -616,7 +616,7 @@ def simulate(
 # TODO(tpm) remove pending ArrayLike refactor
 def _new_attribute(
     name: str,
-    closures: set[str],
+    closures: set[str] | frozenset[str],
     tpm: NDArray[np.float64],
     cls: type[ExplicitTPM] = ExplicitTPM,
 ) -> object:
@@ -694,7 +694,7 @@ def probability_of_current_state(
 
 def backward_tpm(
     forward_tpm: ExplicitTPM,
-    current_state: tuple[int],
+    current_state: tuple[int, ...],
     system_indices: Iterable[int],
     remove_background: bool = False,
 ) -> ExplicitTPM:

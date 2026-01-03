@@ -19,11 +19,13 @@ def warn_about_tie_serialization(name, serialize=False, deserialize=False, stack
             "Serializing ties in {name} is not currently supported; tie "
             "information will be lost."
         )
-    if deserialize:
+    elif deserialize:
         msg = (
             "Deserializing ties in {name} is not currently supported; tie "
             "information was lost during serialization."
         )
+    else:
+        raise AssertionError("Unreachable: XOR check ensures one is True")
     warnings.warn(msg.format(name=name), PyPhiWarning, stacklevel=stacklevel)
 
 

@@ -1373,6 +1373,8 @@ def frog_example():
                     )
                 # i = inhibiting input
                 elif mech_func[z] == "i":
+                    assert input_nodes is not None, "input_nodes required for inhibiting input"
+                    assert input_modifier is not None, "input_modifier required for inhibiting input"
                     non_input_nodes = [n for n in node_indices if n not in input_nodes]
                     input_weights = [
                         -input_modifier if state[n] == 0 else 1 for n in input_nodes
@@ -1390,7 +1392,7 @@ def frog_example():
             tpm[s] = tuple(tpm_line)
 
         cm = np.array(
-            [[np.float(1) if w else 0 for w in weights[n]] for n in range(len(weights))]
+            [[1.0 if w else 0 for w in weights[n]] for n in range(len(weights))]
         )
         cm = cm.T
         network = Network(tpm, cm, node_labels)

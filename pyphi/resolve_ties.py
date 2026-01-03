@@ -1,13 +1,20 @@
 # resolve_ties.py
 """Resolve ties between IIT objects."""
 
+from collections.abc import Callable
+from collections.abc import Iterable
+from collections.abc import Iterator
 from itertools import tee
+from typing import Any
+from typing import TypeVar
 
 from .conf import config
 from .conf import fallback
 from .registry import Registry
 from .utils import NO_DEFAULT
 from .utils import iter_with_default
+
+T = TypeVar("T")
 
 
 class PhiObjectTieResolutionRegistry(Registry):
@@ -86,7 +93,12 @@ def _strategies_to_key_function(strategies):
 #         yield obj
 
 
-def resolve(objects, strategy, operation, default=NO_DEFAULT):
+def resolve(
+    objects: Iterable[T],
+    strategy: str | list[str],
+    operation: Callable[..., Any],
+    default: Any = NO_DEFAULT,
+) -> Iterator[T]:
     """Filter phi-objects according to a strategy."""
     if strategy == "NONE":
         yield from iter_with_default(objects, default=default)
@@ -101,28 +113,37 @@ def resolve(objects, strategy, operation, default=NO_DEFAULT):
     yield from iter_with_default(ties, default=default)
 
 
-def states(rias, strategy=None, **kwargs):
+def states(
+    rias: Iterable[T], strategy: str | list[str] | None = None, **kwargs: Any
+) -> Iterator[T]:
     """Resolve ties among states (RIAs).
 
     Controlled by the STATE_TIE_RESOLUTION configuration option.
     """
     strategy = fallback(strategy, config.STATE_TIE_RESOLUTION)
+    assert strategy is not None, "STATE_TIE_RESOLUTION config must be set"
     return resolve(rias, strategy, operation=max, **kwargs)
 
 
-def partitions(mips, strategy=None, **kwargs):
+def partitions(
+    mips: Iterable[T], strategy: str | list[str] | None = None, **kwargs: Any
+) -> Iterator[T]:
     """Resolve ties among mechanism partitions (MIPs).
 
     Controlled by the MIP_TIE_RESOLUTION configuration option.
     """
     strategy = fallback(strategy, config.MIP_TIE_RESOLUTION)
+    assert strategy is not None, "MIP_TIE_RESOLUTION config must be set"
     return resolve(mips, strategy, operation=min, **kwargs)
 
 
-def purviews(mice, strategy=None, **kwargs):
+def purviews(
+    mice: Iterable[T], strategy: str | list[str] | None = None, **kwargs: Any
+) -> Iterator[T]:
     """Resolve ties among purviews (MICEs).
 
     Controlled by the PURVIEW_TIE_RESOLUTION configuration option.
     """
     strategy = fallback(strategy, config.PURVIEW_TIE_RESOLUTION)
+    assert strategy is not None, "PURVIEW_TIE_RESOLUTION config must be set"
     yield from resolve(mice, strategy, operation=max, **kwargs)

@@ -138,7 +138,7 @@ class Transition:
                 network,
                 before_state,
                 self.node_indices,
-                self.cut,
+                self.cut,  # pyright: ignore[reportArgumentType]
                 _external_indices=external_indices,
             )
 
@@ -146,7 +146,7 @@ class Transition:
                 network,
                 before_state,
                 self.node_indices,
-                self.cut,
+                self.cut,  # pyright: ignore[reportArgumentType]
                 _external_indices=external_indices,
             )
 
@@ -396,6 +396,7 @@ class Transition:
 
         alpha_min = float("inf")
         probability = self.probability(direction, mechanism, purview)
+        acria = None  # Initialize in case loop doesn't execute
 
         for partition in mip_partitions(mechanism, purview, self.node_labels):
             partitioned_probability = self.partitioned_probability(direction, partition)
@@ -485,8 +486,12 @@ class Transition:
             self.find_mip(direction, mechanism, purview, allow_neg=allow_neg)
             for purview in purviews
         ]
-        max_ria = max(all_ria)
-        purviews = [ria.purview for ria in all_ria if ria.alpha == max_ria.alpha]
+        # Filter out None values before finding max
+        valid_ria = [ria for ria in all_ria if ria is not None]
+        if not valid_ria:
+            return []
+        max_ria = max(valid_ria)
+        purviews = [ria.purview for ria in valid_ria if ria.alpha == max_ria.alpha]
 
         # Selected rias whose purview is not a superset of any other
         def is_not_superset(purview):
@@ -679,7 +684,7 @@ def sia(transition, direction=Direction.BIDIRECTIONAL, **kwargs):
 
     cuts = _get_cuts(transition, direction)
 
-    parallel_kwargs = conf.parallel_kwargs(config.PARALLEL_CUT_EVALUATION, **kwargs)
+    parallel_kwargs = conf.parallel_kwargs(dict(config.PARALLEL_CUT_EVALUATION), **kwargs)
     result = MapReduce(
         _evaluate_cut,
         cuts,
@@ -898,7 +903,7 @@ def true_events(
         nodes = indices
     else:
         major_complex = compute.network.major_complex(network, current_state)
-        nodes = major_complex.subsystem.node_indices
+        nodes = major_complex.subsystem.node_indices  # pyright: ignore[reportOptionalMemberAccess]
 
     return events(network, previous_state, current_state, next_state, nodes)
 
@@ -929,7 +934,7 @@ def extrinsic_events(
         mc_nodes = indices
     else:
         major_complex = compute.network.major_complex(network, current_state)
-        mc_nodes = major_complex.subsystem.node_indices
+        mc_nodes = major_complex.subsystem.node_indices  # pyright: ignore[reportOptionalMemberAccess]
 
     mechanisms = list(utils.powerset(mc_nodes, nonempty=True))
     all_nodes = network.node_indices
