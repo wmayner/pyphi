@@ -8,9 +8,8 @@ from pyphi.models import Bipartition
 from pyphi.models import Part
 from pyphi.models import RepertoireIrreducibilityAnalysis
 
-from .conftest import skip_if_no_pyemd
-
 from . import example_networks
+from .conftest import skip_if_no_pyemd
 
 s = example_networks.s()
 
