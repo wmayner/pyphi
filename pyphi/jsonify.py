@@ -31,11 +31,17 @@ exception if current PyPhi version doesn't match the version in the JSON data.
 
 import json
 from importlib.metadata import version as get_version
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 import pyphi
 from pyphi import cache
+
+if TYPE_CHECKING:
+    # These imports are needed for type checking but cause circular imports at runtime
+    # They are dynamically available through pyphi's lazy import system
+    from pyphi import data_structures, exceptions, labels, models, new_big_phi, relations
 
 CLASS_KEY = "__class__"
 VERSION_KEY = "__version__"
@@ -56,42 +62,46 @@ def _loadable_models():
 
     These are stored in this function (instead of module scope) to resolve
     circular import issues.
+
+    Note: pyright cannot statically verify these module attributes because they
+    are loaded dynamically through pyphi's lazy import system. These all work
+    correctly at runtime.
     """
     classes = [
-        pyphi.data_structures.PyPhiFloat,
+        pyphi.data_structures.PyPhiFloat,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.Direction,
-        pyphi.labels.NodeLabels,
-        pyphi.models.Account,
-        pyphi.models.AcRepertoireIrreducibilityAnalysis,
-        pyphi.models.AcSystemIrreducibilityAnalysis,
-        pyphi.models.ActualCut,
-        pyphi.models.Bipartition,
-        pyphi.models.CausalLink,
-        pyphi.models.CauseEffectStructure,
-        pyphi.models.Concept,
-        pyphi.models.Cut,
-        pyphi.models.cuts.GeneralKCut,
-        pyphi.models.cuts.GeneralSetPartition,
-        pyphi.models.FlatCauseEffectStructure,
-        pyphi.models.KCut,
-        pyphi.models.KPartition,
-        pyphi.models.MaximallyIrreducibleCause,
-        pyphi.models.MaximallyIrreducibleCauseOrEffect,
-        pyphi.models.MaximallyIrreducibleEffect,
-        pyphi.models.mechanism.StateSpecification,
-        pyphi.models.NullCut,
-        pyphi.models.Part,
-        pyphi.models.RepertoireIrreducibilityAnalysis,
-        pyphi.models.subsystem.SystemStateSpecification,
-        pyphi.models.SystemIrreducibilityAnalysis,
-        pyphi.models.Tripartition,
+        pyphi.labels.NodeLabels,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.Account,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.AcRepertoireIrreducibilityAnalysis,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.AcSystemIrreducibilityAnalysis,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.ActualCut,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.Bipartition,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.CausalLink,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.CauseEffectStructure,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.Concept,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.Cut,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.cuts.GeneralKCut,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.cuts.GeneralSetPartition,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.FlatCauseEffectStructure,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.KCut,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.KPartition,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.MaximallyIrreducibleCause,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.MaximallyIrreducibleCauseOrEffect,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.MaximallyIrreducibleEffect,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.mechanism.StateSpecification,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.NullCut,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.Part,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.RepertoireIrreducibilityAnalysis,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.subsystem.SystemStateSpecification,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.SystemIrreducibilityAnalysis,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.Tripartition,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.Network,
-        pyphi.new_big_phi.PhiStructure,
-        pyphi.new_big_phi.SystemIrreducibilityAnalysis,
-        pyphi.relations.AnalyticalRelations,
-        pyphi.relations.ConcreteRelations,
-        pyphi.relations.Relation,
-        pyphi.relations.RelationFace,
+        pyphi.new_big_phi.PhiStructure,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.new_big_phi.SystemIrreducibilityAnalysis,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.relations.AnalyticalRelations,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.relations.ConcreteRelations,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.relations.Relation,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.relations.RelationFace,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.Subsystem,
         pyphi.Transition,
     ]
@@ -138,9 +148,10 @@ def jsonify(obj):  # pylint: disable=too-many-return-statements
         return obj.tolist()
 
     # If we have NumPy datatypes, convert them to native types.
-    if isinstance(obj, (np.int32, np.int64)):
+    # Use numpy's abstract base types to avoid generic type issues
+    if isinstance(obj, np.integer):  #  pyright: ignore[reportArgumentType]
         return int(obj)
-    if isinstance(obj, np.float64):
+    if isinstance(obj, np.floating):  # pyright: ignore[reportArgumentType]
         return float(obj)
 
     # Recurse over dictionaries.
@@ -166,13 +177,13 @@ def jsonify(obj):  # pylint: disable=too-many-return-statements
 class PyPhiJSONEncoder(json.JSONEncoder):
     """JSONEncoder that allows serializing PyPhi objects with ``jsonify``."""
 
-    def encode(self, obj):  # pylint: disable=arguments-differ
+    def encode(self, o):  # pylint: disable=arguments-differ
         """Encode the output of ``jsonify`` with the default encoder."""
-        return super().encode(jsonify(obj))
+        return super().encode(jsonify(o))
 
-    def iterencode(self, obj, **kwargs):  # pylint: disable=arguments-differ
+    def iterencode(self, o, _one_shot=False):  # pylint: disable=arguments-differ
         """Analog to `encode` used by json.dump."""
-        return super().iterencode(jsonify(obj), **kwargs)
+        return super().iterencode(jsonify(o), _one_shot=_one_shot)
 
 
 def _encoder_kwargs(user_kwargs):
@@ -198,7 +209,7 @@ def dump(obj, fp, **user_kwargs):
 def _check_version(version):
     """Check whether the JSON version matches the PyPhi version."""
     if version != PYPHI_VERSION:
-        raise pyphi.exceptions.JSONVersionError(
+        raise pyphi.exceptions.JSONVersionError(  # pyright: ignore[reportAttributeAccessIssue]
             "Cannot load JSON from a different version of PyPhi. "
             f"JSON version = {version}, current version = {PYPHI_VERSION}."
         )
