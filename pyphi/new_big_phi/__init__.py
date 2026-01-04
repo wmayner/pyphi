@@ -11,7 +11,7 @@ from enum import unique
 
 import numpy as np
 
-from .. import compute, conf, connectivity, utils, validate, metrics
+from .. import compute, conf, connectivity, utils, validate, metrics, repertoire
 from ..compute.network import reachable_subsystems
 from ..conf import config
 from ..conf import fallback
