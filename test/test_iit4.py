@@ -55,7 +55,7 @@ EXAMPLE_NAMES = [
     "grid3",
     "residue",
     "rule110",
-    "rule154",
+    pytest.param("rule154", marks=pytest.mark.slow),
     "xor",
 ]
 
@@ -84,6 +84,8 @@ def test(example_name):
     - Verify example network definition unchanged
     - For fig4: Cross-reference with IIT 4.0 paper
     - Consider if JSON serialization format changed
+
+    Note: rule154 is marked as slow due to computational expense (11 distinctions).
     """
     subsystem = EXAMPLES["subsystem"][example_name]()
     actual = new_big_phi.phi_structure(subsystem)

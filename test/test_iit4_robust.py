@@ -188,7 +188,7 @@ class TestPhiStructureComponents:
             "grid3",
             "residue",
             "rule110",
-            "rule154",
+            pytest.param("rule154", marks=pytest.mark.slow),
             "xor",
         ],
     )
@@ -199,6 +199,8 @@ class TestPhiStructureComponents:
         even if it's empty or None for reducible systems.
 
         If this fails, the PhiStructure data model was changed.
+
+        Note: rule154 is marked as slow due to computational expense (11 distinctions).
         """
         subsystem = EXAMPLES["subsystem"][example_name]()
         result = new_big_phi.phi_structure(subsystem)
@@ -218,7 +220,7 @@ class TestPhiStructureComponents:
             "grid3",
             "residue",
             "rule110",
-            "rule154",
+            pytest.param("rule154", marks=pytest.mark.slow),
             "xor",
         ],
     )
@@ -229,6 +231,8 @@ class TestPhiStructureComponents:
         to store dependencies between distinctions.
 
         If this fails, the PhiStructure data model was changed.
+
+        Note: rule154 is marked as slow due to computational expense (11 distinctions).
         """
         subsystem = EXAMPLES["subsystem"][example_name]()
         result = new_big_phi.phi_structure(subsystem)
@@ -246,7 +250,7 @@ class TestPhiStructureComponents:
             "fig5a",
             "fig5b",
             "grid3",
-            "rule154",
+            pytest.param("rule154", marks=pytest.mark.slow),
             "xor",
         ],
     )
@@ -255,6 +259,8 @@ class TestPhiStructureComponents:
 
         These examples are known to have irreducible distinctions.
         If the distinctions list is empty, distinction finding failed.
+
+        Note: rule154 is marked as slow due to computational expense (11 distinctions).
         """
         subsystem = EXAMPLES["subsystem"][example_name]()
         result = new_big_phi.phi_structure(subsystem)
@@ -371,7 +377,7 @@ class TestCrossExampleConsistency:
             "grid3",
             "residue",
             "rule110",
-            "rule154",
+            pytest.param("rule154", marks=pytest.mark.slow),
             "xor",
         ],
     )
@@ -382,6 +388,8 @@ class TestCrossExampleConsistency:
         produce identical results (unless there's intentional randomness).
 
         This test catches non-deterministic bugs in computation.
+
+        Note: rule154 is marked as slow due to computational expense (11 distinctions).
         """
         subsystem = EXAMPLES["subsystem"][example_name]()
 
