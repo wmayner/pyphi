@@ -31,33 +31,105 @@ _LN_OF_2 = np.log(2)
 
 
 class DistanceResult(PyPhiFloat):
-    """A numeric result that can carry auxiliary data.
+    """A numeric result that can carry auxiliary data about its computation.
 
-    This class behaves like a PyPhiFloat for all mathematical operations while
-    allowing additional metadata to be attached to the result. Inherits
-    precision-aware comparison from PyPhiFloat.
+    DistanceResult extends PyPhiFloat to attach arbitrary metadata to phi values,
+    enabling introspection of how values were computed. This is particularly useful
+    in scientific workflows where understanding the provenance of results is
+    important.
+
+    The class behaves like a PyPhiFloat for all mathematical operations (comparisons,
+    arithmetic, min/max) while preserving metadata. This allows transparent use in
+    existing code while providing rich information for analysis.
 
     Args:
-        value (float): The numeric value.
-        **kwargs: Auxiliary data to attach to the result.
+        value: The numeric value.
+        **kwargs: Arbitrary keyword arguments stored as metadata attributes.
 
-    Example:
-        >>> result = DistanceResult(0.5, method='EMD', direction='CAUSE')
-        >>> result + 0.3  # returns 0.8
-        >>> result.method  # returns 'EMD'
-        >>> float(result)  # returns 0.5
+    Attributes:
+        All attributes from float and PyPhiFloat are available, plus any metadata
+        passed as keyword arguments.
 
     Note:
-        When creating NumPy arrays from DistanceResult objects, the ``__array__``
-        protocol automatically extracts float values, creating fast float64 arrays.
-        Metadata is not preserved in the array; for batch processing with metadata,
-        use the ``extract_phi_metadata()`` utility function from ``pyphi.utils``.
+        **NumPy Array Performance**: When creating NumPy arrays from DistanceResult
+        objects, the ``__array__`` protocol automatically extracts float values,
+        creating fast float64 arrays. Metadata is not preserved in the array.
 
-        Example:
-            >>> results = [DistanceResult(0.5), DistanceResult(0.3)]
-            >>> arr = np.array(results)  # Fast! Creates float64 array
-            >>> arr.dtype
-            dtype('float64')
+        This design provides the best of both worlds:
+
+        - **Unsophisticated users**: ``np.array(results)`` just works (fast!)
+        - **Sophisticated users**: Metadata available on individual results
+
+    Examples:
+        Basic usage with metadata:
+
+        >>> from pyphi.metrics.distribution import DistanceResult
+        >>> result = DistanceResult(0.5, method='EMD', direction='CAUSE')
+        >>> float(result)  # Extract numeric value
+        0.5
+        >>> result.method  # Access metadata
+        'EMD'
+        >>> result.direction
+        'CAUSE'
+
+        Mathematical operations preserve the numeric value:
+
+        >>> result + 0.3
+        0.8
+        >>> result * 2
+        1.0
+        >>> result > 0.3
+        True
+
+        Type preservation in min/max with metadata:
+
+        >>> results = [
+        ...     DistanceResult(0.5, method='EMD'),
+        ...     DistanceResult(0.3, method='L1'),
+        ...     DistanceResult(0.7, method='GID')
+        ... ]
+        >>> min_result = min(results)
+        >>> float(min_result)
+        0.3
+        >>> min_result.method  # Metadata from the minimum value is preserved
+        'L1'
+
+        NumPy array creation (automatic float extraction):
+
+        >>> import numpy as np
+        >>> results = [DistanceResult(0.5), DistanceResult(0.3), DistanceResult(0.7)]
+        >>> arr = np.array(results)  # Fast! Auto-extracts float values
+        >>> arr.dtype
+        dtype('float64')
+        >>> arr
+        array([0.5, 0.3, 0.7])
+
+        JSON serialization with metadata:
+
+        >>> result = DistanceResult(0.5, method='EMD', direction='CAUSE')
+        >>> json_data = result.to_json()
+        >>> json_data
+        {'value': 0.5, 'method': 'EMD', 'direction': 'CAUSE'}
+        >>> restored = DistanceResult.from_json(json_data)
+        >>> restored.method
+        'EMD'
+
+        Typical scientific workflow:
+
+        >>> # Compute multiple phi values
+        >>> phi_values = [
+        ...     DistanceResult(0.5, method='EMD', subsystem='ABC'),
+        ...     DistanceResult(0.3, method='L1', subsystem='ABC'),
+        ...     DistanceResult(0.7, method='GID', subsystem='DEF')
+        ... ]  # doctest: +SKIP
+        >>> # Find maximum
+        >>> max_phi = max(phi_values)  # doctest: +SKIP
+        >>> print(f"Max φ = {max_phi:.3f} using {max_phi.method}")  # doctest: +SKIP
+        Max φ = 0.700 using GID
+        >>> # Statistical analysis
+        >>> phi_array = np.array(phi_values)  # Auto-extract for statistics  # doctest: +SKIP
+        >>> np.mean(phi_array)  # doctest: +SKIP
+        0.5
     """
 
     def __new__(cls, value, **kwargs):

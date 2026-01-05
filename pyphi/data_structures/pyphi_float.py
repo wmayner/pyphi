@@ -9,7 +9,70 @@ from pyphi.utils import eq
 
 # TODO(4.0) use throughout
 class PyPhiFloat(float):
-    """A floating-point value that's compared using config.PRECISION."""
+    """A floating-point value that's compared using config.PRECISION.
+
+    PyPhiFloat is a float subclass that implements precision-aware comparisons
+    to avoid numerical errors when comparing phi values. All comparison operations
+    (==, !=, <, >, <=, >=) use the tolerance defined by ``config.PRECISION``
+    instead of exact floating-point equality.
+
+    This is essential for integrated information computations where values that
+    are mathematically equal may differ slightly due to floating-point arithmetic.
+
+    Args:
+        value: The numeric value to wrap.
+
+    Attributes:
+        All attributes and methods of float are available.
+
+    Note:
+        The hash implementation rounds to ``config.PRECISION`` digits to ensure
+        that values equal within precision have the same hash. This makes
+        PyPhiFloat safe for use in sets and as dictionary keys.
+
+    Examples:
+        Basic usage and precision-aware comparisons:
+
+        >>> from pyphi.data_structures.pyphi_float import PyPhiFloat
+        >>> from pyphi.conf import config
+        >>> config.PRECISION = 6  # doctest: +SKIP
+
+        Values that differ only at low precision are considered equal:
+
+        >>> phi1 = PyPhiFloat(0.123456789)
+        >>> phi2 = PyPhiFloat(0.123456788)
+        >>> phi1 == phi2  # doctest: +SKIP
+        True
+        >>> float(phi1) == float(phi2)  # Plain floats are not equal
+        False
+
+        Comparison operators work as expected:
+
+        >>> PyPhiFloat(0.5) > PyPhiFloat(0.3)  # doctest: +SKIP
+        True
+        >>> PyPhiFloat(0.5) >= PyPhiFloat(0.5)  # doctest: +SKIP
+        True
+
+        Hash consistency for dict/set usage:
+
+        >>> phi_values = {PyPhiFloat(0.5), PyPhiFloat(0.50000001)}  # doctest: +SKIP
+        >>> len(phi_values)  # Only one value since they're equal within precision
+        1
+
+        Works transparently with min/max:
+
+        >>> values = [PyPhiFloat(0.5), PyPhiFloat(0.3), PyPhiFloat(0.7)]
+        >>> min(values)  # doctest: +SKIP
+        PyPhiFloat(0.3)
+
+        JSON serialization:
+
+        >>> phi = PyPhiFloat(0.5)
+        >>> phi.to_json()
+        {'value': 0.5}
+        >>> PyPhiFloat.from_json({'value': 0.5})
+        0.5
+    """
 
     # NOTE: Cannot use functools.total_ordering because it doesn't re-implement
     # existing comparison methods
