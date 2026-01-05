@@ -20,12 +20,13 @@ from more_itertools import chunked_even
 from more_itertools import flatten
 from tqdm.auto import tqdm
 
-from ..conf import config
-from ..conf import fallback
-from ..deferred.ray import NO_RAY
-from ..deferred.ray import ray
-from ..exceptions import MissingOptionalDependenciesError
-from ..utils import try_len
+from pyphi.conf import config
+from pyphi.conf import fallback
+from pyphi.deferred.ray import NO_RAY
+from pyphi.deferred.ray import ray
+from pyphi.exceptions import MissingOptionalDependenciesError
+from pyphi.utils import try_len
+
 from .progress import ProgressBar
 from .progress import throttled_update
 from .progress import wait_then_finish
@@ -69,6 +70,7 @@ def init(*args, **kwargs):
     if not ray.is_initialized():
         RAY_CLIENT = ray.init(*args, **{**config.RAY_CONFIG, **kwargs})
         return RAY_CLIENT
+    return None
 
 
 def false(*args, **kwargs):
@@ -301,9 +303,9 @@ class MapReduce:
             chunksize, max_depth, max_size, max_leaves
         """
         self.map_func = map_func
-        self.iterables = (iterable,) + iterables
+        self.iterables = (iterable, *iterables)
         self.reduce_func = fallback(reduce_func, _flatten)
-        self.reduce_kwargs = fallback(reduce_kwargs, dict())
+        self.reduce_kwargs = fallback(reduce_kwargs, {})
         self.parallel = parallel
         self.ordered = ordered
         self.total = fallback(try_len(*self.iterables), total)
@@ -313,7 +315,7 @@ class MapReduce:
         self.inflight_limit = inflight_limit
         self.progress = fallback(progress, config.PROGRESS_BARS)
         self.desc = desc
-        self.map_kwargs = fallback(map_kwargs, dict())
+        self.map_kwargs = fallback(map_kwargs, {})
         self._shortcircuit_callback = shortcircuit_callback
 
         if self.parallel:

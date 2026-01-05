@@ -4,8 +4,9 @@
 from collections import namedtuple
 from collections.abc import Sequence
 
-from .. import utils
-from ..direction import Direction
+from pyphi import utils
+from pyphi.direction import Direction
+
 from . import cmp
 from . import fmt
 

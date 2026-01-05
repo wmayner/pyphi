@@ -15,13 +15,12 @@ from collections.abc import Iterable
 from itertools import chain
 from itertools import islice
 from typing import Any
-from typing import Generic
 from typing import TypeVar
 
 from tblib import Traceback
 from tqdm import tqdm
 
-from .. import config
+from pyphi import config
 
 T = TypeVar("T")
 R = TypeVar("R")
@@ -77,7 +76,7 @@ POISON_PILL = None
 Q_MAX_SIZE = multiprocessing.synchronize.SEM_VALUE_MAX  # pyright: ignore[reportAttributeAccessIssue]
 
 
-class MapReduce(Generic[T, R]):
+class MapReduce[T, R]:
     """An engine for doing heavy computations over an iterable.
 
     This is similar to ``multiprocessing.Pool``, but allows computations to
@@ -219,7 +218,8 @@ class MapReduce(Generic[T, R]):
             self.log_queue,
             self.complete,
             config,
-        ) + self.context
+            *self.context,
+        )
         self.processes = [
             multiprocessing.Process(target=self.worker, args=args, daemon=True)
             for i in range(self.num_processes)

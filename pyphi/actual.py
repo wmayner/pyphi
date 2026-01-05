@@ -16,6 +16,7 @@ If you use this module, please cite the following papers:
     `<https://doi.org/10.1371/journal.pcbi.1006343>`_
 """
 
+import contextlib
 import logging
 from itertools import chain
 
@@ -693,15 +694,15 @@ def sia(transition, direction=Direction.BIDIRECTIONAL, **kwargs):
     result = MapReduce(
         _evaluate_cut,
         cuts,
-        map_kwargs=dict(
-            transition=transition,
-            direction=direction,
-            unpartitioned_account=unpartitioned_account,
-        ),
+        map_kwargs={
+            "transition": transition,
+            "direction": direction,
+            "unpartitioned_account": unpartitioned_account,
+        },
         reduce_func=min,
-        reduce_kwargs=dict(
-            default=_null_ac_sia(transition, direction, alpha=float("inf"))
-        ),
+        reduce_kwargs={
+            "default": _null_ac_sia(transition, direction, alpha=float("inf"))
+        },
         shortcircuit_func=utils.is_falsy,
         **parallel_kwargs,
     ).run()
@@ -727,12 +728,10 @@ def transitions(network, before_state, after_state):
 
     for cause_subset in utils.powerset(possible_causes, nonempty=True):
         for effect_subset in utils.powerset(possible_effects, nonempty=True):
-            try:
+            with contextlib.suppress(exceptions.StateUnreachableError):
                 yield Transition(
                     network, before_state, after_state, cause_subset, effect_subset
                 )
-            except exceptions.StateUnreachableError:
-                pass
 
 
 def nexus(network, before_state, after_state, direction=Direction.BIDIRECTIONAL):
@@ -825,9 +824,9 @@ def events(network, previous_state, current_state, next_state, nodes, mechanisms
     actual_effects = _actual_effects(
         network, current_state, next_state, nodes, mechanisms
     )
-    actual_mechanisms = set(c.mechanism for c in actual_causes) & set(
+    actual_mechanisms = {c.mechanism for c in actual_causes} & {
         c.mechanism for c in actual_effects
-    )
+    }
 
     if not actual_mechanisms:
         return ()

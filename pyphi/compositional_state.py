@@ -1,5 +1,6 @@
 # compositional_state.py
 
+import contextlib
 import pprint
 from collections import UserDict
 from collections.abc import Iterable
@@ -37,7 +38,7 @@ class CompositionalState(UserDict):
     def __init__(self, distinctions=None):
         # TODO store distinctions and use phi values in greedy conflict algo?
         # TODO deal with ties
-        self.data = dict()
+        self.data = {}
         if distinctions is not None:
             self.node_labels = distinctions.subsystem.node_labels
             self.update(distinctions)
@@ -83,7 +84,7 @@ class CompositionalState(UserDict):
         for direction in DIRECTIONS:
             purview = distinction.purview(direction)
             if purview not in self.data:
-                self.data[purview] = dict()
+                self.data[purview] = {}
             if direction not in self.data[purview]:
                 self.data[purview][direction] = set()
             self.data[purview][direction].add(distinction.mechanism)
@@ -155,10 +156,8 @@ class CompositionalState(UserDict):
         empty_mechanisms = []
         for purview, both_directions in self.items():
             for direction, mechanisms in both_directions.items():
-                try:
+                with contextlib.suppress(KeyError):
                     mechanisms.remove(mechanism)
-                except KeyError:
-                    pass
                 # Flag the set for removal entirely if it's now empty
                 if not mechanisms:
                     empty_mechanisms.append((purview, direction))
@@ -236,7 +235,7 @@ class CompositionalState(UserDict):
     # TODO cache?
     def purviews_of(self, mechanism):
         mechanism = self._to_indices(mechanism)
-        purviews = dict()
+        purviews = {}
         # Assumes each mechanism specifies only one purview in each direction
         for purview, both_directions in self.items():
             for direction, mechanisms in both_directions.items():

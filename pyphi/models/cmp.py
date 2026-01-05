@@ -10,7 +10,7 @@ from typing import TypeVar
 
 import numpy as np
 
-from .. import utils
+from pyphi import utils
 
 # Rich comparison (ordering) helpers
 # =============================================================================

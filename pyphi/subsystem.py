@@ -843,7 +843,7 @@ class Subsystem:
             partitioned_repertoire = partitioned_pr
         else:
             if partitioned_repertoire is None:
-                partitioned_repertoire_kwargs = partitioned_repertoire_kwargs or dict()
+                partitioned_repertoire_kwargs = partitioned_repertoire_kwargs or {}
                 partitioned_repertoire = self.partitioned_repertoire(
                     direction, partition, **partitioned_repertoire_kwargs
                 )
@@ -988,14 +988,14 @@ class Subsystem:
             mips = MapReduce(
                 self._find_mip_single_state,
                 specified_states,
-                map_kwargs=dict(
-                    direction=direction,
-                    mechanism=mechanism,
-                    purview=purview,
-                    repertoire=repertoire,
-                    partitions=partitions,
-                    parallel_kwargs=parallel_kwargs,
-                ),
+                map_kwargs={
+                    "direction": direction,
+                    "mechanism": mechanism,
+                    "purview": purview,
+                    "repertoire": repertoire,
+                    "partitions": partitions,
+                    "parallel_kwargs": parallel_kwargs,
+                },
                 desc="Finding MIP for maximum intrinsic information states",
                 **parallel_kwargs,
             ).run()

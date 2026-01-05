@@ -9,10 +9,10 @@ import numpy as np
 import pandas as pd
 import seaborn as sb
 
-from .. import config
-from .. import distribution
-from .. import utils
-from ..direction import Direction
+from pyphi import config
+from pyphi import distribution
+from pyphi import utils
+from pyphi.direction import Direction
 
 
 def all_states_str(*args, **kwargs):
@@ -97,7 +97,7 @@ def plot_distribution(
     if validate and not all(np.allclose(d.sum(), 1, rtol=1e-4) for d in distributions):
         raise ValueError("a distribution does not sum to 1!")
 
-    defaults = dict()
+    defaults = {}
     # Overrride defaults with keyword arguments
     kwargs = {**defaults, **kwargs}
 
@@ -131,7 +131,7 @@ def plot_distribution(
 
     data = pd.concat(
         [
-            pd.DataFrame(dict(probability=d, state=states, hue=[label] * len(d)))
+            pd.DataFrame({"probability": d, "state": states, "hue": [label] * len(d)})
             for d, label in zip(distributions, labels, strict=False)
         ]
     ).reset_index(drop=True)

@@ -11,37 +11,37 @@ from enum import unique
 
 import numpy as np
 
-from .. import compute
-from .. import conf
-from .. import connectivity
-from .. import metrics
-from .. import repertoire
-from .. import utils
-from .. import validate
-from ..compute.network import reachable_subsystems
-from ..conf import config
-from ..conf import fallback
-from ..data_structures import PyPhiFloat
-from ..direction import Direction
-from ..labels import NodeLabels
-from ..metrics.distribution import DistanceResult
-from ..models import cmp
-from ..models import fmt
-from ..models.cuts import Cut
-from ..models.cuts import GeneralKCut
-from ..models.cuts import NullCut
-from ..models.cuts import SystemPartition
-from ..models.mechanism import RepertoireIrreducibilityAnalysis
-from ..models.mechanism import StateSpecification
-from ..models.subsystem import CauseEffectStructure
-from ..models.subsystem import SystemStateSpecification
-from ..parallel import MapReduce
-from ..partition import system_partitions
-from ..relations import ConcreteRelations
-from ..relations import Relations
-from ..relations import relations as compute_relations
-from ..subsystem import Subsystem
-from ..warnings import warn_about_tie_serialization
+from pyphi import compute
+from pyphi import conf
+from pyphi import connectivity
+from pyphi import metrics
+from pyphi import repertoire
+from pyphi import utils
+from pyphi import validate
+from pyphi.compute.network import reachable_subsystems
+from pyphi.conf import config
+from pyphi.conf import fallback
+from pyphi.data_structures import PyPhiFloat
+from pyphi.direction import Direction
+from pyphi.labels import NodeLabels
+from pyphi.metrics.distribution import DistanceResult
+from pyphi.models import cmp
+from pyphi.models import fmt
+from pyphi.models.cuts import Cut
+from pyphi.models.cuts import GeneralKCut
+from pyphi.models.cuts import NullCut
+from pyphi.models.cuts import SystemPartition
+from pyphi.models.mechanism import RepertoireIrreducibilityAnalysis
+from pyphi.models.mechanism import StateSpecification
+from pyphi.models.subsystem import CauseEffectStructure
+from pyphi.models.subsystem import SystemStateSpecification
+from pyphi.parallel import MapReduce
+from pyphi.partition import system_partitions
+from pyphi.relations import ConcreteRelations
+from pyphi.relations import Relations
+from pyphi.relations import relations as compute_relations
+from pyphi.subsystem import Subsystem
+from pyphi.warnings import warn_about_tie_serialization
 
 ##############################################################################
 # Information
@@ -523,12 +523,12 @@ def sia(
     sias = MapReduce(
         evaluate_partition,
         partitions,
-        map_kwargs=dict(
-            subsystem=subsystem,
-            system_state=system_state,
-            repertoire_distance=repertoire_distance,
-            directions=directions,
-        ),
+        map_kwargs={
+            "subsystem": subsystem,
+            "system_state": system_state,
+            "repertoire_distance": repertoire_distance,
+            "directions": directions,
+        },
         shortcircuit_func=utils.is_falsy,
         desc="Evaluating partitions",
         **parallel_kwargs,
@@ -593,8 +593,7 @@ class PhiStructure(cmp.Orderable):
 
     @property
     def components(self):
-        for distinction in self.distinctions:
-            yield distinction
+        yield from self.distinctions
         # Relations is not iterable in base class but subclasses (ConcreteRelations) are
         yield from list(self.relations)  # pyright: ignore[reportArgumentType]
 
@@ -665,9 +664,11 @@ class PhiStructure(cmp.Orderable):
             return self._big_phi
 
     def to_json(self):
-        return dict(
-            sia=self.sia, distinctions=self.distinctions, relations=self.relations
-        )
+        return {
+            "sia": self.sia,
+            "distinctions": self.distinctions,
+            "relations": self.relations,
+        }
 
 
 class NullPhiStructure(PhiStructure):
@@ -690,9 +691,9 @@ def phi_structure(
     relations_kwargs: dict | None = None,
 ) -> PhiStructure:
     """Analyze the irreducible cause-effect structure of a system."""
-    sia_kwargs = sia_kwargs or dict()
-    ces_kwargs = ces_kwargs or dict()
-    relations_kwargs = relations_kwargs or dict()
+    sia_kwargs = sia_kwargs or {}
+    ces_kwargs = ces_kwargs or {}
+    relations_kwargs = relations_kwargs or {}
 
     # Analyze irreducibility if not provided
     if sia is None:

@@ -3,25 +3,27 @@
 
 from __future__ import annotations
 
+import contextlib
 import logging
 from collections.abc import Generator
 from typing import TYPE_CHECKING
 from typing import Any
 
-from .. import conf
-from .. import exceptions
-from .. import utils
-from .. import validate
-from ..conf import config
-from ..models import SystemIrreducibilityAnalysis
-from ..models import _null_sia
-from ..parallel import MapReduce
-from ..subsystem import Subsystem
-from ..types import State
+from pyphi import conf
+from pyphi import exceptions
+from pyphi import utils
+from pyphi import validate
+from pyphi.conf import config
+from pyphi.models import SystemIrreducibilityAnalysis
+from pyphi.models import _null_sia
+from pyphi.parallel import MapReduce
+from pyphi.subsystem import Subsystem
+from pyphi.types import State
+
 from .subsystem import sia
 
 if TYPE_CHECKING:
-    from ..network import Network
+    from pyphi.network import Network
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
@@ -39,10 +41,8 @@ def reachable_subsystems(
     # Return subsystems largest to smallest to optimize parallel
     # resource usage.
     for subset in utils.powerset(indices, nonempty=True, reverse=True):
-        try:
+        with contextlib.suppress(exceptions.StateUnreachableError):
             yield Subsystem(network, state, subset, **kwargs)
-        except exceptions.StateUnreachableError:
-            pass
 
 
 def subsystems(
@@ -112,13 +112,13 @@ def all_complexes(
         |Network|.
     """
     pkwargs = conf.parallel_kwargs(
-        config.PARALLEL_COMPLEX_EVALUATION, **(parallel_kwargs or dict())
+        config.PARALLEL_COMPLEX_EVALUATION, **(parallel_kwargs or {})
     )
     result = MapReduce(
         sia,
         possible_complexes(network, state, **kwargs),
         total=2 ** len(network) - 1,
-        map_kwargs=dict(progress=False),
+        map_kwargs={"progress": False},
         desc="Evaluating complexes",
         **pkwargs,  # type: ignore[arg-type]  # parallel_kwargs contains MapReduce params
     ).run()
@@ -162,9 +162,9 @@ def major_complex(
     result = MapReduce(
         sia,
         possible_complexes(network, state),
-        map_kwargs=dict(progress=False),
+        map_kwargs={"progress": False},
         reduce_func=max,
-        reduce_kwargs=dict(default=default),
+        reduce_kwargs={"default": default},
         total=2 ** len(network) - 1,
         desc="Evaluating complexes",
         **pkwargs,  # type: ignore[arg-type]  # parallel_kwargs contains MapReduce params
@@ -190,7 +190,7 @@ def condensed(
     result: list[SystemIrreducibilityAnalysis] = []
     covered_nodes: set[int] = set()
 
-    for c in reversed(sorted(complexes(network, state, **kwargs))):
+    for c in sorted(complexes(network, state, **kwargs), reverse=True):
         if c.subsystem is not None and not any(
             n in covered_nodes for n in c.subsystem.node_indices
         ):

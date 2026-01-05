@@ -11,7 +11,7 @@ import numpy as np
 import scipy.special
 from numpy.typing import ArrayLike
 
-from ...direction import Direction
+from pyphi.direction import Direction
 
 TWOPI = 2 * np.pi
 
@@ -188,7 +188,7 @@ def arrange(
     # Normalize overall radius
     radii = radii * max_radius / radii.max()
     z = aspect_ratio * max_radius * np.cumsum(np.ones(N) * z_spacing) + z_offset
-    mapping = dict()
+    mapping = {}
     for k in range(N):
         # TODO: sort?? order determines a lot about how the shape looks
         subsets = sorted(combinations(nodes, k + 1))
@@ -211,15 +211,19 @@ def arrange(
 
 def arrange_by_mechanism(
     mechanism_mapping,
-    cause_offset: ArrayLike = [-0.1, 0.0, -0.1],
-    effect_offset: ArrayLike = [0.1, 0.0, 0.1],
+    cause_offset: ArrayLike = None,
+    effect_offset: ArrayLike = None,
 ):
     """Return a mapping from direction to mechanism to coordinates,
     to be used in initialization of a PurviewCoordinates object"""
 
-    purview_mapping = dict()
+    if effect_offset is None:
+        effect_offset = [0.1, 0.0, 0.1]
+    if cause_offset is None:
+        cause_offset = [-0.1, 0.0, -0.1]
+    purview_mapping = {}
     for direction in Direction.both():
-        purview_mapping[direction] = dict()
+        purview_mapping[direction] = {}
 
         for mechanism in mechanism_mapping:
             coords = mechanism_mapping[mechanism].copy()

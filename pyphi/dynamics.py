@@ -19,7 +19,7 @@ def mean_dynamics(
 ):
     """Return a sample of the dynamics averaged over all initial states."""
     tpm = ExplicitTPM(tpm)
-    clamp = kwargs.get("clamp", dict())
+    clamp = kwargs.get("clamp", {})
     initial_states = [
         insert_clamp(clamp, state)
         for state in utils.all_states(number_of_units(tpm) - len(clamp))
@@ -57,7 +57,7 @@ def simulate(
         rng = np.random.default_rng(seed=None)
 
     if clamp is None:
-        clamp = dict()
+        clamp = {}
 
     if initial_state is None:
         initial_state = tuple(rng.integers(low=0, high=2, size=tpm.number_of_units))

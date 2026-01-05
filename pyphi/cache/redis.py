@@ -3,8 +3,9 @@
 
 import pickle
 
-from .. import constants
-from ..conf import config
+from pyphi import constants
+from pyphi.conf import config
+
 from .cache_utils import _CacheInfo
 
 try:

@@ -3,9 +3,9 @@
 
 from dataclasses import dataclass
 
-from ..conf import fallback
-from ..utils import enforce_integer
-from ..utils import enforce_integer_or_none
+from pyphi.conf import fallback
+from pyphi.utils import enforce_integer
+from pyphi.utils import enforce_integer_or_none
 
 
 @dataclass(frozen=True)

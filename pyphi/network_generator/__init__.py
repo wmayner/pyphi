@@ -10,9 +10,10 @@ from typing import Union
 import numpy as np
 from numpy.typing import NDArray
 
-from ..labels import NodeLabels
-from ..network import Network
-from ..utils import all_states
+from pyphi.labels import NodeLabels
+from pyphi.network import Network
+from pyphi.utils import all_states
+
 from . import ising
 from . import unit_functions
 from . import weights
@@ -61,7 +62,7 @@ def build_tpm(
         for element, func in enumerate(unit_functions_list):
             if isinstance(func, str):
                 func = UNIT_FUNCTIONS[func]
-            tpm[state + (element,)] = func(element, weights, state, **kwargs)
+            tpm[(*state, element)] = func(element, weights, state, **kwargs)
     return tpm
 
 

@@ -11,9 +11,10 @@ from typing import Any
 import numpy as np
 from toolz import concat
 
-from .. import utils
-from ..conf import config
-from ..direction import Direction
+from pyphi import utils
+from pyphi.conf import config
+from pyphi.direction import Direction
+
 from .cuts import CompleteSystemPartition
 from .cuts import NullCut
 
@@ -49,7 +50,7 @@ CUT_SYMBOLS_BY_DIRECTION = {
     Direction.EFFECT: FORWARD_CUT_SYMBOL,
 }
 
-NICE_DENOMINATORS = list(range(16)) + [16, 32, 64, 128]
+NICE_DENOMINATORS = [*list(range(16)), 16, 32, 64, 128]
 
 
 def make_repr(self: object, attrs: Iterable[str]) -> str:
@@ -540,7 +541,7 @@ def fmt_phi_structure(
     lines = align_columns(columns)
     if subsystem:
         lines = align_columns(
-            lines + [f"Subsystem: {ps.subsystem.nodes}"],  # type: ignore[attr-defined]
+            [*lines, f"Subsystem: {ps.subsystem.nodes}"],  # type: ignore[attr-defined]
             types="tt",
             split_columns=True,
         )
@@ -561,8 +562,10 @@ def fmt_partitioned_phi_structure(
     else:
         cut = fmt_cut(ps.partition, direction=ps.partition.direction, name=False)  # type: ignore[attr-defined]
     lines = align_columns(
-        fmt_phi_structure(ps, title=None, subsystem=subsystem).split("\n")
-        + [f"Partition: {cut}"],
+        [
+            *fmt_phi_structure(ps, title=None, subsystem=subsystem).split("\n"),
+            f"Partition: {cut}",
+        ],
         types="tt",
         split_columns=True,
     )

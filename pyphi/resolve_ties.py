@@ -93,7 +93,7 @@ def _strategies_to_key_function(strategies):
 #         yield obj
 
 
-def resolve(
+def resolve[T](
     objects: Iterable[T],
     strategy: str | list[str],
     operation: Callable[..., Any],
@@ -113,7 +113,7 @@ def resolve(
     yield from iter_with_default(ties, default=default)
 
 
-def states(
+def states[T](
     rias: Iterable[T], strategy: str | list[str] | None = None, **kwargs: Any
 ) -> Iterator[T]:
     """Resolve ties among states (RIAs).
@@ -125,7 +125,7 @@ def states(
     return resolve(rias, strategy, operation=max, **kwargs)
 
 
-def partitions(
+def partitions[T](
     mips: Iterable[T], strategy: str | list[str] | None = None, **kwargs: Any
 ) -> Iterator[T]:
     """Resolve ties among mechanism partitions (MIPs).
@@ -137,7 +137,7 @@ def partitions(
     return resolve(mips, strategy, operation=min, **kwargs)
 
 
-def purviews(
+def purviews[T](
     mice: Iterable[T], strategy: str | list[str] | None = None, **kwargs: Any
 ) -> Iterator[T]:
     """Resolve ties among purviews (MICEs).

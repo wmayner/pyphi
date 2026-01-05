@@ -12,10 +12,11 @@ from typing import Any
 import numpy as np
 from numpy.typing import NDArray
 
-from .. import connectivity
-from .. import utils
-from ..direction import Direction
-from ..labels import NodeLabels
+from pyphi import connectivity
+from pyphi import utils
+from pyphi.direction import Direction
+from pyphi.labels import NodeLabels
+
 from . import cmp
 from . import fmt
 

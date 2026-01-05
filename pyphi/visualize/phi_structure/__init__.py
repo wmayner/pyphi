@@ -10,7 +10,8 @@ from plotly import graph_objs as go
 from plotly.colors import find_intermediate_color
 from toolz import partition
 
-from ...direction import Direction
+from pyphi.direction import Direction
+
 from . import colors
 from . import geometry
 from . import text
@@ -144,7 +145,7 @@ def plot_phi_structure(
     if mechanism_coords is None:
         mechanism_coords = geometry.Coordinates(
             mechanism_mapping,
-            **theme["geometry"]["mechanisms"].get("coordinate_kwargs", dict()),
+            **theme["geometry"]["mechanisms"].get("coordinate_kwargs", {}),
         )
     else:
         mechanism_mapping = mechanism_coords.mapping
@@ -159,21 +160,21 @@ def plot_phi_structure(
         else:
             purview_mapping = geometry.arrange(
                 node_indices,
-                **theme["geometry"]["purviews"].get("arrange", dict()),
+                **theme["geometry"]["purviews"].get("arrange", {}),
             )
     purview_coords = purview_coords or theme["geometry"]["purviews"].get("coords")
     if purview_coords is None:
         if theme["geometry"]["purviews"].get("arrange_by_mechanism") is not None:
             purview_coords = geometry.PurviewCoordinates(
                 purview_mapping,
-                **theme["geometry"]["mechanisms"].get("coordinate_kwargs", dict()),
+                **theme["geometry"]["mechanisms"].get("coordinate_kwargs", {}),
             )
         else:
             purview_coords = geometry.Coordinates(
                 purview_mapping,
                 subset_multiplicities=distinctions.mechanism_multiplicities(),
                 state_multiplicities=distinctions.state_multiplicities(),
-                **theme["geometry"]["purviews"].get("coordinate_kwargs", dict()),
+                **theme["geometry"]["purviews"].get("coordinate_kwargs", {}),
             )
 
     # Relations
@@ -182,7 +183,7 @@ def plot_phi_structure(
         three_faces = relation_three_faces
         if two_faces is None or three_faces is None:
             # Sort relations for deterministic traversal
-            faces_by_degree = dict()
+            faces_by_degree = {}
             for degree, faces in relations.faces_by_degree.items():
                 faces_by_degree[degree] = sorted(faces)
             if two_faces is None:
@@ -274,7 +275,7 @@ def plot_phi_structure(
 def scatter_from_coords(coords, theme=DEFAULT_THEME, **kwargs):
     """Return a Scatter3d given labels and coordinates."""
     x, y, z = np.stack(coords).transpose()
-    defaults = dict(textfont=dict(family=theme["fontfamily"], size=theme["fontsize"]))
+    defaults = {"textfont": {"family": theme["fontfamily"], "size": theme["fontsize"]}}
     kwargs = Theme(
         defaults,
         **kwargs,
@@ -724,7 +725,8 @@ def _plot_two_relation_faces_single_trace(
     if not np.all(widths == width):
         warnings.warn(
             f"Cannot plot different widths with a single trace; using mean width {width}. "
-            "Try increasing `detail_threshold`."
+            "Try increasing `detail_threshold`.",
+            stacklevel=2,
         )
     return fig.add_trace(
         lines_from_coords(

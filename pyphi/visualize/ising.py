@@ -6,9 +6,9 @@ import numpy as np
 import pandas as pd
 import seaborn as sb
 
-from ..network_generator import utils
-from ..network_generator.ising import energy
-from ..utils import all_states
+from pyphi.network_generator import utils
+from pyphi.network_generator.ising import energy
+from pyphi.utils import all_states
 
 
 def plot_sigmoid(x, temperature=1.0, field=0.0):
@@ -21,7 +21,7 @@ def plot_sigmoid(x, temperature=1.0, field=0.0):
 
 def plot_inputs(data, x, y, label, ax=None, sep=0.015):
     ax = sb.scatterplot(data=data, x=x, y=y, ax=ax, s=100, color="red", alpha=0.25)
-    seen = dict()
+    seen = {}
     for _, row in data.iterrows():
         if row[x] in seen:
             seen[row[x]] += sep

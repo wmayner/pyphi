@@ -6,7 +6,7 @@ from collections import namedtuple
 
 import psutil
 
-from ..conf import config
+from pyphi.conf import config
 
 _CacheInfo = namedtuple("CacheInfo", ["hits", "misses", "currsize"])
 
@@ -39,7 +39,7 @@ def _make_key(
     kwds,
     typed,
     kwd_mark=(object(),),
-    fasttypes={int, str, frozenset, type(None)},
+    fasttypes=None,
     sorted=sorted,
     tuple=tuple,
     type=type,
@@ -54,6 +54,8 @@ def _make_key(
     hash value, then that argument is returned without a wrapper.  This saves
     space and improves lookup speed.
     """
+    if fasttypes is None:
+        fasttypes = {int, str, frozenset, type(None)}
     key = args
     sorted_items = None
     if kwds:

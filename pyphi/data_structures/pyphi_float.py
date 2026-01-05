@@ -3,8 +3,8 @@
 
 from typing import Any
 
-from ..conf import config
-from ..utils import eq
+from pyphi.conf import config
+from pyphi.utils import eq
 
 
 # TODO(4.0) use throughout

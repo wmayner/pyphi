@@ -1,7 +1,7 @@
 # visualize/__init__.py
 """Provides visualization capabilities for PyPhi objects."""
 
-from ..exceptions import MissingOptionalDependenciesError
+from pyphi.exceptions import MissingOptionalDependenciesError
 
 try:
     import matplotlib

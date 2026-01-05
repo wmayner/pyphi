@@ -9,15 +9,16 @@ from typing import TYPE_CHECKING
 import numpy as np
 from numpy.typing import NDArray
 
-from .. import utils
-from ..conf import config
-from ..registry import Registry
-from ..types import Repertoire
+from pyphi import utils
+from pyphi.conf import config
+from pyphi.registry import Registry
+from pyphi.types import Repertoire
+
 from . import distribution
 
 if TYPE_CHECKING:
-    from ..models.mechanism import Concept
-    from ..models.subsystem import CauseEffectStructure
+    from pyphi.models.mechanism import Concept
+    from pyphi.models.subsystem import CauseEffectStructure
 
 
 class CESMeasureRegistry(Registry):

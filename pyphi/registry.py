@@ -5,13 +5,12 @@ from collections.abc import Callable
 from collections.abc import Iterator
 from collections.abc import Mapping
 from typing import Any
-from typing import Generic
 from typing import TypeVar
 
 T = TypeVar("T")
 
 
-class Registry(Mapping[str, Callable[..., Any]], Generic[T]):
+class Registry[T](Mapping[str, Callable[..., Any]]):
     """Generic registry for user-supplied functions.
 
     See ``pyphi.subsystem.PartitionRegistry`` and

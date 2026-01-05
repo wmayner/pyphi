@@ -230,7 +230,7 @@ class Config:
         return repr(self)
 
     def __setattr__(self, name, value):
-        if name.startswith("_") or name in self.options().keys():
+        if name.startswith("_") or name in self.options():
             super().__setattr__(name, value)
         else:
             raise ConfigurationError(f"{name} is not a valid config option")
@@ -512,12 +512,12 @@ class PyphiConfig(Config):
     )
 
     PARALLEL_COMPLEX_EVALUATION = Option(
-        dict(
-            parallel=False,
-            sequential_threshold=2**4,
-            chunksize=2**6,
-            progress=True,
-        ),
+        {
+            "parallel": False,
+            "sequential_threshold": 2**4,
+            "chunksize": 2**6,
+            "progress": True,
+        },
         type=Mapping,
         on_change=on_change_parallel_suboption,
         doc="""
@@ -525,12 +525,12 @@ class PyphiConfig(Config):
     )
 
     PARALLEL_CUT_EVALUATION = Option(
-        dict(
-            parallel=False,
-            sequential_threshold=2**10,
-            chunksize=2**12,
-            progress=True,
-        ),
+        {
+            "parallel": False,
+            "sequential_threshold": 2**10,
+            "chunksize": 2**12,
+            "progress": True,
+        },
         type=Mapping,
         on_change=on_change_parallel_suboption,
         doc="""
@@ -538,12 +538,12 @@ class PyphiConfig(Config):
     )
 
     PARALLEL_CONCEPT_EVALUATION = Option(
-        dict(
-            parallel=False,
-            sequential_threshold=2**6,
-            chunksize=2**8,
-            progress=True,
-        ),
+        {
+            "parallel": False,
+            "sequential_threshold": 2**6,
+            "chunksize": 2**8,
+            "progress": True,
+        },
         type=Mapping,
         on_change=on_change_parallel_suboption,
         doc="""
@@ -551,12 +551,12 @@ class PyphiConfig(Config):
     )
 
     PARALLEL_PURVIEW_EVALUATION = Option(
-        dict(
-            parallel=False,
-            sequential_threshold=2**6,
-            chunksize=2**8,
-            progress=True,
-        ),
+        {
+            "parallel": False,
+            "sequential_threshold": 2**6,
+            "chunksize": 2**8,
+            "progress": True,
+        },
         type=Mapping,
         on_change=on_change_parallel_suboption,
         doc="""
@@ -564,12 +564,12 @@ class PyphiConfig(Config):
     )
 
     PARALLEL_MECHANISM_PARTITION_EVALUATION = Option(
-        dict(
-            parallel=False,
-            sequential_threshold=2**10,
-            chunksize=2**12,
-            progress=True,
-        ),
+        {
+            "parallel": False,
+            "sequential_threshold": 2**10,
+            "chunksize": 2**12,
+            "progress": True,
+        },
         type=Mapping,
         on_change=on_change_parallel_suboption,
         doc="""
@@ -577,12 +577,12 @@ class PyphiConfig(Config):
     )
 
     PARALLEL_RELATION_EVALUATION = Option(
-        dict(
-            parallel=False,
-            sequential_threshold=2**10,
-            chunksize=2**12,
-            progress=True,
-        ),
+        {
+            "parallel": False,
+            "sequential_threshold": 2**10,
+            "chunksize": 2**12,
+            "progress": True,
+        },
         type=Mapping,
         on_change=on_change_parallel_suboption,
         doc="""
@@ -612,7 +612,7 @@ class PyphiConfig(Config):
     )
 
     RAY_CONFIG = Option(
-        dict(),
+        {},
         type=dict,
         doc="""
     Keyword arguments to ``ray.init()``. Controls the initialization of the Ray
@@ -976,11 +976,11 @@ def _validate_combinations(config, options, combinations, valid_if_included=True
         )
         text = {
             name: "  " + "\n  ".join(map(str, value))
-            for name, value in dict(
-                options=options,
-                combinations=combinations,
-                values=values,
-            ).items()
+            for name, value in {
+                "options": options,
+                "combinations": combinations,
+                "values": values,
+            }.items()
         }
         raise ConfigurationError(
             msg.format(valid_if_in=("" if valid_if_included else "NOT "), **text)
@@ -988,8 +988,12 @@ def _validate_combinations(config, options, combinations, valid_if_included=True
 
 
 def validate_combinations(
-    config, options, valid_combinations=set(), invalid_combinations=set()
+    config, options, valid_combinations=None, invalid_combinations=None
 ):
+    if invalid_combinations is None:
+        invalid_combinations = set()
+    if valid_combinations is None:
+        valid_combinations = set()
     _validate_combinations(
         config, options, combinations=valid_combinations, valid_if_included=True
     )
@@ -1056,10 +1060,8 @@ def on_driver():
 def driver_config():
     """Handle configuration for the main instance."""
     # We're a main instance; load the user config
-    try:
+    with contextlib.suppress(FileNotFoundError):
         config.load_file(PYPHI_USER_CONFIG_PATH)
-    except FileNotFoundError:
-        pass
     # Ensure write to disk in case no config was loaded (i.e. onchange was not
     # triggered)
     write_to_cache(config)
@@ -1090,6 +1092,7 @@ def fallback(*args):
     for arg in args:
         if arg is not None:
             return arg
+    return None
 
 
 PARALLEL_KWARGS = [

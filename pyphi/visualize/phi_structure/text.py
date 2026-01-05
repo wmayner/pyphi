@@ -3,9 +3,9 @@
 
 from toolz import identity
 
-from ... import config
-from ... import utils
-from ...models import fmt
+from pyphi import config
+from pyphi import utils
+from pyphi.models import fmt
 
 
 def indent(lines, amount=4, char="&nbsp;", newline="<br>"):

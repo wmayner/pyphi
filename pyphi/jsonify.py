@@ -123,12 +123,12 @@ def _jsonify_dict(dct):
     from enum import Enum
 
     # Check if any keys are enums
-    has_enum_keys = any(isinstance(key, Enum) for key in dct.keys())
+    has_enum_keys = any(isinstance(key, Enum) for key in dct)
 
     if has_enum_keys:
         # Get the enum class from the first enum key
         enum_class = None
-        for key in dct.keys():
+        for key in dct:
             if isinstance(key, Enum):
                 enum_class = key.__class__.__name__
                 break

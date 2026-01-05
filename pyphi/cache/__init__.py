@@ -8,8 +8,9 @@ from functools import wraps
 import joblib
 import psutil
 
-from .. import constants
-from ..conf import config
+from pyphi import constants
+from pyphi.conf import config
+
 from .cache_utils import _CacheInfo
 from .cache_utils import _make_key
 
@@ -18,7 +19,7 @@ joblib_memory = joblib.Memory(location=constants.DISK_CACHE_LOCATION, verbose=0)
 
 
 def cache(
-    cache={},
+    cache=None,
     maxmem: int | None = config.MAXIMUM_CACHE_MEMORY_PERCENTAGE,
     typed: bool = False,
 ):
@@ -39,6 +40,8 @@ def cache(
     """
     # Constants shared by all lru cache instances:
     # Unique object used to signal cache misses.
+    if cache is None:
+        cache = {}
     sentinel = object()
     # Build a key from the function arguments.
     make_key = _make_key
@@ -154,7 +157,7 @@ class DictCache:
         """
         if kwargs:
             raise NotImplementedError("kwarg cache keys not implemented")
-        return (_prefix,) + tuple(args)
+        return (_prefix, *tuple(args))
 
 
 def validate_parent_cache(parent_cache):

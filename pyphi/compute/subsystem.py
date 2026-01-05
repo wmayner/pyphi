@@ -11,28 +11,28 @@ from typing import Any
 
 from more_itertools import collapse
 
-from .. import conf
-from .. import connectivity
-from .. import utils
-from ..conf import config
-from ..direction import Direction
-from ..metrics.ces import ces_distance
-from ..models import CauseEffectStructure
-from ..models import Concept
-from ..models import Cut
-from ..models import KCut
-from ..models import SystemIrreducibilityAnalysis
-from ..models import _null_sia
-from ..models import cmp
-from ..parallel import MapReduce
-from ..partition import mip_partitions
-from ..partition import system_partition_types
-from ..types import Mechanism
-from ..types import Purview
+from pyphi import conf
+from pyphi import connectivity
+from pyphi import utils
+from pyphi.conf import config
+from pyphi.direction import Direction
+from pyphi.metrics.ces import ces_distance
+from pyphi.models import CauseEffectStructure
+from pyphi.models import Concept
+from pyphi.models import Cut
+from pyphi.models import KCut
+from pyphi.models import SystemIrreducibilityAnalysis
+from pyphi.models import _null_sia
+from pyphi.models import cmp
+from pyphi.parallel import MapReduce
+from pyphi.partition import mip_partitions
+from pyphi.partition import system_partition_types
+from pyphi.types import Mechanism
+from pyphi.types import Purview
 
 if TYPE_CHECKING:
-    from ..labels import NodeLabels
-    from ..subsystem import Subsystem
+    from pyphi.labels import NodeLabels
+    from pyphi.subsystem import Subsystem
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
@@ -233,12 +233,12 @@ def _sia_map_reduce(
     result = MapReduce(
         evaluate_cut,
         cuts,
-        map_kwargs=dict(
-            uncut_subsystem=subsystem,
-            unpartitioned_ces=unpartitioned_ces,
-        ),
+        map_kwargs={
+            "uncut_subsystem": subsystem,
+            "unpartitioned_ces": unpartitioned_ces,
+        },
         reduce_func=min,
-        reduce_kwargs=dict(default=_null_sia(subsystem)),
+        reduce_kwargs={"default": _null_sia(subsystem)},
         shortcircuit_func=utils.is_falsy,
         desc="Evaluating cuts",
         **kwargs,

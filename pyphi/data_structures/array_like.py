@@ -33,7 +33,7 @@ class ArrayLike(NDArrayOperatorsMixin):
             # Use ArrayLike instead of type(self) for isinstance to
             # allow subclasses that don't override __array_ufunc__ to
             # handle ArrayLike objects.
-            if not isinstance(x, self._HANDLED_TYPES + (ArrayLike,)):
+            if not isinstance(x, (*self._HANDLED_TYPES, ArrayLike)):
                 return NotImplemented
 
         # Defer to the implementation of the ufunc on unwrapped values.

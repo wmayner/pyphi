@@ -96,7 +96,7 @@ def _import_submodules(package, recursive=True):
     if isinstance(package, str):
         package = importlib.import_module(package)
     results = {}
-    for loader, name, is_pkg in pkgutil.walk_packages(package.__path__):
+    for _loader, name, is_pkg in pkgutil.walk_packages(package.__path__):
         if name not in _skip_import:
             full_name = package.__name__ + "." + name
             results[full_name] = importlib.import_module(full_name)
@@ -111,7 +111,7 @@ def _import_submodules(package, recursive=True):
 _submodules = _import_submodules(__name__)
 
 # Populate __all__ with public modules of depth 1
-_submodule_names = set([name.split(".")[1] for name in _submodules.keys()])
+_submodule_names = {name.split(".")[1] for name in _submodules}
 __all__ = [
     "config",
     "Direction",

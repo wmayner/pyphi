@@ -22,18 +22,18 @@ from numpy.typing import NDArray
 from toolz import concat
 from toolz import unique
 
+from pyphi import connectivity
+from pyphi import utils
+from pyphi import validate
+from pyphi.conf import config
+from pyphi.data_structures import PyPhiFloat
+from pyphi.direction import Direction
+from pyphi.exceptions import WrongDirectionError
+from pyphi.metrics.distribution import DistanceResult
 from pyphi.models.cuts import KPartition
+from pyphi.registry import Registry
+from pyphi.warnings import warn_about_tie_serialization
 
-from .. import connectivity
-from .. import utils
-from .. import validate
-from ..conf import config
-from ..data_structures import PyPhiFloat
-from ..direction import Direction
-from ..exceptions import WrongDirectionError
-from ..metrics.distribution import DistanceResult
-from ..registry import Registry
-from ..warnings import warn_about_tie_serialization
 from . import cmp
 from . import fmt
 from .pandas import ToDictFromExplicitAttrsMixin
@@ -41,7 +41,7 @@ from .pandas import ToDictMixin
 from .pandas import ToPandasMixin
 
 if TYPE_CHECKING:
-    from ..labels import NodeLabels
+    from pyphi.labels import NodeLabels
 
 
 @total_ordering
@@ -710,8 +710,11 @@ class MaximallyIrreducibleCauseOrEffect(
     @property
     def state_ties(self):
         if self._state_ties is None:
-            self._state_ties = (self,) + tuple(
-                type(self)(tie) for tie in self.ria.state_ties if tie is not self.ria
+            self._state_ties = (
+                self,
+                *tuple(
+                    type(self)(tie) for tie in self.ria.state_ties if tie is not self.ria
+                ),
             )
         return self._state_ties
 
@@ -730,8 +733,13 @@ class MaximallyIrreducibleCauseOrEffect(
     @property
     def partition_ties(self):
         if self._partition_ties is None:
-            self._partition_ties = (self,) + tuple(
-                type(self)(tie) for tie in self.ria.partition_ties if tie is not self.ria
+            self._partition_ties = (
+                self,
+                *tuple(
+                    type(self)(tie)
+                    for tie in self.ria.partition_ties
+                    if tie is not self.ria
+                ),
             )
         return self._partition_ties
 
@@ -775,14 +783,15 @@ class MaximallyIrreducibleCauseOrEffect(
         return self.ria.is_congruent(specified_state)
 
     def _repr_columns(self):
-        return self.ria._repr_columns() + [
+        return [
+            *self.ria._repr_columns(),
             ("#(partition ties)", self.num_partition_ties),
         ]
 
     def __repr__(self):
         # TODO just use normal repr when subclass of RIA
         title = f"Maximally-irreducible {str(self.direction).lower()}"
-        columns = self.ria._repr_columns() + [("Purview ties", self.num_partition_ties)]
+        columns = [*self.ria._repr_columns(), ("Purview ties", self.num_partition_ties)]
         return self.ria.make_repr(title=title, columns=columns)
 
     def __str__(self):
@@ -988,6 +997,7 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
         if direction is Direction.EFFECT:
             return self.effect
         validate.direction(direction)
+        return None
 
     @property
     def cause_purview(self):
@@ -1179,11 +1189,11 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
 
     def to_json(self):
         """Return a JSON-serializable representation."""
-        return dict(
-            mechanism=self.mechanism,
-            cause=self.cause,
-            effect=self.effect,
-        )
+        return {
+            "mechanism": self.mechanism,
+            "cause": self.cause,
+            "effect": self.effect,
+        }
 
     @classmethod
     def from_json(cls, dct):

@@ -504,8 +504,8 @@ class ExplicitTPM(data_structures.ArrayLike):
 
     def print(self) -> None:
         tpm = convert.to_multidimensional(self._tpm)
-        for state in all_states(tpm.shape[-1]):
-            print(f"{state}: {tpm[state]}")
+        for _state in all_states(tpm.shape[-1]):
+            pass
 
     # TODO(4.0) docstring
     def permute_nodes(self, permutation: tuple[int, ...]) -> ExplicitTPM:
@@ -514,7 +514,7 @@ class ExplicitTPM(data_structures.ArrayLike):
                 f"Permutation must have length {self.ndim - 1}, but has length "
                 f"{len(permutation)}."
             )
-        dimension_permutation = tuple(permutation) + (self.ndim - 1,)
+        dimension_permutation = (*tuple(permutation), self.ndim - 1)
         return type(self)(
             self._tpm.transpose(dimension_permutation)[..., list(permutation)],
         )

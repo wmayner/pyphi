@@ -5,7 +5,7 @@ from asyncio import Event
 from time import time
 from typing import TYPE_CHECKING
 
-from ..deferred.ray import ray
+from pyphi.deferred.ray import ray
 
 if TYPE_CHECKING:
     import ray
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 from tqdm.auto import tqdm
 
-from ..conf import fallback
+from pyphi.conf import fallback
 
 
 @ray.remote

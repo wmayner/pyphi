@@ -75,9 +75,7 @@ def combinations_with_nonempty_intersection_by_order(
     intersections = {
         pair: frozenset.intersection(*[sets[i] for i in pair]) for pair in pairs
     }
-    combinations = defaultdict(
-        set, {2: set(pair for pair in pairs if intersections[pair])}
-    )
+    combinations = defaultdict(set, {2: {pair for pair in pairs if intersections[pair]}})
 
     # Iteratively find larger combinations of sets with nonempty intersection
     for k in range(2, max_size):
@@ -225,7 +223,7 @@ def sum_of_ratio_of_minima_among_subsets(
     for i, j in product(range(len(num_denom_pairs)), range(len(num_denom_pairs))):
         # (numerator, denominator) pairs that contain the current candidate
         # values
-        candiate_elements = set([sorted_num_idx[i], sorted_denom_idx[j]])
+        candiate_elements = {sorted_num_idx[i], sorted_denom_idx[j]}
         # The set of elements whose numerator >= candidate numerator
         num_superset = set(sorted_num_idx[i:])
         # The set of elements whose denominators >= candidate denominator
@@ -296,8 +294,8 @@ def _set_partitions(collection: Sequence[Any]) -> Generator[list[list[Any]], Non
     first = collection[0]
     for smaller in set_partitions(collection[1:]):
         for n, subset in enumerate(smaller):
-            yield smaller[:n] + [[first] + subset] + smaller[n + 1 :]
-        yield [[first]] + smaller
+            yield [*smaller[:n], [first, *subset], *smaller[n + 1 :]]
+        yield [[first], *smaller]
 
 
 def set_partitions(
