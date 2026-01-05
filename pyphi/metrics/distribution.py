@@ -13,19 +13,19 @@ from scipy.spatial.distance import cdist
 from scipy.special import entr
 from scipy.special import rel_entr
 
-from .. import utils
-from .. import validate
-from ..cache import joblib_memory
-from ..conf import config
-from ..conf import fallback
-from ..data_structures.pyphi_float import PyPhiFloat
-from ..direction import Direction
-from ..distribution import flatten
-from ..distribution import marginal_zero
-from ..exceptions import MissingOptionalDependenciesError
-from ..registry import Registry
-from ..types import Repertoire
-from ..types import State
+from pyphi import utils
+from pyphi import validate
+from pyphi.cache import joblib_memory
+from pyphi.conf import config
+from pyphi.conf import fallback
+from pyphi.data_structures.pyphi_float import PyPhiFloat
+from pyphi.direction import Direction
+from pyphi.distribution import flatten
+from pyphi.distribution import marginal_zero
+from pyphi.exceptions import MissingOptionalDependenciesError
+from pyphi.registry import Registry
+from pyphi.types import Repertoire
+from pyphi.types import State
 
 _LN_OF_2 = np.log(2)
 
@@ -47,11 +47,17 @@ class DistanceResult(PyPhiFloat):
         >>> result.method  # returns 'EMD'
         >>> float(result)  # returns 0.5
 
-    Warning:
-        Using DistanceResult objects in NumPy arrays will force object dtype,
-        causing significant performance degradation. Use this class only for
-        final results at API boundaries, not for internal array computations.
-        Convert to float with ``float(result)`` when needed for array operations.
+    Note:
+        When creating NumPy arrays from DistanceResult objects, the ``__array__``
+        protocol automatically extracts float values, creating fast float64 arrays.
+        Metadata is not preserved in the array; for batch processing with metadata,
+        use the ``extract_phi_metadata()`` utility function from ``pyphi.utils``.
+
+        Example:
+            >>> results = [DistanceResult(0.5), DistanceResult(0.3)]
+            >>> arr = np.array(results)  # Fast! Creates float64 array
+            >>> arr.dtype
+            dtype('float64')
     """
 
     def __new__(cls, value, **kwargs):
@@ -61,7 +67,7 @@ class DistanceResult(PyPhiFloat):
         return instance
 
     def __repr__(self):
-        aux_data = {k: v for k, v in self.__dict__.items()}
+        aux_data = dict(self.__dict__.items())
         if aux_data:
             aux_str = ", ".join(f"{k}={v!r}" for k, v in aux_data.items())
             return f"DistanceResult({float(self)}, {aux_str})"
@@ -77,7 +83,7 @@ class DistanceResult(PyPhiFloat):
 
     def __copy__(self):
         """Ensure auxiliary data is preserved when copying."""
-        aux_data = {k: v for k, v in self.__dict__.items()}
+        aux_data = dict(self.__dict__.items())
         return DistanceResult(float(self), **aux_data)
 
     def __deepcopy__(self, memo):
@@ -102,6 +108,39 @@ class DistanceResult(PyPhiFloat):
         # All keys except "value" are auxiliary data
         aux_data = {k: v for k, v in data.items() if k != "value"}
         return cls(value, **aux_data)
+
+    def __array__(self, dtype=None):
+        """Implement NumPy array protocol to auto-extract float values.
+
+        This prevents performance issues when DistanceResult objects are placed
+        in NumPy arrays. Instead of creating an object-dtype array (slow), NumPy
+        will automatically extract the float values (fast).
+
+        Args:
+            dtype: Optional dtype for the resulting array element.
+
+        Returns:
+            numpy.ndarray: A scalar array containing the float value.
+
+        Note:
+            Metadata is not preserved in the array. For batch processing with
+            metadata, use the ``extract_phi_metadata()`` utility function from
+            ``pyphi.utils``.
+
+        Examples:
+            >>> results = [DistanceResult(0.5, method='EMD'),
+            ...            DistanceResult(0.3, method='L1')]
+            >>> arr = np.array(results)
+            >>> arr.dtype  # float64 (not object)
+            dtype('float64')
+            >>> arr
+            array([0.5, 0.3])
+        """
+        import numpy as np
+
+        if dtype is None:
+            return np.asarray(float(self))
+        return np.asarray(float(self), dtype=dtype)
 
 
 class OptionalEMD:
@@ -578,7 +617,7 @@ def approximate_specified_state(
         # Map each dimension in the squeezed repertoire to a local node index.
         node_indices = set(range(repertoire.ndim))
         # All the sets of indices of size n - 1 (i.e. combinations(n, n - 1)).
-        complements = [node_indices - set((n,)) for n in tuple(node_indices)]
+        complements = [node_indices - {n} for n in tuple(node_indices)]
         # Marginalize out all the complementary dimensions for each
         # node in the repertoire.
         marginals = [repertoire.sum(tuple(c)) for c in complements]

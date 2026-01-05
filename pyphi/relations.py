@@ -41,7 +41,15 @@ class RelationFace(frozenset):
         self = super().__new__(cls, *args)
         if phi is None:
             raise ValueError("phi keyword argument is required")
-        self.phi = phi  # type: ignore[misc]  # frozenset is immutable but we set this in __new__
+
+        # Preserve DistanceResult type if possible, otherwise convert to PyPhiFloat
+        from pyphi.data_structures.pyphi_float import PyPhiFloat
+        from pyphi.metrics.distribution import DistanceResult
+
+        if isinstance(phi, DistanceResult):
+            self.phi = phi  # type: ignore[misc]  # frozenset is immutable but we set this in __new__
+        else:
+            self.phi = PyPhiFloat(phi)  # type: ignore[misc]  # frozenset is immutable but we set this in __new__
         return self
 
     @total_ordering  # type: ignore[arg-type]  # total_ordering expects a class not instance
@@ -193,7 +201,7 @@ class Relation(frozenset, cmp.OrderableByPhi):
 
     def to_json(self):
         """Return a JSON-serializable representation."""
-        return dict(distinctions=list(self))
+        return {"distinctions": list(self)}
 
     @classmethod
     def from_json(cls, data):
@@ -275,7 +283,7 @@ class Relations:
 
     def to_json(self):
         """Return a JSON-serializable representation."""
-        return dict(relations=list(self))  # type: ignore[arg-type]  # Self needs __iter__ in subclass
+        return {"relations": list(self)}  # type: ignore[arg-type]  # Self needs __iter__ in subclass
 
     @classmethod
     def from_json(cls, data):

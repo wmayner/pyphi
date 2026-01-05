@@ -8,10 +8,10 @@ from dataclasses import dataclass
 
 from toolz import concat
 
+from pyphi import utils
+from pyphi.conf import fallback
 from pyphi.direction import Direction
 
-from .. import utils
-from ..conf import fallback
 from . import cmp
 from . import fmt
 from .mechanism import Concept
@@ -374,7 +374,17 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
         subsystem=None,
         cut_subsystem=None,
     ):
-        self.phi = phi  # type: ignore[assignment]
+        # Preserve DistanceResult type if possible, otherwise convert to PyPhiFloat
+        if phi is None:
+            self.phi = phi  # type: ignore[assignment]
+        else:
+            from pyphi.data_structures.pyphi_float import PyPhiFloat
+            from pyphi.metrics.distribution import DistanceResult
+
+            if isinstance(phi, DistanceResult):
+                self.phi = phi  # type: ignore[assignment]
+            else:
+                self.phi = PyPhiFloat(phi)  # type: ignore[assignment]
         self.ces = ces
         self.partitioned_ces = partitioned_ces
         self.subsystem = subsystem
@@ -390,7 +400,6 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
         """Print this |SystemIrreducibilityAnalysis|, optionally without
         cause-effect structures.
         """
-        print(self.__str__(ces=ces))
 
     @property
     def cut(self):
@@ -431,7 +440,7 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
     def to_json(self):
         """Return a JSON-serializable representation."""
         return {
-            attr: getattr(self, attr) for attr in _sia_attributes + ["small_phi_time"]
+            attr: getattr(self, attr) for attr in [*_sia_attributes, "small_phi_time"]
         }
 
     @classmethod

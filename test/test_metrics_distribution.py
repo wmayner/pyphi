@@ -521,10 +521,48 @@ class TestDistanceResult:
         assert hasattr(result_kld, "method")
         assert result_kld.method == "KLD"
         assert hasattr(result_kld, "asymmetric")
-        assert result_kld.asymmetric == True
+        assert result_kld.asymmetric
 
         # Test entropy difference
         result_entropy = distribution.entropy_difference(p, q)
         assert isinstance(result_entropy, DistanceResult)
         assert hasattr(result_entropy, "method")
         assert result_entropy.method == "ENTROPY_DIFFERENCE"
+
+    def test_distance_result_numpy_array_protocol(self):
+        """DistanceResult should auto-convert to float64 in NumPy arrays.
+
+        The __array__ protocol ensures that creating NumPy arrays from
+        DistanceResult objects automatically extracts float values, preventing
+        performance issues from object dtype arrays.
+        """
+        # Create test results with metadata
+        results = [
+            DistanceResult(0.5, method="EMD", direction="CAUSE"),
+            DistanceResult(0.3, method="L1"),
+            DistanceResult(0.7, method="GID"),
+        ]
+
+        # Creating array should auto-extract float values
+        arr = np.array(results)
+
+        # Should be float64, not object dtype
+        assert arr.dtype == np.float64, f"Expected float64, got {arr.dtype}"
+
+        # Values should match
+        np.testing.assert_array_equal(arr, [0.5, 0.3, 0.7])
+
+        # Metadata is lost in array (expected behavior)
+        # Array elements are plain floats, not DistanceResult
+        assert not hasattr(arr[0], "method")
+
+        # But metadata is still available on original objects
+        assert results[0].method == "EMD"
+        assert results[0].direction == "CAUSE"
+        assert results[1].method == "L1"
+        assert results[2].method == "GID"
+
+        # Test with explicit dtype specification
+        arr_float32 = np.array(results, dtype=np.float32)
+        assert arr_float32.dtype == np.float32
+        np.testing.assert_array_almost_equal(arr_float32, [0.5, 0.3, 0.7], decimal=6)

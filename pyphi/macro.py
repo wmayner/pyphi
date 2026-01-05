@@ -121,8 +121,8 @@ class SystemAttrs(
     @property
     def node_labels(self):
         """Return the labels for macro nodes."""
-        assert list(self.node_indices)[0] == 0
-        labels = list(f"m{i}" for i in self.node_indices)
+        assert next(iter(self.node_indices)) == 0
+        labels = [f"m{i}" for i in self.node_indices]
         return NodeLabels(labels, self.node_indices)
 
     @property
@@ -733,11 +733,7 @@ class Blackbox(namedtuple("Blackbox", ["partition", "output_indices"])):
         assert a in self.micro_indices
         assert b in self.micro_indices
 
-        for part in self.partition:
-            if a in part and b in part:
-                return True
-
-        return False
+        return any(a in part and b in part for part in self.partition)
 
     def hidden_from(self, a, b):
         """Return True if ``a`` is hidden in a different box than ``b``."""
@@ -800,7 +796,7 @@ def all_groupings(partition):
     TODO: document exactly how to interpret the grouping.
     """
     if not all(partition):
-        raise ValueError("Each part of the partition must have at least one " "element.")
+        raise ValueError("Each part of the partition must have at least one element.")
 
     micro_groupings = [
         _partitions_list(len(part) + 1) if len(part) > 1 else [[[0], [1]]]
@@ -809,9 +805,7 @@ def all_groupings(partition):
 
     for grouping in itertools.product(*micro_groupings):
         if all(len(element) < 3 for element in grouping):
-            yield tuple(
-                tuple(tuple(tuple(state) for state in states) for states in grouping)
-            )
+            yield tuple(tuple(tuple(state) for state in states) for states in grouping)
 
 
 def all_coarse_grains(indices):
@@ -896,10 +890,22 @@ class MacroNetwork:
         time_scale=1,
         blackbox=None,
     ):
+        # Preserve DistanceResult type if possible, otherwise convert to PyPhiFloat
+        from pyphi.data_structures.pyphi_float import PyPhiFloat
+        from pyphi.metrics.distribution import DistanceResult
+
         self.network = network
         self.system = system
-        self.phi = macro_phi
-        self.micro_phi = micro_phi
+        if isinstance(macro_phi, DistanceResult):
+            self.phi = macro_phi
+        else:
+            self.phi = PyPhiFloat(macro_phi)
+
+        if isinstance(micro_phi, DistanceResult):
+            self.micro_phi = micro_phi
+        else:
+            self.micro_phi = PyPhiFloat(micro_phi)
+
         self.time_scale = time_scale
         self.coarse_grain = coarse_grain
         self.blackbox = blackbox
