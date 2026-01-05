@@ -185,9 +185,9 @@ class Cut(_CutBase):
                    [0., 0., 1.],
                    [0., 0., 0.]])
         """
-        return connectivity.relevant_connections(n, self.from_nodes, self.to_nodes).astype(
-            np.int_
-        )
+        return connectivity.relevant_connections(
+            n, self.from_nodes, self.to_nodes
+        ).astype(np.int_)
 
     @cmp.sametype
     def __eq__(self, other: object) -> bool:

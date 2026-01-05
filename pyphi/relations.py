@@ -5,11 +5,12 @@ from __future__ import annotations
 
 import warnings
 from collections import defaultdict
-from collections.abc import Callable, Iterable
+from collections.abc import Iterable
 from functools import cached_property
 from functools import total_ordering
 from itertools import product
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
+from typing import Any
 
 from graphillion import setset
 from tqdm.auto import tqdm

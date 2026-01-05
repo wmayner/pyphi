@@ -3,14 +3,18 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
+from typing import Any
 
 import numpy as np
 
 from . import utils
 from .direction import Direction
 from .distribution import repertoire_shape
-from .types import Mechanism, Purview, Repertoire, State
+from .types import Mechanism
+from .types import Purview
+from .types import Repertoire
+from .types import State
 
 if TYPE_CHECKING:
     from .subsystem import Subsystem

@@ -332,7 +332,9 @@ class MacroSubsystem(Subsystem):
         for i, j in itertools.product(range(n), repeat=2):
             # TODO: don't pull cm from self
             # self.blackbox is guaranteed to exist here since we're in _blackbox_space
-            assert self.blackbox is not None, "_blackbox_space called with self.blackbox=None"
+            assert (
+                self.blackbox is not None
+            ), "_blackbox_space called with self.blackbox=None"
             outputs = self.blackbox.outputs_of(i)
             to = self.blackbox.partition[j]
             if self.cm[np.ix_(outputs, to)].sum() > 0:

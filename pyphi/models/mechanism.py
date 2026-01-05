@@ -5,33 +5,40 @@ from __future__ import annotations
 
 # TODO(typing): This file needs comprehensive type hints across all 133 methods.
 # Currently only critical interfaces are typed. See Phase 2.3 in PLAN.md.
-
 from collections.abc import Iterable
 from dataclasses import dataclass
-from enum import Enum, auto
+from enum import Enum
+from enum import auto
 from enum import unique as unique_enum
 from functools import cached_property
 from functools import total_ordering
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING
+from typing import Any
 
 import numpy as np
 from more_itertools import flatten
-from numpy.typing import ArrayLike, NDArray
+from numpy.typing import ArrayLike
+from numpy.typing import NDArray
 from toolz import concat
 from toolz import unique
 
 from pyphi.models.cuts import KPartition
 
-from .. import connectivity, utils, validate
+from .. import connectivity
+from .. import utils
+from .. import validate
 from ..conf import config
 from ..data_structures import PyPhiFloat
 from ..direction import Direction
-from ..metrics.distribution import DistanceResult
 from ..exceptions import WrongDirectionError
+from ..metrics.distribution import DistanceResult
 from ..registry import Registry
 from ..warnings import warn_about_tie_serialization
-from . import cmp, fmt
-from .pandas import ToDictFromExplicitAttrsMixin, ToDictMixin, ToPandasMixin
+from . import cmp
+from . import fmt
+from .pandas import ToDictFromExplicitAttrsMixin
+from .pandas import ToDictMixin
+from .pandas import ToPandasMixin
 
 if TYPE_CHECKING:
     from ..labels import NodeLabels
@@ -308,7 +315,8 @@ class RepertoireIrreducibilityAnalysis(
         """tuple[str]: The labels of the mechanism nodes."""
         assert self.node_labels is not None
         return self.node_labels.label_string(
-            self.mechanism, self.mechanism_state  # type: ignore[arg-type]
+            self.mechanism,
+            self.mechanism_state,  # type: ignore[arg-type]
         )
 
     @property
@@ -328,7 +336,8 @@ class RepertoireIrreducibilityAnalysis(
         """tuple[str]: The labels of the mechanism nodes."""
         assert self.node_labels is not None
         return self.node_labels.label_string(
-            self.purview, self.purview_state  # type: ignore[arg-type]
+            self.purview,
+            self.purview_state,  # type: ignore[arg-type]
         )
 
     @property
@@ -722,9 +731,7 @@ class MaximallyIrreducibleCauseOrEffect(
     def partition_ties(self):
         if self._partition_ties is None:
             self._partition_ties = (self,) + tuple(
-                type(self)(tie)
-                for tie in self.ria.partition_ties
-                if tie is not self.ria
+                type(self)(tie) for tie in self.ria.partition_ties if tie is not self.ria
             )
         return self._partition_ties
 
@@ -1124,9 +1131,11 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
             and purview indices refer to, might be different.
         """
         return np.array_equal(
-            self.cause_repertoire, other.cause_repertoire  # type: ignore[arg-type]
+            self.cause_repertoire,
+            other.cause_repertoire,  # type: ignore[arg-type]
         ) and np.array_equal(
-            self.effect_repertoire, other.effect_repertoire  # type: ignore[arg-type]
+            self.effect_repertoire,
+            other.effect_repertoire,  # type: ignore[arg-type]
         )
 
     def emd_eq(self, other):

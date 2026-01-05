@@ -1,4 +1,5 @@
-from pyphi import Direction, config
+from pyphi import Direction
+from pyphi import config
 from pyphi.examples import EXAMPLES
 
 

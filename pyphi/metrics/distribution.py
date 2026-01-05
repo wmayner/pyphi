@@ -96,7 +96,7 @@ class DistanceResult(PyPhiFloat):
         return result
 
     @classmethod
-    def from_json(cls, data: dict) -> "DistanceResult":
+    def from_json(cls, data: dict) -> DistanceResult:
         """Deserialize from JSON, restoring auxiliary data."""
         value = data["value"]
         # All keys except "value" are auxiliary data
@@ -475,9 +475,7 @@ def kld(p: ArrayLike, q: ArrayLike) -> float:
     Returns:
         float: The KLD of ``p`` from ``q``.
     """
-    return DistanceResult(
-        information_density(p, q).sum(), method="KLD", asymmetric=True
-    )
+    return DistanceResult(information_density(p, q).sum(), method="KLD", asymmetric=True)
 
 
 def absolute_information_density(p: ArrayLike, q: ArrayLike) -> np.ndarray:
@@ -732,9 +730,7 @@ def iit_4_small_phi(p: ArrayLike, q: ArrayLike, state: State) -> float:
 
 
 @measures.register("IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE", asymmetric=True)
-def iit_4_small_phi_no_absolute_value(
-    p: ArrayLike, q: ArrayLike, state: State
-) -> float:
+def iit_4_small_phi_no_absolute_value(p: ArrayLike, q: ArrayLike, state: State) -> float:
     # TODO docstring
     return DistanceResult(
         information_density(p, q).squeeze()[state],

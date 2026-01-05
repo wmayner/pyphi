@@ -62,9 +62,7 @@ class TestDistinctionCounts:
         result = new_big_phi.phi_structure(subsystem)
 
         expected_count = EXPECTED_PHI_STRUCTURE["basic"]["num_distinctions"]
-        actual_count = (
-            len(result.distinctions) if hasattr(result, "distinctions") else 0
-        )
+        actual_count = len(result.distinctions) if hasattr(result, "distinctions") else 0
 
         assert actual_count == expected_count, (
             f"Basic example distinction count changed:\n"
@@ -86,9 +84,7 @@ class TestDistinctionCounts:
         expected_count = EXPECTED_PHI_STRUCTURE["basic_noisy_selfloop"][
             "num_distinctions"
         ]
-        actual_count = (
-            len(result.distinctions) if hasattr(result, "distinctions") else 0
-        )
+        actual_count = len(result.distinctions) if hasattr(result, "distinctions") else 0
 
         assert actual_count == expected_count, (
             f"Basic noisy selfloop distinction count changed:\n"
@@ -109,9 +105,7 @@ class TestDistinctionCounts:
         result = new_big_phi.phi_structure(subsystem)
 
         expected_count = EXPECTED_PHI_STRUCTURE["fig4"]["num_distinctions"]
-        actual_count = (
-            len(result.distinctions) if hasattr(result, "distinctions") else 0
-        )
+        actual_count = len(result.distinctions) if hasattr(result, "distinctions") else 0
 
         assert actual_count == expected_count, (
             f"Figure 4 example distinction count changed:\n"
@@ -132,9 +126,7 @@ class TestDistinctionCounts:
         result = new_big_phi.phi_structure(subsystem)
 
         expected_count = EXPECTED_PHI_STRUCTURE["grid3"]["num_distinctions"]
-        actual_count = (
-            len(result.distinctions) if hasattr(result, "distinctions") else 0
-        )
+        actual_count = len(result.distinctions) if hasattr(result, "distinctions") else 0
 
         assert actual_count == expected_count, (
             f"Grid3 example distinction count changed:\n"
@@ -154,9 +146,7 @@ class TestDistinctionCounts:
         result = new_big_phi.phi_structure(subsystem)
 
         expected_count = EXPECTED_PHI_STRUCTURE["xor"]["num_distinctions"]
-        actual_count = (
-            len(result.distinctions) if hasattr(result, "distinctions") else 0
-        )
+        actual_count = len(result.distinctions) if hasattr(result, "distinctions") else 0
 
         assert actual_count == expected_count, (
             f"XOR example distinction count changed:\n"
@@ -205,9 +195,9 @@ class TestPhiStructureComponents:
         subsystem = EXAMPLES["subsystem"][example_name]()
         result = new_big_phi.phi_structure(subsystem)
 
-        assert hasattr(result, "distinctions"), (
-            f"PhiStructure for '{example_name}' missing 'distinctions' attribute"
-        )
+        assert hasattr(
+            result, "distinctions"
+        ), f"PhiStructure for '{example_name}' missing 'distinctions' attribute"
 
     @pytest.mark.parametrize(
         "example_name",
@@ -237,9 +227,9 @@ class TestPhiStructureComponents:
         subsystem = EXAMPLES["subsystem"][example_name]()
         result = new_big_phi.phi_structure(subsystem)
 
-        assert hasattr(result, "relations"), (
-            f"PhiStructure for '{example_name}' missing 'relations' attribute"
-        )
+        assert hasattr(
+            result, "relations"
+        ), f"PhiStructure for '{example_name}' missing 'relations' attribute"
 
     @pytest.mark.parametrize(
         "example_name",
@@ -265,9 +255,9 @@ class TestPhiStructureComponents:
         subsystem = EXAMPLES["subsystem"][example_name]()
         result = new_big_phi.phi_structure(subsystem)
 
-        assert hasattr(result, "distinctions"), (
-            f"PhiStructure missing distinctions attribute"
-        )
+        assert hasattr(
+            result, "distinctions"
+        ), "PhiStructure missing distinctions attribute"
 
         distinctions = result.distinctions
         assert distinctions is not None, (
@@ -320,9 +310,9 @@ class TestDistinctionProperties:
 
         # Check each distinction has a mechanism
         for i, distinction in enumerate(concepts):
-            assert hasattr(distinction, "mechanism"), (
-                f"Distinction {i} missing 'mechanism' attribute"
-            )
+            assert hasattr(
+                distinction, "mechanism"
+            ), f"Distinction {i} missing 'mechanism' attribute"
 
     def test_distinctions_mechanisms_are_within_subsystem(self):
         """Distinction mechanisms should be subsets of subsystem nodes.

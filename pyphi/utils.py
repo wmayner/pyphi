@@ -432,9 +432,7 @@ all_minima = all_extrema(operator.lt)
 all_maxima = all_extrema(operator.gt)
 
 
-def iter_with_default(
-    seq: Iterable[Any], default: object
-) -> Generator[Any, None, None]:
+def iter_with_default(seq: Iterable[Any], default: object) -> Generator[Any, None, None]:
     """Iterate over ``seq``, yielding ``default`` if ``seq`` is empty."""
     yielded = False
     for item in seq:

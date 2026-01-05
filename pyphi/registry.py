@@ -4,7 +4,9 @@
 from collections.abc import Callable
 from collections.abc import Iterator
 from collections.abc import Mapping
-from typing import Any, Generic, TypeVar
+from typing import Any
+from typing import Generic
+from typing import TypeVar
 
 T = TypeVar("T")
 

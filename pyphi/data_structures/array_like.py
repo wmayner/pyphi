@@ -1,6 +1,7 @@
 # data_structures/array_like.py
 
-from collections.abc import Callable, Iterable
+from collections.abc import Callable
+from collections.abc import Iterable
 from numbers import Number
 from typing import Any
 
@@ -44,12 +45,11 @@ class ArrayLike(NDArrayOperatorsMixin):
         if type(result) is tuple:
             # Multiple return values
             return tuple(type(self)(x) for x in result)  # type: ignore[call-arg]
-        elif method == "at":
+        if method == "at":
             # No return value
             return None
-        else:
-            # one return value
-            return type(self)(result)  # type: ignore[call-arg]
+        # one return value
+        return type(self)(result)  # type: ignore[call-arg]
 
     @staticmethod
     def _unwrap_arraylike(values: Iterable[Any]) -> Iterable[Any]:

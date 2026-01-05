@@ -19,9 +19,5 @@ from .connectivity import plot_subsystem
 from .distribution import plot_distribution
 from .distribution import plot_repertoires
 from .dynamics import plot_dynamics
-from .connectivity import plot_graph
-from .connectivity import plot_subsystem
 from .phi_structure import highlight_phi_fold
 from .phi_structure import plot_phi_structure
-from . import phi_structure
-from . import ising

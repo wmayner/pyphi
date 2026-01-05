@@ -145,9 +145,8 @@ def _jsonify_dict(dct):
             ENUM_DICT_MARKER: pairs,
             ENUM_CLASS_KEY: enum_class,
         }
-    else:
-        # Normal dict without enum keys
-        return {key: jsonify(value) for key, value in dct.items()}
+    # Normal dict without enum keys
+    return {key: jsonify(value) for key, value in dct.items()}
 
 
 def _push_metadata(dct, obj):

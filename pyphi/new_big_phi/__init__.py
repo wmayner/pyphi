@@ -11,13 +11,20 @@ from enum import unique
 
 import numpy as np
 
-from .. import compute, conf, connectivity, utils, validate, metrics, repertoire
+from .. import compute
+from .. import conf
+from .. import connectivity
+from .. import metrics
+from .. import repertoire
+from .. import utils
+from .. import validate
 from ..compute.network import reachable_subsystems
 from ..conf import config
 from ..conf import fallback
 from ..data_structures import PyPhiFloat
 from ..direction import Direction
 from ..labels import NodeLabels
+from ..metrics.distribution import DistanceResult
 from ..models import cmp
 from ..models import fmt
 from ..models.cuts import Cut
@@ -35,7 +42,6 @@ from ..relations import Relations
 from ..relations import relations as compute_relations
 from ..subsystem import Subsystem
 from ..warnings import warn_about_tie_serialization
-from ..metrics.distribution import DistanceResult
 
 ##############################################################################
 # Information
@@ -78,12 +84,8 @@ def system_intrinsic_information(
     # SystemStateSpecification's constructor should handle None values
     # if that's the expected behavior when a direction is not present
     return SystemStateSpecification(
-        cause=ii.get(
-            Direction.CAUSE
-        ),  # pyright: ignore[reportArgumentType] - Constructor handles Optional
-        effect=ii.get(
-            Direction.EFFECT
-        ),  # pyright: ignore[reportArgumentType] - Constructor handles Optional
+        cause=ii.get(Direction.CAUSE),  # pyright: ignore[reportArgumentType] - Constructor handles Optional
+        effect=ii.get(Direction.EFFECT),  # pyright: ignore[reportArgumentType] - Constructor handles Optional
     )
 
 
@@ -183,7 +185,7 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
             (f"           {fmt.SMALL_PHI}_s", self.phi),
             (f"Normalized {fmt.SMALL_PHI}_s", self.normalized_phi),
             (
-                f"Int. diff. CAUSE",
+                "Int. diff. CAUSE",
                 (
                     self.intrinsic_differentiation[Direction.CAUSE]
                     if self.intrinsic_differentiation
@@ -191,7 +193,7 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
                 ),
             ),
             (
-                f"Int. diff. EFFECT",
+                "Int. diff. EFFECT",
                 (
                     self.intrinsic_differentiation[Direction.EFFECT]
                     if self.intrinsic_differentiation
@@ -280,14 +282,10 @@ class NullSystemIrreducibilityAnalysis(SystemIrreducibilityAnalysis):
 
 def normalization_factor(partition: Cut | GeneralKCut) -> float:
     if hasattr(partition, "normalization_factor"):
-        return (
-            partition.normalization_factor()
-        )  # pyright: ignore[reportAttributeAccessIssue]
+        return partition.normalization_factor()  # pyright: ignore[reportAttributeAccessIssue]
     # For GeneralKCut, we need to check hasattr before accessing attributes
     if hasattr(partition, "from_nodes") and hasattr(partition, "to_nodes"):
-        return 1 / (
-            len(partition.from_nodes) * len(partition.to_nodes)
-        )  # pyright: ignore[reportAttributeAccessIssue]
+        return 1 / (len(partition.from_nodes) * len(partition.to_nodes))  # pyright: ignore[reportAttributeAccessIssue]
     # Default fallback
     return 1.0
 

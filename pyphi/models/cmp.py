@@ -2,8 +2,11 @@
 """Utilities for comparing phi-objects."""
 
 import functools
-from collections.abc import Callable, Iterable, Sequence
-from typing import Any, TypeVar
+from collections.abc import Callable
+from collections.abc import Iterable
+from collections.abc import Sequence
+from typing import Any
+from typing import TypeVar
 
 import numpy as np
 

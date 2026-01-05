@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
+from pyphi.data_structures import PyPhiFloat
 from pyphi.metrics import distribution
 from pyphi.metrics.distribution import DistanceResult
-from pyphi.data_structures import PyPhiFloat
 
 from .conftest import skip_if_no_pyemd
 
@@ -393,28 +393,28 @@ class TestDistanceResult:
 
     def test_distance_result_creation(self):
         """Test creating DistanceResult with auxiliary data."""
-        dr = DistanceResult(0.5, method='EMD', direction='CAUSE', state=1)
+        dr = DistanceResult(0.5, method="EMD", direction="CAUSE", state=1)
 
         assert float(dr) == 0.5
-        assert dr.method == 'EMD'
-        assert dr.direction == 'CAUSE'
+        assert dr.method == "EMD"
+        assert dr.direction == "CAUSE"
         assert dr.state == 1
         assert isinstance(dr, PyPhiFloat)
         assert isinstance(dr, DistanceResult)
 
     def test_distance_result_repr(self):
         """Test DistanceResult string representation."""
-        dr = DistanceResult(0.42, method='L1', direction='EFFECT')
+        dr = DistanceResult(0.42, method="L1", direction="EFFECT")
         repr_str = repr(dr)
-        assert 'DistanceResult(0.42' in repr_str
+        assert "DistanceResult(0.42" in repr_str
         assert "method='L1'" in repr_str
         assert "direction='EFFECT'" in repr_str
 
     def test_distance_result_comparison(self):
         """Test DistanceResult comparison operations."""
-        dr1 = DistanceResult(0.5, method='EMD', direction='CAUSE')
-        dr2 = DistanceResult(0.3, method='L1', direction='EFFECT')
-        dr3 = DistanceResult(0.5, method='KLD', direction='CAUSE')
+        dr1 = DistanceResult(0.5, method="EMD", direction="CAUSE")
+        dr2 = DistanceResult(0.3, method="L1", direction="EFFECT")
+        dr3 = DistanceResult(0.5, method="KLD", direction="CAUSE")
 
         assert dr1 > dr2
         assert dr2 < dr1
@@ -424,36 +424,36 @@ class TestDistanceResult:
 
     def test_min_preserves_distance_result_type(self):
         """Test that min() preserves DistanceResult type and auxiliary data."""
-        dr1 = DistanceResult(0.6, method='EMD', direction='CAUSE', partition='A|B')
-        dr2 = DistanceResult(0.3, method='L1', direction='EFFECT', partition='AB|')
+        dr1 = DistanceResult(0.6, method="EMD", direction="CAUSE", partition="A|B")
+        dr2 = DistanceResult(0.3, method="L1", direction="EFFECT", partition="AB|")
 
         result = min(dr1, dr2)
 
         assert isinstance(result, DistanceResult)
         assert float(result) == 0.3
-        assert result.method == 'L1'
-        assert result.direction == 'EFFECT'
-        assert result.partition == 'AB|'
+        assert result.method == "L1"
+        assert result.direction == "EFFECT"
+        assert result.partition == "AB|"
 
     def test_max_preserves_distance_result_type(self):
         """Test that max() preserves DistanceResult type and auxiliary data."""
-        dr1 = DistanceResult(0.6, method='EMD', direction='CAUSE', partition='A|B')
-        dr2 = DistanceResult(0.3, method='L1', direction='EFFECT', partition='AB|')
+        dr1 = DistanceResult(0.6, method="EMD", direction="CAUSE", partition="A|B")
+        dr2 = DistanceResult(0.3, method="L1", direction="EFFECT", partition="AB|")
 
         result = max(dr1, dr2)
 
         assert isinstance(result, DistanceResult)
         assert float(result) == 0.6
-        assert result.method == 'EMD'
-        assert result.direction == 'CAUSE'
-        assert result.partition == 'A|B'
+        assert result.method == "EMD"
+        assert result.direction == "CAUSE"
+        assert result.partition == "A|B"
 
     def test_min_with_generator_expression(self):
         """Test min() with generator expression (simulates original issue)."""
         distance_results = [
-            DistanceResult(0.8, method='EMD', direction='CAUSE', partition='X|Y'),
-            DistanceResult(0.2, method='L1', direction='EFFECT', partition='Y|Z'),
-            DistanceResult(0.6, method='KLD', direction='CAUSE', partition='Z|X')
+            DistanceResult(0.8, method="EMD", direction="CAUSE", partition="X|Y"),
+            DistanceResult(0.2, method="L1", direction="EFFECT", partition="Y|Z"),
+            DistanceResult(0.6, method="KLD", direction="CAUSE", partition="Z|X"),
         ]
 
         # Simulate: phi = min(integration[direction].phi for direction in directions)
@@ -461,13 +461,13 @@ class TestDistanceResult:
 
         assert isinstance(min_phi, DistanceResult)
         assert float(min_phi) == 0.2
-        assert min_phi.method == 'L1'
-        assert min_phi.direction == 'EFFECT'
-        assert min_phi.partition == 'Y|Z'
+        assert min_phi.method == "L1"
+        assert min_phi.direction == "EFFECT"
+        assert min_phi.partition == "Y|Z"
 
     def test_mixed_types_with_pyphi_float(self):
         """Test behavior when mixing DistanceResult and PyPhiFloat."""
-        dr = DistanceResult(0.7, method='KLD', direction='CAUSE')
+        dr = DistanceResult(0.7, method="KLD", direction="CAUSE")
         pf = PyPhiFloat(0.4)
 
         # When PyPhiFloat wins, it should remain PyPhiFloat
@@ -480,28 +480,28 @@ class TestDistanceResult:
         result_max = max(dr, pf)
         assert isinstance(result_max, DistanceResult)
         assert float(result_max) == 0.7
-        assert result_max.method == 'KLD'
+        assert result_max.method == "KLD"
 
     def test_distance_result_copy(self):
         """Test DistanceResult copying preserves auxiliary data."""
         import copy
 
-        dr = DistanceResult(0.42, method='EMD', direction='CAUSE', state=1)
+        dr = DistanceResult(0.42, method="EMD", direction="CAUSE", state=1)
 
         # Shallow copy
         dr_copy = copy.copy(dr)
         assert isinstance(dr_copy, DistanceResult)
         assert float(dr_copy) == 0.42
-        assert dr_copy.method == 'EMD'
-        assert dr_copy.direction == 'CAUSE'
+        assert dr_copy.method == "EMD"
+        assert dr_copy.direction == "CAUSE"
         assert dr_copy.state == 1
 
         # Deep copy
         dr_deepcopy = copy.deepcopy(dr)
         assert isinstance(dr_deepcopy, DistanceResult)
         assert float(dr_deepcopy) == 0.42
-        assert dr_deepcopy.method == 'EMD'
-        assert dr_deepcopy.direction == 'CAUSE'
+        assert dr_deepcopy.method == "EMD"
+        assert dr_deepcopy.direction == "CAUSE"
         assert dr_deepcopy.state == 1
 
     def test_distance_measure_functions_return_distance_result(self):
@@ -512,19 +512,19 @@ class TestDistanceResult:
         # Test L1
         result_l1 = distribution.l1(p, q)
         assert isinstance(result_l1, DistanceResult)
-        assert hasattr(result_l1, 'method')
-        assert result_l1.method == 'L1'
+        assert hasattr(result_l1, "method")
+        assert result_l1.method == "L1"
 
         # Test KLD
         result_kld = distribution.kld(p, q)
         assert isinstance(result_kld, DistanceResult)
-        assert hasattr(result_kld, 'method')
-        assert result_kld.method == 'KLD'
-        assert hasattr(result_kld, 'asymmetric')
+        assert hasattr(result_kld, "method")
+        assert result_kld.method == "KLD"
+        assert hasattr(result_kld, "asymmetric")
         assert result_kld.asymmetric == True
 
         # Test entropy difference
         result_entropy = distribution.entropy_difference(p, q)
         assert isinstance(result_entropy, DistanceResult)
-        assert hasattr(result_entropy, 'method')
-        assert result_entropy.method == 'ENTROPY_DIFFERENCE'
+        assert hasattr(result_entropy, "method")
+        assert result_entropy.method == "ENTROPY_DIFFERENCE"

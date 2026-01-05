@@ -1,12 +1,11 @@
 # visualize/connectivity.py
 """Visualize system connectivity information."""
 
-import numpy as np
-import networkx as nx
 import matplotlib.pyplot as plt
+import networkx as nx
+import numpy as np
 
 from .distribution import all_states_str
-
 
 NODE_COLORS = {
     # (in subsystem, state)

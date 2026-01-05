@@ -908,9 +908,7 @@ def true_events(
         nodes = indices
     else:
         major_complex = compute.network.major_complex(network, current_state)
-        nodes = (
-            major_complex.subsystem.node_indices
-        )  # pyright: ignore[reportOptionalMemberAccess]
+        nodes = major_complex.subsystem.node_indices  # pyright: ignore[reportOptionalMemberAccess]
 
     return events(network, previous_state, current_state, next_state, nodes)
 
@@ -941,9 +939,7 @@ def extrinsic_events(
         mc_nodes = indices
     else:
         major_complex = compute.network.major_complex(network, current_state)
-        mc_nodes = (
-            major_complex.subsystem.node_indices
-        )  # pyright: ignore[reportOptionalMemberAccess]
+        mc_nodes = major_complex.subsystem.node_indices  # pyright: ignore[reportOptionalMemberAccess]
 
     mechanisms = list(utils.powerset(mc_nodes, nonempty=True))
     all_nodes = network.node_indices

@@ -118,9 +118,7 @@ class TestPhiValues:
         assert float(result.phi) == pytest.approx(expected_phi, abs=1e-13)
 
     @pytest.mark.slow
-    def test_sia_big_network_complete_phi_value(
-        self, big_subsys_all_complete
-    ):
+    def test_sia_big_network_complete_phi_value(self, big_subsys_all_complete):
         """Big network all nodes (complete graph) phi value.
 
         Network: 5-node complete graph
@@ -176,27 +174,19 @@ class TestSIAComponentStructure:
 
         # Check cause repertoire exists and has required attributes
         assert result.cause is not None, "SIA missing cause repertoire"
-        assert hasattr(result.cause, "phi"), (
-            "Cause RIA missing phi attribute"
-        )
-        assert hasattr(result.cause, "mechanism"), (
-            "Cause RIA missing mechanism attribute"
-        )
-        assert hasattr(result.cause, "purview"), (
-            "Cause RIA missing purview attribute"
-        )
+        assert hasattr(result.cause, "phi"), "Cause RIA missing phi attribute"
+        assert hasattr(
+            result.cause, "mechanism"
+        ), "Cause RIA missing mechanism attribute"
+        assert hasattr(result.cause, "purview"), "Cause RIA missing purview attribute"
 
         # Check effect repertoire exists and has required attributes
         assert result.effect is not None, "SIA missing effect repertoire"
-        assert hasattr(result.effect, "phi"), (
-            "Effect RIA missing phi attribute"
-        )
-        assert hasattr(result.effect, "mechanism"), (
-            "Effect RIA missing mechanism attribute"
-        )
-        assert hasattr(result.effect, "purview"), (
-            "Effect RIA missing purview attribute"
-        )
+        assert hasattr(result.effect, "phi"), "Effect RIA missing phi attribute"
+        assert hasattr(
+            result.effect, "mechanism"
+        ), "Effect RIA missing mechanism attribute"
+        assert hasattr(result.effect, "purview"), "Effect RIA missing purview attribute"
 
     def test_sia_standard_example_has_system_state(self, s):
         """Standard example SIA includes system state specification.
@@ -206,15 +196,9 @@ class TestSIAComponentStructure:
         """
         result = s.sia()
 
-        assert result.system_state is not None, (
-            "SIA missing system_state attribute"
-        )
-        assert hasattr(result.system_state, "cause"), (
-            "SystemState missing cause"
-        )
-        assert hasattr(result.system_state, "effect"), (
-            "SystemState missing effect"
-        )
+        assert result.system_state is not None, "SIA missing system_state attribute"
+        assert hasattr(result.system_state, "cause"), "SystemState missing cause"
+        assert hasattr(result.system_state, "effect"), "SystemState missing effect"
 
     def test_sia_has_partition_info(self, s, micro_s):
         """SIA includes partition information.
@@ -226,15 +210,11 @@ class TestSIAComponentStructure:
             result = subsystem.sia()
 
             # All SIAs should have partition attribute
-            assert hasattr(result, "partition"), (
-                "SIA missing partition attribute"
-            )
+            assert hasattr(result, "partition"), "SIA missing partition attribute"
 
             # Non-null SIAs should have non-null partitions
             if not isinstance(result, NullSystemIrreducibilityAnalysis):
-                assert result.partition is not None, (
-                    "Non-null SIA has None partition"
-                )
+                assert result.partition is not None, "Non-null SIA has None partition"
 
 
 # ============================================================================
@@ -347,9 +327,7 @@ class TestConfigurationDependentValues:
         )
 
     @config.override(SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=False)
-    def test_sia_selfloop_node_no_phi_when_disabled(
-        self, noisy_selfloop_single
-    ):
+    def test_sia_selfloop_node_no_phi_when_disabled(self, noisy_selfloop_single):
         """Single node with self-loop has phi=0 when config disabled.
 
         Configuration: SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=False
@@ -382,9 +360,7 @@ class TestSequentialParallelConsistency:
         "subsystem_fixture",
         ["s", "micro_s", "macro_s", "s_noised"],
     )
-    def test_sia_sequential_equals_parallel_phi(
-        self, subsystem_fixture, request
-    ):
+    def test_sia_sequential_equals_parallel_phi(self, subsystem_fixture, request):
         """Verify sequential and parallel SIA have same phi value.
 
         This is a quick check that parallelization doesn't change phi.

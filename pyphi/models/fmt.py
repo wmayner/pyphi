@@ -1,7 +1,8 @@
 # models/fmt.py
 """Helper functions for formatting pretty representations of PyPhi models."""
 
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable
+from collections.abc import Sequence
 from fractions import Fraction
 from itertools import chain
 from itertools import cycle
@@ -213,7 +214,9 @@ def header(
     return head + text
 
 
-def labels(indices: tuple[int, ...], node_labels: object | None = None) -> tuple[str, ...]:
+def labels(
+    indices: tuple[int, ...], node_labels: object | None = None
+) -> tuple[str, ...]:
     """Get the labels for a tuple of mechanism indices."""
     if node_labels is None:
         return tuple(map(str, indices))
@@ -317,7 +320,10 @@ def align_decimals(numbers: Iterable[Any]) -> list[str]:
     ]
     units_list = align(units_tuple, direction=">")
     decimals_list = align(decimals_tuple, direction="<")
-    return ["".join(elements) for elements in zip(units_list, points, decimals_list, strict=False)]
+    return [
+        "".join(elements)
+        for elements in zip(units_list, points, decimals_list, strict=False)
+    ]
 
 
 def _multiline_string_to_columns(text: str) -> list[tuple[str, str]]:
@@ -391,7 +397,8 @@ def align_columns(
             columns[i] = align_decimals(columns[i])
     alignment_cycle = cycle(alignment)
     columns_aligned = [
-        align(column, direction=a) for column, a in zip(columns, alignment_cycle, strict=False)
+        align(column, direction=a)
+        for column, a in zip(columns, alignment_cycle, strict=False)
     ]
     return [delimiter.join(line) for line in zip(*columns_aligned, strict=False)]
 
@@ -416,7 +423,10 @@ def fmt_number(p: Any) -> str:
     nice = fraction.limit_denominator(128)
     return (
         str(nice)
-        if (utils.eq(float(fraction), float(nice)) and nice.denominator in NICE_DENOMINATORS)
+        if (
+            utils.eq(float(fraction), float(nice))
+            and nice.denominator in NICE_DENOMINATORS
+        )
         else formatted
     )
 
@@ -500,7 +510,9 @@ def fmt_partition(partition: object) -> str:
         return repr(partition)
 
 
-def fmt_phi_structure(ps: object, title: str | None = "Phi-structure", subsystem: bool = True) -> str:
+def fmt_phi_structure(
+    ps: object, title: str | None = "Phi-structure", subsystem: bool = True
+) -> str:
     """Format a PhiStructure."""
     distinctions = len(ps.distinctions)  # type: ignore[attr-defined]
 
@@ -698,7 +710,11 @@ def fmt_kcut(cut: object) -> str:
     return f"KCut {cut.direction}\n{cut.partition}"  # type: ignore[attr-defined]
 
 
-def fmt_sia_4(sia: object, phi_structure: bool = True, title: str = "System irreducibility analysis") -> str:
+def fmt_sia_4(
+    sia: object,
+    phi_structure: bool = True,
+    title: str = "System irreducibility analysis",
+) -> str:
     """Format an IIT 4.0 |SystemIrreducibilityAnalysis|."""
     if phi_structure:
         body = "\n".join(
@@ -747,13 +763,16 @@ def fmt_sia_4(sia: object, phi_structure: bool = True, title: str = "System irre
     return box(center(body))
 
 
-def fmt_sia(sia: object, ces: bool = True, title: str = "System irreducibility analysis") -> str:
+def fmt_sia(
+    sia: object, ces: bool = True, title: str = "System irreducibility analysis"
+) -> str:
     """Format a |SystemIrreducibilityAnalysis|."""
     if ces:
         body = "{ces}\n{partitioned_ces}".format(
             ces=fmt_ces(sia.ces, "Cause-effect structure"),  # type: ignore[attr-defined]
             partitioned_ces=fmt_ces(
-                sia.partitioned_ces, "Partitioned cause-effect structure"  # type: ignore[attr-defined]
+                sia.partitioned_ces,
+                "Partitioned cause-effect structure",  # type: ignore[attr-defined]
             ),
         )
     else:
@@ -830,7 +849,9 @@ def fmt_relation(relation: object) -> str:
     return header("Relation", body, over_char=HEADER_BAR_3, under_char=HEADER_BAR_3)
 
 
-def _fmt_relations(relations: object, title: str | None = None, body: str = "", data: list | None = None) -> str:
+def _fmt_relations(
+    relations: object, title: str | None = None, body: str = "", data: list | None = None
+) -> str:
     if title is None:
         title = relations.__class__.__name__
     if data is None:
@@ -858,11 +879,16 @@ def fmt_analytical_relations(relations: object, title: str | None = None) -> str
 def fmt_sampled_relations(relations: object, title: str | None = None) -> str:
     body = "\n".join(map(fmt_relation, relations.sample))  # type: ignore[attr-defined]
     return _fmt_relations(
-        relations, title, body, data=[("Sampled", len(relations.sample))]  # type: ignore[attr-defined]
+        relations,
+        title,
+        body,
+        data=[("Sampled", len(relations.sample))],  # type: ignore[attr-defined]
     )
 
 
-def fmt_extended_purview(extended_purview: Sequence, node_labels: object | None = None) -> str:
+def fmt_extended_purview(
+    extended_purview: Sequence, node_labels: object | None = None
+) -> str:
     """Format an extended purview."""
     if len(extended_purview) == 1:
         return fmt_mechanism(extended_purview[0], node_labels=node_labels)
@@ -911,7 +937,9 @@ def fmt_account(account: object, title: str | None = None) -> str:
         title = account.__class__.__name__  # `Account` or `DirectedAccount`
 
     title = "{} ({} causal link{})".format(
-        title, len(account), "" if len(account) == 1 else "s"  # type: ignore[arg-type]
+        title,
+        len(account),
+        "" if len(account) == 1 else "s",  # type: ignore[arg-type]
     )
 
     body = ""
@@ -951,7 +979,8 @@ def fmt_ac_sia(ac_sia: object) -> str:
             cut=cut_val,
             account=fmt_account(ac_sia.account, "Account"),  # type: ignore[attr-defined]
             partitioned_account=fmt_account(
-                ac_sia.partitioned_account, "Partitioned Account"  # type: ignore[attr-defined]
+                ac_sia.partitioned_account,
+                "Partitioned Account",  # type: ignore[attr-defined]
             ),
         )
     )

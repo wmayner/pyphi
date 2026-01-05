@@ -13,7 +13,6 @@ import pytest
 from pyphi import config
 from pyphi import utils
 from pyphi.models.cuts import Cut
-from pyphi.models.cuts import GeneralKCut
 from pyphi.models.cuts import NullCut
 from pyphi.models.cuts import SystemPartition
 from pyphi.new_big_phi import SystemIrreducibilityAnalysis
@@ -177,9 +176,7 @@ def extract_phi_structure_components(result: Any) -> dict[str, Any]:
     if hasattr(result, "distinctions"):
         distinctions = result.distinctions
         components["num_distinctions"] = len(distinctions)
-        components["distinction_mechanisms"] = {
-            tuple(d.mechanism) for d in distinctions
-        }
+        components["distinction_mechanisms"] = {tuple(d.mechanism) for d in distinctions}
     else:
         components["num_distinctions"] = 0
         components["distinction_mechanisms"] = set()
@@ -237,7 +234,11 @@ def diff_sia_results(
                 lines.append(f"    Actual type:   {type(actual_val).__name__}")
                 lines.append(f"    Expected type: {type(expected_val).__name__}")
 
-            elif attr in ["cause", "effect"] and actual_val is not None and expected_val is not None:
+            elif (
+                attr in ["cause", "effect"]
+                and actual_val is not None
+                and expected_val is not None
+            ):
                 # Compare RIA phi values
                 if hasattr(actual_val, "phi") and hasattr(expected_val, "phi"):
                     phi_diff = abs(float(actual_val.phi) - float(expected_val.phi))
@@ -365,19 +366,15 @@ def assert_phi_structure_equal_detailed(
 
     # Check relations
     if check_relations:
-        if (
-            actual_components["has_relations"]
-            != expected_components["has_relations"]
-        ):
+        if actual_components["has_relations"] != expected_components["has_relations"]:
             errors.append(
                 f"Relations presence differs: "
                 f"{actual_components['has_relations']} != "
                 f"{expected_components['has_relations']}"
             )
 
-        if (
-            actual_components.get("num_relations")
-            != expected_components.get("num_relations")
+        if actual_components.get("num_relations") != expected_components.get(
+            "num_relations"
         ):
             errors.append(
                 f"Number of relations differs: "

@@ -6,7 +6,8 @@ from __future__ import annotations
 import functools
 import logging
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
+from typing import Any
 
 from more_itertools import collapse
 
@@ -26,7 +27,8 @@ from ..models import cmp
 from ..parallel import MapReduce
 from ..partition import mip_partitions
 from ..partition import system_partition_types
-from ..types import Mechanism, Purview
+from ..types import Mechanism
+from ..types import Purview
 
 if TYPE_CHECKING:
     from ..labels import NodeLabels
@@ -90,7 +92,9 @@ def ces(
         return concept
 
     reduce_func = _only_positive_phi if only_positive_phi else _any_phi
-    parallel_kwargs = conf.parallel_kwargs(dict(config.PARALLEL_CONCEPT_EVALUATION), **kwargs)
+    parallel_kwargs = conf.parallel_kwargs(
+        dict(config.PARALLEL_CONCEPT_EVALUATION), **kwargs
+    )
     concepts = MapReduce(
         compute_concept,
         mechanisms,
@@ -492,8 +496,6 @@ def sia_concept_style(
     unpartitioned_ces = _ces(subsystem)
 
     sia_cause = directional_sia(subsystem, Direction.CAUSE, unpartitioned_ces)
-    sia_effect = directional_sia(
-        subsystem, Direction.EFFECT, unpartitioned_ces
-    )
+    sia_effect = directional_sia(subsystem, Direction.EFFECT, unpartitioned_ces)
 
     return SystemIrreducibilityAnalysisConceptStyle(sia_cause, sia_effect)

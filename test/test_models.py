@@ -764,21 +764,21 @@ class TestRepertoireIrreducibilityAnalysisDistanceResult:
         from pyphi.metrics.distribution import DistanceResult
 
         # Create a DistanceResult with auxiliary data
-        distance_result = DistanceResult(0.42, method='EMD', direction='CAUSE', state=1)
+        distance_result = DistanceResult(0.42, method="EMD", direction="CAUSE", state=1)
 
         # Create RIA with DistanceResult phi
         test_ria = ria(
             phi=distance_result,
             direction=Direction.CAUSE,
             mechanism=(0,),
-            purview=(0, 1)
+            purview=(0, 1),
         )
 
         # Verify that phi retains DistanceResult type and auxiliary data
         assert isinstance(test_ria.phi, DistanceResult)
         assert float(test_ria.phi) == 0.42
-        assert test_ria.phi.method == 'EMD'
-        assert test_ria.phi.direction == 'CAUSE'
+        assert test_ria.phi.method == "EMD"
+        assert test_ria.phi.direction == "CAUSE"
         assert test_ria.phi.state == 1
 
     def test_ria_converts_float_to_pyphi_float(self):
@@ -787,10 +787,7 @@ class TestRepertoireIrreducibilityAnalysisDistanceResult:
 
         # Create RIA with regular float phi
         test_ria = ria(
-            phi=0.25,
-            direction=Direction.EFFECT,
-            mechanism=(1,),
-            purview=(0, 1)
+            phi=0.25, direction=Direction.EFFECT, mechanism=(1,), purview=(0, 1)
         )
 
         # Verify that phi is converted to PyPhiFloat
@@ -804,17 +801,23 @@ class TestRepertoireIrreducibilityAnalysisDistanceResult:
         # Create multiple RIAs with DistanceResult phi values
         rias = [
             ria(
-                phi=DistanceResult(0.6, method='EMD', direction='CAUSE', partition='A|B'),
-                direction=Direction.CAUSE
+                phi=DistanceResult(
+                    0.6, method="EMD", direction="CAUSE", partition="A|B"
+                ),
+                direction=Direction.CAUSE,
             ),
             ria(
-                phi=DistanceResult(0.3, method='L1', direction='EFFECT', partition='AB|'),
-                direction=Direction.EFFECT
+                phi=DistanceResult(
+                    0.3, method="L1", direction="EFFECT", partition="AB|"
+                ),
+                direction=Direction.EFFECT,
             ),
             ria(
-                phi=DistanceResult(0.8, method='KLD', direction='CAUSE', partition='X|Y'),
-                direction=Direction.CAUSE
-            )
+                phi=DistanceResult(
+                    0.8, method="KLD", direction="CAUSE", partition="X|Y"
+                ),
+                direction=Direction.CAUSE,
+            ),
         ]
 
         # Simulate SystemIrreducibilityAnalysis scenario:
@@ -825,17 +828,17 @@ class TestRepertoireIrreducibilityAnalysisDistanceResult:
         # Verify that min preserves DistanceResult type and auxiliary data
         assert isinstance(min_phi, DistanceResult)
         assert float(min_phi) == 0.3
-        assert min_phi.method == 'L1'
-        assert min_phi.direction == 'EFFECT'
-        assert min_phi.partition == 'AB|'
+        assert min_phi.method == "L1"
+        assert min_phi.direction == "EFFECT"
+        assert min_phi.partition == "AB|"
 
     def test_ria_comparison_preserves_types(self):
         """Test that RIA comparison operations preserve DistanceResult types."""
         from pyphi.metrics.distribution import DistanceResult
 
         # Create RIAs with different phi values
-        ria1 = ria(phi=DistanceResult(0.7, method='EMD', direction='CAUSE'))
-        ria2 = ria(phi=DistanceResult(0.3, method='L1', direction='EFFECT'))
+        ria1 = ria(phi=DistanceResult(0.7, method="EMD", direction="CAUSE"))
+        ria2 = ria(phi=DistanceResult(0.3, method="L1", direction="EFFECT"))
 
         # Test comparison operations
         assert ria1 > ria2
@@ -844,5 +847,5 @@ class TestRepertoireIrreducibilityAnalysisDistanceResult:
         # The actual phi objects should maintain their types
         assert isinstance(ria1.phi, DistanceResult)
         assert isinstance(ria2.phi, DistanceResult)
-        assert ria1.phi.method == 'EMD'
-        assert ria2.phi.method == 'L1'
+        assert ria1.phi.method == "EMD"
+        assert ria2.phi.method == "L1"

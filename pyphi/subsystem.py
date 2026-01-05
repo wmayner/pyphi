@@ -29,7 +29,6 @@ from .direction import Direction
 from .distribution import max_entropy_distribution
 from .distribution import repertoire_shape
 from .metrics.distribution import repertoire_distance as _repertoire_distance
-from .metrics.distribution import DistanceResult
 from .models import CauseEffectStructure
 from .models import Concept
 from .models import MaximallyIrreducibleCause
@@ -745,9 +744,7 @@ class Subsystem:
         """Alias for |expand_repertoire()| with ``direction`` set to |EFFECT|."""
         return self.expand_repertoire(Direction.EFFECT, repertoire, new_purview)
 
-    def cause_info(
-        self, mechanism: Mechanism, purview: Purview, **kwargs: Any
-    ) -> float:
+    def cause_info(self, mechanism: Mechanism, purview: Purview, **kwargs: Any) -> float:
         """Return the cause information for a mechanism over a purview."""
         return _repertoire_distance(
             self.cause_repertoire(mechanism, purview),

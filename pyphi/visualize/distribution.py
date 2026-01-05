@@ -3,7 +3,6 @@
 
 import string
 from math import log2
-import string
 
 import matplotlib.pyplot as plt
 import numpy as np

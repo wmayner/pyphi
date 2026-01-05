@@ -17,7 +17,11 @@ from .cache_utils import _make_key
 joblib_memory = joblib.Memory(location=constants.DISK_CACHE_LOCATION, verbose=0)
 
 
-def cache(cache={}, maxmem: int | None = config.MAXIMUM_CACHE_MEMORY_PERCENTAGE, typed: bool = False):
+def cache(
+    cache={},
+    maxmem: int | None = config.MAXIMUM_CACHE_MEMORY_PERCENTAGE,
+    typed: bool = False,
+):
     """Memory-limited cache decorator.
 
     ``maxmem`` is a float between 0 and 100, inclusive, specifying the maximum

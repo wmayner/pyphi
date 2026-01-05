@@ -199,7 +199,9 @@ def blackbox(blackbox: object) -> None:
             raise ValueError(f"Every blackbox must have an output - {part} does not")
 
 
-def blackbox_and_coarse_grain(blackbox: object | None, coarse_grain: object | None) -> None:
+def blackbox_and_coarse_grain(
+    blackbox: object | None, coarse_grain: object | None
+) -> None:
     """Validate that a coarse-graining properly combines the outputs of a
     blackboxing.
     """
@@ -216,7 +218,8 @@ def blackbox_and_coarse_grain(blackbox: object | None, coarse_grain: object | No
             )
 
         if coarse_grain and not any(
-            outputs.issubset(part) for part in coarse_grain.partition  # type: ignore[attr-defined]
+            outputs.issubset(part)
+            for part in coarse_grain.partition  # type: ignore[attr-defined]
         ):
             raise ValueError(
                 "Multiple outputs from a blackbox must be partitioned into "

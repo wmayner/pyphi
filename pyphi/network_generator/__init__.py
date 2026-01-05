@@ -4,7 +4,8 @@
 import string
 from collections.abc import Callable
 from collections.abc import Iterable
-from typing import Any, Union
+from typing import Any
+from typing import Union
 
 import numpy as np
 from numpy.typing import NDArray

@@ -6,10 +6,11 @@ from __future__ import annotations
 from collections.abc import Iterable
 
 import numpy as np
-from numpy.typing import NDArray
 
 from .cache import cache
-from .types import NodeIndices, Purview, Repertoire
+from .types import NodeIndices
+from .types import Purview
+from .types import Repertoire
 
 
 def normalize(a: Repertoire) -> Repertoire:
@@ -130,7 +131,9 @@ def repertoire_shape(
     return [2 if i in purview else 1 for i in all_node_indices]
 
 
-def flatten(repertoire: Repertoire | None, big_endian: bool = False) -> Repertoire | None:
+def flatten(
+    repertoire: Repertoire | None, big_endian: bool = False
+) -> Repertoire | None:
     """Flatten a repertoire, removing empty dimensions.
 
     By default, the flattened repertoire is returned in little-endian order.
@@ -179,7 +182,9 @@ def unflatten(
 
 
 @cache(cache={}, maxmem=None)
-def max_entropy_distribution(all_node_indices: NodeIndices, purview: Purview) -> Repertoire:
+def max_entropy_distribution(
+    all_node_indices: NodeIndices, purview: Purview
+) -> Repertoire:
     """Return the maximum entropy distribution over a set of nodes.
 
     This is different from the network's uniform distribution because nodes

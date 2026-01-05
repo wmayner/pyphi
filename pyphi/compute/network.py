@@ -4,15 +4,17 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Generator, Iterable
-from typing import TYPE_CHECKING, Any
+from collections.abc import Generator
+from typing import TYPE_CHECKING
+from typing import Any
 
 from .. import conf
 from .. import exceptions
 from .. import utils
 from .. import validate
 from ..conf import config
-from ..models import SystemIrreducibilityAnalysis, _null_sia
+from ..models import SystemIrreducibilityAnalysis
+from ..models import _null_sia
 from ..parallel import MapReduce
 from ..subsystem import Subsystem
 from ..types import State
@@ -156,9 +158,7 @@ def major_complex(
     log.info("Calculating major complex...")
     empty_subsystem = Subsystem(network, state, ())
     default = _null_sia(empty_subsystem)
-    pkwargs = conf.parallel_kwargs(
-        config.PARALLEL_COMPLEX_EVALUATION, **kwargs
-    )
+    pkwargs = conf.parallel_kwargs(config.PARALLEL_COMPLEX_EVALUATION, **kwargs)
     result = MapReduce(
         sia,
         possible_complexes(network, state),
@@ -191,7 +191,9 @@ def condensed(
     covered_nodes: set[int] = set()
 
     for c in reversed(sorted(complexes(network, state, **kwargs))):
-        if c.subsystem is not None and not any(n in covered_nodes for n in c.subsystem.node_indices):
+        if c.subsystem is not None and not any(
+            n in covered_nodes for n in c.subsystem.node_indices
+        ):
             result.append(c)
             covered_nodes = covered_nodes | set(c.subsystem.node_indices)
 

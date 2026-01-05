@@ -5,7 +5,9 @@ from __future__ import annotations
 
 import itertools
 from collections import defaultdict
-from collections.abc import Generator, Iterable, Sequence
+from collections.abc import Generator
+from collections.abc import Iterable
+from collections.abc import Sequence
 from itertools import chain
 from itertools import product
 from typing import Any
@@ -159,7 +161,9 @@ def powerset_family(
     return P
 
 
-def union_powerset_family(sets: Sequence[Any], min_size: int = 1, max_size: int | None = None) -> setset:
+def union_powerset_family(
+    sets: Sequence[Any], min_size: int = 1, max_size: int | None = None
+) -> setset:
     """Return union of the power set of each set in ``sets``.
 
     NOTE: The universe must already have been set to (at least) the union of the
@@ -194,7 +198,9 @@ def sum_of_minimum_among_subsets(values: Sequence[float]) -> float:
     return float(np.sum(np.sort(values) * counts))
 
 
-def sum_of_ratio_of_minima_among_subsets(num_denom_pairs: list[tuple[float, float]]) -> float:
+def sum_of_ratio_of_minima_among_subsets(
+    num_denom_pairs: list[tuple[float, float]],
+) -> float:
     """Return the sum of the ratio of minima among numerators/denominators.
 
     Considers all subsets with size >1 of pairs of numerators and denominators
