@@ -46,6 +46,8 @@ if TYPE_CHECKING:
 CLASS_KEY = "__class__"
 VERSION_KEY = "__version__"
 ID_KEY = "__id__"
+ENUM_DICT_MARKER = "__enum_dict__"
+ENUM_CLASS_KEY = "__enum_class__"
 
 PYPHI_VERSION = get_version("pyphi")
 
@@ -71,6 +73,7 @@ def _loadable_models():
         pyphi.data_structures.PyPhiFloat,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.Direction,
         pyphi.labels.NodeLabels,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.metrics.distribution.DistanceResult,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.Account,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.AcRepertoireIrreducibilityAnalysis,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.AcSystemIrreducibilityAnalysis,  # pyright: ignore[reportAttributeAccessIssue]
@@ -110,7 +113,41 @@ def _loadable_models():
 
 
 def _jsonify_dict(dct):
-    return {key: jsonify(value) for key, value in dct.items()}
+    """Convert a dictionary to a JSON-serializable format.
+
+    Dicts with enum keys are converted to a special format with a marker and
+    the enum class name, allowing proper reconstruction during deserialization.
+    JSON only supports string keys, so we serialize enum-keyed dicts as lists
+    of [key, value] pairs with metadata.
+    """
+    from enum import Enum
+
+    # Check if any keys are enums
+    has_enum_keys = any(isinstance(key, Enum) for key in dct.keys())
+
+    if has_enum_keys:
+        # Get the enum class from the first enum key
+        enum_class = None
+        for key in dct.keys():
+            if isinstance(key, Enum):
+                enum_class = key.__class__.__name__
+                break
+
+        # Convert to list of [key, value] pairs
+        # Enum keys are serialized using their to_json() method or as their value
+        pairs = []
+        for key, value in dct.items():
+            json_key = jsonify(key)
+            json_value = jsonify(value)
+            pairs.append([json_key, json_value])
+
+        return {
+            ENUM_DICT_MARKER: pairs,
+            ENUM_CLASS_KEY: enum_class,
+        }
+    else:
+        # Normal dict without enum keys
+        return {key: jsonify(value) for key, value in dct.items()}
 
 
 def _push_metadata(dct, obj):
@@ -257,6 +294,10 @@ class PyPhiJSONDecoder(json.JSONDecoder):
         repertoires) should be cast to the correct type in init methods.
         """
         if isinstance(obj, dict):
+            # Check if this is a serialized enum-keyed dict
+            if ENUM_DICT_MARKER in obj and ENUM_CLASS_KEY in obj:
+                return self._load_enum_dict(obj)
+
             obj = {k: self._load_object(v) for k, v in obj.items()}
             # Load a serialized PyPhi model
             if _is_loadable_model_dict(obj):
@@ -267,6 +308,51 @@ class PyPhiJSONDecoder(json.JSONDecoder):
             return tuple(self._load_object(item) for item in obj)
 
         return obj
+
+    def _load_enum_dict(self, obj):
+        """Reconstruct a dictionary with enum keys from its serialized form.
+
+        The serialized form is a dict with ENUM_DICT_MARKER containing a list
+        of [key, value] pairs and ENUM_CLASS_KEY containing the enum class name.
+        """
+        enum_class_name = obj[ENUM_CLASS_KEY]
+        pairs = obj[ENUM_DICT_MARKER]
+
+        # Get the enum class from loadable models
+        # Direction enums are loadable, so we can get them from there
+        enum_class = _loadable_models().get(enum_class_name)
+
+        if enum_class is None:
+            # If not in loadable models, try to import from pyphi
+            import pyphi
+
+            enum_class = getattr(pyphi, enum_class_name, None)
+
+        if enum_class is None:
+            raise ValueError(f"Unknown enum class: {enum_class_name}")
+
+        # Reconstruct the dict with enum keys
+        result = {}
+        for key_data, value_data in pairs:
+            # Recursively load the key and value
+            key = self._load_object(key_data)
+            value = self._load_object(value_data)
+
+            # If the key is a dict with CLASS_KEY == enum_class_name, it's a serialized enum
+            # Need to convert it back to the actual enum value
+            if isinstance(key, dict) and key.get(CLASS_KEY) == enum_class_name:
+                # This is a serialized Direction enum with {"direction": "CAUSE"}
+                if hasattr(enum_class, "from_json"):
+                    key = enum_class.from_json(key)
+                else:
+                    # Fallback: try to get by name
+                    direction_name = key.get("direction")
+                    if direction_name:
+                        key = enum_class[direction_name]
+
+            result[key] = value
+
+        return result
 
     @cache.method("_object_cache")
     def _load_model(self, dct):
