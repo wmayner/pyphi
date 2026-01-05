@@ -87,6 +87,22 @@ class DistanceResult(PyPhiFloat):
         aux_data = {k: copy.deepcopy(v, memo) for k, v in self.__dict__.items()}
         return DistanceResult(float(self), **aux_data)
 
+    def to_json(self) -> dict:
+        """Serialize to JSON, preserving auxiliary data."""
+        result = {"value": float(self)}
+        # Include any auxiliary data stored in __dict__
+        if self.__dict__:
+            result.update(self.__dict__)
+        return result
+
+    @classmethod
+    def from_json(cls, data: dict) -> "DistanceResult":
+        """Deserialize from JSON, restoring auxiliary data."""
+        value = data["value"]
+        # All keys except "value" are auxiliary data
+        aux_data = {k: v for k, v in data.items() if k != "value"}
+        return cls(value, **aux_data)
+
 
 class OptionalEMD:
     """Class to handle EMD computations.
