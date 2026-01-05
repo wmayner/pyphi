@@ -1,5 +1,8 @@
+import numpy as np
 import pytest
 
+from pyphi import Network
+from pyphi import actual
 from pyphi import jsonify
 
 from . import example_networks
@@ -303,3 +306,33 @@ def propagation_delay():
 @pytest.fixture()
 def differentiation_example_micro_1():
     return example_networks.differentiation_example_micro_1()
+
+
+# Actual causation fixtures
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+@pytest.fixture
+def transition():
+    """An OR gate with two inputs. The OR gate is ON, others are OFF."""
+    # fmt: off
+    tpm = np.array([
+        [0, 0.5, 0.5],
+        [0, 0.5, 0.5],
+        [1, 0.5, 0.5],
+        [1, 0.5, 0.5],
+        [1, 0.5, 0.5],
+        [1, 0.5, 0.5],
+        [1, 0.5, 0.5],
+        [1, 0.5, 0.5],
+    ])
+    cm = np.array([
+        [0, 0, 0],
+        [1, 0, 0],
+        [1, 0, 0],
+    ])
+    # fmt: on
+    network = Network(tpm, cm)
+    before_state = (0, 1, 1)
+    after_state = (1, 0, 0)
+    return actual.Transition(network, before_state, after_state, (1, 2), (0,))
