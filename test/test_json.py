@@ -125,3 +125,144 @@ def test_version_check_during_deserialization(s):
 
     with pytest.raises(exceptions.JSONVersionError):
         jsonify.loads(string)
+
+
+# Tests for DistanceResult JSON serialization
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+def test_distance_result_json_serialization_basic():
+    """Test basic DistanceResult serialization without auxiliary data."""
+    from pyphi.metrics.distribution import DistanceResult
+
+    result = DistanceResult(0.5)
+    loaded = jsonify.loads(jsonify.dumps(result))
+
+    assert loaded == result
+    assert float(loaded) == 0.5
+
+
+def test_distance_result_json_serialization_with_metadata():
+    """Test DistanceResult serialization with auxiliary metadata."""
+    from pyphi.metrics.distribution import DistanceResult
+
+    result = DistanceResult(
+        0.5, method="INTRINSIC_DIFFERENTIATION", asymmetric=True, state=(1, 0, 0)
+    )
+    loaded = jsonify.loads(jsonify.dumps(result))
+
+    assert loaded == result
+    assert float(loaded) == 0.5
+    assert loaded.method == "INTRINSIC_DIFFERENTIATION"
+    assert loaded.asymmetric is True
+    assert loaded.state == (1, 0, 0)
+
+
+def test_distance_result_json_preserves_all_attributes():
+    """Test that all auxiliary attributes are preserved during serialization."""
+    from pyphi.metrics.distribution import DistanceResult
+
+    result = DistanceResult(
+        0.75, method="EMD", direction="CAUSE", custom_attr="custom_value", num=42
+    )
+    loaded = jsonify.loads(jsonify.dumps(result))
+
+    assert loaded == result
+    assert loaded.method == "EMD"
+    assert loaded.direction == "CAUSE"
+    assert loaded.custom_attr == "custom_value"
+    assert loaded.num == 42
+
+
+# Tests for enum-keyed dict JSON serialization
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+def test_enum_keyed_dict_serialization():
+    """Test that dicts with enum keys are properly serialized and deserialized."""
+    from pyphi.metrics.distribution import DistanceResult
+
+    original = {
+        Direction.CAUSE: DistanceResult(0.5, method="GID"),
+        Direction.EFFECT: DistanceResult(0.3, method="GID"),
+    }
+
+    loaded = jsonify.loads(jsonify.dumps(original))
+
+    assert loaded == original
+    assert Direction.CAUSE in loaded
+    assert Direction.EFFECT in loaded
+    assert loaded[Direction.CAUSE] == DistanceResult(0.5, method="GID")
+    assert loaded[Direction.EFFECT] == DistanceResult(0.3, method="GID")
+
+
+def test_enum_keyed_dict_preserves_metadata():
+    """Test that enum-keyed dicts preserve DistanceResult metadata."""
+    from pyphi.metrics.distribution import DistanceResult
+
+    original = {
+        Direction.CAUSE: DistanceResult(
+            0.0, method="INTRINSIC_DIFFERENTIATION", asymmetric=True, state=(1, 0, 0)
+        ),
+        Direction.EFFECT: DistanceResult(
+            0.0, method="INTRINSIC_DIFFERENTIATION", asymmetric=True, state=(1, 0, 0)
+        ),
+    }
+
+    loaded = jsonify.loads(jsonify.dumps(original))
+
+    assert loaded[Direction.CAUSE].method == "INTRINSIC_DIFFERENTIATION"
+    assert loaded[Direction.CAUSE].asymmetric is True
+    assert loaded[Direction.CAUSE].state == (1, 0, 0)
+    assert loaded[Direction.EFFECT].method == "INTRINSIC_DIFFERENTIATION"
+
+
+def test_enum_keyed_dict_with_mixed_types():
+    """Test enum-keyed dicts with various value types."""
+    original = {
+        Direction.CAUSE: 0.5,
+        Direction.EFFECT: [1, 2, 3],
+        Direction.BIDIRECTIONAL: {"nested": "dict"},
+    }
+
+    loaded = jsonify.loads(jsonify.dumps(original))
+
+    # Lists become tuples in PyPhi, so compare values individually
+    assert loaded[Direction.CAUSE] == 0.5
+    assert loaded[Direction.EFFECT] == (1, 2, 3)  # Lists become tuples in PyPhi
+    assert loaded[Direction.BIDIRECTIONAL] == {"nested": "dict"}
+
+
+def test_regular_dict_not_affected():
+    """Test that regular dicts (without enum keys) are not affected."""
+    original = {"key1": "value1", "key2": 42, "key3": [1, 2, 3]}
+
+    loaded = jsonify.loads(jsonify.dumps(original))
+
+    assert loaded == {"key1": "value1", "key2": 42, "key3": (1, 2, 3)}
+
+
+def test_nested_enum_keyed_dicts():
+    """Test that nested structures with enum-keyed dicts work correctly."""
+    from pyphi.metrics.distribution import DistanceResult
+
+    original = {
+        "outer": {
+            Direction.CAUSE: DistanceResult(0.5),
+            Direction.EFFECT: DistanceResult(0.3),
+        },
+        "other": "value",
+    }
+
+    loaded = jsonify.loads(jsonify.dumps(original))
+
+    assert loaded["outer"][Direction.CAUSE] == DistanceResult(0.5)
+    assert loaded["outer"][Direction.EFFECT] == DistanceResult(0.3)
+    assert loaded["other"] == "value"
+
+
+def test_empty_enum_keyed_dict():
+    """Test that empty dicts are handled correctly."""
+    original = {}
+    loaded = jsonify.loads(jsonify.dumps(original))
+    assert loaded == original
