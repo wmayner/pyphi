@@ -255,12 +255,14 @@ class Transition:
 
         if not set(purview).issubset(self.purview_indices(direction)):
             raise ValueError(
-                f"{fmt.fmt_mechanism(purview, node_labels)} is not a {direction} purview in {self}"
+                f"{fmt.fmt_mechanism(purview, node_labels)} is not a "
+                f"{direction} purview in {self}"
             )
 
         if not set(mechanism).issubset(self.mechanism_indices(direction)):
             raise ValueError(
-                f"{fmt.fmt_mechanism(mechanism, node_labels)} is no a {direction} mechanism in {self}"
+                f"{fmt.fmt_mechanism(mechanism, node_labels)} is no a "
+                f"{direction} mechanism in {self}"
             )
 
         return system.repertoire(direction, mechanism, purview)
@@ -666,14 +668,12 @@ def sia(transition, direction=Direction.BIDIRECTIONAL, **kwargs):
     log.info("Calculating big-alpha for %s...", transition)
 
     if not transition:
-        log.info(
-            "Transition %s is empty; returning null SIA " "immediately.", transition
-        )
+        log.info("Transition %s is empty; returning null SIA immediately.", transition)
         return _null_ac_sia(transition, direction)
 
     if not connectivity.is_weak(transition.network.cm, transition.node_indices):
         log.info(
-            "%s is not strongly/weakly connected; returning null SIA " "immediately.",
+            "%s is not strongly/weakly connected; returning null SIA immediately.",
             transition,
         )
         return _null_ac_sia(transition, direction)
@@ -683,7 +683,7 @@ def sia(transition, direction=Direction.BIDIRECTIONAL, **kwargs):
     log.debug("Found unpartitioned account.")
 
     if not unpartitioned_account:
-        log.info("Empty unpartitioned account; returning null AC SIA " "immediately.")
+        log.info("Empty unpartitioned account; returning null AC SIA immediately.")
         return _null_ac_sia(transition, direction)
 
     cuts = _get_cuts(transition, direction)

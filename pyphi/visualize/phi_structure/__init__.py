@@ -113,7 +113,8 @@ def plot_phi_structure(
         variable is None for variable in [state, node_indices, node_labels]
     ):
         raise ValueError(
-            "Either subsystem or each of state, node_indices, and node_labels are required"
+            "Either subsystem or each of state, node_indices, and node_labels "
+            "are required"
         )
     if state is None:
         assert subsystem is not None  # Type narrowing: checked above
@@ -724,8 +725,8 @@ def _plot_two_relation_faces_single_trace(
     width = np.array(widths).mean()
     if not np.all(widths == width):
         warnings.warn(
-            f"Cannot plot different widths with a single trace; using mean width {width}. "
-            "Try increasing `detail_threshold`.",
+            f"Cannot plot different widths with a single trace; using mean "
+            f"width {width}. Try increasing `detail_threshold`.",
             stacklevel=2,
         )
     return fig.add_trace(

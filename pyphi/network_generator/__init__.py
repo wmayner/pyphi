@@ -5,7 +5,6 @@ import string
 from collections.abc import Callable
 from collections.abc import Iterable
 from typing import Any
-from typing import Union
 
 import numpy as np
 from numpy.typing import NDArray
@@ -16,7 +15,6 @@ from pyphi.utils import all_states
 
 from . import ising
 from . import unit_functions
-from . import weights
 
 UNIT_FUNCTIONS = {
     "ising": ising.probability,
@@ -61,8 +59,10 @@ def build_tpm(
     for state in all_states(N):
         for element, func in enumerate(unit_functions_list):
             if isinstance(func, str):
-                func = UNIT_FUNCTIONS[func]
-            tpm[(*state, element)] = func(element, weights, state, **kwargs)
+                unit_func = UNIT_FUNCTIONS[func]
+            else:
+                unit_func = func
+            tpm[(*state, element)] = unit_func(element, weights, state, **kwargs)
     return tpm
 
 

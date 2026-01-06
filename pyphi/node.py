@@ -106,22 +106,22 @@ class Node:
 
     @property
     def cause_tpm_off(self):
-        """The cause (backward) TPM of this node containing only the 'OFF' probabilities."""
+        """Cause (backward) TPM of this node with only 'OFF' probabilities."""
         return self.cause_tpm[..., 0]
 
     @property
     def effect_tpm_off(self):
-        """The effect (forward) TPM of this node containing only the 'OFF' probabilities."""
+        """Effect (forward) TPM of this node with only 'OFF' probabilities."""
         return self.effect_tpm[..., 0]
 
     @property
     def cause_tpm_on(self):
-        """The cause (backward) TPM of this node containing only the 'ON' probabilities."""
+        """Cause (backward) TPM of this node with only 'ON' probabilities."""
         return self.cause_tpm[..., 1]
 
     @property
     def effect_tpm_on(self):
-        """The effect (forward) TPM of this node containing only the 'ON' probabilities."""
+        """Effect (forward) TPM of this node with only 'ON' probabilities."""
         return self.effect_tpm[..., 1]
 
     @property

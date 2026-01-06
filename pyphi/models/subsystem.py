@@ -5,6 +5,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 from collections.abc import Sequence
 from dataclasses import dataclass
+from typing import ClassVar
 
 from toolz import concat
 
@@ -415,7 +416,7 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
         assert self.subsystem is not None
         return self.subsystem.network
 
-    unorderable_unless_eq = ["network"]
+    unorderable_unless_eq: ClassVar[list[str]] = ["network"]
 
     def __eq__(self, other):
         return cmp.general_eq(self, other, _sia_attributes)

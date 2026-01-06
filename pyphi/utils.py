@@ -4,13 +4,13 @@
 import hashlib
 import math
 import operator
-import os
 from collections.abc import Callable
 from collections.abc import Generator
 from collections.abc import Iterable
 from itertools import chain
 from itertools import combinations
 from itertools import product
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -263,10 +263,10 @@ def load_data(directory: str, num: int) -> list[np.ndarray]:
         list: A list of loaded data, such that ``list[i]`` contains the the
         contents of ``i.npy``.
     """
-    root = os.path.abspath(os.path.dirname(__file__))
+    root = Path(__file__).parent.resolve()
 
-    def get_path(i: int) -> str:  # pylint: disable=missing-docstring
-        return os.path.join(root, "data", directory, str(i) + ".npy")
+    def get_path(i: int) -> Path:  # pylint: disable=missing-docstring
+        return root / "data" / directory / f"{i}.npy"
 
     return [np.load(get_path(i), allow_pickle=True) for i in range(num)]
 

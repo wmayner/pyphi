@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import math
 from collections.abc import Iterable
 from collections.abc import Mapping
@@ -300,8 +301,10 @@ class ExplicitTPM(data_structures.ArrayLike):
         elif tpm.ndim == (N + 1):
             if tpm.shape != tuple([2] * N + [N]):
                 raise ValueError(
-                    f"Invalid shape for multidimensional state-by-node TPM: {tpm.shape}\n"
-                    f"The shape should be {([2] * N) + [N]} for {N} nodes. {see_tpm_docs}"
+                    f"Invalid shape for multidimensional state-by-node TPM: "
+                    f"{tpm.shape}\n"
+                    f"The shape should be {([2] * N) + [N]} for {N} nodes. "
+                    f"{see_tpm_docs}"
                 )
         else:
             raise ValueError(
@@ -660,19 +663,19 @@ def _new_attribute(
         # Scalars (e.g. sum(), max()), etc.
         return result
 
-    try:
+    with contextlib.suppress(AttributeError):
         # TODO search and replace return type.
         overriding_attribute.__doc__ = attribute.__doc__
-    except AttributeError:
-        pass
 
     return overriding_attribute
 
 
 def probability_of_current_state(
-    sbn_tpm: ExplicitTPM, current_state: tuple[int, ...]
+    sbn_tpm: ExplicitTPM,
+    current_state: tuple[int, ...],
 ) -> NDArray[np.float64]:
-    """Return the probability of the current state as a distribution over previous states.
+    """Return the probability of the current state as a distribution over
+    previous states.
 
     Arguments:
         sbn_tpm (ExplicitTPM): State-by-node TPM.
@@ -707,19 +710,19 @@ def backward_tpm(
             "system_indices must be a subset of `range(forward_tpm.number_of_units))`"
         )
 
-    # p(u_t | s_{t–1}, w_{t–1})
+    # p(u_t | s_{t-1}, w_{t-1})
     pr_current_state = probability_of_current_state(forward_tpm, current_state)
-    # Σ_{s_{t–1}}  p(u_t | s_{t–1}, w_{t–1})
+    # Σ_{s_{t-1}}  p(u_t | s_{t-1}, w_{t-1})
     pr_current_state_given_only_background = pr_current_state.sum(
         axis=tuple(system_indices), keepdims=True
     )
-    # Σ_{u'_{t–1}} p(u_t | u'_{t–1})
+    # Σ_{u'_{t-1}} p(u_t | u'_{t-1})
     normalization = np.sum(pr_current_state)
     if normalization == 0.0:
         raise exceptions.StateUnreachableError(current_state)
-    #                                              Σ_{s_{t–1}} p(u_t | s_{t–1}, w_{t–1})
-    # Σ_{w_{t–1}}   p(s_{i,t} | s_{t–1}, w_{t–1}) ———————————————————————————————————————
-    #                                                 Σ_{u'_{t–1}} p(u_t | u'_{t–1})
+    #                                              Σ_{s_{t-1}} p(u_t | s_{t-1}, w_{t-1})
+    # Σ_{w_{t-1}}   p(s_{i,t} | s_{t-1}, w_{t-1}) ———————————————————————————————————————
+    #                                                 Σ_{u'_{t-1}} p(u_t | u'_{t-1})
     backward_tpm = (
         forward_tpm * pr_current_state_given_only_background / normalization
     ).sum(axis=background_indices, keepdims=True)

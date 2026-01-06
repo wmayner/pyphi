@@ -37,9 +37,9 @@ def to_topological_ordering(element, weights, state, layers):
             raise NotImplementedError(
                 "cannot use topological ordering with different layer sizes"
             )
-        layer = sorted(layer)
-        layer_input_weights = weights[layer]
-        layer_state = state[layer]
+        sorted_layer = sorted(layer)
+        layer_input_weights = weights[sorted_layer]
+        layer_state = state[sorted_layer]
         topo_input_weights.extend(np.roll(layer_input_weights, -element))
         topo_state.extend(np.roll(layer_state, -element))
     return np.array(topo_input_weights), np.array(topo_state)

@@ -48,8 +48,8 @@ class Registry[T](Mapping[str, Callable[..., Any]]):
     def __getitem__(self, name: str) -> Callable[..., T]:
         try:
             return self.store[name]
-        except KeyError:
+        except KeyError as err:
             raise KeyError(
-                f'"{name}" not found. Try using one of the installed {self.desc} {self.all()} or '
-                "register your own."
-            )
+                f'"{name}" not found. Try using one of the installed '
+                f"{self.desc} {self.all()} or register your own."
+            ) from err

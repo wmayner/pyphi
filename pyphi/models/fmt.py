@@ -119,7 +119,7 @@ def margin(text: str) -> str:
         '  line1  \n  line2  '
     """
     lines = str(text).split("\n")
-    return "\n".join(f"  {l}  " for l in lines)
+    return "\n".join(f"  {line}  " for line in lines)
 
 
 LINES_FORMAT_STR = VERTICAL_SIDE + " {line:<{width}} " + VERTICAL_SIDE
@@ -310,9 +310,11 @@ def align_decimals(numbers: Iterable[Any]) -> list[str]:
     Examples:
         >>> numbers = [0.0, 1, 0.99, 100.5, 80.123, 'string']
         >>> align_decimals(numbers)
-        ['  0.0     ', '  1      ', '  0.99    ', '100.5     ', ' 80.123   ', '   string']
+        ['  0.0     ', '  1      ', '  0.99    ', '100.5     ',
+         ' 80.123   ', '   string']
         >>> align_decimals([0.5] + list(map(str, numbers)))
-        ['  0.5     ', '  0      ', '  1      ', '  0.99    ', '100.5     ', ' 80.123   ', '   string']
+        ['  0.5     ', '  0      ', '  1      ', '  0.99    ', '100.5     ',
+         ' 80.123   ', '   string']
     """
     units_tuple, decimals_tuple = zip(*map(split_decimal, numbers), strict=False)
     points = [
@@ -452,7 +454,7 @@ def fmt_fraction(numer: str, denom: str) -> str:
     w = max(3, len(numer), len(denom))
     divider = HORIZONTAL_BAR * w
 
-    return ("{numer:^{width}}\n" "{divider}\n" "{denom:^{width}}").format(
+    return ("{numer:^{width}}\n{divider}\n{denom:^{width}}").format(
         numer=numer, divider=divider, denom=denom, width=w
     )
 
@@ -599,11 +601,14 @@ def fmt_concept(concept: object) -> str:
     ce = side_by_side(cause, effect)
 
     mechanism = fmt_mechanism(concept.mechanism, concept.node_labels)  # type: ignore[attr-defined]
-    # TODO(4.0) reconsider using Nodes in the mechanism to facilitate access to their state, etc.
+    # TODO(4.0) reconsider using Nodes in the mechanism to facilitate access
+    # to their state, etc.
+    mech_state = list(concept.mechanism_state)  # type: ignore[attr-defined]
     title = "\n".join(
         align(
             [
-                f"{concept.__class__.__name__}: mechanism = {mechanism}, state = {list(concept.mechanism_state)}",  # type: ignore[attr-defined]
+                f"{concept.__class__.__name__}: mechanism = {mechanism}, "
+                f"state = {mech_state}",
                 f"{SMALL_PHI} = {fmt_number(concept.phi)}",  # type: ignore[attr-defined]
             ],
             direction="c",
@@ -642,10 +647,12 @@ def fmt_ria(ria: object, verbose: bool = True, mip: bool = False) -> str:
             if ria.repertoire.size == 1:  # type: ignore[attr-defined]
                 repertoire = f"Forward probability:\n    {ria.repertoire}"  # type: ignore[attr-defined]
                 partitioned_repertoire = (
-                    f"Partitioned forward probability:\n    {ria.partitioned_repertoire}"  # type: ignore[attr-defined]
+                    f"Partitioned forward probability:\n    "
+                    f"{ria.partitioned_repertoire}"  # type: ignore[attr-defined]
                 )
             else:
-                repertoire = f"Repertoire:\n{indent(fmt_repertoire(ria.repertoire, mark_states=mark_states))}"  # type: ignore[attr-defined]
+                rep_fmt = fmt_repertoire(ria.repertoire, mark_states=mark_states)  # type: ignore[attr-defined]
+                repertoire = f"Repertoire:\n{indent(rep_fmt)}"
                 partitioned_repertoire = "Partitioned repertoire:\n{}".format(
                     indent(
                         fmt_repertoire(
@@ -862,7 +869,8 @@ def _fmt_relations(
     data_list = [
         ("#", len(relations)),  # type: ignore[arg-type]
         ("Σφ", relations.sum_phi()),  # type: ignore[attr-defined]
-    ] + data
+        *data,
+    ]
     data_str = "\n".join(align_columns(data_list))
     body = header(data_str, body)
     body = header(title, body, under_char=HEADER_BAR_1)
@@ -993,7 +1001,9 @@ def fmt_ac_sia(ac_sia: object) -> str:
 
 def fmt_transition(t: object) -> str:
     """Format a |Transition|."""
-    return f"Transition({fmt_mechanism(t.cause_indices, t.node_labels)} {ARROW_RIGHT} {fmt_mechanism(t.effect_indices, t.node_labels)})"  # type: ignore[attr-defined]
+    cause = fmt_mechanism(t.cause_indices, t.node_labels)  # type: ignore[attr-defined]
+    effect = fmt_mechanism(t.effect_indices, t.node_labels)  # type: ignore[attr-defined]
+    return f"Transition({cause} {ARROW_RIGHT} {effect})"
 
 
 def state(state: tuple[int, ...]) -> str:

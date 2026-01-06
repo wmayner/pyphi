@@ -87,9 +87,11 @@ def run_tpm(system, direction, steps, blackbox):
         else:
             return validate.direction(direction)
         for input_node in node.inputs:
-            if not blackbox.in_same_box(node.index, input_node):
-                if input_node in blackbox.output_indices:
-                    node_tpm = node_tpm.marginalize_out([input_node])
+            if (
+                not blackbox.in_same_box(node.index, input_node)
+                and input_node in blackbox.output_indices
+            ):
+                node_tpm = node_tpm.marginalize_out([input_node])
 
         node_tpms.append(node_tpm)
 
@@ -332,9 +334,9 @@ class MacroSubsystem(Subsystem):
         for i, j in itertools.product(range(n), repeat=2):
             # TODO: don't pull cm from self
             # self.blackbox is guaranteed to exist here since we're in _blackbox_space
-            assert (
-                self.blackbox is not None
-            ), "_blackbox_space called with self.blackbox=None"
+            assert self.blackbox is not None, (
+                "_blackbox_space called with self.blackbox=None"
+            )
             outputs = self.blackbox.outputs_of(i)
             to = self.blackbox.partition[j]
             if self.cm[np.ix_(outputs, to)].sum() > 0:
@@ -469,7 +471,7 @@ class MacroSubsystem(Subsystem):
         """Two macro systems are equal if each underlying |Subsystem| is equal
         and all macro attributes are equal.
         """
-        if type(self) != type(other):  # pylint: disable=unidiomatic-typecheck
+        if type(self) is not type(other):
             return False
 
         # Type narrowing: we know other is MacroSubsystem now
@@ -757,8 +759,8 @@ def _partitions_list(N):
     if N < (_NUM_PRECOMPUTED_PARTITION_LISTS):
         return list(_partition_lists[N])
     raise ValueError(
-        f"Partition lists not yet available for system with {_NUM_PRECOMPUTED_PARTITION_LISTS} "
-        "nodes or more"
+        f"Partition lists not yet available for system with "
+        f"{_NUM_PRECOMPUTED_PARTITION_LISTS} nodes or more"
     )
 
 

@@ -29,8 +29,6 @@ Attributes:
         :class:`pyphi.models.subsystem.SystemIrreducibilityAnalysis`.
 """
 
-# pylint: disable=unused-import
-
 from .actual_causation import Account
 from .actual_causation import AcRepertoireIrreducibilityAnalysis
 from .actual_causation import AcSystemIrreducibilityAnalysis
@@ -57,3 +55,32 @@ from .subsystem import CauseEffectStructure
 from .subsystem import FlatCauseEffectStructure
 from .subsystem import SystemIrreducibilityAnalysis
 from .subsystem import _null_sia
+
+__all__ = [
+    "AcRepertoireIrreducibilityAnalysis",
+    "AcSystemIrreducibilityAnalysis",
+    "Account",
+    "ActualCut",
+    "Bipartition",
+    "CausalLink",
+    "CauseEffectStructure",
+    "Concept",
+    "Cut",
+    "DirectedAccount",
+    "Event",
+    "FlatCauseEffectStructure",
+    "KCut",
+    "KPartition",
+    "MaximallyIrreducibleCause",
+    "MaximallyIrreducibleCauseOrEffect",
+    "MaximallyIrreducibleEffect",
+    "NullCut",
+    "Part",
+    "RepertoireIrreducibilityAnalysis",
+    "SystemIrreducibilityAnalysis",
+    "Tripartition",
+    "_null_ac_ria",
+    "_null_ac_sia",
+    "_null_ria",
+    "_null_sia",
+]

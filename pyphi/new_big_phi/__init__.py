@@ -8,8 +8,7 @@ from dataclasses import dataclass
 from enum import Enum
 from enum import auto
 from enum import unique
-
-import numpy as np
+from typing import ClassVar
 
 from pyphi import compute
 from pyphi import conf
@@ -32,7 +31,6 @@ from pyphi.models.cuts import GeneralKCut
 from pyphi.models.cuts import NullCut
 from pyphi.models.cuts import SystemPartition
 from pyphi.models.mechanism import RepertoireIrreducibilityAnalysis
-from pyphi.models.mechanism import StateSpecification
 from pyphi.models.subsystem import CauseEffectStructure
 from pyphi.models.subsystem import SystemStateSpecification
 from pyphi.parallel import MapReduce
@@ -119,7 +117,7 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
                 Direction.EFFECT: PyPhiFloat(0),
             }
 
-    _sia_attributes = [
+    _sia_attributes: ClassVar[list[str]] = [
         "phi",
         "partition",
         "normalized_phi",
@@ -567,7 +565,11 @@ _sia = sia
 
 
 class PhiStructure(cmp.Orderable):
-    _SIA_INHERITED_ATTRIBUTES = ["phi", "partition", "system_state"]
+    _SIA_INHERITED_ATTRIBUTES: ClassVar[list[str]] = [
+        "phi",
+        "partition",
+        "system_state",
+    ]
 
     def __init__(
         self,
@@ -622,7 +624,8 @@ class PhiStructure(cmp.Orderable):
         )
 
     def _repr_columns(self):
-        # Relations may not have __len__ in base class, use num_relations() method instead
+        # Relations may not have __len__ in base class
+        # use num_relations() method instead
         num_relations = (
             self.relations.num_relations()
             if hasattr(self.relations, "num_relations")

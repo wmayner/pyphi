@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import functools
 import logging
 import multiprocessing
@@ -109,10 +110,11 @@ def cancel_all(object_refs: Iterable, *args, **kwargs):
         # https://github.com/ray-project/ray/issues/24658
         object_refs, _ = ray.wait(object_refs, num_returns=len(object_refs))  # pyright: ignore[reportArgumentType]
         for ref in object_refs:
-            try:
+            with contextlib.suppress(
+                ray.exceptions.RayTaskError,  # pyright: ignore[reportAttributeAccessIssue]
+                ray.exceptions.TaskCancelledError,  # pyright: ignore[reportAttributeAccessIssue]
+            ):
                 ray.get(ref)
-            except (ray.exceptions.RayTaskError, ray.exceptions.TaskCancelledError):  # pyright: ignore[reportAttributeAccessIssue]
-                pass
     except TypeError:
         # Do nothing if the object_refs are not actually ObjectRefs
         pass

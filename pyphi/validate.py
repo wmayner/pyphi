@@ -62,7 +62,7 @@ def connectivity_matrix(cm: np.ndarray) -> bool:
     if cm.shape[0] != cm.shape[1]:
         raise ValueError("Connectivity matrix must be square.")
     if not np.all(np.logical_or(cm == 1, cm == 0)):
-        raise ValueError("Connectivity matrix must contain only binary " "values.")
+        raise ValueError("Connectivity matrix must contain only binary values.")
     return True
 
 
@@ -134,9 +134,7 @@ def state_reachable(subsystem: object) -> None:
 def cut(cut: object, node_indices: Sequence[int]) -> None:
     """Check that the cut is for only the given nodes."""
     if set(cut.indices) != set(node_indices):  # type: ignore[attr-defined]
-        raise ValueError(
-            f"{cut} nodes are not equal to subsystem nodes " f"{node_indices}"
-        )
+        raise ValueError(f"{cut} nodes are not equal to subsystem nodes {node_indices}")
 
 
 def subsystem(s: object) -> bool:
@@ -214,7 +212,7 @@ def blackbox_and_coarse_grain(
 
         if coarse_grain is None and len(outputs) > 1:
             raise ValueError(
-                "A blackboxing with multiple outputs per box must be " "coarse-grained."
+                "A blackboxing with multiple outputs per box must be coarse-grained."
             )
 
         if coarse_grain and not any(

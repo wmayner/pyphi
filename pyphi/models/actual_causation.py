@@ -3,6 +3,7 @@
 
 from collections import namedtuple
 from collections.abc import Sequence
+from typing import ClassVar
 
 from pyphi import utils
 from pyphi.direction import Direction
@@ -93,7 +94,7 @@ class AcRepertoireIrreducibilityAnalysis(cmp.Orderable):
 
     __slots__ = ()
 
-    unorderable_unless_eq = ["direction"]
+    unorderable_unless_eq: ClassVar[list[str]] = ["direction"]
 
     def order_by(self):
         # Here we enforce that ties are broken in favor of smaller purviews
@@ -375,7 +376,7 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
         assert self.transition is not None
         return self.transition.after_state
 
-    unorderable_unless_eq = ["direction"]
+    unorderable_unless_eq: ClassVar[list[str]] = ["direction"]
 
     # TODO: shouldn't the minimal irreducible account be chosen?
     def order_by(self):

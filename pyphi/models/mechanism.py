@@ -14,6 +14,7 @@ from functools import cached_property
 from functools import total_ordering
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import ClassVar
 
 import numpy as np
 from more_itertools import flatten
@@ -1066,7 +1067,7 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
             raise ValueError("Inconsistent cause and effect node labels!")
         return self.cause.node_labels
 
-    unorderable_unless_eq = ["subsystem"]
+    unorderable_unless_eq: ClassVar[list[str]] = ["subsystem"]
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Concept):

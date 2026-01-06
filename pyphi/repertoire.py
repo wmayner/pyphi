@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from typing import Any
 
 import numpy as np
+from numpy.typing import ArrayLike
 
 from . import utils
 from .direction import Direction
@@ -24,7 +25,8 @@ if TYPE_CHECKING:
 
 
 # TODO(4.0) test the following invariants:
-# - in a causally perfect system, unconstrained m,z and z,m should be the same (eqs 33, 34)
+# - in a causally perfect system, unconstrained m,z and z,m should be the
+#   same (eqs 33, 34)
 # - informativeness (ii, not partitioned) of the full system) should be the same
 #   between cause and effect
 
@@ -85,12 +87,12 @@ def forward_cause_repertoire(
     else:
         repertoire = np.array([1])
         purview_states = [()]
-    for purview_state in purview_states:
-        repertoire[purview_state] = forward_cause_probability(
+    for state in purview_states:
+        repertoire[state] = forward_cause_probability(
             subsystem,
             mechanism,
             purview,
-            purview_state,
+            state,
             mechanism_state=mechanism_state,
         )
     return repertoire.reshape(repertoire_shape(subsystem.network.node_indices, purview))
@@ -134,8 +136,8 @@ def unconstrained_forward_cause_repertoire(
 def forward_repertoire(
     subsystem,
     direction: Direction,
-    mechanism: Tuple[int],
-    purview: Tuple[int],
+    mechanism: tuple[int],
+    purview: tuple[int],
     mechanism_state=None,
 ) -> ArrayLike:
     """Return the forward repertoire of a mechanism over a purview."""

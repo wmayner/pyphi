@@ -4,9 +4,9 @@
 from pyphi.exceptions import MissingOptionalDependenciesError
 
 try:
-    import matplotlib
-    import plotly
-    import seaborn
+    import matplotlib  # noqa: F401
+    import plotly  # noqa: F401
+    import seaborn  # noqa: F401
 except ImportError as exc:
     raise MissingOptionalDependenciesError(
         MissingOptionalDependenciesError.MSG.format(dependencies="visualize")
@@ -21,3 +21,15 @@ from .distribution import plot_repertoires
 from .dynamics import plot_dynamics
 from .phi_structure import highlight_phi_fold
 from .phi_structure import plot_phi_structure
+
+__all__ = [
+    "highlight_phi_fold",
+    "ising",
+    "phi_structure",
+    "plot_distribution",
+    "plot_dynamics",
+    "plot_graph",
+    "plot_phi_structure",
+    "plot_repertoires",
+    "plot_subsystem",
+]

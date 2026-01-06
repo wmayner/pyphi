@@ -3,11 +3,13 @@
 
 from __future__ import annotations
 
+import contextlib
 import functools
 import logging
 from collections.abc import Iterable
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import ClassVar
 
 from more_itertools import collapse
 
@@ -79,10 +81,8 @@ def ces(
         mechanisms = utils.powerset(subsystem.node_indices, nonempty=True)
         total = 2 ** len(subsystem.node_indices) - 1
     else:
-        try:
+        with contextlib.suppress(TypeError):
             total = len(mechanisms)  # type: ignore[arg-type]  # mechanisms may be generator
-        except TypeError:
-            pass
 
     def compute_concept(*args, **kwargs):
         # Don't serialize the subsystem; this is replaced after returning.
@@ -270,12 +270,12 @@ def _sia(subsystem: Subsystem, **kwargs: Any) -> SystemIrreducibilityAnalysis:
     #   - an elementary micro mechanism (i.e. no nontrivial bipartitions).
     # So in those cases we immediately return a null SIA.
     if not subsystem:
-        log.info("Subsystem %s is empty; returning null SIA " "immediately.", subsystem)
+        log.info("Subsystem %s is empty; returning null SIA immediately.", subsystem)
         return _null_sia(subsystem)
 
     if not connectivity.is_strong(subsystem.cm, subsystem.node_indices):
         log.info(
-            "%s is not strongly connected; returning null SIA " "immediately.",
+            "%s is not strongly connected; returning null SIA immediately.",
             subsystem,
         )
         return _null_sia(subsystem)
@@ -307,8 +307,7 @@ def _sia(subsystem: Subsystem, **kwargs: Any) -> SystemIrreducibilityAnalysis:
 
     if not unpartitioned_ces:
         log.info(
-            "Empty unpartitioned CauseEffectStructure; returning null "
-            "SIA immediately."
+            "Empty unpartitioned CauseEffectStructure; returning null SIA immediately."
         )
         # Short-circuit if there are no concepts in the unpartitioned CES.
         return _null_sia(subsystem)
@@ -476,7 +475,7 @@ class SystemIrreducibilityAnalysisConceptStyle(cmp.Orderable):
     def __eq__(self, other: object) -> bool:
         return cmp.general_eq(self, other, ["phi"])
 
-    unorderable_unless_eq = ["network"]
+    unorderable_unless_eq: ClassVar[list[str]] = ["network"]
 
     def order_by(self) -> list[Any]:
         return [self.phi, len(self.subsystem)]

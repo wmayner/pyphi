@@ -265,8 +265,9 @@ def center_coords(coords):
 
 
 class PurviewCoordinates:
-    """Map cause and effect purviews, specified by a direction and a mechanism, to 3D coordinates.
-    Does not currently support subset_multiplicities, subset_offset_radius, state_multiplicities, or
+    """Map cause and effect purviews, specified by a direction and a
+    mechanism, to 3D coordinates. Does not currently support
+    subset_multiplicities, subset_offset_radius, state_multiplicities, or
     state_offset_radius args.
     """
 
@@ -291,7 +292,8 @@ class PurviewCoordinates:
         mechanism: tuple[int],
         direction: Direction,
     ):
-        """Return cause or effect coordinates for the given purview, specified by its mechanism and direction."""
+        """Return cause or effect coordinates for the given purview,
+        specified by its mechanism and direction."""
         coords = self.mapping[direction][mechanism].copy()  # type: ignore[union-attr]
 
         coords *= self.scale

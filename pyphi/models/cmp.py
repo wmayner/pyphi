@@ -6,6 +6,7 @@ from collections.abc import Callable
 from collections.abc import Iterable
 from collections.abc import Sequence
 from typing import Any
+from typing import ClassVar
 from typing import TypeVar
 
 import numpy as np
@@ -53,7 +54,7 @@ class Orderable:
     """
 
     # The object is not orderable unless these attributes are all equal
-    unorderable_unless_eq: list[str] = []
+    unorderable_unless_eq: ClassVar[list[str]] = []
 
     def order_by(self) -> Any:
         """Return a list of values to compare for ordering.
@@ -66,7 +67,8 @@ class Orderable:
     def __lt__(self, other: object) -> bool:
         if not general_eq(self, other, self.unorderable_unless_eq):
             raise TypeError(
-                f"Unorderable: the following attrs must be equal: {self.unorderable_unless_eq}"
+                f"Unorderable: the following attrs must be equal: "
+                f"{self.unorderable_unless_eq}"
             )
         return self.order_by() < other.order_by()  # type: ignore[attr-defined]
 
@@ -87,7 +89,8 @@ class Orderable:
 
 
 class OrderableByPhi(Orderable):
-    """Mixin for implementing rich object comparisons on phi-objects that are ordered solely by their phi values.
+    """Mixin for implementing rich object comparisons on phi-objects that are
+    ordered solely by their phi values.
 
     Inherits from Orderable.
     """

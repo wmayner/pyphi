@@ -127,7 +127,8 @@ class DistanceResult(PyPhiFloat):
         >>> print(f"Max φ = {max_phi:.3f} using {max_phi.method}")  # doctest: +SKIP
         Max φ = 0.700 using GID
         >>> # Statistical analysis
-        >>> phi_array = np.array(phi_values)  # Auto-extract for statistics  # doctest: +SKIP
+        >>> # Auto-extract for statistics:
+        >>> phi_array = np.array(phi_values)  # doctest: +SKIP
         >>> np.mean(phi_array)  # doctest: +SKIP
         0.5
     """
@@ -146,7 +147,8 @@ class DistanceResult(PyPhiFloat):
         return f"DistanceResult({float(self)})"
 
     def _preserve_aux_data(self, other_result):
-        """Copy auxiliary data from another DistanceResult if this one wins a comparison."""
+        """Copy auxiliary data from another DistanceResult if this one wins a
+        comparison."""
         if isinstance(other_result, DistanceResult):
             for key, val in other_result.__dict__.items():
                 if not hasattr(self, key):
@@ -642,7 +644,8 @@ def approximate_specified_state(
         I_x = \\left( p_k p_z \\right) \\log_2 \\left( \\frac{p_k p_z}{q_k q_z} \\right)
 
     .. math::
-        I_y = \\left( p_k (1-p_z) \\right) \\log_2 \\left( \\frac{p_k (1-p_z)}{q_k(1-q_z)} \\right)
+        I_y = \\left( p_k (1-p_z) \\right) \\log_2 \\left(
+        \\frac{p_k (1-p_z)}{q_k(1-q_z)} \\right)
 
     For state ``1`` to give higher intrinsic information (i.e., :math:`I_y >
     I_x`), :math:`p_z` and :math:`q_z` must satisfy two equations:
@@ -662,7 +665,8 @@ def approximate_specified_state(
         partitioned_repertoire (np.ndarray): The second probability distribution.
 
     Returns:
-        np.ndarray: A 2D array where the single row is the approximate :func:`specified_state`.
+        np.ndarray: A 2D array where the single row is the approximate
+            :func:`specified_state`.
 
     """
 

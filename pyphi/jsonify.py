@@ -168,7 +168,7 @@ def _pop_metadata(dct):
     return dct.pop(CLASS_KEY), dct.pop(VERSION_KEY), dct.pop(ID_KEY)
 
 
-def jsonify(obj):  # pylint: disable=too-many-return-statements
+def jsonify(obj):  # noqa: PLR0911
     """Return a JSON-encodable representation of an object, recursively using
     any available ``to_json`` methods, converting NumPy arrays and datatypes to
     native lists and types along the way.
@@ -337,8 +337,8 @@ class PyPhiJSONDecoder(json.JSONDecoder):
             key = self._load_object(key_data)
             value = self._load_object(value_data)
 
-            # If the key is a dict with CLASS_KEY == enum_class_name, it's a serialized enum
-            # Need to convert it back to the actual enum value
+            # If the key is a dict with CLASS_KEY == enum_class_name,
+            # it's a serialized enum. Need to convert it back to the actual enum value
             if isinstance(key, dict) and key.get(CLASS_KEY) == enum_class_name:
                 # This is a serialized Direction enum with {"direction": "CAUSE"}
                 if hasattr(enum_class, "from_json"):

@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import functools
 import logging
 from collections.abc import Iterable
@@ -564,7 +565,8 @@ class Subsystem:
         ]:
             if "state" not in kwargs:
                 raise ValueError(
-                    f"must provide purview state for repertoire distance {repertoire_distance}"
+                    f"must provide purview state for repertoire distance "
+                    f"{repertoire_distance}"
                 )
             purview_state = kwargs.pop("state")
             prs = [
@@ -819,9 +821,9 @@ class Subsystem:
             "INTRINSIC_INFORMATION",
         ]:
             func = metrics.distribution.measures[repertoire_distance]
-            assert not isinstance(
-                repertoire, (int, float)
-            ), "GID requires full repertoire"
+            assert not isinstance(repertoire, (int, float)), (
+                "GID requires full repertoire"
+            )
             purview_state = kwargs["state"].state
             selectivity = float(repertoire.squeeze()[purview_state])
             forward_pr = self.forward_probability(
@@ -954,7 +956,7 @@ class Subsystem:
 
         """
 
-        def null_mip(**kwargs: Any) -> RepertoireIrreducibilityAnalysis:
+        def null_mip(**kwargs: Any) -> RepertoireIrreducibilityAnalysis:  # noqa: ARG001
             return _null_ria(direction, mechanism, purview, specified_state=state)
 
         if not purview:
@@ -1113,9 +1115,9 @@ class Subsystem:
                 selectivity_repertoire,
             )
             # Type narrowing: dist without state parameter returns full repertoire
-            assert not isinstance(
-                dist, (int, float)
-            ), "Distance metrics should return array when state is None"
+            assert not isinstance(dist, (int, float)), (
+                "Distance metrics should return array when state is None"
+            )
             # Remove singleton dimensions since we'll index with purview state
             dist = dist.squeeze()
 
@@ -1138,7 +1140,8 @@ class Subsystem:
                     repertoire, unconstrained_repertoire, state=state
                 )
 
-        # TODO(4.0): compute arraywise once, then find max; requires refactoring state kwarg to metrics
+        # TODO(4.0): compute arraywise once, then find max; requires
+        # refactoring state kwarg to metrics
         # TODO(ties): use resolve_ties here
         state_to_information = {state: evaluate_state(state) for state in states}
         max_information = max(state_to_information.values())
@@ -1407,10 +1410,8 @@ class Subsystem:
 
         # for progress bar (tqdm)
         if fallback(config.PROGRESS_BARS):
-            try:
+            with contextlib.suppress(TypeError):
                 total = len(mechanisms)  # type: ignore[arg-type]  # chain doesn't support len, handled by try/except
-            except TypeError:
-                pass
             mechanisms = tqdm(mechanisms, total=total)
 
         distinctions = filter(

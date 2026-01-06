@@ -136,10 +136,12 @@ ignore = [
     "PLR0912", # Too many branches - common in complex algorithms
     "PLR0915", # Too many statements - common in scientific code
     "PLR2004", # Magic value comparisons - common with thresholds
+    "PLW1641", # Missing __hash__ - not needed for all Orderable classes
     "RET504",  # Unnecessary variable assignment before return
     "SIM108",  # Use ternary operator - sometimes less readable
     "PTH123",  # open() instead of Path.open() - open() is fine
     "ERA001",  # Commented-out code - allow for scientific exploration
+    "PLC0415", # Import outside top-level - needed for optional dependencies
 ]
 
 [tool.ruff.lint.mccabe]
@@ -163,10 +165,33 @@ max-statements = 100
     "PLR2004", # Magic values (test data)
     "S101",    # Use of assert (standard in pytest)
 ]
-# Allow print statements in profiling scripts
+# Allow print statements in main init (welcome message) and profiling scripts
+"pyphi/__init__.py" = ["T201"]
 "profiling/**/*.py" = ["T201"]
 # Allow print and magic values in examples
 "docs/examples/**/*.py" = ["T201", "PLR2004"]
+# Allow explicit re-exports in __init__ files (PEP 484 style)
+"pyphi/**/__init__.py" = ["PLC0414"]
+# Allow sentinel object() in cache_utils (standard pattern from functools)
+"pyphi/cache/cache_utils.py" = ["B008"]
+# Allow unused arguments in config callbacks and deferred imports
+"pyphi/conf.py" = ["ARG001"]
+"pyphi/deferred/*.py" = ["ARG002"]
+# Allow unused kwargs in network generator (interface requirement)
+"pyphi/network_generator/unit_functions.py" = ["ARG001"]
+"pyphi/network_generator/ising.py" = ["ARG001"]
+"pyphi/network_generator/weights.py" = ["ARG001"]
+# Allow unused arguments in specific files (interface/callback requirements)
+"pyphi/dynamics.py" = ["ARG001"]
+"pyphi/jsonify.py" = ["ARG002"]
+"pyphi/macro.py" = ["ARG002"]
+"pyphi/metrics/distribution.py" = ["ARG001"]
+"pyphi/models/mechanism.py" = ["ARG001"]
+"pyphi/models/subsystem.py" = ["ARG002"]
+"pyphi/parallel/__init__.py" = ["ARG001", "PLW0603"]
+"pyphi/relations.py" = ["ARG001", "ARG002"]
+"pyphi/subsystem.py" = ["ARG002"]
+"pyphi/visualize/phi_structure/__init__.py" = ["ARG001"]
 
 [tool.pytest.ini_options]
 testpaths = ["pyphi", "test"]

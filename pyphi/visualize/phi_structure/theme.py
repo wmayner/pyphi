@@ -3,6 +3,7 @@
 
 from inspect import getmro
 from pprint import pformat
+from typing import ClassVar
 
 from pyphi.data_structures import AttrDeepChainMap
 from pyphi.models import fmt
@@ -33,7 +34,7 @@ Theme.SUBMAPPING_TYPE = Theme
 
 
 class DefaultTheme(Theme):
-    DEFAULTS = {
+    DEFAULTS: ClassVar[dict] = {
         "show": {
             "purviews": True,
             "mechanisms": True,
@@ -226,7 +227,7 @@ class DefaultTheme(Theme):
 
 
 class Grey(DefaultTheme):
-    DEFAULTS = {
+    DEFAULTS: ClassVar[dict] = {
         "legendgroup_postfix": " (greyed)",
         "direction": {
             "cause_color": "black",

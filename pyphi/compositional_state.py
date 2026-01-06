@@ -217,13 +217,13 @@ class CompositionalState(UserDict):
             )
             for direction in DIRECTIONS
         )
-        if not result:
-            # Result will be incorrect if the CompositionalState is not
-            # resolved, since the mechanisms may not be singletons
-            if self.has_conflicts():
-                raise ValueError(
-                    "Cannot check conflict with a CompositionalState that already has conflicts!"
-                )
+        # Result will be incorrect if the CompositionalState is not
+        # resolved, since the mechanisms may not be singletons
+        if not result and self.has_conflicts():
+            raise ValueError(
+                "Cannot check conflict with a CompositionalState "
+                "that already has conflicts!"
+            )
         return result
 
     def conflicts_with_distinction(self, distinction):
@@ -258,7 +258,9 @@ class CompositionalState(UserDict):
         return self.resolve_conflicts(func=func)
 
     def filter(self, distinctions):
-        """Return only the distinctions that are consistent with this CompositionalState."""
+        """Return only the distinctions that are consistent with this
+        CompositionalState.
+        """
         return CauseEffectStructure(
             [
                 distinction

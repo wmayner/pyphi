@@ -55,7 +55,6 @@ import contextlib
 import functools
 import logging
 import logging.config
-import os
 import pprint
 import shutil
 import tempfile
@@ -97,7 +96,8 @@ def deprecated(option):
     # TODO onchange is not triggered?
     if _LOADED:
         warn(
-            f"The {option} configuration option is deprecated and will be removed in a future version.",
+            f"The {option} configuration option is deprecated and will be "
+            f"removed in a future version.",
             FutureWarning,
             stacklevel=2,
         )
@@ -265,7 +265,7 @@ class Config:
 
     def load_file(self, filename):
         """Load config from a YAML file."""
-        filename = os.path.abspath(filename)
+        filename = str(Path(filename).resolve())
 
         with open(filename) as f:
             self.load_dict(yaml.safe_load(f))
@@ -957,7 +957,7 @@ class PyphiConfig(Config):
         if self._loaded_files:
             log.info("Loaded configuration from %s", self._loaded_files)
         else:
-            log.info("Using default configuration (no configuration file " "provided)")
+            log.info("Using default configuration (no configuration file provided)")
         log.info("Current PyPhi configuration:\n %s", str(self))
 
 
