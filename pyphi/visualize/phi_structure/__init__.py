@@ -165,6 +165,8 @@ def plot_phi_structure(
             )
 
     # Relations
+    relations = [r for r in phi_structure.relations if len(r)<4]
+    relations = pyphi.new_big_phi.ConcreteRelations(relations)
     if theme["show"].get("two_faces") or theme["show"].get("three_faces"):
         two_faces = relation_two_faces
         three_faces = relation_three_faces
