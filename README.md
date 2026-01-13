@@ -1,6 +1,6 @@
 <p>
   <a href="http://pyphi.readthedocs.io/">
-    <img alt="PyPhi logo" src="https://github.com/wmayner/pyphi/raw/develop/docs/_static/pyphi-logo-text-760x180.png" height="90px" width="380px" style="max-width:100%">
+    <img alt="PyPhi logo" src="https://github.com/wmayner/pyphi/raw/develop/docs/_static/pyphi-logo-text-776x196.png" height="90px" width="380px" style="max-width:100%">
   </a>
 </p>
 
