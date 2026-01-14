@@ -1,5 +1,5 @@
 # parallel/tree.py
-"""Classes for specifying distributed computations."""
+"""Classes for specifying parallel computation trees."""
 
 from dataclasses import dataclass
 
