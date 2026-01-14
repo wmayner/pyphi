@@ -96,7 +96,6 @@ class PyphiConfig(Config):
     PARALLEL_PURVIEW_EVALUATION: Mapping[str, Any]
     PARALLEL_MECHANISM_PARTITION_EVALUATION: Mapping[str, Any]
     PARALLEL_RELATION_EVALUATION: Mapping[str, Any]
-    RAY_CONFIG: dict[str, Any]
     REDIS_CONFIG: dict[str, Any]
 
     # List configuration

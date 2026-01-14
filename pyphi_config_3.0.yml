@@ -48,12 +48,12 @@ PARALLEL_COMPLEX_EVALUATION: false
 # The number of CPU cores to use in parallel.
 # -1 means all available cores, -2 means all but one available cores, etc.
 NUMBER_OF_CORES: -1
+# Backend for parallel computation. Options: "local" (ProcessPoolExecutor),
+# "auto" (auto-detect best available).
+PARALLEL_BACKEND: "local"
 # Some functions are memoized using an in-memory cache. This is the maximum
 # percentage of memory that these caches can collectively use.
 MAXIMUM_CACHE_MEMORY_PERCENTAGE: 100
-# Arguments to `ray.init()`
-RAY_CONFIG:
-  address: "auto"
 
 # Memoization and caching
 # ~~~~~~~~~~~~~~~~~~~~~~~
