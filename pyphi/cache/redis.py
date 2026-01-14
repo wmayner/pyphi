@@ -20,7 +20,10 @@ except ModuleNotFoundError:
 def init(db):
     if NO_REDIS:
         return None
-    return redis.StrictRedis(  # pyright: ignore[reportOptionalMemberAccess]
+    # Note: StrictRedis is deprecated in redis-py 5.0+, use Redis instead
+    # For compatibility, try StrictRedis first (older versions), fall back to Redis
+    redis_class = getattr(redis, "StrictRedis", redis.Redis)  # type: ignore[union-attr]
+    return redis_class(  # pyright: ignore[reportOptionalMemberAccess]
         host=config.REDIS_CONFIG["host"], port=config.REDIS_CONFIG["port"], db=db
     )
 
