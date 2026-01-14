@@ -9,7 +9,6 @@ import yaml
 import pyphi
 from pyphi.cache import redis
 from pyphi.conf import config
-from pyphi.deferred.ray import ray
 
 log = logging.getLogger("pyphi.test")
 
@@ -87,7 +86,7 @@ def use_iit_3_config():
 
 
 @pytest.fixture(scope="session", autouse=True)
-def protect_caches(request):
+def protect_caches(request):  # noqa: ARG001
     """Temporarily backup, then restore, the user's Redis caches
     before and after the testing session.
 
@@ -103,13 +102,13 @@ def protect_caches(request):
 
 def _flush_redis_cache():
     if redis.available():
-        redis.conn.flushdb()
-        redis.conn.config_resetstat()
+        redis.conn.flushdb()  # pyright: ignore[reportOptionalMemberAccess]
+        redis.conn.config_resetstat()  # pyright: ignore[reportOptionalMemberAccess]
 
 
 # TODO: flush Redis cache
 @pytest.fixture(scope="function", autouse=True)
-def flushcache(request):
+def flushcache(request):  # noqa: ARG001
     """Flush the currently enabled cache.
 
     This is called before every test case.
@@ -118,12 +117,16 @@ def flushcache(request):
     _flush_redis_cache()
 
 
-# Ray
+# Parallel (local backend)
 # ================================================================
 
 
 @pytest.fixture(scope="module")
-def ray_context():
-    context = ray.init(num_cpus=3)
-    yield context
-    ray.shutdown()
+def parallel_context():
+    """Set up parallel computation context.
+
+    With the local backend, no special initialization is needed.
+    This fixture is kept for API compatibility with existing tests.
+    """
+    # Local backend uses ProcessPoolExecutor which doesn't require init
+    yield None

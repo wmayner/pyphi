@@ -1,11 +1,10 @@
-import time
-from datetime import timedelta
+"""Tests for the parallel computation module."""
+
 from decimal import Decimal
 from unittest.mock import Mock
 from unittest.mock import patch
 
 import pytest
-import ray
 from hypothesis import HealthCheck
 from hypothesis import given
 from hypothesis import settings
@@ -52,7 +51,6 @@ def shortcircuit_tester(func, list_and_index, ordered=True):
         assert expected[: idx + 1] == actual
 
         # Check callback was called
-        # TODO(4.0) call not detected when parallel; used SharedMock or similar
         mock = Mock()
         actual = list(
             func(
@@ -74,31 +72,6 @@ def test_shortcircuit(list_and_index):
     shortcircuit_tester(parallel.shortcircuit, list_and_index)
 
 
-@ray.remote
-def remote_sleep(x, t=0.1):
-    for _ in range(int(x)):
-        time.sleep(t)
-    return x
-
-
-@settings(
-    deadline=timedelta(seconds=10),
-)
-@given(args=st.lists(st.integers(min_value=0, max_value=1), max_size=2))
-def test_as_completed(ray_context, args):
-    args = sorted(args, reverse=True)
-    expected = sorted(args)
-    actual = list(parallel.as_completed([remote_sleep.remote(i) for i in args]))
-    assert expected == actual
-
-
-def test_cancel_all(ray_context):
-    tasks = [remote_sleep.remote(i) for i in [100] * 10]
-    parallel.cancel_all(tasks)
-    with pytest.raises((ray.exceptions.TaskCancelledError, ray.exceptions.RayTaskError)):
-        ray.get(tasks[0])
-
-
 @given(st.lists(everything_except(Decimal)))
 def test_get_local(items):
     with patch("pyphi.parallel.cancel_all") as mock:
@@ -109,20 +82,13 @@ def test_get_local(items):
 
 
 def test_parallel_exception_handling():
+    """Test that exceptions in parallel computation are properly propagated."""
+
+    def raise_error(x):
+        raise Exception("I don't wanna!")
+
     with pytest.raises(Exception, match=r"I don't wanna!"):
-        MapError([1]).run(parallel=True)
-
-
-@given(
-    st.lists(st.integers()),
-)
-def test_get_remote(ray_context, expected):
-    @ray.remote
-    def f(x):
-        return x
-
-    refs = [f.remote(x) for x in expected]
-    assert set(expected) == set(parallel.get(refs, remote=True))
+        parallel.MapReduce(raise_error, [1], parallel=True, chunksize=1).run()
 
 
 def test_map_repr():
@@ -137,9 +103,9 @@ def test_map_with_no_args():
         list(parallel.MapReduce(lambda x: x))
 
 
-def test_map_with_iterator_no_chunksize(ray_context, func):
+def test_map_with_iterator_no_chunksize():
     with pytest.raises(ValueError):
-        parallel.MapReduce(func, iter([1, 2, 3]), parallel=True, chunksize=None)
+        parallel.MapReduce(lambda x: x, iter([1, 2, 3]), parallel=True, chunksize=None)
 
 
 def arglists(elements):
@@ -174,14 +140,37 @@ def test_map_sequential(
     assert expected == actual
 
 
-def test_map_with_lambda(ray_context):
+def _identity(x):
+    """Top-level identity function for pickling compatibility."""
+    return x
+
+
+def _get_first(*args):
+    """Top-level function that returns first arg (or empty tuple)."""
+    if args:
+        return args[0]
+    return args
+
+
+def test_map_with_function_parallel():
+    """Test parallel execution with a picklable function.
+
+    Note: Lambda functions cannot be used with parallel=True because
+    ProcessPoolExecutor requires picklable functions. Use top-level
+    function definitions instead.
+    """
     expected = {1, 2, 3}
-    actual = set(parallel.MapReduce(lambda x: x, expected, parallel=True).run())
+    actual = set(
+        parallel.MapReduce(_identity, expected, parallel=True, chunksize=1).run()
+    )
     assert expected == actual
 
 
-def test_map_with_iterators_and_empty_args(ray_context, func):
-    assert parallel.MapReduce(func, iter([]), parallel=True, chunksize=100).run() == []
+def test_map_with_iterators_and_empty_args():
+    result = parallel.MapReduce(
+        lambda x: x, iter([]), parallel=True, chunksize=100
+    ).run()
+    assert result == []
 
 
 @composite
@@ -191,7 +180,6 @@ def map_reduce_kwargs_common(draw):
         "sequential_threshold": draw(st.integers(min_value=1, max_value=2048)),
         "max_depth": draw(st.integers(min_value=1) | st.none()),
         "branch_factor": draw(st.integers(min_value=2)),
-        "inflight_limit": draw(st.integers(min_value=1)),
         "ordered": draw(st.booleans()),
     }
 
@@ -229,8 +217,7 @@ def map_reduce_kwargs_sequences(draw):
     kwargs=map_reduce_kwargs_iterators(),
 )
 @pytest.mark.slow
-def test_map_with_iterators(
-    ray_context,
+def test_map_with_iterators_parallel(
     func,
     args,
     kwargs,
@@ -250,7 +237,6 @@ def test_map_with_iterators(
 
 
 @settings(
-    suppress_health_check=[HealthCheck.function_scoped_fixture],
     deadline=None,
 )
 @given(
@@ -259,15 +245,13 @@ def test_map_with_iterators(
     _parallel=st.booleans() | st.none(),
 )
 def test_map_with_shortcircuit(
-    ray_context,
-    func,
     list_and_index,
     kwargs,
     _parallel,
 ):
     def _func(items, **additional_kwargs):
         return parallel.MapReduce(
-            func,
+            _get_first,
             items,
             **kwargs,
             **additional_kwargs,
@@ -280,6 +264,12 @@ def test_map_with_shortcircuit(
     )
 
 
+def _max_reduce(x, some_kwarg=None):
+    """Top-level reduce function."""
+    assert some_kwarg is not None
+    return max(x, default=None)
+
+
 @settings(
     suppress_health_check=[HealthCheck.function_scoped_fixture],
     deadline=None,
@@ -290,28 +280,93 @@ def test_map_with_shortcircuit(
     _parallel=st.booleans() | st.none(),
 )
 def test_map_reduce(
-    ray_context,
-    func,
     args,
     kwargs,
     _parallel,
 ):
     iterables1, iterables2 = args
 
-    def reduce_func(x, some_kwarg=None):
-        assert some_kwarg is not None
-        return max(x, default=None)
-
-    expected = reduce_func(map(func, *iterables1), some_kwarg=1)
+    expected = _max_reduce(map(_get_first, *iterables1), some_kwarg=1)
     actual = parallel.MapReduce(
-        func,
+        _get_first,
         *iterables2,
-        reduce_func=reduce_func,
+        reduce_func=_max_reduce,
         reduce_kwargs={"some_kwarg": 1},
         **kwargs,
         parallel=_parallel,
     ).run()
     assert expected == actual
+
+
+# Tests for the local backend specifically
+# ========================================
+
+
+def _double(x):
+    """Top-level double function for pickling compatibility."""
+    return x * 2
+
+
+def test_local_backend_basic():
+    """Test basic parallel execution with local backend."""
+    result = parallel.MapReduce(
+        _double,
+        [1, 2, 3, 4, 5],
+        parallel=True,
+        chunksize=2,
+    ).run()
+    assert set(result) == {2, 4, 6, 8, 10}
+
+
+def test_local_backend_with_reduce():
+    """Test parallel execution with custom reduce function."""
+    result = parallel.MapReduce(
+        _double,
+        [1, 2, 3, 4, 5],
+        reduce_func=sum,
+        parallel=True,
+        chunksize=2,
+    ).run()
+    assert result == 30  # 2+4+6+8+10
+
+
+def test_local_backend_sequential_fallback():
+    """Test that small workloads run sequentially.
+
+    Note: Lambda can be used here because sequential mode doesn't
+    use multiprocessing.
+    """
+    # With sequential_threshold high enough, should run sequentially
+    result = parallel.MapReduce(
+        lambda x: x * 2,
+        [1, 2, 3],
+        parallel=True,
+        sequential_threshold=100,  # Higher than len(items)
+        chunksize=2,
+    ).run()
+    assert set(result) == {2, 4, 6}
+
+
+def test_backend_selection():
+    """Test backend auto-detection and explicit selection."""
+    mr = parallel.MapReduce(lambda x: x, [1, 2, 3], backend="auto")
+    assert mr.backend == "local"
+
+    mr = parallel.MapReduce(lambda x: x, [1, 2, 3], backend="local")
+    assert mr.backend == "local"
+
+    with pytest.raises(ValueError, match="Unknown backend"):
+        parallel.MapReduce(lambda x: x, [1, 2, 3], backend="invalid")
+
+
+def test_cancel_all_with_futures():
+    """Test cancel_all function with concurrent.futures.Future objects."""
+    from concurrent.futures import Future
+
+    # Create some mock futures
+    futures = [Future() for _ in range(3)]
+    result = parallel.cancel_all(futures)
+    assert len(result) == 3
 
 
 # TODO(4.0) unit tests for tree.py
