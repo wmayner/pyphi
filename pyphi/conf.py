@@ -1043,13 +1043,13 @@ config = PyphiConfig(on_change=on_change_global)
 
 
 def on_driver():
-    if ray.is_initialized():
+    if ray.is_initialized():  # pyright: ignore[reportAttributeAccessIssue]
         try:
             # Ignore warning log
             # pyright: ignore[reportAttributeAccessIssue] - Optional ray dependency
             current_level = ray.runtime_context.logger.level  # pyright: ignore[reportAttributeAccessIssue]
             ray.runtime_context.logger.setLevel("ERROR")  # pyright: ignore[reportAttributeAccessIssue]
-            ray.get_runtime_context().get_task_id()
+            ray.get_runtime_context().get_task_id()  # pyright: ignore[reportAttributeAccessIssue]
             ray.runtime_context.logger.setLevel(current_level)  # pyright: ignore[reportAttributeAccessIssue]
             return False
         except AssertionError:

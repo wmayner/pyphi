@@ -68,8 +68,8 @@ RAY_CLIENT = None
 def init(*args, **kwargs):
     """Initialize Ray if not already initialized."""
     global RAY_CLIENT
-    if not ray.is_initialized():
-        RAY_CLIENT = ray.init(*args, **{**config.RAY_CONFIG, **kwargs})
+    if not ray.is_initialized():  # pyright: ignore[reportAttributeAccessIssue]
+        RAY_CLIENT = ray.init(*args, **{**config.RAY_CONFIG, **kwargs})  # pyright: ignore[reportAttributeAccessIssue]
         return RAY_CLIENT
     return None
 
