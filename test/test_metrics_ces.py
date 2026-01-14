@@ -17,9 +17,8 @@ from .conftest import skip_if_no_pyemd
 def test_emd_ground_distance_must_be_symmetric():
     a = np.ones((2, 2, 2)) / 8
     b = np.ones((2, 2, 2)) / 8
-    with config.override(REPERTOIRE_DISTANCE="KLD"):
-        with pytest.raises(ValueError):
-            emd_ground_distance(a, b)
+    with config.override(REPERTOIRE_DISTANCE="KLD"), pytest.raises(ValueError):
+        emd_ground_distance(a, b)
 
 
 @pytest.mark.emd
@@ -64,17 +63,18 @@ def test_ces_distance_uses_simple_vs_emd(mock_emd_distance, mock_simple_distance
     mock_emd_distance.return_value = 0.0
     mock_simple_distance.return_value = 0.0
 
-    make_mice = lambda: models.MaximallyIrreducibleCauseOrEffect(
-        models.RepertoireIrreducibilityAnalysis(
-            phi=0,
-            direction=None,
-            mechanism=None,
-            purview=None,
-            partition=None,
-            repertoire=None,
-            partitioned_repertoire=None,
+    def make_mice():
+        return models.MaximallyIrreducibleCauseOrEffect(
+            models.RepertoireIrreducibilityAnalysis(
+                phi=0,
+                direction=None,
+                mechanism=None,
+                purview=None,
+                partition=None,
+                repertoire=None,
+                partitioned_repertoire=None,
+            )
         )
-    )
 
     lone_concept = models.Concept(
         cause=make_mice(),

@@ -42,7 +42,7 @@ def test_coerce_to_labels(nl):
 
 
 def test_iterable(nl):
-    assert [l for l in nl] == ["A", "B", "C"]
+    assert list(nl) == ["A", "B", "C"]
 
 
 def test_len(nl):

@@ -49,7 +49,7 @@ def test_clear_subsystem_caches_after_computing_sia_config_option(s):
         PARALLEL=False,
         CACHE_REPERTOIRES=True,
     ):
-        sia = s.sia()
+        s.sia()
         assert s._repertoire_cache.cache
 
     with config.override(
@@ -57,7 +57,7 @@ def test_clear_subsystem_caches_after_computing_sia_config_option(s):
         PARALLEL=False,
         CACHE_REPERTOIRES=True,
     ):
-        sia = s.sia()
+        s.sia()
         assert not s._repertoire_cache.cache
 
 

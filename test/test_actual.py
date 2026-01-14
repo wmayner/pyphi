@@ -183,20 +183,16 @@ def test_potential_purviews(background_3_node):
     transition = actual.Transition(
         background_3_node, (1, 1, 1), (1, 1, 1), (0, 1), (0, 2)
     )
-    assert set(transition.potential_purviews(Direction.CAUSE, (0, 2))) == set(
-        [
-            (0,),
-            (1,),
-            (0, 1),
-        ]
-    )
-    assert set(transition.potential_purviews(Direction.EFFECT, (0, 1))) == set(
-        [
-            (0,),
-            (2,),
-            (0, 2),
-        ]
-    )
+    assert set(transition.potential_purviews(Direction.CAUSE, (0, 2))) == {
+        (0,),
+        (1,),
+        (0, 1),
+    }
+    assert set(transition.potential_purviews(Direction.EFFECT, (0, 1))) == {
+        (0,),
+        (2,),
+        (0, 2),
+    }
 
 
 # Tests
@@ -371,7 +367,7 @@ def test_account_addition():
     assert len(a1 + a2) == 2
 
     with pytest.raises(TypeError):
-        a1 + [causal_link()]
+        a1 + [causal_link()]  # noqa: RUF005
 
 
 def test_ac_sia_repr_and_str(transition):

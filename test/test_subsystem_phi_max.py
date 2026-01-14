@@ -51,10 +51,7 @@ expected_purview_indices = {
 }
 expected_purviews = {
     cut: {
-        direction: {
-            mechanism: purview
-            for mechanism, purview in expected_purview_indices[cut][direction].items()
-        }
+        direction: dict(expected_purview_indices[cut][direction].items())
         for direction in directions
     }
     for cut in cuts

@@ -8,7 +8,7 @@ from pyphi import utils
 pair_indices_answers = [
     (
         (4,),
-        dict(),
+        {},
         [
             (0, 0),
             (0, 1),
@@ -24,7 +24,7 @@ pair_indices_answers = [
     ),
     (
         (4,),
-        dict(k=1),
+        {"k": 1},
         [
             (0, 1),
             (0, 2),
@@ -36,7 +36,7 @@ pair_indices_answers = [
     ),
     (
         (4, 2),
-        dict(),
+        {},
         [
             (0, 0),
             (0, 1),
@@ -87,7 +87,7 @@ def nonempty_intersection_answer_by_order(sets):
         for combination in utils.powerset(sets, nonempty=True, max_size=None)
         if len(combination) >= 2 and frozenset.intersection(*combination)
     ]
-    return {i: set(x for x in answer if len(x) == i) for i in set(map(len, answer))}
+    return {i: {x for x in answer if len(x) == i} for i in set(map(len, answer))}
 
 
 @pytest.fixture

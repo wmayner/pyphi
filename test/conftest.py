@@ -51,8 +51,9 @@ def pytest_assertrepr_compare(op, left, right):
 
             diff_output = diff_sia_results(left, right)
             return [
-                "Comparing SystemIrreducibilityAnalysis objects:"
-            ] + diff_output.split("\n")
+                "Comparing SystemIrreducibilityAnalysis objects:",
+                *diff_output.split("\n"),
+            ]
         except (ImportError, AttributeError):
             # If test_helpers not available, fall back to default
             return None

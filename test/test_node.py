@@ -99,8 +99,8 @@ def test_generate_nodes(s):
     assert nodes[0].cause_tpm.array_equal(nodes[0].effect_tpm)
     assert nodes[0].cause_tpm.array_equal(node0_tpm)
     assert nodes[0].effect_tpm.array_equal(node0_tpm)
-    assert nodes[0].inputs == set([1, 2])
-    assert nodes[0].outputs == set([2])
+    assert nodes[0].inputs == {1, 2}
+    assert nodes[0].outputs == {2}
     assert nodes[0].label == "A"
 
     # fmt: off
@@ -114,8 +114,8 @@ def test_generate_nodes(s):
     assert nodes[1].cause_tpm.array_equal(nodes[1].effect_tpm)
     assert nodes[1].cause_tpm.array_equal(node1_tpm)
     assert nodes[1].effect_tpm.array_equal(node1_tpm)
-    assert nodes[1].inputs == set([2])
-    assert nodes[1].outputs == set([0, 2])
+    assert nodes[1].inputs == {2}
+    assert nodes[1].outputs == {0, 2}
     assert nodes[1].label == "B"
 
     # fmt: off
@@ -131,8 +131,8 @@ def test_generate_nodes(s):
     assert nodes[2].cause_tpm.array_equal(nodes[2].effect_tpm)
     assert nodes[2].cause_tpm.array_equal(node2_tpm)
     assert nodes[2].effect_tpm.array_equal(node2_tpm)
-    assert nodes[2].inputs == set([0, 1])
-    assert nodes[2].outputs == set([0, 1])
+    assert nodes[2].inputs == {0, 1}
+    assert nodes[2].outputs == {0, 1}
     assert nodes[2].label == "C"
 
 

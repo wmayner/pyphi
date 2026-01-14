@@ -36,7 +36,7 @@ def test_get_outputs_from_cm():
     # fmt: on
     assert connectivity.get_outputs_from_cm(0, cm) == (1,)
     assert connectivity.get_outputs_from_cm(1, cm) == (0, 1, 2)
-    assert connectivity.get_outputs_from_cm(2, cm) == tuple()
+    assert connectivity.get_outputs_from_cm(2, cm) == ()
 
 
 def test_causally_significant_nodes():

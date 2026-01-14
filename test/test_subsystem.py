@@ -57,7 +57,7 @@ def test_default_nodes(s):
 
 
 def test_eq(subsys_n0n2, subsys_n1n2):
-    assert subsys_n0n2 == subsys_n0n2
+    assert subsys_n0n2 == subsys_n0n2  # noqa: PLR0124
     assert subsys_n0n2 != subsys_n1n2
     assert subsys_n0n2 is not None
     assert subsys_n1n2 is not None

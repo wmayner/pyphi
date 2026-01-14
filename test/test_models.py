@@ -168,7 +168,7 @@ def test_numpy_aware_eq_identical():
 
 
 def test_general_eq_different_attributes():
-    similar_nt = namedtuple("nt", nt_attributes + ["supbro"])
+    similar_nt = namedtuple("nt", [*nt_attributes, "supbro"])
     b = similar_nt(a.this, a.that, a.phi, a.mechanism, a.purview, supbro="nothin' much")
     assert models.cmp.general_eq(a, b, nt_attributes)
 
@@ -562,7 +562,7 @@ def test_concept_hashing_one_subsystem_is_subset_of_another(s, subsys_n1n2):
     c1 = concept(subsystem=s)
     c2 = concept(subsystem=subsys_n1n2)
     assert hash(c1) == hash(c2)
-    assert len(set([c1, c2])) == 1
+    assert len({c1, c2}) == 1
 
 
 def test_concept_emd_eq(s, subsys_n1n2):
@@ -655,8 +655,8 @@ def test_sia_repr_str(s):
 
 
 def test_indent():
-    s = "line1\n" "line2"
-    answer = "  line1\n" "  line2"
+    s = "line1\nline2"
+    answer = "  line1\n  line2"
     assert models.fmt.indent(s) == answer
 
 
@@ -698,12 +698,12 @@ def bipartition(node_labels):
 
 
 def test_bipartition_properties(bipartition):
-    assert set(bipartition.mechanism) == set([0])
-    assert set(bipartition.purview) == set([0, 1, 4])
+    assert set(bipartition.mechanism) == {0}
+    assert set(bipartition.purview) == {0, 1, 4}
 
 
 def test_bipartition_str(bipartition):
-    assert str(bipartition) == (" A     ∅ \n" "─── ✕ ───\n" "A,E    B ")
+    assert str(bipartition) == (" A     ∅ \n─── ✕ ───\nA,E    B ")
 
 
 @pytest.fixture
@@ -717,14 +717,12 @@ def tripartition(node_labels):
 
 
 def test_tripartion_properties(tripartition):
-    assert set(tripartition.mechanism) == set([0, 2])
-    assert set(tripartition.purview) == set([0, 1, 2, 4])
+    assert set(tripartition.mechanism) == {0, 2}
+    assert set(tripartition.purview) == {0, 1, 2, 4}
 
 
 def test_tripartion_str(tripartition):
-    assert str(tripartition) == (
-        " A     ∅     C \n" "─── ✕ ─── ✕ ───\n" "A,E    B     C "
-    )
+    assert str(tripartition) == (" A     ∅     C \n─── ✕ ─── ✕ ───\nA,E    B     C ")
 
 
 def k_partition(node_labels=None):

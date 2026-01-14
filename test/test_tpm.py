@@ -218,4 +218,4 @@ def test_simulate_tpm_requires_state_by_state(standard):
     rng = default_rng(seed)
 
     with pytest.raises(ValueError):
-        path = simulate(standard.tpm, 0, 10, rng)
+        simulate(standard.tpm, 0, 10, rng)

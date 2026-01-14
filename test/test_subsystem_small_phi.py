@@ -279,7 +279,7 @@ def test_find_mip(direction, subsystem, cut, mechanism, purview, expected):
     print("Result:", "---------", "", result, "", sep="\n")
     print("Expected:", "---------", "", sep="\n")
     if expected:
-        print(*[mip for mip in expected], sep="\n")
+        print(*list(expected), sep="\n")
     else:
         print(expected)
     print("\n")

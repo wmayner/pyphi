@@ -41,7 +41,9 @@ def shortcircuit_tester(func, list_and_index, ordered=True):
     # Get first index of item and define shortcircuit func as checking for that
     # item
     idx = items.index(items[idx])
-    shortcircuit_func = lambda x: x == items[idx]
+
+    def shortcircuit_func(x):
+        return x == items[idx]
 
     # With shortcircuiting
     expected = list(items)
@@ -173,7 +175,7 @@ def test_map_sequential(
 
 
 def test_map_with_lambda(ray_context):
-    expected = set([1, 2, 3])
+    expected = {1, 2, 3}
     actual = set(parallel.MapReduce(lambda x: x, expected, parallel=True).run())
     assert expected == actual
 
@@ -184,25 +186,25 @@ def test_map_with_iterators_and_empty_args(ray_context, func):
 
 @composite
 def map_reduce_kwargs_common(draw):
-    return dict(
-        chunksize=draw(st.integers(min_value=1, max_value=8192)),
-        sequential_threshold=draw(st.integers(min_value=1, max_value=2048)),
-        max_depth=draw(st.integers(min_value=1) | st.none()),
-        branch_factor=draw(st.integers(min_value=2)),
-        inflight_limit=draw(st.integers(min_value=1)),
-        ordered=draw(st.booleans()),
-    )
+    return {
+        "chunksize": draw(st.integers(min_value=1, max_value=8192)),
+        "sequential_threshold": draw(st.integers(min_value=1, max_value=2048)),
+        "max_depth": draw(st.integers(min_value=1) | st.none()),
+        "branch_factor": draw(st.integers(min_value=2)),
+        "inflight_limit": draw(st.integers(min_value=1)),
+        "ordered": draw(st.booleans()),
+    }
 
 
 @composite
 def map_reduce_kwargs_iterators(draw):
     return {
         **draw(map_reduce_kwargs_common()),
-        **dict(
-            max_size=None,
-            max_leaves=None,
-            total=None,
-        ),
+        **{
+            "max_size": None,
+            "max_leaves": None,
+            "total": None,
+        },
     }
 
 
@@ -210,11 +212,11 @@ def map_reduce_kwargs_iterators(draw):
 def map_reduce_kwargs_sequences(draw):
     return {
         **draw(map_reduce_kwargs_common()),
-        **dict(
-            max_size=draw(st.integers(min_value=1)),
-            max_leaves=draw(st.integers(min_value=1)),
-            total=None,
-        ),
+        **{
+            "max_size": draw(st.integers(min_value=1)),
+            "max_leaves": draw(st.integers(min_value=1)),
+            "total": None,
+        },
     }
 
 
@@ -305,7 +307,7 @@ def test_map_reduce(
         func,
         *iterables2,
         reduce_func=reduce_func,
-        reduce_kwargs=dict(some_kwarg=1),
+        reduce_kwargs={"some_kwarg": 1},
         **kwargs,
         parallel=_parallel,
     ).run()

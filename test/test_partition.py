@@ -225,38 +225,32 @@ def test_k_partition():
 
 def test_mip_bipartitions():
     mechanism, purview = (0,), (1, 2)
-    answer = set(
-        [
-            Bipartition(Part((), (2,)), Part((0,), (1,))),
-            Bipartition(Part((), (1,)), Part((0,), (2,))),
-            Bipartition(Part((), (1, 2)), Part((0,), ())),
-        ]
-    )
+    answer = {
+        Bipartition(Part((), (2,)), Part((0,), (1,))),
+        Bipartition(Part((), (1,)), Part((0,), (2,))),
+        Bipartition(Part((), (1, 2)), Part((0,), ())),
+    }
     assert set(mip_bipartitions(mechanism, purview)) == answer
 
 
 def test_wedge_partitions():
     mechanism, purview = (0,), (1, 2)
-    assert set(wedge_partitions(mechanism, purview)) == set(
-        [
-            Tripartition(Part((), ()), Part((), (1, 2)), Part((0,), ())),
-        ]
-    )
+    assert set(wedge_partitions(mechanism, purview)) == {
+        Tripartition(Part((), ()), Part((), (1, 2)), Part((0,), ())),
+    }
 
     mechanism, purview = (3, 4), (5, 6)
-    assert set(wedge_partitions(mechanism, purview)) == set(
-        [
-            Tripartition(Part((), ()), Part((), (5, 6)), Part((3, 4), ())),
-            Tripartition(Part((), ()), Part((3,), ()), Part((4,), (5, 6))),
-            Tripartition(Part((), ()), Part((3,), (5,)), Part((4,), (6,))),
-            Tripartition(Part((), ()), Part((3,), (5, 6)), Part((4,), ())),
-            Tripartition(Part((), ()), Part((3,), (6,)), Part((4,), (5,))),
-            Tripartition(Part((), (5,)), Part((3,), ()), Part((4,), (6,))),
-            Tripartition(Part((), (5,)), Part((3,), (6,)), Part((4,), ())),
-            Tripartition(Part((), (6,)), Part((3,), ()), Part((4,), (5,))),
-            Tripartition(Part((), (6,)), Part((3,), (5,)), Part((4,), ())),
-        ]
-    )
+    assert set(wedge_partitions(mechanism, purview)) == {
+        Tripartition(Part((), ()), Part((), (5, 6)), Part((3, 4), ())),
+        Tripartition(Part((), ()), Part((3,), ()), Part((4,), (5, 6))),
+        Tripartition(Part((), ()), Part((3,), (5,)), Part((4,), (6,))),
+        Tripartition(Part((), ()), Part((3,), (5, 6)), Part((4,), ())),
+        Tripartition(Part((), ()), Part((3,), (6,)), Part((4,), (5,))),
+        Tripartition(Part((), (5,)), Part((3,), ()), Part((4,), (6,))),
+        Tripartition(Part((), (5,)), Part((3,), (6,)), Part((4,), ())),
+        Tripartition(Part((), (6,)), Part((3,), ()), Part((4,), (5,))),
+        Tripartition(Part((), (6,)), Part((3,), (5,)), Part((4,), ())),
+    }
 
 
 def test_partitioned_repertoire_with_tripartition(s):
@@ -284,34 +278,30 @@ def test_tripartitions_choses_smallest_purview(s):
 
 def test_all_partitions():
     mechanism, purview = (0, 1), (2,)
-    assert set(all_partitions(mechanism, purview)) == set(
-        [
-            KPartition(Part((0, 1), ()), Part((), (2,))),
-            KPartition(Part((0,), ()), Part((1,), ()), Part((), (2,))),
-            KPartition(Part((0,), (2,)), Part((1,), ()), Part((), ())),
-            KPartition(Part((0,), ()), Part((1,), (2,)), Part((), ())),
-        ]
-    )
+    assert set(all_partitions(mechanism, purview)) == {
+        KPartition(Part((0, 1), ()), Part((), (2,))),
+        KPartition(Part((0,), ()), Part((1,), ()), Part((), (2,))),
+        KPartition(Part((0,), (2,)), Part((1,), ()), Part((), ())),
+        KPartition(Part((0,), ()), Part((1,), (2,)), Part((), ())),
+    }
 
     mechanism, purview = (0, 1), (2, 3)
-    assert set(all_partitions(mechanism, purview)) == set(
-        [
-            KPartition(Part((0, 1), ()), Part((), (2, 3))),
-            KPartition(Part((0,), ()), Part((1,), (2, 3)), Part((), ())),
-            KPartition(Part((0,), (2, 3)), Part((1,), ()), Part((), ())),
-            KPartition(Part((0,), ()), Part((1,), ()), Part((), (2, 3))),
-            KPartition(Part((0,), ()), Part((1,), (3,)), Part((), (2,))),
-            KPartition(Part((0,), (2,)), Part((1,), ()), Part((), (3,))),
-            KPartition(Part((0,), ()), Part((1,), (2,)), Part((), (3,))),
-            KPartition(Part((0,), (3,)), Part((1,), (2,)), Part((), ())),
-            KPartition(Part((0,), (3,)), Part((1,), ()), Part((), (2,))),
-            KPartition(Part((0,), (2,)), Part((1,), (3,)), Part((), ())),
-        ]
-    )
+    assert set(all_partitions(mechanism, purview)) == {
+        KPartition(Part((0, 1), ()), Part((), (2, 3))),
+        KPartition(Part((0,), ()), Part((1,), (2, 3)), Part((), ())),
+        KPartition(Part((0,), (2, 3)), Part((1,), ()), Part((), ())),
+        KPartition(Part((0,), ()), Part((1,), ()), Part((), (2, 3))),
+        KPartition(Part((0,), ()), Part((1,), (3,)), Part((), (2,))),
+        KPartition(Part((0,), (2,)), Part((1,), ()), Part((), (3,))),
+        KPartition(Part((0,), ()), Part((1,), (2,)), Part((), (3,))),
+        KPartition(Part((0,), (3,)), Part((1,), (2,)), Part((), ())),
+        KPartition(Part((0,), (3,)), Part((1,), ()), Part((), (2,))),
+        KPartition(Part((0,), (2,)), Part((1,), (3,)), Part((), ())),
+    }
 
 
 def test_partition_types():
     assert partition_types["BI"] == mip_bipartitions
     assert partition_types["TRI"] == wedge_partitions
     assert partition_types["ALL"] == all_partitions
-    assert set(partition_types.all()) == set(["BI", "TRI", "ALL"])
+    assert set(partition_types.all()) == {"BI", "TRI", "ALL"}

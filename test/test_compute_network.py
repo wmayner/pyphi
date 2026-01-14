@@ -102,11 +102,11 @@ def test_rule152_complexes_no_caching(rule152):
         # since Matlab doesn't include it in results.
         complexes = list(compute.network.complexes(net))[1:]
         # Check the phi values of all complexes.
-        zz = [
+        [
             (sia.phi, result["subsystem_phis"][perm[i]])
             for i, sia in list(enumerate(complexes))
         ]
-        diff = [
+        [
             utils.eq(sia.phi, result["subsystem_phis"][perm[i]])
             for i, sia in list(enumerate(complexes))
         ]
@@ -132,12 +132,9 @@ def test_rule152_complexes_no_caching(rule152):
                 strict=False,
             )
         )
-        diff = [i for i in range(len(z)) if not utils.eq(z[i][0], z[i][1])]
+        [i for i in range(len(z)) if not utils.eq(z[i][0], z[i][1])]
         assert all(
-            list(
-                utils.eq(c.phi, result_concepts[i]["phi"])
-                for i, c in enumerate(major.ces)
-            )
+            utils.eq(c.phi, result_concepts[i]["phi"]) for i, c in enumerate(major.ces)
         )
         # Check that the minimal cut is the same.
         assert major.cut == result["cut"]

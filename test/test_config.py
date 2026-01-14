@@ -149,7 +149,7 @@ def test_reconfigure_logging_on_change(capsys):
 
     with config.override(LOG_STDOUT_LEVEL="ERROR"):
         log.warning("Another warning.")
-    out, err = capsys.readouterr()
+    _out, err = capsys.readouterr()
     assert err == ""
 
 
@@ -160,6 +160,7 @@ def test_reconfigure_logging_on_change(capsys):
         ("SYSTEM_CUTS", ["3.0_STYLE", "CONCEPT_STYLE"], ["OTHER"]),
         ("REPR_VERBOSITY", [0, 1, 2], [-1, 3]),
         ("PARALLEL", [True, False], ["True", "False", "no", 0, 1]),
+        # TODO use a tempfile for testing the log file and clean it up after testing
         ("LOG_FILE", ["filename", Path("filename")], [0, 1]),
     ],
 )
