@@ -58,6 +58,7 @@ dev = [
     "build",
     "coverage",
     "hypothesis",
+    "pre-commit",
     "pyright>=1.1.407",
     "pytest<8.0.0",
     "pytest-lazy-fixture",
@@ -164,6 +165,8 @@ max-statements = 100
     "PLR0913", # Too many arguments (test parametrization)
     "PLR2004", # Magic values (test data)
     "S101",    # Use of assert (standard in pytest)
+    "T201",    # Print statements (debugging)
+    "T203",    # Pretty print statements (debugging)
 ]
 # Allow print statements in main init (welcome message) and profiling scripts
 "pyphi/__init__.py" = ["T201"]
@@ -262,3 +265,8 @@ reportUnknownVariableType = false
 reportGeneralTypeIssues = true
 reportOptionalMemberAccess = true
 reportOptionalSubscript = true
+
+[tool.uv.sources]
+# Build graphillion from source to avoid macOS libgomp dependency issues
+# The PyPI wheel has hardcoded paths to Homebrew GCC's libgomp library
+graphillion = { git = "https://github.com/takemaru/graphillion" }
