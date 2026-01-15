@@ -31,10 +31,6 @@ jobs:
       - name: Install dependencies
         run: uv sync --python ${{ matrix.python-version }} --group dev --all-extras
 
-      - name: Run type checking
-        run: uv run pyright pyphi
-        continue-on-error: true
-
       - name: Run tests
         run: uv run pytest test/ --tb=short -v --ignore=test/test_parallel.py --ignore=test/test_parallel2.py
         continue-on-error: ${{ matrix.os == 'windows-latest' }}
