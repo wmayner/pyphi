@@ -34,7 +34,6 @@ jobs:
       - name: Run tests
         if: ${{ !(matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12') }}
         run: uv run pytest test/ --tb=short -v --ignore=test/test_parallel.py --ignore=test/test_parallel2.py
-        continue-on-error: ${{ matrix.os == 'windows-latest' }}
 
       - name: Run tests with coverage
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'

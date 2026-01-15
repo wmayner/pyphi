@@ -99,7 +99,9 @@ def test_deserialization_memoizes_duplicate_objects(s):
 
 @pytest.fixture
 def network_file(standard):
-    with tempfile.NamedTemporaryFile(mode="w+") as f:
+    # delete_on_close=False allows reopening the file by name on Windows
+    # (Windows doesn't allow opening a file that's already open)
+    with tempfile.NamedTemporaryFile(mode="w+", delete_on_close=False) as f:
         jsonify.dump(standard, f)
         f.seek(0)
         yield f
