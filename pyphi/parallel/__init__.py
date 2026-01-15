@@ -45,25 +45,27 @@ def get_num_processes() -> int:
     """Return the number of processes to use in parallel."""
     cpu_count = multiprocessing.cpu_count()
 
-    if config.NUMBER_OF_CORES == 0:
-        raise ValueError("Invalid NUMBER_OF_CORES; value may not be 0.")
+    if config.PARALLEL_WORKERS == 0:
+        raise ValueError("Invalid PARALLEL_WORKERS; value may not be 0.")
 
-    if cpu_count < config.NUMBER_OF_CORES:
+    if cpu_count < config.PARALLEL_WORKERS:
         log.info(
-            "Requesting %s cores; only %s available", config.NUMBER_OF_CORES, cpu_count
+            "Requesting %s workers; only %s CPUs available",
+            config.PARALLEL_WORKERS,
+            cpu_count,
         )
         return cpu_count
 
-    if config.NUMBER_OF_CORES < 0:
-        num = cpu_count + config.NUMBER_OF_CORES + 1
+    if config.PARALLEL_WORKERS < 0:
+        num = cpu_count + config.PARALLEL_WORKERS + 1
         if num <= 0:
             raise ValueError(
-                "Invalid NUMBER_OF_CORES; negative value is too negative: "
-                f"requesting {num} cores, {cpu_count} available."
+                "Invalid PARALLEL_WORKERS; negative value is too negative: "
+                f"requesting {num} workers, {cpu_count} CPUs available."
             )
         return num
 
-    return config.NUMBER_OF_CORES
+    return config.PARALLEL_WORKERS
 
 
 def false(*args, **kwargs) -> bool:

@@ -374,62 +374,62 @@ def test_cancel_all_with_futures():
 class TestGetNumProcesses:
     """Tests for get_num_processes edge cases."""
 
-    def test_zero_cores_raises_error(self):
-        """NUMBER_OF_CORES=0 raises ValueError."""
+    def test_zero_workers_raises_error(self):
+        """PARALLEL_WORKERS=0 raises ValueError."""
         from pyphi import config
 
         with (
-            config.override(NUMBER_OF_CORES=0),
+            config.override(PARALLEL_WORKERS=0),
             pytest.raises(ValueError, match="may not be 0"),
         ):
             parallel.get_num_processes()
 
-    def test_negative_cores_calculates_correctly(self):
-        """NUMBER_OF_CORES=-1 means all but one CPU."""
+    def test_negative_workers_calculates_correctly(self):
+        """PARALLEL_WORKERS=-1 means all CPUs, -2 means all but one."""
         import multiprocessing
 
         from pyphi import config
 
         cpu_count = multiprocessing.cpu_count()
-        with config.override(NUMBER_OF_CORES=-1):
+        with config.override(PARALLEL_WORKERS=-1):
             # -1 means cpu_count + (-1) + 1 = cpu_count
             assert parallel.get_num_processes() == cpu_count
 
-        with config.override(NUMBER_OF_CORES=-2):
+        with config.override(PARALLEL_WORKERS=-2):
             # -2 means cpu_count + (-2) + 1 = cpu_count - 1
             assert parallel.get_num_processes() == cpu_count - 1
 
-    def test_negative_cores_too_negative_raises(self):
-        """NUMBER_OF_CORES too negative raises ValueError."""
+    def test_negative_workers_too_negative_raises(self):
+        """PARALLEL_WORKERS too negative raises ValueError."""
         import multiprocessing
 
         from pyphi import config
 
         cpu_count = multiprocessing.cpu_count()
-        # e.g., if cpu_count=8, NUMBER_OF_CORES=-9 would give 0 or negative
+        # e.g., if cpu_count=8, PARALLEL_WORKERS=-9 would give 0 or negative
         too_negative = -(cpu_count + 1)
         with (
-            config.override(NUMBER_OF_CORES=too_negative),
+            config.override(PARALLEL_WORKERS=too_negative),
             pytest.raises(ValueError, match="too negative"),
         ):
             parallel.get_num_processes()
 
-    def test_cores_exceeds_available_returns_available(self):
-        """When requesting more cores than available, returns available count."""
+    def test_workers_exceeds_available_returns_available(self):
+        """When requesting more workers than CPUs, returns CPU count."""
         import multiprocessing
 
         from pyphi import config
 
         cpu_count = multiprocessing.cpu_count()
-        with config.override(NUMBER_OF_CORES=cpu_count + 10):
+        with config.override(PARALLEL_WORKERS=cpu_count + 10):
             result = parallel.get_num_processes()
             assert result == cpu_count
 
-    def test_positive_cores_returns_value(self):
-        """Positive NUMBER_OF_CORES returns that value."""
+    def test_positive_workers_returns_value(self):
+        """Positive PARALLEL_WORKERS returns that value."""
         from pyphi import config
 
-        with config.override(NUMBER_OF_CORES=2):
+        with config.override(PARALLEL_WORKERS=2):
             assert parallel.get_num_processes() == 2
 
 

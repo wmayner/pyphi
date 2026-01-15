@@ -39,10 +39,10 @@ STATE_TIE_RESOLUTION: PHI
 MIP_TIE_RESOLUTION: [NORMALIZED_PHI, NEGATIVE_PHI]
 # Determine how ties among maximally irreducible purviews are broken.
 PURVIEW_TIE_RESOLUTION: PHI
-# Controls the number of CPU cores used in parallel evaluation. Negative
-# numbers count backwards from the total number of available cores, with
-# ``-1`` meaning all available cores.
-NUMBER_OF_CORES: -1
+# Controls the number of worker processes used in parallel evaluation.
+# Negative numbers count backwards from the total number of available CPUs,
+# with ``-1`` meaning all available CPUs.
+PARALLEL_WORKERS: -1
 # Backend for parallel computation. Options: "local" (ProcessPoolExecutor),
 # "auto" (auto-detect best available).
 PARALLEL_BACKEND: "local"

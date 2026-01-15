@@ -585,13 +585,13 @@ class PyphiConfig(Config):
     """,
     )
 
-    NUMBER_OF_CORES = Option(
+    PARALLEL_WORKERS = Option(
         -1,
         type=int,
         doc="""
-    Controls the number of CPU cores used in parallel evaluation. Negative
-    numbers count backwards from the total number of available cores, with
-    ``-1`` meaning all available cores.""",
+    Controls the number of worker processes used in parallel evaluation.
+    Negative numbers count backwards from the total number of available CPUs,
+    with ``-1`` meaning all available CPUs.""",
     )
 
     MAXIMUM_CACHE_MEMORY_PERCENTAGE = Option(
