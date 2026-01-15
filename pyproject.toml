@@ -53,6 +53,14 @@ visualize = ["matplotlib", "networkx>=2.6.2", "plotly>=5.8.2", "seaborn"]
 graphs = ["igraph>=0.9.10", "networkx>=2.6.2"]
 caching = ["redis>=2.10.5"]
 emd = ["pyemd>=0.3.0"]
+substrate-modeler = [
+    "matplotlib>=3.10.8",
+    "networkx>=2.6.2",
+]
+notebooks = [
+    "ipykernel>=7.1.0",
+    "jupyterlab>=4.5.2",
+]
 
 [dependency-groups]
 dev = [
