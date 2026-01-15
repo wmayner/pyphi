@@ -242,12 +242,10 @@ def test_map_with_iterators_parallel(
 @given(
     list_and_index=list_and_index(anything_pickleable_and_hashable()),
     kwargs=map_reduce_kwargs_sequences(),
-    _parallel=st.booleans() | st.none(),
 )
 def test_map_with_shortcircuit(
     list_and_index,
     kwargs,
-    _parallel,
 ):
     def _func(items, **additional_kwargs):
         return parallel.MapReduce(
@@ -260,7 +258,7 @@ def test_map_with_shortcircuit(
     shortcircuit_tester(
         _func,
         list_and_index,
-        ordered=(not _parallel),
+        ordered=kwargs["ordered"],
     )
 
 
@@ -369,4 +367,70 @@ def test_cancel_all_with_futures():
     assert len(result) == 3
 
 
-# TODO(4.0) unit tests for tree.py
+# Tests for get_num_processes
+# ============================
+
+
+class TestGetNumProcesses:
+    """Tests for get_num_processes edge cases."""
+
+    def test_zero_cores_raises_error(self):
+        """NUMBER_OF_CORES=0 raises ValueError."""
+        from pyphi import config
+
+        with (
+            config.override(NUMBER_OF_CORES=0),
+            pytest.raises(ValueError, match="may not be 0"),
+        ):
+            parallel.get_num_processes()
+
+    def test_negative_cores_calculates_correctly(self):
+        """NUMBER_OF_CORES=-1 means all but one CPU."""
+        import multiprocessing
+
+        from pyphi import config
+
+        cpu_count = multiprocessing.cpu_count()
+        with config.override(NUMBER_OF_CORES=-1):
+            # -1 means cpu_count + (-1) + 1 = cpu_count
+            assert parallel.get_num_processes() == cpu_count
+
+        with config.override(NUMBER_OF_CORES=-2):
+            # -2 means cpu_count + (-2) + 1 = cpu_count - 1
+            assert parallel.get_num_processes() == cpu_count - 1
+
+    def test_negative_cores_too_negative_raises(self):
+        """NUMBER_OF_CORES too negative raises ValueError."""
+        import multiprocessing
+
+        from pyphi import config
+
+        cpu_count = multiprocessing.cpu_count()
+        # e.g., if cpu_count=8, NUMBER_OF_CORES=-9 would give 0 or negative
+        too_negative = -(cpu_count + 1)
+        with (
+            config.override(NUMBER_OF_CORES=too_negative),
+            pytest.raises(ValueError, match="too negative"),
+        ):
+            parallel.get_num_processes()
+
+    def test_cores_exceeds_available_returns_available(self):
+        """When requesting more cores than available, returns available count."""
+        import multiprocessing
+
+        from pyphi import config
+
+        cpu_count = multiprocessing.cpu_count()
+        with config.override(NUMBER_OF_CORES=cpu_count + 10):
+            result = parallel.get_num_processes()
+            assert result == cpu_count
+
+    def test_positive_cores_returns_value(self):
+        """Positive NUMBER_OF_CORES returns that value."""
+        from pyphi import config
+
+        with config.override(NUMBER_OF_CORES=2):
+            assert parallel.get_num_processes() == 2
+
+
+# NOTE: Tree module tests are now in test/test_tree.py
