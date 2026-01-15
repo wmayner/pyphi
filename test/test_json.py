@@ -99,10 +99,10 @@ def test_deserialization_memoizes_duplicate_objects(s):
 
 @pytest.fixture
 def network_file(standard):
-    f = tempfile.NamedTemporaryFile(mode="w+")
-    jsonify.dump(standard, f)
-    f.seek(0)
-    return f
+    with tempfile.NamedTemporaryFile(mode="w+") as f:
+        jsonify.dump(standard, f)
+        f.seek(0)
+        yield f
 
 
 def test_load(network_file, standard):
@@ -116,6 +116,8 @@ def test_network_from_json(network_file, standard):
 
 
 def test_version_check_during_deserialization(s):
+    import pyphi
+
     string = jsonify.dumps(s)
 
     # Change the version
@@ -123,7 +125,11 @@ def test_version_check_during_deserialization(s):
     _obj[jsonify.VERSION_KEY] = "0.1.bogus"
     string = json.dumps(_obj)
 
-    with pytest.raises(exceptions.JSONVersionError):
+    # Re-enable version validation (disabled globally in conftest.py)
+    with (
+        pyphi.config.override(VALIDATE_JSON_VERSION=True),
+        pytest.raises(exceptions.JSONVersionError),
+    ):
         jsonify.loads(string)
 
 
