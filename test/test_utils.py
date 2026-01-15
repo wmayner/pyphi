@@ -1,5 +1,6 @@
 import numpy as np
 from hypothesis import given
+from hypothesis import strategies as st
 
 from pyphi import config
 from pyphi import utils
@@ -130,3 +131,13 @@ def test_np_hashable():
 def test_try_len(iterable):
     expected = len(iterable) if hasattr(iterable, "__len__") else None
     assert utils.try_len(iterable) == expected
+
+
+@given(st.lists(iterable_or_list(anything())))
+def test_try_len_multiple_iterables(iterables):
+    """Test try_len returns minimum length when given multiple iterables."""
+    expected = min(
+        (len(it) for it in iterables if hasattr(it, "__len__")),
+        default=None,
+    )
+    assert utils.try_len(*iterables) == expected
