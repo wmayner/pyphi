@@ -4,9 +4,13 @@
   </a>
 </p>
 
-[![Documentation badge](https://readthedocs.org/projects/pyphi/badge/?style=flat-square&maxAge=600)](https://pyphi.readthedocs.io/)
-[![Coveralls.io badge](https://img.shields.io/coveralls/wmayner/pyphi/develop.svg?style=flat-square&maxAge=600)](https://coveralls.io/github/wmayner/pyphi?branch=develop)
-[![Python versions badge](https://img.shields.io/pypi/pyversions/pyphi.svg?style=flat-square&maxAge=86400)](https://wiki.python.org/moin/Python2orPython3)
+[![Tests](https://img.shields.io/github/actions/workflow/status/wmayner/pyphi/test.yml?branch=develop&style=flat-square&label=tests)](https://github.com/wmayner/pyphi/actions/workflows/test.yml)
+[![Build](https://img.shields.io/github/actions/workflow/status/wmayner/pyphi/build.yml?branch=develop&style=flat-square&label=build)](https://github.com/wmayner/pyphi/actions/workflows/build.yml)
+[![Codecov](https://img.shields.io/codecov/c/github/wmayner/pyphi/develop?style=flat-square)](https://codecov.io/gh/wmayner/pyphi)
+[![Documentation](https://img.shields.io/readthedocs/pyphi/stable?style=flat-square)](https://pyphi.readthedocs.io/)
+[![PyPI version](https://img.shields.io/pypi/v/pyphi?style=flat-square)](https://pypi.org/project/pyphi/)
+[![Python 3.12+](https://img.shields.io/pypi/pyversions/pyphi?style=flat-square)](https://pypi.org/project/pyphi/)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat-square)](https://www.gnu.org/licenses/gpl-3.0)
 
 PyPhi is a Python library for computing integrated information (𝚽), and the
 associated quantities and objects.
