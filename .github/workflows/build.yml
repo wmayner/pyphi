@@ -56,9 +56,17 @@ jobs:
           name: dist
           path: dist/
 
-      - name: Install wheel
+      - name: Create venv and install wheel
         shell: bash
-        run: uv pip install --system dist/*.whl
+        run: |
+          uv venv
+          uv pip install dist/*.whl
 
       - name: Test import
-        run: python -c "import pyphi; print('PyPhi imported successfully')"
+        shell: bash
+        run: |
+          if [ -f ".venv/bin/python" ]; then
+            .venv/bin/python -c "import pyphi; print('PyPhi imported successfully')"
+          else
+            .venv/Scripts/python -c "import pyphi; print('PyPhi imported successfully')"
+          fi
