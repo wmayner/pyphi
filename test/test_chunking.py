@@ -2,6 +2,7 @@
 
 from pyphi.parallel.chunking import adaptive_chunk
 from pyphi.parallel.chunking import calculate_target_work
+from pyphi.parallel.chunking import chunked_by_work
 from pyphi.parallel.chunking import estimate_total_work
 from pyphi.parallel.chunking import estimate_work_size
 
@@ -40,6 +41,14 @@ class TestEstimateWorkSize:
         assert estimate_work_size((1,), context="cut") == 2
         assert estimate_work_size((1, 2), context="cut") == 4
         assert estimate_work_size((1, 2, 3), context="cut") == 8
+
+    def test_complex_context(self):
+        """Complex context scales quadratically with size."""
+        # size^2 scaling
+        assert estimate_work_size((1,), context="complex") == 1
+        assert estimate_work_size((1, 2), context="complex") == 4
+        assert estimate_work_size((1, 2, 3), context="complex") == 9
+        assert estimate_work_size((1, 2, 3, 4), context="complex") == 16
 
     def test_unknown_context_returns_uniform(self):
         """Unknown context returns uniform weight."""
@@ -163,3 +172,70 @@ class TestCalculateTargetWork:
         # With max_chunks_per_worker=2, min target = total/(workers*2)
         target = calculate_target_work(100, num_workers=4, max_chunks_per_worker=2)
         assert target >= 100 / (4 * 2)
+
+
+class TestChunkedByWork:
+    """Tests for chunked_by_work high-level API."""
+
+    def test_basic_usage(self):
+        """Basic chunking with default parameters."""
+        items = list(range(20))
+        chunks = list(chunked_by_work(items, num_workers=4))
+        # Should produce some chunks
+        assert len(chunks) > 0
+        # All items should be present
+        all_items = [item for chunk in chunks for item in chunk]
+        assert set(all_items) == set(items)
+
+    def test_empty_iterable(self):
+        """Empty iterable yields nothing."""
+        chunks = list(chunked_by_work([], num_workers=4))
+        assert chunks == []
+
+    def test_zero_total_work(self):
+        """When total work is effectively zero, yields all items in one chunk."""
+
+        # With uniform context (default), each item has weight 1
+        # But if we use a size_func that returns 0, total_work is 0
+        def zero_size(_):
+            return 0
+
+        items = [1, 2, 3]
+        chunks = list(chunked_by_work(items, num_workers=4, size_func=zero_size))
+        # Should yield items in a single chunk when total_work is 0
+        assert len(chunks) == 1
+        assert chunks[0] == [1, 2, 3]
+
+    def test_with_custom_size_func(self):
+        """Custom size function is used for work estimation."""
+        items = [1, 2, 3, 4, 5]
+
+        # Custom: weight = value^2
+        def custom_func(x):
+            return x**2
+
+        chunks = list(chunked_by_work(items, num_workers=2, size_func=custom_func))
+        # With weights 1, 4, 9, 16, 25 = 55 total
+        # Should be divided into roughly balanced chunks
+        assert len(chunks) >= 1
+        all_items = [item for chunk in chunks for item in chunk]
+        assert set(all_items) == set(items)
+
+    def test_with_context(self):
+        """Context parameter is passed to work estimation."""
+        items = [(1,), (1, 2), (1, 2, 3)]
+        chunks = list(chunked_by_work(items, num_workers=2, context="mechanism"))
+        # Should produce chunks based on mechanism work estimation
+        assert len(chunks) >= 1
+        all_items = [item for chunk in chunks for item in chunk]
+        assert set(all_items) == set(items)
+
+    def test_materializes_generators(self):
+        """Works with generators (materializes them)."""
+
+        def gen():
+            yield from range(10)
+
+        chunks = list(chunked_by_work(gen(), num_workers=4))
+        all_items = [item for chunk in chunks for item in chunk]
+        assert set(all_items) == set(range(10))
