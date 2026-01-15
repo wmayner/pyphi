@@ -8,7 +8,6 @@ serialized and sent to worker processes.
 
 from __future__ import annotations
 
-import contextlib
 import logging
 import multiprocessing
 from collections.abc import Callable
@@ -89,7 +88,6 @@ def _process_chunk(
     map_func: Callable,
     map_kwargs: dict,
     shortcircuit_func: Callable,
-    progress_queue: multiprocessing.Queue | None = None,
 ) -> list:
     """Process a single chunk of work.
 
@@ -101,11 +99,6 @@ def _process_chunk(
     for args in zip(*chunk_iterables, strict=False):
         result = map_func(*args, **map_kwargs)
         results.append(result)
-
-        # Update progress if queue provided
-        if progress_queue is not None:
-            with contextlib.suppress(Exception):
-                progress_queue.put_nowait(1)
 
         # Check for short-circuit condition
         if shortcircuit_func(result):
@@ -122,7 +115,7 @@ class LocalMapReduce:
     - Cloudpickle support for functions defined in __main__ (Jupyter notebooks)
     - Tree-structured execution for hierarchical computations
     - Short-circuit support with future cancellation
-    - Thread-safe progress tracking via multiprocessing Queue
+    - Progress tracking compatible with Jupyter notebooks
     """
 
     def __init__(
@@ -245,9 +238,6 @@ class LocalMapReduce:
         """
         num_workers = get_num_processes()
 
-        # Get progress queue if progress tracking enabled
-        progress_queue = self.progress_bar.queue if self.progress_bar else None
-
         # Collect all chunks
         chunks = list(self._get_chunks())
 
@@ -270,7 +260,6 @@ class LocalMapReduce:
                 self.map_func,
                 self.map_kwargs,
                 self.shortcircuit_func,
-                progress_queue,
             )
             for chunk_tuple in chunks
         ]
@@ -281,6 +270,9 @@ class LocalMapReduce:
             for future in futures:
                 chunk_results = future.result()
                 results.extend(chunk_results)
+                # Update progress bar
+                if self.progress_bar is not None:
+                    self.progress_bar.update(len(chunk_results))
                 # Check for short-circuit in any of the chunk results
                 for r in chunk_results:
                     if self.shortcircuit_func(r):
@@ -295,6 +287,9 @@ class LocalMapReduce:
             for future in as_completed(futures):
                 chunk_results = future.result()
                 results.extend(chunk_results)
+                # Update progress bar
+                if self.progress_bar is not None:
+                    self.progress_bar.update(len(chunk_results))
                 # Check for short-circuit in any of the chunk results
                 for r in chunk_results:
                     if self.shortcircuit_func(r):
