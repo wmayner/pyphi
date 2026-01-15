@@ -65,6 +65,7 @@ dev = [
     "ruff",
     "sphinx",
     "sphinx-rtd-theme",
+    "towncrier>=24.8.0",
     "twine",
     "watchdog",
 ]
@@ -270,3 +271,50 @@ reportOptionalSubscript = true
 # Build graphillion from source to avoid macOS libgomp dependency issues
 # The PyPI wheel has hardcoded paths to Homebrew GCC's libgomp library
 graphillion = { git = "https://github.com/takemaru/graphillion" }
+
+[tool.towncrier]
+directory = "changelog.d"
+filename = "CHANGELOG.md"
+title_format = "{version}"
+underlines = ["-", "", ""]
+
+# Fragment types matching PyPhi's existing CHANGELOG categories
+[[tool.towncrier.type]]
+directory = "feature"
+name = "API additions"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "change"
+name = "API changes"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "config"
+name = "Config"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "optimization"
+name = "Optimizations"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "fix"
+name = "Fixes"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "doc"
+name = "Documentation"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "refactor"
+name = "Refactor"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "misc"
+name = "Misc"
+showcontent = false

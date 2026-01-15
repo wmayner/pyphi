@@ -32,3 +32,8 @@ repos:
     hooks:
       - id: pyright
         additional_dependencies: [types-PyYAML]
+
+  - repo: https://github.com/twisted/towncrier
+    rev: 24.8.0
+    hooks:
+      - id: towncrier-check

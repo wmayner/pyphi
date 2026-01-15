@@ -1,0 +1,1 @@
+Added `Direction.both()`

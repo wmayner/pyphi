@@ -1,0 +1,1 @@
+Added `connectivity.subadjacency()`

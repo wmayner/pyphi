@@ -1,0 +1,1 @@
+Define the minimum information partition at the system level as the partition that minimizes the absolute value of Φ, rather than the signed Φ value. This is relevant when using non-default system level distance measures, *e.g.* `config.USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE`.
