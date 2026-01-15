@@ -1,5 +1,10 @@
 # parallel/backends/local.py
-"""Local backend for parallel computation using ProcessPoolExecutor."""
+"""Local backend for parallel computation using loky.
+
+Uses loky (via joblib) instead of ProcessPoolExecutor for cloudpickle support,
+allowing functions defined in __main__ (e.g., Jupyter notebooks) to be
+serialized and sent to worker processes.
+"""
 
 from __future__ import annotations
 
@@ -10,10 +15,10 @@ from collections.abc import Callable
 from collections.abc import Iterable
 from collections.abc import Iterator
 from concurrent.futures import Future
-from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures import as_completed
 from typing import Any
 
+from joblib.externals.loky import get_reusable_executor
 from more_itertools import chunked_even
 from more_itertools import flatten
 
@@ -110,10 +115,11 @@ def _process_chunk(
 
 
 class LocalMapReduce:
-    """Single-machine parallelization using stdlib ProcessPoolExecutor.
+    """Single-machine parallelization using loky's reusable executor.
 
     Key features:
     - Low overhead (~1-5ms per task)
+    - Cloudpickle support for functions defined in __main__ (Jupyter notebooks)
     - Tree-structured execution for hierarchical computations
     - Short-circuit support with future cancellation
     - Thread-safe progress tracking via multiprocessing Queue
@@ -231,7 +237,12 @@ class LocalMapReduce:
         return self.result
 
     def _run_parallel(self) -> Any:
-        """Run computation in parallel using ProcessPoolExecutor."""
+        """Run computation in parallel using loky reusable executor.
+
+        Uses loky instead of ProcessPoolExecutor for cloudpickle support,
+        allowing functions defined in __main__ (e.g., Jupyter notebooks) to
+        be serialized and sent to worker processes.
+        """
         num_workers = get_num_processes()
 
         # Get progress queue if progress tracking enabled
@@ -248,50 +259,52 @@ class LocalMapReduce:
         results = []
         short_circuited = False
 
-        with ProcessPoolExecutor(max_workers=num_workers) as executor:
-            # Submit all chunks as futures
-            futures = [
-                executor.submit(
-                    _process_chunk,
-                    chunk_tuple,
-                    self.map_func,
-                    self.map_kwargs,
-                    self.shortcircuit_func,
-                    progress_queue,
-                )
-                for chunk_tuple in chunks
-            ]
-            self._futures = futures
+        # Use loky's reusable executor for cloudpickle support
+        executor = get_reusable_executor(max_workers=num_workers)
 
-            # Collect results in order of completion (or original order if ordered=True)
-            if self.ordered:
-                for future in futures:
-                    chunk_results = future.result()
-                    results.extend(chunk_results)
-                    # Check for short-circuit in any of the chunk results
-                    for r in chunk_results:
-                        if self.shortcircuit_func(r):
-                            short_circuited = True
-                            self._cancel_remaining(futures)
-                            if self.shortcircuit_callback is not None:
-                                self.shortcircuit_callback(futures)
-                            break
-                    if short_circuited:
+        # Submit all chunks as futures
+        futures = [
+            executor.submit(
+                _process_chunk,
+                chunk_tuple,
+                self.map_func,
+                self.map_kwargs,
+                self.shortcircuit_func,
+                progress_queue,
+            )
+            for chunk_tuple in chunks
+        ]
+        self._futures = futures
+
+        # Collect results in order of completion (or original order if ordered=True)
+        if self.ordered:
+            for future in futures:
+                chunk_results = future.result()
+                results.extend(chunk_results)
+                # Check for short-circuit in any of the chunk results
+                for r in chunk_results:
+                    if self.shortcircuit_func(r):
+                        short_circuited = True
+                        self._cancel_remaining(futures)
+                        if self.shortcircuit_callback is not None:
+                            self.shortcircuit_callback(futures)
                         break
-            else:
-                for future in as_completed(futures):
-                    chunk_results = future.result()
-                    results.extend(chunk_results)
-                    # Check for short-circuit in any of the chunk results
-                    for r in chunk_results:
-                        if self.shortcircuit_func(r):
-                            short_circuited = True
-                            self._cancel_remaining(futures)
-                            if self.shortcircuit_callback is not None:
-                                self.shortcircuit_callback(futures)
-                            break
-                    if short_circuited:
+                if short_circuited:
+                    break
+        else:
+            for future in as_completed(futures):
+                chunk_results = future.result()
+                results.extend(chunk_results)
+                # Check for short-circuit in any of the chunk results
+                for r in chunk_results:
+                    if self.shortcircuit_func(r):
+                        short_circuited = True
+                        self._cancel_remaining(futures)
+                        if self.shortcircuit_callback is not None:
+                            self.shortcircuit_callback(futures)
                         break
+                if short_circuited:
+                    break
 
         # Final reduction - apply user's reduce function
         self.result = _reduce(
