@@ -62,15 +62,13 @@ from collections.abc import Mapping
 from copy import copy
 from importlib.metadata import version
 from pathlib import Path
+from typing import ClassVar
 from warnings import warn
 
 import toolz
 import yaml
 
 from . import constants
-from .deferred.ray import NO_RAY
-from .deferred.ray import ray
-from .warnings import MissingOptionalDependenciesWarning
 from .warnings import PyPhiWarning
 
 log = logging.getLogger(__name__)
@@ -229,9 +227,15 @@ class Config:
     def __str__(self):
         return repr(self)
 
+    # Deprecated options that should be silently ignored when loading old configs
+    _DEPRECATED_OPTIONS: ClassVar[set[str]] = {"RAY_CONFIG"}
+
     def __setattr__(self, name, value):
         if name.startswith("_") or name in self.options():
             super().__setattr__(name, value)
+        elif name in self._DEPRECATED_OPTIONS:
+            # Silently ignore deprecated options for backwards compatibility
+            log.debug(f"Ignoring deprecated config option: {name}")
         else:
             raise ConfigurationError(f"{name} is not a valid config option")
 
@@ -389,30 +393,19 @@ def on_change_distinction_phi_normalization(obj, opt):
 
 
 def on_change_parallel_global(obj, opt):
-    if NO_RAY and obj[opt.name]:
-        warn(
-            message=(
-                f"""
-    '{opt.name}' option: """
-                + MissingOptionalDependenciesWarning.MSG.format(dependencies="parallel")
-            ),
-            category=MissingOptionalDependenciesWarning,
-            stacklevel=6,
-        )
+    """Handle changes to the global PARALLEL option.
+
+    No special handling needed - local backend is always available.
+    """
+    pass
 
 
 def on_change_parallel_suboption(obj, opt):
-    if NO_RAY and obj[opt.name].get("parallel"):
-        warn(
-            message=(
-                f"""
-    '{opt.name}' option: """
-                + MissingOptionalDependenciesWarning.MSG.format(dependencies="parallel")
-            ),
-            category=MissingOptionalDependenciesWarning,
-            stacklevel=6,
-        )
-        return
+    """Handle changes to parallel sub-options.
+
+    No special handling needed - local backend is always available.
+    """
+    pass
 
 
 # TODO(configuration) actual causation parallel config
@@ -507,8 +500,8 @@ class PyphiConfig(Config):
     never used, regardless of parallelization settings for individual options;
     otherwise parallelization is determined by those settings.
 
-    IMPORTANT: Parallelization requires extra dependencies; please install PyPhi
-    with `pyphi[parallel]` to enable parallelization.""",
+    The local backend uses Python's built-in ProcessPoolExecutor for fast
+    single-machine parallelization with low overhead (~1-5ms per task).""",
     )
 
     PARALLEL_COMPLEX_EVALUATION = Option(
@@ -592,13 +585,13 @@ class PyphiConfig(Config):
     """,
     )
 
-    NUMBER_OF_CORES = Option(
+    PARALLEL_WORKERS = Option(
         -1,
         type=int,
         doc="""
-    Controls the number of CPU cores used in parallel evaluation. Negative
-    numbers count backwards from the total number of available cores, with
-    ``-1`` meaning all available cores.""",
+    Controls the number of worker processes used in parallel evaluation.
+    Negative numbers count backwards from the total number of available CPUs,
+    with ``-1`` meaning all available CPUs.""",
     )
 
     MAXIMUM_CACHE_MEMORY_PERCENTAGE = Option(
@@ -611,12 +604,19 @@ class PyphiConfig(Config):
     system's RAM that the caches can collectively use.""",
     )
 
-    RAY_CONFIG = Option(
-        {},
-        type=dict,
+    PARALLEL_BACKEND = Option(
+        "local",
+        type=str,
         doc="""
-    Keyword arguments to ``ray.init()``. Controls the initialization of the Ray
-    cluster used for parallelization / distributed computation.""",
+    Backend for parallel computation:
+
+    - ``"local"``: Use ProcessPoolExecutor for fast single-machine
+      parallelization (default). Low overhead (~1-5ms per task).
+    - ``"auto"``: Auto-detect best available backend (currently always local).
+
+    Future backends planned:
+    - ``"dask"``: Cluster support via Dask (not yet implemented).
+    """,
     )
 
     CACHE_REPERTOIRES = Option(
@@ -1051,21 +1051,6 @@ def on_change_global(config):
 config = PyphiConfig(on_change=on_change_global)
 
 
-def on_driver():
-    if ray.is_initialized():  # pyright: ignore[reportAttributeAccessIssue]
-        try:
-            # Ignore warning log
-            # pyright: ignore[reportAttributeAccessIssue] - Optional ray dependency
-            current_level = ray.runtime_context.logger.level  # pyright: ignore[reportAttributeAccessIssue]
-            ray.runtime_context.logger.setLevel("ERROR")  # pyright: ignore[reportAttributeAccessIssue]
-            ray.get_runtime_context().get_task_id()  # pyright: ignore[reportAttributeAccessIssue]
-            ray.runtime_context.logger.setLevel(current_level)  # pyright: ignore[reportAttributeAccessIssue]
-            return False
-        except AssertionError:
-            pass
-    return True
-
-
 def driver_config():
     """Handle configuration for the main instance."""
     # We're a main instance; load the user config
@@ -1076,18 +1061,8 @@ def driver_config():
     write_to_cache(config)
 
 
-def remote_config():
-    """Handle configuration for remote instances."""
-    # We're in a remote instance; load the PyPhi-managed config
-    config.load_file(PYPHI_MANAGED_CONFIG_PATH)
-    # Disable progress bars on remote processes
-    config.PROGRESS_BARS = False
-
-
-if NO_RAY or on_driver():
-    driver_config()
-else:
-    remote_config()
+# With the local backend, we're always on the driver
+driver_config()
 
 # We've loaded/written; now we can allow loading
 _LOADED = True

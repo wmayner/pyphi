@@ -1,5 +1,5 @@
 # parallel/tree.py
-"""Classes for specifying distributed computations."""
+"""Classes for specifying parallel computation trees."""
 
 from dataclasses import dataclass
 
@@ -134,12 +134,10 @@ def get_constraints(
     max_leaves: int | None = None,
     branch_factor: int = 2,
 ) -> TreeConstraints:
-    cls = TreeConstraintsSize
-    if total is None:
-        if chunksize is None:
-            # No chunksize and no total; cannot determine tree size
-            raise ValueError("if no total is given, chunksize must be provided")
-        if not all(arg is None for arg in [max_size, max_leaves]):
+    # Use chunksize-based constraints if chunksize is explicitly provided.
+    # Otherwise use size-based constraints (calculates chunksize automatically).
+    if chunksize is not None:
+        if total is None and not all(arg is None for arg in [max_size, max_leaves]):
             # Cannot enforce max_size or max_leaves with chunksize constraints if
             # total is not given
             raise ValueError(
@@ -147,6 +145,11 @@ def get_constraints(
                 f"got max_size={max_size}, max_leaves={max_leaves}"
             )
         cls = TreeConstraintsChunksize
+    elif total is None:
+        # No chunksize and no total; cannot determine tree size
+        raise ValueError("if no total is given, chunksize must be provided")
+    else:
+        cls = TreeConstraintsSize
     return cls(
         total=total,
         chunksize=chunksize,

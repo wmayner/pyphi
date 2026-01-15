@@ -39,16 +39,16 @@ STATE_TIE_RESOLUTION: PHI
 MIP_TIE_RESOLUTION: [NORMALIZED_PHI, NEGATIVE_PHI]
 # Determine how ties among maximally irreducible purviews are broken.
 PURVIEW_TIE_RESOLUTION: PHI
-# Controls the number of CPU cores used in parallel evaluation. Negative
-# numbers count backwards from the total number of available cores, with
-# ``-1`` meaning all available cores.
-NUMBER_OF_CORES: -1
+# Controls the number of worker processes used in parallel evaluation.
+# Negative numbers count backwards from the total number of available CPUs,
+# with ``-1`` meaning all available CPUs.
+PARALLEL_WORKERS: -1
+# Backend for parallel computation. Options: "local" (ProcessPoolExecutor),
+# "auto" (auto-detect best available).
+PARALLEL_BACKEND: "local"
 # Global switch to turn off parallelization: if ``False``, parallelization is
 # never used, regardless of parallelization settings for individual options;
 # otherwise parallelization is determined by those settings.
-# IMPORTANT:
-#   Parallelization requires extra dependencies, which must be
-#   installed with `pyphi[parallel]`.
 PARALLEL: false
 # Controls parallel evaluation of candidate systems within a network.
 PARALLEL_COMPLEX_EVALUATION:
@@ -98,9 +98,6 @@ PRINT_FRACTIONS: true
 # used, regardless of progress settings for individual options; otherwise the
 # use of progress bars is determined by those settings.
 PROGRESS_BARS: true
-# Keyword arguments to ``ray.init()``. Controls the initialization of the Ray
-# cluster used for parallelization / distributed computation.
-RAY_CONFIG: {}
 # Use a Redis server as a MICE cache.
 REDIS_CACHE: false
 # Redis connection configuration

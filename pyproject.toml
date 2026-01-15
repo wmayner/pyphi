@@ -46,7 +46,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-parallel = ["ray[default]>=1.9.2"]
+# Note: Single-machine parallelization uses stdlib ProcessPoolExecutor - no extra deps needed.
+# The 'cluster' extra will be available in v2.0 for Dask-based cluster support.
+# cluster = ["dask[distributed]>=2024.1.0", "dask-jobqueue>=0.8.0"]
 visualize = ["matplotlib", "networkx>=2.6.2", "plotly>=5.8.2", "seaborn"]
 graphs = ["igraph>=0.9.10", "networkx>=2.6.2"]
 caching = ["redis>=2.10.5"]
@@ -193,6 +195,7 @@ max-statements = 100
 "pyphi/models/mechanism.py" = ["ARG001"]
 "pyphi/models/subsystem.py" = ["ARG002"]
 "pyphi/parallel/__init__.py" = ["ARG001", "PLW0603"]
+"pyphi/parallel/chunking.py" = ["PLR0911"]  # Many return statements in estimate_work_size
 "pyphi/relations.py" = ["ARG001", "ARG002"]
 "pyphi/subsystem.py" = ["ARG002"]
 "pyphi/visualize/phi_structure/__init__.py" = ["ARG001"]
