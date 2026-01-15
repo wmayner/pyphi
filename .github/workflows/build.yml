@@ -28,9 +28,7 @@ jobs:
         run: uv build
 
       - name: Check distribution
-        run: |
-          uv pip install twine
-          uv run twine check dist/*
+        run: uvx twine check dist/*
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -60,8 +58,7 @@ jobs:
 
       - name: Install wheel
         shell: bash
-        run: |
-          uv pip install dist/*.whl
+        run: uv pip install --system dist/*.whl
 
       - name: Test import
-        run: uv run python -c "import pyphi; print('PyPhi imported successfully')"
+        run: python -c "import pyphi; print('PyPhi imported successfully')"

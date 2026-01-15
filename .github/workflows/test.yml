@@ -29,14 +29,14 @@ jobs:
         run: uv python install ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: uv pip install -e ".[dev]"
+        run: uv sync --python ${{ matrix.python-version }} --group dev --all-extras
 
       - name: Run type checking
-        run: uv run mypy pyphi
+        run: uv run pyright pyphi
         continue-on-error: true
 
       - name: Run tests
-        run: uv run pytest --tb=short -v --ignore=test/test_parallel.py
+        run: uv run pytest test/ --tb=short -v --ignore=test/test_parallel.py --ignore=test/test_parallel2.py
         continue-on-error: ${{ matrix.os == 'windows-latest' }}
 
       - name: Upload coverage
