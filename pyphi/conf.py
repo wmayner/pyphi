@@ -762,6 +762,15 @@ class PyphiConfig(Config):
     independent.""",
     )
 
+    VALIDATE_JSON_VERSION = Option(
+        True,
+        type=bool,
+        doc="""
+    Controls whether PyPhi validates that JSON data was saved with a compatible
+    version. If set to ``False``, JSON from any version can be loaded, which
+    may cause errors if the data format changed between versions.""",
+    )
+
     SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI = Option(
         True,
         type=bool,

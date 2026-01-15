@@ -51,6 +51,21 @@ ENUM_CLASS_KEY = "__enum_class__"
 
 PYPHI_VERSION = get_version("pyphi")
 
+
+def _parse_version(version_str: str) -> tuple[str, str | None]:
+    """Parse version into (base_version, dev_suffix).
+
+    Examples:
+        "2.0.0a1" -> ("2.0.0a1", None)
+        "1.2.1.dev1534+g12345" -> ("1.2.1", "dev1534+g12345")
+    """
+    # Check for .dev suffix pattern (common with hatch-vcs)
+    if ".dev" in version_str:
+        parts = version_str.split(".dev", 1)
+        return parts[0], "dev" + parts[1]
+    return version_str, None
+
+
 # TODO: extend to `macro` objects
 # TODO: resolve schema issues with `vphi` and other external consumers
 # TODO: somehow check schema instead of version?
@@ -251,13 +266,31 @@ def dump(obj, fp, **user_kwargs):
     return json.dump(obj, fp, **_encoder_kwargs(user_kwargs))
 
 
-def _check_version(version):
-    """Check whether the JSON version matches the PyPhi version."""
-    if version != PYPHI_VERSION:
-        raise pyphi.exceptions.JSONVersionError(  # pyright: ignore[reportAttributeAccessIssue]
-            "Cannot load JSON from a different version of PyPhi. "
-            f"JSON version = {version}, current version = {PYPHI_VERSION}."
-        )
+def _check_version(version: str) -> None:
+    """Check whether the JSON version is compatible with current PyPhi version.
+
+    The check can be disabled via config.VALIDATE_JSON_VERSION. When enabled,
+    versions are considered compatible if:
+    1. They match exactly, OR
+    2. Their base versions match (ignoring .dev suffixes from hatch-vcs)
+    """
+    if not pyphi.config.VALIDATE_JSON_VERSION:
+        return
+
+    if version == PYPHI_VERSION:
+        return
+
+    json_base, _ = _parse_version(version)
+    current_base, _ = _parse_version(PYPHI_VERSION)
+
+    if json_base == current_base:
+        # Same base version, just different dev builds
+        return
+
+    raise pyphi.exceptions.JSONVersionError(  # pyright: ignore[reportAttributeAccessIssue]
+        f"Cannot load JSON from incompatible PyPhi version. "
+        f"JSON version = {version}, current version = {PYPHI_VERSION}."
+    )
 
 
 def _is_loadable_model_object(obj):
