@@ -32,11 +32,17 @@ jobs:
         run: uv sync --python ${{ matrix.python-version }} --group dev --all-extras
 
       - name: Run tests
+        if: ${{ !(matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12') }}
         run: uv run pytest test/ --tb=short -v --ignore=test/test_parallel.py --ignore=test/test_parallel2.py
         continue-on-error: ${{ matrix.os == 'windows-latest' }}
 
-      - name: Upload coverage
+      - name: Run tests with coverage
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+        run: uv run pytest test/ --tb=short -v --ignore=test/test_parallel.py --ignore=test/test_parallel2.py --cov=pyphi --cov-report=xml
+
+      - name: Upload coverage to Codecov
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
         uses: codecov/codecov-action@v5
         with:
+          files: ./coverage.xml
           fail_ci_if_error: false

@@ -61,6 +61,7 @@ dev = [
     "coverage",
     "hypothesis",
     "pre-commit",
+    "pytest-cov",
     "pyright>=1.1.407",
     "pytest<8.0.0",
     "pytest-lazy-fixture",
@@ -234,6 +235,7 @@ filterwarnings = [
 
 [tool.coverage.run]
 branch = true
+source = ["pyphi"]
 
 [tool.coverage.report]
 exclude_lines = [
