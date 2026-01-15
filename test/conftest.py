@@ -1,11 +1,16 @@
 import numpy as np
 import pytest
 
+import pyphi
 from pyphi import Network
 from pyphi import actual
 from pyphi import jsonify
 
 from . import example_networks
+
+# Disable JSON version validation for tests
+# Test data may be generated with different pyphi versions than what CI derives
+pyphi.config.VALIDATE_JSON_VERSION = False
 
 # Pytest configuration
 # =============================================================================
