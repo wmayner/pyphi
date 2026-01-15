@@ -146,6 +146,12 @@ class DistanceResult(PyPhiFloat):
             return f"DistanceResult({float(self)}, {aux_str})"
         return f"DistanceResult({float(self)})"
 
+    def __str__(self):
+        """Short representation for use in formatted output."""
+        from pyphi.models import fmt
+
+        return fmt.fmt_number(float(self))
+
     def _preserve_aux_data(self, other_result):
         """Copy auxiliary data from another DistanceResult if this one wins a
         comparison."""
