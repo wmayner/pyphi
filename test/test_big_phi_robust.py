@@ -175,17 +175,17 @@ class TestSIAComponentStructure:
         # Check cause repertoire exists and has required attributes
         assert result.cause is not None, "SIA missing cause repertoire"
         assert hasattr(result.cause, "phi"), "Cause RIA missing phi attribute"
-        assert hasattr(
-            result.cause, "mechanism"
-        ), "Cause RIA missing mechanism attribute"
+        assert hasattr(result.cause, "mechanism"), (
+            "Cause RIA missing mechanism attribute"
+        )
         assert hasattr(result.cause, "purview"), "Cause RIA missing purview attribute"
 
         # Check effect repertoire exists and has required attributes
         assert result.effect is not None, "SIA missing effect repertoire"
         assert hasattr(result.effect, "phi"), "Effect RIA missing phi attribute"
-        assert hasattr(
-            result.effect, "mechanism"
-        ), "Effect RIA missing mechanism attribute"
+        assert hasattr(result.effect, "mechanism"), (
+            "Effect RIA missing mechanism attribute"
+        )
         assert hasattr(result.effect, "purview"), "Effect RIA missing purview attribute"
 
     def test_sia_standard_example_has_system_state(self, s):
@@ -242,9 +242,9 @@ class TestPartitionTypes:
 
         # System has phi > 0, so should have non-null partition
         assert result.phi > 0, "Standard example should have phi > 0"
-        assert not isinstance(
-            result.partition, NullCut
-        ), "Irreducible system has NullCut partition"
+        assert not isinstance(result.partition, NullCut), (
+            "Irreducible system has NullCut partition"
+        )
 
     def test_reducible_system_has_null_partition(self, reducible):
         """Reducible system should have null partition.
@@ -254,12 +254,12 @@ class TestPartitionTypes:
         """
         result = reducible.sia()
 
-        assert isinstance(
-            result, NullSystemIrreducibilityAnalysis
-        ), "Reducible system should return NullSIA"
-        assert isinstance(
-            result.partition, NullCut
-        ), "Reducible system should have NullCut partition"
+        assert isinstance(result, NullSystemIrreducibilityAnalysis), (
+            "Reducible system should return NullSIA"
+        )
+        assert isinstance(result.partition, NullCut), (
+            "Reducible system should have NullCut partition"
+        )
         assert result.phi == 0.0, "Reducible system should have phi=0"
 
     def test_empty_subsystem_has_null_partition(self, s_empty):
@@ -270,12 +270,12 @@ class TestPartitionTypes:
         """
         result = s_empty.sia()
 
-        assert isinstance(
-            result, NullSystemIrreducibilityAnalysis
-        ), "Empty subsystem should return NullSIA"
-        assert isinstance(
-            result.partition, NullCut
-        ), "Empty subsystem should have NullCut partition"
+        assert isinstance(result, NullSystemIrreducibilityAnalysis), (
+            "Empty subsystem should return NullSIA"
+        )
+        assert isinstance(result.partition, NullCut), (
+            "Empty subsystem should have NullCut partition"
+        )
         assert result.phi == 0.0, "Empty subsystem should have phi=0"
 
 
