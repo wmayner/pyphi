@@ -1,5 +1,6 @@
 import numpy as np
-import pyphi
+
+from .. import convert
 
 
 def map_to_floor_and_ceil(y, floor, ceiling):
@@ -11,4 +12,4 @@ def reshape_to_md(tpm):
     try:
         return tpm.reshape([2] * N + [1], order="F").astype(float)
     except:
-        return pyphi.convert.to_md(tpm)
+        return convert.to_md(tpm)

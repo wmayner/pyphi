@@ -1,11 +1,14 @@
+from collections.abc import Callable
+
 import numpy as np
+from numpy.typing import NDArray
 
 from .utils import reshape_to_md
 
 
-def selective(expanded_tpms):
+def selective(expanded_tpms: NDArray[np.floating]) -> NDArray[np.floating]:
 
-    def get_selective(P):
+    def get_selective(P: NDArray[np.floating]) -> float:
         Q = np.array([np.abs(p - 0.5) for p in P])
         return P[np.argmax(Q)]
 
@@ -19,7 +22,7 @@ def selective(expanded_tpms):
     )
 
 
-def average(expanded_tpms):
+def average(expanded_tpms: NDArray[np.floating]) -> NDArray[np.floating]:
 
     return reshape_to_md(
         np.array(
@@ -31,7 +34,7 @@ def average(expanded_tpms):
     )
 
 
-def maximal(expanded_tpms):
+def maximal(expanded_tpms: NDArray[np.floating]) -> NDArray[np.floating]:
 
     return reshape_to_md(
         np.array(
@@ -43,9 +46,9 @@ def maximal(expanded_tpms):
     )
 
 
-def first_necessary(expanded_tpms):
+def first_necessary(expanded_tpms: NDArray[np.floating]) -> NDArray[np.floating]:
 
-    def first_necessary(ap):
+    def first_necessary(ap: NDArray[np.floating]) -> float:
         # non-primary units boost activation probability as a function of the primary unit's activation probability
         primary = ap[0]
 
@@ -67,7 +70,7 @@ def first_necessary(expanded_tpms):
     )
 
 
-def integrator(expanded_tpms):
+def integrator(expanded_tpms: NDArray[np.floating]) -> NDArray[np.floating]:
 
     def get_cumulated_probability(activation_probabilities):
         cumsum = np.sum(activation_probabilities)
@@ -88,7 +91,7 @@ def integrator(expanded_tpms):
     )
 
 
-def serial(expanded_tpms):
+def serial(expanded_tpms: NDArray[np.floating]) -> NDArray[np.floating]:
 
     def serial_func(P):
         remainder = 1
@@ -106,7 +109,7 @@ def serial(expanded_tpms):
     )
 
 
-MECHANISM_COMBINATIONS = {
+MECHANISM_COMBINATIONS: dict[str, Callable[[NDArray[np.floating]], NDArray[np.floating]]] = {
     "selective": selective,
     "average": average,
     "maximal": maximal,
