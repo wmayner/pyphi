@@ -1,643 +1,368 @@
-"""
-unit.py
-=============
-This module provides functionality for creating units that constitute substrate models in Integrated information theory.
-The 'unit' module is separated into three sections:
+"""Unit classes for substrate modeling.
 
-
-Section 1 - Unit classes
-------------------------
-Defines three classes (and a helper class)
-        HelperClass -- TPMdict
-    Class 1 -- BaseUnit
-    Class 2 -- Unit
-    Class 3 -- CompositeUnit
-Please refer to the docstrings for information about each of these.
-
-Section 2 - Unit (I/O) functions
---------------------------------
-This section contains functions for creating unit TPMs. That is, it provides specific, predifined functions that can be used to define units.
-
-Section 3 - Unit validation
----------------------------
-This section contains functions for validating the creation of units and their TPMs.
-
+This module provides the Unit and CompositeUnit classes for defining nodes
+in substrate models. Units define a node's dynamics (mechanism, inputs, params)
+without holding state - state is passed explicitly when computing TPMs.
 """
 
-# TODO:
-# - Understand what is wrong with composite units. Something with TPM and indexing of inputs
-# - allow for non-binary units
-# - Deal with modulation (put into unit params?)
-# - Create validation for units!
-
-
-from typing import Union, Tuple, List, Callable
+from collections.abc import Callable
 
 import numpy as np
-import pyphi
+from numpy.typing import NDArray
 
-from pyphi.tpm import ExplicitTPM
+from ..tpm import ExplicitTPM
+from .. import utils
 
 from .unit_functions import UNIT_FUNCTIONS
 from .mechanism_combinations import MECHANISM_COMBINATIONS
 
 
-class TPMDict(dict):
-    """
-    A dictionary-like class for caching transition probability matrices (TPMs)
-    associated with a given `unit`.
+class TPMCache(dict):
+    """Cache for computed unit TPMs, keyed by (unit_state, input_state).
 
-    Parameters:
-    -----------
-    unit : object
-        An object with a `tpm` method that returns a TPM associated with the current
-        `unit` state and `input` state.
-
-    Methods:
-    --------
-    __getitem__(self, substrate_state):
-        Return the TPM associated with the given `substrate_state`.
-        If the TPM is not already cached, calculate it using the inferred `unit` state
-        and `input` state.
-
-    __missing__(self, state):
-        Calculate the TPM associated with the given `state` (a tuple containing the `unit`
-        state and `input` state), store it for future use, and return it.
-
-    Attributes:
-    -----------
-    unit : object
-        An object with a `tpm` method that returns a TPM associated with the current
-        `unit` state and `input` state.
+    This is a pure cache with no side effects - it simply memoizes calls to
+    unit.compute_tpm().
     """
 
-    def __init__(self, unit):
-        """
-        Initialize the TPMDict object.
+    def __init__(self, unit: "Unit"):
+        super().__init__()
+        self._unit = unit
 
-        Parameters:
-        -----------
-        unit : object
-            An object with a `tpm` method that returns a TPM associated with the
-            `unit` state and `input` state inferred from the substrate state key.
-        """
-        self.unit = unit
+    def __getitem__(self, substrate_state: tuple[int, ...]) -> ExplicitTPM:
+        """Get the TPM for the given substrate state, computing if needed.
 
-    def __getitem__(self, substrate_state):
-        """
-        Return the TPM associated with the given `substrate_state`.
-        If the TPM is not already cached, calculate it using the inferred `unit` state
-        and `input` state.
-
-        Parameters:
-        -----------
-        substrate_state : tuple
-            A tuple containing the substrate state.
+        Args:
+            substrate_state: The full state of all units in the substrate.
 
         Returns:
-        --------
-        tpm : numpy.ndarray
-            The transition probability matrix associated with the given `substrate_state`.
+            The unit's TPM for its state and input state extracted from
+            the substrate state.
         """
-        # infer the unit state and input state from substrate state
-        unit_state = (substrate_state[self.unit.index],)
-        input_state = tuple([substrate_state[i] for i in self.unit.inputs])
+        unit_state = substrate_state[self._unit.index]
+        input_state = tuple(substrate_state[i] for i in self._unit.inputs)
+        key = (unit_state, input_state)
 
-        try:
-            return super().__getitem__((unit_state, input_state))
-        except KeyError:
-            return self.__missing__((unit_state, input_state))
-
-    def __missing__(self, state):
-        """
-        Calculate the TPM associated with the given 'state' (a tuple containing the `unit`
-        state and `input` state), store it for future use, and return it.
-
-        Parameters:
-        -----------
-        state : tuple
-            A tuple containing the `unit` state and `input` state.
-
-        Returns:
-        --------
-        tpm : numpy.ndarray
-            The transition probability matrix associated with the given `state`.
-        """
-        # store original states, so as to reset it after extracting the tpm
-        orig_state = self.unit.state, self.unit.input_state
-
-        # set unit state
-        self.unit.state = state[0]
-
-        # set input state
-        self.unit.input_state = state[1]
-
-        # create tpm
-        tpm = self.unit.tpm
-
-        # cache the value for future use
-        self[state] = tpm
-
-        # reset unit state
-        self.unit.state = orig_state[0]
-
-        # reset input state
-        self.unit.input_state = orig_state[1]
-
-        return tpm
+        if key not in self:
+            self[key] = self._unit.compute_tpm(unit_state, input_state)
+        return super().__getitem__(key)
 
 
-class BaseUnit:
-    """
-    Represents a basic unit in a substrate, with a binary state and input connections.
+class Unit:
+    """A unit in a substrate model.
+
+    Represents a node's dynamics: its mechanism (I/O function), inputs, and
+    parameters. Units are stateless - state is passed explicitly when computing
+    TPMs.
 
     Args:
-        index (int): The index of the unit in the list of units.
-        state (Union[int, Tuple[int,]]): The binary state of the unit, either as an int (0 or 1) or a tuple of ints.
-        label (str, optional): A label for the unit. Defaults to None.
-        inputs (tuple[int], optional): A tuple of indices of units that input to this unit. Defaults to (None,).
-        input_state (tuple[int], optional): The binary state of the input units, as a tuple of ints. Defaults to (None,).
-
-    Attributes:
-        index (int): The index of the unit in the substrate.
-        state (Tuple[int,]): The binary state of the unit, as a tuple (length 1) or int.
-        label (str): A string label for the unit.
-        inputs (tuple[int]): A tuple of indices of units that input to this unit.
-        input_state (tuple[int]): The binary state of the input units, as a tuple of ints.
+        index: The unit's index in the substrate.
+        inputs: Indices of units that provide input to this unit.
+        mechanism: Either a string naming a built-in mechanism (e.g., 'and',
+            'sigmoid'), a callable mechanism function, or a numpy array
+            representing a raw TPM.
+        params: Parameters passed to the mechanism function.
+        label: Display label for the unit. Defaults to str(index).
+        original_index: The unit's original index before any re-indexing.
+            Defaults to index.
     """
 
     def __init__(
         self,
         index: int,
-        state: Union[int, Tuple[int,]],
-        label: str = None,
-        inputs: tuple[int] = (None,),
-        input_state: tuple[int] = (None,),
-        state_space: tuple[str] = (0, 1),
-        original_index: int = False,
+        inputs: tuple[int, ...],
+        mechanism: Callable | str | NDArray[np.floating],
+        params: dict | None = None,
+        label: str | None = None,
+        original_index: int | None = None,
     ):
-
-        # This unit's index in the list of units.
         self._index = index
+        self._inputs = tuple(inputs)
+        self._label = label if label is not None else str(index)
+        self._original_index = original_index if original_index is not None else index
+        self._params = params if params is not None else {}
 
-        # Node labels used in the system
-        if label is None:
-            label = str(index)
-        self._label = label
-
-        # List of indices that input to the unit (one pr mechanism).
-        self._inputs = inputs
-
-        # Set unit state
-        self._state = state
-        if type(state) == int:
-            if self._state not in (0, 1):
-                raise ValueError("state must be 0 or 1")
-            self._state = (state,)
+        # Resolve mechanism
+        if isinstance(mechanism, str):
+            self._mechanism_type = mechanism
+            self._mechanism = UNIT_FUNCTIONS[mechanism]
+        elif isinstance(mechanism, np.ndarray):
+            self._mechanism_type = "raw_tpm"
+            self._mechanism = mechanism
         else:
-            if state[0] not in (0, 1):
-                raise ValueError("state must be 0 or 1")
+            self._mechanism_type = "custom"
+            self._mechanism = mechanism
 
-        #  and input state
-        if not all([s in (0, 1) for s in input_state]):
-            raise ValueError("all input states must be 0 or 1")
-        self._input_state = input_state
-
-        self.state_space = state_space
-
-        if not original_index:
-            original_index = index
-        self._original_index = original_index
+        # Initialize TPM cache
+        self._tpm_cache = TPMCache(self)
 
     @property
-    def index(self):
-        """int: The index of the unit in the list of units."""
+    def index(self) -> int:
+        """The unit's index in the substrate."""
         return self._index
 
     @index.setter
-    def index(self, index: int):
-        self._index = index
-        self.index
+    def index(self, value: int) -> None:
+        self._index = value
+        # Invalidate cache since index changed
+        self._tpm_cache = TPMCache(self)
 
     @property
-    def state(self):
-        """
-        Tuple[int,]: The binary state of the unit, as a tuple of ints.
-
-        Raises:
-            ValueError: If the state is not a valid binary value (0 or 1).
-        """
-        if type(self._state) is int:
-            return (self._state,)
-        else:
-            return self._state
-
-    @state.setter
-    def state(self, state: Union[int, Tuple[int,]]):
-        self._state = state
-        self.state
-
-    @property
-    def label(self):
-        """str: A label for the unit."""
-        return self._label
-
-    @label.setter
-    def label(self, label: str):
-        self._label = label
-        self.label
-
-    @property
-    def inputs(self):
-        """tuple[int]: A tuple of indices of units that input to this unit."""
+    def inputs(self) -> tuple[int, ...]:
+        """Indices of units that provide input to this unit."""
         return self._inputs
 
-    @inputs.setter
-    def inputs(self, inputs: tuple[int]):
-        """tuple[int]: A tuple of indices of units that input to this unit."""
-        self._inputs = inputs
-        self.inouts
+    @property
+    def label(self) -> str:
+        """Display label for the unit."""
+        return self._label
 
     @property
-    def input_state(self):
-        """
-        tuple[int]: The binary state of the input units, as a tuple of ints.
-        """
-        return self._input_state
-
-    @input_state.setter
-    def input_state(self, input_state: tuple[int]):
-        """
-        Set the binary state of the input units.
-
-        Args:
-            input_state (tuple[int]): The binary state of the input units, as a tuple of ints.
-
-        Raises:
-            ValueError: If any of the input states are not a valid binary value (0 or 1).
-        """
-        self._input_state = input_state
-        self.input_state
-
-    @property
-    def original_index(self):
-        """int: The index of the unit in the list of units."""
+    def original_index(self) -> int:
+        """The unit's original index before any re-indexing."""
         return self._original_index
 
-    @original_index.setter
-    def original_index(self, index: int):
-        self._original_index = index
-        self.original_index
-
-    def __repr__(self):
-        """
-        Return a string representation of the unit.
-        """
-        return "Unit(label={}, state={})".format(self.label, self.state)
-
-    def __str__(self):
-        """
-        Return a string representation of the unit.
-        """
-        return self.__repr__()
-
-
-class Unit(BaseUnit):
-    """
-    Represents a functional unit in a system, with a binary state and input connections,
-    as well as additional parameters specific to the unit's input-output mechanism.
-
-    Args:
-        index (int): The index of the unit in the list of units.
-        state (Union[int, Tuple[int,]]): The binary state of the unit, either as an int (0 or 1) or a tuple of ints.
-        inputs (tuple[int]): A tuple of indices of units that input to this unit.
-        input_state (tuple[int]): The binary state of the input units, as a tuple of ints.
-        mechanism (str): The type of unit mechanism (e.g., 'and', 'or', etc. see unit_functions).
-        params (dict): A dictionary of parameters specifying to the unit's mechanism.
-        label (str, optional): A label for the unit. Defaults to None.
-
-    Attributes:
-        index (int): The index of the unit in the list of units.
-        state (Tuple[int,]): The binary state of the unit, as a tuple of ints.
-        label (str): A label for the unit.
-        inputs (tuple[int]): A tuple of indices of units that input to this unit.
-        input_state (tuple[int]): The binary state of the input units, as a tuple of ints.
-        params (dict): A dictionary of parameters specific to the unit's mechanism.
-        mechanism (str): The type of unit mechanism (e.g., 'and', 'or', etc.).
-        tpm (numpy.ndarray): The truth table of the unit, as a numpy array of binary values.
-    """
-
-    def __init__(
-        self,
-        index: int,
-        inputs: tuple[int],
-        mechanism: Union[Callable, str, np.array],
-        state: Union[int, Tuple[int,]] = None,
-        state_space: Tuple[str] = (0, 1),
-        input_state: tuple[int] = None,
-        params: dict = None,
-        label: str = None,
-        unit_type: str = "custom",
-        original_index: int = False,
-    ):
-        if type(state) is int:
-            state = (state,)
-        super().__init__(
-            index=index,
-            state=state,
-            state_space=state_space,
-            label=label,
-            inputs=inputs,
-            input_state=input_state,
-            original_index=original_index,
-        )
-
-        # Store the parameters
-        self._params = params
-
-        # Store the type of unit and get mechanism function
-        if isinstance(mechanism, str):
-            unit_type = str(mechanism)
-            mechanism = UNIT_FUNCTIONS[mechanism]
-
-        self._type = unit_type
-        self._mechanism = mechanism
-
-        # set tpm
-        self.tpm
-
-        # initialize the local storage variable for unit TPM
-        self._state_dependent_tpm = TPMDict(self)
-
-        # validate unit
-        assert self.validate(), "Unit did not pass validation"
-
     @property
-    def params(self):
-        """
-        dict: A dictionary of parameters specific to the unit's mechanism.
-        """
-        return self._params
-
-    @property
-    def mechanism(self):
-        """
-        str: The type of unit mechanism (e.g., 'and', 'or', etc.).
-        """
+    def mechanism(self) -> Callable | NDArray[np.floating]:
+        """The mechanism function or raw TPM array."""
         return self._mechanism
 
     @property
-    def tpm(self):
-        """
-        numpy.ndarray: The truth table of the unit, as a numpy array of binary values.
-        """
-        if self._params is None:
-            if type(self.mechanism) is np.ndarray:
-                self._tpm = self.mechanism
-            else:
-                self._tpm = None
-        else:
-            self._tpm = self.mechanism(self, **self.params)
-        return ExplicitTPM(self._tpm)
+    def mechanism_type(self) -> str:
+        """String name of the mechanism type."""
+        return self._mechanism_type
 
-    def state_dependent_tpm(self, substrate_state: tuple[int]):
-        """
-        Set the binary state of the input units and return the truth table of the unit.
+    @property
+    def params(self) -> dict:
+        """Parameters passed to the mechanism function."""
+        return self._params
+
+    def compute_tpm(self, state: int, input_state: tuple[int, ...]) -> ExplicitTPM:
+        """Compute this unit's TPM for the given state.
 
         Args:
-            substrate_state (tuple[int]): The binary state of the substrate units, as a tuple of ints.
+            state: This unit's current binary state (0 or 1).
+            input_state: Current states of this unit's input units.
 
         Returns:
-            numpy.ndarray: The truth table of the unit, as a numpy array of binary values.
+            The unit's transition probability matrix.
         """
-        return self._state_dependent_tpm[substrate_state]
-
-    def validate(self):
-        """Return whether the specifications for the unit are valid.
-
-        The checks for validity are defined in the local UNIT_FUNCTIONS object.
-        """
-        return True
-
-    def __repr__(self):
-        return "Unit(type={}, label={}, state={})".format(
-            self._type, self.label, self.state
+        if isinstance(self._mechanism, np.ndarray):
+            return ExplicitTPM(self._mechanism)
+        return ExplicitTPM(
+            self._mechanism(self, state, input_state, **self._params)
         )
 
-    def __eq__(self, other):
-        """Return whether this unitis identical to another.
+    def state_dependent_tpm(self, substrate_state: tuple[int, ...]) -> ExplicitTPM:
+        """Get the TPM for the given substrate state (cached).
 
-        Two nodes are equal if they have the same TPMs, states, and inputs.
+        Args:
+            substrate_state: The full state of all units in the substrate.
 
-        Labels are for display only, so two equal nodes may have different
-        labels.
+        Returns:
+            The unit's TPM for its state and input state extracted from
+            the substrate state.
         """
+        return self._tpm_cache[substrate_state]
+
+    def __repr__(self) -> str:
+        return f"Unit(type={self._mechanism_type}, label={self._label}, inputs={self._inputs})"
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Unit):
+            return NotImplemented
         return (
-            np.array_equal(self.tpm, other.tpm)
-            and self.state == other.state
-            and self.inputs == other.inputs
+            self._mechanism_type == other._mechanism_type
+            and self._inputs == other._inputs
+            and self._params == other._params
+            # For raw TPM mechanisms, compare the arrays
+            and (
+                np.array_equal(self._mechanism, other._mechanism)
+                if isinstance(self._mechanism, np.ndarray)
+                else self._mechanism == other._mechanism
+            )
         )
 
-    def __copy__(self):
+    def __hash__(self) -> int:
+        # Hash based on immutable structural properties
+        return hash((self._mechanism_type, self._inputs, tuple(self._params.items())))
+
+    def __copy__(self) -> "Unit":
+        if isinstance(self._mechanism, np.ndarray):
+            mechanism = np.array(self._mechanism)
+        elif self._mechanism_type != "custom":
+            mechanism = self._mechanism_type
+        else:
+            mechanism = self._mechanism
         return Unit(
-            self.index,
-            self.inputs,
-            input_state=self.input_state,
-            mechanism=self.mechanism,
-            params=self.params,
-            label=self.label,
-            state=self.state,
+            index=self._index,
+            inputs=self._inputs,
+            mechanism=mechanism,
+            params=self._params.copy() if self._params else None,
+            label=self._label,
+            original_index=self._original_index,
         )
 
-    # TODO?
-    def to_json(self):
+    def to_json(self) -> dict:
         """Return a JSON-serializable representation."""
-        return self.index
+        return {
+            "index": self._index,
+            "inputs": self._inputs,
+            "mechanism_type": self._mechanism_type,
+            "params": self._params,
+            "label": self._label,
+            "original_index": self._original_index,
+        }
 
 
 class CompositeUnit(Unit):
-    """
-    Represents a composite unit in a system, composed of multiple individual units.
+    """A unit composed of multiple sub-units.
+
+    The composite unit's TPM is computed by combining the TPMs of its
+    sub-units according to a specified combination strategy.
 
     Args:
-        index (int): The index of the composite unit in the list of units.
-        state (Union[int, Tuple[int,]]): The binary state of the composite unit, either as an int (0 or 1) or a tuple of ints.
-        units (List[Unit]): A list of individual units that compose the composite unit.
-        label (str, optional): The label for the composite unit.
-        mechanism_combination (Union[str, np.ndarray, dict], optional): The mechanism(s) used to combine the individual units' truth tables into a composite truth table.
-
-    Attributes:
-        inputs (tuple[int]): The indices of the input units to the composite unit.
-        input_state (tuple[int]): The binary states of the input units to the composite unit.
-        tpm (numpy.ndarray): The truth table of the composite unit, as a numpy array of binary values.
-
-    Methods:
-
+        index: The composite unit's index in the substrate.
+        units: The sub-units that make up this composite unit.
+        label: Display label for the unit.
+        mechanism_combination: How to combine sub-unit TPMs. Either a string
+            naming a built-in combination (e.g., 'selective', 'average'),
+            or a callable.
+        original_index: The unit's original index before any re-indexing.
     """
 
     def __init__(
         self,
         index: int,
-        units: List[Unit],
-        state: Union[int, Tuple[int,]],
-        label: str = None,
-        mechanism_combination: Union[str, np.ndarray, dict] = None,
+        units: tuple[Unit, ...],
+        label: str | None = None,
+        mechanism_combination: str | Callable | None = None,
+        original_index: int | None = None,
     ):
-        # store the list of `Unit` objects that make up this `CompositeUnit`
-        self.units = units
+        self._sub_units = units
 
-        # Store the waythe tpms from the component `Unit`s combine to give the composit I/O function
-        if isinstance(mechanism_combination, str):
-            mechanism_combination = MECHANISM_COMBINATIONS[mechanism_combination]
-        self._mechanism_combination = mechanism_combination
+        # Resolve combination function
+        if mechanism_combination is None:
+            self._mechanism_combination = MECHANISM_COMBINATIONS["selective"]
+        elif isinstance(mechanism_combination, str):
+            self._mechanism_combination = MECHANISM_COMBINATIONS[mechanism_combination]
+        else:
+            self._mechanism_combination = mechanism_combination
 
-        # Determine the input indices of the `CompositeUnit`
-        self.inputs
+        # Inputs are the union of all sub-unit inputs
+        all_inputs = sorted(set(i for unit in units for i in unit.inputs))
 
-        # Determine the input state of the `CompositeUnit`
-        self.input_state
-
-        if type(state) is int:
-            state = (state,)
-        # Initialize the unit object
         super().__init__(
             index=index,
-            state=state,
-            inputs=self._inputs,
-            input_state=self._input_state,
-            mechanism="composite",  #: {}'.format('+'.join([unit.mechanism for unit in self.units])),
-            params=None,
+            inputs=tuple(all_inputs),
+            mechanism="composite",  # Marker; compute_tpm is overridden
             label=label,
+            original_index=original_index,
         )
 
-        # get the TPM of the composite unit
-        self.tpm
-
     @property
-    def inputs(self):
-        """
-        tuple[int]: The indices of the input units to the composite unit.
-        """
-        all_inputs = tuple(set([ix for unit in self.units for ix in unit._inputs]))
-        self._inputs = tuple(sorted(all_inputs))
-        return self._inputs
+    def sub_units(self) -> tuple[Unit, ...]:
+        """The sub-units that make up this composite unit."""
+        return self._sub_units
 
-    @property
-    def state(self):
-        """
-        tuple[int]: The binary states of the input units to the composite unit.
-        """
-        self._state = (
-            np.max(
-                [
-                    unit.state[0] if type(unit.state) is tuple else unit.state
-                    for unit in self.units
-                ]
-            ),
-        )
-        return self._state
-
-    @state.setter
-    def state(self, unit_state: Union[Tuple[int], int]):
-        """
-        Set the binary states of the input units to the composite unit.
+    def compute_tpm(self, state: int, input_state: tuple[int, ...]) -> ExplicitTPM:
+        """Compute the composite TPM by combining sub-unit TPMs.
 
         Args:
-            input_state (tuple[int]): The binary states of the input units, as a tuple of ints.
-        """
-        if type(unit_state) is int:
-            unit_state = (unit_state,)
-        # update state of units
-        for unit in self.units:
-            unit.state = unit_state
-        self._state = unit_state
-        self.state
+            state: This unit's current binary state (0 or 1).
+            input_state: Current states of this unit's input units.
 
-    @property
-    def input_state(self):
+        Returns:
+            The composite unit's TPM.
         """
-        tuple[int]: The binary states of the input units to the composite unit.
-        """
-        state_dict = dict()
-        for unit in self.units:
-            for ix, state in zip(unit._inputs, unit._input_state):
-                # NOTE! if there are conflicts, the latter will be used
-                state_dict[ix] = state
-
-        self._input_state = tuple([state_dict[ix] for ix in self._inputs])
-        return self._input_state
-
-    @input_state.setter
-    def input_state(self, input_state: Tuple[int]):
-        """
-        Set the binary states of the input units to the composite unit.
-
-        Args:
-            input_state (tuple[int]): The binary states of the input units, as a tuple of ints.
-        """
-        # update state of units
-        for unit in self.units:
-            unit.input_state = tuple(
-                [
-                    state
-                    for state, i in zip(input_state, self._inputs)
-                    if i in unit._inputs
-                ]
+        tpms = []
+        for sub_unit in self._sub_units:
+            # Map composite input_state to sub-unit input_state
+            sub_input_state = tuple(
+                input_state[self._inputs.index(i)] for i in sub_unit.inputs
             )
-        self._input_state = input_state
-        self.input_state
+            tpms.append(sub_unit.compute_tpm(state, sub_input_state))
 
-    @property
-    def tpm(self):
+        expanded = self._expand_tpms(tpms)
+        return self._apply_tpm_combination(expanded)
+
+    def _expand_tpms(self, tpms: list[ExplicitTPM]) -> NDArray[np.floating]:
+        """Expand sub-unit TPMs to the full input space.
+
+        Each sub-unit may have different inputs. This method expands each
+        sub-unit's TPM so they all have the same shape, indexed by the
+        composite unit's full input set.
+
+        Args:
+            tpms: List of TPMs from sub-units.
+
+        Returns:
+            Array of shape (n_states, n_sub_units) where n_states is 2^n_inputs.
         """
-        numpy.ndarray: The truth table of the composite unit, as a numpy array of binary values.
-        """
-        tpms = [unit.tpm for unit in self.units]
-        return self.combine_unit_tpms(tpms)
-
-    def combine_unit_tpms(self, tpms):
-        # Check this
-        expanded_tpm = self.expand_tpms(tpms)
-
-        # combine subunit TPMs into composite unit tpm
-        return self.apply_tpm_combination(expanded_tpm)
-
-    def expand_tpms(self, tpms):
-        def get_subset_state(state, subset_indices):
-            """tuple[int (binary)]: the state of a subset of indices.
-
-            Args:
-                state (tuple[int(binary)]): The (binary) state of the full set of inputs.
-                subset_indices (tuple[int]): The indices (relative to the state) for the subset.
-            """
-            return tuple([state[ix] for ix in subset_indices])
+        def get_subset_state(
+            full_state: tuple[int, ...], subset_indices: tuple[int, ...]
+        ) -> tuple[int, ...]:
+            """Extract the state of a subset of indices from a full state."""
+            return tuple(full_state[ix] for ix in subset_indices)
 
         expanded_tpms = []
-        for tpm, unit in zip(tpms, self.units):
-
-            # get indices of unit inputs among the composite unit inputs
-            unit_specific_inputs = tuple(
-                [self._inputs.index(i) for i in self._inputs if i in unit._inputs]
+        for tpm, sub_unit in zip(tpms, self._sub_units):
+            # Get indices of sub-unit inputs within composite unit inputs
+            sub_unit_input_indices = tuple(
+                self._inputs.index(i) for i in sub_unit.inputs
             )
 
-            # get mechanism activation probabilities for all potential input states
+            # Get activation probability for each possible input state
             mechanism_activation = []
-            for state in pyphi.utils.all_states(len(self._inputs)):
-                P = tpm[get_subset_state(state, unit_specific_inputs)]
-
-                if not type(P) in (float, np.float64):  # np.ndarray:
-                    P = P[0]
-                mechanism_activation.append(P)
+            for full_state in utils.all_states(len(self._inputs)):
+                sub_state = get_subset_state(full_state, sub_unit_input_indices)
+                prob = tpm[sub_state]
+                if not isinstance(prob, (int, float, np.number)):
+                    prob = float(prob[0])
+                mechanism_activation.append(float(prob))
 
             expanded_tpms.append(mechanism_activation)
 
-        # make the TPMs into an array of correct shape
         return np.array(expanded_tpms).T
 
-    def apply_tpm_combination(self, expanded_tpms):
+    def _apply_tpm_combination(
+        self, expanded_tpms: NDArray[np.floating]
+    ) -> ExplicitTPM:
+        """Apply the combination function to expanded TPMs.
+
+        Args:
+            expanded_tpms: Array of shape (n_states, n_sub_units).
+
+        Returns:
+            Combined TPM.
+        """
         return ExplicitTPM(self._mechanism_combination(expanded_tpms))
 
-    # TODO do we need more than the index?
-    def to_json(self):
+    def __repr__(self) -> str:
+        return (
+            f"CompositeUnit(label={self._label}, "
+            f"sub_units={[u.label for u in self._sub_units]}, "
+            f"inputs={self._inputs})"
+        )
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, CompositeUnit):
+            return NotImplemented
+        return (
+            self._sub_units == other._sub_units
+            and self._mechanism_combination == other._mechanism_combination
+        )
+
+    def __hash__(self) -> int:
+        return hash((self._sub_units, self._mechanism_combination))
+
+    def to_json(self) -> dict:
         """Return a JSON-serializable representation."""
-        return self.index
+        return {
+            "index": self._index,
+            "sub_units": [u.to_json() for u in self._sub_units],
+            "label": self._label,
+            "original_index": self._original_index,
+        }
