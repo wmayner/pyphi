@@ -14,7 +14,7 @@ from ..tpm import ExplicitTPM
 from ..labels import NodeLabels
 from ..network import Network
 from ..subsystem import Subsystem
-from .unit import Unit
+from .unit import Unit, CompositeUnit
 from .utils import reshape_to_md
 
 
@@ -169,3 +169,93 @@ class Substrate:
         return {
             "units": [u.to_json() for u in self._units],
         }
+
+
+def create_substrate(
+    node_params: dict,
+    labels: list[str] | None = None,
+    implicit: bool = False,
+) -> Substrate:
+    """Create a Substrate from a dictionary of per-node parameters.
+
+    This is a convenience factory that handles inferring inputs from
+    connectivity matrices and extracting input weights from weight matrices.
+
+    Args:
+        node_params: Per-node params, indexed by node index or label.
+            Each entry should specify at minimum:
+                - ``"mechanism"``: str
+                - ``"inputs"``: tuple of input indices, or a connectivity
+                  matrix (np.ndarray) from which inputs are inferred
+                - ``"params"``: dict of mechanism parameters. If
+                  ``"input_weights"`` is an np.ndarray (weight matrix),
+                  weights are extracted automatically.
+                - ``"composite"``: list of sub-unit dicts (optional).
+                  Each sub-unit dict has the same structure as above.
+                - ``"mechanism_combination"``: str (optional, for composite
+                  units; defaults to ``"selective"``).
+        labels: Optional list of labels for nodes. Defaults to string indices.
+        implicit: Whether to use implicit (factored) TPM representation.
+
+    Returns:
+        A Substrate built from the given parameters.
+    """
+    n = len(node_params)
+    labels = labels or [str(i) for i in range(n)]
+
+    units = []
+    for i in range(n):
+        label = labels[i]
+        p = node_params.get(i) or node_params.get(label)
+        if p is None:
+            raise ValueError(f"No parameters for node {i}/{label}")
+
+        if "composite" in p:
+            sub_units = []
+            for sub in p["composite"]:
+                sub_inputs = _resolve_inputs(sub.get("inputs"), i)
+                params = _resolve_params(dict(sub["params"]), sub_inputs, i)
+                sub_units.append(
+                    Unit(
+                        index=i,
+                        label=label,
+                        inputs=tuple(sub_inputs),
+                        mechanism=sub["mechanism"],
+                        params=params,
+                    )
+                )
+            u = CompositeUnit(
+                index=i,
+                label=label,
+                units=tuple(sub_units),
+                mechanism_combination=p.get("mechanism_combination", "selective"),
+            )
+        else:
+            inputs = _resolve_inputs(p.get("inputs"), i)
+            params = _resolve_params(dict(p["params"]), inputs, i)
+            u = Unit(
+                index=i,
+                label=label,
+                inputs=tuple(inputs),
+                mechanism=p["mechanism"],
+                params=params,
+            )
+
+        units.append(u)
+
+    return Substrate(tuple(units), implicit=implicit)
+
+
+def _resolve_inputs(inputs_or_cm: tuple | list | np.ndarray, node_index: int) -> list[int]:
+    """Extract input indices from either explicit inputs or a connectivity matrix."""
+    if isinstance(inputs_or_cm, np.ndarray):
+        return list(np.nonzero(inputs_or_cm[:, node_index])[0])
+    return list(inputs_or_cm)
+
+
+def _resolve_params(params: dict, inputs: list[int], node_index: int) -> dict:
+    """Extract per-node input weights from a weight matrix if needed."""
+    if "input_weights" in params and isinstance(params["input_weights"], np.ndarray):
+        W = params["input_weights"]
+        params["input_weights"] = tuple(W[j, node_index] for j in inputs)
+    return params
