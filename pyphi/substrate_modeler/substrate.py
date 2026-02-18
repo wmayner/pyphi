@@ -55,43 +55,64 @@ class Substrate:
         """The labels of the units in the substrate."""
         return NodeLabels([unit.label for unit in self._units], self.node_indices)
 
-    def compute_tpm(self, state: tuple[int, ...]) -> ExplicitTPM:
-        """Compute the substrate TPM for the given present state.
+    def compute_tpm(
+        self,
+        state: tuple[int, ...],
+        input_state: tuple[int, ...] | None = None,
+    ) -> ExplicitTPM:
+        """Compute the substrate TPM for the given state and input state.
+
+        The mechanisms are configured according to ``state`` and
+        ``input_state``, then transition probabilities are computed for every
+        possible ``from_state``.
 
         Args:
-            state: The present state of all units in the substrate.
+            state: The current state of the substrate. Determines each unit's
+                own binary state for state-dependent mechanisms.
+            input_state: The input state of the substrate. Determines each
+                unit's input states for input-dependent mechanisms. Defaults
+                to ``state``.
 
         Returns:
             The substrate's TPM as an ExplicitTPM.
         """
-        all_past_states = list(utils.all_states(len(self._units)))
-        show_progress = len(all_past_states) > PROGRESS_BAR_THRESHOLD
+        if input_state is None:
+            input_state = state
+        all_from_states = list(utils.all_states(len(self._units)))
+        show_progress = len(all_from_states) > PROGRESS_BAR_THRESHOLD
         rows = [
-            self._combine_unit_tpms(past_state, state)
-            for past_state in (
-                tqdm(all_past_states) if show_progress else all_past_states
+            self._combine_unit_tpms(from_state, state, input_state)
+            for from_state in (
+                tqdm(all_from_states) if show_progress else all_from_states
             )
         ]
         return ExplicitTPM(reshape_to_md(np.array(rows)))
 
     def _combine_unit_tpms(
         self,
-        past_state: tuple[int, ...],
-        present_state: tuple[int, ...],
+        from_state: tuple[int, ...],
+        state: tuple[int, ...],
+        input_state: tuple[int, ...],
     ) -> list[float]:
-        """Combine unit TPMs for a single past/present state pair.
+        """Combine unit TPMs for a single transition row.
 
         Args:
-            past_state: The state at the previous time step.
-            present_state: The state at the current time step.
+            from_state: The state being transitioned from (indexes into unit
+                TPMs to select the row).
+            state: The current state of the substrate (determines each unit's
+                own binary state for state-dependent mechanisms).
+            input_state: The input state of the substrate (determines each
+                unit's input states for input-dependent mechanisms).
 
         Returns:
             Activation probabilities for each unit.
         """
         probs = []
         for unit in self._units:
-            unit_tpm = unit.state_dependent_tpm(present_state)
-            pp = unit_tpm[tuple(past_state[i] for i in unit.inputs)]
+            unit_state = state[unit.index]
+            unit_input_state = tuple(input_state[i] for i in unit.inputs)
+            unit_tpm = unit.compute_tpm(unit_state, unit_input_state)
+            pp = unit_tpm[tuple(from_state[i] for i in unit.inputs)]
             if not isinstance(pp, (int, float, np.number)):
                 probs.append(float(pp[0]))
             else:
@@ -100,14 +121,15 @@ class Substrate:
 
     @cached_property
     def dynamic_tpm(self) -> ExplicitTPM:
-        """The state-independent (dynamic) TPM of the substrate.
+        """The dynamic TPM of the substrate.
 
-        For each state, the present state equals the past state.
+        For each row, the substrate is configured as if it is in that row's
+        state: ``from_state = state = input_state = s``.
         """
         all_states = list(utils.all_states(len(self._units)))
         show_progress = len(all_states) > PROGRESS_BAR_THRESHOLD
         rows = [
-            self._combine_unit_tpms(s, s)
+            self._combine_unit_tpms(s, s, s)
             for s in (tqdm(all_states) if show_progress else all_states)
         ]
         return ExplicitTPM(reshape_to_md(np.array(rows)))
@@ -135,26 +157,37 @@ class Substrate:
             return NotImplemented
         return self._units == other._units
 
-    def network(self, state: tuple[int, ...]) -> Network:
+    def network(
+        self,
+        state: tuple[int, ...],
+        input_state: tuple[int, ...] | None = None,
+    ) -> Network:
         """Get a Network for the given state.
 
         Args:
-            state: The present state of the substrate.
+            state: The current state of the substrate.
+            input_state: The input state of the substrate. Defaults to
+                ``state``.
 
         Returns:
             A Network with the substrate's TPM conditioned on the given state.
         """
-        return Network(self.compute_tpm(state), self.cm, self.node_labels)
+        return Network(
+            self.compute_tpm(state, input_state), self.cm, self.node_labels
+        )
 
     def subsystem(
         self,
         state: tuple[int, ...],
+        input_state: tuple[int, ...] | None = None,
         nodes: tuple[int, ...] | None = None,
     ) -> Subsystem:
         """Get a Subsystem for the given state.
 
         Args:
-            state: The present state of the substrate.
+            state: The current state of the substrate.
+            input_state: The input state of the substrate. Defaults to
+                ``state``.
             nodes: The node indices to include. Defaults to all nodes.
 
         Returns:
@@ -162,7 +195,7 @@ class Substrate:
         """
         if nodes is None:
             nodes = self.node_indices
-        return Subsystem(self.network(state), state, nodes)
+        return Subsystem(self.network(state, input_state), state, nodes)
 
     def to_json(self) -> dict:
         """Return a JSON-serializable representation."""
