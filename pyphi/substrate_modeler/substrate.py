@@ -6,17 +6,17 @@ when computing TPMs, Networks, or Subsystems.
 
 from functools import cached_property
 
-from tqdm.auto import tqdm
 import numpy as np
+from tqdm.auto import tqdm
 
 from .. import utils
-from ..tpm import ExplicitTPM
 from ..labels import NodeLabels
 from ..network import Network
 from ..subsystem import Subsystem
-from .unit import Unit, CompositeUnit
+from ..tpm import ExplicitTPM
+from .unit import CompositeUnit
+from .unit import Unit
 from .utils import reshape_to_md
-
 
 PROGRESS_BAR_THRESHOLD = 2**20
 
@@ -172,9 +172,7 @@ class Substrate:
         Returns:
             A Network with the substrate's TPM conditioned on the given state.
         """
-        return Network(
-            self.compute_tpm(state, input_state), self.cm, self.node_labels
-        )
+        return Network(self.compute_tpm(state, input_state), self.cm, self.node_labels)
 
     def subsystem(
         self,
@@ -279,7 +277,9 @@ def create_substrate(
     return Substrate(tuple(units), implicit=implicit)
 
 
-def _resolve_inputs(inputs_or_cm: tuple | list | np.ndarray, node_index: int) -> list[int]:
+def _resolve_inputs(
+    inputs_or_cm: tuple | list | np.ndarray, node_index: int
+) -> list[int]:
     """Extract input indices from either explicit inputs or a connectivity matrix."""
     if isinstance(inputs_or_cm, np.ndarray):
         return list(np.nonzero(inputs_or_cm[:, node_index])[0])

@@ -10,11 +10,10 @@ from collections.abc import Callable
 import numpy as np
 from numpy.typing import NDArray
 
-from ..tpm import ExplicitTPM
 from .. import utils
-
-from .unit_functions import UNIT_FUNCTIONS
+from ..tpm import ExplicitTPM
 from .mechanism_combinations import MECHANISM_COMBINATIONS
+from .unit_functions import UNIT_FUNCTIONS
 
 
 class TPMCache(dict):
@@ -148,9 +147,7 @@ class Unit:
         """
         if isinstance(self._mechanism, np.ndarray):
             return ExplicitTPM(self._mechanism)
-        return ExplicitTPM(
-            self._mechanism(self, state, input_state, **self._params)
-        )
+        return ExplicitTPM(self._mechanism(self, state, input_state, **self._params))
 
     def state_dependent_tpm(self, substrate_state: tuple[int, ...]) -> ExplicitTPM:
         """Get the TPM for the given substrate state (cached).
@@ -301,6 +298,7 @@ class CompositeUnit(Unit):
         Returns:
             Array of shape (n_states, n_sub_units) where n_states is 2^n_inputs.
         """
+
         def get_subset_state(
             full_state: tuple[int, ...], subset_indices: tuple[int, ...]
         ) -> tuple[int, ...]:
@@ -327,9 +325,7 @@ class CompositeUnit(Unit):
 
         return np.array(expanded_tpms).T
 
-    def _apply_tpm_combination(
-        self, expanded_tpms: NDArray[np.floating]
-    ) -> ExplicitTPM:
+    def _apply_tpm_combination(self, expanded_tpms: NDArray[np.floating]) -> ExplicitTPM:
         """Apply the combination function to expanded TPMs.
 
         Args:

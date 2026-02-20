@@ -3,8 +3,9 @@
 import numpy as np
 import pytest
 
-from pyphi.substrate_modeler import Unit, CompositeUnit, Substrate, UNIT_FUNCTIONS
-
+from pyphi.substrate_modeler import CompositeUnit
+from pyphi.substrate_modeler import Substrate
+from pyphi.substrate_modeler import Unit
 
 # =============================================================================
 # Unit construction
@@ -256,17 +257,13 @@ class TestCompositeUnit:
     def test_inputs_aggregated(self):
         sub_a = Unit(index=0, inputs=(1,), mechanism="copy")
         sub_b = Unit(index=0, inputs=(2,), mechanism="copy")
-        composite = CompositeUnit(
-            index=0, units=(sub_a, sub_b), label="C"
-        )
+        composite = CompositeUnit(index=0, units=(sub_a, sub_b), label="C")
         assert set(composite.inputs) == {1, 2}
 
     def test_compute_tpm_shape(self):
         sub_a = Unit(index=0, inputs=(1,), mechanism="copy")
         sub_b = Unit(index=0, inputs=(2,), mechanism="copy")
-        composite = CompositeUnit(
-            index=0, units=(sub_a, sub_b), label="C"
-        )
+        composite = CompositeUnit(index=0, units=(sub_a, sub_b), label="C")
         tpm = composite.compute_tpm(state=0, input_state=(0, 0))
         # Should produce a valid TPM
         arr = np.array(tpm)
@@ -354,11 +351,13 @@ class TestSubstrateCM:
 class TestSubstrateTPM:
     def _make_and_gate_substrate(self):
         """3-node substrate: C = A AND B, with A and B as copy gates."""
-        return Substrate((
-            Unit(index=0, inputs=(0,), mechanism="copy", label="A"),
-            Unit(index=1, inputs=(1,), mechanism="copy", label="B"),
-            Unit(index=2, inputs=(0, 1), mechanism="and", label="C"),
-        ))
+        return Substrate(
+            (
+                Unit(index=0, inputs=(0,), mechanism="copy", label="A"),
+                Unit(index=1, inputs=(1,), mechanism="copy", label="B"),
+                Unit(index=2, inputs=(0, 1), mechanism="and", label="C"),
+            )
+        )
 
     def test_compute_tpm_shape(self):
         substrate = self._make_and_gate_substrate()
@@ -405,10 +404,12 @@ class TestSubstrateTPM:
 
 class TestSubstrateNetworkAndSubsystem:
     def _make_simple_substrate(self):
-        return Substrate((
-            Unit(index=0, inputs=(1,), mechanism="copy", label="A"),
-            Unit(index=1, inputs=(0,), mechanism="copy", label="B"),
-        ))
+        return Substrate(
+            (
+                Unit(index=0, inputs=(1,), mechanism="copy", label="A"),
+                Unit(index=1, inputs=(0,), mechanism="copy", label="B"),
+            )
+        )
 
     def test_network_returns_network(self):
         from pyphi.network import Network
@@ -462,11 +463,13 @@ class TestSubstrateEquality:
 class TestIntegration:
     def test_and_gate_subsystem_concept(self):
         """Build a 3-node AND substrate, get a subsystem, and compute a concept."""
-        substrate = Substrate((
-            Unit(index=0, inputs=(0,), mechanism="copy", label="A"),
-            Unit(index=1, inputs=(1,), mechanism="copy", label="B"),
-            Unit(index=2, inputs=(0, 1), mechanism="and", label="C"),
-        ))
+        substrate = Substrate(
+            (
+                Unit(index=0, inputs=(0,), mechanism="copy", label="A"),
+                Unit(index=1, inputs=(1,), mechanism="copy", label="B"),
+                Unit(index=2, inputs=(0, 1), mechanism="and", label="C"),
+            )
+        )
         sub = substrate.subsystem((1, 1, 1))
         # Compute concept for mechanism (2,) — the AND gate
         concept = sub.concept((2,))

@@ -1,7 +1,8 @@
-from typing import Any, TYPE_CHECKING
+from itertools import product
+from typing import TYPE_CHECKING
+from typing import Any
 
 import numpy as np
-from itertools import product
 
 from .. import utils
 from .utils import map_to_floor_and_ceil
@@ -283,9 +284,7 @@ def weighted_mean(
 
     tpm = np.ones((2,) * N)
     for s in utils.all_states(N):
-        wm = (
-            sum((1 + w * (x * 2 - 1)) / 2 for w, x in zip(weights, s)) / N
-        )
+        wm = sum((1 + w * (x * 2 - 1)) / 2 for w, x in zip(weights, s)) / N
         tpm[s] = wm * (ceiling - floor) + floor
 
     return tpm
@@ -343,9 +342,7 @@ def mismatch_corrector(
         )
 
     if bias > 1:
-        raise ValueError(
-            f"bias must be <= 1 for unit {unit.label}, got {bias}."
-        )
+        raise ValueError(f"bias must be <= 1 for unit {unit.label}, got {bias}.")
 
     # check whether state of unit matches its input, and create tpm accordingly
     if state == input_state[0]:
@@ -396,7 +393,9 @@ def modulated_sigmoid(
     n_inputs = len(input_weights)
     n_nodes = n_inputs + n_mods
 
-    unit_state = state * 2 - 1  # making unit state "ising" rather than binary, to make modulation symmetric
+    unit_state = (
+        state * 2 - 1
+    )  # making unit state "ising" rather than binary, to make modulation symmetric
 
     # producing transition probability matrix
     tpm = np.array(
@@ -530,8 +529,7 @@ def biased_sigmoid(
                 (
                     LogFunc(
                         sum(
-                            s[:-1]
-                            * np.array([weight for weight in input_weights[:-1]])
+                            s[:-1] * np.array([weight for weight in input_weights[:-1]])
                         ),
                         determinism,
                         threshold,
@@ -631,7 +629,7 @@ def validate_kwargs(kwargs):
 def validate_unit(unit: "Unit", value: Any) -> bool:
     """Validates that value is an object of the class "Unit", and has the properties inputs, state and input_state."""
     if not hasattr(value, "inputs"):
-        raise ValueError(f"value must have an 'inputs' attribute")
+        raise ValueError("value must have an 'inputs' attribute")
         return False
     return True
 
