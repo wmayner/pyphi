@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import dataclass
+from dataclasses import replace
 from enum import Enum
 from enum import auto
 from enum import unique
@@ -143,6 +144,31 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
 
     def set_ties(self, ties):
         self._ties = ties
+
+    def resolve_system_state(self) -> None:
+        """Update system_state to reflect the specified states resolved by the MIP.
+
+        When the system has tied specified states, the MIP resolves the tie by
+        selecting the state most vulnerable to the winning partition. This
+        back-propagates that resolution into system_state so that downstream
+        consumers (e.g., congruence filtering in phi_structure) see the correct
+        specified states.
+        """
+        if self.system_state is None:
+            return
+        new_cause = self.system_state.cause
+        new_effect = self.system_state.effect
+        if self.cause is not None and self.cause.specified_state is not None:
+            new_cause = self.cause.specified_state
+        if self.effect is not None and self.effect.specified_state is not None:
+            new_effect = self.effect.specified_state
+        if (
+            new_cause is not self.system_state.cause
+            or new_effect is not self.system_state.effect
+        ):
+            self.system_state = replace(
+                self.system_state, cause=new_cause, effect=new_effect
+            )
 
     def __eq__(self, other):
         return cmp.general_eq(self, other, self._sia_attributes)
@@ -571,6 +597,7 @@ def sia(
         elif candidate_key == mip_key:
             ties.append(candidate_mip_sia)
     for tied_mip in ties:
+        tied_mip.resolve_system_state()
         tied_mip.set_ties(ties)
 
     if config.CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA:

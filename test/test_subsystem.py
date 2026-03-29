@@ -222,3 +222,10 @@ class TestIntrinsicInformationTies:
         spec = sub.intrinsic_information(Direction.EFFECT, (0, 1), (0, 1))
         # Effect direction should have a unique max (no tie)
         assert len(spec.ties) == 1
+
+    def test_null_sia_resolve_system_state_safe(self):
+        """resolve_system_state should be a no-op for NullSIA."""
+        from pyphi.new_big_phi import NullSystemIrreducibilityAnalysis
+
+        null_sia = NullSystemIrreducibilityAnalysis()
+        null_sia.resolve_system_state()  # Should not raise

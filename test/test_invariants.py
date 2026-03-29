@@ -386,3 +386,39 @@ class TestPermutationSymmetry:
             f"phi_e differs for permuted systems: "
             f"AND-XOR(0,1)={phi_e_ax}, XOR-AND(1,0)={phi_e_xa}"
         )
+
+    def test_system_state_reflects_mip_resolution(self):
+        """system_state should reflect the specified state chosen by the MIP.
+
+        When tied specified states are resolved by the MIP, the winning state
+        (most vulnerable to the partition) should be back-propagated to
+        system_state, so downstream consumers see the correct state.
+        """
+        sub = Subsystem(example_networks.and_xor_network(), (0, 1))
+        sia = new_big_phi.sia(sub)
+        if sia.cause and sia.cause.specified_state:
+            assert sia.system_state.cause.state == sia.cause.specified_state.state
+        if sia.effect and sia.effect.specified_state:
+            assert sia.system_state.effect.state == sia.effect.specified_state.state
+
+    def test_system_state_preserves_ties_after_resolution(self):
+        """system_state should still record all tied states after resolution."""
+        sub = Subsystem(example_networks.and_xor_network(), (0, 1))
+        sia = new_big_phi.sia(sub)
+        # The cause direction had 2 tied states
+        assert len(sia.system_state.cause.ties) == 2
+        tied_states = {t.state for t in sia.system_state.cause.ties}
+        assert tied_states == {(0, 1), (1, 0)}
+
+    def test_system_state_symmetric(self):
+        """system_state.cause.state should be permutation-equivalent."""
+        sub_ax = Subsystem(example_networks.and_xor_network(), (0, 1))
+        sub_xa = Subsystem(example_networks.xor_and_network(), (1, 0))
+        sia_ax = new_big_phi.sia(sub_ax)
+        sia_xa = new_big_phi.sia(sub_xa)
+        ax_state = sia_ax.system_state.cause.state
+        xa_state = sia_xa.system_state.cause.state
+        assert ax_state == tuple(reversed(xa_state)), (
+            f"system_state.cause.state not permutation-equivalent: "
+            f"AND-XOR={ax_state}, XOR-AND={xa_state}"
+        )
