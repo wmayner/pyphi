@@ -14,7 +14,9 @@ import pytest
 from pyphi import config
 from pyphi import new_big_phi
 from pyphi.new_big_phi import NullSystemIrreducibilityAnalysis
+from pyphi.subsystem import Subsystem
 
+from . import example_networks
 from .conftest import skip_if_no_pyemd
 
 
@@ -320,3 +322,67 @@ class TestPhiStructureInvariants:
                 f"but no relations attribute"
             )
             # Relations might be None for some systems, so don't assert it's non-empty
+
+
+class TestPermutationSymmetry:
+    """Systems related by node permutation must have identical phi values.
+
+    AND-XOR and XOR-AND have the same all-ones connectivity matrix but swap
+    which node gets the AND vs XOR gate. They are related by the node
+    permutation π: 0↔1. Under this permutation, state (a,b) in AND-XOR
+    maps to (b,a) in XOR-AND.
+
+    All measures must be invariant under this permutation.
+    """
+
+    def test_system_intrinsic_information_symmetric(self):
+        """Cause/effect intrinsic information must be equal for permuted systems."""
+        sub_ax = Subsystem(example_networks.and_xor_network(), (0, 1))
+        sub_xa = Subsystem(example_networks.xor_and_network(), (1, 0))
+        ss_ax = new_big_phi.system_intrinsic_information(sub_ax)
+        ss_xa = new_big_phi.system_intrinsic_information(sub_xa)
+        assert float(ss_ax.cause.intrinsic_information) == pytest.approx(
+            float(ss_xa.cause.intrinsic_information)
+        )
+        assert float(ss_ax.effect.intrinsic_information) == pytest.approx(
+            float(ss_xa.effect.intrinsic_information)
+        )
+
+    def test_sia_phi_symmetric(self):
+        """Overall phi must be equal for permuted systems."""
+        sub_ax = Subsystem(example_networks.and_xor_network(), (0, 1))
+        sub_xa = Subsystem(example_networks.xor_and_network(), (1, 0))
+        sia_ax = new_big_phi.sia(sub_ax)
+        sia_xa = new_big_phi.sia(sub_xa)
+        assert float(sia_ax.phi) == pytest.approx(float(sia_xa.phi))
+
+    def test_sia_phi_c_symmetric(self):
+        """phi_c must be equal for permuted systems.
+
+        This is the specific invariant that was violated by the tied-state
+        bug: AND-XOR(0,1) reported phi_c=0.5 while XOR-AND(1,0) reported
+        phi_c=0.0, due to arbitrary tie-breaking in the specified cause state.
+        """
+        sub_ax = Subsystem(example_networks.and_xor_network(), (0, 1))
+        sub_xa = Subsystem(example_networks.xor_and_network(), (1, 0))
+        sia_ax = new_big_phi.sia(sub_ax)
+        sia_xa = new_big_phi.sia(sub_xa)
+        phi_c_ax = float(sia_ax.cause.phi) if sia_ax.cause else 0.0
+        phi_c_xa = float(sia_xa.cause.phi) if sia_xa.cause else 0.0
+        assert phi_c_ax == pytest.approx(phi_c_xa), (
+            f"phi_c differs for permuted systems: "
+            f"AND-XOR(0,1)={phi_c_ax}, XOR-AND(1,0)={phi_c_xa}"
+        )
+
+    def test_sia_phi_e_symmetric(self):
+        """phi_e must be equal for permuted systems."""
+        sub_ax = Subsystem(example_networks.and_xor_network(), (0, 1))
+        sub_xa = Subsystem(example_networks.xor_and_network(), (1, 0))
+        sia_ax = new_big_phi.sia(sub_ax)
+        sia_xa = new_big_phi.sia(sub_xa)
+        phi_e_ax = float(sia_ax.effect.phi) if sia_ax.effect else 0.0
+        phi_e_xa = float(sia_xa.effect.phi) if sia_xa.effect else 0.0
+        assert phi_e_ax == pytest.approx(phi_e_xa), (
+            f"phi_e differs for permuted systems: "
+            f"AND-XOR(0,1)={phi_e_ax}, XOR-AND(1,0)={phi_e_xa}"
+        )

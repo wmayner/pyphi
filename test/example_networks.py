@@ -2,6 +2,7 @@ import numpy as np
 
 import pyphi
 from pyphi import utils
+from pyphi.labels import NodeLabels
 from pyphi.macro import Blackbox
 from pyphi.macro import MacroSubsystem
 from pyphi.network import Network
@@ -754,3 +755,45 @@ def propagation_delay():
     return MacroSubsystem(
         network, cs, network.node_indices, time_scale=time_scale, blackbox=blackbox
     )
+
+
+# Permutation-equivalent pair for symmetry tests
+# ================================================
+
+
+def and_xor_network():
+    """AND-XOR 2-node network. Node 0: AND(0,1), Node 1: XOR(0,1).
+
+    Both nodes receive input from both nodes (all-ones CM).
+    Deterministic transitions:
+        (0,0) -> (0,0), (1,0) -> (0,1), (0,1) -> (0,1), (1,1) -> (1,0)
+    """
+    # fmt: off
+    tpm = np.array([
+        [0, 0],  # (0,0) -> (0,0)
+        [0, 1],  # (1,0) -> (0,1)
+        [0, 1],  # (0,1) -> (0,1)
+        [1, 0],  # (1,1) -> (1,0)
+    ])
+    # fmt: on
+    cm = np.ones((2, 2))
+    return Network(tpm, cm=cm, node_labels=NodeLabels(("AND", "XOR"), tuple(range(2))))
+
+
+def xor_and_network():
+    """XOR-AND 2-node network (AND-XOR with nodes 0 and 1 permuted).
+
+    Both nodes receive input from both nodes (all-ones CM).
+    Deterministic transitions:
+        (0,0) -> (0,0), (1,0) -> (1,0), (0,1) -> (1,0), (1,1) -> (0,1)
+    """
+    # fmt: off
+    tpm = np.array([
+        [0, 0],  # (0,0) -> (0,0)
+        [1, 0],  # (1,0) -> (1,0)
+        [1, 0],  # (0,1) -> (1,0)
+        [0, 1],  # (1,1) -> (0,1)
+    ])
+    # fmt: on
+    cm = np.ones((2, 2))
+    return Network(tpm, cm=cm, node_labels=NodeLabels(("XOR", "AND"), tuple(range(2))))

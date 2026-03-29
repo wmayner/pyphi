@@ -189,3 +189,36 @@ def test_concept_no_mechanism(s):
 
 def test_concept_nonexistent(s):
     assert not s.concept((0, 2))
+
+
+class TestIntrinsicInformationTies:
+    """Test that intrinsic_information() correctly tracks tied states."""
+
+    def test_tied_states_are_stored(self):
+        """intrinsic_information() should populate .ties when states tie.
+
+        AND-XOR at state (0,1): the cause GID is 0.5 for both purview states
+        (1,0) and (0,1), creating a tie. Both should appear in .ties.
+        """
+        net = example_networks.and_xor_network()
+        sub = Subsystem(net, (0, 1))
+        spec = sub.intrinsic_information(Direction.CAUSE, (0, 1), (0, 1))
+        assert len(spec.ties) == 2
+        tied_states = {t.state for t in spec.ties}
+        assert tied_states == {(0, 1), (1, 0)}
+
+    def test_tied_states_have_equal_ii(self):
+        """All tied StateSpecifications must have the same intrinsic information."""
+        net = example_networks.and_xor_network()
+        sub = Subsystem(net, (0, 1))
+        spec = sub.intrinsic_information(Direction.CAUSE, (0, 1), (0, 1))
+        ii_values = {float(t.intrinsic_information) for t in spec.ties}
+        assert len(ii_values) == 1, f"Tied states have different II: {ii_values}"
+
+    def test_no_ties_when_unique_max(self):
+        """When a single state uniquely maximizes II, ties should have length 1."""
+        net = example_networks.and_xor_network()
+        sub = Subsystem(net, (0, 1))
+        spec = sub.intrinsic_information(Direction.EFFECT, (0, 1), (0, 1))
+        # Effect direction should have a unique max (no tie)
+        assert len(spec.ties) == 1

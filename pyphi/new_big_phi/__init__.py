@@ -31,6 +31,7 @@ from pyphi.models.cuts import GeneralKCut
 from pyphi.models.cuts import NullCut
 from pyphi.models.cuts import SystemPartition
 from pyphi.models.mechanism import RepertoireIrreducibilityAnalysis
+from pyphi.models.mechanism import StateSpecification
 from pyphi.models.subsystem import CauseEffectStructure
 from pyphi.models.subsystem import SystemStateSpecification
 from pyphi.parallel import MapReduce
@@ -288,16 +289,15 @@ def normalization_factor(partition: Cut | GeneralKCut) -> float:
     return 1.0
 
 
-def integration_value(
+def _integration_value_for_state(
     direction: Direction,
     subsystem: Subsystem,
+    cut_subsystem: Subsystem,
     partition: Cut,
-    system_state: SystemStateSpecification,
-    repertoire_distance: str | None = None,
+    specified: StateSpecification,
+    repertoire_distance: str,
 ) -> RepertoireIrreducibilityAnalysis:
-    repertoire_distance = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
-    cut_subsystem = subsystem.apply_cut(partition)
-    # TODO(4.0) deal with proliferation of special cases for GID
+    """Compute the integration value for a single specified state."""
     mechanism = purview = subsystem.node_indices
     if repertoire_distance in [
         "GENERALIZED_INTRINSIC_DIFFERENCE",
@@ -307,22 +307,45 @@ def integration_value(
             direction,
             mechanism,
             purview,
-            system_state[direction].state,
-        ).squeeze()[system_state[direction].state]
+            specified.state,
+        ).squeeze()[specified.state]
     else:
         partitioned_repertoire = cut_subsystem.repertoire(
             direction, subsystem.node_indices, subsystem.node_indices
         )
-    ria = subsystem.evaluate_partition(
+    return subsystem.evaluate_partition(
         direction,
         subsystem.node_indices,
         subsystem.node_indices,
         partition,  # pyright: ignore[reportArgumentType] - Cut passed to Bipartition param in IIT 4.0
         partitioned_repertoire=partitioned_repertoire,
         repertoire_distance=repertoire_distance,
-        state=system_state[direction],
+        state=specified,
     )
-    return ria
+
+
+def integration_value(
+    direction: Direction,
+    subsystem: Subsystem,
+    partition: Cut,
+    system_state: SystemStateSpecification,
+    repertoire_distance: str | None = None,
+) -> RepertoireIrreducibilityAnalysis:
+    repertoire_distance = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
+    cut_subsystem = subsystem.apply_cut(partition)
+    specified = system_state[direction]
+    tied_specs = specified.ties if specified.ties else (specified,)
+    # When there are tied specified states, evaluate all of them and take the
+    # minimum integration (the "cruelest cut"): among equally-specified states,
+    # the partition should be evaluated against the one it hurts most.
+    best_ria = None
+    for spec in tied_specs:
+        ria = _integration_value_for_state(
+            direction, subsystem, cut_subsystem, partition, spec, repertoire_distance
+        )
+        if best_ria is None or ria.phi < best_ria.phi:
+            best_ria = ria
+    return best_ria
 
 
 def intrinsic_differentiation_value(
