@@ -414,19 +414,26 @@ def evaluate_partition(
         directions = Direction.both()
     directions = tuple(directions)
     validate.directions(directions)
+
+    # Eqs. 19-20: system-level partition integration uses GID only.
+    # The ii(s) cap (Eq. 23) is applied separately below.
+    effective_distance = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
+    partition_distance = (
+        "GENERALIZED_INTRINSIC_DIFFERENCE"
+        if effective_distance == "INTRINSIC_INFORMATION"
+        else effective_distance
+    )
+
     integration = {
         direction: integration_value(
             direction,
             subsystem,
             partition,
             system_state,
-            repertoire_distance=repertoire_distance,
+            repertoire_distance=partition_distance,
         )
         for direction in directions
     }
-    phi = min(integration[direction].phi for direction in directions)
-    norm = normalization_factor(partition)
-    normalized_phi = phi * norm
 
     intrinsic_differentiation = {
         direction: intrinsic_differentiation_value(
@@ -436,6 +443,19 @@ def evaluate_partition(
         )
         for direction in directions
     }
+
+    phi = min(integration[direction].phi for direction in directions)
+
+    # Eq. 23: φ_s(s) = min{φ_c(s), φ_e(s), ii(s)}
+    # where ii(s) = min_d{min(i_diff_d, i_spec_d)}
+    if effective_distance == "INTRINSIC_INFORMATION":
+        for direction in directions:
+            i_spec = float(system_state[direction].intrinsic_information)
+            i_diff = float(intrinsic_differentiation[direction])
+            phi = min(phi, i_spec, i_diff)
+
+    norm = normalization_factor(partition)
+    normalized_phi = phi * norm
 
     result = SystemIrreducibilityAnalysis(
         phi=phi,
