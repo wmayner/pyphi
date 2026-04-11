@@ -811,15 +811,16 @@ class Subsystem:
             partitioned repertoires, and the partitioned repertoire.
         """
         repertoire_distance = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
+        # Mechanism-level partition evaluation uses GID only.
+        # INTRINSIC_INFORMATION is a system-level composite (Eq. 23).
+        if repertoire_distance == "INTRINSIC_INFORMATION":
+            repertoire_distance = "GENERALIZED_INTRINSIC_DIFFERENCE"
         # TODO(4.0) refactor
         # TODO(4.0) consolidate logic with system level partitions
         if repertoire is None:
             repertoire = self.repertoire(direction, mechanism, purview)
         # TODO(4.0) use same partitioned_repertoire func
-        if repertoire_distance in [
-            "GENERALIZED_INTRINSIC_DIFFERENCE",
-            "INTRINSIC_INFORMATION",
-        ]:
+        if repertoire_distance == "GENERALIZED_INTRINSIC_DIFFERENCE":
             func = metrics.distribution.measures[repertoire_distance]
             assert not isinstance(repertoire, (int, float)), (
                 "GID requires full repertoire"

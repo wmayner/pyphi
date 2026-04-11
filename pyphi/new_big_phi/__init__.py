@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import dataclass
+from dataclasses import replace
 from enum import Enum
 from enum import auto
 from enum import unique
@@ -31,6 +32,7 @@ from pyphi.models.cuts import GeneralKCut
 from pyphi.models.cuts import NullCut
 from pyphi.models.cuts import SystemPartition
 from pyphi.models.mechanism import RepertoireIrreducibilityAnalysis
+from pyphi.models.mechanism import StateSpecification
 from pyphi.models.subsystem import CauseEffectStructure
 from pyphi.models.subsystem import SystemStateSpecification
 from pyphi.parallel import MapReduce
@@ -142,6 +144,31 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
 
     def set_ties(self, ties):
         self._ties = ties
+
+    def resolve_system_state(self) -> None:
+        """Update system_state to reflect the specified states resolved by the MIP.
+
+        When the system has tied specified states, the MIP resolves the tie by
+        selecting the state most vulnerable to the winning partition. This
+        back-propagates that resolution into system_state so that downstream
+        consumers (e.g., congruence filtering in phi_structure) see the correct
+        specified states.
+        """
+        if self.system_state is None:
+            return
+        new_cause = self.system_state.cause
+        new_effect = self.system_state.effect
+        if self.cause is not None and self.cause.specified_state is not None:
+            new_cause = self.cause.specified_state
+        if self.effect is not None and self.effect.specified_state is not None:
+            new_effect = self.effect.specified_state
+        if (
+            new_cause is not self.system_state.cause
+            or new_effect is not self.system_state.effect
+        ):
+            self.system_state = replace(
+                self.system_state, cause=new_cause, effect=new_effect
+            )
 
     def __eq__(self, other):
         return cmp.general_eq(self, other, self._sia_attributes)
@@ -288,16 +315,15 @@ def normalization_factor(partition: Cut | GeneralKCut) -> float:
     return 1.0
 
 
-def integration_value(
+def _integration_value_for_state(
     direction: Direction,
     subsystem: Subsystem,
+    cut_subsystem: Subsystem,
     partition: Cut,
-    system_state: SystemStateSpecification,
-    repertoire_distance: str | None = None,
+    specified: StateSpecification,
+    repertoire_distance: str,
 ) -> RepertoireIrreducibilityAnalysis:
-    repertoire_distance = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
-    cut_subsystem = subsystem.apply_cut(partition)
-    # TODO(4.0) deal with proliferation of special cases for GID
+    """Compute the integration value for a single specified state."""
     mechanism = purview = subsystem.node_indices
     if repertoire_distance in [
         "GENERALIZED_INTRINSIC_DIFFERENCE",
@@ -307,22 +333,45 @@ def integration_value(
             direction,
             mechanism,
             purview,
-            system_state[direction].state,
-        ).squeeze()[system_state[direction].state]
+            specified.state,
+        ).squeeze()[specified.state]
     else:
         partitioned_repertoire = cut_subsystem.repertoire(
             direction, subsystem.node_indices, subsystem.node_indices
         )
-    ria = subsystem.evaluate_partition(
+    return subsystem.evaluate_partition(
         direction,
         subsystem.node_indices,
         subsystem.node_indices,
         partition,  # pyright: ignore[reportArgumentType] - Cut passed to Bipartition param in IIT 4.0
         partitioned_repertoire=partitioned_repertoire,
         repertoire_distance=repertoire_distance,
-        state=system_state[direction],
+        state=specified,
     )
-    return ria
+
+
+def integration_value(
+    direction: Direction,
+    subsystem: Subsystem,
+    partition: Cut,
+    system_state: SystemStateSpecification,
+    repertoire_distance: str | None = None,
+) -> RepertoireIrreducibilityAnalysis:
+    repertoire_distance = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
+    cut_subsystem = subsystem.apply_cut(partition)
+    specified = system_state[direction]
+    tied_specs = specified.ties if specified.ties else (specified,)
+    # When there are tied specified states, evaluate all of them and take the
+    # minimum integration (the "cruelest cut"): among equally-specified states,
+    # the partition should be evaluated against the one it hurts most.
+    best_ria = None
+    for spec in tied_specs:
+        ria = _integration_value_for_state(
+            direction, subsystem, cut_subsystem, partition, spec, repertoire_distance
+        )
+        if best_ria is None or ria.phi < best_ria.phi:
+            best_ria = ria
+    return best_ria
 
 
 def intrinsic_differentiation_value(
@@ -365,19 +414,26 @@ def evaluate_partition(
         directions = Direction.both()
     directions = tuple(directions)
     validate.directions(directions)
+
+    # Eqs. 19-20: system-level partition integration uses GID only.
+    # The ii(s) cap (Eq. 23) is applied separately below.
+    effective_distance = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
+    partition_distance = (
+        "GENERALIZED_INTRINSIC_DIFFERENCE"
+        if effective_distance == "INTRINSIC_INFORMATION"
+        else effective_distance
+    )
+
     integration = {
         direction: integration_value(
             direction,
             subsystem,
             partition,
             system_state,
-            repertoire_distance=repertoire_distance,
+            repertoire_distance=partition_distance,
         )
         for direction in directions
     }
-    phi = min(integration[direction].phi for direction in directions)
-    norm = normalization_factor(partition)
-    normalized_phi = phi * norm
 
     intrinsic_differentiation = {
         direction: intrinsic_differentiation_value(
@@ -387,6 +443,19 @@ def evaluate_partition(
         )
         for direction in directions
     }
+
+    phi = min(integration[direction].phi for direction in directions)
+
+    # Eq. 23: φ_s(s) = min{φ_c(s), φ_e(s), ii(s)}
+    # where ii(s) = min_d{min(i_diff_d, i_spec_d)}
+    if effective_distance == "INTRINSIC_INFORMATION":
+        for direction in directions:
+            i_spec = float(system_state[direction].intrinsic_information)
+            i_diff = float(intrinsic_differentiation[direction])
+            phi = min(phi, i_spec, i_diff)
+
+    norm = normalization_factor(partition)
+    normalized_phi = phi * norm
 
     result = SystemIrreducibilityAnalysis(
         phi=phi,
@@ -548,6 +617,7 @@ def sia(
         elif candidate_key == mip_key:
             ties.append(candidate_mip_sia)
     for tied_mip in ties:
+        tied_mip.resolve_system_state()
         tied_mip.set_ties(ties)
 
     if config.CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA:

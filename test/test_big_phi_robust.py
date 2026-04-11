@@ -388,3 +388,205 @@ class TestSequentialParallelConsistency:
             f"  Parallel:   {par_result.phi}\n"
             f"  Diff:       {abs(seq_result.phi - par_result.phi)}"
         )
+
+
+# ============================================================================
+# Eq. 23: ii(s) cap and GID-only partition evaluation
+# ============================================================================
+
+
+class TestEq23IntrinsicInformationCap:
+    """Test that sia() implements Eq. 23 from Mayner, Marshall, & Tononi 2025.
+
+    φ_s(s) = min{φ_c(s), φ_e(s), ii(s)}
+
+    where ii(s) = min{ii_c(s), ii_e(s)} and ii_d = min{i_diff_d, i_spec_d}.
+
+    Partition evaluation uses GID only (Eqs. 19-20); i_diff and i_spec are
+    applied as the ii(s) cap separately.
+    """
+
+    II_CONFIG = dict(
+        REPERTOIRE_DISTANCE="INTRINSIC_INFORMATION",
+        REPERTOIRE_DISTANCE_SPECIFICATION="INTRINSIC_SPECIFICATION",
+        REPERTOIRE_DISTANCE_DIFFERENTIATION="INTRINSIC_DIFFERENTIATION",
+    )
+
+    @staticmethod
+    def _noisy_copy_subsystem(p, state):
+        """Create a 2-node noisy COPY system.
+
+        Each node copies the other with probability p (LOLI state ordering).
+        """
+        import numpy as np
+        from pyphi import Network, Subsystem
+
+        tpm = np.array([
+            [1 - p, 1 - p],  # (0,0)
+            [1 - p, p],      # (1,0)
+            [p, 1 - p],      # (0,1)
+            [p, p],          # (1,1)
+        ])
+        cm = np.array([[0, 1], [1, 0]])
+        network = Network(tpm, cm=cm, node_labels=["A", "B"])
+        return Subsystem(network, state)
+
+    def test_phi_capped_by_ii(self):
+        """phi is capped by ii(s) = min(i_diff, i_spec) per direction.
+
+        With p=0.8, state (1,1): GID(MIP) ≈ 0.868 but i_diff ≈ 0.644,
+        so ii(s) ≈ 0.644 caps phi below GID(MIP).
+        """
+        from pyphi.direction import Direction
+        from pyphi.new_big_phi import sia, system_intrinsic_information
+
+        subsystem = self._noisy_copy_subsystem(0.8, (1, 1))
+        with config.override(**self.II_CONFIG):
+            sys_state = system_intrinsic_information(subsystem)
+            result = sia(subsystem)
+
+            # Compute ii(s) from components
+            ii_cause = min(
+                float(sys_state.cause.intrinsic_information),
+                float(result.intrinsic_differentiation[Direction.CAUSE]),
+            )
+            ii_effect = min(
+                float(sys_state.effect.intrinsic_information),
+                float(result.intrinsic_differentiation[Direction.EFFECT]),
+            )
+            ii_s = min(ii_cause, ii_effect)
+
+            # phi must equal ii(s), not GID(MIP)
+            assert float(result.phi) == pytest.approx(ii_s, abs=1e-9)
+            # GID(MIP) is larger than ii(s) — cap is binding
+            gid_mip = min(float(result.cause.phi), float(result.effect.phi))
+            assert gid_mip > ii_s + 1e-6
+
+    def test_partition_evaluation_uses_gid_only(self):
+        """Per-direction phi values at MIP are GID, not min(GID, i_diff).
+
+        With p=0.8: GID ≈ 0.868, i_diff ≈ 0.644. The cause/effect phi
+        values on the SIA should be the GID values (un-folded), not the
+        old min(GID, i_diff).
+        """
+        from pyphi.direction import Direction
+        from pyphi.new_big_phi import sia
+
+        subsystem = self._noisy_copy_subsystem(0.8, (1, 1))
+        with config.override(**self.II_CONFIG):
+            result = sia(subsystem)
+
+            i_diff = float(result.intrinsic_differentiation[Direction.CAUSE])
+            cause_phi = float(result.cause.phi)
+            effect_phi = float(result.effect.phi)
+
+            # cause/effect phi should be GID, which is LARGER than i_diff
+            assert cause_phi > i_diff + 1e-6
+            assert effect_phi > i_diff + 1e-6
+
+    def test_gid_distance_unaffected(self, s):
+        """GID-based computation is unchanged by the Eq. 23 logic.
+
+        The ii(s) cap and GID-only partition override only activate when
+        REPERTOIRE_DISTANCE=INTRINSIC_INFORMATION.
+        """
+        from pyphi.new_big_phi import sia
+
+        # Default config uses GENERALIZED_INTRINSIC_DIFFERENCE
+        result = sia(s)
+        assert float(result.phi) == pytest.approx(
+            EXPECTED_PHI_VALUES["s"], abs=1e-9
+        )
+
+
+# ============================================================================
+# Paper examples: Mayner, Marshall, & Tononi 2025 (arXiv:2510.03881)
+# ============================================================================
+
+
+class TestPaperExamples:
+    """Regression tests for the paper's worked examples.
+
+    These verify that PyPhi reproduces the analytical results from
+    Mayner, Marshall, & Tononi 2025, "Intrinsic cause-effect power:
+    the tradeoff between differentiation and specification."
+    """
+
+    II_CONFIG = dict(
+        REPERTOIRE_DISTANCE="INTRINSIC_INFORMATION",
+        REPERTOIRE_DISTANCE_SPECIFICATION="INTRINSIC_SPECIFICATION",
+        REPERTOIRE_DISTANCE_DIFFERENTIATION="INTRINSIC_DIFFERENTIATION",
+    )
+
+    @staticmethod
+    def _monad_subsystem(p):
+        """Single-node system that stays in current state with probability p."""
+        import numpy as np
+        from pyphi import Network, Subsystem
+
+        tpm = np.array([[1 - p], [p]])
+        cm = np.array([[1]])
+        network = Network(tpm, cm=cm)
+        return Subsystem(network, state=(1,))
+
+    def test_monad_intrinsic_information(self):
+        """Example 1, Eq. 27: ii(s) = min{p*log(2p), -log(p)}.
+
+        At p=0.744 (near the optimal): i_diff ≈ i_spec ≈ 0.427.
+        The paper reports φ_s = 0.427 (Figure 2C).
+        """
+        import numpy as np
+        from pyphi.new_big_phi import system_intrinsic_information
+
+        p = 0.744
+        subsystem = self._monad_subsystem(p)
+        i_diff_expected = -np.log2(p)
+        i_spec_expected = p * np.log2(2 * p)
+        ii_expected = min(i_diff_expected, i_spec_expected)
+
+        with config.override(**self.II_CONFIG):
+            sys_state = system_intrinsic_information(subsystem)
+            # system_intrinsic_information uses INTRINSIC_SPECIFICATION,
+            # so it returns i_spec
+            i_spec_pyphi = float(sys_state.effect.intrinsic_information)
+            assert i_spec_pyphi == pytest.approx(i_spec_expected, abs=1e-6)
+            # Verify the analytical ii value matches the paper
+            assert ii_expected == pytest.approx(0.427, abs=0.001)
+
+    @pytest.mark.parametrize(
+        "p,i_diff_expected,i_spec_expected",
+        [
+            (0.744, 0.426625, 0.426591),  # crossover point (Figure 2C)
+            (0.9, 0.152003, 0.763197),    # high determinism
+            (0.6, 0.736966, 0.157821),    # high noise
+        ],
+    )
+    def test_monad_i_diff_i_spec_tradeoff(self, p, i_diff_expected, i_spec_expected):
+        """Verify i_diff and i_spec values across the tradeoff curve (Figure 2C).
+
+        i_diff = -log2(p), i_spec = p*log2(2p) for a monad in its ON state.
+        """
+        import numpy as np
+        from pyphi import direction, metrics
+        from pyphi.new_big_phi import system_intrinsic_information
+
+        subsystem = self._monad_subsystem(p)
+
+        with config.override(**self.II_CONFIG):
+            sys_state = system_intrinsic_information(subsystem)
+            i_spec = float(sys_state.effect.intrinsic_information)
+            assert i_spec == pytest.approx(i_spec_expected, abs=1e-5)
+
+            # Compute i_diff from forward repertoire
+            fr = subsystem.forward_repertoire(
+                direction.Direction.EFFECT,
+                subsystem.node_indices,
+                subsystem.node_indices,
+                None,
+            )
+            i_diff = float(
+                metrics.distribution.intrinsic_differentiation(
+                    fr, fr, state=subsystem.proper_state
+                )
+            )
+            assert i_diff == pytest.approx(i_diff_expected, abs=1e-5)
