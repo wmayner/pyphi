@@ -158,21 +158,21 @@ class TestStructuralInvariants:
         # Irreducible systems with phi > 0 should have non-null partitions
         s_result = s.sia()
         if s_result.phi > 0:
-            assert not isinstance(
-                s_result.partition, NullCut
-            ), "System with phi > 0 has NullCut partition (should have real partition)"
+            assert not isinstance(s_result.partition, NullCut), (
+                "System with phi > 0 has NullCut partition (should have real partition)"
+            )
 
         micro_result = micro_s.sia()
         if micro_result.phi > 0:
-            assert not isinstance(
-                micro_result.partition, NullCut
-            ), "System with phi > 0 has NullCut partition (should have real partition)"
+            assert not isinstance(micro_result.partition, NullCut), (
+                "System with phi > 0 has NullCut partition (should have real partition)"
+            )
 
         # Reducible system should have null partition
         reducible_result = reducible.sia()
-        assert isinstance(
-            reducible_result.partition, NullCut
-        ), "Reducible system should have NullCut partition"
+        assert isinstance(reducible_result.partition, NullCut), (
+            "Reducible system should have NullCut partition"
+        )
 
     def test_partition_reduces_or_maintains_phi(self, s, micro_s):
         """Partitioned system cannot have more phi than unpartitioned.
@@ -222,9 +222,9 @@ class TestConfigurationInvariants:
         # With config disabled, phi should be 0
         with config.override(SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=False):
             result_disabled = noisy_selfloop_single.sia()
-            assert (
-                result_disabled.phi == 0.0
-            ), "Expected phi=0 when SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=False"
+            assert result_disabled.phi == 0.0, (
+                "Expected phi=0 when SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=False"
+            )
 
         # With config enabled and EMD, phi should be > 0
         with config.override(
@@ -253,9 +253,9 @@ class TestConfigurationInvariants:
             CACHE_REPERTOIRES=True,
         ):
             _ = s.sia()
-            assert (
-                s._repertoire_cache.cache
-            ), "Cache should have entries when clearing is disabled"
+            assert s._repertoire_cache.cache, (
+                "Cache should have entries when clearing is disabled"
+            )
 
         # Test with cache clearing enabled
         with config.override(
@@ -264,9 +264,9 @@ class TestConfigurationInvariants:
             CACHE_REPERTOIRES=True,
         ):
             _ = s.sia()
-            assert (
-                not s._repertoire_cache.cache
-            ), "Cache should be empty when clearing is enabled"
+            assert not s._repertoire_cache.cache, (
+                "Cache should be empty when clearing is enabled"
+            )
 
 
 class TestPhiStructureInvariants:
@@ -293,12 +293,12 @@ class TestPhiStructureInvariants:
 
         # Systems that have phi should have distinctions
         if hasattr(result, "phi") and result.phi > 0:
-            assert hasattr(
-                result, "distinctions"
-            ), f"System '{example_name}' has phi > 0 but no distinctions attribute"
-            assert (
-                len(result.distinctions) > 0
-            ), f"System '{example_name}' has phi > 0 but zero distinctions"
+            assert hasattr(result, "distinctions"), (
+                f"System '{example_name}' has phi > 0 but no distinctions attribute"
+            )
+            assert len(result.distinctions) > 0, (
+                f"System '{example_name}' has phi > 0 but zero distinctions"
+            )
 
     @pytest.mark.parametrize("example_name", ["basic", "fig4"])
     def test_phi_structure_has_relations(self, example_name):

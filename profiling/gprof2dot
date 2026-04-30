@@ -1367,7 +1367,7 @@ class AXEParser(Parser):
             attrs[name] = value
         return Struct(attrs)
 
-    _cg_header_re = re.compile("^Index |" "^-----+ ")
+    _cg_header_re = re.compile("^Index |^-----+ ")
 
     _cg_footer_re = re.compile(r"^Index\s+Function\s*$")
 

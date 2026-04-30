@@ -888,7 +888,7 @@ intrinsic_specification = generalized_intrinsic_difference  # alias
 
 
 def pointwise_intrinsic_differentiation(p):
-    return -np.log2(p, where=(p > 0))
+    -np.log2(p, where=(p > 0), out=None)
 
 
 @measures.register("INTRINSIC_DIFFERENTIATION", asymmetric=True)
