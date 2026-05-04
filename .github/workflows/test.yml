@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.12", "3.13"]
+        python-version: ["3.13", "3.14"]
 
     steps:
       - name: Check out repository
@@ -32,15 +32,15 @@ jobs:
         run: uv sync --python ${{ matrix.python-version }} --group dev --all-extras
 
       - name: Run tests
-        if: ${{ !(matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12') }}
+        if: ${{ !(matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13') }}
         run: uv run pytest test/ --tb=short -v --ignore=test/test_parallel.py --ignore=test/test_parallel2.py
 
       - name: Run tests with coverage
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13'
         run: uv run pytest test/ --tb=short -v --ignore=test/test_parallel.py --ignore=test/test_parallel2.py --cov=pyphi --cov-report=xml
 
       - name: Upload coverage to Codecov
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13'
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}

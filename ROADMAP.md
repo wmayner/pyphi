@@ -233,24 +233,64 @@ anyway, so keeping 3.0 is not extra work. The version that's wrong is
 
 ### Phase 0 — Prerequisites
 
-**P0. Python 3.13 dependency verification**
+**P0. Python 3.13 dependency verification — DONE (2026-04-12)**
 
-Before committing to the 3.13+ target, verify that ALL C-extension dependencies
-compile and pass tests on Python 3.13 (both standard and free-threaded builds):
+Verified that ALL C-extension dependencies compile and pass tests on Python 3.13
+(both standard and free-threaded builds). Findings:
 
-- **`graphillion`** — critical risk. Latest PyPI release only declares support for
-  3.6-3.11 in classifiers. It's a C/C++ extension required for relations computation.
-  If it won't compile on 3.13, the project either needs to vendor/fork it, find a
-  pure-Python ZDD fallback, or drop to 3.12 target.
-- **`numpy`**, **`scipy`** — verify free-threaded C API compatibility.
-- **`joblib`/`loky`** — verify process pool behavior under no-GIL mode.
+**Standard Python 3.13.13:**
+- ✓ `graphillion 2.1` installs from source (no wheels published, but compiles cleanly)
+- ✓ `numpy 2.4.4`, `scipy 1.17.1`, `joblib 1.5.3` all install
+- ✓ pyphi imports and runs
+- ✓ Test suite: **874 passed, 27 skipped, 2 xfailed** (vs 850/52/2 on Py 3.12 — the
+  delta is mostly EMD tests that were skipped on Py 3.12 due to numpy-2-incompatible
+  pyemd; pyemd 2.0 is numpy-2 compatible and pulls in correctly on 3.13)
+- ✗ One previously-masked bug surfaces: `PyPhiFloat.__eq__` returns `False` instead
+  of `NotImplemented` for non-numeric types, which breaks Python's reflective
+  comparison and prevents `pytest.approx` from matching `PyPhiFloat`. Source location:
+  `pyphi/data_structures/pyphi_float.py:54-58`. Trivial fix, deferred to **P5**
+  (metric API unification).
 
-If graphillion fails, fall back to Python 3.12+ target and remove the free-threaded
-mode assumption from P11. `copy.replace()` and PEP 695 generics are 3.13 features
-that would be lost, but are not load-bearing.
+**Free-threaded Python 3.13.11 (no-GIL, PEP 703):**
+- ✓ All deps install
+- ⚠️ `graphillion`'s `_graphillion` C extension does **not** declare no-GIL safety
+  via `PyMod_GIL_NOT_USED` / `Py_mod_gil`. Python automatically re-enables the GIL
+  when `_graphillion` loads, with a `RuntimeWarning`.
+- ✓ With GIL fallback, **850 passed, 52 skipped, 2 xfailed** — functionally
+  equivalent to standard mode.
+- **Conclusion:** Free-threaded mode is currently a no-op for PyPhi until
+  `graphillion` ships GIL safety or we migrate the ZDD layer.
 
-- *Files:* `pyproject.toml` (update `requires-python`), CI matrix.
-- *Risk:* Medium — may force a target version change early.
+**ZDD library survey (also done 2026-04-12):**
+The graphillion bus-factor-1 risk is real. Survey findings:
+
+| Library | Last commit | 3.13 wheels | Free-threaded | ZDD primitives | `setset` algebra |
+|---------|-------------|-------------|---------------|---|---|
+| `graphillion` | 2026-01 | source-only | no | yes | **yes** (unique) |
+| `OxiDD` | active (multi-contributor) | yes | **yes (cp314t)** | yes | no (primitives only) |
+| `dd` (tulip-control) | 2025-12 | source-only | no | yes (via CUDD) | no |
+| `pyeda` | abandoned | n/a | n/a | no (BDD only) | n/a |
+
+Graphillion is unique in providing a high-level `setset` family algebra
+(`powerset_family()`, `set_size(k)` filter, `.join()`); replacements would require
+~200 lines reimplementing these against ZDD primitives. The math is identical
+(Minato's family algebra); the API is one layer below.
+
+**Recommendation:** Stay on graphillion now. Hide it behind a `ZDDFamily` interface
+in **P6/P15** (`combinatorics/graphillion_utils.py` already named in the target
+architecture). Trigger for migration to OxiDD: graphillion blocks on (a) Python
+3.14+ build, (b) free-threaded enablement, or (c) goes >12 months without a release.
+
+**Decisions reflected in code:**
+- `pyproject.toml`: `requires-python = ">=3.13"`, `target-version = "py313"`,
+  `pythonVersion = "3.13"`. Classifier for 3.12 dropped.
+- CI matrix in `.github/workflows/test.yml`: Python 3.13 + 3.14
+  (was 3.12 + 3.13). Coverage upload moved to 3.13.
+- `lint.yml`, `build.yml`: 3.12 → 3.13.
+- P11's free-threaded-mode promise is **conditional** on graphillion or migration.
+
+- *Files:* `pyproject.toml`, `.github/workflows/{test,lint,build}.yml`.
+- *Status:* Complete.
 
 ### Phase A — Safety net (must be green before any numerical refactor)
 

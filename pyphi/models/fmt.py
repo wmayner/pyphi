@@ -797,8 +797,8 @@ def fmt_sia(
         body = "{ces}\n{partitioned_ces}".format(
             ces=fmt_ces(sia.ces, "Cause-effect structure"),  # type: ignore[attr-defined]
             partitioned_ces=fmt_ces(
-                sia.partitioned_ces,
-                "Partitioned cause-effect structure",  # type: ignore[attr-defined]
+                sia.partitioned_ces,  # type: ignore[attr-defined]
+                "Partitioned cause-effect structure",
             ),
         )
     else:
@@ -965,7 +965,7 @@ def fmt_account(account: object, title: str | None = None) -> str:
 
     title = "{} ({} causal link{})".format(
         title,
-        len(account),
+        len(account),  # type: ignore[arg-type]
         "" if len(account) == 1 else "s",  # type: ignore[arg-type]
     )
 
@@ -1006,8 +1006,8 @@ def fmt_ac_sia(ac_sia: object) -> str:
             cut=cut_val,
             account=fmt_account(ac_sia.account, "Account"),  # type: ignore[attr-defined]
             partitioned_account=fmt_account(
-                ac_sia.partitioned_account,
-                "Partitioned Account",  # type: ignore[attr-defined]
+                ac_sia.partitioned_account,  # type: ignore[attr-defined]
+                "Partitioned Account",
             ),
         )
     )

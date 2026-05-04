@@ -287,8 +287,13 @@ class FlatCauseEffectStructure(CauseEffectStructure):
         return fmt.fmt_ces(self, title="Flat cause-effect structure")
 
     @property  # type: ignore[override]
-    def purviews(self):
-        """The purview of each component."""
+    def purviews(self):  # pyright: ignore[reportIncompatibleMethodOverride]
+        """The purview of each component.
+
+        FIXME(P3): CES/FlatCES Liskov violation — parent's ``purviews`` is a
+        method taking ``direction``, child's is a property. To be fixed in
+        P3 by making them siblings under an ``AbstractCES`` Protocol.
+        """
         for component in self:
             yield component.purview
 
@@ -317,7 +322,9 @@ class FlatCauseEffectStructure(CauseEffectStructure):
         return {purview: self.maximum_specifier(purview) for purview in self.purviews}
 
     @property  # type: ignore[override]
-    def flat(self):
+    def flat(self):  # pyright: ignore[reportIncompatibleMethodOverride]
+        # FIXME(P3): Liskov violation — parent's ``flat`` returns chain[Concept],
+        # child's returns self. To be fixed in P3.
         # No-op; already flat
         return self
 

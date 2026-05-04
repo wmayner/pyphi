@@ -19,13 +19,12 @@ keywords = [
     "integrated-information",
     "modeling",
 ]
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Natural Language :: English",
     "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
-    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering",
@@ -100,7 +99,7 @@ include = ["pyphi/data/**"]
 
 [tool.ruff]
 line-length = 89
-target-version = "py312"
+target-version = "py313"
 exclude = [
     "__pycache__",
     "__pyphi_cache__",
@@ -261,7 +260,7 @@ directory = "htmlcov"
 [tool.pyright]
 include = ["pyphi"]
 exclude = ["**/__pycache__", "test", "docs", "benchmarks", "profiling"]
-pythonVersion = "3.12"
+pythonVersion = "3.13"
 typeCheckingMode = "standard"                                           # Start at standard, not basic
 reportMissingImports = false
 reportMissingTypeStubs = false
