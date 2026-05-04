@@ -1,0 +1,3919 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="987.84pt" height="1112.455737pt" viewBox="0 0 987.84 1112.455737" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-04-17T19:14:48.437117</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.10.8, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 1112.455737 
+L 987.84 1112.455737 
+L 987.84 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 21.376311 281.848359 
+L 966.463689 281.848359 
+L 966.463689 76.291854 
+L 21.376311 76.291854 
+z
+" clip-path="url(#p5547edff22)" style="fill: #dfe9f5; opacity: 0.55"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 21.376311 574.825446 
+L 966.463689 574.825446 
+L 966.463689 296.024669 
+L 21.376311 296.024669 
+z
+" clip-path="url(#p5547edff22)" style="fill: #fde9d4; opacity: 0.55"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 21.376311 574.825446 
+L 966.463689 574.825446 
+L 966.463689 515.757485 
+L 21.376311 515.757485 
+z
+" clip-path="url(#p5547edff22)" style="fill: #f9d9d9; opacity: 0.55"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 21.376311 648.069718 
+L 966.463689 648.069718 
+L 966.463689 589.001757 
+L 21.376311 589.001757 
+z
+" clip-path="url(#p5547edff22)" style="fill: #e6dff3; opacity: 0.55"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 21.376311 721.31399 
+L 966.463689 721.31399 
+L 966.463689 589.001757 
+L 21.376311 589.001757 
+z
+" clip-path="url(#p5547edff22)" style="fill: #d9ecdc; opacity: 0.55"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 21.376311 867.802533 
+L 966.463689 867.802533 
+L 966.463689 735.4903 
+L 21.376311 735.4903 
+z
+" clip-path="url(#p5547edff22)" style="fill: #fff2c4; opacity: 0.55"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 21.376311 1014.291077 
+L 966.463689 1014.291077 
+L 966.463689 881.978844 
+L 21.376311 881.978844 
+z
+" clip-path="url(#p5547edff22)" style="fill: #dcf0f0; opacity: 0.55"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 21.376311 1087.535349 
+L 966.463689 1087.535349 
+L 966.463689 1028.467388 
+L 21.376311 1028.467388 
+z
+" clip-path="url(#p5547edff22)" style="fill: #eceff4; opacity: 0.55"/>
+   </g>
+   <g id="text_1">
+    <!-- Phase A -->
+    <g style="fill: #444444" transform="translate(801.073398 176.514528) scale(0.09 -0.09)">
+     <defs>
+      <path id="MesloLGS-NF-Bold-Italic-50" d="M 1728 3891 
+L 1466 2522 
+L 1913 2522 
+Q 2369 2522 2595 2733 
+Q 2822 2944 2822 3366 
+Q 2822 3650 2659 3770 
+Q 2497 3891 2106 3891 
+L 1728 3891 
+z
+M 959 4666 
+L 2272 4666 
+Q 3009 4666 3395 4380 
+Q 3781 4094 3781 3547 
+Q 3781 3191 3667 2841 
+Q 3553 2491 3372 2284 
+Q 3128 2000 2765 1873 
+Q 2403 1747 1825 1747 
+L 1313 1747 
+L 972 0 
+L 50 0 
+L 959 4666 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-Italic-68" d="M 3444 2275 
+L 3003 0 
+L 2088 0 
+L 2503 2131 
+Q 2519 2213 2526 2295 
+Q 2534 2378 2534 2463 
+Q 2534 2644 2443 2739 
+Q 2353 2834 2181 2834 
+Q 1922 2834 1740 2611 
+Q 1559 2388 1478 1966 
+L 1100 0 
+L 184 0 
+L 1131 4863 
+L 2041 4863 
+L 1678 2975 
+Q 1828 3263 2090 3423 
+Q 2353 3584 2669 3584 
+Q 3069 3584 3284 3367 
+Q 3500 3150 3500 2753 
+Q 3500 2659 3486 2540 
+Q 3472 2422 3444 2275 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-Italic-61" d="M 2156 1656 
+Q 1619 1656 1359 1493 
+Q 1100 1331 1100 991 
+Q 1100 794 1226 666 
+Q 1353 538 1550 538 
+Q 1919 538 2169 828 
+Q 2419 1119 2509 1656 
+L 2156 1656 
+z
+M 3481 1997 
+L 3097 0 
+L 2188 0 
+L 2266 391 
+Q 2056 150 1786 29 
+Q 1516 -91 1172 -91 
+Q 700 -91 423 182 
+Q 147 456 147 922 
+Q 147 1594 633 1948 
+Q 1119 2303 2034 2303 
+L 2638 2303 
+L 2663 2456 
+Q 2666 2475 2667 2492 
+Q 2669 2509 2669 2547 
+Q 2669 2725 2509 2819 
+Q 2350 2913 2047 2913 
+Q 1791 2913 1467 2823 
+Q 1144 2734 775 2559 
+L 922 3341 
+Q 1275 3463 1589 3523 
+Q 1903 3584 2188 3584 
+Q 2866 3584 3216 3346 
+Q 3566 3109 3566 2650 
+Q 3566 2528 3544 2362 
+Q 3522 2197 3481 1997 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-Italic-73" d="M 3419 3391 
+L 3263 2597 
+Q 3028 2763 2756 2847 
+Q 2484 2931 2194 2931 
+Q 1900 2931 1728 2822 
+Q 1556 2713 1556 2528 
+Q 1556 2388 1670 2302 
+Q 1784 2216 2188 2100 
+L 2419 2034 
+Q 2819 1919 3003 1700 
+Q 3188 1481 3188 1125 
+Q 3188 556 2758 232 
+Q 2328 -91 1563 -91 
+Q 1238 -91 914 -36 
+Q 591 19 281 128 
+L 441 928 
+Q 709 753 1006 661 
+Q 1303 569 1594 569 
+Q 1938 569 2130 686 
+Q 2322 803 2322 1013 
+Q 2322 1156 2226 1237 
+Q 2131 1319 1716 1441 
+L 1441 1516 
+Q 1059 1628 881 1845 
+Q 703 2063 703 2413 
+Q 703 2938 1128 3261 
+Q 1553 3584 2259 3584 
+Q 2550 3584 2840 3536 
+Q 3131 3488 3419 3391 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-Italic-65" d="M 3103 172 
+Q 2806 41 2484 -25 
+Q 2163 -91 1819 -91 
+Q 1044 -91 641 279 
+Q 238 650 238 1363 
+Q 238 1803 375 2215 
+Q 513 2628 763 2931 
+Q 1025 3250 1387 3420 
+Q 1750 3591 2169 3591 
+Q 2822 3591 3215 3216 
+Q 3609 2841 3609 2222 
+Q 3609 2081 3589 1897 
+Q 3569 1713 3525 1453 
+L 1153 1453 
+Q 1144 1400 1139 1353 
+Q 1134 1306 1131 1259 
+Q 1131 950 1340 792 
+Q 1550 634 1959 634 
+Q 2297 634 2634 731 
+Q 2972 828 3263 1013 
+L 3103 172 
+z
+M 2738 2138 
+Q 2750 2181 2754 2223 
+Q 2759 2266 2759 2303 
+Q 2759 2569 2600 2722 
+Q 2441 2875 2163 2875 
+Q 1850 2875 1628 2690 
+Q 1406 2506 1281 2138 
+L 2738 2138 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-Italic-20" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-Italic-41" d="M 2241 3809 
+L 1416 1913 
+L 2303 1913 
+L 2241 3809 
+z
+M 1819 4666 
+L 2944 4666 
+L 3297 0 
+L 2381 0 
+L 2338 1153 
+L 1088 1153 
+L 581 0 
+L -353 0 
+L 1819 4666 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-50"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-68" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-61" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-73" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-65" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-20" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-41" transform="translate(361.230469 0)"/>
+    </g>
+    <!-- Safety net -->
+    <g style="fill: #444444" transform="translate(801.073398 186.592559) scale(0.09 -0.09)">
+     <defs>
+      <path id="MesloLGS-NF-Bold-Italic-53" d="M 1581 2075 
+Q 981 2325 787 2559 
+Q 594 2794 594 3188 
+Q 594 3875 1098 4312 
+Q 1603 4750 2406 4750 
+Q 2728 4750 3033 4686 
+Q 3338 4622 3622 4494 
+L 3444 3603 
+Q 3231 3797 2947 3895 
+Q 2663 3994 2316 3994 
+Q 1947 3994 1715 3817 
+Q 1484 3641 1484 3366 
+Q 1484 3103 2059 2844 
+L 2081 2834 
+L 2444 2675 
+Q 2900 2472 3111 2186 
+Q 3322 1900 3322 1484 
+Q 3322 766 2819 337 
+Q 2316 -91 1459 -91 
+Q 1116 -91 758 -9 
+Q 400 72 13 238 
+L 197 1191 
+Q 500 938 831 805 
+Q 1163 672 1497 672 
+Q 1913 672 2150 855 
+Q 2388 1038 2388 1350 
+Q 2388 1544 2278 1686 
+Q 2169 1828 1953 1919 
+L 1581 2075 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-Italic-66" d="M 2675 3738 
+L 2625 3500 
+L 3700 3500 
+L 3566 2797 
+L 2491 2797 
+L 1947 0 
+L 1031 0 
+L 1575 2797 
+L 722 2797 
+L 856 3500 
+L 1709 3500 
+L 1759 3744 
+Q 1891 4403 2178 4633 
+Q 2466 4863 3213 4863 
+L 3963 4863 
+L 3828 4159 
+L 3109 4159 
+Q 2906 4159 2815 4073 
+Q 2725 3988 2675 3738 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-Italic-74" d="M 2650 4494 
+L 2456 3500 
+L 3653 3500 
+L 3519 2797 
+L 2322 2797 
+L 1997 1141 
+Q 1984 1078 1978 1031 
+Q 1972 984 1972 959 
+Q 1972 819 2065 761 
+Q 2159 703 2406 703 
+L 3109 703 
+L 2975 0 
+L 2209 0 
+Q 1572 0 1305 173 
+Q 1038 347 1038 750 
+Q 1038 816 1052 922 
+Q 1066 1028 1094 1184 
+L 1409 2797 
+L 513 2797 
+L 647 3500 
+L 1544 3500 
+L 1734 4494 
+L 2650 4494 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-Italic-79" d="M 1722 -378 
+Q 1372 -997 1117 -1161 
+Q 863 -1325 469 -1325 
+L -281 -1325 
+L -141 -628 
+L 225 -628 
+Q 497 -628 653 -534 
+Q 809 -441 997 -91 
+L 1119 141 
+L 441 3500 
+L 1369 3500 
+L 1766 1313 
+L 2963 3500 
+L 3928 3500 
+L 1722 -378 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-Italic-6e" d="M 3444 2275 
+L 3003 0 
+L 2088 0 
+L 2503 2131 
+Q 2519 2213 2526 2295 
+Q 2534 2378 2534 2463 
+Q 2534 2644 2443 2739 
+Q 2353 2834 2181 2834 
+Q 1925 2834 1742 2609 
+Q 1559 2384 1478 1966 
+L 1100 0 
+L 184 0 
+L 863 3500 
+L 1778 3500 
+L 1678 2975 
+Q 1828 3263 2090 3423 
+Q 2353 3584 2669 3584 
+Q 3069 3584 3284 3367 
+Q 3500 3150 3500 2753 
+Q 3500 2659 3486 2540 
+Q 3472 2422 3444 2275 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-53"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-61" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-66" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-65" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-74" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-79" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-20" transform="translate(361.230469 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-6e" transform="translate(421.435547 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-65" transform="translate(481.640625 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-74" transform="translate(541.845703 0)"/>
+    </g>
+   </g>
+   <g id="text_2">
+    <!-- Phase B -->
+    <g style="fill: #444444" transform="translate(801.073398 432.582605) scale(0.09 -0.09)">
+     <defs>
+      <path id="MesloLGS-NF-Bold-Italic-42" d="M 1241 2119 
+L 972 738 
+L 1588 738 
+Q 2075 738 2304 945 
+Q 2534 1153 2534 1594 
+Q 2534 1863 2368 1991 
+Q 2203 2119 1856 2119 
+L 1241 2119 
+z
+M 1594 3938 
+L 1381 2853 
+L 1997 2853 
+Q 2375 2853 2567 3023 
+Q 2759 3194 2759 3525 
+Q 2759 3738 2625 3838 
+Q 2491 3938 2209 3938 
+L 1594 3938 
+z
+M 844 4672 
+L 2350 4672 
+Q 3009 4672 3345 4412 
+Q 3681 4153 3681 3641 
+Q 3681 3138 3384 2828 
+Q 3088 2519 2541 2456 
+Q 2975 2419 3215 2172 
+Q 3456 1925 3456 1516 
+Q 3456 1178 3337 886 
+Q 3219 594 3003 397 
+Q 2769 188 2409 94 
+Q 2050 0 1441 0 
+L -63 0 
+L 844 4672 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-50"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-68" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-61" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-73" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-65" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-20" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-42" transform="translate(361.230469 0)"/>
+    </g>
+    <!-- Formalism split -->
+    <g style="fill: #444444" transform="translate(801.073398 443.234386) scale(0.09 -0.09)">
+     <defs>
+      <path id="MesloLGS-NF-Bold-Italic-46" d="M 3803 3853 
+L 1819 3853 
+L 1625 2847 
+L 3431 2847 
+L 3272 2034 
+L 1466 2034 
+L 1069 0 
+L 147 0 
+L 1056 4666 
+L 3963 4666 
+L 3803 3853 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-Italic-6f" d="M 2656 2138 
+Q 2656 2478 2511 2662 
+Q 2366 2847 2100 2847 
+Q 1716 2847 1456 2422 
+Q 1197 1997 1197 1356 
+Q 1197 1025 1348 836 
+Q 1500 647 1759 647 
+Q 2138 647 2397 1073 
+Q 2656 1500 2656 2138 
+z
+M 275 1331 
+Q 275 2338 795 2964 
+Q 1316 3591 2150 3591 
+Q 2822 3591 3200 3214 
+Q 3578 2838 3578 2169 
+Q 3578 1159 3058 534 
+Q 2538 -91 1703 -91 
+Q 1031 -91 653 286 
+Q 275 663 275 1331 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-Italic-72" d="M 3669 2547 
+Q 3519 2681 3334 2745 
+Q 3150 2809 2919 2809 
+Q 2400 2809 2120 2534 
+Q 1841 2259 1716 1613 
+L 1403 0 
+L 481 0 
+L 1166 3500 
+L 2081 3500 
+L 1972 2956 
+Q 2166 3256 2475 3420 
+Q 2784 3584 3156 3584 
+Q 3350 3584 3523 3537 
+Q 3697 3491 3834 3406 
+L 3669 2547 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-Italic-6d" d="M 2406 3150 
+Q 2506 3350 2706 3467 
+Q 2906 3584 3144 3584 
+Q 3431 3584 3600 3409 
+Q 3769 3234 3769 2931 
+Q 3769 2784 3751 2632 
+Q 3734 2481 3688 2247 
+L 3250 0 
+L 2503 0 
+L 2938 2247 
+Q 2969 2406 2981 2501 
+Q 2994 2597 2994 2644 
+Q 2994 2769 2939 2834 
+Q 2884 2900 2778 2900 
+Q 2628 2900 2539 2759 
+Q 2450 2619 2381 2247 
+L 1947 0 
+L 1197 0 
+L 1638 2247 
+Q 1663 2378 1677 2481 
+Q 1691 2584 1691 2644 
+Q 1691 2769 1634 2834 
+Q 1578 2900 1472 2900 
+Q 1325 2900 1239 2764 
+Q 1153 2628 1081 2247 
+L 647 0 
+L -103 0 
+L 575 3500 
+L 1241 3500 
+L 1172 3138 
+Q 1300 3350 1489 3467 
+Q 1678 3584 1894 3584 
+Q 2109 3584 2245 3467 
+Q 2381 3350 2406 3150 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-Italic-6c" d="M 1953 1141 
+Q 1941 1078 1933 1026 
+Q 1925 975 1925 959 
+Q 1925 819 2022 761 
+Q 2119 703 2363 703 
+L 3231 703 
+L 3091 0 
+L 2163 0 
+Q 1522 0 1256 175 
+Q 991 350 991 756 
+Q 991 828 1006 937 
+Q 1022 1047 1050 1184 
+L 1684 4159 
+L 728 4159 
+L 863 4863 
+L 2731 4863 
+L 1953 1141 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-Italic-69" d="M 966 3500 
+L 2778 3500 
+L 2234 703 
+L 3372 703 
+L 3238 0 
+L 44 0 
+L 178 703 
+L 1319 703 
+L 1728 2797 
+L 831 2797 
+L 966 3500 
+z
+M 2194 5203 
+L 3109 5203 
+L 2900 4134 
+L 1984 4134 
+L 2194 5203 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-Italic-70" d="M 1184 647 
+L 800 -1331 
+L -116 -1331 
+L 825 3500 
+L 1741 3500 
+L 1638 2975 
+Q 1859 3281 2115 3432 
+Q 2372 3584 2663 3584 
+Q 3122 3584 3387 3242 
+Q 3653 2900 3653 2309 
+Q 3653 1906 3556 1500 
+Q 3459 1094 3284 763 
+Q 3069 359 2741 134 
+Q 2413 -91 2047 -91 
+Q 1697 -91 1472 103 
+Q 1247 297 1184 647 
+z
+M 1881 653 
+Q 2228 653 2479 1097 
+Q 2731 1541 2731 2169 
+Q 2731 2484 2601 2659 
+Q 2472 2834 2241 2834 
+Q 1884 2834 1623 2401 
+Q 1363 1969 1363 1350 
+Q 1363 1025 1503 839 
+Q 1644 653 1881 653 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-46"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-6f" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-72" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-6d" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-61" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-6c" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-69" transform="translate(361.230469 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-73" transform="translate(421.435547 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-6d" transform="translate(481.640625 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-20" transform="translate(541.845703 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-73" transform="translate(602.050781 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-70" transform="translate(662.255859 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-6c" transform="translate(722.460938 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-69" transform="translate(782.666016 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-74" transform="translate(842.871094 0)"/>
+    </g>
+   </g>
+   <g id="text_3">
+    <!-- Phase C -->
+    <g style="fill: #444444" transform="translate(801.073398 542.735887) scale(0.09 -0.09)">
+     <defs>
+      <path id="MesloLGS-NF-Bold-Italic-43" d="M 2956 134 
+Q 2716 22 2464 -34 
+Q 2213 -91 1947 -91 
+Q 1200 -91 804 339 
+Q 409 769 409 1581 
+Q 409 2300 629 2961 
+Q 850 3622 1228 4050 
+Q 1531 4394 1937 4572 
+Q 2344 4750 2822 4750 
+Q 3078 4750 3323 4694 
+Q 3569 4638 3809 4525 
+L 3609 3500 
+Q 3453 3713 3226 3820 
+Q 3000 3928 2725 3928 
+Q 2475 3928 2234 3776 
+Q 1994 3625 1825 3359 
+Q 1609 3025 1476 2554 
+Q 1344 2084 1344 1663 
+Q 1344 1206 1541 964 
+Q 1738 722 2106 722 
+Q 2359 722 2611 826 
+Q 2863 931 3156 1159 
+L 2956 134 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-50"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-68" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-61" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-73" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-65" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-20" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-43" transform="translate(361.230469 0)"/>
+    </g>
+    <!-- Kernel rewrite -->
+    <g style="fill: #444444" transform="translate(801.073398 552.813919) scale(0.09 -0.09)">
+     <defs>
+      <path id="MesloLGS-NF-Bold-Italic-4b" d="M 844 4666 
+L 1766 4666 
+L 1428 2925 
+L 3188 4666 
+L 4275 4666 
+L 2381 2778 
+L 3438 0 
+L 2491 0 
+L 1697 2094 
+L 1159 1563 
+L 863 0 
+L -56 0 
+L 844 4666 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-Italic-77" d="M 300 3500 
+L 1050 3500 
+L 947 819 
+L 1656 2584 
+L 2375 2584 
+L 2444 819 
+L 3353 3500 
+L 4141 3500 
+L 2834 0 
+L 1959 0 
+L 1900 1844 
+L 1153 0 
+L 281 0 
+L 300 3500 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-4b"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-65" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-72" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-6e" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-65" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-6c" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-20" transform="translate(361.230469 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-72" transform="translate(421.435547 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-65" transform="translate(481.640625 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-77" transform="translate(541.845703 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-72" transform="translate(602.050781 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-69" transform="translate(662.255859 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-74" transform="translate(722.460938 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-65" transform="translate(782.666016 0)"/>
+    </g>
+   </g>
+   <g id="text_4">
+    <!-- Phase D -->
+    <g style="fill: #444444" transform="translate(801.073398 615.980159) scale(0.09 -0.09)">
+     <defs>
+      <path id="MesloLGS-NF-Bold-Italic-44" d="M 1638 3834 
+L 1056 831 
+L 1356 831 
+Q 1706 831 1947 968 
+Q 2188 1106 2322 1381 
+Q 2484 1713 2586 2170 
+Q 2688 2628 2688 3022 
+Q 2688 3434 2492 3634 
+Q 2297 3834 1894 3834 
+L 1638 3834 
+z
+M 884 4666 
+L 1869 4666 
+Q 2759 4666 3200 4281 
+Q 3641 3897 3641 3122 
+Q 3641 2850 3598 2542 
+Q 3556 2234 3469 1881 
+Q 3353 1409 3190 1081 
+Q 3028 753 2803 538 
+Q 2509 250 2100 125 
+Q 1691 0 1006 0 
+L -25 0 
+L 884 4666 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-50"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-68" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-61" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-73" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-65" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-20" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-44" transform="translate(361.230469 0)"/>
+    </g>
+    <!-- Model cleanup -->
+    <g style="fill: #444444" transform="translate(801.073398 626.05819) scale(0.09 -0.09)">
+     <defs>
+      <path id="MesloLGS-NF-Bold-Italic-4d" d="M 722 4666 
+L 1825 4666 
+L 1978 2619 
+L 2906 4666 
+L 4031 4666 
+L 3128 0 
+L 2338 0 
+L 3078 3744 
+L 2163 1697 
+L 1478 1697 
+L 1331 3744 
+L 609 0 
+L -178 0 
+L 722 4666 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-Italic-64" d="M 1978 2841 
+Q 1631 2841 1381 2398 
+Q 1131 1956 1131 1325 
+Q 1131 1009 1261 834 
+Q 1391 659 1619 659 
+Q 1975 659 2236 1092 
+Q 2497 1525 2497 2144 
+Q 2497 2469 2356 2655 
+Q 2216 2841 1978 2841 
+z
+M 2669 2847 
+L 3059 4863 
+L 3975 4863 
+L 3028 0 
+L 2119 0 
+L 2216 519 
+Q 2009 219 1751 64 
+Q 1494 -91 1197 -91 
+Q 741 -91 473 253 
+Q 206 597 206 1191 
+Q 206 1594 303 1995 
+Q 400 2397 575 2731 
+Q 791 3134 1119 3362 
+Q 1447 3591 1813 3591 
+Q 2163 3591 2392 3392 
+Q 2622 3194 2669 2847 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-Italic-63" d="M 2988 116 
+Q 2747 13 2492 -39 
+Q 2238 -91 1978 -91 
+Q 1272 -91 870 296 
+Q 469 684 469 1356 
+Q 469 2347 1042 2965 
+Q 1616 3584 2541 3584 
+Q 2847 3584 3112 3520 
+Q 3378 3456 3616 3322 
+L 3450 2484 
+Q 3259 2666 3046 2753 
+Q 2834 2841 2591 2841 
+Q 2059 2841 1726 2453 
+Q 1394 2066 1394 1447 
+Q 1394 1047 1584 850 
+Q 1775 653 2163 653 
+Q 2381 653 2629 734 
+Q 2878 816 3163 978 
+L 2988 116 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-Italic-75" d="M 384 1222 
+L 831 3500 
+L 1741 3500 
+L 1331 1363 
+Q 1316 1278 1308 1197 
+Q 1300 1116 1300 1038 
+Q 1300 856 1390 757 
+Q 1481 659 1650 659 
+Q 1909 659 2086 878 
+Q 2263 1097 2350 1528 
+L 2731 3500 
+L 3641 3500 
+L 2963 0 
+L 2047 0 
+L 2150 519 
+Q 2013 238 1747 73 
+Q 1481 -91 1166 -91 
+Q 763 -91 547 129 
+Q 331 350 331 763 
+Q 331 850 343 962 
+Q 356 1075 384 1222 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-4d"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-6f" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-64" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-65" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-6c" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-20" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-63" transform="translate(361.230469 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-6c" transform="translate(421.435547 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-65" transform="translate(481.640625 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-61" transform="translate(541.845703 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-6e" transform="translate(602.050781 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-75" transform="translate(662.255859 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-70" transform="translate(722.460938 0)"/>
+    </g>
+   </g>
+   <g id="text_5">
+    <!-- Phase E -->
+    <g style="fill: #444444" transform="translate(801.073398 652.602295) scale(0.09 -0.09)">
+     <defs>
+      <path id="MesloLGS-NF-Bold-Italic-45" d="M 2994 0 
+L 91 0 
+L 991 4666 
+L 3903 4666 
+L 3744 3853 
+L 1759 3853 
+L 1563 2847 
+L 3359 2847 
+L 3206 2034 
+L 1409 2034 
+L 1172 813 
+L 3156 813 
+L 2994 0 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-50"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-68" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-61" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-73" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-65" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-20" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-45" transform="translate(361.230469 0)"/>
+    </g>
+    <!-- Infrastructure -->
+    <g style="fill: #444444" transform="translate(801.073398 662.680326) scale(0.09 -0.09)">
+     <defs>
+      <path id="MesloLGS-NF-Bold-Italic-49" d="M 831 3853 
+L 991 4666 
+L 3769 4666 
+L 3609 3853 
+L 2681 3853 
+L 2094 813 
+L 3022 813 
+L 2859 0 
+L 84 0 
+L 244 813 
+L 1172 813 
+L 1759 3853 
+L 831 3853 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-49"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-6e" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-66" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-72" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-61" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-73" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-74" transform="translate(361.230469 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-72" transform="translate(421.435547 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-75" transform="translate(481.640625 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-63" transform="translate(541.845703 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-74" transform="translate(602.050781 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-75" transform="translate(662.255859 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-72" transform="translate(722.460938 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-65" transform="translate(782.666016 0)"/>
+    </g>
+   </g>
+   <g id="text_6">
+    <!-- Phase F -->
+    <g style="fill: #444444" transform="translate(801.073398 799.090839) scale(0.09 -0.09)">
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-50"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-68" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-61" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-73" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-65" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-20" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-46" transform="translate(361.230469 0)"/>
+    </g>
+    <!-- Features -->
+    <g style="fill: #444444" transform="translate(801.073398 809.16887) scale(0.09 -0.09)">
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-46"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-65" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-61" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-74" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-75" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-72" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-65" transform="translate(361.230469 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-73" transform="translate(421.435547 0)"/>
+    </g>
+   </g>
+   <g id="text_7">
+    <!-- Phase G -->
+    <g style="fill: #444444" transform="translate(801.073398 945.579382) scale(0.09 -0.09)">
+     <defs>
+      <path id="MesloLGS-NF-Bold-Italic-47" d="M 3097 294 
+Q 2878 109 2572 9 
+Q 2266 -91 1906 -91 
+Q 1150 -91 734 362 
+Q 319 816 319 1638 
+Q 319 2309 545 2965 
+Q 772 3622 1147 4044 
+Q 1453 4391 1859 4570 
+Q 2266 4750 2741 4750 
+Q 2994 4750 3239 4694 
+Q 3484 4638 3725 4525 
+L 3519 3500 
+Q 3359 3709 3143 3818 
+Q 2928 3928 2675 3928 
+Q 2453 3928 2251 3836 
+Q 2050 3744 1888 3566 
+Q 1759 3419 1651 3222 
+Q 1544 3025 1466 2784 
+Q 1366 2478 1312 2192 
+Q 1259 1906 1259 1663 
+Q 1259 1213 1459 967 
+Q 1659 722 2022 722 
+Q 2134 722 2232 748 
+Q 2331 775 2406 825 
+L 2584 1734 
+L 1941 1734 
+L 2094 2509 
+L 3531 2509 
+L 3097 294 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-50"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-68" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-61" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-73" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-65" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-20" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-47" transform="translate(361.230469 0)"/>
+    </g>
+    <!-- Downstream -->
+    <g style="fill: #444444" transform="translate(801.073398 955.657414) scale(0.09 -0.09)">
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-44"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-6f" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-77" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-6e" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-73" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-74" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-72" transform="translate(361.230469 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-65" transform="translate(421.435547 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-61" transform="translate(481.640625 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-6d" transform="translate(541.845703 0)"/>
+    </g>
+   </g>
+   <g id="text_8">
+    <!-- Phase H -->
+    <g style="fill: #444444" transform="translate(801.073398 1055.158915) scale(0.09 -0.09)">
+     <defs>
+      <path id="MesloLGS-NF-Bold-Italic-48" d="M 884 4666 
+L 1806 4666 
+L 1459 2888 
+L 2613 2888 
+L 2956 4666 
+L 3878 4666 
+L 2969 0 
+L 2047 0 
+L 2450 2075 
+L 1300 2075 
+L 897 0 
+L -25 0 
+L 884 4666 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-50"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-68" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-61" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-73" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-65" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-20" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-48" transform="translate(361.230469 0)"/>
+    </g>
+    <!-- Victory lap -->
+    <g style="fill: #444444" transform="translate(801.073398 1065.810696) scale(0.09 -0.09)">
+     <defs>
+      <path id="MesloLGS-NF-Bold-Italic-56" d="M 1619 756 
+L 3200 4666 
+L 4141 4666 
+L 2125 0 
+L 838 0 
+L 634 4666 
+L 1544 4666 
+L 1619 756 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-56"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-69" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-63" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-74" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-6f" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-72" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-79" transform="translate(361.230469 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-20" transform="translate(421.435547 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-6c" transform="translate(481.640625 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-61" transform="translate(541.845703 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-Italic-70" transform="translate(602.050781 0)"/>
+    </g>
+   </g>
+   <g id="patch_10">
+    <path d="M 413.587573 125.544381 
+Q 413.587573 142.448329 413.587573 157.898832 
+" clip-path="url(#p5547edff22)" style="fill: none; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+    <path d="M 416.387573 152.298832 
+L 413.587573 157.898832 
+L 410.787573 152.298832 
+z
+" clip-path="url(#p5547edff22)" style="fill: #333333; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 411.706224 197.474622 
+Q 361.60632 215.692768 312.872353 233.414211 
+" clip-path="url(#p5547edff22)" style="fill: none; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+    <path d="M 319.092077 234.131871 
+L 312.872353 233.414211 
+L 317.178315 228.869028 
+z
+" clip-path="url(#p5547edff22)" style="fill: #333333; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+   </g>
+   <g id="patch_12">
+    <path d="M 415.468922 197.474622 
+Q 465.568826 215.692768 514.302793 233.414211 
+" clip-path="url(#p5547edff22)" style="fill: none; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+    <path d="M 509.99683 228.869028 
+L 514.302793 233.414211 
+L 508.083069 234.131871 
+z
+" clip-path="url(#p5547edff22)" style="fill: #333333; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+   </g>
+   <g id="patch_13">
+    <path d="M 311.50931 270.718893 
+Q 361.609214 288.93704 410.343181 306.658483 
+" clip-path="url(#p5547edff22)" style="fill: none; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+    <path d="M 406.037219 302.1133 
+L 410.343181 306.658483 
+L 404.123457 307.376143 
+z
+" clip-path="url(#p5547edff22)" style="fill: #333333; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+   </g>
+   <g id="patch_14">
+    <path d="M 515.665835 270.718893 
+Q 465.565931 288.93704 416.831964 306.658483 
+" clip-path="url(#p5547edff22)" style="fill: none; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+    <path d="M 423.051688 307.376143 
+L 416.831964 306.658483 
+L 421.137927 302.1133 
+z
+" clip-path="url(#p5547edff22)" style="fill: #333333; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+   </g>
+   <g id="patch_15">
+    <path d="M 413.587573 345.277197 
+Q 413.587573 362.181144 413.587573 377.631648 
+" clip-path="url(#p5547edff22)" style="fill: none; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+    <path d="M 416.387573 372.031648 
+L 413.587573 377.631648 
+L 410.787573 372.031648 
+z
+" clip-path="url(#p5547edff22)" style="fill: #333333; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+   </g>
+   <g id="patch_16">
+    <path d="M 413.587573 418.521468 
+Q 413.587573 435.425416 413.587573 450.87592 
+" clip-path="url(#p5547edff22)" style="fill: none; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+    <path d="M 416.387573 445.27592 
+L 413.587573 450.87592 
+L 410.787573 445.27592 
+z
+" clip-path="url(#p5547edff22)" style="fill: #333333; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+   </g>
+   <g id="patch_17">
+    <path d="M 413.587573 491.76574 
+Q 413.587573 508.669688 413.587573 524.120192 
+" clip-path="url(#p5547edff22)" style="fill: none; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+    <path d="M 416.387573 518.520192 
+L 413.587573 524.120192 
+L 410.787573 518.520192 
+z
+" clip-path="url(#p5547edff22)" style="fill: #333333; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+   </g>
+   <g id="patch_18">
+    <path d="M 411.611623 563.315846 
+Q 290.725707 581.913679 171.276335 600.290506 
+" clip-path="url(#p5547edff22)" style="fill: none; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+    <path d="M 177.236977 602.206426 
+L 171.276335 600.290506 
+L 176.385457 596.671545 
+z
+" clip-path="url(#p5547edff22)" style="fill: #333333; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+   </g>
+   <g id="patch_19">
+    <path d="M 413.587573 565.010012 
+Q 413.587573 581.91396 413.587573 597.364463 
+" clip-path="url(#p5547edff22)" style="fill: none; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+    <path d="M 416.387573 591.764463 
+L 413.587573 597.364463 
+L 410.787573 591.764463 
+z
+" clip-path="url(#p5547edff22)" style="fill: #333333; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+   </g>
+   <g id="patch_20">
+    <path d="M 415.563523 563.315846 
+Q 536.449438 581.913679 655.89881 600.290506 
+" clip-path="url(#p5547edff22)" style="fill: none; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+    <path d="M 650.789689 596.671545 
+L 655.89881 600.290506 
+L 649.938169 602.206426 
+z
+" clip-path="url(#p5547edff22)" style="fill: #333333; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+   </g>
+   <g id="patch_21">
+    <path d="M 659.310291 638.254284 
+Q 659.310291 655.158232 659.310291 670.608735 
+" clip-path="url(#p5547edff22)" style="fill: none; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+    <path d="M 662.110291 665.008735 
+L 659.310291 670.608735 
+L 656.510291 665.008735 
+z
+" clip-path="url(#p5547edff22)" style="fill: #333333; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+   </g>
+   <g id="patch_22">
+    <path d="M 169.690827 637.081325 
+Q 290.729276 691.781393 410.443253 745.882902 
+" clip-path="url(#p5547edff22)" style="fill: none; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+    <path d="M 406.493272 741.025161 
+L 410.443253 745.882902 
+L 404.187072 746.128243 
+z
+" clip-path="url(#p5547edff22)" style="fill: #333333; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+   </g>
+   <g id="patch_23">
+    <path d="M 657.334341 709.80439 
+Q 536.448426 728.402223 416.999054 746.779049 
+" clip-path="url(#p5547edff22)" style="fill: none; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+    <path d="M 422.959695 748.69497 
+L 416.999054 746.779049 
+L 422.108175 743.160088 
+z
+" clip-path="url(#p5547edff22)" style="fill: #333333; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+   </g>
+   <g id="patch_24">
+    <path d="M 413.587573 784.742828 
+Q 413.587573 801.646775 413.587573 817.097279 
+" clip-path="url(#p5547edff22)" style="fill: none; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+    <path d="M 416.387573 811.497279 
+L 413.587573 817.097279 
+L 410.787573 811.497279 
+z
+" clip-path="url(#p5547edff22)" style="fill: #333333; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+   </g>
+   <g id="patch_25">
+    <path d="M 413.587573 857.9871 
+Q 413.587573 874.891047 413.587573 890.341551 
+" clip-path="url(#p5547edff22)" style="fill: none; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+    <path d="M 416.387573 884.741551 
+L 413.587573 890.341551 
+L 410.787573 884.741551 
+z
+" clip-path="url(#p5547edff22)" style="fill: #333333; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+   </g>
+   <g id="patch_26">
+    <path d="M 413.587573 931.231371 
+Q 413.587573 948.135319 413.587573 963.585823 
+" clip-path="url(#p5547edff22)" style="fill: none; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+    <path d="M 416.387573 957.985823 
+L 413.587573 963.585823 
+L 410.787573 957.985823 
+z
+" clip-path="url(#p5547edff22)" style="fill: #333333; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+   </g>
+   <g id="patch_27">
+    <path d="M 413.587573 1004.475643 
+Q 413.587573 1021.379591 413.587573 1036.830095 
+" clip-path="url(#p5547edff22)" style="fill: none; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+    <path d="M 416.387573 1031.230095 
+L 413.587573 1036.830095 
+L 410.787573 1031.230095 
+z
+" clip-path="url(#p5547edff22)" style="fill: #333333; stroke: #333333; stroke-width: 1.3; stroke-linecap: round"/>
+   </g>
+   <g id="patch_28">
+    <path d="M 294.034019 125.908941 
+L 533.141126 125.908941 
+Q 538.81165 125.908941 538.81165 120.238417 
+L 538.81165 91.413252 
+Q 538.81165 85.742728 533.141126 85.742728 
+L 294.034019 85.742728 
+Q 288.363495 85.742728 288.363495 91.413252 
+L 288.363495 120.238417 
+Q 288.363495 125.908941 294.034019 125.908941 
+z
+" clip-path="url(#p5547edff22)" style="fill: #ffffff; stroke: #222222; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_29">
+    <path d="M 294.034019 199.153213 
+L 533.141126 199.153213 
+Q 538.81165 199.153213 538.81165 193.482689 
+L 538.81165 164.657524 
+Q 538.81165 158.986999 533.141126 158.986999 
+L 294.034019 158.986999 
+Q 288.363495 158.986999 288.363495 164.657524 
+L 288.363495 193.482689 
+Q 288.363495 199.153213 294.034019 199.153213 
+z
+" clip-path="url(#p5547edff22)" style="fill: #ffffff; stroke: #222222; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_30">
+    <path d="M 190.074408 272.397485 
+L 429.181515 272.397485 
+Q 434.852039 272.397485 434.852039 266.726961 
+L 434.852039 237.901796 
+Q 434.852039 232.231271 429.181515 232.231271 
+L 190.074408 232.231271 
+Q 184.403883 232.231271 184.403883 237.901796 
+L 184.403883 266.726961 
+Q 184.403883 272.397485 190.074408 272.397485 
+z
+" clip-path="url(#p5547edff22)" style="fill: #ffffff; stroke: #222222; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_31">
+    <path d="M 397.993631 272.397485 
+L 637.100738 272.397485 
+Q 642.771262 272.397485 642.771262 266.726961 
+L 642.771262 237.901796 
+Q 642.771262 232.231271 637.100738 232.231271 
+L 397.993631 232.231271 
+Q 392.323107 232.231271 392.323107 237.901796 
+L 392.323107 266.726961 
+Q 392.323107 272.397485 397.993631 272.397485 
+z
+" clip-path="url(#p5547edff22)" style="fill: #ffffff; stroke: #222222; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_32">
+    <path d="M 294.034019 345.641757 
+L 533.141126 345.641757 
+Q 538.81165 345.641757 538.81165 339.971232 
+L 538.81165 311.146067 
+Q 538.81165 305.475543 533.141126 305.475543 
+L 294.034019 305.475543 
+Q 288.363495 305.475543 288.363495 311.146067 
+L 288.363495 339.971232 
+Q 288.363495 345.641757 294.034019 345.641757 
+z
+" clip-path="url(#p5547edff22)" style="fill: #fff4d1; stroke: #b8860b; stroke-width: 2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_33">
+    <path d="M 294.034019 418.886029 
+L 533.141126 418.886029 
+Q 538.81165 418.886029 538.81165 413.215504 
+L 538.81165 384.390339 
+Q 538.81165 378.719815 533.141126 378.719815 
+L 294.034019 378.719815 
+Q 288.363495 378.719815 288.363495 384.390339 
+L 288.363495 413.215504 
+Q 288.363495 418.886029 294.034019 418.886029 
+z
+" clip-path="url(#p5547edff22)" style="fill: #ffffff; stroke: #222222; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_34">
+    <path d="M 294.034019 492.1303 
+L 533.141126 492.1303 
+Q 538.81165 492.1303 538.81165 486.459776 
+L 538.81165 457.634611 
+Q 538.81165 451.964087 533.141126 451.964087 
+L 294.034019 451.964087 
+Q 288.363495 451.964087 288.363495 457.634611 
+L 288.363495 486.459776 
+Q 288.363495 492.1303 294.034019 492.1303 
+z
+" clip-path="url(#p5547edff22)" style="fill: #ffffff; stroke: #222222; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_35">
+    <path d="M 294.034019 565.374572 
+L 533.141126 565.374572 
+Q 538.81165 565.374572 538.81165 559.704048 
+L 538.81165 530.878883 
+Q 538.81165 525.208359 533.141126 525.208359 
+L 294.034019 525.208359 
+Q 288.363495 525.208359 288.363495 530.878883 
+L 288.363495 559.704048 
+Q 288.363495 565.374572 294.034019 565.374572 
+z
+" clip-path="url(#p5547edff22)" style="fill: #fff4d1; stroke: #b8860b; stroke-width: 2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_36">
+    <path d="M 48.311301 638.618844 
+L 287.418408 638.618844 
+Q 293.088932 638.618844 293.088932 632.94832 
+L 293.088932 604.123155 
+Q 293.088932 598.45263 287.418408 598.45263 
+L 48.311301 598.45263 
+Q 42.640777 598.45263 42.640777 604.123155 
+L 42.640777 632.94832 
+Q 42.640777 638.618844 48.311301 638.618844 
+z
+" clip-path="url(#p5547edff22)" style="fill: #ffffff; stroke: #222222; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_37">
+    <path d="M 294.034019 638.618844 
+L 533.141126 638.618844 
+Q 538.81165 638.618844 538.81165 632.94832 
+L 538.81165 604.123155 
+Q 538.81165 598.45263 533.141126 598.45263 
+L 294.034019 598.45263 
+Q 288.363495 598.45263 288.363495 604.123155 
+L 288.363495 632.94832 
+Q 288.363495 638.618844 294.034019 638.618844 
+z
+" clip-path="url(#p5547edff22)" style="fill: #ffffff; stroke: #222222; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_38">
+    <path d="M 539.756738 638.618844 
+L 778.863845 638.618844 
+Q 784.534369 638.618844 784.534369 632.94832 
+L 784.534369 604.123155 
+Q 784.534369 598.45263 778.863845 598.45263 
+L 539.756738 598.45263 
+Q 534.086214 598.45263 534.086214 604.123155 
+L 534.086214 632.94832 
+Q 534.086214 638.618844 539.756738 638.618844 
+z
+" clip-path="url(#p5547edff22)" style="fill: #ffffff; stroke: #222222; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_39">
+    <path d="M 539.756738 711.863116 
+L 778.863845 711.863116 
+Q 784.534369 711.863116 784.534369 706.192592 
+L 784.534369 677.367427 
+Q 784.534369 671.696902 778.863845 671.696902 
+L 539.756738 671.696902 
+Q 534.086214 671.696902 534.086214 677.367427 
+L 534.086214 706.192592 
+Q 534.086214 711.863116 539.756738 711.863116 
+z
+" clip-path="url(#p5547edff22)" style="fill: #ffffff; stroke: #222222; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_40">
+    <path d="M 294.034019 785.107388 
+L 533.141126 785.107388 
+Q 538.81165 785.107388 538.81165 779.436863 
+L 538.81165 750.611698 
+Q 538.81165 744.941174 533.141126 744.941174 
+L 294.034019 744.941174 
+Q 288.363495 744.941174 288.363495 750.611698 
+L 288.363495 779.436863 
+Q 288.363495 785.107388 294.034019 785.107388 
+z
+" clip-path="url(#p5547edff22)" style="fill: #ffffff; stroke: #222222; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_41">
+    <path d="M 294.034019 858.35166 
+L 533.141126 858.35166 
+Q 538.81165 858.35166 538.81165 852.681135 
+L 538.81165 823.85597 
+Q 538.81165 818.185446 533.141126 818.185446 
+L 294.034019 818.185446 
+Q 288.363495 818.185446 288.363495 823.85597 
+L 288.363495 852.681135 
+Q 288.363495 858.35166 294.034019 858.35166 
+z
+" clip-path="url(#p5547edff22)" style="fill: #ffffff; stroke: #222222; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_42">
+    <path d="M 294.034019 931.595931 
+L 533.141126 931.595931 
+Q 538.81165 931.595931 538.81165 925.925407 
+L 538.81165 897.100242 
+Q 538.81165 891.429718 533.141126 891.429718 
+L 294.034019 891.429718 
+Q 288.363495 891.429718 288.363495 897.100242 
+L 288.363495 925.925407 
+Q 288.363495 931.595931 294.034019 931.595931 
+z
+" clip-path="url(#p5547edff22)" style="fill: #ffffff; stroke: #222222; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_43">
+    <path d="M 294.034019 1004.840203 
+L 533.141126 1004.840203 
+Q 538.81165 1004.840203 538.81165 999.169679 
+L 538.81165 970.344514 
+Q 538.81165 964.67399 533.141126 964.67399 
+L 294.034019 964.67399 
+Q 288.363495 964.67399 288.363495 970.344514 
+L 288.363495 999.169679 
+Q 288.363495 1004.840203 294.034019 1004.840203 
+z
+" clip-path="url(#p5547edff22)" style="fill: #ffffff; stroke: #222222; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_44">
+    <path d="M 294.034019 1078.084475 
+L 533.141126 1078.084475 
+Q 538.81165 1078.084475 538.81165 1072.413951 
+L 538.81165 1043.588786 
+Q 538.81165 1037.918262 533.141126 1037.918262 
+L 294.034019 1037.918262 
+Q 288.363495 1037.918262 288.363495 1043.588786 
+L 288.363495 1072.413951 
+Q 288.363495 1078.084475 294.034019 1078.084475 
+z
+" clip-path="url(#p5547edff22)" style="fill: #ffffff; stroke: #222222; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="text_9">
+    <!-- PyPhi 2.0 Refactoring — Path-Dependency Graph -->
+    <g style="fill: #555555" transform="translate(304.280156 18.581563) scale(0.14 -0.14)">
+     <defs>
+      <path id="MesloLGS-NF-Bold-50" d="M 1428 3891 
+L 1428 2522 
+L 1806 2522 
+Q 2259 2522 2442 2675 
+Q 2625 2828 2625 3206 
+Q 2625 3584 2442 3737 
+Q 2259 3891 1806 3891 
+L 1428 3891 
+z
+M 506 4666 
+L 1772 4666 
+Q 2738 4666 3161 4322 
+Q 3584 3978 3584 3206 
+Q 3584 2434 3161 2090 
+Q 2738 1747 1772 1747 
+L 1428 1747 
+L 1428 0 
+L 506 0 
+L 506 4666 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-79" d="M 2222 -378 
+Q 2038 -872 1780 -1098 
+Q 1522 -1325 1153 -1325 
+L 397 -1325 
+L 397 -628 
+L 769 -628 
+Q 1050 -628 1181 -533 
+Q 1313 -438 1447 -91 
+L 1516 97 
+L 184 3500 
+L 1147 3500 
+L 1947 1228 
+L 2713 3500 
+L 3675 3500 
+L 2222 -378 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-68" d="M 3347 2272 
+L 3347 0 
+L 2438 0 
+L 2438 2131 
+Q 2438 2509 2330 2671 
+Q 2222 2834 1978 2834 
+Q 1728 2834 1587 2614 
+Q 1447 2394 1447 2003 
+L 1447 0 
+L 538 0 
+L 538 4863 
+L 1447 4863 
+L 1447 2975 
+Q 1544 3266 1778 3425 
+Q 2013 3584 2344 3584 
+Q 2841 3584 3094 3254 
+Q 3347 2925 3347 2272 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-69" d="M 691 3500 
+L 2503 3500 
+L 2503 703 
+L 3641 703 
+L 3641 0 
+L 447 0 
+L 447 703 
+L 1588 703 
+L 1588 2797 
+L 691 2797 
+L 691 3500 
+z
+M 1588 5203 
+L 2503 5203 
+L 2503 4134 
+L 1588 4134 
+L 1588 5203 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-20" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-32" d="M 1356 813 
+L 3322 813 
+L 3322 0 
+L 359 0 
+L 359 788 
+L 859 1319 
+Q 1750 2266 1941 2484 
+Q 2175 2753 2278 2961 
+Q 2381 3169 2381 3372 
+Q 2381 3684 2192 3854 
+Q 2003 4025 1656 4025 
+Q 1409 4025 1101 3926 
+Q 794 3828 459 3641 
+L 459 4500 
+Q 794 4622 1114 4686 
+Q 1434 4750 1728 4750 
+Q 2469 4750 2892 4404 
+Q 3316 4059 3316 3463 
+Q 3316 3188 3223 2947 
+Q 3131 2706 2906 2413 
+Q 2741 2200 1997 1456 
+Q 1594 1053 1356 813 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-2e" d="M 1403 1147 
+L 2447 1147 
+L 2447 0 
+L 1403 0 
+L 1403 1147 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-30" d="M 384 2328 
+Q 384 3541 768 4145 
+Q 1153 4750 1925 4750 
+Q 2700 4750 3084 4147 
+Q 3469 3544 3469 2328 
+Q 3469 1116 3084 512 
+Q 2700 -91 1925 -91 
+Q 1153 -91 768 514 
+Q 384 1119 384 2328 
+z
+M 1459 1081 
+Q 1606 691 1925 691 
+Q 2247 691 2394 1081 
+Q 2541 1472 2541 2328 
+Q 2541 2653 2519 2909 
+L 1428 1172 
+Q 1444 1122 1459 1081 
+z
+M 1925 3969 
+Q 1606 3969 1459 3578 
+Q 1313 3188 1313 2328 
+Q 1313 2063 1325 1844 
+L 2400 3559 
+Q 2397 3569 2394 3578 
+Q 2247 3969 1925 3969 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-52" d="M 2522 2203 
+Q 2659 2175 2761 2073 
+Q 2863 1972 3009 1678 
+L 3853 0 
+L 2841 0 
+L 2278 1178 
+Q 2253 1228 2213 1316 
+Q 1966 1844 1631 1844 
+L 1338 1844 
+L 1338 0 
+L 416 0 
+L 416 4666 
+L 1747 4666 
+Q 2647 4666 3039 4347 
+Q 3431 4028 3431 3309 
+Q 3431 2828 3197 2543 
+Q 2963 2259 2522 2203 
+z
+M 1338 3891 
+L 1338 2619 
+L 1772 2619 
+Q 2150 2619 2314 2767 
+Q 2478 2916 2478 3256 
+Q 2478 3597 2315 3744 
+Q 2153 3891 1772 3891 
+L 1338 3891 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-65" d="M 3444 172 
+Q 3125 41 2794 -25 
+Q 2463 -91 2094 -91 
+Q 1216 -91 752 379 
+Q 288 850 288 1734 
+Q 288 2591 734 3087 
+Q 1181 3584 1953 3584 
+Q 2731 3584 3161 3123 
+Q 3591 2663 3591 1825 
+L 3591 1453 
+L 1219 1453 
+Q 1222 1041 1462 837 
+Q 1703 634 2181 634 
+Q 2497 634 2803 725 
+Q 3109 816 3444 1013 
+L 3444 172 
+z
+M 2669 2141 
+Q 2663 2503 2483 2689 
+Q 2303 2875 1953 2875 
+Q 1638 2875 1450 2683 
+Q 1263 2491 1228 2138 
+L 2669 2141 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-66" d="M 2309 3806 
+L 2309 3500 
+L 3384 3500 
+L 3384 2797 
+L 2309 2797 
+L 2309 0 
+L 1394 0 
+L 1394 2797 
+L 544 2797 
+L 544 3500 
+L 1394 3500 
+L 1394 3744 
+Q 1394 4375 1656 4619 
+Q 1919 4863 2631 4863 
+L 3384 4863 
+L 3384 4159 
+L 2669 4159 
+Q 2463 4159 2389 4084 
+Q 2316 4009 2309 3806 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-61" d="M 2188 1644 
+Q 1675 1644 1472 1512 
+Q 1269 1381 1269 1063 
+Q 1269 825 1409 684 
+Q 1550 544 1791 544 
+Q 2153 544 2353 817 
+Q 2553 1091 2553 1581 
+L 2553 1644 
+L 2188 1644 
+z
+M 3463 1997 
+L 3463 0 
+L 2553 0 
+L 2553 391 
+Q 2388 159 2128 34 
+Q 1869 -91 1556 -91 
+Q 959 -91 626 225 
+Q 294 541 294 1106 
+Q 294 1719 691 2011 
+Q 1088 2303 1919 2303 
+L 2553 2303 
+L 2553 2456 
+Q 2553 2678 2392 2792 
+Q 2231 2906 1919 2906 
+Q 1591 2906 1283 2823 
+Q 975 2741 641 2559 
+L 641 3341 
+Q 944 3466 1256 3525 
+Q 1569 3584 1919 3584 
+Q 2772 3584 3117 3237 
+Q 3463 2891 3463 1997 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-63" d="M 3316 178 
+Q 3084 44 2818 -23 
+Q 2553 -91 2247 -91 
+Q 1438 -91 981 396 
+Q 525 884 525 1747 
+Q 525 2613 984 3102 
+Q 1444 3591 2253 3591 
+Q 2534 3591 2795 3525 
+Q 3056 3459 3316 3322 
+L 3316 2484 
+Q 3116 2656 2877 2748 
+Q 2638 2841 2381 2841 
+Q 1934 2841 1693 2556 
+Q 1453 2272 1453 1747 
+Q 1453 1222 1693 940 
+Q 1934 659 2381 659 
+Q 2647 659 2878 748 
+Q 3109 838 3316 1019 
+L 3316 178 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-74" d="M 2156 4494 
+L 2156 3500 
+L 3353 3500 
+L 3353 2797 
+L 2156 2797 
+L 2156 1141 
+Q 2156 906 2270 804 
+Q 2384 703 2650 703 
+L 3353 703 
+L 3353 0 
+L 2584 0 
+Q 1797 0 1519 251 
+Q 1241 503 1241 1184 
+L 1241 2797 
+L 347 2797 
+L 347 3500 
+L 1241 3500 
+L 1241 4494 
+L 2156 4494 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-6f" d="M 1925 2841 
+Q 1597 2841 1409 2552 
+Q 1222 2263 1222 1747 
+Q 1222 1231 1409 942 
+Q 1597 653 1925 653 
+Q 2256 653 2443 942 
+Q 2631 1231 2631 1747 
+Q 2631 2263 2443 2552 
+Q 2256 2841 1925 2841 
+z
+M 306 1747 
+Q 306 2594 745 3089 
+Q 1184 3584 1925 3584 
+Q 2669 3584 3108 3089 
+Q 3547 2594 3547 1747 
+Q 3547 900 3108 404 
+Q 2669 -91 1925 -91 
+Q 1184 -91 745 404 
+Q 306 900 306 1747 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-72" d="M 3597 2534 
+Q 3447 2672 3245 2740 
+Q 3044 2809 2803 2809 
+Q 2513 2809 2295 2707 
+Q 2078 2606 1959 2413 
+Q 1884 2294 1854 2125 
+Q 1825 1956 1825 1613 
+L 1825 0 
+L 909 0 
+L 909 3500 
+L 1825 3500 
+L 1825 2956 
+Q 1959 3256 2237 3420 
+Q 2516 3584 2888 3584 
+Q 3075 3584 3254 3539 
+Q 3434 3494 3597 3406 
+L 3597 2534 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-6e" d="M 3347 2272 
+L 3347 0 
+L 2438 0 
+L 2438 2131 
+Q 2438 2513 2330 2677 
+Q 2222 2841 1978 2841 
+Q 1731 2841 1589 2619 
+Q 1447 2397 1447 2003 
+L 1447 0 
+L 538 0 
+L 538 3500 
+L 1447 3500 
+L 1447 2975 
+Q 1544 3266 1778 3425 
+Q 2013 3584 2344 3584 
+Q 2841 3584 3094 3254 
+Q 3347 2925 3347 2272 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-67" d="M 2509 1806 
+Q 2509 2275 2331 2558 
+Q 2153 2841 1863 2841 
+Q 1575 2841 1398 2559 
+Q 1222 2278 1222 1806 
+Q 1222 1331 1398 1050 
+Q 1575 769 1863 769 
+Q 2153 769 2331 1051 
+Q 2509 1334 2509 1806 
+z
+M 3425 263 
+Q 3425 -578 3045 -951 
+Q 2666 -1325 1813 -1325 
+Q 1525 -1325 1244 -1283 
+Q 963 -1241 672 -1153 
+L 672 -313 
+Q 931 -456 1200 -525 
+Q 1469 -594 1753 -594 
+Q 2141 -594 2325 -411 
+Q 2509 -228 2509 159 
+L 2509 538 
+Q 2375 288 2153 166 
+Q 1931 44 1613 44 
+Q 1013 44 659 512 
+Q 306 981 306 1784 
+Q 306 2616 659 3103 
+Q 1013 3591 1606 3591 
+Q 1906 3591 2140 3450 
+Q 2375 3309 2509 3053 
+L 2509 3500 
+L 3425 3500 
+L 3425 263 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-2014" d="M 0 2156 
+L 3853 2156 
+L 3853 1388 
+L 0 1388 
+L 0 2156 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-2d" d="M 319 2263 
+L 3631 2263 
+L 3631 1422 
+L 319 1422 
+L 319 2263 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-44" d="M 1350 3834 
+L 1350 831 
+L 1600 831 
+Q 2144 831 2375 1173 
+Q 2606 1516 2606 2338 
+Q 2606 3153 2375 3493 
+Q 2144 3834 1600 3834 
+L 1350 3834 
+z
+M 428 4666 
+L 1416 4666 
+Q 2559 4666 3062 4120 
+Q 3566 3575 3566 2338 
+Q 3566 1097 3062 548 
+Q 2559 0 1416 0 
+L 428 0 
+L 428 4666 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-70" d="M 1381 494 
+L 1381 -1331 
+L 469 -1331 
+L 469 3500 
+L 1381 3500 
+L 1381 2975 
+Q 1525 3278 1759 3431 
+Q 1994 3584 2309 3584 
+Q 2909 3584 3240 3103 
+Q 3572 2622 3572 1747 
+Q 3572 859 3236 384 
+Q 2900 -91 2278 -91 
+Q 1997 -91 1773 54 
+Q 1550 200 1381 494 
+z
+M 2656 1753 
+Q 2656 2259 2487 2546 
+Q 2319 2834 2022 2834 
+Q 1725 2834 1553 2546 
+Q 1381 2259 1381 1753 
+Q 1381 1247 1553 959 
+Q 1725 672 2022 672 
+Q 2319 672 2487 959 
+Q 2656 1247 2656 1753 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-64" d="M 2472 3003 
+L 2472 4863 
+L 3384 4863 
+L 3384 0 
+L 2472 0 
+L 2472 519 
+Q 2325 216 2092 62 
+Q 1859 -91 1544 -91 
+Q 944 -91 612 390 
+Q 281 872 281 1747 
+Q 281 2634 617 3109 
+Q 953 3584 1575 3584 
+Q 1856 3584 2079 3439 
+Q 2303 3294 2472 3003 
+z
+M 1197 1741 
+Q 1197 1234 1365 946 
+Q 1534 659 1831 659 
+Q 2128 659 2300 946 
+Q 2472 1234 2472 1741 
+Q 2472 2247 2300 2534 
+Q 2128 2822 1831 2822 
+Q 1534 2822 1365 2534 
+Q 1197 2247 1197 1741 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-47" d="M 2725 844 
+L 2725 1734 
+L 2094 1734 
+L 2094 2509 
+L 3531 2509 
+L 3531 372 
+Q 3266 144 2945 26 
+Q 2625 -91 2259 -91 
+Q 1353 -91 859 539 
+Q 366 1169 366 2328 
+Q 366 3506 864 4128 
+Q 1363 4750 2303 4750 
+Q 2584 4750 2856 4670 
+Q 3128 4591 3366 4441 
+L 3366 3419 
+Q 3172 3669 2920 3795 
+Q 2669 3922 2369 3922 
+Q 1844 3922 1584 3526 
+Q 1325 3131 1325 2328 
+Q 1325 1550 1575 1144 
+Q 1825 738 2303 738 
+Q 2447 738 2553 764 
+Q 2659 791 2725 844 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#MesloLGS-NF-Bold-50"/>
+     <use xlink:href="#MesloLGS-NF-Bold-79" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-50" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-68" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-69" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-20" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-32" transform="translate(361.230469 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-2e" transform="translate(421.435547 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-30" transform="translate(481.640625 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-20" transform="translate(541.845703 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-52" transform="translate(602.050781 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-65" transform="translate(662.255859 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-66" transform="translate(722.460938 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-61" transform="translate(782.666016 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-63" transform="translate(842.871094 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-74" transform="translate(903.076172 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-6f" transform="translate(963.28125 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-72" transform="translate(1023.486328 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-69" transform="translate(1083.691406 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-6e" transform="translate(1143.896484 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-67" transform="translate(1204.101562 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-20" transform="translate(1264.306641 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-2014" transform="translate(1324.511719 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-20" transform="translate(1384.716797 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-50" transform="translate(1444.921875 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-61" transform="translate(1505.126953 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-74" transform="translate(1565.332031 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-68" transform="translate(1625.537109 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-2d" transform="translate(1685.742188 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-44" transform="translate(1745.947266 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-65" transform="translate(1806.152344 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-70" transform="translate(1866.357422 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-65" transform="translate(1926.5625 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-6e" transform="translate(1986.767578 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-64" transform="translate(2046.972656 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-65" transform="translate(2107.177734 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-6e" transform="translate(2167.382812 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-63" transform="translate(2227.587891 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-79" transform="translate(2287.792969 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-20" transform="translate(2347.998047 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-47" transform="translate(2408.203125 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-72" transform="translate(2468.408203 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-61" transform="translate(2528.613281 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-70" transform="translate(2588.818359 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-68" transform="translate(2649.023438 0)"/>
+    </g>
+   </g>
+   <g id="text_10">
+    <!-- P0  Python 3.13 dep verify -->
+    <g style="fill: #555555" transform="translate(335.32351 108.599272) scale(0.1 -0.1)">
+     <defs>
+      <path id="MesloLGS-NF-Regular-50" d="M 1247 4147 
+L 1247 2394 
+L 1978 2394 
+Q 2416 2394 2661 2625 
+Q 2906 2856 2906 3272 
+Q 2906 3688 2662 3917 
+Q 2419 4147 1978 4147 
+L 1247 4147 
+z
+M 616 4666 
+L 1978 4666 
+Q 2759 4666 3162 4311 
+Q 3566 3956 3566 3272 
+Q 3566 2581 3164 2228 
+Q 2763 1875 1978 1875 
+L 1247 1875 
+L 1247 0 
+L 616 0 
+L 616 4666 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-30" d="M 1925 4734 
+Q 2672 4734 3055 4125 
+Q 3438 3516 3438 2322 
+Q 3438 1128 3055 518 
+Q 2672 -91 1925 -91 
+Q 1178 -91 797 518 
+Q 416 1128 416 2322 
+Q 416 3516 797 4125 
+Q 1178 4734 1925 4734 
+z
+M 1925 409 
+Q 2369 409 2586 881 
+Q 2803 1353 2803 2322 
+Q 2803 2838 2741 3253 
+L 1253 925 
+Q 1488 409 1925 409 
+z
+M 1925 4234 
+Q 1484 4234 1267 3762 
+Q 1050 3291 1050 2322 
+Q 1050 1881 1109 1497 
+L 2566 3819 
+Q 2328 4234 1925 4234 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-20" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-79" d="M 2681 1125 
+Q 2538 759 2316 163 
+Q 2006 -663 1900 -844 
+Q 1756 -1088 1540 -1209 
+Q 1325 -1331 1038 -1331 
+L 575 -1331 
+L 575 -850 
+L 916 -850 
+Q 1169 -850 1312 -703 
+Q 1456 -556 1678 56 
+L 325 3500 
+L 934 3500 
+L 1972 763 
+L 2994 3500 
+L 3603 3500 
+L 2681 1125 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-74" d="M 1919 4494 
+L 1919 3500 
+L 3225 3500 
+L 3225 3053 
+L 1919 3053 
+L 1919 1153 
+Q 1919 766 2066 612 
+Q 2213 459 2578 459 
+L 3225 459 
+L 3225 0 
+L 2522 0 
+Q 1875 0 1609 259 
+Q 1344 519 1344 1153 
+L 1344 3053 
+L 409 3053 
+L 409 3500 
+L 1344 3500 
+L 1344 4494 
+L 1919 4494 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-68" d="M 3284 2169 
+L 3284 0 
+L 2706 0 
+L 2706 2169 
+Q 2706 2641 2540 2862 
+Q 2375 3084 2022 3084 
+Q 1619 3084 1401 2798 
+Q 1184 2513 1184 1978 
+L 1184 0 
+L 609 0 
+L 609 4863 
+L 1184 4863 
+L 1184 2975 
+Q 1338 3275 1600 3429 
+Q 1863 3584 2222 3584 
+Q 2756 3584 3020 3232 
+Q 3284 2881 3284 2169 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-6f" d="M 1925 3097 
+Q 1488 3097 1263 2756 
+Q 1038 2416 1038 1747 
+Q 1038 1081 1263 739 
+Q 1488 397 1925 397 
+Q 2366 397 2591 739 
+Q 2816 1081 2816 1747 
+Q 2816 2416 2591 2756 
+Q 2366 3097 1925 3097 
+z
+M 1925 3584 
+Q 2653 3584 3039 3112 
+Q 3425 2641 3425 1747 
+Q 3425 850 3040 379 
+Q 2656 -91 1925 -91 
+Q 1197 -91 812 379 
+Q 428 850 428 1747 
+Q 428 2641 812 3112 
+Q 1197 3584 1925 3584 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-6e" d="M 3284 2169 
+L 3284 0 
+L 2706 0 
+L 2706 2169 
+Q 2706 2641 2540 2862 
+Q 2375 3084 2022 3084 
+Q 1619 3084 1401 2798 
+Q 1184 2513 1184 1978 
+L 1184 0 
+L 609 0 
+L 609 3500 
+L 1184 3500 
+L 1184 2975 
+Q 1338 3275 1600 3429 
+Q 1863 3584 2222 3584 
+Q 2756 3584 3020 3232 
+Q 3284 2881 3284 2169 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-33" d="M 2425 2497 
+Q 2884 2375 3128 2064 
+Q 3372 1753 3372 1288 
+Q 3372 644 2939 276 
+Q 2506 -91 1741 -91 
+Q 1419 -91 1084 -31 
+Q 750 28 428 141 
+L 428 769 
+Q 747 603 1056 522 
+Q 1366 441 1672 441 
+Q 2191 441 2469 675 
+Q 2747 909 2747 1350 
+Q 2747 1756 2469 1995 
+Q 2191 2234 1716 2234 
+L 1234 2234 
+L 1234 2753 
+L 1716 2753 
+Q 2150 2753 2394 2943 
+Q 2638 3134 2638 3475 
+Q 2638 3834 2411 4026 
+Q 2184 4219 1766 4219 
+Q 1488 4219 1191 4156 
+Q 894 4094 569 3969 
+L 569 4550 
+Q 947 4650 1242 4700 
+Q 1538 4750 1766 4750 
+Q 2447 4750 2855 4408 
+Q 3263 4066 3263 3500 
+Q 3263 3116 3048 2859 
+Q 2834 2603 2425 2497 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-2e" d="M 1216 1263 
+L 2316 1263 
+L 2316 0 
+L 1216 0 
+L 1216 1263 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-31" d="M 844 528 
+L 1825 528 
+L 1825 4053 
+L 650 3488 
+L 650 4094 
+L 1819 4650 
+L 2450 4650 
+L 2450 528 
+L 3419 528 
+L 3419 0 
+L 844 0 
+L 844 528 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-64" d="M 2681 3053 
+L 2681 4863 
+L 3256 4863 
+L 3256 0 
+L 2681 0 
+L 2681 441 
+Q 2538 181 2298 45 
+Q 2059 -91 1747 -91 
+Q 1113 -91 748 401 
+Q 384 894 384 1759 
+Q 384 2613 750 3098 
+Q 1116 3584 1747 3584 
+Q 2063 3584 2303 3448 
+Q 2544 3313 2681 3053 
+z
+M 991 1747 
+Q 991 1078 1203 737 
+Q 1416 397 1831 397 
+Q 2247 397 2464 740 
+Q 2681 1084 2681 1747 
+Q 2681 2413 2464 2755 
+Q 2247 3097 1831 3097 
+Q 1416 3097 1203 2756 
+Q 991 2416 991 1747 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-65" d="M 3500 2038 
+L 3500 1756 
+L 1009 1756 
+L 1009 1738 
+Q 984 1022 1282 709 
+Q 1581 397 2125 397 
+Q 2400 397 2700 484 
+Q 3000 572 3341 750 
+L 3341 178 
+Q 3013 44 2708 -23 
+Q 2403 -91 2119 -91 
+Q 1303 -91 843 398 
+Q 384 888 384 1747 
+Q 384 2584 834 3084 
+Q 1284 3584 2034 3584 
+Q 2703 3584 3089 3131 
+Q 3475 2678 3500 2038 
+z
+M 2925 2206 
+Q 2888 2569 2661 2833 
+Q 2434 3097 2009 3097 
+Q 1594 3097 1325 2822 
+Q 1056 2547 1031 2203 
+L 2925 2206 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-70" d="M 1172 441 
+L 1172 -1331 
+L 594 -1331 
+L 594 3500 
+L 1172 3500 
+L 1172 3053 
+Q 1316 3313 1555 3448 
+Q 1794 3584 2106 3584 
+Q 2741 3584 3102 3093 
+Q 3463 2603 3463 1734 
+Q 3463 881 3100 395 
+Q 2738 -91 2106 -91 
+Q 1788 -91 1548 45 
+Q 1309 181 1172 441 
+z
+M 2859 1747 
+Q 2859 2416 2648 2756 
+Q 2438 3097 2022 3097 
+Q 1603 3097 1387 2755 
+Q 1172 2413 1172 1747 
+Q 1172 1084 1387 740 
+Q 1603 397 2022 397 
+Q 2438 397 2648 737 
+Q 2859 1078 2859 1747 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-76" d="M 313 3500 
+L 909 3500 
+L 1925 563 
+L 2944 3500 
+L 3541 3500 
+L 2297 0 
+L 1556 0 
+L 313 3500 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-72" d="M 3609 2778 
+Q 3425 2922 3234 2987 
+Q 3044 3053 2816 3053 
+Q 2278 3053 1993 2715 
+Q 1709 2378 1709 1741 
+L 1709 0 
+L 1131 0 
+L 1131 3500 
+L 1709 3500 
+L 1709 2816 
+Q 1853 3188 2151 3386 
+Q 2450 3584 2859 3584 
+Q 3072 3584 3256 3531 
+Q 3441 3478 3609 3366 
+L 3609 2778 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-69" d="M 988 3488 
+L 2459 3488 
+L 2459 447 
+L 3600 447 
+L 3600 0 
+L 744 0 
+L 744 447 
+L 1884 447 
+L 1884 3041 
+L 988 3041 
+L 988 3488 
+z
+M 1884 4847 
+L 2459 4847 
+L 2459 4122 
+L 1884 4122 
+L 1884 4847 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-66" d="M 3322 4863 
+L 3322 4384 
+L 2669 4384 
+Q 2359 4384 2239 4257 
+Q 2119 4131 2119 3809 
+L 2119 3500 
+L 3322 3500 
+L 3322 3053 
+L 2119 3053 
+L 2119 0 
+L 1544 0 
+L 1544 3053 
+L 609 3053 
+L 609 3500 
+L 1544 3500 
+L 1544 3744 
+Q 1544 4319 1808 4591 
+Q 2072 4863 2631 4863 
+L 3322 4863 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#MesloLGS-NF-Regular-50"/>
+     <use xlink:href="#MesloLGS-NF-Regular-30" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-50" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-79" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-74" transform="translate(361.230469 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-68" transform="translate(421.435547 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6f" transform="translate(481.640625 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6e" transform="translate(541.845703 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(602.050781 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-33" transform="translate(662.255859 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-2e" transform="translate(722.460938 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-31" transform="translate(782.666016 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-33" transform="translate(842.871094 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(903.076172 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-64" transform="translate(963.28125 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-65" transform="translate(1023.486328 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-70" transform="translate(1083.691406 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(1143.896484 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-76" transform="translate(1204.101562 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-65" transform="translate(1264.306641 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-72" transform="translate(1324.511719 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-69" transform="translate(1384.716797 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-66" transform="translate(1444.921875 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-79" transform="translate(1505.126953 0)"/>
+    </g>
+   </g>
+   <g id="text_11">
+    <!-- P1  Golden regression harness -->
+    <g style="fill: #555555" transform="translate(326.293042 181.809169) scale(0.1 -0.1)">
+     <defs>
+      <path id="MesloLGS-NF-Regular-47" d="M 3450 384 
+Q 3197 150 2880 29 
+Q 2563 -91 2194 -91 
+Q 1306 -91 812 545 
+Q 319 1181 319 2328 
+Q 319 3472 819 4111 
+Q 1319 4750 2209 4750 
+Q 2503 4750 2772 4667 
+Q 3041 4584 3291 4416 
+L 3291 3769 
+Q 3038 4009 2772 4123 
+Q 2506 4238 2209 4238 
+Q 1594 4238 1286 3761 
+Q 978 3284 978 2328 
+Q 978 1356 1276 889 
+Q 1575 422 2194 422 
+Q 2403 422 2561 470 
+Q 2719 519 2847 622 
+L 2847 1875 
+L 2169 1875 
+L 2169 2394 
+L 3450 2394 
+L 3450 384 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-6c" d="M 2247 1266 
+Q 2247 878 2389 681 
+Q 2531 484 2809 484 
+L 3481 484 
+L 3481 0 
+L 2753 0 
+Q 2238 0 1955 329 
+Q 1672 659 1672 1266 
+L 1672 4431 
+L 750 4431 
+L 750 4881 
+L 2247 4881 
+L 2247 1266 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-67" d="M 2681 1778 
+Q 2681 2425 2470 2761 
+Q 2259 3097 1856 3097 
+Q 1434 3097 1212 2761 
+Q 991 2425 991 1778 
+Q 991 1131 1214 792 
+Q 1438 453 1863 453 
+Q 2259 453 2470 793 
+Q 2681 1134 2681 1778 
+z
+M 3256 225 
+Q 3256 -563 2884 -969 
+Q 2513 -1375 1791 -1375 
+Q 1553 -1375 1293 -1331 
+Q 1034 -1288 775 -1203 
+L 775 -634 
+Q 1081 -778 1331 -847 
+Q 1581 -916 1791 -916 
+Q 2256 -916 2468 -662 
+Q 2681 -409 2681 141 
+L 2681 166 
+L 2681 556 
+Q 2544 263 2306 119 
+Q 2069 -25 1728 -25 
+Q 1116 -25 750 465 
+Q 384 956 384 1778 
+Q 384 2603 750 3093 
+Q 1116 3584 1728 3584 
+Q 2066 3584 2300 3450 
+Q 2534 3316 2681 3034 
+L 2681 3488 
+L 3256 3488 
+L 3256 225 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-73" d="M 3041 3378 
+L 3041 2816 
+Q 2794 2959 2544 3031 
+Q 2294 3103 2034 3103 
+Q 1644 3103 1451 2976 
+Q 1259 2850 1259 2591 
+Q 1259 2356 1403 2240 
+Q 1547 2125 2119 2016 
+L 2350 1972 
+Q 2778 1891 2998 1647 
+Q 3219 1403 3219 1013 
+Q 3219 494 2850 201 
+Q 2481 -91 1825 -91 
+Q 1566 -91 1281 -36 
+Q 997 19 666 128 
+L 666 722 
+Q 988 556 1281 473 
+Q 1575 391 1838 391 
+Q 2219 391 2428 545 
+Q 2638 700 2638 978 
+Q 2638 1378 1872 1531 
+L 1847 1538 
+L 1631 1581 
+Q 1134 1678 906 1908 
+Q 678 2138 678 2534 
+Q 678 3038 1018 3311 
+Q 1359 3584 1991 3584 
+Q 2272 3584 2531 3532 
+Q 2791 3481 3041 3378 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-61" d="M 2194 1759 
+L 2003 1759 
+Q 1500 1759 1245 1582 
+Q 991 1406 991 1056 
+Q 991 741 1181 566 
+Q 1372 391 1709 391 
+Q 2184 391 2456 720 
+Q 2728 1050 2731 1631 
+L 2731 1759 
+L 2194 1759 
+z
+M 3309 1997 
+L 3309 0 
+L 2731 0 
+L 2731 519 
+Q 2547 206 2267 57 
+Q 1988 -91 1588 -91 
+Q 1053 -91 734 211 
+Q 416 513 416 1019 
+Q 416 1603 808 1906 
+Q 1200 2209 1959 2209 
+L 2731 2209 
+L 2731 2300 
+Q 2728 2719 2518 2908 
+Q 2309 3097 1850 3097 
+Q 1556 3097 1256 3012 
+Q 956 2928 672 2766 
+L 672 3341 
+Q 991 3463 1283 3523 
+Q 1575 3584 1850 3584 
+Q 2284 3584 2592 3456 
+Q 2900 3328 3091 3072 
+Q 3209 2916 3259 2686 
+Q 3309 2456 3309 1997 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#MesloLGS-NF-Regular-50"/>
+     <use xlink:href="#MesloLGS-NF-Regular-31" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-47" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6f" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6c" transform="translate(361.230469 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-64" transform="translate(421.435547 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-65" transform="translate(481.640625 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6e" transform="translate(541.845703 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(602.050781 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-72" transform="translate(662.255859 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-65" transform="translate(722.460938 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-67" transform="translate(782.666016 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-72" transform="translate(842.871094 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-65" transform="translate(903.076172 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-73" transform="translate(963.28125 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-73" transform="translate(1023.486328 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-69" transform="translate(1083.691406 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6f" transform="translate(1143.896484 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6e" transform="translate(1204.101562 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(1264.306641 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-68" transform="translate(1324.511719 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-61" transform="translate(1384.716797 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-72" transform="translate(1444.921875 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6e" transform="translate(1505.126953 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-65" transform="translate(1565.332031 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-73" transform="translate(1625.537109 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-73" transform="translate(1685.742188 0)"/>
+    </g>
+   </g>
+   <g id="text_12">
+    <!-- P2  Hypothesis invariants -->
+    <g style="fill: #555555" transform="translate(234.374055 255.087816) scale(0.1 -0.1)">
+     <defs>
+      <path id="MesloLGS-NF-Regular-32" d="M 1166 531 
+L 3309 531 
+L 3309 0 
+L 475 0 
+L 475 531 
+Q 1059 1147 1496 1619 
+Q 1934 2091 2100 2284 
+Q 2413 2666 2522 2902 
+Q 2631 3138 2631 3384 
+Q 2631 3775 2401 3997 
+Q 2172 4219 1772 4219 
+Q 1488 4219 1175 4116 
+Q 863 4013 513 3803 
+L 513 4441 
+Q 834 4594 1145 4672 
+Q 1456 4750 1759 4750 
+Q 2444 4750 2861 4386 
+Q 3278 4022 3278 3431 
+Q 3278 3131 3139 2831 
+Q 3000 2531 2688 2169 
+Q 2513 1966 2180 1606 
+Q 1847 1247 1166 531 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-48" d="M 428 4666 
+L 1063 4666 
+L 1063 2878 
+L 2791 2878 
+L 2791 4666 
+L 3425 4666 
+L 3425 0 
+L 2791 0 
+L 2791 2347 
+L 1063 2347 
+L 1063 0 
+L 428 0 
+L 428 4666 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#MesloLGS-NF-Regular-50"/>
+     <use xlink:href="#MesloLGS-NF-Regular-32" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-48" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-79" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-70" transform="translate(361.230469 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6f" transform="translate(421.435547 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-74" transform="translate(481.640625 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-68" transform="translate(541.845703 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-65" transform="translate(602.050781 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-73" transform="translate(662.255859 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-69" transform="translate(722.460938 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-73" transform="translate(782.666016 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(842.871094 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-69" transform="translate(903.076172 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6e" transform="translate(963.28125 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-76" transform="translate(1023.486328 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-61" transform="translate(1083.691406 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-72" transform="translate(1143.896484 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-69" transform="translate(1204.101562 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-61" transform="translate(1264.306641 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6e" transform="translate(1324.511719 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-74" transform="translate(1384.716797 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-73" transform="translate(1444.921875 0)"/>
+    </g>
+   </g>
+   <g id="text_13">
+    <!-- P3  Protocols + CES fix -->
+    <g style="fill: #555555" transform="translate(448.313591 255.087816) scale(0.1 -0.1)">
+     <defs>
+      <path id="MesloLGS-NF-Regular-63" d="M 3316 178 
+Q 3084 44 2839 -23 
+Q 2594 -91 2338 -91 
+Q 1525 -91 1067 396 
+Q 609 884 609 1747 
+Q 609 2609 1067 3096 
+Q 1525 3584 2338 3584 
+Q 2591 3584 2831 3518 
+Q 3072 3453 3316 3316 
+L 3316 2713 
+Q 3088 2916 2858 3006 
+Q 2628 3097 2338 3097 
+Q 1797 3097 1506 2747 
+Q 1216 2397 1216 1747 
+Q 1216 1100 1508 748 
+Q 1800 397 2338 397 
+Q 2638 397 2875 489 
+Q 3113 581 3316 775 
+L 3316 178 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-2b" d="M 2250 3681 
+L 2250 2297 
+L 3641 2297 
+L 3641 1769 
+L 2250 1769 
+L 2250 384 
+L 1725 384 
+L 1725 1769 
+L 338 1769 
+L 338 2297 
+L 1725 2297 
+L 1725 3681 
+L 2250 3681 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-43" d="M 3353 166 
+Q 3113 38 2859 -26 
+Q 2606 -91 2322 -91 
+Q 1425 -91 929 543 
+Q 434 1178 434 2328 
+Q 434 3472 932 4111 
+Q 1431 4750 2322 4750 
+Q 2606 4750 2859 4686 
+Q 3113 4622 3353 4494 
+L 3353 3847 
+Q 3122 4038 2856 4138 
+Q 2591 4238 2322 4238 
+Q 1706 4238 1400 3763 
+Q 1094 3288 1094 2328 
+Q 1094 1372 1400 897 
+Q 1706 422 2322 422 
+Q 2597 422 2861 522 
+Q 3125 622 3353 813 
+L 3353 166 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-45" d="M 616 4666 
+L 3384 4666 
+L 3384 4134 
+L 1247 4134 
+L 1247 2878 
+L 3291 2878 
+L 3291 2347 
+L 1247 2347 
+L 1247 531 
+L 3444 531 
+L 3444 0 
+L 616 0 
+L 616 4666 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-53" d="M 3163 4506 
+L 3163 3866 
+Q 2875 4050 2586 4144 
+Q 2297 4238 2003 4238 
+Q 1556 4238 1297 4030 
+Q 1038 3822 1038 3469 
+Q 1038 3159 1208 2996 
+Q 1378 2834 1844 2725 
+L 2175 2650 
+Q 2831 2497 3131 2169 
+Q 3431 1841 3431 1275 
+Q 3431 609 3018 259 
+Q 2606 -91 1819 -91 
+Q 1491 -91 1159 -20 
+Q 828 50 494 191 
+L 494 863 
+Q 853 634 1173 528 
+Q 1494 422 1819 422 
+Q 2297 422 2562 636 
+Q 2828 850 2828 1234 
+Q 2828 1584 2645 1768 
+Q 2463 1953 2009 2053 
+L 1672 2131 
+Q 1022 2278 728 2575 
+Q 434 2872 434 3372 
+Q 434 3997 854 4373 
+Q 1275 4750 1972 4750 
+Q 2241 4750 2537 4689 
+Q 2834 4628 3163 4506 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-78" d="M 3494 3500 
+L 2241 1825 
+L 3616 0 
+L 2950 0 
+L 1925 1403 
+L 903 0 
+L 238 0 
+L 1613 1825 
+L 359 3500 
+L 997 3500 
+L 1925 2234 
+L 2847 3500 
+L 3494 3500 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#MesloLGS-NF-Regular-50"/>
+     <use xlink:href="#MesloLGS-NF-Regular-33" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-50" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-72" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6f" transform="translate(361.230469 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-74" transform="translate(421.435547 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6f" transform="translate(481.640625 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-63" transform="translate(541.845703 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6f" transform="translate(602.050781 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6c" transform="translate(662.255859 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-73" transform="translate(722.460938 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(782.666016 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-2b" transform="translate(842.871094 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(903.076172 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-43" transform="translate(963.28125 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-45" transform="translate(1023.486328 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-53" transform="translate(1083.691406 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(1143.896484 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-66" transform="translate(1204.101562 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-69" transform="translate(1264.306641 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-78" transform="translate(1324.511719 0)"/>
+    </g>
+   </g>
+   <g id="text_14">
+    <!-- P4  Formalism split (pivot) -->
+    <g style="fill: #555555" transform="translate(332.313354 328.58365) scale(0.1 -0.1)">
+     <defs>
+      <path id="MesloLGS-NF-Bold-34" d="M 2169 3641 
+L 991 1797 
+L 2169 1797 
+L 2169 3641 
+z
+M 2088 4666 
+L 3053 4666 
+L 3053 1797 
+L 3566 1797 
+L 3566 1006 
+L 3053 1006 
+L 3053 0 
+L 2169 0 
+L 2169 1006 
+L 319 1006 
+L 319 1900 
+L 2088 4666 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-46" d="M 3475 3853 
+L 1491 3853 
+L 1491 2847 
+L 3297 2847 
+L 3297 2034 
+L 1491 2034 
+L 1491 0 
+L 569 0 
+L 569 4666 
+L 3475 4666 
+L 3475 3853 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-6d" d="M 2156 3150 
+Q 2259 3372 2418 3478 
+Q 2578 3584 2809 3584 
+Q 3263 3584 3436 3271 
+Q 3609 2959 3609 1972 
+L 3609 0 
+L 2859 0 
+L 2859 2247 
+Q 2859 2638 2800 2769 
+Q 2741 2900 2584 2900 
+Q 2428 2900 2365 2765 
+Q 2303 2631 2303 2247 
+L 2303 0 
+L 1563 0 
+L 1563 2247 
+Q 1563 2631 1500 2765 
+Q 1438 2900 1281 2900 
+Q 1125 2900 1065 2769 
+Q 1006 2638 1006 2247 
+L 1006 0 
+L 256 0 
+L 256 3500 
+L 922 3500 
+L 922 3138 
+Q 1000 3344 1172 3464 
+Q 1344 3584 1556 3584 
+Q 1769 3584 1944 3457 
+Q 2119 3331 2156 3150 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-6c" d="M 1209 1459 
+L 1209 4159 
+L 281 4159 
+L 281 4863 
+L 2125 4863 
+L 2125 1459 
+Q 2125 1047 2253 875 
+Q 2381 703 2688 703 
+L 3419 703 
+L 3419 0 
+L 2431 0 
+Q 1778 0 1493 337 
+Q 1209 675 1209 1459 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-73" d="M 3097 3391 
+L 3097 2591 
+Q 2844 2753 2570 2836 
+Q 2297 2919 2022 2919 
+Q 1716 2919 1559 2830 
+Q 1403 2741 1403 2566 
+Q 1403 2316 2072 2159 
+L 2106 2150 
+L 2369 2088 
+Q 2869 1969 3101 1705 
+Q 3334 1441 3334 991 
+Q 3334 450 2979 179 
+Q 2625 -91 1913 -91 
+Q 1597 -91 1265 -36 
+Q 934 19 594 128 
+L 594 928 
+Q 897 756 1211 665 
+Q 1525 575 1819 575 
+Q 2141 575 2306 669 
+Q 2472 763 2472 941 
+Q 2472 1116 2355 1209 
+Q 2238 1303 1797 1409 
+L 1544 1466 
+Q 1019 1584 778 1837 
+Q 538 2091 538 2516 
+Q 538 3022 903 3303 
+Q 1269 3584 1931 3584 
+Q 2228 3584 2523 3536 
+Q 2819 3488 3097 3391 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-28" d="M 2888 4863 
+Q 2475 4116 2275 3414 
+Q 2075 2713 2075 2013 
+Q 2075 1316 2275 609 
+Q 2475 -97 2888 -847 
+L 2175 -847 
+Q 1678 -125 1437 578 
+Q 1197 1281 1197 2013 
+Q 1197 2738 1439 3444 
+Q 1681 4150 2175 4863 
+L 2888 4863 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-76" d="M 3603 3500 
+L 2491 0 
+L 1363 0 
+L 250 3500 
+L 1178 3500 
+L 1925 769 
+L 2675 3500 
+L 3603 3500 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-29" d="M 966 4863 
+L 1678 4863 
+Q 2172 4150 2414 3444 
+Q 2656 2738 2656 2013 
+Q 2656 1281 2415 578 
+Q 2175 -125 1678 -847 
+L 966 -847 
+Q 1378 -97 1578 609 
+Q 1778 1316 1778 2013 
+Q 1778 2713 1578 3414 
+Q 1378 4116 966 4863 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#MesloLGS-NF-Bold-50"/>
+     <use xlink:href="#MesloLGS-NF-Bold-34" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-20" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-20" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-46" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-6f" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-72" transform="translate(361.230469 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-6d" transform="translate(421.435547 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-61" transform="translate(481.640625 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-6c" transform="translate(541.845703 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-69" transform="translate(602.050781 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-73" transform="translate(662.255859 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-6d" transform="translate(722.460938 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-20" transform="translate(782.666016 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-73" transform="translate(842.871094 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-70" transform="translate(903.076172 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-6c" transform="translate(963.28125 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-69" transform="translate(1023.486328 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-74" transform="translate(1083.691406 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-20" transform="translate(1143.896484 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-28" transform="translate(1204.101562 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-70" transform="translate(1264.306641 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-69" transform="translate(1324.511719 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-76" transform="translate(1384.716797 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-6f" transform="translate(1444.921875 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-74" transform="translate(1505.126953 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-29" transform="translate(1565.332031 0)"/>
+    </g>
+   </g>
+   <g id="text_15">
+    <!-- P5  Metric API unification -->
+    <g style="fill: #555555" transform="translate(335.32351 401.576359) scale(0.1 -0.1)">
+     <defs>
+      <path id="MesloLGS-NF-Regular-35" d="M 647 4666 
+L 3009 4666 
+L 3009 4134 
+L 1222 4134 
+L 1222 2988 
+Q 1356 3038 1492 3061 
+Q 1628 3084 1766 3084 
+Q 2491 3084 2916 2656 
+Q 3341 2228 3341 1497 
+Q 3341 759 2895 334 
+Q 2450 -91 1678 -91 
+Q 1306 -91 998 -41 
+Q 691 9 447 109 
+L 447 750 
+Q 734 594 1025 517 
+Q 1316 441 1619 441 
+Q 2141 441 2423 716 
+Q 2706 991 2706 1497 
+Q 2706 1997 2414 2275 
+Q 2122 2553 1600 2553 
+Q 1347 2553 1106 2495 
+Q 866 2438 647 2322 
+L 647 4666 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-4d" d="M 113 4650 
+L 956 4650 
+L 1763 2281 
+L 2575 4650 
+L 3422 4650 
+L 3422 0 
+L 2838 0 
+L 2838 4109 
+L 2006 1659 
+L 1528 1659 
+L 694 4109 
+L 694 0 
+L 113 0 
+L 113 4650 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-41" d="M 1925 4109 
+L 1259 1722 
+L 2591 1722 
+L 1925 4109 
+z
+M 1544 4666 
+L 2309 4666 
+L 3738 0 
+L 3084 0 
+L 2741 1216 
+L 1106 1216 
+L 769 0 
+L 116 0 
+L 1544 4666 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-49" d="M 628 4666 
+L 3219 4666 
+L 3219 4134 
+L 2241 4134 
+L 2241 531 
+L 3219 531 
+L 3219 0 
+L 628 0 
+L 628 531 
+L 1606 531 
+L 1606 4134 
+L 628 4134 
+L 628 4666 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-75" d="M 609 1325 
+L 609 3494 
+L 1184 3494 
+L 1184 1325 
+Q 1184 853 1351 631 
+Q 1519 409 1869 409 
+Q 2275 409 2490 695 
+Q 2706 981 2706 1516 
+L 2706 3494 
+L 3284 3494 
+L 3284 0 
+L 2706 0 
+L 2706 525 
+Q 2553 222 2289 65 
+Q 2025 -91 1672 -91 
+Q 1134 -91 871 261 
+Q 609 613 609 1325 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#MesloLGS-NF-Regular-50"/>
+     <use xlink:href="#MesloLGS-NF-Regular-35" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-4d" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-65" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-74" transform="translate(361.230469 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-72" transform="translate(421.435547 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-69" transform="translate(481.640625 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-63" transform="translate(541.845703 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(602.050781 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-41" transform="translate(662.255859 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-50" transform="translate(722.460938 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-49" transform="translate(782.666016 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(842.871094 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-75" transform="translate(903.076172 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6e" transform="translate(963.28125 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-69" transform="translate(1023.486328 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-66" transform="translate(1083.691406 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-69" transform="translate(1143.896484 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-63" transform="translate(1204.101562 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-61" transform="translate(1264.306641 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-74" transform="translate(1324.511719 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-69" transform="translate(1384.716797 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6f" transform="translate(1444.921875 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6e" transform="translate(1505.126953 0)"/>
+    </g>
+   </g>
+   <g id="text_16">
+    <!-- P6  Partition algebra -->
+    <g style="fill: #555555" transform="translate(350.374292 474.786256) scale(0.1 -0.1)">
+     <defs>
+      <path id="MesloLGS-NF-Regular-36" d="M 3097 4563 
+L 3097 3981 
+Q 2900 4097 2678 4158 
+Q 2456 4219 2216 4219 
+Q 1616 4219 1306 3767 
+Q 997 3316 997 2438 
+Q 1147 2750 1412 2917 
+Q 1678 3084 2022 3084 
+Q 2697 3084 3067 2670 
+Q 3438 2256 3438 1497 
+Q 3438 741 3056 325 
+Q 2675 -91 1984 -91 
+Q 1172 -91 794 492 
+Q 416 1075 416 2328 
+Q 416 3509 870 4129 
+Q 1325 4750 2188 4750 
+Q 2419 4750 2650 4701 
+Q 2881 4653 3097 4563 
+z
+M 1972 2591 
+Q 1569 2591 1337 2300 
+Q 1106 2009 1106 1497 
+Q 1106 984 1337 693 
+Q 1569 403 1972 403 
+Q 2391 403 2603 679 
+Q 2816 956 2816 1497 
+Q 2816 2041 2603 2316 
+Q 2391 2591 1972 2591 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-62" d="M 2869 1747 
+Q 2869 2416 2656 2756 
+Q 2444 3097 2028 3097 
+Q 1609 3097 1393 2755 
+Q 1178 2413 1178 1747 
+Q 1178 1084 1393 740 
+Q 1609 397 2028 397 
+Q 2444 397 2656 737 
+Q 2869 1078 2869 1747 
+z
+M 1178 3053 
+Q 1316 3309 1558 3446 
+Q 1800 3584 2119 3584 
+Q 2750 3584 3112 3098 
+Q 3475 2613 3475 1759 
+Q 3475 894 3111 401 
+Q 2747 -91 2113 -91 
+Q 1800 -91 1561 45 
+Q 1322 181 1178 441 
+L 1178 0 
+L 603 0 
+L 603 4863 
+L 1178 4863 
+L 1178 3053 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#MesloLGS-NF-Regular-50"/>
+     <use xlink:href="#MesloLGS-NF-Regular-36" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-50" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-61" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-72" transform="translate(361.230469 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-74" transform="translate(421.435547 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-69" transform="translate(481.640625 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-74" transform="translate(541.845703 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-69" transform="translate(602.050781 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6f" transform="translate(662.255859 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6e" transform="translate(722.460938 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(782.666016 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-61" transform="translate(842.871094 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6c" transform="translate(903.076172 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-67" transform="translate(963.28125 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-65" transform="translate(1023.486328 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-62" transform="translate(1083.691406 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-72" transform="translate(1143.896484 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-61" transform="translate(1204.101562 0)"/>
+    </g>
+   </g>
+   <g id="text_17">
+    <!-- P7  Subsystem rewrite (big-bang) -->
+    <g style="fill: #555555" transform="translate(317.262573 548.311778) scale(0.1 -0.1)">
+     <defs>
+      <path id="MesloLGS-NF-Bold-37" d="M 422 4666 
+L 3372 4666 
+L 3372 4013 
+L 1791 0 
+L 850 0 
+L 2369 3853 
+L 422 3853 
+L 422 4666 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-53" d="M 1594 2047 
+Q 897 2313 650 2605 
+Q 403 2897 403 3391 
+Q 403 4025 809 4387 
+Q 1216 4750 1925 4750 
+Q 2247 4750 2569 4676 
+Q 2891 4603 3206 4459 
+L 3206 3559 
+Q 2909 3769 2603 3878 
+Q 2297 3988 1997 3988 
+Q 1663 3988 1484 3853 
+Q 1306 3719 1306 3469 
+Q 1306 3275 1436 3148 
+Q 1566 3022 1978 2869 
+L 2375 2719 
+Q 2938 2513 3203 2172 
+Q 3469 1831 3469 1313 
+Q 3469 606 3051 257 
+Q 2634 -91 1791 -91 
+Q 1444 -91 1095 -8 
+Q 747 75 422 238 
+L 422 1191 
+Q 791 928 1136 800 
+Q 1481 672 1819 672 
+Q 2159 672 2346 826 
+Q 2534 981 2534 1259 
+Q 2534 1469 2409 1626 
+Q 2284 1784 2047 1875 
+L 1594 2047 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-75" d="M 500 1222 
+L 500 3500 
+L 1416 3500 
+L 1416 1363 
+Q 1416 984 1522 821 
+Q 1628 659 1875 659 
+Q 2122 659 2261 878 
+Q 2400 1097 2400 1491 
+L 2400 3500 
+L 3316 3500 
+L 3316 0 
+L 2400 0 
+L 2400 519 
+Q 2303 228 2070 68 
+Q 1838 -91 1509 -91 
+Q 1009 -91 754 240 
+Q 500 572 500 1222 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-62" d="M 2656 1741 
+Q 2656 2247 2487 2534 
+Q 2319 2822 2022 2822 
+Q 1725 2822 1553 2534 
+Q 1381 2247 1381 1741 
+Q 1381 1234 1553 946 
+Q 1725 659 2022 659 
+Q 2319 659 2487 946 
+Q 2656 1234 2656 1741 
+z
+M 1381 3003 
+Q 1550 3294 1773 3439 
+Q 1997 3584 2278 3584 
+Q 2900 3584 3236 3109 
+Q 3572 2634 3572 1747 
+Q 3572 872 3240 390 
+Q 2909 -91 2309 -91 
+Q 1994 -91 1759 62 
+Q 1525 216 1381 519 
+L 1381 0 
+L 469 0 
+L 469 4863 
+L 1381 4863 
+L 1381 3003 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Bold-77" d="M 0 3500 
+L 763 3500 
+L 1178 819 
+L 1556 2584 
+L 2297 2584 
+L 2669 819 
+L 3091 3500 
+L 3853 3500 
+L 3219 0 
+L 2350 0 
+L 1925 1819 
+L 1503 0 
+L 634 0 
+L 0 3500 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#MesloLGS-NF-Bold-50"/>
+     <use xlink:href="#MesloLGS-NF-Bold-37" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-20" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-20" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-53" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-75" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-62" transform="translate(361.230469 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-73" transform="translate(421.435547 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-79" transform="translate(481.640625 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-73" transform="translate(541.845703 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-74" transform="translate(602.050781 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-65" transform="translate(662.255859 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-6d" transform="translate(722.460938 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-20" transform="translate(782.666016 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-72" transform="translate(842.871094 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-65" transform="translate(903.076172 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-77" transform="translate(963.28125 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-72" transform="translate(1023.486328 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-69" transform="translate(1083.691406 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-74" transform="translate(1143.896484 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-65" transform="translate(1204.101562 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-20" transform="translate(1264.306641 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-28" transform="translate(1324.511719 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-62" transform="translate(1384.716797 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-69" transform="translate(1444.921875 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-67" transform="translate(1505.126953 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-2d" transform="translate(1565.332031 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-62" transform="translate(1625.537109 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-61" transform="translate(1685.742188 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-6e" transform="translate(1745.947266 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-67" transform="translate(1806.152344 0)"/>
+     <use xlink:href="#MesloLGS-NF-Bold-29" transform="translate(1866.357422 0)"/>
+    </g>
+   </g>
+   <g id="text_18">
+    <!-- P8  Models + Distinction + PhiFold -->
+    <g style="fill: #555555" transform="translate(65.519542 621.309175) scale(0.1 -0.1)">
+     <defs>
+      <path id="MesloLGS-NF-Regular-38" d="M 1925 2216 
+Q 1503 2216 1273 1980 
+Q 1044 1744 1044 1313 
+Q 1044 881 1276 642 
+Q 1509 403 1925 403 
+Q 2350 403 2579 639 
+Q 2809 875 2809 1313 
+Q 2809 1741 2576 1978 
+Q 2344 2216 1925 2216 
+z
+M 1375 2478 
+Q 972 2581 745 2862 
+Q 519 3144 519 3541 
+Q 519 4097 897 4423 
+Q 1275 4750 1925 4750 
+Q 2578 4750 2956 4423 
+Q 3334 4097 3334 3541 
+Q 3334 3144 3107 2862 
+Q 2881 2581 2478 2478 
+Q 2947 2375 3195 2062 
+Q 3444 1750 3444 1253 
+Q 3444 622 3041 265 
+Q 2638 -91 1925 -91 
+Q 1213 -91 811 264 
+Q 409 619 409 1247 
+Q 409 1747 657 2061 
+Q 906 2375 1375 2478 
+z
+M 1147 3481 
+Q 1147 3106 1347 2909 
+Q 1547 2713 1925 2713 
+Q 2306 2713 2506 2909 
+Q 2706 3106 2706 3481 
+Q 2706 3863 2507 4063 
+Q 2309 4263 1925 4263 
+Q 1547 4263 1347 4061 
+Q 1147 3859 1147 3481 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-44" d="M 1363 519 
+Q 2159 519 2475 911 
+Q 2791 1303 2791 2328 
+Q 2791 3363 2477 3755 
+Q 2163 4147 1363 4147 
+L 1063 4147 
+L 1063 519 
+L 1363 519 
+z
+M 1375 4666 
+Q 2444 4666 2950 4097 
+Q 3456 3528 3456 2328 
+Q 3456 1134 2950 567 
+Q 2444 0 1375 0 
+L 428 0 
+L 428 4666 
+L 1375 4666 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-46" d="M 728 4666 
+L 3475 4666 
+L 3475 4134 
+L 1363 4134 
+L 1363 2884 
+L 3278 2884 
+L 3278 2353 
+L 1363 2353 
+L 1363 0 
+L 728 0 
+L 728 4666 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#MesloLGS-NF-Regular-50"/>
+     <use xlink:href="#MesloLGS-NF-Regular-38" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-4d" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6f" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-64" transform="translate(361.230469 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-65" transform="translate(421.435547 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6c" transform="translate(481.640625 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-73" transform="translate(541.845703 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(602.050781 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-2b" transform="translate(662.255859 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(722.460938 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-44" transform="translate(782.666016 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-69" transform="translate(842.871094 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-73" transform="translate(903.076172 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-74" transform="translate(963.28125 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-69" transform="translate(1023.486328 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6e" transform="translate(1083.691406 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-63" transform="translate(1143.896484 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-74" transform="translate(1204.101562 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-69" transform="translate(1264.306641 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6f" transform="translate(1324.511719 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6e" transform="translate(1384.716797 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(1444.921875 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-2b" transform="translate(1505.126953 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(1565.332031 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-50" transform="translate(1625.537109 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-68" transform="translate(1685.742188 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-69" transform="translate(1745.947266 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-46" transform="translate(1806.152344 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6f" transform="translate(1866.357422 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6c" transform="translate(1926.5625 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-64" transform="translate(1986.767578 0)"/>
+    </g>
+   </g>
+   <g id="text_19">
+    <!-- P9  Repertoire cache -->
+    <g style="fill: #555555" transform="translate(353.384448 621.309175) scale(0.1 -0.1)">
+     <defs>
+      <path id="MesloLGS-NF-Regular-39" d="M 1863 2069 
+Q 2266 2069 2495 2359 
+Q 2725 2650 2725 3163 
+Q 2725 3675 2495 3965 
+Q 2266 4256 1863 4256 
+Q 1444 4256 1231 3979 
+Q 1019 3703 1019 3163 
+Q 1019 2619 1230 2344 
+Q 1441 2069 1863 2069 
+z
+M 738 97 
+L 738 678 
+Q 934 563 1156 502 
+Q 1378 441 1619 441 
+Q 2219 441 2526 892 
+Q 2834 1344 2834 2222 
+Q 2688 1909 2422 1742 
+Q 2156 1575 1813 1575 
+Q 1138 1575 767 1990 
+Q 397 2406 397 3169 
+Q 397 3922 776 4336 
+Q 1156 4750 1850 4750 
+Q 2663 4750 3041 4165 
+Q 3419 3581 3419 2328 
+Q 3419 1150 2964 529 
+Q 2509 -91 1644 -91 
+Q 1416 -91 1184 -42 
+Q 953 6 738 97 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-52" d="M 2375 2203 
+Q 2619 2141 2791 1967 
+Q 2963 1794 3219 1275 
+L 3853 0 
+L 3175 0 
+L 2619 1178 
+Q 2378 1681 2186 1826 
+Q 1994 1972 1684 1972 
+L 1081 1972 
+L 1081 0 
+L 447 0 
+L 447 4666 
+L 1747 4666 
+Q 2516 4666 2925 4319 
+Q 3334 3972 3334 3316 
+Q 3334 2853 3082 2561 
+Q 2831 2269 2375 2203 
+z
+M 1081 4147 
+L 1081 2491 
+L 1772 2491 
+Q 2225 2491 2447 2694 
+Q 2669 2897 2669 3316 
+Q 2669 3719 2433 3933 
+Q 2197 4147 1747 4147 
+L 1081 4147 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#MesloLGS-NF-Regular-50"/>
+     <use xlink:href="#MesloLGS-NF-Regular-39" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-52" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-65" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-70" transform="translate(361.230469 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-65" transform="translate(421.435547 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-72" transform="translate(481.640625 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-74" transform="translate(541.845703 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6f" transform="translate(602.050781 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-69" transform="translate(662.255859 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-72" transform="translate(722.460938 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-65" transform="translate(782.666016 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(842.871094 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-63" transform="translate(903.076172 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-61" transform="translate(963.28125 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-63" transform="translate(1023.486328 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-68" transform="translate(1083.691406 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-65" transform="translate(1143.896484 0)"/>
+    </g>
+   </g>
+   <g id="text_20">
+    <!-- P10 Config split -->
+    <g style="fill: #555555" transform="translate(611.147791 621.2748) scale(0.1 -0.1)">
+     <use xlink:href="#MesloLGS-NF-Regular-50"/>
+     <use xlink:href="#MesloLGS-NF-Regular-31" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-30" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-43" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6f" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6e" transform="translate(361.230469 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-66" transform="translate(421.435547 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-69" transform="translate(481.640625 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-67" transform="translate(541.845703 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(602.050781 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-73" transform="translate(662.255859 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-70" transform="translate(722.460938 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6c" transform="translate(782.666016 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-69" transform="translate(842.871094 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-74" transform="translate(903.076172 0)"/>
+    </g>
+   </g>
+   <g id="text_21">
+    <!-- P11 Parallel / Scheduler -->
+    <g style="fill: #555555" transform="translate(587.066541 694.553447) scale(0.1 -0.1)">
+     <defs>
+      <path id="MesloLGS-NF-Regular-2f" d="M 2778 4666 
+L 3372 4666 
+L 916 -594 
+L 319 -594 
+L 2778 4666 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#MesloLGS-NF-Regular-50"/>
+     <use xlink:href="#MesloLGS-NF-Regular-31" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-31" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-50" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-61" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-72" transform="translate(361.230469 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-61" transform="translate(421.435547 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6c" transform="translate(481.640625 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6c" transform="translate(541.845703 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-65" transform="translate(602.050781 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6c" transform="translate(662.255859 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(722.460938 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-2f" transform="translate(782.666016 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(842.871094 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-53" transform="translate(903.076172 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-63" transform="translate(963.28125 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-68" transform="translate(1023.486328 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-65" transform="translate(1083.691406 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-64" transform="translate(1143.896484 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-75" transform="translate(1204.101562 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6c" transform="translate(1264.306641 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-65" transform="translate(1324.511719 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-72" transform="translate(1384.716797 0)"/>
+    </g>
+   </g>
+   <g id="text_22">
+    <!-- P12 Non-binary units -->
+    <g style="fill: #555555" transform="translate(353.384448 767.797718) scale(0.1 -0.1)">
+     <defs>
+      <path id="MesloLGS-NF-Regular-4e" d="M 59 4650 
+L 922 4650 
+L 2747 822 
+L 2747 4650 
+L 3419 4650 
+L 3419 0 
+L 2556 0 
+L 731 3828 
+L 731 0 
+L 59 0 
+L 59 4650 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-2d" d="M 319 2263 
+L 3631 2263 
+L 3631 1734 
+L 319 1734 
+L 319 2263 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#MesloLGS-NF-Regular-50"/>
+     <use xlink:href="#MesloLGS-NF-Regular-31" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-32" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-4e" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6f" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6e" transform="translate(361.230469 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-2d" transform="translate(421.435547 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-62" transform="translate(481.640625 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-69" transform="translate(541.845703 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6e" transform="translate(602.050781 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-61" transform="translate(662.255859 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-72" transform="translate(722.460938 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-79" transform="translate(782.666016 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(842.871094 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-75" transform="translate(903.076172 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6e" transform="translate(963.28125 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-69" transform="translate(1023.486328 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-74" transform="translate(1083.691406 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-73" transform="translate(1143.896484 0)"/>
+    </g>
+   </g>
+   <g id="text_23">
+    <!-- P13 Zaeemzadeh bounds -->
+    <g style="fill: #555555" transform="translate(350.374292 841.04199) scale(0.1 -0.1)">
+     <defs>
+      <path id="MesloLGS-NF-Regular-5a" d="M 556 4666 
+L 3584 4666 
+L 3584 4184 
+L 1147 531 
+L 3653 531 
+L 3653 0 
+L 488 0 
+L 488 481 
+L 2859 4134 
+L 556 4134 
+L 556 4666 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-6d" d="M 2113 3144 
+Q 2219 3369 2383 3476 
+Q 2547 3584 2778 3584 
+Q 3200 3584 3373 3257 
+Q 3547 2931 3547 2028 
+L 3547 0 
+L 3022 0 
+L 3022 2003 
+Q 3022 2744 2939 2923 
+Q 2856 3103 2638 3103 
+Q 2388 3103 2295 2911 
+Q 2203 2719 2203 2003 
+L 2203 0 
+L 1678 0 
+L 1678 2003 
+Q 1678 2753 1589 2928 
+Q 1500 3103 1269 3103 
+Q 1041 3103 952 2911 
+Q 863 2719 863 2003 
+L 863 0 
+L 341 0 
+L 341 3500 
+L 863 3500 
+L 863 3200 
+Q 966 3388 1120 3486 
+Q 1275 3584 1472 3584 
+Q 1709 3584 1867 3475 
+Q 2025 3366 2113 3144 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-7a" d="M 709 3506 
+L 3250 3506 
+L 3250 2981 
+L 1241 469 
+L 3250 469 
+L 3250 0 
+L 634 0 
+L 634 531 
+L 2644 3047 
+L 709 3047 
+L 709 3506 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#MesloLGS-NF-Regular-50"/>
+     <use xlink:href="#MesloLGS-NF-Regular-31" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-33" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-5a" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-61" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-65" transform="translate(361.230469 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-65" transform="translate(421.435547 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6d" transform="translate(481.640625 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-7a" transform="translate(541.845703 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-61" transform="translate(602.050781 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-64" transform="translate(662.255859 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-65" transform="translate(722.460938 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-68" transform="translate(782.666016 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(842.871094 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-62" transform="translate(903.076172 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6f" transform="translate(963.28125 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-75" transform="translate(1023.486328 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6e" transform="translate(1083.691406 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-64" transform="translate(1143.896484 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-73" transform="translate(1204.101562 0)"/>
+    </g>
+   </g>
+   <g id="text_24">
+    <!-- P14 Macro + actual causation -->
+    <g style="fill: #555555" transform="translate(329.303198 914.286262) scale(0.1 -0.1)">
+     <defs>
+      <path id="MesloLGS-NF-Regular-34" d="M 2297 4091 
+L 825 1625 
+L 2297 1625 
+L 2297 4091 
+z
+M 2194 4666 
+L 2925 4666 
+L 2925 1625 
+L 3547 1625 
+L 3547 1113 
+L 2925 1113 
+L 2925 0 
+L 2297 0 
+L 2297 1113 
+L 319 1113 
+L 319 1709 
+L 2194 4666 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#MesloLGS-NF-Regular-50"/>
+     <use xlink:href="#MesloLGS-NF-Regular-31" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-34" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-4d" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-61" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-63" transform="translate(361.230469 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-72" transform="translate(421.435547 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6f" transform="translate(481.640625 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(541.845703 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-2b" transform="translate(602.050781 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(662.255859 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-61" transform="translate(722.460938 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-63" transform="translate(782.666016 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-74" transform="translate(842.871094 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-75" transform="translate(903.076172 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-61" transform="translate(963.28125 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6c" transform="translate(1023.486328 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(1083.691406 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-63" transform="translate(1143.896484 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-61" transform="translate(1204.101562 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-75" transform="translate(1264.306641 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-73" transform="translate(1324.511719 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-61" transform="translate(1384.716797 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-74" transform="translate(1444.921875 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-69" transform="translate(1505.126953 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6f" transform="translate(1565.332031 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6e" transform="translate(1625.537109 0)"/>
+    </g>
+   </g>
+   <g id="text_25">
+    <!-- P14b Matching / perception -->
+    <g style="fill: #555555" transform="translate(335.32351 987.482096) scale(0.1 -0.1)">
+     <use xlink:href="#MesloLGS-NF-Regular-50"/>
+     <use xlink:href="#MesloLGS-NF-Regular-31" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-34" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-62" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-4d" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-61" transform="translate(361.230469 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-74" transform="translate(421.435547 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-63" transform="translate(481.640625 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-68" transform="translate(541.845703 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-69" transform="translate(602.050781 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6e" transform="translate(662.255859 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-67" transform="translate(722.460938 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(782.666016 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-2f" transform="translate(842.871094 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(903.076172 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-70" transform="translate(963.28125 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-65" transform="translate(1023.486328 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-72" transform="translate(1083.691406 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-63" transform="translate(1143.896484 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-65" transform="translate(1204.101562 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-70" transform="translate(1264.306641 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-74" transform="translate(1324.511719 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-69" transform="translate(1384.716797 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6f" transform="translate(1444.921875 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6e" transform="translate(1505.126953 0)"/>
+    </g>
+   </g>
+   <g id="text_26">
+    <!-- P15 jsonify + docs + ASV -->
+    <g style="fill: #555555" transform="translate(341.343823 1060.774806) scale(0.1 -0.1)">
+     <defs>
+      <path id="MesloLGS-NF-Regular-6a" d="M 1875 -63 
+L 1875 3053 
+L 884 3053 
+L 884 3500 
+L 2450 3500 
+L 2450 -63 
+Q 2450 -672 2170 -1001 
+Q 1891 -1331 1375 -1331 
+L 581 -1331 
+L 581 -844 
+L 1313 -844 
+Q 1594 -844 1734 -648 
+Q 1875 -453 1875 -63 
+z
+M 1875 4863 
+L 2450 4863 
+L 2450 4134 
+L 1875 4134 
+L 1875 4863 
+z
+" transform="scale(0.015625)"/>
+      <path id="MesloLGS-NF-Regular-56" d="M 1925 531 
+L 3022 4666 
+L 3675 4666 
+L 2309 0 
+L 1544 0 
+L 178 4666 
+L 831 4666 
+L 1925 531 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#MesloLGS-NF-Regular-50"/>
+     <use xlink:href="#MesloLGS-NF-Regular-31" transform="translate(60.205078 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-35" transform="translate(120.410156 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(180.615234 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6a" transform="translate(240.820312 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-73" transform="translate(301.025391 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6f" transform="translate(361.230469 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6e" transform="translate(421.435547 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-69" transform="translate(481.640625 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-66" transform="translate(541.845703 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-79" transform="translate(602.050781 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(662.255859 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-2b" transform="translate(722.460938 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(782.666016 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-64" transform="translate(842.871094 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-6f" transform="translate(903.076172 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-63" transform="translate(963.28125 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-73" transform="translate(1023.486328 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(1083.691406 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-2b" transform="translate(1143.896484 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-20" transform="translate(1204.101562 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-41" transform="translate(1264.306641 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-53" transform="translate(1324.511719 0)"/>
+     <use xlink:href="#MesloLGS-NF-Regular-56" transform="translate(1384.716797 0)"/>
+    </g>
+   </g>
+   <g id="legend_1">
+    <g id="patch_45">
+     <path d="M 15.3 1081.595581 
+L 33.3 1081.595581 
+L 33.3 1075.295581 
+L 15.3 1075.295581 
+z
+" style="fill: #fff4d1; stroke: #b8860b; stroke-linejoin: miter"/>
+    </g>
+    <g id="text_27">
+     <!-- Pivot project -->
+     <g style="fill: #555555" transform="translate(40.5 1081.595581) scale(0.09 -0.09)">
+      <defs>
+       <path id="MesloLGS-NF-Bold-6a" d="M 2656 134 
+Q 2656 -653 2373 -989 
+Q 2091 -1325 1434 -1325 
+L 447 -1325 
+L 447 -622 
+L 1178 -622 
+Q 1484 -622 1612 -450 
+Q 1741 -278 1741 134 
+L 1741 2797 
+L 813 2797 
+L 813 3500 
+L 2656 3500 
+L 2656 134 
+z
+M 2656 4134 
+L 1741 4134 
+L 1741 5203 
+L 2656 5203 
+L 2656 4134 
+z
+" transform="scale(0.015625)"/>
+      </defs>
+      <use xlink:href="#MesloLGS-NF-Bold-50"/>
+      <use xlink:href="#MesloLGS-NF-Bold-69" transform="translate(60.205078 0)"/>
+      <use xlink:href="#MesloLGS-NF-Bold-76" transform="translate(120.410156 0)"/>
+      <use xlink:href="#MesloLGS-NF-Bold-6f" transform="translate(180.615234 0)"/>
+      <use xlink:href="#MesloLGS-NF-Bold-74" transform="translate(240.820312 0)"/>
+      <use xlink:href="#MesloLGS-NF-Bold-20" transform="translate(301.025391 0)"/>
+      <use xlink:href="#MesloLGS-NF-Bold-70" transform="translate(361.230469 0)"/>
+      <use xlink:href="#MesloLGS-NF-Bold-72" transform="translate(421.435547 0)"/>
+      <use xlink:href="#MesloLGS-NF-Bold-6f" transform="translate(481.640625 0)"/>
+      <use xlink:href="#MesloLGS-NF-Bold-6a" transform="translate(541.845703 0)"/>
+      <use xlink:href="#MesloLGS-NF-Bold-65" transform="translate(602.050781 0)"/>
+      <use xlink:href="#MesloLGS-NF-Bold-63" transform="translate(662.255859 0)"/>
+      <use xlink:href="#MesloLGS-NF-Bold-74" transform="translate(722.460938 0)"/>
+     </g>
+    </g>
+    <g id="patch_46">
+     <path d="M 15.3 1095.284019 
+L 33.3 1095.284019 
+L 33.3 1088.984019 
+L 15.3 1088.984019 
+z
+" style="fill: #ffffff; stroke: #222222; stroke-linejoin: miter"/>
+    </g>
+    <g id="text_28">
+     <!-- Standard project -->
+     <g style="fill: #555555" transform="translate(40.5 1095.284019) scale(0.09 -0.09)">
+      <use xlink:href="#MesloLGS-NF-Bold-53"/>
+      <use xlink:href="#MesloLGS-NF-Bold-74" transform="translate(60.205078 0)"/>
+      <use xlink:href="#MesloLGS-NF-Bold-61" transform="translate(120.410156 0)"/>
+      <use xlink:href="#MesloLGS-NF-Bold-6e" transform="translate(180.615234 0)"/>
+      <use xlink:href="#MesloLGS-NF-Bold-64" transform="translate(240.820312 0)"/>
+      <use xlink:href="#MesloLGS-NF-Bold-61" transform="translate(301.025391 0)"/>
+      <use xlink:href="#MesloLGS-NF-Bold-72" transform="translate(361.230469 0)"/>
+      <use xlink:href="#MesloLGS-NF-Bold-64" transform="translate(421.435547 0)"/>
+      <use xlink:href="#MesloLGS-NF-Bold-20" transform="translate(481.640625 0)"/>
+      <use xlink:href="#MesloLGS-NF-Bold-70" transform="translate(541.845703 0)"/>
+      <use xlink:href="#MesloLGS-NF-Bold-72" transform="translate(602.050781 0)"/>
+      <use xlink:href="#MesloLGS-NF-Bold-6f" transform="translate(662.255859 0)"/>
+      <use xlink:href="#MesloLGS-NF-Bold-6a" transform="translate(722.460938 0)"/>
+      <use xlink:href="#MesloLGS-NF-Bold-65" transform="translate(782.666016 0)"/>
+      <use xlink:href="#MesloLGS-NF-Bold-63" transform="translate(842.871094 0)"/>
+      <use xlink:href="#MesloLGS-NF-Bold-74" transform="translate(903.076172 0)"/>
+     </g>
+    </g>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p5547edff22">
+   <rect x="7.2" y="32.581563" width="973.44" height="1072.674175"/>
+  </clipPath>
+ </defs>
+</svg>
