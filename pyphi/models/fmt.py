@@ -77,10 +77,11 @@ def make_repr(self: object, attrs: Iterable[str]) -> str:
         return self.__str__()  # type: ignore[attr-defined,unused-ignore]
 
     if config.REPR_VERBOSITY is LOW:
-        return "{}({})".format(
-            self.__class__.__name__,
-            ", ".join(attr + "=" + repr(getattr(self, attr)) for attr in attrs),
-        )
+        # Only include attributes that exist on the object
+        attr_strs = [
+            f"{attr}={getattr(self, attr)!r}" for attr in attrs if hasattr(self, attr)
+        ]
+        return "{}({})".format(self.__class__.__name__, ", ".join(attr_strs))
 
     raise ValueError("Invalid value for `config.REPR_VERBOSITY`")
 
@@ -259,9 +260,11 @@ def center(text: str) -> str:
     return "\n".join(align(text.split("\n"), direction="c"))
 
 
-def split_decimal(n: Any) -> list[str]:
+def split_decimal(n: Any) -> list[str]:  # noqa: PLR0911
     """Attempt to split an object into unit and decimal parts, handling
     non-numeric types.
+
+    Always returns a 2-element list [units, decimals].
 
     Examples:
         >>> split_decimal(1.5)
@@ -286,15 +289,22 @@ def split_decimal(n: Any) -> list[str]:
     except TypeError:
         pass
     if isinstance(n, float):
-        # float
-        return str(n).split(".")
+        # float - use float() to get base float value for subclasses that
+        # override __str__ (e.g., DistanceResult)
+        parts = str(float(n)).split(".")
+        if len(parts) == 1:
+            return [parts[0], ""]
+        return parts
     try:
         n = float(n)
         if n.is_integer():
             # int
             return [str(int(n)), ""]
         # float
-        return str(n).split(".")
+        parts = str(n).split(".")
+        if len(parts) == 1:
+            return [parts[0], ""]
+        return parts
     except ValueError:
         pass
     # Assume str
@@ -309,14 +319,20 @@ def align_decimals(numbers: Iterable[Any]) -> list[str]:
 
     Examples:
         >>> numbers = [0.0, 1, 0.99, 100.5, 80.123, 'string']
-        >>> align_decimals(numbers)
+        >>> align_decimals(numbers)  # doctest: +NORMALIZE_WHITESPACE
         ['  0.0     ', '  1      ', '  0.99    ', '100.5     ',
          ' 80.123   ', '   string']
-        >>> align_decimals([0.5] + list(map(str, numbers)))
+        >>> mixed = [0.5] + list(map(str, numbers))
+        >>> align_decimals(mixed)  # doctest: +NORMALIZE_WHITESPACE
         ['  0.5     ', '  0      ', '  1      ', '  0.99    ', '100.5     ',
          ' 80.123   ', '   string']
+        >>> align_decimals([])
+        []
     """
-    units_tuple, decimals_tuple = zip(*map(split_decimal, numbers), strict=False)
+    numbers_list = list(numbers)
+    if not numbers_list:
+        return []
+    units_tuple, decimals_tuple = zip(*map(split_decimal, numbers_list), strict=False)
     points = [
         "." if unit and decimal else ""
         for unit, decimal in zip(units_tuple, decimals_tuple, strict=False)

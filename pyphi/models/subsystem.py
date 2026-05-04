@@ -129,8 +129,7 @@ class CauseEffectStructure(cmp.Orderable, Sequence, ToPandasMixin):
         return self.concepts[value]
 
     def __repr__(self):
-        # TODO(4.0) remove dependence on subsystem & time
-        return fmt.make_repr(self, ["concepts", "subsystem"])
+        return fmt.make_repr(self, ["concepts"])
 
     def __str__(self):
         return fmt.fmt_ces(self)
@@ -195,9 +194,16 @@ class CauseEffectStructure(cmp.Orderable, Sequence, ToPandasMixin):
     @property
     def labeled_mechanisms(self):
         """The labeled mechanism of each concept."""
-        # TODO(4.0) remove dependence on subsystem
-        label = self.subsystem.node_labels.indices2labels  # pyright: ignore[reportAttributeAccessIssue]
-        return tuple(list(label(mechanism)) for mechanism in self.mechanisms)
+        # Get node_labels from the first concept if available
+        if (
+            self.concepts
+            and hasattr(self.concepts[0], "node_labels")
+            and self.concepts[0].node_labels is not None
+        ):
+            label = self.concepts[0].node_labels.indices2labels
+            return tuple(list(label(mechanism)) for mechanism in self.mechanisms)
+        # Fallback to numeric indices as strings
+        return tuple(list(map(str, mechanism)) for mechanism in self.mechanisms)
 
     def purview_inclusion_of_intersection(self, min_order, max_order):
         return _purview_inclusion(

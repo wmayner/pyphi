@@ -84,17 +84,9 @@ def test_json_deserialization_non_pyphi_clasess():
     assert loaded == {"x": 1}
 
 
-@pytest.mark.outdated
-def test_deserialization_memoizes_duplicate_objects(s):
-    sia = compute.subsystem.sia(s)
-
-    loaded = jsonify.loads(jsonify.dumps(sia))
-
-    l1 = loaded.subsystem
-    l2 = loaded.ces.subsystem
-    assert l1 == l2
-    assert hash(l1) == hash(l2)
-    assert l1 is l2
+# NOTE: test_deserialization_memoizes_duplicate_objects was removed because
+# it relied on ces.subsystem which was intentionally removed from CauseEffectStructure
+# during the IIT 3.0 -> 4.0 migration.
 
 
 @pytest.fixture

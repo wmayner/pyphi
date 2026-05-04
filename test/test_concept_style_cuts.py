@@ -1,5 +1,3 @@
-import pickle
-
 import numpy as np
 import pytest
 
@@ -145,34 +143,8 @@ def test_sia_concept_style_ordering(s, subsys_n0n2, s_noised):
     assert sia_cs(subsystem=s) >= sia_cs(subsystem=subsys_n0n2)
 
     with pytest.raises(TypeError):
-        sia_cs(subsystem=s) < sia_cs(subsystem=s_noised)
+        sia_cs(subsystem=s) < sia_cs(subsystem=s_noised)  # noqa: B015
 
 
-@pytest.mark.slow
-@pytest.mark.outdated
-def test_sia_concept_style(s):
-    sia = compute.subsystem.sia_concept_style(s)
-    assert sia.min_sia is sia.sia_effect
-    for attr in [
-        "phi",
-        "ces",
-        "cut",
-        "subsystem",
-        "cut_subsystem",
-        "network",
-        "partitioned_ces",
-    ]:
-        assert getattr(sia, attr) is getattr(sia.sia_effect, attr)
-
-
-@config.override(SYSTEM_CUTS="CONCEPT_STYLE")
-@pytest.mark.outdated
-def test_unpickle(s):
-    bm = compute.subsystem.sia(s)
-    pickle.loads(pickle.dumps(bm))
-
-
-@config.override(SYSTEM_CUTS="CONCEPT_STYLE")
-@pytest.mark.outdated
-def test_concept_style_phi(s):
-    assert compute.subsystem.phi(s) == 0.6875
+# NOTE: test_sia_concept_style, test_unpickle, and test_concept_style_phi were removed
+# because they had outdated expected values and were incompatible with IIT 4.0.

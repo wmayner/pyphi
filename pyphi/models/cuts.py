@@ -182,9 +182,9 @@ class Cut(_CutBase):
         Example:
             >>> cut = Cut((1,), (2,))
             >>> cut.cut_matrix(3)
-            array([[0., 0., 0.],
-                   [0., 0., 1.],
-                   [0., 0., 0.]])
+            array([[0, 0, 0],
+                   [0, 0, 1],
+                   [0, 0, 0]])
         """
         return connectivity.relevant_connections(
             n, self.from_nodes, self.to_nodes

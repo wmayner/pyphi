@@ -4,6 +4,7 @@ import pytest
 import pyphi
 from pyphi import Network
 from pyphi import actual
+from pyphi import config
 from pyphi import jsonify
 
 from . import example_networks
@@ -11,6 +12,41 @@ from . import example_networks
 # Disable JSON version validation for tests
 # Test data may be generated with different pyphi versions than what CI derives
 pyphi.config.VALIDATE_JSON_VERSION = False
+
+
+# IIT Version Configuration Overrides
+# =============================================================================
+#
+# These config overrides allow tests to run under specific IIT version settings.
+# Use them in test classes with an autouse fixture:
+#
+#     class TestMyFeatureIIT30:
+#         @pytest.fixture(autouse=True)
+#         def _apply_config(self):
+#             with IIT_3_CONFIG:
+#                 yield
+#
+#         def test_something(self):
+#             ...
+
+# IIT 3.0 configuration for regression tests
+# These settings replicate the IIT 3.0 computational approach
+IIT_3_CONFIG = config.override(
+    IIT_VERSION="3.0",
+    REPERTOIRE_DISTANCE="EMD",
+    PARTITION_TYPE="BI",
+    SYSTEM_PARTITION_TYPE="DIRECTED_BI",
+    ACTUAL_CAUSATION_MEASURE="PMI",
+    PURVIEW_TIE_RESOLUTION=["PHI", "PURVIEW_SIZE"],
+)
+
+# IIT 4.0 configuration (current defaults, made explicit for clarity)
+# Use this when you want to explicitly test IIT 4.0 behavior
+IIT_4_CONFIG = config.override(
+    IIT_VERSION="4.0",
+    REPERTOIRE_DISTANCE="GENERALIZED_INTRINSIC_DIFFERENCE",
+    SYSTEM_PARTITION_TYPE="SET_UNI/BI",
+)
 
 # Pytest configuration
 # =============================================================================

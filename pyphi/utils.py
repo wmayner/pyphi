@@ -215,22 +215,22 @@ def powerset(
         Iterable: An iterator over the power set.
 
     Example:
-        >>> ps = powerset(np.arange(2))
+        >>> ps = powerset(range(2))
         >>> list(ps)
         [(), (0,), (1,), (0, 1)]
-        >>> ps = powerset(np.arange(2), nonempty=True)
+        >>> ps = powerset(range(2), nonempty=True)
         >>> list(ps)
         [(0,), (1,), (0, 1)]
-        >>> ps = powerset(np.arange(2), nonempty=True, reverse=True)
+        >>> ps = powerset(range(2), nonempty=True, reverse=True)
         >>> list(ps)
         [(1, 0), (1,), (0,)]
-        >>> ps = powerset(np.arange(3), max_size=2)
+        >>> ps = powerset(range(3), max_size=2)
         >>> list(ps)
         [(), (0,), (1,), (2,), (0, 1), (0, 2), (1, 2)]
-        >>> ps = powerset(np.arange(3), min_size=2)
+        >>> ps = powerset(range(3), min_size=2)
         >>> list(ps)
         [(0, 1), (0, 2), (1, 2), (0, 1, 2)]
-        >>> ps = powerset(np.arange(3), min_size=2, max_size=2)
+        >>> ps = powerset(range(3), min_size=2, max_size=2)
         >>> list(ps)
         [(0, 1), (0, 2), (1, 2)]
     """

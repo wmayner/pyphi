@@ -128,7 +128,7 @@ def state_reachable(subsystem: object) -> None:
     # Then we do the subtraction and test.
     test = tpm - np.array(subsystem.proper_state)  # type: ignore[attr-defined]
     if not np.any(np.logical_and(test > -1, test < 1).all(-1)):
-        raise exceptions.StateUnreachableError(subsystem.state)  # type: ignore[attr-defined]
+        raise exceptions.StateUnreachableForwardsError(subsystem.state)  # type: ignore[attr-defined]
 
 
 def cut(cut: object, node_indices: Sequence[int]) -> None:

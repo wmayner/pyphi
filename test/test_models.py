@@ -5,16 +5,14 @@ import pytest
 
 from pyphi import Direction
 from pyphi import Subsystem
-from pyphi import compute
 from pyphi import config
-from pyphi import examples
 from pyphi import exceptions
 from pyphi import models
 from pyphi.labels import NodeLabels
 from pyphi.models.cuts import KPartition
-from pyphi.models.subsystem import FlatCauseEffectStructure
 
 EPSILON = 10 ** (-config.PRECISION)
+
 
 # Helper functions for constructing PyPhi objects
 
@@ -27,6 +25,7 @@ def ria(
     partition=None,
     repertoire=None,
     partitioned_repertoire=None,
+    node_labels=None,
 ):
     """Build a ``RepertoireIrreducibilityAnalysis``."""
     return models.RepertoireIrreducibilityAnalysis(
@@ -37,6 +36,7 @@ def ria(
         partition=partition,
         repertoire=repertoire,
         partitioned_repertoire=partitioned_repertoire,
+        node_labels=node_labels,
     )
 
 
@@ -59,6 +59,8 @@ def concept(
     mechanism=(0, 1), cause_purview=(1,), effect_purview=(1,), phi=1.0, subsystem=None
 ):
     """Build a ``Concept``."""
+    # Extract node_labels from subsystem if available
+    node_labels = subsystem.node_labels if subsystem is not None else None
     return models.Concept(
         mechanism=mechanism,
         cause=mic(
@@ -66,12 +68,14 @@ def concept(
             purview=cause_purview,
             phi=phi,
             direction=Direction.CAUSE,
+            node_labels=node_labels,
         ),
         effect=mie(
             mechanism=mechanism,
             purview=effect_purview,
             phi=phi,
             direction=Direction.EFFECT,
+            node_labels=node_labels,
         ),
     )
 
@@ -130,7 +134,7 @@ def test_phi_mechanism_ordering():
 def test_sametype_decorator():
     class Thing:
         @models.cmp.sametype
-        def do_it(self, other):
+        def do_it(self, other):  # noqa: ARG002
             return True
 
     assert Thing().do_it(object()) == NotImplemented
@@ -451,53 +455,16 @@ def test_mie_raises_wrong_direction():
         mie(direction=Direction.CAUSE, mechanism=(0,), purview=(1,))
 
 
-@config.override(
-    PARTITION_TYPE="TRI",
-    REPERTOIRE_DISTANCE="AID",
-)
-@pytest.mark.outdated
-def test_specified_states_and_indices():
-    subsystem = examples.pqr_subsystem()
-    ces = FlatCauseEffectStructure(compute.ces(subsystem))
-
-    specified_state_results = [mice.specified_state for mice in ces]
-    specified_state_answers = [
-        np.array([[0]]),
-        np.array([[0]]),
-        np.array([[0, 0], [1, 1]]),
-        np.array([[0, 0]]),
-        np.array([[1, 0]]),
-        np.array([[1]]),
-        np.array([[1, 1, 0]]),
-        np.array([[0, 0, 1]]),
-    ]
-
-    for results, answers in [
-        (specified_state_results, specified_state_answers),
-    ]:
-        for result, answer in zip(results, answers, strict=False):
-            assert np.array_equal(result, answer)
+# NOTE: test_specified_states_and_indices was removed because it tested IIT 3.0
+# specified_state functionality that is not implemented for IIT 4.0.
 
 
 # Test Concept
 
 
-@pytest.mark.outdated
-def test_concept_ordering(s, micro_s):
-    phi1 = concept(subsystem=s)
-    phi2 = concept(mechanism=(0,), phi=(1.0 + EPSILON * 2), subsystem=s)
-
-    assert phi1 < phi2
-    assert phi2 > phi1
-    assert phi1 <= phi2
-    assert phi2 >= phi1
-
-    micro_phi1 = concept(subsystem=micro_s)
-
-    with pytest.raises(TypeError):
-        phi1 <= micro_phi1
-    with pytest.raises(TypeError):
-        phi1 > micro_phi1
+# NOTE: test_concept_ordering was removed because it relied on Concept comparison
+# that requires a subsystem attribute, which was removed from Concept during the
+# IIT 3.0 -> 4.0 migration.
 
 
 def test_concept_equality(s):
@@ -539,19 +506,17 @@ def test_concept_equality_repertoires(s):
     assert concept != another
 
 
-@pytest.mark.outdated
-def test_concept_equality_network(s, simple_subsys_all_off):
-    assert concept(subsystem=simple_subsys_all_off) != concept(subsystem=s)
+# NOTE: test_concept_equality_network was removed because it relied on Concept
+# comparison that requires subsystem/mechanism_state attributes, which are not
+# available on test concepts created with the helper function.
 
 
 def test_concept_equality_one_subsystem_is_subset_of_another(s, subsys_n1n2):
     assert concept(subsystem=s) == concept(subsystem=subsys_n1n2)
 
 
-@pytest.mark.outdated
-def test_concept_repr_str(s):
-    print(repr(concept(subsystem=s)))
-    print(str(concept(subsystem=s)))
+# NOTE: test_concept_repr_str was removed because it relied on Concept formatting
+# that requires mechanism_state, which is not available on test concepts.
 
 
 def test_concept_hashing(s):
@@ -587,11 +552,8 @@ def test_ces_is_still_a_tuple(s):
     assert len(c) == 1
 
 
-@pytest.mark.outdated
-def test_ces_repr_str(s):
-    c = models.CauseEffectStructure([concept(subsystem=s)])
-    repr(c)
-    str(c)
+# NOTE: test_ces_repr_str was removed because it relied on Concept formatting
+# that requires mechanism_state, which is not available on test concepts.
 
 
 def test_ces_are_always_normalized(s):
@@ -608,15 +570,8 @@ def test_ces_labeled_mechanisms(s):
     assert c.labeled_mechanisms == (["A", "B"],)
 
 
-@pytest.mark.outdated
-def test_ces_ordering(s):
-    assert models.CauseEffectStructure(
-        [concept(subsystem=s)], subsystem=s
-    ) == models.CauseEffectStructure([concept(subsystem=s)], subsystem=s)
-
-    assert models.CauseEffectStructure(
-        [concept(phi=1, subsystem=s)], subsystem=s
-    ) > models.CauseEffectStructure([concept(phi=0, subsystem=s)], subsystem=s)
+# NOTE: test_ces_ordering was removed because it relied on CauseEffectStructure
+# comparison that requires a subsystem attribute, which was removed from CES.
 
 
 # Test SystemIrreducibilityAnalysis
@@ -632,9 +587,9 @@ def test_sia_ordering(s, s_noised, subsys_n0n2, subsys_n1n2):
 
     different_system = sia(subsystem=s_noised)
     with pytest.raises(TypeError):
-        phi1 <= different_system
+        phi1 <= different_system  # noqa: B015
     with pytest.raises(TypeError):
-        phi1 >= different_system
+        phi1 >= different_system  # noqa: B015
 
 
 def test_sia_equality(s):

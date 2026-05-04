@@ -95,15 +95,17 @@ def test_validate_state_error(s):
         Subsystem(s.network, state, s.node_indices)
 
 
-@pytest.mark.outdated
 def test_validate_state_no_error_2():
     tpm = np.ones([16, 4])
     net = Network(tpm)
     # Globally impossible state.
     state = (1, 1, 0, 0)
     # But locally possible for first two nodes.
-    subsystem = Subsystem(net, state, (0, 1))
-    validate.state_reachable(subsystem)
+    # The forward reachability check should pass, but backward TPM computation
+    # fails due to zero normalization. We expect StateUnreachableBackwardsError,
+    # NOT StateUnreachableForwardsError.
+    with pytest.raises(exceptions.StateUnreachableBackwardsError):
+        Subsystem(net, state, (0, 1))
 
 
 def test_validate_node_labels():

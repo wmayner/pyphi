@@ -53,10 +53,10 @@ class PyPhiFloat(float):
         >>> PyPhiFloat(0.5) >= PyPhiFloat(0.5)  # doctest: +SKIP
         True
 
-        Hash consistency for dict/set usage:
+        Hash consistency for dict/set usage (values within precision are deduplicated):
 
-        >>> phi_values = {PyPhiFloat(0.5), PyPhiFloat(0.50000001)}  # doctest: +SKIP
-        >>> len(phi_values)  # Only one value since they're equal within precision
+        >>> phi_values = {PyPhiFloat(0.5), PyPhiFloat(0.5 + 1e-14)}
+        >>> len(phi_values)
         1
 
         Works transparently with min/max:

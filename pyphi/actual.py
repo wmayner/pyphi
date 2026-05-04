@@ -280,14 +280,27 @@ class Transition:
         purview nodes onto their state. All other dimension are already
         singular and thus receive 0 as the conditioning index.
 
+        Args:
+            direction: The temporal direction (CAUSE or EFFECT).
+            repertoire: The repertoire array to index into.
+            purview: The purview nodes.
+
         Returns:
             float: A single probabilty.
         """
         purview_state = self.purview_state(direction)
+        system = self.system[direction]
+
+        # Determine which nodes the repertoire dimensions correspond to.
+        # If repertoire.ndim equals network size, dimensions are for all network nodes.
+        # If repertoire.ndim equals subsystem size, dimensions are for subsystem nodes.
+        if repertoire.ndim == system.network.size:
+            node_indices = system.network.node_indices
+        else:
+            node_indices = system.node_indices
 
         index = tuple(
-            node_state if node in purview else 0
-            for node, node_state in enumerate(purview_state)
+            purview_state[node] if node in purview else 0 for node in node_indices
         )
         return repertoire[index]
 

@@ -1,6 +1,6 @@
-import numpy as np
 import pytest
 
+from pyphi import combinatorics
 from pyphi import compute
 from pyphi import config
 from pyphi import examples
@@ -9,71 +9,9 @@ from pyphi import new_big_phi
 from pyphi import relations
 
 
-def all_array_equal(x, y):
-    return all(np.array_equal(a, b) for a, b in zip(x, y, strict=False))
-
-
-def overlap(purviews):
-    return set.intersection(*map(set, purviews))
-
-
-cases = [
-    # specified_states, purviews, overlap_states, congruent_overlap
-    (
-        [
-            np.array(
-                [
-                    [0, 0, 1, 0],
-                    [1, 0, 0, 0],
-                ]
-            ),
-            np.array(
-                [
-                    [0, 0, 0, 0, 1],
-                    [0, 1, 1, 0, 0],
-                    [1, 1, 1, 0, 1],
-                ]
-            ),
-            np.array(
-                [
-                    [0, 0, 0, 0, 1],
-                    [0, 1, 1, 0, 0],
-                    [0, 0, 1, 0, 1],
-                ]
-            ),
-        ],
-        [
-            (0, 2, 4, 5),
-            (1, 2, 3, 4, 5),
-            (0, 1, 2, 4, 5),
-        ],
-        [
-            np.array([[0.0, 1.0, 0.0], [0.0, 0.0, 0.0]]),
-            np.array([[0.0, 0.0, 1.0], [1.0, 0.0, 0.0], [1.0, 0.0, 1.0]]),
-            np.array([[0.0, 0.0, 1.0], [1.0, 0.0, 0.0], [1.0, 0.0, 1.0]]),
-        ],
-        [
-            (2, 4),
-            (4, 5),
-        ],
-    ),
-    (
-        [np.array([[0], [1]]), np.array([[0]])],
-        [(1,), (1,)],
-        [np.array([[0], [1]]), np.array([[0]])],
-        [(1,)],
-    ),
-]
-
-specified_states, purviews, overlap_states, congruent_overlaps = zip(
-    *cases, strict=False
-)
-overlaps = list(map(overlap, purviews))
-
-
-@pytest.mark.outdated
 def test_only_nonsubsets():
-    result = relations.only_nonsubsets(
+    """Test only_nonsubsets (moved to pyphi.combinatorics)."""
+    result = combinatorics.only_nonsubsets(
         [
             {0},
             {1},
@@ -91,56 +29,15 @@ def test_only_nonsubsets():
     assert set(map(frozenset, result)) == set(map(frozenset, answer))
 
 
-@pytest.mark.parametrize(
-    "specified_states,purviews,answer",
-    zip(specified_states, purviews, overlap_states, strict=False),
-)
-@pytest.mark.outdated
-def test_overlap_states(specified_states, purviews, answer):
-    result = relations.overlap_states(specified_states, purviews, overlap(purviews))
-    assert all_array_equal(result, answer)
+# NOTE: The following tests were removed because they tested IIT 3.0 functions
+# that no longer exist:
+# - test_overlap_states: relations.overlap_states was removed
+# - test_congruent_overlap_empty: relations.congruent_overlap was removed
+# - test_congruent_overlap: relations.congruent_overlap was removed
+# - test_maximally_irreducible_relation: uses old relations API
 
 
-@pytest.mark.outdated
-def test_congruent_overlap_empty():
-    assert relations.congruent_overlap((), ()) == []
-
-
-@pytest.mark.parametrize(
-    "overlap_states,overlap,answer",
-    zip(overlap_states, overlaps, congruent_overlaps, strict=False),
-)
-@pytest.mark.outdated
-def test_congruent_overlap(overlap_states, overlap, answer):
-    result = relations.congruent_overlap(
-        overlap_states,
-        overlap,
-    )
-    assert all_array_equal(result, answer)
-
-
-# removed pqr, which is the same as basic?
 NETWORKS = ["grid3", "basic", "xor", "rule110", "fig4"]
-
-
-@pytest.mark.parametrize("case_name", NETWORKS)
-@config.override(
-    REPERTOIRE_DISTANCE="ID",
-    PARTITION_TYPE="TRI",
-    PARALLEL_CONCEPT_EVALUATION=False,
-    PARALLEL_CUT_EVALUATION=False,
-    PARALLEL_COMPLEX_EVALUATION=False,
-    RELATION_ALLOW_DUPLICATE_PURVIEWS=True,
-    RELATION_COMPUTATION="EXACT",
-    RELATION_POTENTIAL_PURVIEWS="ALL",
-    RELATION_PHI_SCHEME="AGGREGATE_DISTINCTION_RELATIVE_DIFFERENCES",
-)
-@pytest.mark.outdated
-def test_maximally_irreducible_relation(case_name):
-    with open(f"test/data/relations/relations_{case_name}.json") as f:
-        answers = jsonify.load(f)
-    for r in answers:
-        assert r == r.relata.maximally_irreducible_relation()
 
 
 @pytest.mark.parametrize("case_name", NETWORKS)
