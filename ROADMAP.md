@@ -161,7 +161,9 @@ pyphi/
     sets.py                      # powerset, pairs, subset operations, only_nonsubsets
     states.py                    # state enumeration, generalized for multi-valued units
     analytical.py                # closed-form Σφ_r formulas (S3 Text of 4.0 paper)
-    graphillion_utils.py         # ZDD-backed set-family operations (wraps graphillion.setset)
+    zdd_family.py                # ZDDFamily Protocol (powerset_family, set_size_family)
+    oxidd_family.py              # default ZDD backend (P6b)
+    graphillion_family.py        # legacy fallback, removed in 2.1
 
   formalism/
     base.py                      # PhiFormalism Protocol
@@ -214,9 +216,14 @@ pyphi/
   `__eq__`/`__hash__`/`__repr__`); plain frozen `dataclass` is also sufficient.
 - **Do NOT add** pydantic, polars, pgmpy, jax, torch. Each is either premature
   (tensor networks, vectorized phi) or scope creep (polars vs pandas).
-- **Keep `graphillion`** — ZDD library for efficiently representing exponentially
-  large set families. Load-bearing for relations (potential relations grow as
-  2^(2^n - 1)). Document it clearly for future maintainers.
+- **Drop `graphillion`, add `oxidd`** (P6b). graphillion is bus-factor-1, has no
+  PyPI wheels for Python 3.13+, and its `_graphillion` C extension does not declare
+  GIL safety (blocks free-threaded mode). OxiDD is multi-contributor, ships wheels
+  for cp39-cp314 including cp314t (free-threaded), and provides ZBDD primitives
+  with cleaner manager-based state management. PyPhi's high-level `setset` family
+  algebra (`powerset_family`, `set_size_family`) is reimplemented behind a
+  `ZDDFamily` Protocol with both backends shipping in 2.0 (graphillion as fallback
+  for one release, removed in 2.1).
 
 **Decision on IIT 3.0: keep it, behind the `PhiFormalism` Protocol.** Reasons:
 (a) 3.0 is in the published literature; reproducing 3.0 results is a scientific
@@ -462,6 +469,20 @@ with the deprecation warning, remove `__array__`.
 `__float__` is provided for convenience. `PyPhiFloat` remains for precision-aware
 comparison.
 
+**Three `PyPhiFloat` fixes that pair with this work** (surfaced during P0):
+1. `__eq__`/`__ne__` return `False`/`True` for non-numeric types instead of
+   `NotImplemented` (`pyphi/data_structures/pyphi_float.py:54-58`). This breaks
+   Python's reflective comparison fallback and prevents `pytest.approx` from
+   matching. Fix: return `NotImplemented` for unknown types.
+2. `__hash__` reads `config.PRECISION` at hash time, which is module-global
+   mutable state hostile to free-threaded mode and to dict invariants if precision
+   ever changes during a session. Fix: snapshot precision into the instance at
+   construction (or at first hash; document the choice).
+3. The `DistanceResult.__array__` deprecation above.
+
+These three fixes together make `PyPhiFloat` no-GIL safe and well-behaved with
+external libraries (pytest, numpy).
+
 - *Why here:* Metric signature inconsistency is the specific seam that forces
   `intrinsic_information()` to have two code paths. Once 3.0 is cordoned off (P4),
   4.0 metrics unify without worrying about 3.0 metric shape.
@@ -510,6 +531,100 @@ only 317 lines and the split doesn't block any downstream project.
   fixtures from P1 canonicalize wrong intermediate values. After P6, **regenerate
   golden fixtures** from the corrected code, validated against Albantakis et al. 2023
   Fig. 2 distinction values. This is a mandatory regeneration checkpoint.
+
+**P6a. Lazy graphillion import + module-level globals audit**
+
+P0 verification confirmed that `graphillion`'s `_graphillion` C extension does not
+declare `PyMod_GIL_NOT_USED`, so loading it under free-threaded Python re-enables
+the GIL process-wide. Today `import pyphi` eagerly loads graphillion (via
+`relations.py:15`), which means even workers that never compute relations pay the
+GIL re-enablement cost. P6a addresses both this and the broader globals problem:
+
+1. **Defer graphillion imports** to function bodies in `relations.py` and
+   `combinatorics.py`. Workers that compute mechanism-level φ or unfolding without
+   relations stay no-GIL safe.
+2. **Audit module-level globals that block no-GIL safety:**
+   - `pyphi.config` — global mutable singleton; multiple worker threads
+     reading/writing different settings is the classic hazard. P10 fixes this
+     properly; P6a establishes the audit and adds a test that `config` is not
+     written across threads in any code path.
+   - `PyPhiFloat.__hash__` reads `config.PRECISION` at hash time → snapshot
+     precision into the instance at construction. (Pair with the `__eq__`
+     `NotImplemented` fix from P5.)
+   - `np.random` global state → audit for any uses; replace with
+     `np.random.Generator` instances.
+   - `pyphi.log.TqdmHandler` — verify thread safety.
+   - Any `lru_cache` or `cache` decorators on module-level functions — verify the
+     cache itself is thread-safe (it is, in CPython 3.13t).
+3. **Add a no-GIL CI matrix entry** that runs the test suite on Python 3.13t
+   (`PYTHON_GIL=0`). Mark known-failing tests `xfail(strict=True)` until P6b lands.
+
+After P6a, `pyphi.iit4.phi_structure(subsystem)` on a small network without
+relations enabled should run in a no-GIL Python with no GIL re-enablement
+(verifiable via `sys._is_gil_enabled()` returning `False` after the call).
+
+- *Why here:* Independent of P7's critical path; could land any time after P3.
+  Placed after P6 so the combinatorics package structure exists.
+- *Files:* `pyphi/relations.py`, `pyphi/combinatorics.py` (or the new package after
+  P6 split), `pyphi/data_structures/pyphi_float.py`, `pyphi/log.py`,
+  `.github/workflows/test.yml` (no-GIL matrix entry).
+- *Risk:* Low. Defensive change.
+- *Leverage:* Unblocks `LocalThreadScheduler` in P11 (no-GIL workers for
+  mechanism-level parallelism).
+
+**P6b. ZDD library migration to OxiDD**
+
+Replace `graphillion`'s `setset` family algebra with `OxiDD`'s `zbdd` primitives.
+This addresses three problems:
+
+1. **graphillion bus factor.** Single maintainer, slow release cadence, no PyPI
+   wheels for Python 3.13+. OxiDD is multi-contributor, ships wheels for cp39-cp314
+   including cp314t (free-threaded), and has been actively developed (last release
+   2026-03, recent commits weekly).
+2. **Free-threaded compatibility.** Even with P6a's lazy import, workers that
+   compute relations re-enable the GIL because graphillion uses module-global
+   state (`setset.set_universe()`). OxiDD uses manager objects per-call — fully
+   no-GIL safe.
+3. **Install ergonomics.** graphillion requires source build on macOS with
+   `brew install libomp` workaround. OxiDD ships universal binary wheels.
+
+**Architecture:** Hide the ZDD layer behind a `ZDDFamily` Protocol in
+`pyphi/combinatorics/zdd_family.py`. Implement two backends:
+- `GraphillionFamily` — current behavior, retained for one release as fallback
+- `OxiDDFamily` — new default
+
+Reimplement the high-level operations against ZBDD primitives:
+- `powerset_family(X, min_size, max_size, universe)` — recursive `subset0`/
+  `subset1` decomposition
+- `union_powerset_family(sets, ...)` — fold `union` over per-set powersets
+- `set_size_family(family, k)` — size filter, ~30 lines of recursive ZBDD walk
+  (no direct primitive in OxiDD; pin with Hypothesis tests on partition counts)
+
+Update `pyphi/relations.py` to use the new abstraction. The `ConcreteRelations` /
+`AnalyticalRelations` split stays.
+
+**Migration path (one release of overlap):**
+- Default backend selectable via `config.ZDD_BACKEND` (values: `"oxidd"` (default
+  in 2.0), `"graphillion"` (legacy fallback))
+- If `OxiDDFamily` raises on a workload, user can fall back to graphillion to
+  unblock; we triage and fix
+- Drop graphillion in 2.1 if no fallback usage reported
+
+- *Why here:* P6 has already created the abstraction seam. P6a has audited and
+  fixed module-level globals. P6b is the actual swap. Doing this *before* P11
+  means P11 can offer a real `LocalThreadScheduler`.
+- *Files:* New `pyphi/combinatorics/zdd_family.py`, `oxidd_family.py`,
+  `graphillion_family.py`. `pyphi/relations.py`, `pyphi/combinatorics.py` (now
+  package). Tests under `test/test_zdd.py`. `pyproject.toml` (`oxidd` dep added,
+  `graphillion` becomes an optional fallback).
+- *Risk:* Medium-high. OxiDD is younger than graphillion (~6 months public PyPI
+  history). Mitigations: (a) GraphillionFamily fallback retained; (b) Hypothesis
+  tests on `set_size_family(k)` partition counts since this is the only
+  reimplementation that could introduce mathematical bugs; (c) golden fixtures
+  from P1 catch any numerical regressions.
+- *Leverage:* High — enables free-threaded mode in P11, removes the bus-factor-1
+  dependency, simplifies install.
+- *Style:* Big-bang behind the abstraction seam; both backends ship in 2.0.
 
 ### Phase C — Kernel rewrite
 
@@ -650,9 +765,25 @@ dataclasses; `pydantic` only for YAML loading if desired, not in the hot path.
 Define `Scheduler` protocol: `map_reduce(fn, items, reducer) -> result`. Concrete
 implementations:
 
-- `LocalScheduler` (keep `joblib + loky`; not Ray — the PROJECTS.md entry is stale).
+- `LocalProcessScheduler` (`joblib + loky`; not Ray — the PROJECTS.md entry is
+  stale). Default for GIL-enabled runtimes.
+- **`LocalThreadScheduler`** (`concurrent.futures.ThreadPoolExecutor`). Default
+  for free-threaded runtimes (Python 3.13t and later). **Requires P6a + P6b
+  complete** (graphillion drop and globals audit). Big wins: shared cache
+  across workers, no pickling cost for `Subsystem`/`CandidateSystem`/`Repertoire`,
+  generators cross thread boundaries without materialization, cheap spawn for
+  small tasks.
 - `DaskScheduler` using `dask.distributed` + `dask-jobqueue` for SLURM/PBS/LSF/SGE.
 - `HTCondorScheduler` via `htcondor-dask` or a direct `condor_submit` adapter.
+
+**Runtime backend selection.** At scheduler construction:
+```python
+def default_local_scheduler() -> Scheduler:
+    if not sys._is_gil_enabled():
+        return LocalThreadScheduler()
+    return LocalProcessScheduler()
+```
+Users can override via `config.PARALLEL_BACKEND`.
 
 Clean separation between *algorithmic* tree-reduction (`parallel/tree.py`) and
 *backend-specific* work dispatch. Propagate through all the `TODO(4.0) parallelize`
@@ -663,19 +794,27 @@ per-task cost, then chunk the remainder by target batch wall time (~1s). This
 addresses the `PROJECTS.md` heterogeneous-chunking concern: IIT iterates over
 combinatorial sets whose elements range in size 1..(2^n − 1), so static chunking
 is hostile. Generator composition is preserved throughout — dask and joblib both
-support streaming.
+support streaming. **Note:** chunking matters less for `LocalThreadScheduler`
+(no pickling cost) but still matters for cache locality and progress reporting.
 
 Re-enable parallel tests in CI (currently excluded). Until this project lands, mark
-them `xfail` instead of `skip`.
+them `xfail` instead of `skip`. Add a no-GIL CI matrix entry that runs the
+tests with `PYTHON_GIL=0` after P6b lands.
 
 - *Why here:* Mostly independent of P4–P9 because `parallel/` has its own clean
   abstraction, but needs P10's config snapshotting so workers receive an explicit
-  config instead of reading globals that happen to pickle.
-- *Files:* `pyphi/parallel/`, new `parallel/backends/dask.py`,
-  `parallel/backends/htcondor.py`, `parallel/scheduler.py`.
-- *Risk:* Medium. Parallel bugs manifest as deadlocks or silent non-determinism.
-  Mitigated by P2 property tests now running in parallel mode.
-- *Leverage:* Medium-high. Enables large-scale experiments; prerequisite for P13.
+  config (or share one safely under no-GIL) instead of reading globals. Also
+  depends on P6a + P6b for the `LocalThreadScheduler` to actually keep the GIL
+  off; without those, `LocalThreadScheduler` would still work but graphillion
+  imports would re-enable the GIL the moment relations are computed.
+- *Files:* `pyphi/parallel/`, new `parallel/backends/{local_process,local_thread,dask,htcondor}.py`,
+  `parallel/scheduler.py`.
+- *Risk:* Medium for the process backend; high for the thread backend (concurrency
+  bugs, race conditions on any remaining shared state). Mitigated by P2 property
+  tests running in both modes and by the P6a globals audit.
+- *Leverage:* Very high. Enables large-scale experiments; prerequisite for P13.
+  No-GIL thread mode is potentially transformative for mechanism-level
+  parallelism (small tasks, cache-friendly).
 
 ### Phase F — Features and new algorithms
 
@@ -931,6 +1070,16 @@ accommodates non-exhaustive search strategies. Users select an approximation via
           │   algebra    │
           └──────┬───────┘
                  │
+          ┌──────▼─────────────────┐
+          │ P6a Lazy graphillion + │ (also unlocks LocalThreadScheduler in P11)
+          │   globals audit        │
+          └──────┬─────────────────┘
+                 │
+          ┌──────▼─────────────────┐
+          │ P6b ZDD migration      │ (graphillion → OxiDD)
+          │   to OxiDD             │
+          └──────┬─────────────────┘
+                 │
           ┌──────▼───────┐
           │ P7 Subsystem │ ◀─── architectural pivot, big-bang
           │   rewrite    │
@@ -943,9 +1092,11 @@ accommodates non-exhaustive search strategies. Users select an approximation via
    │Models│  │Cache │  │Config │
    └───┬──┘  └──────┘  └───┬───┘
        │                   │
-       │            ┌──────▼────┐
-       │            │P11 Parallel│
-       │            └──────┬────┘
+       │            ┌──────▼────────────┐
+       │            │P11 Parallel       │
+       │            │ (+ ThreadScheduler│
+       │            │  if no-GIL)       │
+       │            └──────┬────────────┘
        │                   │
        ▼                   ▼
    ┌──────────────────────────┐
@@ -978,7 +1129,10 @@ accommodates non-exhaustive search strategies. Users select an approximation via
 **Critical chains:**
 
 - **Correctness safety chain:** P1 → P2 → (everything numerical)
-- **Formalism chain:** P3 → P4 → P5 → P6 → P7 (core architectural backbone)
+- **Formalism chain:** P3 → P4 → P5 → P6 → P6a → P6b → P7 (core architectural backbone)
+- **No-GIL enablement chain:** P6a (lazy import + globals audit) → P6b (graphillion
+  → OxiDD swap) → P11 (`LocalThreadScheduler`). All three required for the
+  free-threaded benefit; without any one, the thread scheduler degrades to GIL mode.
 - **Parallel track (independent of the formalism chain once P10 lands):** P11.
 - **Strictly after backbone:** P8, P9, P10, P12.
 - **Aggressive features after stability:** P13.
