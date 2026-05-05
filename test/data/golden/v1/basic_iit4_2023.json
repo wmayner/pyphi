@@ -1,8 +1,8 @@
 {
-  "fixture_name": "rule110_iit4_gid",
+  "fixture_name": "basic_iit4_2023",
   "schema_version": 1,
-  "generated_from_commit": "3af4ec2ae43318904ae033c331b1ccc266356485",
-  "description": "Rule 110 cellular automaton, 3-node window, IIT 4.0 + GID.",
+  "generated_from_commit": "23ecdde81ee7239f9f3442cd03aacd0438f1abaa",
+  "description": "Basic 3-node network (Marshall et al. 2023 Fig. 1 reference). IIT 4.0 (Albantakis et al. 2023) + GID.",
   "config_overrides": {
     "IIT_VERSION": "4.0",
     "REPERTOIRE_DISTANCE": "GENERALIZED_INTRINSIC_DIFFERENCE",
@@ -13,7 +13,7 @@
   "state": [
     1,
     0,
-    1
+    0
   ],
   "node_indices": null,
   "network_hash": {
@@ -23,12 +23,12 @@
       2,
       3
     ],
-    "tpm_sha1": "daf32bc2691a31df",
+    "tpm_sha1": "18a77c4af253d5c7",
     "cm_shape": [
       3,
       3
     ],
-    "cm_sha1": "d158a20976b5d5dd"
+    "cm_sha1": "66206da5c3c7ae6e"
   },
   "repertoires": [
     {
@@ -1843,24 +1843,24 @@
     }
   ],
   "sia": {
-    "phi": 0.0,
+    "phi": 0.41503749927884376,
     "partition": [
       [
-        "2 parts: {A,BC}\n[[0 1 1]\n [0 0 0]\n [0 0 0]]"
+        "2 parts: {A,BC}\n[[0 0 0]\n [1 0 0]\n [1 0 0]]"
       ]
     ],
     "system_state": {
       "cause": [
         [
           1,
-          0,
+          1,
           0
         ]
       ],
       "effect": [
         [
-          1,
-          1,
+          0,
+          0,
           1
         ]
       ]

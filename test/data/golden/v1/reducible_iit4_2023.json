@@ -1,8 +1,8 @@
 {
-  "fixture_name": "reducible_iit4_gid",
+  "fixture_name": "reducible_iit4_2023",
   "schema_version": 1,
-  "generated_from_commit": "3af4ec2ae43318904ae033c331b1ccc266356485",
-  "description": "Reducible network \u2014 fault lines should yield low phi. Regression target for the reducibility short-circuit logic.",
+  "generated_from_commit": "23ecdde81ee7239f9f3442cd03aacd0438f1abaa",
+  "description": "Disjunction-conjunction 4-node network. Reducible \u2014 phi collapses to 0; regression target for the reducibility short-circuit. IIT 4.0 (Albantakis et al. 2023) + GID.",
   "config_overrides": {
     "IIT_VERSION": "4.0",
     "REPERTOIRE_DISTANCE": "GENERALIZED_INTRINSIC_DIFFERENCE",

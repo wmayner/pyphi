@@ -7,12 +7,27 @@ fixture::
 
     uv run pytest test/test_golden_regression.py --regenerate-golden -k <name>
 
-Initial set covers the matrix dimensions:
+Naming convention: ``<network>_<formalism>``.
 
-- Same network under multiple formalism configs (verifies dispatch)
-- Reference networks from the literature (basic, xor, rule110)
-- A reducible network (low phi)
-- IIT 3.0 vs 4.0 paths
+Three formalisms are tested:
+
+- ``iit3_emd``: IIT 3.0 (Oizumi, Albantakis, Tononi 2014). Distribution-distance
+  based; uses EMD over full repertoires and BI mechanism partitions.
+- ``iit4_2023``: IIT 4.0 paper formalism (Albantakis et al. 2023). State-centric
+  ``ii(s) = informativeness * selectivity`` via ``GENERALIZED_INTRINSIC_DIFFERENCE``.
+- ``iit4_2026``: 2026 refinement (Mayner, Marshall, Tononi 2026,
+  ``papers/2026__mayner-et-al__intrinsic-cause-effect-power.pdf``). Adds the
+  intrinsic-differentiation requirement: ``ii(s) = min(i_diff, i_spec)``,
+  capping system phi by the requirement that a system must provide itself
+  with alternative cause-effect states. Dispatched via
+  ``REPERTOIRE_DISTANCE=INTRINSIC_INFORMATION`` which the recent commit
+  ``c61d95d9`` re-purposed as a system-level mode flag (still uses GID for
+  partition integration, but applies the ii(s) cap on phi).
+
+All five reference networks (basic, xor, rule110, grid3, disjunction_conjunction)
+get a fixture under each of iit4_2023 and iit4_2026 — even where SIA phi
+collapses to 0 under both, the fixture still pins the per-mechanism MIPs and
+PhiStructure shape, which can discriminate at lower layers.
 
 Excluded from the initial set: tied-state cases that are flaky on develop
 (see ``test_sia_big_subsys_all_complete_*``); these need P5/P6 work first.
@@ -24,8 +39,8 @@ from pyphi import examples
 
 from .fixture import GoldenFixture
 
-# IIT 4.0 default config (current pyphi defaults)
-IIT_4_CONFIG = {
+# IIT 4.0 (2023) — Albantakis et al. 2023, GID metric, no ii(s) cap.
+IIT_4_2023_CONFIG = {
     "IIT_VERSION": "4.0",
     "REPERTOIRE_DISTANCE": "GENERALIZED_INTRINSIC_DIFFERENCE",
     "SYSTEM_PARTITION_TYPE": "SET_UNI/BI",
@@ -33,7 +48,16 @@ IIT_4_CONFIG = {
     "PARALLEL": False,
 }
 
-# IIT 3.0 regression config
+# IIT 4.0 (2026) — Mayner, Marshall, Tononi 2026. ii(s) = min(i_diff, i_spec)
+# cap on system phi. INTRINSIC_INFORMATION is a system-level mode flag in this
+# regime (per commit c61d95d9): GID is still used for partition integration,
+# but phi is capped by min_d(min(i_diff_d, i_spec_d)).
+IIT_4_2026_CONFIG = {
+    **IIT_4_2023_CONFIG,
+    "REPERTOIRE_DISTANCE": "INTRINSIC_INFORMATION",
+}
+
+# IIT 3.0 — Oizumi/Albantakis/Tononi 2014. Distribution-distance based.
 IIT_3_CONFIG = {
     "IIT_VERSION": "3.0",
     "REPERTOIRE_DISTANCE": "EMD",
@@ -48,77 +72,92 @@ IIT_3_CONFIG = {
 # Skip layers that don't apply to a given formalism
 SKIP_FOR_IIT_3 = frozenset({"phi_structure"})
 
-ALL_FIXTURES: list[GoldenFixture] = [
-    # ============== Basic 3-node network ==============
-    # The standard 'basic' network under three configs to verify dispatch.
-    GoldenFixture(
-        name="basic_iit4_gid",
-        description="Basic 3-node network (Marshall et al. 2023 Fig. 1 reference) "
-        "in state (1,0,0), full subsystem, IIT 4.0 + GENERALIZED_INTRINSIC_DIFFERENCE.",
-        config_overrides=IIT_4_CONFIG,
-        network_factory=examples.basic_network,
-        state=(1, 0, 0),
+# (network, factory, state, description-prefix) tuples used to generate
+# fixtures across all three formalisms.
+_NETWORKS: list[tuple[str, object, tuple[int, ...], str]] = [
+    (
+        "basic",
+        examples.basic_network,
+        (1, 0, 0),
+        "Basic 3-node network (Marshall et al. 2023 Fig. 1 reference).",
     ),
-    GoldenFixture(
-        name="basic_iit3_emd",
-        description="Basic 3-node network in state (1,0,0), full subsystem, "
-        "IIT 3.0 + EMD distance + BI partitions.",
-        config_overrides=IIT_3_CONFIG,
-        network_factory=examples.basic_network,
-        state=(1, 0, 0),
-        skip_layers=SKIP_FOR_IIT_3,
+    (
+        "xor",
+        examples.xor_network,
+        (0, 0, 0),
+        "XOR 3-node network. Symmetric, deterministic.",
     ),
-    GoldenFixture(
-        name="basic_iit4_intrinsic_information",
-        description="Basic 3-node network, IIT 4.0 + INTRINSIC_INFORMATION metric "
-        "(distinct from GID; verifies metric dispatch).",
-        config_overrides={
-            **IIT_4_CONFIG,
-            "REPERTOIRE_DISTANCE": "INTRINSIC_INFORMATION",
-        },
-        network_factory=examples.basic_network,
-        state=(1, 0, 0),
+    (
+        "rule110",
+        examples.rule110_network,
+        (1, 0, 1),
+        "Rule 110 cellular automaton, 3-node window.",
     ),
-    # ============== XOR ==============
-    GoldenFixture(
-        name="xor_iit4_gid",
-        description="XOR 3-node network in state (0,0,0), IIT 4.0 + GID.",
-        config_overrides=IIT_4_CONFIG,
-        network_factory=examples.xor_network,
-        state=(0, 0, 0),
+    (
+        "grid3",
+        examples.grid3_network,
+        (1, 0, 0),
+        "Grid3 3-node network. Symmetric architecture; useful for catching "
+        "tie-resolution regressions.",
     ),
-    GoldenFixture(
-        name="xor_iit3_emd",
-        description="XOR 3-node network in state (0,0,0), IIT 3.0 + EMD.",
-        config_overrides=IIT_3_CONFIG,
-        network_factory=examples.xor_network,
-        state=(0, 0, 0),
-        skip_layers=SKIP_FOR_IIT_3,
-    ),
-    # ============== Reducible (low phi) ==============
-    GoldenFixture(
-        name="reducible_iit4_gid",
-        description="Reducible network — fault lines should yield low phi. "
-        "Regression target for the reducibility short-circuit logic.",
-        config_overrides=IIT_4_CONFIG,
-        network_factory=examples.disjunction_conjunction_network,
-        state=(0, 0, 0, 0),
-    ),
-    # ============== rule110 (CA) ==============
-    GoldenFixture(
-        name="rule110_iit4_gid",
-        description="Rule 110 cellular automaton, 3-node window, IIT 4.0 + GID.",
-        config_overrides=IIT_4_CONFIG,
-        network_factory=examples.rule110_network,
-        state=(1, 0, 1),
-    ),
-    # ============== Simple network ==============
-    GoldenFixture(
-        name="grid3_iit4_gid",
-        description="Grid3 3-node network in state (1,0,0), IIT 4.0 + GID. "
-        "Symmetric architecture; useful for catching tie-resolution regressions.",
-        config_overrides=IIT_4_CONFIG,
-        network_factory=examples.grid3_network,
-        state=(1, 0, 0),
+    (
+        "reducible",
+        examples.disjunction_conjunction_network,
+        (0, 0, 0, 0),
+        "Disjunction-conjunction 4-node network. Reducible — phi collapses to 0; "
+        "regression target for the reducibility short-circuit.",
     ),
 ]
+
+
+def _make_fixtures() -> list[GoldenFixture]:
+    """Build the cross-product of (network, formalism)."""
+    fixtures: list[GoldenFixture] = []
+
+    for net_name, factory, state, desc in _NETWORKS:
+        # IIT 4.0 (2023) — paper formalism
+        fixtures.append(
+            GoldenFixture(
+                name=f"{net_name}_iit4_2023",
+                description=f"{desc} IIT 4.0 (Albantakis et al. 2023) + GID.",
+                config_overrides=IIT_4_2023_CONFIG,
+                network_factory=factory,  # type: ignore[arg-type]
+                state=state,
+            )
+        )
+        # IIT 4.0 (2026) — intrinsic differentiation cap
+        fixtures.append(
+            GoldenFixture(
+                name=f"{net_name}_iit4_2026",
+                description=(
+                    f"{desc} IIT 4.0 (Mayner, Marshall, Tononi 2026) — adds "
+                    "ii(s) = min(i_diff, i_spec) cap via INTRINSIC_INFORMATION mode."
+                ),
+                config_overrides=IIT_4_2026_CONFIG,
+                network_factory=factory,  # type: ignore[arg-type]
+                state=state,
+            )
+        )
+
+    # IIT 3.0 only for the smaller binary networks (4-node disjunction_conjunction
+    # under DIRECTED_BI is fine; we just don't add EMD coverage for 4-node).
+    for net_name in ("basic", "xor"):
+        net_idx = next(i for i, (n, *_) in enumerate(_NETWORKS) if n == net_name)
+        _, factory, state, desc = _NETWORKS[net_idx]
+        fixtures.append(
+            GoldenFixture(
+                name=f"{net_name}_iit3_emd",
+                description=(
+                    f"{desc} IIT 3.0 (Oizumi et al. 2014) + EMD + BI partitions."
+                ),
+                config_overrides=IIT_3_CONFIG,
+                network_factory=factory,  # type: ignore[arg-type]
+                state=state,
+                skip_layers=SKIP_FOR_IIT_3,
+            )
+        )
+
+    return fixtures
+
+
+ALL_FIXTURES: list[GoldenFixture] = _make_fixtures()

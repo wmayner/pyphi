@@ -1,8 +1,8 @@
 {
-  "fixture_name": "basic_iit4_intrinsic_information",
+  "fixture_name": "xor_iit4_2026",
   "schema_version": 1,
-  "generated_from_commit": "3af4ec2ae43318904ae033c331b1ccc266356485",
-  "description": "Basic 3-node network, IIT 4.0 + INTRINSIC_INFORMATION metric (distinct from GID; verifies metric dispatch).",
+  "generated_from_commit": "23ecdde81ee7239f9f3442cd03aacd0438f1abaa",
+  "description": "XOR 3-node network. Symmetric, deterministic. IIT 4.0 (Mayner, Marshall, Tononi 2026) \u2014 adds ii(s) = min(i_diff, i_spec) cap via INTRINSIC_INFORMATION mode.",
   "config_overrides": {
     "IIT_VERSION": "4.0",
     "REPERTOIRE_DISTANCE": "INTRINSIC_INFORMATION",
@@ -11,7 +11,7 @@
     "PARALLEL": false
   },
   "state": [
-    1,
+    0,
     0,
     0
   ],
@@ -23,12 +23,12 @@
       2,
       3
     ],
-    "tpm_sha1": "18a77c4af253d5c7",
+    "tpm_sha1": "517ef87d20fa6589",
     "cm_shape": [
       3,
       3
     ],
-    "cm_sha1": "66206da5c3c7ae6e"
+    "cm_sha1": "393d5681ab97b3f6"
   },
   "repertoires": [
     {
@@ -1852,16 +1852,21 @@
     "system_state": {
       "cause": [
         [
-          1,
-          1,
+          0,
+          0,
           0
+        ],
+        [
+          1,
+          1,
+          1
         ]
       ],
       "effect": [
         [
           0,
           0,
-          1
+          0
         ]
       ]
     }

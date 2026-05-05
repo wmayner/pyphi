@@ -1,8 +1,8 @@
 {
-  "fixture_name": "xor_iit4_gid",
+  "fixture_name": "grid3_iit4_2023",
   "schema_version": 1,
-  "generated_from_commit": "3af4ec2ae43318904ae033c331b1ccc266356485",
-  "description": "XOR 3-node network in state (0,0,0), IIT 4.0 + GID.",
+  "generated_from_commit": "23ecdde81ee7239f9f3442cd03aacd0438f1abaa",
+  "description": "Grid3 3-node network. Symmetric architecture; useful for catching tie-resolution regressions. IIT 4.0 (Albantakis et al. 2023) + GID.",
   "config_overrides": {
     "IIT_VERSION": "4.0",
     "REPERTOIRE_DISTANCE": "GENERALIZED_INTRINSIC_DIFFERENCE",
@@ -11,7 +11,7 @@
     "PARALLEL": false
   },
   "state": [
-    0,
+    1,
     0,
     0
   ],
@@ -23,12 +23,12 @@
       2,
       3
     ],
-    "tpm_sha1": "517ef87d20fa6589",
+    "tpm_sha1": "4518662e7174ee7b",
     "cm_shape": [
       3,
       3
     ],
-    "cm_sha1": "393d5681ab97b3f6"
+    "cm_sha1": "f4a18281c344e7b3"
   },
   "repertoires": [
     {
@@ -1843,28 +1843,23 @@
     }
   ],
   "sia": {
-    "phi": 1.5,
+    "phi": -0.07287267733603037,
     "partition": [
       [
-        "3 parts: {A,B,C}\n[[0 1 1]\n [1 0 1]\n [1 1 0]]"
+        "2 parts: {A,BC}\n[[0 1 1]\n [1 0 0]\n [1 0 0]]"
       ]
     ],
     "system_state": {
       "cause": [
         [
-          0,
+          1,
           0,
           0
-        ],
-        [
-          1,
-          1,
-          1
         ]
       ],
       "effect": [
         [
-          0,
+          1,
           0,
           0
         ]

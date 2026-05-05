@@ -1,8 +1,8 @@
 {
   "fixture_name": "basic_iit3_emd",
   "schema_version": 1,
-  "generated_from_commit": "3af4ec2ae43318904ae033c331b1ccc266356485",
-  "description": "Basic 3-node network in state (1,0,0), full subsystem, IIT 3.0 + EMD distance + BI partitions.",
+  "generated_from_commit": "23ecdde81ee7239f9f3442cd03aacd0438f1abaa",
+  "description": "Basic 3-node network (Marshall et al. 2023 Fig. 1 reference). IIT 3.0 (Oizumi et al. 2014) + EMD + BI partitions.",
   "config_overrides": {
     "IIT_VERSION": "3.0",
     "REPERTOIRE_DISTANCE": "EMD",

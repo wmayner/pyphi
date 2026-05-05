@@ -1,23 +1,17 @@
 {
-  "fixture_name": "xor_iit3_emd",
+  "fixture_name": "grid3_iit4_2026",
   "schema_version": 1,
   "generated_from_commit": "23ecdde81ee7239f9f3442cd03aacd0438f1abaa",
-  "description": "XOR 3-node network. Symmetric, deterministic. IIT 3.0 (Oizumi et al. 2014) + EMD + BI partitions.",
+  "description": "Grid3 3-node network. Symmetric architecture; useful for catching tie-resolution regressions. IIT 4.0 (Mayner, Marshall, Tononi 2026) \u2014 adds ii(s) = min(i_diff, i_spec) cap via INTRINSIC_INFORMATION mode.",
   "config_overrides": {
-    "IIT_VERSION": "3.0",
-    "REPERTOIRE_DISTANCE": "EMD",
-    "PARTITION_TYPE": "BI",
-    "SYSTEM_PARTITION_TYPE": "DIRECTED_BI",
-    "ACTUAL_CAUSATION_MEASURE": "PMI",
-    "PURVIEW_TIE_RESOLUTION": [
-      "PHI",
-      "PURVIEW_SIZE"
-    ],
+    "IIT_VERSION": "4.0",
+    "REPERTOIRE_DISTANCE": "INTRINSIC_INFORMATION",
+    "SYSTEM_PARTITION_TYPE": "SET_UNI/BI",
     "PROGRESS_BARS": false,
     "PARALLEL": false
   },
   "state": [
-    0,
+    1,
     0,
     0
   ],
@@ -29,12 +23,12 @@
       2,
       3
     ],
-    "tpm_sha1": "517ef87d20fa6589",
+    "tpm_sha1": "4518662e7174ee7b",
     "cm_shape": [
       3,
       3
     ],
-    "cm_sha1": "393d5681ab97b3f6"
+    "cm_sha1": "f4a18281c344e7b3"
   },
   "repertoires": [
     {
@@ -1849,6 +1843,30 @@
     }
   ],
   "sia": {
-    "error": "ModuleNotFoundError: Please re-install PyPhi with `pyphi[pyemd]` to use this feature."
+    "phi": -0.07287267733603037,
+    "partition": [
+      [
+        "2 parts: {A,BC}\n[[0 1 1]\n [1 0 0]\n [1 0 0]]"
+      ]
+    ],
+    "system_state": {
+      "cause": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "effect": [
+        [
+          1,
+          0,
+          0
+        ]
+      ]
+    }
+  },
+  "phi_structure": {
+    "error": "NotImplementedError: "
   }
 }
