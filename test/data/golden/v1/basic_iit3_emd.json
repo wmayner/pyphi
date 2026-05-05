@@ -1,10 +1,10 @@
 {
   "fixture_name": "basic_iit3_emd",
   "schema_version": 1,
-  "generated_from_commit": "23ecdde81ee7239f9f3442cd03aacd0438f1abaa",
+  "generated_from_commit": "d9578451d668bffb40bce37a0a5316e72ef30c89",
   "description": "Basic 3-node network (Marshall et al. 2023 Fig. 1 reference). IIT 3.0 (Oizumi et al. 2014) + EMD + BI partitions.",
   "config_overrides": {
-    "IIT_VERSION": "3.0",
+    "IIT_VERSION": 3.0,
     "REPERTOIRE_DISTANCE": "EMD",
     "PARTITION_TYPE": "BI",
     "SYSTEM_PARTITION_TYPE": "DIRECTED_BI",
@@ -735,7 +735,24 @@
         0
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a128",
+      "partitioned_repertoire": "@npz:a129"
     },
     {
       "mechanism": [
@@ -745,7 +762,24 @@
         0
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a130",
+      "partitioned_repertoire": "@npz:a131"
     },
     {
       "mechanism": [
@@ -755,7 +789,24 @@
         1
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.1666666666667,
+      "partition": [
+        [
+          [],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a132",
+      "partitioned_repertoire": "@npz:a133"
     },
     {
       "mechanism": [
@@ -765,7 +816,24 @@
         1
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a134",
+      "partitioned_repertoire": "@npz:a135"
     },
     {
       "mechanism": [
@@ -775,7 +843,24 @@
         2
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.1666666666667,
+      "partition": [
+        [
+          [],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a136",
+      "partitioned_repertoire": "@npz:a137"
     },
     {
       "mechanism": [
@@ -785,7 +870,24 @@
         2
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a138",
+      "partitioned_repertoire": "@npz:a139"
     },
     {
       "mechanism": [
@@ -796,7 +898,26 @@
         1
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          [
+            1
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a140",
+      "partitioned_repertoire": "@npz:a141"
     },
     {
       "mechanism": [
@@ -807,7 +928,26 @@
         1
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          [
+            1
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a142",
+      "partitioned_repertoire": "@npz:a143"
     },
     {
       "mechanism": [
@@ -818,7 +958,26 @@
         2
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a144",
+      "partitioned_repertoire": "@npz:a145"
     },
     {
       "mechanism": [
@@ -829,7 +988,26 @@
         2
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a146",
+      "partitioned_repertoire": "@npz:a147"
     },
     {
       "mechanism": [
@@ -840,7 +1018,25 @@
         2
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.3333333333333,
+      "partition": [
+        [
+          [],
+          [
+            1,
+            2
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a148",
+      "partitioned_repertoire": "@npz:a149"
     },
     {
       "mechanism": [
@@ -851,7 +1047,26 @@
         2
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a150",
+      "partitioned_repertoire": "@npz:a151"
     },
     {
       "mechanism": [
@@ -863,7 +1078,27 @@
         2
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          [
+            1,
+            2
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a152",
+      "partitioned_repertoire": "@npz:a153"
     },
     {
       "mechanism": [
@@ -875,7 +1110,27 @@
         2
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          [
+            1,
+            2
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a154",
+      "partitioned_repertoire": "@npz:a155"
     },
     {
       "mechanism": [
@@ -885,7 +1140,24 @@
         0
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a156",
+      "partitioned_repertoire": "@npz:a157"
     },
     {
       "mechanism": [
@@ -895,7 +1167,24 @@
         0
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.25,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a158",
+      "partitioned_repertoire": "@npz:a159"
     },
     {
       "mechanism": [
@@ -905,7 +1194,24 @@
         1
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a160",
+      "partitioned_repertoire": "@npz:a161"
     },
     {
       "mechanism": [
@@ -915,7 +1221,24 @@
         1
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a162",
+      "partitioned_repertoire": "@npz:a163"
     },
     {
       "mechanism": [
@@ -925,7 +1248,24 @@
         2
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.5,
+      "partition": [
+        [
+          [],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a164",
+      "partitioned_repertoire": "@npz:a165"
     },
     {
       "mechanism": [
@@ -935,7 +1275,24 @@
         2
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a166",
+      "partitioned_repertoire": "@npz:a167"
     },
     {
       "mechanism": [
@@ -946,7 +1303,26 @@
         1
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          [
+            1
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a168",
+      "partitioned_repertoire": "@npz:a169"
     },
     {
       "mechanism": [
@@ -957,7 +1333,26 @@
         1
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          [
+            0
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a170",
+      "partitioned_repertoire": "@npz:a171"
     },
     {
       "mechanism": [
@@ -968,7 +1363,26 @@
         2
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a172",
+      "partitioned_repertoire": "@npz:a173"
     },
     {
       "mechanism": [
@@ -979,7 +1393,26 @@
         2
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          [
+            0
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a174",
+      "partitioned_repertoire": "@npz:a175"
     },
     {
       "mechanism": [
@@ -990,7 +1423,26 @@
         2
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a176",
+      "partitioned_repertoire": "@npz:a177"
     },
     {
       "mechanism": [
@@ -1001,7 +1453,26 @@
         2
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a178",
+      "partitioned_repertoire": "@npz:a179"
     },
     {
       "mechanism": [
@@ -1013,7 +1484,27 @@
         2
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a180",
+      "partitioned_repertoire": "@npz:a181"
     },
     {
       "mechanism": [
@@ -1025,7 +1516,27 @@
         2
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          [
+            0,
+            2
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a182",
+      "partitioned_repertoire": "@npz:a183"
     },
     {
       "mechanism": [
@@ -1035,7 +1546,24 @@
         0
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a184",
+      "partitioned_repertoire": "@npz:a185"
     },
     {
       "mechanism": [
@@ -1045,7 +1573,24 @@
         0
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.25,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a186",
+      "partitioned_repertoire": "@npz:a187"
     },
     {
       "mechanism": [
@@ -1055,7 +1600,24 @@
         1
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a188",
+      "partitioned_repertoire": "@npz:a189"
     },
     {
       "mechanism": [
@@ -1065,7 +1627,24 @@
         1
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.5,
+      "partition": [
+        [
+          [],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a190",
+      "partitioned_repertoire": "@npz:a191"
     },
     {
       "mechanism": [
@@ -1075,7 +1654,24 @@
         2
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a192",
+      "partitioned_repertoire": "@npz:a193"
     },
     {
       "mechanism": [
@@ -1085,7 +1681,24 @@
         2
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a194",
+      "partitioned_repertoire": "@npz:a195"
     },
     {
       "mechanism": [
@@ -1096,7 +1709,25 @@
         1
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.5,
+      "partition": [
+        [
+          [],
+          [
+            0,
+            1
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a196",
+      "partitioned_repertoire": "@npz:a197"
     },
     {
       "mechanism": [
@@ -1107,7 +1738,26 @@
         1
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.25,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          [
+            1
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a198",
+      "partitioned_repertoire": "@npz:a199"
     },
     {
       "mechanism": [
@@ -1118,7 +1768,26 @@
         2
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a200",
+      "partitioned_repertoire": "@npz:a201"
     },
     {
       "mechanism": [
@@ -1129,7 +1798,26 @@
         2
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          [
+            0
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a202",
+      "partitioned_repertoire": "@npz:a203"
     },
     {
       "mechanism": [
@@ -1140,7 +1828,26 @@
         2
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a204",
+      "partitioned_repertoire": "@npz:a205"
     },
     {
       "mechanism": [
@@ -1151,7 +1858,26 @@
         2
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          [
+            1
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a206",
+      "partitioned_repertoire": "@npz:a207"
     },
     {
       "mechanism": [
@@ -1163,7 +1889,27 @@
         2
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          [
+            0,
+            1
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a208",
+      "partitioned_repertoire": "@npz:a209"
     },
     {
       "mechanism": [
@@ -1175,7 +1921,27 @@
         2
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          [
+            0,
+            1
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a210",
+      "partitioned_repertoire": "@npz:a211"
     },
     {
       "mechanism": [
@@ -1186,7 +1952,25 @@
         0
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a212",
+      "partitioned_repertoire": "@npz:a213"
     },
     {
       "mechanism": [
@@ -1197,7 +1981,26 @@
         0
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [
+            0
+          ],
+          []
+        ],
+        [
+          [
+            1
+          ],
+          [
+            0
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a214",
+      "partitioned_repertoire": "@npz:a215"
     },
     {
       "mechanism": [
@@ -1208,7 +2011,26 @@
         1
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [
+            0
+          ],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a216",
+      "partitioned_repertoire": "@npz:a217"
     },
     {
       "mechanism": [
@@ -1219,7 +2041,25 @@
         1
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            0,
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a218",
+      "partitioned_repertoire": "@npz:a219"
     },
     {
       "mechanism": [
@@ -1230,7 +2070,26 @@
         2
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [
+            0
+          ],
+          []
+        ],
+        [
+          [
+            1
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a220",
+      "partitioned_repertoire": "@npz:a221"
     },
     {
       "mechanism": [
@@ -1241,7 +2100,25 @@
         2
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.5,
+      "partition": [
+        [
+          [],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            0,
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a222",
+      "partitioned_repertoire": "@npz:a223"
     },
     {
       "mechanism": [
@@ -1253,7 +2130,27 @@
         1
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            1
+          ],
+          [
+            1
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a224",
+      "partitioned_repertoire": "@npz:a225"
     },
     {
       "mechanism": [
@@ -1265,7 +2162,27 @@
         1
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            0,
+            1
+          ],
+          [
+            0
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a226",
+      "partitioned_repertoire": "@npz:a227"
     },
     {
       "mechanism": [
@@ -1277,7 +2194,27 @@
         2
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            1
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a228",
+      "partitioned_repertoire": "@npz:a229"
     },
     {
       "mechanism": [
@@ -1289,7 +2226,27 @@
         2
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.25,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            1
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a230",
+      "partitioned_repertoire": "@npz:a231"
     },
     {
       "mechanism": [
@@ -1301,7 +2258,28 @@
         2
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.3333333333333,
+      "partition": [
+        [
+          [
+            0
+          ],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a232",
+      "partitioned_repertoire": "@npz:a233"
     },
     {
       "mechanism": [
@@ -1313,7 +2291,27 @@
         2
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            0,
+            1
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a234",
+      "partitioned_repertoire": "@npz:a235"
     },
     {
       "mechanism": [
@@ -1326,7 +2324,28 @@
         2
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a236",
+      "partitioned_repertoire": "@npz:a237"
     },
     {
       "mechanism": [
@@ -1339,7 +2358,28 @@
         2
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a238",
+      "partitioned_repertoire": "@npz:a239"
     },
     {
       "mechanism": [
@@ -1350,7 +2390,25 @@
         0
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a240",
+      "partitioned_repertoire": "@npz:a241"
     },
     {
       "mechanism": [
@@ -1361,7 +2419,26 @@
         0
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [
+            0
+          ],
+          []
+        ],
+        [
+          [
+            2
+          ],
+          [
+            0
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a242",
+      "partitioned_repertoire": "@npz:a243"
     },
     {
       "mechanism": [
@@ -1372,7 +2449,26 @@
         1
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [
+            0
+          ],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a244",
+      "partitioned_repertoire": "@npz:a245"
     },
     {
       "mechanism": [
@@ -1383,7 +2479,26 @@
         1
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [
+            0
+          ],
+          []
+        ],
+        [
+          [
+            2
+          ],
+          [
+            1
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a246",
+      "partitioned_repertoire": "@npz:a247"
     },
     {
       "mechanism": [
@@ -1394,7 +2509,26 @@
         2
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [
+            0
+          ],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a248",
+      "partitioned_repertoire": "@npz:a249"
     },
     {
       "mechanism": [
@@ -1405,7 +2539,25 @@
         2
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            0,
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a250",
+      "partitioned_repertoire": "@npz:a251"
     },
     {
       "mechanism": [
@@ -1417,7 +2569,26 @@
         1
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.5,
+      "partition": [
+        [
+          [],
+          [
+            0,
+            1
+          ]
+        ],
+        [
+          [
+            0,
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a252",
+      "partitioned_repertoire": "@npz:a253"
     },
     {
       "mechanism": [
@@ -1429,7 +2600,27 @@
         1
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [
+            0
+          ],
+          []
+        ],
+        [
+          [
+            2
+          ],
+          [
+            0,
+            1
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a254",
+      "partitioned_repertoire": "@npz:a255"
     },
     {
       "mechanism": [
@@ -1441,7 +2632,27 @@
         2
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            2
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a256",
+      "partitioned_repertoire": "@npz:a257"
     },
     {
       "mechanism": [
@@ -1453,7 +2664,27 @@
         2
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            0,
+            2
+          ],
+          [
+            0
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a258",
+      "partitioned_repertoire": "@npz:a259"
     },
     {
       "mechanism": [
@@ -1465,7 +2696,27 @@
         2
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [
+            0
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a260",
+      "partitioned_repertoire": "@npz:a261"
     },
     {
       "mechanism": [
@@ -1477,7 +2728,27 @@
         2
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            0,
+            2
+          ],
+          [
+            1
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a262",
+      "partitioned_repertoire": "@npz:a263"
     },
     {
       "mechanism": [
@@ -1490,7 +2761,28 @@
         2
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.1666666666667,
+      "partition": [
+        [
+          [],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            1
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a264",
+      "partitioned_repertoire": "@npz:a265"
     },
     {
       "mechanism": [
@@ -1503,7 +2795,28 @@
         2
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            1
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a266",
+      "partitioned_repertoire": "@npz:a267"
     },
     {
       "mechanism": [
@@ -1514,7 +2827,25 @@
         0
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            1,
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a268",
+      "partitioned_repertoire": "@npz:a269"
     },
     {
       "mechanism": [
@@ -1525,7 +2856,25 @@
         0
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.75,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            1,
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a270",
+      "partitioned_repertoire": "@npz:a271"
     },
     {
       "mechanism": [
@@ -1536,7 +2885,25 @@
         1
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            1,
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a272",
+      "partitioned_repertoire": "@npz:a273"
     },
     {
       "mechanism": [
@@ -1547,7 +2914,26 @@
         1
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [
+            1
+          ],
+          []
+        ],
+        [
+          [
+            2
+          ],
+          [
+            1
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a274",
+      "partitioned_repertoire": "@npz:a275"
     },
     {
       "mechanism": [
@@ -1558,7 +2944,26 @@
         2
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [
+            1
+          ],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a276",
+      "partitioned_repertoire": "@npz:a277"
     },
     {
       "mechanism": [
@@ -1569,7 +2974,25 @@
         2
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            1,
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a278",
+      "partitioned_repertoire": "@npz:a279"
     },
     {
       "mechanism": [
@@ -1581,7 +3004,27 @@
         1
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [
+            1
+          ],
+          []
+        ],
+        [
+          [
+            2
+          ],
+          [
+            0,
+            1
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a280",
+      "partitioned_repertoire": "@npz:a281"
     },
     {
       "mechanism": [
@@ -1593,7 +3036,27 @@
         1
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.5,
+      "partition": [
+        [
+          [],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            1,
+            2
+          ],
+          [
+            0
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a282",
+      "partitioned_repertoire": "@npz:a283"
     },
     {
       "mechanism": [
@@ -1605,7 +3068,27 @@
         2
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            1,
+            2
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a284",
+      "partitioned_repertoire": "@npz:a285"
     },
     {
       "mechanism": [
@@ -1617,7 +3100,27 @@
         2
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            1,
+            2
+          ],
+          [
+            0
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a286",
+      "partitioned_repertoire": "@npz:a287"
     },
     {
       "mechanism": [
@@ -1629,7 +3132,27 @@
         2
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            1,
+            2
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a288",
+      "partitioned_repertoire": "@npz:a289"
     },
     {
       "mechanism": [
@@ -1641,7 +3164,27 @@
         2
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            1,
+            2
+          ],
+          [
+            1
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a290",
+      "partitioned_repertoire": "@npz:a291"
     },
     {
       "mechanism": [
@@ -1654,7 +3197,29 @@
         2
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [
+            1
+          ],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          [
+            0,
+            1
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a292",
+      "partitioned_repertoire": "@npz:a293"
     },
     {
       "mechanism": [
@@ -1667,7 +3232,28 @@
         2
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            1,
+            2
+          ],
+          [
+            0,
+            1
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a294",
+      "partitioned_repertoire": "@npz:a295"
     },
     {
       "mechanism": [
@@ -1679,7 +3265,26 @@
         0
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            1,
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a296",
+      "partitioned_repertoire": "@npz:a297"
     },
     {
       "mechanism": [
@@ -1691,7 +3296,27 @@
         0
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [
+            0
+          ],
+          []
+        ],
+        [
+          [
+            1,
+            2
+          ],
+          [
+            0
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a298",
+      "partitioned_repertoire": "@npz:a299"
     },
     {
       "mechanism": [
@@ -1703,7 +3328,27 @@
         1
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [
+            0
+          ],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            1,
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a300",
+      "partitioned_repertoire": "@npz:a301"
     },
     {
       "mechanism": [
@@ -1715,7 +3360,27 @@
         1
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [
+            0
+          ],
+          []
+        ],
+        [
+          [
+            1,
+            2
+          ],
+          [
+            1
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a302",
+      "partitioned_repertoire": "@npz:a303"
     },
     {
       "mechanism": [
@@ -1727,7 +3392,27 @@
         2
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [
+            0
+          ],
+          []
+        ],
+        [
+          [
+            1,
+            2
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a304",
+      "partitioned_repertoire": "@npz:a305"
     },
     {
       "mechanism": [
@@ -1739,7 +3424,27 @@
         2
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [
+            0,
+            1
+          ],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a306",
+      "partitioned_repertoire": "@npz:a307"
     },
     {
       "mechanism": [
@@ -1752,7 +3457,28 @@
         1
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a308",
+      "partitioned_repertoire": "@npz:a309"
     },
     {
       "mechanism": [
@@ -1765,7 +3491,28 @@
         1
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [
+            0
+          ],
+          []
+        ],
+        [
+          [
+            1,
+            2
+          ],
+          [
+            0,
+            1
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a310",
+      "partitioned_repertoire": "@npz:a311"
     },
     {
       "mechanism": [
@@ -1778,7 +3525,28 @@
         2
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            1,
+            2
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a312",
+      "partitioned_repertoire": "@npz:a313"
     },
     {
       "mechanism": [
@@ -1791,7 +3559,28 @@
         2
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.5,
+      "partition": [
+        [
+          [],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            0,
+            1,
+            2
+          ],
+          [
+            0
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a314",
+      "partitioned_repertoire": "@npz:a315"
     },
     {
       "mechanism": [
@@ -1804,7 +3593,28 @@
         2
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a316",
+      "partitioned_repertoire": "@npz:a317"
     },
     {
       "mechanism": [
@@ -1817,7 +3627,29 @@
         2
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.0,
+      "partition": [
+        [
+          [
+            0,
+            1
+          ],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          [
+            1
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a318",
+      "partitioned_repertoire": "@npz:a319"
     },
     {
       "mechanism": [
@@ -1831,7 +3663,30 @@
         2
       ],
       "direction": "CAUSE",
-      "error": "NotImplementedError: "
+      "phi": 0.5,
+      "partition": [
+        [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          [
+            0
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a320",
+      "partitioned_repertoire": "@npz:a321"
     },
     {
       "mechanism": [
@@ -1845,10 +3700,58 @@
         2
       ],
       "direction": "EFFECT",
-      "error": "NotImplementedError: "
+      "phi": 0.5,
+      "partition": [
+        [
+          [
+            0,
+            1
+          ],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          [
+            0,
+            1
+          ]
+        ]
+      ],
+      "specified_states": [],
+      "repertoire": "@npz:a322",
+      "partitioned_repertoire": "@npz:a323"
     }
   ],
   "sia": {
-    "error": "ModuleNotFoundError: Please re-install PyPhi with `pyphi[pyemd]` to use this feature."
+    "phi": 0.5,
+    "partition": [
+      [
+        0
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "system_state": {
+      "cause": [
+        [
+          1,
+          1,
+          0
+        ]
+      ],
+      "effect": [
+        [
+          0,
+          0,
+          1
+        ]
+      ]
+    }
   }
 }

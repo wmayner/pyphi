@@ -30,9 +30,15 @@ pyphi.config.VALIDATE_JSON_VERSION = False
 #             ...
 
 # IIT 3.0 configuration for regression tests
-# These settings replicate the IIT 3.0 computational approach
+# These settings replicate the IIT 3.0 computational approach.
+#
+# IMPORTANT: IIT_VERSION must be a float (not a string). The dispatch in
+# pyphi/subsystem.py:983-1018 compares against int literals (== 4, == 3),
+# which matches floats via Python's int/float equality but NOT strings.
+# String values silently fall through to `raise NotImplementedError` and
+# the find_mip / phi_structure paths fail with no observable error.
 IIT_3_CONFIG = config.override(
-    IIT_VERSION="3.0",
+    IIT_VERSION=3.0,
     REPERTOIRE_DISTANCE="EMD",
     PARTITION_TYPE="BI",
     SYSTEM_PARTITION_TYPE="DIRECTED_BI",
@@ -43,7 +49,7 @@ IIT_3_CONFIG = config.override(
 # IIT 4.0 configuration (current defaults, made explicit for clarity)
 # Use this when you want to explicitly test IIT 4.0 behavior
 IIT_4_CONFIG = config.override(
-    IIT_VERSION="4.0",
+    IIT_VERSION=4.0,
     REPERTOIRE_DISTANCE="GENERALIZED_INTRINSIC_DIFFERENCE",
     SYSTEM_PARTITION_TYPE="SET_UNI/BI",
 )
