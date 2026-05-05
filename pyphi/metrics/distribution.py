@@ -279,14 +279,25 @@ class DistributionMeasureRegistry(Registry):
     ) -> Callable[[Callable[..., float]], Callable[..., float]]:
         """Decorator for registering a distribution measure with PyPhi.
 
+        Validates the registered object against
+        :class:`pyphi.protocols.DistanceMetric`; non-callable objects fail
+        at import rather than at the bottom of a phi computation.
+
         Args:
             name (string): The name of the measure.
 
         Keyword Args:
             asymmetric (boolean): ``True`` if the measure is asymmetric.
         """
+        from pyphi.protocols import DistanceMetric
 
         def register_func(func: Callable[..., float]) -> Callable[..., float]:
+            if not isinstance(func, DistanceMetric):
+                raise TypeError(
+                    f"Cannot register {func!r} as distance metric {name!r}: "
+                    f"object does not satisfy the DistanceMetric Protocol "
+                    f"(must be callable)."
+                )
             if asymmetric:
                 self._asymmetric.append(name)
             self.store[name] = func
@@ -913,8 +924,8 @@ def intrinsic_information(
     selectivity_repertoire,
     state=None,
 ):
-    specification_func = measures[config.REPERTOIRE_DISTANCE_SPECIFICATION]
-    differentiation_func = measures[config.REPERTOIRE_DISTANCE_DIFFERENTIATION]
+    specification_func = measures[config.REPERTOIRE_DISTANCE_SPECIFICATION]  # pyright: ignore[reportAttributeAccessIssue]
+    differentiation_func = measures[config.REPERTOIRE_DISTANCE_DIFFERENTIATION]  # pyright: ignore[reportAttributeAccessIssue]
 
     specification = specification_func(
         forward_repertoire,
