@@ -1,0 +1,8610 @@
+{
+  "fixture_name": "reducible_iit4_gid",
+  "schema_version": 1,
+  "generated_from_commit": "3af4ec2ae43318904ae033c331b1ccc266356485",
+  "description": "Reducible network \u2014 fault lines should yield low phi. Regression target for the reducibility short-circuit logic.",
+  "config_overrides": {
+    "IIT_VERSION": "4.0",
+    "REPERTOIRE_DISTANCE": "GENERALIZED_INTRINSIC_DIFFERENCE",
+    "SYSTEM_PARTITION_TYPE": "SET_UNI/BI",
+    "PROGRESS_BARS": false,
+    "PARALLEL": false
+  },
+  "state": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "node_indices": null,
+  "network_hash": {
+    "tpm_shape": [
+      2,
+      2,
+      2,
+      2,
+      4
+    ],
+    "tpm_sha1": "595ebee37f9a1dfe",
+    "cm_shape": [
+      4,
+      4
+    ],
+    "cm_sha1": "ced09a24c3c42d66"
+  },
+  "repertoires": [
+    {
+      "mechanism": [],
+      "purview": [],
+      "cause_repertoire": "@npz:a0",
+      "effect_repertoire": "@npz:a1"
+    },
+    {
+      "mechanism": [],
+      "purview": [
+        0
+      ],
+      "cause_repertoire": "@npz:a2",
+      "effect_repertoire": "@npz:a3"
+    },
+    {
+      "mechanism": [],
+      "purview": [
+        1
+      ],
+      "cause_repertoire": "@npz:a4",
+      "effect_repertoire": "@npz:a5"
+    },
+    {
+      "mechanism": [],
+      "purview": [
+        2
+      ],
+      "cause_repertoire": "@npz:a6",
+      "effect_repertoire": "@npz:a7"
+    },
+    {
+      "mechanism": [],
+      "purview": [
+        3
+      ],
+      "cause_repertoire": "@npz:a8",
+      "effect_repertoire": "@npz:a9"
+    },
+    {
+      "mechanism": [],
+      "purview": [
+        0,
+        1
+      ],
+      "cause_repertoire": "@npz:a10",
+      "effect_repertoire": "@npz:a11"
+    },
+    {
+      "mechanism": [],
+      "purview": [
+        0,
+        2
+      ],
+      "cause_repertoire": "@npz:a12",
+      "effect_repertoire": "@npz:a13"
+    },
+    {
+      "mechanism": [],
+      "purview": [
+        0,
+        3
+      ],
+      "cause_repertoire": "@npz:a14",
+      "effect_repertoire": "@npz:a15"
+    },
+    {
+      "mechanism": [],
+      "purview": [
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a16",
+      "effect_repertoire": "@npz:a17"
+    },
+    {
+      "mechanism": [],
+      "purview": [
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a18",
+      "effect_repertoire": "@npz:a19"
+    },
+    {
+      "mechanism": [],
+      "purview": [
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a20",
+      "effect_repertoire": "@npz:a21"
+    },
+    {
+      "mechanism": [],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a22",
+      "effect_repertoire": "@npz:a23"
+    },
+    {
+      "mechanism": [],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a24",
+      "effect_repertoire": "@npz:a25"
+    },
+    {
+      "mechanism": [],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a26",
+      "effect_repertoire": "@npz:a27"
+    },
+    {
+      "mechanism": [],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a28",
+      "effect_repertoire": "@npz:a29"
+    },
+    {
+      "mechanism": [],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a30",
+      "effect_repertoire": "@npz:a31"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [],
+      "cause_repertoire": "@npz:a32",
+      "effect_repertoire": "@npz:a33"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0
+      ],
+      "cause_repertoire": "@npz:a34",
+      "effect_repertoire": "@npz:a35"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        1
+      ],
+      "cause_repertoire": "@npz:a36",
+      "effect_repertoire": "@npz:a37"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        2
+      ],
+      "cause_repertoire": "@npz:a38",
+      "effect_repertoire": "@npz:a39"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        3
+      ],
+      "cause_repertoire": "@npz:a40",
+      "effect_repertoire": "@npz:a41"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "cause_repertoire": "@npz:a42",
+      "effect_repertoire": "@npz:a43"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "cause_repertoire": "@npz:a44",
+      "effect_repertoire": "@npz:a45"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "cause_repertoire": "@npz:a46",
+      "effect_repertoire": "@npz:a47"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a48",
+      "effect_repertoire": "@npz:a49"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a50",
+      "effect_repertoire": "@npz:a51"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a52",
+      "effect_repertoire": "@npz:a53"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a54",
+      "effect_repertoire": "@npz:a55"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a56",
+      "effect_repertoire": "@npz:a57"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a58",
+      "effect_repertoire": "@npz:a59"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a60",
+      "effect_repertoire": "@npz:a61"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a62",
+      "effect_repertoire": "@npz:a63"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [],
+      "cause_repertoire": "@npz:a64",
+      "effect_repertoire": "@npz:a65"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0
+      ],
+      "cause_repertoire": "@npz:a66",
+      "effect_repertoire": "@npz:a67"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        1
+      ],
+      "cause_repertoire": "@npz:a68",
+      "effect_repertoire": "@npz:a69"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        2
+      ],
+      "cause_repertoire": "@npz:a70",
+      "effect_repertoire": "@npz:a71"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        3
+      ],
+      "cause_repertoire": "@npz:a72",
+      "effect_repertoire": "@npz:a73"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "cause_repertoire": "@npz:a74",
+      "effect_repertoire": "@npz:a75"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "cause_repertoire": "@npz:a76",
+      "effect_repertoire": "@npz:a77"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "cause_repertoire": "@npz:a78",
+      "effect_repertoire": "@npz:a79"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a80",
+      "effect_repertoire": "@npz:a81"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a82",
+      "effect_repertoire": "@npz:a83"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a84",
+      "effect_repertoire": "@npz:a85"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a86",
+      "effect_repertoire": "@npz:a87"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a88",
+      "effect_repertoire": "@npz:a89"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a90",
+      "effect_repertoire": "@npz:a91"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a92",
+      "effect_repertoire": "@npz:a93"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a94",
+      "effect_repertoire": "@npz:a95"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [],
+      "cause_repertoire": "@npz:a96",
+      "effect_repertoire": "@npz:a97"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0
+      ],
+      "cause_repertoire": "@npz:a98",
+      "effect_repertoire": "@npz:a99"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        1
+      ],
+      "cause_repertoire": "@npz:a100",
+      "effect_repertoire": "@npz:a101"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        2
+      ],
+      "cause_repertoire": "@npz:a102",
+      "effect_repertoire": "@npz:a103"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        3
+      ],
+      "cause_repertoire": "@npz:a104",
+      "effect_repertoire": "@npz:a105"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "cause_repertoire": "@npz:a106",
+      "effect_repertoire": "@npz:a107"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "cause_repertoire": "@npz:a108",
+      "effect_repertoire": "@npz:a109"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "cause_repertoire": "@npz:a110",
+      "effect_repertoire": "@npz:a111"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a112",
+      "effect_repertoire": "@npz:a113"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a114",
+      "effect_repertoire": "@npz:a115"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a116",
+      "effect_repertoire": "@npz:a117"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a118",
+      "effect_repertoire": "@npz:a119"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a120",
+      "effect_repertoire": "@npz:a121"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a122",
+      "effect_repertoire": "@npz:a123"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a124",
+      "effect_repertoire": "@npz:a125"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a126",
+      "effect_repertoire": "@npz:a127"
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [],
+      "cause_repertoire": "@npz:a128",
+      "effect_repertoire": "@npz:a129"
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        0
+      ],
+      "cause_repertoire": "@npz:a130",
+      "effect_repertoire": "@npz:a131"
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        1
+      ],
+      "cause_repertoire": "@npz:a132",
+      "effect_repertoire": "@npz:a133"
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        2
+      ],
+      "cause_repertoire": "@npz:a134",
+      "effect_repertoire": "@npz:a135"
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        3
+      ],
+      "cause_repertoire": "@npz:a136",
+      "effect_repertoire": "@npz:a137"
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "cause_repertoire": "@npz:a138",
+      "effect_repertoire": "@npz:a139"
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "cause_repertoire": "@npz:a140",
+      "effect_repertoire": "@npz:a141"
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "cause_repertoire": "@npz:a142",
+      "effect_repertoire": "@npz:a143"
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a144",
+      "effect_repertoire": "@npz:a145"
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a146",
+      "effect_repertoire": "@npz:a147"
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a148",
+      "effect_repertoire": "@npz:a149"
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a150",
+      "effect_repertoire": "@npz:a151"
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a152",
+      "effect_repertoire": "@npz:a153"
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a154",
+      "effect_repertoire": "@npz:a155"
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a156",
+      "effect_repertoire": "@npz:a157"
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a158",
+      "effect_repertoire": "@npz:a159"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [],
+      "cause_repertoire": "@npz:a160",
+      "effect_repertoire": "@npz:a161"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0
+      ],
+      "cause_repertoire": "@npz:a162",
+      "effect_repertoire": "@npz:a163"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        1
+      ],
+      "cause_repertoire": "@npz:a164",
+      "effect_repertoire": "@npz:a165"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        2
+      ],
+      "cause_repertoire": "@npz:a166",
+      "effect_repertoire": "@npz:a167"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        3
+      ],
+      "cause_repertoire": "@npz:a168",
+      "effect_repertoire": "@npz:a169"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "cause_repertoire": "@npz:a170",
+      "effect_repertoire": "@npz:a171"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "cause_repertoire": "@npz:a172",
+      "effect_repertoire": "@npz:a173"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "cause_repertoire": "@npz:a174",
+      "effect_repertoire": "@npz:a175"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a176",
+      "effect_repertoire": "@npz:a177"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a178",
+      "effect_repertoire": "@npz:a179"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a180",
+      "effect_repertoire": "@npz:a181"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a182",
+      "effect_repertoire": "@npz:a183"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a184",
+      "effect_repertoire": "@npz:a185"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a186",
+      "effect_repertoire": "@npz:a187"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a188",
+      "effect_repertoire": "@npz:a189"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a190",
+      "effect_repertoire": "@npz:a191"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [],
+      "cause_repertoire": "@npz:a192",
+      "effect_repertoire": "@npz:a193"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0
+      ],
+      "cause_repertoire": "@npz:a194",
+      "effect_repertoire": "@npz:a195"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        1
+      ],
+      "cause_repertoire": "@npz:a196",
+      "effect_repertoire": "@npz:a197"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        2
+      ],
+      "cause_repertoire": "@npz:a198",
+      "effect_repertoire": "@npz:a199"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        3
+      ],
+      "cause_repertoire": "@npz:a200",
+      "effect_repertoire": "@npz:a201"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "cause_repertoire": "@npz:a202",
+      "effect_repertoire": "@npz:a203"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "cause_repertoire": "@npz:a204",
+      "effect_repertoire": "@npz:a205"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "cause_repertoire": "@npz:a206",
+      "effect_repertoire": "@npz:a207"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a208",
+      "effect_repertoire": "@npz:a209"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a210",
+      "effect_repertoire": "@npz:a211"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a212",
+      "effect_repertoire": "@npz:a213"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a214",
+      "effect_repertoire": "@npz:a215"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a216",
+      "effect_repertoire": "@npz:a217"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a218",
+      "effect_repertoire": "@npz:a219"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a220",
+      "effect_repertoire": "@npz:a221"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a222",
+      "effect_repertoire": "@npz:a223"
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [],
+      "cause_repertoire": "@npz:a224",
+      "effect_repertoire": "@npz:a225"
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        0
+      ],
+      "cause_repertoire": "@npz:a226",
+      "effect_repertoire": "@npz:a227"
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        1
+      ],
+      "cause_repertoire": "@npz:a228",
+      "effect_repertoire": "@npz:a229"
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        2
+      ],
+      "cause_repertoire": "@npz:a230",
+      "effect_repertoire": "@npz:a231"
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        3
+      ],
+      "cause_repertoire": "@npz:a232",
+      "effect_repertoire": "@npz:a233"
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "cause_repertoire": "@npz:a234",
+      "effect_repertoire": "@npz:a235"
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "cause_repertoire": "@npz:a236",
+      "effect_repertoire": "@npz:a237"
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "cause_repertoire": "@npz:a238",
+      "effect_repertoire": "@npz:a239"
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a240",
+      "effect_repertoire": "@npz:a241"
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a242",
+      "effect_repertoire": "@npz:a243"
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a244",
+      "effect_repertoire": "@npz:a245"
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a246",
+      "effect_repertoire": "@npz:a247"
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a248",
+      "effect_repertoire": "@npz:a249"
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a250",
+      "effect_repertoire": "@npz:a251"
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a252",
+      "effect_repertoire": "@npz:a253"
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a254",
+      "effect_repertoire": "@npz:a255"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [],
+      "cause_repertoire": "@npz:a256",
+      "effect_repertoire": "@npz:a257"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0
+      ],
+      "cause_repertoire": "@npz:a258",
+      "effect_repertoire": "@npz:a259"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        1
+      ],
+      "cause_repertoire": "@npz:a260",
+      "effect_repertoire": "@npz:a261"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        2
+      ],
+      "cause_repertoire": "@npz:a262",
+      "effect_repertoire": "@npz:a263"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        3
+      ],
+      "cause_repertoire": "@npz:a264",
+      "effect_repertoire": "@npz:a265"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "cause_repertoire": "@npz:a266",
+      "effect_repertoire": "@npz:a267"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "cause_repertoire": "@npz:a268",
+      "effect_repertoire": "@npz:a269"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "cause_repertoire": "@npz:a270",
+      "effect_repertoire": "@npz:a271"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a272",
+      "effect_repertoire": "@npz:a273"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a274",
+      "effect_repertoire": "@npz:a275"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a276",
+      "effect_repertoire": "@npz:a277"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a278",
+      "effect_repertoire": "@npz:a279"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a280",
+      "effect_repertoire": "@npz:a281"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a282",
+      "effect_repertoire": "@npz:a283"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a284",
+      "effect_repertoire": "@npz:a285"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a286",
+      "effect_repertoire": "@npz:a287"
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [],
+      "cause_repertoire": "@npz:a288",
+      "effect_repertoire": "@npz:a289"
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        0
+      ],
+      "cause_repertoire": "@npz:a290",
+      "effect_repertoire": "@npz:a291"
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        1
+      ],
+      "cause_repertoire": "@npz:a292",
+      "effect_repertoire": "@npz:a293"
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        2
+      ],
+      "cause_repertoire": "@npz:a294",
+      "effect_repertoire": "@npz:a295"
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        3
+      ],
+      "cause_repertoire": "@npz:a296",
+      "effect_repertoire": "@npz:a297"
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "cause_repertoire": "@npz:a298",
+      "effect_repertoire": "@npz:a299"
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "cause_repertoire": "@npz:a300",
+      "effect_repertoire": "@npz:a301"
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "cause_repertoire": "@npz:a302",
+      "effect_repertoire": "@npz:a303"
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a304",
+      "effect_repertoire": "@npz:a305"
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a306",
+      "effect_repertoire": "@npz:a307"
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a308",
+      "effect_repertoire": "@npz:a309"
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a310",
+      "effect_repertoire": "@npz:a311"
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a312",
+      "effect_repertoire": "@npz:a313"
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a314",
+      "effect_repertoire": "@npz:a315"
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a316",
+      "effect_repertoire": "@npz:a317"
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a318",
+      "effect_repertoire": "@npz:a319"
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [],
+      "cause_repertoire": "@npz:a320",
+      "effect_repertoire": "@npz:a321"
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        0
+      ],
+      "cause_repertoire": "@npz:a322",
+      "effect_repertoire": "@npz:a323"
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        1
+      ],
+      "cause_repertoire": "@npz:a324",
+      "effect_repertoire": "@npz:a325"
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        2
+      ],
+      "cause_repertoire": "@npz:a326",
+      "effect_repertoire": "@npz:a327"
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        3
+      ],
+      "cause_repertoire": "@npz:a328",
+      "effect_repertoire": "@npz:a329"
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "cause_repertoire": "@npz:a330",
+      "effect_repertoire": "@npz:a331"
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "cause_repertoire": "@npz:a332",
+      "effect_repertoire": "@npz:a333"
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "cause_repertoire": "@npz:a334",
+      "effect_repertoire": "@npz:a335"
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a336",
+      "effect_repertoire": "@npz:a337"
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a338",
+      "effect_repertoire": "@npz:a339"
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a340",
+      "effect_repertoire": "@npz:a341"
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a342",
+      "effect_repertoire": "@npz:a343"
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a344",
+      "effect_repertoire": "@npz:a345"
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a346",
+      "effect_repertoire": "@npz:a347"
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a348",
+      "effect_repertoire": "@npz:a349"
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a350",
+      "effect_repertoire": "@npz:a351"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [],
+      "cause_repertoire": "@npz:a352",
+      "effect_repertoire": "@npz:a353"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0
+      ],
+      "cause_repertoire": "@npz:a354",
+      "effect_repertoire": "@npz:a355"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        1
+      ],
+      "cause_repertoire": "@npz:a356",
+      "effect_repertoire": "@npz:a357"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        2
+      ],
+      "cause_repertoire": "@npz:a358",
+      "effect_repertoire": "@npz:a359"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        3
+      ],
+      "cause_repertoire": "@npz:a360",
+      "effect_repertoire": "@npz:a361"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "cause_repertoire": "@npz:a362",
+      "effect_repertoire": "@npz:a363"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "cause_repertoire": "@npz:a364",
+      "effect_repertoire": "@npz:a365"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "cause_repertoire": "@npz:a366",
+      "effect_repertoire": "@npz:a367"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a368",
+      "effect_repertoire": "@npz:a369"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a370",
+      "effect_repertoire": "@npz:a371"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a372",
+      "effect_repertoire": "@npz:a373"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a374",
+      "effect_repertoire": "@npz:a375"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a376",
+      "effect_repertoire": "@npz:a377"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a378",
+      "effect_repertoire": "@npz:a379"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a380",
+      "effect_repertoire": "@npz:a381"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a382",
+      "effect_repertoire": "@npz:a383"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [],
+      "cause_repertoire": "@npz:a384",
+      "effect_repertoire": "@npz:a385"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        0
+      ],
+      "cause_repertoire": "@npz:a386",
+      "effect_repertoire": "@npz:a387"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        1
+      ],
+      "cause_repertoire": "@npz:a388",
+      "effect_repertoire": "@npz:a389"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        2
+      ],
+      "cause_repertoire": "@npz:a390",
+      "effect_repertoire": "@npz:a391"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        3
+      ],
+      "cause_repertoire": "@npz:a392",
+      "effect_repertoire": "@npz:a393"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "cause_repertoire": "@npz:a394",
+      "effect_repertoire": "@npz:a395"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "cause_repertoire": "@npz:a396",
+      "effect_repertoire": "@npz:a397"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "cause_repertoire": "@npz:a398",
+      "effect_repertoire": "@npz:a399"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a400",
+      "effect_repertoire": "@npz:a401"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a402",
+      "effect_repertoire": "@npz:a403"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a404",
+      "effect_repertoire": "@npz:a405"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a406",
+      "effect_repertoire": "@npz:a407"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a408",
+      "effect_repertoire": "@npz:a409"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a410",
+      "effect_repertoire": "@npz:a411"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a412",
+      "effect_repertoire": "@npz:a413"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a414",
+      "effect_repertoire": "@npz:a415"
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [],
+      "cause_repertoire": "@npz:a416",
+      "effect_repertoire": "@npz:a417"
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        0
+      ],
+      "cause_repertoire": "@npz:a418",
+      "effect_repertoire": "@npz:a419"
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        1
+      ],
+      "cause_repertoire": "@npz:a420",
+      "effect_repertoire": "@npz:a421"
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        2
+      ],
+      "cause_repertoire": "@npz:a422",
+      "effect_repertoire": "@npz:a423"
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        3
+      ],
+      "cause_repertoire": "@npz:a424",
+      "effect_repertoire": "@npz:a425"
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "cause_repertoire": "@npz:a426",
+      "effect_repertoire": "@npz:a427"
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "cause_repertoire": "@npz:a428",
+      "effect_repertoire": "@npz:a429"
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "cause_repertoire": "@npz:a430",
+      "effect_repertoire": "@npz:a431"
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a432",
+      "effect_repertoire": "@npz:a433"
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a434",
+      "effect_repertoire": "@npz:a435"
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a436",
+      "effect_repertoire": "@npz:a437"
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a438",
+      "effect_repertoire": "@npz:a439"
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a440",
+      "effect_repertoire": "@npz:a441"
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a442",
+      "effect_repertoire": "@npz:a443"
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a444",
+      "effect_repertoire": "@npz:a445"
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a446",
+      "effect_repertoire": "@npz:a447"
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [],
+      "cause_repertoire": "@npz:a448",
+      "effect_repertoire": "@npz:a449"
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0
+      ],
+      "cause_repertoire": "@npz:a450",
+      "effect_repertoire": "@npz:a451"
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        1
+      ],
+      "cause_repertoire": "@npz:a452",
+      "effect_repertoire": "@npz:a453"
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        2
+      ],
+      "cause_repertoire": "@npz:a454",
+      "effect_repertoire": "@npz:a455"
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        3
+      ],
+      "cause_repertoire": "@npz:a456",
+      "effect_repertoire": "@npz:a457"
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "cause_repertoire": "@npz:a458",
+      "effect_repertoire": "@npz:a459"
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "cause_repertoire": "@npz:a460",
+      "effect_repertoire": "@npz:a461"
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "cause_repertoire": "@npz:a462",
+      "effect_repertoire": "@npz:a463"
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a464",
+      "effect_repertoire": "@npz:a465"
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a466",
+      "effect_repertoire": "@npz:a467"
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a468",
+      "effect_repertoire": "@npz:a469"
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a470",
+      "effect_repertoire": "@npz:a471"
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a472",
+      "effect_repertoire": "@npz:a473"
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a474",
+      "effect_repertoire": "@npz:a475"
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a476",
+      "effect_repertoire": "@npz:a477"
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a478",
+      "effect_repertoire": "@npz:a479"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [],
+      "cause_repertoire": "@npz:a480",
+      "effect_repertoire": "@npz:a481"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0
+      ],
+      "cause_repertoire": "@npz:a482",
+      "effect_repertoire": "@npz:a483"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        1
+      ],
+      "cause_repertoire": "@npz:a484",
+      "effect_repertoire": "@npz:a485"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        2
+      ],
+      "cause_repertoire": "@npz:a486",
+      "effect_repertoire": "@npz:a487"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        3
+      ],
+      "cause_repertoire": "@npz:a488",
+      "effect_repertoire": "@npz:a489"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "cause_repertoire": "@npz:a490",
+      "effect_repertoire": "@npz:a491"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "cause_repertoire": "@npz:a492",
+      "effect_repertoire": "@npz:a493"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "cause_repertoire": "@npz:a494",
+      "effect_repertoire": "@npz:a495"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a496",
+      "effect_repertoire": "@npz:a497"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a498",
+      "effect_repertoire": "@npz:a499"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a500",
+      "effect_repertoire": "@npz:a501"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a502",
+      "effect_repertoire": "@npz:a503"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "cause_repertoire": "@npz:a504",
+      "effect_repertoire": "@npz:a505"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a506",
+      "effect_repertoire": "@npz:a507"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a508",
+      "effect_repertoire": "@npz:a509"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "cause_repertoire": "@npz:a510",
+      "effect_repertoire": "@npz:a511"
+    }
+  ],
+  "mechanism_mips": [
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        1,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "direction": "CAUSE",
+      "error": "NotImplementedError: "
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "purview": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "direction": "EFFECT",
+      "error": "NotImplementedError: "
+    }
+  ],
+  "sia": {
+    "phi": 0.0,
+    "partition": [
+      [
+        "@null"
+      ]
+    ]
+  },
+  "phi_structure": {
+    "error": "NotImplementedError: "
+  }
+}

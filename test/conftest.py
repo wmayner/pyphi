@@ -52,6 +52,20 @@ IIT_4_CONFIG = config.override(
 # =============================================================================
 
 
+def pytest_addoption(parser):
+    """Custom CLI options."""
+    parser.addoption(
+        "--regenerate-golden",
+        action="store_true",
+        default=False,
+        help=(
+            "Regenerate golden fixture data (test/data/golden/v1/) from current "
+            "code. Use after intentional formula changes; verify against "
+            "published IIT results before committing the regenerated fixtures."
+        ),
+    )
+
+
 def pytest_configure(config):
     """Register custom markers for test categorization.
 
