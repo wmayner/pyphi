@@ -483,15 +483,88 @@ comparison.
 These three fixes together make `PyPhiFloat` no-GIL safe and well-behaved with
 external libraries (pytest, numpy).
 
+**Signed-phi metadata refinement** (surfaced during P1, see grid3 fixture
+TODO). PyPhi currently drops the |·|+ operator from Eqs. 19-20 of the IIT 4.0
+paper to give users visibility into "preventative" causal structure (mechanism
+that decreases probability of a specified state) and the analogous
+system-level case. This creates a real internal inconsistency:
+
+- The IIT 3.0 paper (Box 1 Glossary, p. 8) and IIT 4.0 paper (text after
+  Eq. 19, Eq. 23) both unambiguously define φ as a *loss* of intrinsic
+  information — non-negative by construction. The |·|+ is not optional;
+  it's the formal expression of "we only count cases where the system
+  raises the probability of the state relative to the partitioned probability".
+- PyPhi's MIP selector at `new_big_phi/__init__.py:498` is
+  `(normalized_phi, -phi)` → `argmin(signed)` picks the *most negative*
+  partition, which is "the partition with the strongest preventative
+  effect" — the *opposite* of MIP semantics ("the partition that makes
+  the least difference"). For grid3 (1,0,0), this changes the selected
+  partition: argmin(signed) picks `2 parts: {A,BC}` (norm = -0.0182);
+  argmin(|·|+) would pick `3 parts: {A,B,C}` (smallest signed |·|).
+- The 2026 cap (`min(phi, i_diff, i_spec)`) is degenerate when phi is
+  signed: `min(positive_caps, negative_phi) = negative_phi`, so the cap
+  never enforces anything when 2023 phi is preventative.
+
+The fix:
+
+```python
+class SystemIrreducibilityAnalysis:
+    # Metadata: raw signed values for visibility
+    signed_phi: float
+    signed_normalized_phi: float
+
+    # Primary: paper-faithful, non-negative
+    @property
+    def phi(self) -> float:
+        return max(0.0, self.signed_phi)
+
+    @property
+    def normalized_phi(self) -> float:
+        return max(0.0, self.signed_normalized_phi)
+
+
+def sia_minimization_key(sia):
+    # Operate on |·|+ values: argmin selects smallest deviation
+    # (paper-faithful MIP). Tie-break unchanged.
+    return (sia.normalized_phi, -sia.phi)  # now non-negative
+```
+
+The 2026 cap correspondingly operates on `max(0, ·)` values, so the cap
+becomes a meaningful upper bound (`min(non-neg, non-neg) ≥ 0`) rather
+than a no-op when any term is negative.
+
+**Distinguish mechanism-level vs system-level signed phi.** At the mechanism
+level, negative φ_d means the mechanism is a *preventative cause* (lowers
+probability of the purview state). At the system level, negative φ_s means
+*the partition increases specification of the system state* (geometric
+quirk of factored vs joint distributions). Different phenomena; should be
+labeled differently in metadata: `MechanismRIA.preventative_magnitude`
+vs `SIA.partition_strengthens_specification`. Both are signed metadata
+but they mean philosophically different things.
+
+**Impact on golden fixtures:** `grid3_iit4_2023` and `grid3_iit4_2026`
+currently pin SIA phi = -0.0729. Under this redesign they pin SIA phi = 0
+(grid3 in (1,0,0) is reducible per the paper-faithful reading) with the
+metadata showing the strongest preventative magnitude. P5's
+`--regenerate-golden` step will refresh those values. This is the textbook
+case where the harness catches an intentional formula change.
+
 - *Why here:* Metric signature inconsistency is the specific seam that forces
   `intrinsic_information()` to have two code paths. Once 3.0 is cordoned off (P4),
-  4.0 metrics unify without worrying about 3.0 metric shape.
+  4.0 metrics unify without worrying about 3.0 metric shape. The signed-phi
+  refinement piggybacks naturally because it lives at the metric/distance
+  result boundary.
 - *Files:* `pyphi/metrics/distribution.py` (1041 lines → split into `base.py`,
   `iit3_metrics.py`, `iit4_metrics.py`, `distance_result.py`),
-  `pyphi/subsystem.py:800-1200`, `pyphi/repertoire.py`.
-- *Risk:* Medium. Covered by P1 fixtures.
-- *Leverage:* High. Unblocks P7 (subsystem rewrite) by removing the biggest internal
-  conditional.
+  `pyphi/data_structures/pyphi_float.py`, `pyphi/new_big_phi/__init__.py:498`
+  (MIP selector), `pyphi/subsystem.py:800-1200`, `pyphi/repertoire.py`.
+- *Risk:* Medium-high — changes user-facing phi values on at least one
+  fixture (grid3) and any other state where preventative phi was being
+  reported. Covered by P1 fixtures + Hypothesis invariant tests in P2
+  (the invariant `phi >= 0` becomes enforced rather than aspirational).
+- *Leverage:* High. Unblocks P7 (subsystem rewrite) by removing the biggest
+  internal conditional. Also resolves the grid3 anomaly and makes the 2026
+  cap mathematically meaningful.
 
 **P6. Partition algebra consolidation with typed sum type**
 

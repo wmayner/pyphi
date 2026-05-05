@@ -97,8 +97,23 @@ _NETWORKS: list[tuple[str, object, tuple[int, ...], str]] = [
         "grid3",
         examples.grid3_network,
         (1, 0, 0),
+        # grid3 (1,0,0) currently produces SIA phi = -0.0729 because PyPhi
+        # drops the |·|+ operator from Eqs. 19-20 of the IIT 4.0 paper
+        # (Albantakis et al. 2023) for visibility into "preventative"-style
+        # phi values. With negative phi allowed, the MIP selector
+        # `sia_minimization_key = (normalized_phi, -phi)` at
+        # new_big_phi/__init__.py:498 picks the *most* negative partition
+        # rather than the one closest to zero — semantically misaligned with
+        # MIP = "the partition that makes the least difference" (IIT 3.0 Box 1
+        # Glossary; IIT 4.0 Eq. 23 + surrounding text). The paper-faithful
+        # reading is: grid3 (1,0,0) is *reducible* (multiple partitions yield
+        # |·|+ phi = 0), so SIA.phi should be 0 with the signed value (-0.0729)
+        # captured as metadata. The fixture is intentionally retained as a
+        # change-detection oracle pinning the current (pre-redesign) numbers
+        # so any future fix lights up here and is regenerated deliberately.
         "Grid3 3-node network. Symmetric architecture; useful for catching "
-        "tie-resolution regressions.",
+        "tie-resolution regressions. Pins the current behavior where |·|+ "
+        "is not enforced (see comment above).",
     ),
     (
         "reducible",
