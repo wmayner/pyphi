@@ -131,8 +131,47 @@ _NETWORKS: list[tuple[str, object, tuple[int, ...], str]] = [
 
 
 def _make_fixtures() -> list[GoldenFixture]:
-    """Build the cross-product of (network, formalism)."""
+    """Build the cross-product of (network, formalism), plus targeted extras."""
     fixtures: list[GoldenFixture] = []
+
+    # ============== Targeted extra fixtures ==============
+
+    # Subsystem as strict subset of the network. Different code path:
+    # subsystem.cause_repertoire / effect_repertoire return network-shaped
+    # arrays for non-empty mechanisms but subsystem-shaped arrays for empty
+    # mechanisms (max_entropy_distribution). The actual.py audit found a real
+    # bug here (test_state_probability_strict_subsystem); P7 will rewrite the
+    # whole repertoire algebra and needs golden coverage of this case.
+    fixtures.append(
+        GoldenFixture(
+            name="basic_subset_iit4_2023",
+            description="basic_network with subsystem = nodes (1, 2) only "
+            "(strict subset of the 3-node network). Exercises the "
+            "subsystem-shaped repertoire path that the actual.py audit found "
+            "buggy. Critical for P7's subsystem rewrite.",
+            config_overrides=IIT_4_2023_CONFIG,
+            network_factory=examples.basic_network,
+            state=(1, 0, 0),
+            node_indices=(1, 2),
+        )
+    )
+
+    # IIT 3.0 with TRI mechanism partitions. Different combinatorial path
+    # from BI; exercised by test_prevention but no golden coverage today.
+    fixtures.append(
+        GoldenFixture(
+            name="basic_iit3_emd_tri",
+            description="basic_network IIT 3.0 + EMD with PARTITION_TYPE=TRI "
+            "(tripartitions). Different combinatorial path than BI; supports "
+            "the partition-algebra consolidation in P6.",
+            config_overrides={**IIT_3_CONFIG, "PARTITION_TYPE": "TRI"},
+            network_factory=examples.basic_network,
+            state=(1, 0, 0),
+            skip_layers=SKIP_FOR_IIT_3,
+        )
+    )
+
+    # ============== Cross product of network x formalism ==============
 
     for net_name, factory, state, desc in _NETWORKS:
         # IIT 4.0 (2023) — paper formalism

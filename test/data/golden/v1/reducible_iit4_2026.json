@@ -1,7 +1,7 @@
 {
   "fixture_name": "reducible_iit4_2026",
   "schema_version": 1,
-  "generated_from_commit": "d9578451d668bffb40bce37a0a5316e72ef30c89",
+  "generated_from_commit": "a5d60e7f7921b8973d1bb24c2aca93718bb679c1",
   "description": "Disjunction-conjunction 4-node network. Reducible \u2014 phi collapses to 0; regression target for the reducibility short-circuit. IIT 4.0 (Mayner, Marshall, Tononi 2026) \u2014 adds ii(s) = min(i_diff, i_spec) cap via INTRINSIC_INFORMATION mode.",
   "config_overrides": {
     "IIT_VERSION": 4.0,

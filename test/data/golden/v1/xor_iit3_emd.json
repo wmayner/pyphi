@@ -1,7 +1,7 @@
 {
   "fixture_name": "xor_iit3_emd",
   "schema_version": 1,
-  "generated_from_commit": "d9578451d668bffb40bce37a0a5316e72ef30c89",
+  "generated_from_commit": "a5d60e7f7921b8973d1bb24c2aca93718bb679c1",
   "description": "XOR 3-node network. Symmetric, deterministic. IIT 3.0 (Oizumi et al. 2014) + EMD + BI partitions.",
   "config_overrides": {
     "IIT_VERSION": 3.0,
@@ -3704,36 +3704,9 @@
     }
   ],
   "sia": {
-    "phi": 0.0,
-    "partition": [
-      [
-        0,
-        1
-      ],
-      [
-        2
-      ]
-    ],
-    "system_state": {
-      "cause": [
-        [
-          0,
-          0,
-          0
-        ],
-        [
-          1,
-          1,
-          1
-        ]
-      ],
-      "effect": [
-        [
-          0,
-          0,
-          0
-        ]
-      ]
-    }
+    "phi": 2.5,
+    "ces_size": 4,
+    "ces_phi_sum": 2.5,
+    "partitioned_ces_size": 0
   }
 }

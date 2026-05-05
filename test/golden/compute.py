@@ -68,7 +68,8 @@ def compute_all_layers(
         structured["mechanism_mips"] = _compute_mechanism_mips(subsystem, stash)
 
     if "sia" not in fixture.skip_layers:
-        structured["sia"] = _compute_sia(subsystem, stash)
+        iit_version = float(fixture.config_overrides.get("IIT_VERSION", 4.0))
+        structured["sia"] = _compute_sia(subsystem, stash, iit_version)
 
     if "phi_structure" not in fixture.skip_layers:
         structured["phi_structure"] = _compute_phi_structure(subsystem, stash)
@@ -164,21 +165,44 @@ def _compute_mechanism_mips(subsystem: Subsystem, stash: Any) -> list[dict[str, 
 # ============== Layer 3: SIA ==============
 
 
-def _compute_sia(subsystem: Subsystem, stash: Any) -> dict[str, Any]:
-    """Capture the system-level irreducibility analysis."""
+def _compute_sia(subsystem: Subsystem, stash: Any, iit_version: float) -> dict[str, Any]:
+    """Capture the system-level irreducibility analysis.
+
+    Dispatches on IIT version because ``Subsystem.sia()`` is hardcoded to call
+    ``new_big_phi.sia()`` regardless of ``config.IIT_VERSION``
+    (``pyphi/subsystem.py:1391``). The genuine IIT 3.0 SIA path is reachable
+    only via ``pyphi.compute.subsystem.sia(s)``. Without this dispatch, IIT 3.0
+    fixtures would silently test the IIT 4.0 SIA framework with EMD as the
+    metric — not the actual IIT 3.0 SIA algorithm. P4 (formalism split) is
+    expected to make the entry-point dispatch consistent; until then we route
+    explicitly here so the harness covers both code paths.
+    """
     try:
-        sia = subsystem.sia()
+        if iit_version == 3.0:
+            from pyphi import compute as _compute
+
+            sia = _compute.subsystem.sia(subsystem)
+        else:
+            sia = subsystem.sia()
     except Exception as e:
         return {"error": f"{type(e).__name__}: {e}"}
 
     out: dict[str, Any] = {
         "phi": float(sia.phi) if sia.phi is not None else None,
-        "partition": canonical_partition(getattr(sia, "partition", None)),
     }
 
-    # IIT 4.0: cut + partition + system_state + ties
-    if hasattr(sia, "cut") and sia.cut is not None:
-        out["cut"] = canonical_partition(sia.cut)
+    # IIT 3.0 has known non-deterministic tie-breaking on the SIA cut
+    # (multiple cuts can tie at the minimum phi; the picked one varies across
+    # runs due to dict/set iteration order). Same root cause as the slow-lane
+    # test_sia_big_subsys_all_complete_* failures. Skip cut/partition capture
+    # for IIT 3.0 to keep the fixture stable; phi and ces stats below are
+    # deterministic and provide adequate regression coverage. The full cut
+    # canonicalization (capture all tied cuts as a set) is deferred to P5/P6
+    # along with the parallel tied-state work.
+    if iit_version != 3.0:
+        out["partition"] = canonical_partition(getattr(sia, "partition", None))
+        if hasattr(sia, "cut") and sia.cut is not None:
+            out["cut"] = canonical_partition(sia.cut)
 
     if hasattr(sia, "system_state") and sia.system_state is not None:
         ss = sia.system_state
@@ -189,6 +213,15 @@ def _compute_sia(subsystem: Subsystem, stash: Any) -> dict[str, Any]:
                 ss_dict[direction] = canonical_state_set(s.state for s in spec.ties)
         if ss_dict:
             out["system_state"] = ss_dict
+
+    # IIT 3.0 SIA additionally has .ces (the constellation of concepts) and
+    # .partitioned_ces. Capture summary stats; per-concept detail is captured
+    # at Layer 2 (mechanism_mips).
+    if hasattr(sia, "ces") and sia.ces is not None:
+        out["ces_size"] = len(sia.ces)
+        out["ces_phi_sum"] = float(sum(c.phi for c in sia.ces))
+    if hasattr(sia, "partitioned_ces") and sia.partitioned_ces is not None:
+        out["partitioned_ces_size"] = len(sia.partitioned_ces)
 
     return out
 
