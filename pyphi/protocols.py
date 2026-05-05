@@ -26,7 +26,6 @@ __all__ = [
     "PUBLIC_SUBSYSTEM_ATTRS",
     "DistanceMetric",
     "PartitionScheme",
-    "PhiFormalism",
     "SubsystemInternalInterface",
     "SubsystemPublicInterface",
 ]
@@ -78,36 +77,6 @@ class PartitionScheme(Protocol):
         purview: Any,
         node_labels: Any = None,
     ) -> Iterable[Any]: ...
-
-
-# =============================================================================
-# Phi formalisms (placeholder — full shape lands with the formalism split)
-# =============================================================================
-class PhiFormalism(Protocol):
-    """Top-level strategy for computing integrated information.
-
-    A formalism bundles a partition scheme, a compatible distance metric, and
-    the algorithms that combine them into mechanism-level RIAs, system-level
-    SIAs, and Φ-structures. The full shape is defined when IIT 3.0 and IIT
-    4.0 are separated into ``pyphi/formalism/iit3/`` and
-    ``pyphi/formalism/iit4/``; this declaration captures only the method
-    signatures the formalism split target requires, so that downstream code
-    can begin annotating against it.
-
-    Approximate methods (φ\\*, φ_G, etc.) will subtype this Protocol with an
-    additional ``error_characterization`` method.
-    """
-
-    default_metric: DistanceMetric
-    partition_scheme: PartitionScheme | None
-
-    def evaluate_mechanism(
-        self, candidate_system: Any, mechanism: Any, purview: Any
-    ) -> Any: ...
-
-    def evaluate_system(self, candidate_system: Any) -> Any: ...
-
-    def build_phi_structure(self, candidate_system: Any) -> Any: ...
 
 
 # =============================================================================

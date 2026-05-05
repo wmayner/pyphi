@@ -391,10 +391,30 @@ class PartitionRegistry(Registry):
         ... def no_partitions(mechanism, purview):
         ...    return []
 
-    And use them by setting ``config.PARTITION_TYPE = 'NONE'``
+    And use them by setting ``config.PARTITION_TYPE = 'NONE'``.
+
+    Registered objects are validated against
+    :class:`pyphi.protocols.PartitionScheme` so wrong-shape registrations
+    fail at import rather than at the bottom of a phi computation.
     """
 
     desc = "distinction partitions"
+
+    def register(self, name):
+        """Decorator that validates and registers a partition scheme."""
+        from .protocols import PartitionScheme
+
+        def register_func(func):
+            if not isinstance(func, PartitionScheme):
+                raise TypeError(
+                    f"Cannot register {func!r} as partition scheme {name!r}: "
+                    f"object does not satisfy the PartitionScheme Protocol "
+                    f"(must be callable)."
+                )
+            self.store[name] = func
+            return func
+
+        return register_func
 
 
 partition_types = PartitionRegistry()
