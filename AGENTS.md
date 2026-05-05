@@ -48,7 +48,8 @@ PyPhi is a computational implementation of **Integrated Information Theory (IIT)
    PyPhi: A toolbox for integrated information theory.
    PLOS Computational Biology 14(7): e1006343.
    https://doi.org/10.1371/journal.pcbi.1006343
-   ```
+
+Additional key theoretical papers are in @papers.
 
 ### Resources
 
@@ -623,6 +624,9 @@ When improving the codebase, prioritize:
 3. Run tests after each change
 4. Verify performance hasn't regressed
 5. Update documentation if API changes
+
+#### Commit messages
+Commit messages must succinctly describe what changed and why. Do not include anything related to the narrative flow of conversations with the user, or context that is irrelevant to the actual final set of changes. BAD: "User flagged an important issue. This commit fixes…". GOOD: "This commit fixes a bug where…".
 
 ---
 
