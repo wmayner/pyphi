@@ -1,8 +1,8 @@
 {
   "fixture_name": "grid3_iit4_2023",
   "schema_version": 1,
-  "generated_from_commit": "2b318b81d848d9c7f838fb4ef4f0a7b79eb6fabc",
-  "description": "Grid3 3-node network. Symmetric architecture; useful for catching tie-resolution regressions. NOTE: pins the current (pre-P5) behavior where |\u00b7|+ is not enforced \u2014 see TODO(P5) above. IIT 4.0 (Albantakis et al. 2023) + GID.",
+  "generated_from_commit": "c6a0b0d4cebf25d87983743c32b91a3f15e99ec5",
+  "description": "Grid3 3-node network. Symmetric architecture; useful for catching tie-resolution regressions. Pins the current behavior where |\u00b7|+ is not enforced (see comment above). IIT 4.0 (Albantakis et al. 2023) + GID.",
   "config_overrides": {
     "IIT_VERSION": 4.0,
     "REPERTOIRE_DISTANCE": "GENERALIZED_INTRINSIC_DIFFERENCE",

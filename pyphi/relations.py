@@ -210,7 +210,6 @@ class Relation(frozenset, cmp.OrderableByPhi):
 
 def all_relations(distinctions, min_degree=2, max_degree=None, **kwargs):
     """Yield causal relations among a set of distinctions."""
-    distinctions = distinctions.unflatten()
     # Self relations
     yield from _self_relations(distinctions)
     # Non-self relations
@@ -242,8 +241,8 @@ def _combinations_with_nonempty_congruent_overlap(
     """Return combinations of distinctions with nonempty congruent overlap.
 
     Arguments:
-        components (CauseEffectStructure | FlatCauseEffectStructure): The
-        distinctions or MICE to find overlaps among.
+        components (CauseEffectStructure): The distinctions to find overlaps
+            among.
     """
     # TODO(4.0) remove mapping when/if distinctions allow O(1) random access
     mapping = {component: i for i, component in enumerate(components)}
@@ -321,7 +320,7 @@ class ConcreteRelations(frozenset, Relations):
 
 class AnalyticalRelations(Relations):
     def __init__(self, distinctions):
-        self.distinctions = distinctions.unflatten()
+        self.distinctions = distinctions
         super().__init__()
 
     @cached_property
@@ -381,7 +380,7 @@ def relations(
     **kwargs: Any,
 ) -> Relations:
     """Return causal relations among a set of distinctions."""
-    if not distinctions.resolved_congruence:  # type: ignore[attr-defined]  # Expects FlatCauseEffectStructure
+    if not distinctions.resolved_congruence:  # type: ignore[attr-defined]  # CauseEffectStructure
         warnings.warn(_CONGRUENCE_WARNING_MSG, PyPhiWarning, stacklevel=2)
     return relation_computations[
         fallback(relation_computation, config.RELATION_COMPUTATION)  # type: ignore[index]  # config.Option descriptor

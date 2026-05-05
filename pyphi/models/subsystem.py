@@ -15,7 +15,6 @@ from pyphi.direction import Direction
 
 from . import cmp
 from . import fmt
-from .mechanism import Concept
 from .mechanism import StateSpecification
 from .pandas import ToDictMixin
 from .pandas import ToPandasMixin
@@ -150,17 +149,11 @@ class CauseEffectStructure(cmp.Orderable, Sequence, ToPandasMixin):
 
     @property
     def flat(self):
-        """An iterator over causes and effects."""
+        """An iterator over causes and effects (one ``MICE`` per direction
+        per concept), for callers that want to operate at the MICE level
+        rather than the concept level.
+        """
         return concat([concept.cause, concept.effect] for concept in self)
-
-    def flatten(self):
-        """Return this as a FlatCauseEffectStructure."""
-        return FlatCauseEffectStructure(self)
-
-    def unflatten(self):
-        """Return self."""
-        # No-op; already unflattened
-        return self
 
     def sum_phi(self):
         if self._sum_phi is None:
@@ -257,100 +250,6 @@ class CauseEffectStructure(cmp.Orderable, Sequence, ToPandasMixin):
     @property
     def resolved_congruence(self):
         return self._resolved_congruence
-
-
-def flatten_distinctions(distinctions):
-    return concat(
-        (
-            [distinction.cause, distinction.effect]
-            if isinstance(distinction, Concept)
-            else [distinction]
-        )
-        for distinction in distinctions
-    )
-
-
-class FlatCauseEffectStructure(CauseEffectStructure):
-    """A collection of maximally-irreducible components in either causal
-    direction."""
-
-    def __init__(self, concepts=(), subsystem=None):
-        if isinstance(concepts, CauseEffectStructure):
-            subsystem = concepts.subsystem  # pyright: ignore[reportAttributeAccessIssue]
-        if not isinstance(concepts, FlatCauseEffectStructure):
-            _concepts = flatten_distinctions(concepts)
-        else:
-            _concepts = iter(concepts)
-        super().__init__(concepts=_concepts, subsystem=subsystem)
-
-    def __str__(self):
-        return fmt.fmt_ces(self, title="Flat cause-effect structure")
-
-    @property  # type: ignore[override]
-    def purviews(self):  # pyright: ignore[reportIncompatibleMethodOverride]
-        """The purview of each component.
-
-        FIXME(P3): CES/FlatCES Liskov violation — parent's ``purviews`` is a
-        method taking ``direction``, child's is a property. To be fixed in
-        P3 by making them siblings under an ``AbstractCES`` Protocol.
-        """
-        for component in self:
-            yield component.purview
-
-    @property
-    def specified_purviews(self):
-        """The set of unique purviews specified by this CES."""
-        return set(self.purviews)
-
-    def specifiers(self, purview):
-        """The components that specify the given purview."""
-        purview = tuple(purview)
-        try:
-            return self._specifiers[purview]
-        except TypeError:
-            self._specifiers = defaultdict(list)
-            for component in self:
-                self._specifiers[component.purview].append(component)
-            return self._specifiers[purview]
-
-    def maximum_specifier(self, purview):
-        """Return the components that maximally specify the given purview."""
-        return max(self.specifiers(purview))
-
-    def maximum_specifiers(self):
-        """Return a mapping from each purview to its maximum specifier."""
-        return {purview: self.maximum_specifier(purview) for purview in self.purviews}
-
-    @property  # type: ignore[override]
-    def flat(self):  # pyright: ignore[reportIncompatibleMethodOverride]
-        # FIXME(P3): Liskov violation — parent's ``flat`` returns chain[Concept],
-        # child's returns self. To be fixed in P3.
-        # No-op; already flat
-        return self
-
-    def flatten(self):
-        # No-op; already flat
-        return self
-
-    def unflatten(self):
-        mechanism_to_mice = defaultdict(dict)
-        for mice in self:
-            mechanism_to_mice[mice.mechanism][mice.direction] = mice
-        return CauseEffectStructure(
-            [
-                Concept(
-                    mechanism=mechanism,
-                    cause=mice[Direction.CAUSE],
-                    effect=mice[Direction.EFFECT],
-                )
-                for mechanism, mice in mechanism_to_mice.items()
-            ],
-        )
-
-    def _purview_inclusion_of_union(self, min_order, max_order):
-        return _purview_inclusion(
-            "purview_units", distinctions=self, min_order=min_order, max_order=max_order
-        )
 
 
 class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):

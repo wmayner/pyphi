@@ -9,7 +9,6 @@ from copy import deepcopy
 from .direction import Direction
 from .models.mechanism import Concept
 from .models.subsystem import CauseEffectStructure
-from .models.subsystem import FlatCauseEffectStructure
 
 DIRECTIONS = [
     Direction.CAUSE,
@@ -282,11 +281,10 @@ class CompositionalState(UserDict):
         distinction_set = list(distinction_set)
         if not all(
             isinstance(distinctions, CauseEffectStructure)
-            and not isinstance(distinctions, FlatCauseEffectStructure)
             for distinctions in distinction_set
         ):
             raise ValueError(
-                "The given CESs must contain only CauseEffectStructures (not Flat)"
+                "Each entry of `distinction_set` must be a CauseEffectStructure"
             )
         if reference is None:
             reference = cls(

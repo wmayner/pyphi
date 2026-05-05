@@ -52,7 +52,6 @@ from .mechanism import MaximallyIrreducibleEffect
 from .mechanism import RepertoireIrreducibilityAnalysis
 from .mechanism import _null_ria
 from .subsystem import CauseEffectStructure
-from .subsystem import FlatCauseEffectStructure
 from .subsystem import SystemIrreducibilityAnalysis
 from .subsystem import _null_sia
 
@@ -68,7 +67,6 @@ __all__ = [
     "Cut",
     "DirectedAccount",
     "Event",
-    "FlatCauseEffectStructure",
     "KCut",
     "KPartition",
     "MaximallyIrreducibleCause",

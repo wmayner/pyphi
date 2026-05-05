@@ -100,7 +100,6 @@ def _loadable_models():
         pyphi.models.Cut,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.cuts.GeneralKCut,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.cuts.GeneralSetPartition,  # pyright: ignore[reportAttributeAccessIssue]
-        pyphi.models.FlatCauseEffectStructure,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.KCut,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.KPartition,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.MaximallyIrreducibleCause,  # pyright: ignore[reportAttributeAccessIssue]
