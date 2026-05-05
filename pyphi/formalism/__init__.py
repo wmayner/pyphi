@@ -15,6 +15,15 @@ from .base import ErrorInfo
 from .base import ExactFormalism
 from .base import FormalismRegistry
 from .base import PhiFormalism
+from .iit3.formalism import IIT3Formalism
+from .iit4.formalism import IIT4_2023Formalism
+from .iit4.formalism import IIT4_2026Formalism
+
+# Register the concrete formalisms. The string keys match the values
+# ``config.FORMALISM`` will hold once the cut-over commit lands.
+FORMALISM_REGISTRY.register("IIT_3_0", IIT3Formalism())
+FORMALISM_REGISTRY.register("IIT_4_0_2023", IIT4_2023Formalism())
+FORMALISM_REGISTRY.register("IIT_4_0_2026", IIT4_2026Formalism())
 
 __all__ = [
     "FORMALISM_REGISTRY",
@@ -22,5 +31,8 @@ __all__ = [
     "ErrorInfo",
     "ExactFormalism",
     "FormalismRegistry",
+    "IIT3Formalism",
+    "IIT4_2023Formalism",
+    "IIT4_2026Formalism",
     "PhiFormalism",
 ]

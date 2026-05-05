@@ -29,7 +29,7 @@ from .registry import Registry
 from .warnings import PyPhiWarning
 
 if TYPE_CHECKING:
-    from .new_big_phi import Distinction  # type: ignore[attr-defined]
+    from .formalism.iit4 import Distinction  # type: ignore[attr-defined]
 
 
 class RelationFace(frozenset):
@@ -370,7 +370,7 @@ _CONGRUENCE_WARNING_MSG = (
     "distinctions.resolve_congruence() has not been called; results may "
     "include relations that do not exist after filtering out distinctions "
     "incongruent with the SIA specified state. Consider using "
-    "`new_big_phi.phi_structure()` to obtain a consistent structure."
+    "`pyphi.formalism.iit4.phi_structure()` to obtain a consistent structure."
 )
 
 

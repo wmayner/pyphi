@@ -5,8 +5,8 @@ from pyphi import compute
 from pyphi import config
 from pyphi import examples
 from pyphi import jsonify
-from pyphi import new_big_phi
 from pyphi import relations
+from pyphi.formalism import iit4 as new_big_phi
 
 
 def test_only_nonsubsets():

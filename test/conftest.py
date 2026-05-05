@@ -97,7 +97,7 @@ def pytest_assertrepr_compare(op, left, right):
     """
     # Import here to avoid circular imports
     try:
-        from pyphi.new_big_phi import SystemIrreducibilityAnalysis
+        from pyphi.formalism.iit4 import SystemIrreducibilityAnalysis
     except ImportError:
         return None
 

@@ -11,7 +11,7 @@ from pyphi import jsonify
 from pyphi import labels
 from pyphi import models
 from pyphi import network
-from pyphi import new_big_phi
+from pyphi.formalism import iit4 as new_big_phi
 
 
 def test_jsonify_native():

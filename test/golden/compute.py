@@ -232,7 +232,7 @@ def _compute_sia(subsystem: Subsystem, stash: Any, iit_version: float) -> dict[s
 def _compute_phi_structure(subsystem: Subsystem, stash: Any) -> dict[str, Any]:
     """Capture the IIT 4.0 PhiStructure."""
     try:
-        from pyphi.new_big_phi import phi_structure
+        from pyphi.formalism.iit4 import phi_structure
     except ImportError:
         return {"error": "phi_structure not available"}
 

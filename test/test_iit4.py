@@ -43,8 +43,8 @@ from pathlib import Path
 import pytest
 
 from pyphi import jsonify
-from pyphi import new_big_phi
 from pyphi.examples import EXAMPLES
+from pyphi.formalism import iit4 as new_big_phi
 
 EXAMPLE_NAMES = [
     "basic",

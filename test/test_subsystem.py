@@ -225,7 +225,7 @@ class TestIntrinsicInformationTies:
 
     def test_null_sia_resolve_system_state_safe(self):
         """resolve_system_state should be a no-op for NullSIA."""
-        from pyphi.new_big_phi import NullSystemIrreducibilityAnalysis
+        from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
 
         null_sia = NullSystemIrreducibilityAnalysis()
         null_sia.resolve_system_state()  # Should not raise

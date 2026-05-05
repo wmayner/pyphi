@@ -4,7 +4,7 @@ from pyphi import Subsystem
 from pyphi import compute
 from pyphi import config
 from pyphi import examples
-from pyphi.new_big_phi import phi_structure
+from pyphi.formalism.iit4 import phi_structure
 
 from .conftest import IIT_3_CONFIG
 

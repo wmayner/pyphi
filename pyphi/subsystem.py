@@ -826,7 +826,7 @@ class Subsystem:
                 "GID requires full repertoire"
             )
             purview_state = kwargs["state"].state
-            selectivity = float(repertoire.squeeze()[purview_state])
+            selectivity = float(repertoire.squeeze()[purview_state])  # pyright: ignore[reportOptionalMemberAccess]
             forward_pr = self.forward_probability(
                 direction, mechanism, purview, purview_state
             )
@@ -1081,7 +1081,8 @@ class Subsystem:
         states: Iterable[tuple[int, ...]] | None = None,
     ) -> StateSpecification:
         repertoire_distance = fallback(
-            repertoire_distance, config.REPERTOIRE_DISTANCE_SPECIFICATION
+            repertoire_distance,
+            config.REPERTOIRE_DISTANCE_SPECIFICATION,  # pyright: ignore[reportAttributeAccessIssue]
         )
         if states is None:
             states = utils.all_states(len(purview))
@@ -1389,9 +1390,9 @@ class Subsystem:
     # =========================================================================
 
     def sia(self, **kwargs: Any) -> Any:
-        from . import new_big_phi
+        from .formalism import iit4
 
-        return new_big_phi.sia(self, **kwargs)
+        return iit4.sia(self, **kwargs)
 
     # Distinction(s)
     # =========================================================================

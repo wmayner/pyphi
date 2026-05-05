@@ -33,7 +33,7 @@ import pytest
 
 from pyphi import compute
 from pyphi import config
-from pyphi import new_big_phi
+from pyphi.formalism import iit4 as new_big_phi
 
 from .conftest import skip_if_no_pyemd
 

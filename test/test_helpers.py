@@ -12,10 +12,10 @@ import pytest
 
 from pyphi import config
 from pyphi import utils
+from pyphi.formalism.iit4 import SystemIrreducibilityAnalysis
 from pyphi.models.cuts import Cut
 from pyphi.models.cuts import NullCut
 from pyphi.models.cuts import SystemPartition
-from pyphi.new_big_phi import SystemIrreducibilityAnalysis
 
 
 def compare_phi_values(
@@ -38,7 +38,10 @@ def compare_phi_values(
     equal = utils.eq(actual, expected)
     if not equal:
         diff = abs(actual - expected)
-        msg = f"Phi values differ: {actual} != {expected} (diff: {diff:.2e}, tolerance: 10^-{tolerance})"
+        msg = (
+            f"Phi values differ: {actual} != {expected} "
+            f"(diff: {diff:.2e}, tolerance: 10^-{tolerance})"
+        )
         return False, msg
     return True, ""
 
@@ -60,8 +63,11 @@ def compare_partitions(
     if actual is None and expected is None:
         return True, ""
 
-    if type(actual) != type(expected):
-        msg = f"Partition types differ: {type(actual).__name__} != {type(expected).__name__}"
+    if type(actual) is not type(expected):
+        msg = (
+            f"Partition types differ: "
+            f"{type(actual).__name__} != {type(expected).__name__}"
+        )
         return False, msg
 
     if actual != expected:
@@ -86,7 +92,10 @@ def compare_repertoires(actual: Any, expected: Any) -> tuple[bool, str]:
         return True, ""
 
     if (actual is None) != (expected is None):
-        msg = f"One repertoire is None: actual={actual is None}, expected={expected is None}"
+        msg = (
+            f"One repertoire is None: "
+            f"actual={actual is None}, expected={expected is None}"
+        )
         return False, msg
 
     # Compare phi values

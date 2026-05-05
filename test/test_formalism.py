@@ -85,13 +85,42 @@ def test_registry_lookup_unknown_raises_keyerror():
 
 
 def test_global_registry_is_a_formalism_registry():
-    """The global ``FORMALISM_REGISTRY`` is a ``FormalismRegistry`` instance.
-
-    No formalisms are registered yet (the concrete implementations land in
-    the next commit); this test pins the expected type and absence of
-    pre-registered entries.
-    """
+    """The global ``FORMALISM_REGISTRY`` is a ``FormalismRegistry`` instance
+    and has the three concrete IIT formalisms registered."""
     assert isinstance(FORMALISM_REGISTRY, FormalismRegistry)
+    assert "IIT_3_0" in FORMALISM_REGISTRY.all()
+    assert "IIT_4_0_2023" in FORMALISM_REGISTRY.all()
+    assert "IIT_4_0_2026" in FORMALISM_REGISTRY.all()
+
+
+def test_concrete_formalisms_satisfy_protocol():
+    """Each registered formalism satisfies the PhiFormalism Protocol."""
+    for name in ("IIT_3_0", "IIT_4_0_2023", "IIT_4_0_2026"):
+        formalism = FORMALISM_REGISTRY[name]
+        assert isinstance(formalism, PhiFormalism), (
+            f"{name} does not satisfy PhiFormalism"
+        )
+        assert formalism.name == name
+        assert formalism.default_metric in formalism.compatible_metrics
+
+
+def test_formalism_evaluate_system_matches_legacy_path():
+    """``FORMALISM_REGISTRY['IIT_4_0_2023'].evaluate_system(s)`` produces the
+    same SIA as ``pyphi.formalism.iit4.sia(s)``.
+
+    Pins the wrapper's behavior against the underlying implementation
+    before the cut-over commit moves the dispatch the other way.
+    """
+    from pyphi import examples
+    from pyphi.formalism import iit4
+
+    s = examples.basic_subsystem()
+    direct = iit4.sia(s)
+    via_formalism = FORMALISM_REGISTRY["IIT_4_0_2023"].evaluate_system(s)
+    assert direct == via_formalism, (
+        f"IIT 4.0 (2023) formalism wrapper diverges from iit4.sia: "
+        f"{direct.phi} vs {via_formalism.phi}"
+    )
 
 
 def test_exact_and_approximate_subtypes_exist():
