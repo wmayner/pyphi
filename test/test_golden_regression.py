@@ -32,6 +32,15 @@ from .golden.fixture import store_fixture
 # 1e-12 is one digit looser than the equality threshold — strict enough to
 # catch any meaningful numerical drift while absorbing minor LAPACK / BLAS
 # variations across platforms.
+#
+# Platform sensitivity note: fixtures committed to the repository were
+# generated on macOS aarch64 (Apple Silicon) with Python 3.13.13, NumPy 2.4,
+# SciPy 1.17, and pyemd 2.0. Linux x86_64 may produce drift below 1e-12 due
+# to BLAS implementation differences (Accelerate vs OpenBLAS) and EMD
+# library backend variations. If CI fails on Linux/Windows with sub-1e-10
+# differences and the structural fields (partitions, mechanisms, distinction
+# counts) match exactly, raise these tolerances to 1e-10 and document.
+# Differences above 1e-10 should be investigated as potential bugs.
 RTOL = 1e-12
 ATOL = 1e-12
 

@@ -1,12 +1,18 @@
 {
-  "fixture_name": "basic_subset_iit4_2023",
+  "fixture_name": "basic_subset_iit3_emd",
   "schema_version": 1,
   "generated_from_commit": "2b318b81d848d9c7f838fb4ef4f0a7b79eb6fabc",
-  "description": "basic_network with subsystem = nodes (1, 2) only (strict subset of the 3-node network). Exercises the subsystem-shaped repertoire path that the actual.py audit found buggy. Critical for P7's subsystem rewrite.",
+  "description": "basic_network with subsystem = nodes (1, 2), IIT 3.0 + EMD. Symmetric subset-of-network coverage; exercises the IIT 3.0 SIA path on a strict-subset subsystem.",
   "config_overrides": {
-    "IIT_VERSION": 4.0,
-    "REPERTOIRE_DISTANCE": "GENERALIZED_INTRINSIC_DIFFERENCE",
-    "SYSTEM_PARTITION_TYPE": "SET_UNI/BI",
+    "IIT_VERSION": 3.0,
+    "REPERTOIRE_DISTANCE": "EMD",
+    "PARTITION_TYPE": "BI",
+    "SYSTEM_PARTITION_TYPE": "DIRECTED_BI",
+    "ACTUAL_CAUSATION_MEASURE": "PMI",
+    "PURVIEW_TIE_RESOLUTION": [
+      "PHI",
+      "PURVIEW_SIZE"
+    ],
     "PROGRESS_BARS": false,
     "PARALLEL": false
   },
@@ -211,14 +217,7 @@
           []
         ]
       ],
-      "specified_states": [
-        [
-          0
-        ],
-        [
-          1
-        ]
-      ],
+      "specified_states": [],
       "repertoire": "@npz:a32",
       "partitioned_repertoire": "@npz:a33"
     },
@@ -245,14 +244,7 @@
           []
         ]
       ],
-      "specified_states": [
-        [
-          0
-        ],
-        [
-          1
-        ]
-      ],
+      "specified_states": [],
       "repertoire": "@npz:a34",
       "partitioned_repertoire": "@npz:a35"
     },
@@ -264,7 +256,7 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": 1.0,
+      "phi": 0.5,
       "partition": [
         [
           [],
@@ -279,11 +271,7 @@
           []
         ]
       ],
-      "specified_states": [
-        [
-          0
-        ]
-      ],
+      "specified_states": [],
       "repertoire": "@npz:a36",
       "partitioned_repertoire": "@npz:a37"
     },
@@ -295,7 +283,7 @@
         2
       ],
       "direction": "EFFECT",
-      "phi": 1.0,
+      "phi": 0.5,
       "partition": [
         [
           [],
@@ -310,11 +298,7 @@
           []
         ]
       ],
-      "specified_states": [
-        [
-          1
-        ]
-      ],
+      "specified_states": [],
       "repertoire": "@npz:a38",
       "partitioned_repertoire": "@npz:a39"
     },
@@ -327,32 +311,24 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": 0.5,
+      "phi": 0.0,
       "partition": [
         [
           [],
           [
-            1,
-            2
+            1
           ]
         ],
         [
           [
             1
           ],
-          []
+          [
+            2
+          ]
         ]
       ],
-      "specified_states": [
-        [
-          0,
-          0
-        ],
-        [
-          1,
-          0
-        ]
-      ],
+      "specified_states": [],
       "repertoire": "@npz:a40",
       "partitioned_repertoire": "@npz:a41"
     },
@@ -365,32 +341,24 @@
         2
       ],
       "direction": "EFFECT",
-      "phi": 0.5,
+      "phi": 0.0,
       "partition": [
         [
           [],
           [
-            1,
-            2
+            1
           ]
         ],
         [
           [
             1
           ],
-          []
+          [
+            2
+          ]
         ]
       ],
-      "specified_states": [
-        [
-          0,
-          1
-        ],
-        [
-          1,
-          1
-        ]
-      ],
+      "specified_states": [],
       "repertoire": "@npz:a42",
       "partitioned_repertoire": "@npz:a43"
     },
@@ -402,7 +370,7 @@
         1
       ],
       "direction": "CAUSE",
-      "phi": 1.0,
+      "phi": 0.5,
       "partition": [
         [
           [],
@@ -417,11 +385,7 @@
           []
         ]
       ],
-      "specified_states": [
-        [
-          1
-        ]
-      ],
+      "specified_states": [],
       "repertoire": "@npz:a44",
       "partitioned_repertoire": "@npz:a45"
     },
@@ -433,7 +397,7 @@
         1
       ],
       "direction": "EFFECT",
-      "phi": 1.0,
+      "phi": 0.5,
       "partition": [
         [
           [],
@@ -448,11 +412,7 @@
           []
         ]
       ],
-      "specified_states": [
-        [
-          0
-        ]
-      ],
+      "specified_states": [],
       "repertoire": "@npz:a46",
       "partitioned_repertoire": "@npz:a47"
     },
@@ -479,14 +439,7 @@
           []
         ]
       ],
-      "specified_states": [
-        [
-          0
-        ],
-        [
-          1
-        ]
-      ],
+      "specified_states": [],
       "repertoire": "@npz:a48",
       "partitioned_repertoire": "@npz:a49"
     },
@@ -513,14 +466,7 @@
           []
         ]
       ],
-      "specified_states": [
-        [
-          0
-        ],
-        [
-          1
-        ]
-      ],
+      "specified_states": [],
       "repertoire": "@npz:a50",
       "partitioned_repertoire": "@npz:a51"
     },
@@ -533,12 +479,11 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": 0.5,
+      "phi": 0.0,
       "partition": [
         [
           [],
           [
-            1,
             2
           ]
         ],
@@ -546,19 +491,12 @@
           [
             2
           ],
-          []
+          [
+            1
+          ]
         ]
       ],
-      "specified_states": [
-        [
-          1,
-          0
-        ],
-        [
-          1,
-          1
-        ]
-      ],
+      "specified_states": [],
       "repertoire": "@npz:a52",
       "partitioned_repertoire": "@npz:a53"
     },
@@ -571,12 +509,11 @@
         2
       ],
       "direction": "EFFECT",
-      "phi": 0.5,
+      "phi": 0.0,
       "partition": [
         [
           [],
           [
-            1,
             2
           ]
         ],
@@ -584,19 +521,12 @@
           [
             2
           ],
-          []
+          [
+            1
+          ]
         ]
       ],
-      "specified_states": [
-        [
-          0,
-          0
-        ],
-        [
-          0,
-          1
-        ]
-      ],
+      "specified_states": [],
       "repertoire": "@npz:a54",
       "partitioned_repertoire": "@npz:a55"
     },
@@ -612,10 +542,6 @@
       "phi": 0.0,
       "partition": [
         [
-          [],
-          []
-        ],
-        [
           [
             1
           ],
@@ -630,11 +556,7 @@
           ]
         ]
       ],
-      "specified_states": [
-        [
-          1
-        ]
-      ],
+      "specified_states": [],
       "repertoire": "@npz:a56",
       "partitioned_repertoire": "@npz:a57"
     },
@@ -650,10 +572,6 @@
       "phi": 0.0,
       "partition": [
         [
-          [],
-          []
-        ],
-        [
           [
             1
           ],
@@ -668,11 +586,7 @@
           ]
         ]
       ],
-      "specified_states": [
-        [
-          0
-        ]
-      ],
+      "specified_states": [],
       "repertoire": "@npz:a58",
       "partitioned_repertoire": "@npz:a59"
     },
@@ -688,10 +602,6 @@
       "phi": 0.0,
       "partition": [
         [
-          [],
-          []
-        ],
-        [
           [
             1
           ],
@@ -706,11 +616,7 @@
           []
         ]
       ],
-      "specified_states": [
-        [
-          0
-        ]
-      ],
+      "specified_states": [],
       "repertoire": "@npz:a60",
       "partitioned_repertoire": "@npz:a61"
     },
@@ -726,10 +632,6 @@
       "phi": 0.0,
       "partition": [
         [
-          [],
-          []
-        ],
-        [
           [
             1
           ],
@@ -744,11 +646,7 @@
           []
         ]
       ],
-      "specified_states": [
-        [
-          1
-        ]
-      ],
+      "specified_states": [],
       "repertoire": "@npz:a62",
       "partitioned_repertoire": "@npz:a63"
     },
@@ -765,10 +663,6 @@
       "phi": 0.0,
       "partition": [
         [
-          [],
-          []
-        ],
-        [
           [
             1
           ],
@@ -785,12 +679,7 @@
           ]
         ]
       ],
-      "specified_states": [
-        [
-          1,
-          0
-        ]
-      ],
+      "specified_states": [],
       "repertoire": "@npz:a64",
       "partitioned_repertoire": "@npz:a65"
     },
@@ -807,10 +696,6 @@
       "phi": 0.0,
       "partition": [
         [
-          [],
-          []
-        ],
-        [
           [
             1
           ],
@@ -827,68 +712,15 @@
           ]
         ]
       ],
-      "specified_states": [
-        [
-          0,
-          1
-        ]
-      ],
+      "specified_states": [],
       "repertoire": "@npz:a66",
       "partitioned_repertoire": "@npz:a67"
     }
   ],
   "sia": {
     "phi": 2.0,
-    "partition": [
-      [
-        "2 parts: {B,C}\n[[0 1]\n [1 0]]"
-      ]
-    ],
-    "system_state": {
-      "cause": [
-        [
-          1,
-          0
-        ]
-      ],
-      "effect": [
-        [
-          0,
-          1
-        ]
-      ]
-    }
-  },
-  "phi_structure": {
-    "big_phi": 2.0,
-    "distinctions": [
-      {
-        "mechanism": [
-          1
-        ],
-        "phi": 1.0,
-        "cause_purview": [
-          2
-        ],
-        "effect_purview": [
-          2
-        ]
-      },
-      {
-        "mechanism": [
-          2
-        ],
-        "phi": 1.0,
-        "cause_purview": [
-          1
-        ],
-        "effect_purview": [
-          1
-        ]
-      }
-    ],
-    "num_distinctions": 2,
-    "num_relations": 0,
-    "sum_phi_relations": 0.0
+    "ces_size": 2,
+    "ces_phi_sum": 2.0,
+    "partitioned_ces_size": 0
   }
 }
