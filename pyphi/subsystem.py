@@ -980,47 +980,24 @@ class Subsystem:
         parallel_kwargs = conf.parallel_kwargs(
             dict(config.PARALLEL_MECHANISM_PARTITION_EVALUATION), **kwargs
         )
-        if config.IIT_VERSION == 4:
-            if state is None:
-                specified_states = self.intrinsic_information(
-                    direction, mechanism, purview
-                ).ties
-            else:
-                specified_states = [state]
+        # Dispatch to the active formalism. The formalism owns the
+        # mechanism-MIP search algorithm; ``Subsystem`` provides the
+        # candidate-system context and shared helpers like
+        # ``_find_mip_single_state``.
+        from .formalism import FORMALISM_REGISTRY
 
-            mips = MapReduce(
-                self._find_mip_single_state,
-                specified_states,
-                map_kwargs={
-                    "direction": direction,
-                    "mechanism": mechanism,
-                    "purview": purview,
-                    "repertoire": repertoire,
-                    "partitions": partitions,
-                    "parallel_kwargs": parallel_kwargs,
-                },
-                desc="Finding MIP for maximum intrinsic information states",
-                **parallel_kwargs,
-            ).run()
-        elif config.IIT_VERSION == 3:
-            if state is not None:
-                raise ValueError("passing `state` is not supported with IIT 3.0")
-            return self._find_mip_single_state(
-                None,
-                direction,
-                mechanism,
-                purview,
-                repertoire,
-                partitions,
-                parallel_kwargs,
-            )
-        else:
-            raise NotImplementedError
-
-        ties = tuple(resolve_ties.states(mips))  # type: ignore[arg-type]  # MapReduce generic type not fully inferred
-        for tie in ties:
-            tie.set_state_ties(ties)
-        return ties[0]
+        formalism = FORMALISM_REGISTRY[config.FORMALISM]  # pyright: ignore[reportAttributeAccessIssue]
+        return formalism._find_mechanism_mip(  # pyright: ignore[reportFunctionMemberAccess]
+            self,
+            direction,
+            mechanism,
+            purview,
+            repertoire=repertoire,
+            partitions=partitions,
+            state=state,
+            parallel_kwargs=parallel_kwargs,
+            **kwargs,
+        )
 
     def cause_mip(
         self, mechanism: Mechanism, purview: Purview, **kwargs: Any
@@ -1390,9 +1367,10 @@ class Subsystem:
     # =========================================================================
 
     def sia(self, **kwargs: Any) -> Any:
-        from .formalism import iit4
+        from .formalism import FORMALISM_REGISTRY
 
-        return iit4.sia(self, **kwargs)
+        formalism = FORMALISM_REGISTRY[config.FORMALISM]  # pyright: ignore[reportAttributeAccessIssue]
+        return formalism.evaluate_system(self, **kwargs)  # pyright: ignore[reportFunctionMemberAccess]
 
     # Distinction(s)
     # =========================================================================

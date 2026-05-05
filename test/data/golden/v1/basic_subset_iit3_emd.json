@@ -4,7 +4,7 @@
   "generated_from_commit": "2b318b81d848d9c7f838fb4ef4f0a7b79eb6fabc",
   "description": "basic_network with subsystem = nodes (1, 2), IIT 3.0 + EMD. Symmetric subset-of-network coverage; exercises the IIT 3.0 SIA path on a strict-subset subsystem.",
   "config_overrides": {
-    "IIT_VERSION": 3.0,
+    "FORMALISM": "IIT_3_0",
     "REPERTOIRE_DISTANCE": "EMD",
     "PARTITION_TYPE": "BI",
     "SYSTEM_PARTITION_TYPE": "DIRECTED_BI",

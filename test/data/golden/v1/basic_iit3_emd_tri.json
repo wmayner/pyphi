@@ -4,7 +4,7 @@
   "generated_from_commit": "2b318b81d848d9c7f838fb4ef4f0a7b79eb6fabc",
   "description": "basic_network IIT 3.0 + EMD with PARTITION_TYPE=TRI (tripartitions). Different combinatorial path than BI; supports the partition-algebra consolidation in P6.",
   "config_overrides": {
-    "IIT_VERSION": 3.0,
+    "FORMALISM": "IIT_3_0",
     "REPERTOIRE_DISTANCE": "EMD",
     "PARTITION_TYPE": "TRI",
     "SYSTEM_PARTITION_TYPE": "DIRECTED_BI",

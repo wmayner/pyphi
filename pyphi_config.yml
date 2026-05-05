@@ -22,8 +22,11 @@ CES_DISTANCE: SUM_SMALL_PHI
 CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA: false
 # Controls how distinction phi is normalized.
 DISTINCTION_PHI_NORMALIZATION: NUM_CONNECTIONS_CUT
-# The version of the theory to use.
-IIT_VERSION: 4.0
+# The phi formalism to use. One of:
+# - "IIT_3_0" (Oizumi et al. 2014; distribution-distance based)
+# - "IIT_4_0_2023" (Albantakis et al. 2023; GID-based)
+# - "IIT_4_0_2026" (Mayner, Marshall, Tononi 2026; with ii(s) cap)
+FORMALISM: IIT_4_0_2023
 # The path for the log file.
 LOG_FILE: pyphi.log
 # The log level to write to `LOG_FILE`.

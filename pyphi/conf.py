@@ -412,10 +412,21 @@ def on_change_parallel_suboption(obj, opt):
 class PyphiConfig(Config):
     """``pyphi.config`` is an instance of this class."""
 
-    IIT_VERSION = Option(
-        4.0,
+    FORMALISM = Option(
+        "IIT_4_0_2023",
         doc="""
-    The version of the theory to use.""",
+    The phi formalism to use. One of the names registered in
+    :data:`pyphi.formalism.FORMALISM_REGISTRY`:
+
+    - ``"IIT_3_0"``: IIT 3.0 (Oizumi et al. 2014); distribution-distance based.
+    - ``"IIT_4_0_2023"``: IIT 4.0 (Albantakis et al. 2023); GID-based.
+    - ``"IIT_4_0_2026"``: IIT 4.0 (Mayner, Marshall, Tononi 2026); adds
+      the ``ii(s) = min(i_diff, i_spec)`` cap from Eq. 23.
+
+    Replaces the deprecated ``IIT_VERSION`` config key. The active formalism
+    determines mechanism MIP search, system SIA computation, and Φ-structure
+    construction; its default metric and partition scheme are looked up from
+    the formalism instance and may be overridden per-call.""",
     )
 
     ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS = Option(

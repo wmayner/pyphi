@@ -68,13 +68,8 @@ def _logistic_3node_k8() -> Network:
 
 
 # IIT 4.0 (2023) — Albantakis et al. 2023, GID metric, no ii(s) cap.
-# IMPORTANT: IIT_VERSION must be a float (not a string). The dispatch in
-# pyphi/subsystem.py:983-1018 compares against int literals (== 4, == 3),
-# which matches floats via Python's int/float equality but NOT strings.
-# String values silently fall through to `raise NotImplementedError` and
-# the find_mip / phi_structure paths fail with no observable error.
 IIT_4_2023_CONFIG = {
-    "IIT_VERSION": 4.0,
+    "FORMALISM": "IIT_4_0_2023",
     "REPERTOIRE_DISTANCE": "GENERALIZED_INTRINSIC_DIFFERENCE",
     "SYSTEM_PARTITION_TYPE": "SET_UNI/BI",
     "PROGRESS_BARS": False,
@@ -87,12 +82,13 @@ IIT_4_2023_CONFIG = {
 # but phi is capped by min_d(min(i_diff_d, i_spec_d)).
 IIT_4_2026_CONFIG = {
     **IIT_4_2023_CONFIG,
+    "FORMALISM": "IIT_4_0_2026",
     "REPERTOIRE_DISTANCE": "INTRINSIC_INFORMATION",
 }
 
 # IIT 3.0 — Oizumi/Albantakis/Tononi 2014. Distribution-distance based.
 IIT_3_CONFIG = {
-    "IIT_VERSION": 3.0,
+    "FORMALISM": "IIT_3_0",
     "REPERTOIRE_DISTANCE": "EMD",
     "PARTITION_TYPE": "BI",
     "SYSTEM_PARTITION_TYPE": "DIRECTED_BI",

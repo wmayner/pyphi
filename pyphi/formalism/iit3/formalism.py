@@ -42,16 +42,43 @@ class IIT3Formalism:
         purview: Any,
         **kwargs: Any,
     ) -> Any:
-        """Delegate to ``Subsystem.find_mip``."""
+        """Public mechanism-level evaluation. Calls back through
+        ``Subsystem.find_mip`` to preserve the short-circuit logic
+        (empty purview, unreachable state) the public method owns."""
         return subsystem.find_mip(direction, mechanism, purview, **kwargs)
 
-    def evaluate_system(self, subsystem: Any, **kwargs: Any) -> Any:
-        """Delegate to :func:`pyphi.compute.subsystem.sia` (the IIT 3.0 path).
-
-        Note: ``Subsystem.sia()`` is currently hardcoded to the IIT 4.0
-        path regardless of ``IIT_VERSION``; the cut-over commit fixes this
-        so the formalism owns the dispatch.
+    def _find_mechanism_mip(
+        self,
+        subsystem: Any,
+        direction: Any,
+        mechanism: Any,
+        purview: Any,
+        repertoire: Any = None,
+        partitions: Any = None,
+        state: Any = None,
+        parallel_kwargs: Any = None,
+        **kwargs: Any,
+    ) -> Any:
+        """Internal mechanism-MIP search. Called by ``Subsystem.find_mip``
+        after its short-circuit checks. IIT 3.0 has no candidate
+        specified-states phase — there's a single, unique MIP per
+        (mechanism, purview), found by minimizing over partitions.
         """
+        if state is not None:
+            raise ValueError("passing `state` is not supported with IIT 3.0")
+        return subsystem._find_mip_single_state(
+            None,
+            direction,
+            mechanism,
+            purview,
+            repertoire,
+            partitions,
+            parallel_kwargs,
+            **kwargs,
+        )
+
+    def evaluate_system(self, subsystem: Any, **kwargs: Any) -> Any:
+        """Delegate to :func:`pyphi.compute.subsystem.sia` (the IIT 3.0 path)."""
         from pyphi import compute
 
         return compute.subsystem.sia(subsystem, **kwargs)
@@ -59,10 +86,8 @@ class IIT3Formalism:
     def build_phi_structure(self, subsystem: Any, **kwargs: Any) -> Any:
         """IIT 3.0 has no Φ-structure; raises ``NotImplementedError``.
 
-        Consumers should branch on ``formalism.name`` (or check the name
-        against ``"IIT_3_0"``) before calling this method, or use
-        ``evaluate_system`` to get the IIT 3.0 SIA which carries the
-        cause-effect structure as ``sia.ces``.
+        Use ``evaluate_system(subsystem).ces`` to obtain the cause-effect
+        structure.
         """
         del subsystem, kwargs
         raise NotImplementedError(

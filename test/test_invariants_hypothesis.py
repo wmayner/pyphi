@@ -287,7 +287,7 @@ class TestMetricInvariants:
         produce negative MIP phi and fail here.
         """
         with config.override(
-            IIT_VERSION=3.0,
+            FORMALISM="IIT_3_0",
             REPERTOIRE_DISTANCE="EMD",
             PARTITION_TYPE="BI",
             VALIDATE_SUBSYSTEM_STATES=False,

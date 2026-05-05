@@ -68,7 +68,8 @@ def compute_all_layers(
         structured["mechanism_mips"] = _compute_mechanism_mips(subsystem, stash)
 
     if "sia" not in fixture.skip_layers:
-        iit_version = float(fixture.config_overrides.get("IIT_VERSION", 4.0))
+        formalism_name = fixture.config_overrides.get("FORMALISM", "IIT_4_0_2023")
+        iit_version = 3.0 if formalism_name == "IIT_3_0" else 4.0
         structured["sia"] = _compute_sia(subsystem, stash, iit_version)
 
     if "phi_structure" not in fixture.skip_layers:

@@ -4,7 +4,7 @@
   "generated_from_commit": "2b318b81d848d9c7f838fb4ef4f0a7b79eb6fabc",
   "description": "XOR 3-node network. Symmetric, deterministic. IIT 4.0 (Mayner, Marshall, Tononi 2026) \u2014 adds ii(s) = min(i_diff, i_spec) cap via INTRINSIC_INFORMATION mode.",
   "config_overrides": {
-    "IIT_VERSION": 4.0,
+    "FORMALISM": "IIT_4_0_2026",
     "REPERTOIRE_DISTANCE": "INTRINSIC_INFORMATION",
     "SYSTEM_PARTITION_TYPE": "SET_UNI/BI",
     "PROGRESS_BARS": false,

@@ -19,7 +19,7 @@ def _iit_30_config_for_macro_tests(request):
     """Apply IIT 3.0 config settings for tests marked as outdated."""
     if request.node.get_closest_marker("outdated"):
         with config.override(
-            IIT_VERSION="3.0",
+            FORMALISM="IIT_3_0",
             REPERTOIRE_DISTANCE="EMD",
             SYSTEM_PARTITION_TYPE="DIRECTED_BI",
         ):
