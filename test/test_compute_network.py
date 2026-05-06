@@ -4,6 +4,7 @@ from pyphi import Subsystem
 from pyphi import compute
 from pyphi import config
 from pyphi import examples
+from pyphi.core import CandidateSystem
 from pyphi.formalism.iit4 import phi_structure
 
 from .conftest import IIT_3_CONFIG
@@ -11,11 +12,11 @@ from .conftest import IIT_3_CONFIG
 
 def test_possible_complexes(s):
     assert list(compute.network.possible_complexes(s.network, s.state)) == [
-        Subsystem(s.network, s.state, (0, 1, 2)),
-        Subsystem(s.network, s.state, (1, 2)),
-        Subsystem(s.network, s.state, (0, 2)),
-        Subsystem(s.network, s.state, (0, 1)),
-        Subsystem(s.network, s.state, (1,)),
+        CandidateSystem.from_network(s.network, s.state, (0, 1, 2)),
+        CandidateSystem.from_network(s.network, s.state, (1, 2)),
+        CandidateSystem.from_network(s.network, s.state, (0, 2)),
+        CandidateSystem.from_network(s.network, s.state, (0, 1)),
+        CandidateSystem.from_network(s.network, s.state, (1,)),
     ]
 
 
