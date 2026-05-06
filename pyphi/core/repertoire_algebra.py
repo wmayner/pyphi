@@ -22,6 +22,8 @@ import numpy as np
 from pyphi import distribution as _dist
 from pyphi import utils as _utils
 from pyphi import validate as _validate
+from pyphi.conf import config
+from pyphi.conf import fallback
 from pyphi.data_structures import FrozenMap
 from pyphi.direction import Direction
 from pyphi.distribution import max_entropy_distribution
@@ -260,9 +262,49 @@ def expand_effect_repertoire(
     )
 
 
-@_memoize
-def partitioned_repertoire(cs: Any, direction: Any, partition: Any) -> Any:
-    return _legacy_subsystem(cs).partitioned_repertoire(direction, partition)
+def partitioned_repertoire(
+    cs: Any,
+    direction: Direction,
+    partition: Any,
+    repertoire_distance: str | None = None,
+    **kwargs: Any,
+) -> Any:
+    """Compute the repertoire of a partitioned mechanism and purview.
+
+    Routes to the state-aware path (forward probabilities + product of
+    scalars) when the configured repertoire distance is GID/II; otherwise
+    returns the product of the per-part repertoires.
+    """
+    repertoire_distance = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
+    if repertoire_distance in [
+        "GENERALIZED_INTRINSIC_DIFFERENCE",
+        "INTRINSIC_INFORMATION",
+    ]:
+        if "state" not in kwargs:
+            raise ValueError(
+                f"must provide purview state for repertoire distance "
+                f"{repertoire_distance}"
+            )
+        purview_state = kwargs.pop("state")
+        prs = [
+            forward_probability(
+                cs,
+                direction,
+                part.mechanism,
+                part.purview,
+                purview_state=_utils.substate(
+                    partition.purview, purview_state, part.purview
+                ),
+                **kwargs,
+            )
+            for part in partition
+        ]
+        return float(np.prod(prs))
+    repertoires = [
+        repertoire(cs, direction, part.mechanism, part.purview, **kwargs)
+        for part in partition
+    ]
+    return functools.reduce(np.multiply, repertoires)
 
 
 # ---- forward repertoires + probabilities ----
