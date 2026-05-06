@@ -195,3 +195,290 @@ class CandidateSystem:
             self.node_indices,
             cut=self.cut,
         ).null_concept
+
+    # ---- repertoire algebra proxies ----
+
+    def cause_repertoire(self, mechanism: Any, purview: Any, **kwargs: Any) -> Any:
+        from . import repertoire_algebra as ra
+
+        return ra.cause_repertoire(self, mechanism, purview, **kwargs)
+
+    def effect_repertoire(self, mechanism: Any, purview: Any, **kwargs: Any) -> Any:
+        from . import repertoire_algebra as ra
+
+        return ra.effect_repertoire(self, mechanism, purview, **kwargs)
+
+    def repertoire(
+        self, direction: Any, mechanism: Any, purview: Any, **kwargs: Any
+    ) -> Any:
+        from . import repertoire_algebra as ra
+
+        return ra.repertoire(self, direction, mechanism, purview, **kwargs)
+
+    def unconstrained_cause_repertoire(self, purview: Any) -> Any:
+        from . import repertoire_algebra as ra
+
+        return ra.unconstrained_cause_repertoire(self, purview)
+
+    def unconstrained_effect_repertoire(self, purview: Any) -> Any:
+        from . import repertoire_algebra as ra
+
+        return ra.unconstrained_effect_repertoire(self, purview)
+
+    def unconstrained_repertoire(self, direction: Any, purview: Any) -> Any:
+        from . import repertoire_algebra as ra
+
+        return ra.unconstrained_repertoire(self, direction, purview)
+
+    def partitioned_repertoire(self, direction: Any, partition: Any) -> Any:
+        from . import repertoire_algebra as ra
+
+        return ra.partitioned_repertoire(self, direction, partition)
+
+    def expand_repertoire(
+        self,
+        direction: Any,
+        repertoire_array: Any,
+        *,
+        new_purview: Any | None = None,
+    ) -> Any:
+        from . import repertoire_algebra as ra
+
+        return ra.expand_repertoire(
+            self, direction, repertoire_array, new_purview=new_purview
+        )
+
+    def expand_cause_repertoire(
+        self, repertoire_array: Any, *, new_purview: Any | None = None
+    ) -> Any:
+        from . import repertoire_algebra as ra
+
+        return ra.expand_cause_repertoire(
+            self, repertoire_array, new_purview=new_purview
+        )
+
+    def expand_effect_repertoire(
+        self, repertoire_array: Any, *, new_purview: Any | None = None
+    ) -> Any:
+        from . import repertoire_algebra as ra
+
+        return ra.expand_effect_repertoire(
+            self, repertoire_array, new_purview=new_purview
+        )
+
+    def forward_cause_repertoire(
+        self, mechanism: Any, purview: Any, purview_state: Any | None = None
+    ) -> Any:
+        from . import repertoire_algebra as ra
+
+        return ra.forward_cause_repertoire(self, mechanism, purview, purview_state)
+
+    def forward_effect_repertoire(
+        self, mechanism: Any, purview: Any, **kwargs: Any
+    ) -> Any:
+        from . import repertoire_algebra as ra
+
+        return ra.forward_effect_repertoire(self, mechanism, purview, **kwargs)
+
+    def forward_repertoire(
+        self,
+        direction: Any,
+        mechanism: Any,
+        purview: Any,
+        purview_state: Any | None = None,
+        **kwargs: Any,
+    ) -> Any:
+        from . import repertoire_algebra as ra
+
+        return ra.forward_repertoire(
+            self, direction, mechanism, purview, purview_state, **kwargs
+        )
+
+    def unconstrained_forward_cause_repertoire(self, purview: Any) -> Any:
+        from . import repertoire_algebra as ra
+
+        return ra.unconstrained_forward_cause_repertoire(self, purview)
+
+    def unconstrained_forward_effect_repertoire(self, purview: Any) -> Any:
+        from . import repertoire_algebra as ra
+
+        return ra.unconstrained_forward_effect_repertoire(self, purview)
+
+    def unconstrained_forward_repertoire(self, direction: Any, purview: Any) -> Any:
+        from . import repertoire_algebra as ra
+
+        return ra.unconstrained_forward_repertoire(self, direction, purview)
+
+    def forward_cause_probability(
+        self,
+        mechanism: Any,
+        purview: Any,
+        purview_state: Any,
+        mechanism_state: Any | None = None,
+    ) -> float:
+        from . import repertoire_algebra as ra
+
+        return ra.forward_cause_probability(
+            self, mechanism, purview, purview_state, mechanism_state
+        )
+
+    def forward_effect_probability(
+        self, mechanism: Any, purview: Any, purview_state: Any
+    ) -> float:
+        from . import repertoire_algebra as ra
+
+        return ra.forward_effect_probability(self, mechanism, purview, purview_state)
+
+    def forward_probability(
+        self,
+        direction: Any,
+        mechanism: Any,
+        purview: Any,
+        purview_state: Any,
+        **kwargs: Any,
+    ) -> float:
+        from . import repertoire_algebra as ra
+
+        return ra.forward_probability(
+            self, direction, mechanism, purview, purview_state, **kwargs
+        )
+
+    # ---- info / phi proxies ----
+
+    def cause_info(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
+        from . import repertoire_algebra as ra
+
+        return ra.cause_info(self, mechanism, purview, **kwargs)
+
+    def effect_info(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
+        from . import repertoire_algebra as ra
+
+        return ra.effect_info(self, mechanism, purview, **kwargs)
+
+    def cause_effect_info(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
+        from . import repertoire_algebra as ra
+
+        return ra.cause_effect_info(self, mechanism, purview, **kwargs)
+
+    def intrinsic_information(
+        self, direction: Any, mechanism: Any, purview: Any, **kwargs: Any
+    ) -> Any:
+        from . import repertoire_algebra as ra
+
+        return ra.intrinsic_information(self, direction, mechanism, purview, **kwargs)
+
+    def evaluate_partition(
+        self,
+        direction: Any,
+        mechanism: Any,
+        purview: Any,
+        partition: Any,
+        **kwargs: Any,
+    ) -> Any:
+        from . import repertoire_algebra as ra
+
+        return ra.evaluate_partition(
+            self, direction, mechanism, purview, partition, **kwargs
+        )
+
+    def find_mip(
+        self, direction: Any, mechanism: Any, purview: Any, **kwargs: Any
+    ) -> Any:
+        from . import repertoire_algebra as ra
+
+        return ra.find_mip(self, direction, mechanism, purview, **kwargs)
+
+    def cause_mip(self, mechanism: Any, purview: Any, **kwargs: Any) -> Any:
+        from . import repertoire_algebra as ra
+
+        return ra.cause_mip(self, mechanism, purview, **kwargs)
+
+    def effect_mip(self, mechanism: Any, purview: Any, **kwargs: Any) -> Any:
+        from . import repertoire_algebra as ra
+
+        return ra.effect_mip(self, mechanism, purview, **kwargs)
+
+    def phi_cause_mip(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
+        from . import repertoire_algebra as ra
+
+        return ra.phi_cause_mip(self, mechanism, purview, **kwargs)
+
+    def phi_effect_mip(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
+        from . import repertoire_algebra as ra
+
+        return ra.phi_effect_mip(self, mechanism, purview, **kwargs)
+
+    def phi(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
+        from . import repertoire_algebra as ra
+
+        return ra.phi(self, mechanism, purview, **kwargs)
+
+    def find_mice(self, direction: Any, mechanism: Any, **kwargs: Any) -> Any:
+        from . import repertoire_algebra as ra
+
+        return ra.find_mice(self, direction, mechanism, **kwargs)
+
+    def mic(self, mechanism: Any, **kwargs: Any) -> Any:
+        from . import repertoire_algebra as ra
+
+        return ra.mic(self, mechanism, **kwargs)
+
+    def mie(self, mechanism: Any, **kwargs: Any) -> Any:
+        from . import repertoire_algebra as ra
+
+        return ra.mie(self, mechanism, **kwargs)
+
+    def phi_max(self, mechanism: Any) -> float:
+        from . import repertoire_algebra as ra
+
+        return ra.phi_max(self, mechanism)
+
+    def concept(self, mechanism: Any, **kwargs: Any) -> Any:
+        from . import repertoire_algebra as ra
+
+        return ra.concept(self, mechanism, **kwargs)
+
+    def distinction(self, mechanism: Any) -> Any:
+        from . import repertoire_algebra as ra
+
+        return ra.distinction(self, mechanism)
+
+    def all_distinctions(self, **kwargs: Any) -> Any:
+        from . import repertoire_algebra as ra
+
+        return ra.all_distinctions(self, **kwargs)
+
+    def sia(self, **kwargs: Any) -> Any:
+        from . import repertoire_algebra as ra
+
+        return ra.sia(self, **kwargs)
+
+    def potential_purviews(self, direction: Any, mechanism: Any, **kwargs: Any) -> Any:
+        from . import repertoire_algebra as ra
+
+        return ra.potential_purviews(self, direction, mechanism, **kwargs)
+
+    def indices2nodes(self, indices: Any) -> Any:
+        from . import repertoire_algebra as ra
+
+        return ra.indices2nodes(self, indices)
+
+    # ---- cache surface + serialization ----
+
+    def cache_info(self) -> dict[str, Any]:
+        from . import repertoire_algebra as ra
+
+        return ra.cache_info()
+
+    def clear_caches(self) -> None:
+        from . import repertoire_algebra as ra
+
+        ra.clear_caches(self)
+
+    def to_json(self) -> dict[str, Any]:
+        return {
+            "causal_model": self.causal_model,
+            "state": list(self.state),
+            "node_indices": list(self.node_indices),
+            "cut": self.cut,
+        }

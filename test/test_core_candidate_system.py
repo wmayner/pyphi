@@ -155,6 +155,42 @@ def test_apply_cut_returns_new_instance(basic_cs) -> None:
     assert basic_cs.cut != cut
 
 
+@pytest.mark.parametrize(
+    "method, args",
+    [
+        ("cause_repertoire", ((0,), (1,))),
+        ("effect_repertoire", ((0,), (1,))),
+        ("unconstrained_cause_repertoire", ((0,),)),
+        ("unconstrained_effect_repertoire", ((0,),)),
+        ("forward_effect_repertoire", ((0,), (1,))),
+    ],
+)
+def test_candidate_system_proxies_repertoire_methods(
+    cs_and_subsystem, method, args
+) -> None:
+    import numpy as np
+
+    cs, sub = cs_and_subsystem
+    new = getattr(cs, method)(*args)
+    old = getattr(sub, method)(*args)
+    np.testing.assert_array_equal(new, old)
+
+
+def test_candidate_system_phi_method(cs_and_subsystem) -> None:
+    cs, sub = cs_and_subsystem
+    assert cs.phi((0,), (1,)) == pytest.approx(sub.phi((0,), (1,)))
+
+
+def test_candidate_system_concept_method(cs_and_subsystem) -> None:
+    cs, sub = cs_and_subsystem
+    assert cs.concept((0,)).phi == pytest.approx(sub.concept((0,)).phi)
+
+
+def test_candidate_system_sia_method(cs_and_subsystem) -> None:
+    cs, sub = cs_and_subsystem
+    assert cs.sia().phi == pytest.approx(sub.sia().phi)
+
+
 def test_apply_cut_cause_tpm_value_preserved(basic_cs) -> None:
     """cause_tpm derives from causal_model + state + node_indices, NOT cut.
 
