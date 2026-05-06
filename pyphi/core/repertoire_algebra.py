@@ -841,12 +841,56 @@ def phi_max(cs: Any, mechanism: tuple[int, ...]) -> float:
     return min(mic(cs, mechanism).phi, mie(cs, mechanism).phi)
 
 
-def concept(cs: Any, mechanism: tuple[int, ...], **kwargs: Any) -> Any:
-    return _legacy_subsystem(cs).concept(mechanism, **kwargs)
+def null_concept(cs: Any) -> Any:
+    """Return the null concept — point identified with the unconstrained
+    cause and effect repertoires of the candidate system.
+    """
+    from pyphi.models import Concept
+    from pyphi.models import MaximallyIrreducibleCause
+    from pyphi.models import MaximallyIrreducibleEffect
+    from pyphi.models import _null_ria
+
+    cause_rep = cause_repertoire(cs, (), ())
+    effect_rep = effect_repertoire(cs, (), ())
+    cause = MaximallyIrreducibleCause(_null_ria(Direction.CAUSE, (), (), cause_rep))
+    effect = MaximallyIrreducibleEffect(_null_ria(Direction.EFFECT, (), (), effect_rep))
+    return Concept(mechanism=(), cause=cause, effect=effect)
+
+
+def concept(
+    cs: Any,
+    mechanism: tuple[int, ...],
+    purviews: Any | None = None,
+    cause_purviews: Any | None = None,
+    effect_purviews: Any | None = None,
+    **kwargs: Any,
+) -> Any:
+    """Return the concept specified by a mechanism within the candidate system."""
+    from pyphi.models import Concept
+
+    if not mechanism:
+        return null_concept(cs)
+
+    cause_purviews = cause_purviews if cause_purviews is not None else purviews
+    cause = mic(cs, mechanism, purviews=cause_purviews, **kwargs)
+
+    effect_purviews = effect_purviews if effect_purviews is not None else purviews
+    effect = mie(cs, mechanism, purviews=effect_purviews, **kwargs)
+
+    return Concept(mechanism=mechanism, cause=cause, effect=effect)
 
 
 def distinction(cs: Any, mechanism: tuple[int, ...]) -> Any:
-    return _legacy_subsystem(cs).distinction(mechanism)
+    """Return the distinction (Concept) specified by a mechanism."""
+    from pyphi.models import Concept
+
+    maximally_irreducible_cause = find_mice(cs, Direction.CAUSE, mechanism)
+    maximally_irreducible_effect = find_mice(cs, Direction.EFFECT, mechanism)
+    return Concept(
+        mechanism=mechanism,
+        cause=maximally_irreducible_cause,
+        effect=maximally_irreducible_effect,
+    )
 
 
 def all_distinctions(cs: Any, **kwargs: Any) -> Any:

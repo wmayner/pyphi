@@ -227,16 +227,9 @@ class CandidateSystem:
 
     @cached_property
     def null_concept(self) -> Any:
-        # Delegate to legacy Subsystem until repertoire_algebra and the
-        # mechanism-eval machinery are fully ported (Phase 8).
-        from pyphi.subsystem import Subsystem
+        from . import repertoire_algebra as ra
 
-        return Subsystem(
-            self.network,
-            self.state,
-            self.node_indices,
-            cut=self.cut,
-        ).null_concept
+        return ra.null_concept(self)
 
     # ---- repertoire algebra proxies ----
 
