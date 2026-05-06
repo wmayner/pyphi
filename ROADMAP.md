@@ -642,8 +642,22 @@ relations enabled should run in a no-GIL Python with no GIL re-enablement
   P6 split), `pyphi/data_structures/pyphi_float.py`, `pyphi/log.py`,
   `.github/workflows/test.yml` (no-GIL matrix entry).
 - *Risk:* Low. Defensive change.
-- *Leverage:* Unblocks `LocalThreadScheduler` in P11 (no-GIL workers for
-  mechanism-level parallelism).
+- *Leverage:* Unblocks `LocalThreadScheduler` in P11 for the non-relations
+  path (no-GIL workers for mechanism-level parallelism).
+
+**Status (landed 2026-05-06, commit `51062319`):** Complete. Graphillion
+import deferred to function bodies in `pyphi.relations` and
+`pyphi.combinatorics`; `import pyphi` no longer loads graphillion eagerly.
+Globals audit findings: `np.random` global state not used (existing code
+uses `np.random.Generator` instances in `tpm.py`/`dynamics.py`);
+`log.TqdmHandler` thread-safe via inherited `StreamHandler` lock and
+`tqdm.write`'s documented thread safety; `PyPhiFloat.__hash__` already
+snapshots `config.PRECISION` at construction (P5 commit 1). Cache decorator
+nonlocal hits/misses counters race on 3.13t but only affect counter
+accuracy, not correctness — deferred to a P11 cleanup. No-GIL CI matrix
+entry deferred to P11 (parallelization redesign already plans a CI
+overhaul). Test `test/test_lazy_imports.py` pins the deferred-import
+contract.
 
 **P6b. ZDD library migration to OxiDD**
 
@@ -684,8 +698,7 @@ Update `pyphi/relations.py` to use the new abstraction. The `ConcreteRelations` 
 - Drop graphillion in 2.1 if no fallback usage reported
 
 - *Why here:* P6 has already created the abstraction seam. P6a has audited and
-  fixed module-level globals. P6b is the actual swap. Doing this *before* P11
-  means P11 can offer a real `LocalThreadScheduler`.
+  fixed module-level globals. P6b is the actual swap.
 - *Files:* New `pyphi/combinatorics/zdd_family.py`, `oxidd_family.py`,
   `graphillion_family.py`. `pyphi/relations.py`, `pyphi/combinatorics.py` (now
   package). Tests under `test/test_zdd.py`. `pyproject.toml` (`oxidd` dep added,
@@ -695,9 +708,31 @@ Update `pyphi/relations.py` to use the new abstraction. The `ConcreteRelations` 
   tests on `set_size_family(k)` partition counts since this is the only
   reimplementation that could introduce mathematical bugs; (c) golden fixtures
   from P1 catch any numerical regressions.
-- *Leverage:* High — enables free-threaded mode in P11, removes the bus-factor-1
-  dependency, simplifies install.
-- *Style:* Big-bang behind the abstraction seam; both backends ship in 2.0.
+- *Leverage:* High — removes the bus-factor-1 dependency, simplifies install,
+  enables free-threaded mode for the relations path. Most other workflows are
+  already free-threaded-safe after P6a.
+- *Style:* Big-bang behind the abstraction seam.
+
+**Status (deferred to post-roadmap, 2026-05-06):** Deferred until after the
+main 2.0 roadmap (P7–P16) ships. Reasoning:
+
+- P6a already cleared the urgent piece (no-GIL-safe `import pyphi`). The
+  remaining payoff (no-GIL for relations workflows + macOS install
+  ergonomics) is real but not blocking the 2.0 work.
+- No downstream project in P7–P10, P12–P16 depends on P6b. P11
+  (parallelization redesign) wants `LocalThreadScheduler` for relations
+  paths, but P11 can ship without it — relations workflows fall back to
+  process-based parallelism, a bounded limitation.
+- The OxiDD design will be better-informed after P11 lands (we'll know
+  exactly which threading patterns are actually wanted, instead of
+  designing speculatively).
+- graphillion is used in only 2 files (relations.py, combinatorics.py)
+  and a handful of functions. Migration cost won't grow much during the
+  rest of the roadmap.
+
+After 2.0 ships, P6b becomes **P17** on the post-2.0 list. graphillion
+bus-factor risk is acknowledged: if graphillion goes unmaintained
+mid-roadmap, P6b promotes back to in-scope.
 
 ### Phase C — Kernel rewrite
 
