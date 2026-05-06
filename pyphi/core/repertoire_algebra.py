@@ -598,44 +598,148 @@ def evaluate_partition(
     )
 
 
-def find_mip(
+def _find_mip_single_state(
     cs: Any,
-    direction: Any,
+    specified_state: Any,
+    direction: Direction,
     mechanism: tuple[int, ...],
     purview: tuple[int, ...],
+    repertoire: Any,
+    partitions: Any,
+    parallel_kwargs: dict[str, Any],
     **kwargs: Any,
 ) -> Any:
-    return _legacy_subsystem(cs).find_mip(direction, mechanism, purview, **kwargs)
+    """Find the MIP for a single specified-state pin.
+
+    Used by formalism MIP-search routines to evaluate all candidate
+    mechanism partitions for a given (state, direction, mechanism, purview)
+    combination.
+    """
+    from pyphi import resolve_ties
+    from pyphi.models import _null_ria
+    from pyphi.parallel import MapReduce
+    from pyphi.partition import mip_partitions
+
+    partitions = fallback(partitions, mip_partitions(mechanism, purview, cs.node_labels))
+
+    def _evaluate_partition(partition: Any) -> Any:
+        return evaluate_partition(
+            cs,
+            direction,
+            mechanism,
+            purview,
+            partition,
+            repertoire=repertoire,
+            state=specified_state,
+            **kwargs,
+        )
+
+    candidate_mips = MapReduce(
+        _evaluate_partition,
+        partitions,
+        shortcircuit_func=_utils.is_falsy,
+        desc="Evaluating mechanism partitions",
+        **parallel_kwargs,
+    ).run()
+    assert candidate_mips is not None, "MapReduce.run() should not return None"
+
+    ties = tuple(
+        resolve_ties.partitions(
+            candidate_mips,  # type: ignore[arg-type]
+            default=_null_ria(
+                direction,
+                mechanism,
+                purview,
+                phi=0,
+                specified_state=specified_state,
+            ),
+        )
+    )
+    for tie in ties:
+        tie.set_partition_ties(ties)
+    return ties[0]
+
+
+def find_mip(
+    cs: Any,
+    direction: Direction,
+    mechanism: tuple[int, ...],
+    purview: tuple[int, ...],
+    partitions: Any | None = None,
+    state: Any | None = None,
+    **kwargs: Any,
+) -> Any:
+    """Return the minimum information partition for a mechanism over a purview."""
+    from pyphi import conf as _conf
+    from pyphi.formalism import FORMALISM_REGISTRY
+    from pyphi.models import _null_ria
+    from pyphi.models.mechanism import ShortCircuitConditions
+
+    def null_mip(**kw: Any) -> Any:  # noqa: ARG001
+        return _null_ria(direction, mechanism, purview, specified_state=state)
+
+    if not purview:
+        return null_mip(reasons=(ShortCircuitConditions.EMPTY_PURVIEW,))
+
+    rep = repertoire(cs, direction, mechanism, purview)
+
+    if direction == Direction.CAUSE and np.all(rep == 0):
+        return null_mip(reasons=(ShortCircuitConditions.UNREACHABLE_STATE,))
+
+    if partitions is not None:
+        partitions = list(partitions)
+
+    parallel_kwargs = _conf.parallel_kwargs(
+        dict(config.PARALLEL_MECHANISM_PARTITION_EVALUATION),  # pyright: ignore[reportAttributeAccessIssue]
+        **kwargs,
+    )
+    formalism = FORMALISM_REGISTRY[config.FORMALISM]  # pyright: ignore[reportAttributeAccessIssue]
+    return formalism._find_mechanism_mip(  # pyright: ignore[reportFunctionMemberAccess]
+        cs,
+        direction,
+        mechanism,
+        purview,
+        repertoire=rep,
+        partitions=partitions,
+        state=state,
+        parallel_kwargs=parallel_kwargs,
+        **kwargs,
+    )
 
 
 def cause_mip(
     cs: Any, mechanism: tuple[int, ...], purview: tuple[int, ...], **kwargs: Any
 ) -> Any:
-    return _legacy_subsystem(cs).cause_mip(mechanism, purview, **kwargs)
+    return find_mip(cs, Direction.CAUSE, mechanism, purview, **kwargs)
 
 
 def effect_mip(
     cs: Any, mechanism: tuple[int, ...], purview: tuple[int, ...], **kwargs: Any
 ) -> Any:
-    return _legacy_subsystem(cs).effect_mip(mechanism, purview, **kwargs)
+    return find_mip(cs, Direction.EFFECT, mechanism, purview, **kwargs)
 
 
 def phi_cause_mip(
     cs: Any, mechanism: tuple[int, ...], purview: tuple[int, ...], **kwargs: Any
 ) -> float:
-    return _legacy_subsystem(cs).phi_cause_mip(mechanism, purview, **kwargs)
+    mip = cause_mip(cs, mechanism, purview, **kwargs)
+    return mip.phi if mip else 0
 
 
 def phi_effect_mip(
     cs: Any, mechanism: tuple[int, ...], purview: tuple[int, ...], **kwargs: Any
 ) -> float:
-    return _legacy_subsystem(cs).phi_effect_mip(mechanism, purview, **kwargs)
+    mip = effect_mip(cs, mechanism, purview, **kwargs)
+    return mip.phi if mip else 0
 
 
 def phi(
     cs: Any, mechanism: tuple[int, ...], purview: tuple[int, ...], **kwargs: Any
 ) -> float:
-    return _legacy_subsystem(cs).phi(mechanism, purview, **kwargs)
+    return min(
+        phi_cause_mip(cs, mechanism, purview, **kwargs),
+        phi_effect_mip(cs, mechanism, purview, **kwargs),
+    )
 
 
 def find_mice(cs: Any, direction: Any, mechanism: tuple[int, ...], **kwargs: Any) -> Any:

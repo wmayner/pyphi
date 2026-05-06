@@ -272,10 +272,12 @@ class CandidateSystem:
 
         return ra.unconstrained_repertoire(self, direction, purview)
 
-    def partitioned_repertoire(self, direction: Any, partition: Any) -> Any:
+    def partitioned_repertoire(
+        self, direction: Any, partition: Any, **kwargs: Any
+    ) -> Any:
         from . import repertoire_algebra as ra
 
-        return ra.partitioned_repertoire(self, direction, partition)
+        return ra.partitioned_repertoire(self, direction, partition, **kwargs)
 
     def expand_repertoire(
         self,
@@ -435,6 +437,31 @@ class CandidateSystem:
         from . import repertoire_algebra as ra
 
         return ra.find_mip(self, direction, mechanism, purview, **kwargs)
+
+    def _find_mip_single_state(
+        self,
+        specified_state: Any,
+        direction: Any,
+        mechanism: Any,
+        purview: Any,
+        repertoire: Any,
+        partitions: Any,
+        parallel_kwargs: dict[str, Any],
+        **kwargs: Any,
+    ) -> Any:
+        from . import repertoire_algebra as ra
+
+        return ra._find_mip_single_state(
+            self,
+            specified_state,
+            direction,
+            mechanism,
+            purview,
+            repertoire,
+            partitions,
+            parallel_kwargs,
+            **kwargs,
+        )
 
     def cause_mip(self, mechanism: Any, purview: Any, **kwargs: Any) -> Any:
         from . import repertoire_algebra as ra
