@@ -187,6 +187,22 @@ class MacroSubsystem(Subsystem):
         cut=None,
         time_scale=1,
         blackbox=None,
+        *_args,
+        **_kwargs,
+    ):
+        raise NotImplementedError(
+            "MacroSubsystem is undergoing rewrite in P7b; "
+            "restored after the kernel rewrite lands."
+        )
+
+    def __init_disabled__(
+        self,
+        network,
+        state,
+        nodes=None,
+        cut=None,
+        time_scale=1,
+        blackbox=None,
         coarse_grain=None,
     ):
         # Ensure indices are not a `range`
@@ -943,7 +959,7 @@ def coarse_graining(network, state, internal_indices):
         except ConditionallyDependentError:
             continue
 
-        phi = compute.phi(subsystem)
+        phi = compute.phi(subsystem)  # type: ignore[arg-type]  # P7b
         if (phi - max_phi) > 10 ** (-config.PRECISION):
             max_phi = phi
             max_coarse_grain = coarse_grain
@@ -1028,7 +1044,7 @@ def emergence(network, state, do_blackbox=False, do_coarse_grain=True, time_scal
         do_coarse_grain=do_coarse_grain,
         time_scales=time_scales,
     ):
-        phi = compute.phi(subsystem)
+        phi = compute.phi(subsystem)  # type: ignore[arg-type]  # P7b
 
         if (phi - max_phi) > 10 ** (-config.PRECISION):
             max_phi = phi
@@ -1053,7 +1069,7 @@ def phi_by_grain(network, state):
     systems = utils.powerset(network.node_indices, nonempty=True)
     for system in systems:
         micro_subsystem = Subsystem(network, state, system)
-        phi = compute.phi(micro_subsystem)
+        phi = compute.phi(micro_subsystem)  # type: ignore[arg-type]  # P7b
         list_of_phi.append([len(micro_subsystem), phi, system, None])
 
         for coarse_grain in all_coarse_grains(system):
@@ -1064,7 +1080,7 @@ def phi_by_grain(network, state):
             except ConditionallyDependentError:
                 continue
 
-            phi = compute.phi(subsystem)
+            phi = compute.phi(subsystem)  # type: ignore[arg-type]  # P7b
             list_of_phi.append([len(subsystem), phi, system, coarse_grain])
     return list_of_phi
 

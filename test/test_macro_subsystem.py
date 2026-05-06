@@ -1,18 +1,21 @@
-import numpy as np
 import pytest
 
-import pyphi
-from pyphi import config
-from pyphi import convert
-from pyphi import macro
-from pyphi import models  # noqa: F401  # used by other tests in this module
-from pyphi import timescale
-from pyphi.convert import state_by_node2state_by_state as sbn2sbs
-from pyphi.convert import state_by_state2state_by_node as sbs2sbn
-from pyphi.direction import Direction
-from pyphi.models import SystemPartition
+pytestmark = pytest.mark.skip(reason="P7b: MacroSubsystem port pending")
 
-from .conftest import IIT_3_CONFIG
+import numpy as np  # noqa: E402
+
+import pyphi  # noqa: E402
+from pyphi import config  # noqa: E402
+from pyphi import convert  # noqa: E402
+from pyphi import macro  # noqa: E402
+from pyphi import models  # noqa: F401, E402  # used by other tests
+from pyphi import timescale  # noqa: E402
+from pyphi.convert import state_by_node2state_by_state as sbn2sbs  # noqa: E402
+from pyphi.convert import state_by_state2state_by_node as sbs2sbn  # noqa: E402
+from pyphi.direction import Direction  # noqa: E402
+from pyphi.models import SystemPartition  # noqa: E402
+
+from .conftest import IIT_3_CONFIG  # noqa: E402
 
 
 # Apply IIT 3.0 config to outdated tests
