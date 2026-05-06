@@ -198,18 +198,25 @@ def _compute_sia(subsystem: Subsystem, stash: Any, iit_version: float) -> dict[s
     if hasattr(sia, "signed_phi") and sia.signed_phi is not None:
         out["signed_phi"] = float(sia.signed_phi)
 
-    # IIT 3.0 has known non-deterministic tie-breaking on the SIA cut
-    # (multiple cuts can tie at the minimum phi; the picked one varies across
-    # runs due to dict/set iteration order). Same root cause as the slow-lane
-    # test_sia_big_subsys_all_complete_* failures. Skip cut/partition capture
-    # for IIT 3.0 to keep the fixture stable; phi and ces stats below are
-    # deterministic and provide adequate regression coverage. The full cut
-    # canonicalization (capture all tied cuts as a set) is deferred to P5/P6
-    # along with the parallel tied-state work.
-    if iit_version != 3.0:
-        out["partition"] = canonical_partition(getattr(sia, "partition", None))
-        if hasattr(sia, "cut") and sia.cut is not None:
-            out["cut"] = canonical_partition(sia.cut)
+    # IIT 3.0 SIA cut capture is skipped: the IIT 3.0 SIA selects a MIP via
+    # ``MapReduce(reduce_func=min, ...)`` over ``OrderableByPhi`` analyses,
+    # and ``min()`` breaks ties by first-occurrence. When multiple cuts hit
+    # the same minimum phi (a frequent case on small networks), which one
+    # ``min()`` picks depends on the iteration order of ``sia_partitions``
+    # — and that interacts with cross-test state in a way that makes the
+    # picked cut order-dependent across fixture runs (verified empirically:
+    # running ``basic_iit3_emd_tri`` before ``basic_iit3_emd`` produces a
+    # different cut for ``basic_iit3_emd`` than running it alone). The phi
+    # value itself is deterministic, as are the CES summary stats below.
+    #
+    # Resolving this requires either (a) extending the IIT 3.0 SIA to
+    # capture all tied minima as a set, or (b) adding a structural
+    # tie-breaker to ``OrderableByPhi`` so ``min()`` picks a canonical
+    # winner. Both are code changes outside P6's type-system cleanup
+    # scope; tracked for a follow-up. IIT 4.0 SIAs always expose
+    # ``partition`` (a GeneralSetPartition / GeneralKCut), captured below.
+    if hasattr(sia, "partition") and sia.partition is not None:
+        out["partition"] = canonical_partition(sia.partition)
 
     if hasattr(sia, "system_state") and sia.system_state is not None:
         ss = sia.system_state

@@ -25,9 +25,12 @@ from typing import runtime_checkable
 __all__ = [
     "PUBLIC_SUBSYSTEM_ATTRS",
     "DistanceMetric",
-    "PartitionScheme",
+    "MechanismPartition",
+    "MechanismPartitionScheme",
     "SubsystemInternalInterface",
     "SubsystemPublicInterface",
+    "SystemPartitionLike",
+    "SystemPartitionScheme",
 ]
 
 
@@ -58,17 +61,70 @@ class DistanceMetric(Protocol):
 
 
 # =============================================================================
+# Partitions
+# =============================================================================
+@runtime_checkable
+class MechanismPartition(Protocol):
+    """A partition of a mechanism over a purview.
+
+    Concrete realizations are :class:`pyphi.models.cuts.Bipartition`,
+    :class:`pyphi.models.cuts.Tripartition`, and the more general
+    :class:`pyphi.models.cuts.KPartition`. The partition exposes the union
+    of indices on each side via ``mechanism`` and ``purview`` properties; it
+    is iterable over its constituent :class:`pyphi.models.cuts.Part` objects.
+
+    This Protocol distinguishes mechanism-level partitions (Eqs. 5-7,
+    used by ``Subsystem.find_mip`` for distinctions) from system-level
+    partitions (Eqs. 14-18, used by SIA). The two have different
+    mathematical roles and different probability constructions; making
+    the distinction explicit in the type system prevents accidental
+    cross-use.
+    """
+
+    mechanism: Any
+    purview: Any
+
+    def __iter__(self) -> Any: ...
+
+    def __len__(self) -> int: ...
+
+
+@runtime_checkable
+class SystemPartitionLike(Protocol):
+    """A directional partition of a set of system nodes.
+
+    Concrete realizations are :class:`pyphi.models.cuts.SystemPartition`
+    (the canonical 2.0 type, with explicit ``Direction``) and the general
+    set-partition variants (:class:`pyphi.models.cuts.GeneralKCut`,
+    :class:`pyphi.models.cuts.GeneralSetPartition`).
+
+    All system-level partitions expose ``cut_matrix(n)`` for applying the
+    cut to a connectivity matrix and ``indices`` for the partitioned nodes.
+    """
+
+    def cut_matrix(self, n: int) -> Any: ...
+
+    @property
+    def indices(self) -> tuple[int, ...]: ...
+
+
+# =============================================================================
 # Partition schemes
 # =============================================================================
 @runtime_checkable
-class PartitionScheme(Protocol):
-    """Callable that yields the partitions of a (mechanism, purview) pair.
+class MechanismPartitionScheme(Protocol):
+    """Callable that yields mechanism-level partitions of a (mechanism, purview) pair.
 
     Concrete schemes registered in ``pyphi.partition.partition_types``
     (``BI``, ``TRI``, ``ALL``, etc.) all share this signature. Each yields
-    an iterable of partition objects — :class:`pyphi.models.cuts.Bipartition`,
-    :class:`pyphi.models.cuts.Tripartition`, etc. — that the MIP search
-    enumerates.
+    an iterable of :class:`MechanismPartition` instances — concrete types
+    are :class:`pyphi.models.cuts.Bipartition`,
+    :class:`pyphi.models.cuts.Tripartition`, and
+    :class:`pyphi.models.cuts.KPartition` — that the MIP search enumerates.
+
+    Distinct from :class:`SystemPartitionScheme` because mechanism-level
+    partitions are over a (mechanism, purview) pair rather than a single
+    set of nodes.
     """
 
     def __call__(
@@ -76,7 +132,28 @@ class PartitionScheme(Protocol):
         mechanism: Any,
         purview: Any,
         node_labels: Any = None,
-    ) -> Iterable[Any]: ...
+    ) -> Iterable[MechanismPartition]: ...
+
+
+@runtime_checkable
+class SystemPartitionScheme(Protocol):
+    """Callable that yields the system-level partitions of a set of nodes.
+
+    Concrete schemes registered in
+    ``pyphi.partition.system_partition_types``
+    (``DIRECTED_BI``, ``SET_UNI/BI``, ``GENERAL``, etc.). Yields
+    :class:`SystemPartitionLike` instances.
+
+    Distinct from :class:`MechanismPartitionScheme` because system-level
+    partitions are over a single set of nodes rather than a (mechanism,
+    purview) pair, and include a ``Direction`` per partition.
+    """
+
+    def __call__(
+        self,
+        nodes: Any,
+        node_labels: Any = None,
+    ) -> Iterable[SystemPartitionLike]: ...
 
 
 # =============================================================================

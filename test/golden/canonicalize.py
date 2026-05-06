@@ -31,18 +31,22 @@ def canonical_partition(partition: Any) -> list:
     """Reduce a partition object to a deterministic structural form.
 
     Accepts:
-    - ``Cut`` (from_nodes, to_nodes)
+    - ``SystemPartition`` (from_nodes + to_nodes; direction not captured —
+      see note below)
     - ``KCut`` / ``KPartition`` / ``Bipartition`` (sequence of Parts)
-    - ``SystemPartition`` (parts with directions)
     - ``NullCut`` / ``CompleteSystemPartition`` (markers)
 
     Returns nested lists of int sequences. Each "part" is internally sorted;
-    parts are sorted among themselves. For directed cuts, the (from, to)
-    structure is preserved as a 2-tuple.
+    parts are sorted among themselves.
 
-    Examples:
-        Bipartition over {0,1,2}/{3} → [[0,1,2], [3]]
-        Cut from {0} to {1,2} → [[0], [1,2]] with direction sentinel
+    The :class:`pyphi.models.cuts.SystemPartition` direction is intentionally
+    not captured here. The only fixtures that currently emit
+    ``SystemPartition`` cuts are IIT 3.0 SIAs, which always use
+    ``Direction.EFFECT`` (the IIT 3.0 phi computation does not read the
+    direction field). IIT 3.0 cut capture is currently disabled at the
+    compute-layer level due to tie-breaking non-determinism (see
+    ``compute.py``); when re-enabled, this canonicalization may need to add
+    a direction prefix.
     """
     if partition is None:
         return []
@@ -53,7 +57,7 @@ def canonical_partition(partition: Any) -> list:
     if cls_name in {"NullCut", "CompleteSystemPartition", "_NullCut"}:
         return [["@null"]]
 
-    # Cut: (from_nodes, to_nodes)
+    # SystemPartition: (from_nodes, to_nodes)
     if hasattr(partition, "from_nodes") and hasattr(partition, "to_nodes"):
         return [
             sorted(int(n) for n in partition.from_nodes),

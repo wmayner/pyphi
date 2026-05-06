@@ -8,6 +8,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from itertools import chain
 from typing import Any
+from typing import Self
 
 import numpy as np
 from numpy.typing import NDArray
@@ -570,7 +571,7 @@ class KPartition(Sequence[Part], _CutBase):
     def indices(self) -> tuple[int, ...]:
         return tuple(sorted(set(self.mechanism + self.purview)))
 
-    def normalize(self) -> KPartition:
+    def normalize(self) -> Self:
         """Normalize the order of parts in the partition."""
         return type(self)(*sorted(self), node_labels=self.node_labels)
 

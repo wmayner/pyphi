@@ -5,8 +5,9 @@ from __future__ import annotations
 
 import functools
 import itertools
-from collections.abc import Generator, Iterator, Sequence
+from collections.abc import Generator, Iterable, Iterator, Sequence
 from itertools import chain, product
+from typing import Any
 
 import numpy as np
 from more_itertools import distinct_permutations
@@ -380,7 +381,12 @@ def k_partitions(collection, k):
 
 
 class PartitionRegistry(Registry):
-    """Storage for partition schemes registered with PyPhi.
+    """Storage for mechanism-level partition schemes registered with PyPhi.
+
+    Schemes registered here yield mechanism-level partitions
+    (:class:`pyphi.protocols.MechanismPartition` instances) for each
+    (mechanism, purview) pair. Used by ``Subsystem.find_mip`` to enumerate
+    partitions during MIP search.
 
     Users can define custom partitions:
 
@@ -392,22 +398,23 @@ class PartitionRegistry(Registry):
     And use them by setting ``config.PARTITION_TYPE = 'NONE'``.
 
     Registered objects are validated against
-    :class:`pyphi.protocols.PartitionScheme` so wrong-shape registrations
-    fail at import rather than at the bottom of a phi computation.
+    :class:`pyphi.protocols.MechanismPartitionScheme` so wrong-shape
+    registrations fail at import rather than at the bottom of a phi
+    computation.
     """
 
     desc = "distinction partitions"
 
     def register(self, name):
         """Decorator that validates and registers a partition scheme."""
-        from .protocols import PartitionScheme
+        from .protocols import MechanismPartitionScheme
 
         def register_func(func):
-            if not isinstance(func, PartitionScheme):
+            if not isinstance(func, MechanismPartitionScheme):
                 raise TypeError(
                     f"Cannot register {func!r} as partition scheme {name!r}: "
-                    f"object does not satisfy the PartitionScheme Protocol "
-                    f"(must be callable)."
+                    f"object does not satisfy the MechanismPartitionScheme "
+                    f"Protocol (must be callable)."
                 )
             self.store[name] = func
             return func
@@ -427,7 +434,11 @@ def mip_partitions(mechanism, purview, node_labels=None):
 
 
 @partition_types.register("BI")
-def mip_bipartitions(mechanism, purview, node_labels=None):
+def mip_bipartitions(
+    mechanism: tuple[int, ...],
+    purview: tuple[int, ...],
+    node_labels: Any = None,
+) -> Iterable[Bipartition]:
     r"""Return an generator of all |small_phi| bipartitions of a mechanism over
     a purview.
 
@@ -486,7 +497,11 @@ def mip_bipartitions(mechanism, purview, node_labels=None):
 
 
 @partition_types.register("TRI")
-def wedge_partitions(mechanism, purview, node_labels=None):
+def wedge_partitions(
+    mechanism: tuple[int, ...],
+    purview: tuple[int, ...],
+    node_labels: Any = None,
+) -> Iterable[Tripartition]:
     """Return an iterator over all wedge partitions.
 
     These are partitions which strictly split the mechanism and allow a subset
@@ -562,7 +577,11 @@ def wedge_partitions(mechanism, purview, node_labels=None):
 
 
 @partition_types.register("ALL")
-def all_partitions(mechanism, purview, node_labels=None):
+def all_partitions(
+    mechanism: tuple[int, ...],
+    purview: tuple[int, ...],
+    node_labels: Any = None,
+) -> Iterable[KPartition]:
     """Return all possible partitions of a mechanism and purview.
 
     Partitions can consist of any number of parts.
@@ -640,25 +659,47 @@ def atomic_partition(elements):
 
 
 class SystemPartitionRegistry(Registry):
-    """Storage for system partition schemes registered with PyPhi.
+    """Storage for system-level partition schemes registered with PyPhi.
+
+    Schemes registered here yield system-level partitions
+    (:class:`pyphi.protocols.SystemPartitionLike` instances) for a set of
+    nodes. Used by SIA computations to enumerate cuts of the full system.
 
     Users can define custom partitions:
 
     Examples:
         >>> @system_partition_types.register('NONE')  # doctest: +SKIP
-        ... def no_partitions(mechanism, purview):
+        ... def no_partitions(nodes):
         ...    return []
 
-    And use them by setting ``config.SYSTEM_PARTITION_TYPE = 'NONE'``
+    And use them by setting ``config.SYSTEM_PARTITION_TYPE = 'NONE'``.
+
+    Registered objects are validated against
+    :class:`pyphi.protocols.SystemPartitionScheme` so wrong-shape
+    registrations fail at import rather than at the bottom of a SIA
+    computation.
     """
 
     desc = "system partitions"
 
+    def register(self, name):
+        """Decorator that validates and registers a system partition scheme."""
+        from .protocols import SystemPartitionScheme
+
+        def register_func(func):
+            if not isinstance(func, SystemPartitionScheme):
+                raise TypeError(
+                    f"Cannot register {func!r} as system partition scheme "
+                    f"{name!r}: object does not satisfy the "
+                    f"SystemPartitionScheme Protocol (must be callable)."
+                )
+            self.store[name] = func
+            return func
+
+        return register_func
+
 
 system_partition_types = SystemPartitionRegistry()
-
-
-# TODO(4.0) consolidate SystemPartition and SystemPartition logic
 
 
 def _bipartitions_to_cuts(func):
@@ -705,13 +746,17 @@ def system_directed_bipartitions_cut_one(nodes):
 
 
 @system_partition_types.register("DIRECTED_BI_SIMPLE")
-def system_bipartitions_simple(nodes, node_labels=None):
+def system_bipartitions_simple(
+    nodes: Sequence[int],
+    node_labels: Any = None,
+) -> list[SystemPartition]:
     """Return ordered directed bipartitions by splitting the node list once."""
     # Use a list instead of generator for progress bar totals since it's linear
     # in the size of the system
-    partitions = []
-    for n in range(1, len(nodes)):
-        part1, part2 = nodes[:n], nodes[n:]
+    partitions: list[SystemPartition] = []
+    nodes_t = tuple(nodes)
+    for n in range(1, len(nodes_t)):
+        part1, part2 = nodes_t[:n], nodes_t[n:]
         partitions.append(
             SystemPartition(Direction.EFFECT, part1, part2, node_labels=node_labels)
         )
@@ -783,27 +828,36 @@ def _cut_matrices(n, symmetric=False):
 
 
 @system_partition_types.register("GENERAL")
-def general(node_indices, node_labels=None):
+def general(
+    node_indices: tuple[int, ...],
+    node_labels: Any = None,
+) -> Iterable[GeneralKCut]:
     """Yield all general cut-based partitions for a set of nodes."""
     yield CompleteGeneralKCut(node_indices, node_labels=node_labels)
     for cut_matrix in _cut_matrices(len(node_indices)):
         yield GeneralKCut(node_indices, cut_matrix, node_labels=node_labels)
 
 
-def num_general_partitions(n):
+def num_general_partitions(n: int) -> int:
     """Return the number of possible general partitions for ``n`` nodes."""
     return 2 ** (n**2 - n)
 
 
 @system_partition_types.register("GENERAL_BIDIRECTIONAL")
-def general_bidirectional(node_indices, node_labels=None):
+def general_bidirectional(
+    node_indices: tuple[int, ...],
+    node_labels: Any = None,
+) -> Iterable[GeneralKCut]:
     """Yield all bidirectional general partitions for a set of nodes."""
     yield CompleteGeneralKCut(node_indices, node_labels=node_labels)
     for cut_matrix in _cut_matrices(len(node_indices), symmetric=True):
         yield GeneralKCut(node_indices, cut_matrix, node_labels=node_labels)
 
 
-def _unidirectional_set_partitions(node_indices, node_labels=None):
+def _unidirectional_set_partitions(
+    node_indices: tuple[int, ...],
+    node_labels: Any = None,
+) -> Iterable[GeneralKCut]:
     """Generate all unidirectional set partitions of a set of nodes."""
     if len(node_indices) == 1 or config.SYSTEM_PARTITION_INCLUDE_COMPLETE:
         yield CompleteGeneralKCut(node_indices, node_labels=node_labels)
