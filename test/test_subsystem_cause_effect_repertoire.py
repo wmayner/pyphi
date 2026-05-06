@@ -3,7 +3,7 @@ import pytest
 
 from pyphi import Direction
 from pyphi import Subsystem
-from pyphi.models import Cut
+from pyphi.models import SystemPartition
 
 from . import example_networks
 
@@ -77,7 +77,12 @@ scenarios = [
     # --------------------------
     (
         "cause_repertoire",
-        Subsystem(standard, standard_subsystem.state, full, cut=Cut((2,), (0, 1))),
+        Subsystem(
+            standard,
+            standard_subsystem.state,
+            full,
+            cut=SystemPartition(Direction.EFFECT, (2,), (0, 1)),
+        ),
         [0],
         [1],
         np.array([1 / 3, 2 / 3]).reshape(1, 2, 1, order="F"),
@@ -87,21 +92,36 @@ scenarios = [
     # --------------------
     (
         "cause_repertoire",
-        Subsystem(standard, standard_subsystem.state, (1, 2), cut=Cut((1,), (2,))),
+        Subsystem(
+            standard,
+            standard_subsystem.state,
+            (1, 2),
+            cut=SystemPartition(Direction.EFFECT, (1,), (2,)),
+        ),
         [2],
         [1, 2],
         np.array([0.25, 0.25, 0.25, 0.25]).reshape(1, 2, 2, order="F"),
     ),
     (
         "cause_repertoire",
-        Subsystem(standard, standard_subsystem.state, (1, 2), cut=Cut((1,), (2,))),
+        Subsystem(
+            standard,
+            standard_subsystem.state,
+            (1, 2),
+            cut=SystemPartition(Direction.EFFECT, (1,), (2,)),
+        ),
         [2],
         [2],
         np.array([0.5, 0.5]).reshape(1, 1, 2, order="F"),
     ),
     (
         "cause_repertoire",
-        Subsystem(standard, standard_subsystem.state, (0, 2), cut=Cut((0,), (2,))),
+        Subsystem(
+            standard,
+            standard_subsystem.state,
+            (0, 2),
+            cut=SystemPartition(Direction.EFFECT, (0,), (2,)),
+        ),
         [2],
         [0],
         np.array([0.5, 0.5]).reshape(2, 1, 1, order="F"),
@@ -224,14 +244,24 @@ scenarios = [
     # --------------------------
     (
         "effect_repertoire",
-        Subsystem(standard, standard_subsystem.state, full, cut=Cut((0, 2), (1,))),
+        Subsystem(
+            standard,
+            standard_subsystem.state,
+            full,
+            cut=SystemPartition(Direction.EFFECT, (0, 2), (1,)),
+        ),
         [0],
         [2],
         np.array([0.5, 0.5]).reshape(1, 1, 2, order="F"),
     ),
     (
         "effect_repertoire",
-        Subsystem(standard, standard_subsystem.state, full, cut=Cut((0, 2), (1,))),
+        Subsystem(
+            standard,
+            standard_subsystem.state,
+            full,
+            cut=SystemPartition(Direction.EFFECT, (0, 2), (1,)),
+        ),
         [0, 1, 2],
         [0, 2],
         np.array([0.0, 0.0, 1.0, 0.0]).reshape(2, 1, 2, order="F"),
@@ -241,21 +271,36 @@ scenarios = [
     # --------------------
     (
         "effect_repertoire",
-        Subsystem(standard, standard_subsystem.state, (1, 2), cut=Cut((1,), (2,))),
+        Subsystem(
+            standard,
+            standard_subsystem.state,
+            (1, 2),
+            cut=SystemPartition(Direction.EFFECT, (1,), (2,)),
+        ),
         [1],
         [1, 2],
         np.array([0.25, 0.25, 0.25, 0.25]).reshape(1, 2, 2, order="F"),
     ),
     (
         "effect_repertoire",
-        Subsystem(standard, standard_subsystem.state, (1, 2), cut=Cut((1,), (2,))),
+        Subsystem(
+            standard,
+            standard_subsystem.state,
+            (1, 2),
+            cut=SystemPartition(Direction.EFFECT, (1,), (2,)),
+        ),
         [],
         [1],
         np.array([0.5, 0.5]).reshape(1, 2, 1, order="F"),
     ),
     (
         "effect_repertoire",
-        Subsystem(standard, standard_subsystem.state, (1, 2), cut=Cut((1,), (2,))),
+        Subsystem(
+            standard,
+            standard_subsystem.state,
+            (1, 2),
+            cut=SystemPartition(Direction.EFFECT, (1,), (2,)),
+        ),
         [1],
         [2],
         np.array([0.5, 0.5]).reshape(1, 1, 2, order="F"),

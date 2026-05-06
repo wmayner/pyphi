@@ -7,8 +7,9 @@ from pyphi import Direction
 from pyphi import Subsystem
 from pyphi import config
 from pyphi import exceptions
-from pyphi import models
+from pyphi import models  # used by other tests in this module
 from pyphi.labels import NodeLabels
+from pyphi.models import SystemPartition
 from pyphi.models.cuts import KPartition
 
 EPSILON = 10 ** (-config.PRECISION)
@@ -220,21 +221,21 @@ def test_general_eq_attribute_missing():
 
 
 def test_cut_equality():
-    cut1 = models.Cut((0,), (1,))
-    cut2 = models.Cut((0,), (1,))
+    cut1 = SystemPartition(Direction.EFFECT, (0,), (1,))
+    cut2 = SystemPartition(Direction.EFFECT, (0,), (1,))
     assert cut1 == cut2
     assert hash(cut1) == hash(cut2)
 
 
 def test_cut_splits_mechanism():
-    cut = models.Cut((0,), (1, 2))
+    cut = SystemPartition(Direction.EFFECT, (0,), (1, 2))
     assert cut.splits_mechanism((0, 1))
     assert not cut.splits_mechanism((0,))
     assert not cut.splits_mechanism((1, 2))
 
 
 def test_cut_splits_connections():
-    cut = models.Cut((0, 3), (1, 2))
+    cut = SystemPartition(Direction.EFFECT, (0, 3), (1, 2))
     assert cut.cuts_connections((0,), (1, 2))
     assert cut.cuts_connections((0, 3), (1,))
     assert not cut.cuts_connections((1, 2), (0,))
@@ -242,19 +243,19 @@ def test_cut_splits_connections():
 
 
 def test_cut_all_cut_mechanisms():
-    cut = models.Cut((0,), (1, 2))
+    cut = SystemPartition(Direction.EFFECT, (0,), (1, 2))
     assert list(cut.all_cut_mechanisms()) == [(0, 1), (0, 2), (0, 1, 2)]
 
-    cut = models.Cut((1,), (5,))
+    cut = SystemPartition(Direction.EFFECT, (1,), (5,))
     assert list(cut.all_cut_mechanisms()) == [(1, 5)]
 
 
 def test_cut_matrix():
-    cut = models.Cut((), (0,))
+    cut = SystemPartition(Direction.EFFECT, (), (0,))
     matrix = np.array([[0]])
     assert np.array_equal(cut.cut_matrix(1), matrix)
 
-    cut = models.Cut((0,), (1,))
+    cut = SystemPartition(Direction.EFFECT, (0,), (1,))
     matrix = np.array(
         [
             [0, 1],
@@ -263,7 +264,7 @@ def test_cut_matrix():
     )
     assert np.array_equal(cut.cut_matrix(2), matrix)
 
-    cut = models.Cut((0, 2), (1, 2))
+    cut = SystemPartition(Direction.EFFECT, (0, 2), (1, 2))
     matrix = np.array(
         [
             [0, 1, 1],
@@ -273,14 +274,14 @@ def test_cut_matrix():
     )
     assert np.array_equal(cut.cut_matrix(3), matrix)
 
-    cut = models.Cut((), ())
+    cut = SystemPartition(Direction.EFFECT, (), ())
     assert np.array_equal(cut.cut_matrix(0), np.ndarray(shape=(0, 0)))
 
 
 def test_cut_indices():
-    cut = models.Cut((0,), (1, 2))
+    cut = SystemPartition(Direction.EFFECT, (0,), (1, 2))
     assert cut.indices == (0, 1, 2)
-    cut = models.Cut((7,), (3, 1))
+    cut = SystemPartition(Direction.EFFECT, (7,), (3, 1))
     assert cut.indices == (1, 3, 7)
 
 
@@ -293,7 +294,7 @@ def test_apply_cut():
         [1, 0, 1, 0],
     ])
     # fmt: on
-    cut = models.Cut(from_nodes=(0, 3), to_nodes=(1, 2))
+    cut = SystemPartition(Direction.EFFECT, from_nodes=(0, 3), to_nodes=(1, 2))
     # fmt: off
     cut_cm = np.array([
         [1, 0, 0, 0],
@@ -306,7 +307,7 @@ def test_apply_cut():
 
 
 def test_cut_is_null():
-    cut = models.Cut((0,), (1, 2))
+    cut = SystemPartition(Direction.EFFECT, (0,), (1, 2))
     assert not cut.is_null
 
 
@@ -331,7 +332,7 @@ def test_null_cut_equality():
 
 def test_cuts_can_have_node_labels(node_labels):
     models.NullCut((0, 1), node_labels=node_labels)
-    models.Cut((0,), (1,), node_labels=node_labels)
+    SystemPartition(Direction.EFFECT, (0,), (1,), node_labels=node_labels)
 
     k_partition = models.KPartition(
         models.Part((0, 1), (0,)), models.Part((), (1,)), node_labels=node_labels
@@ -426,7 +427,7 @@ def test_relevant_connections(s, subsys_n1n2):
 
 def test_damaged(s):
     # Build cut subsystem from s
-    cut = models.Cut((0,), (1, 2))
+    cut = SystemPartition(Direction.EFFECT, (0,), (1, 2))
     cut_s = Subsystem(s.network, s.state, s.node_indices, cut=cut)
 
     # Cut splits mechanism:

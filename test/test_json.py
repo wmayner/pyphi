@@ -51,7 +51,7 @@ def test_json_deserialization(s, transition):
         models.Tripartition(
             models.Part((0,), ()), models.Part((1,), (2, 3)), models.Part((3,), (4,))
         ),
-        models.Cut((0,), (2,)),
+        models.SystemPartition(Direction.EFFECT, (0,), (2,)),
         models.NullCut((0, 1)),
         models.KCut(
             Direction.CAUSE,

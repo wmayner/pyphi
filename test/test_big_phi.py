@@ -235,33 +235,33 @@ def test_sia_macro_parallel(macro_s, macro_s_expected_sia):
 """def test_sia_bipartitions():
     with config.override(CUT_ONE_APPROXIMATION=False):
         answer = [
-            models.Cut((1,), (2, 3, 4)),
-            models.Cut((2,), (1, 3, 4)),
-            models.Cut((1, 2), (3, 4)),
-            models.Cut((3,), (1, 2, 4)),
-            models.Cut((1, 3), (2, 4)),
-            models.Cut((2, 3), (1, 4)),
-            models.Cut((1, 2, 3), (4,)),
-            models.Cut((4,), (1, 2, 3)),
-            models.Cut((1, 4), (2, 3)),
-            models.Cut((2, 4), (1, 3)),
-            models.Cut((1, 2, 4), (3,)),
-            models.Cut((3, 4), (1, 2)),
-            models.Cut((1, 3, 4), (2,)),
-            models.Cut((2, 3, 4), (1,)),
+            SystemPartition(Direction.EFFECT, (1,), (2, 3, 4)),
+            SystemPartition(Direction.EFFECT, (2,), (1, 3, 4)),
+            SystemPartition(Direction.EFFECT, (1, 2), (3, 4)),
+            SystemPartition(Direction.EFFECT, (3,), (1, 2, 4)),
+            SystemPartition(Direction.EFFECT, (1, 3), (2, 4)),
+            SystemPartition(Direction.EFFECT, (2, 3), (1, 4)),
+            SystemPartition(Direction.EFFECT, (1, 2, 3), (4,)),
+            SystemPartition(Direction.EFFECT, (4,), (1, 2, 3)),
+            SystemPartition(Direction.EFFECT, (1, 4), (2, 3)),
+            SystemPartition(Direction.EFFECT, (2, 4), (1, 3)),
+            SystemPartition(Direction.EFFECT, (1, 2, 4), (3,)),
+            SystemPartition(Direction.EFFECT, (3, 4), (1, 2)),
+            SystemPartition(Direction.EFFECT, (1, 3, 4), (2,)),
+            SystemPartition(Direction.EFFECT, (2, 3, 4), (1,)),
         ]
         assert compute.subsystem.sia_bipartitions((1, 2, 3, 4)) == answer
 
     with config.override(CUT_ONE_APPROXIMATION=True):
         answer = [
-            models.Cut((1,), (2, 3, 4)),
-            models.Cut((2,), (1, 3, 4)),
-            models.Cut((3,), (1, 2, 4)),
-            models.Cut((4,), (1, 2, 3)),
-            models.Cut((2, 3, 4), (1,)),
-            models.Cut((1, 3, 4), (2,)),
-            models.Cut((1, 2, 4), (3,)),
-            models.Cut((1, 2, 3), (4,)),
+            SystemPartition(Direction.EFFECT, (1,), (2, 3, 4)),
+            SystemPartition(Direction.EFFECT, (2,), (1, 3, 4)),
+            SystemPartition(Direction.EFFECT, (3,), (1, 2, 4)),
+            SystemPartition(Direction.EFFECT, (4,), (1, 2, 3)),
+            SystemPartition(Direction.EFFECT, (2, 3, 4), (1,)),
+            SystemPartition(Direction.EFFECT, (1, 3, 4), (2,)),
+            SystemPartition(Direction.EFFECT, (1, 2, 4), (3,)),
+            SystemPartition(Direction.EFFECT, (1, 2, 3), (4,)),
         ]
         assert compute.subsystem.sia_bipartitions((1, 2, 3, 4)) == answer
 """

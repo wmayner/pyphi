@@ -21,9 +21,9 @@ from pyphi.direction import Direction
 from pyphi.metrics.ces import ces_distance
 from pyphi.models import CauseEffectStructure
 from pyphi.models import Concept
-from pyphi.models import Cut
 from pyphi.models import KCut
 from pyphi.models import SystemIrreducibilityAnalysis
+from pyphi.models import SystemPartition
 from pyphi.models import _null_sia
 from pyphi.models import cmp
 from pyphi.parallel import MapReduce
@@ -138,7 +138,7 @@ def conceptual_info(subsystem: Subsystem, **kwargs: Any) -> float:
 
 
 def evaluate_cut(
-    cut: Cut,
+    cut: SystemPartition,
     uncut_subsystem: Subsystem,
     unpartitioned_ces: CauseEffectStructure,
     **kwargs: Any,
@@ -147,7 +147,7 @@ def evaluate_cut(
 
     Args:
         uncut_subsystem (Subsystem): The subsystem without the cut applied.
-        cut (Cut): The cut to evaluate.
+        cut (SystemPartition): The cut to evaluate.
         unpartitioned_ces (CauseEffectStructure): The cause-effect structure of
             the uncut subsystem.
 
@@ -186,7 +186,7 @@ def evaluate_cut(
 
 def sia_partitions(
     nodes: tuple[int, ...], node_labels: NodeLabels | None = None
-) -> list[Cut]:
+) -> list[SystemPartition]:
     """Return all |big_phi| cuts for the given nodes.
 
     Controlled by the :const:`config.SYSTEM_PARTITION_TYPE` option.
@@ -198,7 +198,7 @@ def sia_partitions(
         node_labels (NodeLabels): Enables printing the partition with labels.
 
     Returns:
-        list[Cut]: All unidirectional partitions.
+        list[SystemPartition]: All unidirectional partitions.
 
     """
     # TODO(4.0 consolidate 3.0 and 4.0 cuts)
@@ -224,7 +224,7 @@ def _ces(subsystem: Subsystem, **kwargs: Any) -> CauseEffectStructure:
 
 
 def _sia_map_reduce(
-    cuts: Iterable[Cut],
+    cuts: Iterable[SystemPartition],
     subsystem: Subsystem,
     unpartitioned_ces: CauseEffectStructure,
     **kwargs: Any,
@@ -318,7 +318,12 @@ def _sia(subsystem: Subsystem, **kwargs: Any) -> SystemIrreducibilityAnalysis:
     # Only True if SINGLE_MICRO_NODES...=True, no?
     if len(subsystem.cut_indices) == 1:
         cuts = [
-            Cut(subsystem.cut_indices, subsystem.cut_indices, subsystem.cut_node_labels)
+            SystemPartition(
+                Direction.EFFECT,
+                subsystem.cut_indices,
+                subsystem.cut_indices,
+                subsystem.cut_node_labels,
+            )
         ]
     else:
         cuts = sia_partitions(subsystem.cut_indices, subsystem.cut_node_labels)
@@ -355,7 +360,10 @@ class ConceptStyleSystem:
     """
 
     def __init__(
-        self, subsystem: Subsystem, direction: Direction, cut: Cut | None = None
+        self,
+        subsystem: Subsystem,
+        direction: Direction,
+        cut: SystemPartition | None = None,
     ) -> None:
         self.subsystem = subsystem
         self.direction = direction
@@ -365,7 +373,7 @@ class ConceptStyleSystem:
         else:
             self.cut_system = subsystem
 
-    def apply_cut(self, cut: Cut) -> ConceptStyleSystem:
+    def apply_cut(self, cut: SystemPartition) -> ConceptStyleSystem:
         return ConceptStyleSystem(self.subsystem, self.direction, cut)
 
     def __getattr__(self, name: str) -> Any:
@@ -446,7 +454,7 @@ def directional_sia(
     c_system = ConceptStyleSystem(subsystem, direction)
     cuts = concept_cuts(direction, c_system.cut_indices, subsystem.node_labels)
 
-    # Type ignore: ConceptStyleSystem duck-types as Subsystem, KCut as Cut
+    # Type ignore: ConceptStyleSystem duck-types as Subsystem, KCut as SystemPartition
     return _sia_map_reduce(cuts, c_system, unpartitioned_ces, **kwargs)  # type: ignore[arg-type]
 
 

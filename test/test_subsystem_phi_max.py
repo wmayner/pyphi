@@ -4,8 +4,8 @@ import pytest
 
 from pyphi import Direction
 from pyphi import Subsystem
-from pyphi.models import Cut
 from pyphi.models import MaximallyIrreducibleCauseOrEffect
+from pyphi.models import SystemPartition
 from pyphi.models import _null_ria
 from pyphi.utils import eq
 
@@ -16,7 +16,7 @@ from . import example_networks
 
 s = example_networks.s()
 directions = (Direction.CAUSE, Direction.EFFECT)
-cuts = (None, Cut((1, 2), (0,)))
+cuts = (None, SystemPartition(Direction.EFFECT, (1, 2), (0,)))
 subsystem = {cut: Subsystem(s.network, s.state, s.node_indices, cut=cut) for cut in cuts}
 
 expected_purview_indices = {

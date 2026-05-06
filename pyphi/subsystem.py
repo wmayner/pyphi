@@ -55,7 +55,7 @@ if TYPE_CHECKING:
     from .cache import DictCache
     from .labels import NodeLabels
     from .models.cuts import Bipartition
-    from .models.cuts import Cut
+    from .models.cuts import SystemPartition
     from .network import Network
     from .node import Node
 
@@ -74,7 +74,8 @@ class Subsystem:
             this subsystem. Nodes can be specified either as indices or as
             labels if the |Network| was passed ``node_labels``. If this is
             ``None`` then the full network will be used.
-        cut (Cut): The unidirectional |Cut| to apply to this subsystem.
+        cut (SystemPartition): The unidirectional |SystemPartition| to apply
+            to this subsystem.
 
     Attributes:
         network (Network): The network the subsystem belongs to.
@@ -85,8 +86,8 @@ class Subsystem:
         cm (np.ndarray): The connectivity matrix after applying the cut.
         state (tuple[int]): The state of the network.
         node_indices (tuple[int]): The indices of the nodes in the subsystem.
-        cut (Cut): The cut that has been applied to this subsystem. Defaults to
-            the null cut.
+        cut (SystemPartition): The cut that has been applied to this
+            subsystem. Defaults to the null cut.
     """
 
     def __init__(
@@ -94,7 +95,7 @@ class Subsystem:
         network: Network,
         state: State,
         nodes: NodeIndices | None = None,
-        cut: Cut | None = None,
+        cut: SystemPartition | None = None,
         # TODO(4.0): refactor repertoire caches
         repertoire_cache: DictCache | None = None,
         single_node_repertoire_cache: DictCache | None = None,
@@ -319,11 +320,11 @@ class Subsystem:
             "cut": self.cut,
         }
 
-    def apply_cut(self, cut: Cut) -> Subsystem:
+    def apply_cut(self, cut: SystemPartition) -> Subsystem:
         """Return a cut version of this |Subsystem|.
 
         Args:
-            cut (Cut): The cut to apply to this |Subsystem|.
+            cut (SystemPartition): The cut to apply to this |Subsystem|.
 
         Returns:
             Subsystem: The cut subsystem.

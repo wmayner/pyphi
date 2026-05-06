@@ -97,7 +97,7 @@ def _loadable_models():
         pyphi.models.CausalLink,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.CauseEffectStructure,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.Concept,  # pyright: ignore[reportAttributeAccessIssue]
-        pyphi.models.Cut,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.SystemPartition,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.cuts.GeneralKCut,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.cuts.GeneralSetPartition,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.KCut,  # pyright: ignore[reportAttributeAccessIssue]

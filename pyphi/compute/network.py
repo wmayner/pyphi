@@ -34,7 +34,7 @@ def reachable_subsystems(
     indices: tuple[int, ...],
     state: State,
     **kwargs: Any,
-) -> Generator[Subsystem, None, None]:
+) -> Generator[Subsystem]:
     """A generator over all subsystems in a valid state."""
     validate.is_network(network)
 
@@ -45,9 +45,7 @@ def reachable_subsystems(
             yield Subsystem(network, state, subset, **kwargs)
 
 
-def subsystems(
-    network: Network, state: State, **kwargs: Any
-) -> Generator[Subsystem, None, None]:
+def subsystems(network: Network, state: State, **kwargs: Any) -> Generator[Subsystem]:
     """Return a generator of all **possible** subsystems of a network.
 
     .. note::
@@ -67,7 +65,7 @@ def subsystems(
 
 def possible_complexes(
     network: Network, state: State, **kwargs: Any
-) -> Generator[Subsystem, None, None]:
+) -> Generator[Subsystem]:
     """Return a generator of subsystems of a network that could be a complex.
 
     This is the just powerset of the nodes that have at least one input and

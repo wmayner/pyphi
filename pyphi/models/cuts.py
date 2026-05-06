@@ -25,7 +25,7 @@ class _CutBase:
     """Base class for all unidirectional system cuts.
 
     Concrete cut classes must implement a ``cut_matrix`` method and an
-    ``indices`` property. See ``Cut`` for a concrete example.
+    ``indices`` property. See ``SystemPartition`` for a concrete example.
     """
 
     @property
@@ -137,41 +137,57 @@ class NullCut(_CutBase):
         return hash(self.indices)
 
 
-class Cut(_CutBase):
-    """Represents a unidirectional cut.
+class SystemPartition(_CutBase):
+    """A unidirectional system-level partition / cut.
+
+    Represents the severing of connections from ``from_nodes`` to ``to_nodes``
+    in a particular causal ``direction`` (CAUSE or EFFECT). For IIT 3.0 SIA
+    partitions, the direction was previously implicit; in 2.0 the formalism
+    layer always passes a direction explicitly.
+
+    Replaces the ``Cut`` class from earlier versions. Migration::
+
+        # before
+        Cut(from_nodes, to_nodes)
+        # after — IIT 3.0 callers default to EFFECT (no semantic change; the
+        # IIT 3.0 phi computation does not read the direction field)
+        SystemPartition(Direction.EFFECT, from_nodes, to_nodes)
 
     Attributes:
-        from_nodes (tuple[int]): Connections from this group of nodes to those
-            in ``to_nodes`` are from_nodes.
-        to_nodes (tuple[int]): Connections to this group of nodes from those in
-            ``from_nodes`` are from_nodes.
+        direction (Direction): The causal direction of the cut.
+        from_nodes (tuple[int]): Connections from these nodes to ``to_nodes``
+            are severed.
+        to_nodes (tuple[int]): Connections to these nodes from ``from_nodes``
+            are severed.
+        node_labels (NodeLabels | None): Optional labels for pretty-printing.
     """
 
-    # Don't construct an attribute dictionary; see
-    # https://docs.python.org/3.3/reference/datamodel.html#notes-on-using-slots
-    __slots__ = ("from_nodes", "node_labels", "to_nodes")
+    __slots__ = ("direction", "from_nodes", "node_labels", "to_nodes")
 
+    direction: Direction
     from_nodes: tuple[int, ...]
     to_nodes: tuple[int, ...]
     node_labels: NodeLabels | None
 
     def __init__(
         self,
+        direction: Direction,
         from_nodes: tuple[int, ...],
         to_nodes: tuple[int, ...],
         node_labels: NodeLabels | None = None,
     ) -> None:
+        self.direction = direction
         self.from_nodes = from_nodes
         self.to_nodes = to_nodes
         self.node_labels = node_labels
 
     @property
     def indices(self) -> tuple[int, ...]:
-        """Indices of this cut."""
+        """Indices of this partition."""
         return tuple(sorted(set(self.from_nodes + self.to_nodes)))
 
     def cut_matrix(self, n: int) -> NDArray[np.int_]:
-        """Compute the cut matrix for this cut.
+        """Compute the cut matrix for this partition.
 
         The cut matrix is a square matrix which represents connections severed
         by the cut.
@@ -180,8 +196,9 @@ class Cut(_CutBase):
            n (int): The size of the network.
 
         Example:
-            >>> cut = Cut((1,), (2,))
-            >>> cut.cut_matrix(3)
+            >>> from pyphi.direction import Direction
+            >>> sp = SystemPartition(Direction.EFFECT, (1,), (2,))
+            >>> sp.cut_matrix(3)
             array([[0, 0, 0],
                    [0, 0, 1],
                    [0, 0, 0]])
@@ -192,20 +209,23 @@ class Cut(_CutBase):
 
     @cmp.sametype
     def __eq__(self, other: object) -> bool:
-        return self.from_nodes == other.from_nodes and self.to_nodes == other.to_nodes  # type: ignore[attr-defined]
+        return (
+            self.direction == other.direction  # type: ignore[attr-defined]
+            and self.from_nodes == other.from_nodes  # type: ignore[attr-defined]
+            and self.to_nodes == other.to_nodes  # type: ignore[attr-defined]
+        )
 
     def __hash__(self) -> int:
-        return hash((self.from_nodes, self.to_nodes))
+        return hash((self.direction, self.from_nodes, self.to_nodes))
 
     def __repr__(self) -> str:
-        return fmt.make_repr(self, ["from_nodes", "to_nodes"])
+        return fmt.fmt_cut(self, direction=self.direction)
 
     def __str__(self) -> str:
-        return fmt.fmt_cut(self)
+        return fmt.fmt_cut(self, direction=self.direction)
 
     def __len__(self) -> int:
-        """The number of parts in the Cut."""
-        # TODO(4.0) generalize this when/if general Partition object is used
+        """The number of parts in the partition."""
         return 2
 
     def format(self, node_labels: NodeLabels | None = None) -> str:
@@ -213,39 +233,10 @@ class Cut(_CutBase):
 
     def to_json(self) -> dict[str, Any]:
         """Return a JSON-serializable representation."""
-        return {"from_nodes": self.from_nodes, "to_nodes": self.to_nodes}
-
-    @classmethod
-    def from_json(cls, data: dict[str, Any]) -> Cut:
-        """Return a Cut object from a JSON-serializable representation."""
-        return cls(data["from_nodes"], data["to_nodes"])
-
-
-class SystemPartition(Cut):
-    """A system partition.
-
-    Same as a IIT 3.0 unidirectional partition, but with a Direction.
-    """
-
-    direction: Direction
-
-    def __init__(
-        self,
-        direction: Direction,
-        from_nodes: tuple[int, ...],
-        to_nodes: tuple[int, ...],
-        node_labels: NodeLabels | None = None,
-    ) -> None:
-        self.direction = direction
-        super().__init__(from_nodes, to_nodes, node_labels)
-
-    def __repr__(self) -> str:
-        return fmt.fmt_cut(self, direction=self.direction)
-
-    def to_json(self) -> dict[str, Any]:
         return {
             "direction": self.direction,
-            **super().to_json(),
+            "from_nodes": self.from_nodes,
+            "to_nodes": self.to_nodes,
         }
 
     @classmethod
@@ -254,8 +245,20 @@ class SystemPartition(Cut):
         return cls(data["direction"], data["from_nodes"], data["to_nodes"])
 
 
-class CompleteSystemPartition:
-    """Represents the SystemPartition that destroys all distinctions & relations."""
+class CompleteSystemPartition(_CutBase):
+    """Represents the SystemPartition that destroys all distinctions & relations.
+
+    Inherits from :class:`_CutBase` (in 2.0 — previously stood alone, which
+    was inconsistent with the rest of the cut hierarchy).
+    """
+
+    @property
+    def indices(self) -> tuple[int, ...]:
+        return ()
+
+    def cut_matrix(self, n: int) -> NDArray[np.int_]:
+        """All connections severed."""
+        return np.ones((n, n), dtype=int)
 
     def __repr__(self) -> str:
         return "Complete"
@@ -459,9 +462,9 @@ class GeneralSetPartition(GeneralKCut):
         )
 
 
-class CompleteGeneralSetPartition(CompleteGeneralKCut):
-    def __str__(self) -> str:
-        return "Complete\n" + super().__str__()
+# ``CompleteGeneralSetPartition`` was a class adding only a ``"Complete\n"``
+# prefix to ``CompleteGeneralKCut.__str__``. It has been removed in 2.0;
+# callers can format with ``f"Complete\n{cgkcut}"`` if desired.
 
 
 @dataclass(order=True, frozen=True)

@@ -21,9 +21,7 @@ from .cache import cache
 
 
 # TODO(docs) finish documenting
-def pair_indices(
-    n: int, m: int | None = None, k: int = 0
-) -> Generator[tuple[int, int], None, None]:
+def pair_indices(n: int, m: int | None = None, k: int = 0) -> Generator[tuple[int, int]]:
     """Return indices of unordered pairs."""
     if m is None:
         m = n
@@ -34,7 +32,7 @@ def pair_indices(
 
 
 # TODO(docs) finish documenting
-def pairs(seq: Sequence, k: int = 0) -> Generator[tuple[Any, Any], None, None]:
+def pairs(seq: Sequence, k: int = 0) -> Generator[tuple[Any, Any]]:
     """Return unordered pairs of elements from a sequence.
 
     NOTE: This is *not* the Cartesian product.
@@ -280,7 +278,7 @@ def only_nonsubsets(sets: Iterable[set]) -> list[set]:
 
 
 # From stackoverflow.com/questions/19368375/set-partitions-in-python
-def _set_partitions(collection: Sequence[Any]) -> Generator[list[list[Any]], None, None]:
+def _set_partitions(collection: Sequence[Any]) -> Generator[list[list[Any]]]:
     collection = list(collection)
 
     # Special cases
@@ -300,7 +298,7 @@ def _set_partitions(collection: Sequence[Any]) -> Generator[list[list[Any]], Non
 
 def set_partitions(
     collection: Sequence[Any], nontrivial: bool = False
-) -> Generator[list[list[Any]], None, None] | itertools.islice[list[list[Any]]]:
+) -> Generator[list[list[Any]]] | itertools.islice[list[list[Any]]]:
     """Generate all set partitions of a collection.
 
     Example:

@@ -32,7 +32,6 @@ from pyphi.labels import NodeLabels
 from pyphi.metrics.distribution import DistanceResult
 from pyphi.models import cmp
 from pyphi.models import fmt
-from pyphi.models.cuts import Cut
 from pyphi.models.cuts import GeneralKCut
 from pyphi.models.cuts import NullCut
 from pyphi.models.cuts import SystemPartition
@@ -114,7 +113,7 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
     """
 
     phi: float | DistanceResult
-    partition: Cut | SystemPartition | NullCut
+    partition: SystemPartition | SystemPartition | NullCut
     normalized_phi: float = 0
     cause: RepertoireIrreducibilityAnalysis | None = None
     effect: RepertoireIrreducibilityAnalysis | None = None
@@ -348,7 +347,7 @@ class NullSystemIrreducibilityAnalysis(SystemIrreducibilityAnalysis):
         return columns
 
 
-def normalization_factor(partition: Cut | GeneralKCut) -> float:
+def normalization_factor(partition: SystemPartition | GeneralKCut) -> float:
     if hasattr(partition, "normalization_factor"):
         return partition.normalization_factor()  # pyright: ignore[reportAttributeAccessIssue]
     # For GeneralKCut, we need to check hasattr before accessing attributes
@@ -362,7 +361,7 @@ def _integration_value_for_state(
     direction: Direction,
     subsystem: Subsystem,
     cut_subsystem: Subsystem,
-    partition: Cut,
+    partition: SystemPartition,
     specified: StateSpecification,
     repertoire_distance: str,
 ) -> RepertoireIrreducibilityAnalysis:
@@ -386,7 +385,7 @@ def _integration_value_for_state(
         direction,
         subsystem.node_indices,
         subsystem.node_indices,
-        partition,  # pyright: ignore[reportArgumentType] - Cut passed to Bipartition param in IIT 4.0
+        partition,  # pyright: ignore[reportArgumentType] - SystemPartition passed to Bipartition param in IIT 4.0
         partitioned_repertoire=partitioned_repertoire,
         repertoire_distance=repertoire_distance,
         state=specified,
@@ -396,7 +395,7 @@ def _integration_value_for_state(
 def integration_value(
     direction: Direction,
     subsystem: Subsystem,
-    partition: Cut,
+    partition: SystemPartition,
     system_state: SystemStateSpecification,
     repertoire_distance: str | None = None,
 ) -> RepertoireIrreducibilityAnalysis:
@@ -425,7 +424,7 @@ def integration_value(
 def intrinsic_differentiation_value(
     direction: Direction,
     subsystem: Subsystem,
-    partition: Cut,
+    partition: SystemPartition,
 ) -> float:
     cut_subsystem = subsystem.apply_cut(partition)
     mechanism = purview = subsystem.node_indices
@@ -451,7 +450,7 @@ def intrinsic_differentiation_value(
 
 
 def evaluate_partition(
-    partition: Cut,
+    partition: SystemPartition,
     subsystem: Subsystem,
     system_state: SystemStateSpecification,
     repertoire_distance: str | None = None,

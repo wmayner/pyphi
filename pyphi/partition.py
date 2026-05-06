@@ -19,8 +19,6 @@ from .direction import Direction
 from .models.cuts import (
     Bipartition,
     CompleteGeneralKCut,
-    CompleteGeneralSetPartition,
-    Cut,
     GeneralKCut,
     GeneralSetPartition,
     KPartition,
@@ -660,17 +658,31 @@ class SystemPartitionRegistry(Registry):
 system_partition_types = SystemPartitionRegistry()
 
 
-# TODO(4.0) consolidate Cut and SystemPartition logic
+# TODO(4.0) consolidate SystemPartition and SystemPartition logic
 
 
 def _bipartitions_to_cuts(func):
-    """Decorator to return equivalent Cut objects from a set of bipartitions."""
+    """Decorator to return SystemPartition objects from a set of bipartitions.
+
+    The IIT 3.0 SIA uses unidirectional cuts where the causal direction is
+    not part of the math (the cut is symmetric in its effect on the
+    connectivity matrix). After the formalism split (P4) and the
+    Cut/SystemPartition consolidation (P6), every system partition carries
+    a ``Direction``; IIT 3.0 cuts default to ``Direction.EFFECT``. The
+    direction is unused by ``compute.subsystem.evaluate_cut`` for IIT 3.0,
+    so this default has no semantic effect on phi values.
+    """
 
     @functools.wraps(func)
     def wrapper(*args, node_labels=None, **kwargs):
         bipartitions = func(*args, **kwargs)
         return [
-            Cut(bipartition[0], bipartition[1], node_labels=node_labels)
+            SystemPartition(
+                Direction.EFFECT,
+                bipartition[0],
+                bipartition[1],
+                node_labels=node_labels,
+            )
             for bipartition in bipartitions
         ]
 
@@ -700,8 +712,12 @@ def system_bipartitions_simple(nodes, node_labels=None):
     partitions = []
     for n in range(1, len(nodes)):
         part1, part2 = nodes[:n], nodes[n:]
-        partitions.append(Cut(from_nodes=part1, to_nodes=part2, node_labels=node_labels))
-        partitions.append(Cut(from_nodes=part2, to_nodes=part1, node_labels=node_labels))
+        partitions.append(
+            SystemPartition(Direction.EFFECT, part1, part2, node_labels=node_labels)
+        )
+        partitions.append(
+            SystemPartition(Direction.EFFECT, part2, part1, node_labels=node_labels)
+        )
     return partitions
 
 
@@ -790,7 +806,7 @@ def general_bidirectional(node_indices, node_labels=None):
 def _unidirectional_set_partitions(node_indices, node_labels=None):
     """Generate all unidirectional set partitions of a set of nodes."""
     if len(node_indices) == 1 or config.SYSTEM_PARTITION_INCLUDE_COMPLETE:
-        yield CompleteGeneralSetPartition(node_indices, node_labels=node_labels)
+        yield CompleteGeneralKCut(node_indices, node_labels=node_labels)
     _node_indices = set(range(len(node_indices)))
     # Convert set to list for set_partitions which expects Sequence
     for partition in combinatorics.set_partitions(list(_node_indices), nontrivial=True):

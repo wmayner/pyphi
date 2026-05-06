@@ -5,10 +5,12 @@ import pyphi
 from pyphi import config
 from pyphi import convert
 from pyphi import macro
-from pyphi import models
+from pyphi import models  # noqa: F401  # used by other tests in this module
 from pyphi import timescale
 from pyphi.convert import state_by_node2state_by_state as sbn2sbs
 from pyphi.convert import state_by_state2state_by_node as sbs2sbn
+from pyphi.direction import Direction
+from pyphi.models import SystemPartition
 
 from .conftest import IIT_3_CONFIG
 
@@ -66,10 +68,10 @@ def test_cut_indices(macro_subsystem, s):
 
 
 def test_cut_mechanisms(macro_subsystem, propagation_delay):
-    cut = models.Cut((0,), (1, 2, 3))
+    cut = SystemPartition(Direction.EFFECT, (0,), (1, 2, 3))
     assert list(macro_subsystem.apply_cut(cut).cut_mechanisms) == [(0,), (0, 1)]
 
-    cut = models.Cut((1, 3), (0, 2, 4, 5, 6, 7))
+    cut = SystemPartition(Direction.EFFECT, (1, 3), (0, 2, 4, 5, 6, 7))
     assert list(propagation_delay.apply_cut(cut).cut_mechanisms) == [
         (1,),
         (2,),
@@ -133,7 +135,7 @@ def test_macro_subsystem(macro_subsystem):
 
 
 def test_macro_cut_subsystem(macro_subsystem):
-    cut = pyphi.models.Cut((0,), (1, 2, 3))
+    cut = SystemPartition(Direction.EFFECT, (0,), (1, 2, 3))
     cut_subsystem = macro_subsystem.apply_cut(cut)
     # fmt: off
     answer_tpm = np.array([

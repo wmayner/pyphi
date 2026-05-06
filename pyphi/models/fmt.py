@@ -711,7 +711,7 @@ def fmt_ria(ria: object, verbose: bool = True, mip: bool = False) -> str:
 
 
 def fmt_cut(cut: object, direction: object | None = None, name: bool = True) -> str:
-    """Format a |Cut|."""
+    """Format a |SystemPartition|."""
     try:
         if name:
             name_str = cut.__class__.__name__ + " "

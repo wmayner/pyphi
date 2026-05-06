@@ -13,7 +13,6 @@ import pytest
 from pyphi import config
 from pyphi import utils
 from pyphi.formalism.iit4 import SystemIrreducibilityAnalysis
-from pyphi.models.cuts import Cut
 from pyphi.models.cuts import NullCut
 from pyphi.models.cuts import SystemPartition
 
@@ -47,8 +46,8 @@ def compare_phi_values(
 
 
 def compare_partitions(
-    actual: Cut | SystemPartition | NullCut | None,
-    expected: Cut | SystemPartition | NullCut | None,
+    actual: SystemPartition | NullCut | None,
+    expected: SystemPartition | NullCut | None,
 ) -> tuple[bool, str]:
     """
     Compare two partition objects.

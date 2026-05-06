@@ -167,6 +167,7 @@ max-statements = 100
 # Allow certain rules in test files
 "test/**/*.py" = [
     "ARG001",  # Unused function arguments (fixtures)
+    "E501",    # Line too long (allow generous test data lines)
     "PLR0913", # Too many arguments (test parametrization)
     "PLR2004", # Magic values (test data)
     "S101",    # Use of assert (standard in pytest)

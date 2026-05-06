@@ -405,7 +405,7 @@ class MacroSubsystem(Subsystem):
         """Return a cut version of this |MacroSubsystem|.
 
         Args:
-            cut (Cut): The cut to apply to this |MacroSubsystem|.
+            cut (SystemPartition): The cut to apply to this |MacroSubsystem|.
 
         Returns:
             MacroSubsystem: The cut version of this |MacroSubsystem|.

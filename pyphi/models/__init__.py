@@ -13,7 +13,6 @@ Attributes:
     CauseEffectStructure: Alias for
         :class:`pyphi.models.subsystem.CauseEffectStructure`.
     Concept: Alias for :class:`pyphi.models.mechanism.Concept`.
-    Cut: Alias for :class:`pyphi.models.cuts.Cut`.
     DirectedAccount: Alias for
         :class:`pyphi.models.actual_causation.DirectedAccount`.
     MaximallyIrreducibleCause: Alias for
@@ -39,11 +38,11 @@ from .actual_causation import _null_ac_ria
 from .actual_causation import _null_ac_sia
 from .cuts import ActualCut
 from .cuts import Bipartition
-from .cuts import Cut
 from .cuts import KCut
 from .cuts import KPartition
 from .cuts import NullCut
 from .cuts import Part
+from .cuts import SystemPartition
 from .cuts import Tripartition
 from .mechanism import Concept
 from .mechanism import MaximallyIrreducibleCause
@@ -64,7 +63,6 @@ __all__ = [
     "CausalLink",
     "CauseEffectStructure",
     "Concept",
-    "Cut",
     "DirectedAccount",
     "Event",
     "KCut",
@@ -76,6 +74,7 @@ __all__ = [
     "Part",
     "RepertoireIrreducibilityAnalysis",
     "SystemIrreducibilityAnalysis",
+    "SystemPartition",
     "Tripartition",
     "_null_ac_ria",
     "_null_ac_sia",

@@ -6,8 +6,9 @@ from pyphi import Network
 from pyphi import compute
 from pyphi import config
 from pyphi import macro
-from pyphi import models
 from pyphi import utils
+from pyphi.direction import Direction
+from pyphi.models import SystemPartition
 
 
 # TODO: move these to examples.py
@@ -134,7 +135,9 @@ def test_basic_nor_or():
         sia = compute.subsystem.sia(sub)
 
     assert sia.phi == 1.958332
-    assert sia.cut == models.Cut((6,), (0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11))
+    assert sia.cut == SystemPartition(
+        Direction.EFFECT, (6,), (0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11)
+    )
     # After performing the 'ONE_CUT_APPROXIMATION'
     # The cut disrupts half of the connection from A (OR) to C (XOR).
     # It is able to do this because A 'enters' C from two different locations
@@ -199,7 +202,7 @@ def test_xor_propogation_delay():
 
     sia = compute.subsystem.sia(subsys)
     assert sia.phi == 1.874999
-    assert sia.cut == models.Cut((0,), (1, 2, 3, 4, 5, 6, 7, 8))
+    assert sia.cut == SystemPartition(Direction.EFFECT, (0,), (1, 2, 3, 4, 5, 6, 7, 8))
 
 
 # TODO(wmayner) this test hangs on helicon
@@ -369,6 +372,6 @@ def test_basic_propagation_delay(s, propagation_delay):
     # TODO
     # sia = compute.subsystem.sia(propagation_delay)
     # assert sia.phi == 2.125
-    # assert sia.cut == models.Cut((0, 1, 2, 3, 4, 5, 6), (7,))
+    # assert sia.cut == SystemPartition(Direction.EFFECT, (0, 1, 2, 3, 4, 5, 6), (7,))
 
     assert np.array_equal(propagation_delay.cm, s.cm)
