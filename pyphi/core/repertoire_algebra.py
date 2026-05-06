@@ -20,14 +20,17 @@ from weakref import WeakValueDictionary
 import numpy as np
 
 from pyphi import distribution as _dist
+from pyphi import metrics as _metrics
 from pyphi import utils as _utils
 from pyphi import validate as _validate
 from pyphi.conf import config
 from pyphi.conf import fallback
 from pyphi.data_structures import FrozenMap
+from pyphi.data_structures import PyPhiFloat
 from pyphi.direction import Direction
 from pyphi.distribution import max_entropy_distribution
 from pyphi.distribution import repertoire_shape
+from pyphi.metrics.distribution import repertoire_distance as _repertoire_distance
 
 # One cache dict per memoized function name.
 _caches: dict[str, dict[tuple, Any]] = {}
@@ -463,31 +466,98 @@ def forward_probability(
 def cause_info(
     cs: Any, mechanism: tuple[int, ...], purview: tuple[int, ...], **kwargs: Any
 ) -> float:
-    return _legacy_subsystem(cs).cause_info(mechanism, purview, **kwargs)
+    """Cause information — distance between cause repertoire and unconstrained."""
+    return _repertoire_distance(
+        cause_repertoire(cs, mechanism, purview),
+        unconstrained_cause_repertoire(cs, purview),
+        direction=Direction.CAUSE,
+        **kwargs,
+    )
 
 
 def effect_info(
     cs: Any, mechanism: tuple[int, ...], purview: tuple[int, ...], **kwargs: Any
 ) -> float:
-    return _legacy_subsystem(cs).effect_info(mechanism, purview, **kwargs)
+    """Effect information — distance between effect repertoire and unconstrained."""
+    return _repertoire_distance(
+        effect_repertoire(cs, mechanism, purview),
+        unconstrained_effect_repertoire(cs, purview),
+        direction=Direction.EFFECT,
+        **kwargs,
+    )
 
 
 def cause_effect_info(
     cs: Any, mechanism: tuple[int, ...], purview: tuple[int, ...], **kwargs: Any
 ) -> float:
-    return _legacy_subsystem(cs).cause_effect_info(mechanism, purview, **kwargs)
+    """Cause-effect information — minimum of cause and effect information."""
+    return min(
+        cause_info(cs, mechanism, purview, **kwargs),
+        effect_info(cs, mechanism, purview, **kwargs),
+    )
 
 
 def intrinsic_information(
     cs: Any,
-    direction: Any,
+    direction: Direction,
     mechanism: tuple[int, ...],
     purview: tuple[int, ...],
-    **kwargs: Any,
+    repertoire_distance: str | None = None,
+    states: Any | None = None,
 ) -> Any:
-    return _legacy_subsystem(cs).intrinsic_information(
-        direction, mechanism, purview, **kwargs
+    """Compute intrinsic information and the maximally specified state."""
+    from pyphi.models.mechanism import StateSpecification
+
+    repertoire_distance = fallback(
+        repertoire_distance,
+        config.REPERTOIRE_DISTANCE_SPECIFICATION,  # pyright: ignore[reportAttributeAccessIssue]
     )
+    if states is None:
+        states = _utils.all_states(len(purview))
+
+    if repertoire_distance in [
+        "GENERALIZED_INTRINSIC_DIFFERENCE",
+        "INTRINSIC_INFORMATION",
+        "INTRINSIC_SPECIFICATION",
+    ]:
+        func = _metrics.distribution.measures[repertoire_distance]
+        selectivity_repertoire = repertoire(cs, direction, mechanism, purview)
+        rep = forward_repertoire(cs, direction, mechanism, purview, None)
+        unconstrained_rep = unconstrained_forward_repertoire(
+            cs, direction, mechanism, purview
+        )
+        dist = func(rep, unconstrained_rep, selectivity_repertoire)
+        assert not isinstance(dist, (int, float)), (
+            "Distance metrics should return array when state is None"
+        )
+        dist = dist.squeeze()
+
+        def evaluate_state(state: Any) -> float:
+            return float(dist[state])
+    else:
+        rep = repertoire(cs, direction, mechanism, purview)
+        unconstrained_rep = unconstrained_repertoire(cs, direction, purview)
+
+        def evaluate_state(state: Any) -> float:
+            return _repertoire_distance(rep, unconstrained_rep, state=state)
+
+    state_to_information = {state: evaluate_state(state) for state in states}
+    max_information = max(state_to_information.values())
+    ties = [
+        StateSpecification(
+            direction=direction,
+            purview=purview,
+            state=state,
+            intrinsic_information=PyPhiFloat(information),
+            repertoire=rep,
+            unconstrained_repertoire=unconstrained_rep,
+        )
+        for state, information in state_to_information.items()
+        if information == max_information
+    ]
+    for tie in ties:
+        tie.set_ties(ties)
+    return ties[0]
 
 
 # ---- mechanism / system analysis ----
