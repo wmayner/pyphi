@@ -1,7 +1,7 @@
 {
   "fixture_name": "logistic3_k8_iit4_2023",
   "schema_version": 1,
-  "generated_from_commit": "2b318b81d848d9c7f838fb4ef4f0a7b79eb6fabc",
+  "generated_from_commit": "023a359b082dcb825beaa323c150090d51f454dd",
   "description": "3-node logistic network (sigmoid activation, k=8, weights 0.3) in state (0,0,0). IIT 4.0 (2023). Companion to logistic3_k8_iit4_2026 \u2014 together they exercise the partial ii(s) cap activation regime.",
   "config_overrides": {
     "FORMALISM": "IIT_4_0_2023",
@@ -4348,6 +4348,7 @@
   ],
   "sia": {
     "phi": 0.03661738126586076,
+    "signed_phi": 0.03661738126586076,
     "partition": [
       [
         "2 parts: {n0,n1n2}\n[[0 1 1]\n [0 0 0]\n [0 0 0]]"

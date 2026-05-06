@@ -1,7 +1,7 @@
 {
   "fixture_name": "basic_iit3_emd_tri",
   "schema_version": 1,
-  "generated_from_commit": "2b318b81d848d9c7f838fb4ef4f0a7b79eb6fabc",
+  "generated_from_commit": "023a359b082dcb825beaa323c150090d51f454dd",
   "description": "basic_network IIT 3.0 + EMD with PARTITION_TYPE=TRI (tripartitions). Different combinatorial path than BI; supports the partition-algebra consolidation in P6.",
   "config_overrides": {
     "FORMALISM": "IIT_3_0",

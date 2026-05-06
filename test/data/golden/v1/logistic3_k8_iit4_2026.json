@@ -1,7 +1,7 @@
 {
   "fixture_name": "logistic3_k8_iit4_2026",
   "schema_version": 1,
-  "generated_from_commit": "2b318b81d848d9c7f838fb4ef4f0a7b79eb6fabc",
+  "generated_from_commit": "023a359b082dcb825beaa323c150090d51f454dd",
   "description": "3-node logistic network (sigmoid activation, k=8, weights 0.3) in state (0,0,0). IIT 4.0 (2026). The 2026 ii(s) cap activates *partially* here: phi_2023 ~ 0.037, phi_2026 ~ 0.003 \u2014 neither no-op nor full collapse. This is the regime that exercises the cap's min() logic at a non-edge point.",
   "config_overrides": {
     "FORMALISM": "IIT_4_0_2026",
@@ -4348,6 +4348,7 @@
   ],
   "sia": {
     "phi": 0.0032300813135736992,
+    "signed_phi": 0.0032300813135736992,
     "partition": [
       [
         "3 parts: {n0,n1,n2}\n[[0 1 1]\n [1 0 1]\n [1 1 0]]"

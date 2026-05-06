@@ -1,7 +1,7 @@
 {
   "fixture_name": "basic_iit3_emd",
   "schema_version": 1,
-  "generated_from_commit": "2b318b81d848d9c7f838fb4ef4f0a7b79eb6fabc",
+  "generated_from_commit": "023a359b082dcb825beaa323c150090d51f454dd",
   "description": "Basic 3-node network (Marshall et al. 2023 Fig. 1 reference). IIT 3.0 (Oizumi et al. 2014) + EMD + BI partitions.",
   "config_overrides": {
     "FORMALISM": "IIT_3_0",

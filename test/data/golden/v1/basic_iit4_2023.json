@@ -1,7 +1,7 @@
 {
   "fixture_name": "basic_iit4_2023",
   "schema_version": 1,
-  "generated_from_commit": "2b318b81d848d9c7f838fb4ef4f0a7b79eb6fabc",
+  "generated_from_commit": "023a359b082dcb825beaa323c150090d51f454dd",
   "description": "Basic 3-node network (Marshall et al. 2023 Fig. 1 reference). IIT 4.0 (Albantakis et al. 2023) + GID.",
   "config_overrides": {
     "FORMALISM": "IIT_4_0_2023",
@@ -4747,6 +4747,7 @@
   ],
   "sia": {
     "phi": 0.41503749927884376,
+    "signed_phi": 0.41503749927884376,
     "partition": [
       [
         "2 parts: {A,BC}\n[[0 0 0]\n [1 0 0]\n [1 0 0]]"

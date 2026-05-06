@@ -427,6 +427,46 @@ class TestPartitionCounts:
 # ============================================================================
 
 
+class TestSignedPhi:
+    """Invariants on the |·|+ clamp applied to system-level phi.
+
+    ``SystemIrreducibilityAnalysis.phi`` is the paper-faithful clamped
+    value (always ≥ 0); ``signed_phi`` is the raw value before the clamp.
+    The contract is ``phi == max(0, signed_phi)``.
+    """
+
+    @settings(
+        max_examples=10,
+        deadline=None,
+        suppress_health_check=[
+            HealthCheck.too_slow,
+            HealthCheck.function_scoped_fixture,
+            HealthCheck.data_too_large,
+        ],
+    )
+    @given(data=st.data())
+    def test_phi_is_positive_part_of_signed_phi(self, data):
+        """``phi == max(0, signed_phi)`` for any computed SIA."""
+        s = data.draw(small_subsystem())
+        try:
+            sia = s.sia()
+        except Exception:
+            assume(False)
+            return
+
+        assume(sia is not None)
+        assume(getattr(sia, "phi", None) is not None)
+        assume(getattr(sia, "signed_phi", None) is not None)
+
+        phi = float(sia.phi)
+        signed_phi = float(sia.signed_phi)
+
+        assert phi >= -1e-12, f"phi {phi} is negative — |·|+ clamp not applied"
+        assert math.isclose(phi, max(0.0, signed_phi), abs_tol=1e-10), (
+            f"phi ({phi}) != max(0, signed_phi={signed_phi})"
+        )
+
+
 class TestStateSpace:
     """Sanity invariants on TPM and state-space construction."""
 

@@ -192,6 +192,12 @@ def _compute_sia(subsystem: Subsystem, stash: Any, iit_version: float) -> dict[s
         "phi": float(sia.phi) if sia.phi is not None else None,
     }
 
+    # ``signed_phi`` is the IIT 4.0 SIA's pre-clamp value; for systems where
+    # PyPhi computes negative integration ("preventative cause"), this
+    # differs from ``phi``. IIT 3.0 SIA doesn't expose it.
+    if hasattr(sia, "signed_phi") and sia.signed_phi is not None:
+        out["signed_phi"] = float(sia.signed_phi)
+
     # IIT 3.0 has known non-deterministic tie-breaking on the SIA cut
     # (multiple cuts can tie at the minimum phi; the picked one varies across
     # runs due to dict/set iteration order). Same root cause as the slow-lane

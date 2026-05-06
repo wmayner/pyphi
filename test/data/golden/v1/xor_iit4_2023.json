@@ -1,7 +1,7 @@
 {
   "fixture_name": "xor_iit4_2023",
   "schema_version": 1,
-  "generated_from_commit": "2b318b81d848d9c7f838fb4ef4f0a7b79eb6fabc",
+  "generated_from_commit": "023a359b082dcb825beaa323c150090d51f454dd",
   "description": "XOR 3-node network. Symmetric, deterministic. IIT 4.0 (Albantakis et al. 2023) + GID.",
   "config_overrides": {
     "FORMALISM": "IIT_4_0_2023",
@@ -4867,6 +4867,7 @@
   ],
   "sia": {
     "phi": 1.5,
+    "signed_phi": 1.5,
     "partition": [
       [
         "3 parts: {A,B,C}\n[[0 1 1]\n [1 0 1]\n [1 1 0]]"

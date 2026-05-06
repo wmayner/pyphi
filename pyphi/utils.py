@@ -47,9 +47,7 @@ def state_of_subsystem_nodes(
     return state_of(tuple(node_indices.index(n) for n in nodes), subsystem_state)
 
 
-def all_states(
-    n: int, big_endian: bool = False
-) -> Generator[tuple[int, ...], None, None]:
+def all_states(n: int, big_endian: bool = False) -> Generator[tuple[int, ...]]:
     """Return all binary states for a system.
 
     Args:
@@ -85,7 +83,7 @@ def np_hash(a: np.ndarray | None) -> int:
     # Fortran)
     a = np.ascontiguousarray(a)
     # Compute the digest and return a decimal int
-    return int(hashlib.sha1(a.view(a.dtype)).hexdigest(), 16)
+    return int(hashlib.sha1(a.view(a.dtype)).hexdigest(), 16)  # pyright: ignore[reportOptionalMemberAccess]
 
 
 class np_hashable:
@@ -131,6 +129,18 @@ def is_nonpositive(x: float) -> bool:
 def is_falsy(x: object) -> bool:
     """Return True if x is a falsy value."""
     return not x
+
+
+def positive_part(x: float) -> float:
+    """Return ``max(0, x)``.
+
+    The ``|·|+`` operator from Eqs. 19-20 of the IIT 4.0 paper. Used to clamp
+    integration values that would otherwise be negative under PyPhi's
+    signed-phi semantics; the clamped value is the paper-faithful φ, with
+    the raw signed value retained as metadata for "preventative cause"
+    visibility.
+    """
+    return max(0.0, float(x))
 
 
 # see http://stackoverflow.com/questions/16003217
@@ -385,8 +395,8 @@ def all_same(comparison: Callable, seq: Generator | list) -> bool:
 
 
 # Compare equality up to precision
-all_are_equal = all_same(eq)
-all_are_identical = all_same(operator.is_)
+all_are_equal = all_same(eq)  # pyright: ignore[reportCallIssue]
+all_are_identical = all_same(operator.is_)  # pyright: ignore[reportCallIssue]
 
 
 NO_DEFAULT = object()
@@ -428,11 +438,11 @@ def all_extrema(
     return extrema
 
 
-all_minima = all_extrema(operator.lt)
-all_maxima = all_extrema(operator.gt)
+all_minima = all_extrema(operator.lt)  # pyright: ignore[reportCallIssue]
+all_maxima = all_extrema(operator.gt)  # pyright: ignore[reportCallIssue]
 
 
-def iter_with_default(seq: Iterable[Any], default: object) -> Generator[Any, None, None]:
+def iter_with_default(seq: Iterable[Any], default: object) -> Generator[Any]:
     """Iterate over ``seq``, yielding ``default`` if ``seq`` is empty."""
     yielded = False
     for item in seq:

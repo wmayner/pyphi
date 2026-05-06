@@ -102,6 +102,17 @@ def system_intrinsic_information(
 
 @dataclass
 class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
+    """System-level integrated information.
+
+    ``phi`` is the paper-faithful, non-negative integrated information value
+    (Eqs. 19-20 with the ``|·|+`` operator applied). ``signed_phi`` is the
+    raw value before clamping — when negative, it indicates "preventative
+    cause" structure that would otherwise be invisible. Constructors pass
+    the *signed* value as ``phi``; ``__post_init__`` clamps it and stores
+    the raw value in ``signed_phi``. ``normalized_phi`` and
+    ``signed_normalized_phi`` follow the same pattern.
+    """
+
     phi: float | DistanceResult
     partition: Cut | SystemPartition | NullCut
     normalized_phi: float = 0
@@ -113,12 +124,36 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
     node_labels: NodeLabels | None = None
     intrinsic_differentiation: dict | None = None
     reasons: list | None = None
+    signed_phi: float | DistanceResult | None = None
+    signed_normalized_phi: float | DistanceResult | None = None
 
     def __post_init__(self):
+        # Snapshot the raw signed values *before* clamping.
+        if self.signed_phi is None:
+            self.signed_phi = self.phi
+        if self.signed_normalized_phi is None:
+            self.signed_normalized_phi = self.normalized_phi
+        # Apply the |·|+ operator to surface the paper-faithful value.
+        clamped_phi = utils.positive_part(self.signed_phi)
+        clamped_normalized = utils.positive_part(self.signed_normalized_phi)
         if not isinstance(self.phi, DistanceResult):
-            self.phi = PyPhiFloat(self.phi)
+            self.phi = PyPhiFloat(clamped_phi)
+        else:
+            # Preserve metadata-bearing DistanceResult while clamping the
+            # numeric value. PyPhi's metric machinery never produces a
+            # DistanceResult with negative signed phi today, but the
+            # contract is explicit.
+            self.phi = type(self.phi)(clamped_phi, **self.phi._public_aux_data())
         if not isinstance(self.normalized_phi, DistanceResult):
-            self.normalized_phi = PyPhiFloat(self.normalized_phi)
+            self.normalized_phi = PyPhiFloat(clamped_normalized)
+        else:
+            self.normalized_phi = type(self.normalized_phi)(
+                clamped_normalized, **self.normalized_phi._public_aux_data()
+            )
+        if not isinstance(self.signed_phi, DistanceResult):
+            self.signed_phi = PyPhiFloat(self.signed_phi)
+        if not isinstance(self.signed_normalized_phi, DistanceResult):
+            self.signed_normalized_phi = PyPhiFloat(self.signed_normalized_phi)
         if self.intrinsic_differentiation is None:
             self.intrinsic_differentiation = {
                 Direction.CAUSE: PyPhiFloat(0),
@@ -129,6 +164,8 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
         "phi",
         "partition",
         "normalized_phi",
+        "signed_phi",
+        "signed_normalized_phi",
         "cause",
         "effect",
         "system_state",
@@ -458,11 +495,13 @@ def evaluate_partition(
     phi = min(integration[direction].phi for direction in directions)
 
     # Eq. 23: φ_s(s) = min{φ_c(s), φ_e(s), ii(s)}
-    # where ii(s) = min_d{min(i_diff_d, i_spec_d)}
+    # where ii(s) = min_d{min(i_diff_d, i_spec_d)}.
+    # Clamp the components via the |·|+ operator (Eqs. 19-20) before
+    # taking the min — keeps the cap aligned with paper-faithful φ.
     if effective_distance == "INTRINSIC_INFORMATION":
         for direction in directions:
-            i_spec = float(system_state[direction].intrinsic_information)
-            i_diff = float(intrinsic_differentiation[direction])
+            i_spec = utils.positive_part(system_state[direction].intrinsic_information)
+            i_diff = utils.positive_part(intrinsic_differentiation[direction])
             phi = min(phi, i_spec, i_diff)
 
     norm = normalization_factor(partition)

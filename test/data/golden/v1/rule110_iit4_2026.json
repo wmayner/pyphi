@@ -1,7 +1,7 @@
 {
   "fixture_name": "rule110_iit4_2026",
   "schema_version": 1,
-  "generated_from_commit": "2b318b81d848d9c7f838fb4ef4f0a7b79eb6fabc",
+  "generated_from_commit": "023a359b082dcb825beaa323c150090d51f454dd",
   "description": "Rule 110 cellular automaton, 3-node window. IIT 4.0 (Mayner, Marshall, Tononi 2026) \u2014 adds ii(s) = min(i_diff, i_spec) cap via INTRINSIC_INFORMATION mode.",
   "config_overrides": {
     "FORMALISM": "IIT_4_0_2026",
@@ -4443,6 +4443,7 @@
   ],
   "sia": {
     "phi": 0.0,
+    "signed_phi": 0.0,
     "partition": [
       [
         "2 parts: {A,BC}\n[[0 1 1]\n [1 0 0]\n [1 0 0]]"

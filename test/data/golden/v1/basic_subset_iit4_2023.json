@@ -1,7 +1,7 @@
 {
   "fixture_name": "basic_subset_iit4_2023",
   "schema_version": 1,
-  "generated_from_commit": "2b318b81d848d9c7f838fb4ef4f0a7b79eb6fabc",
+  "generated_from_commit": "023a359b082dcb825beaa323c150090d51f454dd",
   "description": "basic_network with subsystem = nodes (1, 2) only (strict subset of the 3-node network). Exercises the subsystem-shaped repertoire path that the actual.py audit found buggy. Critical for P7's subsystem rewrite.",
   "config_overrides": {
     "FORMALISM": "IIT_4_0_2023",
@@ -839,6 +839,7 @@
   ],
   "sia": {
     "phi": 2.0,
+    "signed_phi": 2.0,
     "partition": [
       [
         "2 parts: {B,C}\n[[0 1]\n [1 0]]"
