@@ -742,20 +742,103 @@ def phi(
     )
 
 
-def find_mice(cs: Any, direction: Any, mechanism: tuple[int, ...], **kwargs: Any) -> Any:
-    return _legacy_subsystem(cs).find_mice(direction, mechanism, **kwargs)
+def potential_purviews(
+    cs: Any,
+    direction: Direction,
+    mechanism: tuple[int, ...],
+    purviews: Any | None = None,
+) -> list[tuple[int, ...]]:
+    """Return all purviews that could belong to the |MIC|/|MIE|.
+
+    Filters out trivially-reducible purviews against the (possibly cut)
+    connectivity matrix of this candidate system.
+    """
+    from pyphi.network import irreducible_purviews
+
+    _potential_purviews = set(cs.network.potential_purviews(direction, mechanism))
+    if purviews is None:
+        purviews_set = _potential_purviews
+    else:
+        purviews_set = _potential_purviews & set(purviews)
+    purviews_list = [
+        purview for purview in purviews_set if set(purview).issubset(cs.node_indices)
+    ]
+    return irreducible_purviews(cs.cm, direction, mechanism, purviews_list)
+
+
+def find_mice(
+    cs: Any,
+    direction: Direction,
+    mechanism: tuple[int, ...],
+    purviews: Any | None = None,
+    **kwargs: Any,
+) -> Any:
+    """Return the |MIC| or |MIE| for a mechanism."""
+    from pyphi import conf as _conf
+    from pyphi import resolve_ties
+    from pyphi.models import MaximallyIrreducibleCause
+    from pyphi.models import MaximallyIrreducibleEffect
+    from pyphi.models import _null_ria
+    from pyphi.models.mechanism import ShortCircuitConditions
+    from pyphi.parallel import MapReduce
+
+    purviews_list = potential_purviews(cs, direction, mechanism, purviews)
+
+    if direction == Direction.CAUSE:
+        mice_class = MaximallyIrreducibleCause
+    elif direction == Direction.EFFECT:
+        mice_class = MaximallyIrreducibleEffect
+    else:
+        _validate.direction(direction)
+        mice_class = MaximallyIrreducibleCause  # unreachable
+
+    no_purviews = mice_class(
+        _null_ria(
+            direction,
+            mechanism,
+            (),
+            reasons=(ShortCircuitConditions.NO_PURVIEWS,),
+        )
+    )
+
+    if not purviews_list:
+        return no_purviews
+
+    def _find_mip(purview: tuple[int, ...]) -> Any:
+        return find_mip(cs, direction, mechanism, purview)
+
+    parallel_kwargs = _conf.parallel_kwargs(
+        dict(config.PARALLEL_PURVIEW_EVALUATION),  # pyright: ignore[reportAttributeAccessIssue]
+        **kwargs,
+    )
+    map_reduce = MapReduce(
+        _find_mip,
+        purviews_list,
+        total=len(purviews_list),
+        desc="Evaluating purviews",
+        **parallel_kwargs,
+    )
+
+    all_mice = map(mice_class, map_reduce.run())  # type: ignore[arg-type]
+    ties = tuple(resolve_ties.purviews(all_mice, default=no_purviews))  # type: ignore[arg-type]
+    for tie in ties:
+        tie.set_purview_ties(ties)
+    return ties[0]
 
 
 def mic(cs: Any, mechanism: tuple[int, ...], **kwargs: Any) -> Any:
-    return _legacy_subsystem(cs).mic(mechanism, **kwargs)
+    """Maximally-irreducible cause — alias for find_mice with CAUSE direction."""
+    return find_mice(cs, Direction.CAUSE, mechanism, **kwargs)
 
 
 def mie(cs: Any, mechanism: tuple[int, ...], **kwargs: Any) -> Any:
-    return _legacy_subsystem(cs).mie(mechanism, **kwargs)
+    """Maximally-irreducible effect — alias for find_mice with EFFECT direction."""
+    return find_mice(cs, Direction.EFFECT, mechanism, **kwargs)
 
 
 def phi_max(cs: Any, mechanism: tuple[int, ...]) -> float:
-    return _legacy_subsystem(cs).phi_max(mechanism)
+    """Return |small_phi_max| — minimum of the MIC and MIE phi values."""
+    return min(mic(cs, mechanism).phi, mie(cs, mechanism).phi)
 
 
 def concept(cs: Any, mechanism: tuple[int, ...], **kwargs: Any) -> Any:
@@ -774,11 +857,8 @@ def sia(cs: Any, **kwargs: Any) -> Any:
     return _legacy_subsystem(cs).sia(**kwargs)
 
 
-def potential_purviews(
-    cs: Any, direction: Any, mechanism: tuple[int, ...], **kwargs: Any
-) -> Any:
-    return _legacy_subsystem(cs).potential_purviews(direction, mechanism, **kwargs)
-
-
 def indices2nodes(cs: Any, indices: tuple[int, ...]) -> Any:
-    return _legacy_subsystem(cs).indices2nodes(indices)
+    """Return |Nodes| for these indices."""
+    if set(indices) - set(cs.node_indices):
+        raise ValueError("`indices` must be a subset of the Subsystem's indices.")
+    return tuple(cs._index2node[n] for n in indices)
