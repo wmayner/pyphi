@@ -65,6 +65,9 @@ class CandidateSystem:
     def __hash__(self) -> int:
         return hash((self.causal_model, self.state, self.node_indices, self.cut))
 
+    def __len__(self) -> int:
+        return len(self.node_indices)
+
     def apply_cut(self, cut: SystemPartition) -> CandidateSystem:
         """Return a new CandidateSystem with the given cut applied.
 
@@ -76,6 +79,30 @@ class CandidateSystem:
         from dataclasses import replace
 
         return replace(self, cut=cut)
+
+    @classmethod
+    def from_network(
+        cls,
+        network: Any,
+        state: Any,
+        nodes: Any | None = None,
+        cut: SystemPartition | None = None,
+        **kwargs: Any,  # noqa: ARG003
+    ) -> CandidateSystem:
+        """Build a CandidateSystem from a legacy Network.
+
+        Migration helper that mirrors ``Subsystem(network, state, nodes, cut=...)``
+        construction.
+        """
+        causal_model = CausalModel.from_network(network)
+        if nodes is None:
+            nodes = tuple(range(network.size))
+        return cls(
+            causal_model=causal_model,
+            state=tuple(state),
+            node_indices=tuple(nodes),
+            cut=cut,  # type: ignore[arg-type]
+        )
 
     # ---- cached cheap derived properties ----
 

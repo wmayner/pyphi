@@ -26,6 +26,7 @@ from pyphi import validate
 from pyphi.compute.network import reachable_subsystems
 from pyphi.conf import config
 from pyphi.conf import fallback
+from pyphi.core import CandidateSystem as Subsystem
 from pyphi.data_structures import PyPhiFloat
 from pyphi.direction import Direction
 from pyphi.labels import NodeLabels
@@ -44,7 +45,6 @@ from pyphi.partition import system_partitions
 from pyphi.relations import ConcreteRelations
 from pyphi.relations import Relations
 from pyphi.relations import relations as compute_relations
-from pyphi.subsystem import Subsystem
 from pyphi.warnings import warn_about_tie_serialization
 
 ##############################################################################
@@ -823,7 +823,9 @@ def phi_structure(
 
     # Compute distinctions if not provided
     if distinctions is None:
-        distinctions = compute.ces(subsystem, **ces_kwargs)
+        # P7: compute.ces still annotates legacy Subsystem; CandidateSystem
+        # exposes the same surface so this works at runtime.
+        distinctions = compute.ces(subsystem, **ces_kwargs)  # type: ignore[arg-type]
     # Filter out incongruent distinctions
     if sia.system_state is not None:
         distinctions = distinctions.resolve_congruence(sia.system_state)
@@ -843,7 +845,9 @@ def all_complexes(network, state, **kwargs):
     """Yield SIAs for all subsystems of the network."""
     # TODO(4.0) parallelize
     for subsystem in reachable_subsystems(network, network.node_indices, state):
-        yield sia(subsystem, **kwargs)
+        # P7: reachable_subsystems still yields legacy Subsystem; CandidateSystem
+        # alias accepts the same call shape via the proxy methods.
+        yield sia(subsystem, **kwargs)  # type: ignore[arg-type]
 
 
 def irreducible_complexes(network, state, complexes=None, **kwargs):
