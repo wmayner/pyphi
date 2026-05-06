@@ -274,10 +274,25 @@ def forward_cause_repertoire(
     mechanism: tuple[int, ...],
     purview: tuple[int, ...],
     purview_state: tuple[int, ...] | None = None,
+    mechanism_state: tuple[int, ...] | None = None,
 ) -> Any:
-    return _legacy_subsystem(cs).forward_cause_repertoire(
-        mechanism, purview, purview_state
-    )
+    """Forward cause repertoire — legacy ``_repertoire.forward_cause_repertoire``."""
+    if mechanism_state is None:
+        mechanism_state = _utils.state_of(mechanism, cs.state)
+    if purview:
+        result = np.empty([2] * len(purview))
+        if purview_state is None:
+            purview_states = _utils.all_states(len(purview))
+        else:
+            purview_states = [purview_state]
+    else:
+        result = np.array([1])
+        purview_states = [()]
+    for state in purview_states:
+        result[state] = forward_cause_probability(
+            cs, mechanism, purview, state, mechanism_state=mechanism_state
+        )
+    return result.reshape(repertoire_shape(cs.network.node_indices, purview))
 
 
 def forward_effect_repertoire(
@@ -286,34 +301,81 @@ def forward_effect_repertoire(
     purview: tuple[int, ...],
     **kwargs: Any,
 ) -> Any:
-    return _legacy_subsystem(cs).forward_effect_repertoire(mechanism, purview, **kwargs)
+    """Forward effect repertoire is identical to the effect repertoire."""
+    return effect_repertoire(cs, mechanism, purview, **kwargs)
 
 
 def forward_repertoire(
     cs: Any,
-    direction: Any,
+    direction: Direction,
     mechanism: tuple[int, ...],
     purview: tuple[int, ...],
     purview_state: tuple[int, ...] | None = None,
     **kwargs: Any,
 ) -> Any:
-    return _legacy_subsystem(cs).forward_repertoire(
-        direction, mechanism, purview, purview_state, **kwargs
+    if direction == Direction.CAUSE:
+        return forward_cause_repertoire(cs, mechanism, purview, purview_state)
+    if direction == Direction.EFFECT:
+        return forward_effect_repertoire(cs, mechanism, purview, **kwargs)
+    _validate.direction(direction)
+    raise AssertionError("unreachable")
+
+
+@_memoize
+def unconstrained_forward_effect_repertoire(
+    cs: Any, mechanism: tuple[int, ...], purview: tuple[int, ...]
+) -> Any:
+    """Unconstrained forward effect repertoire — average over all mechanism states."""
+    repertoires = np.stack(
+        [
+            forward_effect_repertoire(cs, mechanism, purview, mechanism_state=state)
+            for state in _utils.all_states(len(mechanism))
+        ]
     )
+    return repertoires.mean(axis=0)
 
 
-def unconstrained_forward_cause_repertoire(cs: Any, purview: tuple[int, ...]) -> Any:
-    return _legacy_subsystem(cs).unconstrained_forward_cause_repertoire(purview)
+@_memoize
+def unconstrained_forward_cause_repertoire(
+    cs: Any, mechanism: tuple[int, ...], purview: tuple[int, ...]
+) -> Any:
+    """Unconstrained forward cause repertoire — see Eq. 32 of the IIT 4.0 paper.
 
-
-def unconstrained_forward_effect_repertoire(cs: Any, purview: tuple[int, ...]) -> Any:
-    return _legacy_subsystem(cs).unconstrained_forward_effect_repertoire(purview)
+    Since ``m`` is fixed and we average over ``Z``, the per-state
+    probabilities are all equal to the mean — fill with that value.
+    """
+    mean_forward_cause_probability = forward_cause_repertoire(
+        cs, mechanism, purview, None
+    ).mean()
+    result = np.empty(repertoire_shape(cs.network.node_indices, purview))
+    result.fill(mean_forward_cause_probability)
+    return result
 
 
 def unconstrained_forward_repertoire(
-    cs: Any, direction: Any, purview: tuple[int, ...]
+    cs: Any,
+    direction: Direction,
+    mechanism: tuple[int, ...],
+    purview: tuple[int, ...],
 ) -> Any:
-    return _legacy_subsystem(cs).unconstrained_forward_repertoire(direction, purview)
+    if direction == Direction.CAUSE:
+        return unconstrained_forward_cause_repertoire(cs, mechanism, purview)
+    if direction == Direction.EFFECT:
+        return unconstrained_forward_effect_repertoire(cs, mechanism, purview)
+    _validate.direction(direction)
+    raise AssertionError("unreachable")
+
+
+def forward_effect_probability(
+    cs: Any,
+    mechanism: tuple[int, ...],
+    purview: tuple[int, ...],
+    purview_state: Any,
+    **kwargs: Any,
+) -> float:
+    return forward_effect_repertoire(cs, mechanism, purview, **kwargs).squeeze()[
+        purview_state
+    ]
 
 
 def forward_cause_probability(
@@ -323,33 +385,34 @@ def forward_cause_probability(
     purview_state: Any,
     mechanism_state: Any | None = None,
 ) -> float:
-    return _legacy_subsystem(cs).forward_cause_probability(
-        mechanism, purview, purview_state, mechanism_state
+    if mechanism_state is None:
+        mechanism_state = _utils.state_of(mechanism, cs.state)
+    er = effect_repertoire(
+        cs,
+        mechanism=purview,
+        purview=mechanism,
+        mechanism_state=purview_state,
+        direction=Direction.CAUSE,
     )
-
-
-def forward_effect_probability(
-    cs: Any,
-    mechanism: tuple[int, ...],
-    purview: tuple[int, ...],
-    purview_state: Any,
-) -> float:
-    return _legacy_subsystem(cs).forward_effect_probability(
-        mechanism, purview, purview_state
-    )
+    return er.squeeze()[mechanism_state]
 
 
 def forward_probability(
     cs: Any,
-    direction: Any,
+    direction: Direction,
     mechanism: tuple[int, ...],
     purview: tuple[int, ...],
     purview_state: Any,
     **kwargs: Any,
 ) -> float:
-    return _legacy_subsystem(cs).forward_probability(
-        direction, mechanism, purview, purview_state, **kwargs
-    )
+    if direction == Direction.CAUSE:
+        return forward_cause_probability(cs, mechanism, purview, purview_state, **kwargs)
+    if direction == Direction.EFFECT:
+        return forward_effect_probability(
+            cs, mechanism, purview, purview_state, **kwargs
+        )
+    _validate.direction(direction)
+    raise AssertionError("unreachable")
 
 
 # ---- info / phi ----

@@ -336,20 +336,26 @@ class CandidateSystem:
             self, direction, mechanism, purview, purview_state, **kwargs
         )
 
-    def unconstrained_forward_cause_repertoire(self, purview: Any) -> Any:
+    def unconstrained_forward_cause_repertoire(
+        self, mechanism: Any, purview: Any
+    ) -> Any:
         from . import repertoire_algebra as ra
 
-        return ra.unconstrained_forward_cause_repertoire(self, purview)
+        return ra.unconstrained_forward_cause_repertoire(self, mechanism, purview)
 
-    def unconstrained_forward_effect_repertoire(self, purview: Any) -> Any:
+    def unconstrained_forward_effect_repertoire(
+        self, mechanism: Any, purview: Any
+    ) -> Any:
         from . import repertoire_algebra as ra
 
-        return ra.unconstrained_forward_effect_repertoire(self, purview)
+        return ra.unconstrained_forward_effect_repertoire(self, mechanism, purview)
 
-    def unconstrained_forward_repertoire(self, direction: Any, purview: Any) -> Any:
+    def unconstrained_forward_repertoire(
+        self, direction: Any, mechanism: Any, purview: Any
+    ) -> Any:
         from . import repertoire_algebra as ra
 
-        return ra.unconstrained_forward_repertoire(self, direction, purview)
+        return ra.unconstrained_forward_repertoire(self, direction, mechanism, purview)
 
     def forward_cause_probability(
         self,
