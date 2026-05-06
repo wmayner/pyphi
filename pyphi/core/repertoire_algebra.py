@@ -893,12 +893,32 @@ def distinction(cs: Any, mechanism: tuple[int, ...]) -> Any:
     )
 
 
-def all_distinctions(cs: Any, **kwargs: Any) -> Any:
-    return _legacy_subsystem(cs).all_distinctions(**kwargs)
+def all_distinctions(cs: Any, **kwargs: Any) -> Any:  # noqa: ARG001
+    """Iterate non-empty mechanisms and return the resulting CauseEffectStructure."""
+    import contextlib
+
+    from tqdm.auto import tqdm
+
+    from pyphi.models import CauseEffectStructure
+
+    mechanisms: Any = _utils.powerset(cs.node_indices, nonempty=True)
+    total = 2 ** len(cs.node_indices) - 1
+
+    if fallback(config.PROGRESS_BARS):
+        with contextlib.suppress(TypeError):
+            total = len(mechanisms)
+        mechanisms = tqdm(mechanisms, total=total)
+
+    distinctions = filter(None, (distinction(cs, mechanism) for mechanism in mechanisms))
+    return CauseEffectStructure(distinctions)
 
 
 def sia(cs: Any, **kwargs: Any) -> Any:
-    return _legacy_subsystem(cs).sia(**kwargs)
+    """Run system irreducibility analysis via the active formalism."""
+    from pyphi.formalism import FORMALISM_REGISTRY
+
+    formalism = FORMALISM_REGISTRY[config.FORMALISM]  # pyright: ignore[reportAttributeAccessIssue]
+    return formalism.evaluate_system(cs, **kwargs)  # pyright: ignore[reportFunctionMemberAccess]
 
 
 def indices2nodes(cs: Any, indices: tuple[int, ...]) -> Any:
