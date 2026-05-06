@@ -10,14 +10,22 @@ pyphi/subsystem.py. Parity tests guard equivalence.
 
 from __future__ import annotations
 
+import functools
 import weakref
 from collections.abc import Callable
 from functools import wraps
 from typing import Any
 from weakref import WeakValueDictionary
 
+import numpy as np
+
 from pyphi import distribution as _dist
+from pyphi import utils as _utils
+from pyphi import validate as _validate
+from pyphi.data_structures import FrozenMap
 from pyphi.direction import Direction
+from pyphi.distribution import max_entropy_distribution
+from pyphi.distribution import repertoire_shape
 
 # One cache dict per memoized function name.
 _caches: dict[str, dict[tuple, Any]] = {}
@@ -90,29 +98,115 @@ def _legacy_subsystem(cs: Any) -> Any:
 
 
 @_memoize
-def cause_repertoire(
-    cs: Any, mechanism: tuple[int, ...], purview: tuple[int, ...]
+def _single_node_cause_repertoire(
+    cs: Any, mechanism_node_index: int, purview_set: frozenset[int]
 ) -> Any:
-    """Cause repertoire — IIT 4.0 Eq. 5 / Eq. 7."""
-    return _legacy_subsystem(cs).cause_repertoire(mechanism, purview)
+    """Single-node cause repertoire — used as a building block for full
+    cause repertoires (legacy ``Subsystem._single_node_cause_repertoire``).
+    """
+    mechanism_node = cs._index2node[mechanism_node_index]
+    tpm = mechanism_node.cause_tpm[..., mechanism_node.state]
+    return tpm.marginalize_out(mechanism_node.inputs - purview_set).tpm
 
 
 @_memoize
-def effect_repertoire(
-    cs: Any, mechanism: tuple[int, ...], purview: tuple[int, ...]
-) -> Any:
-    """Effect repertoire — IIT 4.0 Eq. 5 / Eq. 7."""
-    return _legacy_subsystem(cs).effect_repertoire(mechanism, purview)
-
-
-@_memoize
-def repertoire(
+def _single_node_effect_repertoire(
     cs: Any,
-    direction: Any,
+    condition: FrozenMap,
+    purview_node_index: int,
+    direction: Direction,
+) -> Any:
+    purview_node = cs._index2node[purview_node_index]
+    if direction == Direction.CAUSE:
+        tpm = purview_node.cause_tpm.condition_tpm(condition)
+    elif direction == Direction.EFFECT:
+        tpm = purview_node.effect_tpm.condition_tpm(condition)
+    else:
+        _validate.direction(direction)
+        raise AssertionError("unreachable")
+    nonmechanism_inputs = purview_node.inputs - set(condition)
+    tpm = tpm.marginalize_out(nonmechanism_inputs)
+    return tpm.reshape(
+        repertoire_shape(cs.network.node_indices, (purview_node_index,))
+    ).tpm
+
+
+@_memoize
+def _cause_repertoire_inner(
+    cs: Any, mechanism: tuple[int, ...], purview: tuple[int, ...]
+) -> Any:
+    """Joint cause repertoire for non-empty mechanism and purview.
+
+    The joint distribution is the (normalized) product of the per-node
+    cause repertoires. Equivalent to legacy
+    ``Subsystem._cause_repertoire``.
+    """
+    purview_set: frozenset[int] = frozenset(purview)
+    joint = np.ones(repertoire_shape(cs.network.node_indices, purview_set))
+    joint *= functools.reduce(
+        np.multiply,
+        [_single_node_cause_repertoire(cs, m, purview_set) for m in mechanism],
+    )
+    return _dist.normalize(joint)
+
+
+@_memoize
+def _effect_repertoire_inner(
+    cs: Any,
+    condition: FrozenMap,
+    purview: tuple[int, ...],
+    direction: Direction,
+) -> Any:
+    joint = np.ones(repertoire_shape(cs.network.node_indices, purview))
+    return joint * functools.reduce(
+        np.multiply,
+        [_single_node_effect_repertoire(cs, condition, p, direction) for p in purview],
+    )
+
+
+def cause_repertoire(
+    cs: Any,
     mechanism: tuple[int, ...],
     purview: tuple[int, ...],
+    **kwargs: Any,  # noqa: ARG001
 ) -> Any:
-    return _legacy_subsystem(cs).repertoire(direction, mechanism, purview)
+    """Cause repertoire — IIT 4.0 Eq. 5 / Eq. 7."""
+    if not purview:
+        return np.array([1.0])
+    if not mechanism:
+        return max_entropy_distribution(cs.node_indices, purview)
+    return _cause_repertoire_inner(cs, mechanism, purview)
+
+
+def effect_repertoire(
+    cs: Any,
+    mechanism: tuple[int, ...],
+    purview: tuple[int, ...],
+    mechanism_state: Any | None = None,
+    direction: Direction = Direction.EFFECT,
+) -> Any:
+    """Effect repertoire — IIT 4.0 Eq. 5 / Eq. 7."""
+    if not purview:
+        return np.array([1.0])
+    if mechanism_state is None:
+        mechanism_state = _utils.state_of(mechanism, cs.state)
+    condition = FrozenMap(zip(mechanism, mechanism_state, strict=False))
+    return _effect_repertoire_inner(cs, condition, purview, direction)
+
+
+def repertoire(
+    cs: Any,
+    direction: Direction,
+    mechanism: tuple[int, ...],
+    purview: tuple[int, ...],
+    **kwargs: Any,
+) -> Any:
+    if direction == Direction.CAUSE:
+        return cause_repertoire(cs, mechanism, purview, **kwargs)
+    if direction == Direction.EFFECT:
+        return effect_repertoire(cs, mechanism, purview, **kwargs)
+    _validate.direction(direction)
+    raise AssertionError("unreachable")
 
 
 def unconstrained_repertoire(

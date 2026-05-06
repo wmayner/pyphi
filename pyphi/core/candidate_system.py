@@ -222,6 +222,10 @@ class CandidateSystem:
         return list(self.cut.all_cut_mechanisms())
 
     @cached_property
+    def _index2node(self) -> dict[int, Any]:
+        return {node.index: node for node in self.nodes}
+
+    @cached_property
     def null_concept(self) -> Any:
         # Delegate to legacy Subsystem until repertoire_algebra and the
         # mechanism-eval machinery are fully ported (Phase 8).
