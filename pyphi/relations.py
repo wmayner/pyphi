@@ -12,7 +12,6 @@ from itertools import product
 from typing import TYPE_CHECKING
 from typing import Any
 
-from graphillion import setset
 from tqdm.auto import tqdm
 
 from . import combinatorics
@@ -29,6 +28,8 @@ from .registry import Registry
 from .warnings import PyPhiWarning
 
 if TYPE_CHECKING:
+    from graphillion import setset  # noqa: F401
+
     from .formalism.iit4 import Distinction  # type: ignore[attr-defined]
 
 
@@ -244,6 +245,8 @@ def _combinations_with_nonempty_congruent_overlap(
         components (CauseEffectStructure): The distinctions to find overlaps
             among.
     """
+    from graphillion import setset
+
     # TODO(4.0) remove mapping when/if distinctions allow O(1) random access
     mapping = {component: i for i, component in enumerate(components)}
     # Use integers to avoid expensive distinction hashing

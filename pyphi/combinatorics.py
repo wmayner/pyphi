@@ -10,12 +10,15 @@ from collections.abc import Iterable
 from collections.abc import Sequence
 from itertools import chain
 from itertools import product
+from typing import TYPE_CHECKING
 from typing import Any
 
 import numpy as np
-from graphillion import setset
 
 from .cache import cache
+
+if TYPE_CHECKING:
+    from graphillion import setset
 
 # TODO(4.0) move relevant functions from utils here
 
@@ -134,6 +137,8 @@ def powerset_family(
 
     NOTE: The universe is assumed to have been set already.
     """
+    from graphillion import setset
+
     if universe is None:
         universe = set(setset.universe())
 
@@ -165,6 +170,8 @@ def union_powerset_family(
     NOTE: The universe must already have been set to (at least) the union of the
     ``sets``.
     """
+    from graphillion import setset
+
     U = set(setset.universe())
     S = setset([])
     for s in sets:
