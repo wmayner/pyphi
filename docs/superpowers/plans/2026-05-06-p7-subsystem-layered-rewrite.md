@@ -2923,10 +2923,19 @@ Confirm the count is ~29 (varies as macro tests now skipped).
 
 - [ ] **Step 2: Run search-and-replace**
 
-Use a careful sed (BSD `sed -i ''` on macOS):
+BSD `sed` (macOS default) does not support `\b`. Use Python:
 
 ```bash
-git grep -l '\bSubsystem\b' test/ | xargs sed -i '' 's/\bSubsystem\b/CandidateSystem/g'
+git grep -l '\bSubsystem\b' test/ | xargs python -c "
+import sys, re, pathlib
+for p in sys.argv[1:]:
+    path = pathlib.Path(p)
+    text = path.read_text()
+    new = re.sub(r'\bSubsystem\b', 'CandidateSystem', text)
+    if new != text:
+        path.write_text(new)
+        print(f'updated: {p}')
+"
 ```
 
 - [ ] **Step 3: Manual review of constructor sites**
@@ -3076,13 +3085,35 @@ grep -n "_legacy_subsystem" pyphi/core/repertoire_algebra.py
 
 Expected: no matches.
 
-- [ ] **Step 4: Delete `pyphi/subsystem.py` and `pyphi/repertoire.py`**
+- [ ] **Step 4: Update callers of `pyphi.repertoire`**
+
+`pyphi/formalism/iit4/__init__.py:432,438` calls `repertoire.forward_repertoire(...)`. Replace those calls with `repertoire_algebra.forward_repertoire(...)`. Update the import at the top of the file:
+
+```python
+# Before:
+from pyphi import repertoire
+
+# After:
+from pyphi.core import repertoire_algebra as repertoire
+```
+
+The alias keeps the call sites identical, since `repertoire_algebra` exposes the same `forward_repertoire` name.
+
+Run regression to confirm:
+
+```bash
+uv run pytest test/test_golden_regression.py -k iit_4_0 -q
+```
+
+Expected: passes.
+
+- [ ] **Step 5: Delete `pyphi/subsystem.py` and `pyphi/repertoire.py`**
 
 ```bash
 git rm pyphi/subsystem.py pyphi/repertoire.py
 ```
 
-- [ ] **Step 5: Run full suite (fast lane)**
+- [ ] **Step 6: Run full suite (fast lane)**
 
 ```bash
 uv run pytest -q --ignore=test/test_invariants_hypothesis.py
@@ -3090,7 +3121,7 @@ uv run pytest -q --ignore=test/test_invariants_hypothesis.py
 
 Expected: all green.
 
-- [ ] **Step 6: Run slow lane (Hypothesis)**
+- [ ] **Step 7: Run slow lane (Hypothesis)**
 
 ```bash
 uv run pytest test/test_invariants_hypothesis.py -q --tb=short
@@ -3098,7 +3129,7 @@ uv run pytest test/test_invariants_hypothesis.py -q --tb=short
 
 Expected: all 19 properties green.
 
-- [ ] **Step 7: Commit deletion**
+- [ ] **Step 8: Commit deletion**
 
 ```bash
 git add -u
