@@ -815,11 +815,15 @@ class Subsystem:
         # INTRINSIC_INFORMATION is a system-level composite (Eq. 23).
         if repertoire_distance == "INTRINSIC_INFORMATION":
             repertoire_distance = "GENERALIZED_INTRINSIC_DIFFERENCE"
-        # TODO(4.0) refactor
-        # TODO(4.0) consolidate logic with system level partitions
         if repertoire is None:
             repertoire = self.repertoire(direction, mechanism, purview)
-        # TODO(4.0) use same partitioned_repertoire func
+        # The metric-shape dispatch lives here because it is *metric*-driven,
+        # not *formalism*-driven: distribution metrics (EMD, KLD, L1, ...) are
+        # called with two repertoires; state-aware metrics (GID,
+        # INTRINSIC_INFORMATION) take a forward repertoire, partitioned
+        # forward repertoire, and a scalar selectivity. A given formalism may
+        # legitimately support either shape (IIT 4.0 with REPERTOIRE_DISTANCE
+        # = EMD is a valid combination, e.g. for cross-formalism comparison).
         if repertoire_distance == "GENERALIZED_INTRINSIC_DIFFERENCE":
             func = metrics.distribution.measures[repertoire_distance]
             assert not isinstance(repertoire, (int, float)), (
@@ -842,7 +846,6 @@ class Subsystem:
                 selectivity_repertoire=selectivity,
             )
             repertoire = forward_pr
-            # TODO(4.0) refactor
             partitioned_repertoire = partitioned_pr
         else:
             if partitioned_repertoire is None:
@@ -868,7 +871,6 @@ class Subsystem:
             partitioned_repertoire=partitioned_repertoire,
             mechanism_state=state_of(mechanism, self.state),
             purview_state=state_of(purview, self.state),
-            # TODO(4.0) refactor
             specified_state=kwargs.get("state"),
             node_labels=self.node_labels,
             selectivity=selectivity,
