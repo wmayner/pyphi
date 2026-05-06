@@ -65,6 +65,18 @@ class CandidateSystem:
     def __hash__(self) -> int:
         return hash((self.causal_model, self.state, self.node_indices, self.cut))
 
+    def apply_cut(self, cut: SystemPartition) -> CandidateSystem:
+        """Return a new CandidateSystem with the given cut applied.
+
+        ``causal_model``, ``state``, and ``node_indices`` are unchanged.
+        Cached derived properties that don't depend on cut (``cause_tpm``,
+        ``effect_tpm``) are not re-derived in the new instance until first
+        access — so the new instance shares the same numerical values.
+        """
+        from dataclasses import replace
+
+        return replace(self, cut=cut)
+
     # ---- cached cheap derived properties ----
 
     @cached_property

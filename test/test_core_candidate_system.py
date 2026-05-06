@@ -142,3 +142,33 @@ def test_candidate_system_cm_parity(cs_and_subsystem) -> None:
     cs, sub = cs_and_subsystem
     np.testing.assert_array_equal(cs.cm, sub.cm)
     np.testing.assert_array_equal(cs.proper_cm, sub.proper_cm)
+
+
+def test_apply_cut_returns_new_instance(basic_cs) -> None:
+    from pyphi.direction import Direction
+    from pyphi.models.cuts import SystemPartition
+
+    cut = SystemPartition(Direction.EFFECT, (0,), (1, 2))
+    cut_cs = basic_cs.apply_cut(cut)
+    assert cut_cs is not basic_cs
+    assert cut_cs.cut == cut
+    assert basic_cs.cut != cut
+
+
+def test_apply_cut_cause_tpm_value_preserved(basic_cs) -> None:
+    """cause_tpm derives from causal_model + state + node_indices, NOT cut.
+
+    After ``apply_cut``, the cut_cs and parent share the same cause_tpm value.
+    Each instance has its own ``cached_property`` storage but the derived
+    array contents must be identical — this is the genuine speedup over
+    today's ``Subsystem.apply_cut`` which rebuilds everything.
+    """
+    import numpy as np
+
+    from pyphi.direction import Direction
+    from pyphi.models.cuts import SystemPartition
+
+    parent_tpm = basic_cs.cause_tpm
+    cut = SystemPartition(Direction.EFFECT, (0,), (1, 2))
+    cut_cs = basic_cs.apply_cut(cut)
+    np.testing.assert_array_equal(cut_cs.cause_tpm.to_array(), parent_tpm.to_array())
