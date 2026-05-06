@@ -139,8 +139,15 @@ class DistanceResult(PyPhiFloat):
             setattr(instance, key, val)
         return instance
 
+    def _public_aux_data(self) -> dict:
+        """Auxiliary data the user attached at construction or via setattr.
+
+        Excludes underscore-prefixed names (used internally — e.g., for
+        the precision snapshot inherited from :class:`PyPhiFloat`)."""
+        return {k: v for k, v in self.__dict__.items() if not k.startswith("_")}
+
     def __repr__(self):
-        aux_data = dict(self.__dict__.items())
+        aux_data = self._public_aux_data()
         if aux_data:
             aux_str = ", ".join(f"{k}={v!r}" for k, v in aux_data.items())
             return f"DistanceResult({float(self)}, {aux_str})"
@@ -156,29 +163,28 @@ class DistanceResult(PyPhiFloat):
         """Copy auxiliary data from another DistanceResult if this one wins a
         comparison."""
         if isinstance(other_result, DistanceResult):
-            for key, val in other_result.__dict__.items():
+            for key, val in other_result._public_aux_data().items():
                 if not hasattr(self, key):
                     setattr(self, key, val)
         return self
 
     def __copy__(self):
         """Ensure auxiliary data is preserved when copying."""
-        aux_data = dict(self.__dict__.items())
-        return DistanceResult(float(self), **aux_data)
+        return DistanceResult(float(self), **self._public_aux_data())
 
     def __deepcopy__(self, memo):
         """Ensure auxiliary data is preserved when deep copying."""
         import copy
 
-        aux_data = {k: copy.deepcopy(v, memo) for k, v in self.__dict__.items()}
+        aux_data = {
+            k: copy.deepcopy(v, memo) for k, v in self._public_aux_data().items()
+        }
         return DistanceResult(float(self), **aux_data)
 
     def to_json(self) -> dict:
         """Serialize to JSON, preserving auxiliary data."""
         result = {"value": float(self)}
-        # Include any auxiliary data stored in __dict__
-        if self.__dict__:
-            result.update(self.__dict__)
+        result.update(self._public_aux_data())
         return result
 
     @classmethod

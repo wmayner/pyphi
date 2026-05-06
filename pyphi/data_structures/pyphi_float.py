@@ -6,6 +6,8 @@ from typing import Any
 from pyphi.conf import config
 from pyphi.utils import eq
 
+_NUMERIC_TYPES = (int, float)
+
 
 # TODO(4.0) use throughout
 class PyPhiFloat(float):
@@ -77,14 +79,25 @@ class PyPhiFloat(float):
     # NOTE: Cannot use functools.total_ordering because it doesn't re-implement
     # existing comparison methods
 
+    # ``_precision`` snapshots ``config.PRECISION`` at construction time so a
+    # ``PyPhiFloat`` placed in a set or dict keeps a stable hash even if
+    # ``config.PRECISION`` is later changed. The alternative — reading the
+    # global at hash time — silently breaks set/dict invariants.
+    _precision: int
+
+    def __new__(cls, value: Any) -> "PyPhiFloat":
+        instance = super().__new__(cls, value)
+        instance._precision = int(config.PRECISION)  # pyright: ignore[reportAttributeAccessIssue]
+        return instance
+
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, (int, float)):
-            return False
+        if not isinstance(other, _NUMERIC_TYPES):
+            return NotImplemented
         return eq(self, float(other))
 
     def __ne__(self, other: object) -> bool:
-        if not isinstance(other, (int, float)):
-            return True
+        if not isinstance(other, _NUMERIC_TYPES):
+            return NotImplemented
         return not eq(self, float(other))
 
     def __lt__(self, other: float) -> bool:
@@ -100,8 +113,7 @@ class PyPhiFloat(float):
         return super().__ge__(other) or eq(self, other)
 
     def __hash__(self) -> int:
-        precision = int(config.PRECISION)  # type: ignore[arg-type]  # config.PRECISION is an Option descriptor
-        return hash(round(self, precision))
+        return hash(round(self, self._precision))
 
     def to_json(self) -> dict[str, float]:
         return {"value": float(self)}
