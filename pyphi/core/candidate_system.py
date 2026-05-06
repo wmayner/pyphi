@@ -47,10 +47,21 @@ class CandidateSystem:
         substrate = self.causal_model.substrate
         validate.state_length(self.state, substrate.n_units)
         validate.node_states(self.state)
+        # Coerce node_indices to plain Python ints, dedup, sort — matches
+        # legacy ``NodeLabels.coerce_to_indices``.
+        object.__setattr__(
+            self,
+            "node_indices",
+            tuple(sorted({int(i) for i in self.node_indices})),
+        )
         if self.cut is None:
             object.__setattr__(
                 self, "cut", NullCut(self.node_indices, substrate.node_labels)
             )
+        from pyphi.conf import config as _config
+
+        if _config.VALIDATE_SUBSYSTEM_STATES:
+            validate.state_reachable(self)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, CandidateSystem):
@@ -208,7 +219,7 @@ class CandidateSystem:
 
     @cached_property
     def cut_mechanisms(self) -> Any:
-        return self.cut.all_cut_mechanisms()
+        return list(self.cut.all_cut_mechanisms())
 
     @cached_property
     def null_concept(self) -> Any:

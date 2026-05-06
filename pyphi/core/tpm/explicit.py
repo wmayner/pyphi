@@ -52,7 +52,15 @@ class ExplicitTPM:
     def __getattr__(self, name: str) -> Any:
         # During the worktree, callers may still need legacy methods we
         # haven't lifted yet. This passthrough is removed at Phase 8.
-        return getattr(self._inner, name)
+        # Guard: skip dunder/sunder names (pickle, copy, etc.) and bail
+        # if _inner hasn't been set (during unpickling __new__).
+        if name.startswith("_"):
+            raise AttributeError(name)
+        try:
+            inner = object.__getattribute__(self, "_inner")
+        except AttributeError as e:
+            raise AttributeError(name) from e
+        return getattr(inner, name)
 
     def __repr__(self) -> str:
         return f"ExplicitTPM(shape={self.shape})"

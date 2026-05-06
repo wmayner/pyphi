@@ -33,8 +33,8 @@ from pyphi.types import Mechanism
 from pyphi.types import Purview
 
 if TYPE_CHECKING:
+    from pyphi.core import CandidateSystem as Subsystem
     from pyphi.labels import NodeLabels
-    from pyphi.subsystem import Subsystem
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)

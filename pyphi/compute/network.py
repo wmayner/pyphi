@@ -14,10 +14,10 @@ from pyphi import exceptions
 from pyphi import utils
 from pyphi import validate
 from pyphi.conf import config
+from pyphi.core import CandidateSystem as Subsystem
 from pyphi.models import SystemIrreducibilityAnalysis
 from pyphi.models import _null_sia
 from pyphi.parallel import MapReduce
-from pyphi.subsystem import Subsystem
 from pyphi.types import State
 
 from .subsystem import sia
@@ -42,7 +42,7 @@ def reachable_subsystems(
     # resource usage.
     for subset in utils.powerset(indices, nonempty=True, reverse=True):
         with contextlib.suppress(exceptions.StateUnreachableError):
-            yield Subsystem(network, state, subset, **kwargs)
+            yield Subsystem.from_network(network, state, subset, **kwargs)
 
 
 def subsystems(network: Network, state: State, **kwargs: Any) -> Generator[Subsystem]:
@@ -154,7 +154,7 @@ def major_complex(
         maximal |big_phi|.
     """
     log.info("Calculating major complex...")
-    empty_subsystem = Subsystem(network, state, ())
+    empty_subsystem = Subsystem.from_network(network, state, ())
     default = _null_sia(empty_subsystem)
     pkwargs = conf.parallel_kwargs(config.PARALLEL_COMPLEX_EVALUATION, **kwargs)
     result = MapReduce(
