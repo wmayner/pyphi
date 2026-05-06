@@ -72,9 +72,10 @@ import pkgutil
 # Lift main interfaces to top-level namespace
 from .actual import Transition
 from .conf import config
+from .core import CandidateSystem as CandidateSystem
 from .direction import Direction
 from .network import Network
-from .subsystem import Subsystem
+from .subsystem import Subsystem  # P7: legacy class kept until Phase 8 native port
 from .tpm import ExplicitTPM
 
 # Skip modules that require optional dependencies
