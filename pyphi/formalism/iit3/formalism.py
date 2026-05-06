@@ -13,6 +13,9 @@ from __future__ import annotations
 from typing import Any
 from typing import Literal
 
+from pyphi.conf import config
+from pyphi.formalism.base import check_metric_compatible
+
 
 class IIT3Formalism:
     """IIT 3.0 (Oizumi et al. 2014) — distribution-distance phi computation."""
@@ -64,6 +67,7 @@ class IIT3Formalism:
         specified-states phase — there's a single, unique MIP per
         (mechanism, purview), found by minimizing over partitions.
         """
+        check_metric_compatible(self, config.REPERTOIRE_DISTANCE)
         if state is not None:
             raise ValueError("passing `state` is not supported with IIT 3.0")
         return subsystem._find_mip_single_state(
@@ -77,8 +81,62 @@ class IIT3Formalism:
             **kwargs,
         )
 
+    def evaluate_mechanism_partition(
+        self,
+        subsystem: Any,
+        direction: Any,
+        mechanism: Any,
+        purview: Any,
+        partition: Any,
+        repertoire: Any = None,
+        partitioned_repertoire: Any = None,
+        repertoire_distance: str | None = None,
+        partitioned_repertoire_kwargs: Any = None,
+        **kwargs: Any,
+    ) -> Any:
+        """IIT 3.0 mechanism-partition integration: distribution-distance
+        between unpartitioned and partitioned repertoires."""
+        from pyphi.conf import fallback
+        from pyphi.metrics.distribution import (
+            repertoire_distance as _repertoire_distance,  # pyright: ignore[reportUnknownVariableType]
+        )
+        from pyphi.models import RepertoireIrreducibilityAnalysis
+        from pyphi.utils import state_of
+
+        check_metric_compatible(self, config.REPERTOIRE_DISTANCE)
+        repertoire_distance = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
+        if repertoire is None:
+            repertoire = subsystem.repertoire(direction, mechanism, purview)
+        if partitioned_repertoire is None:
+            partitioned_repertoire_kwargs = partitioned_repertoire_kwargs or {}
+            partitioned_repertoire = subsystem.partitioned_repertoire(
+                direction, partition, **partitioned_repertoire_kwargs
+            )
+        phi = _repertoire_distance(
+            repertoire,
+            partitioned_repertoire,
+            direction=direction,
+            repertoire_distance=repertoire_distance,
+            **kwargs,
+        )
+        return RepertoireIrreducibilityAnalysis(
+            phi=phi,
+            direction=direction,
+            mechanism=mechanism,
+            purview=purview,
+            partition=partition,
+            repertoire=repertoire,
+            partitioned_repertoire=partitioned_repertoire,
+            mechanism_state=state_of(mechanism, subsystem.state),
+            purview_state=state_of(purview, subsystem.state),
+            specified_state=kwargs.get("state"),
+            node_labels=subsystem.node_labels,
+            selectivity=None,
+        )
+
     def evaluate_system(self, subsystem: Any, **kwargs: Any) -> Any:
         """Delegate to :func:`pyphi.compute.subsystem.sia` (the IIT 3.0 path)."""
+        check_metric_compatible(self, config.REPERTOIRE_DISTANCE)
         from pyphi import compute
 
         return compute.subsystem.sia(subsystem, **kwargs)

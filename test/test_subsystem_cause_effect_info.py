@@ -8,7 +8,7 @@ from .conftest import skip_if_no_pyemd
 
 @pytest.mark.emd
 @skip_if_no_pyemd
-@config.override(REPERTOIRE_DISTANCE="EMD")
+@config.override(FORMALISM="IIT_3_0", REPERTOIRE_DISTANCE="EMD")
 def test_cause_info(s):
     mechanism = (0, 1)
     purview = (0, 2)
@@ -21,7 +21,7 @@ def test_cause_info(s):
 
 @pytest.mark.emd
 @skip_if_no_pyemd
-@config.override(REPERTOIRE_DISTANCE="EMD")
+@config.override(FORMALISM="IIT_3_0", REPERTOIRE_DISTANCE="EMD")
 def test_effect_info(s):
     mechanism = (0, 1)
     purview = (0, 2)
@@ -34,7 +34,7 @@ def test_effect_info(s):
 
 @pytest.mark.emd
 @skip_if_no_pyemd
-@config.override(REPERTOIRE_DISTANCE="EMD")
+@config.override(FORMALISM="IIT_3_0", REPERTOIRE_DISTANCE="EMD")
 def test_cause_effect_info(s):
     mechanism = (0, 1)
     purview = (0, 2)

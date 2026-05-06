@@ -26,7 +26,9 @@ __all__ = [
     "ErrorInfo",
     "ExactFormalism",
     "FormalismRegistry",
+    "MetricNotCompatibleError",
     "PhiFormalism",
+    "check_metric_compatible",
 ]
 
 
@@ -63,9 +65,47 @@ class PhiFormalism(Protocol):
         self, subsystem: Any, direction: Any, mechanism: Any, purview: Any, **kwargs: Any
     ) -> Any: ...
 
+    def evaluate_mechanism_partition(
+        self,
+        subsystem: Any,
+        direction: Any,
+        mechanism: Any,
+        purview: Any,
+        partition: Any,
+        **kwargs: Any,
+    ) -> Any: ...
+
     def evaluate_system(self, subsystem: Any, **kwargs: Any) -> Any: ...
 
     def build_phi_structure(self, subsystem: Any, **kwargs: Any) -> Any: ...
+
+
+class MetricNotCompatibleError(Exception):
+    """Raised when a configured metric isn't compatible with the active formalism.
+
+    Each :class:`PhiFormalism` declares ``compatible_metrics`` as a frozenset
+    of metric names it accepts. Combinations outside that set (e.g., the IIT
+    4.0 formalism with the EMD distribution metric) compute a different
+    mathematical object than the formalism's ``φ`` definition; rejecting them
+    early prevents silently misleading results.
+    """
+
+
+def check_metric_compatible(formalism: PhiFormalism, metric: str) -> None:
+    """Raise :class:`MetricNotCompatibleError` if ``metric`` isn't accepted
+    by ``formalism``.
+
+    Called from each formalism's ``evaluate_*`` methods so the failure
+    surface is at the dispatch boundary, not deep inside the math.
+    """
+    if metric not in formalism.compatible_metrics:
+        raise MetricNotCompatibleError(
+            f"REPERTOIRE_DISTANCE {metric!r} is not compatible with "
+            f"FORMALISM {formalism.name!r}. Compatible metrics for "
+            f"this formalism: {sorted(formalism.compatible_metrics)}. "
+            "If you want a different metric, switch FORMALISM to one "
+            "whose compatible_metrics set contains it."
+        )
 
 
 class ErrorInfo(Protocol):

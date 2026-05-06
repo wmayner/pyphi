@@ -32,6 +32,9 @@ class _DummyFormalism:
     def evaluate_mechanism(self, subsystem, direction, mechanism, purview, **kwargs):  # noqa: ARG002
         return None
 
+    def evaluate_mechanism_partition(self, *args, **kwargs):  # noqa: ARG002
+        return None
+
     def evaluate_system(self, subsystem, **kwargs):  # noqa: ARG002
         return None
 

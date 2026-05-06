@@ -80,13 +80,12 @@ def test_sia_disconnected_network(reducible):
 @pytest.mark.emd
 @skip_if_no_pyemd
 @config.override(SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=True)
-@config.override(REPERTOIRE_DISTANCE="EMD")
+@config.override(FORMALISM="IIT_3_0", REPERTOIRE_DISTANCE="EMD")
 def test_sia_single_micro_node_selfloops_have_phi(noisy_selfloop_single):
-    """Test that single micro-nodes with self-loops have phi under EMD.
-
-    Expected phi value: 0.36
+    """Test that single micro-nodes with self-loops have phi under IIT 3.0 + EMD.
 
     Configuration:
+    - FORMALISM="IIT_3_0"
     - SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=True
     - REPERTOIRE_DISTANCE="EMD"
 
@@ -94,15 +93,12 @@ def test_sia_single_micro_node_selfloops_have_phi(noisy_selfloop_single):
 
     Theoretical basis: Self-loops create cause-effect structure even in
     single-node systems under micro-level analysis. The specific value
-    (0.36) is derived from Earth Mover's Distance computation on the
-    self-loop repertoire distribution.
-
-    Precision sensitivity: Value is stable to 2 decimal places across
-    different EMD implementations.
+    is derived from Earth Mover's Distance computation on the self-loop
+    repertoire distribution under the IIT 3.0 SIA path.
 
     Requires: pyemd package (install with: pip install pyphi[emd])
     """
-    assert noisy_selfloop_single.sia().phi == 0.36
+    assert noisy_selfloop_single.sia().phi == pytest.approx(0.6868774943095, rel=1e-10)
 
 
 @config.override(SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=False)

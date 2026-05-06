@@ -297,35 +297,29 @@ class TestConfigurationDependentValues:
     @pytest.mark.emd
     @skip_if_no_pyemd
     @config.override(SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=True)
-    @config.override(REPERTOIRE_DISTANCE="EMD")
+    @config.override(FORMALISM="IIT_3_0", REPERTOIRE_DISTANCE="EMD")
     def test_sia_selfloop_node_phi_with_emd(self, noisy_selfloop_single):
-        """Single node with self-loop has phi under EMD distance.
-
-        Expected: phi = 0.36
+        """Single node with self-loop has phi under IIT 3.0 + EMD.
 
         Configuration:
+        - FORMALISM="IIT_3_0"
         - SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=True
         - REPERTOIRE_DISTANCE="EMD"
 
         Network: Single node with noisy self-loop
 
         Theoretical basis: Self-loops create cause-effect structure even
-        in single-node systems under micro-level analysis. The specific
-        value (0.36) is derived from EMD computation on the self-loop
-        repertoire.
-
-        Precision sensitivity: Value is stable to 2 decimal places across
-        different EMD implementations. We use slightly looser tolerance
-        (abs=0.01) to account for EMD numerical variations.
+        in single-node systems under micro-level analysis. The phi value
+        is derived from EMD computation on the self-loop repertoire
+        distribution under the IIT 3.0 SIA path.
         """
+        expected = 0.6868774943095
         result = noisy_selfloop_single.sia()
-
-        # Use absolute tolerance for EMD-based values (less precise)
-        assert result.phi == pytest.approx(0.36, abs=0.01), (
-            f"Single node with self-loop phi changed under EMD:\n"
-            f"  Expected: 0.36\n"
+        assert result.phi == pytest.approx(expected, rel=1e-10), (
+            f"Single node with self-loop phi changed under IIT 3.0 + EMD:\n"
+            f"  Expected: {expected}\n"
             f"  Got:      {result.phi}\n"
-            f"  Diff:     {abs(result.phi - 0.36)}"
+            f"  Diff:     {abs(result.phi - expected)}"
         )
 
     @config.override(SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=False)

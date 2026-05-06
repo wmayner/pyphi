@@ -50,7 +50,6 @@ from .types import NodeIndices
 from .types import Purview
 from .types import Repertoire
 from .types import State
-from .utils import state_of
 
 if TYPE_CHECKING:
     from .cache import DictCache
@@ -796,6 +795,11 @@ class Subsystem:
         """Return the |small_phi| of a mechanism over a purview for the given
         partition.
 
+        Thin dispatcher: routes to the active formalism's
+        ``evaluate_mechanism_partition``. Each formalism owns the integration
+        shape (which repertoires to feed the metric) and validates that the
+        configured metric is compatible with its semantics.
+
         Args:
             direction (Direction): |CAUSE| or |EFFECT|.
             mechanism (tuple[int]): The nodes in the mechanism.
@@ -805,75 +809,21 @@ class Subsystem:
         Keyword Args:
             repertoire (np.array): The unpartitioned repertoire.
                 If not supplied, it will be computed.
-
-        Returns:
-            tuple[int, np.ndarray]: The distance between the unpartitioned and
-            partitioned repertoires, and the partitioned repertoire.
         """
-        repertoire_distance = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
-        # Mechanism-level partition evaluation uses GID only.
-        # INTRINSIC_INFORMATION is a system-level composite (Eq. 23).
-        if repertoire_distance == "INTRINSIC_INFORMATION":
-            repertoire_distance = "GENERALIZED_INTRINSIC_DIFFERENCE"
-        if repertoire is None:
-            repertoire = self.repertoire(direction, mechanism, purview)
-        # The metric-shape dispatch lives here because it is *metric*-driven,
-        # not *formalism*-driven: distribution metrics (EMD, KLD, L1, ...) are
-        # called with two repertoires; state-aware metrics (GID,
-        # INTRINSIC_INFORMATION) take a forward repertoire, partitioned
-        # forward repertoire, and a scalar selectivity. A given formalism may
-        # legitimately support either shape (IIT 4.0 with REPERTOIRE_DISTANCE
-        # = EMD is a valid combination, e.g. for cross-formalism comparison).
-        if repertoire_distance == "GENERALIZED_INTRINSIC_DIFFERENCE":
-            func = metrics.distribution.measures[repertoire_distance]
-            assert not isinstance(repertoire, (int, float)), (
-                "GID requires full repertoire"
-            )
-            purview_state = kwargs["state"].state
-            selectivity = float(repertoire.squeeze()[purview_state])  # pyright: ignore[reportOptionalMemberAccess]
-            forward_pr = self.forward_probability(
-                direction, mechanism, purview, purview_state
-            )
-            if partitioned_repertoire is None:
-                partitioned_pr = self.partitioned_repertoire(
-                    direction, partition, state=purview_state
-                )
-            else:
-                partitioned_pr = partitioned_repertoire
-            phi = func(
-                forward_repertoire=forward_pr,
-                partitioned_forward_repertoire=partitioned_pr,
-                selectivity_repertoire=selectivity,
-            )
-            repertoire = forward_pr
-            partitioned_repertoire = partitioned_pr
-        else:
-            if partitioned_repertoire is None:
-                partitioned_repertoire_kwargs = partitioned_repertoire_kwargs or {}
-                partitioned_repertoire = self.partitioned_repertoire(
-                    direction, partition, **partitioned_repertoire_kwargs
-                )
-            phi = _repertoire_distance(
-                repertoire,
-                partitioned_repertoire,
-                direction=direction,
-                repertoire_distance=repertoire_distance,
-                **kwargs,
-            )
-            selectivity = None
-        return RepertoireIrreducibilityAnalysis(
-            phi=phi,
-            direction=direction,
-            mechanism=mechanism,
-            purview=purview,
-            partition=partition,
+        from .formalism import FORMALISM_REGISTRY
+
+        formalism = FORMALISM_REGISTRY[config.FORMALISM]  # pyright: ignore[reportAttributeAccessIssue]
+        return formalism.evaluate_mechanism_partition(  # pyright: ignore[reportFunctionMemberAccess]
+            self,
+            direction,
+            mechanism,
+            purview,
+            partition,
             repertoire=repertoire,
             partitioned_repertoire=partitioned_repertoire,
-            mechanism_state=state_of(mechanism, self.state),
-            purview_state=state_of(purview, self.state),
-            specified_state=kwargs.get("state"),
-            node_labels=self.node_labels,
-            selectivity=selectivity,
+            repertoire_distance=repertoire_distance,
+            partitioned_repertoire_kwargs=partitioned_repertoire_kwargs,
+            **kwargs,
         )
 
     def _find_mip_single_state(

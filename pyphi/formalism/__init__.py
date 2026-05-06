@@ -14,7 +14,9 @@ from .base import ApproximateFormalism
 from .base import ErrorInfo
 from .base import ExactFormalism
 from .base import FormalismRegistry
+from .base import MetricNotCompatibleError
 from .base import PhiFormalism
+from .base import check_metric_compatible
 from .iit3.formalism import IIT3Formalism
 from .iit4.formalism import IIT4_2023Formalism
 from .iit4.formalism import IIT4_2026Formalism
@@ -34,5 +36,7 @@ __all__ = [
     "IIT3Formalism",
     "IIT4_2023Formalism",
     "IIT4_2026Formalism",
+    "MetricNotCompatibleError",
     "PhiFormalism",
+    "check_metric_compatible",
 ]

@@ -231,6 +231,7 @@ class TestConfigurationInvariants:
 
         # With config enabled and EMD, phi should be > 0
         with config.override(
+            FORMALISM="IIT_3_0",
             SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=True,
             REPERTOIRE_DISTANCE="EMD",
         ):

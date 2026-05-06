@@ -25,7 +25,7 @@ def test_emd_ground_distance_must_be_symmetric():
 @skip_if_no_pyemd
 @pytest.mark.outdated
 def test_ces_distances(s):
-    with config.override(REPERTOIRE_DISTANCE="EMD"):
+    with config.override(FORMALISM="IIT_3_0", REPERTOIRE_DISTANCE="EMD"):
         sia = compute.subsystem.sia(s)
 
     with config.override(CES_DISTANCE="EMD"):
@@ -39,11 +39,15 @@ def test_ces_distances(s):
 @skip_if_no_pyemd
 @pytest.mark.outdated
 def test_sia_uses_ces_distances(s):
-    with config.override(REPERTOIRE_DISTANCE="EMD", CES_DISTANCE="EMD"):
+    with config.override(
+        FORMALISM="IIT_3_0", REPERTOIRE_DISTANCE="EMD", CES_DISTANCE="EMD"
+    ):
         sia = compute.subsystem.sia(s)
         assert sia.phi == 2.3125
 
-    with config.override(REPERTOIRE_DISTANCE="EMD", CES_DISTANCE="SUM_SMALL_PHI"):
+    with config.override(
+        FORMALISM="IIT_3_0", REPERTOIRE_DISTANCE="EMD", CES_DISTANCE="SUM_SMALL_PHI"
+    ):
         sia = compute.subsystem.sia(s)
         assert sia.phi == 1.083333
 
