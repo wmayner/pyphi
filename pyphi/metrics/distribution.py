@@ -4,8 +4,10 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from collections.abc import Iterable
 from contextlib import ContextDecorator
 from math import log2
+from typing import Any
 
 import numpy as np
 from numpy.typing import ArrayLike
@@ -57,7 +59,8 @@ class DistanceResult(PyPhiFloat):
 
         This design provides the best of both worlds:
 
-        - **Unsophisticated users**: ``np.array(results)`` just works (fast!)
+        - **Batch numerical analysis**: ``DistanceResult.values_array(results)``
+          returns the float values as a NumPy array (metadata dropped).
         - **Sophisticated users**: Metadata available on individual results
 
     Examples:
@@ -94,11 +97,10 @@ class DistanceResult(PyPhiFloat):
         >>> min_result.method  # Metadata from the minimum value is preserved
         'L1'
 
-        NumPy array creation (automatic float extraction):
+        NumPy array creation (explicit float extraction):
 
-        >>> import numpy as np
         >>> results = [DistanceResult(0.5), DistanceResult(0.3), DistanceResult(0.7)]
-        >>> arr = np.array(results)  # Fast! Auto-extracts float values
+        >>> arr = DistanceResult.values_array(results)
         >>> arr.dtype
         dtype('float64')
         >>> arr
@@ -127,8 +129,8 @@ class DistanceResult(PyPhiFloat):
         >>> print(f"Max φ = {max_phi:.3f} using {max_phi.method}")  # doctest: +SKIP
         Max φ = 0.700 using GID
         >>> # Statistical analysis
-        >>> # Auto-extract for statistics:
-        >>> phi_array = np.array(phi_values)  # doctest: +SKIP
+        >>> # Explicitly extract floats for statistics (metadata dropped):
+        >>> phi_array = DistanceResult.values_array(phi_values)  # doctest: +SKIP
         >>> np.mean(phi_array)  # doctest: +SKIP
         0.5
     """
@@ -195,29 +197,32 @@ class DistanceResult(PyPhiFloat):
         aux_data = {k: v for k, v in data.items() if k != "value"}
         return cls(value, **aux_data)
 
-    def __array__(self, dtype=None):
-        """Implement NumPy array protocol to auto-extract float values.
+    @classmethod
+    def values_array(
+        cls, results: Iterable[DistanceResult], dtype: Any = None
+    ) -> np.ndarray:
+        """Return the float values of an iterable of ``DistanceResult``s
+        as a NumPy array.
 
-        This prevents performance issues when DistanceResult objects are placed
-        in NumPy arrays. Instead of creating an object-dtype array (slow), NumPy
-        will automatically extract the float values (fast).
+        Auxiliary metadata (``method``, ``state``, etc.) is intentionally
+        dropped — callers that need it should iterate the input directly.
+        Use this method when you want explicit control over the metadata-loss
+        boundary, rather than relying on implicit ``np.array(results)``
+        coercion (which was previously implemented via ``__array__`` and
+        silently dropped metadata at unpredictable points).
 
         Args:
-            dtype: Optional dtype for the resulting array element.
+            results: Iterable of DistanceResult objects.
+            dtype: Optional NumPy dtype for the array (default: float64).
 
         Returns:
-            numpy.ndarray: A scalar array containing the float value.
-
-        Note:
-            Metadata is not preserved in the array. For batch processing with
-            metadata, use the ``extract_phi_metadata()`` utility function from
-            ``pyphi.utils``.
+            np.ndarray: 1-D array of the float values.
 
         Examples:
             >>> results = [DistanceResult(0.5, method='EMD'),
             ...            DistanceResult(0.3, method='L1')]
-            >>> arr = np.array(results)
-            >>> arr.dtype  # float64 (not object)
+            >>> arr = DistanceResult.values_array(results)
+            >>> arr.dtype
             dtype('float64')
             >>> arr
             array([0.5, 0.3])
@@ -225,8 +230,8 @@ class DistanceResult(PyPhiFloat):
         import numpy as np
 
         if dtype is None:
-            return np.asarray(float(self))
-        return np.asarray(float(self), dtype=dtype)
+            dtype = np.float64
+        return np.fromiter((float(r) for r in results), dtype=dtype)
 
 
 class OptionalEMD:
