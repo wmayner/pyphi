@@ -85,20 +85,6 @@ def clear_caches(cs: Any | None = None) -> None:
     _evict(id(cs))
 
 
-# =============================================================================
-# Delegating ports (P7 Phase 4) — these forward to a transient legacy Subsystem
-# constructed from the CandidateSystem's fields. Each function will be ported
-# natively in Phase 8 once parity is locked in by tests.
-# =============================================================================
-
-
-def _legacy_subsystem(cs: Any) -> Any:
-    """Construct a legacy Subsystem from a CandidateSystem (worktree only)."""
-    from pyphi.subsystem import Subsystem
-
-    return Subsystem(cs.network, cs.state, cs.node_indices, cut=cs.cut)
-
-
 # ---- repertoire computation ----
 
 

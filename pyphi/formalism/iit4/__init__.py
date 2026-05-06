@@ -20,13 +20,13 @@ from pyphi import compute
 from pyphi import conf
 from pyphi import connectivity
 from pyphi import metrics
-from pyphi import repertoire
 from pyphi import utils
 from pyphi import validate
 from pyphi.compute.network import reachable_subsystems
 from pyphi.conf import config
 from pyphi.conf import fallback
 from pyphi.core import CandidateSystem as Subsystem
+from pyphi.core import repertoire_algebra as repertoire
 from pyphi.data_structures import PyPhiFloat
 from pyphi.direction import Direction
 from pyphi.labels import NodeLabels
