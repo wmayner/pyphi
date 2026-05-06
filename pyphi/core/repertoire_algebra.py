@@ -565,14 +565,36 @@ def intrinsic_information(
 
 def evaluate_partition(
     cs: Any,
-    direction: Any,
+    direction: Direction,
     mechanism: tuple[int, ...],
     purview: tuple[int, ...],
     partition: Any,
+    repertoire: Any = None,
+    partitioned_repertoire: Any = None,
+    repertoire_distance: str | None = None,
+    partitioned_repertoire_kwargs: dict[str, Any] | None = None,
     **kwargs: Any,
 ) -> Any:
-    return _legacy_subsystem(cs).evaluate_partition(
-        direction, mechanism, purview, partition, **kwargs
+    """Evaluate a mechanism partition's |small_phi|.
+
+    Thin dispatcher to the active formalism's
+    ``evaluate_mechanism_partition`` — same pattern as legacy
+    ``Subsystem.evaluate_partition``.
+    """
+    from pyphi.formalism import FORMALISM_REGISTRY
+
+    formalism = FORMALISM_REGISTRY[config.FORMALISM]  # pyright: ignore[reportAttributeAccessIssue]
+    return formalism.evaluate_mechanism_partition(  # pyright: ignore[reportFunctionMemberAccess]
+        cs,
+        direction,
+        mechanism,
+        purview,
+        partition,
+        repertoire=repertoire,
+        partitioned_repertoire=partitioned_repertoire,
+        repertoire_distance=repertoire_distance,
+        partitioned_repertoire_kwargs=partitioned_repertoire_kwargs,
+        **kwargs,
     )
 
 
