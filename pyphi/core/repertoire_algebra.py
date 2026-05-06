@@ -16,6 +16,9 @@ from functools import wraps
 from typing import Any
 from weakref import WeakValueDictionary
 
+from pyphi import distribution as _dist
+from pyphi.direction import Direction
+
 # One cache dict per memoized function name.
 _caches: dict[str, dict[tuple, Any]] = {}
 
@@ -112,43 +115,54 @@ def repertoire(
     return _legacy_subsystem(cs).repertoire(direction, mechanism, purview)
 
 
+def unconstrained_repertoire(
+    cs: Any, direction: Direction, purview: tuple[int, ...]
+) -> Any:
+    return repertoire(cs, direction, (), purview)
+
+
 def unconstrained_cause_repertoire(cs: Any, purview: tuple[int, ...]) -> Any:
-    return _legacy_subsystem(cs).unconstrained_cause_repertoire(purview)
+    return cause_repertoire(cs, (), purview)
 
 
 def unconstrained_effect_repertoire(cs: Any, purview: tuple[int, ...]) -> Any:
-    return _legacy_subsystem(cs).unconstrained_effect_repertoire(purview)
-
-
-def unconstrained_repertoire(cs: Any, direction: Any, purview: tuple[int, ...]) -> Any:
-    return _legacy_subsystem(cs).unconstrained_repertoire(direction, purview)
+    return effect_repertoire(cs, (), purview)
 
 
 def expand_repertoire(
     cs: Any,
-    direction: Any,
+    direction: Direction,
     repertoire_array: Any,
     *,
     new_purview: tuple[int, ...] | None = None,
 ) -> Any:
-    return _legacy_subsystem(cs).expand_repertoire(
-        direction, repertoire_array, new_purview=new_purview
-    )
+    if repertoire_array is None:
+        return None
+    purview = _dist.purview(repertoire_array)
+    if purview is None:
+        return None
+    expanded_purview = cs.node_indices if new_purview is None else new_purview
+    if not set(purview).issubset(expanded_purview):
+        raise ValueError("Expanded purview must contain original purview.")
+    non_purview_indices = tuple(set(expanded_purview) - set(purview))
+    uc = unconstrained_repertoire(cs, direction, non_purview_indices)
+    expanded = repertoire_array * uc
+    return _dist.normalize(expanded)
 
 
 def expand_cause_repertoire(
     cs: Any, repertoire_array: Any, *, new_purview: tuple[int, ...] | None = None
 ) -> Any:
-    return _legacy_subsystem(cs).expand_cause_repertoire(
-        repertoire_array, new_purview=new_purview
+    return expand_repertoire(
+        cs, Direction.CAUSE, repertoire_array, new_purview=new_purview
     )
 
 
 def expand_effect_repertoire(
     cs: Any, repertoire_array: Any, *, new_purview: tuple[int, ...] | None = None
 ) -> Any:
-    return _legacy_subsystem(cs).expand_effect_repertoire(
-        repertoire_array, new_purview=new_purview
+    return expand_repertoire(
+        cs, Direction.EFFECT, repertoire_array, new_purview=new_purview
     )
 
 
