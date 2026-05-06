@@ -416,20 +416,91 @@ class CandidateSystem:
         mechanism: Any,
         purview: Any,
         partition: Any,
+        repertoire: Any = None,
+        partitioned_repertoire: Any = None,
+        repertoire_distance: str | None = None,
+        partitioned_repertoire_kwargs: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> Any:
-        from . import repertoire_algebra as ra
+        """Thin dispatcher to the active formalism's evaluate_mechanism_partition.
 
-        return ra.evaluate_partition(
-            self, direction, mechanism, purview, partition, **kwargs
+        Lives on CandidateSystem (rather than ``repertoire_algebra``) so the
+        kernel can stay free of formalism imports — see
+        ``test_repertoire_algebra_does_not_import_formalism``.
+        """
+        from pyphi.conf import config
+        from pyphi.formalism import FORMALISM_REGISTRY
+
+        formalism = FORMALISM_REGISTRY[config.FORMALISM]  # pyright: ignore[reportAttributeAccessIssue]
+        return formalism.evaluate_mechanism_partition(  # pyright: ignore[reportFunctionMemberAccess]
+            self,
+            direction,
+            mechanism,
+            purview,
+            partition,
+            repertoire=repertoire,
+            partitioned_repertoire=partitioned_repertoire,
+            repertoire_distance=repertoire_distance,
+            partitioned_repertoire_kwargs=partitioned_repertoire_kwargs,
+            **kwargs,
         )
 
     def find_mip(
-        self, direction: Any, mechanism: Any, purview: Any, **kwargs: Any
+        self,
+        direction: Any,
+        mechanism: Any,
+        purview: Any,
+        partitions: Any | None = None,
+        state: Any | None = None,
+        **kwargs: Any,
     ) -> Any:
-        from . import repertoire_algebra as ra
+        """Return the minimum information partition for a mechanism over a purview.
 
-        return ra.find_mip(self, direction, mechanism, purview, **kwargs)
+        Lives on CandidateSystem to keep the formalism import out of
+        ``repertoire_algebra``.
+        """
+        import numpy as np
+
+        from pyphi import conf as _conf
+        from pyphi.conf import config
+        from pyphi.formalism import FORMALISM_REGISTRY
+        from pyphi.models import _null_ria
+        from pyphi.models.mechanism import ShortCircuitConditions
+
+        from .repertoire_algebra import repertoire as _repertoire
+
+        def null_mip(**kw: Any) -> Any:  # noqa: ARG001
+            return _null_ria(direction, mechanism, purview, specified_state=state)
+
+        if not purview:
+            return null_mip(reasons=(ShortCircuitConditions.EMPTY_PURVIEW,))
+
+        rep = _repertoire(self, direction, mechanism, purview)
+
+        from pyphi.direction import Direction
+
+        if direction == Direction.CAUSE and np.all(rep == 0):
+            return null_mip(reasons=(ShortCircuitConditions.UNREACHABLE_STATE,))
+
+        if partitions is not None:
+            partitions = list(partitions)
+
+        parallel_kwargs = _conf.parallel_kwargs(
+            dict(config.PARALLEL_MECHANISM_PARTITION_EVALUATION),  # pyright: ignore[reportAttributeAccessIssue]
+            **kwargs,
+        )
+        formalism = FORMALISM_REGISTRY[config.FORMALISM]  # pyright: ignore[reportAttributeAccessIssue]
+        return formalism._find_mechanism_mip(  # pyright: ignore[reportFunctionMemberAccess]
+            self,
+            direction,
+            mechanism,
+            purview,
+            repertoire=rep,
+            partitions=partitions,
+            state=state,
+            parallel_kwargs=parallel_kwargs,
+            **kwargs,
+        )
 
     def _find_mip_single_state(
         self,
@@ -442,19 +513,57 @@ class CandidateSystem:
         parallel_kwargs: dict[str, Any],
         **kwargs: Any,
     ) -> Any:
-        from . import repertoire_algebra as ra
+        """Find the MIP for a single specified-state pin.
 
-        return ra._find_mip_single_state(
-            self,
-            specified_state,
-            direction,
-            mechanism,
-            purview,
-            repertoire,
-            partitions,
-            parallel_kwargs,
-            **kwargs,
+        Used by formalism MIP-search routines. Lives on CandidateSystem so
+        ``repertoire_algebra`` stays free of formalism imports.
+        """
+        from pyphi import resolve_ties
+        from pyphi import utils
+        from pyphi.conf import fallback
+        from pyphi.models import _null_ria
+        from pyphi.parallel import MapReduce
+        from pyphi.partition import mip_partitions
+
+        partitions = fallback(
+            partitions, mip_partitions(mechanism, purview, self.node_labels)
         )
+
+        def _eval(partition: Any) -> Any:
+            return self.evaluate_partition(
+                direction,
+                mechanism,
+                purview,
+                partition,
+                repertoire=repertoire,
+                state=specified_state,
+                **kwargs,
+            )
+
+        candidate_mips = MapReduce(
+            _eval,
+            partitions,
+            shortcircuit_func=utils.is_falsy,
+            desc="Evaluating mechanism partitions",
+            **parallel_kwargs,
+        ).run()
+        assert candidate_mips is not None, "MapReduce.run() should not return None"
+
+        ties = tuple(
+            resolve_ties.partitions(
+                candidate_mips,  # type: ignore[arg-type]
+                default=_null_ria(
+                    direction,
+                    mechanism,
+                    purview,
+                    phi=0,
+                    specified_state=specified_state,
+                ),
+            )
+        )
+        for tie in ties:
+            tie.set_partition_ties(ties)
+        return ties[0]
 
     def cause_mip(self, mechanism: Any, purview: Any, **kwargs: Any) -> Any:
         from . import repertoire_algebra as ra
@@ -517,9 +626,16 @@ class CandidateSystem:
         return ra.all_distinctions(self, **kwargs)
 
     def sia(self, **kwargs: Any) -> Any:
-        from . import repertoire_algebra as ra
+        """Run system irreducibility analysis via the active formalism.
 
-        return ra.sia(self, **kwargs)
+        Lives on CandidateSystem to keep the formalism import out of
+        ``repertoire_algebra``.
+        """
+        from pyphi.conf import config
+        from pyphi.formalism import FORMALISM_REGISTRY
+
+        formalism = FORMALISM_REGISTRY[config.FORMALISM]  # pyright: ignore[reportAttributeAccessIssue]
+        return formalism.evaluate_system(self, **kwargs)  # pyright: ignore[reportFunctionMemberAccess]
 
     def potential_purviews(self, direction: Any, mechanism: Any, **kwargs: Any) -> Any:
         from . import repertoire_algebra as ra
