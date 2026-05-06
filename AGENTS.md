@@ -341,6 +341,26 @@ make test
 
 **Note**: Coverage configuration is now in `pyproject.toml` under `[tool.coverage.*]`.
 
+### Running tests in parallel for faster feedback
+
+The full suite takes 8-15 minutes (Hypothesis property tests dominate).
+For faster signal, split into independent test files and run them as
+parallel background jobs rather than sequentially in one command:
+
+- **Fast lane** (seconds-to-minute): `test_partition.py`,
+  `test_subsystem_surface.py`, `test_golden_regression.py`,
+  `test_invariants.py` (deterministic invariants, no Hypothesis)
+- **Slow lane** (5-10 min): `test_invariants_hypothesis.py` (property
+  tests with `@settings(max_examples=...)`)
+
+Pattern: kick off the slow lane in background with
+`run_in_background=true`, then run the fast lane in foreground. You'll
+see the fast results in <1 min while the slow lane keeps running, and
+get notified when the slow lane finishes via Monitor's `until` loop.
+
+Don't bundle slow + fast into a single `pytest` invocation — pytest's
+sequential collection means the fast result is gated on the slow one.
+
 ---
 
 ## Configuration System
