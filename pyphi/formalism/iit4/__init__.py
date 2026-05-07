@@ -37,6 +37,7 @@ from pyphi.models.ces import CauseEffectStructure
 from pyphi.models.cuts import GeneralKCut
 from pyphi.models.cuts import NullCut
 from pyphi.models.cuts import SystemPartition
+from pyphi.models.phi_structure import PhiStructure
 from pyphi.models.ria import RepertoireIrreducibilityAnalysis
 from pyphi.models.state_specification import StateSpecification
 from pyphi.models.state_specification import SystemStateSpecification
@@ -697,116 +698,6 @@ _sia = sia
 ##############################################################################
 # Composition
 ##############################################################################
-
-
-class PhiStructure(cmp.Orderable):
-    _SIA_INHERITED_ATTRIBUTES: ClassVar[list[str]] = [
-        "phi",
-        "partition",
-        "system_state",
-    ]
-
-    def __init__(
-        self,
-        sia: SystemIrreducibilityAnalysis,
-        distinctions: CauseEffectStructure,
-        relations: Relations,
-    ):
-        self._sia = sia
-        self._distinctions = distinctions
-        self._relations = relations
-
-    @property
-    def sia(self):
-        return self._sia
-
-    @property
-    def distinctions(self):
-        return self._distinctions
-
-    @property
-    def relations(self):
-        return self._relations
-
-    @property
-    def components(self):
-        yield from self.distinctions
-        # Relations is not iterable in base class but subclasses (ConcreteRelations) are
-        yield from list(self.relations)  # pyright: ignore[reportArgumentType]
-
-    def __getattr__(self, attr):
-        if attr in self._SIA_INHERITED_ATTRIBUTES:
-            return getattr(self.sia, attr)
-        return super().__getattribute__(attr)
-
-    def order_by(self):
-        return self.phi
-
-    def __hash__(self):
-        return hash((self.distinctions, self.relations))
-
-    def __bool__(self):
-        return bool(self.sia)
-
-    def __eq__(self, other):
-        # Check if other has the required attributes
-        if not isinstance(other, PhiStructure):
-            return False
-        return (
-            self.sia == other.sia
-            and self.distinctions == other.distinctions
-            and self.relations == other.relations
-        )
-
-    def _repr_columns(self):
-        # Relations may not have __len__ in base class
-        # use num_relations() method instead
-        num_relations = (
-            self.relations.num_relations()
-            if hasattr(self.relations, "num_relations")
-            else 0
-        )
-        return [
-            ("Φ", self.big_phi),
-            ("#(distinctions)", len(self.distinctions)),
-            ("Σ φ_d", self.sum_phi_distinctions),
-            ("#(relations)", num_relations),
-            ("Σ φ_r", self.sum_phi_relations),
-        ]
-
-    def __repr__(self):
-        body = "\n".join(fmt.align_columns(self._repr_columns()))
-        body = fmt.header(self.__class__.__name__, body, under_char=fmt.HEADER_BAR_1)
-        body += "\n" + str(self.sia)
-        return fmt.box(fmt.center(body))
-
-    @property
-    def sum_phi_relations(self):
-        return self.relations.sum_phi()
-
-    @property
-    def sum_phi_distinctions(self):
-        try:
-            return self._sum_phi_distinctions
-        except AttributeError:
-            # TODO delegate sum to distinctions
-            self._sum_phi_distinctions = self.distinctions.sum_phi()
-            return self._sum_phi_distinctions
-
-    @property
-    def big_phi(self):
-        try:
-            return self._big_phi
-        except AttributeError:
-            self._big_phi = self.sum_phi_distinctions + self.sum_phi_relations
-            return self._big_phi
-
-    def to_json(self):
-        return {
-            "sia": self.sia,
-            "distinctions": self.distinctions,
-            "relations": self.relations,
-        }
 
 
 class NullPhiStructure(PhiStructure):

@@ -50,6 +50,7 @@ from .cuts import Tripartition
 from .mice import MaximallyIrreducibleCause
 from .mice import MaximallyIrreducibleCauseOrEffect
 from .mice import MaximallyIrreducibleEffect
+from .phi_structure import PhiStructure
 from .ria import RepertoireIrreducibilityAnalysis
 from .ria import ShortCircuitConditions
 from .ria import _null_ria
@@ -81,6 +82,7 @@ __all__ = [
     "MaximallyIrreducibleEffect",
     "NullCut",
     "Part",
+    "PhiStructure",
     "RepertoireIrreducibilityAnalysis",
     "ShortCircuitConditions",
     "StateSpecification",
