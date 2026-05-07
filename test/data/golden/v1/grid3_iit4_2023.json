@@ -1,8 +1,8 @@
 {
   "fixture_name": "grid3_iit4_2023",
   "schema_version": 1,
-  "generated_from_commit": "023a359b082dcb825beaa323c150090d51f454dd",
-  "description": "Grid3 3-node network. Symmetric architecture; useful for catching tie-resolution regressions. Pins the current behavior where |\u00b7|+ is not enforced (see comment above). IIT 4.0 (Albantakis et al. 2023) + GID.",
+  "generated_from_commit": "9ec93a7c7869256e73cf86ba686efbaa97bd776a",
+  "description": "Grid3 3-node network. Symmetric architecture; useful for catching tie-resolution regressions. Tests the |\u00b7|+ clamp: phi = 0 (paper-faithful) with signed_phi = -0.0729 retained as preventative-cause metadata. IIT 4.0 (Albantakis et al. 2023) + GID.",
   "config_overrides": {
     "FORMALISM": "IIT_4_0_2023",
     "REPERTOIRE_DISTANCE": "GENERALIZED_INTRINSIC_DIFFERENCE",
@@ -2186,7 +2186,7 @@
         0
       ],
       "direction": "CAUSE",
-      "phi": -0.10389618535183819,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -2224,7 +2224,7 @@
         0
       ],
       "direction": "EFFECT",
-      "phi": -0.050749178185758775,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -2262,7 +2262,7 @@
         1
       ],
       "direction": "CAUSE",
-      "phi": -0.09633902754388274,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -2300,7 +2300,7 @@
         1
       ],
       "direction": "EFFECT",
-      "phi": -0.05404470150163636,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -2415,7 +2415,7 @@
         1
       ],
       "direction": "CAUSE",
-      "phi": -0.10461679400346167,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -2457,7 +2457,7 @@
         1
       ],
       "direction": "EFFECT",
-      "phi": -0.0917977507009833,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -2499,7 +2499,7 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": -1.5683269005284112e-16,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -2540,7 +2540,7 @@
         2
       ],
       "direction": "EFFECT",
-      "phi": -0.027195902242928373,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -2582,7 +2582,7 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": -0.05019764512361868,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -2623,7 +2623,7 @@
         2
       ],
       "direction": "EFFECT",
-      "phi": -0.028961935371777273,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -2665,7 +2665,7 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": -0.04336726856888356,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -2710,7 +2710,7 @@
         2
       ],
       "direction": "EFFECT",
-      "phi": -0.04919336122146766,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -2829,7 +2829,7 @@
         1
       ],
       "direction": "CAUSE",
-      "phi": -0.0037259488882585364,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -2865,7 +2865,7 @@
         1
       ],
       "direction": "EFFECT",
-      "phi": -1.601713251907459e-16,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -2978,7 +2978,7 @@
         1
       ],
       "direction": "CAUSE",
-      "phi": -0.02733673961937627,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -3020,7 +3020,7 @@
         1
       ],
       "direction": "EFFECT",
-      "phi": -1.4682674813613066e-16,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -3146,7 +3146,7 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": -0.02733673961937627,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -3231,7 +3231,7 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": -0.024296350588925215,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -3281,7 +3281,7 @@
         2
       ],
       "direction": "EFFECT",
-      "phi": -0.044714805950574685,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -3898,7 +3898,7 @@
         0
       ],
       "direction": "CAUSE",
-      "phi": -0.10389618535183819,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -3938,7 +3938,7 @@
         0
       ],
       "direction": "EFFECT",
-      "phi": -0.050749178185758775,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -3978,7 +3978,7 @@
         1
       ],
       "direction": "CAUSE",
-      "phi": -0.09769282953935472,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -4018,7 +4018,7 @@
         1
       ],
       "direction": "EFFECT",
-      "phi": -0.03315999671702609,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -4139,7 +4139,7 @@
         1
       ],
       "direction": "CAUSE",
-      "phi": -0.1056730991292398,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -4183,7 +4183,7 @@
         1
       ],
       "direction": "EFFECT",
-      "phi": -0.07610666617325768,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -4227,7 +4227,7 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": -0.08942961190114934,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -4271,7 +4271,7 @@
         2
       ],
       "direction": "EFFECT",
-      "phi": -0.048342354258514283,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -4315,7 +4315,7 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": -0.08503020147994113,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -4358,7 +4358,7 @@
         2
       ],
       "direction": "EFFECT",
-      "phi": -0.031587355023523986,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -4402,7 +4402,7 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": -0.07287267733603037,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -4449,7 +4449,7 @@
         2
       ],
       "direction": "EFFECT",
-      "phi": -0.07249724131719122,
+      "phi": 0.0,
       "partition": [
         [
           [],

@@ -1,7 +1,7 @@
 {
   "fixture_name": "basic_iit4_2026",
   "schema_version": 1,
-  "generated_from_commit": "023a359b082dcb825beaa323c150090d51f454dd",
+  "generated_from_commit": "9ec93a7c7869256e73cf86ba686efbaa97bd776a",
   "description": "Basic 3-node network (Marshall et al. 2023 Fig. 1 reference). IIT 4.0 (Mayner, Marshall, Tononi 2026) \u2014 adds ii(s) = min(i_diff, i_spec) cap via INTRINSIC_INFORMATION mode.",
   "config_overrides": {
     "FORMALISM": "IIT_4_0_2026",
@@ -2544,7 +2544,7 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": -0.5849625007211563,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -2706,7 +2706,7 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": -0.29248125036057815,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -4315,7 +4315,7 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": -0.5849625007211563,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -4482,7 +4482,7 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": -0.29248125036057815,
+      "phi": 0.0,
       "partition": [
         [
           [],

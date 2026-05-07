@@ -1,7 +1,7 @@
 {
   "fixture_name": "rule110_iit4_2023",
   "schema_version": 1,
-  "generated_from_commit": "023a359b082dcb825beaa323c150090d51f454dd",
+  "generated_from_commit": "9ec93a7c7869256e73cf86ba686efbaa97bd776a",
   "description": "Rule 110 cellular automaton, 3-node window. IIT 4.0 (Albantakis et al. 2023) + GID.",
   "config_overrides": {
     "FORMALISM": "IIT_4_0_2023",
@@ -2267,7 +2267,7 @@
         1
       ],
       "direction": "CAUSE",
-      "phi": -0.183958911364207,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -2574,7 +2574,7 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": -0.21461872992490819,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -2816,7 +2816,7 @@
         1
       ],
       "direction": "CAUSE",
-      "phi": -0.029446844526784283,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -2890,7 +2890,7 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": -0.029446844526784283,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -3116,7 +3116,7 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": -0.10730936496245409,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -3264,7 +3264,7 @@
         2
       ],
       "direction": "EFFECT",
-      "phi": -0.021240625180289057,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -3454,7 +3454,7 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": -0.183958911364207,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -3690,7 +3690,7 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": -0.21461872992490819,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -3937,7 +3937,7 @@
         1
       ],
       "direction": "CAUSE",
-      "phi": -0.21461872992490819,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -4017,7 +4017,7 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": -0.21461872992490819,
+      "phi": 0.0,
       "partition": [
         [
           [],
@@ -4271,7 +4271,7 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": -0.21461872992490819,
+      "phi": 0.0,
       "partition": [
         [
           [],
