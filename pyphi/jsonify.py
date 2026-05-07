@@ -109,7 +109,7 @@ def _loadable_models():
         pyphi.models.NullCut,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.Part,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.RepertoireIrreducibilityAnalysis,  # pyright: ignore[reportAttributeAccessIssue]
-        pyphi.models.subsystem.SystemStateSpecification,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.SystemStateSpecification,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.SystemIrreducibilityAnalysis,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.Tripartition,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.Network,

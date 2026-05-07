@@ -33,13 +33,13 @@ from pyphi.labels import NodeLabels
 from pyphi.metrics.distribution import DistanceResult
 from pyphi.models import cmp
 from pyphi.models import fmt
+from pyphi.models.ces import CauseEffectStructure
 from pyphi.models.cuts import GeneralKCut
 from pyphi.models.cuts import NullCut
 from pyphi.models.cuts import SystemPartition
 from pyphi.models.ria import RepertoireIrreducibilityAnalysis
 from pyphi.models.state_specification import StateSpecification
-from pyphi.models.subsystem import CauseEffectStructure
-from pyphi.models.subsystem import SystemStateSpecification
+from pyphi.models.state_specification import SystemStateSpecification
 from pyphi.parallel import MapReduce
 from pyphi.partition import system_partitions
 from pyphi.relations import ConcreteRelations

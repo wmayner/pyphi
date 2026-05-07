@@ -7,8 +7,8 @@ from collections.abc import Iterable
 from copy import deepcopy
 
 from .direction import Direction
+from .models.ces import CauseEffectStructure
 from .models.concept import Concept
-from .models.subsystem import CauseEffectStructure
 
 DIRECTIONS = [
     Direction.CAUSE,

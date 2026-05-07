@@ -17,8 +17,8 @@ from pyphi.types import Repertoire
 from . import distribution
 
 if TYPE_CHECKING:
+    from pyphi.models.ces import CauseEffectStructure
     from pyphi.models.concept import Concept
-    from pyphi.models.subsystem import CauseEffectStructure
 
 
 class CESMeasureRegistry(Registry):

@@ -1,11 +1,11 @@
-# models/subsystem.py
-"""Subsystem-level objects."""
+# models/ces.py
+"""``CauseEffectStructure`` — a collection of distinctions/concepts."""
+
+from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Iterable
 from collections.abc import Sequence
-from dataclasses import dataclass
-from typing import ClassVar
 
 from toolz import concat
 
@@ -15,48 +15,8 @@ from pyphi.direction import Direction
 
 from . import cmp
 from . import fmt
-from .pandas import ToDictMixin
 from .pandas import ToPandasMixin
-from .state_specification import StateSpecification
-
-_sia_attributes = ["phi", "ces", "partitioned_ces", "subsystem", "cut_subsystem"]
-
-
-@dataclass(frozen=True)
-class SystemStateSpecification(ToDictMixin, ToPandasMixin):
-    cause: StateSpecification
-    effect: StateSpecification
-
-    def __getitem__(self, direction: Direction) -> StateSpecification:
-        if direction == Direction.CAUSE:
-            return self.cause
-        if direction == Direction.EFFECT:
-            return self.effect
-        raise KeyError("Invalid direction")
-
-    def _repr_columns(self, prefix=""):
-        cols = []
-        # TODO(4.0) create NullStateSpecification and use that instead of None
-        if self.cause is not None:
-            cols.extend(self.cause._repr_columns(prefix))
-        else:
-            cols.append((f"{prefix}{Direction.CAUSE}", None))
-        if self.effect is not None:
-            cols.extend(self.effect._repr_columns(prefix))
-        else:
-            cols.append((f"{prefix}{Direction.EFFECT}", None))
-        return cols
-
-    def __repr__(self):
-        body = "\n".join(fmt.align_columns(self._repr_columns()))
-        body = fmt.header("Specified System State", body, under_char=fmt.HEADER_BAR_3)
-        return fmt.box(fmt.center(body))
-
-    def __hash__(self):
-        return hash((self.cause, self.effect))
-
-    def to_json(self):
-        return self.__dict__
+from .state_specification import SystemStateSpecification
 
 
 def _concept_sort_key(concept):
@@ -251,131 +211,6 @@ class CauseEffectStructure(cmp.Orderable, Sequence, ToPandasMixin):
         return self._resolved_congruence
 
 
-class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
-    """An analysis of system irreducibility (|big_phi|).
-
-    Contains the |big_phi| value of the |Subsystem|, the cause-effect
-    structure, and all the intermediate results obtained in the course of
-    computing them.
-
-    These can be compared with the built-in Python comparison operators (``<``,
-    ``>``, etc.). First, |big_phi| values are compared. Then, if these are
-    equal up to |PRECISION|, the one with the larger subsystem is greater.
-
-    Attributes:
-        phi (float): The |big_phi| value for the subsystem when taken against
-            this analysis, *i.e.* the difference between the cause-effect
-            structure and the partitioned cause-effect structure for this
-            analysis.
-        ces (CauseEffectStructure): The cause-effect structure of
-            the whole subsystem.
-        partitioned_ces (CauseEffectStructure): The cause-effect structure when
-            the subsystem is cut.
-        subsystem (Subsystem): The subsystem this analysis was calculated for.
-        cut_subsystem (Subsystem): The subsystem with the minimal cut applied.
-        time (float): The number of seconds it took to calculate.
-    """
-
-    phi: float  # Override parent to allow None during init
-
-    def __init__(
-        self,
-        phi=None,
-        ces=None,
-        partitioned_ces=None,
-        subsystem=None,
-        cut_subsystem=None,
-    ):
-        # Preserve DistanceResult type if possible, otherwise convert to PyPhiFloat
-        if phi is None:
-            self.phi = phi  # type: ignore[assignment]
-        else:
-            from pyphi.data_structures.pyphi_float import PyPhiFloat
-            from pyphi.metrics.distribution import DistanceResult
-
-            if isinstance(phi, DistanceResult):
-                self.phi = phi  # type: ignore[assignment]
-            else:
-                self.phi = PyPhiFloat(phi)  # type: ignore[assignment]
-        self.ces = ces
-        self.partitioned_ces = partitioned_ces
-        self.subsystem = subsystem
-        self.cut_subsystem = cut_subsystem
-
-    def __repr__(self):
-        return fmt.make_repr(self, _sia_attributes)
-
-    def __str__(self, ces=True):
-        return fmt.fmt_sia(self, ces=ces)
-
-    def print(self, ces=True):
-        """Print this |SystemIrreducibilityAnalysis|, optionally without
-        cause-effect structures.
-        """
-
-    @property
-    def cut(self):
-        """The unidirectional cut that makes the least difference to the
-        subsystem.
-        """
-        assert self.cut_subsystem is not None
-        return self.cut_subsystem.cut
-
-    @property
-    def network(self):
-        """The network the subsystem belongs to."""
-        assert self.subsystem is not None
-        return self.subsystem.network
-
-    unorderable_unless_eq: ClassVar[list[str]] = ["network"]
-
-    def __eq__(self, other):
-        return cmp.general_eq(self, other, _sia_attributes)
-
-    def __bool__(self):
-        """A |SystemIrreducibilityAnalysis| is ``True`` if it has
-        |big_phi > 0|.
-        """
-        return not utils.eq(self.phi, 0)
-
-    def __hash__(self):
-        return hash(
-            (
-                self.phi,
-                self.ces,
-                self.partitioned_ces,
-                self.subsystem,
-                self.cut_subsystem,
-            )
-        )
-
-    def to_json(self):
-        """Return a JSON-serializable representation."""
-        return {
-            attr: getattr(self, attr) for attr in [*_sia_attributes, "small_phi_time"]
-        }
-
-    @classmethod
-    def from_json(cls, dct):
-        del dct["small_phi_time"]
-        return cls(**dct)
-
-
 def _null_ces(subsystem=None):  # noqa: ARG001 - subsystem retained for backward-compatible signature
     """Return an empty CES."""
     return CauseEffectStructure(())
-
-
-def _null_sia(subsystem, phi=0.0):
-    """Return a |SystemIrreducibilityAnalysis| with zero |big_phi| and empty
-    cause-effect structures.
-
-    This is the analysis result for a reducible subsystem.
-    """
-    return SystemIrreducibilityAnalysis(
-        subsystem=subsystem,
-        cut_subsystem=subsystem,
-        phi=phi,
-        ces=_null_ces(),
-        partitioned_ces=_null_ces(),
-    )

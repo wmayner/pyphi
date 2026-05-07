@@ -174,3 +174,46 @@ def _(partition: object) -> int | float | None:
 def normalization_factor(partition: object) -> int | float | None:
     func = distinction_phi_normalizations[config.DISTINCTION_PHI_NORMALIZATION]  # type: ignore[index]
     return func(partition)
+
+
+@dataclass(frozen=True)
+class SystemStateSpecification(ToDictMixin, ToPandasMixin):
+    """A pair of cause/effect ``StateSpecification`` instances.
+
+    Used at the system level (IIT 4.0 ``SIA`` and ``PhiStructure``) to
+    bundle the maximally-specifying cause and effect states.
+    """
+
+    cause: StateSpecification
+    effect: StateSpecification
+
+    def __getitem__(self, direction: Direction) -> StateSpecification:
+        if direction == Direction.CAUSE:
+            return self.cause
+        if direction == Direction.EFFECT:
+            return self.effect
+        raise KeyError("Invalid direction")
+
+    def _repr_columns(self, prefix: str = "") -> list[tuple[str, Any]]:
+        cols = []
+        # TODO(4.0) create NullStateSpecification and use that instead of None
+        if self.cause is not None:
+            cols.extend(self.cause._repr_columns(prefix))
+        else:
+            cols.append((f"{prefix}{Direction.CAUSE}", None))
+        if self.effect is not None:
+            cols.extend(self.effect._repr_columns(prefix))
+        else:
+            cols.append((f"{prefix}{Direction.EFFECT}", None))
+        return cols
+
+    def __repr__(self) -> str:
+        body = "\n".join(fmt.align_columns(self._repr_columns()))
+        body = fmt.header("Specified System State", body, under_char=fmt.HEADER_BAR_3)
+        return fmt.box(fmt.center(body))
+
+    def __hash__(self) -> int:
+        return hash((self.cause, self.effect))
+
+    def to_json(self) -> dict[str, Any]:
+        return self.__dict__
