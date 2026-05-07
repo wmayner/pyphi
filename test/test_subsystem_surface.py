@@ -1,60 +1,59 @@
-"""Surface-drift test: ``Subsystem``'s public attributes must match the
+"""Surface-drift test: ``CandidateSystem``'s public attributes must match the
 declaration in :mod:`pyphi.protocols`.
 
-The test introspects ``Subsystem`` to discover its public attributes (public
-methods, properties, and instance attributes set in ``__init__``), then
-asserts the discovered set matches ``PUBLIC_SUBSYSTEM_ATTRS``. Adding,
-renaming, or removing a public attribute on ``Subsystem`` requires updating
-the Protocol declaration in the same change — making both ends of the
-public contract visible to reviewers and to type-checkers.
+The test introspects an instance of ``CandidateSystem`` to discover its
+public attributes (public methods, cached_properties, and dataclass
+fields), then asserts the discovered set matches
+``PUBLIC_SUBSYSTEM_ATTRS``. Adding, renaming, or removing a public
+attribute on ``CandidateSystem`` requires updating the Protocol
+declaration in the same change — making both ends of the public contract
+visible to reviewers and to type-checkers.
 
 Internal-only attributes (those starting with ``_``) are not part of the
-checked surface.
+checked surface. Formalism queries (``find_mip``, ``sia``, ``concept``,
+…) live in :mod:`pyphi.formalism` as free functions and are *not* part
+of the CandidateSystem surface — see option D in the design notes.
 """
 
 from __future__ import annotations
 
-import inspect
-import re
-
 import pytest
 
+from pyphi import examples
+from pyphi.core import CandidateSystem
+from pyphi.core.causal_model import CausalModel
 from pyphi.protocols import PUBLIC_SUBSYSTEM_ATTRS
-from pyphi.subsystem import Subsystem
 
 
-def _public_class_members(cls: type) -> set[str]:
-    """Return public methods and properties defined on a class (and bases)."""
-    return {name for name in dir(cls) if not name.startswith("_")}
-
-
-def _instance_attrs_from_init(cls: type) -> set[str]:
-    """Return ``self.X = ...`` assignment targets in ``__init__``.
-
-    Restricted to public names. Picks up attributes that aren't visible on
-    the class itself but are set during construction.
-    """
-    src = inspect.getsource(cls.__init__)
-    return {m for m in re.findall(r"self\.(\w+)\s*=", src) if not m.startswith("_")}
+def _build_cs() -> CandidateSystem:
+    cm = CausalModel.from_network(examples.basic_network())
+    return CandidateSystem(causal_model=cm, state=(1, 0, 0), node_indices=(0, 1, 2))
 
 
 def _discovered_public_surface() -> set[str]:
-    return _public_class_members(Subsystem) | _instance_attrs_from_init(Subsystem)
+    """Return all public names visible on a CandidateSystem instance.
+
+    Constructing an instance ensures cached_properties and dataclass
+    fields appear via ``dir()``.
+    """
+    cs = _build_cs()
+    return {name for name in dir(cs) if not name.startswith("_")}
 
 
-def test_subsystem_public_surface_matches_protocol():
-    """Subsystem's discovered public surface must equal PUBLIC_SUBSYSTEM_ATTRS.
+def test_candidate_system_public_surface_matches_protocol():
+    """CandidateSystem's discovered public surface must equal PUBLIC_SUBSYSTEM_ATTRS.
 
     If this fails, you have either:
 
-    1. **Added** a public attribute to ``Subsystem`` — also add it to
-       :data:`pyphi.protocols.PUBLIC_SUBSYSTEM_ATTRS` and to
+    1. **Added** a public attribute to ``CandidateSystem`` — also add it
+       to :data:`pyphi.protocols.PUBLIC_SUBSYSTEM_ATTRS` and to
        :class:`SubsystemPublicInterface`. Adding a public attribute is a
        change to the cross-module contract.
 
-    2. **Removed** a public attribute from ``Subsystem`` — also remove it
-       from :data:`pyphi.protocols.PUBLIC_SUBSYSTEM_ATTRS` and the
-       Protocol. Removing one is a breaking change for external callers.
+    2. **Removed** a public attribute from ``CandidateSystem`` — also
+       remove it from :data:`pyphi.protocols.PUBLIC_SUBSYSTEM_ATTRS` and
+       the Protocol. Removing one is a breaking change for external
+       callers.
 
     3. **Renamed** a public attribute — combine (1) and (2).
 
@@ -71,7 +70,7 @@ def test_subsystem_public_surface_matches_protocol():
 
     if added or removed:
         pytest.fail(
-            "Subsystem public surface drifted from "
+            "CandidateSystem public surface drifted from "
             "pyphi.protocols.PUBLIC_SUBSYSTEM_ATTRS:\n"
             + (
                 f"  ADDED (on class but not in Protocol): {sorted(added)}\n"

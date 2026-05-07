@@ -183,21 +183,21 @@ def test_forward_repertoire_parity(cs_and_subsystem) -> None:
 
 
 def test_phi_parity(cs_and_subsystem) -> None:
-    from pyphi.core.repertoire_algebra import phi
+    from pyphi.formalism import phi
 
     cs, sub = cs_and_subsystem
     assert phi(cs, (0,), (1,)) == pytest.approx(sub.phi((0,), (1,)))
 
 
 def test_concept_parity(cs_and_subsystem) -> None:
-    from pyphi.core.repertoire_algebra import concept
+    from pyphi.formalism import concept
 
     cs, sub = cs_and_subsystem
     assert concept(cs, (0,)).phi == pytest.approx(sub.concept((0,)).phi)
 
 
 def test_sia_parity(cs_and_subsystem) -> None:
-    from pyphi.core.repertoire_algebra import sia
+    from pyphi.formalism import sia
 
     cs, sub = cs_and_subsystem
     assert sia(cs).phi == pytest.approx(sub.sia().phi)

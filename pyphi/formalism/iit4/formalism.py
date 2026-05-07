@@ -129,8 +129,14 @@ def _find_mip_iit4(
     else:
         specified_states = [state]
 
+    from functools import partial
+
+    from pyphi.formalism.queries import (
+        _find_mip_single_state,  # pyright: ignore[reportPrivateUsage]
+    )
+
     mips = MapReduce(
-        subsystem._find_mip_single_state,
+        partial(_find_mip_single_state, subsystem),  # pyright: ignore[reportPrivateUsage]
         specified_states,
         map_kwargs={
             "direction": direction,
@@ -170,9 +176,11 @@ class IIT4_2023Formalism:
         **kwargs: Any,
     ) -> Any:
         """Public mechanism-level evaluation. Calls back through
-        ``Subsystem.find_mip`` to preserve the short-circuit logic
-        (empty purview, unreachable state) the public method owns."""
-        return subsystem.find_mip(direction, mechanism, purview, **kwargs)
+        ``queries.find_mip`` to preserve the short-circuit logic
+        (empty purview, unreachable state) the public dispatcher owns."""
+        from pyphi.formalism.queries import find_mip
+
+        return find_mip(subsystem, direction, mechanism, purview, **kwargs)
 
     def _find_mechanism_mip(
         self,
@@ -182,7 +190,7 @@ class IIT4_2023Formalism:
         purview: Any,
         **kwargs: Any,
     ) -> Any:
-        """Internal mechanism-MIP search. Called by ``Subsystem.find_mip``
+        """Internal mechanism-MIP search. Called by ``queries.find_mip``
         after its short-circuit checks; contains the IIT 4.0 logic
         (maximize over specified states, minimize over partitions)."""
         check_metric_compatible(self, config.REPERTOIRE_DISTANCE)
@@ -242,8 +250,10 @@ class IIT4_2026Formalism:
         purview: Any,
         **kwargs: Any,
     ) -> Any:
+        from pyphi.formalism.queries import find_mip
+
         with config.override(REPERTOIRE_DISTANCE=self.default_metric):
-            return subsystem.find_mip(direction, mechanism, purview, **kwargs)
+            return find_mip(subsystem, direction, mechanism, purview, **kwargs)
 
     def _find_mechanism_mip(
         self,

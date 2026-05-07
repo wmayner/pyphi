@@ -32,6 +32,28 @@ def test_repertoire_algebra_does_not_import_formalism() -> None:
     assert not any(i == ".formalism" for i in imports)
 
 
+def test_candidate_system_does_not_import_formalism() -> None:
+    """``CandidateSystem`` is a value type — formalism dispatch lives in
+    :mod:`pyphi.formalism` (option D). Walking the AST catches imports
+    inside method bodies as well as top-level imports.
+    """
+    imports = _imports_in(CORE / "candidate_system.py")
+    assert not any(i.startswith("pyphi.formalism") for i in imports)
+    assert not any(i == ".formalism" for i in imports)
+
+
+def test_core_does_not_import_formalism() -> None:
+    """No file in ``pyphi/core/`` may import ``pyphi.formalism`` — at any level.
+
+    Belt-and-suspenders for the two narrower tests above; catches files we
+    might add to ``core/`` later.
+    """
+    for py in CORE.rglob("*.py"):
+        imports = _imports_in(py)
+        offenders = [i for i in imports if i.startswith("pyphi.formalism")]
+        assert not offenders, f"{py}: imports {offenders}"
+
+
 def test_core_does_not_import_subsystem_module_top_level() -> None:
     """The core package may use the legacy subsystem inside function bodies
     during the worktree (the ``_legacy_subsystem`` helper), but no module in

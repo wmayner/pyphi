@@ -46,9 +46,11 @@ class IIT3Formalism:
         **kwargs: Any,
     ) -> Any:
         """Public mechanism-level evaluation. Calls back through
-        ``Subsystem.find_mip`` to preserve the short-circuit logic
-        (empty purview, unreachable state) the public method owns."""
-        return subsystem.find_mip(direction, mechanism, purview, **kwargs)
+        ``queries.find_mip`` to preserve the short-circuit logic
+        (empty purview, unreachable state) the public dispatcher owns."""
+        from pyphi.formalism.queries import find_mip
+
+        return find_mip(subsystem, direction, mechanism, purview, **kwargs)
 
     def _find_mechanism_mip(
         self,
@@ -62,15 +64,20 @@ class IIT3Formalism:
         parallel_kwargs: Any = None,
         **kwargs: Any,
     ) -> Any:
-        """Internal mechanism-MIP search. Called by ``Subsystem.find_mip``
+        """Internal mechanism-MIP search. Called by ``queries.find_mip``
         after its short-circuit checks. IIT 3.0 has no candidate
         specified-states phase — there's a single, unique MIP per
         (mechanism, purview), found by minimizing over partitions.
         """
+        from pyphi.formalism.queries import (
+            _find_mip_single_state,  # pyright: ignore[reportPrivateUsage]
+        )
+
         check_metric_compatible(self, config.REPERTOIRE_DISTANCE)
         if state is not None:
             raise ValueError("passing `state` is not supported with IIT 3.0")
-        return subsystem._find_mip_single_state(
+        return _find_mip_single_state(  # pyright: ignore[reportPrivateUsage]
+            subsystem,
             None,
             direction,
             mechanism,

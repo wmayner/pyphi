@@ -546,44 +546,7 @@ def intrinsic_information(
     return ties[0]
 
 
-# ---- mechanism / system analysis ----
-
-
-def cause_mip(
-    cs: Any, mechanism: tuple[int, ...], purview: tuple[int, ...], **kwargs: Any
-) -> Any:
-    """Cause MIP — alias for cs.find_mip with CAUSE direction."""
-    return cs.find_mip(Direction.CAUSE, mechanism, purview, **kwargs)
-
-
-def effect_mip(
-    cs: Any, mechanism: tuple[int, ...], purview: tuple[int, ...], **kwargs: Any
-) -> Any:
-    """Effect MIP — alias for cs.find_mip with EFFECT direction."""
-    return cs.find_mip(Direction.EFFECT, mechanism, purview, **kwargs)
-
-
-def phi_cause_mip(
-    cs: Any, mechanism: tuple[int, ...], purview: tuple[int, ...], **kwargs: Any
-) -> float:
-    mip = cause_mip(cs, mechanism, purview, **kwargs)
-    return mip.phi if mip else 0
-
-
-def phi_effect_mip(
-    cs: Any, mechanism: tuple[int, ...], purview: tuple[int, ...], **kwargs: Any
-) -> float:
-    mip = effect_mip(cs, mechanism, purview, **kwargs)
-    return mip.phi if mip else 0
-
-
-def phi(
-    cs: Any, mechanism: tuple[int, ...], purview: tuple[int, ...], **kwargs: Any
-) -> float:
-    return min(
-        phi_cause_mip(cs, mechanism, purview, **kwargs),
-        phi_effect_mip(cs, mechanism, purview, **kwargs),
-    )
+# ---- purview enumeration (kernel) ----
 
 
 def potential_purviews(
@@ -610,81 +573,6 @@ def potential_purviews(
     return irreducible_purviews(cs.cm, direction, mechanism, purviews_list)
 
 
-def find_mice(
-    cs: Any,
-    direction: Direction,
-    mechanism: tuple[int, ...],
-    purviews: Any | None = None,
-    **kwargs: Any,
-) -> Any:
-    """Return the |MIC| or |MIE| for a mechanism."""
-    from pyphi import conf as _conf
-    from pyphi import resolve_ties
-    from pyphi.models import MaximallyIrreducibleCause
-    from pyphi.models import MaximallyIrreducibleEffect
-    from pyphi.models import _null_ria
-    from pyphi.models.mechanism import ShortCircuitConditions
-    from pyphi.parallel import MapReduce
-
-    purviews_list = potential_purviews(cs, direction, mechanism, purviews)
-
-    if direction == Direction.CAUSE:
-        mice_class = MaximallyIrreducibleCause
-    elif direction == Direction.EFFECT:
-        mice_class = MaximallyIrreducibleEffect
-    else:
-        _validate.direction(direction)
-        mice_class = MaximallyIrreducibleCause  # unreachable
-
-    no_purviews = mice_class(
-        _null_ria(
-            direction,
-            mechanism,
-            (),
-            reasons=(ShortCircuitConditions.NO_PURVIEWS,),
-        )
-    )
-
-    if not purviews_list:
-        return no_purviews
-
-    def _find_mip(purview: tuple[int, ...]) -> Any:
-        return cs.find_mip(direction, mechanism, purview)
-
-    parallel_kwargs = _conf.parallel_kwargs(
-        dict(config.PARALLEL_PURVIEW_EVALUATION),  # pyright: ignore[reportAttributeAccessIssue]
-        **kwargs,
-    )
-    map_reduce = MapReduce(
-        _find_mip,
-        purviews_list,
-        total=len(purviews_list),
-        desc="Evaluating purviews",
-        **parallel_kwargs,
-    )
-
-    all_mice = map(mice_class, map_reduce.run())  # type: ignore[arg-type]
-    ties = tuple(resolve_ties.purviews(all_mice, default=no_purviews))  # type: ignore[arg-type]
-    for tie in ties:
-        tie.set_purview_ties(ties)
-    return ties[0]
-
-
-def mic(cs: Any, mechanism: tuple[int, ...], **kwargs: Any) -> Any:
-    """Maximally-irreducible cause — alias for find_mice with CAUSE direction."""
-    return find_mice(cs, Direction.CAUSE, mechanism, **kwargs)
-
-
-def mie(cs: Any, mechanism: tuple[int, ...], **kwargs: Any) -> Any:
-    """Maximally-irreducible effect — alias for find_mice with EFFECT direction."""
-    return find_mice(cs, Direction.EFFECT, mechanism, **kwargs)
-
-
-def phi_max(cs: Any, mechanism: tuple[int, ...]) -> float:
-    """Return |small_phi_max| — minimum of the MIC and MIE phi values."""
-    return min(mic(cs, mechanism).phi, mie(cs, mechanism).phi)
-
-
 def null_concept(cs: Any) -> Any:
     """Return the null concept — point identified with the unconstrained
     cause and effect repertoires of the candidate system.
@@ -699,67 +587,6 @@ def null_concept(cs: Any) -> Any:
     cause = MaximallyIrreducibleCause(_null_ria(Direction.CAUSE, (), (), cause_rep))
     effect = MaximallyIrreducibleEffect(_null_ria(Direction.EFFECT, (), (), effect_rep))
     return Concept(mechanism=(), cause=cause, effect=effect)
-
-
-def concept(
-    cs: Any,
-    mechanism: tuple[int, ...],
-    purviews: Any | None = None,
-    cause_purviews: Any | None = None,
-    effect_purviews: Any | None = None,
-    **kwargs: Any,
-) -> Any:
-    """Return the concept specified by a mechanism within the candidate system."""
-    from pyphi.models import Concept
-
-    if not mechanism:
-        return null_concept(cs)
-
-    cause_purviews = cause_purviews if cause_purviews is not None else purviews
-    cause = mic(cs, mechanism, purviews=cause_purviews, **kwargs)
-
-    effect_purviews = effect_purviews if effect_purviews is not None else purviews
-    effect = mie(cs, mechanism, purviews=effect_purviews, **kwargs)
-
-    return Concept(mechanism=mechanism, cause=cause, effect=effect)
-
-
-def distinction(cs: Any, mechanism: tuple[int, ...]) -> Any:
-    """Return the distinction (Concept) specified by a mechanism."""
-    from pyphi.models import Concept
-
-    maximally_irreducible_cause = find_mice(cs, Direction.CAUSE, mechanism)
-    maximally_irreducible_effect = find_mice(cs, Direction.EFFECT, mechanism)
-    return Concept(
-        mechanism=mechanism,
-        cause=maximally_irreducible_cause,
-        effect=maximally_irreducible_effect,
-    )
-
-
-def all_distinctions(cs: Any, **kwargs: Any) -> Any:  # noqa: ARG001
-    """Iterate non-empty mechanisms and return the resulting CauseEffectStructure."""
-    import contextlib
-
-    from tqdm.auto import tqdm
-
-    from pyphi.models import CauseEffectStructure
-
-    mechanisms: Any = _utils.powerset(cs.node_indices, nonempty=True)
-    total = 2 ** len(cs.node_indices) - 1
-
-    if fallback(config.PROGRESS_BARS):
-        with contextlib.suppress(TypeError):
-            total = len(mechanisms)
-        mechanisms = tqdm(mechanisms, total=total)
-
-    distinctions = filter(None, (distinction(cs, mechanism) for mechanism in mechanisms))
-    return CauseEffectStructure(distinctions)
-
-
-def sia(cs: Any, **kwargs: Any) -> Any:
-    """Run system irreducibility analysis via the active formalism."""
-    return cs.sia(**kwargs)
 
 
 def indices2nodes(cs: Any, indices: tuple[int, ...]) -> Any:

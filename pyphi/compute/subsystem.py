@@ -84,10 +84,12 @@ def ces(
         with contextlib.suppress(TypeError):
             total = len(mechanisms)  # type: ignore[arg-type]  # mechanisms may be generator
 
+    from pyphi.formalism.queries import concept as _concept
+
     def compute_concept(*args, **kwargs):
         # Don't serialize the subsystem; this is replaced after returning.
         # TODO(4.0) remove when subsystem reference is removed from Concept
-        concept = subsystem.concept(*args, **kwargs, progress=False)
+        concept = _concept(subsystem, *args, **kwargs, progress=False)
         concept.subsystem = None  # pyright: ignore[reportAttributeAccessIssue]
         return concept
 
@@ -416,8 +418,11 @@ class ConceptStyleSystem:
         cause_p: Iterable[Purview] | None = cause_purviews or purviews or None  # type: ignore[assignment]
         effect_p: Iterable[Purview] | None = effect_purviews or purviews or None  # type: ignore[assignment]
 
-        cause = self.cause_system.mic(mechanism, purviews=cause_p)
-        effect = self.effect_system.mie(mechanism, purviews=effect_p)
+        from pyphi.formalism.queries import mic
+        from pyphi.formalism.queries import mie
+
+        cause = mic(self.cause_system, mechanism, purviews=cause_p)
+        effect = mie(self.effect_system, mechanism, purviews=effect_p)
 
         return Concept(
             mechanism=mechanism,

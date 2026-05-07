@@ -176,19 +176,28 @@ def test_candidate_system_proxies_repertoire_methods(
     np.testing.assert_array_equal(new, old)
 
 
-def test_candidate_system_phi_method(cs_and_subsystem) -> None:
+def test_phi_query_parity(cs_and_subsystem) -> None:
+    """Formalism queries (option D): ``phi`` is a free function in
+    :mod:`pyphi.formalism`, not a method on CandidateSystem.
+    """
+    from pyphi.formalism import phi
+
     cs, sub = cs_and_subsystem
-    assert cs.phi((0,), (1,)) == pytest.approx(sub.phi((0,), (1,)))
+    assert phi(cs, (0,), (1,)) == pytest.approx(sub.phi((0,), (1,)))
 
 
-def test_candidate_system_concept_method(cs_and_subsystem) -> None:
+def test_concept_query_parity(cs_and_subsystem) -> None:
+    from pyphi.formalism import concept
+
     cs, sub = cs_and_subsystem
-    assert cs.concept((0,)).phi == pytest.approx(sub.concept((0,)).phi)
+    assert concept(cs, (0,)).phi == pytest.approx(sub.concept((0,)).phi)
 
 
-def test_candidate_system_sia_method(cs_and_subsystem) -> None:
+def test_sia_query_parity(cs_and_subsystem) -> None:
+    from pyphi.formalism import sia
+
     cs, sub = cs_and_subsystem
-    assert cs.sia().phi == pytest.approx(sub.sia().phi)
+    assert sia(cs).phi == pytest.approx(sub.sia().phi)
 
 
 def test_apply_cut_cause_tpm_value_preserved(basic_cs) -> None:

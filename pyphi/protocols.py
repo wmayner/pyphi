@@ -162,11 +162,13 @@ class SystemPartitionScheme(Protocol):
 PUBLIC_SUBSYSTEM_ATTRS: frozenset[str] = frozenset(
     {
         # Construction-time attributes
+        "causal_model",
         "cause_tpm",
         "cm",
         "cut",
         "effect_tpm",
         "external_indices",
+        "from_network",
         "network",
         "node_indices",
         "node_labels",
@@ -205,26 +207,11 @@ PUBLIC_SUBSYSTEM_ATTRS: frozenset[str] = frozenset(
         "unconstrained_forward_cause_repertoire",
         "unconstrained_forward_effect_repertoire",
         "unconstrained_forward_repertoire",
-        # Mechanism / system analysis
+        # Mechanism-level info (kernel)
         "cause_info",
         "effect_info",
         "cause_effect_info",
         "intrinsic_information",
-        "phi",
-        "phi_cause_mip",
-        "phi_effect_mip",
-        "phi_max",
-        "cause_mip",
-        "effect_mip",
-        "find_mip",
-        "find_mice",
-        "evaluate_partition",
-        "mic",
-        "mie",
-        "concept",
-        "distinction",
-        "all_distinctions",
-        "sia",
         # Utilities
         "apply_cut",
         "potential_purviews",
@@ -273,6 +260,8 @@ class SubsystemPublicInterface(Protocol):
     proper_cm: Any
     proper_effect_tpm: Any
     state: Any
+    causal_model: Any
+    from_network: Callable[..., Any]
     # Properties
     connectivity_matrix: Any
     cut_indices: Any
@@ -303,26 +292,11 @@ class SubsystemPublicInterface(Protocol):
     unconstrained_forward_cause_repertoire: Callable[..., Any]
     unconstrained_forward_effect_repertoire: Callable[..., Any]
     unconstrained_forward_repertoire: Callable[..., Any]
-    # Mechanism / system analysis
+    # Mechanism-level info (kernel)
     cause_info: Callable[..., Any]
     effect_info: Callable[..., Any]
     cause_effect_info: Callable[..., Any]
     intrinsic_information: Callable[..., Any]
-    phi: Callable[..., Any]
-    phi_cause_mip: Callable[..., Any]
-    phi_effect_mip: Callable[..., Any]
-    phi_max: Callable[..., Any]
-    cause_mip: Callable[..., Any]
-    effect_mip: Callable[..., Any]
-    find_mip: Callable[..., Any]
-    find_mice: Callable[..., Any]
-    evaluate_partition: Callable[..., Any]
-    mic: Callable[..., Any]
-    mie: Callable[..., Any]
-    concept: Callable[..., Any]
-    distinction: Callable[..., Any]
-    all_distinctions: Callable[..., Any]
-    sia: Callable[..., Any]
     # Utilities
     apply_cut: Callable[..., Any]
     potential_purviews: Callable[..., Any]

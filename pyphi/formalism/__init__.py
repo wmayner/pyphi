@@ -20,6 +20,21 @@ from .base import check_metric_compatible
 from .iit3.formalism import IIT3Formalism
 from .iit4.formalism import IIT4_2023Formalism
 from .iit4.formalism import IIT4_2026Formalism
+from .queries import all_distinctions
+from .queries import cause_mip
+from .queries import concept
+from .queries import distinction
+from .queries import effect_mip
+from .queries import evaluate_partition
+from .queries import find_mice
+from .queries import find_mip
+from .queries import mic
+from .queries import mie
+from .queries import phi
+from .queries import phi_cause_mip
+from .queries import phi_effect_mip
+from .queries import phi_max
+from .queries import sia
 
 # Register the concrete formalisms. The string keys match the values
 # ``config.FORMALISM`` will hold once the cut-over commit lands.
@@ -38,5 +53,20 @@ __all__ = [
     "IIT4_2026Formalism",
     "MetricNotCompatibleError",
     "PhiFormalism",
+    "all_distinctions",
+    "cause_mip",
     "check_metric_compatible",
+    "concept",
+    "distinction",
+    "effect_mip",
+    "evaluate_partition",
+    "find_mice",
+    "find_mip",
+    "mic",
+    "mie",
+    "phi",
+    "phi_cause_mip",
+    "phi_effect_mip",
+    "phi_max",
+    "sia",
 ]

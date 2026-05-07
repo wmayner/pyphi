@@ -381,7 +381,10 @@ def _integration_value_for_state(
         partitioned_repertoire = cut_subsystem.repertoire(
             direction, subsystem.node_indices, subsystem.node_indices
         )
-    return subsystem.evaluate_partition(
+    from pyphi.formalism.queries import evaluate_partition
+
+    return evaluate_partition(
+        subsystem,
         direction,
         subsystem.node_indices,
         subsystem.node_indices,
