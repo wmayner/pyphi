@@ -97,6 +97,44 @@ def sia(ces=(), partitioned_ces=(), subsystem=None, cut_subsystem=None, phi=1.0)
 # Test equality helpers
 
 
+def test_ria_signed_phi_clamps_phi_to_positive_part():
+    """Negative signed_phi yields phi=0; positive signed_phi yields phi=signed_phi.
+
+    The canonical ``RIA.phi`` is the paper-faithful ``|·|+`` clamped value;
+    ``signed_phi`` preserves the raw value (which may be negative under
+    preventative-cause semantics).
+    """
+    pos = ria(phi=0.5, direction=Direction.CAUSE, mechanism=(0,), purview=(1,))
+    assert float(pos.phi) == pytest.approx(0.5)
+    assert float(pos.signed_phi) == pytest.approx(0.5)
+
+    neg = ria(phi=-0.3, direction=Direction.CAUSE, mechanism=(0,), purview=(1,))
+    assert float(neg.phi) == pytest.approx(0.0)
+    assert float(neg.signed_phi) == pytest.approx(-0.3)
+
+    zero = ria(phi=0.0, direction=Direction.CAUSE, mechanism=(0,), purview=(1,))
+    assert float(zero.phi) == pytest.approx(0.0)
+    assert float(zero.signed_phi) == pytest.approx(0.0)
+
+
+def test_ria_signed_phi_explicit_argument():
+    """When ``signed_phi`` is passed explicitly, it overrides the default
+    snapshot from ``phi``.
+    """
+    r = models.RepertoireIrreducibilityAnalysis(
+        phi=0.0,
+        direction=Direction.CAUSE,
+        mechanism=(0,),
+        purview=(1,),
+        partition=None,
+        repertoire=None,
+        partitioned_repertoire=None,
+        signed_phi=-0.7,
+    )
+    assert float(r.signed_phi) == pytest.approx(-0.7)
+    assert float(r.phi) == pytest.approx(0.0)
+
+
 def test_phi_mechanism_ordering():
     class PhiThing(models.cmp.Orderable):
         def __init__(self, phi, mechanism):

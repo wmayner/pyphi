@@ -419,7 +419,13 @@ def integration_value(
             spec,
             repertoire_distance,  # pyright: ignore[reportArgumentType]
         )
-        if best_ria is None or ria.phi < best_ria.phi:
+        # Cruelest-cut convention (PyPhi-specific, not paper-mandated):
+        # among tied specified states, prefer the one with the lowest
+        # *signed* phi — i.e., the most preventative state pin. We
+        # compare on ``signed_phi`` (raw) rather than ``phi`` (clamped)
+        # so that all-negative tied pins resolve to the most-preventative
+        # one rather than first-encountered.
+        if best_ria is None or ria.signed_phi < best_ria.signed_phi:
             best_ria = ria
     return best_ria  # pyright: ignore[reportReturnType]
 
@@ -494,12 +500,19 @@ def evaluate_partition(
         for direction in directions
     }
 
-    phi = min(integration[direction].phi for direction in directions)
+    # Take the min over directions on the *signed* phi so the resulting
+    # SIA's ``signed_phi`` metadata captures the raw preventative-cause
+    # value when present. The canonical (clamped) ``phi`` is derived in
+    # ``SystemIrreducibilityAnalysis.__post_init__`` via the |·|+ operator.
+    # ``min`` and ``positive_part`` commute, so the clamped result is the
+    # same as taking the min of clamped values.
+    phi = min(integration[direction].signed_phi for direction in directions)
 
     # Eq. 23: φ_s(s) = min{φ_c(s), φ_e(s), ii(s)}
     # where ii(s) = min_d{min(i_diff_d, i_spec_d)}.
-    # Clamp the components via the |·|+ operator (Eqs. 19-20) before
-    # taking the min — keeps the cap aligned with paper-faithful φ.
+    # Clamp the cap components via the |·|+ operator (Eqs. 19-20); the
+    # result still flows through ``signed_phi`` so the clamp at SIA
+    # construction yields the right canonical value.
     if effective_distance == "INTRINSIC_INFORMATION":
         for direction in directions:
             i_spec = utils.positive_part(system_state[direction].intrinsic_information)

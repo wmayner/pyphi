@@ -222,6 +222,7 @@ class RepertoireIrreducibilityAnalysis(
     """
 
     _phi: PyPhiFloat
+    _signed_phi: PyPhiFloat | DistanceResult
     _direction: Direction
     _mechanism: tuple[int, ...]
     _purview: tuple[int, ...]
@@ -236,6 +237,7 @@ class RepertoireIrreducibilityAnalysis(
     _selectivity: float | None
     _reasons: list[ShortCircuitConditions] | None
     _normalized_phi: PyPhiFloat | None
+    _signed_normalized_phi: PyPhiFloat | None
     _node_labels: NodeLabels | None
 
     def __init__(
@@ -253,12 +255,28 @@ class RepertoireIrreducibilityAnalysis(
         node_labels: NodeLabels | None = None,
         selectivity: float | None = None,
         reasons: list[ShortCircuitConditions] | None = None,
+        signed_phi: float | DistanceResult | None = None,
     ) -> None:
-        # Preserve DistanceResult type if possible, otherwise convert to PyPhiFloat
+        # ``signed_phi`` is the raw value that may be negative under
+        # preventative-cause semantics; the canonical ``phi`` exposes the
+        # paper-faithful ``|·|+`` clamp (Eqs. 19-20 of the IIT 4.0 paper).
+        #
+        # Constructors pass the *signed* value as ``phi`` (so existing
+        # callers and JSON round-trips work unchanged); we snapshot it
+        # into ``signed_phi`` if not provided explicitly, then clamp the
+        # canonical ``phi``. Callers needing the raw value (e.g. for
+        # cruelest-cut argmin) read ``signed_phi`` explicitly.
+        if signed_phi is None:
+            signed_phi = phi
+        clamped_phi = utils.positive_part(signed_phi)
         if isinstance(phi, DistanceResult):
-            self._phi = phi
+            self._phi = type(phi)(clamped_phi, **phi._public_aux_data())  # type: ignore[assignment]
         else:
-            self._phi = PyPhiFloat(phi)
+            self._phi = PyPhiFloat(clamped_phi)
+        if isinstance(signed_phi, DistanceResult):
+            self._signed_phi = signed_phi
+        else:
+            self._signed_phi = PyPhiFloat(signed_phi)
         self._direction = direction
         self._mechanism = mechanism
         self._purview = purview
@@ -283,23 +301,52 @@ class RepertoireIrreducibilityAnalysis(
 
         if norm is None:
             self._normalized_phi = None
+            self._signed_normalized_phi = None
         else:
-            self._normalized_phi = PyPhiFloat(self._phi * norm)
+            # Compute the signed normalized phi (raw) first, then derive
+            # the paper-faithful clamped value.
+            if isinstance(signed_phi, DistanceResult):
+                signed_norm = float(signed_phi) * norm
+            else:
+                signed_norm = signed_phi * norm
+            self._signed_normalized_phi = PyPhiFloat(signed_norm)
+            self._normalized_phi = PyPhiFloat(utils.positive_part(signed_norm))
 
         # Optional labels - only used to generate nice labeled reprs
         self._node_labels = node_labels
 
     @property
     def phi(self) -> PyPhiFloat:  # type: ignore[override]
-        """PyPhiFloat: This is the difference between the mechanism's unpartitioned
-        and partitioned repertoires.
+        """PyPhiFloat: Canonical, paper-faithful |small_phi| value (|·|+ clamped).
+
+        This is ``positive_part(signed_phi)`` — the integrated information
+        value with the |·|+ operator applied (Eqs. 19-20 of the IIT 4.0
+        paper). Always non-negative. For the raw value before clamping
+        (which may be negative under preventative-cause semantics), see
+        ``signed_phi``.
         """
         return self._phi
 
     @property
+    def signed_phi(self) -> PyPhiFloat | DistanceResult:
+        """The raw |small_phi| before the |·|+ clamp.
+
+        When negative, indicates preventative-cause structure. The public
+        ``phi`` returns ``positive_part(signed_phi)``. Used internally for
+        cruelest-cut argmin (PyPhi convention; see
+        ``integration_value`` in ``pyphi.formalism.iit4``).
+        """
+        return self._signed_phi
+
+    @property
     def normalized_phi(self):
-        """float: Normalized |small_phi| value."""
+        """float: Canonical normalized |small_phi| (|·|+ clamped)."""
         return self._normalized_phi
+
+    @property
+    def signed_normalized_phi(self):
+        """float: Raw normalized |small_phi| before the |·|+ clamp."""
+        return self._signed_normalized_phi
 
     @property
     def direction(self):

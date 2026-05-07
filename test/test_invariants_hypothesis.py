@@ -466,6 +466,41 @@ class TestSignedPhi:
             f"phi ({phi}) != max(0, signed_phi={signed_phi})"
         )
 
+    @settings(
+        max_examples=10,
+        deadline=None,
+        suppress_health_check=[
+            HealthCheck.too_slow,
+            HealthCheck.function_scoped_fixture,
+            HealthCheck.data_too_large,
+        ],
+    )
+    @given(data=st.data())
+    def test_ria_phi_is_positive_part_of_signed_phi(self, data):
+        """``RIA.phi == max(0, RIA.signed_phi)`` for any mechanism MIP.
+
+        Mirrors the system-level invariant: the canonical RIA.phi is the
+        paper-faithful clamped value; signed_phi preserves the raw value.
+        """
+        s = data.draw(small_subsystem())
+        try:
+            ria = s.find_mip(Direction.CAUSE, (0,), (0,))
+        except Exception:
+            assume(False)
+            return
+
+        assume(ria is not None)
+        assume(getattr(ria, "phi", None) is not None)
+        assume(getattr(ria, "signed_phi", None) is not None)
+
+        phi = float(ria.phi)
+        signed_phi = float(ria.signed_phi)
+
+        assert phi >= -1e-12, f"phi {phi} is negative — |·|+ clamp not applied"
+        assert math.isclose(phi, max(0.0, signed_phi), abs_tol=1e-10), (
+            f"phi ({phi}) != max(0, signed_phi={signed_phi})"
+        )
+
 
 class TestStateSpace:
     """Sanity invariants on TPM and state-space construction."""
