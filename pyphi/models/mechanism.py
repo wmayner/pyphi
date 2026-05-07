@@ -47,8 +47,14 @@ if TYPE_CHECKING:
 
 @total_ordering
 @dataclass(frozen=True)
-class Unit:
-    """A unit in a state."""
+class UnitState:
+    """A node together with its current state value.
+
+    Distinct from :class:`pyphi.core.unit.Unit`, which is the
+    substrate-level identity of a node (``index``, ``label``); a
+    ``UnitState`` adds the per-step ``state`` value, used by
+    :class:`StateSpecification` and related formatting code.
+    """
 
     index: int
     state: int
@@ -58,12 +64,12 @@ class Unit:
         return hash((self.index, self.state))
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, Unit):
+        if not isinstance(other, UnitState):
             return NotImplemented
         return (self.index, self.state) == (other.index, other.state)
 
     def __lt__(self, other: object) -> bool:
-        if not isinstance(other, Unit):
+        if not isinstance(other, UnitState):
             return NotImplemented
         return (self.index, self.state) < (other.index, other.state)
 
@@ -435,7 +441,7 @@ class RepertoireIrreducibilityAnalysis(
         assert self.specified_state is not None
         return frozenset(
             (
-                Unit(index, state, label=self.node_labels.index2label(index))
+                UnitState(index, state, label=self.node_labels.index2label(index))
                 for index, state in zip(
                     self.specified_state.purview,
                     self.specified_state.state,
