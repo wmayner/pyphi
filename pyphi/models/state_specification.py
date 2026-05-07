@@ -2,7 +2,7 @@
 """Specified states and the per-unit ``UnitState`` value type used in
 mechanism-level analysis.
 
-``UnitState`` is the per-step (node × state) value used by
+``UnitState`` is the per-step (node, state) value used by
 :class:`StateSpecification` and related formatting code. It is distinct
 from :class:`pyphi.core.unit.Unit`, which is the substrate-level identity
 of a node (without a state value).
@@ -157,7 +157,7 @@ distinction_phi_normalizations = DistinctionPhiNormalizationRegistry()
 
 
 @distinction_phi_normalizations.register("NONE")
-def _(partition: object) -> int:
+def _(partition: object) -> int:  # noqa: ARG001
     return 1
 
 
