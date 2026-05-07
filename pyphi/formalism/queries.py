@@ -37,7 +37,7 @@ from pyphi.models import Concept
 from pyphi.models import MaximallyIrreducibleCause
 from pyphi.models import MaximallyIrreducibleEffect
 from pyphi.models import _null_ria
-from pyphi.models.mechanism import ShortCircuitConditions
+from pyphi.models.ria import ShortCircuitConditions
 from pyphi.parallel import MapReduce
 from pyphi.partition import mip_partitions
 

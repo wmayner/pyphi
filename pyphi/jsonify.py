@@ -105,7 +105,7 @@ def _loadable_models():
         pyphi.models.MaximallyIrreducibleCause,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.MaximallyIrreducibleCauseOrEffect,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.MaximallyIrreducibleEffect,  # pyright: ignore[reportAttributeAccessIssue]
-        pyphi.models.mechanism.StateSpecification,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.StateSpecification,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.NullCut,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.Part,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.RepertoireIrreducibilityAnalysis,  # pyright: ignore[reportAttributeAccessIssue]

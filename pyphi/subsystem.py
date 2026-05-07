@@ -37,8 +37,8 @@ from .models import MaximallyIrreducibleEffect
 from .models import NullCut
 from .models import RepertoireIrreducibilityAnalysis
 from .models import _null_ria
-from .models.mechanism import ShortCircuitConditions
-from .models.mechanism import StateSpecification
+from .models.ria import ShortCircuitConditions
+from .models.state_specification import StateSpecification
 from .network import irreducible_purviews
 from .node import generate_nodes
 from .parallel import MapReduce

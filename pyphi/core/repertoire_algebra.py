@@ -492,7 +492,7 @@ def intrinsic_information(
     states: Any | None = None,
 ) -> Any:
     """Compute intrinsic information and the maximally specified state."""
-    from pyphi.models.mechanism import StateSpecification
+    from pyphi.models.state_specification import StateSpecification
 
     repertoire_distance = fallback(
         repertoire_distance,

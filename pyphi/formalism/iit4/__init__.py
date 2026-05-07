@@ -36,8 +36,8 @@ from pyphi.models import fmt
 from pyphi.models.cuts import GeneralKCut
 from pyphi.models.cuts import NullCut
 from pyphi.models.cuts import SystemPartition
-from pyphi.models.mechanism import RepertoireIrreducibilityAnalysis
-from pyphi.models.mechanism import StateSpecification
+from pyphi.models.ria import RepertoireIrreducibilityAnalysis
+from pyphi.models.state_specification import StateSpecification
 from pyphi.models.subsystem import CauseEffectStructure
 from pyphi.models.subsystem import SystemStateSpecification
 from pyphi.parallel import MapReduce
