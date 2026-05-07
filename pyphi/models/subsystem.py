@@ -103,11 +103,10 @@ def _get_state(mice):
 class CauseEffectStructure(cmp.Orderable, Sequence, ToPandasMixin):
     """A collection of concepts."""
 
-    def __init__(self, concepts=(), subsystem=None, resolved_congruence=False):
+    def __init__(self, concepts=(), resolved_congruence=False):
         # Normalize the order of concepts
         # TODO(4.0) convert to set?
         self.concepts = tuple(sorted(concepts, key=_concept_sort_key))
-        # self.subsystem = subsystem
         self._specifiers = None
         self._purview_inclusion_by_order = defaultdict(defaultdict_set)
         # Flag to indicate whether distinctions have been filtered according to
@@ -362,9 +361,9 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
         return cls(**dct)
 
 
-def _null_ces(subsystem):
+def _null_ces(subsystem=None):  # noqa: ARG001 - subsystem retained for backward-compatible signature
     """Return an empty CES."""
-    return CauseEffectStructure((), subsystem=subsystem)
+    return CauseEffectStructure(())
 
 
 def _null_sia(subsystem, phi=0.0):
@@ -377,6 +376,6 @@ def _null_sia(subsystem, phi=0.0):
         subsystem=subsystem,
         cut_subsystem=subsystem,
         phi=phi,
-        ces=_null_ces(subsystem),
-        partitioned_ces=_null_ces(subsystem),
+        ces=_null_ces(),
+        partitioned_ces=_null_ces(),
     )

@@ -1206,33 +1206,6 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
             and self.eq_repertoires(other)
         )
 
-    # TODO(4.0) REMOVE
-    # # These methods are used by phiserver
-    # # TODO Rename to expanded_cause_repertoire, etc
-    # def expand_cause_repertoire(self, new_purview=None):
-    #     """See |Subsystem.expand_repertoire()|."""
-    #     return self.subsystem.expand_cause_repertoire(
-    #         self.cause.repertoire, new_purview
-    #     )
-
-    # def expand_effect_repertoire(self, new_purview=None):
-    #     """See |Subsystem.expand_repertoire()|."""
-    #     return self.subsystem.expand_effect_repertoire(
-    #         self.effect.repertoire, new_purview
-    #     )
-
-    # def expand_partitioned_cause_repertoire(self):
-    #     """See |Subsystem.expand_repertoire()|."""
-    #     return self.subsystem.expand_cause_repertoire(
-    #         self.cause.ria.partitioned_repertoire
-    #     )
-
-    # def expand_partitioned_effect_repertoire(self):
-    #     """See |Subsystem.expand_repertoire()|."""
-    #     return self.subsystem.expand_effect_repertoire(
-    #         self.effect.ria.partitioned_repertoire
-    #     )
-
     _dict_attrs = _concept_attributes
 
     def to_json(self):

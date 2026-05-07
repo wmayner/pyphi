@@ -587,7 +587,7 @@ def test_concept_emd_eq(s, subsys_n1n2):
 
 
 def test_ces_is_still_a_tuple(s):
-    c = models.CauseEffectStructure([concept(subsystem=s)], subsystem=s)
+    c = models.CauseEffectStructure([concept(subsystem=s)])
     assert len(c) == 1
 
 
@@ -605,7 +605,7 @@ def test_ces_are_always_normalized(s):
 
 @pytest.mark.outdated
 def test_ces_labeled_mechanisms(s):
-    c = models.CauseEffectStructure([concept(subsystem=s)], subsystem=s)
+    c = models.CauseEffectStructure([concept(subsystem=s)])
     assert c.labeled_mechanisms == (["A", "B"],)
 
 

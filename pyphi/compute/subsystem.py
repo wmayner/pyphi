@@ -87,11 +87,7 @@ def ces(
     from pyphi.formalism.queries import concept as _concept
 
     def compute_concept(*args, **kwargs):
-        # Don't serialize the subsystem; this is replaced after returning.
-        # TODO(4.0) remove when subsystem reference is removed from Concept
-        concept = _concept(subsystem, *args, **kwargs, progress=False)
-        concept.subsystem = None  # pyright: ignore[reportAttributeAccessIssue]
-        return concept
+        return _concept(subsystem, *args, **kwargs, progress=False)
 
     reduce_func = _only_positive_phi if only_positive_phi else _any_phi
     parallel_kwargs = conf.parallel_kwargs(
@@ -111,12 +107,7 @@ def ces(
         total=total,
         **parallel_kwargs,  # type: ignore[arg-type]  # parallel_kwargs contains MapReduce params
     ).run()
-    # Replace subsystem references
-    # TODO(4.0) remove when subsystem reference is removed from Concept
-    if concepts is not None:
-        for concept in concepts:
-            concept.subsystem = subsystem  # type: ignore[attr-defined]  # Legacy attribute
-    return CauseEffectStructure(concepts, subsystem=subsystem)
+    return CauseEffectStructure(concepts)
 
 
 def _only_positive_phi(concepts: Iterable[Any]) -> list[Concept]:
@@ -133,9 +124,7 @@ def conceptual_info(subsystem: Subsystem, **kwargs: Any) -> float:
     This is the distance from the subsystem's |CauseEffectStructure| to the
     null concept.
     """
-    ci = ces_distance(
-        ces(subsystem, **kwargs), CauseEffectStructure((), subsystem=subsystem)
-    )
+    ci = ces_distance(ces(subsystem, **kwargs), CauseEffectStructure(()))
     return round(ci, config.PRECISION)  # type: ignore[arg-type]  # config.Option descriptor
 
 
