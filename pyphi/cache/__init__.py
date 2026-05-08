@@ -210,3 +210,14 @@ def method(cache_name, key_prefix=None):
         return wrapper
 
     return decorator
+
+
+# Public registry surface — re-exports placed at the bottom of the module
+# to avoid spurious ruff F811 against the ``DictCache.clear`` /
+# ``DictCache.info`` instance methods above (different scopes, but the
+# linter conflates them).
+from .registry import clear as clear  # noqa: E402
+from .registry import clear_all as clear_all  # noqa: E402
+from .registry import info as info  # noqa: E402
+from .registry import register as register  # noqa: E402
+from .registry import unregister as unregister  # noqa: E402
