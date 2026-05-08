@@ -136,3 +136,60 @@ def test_module_level_caches_present_for_partition_and_distribution():
     assert any(k.startswith("pyphi.combinatorics.") for k in keys), (
         f"no pyphi.combinatorics.* entries; got: {sorted(keys)}"
     )
+
+
+# =============================================================================
+# DictCache opt-in registry registration
+# =============================================================================
+
+
+def test_dict_cache_with_name_registers():
+    from pyphi import cache as cache_module
+    from pyphi.cache import DictCache
+
+    DictCache(name="test.dict_cache.named")
+    assert "test.dict_cache.named" in cache_module.info()
+
+
+def test_dict_cache_without_name_does_not_register():
+    """Default behavior: anonymous DictCache instances stay out of the registry."""
+    from pyphi import cache as cache_module
+    from pyphi.cache import DictCache
+
+    before = set(cache_module.info().keys())
+    DictCache()
+    after = set(cache_module.info().keys())
+    assert before == after
+
+
+def test_multiple_networks_register_independent_purview_caches():
+    """Two Network instances appear under distinct registry names."""
+    from pyphi import cache as cache_module
+    from pyphi import examples
+
+    n1 = examples.basic_network()
+    n2 = examples.basic_network()
+
+    info = cache_module.info()
+    n1_keys = [k for k in info if k.startswith(f"network.{id(n1)}.")]
+    n2_keys = [k for k in info if k.startswith(f"network.{id(n2)}.")]
+
+    assert n1_keys, "n1 purview cache not registered"
+    assert n2_keys, "n2 purview cache not registered"
+    assert n1_keys != n2_keys, "two networks collided on the same registry name"
+
+
+def test_jsonify_object_caches_do_not_leak_into_registry():
+    """Transient _ObjectCache instances inside json decoding should NOT register —
+    they're per-call scratch caches, not process-level state."""
+    from pyphi import cache as cache_module
+    from pyphi import examples
+    from pyphi import jsonify
+
+    before = set(cache_module.info().keys())
+    network = examples.basic_network()
+    encoded = jsonify.dumps(network)
+    jsonify.loads(encoded)
+    after = set(cache_module.info().keys())
+    leaked = {k for k in (after - before) if k.startswith("jsonify.")}
+    assert not leaked, f"transient jsonify caches leaked into registry: {leaked}"

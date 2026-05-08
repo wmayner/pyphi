@@ -123,13 +123,28 @@ def cache(
 class DictCache:
     """A generic dictionary-based cache.
 
-    Intended to be used as an object-level cache of method results.
+    Intended to be used as an object-level cache of method results. If
+    ``name`` is provided, the cache registers itself with the cache
+    registry on construction; anonymous instances stay out of the
+    registry.
     """
 
-    def __init__(self):
+    def __init__(self, name: str | None = None):
         self.cache = {}
         self.hits = 0
         self.misses = 0
+        self.name = name
+        if name is not None:
+            from .policy import _DictCacheAdapter
+            from .registry import register as _register_policy
+
+            _register_policy(
+                _DictCacheAdapter(
+                    name=name,
+                    backing=self.cache,
+                    stats=lambda: (self.hits, self.misses),
+                )
+            )
 
     def clear(self):
         self.cache = {}
