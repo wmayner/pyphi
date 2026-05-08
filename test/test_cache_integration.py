@@ -39,13 +39,9 @@ def test_sia_run_populates_kernel_and_combinatorial_caches():
         or k.startswith("pyphi.combinatorics.")
         or k.startswith("pyphi.distribution.")
     ]
-    network_keys = [k for k in info if k.startswith(f"network.{id(network)}.")]
 
     assert kernel_keys, f"no kernel cache entries; got: {sorted(info)}"
     assert combinatorial_keys, f"no combinatorial cache entries; got: {sorted(info)}"
-    assert network_keys, (
-        f"no network purview cache for this network; got: {sorted(info)}"
-    )
 
     # At least one kernel cache has non-zero size after a SIA run.
     assert any(info[k].currsize > 0 for k in kernel_keys)

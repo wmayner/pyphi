@@ -162,21 +162,22 @@ def test_dict_cache_without_name_does_not_register():
     assert before == after
 
 
-def test_multiple_networks_register_independent_purview_caches():
-    """Two Network instances appear under distinct registry names."""
+def test_network_purview_cache_does_not_register():
+    """Network.purview_cache is anonymous — process-level stats would
+    require a per-Network closure that holds the PurviewCache alive
+    forever (registry leak). Per-Network introspection is available via
+    ``network.purview_cache.info()`` directly."""
     from pyphi import cache as cache_module
     from pyphi import examples
 
-    n1 = examples.basic_network()
-    n2 = examples.basic_network()
-
-    info = cache_module.info()
-    n1_keys = [k for k in info if k.startswith(f"network.{id(n1)}.")]
-    n2_keys = [k for k in info if k.startswith(f"network.{id(n2)}.")]
-
-    assert n1_keys, "n1 purview cache not registered"
-    assert n2_keys, "n2 purview cache not registered"
-    assert n1_keys != n2_keys, "two networks collided on the same registry name"
+    before = set(cache_module.info().keys())
+    examples.basic_network()
+    examples.basic_network()
+    after = set(cache_module.info().keys())
+    network_keys = {k for k in (after - before) if k.startswith("network.")}
+    assert not network_keys, (
+        f"Network purview caches leaked into registry: {network_keys}"
+    )
 
 
 def test_jsonify_object_caches_do_not_leak_into_registry():

@@ -92,15 +92,10 @@ def flushcache(request):  # noqa: ARG001
     ``combinatorics.py`` memoize pure functions (no per-test state to
     pollute); the kernel ``_memoize`` keys on ``id(cs)`` and uses
     ``weakref.finalize`` to evict cache entries when a CandidateSystem
-    is garbage-collected; per-instance Network purview caches die with
-    their Network. Clearing them between every test forces expensive
-    re-enumeration of partitions on every fixture setup (5x suite
-    slowdown observed in P9 bisect run #2) and triggers worker crashes
-    in the parallel-cuts path (P9 bisect run #0); see
-    ``docs/superpowers/specs/2026-05-07-p9-unified-cache-design.md``.
-
-    Pre-P9 effective behavior was no-op (the Redis flush was
-    unconditional but Redis was unconfigured); P9 preserves that.
+    is garbage-collected; Network purview caches are anonymous and die
+    with their Network. Clearing them between every test forces
+    expensive re-enumeration of partitions on every fixture setup
+    (5x suite slowdown observed during P9 bisect).
     """
     log.info("Flushing caches... (no-op)")
 

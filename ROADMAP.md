@@ -854,10 +854,16 @@ What landed:
   check (closes the unbounded-growth hole in long notebook sessions).
 - Module-level `@cache(...)` decorators in `partition.py` / `distribution.py` /
   `combinatorics.py` register under `<module>.<qualname>`.
-- `Network.purview_cache` registers per-instance under
-  `f"network.{id(network)}.purview_cache"` so multi-Network sessions get
-  correct stats (per the user's explicit ask). Transient `_ObjectCache`
-  instances inside `jsonify.loads()` stay anonymous (not registered).
+- `Network.purview_cache` is anonymous (no registration). Originally
+  registered under a per-instance name (`f"network.{id(network)}.purview_cache"`)
+  for multi-Network visibility, but reversed when the registration was
+  found to leak `PurviewCache` instances forever via the adapter's
+  closure capture and to interact with `clear_all()` between tests in
+  ways that crashed loky workers. Per-Network introspection is still
+  available via `network.purview_cache.info()` (the `DictCache.info()`
+  method) — `network` is the natural handle for that question.
+  Transient `_ObjectCache` instances inside `jsonify.loads()` also stay
+  anonymous.
 - Threading assumption documented (single-threaded-per-process, Ray-isolated;
   no locks added).
 - Dead code removed: `RedisCache` class (never instantiated in pyphi/, test/,
@@ -875,20 +881,24 @@ What did *not* land (deferred):
 - Distributed / cross-process cache (the original `RedisCache` rebuild-on-config-change
   TODO at `cache/redis.py:37`). When this returns, it integrates with the
   `CachePolicy` Protocol established here. Likely surfaces during P11.
-- **Mystery (deferred to P11):** Calling `pyphi.cache.clear_all()` from an
-  autouse `flushcache` conftest fixture between every test, in combination
-  with the per-instance `Network.purview_cache` name registration, causes
+- **Mystery (largely resolved by Decision-7 reversal; partial deferral to P11):**
+  During acceptance we found that `pyphi.cache.clear_all()` between every
+  test + per-instance `Network.purview_cache` name registration caused
   `BrokenProcessPool: failed to un-serialize` worker crashes on
   `loky.get_reusable_executor`-based parallel cuts (golden `basic_iit3_emd`
-  and `xor_iit3_emd`, IIT 3.0 + EMD). Bisect data is conclusive; the causal
-  chain is not. The Network's PurviewCache adapter holds a closure capturing
-  `self`, but workers receive Networks via `cloudpickle` and never re-register
-  on unpickle, so the closure shouldn't propagate. Workaround in P9:
-  `flushcache` is no-op (matching pre-P9 effective behavior — old Redis-flush
-  was unconditional but Redis was never enabled). Caches are designed to be
-  safe to share across tests anyway. P11's parallelization redesign is the
-  natural place to investigate, since it's already auditing the loky/cloudpickle
-  boundary.
+  / `xor_iit3_emd`, IIT 3.0 + EMD). The registration triggers a closure
+  (`lambda: (self.hits, self.misses)`) that keeps every PurviewCache alive
+  forever in the registry; combined with `clear_all()` walking that
+  growing list between every test, this produced the failure. We
+  eliminated the leak by making Network purview caches anonymous (no
+  registration). What we still don't fully understand is the mechanism
+  by which the parent-side leak propagated to worker-side crashes —
+  workers receive Networks via `cloudpickle` and never re-register on
+  unpickle, so there's no obvious path from the parent's registry to
+  worker state. Most plausible theory: timing/resource interaction
+  between slow `clear_all` walks and loky's worker IPC. P11's
+  parallelization redesign is the natural place to revisit if it
+  surfaces again.
 
 - *Files:* `pyphi/cache/{__init__,policy,registry}.py`,
   `pyphi/core/repertoire_algebra.py`, `pyphi/network.py`, `conftest.py`,
@@ -965,16 +975,18 @@ Re-enable parallel tests in CI (currently excluded). Until this project lands, m
 them `xfail` instead of `skip`. Add a no-GIL CI matrix entry that runs the
 tests with `PYTHON_GIL=0` after P6b lands.
 
-**Investigate the P9 cache/loky mystery here.** Calling
-`pyphi.cache.clear_all()` between tests + per-instance `Network.purview_cache`
-name registration causes `BrokenProcessPool: failed to un-serialize` on
+**Possibly investigate the P9 cache/loky mystery here.** P9 hit a
+`BrokenProcessPool: failed to un-serialize` on
 `loky.get_reusable_executor` parallel cuts (golden `basic_iit3_emd` /
-`xor_iit3_emd` reproduce reliably). The closure captured by the registered
-adapter shouldn't propagate to workers via `cloudpickle` since `__init__`
-doesn't run on unpickle, so the causal chain is unclear. P11 audits the
-loky/cloudpickle boundary anyway; resolve as part of that work. Workaround
-shipped in P9: `flushcache` is no-op. See P9 deferred items above for full
-detail.
+`xor_iit3_emd`) when `pyphi.cache.clear_all()` ran between tests with
+per-instance `Network.purview_cache` name registration enabled. We
+removed the cause by making Network purview caches anonymous (eliminating
+the registry leak), but the precise mechanism by which the parent-side
+leak crashed workers was never confirmed — workers receive Networks via
+`cloudpickle` and never re-register on unpickle, so there's no obvious
+propagation path. If P11's loky/cloudpickle boundary audit doesn't
+incidentally explain it, file as a curiosity rather than a P11 deliverable.
+See ROADMAP P9 deferred items above for full detail.
 
 - *Why here:* Mostly independent of P4–P9 because `parallel/` has its own clean
   abstraction, but needs P10's config snapshotting so workers receive an explicit

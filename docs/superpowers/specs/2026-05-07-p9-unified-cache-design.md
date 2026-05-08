@@ -112,7 +112,7 @@ Mirror the warning at the top of `pyphi/core/repertoire_algebra.py` (kernel modu
 | 4 | Delete `RedisCache` / `REDIS_CACHE` / `REDIS_CONFIG`? | Yes | Zero live call sites; per the no-back-compat memory |
 | 5 | Delete `joblib_memory`? | No — has a live consumer | `pyphi/metrics/distribution.py:_compute_hamming_matrix` uses `@joblib_memory.cache` for disk-persisted Hamming matrix caching. Audit in initial spec missed this; corrected before Phase 6. |
 | 6 | Register `_ObjectCache` instances? | No — they're transient (constructed per `jsonify.loads()` call) | Process-level stats are misleading for per-call scratch caches; pin the non-registration in a regression test instead |
-| 7 | Register `Network.purview_cache` instances individually? | Yes — `f"network.{id(network)}.purview_cache"` | Multiple Networks coexist in real workflows (param sweeps, comparisons); per-instance names give correct stats. Tradeoff: longer `info()` output in multi-network sessions |
+| 7 | Register `Network.purview_cache` instances individually? | **Reversed (2026-05-08)**: do NOT register. Originally proposed `f"network.{id(network)}.purview_cache"` for per-instance visibility; reversed after discovering that the closure (`lambda: (self.hits, self.misses)`) keeps every PurviewCache alive forever in the registry, and that this leak interacts with `clear_all()` between tests to crash loky workers (mechanism unclear; see open-question section below). Per-Network introspection is still available via `network.purview_cache.info()` directly — that's the natural handle for "stats of *this* Network's cache". |
 | 8 | Move `pyphi/cache/cache_utils.py:_make_key` somewhere? | No, leave it | Used internally by `cache()`; not worth moving |
 | 9 | Keep `MAXIMUM_CACHE_MEMORY_PERCENTAGE` config? | Yes | Single knob covers all cache types; no reason to multiply knobs |
 | 10 | New config `KERNEL_CACHE_ENABLED`? | No | Symmetric with not having `COMBINATORIAL_CACHE_ENABLED`; an escape hatch via `clear_all()` covers debugging |
@@ -148,13 +148,15 @@ Mirror the warning at the top of `pyphi/core/repertoire_algebra.py` (kernel modu
 
 ## Open question (deferred investigation)
 
-During the P9 acceptance run we found that calling `pyphi.cache.clear_all()` from the autouse `flushcache` conftest fixture between every test, in combination with the per-instance `Network.purview_cache` name registration introduced in Phase 4, causes the `BrokenProcessPool: failed to un-serialize` failure in two of seventeen golden fixtures (`basic_iit3_emd`, `xor_iit3_emd` — IIT 3.0 + EMD + parallel cuts via `loky.get_reusable_executor`). Bisect runs confirmed:
+During the P9 acceptance run we found that calling `pyphi.cache.clear_all()` from the autouse `flushcache` conftest fixture between every test, in combination with the per-instance `Network.purview_cache` name registration originally specced in Phase 4, causes the `BrokenProcessPool: failed to un-serialize` failure in two of seventeen golden fixtures (`basic_iit3_emd`, `xor_iit3_emd` — IIT 3.0 + EMD + parallel cuts via `loky.get_reusable_executor`). Bisect runs confirmed:
 
 - **No `clear_all` between tests** (Phase 6 conftest reverted to no-op): all 17 pass in ~13 min.
 - **`clear_all` between tests + Network name registration**: 2 fail (BrokenProcessPool / `ces_size` missing).
 - **`clear_all` between tests + Network name registration reverted**: all 17 pass but 5x slower (~70 min — combinatorial caches re-enumerated every test).
 
-We do not yet understand the mechanism. The Network's `PurviewCache` adapter holds a `lambda: (self.hits, self.misses)` closure in the registry, but workers receive Networks via `cloudpickle` and never re-register on unpickle, so the closure should not propagate. The empirical signal is clear — the combination triggers worker failures — but the causal chain is not. Filed as a deferred investigation; the conftest stays no-op (matching pre-P9 effective behavior, since the old Redis-flush was unconditional but Redis was never enabled). The architectural P9 work (Protocol, registry, kernel registration, memory bound, dead-code removal) is unaffected.
+**Resolution (2026-05-08)**: reversed Decision 7 — Network's `PurviewCache` is now anonymous (no registration). This eliminates the registry leak (every Network's PurviewCache was being kept alive forever by the adapter's `lambda: (self.hits, self.misses)` closure), which we believe was a necessary precondition for the worker crashes. The conftest remains no-op (combinatorial caches are pure-function memoizations and shouldn't be cleared between tests anyway — that's the 5x slowdown).
+
+The mechanism is still not fully understood: workers receive Networks via `cloudpickle` and never re-register on unpickle, so it's unclear how the parent-side leak propagates to crash workers. The most plausible theory is a timing/resource interaction between the slow `clear_all` walk over a growing registry and the loky reusable executor's worker management (e.g., a worker IPC handshake timing out while the parent is busy). Without instrumentation on the workers we can't confirm. P11's parallelization redesign is the natural place to revisit if it surfaces again; the cross-reference is in `ROADMAP.md`.
 
 ## What does NOT happen in P9 (deferred)
 
