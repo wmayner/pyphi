@@ -35,6 +35,10 @@ from pyphi.metrics.distribution import repertoire_distance as _repertoire_distan
 # One cache dict per memoized function name.
 _caches: dict[str, dict[tuple, Any]] = {}
 
+# Per-function ``[hits, misses]`` counters, exposed through the cache
+# registry adapters set up in ``_memoize``.
+_kernel_stats: dict[str, list[int]] = {}
+
 # Live CandidateSystem references keyed by id, with finalizers that purge
 # the corresponding cache entries on GC.
 _observers: WeakValueDictionary[int, Any] = WeakValueDictionary()
@@ -51,21 +55,41 @@ def _memoize(fn: Callable) -> Callable:
     """Memoize a function over CandidateSystem instances by ``id()``.
 
     Uses ``WeakValueDictionary`` + ``weakref.finalize`` so that cache
-    entries are purged when the CandidateSystem is collected.
+    entries are purged when the CandidateSystem is collected. Stops
+    inserting new entries when ``cache_utils.memory_full()`` reports
+    process memory above ``MAXIMUM_CACHE_MEMORY_PERCENTAGE`` — already
+    computed values are still returned, just not cached.
     """
+    from pyphi.cache.policy import _DictCacheAdapter
+    from pyphi.cache.registry import register as _register_policy
+
     cache = _caches.setdefault(fn.__name__, {})
+    stats = _kernel_stats.setdefault(fn.__name__, [0, 0])
+
+    _register_policy(
+        _DictCacheAdapter(
+            name=f"kernel.{fn.__name__}",
+            backing=cache,
+            stats=lambda s=stats: (s[0], s[1]),
+        )
+    )
 
     @wraps(fn)
     def wrapper(cs: Any, *args: Any) -> Any:
+        from pyphi.cache.cache_utils import memory_full
+
         cs_id = id(cs)
         key = (cs_id, args)
         if cs_id not in _observers:
             _observers[cs_id] = cs
             weakref.finalize(cs, _evict, cs_id)
         if key in cache:
+            stats[0] += 1
             return cache[key]
+        stats[1] += 1
         result = fn(cs, *args)  # raises propagate; key not added on raise
-        cache[key] = result
+        if not memory_full():
+            cache[key] = result
         return result
 
     return wrapper

@@ -211,3 +211,57 @@ def test_potential_purviews_parity(cs_and_subsystem) -> None:
     assert list(potential_purviews(cs, Direction.CAUSE, (0,))) == list(
         sub.potential_purviews(Direction.CAUSE, (0,))
     )
+
+
+# =============================================================================
+# Cache registry integration (P9)
+# =============================================================================
+
+
+def test_kernel_caches_appear_in_registry() -> None:
+    """Each kernel-memoized function registers a policy under kernel.<name>."""
+    from pyphi import cache as cache_module
+    from pyphi.cache import registry as reg
+    from pyphi.core import repertoire_algebra as ra  # noqa: F401  # trigger decoration
+
+    keys = list(reg._registry.keys())
+    kernel_keys = [k for k in keys if k.startswith("kernel.")]
+    assert kernel_keys, f"expected kernel.* entries; got: {keys}"
+
+    info = cache_module.info()
+    assert all(k in info for k in kernel_keys)
+
+
+def test_kernel_clear_via_registry_clears_kernel_cache(cs_and_subsystem) -> None:
+    """pyphi.cache.clear('kernel.<name>') empties that kernel cache."""
+    from pyphi import cache as cache_module
+    from pyphi.core import repertoire_algebra as ra
+
+    cs, _ = cs_and_subsystem
+    ra._single_node_cause_repertoire(cs, 0, frozenset({0, 1}))
+    name = "kernel._single_node_cause_repertoire"
+    assert cache_module.info()[name].currsize >= 1
+
+    cache_module.clear(name)
+    assert cache_module.info()[name].currsize == 0
+
+
+def test_kernel_cache_respects_memory_full(monkeypatch, cs_and_subsystem) -> None:
+    """When memory_full() returns True, kernel cache stops adding entries."""
+    from pyphi import cache as cache_module
+    from pyphi.cache import cache_utils
+    from pyphi.core import repertoire_algebra as ra
+
+    cs, _ = cs_and_subsystem
+    cache_module.clear_all()
+
+    monkeypatch.setattr(cache_utils, "memory_full", lambda: True)
+
+    ra._single_node_cause_repertoire(cs, 0, frozenset({0, 1}))
+    ra._single_node_cause_repertoire(cs, 0, frozenset({1, 2}))
+
+    info = cache_module.info()["kernel._single_node_cause_repertoire"]
+    assert info.currsize == 0, (
+        f"expected 0 cached entries when memory full, got {info.currsize}"
+    )
+    assert info.misses >= 2
