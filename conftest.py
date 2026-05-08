@@ -7,8 +7,7 @@ import pytest
 import yaml
 
 import pyphi
-from pyphi.cache import redis
-from pyphi.conf import config
+from pyphi import cache as _cache
 
 log = logging.getLogger("pyphi.test")
 
@@ -85,36 +84,11 @@ def use_iit_3_config():
 # ================================================================
 
 
-@pytest.fixture(scope="session", autouse=True)
-def protect_caches(request):  # noqa: ARG001
-    """Temporarily backup, then restore, the user's Redis caches
-    before and after the testing session.
-
-    This is called before flushcache, ensuring the cache is saved.
-    """
-    # Initialize a test Redis connection
-    original_redis_conn = redis.conn
-    redis.conn = redis.init(config.REDIS_CONFIG["test_db"])
-    yield
-    # Restore the cache after the last test has run
-    redis.conn = original_redis_conn
-
-
-def _flush_redis_cache():
-    if redis.available():
-        redis.conn.flushdb()  # pyright: ignore[reportOptionalMemberAccess]
-        redis.conn.config_resetstat()  # pyright: ignore[reportOptionalMemberAccess]
-
-
-# TODO: flush Redis cache
 @pytest.fixture(scope="function", autouse=True)
 def flushcache(request):  # noqa: ARG001
-    """Flush the currently enabled cache.
-
-    This is called before every test case.
-    """
+    """Clear all registered caches before each test."""
     log.info("Flushing caches...")
-    _flush_redis_cache()
+    _cache.clear_all()
 
 
 # Parallel (local backend)

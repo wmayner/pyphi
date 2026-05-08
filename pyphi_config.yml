@@ -101,14 +101,6 @@ PRINT_FRACTIONS: true
 # used, regardless of progress settings for individual options; otherwise the
 # use of progress bars is determined by those settings.
 PROGRESS_BARS: true
-# Use a Redis server as a MICE cache.
-REDIS_CACHE: false
-# Redis connection configuration
-REDIS_CONFIG:
-  db: 0
-  host: localhost
-  port: 6379
-  test_db: 1
 # Controls the definition of the upper bound of the sum of relation phi when
 # analyzing a system.
 RELATION_COMPUTATION: CONCRETE

@@ -1,28 +1,19 @@
 Caching
 ~~~~~~~
 
-PyPhi can use Redis as a fast in-memory global LRU cache to store MICE objects,
-reducing the memory load on PyPhi processes.
+PyPhi memoizes expensive computations (repertoires, partition enumerations,
+Hamming matrices, ...) through a uniform process-local cache surface in
+:mod:`pyphi.cache`:
 
-To use this feature, install PyPhi with the extra dependencies ``[caching]``, *e.g*
+- ``pyphi.cache.info()``: per-cache statistics (hits, misses, size).
+- ``pyphi.cache.clear_all()``: clear every registered cache.
+- ``pyphi.cache.clear(name)``: clear one named cache.
 
-.. code:: bash
+The total memory footprint of in-memory caches is bounded by the
+``MAXIMUM_CACHE_MEMORY_PERCENTAGE`` configuration option.
 
-    pip install "pyphi[caching]""
-
-The ``redis.conf`` file provided with PyPhi includes the minimum settings needed
-to run Redis as an LRU cache:
-
-.. code:: bash
-
-    redis-server /path/to/pyphi/redis.conf
-
-Once the server is running you can enable Redis caching by setting
-``REDIS_CACHE: true`` in your ``pyphi_config.yml``.
-
-**Note:** PyPhi currently flushes the connected Redis database at the start of
-every execution. If you are running Redis for another application be sure PyPhi
-connects to its own Redis server.
+**Note:** caches are not thread-safe. PyPhi assumes process-isolated
+parallelism (Ray-based); each worker has its own copy of every cache.
 
 
 .. |phi| unicode:: U+1D6BD .. mathematical bold capital phi

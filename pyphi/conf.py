@@ -659,26 +659,6 @@ class PyphiConfig(Config):
     conserve memory.""",
     )
 
-    REDIS_CACHE = Option(
-        False,
-        type=bool,
-        doc="""
-    Specifies whether to use Redis to cache |MICE|.""",
-    )
-
-    REDIS_CONFIG = Option(
-        {
-            "host": "localhost",
-            "port": 6379,
-            "db": 0,
-            "test_db": 1,
-        },
-        type=dict,
-        doc="""
-    Configure the Redis database backend. These are the defaults in the
-    provided ``redis.conf`` file.""",
-    )
-
     WELCOME_OFF = Option(
         False,
         type=bool,

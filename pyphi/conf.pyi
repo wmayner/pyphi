@@ -79,7 +79,6 @@ class PyphiConfig(Config):
     CACHE_REPERTOIRES: bool
     CACHE_POTENTIAL_PURVIEWS: bool
     CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA: bool
-    REDIS_CACHE: bool
     WELCOME_OFF: bool
     PROGRESS_BARS: bool
     VALIDATE_SUBSYSTEM_STATES: bool
@@ -97,7 +96,6 @@ class PyphiConfig(Config):
     PARALLEL_PURVIEW_EVALUATION: Mapping[str, Any]
     PARALLEL_MECHANISM_PARTITION_EVALUATION: Mapping[str, Any]
     PARALLEL_RELATION_EVALUATION: Mapping[str, Any]
-    REDIS_CONFIG: dict[str, Any]
 
     # List configuration
     MIP_TIE_RESOLUTION: list[str]

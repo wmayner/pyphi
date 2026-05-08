@@ -299,8 +299,6 @@ rst_prolog = "".join(
 
 .. |ConditionallyDependentError| replace:: :class:`~pyphi.exceptions.ConditionallyDependentError`
 
-.. |MICECache| replace:: :class:`~pyphi.cache.MICECache`
-
 .. |NodeLabels| replace:: :class:`~pyphi.labels.NodeLabels`
 """,
         # Attributes

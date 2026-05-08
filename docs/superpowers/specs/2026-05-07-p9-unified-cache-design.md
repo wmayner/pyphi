@@ -31,7 +31,9 @@ Threading is also a latent concern (no cache uses locks; reads-then-writes are n
 2. **One control surface.** `pyphi.cache.clear_all()` clears every registered cache. `pyphi.cache.clear(name)` clears one.
 3. **Memory bound on the kernel cache.** The kernel `_memoize` honors `MAXIMUM_CACHE_MEMORY_PERCENTAGE` via the same `memory_full()` check the legacy `cache()` already uses.
 4. **Document the single-threaded-per-process assumption.** Add a module-level docstring and a `CACHING.md` (or section in `pyphi/cache/__init__.py` docstring) stating that caches are not thread-safe and that PyPhi assumes process-isolated parallelism.
-5. **Delete dead code.** Remove `RedisCache`, `REDIS_CACHE`, `REDIS_CONFIG`, the stale `MICECache` Sphinx alias, and `joblib_memory`. The Redis machinery as it stands is half-built scaffolding (no decorator integration, no MICECache wrapper, no tests, no docs); a future distributed-cache feature is more cleanly built fresh against whatever the abstraction looks like at that time. See the roadmap deferred-items registry for the future re-introduction note.
+5. **Delete dead Redis code.** Remove `RedisCache`, `REDIS_CACHE`, `REDIS_CONFIG`, the conftest Redis fixture, the `CACHING.rst` Redis section, the benchmark Redis mode, and the stale `MICECache` Sphinx alias. The Redis machinery as it stands is half-built scaffolding (no decorator integration, no MICECache wrapper, no tests asserting it works); a future distributed-cache feature is more cleanly built fresh against whatever the abstraction looks like at that time. See the roadmap deferred-items registry for the future re-introduction note.
+
+  Note: `joblib_memory` is RETAINED — `pyphi/metrics/distribution.py:_compute_hamming_matrix` uses `@joblib_memory.cache` for disk-persisted Hamming matrix caching (large matrices, infrequent recomputation). Initial spec drafted on a partial audit; corrected before Phase 6 execution.
 
 ## Non-goals
 
@@ -108,7 +110,7 @@ Mirror the warning at the top of `pyphi/core/repertoire_algebra.py` (kernel modu
 | 2 | Add memory bound to kernel `_memoize`? | Yes, via `memory_full()` | Closes the unbounded-growth hole |
 | 3 | Add locks for thread safety? | No, document the assumption | Process-isolated parallelism makes locks unnecessary today |
 | 4 | Delete `RedisCache` / `REDIS_CACHE` / `REDIS_CONFIG`? | Yes | Zero live call sites; per the no-back-compat memory |
-| 5 | Delete `joblib_memory`? | Yes, unconditionally | Per the no-back-compat dictum; users who relied on it can construct their own `joblib.Memory` in 2 lines |
+| 5 | Delete `joblib_memory`? | No — has a live consumer | `pyphi/metrics/distribution.py:_compute_hamming_matrix` uses `@joblib_memory.cache` for disk-persisted Hamming matrix caching. Audit in initial spec missed this; corrected before Phase 6. |
 | 6 | Register `_ObjectCache` instances? | No — they're transient (constructed per `jsonify.loads()` call) | Process-level stats are misleading for per-call scratch caches; pin the non-registration in a regression test instead |
 | 7 | Register `Network.purview_cache` instances individually? | Yes — `f"network.{id(network)}.purview_cache"` | Multiple Networks coexist in real workflows (param sweeps, comparisons); per-instance names give correct stats. Tradeoff: longer `info()` output in multi-network sessions |
 | 8 | Move `pyphi/cache/cache_utils.py:_make_key` somewhere? | No, leave it | Used internally by `cache()`; not worth moving |
@@ -132,7 +134,7 @@ Mirror the warning at the top of `pyphi/core/repertoire_algebra.py` (kernel modu
 2. `pyphi.cache.clear_all()` clears every registered cache; `pyphi.cache.info()` afterward shows all `currsize == 0`.
 3. Kernel `_memoize` honors `MAXIMUM_CACHE_MEMORY_PERCENTAGE` — verified by a unit test that monkeypatches `memory_full()` to return `True` and confirms the kernel cache stops growing.
 4. Threading assumption documented in `pyphi/cache/__init__.py` and `pyphi/core/repertoire_algebra.py`.
-5. `RedisCache`, `REDIS_CACHE`, `REDIS_CONFIG`, the `MICECache` Sphinx alias, and `joblib_memory` are removed. Ruff + pyright clean.
+5. `RedisCache`, `REDIS_CACHE`, `REDIS_CONFIG`, the `MICECache` Sphinx alias, the conftest Redis fixture, the `CACHING.rst` Redis section, and the benchmark Redis cache mode are removed. `joblib_memory` is retained (has a live consumer). Ruff + pyright clean.
 6. Golden 17/17 pass unchanged. Hypothesis fast lane green. No performance regression > 5% on the golden suite (measured via existing harness).
 7. Changelog fragment in `changelog.d/p9-unified-cache.refactor.md` describes the new public surface and the dead-code removals.
 
