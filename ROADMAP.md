@@ -830,20 +830,76 @@ matching/perception extension (P14b).
 - *Leverage:* Medium. Unblocks P15 (Jupyter display), P14 (macro/actual rewrite),
   and P14b (matching/perception extension).
 
-**P9. Unified repertoire cache via explicit memoization decorator**
+**P9. Unified cache observability + memory bound + dead-code removal**
 
-`subsystem.py:99` TODO. Trivial after P7 because caching is now a decorator boundary.
-Replace the 4 `DictCache` instances with one memoization layer keyed on
-`(CandidateSystem, mechanism, purview)`. Rebuild Redis connection on config change
-(current `cache/redis.py:37` TODO). Wire `FrozenMap` here as the canonical key type;
-this retires the PROJECTS.md "use FrozenMap in more places" item by making it
-load-bearing in one place instead of cosmetic in many.
+**Status (landed 2026-05-08):** Done on `feature/p9-unified-cache`
+(`f828d776..294a956f`, 10 commits, branch local-only).
 
-- *Files:* `pyphi/cache/__init__.py`, `pyphi/cache/redis.py`,
-  `pyphi/core/repertoire_algebra.py`.
-- *Risk:* Low.
-- *Leverage:* Enables reliable benchmarking (P13) since cache behavior becomes
-  predictable.
+Original plan was to replace the four `DictCache` instances with a single
+memoization layer keyed on `(CandidateSystem, mechanism, purview)` plus a
+`FrozenMap` canonical key type. After auditing the cache landscape (kernel
+`_memoize`, module-level `@cache(...)` for combinatorics, instance-level
+`DictCache`, `joblib_memory` for Hamming matrices) we agreed on a narrower
+approach: each flavor solves a genuinely different problem, so unification
+happens at the *observability/control* layer, not the *decorator* layer.
+
+What landed:
+
+- `CachePolicy` Protocol (`name`, `info()`, `clear()`) + process-local registry in
+  `pyphi/cache/{policy,registry}.py`. Public surface
+  `pyphi.cache.{info, clear_all, clear, register, unregister}` walks every
+  registered cache uniformly.
+- Kernel `_memoize` registers under `kernel.<fn>`; bounded by
+  `MAXIMUM_CACHE_MEMORY_PERCENTAGE` via per-miss `cache_utils.memory_full()`
+  check (closes the unbounded-growth hole in long notebook sessions).
+- Module-level `@cache(...)` decorators in `partition.py` / `distribution.py` /
+  `combinatorics.py` register under `<module>.<qualname>`.
+- `Network.purview_cache` registers per-instance under
+  `f"network.{id(network)}.purview_cache"` so multi-Network sessions get
+  correct stats (per the user's explicit ask). Transient `_ObjectCache`
+  instances inside `jsonify.loads()` stay anonymous (not registered).
+- Threading assumption documented (single-threaded-per-process, Ray-isolated;
+  no locks added).
+- Dead code removed: `RedisCache` class (never instantiated in pyphi/, test/,
+  docs/), `REDIS_CACHE` and `REDIS_CONFIG` config keys (zero live readers),
+  conftest Redis fixture, `CACHING.rst` Redis section, benchmark Redis cache
+  mode parameter, stale `|MICECache|` Sphinx alias. `joblib_memory` retained
+  (live consumer in `metrics/distribution.py` for Hamming matrix disk cache).
+
+What did *not* land (deferred):
+
+- `(CandidateSystem, mechanism, purview)` content-hash key scheme. Kernel cache
+  still keys on `id(cs)` per P7's design; works because `weakref.finalize`
+  evicts on GC.
+- `FrozenMap` as canonical key type in cache. Cosmetic; not load-bearing yet.
+- Distributed / cross-process cache (the original `RedisCache` rebuild-on-config-change
+  TODO at `cache/redis.py:37`). When this returns, it integrates with the
+  `CachePolicy` Protocol established here. Likely surfaces during P11.
+- **Mystery (deferred to P11):** Calling `pyphi.cache.clear_all()` from an
+  autouse `flushcache` conftest fixture between every test, in combination
+  with the per-instance `Network.purview_cache` name registration, causes
+  `BrokenProcessPool: failed to un-serialize` worker crashes on
+  `loky.get_reusable_executor`-based parallel cuts (golden `basic_iit3_emd`
+  and `xor_iit3_emd`, IIT 3.0 + EMD). Bisect data is conclusive; the causal
+  chain is not. The Network's PurviewCache adapter holds a closure capturing
+  `self`, but workers receive Networks via `cloudpickle` and never re-register
+  on unpickle, so the closure shouldn't propagate. Workaround in P9:
+  `flushcache` is no-op (matching pre-P9 effective behavior — old Redis-flush
+  was unconditional but Redis was never enabled). Caches are designed to be
+  safe to share across tests anyway. P11's parallelization redesign is the
+  natural place to investigate, since it's already auditing the loky/cloudpickle
+  boundary.
+
+- *Files:* `pyphi/cache/{__init__,policy,registry}.py`,
+  `pyphi/core/repertoire_algebra.py`, `pyphi/network.py`, `conftest.py`,
+  `pyphi/conf.{py,pyi}`, `CACHING.rst`, `docs/conf.py`,
+  `benchmarks/benchmarks/compute.py`. Tests:
+  `test/test_cache_{policy,registry,integration}.py`.
+- *Risk realized:* The `clear_all`-between-tests interaction described above.
+  Worked around; deferred root-cause investigation.
+- *Leverage:* `pyphi.cache.info()` enables observability for P13 benchmarking.
+  `CachePolicy` Protocol is the integration target for any future distributed
+  cache backend.
 
 ### Phase E — Infrastructure refresh
 
@@ -908,6 +964,17 @@ support streaming. **Note:** chunking matters less for `LocalThreadScheduler`
 Re-enable parallel tests in CI (currently excluded). Until this project lands, mark
 them `xfail` instead of `skip`. Add a no-GIL CI matrix entry that runs the
 tests with `PYTHON_GIL=0` after P6b lands.
+
+**Investigate the P9 cache/loky mystery here.** Calling
+`pyphi.cache.clear_all()` between tests + per-instance `Network.purview_cache`
+name registration causes `BrokenProcessPool: failed to un-serialize` on
+`loky.get_reusable_executor` parallel cuts (golden `basic_iit3_emd` /
+`xor_iit3_emd` reproduce reliably). The closure captured by the registered
+adapter shouldn't propagate to workers via `cloudpickle` since `__init__`
+doesn't run on unpickle, so the causal chain is unclear. P11 audits the
+loky/cloudpickle boundary anyway; resolve as part of that work. Workaround
+shipped in P9: `flushcache` is no-op. See P9 deferred items above for full
+detail.
 
 - *Why here:* Mostly independent of P4–P9 because `parallel/` has its own clean
   abstraction, but needs P10's config snapshotting so workers receive an explicit
