@@ -5,7 +5,12 @@ argument; results are memoized via a per-instance decorator that purges
 when the CandidateSystem is garbage-collected.
 
 Numerical bodies are ports of the corresponding Subsystem methods in
-pyphi/subsystem.py. Parity tests guard equivalence.
+the legacy ``pyphi.subsystem`` module. Parity tests guard equivalence.
+
+Threading
+---------
+The kernel cache is NOT thread-safe — see :mod:`pyphi.cache` for the
+process-isolated parallelism assumption.
 """
 
 from __future__ import annotations

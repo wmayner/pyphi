@@ -1,5 +1,27 @@
 # cache/__init__.py
-"""Memoization and caching utilities."""
+"""Memoization and caching utilities.
+
+Threading
+---------
+Caches in PyPhi are NOT thread-safe. PyPhi assumes process-isolated
+parallelism (Ray-based), where each worker has its own interpreter and
+its own copy of every cache. Do not share cache instances across
+threads.
+
+If a future parallelism model uses shared memory (free-threaded Python,
+asyncio with shared state, etc.), this module will need locks.
+
+Public surface
+--------------
+- ``info()``: dict of name -> _CacheInfo across every registered cache.
+- ``clear_all()``: clear every registered cache.
+- ``clear(name)``: clear one cache by name.
+- ``register(policy)``: register a CachePolicy adapter.
+- ``unregister(name)``: remove a registration.
+
+See :mod:`pyphi.cache.policy` for the CachePolicy Protocol and
+:mod:`pyphi.cache.registry` for the registry implementation.
+"""
 
 import os
 from functools import update_wrapper
