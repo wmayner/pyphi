@@ -184,7 +184,7 @@ max-statements = 100
 # Allow sentinel object() in cache_utils (standard pattern from functools)
 "pyphi/cache/cache_utils.py" = ["B008"]
 # Allow unused arguments in config callbacks and deferred imports
-"pyphi/conf.py" = ["ARG001"]
+"pyphi/_conf_legacy.py" = ["ARG001"]
 "pyphi/deferred/*.py" = ["ARG002"]
 # Allow unused kwargs in network generator (interface requirement)
 "pyphi/network_generator/unit_functions.py" = ["ARG001"]
