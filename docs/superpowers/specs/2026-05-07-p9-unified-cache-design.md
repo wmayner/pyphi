@@ -146,9 +146,20 @@ Mirror the warning at the top of `pyphi/core/repertoire_algebra.py` (kernel modu
 - **Golden regression**: 17/17 unchanged.
 - **Changelog**: single `.refactor.md` fragment.
 
+## Open question (deferred investigation)
+
+During the P9 acceptance run we found that calling `pyphi.cache.clear_all()` from the autouse `flushcache` conftest fixture between every test, in combination with the per-instance `Network.purview_cache` name registration introduced in Phase 4, causes the `BrokenProcessPool: failed to un-serialize` failure in two of seventeen golden fixtures (`basic_iit3_emd`, `xor_iit3_emd` — IIT 3.0 + EMD + parallel cuts via `loky.get_reusable_executor`). Bisect runs confirmed:
+
+- **No `clear_all` between tests** (Phase 6 conftest reverted to no-op): all 17 pass in ~13 min.
+- **`clear_all` between tests + Network name registration**: 2 fail (BrokenProcessPool / `ces_size` missing).
+- **`clear_all` between tests + Network name registration reverted**: all 17 pass but 5x slower (~70 min — combinatorial caches re-enumerated every test).
+
+We do not yet understand the mechanism. The Network's `PurviewCache` adapter holds a `lambda: (self.hits, self.misses)` closure in the registry, but workers receive Networks via `cloudpickle` and never re-register on unpickle, so the closure should not propagate. The empirical signal is clear — the combination triggers worker failures — but the causal chain is not. Filed as a deferred investigation; the conftest stays no-op (matching pre-P9 effective behavior, since the old Redis-flush was unconditional but Redis was never enabled). The architectural P9 work (Protocol, registry, kernel registration, memory bound, dead-code removal) is unaffected.
+
 ## What does NOT happen in P9 (deferred)
 
 - **Locks / thread safety.** Deferred to a future parallelism redesign (P11 may surface this; if so, it lands there).
+- **Root-cause investigation of the conftest `clear_all` + Network-name interaction.** Tracked in the open-question section above; the workaround is no-op `flushcache` (which matches pre-P9 effective behavior).
 - **Per-call-site memory bounds** (per-cache `maxsize`, LRU eviction). Not requested; YAGNI.
 - **Distributed / cross-process caching.** Removed today; future re-introduction tracked in the roadmap deferred-items registry. When it returns, the integration target is the `CachePolicy` Protocol introduced here, not a half-built scaffold.
 - **Reorganizing `pyphi/combinatorics.py` cache call sites.** P15 cleanup, separate concern.
