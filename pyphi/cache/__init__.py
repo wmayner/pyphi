@@ -102,6 +102,19 @@ def cache(
 
         wrapper.cache_info = cache_info  # type: ignore[attr-defined]
         wrapper.cache_clear = cache_clear  # type: ignore[attr-defined]
+
+        # Register a CachePolicy adapter under '<module>.<qualname>'.
+        from .policy import _DictCacheAdapter
+        from .registry import register as _register_policy
+
+        _register_policy(
+            _DictCacheAdapter(
+                name=f"{user_function.__module__}.{user_function.__qualname__}",
+                backing=cache,
+                stats=lambda: (cache_info().hits, cache_info().misses),
+            )
+        )
+
         return update_wrapper(wrapper, user_function)
 
     return decorating_function

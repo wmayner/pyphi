@@ -11,9 +11,14 @@ from pyphi.cache.policy import _DictCacheAdapter
 
 @pytest.fixture(autouse=True)
 def _isolate_registry():
-    """Snapshot the registry around each test."""
+    """Snapshot the registry at test entry; restore at test exit.
+
+    Does NOT clear at entry — module-level registrations from imports
+    (e.g. ``pyphi.partition`` decorators) should remain visible to
+    tests that assert on them. Unit tests that need a clean slate can
+    use unique ``test.*`` names that won't collide.
+    """
     snapshot = dict(reg._registry)
-    reg._registry.clear()
     yield
     reg._registry.clear()
     reg._registry.update(snapshot)
@@ -93,3 +98,41 @@ def test_pyphi_cache_re_exports_registry_surface():
     assert callable(cache.clear)
     assert callable(cache.register)
     assert callable(cache.unregister)
+
+
+# =============================================================================
+# Module-level @cache(...) decorator registers an adapter
+# =============================================================================
+
+
+def test_module_level_cache_decorator_registers_adapter():
+    """A function decorated with @cache(...) registers a policy under
+    f'{module}.{qualname}' on import."""
+    from pyphi import cache as cache_module
+    from pyphi import combinatorics  # noqa: F401
+
+    info = cache_module.info()
+    expected_name = "pyphi.combinatorics.num_subsets_larger_than_one_element"
+    assert expected_name in info, (
+        f"expected {expected_name} in registry, got keys: {sorted(info.keys())}"
+    )
+
+
+def test_module_level_caches_present_for_partition_and_distribution():
+    """Each module that uses @cache(...) shows up under its qualified name."""
+    from pyphi import cache as cache_module
+    from pyphi import combinatorics  # noqa: F401
+    from pyphi import distribution  # noqa: F401
+    from pyphi import partition  # noqa: F401
+
+    info = cache_module.info()
+    keys = list(info.keys())
+    assert any(k.startswith("pyphi.partition.") for k in keys), (
+        f"no pyphi.partition.* entries; got: {sorted(keys)}"
+    )
+    assert any(k.startswith("pyphi.distribution.") for k in keys), (
+        f"no pyphi.distribution.* entries; got: {sorted(keys)}"
+    )
+    assert any(k.startswith("pyphi.combinatorics.") for k in keys), (
+        f"no pyphi.combinatorics.* entries; got: {sorted(keys)}"
+    )
