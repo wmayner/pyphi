@@ -317,13 +317,52 @@ Plus the standard P-level gates: pyright clean on `pyphi/conf/`, ruff clean.
 
 None at design time. Anything that surfaces during execution gets a follow-up commit on this branch with a note in the changelog.
 
-## Appendix A: Rename-map table (placeholder — populated in Phase 0)
+## Appendix A: Rename-map table
 
-| Old (1.x flat) | New (2.0 layered) | Layer |
+| Old (1.x flat) | New (2.0 layered read) | Layer |
 |---|---|---|
-| `PRECISION` | `precision` | numerics |
-| `FORMALISM` | `formalism` | formalism |
-| `PARALLEL` | `parallel` | infrastructure |
-| ... | ... | ... |
+| `FORMALISM` | `config.formalism.formalism` | formalism |
+| `ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS` | `config.formalism.assume_cuts_cannot_create_new_concepts` | formalism |
+| `REPERTOIRE_DISTANCE` | `config.formalism.repertoire_distance` | formalism |
+| `REPERTOIRE_DISTANCE_DIFFERENTIATION` | `config.formalism.repertoire_distance_differentiation` | formalism |
+| `REPERTOIRE_DISTANCE_SPECIFICATION` | `config.formalism.repertoire_distance_specification` | formalism |
+| `CES_DISTANCE` | `config.formalism.ces_distance` | formalism |
+| `ACTUAL_CAUSATION_MEASURE` | `config.formalism.actual_causation_measure` | formalism |
+| `PARTITION_TYPE` | `config.formalism.partition_type` | formalism |
+| `SYSTEM_PARTITION_TYPE` | `config.formalism.system_partition_type` | formalism |
+| `SYSTEM_PARTITION_INCLUDE_COMPLETE` | `config.formalism.system_partition_include_complete` | formalism |
+| `SYSTEM_CUTS` | `config.formalism.system_cuts` | formalism |
+| `DISTINCTION_PHI_NORMALIZATION` | `config.formalism.distinction_phi_normalization` | formalism |
+| `RELATION_COMPUTATION` | `config.formalism.relation_computation` | formalism |
+| `STATE_TIE_RESOLUTION` | `config.formalism.state_tie_resolution` | formalism |
+| `MIP_TIE_RESOLUTION` | `config.formalism.mip_tie_resolution` | formalism |
+| `PURVIEW_TIE_RESOLUTION` | `config.formalism.purview_tie_resolution` | formalism |
+| `SHORTCIRCUIT_SIA` | `config.formalism.shortcircuit_sia` | formalism |
+| `SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI` | `config.formalism.single_micro_nodes_with_selfloops_have_phi` | formalism |
+| `PARALLEL` | `config.infrastructure.parallel` | infrastructure |
+| `PARALLEL_COMPLEX_EVALUATION` | `config.infrastructure.parallel_complex_evaluation` | infrastructure |
+| `PARALLEL_CUT_EVALUATION` | `config.infrastructure.parallel_cut_evaluation` | infrastructure |
+| `PARALLEL_CONCEPT_EVALUATION` | `config.infrastructure.parallel_concept_evaluation` | infrastructure |
+| `PARALLEL_PURVIEW_EVALUATION` | `config.infrastructure.parallel_purview_evaluation` | infrastructure |
+| `PARALLEL_MECHANISM_PARTITION_EVALUATION` | `config.infrastructure.parallel_mechanism_partition_evaluation` | infrastructure |
+| `PARALLEL_RELATION_EVALUATION` | `config.infrastructure.parallel_relation_evaluation` | infrastructure |
+| `PARALLEL_WORKERS` | `config.infrastructure.parallel_workers` | infrastructure |
+| `PARALLEL_BACKEND` | `config.infrastructure.parallel_backend` | infrastructure |
+| `MAXIMUM_CACHE_MEMORY_PERCENTAGE` | `config.infrastructure.maximum_cache_memory_percentage` | infrastructure |
+| `CACHE_REPERTOIRES` | `config.infrastructure.cache_repertoires` | infrastructure |
+| `CACHE_POTENTIAL_PURVIEWS` | `config.infrastructure.cache_potential_purviews` | infrastructure |
+| `CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA` | `config.infrastructure.clear_subsystem_caches_after_computing_sia` | infrastructure |
+| `LOG_FILE` | `config.infrastructure.log_file` | infrastructure |
+| `LOG_FILE_LEVEL` | `config.infrastructure.log_file_level` | infrastructure |
+| `LOG_STDOUT_LEVEL` | `config.infrastructure.log_stdout_level` | infrastructure |
+| `PROGRESS_BARS` | `config.infrastructure.progress_bars` | infrastructure |
+| `REPR_VERBOSITY` | `config.infrastructure.repr_verbosity` | infrastructure |
+| `PRINT_FRACTIONS` | `config.infrastructure.print_fractions` | infrastructure |
+| `LABEL_SEPARATOR` | `config.infrastructure.label_separator` | infrastructure |
+| `WELCOME_OFF` | `config.infrastructure.welcome_off` | infrastructure |
+| `VALIDATE_SUBSYSTEM_STATES` | `config.infrastructure.validate_subsystem_states` | infrastructure |
+| `VALIDATE_CONDITIONAL_INDEPENDENCE` | `config.infrastructure.validate_conditional_independence` | infrastructure |
+| `VALIDATE_JSON_VERSION` | `config.infrastructure.validate_json_version` | infrastructure |
+| `PRECISION` | `config.numerics.precision` | numerics |
 
-(The full table is built and committed in Phase 0.)
+Persistent-write form: `config.<lowercase_name> = value` (e.g. `config.precision = 6`). Scoped: `with config.override(precision=6, parallel=True): ...`.
