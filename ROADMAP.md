@@ -937,6 +937,52 @@ delete the legacy module. The auto-load of `pyphi_config.yml` at import
 time still uses the 1.x flat format; users opting into the nested format
 invoke `pyphi.config.load_yaml(path)` explicitly.
 
+**P10b. Finish the config cutover — drop ``_conf_legacy`` and the facade**
+
+Promoted out of the deferred-items registry into its own project after
+hitting the UX cost in normal usage: ``pyphi.config.<TAB>`` shows the
+layered objects (``formalism``, ``infrastructure``, ``numerics``) plus
+methods, but not the leaf settings — users have to memorize which
+setting lives in which layer, defeating the purpose of typed-tab
+completion. The current state is also half-migrated infrastructure
+that no future contributor should have to learn.
+
+Scope:
+
+- Delete ``pyphi/_conf_legacy.py`` (~1000 lines of descriptor /
+  validator / callback / YAML-load infrastructure).
+- Dissolve the ``_GlobalConfig`` facade in
+  ``pyphi/conf/legacy_global.py``. The three layered configs
+  (``FormalismConfig``, ``InfrastructureConfig``, ``NumericsConfig``)
+  become canonical — owned by a single top-level ``Config`` class
+  rather than wrapped over a legacy backend.
+- Top-level setattr (``config.precision = 13``) and
+  ``config.override(precision=13, parallel=True)`` continue to work
+  as the public API; reads continue to support both flat
+  (``config.precision``) and layered (``config.numerics.precision``)
+  forms.
+- ``__dir__`` advertises all leaf setting names so
+  ``pyphi.config.<TAB>`` shows ``precision``, ``parallel``,
+  ``repertoire_distance``, etc. directly.
+- Auto-load of ``pyphi_config.yml`` at import time switches to the
+  layered format. Top-level legacy keys raise with a rename-map
+  pointer (already implemented for explicit ``load_yaml``).
+- Migrate the YAML round-trip and validation logic from
+  ``_conf_legacy`` to the new layered backend. ``ConfigSnapshot``
+  semantics are preserved (P10's main contract).
+
+Not in scope: changing the public mutation API. ``config.X = Y`` and
+``config.override(...)`` keep their current shapes.
+
+Estimated 2–3 days. Comparable in scope to P10 itself, but bounded
+because the layered design landed already.
+
+**Acceptance:** ``pyphi.config.<TAB>`` lists leaf settings;
+``pyphi/_conf_legacy.py`` deleted; ``pyphi/conf/legacy_global.py``
+deleted (replaced by ``pyphi/conf/global_config.py`` or merged into
+``pyphi/conf/__init__.py``); golden 17/17 unchanged; legacy YAML
+formats raise with rename-map.
+
 **Original P10 design** (kept for reference):
 
 Split `pyphi/conf.py` (1121 lines) along the three layers that P4–P9 reveal:
@@ -1211,12 +1257,21 @@ test inventory — that a deliberate re-ordering pass is in order.
 
 **Schedule for remaining 2.0 work:**
 
-1. **P11.7 — CES / Φ-structure rename.** User-facing renames are free
-   while pre-release; once 2.0 ships they cost a deprecation cycle.
-   No hard predecessor; ships next. Closes the rename trilogy
-   (Network/Subsystem, Concept/Distinction, CES/Φ-structure).
+1. **P11.7 — CES / Φ-structure rename.** *(landed 2026-05-09, commit
+   ``7c4bc012``.)* User-facing renames are free while pre-release;
+   once 2.0 ships they cost a deprecation cycle. Closes the rename
+   trilogy (Network/Subsystem, Concept/Distinction, CES/Φ-structure).
 
-2. **P14 — ``macro.py`` + ``actual.py`` resurrection.** Promoted ahead
+2. **P10b — Finish the config cutover.** Promoted out of the
+   deferred-items registry. Drop ``_conf_legacy.py``, dissolve the
+   ``_GlobalConfig`` facade, layered configs become canonical with
+   ``__dir__`` advertising leaf settings (so ``pyphi.config.<TAB>``
+   shows ``precision``, ``parallel``, etc. directly). Sequenced
+   *before* P14 so the 1,400 lines of dark tests P14 will re-enable
+   migrate exactly once against the final config API rather than
+   twice. ~2-3 days.
+
+3. **P14 — ``macro.py`` + ``actual.py`` resurrection.** Promoted ahead
    of P12. Survey on 2026-05-09: ``pyphi/actual.py`` is ~95%
    salvageable (concentrated breakage in 20 lines of
    ``Transition.__init__``); ``pyphi/macro.py`` is ~70% salvageable
@@ -1228,32 +1283,32 @@ test inventory — that a deliberate re-ordering pass is in order.
    work scoped to one place rather than fragmenting across core +
    macro. Estimated 5–7 days.
 
-3. **P11.8 Tier 1 — inline pytest perf budget.** Hours of work, ~30
+4. **P11.8 Tier 1 — inline pytest perf budget.** Hours of work, ~30
    lines. Catches catastrophic regressions of the form just
    experienced (60–300x on ``IIT4_2026Formalism``). Must precede P12
    and P13 because both touch hot paths.
 
-4. **P12 — Non-binary units.** With perf gate up and macro/actual on
+5. **P12 — Non-binary units.** With perf gate up and macro/actual on
    the new core, alphabet generalization is bounded: PR #105 is the
    reference; binary golden fixtures stay as oracles.
 
-5. **P13 — Zaeemzadeh upper bounds.** Pure feature; depends on
+6. **P13 — Zaeemzadeh upper bounds.** Pure feature; depends on
    P12's alphabet generalization.
 
-6. **P14b — Matching/perception fold-in.** Cleanest deferral
+7. **P14b — Matching/perception fold-in.** Cleanest deferral
    candidate if the schedule slips: self-contained extension whose
    public surface is a new top-level package, so a 2.1 release is
    minimally disruptive.
 
-7. **P11.8 Tier 2 + P15 — Surface-freeze bundle.** Benchmark suite
+8. **P11.8 Tier 2 + P15 — Surface-freeze bundle.** Benchmark suite
    rewrite, ASV-in-CI, ``jsonify`` retirement, test reorganization,
    docstring sweep, Sphinx architecture guide,
    ``__repr__`` / ``_repr_html_``, ``ToPandasMixin`` extensions,
-   deferred-registry sweep (legacy YAML auto-load, ``_GlobalConfig``
-   facade collapse, P9 loky mystery, no-GIL CI matrix entry),
-   open-PR triage, ``migration-2.0.md``. Tier 2 of P11.8 lives
-   here because the benchmark rewrite naturally pairs with the
-   docstring/repr/jsonify pass.
+   deferred-registry sweep (P9 loky mystery, no-GIL CI matrix entry,
+   ``_conf_legacy.py`` confirmed gone), open-PR triage,
+   ``migration-2.0.md``. Tier 2 of P11.8 lives here because the
+   benchmark rewrite naturally pairs with the docstring/repr/jsonify
+   pass.
 
 **Ship criterion for 2.0:**
 
