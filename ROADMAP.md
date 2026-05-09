@@ -1243,6 +1243,83 @@ tier in place to bridge the gap.
 ``test/test_perf_budget.py`` (Tier 1), ``.github/workflows/`` (new
 nightly), ``ROADMAP.md`` (mark P15's Layer D as superseded).
 
+**P11.9. Congruence resolution: make tied-state semantics safe by construction**
+
+In IIT 4.0, a distinction can have multiple *tied* specified states for
+its cause and effect MICs. The "true" specified state of each
+distinction is determined only after the system-level SIA produces a
+``system_state`` direction; ``Distinctions.resolve_congruence(system_state)``
+then filters and selects per-distinction states to match that direction.
+Until resolution happens, downstream code that operates on the
+distinctions (relations, plots, fold counting, ces_distance) can
+silently produce wrong results — different distinctions may pick
+different unresolved-tied states, relations between them may include
+"phantom" overlaps that wouldn't exist after resolution, and the
+output looks plausible.
+
+Today's handling is brittle:
+
+- ``Distinctions.__init__`` sets ``_resolved_congruence=False`` by
+  default. ``Distinctions.resolve_congruence(system_state)`` returns a
+  new ``Distinctions`` with the flag set to ``True``.
+- ``pyphi.relations.relations()`` checks the flag and emits a
+  ``PyPhiWarning`` (not an error) if it's ``False``. The warning is
+  easy to miss, easy to silence, and arrives after the wrong relations
+  have already been computed and possibly stored.
+- The official ``pyphi.formalism.iit4.phi_structure()`` pipeline calls
+  ``distinctions.resolve_congruence(sia.system_state)`` correctly. But
+  any caller obtaining distinctions another way (``System.all_distinctions()``,
+  loading from JSON, regenerating after a config change, manually
+  constructing) gets unresolved distinctions and no enforcement.
+- There is no type-level distinction between ``UnresolvedDistinctions``
+  and ``ResolvedDistinctions``; the same Python class represents both
+  states, with the difference encoded in a Boolean flag.
+
+Three design options, in increasing order of investment:
+
+**Option A — strict runtime (smallest change).** ``relations()``
+raises instead of warns when ``resolved_congruence`` is False. Every
+other downstream consumer (ces_distance, fold counting, visualize)
+adds the same check. Same boolean flag, same pipeline; just
+``error`` not ``warn``.
+
+**Option B — lazy resolution.** Drop the flag entirely. ``Distinctions``
+stores the unresolved-tied form. Every downstream operation that
+needs resolved state takes ``system_state`` as a required argument
+and resolves on the fly. Trades the flag for a parameter; less safe
+than A if callers default ``system_state`` to something arbitrary.
+
+**Option C — type-level (illegal states unrepresentable).**
+Introduce ``UnresolvedDistinctions`` and ``ResolvedDistinctions`` as
+distinct types. Functions like ``relations()``, ``ces_distance()``,
+``CauseEffectStructure.__init__`` take only ``ResolvedDistinctions``;
+trying to pass an ``UnresolvedDistinctions`` is a static type error.
+Resolution is a typed transition: ``UnresolvedDistinctions.resolve(system_state)
+→ ResolvedDistinctions``.
+
+Recommendation: **Option C**. The IIT 4.0 paper's correctness story
+already distinguishes "the bag of distinctions a candidate system
+supports" from "the bag of distinctions whose states have been
+disambiguated by the SIA winner" — those are different mathematical
+objects, and PyPhi should treat them as different runtime types.
+Option A is also acceptable as a faster fix if Option C scope is
+prohibitive; Option B is not recommended because it pushes safety
+onto every caller.
+
+Sequencing: this is correctness work, not feature work, and could go
+just before P14 (which will heavily exercise distinctions through
+the macro path) or interleaved with P14 if the macro port surfaces
+related issues. Either way before P12 — non-binary alphabets
+multiply the number of tied states per distinction, making
+incorrectly-handled congruence even more dangerous.
+
+*Files (Option C scope):* ``pyphi/models/distinctions.py`` (split
+class), ``pyphi/relations.py`` (tighten signature), ``pyphi/models/ces.py``
+(``CauseEffectStructure`` requires resolved distinctions), the IIT 4.0
+phi_structure pipeline (already correct, just retype), all callers of
+``System.all_distinctions()`` (audit how the result is used), tests
+for both branches.
+
 ---
 
 ## Updated 2.0 ordering (2026-05-09)
@@ -1269,9 +1346,24 @@ test inventory — that a deliberate re-ordering pass is in order.
    shows ``precision``, ``parallel``, etc. directly). Sequenced
    *before* P14 so the 1,400 lines of dark tests P14 will re-enable
    migrate exactly once against the final config API rather than
-   twice. ~2-3 days.
+   twice. ~2-3 days. Phase 1 (``__dir__`` for tab completion)
+   landed 2026-05-09 (commit ``30a39700``); Phases 2-5 (delete
+   ``_conf_legacy.py``, migrate validators/callbacks/YAML) pending.
 
-3. **P14 — ``macro.py`` + ``actual.py`` resurrection.** Promoted ahead
+3. **P11.9 — Congruence resolution: type-level safety.** Correctness
+   work, not features. Tied specified states on distinctions are
+   currently disambiguated only by a boolean ``resolved_congruence``
+   flag with a downgrade-to-warning enforcement; downstream code
+   (relations, ces_distance, fold counting) silently produces wrong
+   results on unresolved distinctions. Recommended fix: split into
+   ``UnresolvedDistinctions`` and ``ResolvedDistinctions`` types so
+   functions that need resolved state cannot accept unresolved input
+   (illegal states unrepresentable). Sequenced before P12 because
+   non-binary alphabets multiply the number of tied states and make
+   incorrect handling more dangerous. Could interleave with or
+   precede P14.
+
+4. **P14 — ``macro.py`` + ``actual.py`` resurrection.** Promoted ahead
    of P12. Survey on 2026-05-09: ``pyphi/actual.py`` is ~95%
    salvageable (concentrated breakage in 20 lines of
    ``Transition.__init__``); ``pyphi/macro.py`` is ~70% salvageable
@@ -1283,24 +1375,24 @@ test inventory — that a deliberate re-ordering pass is in order.
    work scoped to one place rather than fragmenting across core +
    macro. Estimated 5–7 days.
 
-4. **P11.8 Tier 1 — inline pytest perf budget.** Hours of work, ~30
+5. **P11.8 Tier 1 — inline pytest perf budget.** Hours of work, ~30
    lines. Catches catastrophic regressions of the form just
    experienced (60–300x on ``IIT4_2026Formalism``). Must precede P12
    and P13 because both touch hot paths.
 
-5. **P12 — Non-binary units.** With perf gate up and macro/actual on
+6. **P12 — Non-binary units.** With perf gate up and macro/actual on
    the new core, alphabet generalization is bounded: PR #105 is the
    reference; binary golden fixtures stay as oracles.
 
-6. **P13 — Zaeemzadeh upper bounds.** Pure feature; depends on
+7. **P13 — Zaeemzadeh upper bounds.** Pure feature; depends on
    P12's alphabet generalization.
 
-7. **P14b — Matching/perception fold-in.** Cleanest deferral
+8. **P14b — Matching/perception fold-in.** Cleanest deferral
    candidate if the schedule slips: self-contained extension whose
    public surface is a new top-level package, so a 2.1 release is
    minimally disruptive.
 
-8. **P11.8 Tier 2 + P15 — Surface-freeze bundle.** Benchmark suite
+9. **P11.8 Tier 2 + P15 — Surface-freeze bundle.** Benchmark suite
    rewrite, ASV-in-CI, ``jsonify`` retirement, test reorganization,
    docstring sweep, Sphinx architecture guide,
    ``__repr__`` / ``_repr_html_``, ``ToPandasMixin`` extensions,
