@@ -53,6 +53,7 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
         partitioned_ces=None,
         subsystem=None,
         cut_subsystem=None,
+        config=None,
     ):
         # Preserve DistanceResult type if possible, otherwise convert to PyPhiFloat
         if phi is None:
@@ -69,6 +70,16 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
         self.partitioned_ces = partitioned_ces
         self.subsystem = subsystem
         self.cut_subsystem = cut_subsystem
+        # ConfigSnapshot of the layered config at construction time.
+        # Lazy-snapshot if None: takes a snapshot of the current global, so
+        # callers that don't pass one still get a recorded config. Setting
+        # to None explicitly is rare; mostly used for back-construction in
+        # tests/fixtures.
+        if config is None:
+            from pyphi.conf import config as _global
+
+            config = _global.snapshot()
+        self.config = config
 
     def __repr__(self):
         return fmt.make_repr(self, _sia_attributes)

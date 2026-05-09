@@ -29,6 +29,12 @@ class _DummyFormalism:
     compatible_metrics = frozenset({"EMD"})
     partition_scheme = "BI"
 
+    @property
+    def config(self):
+        from pyphi.conf import config as _global
+
+        return _global.formalism
+
     def evaluate_mechanism(self, subsystem, direction, mechanism, purview, **kwargs):  # noqa: ARG002
         return None
 

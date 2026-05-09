@@ -25,6 +25,7 @@ from pyphi import validate
 from pyphi.compute.network import reachable_subsystems
 from pyphi.conf import config
 from pyphi.conf import fallback
+from pyphi.conf.snapshot import ConfigSnapshot
 from pyphi.core import CandidateSystem as Subsystem
 from pyphi.core import repertoire_algebra as repertoire
 from pyphi.data_structures import PyPhiFloat
@@ -126,8 +127,13 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
     reasons: list | None = None
     signed_phi: float | DistanceResult | None = None
     signed_normalized_phi: float | DistanceResult | None = None
+    config: ConfigSnapshot | None = None
 
     def __post_init__(self):
+        if self.config is None:
+            from pyphi.conf import config as _global
+
+            self.config = _global.snapshot()
         # Snapshot the raw signed values *before* clamping.
         if self.signed_phi is None:
             self.signed_phi = self.phi

@@ -40,6 +40,13 @@ class PhiStructure(cmp.Orderable):
     sia: Any  # SystemIrreducibilityAnalysis from formalism.iit4
     distinctions: CauseEffectStructure
     relations: Relations
+    config: Any = None  # ConfigSnapshot from pyphi.conf.snapshot
+
+    def __post_init__(self) -> None:
+        if self.config is None:
+            from pyphi.conf import config as _global
+
+            object.__setattr__(self, "config", _global.snapshot())
 
     @property
     def components(self) -> Iterable[Any]:
