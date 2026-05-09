@@ -61,7 +61,7 @@ def system_intrinsic_information(
 ) -> SystemStateSpecification:
     """Return the cause/effect states specified by the system.
 
-    NOTE: Uses ``config.REPERTOIRE_DISTANCE_SPECIFICATION``.
+    NOTE: Uses ``config.formalism.repertoire_distance_specification``.
     NOTE: State ties are arbitrarily broken (for now).
     """
     directions = fallback(directions, Direction.both())
@@ -74,7 +74,7 @@ def system_intrinsic_information(
     validate.directions(directions)
     repertoire_distance = fallback(
         repertoire_distance,
-        config.REPERTOIRE_DISTANCE_SPECIFICATION,  # pyright: ignore[reportAttributeAccessIssue]
+        config.formalism.repertoire_distance_specification,  # pyright: ignore[reportAttributeAccessIssue]
     )
     # TODO(ties) deal with ties here
     ii = {
@@ -403,7 +403,9 @@ def integration_value(
     system_state: SystemStateSpecification,
     repertoire_distance: str | None = None,
 ) -> RepertoireIrreducibilityAnalysis:
-    repertoire_distance = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
+    repertoire_distance = fallback(
+        repertoire_distance, config.formalism.repertoire_distance
+    )
     cut_subsystem = subsystem.apply_cut(partition)
     specified = system_state[direction]
     tied_specs = specified.ties if specified.ties else (specified,)
@@ -474,7 +476,9 @@ def evaluate_partition(
 
     # Eqs. 19-20: system-level partition integration uses GID only.
     # The ii(s) cap (Eq. 23) is applied separately below.
-    effective_distance = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
+    effective_distance = fallback(
+        repertoire_distance, config.formalism.repertoire_distance
+    )
     partition_distance = (
         "GENERALIZED_INTRINSIC_DIFFERENCE"
         if effective_distance == "INTRINSIC_INFORMATION"
@@ -578,7 +582,7 @@ def sia(
     **kwargs,
 ) -> SystemIrreducibilityAnalysis:
     """Find the minimum information partition of a system."""
-    partition_scheme = fallback(partition_scheme, config.SYSTEM_PARTITION_TYPE)
+    partition_scheme = fallback(partition_scheme, config.formalism.system_partition_type)
 
     # TODO(4.0): trivial reducibility
 
@@ -613,7 +617,7 @@ def sia(
         if not subsystem.cm[subsystem.node_indices][subsystem.node_indices]:
             return _null_sia(reasons=[ShortCircuitConditions.MONAD_WITH_NO_SELFLOOP])
         # Even if the node has a self-loop, we may still define phi to be zero.
-        if not config.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI:
+        if not config.formalism.single_micro_nodes_with_selfloops_have_phi:
             return _null_sia(
                 reasons=[
                     ShortCircuitConditions.MONAD_WITH_SELFLOOP_DEFINED_TO_BE_ZERO_PHI
@@ -643,7 +647,7 @@ def sia(
     if system_state is None:
         system_state = system_intrinsic_information(subsystem, directions=directions)
 
-    if config.SHORTCIRCUIT_SIA:
+    if config.formalism.shortcircuit_sia:
         shortcircuit_reasons = _has_no_cause_or_effect(system_state)
         if shortcircuit_reasons:
             return _null_sia(reasons=shortcircuit_reasons)
@@ -651,7 +655,7 @@ def sia(
     default_sia = _null_sia(reasons=[ShortCircuitConditions.NO_VALID_PARTITIONS])
 
     parallel_kwargs = conf.parallel_kwargs(
-        dict(config.PARALLEL_CUT_EVALUATION), **kwargs
+        dict(config.infrastructure.parallel_cut_evaluation), **kwargs
     )
     sias = MapReduce(
         evaluate_partition,
@@ -686,7 +690,7 @@ def sia(
         tied_mip.resolve_system_state()
         tied_mip.set_ties(ties)
 
-    if config.CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA:
+    if config.infrastructure.clear_subsystem_caches_after_computing_sia:
         subsystem.clear_caches()
 
     return mip_sia

@@ -45,19 +45,19 @@ def get_num_processes() -> int:
     """Return the number of processes to use in parallel."""
     cpu_count = multiprocessing.cpu_count()
 
-    if config.PARALLEL_WORKERS == 0:
+    if config.infrastructure.parallel_workers == 0:
         raise ValueError("Invalid PARALLEL_WORKERS; value may not be 0.")
 
-    if cpu_count < config.PARALLEL_WORKERS:
+    if cpu_count < config.infrastructure.parallel_workers:
         log.info(
             "Requesting %s workers; only %s CPUs available",
-            config.PARALLEL_WORKERS,
+            config.infrastructure.parallel_workers,
             cpu_count,
         )
         return cpu_count
 
-    if config.PARALLEL_WORKERS < 0:
-        num = cpu_count + config.PARALLEL_WORKERS + 1
+    if config.infrastructure.parallel_workers < 0:
+        num = cpu_count + config.infrastructure.parallel_workers + 1
         if num <= 0:
             raise ValueError(
                 "Invalid PARALLEL_WORKERS; negative value is too negative: "
@@ -65,7 +65,7 @@ def get_num_processes() -> int:
             )
         return num
 
-    return config.PARALLEL_WORKERS
+    return config.infrastructure.parallel_workers
 
 
 def false(*args, **kwargs) -> bool:
@@ -219,7 +219,7 @@ class MapReduce:
         self.shortcircuit_func = shortcircuit_func
         self.shortcircuit_callback = shortcircuit_callback
         self.shortcircuit_callback_args = shortcircuit_callback_args
-        self.progress = fallback(progress, config.PROGRESS_BARS)
+        self.progress = fallback(progress, config.infrastructure.progress_bars)
         self.desc = desc
         self.map_kwargs = fallback(map_kwargs, {})
         self._shortcircuit_callback = shortcircuit_callback

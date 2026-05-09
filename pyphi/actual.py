@@ -367,7 +367,7 @@ class Transition:
     def partitioned_repertoire(self, direction, partition):
         """Compute the repertoire over the partition in the given direction."""
         system = self.system[direction]
-        if config.REPERTOIRE_DISTANCE in [
+        if config.formalism.repertoire_distance in [
             "GENERALIZED_INTRINSIC_DIFFERENCE",
             "INTRINSIC_INFORMATION",
         ]:
@@ -435,7 +435,7 @@ class Transition:
 
             # Then take closest to 0
             # TODO(4.0)
-            if (abs(alpha_min) - abs(alpha)) > 10 ** (-config.PRECISION):
+            if (abs(alpha_min) - abs(alpha)) > 10 ** (-config.numerics.precision):
                 alpha_min = alpha
                 acria = AcRepertoireIrreducibilityAnalysis(
                     state=self.mechanism_state(direction),
@@ -583,7 +583,7 @@ def probability_distance(p, q, measure=None):
     """Compute the distance between two probabilities in actual causation.
 
     The metric that defines this can be configured with
-    ``config.ACTUAL_CAUSATION_MEASURE``.
+    ``config.formalism.actual_causation_measure``.
 
     Args:
         p (float): The first probability.
@@ -591,15 +591,15 @@ def probability_distance(p, q, measure=None):
 
     Keyword Args:
         measure (str): Optionally override
-        ``config.ACTUAL_CAUSATION_MEASURE`` with another measure name from
+        ``config.formalism.actual_causation_measure`` with another measure name from
         the registry.
 
     Returns:
         float: The probability distance between ``p`` and ``q``.
     """
-    measure = config.ACTUAL_CAUSATION_MEASURE if measure is None else measure
+    measure = config.formalism.actual_causation_measure if measure is None else measure
     dist = measures[measure](p, q)
-    return round(dist, config.PRECISION)
+    return round(dist, config.numerics.precision)
 
 
 # =============================================================================
@@ -632,7 +632,7 @@ def _evaluate_cut(
     alpha = account_distance(unpartitioned_account, partitioned_account)
 
     return AcSystemIrreducibilityAnalysis(
-        alpha=round(alpha, config.PRECISION),
+        alpha=round(alpha, config.numerics.precision),
         direction=direction,
         account=unpartitioned_account,
         partitioned_account=partitioned_account,
@@ -702,7 +702,7 @@ def sia(transition, direction=Direction.BIDIRECTIONAL, **kwargs):
     cuts = _get_cuts(transition, direction)
 
     parallel_kwargs = conf.parallel_kwargs(
-        dict(config.PARALLEL_CUT_EVALUATION), **kwargs
+        dict(config.infrastructure.parallel_cut_evaluation), **kwargs
     )
     result = MapReduce(
         _evaluate_cut,

@@ -60,7 +60,7 @@ class CandidateSystem:
             )
         from pyphi.conf import config as _config
 
-        if _config.VALIDATE_SUBSYSTEM_STATES:
+        if _config.infrastructure.validate_subsystem_states:
             validate.state_reachable(self)
 
     def __eq__(self, other: object) -> bool:

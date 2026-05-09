@@ -268,12 +268,12 @@ def dump(obj, fp, **user_kwargs):
 def _check_version(version: str) -> None:
     """Check whether the JSON version is compatible with current PyPhi version.
 
-    The check can be disabled via config.VALIDATE_JSON_VERSION. When enabled,
-    versions are considered compatible if:
+    The check can be disabled via ``config.infrastructure.validate_json_version``.
+    When enabled, versions are considered compatible if:
     1. They match exactly, OR
     2. Their base versions match (ignoring .dev suffixes from hatch-vcs)
     """
-    if not pyphi.config.VALIDATE_JSON_VERSION:
+    if not pyphi.config.infrastructure.validate_json_version:
         return
 
     if version == PYPHI_VERSION:

@@ -15,7 +15,6 @@ legacy ``PyphiConfig`` is deleted.
 
 from __future__ import annotations
 
-from contextlib import AbstractContextManager
 from typing import TYPE_CHECKING
 from typing import Any
 
@@ -54,7 +53,11 @@ class _GlobalConfig:
             distinction_phi_normalization=legacy.DISTINCTION_PHI_NORMALIZATION,
             relation_computation=legacy.RELATION_COMPUTATION,
             state_tie_resolution=legacy.STATE_TIE_RESOLUTION,
-            mip_tie_resolution=list(legacy.MIP_TIE_RESOLUTION),
+            mip_tie_resolution=(
+                list(legacy.MIP_TIE_RESOLUTION)
+                if isinstance(legacy.MIP_TIE_RESOLUTION, (list, tuple))
+                else [legacy.MIP_TIE_RESOLUTION]
+            ),
             purview_tie_resolution=legacy.PURVIEW_TIE_RESOLUTION,
             shortcircuit_sia=legacy.SHORTCIRCUIT_SIA,
             single_micro_nodes_with_selfloops_have_phi=legacy.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI,
@@ -103,11 +106,14 @@ class _GlobalConfig:
             numerics=self.numerics,
         )
 
-    def override(self, **kwargs: Any) -> AbstractContextManager[Any]:
-        """Override config options scoped to a context manager.
+    def override(self, **kwargs: Any) -> Any:
+        """Override config options scoped to a context manager or decorator.
 
-        Accepts both legacy uppercase names and new lowercase layered names;
-        unknown names raise :class:`ConfigurationError`.
+        Returns the legacy ``_override`` instance, which is a
+        :class:`contextlib.ContextDecorator` — usable as ``with config.override(...):``
+        or as a decorator (``@config.override(...)``). Accepts both legacy
+        uppercase names and new lowercase layered names; unknown names raise
+        :class:`ConfigurationError`.
         """
         legacy_kwargs: dict[str, Any] = {}
         for name, value in kwargs.items():

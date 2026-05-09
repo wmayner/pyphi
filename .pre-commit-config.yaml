@@ -31,7 +31,7 @@ repos:
     rev: v1.1.407
     hooks:
       - id: pyright
-        additional_dependencies: [types-PyYAML]
+        additional_dependencies: [types-PyYAML, numpy]
 
   - repo: https://github.com/twisted/towncrier
     rev: 24.8.0

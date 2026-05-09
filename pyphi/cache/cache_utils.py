@@ -14,7 +14,10 @@ _CacheInfo = namedtuple("CacheInfo", ["hits", "misses", "currsize"])
 def memory_full():
     """Check if the memory is too full for further caching."""
     current_process = psutil.Process(os.getpid())
-    return current_process.memory_percent() > config.MAXIMUM_CACHE_MEMORY_PERCENTAGE
+    return (
+        current_process.memory_percent()
+        > config.infrastructure.maximum_cache_memory_percentage
+    )
 
 
 class _HashedSeq(list):

@@ -80,9 +80,9 @@ def emd_ground_distance(r1: Repertoire, r2: Repertoire) -> float:
     Returns:
         float: The distance between ``r1`` and ``r2``.
     """
-    if config.REPERTOIRE_DISTANCE in distribution.measures.asymmetric():
+    if config.formalism.repertoire_distance in distribution.measures.asymmetric():
         raise ValueError(
-            f"The repertoire-distance {config.REPERTOIRE_DISTANCE} is "
+            f"The repertoire-distance {config.formalism.repertoire_distance} is "
             "asymmetric and cannot be used as the ground distance for "
             "the system-level EMD"
         )
@@ -224,7 +224,7 @@ def emd(C1: CauseEffectStructure, C2: CauseEffectStructure) -> float:
         dist = _emd_simple(C1, C2)
     else:
         dist = distribution.EMD.compute(concepts_only_in_C1, concepts_only_in_C2)
-    return round(dist, config.PRECISION)  # type: ignore[arg-type]
+    return round(dist, config.numerics.precision)  # type: ignore[arg-type]
 
 
 @measures.register("SUM_SMALL_PHI")
@@ -245,6 +245,6 @@ def ces_distance(
     Returns:
         float: The distance between the two cause-effect structures.
     """
-    measure_name: str = config.CES_DISTANCE if measure is None else measure  # type: ignore[assignment]
+    measure_name: str = config.formalism.ces_distance if measure is None else measure  # type: ignore[assignment]
     dist: float = measures[measure_name](C1, C2)
-    return round(dist, config.PRECISION)  # type: ignore[arg-type]
+    return round(dist, config.numerics.precision)  # type: ignore[arg-type]

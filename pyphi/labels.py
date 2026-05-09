@@ -139,7 +139,7 @@ class NodeLabels(Sequence[str]):
         """Return a single string labeling the nodes."""
         separator = fallback(
             sep,
-            config.LABEL_SEPARATOR,
+            config.infrastructure.label_separator,
         )
         assert separator is not None, "LABEL_SEPARATOR must be set in config"
         return separator.join(

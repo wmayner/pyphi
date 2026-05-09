@@ -151,7 +151,7 @@ def plot_distribution(
 
 
 def plot_repertoires(subsystem, sia, **kwargs):
-    if config.REPERTOIRE_DISTANCE not in [
+    if config.formalism.repertoire_distance not in [
         "GENERALIZED_INTRINSIC_DIFFERENCE",
         "INTRINSIC_INFORMATION",
     ]:

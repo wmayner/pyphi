@@ -26,13 +26,13 @@ def compare_phi_values(
     Args:
         actual: Actual phi value
         expected: Expected phi value
-        tolerance: Precision digits (uses config.PRECISION if None)
+        tolerance: Precision digits (uses config.numerics.precision if None)
 
     Returns:
         Tuple of (values_equal, error_message)
     """
     if tolerance is None:
-        tolerance = config.PRECISION
+        tolerance = config.numerics.precision
 
     equal = utils.eq(actual, expected)
     if not equal:
@@ -279,7 +279,7 @@ def assert_sia_equal_detailed(
         check_phi_only: If True, only check phi value (ignore structure)
         check_partition: Whether to check partition equality
         check_cause_effect: Whether to check cause/effect repertoires
-        tolerance: Precision for phi comparison (uses config.PRECISION if None)
+        tolerance: Precision for phi comparison (uses config.numerics.precision if None)
 
     Raises:
         AssertionError: If SIA objects differ, with detailed diff message

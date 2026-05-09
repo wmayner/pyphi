@@ -429,7 +429,7 @@ def mip_partitions(mechanism, purview, node_labels=None):
     """Return a generator over all mechanism-purview partitions, based on the
     current configuration.
     """
-    func = partition_types[config.PARTITION_TYPE]
+    func = partition_types[config.formalism.partition_type]
     return func(mechanism, purview, node_labels)
 
 
@@ -859,7 +859,7 @@ def _unidirectional_set_partitions(
     node_labels: Any = None,
 ) -> Iterable[GeneralKCut]:
     """Generate all unidirectional set partitions of a set of nodes."""
-    if len(node_indices) == 1 or config.SYSTEM_PARTITION_INCLUDE_COMPLETE:
+    if len(node_indices) == 1 or config.formalism.system_partition_include_complete:
         yield CompleteGeneralKCut(node_indices, node_labels=node_labels)
     _node_indices = set(range(len(node_indices)))
     # Convert set to list for set_partitions which expects Sequence
@@ -894,7 +894,7 @@ def unidirectional_set_partitions(node_indices, node_labels=None):
 
 def system_partitions(nodes, node_labels=None, partition_scheme=None, filter_func=None):
     """Return the currently configured system partitions for the given nodes."""
-    partition_scheme = fallback(partition_scheme, config.SYSTEM_PARTITION_TYPE)
+    partition_scheme = fallback(partition_scheme, config.formalism.system_partition_type)
     partitions = system_partition_types[partition_scheme](nodes, node_labels=node_labels)
     if filter_func is not None:
         return filter(filter_func, partitions)

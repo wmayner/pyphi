@@ -38,7 +38,7 @@ class PhiFormalism(Protocol):
 
     Concrete formalisms also declare:
 
-    - ``name``: stable string identifier used in ``config.FORMALISM`` and
+    - ``name``: stable string identifier used in ``config.formalism.formalism`` and
       registered in :data:`FORMALISM_REGISTRY`.
     - ``default_metric``: name (string) of the metric registered in
       ``pyphi.metrics.distribution.measures`` to use when no override is
@@ -158,7 +158,7 @@ class FormalismRegistry(Registry[PhiFormalism]):
 
         FORMALISM_REGISTRY.register("IIT_4_0_2023", IIT4_2023Formalism())
 
-    Lookup uses the same string identifier ``config.FORMALISM`` holds.
+    Lookup uses the same string identifier ``config.formalism.formalism`` holds.
     """
 
     desc = "phi formalisms"
@@ -184,4 +184,4 @@ class FormalismRegistry(Registry[PhiFormalism]):
 
 FORMALISM_REGISTRY: FormalismRegistry = FormalismRegistry()
 """Global registry of phi formalisms. Looked up by string name (the value
-held in ``config.FORMALISM``)."""
+held in ``config.formalism.formalism``)."""

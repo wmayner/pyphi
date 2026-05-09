@@ -110,7 +110,7 @@ def all_complexes(
         |Network|.
     """
     pkwargs = conf.parallel_kwargs(
-        config.PARALLEL_COMPLEX_EVALUATION, **(parallel_kwargs or {})
+        config.infrastructure.parallel_complex_evaluation, **(parallel_kwargs or {})
     )
     result = MapReduce(
         sia,
@@ -156,7 +156,9 @@ def major_complex(
     log.info("Calculating major complex...")
     empty_subsystem = Subsystem.from_network(network, state, ())
     default = _null_sia(empty_subsystem)
-    pkwargs = conf.parallel_kwargs(config.PARALLEL_COMPLEX_EVALUATION, **kwargs)
+    pkwargs = conf.parallel_kwargs(
+        config.infrastructure.parallel_complex_evaluation, **kwargs
+    )
     result = MapReduce(
         sia,
         possible_complexes(network, state),

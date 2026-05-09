@@ -123,7 +123,7 @@ __all__ = [
 ] + [name for name in _submodule_names if not name.startswith("_")]
 
 
-if not (config.WELCOME_OFF or "PYPHI_WELCOME_OFF" in os.environ):
+if not (config.infrastructure.welcome_off or "PYPHI_WELCOME_OFF" in os.environ):
     print(
         """
 Welcome to PyPhi!

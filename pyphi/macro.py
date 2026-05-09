@@ -934,7 +934,7 @@ class MacroNetwork:
     @property
     def emergence(self):
         """Difference between the |big_phi| of the macro and micro systems"""
-        return round(self.phi - self.micro_phi, config.PRECISION)
+        return round(self.phi - self.micro_phi, config.numerics.precision)
 
 
 def coarse_graining(network, state, internal_indices):
@@ -960,7 +960,7 @@ def coarse_graining(network, state, internal_indices):
             continue
 
         phi = compute.phi(subsystem)  # type: ignore[arg-type]  # P7b
-        if (phi - max_phi) > 10 ** (-config.PRECISION):
+        if (phi - max_phi) > 10 ** (-config.numerics.precision):
             max_phi = phi
             max_coarse_grain = coarse_grain
 
@@ -1046,7 +1046,7 @@ def emergence(network, state, do_blackbox=False, do_coarse_grain=True, time_scal
     ):
         phi = compute.phi(subsystem)  # type: ignore[arg-type]  # P7b
 
-        if (phi - max_phi) > 10 ** (-config.PRECISION):
+        if (phi - max_phi) > 10 ** (-config.numerics.precision):
             max_phi = phi
             max_network = MacroNetwork(
                 network=network,

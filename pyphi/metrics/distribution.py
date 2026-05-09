@@ -883,8 +883,8 @@ def iit_4_small_phi_no_absolute_value(p: ArrayLike, q: ArrayLike, state: State) 
     )
 
 
-@measures.register("GENERALIZED_INTRINSIC_DIFFERENCE", asymmetric=True)  # type: ignore[arg-type]  # Returns Repertoire when state=None, float otherwise
-@measures.register("INTRINSIC_SPECIFICATION", asymmetric=True)
+@measures.register("GENERALIZED_INTRINSIC_DIFFERENCE", asymmetric=True)  # type: ignore[arg-type]  # pyright: ignore[reportArgumentType]
+@measures.register("INTRINSIC_SPECIFICATION", asymmetric=True)  # pyright: ignore[reportArgumentType]
 def generalized_intrinsic_difference(
     forward_repertoire: ArrayLike,
     partitioned_forward_repertoire: ArrayLike,
@@ -928,15 +928,15 @@ def intrinsic_differentiation(p, q, state=None):
     )
 
 
-@measures.register("INTRINSIC_INFORMATION", asymmetric=True)
+@measures.register("INTRINSIC_INFORMATION", asymmetric=True)  # pyright: ignore[reportArgumentType]
 def intrinsic_information(
     forward_repertoire,
     partitioned_forward_repertoire,
     selectivity_repertoire,
     state=None,
 ):
-    specification_func = measures[config.REPERTOIRE_DISTANCE_SPECIFICATION]  # pyright: ignore[reportAttributeAccessIssue]
-    differentiation_func = measures[config.REPERTOIRE_DISTANCE_DIFFERENTIATION]  # pyright: ignore[reportAttributeAccessIssue]
+    specification_func = measures[config.formalism.repertoire_distance_specification]  # pyright: ignore[reportAttributeAccessIssue]
+    differentiation_func = measures[config.formalism.repertoire_distance_differentiation]  # pyright: ignore[reportAttributeAccessIssue]
 
     specification = specification_func(
         forward_repertoire,
@@ -952,7 +952,7 @@ def intrinsic_information(
         return np.minimum(specification, differentiation)
     # Single value
     return DistanceResult(
-        min(specification, differentiation),
+        min(specification, differentiation),  # pyright: ignore[reportArgumentType]
         method="INTRINSIC_INFORMATION",
         asymmetric=True,
         state=state,
@@ -1051,7 +1051,7 @@ def repertoire_distance(
     Returns:
         float: The distance between ``r1`` and ``r2``, rounded to |PRECISION|.
     """
-    func_key = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
+    func_key = fallback(repertoire_distance, config.formalism.repertoire_distance)
     func = measures[func_key]  # type: ignore[index]
     try:
         try:
@@ -1060,4 +1060,4 @@ def repertoire_distance(
             distance = func(r1, r2, **kwargs)
     except TypeError:
         distance = func(r1, r2, direction=direction)
-    return round(distance, config.PRECISION)  # type: ignore[arg-type]
+    return round(distance, config.numerics.precision)  # type: ignore[arg-type]

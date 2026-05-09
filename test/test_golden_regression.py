@@ -28,7 +28,7 @@ from .golden.fixture import is_array_ref
 from .golden.fixture import load_fixture
 from .golden.fixture import store_fixture
 
-# Tolerances for array comparisons. config.PRECISION default is 13, so
+# Tolerances for array comparisons. config.numerics.precision default is 13, so
 # 1e-12 is one digit looser than the equality threshold — strict enough to
 # catch any meaningful numerical drift while absorbing minor LAPACK / BLAS
 # variations across platforms.

@@ -144,7 +144,7 @@ def subsystem(s: object) -> bool:
     """
     node_states(s.state)  # type: ignore[attr-defined]
     cut(s.cut, s.cut_indices)  # type: ignore[attr-defined]
-    if config.VALIDATE_SUBSYSTEM_STATES:
+    if config.infrastructure.validate_subsystem_states:
         state_reachable(s)
     return True
 

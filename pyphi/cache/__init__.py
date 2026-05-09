@@ -42,7 +42,7 @@ joblib_memory = joblib.Memory(location=constants.DISK_CACHE_LOCATION, verbose=0)
 
 def cache(
     cache=None,
-    maxmem: int | None = config.MAXIMUM_CACHE_MEMORY_PERCENTAGE,
+    maxmem: int | None = config.infrastructure.maximum_cache_memory_percentage,
     typed: bool = False,
 ):
     """Memory-limited cache decorator.
@@ -222,7 +222,7 @@ class PurviewCache(DictCache):
 
     def set(self, key, value):
         """Only set if purview caching is enabled"""
-        if config.CACHE_POTENTIAL_PURVIEWS:
+        if config.infrastructure.cache_potential_purviews:
             self.cache[key] = value
 
 
@@ -240,7 +240,7 @@ def method(cache_name, key_prefix=None):
     """
 
     def decorator(func):
-        if not config.CACHE_REPERTOIRES and "repertoire" in func.__name__:
+        if not config.infrastructure.cache_repertoires and "repertoire" in func.__name__:
             return func
 
         @wraps(func)

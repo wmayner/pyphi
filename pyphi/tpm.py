@@ -239,7 +239,9 @@ class ExplicitTPM(data_structures.ArrayLike):
         super().__init__()
 
         if validate:
-            self.validate(check_independence=config.VALIDATE_CONDITIONAL_INDEPENDENCE)
+            self.validate(
+                check_independence=config.infrastructure.validate_conditional_independence
+            )
             self._tpm = self.to_multidimensional_state_by_node()
 
         self._tpm = np_immutable(self._tpm)

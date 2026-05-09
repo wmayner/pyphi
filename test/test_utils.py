@@ -31,7 +31,7 @@ def test_all_states():
 
 def test_eq():
     phi = 0.5
-    epsilon = 10 ** (-config.PRECISION)
+    epsilon = 10 ** (-config.numerics.precision)
     close_enough = phi - epsilon / 2
     not_quite = phi - epsilon * 2
     assert utils.eq(phi, close_enough)

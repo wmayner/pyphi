@@ -73,8 +73,8 @@ def independent(repertoire: Repertoire) -> bool:
         joint = joint * m
 
     # TODO: should we round here?
-    # repertoire = repertoire.round(config.PRECISION)
-    # joint = joint.round(config.PRECISION)
+    # repertoire = repertoire.round(config.numerics.precision)
+    # joint = joint.round(config.numerics.precision)
 
     return bool(np.array_equal(repertoire, joint))
 

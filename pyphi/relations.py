@@ -221,7 +221,9 @@ def all_relations(distinctions, min_degree=2, max_degree=None, **kwargs):
     def worker(combination):
         return Relation(distinctions[i] for i in combination)
 
-    pkwargs = conf.parallel_kwargs(config.PARALLEL_RELATION_EVALUATION, **kwargs)
+    pkwargs = conf.parallel_kwargs(
+        config.infrastructure.parallel_relation_evaluation, **kwargs
+    )
     result = MapReduce(
         worker,
         combinations,
@@ -386,7 +388,7 @@ def relations(
     if not distinctions.resolved_congruence:  # type: ignore[attr-defined]  # CauseEffectStructure
         warnings.warn(_CONGRUENCE_WARNING_MSG, PyPhiWarning, stacklevel=2)
     return relation_computations[
-        fallback(relation_computation, config.RELATION_COMPUTATION)  # type: ignore[index]  # config.Option descriptor
+        fallback(relation_computation, config.formalism.relation_computation)  # type: ignore[index]  # config.Option descriptor
     ](distinctions, **kwargs)
 
 

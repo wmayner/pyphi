@@ -7,9 +7,9 @@ Pins two specific behaviors that prior versions got wrong:
    for non-numeric arguments, so Python's reflected-comparison protocol
    kicks in and lets the other operand decide equality.
 
-2. ``__hash__`` snapshots ``config.PRECISION`` at construction. A
+2. ``__hash__`` snapshots ``config.numerics.precision`` at construction. A
    ``PyPhiFloat`` placed in a set or dict keeps a stable hash even if
-   ``config.PRECISION`` is later changed; without this, set/dict
+   ``config.numerics.precision`` is later changed; without this, set/dict
    membership lookups silently return wrong answers after a precision
    change.
 
@@ -65,21 +65,21 @@ class TestPyPhiFloatComparison:
         assert result is NotImplemented
 
     def test_precision_aware_equality(self):
-        """Values within ``config.PRECISION`` compare equal."""
+        """Values within ``config.numerics.precision`` compare equal."""
         # Default PRECISION is 13; values differing at 1e-14 should be equal
         a = PyPhiFloat(1.0)
         b = PyPhiFloat(1.0 + 1e-14)
         assert a == b
 
     def test_precision_aware_inequality(self):
-        """Values outside ``config.PRECISION`` compare unequal."""
+        """Values outside ``config.numerics.precision`` compare unequal."""
         a = PyPhiFloat(1.0)
         b = PyPhiFloat(1.5)
         assert a != b
 
 
 class TestPyPhiFloatHash:
-    """Hash snapshots ``config.PRECISION`` at construction."""
+    """Hash snapshots ``config.numerics.precision`` at construction."""
 
     def test_hash_consistent_with_eq(self):
         """Equal values hash equal."""
@@ -89,7 +89,7 @@ class TestPyPhiFloatHash:
         assert hash(a) == hash(b)
 
     def test_hash_stable_across_precision_change(self):
-        """A value's hash doesn't change when ``config.PRECISION`` changes
+        """A value's hash doesn't change when ``config.numerics.precision`` changes
         after construction."""
         with config.override(PRECISION=13):
             value = PyPhiFloat(0.123456789)

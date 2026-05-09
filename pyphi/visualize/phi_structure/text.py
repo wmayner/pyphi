@@ -46,7 +46,7 @@ class Labeler:
                         [
                             f"M: {self.nodes(mice.mechanism)}",
                             f"P: {self.nodes(mice.purview, state=mice.specified_state)}",
-                            f"φ: {round(mice.phi, config.PRECISION)}",
+                            f"φ: {round(mice.phi, config.numerics.precision)}",
                             f"S: {','.join(map(str, mice.specified_state))}",
                         ]
                     ),
@@ -62,7 +62,7 @@ class Labeler:
             "<br>".join(
                 [
                     f"P: {self.units(relation.purview)}",
-                    f"φ: {round(relation.phi, config.PRECISION)}",
+                    f"φ: {round(relation.phi, config.numerics.precision)}",
                     "Relata:",
                     indent(self.hover_relata(relation)),
                 ]
@@ -74,7 +74,7 @@ class Labeler:
             "<br>".join(
                 [
                     f"P: {self.units(face.purview)}",
-                    f"φ: {round(face.phi, config.PRECISION)}",
+                    f"φ: {round(face.phi, config.numerics.precision)}",
                     "Relata:",
                     indent(self.hover_relata(face)),
                 ]

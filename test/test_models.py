@@ -12,7 +12,7 @@ from pyphi.labels import NodeLabels
 from pyphi.models import SystemPartition
 from pyphi.models.cuts import KPartition
 
-EPSILON = 10 ** (-config.PRECISION)
+EPSILON = 10 ** (-config.numerics.precision)
 
 
 # Helper functions for constructing PyPhi objects

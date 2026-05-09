@@ -6,7 +6,7 @@ mechanism-level RIAs, system-level SIAs, and Φ-structures. The
 :class:`pyphi.formalism.base.PhiFormalism` Protocol declares the contract;
 concrete implementations live in :mod:`pyphi.formalism.iit3` and
 :mod:`pyphi.formalism.iit4`. The active formalism is selected by name via
-``config.FORMALISM``.
+``config.formalism.formalism``.
 """
 
 from .base import FORMALISM_REGISTRY
@@ -37,7 +37,7 @@ from .queries import phi_max
 from .queries import sia
 
 # Register the concrete formalisms. The string keys match the values
-# ``config.FORMALISM`` will hold once the cut-over commit lands.
+# ``config.formalism.formalism`` will hold once the cut-over commit lands.
 FORMALISM_REGISTRY.register("IIT_3_0", IIT3Formalism())
 FORMALISM_REGISTRY.register("IIT_4_0_2023", IIT4_2023Formalism())
 FORMALISM_REGISTRY.register("IIT_4_0_2026", IIT4_2026Formalism())

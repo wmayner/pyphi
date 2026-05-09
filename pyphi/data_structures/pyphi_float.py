@@ -11,11 +11,11 @@ _NUMERIC_TYPES = (int, float)
 
 # TODO(4.0) use throughout
 class PyPhiFloat(float):
-    """A floating-point value that's compared using config.PRECISION.
+    """A floating-point value that's compared using config.numerics.precision.
 
     PyPhiFloat is a float subclass that implements precision-aware comparisons
     to avoid numerical errors when comparing phi values. All comparison operations
-    (==, !=, <, >, <=, >=) use the tolerance defined by ``config.PRECISION``
+    (==, !=, <, >, <=, >=) use the tolerance defined by ``config.numerics.precision``
     instead of exact floating-point equality.
 
     This is essential for integrated information computations where values that
@@ -28,7 +28,7 @@ class PyPhiFloat(float):
         All attributes and methods of float are available.
 
     Note:
-        The hash implementation rounds to ``config.PRECISION`` digits to ensure
+        The hash implementation rounds to ``config.numerics.precision`` digits to ensure
         that values equal within precision have the same hash. This makes
         PyPhiFloat safe for use in sets and as dictionary keys.
 
@@ -79,15 +79,15 @@ class PyPhiFloat(float):
     # NOTE: Cannot use functools.total_ordering because it doesn't re-implement
     # existing comparison methods
 
-    # ``_precision`` snapshots ``config.PRECISION`` at construction time so a
+    # ``_precision`` snapshots ``config.numerics.precision`` at construction time so a
     # ``PyPhiFloat`` placed in a set or dict keeps a stable hash even if
-    # ``config.PRECISION`` is later changed. The alternative — reading the
+    # ``config.numerics.precision`` is later changed. The alternative — reading the
     # global at hash time — silently breaks set/dict invariants.
     _precision: int
 
     def __new__(cls, value: Any) -> "PyPhiFloat":
         instance = super().__new__(cls, value)
-        instance._precision = int(config.PRECISION)  # pyright: ignore[reportAttributeAccessIssue]
+        instance._precision = int(config.numerics.precision)
         return instance
 
     def __eq__(self, other: object) -> bool:

@@ -8,7 +8,7 @@ this module holds the operations whose definition is *formalism-policy*
 The dispatch path is::
 
     queries.X(cs, ...)
-        → FORMALISM_REGISTRY[config.FORMALISM].evaluate_X(cs, ...)
+        → FORMALISM_REGISTRY[config.formalism.formalism].evaluate_X(cs, ...)
         → concrete formalism's algorithm
 
 The kernel never imports this module — see
@@ -66,7 +66,7 @@ def evaluate_partition(
 
     Dispatches to the active formalism's ``evaluate_mechanism_partition``.
     """
-    formalism = FORMALISM_REGISTRY[config.FORMALISM]  # pyright: ignore[reportAttributeAccessIssue]
+    formalism = FORMALISM_REGISTRY[config.formalism.formalism]  # pyright: ignore[reportAttributeAccessIssue]
     return formalism.evaluate_mechanism_partition(  # pyright: ignore[reportFunctionMemberAccess]
         cs,
         direction,
@@ -167,10 +167,10 @@ def find_mip(
         partitions = list(partitions)
 
     parallel_kwargs = _conf.parallel_kwargs(
-        dict(config.PARALLEL_MECHANISM_PARTITION_EVALUATION),  # pyright: ignore[reportAttributeAccessIssue]
+        dict(config.infrastructure.parallel_mechanism_partition_evaluation),  # pyright: ignore[reportAttributeAccessIssue]
         **kwargs,
     )
-    formalism = FORMALISM_REGISTRY[config.FORMALISM]  # pyright: ignore[reportAttributeAccessIssue]
+    formalism = FORMALISM_REGISTRY[config.formalism.formalism]  # pyright: ignore[reportAttributeAccessIssue]
     return formalism._find_mechanism_mip(  # pyright: ignore[reportFunctionMemberAccess]
         cs,
         direction,
@@ -271,7 +271,7 @@ def find_mice(
         return find_mip(cs, direction, mechanism, purview)
 
     parallel_kwargs = _conf.parallel_kwargs(
-        dict(config.PARALLEL_PURVIEW_EVALUATION),  # pyright: ignore[reportAttributeAccessIssue]
+        dict(config.infrastructure.parallel_purview_evaluation),  # pyright: ignore[reportAttributeAccessIssue]
         **kwargs,
     )
     map_reduce = MapReduce(
@@ -341,7 +341,7 @@ def all_distinctions(cs: CandidateSystem, **kwargs: Any) -> Any:  # noqa: ARG001
     mechanisms: Any = _utils.powerset(cs.node_indices, nonempty=True)
     total = 2 ** len(cs.node_indices) - 1
 
-    if fallback(config.PROGRESS_BARS):
+    if fallback(config.infrastructure.progress_bars):
         with contextlib.suppress(TypeError):
             total = len(mechanisms)
         mechanisms = tqdm(mechanisms, total=total)
@@ -355,5 +355,5 @@ def all_distinctions(cs: CandidateSystem, **kwargs: Any) -> Any:  # noqa: ARG001
 
 def sia(cs: CandidateSystem, **kwargs: Any) -> Any:
     """Run system irreducibility analysis via the active formalism."""
-    formalism = FORMALISM_REGISTRY[config.FORMALISM]  # pyright: ignore[reportAttributeAccessIssue]
+    formalism = FORMALISM_REGISTRY[config.formalism.formalism]  # pyright: ignore[reportAttributeAccessIssue]
     return formalism.evaluate_system(cs, **kwargs)  # pyright: ignore[reportFunctionMemberAccess]

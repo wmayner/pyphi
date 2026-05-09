@@ -56,7 +56,7 @@ NICE_DENOMINATORS = [*list(range(16)), 16, 32, 64, 128]
 def make_repr(self: object, attrs: Iterable[str]) -> str:
     """Construct a repr string.
 
-    If `config.REPR_VERBOSITY` is ``1`` or ``2``, this function calls the
+    If `config.infrastructure.repr_verbosity` is ``1`` or ``2``, this function calls the
     object's __str__ method. Although this breaks the convention that __repr__
     should return a string which can reconstruct the object, readable reprs are
     invaluable since the Python interpreter calls `repr` to represent all
@@ -73,17 +73,17 @@ def make_repr(self: object, attrs: Iterable[str]) -> str:
     # TODO: change this to a closure so we can do
     # __repr__ = make_repr(attrs) ???
 
-    if config.REPR_VERBOSITY in [MEDIUM, HIGH]:
+    if config.infrastructure.repr_verbosity in [MEDIUM, HIGH]:
         return self.__str__()  # type: ignore[attr-defined,unused-ignore]
 
-    if config.REPR_VERBOSITY is LOW:
+    if config.infrastructure.repr_verbosity is LOW:
         # Only include attributes that exist on the object
         attr_strs = [
             f"{attr}={getattr(self, attr)!r}" for attr in attrs if hasattr(self, attr)
         ]
         return "{}({})".format(self.__class__.__name__, ", ".join(attr_strs))
 
-    raise ValueError("Invalid value for `config.REPR_VERBOSITY`")
+    raise ValueError("Invalid value for `config.infrastructure.repr_verbosity`")
 
 
 def indent(lines: str, amount: int = 2, char: str = " ", newline: str = "\n") -> str:
@@ -431,11 +431,11 @@ def fmt_number(p: Any) -> str:
     If formatting fails, return the input unmodified.
     """
     try:
-        formatted = format(p, f".{config.PRECISION}f")
+        formatted = format(p, f".{config.numerics.precision}f")
     except (ValueError, TypeError):
         return str(p)
 
-    if not config.PRINT_FRACTIONS:
+    if not config.infrastructure.print_fractions:
         return formatted
 
     fraction = Fraction(p)
@@ -632,7 +632,7 @@ def fmt_concept(concept: object) -> str:
     )
 
     # Only center headers for high-verbosity output
-    center_bool = config.REPR_VERBOSITY is HIGH
+    center_bool = config.infrastructure.repr_verbosity is HIGH
     return header(title, ce, HEADER_BAR_2, HEADER_BAR_2, center=center_bool)
 
 
@@ -647,7 +647,7 @@ def fmt_ria(ria: object, verbose: bool = True, mip: bool = False) -> str:
 
     # TODO(4.0):  position repertoire and partitioned repertoire side by side
     # TODO(ties) fix state-marking logic
-    if config.REPR_VERBOSITY is HIGH:
+    if config.infrastructure.repr_verbosity is HIGH:
         partition_name = "MIP" if mip else "Partition"
         partition = f"{partition_name}: "
         if ria.partition:  # type: ignore[attr-defined]

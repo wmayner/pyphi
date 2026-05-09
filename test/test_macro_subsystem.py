@@ -117,7 +117,7 @@ def test_node_labels(macro_subsystem):
 # connectivity for hidden and coarse-grained elements.
 answer_cm = np.ones((2, 2))
 
-EPSILON = 10 ** (-config.PRECISION)
+EPSILON = 10 ** (-config.numerics.precision)
 
 
 def test_macro_subsystem(macro_subsystem):

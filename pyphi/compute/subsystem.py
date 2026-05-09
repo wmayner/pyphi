@@ -67,7 +67,7 @@ def ces(
         cause_purviews (tuple[tuple[int]]): Same as in |Subsystem.concept()|.
         effect_purviews (tuple[tuple[int]]): Same as in |Subsystem.concept()|.
         parallel (bool): Whether to compute concepts in parallel. If ``True``,
-            overrides :data:`config.PARALLEL_CONCEPT_EVALUATION`.
+            overrides :data:`config.infrastructure.parallel_concept_evaluation`.
         directions (Iterable[Direction]): Restrict possible directions to these.
         only_positive_phi (bool): Whether to only return concepts with positive
             phi.
@@ -91,7 +91,7 @@ def ces(
 
     reduce_func = _only_positive_phi if only_positive_phi else _any_phi
     parallel_kwargs = conf.parallel_kwargs(
-        dict(config.PARALLEL_CONCEPT_EVALUATION), **kwargs
+        dict(config.infrastructure.parallel_concept_evaluation), **kwargs
     )
     concepts = MapReduce(
         compute_concept,
@@ -125,7 +125,7 @@ def conceptual_info(subsystem: Subsystem, **kwargs: Any) -> float:
     null concept.
     """
     ci = ces_distance(ces(subsystem, **kwargs), CauseEffectStructure(()))
-    return round(ci, config.PRECISION)  # type: ignore[arg-type]  # config.Option descriptor
+    return round(ci, config.numerics.precision)  # type: ignore[arg-type]  # config.Option descriptor
 
 
 def evaluate_cut(
@@ -150,7 +150,7 @@ def evaluate_cut(
 
     cut_subsystem = uncut_subsystem.apply_cut(cut)
 
-    if config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS:
+    if config.formalism.assume_cuts_cannot_create_new_concepts:
         mechanisms = list(unpartitioned_ces.mechanisms)
     else:
         # Mechanisms can only produce concepts if they were concepts in the
@@ -180,7 +180,7 @@ def sia_partitions(
 ) -> list[SystemPartition]:
     """Return all |big_phi| cuts for the given nodes.
 
-    Controlled by the :const:`config.SYSTEM_PARTITION_TYPE` option.
+    Controlled by the :const:`config.formalism.system_partition_type` option.
 
     Arguments:
         nodes (tuple[int]): The node indices to partition.
@@ -193,14 +193,14 @@ def sia_partitions(
 
     """
     # TODO(4.0 consolidate 3.0 and 4.0 cuts)
-    scheme = config.SYSTEM_PARTITION_TYPE
+    scheme = config.formalism.system_partition_type
     valid = ["DIRECTED_BI", "DIRECTED_BI_CUT_ONE"]
     if scheme not in valid:
         raise ValueError(
             "IIT 3.0 calculations must use one of the following system "
             f"partition schemes: {valid}; got {scheme}"
         )
-    return system_partition_types[config.SYSTEM_PARTITION_TYPE](  # type: ignore[index]  # config.Option descriptor
+    return system_partition_types[config.formalism.system_partition_type](  # type: ignore[index]  # config.Option descriptor
         nodes, node_labels=node_labels
     )
 
@@ -210,7 +210,7 @@ def _ces(subsystem: Subsystem, **kwargs: Any) -> CauseEffectStructure:
     cuts, since we have free processors because we're not computing any cuts
     yet.
     """
-    kwargs = {"parallel": config.PARALLEL_CUT_EVALUATION, **kwargs}
+    kwargs = {"parallel": config.infrastructure.parallel_cut_evaluation, **kwargs}
     return ces(subsystem, **kwargs)
 
 
@@ -220,7 +220,7 @@ def _sia_map_reduce(
     unpartitioned_ces: CauseEffectStructure,
     **kwargs: Any,
 ) -> SystemIrreducibilityAnalysis:
-    kwargs = {"parallel": config.PARALLEL_CUT_EVALUATION, **kwargs}
+    kwargs = {"parallel": config.infrastructure.parallel_cut_evaluation, **kwargs}
     result = MapReduce(
         evaluate_cut,
         cuts,
@@ -284,7 +284,7 @@ def _sia(subsystem: Subsystem, **kwargs: Any) -> SystemIrreducibilityAnalysis:
             )
             return _null_sia(subsystem)
         # Even if the node has a self-loop, we may still define phi to be zero.
-        if not config.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI:
+        if not config.formalism.single_micro_nodes_with_selfloops_have_phi:
             log.info(
                 "Single micro nodes %s with selfloops cannot have "
                 "phi; returning null SIA immediately.",
@@ -322,7 +322,7 @@ def _sia(subsystem: Subsystem, **kwargs: Any) -> SystemIrreducibilityAnalysis:
     # TODO(4.0): parallel: expose options
     result = _sia_map_reduce(cuts, subsystem, unpartitioned_ces, **kwargs)
 
-    if config.CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA:
+    if config.infrastructure.clear_subsystem_caches_after_computing_sia:
         log.debug("Clearing subsystem caches.")
         subsystem.clear_caches()
 
@@ -335,7 +335,7 @@ def _sia(subsystem: Subsystem, **kwargs: Any) -> SystemIrreducibilityAnalysis:
 def sia(
     subsystem: Subsystem, **kwargs: Any
 ) -> SystemIrreducibilityAnalysis | SystemIrreducibilityAnalysisConceptStyle:
-    if config.SYSTEM_CUTS == "CONCEPT_STYLE":
+    if config.formalism.system_cuts == "CONCEPT_STYLE":
         return sia_concept_style(subsystem, **kwargs)
     return _sia(subsystem, **kwargs)
 

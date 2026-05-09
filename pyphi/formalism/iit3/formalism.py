@@ -73,7 +73,7 @@ class IIT3Formalism:
             _find_mip_single_state,  # pyright: ignore[reportPrivateUsage]
         )
 
-        check_metric_compatible(self, config.REPERTOIRE_DISTANCE)
+        check_metric_compatible(self, config.formalism.repertoire_distance)
         if state is not None:
             raise ValueError("passing `state` is not supported with IIT 3.0")
         return _find_mip_single_state(  # pyright: ignore[reportPrivateUsage]
@@ -110,8 +110,10 @@ class IIT3Formalism:
         from pyphi.models import RepertoireIrreducibilityAnalysis
         from pyphi.utils import state_of
 
-        check_metric_compatible(self, config.REPERTOIRE_DISTANCE)
-        repertoire_distance = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
+        check_metric_compatible(self, config.formalism.repertoire_distance)
+        repertoire_distance = fallback(
+            repertoire_distance, config.formalism.repertoire_distance
+        )
         if repertoire is None:
             repertoire = subsystem.repertoire(direction, mechanism, purview)
         if partitioned_repertoire is None:
@@ -143,7 +145,7 @@ class IIT3Formalism:
 
     def evaluate_system(self, subsystem: Any, **kwargs: Any) -> Any:
         """Delegate to :func:`pyphi.compute.subsystem.sia` (the IIT 3.0 path)."""
-        check_metric_compatible(self, config.REPERTOIRE_DISTANCE)
+        check_metric_compatible(self, config.formalism.repertoire_distance)
         from pyphi import compute
 
         return compute.subsystem.sia(subsystem, **kwargs)

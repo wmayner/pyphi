@@ -135,7 +135,7 @@ class Subsystem:
         )
         self.effect_tpm = self.network.tpm.condition_tpm(background_conditions)
 
-        if config.VALIDATE_SUBSYSTEM_STATES:
+        if config.infrastructure.validate_subsystem_states:
             validate.state_reachable(self)
 
         self.cause_tpm = _backward_tpm(self.network.tpm, state, self.node_indices)
@@ -558,7 +558,9 @@ class Subsystem:
         **kwargs: Any,
     ) -> Repertoire | float:
         """Compute the repertoire of a partitioned mechanism and purview."""
-        repertoire_distance = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
+        repertoire_distance = fallback(
+            repertoire_distance, config.formalism.repertoire_distance
+        )
         if repertoire_distance in [
             "GENERALIZED_INTRINSIC_DIFFERENCE",
             "INTRINSIC_INFORMATION",
@@ -813,7 +815,7 @@ class Subsystem:
         """
         from .formalism import FORMALISM_REGISTRY
 
-        formalism = FORMALISM_REGISTRY[config.FORMALISM]  # pyright: ignore[reportAttributeAccessIssue]
+        formalism = FORMALISM_REGISTRY[config.formalism.formalism]  # pyright: ignore[reportAttributeAccessIssue]
         return formalism.evaluate_mechanism_partition(  # pyright: ignore[reportFunctionMemberAccess]
             self,
             direction,
@@ -931,7 +933,7 @@ class Subsystem:
             partitions = list(partitions)
 
         parallel_kwargs = conf.parallel_kwargs(
-            dict(config.PARALLEL_MECHANISM_PARTITION_EVALUATION), **kwargs
+            dict(config.infrastructure.parallel_mechanism_partition_evaluation), **kwargs
         )
         # Dispatch to the active formalism. The formalism owns the
         # mechanism-MIP search algorithm; ``Subsystem`` provides the
@@ -939,7 +941,7 @@ class Subsystem:
         # ``_find_mip_single_state``.
         from .formalism import FORMALISM_REGISTRY
 
-        formalism = FORMALISM_REGISTRY[config.FORMALISM]  # pyright: ignore[reportAttributeAccessIssue]
+        formalism = FORMALISM_REGISTRY[config.formalism.formalism]  # pyright: ignore[reportAttributeAccessIssue]
         return formalism._find_mechanism_mip(  # pyright: ignore[reportFunctionMemberAccess]
             self,
             direction,
@@ -1012,7 +1014,7 @@ class Subsystem:
     ) -> StateSpecification:
         repertoire_distance = fallback(
             repertoire_distance,
-            config.REPERTOIRE_DISTANCE_SPECIFICATION,  # pyright: ignore[reportAttributeAccessIssue]
+            config.formalism.repertoire_distance_specification,  # pyright: ignore[reportAttributeAccessIssue]
         )
         if states is None:
             states = utils.all_states(len(purview))
@@ -1182,7 +1184,7 @@ class Subsystem:
             return self.find_mip(direction, mechanism, purview)
 
         parallel_kwargs = conf.parallel_kwargs(
-            dict(config.PARALLEL_PURVIEW_EVALUATION), **kwargs
+            dict(config.infrastructure.parallel_purview_evaluation), **kwargs
         )
         map_reduce = MapReduce(
             _find_mip,
@@ -1322,7 +1324,7 @@ class Subsystem:
     def sia(self, **kwargs: Any) -> Any:
         from .formalism import FORMALISM_REGISTRY
 
-        formalism = FORMALISM_REGISTRY[config.FORMALISM]  # pyright: ignore[reportAttributeAccessIssue]
+        formalism = FORMALISM_REGISTRY[config.formalism.formalism]  # pyright: ignore[reportAttributeAccessIssue]
         return formalism.evaluate_system(self, **kwargs)  # pyright: ignore[reportFunctionMemberAccess]
 
     # Distinction(s)
@@ -1342,7 +1344,7 @@ class Subsystem:
         total = 2 ** len(self.node_indices) - 1
 
         # for progress bar (tqdm)
-        if fallback(config.PROGRESS_BARS):
+        if fallback(config.infrastructure.progress_bars):
             with contextlib.suppress(TypeError):
                 total = len(mechanisms)  # type: ignore[arg-type]  # chain doesn't support len, handled by try/except
             mechanisms = tqdm(mechanisms, total=total)

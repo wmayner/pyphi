@@ -293,7 +293,9 @@ def partitioned_repertoire(
     scalars) when the configured repertoire distance is GID/II; otherwise
     returns the product of the per-part repertoires.
     """
-    repertoire_distance = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
+    repertoire_distance = fallback(
+        repertoire_distance, config.formalism.repertoire_distance
+    )
     if repertoire_distance in [
         "GENERALIZED_INTRINSIC_DIFFERENCE",
         "INTRINSIC_INFORMATION",
@@ -525,7 +527,7 @@ def intrinsic_information(
 
     repertoire_distance = fallback(
         repertoire_distance,
-        config.REPERTOIRE_DISTANCE_SPECIFICATION,  # pyright: ignore[reportAttributeAccessIssue]
+        config.formalism.repertoire_distance_specification,  # pyright: ignore[reportAttributeAccessIssue]
     )
     if states is None:
         states = _utils.all_states(len(purview))
