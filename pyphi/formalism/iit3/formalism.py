@@ -10,20 +10,31 @@ cleanup can relocate the implementation if desired.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+from dataclasses import field
 from typing import Any
+from typing import ClassVar
 from typing import Literal
 
 from pyphi.conf import config
+from pyphi.conf.formalism import FormalismConfig
 from pyphi.formalism.base import check_metric_compatible
 
 
+def _default_formalism_config() -> FormalismConfig:
+    from pyphi.conf import config as _global
+
+    return _global.formalism
+
+
+@dataclass(frozen=True)
 class IIT3Formalism:
     """IIT 3.0 (Oizumi et al. 2014) — distribution-distance phi computation."""
 
-    name: str = "IIT_3_0"
-    exact: Literal[True] = True
-    default_metric: str = "EMD"
-    compatible_metrics: frozenset[str] = frozenset(
+    name: ClassVar[str] = "IIT_3_0"
+    exact: ClassVar[Literal[True]] = True
+    default_metric: ClassVar[str] = "EMD"
+    compatible_metrics: ClassVar[frozenset[str]] = frozenset(
         {
             "EMD",
             "L1",
@@ -35,19 +46,9 @@ class IIT3Formalism:
             "INTRINSIC_DIFFERENCE",
         }
     )
-    partition_scheme: str | None = "BI"
+    partition_scheme: ClassVar[str | None] = "BI"
 
-    @property
-    def config(self):
-        """The active :class:`FormalismConfig` view over the global config.
-
-        Future work (P11): replace this live view with a per-instance frozen
-        snapshot so workers receive the formalism with its config attached
-        rather than reading globals.
-        """
-        from pyphi.conf import config as _global
-
-        return _global.formalism
+    config: FormalismConfig = field(default_factory=_default_formalism_config)
 
     def evaluate_mechanism(
         self,

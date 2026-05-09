@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import ClassVar
 from typing import Literal
 from typing import Protocol
 from typing import runtime_checkable
@@ -64,10 +65,10 @@ class PhiFormalism(Protocol):
     partition Protocols tighten in P5/P6.
     """
 
-    name: str
-    default_metric: str
-    compatible_metrics: frozenset[str]
-    partition_scheme: str | None
+    name: ClassVar[str]
+    default_metric: ClassVar[str]
+    compatible_metrics: ClassVar[frozenset[str]]
+    partition_scheme: ClassVar[str | None]
 
     @property
     def config(self) -> FormalismConfig: ...

@@ -1,0 +1,431 @@
+# parallel/backends/local_process.py
+"""Process-pool scheduler backed by loky.
+
+Uses loky (via joblib) instead of ``ProcessPoolExecutor`` for cloudpickle
+support, allowing functions defined in ``__main__`` (e.g., Jupyter notebooks)
+to be serialized and sent to worker processes.
+
+Also exports :class:`LocalProcessScheduler`, the Protocol-conforming
+wrapper around :class:`LocalMapReduce` that delivers a ``ConfigSnapshot``
+to workers via closure.
+"""
+
+from __future__ import annotations
+
+import logging
+import multiprocessing
+from collections.abc import Callable
+from collections.abc import Iterable
+from collections.abc import Iterator
+from concurrent.futures import as_completed
+from typing import Any
+
+from joblib.externals.loky import get_reusable_executor
+from more_itertools import chunked_even
+from more_itertools import flatten
+
+from pyphi.conf import config
+from pyphi.conf import fallback
+from pyphi.parallel.tree import TreeConstraints
+from pyphi.parallel.tree import TreeSpec
+
+from .progress import LocalProgressBar
+
+log = logging.getLogger(__name__)
+
+
+def get_num_processes() -> int:
+    """Return the number of processes to use in parallel."""
+    cpu_count = multiprocessing.cpu_count()
+
+    if config.infrastructure.parallel_workers == 0:
+        raise ValueError("Invalid PARALLEL_WORKERS; value may not be 0.")
+
+    if cpu_count < config.infrastructure.parallel_workers:
+        log.info(
+            "Requesting %s workers; only %s CPUs available",
+            config.infrastructure.parallel_workers,
+            cpu_count,
+        )
+        return cpu_count
+
+    if config.infrastructure.parallel_workers < 0:
+        num = cpu_count + config.infrastructure.parallel_workers + 1
+        if num <= 0:
+            raise ValueError(
+                "Invalid PARALLEL_WORKERS; negative value is too negative: "
+                f"requesting {num} workers, {cpu_count} CPUs available."
+            )
+        return num
+
+    return config.infrastructure.parallel_workers
+
+
+def false(*_args, **_kwargs) -> bool:
+    """Default short-circuit function that never short-circuits."""
+    return False
+
+
+def _flatten(items: Iterable, branch: bool = False) -> list:
+    """Flatten results if branching occurred."""
+    if branch:
+        items = flatten(items)
+    return list(items)
+
+
+def _map_sequential(func: Callable, *arglists, **kwargs) -> Iterator:
+    """Map function over arguments sequentially."""
+    for args in zip(*arglists, strict=False):
+        yield func(*args, **kwargs)
+
+
+def _reduce(
+    results: Iterable, reduce_func: Callable, reduce_kwargs: dict, branch: bool
+) -> Any:
+    """Apply reduction function to results."""
+    if reduce_func is _flatten:
+        return reduce_func(results, branch=branch)
+    return reduce_func(results, **reduce_kwargs)
+
+
+def _process_chunk(
+    chunk_iterables: tuple,
+    map_func: Callable,
+    map_kwargs: dict,
+    shortcircuit_func: Callable,
+) -> list:
+    """Process a single chunk of work.
+
+    This function runs in a worker process. It applies the map function
+    to each element in the chunk and returns a list of results.
+    Reduction is done at the end after all chunks are collected.
+    """
+    results = []
+    for args in zip(*chunk_iterables, strict=False):
+        result = map_func(*args, **map_kwargs)
+        results.append(result)
+
+        # Check for short-circuit condition
+        if shortcircuit_func(result):
+            break
+
+    return results
+
+
+class LocalMapReduce:
+    """Single-machine parallelization using loky's reusable executor.
+
+    Key features:
+    - Low overhead (~1-5ms per task)
+    - Cloudpickle support for functions defined in __main__ (Jupyter notebooks)
+    - Tree-structured execution for hierarchical computations
+    - Short-circuit support with future cancellation
+    - Progress tracking compatible with Jupyter notebooks
+    """
+
+    def __init__(
+        self,
+        map_func: Callable,
+        iterables: tuple[Iterable, ...],
+        reduce_func: Callable,
+        reduce_kwargs: dict,
+        constraints: TreeConstraints,
+        tree: TreeSpec,
+        chunksize: int,
+        shortcircuit_func: Callable = false,
+        shortcircuit_callback: Callable | None = None,
+        ordered: bool = False,
+        map_kwargs: dict | None = None,
+        progress: bool = True,
+        desc: str = "",
+        total: int | None = None,
+    ):
+        self.map_func = map_func
+        self.iterables = iterables
+        self.reduce_func = reduce_func
+        self.reduce_kwargs = reduce_kwargs
+        self.constraints = constraints
+        self.tree = tree
+        self.chunksize = chunksize
+        self.shortcircuit_func = shortcircuit_func
+        self.shortcircuit_callback = shortcircuit_callback
+        self.ordered = ordered
+        self.map_kwargs = fallback(map_kwargs, {})
+        self.progress = progress
+        self.desc = desc
+        self.total = total
+
+        # State
+        self.progress_bar: LocalProgressBar | None = None
+        self.result = None
+        self.done = False
+        self.error = None
+        self._futures: list[Any] = []
+
+    def _cancel_remaining(self, futures: list[Any]) -> None:
+        """Cancel all remaining futures."""
+        for future in futures:
+            if not future.done():
+                future.cancel()
+
+    def _get_chunks(self) -> Iterator[tuple]:
+        """Chunk iterables for parallel processing."""
+        # Materialize iterables if needed for chunking
+        materialized = []
+        for iterable in self.iterables:
+            if hasattr(iterable, "__len__"):
+                materialized.append(iterable)
+            else:
+                materialized.append(list(iterable))
+
+        # Chunk each iterable and zip them together
+        if not materialized or not materialized[0]:
+            return
+
+        chunked_iterables = [
+            list(chunked_even(it, self.chunksize)) for it in materialized
+        ]
+
+        # Yield tuples of corresponding chunks
+        yield from zip(*chunked_iterables, strict=False)
+
+    def run(self) -> Any:
+        """Execute the parallel computation."""
+        if self.done:
+            return self.result
+
+        try:
+            # Set up progress bar if enabled
+            if self.progress:
+                self.progress_bar = LocalProgressBar(
+                    total=self.total,
+                    desc=self.desc or "",
+                )
+
+            # If tree depth is 1 or less, run sequentially
+            if self.tree.depth <= 1:
+                return self._run_sequential()
+
+            return self._run_parallel()
+
+        except Exception as e:
+            self.error = e
+            raise e
+        finally:
+            if self.progress_bar is not None:
+                self.progress_bar.close()
+
+    def _run_sequential(self) -> Any:
+        """Run computation sequentially."""
+        results = _map_sequential(self.map_func, *self.iterables, **self.map_kwargs)
+
+        # Apply short-circuiting
+        collected = []
+        for result in results:
+            collected.append(result)
+            if self.progress_bar is not None:
+                self.progress_bar.update(1)
+            if self.shortcircuit_func(result):
+                break
+
+        self.result = _reduce(
+            collected, self.reduce_func, self.reduce_kwargs, branch=False
+        )
+        self.done = True
+        return self.result
+
+    def _run_parallel(self) -> Any:
+        """Run computation in parallel using loky reusable executor.
+
+        Uses loky instead of ProcessPoolExecutor for cloudpickle support,
+        allowing functions defined in __main__ (e.g., Jupyter notebooks) to
+        be serialized and sent to worker processes.
+        """
+        num_workers = get_num_processes()
+
+        # Collect all chunks
+        chunks = list(self._get_chunks())
+
+        if not chunks:
+            self.result = _reduce([], self.reduce_func, self.reduce_kwargs, branch=False)
+            self.done = True
+            return self.result
+
+        results = []
+        short_circuited = False
+
+        # Use loky's reusable executor for cloudpickle support
+        executor = get_reusable_executor(max_workers=num_workers)
+
+        # Submit all chunks as futures
+        futures = [
+            executor.submit(
+                _process_chunk,
+                chunk_tuple,
+                self.map_func,
+                self.map_kwargs,
+                self.shortcircuit_func,
+            )
+            for chunk_tuple in chunks
+        ]
+        self._futures = futures
+
+        # Collect results in order of completion (or original order if ordered=True)
+        if self.ordered:
+            for future in futures:
+                chunk_results = future.result()
+                results.extend(chunk_results)
+                # Update progress bar
+                if self.progress_bar is not None:
+                    self.progress_bar.update(len(chunk_results))
+                # Check for short-circuit in any of the chunk results
+                for r in chunk_results:
+                    if self.shortcircuit_func(r):
+                        short_circuited = True
+                        self._cancel_remaining(futures)
+                        if self.shortcircuit_callback is not None:
+                            self.shortcircuit_callback(futures)
+                        break
+                if short_circuited:
+                    break
+        else:
+            for future in as_completed(futures):
+                chunk_results = future.result()
+                results.extend(chunk_results)
+                # Update progress bar
+                if self.progress_bar is not None:
+                    self.progress_bar.update(len(chunk_results))
+                # Check for short-circuit in any of the chunk results
+                for r in chunk_results:
+                    if self.shortcircuit_func(r):
+                        short_circuited = True
+                        self._cancel_remaining(futures)
+                        if self.shortcircuit_callback is not None:
+                            self.shortcircuit_callback(futures)
+                        break
+                if short_circuited:
+                    break
+
+        # Final reduction - apply user's reduce function
+        self.result = _reduce(
+            results, self.reduce_func, self.reduce_kwargs, branch=False
+        )
+        self.done = True
+        return self.result
+
+
+_LAST_APPLIED_SNAPSHOT_HASH: int | None = None
+_PARENT_PID: int | None = None
+
+
+def _apply_snapshot_if_changed(snapshot: Any) -> None:
+    """Apply ``snapshot`` to the worker's global config; idempotent.
+
+    Skips application when running in the parent process (set by the thread
+    scheduler before dispatch) — threads share the parent's globals and the
+    parent's config is already authoritative.
+    """
+    global _LAST_APPLIED_SNAPSHOT_HASH  # noqa: PLW0603
+
+    import os
+
+    if _PARENT_PID is not None and os.getpid() == _PARENT_PID:
+        return
+
+    snap_hash = hash(repr(snapshot))
+    if snap_hash == _LAST_APPLIED_SNAPSHOT_HASH:
+        return
+
+    config.install_snapshot(snapshot)
+    _LAST_APPLIED_SNAPSHOT_HASH = snap_hash
+
+
+def _make_worker_fn(fn: Callable[..., Any], snapshot: Any) -> Callable[..., Any]:
+    """Wrap ``fn`` so each worker call applies the parent's snapshot first."""
+
+    def worker_fn(*args: Any, **kwargs: Any) -> Any:
+        _apply_snapshot_if_changed(snapshot)
+        return fn(*args, **kwargs)
+
+    return worker_fn
+
+
+class LocalProcessScheduler:
+    """Scheduler backed by loky's reusable process executor.
+
+    Workers receive a ``ConfigSnapshot`` via closure and apply it to their
+    own global config at chunk start. Cache state is per-worker (fresh
+    process, empty caches at start).
+    """
+
+    @property
+    def supports_shared_state(self) -> bool:
+        return False
+
+    def map_reduce(
+        self,
+        fn: Callable[..., Any],
+        items: Iterable[Any],
+        *more_items: Iterable[Any],
+        reducer: Callable[[Iterable[Any]], Any] = list,
+        config_snapshot: Any | None = None,
+        chunking: Any = None,
+        progress: Any = None,
+        shortcircuit: Any = None,
+        ordered: bool = False,
+        map_kwargs: dict[str, Any] | None = None,
+    ) -> Any:
+        from pyphi.parallel.scheduler import ChunkingPolicy
+        from pyphi.parallel.scheduler import ProgressPolicy
+        from pyphi.parallel.scheduler import ShortcircuitPolicy
+        from pyphi.parallel.tree import get_constraints
+
+        chunking = chunking or ChunkingPolicy()
+        progress = progress or ProgressPolicy()
+        shortcircuit = shortcircuit or ShortcircuitPolicy()
+        snapshot = config_snapshot if config_snapshot is not None else config.snapshot()
+
+        from pyphi.parallel.sampling import compute_chunksize
+
+        items_list = list(items)
+        total = len(items_list)
+
+        chunksize, sampled_iter = compute_chunksize(
+            items_list,
+            target_seconds=chunking.target_seconds,
+            fn=fn,
+            sequential_threshold=chunking.sequential_threshold,
+            explicit_chunksize=chunking.chunksize,
+        )
+        items_list = list(sampled_iter)
+        iterables: tuple[Iterable[Any], ...] = (items_list, *more_items)
+
+        constraints = get_constraints(
+            total=total,
+            chunksize=chunksize,
+            sequential_threshold=chunking.sequential_threshold,
+        )
+        tree = constraints.simulate()
+
+        wrapped_fn = _make_worker_fn(fn, snapshot)
+
+        def _reduce_wrapper(results: Iterable[Any], **_: Any) -> Any:
+            return reducer(results)
+
+        local_mr = LocalMapReduce(
+            map_func=wrapped_fn,
+            iterables=iterables,
+            reduce_func=_reduce_wrapper,
+            reduce_kwargs={},
+            constraints=constraints,
+            tree=tree,
+            chunksize=chunksize,
+            shortcircuit_func=shortcircuit.func,
+            shortcircuit_callback=shortcircuit.callback,
+            ordered=ordered,
+            map_kwargs=map_kwargs,
+            progress=progress.enabled,
+            desc=progress.desc,
+            total=total,
+        )
+        return local_mr.run()

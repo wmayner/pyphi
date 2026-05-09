@@ -15,10 +15,14 @@ Both delegate to the algorithms in :mod:`pyphi.formalism.iit4` (the
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+from dataclasses import field
 from typing import Any
+from typing import ClassVar
 from typing import Literal
 
 from pyphi.conf import config
+from pyphi.conf.formalism import FormalismConfig
 from pyphi.formalism.base import check_metric_compatible
 from pyphi.parallel import MapReduce
 
@@ -26,6 +30,12 @@ from . import (
     phi_structure as _phi_structure,  # pyright: ignore[reportUnknownVariableType]
 )
 from . import sia as _sia  # pyright: ignore[reportUnknownVariableType]
+
+
+def _default_formalism_config() -> FormalismConfig:
+    from pyphi.conf import config as _global
+
+    return _global.formalism
 
 
 def _evaluate_partition_iit4(
@@ -156,21 +166,19 @@ def _find_mip_iit4(
     return ties[0]
 
 
+@dataclass(frozen=True)
 class IIT4_2023Formalism:
     """IIT 4.0 (Albantakis et al. 2023) — GID-based mechanism integration."""
 
-    name: str = "IIT_4_0_2023"
-    exact: Literal[True] = True
-    default_metric: str = "GENERALIZED_INTRINSIC_DIFFERENCE"
-    compatible_metrics: frozenset[str] = frozenset(
+    name: ClassVar[str] = "IIT_4_0_2023"
+    exact: ClassVar[Literal[True]] = True
+    default_metric: ClassVar[str] = "GENERALIZED_INTRINSIC_DIFFERENCE"
+    compatible_metrics: ClassVar[frozenset[str]] = frozenset(
         {"GENERALIZED_INTRINSIC_DIFFERENCE", "INTRINSIC_INFORMATION"}
     )
-    partition_scheme: str | None = "ALL"
+    partition_scheme: ClassVar[str | None] = "ALL"
 
-    @property
-    def config(self):
-        """The active :class:`FormalismConfig` view over the global config."""
-        return config.formalism
+    config: FormalismConfig = field(default_factory=_default_formalism_config)
 
     def evaluate_mechanism(
         self,
@@ -228,6 +236,7 @@ class IIT4_2023Formalism:
         return _phi_structure(subsystem, **kwargs)
 
 
+@dataclass(frozen=True)
 class IIT4_2026Formalism:
     """IIT 4.0 (Mayner, Marshall, Tononi 2026) — intrinsic-information cap.
 
@@ -236,21 +245,18 @@ class IIT4_2026Formalism:
     algorithms; only the metric configuration differs. The metric override
     is applied via :class:`pyphi.conf.PyphiConfig.override` so legacy
     sites that still read ``config.formalism.repertoire_distance`` see the right
-    metric. The metric-API unification (P5) replaces this indirection.
+    metric.
     """
 
-    name: str = "IIT_4_0_2026"
-    exact: Literal[True] = True
-    default_metric: str = "INTRINSIC_INFORMATION"
-    compatible_metrics: frozenset[str] = frozenset(
+    name: ClassVar[str] = "IIT_4_0_2026"
+    exact: ClassVar[Literal[True]] = True
+    default_metric: ClassVar[str] = "INTRINSIC_INFORMATION"
+    compatible_metrics: ClassVar[frozenset[str]] = frozenset(
         {"INTRINSIC_INFORMATION", "GENERALIZED_INTRINSIC_DIFFERENCE"}
     )
-    partition_scheme: str | None = "ALL"
+    partition_scheme: ClassVar[str | None] = "ALL"
 
-    @property
-    def config(self):
-        """The active :class:`FormalismConfig` view over the global config."""
-        return config.formalism
+    config: FormalismConfig = field(default_factory=_default_formalism_config)
 
     def evaluate_mechanism(
         self,
