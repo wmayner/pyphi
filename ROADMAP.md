@@ -1116,6 +1116,87 @@ This is queued as a follow-on commit after the concept→distinction
 rename lands. It touches model definitions, metrics, jsonify, golden
 fixtures, and the public surface; expect comparable scope to P11.6.
 
+**P11.8. Performance regression gate + benchmark suite rewrite**
+
+*Motivation.* During the 2.0 work we shipped a 4-day-old structural
+change to ``IIT4_2026Formalism`` (5 nested defensive ``config.override``
+calls per partition) that interacted catastrophically with a 3-year-old
+latent ``atomic_write_yaml`` callback to produce a 60-300x slowdown on
+the 2026 hot path. Goldens caught nothing because they were correctness
+gates, not performance gates; the suite wall-time crept from minutes to
+13 minutes and that felt like *the cost of doing more work* until we
+profiled. The 2026 issue is fixed (commit ``7c2e2cd2`` removes the YAML
+write), but the lesson is: structural refactors in hot paths need a
+perf gate, not just correctness gates. P12 (non-binary) and P13
+(Zaeemzadeh pruning) both touch hot paths and are the next likely
+sources of perf regressions; the gate should be in place before they
+land.
+
+*Why this is bigger than "wire ASV into CI".* The ``benchmarks/``
+suite predates the 2.0 architecture by years — every import is broken
+(``pyphi.Subsystem``, ``pyphi.compute``, ``examples.basic_subsystem``,
+``subsys._repertoire_cache.clear()``). The class names use
+"BenchmarkConstellation" — terminology that predates *concept*, let
+alone *distinction*. The TODO at the top of
+``benchmarks/benchmarks/subsystem.py`` notes that even
+``@config.override`` couldn't be used "because it doesn't exist in the
+entire project history". The suite is effectively a museum piece. We
+have to design what to benchmark from scratch, in the 2.0 vocabulary,
+on the 2.0 hot paths.
+
+*Two-tier proposal.*
+
+**Tier 1 — Immediate inline perf budget (small, ships first).** A
+handful of ``pytest.mark.perf`` assertions in the fast golden lane:
+``basic_iit4_2026 must complete in <5s``,
+``basic_iit3_emd must complete in <3s``, etc. Wall-time-based, with
+generous margins (~5x typical) so they catch *catastrophic* regressions
+without being brittle on slow CI runners. Run on every PR. Cheap
+insurance. ~30 lines of code. Catches the class of regression we just
+hit (the 2026 path going from 0.3s to 84s wouldn't have survived a 5s
+budget).
+
+**Tier 2 — Rewrite the benchmark suite for the 2.0 architecture.**
+Design questions worth taking seriously rather than mechanically
+porting:
+
+  - *What to benchmark, parameterized by what?* The 2.0 architecture
+    has 3 formalisms × N substrates × {sequential, parallel} ×
+    {warm cache, cold cache}. A naive cross product is too many
+    combinations to track. Pick a small representative grid (e.g.
+    {basic, xor} × {iit3_emd, iit4_2023, iit4_2026} × cold) and a
+    smaller set of "edge" benchmarks for specific concerns
+    (large substrate scaling, parallel speedup, cache hit-rate
+    sensitivity).
+  - *Which operations?* SIA dominates wall time; but smaller-grain
+    operations (``find_mip``, ``find_mice``, single ``distinction``,
+    repertoire computation) are useful for localizing regressions. A
+    layered set rather than only end-to-end.
+  - *Wall time vs counter-based.* Wall time is platform-sensitive
+    (~2-3x variance across CI runners). Counter-based measurements
+    (``cProfile`` call counts on hot frames, kernel cache hit/miss
+    counts, partition evaluation counts) are more stable but require
+    upfront design. ASV supports both; the question is which signal
+    we trust to fail a build vs only post a warning.
+  - *Threshold policy.* When does a 10% regression fail CI vs warn?
+    20%? This is policy, not engineering — and the answer changes
+    once we have a baseline.
+  - *Where does ASV run.* Nightly on develop is the safe answer. PR
+    integration is harder because ASV's "compare two commits" mode
+    needs both checkouts available, which CI runners don't natively
+    do.
+
+*Sequencing.* Tier 1 lands as a small commit (couple hours of work)
+*before* P12 starts. Tier 2 is its own multi-day project, scoped
+between Tier 1 landing and P12 starting — or punted to P15 if
+schedule pressure makes it impractical, but with the inline budget
+tier in place to bridge the gap.
+
+*Files.* ``benchmarks/`` (rewrite), ``benchmarks/asv.conf.json``
+(point at ``2.0`` not ``develop``), new
+``test/test_perf_budget.py`` (Tier 1), ``.github/workflows/`` (new
+nightly), ``ROADMAP.md`` (mark P15's Layer D as superseded).
+
 ### Phase F — Features and new algorithms
 
 **P12. Non-binary (multi-valued) unit support**
