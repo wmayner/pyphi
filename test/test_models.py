@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from pyphi import Direction
-from pyphi import Subsystem
+from pyphi import System
 from pyphi import config
 from pyphi import exceptions
 from pyphi import models  # used by other tests in this module
@@ -57,11 +57,11 @@ def mie(**kwargs):
 
 
 def concept(
-    mechanism=(0, 1), cause_purview=(1,), effect_purview=(1,), phi=1.0, subsystem=None
+    mechanism=(0, 1), cause_purview=(1,), effect_purview=(1,), phi=1.0, system=None
 ):
     """Build a ``Concept``."""
-    # Extract node_labels from subsystem if available
-    node_labels = subsystem.node_labels if subsystem is not None else None
+    # Extract node_labels from system if available
+    node_labels = system.node_labels if system is not None else None
     return models.Concept(
         mechanism=mechanism,
         cause=mic(
@@ -81,15 +81,15 @@ def concept(
     )
 
 
-def sia(ces=(), partitioned_ces=(), subsystem=None, cut_subsystem=None, phi=1.0):
+def sia(ces=(), partitioned_ces=(), system=None, cut_system=None, phi=1.0):
     """Build a ``SystemIrreducibilityAnalysis``."""
-    cut_subsystem = cut_subsystem or subsystem
+    cut_system = cut_system or system
 
     return models.SystemIrreducibilityAnalysis(
         ces=ces,
         partitioned_ces=partitioned_ces,
-        subsystem=subsystem,
-        cut_subsystem=cut_subsystem,
+        system=system,
+        cut_system=cut_system,
         phi=phi,
     )
 
@@ -464,9 +464,9 @@ def test_relevant_connections(s, subsys_n1n2):
 
 
 def test_damaged(s):
-    # Build cut subsystem from s
+    # Build cut system from s
     cut = SystemPartition(Direction.EFFECT, (0,), (1, 2))
-    cut_s = Subsystem(s.network, s.state, s.node_indices, cut=cut)
+    cut_s = System(s.substrate, s.state, s.node_indices, cut=cut)
 
     # Cut splits mechanism:
     m1 = mice(mechanism=(0, 1), purview=(1, 2), direction=Direction.EFFECT)
@@ -502,27 +502,27 @@ def test_mie_raises_wrong_direction():
 
 
 # NOTE: test_concept_ordering was removed because it relied on Concept comparison
-# that requires a subsystem attribute, which was removed from Concept during the
+# that requires a system attribute, which was removed from Concept during the
 # IIT 3.0 -> 4.0 migration.
 
 
 def test_concept_equality(s):
-    assert concept(subsystem=s) == concept(subsystem=s)
+    assert concept(system=s) == concept(system=s)
 
 
 def test_concept_equality_phi(s):
-    assert concept(phi=1.0, subsystem=s) != concept(phi=0.0, subsystem=s)
+    assert concept(phi=1.0, system=s) != concept(phi=0.0, system=s)
 
 
 def test_concept_equality_cause_purview_nodes(s):
-    assert concept(cause_purview=(1, 2), subsystem=s) != concept(
-        cause_purview=(1,), subsystem=s
+    assert concept(cause_purview=(1, 2), system=s) != concept(
+        cause_purview=(1,), system=s
     )
 
 
 def test_concept_equality_effect_purview_nodes(s):
-    assert concept(effect_purview=(1, 2), subsystem=s) != concept(
-        effect_purview=(1,), subsystem=s
+    assert concept(effect_purview=(1, 2), system=s) != concept(
+        effect_purview=(1,), system=s
     )
 
 
@@ -545,13 +545,13 @@ def test_concept_equality_repertoires(s):
     assert concept != another
 
 
-# NOTE: test_concept_equality_network was removed because it relied on Concept
-# comparison that requires subsystem/mechanism_state attributes, which are not
+# NOTE: test_concept_equality_substrate was removed because it relied on Concept
+# comparison that requires system/mechanism_state attributes, which are not
 # available on test concepts created with the helper function.
 
 
-def test_concept_equality_one_subsystem_is_subset_of_another(s, subsys_n1n2):
-    assert concept(subsystem=s) == concept(subsystem=subsys_n1n2)
+def test_concept_equality_one_system_is_subset_of_another(s, subsys_n1n2):
+    assert concept(system=s) == concept(system=subsys_n1n2)
 
 
 # NOTE: test_concept_repr_str was removed because it relied on Concept formatting
@@ -559,25 +559,25 @@ def test_concept_equality_one_subsystem_is_subset_of_another(s, subsys_n1n2):
 
 
 def test_concept_hashing(s):
-    hash(concept(subsystem=s))
+    hash(concept(system=s))
 
 
-def test_concept_hashing_one_subsystem_is_subset_of_another(s, subsys_n1n2):
-    c1 = concept(subsystem=s)
-    c2 = concept(subsystem=subsys_n1n2)
+def test_concept_hashing_one_system_is_subset_of_another(s, subsys_n1n2):
+    c1 = concept(system=s)
+    c2 = concept(system=subsys_n1n2)
     assert hash(c1) == hash(c2)
     assert len({c1, c2}) == 1
 
 
 def test_concept_emd_eq(s, subsys_n1n2):
-    c1 = concept(subsystem=s)
+    c1 = concept(system=s)
 
     # Same repertoires, mechanism, phi
-    c2 = concept(subsystem=subsys_n1n2)
+    c2 = concept(system=subsys_n1n2)
     assert c1.emd_eq(c2)
 
     # Everything equal except phi
-    c3 = concept(phi=2.0, subsystem=s)
+    c3 = concept(phi=2.0, system=s)
     assert not c1.emd_eq(c3)
 
     # TODO: test other expectations...
@@ -587,7 +587,7 @@ def test_concept_emd_eq(s, subsys_n1n2):
 
 
 def test_ces_is_still_a_tuple(s):
-    c = models.CauseEffectStructure([concept(subsystem=s)])
+    c = models.CauseEffectStructure([concept(system=s)])
     assert len(c) == 1
 
 
@@ -596,35 +596,35 @@ def test_ces_is_still_a_tuple(s):
 
 
 def test_ces_are_always_normalized(s):
-    c1 = concept(mechanism=(0,), subsystem=s)
-    c2 = concept(mechanism=(1,), subsystem=s)
-    c3 = concept(mechanism=(0, 2), subsystem=s)
-    c4 = concept(mechanism=(0, 1, 2), subsystem=s)
+    c1 = concept(mechanism=(0,), system=s)
+    c2 = concept(mechanism=(1,), system=s)
+    c3 = concept(mechanism=(0, 2), system=s)
+    c4 = concept(mechanism=(0, 1, 2), system=s)
     assert (c1, c2, c3, c4) == models.CauseEffectStructure((c3, c4, c2, c1)).concepts
 
 
 @pytest.mark.outdated
 def test_ces_labeled_mechanisms(s):
-    c = models.CauseEffectStructure([concept(subsystem=s)])
+    c = models.CauseEffectStructure([concept(system=s)])
     assert c.labeled_mechanisms == (["A", "B"],)
 
 
 # NOTE: test_ces_ordering was removed because it relied on CauseEffectStructure
-# comparison that requires a subsystem attribute, which was removed from CES.
+# comparison that requires a system attribute, which was removed from CES.
 
 
 # Test SystemIrreducibilityAnalysis
 
 
 def test_sia_ordering(s, s_noised, subsys_n0n2, subsys_n1n2):
-    phi1 = sia(subsystem=s)
-    phi2 = sia(subsystem=s, phi=1.0 + EPSILON * 2)
+    phi1 = sia(system=s)
+    phi2 = sia(system=s, phi=1.0 + EPSILON * 2)
     assert phi1 < phi2
     assert phi2 > phi1
     assert phi1 <= phi2
     assert phi2 >= phi1
 
-    different_system = sia(subsystem=s_noised)
+    different_system = sia(system=s_noised)
     with pytest.raises(TypeError):
         phi1 <= different_system  # noqa: B015
     with pytest.raises(TypeError):
@@ -632,15 +632,15 @@ def test_sia_ordering(s, s_noised, subsys_n0n2, subsys_n1n2):
 
 
 def test_sia_equality(s):
-    bm = sia(subsystem=s)
-    close_enough = sia(subsystem=s, phi=(1.0 - EPSILON / 2))
-    not_quite = sia(subsystem=s, phi=(1.0 - EPSILON * 2))
+    bm = sia(system=s)
+    close_enough = sia(system=s, phi=(1.0 - EPSILON / 2))
+    not_quite = sia(system=s, phi=(1.0 - EPSILON * 2))
     assert bm == close_enough
     assert bm != not_quite
 
 
 def test_sia_repr_str(s):
-    bm = sia(subsystem=s)
+    bm = sia(system=s)
     print(repr(bm))
     print(str(bm))
 

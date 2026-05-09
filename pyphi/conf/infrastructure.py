@@ -60,7 +60,7 @@ class InfrastructureConfig:
     maximum_cache_memory_percentage: int = 50
     cache_repertoires: bool = True
     cache_potential_purviews: bool = True
-    clear_subsystem_caches_after_computing_sia: bool = False
+    clear_system_caches_after_computing_sia: bool = False
 
     log_file: str | Path = "pyphi.log"
     log_file_level: str | None = "INFO"
@@ -72,6 +72,6 @@ class InfrastructureConfig:
     label_separator: str = ""
     welcome_off: bool = False
 
-    validate_subsystem_states: bool = True
+    validate_system_states: bool = True
     validate_conditional_independence: bool = True
     validate_json_version: bool = True

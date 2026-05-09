@@ -1,5 +1,5 @@
 # connectivity.py
-"""Functions for determining network connectivity properties."""
+"""Functions for determining substrate connectivity properties."""
 
 from __future__ import annotations
 
@@ -174,7 +174,7 @@ def block_reducible(
     """Return whether connections from ``nodes1`` to ``nodes2`` are reducible.
 
     Args:
-        cm (np.ndarray): The network's connectivity matrix.
+        cm (np.ndarray): The substrate's connectivity matrix.
         nodes1 (tuple[int]): Source nodes
         nodes2 (tuple[int]): Sink nodes
     """

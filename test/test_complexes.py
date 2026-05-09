@@ -1,23 +1,22 @@
 import pytest
 
-from pyphi import Subsystem
+from pyphi import System
 from pyphi import config
 from pyphi import examples
-from pyphi.core import CandidateSystem
 from pyphi.formalism import iit3
 from pyphi.formalism.iit4 import phi_structure
-from pyphi.network import possible_complexes
+from pyphi.substrate import possible_complexes
 
 from .conftest import IIT_3_CONFIG
 
 
 def test_possible_complexes(s):
-    assert list(possible_complexes(s.network, s.state)) == [
-        CandidateSystem.from_network(s.network, s.state, (0, 1, 2)),
-        CandidateSystem.from_network(s.network, s.state, (1, 2)),
-        CandidateSystem.from_network(s.network, s.state, (0, 2)),
-        CandidateSystem.from_network(s.network, s.state, (0, 1)),
-        CandidateSystem.from_network(s.network, s.state, (1,)),
+    assert list(possible_complexes(s.substrate, s.state)) == [
+        System.from_substrate(s.substrate, s.state, (0, 1, 2)),
+        System.from_substrate(s.substrate, s.state, (1, 2)),
+        System.from_substrate(s.substrate, s.state, (0, 2)),
+        System.from_substrate(s.substrate, s.state, (0, 1)),
+        System.from_substrate(s.substrate, s.state, (1,)),
     ]
 
 
@@ -30,7 +29,7 @@ def test_possible_complexes(s):
 
 
 class TestComplexesIIT30:
-    """Regression tests for network complexes with IIT 3.0 configuration.
+    """Regression tests for substrate complexes with IIT 3.0 configuration.
 
     These tests were originally written for IIT 3.0 and validate that
     the library produces consistent results under that configuration.
@@ -42,16 +41,16 @@ class TestComplexesIIT30:
             yield
 
     def test_complexes_standard(self, s):
-        """Test complexes computation for standard network (IIT 3.0).
+        """Test complexes computation for standard substrate (IIT 3.0).
 
         Under IIT 3.0 with ``DIRECTED_BI`` system partitions, the standard
         ``s`` fixture has exactly three irreducible complexes. Verify the
         full set: phi values, node indices, and ordering.
         """
-        complexes = list(iit3.complexes(s.network, s.state))
+        complexes = list(iit3.complexes(s.substrate, s.state))
         assert len(complexes) == 3
         # Verify each complex's phi and node_indices
-        nodes_and_phis = [(c.subsystem.node_indices, float(c.phi)) for c in complexes]
+        nodes_and_phis = [(c.system.node_indices, float(c.phi)) for c in complexes]
         # complexes() iterates in possible_complexes order, not phi-sorted
         expected = [
             ((0, 1, 2), 0.5),
@@ -65,25 +64,25 @@ class TestComplexesIIT30:
             assert got_phi == pytest.approx(exp_phi, rel=1e-6)
 
     def test_all_complexes_standard(self, s):
-        """Test all_complexes computation for standard network (IIT 3.0).
+        """Test all_complexes computation for standard substrate (IIT 3.0).
 
         ``all_complexes`` iterates over ``possible_complexes`` (not all
         ``2**n - 1`` subsets), so for the standard ``s`` fixture it returns 5
-        subsystems with phi values ``[0.0, 0.0, 0.5, 1.0, 2.0]`` — exactly
+        systems with phi values ``[0.0, 0.0, 0.5, 1.0, 2.0]`` — exactly
         three of which are irreducible (matching
         :meth:`test_complexes_standard`).
         """
-        complexes = list(iit3.all_complexes(s.network, s.state))
+        complexes = list(iit3.all_complexes(s.substrate, s.state))
         assert len(complexes) == 5
         phis = sorted(float(c.phi) for c in complexes)
         assert phis == pytest.approx([0.0, 0.0, 0.5, 1.0, 2.0], rel=1e-6)
         assert sum(1 for phi in phis if phi > 0) == 3
 
     def test_major_complex(self, s):
-        """Test major_complex computation for standard network (IIT 3.0)."""
-        major = iit3.major_complex(s.network, s.state)
+        """Test major_complex computation for standard substrate (IIT 3.0)."""
+        major = iit3.major_complex(s.substrate, s.state)
         assert float(major.phi) == pytest.approx(2.0, rel=1e-6)
-        assert major.subsystem.node_indices == (1, 2)
+        assert major.system.node_indices == (1, 2)
 
     @pytest.mark.slow
     @pytest.mark.outdated
@@ -100,9 +99,9 @@ class TestComplexesIIT30:
         investigation.
         """
         with config.override(parallel=False, progress_bars=False):
-            serial = list(iit3.all_complexes(s.network, s.state))
+            serial = list(iit3.all_complexes(s.substrate, s.state))
         with config.override(parallel=True, progress_bars=False):
-            parallel = list(iit3.all_complexes(s.network, s.state))
+            parallel = list(iit3.all_complexes(s.substrate, s.state))
         assert sorted(serial, key=lambda x: x.phi) == sorted(
             parallel, key=lambda x: x.phi
         )
@@ -121,7 +120,7 @@ class TestPhiStructureIIT40:
     """
 
     def test_phi_structure_basic(self, s):
-        """Golden test: phi_structure for basic subsystem (IIT 4.0)."""
+        """Golden test: phi_structure for basic system (IIT 4.0)."""
         result = phi_structure(s)
 
         # Golden values computed with IIT 4.0 defaults
@@ -129,18 +128,18 @@ class TestPhiStructureIIT40:
         assert len(result.distinctions) == 2
         assert len(result.relations) == 0
 
-    def test_phi_structure_subsystem_creation(self):
-        """Golden test: phi_structure with explicit subsystem (IIT 4.0).
+    def test_phi_structure_system_creation(self):
+        """Golden test: phi_structure with explicit system (IIT 4.0).
 
-        Constructs the standard subsystem explicitly (rather than via the
+        Constructs the standard system explicitly (rather than via the
         ``s`` fixture) and verifies phi_structure returns the same big_phi
         and distinction count as :meth:`test_phi_structure_basic`.
         """
-        network = examples.basic_network()
+        substrate = examples.basic_substrate()
         state = (1, 0, 0)
-        subsystem = Subsystem(network, state)
+        system = System(substrate, state)
 
-        result = phi_structure(subsystem)
+        result = phi_structure(system)
 
         assert result.big_phi == pytest.approx(1.0, rel=1e-6)
         assert len(result.distinctions) == 2

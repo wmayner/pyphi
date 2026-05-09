@@ -1,4 +1,4 @@
-# network_generator/weights.py
+# substrate_generator/weights.py
 """Generate different weight matrices."""
 
 import functools

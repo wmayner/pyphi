@@ -1,4 +1,4 @@
-# network_generator/__init__.py
+# substrate_generator/__init__.py
 """High-level interface for creating systems by specifying architecture."""
 
 import string
@@ -10,7 +10,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from pyphi.labels import NodeLabels
-from pyphi.network import Network
+from pyphi.substrate import Substrate
 from pyphi.utils import all_states
 
 from . import ising
@@ -66,13 +66,13 @@ def build_tpm(
     return tpm
 
 
-def build_network(
+def build_substrate(
     unit_functions: Callable | Iterable[Callable],
     weights: NDArray[Any],
     node_labels: NodeLabels | None = None,
     **kwargs,
 ):
-    """Returns a PyPhi network given a weight matrix and a unit function.
+    """Returns a PyPhi substrate given a weight matrix and a unit function.
 
     Args:
         unit_function (Callable): The function of a unit; must have signature
@@ -83,7 +83,7 @@ def build_network(
         **kwargs: Additional keyword arguments are passed through to the unit function.
 
     Returns:
-        Network: A PyPhi network.
+        Substrate: A PyPhi substrate.
     """
     if node_labels is None:
         # Create default labels from uppercase letters
@@ -91,4 +91,4 @@ def build_network(
         node_labels = NodeLabels(string.ascii_uppercase[:N], range(N))
     tpm = build_tpm(unit_functions, weights, **kwargs)
     cm = (weights != 0).astype(int)
-    return Network(tpm, cm=cm, node_labels=node_labels)
+    return Substrate(tpm, cm=cm, node_labels=node_labels)

@@ -1,10 +1,8 @@
-"""pyphi.core — typed kernel for the PyPhi 2.0 layered architecture.
+"""Lower-level value types and primitives shared across PyPhi.
 
-See docs/superpowers/specs/2026-05-06-p7-subsystem-layered-rewrite-design.md
-for the design.
+User-facing classes :class:`pyphi.Substrate` and :class:`pyphi.System` live at
+the top level. This subpackage holds the kernel pieces composed below them:
+the :class:`Unit` type, repertoire algebra primitives, and TPM utilities.
 """
 
-from .candidate_system import CandidateSystem as CandidateSystem
-from .causal_model import CausalModel as CausalModel
-from .substrate import Substrate as Substrate
 from .unit import Unit as Unit

@@ -8,8 +8,8 @@ from hypothesis import assume
 from hypothesis import strategies as st
 from hypothesis.strategies import composite
 
-from pyphi.network import Network
-from pyphi.subsystem import Subsystem
+from pyphi.substrate import Substrate
+from pyphi.system import System
 
 
 class PrettyIter:
@@ -109,12 +109,12 @@ def teed(strategy, n=2):
 # PyPhi-specific strategies for property-based invariant testing
 # ============================================================================
 #
-# These strategies generate small binary networks (2-3 nodes by default) for
-# Hypothesis property tests. They deliberately avoid invoking subsystem state
+# These strategies generate small binary substrates (2-3 nodes by default) for
+# Hypothesis property tests. They deliberately avoid invoking system state
 # validation: random TPMs frequently produce states with zero past probability,
 # which is fine mathematically but trips ``validate.state_reachable``. Tests
 # using these strategies should run inside
-# ``config.override(validate_subsystem_states=False)``.
+# ``config.override(validate_system_states=False)``.
 
 
 def binary_state(n):
@@ -166,7 +166,7 @@ def random_cm(draw, n):
 
     Self-loops (the diagonal) are always included; off-diagonal entries are
     drawn independently. This avoids fully-disconnected nodes that produce
-    trivial subsystems.
+    trivial systems.
     """
     bits = draw(st.lists(st.integers(0, 1), min_size=n * n, max_size=n * n))
     cm = np.array(bits, dtype=int).reshape(n, n)
@@ -175,14 +175,14 @@ def random_cm(draw, n):
 
 
 @composite
-def small_network(
+def small_substrate(
     draw,
     min_size=2,
     max_size=3,
     deterministic=False,
     fully_connected=True,
 ):
-    """Strategy for a small ``Network``.
+    """Strategy for a small ``Substrate``.
 
     Args:
         min_size, max_size: number of nodes (defaults give 2-3 node nets so
@@ -194,18 +194,18 @@ def small_network(
     n = draw(st.integers(min_value=min_size, max_value=max_size))
     tpm = draw(binary_state_by_node_tpm(n, deterministic=deterministic))
     cm = draw(fully_connected_cm(n) if fully_connected else random_cm(n))
-    return Network(tpm, cm=cm)
+    return Substrate(tpm, cm=cm)
 
 
 @composite
-def small_subsystem(
+def small_system(
     draw,
     min_size=2,
     max_size=3,
     deterministic=False,
     fully_connected=True,
 ):
-    """Strategy for a ``Subsystem`` over the full network.
+    """Strategy for a ``System`` over the full substrate.
 
     Random TPMs frequently produce states whose backward TPM has zero
     normalization (``StateUnreachableBackwardsError``). Those states are
@@ -214,17 +214,25 @@ def small_subsystem(
     """
     from pyphi.exceptions import StateUnreachableBackwardsError
 
-    network = draw(
-        small_network(
+    substrate = draw(
+        small_substrate(
             min_size=min_size,
             max_size=max_size,
             deterministic=deterministic,
             fully_connected=fully_connected,
         )
     )
-    state = draw(binary_state(network.size))
+    state = draw(binary_state(substrate.size))
     try:
-        return Subsystem(network, state, network.node_indices)
+        system = System(substrate, state, substrate.node_indices)
+        # Probe both directions up front so degenerate dynamics are filtered
+        # at construction rather than raising mid-test from any repertoire call.
+        all_indices = substrate.node_indices
+        system.cause_repertoire((), ())
+        system.effect_repertoire((), ())
+        system.cause_repertoire(all_indices, all_indices)
+        system.effect_repertoire(all_indices, all_indices)
+        return system
     except StateUnreachableBackwardsError:
         assume(False)
         # Unreachable; assume(False) raises UnsatisfiedAssumption.
@@ -232,14 +240,14 @@ def small_subsystem(
 
 
 @composite
-def mechanism_purview_pair(draw, subsystem, allow_empty=False):
-    """Strategy for a ``(mechanism, purview)`` pair drawn from a subsystem.
+def mechanism_purview_pair(draw, system, allow_empty=False):
+    """Strategy for a ``(mechanism, purview)`` pair drawn from a system.
 
     Both default to nonempty (the typical case for repertoire computation);
     set ``allow_empty=True`` to allow the empty mechanism, which yields the
     unconstrained repertoire by definition.
     """
-    nodes = list(subsystem.node_indices)
+    nodes = list(system.node_indices)
     min_mech = 0 if allow_empty else 1
     mechanism = tuple(
         sorted(draw(st.lists(st.sampled_from(nodes), min_size=min_mech, unique=True)))

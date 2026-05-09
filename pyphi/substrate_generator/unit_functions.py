@@ -1,4 +1,4 @@
-# network_generator/unit_functions.py
+# substrate_generator/unit_functions.py
 """Library of functions for single units."""
 
 import numpy as np
@@ -46,7 +46,7 @@ def boolean_function(element, weights, state, on_inputs=(), **kwargs):
     Arguments:
         element (int): The index of the element whose output is being computed.
         weights (np.ndarray): The weight matrix.
-        state (np.ndarray): The state of the network.
+        state (np.ndarray): The state of the substrate.
 
     Keyword Arguments:
         on_inputs (tuple): The input states that return True.

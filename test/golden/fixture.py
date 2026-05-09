@@ -2,7 +2,7 @@
 
 Each fixture lives as a pair of files:
 
-- ``test/data/golden/v1/<name>.json`` — structured data (config, network hashes,
+- ``test/data/golden/v1/<name>.json`` — structured data (config, substrate hashes,
   partitions, mechanisms, scalar values, array references)
 - ``test/data/golden/v1/<name>.npz`` — array data (repertoires, partitioned
   repertoires) keyed by the references in the JSON
@@ -34,7 +34,7 @@ class GoldenFixture:
     """Specification of a single golden regression fixture.
 
     A fixture is the composition of (a) a way to construct the test inputs
-    (network + state + node indices), (b) a config context, and (c) a captured
+    (substrate + state + node indices), (b) a config context, and (c) a captured
     set of expected output values to assert against.
     """
 
@@ -44,14 +44,14 @@ class GoldenFixture:
     config_overrides: dict[str, Any]
     """Config settings applied during compute (overlaid on defaults)."""
 
-    network_factory: Callable[[], Any]
-    """Zero-arg callable returning a ``pyphi.Network``."""
+    substrate_factory: Callable[[], Any]
+    """Zero-arg callable returning a ``pyphi.Substrate``."""
 
     state: tuple[int, ...]
-    """Network state to evaluate."""
+    """Substrate state to evaluate."""
 
     node_indices: tuple[int, ...] | None = None
-    """Subsystem node indices (None = full network)."""
+    """System node indices (None = full substrate)."""
 
     description: str = ""
     """Human-readable description of what this fixture covers."""
@@ -65,9 +65,9 @@ class GoldenFixture:
         """Return a context manager applying ``config_overrides``."""
         return config.override(**self.config_overrides)
 
-    def build_network(self) -> Any:
-        """Build the network."""
-        return self.network_factory()
+    def build_substrate(self) -> Any:
+        """Build the substrate."""
+        return self.substrate_factory()
 
     # ============== Storage paths ==============
 
@@ -149,10 +149,10 @@ def _json_default(obj: Any) -> Any:
     raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
 
 
-def network_hash(tpm: np.ndarray, cm: np.ndarray) -> dict[str, str]:
-    """Stable hash of a network's TPM and connectivity matrix.
+def substrate_hash(tpm: np.ndarray, cm: np.ndarray) -> dict[str, str]:
+    """Stable hash of a substrate's TPM and connectivity matrix.
 
-    Used as a sanity check during fixture loading: if a fixture's network
+    Used as a sanity check during fixture loading: if a fixture's substrate
     changes shape or content, the hash diverges and the test fails loudly
     rather than producing mysteriously wrong values.
     """

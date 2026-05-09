@@ -1,18 +1,18 @@
-"""Surface-drift test: ``CandidateSystem``'s public attributes must match the
+"""Surface-drift test: ``System``'s public attributes must match the
 declaration in :mod:`pyphi.protocols`.
 
-The test introspects an instance of ``CandidateSystem`` to discover its
+The test introspects an instance of ``System`` to discover its
 public attributes (public methods, cached_properties, and dataclass
 fields), then asserts the discovered set matches
-``PUBLIC_SUBSYSTEM_ATTRS``. Adding, renaming, or removing a public
-attribute on ``CandidateSystem`` requires updating the Protocol
+``PUBLIC_SYSTEM_ATTRS``. Adding, renaming, or removing a public
+attribute on ``System`` requires updating the Protocol
 declaration in the same change — making both ends of the public contract
 visible to reviewers and to type-checkers.
 
 Internal-only attributes (those starting with ``_``) are not part of the
 checked surface. Formalism queries (``find_mip``, ``sia``, ``concept``,
 …) live in :mod:`pyphi.formalism` as free functions and are *not* part
-of the CandidateSystem surface — see option D in the design notes.
+of the System surface — see option D in the design notes.
 """
 
 from __future__ import annotations
@@ -20,18 +20,20 @@ from __future__ import annotations
 import pytest
 
 from pyphi import examples
-from pyphi.core import CandidateSystem
-from pyphi.core.causal_model import CausalModel
-from pyphi.protocols import PUBLIC_SUBSYSTEM_ATTRS
+from pyphi.protocols import PUBLIC_SYSTEM_ATTRS
+from pyphi.system import System
 
 
-def _build_cs() -> CandidateSystem:
-    cm = CausalModel.from_network(examples.basic_network())
-    return CandidateSystem(causal_model=cm, state=(1, 0, 0), node_indices=(0, 1, 2))
+def _build_cs() -> System:
+    return System(
+        substrate=examples.basic_substrate(),
+        state=(1, 0, 0),
+        node_indices=(0, 1, 2),
+    )
 
 
 def _discovered_public_surface() -> set[str]:
-    """Return all public names visible on a CandidateSystem instance.
+    """Return all public names visible on a System instance.
 
     Constructing an instance ensures cached_properties and dataclass
     fields appear via ``dir()``.
@@ -41,17 +43,17 @@ def _discovered_public_surface() -> set[str]:
 
 
 def test_candidate_system_public_surface_matches_protocol():
-    """CandidateSystem's discovered public surface must equal PUBLIC_SUBSYSTEM_ATTRS.
+    """System's discovered public surface must equal PUBLIC_SYSTEM_ATTRS.
 
     If this fails, you have either:
 
-    1. **Added** a public attribute to ``CandidateSystem`` — also add it
-       to :data:`pyphi.protocols.PUBLIC_SUBSYSTEM_ATTRS` and to
-       :class:`SubsystemPublicInterface`. Adding a public attribute is a
+    1. **Added** a public attribute to ``System`` — also add it
+       to :data:`pyphi.protocols.PUBLIC_SYSTEM_ATTRS` and to
+       :class:`SystemPublicInterface`. Adding a public attribute is a
        change to the cross-module contract.
 
-    2. **Removed** a public attribute from ``CandidateSystem`` — also
-       remove it from :data:`pyphi.protocols.PUBLIC_SUBSYSTEM_ATTRS` and
+    2. **Removed** a public attribute from ``System`` — also
+       remove it from :data:`pyphi.protocols.PUBLIC_SYSTEM_ATTRS` and
        the Protocol. Removing one is a breaking change for external
        callers.
 
@@ -63,15 +65,15 @@ def test_candidate_system_public_surface_matches_protocol():
     update both ends.
     """
     discovered = _discovered_public_surface()
-    declared = PUBLIC_SUBSYSTEM_ATTRS
+    declared = PUBLIC_SYSTEM_ATTRS
 
     added = discovered - declared
     removed = declared - discovered
 
     if added or removed:
         pytest.fail(
-            "CandidateSystem public surface drifted from "
-            "pyphi.protocols.PUBLIC_SUBSYSTEM_ATTRS:\n"
+            "System public surface drifted from "
+            "pyphi.protocols.PUBLIC_SYSTEM_ATTRS:\n"
             + (
                 f"  ADDED (on class but not in Protocol): {sorted(added)}\n"
                 if added
@@ -83,28 +85,28 @@ def test_candidate_system_public_surface_matches_protocol():
                 else ""
             )
             + (
-                "Update pyphi/protocols.py: PUBLIC_SUBSYSTEM_ATTRS and "
-                "SubsystemPublicInterface."
+                "Update pyphi/protocols.py: PUBLIC_SYSTEM_ATTRS and "
+                "SystemPublicInterface."
             )
         )
 
 
-def test_subsystem_public_attrs_set_matches_protocol_annotations():
+def test_system_public_attrs_set_matches_protocol_annotations():
     """The frozenset and the Protocol class must declare the same names.
 
     Defends against drift between the two declarations within
     ``pyphi/protocols.py`` itself.
     """
-    from pyphi.protocols import SubsystemPublicInterface
+    from pyphi.protocols import SystemPublicInterface
 
-    annotated = set(SubsystemPublicInterface.__annotations__)
+    annotated = set(SystemPublicInterface.__annotations__)
 
-    only_in_set = PUBLIC_SUBSYSTEM_ATTRS - annotated
-    only_in_protocol = annotated - PUBLIC_SUBSYSTEM_ATTRS
+    only_in_set = PUBLIC_SYSTEM_ATTRS - annotated
+    only_in_protocol = annotated - PUBLIC_SYSTEM_ATTRS
 
     if only_in_set or only_in_protocol:
         pytest.fail(
-            "PUBLIC_SUBSYSTEM_ATTRS and SubsystemPublicInterface annotations "
+            "PUBLIC_SYSTEM_ATTRS and SystemPublicInterface annotations "
             "are out of sync:\n"
             + (f"  Only in set: {sorted(only_in_set)}\n" if only_in_set else "")
             + (

@@ -8,7 +8,7 @@ import numpy as np
 from .distribution import all_states_str
 
 NODE_COLORS = {
-    # (in subsystem, state)
+    # (in system, state)
     (False, 0): "lightgrey",
     (False, 1): "darkgrey",
     (True, 0): "lightblue",
@@ -32,17 +32,17 @@ def plot_graph(g, **kwargs):
     )
 
 
-def plot_subsystem(subsystem, **kwargs):
-    g = nx.from_numpy_array(subsystem.cm, create_using=nx.DiGraph)
+def plot_system(system, **kwargs):
+    g = nx.from_numpy_array(system.cm, create_using=nx.DiGraph)
     nx.relabel_nodes(
         g,
-        dict(zip(range(subsystem.network.size), subsystem.node_labels, strict=False)),
+        dict(zip(range(system.substrate.size), system.node_labels, strict=False)),
         copy=False,
     )
     if "node_color" not in kwargs:
         kwargs["node_color"] = [
-            NODE_COLORS[(i in subsystem.node_indices, subsystem.state[i])]
-            for i in range(subsystem.network.size)
+            NODE_COLORS[(i in system.node_indices, system.state[i])]
+            for i in range(system.substrate.size)
         ]
     plot_graph(g, **kwargs)
     return g
@@ -63,8 +63,8 @@ def plot_tpm(
     plt.grid(False)
     for spine in ax.spines.values():
         spine.set_visible(False)
-    cax = fig.add_axes(
-        [
+    cax = fig.add_axes(  # pyright: ignore[reportCallIssue]
+        [  # pyright: ignore[reportArgumentType]
             ax.get_position().x1 + 0.05,
             ax.get_position().y0,
             0.05,

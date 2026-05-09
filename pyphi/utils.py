@@ -28,23 +28,25 @@ def substate(
     return tuple(state[nodes.index(n)] for n in node_subset)
 
 
-def state_of(nodes: tuple[int, ...], network_state: tuple[int, ...]) -> tuple[int, ...]:
+def state_of(
+    nodes: tuple[int, ...], substrate_state: tuple[int, ...]
+) -> tuple[int, ...]:
     """Return the state-tuple of the given nodes."""
-    return tuple(network_state[n] for n in nodes) if nodes else ()
+    return tuple(substrate_state[n] for n in nodes) if nodes else ()
 
 
-def state_of_subsystem_nodes(
+def state_of_system_nodes(
     node_indices: tuple[int, ...],
     nodes: tuple[int, ...],
-    subsystem_state: tuple[int, ...],
+    system_state: tuple[int, ...],
 ) -> tuple[int, ...]:
-    """Return the state of the nodes, given a subsystem state-tuple.
+    """Return the state of the nodes, given a system state-tuple.
 
-    Deals with using the network-relative node indices nodes with a state-tuple
-    for only the subsystem nodes.
+    Deals with using the substrate-relative node indices nodes with a state-tuple
+    for only the system nodes.
     """
-    # Get indices relative to subsystem indices
-    return state_of(tuple(node_indices.index(n) for n in nodes), subsystem_state)
+    # Get indices relative to system indices
+    return state_of(tuple(node_indices.index(n) for n in nodes), system_state)
 
 
 def all_states(n: int, big_endian: bool = False) -> Generator[tuple[int, ...]]:

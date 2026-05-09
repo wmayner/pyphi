@@ -77,7 +77,7 @@ class TestInfrastructureConfig:
         assert cfg.parallel_backend == "local"
         assert cfg.cache_repertoires is True
         assert cfg.cache_potential_purviews is True
-        assert cfg.clear_subsystem_caches_after_computing_sia is False
+        assert cfg.clear_system_caches_after_computing_sia is False
         assert cfg.maximum_cache_memory_percentage == 50
         assert cfg.log_file_level == "INFO"
         assert cfg.log_stdout_level == "WARNING"
@@ -86,7 +86,7 @@ class TestInfrastructureConfig:
         assert cfg.print_fractions is True
         assert cfg.label_separator == ""
         assert cfg.welcome_off is False
-        assert cfg.validate_subsystem_states is True
+        assert cfg.validate_system_states is True
         assert cfg.validate_conditional_independence is True
         assert cfg.validate_json_version is True
 

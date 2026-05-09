@@ -19,10 +19,10 @@ from .direction import Direction
 from .exceptions import ConditionallyDependentError
 from .exceptions import StateUnreachableError
 from .labels import NodeLabels
-from .network import irreducible_purviews
 from .node import expand_node_tpm
 from .node import generate_nodes
-from .subsystem import Subsystem
+from .substrate import irreducible_purviews
+from .system import System
 from .tpm import ExplicitTPM
 
 # Create a logger for this module.
@@ -39,7 +39,7 @@ def reindex(indices):
 
 
 def rebuild_system_tpm(node_tpms):
-    """Reconstruct the network TPM from a collection of node TPMs.
+    """Reconstruct the substrate TPM from a collection of node TPMs.
 
     Args:
         node_tpms (Iterable[ExplicitTPM]): The collection of node TPMs.
@@ -63,7 +63,7 @@ def remove_singleton_dimensions(tpm):
     smaller TPM.
     """
     # Don't squeeze out the final dimension (which contains the probability)
-    # for networks with one element.
+    # for substrates with one element.
     if tpm.ndim <= 2:
         return tpm
 
@@ -115,7 +115,7 @@ def run_tpm(system, direction, steps, blackbox):
 class SystemAttrs(
     namedtuple("SystemAttrs", ["cause_tpm", "effect_tpm", "cm", "node_indices", "state"])
 ):
-    """An immutable container that holds all the attributes of a subsystem.
+    """An immutable container that holds all the attributes of a system.
 
     Versions of this object are passed down the steps of the micro-to-macro
     pipeline.
@@ -159,14 +159,14 @@ class SystemAttrs(
         system.state = self.state
 
 
-class MacroSubsystem(Subsystem):
-    """A subclass of |Subsystem| implementing macro computations.
+class MacroSystem(System):
+    """A subclass of |System| implementing macro computations.
 
-    This subsystem performs blackboxing and coarse-graining of elements.
+    This system performs blackboxing and coarse-graining of elements.
 
-    Unlike |Subsystem|, whose TPM has dimensionality equal to that of the
-    subsystem's network and represents nodes external to the system using
-    singleton dimensions, |MacroSubsystem| squeezes the TPM to remove these
+    Unlike |System|, whose TPM has dimensionality equal to that of the
+    system's substrate and represents nodes external to the system using
+    singleton dimensions, |MacroSystem| squeezes the TPM to remove these
     singletons. As a result, the node indices of the system are also squeezed
     to ``0..n`` so they properly index the TPM, and the state-tuple is
     reduced to the size of the system.
@@ -182,7 +182,7 @@ class MacroSubsystem(Subsystem):
 
     def __init__(
         self,
-        network,
+        substrate,
         state,
         nodes=None,
         cut=None,
@@ -192,13 +192,13 @@ class MacroSubsystem(Subsystem):
         **_kwargs,
     ):
         raise NotImplementedError(
-            "MacroSubsystem is undergoing rewrite in P7b; "
+            "MacroSystem is undergoing rewrite in P7b; "
             "restored after the kernel rewrite lands."
         )
 
     def __init_disabled__(
         self,
-        network,
+        substrate,
         state,
         nodes=None,
         cut=None,
@@ -207,16 +207,16 @@ class MacroSubsystem(Subsystem):
         coarse_grain=None,
     ):
         # Ensure indices are not a `range`
-        micro_node_indices = network.node_labels.coerce_to_indices(nodes)
+        micro_node_indices = substrate.node_labels.coerce_to_indices(nodes)
 
         # Store original arguments to use in `apply_cut`
-        self.network_state = state
+        self.substrate_state = state
         self.micro_node_indices = micro_node_indices  # Internal nodes
         self.time_scale = time_scale
         self.blackbox = blackbox
         self.coarse_grain = coarse_grain
 
-        super().__init__(network, state, micro_node_indices, cut)
+        super().__init__(substrate, state, micro_node_indices, cut)  # pyright: ignore[reportArgumentType]
 
         validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
 
@@ -254,13 +254,13 @@ class MacroSubsystem(Subsystem):
 
         system.apply(self)
 
-        validate.subsystem(self)
+        validate.system(self)
 
     @staticmethod
     def _squeeze(system):
-        """Squeeze out all singleton dimensions in the Subsystem.
+        """Squeeze out all singleton dimensions in the System.
 
-        Reindexes the subsystem so that the nodes are ``0..n`` where ``n`` is
+        Reindexes the system so that the nodes are ``0..n`` where ``n`` is
         the number of internal indices in the system.
         """
         assert system.node_indices == system.cause_tpm.tpm_indices()
@@ -271,14 +271,14 @@ class MacroSubsystem(Subsystem):
         cause_tpm = remove_singleton_dimensions(system.cause_tpm)
         effect_tpm = remove_singleton_dimensions(system.effect_tpm)
 
-        # The connectivity matrix is the network's connectivity matrix, with
+        # The connectivity matrix is the substrate's connectivity matrix, with
         # cut applied, with all connections to/from external nodes severed,
         # shrunk to the size of the internal nodes.
         cm = system.cm[np.ix_(internal_indices, internal_indices)]
 
         state = utils.state_of(internal_indices, system.state)
 
-        # Re-index the subsystem nodes with the external nodes removed
+        # Re-index the system nodes with the external nodes removed
         node_indices = reindex(internal_indices)
         nodes = generate_nodes(cause_tpm, effect_tpm, cm, state, node_indices)
 
@@ -336,7 +336,7 @@ class MacroSubsystem(Subsystem):
 
         This shrinks the size of the TPM by the number of hidden indices; now
         there is only `len(output_indices)` dimensions in the TPM and in the
-        state of the subsystem.
+        state of the system.
         """
         cause_tpm = system.cause_tpm.marginalize_out(blackbox.hidden_indices)
         effect_tpm = system.effect_tpm.marginalize_out(blackbox.hidden_indices)
@@ -386,7 +386,7 @@ class MacroSubsystem(Subsystem):
         return SystemAttrs(cause_tpm, effect_tpm, cm, node_indices, state)
 
     @property
-    def cut_indices(self):
+    def cut_indices(self):  # pyright: ignore[reportIncompatibleVariableOverride]
         """The indices of this system to be cut for |big_phi| computations.
 
         For macro computations the cut is applied to the underlying
@@ -395,7 +395,7 @@ class MacroSubsystem(Subsystem):
         return self.micro_node_indices
 
     @property
-    def cut_mechanisms(self):
+    def cut_mechanisms(self):  # pyright: ignore[reportIncompatibleVariableOverride]
         """The mechanisms of this system that are currently cut.
 
         Note that although ``cut_indices`` returns micro indices, this
@@ -411,26 +411,26 @@ class MacroSubsystem(Subsystem):
         ]
 
     @property
-    def cut_node_labels(self):
+    def cut_node_labels(self):  # pyright: ignore[reportIncompatibleVariableOverride]
         """Labels for the nodes that can be cut.
 
         These are the labels of the micro elements.
         """
-        return self.network.node_labels
+        return self.substrate.node_labels
 
     def apply_cut(self, cut):
-        """Return a cut version of this |MacroSubsystem|.
+        """Return a cut version of this |MacroSystem|.
 
         Args:
-            cut (SystemPartition): The cut to apply to this |MacroSubsystem|.
+            cut (SystemPartition): The cut to apply to this |MacroSystem|.
 
         Returns:
-            MacroSubsystem: The cut version of this |MacroSubsystem|.
+            MacroSystem: The cut version of this |MacroSystem|.
         """
         # TODO: is the MICE cache reusable?
-        return MacroSubsystem(
-            self.network,
-            self.network_state,
+        return MacroSystem(
+            self.substrate,
+            self.substrate_state,
             self.micro_node_indices,
             cut=cut,
             time_scale=self.time_scale,
@@ -438,8 +438,8 @@ class MacroSubsystem(Subsystem):
             coarse_grain=self.coarse_grain,
         )
 
-    def potential_purviews(self, direction, mechanism, purviews=False):
-        """Override Subsystem implementation using Network-level indices."""
+    def potential_purviews(self, direction, mechanism, purviews=False):  # pyright: ignore[reportIncompatibleMethodOverride]
+        """Override System implementation using Substrate-level indices."""
         all_purviews = utils.powerset(self.node_indices)
         return irreducible_purviews(self.cm, direction, mechanism, all_purviews)
 
@@ -479,20 +479,20 @@ class MacroSubsystem(Subsystem):
         )
 
     def __repr__(self):
-        return "MacroSubsystem(" + repr(self.nodes) + ")"
+        return "MacroSystem(" + repr(self.nodes) + ")"
 
     def __str__(self):
         return repr(self)
 
     def __eq__(self, other):
-        """Two macro systems are equal if each underlying |Subsystem| is equal
+        """Two macro systems are equal if each underlying |System| is equal
         and all macro attributes are equal.
         """
         if type(self) is not type(other):
             return False
 
-        # Type narrowing: we know other is MacroSubsystem now
-        assert isinstance(other, MacroSubsystem)
+        # Type narrowing: we know other is MacroSystem now
+        assert isinstance(other, MacroSystem)
         return (
             super().__eq__(other)
             and self.time_scale == other.time_scale
@@ -782,7 +782,7 @@ def _partitions_list(N):
 
 
 def all_partitions(indices):
-    """Return a list of all possible coarse grains of a network.
+    """Return a list of all possible coarse grains of a substrate.
 
     Args:
         indices (tuple[int]): The micro indices to partition.
@@ -802,7 +802,7 @@ def all_partitions(indices):
 
 def all_groupings(partition):
     """Return all possible groupings of states for a particular coarse graining
-    (partition) of a network.
+    (partition) of a substrate.
 
     Args:
         partition (tuple[tuple]): A partition of micro-elements into macro
@@ -879,29 +879,29 @@ def all_blackboxes(indices):
 
 
 class MacroNetwork:
-    """A coarse-grained network of nodes.
+    """A coarse-grained substrate of nodes.
 
     See the :ref:`macro-micro` example in the documentation for more
     information.
 
     Attributes:
-        network (Network): The network object of the macro-system.
-        phi (float): The |big_phi| of the network's major complex.
-        micro_network (Network): The network object of the corresponding micro
+        substrate (Substrate): The substrate object of the macro-system.
+        phi (float): The |big_phi| of the substrate's major complex.
+        micro_substrate (Substrate): The substrate object of the corresponding micro
             system.
         micro_phi (float): The |big_phi| of the major complex of the
             corresponding micro-system.
         coarse_grain (CoarseGrain): The coarse-graining of micro-elements
             into macro-elements.
-        time_scale (int): The time scale the macro-network run over.
-        blackbox (Blackbox): The blackboxing of micro elements in the network.
+        time_scale (int): The time scale the macro-substrate run over.
+        blackbox (Blackbox): The blackboxing of micro elements in the substrate.
         emergence (float): The difference between the |big_phi| of the macro-
             and the micro-system.
     """
 
     def __init__(
         self,
-        network,
+        substrate,
         system,
         macro_phi,
         micro_phi,
@@ -913,7 +913,7 @@ class MacroNetwork:
         from pyphi.data_structures.pyphi_float import PyPhiFloat
         from pyphi.metrics.distribution import DistanceResult
 
-        self.network = network
+        self.substrate = substrate
         self.system = system
         if isinstance(macro_phi, DistanceResult):
             self.phi = macro_phi
@@ -938,12 +938,12 @@ class MacroNetwork:
         return round(self.phi - self.micro_phi, config.numerics.precision)
 
 
-def coarse_graining(network, state, internal_indices):
+def coarse_graining(substrate, state, internal_indices):
     """Find the maximal coarse-graining of a micro-system.
 
     Args:
-        network (Network): The network in question.
-        state (tuple[int]): The state of the network.
+        substrate (Substrate): The substrate in question.
+        state (tuple[int]): The state of the substrate.
         internal_indices (tuple[int]): Nodes in the micro-system.
 
     Returns:
@@ -954,13 +954,13 @@ def coarse_graining(network, state, internal_indices):
 
     for coarse_grain in all_coarse_grains(internal_indices):
         try:
-            subsystem = MacroSubsystem(
-                network, state, internal_indices, coarse_grain=coarse_grain
+            system = MacroSystem(
+                substrate, state, internal_indices, coarse_grain=coarse_grain
             )
         except ConditionallyDependentError:
             continue
 
-        phi = _iit3.phi(subsystem)  # type: ignore[arg-type]  # P7b
+        phi = _iit3.phi(system)  # type: ignore[arg-type]  # P7b
         if (phi - max_phi) > 10 ** (-config.numerics.precision):
             max_phi = phi
             max_coarse_grain = coarse_grain
@@ -970,9 +970,9 @@ def coarse_graining(network, state, internal_indices):
 
 # TODO: refactor this
 def all_macro_systems(
-    network, state, do_blackbox=False, do_coarse_grain=False, time_scales=None
+    substrate, state, do_blackbox=False, do_coarse_grain=False, time_scales=None
 ):
-    """Generator over all possible macro-systems for the network."""
+    """Generator over all possible macro-systems for the substrate."""
     if time_scales is None:
         time_scales = [1]
 
@@ -992,13 +992,13 @@ def all_macro_systems(
 
     # TODO? don't consider the empty set here
     # (pass `nonempty=True` to `powerset`)
-    for system in utils.powerset(network.node_indices):
+    for system in utils.powerset(substrate.node_indices):
         for time_scale in time_scales:
             for blackbox in blackboxes(system):
                 for coarse_grain in coarse_grains(blackbox, system):
                     try:
-                        yield MacroSubsystem(
-                            network,
+                        yield MacroSystem(
+                            substrate,
                             state,
                             system,
                             time_scale=time_scale,
@@ -1009,7 +1009,9 @@ def all_macro_systems(
                         continue
 
 
-def emergence(network, state, do_blackbox=False, do_coarse_grain=True, time_scales=None):
+def emergence(
+    substrate, state, do_blackbox=False, do_coarse_grain=True, time_scales=None
+):
     """Check for the emergence of a micro-system into a macro-system.
 
     Checks all possible blackboxings and coarse-grainings of a system to find
@@ -1020,8 +1022,8 @@ def emergence(network, state, do_blackbox=False, do_coarse_grain=True, time_scal
     coarse-grain the system.
 
     Args:
-        network (Network): The network of the micro-system under investigation.
-        state (tuple[int]): The state of the network.
+        substrate (Substrate): The substrate of the micro-system under investigation.
+        state (tuple[int]): The state of the substrate.
         do_blackbox (bool): Set to ``True`` to enable blackboxing. Defaults to
             ``False``.
         do_coarse_grain (bool): Set to ``True`` to enable coarse-graining.
@@ -1033,64 +1035,62 @@ def emergence(network, state, do_blackbox=False, do_coarse_grain=True, time_scal
         MacroNetwork: The maximal macro-system generated from the
         micro-system.
     """
-    micro_phi = _iit3.major_complex(network, state).phi
+    micro_phi = _iit3.major_complex(substrate, state).phi
 
     max_phi = float("-inf")
-    max_network = None
+    max_substrate = None
 
-    for subsystem in all_macro_systems(
-        network,
+    for system in all_macro_systems(
+        substrate,
         state,
         do_blackbox=do_blackbox,
         do_coarse_grain=do_coarse_grain,
         time_scales=time_scales,
     ):
-        phi = _iit3.phi(subsystem)  # type: ignore[arg-type]  # P7b
+        phi = _iit3.phi(system)  # type: ignore[arg-type]  # P7b
 
         if (phi - max_phi) > 10 ** (-config.numerics.precision):
             max_phi = phi
-            max_network = MacroNetwork(
-                network=network,
+            max_substrate = MacroNetwork(
+                substrate=substrate,
                 macro_phi=phi,
                 micro_phi=micro_phi,
-                system=subsystem.micro_node_indices,
-                time_scale=subsystem.time_scale,
-                blackbox=subsystem.blackbox,
-                coarse_grain=subsystem.coarse_grain,
+                system=system.micro_node_indices,
+                time_scale=system.time_scale,
+                blackbox=system.blackbox,
+                coarse_grain=system.coarse_grain,
             )
 
-    return max_network
+    return max_substrate
 
 
 # TODO refactor; return a proper model; remove?
-def phi_by_grain(network, state):
+def phi_by_grain(substrate, state):
     # pylint: disable=missing-docstring
     list_of_phi = []
 
-    systems = utils.powerset(network.node_indices, nonempty=True)
+    systems = utils.powerset(substrate.node_indices, nonempty=True)
     for system in systems:
-        micro_subsystem = Subsystem(network, state, system)
-        phi = _iit3.phi(micro_subsystem)  # type: ignore[arg-type]  # P7b
-        list_of_phi.append([len(micro_subsystem), phi, system, None])
+        micro_system = System(substrate, state, system)
+        phi = _iit3.phi(micro_system)  # type: ignore[arg-type]  # P7b
+        list_of_phi.append([len(micro_system), phi, system, None])
 
         for coarse_grain in all_coarse_grains(system):
             try:
-                subsystem = MacroSubsystem(
-                    network, state, system, coarse_grain=coarse_grain
-                )
+                system = MacroSystem(substrate, state, system, coarse_grain=coarse_grain)
             except ConditionallyDependentError:
                 continue
 
-            phi = _iit3.phi(subsystem)  # type: ignore[arg-type]  # P7b
-            list_of_phi.append([len(subsystem), phi, system, coarse_grain])
+            phi = _iit3.phi(system)  # type: ignore[arg-type]  # P7b
+            list_of_phi.append([len(system), phi, system, coarse_grain])
     return list_of_phi
 
 
 # TODO write tests
 # TODO? give example of doing it for a bunch of coarse-grains in docstring
-# (make all groupings and partitions, make_network for each of them, etc.)
-def effective_info(network):
-    """Return the effective information of the given network.
+# (make all groupings and partitions, make_substrate for each of them, etc.)
+def effective_info(substrate):
+    """Return the effective information of the given substrate.
 
     .. note::
         For details, see:
@@ -1103,9 +1103,9 @@ def effective_info(network):
         Available online: `doi: 10.1073/pnas.1314922110
         <http://www.pnas.org/content/110/49/19790.abstract>`_.
     """
-    validate.is_network(network)
+    validate.is_substrate(substrate)
 
-    sbs_tpm = convert.state_by_node2state_by_state(network.tpm.tpm)
+    sbs_tpm = convert.state_by_node2state_by_state(substrate.tpm.tpm)
     avg_repertoire = np.mean(sbs_tpm, 0)
 
     return np.mean([entropy(repertoire, avg_repertoire, 2.0) for repertoire in sbs_tpm])

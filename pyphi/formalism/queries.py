@@ -1,6 +1,6 @@
 """Formalism queries — operations whose math depends on the active formalism.
 
-These are free functions taking a ``CandidateSystem`` as the first argument.
+These are free functions taking a ``System`` as the first argument.
 The kernel (``pyphi.core.repertoire_algebra``) holds pure repertoire math;
 this module holds the operations whose definition is *formalism-policy*
 (IIT 3.0 vs 4.0 vs 4.0-2026 each define MIP, MICE, SIA differently).
@@ -44,14 +44,14 @@ from pyphi.partition import mip_partitions
 from .base import FORMALISM_REGISTRY
 
 if TYPE_CHECKING:
-    from pyphi.core import CandidateSystem
+    from pyphi.system import System
 
 
 # ---- mechanism partition evaluation ----
 
 
 def evaluate_partition(
-    cs: CandidateSystem,
+    cs: System,
     direction: Direction,
     mechanism: tuple[int, ...],
     purview: tuple[int, ...],
@@ -82,7 +82,7 @@ def evaluate_partition(
 
 
 def _find_mip_single_state(
-    cs: CandidateSystem,
+    cs: System,
     specified_state: Any,
     direction: Direction,
     mechanism: tuple[int, ...],
@@ -142,7 +142,7 @@ def _find_mip_single_state(
 
 
 def find_mip(
-    cs: CandidateSystem,
+    cs: System,
     direction: Direction,
     mechanism: tuple[int, ...],
     purview: tuple[int, ...],
@@ -185,7 +185,7 @@ def find_mip(
 
 
 def cause_mip(
-    cs: CandidateSystem,
+    cs: System,
     mechanism: tuple[int, ...],
     purview: tuple[int, ...],
     **kwargs: Any,
@@ -194,7 +194,7 @@ def cause_mip(
 
 
 def effect_mip(
-    cs: CandidateSystem,
+    cs: System,
     mechanism: tuple[int, ...],
     purview: tuple[int, ...],
     **kwargs: Any,
@@ -203,7 +203,7 @@ def effect_mip(
 
 
 def phi_cause_mip(
-    cs: CandidateSystem,
+    cs: System,
     mechanism: tuple[int, ...],
     purview: tuple[int, ...],
     **kwargs: Any,
@@ -213,7 +213,7 @@ def phi_cause_mip(
 
 
 def phi_effect_mip(
-    cs: CandidateSystem,
+    cs: System,
     mechanism: tuple[int, ...],
     purview: tuple[int, ...],
     **kwargs: Any,
@@ -223,7 +223,7 @@ def phi_effect_mip(
 
 
 def phi(
-    cs: CandidateSystem,
+    cs: System,
     mechanism: tuple[int, ...],
     purview: tuple[int, ...],
     **kwargs: Any,
@@ -238,7 +238,7 @@ def phi(
 
 
 def find_mice(
-    cs: CandidateSystem,
+    cs: System,
     direction: Direction,
     mechanism: tuple[int, ...],
     purviews: Any | None = None,
@@ -289,15 +289,15 @@ def find_mice(
     return ties[0]
 
 
-def mic(cs: CandidateSystem, mechanism: tuple[int, ...], **kwargs: Any) -> Any:
+def mic(cs: System, mechanism: tuple[int, ...], **kwargs: Any) -> Any:
     return find_mice(cs, Direction.CAUSE, mechanism, **kwargs)
 
 
-def mie(cs: CandidateSystem, mechanism: tuple[int, ...], **kwargs: Any) -> Any:
+def mie(cs: System, mechanism: tuple[int, ...], **kwargs: Any) -> Any:
     return find_mice(cs, Direction.EFFECT, mechanism, **kwargs)
 
 
-def phi_max(cs: CandidateSystem, mechanism: tuple[int, ...]) -> float:
+def phi_max(cs: System, mechanism: tuple[int, ...]) -> float:
     return min(mic(cs, mechanism).phi, mie(cs, mechanism).phi)
 
 
@@ -305,7 +305,7 @@ def phi_max(cs: CandidateSystem, mechanism: tuple[int, ...]) -> float:
 
 
 def concept(
-    cs: CandidateSystem,
+    cs: System,
     mechanism: tuple[int, ...],
     purviews: Any | None = None,
     cause_purviews: Any | None = None,
@@ -325,7 +325,7 @@ def concept(
     return Concept(mechanism=mechanism, cause=cause, effect=effect)
 
 
-def distinction(cs: CandidateSystem, mechanism: tuple[int, ...]) -> Any:
+def distinction(cs: System, mechanism: tuple[int, ...]) -> Any:
     """Return the distinction (Concept) specified by a mechanism."""
     maximally_irreducible_cause = find_mice(cs, Direction.CAUSE, mechanism)
     maximally_irreducible_effect = find_mice(cs, Direction.EFFECT, mechanism)
@@ -336,7 +336,7 @@ def distinction(cs: CandidateSystem, mechanism: tuple[int, ...]) -> Any:
     )
 
 
-def all_distinctions(cs: CandidateSystem, **kwargs: Any) -> Any:  # noqa: ARG001
+def all_distinctions(cs: System, **kwargs: Any) -> Any:  # noqa: ARG001
     """Iterate non-empty mechanisms and return the resulting CauseEffectStructure."""
     mechanisms: Any = _utils.powerset(cs.node_indices, nonempty=True)
     total = 2 ** len(cs.node_indices) - 1
@@ -353,7 +353,7 @@ def all_distinctions(cs: CandidateSystem, **kwargs: Any) -> Any:  # noqa: ARG001
 # ---- system irreducibility ----
 
 
-def sia(cs: CandidateSystem, **kwargs: Any) -> Any:
+def sia(cs: System, **kwargs: Any) -> Any:
     """Run system irreducibility analysis via the active formalism."""
     formalism = FORMALISM_REGISTRY[config.formalism.formalism]  # pyright: ignore[reportAttributeAccessIssue]
     return formalism.evaluate_system(cs, **kwargs)  # pyright: ignore[reportFunctionMemberAccess]

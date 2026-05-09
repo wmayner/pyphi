@@ -7,9 +7,8 @@ import pytest
 
 from pyphi import cache
 from pyphi import examples
-from pyphi.core.candidate_system import CandidateSystem
-from pyphi.core.causal_model import CausalModel
 from pyphi.formalism.queries import sia
+from pyphi.system import System
 
 
 @pytest.fixture(autouse=True)
@@ -21,9 +20,9 @@ def _clear_caches():
 
 def test_sia_run_populates_kernel_and_combinatorial_caches():
     """End-to-end: a SIA run touches kernel and combinatorial caches."""
-    network = examples.basic_network()
-    cs = CandidateSystem(
-        causal_model=CausalModel.from_network(network),
+    substrate = examples.basic_substrate()
+    cs = System(
+        substrate=substrate,
         state=(1, 0, 0),
         node_indices=(0, 1, 2),
     )
@@ -49,9 +48,9 @@ def test_sia_run_populates_kernel_and_combinatorial_caches():
 
 def test_clear_all_empties_every_registered_cache():
     """After clear_all, every cache has currsize == 0."""
-    network = examples.basic_network()
-    cs = CandidateSystem(
-        causal_model=CausalModel.from_network(network),
+    substrate = examples.basic_substrate()
+    cs = System(
+        substrate=substrate,
         state=(1, 0, 0),
         node_indices=(0, 1, 2),
     )

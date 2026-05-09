@@ -530,7 +530,7 @@ def fmt_partition(partition: object) -> str:
 
 
 def fmt_phi_structure(
-    ps: object, title: str | None = "Phi-structure", subsystem: bool = True
+    ps: object, title: str | None = "Phi-structure", system: bool = True
 ) -> str:
     """Format a PhiStructure."""
     distinctions = len(ps.distinctions)  # type: ignore[attr-defined]
@@ -557,9 +557,9 @@ def fmt_phi_structure(
         ("S.I.I.", sii),
     ]
     lines = align_columns(columns)
-    if subsystem:
+    if system:
         lines = align_columns(
-            [*lines, f"Subsystem: {ps.subsystem.nodes}"],  # type: ignore[attr-defined]
+            [*lines, f"System: {ps.system.nodes}"],  # type: ignore[attr-defined]
             types="tt",
             split_columns=True,
         )
@@ -572,7 +572,7 @@ def fmt_phi_structure(
 def fmt_partitioned_phi_structure(
     ps: object,
     title: str = "Partitioned phi-structure",
-    subsystem: bool = True,
+    system: bool = True,
 ) -> str:
     """Format a PartitionedPhiStructure."""
     if isinstance(ps.partition, (NullCut, CompleteSystemPartition)):  # type: ignore[attr-defined]
@@ -581,7 +581,7 @@ def fmt_partitioned_phi_structure(
         cut = fmt_cut(ps.partition, direction=ps.partition.direction, name=False)  # type: ignore[attr-defined]
     lines = align_columns(
         [
-            *fmt_phi_structure(ps, title=None, subsystem=subsystem).split("\n"),
+            *fmt_phi_structure(ps, title=None, system=system).split("\n"),
             f"Partition: {cut}",
         ],
         types="tt",
@@ -745,11 +745,11 @@ def fmt_sia_4(
     if phi_structure:
         body = "\n".join(
             [
-                fmt_phi_structure(sia.phi_structure, subsystem=False),  # type: ignore[attr-defined]
+                fmt_phi_structure(sia.phi_structure, system=False),  # type: ignore[attr-defined]
                 fmt_phi_structure(
                     sia.partitioned_phi_structure,  # type: ignore[attr-defined]
                     title="Partitioned phi-structure",
-                    subsystem=False,
+                    system=False,
                 ),
             ]
         )
@@ -777,7 +777,7 @@ def fmt_sia_4(
         cut = fmt_cut(sia.partition, direction=sia.partition.direction, name=False)  # type: ignore[attr-defined]
 
     data = [
-        sia.subsystem.nodes,  # type: ignore[attr-defined]
+        sia.system.nodes,  # type: ignore[attr-defined]
         cut,
     ]
     if sia.reasons:  # type: ignore[attr-defined]
@@ -806,7 +806,7 @@ def fmt_sia(
 
     data = [
         f"{BIG_PHI}: {fmt_number(sia.phi)}",  # type: ignore[attr-defined]
-        sia.subsystem,  # type: ignore[attr-defined]
+        sia.system,  # type: ignore[attr-defined]
         sia.cut,  # type: ignore[attr-defined]
     ]
     for line in reversed(data):
@@ -863,7 +863,7 @@ def fmt_relata(relata: object, node_labels: object | None = None) -> str:
 
 
 def fmt_relation(relation: object) -> str:
-    labels = relation.subsystem.node_labels  # type: ignore[attr-defined]
+    labels = relation.system.node_labels  # type: ignore[attr-defined]
     body = fmt_relata(relation.relata, node_labels=labels)  # type: ignore[attr-defined]
     data_list = [
         ("φ", relation.phi),  # type: ignore[attr-defined]

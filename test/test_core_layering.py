@@ -1,11 +1,12 @@
-"""Architectural assertions for the new core/ package."""
+"""Architectural assertions for the core/ package layering."""
 
 from __future__ import annotations
 
 import ast
 from pathlib import Path
 
-CORE = Path(__file__).resolve().parent.parent / "pyphi" / "core"
+PYPHI = Path(__file__).resolve().parent.parent / "pyphi"
+CORE = PYPHI / "core"
 
 
 def _imports_in(path: Path) -> set[str]:
@@ -21,72 +22,50 @@ def _imports_in(path: Path) -> set[str]:
     return out
 
 
-def test_causal_model_does_not_import_repertoire_algebra() -> None:
-    imports = _imports_in(CORE / "causal_model.py")
-    assert not any("repertoire_algebra" in i for i in imports)
-
-
 def test_repertoire_algebra_does_not_import_formalism() -> None:
     imports = _imports_in(CORE / "repertoire_algebra.py")
     assert not any(i.startswith("pyphi.formalism") for i in imports)
     assert not any(i == ".formalism" for i in imports)
 
 
-def test_candidate_system_does_not_import_formalism() -> None:
-    """``CandidateSystem`` is a value type — formalism dispatch lives in
-    :mod:`pyphi.formalism` (option D). Walking the AST catches imports
-    inside method bodies as well as top-level imports.
+def test_system_does_not_import_formalism_at_module_level() -> None:
+    """:class:`pyphi.System` is a value type — formalism dispatch lives in
+    :mod:`pyphi.formalism`. Method bodies may import formalism lazily
+    (e.g., the ``sia()`` convenience method), but no top-level import.
     """
-    imports = _imports_in(CORE / "candidate_system.py")
-    assert not any(i.startswith("pyphi.formalism") for i in imports)
-    assert not any(i == ".formalism" for i in imports)
+    src = (PYPHI / "system.py").read_text()
+    tree = ast.parse(src, filename="pyphi/system.py")
+    for node in tree.body:
+        if (
+            isinstance(node, ast.ImportFrom)
+            and node.module
+            and node.module.startswith("pyphi.formalism")
+        ):
+            raise AssertionError(
+                f"top-level import of formalism in pyphi/system.py: {node.module}"
+            )
 
 
 def test_core_does_not_import_formalism() -> None:
-    """No file in ``pyphi/core/`` may import ``pyphi.formalism`` — at any level.
-
-    Belt-and-suspenders for the two narrower tests above; catches files we
-    might add to ``core/`` later.
-    """
+    """No file in ``pyphi/core/`` may import ``pyphi.formalism`` — at any level."""
     for py in CORE.rglob("*.py"):
         imports = _imports_in(py)
         offenders = [i for i in imports if i.startswith("pyphi.formalism")]
         assert not offenders, f"{py}: imports {offenders}"
 
 
-def test_core_does_not_import_subsystem_module_top_level() -> None:
-    """The core package may use the legacy subsystem inside function bodies
-    during the worktree (the ``_legacy_subsystem`` helper), but no module in
-    core/ should import it at the top level after the worktree is healthy.
-    """
-    for py in CORE.rglob("*.py"):
-        src = py.read_text()
-        tree = ast.parse(src, filename=str(py))
-        for node in tree.body:
-            if (
-                isinstance(node, ast.ImportFrom)
-                and node.module
-                and "subsystem" in node.module
-            ):
-                raise AssertionError(
-                    f"{py}: top-level import of subsystem ({node.module})"
-                )
-
-
-def test_candidate_system_satisfies_subsystem_public_interface() -> None:
-    """CandidateSystem instance exposes all names in PUBLIC_SUBSYSTEM_ATTRS.
-
-    We instantiate to discover dataclass fields (auto-generated __init__),
-    then dir() the instance to pick up methods, properties, and fields.
-    """
+def test_system_satisfies_system_public_interface() -> None:
+    """A :class:`System` instance exposes all names in PUBLIC_SYSTEM_ATTRS."""
     from pyphi import examples
-    from pyphi.core.candidate_system import CandidateSystem
-    from pyphi.core.causal_model import CausalModel
-    from pyphi.protocols import PUBLIC_SUBSYSTEM_ATTRS
+    from pyphi.protocols import PUBLIC_SYSTEM_ATTRS
+    from pyphi.system import System
 
-    cm = CausalModel.from_network(examples.basic_network())
-    cs = CandidateSystem(causal_model=cm, state=(1, 0, 0), node_indices=(0, 1, 2))
-    declared = {a for a in PUBLIC_SUBSYSTEM_ATTRS if not a.startswith("_")}
+    cs = System(
+        substrate=examples.basic_substrate(),
+        state=(1, 0, 0),
+        node_indices=(0, 1, 2),
+    )
+    declared = {a for a in PUBLIC_SYSTEM_ATTRS if not a.startswith("_")}
     discovered = {a for a in dir(cs) if not a.startswith("_")}
     missing = declared - discovered
-    assert not missing, f"CandidateSystem missing public attrs: {sorted(missing)}"
+    assert not missing, f"System missing public attrs: {sorted(missing)}"

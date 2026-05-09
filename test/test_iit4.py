@@ -5,14 +5,14 @@ These tests validate complete phi_structure computations against JSON
 fixtures stored in test/data/phi_structure/. They ensure that the IIT 4.0
 implementation produces results matching historical validated outputs.
 
-Test Networks:
-- basic: 3-node basic network (OR, COPY, XOR gates)
-- basic_noisy_selfloop: Basic network with noise and self-loops
+Test Substrates:
+- basic: 3-node basic substrate (OR, COPY, XOR gates)
+- basic_noisy_selfloop: Basic substrate with noise and self-loops
 - fig4: Example from IIT 4.0 paper (Figure 4)
 - fig5a: Example from IIT 4.0 paper (Figure 5a)
 - fig5b: Example from IIT 4.0 paper (Figure 5b)
 - grid3: 3-node grid topology
-- residue: Residue network example
+- residue: Residue substrate example
 - rule110: Rule 110 cellular automaton
 - rule154: Rule 154 cellular automaton
 - xor: XOR gate configuration
@@ -67,11 +67,11 @@ def test(example_name):
     """Test phi_structure computation against golden JSON fixture.
 
     This parametrized test validates phi_structure results for all
-    example networks. Each example is compared against its JSON fixture,
+    example substrates. Each example is compared against its JSON fixture,
     ensuring complete computational correctness.
 
     Args:
-        example_name: Name of example network (see EXAMPLE_NAMES)
+        example_name: Name of example substrate (see EXAMPLE_NAMES)
 
     What's tested:
     - Full phi_structure computation pipeline
@@ -81,14 +81,14 @@ def test(example_name):
 
     If this fails:
     - Check if computation algorithm changed
-    - Verify example network definition unchanged
+    - Verify example substrate definition unchanged
     - For fig4: Cross-reference with IIT 4.0 paper
     - Consider if JSON serialization format changed
 
     Note: rule154 is marked as slow due to computational expense (11 distinctions).
     """
-    subsystem = EXAMPLES["subsystem"][example_name]()
-    actual = new_big_phi.phi_structure(subsystem)
+    system = EXAMPLES["system"][example_name]()
+    actual = new_big_phi.phi_structure(system)
     expected = load_expected(example_name)
     assert actual == expected
 
@@ -97,7 +97,7 @@ def load_expected(example_name):
     """Load expected phi_structure result from JSON fixture.
 
     Args:
-        example_name: Name of example network
+        example_name: Name of example substrate
 
     Returns:
         PhiStructure object deserialized from JSON

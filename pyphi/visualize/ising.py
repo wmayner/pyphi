@@ -6,8 +6,8 @@ import numpy as np
 import pandas as pd
 import seaborn as sb
 
-from pyphi.network_generator import utils
-from pyphi.network_generator.ising import energy
+from pyphi.substrate_generator import utils
+from pyphi.substrate_generator.ising import energy
 from pyphi.utils import all_states
 
 

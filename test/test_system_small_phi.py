@@ -8,10 +8,10 @@ from pyphi.models import Bipartition
 from pyphi.models import Part
 from pyphi.models import RepertoireIrreducibilityAnalysis
 
-from . import example_networks
+from . import example_substrates
 from .conftest import skip_if_no_pyemd
 
-s = example_networks.s()
+s = example_substrates.s()
 
 
 # `find_mip` tests {{{
@@ -21,7 +21,7 @@ s = example_networks.s()
 #
 # (
 #     direction of RIA (Direction.CAUSE or Direction.EFFECT),
-#     subsystem, cut,
+#     system, cut,
 #     mechanism,
 #     purview,
 #     expected result
@@ -242,16 +242,16 @@ scenarios = [
     # }}}
     # }}}
 ]
-parameter_string = "direction,subsystem,cut,mechanism,purview,expected"
+parameter_string = "direction,system,cut,mechanism,purview,expected"
 
 
 @pytest.mark.emd
 @skip_if_no_pyemd
 @pytest.mark.parametrize(parameter_string, scenarios)
 @config.override(formalism="IIT_3_0", repertoire_distance="EMD")
-def test_find_mip(direction, subsystem, cut, mechanism, purview, expected):
+def test_find_mip(direction, system, cut, mechanism, purview, expected):
     # Set up testing parameters from scenario
-    result = subsystem.find_mip(direction, mechanism, purview)
+    result = system.find_mip(direction, mechanism, purview)
 
     # IMPORTANT: Since several different ways of partitioning the system can
     # yield the same phi value, the partition used in finding the MIP is not

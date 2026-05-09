@@ -1,5 +1,5 @@
-# network.py
-"""Represents the network of interest.
+# substrate.py
+"""Represents the substrate of interest.
 
 This is the primary object of PyPhi and the context of all |small_phi| and
 |big_phi| computation.
@@ -29,13 +29,13 @@ from .types import NodeIndices
 from .types import Purview
 
 
-class Network:
-    """A network of nodes.
+class Substrate:
+    """A substrate of nodes.
 
-    Represents the network under analysis and holds auxilary data about it.
+    Represents the substrate under analysis and holds auxilary data about it.
 
     Args:
-        tpm (np.ndarray): The transition probability matrix of the network.
+        tpm (np.ndarray): The transition probability matrix of the substrate.
 
             The TPM can be provided in any of three forms: **state-by-state**,
             **state-by-node**, or **multidimensional state-by-node** form.
@@ -54,24 +54,24 @@ class Network:
             The shape of the 2-dimensional form of a state-by-node TPM must be
             ``(s, n)``, and the shape of the multidimensional form of the TPM
             must be ``[2] * n + [n]``, where ``s`` is the number of states and
-            ``n`` is the number of nodes in the network.
+            ``n`` is the number of nodes in the substrate.
 
     Keyword Args:
         cm (np.ndarray): A square binary adjacency matrix indicating the
-            connections between nodes in the network. ``cm[i][j] == 1`` means
+            connections between nodes in the substrate. ``cm[i][j] == 1`` means
             that node |i| is connected to node |j| (see :ref:`cm-conventions`).
             **If no connectivity matrix is given, PyPhi assumes that every node
             is connected to every node (including itself)**.
         node_labels (tuple[str] or |NodeLabels|): Human-readable labels for
-            each node in the network.
+            each node in the substrate.
 
     Example:
-        In a 3-node network, ``the_network.tpm[(0, 0, 1)]`` gives the
+        In a 3-node substrate, ``the_substrate.tpm[(0, 0, 1)]`` gives the
         transition probabilities for each node at |t| given that state at |t-1|
         was |N_0 = 0, N_1 = 0, N_2 = 1|.
     """
 
-    # TODO make tpm also optional when implementing logical network definition
+    # TODO make tpm also optional when implementing logical substrate definition
     def __init__(
         self,
         tpm: ExplicitTPM | NDArray[np.float64] | dict[str, Any],
@@ -95,22 +95,22 @@ class Network:
         self._node_labels = NodeLabels(node_labels, self._node_indices)
         self.purview_cache = purview_cache or cache.PurviewCache()
 
-        validate.network(self)
+        validate.substrate(self)
 
     @property
     def tpm(self) -> ExplicitTPM:
         """pyphi.tpm.ExplicitTPM: The TPM object which contains this
-        network's transition probability matrix, in multidimensional
+        substrate's transition probability matrix, in multidimensional
         form.
         """
         return self._tpm
 
     @property
     def cm(self) -> ConnectivityMatrix:
-        """np.ndarray: The network's connectivity matrix.
+        """np.ndarray: The substrate's connectivity matrix.
 
         A square binary adjacency matrix indicating the connections between
-        nodes in the network.
+        nodes in the substrate.
         """
         return self._cm
 
@@ -141,30 +141,30 @@ class Network:
 
     @property
     def size(self) -> int:
-        """int: The number of nodes in the network."""
+        """int: The number of nodes in the substrate."""
         return len(self)
 
     # TODO extend to nonbinary nodes
     @property
     def num_states(self) -> int:
-        """int: The number of possible states of the network."""
+        """int: The number of possible states of the substrate."""
         return 2**self.size
 
     @property
     def node_indices(self) -> NodeIndices:
-        """tuple[int]: The indices of nodes in the network.
+        """tuple[int]: The indices of nodes in the substrate.
 
-        This is equivalent to ``tuple(range(network.size))``.
+        This is equivalent to ``tuple(range(substrate.size))``.
         """
         return self._node_indices
 
     @property
     def node_labels(self) -> NodeLabels:
-        """tuple[str]: The labels of nodes in the network."""
+        """tuple[str]: The labels of nodes in the substrate."""
         return self._node_labels
 
-    # TODO: this should really be a Subsystem method, but we're
-    # interested in caching at the Network-level...
+    # TODO: this should really be a System method, but we're
+    # interested in caching at the Substrate-level...
     @cache.method("purview_cache")
     def potential_purviews(
         self, direction: Direction, mechanism: Mechanism
@@ -184,22 +184,22 @@ class Network:
         return irreducible_purviews(self.cm, direction, mechanism, all_purviews)
 
     def __len__(self) -> int:
-        """int: The number of nodes in the network."""
+        """int: The number of nodes in the substrate."""
         return self.tpm.shape[-1]
 
     def __repr__(self) -> str:
-        return f"Network({self.tpm}, cm={self.cm})"
+        return f"Substrate({self.tpm}, cm={self.cm})"
 
     def __str__(self) -> str:
         return self.__repr__()
 
     def __eq__(self, other: object) -> bool:
-        """Return whether this network equals the other object.
+        """Return whether this substrate equals the other object.
 
-        Networks are equal if they have the same TPM and CM.
+        Substrates are equal if they have the same TPM and CM.
         """
         return (
-            isinstance(other, Network)
+            isinstance(other, Substrate)
             and self.tpm.array_equal(other.tpm)
             and np.array_equal(self.cm, other.cm)
         )
@@ -220,10 +220,10 @@ class Network:
         }
 
     @classmethod
-    def from_json(cls, json_dict: dict[str, Any]) -> Network:
-        """Return a |Network| object from a JSON dictionary representation."""
+    def from_json(cls, json_dict: dict[str, Any]) -> Substrate:
+        """Return a |Substrate| object from a JSON dictionary representation."""
         del json_dict["size"]
-        return Network(**json_dict)
+        return Substrate(**json_dict)
 
 
 def irreducible_purviews(
@@ -257,68 +257,70 @@ def irreducible_purviews(
     return [purview for purview in purviews if not reducible(purview)]
 
 
-def from_json(filename: str) -> Network:
-    """Convert a JSON network to a PyPhi network.
+def from_json(filename: str) -> Substrate:
+    """Convert a JSON substrate to a PyPhi substrate.
 
     Args:
-        filename (str): A path to a JSON file representing a network.
+        filename (str): A path to a JSON file representing a substrate.
 
     Returns:
-       Network: The corresponding PyPhi network object.
+       Substrate: The corresponding PyPhi substrate object.
     """
     with open(filename, encoding="utf-8") as f:
-        result: Network = jsonify.load(f)
+        result: Substrate = jsonify.load(f)
         return result
 
 
 # ============================================================================
-# Network-level subsystem iteration (formalism-agnostic)
+# Substrate-level system iteration (formalism-agnostic)
 # ============================================================================
 #
-# These helpers walk the powerset of node subsets and yield Subsystem (alias
-# for CandidateSystem) instances. They don't depend on a specific formalism;
+# These helpers walk the powerset of node subsets and yield System (alias
+# for System) instances. They don't depend on a specific formalism;
 # IIT 3.0's ``all_complexes`` and IIT 4.0's ``all_complexes`` both consume
 # them.
 
 
-def reachable_subsystems(
-    network: Network,
+def reachable_systems(
+    substrate: Substrate,
     indices: tuple[int, ...],
     state: tuple[int, ...],
     **kwargs: Any,
 ) -> Any:
-    """A generator over all subsystems in a valid state."""
+    """A generator over all systems in a valid state."""
     import contextlib
 
     from pyphi import exceptions
-    from pyphi.core import CandidateSystem as Subsystem
+    from pyphi.system import System
 
-    validate.is_network(network)
+    validate.is_substrate(substrate)
 
-    # Return subsystems largest to smallest to optimize parallel
+    # Return systems largest to smallest to optimize parallel
     # resource usage.
     for subset in utils.powerset(indices, nonempty=True, reverse=True):
         with contextlib.suppress(exceptions.StateUnreachableError):
-            yield Subsystem.from_network(network, state, subset, **kwargs)
+            yield System.from_substrate(substrate, state, subset, **kwargs)
 
 
-def subsystems(network: Network, state: tuple[int, ...], **kwargs: Any) -> Any:
-    """Return a generator of all **possible** subsystems of a network.
+def systems(substrate: Substrate, state: tuple[int, ...], **kwargs: Any) -> Any:
+    """Return a generator of all **possible** systems of a substrate.
 
     .. note::
-        Does not return subsystems that are in an impossible state (after
-        conditioning the subsystem TPM on the state of the other nodes).
+        Does not return systems that are in an impossible state (after
+        conditioning the system TPM on the state of the other nodes).
     """
-    return reachable_subsystems(network, network.node_indices, state, **kwargs)
+    return reachable_systems(substrate, substrate.node_indices, state, **kwargs)
 
 
-def possible_complexes(network: Network, state: tuple[int, ...], **kwargs: Any) -> Any:
-    """Return a generator of subsystems of a network that could be a complex.
+def possible_complexes(
+    substrate: Substrate, state: tuple[int, ...], **kwargs: Any
+) -> Any:
+    """Return a generator of systems of a substrate that could be a complex.
 
     The powerset of nodes that have at least one input and one output. Nodes
     with no inputs or no outputs cannot be part of a main complex because
-    they have no causal link with the rest of the subsystem.
+    they have no causal link with the rest of the system.
     """
-    return reachable_subsystems(
-        network, network.causally_significant_nodes, state, **kwargs
+    return reachable_systems(
+        substrate, substrate.causally_significant_nodes, state, **kwargs
     )

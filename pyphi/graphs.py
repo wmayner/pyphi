@@ -19,7 +19,7 @@ def maximal_independent_sets(nx_graph):
     Time complexity is exponential in the worst case.
     """
     # Convert to igraph for faster maximal independent set implementation
-    G = ig.Graph.from_networkx(nx_graph)
+    G = ig.Graph.from_substratex(nx_graph)
     for vertices in G.maximal_independent_vertex_sets():
         # Convert node IDs to mechanisms
         yield G.vs[vertices]["_nx_name"]
@@ -33,7 +33,7 @@ def largest_independent_sets(nx_graph):
     Time complexity is exponential in the worst case.
     """
     # Convert to igraph for faster maximal independent set implementation
-    G = ig.Graph.from_networkx(nx_graph)
+    G = ig.Graph.from_substratex(nx_graph)
     for vertices in G.largest_independent_vertex_sets():
         # Convert node IDs to mechanisms
         yield G.vs[vertices]["_nx_name"]

@@ -211,14 +211,14 @@ class DictCache:
 
 
 def validate_parent_cache(parent_cache):
-    # TODO: also validate that subsystem is a cut version of
-    # parent_cache.subsystem? Do we need to check this at all?
-    if parent_cache.subsystem.is_cut:
-        raise ValueError("parent_cache must be from an uncut subsystem")
+    # TODO: also validate that system is a cut version of
+    # parent_cache.system? Do we need to check this at all?
+    if parent_cache.system.is_cut:
+        raise ValueError("parent_cache must be from an uncut system")
 
 
 class PurviewCache(DictCache):
-    """A network-level cache for possible purviews."""
+    """A substrate-level cache for possible purviews."""
 
     def set(self, key, value):
         """Only set if purview caching is enabled"""

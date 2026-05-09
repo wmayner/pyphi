@@ -60,7 +60,7 @@ class PhiFormalism(Protocol):
       worker-safe parallelism.
 
     The three ``evaluate_*`` / ``build_*`` methods are the dispatch points
-    that ``Subsystem`` will route through after the cut-over commit.
+    that ``System`` will route through after the cut-over commit.
     Signatures are intentionally permissive (``Any``) until the metric and
     partition Protocols tighten in P5/P6.
     """
@@ -74,12 +74,12 @@ class PhiFormalism(Protocol):
     def config(self) -> FormalismConfig: ...
 
     def evaluate_mechanism(
-        self, subsystem: Any, direction: Any, mechanism: Any, purview: Any, **kwargs: Any
+        self, system: Any, direction: Any, mechanism: Any, purview: Any, **kwargs: Any
     ) -> Any: ...
 
     def evaluate_mechanism_partition(
         self,
-        subsystem: Any,
+        system: Any,
         direction: Any,
         mechanism: Any,
         purview: Any,
@@ -87,9 +87,9 @@ class PhiFormalism(Protocol):
         **kwargs: Any,
     ) -> Any: ...
 
-    def evaluate_system(self, subsystem: Any, **kwargs: Any) -> Any: ...
+    def evaluate_system(self, system: Any, **kwargs: Any) -> Any: ...
 
-    def build_phi_structure(self, subsystem: Any, **kwargs: Any) -> Any: ...
+    def build_phi_structure(self, system: Any, **kwargs: Any) -> Any: ...
 
 
 class MetricNotCompatibleError(Exception):
@@ -156,7 +156,7 @@ class ApproximateFormalism(PhiFormalism, Protocol):
 
     exact: Literal[False]
 
-    def error_characterization(self, subsystem: Any) -> ErrorInfo: ...
+    def error_characterization(self, system: Any) -> ErrorInfo: ...
 
 
 class FormalismRegistry(Registry[PhiFormalism]):

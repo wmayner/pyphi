@@ -1,4 +1,4 @@
-# network_generator/ising.py
+# substrate_generator/ising.py
 """Utitlies for implementing the Ising model."""
 
 from toolz import curry

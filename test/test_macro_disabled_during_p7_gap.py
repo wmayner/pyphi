@@ -10,8 +10,8 @@ def test_macro_module_imports_successfully() -> None:
     from pyphi import macro  # noqa: F401
 
 
-def test_macro_subsystem_construction_raises() -> None:
-    from pyphi.macro import MacroSubsystem
+def test_macro_system_construction_raises() -> None:
+    from pyphi.macro import MacroSystem
 
     with pytest.raises(NotImplementedError, match="P7b"):
-        MacroSubsystem(None, None)
+        MacroSystem(None, None)

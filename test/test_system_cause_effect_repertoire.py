@@ -2,18 +2,18 @@ import numpy as np
 import pytest
 
 from pyphi import Direction
-from pyphi import Subsystem
+from pyphi import System
 from pyphi.models import SystemPartition
 
-from . import example_networks
+from . import example_substrates
 
-# Get example networks
-standard = example_networks.standard()
+# Get example substrates
+standard = example_substrates.standard()
 
-# Get example subsystems
-standard_subsystem = example_networks.s()
-simple_all_off = example_networks.simple_subsys_all_off()
-simple_a_just_on = example_networks.simple_subsys_all_a_just_on()
+# Get example systems
+standard_system = example_substrates.s()
+simple_all_off = example_substrates.simple_subsys_all_off()
+simple_a_just_on = example_substrates.simple_subsys_all_a_just_on()
 
 
 full = tuple(range(standard.size))
@@ -24,7 +24,7 @@ full = tuple(range(standard.size))
 # Scenario structure:
 # (
 #     function to test,
-#     subsystem,
+#     system,
 #     mechanism,
 #     purview,
 #     expected result
@@ -32,54 +32,54 @@ full = tuple(range(standard.size))
 scenarios = [
     # Cause repertoire {{{
     # ====================
-    # Default Matlab network {{{
+    # Default Matlab substrate {{{
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # Full network, no cut {{{
+    # Full substrate, no cut {{{
     # ------------------------
     (
         "cause_repertoire",
-        standard_subsystem,
+        standard_system,
         [0],
         [0],
         np.array([0.5, 0.5]).reshape(2, 1, 1, order="F"),
     ),
     (
         "cause_repertoire",
-        standard_subsystem,
+        standard_system,
         [0],
         [0],
         np.array([0.5, 0.5]).reshape(2, 1, 1, order="F"),
     ),
     (
         "cause_repertoire",
-        standard_subsystem,
+        standard_system,
         [0, 1],
         [0, 2],
         np.array([0.5, 0.5, 0.0, 0.0]).reshape(2, 1, 2, order="F"),
     ),
     (
         "cause_repertoire",
-        standard_subsystem,
+        standard_system,
         [1],
         [2],
         np.array([1.0, 0.0]).reshape(1, 1, 2, order="F"),
     ),
     (
         "cause_repertoire",
-        standard_subsystem,
+        standard_system,
         [],
         [2],
         np.array([0.5, 0.5]).reshape(1, 1, 2, order="F"),
     ),
-    ("cause_repertoire", standard_subsystem, [1], [], np.array([1])),
+    ("cause_repertoire", standard_system, [1], [], np.array([1])),
     # }}}
-    # Full network, with cut {{{
+    # Full substrate, with cut {{{
     # --------------------------
     (
         "cause_repertoire",
-        Subsystem(
+        System(
             standard,
-            standard_subsystem.state,
+            standard_system.state,
             full,
             cut=SystemPartition(Direction.EFFECT, (2,), (0, 1)),
         ),
@@ -92,9 +92,9 @@ scenarios = [
     # --------------------
     (
         "cause_repertoire",
-        Subsystem(
+        System(
             standard,
-            standard_subsystem.state,
+            standard_system.state,
             (1, 2),
             cut=SystemPartition(Direction.EFFECT, (1,), (2,)),
         ),
@@ -104,9 +104,9 @@ scenarios = [
     ),
     (
         "cause_repertoire",
-        Subsystem(
+        System(
             standard,
-            standard_subsystem.state,
+            standard_system.state,
             (1, 2),
             cut=SystemPartition(Direction.EFFECT, (1,), (2,)),
         ),
@@ -116,9 +116,9 @@ scenarios = [
     ),
     (
         "cause_repertoire",
-        Subsystem(
+        System(
             standard,
-            standard_subsystem.state,
+            standard_system.state,
             (0, 2),
             cut=SystemPartition(Direction.EFFECT, (0,), (2,)),
         ),
@@ -128,7 +128,7 @@ scenarios = [
     ),
     # }}}
     # }}}
-    # Simple 'AND' network {{{
+    # Simple 'AND' substrate {{{
     # ~~~~~~~~~~~~~~~~~~~~~~~~
     # State: 'A' just turned on {{{
     # -----------------------------
@@ -176,7 +176,7 @@ scenarios = [
         [0, 1, 2],
         # Cause repertoire is minimally selective; only {0,1,1} is ruled out,
         # so probability density should be uniformly distributed among all
-        # states not including {0,1,1} when purview is whole network
+        # states not including {0,1,1} when purview is whole substrate
         np.array([1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0]).reshape(2, 2, 2) / 7,
     ),
     # }}}
@@ -184,69 +184,69 @@ scenarios = [
     # }}}
     # Effect repertoire {{{
     # =====================
-    # Default Matlab network {{{
+    # Default Matlab substrate {{{
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # Full network, no cut {{{
+    # Full substrate, no cut {{{
     # ------------------------
     (
         "effect_repertoire",
-        standard_subsystem,
+        standard_system,
         [0],
         [0],
         np.array([0.25, 0.75]).reshape(2, 1, 1, order="F"),
     ),
     (
         "effect_repertoire",
-        standard_subsystem,
+        standard_system,
         [0, 1],
         [0, 2],
         np.array([0.0, 0.0, 0.5, 0.5]).reshape(2, 1, 2, order="F"),
     ),
     (
         "effect_repertoire",
-        standard_subsystem,
+        standard_system,
         [1],
         [2],
         np.array([0.5, 0.5]).reshape(1, 1, 2, order="F"),
     ),
     (
         "effect_repertoire",
-        standard_subsystem,
+        standard_system,
         [],
         [1],
         np.array([0.5, 0.5]).reshape(1, 2, 1, order="F"),
     ),
-    ("effect_repertoire", standard_subsystem, [2], [], np.array([1])),
+    ("effect_repertoire", standard_system, [2], [], np.array([1])),
     (
         "effect_repertoire",
-        standard_subsystem,
+        standard_system,
         [],
         [0],
         np.array([0.25, 0.75]).reshape(2, 1, 1, order="F"),
     ),
     (
         "effect_repertoire",
-        standard_subsystem,
+        standard_system,
         [0],
         [2],
         np.array([0.5, 0.5]).reshape(1, 1, 2, order="F"),
     ),
     (
         "effect_repertoire",
-        standard_subsystem,
+        standard_system,
         [1, 2],
         [0],
         np.array([1.0, 0.0]).reshape(2, 1, 1, order="F"),
     ),
-    ("effect_repertoire", standard_subsystem, [1], [], np.array([1])),
+    ("effect_repertoire", standard_system, [1], [], np.array([1])),
     # }}}
-    # Full network, with cut {{{
+    # Full substrate, with cut {{{
     # --------------------------
     (
         "effect_repertoire",
-        Subsystem(
+        System(
             standard,
-            standard_subsystem.state,
+            standard_system.state,
             full,
             cut=SystemPartition(Direction.EFFECT, (0, 2), (1,)),
         ),
@@ -256,9 +256,9 @@ scenarios = [
     ),
     (
         "effect_repertoire",
-        Subsystem(
+        System(
             standard,
-            standard_subsystem.state,
+            standard_system.state,
             full,
             cut=SystemPartition(Direction.EFFECT, (0, 2), (1,)),
         ),
@@ -271,9 +271,9 @@ scenarios = [
     # --------------------
     (
         "effect_repertoire",
-        Subsystem(
+        System(
             standard,
-            standard_subsystem.state,
+            standard_system.state,
             (1, 2),
             cut=SystemPartition(Direction.EFFECT, (1,), (2,)),
         ),
@@ -283,9 +283,9 @@ scenarios = [
     ),
     (
         "effect_repertoire",
-        Subsystem(
+        System(
             standard,
-            standard_subsystem.state,
+            standard_system.state,
             (1, 2),
             cut=SystemPartition(Direction.EFFECT, (1,), (2,)),
         ),
@@ -295,9 +295,9 @@ scenarios = [
     ),
     (
         "effect_repertoire",
-        Subsystem(
+        System(
             standard,
-            standard_subsystem.state,
+            standard_system.state,
             (1, 2),
             cut=SystemPartition(Direction.EFFECT, (1,), (2,)),
         ),
@@ -307,7 +307,7 @@ scenarios = [
     ),
     # }}}
     # }}}
-    # Simple 'AND' network {{{
+    # Simple 'AND' substrate {{{
     # ~~~~~~~~~~~~~~~~~~~~~~~~
     # State: 'A' just turned on {{{
     # -----------------------------
@@ -364,17 +364,17 @@ scenarios = [
 ]
 
 
-parameter_string = "function,subsystem,mechanism,purview,expected"
+parameter_string = "function,system,mechanism,purview,expected"
 
 
 @pytest.mark.parametrize(parameter_string, scenarios)
-def test_cause_and_effect_repertoire(function, subsystem, mechanism, purview, expected):
+def test_cause_and_effect_repertoire(function, system, mechanism, purview, expected):
     """Test ``effect_repertoire`` or ``cause_repertoire``."""
 
-    print("\nTesting " + function + " with subsystem \n" + str(subsystem))
+    print("\nTesting " + function + " with system \n" + str(system))
 
     # Set up testing parameters from scenario
-    compute_repertoire = getattr(subsystem, function)
+    compute_repertoire = getattr(system, function)
     mechanism = tuple(mechanism)
     purview = tuple(purview)
 
@@ -386,7 +386,7 @@ def test_cause_and_effect_repertoire(function, subsystem, mechanism, purview, ex
         "\nPurview:".rjust(12),
         purview,
         "\nCut:".rjust(12),
-        subsystem.cut,
+        system.cut,
         "\n",
     )
 

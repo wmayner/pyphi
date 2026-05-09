@@ -120,9 +120,9 @@ class DistanceResult(PyPhiFloat):
 
         >>> # Compute multiple phi values
         >>> phi_values = [
-        ...     DistanceResult(0.5, method='EMD', subsystem='ABC'),
-        ...     DistanceResult(0.3, method='L1', subsystem='ABC'),
-        ...     DistanceResult(0.7, method='GID', subsystem='DEF')
+        ...     DistanceResult(0.5, method='EMD', system='ABC'),
+        ...     DistanceResult(0.3, method='L1', system='ABC'),
+        ...     DistanceResult(0.7, method='GID', system='DEF')
         ... ]  # doctest: +SKIP
         >>> # Find maximum
         >>> max_phi = max(phi_values)  # doctest: +SKIP
@@ -642,7 +642,7 @@ def approximate_specified_state(
 
     This returns only the state of the purview nodes (i.e., there is one element
     in the state vector for each purview node, not for each node in the
-    network).
+    substrate).
 
     .. note::
         Although deterministic, *results are only a good guess*. This function
@@ -699,7 +699,7 @@ def approximate_specified_state(
     """
 
     # TODO: All the marginalization defeats the whole purpose. Config option
-    # must prevent calculating outer product at `subsystem`, and pass node
+    # must prevent calculating outer product at `system`, and pass node
     # marginal repertoires instead.
     def joint_to_marginals(repertoire: np.ndarray) -> np.ndarray:
         """Converts a joint repertoire in multidimensional form to a 2D array of
@@ -708,7 +708,7 @@ def approximate_specified_state(
         Args:
             repertoire (np.ndarray): The joint repertoire of a purview in
                 multidimensional form, e.g., as obtained from
-                :mod:`pyphi.subsystem`. Note that `repertoire` is assumed to be
+                :mod:`pyphi.system`. Note that `repertoire` is assumed to be
                 a well-formed probability distribution whose sum over all states
                 equals one.
         Returns:

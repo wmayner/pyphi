@@ -39,7 +39,7 @@ def _default_formalism_config() -> FormalismConfig:
 
 
 def _evaluate_partition_iit4(
-    subsystem: Any,
+    system: Any,
     direction: Any,
     mechanism: Any,
     purview: Any,
@@ -52,7 +52,7 @@ def _evaluate_partition_iit4(
 
     State-aware: takes a forward repertoire, a partitioned forward repertoire,
     and a scalar selectivity, then calls a GID-style metric. Replaces the
-    legacy ``Subsystem.evaluate_partition`` IIT 4.0 branch.
+    legacy ``System.evaluate_partition`` IIT 4.0 branch.
 
     Compatibility is the caller's responsibility; ``IIT4_2023Formalism``
     and ``IIT4_2026Formalism`` validate before calling this helper.
@@ -72,18 +72,16 @@ def _evaluate_partition_iit4(
         repertoire_distance = "GENERALIZED_INTRINSIC_DIFFERENCE"
 
     if repertoire is None:
-        repertoire = subsystem.repertoire(direction, mechanism, purview)
+        repertoire = system.repertoire(direction, mechanism, purview)
 
     func = metrics.distribution.measures[repertoire_distance]
     assert not isinstance(repertoire, (int, float)), "GID requires full repertoire"
 
     purview_state = kwargs["state"].state
     selectivity = float(repertoire.squeeze()[purview_state])
-    forward_pr = subsystem.forward_probability(
-        direction, mechanism, purview, purview_state
-    )
+    forward_pr = system.forward_probability(direction, mechanism, purview, purview_state)
     if partitioned_repertoire is None:
-        partitioned_pr = subsystem.partitioned_repertoire(
+        partitioned_pr = system.partitioned_repertoire(
             direction, partition, state=purview_state
         )
     else:
@@ -103,16 +101,16 @@ def _evaluate_partition_iit4(
         partition=partition,
         repertoire=forward_pr,
         partitioned_repertoire=partitioned_pr,
-        mechanism_state=state_of(mechanism, subsystem.state),
-        purview_state=state_of(purview, subsystem.state),
+        mechanism_state=state_of(mechanism, system.state),
+        purview_state=state_of(purview, system.state),
         specified_state=kwargs.get("state"),
-        node_labels=subsystem.node_labels,
+        node_labels=system.node_labels,
         selectivity=selectivity,
     )
 
 
 def _find_mip_iit4(
-    subsystem: Any,
+    system: Any,
     direction: Any,
     mechanism: Any,
     purview: Any,
@@ -125,15 +123,15 @@ def _find_mip_iit4(
     """IIT 4.0 mechanism MIP: maximize over candidate specified states,
     minimize over partitions per state.
 
-    Extracted from the legacy ``Subsystem.find_mip`` IIT 4.0 branch
-    (formerly ``subsystem.py:983-1004``). The active formalism is the
-    owner of this dispatch; ``Subsystem`` provides candidate-system
+    Extracted from the legacy ``System.find_mip`` IIT 4.0 branch
+    (formerly ``system.py:983-1004``). The active formalism is the
+    owner of this dispatch; ``System`` provides candidate-system
     context and the per-state helper.
     """
     from pyphi import resolve_ties
 
     if state is None:
-        specified_states = subsystem.intrinsic_information(
+        specified_states = system.intrinsic_information(
             direction, mechanism, purview
         ).ties
     else:
@@ -146,7 +144,7 @@ def _find_mip_iit4(
     )
 
     mips = MapReduce(
-        partial(_find_mip_single_state, subsystem),  # pyright: ignore[reportPrivateUsage]
+        partial(_find_mip_single_state, system),  # pyright: ignore[reportPrivateUsage]
         specified_states,
         map_kwargs={
             "direction": direction,
@@ -182,7 +180,7 @@ class IIT4_2023Formalism:
 
     def evaluate_mechanism(
         self,
-        subsystem: Any,
+        system: Any,
         direction: Any,
         mechanism: Any,
         purview: Any,
@@ -193,11 +191,11 @@ class IIT4_2023Formalism:
         (empty purview, unreachable state) the public dispatcher owns."""
         from pyphi.formalism.queries import find_mip
 
-        return find_mip(subsystem, direction, mechanism, purview, **kwargs)
+        return find_mip(system, direction, mechanism, purview, **kwargs)
 
     def _find_mechanism_mip(
         self,
-        subsystem: Any,
+        system: Any,
         direction: Any,
         mechanism: Any,
         purview: Any,
@@ -207,11 +205,11 @@ class IIT4_2023Formalism:
         after its short-circuit checks; contains the IIT 4.0 logic
         (maximize over specified states, minimize over partitions)."""
         check_metric_compatible(self, config.formalism.repertoire_distance)
-        return _find_mip_iit4(subsystem, direction, mechanism, purview, **kwargs)
+        return _find_mip_iit4(system, direction, mechanism, purview, **kwargs)
 
     def evaluate_mechanism_partition(
         self,
-        subsystem: Any,
+        system: Any,
         direction: Any,
         mechanism: Any,
         purview: Any,
@@ -222,18 +220,18 @@ class IIT4_2023Formalism:
         scalar selectivity feed a GID-style metric."""
         check_metric_compatible(self, config.formalism.repertoire_distance)
         return _evaluate_partition_iit4(
-            subsystem, direction, mechanism, purview, partition, **kwargs
+            system, direction, mechanism, purview, partition, **kwargs
         )
 
-    def evaluate_system(self, subsystem: Any, **kwargs: Any) -> Any:
+    def evaluate_system(self, system: Any, **kwargs: Any) -> Any:
         """Delegate to :func:`pyphi.formalism.iit4.sia`."""
         check_metric_compatible(self, config.formalism.repertoire_distance)
-        return _sia(subsystem, **kwargs)
+        return _sia(system, **kwargs)
 
-    def build_phi_structure(self, subsystem: Any, **kwargs: Any) -> Any:
+    def build_phi_structure(self, system: Any, **kwargs: Any) -> Any:
         """Delegate to :func:`pyphi.formalism.iit4.phi_structure`."""
         check_metric_compatible(self, config.formalism.repertoire_distance)
-        return _phi_structure(subsystem, **kwargs)
+        return _phi_structure(system, **kwargs)
 
 
 @dataclass(frozen=True)
@@ -260,7 +258,7 @@ class IIT4_2026Formalism:
 
     def evaluate_mechanism(
         self,
-        subsystem: Any,
+        system: Any,
         direction: Any,
         mechanism: Any,
         purview: Any,
@@ -269,11 +267,11 @@ class IIT4_2026Formalism:
         from pyphi.formalism.queries import find_mip
 
         with config.override(repertoire_distance=self.default_metric):
-            return find_mip(subsystem, direction, mechanism, purview, **kwargs)
+            return find_mip(system, direction, mechanism, purview, **kwargs)
 
     def _find_mechanism_mip(
         self,
-        subsystem: Any,
+        system: Any,
         direction: Any,
         mechanism: Any,
         purview: Any,
@@ -281,11 +279,11 @@ class IIT4_2026Formalism:
     ) -> Any:
         check_metric_compatible(self, config.formalism.repertoire_distance)
         with config.override(repertoire_distance=self.default_metric):
-            return _find_mip_iit4(subsystem, direction, mechanism, purview, **kwargs)
+            return _find_mip_iit4(system, direction, mechanism, purview, **kwargs)
 
     def evaluate_mechanism_partition(
         self,
-        subsystem: Any,
+        system: Any,
         direction: Any,
         mechanism: Any,
         purview: Any,
@@ -297,15 +295,15 @@ class IIT4_2026Formalism:
         check_metric_compatible(self, config.formalism.repertoire_distance)
         with config.override(repertoire_distance=self.default_metric):
             return _evaluate_partition_iit4(
-                subsystem, direction, mechanism, purview, partition, **kwargs
+                system, direction, mechanism, purview, partition, **kwargs
             )
 
-    def evaluate_system(self, subsystem: Any, **kwargs: Any) -> Any:
+    def evaluate_system(self, system: Any, **kwargs: Any) -> Any:
         check_metric_compatible(self, config.formalism.repertoire_distance)
         with config.override(repertoire_distance=self.default_metric):
-            return _sia(subsystem, **kwargs)
+            return _sia(system, **kwargs)
 
-    def build_phi_structure(self, subsystem: Any, **kwargs: Any) -> Any:
+    def build_phi_structure(self, system: Any, **kwargs: Any) -> Any:
         check_metric_compatible(self, config.formalism.repertoire_distance)
         with config.override(repertoire_distance=self.default_metric):
-            return _phi_structure(subsystem, **kwargs)
+            return _phi_structure(system, **kwargs)

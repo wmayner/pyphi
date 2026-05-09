@@ -3,7 +3,7 @@ import numpy as np
 from pyphi.node import Node
 from pyphi.node import expand_node_tpm
 from pyphi.node import generate_nodes
-from pyphi.subsystem import Subsystem
+from pyphi.system import System
 from pyphi.tpm import ExplicitTPM
 
 
@@ -50,7 +50,7 @@ def test_node_neq_by_index(s):
 
 
 def test_node_neq_by_state(s):
-    other_s = Subsystem(s.network, (1, 1, 1), s.node_indices)
+    other_s = System(s.substrate, (1, 1, 1), s.node_indices)
     assert other_s.nodes[1] != Node(s.cause_tpm, s.effect_tpm, s.cm, 1, 0, "B")
 
 

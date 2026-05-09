@@ -8,10 +8,10 @@ validate registered objects against these Protocols at registration time, so
 wrong-shape registrations fail at import — not at the bottom of a long phi
 computation.
 
-Also declares the public-surface contract for ``Subsystem`` as
-:class:`SubsystemPublicInterface`. This is the cross-module contract the
-forthcoming subsystem rewrite must satisfy. ``test/test_subsystem_surface.py``
-fails CI if ``Subsystem``'s public surface drifts from this declaration.
+Also declares the public-surface contract for ``System`` as
+:class:`SystemPublicInterface`. This is the cross-module contract the
+forthcoming system rewrite must satisfy. ``test/test_system_surface.py``
+fails CI if ``System``'s public surface drifts from this declaration.
 """
 
 from __future__ import annotations
@@ -23,14 +23,14 @@ from typing import Protocol
 from typing import runtime_checkable
 
 __all__ = [
-    "PUBLIC_SUBSYSTEM_ATTRS",
+    "PUBLIC_SYSTEM_ATTRS",
     "DistanceMetric",
     "MechanismPartition",
     "MechanismPartitionScheme",
-    "SubsystemInternalInterface",
-    "SubsystemPublicInterface",
+    "SystemInternalInterface",
     "SystemPartitionLike",
     "SystemPartitionScheme",
+    "SystemPublicInterface",
 ]
 
 
@@ -74,7 +74,7 @@ class MechanismPartition(Protocol):
     is iterable over its constituent :class:`pyphi.models.cuts.Part` objects.
 
     This Protocol distinguishes mechanism-level partitions (Eqs. 5-7,
-    used by ``Subsystem.find_mip`` for distinctions) from system-level
+    used by ``System.find_mip`` for distinctions) from system-level
     partitions (Eqs. 14-18, used by SIA). The two have different
     mathematical roles and different probability constructions; making
     the distinction explicit in the type system prevents accidental
@@ -157,19 +157,18 @@ class SystemPartitionScheme(Protocol):
 
 
 # =============================================================================
-# Subsystem public surface
+# System public surface
 # =============================================================================
-PUBLIC_SUBSYSTEM_ATTRS: frozenset[str] = frozenset(
+PUBLIC_SYSTEM_ATTRS: frozenset[str] = frozenset(
     {
         # Construction-time attributes
-        "causal_model",
         "cause_tpm",
         "cm",
         "cut",
         "effect_tpm",
         "external_indices",
-        "from_network",
-        "network",
+        "from_substrate",
+        "substrate",
         "node_indices",
         "node_labels",
         "nodes",
@@ -212,6 +211,22 @@ PUBLIC_SUBSYSTEM_ATTRS: frozenset[str] = frozenset(
         "effect_info",
         "cause_effect_info",
         "intrinsic_information",
+        # Formalism-level convenience dispatchers
+        "sia",
+        "find_mip",
+        "cause_mip",
+        "effect_mip",
+        "phi_cause_mip",
+        "phi_effect_mip",
+        "phi",
+        "find_mice",
+        "mic",
+        "mie",
+        "phi_max",
+        "concept",
+        "distinction",
+        "all_distinctions",
+        "evaluate_partition",
         # Utilities
         "apply_cut",
         "potential_purviews",
@@ -221,28 +236,28 @@ PUBLIC_SUBSYSTEM_ATTRS: frozenset[str] = frozenset(
         "to_json",
     }
 )
-"""Names that must remain on ``Subsystem``'s public surface.
+"""Names that must remain on ``System``'s public surface.
 
-Maintained in lockstep with the class via ``test/test_subsystem_surface.py``,
+Maintained in lockstep with the class via ``test/test_system_surface.py``,
 which fails CI on any drift. Tighten or expand this set deliberately as part
 of an explicit refactor; do not let drift accumulate."""
 
 
 @runtime_checkable
-class SubsystemPublicInterface(Protocol):
-    """The cross-module contract for ``Subsystem``.
+class SystemPublicInterface(Protocol):
+    """The cross-module contract for ``System``.
 
-    Generated from ``dir(Subsystem)`` plus instance attributes set in
+    Generated from ``dir(System)`` plus instance attributes set in
     ``__init__``, filtered to the names that actually appear in cross-module
     accesses inside ``pyphi/``. Internal-only members (callable from inside
-    ``Subsystem`` itself but not by external callers) are kept on the class
+    ``System`` itself but not by external callers) are kept on the class
     but excluded from this Protocol.
 
     The members are typed ``Any`` here because their concrete signatures are
     in flux until the formalism split and metric-API unification land. The
     Protocol's role at this stage is **structural conformance and drift
     detection** — the type system enforces that any caller annotated against
-    ``SubsystemPublicInterface`` only touches names that ``Subsystem``
+    ``SystemPublicInterface`` only touches names that ``System``
     actually exposes. Concrete signatures will be added incrementally.
     """
 
@@ -252,7 +267,7 @@ class SubsystemPublicInterface(Protocol):
     cut: Any
     effect_tpm: Any
     external_indices: Any
-    network: Any
+    substrate: Any
     node_indices: Any
     node_labels: Any
     nodes: Any
@@ -260,8 +275,7 @@ class SubsystemPublicInterface(Protocol):
     proper_cm: Any
     proper_effect_tpm: Any
     state: Any
-    causal_model: Any
-    from_network: Callable[..., Any]
+    from_substrate: Callable[..., Any]
     # Properties
     connectivity_matrix: Any
     cut_indices: Any
@@ -297,6 +311,22 @@ class SubsystemPublicInterface(Protocol):
     effect_info: Callable[..., Any]
     cause_effect_info: Callable[..., Any]
     intrinsic_information: Callable[..., Any]
+    # Formalism-level convenience dispatchers
+    sia: Callable[..., Any]
+    find_mip: Callable[..., Any]
+    cause_mip: Callable[..., Any]
+    effect_mip: Callable[..., Any]
+    phi_cause_mip: Callable[..., Any]
+    phi_effect_mip: Callable[..., Any]
+    phi: Callable[..., Any]
+    find_mice: Callable[..., Any]
+    mic: Callable[..., Any]
+    mie: Callable[..., Any]
+    phi_max: Callable[..., Any]
+    concept: Callable[..., Any]
+    distinction: Callable[..., Any]
+    all_distinctions: Callable[..., Any]
+    evaluate_partition: Callable[..., Any]
     # Utilities
     apply_cut: Callable[..., Any]
     potential_purviews: Callable[..., Any]
@@ -306,13 +336,13 @@ class SubsystemPublicInterface(Protocol):
     to_json: Callable[..., Any]
 
 
-class SubsystemInternalInterface(Protocol):
-    """Internal-only members of ``Subsystem`` — not part of the cross-module
+class SystemInternalInterface(Protocol):
+    """Internal-only members of ``System`` — not part of the cross-module
     contract.
 
-    These names are referenced only from ``Subsystem`` itself (and the
+    These names are referenced only from ``System`` itself (and the
     macro/actual-causation modules that subclass it). The forthcoming
-    subsystem rewrite is free to rename, restructure, or remove them
+    system rewrite is free to rename, restructure, or remove them
     without affecting external callers. They are listed here so changes
     can be tracked — additions or removals should be intentional, not
     incidental.

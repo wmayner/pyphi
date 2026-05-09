@@ -1,6 +1,6 @@
 import pytest
 
-pytestmark = pytest.mark.skip(reason="P7b: MacroSubsystem port pending")
+pytestmark = pytest.mark.skip(reason="P7b: MacroSystem port pending")
 
 import numpy as np  # noqa: E402
 
@@ -34,7 +34,7 @@ def _iit_30_config_for_macro_tests(request):
 
 
 @pytest.fixture()
-def macro_subsystem():
+def macro_system():
     tpm = np.zeros((16, 4)) + 0.3
     tpm[12:, 0:2] = 1
     tpm[3, 2:4] = 1
@@ -53,26 +53,26 @@ def macro_subsystem():
 
     state = (0, 0, 0, 0)
 
-    network = pyphi.Network(tpm, cm=cm, node_labels="ABCD")
+    substrate = pyphi.Substrate(tpm, cm=cm, node_labels="ABCD")
 
     partition = ((0, 1), (2, 3))
     grouping = (((0, 1), (2,)), ((0, 1), (2,)))
     coarse_grain = macro.CoarseGrain(partition, grouping)
 
-    return macro.MacroSubsystem(
-        network, state, network.node_indices, coarse_grain=coarse_grain
+    return macro.MacroSystem(
+        substrate, state, substrate.node_indices, coarse_grain=coarse_grain
     )
 
 
-def test_cut_indices(macro_subsystem, s):
-    assert macro_subsystem.cut_indices == (0, 1, 2, 3)
-    micro = macro.MacroSubsystem(s.network, s.state, s.node_indices)
+def test_cut_indices(macro_system, s):
+    assert macro_system.cut_indices == (0, 1, 2, 3)
+    micro = macro.MacroSystem(s.substrate, s.state, s.node_indices)
     assert micro.cut_indices == (0, 1, 2)
 
 
-def test_cut_mechanisms(macro_subsystem, propagation_delay):
+def test_cut_mechanisms(macro_system, propagation_delay):
     cut = SystemPartition(Direction.EFFECT, (0,), (1, 2, 3))
-    assert list(macro_subsystem.apply_cut(cut).cut_mechanisms) == [(0,), (0, 1)]
+    assert list(macro_system.apply_cut(cut).cut_mechanisms) == [(0,), (0, 1)]
 
     cut = SystemPartition(Direction.EFFECT, (1, 3), (0, 2, 4, 5, 6, 7))
     assert list(propagation_delay.apply_cut(cut).cut_mechanisms) == [
@@ -85,28 +85,28 @@ def test_cut_mechanisms(macro_subsystem, propagation_delay):
     ]
 
 
-def test_cut_node_labels_are_for_micro_elements(macro_subsystem):
-    assert macro_subsystem.cut_node_labels == macro_subsystem.network.node_labels
-    assert macro_subsystem.cut_node_labels != macro_subsystem.node_labels
+def test_cut_node_labels_are_for_micro_elements(macro_system):
+    assert macro_system.cut_node_labels == macro_system.substrate.node_labels
+    assert macro_system.cut_node_labels != macro_system.node_labels
 
 
 # NOTE: test_concept_str_uses_macro_node_labels was removed because it had a broadcasting
-# error due to macro subsystem TPM shape incompatibilities.
+# error due to macro system TPM shape incompatibilities.
 
 
 def test_node_indices_can_be_none(s):
-    ms = macro.MacroSubsystem(s.network, s.state)
+    ms = macro.MacroSystem(s.substrate, s.state)
     assert ms.micro_node_indices == (0, 1, 2)
 
 
 def test_pass_node_indices_as_a_range(s):
     # Test that node_indices can be a `range`
-    macro.MacroSubsystem(s.network, s.state, range(s.size))
+    macro.MacroSystem(s.substrate, s.state, range(s.size))
 
 
-def test_node_labels(macro_subsystem):
-    assert macro_subsystem.nodes[0].label == "m0"
-    assert macro_subsystem.nodes[1].label == "m1"
+def test_node_labels(macro_system):
+    assert macro_system.nodes[0].label == "m0"
+    assert macro_system.nodes[1].label == "m1"
 
 
 # answer_cm = np.array([
@@ -120,7 +120,7 @@ answer_cm = np.ones((2, 2))
 EPSILON = 10 ** (-config.numerics.precision)
 
 
-def test_macro_subsystem(macro_subsystem):
+def test_macro_system(macro_system):
     # fmt: off
     answer_tpm = np.array([
         [0.09, 0.09],
@@ -129,17 +129,17 @@ def test_macro_subsystem(macro_subsystem):
         [1.00, 1.00],
     ])
     # fmt: on
-    assert np.array_equal(macro_subsystem.cm, answer_cm)
+    assert np.array_equal(macro_system.cm, answer_cm)
     assert np.allclose(
-        macro_subsystem.effect_tpm.tpm.reshape([4, 2], order="f"),
+        macro_system.effect_tpm.tpm.reshape([4, 2], order="f"),
         answer_tpm,
         rtol=EPSILON,
     )
 
 
-def test_macro_cut_subsystem(macro_subsystem):
+def test_macro_cut_system(macro_system):
     cut = SystemPartition(Direction.EFFECT, (0,), (1, 2, 3))
-    cut_subsystem = macro_subsystem.apply_cut(cut)
+    cut_system = macro_system.apply_cut(cut)
     # fmt: off
     answer_tpm = np.array([
         [0.09, 0.20083333],
@@ -148,9 +148,9 @@ def test_macro_cut_subsystem(macro_subsystem):
         [1.00, 0.4225    ],
     ])
     # fmt: on
-    assert np.array_equal(cut_subsystem.cm, answer_cm)
+    assert np.array_equal(cut_system.cm, answer_cm)
     assert np.allclose(
-        cut_subsystem.effect_tpm.tpm.reshape([4, 2], order="f"),
+        cut_system.effect_tpm.tpm.reshape([4, 2], order="f"),
         answer_tpm,
         rtol=EPSILON,
     )
@@ -264,33 +264,33 @@ def test_run_tpm():
 # NOTE: test_macro_cut_is_for_micro_indices was removed because it was outdated.
 
 
-def test_subsystem_equality(s):
-    macro_subsys = macro.MacroSubsystem(s.network, s.state, s.node_indices)
+def test_system_equality(s):
+    macro_subsys = macro.MacroSystem(s.substrate, s.state, s.node_indices)
     assert s != macro_subsys
     assert hash(s) != hash(macro_subsys)
 
     blackbox = macro.Blackbox(((0, 1, 2),), (2,))
-    macro_subsys_bb = macro.MacroSubsystem(
-        s.network, s.state, s.node_indices, blackbox=blackbox, time_scale=2
+    macro_subsys_bb = macro.MacroSystem(
+        s.substrate, s.state, s.node_indices, blackbox=blackbox, time_scale=2
     )
     assert macro_subsys != macro_subsys_bb
     assert hash(macro_subsys) != hash(macro_subsys_bb)
 
     coarse_grain = macro.CoarseGrain(((0, 1), (2,)), (((0, 1), (2,)), ((0,), (1,))))
-    macro_subsys_cg = macro.MacroSubsystem(
-        s.network, s.state, s.node_indices, coarse_grain=coarse_grain
+    macro_subsys_cg = macro.MacroSystem(
+        s.substrate, s.state, s.node_indices, coarse_grain=coarse_grain
     )
     assert macro_subsys != macro_subsys_cg
     assert hash(macro_subsys) != hash(macro_subsys_cg)
 
 
-# Test MacroSubsystem initialization
+# Test MacroSystem initialization
 # ===============================================================
 
 
 def test_blackbox(s):
-    ms = macro.MacroSubsystem(
-        s.network, s.state, s.node_indices, blackbox=macro.Blackbox(((0, 1, 2),), (1,))
+    ms = macro.MacroSystem(
+        s.substrate, s.state, s.node_indices, blackbox=macro.Blackbox(((0, 1, 2),), (1,))
     )
     assert np.array_equal(ms.effect_tpm.tpm, np.array([[0.5], [0.5]]))
     assert np.array_equal(ms.cm, np.array([[1]]))
@@ -300,8 +300,8 @@ def test_blackbox(s):
 
 def test_blackbox_external(s):
     # Which is the same if one of these indices is external
-    ms = macro.MacroSubsystem(
-        s.network, s.state, (1, 2), blackbox=macro.Blackbox(((1, 2),), (1,))
+    ms = macro.MacroSystem(
+        s.substrate, s.state, (1, 2), blackbox=macro.Blackbox(((1, 2),), (1,))
     )
     assert np.array_equal(ms.effect_tpm.tpm, np.array([[0.5], [0.5]]))
     assert np.array_equal(ms.cm, np.array([[1]]))
@@ -313,8 +313,8 @@ def test_coarse_grain(s):
     coarse_grain = macro.CoarseGrain(
         partition=((0, 1), (2,)), grouping=((((0, 1), (2,)), ((0,), (1,))))
     )
-    ms = macro.MacroSubsystem(
-        s.network, s.state, s.node_indices, coarse_grain=coarse_grain
+    ms = macro.MacroSystem(
+        s.substrate, s.state, s.node_indices, coarse_grain=coarse_grain
     )
     # fmt: off
     answer_tpm = np.array(
@@ -334,8 +334,12 @@ def test_coarse_grain(s):
 def test_blackbox_and_coarse_grain(s):
     blackbox = macro.Blackbox(((0, 1, 2),), (0, 2))
     coarse_grain = macro.CoarseGrain(partition=((0, 2),), grouping=((((0, 1), (2,)),)))
-    ms = macro.MacroSubsystem(
-        s.network, s.state, s.node_indices, blackbox=blackbox, coarse_grain=coarse_grain
+    ms = macro.MacroSystem(
+        s.substrate,
+        s.state,
+        s.node_indices,
+        blackbox=blackbox,
+        coarse_grain=coarse_grain,
     )
     assert np.array_equal(ms.effect_tpm.tpm, np.array([[0], [1]]))
     assert np.array_equal(ms.cm, [[1]])
@@ -347,7 +351,7 @@ def test_blackbox_and_coarse_grain(s):
 def test_blackbox_and_coarse_grain_external():
     # Larger, with external nodes, blackboxed and coarse-grained
     tpm = np.zeros((2**6, 6))
-    network = pyphi.Network(tpm)
+    substrate = pyphi.Substrate(tpm)
     state = (0, 0, 0, 0, 0, 0)
 
     blackbox = macro.Blackbox(
@@ -362,8 +366,8 @@ def test_blackbox_and_coarse_grain_external():
     partition = ((1,), (2,), (3, 5))
     grouping = (((0,), (1,)), ((1,), (0,)), ((0,), (1, 2)))
     coarse_grain = macro.CoarseGrain(partition, grouping)
-    ms = macro.MacroSubsystem(
-        network, state, (1, 2, 3, 4, 5), blackbox=blackbox, coarse_grain=coarse_grain
+    ms = macro.MacroSystem(
+        substrate, state, (1, 2, 3, 4, 5), blackbox=blackbox, coarse_grain=coarse_grain
     )
     # fmt: off
     answer_tpm = np.array(
@@ -408,8 +412,8 @@ class TestMacroEmergenceIIT30:
     @pytest.mark.xfail(
         strict=True,
         reason=(
-            "Broadcasting bug in pyphi/subsystem.py:380 (_cause_repertoire) "
-            "exercised only by blackbox+coarse-grain macro subsystems. "
+            "Broadcasting bug in pyphi/system.py:380 (_cause_repertoire) "
+            "exercised only by blackbox+coarse-grain macro systems. "
             "See docstring for traceback. strict=True so an accidental fix "
             "surfaces as XPASS."
         ),
@@ -417,32 +421,32 @@ class TestMacroEmergenceIIT30:
     def test_blackbox_emergence(self):
         """Test emergence with blackbox and coarse-grain (IIT 3.0).
 
-        This test uses a macro network and computes emergence with both
+        This test uses a macro substrate and computes emergence with both
         blackbox and coarse-grain transformations. The expected values
         (``phi=0.713678``, ``emergence=0.599789``) are from the original
         IIT 3.0 implementation and should be the target for any fix.
 
         Current failure::
 
-            File "pyphi/subsystem.py", line 380, in _cause_repertoire
+            File "pyphi/system.py", line 380, in _cause_repertoire
                 joint *= functools.reduce(
             ValueError: non-broadcastable output operand with shape
             (2,1,1,1) doesn't match the broadcast shape (2,1,1,2)
 
         ``_cause_repertoire`` preallocates ``joint`` with
-        ``repertoire_shape(self.network.node_indices, purview)`` and then
+        ``repertoire_shape(self.substrate.node_indices, purview)`` and then
         multiplies it by the reduction of per-node cause repertoires. On the
         blackbox+coarse-grain path the per-node cause repertoires come back
         with an extra non-singleton dimension that isn't present in the
         preallocated shape, so the in-place multiply fails. The fix belongs
-        in the macro subsystem / blackbox TPM preparation code, not here.
+        in the macro system / blackbox TPM preparation code, not here.
         """
-        network = pyphi.examples.macro_network()
+        substrate = pyphi.examples.macro_substrate()
         state = (0, 0, 0, 0)
 
         with config.override(progress_bars=False):
             result = macro.emergence(
-                network,
+                substrate,
                 state,
                 do_blackbox=True,
                 do_coarse_grain=True,
@@ -467,7 +471,7 @@ class TestMacroEmergenceIIT30:
 def test_macro2micro(s):
     # Only blackboxing
     blackbox = macro.Blackbox(((0, 2), (1,)), (1, 2))
-    subsys = macro.MacroSubsystem(s.network, s.state, s.node_indices, blackbox=blackbox)
+    subsys = macro.MacroSystem(s.substrate, s.state, s.node_indices, blackbox=blackbox)
     assert subsys.macro2micro((0,)) == (0, 2)
     assert subsys.macro2micro((1,)) == (1,)
     assert subsys.macro2micro((1, 0)) == (0, 1, 2)
@@ -478,8 +482,8 @@ def test_macro2micro(s):
 
     # Only coarse-graining
     coarse_grain = macro.CoarseGrain(((0,), (1, 2)), (((0,), (1,)), ((0,), (1, 2))))
-    subsys = macro.MacroSubsystem(
-        s.network, s.state, s.node_indices, coarse_grain=coarse_grain
+    subsys = macro.MacroSystem(
+        s.substrate, s.state, s.node_indices, coarse_grain=coarse_grain
     )
     assert subsys.macro2micro((0,)) == (0,)
     assert subsys.macro2micro((1,)) == (1, 2)
@@ -491,15 +495,19 @@ def test_macro2micro(s):
     # Blackboxing and coarse-graining
     blackbox = macro.Blackbox(((0, 2), (1,)), (1, 2))
     coarse_grain = macro.CoarseGrain(((1, 2),), (((0,), (1, 2)),))
-    subsys = macro.MacroSubsystem(
-        s.network, s.state, s.node_indices, blackbox=blackbox, coarse_grain=coarse_grain
+    subsys = macro.MacroSystem(
+        s.substrate,
+        s.state,
+        s.node_indices,
+        blackbox=blackbox,
+        coarse_grain=coarse_grain,
     )
     assert subsys.macro2micro((0,)) == (0, 1, 2)
 
     assert subsys.macro2blackbox_outputs((0,)) == (1, 2)
 
     # Pure micro
-    subsys = macro.MacroSubsystem(s.network, s.state, s.node_indices)
+    subsys = macro.MacroSystem(s.substrate, s.state, s.node_indices)
     assert subsys.macro2micro((1,)) == (1,)
     assert subsys.macro2micro((0, 1)) == (0, 1)
 
@@ -509,7 +517,7 @@ def test_macro2micro(s):
 
 def test_blackbox_partial_noise(s):
     blackbox = macro.Blackbox(((0,), (1, 2)), (0, 1))
-    subsys = macro.MacroSubsystem(s.network, s.state, s.node_indices, blackbox=blackbox)
+    subsys = macro.MacroSystem(s.substrate, s.state, s.node_indices, blackbox=blackbox)
 
     noised = subsys._blackbox_partial_noise(blackbox, macro.SystemAttrs.pack(s))
 

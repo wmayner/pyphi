@@ -141,8 +141,8 @@ class TestDistanceResultValuesArray:
 
     def test_values_array_drops_metadata(self):
         results = [
-            DistanceResult(0.5, method="EMD", subsystem="ABC"),
-            DistanceResult(0.3, method="L1", subsystem="DEF"),
+            DistanceResult(0.5, method="EMD", system="ABC"),
+            DistanceResult(0.3, method="L1", system="DEF"),
         ]
         arr = DistanceResult.values_array(results)
         # Float array; no way for metadata to come along

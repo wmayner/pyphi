@@ -167,7 +167,7 @@ class Wrapper(metaclass=ProxyMetaclass):
 
 
 class ExplicitTPM(data_structures.ArrayLike):
-    """An explicit network TPM in multidimensional form."""
+    """An explicit substrate TPM in multidimensional form."""
 
     _VALUE_ATTR = "_tpm"
 
@@ -280,7 +280,7 @@ class ExplicitTPM(data_structures.ArrayLike):
             * multidimensional state-by-node form.
         """
         see_tpm_docs = (
-            "See the documentation on TPM conventions and the `pyphi.Network` "
+            "See the documentation on TPM conventions and the `pyphi.Substrate` "
             "object for more information on TPM forms."
         )
         tpm = self._tpm
@@ -433,12 +433,12 @@ class ExplicitTPM(data_structures.ArrayLike):
             state (tuple[int]): The state of the fixed nodes.
 
         Returns:
-            ExplicitTPM: The TPM of just the subsystem of the free nodes.
+            ExplicitTPM: The TPM of just the system of the free nodes.
 
         Examples:
             >>> from pyphi import examples
             >>> # Get the TPM for nodes only 1 and 2, conditioned on node 0 = OFF
-            >>> examples.grid3_network().tpm.subtpm((0,), (0,))
+            >>> examples.grid3_substrate().tpm.subtpm((0,), (0,))
             ExplicitTPM([[[[0.02931223 0.04742587]
                [0.07585818 0.88079708]]
             <BLANKLINE>
@@ -453,7 +453,7 @@ class ExplicitTPM(data_structures.ArrayLike):
 
     def expand_tpm(self) -> ExplicitTPM:
         """Broadcast a state-by-node TPM so that singleton dimensions are expanded
-        over the full network.
+        over the full substrate.
         """
         unconstrained = np.ones([2] * (self._tpm.ndim - 1) + [self._tpm.shape[-1]])
         return type(self)(self._tpm * unconstrained)
@@ -461,7 +461,7 @@ class ExplicitTPM(data_structures.ArrayLike):
     def infer_edge(self, a: int, b: int, contexts: tuple[tuple[int, ...], ...]) -> bool:
         """Infer the presence or absence of an edge from node A to node B.
 
-        Let |S| be the set of all nodes in a network. Let |A' = S - {A}|. We
+        Let |S| be the set of all nodes in a substrate. Let |A' = S - {A}|. We
         call the state of |A'| the context |C| of |A|. There is an edge from |A|
         to |B| if there exists any context |C(A)| such that
         |Pr(B | C(A), A=0) != Pr(B | C(A), A=1)|.
@@ -495,9 +495,9 @@ class ExplicitTPM(data_structures.ArrayLike):
         multidimensional form.
         """
         tpm = self.to_multidimensional_state_by_node()
-        network_size = tpm.shape[-1]
-        all_contexts = tuple(all_states(network_size - 1))
-        cm = np.empty((network_size, network_size), dtype=int)
+        substrate_size = tpm.shape[-1]
+        all_contexts = tuple(all_states(substrate_size - 1))
+        cm = np.empty((substrate_size, substrate_size), dtype=int)
         for a, b in np.ndindex(cm.shape):
             cm[a][b] = self.infer_edge(a, b, all_contexts)
         return cm
@@ -548,14 +548,14 @@ class ExplicitTPM(data_structures.ArrayLike):
         return self._hash
 
 
-def reconstitute_tpm(subsystem: Any) -> NDArray[np.float64]:
-    """Reconstitute the TPM of a subsystem using the individual node TPMs."""
+def reconstitute_tpm(system: Any) -> NDArray[np.float64]:
+    """Reconstitute the TPM of a system using the individual node TPMs."""
     # The last axis of the node TPMs correponds to ON or OFF probabilities
     # (used in the conditioning step when calculating the repertoires); we want
     # ON probabilities.
-    node_tpms = [node.effect_tpm.tpm[..., 1] for node in subsystem.nodes]
+    node_tpms = [node.effect_tpm.tpm[..., 1] for node in system.nodes]
     # Remove the singleton dimensions corresponding to external nodes
-    node_tpms = [tpm.squeeze(axis=subsystem.external_indices) for tpm in node_tpms]
+    node_tpms = [tpm.squeeze(axis=system.external_indices) for tpm in node_tpms]
     # We add a new singleton axis at the end so that we can use
     # pyphi.tpm.expand_tpm, which expects a state-by-node TPM (where the last
     # axis corresponds to nodes.)
@@ -703,7 +703,7 @@ def backward_tpm(
     system_indices: Iterable[int],
     remove_background: bool = False,
 ) -> ExplicitTPM:
-    """Compute the backward TPM for a given network state."""
+    """Compute the backward TPM for a given substrate state."""
     all_indices = tuple(range(forward_tpm.number_of_units))
     system_indices = tuple(sorted(system_indices))
     background_indices = tuple(sorted(set(all_indices) - set(system_indices)))

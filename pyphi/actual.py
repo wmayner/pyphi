@@ -1,12 +1,12 @@
 # actual.py
 """
-Methods for computing actual causation of subsystems and mechanisms.
+Methods for computing actual causation of systems and mechanisms.
 
 If you use this module, please cite the following papers:
 
     Albantakis L, Marshall W, Hoel E, Tononi G (2019).
     What Caused What? A quantitative Account of Actual Causation Using
-    Dynamical Causal Networks.
+    Dynamical Causal Substrates.
     *Entropy*, 21 (5), pp. 459.
     `<https://doi.org/10.3390/e21050459>`_
 
@@ -45,26 +45,26 @@ from .models import _null_ac_sia
 from .models import fmt
 from .parallel import MapReduce
 from .partition import mip_partitions
-from .subsystem import Subsystem
+from .system import System
 
 log = logging.getLogger(__name__)
 
 
 class Transition:
-    """A state transition between two sets of nodes in a network.
+    """A state transition between two sets of nodes in a substrate.
 
-    A |Transition| is implemented with two |Subsystem| objects: one
+    A |Transition| is implemented with two |System| objects: one
     representing the system at time |t-1| used to compute effect coefficients,
     and another representing the system at time |t| which is used to compute
-    cause coefficients. These subsystems are accessed with the
+    cause coefficients. These systems are accessed with the
     ``effect_system`` and ``cause_system`` attributes, and are mapped to the
     causal directions via the ``system`` attribute.
 
     Args:
-        network (Network): The network the subsystem belongs to.
-        before_state (tuple[int]): The state of the network at
+        substrate (Substrate): The substrate the system belongs to.
+        before_state (tuple[int]): The state of the substrate at
             time |t-1|.
-        after_state (tuple[int]): The state of the network at
+        after_state (tuple[int]): The state of the substrate at
             time |t|.
         cause_indices (tuple[int] or tuple[str]): Indices of nodes in the cause
             system. (TODO: clarify)
@@ -77,12 +77,12 @@ class Transition:
 
     Attributes:
         node_indices (tuple[int]): The indices of the nodes in the system.
-        network (Network): The network the system belongs to.
-        before_state (tuple[int]): The state of the network at time |t-1|.
-        after_state (tuple[int]): The state of the network at time |t|.
-        effect_system (Subsystem): The system in ``before_state`` used to
+        substrate (Substrate): The substrate the system belongs to.
+        before_state (tuple[int]): The state of the substrate at time |t-1|.
+        after_state (tuple[int]): The state of the substrate at time |t|.
+        effect_system (System): The system in ``before_state`` used to
             compute effect repertoires and coefficients.
-        cause_system (Subsystem): The system in ``after_state`` used to compute
+        cause_system (System): The system in ``after_state`` used to compute
             cause repertoires and coefficients.
         system (dict): A dictionary mapping causal directions to the system
             used to compute repertoires in that direction.
@@ -97,7 +97,7 @@ class Transition:
 
     def __init__(
         self,
-        network,
+        substrate,
         before_state,
         after_state,
         cause_indices,
@@ -105,7 +105,7 @@ class Transition:
         cut=None,
         noise_background=False,
     ):
-        self.network = network
+        self.substrate = substrate
         self.before_state = before_state
         self.after_state = after_state
 
@@ -129,30 +129,30 @@ class Transition:
         else:
             # Otherwise, freeze the background conditions.
             external_indices = tuple(
-                sorted(set(network.node_indices) - set(cause_indices))
+                sorted(set(substrate.node_indices) - set(cause_indices))
             )
 
         # Both are conditioned on the `before_state`, but we then change the
         # state of the cause context to `after_state` to reflect the fact that
         # that we are computing cause repertoires of mechanisms in that state.
-        with config.override(validate_subsystem_states=False):
-            self.effect_system = Subsystem(
-                network,
+        with config.override(validate_system_states=False):
+            self.effect_system = System(  # pyright: ignore[reportCallIssue]
+                substrate,
                 before_state,
                 self.node_indices,
                 self.cut,  # pyright: ignore[reportArgumentType]
-                _external_indices=external_indices,
+                _external_indices=external_indices,  # pyright: ignore[reportCallIssue]
             )
 
-            self.cause_system = Subsystem(
-                network,
+            self.cause_system = System(  # pyright: ignore[reportCallIssue]
+                substrate,
                 before_state,
                 self.node_indices,
                 self.cut,  # pyright: ignore[reportArgumentType]
-                _external_indices=external_indices,
+                _external_indices=external_indices,  # pyright: ignore[reportCallIssue]
             )
 
-        self.cause_system.state = after_state
+        self.cause_system.state = after_state  # pyright: ignore[reportAttributeAccessIssue]
         for node in self.cause_system.nodes:
             node.state = after_state[node.index]
 
@@ -180,7 +180,7 @@ class Transition:
             and self.effect_indices == other.effect_indices
             and self.before_state == other.before_state
             and self.after_state == other.after_state
-            and self.network == other.network
+            and self.substrate == other.substrate
             and self.cut == other.cut
         )
 
@@ -191,7 +191,7 @@ class Transition:
                 self.effect_indices,
                 self.before_state,
                 self.after_state,
-                self.network,
+                self.substrate,
                 self.cut,
             )
         )
@@ -204,12 +204,12 @@ class Transition:
 
     @property
     def node_labels(self):
-        return self.network.node_labels
+        return self.substrate.node_labels
 
     def to_json(self):
         """Return a JSON-serializable representation."""
         return {
-            "network": self.network,
+            "substrate": self.substrate,
             "before_state": self.before_state,
             "after_state": self.after_state,
             "cause_indices": self.cause_indices,
@@ -220,7 +220,7 @@ class Transition:
     def apply_cut(self, cut):
         """Return a cut version of this transition."""
         return Transition(
-            self.network,
+            self.substrate,
             self.before_state,
             self.after_state,
             self.cause_indices,
@@ -293,10 +293,11 @@ class Transition:
         system = self.system[direction]
 
         # Determine which nodes the repertoire dimensions correspond to.
-        # If repertoire.ndim equals network size, dimensions are for all network nodes.
-        # If repertoire.ndim equals subsystem size, dimensions are for subsystem nodes.
-        if repertoire.ndim == system.network.size:
-            node_indices = system.network.node_indices
+        # If repertoire.ndim equals substrate size, dimensions are for all
+        # substrate nodes. If repertoire.ndim equals system size, dimensions
+        # are for system nodes.
+        if repertoire.ndim == system.substrate.size:
+            node_indices = system.substrate.node_indices
         else:
             node_indices = system.node_indices
 
@@ -469,7 +470,7 @@ class Transition:
         system = self.system[direction]
         return [
             purview
-            for purview in system.potential_purviews(direction, mechanism, purviews)
+            for purview in system.potential_purviews(direction, mechanism, purviews)  # pyright: ignore[reportCallIssue]
             if set(purview).issubset(self.purview_indices(direction))
         ]
 
@@ -485,7 +486,7 @@ class Transition:
 
         Keyword Args:
             purviews (tuple[int]): Optionally restrict the possible purviews
-                to a subset of the subsystem. This may be useful for _e.g._
+                to a subset of the system. This may be useful for _e.g._
                 finding only concepts that are "about" a certain subset of
                 nodes.
 
@@ -645,7 +646,7 @@ def _evaluate_cut(
 # TODO: implement CUT_ONE approximation?
 def _get_cuts(transition, direction):
     """A list of possible cuts to a transition."""
-    n = transition.network.size
+    n = transition.substrate.size
 
     if direction is Direction.BIDIRECTIONAL:
         yielded = set()
@@ -675,7 +676,7 @@ def sia(transition, direction=Direction.BIDIRECTIONAL, **kwargs):
     Returns:
         AcSystemIrreducibilityAnalysis: A nested structure containing all the
         data from the intermediate calculations. The top level contains the
-        basic irreducibility information for the given subsystem.
+        basic irreducibility information for the given system.
     """
     validate.direction(direction, allow_bi=True)
     log.info("Calculating big-alpha for %s...", transition)
@@ -684,7 +685,7 @@ def sia(transition, direction=Direction.BIDIRECTIONAL, **kwargs):
         log.info("Transition %s is empty; returning null SIA immediately.", transition)
         return _null_ac_sia(transition, direction)
 
-    if not connectivity.is_weak(transition.network.cm, transition.node_indices):
+    if not connectivity.is_weak(transition.substrate.cm, transition.node_indices):
         log.info(
             "%s is not strongly/weakly connected; returning null SIA immediately.",
             transition,
@@ -730,44 +731,46 @@ def sia(transition, direction=Direction.BIDIRECTIONAL, **kwargs):
 
 
 # TODO: Fix this to test whether the transition is possible
-def transitions(network, before_state, after_state):
-    """Return a generator of all **possible** transitions of a network."""
-    # TODO: Does not return subsystems that are in an impossible transitions.
+def transitions(substrate, before_state, after_state):
+    """Return a generator of all **possible** transitions of a substrate."""
+    # TODO: Does not return systems that are in an impossible transitions.
 
     # Elements without inputs are reducibe effects,
     # elements without outputs are reducible causes.
-    possible_causes = np.where(np.sum(network.cm, 1) > 0)[0]
-    possible_effects = np.where(np.sum(network.cm, 0) > 0)[0]
+    possible_causes = np.where(np.sum(substrate.cm, 1) > 0)[0]
+    possible_effects = np.where(np.sum(substrate.cm, 0) > 0)[0]
 
     for cause_subset in utils.powerset(possible_causes, nonempty=True):
         for effect_subset in utils.powerset(possible_effects, nonempty=True):
             with contextlib.suppress(exceptions.StateUnreachableError):
                 yield Transition(
-                    network, before_state, after_state, cause_subset, effect_subset
+                    substrate, before_state, after_state, cause_subset, effect_subset
                 )
 
 
-def nexus(network, before_state, after_state, direction=Direction.BIDIRECTIONAL):
-    """Return a tuple of all irreducible nexus of the network."""
-    validate.is_network(network)
+def nexus(substrate, before_state, after_state, direction=Direction.BIDIRECTIONAL):
+    """Return a tuple of all irreducible nexus of the substrate."""
+    validate.is_substrate(substrate)
 
     sias = (
         sia(transition, direction)
-        for transition in transitions(network, before_state, after_state)
+        for transition in transitions(substrate, before_state, after_state)
     )
     return tuple(sorted(filter(None, sias), reverse=True))
 
 
-def causal_nexus(network, before_state, after_state, direction=Direction.BIDIRECTIONAL):
-    """Return the causal nexus of the network."""
-    validate.is_network(network)
+def causal_nexus(
+    substrate, before_state, after_state, direction=Direction.BIDIRECTIONAL
+):
+    """Return the causal nexus of the substrate."""
+    validate.is_substrate(substrate)
 
     log.info("Calculating causal nexus...")
-    result = nexus(network, before_state, after_state, direction)
+    result = nexus(substrate, before_state, after_state, direction)
     if result:
         result = max(result)
     else:
-        null_transition = Transition(network, before_state, after_state, (), ())
+        null_transition = Transition(substrate, before_state, after_state, (), ())
         result = _null_ac_sia(null_transition, direction)
 
     log.info("Finished calculating causal nexus.")
@@ -815,27 +818,27 @@ def nice_true_ces(tc):
     return true_list
 
 
-def _actual_causes(network, previous_state, current_state, nodes, mechanisms=None):
+def _actual_causes(substrate, previous_state, current_state, nodes, mechanisms=None):
     log.info("Calculating true causes ...")
-    transition = Transition(network, previous_state, current_state, nodes, nodes)
+    transition = Transition(substrate, previous_state, current_state, nodes, nodes)
 
     return directed_account(transition, Direction.CAUSE, mechanisms=mechanisms)
 
 
-def _actual_effects(network, current_state, next_state, nodes, mechanisms=None):
+def _actual_effects(substrate, current_state, next_state, nodes, mechanisms=None):
     log.info("Calculating true effects ...")
-    transition = Transition(network, current_state, next_state, nodes, nodes)
+    transition = Transition(substrate, current_state, next_state, nodes, nodes)
 
     return directed_account(transition, Direction.EFFECT, mechanisms=mechanisms)
 
 
-def events(network, previous_state, current_state, next_state, nodes, mechanisms=None):
+def events(substrate, previous_state, current_state, next_state, nodes, mechanisms=None):
     """Find all events (mechanisms with actual causes and actual effects)."""
     actual_causes = _actual_causes(
-        network, previous_state, current_state, nodes, mechanisms
+        substrate, previous_state, current_state, nodes, mechanisms
     )
     actual_effects = _actual_effects(
-        network, current_state, next_state, nodes, mechanisms
+        substrate, current_state, next_state, nodes, mechanisms
     )
     actual_mechanisms = {c.mechanism for c in actual_causes} & {
         c.mechanism for c in actual_effects
@@ -864,19 +867,19 @@ def events(network, previous_state, current_state, next_state, nodes, mechanisms
 
 # TODO: do we need this? it's just a re-structuring of the `events` results
 # TODO: rename to `actual_ces`?
-def true_ces(subsystem, previous_state, next_state):
+def true_ces(system, previous_state, next_state):
     """Set of all sets of elements that have true causes and true effects.
 
     .. note::
         Since the true |CauseEffectStructure| is always about the full system,
-        the background conditions don't matter and the subsystem should be
+        the background conditions don't matter and the system should be
         conditioned on the current state.
     """
-    network = subsystem.network
-    nodes = subsystem.node_indices
-    state = subsystem.state
+    substrate = system.substrate
+    nodes = system.node_indices
+    state = system.state
 
-    _events = events(network, previous_state, state, next_state, nodes)
+    _events = events(substrate, previous_state, state, next_state, nodes)
 
     if not _events:
         log.info("Finished calculating, no echo events.")
@@ -893,16 +896,21 @@ def true_ces(subsystem, previous_state, next_state):
 
 
 def true_events(
-    network, previous_state, current_state, next_state, indices=None, major_complex=None
+    substrate,
+    previous_state,
+    current_state,
+    next_state,
+    indices=None,
+    major_complex=None,
 ):
     """Return all mechanisms that have true causes and true effects within the
     complex.
 
     Args:
-        network (Network): The network to analyze.
-        previous_state (tuple[int]): The state of the network at ``t - 1``.
-        current_state (tuple[int]): The state of the network at ``t``.
-        next_state (tuple[int]): The state of the network at ``t + 1``.
+        substrate (Substrate): The substrate to analyze.
+        previous_state (tuple[int]): The state of the substrate at ``t - 1``.
+        current_state (tuple[int]): The state of the substrate at ``t``.
+        next_state (tuple[int]): The state of the substrate at ``t + 1``.
 
     Keyword Args:
         indices (tuple[int]): The indices of the major complex.
@@ -915,27 +923,32 @@ def true_events(
     # TODO: validate triplet of states
 
     if major_complex:
-        nodes = major_complex.subsystem.node_indices
+        nodes = major_complex.system.node_indices
     elif indices:
         nodes = indices
     else:
-        major_complex = _iit3.major_complex(network, current_state)
-        nodes = major_complex.subsystem.node_indices  # pyright: ignore[reportOptionalMemberAccess]
+        major_complex = _iit3.major_complex(substrate, current_state)
+        nodes = major_complex.system.node_indices  # pyright: ignore[reportOptionalMemberAccess]
 
-    return events(network, previous_state, current_state, next_state, nodes)
+    return events(substrate, previous_state, current_state, next_state, nodes)
 
 
 def extrinsic_events(
-    network, previous_state, current_state, next_state, indices=None, major_complex=None
+    substrate,
+    previous_state,
+    current_state,
+    next_state,
+    indices=None,
+    major_complex=None,
 ):
     """Set of all mechanisms that are in the major complex but which have true
-    causes and effects within the entire network.
+    causes and effects within the entire substrate.
 
     Args:
-        network (Network): The network to analyze.
-        previous_state (tuple[int]): The state of the network at ``t - 1``.
-        current_state (tuple[int]): The state of the network at ``t``.
-        next_state (tuple[int]): The state of the network at ``t + 1``.
+        substrate (Substrate): The substrate to analyze.
+        previous_state (tuple[int]): The state of the substrate at ``t - 1``.
+        current_state (tuple[int]): The state of the substrate at ``t``.
+        next_state (tuple[int]): The state of the substrate at ``t + 1``.
 
     Keyword Args:
         indices (tuple[int]): The indices of the major complex.
@@ -946,18 +959,18 @@ def extrinsic_events(
         tuple(actions): List of extrinsic events in the major complex.
     """
     if major_complex:
-        mc_nodes = major_complex.subsystem.node_indices
+        mc_nodes = major_complex.system.node_indices
     elif indices:
         mc_nodes = indices
     else:
-        major_complex = _iit3.major_complex(network, current_state)
-        mc_nodes = major_complex.subsystem.node_indices  # pyright: ignore[reportOptionalMemberAccess]
+        major_complex = _iit3.major_complex(substrate, current_state)
+        mc_nodes = major_complex.system.node_indices  # pyright: ignore[reportOptionalMemberAccess]
 
     mechanisms = list(utils.powerset(mc_nodes, nonempty=True))
-    all_nodes = network.node_indices
+    all_nodes = substrate.node_indices
 
     return events(
-        network,
+        substrate,
         previous_state,
         current_state,
         next_state,

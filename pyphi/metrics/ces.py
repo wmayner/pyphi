@@ -128,9 +128,7 @@ def _emd_simple(C1: CauseEffectStructure, C2: CauseEffectStructure) -> float:
     if len(C2) > len(C1):
         C1, C2 = C2, C1
     destroyed = [c1 for c1 in C1 if not any(c1.emd_eq(c2) for c2 in C2)]
-    return sum(
-        c.phi * emd_concept_distance(c, c.subsystem.null_concept) for c in destroyed
-    )
+    return sum(c.phi * emd_concept_distance(c, c.system.null_concept) for c in destroyed)
 
 
 def _emd(unique_C1: CauseEffectStructure, unique_C2: CauseEffectStructure) -> float:
@@ -152,7 +150,7 @@ def _emd(unique_C1: CauseEffectStructure, unique_C2: CauseEffectStructure) -> fl
     #   partitioned-CES concepts will be moved to the null concept.
     distances_to_null = np.array(
         [
-            emd_concept_distance(c, c.subsystem.null_concept)
+            emd_concept_distance(c, c.system.null_concept)
             for ces in (unique_C1, unique_C2)
             for c in ces
         ]

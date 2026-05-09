@@ -5,12 +5,12 @@ These are "golden reference tests" that validate complete SIA computations
 against JSON fixtures stored in test/data/sia/. They ensure that the entire
 computation pipeline produces results matching historical validated outputs.
 
-Test Networks:
-- s: Standard 3-node network (OR, COPY, XOR gates)
-- s_noised: Standard network with noise added to TPM
-- micro_s: 4-node highly connected network
-- macro_s: 2-node stochastic/macro-level network
-- big_subsys_0_thru_3: 4-node subset of 5-node network
+Test Substrates:
+- s: Standard 3-node substrate (OR, COPY, XOR gates)
+- s_noised: Standard substrate with noise added to TPM
+- micro_s: 4-node highly connected substrate
+- macro_s: 2-node stochastic/macro-level substrate
+- big_subsys_0_thru_3: 4-node subset of 5-node substrate
 - big_subsys_all_complete: 5-node complete graph
 - rule152_s: 5-node cellular automaton (rule 152)
 
@@ -21,7 +21,7 @@ robust component-level tests, see test_big_phi_robust.py.
 Test Organization:
 - Configuration tests: Verify config-dependent behavior
 - Golden tests: Compare full SIA against JSON fixtures (both sequential and parallel)
-- Edge case tests: Empty subsystems, single nodes, disconnected networks
+- Edge case tests: Empty systems, single nodes, disconnected substrates
 
 Historical Note:
 These tests represent validated computational results from the PyPhi
@@ -31,6 +31,7 @@ algorithmic behavior remains unchanged.
 
 import pytest
 
+from pyphi import cache as pyphi_cache
 from pyphi import config
 from pyphi.formalism import iit3
 from pyphi.formalism import iit4 as new_big_phi
@@ -43,35 +44,36 @@ from .conftest import skip_if_no_pyemd
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-def test_clear_subsystem_caches_after_computing_sia_config_option(s):
+def test_clear_system_caches_after_computing_sia_config_option(s):
+    pyphi_cache.clear_all()
     with config.override(
-        clear_subsystem_caches_after_computing_sia=False,
+        clear_system_caches_after_computing_sia=False,
         parallel=False,
         cache_repertoires=True,
     ):
         s.sia()
-        assert s._repertoire_cache.cache
+        assert any(stats["size"] > 0 for stats in s.cache_info().values())
 
     with config.override(
-        clear_subsystem_caches_after_computing_sia=True,
+        clear_system_caches_after_computing_sia=True,
         parallel=False,
         cache_repertoires=True,
     ):
         s.sia()
-        assert not s._repertoire_cache.cache
+        assert all(stats["size"] == 0 for stats in s.cache_info().values())
 
 
 def test_conceptual_info(s):
     assert iit3.conceptual_info(s) == 1.0
 
 
-def test_sia_empty_subsystem(s_empty):
+def test_sia_empty_system(s_empty):
     assert s_empty.sia() == new_big_phi.NullSystemIrreducibilityAnalysis(
         node_indices=s_empty.node_indices,
     )
 
 
-def test_sia_disconnected_network(reducible):
+def test_sia_disconnected_substrate(reducible):
     assert reducible.sia() == new_big_phi.NullSystemIrreducibilityAnalysis(
         node_indices=reducible.node_indices,
     )
@@ -89,7 +91,7 @@ def test_sia_single_micro_node_selfloops_have_phi(noisy_selfloop_single):
     - SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=True
     - REPERTOIRE_DISTANCE="EMD"
 
-    Network: Single node with noisy self-loop
+    Substrate: Single node with noisy self-loop
 
     Theoretical basis: Self-loops create cause-effect structure even in
     single-node systems under micro-level analysis. The specific value
@@ -173,13 +175,13 @@ def test_sia_big_subsys_all_complete_parallel(
 
 
 @config.override(parallel=False)
-def test_sia_big_network_0_thru_3_sequential(
+def test_sia_big_substrate_0_thru_3_sequential(
     big_subsys_0_thru_3, big_subsys_0_thru_3_expected_sia
 ):
     assert big_subsys_0_thru_3.sia() == big_subsys_0_thru_3_expected_sia
 
 
-def test_sia_big_network_0_thru_3_parallel(
+def test_sia_big_substrate_0_thru_3_parallel(
     big_subsys_0_thru_3, big_subsys_0_thru_3_expected_sia
 ):
     assert big_subsys_0_thru_3.sia() == big_subsys_0_thru_3_expected_sia
@@ -188,14 +190,14 @@ def test_sia_big_network_0_thru_3_parallel(
 # rule152_s ======================================================
 # Has ties, so just checking big phi for now
 #
-# Note: The rule152 cellular automaton network has tied partitions (multiple
+# Note: The rule152 cellular automaton substrate has tied partitions (multiple
 # partitions with the same phi value). When ties exist, the partition selection
 # may vary between runs while phi remains constant. Therefore, we only check
 # the phi value rather than full SIA equality.
 #
-# Network: 5-node cellular automaton following rule 152
+# Substrate: 5-node cellular automaton following rule 152
 # Expected phi: 0.83...
-# Marked @veryslow: Cellular automaton networks are computationally very expensive
+# Marked @veryslow: Cellular automaton substrates are computationally very expensive
 
 
 @pytest.mark.veryslow
@@ -278,13 +280,13 @@ def test_system_cut_styles(s):
         assert iit3.phi(s) == 0.6875
 
 
-# Not relevant anymore because ces concepts do not store subsystem
+# Not relevant anymore because ces concepts do not store system
 """@pytest.mark.parametrize("parallel", [False, True])
-def test_ces_concepts_share_the_same_subsystem(parallel, s):
+def test_ces_concepts_share_the_same_system(parallel, s):
     with config.override(parallel=parallel):
         ces = iit3.ces(s)
         for concept in ces:
-            assert concept.subsystem is ces.subsystem
+            assert concept.system is ces.system
 """
 
 

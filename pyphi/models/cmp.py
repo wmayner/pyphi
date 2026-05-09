@@ -49,7 +49,7 @@ class Orderable:
     in `unorderable_unless_eq` are not equal then the objects are not orderable
     with respect to one another and a TypeError is raised. For example: it
     doesn't make sense to compare ``Concepts`` unless they are from the same
-    ``Subsystem`` or compare ``MechanismIrreducibilityAnalyses`` with different
+    ``System`` or compare ``MechanismIrreducibilityAnalyses`` with different
     directions.
     """
 

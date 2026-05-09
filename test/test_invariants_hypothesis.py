@@ -26,19 +26,19 @@ from hypothesis import strategies as st
 from pyphi import config
 from pyphi.direction import Direction
 from pyphi.distribution import repertoire_shape
-from pyphi.network import Network
 from pyphi.partition import bipartition
 from pyphi.partition import directed_bipartition
 from pyphi.partition import mip_bipartitions
-from pyphi.subsystem import Subsystem
+from pyphi.substrate import Substrate
+from pyphi.system import System
 
 from .hypothesis_utils import binary_state
 from .hypothesis_utils import mechanism_purview_pair
-from .hypothesis_utils import small_network
-from .hypothesis_utils import small_subsystem
+from .hypothesis_utils import small_substrate
+from .hypothesis_utils import small_system
 
 # Hypothesis settings: keep examples low because each draw constructs a real
-# Subsystem and computes repertoires (~tens of ms apiece on 3 nodes).
+# System and computes repertoires (~tens of ms apiece on 3 nodes).
 # CI-friendly: 25-50 examples per test, no per-example deadline because TPM
 # construction has occasional slow paths.
 DEFAULT_SETTINGS = settings(
@@ -56,7 +56,7 @@ DEFAULT_SETTINGS = settings(
 def _disable_state_validation():
     """Random TPMs frequently produce states with zero past probability;
     state-reachability validation isn't meaningful here."""
-    with config.override(validate_subsystem_states=False):
+    with config.override(validate_system_states=False):
         yield
 
 
@@ -71,7 +71,7 @@ class TestRepertoireProperties:
     @DEFAULT_SETTINGS
     @given(data=st.data())
     def test_cause_repertoire_sums_to_one(self, data):
-        s = data.draw(small_subsystem())
+        s = data.draw(small_system())
         mechanism, purview = data.draw(mechanism_purview_pair(s))
         rep = s.cause_repertoire(mechanism, purview)
         assert math.isclose(float(rep.sum()), 1.0, abs_tol=1e-10), (
@@ -82,7 +82,7 @@ class TestRepertoireProperties:
     @DEFAULT_SETTINGS
     @given(data=st.data())
     def test_effect_repertoire_sums_to_one(self, data):
-        s = data.draw(small_subsystem())
+        s = data.draw(small_system())
         mechanism, purview = data.draw(mechanism_purview_pair(s))
         rep = s.effect_repertoire(mechanism, purview)
         assert math.isclose(float(rep.sum()), 1.0, abs_tol=1e-10), (
@@ -93,7 +93,7 @@ class TestRepertoireProperties:
     @DEFAULT_SETTINGS
     @given(data=st.data())
     def test_cause_repertoire_nonnegative(self, data):
-        s = data.draw(small_subsystem())
+        s = data.draw(small_system())
         mechanism, purview = data.draw(mechanism_purview_pair(s))
         rep = s.cause_repertoire(mechanism, purview)
         assert np.all(np.asarray(rep) >= -1e-12), (
@@ -104,7 +104,7 @@ class TestRepertoireProperties:
     @DEFAULT_SETTINGS
     @given(data=st.data())
     def test_effect_repertoire_nonnegative(self, data):
-        s = data.draw(small_subsystem())
+        s = data.draw(small_system())
         mechanism, purview = data.draw(mechanism_purview_pair(s))
         rep = s.effect_repertoire(mechanism, purview)
         assert np.all(np.asarray(rep) >= -1e-12), (
@@ -115,7 +115,7 @@ class TestRepertoireProperties:
     @DEFAULT_SETTINGS
     @given(data=st.data())
     def test_cause_repertoire_correct_shape(self, data):
-        s = data.draw(small_subsystem())
+        s = data.draw(small_system())
         mechanism, purview = data.draw(mechanism_purview_pair(s))
         rep = s.cause_repertoire(mechanism, purview)
         expected_shape = tuple(repertoire_shape(s.node_indices, purview))
@@ -124,7 +124,7 @@ class TestRepertoireProperties:
     @DEFAULT_SETTINGS
     @given(data=st.data())
     def test_effect_repertoire_correct_shape(self, data):
-        s = data.draw(small_subsystem())
+        s = data.draw(small_system())
         mechanism, purview = data.draw(mechanism_purview_pair(s))
         rep = s.effect_repertoire(mechanism, purview)
         expected_shape = tuple(repertoire_shape(s.node_indices, purview))
@@ -144,7 +144,7 @@ class TestUnconstrainedInvariants:
     @DEFAULT_SETTINGS
     @given(data=st.data())
     def test_empty_mechanism_yields_unconstrained_cause(self, data):
-        s = data.draw(small_subsystem())
+        s = data.draw(small_system())
         purview = data.draw(
             st.lists(
                 st.sampled_from(list(s.node_indices)),
@@ -161,7 +161,7 @@ class TestUnconstrainedInvariants:
     @DEFAULT_SETTINGS
     @given(data=st.data())
     def test_empty_mechanism_yields_unconstrained_effect(self, data):
-        s = data.draw(small_subsystem())
+        s = data.draw(small_system())
         purview = data.draw(
             st.lists(
                 st.sampled_from(list(s.node_indices)),
@@ -197,7 +197,7 @@ class TestMetricInvariants:
         A sign-flip in the EMD reduction would produce negative distances
         and surface here.
         """
-        s = data.draw(small_subsystem())
+        s = data.draw(small_system())
         # Both repertoires must be over the same purview to share shape.
         purview = data.draw(
             st.lists(st.sampled_from(list(s.node_indices)), min_size=1, unique=True).map(
@@ -242,7 +242,7 @@ class TestMetricInvariants:
         sufficient canary; combined with non-negativity and ``find_mip``
         exercising it, the metric machinery is well-covered.
         """
-        s = data.draw(small_subsystem())
+        s = data.draw(small_system())
         purview = data.draw(
             st.lists(st.sampled_from(list(s.node_indices)), min_size=1, unique=True).map(
                 lambda xs: tuple(sorted(xs))
@@ -290,9 +290,9 @@ class TestMetricInvariants:
             formalism="IIT_3_0",
             repertoire_distance="EMD",
             partition_type="BI",
-            validate_subsystem_states=False,
+            validate_system_states=False,
         ):
-            s = data.draw(small_subsystem())
+            s = data.draw(small_system())
             mechanism, purview = data.draw(mechanism_purview_pair(s))
             direction = data.draw(st.sampled_from([Direction.CAUSE, Direction.EFFECT]))
 
@@ -447,7 +447,7 @@ class TestSignedPhi:
     @given(data=st.data())
     def test_phi_is_positive_part_of_signed_phi(self, data):
         """``phi == max(0, signed_phi)`` for any computed SIA."""
-        s = data.draw(small_subsystem())
+        s = data.draw(small_system())
         try:
             sia = s.sia()
         except Exception:
@@ -482,7 +482,7 @@ class TestSignedPhi:
         Mirrors the system-level invariant: the canonical RIA.phi is the
         paper-faithful clamped value; signed_phi preserves the raw value.
         """
-        s = data.draw(small_subsystem())
+        s = data.draw(small_system())
         try:
             ria = s.find_mip(Direction.CAUSE, (0,), (0,))
         except Exception:
@@ -507,22 +507,22 @@ class TestStateSpace:
 
     @DEFAULT_SETTINGS
     @given(n=st.integers(min_value=1, max_value=4))
-    def test_binary_network_has_2n_states(self, n):
+    def test_binary_substrate_has_2n_states(self, n):
         tpm = np.zeros((2**n, n))
         cm = np.eye(n, dtype=int)
-        net = Network(tpm, cm=cm)
+        net = Substrate(tpm, cm=cm)
         assert net.num_states == 2**n
         assert net.size == n
 
     @DEFAULT_SETTINGS
     @given(data=st.data())
-    def test_subsystem_state_matches_network_size(self, data):
+    def test_system_state_matches_substrate_size(self, data):
         from pyphi.exceptions import StateUnreachableBackwardsError
 
-        net = data.draw(small_network())
+        net = data.draw(small_substrate())
         state = data.draw(binary_state(net.size))
         try:
-            sub = Subsystem(net, state, net.node_indices)
+            sub = System(net, state, net.node_indices)
         except StateUnreachableBackwardsError:
             assume(False)
             return

@@ -1,11 +1,11 @@
 import pytest
 
-pytestmark = pytest.mark.skip(reason="P7b: MacroSubsystem port pending")
+pytestmark = pytest.mark.skip(reason="P7b: MacroSystem port pending")
 
 import numpy as np  # noqa: E402
 
 from pyphi import ExplicitTPM  # noqa: E402
-from pyphi import Network  # noqa: E402
+from pyphi import Substrate  # noqa: E402
 from pyphi import config  # noqa: E402
 from pyphi import macro  # noqa: E402
 from pyphi import utils  # noqa: E402
@@ -47,17 +47,17 @@ def degenerate():
 
     current_state = (0, 0, 0, 0, 0, 0)
 
-    network = Network(tpm, cm)
+    substrate = Substrate(tpm, cm)
 
     partition = ((0, 1, 2), (3, 4, 5))
     output_indices = (2, 5)
     blackbox = macro.Blackbox(partition, output_indices)
     time_scale = 2
 
-    return macro.MacroSubsystem(
-        network,
+    return macro.MacroSystem(
+        substrate,
         current_state,
-        network.node_indices,
+        substrate.node_indices,
         blackbox=blackbox,
         time_scale=time_scale,
     )
@@ -67,7 +67,7 @@ def degenerate():
 @pytest.mark.outdated
 def test_basic_nor_or():
     # A system composed of NOR and OR (copy) gates, which mimics the basic
-    # pyphi network
+    # pyphi substrate
 
     nodes = 12
     tpm = np.zeros((2**nodes, nodes))
@@ -119,7 +119,7 @@ def test_basic_nor_or():
 
     state = (0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
-    network = Network(tpm, cm=cm)
+    substrate = Substrate(tpm, cm=cm)
 
     # (0, 1, 2) compose the OR element,
     # (3, 4, 5) the COPY,
@@ -130,8 +130,8 @@ def test_basic_nor_or():
     assert blackbox.hidden_indices == (0, 1, 3, 4, 6, 7, 8, 9, 10)
     time = 3
 
-    sub = macro.MacroSubsystem(
-        network, state, network.node_indices, blackbox=blackbox, time_scale=time
+    sub = macro.MacroSystem(
+        substrate, state, substrate.node_indices, blackbox=blackbox, time_scale=time
     )
 
     with config.override(CUT_ONE_APPROXIMATION=True):
@@ -191,7 +191,7 @@ def test_xor_propogation_delay():
     # The state of the system is all OFF
     state = (0, 0, 0, 0, 0, 0, 0, 0, 0)
 
-    network = Network(tpm, cm=cm)
+    substrate = Substrate(tpm, cm=cm)
 
     partition = ((0, 2, 7), (1, 3, 5), (4, 6, 8))
     output_indices = (0, 3, 6)
@@ -199,8 +199,8 @@ def test_xor_propogation_delay():
     assert blackbox.hidden_indices == (1, 2, 4, 5, 7, 8)
 
     time = 2
-    subsys = macro.MacroSubsystem(
-        network, state, network.node_indices, blackbox=blackbox, time_scale=time
+    subsys = macro.MacroSystem(
+        substrate, state, substrate.node_indices, blackbox=blackbox, time_scale=time
     )
 
     sia = iit3.sia(subsys)
@@ -257,15 +257,15 @@ def test_soup():
         ])
         # fmt: on
 
-        network = Network(tpm, cm)
+        substrate = Substrate(tpm, cm)
 
         # State all OFF
         state = (0, 0, 0, 0, 0, 0)
-        assert iit3.major_complex(network, state).phi == 0.125
+        assert iit3.major_complex(substrate, state).phi == 0.125
 
         # With D ON (E must also be ON otherwise the state is unreachable)
         state = (0, 0, 0, 1, 1, 0)
-        assert iit3.major_complex(network, state).phi == 0.215278
+        assert iit3.major_complex(substrate, state).phi == 0.215278
 
         # Once the connection from D to B is frozen (with D in the ON state), we
         # recover the degeneracy example
@@ -274,8 +274,8 @@ def test_soup():
         output_indices = (2, 5)
         blackbox = macro.Blackbox(partition, output_indices)
         time = 2
-        sub = macro.MacroSubsystem(
-            network, state, (0, 1, 2, 3, 4, 5), blackbox=blackbox, time_scale=time
+        sub = macro.MacroSystem(
+            substrate, state, (0, 1, 2, 3, 4, 5), blackbox=blackbox, time_scale=time
         )
         assert iit3.phi(sub) == 0.638888
 
@@ -286,8 +286,8 @@ def test_soup():
         output_indices = (2, 5)
         blackbox = macro.Blackbox(partition, output_indices)
         time = 2
-        sub = macro.MacroSubsystem(
-            network, state, (0, 1, 2, 3, 4, 5), blackbox=blackbox, time_scale=time
+        sub = macro.MacroSystem(
+            substrate, state, (0, 1, 2, 3, 4, 5), blackbox=blackbox, time_scale=time
         )
         assert iit3.phi(sub) == 0
 
@@ -331,7 +331,7 @@ def test_coarsegrain_spatial_degenerate():
 
     state = (0, 0, 0, 0, 0, 0)
 
-    net = Network(tpm, cm)
+    net = Substrate(tpm, cm)
 
     mc = iit3.major_complex(net, state)
     assert mc.phi == 0.194445
@@ -340,7 +340,7 @@ def test_coarsegrain_spatial_degenerate():
     grouping = (((0, 1), (2,)), ((0, 1), (2,)), ((0, 1), (2,)))
     coarse = macro.CoarseGrain(partition, grouping)
 
-    sub = macro.MacroSubsystem(net, state, range(net.size), coarse_grain=coarse)
+    sub = macro.MacroSystem(net, state, range(net.size), coarse_grain=coarse)
 
     sia = iit3.sia(sub)
     assert sia.phi == 0.834183

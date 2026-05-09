@@ -68,7 +68,7 @@ def plot_phi_structure(
     relations=None,
     relation_two_faces=None,
     relation_three_faces=None,
-    subsystem=None,
+    system=None,
     state=None,
     node_indices=None,
     node_labels=None,
@@ -93,7 +93,7 @@ def plot_phi_structure(
         mechanism_coords (Coordinates): Coordinates to use when arranging
             mechanisms. Defaults to generating coordinates according to the theme.
         node_indices (tuple[int]): The node indices to use when arranging
-            purviews. Defaults to the subsystem's node indices.
+            purviews. Defaults to the system's node indices.
         **theme_overrides (Mapping): Overrides for the theme.
     """
     if phi_structure is None and (distinctions is None or relations is None):
@@ -109,22 +109,21 @@ def plot_phi_structure(
         assert phi_structure is not None  # Type narrowing: checked above
         relations = phi_structure.relations
 
-    if subsystem is None and any(
+    if system is None and any(
         variable is None for variable in [state, node_indices, node_labels]
     ):
         raise ValueError(
-            "Either subsystem or each of state, node_indices, and node_labels "
-            "are required"
+            "Either system or each of state, node_indices, and node_labels are required"
         )
     if state is None:
-        assert subsystem is not None  # Type narrowing: checked above
-        state = subsystem.state
+        assert system is not None  # Type narrowing: checked above
+        state = system.state
     if node_indices is None:
-        assert subsystem is not None  # Type narrowing: checked above
-        node_indices = subsystem.node_indices
+        assert system is not None  # Type narrowing: checked above
+        node_indices = system.node_indices
     if node_labels is None:
-        assert subsystem is not None  # Type narrowing: checked above
-        node_labels = subsystem.node_labels
+        assert system is not None  # Type narrowing: checked above
+        node_labels = system.node_labels
 
     # Need to convert to native dict because Plotly has overly strict type
     # checking; see https://github.com/plotly/plotly.py/issues/4212

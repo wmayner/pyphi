@@ -61,7 +61,7 @@ def state2be_index(state):
             gives the state of the |ith| node.
 
     Returns:
-        int: A decimal integer corresponding to a network state under the
+        int: A decimal integer corresponding to a substrate state under the
         big-endian convention.
 
     Examples:
@@ -82,7 +82,7 @@ def state2le_index(state):
             gives the state of the |ith| node.
 
     Returns:
-        int: A decimal integer corresponding to a network state under the
+        int: A decimal integer corresponding to a substrate state under the
         little-endian convention.
 
     Examples:
@@ -101,7 +101,7 @@ def le_index2state(i, number_of_nodes):
     The output is the reverse of |be_index2state()|.
 
     Args:
-        i (int): A decimal integer corresponding to a network state under the
+        i (int): A decimal integer corresponding to a substrate state under the
             little-endian convention.
 
     Returns:
@@ -126,7 +126,7 @@ def be_index2state(i, number_of_nodes):
     The output is the reverse of |le_index2state()|.
 
     Args:
-        i (int): A decimal integer corresponding to a network state under the
+        i (int): A decimal integer corresponding to a substrate state under the
             big-endian convention.
 
     Returns:
@@ -176,7 +176,7 @@ le2be_state_by_state = be2le_state_by_state
 def to_multidimensional(tpm):
     """Reshape a state-by-node TPM to the multidimensional form.
 
-    See documentation for the |Network| object for more information on TPM
+    See documentation for the |Substrate| object for more information on TPM
     formats.
     """
     # Cast to np.array
@@ -203,7 +203,7 @@ def sbs_to_multidimensional(tpm):
 def to_2dimensional(tpm):
     """Reshape a state-by-node TPM to the 2-dimensional form.
 
-    See :ref:`tpm-conventions` and documentation for the |Network| object for
+    See :ref:`tpm-conventions` and documentation for the |Substrate| object for
     more information on TPM representations.
     """
     # Cast to np.array

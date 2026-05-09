@@ -1,6 +1,6 @@
 # pyright: strict
 # labels.py
-"""Helper class representing labels of network nodes."""
+"""Helper class representing labels of substrate nodes."""
 
 from collections.abc import Iterable
 from collections.abc import Iterator
@@ -25,7 +25,7 @@ def default_labels(indices: Sequence[int]) -> tuple[str, ...]:
 
 
 class NodeLabels(Sequence[str]):
-    """Text labels for nodes in a network.
+    """Text labels for nodes in a substrate.
 
     Labels can either be instantiated as a tuple of strings:
 

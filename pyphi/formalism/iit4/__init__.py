@@ -24,7 +24,6 @@ from pyphi import validate
 from pyphi.conf import config
 from pyphi.conf import fallback
 from pyphi.conf.snapshot import ConfigSnapshot
-from pyphi.core import CandidateSystem as Subsystem
 from pyphi.core import repertoire_algebra as repertoire
 from pyphi.data_structures import PyPhiFloat
 from pyphi.direction import Direction
@@ -41,12 +40,13 @@ from pyphi.models.phi_structure import PhiStructure
 from pyphi.models.ria import RepertoireIrreducibilityAnalysis
 from pyphi.models.state_specification import StateSpecification
 from pyphi.models.state_specification import SystemStateSpecification
-from pyphi.network import reachable_subsystems
 from pyphi.parallel import MapReduce
 from pyphi.partition import system_partitions
 from pyphi.relations import ConcreteRelations
 from pyphi.relations import Relations
 from pyphi.relations import relations as compute_relations
+from pyphi.substrate import reachable_systems
+from pyphi.system import System
 from pyphi.warnings import warn_about_tie_serialization
 
 ##############################################################################
@@ -56,7 +56,7 @@ from pyphi.warnings import warn_about_tie_serialization
 
 # TODO(4.0) refactor
 def system_intrinsic_information(
-    subsystem: Subsystem,
+    system: System,
     repertoire_distance: str | None = None,
     directions: Iterable[Direction] | None = None,
 ) -> SystemStateSpecification:
@@ -79,10 +79,10 @@ def system_intrinsic_information(
     )
     # TODO(ties) deal with ties here
     ii = {
-        direction: subsystem.intrinsic_information(
+        direction: system.intrinsic_information(
             direction,
-            mechanism=subsystem.node_indices,
-            purview=subsystem.node_indices,
+            mechanism=system.node_indices,
+            purview=system.node_indices,
             repertoire_distance=repertoire_distance,
         )
         for direction in directions
@@ -237,17 +237,17 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
     def _repr_columns(self):
         if self.node_labels is not None and self.node_indices is not None:
             # coerce_to_labels returns tuple[str | int, ...], need to convert to str
-            subsystem_label = ",".join(
+            system_label = ",".join(
                 str(label)
                 for label in self.node_labels.coerce_to_labels(self.node_indices)
             )
         elif self.node_indices is not None:
-            subsystem_label = ",".join(str(i) for i in self.node_indices)
+            system_label = ",".join(str(i) for i in self.node_indices)
         else:
-            subsystem_label = None
+            system_label = None
 
         columns = [
-            ("Subsystem", subsystem_label),
+            ("System", system_label),
             (
                 "Current state",
                 (
@@ -337,14 +337,14 @@ class NullSystemIrreducibilityAnalysis(SystemIrreducibilityAnalysis):
         # Handle node_labels and node_indices being None
         if self.node_labels is not None and self.node_indices is not None:
             # coerce_to_labels returns tuple[str | int, ...], need to convert to str
-            subsystem_label = ",".join(
+            system_label = ",".join(
                 str(label)
                 for label in self.node_labels.coerce_to_labels(self.node_indices)
             )
-            columns.append(("Subsystem", subsystem_label))
+            columns.append(("System", system_label))
         elif self.node_indices is not None:
-            subsystem_label = ",".join(str(i) for i in self.node_indices)
-            columns.append(("Subsystem", subsystem_label))
+            system_label = ",".join(str(i) for i in self.node_indices)
+            columns.append(("System", system_label))
 
         columns.append((f"           {fmt.BIG_PHI}", self.phi))
         if self.system_state is not None:
@@ -366,35 +366,35 @@ def normalization_factor(partition: SystemPartition | GeneralKCut) -> float:
 
 def _integration_value_for_state(
     direction: Direction,
-    subsystem: Subsystem,
-    cut_subsystem: Subsystem,
+    system: System,
+    cut_system: System,
     partition: SystemPartition,
     specified: StateSpecification,
     repertoire_distance: str,
 ) -> RepertoireIrreducibilityAnalysis:
     """Compute the integration value for a single specified state."""
-    mechanism = purview = subsystem.node_indices
+    mechanism = purview = system.node_indices
     if repertoire_distance in [
         "GENERALIZED_INTRINSIC_DIFFERENCE",
         "INTRINSIC_INFORMATION",
     ]:
-        partitioned_repertoire = cut_subsystem.forward_repertoire(
+        partitioned_repertoire = cut_system.forward_repertoire(
             direction,
             mechanism,
             purview,
             specified.state,
         ).squeeze()[specified.state]
     else:
-        partitioned_repertoire = cut_subsystem.repertoire(
-            direction, subsystem.node_indices, subsystem.node_indices
+        partitioned_repertoire = cut_system.repertoire(
+            direction, system.node_indices, system.node_indices
         )
     from pyphi.formalism.queries import evaluate_partition
 
     return evaluate_partition(
-        subsystem,
+        system,
         direction,
-        subsystem.node_indices,
-        subsystem.node_indices,
+        system.node_indices,
+        system.node_indices,
         partition,  # pyright: ignore[reportArgumentType] - SystemPartition passed to Bipartition param in IIT 4.0
         partitioned_repertoire=partitioned_repertoire,
         repertoire_distance=repertoire_distance,
@@ -404,7 +404,7 @@ def _integration_value_for_state(
 
 def integration_value(
     direction: Direction,
-    subsystem: Subsystem,
+    system: System,
     partition: SystemPartition,
     system_state: SystemStateSpecification,
     repertoire_distance: str | None = None,
@@ -412,7 +412,7 @@ def integration_value(
     repertoire_distance = fallback(
         repertoire_distance, config.formalism.repertoire_distance
     )
-    cut_subsystem = subsystem.apply_cut(partition)
+    cut_system = system.apply_cut(partition)
     specified = system_state[direction]
     tied_specs = specified.ties if specified.ties else (specified,)
     # When there are tied specified states, evaluate all of them and take the
@@ -422,8 +422,8 @@ def integration_value(
     for spec in tied_specs:
         ria = _integration_value_for_state(
             direction,
-            subsystem,
-            cut_subsystem,
+            system,
+            cut_system,
             partition,
             spec,
             repertoire_distance,  # pyright: ignore[reportArgumentType]
@@ -441,20 +441,20 @@ def integration_value(
 
 def intrinsic_differentiation_value(
     direction: Direction,
-    subsystem: Subsystem,
+    system: System,
     partition: SystemPartition,
 ) -> float:
-    cut_subsystem = subsystem.apply_cut(partition)
-    mechanism = purview = subsystem.node_indices
+    cut_system = system.apply_cut(partition)
+    mechanism = purview = system.node_indices
 
     unpartitioned_repertoire = repertoire.forward_repertoire(
-        subsystem,
+        system,
         direction,
         mechanism,  # pyright: ignore[reportArgumentType]
         purview,  # pyright: ignore[reportArgumentType]
     )
     partitioned_repertoire = repertoire.forward_repertoire(
-        cut_subsystem,
+        cut_system,
         direction,
         mechanism,  # pyright: ignore[reportArgumentType]
         purview,  # pyright: ignore[reportArgumentType]
@@ -463,13 +463,13 @@ def intrinsic_differentiation_value(
     return metrics.distribution.intrinsic_differentiation(
         unpartitioned_repertoire,
         partitioned_repertoire,
-        state=subsystem.proper_state,
+        state=system.proper_state,
     )
 
 
 def evaluate_partition(
     partition: SystemPartition,
-    subsystem: Subsystem,
+    system: System,
     system_state: SystemStateSpecification,
     repertoire_distance: str | None = None,
     directions: Iterable[Direction] | None = None,
@@ -494,7 +494,7 @@ def evaluate_partition(
     integration = {
         direction: integration_value(
             direction,
-            subsystem,
+            system,
             partition,
             system_state,
             repertoire_distance=partition_distance,
@@ -505,7 +505,7 @@ def evaluate_partition(
     intrinsic_differentiation = {
         direction: intrinsic_differentiation_value(
             direction,
-            subsystem,
+            system,
             partition,
         )
         for direction in directions
@@ -540,9 +540,9 @@ def evaluate_partition(
         effect=integration.get(Direction.EFFECT),
         partition=partition,
         system_state=system_state,
-        current_state=subsystem.proper_state,
-        node_indices=subsystem.node_indices,
-        node_labels=subsystem.node_labels,
+        current_state=system.proper_state,
+        node_indices=system.node_indices,
+        node_labels=system.node_labels,
         intrinsic_differentiation=intrinsic_differentiation,
     )
     return result
@@ -553,7 +553,7 @@ class ShortCircuitConditions(Enum):
     NO_VALID_PARTITIONS = auto()
     NO_CAUSE = auto()
     NO_EFFECT = auto()
-    NO_SUBSYSTEM = auto()
+    NO_SYSTEM = auto()
     NO_STRONG_CONNECTIVITY = auto()
     MONAD_WITH_NO_SELFLOOP = auto()
     MONAD_WITH_SELFLOOP_DEFINED_TO_BE_ZERO_PHI = auto()
@@ -579,7 +579,7 @@ def sia_minimization_key(sia):
 
 
 def sia(
-    subsystem: Subsystem,
+    system: System,
     repertoire_distance: str | None = None,
     directions: Iterable[Direction] | None = None,
     partition_scheme: str | None = None,
@@ -594,7 +594,7 @@ def sia(
 
     # Check for degenerate cases
     # =========================================================================
-    # Phi is necessarily zero if the subsystem is:
+    # Phi is necessarily zero if the system is:
     #   - not strongly connected;
     #   - empty;
     #   - an elementary micro mechanism (i.e. no nontrivial bipartitions).
@@ -602,25 +602,25 @@ def sia(
     def _null_sia(**kwargs):
         return NullSystemIrreducibilityAnalysis(
             system_state=system_state,
-            node_indices=subsystem.node_indices,
-            node_labels=subsystem.node_labels,
+            node_indices=system.node_indices,
+            node_labels=system.node_labels,
             **kwargs,
         )
 
-    if not subsystem:
-        # subsystem is empty
-        return _null_sia(reasons=[ShortCircuitConditions.NO_SUBSYSTEM])
+    if not system:
+        # system is empty
+        return _null_sia(reasons=[ShortCircuitConditions.NO_SYSTEM])
 
-    if not connectivity.is_strong(subsystem.cm, subsystem.node_indices):
-        # subsystem is not strongly connected
+    if not connectivity.is_strong(system.cm, system.node_indices):
+        # system is not strongly connected
         return _null_sia(reasons=[ShortCircuitConditions.NO_STRONG_CONNECTIVITY])
 
     # Handle elementary micro mechanism cases.
     # Single macro element systems have nontrivial bipartitions because their
     #   bipartitions are over their micro elements.
-    if len(subsystem.cut_indices) == 1:
+    if len(system.cut_indices) == 1:
         # If the node lacks a self-loop, phi is trivially zero.
-        if not subsystem.cm[subsystem.node_indices][subsystem.node_indices]:
+        if not system.cm[system.node_indices][system.node_indices]:
             return _null_sia(reasons=[ShortCircuitConditions.MONAD_WITH_NO_SELFLOOP])
         # Even if the node has a self-loop, we may still define phi to be zero.
         if not config.formalism.single_micro_nodes_with_selfloops_have_phi:
@@ -636,22 +636,22 @@ def sia(
         if partitions == "GENERAL":
 
             def is_disconnecting_partition(partition):
-                # Special case for length 1 subsystems so complete partition is included
+                # Special case for length 1 systems so complete partition is included
                 return (
-                    not connectivity.is_strong(subsystem.apply_cut(partition).proper_cm)
-                ) or len(subsystem) == 1
+                    not connectivity.is_strong(system.apply_cut(partition).proper_cm)
+                ) or len(system) == 1
 
             filter_func = is_disconnecting_partition
 
         partitions = system_partitions(
-            subsystem.node_indices,
-            node_labels=subsystem.node_labels,
+            system.node_indices,
+            node_labels=system.node_labels,
             partition_scheme=partition_scheme,
             filter_func=filter_func,
         )
 
     if system_state is None:
-        system_state = system_intrinsic_information(subsystem, directions=directions)
+        system_state = system_intrinsic_information(system, directions=directions)
 
     if config.formalism.shortcircuit_sia:
         shortcircuit_reasons = _has_no_cause_or_effect(system_state)
@@ -667,7 +667,7 @@ def sia(
         evaluate_partition,
         partitions,
         map_kwargs={
-            "subsystem": subsystem,
+            "system": system,
             "system_state": system_state,
             "repertoire_distance": repertoire_distance,
             "directions": directions,
@@ -696,8 +696,8 @@ def sia(
         tied_mip.resolve_system_state()
         tied_mip.set_ties(ties)
 
-    if config.infrastructure.clear_subsystem_caches_after_computing_sia:
-        subsystem.clear_caches()
+    if config.infrastructure.clear_system_caches_after_computing_sia:
+        system.clear_caches()
 
     return mip_sia
 
@@ -721,7 +721,7 @@ class NullPhiStructure(PhiStructure):
 
 
 def phi_structure(
-    subsystem: Subsystem,
+    system: System,
     sia: SystemIrreducibilityAnalysis | None = None,
     distinctions: CauseEffectStructure | None = None,
     relations: Relations | None = None,
@@ -736,14 +736,14 @@ def phi_structure(
 
     # Analyze irreducibility if not provided
     if sia is None:
-        sia = _sia(subsystem, **sia_kwargs)
+        sia = _sia(system, **sia_kwargs)
 
     # Compute distinctions if not provided
     if distinctions is None:
         # CES building dispatches find_mice through the active formalism;
         # the iit3 helper is reused because the outer mechanism x purview
         # iteration is the same in both formalisms.
-        distinctions = iit3.ces(subsystem, **ces_kwargs)  # type: ignore[arg-type]
+        distinctions = iit3.ces(system, **ces_kwargs)  # type: ignore[arg-type]
     # Filter out incongruent distinctions
     if sia.system_state is not None:
         distinctions = distinctions.resolve_congruence(sia.system_state)
@@ -759,8 +759,8 @@ def phi_structure(
     )
 
 
-def all_complexes(network, state, parallel_kwargs=None, **kwargs):
-    """Return SIAs for all subsystems of the network.
+def all_complexes(substrate, state, parallel_kwargs=None, **kwargs):
+    """Return SIAs for all systems of the substrate.
 
     Dispatches through :class:`pyphi.parallel.MapReduce` using the
     ``parallel_complex_evaluation`` config; pass ``parallel_kwargs`` to
@@ -770,25 +770,25 @@ def all_complexes(network, state, parallel_kwargs=None, **kwargs):
         dict(config.infrastructure.parallel_complex_evaluation),
         **(parallel_kwargs or {}),
     )
-    subsystems = list(reachable_subsystems(network, network.node_indices, state))
+    systems = list(reachable_systems(substrate, substrate.node_indices, state))
     return MapReduce(
         sia,
-        subsystems,
+        systems,
         map_kwargs={"progress": False, **kwargs},
         desc="Evaluating complexes",
         **pkwargs,
     ).run()
 
 
-def irreducible_complexes(network, state, complexes=None, **kwargs):
-    """Yield SIAs for irreducible subsystems of the network."""
+def irreducible_complexes(substrate, state, complexes=None, **kwargs):
+    """Yield SIAs for irreducible systems of the substrate."""
     if complexes is None:
-        complexes = all_complexes(network, state, **kwargs)
+        complexes = all_complexes(substrate, state, **kwargs)
     yield from filter(None, complexes)
 
 
-def maximal_complex(network, state, complexes=None, **kwargs):
+def maximal_complex(substrate, state, complexes=None, **kwargs):
     return max(
-        irreducible_complexes(network, state, complexes=complexes, **kwargs),
+        irreducible_complexes(substrate, state, complexes=complexes, **kwargs),
         default=NullPhiStructure(),
     )

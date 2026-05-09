@@ -9,7 +9,7 @@ from pyphi import exceptions
 from pyphi import jsonify
 from pyphi import labels
 from pyphi import models
-from pyphi import network
+from pyphi import substrate
 from pyphi.formalism import iit3
 from pyphi.formalism import iit4 as new_big_phi
 
@@ -44,8 +44,8 @@ def test_jsonify_numpy():
 def test_json_deserialization(s, transition):
     objects = [
         Direction.CAUSE,
-        s.network,  # Network
-        s,  # Subsystem
+        s.substrate,  # Substrate
+        s,  # System
         models.Bipartition(models.Part((0,), ()), models.Part((1,), (2, 3))),
         models.KPartition(models.Part((0,), ()), models.Part((1,), (2, 3))),
         models.Tripartition(
@@ -85,12 +85,12 @@ def test_json_deserialization_non_pyphi_clasess():
 
 
 # NOTE: test_deserialization_memoizes_duplicate_objects was removed because
-# it relied on ces.subsystem which was intentionally removed from CauseEffectStructure
+# it relied on ces.system which was intentionally removed from CauseEffectStructure
 # during the IIT 3.0 -> 4.0 migration.
 
 
 @pytest.fixture
-def network_file(standard):
+def substrate_file(standard):
     # delete_on_close=False allows reopening the file by name on Windows
     # (Windows doesn't allow opening a file that's already open)
     with tempfile.NamedTemporaryFile(mode="w+", delete_on_close=False) as f:
@@ -99,14 +99,14 @@ def network_file(standard):
         yield f
 
 
-def test_load(network_file, standard):
-    assert jsonify.load(network_file) == standard
+def test_load(substrate_file, standard):
+    assert jsonify.load(substrate_file) == standard
 
 
-def test_network_from_json(network_file, standard):
-    loaded_network = network.from_json(network_file.name)
-    assert loaded_network == standard
-    assert np.array_equal(loaded_network.node_labels, standard.node_labels)
+def test_substrate_from_json(substrate_file, standard):
+    loaded_substrate = substrate.from_json(substrate_file.name)
+    assert loaded_substrate == standard
+    assert np.array_equal(loaded_substrate.node_labels, standard.node_labels)
 
 
 def test_version_check_during_deserialization(s):

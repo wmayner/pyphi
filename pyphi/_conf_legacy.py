@@ -381,10 +381,10 @@ def on_change_distinction_phi_normalization(obj, opt):
         warn(
             """
     IMPORTANT: Changes to `DISTINCTION_PHI_NORMALIZATION` will not be reflected in
-    new MICE computations for existing Subsystem objects if the MICE have been
+    new MICE computations for existing System objects if the MICE have been
     previously computed, since they are cached.
 
-    Make sure to call `subsystem.clear_caches()` before re-computing MICE with
+    Make sure to call `system.clear_caches()` before re-computing MICE with
     the new setting.
             """,
             category=PyPhiWarning,
@@ -525,7 +525,7 @@ class PyphiConfig(Config):
         type=Mapping,
         on_change=on_change_parallel_suboption,
         doc="""
-    Controls parallel evaluation of candidate systems within a network.""",
+    Controls parallel evaluation of candidate systems within a substrate.""",
     )
 
     PARALLEL_CUT_EVALUATION = Option(
@@ -610,7 +610,7 @@ class PyphiConfig(Config):
         type=int,
         doc="""
     PyPhi employs several in-memory caches to speed up computation. However,
-    these can quickly use a lot of memory for large networks or large numbers
+    these can quickly use a lot of memory for large substrates or large numbers
     of them; to avoid thrashing, this setting limits the percentage of a
     system's RAM that the caches can collectively use.""",
     )
@@ -643,17 +643,17 @@ class PyphiConfig(Config):
         True,
         type=bool,
         doc="""
-    Controls whether the potential purviews of mechanisms of a network are
+    Controls whether the potential purviews of mechanisms of a substrate are
     cached. Caching speeds up computations by not recomputing expensive
     reducibility checks, but uses additional memory.""",
     )
 
-    CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA = Option(
+    CLEAR_SYSTEM_CACHES_AFTER_COMPUTING_SIA = Option(
         False,
         type=bool,
         doc="""
-    Controls whether a |Subsystem|'s repertoire and MICE caches are cleared
-    with |Subsystem.clear_caches()| after computing the
+    Controls whether a |System|'s repertoire and MICE caches are cleared
+    with |System.clear_caches()| after computing the
     |SystemIrreducibilityAnalysis|. If you don't need to do any more
     computations after running |compute.sia()|, then enabling this may help
     conserve memory.""",
@@ -733,15 +733,15 @@ class PyphiConfig(Config):
     The default value is about as accurate as the EMD computations get.""",
     )
 
-    VALIDATE_SUBSYSTEM_STATES = Option(
+    VALIDATE_SYSTEM_STATES = Option(
         True,
         type=bool,
         doc="""
-    Controls whether PyPhi checks if the subsystems's state is possible
+    Controls whether PyPhi checks if the systems's state is possible
     (reachable with nonzero probability from some previous state), given the
-    subsystem's TPM (**which is conditioned on background conditions**). If
+    system's TPM (**which is conditioned on background conditions**). If
     this is turned off, then **calculated** |big_phi| **values may not be
-    valid**, since they may be associated with a subsystem that could never be
+    valid**, since they may be associated with a system that could never be
     in the given state.""",
     )
 
@@ -766,10 +766,10 @@ class PyphiConfig(Config):
         True,
         type=bool,
         doc="""
-    If set to ``True``, the |big_phi| value of single micro-node subsystems is
+    If set to ``True``, the |big_phi| value of single micro-node systems is
     the difference between their unpartitioned |CauseEffectStructure| (a single
     concept) and the null concept. If set to False, their |big_phi| is defined
-    to be zero. Single macro-node subsystems may always be cut, regardless of
+    to be zero. Single macro-node systems may always be cut, regardless of
     circumstances.""",
     )
 

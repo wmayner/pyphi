@@ -16,13 +16,13 @@ from numpy.typing import NDArray
 # =============================================================================
 
 type NodeIndex = int
-"""Index of a single node in a network."""
+"""Index of a single node in a substrate."""
 
 type NodeIndices = tuple[NodeIndex, ...]
 """Tuple of node indices representing a set of nodes."""
 
 type State = tuple[int, ...]
-"""State of a network or subsystem as a tuple of binary values (0 or 1)."""
+"""State of a substrate or system as a tuple of binary values (0 or 1)."""
 
 type Mechanism = tuple[NodeIndex, ...]
 """A mechanism is a set of nodes, represented as a tuple of node indices."""
@@ -37,7 +37,7 @@ type Purview = tuple[NodeIndex, ...]
 type TPMArray = NDArray[np.float64]
 """Transition Probability Matrix as a numpy array of float64 values.
 
-The TPM defines the causal structure of a network by specifying the probability
+The TPM defines the causal structure of a substrate by specifying the probability
 of each node being ON given the state of its inputs.
 """
 

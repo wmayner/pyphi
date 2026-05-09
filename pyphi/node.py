@@ -1,5 +1,5 @@
 # node.py
-"""Represents a node in a network."""
+"""Represents a node in a substrate."""
 
 import functools
 
@@ -15,20 +15,20 @@ from .tpm import ExplicitTPM
 # TODO extend to nonbinary nodes
 @functools.total_ordering
 class Node:
-    """A node in a subsystem.
+    """A node in a system.
 
     Args:
-        cause_tpm (ExplicitTPM): The cause (backward) TPM of the subsystem.
-        effect_tpm (ExplicitTPM): The effect (forward) TPM of the subsystem.
-        cm (np.ndarray): The CM of the subsystem.
-        index (int): The node's index in the network.
+        cause_tpm (ExplicitTPM): The cause (backward) TPM of the system.
+        effect_tpm (ExplicitTPM): The effect (forward) TPM of the system.
+        cm (np.ndarray): The CM of the system.
+        index (int): The node's index in the substrate.
         state (int): The state of this node.
         node_labels (|NodeLabels|): Labels for these nodes.
 
     Attributes:
         cause_tpm (ExplicitTPM),
         effect_tpm (ExplicitTPM): The node TPM is an array with shape ``(2,)*(n + 1)``,
-            where ``n`` is the size of the |Network|. The first ``n``
+            where ``n`` is the size of the |Substrate|. The first ``n``
             dimensions correspond to each node in the system. Dimensions
             corresponding to nodes that provide input to this node are of size
             2, while those that do not correspond to inputs are of size 1, so
@@ -55,18 +55,18 @@ class Node:
 
         # Generate the node's TPMs.
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        # We begin by getting the part of the subsystem's TPM that gives just
-        # the state of this node. This part is still indexed by network state,
+        # We begin by getting the part of the system's TPM that gives just
+        # the state of this node. This part is still indexed by substrate state,
         # but its last dimension will be gone, since now there's just a single
         # scalar value (this node's state) rather than a state-vector for all
-        # the network nodes.
+        # the substrate nodes.
         cause_tpm_on = cause_tpm[..., self.index]
         effect_tpm_on = effect_tpm[..., self.index]
 
         # TODO extend to nonbinary nodes
-        # Marginalize out non-input nodes that are in the subsystem, since the
+        # Marginalize out non-input nodes that are in the system, since the
         # external nodes have already been dealt with as boundary conditions in
-        # the subsystem's TPM.
+        # the system's TPM.
 
         # TODO use names rather than indices
         cause_non_inputs = set(cause_tpm.tpm_indices()) - self._inputs
@@ -148,7 +148,7 @@ class Node:
     def __eq__(self, other):
         """Return whether this node equals the other object.
 
-        Two nodes are equal if they belong to the same subsystem and have the
+        Two nodes are equal if they belong to the same system and have the
         same index (their TPMs must be the same in that case, so this method
         doesn't need to check TPM equality).
 
@@ -179,14 +179,16 @@ class Node:
         return self.index
 
 
-def generate_nodes(cause_tpm, effect_tpm, cm, network_state, indices, node_labels=None):
-    """Generate |Node| objects for a subsystem.
+def generate_nodes(
+    cause_tpm, effect_tpm, cm, substrate_state, indices, node_labels=None
+):
+    """Generate |Node| objects for a system.
 
     Args:
         cause_tpm (ExplicitTPM): The system's cause (backward) TPM
         effect_tpm (ExplicitTPM): The system's effect (forward) TPM
         cm (np.ndarray): The corresponding CM.
-        network_state (tuple): The state of the network.
+        substrate_state (tuple): The state of the substrate.
         indices (tuple[int]): Indices to generate nodes for.
 
     Keyword Args:
@@ -198,7 +200,7 @@ def generate_nodes(cause_tpm, effect_tpm, cm, network_state, indices, node_label
     if node_labels is None:
         node_labels = NodeLabels(None, indices)
 
-    node_state = utils.state_of(indices, network_state)
+    node_state = utils.state_of(indices, substrate_state)
 
     return tuple(
         Node(cause_tpm, effect_tpm, cm, index, state, node_labels)
@@ -207,7 +209,7 @@ def generate_nodes(cause_tpm, effect_tpm, cm, network_state, indices, node_label
 
 
 def expand_node_tpm(tpm):
-    """Broadcast a node TPM over the full network.
+    """Broadcast a node TPM over the full substrate.
 
     Args:
         tpm (ExplicitTPM): The node TPM to expand.

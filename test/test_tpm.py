@@ -5,7 +5,7 @@ import pytest
 from numpy.random import default_rng
 
 from pyphi import ExplicitTPM
-from pyphi import Subsystem
+from pyphi import System
 from pyphi.tpm import reconstitute_tpm
 from pyphi.tpm import simulate
 
@@ -146,8 +146,8 @@ def test_infer_cm(rule152):
 
 
 def test_reconstitute_tpm(standard, s_complete, rule152, noised):
-    # Check subsystem and network TPM are the same when the subsystem is the
-    # whole network
+    # Check system and substrate TPM are the same when the system is the
+    # whole substrate
     assert np.array_equal(reconstitute_tpm(s_complete), standard.tpm.tpm)
 
     # Regression tests
@@ -163,10 +163,10 @@ def test_reconstitute_tpm(standard, s_complete, rule152, noised):
           [1., 1., 0.]]],
     ])
     # fmt: on
-    subsystem = Subsystem(rule152, (0,) * 5, (0, 1, 2))
-    assert np.array_equal(answer, reconstitute_tpm(subsystem))
+    system = System(rule152, (0,) * 5, (0, 1, 2))
+    assert np.array_equal(answer, reconstitute_tpm(system))
 
-    subsystem = Subsystem(noised, (0, 0, 0), (0, 1))
+    system = System(noised, (0, 0, 0), (0, 1))
     # fmt: off
     answer = np.array([
         [[0. , 0. ],
@@ -175,7 +175,7 @@ def test_reconstitute_tpm(standard, s_complete, rule152, noised):
          [1. , 0. ]],
     ])
     # fmt: on
-    assert np.array_equal(answer, reconstitute_tpm(subsystem))
+    assert np.array_equal(answer, reconstitute_tpm(system))
 
 
 def test_simulate_tpm_sanity():

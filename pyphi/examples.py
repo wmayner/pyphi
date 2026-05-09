@@ -1,5 +1,5 @@
 # examples.py
-"""Example networks and subsystems to go along with the documentation."""
+"""Example substrates and systems to go along with the documentation."""
 
 # pylint: disable=too-many-lines
 # flake8: noqa
@@ -12,8 +12,8 @@ import numpy as np
 from . import actual
 from .actual import Transition
 from .conf import config
-from .network import Network
-from .subsystem import Subsystem
+from .substrate import Substrate
+from .system import System
 from .utils import all_states, powerset
 
 LABELS = string.ascii_uppercase
@@ -30,8 +30,8 @@ def register_example(func):
 
 
 @register_example
-def grid3_network():
-    """3-node grid network."""
+def grid3_substrate():
+    """3-node grid substrate."""
     # Grid
     # fmt: off
     tpm = np.array([
@@ -54,17 +54,17 @@ def grid3_network():
         [0, 1, 1],
     ])
     # fmt: on
-    return Network(tpm, cm=cm, node_labels=["A", "B", "C"])
+    return Substrate(tpm, cm=cm, node_labels=["A", "B", "C"])
 
 
 @register_example
-def grid3_subsystem():
-    return Subsystem(grid3_network(), state=(0, 0, 0), nodes=(0, 1, 2))
+def grid3_system():
+    return System(grid3_substrate(), state=(0, 0, 0), node_indices=(0, 1, 2))
 
 
 @register_example
-def basic_network(cm=False):
-    """A 3-node network of logic gates.
+def basic_substrate(cm=False):
+    """A 3-node substrate of logic gates.
 
     Diagram::
 
@@ -140,32 +140,32 @@ def basic_network(cm=False):
     # fmt: on
     else:
         cm = None
-    return Network(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
+    return Substrate(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
 
 
 def basic_state():
-    """The state of nodes in :func:`~pyphi.examples.basic_network`."""
+    """The state of nodes in :func:`~pyphi.examples.basic_substrate`."""
     return (1, 0, 0)
 
 
 @register_example
-def basic_subsystem():
-    """A subsystem containing all the nodes of the
-    :func:`~pyphi.examples.basic_network`.
+def basic_system():
+    """A system containing all the nodes of the
+    :func:`~pyphi.examples.basic_substrate`.
     """
-    net = basic_network()
+    net = basic_substrate()
     state = basic_state()
-    return Subsystem(net, state)
+    return System(net, state)
 
 
 # TODO(relations): add docstring
-pqr_network = basic_network
-pqr_subsystem = basic_subsystem
+pqr_substrate = basic_substrate
+pqr_system = basic_system
 
 
 @register_example
-def basic_noisy_selfloop_network():
-    """Based on the basic_network, but with added selfloops and noisy edges.
+def basic_noisy_selfloop_substrate():
+    """Based on the basic_substrate, but with added selfloops and noisy edges.
 
     Nodes perform deterministic functions of their inputs, but those inputs
     may be flipped (i.e. what should be a 0 becomes a 1, and vice versa) with
@@ -206,22 +206,22 @@ def basic_noisy_selfloop_network():
         [1, 1, 1],
     ])
     # fmt: on
-    return Network(tpm, cm=cm)
+    return Substrate(tpm, cm=cm)
 
 
 @register_example
-def basic_noisy_selfloop_subsystem():
-    """A subsystem containing all the nodes of the
-    :func:`~pyphi.examples.basic_noisy_selfloop_network`.
+def basic_noisy_selfloop_system():
+    """A system containing all the nodes of the
+    :func:`~pyphi.examples.basic_noisy_selfloop_substrate`.
     """
-    net = basic_noisy_selfloop_network()
+    net = basic_noisy_selfloop_substrate()
     state = basic_state()
-    return Subsystem(net, state)
+    return System(net, state)
 
 
 @register_example
-def residue_network():
-    """The network for the residue example.
+def residue_substrate():
+    """The substrate for the residue example.
 
     Current and previous state are all nodes OFF.
 
@@ -266,21 +266,21 @@ def residue_network():
     cm[2:4, 0] = 1
     cm[3:, 1] = 1
 
-    return Network(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
+    return Substrate(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
 
 
 @register_example
-def residue_subsystem():
-    """The subsystem containing all the nodes of the
-    :func:`~pyphi.examples.residue_network`.
+def residue_system():
+    """The system containing all the nodes of the
+    :func:`~pyphi.examples.residue_substrate`.
     """
-    net = residue_network()
+    net = residue_substrate()
     state = (0, 0, 0, 0, 0)
-    return Subsystem(net, state)
+    return System(net, state)
 
 
 @register_example
-def xor_network():
+def xor_substrate():
     """A fully connected system of three XOR gates. In the state ``(0, 0, 0)``,
     none of the elementary mechanisms exist.
 
@@ -325,17 +325,17 @@ def xor_network():
         [1, 1, 0],
     ])
     # fmt: on
-    return Network(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
+    return Substrate(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
 
 
 @register_example
-def xor_subsystem():
-    """The subsystem containing all the nodes of the
-    :func:`~pyphi.examples.xor_network`.
+def xor_system():
+    """The system containing all the nodes of the
+    :func:`~pyphi.examples.xor_substrate`.
     """
-    net = xor_network()
+    net = xor_substrate()
     state = (0, 0, 0)
-    return Subsystem(net, state)
+    return System(net, state)
 
 
 @register_example
@@ -455,13 +455,13 @@ def cond_independ_tpm():
 
 
 @register_example
-def propagation_delay_network():
+def propagation_delay_substrate():
     """A version of the primary example from the IIT 3.0 paper with
     deterministic COPY gates on each connection. These copy gates essentially
     function as propagation delays on the signal between OR, AND and XOR gates
     from the original system.
 
-    The current and previous states of the network are also selected to mimic
+    The current and previous states of the substrate are also selected to mimic
     the corresponding states from the IIT 3.0 paper.
 
     Diagram::
@@ -513,7 +513,7 @@ def propagation_delay_network():
     States:
 
     In the IIT 3.0 paper example, the previous state of the system has only the
-    XOR gate ON. For the propagation delay network, this corresponds to a state
+    XOR gate ON. For the propagation delay substrate, this corresponds to a state
     of
     ``(0, 0, 0, 1, 0, 0, 0, 0, 0)``.
 
@@ -560,12 +560,12 @@ def propagation_delay_network():
     ])
     # fmt: on
 
-    return Network(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
+    return Substrate(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
 
 
 @register_example
-def macro_network():
-    """A network of micro elements which has greater integrated information
+def macro_substrate():
+    """A substrate of micro elements which has greater integrated information
     after coarse graining to a macro scale.
     """
     # fmt: off
@@ -588,22 +588,22 @@ def macro_network():
         [1.0, 1.0, 1.0, 1.0],
     ])
     # fmt: on
-    return Network(tpm, node_labels=LABELS[: tpm.shape[1]])
+    return Substrate(tpm, node_labels=LABELS[: tpm.shape[1]])
 
 
 @register_example
-def macro_subsystem():
-    """A subsystem containing all the nodes of
-    :func:`~pyphi.examples.macro_network`.
+def macro_system():
+    """A system containing all the nodes of
+    :func:`~pyphi.examples.macro_substrate`.
     """
-    net = macro_network()
+    net = macro_substrate()
     state = (0, 0, 0, 0)
-    return Subsystem(net, state)
+    return System(net, state)
 
 
 @register_example
-def blackbox_network():
-    """A micro-network to demonstrate blackboxing.
+def blackbox_substrate():
+    """A micro-substrate to demonstrate blackboxing.
 
     Diagram::
 
@@ -676,12 +676,12 @@ def blackbox_network():
     ])
     # fmt: on
 
-    return Network(tpm, cm, node_labels=LABELS[: tpm.shape[1]])
+    return Substrate(tpm, cm, node_labels=LABELS[: tpm.shape[1]])
 
 
 @register_example
-def rule110_network():
-    """A network of three elements which follows the logic of the Rule 110
+def rule110_substrate():
+    """A substrate of three elements which follows the logic of the Rule 110
     cellular automaton with current and previous state (0, 0, 0).
     """
     # fmt: off
@@ -696,17 +696,17 @@ def rule110_network():
         [0, 0, 0]
     ])
     # fmt: on
-    return Network(tpm, node_labels=LABELS[: tpm.shape[1]])
+    return Substrate(tpm, node_labels=LABELS[: tpm.shape[1]])
 
 
 @register_example
-def rule110_subsystem():
-    return Subsystem(rule110_network(), (0, 0, 0), nodes=(0, 1, 2))
+def rule110_system():
+    return System(rule110_substrate(), (0, 0, 0), node_indices=(0, 1, 2))
 
 
 @register_example
-def rule154_network():
-    """A network of five elements which follows the logic of the Rule 154
+def rule154_substrate():
+    """A substrate of five elements which follows the logic of the Rule 154
     cellular automaton.
     """
     # fmt: off
@@ -752,17 +752,17 @@ def rule154_network():
         [1, 0, 0, 1, 1],
     ])
     # fmt: on
-    return Network(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
+    return Substrate(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
 
 
 @register_example
-def rule154_subsystem():
-    return Subsystem(rule154_network(), (0,) * 5)
+def rule154_system():
+    return System(rule154_substrate(), (0,) * 5)
 
 
 @register_example
-def fig1a_network():
-    """The network shown in Figure 1A of the 2014 IIT 3.0 paper."""
+def fig1a_substrate():
+    """The substrate shown in Figure 1A of the 2014 IIT 3.0 paper."""
     # fmt: off
     tpm = np.array([
         [0, 0, 0, 0, 0, 0],
@@ -839,12 +839,12 @@ def fig1a_network():
         [0, 0, 0, 0, 0, 0],
     ])
     # fmt: on
-    return Network(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
+    return Substrate(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
 
 
 @register_example
-def fig3a_network():
-    """The network shown in Figure 3A of the 2014 IIT 3.0 paper."""
+def fig3a_substrate():
+    """The substrate shown in Figure 3A of the 2014 IIT 3.0 paper."""
     # fmt: off
     tpm = np.array([
         [0.5, 0, 0, 0],
@@ -871,12 +871,12 @@ def fig3a_network():
         [1, 0, 0, 0],
     ])
     # fmt: on
-    return Network(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
+    return Substrate(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
 
 
 @register_example
-def fig3b_network():
-    """The network shown in Figure 3B of the 2014 IIT 3.0 paper."""
+def fig3b_substrate():
+    """The substrate shown in Figure 3B of the 2014 IIT 3.0 paper."""
     # fmt: off
     tpm = np.array([
         [0, 0, 0, 0],
@@ -903,12 +903,12 @@ def fig3b_network():
         [1, 0, 0, 0],
     ])
     # fmt: on
-    return Network(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
+    return Substrate(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
 
 
 @register_example
-def fig4_network():
-    """The network shown in Figures 4, 6, 8, 9 and 10 of the 2014 IIT 3.0 paper.
+def fig4_substrate():
+    """The substrate shown in Figures 4, 6, 8, 9 and 10 of the 2014 IIT 3.0 paper.
 
     Diagram::
 
@@ -941,17 +941,17 @@ def fig4_network():
         [1, 1, 0],
     ])
     # fmt: on
-    return Network(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
+    return Substrate(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
 
 
 @register_example
-def fig4_subsystem():
-    return Subsystem(fig4_network(), state=(1, 0, 1), nodes=(0, 1, 2))
+def fig4_system():
+    return System(fig4_substrate(), state=(1, 0, 1), node_indices=(0, 1, 2))
 
 
 @register_example
-def fig5a_network():
-    """The network shown in Figure 5A of the 2014 IIT 3.0 paper.
+def fig5a_substrate():
+    """The substrate shown in Figure 5A of the 2014 IIT 3.0 paper.
 
     Diagram::
 
@@ -983,17 +983,17 @@ def fig5a_network():
         [1, 1, 0],
     ])
     # fmt: on
-    return Network(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
+    return Substrate(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
 
 
 @register_example
-def fig5a_subsystem():
-    return Subsystem(fig5a_network(), state=(0, 0, 0), nodes=(0, 1, 2))
+def fig5a_system():
+    return System(fig5a_substrate(), state=(0, 0, 0), node_indices=(0, 1, 2))
 
 
 @register_example
-def fig5b_network():
-    """The network shown in Figure 5B of the 2014 IIT 3.0 paper.
+def fig5b_substrate():
+    """The substrate shown in Figure 5B of the 2014 IIT 3.0 paper.
 
     Diagram::
 
@@ -1025,24 +1025,24 @@ def fig5b_network():
         [0, 1, 0],
     ])
     # fmt: on
-    return Network(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
+    return Substrate(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
 
 
 @register_example
-def fig5b_subsystem():
-    return Subsystem(fig5b_network(), state=(1, 0, 1), nodes=(0, 1, 2))
+def fig5b_system():
+    return System(fig5b_substrate(), state=(1, 0, 1), node_indices=(0, 1, 2))
 
 
-# The networks in figures 4, 6 and 8 are the same.
-fig6_network = fig8_network = fig9_network = fig10_network = fig4_network
+# The substrates in figures 4, 6 and 8 are the same.
+fig6_substrate = fig8_substrate = fig9_substrate = fig10_substrate = fig4_substrate
 
-# The network in Figure 14 is the same as that in Figure 1A.
-fig14_network = fig1a_network
+# The substrate in Figure 14 is the same as that in Figure 1A.
+fig14_substrate = fig1a_substrate
 
 
 @register_example
-def fig16_network():
-    """The network shown in Figure 5B of the 2014 IIT 3.0 paper."""
+def fig16_substrate():
+    """The substrate shown in Figure 5B of the 2014 IIT 3.0 paper."""
     # fmt: off
     tpm = np.array([
         [0, 0, 0, 0, 0, 0, 0],
@@ -1184,7 +1184,7 @@ def fig16_network():
         [0, 0, 0, 0, 0, 1, 1],
     ])
     # fmt: on
-    return Network(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
+    return Substrate(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
 
 
 # Actual Causation
@@ -1192,8 +1192,8 @@ def fig16_network():
 
 
 @register_example
-def actual_causation_network():
-    """The actual causation example network, consisting of an ``OR`` and
+def actual_causation_substrate():
+    """The actual causation example substrate, consisting of an ``OR`` and
     ``AND`` gate with self-loops.
     """
     # fmt: off
@@ -1208,14 +1208,14 @@ def actual_causation_network():
         [1, 1],
     ])
     # fmt: on
-    return Network(tpm, cm, node_labels=("OR", "AND"))
+    return Substrate(tpm, cm, node_labels=("OR", "AND"))
 
 
 @register_example
-def disjunction_conjunction_network():
+def disjunction_conjunction_substrate():
     """The disjunction-conjunction example from Actual Causation Figure 7.
 
-    A network of four elements, one output ``D`` with three inputs ``A B C``.
+    A substrate of four elements, one output ``D`` with three inputs ``A B C``.
     The output turns ON if ``A`` AND ``B`` are ON or if ``C`` is ON.
     """
     # fmt: off
@@ -1244,7 +1244,7 @@ def disjunction_conjunction_network():
         [0, 0, 0, 0],
     ])
     # fmt: on
-    return Network(tpm, cm, node_labels=LABELS[: tpm.shape[1]])
+    return Substrate(tpm, cm, node_labels=LABELS[: tpm.shape[1]])
 
 
 @register_example
@@ -1269,18 +1269,18 @@ def prevention_transition():
         [0, 0, 0],
     ])
     # fmt: on
-    network = Network(tpm, cm, node_labels=["A", "B", "F"])
+    substrate = Substrate(tpm, cm, node_labels=["A", "B", "F"])
     x_state = (1, 1, 1)
     y_state = (1, 1, 1)
 
-    return Transition(network, x_state, y_state, (0, 1), (2,))
+    return Transition(substrate, x_state, y_state, (0, 1), (2,))
 
 
 @register_example
 @config.override(
     partition_type="TRI",
     repertoire_distance="BLD",
-    validate_subsystem_states=False,
+    validate_system_states=False,
     actual_causation_measure="WPMI",
 )
 def frog_example():
@@ -1318,11 +1318,11 @@ def frog_example():
         input_nodes=None,
         input_modifier=None,
         node_labels=None,
-        network_name=None,
-        pickle_network=True,
+        substrate_name=None,
+        pickle_substrate=True,
     ):
         """
-        Returns a pyphi network (with the specified activation function)
+        Returns a pyphi substrate (with the specified activation function)
 
         Args:
             mech_func: (list) list of mechanism function labels ('g' for Gaussian, 'nr' or 's' for Naka-Rushton, 'l' for LogFunc)
@@ -1334,7 +1334,7 @@ def frog_example():
             x0 = midpoint value (LogFunc)
             l = max value (LogFunc)
             k = growth rate (LogFunc)
-            gridsize = number of network nodes in the grid excluded inputs
+            gridsize = number of substrate nodes in the grid excluded inputs
         """
         weights = weights.T
         node_indices = [n for n in range(len(weights))]
@@ -1399,9 +1399,9 @@ def frog_example():
             [[1.0 if w else 0 for w in weights[n]] for n in range(len(weights))]
         )
         cm = cm.T
-        network = Network(tpm, cm, node_labels)
+        substrate = Substrate(tpm, cm, node_labels)
 
-        return network
+        return substrate
 
     # F3 Frog
     print("F3 frog:\n")
@@ -1426,10 +1426,10 @@ def frog_example():
 
     node_labels = ["SL", "SC", "SR", "CL", "CC", "CR", "ML", "MR"]
 
-    network = get_net(mech_func, weights, mu=mu, si=si, node_labels=node_labels)
+    substrate = get_net(mech_func, weights, mu=mu, si=si, node_labels=node_labels)
 
     transition = actual.Transition(
-        network,
+        substrate,
         (1, 0, 1, 1, 1, 1, 1, 1),
         (1, 0, 1, 1, 1, 1, 1, 1),
         (0, 1, 2, 3, 4, 5),
@@ -1470,10 +1470,10 @@ def frog_example():
 
     node_labels = ["SL", "SC", "SR", "CL", "CR", "ML", "MR"]
 
-    network = get_net(mech_func, weights, mu=mu, si=si, node_labels=node_labels)
+    substrate = get_net(mech_func, weights, mu=mu, si=si, node_labels=node_labels)
 
     transition = actual.Transition(
-        network,
+        substrate,
         (1, 0, 1, 1, 1, 1, 1),
         (1, 0, 1, 1, 1, 1, 1),
         (0, 1, 2, 3, 4),
@@ -1506,10 +1506,10 @@ def frog_example():
 
     node_labels = ["S1", "S2", "S3", "S4", "H1", "H2", "M1", "M2"]
 
-    network = get_net(mech_func, weights, mu=mu, si=si, node_labels=node_labels)
+    substrate = get_net(mech_func, weights, mu=mu, si=si, node_labels=node_labels)
 
     transition = actual.Transition(
-        network,
+        substrate,
         (1, 0, 0, 1, 1, 1, 1, 1),
         (1, 0, 0, 1, 1, 1, 1, 1),
         (0, 1, 2, 3, 4, 5),
@@ -1537,9 +1537,9 @@ def differentiation_macro_tpm(p, epsilon):
 
 
 @register_example
-def differentiation_micro_1_subsystem():
-    return Subsystem(
-        network=Network(differentiation_micro_tpm(0.9, 0.01)),
+def differentiation_micro_1_system():
+    return System(
+        substrate=Substrate(differentiation_micro_tpm(0.9, 0.01)),
         state=(0, 0),
-        nodes=(0, 1),
+        node_indices=(0, 1),
     )

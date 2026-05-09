@@ -1,5 +1,5 @@
 # models/__init__.py
-"""See |models.subsystem|, |models.mechanism|, and |models.cuts| for documentation.
+"""See |models.system|, |models.mechanism|, and |models.cuts| for documentation.
 
 Attributes:
     Account: Alias for :class:`pyphi.models.actual_causation.Account`.
@@ -11,7 +11,7 @@ Attributes:
     Bipartition: Alias for :class:`pyphi.models.cuts.Bipartition`.
     CausalLink: Alias for :class:`pyphi.models.actual_causation.CausalLink`.
     CauseEffectStructure: Alias for
-        :class:`pyphi.models.subsystem.CauseEffectStructure`.
+        :class:`pyphi.models.system.CauseEffectStructure`.
     Concept: Alias for :class:`pyphi.models.mechanism.Concept`.
     DirectedAccount: Alias for
         :class:`pyphi.models.actual_causation.DirectedAccount`.
@@ -25,7 +25,7 @@ Attributes:
     RepertoireIrreducibilityAnalysis: Alias for
         :class:`pyphi.models.mechanism.RepertoireIrreducibilityAnalysis`.
     SystemIrreducibilityAnalysis: Alias for
-        :class:`pyphi.models.subsystem.SystemIrreducibilityAnalysis`.
+        :class:`pyphi.models.system.SystemIrreducibilityAnalysis`.
 """
 
 from .actual_causation import Account

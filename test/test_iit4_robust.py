@@ -46,20 +46,20 @@ class TestDistinctionCounts:
 
     Distinctions (irreducible mechanisms) are fundamental to IIT 4.0.
     These tests verify that the distinction-finding algorithm produces
-    the expected number of distinctions for each test network.
+    the expected number of distinctions for each test substrate.
     """
 
     def test_phi_structure_basic_distinction_count(self):
         """Basic example produces expected number of distinctions.
 
-        Network: Basic 3-node network (OR, COPY, XOR gates)
+        Substrate: Basic 3-node substrate (OR, COPY, XOR gates)
         Expected: 2 distinctions
 
         If this fails, the distinction-finding algorithm may have changed
-        or the basic example network definition was modified.
+        or the basic example substrate definition was modified.
         """
-        subsystem = EXAMPLES["subsystem"]["basic"]()
-        result = new_big_phi.phi_structure(subsystem)
+        system = EXAMPLES["system"]["basic"]()
+        result = new_big_phi.phi_structure(system)
 
         expected_count = EXPECTED_PHI_STRUCTURE["basic"]["num_distinctions"]
         actual_count = len(result.distinctions) if hasattr(result, "distinctions") else 0
@@ -73,13 +73,13 @@ class TestDistinctionCounts:
     def test_phi_structure_basic_noisy_selfloop_distinction_count(self):
         """Basic noisy selfloop example produces expected distinctions.
 
-        Network: Basic network with noise and self-loops
+        Substrate: Basic substrate with noise and self-loops
         Expected: 2 distinctions
 
         Tests distinction finding with stochastic transitions.
         """
-        subsystem = EXAMPLES["subsystem"]["basic_noisy_selfloop"]()
-        result = new_big_phi.phi_structure(subsystem)
+        system = EXAMPLES["system"]["basic_noisy_selfloop"]()
+        result = new_big_phi.phi_structure(system)
 
         expected_count = EXPECTED_PHI_STRUCTURE["basic_noisy_selfloop"][
             "num_distinctions"
@@ -95,14 +95,14 @@ class TestDistinctionCounts:
     def test_phi_structure_fig4_distinction_count(self):
         """Figure 4 example produces expected number of distinctions.
 
-        Network: Example from published IIT 4.0 paper (Figure 4)
+        Substrate: Example from published IIT 4.0 paper (Figure 4)
         Expected: 4 distinctions
 
         This is a published reference example, so the expected count
         is validated against the paper.
         """
-        subsystem = EXAMPLES["subsystem"]["fig4"]()
-        result = new_big_phi.phi_structure(subsystem)
+        system = EXAMPLES["system"]["fig4"]()
+        result = new_big_phi.phi_structure(system)
 
         expected_count = EXPECTED_PHI_STRUCTURE["fig4"]["num_distinctions"]
         actual_count = len(result.distinctions) if hasattr(result, "distinctions") else 0
@@ -117,13 +117,13 @@ class TestDistinctionCounts:
     def test_phi_structure_grid3_distinction_count(self):
         """Grid topology example produces expected distinctions.
 
-        Network: 3-node grid topology
+        Substrate: 3-node grid topology
         Expected: 7 distinctions
 
-        Tests distinction finding on grid-structured networks.
+        Tests distinction finding on grid-structured substrates.
         """
-        subsystem = EXAMPLES["subsystem"]["grid3"]()
-        result = new_big_phi.phi_structure(subsystem)
+        system = EXAMPLES["system"]["grid3"]()
+        result = new_big_phi.phi_structure(system)
 
         expected_count = EXPECTED_PHI_STRUCTURE["grid3"]["num_distinctions"]
         actual_count = len(result.distinctions) if hasattr(result, "distinctions") else 0
@@ -135,15 +135,15 @@ class TestDistinctionCounts:
         )
 
     def test_phi_structure_xor_distinction_count(self):
-        """XOR network example produces expected distinctions.
+        """XOR substrate example produces expected distinctions.
 
-        Network: XOR gate configuration
+        Substrate: XOR gate configuration
         Expected: 4 distinctions
 
         Tests distinction finding with XOR logic gates.
         """
-        subsystem = EXAMPLES["subsystem"]["xor"]()
-        result = new_big_phi.phi_structure(subsystem)
+        system = EXAMPLES["system"]["xor"]()
+        result = new_big_phi.phi_structure(system)
 
         expected_count = EXPECTED_PHI_STRUCTURE["xor"]["num_distinctions"]
         actual_count = len(result.distinctions) if hasattr(result, "distinctions") else 0
@@ -192,8 +192,8 @@ class TestPhiStructureComponents:
 
         Note: rule154 is marked as slow due to computational expense (11 distinctions).
         """
-        subsystem = EXAMPLES["subsystem"][example_name]()
-        result = new_big_phi.phi_structure(subsystem)
+        system = EXAMPLES["system"][example_name]()
+        result = new_big_phi.phi_structure(system)
 
         assert hasattr(result, "distinctions"), (
             f"PhiStructure for '{example_name}' missing 'distinctions' attribute"
@@ -224,8 +224,8 @@ class TestPhiStructureComponents:
 
         Note: rule154 is marked as slow due to computational expense (11 distinctions).
         """
-        subsystem = EXAMPLES["subsystem"][example_name]()
-        result = new_big_phi.phi_structure(subsystem)
+        system = EXAMPLES["system"][example_name]()
+        result = new_big_phi.phi_structure(system)
 
         assert hasattr(result, "relations"), (
             f"PhiStructure for '{example_name}' missing 'relations' attribute"
@@ -252,8 +252,8 @@ class TestPhiStructureComponents:
 
         Note: rule154 is marked as slow due to computational expense (11 distinctions).
         """
-        subsystem = EXAMPLES["subsystem"][example_name]()
-        result = new_big_phi.phi_structure(subsystem)
+        system = EXAMPLES["system"][example_name]()
+        result = new_big_phi.phi_structure(system)
 
         assert hasattr(result, "distinctions"), (
             "PhiStructure missing distinctions attribute"
@@ -297,8 +297,8 @@ class TestDistinctionProperties:
         Each distinction represents an irreducible mechanism, so it
         must have a 'mechanism' attribute identifying the nodes.
         """
-        subsystem = EXAMPLES["subsystem"]["basic"]()
-        result = new_big_phi.phi_structure(subsystem)
+        system = EXAMPLES["system"]["basic"]()
+        result = new_big_phi.phi_structure(system)
 
         assert hasattr(result, "distinctions"), "No distinctions attribute"
 
@@ -314,19 +314,19 @@ class TestDistinctionProperties:
                 f"Distinction {i} missing 'mechanism' attribute"
             )
 
-    def test_distinctions_mechanisms_are_within_subsystem(self):
-        """Distinction mechanisms should be subsets of subsystem nodes.
+    def test_distinctions_mechanisms_are_within_system(self):
+        """Distinction mechanisms should be subsets of system nodes.
 
         Each distinction's mechanism must be composed of nodes that
-        exist in the subsystem. This is a fundamental requirement.
+        exist in the system. This is a fundamental requirement.
 
         If this fails, distinction finding is assigning mechanisms
-        outside the subsystem boundaries.
+        outside the system boundaries.
         """
-        subsystem = EXAMPLES["subsystem"]["basic"]()
-        result = new_big_phi.phi_structure(subsystem)
+        system = EXAMPLES["system"]["basic"]()
+        result = new_big_phi.phi_structure(system)
 
-        subsystem_nodes = set(subsystem.node_indices)
+        system_nodes = set(system.node_indices)
 
         # Get the concepts (distinctions)
         if hasattr(result.distinctions, "concepts"):
@@ -338,9 +338,9 @@ class TestDistinctionProperties:
             mechanism = distinction.mechanism
             mechanism_nodes = set(mechanism)
 
-            assert mechanism_nodes.issubset(subsystem_nodes), (
+            assert mechanism_nodes.issubset(system_nodes), (
                 f"Distinction mechanism {mechanism} not subset of "
-                f"subsystem nodes {subsystem_nodes}"
+                f"system nodes {system_nodes}"
             )
 
 
@@ -353,7 +353,7 @@ class TestCrossExampleConsistency:
     """Test consistency properties across multiple examples.
 
     These tests verify that phi_structure computation is consistent
-    across different networks and doesn't have example-specific bugs.
+    across different substrates and doesn't have example-specific bugs.
     """
 
     @pytest.mark.parametrize(
@@ -374,18 +374,18 @@ class TestCrossExampleConsistency:
     def test_phi_structure_is_deterministic(self, example_name):
         """Phi structure computation should be deterministic.
 
-        Running phi_structure twice on the same subsystem should
+        Running phi_structure twice on the same system should
         produce identical results (unless there's intentional randomness).
 
         This test catches non-deterministic bugs in computation.
 
         Note: rule154 is marked as slow due to computational expense (11 distinctions).
         """
-        subsystem = EXAMPLES["subsystem"][example_name]()
+        system = EXAMPLES["system"][example_name]()
 
         # Compute twice
-        result1 = new_big_phi.phi_structure(subsystem)
-        result2 = new_big_phi.phi_structure(subsystem)
+        result1 = new_big_phi.phi_structure(system)
+        result2 = new_big_phi.phi_structure(system)
 
         # Should get same number of distinctions
         count1 = len(result1.distinctions) if hasattr(result1, "distinctions") else 0

@@ -49,7 +49,7 @@ class IIT3Formalism:
 
     def evaluate_mechanism(
         self,
-        subsystem: Any,
+        system: Any,
         direction: Any,
         mechanism: Any,
         purview: Any,
@@ -60,11 +60,11 @@ class IIT3Formalism:
         (empty purview, unreachable state) the public dispatcher owns."""
         from pyphi.formalism.queries import find_mip
 
-        return find_mip(subsystem, direction, mechanism, purview, **kwargs)
+        return find_mip(system, direction, mechanism, purview, **kwargs)
 
     def _find_mechanism_mip(
         self,
-        subsystem: Any,
+        system: Any,
         direction: Any,
         mechanism: Any,
         purview: Any,
@@ -87,7 +87,7 @@ class IIT3Formalism:
         if state is not None:
             raise ValueError("passing `state` is not supported with IIT 3.0")
         return _find_mip_single_state(  # pyright: ignore[reportPrivateUsage]
-            subsystem,
+            system,
             None,
             direction,
             mechanism,
@@ -100,7 +100,7 @@ class IIT3Formalism:
 
     def evaluate_mechanism_partition(
         self,
-        subsystem: Any,
+        system: Any,
         direction: Any,
         mechanism: Any,
         purview: Any,
@@ -125,10 +125,10 @@ class IIT3Formalism:
             repertoire_distance, config.formalism.repertoire_distance
         )
         if repertoire is None:
-            repertoire = subsystem.repertoire(direction, mechanism, purview)
+            repertoire = system.repertoire(direction, mechanism, purview)
         if partitioned_repertoire is None:
             partitioned_repertoire_kwargs = partitioned_repertoire_kwargs or {}
-            partitioned_repertoire = subsystem.partitioned_repertoire(
+            partitioned_repertoire = system.partitioned_repertoire(
                 direction, partition, **partitioned_repertoire_kwargs
             )
         phi = _repertoire_distance(
@@ -146,27 +146,27 @@ class IIT3Formalism:
             partition=partition,
             repertoire=repertoire,
             partitioned_repertoire=partitioned_repertoire,
-            mechanism_state=state_of(mechanism, subsystem.state),
-            purview_state=state_of(purview, subsystem.state),
+            mechanism_state=state_of(mechanism, system.state),
+            purview_state=state_of(purview, system.state),
             specified_state=kwargs.get("state"),
-            node_labels=subsystem.node_labels,
+            node_labels=system.node_labels,
             selectivity=None,
         )
 
-    def evaluate_system(self, subsystem: Any, **kwargs: Any) -> Any:
+    def evaluate_system(self, system: Any, **kwargs: Any) -> Any:
         """Delegate to the IIT 3.0 ``sia`` in :mod:`pyphi.formalism.iit3`."""
         check_metric_compatible(self, config.formalism.repertoire_distance)
         from pyphi.formalism.iit3 import sia as _sia
 
-        return _sia(subsystem, **kwargs)
+        return _sia(system, **kwargs)
 
-    def build_phi_structure(self, subsystem: Any, **kwargs: Any) -> Any:
+    def build_phi_structure(self, system: Any, **kwargs: Any) -> Any:
         """IIT 3.0 has no Φ-structure; raises ``NotImplementedError``.
 
-        Use ``evaluate_system(subsystem).ces`` to obtain the cause-effect
+        Use ``evaluate_system(system).ces`` to obtain the cause-effect
         structure.
         """
-        del subsystem, kwargs
+        del system, kwargs
         raise NotImplementedError(
             "IIT 3.0 has no Φ-structure (distinctions + relations); "
             "use evaluate_system().ces for the cause-effect structure."

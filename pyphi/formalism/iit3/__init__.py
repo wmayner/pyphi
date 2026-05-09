@@ -43,15 +43,15 @@ from pyphi.types import Mechanism
 from pyphi.types import Purview
 
 if TYPE_CHECKING:
-    from pyphi.core import CandidateSystem as Subsystem
     from pyphi.labels import NodeLabels
+    from pyphi.system import System
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
 
 
 def ces(
-    subsystem: Subsystem,
+    system: System,
     mechanisms: Iterable[Mechanism] | None = None,
     purviews: Iterable[Purview] | None = None,
     cause_purviews: Iterable[Purview] | None = None,
@@ -60,22 +60,22 @@ def ces(
     only_positive_phi: bool = True,
     **kwargs: Any,
 ) -> CauseEffectStructure:
-    """Return the conceptual structure of this subsystem, optionally restricted
+    """Return the conceptual structure of this system, optionally restricted
     to concepts with the mechanisms and purviews given in keyword arguments.
 
     If you don't need the full |CauseEffectStructure|, restricting the possible
     mechanisms and purviews can make this function much faster.
 
     Args:
-        subsystem (Subsystem): The subsystem for which to determine the
+        system (System): The system for which to determine the
             |CauseEffectStructure|.
 
     Keyword Args:
         mechanisms (tuple[tuple[int]]): Restrict possible mechanisms to those
             in this list.
-        purviews (tuple[tuple[int]]): Same as in |Subsystem.concept()|.
-        cause_purviews (tuple[tuple[int]]): Same as in |Subsystem.concept()|.
-        effect_purviews (tuple[tuple[int]]): Same as in |Subsystem.concept()|.
+        purviews (tuple[tuple[int]]): Same as in |System.concept()|.
+        cause_purviews (tuple[tuple[int]]): Same as in |System.concept()|.
+        effect_purviews (tuple[tuple[int]]): Same as in |System.concept()|.
         parallel (bool): Whether to compute concepts in parallel. If ``True``,
             overrides :data:`config.infrastructure.parallel_concept_evaluation`.
         directions (Iterable[Direction]): Restrict possible directions to these.
@@ -88,8 +88,8 @@ def ces(
     """
     total = None
     if mechanisms is None:
-        mechanisms = utils.powerset(subsystem.node_indices, nonempty=True)
-        total = 2 ** len(subsystem.node_indices) - 1
+        mechanisms = utils.powerset(system.node_indices, nonempty=True)
+        total = 2 ** len(system.node_indices) - 1
     else:
         with contextlib.suppress(TypeError):
             total = len(mechanisms)  # type: ignore[arg-type]  # mechanisms may be generator
@@ -97,7 +97,7 @@ def ces(
     from pyphi.formalism.queries import concept as _concept
 
     def compute_concept(*args, **kwargs):
-        return _concept(subsystem, *args, **kwargs, progress=False)
+        return _concept(system, *args, **kwargs, progress=False)
 
     reduce_func = _only_positive_phi if only_positive_phi else _any_phi
     parallel_kwargs = conf.parallel_kwargs(
@@ -128,29 +128,29 @@ def _any_phi(concepts: Iterable[Any]) -> list[Concept]:
     return list(collapse(concepts))
 
 
-def conceptual_info(subsystem: Subsystem, **kwargs: Any) -> float:
-    """Return the conceptual information for a |Subsystem|.
+def conceptual_info(system: System, **kwargs: Any) -> float:
+    """Return the conceptual information for a |System|.
 
-    This is the distance from the subsystem's |CauseEffectStructure| to the
+    This is the distance from the system's |CauseEffectStructure| to the
     null concept.
     """
-    ci = ces_distance(ces(subsystem, **kwargs), CauseEffectStructure(()))
+    ci = ces_distance(ces(system, **kwargs), CauseEffectStructure(()))
     return round(ci, config.numerics.precision)  # type: ignore[arg-type]  # config.Option descriptor
 
 
 def evaluate_cut(
     cut: SystemPartition,
-    uncut_subsystem: Subsystem,
+    uncut_system: System,
     unpartitioned_ces: CauseEffectStructure,
     **kwargs: Any,
 ) -> SystemIrreducibilityAnalysis:
     """Compute the system irreducibility for a given cut.
 
     Args:
-        uncut_subsystem (Subsystem): The subsystem without the cut applied.
+        uncut_system (System): The system without the cut applied.
         cut (SystemPartition): The cut to evaluate.
         unpartitioned_ces (CauseEffectStructure): The cause-effect structure of
-            the uncut subsystem.
+            the uncut system.
 
     Returns:
         SystemIrreducibilityAnalysis: The |SystemIrreducibilityAnalysis| for
@@ -158,7 +158,7 @@ def evaluate_cut(
     """
     log.debug("Evaluating %s...", cut)
 
-    cut_subsystem = uncut_subsystem.apply_cut(cut)
+    cut_system = uncut_system.apply_cut(cut)
 
     if config.formalism.assume_cuts_cannot_create_new_concepts:
         mechanisms = list(unpartitioned_ces.mechanisms)
@@ -166,11 +166,11 @@ def evaluate_cut(
         # Mechanisms can only produce concepts if they were concepts in the
         # original system, or the cut divides the mechanism.
         mechanisms = set(
-            list(unpartitioned_ces.mechanisms) + list(cut_subsystem.cut_mechanisms)
+            list(unpartitioned_ces.mechanisms) + list(cut_system.cut_mechanisms)
         )
 
     kwargs = {"progress": False, **kwargs}
-    partitioned_ces = ces(cut_subsystem, mechanisms, **kwargs)
+    partitioned_ces = ces(cut_system, mechanisms, **kwargs)
 
     log.debug("Finished evaluating %s.", cut)
 
@@ -180,8 +180,8 @@ def evaluate_cut(
         phi=phi_,
         ces=unpartitioned_ces,
         partitioned_ces=partitioned_ces,
-        subsystem=uncut_subsystem,
-        cut_subsystem=cut_subsystem,
+        system=uncut_system,
+        cut_system=cut_system,
     )
 
 
@@ -215,18 +215,18 @@ def sia_partitions(
     )
 
 
-def _ces(subsystem: Subsystem, **kwargs: Any) -> CauseEffectStructure:
+def _ces(system: System, **kwargs: Any) -> CauseEffectStructure:
     """Parallelize the unpartitioned |CauseEffectStructure| if parallelizing
     cuts, since we have free processors because we're not computing any cuts
     yet.
     """
     kwargs = {"parallel": config.infrastructure.parallel_cut_evaluation, **kwargs}
-    return ces(subsystem, **kwargs)
+    return ces(system, **kwargs)
 
 
 def _sia_map_reduce(
     cuts: Iterable[SystemPartition],
-    subsystem: Subsystem,
+    system: System,
     unpartitioned_ces: CauseEffectStructure,
     **kwargs: Any,
 ) -> SystemIrreducibilityAnalysis:
@@ -235,11 +235,11 @@ def _sia_map_reduce(
         evaluate_cut,
         cuts,
         map_kwargs={
-            "uncut_subsystem": subsystem,
+            "uncut_system": system,
             "unpartitioned_ces": unpartitioned_ces,
         },
         reduce_func=min,
-        reduce_kwargs={"default": _null_sia(subsystem)},
+        reduce_kwargs={"default": _null_sia(system)},
         shortcircuit_func=utils.is_falsy,
         desc="Evaluating cuts",
         **kwargs,
@@ -248,157 +248,157 @@ def _sia_map_reduce(
     return result
 
 
-def _sia(subsystem: Subsystem, **kwargs: Any) -> SystemIrreducibilityAnalysis:
-    """Return the minimal information partition of a subsystem.
+def _sia(system: System, **kwargs: Any) -> SystemIrreducibilityAnalysis:
+    """Return the minimal information partition of a system.
 
     Args:
-        subsystem (Subsystem): The candidate set of nodes.
+        system (System): The candidate set of nodes.
 
     Returns:
         SystemIrreducibilityAnalysis: A nested structure containing all the
         data from the intermediate calculations. The top level contains the
-        basic irreducibility information for the given subsystem.
+        basic irreducibility information for the given system.
     """
     # pylint: disable=unused-argument
 
-    log.info("Calculating big-phi data for %s...", subsystem)
+    log.info("Calculating big-phi data for %s...", system)
 
     # Check for degenerate cases
     # =========================================================================
-    # Phi is necessarily zero if the subsystem is:
+    # Phi is necessarily zero if the system is:
     #   - not strongly connected;
     #   - empty;
     #   - an elementary micro mechanism (i.e. no nontrivial bipartitions).
     # So in those cases we immediately return a null SIA.
-    if not subsystem:
-        log.info("Subsystem %s is empty; returning null SIA immediately.", subsystem)
-        return _null_sia(subsystem)
+    if not system:
+        log.info("System %s is empty; returning null SIA immediately.", system)
+        return _null_sia(system)
 
-    if not connectivity.is_strong(subsystem.cm, subsystem.node_indices):
+    if not connectivity.is_strong(system.cm, system.node_indices):
         log.info(
             "%s is not strongly connected; returning null SIA immediately.",
-            subsystem,
+            system,
         )
-        return _null_sia(subsystem)
+        return _null_sia(system)
 
     # Handle elementary micro mechanism cases.
     # Single macro element systems have nontrivial bipartitions because their
     #   bipartitions are over their micro elements.
-    if len(subsystem.cut_indices) == 1:
+    if len(system.cut_indices) == 1:
         # If the node lacks a self-loop, phi is trivially zero.
-        if not subsystem.cm[subsystem.node_indices][subsystem.node_indices]:
+        if not system.cm[system.node_indices][system.node_indices]:
             log.info(
                 "Single micro nodes %s without selfloops cannot have "
                 "phi; returning null SIA immediately.",
-                subsystem,
+                system,
             )
-            return _null_sia(subsystem)
+            return _null_sia(system)
         # Even if the node has a self-loop, we may still define phi to be zero.
         if not config.formalism.single_micro_nodes_with_selfloops_have_phi:
             log.info(
                 "Single micro nodes %s with selfloops cannot have "
                 "phi; returning null SIA immediately.",
-                subsystem,
+                system,
             )
-            return _null_sia(subsystem)
+            return _null_sia(system)
     # =========================================================================
 
     log.debug("Finding unpartitioned CauseEffectStructure...")
-    unpartitioned_ces = _ces(subsystem, progress=kwargs.get("progress"))
+    unpartitioned_ces = _ces(system, progress=kwargs.get("progress"))
 
     if not unpartitioned_ces:
         log.info(
             "Empty unpartitioned CauseEffectStructure; returning null SIA immediately."
         )
         # Short-circuit if there are no concepts in the unpartitioned CES.
-        return _null_sia(subsystem)
+        return _null_sia(system)
 
     log.debug("Found unpartitioned CauseEffectStructure.")
 
     # TODO: move this into sia_bipartitions?
     # Only True if SINGLE_MICRO_NODES...=True, no?
-    if len(subsystem.cut_indices) == 1:
+    if len(system.cut_indices) == 1:
         cuts = [
             SystemPartition(
                 Direction.EFFECT,
-                subsystem.cut_indices,
-                subsystem.cut_indices,
-                subsystem.cut_node_labels,
+                system.cut_indices,
+                system.cut_indices,
+                system.cut_node_labels,
             )
         ]
     else:
-        cuts = sia_partitions(subsystem.cut_indices, subsystem.cut_node_labels)
+        cuts = sia_partitions(system.cut_indices, system.cut_node_labels)
 
-    result = _sia_map_reduce(cuts, subsystem, unpartitioned_ces, **kwargs)
+    result = _sia_map_reduce(cuts, system, unpartitioned_ces, **kwargs)
 
-    if config.infrastructure.clear_subsystem_caches_after_computing_sia:
-        log.debug("Clearing subsystem caches.")
-        subsystem.clear_caches()
+    if config.infrastructure.clear_system_caches_after_computing_sia:
+        log.debug("Clearing system caches.")
+        system.clear_caches()
 
-    log.info("Finished calculating big-phi data for %s.", subsystem)
+    log.info("Finished calculating big-phi data for %s.", system)
 
     return result
 
 
 @functools.wraps(_sia)
 def sia(
-    subsystem: Subsystem, **kwargs: Any
+    system: System, **kwargs: Any
 ) -> SystemIrreducibilityAnalysis | SystemIrreducibilityAnalysisConceptStyle:
     if config.formalism.system_cuts == "CONCEPT_STYLE":
-        return sia_concept_style(subsystem, **kwargs)
-    return _sia(subsystem, **kwargs)
+        return sia_concept_style(system, **kwargs)
+    return _sia(system, **kwargs)
 
 
-def phi(subsystem: Subsystem) -> float:
-    """Return the |big_phi| value of a subsystem."""
-    return sia(subsystem).phi
+def phi(system: System) -> float:
+    """Return the |big_phi| value of a system."""
+    return sia(system).phi
 
 
 class ConceptStyleSystem:
-    """A functional replacement for ``Subsystem`` implementing concept-style
+    """A functional replacement for ``System`` implementing concept-style
     system cuts.
     """
 
     def __init__(
         self,
-        subsystem: Subsystem,
+        system: System,
         direction: Direction,
         cut: SystemPartition | None = None,
     ) -> None:
-        self.subsystem = subsystem
+        self.system = system
         self.direction = direction
         self.cut = cut
         if cut is not None:
-            self.cut_system = subsystem.apply_cut(cut)
+            self.cut_system = system.apply_cut(cut)
         else:
-            self.cut_system = subsystem
+            self.cut_system = system
 
     def apply_cut(self, cut: SystemPartition) -> ConceptStyleSystem:
-        return ConceptStyleSystem(self.subsystem, self.direction, cut)
+        return ConceptStyleSystem(self.system, self.direction, cut)
 
     def __getattr__(self, name: str) -> Any:
-        """Pass attribute access through to the basic subsystem."""
+        """Pass attribute access through to the basic system."""
         # Unpickling calls `__getattr__` before the object's dict is populated;
-        # check that `subsystem` exists to avoid a recursion error.
+        # check that `system` exists to avoid a recursion error.
         # See https://bugs.python.org/issue5370.
-        if "subsystem" in self.__dict__:
-            return getattr(self.subsystem, name)
+        if "system" in self.__dict__:
+            return getattr(self.system, name)
         raise AttributeError(name)
 
     def __len__(self) -> int:
-        return len(self.subsystem)
+        return len(self.system)
 
     @property
-    def cause_system(self) -> Subsystem:
+    def cause_system(self) -> System:
         return {
             Direction.CAUSE: self.cut_system,
-            Direction.EFFECT: self.subsystem,
+            Direction.EFFECT: self.system,
         }[self.direction]
 
     @property
-    def effect_system(self) -> Subsystem:
+    def effect_system(self) -> System:
         return {
-            Direction.CAUSE: self.subsystem,
+            Direction.CAUSE: self.system,
             Direction.EFFECT: self.cut_system,
         }[self.direction]
 
@@ -443,7 +443,7 @@ def concept_cuts(
 
 
 def directional_sia(
-    subsystem: Subsystem,
+    system: System,
     direction: Direction,
     unpartitioned_ces: CauseEffectStructure | None = None,
     **kwargs: Any,
@@ -452,12 +452,12 @@ def directional_sia(
     SystemIrreducibilityAnalysisEffect.
     """
     if unpartitioned_ces is None:
-        unpartitioned_ces = _ces(subsystem)
+        unpartitioned_ces = _ces(system)
 
-    c_system = ConceptStyleSystem(subsystem, direction)
-    cuts = concept_cuts(direction, c_system.cut_indices, subsystem.node_labels)
+    c_system = ConceptStyleSystem(system, direction)
+    cuts = concept_cuts(direction, c_system.cut_indices, system.node_labels)
 
-    # Type ignore: ConceptStyleSystem duck-types as Subsystem, KCut as SystemPartition
+    # Type ignore: ConceptStyleSystem duck-types as System, KCut as SystemPartition
     return _sia_map_reduce(cuts, c_system, unpartitioned_ces, **kwargs)  # type: ignore[arg-type]
 
 
@@ -486,10 +486,10 @@ class SystemIrreducibilityAnalysisConceptStyle(cmp.Orderable):
     def __eq__(self, other: object) -> bool:
         return cmp.general_eq(self, other, ["phi"])
 
-    unorderable_unless_eq: ClassVar[list[str]] = ["network"]
+    unorderable_unless_eq: ClassVar[list[str]] = ["substrate"]
 
     def order_by(self) -> list[Any]:
-        return [self.phi, len(self.subsystem)]
+        return [self.phi, len(self.system)]
 
     def __repr__(self) -> str:
         return repr(self.min_sia)
@@ -500,40 +500,40 @@ class SystemIrreducibilityAnalysisConceptStyle(cmp.Orderable):
 
 # TODO: cache
 def sia_concept_style(
-    subsystem: Subsystem,
+    system: System,
 ) -> SystemIrreducibilityAnalysisConceptStyle:
     """Compute a concept-style SystemIrreducibilityAnalysis"""
-    unpartitioned_ces = _ces(subsystem)
+    unpartitioned_ces = _ces(system)
 
-    sia_cause = directional_sia(subsystem, Direction.CAUSE, unpartitioned_ces)
-    sia_effect = directional_sia(subsystem, Direction.EFFECT, unpartitioned_ces)
+    sia_cause = directional_sia(system, Direction.CAUSE, unpartitioned_ces)
+    sia_effect = directional_sia(system, Direction.EFFECT, unpartitioned_ces)
 
     return SystemIrreducibilityAnalysisConceptStyle(sia_cause, sia_effect)
 
 
 # ============================================================================
-# Network-level complex evaluation (IIT 3.0 path)
+# Substrate-level complex evaluation (IIT 3.0 path)
 # ============================================================================
 #
 # Mirrors the IIT 4.0 ``all_complexes`` / ``irreducible_complexes`` /
 # ``maximal_complex`` in :mod:`pyphi.formalism.iit4`. Iterates over
-# :func:`pyphi.network.possible_complexes` and dispatches to the IIT 3.0
+# :func:`pyphi.substrate.possible_complexes` and dispatches to the IIT 3.0
 # ``sia`` defined above.
 
 
 def all_complexes(
-    network: Any,
+    substrate: Any,
     state: tuple[int, ...],
     parallel_kwargs: dict[str, Any] | None = None,
     **kwargs: Any,
 ) -> list[SystemIrreducibilityAnalysis]:
-    """Return all complexes of the network under the IIT 3.0 SIA.
+    """Return all complexes of the substrate under the IIT 3.0 SIA.
 
     Includes reducible, zero-|big_phi| complexes (which are not, strictly
     speaking, complexes at all).
     """
     from pyphi import conf as _conf
-    from pyphi.network import possible_complexes
+    from pyphi.substrate import possible_complexes
 
     pkwargs = _conf.parallel_kwargs(
         config.infrastructure.parallel_complex_evaluation,
@@ -541,8 +541,8 @@ def all_complexes(
     )
     result = MapReduce(
         sia,
-        possible_complexes(network, state, **kwargs),
-        total=2 ** len(network) - 1,
+        possible_complexes(substrate, state, **kwargs),
+        total=2 ** len(substrate) - 1,
         map_kwargs={"progress": False},
         desc="Evaluating complexes",
         **pkwargs,  # type: ignore[arg-type]
@@ -552,33 +552,33 @@ def all_complexes(
 
 
 def complexes(
-    network: Any, state: tuple[int, ...], **kwargs: Any
+    substrate: Any, state: tuple[int, ...], **kwargs: Any
 ) -> list[SystemIrreducibilityAnalysis]:
-    """Return all irreducible complexes of the network."""
-    return list(filter(None, all_complexes(network, state, **kwargs)))
+    """Return all irreducible complexes of the substrate."""
+    return list(filter(None, all_complexes(substrate, state, **kwargs)))
 
 
 def major_complex(
-    network: Any, state: tuple[int, ...], **kwargs: Any
+    substrate: Any, state: tuple[int, ...], **kwargs: Any
 ) -> SystemIrreducibilityAnalysis:
-    """Return the major complex of the network."""
+    """Return the major complex of the substrate."""
     from pyphi import conf as _conf
-    from pyphi.core import CandidateSystem as _Subsystem
-    from pyphi.network import possible_complexes
+    from pyphi.substrate import possible_complexes
+    from pyphi.system import System as _System
 
     log.info("Calculating major complex...")
-    empty_subsystem = _Subsystem.from_network(network, state, ())
-    default = _null_sia(empty_subsystem)
+    empty_system = _System.from_substrate(substrate, state, ())
+    default = _null_sia(empty_system)
     pkwargs = _conf.parallel_kwargs(
         config.infrastructure.parallel_complex_evaluation, **kwargs
     )
     result = MapReduce(
         sia,
-        possible_complexes(network, state),
+        possible_complexes(substrate, state),
         map_kwargs={"progress": False},
         reduce_func=max,
         reduce_kwargs={"default": default},
-        total=2 ** len(network) - 1,
+        total=2 ** len(substrate) - 1,
         desc="Evaluating complexes",
         **pkwargs,  # type: ignore[arg-type]
     ).run()
@@ -588,17 +588,17 @@ def major_complex(
 
 
 def condensed(
-    network: Any, state: tuple[int, ...], **kwargs: Any
+    substrate: Any, state: tuple[int, ...], **kwargs: Any
 ) -> list[SystemIrreducibilityAnalysis]:
     """Return a list of maximal non-overlapping complexes."""
     result: list[SystemIrreducibilityAnalysis] = []
     covered_nodes: set[int] = set()
 
-    for c in sorted(complexes(network, state, **kwargs), reverse=True):
-        if c.subsystem is not None and not any(
-            n in covered_nodes for n in c.subsystem.node_indices
+    for c in sorted(complexes(substrate, state, **kwargs), reverse=True):
+        if c.system is not None and not any(
+            n in covered_nodes for n in c.system.node_indices
         ):
             result.append(c)
-            covered_nodes = covered_nodes | set(c.subsystem.node_indices)
+            covered_nodes = covered_nodes | set(c.system.node_indices)
 
     return result

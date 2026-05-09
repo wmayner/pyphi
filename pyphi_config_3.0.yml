@@ -31,7 +31,7 @@ PURVIEW_TIE_RESOLUTION: ["PHI", "PURVIEW_SIZE"]
 SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI: false
 # Controls whether a subsystem's state is validated when the subsystem is
 # created.
-VALIDATE_SUBSYSTEM_STATES: true
+VALIDATE_SYSTEM_STATES: true
 # Controls whether a system is validated for conditional independence.
 VALIDATE_CONDITIONAL_INDEPENDENCE: true
 
@@ -65,7 +65,7 @@ CACHE_REPERTOIRES: true
 CACHE_POTENTIAL_PURVIEWS: true
 # Controls whether subsystem caches are automatically cleared after computing
 # the SIA for the subsystem.
-CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA: false
+CLEAR_SYSTEM_CACHES_AFTER_COMPUTING_SIA: false
 
 # Logging
 # ~~~~~~~

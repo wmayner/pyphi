@@ -37,11 +37,11 @@ welcome.
 Usage
 ~~~~~
 
-The |Network| object is the main object on which computations are performed. It
-represents the network of interest.
+The |Substrate| object is the main object on which computations are performed. It
+represents the substrate of interest.
 
-The |Subsystem| object is the secondary object; it represents a subsystem of a
-network. |big_phi| is a function of subsystems.
+The |System| object is the secondary object; it represents a system of a
+substrate. |big_phi| is a function of systems.
 
 The |compute| module is the main entry-point for the library. It contains
 methods for calculating concepts, cause-effect structures, complexes, etc. See
@@ -72,10 +72,9 @@ import pkgutil
 # Lift main interfaces to top-level namespace
 from .actual import Transition
 from .conf import config
-from .core import CandidateSystem as CandidateSystem
 from .direction import Direction
-from .network import Network
-from .subsystem import Subsystem  # P7: legacy class kept until Phase 8 native port
+from .substrate import Substrate
+from .system import System
 from .tpm import ExplicitTPM
 
 # Skip modules that require optional dependencies
@@ -117,8 +116,8 @@ __all__ = [
     "config",
     "Direction",
     "ExplicitTPM",
-    "Network",
-    "Subsystem",
+    "Substrate",
+    "System",
     "Transition",
 ] + [name for name in _submodule_names if not name.startswith("_")]
 

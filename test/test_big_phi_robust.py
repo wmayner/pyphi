@@ -55,7 +55,7 @@ class TestPhiValues:
     def test_sia_standard_example_phi_value(self, s):
         """Standard example computes correct phi value.
 
-        Network: 3-node standard network (OR, COPY, XOR gates)
+        Substrate: 3-node standard substrate (OR, COPY, XOR gates)
         State: (1, 0, 0)
         Expected: phi = 0.415...
 
@@ -76,7 +76,7 @@ class TestPhiValues:
     def test_sia_noised_example_phi_value(self, s_noised):
         """Noised example computes correct phi value.
 
-        Network: Standard network with noise added to TPM
+        Substrate: Standard substrate with noise added to TPM
         Expected: phi = 1.523...
 
         Noise affects repertoire distributions and thus phi values.
@@ -86,21 +86,21 @@ class TestPhiValues:
         assert float(result.phi) == pytest.approx(expected_phi, rel=1e-13)
 
     def test_sia_micro_phi_value(self, micro_s):
-        """Micro network computes correct phi value.
+        """Micro substrate computes correct phi value.
 
-        Network: 4-node highly connected network
+        Substrate: 4-node highly connected substrate
         Expected: phi = 1.331...
 
-        Tests computation on denser network topology.
+        Tests computation on denser substrate topology.
         """
         result = micro_s.sia()
         expected_phi = EXPECTED_PHI_VALUES["micro_s"]
         assert float(result.phi) == pytest.approx(expected_phi, rel=1e-13)
 
     def test_sia_macro_phi_value(self, macro_s):
-        """Macro network computes correct phi value.
+        """Macro substrate computes correct phi value.
 
-        Network: 2-node stochastic/macro-level network
+        Substrate: 2-node stochastic/macro-level substrate
         Expected: phi = 1.656...
 
         Tests computation with probabilistic transitions.
@@ -109,21 +109,21 @@ class TestPhiValues:
         expected_phi = EXPECTED_PHI_VALUES["macro_s"]
         assert float(result.phi) == pytest.approx(expected_phi, rel=1e-13)
 
-    def test_sia_big_network_0_thru_3_phi_value(self, big_subsys_0_thru_3):
-        """Big network subsystem (nodes 0-3) computes correct phi value.
+    def test_sia_big_substrate_0_thru_3_phi_value(self, big_subsys_0_thru_3):
+        """Big substrate system (nodes 0-3) computes correct phi value.
 
-        Network: 4-node subset of 5-node network
-        Expected: phi = 0.0 (this particular subsystem is reducible)
+        Substrate: 4-node subset of 5-node substrate
+        Expected: phi = 0.0 (this particular system is reducible)
         """
         result = big_subsys_0_thru_3.sia()
         expected_phi = EXPECTED_PHI_VALUES["big_subsys_0_thru_3"]
         assert float(result.phi) == pytest.approx(expected_phi, abs=1e-13)
 
     @pytest.mark.slow
-    def test_sia_big_network_complete_phi_value(self, big_subsys_all_complete):
-        """Big network all nodes (complete graph) phi value.
+    def test_sia_big_substrate_complete_phi_value(self, big_subsys_all_complete):
+        """Big substrate all nodes (complete graph) phi value.
 
-        Network: 5-node complete graph
+        Substrate: 5-node complete graph
         Expected: phi = 0.0
 
         This is marked @slow because it's computationally expensive.
@@ -136,13 +136,13 @@ class TestPhiValues:
     def test_sia_rule152_phi_value(self, rule152_s):
         """Rule 152 cellular automaton computes correct phi value.
 
-        Network: 5-node cellular automaton (rule 152)
+        Substrate: 5-node cellular automaton (rule 152)
         Expected: phi = 0.830...
 
         Note: Full SIA comparison has ties in partitions, so golden test
         only checks phi value. This test does the same.
 
-        This is marked @veryslow because cellular automaton networks
+        This is marked @veryslow because cellular automaton substrates
         are computationally very expensive.
         """
         result = rule152_s.sia()
@@ -208,8 +208,8 @@ class TestSIAComponentStructure:
         For irreducible systems (phi > 0), partition information describes
         the minimum information partition (MIP).
         """
-        for subsystem in [s, micro_s]:
-            result = subsystem.sia()
+        for system in [s, micro_s]:
+            result = system.sia()
 
             # All SIAs should have partition attribute
             assert hasattr(result, "partition"), "SIA missing partition attribute"
@@ -264,21 +264,21 @@ class TestPartitionTypes:
         )
         assert result.phi == 0.0, "Reducible system should have phi=0"
 
-    def test_empty_subsystem_has_null_partition(self, s_empty):
-        """Empty subsystem should have null partition.
+    def test_empty_system_has_null_partition(self, s_empty):
+        """Empty system should have null partition.
 
-        Empty subsystems (no nodes) cannot have integration and should
+        Empty systems (no nodes) cannot have integration and should
         return NullSystemIrreducibilityAnalysis.
         """
         result = s_empty.sia()
 
         assert isinstance(result, NullSystemIrreducibilityAnalysis), (
-            "Empty subsystem should return NullSIA"
+            "Empty system should return NullSIA"
         )
         assert isinstance(result.partition, NullCut), (
-            "Empty subsystem should have NullCut partition"
+            "Empty system should have NullCut partition"
         )
-        assert result.phi == 0.0, "Empty subsystem should have phi=0"
+        assert result.phi == 0.0, "Empty system should have phi=0"
 
 
 # ============================================================================
@@ -306,7 +306,7 @@ class TestConfigurationDependentValues:
         - SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=True
         - REPERTOIRE_DISTANCE="EMD"
 
-        Network: Single node with noisy self-loop
+        Substrate: Single node with noisy self-loop
 
         Theoretical basis: Self-loops create cause-effect structure even
         in single-node systems under micro-level analysis. The phi value
@@ -349,37 +349,37 @@ class TestSequentialParallelConsistency:
 
     These tests duplicate some coverage from test_invariants.py but are
     specific to SIA computation. They verify that parallelization doesn't
-    change results for specific test networks.
+    change results for specific test substrates.
     """
 
     @pytest.mark.parametrize(
-        "subsystem_fixture",
+        "system_fixture",
         ["s", "micro_s", "macro_s", "s_noised"],
     )
-    def test_sia_sequential_equals_parallel_phi(self, subsystem_fixture, request):
+    def test_sia_sequential_equals_parallel_phi(self, system_fixture, request):
         """Verify sequential and parallel SIA have same phi value.
 
         This is a quick check that parallelization doesn't change phi.
         For full equality checking, see test_invariants.py.
 
         Args:
-            subsystem_fixture: Name of subsystem fixture
+            system_fixture: Name of system fixture
             request: Pytest request object
         """
-        subsystem = request.getfixturevalue(subsystem_fixture)
+        system = request.getfixturevalue(system_fixture)
 
         # Sequential computation
         with config.override(parallel=False):
-            seq_result = subsystem.sia()
+            seq_result = system.sia()
 
         # Parallel computation
         with config.override(parallel=True):
-            par_result = subsystem.sia()
+            par_result = system.sia()
 
         # Phi values must match exactly
         assert seq_result.phi == par_result.phi, (
             f"Sequential and parallel phi differ for "
-            f"{subsystem_fixture}:\n"
+            f"{system_fixture}:\n"
             f"  Sequential: {seq_result.phi}\n"
             f"  Parallel:   {par_result.phi}\n"
             f"  Diff:       {abs(seq_result.phi - par_result.phi)}"
@@ -409,15 +409,15 @@ class TestEq23IntrinsicInformationCap:
     }
 
     @staticmethod
-    def _noisy_copy_subsystem(p, state):
+    def _noisy_copy_system(p, state):
         """Create a 2-node noisy COPY system.
 
         Each node copies the other with probability p (LOLI state ordering).
         """
         import numpy as np
 
-        from pyphi import Network
-        from pyphi import Subsystem
+        from pyphi import Substrate
+        from pyphi import System
 
         tpm = np.array(
             [
@@ -428,8 +428,8 @@ class TestEq23IntrinsicInformationCap:
             ]
         )
         cm = np.array([[0, 1], [1, 0]])
-        network = Network(tpm, cm=cm, node_labels=["A", "B"])
-        return Subsystem(network, state)
+        substrate = Substrate(tpm, cm=cm, node_labels=["A", "B"])
+        return System(substrate, state)
 
     def test_phi_capped_by_ii(self):
         """phi is capped by ii(s) = min(i_diff, i_spec) per direction.
@@ -441,10 +441,10 @@ class TestEq23IntrinsicInformationCap:
         from pyphi.formalism.iit4 import sia
         from pyphi.formalism.iit4 import system_intrinsic_information
 
-        subsystem = self._noisy_copy_subsystem(0.8, (1, 1))
+        system = self._noisy_copy_system(0.8, (1, 1))
         with config.override(**self.II_CONFIG):
-            sys_state = system_intrinsic_information(subsystem)
-            result = sia(subsystem)
+            sys_state = system_intrinsic_information(system)
+            result = sia(system)
 
             # Compute ii(s) from components
             ii_cause = min(
@@ -473,9 +473,9 @@ class TestEq23IntrinsicInformationCap:
         from pyphi.direction import Direction
         from pyphi.formalism.iit4 import sia
 
-        subsystem = self._noisy_copy_subsystem(0.8, (1, 1))
+        system = self._noisy_copy_system(0.8, (1, 1))
         with config.override(**self.II_CONFIG):
-            result = sia(subsystem)
+            result = sia(system)
 
             i_diff = float(result.intrinsic_differentiation[Direction.CAUSE])
             cause_phi = float(result.cause.phi)
@@ -518,17 +518,17 @@ class TestPaperExamples:
     }
 
     @staticmethod
-    def _monad_subsystem(p):
+    def _monad_system(p):
         """Single-node system that stays in current state with probability p."""
         import numpy as np
 
-        from pyphi import Network
-        from pyphi import Subsystem
+        from pyphi import Substrate
+        from pyphi import System
 
         tpm = np.array([[1 - p], [p]])
         cm = np.array([[1]])
-        network = Network(tpm, cm=cm)
-        return Subsystem(network, state=(1,))
+        substrate = Substrate(tpm, cm=cm)
+        return System(substrate, state=(1,))
 
     def test_monad_intrinsic_information(self):
         """Example 1, Eq. 27: ii(s) = min{p*log(2p), -log(p)}.
@@ -541,13 +541,13 @@ class TestPaperExamples:
         from pyphi.formalism.iit4 import system_intrinsic_information
 
         p = 0.744
-        subsystem = self._monad_subsystem(p)
+        system = self._monad_system(p)
         i_diff_expected = -np.log2(p)
         i_spec_expected = p * np.log2(2 * p)
         ii_expected = min(i_diff_expected, i_spec_expected)
 
         with config.override(**self.II_CONFIG):
-            sys_state = system_intrinsic_information(subsystem)
+            sys_state = system_intrinsic_information(system)
             # system_intrinsic_information uses INTRINSIC_SPECIFICATION,
             # so it returns i_spec
             i_spec_pyphi = float(sys_state.effect.intrinsic_information)
@@ -572,23 +572,23 @@ class TestPaperExamples:
         from pyphi import metrics
         from pyphi.formalism.iit4 import system_intrinsic_information
 
-        subsystem = self._monad_subsystem(p)
+        system = self._monad_system(p)
 
         with config.override(**self.II_CONFIG):
-            sys_state = system_intrinsic_information(subsystem)
+            sys_state = system_intrinsic_information(system)
             i_spec = float(sys_state.effect.intrinsic_information)
             assert i_spec == pytest.approx(i_spec_expected, abs=1e-5)
 
             # Compute i_diff from forward repertoire
-            fr = subsystem.forward_repertoire(
+            fr = system.forward_repertoire(
                 direction.Direction.EFFECT,
-                subsystem.node_indices,
-                subsystem.node_indices,
+                system.node_indices,
+                system.node_indices,
                 None,
             )
             i_diff = float(
                 metrics.distribution.intrinsic_differentiation(
-                    fr, fr, state=subsystem.proper_state
+                    fr, fr, state=system.proper_state
                 )
             )
             assert i_diff == pytest.approx(i_diff_expected, abs=1e-5)

@@ -55,12 +55,12 @@ def test_cause_tpm_parity() -> None:
     from pyphi.core.tpm.marginalization import cause_tpm
     from pyphi.tpm import backward_tpm as legacy_backward_tpm
 
-    network = examples.basic_network()
+    substrate = examples.basic_substrate()
     state = (1, 0, 0)
     node_indices = (0, 1, 2)
 
-    new_tpm = cause_tpm(ExplicitTPM(network.tpm), state, node_indices)
-    old_tpm = legacy_backward_tpm(network.tpm, state, node_indices)
+    new_tpm = cause_tpm(ExplicitTPM(substrate.tpm), state, node_indices)
+    old_tpm = legacy_backward_tpm(substrate.tpm, state, node_indices)
     np.testing.assert_array_equal(new_tpm.to_array(), np.asarray(old_tpm))
 
 
@@ -71,12 +71,12 @@ def test_effect_tpm_parity() -> None:
     from pyphi.core.tpm.explicit import ExplicitTPM
     from pyphi.core.tpm.marginalization import effect_tpm
 
-    network = examples.basic_network()
+    substrate = examples.basic_substrate()
     state = (1, 0, 0)
     external_indices = (2,)
     external_state = utils.state_of(external_indices, state)
     background = dict(zip(external_indices, external_state, strict=False))
 
-    new_tpm = effect_tpm(ExplicitTPM(network.tpm), background)
-    old_tpm = network.tpm.condition_tpm(background)
+    new_tpm = effect_tpm(ExplicitTPM(substrate.tpm), background)
+    old_tpm = substrate.tpm.condition_tpm(background)
     np.testing.assert_array_equal(new_tpm.to_array(), np.asarray(old_tpm))

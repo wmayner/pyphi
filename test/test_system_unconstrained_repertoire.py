@@ -3,7 +3,7 @@ import numpy as np
 # Unconstrained cause repertoire tests
 # ====================================
 
-# Matlab default network
+# Matlab default substrate
 # ~~~~~~~~~~~~~~~~~~~~~~
 
 
@@ -42,7 +42,7 @@ def test_unconstrained_cause_repertoire_matlab_2(s):
 # Unconstrained effect repertoire tests
 # =====================================
 
-# Matlab default network
+# Matlab default substrate
 # ~~~~~~~~~~~~~~~~~~~~~~
 
 

@@ -75,8 +75,8 @@ def node_labels(node_labels: Sequence[str], node_indices: Sequence[int]) -> None
         raise ValueError(f"Labels {node_labels} must be unique.")
 
 
-def network(n: object) -> bool:
-    """Validate a |Network|.
+def substrate(n: object) -> bool:
+    """Validate a |Substrate|.
 
     Checks the TPM and connectivity matrix.
     """
@@ -85,18 +85,18 @@ def network(n: object) -> bool:
     if n.cm.shape[0] != n.size:  # type: ignore[attr-defined]
         raise ValueError(
             "Connectivity matrix must be NxN, where N is the "
-            "number of nodes in the network."
+            "number of nodes in the substrate."
         )
     return True
 
 
-def is_network(network: object) -> None:
-    """Validate that the argument is a |Network|."""
-    from . import Network
+def is_substrate(substrate: object) -> None:
+    """Validate that the argument is a |Substrate|."""
+    from . import Substrate
 
-    if not isinstance(network, Network):
+    if not isinstance(substrate, Substrate):
         raise ValueError(
-            "Input must be a Network (perhaps you passed a Subsystem instead?"
+            "Input must be a Substrate (perhaps you passed a System instead?"
         )
 
 
@@ -111,40 +111,40 @@ def state_length(state: Sequence[int], size: int) -> bool:
     if len(state) != size:
         raise ValueError(
             "Invalid state: there must be one entry per "
-            f"node in the network; this state has {len(state)} entries, but "
+            f"node in the substrate; this state has {len(state)} entries, but "
             f"there are {size} nodes."
         )
     return True
 
 
-def state_reachable(subsystem: object) -> None:
-    """Return whether a state can be reached according to the network's TPM."""
+def state_reachable(system: object) -> None:
+    """Return whether a state can be reached according to the substrate's TPM."""
     # If there is a row `r` in the TPM such that all entries of `r - state` are
     # between -1 and 1, then the given state has a nonzero probability of being
     # reached from some state.
     # First we take the submatrix of the conditioned TPM that corresponds to
-    # the nodes that are actually in the subsystem...
-    tpm = subsystem.effect_tpm.tpm[..., subsystem.node_indices]  # type: ignore[attr-defined]
+    # the nodes that are actually in the system...
+    tpm = system.effect_tpm.tpm[..., system.node_indices]  # type: ignore[attr-defined]
     # Then we do the subtraction and test.
-    test = tpm - np.array(subsystem.proper_state)  # type: ignore[attr-defined]
+    test = tpm - np.array(system.proper_state)  # type: ignore[attr-defined]
     if not np.any(np.logical_and(test > -1, test < 1).all(-1)):
-        raise exceptions.StateUnreachableForwardsError(subsystem.state)  # type: ignore[attr-defined]
+        raise exceptions.StateUnreachableForwardsError(system.state)  # type: ignore[attr-defined]
 
 
 def cut(cut: object, node_indices: Sequence[int]) -> None:
     """Check that the cut is for only the given nodes."""
     if set(cut.indices) != set(node_indices):  # type: ignore[attr-defined]
-        raise ValueError(f"{cut} nodes are not equal to subsystem nodes {node_indices}")
+        raise ValueError(f"{cut} nodes are not equal to system nodes {node_indices}")
 
 
-def subsystem(s: object) -> bool:
-    """Validate a |Subsystem|.
+def system(s: object) -> bool:
+    """Validate a |System|.
 
     Checks its state and cut.
     """
     node_states(s.state)  # type: ignore[attr-defined]
     cut(s.cut, s.cut_indices)  # type: ignore[attr-defined]
-    if config.infrastructure.validate_subsystem_states:
+    if config.infrastructure.validate_system_states:
         state_reachable(s)
     return True
 

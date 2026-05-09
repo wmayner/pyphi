@@ -7,16 +7,14 @@ import pytest
 from pyphi import examples
 from pyphi.conf import config
 from pyphi.conf.snapshot import ConfigSnapshot
-from pyphi.core.candidate_system import CandidateSystem
-from pyphi.core.causal_model import CausalModel
 from pyphi.formalism.queries import sia
+from pyphi.system import System
 
 
 @pytest.fixture
 def cs():
-    network = examples.basic_network()
-    return CandidateSystem(
-        causal_model=CausalModel.from_network(network),
+    return System(
+        substrate=examples.basic_substrate(),
         state=(1, 0, 0),
         node_indices=(0, 1, 2),
     )

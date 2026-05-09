@@ -19,7 +19,7 @@ CACHE_REPERTOIRES: true
 CES_DISTANCE: SUM_SMALL_PHI
 # Controls whether subsystem caches are automatically cleared after computing
 # the SIA for the subsystem.
-CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA: false
+CLEAR_SYSTEM_CACHES_AFTER_COMPUTING_SIA: false
 # Controls how distinction phi is normalized.
 DISTINCTION_PHI_NORMALIZATION: NUM_CONNECTIONS_CUT
 # The phi formalism to use. One of:
@@ -131,6 +131,6 @@ SYSTEM_PARTITION_TYPE: SET_UNI/BI
 VALIDATE_CONDITIONAL_INDEPENDENCE: true
 # Controls whether a subsystem's state is validated when the subsystem is
 # created.
-VALIDATE_SUBSYSTEM_STATES: true
+VALIDATE_SYSTEM_STATES: true
 # Whether to suppress the welcome message.
 WELCOME_OFF: false

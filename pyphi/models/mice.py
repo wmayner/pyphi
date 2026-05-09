@@ -274,7 +274,7 @@ class MaximallyIrreducibleCauseOrEffect(
         instance._purview_ties = (instance,)
         return instance
 
-    def _relevant_connections(self, subsystem):
+    def _relevant_connections(self, system):
         """Identify connections that “matter” to this concept.
 
         For a |MIC|, the important connections are those which connect the
@@ -282,7 +282,7 @@ class MaximallyIrreducibleCauseOrEffect(
         mechanism to the purview.
 
         Returns an |N x N| matrix, where `N` is the number of nodes in this
-        corresponding subsystem, that identifies connections that “matter” to
+        corresponding system, that identifies connections that “matter” to
         this MICE:
 
         ``direction == Direction.CAUSE``:
@@ -296,29 +296,29 @@ class MaximallyIrreducibleCauseOrEffect(
             otherwise).
 
         Args:
-            subsystem (Subsystem): The |Subsystem| of this MICE.
+            system (System): The |System| of this MICE.
 
         Returns:
             np.ndarray: A |N x N| matrix of connections, where |N| is the size
-            of the network.
+            of the substrate.
 
         Raises:
             ValueError: If ``direction`` is invalid.
         """
         _from, to = self.direction.order(self.mechanism, self.purview)
-        return connectivity.relevant_connections(subsystem.network.size, _from, to)
+        return connectivity.relevant_connections(system.substrate.size, _from, to)
 
     # TODO: pass in `cut` instead? We can infer
-    # subsystem indices from the cut itself, validate, and check.
-    def damaged_by_cut(self, subsystem):
-        """Return ``True`` if this MICE is affected by the subsystem's cut.
+    # system indices from the cut itself, validate, and check.
+    def damaged_by_cut(self, system):
+        """Return ``True`` if this MICE is affected by the system's cut.
 
         The cut affects the MICE if it either splits the MICE's mechanism
         or splits the connections between the purview and mechanism.
         """
-        return subsystem.cut.splits_mechanism(self.mechanism) or np.any(
-            self._relevant_connections(subsystem)
-            * subsystem.cut.cut_matrix(subsystem.network.size)
+        return system.cut.splits_mechanism(self.mechanism) or np.any(
+            self._relevant_connections(system)
+            * system.cut.cut_matrix(system.substrate.size)
             == 1
         )
 

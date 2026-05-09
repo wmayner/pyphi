@@ -128,22 +128,22 @@ def test_system_accessors(s):
     assert cs_effect.effect_system.cut == cut_effect
 
 
-def sia_cs(phi=1.0, subsystem=None):
+def sia_cs(phi=1.0, system=None):
     return iit3.SystemIrreducibilityAnalysisConceptStyle(
-        sia_cause=sia(phi=phi, subsystem=subsystem),
-        sia_effect=sia(phi=phi, subsystem=subsystem),
+        sia_cause=sia(phi=phi, system=system),
+        sia_effect=sia(phi=phi, system=system),
     )
 
 
 @pytest.mark.slow
 def test_sia_concept_style_ordering(s, subsys_n0n2, s_noised):
-    assert sia_cs(subsystem=s) == sia_cs(subsystem=s)
-    assert sia_cs(phi=1, subsystem=s) < sia_cs(phi=2, subsystem=s)
+    assert sia_cs(system=s) == sia_cs(system=s)
+    assert sia_cs(phi=1, system=s) < sia_cs(phi=2, system=s)
 
-    assert sia_cs(subsystem=s) >= sia_cs(subsystem=subsys_n0n2)
+    assert sia_cs(system=s) >= sia_cs(system=subsys_n0n2)
 
     with pytest.raises(TypeError):
-        sia_cs(subsystem=s) < sia_cs(subsystem=s_noised)  # noqa: B015
+        sia_cs(system=s) < sia_cs(system=s_noised)  # noqa: B015
 
 
 # NOTE: test_sia_concept_style, test_unpickle, and test_concept_style_phi were removed

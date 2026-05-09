@@ -14,9 +14,9 @@ import pytest
 from pyphi import config
 from pyphi.formalism import iit4 as new_big_phi
 from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
-from pyphi.subsystem import Subsystem
+from pyphi.system import System
 
-from . import example_networks
+from . import example_substrates
 from .conftest import skip_if_no_pyemd
 
 
@@ -25,7 +25,7 @@ class TestPhiInvariants:
 
     These tests verify that phi values satisfy fundamental IIT properties:
     - Phi is always non-negative
-    - Empty subsystems have zero phi
+    - Empty systems have zero phi
     - Reducible/disconnected systems have zero phi
     """
 
@@ -39,11 +39,11 @@ class TestPhiInvariants:
         assert micro_s.sia().phi >= 0
         assert macro_s.sia().phi >= 0
 
-    def test_empty_subsystem_has_zero_phi(self, s_empty):
-        """Empty subsystems have no integration (phi=0).
+    def test_empty_system_has_zero_phi(self, s_empty):
+        """Empty systems have no integration (phi=0).
 
         IIT Property: A system with no elements cannot have integrated
-        information. Empty subsystems must return NullSIA with phi=0.
+        information. Empty systems must return NullSIA with phi=0.
         """
         result = s_empty.sia()
         assert result.phi == 0.0
@@ -78,10 +78,10 @@ class TestParallelConsistency:
     """
 
     @pytest.mark.parametrize(
-        "subsystem_fixture",
+        "system_fixture",
         ["s", "micro_s", "macro_s", "s_noised"],
     )
-    def test_sequential_equals_parallel(self, subsystem_fixture, request):
+    def test_sequential_equals_parallel(self, system_fixture, request):
         """Sequential and parallel must produce identical results.
 
         This tests the fundamental requirement that parallelization
@@ -90,29 +90,29 @@ class TestParallelConsistency:
         state issue).
 
         Args:
-            subsystem_fixture: Name of subsystem fixture to test
+            system_fixture: Name of system fixture to test
             request: Pytest request object for getting fixture values
         """
-        subsystem = request.getfixturevalue(subsystem_fixture)
+        system = request.getfixturevalue(system_fixture)
 
         # Compute with sequential mode
         with config.override(parallel=False):
-            seq_result = subsystem.sia()
+            seq_result = system.sia()
 
         # Compute with parallel mode
         with config.override(parallel=True):
-            par_result = subsystem.sia()
+            par_result = system.sia()
 
         # Results must be exactly equal
         assert seq_result == par_result, (
-            f"Parallel and sequential results differ for {subsystem_fixture}:\n"
+            f"Parallel and sequential results differ for {system_fixture}:\n"
             f"  Sequential phi: {seq_result.phi}\n"
             f"  Parallel phi:   {par_result.phi}"
         )
 
         # Also check phi values explicitly for better error messages
         assert seq_result.phi == par_result.phi, (
-            f"Phi values differ for {subsystem_fixture}:\n"
+            f"Phi values differ for {system_fixture}:\n"
             f"  Sequential: {seq_result.phi}\n"
             f"  Parallel:   {par_result.phi}\n"
             f"  Diff:       {abs(seq_result.phi - par_result.phi)}"
@@ -185,8 +185,8 @@ class TestStructuralInvariants:
         identified a minimizing partition.
         """
         # Only test systems with phi > 0
-        for subsystem in [s, micro_s]:
-            result = subsystem.sia()
+        for system in [s, micro_s]:
+            result = system.sia()
 
             if (
                 result.phi > 0
@@ -244,7 +244,7 @@ class TestConfigurationInvariants:
     def test_cache_clearing_option(self, s):
         """Cache clearing configuration should be respected.
 
-        Configuration: CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA
+        Configuration: CLEAR_SYSTEM_CACHES_AFTER_COMPUTING_SIA
         - When True: caches should be empty after SIA computation
         - When False: caches should contain data after SIA computation
 
@@ -252,23 +252,23 @@ class TestConfigurationInvariants:
         """
         # Test with cache clearing disabled
         with config.override(
-            clear_subsystem_caches_after_computing_sia=False,
+            clear_system_caches_after_computing_sia=False,
             parallel=False,
             cache_repertoires=True,
         ):
             _ = s.sia()
-            assert s._repertoire_cache.cache, (
+            assert any(stats["size"] > 0 for stats in s.cache_info().values()), (
                 "Cache should have entries when clearing is disabled"
             )
 
         # Test with cache clearing enabled
         with config.override(
-            clear_subsystem_caches_after_computing_sia=True,
+            clear_system_caches_after_computing_sia=True,
             parallel=False,
             cache_repertoires=True,
         ):
             _ = s.sia()
-            assert not s._repertoire_cache.cache, (
+            assert all(stats["size"] == 0 for stats in s.cache_info().values()), (
                 "Cache should be empty when clearing is enabled"
             )
 
@@ -292,8 +292,8 @@ class TestPhiStructureInvariants:
         """
         from pyphi.examples import EXAMPLES
 
-        subsystem = EXAMPLES["subsystem"][example_name]()
-        result = new_big_phi.phi_structure(subsystem)
+        system = EXAMPLES["system"][example_name]()
+        result = new_big_phi.phi_structure(system)
 
         # Systems that have phi should have distinctions
         if hasattr(result, "phi") and result.phi > 0:
@@ -316,8 +316,8 @@ class TestPhiStructureInvariants:
         """
         from pyphi.examples import EXAMPLES
 
-        subsystem = EXAMPLES["subsystem"][example_name]()
-        result = new_big_phi.phi_structure(subsystem)
+        system = EXAMPLES["system"][example_name]()
+        result = new_big_phi.phi_structure(system)
 
         # If system has multiple distinctions, check for relations
         if hasattr(result, "distinctions") and len(result.distinctions) >= 2:
@@ -341,8 +341,8 @@ class TestPermutationSymmetry:
 
     def test_system_intrinsic_information_symmetric(self):
         """Cause/effect intrinsic information must be equal for permuted systems."""
-        sub_ax = Subsystem(example_networks.and_xor_network(), (0, 1))
-        sub_xa = Subsystem(example_networks.xor_and_network(), (1, 0))
+        sub_ax = System(example_substrates.and_xor_substrate(), (0, 1))
+        sub_xa = System(example_substrates.xor_and_substrate(), (1, 0))
         ss_ax = new_big_phi.system_intrinsic_information(sub_ax)
         ss_xa = new_big_phi.system_intrinsic_information(sub_xa)
         assert float(ss_ax.cause.intrinsic_information) == pytest.approx(
@@ -354,8 +354,8 @@ class TestPermutationSymmetry:
 
     def test_sia_phi_symmetric(self):
         """Overall phi must be equal for permuted systems."""
-        sub_ax = Subsystem(example_networks.and_xor_network(), (0, 1))
-        sub_xa = Subsystem(example_networks.xor_and_network(), (1, 0))
+        sub_ax = System(example_substrates.and_xor_substrate(), (0, 1))
+        sub_xa = System(example_substrates.xor_and_substrate(), (1, 0))
         sia_ax = new_big_phi.sia(sub_ax)
         sia_xa = new_big_phi.sia(sub_xa)
         assert float(sia_ax.phi) == pytest.approx(float(sia_xa.phi))
@@ -367,8 +367,8 @@ class TestPermutationSymmetry:
         bug: AND-XOR(0,1) reported phi_c=0.5 while XOR-AND(1,0) reported
         phi_c=0.0, due to arbitrary tie-breaking in the specified cause state.
         """
-        sub_ax = Subsystem(example_networks.and_xor_network(), (0, 1))
-        sub_xa = Subsystem(example_networks.xor_and_network(), (1, 0))
+        sub_ax = System(example_substrates.and_xor_substrate(), (0, 1))
+        sub_xa = System(example_substrates.xor_and_substrate(), (1, 0))
         sia_ax = new_big_phi.sia(sub_ax)
         sia_xa = new_big_phi.sia(sub_xa)
         phi_c_ax = float(sia_ax.cause.phi) if sia_ax.cause else 0.0
@@ -380,8 +380,8 @@ class TestPermutationSymmetry:
 
     def test_sia_phi_e_symmetric(self):
         """phi_e must be equal for permuted systems."""
-        sub_ax = Subsystem(example_networks.and_xor_network(), (0, 1))
-        sub_xa = Subsystem(example_networks.xor_and_network(), (1, 0))
+        sub_ax = System(example_substrates.and_xor_substrate(), (0, 1))
+        sub_xa = System(example_substrates.xor_and_substrate(), (1, 0))
         sia_ax = new_big_phi.sia(sub_ax)
         sia_xa = new_big_phi.sia(sub_xa)
         phi_e_ax = float(sia_ax.effect.phi) if sia_ax.effect else 0.0
@@ -398,7 +398,7 @@ class TestPermutationSymmetry:
         (most vulnerable to the partition) should be back-propagated to
         system_state, so downstream consumers see the correct state.
         """
-        sub = Subsystem(example_networks.and_xor_network(), (0, 1))
+        sub = System(example_substrates.and_xor_substrate(), (0, 1))
         sia = new_big_phi.sia(sub)
         if sia.cause and sia.cause.specified_state:
             assert sia.system_state.cause.state == sia.cause.specified_state.state
@@ -407,7 +407,7 @@ class TestPermutationSymmetry:
 
     def test_system_state_preserves_ties_after_resolution(self):
         """system_state should still record all tied states after resolution."""
-        sub = Subsystem(example_networks.and_xor_network(), (0, 1))
+        sub = System(example_substrates.and_xor_substrate(), (0, 1))
         sia = new_big_phi.sia(sub)
         # The cause direction had 2 tied states
         assert len(sia.system_state.cause.ties) == 2
@@ -416,8 +416,8 @@ class TestPermutationSymmetry:
 
     def test_system_state_symmetric(self):
         """system_state.cause.state should be permutation-equivalent."""
-        sub_ax = Subsystem(example_networks.and_xor_network(), (0, 1))
-        sub_xa = Subsystem(example_networks.xor_and_network(), (1, 0))
+        sub_ax = System(example_substrates.and_xor_substrate(), (0, 1))
+        sub_xa = System(example_substrates.xor_and_substrate(), (1, 0))
         sia_ax = new_big_phi.sia(sub_ax)
         sia_xa = new_big_phi.sia(sub_xa)
         ax_state = sia_ax.system_state.cause.state

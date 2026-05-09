@@ -82,7 +82,7 @@ class _GlobalConfig:
             maximum_cache_memory_percentage=legacy.MAXIMUM_CACHE_MEMORY_PERCENTAGE,
             cache_repertoires=legacy.CACHE_REPERTOIRES,
             cache_potential_purviews=legacy.CACHE_POTENTIAL_PURVIEWS,
-            clear_subsystem_caches_after_computing_sia=legacy.CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA,
+            clear_system_caches_after_computing_sia=legacy.CLEAR_SYSTEM_CACHES_AFTER_COMPUTING_SIA,
             log_file=legacy.LOG_FILE,
             log_file_level=legacy.LOG_FILE_LEVEL,
             log_stdout_level=legacy.LOG_STDOUT_LEVEL,
@@ -91,7 +91,7 @@ class _GlobalConfig:
             print_fractions=legacy.PRINT_FRACTIONS,
             label_separator=legacy.LABEL_SEPARATOR,
             welcome_off=legacy.WELCOME_OFF,
-            validate_subsystem_states=legacy.VALIDATE_SUBSYSTEM_STATES,
+            validate_system_states=legacy.VALIDATE_SYSTEM_STATES,
             validate_conditional_independence=legacy.VALIDATE_CONDITIONAL_INDEPENDENCE,
             validate_json_version=legacy.VALIDATE_JSON_VERSION,
         )

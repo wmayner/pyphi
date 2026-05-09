@@ -24,7 +24,7 @@ from typing import Any
 import numpy as np
 
 from pyphi import Direction
-from pyphi import Subsystem
+from pyphi import System
 from pyphi import utils as pyphi_utils
 
 from .canonicalize import canonical_mechanism
@@ -33,7 +33,7 @@ from .canonicalize import canonical_purview
 from .canonicalize import canonical_state_set
 from .fixture import GoldenFixture
 from .fixture import array_ref
-from .fixture import network_hash
+from .fixture import substrate_hash
 
 
 def compute_all_layers(
@@ -44,12 +44,14 @@ def compute_all_layers(
     Runs inside the fixture's config context. Returns ``(structured, arrays)``
     suitable for ``store_fixture()``.
     """
-    network = fixture.build_network()
-    nodes = fixture.node_indices or network.node_indices
-    subsystem = Subsystem(network, fixture.state, nodes)
+    substrate = fixture.build_substrate()
+    nodes = fixture.node_indices or substrate.node_indices
+    system = System(substrate, fixture.state, nodes)
 
     structured: dict[str, Any] = {
-        "network_hash": network_hash(np.asarray(network.tpm), np.asarray(network.cm)),
+        "substrate_hash": substrate_hash(
+            np.asarray(substrate.tpm), np.asarray(substrate.cm)
+        ),
     }
     arrays: dict[str, np.ndarray] = {}
     array_counter = [0]
@@ -62,18 +64,18 @@ def compute_all_layers(
         return array_ref(key)
 
     if "repertoires" not in fixture.skip_layers:
-        structured["repertoires"] = _compute_repertoires(subsystem, stash)
+        structured["repertoires"] = _compute_repertoires(system, stash)
 
     if "mechanism_mips" not in fixture.skip_layers:
-        structured["mechanism_mips"] = _compute_mechanism_mips(subsystem, stash)
+        structured["mechanism_mips"] = _compute_mechanism_mips(system, stash)
 
     if "sia" not in fixture.skip_layers:
         formalism_name = fixture.config_overrides.get("FORMALISM", "IIT_4_0_2023")
         iit_version = 3.0 if formalism_name == "IIT_3_0" else 4.0
-        structured["sia"] = _compute_sia(subsystem, stash, iit_version)
+        structured["sia"] = _compute_sia(system, stash, iit_version)
 
     if "phi_structure" not in fixture.skip_layers:
-        structured["phi_structure"] = _compute_phi_structure(subsystem, stash)
+        structured["phi_structure"] = _compute_phi_structure(system, stash)
 
     return structured, arrays
 
@@ -81,19 +83,19 @@ def compute_all_layers(
 # ============== Layer 1: Repertoires ==============
 
 
-def _compute_repertoires(subsystem: Subsystem, stash: Any) -> list[dict[str, Any]]:
+def _compute_repertoires(system: System, stash: Any) -> list[dict[str, Any]]:
     """For every (mechanism, purview) pair, capture the cause and effect repertoires.
 
     Also captures the unconstrained repertoires for each purview (which depend
     only on the purview, not the mechanism).
     """
-    nodes = subsystem.node_indices
+    nodes = system.node_indices
     out: list[dict[str, Any]] = []
 
     for mechanism in pyphi_utils.powerset(nodes):
         for purview in pyphi_utils.powerset(nodes):
-            cause_rep = subsystem.cause_repertoire(mechanism, purview)
-            effect_rep = subsystem.effect_repertoire(mechanism, purview)
+            cause_rep = system.cause_repertoire(mechanism, purview)
+            effect_rep = system.effect_repertoire(mechanism, purview)
 
             entry: dict[str, Any] = {
                 "mechanism": canonical_mechanism(mechanism),
@@ -109,16 +111,16 @@ def _compute_repertoires(subsystem: Subsystem, stash: Any) -> list[dict[str, Any
 # ============== Layer 2: Mechanism MIPs ==============
 
 
-def _compute_mechanism_mips(subsystem: Subsystem, stash: Any) -> list[dict[str, Any]]:
+def _compute_mechanism_mips(system: System, stash: Any) -> list[dict[str, Any]]:
     """For every (mechanism, purview), capture the MIP analysis."""
-    nodes = subsystem.node_indices
+    nodes = system.node_indices
     out: list[dict[str, Any]] = []
 
     for mechanism in pyphi_utils.powerset(nodes, nonempty=True):
         for purview in pyphi_utils.powerset(nodes, nonempty=True):
             for direction in [Direction.CAUSE, Direction.EFFECT]:
                 try:
-                    mip = subsystem.find_mip(direction, mechanism, purview)
+                    mip = system.find_mip(direction, mechanism, purview)
                 except Exception as e:
                     out.append(
                         {
@@ -166,12 +168,12 @@ def _compute_mechanism_mips(subsystem: Subsystem, stash: Any) -> list[dict[str, 
 # ============== Layer 3: SIA ==============
 
 
-def _compute_sia(subsystem: Subsystem, stash: Any, iit_version: float) -> dict[str, Any]:
+def _compute_sia(system: System, stash: Any, iit_version: float) -> dict[str, Any]:
     """Capture the system-level irreducibility analysis.
 
-    Dispatches on IIT version because ``Subsystem.sia()`` is hardcoded to call
+    Dispatches on IIT version because ``System.sia()`` is hardcoded to call
     ``new_big_phi.sia()`` regardless of ``config.IIT_VERSION``
-    (``pyphi/subsystem.py:1391``). The genuine IIT 3.0 SIA path is reachable
+    (``pyphi/system.py:1391``). The genuine IIT 3.0 SIA path is reachable
     only via ``pyphi.formalism.iit3.sia(s)``. Without this dispatch, IIT 3.0
     fixtures would silently test the IIT 4.0 SIA framework with EMD as the
     metric — not the actual IIT 3.0 SIA algorithm. P4 (formalism split) is
@@ -182,9 +184,9 @@ def _compute_sia(subsystem: Subsystem, stash: Any, iit_version: float) -> dict[s
         if iit_version == 3.0:
             from pyphi.formalism import iit3 as _iit3
 
-            sia = _iit3.sia(subsystem)
+            sia = _iit3.sia(system)
         else:
-            sia = subsystem.sia()
+            sia = system.sia()
     except Exception as e:
         return {"error": f"{type(e).__name__}: {e}"}
 
@@ -201,7 +203,7 @@ def _compute_sia(subsystem: Subsystem, stash: Any, iit_version: float) -> dict[s
     # IIT 3.0 SIA cut capture is skipped: the IIT 3.0 SIA selects a MIP via
     # ``MapReduce(reduce_func=min, ...)`` over ``OrderableByPhi`` analyses,
     # and ``min()`` breaks ties by first-occurrence. When multiple cuts hit
-    # the same minimum phi (a frequent case on small networks), which one
+    # the same minimum phi (a frequent case on small substrates), which one
     # ``min()`` picks depends on the iteration order of ``sia_partitions``
     # — and that interacts with cross-test state in a way that makes the
     # picked cut order-dependent across fixture runs (verified empirically:
@@ -243,7 +245,7 @@ def _compute_sia(subsystem: Subsystem, stash: Any, iit_version: float) -> dict[s
 # ============== Layer 3b: Phi-structure (IIT 4.0 only) ==============
 
 
-def _compute_phi_structure(subsystem: Subsystem, stash: Any) -> dict[str, Any]:
+def _compute_phi_structure(system: System, stash: Any) -> dict[str, Any]:
     """Capture the IIT 4.0 PhiStructure."""
     try:
         from pyphi.formalism.iit4 import phi_structure
@@ -251,7 +253,7 @@ def _compute_phi_structure(subsystem: Subsystem, stash: Any) -> dict[str, Any]:
         return {"error": "phi_structure not available"}
 
     try:
-        ps = phi_structure(subsystem)
+        ps = phi_structure(system)
     except Exception as e:
         return {"error": f"{type(e).__name__}: {e}"}
 

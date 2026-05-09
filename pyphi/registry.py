@@ -13,7 +13,7 @@ T = TypeVar("T")
 class Registry[T](Mapping[str, Callable[..., Any]]):
     """Generic registry for user-supplied functions.
 
-    See ``pyphi.subsystem.PartitionRegistry`` and
+    See ``pyphi.system.PartitionRegistry`` and
     ``pyphi.distance.MeasureRegistry`` for concrete usage examples.
     """
 

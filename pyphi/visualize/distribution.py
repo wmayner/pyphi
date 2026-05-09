@@ -150,7 +150,7 @@ def plot_distribution(
     return fig, ax
 
 
-def plot_repertoires(subsystem, sia, **kwargs):
+def plot_repertoires(system, sia, **kwargs):
     if config.formalism.repertoire_distance not in [
         "GENERALIZED_INTRINSIC_DIFFERENCE",
         "INTRINSIC_INFORMATION",
@@ -159,14 +159,14 @@ def plot_repertoires(subsystem, sia, **kwargs):
             "Only REPERTOIRE_DISTANCE = "
             "GENERALIZED_INTRINSIC_DIFFERENCE or INTRINSIC_INFORMATION is supported"
         )
-    cut_subsystem = subsystem.apply_cut(sia.partition)
+    cut_system = system.apply_cut(sia.partition)
 
     labels = ["unpartitioned", "partitioned"]
-    subsystems = dict(zip(labels, [subsystem, cut_subsystem], strict=False))
+    systems = dict(zip(labels, [system, cut_system], strict=False))
     repertoires = {
         direction: {
             label: s.forward_repertoire(direction, s.node_indices, s.node_indices)
-            for label, s in subsystems.items()
+            for label, s in systems.items()
         }
         for direction in Direction.both()
     }

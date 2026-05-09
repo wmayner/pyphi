@@ -385,7 +385,7 @@ class PartitionRegistry(Registry):
 
     Schemes registered here yield mechanism-level partitions
     (:class:`pyphi.protocols.MechanismPartition` instances) for each
-    (mechanism, purview) pair. Used by ``Subsystem.find_mip`` to enumerate
+    (mechanism, purview) pair. Used by ``System.find_mip`` to enumerate
     partitions during MIP search.
 
     Users can define custom partitions:
@@ -710,7 +710,7 @@ def _bipartitions_to_cuts(func):
     connectivity matrix). After the formalism split (P4) and the
     Cut/SystemPartition consolidation (P6), every system partition carries
     a ``Direction``; IIT 3.0 cuts default to ``Direction.EFFECT``. The
-    direction is unused by ``compute.subsystem.evaluate_cut`` for IIT 3.0,
+    direction is unused by ``compute.system.evaluate_cut`` for IIT 3.0,
     so this default has no semantic effect on phi values.
     """
 

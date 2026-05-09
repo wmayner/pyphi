@@ -1,11 +1,11 @@
-"""Stateless repertoire computation over CandidateSystem.
+"""Stateless repertoire computation over System.
 
-Layer 2 of the kernel. Functions take a CandidateSystem as the first
+Layer 2 of the kernel. Functions take a System as the first
 argument; results are memoized via a per-instance decorator that purges
-when the CandidateSystem is garbage-collected.
+when the System is garbage-collected.
 
-Numerical bodies are ports of the corresponding Subsystem methods in
-the legacy ``pyphi.subsystem`` module. Parity tests guard equivalence.
+Numerical bodies are ports of the corresponding System methods in
+the legacy ``pyphi.system`` module. Parity tests guard equivalence.
 
 Threading
 ---------
@@ -44,7 +44,7 @@ _caches: dict[str, dict[tuple, Any]] = {}
 # registry adapters set up in ``_memoize``.
 _kernel_stats: dict[str, list[int]] = {}
 
-# Live CandidateSystem references keyed by id, with finalizers that purge
+# Live System references keyed by id, with finalizers that purge
 # the corresponding cache entries on GC.
 _observers: WeakValueDictionary[int, Any] = WeakValueDictionary()
 
@@ -57,10 +57,10 @@ def _evict(cs_id: int) -> None:
 
 
 def _memoize(fn: Callable) -> Callable:
-    """Memoize a function over CandidateSystem instances by ``id()``.
+    """Memoize a function over System instances by ``id()``.
 
     Uses ``WeakValueDictionary`` + ``weakref.finalize`` so that cache
-    entries are purged when the CandidateSystem is collected. Stops
+    entries are purged when the System is collected. Stops
     inserting new entries when ``cache_utils.memory_full()`` reports
     process memory above ``MAXIMUM_CACHE_MEMORY_PERCENTAGE`` — already
     computed values are still returned, just not cached.
@@ -122,7 +122,7 @@ def _single_node_cause_repertoire(
     cs: Any, mechanism_node_index: int, purview_set: frozenset[int]
 ) -> Any:
     """Single-node cause repertoire — used as a building block for full
-    cause repertoires (legacy ``Subsystem._single_node_cause_repertoire``).
+    cause repertoires (legacy ``System._single_node_cause_repertoire``).
     """
     mechanism_node = cs._index2node[mechanism_node_index]
     tpm = mechanism_node.cause_tpm[..., mechanism_node.state]
@@ -147,7 +147,7 @@ def _single_node_effect_repertoire(
     nonmechanism_inputs = purview_node.inputs - set(condition)
     tpm = tpm.marginalize_out(nonmechanism_inputs)
     return tpm.reshape(
-        repertoire_shape(cs.network.node_indices, (purview_node_index,))
+        repertoire_shape(cs.substrate.node_indices, (purview_node_index,))
     ).tpm
 
 
@@ -159,10 +159,10 @@ def _cause_repertoire_inner(
 
     The joint distribution is the (normalized) product of the per-node
     cause repertoires. Equivalent to legacy
-    ``Subsystem._cause_repertoire``.
+    ``System._cause_repertoire``.
     """
     purview_set: frozenset[int] = frozenset(purview)
-    joint = np.ones(repertoire_shape(cs.network.node_indices, purview_set))
+    joint = np.ones(repertoire_shape(cs.substrate.node_indices, purview_set))
     joint *= functools.reduce(
         np.multiply,
         [_single_node_cause_repertoire(cs, m, purview_set) for m in mechanism],
@@ -177,7 +177,7 @@ def _effect_repertoire_inner(
     purview: tuple[int, ...],
     direction: Direction,
 ) -> Any:
-    joint = np.ones(repertoire_shape(cs.network.node_indices, purview))
+    joint = np.ones(repertoire_shape(cs.substrate.node_indices, purview))
     return joint * functools.reduce(
         np.multiply,
         [_single_node_effect_repertoire(cs, condition, p, direction) for p in purview],
@@ -354,7 +354,7 @@ def forward_cause_repertoire(
         result[state] = forward_cause_probability(
             cs, mechanism, purview, state, mechanism_state=mechanism_state
         )
-    return result.reshape(repertoire_shape(cs.network.node_indices, purview))
+    return result.reshape(repertoire_shape(cs.substrate.node_indices, purview))
 
 
 def forward_effect_repertoire(
@@ -409,7 +409,7 @@ def unconstrained_forward_cause_repertoire(
     mean_forward_cause_probability = forward_cause_repertoire(
         cs, mechanism, purview, None
     ).mean()
-    result = np.empty(repertoire_shape(cs.network.node_indices, purview))
+    result = np.empty(repertoire_shape(cs.substrate.node_indices, purview))
     result.fill(mean_forward_cause_probability)
     return result
 
@@ -591,9 +591,9 @@ def potential_purviews(
     Filters out trivially-reducible purviews against the (possibly cut)
     connectivity matrix of this candidate system.
     """
-    from pyphi.network import irreducible_purviews
+    from pyphi.substrate import irreducible_purviews
 
-    _potential_purviews = set(cs.network.potential_purviews(direction, mechanism))
+    _potential_purviews = set(cs.substrate.potential_purviews(direction, mechanism))
     if purviews is None:
         purviews_set = _potential_purviews
     else:
@@ -623,5 +623,5 @@ def null_concept(cs: Any) -> Any:
 def indices2nodes(cs: Any, indices: tuple[int, ...]) -> Any:
     """Return |Nodes| for these indices."""
     if set(indices) - set(cs.node_indices):
-        raise ValueError("`indices` must be a subset of the Subsystem's indices.")
+        raise ValueError("`indices` must be a subset of the System's indices.")
     return tuple(cs._index2node[n] for n in indices)

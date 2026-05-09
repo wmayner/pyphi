@@ -162,21 +162,21 @@ def test_dict_cache_without_name_does_not_register():
     assert before == after
 
 
-def test_network_purview_cache_does_not_register():
-    """Network.purview_cache is anonymous — process-level stats would
-    require a per-Network closure that holds the PurviewCache alive
-    forever (registry leak). Per-Network introspection is available via
-    ``network.purview_cache.info()`` directly."""
+def test_substrate_purview_cache_does_not_register():
+    """Substrate.purview_cache is anonymous — process-level stats would
+    require a per-Substrate closure that holds the PurviewCache alive
+    forever (registry leak). Per-Substrate introspection is available via
+    ``substrate.purview_cache.info()`` directly."""
     from pyphi import cache as cache_module
     from pyphi import examples
 
     before = set(cache_module.info().keys())
-    examples.basic_network()
-    examples.basic_network()
+    examples.basic_substrate()
+    examples.basic_substrate()
     after = set(cache_module.info().keys())
-    network_keys = {k for k in (after - before) if k.startswith("network.")}
-    assert not network_keys, (
-        f"Network purview caches leaked into registry: {network_keys}"
+    substrate_keys = {k for k in (after - before) if k.startswith("substrate.")}
+    assert not substrate_keys, (
+        f"Substrate purview caches leaked into registry: {substrate_keys}"
     )
 
 
@@ -188,8 +188,8 @@ def test_jsonify_object_caches_do_not_leak_into_registry():
     from pyphi import jsonify
 
     before = set(cache_module.info().keys())
-    network = examples.basic_network()
-    encoded = jsonify.dumps(network)
+    substrate = examples.basic_substrate()
+    encoded = jsonify.dumps(substrate)
     jsonify.loads(encoded)
     after = set(cache_module.info().keys())
     leaked = {k for k in (after - before) if k.startswith("jsonify.")}

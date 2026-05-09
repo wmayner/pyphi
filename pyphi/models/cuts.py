@@ -42,7 +42,7 @@ class _CutBase:
         `cut_matrix[a, b]` is `1`; otherwise it is `0`.
 
         Args:
-           n (int): The size of the network.
+           n (int): The size of the substrate.
         """
         raise NotImplementedError
 
@@ -194,7 +194,7 @@ class SystemPartition(_CutBase):
         by the cut.
 
         Args:
-           n (int): The size of the network.
+           n (int): The size of the substrate.
 
         Example:
             >>> from pyphi.direction import Direction
@@ -477,7 +477,7 @@ class Part:
         purview (tuple[int]): The nodes in the mechanism for this part.
 
     Example:
-        When calculating |small_phi| of a 3-node subsystem, we partition the
+        When calculating |small_phi| of a 3-node system, we partition the
         system in the following way::
 
             mechanism:  A,C    B
@@ -560,7 +560,7 @@ class KPartition(Sequence[Part], _CutBase):
         if self._purview is None:
             # NOTE: Must sort here as long as states are tuples and not
             # mappings; we need to be able to combine a purview and a state in
-            # order, e.g. in `Subsystem.partitioned_repertoire`.
+            # order, e.g. in `System.partitioned_repertoire`.
             # TODO(states) remove sorting once states are mappings?
             self._purview = tuple(
                 sorted(chain.from_iterable(part.purview for part in self))

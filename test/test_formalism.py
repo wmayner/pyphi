@@ -35,16 +35,16 @@ class _DummyFormalism:
 
         return _global.formalism
 
-    def evaluate_mechanism(self, subsystem, direction, mechanism, purview, **kwargs):  # noqa: ARG002
+    def evaluate_mechanism(self, system, direction, mechanism, purview, **kwargs):  # noqa: ARG002
         return None
 
     def evaluate_mechanism_partition(self, *args, **kwargs):  # noqa: ARG002
         return None
 
-    def evaluate_system(self, subsystem, **kwargs):  # noqa: ARG002
+    def evaluate_system(self, system, **kwargs):  # noqa: ARG002
         return None
 
-    def build_phi_structure(self, subsystem, **kwargs):  # noqa: ARG002
+    def build_phi_structure(self, system, **kwargs):  # noqa: ARG002
         return None
 
 
@@ -123,7 +123,7 @@ def test_formalism_evaluate_system_matches_legacy_path():
     from pyphi import examples
     from pyphi.formalism import iit4
 
-    s = examples.basic_subsystem()
+    s = examples.basic_system()
     direct = iit4.sia(s)
     via_formalism = FORMALISM_REGISTRY["IIT_4_0_2023"].evaluate_system(s)
     assert direct == via_formalism, (

@@ -112,7 +112,7 @@ def _loadable_models():
         pyphi.models.SystemStateSpecification,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.SystemIrreducibilityAnalysis,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.Tripartition,  # pyright: ignore[reportAttributeAccessIssue]
-        pyphi.Network,
+        pyphi.Substrate,
         pyphi.formalism.iit4.PhiStructure,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.formalism.iit4.SystemIrreducibilityAnalysis,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.formalism.iit4.NullSystemIrreducibilityAnalysis,  # pyright: ignore[reportAttributeAccessIssue]
@@ -120,7 +120,7 @@ def _loadable_models():
         pyphi.relations.ConcreteRelations,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.relations.Relation,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.relations.RelationFace,  # pyright: ignore[reportAttributeAccessIssue]
-        pyphi.Subsystem,
+        pyphi.System,
         pyphi.Transition,
     ]
     return {cls.__name__: cls for cls in classes}

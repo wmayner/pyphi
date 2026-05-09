@@ -106,11 +106,11 @@ def _assert_matches(
     # produces.
     compute_keys = set(actual.keys())
     for key in compute_keys:
-        if key == "network_hash":
+        if key == "substrate_hash":
             assert actual[key] == expected[key], (
-                f"Network hash mismatch for {fixture.name}: "
+                f"Substrate hash mismatch for {fixture.name}: "
                 f"actual {actual[key]} vs expected {expected[key]}. "
-                "The network factory or its data has changed."
+                "The substrate factory or its data has changed."
             )
             continue
         _compare(

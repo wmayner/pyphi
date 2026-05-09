@@ -115,7 +115,7 @@ def repertoire_shape(
     """Return the shape a repertoire.
 
     Args:
-        all_node_indices (tuple[int]): The node indices of the network.
+        all_node_indices (tuple[int]): The node indices of the substrate.
         purview (tuple[int]): The indices of nodes in the repertoire.
 
     Returns:
@@ -168,7 +168,7 @@ def unflatten(
         repertoire (np.ndarray or None): A probability distribution.
         purview (Iterable[int]): The indices of the nodes whose states the
             probability is distributed over.
-        N (int): The size of the network.
+        N (int): The size of the substrate.
 
     Keyword Args:
         big_endian (boolean): If ``True``, assume the flat repertoire is in
@@ -187,12 +187,12 @@ def max_entropy_distribution(
 ) -> Repertoire:
     """Return the maximum entropy distribution over a set of nodes.
 
-    This is different from the network's uniform distribution because nodes
+    This is different from the substrate's uniform distribution because nodes
     outside ``node_indices`` are fixed and treated as if they have only 1
     state.
 
     Args:
-        all_node_indices (tuple[int]): The node indices of the network.
+        all_node_indices (tuple[int]): The node indices of the substrate.
         purview (tuple[int]): The indices of nodes in the distribution.
 
     Returns:

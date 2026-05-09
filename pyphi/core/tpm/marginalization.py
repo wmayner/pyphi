@@ -1,7 +1,7 @@
 """Causal marginalization — named operations against IIT 4.0 Eq. 3 / Eq. 4.
 
 Replaces the implicit ``_backward_tpm()`` side effect in
-``Subsystem.__init__`` with documented free functions.
+``System.__init__`` with documented free functions.
 """
 
 from __future__ import annotations

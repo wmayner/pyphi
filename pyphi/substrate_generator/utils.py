@@ -1,4 +1,4 @@
-# network_generator/utils.py
+# substrate_generator/utils.py
 """Utilities for creating systems."""
 
 import numpy as np

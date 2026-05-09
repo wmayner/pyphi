@@ -28,7 +28,7 @@ def test_memoize_caches_results() -> None:
 
 
 def test_memoize_evicts_on_gc() -> None:
-    """When a CandidateSystem is GC'd, its cache entries are evicted."""
+    """When a System is GC'd, its cache entries are evicted."""
     from pyphi.core.repertoire_algebra import _caches
     from pyphi.core.repertoire_algebra import _memoize
 
@@ -50,13 +50,16 @@ def test_memoize_evicts_on_gc() -> None:
 
 
 def test_memoize_does_not_poison_on_failure() -> None:
-    """If the wrapped function raises, the cache must not retain a partial entry."""
+    """A raised exception must not pollute the cache."""
     from pyphi.core.repertoire_algebra import _memoize
+
+    call_count = {"n": 0}
 
     @_memoize
     def f(cs, x):
-        if x < 0:
-            raise ValueError("negative")
+        call_count["n"] += 1
+        if x == 1:
+            raise ValueError("boom")
         return x * 2
 
     class FakeCs:
@@ -64,158 +67,21 @@ def test_memoize_does_not_poison_on_failure() -> None:
 
     cs = FakeCs()
     with pytest.raises(ValueError):
-        f(cs, -1)
-    assert f(cs, 4) == 8
-    assert f(cs, 4) == 8
-
-
-# =============================================================================
-# Parity tests — every delegating port must produce the same result as
-# calling the equivalent method on a legacy Subsystem.
-# =============================================================================
+        f(cs, 1)
+    assert f(cs, 2) == 4
+    assert call_count["n"] == 2
 
 
 @pytest.fixture
-def cs_and_subsystem():
-    from pyphi import Subsystem
+def cs():
     from pyphi import examples
-    from pyphi.core.candidate_system import CandidateSystem
-    from pyphi.core.causal_model import CausalModel
+    from pyphi.system import System
 
-    network = examples.basic_network()
-    state = (1, 0, 0)
-    nodes = (0, 1, 2)
-    cs = CandidateSystem(
-        causal_model=CausalModel.from_network(network),
-        state=state,
-        node_indices=nodes,
+    return System(
+        substrate=examples.basic_substrate(),
+        state=(1, 0, 0),
+        node_indices=(0, 1, 2),
     )
-    sub = Subsystem(network, state, nodes)
-    return cs, sub
-
-
-@pytest.mark.parametrize(
-    "mechanism, purview",
-    [((0,), (1,)), ((0, 1), (2,)), ((0, 1, 2), (0, 1, 2))],
-)
-def test_cause_repertoire_parity(cs_and_subsystem, mechanism, purview) -> None:
-    import numpy as np
-
-    from pyphi.core.repertoire_algebra import cause_repertoire
-
-    cs, sub = cs_and_subsystem
-    np.testing.assert_array_equal(
-        cause_repertoire(cs, mechanism, purview),
-        sub.cause_repertoire(mechanism, purview),
-    )
-
-
-@pytest.mark.parametrize(
-    "mechanism, purview",
-    [((0,), (1,)), ((0, 1), (2,)), ((0, 1, 2), (0, 1, 2))],
-)
-def test_effect_repertoire_parity(cs_and_subsystem, mechanism, purview) -> None:
-    import numpy as np
-
-    from pyphi.core.repertoire_algebra import effect_repertoire
-
-    cs, sub = cs_and_subsystem
-    np.testing.assert_array_equal(
-        effect_repertoire(cs, mechanism, purview),
-        sub.effect_repertoire(mechanism, purview),
-    )
-
-
-def test_repertoire_dispatch_parity(cs_and_subsystem) -> None:
-    import numpy as np
-
-    from pyphi.core.repertoire_algebra import repertoire
-    from pyphi.direction import Direction
-
-    cs, sub = cs_and_subsystem
-    np.testing.assert_array_equal(
-        repertoire(cs, Direction.CAUSE, (0,), (1,)),
-        sub.repertoire(Direction.CAUSE, (0,), (1,)),
-    )
-
-
-def test_unconstrained_cause_repertoire_parity(cs_and_subsystem) -> None:
-    import numpy as np
-
-    from pyphi.core.repertoire_algebra import unconstrained_cause_repertoire
-
-    cs, sub = cs_and_subsystem
-    np.testing.assert_array_equal(
-        unconstrained_cause_repertoire(cs, (0, 1, 2)),
-        sub.unconstrained_cause_repertoire((0, 1, 2)),
-    )
-
-
-def test_unconstrained_effect_repertoire_parity(cs_and_subsystem) -> None:
-    import numpy as np
-
-    from pyphi.core.repertoire_algebra import unconstrained_effect_repertoire
-
-    cs, sub = cs_and_subsystem
-    np.testing.assert_array_equal(
-        unconstrained_effect_repertoire(cs, (0, 1, 2)),
-        sub.unconstrained_effect_repertoire((0, 1, 2)),
-    )
-
-
-def test_forward_repertoire_parity(cs_and_subsystem) -> None:
-    import numpy as np
-
-    from pyphi.core.repertoire_algebra import forward_cause_repertoire
-    from pyphi.core.repertoire_algebra import forward_effect_repertoire
-
-    cs, sub = cs_and_subsystem
-    # forward_cause_repertoire with purview_state=None iterates all states
-    # (passing a specific state leaves other entries as np.empty garbage).
-    np.testing.assert_array_equal(
-        forward_cause_repertoire(cs, (0,), (1,), None),
-        sub.forward_cause_repertoire((0,), (1,), None),
-    )
-    np.testing.assert_array_equal(
-        forward_effect_repertoire(cs, (0,), (1,)),
-        sub.forward_effect_repertoire((0,), (1,)),
-    )
-
-
-def test_phi_parity(cs_and_subsystem) -> None:
-    from pyphi.formalism import phi
-
-    cs, sub = cs_and_subsystem
-    assert phi(cs, (0,), (1,)) == pytest.approx(sub.phi((0,), (1,)))
-
-
-def test_concept_parity(cs_and_subsystem) -> None:
-    from pyphi.formalism import concept
-
-    cs, sub = cs_and_subsystem
-    assert concept(cs, (0,)).phi == pytest.approx(sub.concept((0,)).phi)
-
-
-def test_sia_parity(cs_and_subsystem) -> None:
-    from pyphi.formalism import sia
-
-    cs, sub = cs_and_subsystem
-    assert sia(cs).phi == pytest.approx(sub.sia().phi)
-
-
-def test_potential_purviews_parity(cs_and_subsystem) -> None:
-    from pyphi.core.repertoire_algebra import potential_purviews
-    from pyphi.direction import Direction
-
-    cs, sub = cs_and_subsystem
-    assert list(potential_purviews(cs, Direction.CAUSE, (0,))) == list(
-        sub.potential_purviews(Direction.CAUSE, (0,))
-    )
-
-
-# =============================================================================
-# Cache registry integration (P9)
-# =============================================================================
 
 
 def test_kernel_caches_appear_in_registry() -> None:
@@ -232,12 +98,11 @@ def test_kernel_caches_appear_in_registry() -> None:
     assert all(k in info for k in kernel_keys)
 
 
-def test_kernel_clear_via_registry_clears_kernel_cache(cs_and_subsystem) -> None:
+def test_kernel_clear_via_registry_clears_kernel_cache(cs) -> None:
     """pyphi.cache.clear('kernel.<name>') empties that kernel cache."""
     from pyphi import cache as cache_module
     from pyphi.core import repertoire_algebra as ra
 
-    cs, _ = cs_and_subsystem
     ra._single_node_cause_repertoire(cs, 0, frozenset({0, 1}))
     name = "kernel._single_node_cause_repertoire"
     assert cache_module.info()[name].currsize >= 1
@@ -246,13 +111,12 @@ def test_kernel_clear_via_registry_clears_kernel_cache(cs_and_subsystem) -> None
     assert cache_module.info()[name].currsize == 0
 
 
-def test_kernel_cache_respects_memory_full(monkeypatch, cs_and_subsystem) -> None:
+def test_kernel_cache_respects_memory_full(monkeypatch, cs) -> None:
     """When memory_full() returns True, kernel cache stops adding entries."""
     from pyphi import cache as cache_module
     from pyphi.cache import cache_utils
     from pyphi.core import repertoire_algebra as ra
 
-    cs, _ = cs_and_subsystem
     cache_module.clear_all()
 
     monkeypatch.setattr(cache_utils, "memory_full", lambda: True)

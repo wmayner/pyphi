@@ -210,6 +210,6 @@ class CauseEffectStructure(cmp.Orderable, Sequence, ToPandasMixin):
         return self._resolved_congruence
 
 
-def _null_ces(subsystem=None):  # noqa: ARG001 - subsystem retained for backward-compatible signature
+def _null_ces(system=None):  # noqa: ARG001 - system retained for backward-compatible signature
     """Return an empty CES."""
     return CauseEffectStructure(())

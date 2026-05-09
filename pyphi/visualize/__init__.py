@@ -15,7 +15,7 @@ except ImportError as exc:
 from . import ising
 from . import phi_structure
 from .connectivity import plot_graph
-from .connectivity import plot_subsystem
+from .connectivity import plot_system
 from .distribution import plot_distribution
 from .distribution import plot_repertoires
 from .dynamics import plot_dynamics
@@ -31,5 +31,5 @@ __all__ = [
     "plot_graph",
     "plot_phi_structure",
     "plot_repertoires",
-    "plot_subsystem",
+    "plot_system",
 ]

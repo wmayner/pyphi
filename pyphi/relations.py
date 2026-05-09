@@ -399,7 +399,7 @@ class RelationComputationsRegistry(Registry):
 
     Examples:
         >>> @relation_computations.register('NONE')  # doctest: +SKIP
-        ... def no_relations(subsystem, ces):
+        ... def no_relations(system, ces):
         ...    return Relations([])
 
     And use them by setting ``config.RELATION_COMPUTATIONS = 'NONE'``
