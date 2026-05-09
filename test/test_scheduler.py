@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 from pyphi.parallel.scheduler import ChunkingPolicy
 from pyphi.parallel.scheduler import ProgressPolicy
 from pyphi.parallel.scheduler import Scheduler
@@ -145,8 +147,6 @@ def test_dask_scheduler_skeleton_lazy_import():
 
 
 def test_dask_scheduler_raises_not_implemented():
-    import pytest
-
     from pyphi.parallel.backends.dask import DaskScheduler
 
     s = DaskScheduler()
@@ -154,3 +154,170 @@ def test_dask_scheduler_raises_not_implemented():
     assert s.supports_shared_state is False
     with pytest.raises(NotImplementedError, match=r"DaskScheduler is a stub"):
         s.map_reduce(lambda x: x, [1, 2, 3])
+
+
+# ============================================================================
+# Snapshot-apply dedup mechanism
+# ============================================================================
+#
+# These tests pin the worker-side dedup hook in
+# :mod:`pyphi.parallel.backends.local_process` rather than the public outcome
+# already covered by ``test_local_process_scheduler_propagates_config_override``.
+# A regression where a worker re-applies an unchanged snapshot on every task
+# would silently produce correct results but hammer the global config —
+# directly testing the dedup keeps that regression visible.
+
+
+def _patch_install_snapshot(config_obj):
+    """Wrap config.install_snapshot to count calls without mutating instance.
+
+    ``_GlobalConfig.__setattr__`` rejects unknown attribute names, so
+    ``mock.patch.object(config, ...)`` fails on cleanup. Patching the class
+    method instead is what works.
+    """
+
+    from typing import ClassVar
+
+    class _Counter:
+        calls: ClassVar[list] = []
+
+    original = type(config_obj).install_snapshot
+
+    def counting(self, snapshot):
+        _Counter.calls.append(snapshot)
+        return original(self, snapshot)
+
+    type(config_obj).install_snapshot = counting
+    return _Counter, original
+
+
+def _restore_install_snapshot(config_obj, original):
+    type(config_obj).install_snapshot = original
+
+
+def test_apply_snapshot_dedup_skips_repeated_identical_snapshot():
+    from pyphi.conf import config
+    from pyphi.parallel.backends import local_process
+
+    # Reset module state to simulate a fresh worker process.
+    local_process._LAST_APPLIED_SNAPSHOT_HASH = None
+    local_process._PARENT_PID = None
+
+    snap = config.snapshot()
+    counter, original = _patch_install_snapshot(config)
+    try:
+        local_process._apply_snapshot_if_changed(snap)
+        local_process._apply_snapshot_if_changed(snap)
+        local_process._apply_snapshot_if_changed(snap)
+    finally:
+        _restore_install_snapshot(config, original)
+
+    assert len(counter.calls) == 1
+
+
+def test_apply_snapshot_dedup_reapplies_when_snapshot_changes():
+    from pyphi.conf import config
+    from pyphi.parallel.backends import local_process
+
+    local_process._LAST_APPLIED_SNAPSHOT_HASH = None
+    local_process._PARENT_PID = None
+
+    snap1 = config.snapshot()
+    with config.override(precision=11):
+        snap2 = config.snapshot()
+
+    counter, original = _patch_install_snapshot(config)
+    try:
+        local_process._apply_snapshot_if_changed(snap1)
+        local_process._apply_snapshot_if_changed(snap2)  # different
+        local_process._apply_snapshot_if_changed(snap1)  # back to snap1
+    finally:
+        _restore_install_snapshot(config, original)
+
+    assert len(counter.calls) == 3
+
+
+def test_apply_snapshot_skips_when_running_in_parent_pid():
+    """Threads share parent globals; the apply hook short-circuits there."""
+    import os
+
+    from pyphi.conf import config
+    from pyphi.parallel.backends import local_process
+
+    local_process._LAST_APPLIED_SNAPSHOT_HASH = None
+    # Mark the test process as the parent — exactly what LocalThreadScheduler
+    # does before dispatching.
+    local_process._PARENT_PID = os.getpid()
+
+    snap = config.snapshot()
+    counter, original = _patch_install_snapshot(config)
+    try:
+        local_process._apply_snapshot_if_changed(snap)
+        local_process._apply_snapshot_if_changed(snap)
+    finally:
+        _restore_install_snapshot(config, original)
+        local_process._PARENT_PID = None
+
+    assert len(counter.calls) == 0
+
+
+# ============================================================================
+# MapReduce backend-name acceptance
+# ============================================================================
+#
+# Per the P11 changelog: ``MapReduce`` always dispatches through the
+# local-process pool. ``"thread"`` and ``"dask"`` are accepted as backend
+# names for forward compatibility with config-driven selection, but the
+# actual execution still uses ``LocalMapReduce``. Users who want true
+# thread/dask execution call :func:`default_scheduler` directly.
+#
+# These tests pin that contract so a future change that wires MapReduce
+# through the Scheduler Protocol surfaces explicitly.
+
+
+def _double(x):
+    """Top-level function for cloudpickle serialization."""
+    return x * 2
+
+
+@pytest.mark.parametrize("backend", ["auto", "local", "process", "thread", "dask"])
+def test_mapreduce_accepts_all_backend_names(backend):
+    """All five backend names are accepted at MapReduce construction."""
+    from pyphi import parallel
+
+    mr = parallel.MapReduce(_double, [1, 2, 3], backend=backend)
+    assert mr.backend in {"local", "thread", "dask"}
+
+
+def test_mapreduce_rejects_unknown_backend():
+    from pyphi import parallel
+
+    with pytest.raises(ValueError, match=r"[Uu]nknown backend"):
+        parallel.MapReduce(_double, [1, 2, 3], backend="invalid")
+
+
+def test_mapreduce_thread_backend_executes_successfully():
+    """MapReduce(backend='thread') runs through LocalMapReduce (process pool).
+    The execution path is documented in the P11 changelog: explicit thread
+    selection requires default_scheduler() instead.
+    """
+    from pyphi import parallel
+
+    mr = parallel.MapReduce(
+        _double, [1, 2, 3, 4, 5], backend="thread", parallel=True, chunksize=2
+    )
+    result = mr.run()
+    assert sorted(result) == [2, 4, 6, 8, 10]
+
+
+def test_mapreduce_dask_backend_executes_successfully():
+    """MapReduce(backend='dask') runs through LocalMapReduce; the DaskScheduler
+    stub is not invoked from MapReduce dispatch.
+    """
+    from pyphi import parallel
+
+    mr = parallel.MapReduce(
+        _double, [1, 2, 3, 4, 5], backend="dask", parallel=True, chunksize=2
+    )
+    result = mr.run()
+    assert sorted(result) == [2, 4, 6, 8, 10]
