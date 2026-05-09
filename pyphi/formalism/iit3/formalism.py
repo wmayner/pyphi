@@ -37,6 +37,18 @@ class IIT3Formalism:
     )
     partition_scheme: str | None = "BI"
 
+    @property
+    def config(self):
+        """The active :class:`FormalismConfig` view over the global config.
+
+        Future work (P11): replace this live view with a per-instance frozen
+        snapshot so workers receive the formalism with its config attached
+        rather than reading globals.
+        """
+        from pyphi.conf import config as _global
+
+        return _global.formalism
+
     def evaluate_mechanism(
         self,
         subsystem: Any,

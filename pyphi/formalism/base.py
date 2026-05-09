@@ -13,12 +13,16 @@ Concrete implementations live in ``pyphi.formalism.iit3`` and
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
 from typing import Any
 from typing import Literal
 from typing import Protocol
 from typing import runtime_checkable
 
 from pyphi.registry import Registry
+
+if TYPE_CHECKING:
+    from pyphi.conf.formalism import FormalismConfig
 
 __all__ = [
     "FORMALISM_REGISTRY",
@@ -49,6 +53,10 @@ class PhiFormalism(Protocol):
     - ``partition_scheme``: name (string) of the partition scheme
       registered in ``pyphi.partition.partition_types`` to use by default.
       May be ``None`` for approximation methods that bypass partitions.
+    - ``config``: the :class:`FormalismConfig` snapshot the formalism
+      operates against. During the cutover this is a live view over the
+      global; future work attaches a per-instance frozen snapshot for
+      worker-safe parallelism.
 
     The three ``evaluate_*`` / ``build_*`` methods are the dispatch points
     that ``Subsystem`` will route through after the cut-over commit.
@@ -60,6 +68,9 @@ class PhiFormalism(Protocol):
     default_metric: str
     compatible_metrics: frozenset[str]
     partition_scheme: str | None
+
+    @property
+    def config(self) -> FormalismConfig: ...
 
     def evaluate_mechanism(
         self, subsystem: Any, direction: Any, mechanism: Any, purview: Any, **kwargs: Any

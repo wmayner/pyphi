@@ -167,6 +167,11 @@ class IIT4_2023Formalism:
     )
     partition_scheme: str | None = "ALL"
 
+    @property
+    def config(self):
+        """The active :class:`FormalismConfig` view over the global config."""
+        return config.formalism
+
     def evaluate_mechanism(
         self,
         subsystem: Any,
@@ -241,6 +246,11 @@ class IIT4_2026Formalism:
         {"INTRINSIC_INFORMATION", "GENERALIZED_INTRINSIC_DIFFERENCE"}
     )
     partition_scheme: str | None = "ALL"
+
+    @property
+    def config(self):
+        """The active :class:`FormalismConfig` view over the global config."""
+        return config.formalism
 
     def evaluate_mechanism(
         self,
