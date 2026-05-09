@@ -35,7 +35,7 @@ class SomeObject:
         self.my_cache = cache.DictCache()
 
     @cache.method("my_cache", "key_prefix")
-    def cached_method(self, some_arg):
+    def cached_method(self, some_arg):  # noqa: ARG002
         return "expensive computation"
 
 
@@ -67,18 +67,18 @@ def factory():
             self.repertoire_cache = cache.DictCache()
 
         @cache.method("repertoire_cache", "cause")
-        def cause_repertoire(self, some_arg):
+        def cause_repertoire(self, some_arg):  # noqa: ARG002
             return "expensive computation"
 
         @cache.method("repertoire_cache", "effect")
-        def effect_repertoire(self, some_arg):
+        def effect_repertoire(self, some_arg):  # noqa: ARG002
             return "expensive computation"
 
     return SomeObject
 
 
 def test_cache_repertoires_config_option():
-    with config.override(CACHE_REPERTOIRES=True):
+    with config.override(cache_repertoires=True):
         SomeObject = factory()
         o = SomeObject()
         assert o.cause_repertoire(1) == "expensive computation"
@@ -88,7 +88,7 @@ def test_cache_repertoires_config_option():
         expected_key = ("effect", 1)
         assert expected_key in o.repertoire_cache.cache
 
-    with config.override(CACHE_REPERTOIRES=False):
+    with config.override(cache_repertoires=False):
         SomeObject = factory()
         o = SomeObject()
         assert o.cause_repertoire(1) == "expensive computation"
@@ -101,14 +101,14 @@ def test_cache_repertoires_config_option():
 # ==================
 
 
-@config.override(CACHE_POTENTIAL_PURVIEWS=True)
+@config.override(cache_potential_purviews=True)
 def test_purview_cache(standard):
     purviews = standard.potential_purviews(Direction.EFFECT, (0,))
     assert standard.purview_cache.size() == 1
     assert purviews in standard.purview_cache.cache.values()
 
 
-@config.override(CACHE_POTENTIAL_PURVIEWS=False)
+@config.override(cache_potential_purviews=False)
 def test_only_cache_purviews_if_configured():
     c = cache.PurviewCache()
     c.set(c.key(Direction.CAUSE, (0,)), ("some purview"))

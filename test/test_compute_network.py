@@ -98,9 +98,9 @@ class TestComplexesIIT30:
         flake is diagnosed. Opt in with ``--outdated --slow`` for targeted
         investigation.
         """
-        with config.override(PARALLEL=False, PROGRESS_BARS=False):
+        with config.override(parallel=False, progress_bars=False):
             serial = list(compute.network.all_complexes(s.network, s.state))
-        with config.override(PARALLEL=True, PROGRESS_BARS=False):
+        with config.override(parallel=True, progress_bars=False):
             parallel = list(compute.network.all_complexes(s.network, s.state))
         assert sorted(serial, key=lambda x: x.phi) == sorted(
             parallel, key=lambda x: x.phi

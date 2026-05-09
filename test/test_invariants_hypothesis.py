@@ -56,7 +56,7 @@ DEFAULT_SETTINGS = settings(
 def _disable_state_validation():
     """Random TPMs frequently produce states with zero past probability;
     state-reachability validation isn't meaningful here."""
-    with config.override(VALIDATE_SUBSYSTEM_STATES=False):
+    with config.override(validate_subsystem_states=False):
         yield
 
 
@@ -220,7 +220,7 @@ class TestMetricInvariants:
         rep1 = s.cause_repertoire(mech1, purview)
         rep2 = s.cause_repertoire(mech2, purview)
 
-        with config.override(REPERTOIRE_DISTANCE="EMD"):
+        with config.override(repertoire_distance="EMD"):
             try:
                 d = repertoire_distance(rep1, rep2, direction=Direction.CAUSE)
             except ImportError:
@@ -258,7 +258,7 @@ class TestMetricInvariants:
 
         rep = s.cause_repertoire(mechanism, purview)
 
-        with config.override(REPERTOIRE_DISTANCE="EMD"):
+        with config.override(repertoire_distance="EMD"):
             try:
                 d = repertoire_distance(rep, rep, direction=Direction.CAUSE)
             except ImportError:
@@ -287,10 +287,10 @@ class TestMetricInvariants:
         produce negative MIP phi and fail here.
         """
         with config.override(
-            FORMALISM="IIT_3_0",
-            REPERTOIRE_DISTANCE="EMD",
-            PARTITION_TYPE="BI",
-            VALIDATE_SUBSYSTEM_STATES=False,
+            formalism="IIT_3_0",
+            repertoire_distance="EMD",
+            partition_type="BI",
+            validate_subsystem_states=False,
         ):
             s = data.draw(small_subsystem())
             mechanism, purview = data.draw(mechanism_purview_pair(s))

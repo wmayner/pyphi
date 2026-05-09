@@ -31,7 +31,7 @@ class CESMeasureRegistry(Registry):
         ... def always_zero(a, b):
         ...    return 0
 
-    And use them by setting, *e.g.*, ``config.CES_DISTANCE = 'ALWAYS_ZERO'``.
+    And use them by setting, *e.g.*, ``config.ces_distance = 'ALWAYS_ZERO'``.
     """
 
     # pylint: disable=arguments-differ

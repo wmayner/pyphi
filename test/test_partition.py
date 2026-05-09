@@ -270,7 +270,7 @@ def test_tripartitions_choses_smallest_purview(s):
     mechanism = (1, 2)
 
     # In phi-tie, chose the smaller purview (0,)
-    with config.override(PURVIEW_TIE_RESOLUTION=["PHI", "NEGATIVE_PURVIEW_SIZE"]):
+    with config.override(purview_tie_resolution=["PHI", "NEGATIVE_PURVIEW_SIZE"]):
         mie = s.mie(mechanism)
         assert mie.phi == 2.0
         assert mie.purview == (0,)

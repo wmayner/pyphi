@@ -252,7 +252,7 @@ class IIT4_2026Formalism:
     ) -> Any:
         from pyphi.formalism.queries import find_mip
 
-        with config.override(REPERTOIRE_DISTANCE=self.default_metric):
+        with config.override(repertoire_distance=self.default_metric):
             return find_mip(subsystem, direction, mechanism, purview, **kwargs)
 
     def _find_mechanism_mip(
@@ -264,7 +264,7 @@ class IIT4_2026Formalism:
         **kwargs: Any,
     ) -> Any:
         check_metric_compatible(self, config.formalism.repertoire_distance)
-        with config.override(REPERTOIRE_DISTANCE=self.default_metric):
+        with config.override(repertoire_distance=self.default_metric):
             return _find_mip_iit4(subsystem, direction, mechanism, purview, **kwargs)
 
     def evaluate_mechanism_partition(
@@ -279,17 +279,17 @@ class IIT4_2026Formalism:
         """Same shape as IIT 4.0 (2023) mechanism-partition integration; the
         2026 variant differs only at the system level (the ``ii(s)`` cap)."""
         check_metric_compatible(self, config.formalism.repertoire_distance)
-        with config.override(REPERTOIRE_DISTANCE=self.default_metric):
+        with config.override(repertoire_distance=self.default_metric):
             return _evaluate_partition_iit4(
                 subsystem, direction, mechanism, purview, partition, **kwargs
             )
 
     def evaluate_system(self, subsystem: Any, **kwargs: Any) -> Any:
         check_metric_compatible(self, config.formalism.repertoire_distance)
-        with config.override(REPERTOIRE_DISTANCE=self.default_metric):
+        with config.override(repertoire_distance=self.default_metric):
             return _sia(subsystem, **kwargs)
 
     def build_phi_structure(self, subsystem: Any, **kwargs: Any) -> Any:
         check_metric_compatible(self, config.formalism.repertoire_distance)
-        with config.override(REPERTOIRE_DISTANCE=self.default_metric):
+        with config.override(repertoire_distance=self.default_metric):
             return _phi_structure(subsystem, **kwargs)

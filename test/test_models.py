@@ -666,12 +666,12 @@ class ReadableReprClass:
         return "A nice fat explicit string"
 
 
-@config.override(REPR_VERBOSITY=0)
+@config.override(repr_verbosity=0)
 def test_make_reprs_uses___repr__():
     assert repr(ReadableReprClass()) == "ReadableReprClass(some_attr=3.14)"
 
 
-@config.override(REPR_VERBOSITY=2)
+@config.override(repr_verbosity=2)
 def test_make_reprs_calls_out_to_string():
     assert repr(ReadableReprClass()) == "A nice fat explicit string"
 

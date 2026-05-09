@@ -45,17 +45,17 @@ from .conftest import skip_if_no_pyemd
 
 def test_clear_subsystem_caches_after_computing_sia_config_option(s):
     with config.override(
-        CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA=False,
-        PARALLEL=False,
-        CACHE_REPERTOIRES=True,
+        clear_subsystem_caches_after_computing_sia=False,
+        parallel=False,
+        cache_repertoires=True,
     ):
         s.sia()
         assert s._repertoire_cache.cache
 
     with config.override(
-        CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA=True,
-        PARALLEL=False,
-        CACHE_REPERTOIRES=True,
+        clear_subsystem_caches_after_computing_sia=True,
+        parallel=False,
+        cache_repertoires=True,
     ):
         s.sia()
         assert not s._repertoire_cache.cache
@@ -79,8 +79,8 @@ def test_sia_disconnected_network(reducible):
 
 @pytest.mark.emd
 @skip_if_no_pyemd
-@config.override(SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=True)
-@config.override(FORMALISM="IIT_3_0", REPERTOIRE_DISTANCE="EMD")
+@config.override(single_micro_nodes_with_selfloops_have_phi=True)
+@config.override(formalism="IIT_3_0", repertoire_distance="EMD")
 def test_sia_single_micro_node_selfloops_have_phi(noisy_selfloop_single):
     """Test that single micro-nodes with self-loops have phi under IIT 3.0 + EMD.
 
@@ -101,7 +101,7 @@ def test_sia_single_micro_node_selfloops_have_phi(noisy_selfloop_single):
     assert noisy_selfloop_single.sia().phi == pytest.approx(0.6868774943095, rel=1e-10)
 
 
-@config.override(SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=False)
+@config.override(single_micro_nodes_with_selfloops_have_phi=False)
 def test_sia_single_micro_node_selfloops_dont_have_phi(noisy_selfloop_single):
     assert noisy_selfloop_single.sia().phi == 0.0
 
@@ -113,7 +113,7 @@ def test_sia_single_micro_nodes_without_selfloops_dont_have_phi(s_single):
 # s ======================================================
 
 
-@config.override(PARALLEL=False)
+@config.override(parallel=False)
 def test_sia_standard_example_sequential(s, s_expected_sia):
     assert s.sia() == s_expected_sia
 
@@ -129,7 +129,7 @@ def test_sia_standard_example_complete_parallel(s_complete, s_expected_sia):
 # s_noised ======================================================
 
 
-@config.override(PARALLEL=False)
+@config.override(parallel=False)
 def test_sia_noised_example_sequential(s_noised, s_noised_expected_sia):
     assert s_noised.sia() == s_noised_expected_sia
 
@@ -142,7 +142,7 @@ def test_sia_noised_example_parallel(s_noised, s_noised_expected_sia):
 # micro_s ======================================================
 
 
-@config.override(PARALLEL=False)
+@config.override(parallel=False)
 def test_sia_micro_sequential(micro_s, micro_s_expected_sia):
     assert micro_s.sia() == micro_s_expected_sia
 
@@ -155,7 +155,7 @@ def test_sia_micro_parallel(micro_s, micro_s_expected_sia):
 
 
 @pytest.mark.slow
-@config.override(PARALLEL=False)
+@config.override(parallel=False)
 def test_sia_big_subsys_all_complete_sequential(
     big_subsys_all_complete, big_subsys_all_complete_expected_sia
 ):
@@ -172,7 +172,7 @@ def test_sia_big_subsys_all_complete_parallel(
 # big_subsys_0_thru_3 ======================================================
 
 
-@config.override(PARALLEL=False)
+@config.override(parallel=False)
 def test_sia_big_network_0_thru_3_sequential(
     big_subsys_0_thru_3, big_subsys_0_thru_3_expected_sia
 ):
@@ -199,7 +199,7 @@ def test_sia_big_network_0_thru_3_parallel(
 
 
 @pytest.mark.veryslow
-@config.override(PARALLEL=False)
+@config.override(parallel=False)
 def test_sia_rule152_s_sequential(rule152_s, rule152_s_expected_sia):
     """Rule 152 cellular automaton sequential computation.
 
@@ -220,7 +220,7 @@ def test_sia_rule152_s_parallel(rule152_s, rule152_s_expected_sia):
 # macro_s ======================================================
 
 
-@config.override(PARALLEL=False)
+@config.override(parallel=False)
 def test_sia_macro_sequential(macro_s, macro_s_expected_sia):
     assert macro_s.sia() == macro_s_expected_sia
 
@@ -269,19 +269,19 @@ def test_sia_macro_parallel(macro_s, macro_s_expected_sia):
 
 @pytest.mark.outdated
 @pytest.mark.slow
-@config.override(SYSTEM_PARTITION_TYPE="DIRECTED_BI")
+@config.override(system_partition_type="DIRECTED_BI")
 def test_system_cut_styles(s):
-    with config.override(SYSTEM_CUTS="3.0_STYLE"):
+    with config.override(system_cuts="3.0_STYLE"):
         assert compute.subsystem.phi(s) == 0.5  # 2.3125
 
-    with config.override(SYSTEM_CUTS="CONCEPT_STYLE"):
+    with config.override(system_cuts="CONCEPT_STYLE"):
         assert compute.subsystem.phi(s) == 0.6875
 
 
 # Not relevant anymore because ces concepts do not store subsystem
 """@pytest.mark.parametrize("parallel", [False, True])
 def test_ces_concepts_share_the_same_subsystem(parallel, s):
-    with config.override(PARALLEL=parallel):
+    with config.override(parallel=parallel):
         ces = compute.subsystem.ces(s)
         for concept in ces:
             assert concept.subsystem is ces.subsystem
@@ -290,12 +290,12 @@ def test_ces_concepts_share_the_same_subsystem(parallel, s):
 
 @pytest.mark.slow
 def test_parallel_and_sequential_ces_are_equal(s, micro_s, macro_s):
-    with config.override(PARALLEL=False):
+    with config.override(parallel=False):
         c = compute.subsystem.ces(s)
         c_micro = compute.subsystem.ces(micro_s)
         c_macro = compute.subsystem.ces(macro_s)
 
-    with config.override(PARALLEL=True):
+    with config.override(parallel=True):
         assert set(c) == set(compute.subsystem.ces(s))
         assert set(c_micro) == set(compute.subsystem.ces(micro_s))
         assert set(c_macro) == set(compute.subsystem.ces(macro_s))

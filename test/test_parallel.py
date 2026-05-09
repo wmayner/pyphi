@@ -379,7 +379,7 @@ class TestGetNumProcesses:
         from pyphi import config
 
         with (
-            config.override(PARALLEL_WORKERS=0),
+            config.override(parallel_workers=0),
             pytest.raises(ValueError, match="may not be 0"),
         ):
             parallel.get_num_processes()
@@ -391,11 +391,11 @@ class TestGetNumProcesses:
         from pyphi import config
 
         cpu_count = multiprocessing.cpu_count()
-        with config.override(PARALLEL_WORKERS=-1):
+        with config.override(parallel_workers=-1):
             # -1 means cpu_count + (-1) + 1 = cpu_count
             assert parallel.get_num_processes() == cpu_count
 
-        with config.override(PARALLEL_WORKERS=-2):
+        with config.override(parallel_workers=-2):
             # -2 means cpu_count + (-2) + 1 = cpu_count - 1
             assert parallel.get_num_processes() == cpu_count - 1
 
@@ -409,7 +409,7 @@ class TestGetNumProcesses:
         # e.g., if cpu_count=8, PARALLEL_WORKERS=-9 would give 0 or negative
         too_negative = -(cpu_count + 1)
         with (
-            config.override(PARALLEL_WORKERS=too_negative),
+            config.override(parallel_workers=too_negative),
             pytest.raises(ValueError, match="too negative"),
         ):
             parallel.get_num_processes()
@@ -421,7 +421,7 @@ class TestGetNumProcesses:
         from pyphi import config
 
         cpu_count = multiprocessing.cpu_count()
-        with config.override(PARALLEL_WORKERS=cpu_count + 10):
+        with config.override(parallel_workers=cpu_count + 10):
             result = parallel.get_num_processes()
             assert result == cpu_count
 
@@ -429,7 +429,7 @@ class TestGetNumProcesses:
         """Positive PARALLEL_WORKERS returns that value."""
         from pyphi import config
 
-        with config.override(PARALLEL_WORKERS=2):
+        with config.override(parallel_workers=2):
             assert parallel.get_num_processes() == 2
 
 

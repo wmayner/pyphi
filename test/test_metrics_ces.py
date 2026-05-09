@@ -17,7 +17,7 @@ from .conftest import skip_if_no_pyemd
 def test_emd_ground_distance_must_be_symmetric():
     a = np.ones((2, 2, 2)) / 8
     b = np.ones((2, 2, 2)) / 8
-    with config.override(REPERTOIRE_DISTANCE="KLD"), pytest.raises(ValueError):
+    with config.override(repertoire_distance="KLD"), pytest.raises(ValueError):
         emd_ground_distance(a, b)
 
 
@@ -25,13 +25,13 @@ def test_emd_ground_distance_must_be_symmetric():
 @skip_if_no_pyemd
 @pytest.mark.outdated
 def test_ces_distances(s):
-    with config.override(FORMALISM="IIT_3_0", REPERTOIRE_DISTANCE="EMD"):
+    with config.override(formalism="IIT_3_0", repertoire_distance="EMD"):
         sia = compute.subsystem.sia(s)
 
-    with config.override(CES_DISTANCE="EMD"):
+    with config.override(ces_distance="EMD"):
         assert ces_distance(sia.ces, sia.partitioned_ces) == 2.3125
 
-    with config.override(CES_DISTANCE="SUM_SMALL_PHI"):
+    with config.override(ces_distance="SUM_SMALL_PHI"):
         assert ces_distance(sia.ces, sia.partitioned_ces) == 1.083333
 
 
@@ -40,13 +40,13 @@ def test_ces_distances(s):
 @pytest.mark.outdated
 def test_sia_uses_ces_distances(s):
     with config.override(
-        FORMALISM="IIT_3_0", REPERTOIRE_DISTANCE="EMD", CES_DISTANCE="EMD"
+        formalism="IIT_3_0", repertoire_distance="EMD", ces_distance="EMD"
     ):
         sia = compute.subsystem.sia(s)
         assert sia.phi == 2.3125
 
     with config.override(
-        FORMALISM="IIT_3_0", REPERTOIRE_DISTANCE="EMD", CES_DISTANCE="SUM_SMALL_PHI"
+        formalism="IIT_3_0", repertoire_distance="EMD", ces_distance="SUM_SMALL_PHI"
     ):
         sia = compute.subsystem.sia(s)
         assert sia.phi == 1.083333

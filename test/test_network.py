@@ -33,11 +33,13 @@ def test_network_init_validation(network):
             [0, 0.0, 0.0, 1],
     ])
     # fmt: on
-    with config.override(VALIDATE_CONDITIONAL_INDEPENDENCE=False):
+    with config.override(validate_conditional_independence=False):
         Network(tpm)
-    with config.override(VALIDATE_CONDITIONAL_INDEPENDENCE=True):
-        with pytest.raises(exceptions.ConditionallyDependentError):
-            Network(tpm)
+    with (
+        config.override(validate_conditional_independence=True),
+        pytest.raises(exceptions.ConditionallyDependentError),
+    ):
+        Network(tpm)
 
 
 def test_network_creates_fully_connected_cm_by_default():

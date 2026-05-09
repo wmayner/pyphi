@@ -274,7 +274,7 @@ class DistributionMeasureRegistry(Registry):
         ... def always_zero(a, b):
         ...    return 0
 
-    And use them by setting, *e.g.*, ``config.REPERTOIRE_DISTANCE = 'ALWAYS_ZERO'``.
+    And use them by setting, *e.g.*, ``config.repertoire_distance = 'ALWAYS_ZERO'``.
     """
 
     # pylint: disable=arguments-differ
@@ -334,7 +334,7 @@ class ActualCausationMeasureRegistry(Registry):
         ... def always_zero(a, b):
         ...    return 0
 
-    And use them by setting, *e.g.*, ``config.REPERTOIRE_DISTANCE = 'ALWAYS_ZERO'``.
+    And use them by setting, *e.g.*, ``config.repertoire_distance = 'ALWAYS_ZERO'``.
     """
 
     # pylint: disable=arguments-differ

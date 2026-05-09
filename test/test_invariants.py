@@ -96,11 +96,11 @@ class TestParallelConsistency:
         subsystem = request.getfixturevalue(subsystem_fixture)
 
         # Compute with sequential mode
-        with config.override(PARALLEL=False):
+        with config.override(parallel=False):
             seq_result = subsystem.sia()
 
         # Compute with parallel mode
-        with config.override(PARALLEL=True):
+        with config.override(parallel=True):
             par_result = subsystem.sia()
 
         # Results must be exactly equal
@@ -223,7 +223,7 @@ class TestConfigurationInvariants:
         This tests that the configuration option is correctly respected.
         """
         # With config disabled, phi should be 0
-        with config.override(SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=False):
+        with config.override(single_micro_nodes_with_selfloops_have_phi=False):
             result_disabled = noisy_selfloop_single.sia()
             assert result_disabled.phi == 0.0, (
                 "Expected phi=0 when SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=False"
@@ -231,9 +231,9 @@ class TestConfigurationInvariants:
 
         # With config enabled and EMD, phi should be > 0
         with config.override(
-            FORMALISM="IIT_3_0",
-            SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=True,
-            REPERTOIRE_DISTANCE="EMD",
+            formalism="IIT_3_0",
+            single_micro_nodes_with_selfloops_have_phi=True,
+            repertoire_distance="EMD",
         ):
             result_enabled = noisy_selfloop_single.sia()
             assert result_enabled.phi > 0.0, (
@@ -252,9 +252,9 @@ class TestConfigurationInvariants:
         """
         # Test with cache clearing disabled
         with config.override(
-            CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA=False,
-            PARALLEL=False,
-            CACHE_REPERTOIRES=True,
+            clear_subsystem_caches_after_computing_sia=False,
+            parallel=False,
+            cache_repertoires=True,
         ):
             _ = s.sia()
             assert s._repertoire_cache.cache, (
@@ -263,9 +263,9 @@ class TestConfigurationInvariants:
 
         # Test with cache clearing enabled
         with config.override(
-            CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA=True,
-            PARALLEL=False,
-            CACHE_REPERTOIRES=True,
+            clear_subsystem_caches_after_computing_sia=True,
+            parallel=False,
+            cache_repertoires=True,
         ):
             _ = s.sia()
             assert not s._repertoire_cache.cache, (

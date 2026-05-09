@@ -91,7 +91,7 @@ def test_all_cut_mechanisms(kcut_cause):
     ]
 
 
-@config.override(PARTITION_TYPE="TRI")
+@config.override(partition_type="TRI")
 def test_concept_style_cuts():
     assert list(compute.subsystem.concept_cuts(Direction.CAUSE, (0,))) == [
         KCut(Direction.CAUSE, KPartition(Part((), ()), Part((), (0,)), Part((0,), ())))

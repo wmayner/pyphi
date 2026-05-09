@@ -37,7 +37,7 @@ class PyPhiFloat(float):
 
         >>> from pyphi.data_structures.pyphi_float import PyPhiFloat
         >>> from pyphi.conf import config
-        >>> config.PRECISION = 6  # doctest: +SKIP
+        >>> config.precision = 6  # doctest: +SKIP
 
         Values that differ only at low precision are considered equal:
 

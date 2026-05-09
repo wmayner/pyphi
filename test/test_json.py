@@ -121,7 +121,7 @@ def test_version_check_during_deserialization(s):
 
     # Re-enable version validation (disabled globally in conftest.py)
     with (
-        pyphi.config.override(VALIDATE_JSON_VERSION=True),
+        pyphi.config.override(validate_json_version=True),
         pytest.raises(exceptions.JSONVersionError),
     ):
         jsonify.loads(string)

@@ -4,7 +4,7 @@ from pyphi.examples import EXAMPLES
 
 
 def test_intrinsic_information():
-    with config.override(REPERTOIRE_DISTANCE_SPECIFICATION="INTRINSIC_SPECIFICATION"):
+    with config.override(repertoire_distance_specification="INTRINSIC_SPECIFICATION"):
         subsystem = EXAMPLES["subsystem"]["differentiation_micro_1"]()
         mechanism = (0, 1)
         result = subsystem.intrinsic_information(Direction.CAUSE, mechanism, mechanism)

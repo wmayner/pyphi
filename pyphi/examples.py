@@ -1278,10 +1278,10 @@ def prevention_transition():
 
 @register_example
 @config.override(
-    PARTITION_TYPE="TRI",
-    REPERTOIRE_DISTANCE="BLD",
-    VALIDATE_SUBSYSTEM_STATES=False,
-    ACTUAL_CAUSATION_MEASURE="WPMI",
+    partition_type="TRI",
+    repertoire_distance="BLD",
+    validate_subsystem_states=False,
+    actual_causation_measure="WPMI",
 )
 def frog_example():
     """

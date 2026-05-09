@@ -39,7 +39,7 @@ def test_resolve_multiple_strategies_selects_smallest_purview():
 def test_states_uses_config_default():
     low = DummyPhiObject(1.0, (0,))
     high = DummyPhiObject(2.0, (0, 1))
-    with config.override(STATE_TIE_RESOLUTION="PHI"):
+    with config.override(state_tie_resolution="PHI"):
         resolved = list(resolve_ties.states([low, high]))
     assert resolved == [high]
 
@@ -47,7 +47,7 @@ def test_states_uses_config_default():
 def test_partitions_uses_min_operation():
     low = DummyPhiObject(1.0, (0,))
     high = DummyPhiObject(2.0, (0, 1))
-    with config.override(MIP_TIE_RESOLUTION="PHI"):
+    with config.override(mip_tie_resolution="PHI"):
         resolved = list(resolve_ties.partitions([low, high]))
     assert resolved == [low]
 
@@ -55,6 +55,6 @@ def test_partitions_uses_min_operation():
 def test_purviews_uses_max_operation():
     low = DummyPhiObject(1.0, (0,))
     high = DummyPhiObject(2.0, (0, 1))
-    with config.override(PURVIEW_TIE_RESOLUTION="PHI"):
+    with config.override(purview_tie_resolution="PHI"):
         resolved = list(resolve_ties.purviews([low, high]))
     assert resolved == [high]

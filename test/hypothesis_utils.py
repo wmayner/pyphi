@@ -114,7 +114,7 @@ def teed(strategy, n=2):
 # validation: random TPMs frequently produce states with zero past probability,
 # which is fine mathematically but trips ``validate.state_reachable``. Tests
 # using these strategies should run inside
-# ``config.override(VALIDATE_SUBSYSTEM_STATES=False)``.
+# ``config.override(validate_subsystem_states=False)``.
 
 
 def binary_state(n):

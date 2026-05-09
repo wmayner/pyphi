@@ -11,12 +11,12 @@ Future backends planned:
 - **dask**: Cluster support for large-scale computations
 
 Backend selection:
-- Use `pyphi.config.PARALLEL_BACKEND = "local"` (default)
+- Use `pyphi.config.parallel_backend = "local"` (default)
 - Or pass `backend="local"` to MapReduce
 
 Example:
     >>> import pyphi
-    >>> pyphi.config.PARALLEL = True
+    >>> pyphi.config.parallel = True
     >>> # Parallelization is now enabled using the local backend
 """
 

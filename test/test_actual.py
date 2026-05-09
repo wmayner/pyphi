@@ -408,7 +408,7 @@ def test_state_probability_strict_subsystem():
     cm = np.eye(4, dtype=int)
     # fmt: on
     network = Network(tpm, cm)
-    with config.override(VALIDATE_SUBSYSTEM_STATES=False):
+    with config.override(validate_subsystem_states=False):
         t = actual.Transition(network, (1, 1, 1, 1), (1, 1, 1, 1), (2,), (3,))
     # subsystem.node_indices is (2, 3), strictly inside network.node_indices
     assert t.cause_system.node_indices == (2, 3)
@@ -489,7 +489,7 @@ def ac_cut(direction, *parts):
     return models.ActualCut(direction, KPartition(*parts))
 
 
-@config.override(PARTITION_TYPE="TRI")
+@config.override(partition_type="TRI")
 @pytest.mark.parametrize(
     "direction,answer",
     [
@@ -657,7 +657,7 @@ class TestActualCausationIIT30:
         assert np.isclose(sia_effect.alpha, 0.4150374992788)
         assert sia_effect.direction == Direction.EFFECT
 
-    @config.override(PARTITION_TYPE="TRI")
+    @config.override(partition_type="TRI")
     def test_prevention(self, prevention):
         """Test prevention example under IIT 3.0 with tripartitions.
 

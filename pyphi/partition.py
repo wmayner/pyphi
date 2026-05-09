@@ -395,7 +395,7 @@ class PartitionRegistry(Registry):
         ... def no_partitions(mechanism, purview):
         ...    return []
 
-    And use them by setting ``config.PARTITION_TYPE = 'NONE'``.
+    And use them by setting ``config.partition_type = 'NONE'``.
 
     Registered objects are validated against
     :class:`pyphi.protocols.MechanismPartitionScheme` so wrong-shape
@@ -672,7 +672,7 @@ class SystemPartitionRegistry(Registry):
         ... def no_partitions(nodes):
         ...    return []
 
-    And use them by setting ``config.SYSTEM_PARTITION_TYPE = 'NONE'``.
+    And use them by setting ``config.system_partition_type = 'NONE'``.
 
     Registered objects are validated against
     :class:`pyphi.protocols.SystemPartitionScheme` so wrong-shape

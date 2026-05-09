@@ -296,8 +296,8 @@ class TestConfigurationDependentValues:
 
     @pytest.mark.emd
     @skip_if_no_pyemd
-    @config.override(SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=True)
-    @config.override(FORMALISM="IIT_3_0", REPERTOIRE_DISTANCE="EMD")
+    @config.override(single_micro_nodes_with_selfloops_have_phi=True)
+    @config.override(formalism="IIT_3_0", repertoire_distance="EMD")
     def test_sia_selfloop_node_phi_with_emd(self, noisy_selfloop_single):
         """Single node with self-loop has phi under IIT 3.0 + EMD.
 
@@ -322,7 +322,7 @@ class TestConfigurationDependentValues:
             f"  Diff:     {abs(result.phi - expected)}"
         )
 
-    @config.override(SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=False)
+    @config.override(single_micro_nodes_with_selfloops_have_phi=False)
     def test_sia_selfloop_node_no_phi_when_disabled(self, noisy_selfloop_single):
         """Single node with self-loop has phi=0 when config disabled.
 
@@ -369,11 +369,11 @@ class TestSequentialParallelConsistency:
         subsystem = request.getfixturevalue(subsystem_fixture)
 
         # Sequential computation
-        with config.override(PARALLEL=False):
+        with config.override(parallel=False):
             seq_result = subsystem.sia()
 
         # Parallel computation
-        with config.override(PARALLEL=True):
+        with config.override(parallel=True):
             par_result = subsystem.sia()
 
         # Phi values must match exactly
@@ -489,7 +489,7 @@ class TestEq23IntrinsicInformationCap:
         """GID-based computation is unchanged by the Eq. 23 logic.
 
         The ii(s) cap and GID-only partition override only activate when
-        REPERTOIRE_DISTANCE=INTRINSIC_INFORMATION.
+        repertoire_distance=INTRINSIC_INFORMATION.
         """
         from pyphi.formalism.iit4 import sia
 

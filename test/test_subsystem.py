@@ -15,7 +15,7 @@ from pyphi.subsystem import Subsystem
 from . import example_networks
 
 
-@config.override(VALIDATE_SUBSYSTEM_STATES=True)
+@config.override(validate_subsystem_states=True)
 def test_subsystem_validation(s):
     # Wrong state length.
     with pytest.raises(ValueError):

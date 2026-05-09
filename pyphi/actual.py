@@ -134,7 +134,7 @@ class Transition:
         # Both are conditioned on the `before_state`, but we then change the
         # state of the cause context to `after_state` to reflect the fact that
         # that we are computing cause repertoires of mechanisms in that state.
-        with config.override(VALIDATE_SUBSYSTEM_STATES=False):
+        with config.override(validate_subsystem_states=False):
             self.effect_system = Subsystem(
                 network,
                 before_state,

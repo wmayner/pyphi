@@ -91,11 +91,11 @@ class TestPyPhiFloatHash:
     def test_hash_stable_across_precision_change(self):
         """A value's hash doesn't change when ``config.numerics.precision`` changes
         after construction."""
-        with config.override(PRECISION=13):
+        with config.override(precision=13):
             value = PyPhiFloat(0.123456789)
             original_hash = hash(value)
 
-        with config.override(PRECISION=6):
+        with config.override(precision=6):
             # The hash uses the snapshot from construction, not the new
             # PRECISION. Critically, this means a PyPhiFloat placed in a
             # set under PRECISION=13 is still findable under PRECISION=6.
@@ -103,21 +103,21 @@ class TestPyPhiFloatHash:
 
     def test_set_membership_stable_across_precision_change(self):
         """A PyPhiFloat in a set stays findable across precision changes."""
-        with config.override(PRECISION=13):
+        with config.override(precision=13):
             value = PyPhiFloat(0.5)
             container = {value}
 
-        with config.override(PRECISION=6):
+        with config.override(precision=6):
             # Look up the same value object — must still be in the set.
             assert value in container
 
     def test_precision_used_at_construction_not_at_hash_time(self):
         """Two PyPhiFloats constructed under different precisions hash
         according to *their own* construction-time precision."""
-        with config.override(PRECISION=13):
+        with config.override(precision=13):
             high_precision = PyPhiFloat(0.123456789012)
 
-        with config.override(PRECISION=3):
+        with config.override(precision=3):
             low_precision = PyPhiFloat(0.123456789012)
 
         # high_precision rounds to 13 digits; low_precision rounds to 3.

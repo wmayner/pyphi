@@ -213,9 +213,9 @@ def test_xor_propogation_delay():
 @pytest.mark.slow
 def test_soup():
     with config.override(
-        PARALLEL_CONCEPT_EVALUATION=False,
-        PARALLEL_CUT_EVALUATION=False,
-        PARALLEL_COMPLEX_EVALUATION=False,
+        parallel_concept_evaluation=False,
+        parallel_cut_evaluation=False,
+        parallel_complex_evaluation=False,
     ):
         # An first example attempting to capture the "soup" metaphor
         #

@@ -42,7 +42,7 @@ NETWORKS = ["grid3", "basic", "xor", "rule110", "fig4"]
 
 @pytest.mark.parametrize("case_name", NETWORKS)
 @config.override(
-    PARALLEL=False,
+    parallel=False,
 )
 def test_all_relations(case_name):
     with open(f"test/data/relations/ces_{case_name}.json") as f:

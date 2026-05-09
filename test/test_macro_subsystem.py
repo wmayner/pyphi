@@ -24,9 +24,9 @@ def _iit_30_config_for_macro_tests(request):
     """Apply IIT 3.0 config settings for tests marked as outdated."""
     if request.node.get_closest_marker("outdated"):
         with config.override(
-            FORMALISM="IIT_3_0",
-            REPERTOIRE_DISTANCE="EMD",
-            SYSTEM_PARTITION_TYPE="DIRECTED_BI",
+            formalism="IIT_3_0",
+            repertoire_distance="EMD",
+            system_partition_type="DIRECTED_BI",
         ):
             yield
     else:
@@ -440,7 +440,7 @@ class TestMacroEmergenceIIT30:
         network = pyphi.examples.macro_network()
         state = (0, 0, 0, 0)
 
-        with config.override(PROGRESS_BARS=False):
+        with config.override(progress_bars=False):
             result = macro.emergence(
                 network,
                 state,
