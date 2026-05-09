@@ -12,6 +12,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from dataclasses import field
 
+_VALID_DISTINCTION_PHI_NORMALIZATION = frozenset({"NONE", "NUM_CONNECTIONS_CUT"})
+_VALID_RELATION_COMPUTATION = frozenset({"CONCRETE", "ANALYTICAL"})
+_VALID_SYSTEM_CUTS = frozenset({"3.0_STYLE", "CONCEPT_STYLE"})
+
 
 @dataclass(frozen=True)
 class FormalismConfig:
@@ -43,3 +47,42 @@ class FormalismConfig:
     purview_tie_resolution: str = "PHI"
     shortcircuit_sia: bool = True
     single_micro_nodes_with_selfloops_have_phi: bool = True
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.assume_cuts_cannot_create_new_concepts, bool):
+            raise ValueError(
+                "assume_cuts_cannot_create_new_concepts must be bool; "
+                f"got {type(self.assume_cuts_cannot_create_new_concepts).__name__}"
+            )
+        if not isinstance(self.system_partition_include_complete, bool):
+            raise ValueError(
+                "system_partition_include_complete must be bool; "
+                f"got {type(self.system_partition_include_complete).__name__}"
+            )
+        if not isinstance(self.shortcircuit_sia, bool):
+            raise ValueError(
+                "shortcircuit_sia must be bool; got "
+                f"{type(self.shortcircuit_sia).__name__}"
+            )
+        if not isinstance(self.single_micro_nodes_with_selfloops_have_phi, bool):
+            raise ValueError(
+                "single_micro_nodes_with_selfloops_have_phi must be bool; "
+                f"got {type(self.single_micro_nodes_with_selfloops_have_phi).__name__}"
+            )
+        if self.system_cuts not in _VALID_SYSTEM_CUTS:
+            raise ValueError(
+                f"system_cuts={self.system_cuts!r} not in {sorted(_VALID_SYSTEM_CUTS)}"
+            )
+        if (
+            self.distinction_phi_normalization
+            not in _VALID_DISTINCTION_PHI_NORMALIZATION
+        ):
+            raise ValueError(
+                f"distinction_phi_normalization={self.distinction_phi_normalization!r} "
+                f"not in {sorted(_VALID_DISTINCTION_PHI_NORMALIZATION)}"
+            )
+        if self.relation_computation not in _VALID_RELATION_COMPUTATION:
+            raise ValueError(
+                f"relation_computation={self.relation_computation!r} "
+                f"not in {sorted(_VALID_RELATION_COMPUTATION)}"
+            )

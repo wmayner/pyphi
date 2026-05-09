@@ -215,8 +215,8 @@ class TestGlobalConfigFacade:
         assert config.infrastructure.parallel is False
 
     def test_legacy_uppercase_read_still_works(self):
-        # During the cutover, both access patterns reflect the same source
-        # of truth (the wrapped legacy PyphiConfig instance).
+        # Uppercase legacy access is preserved as syntax sugar — names
+        # are case-folded and routed to the appropriate layer.
         assert config.PRECISION == 13
         assert config.FORMALISM == "IIT_4_0_2023"
         assert config.PARALLEL is False
@@ -229,7 +229,7 @@ class TestGlobalConfigFacade:
         finally:
             config.PRECISION = original
 
-    def test_lowercase_layered_write_propagates_to_legacy(self):
+    def test_lowercase_layered_write_propagates_to_uppercase_view(self):
         original = config.PRECISION
         config.precision = 9
         try:
@@ -242,11 +242,18 @@ class TestGlobalConfigFacade:
         with pytest.raises(ConfigurationError, match="Unknown config option"):
             config.nonexistent_field = 0
 
-    def test_replacing_layer_attribute_raises(self):
-        # Wholesale layer replacement is intentionally blocked during the
-        # cutover; layers are computed views, not stored state.
-        with pytest.raises(ConfigurationError, match="Cannot replace layer"):
+    def test_replacing_layer_attribute_works(self):
+        original = config.numerics
+        try:
             config.numerics = NumericsConfig(precision=6)
+            assert config.numerics.precision == 6
+            assert config.PRECISION == 6
+        finally:
+            config.numerics = original
+
+    def test_replacing_layer_with_wrong_type_raises(self):
+        with pytest.raises(ConfigurationError, match="Cannot replace layer"):
+            config.numerics = "not a NumericsConfig"  # type: ignore[assignment]
 
     def test_snapshot_returns_config_snapshot(self):
         snap = config.snapshot()

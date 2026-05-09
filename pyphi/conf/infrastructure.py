@@ -13,6 +13,15 @@ from dataclasses import field
 from pathlib import Path
 from typing import Any
 
+_VALID_LOG_LEVELS = frozenset(
+    {None, "CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"}
+)
+_VALID_REPR_VERBOSITY = frozenset({0, 1, 2})
+
+
+def _format_log_levels() -> list[str | None]:
+    return [*sorted(v for v in _VALID_LOG_LEVELS if v is not None), None]
+
 
 def _default_parallel_dict(
     sequential_threshold: int, chunksize: int, *, progress: bool = True
@@ -23,6 +32,16 @@ def _default_parallel_dict(
         "chunksize": chunksize,
         "progress": progress,
     }
+
+
+def _check_bool(name: str, value: Any) -> None:
+    if not isinstance(value, bool):
+        raise ValueError(f"{name} must be bool; got {type(value).__name__}")
+
+
+def _check_int(name: str, value: Any) -> None:
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise ValueError(f"{name} must be int; got {type(value).__name__}")
 
 
 @dataclass(frozen=True)
@@ -75,3 +94,66 @@ class InfrastructureConfig:
     validate_system_states: bool = True
     validate_conditional_independence: bool = True
     validate_json_version: bool = True
+
+    def __post_init__(self) -> None:
+        _check_bool("parallel", self.parallel)
+        _check_int("parallel_workers", self.parallel_workers)
+        _check_int(
+            "maximum_cache_memory_percentage",
+            self.maximum_cache_memory_percentage,
+        )
+        _check_bool("cache_repertoires", self.cache_repertoires)
+        _check_bool("cache_potential_purviews", self.cache_potential_purviews)
+        _check_bool(
+            "clear_system_caches_after_computing_sia",
+            self.clear_system_caches_after_computing_sia,
+        )
+        _check_bool("progress_bars", self.progress_bars)
+        _check_bool("print_fractions", self.print_fractions)
+        _check_bool("welcome_off", self.welcome_off)
+        _check_bool("validate_system_states", self.validate_system_states)
+        _check_bool(
+            "validate_conditional_independence", self.validate_conditional_independence
+        )
+        _check_bool("validate_json_version", self.validate_json_version)
+        if not isinstance(self.log_file, (str, Path)):
+            raise ValueError(
+                f"log_file must be str or Path; got {type(self.log_file).__name__}"
+            )
+        if self.log_file_level not in _VALID_LOG_LEVELS:
+            raise ValueError(
+                f"log_file_level={self.log_file_level!r} not in {_format_log_levels()}"
+            )
+        if self.log_stdout_level not in _VALID_LOG_LEVELS:
+            raise ValueError(
+                f"log_stdout_level={self.log_stdout_level!r} not in "
+                f"{_format_log_levels()}"
+            )
+        if self.repr_verbosity not in _VALID_REPR_VERBOSITY:
+            raise ValueError(
+                f"repr_verbosity={self.repr_verbosity!r} not in "
+                f"{sorted(_VALID_REPR_VERBOSITY)}"
+            )
+        if not isinstance(self.label_separator, str):
+            raise ValueError(
+                f"label_separator must be str; got {type(self.label_separator).__name__}"
+            )
+        if not isinstance(self.parallel_backend, str):
+            raise ValueError(
+                "parallel_backend must be str; got "
+                f"{type(self.parallel_backend).__name__}"
+            )
+        for parallel_field_name in (
+            "parallel_complex_evaluation",
+            "parallel_cut_evaluation",
+            "parallel_concept_evaluation",
+            "parallel_purview_evaluation",
+            "parallel_mechanism_partition_evaluation",
+            "parallel_relation_evaluation",
+        ):
+            value = getattr(self, parallel_field_name)
+            if not isinstance(value, Mapping):
+                raise ValueError(
+                    f"{parallel_field_name} must be a Mapping; "
+                    f"got {type(value).__name__}"
+                )

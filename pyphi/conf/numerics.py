@@ -23,3 +23,11 @@ class NumericsConfig:
     """
 
     precision: int = 13
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.precision, int) or isinstance(self.precision, bool):
+            raise ValueError(
+                f"precision must be int; got {type(self.precision).__name__}"
+            )
+        if self.precision < 0:
+            raise ValueError(f"precision must be >= 0; got {self.precision}")

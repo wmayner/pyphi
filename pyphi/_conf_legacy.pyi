@@ -101,12 +101,3 @@ class PyphiConfig(Config):
     MIP_TIE_RESOLUTION: list[str]
 
     def log(self) -> None: ...
-
-# Module-level config instance
-config: PyphiConfig
-
-# Helper functions
-def fallback(*args: Any) -> Any: ...
-def parallel_kwargs(
-    option_kwargs: Mapping[str, Any], **user_kwargs: Any
-) -> dict[str, Any]: ...
