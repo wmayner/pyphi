@@ -107,6 +107,29 @@ class _GlobalConfig:
             numerics=self.numerics,
         )
 
+    def install_snapshot(self, snapshot: ConfigSnapshot) -> None:
+        """Apply ``snapshot`` to the live global durably (not scoped).
+
+        Worker processes call this at the start of each parallel chunk to
+        seed their global config from a snapshot captured by the parent
+        scheduler. Distinct from :meth:`override`, which is a scoped
+        context manager.
+
+        Routes directly to the legacy uppercase storage (mirroring
+        :meth:`override`'s field-name → uppercase translation) so the
+        ``formalism`` field name doesn't collide with the layer-replacement
+        guard in :meth:`__setattr__`.
+        """
+        for key, value in snapshot.as_kwargs().items():
+            if key in FIELD_TO_LAYER:
+                setattr(self._legacy, key.upper(), value)
+            else:
+                raise ConfigurationError(
+                    f"Unknown snapshot field: {key!r}. "
+                    "Snapshot keys must match a field on one of the three "
+                    "config layers."
+                )
+
     def override(self, **kwargs: Any) -> Any:
         """Override config options scoped to a context manager or decorator.
 

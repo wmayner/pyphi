@@ -290,7 +290,7 @@ class MapReduce:
 
     def _run_parallel(self) -> Any:
         """Perform the computation in parallel using local backend."""
-        from .backends.local import LocalMapReduce
+        from .backends.local_process import LocalMapReduce
 
         local_mr = LocalMapReduce(
             map_func=self.map_func,
