@@ -56,8 +56,6 @@ import functools
 import logging
 import logging.config
 import pprint
-import shutil
-import tempfile
 from collections.abc import Mapping
 from copy import copy
 from importlib.metadata import version
@@ -68,7 +66,6 @@ from warnings import warn
 import toolz
 import yaml
 
-from . import constants
 from .warnings import PyPhiWarning
 
 log = logging.getLogger(__name__)
@@ -1007,35 +1004,15 @@ def validate(config):
 
 
 PYPHI_USER_CONFIG_PATH = Path("pyphi_config.yml")
-PYPHI_MANAGED_CONFIG_PATH = (
-    constants.DISK_CACHE_LOCATION / "config" / PYPHI_USER_CONFIG_PATH
-)
-PYPHI_MANAGED_CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
-
-
-def atomic_write_yaml(data, path):
-    try:
-        # delete=True in case there's an error, but ignore if we fail to delete
-        # after successfully renaming the file
-        with tempfile.NamedTemporaryFile(mode="wt", delete=True) as f:
-            yaml.dump(data, f)
-            # Use `shutil.move()` instead of `rename()` to properly deal with
-            # atomic writes across filesystems
-            shutil.move(f.name, path)
-    except FileNotFoundError:
-        pass
-    return path
-
-
-def write_to_cache(config):
-    atomic_write_yaml(config.snapshot(), PYPHI_MANAGED_CONFIG_PATH)
 
 
 def on_change_global(config):
+    """Validate the config on every change.
+
+    Cross-process config sharing is handled by :class:`ConfigSnapshot`
+    (see :mod:`pyphi.conf.snapshot`); this hook only runs validation.
+    """
     validate(config)
-    if _LOADED:
-        # Write any changes to disk for remote processes to load
-        write_to_cache(config)
 
 
 # Instantiate the config object
@@ -1044,12 +1021,8 @@ config = PyphiConfig(on_change=on_change_global)
 
 def driver_config():
     """Handle configuration for the main instance."""
-    # We're a main instance; load the user config
     with contextlib.suppress(FileNotFoundError):
         config.load_file(PYPHI_USER_CONFIG_PATH)
-    # Ensure write to disk in case no config was loaded (i.e. onchange was not
-    # triggered)
-    write_to_cache(config)
 
 
 # With the local backend, we're always on the driver
