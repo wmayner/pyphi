@@ -15,6 +15,7 @@ legacy ``PyphiConfig`` is deleted.
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
 
@@ -142,6 +143,37 @@ class _GlobalConfig:
             raise AttributeError(
                 f"{type(self).__name__!r} object has no attribute {name!r}"
             ) from None
+
+    def load_yaml(self, path: str | Path) -> None:
+        """Load a 2.0 nested-format YAML config file.
+
+        Each layer's section is applied via ``dataclasses.replace`` on the
+        existing layer; only fields present in the file are overridden.
+        Raises :class:`ConfigurationError` on unrecognized keys or 1.x
+        flat format.
+        """
+        from pyphi.conf._io import load_yaml as _load
+
+        data = _load(path)
+        # Route every nested key through __setattr__ so layered writes go
+        # to the legacy backend just like config.x = v does.
+        for fields_dict in data.values():
+            for field_name, value in fields_dict.items():
+                setattr(self, field_name, value)
+
+    def to_yaml(self, path: str | Path) -> None:
+        """Write the current config in 2.0 nested-format YAML."""
+        from dataclasses import asdict as _asdict
+
+        import yaml as _yaml
+
+        data = {
+            "formalism": _asdict(self.formalism),
+            "infrastructure": _asdict(self.infrastructure),
+            "numerics": _asdict(self.numerics),
+        }
+        with open(path, "w") as f:
+            _yaml.safe_dump(data, f, sort_keys=False)
 
     def __setattr__(self, name: str, value: Any) -> None:
         if name == "_legacy":

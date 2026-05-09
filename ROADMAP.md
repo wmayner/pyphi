@@ -913,7 +913,31 @@ What did *not* land (deferred):
 
 ### Phase E — Infrastructure refresh
 
-**P10. Config split with result-object snapshotting**
+**P10. Config split with result-object snapshotting — landed (2026-05-08)**
+
+Three frozen dataclass layers (`FormalismConfig` 18 fields,
+`InfrastructureConfig` 24 fields, `NumericsConfig` 1 field) wrapped in a
+`ConfigSnapshot` value type, accessed through a `_GlobalConfig` facade
+singleton. Hard break on flat uppercase access; layered reads
+(`config.numerics.precision`), top-level writes routed via
+`_FIELD_TO_LAYER` map (`config.precision = 6`), scoped writes via
+`config.override(precision=6, parallel=True)` with build-time field-name
+collision detection (zero collisions across all 43 options). Every
+top-level result object (SIA for both IIT 3.0 and IIT 4.0, PhiStructure)
+carries a `.config: ConfigSnapshot` set at construction time;
+`result.config.as_kwargs()` round-trips through `config.override()`.
+Layered YAML format supported via `pyphi.config.load_yaml` /
+`pyphi.config.to_yaml`; old 1.x flat YAML raises with a rename-map
+pointer.
+
+**Deferred to follow-up:** `_GlobalConfig` is currently a thin facade
+over the legacy `PyphiConfig` singleton (now `pyphi._conf_legacy`); a
+future cleanup will replace it with a self-owning layered config and
+delete the legacy module. The auto-load of `pyphi_config.yml` at import
+time still uses the 1.x flat format; users opting into the nested format
+invoke `pyphi.config.load_yaml(path)` explicitly.
+
+**Original P10 design** (kept for reference):
 
 Split `pyphi/conf.py` (1121 lines) along the three layers that P4–P9 reveal:
 
