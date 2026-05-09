@@ -937,51 +937,45 @@ delete the legacy module. The auto-load of `pyphi_config.yml` at import
 time still uses the 1.x flat format; users opting into the nested format
 invoke `pyphi.config.load_yaml(path)` explicitly.
 
-**P10b. Finish the config cutover — drop ``_conf_legacy`` and the facade**
+**P10b. Finish the config cutover — drop ``_conf_legacy`` and the facade — landed (2026-05-09)**
 
-Promoted out of the deferred-items registry into its own project after
-hitting the UX cost in normal usage: ``pyphi.config.<TAB>`` shows the
-layered objects (``formalism``, ``infrastructure``, ``numerics``) plus
-methods, but not the leaf settings — users have to memorize which
-setting lives in which layer, defeating the purpose of typed-tab
-completion. The current state is also half-migrated infrastructure
-that no future contributor should have to learn.
+Phase 1 (``__dir__`` for tab completion) landed at ``30a39700``; the
+self-owning rewrite + module deletions landed across ``0236ea63`` and
+``a4885a73``.
 
-Scope:
+The three frozen dataclass layers (``FormalismConfig``,
+``InfrastructureConfig``, ``NumericsConfig``) are now stored directly on
+``_GlobalConfig`` and replaced via :func:`dataclasses.replace` on field
+writes; there is no longer a wrapped legacy ``PyphiConfig`` instance
+behind the facade. Validators move to per-layer ``__post_init__`` (the
+generic ``Option`` descriptor's value-list / type checks are reproduced
+where the suite exercises them); logging callback +
+``distinction_phi_normalization`` warning move to
+``pyphi/conf/_callbacks.py`` with an explicit ``mark_loaded`` flag that
+suppresses warnings during default-state setup. ``fallback`` and
+``parallel_kwargs`` move to ``pyphi/conf/_helpers.py``.
 
-- Delete ``pyphi/_conf_legacy.py`` (~1000 lines of descriptor /
-  validator / callback / YAML-load infrastructure).
-- Dissolve the ``_GlobalConfig`` facade in
-  ``pyphi/conf/legacy_global.py``. The three layered configs
-  (``FormalismConfig``, ``InfrastructureConfig``, ``NumericsConfig``)
-  become canonical — owned by a single top-level ``Config`` class
-  rather than wrapped over a legacy backend.
-- Top-level setattr (``config.precision = 13``) and
-  ``config.override(precision=13, parallel=True)`` continue to work
-  as the public API; reads continue to support both flat
-  (``config.precision``) and layered (``config.numerics.precision``)
-  forms.
-- ``__dir__`` advertises all leaf setting names so
-  ``pyphi.config.<TAB>`` shows ``precision``, ``parallel``,
-  ``repertoire_distance``, etc. directly.
-- Auto-load of ``pyphi_config.yml`` at import time switches to the
-  layered format. Top-level legacy keys raise with a rename-map
-  pointer (already implemented for explicit ``load_yaml``).
-- Migrate the YAML round-trip and validation logic from
-  ``_conf_legacy`` to the new layered backend. ``ConfigSnapshot``
-  semantics are preserved (P10's main contract).
+YAML auto-load of ``pyphi_config.yml`` at import time uses the layered
+nested format; ``pyphi_config.yml`` is migrated. Legacy uppercase keys
+raise :class:`ConfigurationError` with a pointer to the rename map.
 
-Not in scope: changing the public mutation API. ``config.X = Y`` and
-``config.override(...)`` keep their current shapes.
+Public surface: flat (``config.precision``), layered
+(``config.numerics.precision``), and legacy uppercase
+(``config.PRECISION``) reads/writes all work; the uppercase form is
+syntax sugar via case-folding. Wholesale layer replacement
+(``config.numerics = NumericsConfig(...)``) is now supported (was
+intentionally blocked during the cutover phase). ``override``,
+``snapshot``, and ``install_snapshot`` keep their semantics.
 
-Estimated 2–3 days. Comparable in scope to P10 itself, but bounded
-because the layered design landed already.
+``pyphi/_conf_legacy.py`` and its stub deleted (~1100 lines);
+``pyphi/conf/legacy_global.py`` renamed to ``pyphi/conf/_global.py``;
+the descriptor-pattern tests in ``test/test_config.py`` and the
+``Config`` / ``Option`` / ``PyphiConfig`` re-exports are dropped (no
+public-surface users remained).
 
-**Acceptance:** ``pyphi.config.<TAB>`` lists leaf settings;
-``pyphi/_conf_legacy.py`` deleted; ``pyphi/conf/legacy_global.py``
-deleted (replaced by ``pyphi/conf/global_config.py`` or merged into
-``pyphi/conf/__init__.py``); golden 17/17 unchanged; legacy YAML
-formats raise with rename-map.
+**Acceptance:** golden 17/17 unchanged, hypothesis 21 green, fast unit
+lane 926 passed (down from 939 — descriptor-pattern tests deleted),
+ruff clean, pyright at 2.0 baseline.
 
 **Original P10 design** (kept for reference):
 
@@ -1339,16 +1333,13 @@ test inventory — that a deliberate re-ordering pass is in order.
    once 2.0 ships they cost a deprecation cycle. Closes the rename
    trilogy (Network/Subsystem, Concept/Distinction, CES/Φ-structure).
 
-2. **P10b — Finish the config cutover.** Promoted out of the
-   deferred-items registry. Drop ``_conf_legacy.py``, dissolve the
-   ``_GlobalConfig`` facade, layered configs become canonical with
-   ``__dir__`` advertising leaf settings (so ``pyphi.config.<TAB>``
-   shows ``precision``, ``parallel``, etc. directly). Sequenced
-   *before* P14 so the 1,400 lines of dark tests P14 will re-enable
-   migrate exactly once against the final config API rather than
-   twice. ~2-3 days. Phase 1 (``__dir__`` for tab completion)
-   landed 2026-05-09 (commit ``30a39700``); Phases 2-5 (delete
-   ``_conf_legacy.py``, migrate validators/callbacks/YAML) pending.
+2. **P10b — Finish the config cutover.** *(landed 2026-05-09, commits
+   ``30a39700`` / ``0236ea63`` / ``a4885a73``.)* ``_conf_legacy.py``
+   deleted, ``_GlobalConfig`` is self-owning,
+   ``pyphi.config.<TAB>`` shows leaf settings directly, YAML auto-load
+   uses the layered nested format. Sequenced before P14 so the dark
+   tests P14 will re-enable migrate exactly once against the final
+   config API.
 
 3. **P11.9 — Congruence resolution: type-level safety.** Correctness
    work, not features. Tied specified states on distinctions are
