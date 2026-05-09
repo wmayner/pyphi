@@ -198,6 +198,29 @@ class _GlobalConfig:
         with open(path, "w") as f:
             _yaml.safe_dump(data, f, sort_keys=False)
 
+    def __dir__(self) -> list[str]:
+        """Advertise leaf setting names for tab completion.
+
+        ``pyphi.config.<TAB>`` shows leaf settings (``precision``,
+        ``parallel``, ``repertoire_distance``, …) directly, so users
+        don't have to memorize which setting lives in which layer.
+        Also includes the layer objects themselves and the methods.
+        """
+        # Leaf field names from FIELD_TO_LAYER (43 settings).
+        leaves = list(FIELD_TO_LAYER.keys())
+        # Layer accessors and methods on this facade.
+        own = [
+            "formalism",
+            "infrastructure",
+            "numerics",
+            "override",
+            "snapshot",
+            "install_snapshot",
+            "load_yaml",
+            "to_yaml",
+        ]
+        return sorted(set(leaves + own))
+
     def __setattr__(self, name: str, value: Any) -> None:
         if name == "_legacy":
             object.__setattr__(self, name, value)
