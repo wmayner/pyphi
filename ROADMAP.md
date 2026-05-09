@@ -1027,6 +1027,17 @@ See ROADMAP P9 deferred items above for full detail.
   No-GIL thread mode is potentially transformative for mechanism-level
   parallelism (small tasks, cache-friendly).
 
+**Status (scope cut for 2.0, 2026-05-09):** P11 ships `LocalProcessScheduler`
++ `LocalThreadScheduler` fully implemented, plus a `DaskScheduler` skeleton
+(import lazy, `map_reduce` raises `NotImplementedError`). The skeleton
+exists to exercise the `Scheduler` Protocol against three call shapes
+(loky pool, thread pool, dask client) so the abstraction is right; cluster
+deployment fills it in later. **`HTCondorScheduler` and the full Dask
+implementation defer to a post-2.0 follow-up project (`P18`)** — gated by
+real user demand for SLURM/PBS/LSF/SGE/HTCondor cluster runs. The
+Scheduler Protocol shape is the contract that unblocks them; nothing else
+in the 2.0 roadmap depends on cluster backends.
+
 ### Phase F — Features and new algorithms
 
 **P12. Non-binary (multi-valued) unit support**
