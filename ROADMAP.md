@@ -1197,6 +1197,99 @@ tier in place to bridge the gap.
 ``test/test_perf_budget.py`` (Tier 1), ``.github/workflows/`` (new
 nightly), ``ROADMAP.md`` (mark P15's Layer D as superseded).
 
+---
+
+## Updated 2.0 ordering (2026-05-09)
+
+The original Phase A–H letters captured logical groupings (safety net,
+formalism split, kernel rewrite, model cleanup, infrastructure refresh,
+features, downstream cleanup, approximations). The phases are still
+useful as conceptual labels, but recent work has produced enough new
+information — the YAML-write performance bug, the ``actual.py``
+breakage, the staleness of the benchmark suite, the size of the dark
+test inventory — that a deliberate re-ordering pass is in order.
+
+**Schedule for remaining 2.0 work:**
+
+1. **P11.7 — CES / Φ-structure rename.** User-facing renames are free
+   while pre-release; once 2.0 ships they cost a deprecation cycle.
+   No hard predecessor; ships next. Closes the rename trilogy
+   (Network/Subsystem, Concept/Distinction, CES/Φ-structure).
+
+2. **P14 — ``macro.py`` + ``actual.py`` resurrection.** Promoted ahead
+   of P12. Survey on 2026-05-09: ``pyphi/actual.py`` is ~95%
+   salvageable (concentrated breakage in 20 lines of
+   ``Transition.__init__``); ``pyphi/macro.py`` is ~70% salvageable
+   (free functions still pass; ``MacroSystem`` class needs port from
+   the preserved ``__init_disabled__`` reference). Together they
+   carry **1,400+ lines of currently-dark test code** (``test_actual.py``
+   skipped, ``test_macro_system.py`` skipped) and bit-rot grows with
+   each subsequent rename. Doing P14 *before* P12 keeps non-binary
+   work scoped to one place rather than fragmenting across core +
+   macro. Estimated 5–7 days.
+
+3. **P11.8 Tier 1 — inline pytest perf budget.** Hours of work, ~30
+   lines. Catches catastrophic regressions of the form just
+   experienced (60–300x on ``IIT4_2026Formalism``). Must precede P12
+   and P13 because both touch hot paths.
+
+4. **P12 — Non-binary units.** With perf gate up and macro/actual on
+   the new core, alphabet generalization is bounded: PR #105 is the
+   reference; binary golden fixtures stay as oracles.
+
+5. **P13 — Zaeemzadeh upper bounds.** Pure feature; depends on
+   P12's alphabet generalization.
+
+6. **P14b — Matching/perception fold-in.** Cleanest deferral
+   candidate if the schedule slips: self-contained extension whose
+   public surface is a new top-level package, so a 2.1 release is
+   minimally disruptive.
+
+7. **P11.8 Tier 2 + P15 — Surface-freeze bundle.** Benchmark suite
+   rewrite, ASV-in-CI, ``jsonify`` retirement, test reorganization,
+   docstring sweep, Sphinx architecture guide,
+   ``__repr__`` / ``_repr_html_``, ``ToPandasMixin`` extensions,
+   deferred-registry sweep (legacy YAML auto-load, ``_GlobalConfig``
+   facade collapse, P9 loky mystery, no-GIL CI matrix entry),
+   open-PR triage, ``migration-2.0.md``. Tier 2 of P11.8 lives
+   here because the benchmark rewrite naturally pairs with the
+   docstring/repr/jsonify pass.
+
+**Ship criterion for 2.0:**
+
+The original roadmap doesn't state a release criterion explicitly.
+Codifying one now:
+
+1. Every Greek letter in Albantakis et al. 2023 (and the 2026
+   ii(s)-cap addendum) maps to a named runtime type in PyPhi —
+   the "mathematician's acceptance test" from the original
+   Verification Plan.
+2. P11.7, P14, P11.8 Tier 1, P12, P13 are landed; P14b and
+   P11.8 Tier 2 are landed *or* explicitly deferred to 2.1
+   with a tracking issue.
+3. Goldens (fast + slow) green; Hypothesis property suite green
+   at default seed and on a 1000-run nightly; ``test_actual.py``
+   and the macro ``xfail(strict=True)`` are no longer skipped;
+   perf budget green.
+4. Sphinx site rebuilt; ``docs/migration-2.0.md`` ships;
+   ``pyphi_config.yml`` auto-load uses the layered format
+   (legacy YAML rejected with a rename map); ``_GlobalConfig``
+   facade is gone (legacy backend self-owning); no
+   ``TODO(4.0)`` or ``TODO(nonbinary)`` breadcrumbs survive in
+   ``pyphi/``.
+5. ``import pyphi; pyphi.iit4.cause_effect_structure(system)``
+   runs to completion on the basic 3-node example with no
+   ``DeprecationWarning`` from internal code paths.
+
+Conditions 1, 4, and 5 together mean the public surface is stable
+enough that 2.1 can be additive — which is the point of releasing
+2.0 in the first place.
+
+The phase-letter sections below remain authoritative for **scope**;
+this updated ordering is authoritative for **schedule**.
+
+---
+
 ### Phase F — Features and new algorithms
 
 **P12. Non-binary (multi-valued) unit support**
