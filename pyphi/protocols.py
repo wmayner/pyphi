@@ -183,6 +183,7 @@ PUBLIC_SYSTEM_ATTRS: frozenset[str] = frozenset(
         "cut_node_labels",
         "is_cut",
         "null_concept",
+        "null_distinction",
         "proper_state",
         "size",
         "tpm_size",
@@ -284,6 +285,7 @@ class SystemPublicInterface(Protocol):
     cut_node_labels: Any
     is_cut: Any
     null_concept: Any
+    null_distinction: Any
     proper_state: Any
     size: Any
     tpm_size: Any

@@ -604,11 +604,11 @@ def potential_purviews(
     return irreducible_purviews(cs.cm, direction, mechanism, purviews_list)
 
 
-def null_concept(cs: Any) -> Any:
-    """Return the null concept — point identified with the unconstrained
-    cause and effect repertoires of the candidate system.
+def null_distinction(cs: Any) -> Any:
+    """Return the null distinction — the point identified with the
+    unconstrained cause and effect repertoires of the candidate system.
     """
-    from pyphi.models import Concept
+    from pyphi.models import Distinction
     from pyphi.models import MaximallyIrreducibleCause
     from pyphi.models import MaximallyIrreducibleEffect
     from pyphi.models import _null_ria
@@ -617,7 +617,12 @@ def null_concept(cs: Any) -> Any:
     effect_rep = effect_repertoire(cs, (), ())
     cause = MaximallyIrreducibleCause(_null_ria(Direction.CAUSE, (), (), cause_rep))
     effect = MaximallyIrreducibleEffect(_null_ria(Direction.EFFECT, (), (), effect_rep))
-    return Concept(mechanism=(), cause=cause, effect=effect)
+    return Distinction(mechanism=(), cause=cause, effect=effect)
+
+
+# IIT 3.0 paper terminology calls a distinction a "concept"; the alias
+# preserves that vocabulary for IIT 3.0-native callers.
+null_concept = null_distinction
 
 
 def indices2nodes(cs: Any, indices: tuple[int, ...]) -> Any:

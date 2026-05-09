@@ -40,11 +40,11 @@ class Distinction(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixi
     ``>``, etc.). Comparison is based on |small_phi| value, then mechanism size.
 
     Attributes:
-        mechanism (tuple[int]): The mechanism that the concept consists of.
+        mechanism (tuple[int]): The mechanism that the distinction consists of.
         cause (MaximallyIrreducibleCause): The |MIC| representing the
-            maximally-irreducible cause of this concept.
+            maximally-irreducible cause of this distinction.
         effect (MaximallyIrreducibleEffect): The |MIE| representing the
-            maximally-irreducible effect of this concept.
+            maximally-irreducible effect of this distinction.
         time (float): The number of seconds it took to calculate.
     """
 
@@ -68,14 +68,14 @@ class Distinction(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixi
         return fmt.make_repr(self, _distinction_attributes)
 
     def __str__(self):
-        return fmt.fmt_concept(self)
+        return fmt.fmt_distinction(self)
 
     # TODO use cached_property
     @property
     def phi(self) -> float:  # type: ignore[override]
-        """float: The size of the concept.
+        """float: The size of the distinction.
 
-        This is the minimum of the |small_phi| values of the concept's |MIC|
+        This is the minimum of the |small_phi| values of the distinction's |MIC|
         and |MIE|.
         """
         assert self.cause is not None
@@ -186,7 +186,7 @@ class Distinction(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixi
         )
 
     def __bool__(self):
-        """A concept is ``True`` if |small_phi > 0|."""
+        """A distinction is ``True`` if |small_phi > 0|."""
         return utils.is_positive(self.phi)
 
     def is_congruent(self, system_state):
@@ -225,7 +225,7 @@ class Distinction(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixi
         )
 
     def eq_repertoires(self, other):
-        """Return whether this concept has the same repertoires as another.
+        """Return whether this distinction has the same repertoires as another.
 
         .. warning::
             This only checks if the cause and effect repertoires are equal as
@@ -241,7 +241,7 @@ class Distinction(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixi
         )
 
     def emd_eq(self, other):
-        """Return whether this concept is equal to another in the context of
+        """Return whether this distinction is equal to another in the context of
         an EMD calculation.
         """
         return (

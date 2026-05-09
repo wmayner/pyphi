@@ -255,10 +255,15 @@ class System:
         return {node.index: node for node in self.nodes}
 
     @cached_property
-    def null_concept(self) -> Any:
+    def null_distinction(self) -> Any:
         from pyphi.core import repertoire_algebra as ra
 
-        return ra.null_concept(self)
+        return ra.null_distinction(self)
+
+    @cached_property
+    def null_concept(self) -> Any:
+        """IIT 3.0 alias for :attr:`null_distinction`."""
+        return self.null_distinction
 
     # ---- repertoire algebra proxies ----
 

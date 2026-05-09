@@ -606,26 +606,26 @@ def fmt_ces(ces: object, title: str | None = None) -> str:
     return header(title, concepts, HEADER_BAR_1, HEADER_BAR_1)
 
 
-def fmt_concept(concept: object) -> str:
-    """Format a |Concept|."""
+def fmt_distinction(distinction: object) -> str:
+    """Format a :class:`Distinction`."""
 
     def fmt_cause_or_effect(x: object) -> str:  # pylint: disable=missing-docstring
         return indent(str(x), amount=1)
 
-    cause = fmt_cause_or_effect(concept.cause)  # type: ignore[attr-defined]
-    effect = fmt_cause_or_effect(concept.effect)  # type: ignore[attr-defined]
+    cause = fmt_cause_or_effect(distinction.cause)  # type: ignore[attr-defined]
+    effect = fmt_cause_or_effect(distinction.effect)  # type: ignore[attr-defined]
     ce = side_by_side(cause, effect)
 
-    mechanism = fmt_mechanism(concept.mechanism, concept.node_labels)  # type: ignore[attr-defined]
+    mechanism = fmt_mechanism(distinction.mechanism, distinction.node_labels)  # type: ignore[attr-defined]
     # TODO(4.0) reconsider using Nodes in the mechanism to facilitate access
     # to their state, etc.
-    mech_state = list(concept.mechanism_state)  # type: ignore[attr-defined]
+    mech_state = list(distinction.mechanism_state)  # type: ignore[attr-defined]
     title = "\n".join(
         align(
             [
-                f"{concept.__class__.__name__}: mechanism = {mechanism}, "
+                f"{distinction.__class__.__name__}: mechanism = {mechanism}, "
                 f"state = {mech_state}",
-                f"{SMALL_PHI} = {fmt_number(concept.phi)}",  # type: ignore[attr-defined]
+                f"{SMALL_PHI} = {fmt_number(distinction.phi)}",  # type: ignore[attr-defined]
             ],
             direction="c",
         )
@@ -634,6 +634,11 @@ def fmt_concept(concept: object) -> str:
     # Only center headers for high-verbosity output
     center_bool = config.infrastructure.repr_verbosity is HIGH
     return header(title, ce, HEADER_BAR_2, HEADER_BAR_2, center=center_bool)
+
+
+# IIT 3.0 paper terminology calls a distinction a "concept"; the alias
+# preserves that vocabulary for IIT 3.0-native callers.
+fmt_concept = fmt_distinction
 
 
 def fmt_ria(ria: object, verbose: bool = True, mip: bool = False) -> str:
