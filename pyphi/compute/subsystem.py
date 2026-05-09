@@ -319,7 +319,6 @@ def _sia(subsystem: Subsystem, **kwargs: Any) -> SystemIrreducibilityAnalysis:
     else:
         cuts = sia_partitions(subsystem.cut_indices, subsystem.cut_node_labels)
 
-    # TODO(4.0): parallel: expose options
     result = _sia_map_reduce(cuts, subsystem, unpartitioned_ces, **kwargs)
 
     if config.infrastructure.clear_subsystem_caches_after_computing_sia:
