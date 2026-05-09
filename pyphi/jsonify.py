@@ -95,7 +95,7 @@ def _loadable_models():
         pyphi.models.ActualCut,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.Bipartition,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.CausalLink,  # pyright: ignore[reportAttributeAccessIssue]
-        pyphi.models.CauseEffectStructure,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.Distinctions,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.Concept,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.SystemPartition,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.cuts.GeneralKCut,  # pyright: ignore[reportAttributeAccessIssue]
@@ -113,7 +113,7 @@ def _loadable_models():
         pyphi.models.SystemIrreducibilityAnalysis,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.Tripartition,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.Substrate,
-        pyphi.formalism.iit4.PhiStructure,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.formalism.iit4.CauseEffectStructure,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.formalism.iit4.SystemIrreducibilityAnalysis,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.formalism.iit4.NullSystemIrreducibilityAnalysis,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.relations.AnalyticalRelations,  # pyright: ignore[reportAttributeAccessIssue]

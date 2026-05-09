@@ -36,7 +36,7 @@ from pyphi.models.ces import CauseEffectStructure
 from pyphi.models.cuts import GeneralKCut
 from pyphi.models.cuts import NullCut
 from pyphi.models.cuts import SystemPartition
-from pyphi.models.phi_structure import PhiStructure
+from pyphi.models.distinctions import Distinctions
 from pyphi.models.ria import RepertoireIrreducibilityAnalysis
 from pyphi.models.state_specification import StateSpecification
 from pyphi.models.state_specification import SystemStateSpecification
@@ -710,11 +710,11 @@ _sia = sia
 ##############################################################################
 
 
-class NullPhiStructure(PhiStructure):
+class NullCauseEffectStructure(CauseEffectStructure):
     def __init__(self, **kwargs):
         super().__init__(
             sia=NullSystemIrreducibilityAnalysis(),
-            distinctions=CauseEffectStructure([]),
+            distinctions=Distinctions([]),
             relations=ConcreteRelations([]),
             **kwargs,
         )
@@ -723,12 +723,12 @@ class NullPhiStructure(PhiStructure):
 def phi_structure(
     system: System,
     sia: SystemIrreducibilityAnalysis | None = None,
-    distinctions: CauseEffectStructure | None = None,
+    distinctions: Distinctions | None = None,
     relations: Relations | None = None,
     sia_kwargs: dict | None = None,
     ces_kwargs: dict | None = None,
     relations_kwargs: dict | None = None,
-) -> PhiStructure:
+) -> CauseEffectStructure:
     """Analyze the irreducible cause-effect structure of a system."""
     sia_kwargs = sia_kwargs or {}
     ces_kwargs = ces_kwargs or {}
@@ -752,7 +752,7 @@ def phi_structure(
     if relations is None:
         relations = compute_relations(distinctions, **relations_kwargs)
 
-    return PhiStructure(
+    return CauseEffectStructure(
         sia=sia,
         distinctions=distinctions,
         relations=relations,
@@ -790,5 +790,5 @@ def irreducible_complexes(substrate, state, complexes=None, **kwargs):
 def maximal_complex(substrate, state, complexes=None, **kwargs):
     return max(
         irreducible_complexes(substrate, state, complexes=complexes, **kwargs),
-        default=NullPhiStructure(),
+        default=NullCauseEffectStructure(),
     )

@@ -113,7 +113,7 @@ class TestComplexesIIT30:
 # These tests validate the current IIT 4.0 behavior using new_big_phi.phi_structure().
 
 
-class TestPhiStructureIIT40:
+class TestCauseEffectStructureIIT40:
     """Golden tests for IIT 4.0 phi_structure computation.
 
     These tests validate the phi_structure function under IIT 4.0 defaults.

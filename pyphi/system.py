@@ -459,7 +459,7 @@ class System:
         return _sia(self, **kwargs)
 
     def phi_structure(self, **kwargs: Any) -> Any:
-        """Return the IIT 4.0 :class:`PhiStructure` for this system.
+        """Return the IIT 4.0 :class:`CauseEffectStructure` for this system.
 
         Defined under IIT 4.0 only; the IIT 3.0 analogue is :meth:`ces`.
         """
@@ -471,7 +471,7 @@ class System:
         """Return the cause-effect structure for this system.
 
         Under IIT 3.0 this returns concepts; under IIT 4.0 this returns
-        distinctions. Both are :class:`CauseEffectStructure` instances.
+        distinctions. Both are :class:`Distinctions` instances.
         """
         from pyphi.conf import config as _config
 

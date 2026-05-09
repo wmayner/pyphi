@@ -244,7 +244,7 @@ def _combinations_with_nonempty_congruent_overlap(
     """Return combinations of distinctions with nonempty congruent overlap.
 
     Arguments:
-        components (CauseEffectStructure): The distinctions to find overlaps
+        components (Distinctions): The distinctions to find overlaps
             among.
     """
     from graphillion import setset
@@ -385,7 +385,7 @@ def relations(
     **kwargs: Any,
 ) -> Relations:
     """Return causal relations among a set of distinctions."""
-    if not distinctions.resolved_congruence:  # type: ignore[attr-defined]  # CauseEffectStructure
+    if not distinctions.resolved_congruence:  # type: ignore[attr-defined]  # Distinctions
         warnings.warn(_CONGRUENCE_WARNING_MSG, PyPhiWarning, stacklevel=2)
     return relation_computations[
         fallback(relation_computation, config.formalism.relation_computation)  # type: ignore[index]  # config.Option descriptor

@@ -11,10 +11,10 @@ Three layers, each independently useful as a regression target:
 
 - Layer 3: System-level analysis — the full SystemIrreducibilityAnalysis
   including system phi, system partition, and (for IIT 4.0) the full
-  PhiStructure with distinctions and relations.
+  CauseEffectStructure with distinctions and relations.
 
 Each layer can be skipped via ``GoldenFixture.skip_layers`` for fixtures
-where it doesn't apply (e.g., IIT 3.0 doesn't have PhiStructure).
+where it doesn't apply (e.g., IIT 3.0 doesn't have CauseEffectStructure).
 """
 
 from __future__ import annotations
@@ -246,7 +246,7 @@ def _compute_sia(system: System, stash: Any, iit_version: float) -> dict[str, An
 
 
 def _compute_phi_structure(system: System, stash: Any) -> dict[str, Any]:
-    """Capture the IIT 4.0 PhiStructure."""
+    """Capture the IIT 4.0 CauseEffectStructure."""
     try:
         from pyphi.formalism.iit4 import phi_structure
     except ImportError:

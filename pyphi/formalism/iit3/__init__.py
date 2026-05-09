@@ -29,8 +29,8 @@ from pyphi import utils
 from pyphi.conf import config
 from pyphi.direction import Direction
 from pyphi.metrics.ces import ces_distance
-from pyphi.models import CauseEffectStructure
 from pyphi.models import Concept
+from pyphi.models import Distinctions
 from pyphi.models import KCut
 from pyphi.models import SystemIrreducibilityAnalysis
 from pyphi.models import SystemPartition
@@ -100,16 +100,16 @@ def ces(
     directions: Iterable[Direction] | None = None,
     only_positive_phi: bool = True,
     **kwargs: Any,
-) -> CauseEffectStructure:
+) -> Distinctions:
     """Return the conceptual structure of this system, optionally restricted
     to concepts with the mechanisms and purviews given in keyword arguments.
 
-    If you don't need the full |CauseEffectStructure|, restricting the possible
+    If you don't need the full |Distinctions|, restricting the possible
     mechanisms and purviews can make this function much faster.
 
     Args:
         system (System): The system for which to determine the
-            |CauseEffectStructure|.
+            |Distinctions|.
 
     Keyword Args:
         mechanisms (tuple[tuple[int]]): Restrict possible mechanisms to those
@@ -126,7 +126,7 @@ def ces(
             phi.
 
     Returns:
-        CauseEffectStructure: A tuple of every |Concept| in the cause-effect
+        Distinctions: A tuple of every |Concept| in the cause-effect
         structure.
     """
     total = None
@@ -158,7 +158,7 @@ def ces(
         total=total,
         **parallel_kwargs,  # type: ignore[arg-type]  # parallel_kwargs contains MapReduce params
     ).run()
-    return CauseEffectStructure(concepts)
+    return Distinctions(concepts)
 
 
 def _only_positive_phi(concepts: Iterable[Any]) -> list[Concept]:
@@ -172,17 +172,17 @@ def _any_phi(concepts: Iterable[Any]) -> list[Concept]:
 def conceptual_info(system: System, **kwargs: Any) -> float:
     """Return the conceptual information for a |System|.
 
-    This is the distance from the system's |CauseEffectStructure| to the
+    This is the distance from the system's |Distinctions| to the
     null concept.
     """
-    ci = ces_distance(ces(system, **kwargs), CauseEffectStructure(()))
+    ci = ces_distance(ces(system, **kwargs), Distinctions(()))
     return round(ci, config.numerics.precision)  # type: ignore[arg-type]  # config.Option descriptor
 
 
 def evaluate_cut(
     cut: SystemPartition,
     uncut_system: System,
-    unpartitioned_ces: CauseEffectStructure,
+    unpartitioned_ces: Distinctions,
     **kwargs: Any,
 ) -> SystemIrreducibilityAnalysis:
     """Compute the system irreducibility for a given cut.
@@ -190,7 +190,7 @@ def evaluate_cut(
     Args:
         uncut_system (System): The system without the cut applied.
         cut (SystemPartition): The cut to evaluate.
-        unpartitioned_ces (CauseEffectStructure): The cause-effect structure of
+        unpartitioned_ces (Distinctions): The cause-effect structure of
             the uncut system.
 
     Returns:
@@ -256,8 +256,8 @@ def sia_partitions(
     )
 
 
-def _ces(system: System, **kwargs: Any) -> CauseEffectStructure:
-    """Parallelize the unpartitioned |CauseEffectStructure| if parallelizing
+def _ces(system: System, **kwargs: Any) -> Distinctions:
+    """Parallelize the unpartitioned |Distinctions| if parallelizing
     cuts, since we have free processors because we're not computing any cuts
     yet.
     """
@@ -268,7 +268,7 @@ def _ces(system: System, **kwargs: Any) -> CauseEffectStructure:
 def _sia_map_reduce(
     cuts: Iterable[SystemPartition],
     system: System,
-    unpartitioned_ces: CauseEffectStructure,
+    unpartitioned_ces: Distinctions,
     **kwargs: Any,
 ) -> SystemIrreducibilityAnalysis:
     kwargs = {"parallel": config.infrastructure.parallel_cut_evaluation, **kwargs}
@@ -344,17 +344,15 @@ def _sia(system: System, **kwargs: Any) -> SystemIrreducibilityAnalysis:
             return _null_sia(system)
     # =========================================================================
 
-    log.debug("Finding unpartitioned CauseEffectStructure...")
+    log.debug("Finding unpartitioned Distinctions...")
     unpartitioned_ces = _ces(system, progress=kwargs.get("progress"))
 
     if not unpartitioned_ces:
-        log.info(
-            "Empty unpartitioned CauseEffectStructure; returning null SIA immediately."
-        )
+        log.info("Empty unpartitioned Distinctions; returning null SIA immediately.")
         # Short-circuit if there are no concepts in the unpartitioned CES.
         return _null_sia(system)
 
-    log.debug("Found unpartitioned CauseEffectStructure.")
+    log.debug("Found unpartitioned Distinctions.")
 
     # TODO: move this into sia_bipartitions?
     # Only True if SINGLE_MICRO_NODES...=True, no?
@@ -486,7 +484,7 @@ def concept_cuts(
 def directional_sia(
     system: System,
     direction: Direction,
-    unpartitioned_ces: CauseEffectStructure | None = None,
+    unpartitioned_ces: Distinctions | None = None,
     **kwargs: Any,
 ) -> SystemIrreducibilityAnalysis:
     """Calculate a concept-style SystemIrreducibilityAnalysisCause or

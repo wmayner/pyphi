@@ -14,7 +14,7 @@ from pyphi import utils
 
 from . import cmp
 from . import fmt
-from .ces import _null_ces
+from .distinctions import _null_ces
 
 _sia_attributes = ["phi", "ces", "partitioned_ces", "system", "cut_system"]
 
@@ -35,9 +35,9 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
             this analysis, *i.e.* the difference between the cause-effect
             structure and the partitioned cause-effect structure for this
             analysis.
-        ces (CauseEffectStructure): The cause-effect structure of
+        ces (Distinctions): The cause-effect structure of
             the whole system.
-        partitioned_ces (CauseEffectStructure): The cause-effect structure when
+        partitioned_ces (Distinctions): The cause-effect structure when
             the system is cut.
         system (System): The system this analysis was calculated for.
         cut_system (System): The system with the minimal cut applied.

@@ -169,7 +169,7 @@ def extract_phi_structure_components(result: Any) -> dict[str, Any]:
     Extract key components from a phi_structure result for independent testing.
 
     Args:
-        result: PhiStructure result object
+        result: CauseEffectStructure result object
 
     Returns:
         Dictionary with extracted components:
@@ -392,5 +392,5 @@ def assert_phi_structure_equal_detailed(
 
     # If any errors, fail with detailed message
     if errors:
-        error_msg = "\n\nPhiStructure comparison failed:\n" + "\n".join(errors)
+        error_msg = "\n\nCauseEffectStructure comparison failed:\n" + "\n".join(errors)
         pytest.fail(error_msg)

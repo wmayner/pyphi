@@ -17,8 +17,8 @@ from pyphi.types import Repertoire
 from . import distribution
 
 if TYPE_CHECKING:
-    from pyphi.models.ces import CauseEffectStructure
     from pyphi.models.distinction import Distinction as Concept
+    from pyphi.models.distinctions import Distinctions
 
 
 class CESMeasureRegistry(Registry):
@@ -118,7 +118,7 @@ def emd_concept_distance(c1: Concept, c2: Concept) -> float:
     )
 
 
-def _emd_simple(C1: CauseEffectStructure, C2: CauseEffectStructure) -> float:
+def _emd_simple(C1: Distinctions, C2: Distinctions) -> float:
     """Return the distance between two cause-effect structures.
 
     Assumes the only difference between them is that some concepts have
@@ -131,7 +131,7 @@ def _emd_simple(C1: CauseEffectStructure, C2: CauseEffectStructure) -> float:
     return sum(c.phi * emd_concept_distance(c, c.system.null_concept) for c in destroyed)
 
 
-def _emd(unique_C1: CauseEffectStructure, unique_C2: CauseEffectStructure) -> float:
+def _emd(unique_C1: Distinctions, unique_C2: Distinctions) -> float:
     """Return the distance between two cause-effect structures.
 
     Uses the generalized EMD.
@@ -204,12 +204,12 @@ def _emd(unique_C1: CauseEffectStructure, unique_C2: CauseEffectStructure) -> fl
 
 
 @measures.register("EMD")
-def emd(C1: CauseEffectStructure, C2: CauseEffectStructure) -> float:
+def emd(C1: Distinctions, C2: Distinctions) -> float:
     """Return the generalized EMD between two cause-effect structures.
 
     Args:
-        C1 (CauseEffectStructure): The first |CauseEffectStructure|.
-        C2 (CauseEffectStructure): The second |CauseEffectStructure|.
+        C1 (Distinctions): The first |Distinctions|.
+        C2 (Distinctions): The second |Distinctions|.
 
     Returns:
         float
@@ -226,19 +226,19 @@ def emd(C1: CauseEffectStructure, C2: CauseEffectStructure) -> float:
 
 
 @measures.register("SUM_SMALL_PHI")
-def sum_small_phi(C1: CauseEffectStructure, C2: CauseEffectStructure) -> float:
-    """Return the difference in |small_phi| between |CauseEffectStructure|."""
+def sum_small_phi(C1: Distinctions, C2: Distinctions) -> float:
+    """Return the difference in |small_phi| between |Distinctions|."""
     return sum(C1.phis) - sum(C2.phis)
 
 
 def ces_distance(
-    C1: CauseEffectStructure, C2: CauseEffectStructure, measure: str | None = None
+    C1: Distinctions, C2: Distinctions, measure: str | None = None
 ) -> float:
     """Return the distance between two cause-effect structures.
 
     Args:
-        C1 (CauseEffectStructure): The first |CauseEffectStructure|.
-        C2 (CauseEffectStructure): The second |CauseEffectStructure|.
+        C1 (Distinctions): The first |Distinctions|.
+        C2 (Distinctions): The second |Distinctions|.
 
     Returns:
         float: The distance between the two cause-effect structures.

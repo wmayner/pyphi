@@ -7,7 +7,7 @@ from collections.abc import Iterable
 from copy import deepcopy
 
 from .direction import Direction
-from .models.ces import CauseEffectStructure
+from .models.ces import Distinctions
 from .models.distinction import Distinction as Concept
 
 DIRECTIONS = [
@@ -31,7 +31,7 @@ class CompositionalState(UserDict):
     where {<mechanism>} is a set of mechanisms. To represent a valid
     compositional state, this set must be a singleton; however, the class can be
     used with multiple mechanisms per purview & direction to keep track of
-    conflicts among the distinctions in a PhiStructure.
+    conflicts among the distinctions in a CauseEffectStructure.
     """
 
     def __init__(self, distinctions=None):
@@ -264,7 +264,7 @@ class CompositionalState(UserDict):
         """Return only the distinctions that are consistent with this
         CompositionalState.
         """
-        return CauseEffectStructure(
+        return Distinctions(
             [
                 distinction
                 for distinction in distinctions
@@ -283,12 +283,9 @@ class CompositionalState(UserDict):
         """
         distinction_set = list(distinction_set)
         if not all(
-            isinstance(distinctions, CauseEffectStructure)
-            for distinctions in distinction_set
+            isinstance(distinctions, Distinctions) for distinctions in distinction_set
         ):
-            raise ValueError(
-                "Each entry of `distinction_set` must be a CauseEffectStructure"
-            )
+            raise ValueError("Each entry of `distinction_set` must be a Distinctions")
         if reference is None:
             reference = cls(
                 distinction_set[0],

@@ -11,7 +11,13 @@ Attributes:
     Bipartition: Alias for :class:`pyphi.models.cuts.Bipartition`.
     CausalLink: Alias for :class:`pyphi.models.actual_causation.CausalLink`.
     CauseEffectStructure: Alias for
-        :class:`pyphi.models.system.CauseEffectStructure`.
+        :class:`pyphi.models.ces.CauseEffectStructure` — the
+        distinctions-plus-relations object specified by any candidate
+        system (Albantakis et al. 2023). When the candidate is a
+        complex, this is what the IIT 4.0 paper calls a *Φ-structure*.
+    Distinctions: Alias for
+        :class:`pyphi.models.distinctions.Distinctions` — the bag of
+        distinctions, no relations.
     Concept: Alias for :class:`pyphi.models.distinction.Distinction`
         — IIT 3.0 paper terminology for the same object.
     Distinction: Alias for :class:`pyphi.models.distinction.Distinction`.
@@ -39,7 +45,6 @@ from .actual_causation import Event
 from .actual_causation import _null_ac_ria
 from .actual_causation import _null_ac_sia
 from .ces import CauseEffectStructure
-from .ces import _null_ces
 from .cuts import ActualCut
 from .cuts import Bipartition
 from .cuts import KCut
@@ -50,10 +55,11 @@ from .cuts import SystemPartition
 from .cuts import Tripartition
 from .distinction import Concept
 from .distinction import Distinction
+from .distinctions import Distinctions
+from .distinctions import _null_ces
 from .mice import MaximallyIrreducibleCause
 from .mice import MaximallyIrreducibleCauseOrEffect
 from .mice import MaximallyIrreducibleEffect
-from .phi_structure import PhiStructure
 from .ria import RepertoireIrreducibilityAnalysis
 from .ria import ShortCircuitConditions
 from .ria import _null_ria
@@ -78,6 +84,7 @@ __all__ = [
     "DirectedAccount",
     "Distinction",
     "DistinctionPhiNormalizationRegistry",
+    "Distinctions",
     "Event",
     "KCut",
     "KPartition",
@@ -86,7 +93,6 @@ __all__ = [
     "MaximallyIrreducibleEffect",
     "NullCut",
     "Part",
-    "PhiStructure",
     "RepertoireIrreducibilityAnalysis",
     "ShortCircuitConditions",
     "StateSpecification",

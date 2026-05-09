@@ -85,7 +85,7 @@ def test_json_deserialization_non_pyphi_clasess():
 
 
 # NOTE: test_deserialization_memoizes_duplicate_objects was removed because
-# it relied on ces.system which was intentionally removed from CauseEffectStructure
+# it relied on ces.system which was intentionally removed from Distinctions
 # during the IIT 3.0 -> 4.0 migration.
 
 

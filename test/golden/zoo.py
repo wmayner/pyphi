@@ -27,7 +27,7 @@ Three formalisms are tested:
 All five reference substrates (basic, xor, rule110, grid3, disjunction_conjunction)
 get a fixture under each of iit4_2023 and iit4_2026 — even where SIA phi
 collapses to 0 under both, the fixture still pins the per-mechanism MIPs and
-PhiStructure shape, which can discriminate at lower layers.
+CauseEffectStructure shape, which can discriminate at lower layers.
 
 Excluded from the initial set: tied-state cases that are flaky on develop
 (see ``test_sia_big_subsys_all_complete_*``); these need P5/P6 work first.

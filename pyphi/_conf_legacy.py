@@ -764,7 +764,7 @@ class PyphiConfig(Config):
         type=bool,
         doc="""
     If set to ``True``, the |big_phi| value of single micro-node systems is
-    the difference between their unpartitioned |CauseEffectStructure| (a single
+    the difference between their unpartitioned |Distinctions| (a single
     concept) and the null concept. If set to False, their |big_phi| is defined
     to be zero. Single macro-node systems may always be cut, regardless of
     circumstances.""",

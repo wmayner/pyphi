@@ -100,7 +100,7 @@ def load_expected(example_name):
         example_name: Name of example substrate
 
     Returns:
-        PhiStructure object deserialized from JSON
+        CauseEffectStructure object deserialized from JSON
     """
     with open(DATA_PATH / f"{example_name}.json") as f:
         return jsonify.load(f)

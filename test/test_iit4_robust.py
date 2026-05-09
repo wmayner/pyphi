@@ -160,7 +160,7 @@ class TestDistinctionCounts:
 # ============================================================================
 
 
-class TestPhiStructureComponents:
+class TestCauseEffectStructureComponents:
     """Test that phi_structure results have expected components.
 
     These tests verify that phi_structure objects contain the required
@@ -188,7 +188,7 @@ class TestPhiStructureComponents:
         All phi_structure results should have a 'distinctions' attribute,
         even if it's empty or None for reducible systems.
 
-        If this fails, the PhiStructure data model was changed.
+        If this fails, the CauseEffectStructure data model was changed.
 
         Note: rule154 is marked as slow due to computational expense (11 distinctions).
         """
@@ -196,7 +196,7 @@ class TestPhiStructureComponents:
         result = new_big_phi.phi_structure(system)
 
         assert hasattr(result, "distinctions"), (
-            f"PhiStructure for '{example_name}' missing 'distinctions' attribute"
+            f"CauseEffectStructure for '{example_name}' missing 'distinctions' attribute"
         )
 
     @pytest.mark.parametrize(
@@ -220,7 +220,7 @@ class TestPhiStructureComponents:
         All phi_structure results should have a 'relations' attribute
         to store dependencies between distinctions.
 
-        If this fails, the PhiStructure data model was changed.
+        If this fails, the CauseEffectStructure data model was changed.
 
         Note: rule154 is marked as slow due to computational expense (11 distinctions).
         """
@@ -228,7 +228,7 @@ class TestPhiStructureComponents:
         result = new_big_phi.phi_structure(system)
 
         assert hasattr(result, "relations"), (
-            f"PhiStructure for '{example_name}' missing 'relations' attribute"
+            f"CauseEffectStructure for '{example_name}' missing 'relations' attribute"
         )
 
     @pytest.mark.parametrize(
@@ -256,12 +256,12 @@ class TestPhiStructureComponents:
         result = new_big_phi.phi_structure(system)
 
         assert hasattr(result, "distinctions"), (
-            "PhiStructure missing distinctions attribute"
+            "CauseEffectStructure missing distinctions attribute"
         )
 
         distinctions = result.distinctions
         assert distinctions is not None, (
-            f"PhiStructure for '{example_name}' has None distinctions "
+            f"CauseEffectStructure for '{example_name}' has None distinctions "
             f"(expected non-empty)"
         )
 
@@ -274,7 +274,7 @@ class TestPhiStructureComponents:
             count = 0
 
         assert count > 0, (
-            f"PhiStructure for '{example_name}' has zero distinctions "
+            f"CauseEffectStructure for '{example_name}' has zero distinctions "
             f"(expected at least one)"
         )
 

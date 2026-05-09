@@ -37,7 +37,7 @@ def highlight_phi_fold(
     background_theme=GREY_THEME,
     **theme_overrides,
 ):
-    """Plot a PhiStructure with a PhiFold highlighted."""
+    """Plot a CauseEffectStructure with a PhiFold highlighted."""
     fig, purview_coords, mechanism_coords = plot_phi_structure(
         phi_structure,
         fig=fig,
@@ -79,10 +79,10 @@ def plot_phi_structure(
     return_coords=False,
     **theme_overrides,
 ):
-    """Plot a PhiStructure.
+    """Plot a CauseEffectStructure.
 
     Arguments:
-        phi_structure (PhiStructure): The PhiStructure to plot.
+        phi_structure (CauseEffectStructure): The CauseEffectStructure to plot.
 
     Keyword Arguments:
         fig (plotly.graph_objects.Figure): The figure to use. Defaults to None,

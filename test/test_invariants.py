@@ -273,7 +273,7 @@ class TestConfigurationInvariants:
             )
 
 
-class TestPhiStructureInvariants:
+class TestCauseEffectStructureInvariants:
     """Test invariants for IIT 4.0 phi_structure results.
 
     These tests verify properties specific to IIT 4.0's phi_structure

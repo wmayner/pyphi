@@ -1,215 +1,126 @@
 # models/ces.py
-"""``CauseEffectStructure`` — a collection of distinctions/concepts."""
+"""Cause-effect structure: distinctions + relations (Albantakis et al. 2023).
+
+The IIT 4.0 paper distinguishes two terms:
+
+- *Cause-effect structure* — the distinctions plus relations specified by
+  *any* candidate system (reducible or not).
+- *Φ-structure* — the cause-effect structure of a *complex* (a maximally
+  irreducible substrate). The IIT 4.0 paper (p11) reserves the Greek-Φ
+  spelling for that complex-specific reading.
+
+PyPhi exposes only :class:`CauseEffectStructure` as a runtime type; the
+"this is a Φ-structure" reading is communicated by context (a SIA
+result's :attr:`SystemIrreducibilityAnalysis.phi_structure` attribute
+holds the cause-effect structure of what won the SIA competition, i.e.
+the complex). The bag-of-distinctions side (without relations) is
+:class:`pyphi.models.distinctions.Distinctions` — see that module's
+docstring.
+
+The algorithms that compute cause-effect structures live in
+:mod:`pyphi.formalism.iit4` (which still exposes ``phi_structure()``
+as the canonical entry point — paper-faithful for the SIA-winner case).
+"""
 
 from __future__ import annotations
 
-from collections import defaultdict
 from collections.abc import Iterable
-from collections.abc import Sequence
-
-from toolz import concat
-
-from pyphi import utils
-from pyphi.conf import fallback
-from pyphi.direction import Direction
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
+from typing import Any
 
 from . import cmp
 from . import fmt
-from .pandas import ToPandasMixin
-from .state_specification import SystemStateSpecification
+from .distinctions import Distinctions
+
+if TYPE_CHECKING:
+    from pyphi.data_structures import PyPhiFloat
+    from pyphi.relations import Relations
 
 
-def _concept_sort_key(concept):
-    return (len(concept.mechanism), concept.mechanism)
+@dataclass(frozen=True, eq=False)
+class CauseEffectStructure(cmp.Orderable):
+    """A Φ-structure: SIA + distinctions + relations.
 
+    Access the system-level integrated information value via
+    ``ps.sia.phi``; the system partition via ``ps.sia.partition``; the
+    specified system state via ``ps.sia.system_state``. (Earlier versions
+    of this class proxied those attributes at the top level via
+    ``__getattr__`` — that proxy was removed when the class moved into
+    ``pyphi.models``; access them explicitly through ``.sia``.)
+    """
 
-def defaultdict_set():
-    return defaultdict(set)
+    sia: Any  # SystemIrreducibilityAnalysis from formalism.iit4
+    distinctions: Distinctions
+    relations: Relations
+    config: Any = None  # ConfigSnapshot from pyphi.conf.snapshot
 
+    def __post_init__(self) -> None:
+        if self.config is None:
+            from pyphi.conf import config as _global
 
-def _purview_inclusion(distinction_attr, distinctions, min_order, max_order):
-    purview_inclusion_by_order = defaultdict(defaultdict_set)
-    for distinction in distinctions:
-        for subset in map(
-            frozenset,
-            utils.powerset(
-                getattr(distinction, distinction_attr),
-                nonempty=True,
-                min_size=min_order,
-                max_size=max_order,
-            ),
-        ):
-            purview_inclusion_by_order[len(subset)][subset].add(distinction)
-    return purview_inclusion_by_order
+            object.__setattr__(self, "config", _global.snapshot())
 
+    @property
+    def components(self) -> Iterable[Any]:
+        yield from self.distinctions
+        # Relations is not iterable in base class but subclasses (ConcreteRelations) are
+        yield from list(self.relations)  # pyright: ignore[reportArgumentType]
 
-def _find_multiplicities(func, distinctions):
-    """Return a mapping from purviews to multiplicities of the values of ``func``."""
-    multiplicities = defaultdict_set()
-    for d in distinctions:
-        for direction in Direction.both():
-            multiplicities[d.purview(direction)].add(func(d.mice(direction)))
-    return multiplicities
+    def order_by(self) -> PyPhiFloat:
+        return self.sia.phi
 
+    def __hash__(self) -> int:
+        return hash((self.distinctions, self.relations))
 
-def _get_mechanism(mice):
-    return mice.mechanism
-
-
-def _get_state(mice):
-    return mice.specified_state.state
-
-
-class CauseEffectStructure(cmp.Orderable, Sequence, ToPandasMixin):
-    """A collection of concepts."""
-
-    def __init__(self, concepts=(), resolved_congruence=False):
-        # Normalize the order of concepts
-        # TODO(4.0) convert to set?
-        self.concepts = tuple(sorted(concepts, key=_concept_sort_key))
-        self._specifiers = None
-        self._purview_inclusion_by_order = defaultdict(defaultdict_set)
-        # Flag to indicate whether distinctions have been filtered according to
-        # congruence with a SIA specified state
-        # TODO(4.0) use a subclass instead, as with MICE?
-        self._resolved_congruence = resolved_congruence
-        self._sum_phi = None
-
-    def __len__(self):
-        return len(self.concepts)
-
-    def __iter__(self):
-        return iter(self.concepts)
-
-    def __getitem__(self, value):
-        if isinstance(value, slice):
-            return type(self)(self.concepts[value])
-        return self.concepts[value]
-
-    def __repr__(self):
-        return fmt.make_repr(self, ["concepts"])
-
-    def __str__(self):
-        return fmt.fmt_ces(self)
+    def __bool__(self) -> bool:
+        return bool(self.sia)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, CauseEffectStructure):
-            return NotImplemented
-        return self.concepts == other.concepts
-
-    def __hash__(self):
-        return hash(self.concepts)
-
-    def order_by(self):
-        return [self.concepts]
-
-    def to_json(self):
-        return {"concepts": self.concepts}
-
-    @property
-    def flat(self):
-        """An iterator over causes and effects (one ``MICE`` per direction
-        per concept), for callers that want to operate at the MICE level
-        rather than the concept level.
-        """
-        return concat([concept.cause, concept.effect] for concept in self)
-
-    def sum_phi(self):
-        if self._sum_phi is None:
-            self._sum_phi = sum(self.phis)
-        return self._sum_phi
-
-    @property
-    def phis(self):
-        """The |small_phi| values of each concept."""
-        for concept in self:
-            yield concept.phi
-
-    @property
-    def mechanisms(self):
-        """The mechanism of each concept."""
-        for concept in self:
-            yield concept.mechanism
-
-    def _purviews(self, direction):
-        for concept in self:
-            yield concept.purview(direction)
-
-    def purviews(self, direction):
-        """Return the purview of each concept in the given direction."""
-        if isinstance(direction, Iterable):
-            for _direction in direction:
-                yield from self._purviews(_direction)
-        else:
-            yield from self._purviews(direction)
-
-    @property
-    def labeled_mechanisms(self):
-        """The labeled mechanism of each concept."""
-        # Get node_labels from the first concept if available
-        if (
-            self.concepts
-            and hasattr(self.concepts[0], "node_labels")
-            and self.concepts[0].node_labels is not None
-        ):
-            label = self.concepts[0].node_labels.indices2labels
-            return tuple(list(label(mechanism)) for mechanism in self.mechanisms)
-        # Fallback to numeric indices as strings
-        return tuple(list(map(str, mechanism)) for mechanism in self.mechanisms)
-
-    def purview_inclusion_of_intersection(self, min_order, max_order):
-        return _purview_inclusion(
-            "purview_intersection",
-            distinctions=self,
-            min_order=min_order,
-            max_order=max_order,
+            return False
+        return (
+            self.sia == other.sia
+            and self.distinctions == other.distinctions
+            and self.relations == other.relations
         )
 
-    def _purview_inclusion_of_union(self, min_order, max_order):
-        return _purview_inclusion(
-            "purview_union", distinctions=self, min_order=min_order, max_order=max_order
+    def _repr_columns(self) -> list[tuple[str, Any]]:
+        # Relations may not have __len__ in base class — use num_relations()
+        num_relations = (
+            self.relations.num_relations()
+            if hasattr(self.relations, "num_relations")
+            else 0
         )
+        return [
+            ("Φ", self.big_phi),
+            ("#(distinctions)", len(self.distinctions)),
+            ("Σ φ_d", self.sum_phi_distinctions),
+            ("#(relations)", num_relations),
+            ("Σ φ_r", self.sum_phi_relations),
+        ]
 
-    def purview_inclusion(self, max_order=None):
-        """Return a mapping:
-
-        {order: {frozenset[Unit]: {distinctions whose cause/effect purview
-                                   union includes those Units}}}
-        """
-        if max_order is None or max_order not in self._purview_inclusion_by_order:
-            self._purview_inclusion_by_order.update(
-                # NOTE: We use the union of the cause/effect purviews
-                self._purview_inclusion_of_union(
-                    min_order=max(self._purview_inclusion_by_order, default=0) + 1,
-                    max_order=max_order,
-                )
-            )
-        max_order = fallback(max_order, float("inf"))
-        for order, mapping in self._purview_inclusion_by_order.items():
-            if order <= max_order:
-                yield from mapping.items()
-
-    def resolve_congruence(self, system_state: SystemStateSpecification):
-        """Filter out incongruent distinctions."""
-        return type(self)(
-            filter(
-                lambda d: d is not None,
-                (distinction.resolve_congruence(system_state) for distinction in self),
-            ),
-            resolved_congruence=True,
-        )
-
-    def mechanism_multiplicities(self):
-        return _find_multiplicities(_get_mechanism, self)
-
-    def state_multiplicities(self):
-        return _find_multiplicities(_get_state, self)
+    def __repr__(self) -> str:
+        body = "\n".join(fmt.align_columns(self._repr_columns()))
+        body = fmt.header(self.__class__.__name__, body, under_char=fmt.HEADER_BAR_1)
+        body += "\n" + str(self.sia)
+        return fmt.box(fmt.center(body))
 
     @property
-    def resolved_congruence(self):
-        return self._resolved_congruence
+    def sum_phi_relations(self):
+        return self.relations.sum_phi()
 
+    @property
+    def sum_phi_distinctions(self):
+        return self.distinctions.sum_phi()
 
-def _null_ces(system=None):  # noqa: ARG001 - system retained for backward-compatible signature
-    """Return an empty CES."""
-    return CauseEffectStructure(())
+    @property
+    def big_phi(self):
+        return self.sum_phi_distinctions + self.sum_phi_relations
+
+    def to_json(self) -> dict[str, Any]:
+        return {
+            "sia": self.sia,
+            "distinctions": self.distinctions,
+            "relations": self.relations,
+        }

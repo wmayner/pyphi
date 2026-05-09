@@ -532,7 +532,7 @@ def fmt_partition(partition: object) -> str:
 def fmt_phi_structure(
     ps: object, title: str | None = "Phi-structure", system: bool = True
 ) -> str:
-    """Format a PhiStructure."""
+    """Format a CauseEffectStructure."""
     distinctions = len(ps.distinctions)  # type: ignore[attr-defined]
 
     relations: Any
@@ -574,7 +574,7 @@ def fmt_partitioned_phi_structure(
     title: str = "Partitioned phi-structure",
     system: bool = True,
 ) -> str:
-    """Format a PartitionedPhiStructure."""
+    """Format a PartitionedCauseEffectStructure."""
     if isinstance(ps.partition, (NullCut, CompleteSystemPartition)):  # type: ignore[attr-defined]
         cut = str(ps.partition)  # type: ignore[attr-defined]
     else:
@@ -594,7 +594,7 @@ def fmt_partitioned_phi_structure(
 
 
 def fmt_ces(ces: object, title: str | None = None) -> str:
-    """Format a |CauseEffectStructure|."""
+    """Format a |Distinctions|."""
     if title is None:
         title = ces.__class__.__name__
     if not ces:

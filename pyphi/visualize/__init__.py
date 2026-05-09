@@ -14,13 +14,13 @@ except ImportError as exc:
 
 from . import ising
 from . import phi_structure
+from .ces import highlight_phi_fold
+from .ces import plot_phi_structure
 from .connectivity import plot_graph
 from .connectivity import plot_system
 from .distribution import plot_distribution
 from .distribution import plot_repertoires
 from .dynamics import plot_dynamics
-from .phi_structure import highlight_phi_fold
-from .phi_structure import plot_phi_structure
 
 __all__ = [
     "highlight_phi_fold",

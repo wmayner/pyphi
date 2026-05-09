@@ -785,7 +785,7 @@ def causal_nexus(
 
 # TODO: move this to __str__
 def nice_true_ces(tc):
-    """Format a true |CauseEffectStructure|."""
+    """Format a true |Distinctions|."""
     cause_list = []
     next_list = []
     cause = "<--"
@@ -871,7 +871,7 @@ def true_ces(system, previous_state, next_state):
     """Set of all sets of elements that have true causes and true effects.
 
     .. note::
-        Since the true |CauseEffectStructure| is always about the full system,
+        Since the true |Distinctions| is always about the full system,
         the background conditions don't matter and the system should be
         conditioned on the current state.
     """

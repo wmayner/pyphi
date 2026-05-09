@@ -32,8 +32,8 @@ from pyphi.conf import config
 from pyphi.conf import fallback
 from pyphi.core import repertoire_algebra as _ra
 from pyphi.direction import Direction
-from pyphi.models import CauseEffectStructure
 from pyphi.models import Concept
+from pyphi.models import Distinctions
 from pyphi.models import MaximallyIrreducibleCause
 from pyphi.models import MaximallyIrreducibleEffect
 from pyphi.models import _null_ria
@@ -323,7 +323,7 @@ def distinction(cs: System, mechanism: tuple[int, ...]) -> Any:
 
 
 def all_distinctions(cs: System, **kwargs: Any) -> Any:  # noqa: ARG001
-    """Iterate non-empty mechanisms and return the resulting CauseEffectStructure."""
+    """Iterate non-empty mechanisms and return the resulting Distinctions."""
     mechanisms: Any = _utils.powerset(cs.node_indices, nonempty=True)
     total = 2 ** len(cs.node_indices) - 1
 
@@ -333,7 +333,7 @@ def all_distinctions(cs: System, **kwargs: Any) -> Any:  # noqa: ARG001
         mechanisms = tqdm(mechanisms, total=total)
 
     distinctions = filter(None, (distinction(cs, mechanism) for mechanism in mechanisms))
-    return CauseEffectStructure(distinctions)
+    return Distinctions(distinctions)
 
 
 # ---- system irreducibility ----

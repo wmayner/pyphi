@@ -180,7 +180,7 @@ def normalization_factor(partition: object) -> int | float | None:
 class SystemStateSpecification(ToDictMixin, ToPandasMixin):
     """A pair of cause/effect ``StateSpecification`` instances.
 
-    Used at the system level (IIT 4.0 ``SIA`` and ``PhiStructure``) to
+    Used at the system level (IIT 4.0 ``SIA`` and ``CauseEffectStructure``) to
     bundle the maximally-specifying cause and effect states.
     """
 
