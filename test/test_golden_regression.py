@@ -45,8 +45,16 @@ RTOL = 1e-12
 ATOL = 1e-12
 
 
+def _golden_params() -> list[Any]:
+    """Build parametrize entries, attaching the ``slow`` marker per fixture."""
+    return [
+        pytest.param(f, marks=[pytest.mark.slow]) if f.slow else pytest.param(f)
+        for f in ALL_FIXTURES
+    ]
+
+
 @pytest.mark.golden
-@pytest.mark.parametrize("fixture", ALL_FIXTURES, ids=lambda f: f.name)
+@pytest.mark.parametrize("fixture", _golden_params(), ids=lambda f: f.name)
 def test_golden_regression(
     fixture: GoldenFixture, request: pytest.FixtureRequest
 ) -> None:

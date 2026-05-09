@@ -59,6 +59,17 @@ class GoldenFixture:
     skip_layers: frozenset[str] = field(default_factory=frozenset)
     """Layers to skip in compute (e.g., ``{"phi_structure"}`` for IIT 3.0)."""
 
+    slow: bool = False
+    """If true, parametrize attaches ``pytest.mark.slow`` so the existing
+    root-conftest ``--slow`` opt-in flag gates this fixture.
+
+    Slow fixtures are typically the IIT 4.0 (2026) cap-formalism variants
+    and large-substrate cases that dominate full-suite wall time. The fast
+    tier covers IIT 3.0 + IIT 4.0 (2023) on small substrates and runs in
+    well under a minute, so iterative refactors don't pay the slow tier's
+    cost. Run ``pytest --slow`` before merging or regenerating goldens.
+    """
+
     # ============== Compute ==============
 
     def config_context(self) -> AbstractContextManager:

@@ -227,6 +227,7 @@ def _make_fixtures() -> list[GoldenFixture]:
             config_overrides=IIT_4_2023_CONFIG,
             substrate_factory=_logistic_3node_k8,
             state=(0, 0, 0),
+            slow=True,
         )
     )
     fixtures.append(
@@ -241,6 +242,7 @@ def _make_fixtures() -> list[GoldenFixture]:
             config_overrides=IIT_4_2026_CONFIG,
             substrate_factory=_logistic_3node_k8,
             state=(0, 0, 0),
+            slow=True,
         )
     )
 
@@ -268,6 +270,7 @@ def _make_fixtures() -> list[GoldenFixture]:
                 config_overrides=IIT_4_2026_CONFIG,
                 substrate_factory=factory,  # type: ignore[arg-type]
                 state=state,
+                slow=True,
             )
         )
 

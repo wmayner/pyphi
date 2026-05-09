@@ -72,6 +72,9 @@ def pytest_configure(config):
     Markers:
     - golden: Golden reference test comparing full structure against JSON fixture
     - robust: Robust component-level test with intermediate checks
+    - slow: Tier-2 test (skipped by default; opt in with the root conftest's
+      ``--slow`` flag). Used by the golden suite to gate IIT 4.0 (2026) and
+      large-substrate fixtures.
     """
     config.addinivalue_line(
         "markers",
