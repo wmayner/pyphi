@@ -250,16 +250,20 @@ class MapReduce:
         self.result = None
 
     def _resolve_backend(self, backend: str) -> str:
-        """Resolve 'auto' to actual backend."""
-        if backend == "auto":
-            # For now, always use local backend
-            # Future: check for Dask cluster
-            return "local"
-        if backend not in ("local",):
+        """Validate ``backend`` and normalize ``"auto"`` to ``"local"``.
+
+        ``MapReduce`` always dispatches through the local-process pool
+        (``LocalMapReduce``); explicit ``"thread"`` / ``"dask"`` selection is
+        done through :func:`pyphi.parallel.scheduler.default_scheduler`. This
+        method exists so a misspelled backend name fails at construction
+        rather than later inside the scheduler.
+        """
+        valid = {"auto", "local", "process", "thread", "dask"}
+        if backend not in valid:
             raise ValueError(
-                f"Unknown backend: {backend}. Available backends: 'local', 'auto'"
+                f"Unknown backend: {backend}. Available backends: {sorted(valid)}"
             )
-        return backend
+        return "local" if backend in {"auto", "local", "process"} else backend
 
     def _repr_attrs(self) -> list[str]:
         attrs = [

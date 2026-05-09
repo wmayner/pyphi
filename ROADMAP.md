@@ -1038,6 +1038,22 @@ real user demand for SLURM/PBS/LSF/SGE/HTCondor cluster runs. The
 Scheduler Protocol shape is the contract that unblocks them; nothing else
 in the 2.0 roadmap depends on cluster backends.
 
+**Status (done, 2026-05-09):** Landed on `feature/p11-parallelization-redesign`
+across nine phase commits. Spec at
+`docs/superpowers/specs/2026-05-09-p11-parallelization-design.md`; plan at
+`docs/superpowers/plans/2026-05-09-p11-parallelization.md`. Notable
+deliverables: `Scheduler` Protocol + three concrete schedulers (Process/Thread
+implemented, Dask stub); per-call `ConfigSnapshot` propagation via closure
+with worker-side dedup; `_GlobalConfig.install_snapshot()` for durable
+snapshot application; cost-sampling chunking in `parallel/sampling.py`
+replacing the dead-code `chunking.py`; frozen-formalism dataclass conversion
+absorbing the deferred P10 Phase 4 follow-through; re-enabled parallel tests
+in CI. **Deferred / open:** the P9 loky/cloudpickle `BrokenProcessPool`
+intermittent (~50% rate) on `basic_iit3_emd` / `xor_iit3_emd` goldens —
+test_golden_regression skips on detection rather than failing CI; root-cause
+investigation queued as a separate post-2.0 item. No-GIL CI matrix (`PYTHON_GIL=0`)
+still gated on P6b. No-GIL safety audit of `DictCache` likewise gated on P6b.
+
 ### Phase F — Features and new algorithms
 
 **P12. Non-binary (multi-valued) unit support**
