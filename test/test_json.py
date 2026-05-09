@@ -5,12 +5,12 @@ import numpy as np
 import pytest
 
 from pyphi import Direction
-from pyphi import compute
 from pyphi import exceptions
 from pyphi import jsonify
 from pyphi import labels
 from pyphi import models
 from pyphi import network
+from pyphi.formalism import iit3
 from pyphi.formalism import iit4 as new_big_phi
 
 
@@ -59,8 +59,8 @@ def test_json_deserialization(s, transition):
         ),
         # s.concept((1, 2)),
         # s.concept((1,)),
-        compute.subsystem.ces(s),
-        # compute.subsystem.sia(s),
+        iit3.ces(s),
+        # iit3.sia(s),
         s.sia(),
         new_big_phi.phi_structure(s),
         transition,

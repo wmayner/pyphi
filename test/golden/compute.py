@@ -172,7 +172,7 @@ def _compute_sia(subsystem: Subsystem, stash: Any, iit_version: float) -> dict[s
     Dispatches on IIT version because ``Subsystem.sia()`` is hardcoded to call
     ``new_big_phi.sia()`` regardless of ``config.IIT_VERSION``
     (``pyphi/subsystem.py:1391``). The genuine IIT 3.0 SIA path is reachable
-    only via ``pyphi.compute.subsystem.sia(s)``. Without this dispatch, IIT 3.0
+    only via ``pyphi.formalism.iit3.sia(s)``. Without this dispatch, IIT 3.0
     fixtures would silently test the IIT 4.0 SIA framework with EMD as the
     metric — not the actual IIT 3.0 SIA algorithm. P4 (formalism split) is
     expected to make the entry-point dispatch consistent; until then we route
@@ -180,9 +180,9 @@ def _compute_sia(subsystem: Subsystem, stash: Any, iit_version: float) -> dict[s
     """
     try:
         if iit_version == 3.0:
-            from pyphi import compute as _compute
+            from pyphi.formalism import iit3 as _iit3
 
-            sia = _compute.subsystem.sia(subsystem)
+            sia = _iit3.sia(subsystem)
         else:
             sia = subsystem.sia()
     except Exception as e:

@@ -1,11 +1,8 @@
 # pyright: strict
 """Concrete IIT 3.0 formalism class.
 
-Delegates to the legacy :mod:`pyphi.compute.subsystem` SIA path
-(distribution-distance-based, bipartition-only). The implementation files
-have not moved out of ``compute/subsystem.py`` in this commit; the
-formalism class is the new owner of the dispatch boundary, and a future
-cleanup can relocate the implementation if desired.
+Delegates to the IIT 3.0 SIA algorithms in :mod:`pyphi.formalism.iit3`
+(distribution-distance-based, bipartition-only).
 """
 
 from __future__ import annotations
@@ -157,11 +154,11 @@ class IIT3Formalism:
         )
 
     def evaluate_system(self, subsystem: Any, **kwargs: Any) -> Any:
-        """Delegate to :func:`pyphi.compute.subsystem.sia` (the IIT 3.0 path)."""
+        """Delegate to the IIT 3.0 ``sia`` in :mod:`pyphi.formalism.iit3`."""
         check_metric_compatible(self, config.formalism.repertoire_distance)
-        from pyphi import compute
+        from pyphi.formalism.iit3 import sia as _sia
 
-        return compute.subsystem.sia(subsystem, **kwargs)
+        return _sia(subsystem, **kwargs)
 
     def build_phi_structure(self, subsystem: Any, **kwargs: Any) -> Any:
         """IIT 3.0 has no Φ-structure; raises ``NotImplementedError``.

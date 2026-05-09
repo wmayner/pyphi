@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 
 from pyphi import Direction
-from pyphi import compute
 from pyphi import config
+from pyphi.formalism import iit3
 from pyphi.models import KCut
 from pyphi.models import KPartition
 from pyphi.models import Part
@@ -93,10 +93,10 @@ def test_all_cut_mechanisms(kcut_cause):
 
 @config.override(partition_type="TRI")
 def test_concept_style_cuts():
-    assert list(compute.subsystem.concept_cuts(Direction.CAUSE, (0,))) == [
+    assert list(iit3.concept_cuts(Direction.CAUSE, (0,))) == [
         KCut(Direction.CAUSE, KPartition(Part((), ()), Part((), (0,)), Part((0,), ())))
     ]
-    assert list(compute.subsystem.concept_cuts(Direction.EFFECT, (0,))) == [
+    assert list(iit3.concept_cuts(Direction.EFFECT, (0,))) == [
         KCut(Direction.EFFECT, KPartition(Part((), ()), Part((), (0,)), Part((0,), ())))
     ]
 
@@ -116,20 +116,20 @@ def test_kcut_equality(kcut_cause, kcut_effect):
 
 def test_system_accessors(s):
     cut_cause = KCut(Direction.CAUSE, KPartition(Part((0, 2), (0, 1)), Part((1,), (2,))))
-    cs_cause = compute.subsystem.ConceptStyleSystem(s, Direction.CAUSE, cut_cause)
+    cs_cause = iit3.ConceptStyleSystem(s, Direction.CAUSE, cut_cause)
     assert cs_cause.cause_system.cut == cut_cause
     assert not cs_cause.effect_system.is_cut
 
     cut_effect = KCut(
         Direction.EFFECT, KPartition(Part((0, 2), (0, 1)), Part((1,), (2,)))
     )
-    cs_effect = compute.subsystem.ConceptStyleSystem(s, Direction.EFFECT, cut_effect)
+    cs_effect = iit3.ConceptStyleSystem(s, Direction.EFFECT, cut_effect)
     assert not cs_effect.cause_system.is_cut
     assert cs_effect.effect_system.cut == cut_effect
 
 
 def sia_cs(phi=1.0, subsystem=None):
-    return compute.subsystem.SystemIrreducibilityAnalysisConceptStyle(
+    return iit3.SystemIrreducibilityAnalysisConceptStyle(
         sia_cause=sia(phi=phi, subsystem=subsystem),
         sia_effect=sia(phi=phi, subsystem=subsystem),
     )

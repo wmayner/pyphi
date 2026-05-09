@@ -22,7 +22,8 @@ from itertools import chain
 
 import numpy as np
 
-from . import compute
+from pyphi.formalism import iit3 as _iit3
+
 from . import conf
 from . import connectivity
 from . import exceptions
@@ -918,7 +919,7 @@ def true_events(
     elif indices:
         nodes = indices
     else:
-        major_complex = compute.network.major_complex(network, current_state)
+        major_complex = _iit3.major_complex(network, current_state)
         nodes = major_complex.subsystem.node_indices  # pyright: ignore[reportOptionalMemberAccess]
 
     return events(network, previous_state, current_state, next_state, nodes)
@@ -949,7 +950,7 @@ def extrinsic_events(
     elif indices:
         mc_nodes = indices
     else:
-        major_complex = compute.network.major_complex(network, current_state)
+        major_complex = _iit3.major_complex(network, current_state)
         mc_nodes = major_complex.subsystem.node_indices  # pyright: ignore[reportOptionalMemberAccess]
 
     mechanisms = list(utils.powerset(mc_nodes, nonempty=True))

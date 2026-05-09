@@ -3,9 +3,9 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 
-from pyphi import compute
 from pyphi import config
 from pyphi import models
+from pyphi.formalism import iit3
 from pyphi.metrics.ces import ces_distance
 from pyphi.metrics.ces import emd_ground_distance
 
@@ -26,7 +26,7 @@ def test_emd_ground_distance_must_be_symmetric():
 @pytest.mark.outdated
 def test_ces_distances(s):
     with config.override(formalism="IIT_3_0", repertoire_distance="EMD"):
-        sia = compute.subsystem.sia(s)
+        sia = iit3.sia(s)
 
     with config.override(ces_distance="EMD"):
         assert ces_distance(sia.ces, sia.partitioned_ces) == 2.3125
@@ -42,13 +42,13 @@ def test_sia_uses_ces_distances(s):
     with config.override(
         formalism="IIT_3_0", repertoire_distance="EMD", ces_distance="EMD"
     ):
-        sia = compute.subsystem.sia(s)
+        sia = iit3.sia(s)
         assert sia.phi == 2.3125
 
     with config.override(
         formalism="IIT_3_0", repertoire_distance="EMD", ces_distance="SUM_SMALL_PHI"
     ):
-        sia = compute.subsystem.sia(s)
+        sia = iit3.sia(s)
         assert sia.phi == 1.083333
 
 

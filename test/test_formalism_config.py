@@ -34,11 +34,15 @@ class TestPhiFormalismHasConfig:
             instance.config.repertoire_distance == config.formalism.repertoire_distance
         )
 
-    def test_formalism_config_view_updates_on_global_change(self):
+    def test_formalism_config_is_frozen_at_construction(self):
+        """Phase 1 of P11 made formalisms frozen dataclasses — the ``config``
+        field is captured at instance construction, not a live view over the
+        global. This is what lets workers receive the formalism with its
+        config attached via cloudpickle (no global-state pickling)."""
         formalism = FORMALISM_REGISTRY["IIT_4_0_2023"]
         instance = formalism() if isinstance(formalism, type) else formalism
-        original = instance.config.repertoire_distance
+        captured = instance.config.repertoire_distance
         with config.override(repertoire_distance="EMD"):
-            # The view is live; reads reflect the override.
-            assert instance.config.repertoire_distance == "EMD"
-        assert instance.config.repertoire_distance == original
+            # Frozen field; the captured value does NOT track global changes.
+            assert instance.config.repertoire_distance == captured
+        assert instance.config.repertoire_distance == captured

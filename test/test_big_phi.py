@@ -31,8 +31,8 @@ algorithmic behavior remains unchanged.
 
 import pytest
 
-from pyphi import compute
 from pyphi import config
+from pyphi.formalism import iit3
 from pyphi.formalism import iit4 as new_big_phi
 
 from .conftest import skip_if_no_pyemd
@@ -62,7 +62,7 @@ def test_clear_subsystem_caches_after_computing_sia_config_option(s):
 
 
 def test_conceptual_info(s):
-    assert compute.subsystem.conceptual_info(s) == 1.0
+    assert iit3.conceptual_info(s) == 1.0
 
 
 def test_sia_empty_subsystem(s_empty):
@@ -250,7 +250,7 @@ def test_sia_macro_parallel(macro_s, macro_s_expected_sia):
             SystemPartition(Direction.EFFECT, (1, 3, 4), (2,)),
             SystemPartition(Direction.EFFECT, (2, 3, 4), (1,)),
         ]
-        assert compute.subsystem.sia_bipartitions((1, 2, 3, 4)) == answer
+        assert iit3.sia_bipartitions((1, 2, 3, 4)) == answer
 
     with config.override(CUT_ONE_APPROXIMATION=True):
         answer = [
@@ -263,7 +263,7 @@ def test_sia_macro_parallel(macro_s, macro_s_expected_sia):
             SystemPartition(Direction.EFFECT, (1, 2, 4), (3,)),
             SystemPartition(Direction.EFFECT, (1, 2, 3), (4,)),
         ]
-        assert compute.subsystem.sia_bipartitions((1, 2, 3, 4)) == answer
+        assert iit3.sia_bipartitions((1, 2, 3, 4)) == answer
 """
 
 
@@ -272,17 +272,17 @@ def test_sia_macro_parallel(macro_s, macro_s_expected_sia):
 @config.override(system_partition_type="DIRECTED_BI")
 def test_system_cut_styles(s):
     with config.override(system_cuts="3.0_STYLE"):
-        assert compute.subsystem.phi(s) == 0.5  # 2.3125
+        assert iit3.phi(s) == 0.5  # 2.3125
 
     with config.override(system_cuts="CONCEPT_STYLE"):
-        assert compute.subsystem.phi(s) == 0.6875
+        assert iit3.phi(s) == 0.6875
 
 
 # Not relevant anymore because ces concepts do not store subsystem
 """@pytest.mark.parametrize("parallel", [False, True])
 def test_ces_concepts_share_the_same_subsystem(parallel, s):
     with config.override(parallel=parallel):
-        ces = compute.subsystem.ces(s)
+        ces = iit3.ces(s)
         for concept in ces:
             assert concept.subsystem is ces.subsystem
 """
@@ -291,11 +291,11 @@ def test_ces_concepts_share_the_same_subsystem(parallel, s):
 @pytest.mark.slow
 def test_parallel_and_sequential_ces_are_equal(s, micro_s, macro_s):
     with config.override(parallel=False):
-        c = compute.subsystem.ces(s)
-        c_micro = compute.subsystem.ces(micro_s)
-        c_macro = compute.subsystem.ces(macro_s)
+        c = iit3.ces(s)
+        c_micro = iit3.ces(micro_s)
+        c_macro = iit3.ces(macro_s)
 
     with config.override(parallel=True):
-        assert set(c) == set(compute.subsystem.ces(s))
-        assert set(c_micro) == set(compute.subsystem.ces(micro_s))
-        assert set(c_macro) == set(compute.subsystem.ces(macro_s))
+        assert set(c) == set(iit3.ces(s))
+        assert set(c_micro) == set(iit3.ces(micro_s))
+        assert set(c_macro) == set(iit3.ces(macro_s))

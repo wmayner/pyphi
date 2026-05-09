@@ -6,11 +6,11 @@ import numpy as np  # noqa: E402
 
 from pyphi import ExplicitTPM  # noqa: E402
 from pyphi import Network  # noqa: E402
-from pyphi import compute  # noqa: E402
 from pyphi import config  # noqa: E402
 from pyphi import macro  # noqa: E402
 from pyphi import utils  # noqa: E402
 from pyphi.direction import Direction  # noqa: E402
+from pyphi.formalism import iit3  # noqa: E402
 from pyphi.models import SystemPartition  # noqa: E402
 
 
@@ -135,7 +135,7 @@ def test_basic_nor_or():
     )
 
     with config.override(CUT_ONE_APPROXIMATION=True):
-        sia = compute.subsystem.sia(sub)
+        sia = iit3.sia(sub)
 
     assert sia.phi == 1.958332
     assert sia.cut == SystemPartition(
@@ -203,7 +203,7 @@ def test_xor_propogation_delay():
         network, state, network.node_indices, blackbox=blackbox, time_scale=time
     )
 
-    sia = compute.subsystem.sia(subsys)
+    sia = iit3.sia(subsys)
     assert sia.phi == 1.874999
     assert sia.cut == SystemPartition(Direction.EFFECT, (0,), (1, 2, 3, 4, 5, 6, 7, 8))
 
@@ -261,11 +261,11 @@ def test_soup():
 
         # State all OFF
         state = (0, 0, 0, 0, 0, 0)
-        assert compute.network.major_complex(network, state).phi == 0.125
+        assert iit3.major_complex(network, state).phi == 0.125
 
         # With D ON (E must also be ON otherwise the state is unreachable)
         state = (0, 0, 0, 1, 1, 0)
-        assert compute.network.major_complex(network, state).phi == 0.215278
+        assert iit3.major_complex(network, state).phi == 0.215278
 
         # Once the connection from D to B is frozen (with D in the ON state), we
         # recover the degeneracy example
@@ -277,7 +277,7 @@ def test_soup():
         sub = macro.MacroSubsystem(
             network, state, (0, 1, 2, 3, 4, 5), blackbox=blackbox, time_scale=time
         )
-        assert compute.subsystem.phi(sub) == 0.638888
+        assert iit3.phi(sub) == 0.638888
 
         # When the connection from D to B is frozen (with D in the OFF state),
         # element B is inactivated and integration is compromised.
@@ -289,7 +289,7 @@ def test_soup():
         sub = macro.MacroSubsystem(
             network, state, (0, 1, 2, 3, 4, 5), blackbox=blackbox, time_scale=time
         )
-        assert compute.phi(sub) == 0
+        assert iit3.phi(sub) == 0
 
 
 @pytest.mark.slow
@@ -333,7 +333,7 @@ def test_coarsegrain_spatial_degenerate():
 
     net = Network(tpm, cm)
 
-    mc = compute.network.major_complex(net, state)
+    mc = iit3.major_complex(net, state)
     assert mc.phi == 0.194445
 
     partition = ((0, 1), (2, 3), (4, 5))
@@ -342,7 +342,7 @@ def test_coarsegrain_spatial_degenerate():
 
     sub = macro.MacroSubsystem(net, state, range(net.size), coarse_grain=coarse)
 
-    sia = compute.subsystem.sia(sub)
+    sia = iit3.sia(sub)
     assert sia.phi == 0.834183
 
 
@@ -367,13 +367,13 @@ def test_degenerate(degenerate):
     ])
     # fmt: on
     assert np.array_equal(degenerate.cm, answer)
-    sia = compute.subsystem.sia(degenerate)
+    sia = iit3.sia(degenerate)
     assert sia.phi == 0.638888
 
 
 def test_basic_propagation_delay(s, propagation_delay):
     # TODO
-    # sia = compute.subsystem.sia(propagation_delay)
+    # sia = iit3.sia(propagation_delay)
     # assert sia.phi == 2.125
     # assert sia.cut == SystemPartition(Direction.EFFECT, (0, 1, 2, 3, 4, 5, 6), (7,))
 

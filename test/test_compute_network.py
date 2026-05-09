@@ -1,17 +1,18 @@
 import pytest
 
 from pyphi import Subsystem
-from pyphi import compute
 from pyphi import config
 from pyphi import examples
 from pyphi.core import CandidateSystem
+from pyphi.formalism import iit3
 from pyphi.formalism.iit4 import phi_structure
+from pyphi.network import possible_complexes
 
 from .conftest import IIT_3_CONFIG
 
 
 def test_possible_complexes(s):
-    assert list(compute.network.possible_complexes(s.network, s.state)) == [
+    assert list(possible_complexes(s.network, s.state)) == [
         CandidateSystem.from_network(s.network, s.state, (0, 1, 2)),
         CandidateSystem.from_network(s.network, s.state, (1, 2)),
         CandidateSystem.from_network(s.network, s.state, (0, 2)),
@@ -47,7 +48,7 @@ class TestComplexesIIT30:
         ``s`` fixture has exactly three irreducible complexes. Verify the
         full set: phi values, node indices, and ordering.
         """
-        complexes = list(compute.network.complexes(s.network, s.state))
+        complexes = list(iit3.complexes(s.network, s.state))
         assert len(complexes) == 3
         # Verify each complex's phi and node_indices
         nodes_and_phis = [(c.subsystem.node_indices, float(c.phi)) for c in complexes]
@@ -72,7 +73,7 @@ class TestComplexesIIT30:
         three of which are irreducible (matching
         :meth:`test_complexes_standard`).
         """
-        complexes = list(compute.network.all_complexes(s.network, s.state))
+        complexes = list(iit3.all_complexes(s.network, s.state))
         assert len(complexes) == 5
         phis = sorted(float(c.phi) for c in complexes)
         assert phis == pytest.approx([0.0, 0.0, 0.5, 1.0, 2.0], rel=1e-6)
@@ -80,7 +81,7 @@ class TestComplexesIIT30:
 
     def test_major_complex(self, s):
         """Test major_complex computation for standard network (IIT 3.0)."""
-        major = compute.network.major_complex(s.network, s.state)
+        major = iit3.major_complex(s.network, s.state)
         assert float(major.phi) == pytest.approx(2.0, rel=1e-6)
         assert major.subsystem.node_indices == (1, 2)
 
@@ -99,9 +100,9 @@ class TestComplexesIIT30:
         investigation.
         """
         with config.override(parallel=False, progress_bars=False):
-            serial = list(compute.network.all_complexes(s.network, s.state))
+            serial = list(iit3.all_complexes(s.network, s.state))
         with config.override(parallel=True, progress_bars=False):
-            parallel = list(compute.network.all_complexes(s.network, s.state))
+            parallel = list(iit3.all_complexes(s.network, s.state))
         assert sorted(serial, key=lambda x: x.phi) == sorted(
             parallel, key=lambda x: x.phi
         )

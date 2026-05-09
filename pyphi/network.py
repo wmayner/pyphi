@@ -269,3 +269,56 @@ def from_json(filename: str) -> Network:
     with open(filename, encoding="utf-8") as f:
         result: Network = jsonify.load(f)
         return result
+
+
+# ============================================================================
+# Network-level subsystem iteration (formalism-agnostic)
+# ============================================================================
+#
+# These helpers walk the powerset of node subsets and yield Subsystem (alias
+# for CandidateSystem) instances. They don't depend on a specific formalism;
+# IIT 3.0's ``all_complexes`` and IIT 4.0's ``all_complexes`` both consume
+# them.
+
+
+def reachable_subsystems(
+    network: Network,
+    indices: tuple[int, ...],
+    state: tuple[int, ...],
+    **kwargs: Any,
+) -> Any:
+    """A generator over all subsystems in a valid state."""
+    import contextlib
+
+    from pyphi import exceptions
+    from pyphi.core import CandidateSystem as Subsystem
+
+    validate.is_network(network)
+
+    # Return subsystems largest to smallest to optimize parallel
+    # resource usage.
+    for subset in utils.powerset(indices, nonempty=True, reverse=True):
+        with contextlib.suppress(exceptions.StateUnreachableError):
+            yield Subsystem.from_network(network, state, subset, **kwargs)
+
+
+def subsystems(network: Network, state: tuple[int, ...], **kwargs: Any) -> Any:
+    """Return a generator of all **possible** subsystems of a network.
+
+    .. note::
+        Does not return subsystems that are in an impossible state (after
+        conditioning the subsystem TPM on the state of the other nodes).
+    """
+    return reachable_subsystems(network, network.node_indices, state, **kwargs)
+
+
+def possible_complexes(network: Network, state: tuple[int, ...], **kwargs: Any) -> Any:
+    """Return a generator of subsystems of a network that could be a complex.
+
+    The powerset of nodes that have at least one input and one output. Nodes
+    with no inputs or no outputs cannot be part of a main complex because
+    they have no causal link with the rest of the subsystem.
+    """
+    return reachable_subsystems(
+        network, network.causally_significant_nodes, state, **kwargs
+    )

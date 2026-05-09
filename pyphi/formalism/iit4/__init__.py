@@ -16,13 +16,11 @@ from enum import auto
 from enum import unique
 from typing import ClassVar
 
-from pyphi import compute
 from pyphi import conf
 from pyphi import connectivity
 from pyphi import metrics
 from pyphi import utils
 from pyphi import validate
-from pyphi.compute.network import reachable_subsystems
 from pyphi.conf import config
 from pyphi.conf import fallback
 from pyphi.conf.snapshot import ConfigSnapshot
@@ -30,6 +28,7 @@ from pyphi.core import CandidateSystem as Subsystem
 from pyphi.core import repertoire_algebra as repertoire
 from pyphi.data_structures import PyPhiFloat
 from pyphi.direction import Direction
+from pyphi.formalism import iit3
 from pyphi.labels import NodeLabels
 from pyphi.metrics.distribution import DistanceResult
 from pyphi.models import cmp
@@ -42,6 +41,7 @@ from pyphi.models.phi_structure import PhiStructure
 from pyphi.models.ria import RepertoireIrreducibilityAnalysis
 from pyphi.models.state_specification import StateSpecification
 from pyphi.models.state_specification import SystemStateSpecification
+from pyphi.network import reachable_subsystems
 from pyphi.parallel import MapReduce
 from pyphi.partition import system_partitions
 from pyphi.relations import ConcreteRelations
@@ -740,9 +740,10 @@ def phi_structure(
 
     # Compute distinctions if not provided
     if distinctions is None:
-        # P7: compute.ces still annotates legacy Subsystem; CandidateSystem
-        # exposes the same surface so this works at runtime.
-        distinctions = compute.ces(subsystem, **ces_kwargs)  # type: ignore[arg-type]
+        # CES building dispatches find_mice through the active formalism;
+        # the iit3 helper is reused because the outer mechanism x purview
+        # iteration is the same in both formalisms.
+        distinctions = iit3.ces(subsystem, **ces_kwargs)  # type: ignore[arg-type]
     # Filter out incongruent distinctions
     if sia.system_state is not None:
         distinctions = distinctions.resolve_congruence(sia.system_state)

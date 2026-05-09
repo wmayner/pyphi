@@ -1,11 +1,11 @@
 import pytest
 
 from pyphi import combinatorics
-from pyphi import compute
 from pyphi import config
 from pyphi import examples
 from pyphi import jsonify
 from pyphi import relations
+from pyphi.formalism import iit3
 from pyphi.formalism import iit4 as new_big_phi
 
 
@@ -49,7 +49,7 @@ def test_all_relations(case_name):
         answer_ces = jsonify.load(f)
     # Compute and check CES
     subsystem = getattr(examples, f"{case_name}_subsystem")()
-    ces = compute.ces(subsystem)
+    ces = iit3.ces(subsystem)
     assert ces == answer_ces
 
     with open(f"test/data/relations/relations_{case_name}.json") as f:
