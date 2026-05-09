@@ -10,9 +10,9 @@ import pytest
 from pyphi.conf import config
 from pyphi.conf._field_routing import FIELD_TO_LAYER
 from pyphi.conf._field_routing import ConfigurationError
+from pyphi.conf._global import _GlobalConfig
 from pyphi.conf.formalism import FormalismConfig
 from pyphi.conf.infrastructure import InfrastructureConfig
-from pyphi.conf.legacy_global import _GlobalConfig
 from pyphi.conf.numerics import NumericsConfig
 from pyphi.conf.snapshot import ConfigSnapshot
 

@@ -18,17 +18,14 @@ from __future__ import annotations
 import contextlib
 from pathlib import Path
 
-from pyphi._conf_legacy import Config
-from pyphi._conf_legacy import Option
-from pyphi._conf_legacy import PyphiConfig
 from pyphi.conf._callbacks import mark_loaded
 from pyphi.conf._field_routing import FIELD_TO_LAYER
 from pyphi.conf._field_routing import ConfigurationError
+from pyphi.conf._global import _GlobalConfig
 from pyphi.conf._helpers import fallback
 from pyphi.conf._helpers import parallel_kwargs
 from pyphi.conf.formalism import FormalismConfig
 from pyphi.conf.infrastructure import InfrastructureConfig
-from pyphi.conf.legacy_global import _GlobalConfig
 from pyphi.conf.numerics import NumericsConfig
 from pyphi.conf.snapshot import ConfigSnapshot
 
@@ -46,14 +43,11 @@ mark_loaded()
 __all__ = [
     "FIELD_TO_LAYER",
     "PYPHI_USER_CONFIG_PATH",
-    "Config",
     "ConfigSnapshot",
     "ConfigurationError",
     "FormalismConfig",
     "InfrastructureConfig",
     "NumericsConfig",
-    "Option",
-    "PyphiConfig",
     "config",
     "fallback",
     "parallel_kwargs",
