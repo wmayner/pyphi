@@ -1221,8 +1221,25 @@ public API surface.
   formalism lines. Kill `test_big_phi_robust.py` by merging into main test files
   with `robust` pytest marker.
 - Sphinx site rebuilt against new architecture. New "Architecture" guide explaining
-  the `CausalModel → CandidateSystem → PhiFormalism → PhiStructure` layering, with
+  the `Substrate → System → PhiFormalism → PhiStructure` layering, with
   direct citations to Albantakis et al. 2023 equations on every public method.
+- **Systematic docstring cleanup pass.** During the 2.0 refactor, many
+  docstrings accumulated migration-context phrasing — "roughly today's
+  :class:`pyphi.network.Network` minus the TPM", "The replacement for
+  :class:`pyphi.subsystem.Subsystem`. Immutable. Hashable.", "P7 stages: Task
+  3.1: skeleton...", "Delegates to the legacy ... future cleanup can relocate
+  the implementation if desired", etc. These read fine during the refactor
+  but become noise as the project evolves: references decay, planning
+  context becomes meaningless, and the docstring fails its primary job.
+  Sweep every `pyphi/**/*.py` file (and notebook) and rewrite each
+  docstring as if a fresh contributor encountered the file with no
+  migration history — describe what the thing IS, not what it WAS,
+  REPLACES, or HOW IT WAS BUILT. Project-stage markers (P-numbers,
+  "Phase A", task numbers) MUST NOT appear; cross-references to
+  legacy/replaced classes are removed unless the docstring is
+  explicitly a deprecation notice. This is highest-impact for
+  public-API classes (anything in `pyphi.__init__.py` or returned by
+  a public function) because they end up in the rendered docs site.
 - `__repr__` and `_repr_html_` on all frozen-dataclass results. Since they're
   dataclasses this is ~20 lines each.
 - Extend `ToPandasMixin` to `SystemIrreducibilityAnalysis` and `PhiStructure`.
