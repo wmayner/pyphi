@@ -1,6 +1,8 @@
-# models/concept.py
-"""Concept (distinction): the maximally irreducible cause and effect
-specified by a mechanism."""
+# models/distinction.py
+"""Distinction: the maximally irreducible cause and effect specified by a
+mechanism (Albantakis et al. 2023). The IIT 3.0 paper terminology calls
+the same object a *concept*; the alias :data:`Concept` below preserves
+that vocabulary for callers using the IIT 3.0 idiom."""
 
 from __future__ import annotations
 
@@ -19,7 +21,7 @@ from . import fmt
 from .pandas import ToDictFromExplicitAttrsMixin
 from .pandas import ToPandasMixin
 
-_concept_attributes = [
+_distinction_attributes = [
     "phi",
     "mechanism",
     "mechanism_state",
@@ -31,7 +33,7 @@ _concept_attributes = [
 
 # TODO: make mechanism a property
 # TODO: make phi a property
-class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
+class Distinction(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
     """The maximally irreducible cause and effect specified by a mechanism.
 
     These can be compared with the built-in Python comparison operators (``<``,
@@ -63,7 +65,7 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
         self.effect.parent = self
 
     def __repr__(self):
-        return fmt.make_repr(self, _concept_attributes)
+        return fmt.make_repr(self, _distinction_attributes)
 
     def __str__(self):
         return fmt.fmt_concept(self)
@@ -159,7 +161,7 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
     unorderable_unless_eq: ClassVar[list[str]] = []
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, Concept):
+        if not isinstance(other, Distinction):
             return NotImplemented
         return (
             self.phi == other.phi
@@ -231,10 +233,10 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
             and purview indices refer to, might be different.
         """
         return np.array_equal(
-            self.cause_repertoire,
+            self.cause_repertoire,  # pyright: ignore[reportArgumentType]
             other.cause_repertoire,  # type: ignore[arg-type]
         ) and np.array_equal(
-            self.effect_repertoire,
+            self.effect_repertoire,  # pyright: ignore[reportArgumentType]
             other.effect_repertoire,  # type: ignore[arg-type]
         )
 
@@ -248,7 +250,7 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
             and self.eq_repertoires(other)
         )
 
-    _dict_attrs = _concept_attributes
+    _dict_attrs = _distinction_attributes
 
     def to_json(self):
         """Return a JSON-serializable representation."""
@@ -275,3 +277,9 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
         assert self.effect is not None
         self.cause.parent = self
         self.effect.parent = self
+
+
+# IIT 3.0 paper terminology calls a distinction a "concept". The alias
+# preserves that vocabulary for callers using the IIT 3.0 idiom; the
+# runtime class is identical.
+Concept = Distinction

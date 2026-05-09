@@ -12,7 +12,9 @@ Attributes:
     CausalLink: Alias for :class:`pyphi.models.actual_causation.CausalLink`.
     CauseEffectStructure: Alias for
         :class:`pyphi.models.system.CauseEffectStructure`.
-    Concept: Alias for :class:`pyphi.models.mechanism.Concept`.
+    Concept: Alias for :class:`pyphi.models.distinction.Distinction`
+        — IIT 3.0 paper terminology for the same object.
+    Distinction: Alias for :class:`pyphi.models.distinction.Distinction`.
     DirectedAccount: Alias for
         :class:`pyphi.models.actual_causation.DirectedAccount`.
     MaximallyIrreducibleCause: Alias for
@@ -38,7 +40,6 @@ from .actual_causation import _null_ac_ria
 from .actual_causation import _null_ac_sia
 from .ces import CauseEffectStructure
 from .ces import _null_ces
-from .concept import Concept
 from .cuts import ActualCut
 from .cuts import Bipartition
 from .cuts import KCut
@@ -47,6 +48,8 @@ from .cuts import NullCut
 from .cuts import Part
 from .cuts import SystemPartition
 from .cuts import Tripartition
+from .distinction import Concept
+from .distinction import Distinction
 from .mice import MaximallyIrreducibleCause
 from .mice import MaximallyIrreducibleCauseOrEffect
 from .mice import MaximallyIrreducibleEffect
@@ -73,6 +76,7 @@ __all__ = [
     "CauseEffectStructure",
     "Concept",
     "DirectedAccount",
+    "Distinction",
     "DistinctionPhiNormalizationRegistry",
     "Event",
     "KCut",

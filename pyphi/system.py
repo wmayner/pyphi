@@ -440,17 +440,44 @@ class System:
 
     # ---- formalism queries ----
     #
-    # Most formalism-dependent operations (find_mip, find_mice, concept,
-    # distinction, all_distinctions, evaluate_partition) are NOT methods
-    # on System; they live as free functions in :mod:`pyphi.formalism`.
-    # ``sia()`` is exposed as a thin convenience method because it is the
-    # canonical entry point for system-level analysis.
+    # System-level entry points (``sia``, ``phi_structure``, ``ces``) and the
+    # mechanism-level queries used to build them (``find_mip``, ``find_mice``,
+    # ``distinction``, ``all_distinctions``, ``evaluate_partition``, …) are
+    # exposed as thin convenience methods that dispatch via the active
+    # formalism. The same operations live as free functions in
+    # :mod:`pyphi.formalism` for callers who prefer that grammar.
 
     def sia(self, **kwargs: Any) -> Any:
         """Return the system irreducibility analysis under the active formalism."""
         from pyphi.formalism import sia as _sia
 
         return _sia(self, **kwargs)
+
+    def phi_structure(self, **kwargs: Any) -> Any:
+        """Return the IIT 4.0 :class:`PhiStructure` for this system.
+
+        Defined under IIT 4.0 only; the IIT 3.0 analogue is :meth:`ces`.
+        """
+        from pyphi.formalism.iit4 import phi_structure as _phi_structure
+
+        return _phi_structure(self, **kwargs)
+
+    def ces(self, **kwargs: Any) -> Any:
+        """Return the cause-effect structure for this system.
+
+        Under IIT 3.0 this returns concepts; under IIT 4.0 this returns
+        distinctions. Both are :class:`CauseEffectStructure` instances.
+        """
+        from pyphi.conf import config as _config
+
+        formalism_name = _config.formalism.formalism
+        if formalism_name == "IIT_3_0":
+            from pyphi.formalism.iit3 import ces as _ces
+
+            return _ces(self, **kwargs)
+        from pyphi.formalism import all_distinctions as _all_distinctions
+
+        return _all_distinctions(self, **kwargs)
 
     def find_mip(
         self, direction: Any, mechanism: Any, purview: Any, **kwargs: Any
@@ -504,11 +531,6 @@ class System:
         from pyphi.formalism import phi_max as _phi_max
 
         return _phi_max(self, mechanism)
-
-    def concept(self, mechanism: Any, **kwargs: Any) -> Any:
-        from pyphi.formalism import concept as _concept
-
-        return _concept(self, mechanism, **kwargs)
 
     def distinction(self, mechanism: Any) -> Any:
         from pyphi.formalism import distinction as _distinction

@@ -1054,6 +1054,68 @@ test_golden_regression skips on detection rather than failing CI; root-cause
 investigation queued as a separate post-2.0 item. No-GIL CI matrix (`PYTHON_GIL=0`)
 still gated on P6b. No-GIL safety audit of `DictCache` likewise gated on P6b.
 
+**P11.5. `pyphi.compute` relocation — done (2026-05-09)**
+
+Folded `pyphi.compute.subsystem` into the IIT 3.0 formalism module
+(`pyphi.formalism.iit3`) and `pyphi.compute.network` into substrate-level
+helpers (`pyphi.network.systems`, `reachable_systems`, `possible_complexes`).
+The legacy `pyphi.compute` namespace is gone.
+
+**P11.6. Paper-aligned user-facing type rename — done (2026-05-09)**
+
+Renamed `pyphi.Network → pyphi.Substrate` and `pyphi.Subsystem →
+pyphi.System` to match IIT 4.0 paper terminology. The flat `Substrate`
+holds TPM + connectivity matrix + node labels (no separate Topology
+layer); `System` wraps a `Substrate` with state, node subset, and an
+optional cut. Config keys `SUBSYSTEM_*` renamed to `SYSTEM_*`. The
+package `pyphi.network_generator` became `pyphi.substrate_generator`.
+
+**P11.7. Paper-aligned model-class rename: ``CauseEffectStructure`` /
+``PhiStructure`` / ``Concept`` / ``Distinction``**
+
+The IIT 4.0 paper's terminology and PyPhi's class names diverge in two
+places. Both should be reconciled.
+
+*Concept vs distinction.* IIT 3.0 uses *concept*; IIT 4.0 (Albantakis
+et al. 2023) uses *distinction*. The user-facing canonical name in 2.0
+is `distinction`. The IIT 3.0 native idiom (``concept(s, m, purviews=...)``)
+remains accessible as `pyphi.formalism.iit3.concept` for IIT 3.0
+callers; the top-level `pyphi.formalism.distinction` does not carry
+the 3.0 ``purviews=`` kwargs. ``System.concept()`` is removed in
+favor of ``System.distinction()``. *Status: in progress (split commit
+on `feature/concept-distinction-rename`).*
+
+*Cause-effect structure vs Φ-structure (Albantakis 2023, p11).* The
+paper distinguishes two terms that PyPhi conflates:
+
+- *Cause-effect structure* — distinctions + relations of *any candidate
+  system* (reducible or not).
+- *Φ-structure* — the cause-effect structure of a *complex*
+  (a maximally irreducible substrate).
+
+Today PyPhi's ``CauseEffectStructure`` class holds *just distinctions*
+(no relations) — misnamed for IIT 4.0 — and ``PhiStructure`` holds
+distinctions + relations regardless of complex status — misnamed
+because Φ-structure carries the complex invariant.
+
+The rename:
+
+- ``CauseEffectStructure`` (current; just distinctions) →
+  ``Distinctions`` (or ``DistinctionSet``).
+- ``PhiStructure`` (current; distinctions + relations) →
+  ``CauseEffectStructure`` — paper-aligned for any candidate system.
+- ``System.phi_structure()`` method →
+  ``System.cause_effect_structure()``. Available on any system.
+- The term *Φ-structure* becomes a semantic / docstring term used in
+  SIA contexts to communicate the additional complex invariant
+  ("the cause-effect structure of a complex"), not a separate type.
+  Optionally: a thin ``PhiStructure(CauseEffectStructure)`` subclass
+  that SIA results use as a marker — only if it ends up load-bearing.
+
+This is queued as a follow-on commit after the concept→distinction
+rename lands. It touches model definitions, metrics, jsonify, golden
+fixtures, and the public surface; expect comparable scope to P11.6.
+
 ### Phase F — Features and new algorithms
 
 **P12. Non-binary (multi-valued) unit support**

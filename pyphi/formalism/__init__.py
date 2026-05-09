@@ -22,7 +22,6 @@ from .iit4.formalism import IIT4_2023Formalism
 from .iit4.formalism import IIT4_2026Formalism
 from .queries import all_distinctions
 from .queries import cause_mip
-from .queries import concept
 from .queries import distinction
 from .queries import effect_mip
 from .queries import evaluate_partition
@@ -56,7 +55,6 @@ __all__ = [
     "all_distinctions",
     "cause_mip",
     "check_metric_compatible",
-    "concept",
     "distinction",
     "effect_mip",
     "evaluate_partition",

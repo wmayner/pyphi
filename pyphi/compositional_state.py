@@ -8,7 +8,7 @@ from copy import deepcopy
 
 from .direction import Direction
 from .models.ces import CauseEffectStructure
-from .models.concept import Concept
+from .models.distinction import Distinction as Concept
 
 DIRECTIONS = [
     Direction.CAUSE,

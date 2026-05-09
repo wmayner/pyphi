@@ -50,6 +50,47 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
+def concept(
+    system: System,
+    mechanism: Mechanism,
+    purviews: Iterable[Purview] | None = None,
+    cause_purviews: Iterable[Purview] | None = None,
+    effect_purviews: Iterable[Purview] | None = None,
+    **kwargs: Any,
+) -> Concept:
+    """Return the IIT 3.0 concept specified by a mechanism.
+
+    Args:
+        system (System): The system the mechanism belongs to.
+        mechanism (tuple[int]): The mechanism for which to determine the
+            concept.
+
+    Keyword Args:
+        purviews (tuple[tuple[int]]): A list of purviews to consider.
+        cause_purviews (tuple[tuple[int]]): A list of cause purviews to
+            consider, overriding ``purviews``.
+        effect_purviews (tuple[tuple[int]]): A list of effect purviews to
+            consider, overriding ``purviews``.
+
+    Returns:
+        Concept: The concept of the given mechanism.
+    """
+    from pyphi.core import repertoire_algebra as _ra
+    from pyphi.formalism.queries import mic
+    from pyphi.formalism.queries import mie
+
+    if not mechanism:
+        return _ra.null_concept(system)
+
+    cause_purviews = cause_purviews if cause_purviews is not None else purviews
+    cause = mic(system, mechanism, purviews=cause_purviews, **kwargs)
+
+    effect_purviews = effect_purviews if effect_purviews is not None else purviews
+    effect = mie(system, mechanism, purviews=effect_purviews, **kwargs)
+
+    return Concept(mechanism=mechanism, cause=cause, effect=effect)
+
+
 def ces(
     system: System,
     mechanisms: Iterable[Mechanism] | None = None,
@@ -73,9 +114,11 @@ def ces(
     Keyword Args:
         mechanisms (tuple[tuple[int]]): Restrict possible mechanisms to those
             in this list.
-        purviews (tuple[tuple[int]]): Same as in |System.concept()|.
-        cause_purviews (tuple[tuple[int]]): Same as in |System.concept()|.
-        effect_purviews (tuple[tuple[int]]): Same as in |System.concept()|.
+        purviews (tuple[tuple[int]]): Same as in :func:`pyphi.formalism.iit3.concept`.
+        cause_purviews (tuple[tuple[int]]): Same as in
+            :func:`pyphi.formalism.iit3.concept`.
+        effect_purviews (tuple[tuple[int]]): Same as in
+            :func:`pyphi.formalism.iit3.concept`.
         parallel (bool): Whether to compute concepts in parallel. If ``True``,
             overrides :data:`config.infrastructure.parallel_concept_evaluation`.
         directions (Iterable[Direction]): Restrict possible directions to these.
@@ -94,10 +137,8 @@ def ces(
         with contextlib.suppress(TypeError):
             total = len(mechanisms)  # type: ignore[arg-type]  # mechanisms may be generator
 
-    from pyphi.formalism.queries import concept as _concept
-
     def compute_concept(*args, **kwargs):
-        return _concept(system, *args, **kwargs, progress=False)
+        return concept(system, *args, **kwargs, progress=False)
 
     reduce_func = _only_positive_phi if only_positive_phi else _any_phi
     parallel_kwargs = conf.parallel_kwargs(

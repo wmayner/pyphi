@@ -190,12 +190,12 @@ def test_null_concept(s):
     )
 
 
-def test_concept_no_mechanism(s):
-    assert s.concept(()) == s.null_concept
+def test_distinction_no_mechanism(s):
+    assert s.distinction(()) == s.null_concept
 
 
-def test_concept_nonexistent(s):
-    assert not s.concept((0, 2))
+def test_distinction_nonexistent(s):
+    assert not s.distinction((0, 2))
 
 
 class TestIntrinsicInformationTies:

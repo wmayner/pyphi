@@ -301,32 +301,18 @@ def phi_max(cs: System, mechanism: tuple[int, ...]) -> float:
     return min(mic(cs, mechanism).phi, mie(cs, mechanism).phi)
 
 
-# ---- concept / distinction ----
-
-
-def concept(
-    cs: System,
-    mechanism: tuple[int, ...],
-    purviews: Any | None = None,
-    cause_purviews: Any | None = None,
-    effect_purviews: Any | None = None,
-    **kwargs: Any,
-) -> Any:
-    """Return the concept specified by a mechanism within the candidate system."""
-    if not mechanism:
-        return _ra.null_concept(cs)
-
-    cause_purviews = cause_purviews if cause_purviews is not None else purviews
-    cause = mic(cs, mechanism, purviews=cause_purviews, **kwargs)
-
-    effect_purviews = effect_purviews if effect_purviews is not None else purviews
-    effect = mie(cs, mechanism, purviews=effect_purviews, **kwargs)
-
-    return Concept(mechanism=mechanism, cause=cause, effect=effect)
+# ---- distinctions ----
+#
+# IIT 4.0 paper terminology: the irreducible mechanism with cause-effect
+# power is a *distinction*. The IIT 3.0 *concept*, which has the same
+# mathematical role under that formalism, lives in :mod:`pyphi.formalism.iit3`
+# along with the rest of IIT 3.0's algorithms.
 
 
 def distinction(cs: System, mechanism: tuple[int, ...]) -> Any:
-    """Return the distinction (Concept) specified by a mechanism."""
+    """Return the distinction specified by a mechanism."""
+    if not mechanism:
+        return _ra.null_concept(cs)
     maximally_irreducible_cause = find_mice(cs, Direction.CAUSE, mechanism)
     maximally_irreducible_effect = find_mice(cs, Direction.EFFECT, mechanism)
     return Concept(
