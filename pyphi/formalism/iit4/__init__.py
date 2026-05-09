@@ -758,26 +758,35 @@ def phi_structure(
     )
 
 
-def all_complexes(network, state, **kwargs):
-    """Yield SIAs for all subsystems of the network."""
-    # TODO(4.0) parallelize
-    for subsystem in reachable_subsystems(network, network.node_indices, state):
-        # P7: reachable_subsystems still yields legacy Subsystem; CandidateSystem
-        # alias accepts the same call shape via the proxy methods.
-        yield sia(subsystem, **kwargs)  # type: ignore[arg-type]
+def all_complexes(network, state, parallel_kwargs=None, **kwargs):
+    """Return SIAs for all subsystems of the network.
+
+    Dispatches through :class:`pyphi.parallel.MapReduce` using the
+    ``parallel_complex_evaluation`` config; pass ``parallel_kwargs`` to
+    override per-call.
+    """
+    pkwargs = conf.parallel_kwargs(
+        dict(config.infrastructure.parallel_complex_evaluation),
+        **(parallel_kwargs or {}),
+    )
+    subsystems = list(reachable_subsystems(network, network.node_indices, state))
+    return MapReduce(
+        sia,
+        subsystems,
+        map_kwargs={"progress": False, **kwargs},
+        desc="Evaluating complexes",
+        **pkwargs,
+    ).run()
 
 
 def irreducible_complexes(network, state, complexes=None, **kwargs):
     """Yield SIAs for irreducible subsystems of the network."""
-    # TODO(4.0) parallelize
-    complexes = (
-        all_complexes(network, state, **kwargs) if complexes is None else complexes
-    )
+    if complexes is None:
+        complexes = all_complexes(network, state, **kwargs)
     yield from filter(None, complexes)
 
 
 def maximal_complex(network, state, complexes=None, **kwargs):
-    # TODO(4.0) parallelize
     return max(
         irreducible_complexes(network, state, complexes=complexes, **kwargs),
         default=NullPhiStructure(),
