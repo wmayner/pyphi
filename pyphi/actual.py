@@ -664,7 +664,6 @@ def _get_cuts(transition, direction):
             yield ActualCut(direction, partition, transition.node_labels)
 
 
-# TODO(4.0) change parallel default to True?
 def sia(transition, direction=Direction.BIDIRECTIONAL, **kwargs):
     """Return the minimal information partition of a transition in a specific
     direction.

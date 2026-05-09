@@ -191,7 +191,6 @@ class CauseEffectStructure(cmp.Orderable, Sequence, ToPandasMixin):
 
     def resolve_congruence(self, system_state: SystemStateSpecification):
         """Filter out incongruent distinctions."""
-        # TODO(4.0) parallelize
         return type(self)(
             filter(
                 lambda d: d is not None,
