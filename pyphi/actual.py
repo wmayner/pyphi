@@ -18,11 +18,13 @@ If you use this module, please cite the following papers:
 
 import contextlib
 import logging
+from collections.abc import Mapping
 from dataclasses import dataclass
 from dataclasses import field
 from dataclasses import replace
 from functools import cached_property
 from itertools import chain
+from types import MappingProxyType
 from typing import Any
 
 import numpy as np
@@ -101,7 +103,15 @@ def _partitioned_repertoire_product(
     direction: Direction,
     partition: Any,
 ) -> Any:
-    return transition_system.partitioned_repertoire(direction, partition)
+    import functools
+
+    from pyphi.core import repertoire_algebra as ra
+
+    repertoires = [
+        ra.repertoire(transition_system, direction, part.mechanism, part.purview)
+        for part in partition
+    ]
+    return functools.reduce(np.multiply, repertoires)
 
 
 @background_strategies.register("UNIFORM")
@@ -199,7 +209,7 @@ class TransitionSystem:
             return System(
                 substrate=self.substrate,
                 state=self.before_state,
-                node_indices=self.cause_indices,
+                node_indices=self.node_indices,
                 cut=self.cut,
             )
 
@@ -209,7 +219,18 @@ class TransitionSystem:
 
     @cached_property
     def effect_tpm(self) -> Any:
-        return self._underlying_system.effect_tpm
+        from pyphi.core.tpm.explicit import ExplicitTPM as _TypedTPM
+        from pyphi.core.tpm.marginalization import effect_tpm as _marginalize_effect
+
+        legacy_tpm = self.substrate.tpm
+        if hasattr(legacy_tpm, "to_array"):
+            typed = _TypedTPM(legacy_tpm.to_array())
+        else:
+            typed = _TypedTPM(legacy_tpm)
+        external_state = utils.state_of(self.external_indices, self.before_state)
+        background = dict(zip(self.external_indices, external_state, strict=False))
+        result = _marginalize_effect(typed, background)
+        return result._inner if hasattr(result, "_inner") else result
 
     @cached_property
     def cm(self) -> Any:
@@ -221,7 +242,7 @@ class TransitionSystem:
 
     @cached_property
     def proper_effect_tpm(self) -> Any:
-        return self._underlying_system.proper_effect_tpm
+        return np.asarray(self.effect_tpm.squeeze())[..., list(self.node_indices)]
 
     @cached_property
     def proper_cm(self) -> Any:
@@ -267,6 +288,10 @@ class TransitionSystem:
     @cached_property
     def cut_mechanisms(self) -> Any:
         return list(self.cut.all_cut_mechanisms())
+
+    @cached_property
+    def _index2node(self) -> dict[int, Any]:
+        return {node.index: node for node in self.nodes}
 
     @cached_property
     def null_distinction(self) -> Any:
@@ -487,10 +512,16 @@ class TransitionSystem:
 
         return ra.intrinsic_information(self, direction, mechanism, purview, **kw)
 
-    def potential_purviews(self, direction: Direction, mechanism: Any, **kw: Any) -> Any:
+    def potential_purviews(
+        self,
+        direction: Direction,
+        mechanism: Any,
+        purviews: Any | None = None,
+        **kw: Any,
+    ) -> Any:
         from pyphi.core import repertoire_algebra as ra
 
-        return ra.potential_purviews(self, direction, mechanism, **kw)
+        return ra.potential_purviews(self, direction, mechanism, purviews, **kw)
 
     def indices2nodes(self, indices: Any) -> Any:
         from pyphi.core import repertoire_algebra as ra
@@ -614,183 +645,139 @@ class TransitionSystem:
         }
 
 
+@dataclass(frozen=True, eq=False)
 class Transition:
-    """A state transition between two sets of nodes in a substrate.
+    """A state transition over a substrate, holding two TransitionSystem views.
 
-    A |Transition| is implemented with two |System| objects: one
-    representing the system at time |t-1| used to compute effect coefficients,
-    and another representing the system at time |t| which is used to compute
-    cause coefficients. These systems are accessed with the
-    ``effect_system`` and ``cause_system`` attributes, and are mapped to the
-    causal directions via the ``system`` attribute.
+    Implements the actual-causation framework of Albantakis, Marshall, Hoel,
+    and Tononi (2019). The cause-side and effect-side analyses live in
+    :class:`TransitionSystem` instances accessed via :attr:`cause_system` and
+    :attr:`effect_system`, keyed by Direction in :attr:`system`.
 
     Args:
         substrate (Substrate): The substrate the system belongs to.
-        before_state (tuple[int]): The state of the substrate at
-            time |t-1|.
-        after_state (tuple[int]): The state of the substrate at
-            time |t|.
-        cause_indices (tuple[int] or tuple[str]): Indices of nodes in the cause
-            system. (TODO: clarify)
-        effect_indices (tuple[int] or tuple[str]): Indices of nodes in the
-            effect system. (TODO: clarify)
-
-    Keyword Args:
-        noise_background (bool): If ``True``, background conditions are
-            noised instead of frozen.
-
-    Attributes:
-        node_indices (tuple[int]): The indices of the nodes in the system.
-        substrate (Substrate): The substrate the system belongs to.
         before_state (tuple[int]): The state of the substrate at time |t-1|.
         after_state (tuple[int]): The state of the substrate at time |t|.
-        effect_system (System): The system in ``before_state`` used to
-            compute effect repertoires and coefficients.
-        cause_system (System): The system in ``after_state`` used to compute
-            cause repertoires and coefficients.
-        system (dict): A dictionary mapping causal directions to the system
-            used to compute repertoires in that direction.
-        cut (ActualCut): The cut that has been applied to this transition.
+        cause_indices (tuple[int] or tuple[str]): Indices of nodes in the
+            cause system.
+        effect_indices (tuple[int] or tuple[str]): Indices of nodes in the
+            effect system.
 
-    .. note::
-        During initialization, both the cause and effect systems are
-        conditioned on ``before_state`` as the background state. After
-        conditioning the ``effect_system`` is then properly reset to
-        ``after_state``.
+    Keyword Args:
+        cut (SystemPartition): The cut applied to this transition. Defaults
+            to a :class:`NullCut` over the union of cause and effect indices.
+        noise_background (bool): If ``True``, background conditions are
+            noised instead of frozen.
     """
 
-    def __init__(
-        self,
-        substrate,
-        before_state,
-        after_state,
-        cause_indices,
-        effect_indices,
-        cut=None,
-        noise_background=False,
-    ):
-        self.substrate = substrate
-        self.before_state = before_state
-        self.after_state = after_state
+    substrate: Substrate
+    before_state: tuple[int, ...]
+    after_state: tuple[int, ...]
+    cause_indices: tuple[int, ...]
+    effect_indices: tuple[int, ...]
+    cut: SystemPartition = field(default=None)  # type: ignore[assignment]
+    noise_background: bool = False
 
-        coerce_to_indices = self.node_labels.coerce_to_indices
-        self.cause_indices = coerce_to_indices(cause_indices)
-        self.effect_indices = coerce_to_indices(effect_indices)
-        self.node_indices = coerce_to_indices(cause_indices + effect_indices)
-
-        self.cut = (
-            cut if cut is not None else NullCut(self.node_indices, self.node_labels)
-        )
-
-        # Indices external to the cause system.
-        # The TPMs of both systems are conditioned on these background
-        # conditions.
-
-        if noise_background:
-            # Freeze nothing. Background conditions are noised during
-            # repertoire computation
-            external_indices = ()
-        else:
-            # Otherwise, freeze the background conditions.
-            external_indices = tuple(
-                sorted(set(substrate.node_indices) - set(cause_indices))
+    def __post_init__(self) -> None:
+        coerce = self.substrate.node_labels.coerce_to_indices
+        object.__setattr__(self, "cause_indices", coerce(self.cause_indices))
+        object.__setattr__(self, "effect_indices", coerce(self.effect_indices))
+        if self.cut is None:
+            object.__setattr__(
+                self, "cut", NullCut(self.node_indices, self.substrate.node_labels)
             )
 
-        # Both are conditioned on the `before_state`, but we then change the
-        # state of the cause context to `after_state` to reflect the fact that
-        # that we are computing cause repertoires of mechanisms in that state.
-        with config.override(validate_system_states=False):
-            self.effect_system = System(  # pyright: ignore[reportCallIssue]
-                substrate,
-                before_state,
-                self.node_indices,
-                self.cut,  # pyright: ignore[reportArgumentType]
-                _external_indices=external_indices,  # pyright: ignore[reportCallIssue]
-            )
-
-            self.cause_system = System(  # pyright: ignore[reportCallIssue]
-                substrate,
-                before_state,
-                self.node_indices,
-                self.cut,  # pyright: ignore[reportArgumentType]
-                _external_indices=external_indices,  # pyright: ignore[reportCallIssue]
-            )
-
-        self.cause_system.state = after_state  # pyright: ignore[reportAttributeAccessIssue]
-        for node in self.cause_system.nodes:
-            node.state = after_state[node.index]
-
-        # Validate the cause system
-        # The state of the effect system does not need to be reachable
-        # because cause repertoires are never computed for that system.
-        validate.state_reachable(self.cause_system)
-
-        # Dictionary mapping causal directions to the system which is used to
-        # compute repertoires in that direction
-        self.system = {
-            Direction.CAUSE: self.cause_system,
-            Direction.EFFECT: self.effect_system,
-        }
-
-    def __repr__(self):
-        return fmt.fmt_transition(self)
-
-    def __str__(self):
-        return repr(self)
-
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Transition):
+            return NotImplemented
         return (
-            self.cause_indices == other.cause_indices
-            and self.effect_indices == other.effect_indices
+            self.substrate == other.substrate
             and self.before_state == other.before_state
             and self.after_state == other.after_state
-            and self.substrate == other.substrate
+            and self.cause_indices == other.cause_indices
+            and self.effect_indices == other.effect_indices
             and self.cut == other.cut
         )
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(
             (
-                self.cause_indices,
-                self.effect_indices,
+                self.substrate,
                 self.before_state,
                 self.after_state,
-                self.substrate,
+                self.cause_indices,
+                self.effect_indices,
                 self.cut,
             )
         )
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.node_indices)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return len(self) > 0
 
+    def __repr__(self) -> str:
+        return fmt.fmt_transition(self)
+
+    def __str__(self) -> str:
+        return repr(self)
+
+    @cached_property
+    def node_indices(self) -> tuple[int, ...]:
+        return tuple(sorted(set(self.cause_indices) | set(self.effect_indices)))
+
     @property
-    def node_labels(self):
+    def node_labels(self) -> Any:
         return self.substrate.node_labels
 
-    def to_json(self):
-        """Return a JSON-serializable representation."""
+    @cached_property
+    def cause_system(self) -> "TransitionSystem":
+        return TransitionSystem(
+            substrate=self.substrate,
+            before_state=self.before_state,
+            after_state=self.after_state,
+            cause_indices=self.cause_indices,
+            effect_indices=self.effect_indices,
+            direction=Direction.CAUSE,
+            cut=self.cut,
+            noise_background=self.noise_background,
+        )
+
+    @cached_property
+    def effect_system(self) -> "TransitionSystem":
+        return TransitionSystem(
+            substrate=self.substrate,
+            before_state=self.before_state,
+            after_state=self.after_state,
+            cause_indices=self.cause_indices,
+            effect_indices=self.effect_indices,
+            direction=Direction.EFFECT,
+            cut=self.cut,
+            noise_background=self.noise_background,
+        )
+
+    @cached_property
+    def system(self) -> Mapping[Direction, "TransitionSystem"]:
+        return MappingProxyType(
+            {
+                Direction.CAUSE: self.cause_system,
+                Direction.EFFECT: self.effect_system,
+            }
+        )
+
+    def to_json(self) -> dict[str, Any]:
         return {
             "substrate": self.substrate,
-            "before_state": self.before_state,
-            "after_state": self.after_state,
-            "cause_indices": self.cause_indices,
-            "effect_indices": self.effect_indices,
+            "before_state": list(self.before_state),
+            "after_state": list(self.after_state),
+            "cause_indices": list(self.cause_indices),
+            "effect_indices": list(self.effect_indices),
             "cut": self.cut,
         }
 
-    def apply_cut(self, cut):
-        """Return a cut version of this transition."""
-        return Transition(
-            self.substrate,
-            self.before_state,
-            self.after_state,
-            self.cause_indices,
-            self.effect_indices,
-            cut,
-        )
+    def apply_cut(self, cut: SystemPartition) -> "Transition":
+        return replace(self, cut=cut)
 
     def cause_repertoire(self, mechanism, purview):
         """Return the cause repertoire."""
@@ -932,18 +919,7 @@ class Transition:
 
     def partitioned_repertoire(self, direction, partition):
         """Compute the repertoire over the partition in the given direction."""
-        system = self.system[direction]
-        if config.formalism.iit.repertoire_measure in [
-            "GENERALIZED_INTRINSIC_DIFFERENCE",
-            "INTRINSIC_INFORMATION",
-        ]:
-            purview_state = tuple(
-                self.purview_state(direction)[node] for node in partition.purview
-            )
-            return system.partitioned_repertoire(
-                direction, partition, state=purview_state
-            )
-        return system.partitioned_repertoire(direction, partition)
+        return self.system[direction].partitioned_repertoire(direction, partition)
 
     def partitioned_probability(self, direction, partition):
         """Compute the probability of the mechanism over the purview in

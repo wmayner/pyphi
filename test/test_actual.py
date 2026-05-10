@@ -171,17 +171,6 @@ def test_transition_system_apply_cut_returns_new_instance():
     assert isinstance(ts.cut, NullCut)
 
 
-_legacy_skip_reason = (
-    "actual.Transition pending refactor for frozen System "
-    "(uses _external_indices override + state mutation)"
-)
-_legacy_skip = pytest.mark.skip(reason=_legacy_skip_reason)
-
-
-def _skip_legacy() -> None:
-    pytest.skip(_legacy_skip_reason)
-
-
 # TODO
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #   * test transition equality/hash
@@ -195,7 +184,6 @@ def _skip_legacy() -> None:
 @pytest.fixture
 def transition():
     """An OR gate with two inputs. The OR gate is ON, others are OFF."""
-    _skip_legacy()
     # fmt: off
     tpm = np.array([
         [0, 0.5, 0.5],
@@ -221,7 +209,6 @@ def transition():
 
 @pytest.fixture
 def empty_transition(transition):
-    _skip_legacy()
     return actual.Transition(
         transition.substrate, transition.before_state, transition.after_state, (), ()
     )
@@ -229,7 +216,6 @@ def empty_transition(transition):
 
 @pytest.fixture
 def prevention():
-    _skip_legacy()
     return examples.prevention_transition()
 
 
@@ -241,7 +227,6 @@ def prevention():
 # were outdated. test_background_noised provides coverage for similar functionality.
 
 
-@_legacy_skip
 def test_background_noised():
     # fmt: off
     tpm = np.array([
@@ -271,7 +256,6 @@ def test_background_noised():
 @pytest.fixture
 def background_3_node():
     """A is MAJ(ABC). B is OR(A, C). C is COPY(A)."""
-    _skip_legacy()
     # fmt: off
     tpm = np.array([
         [0, 0, 0],
@@ -290,7 +274,6 @@ def background_3_node():
 # NOTE: test_background_3_node was removed because the expected values were outdated.
 
 
-@_legacy_skip
 def test_potential_purviews(background_3_node):
     """Purviews must be a subset of the corresponding cause/effect system."""
     transition = actual.Transition(
@@ -563,7 +546,6 @@ def test_unconstrained_probability(transition):
     assert transition.unconstrained_probability(Direction.EFFECT, (0,)) == 0.75
 
 
-@_legacy_skip
 def test_state_probability_strict_system():
     """Regression test for ``Transition.state_probability`` on transitions
     whose system is a strict subset of the substrate.
@@ -727,7 +709,6 @@ def test_null_ac_sia(transition):
 @pytest.fixture
 def background_all_off():
     """Transition fixture with all nodes OFF -> all nodes OFF."""
-    _skip_legacy()
     # fmt: off
     tpm = np.array([
         [0, 0],
@@ -743,7 +724,6 @@ def background_all_off():
 @pytest.fixture
 def background_all_on():
     """Transition fixture with all nodes ON -> all nodes ON."""
-    _skip_legacy()
     # fmt: off
     tpm = np.array([
         [0, 0],
@@ -756,7 +736,6 @@ def background_all_on():
     return actual.Transition(substrate, (1, 1), (1, 1), (0,), (1,))
 
 
-@_legacy_skip
 class TestActualCausationIIT30:
     """Regression tests for actual causation with IIT 3.0 configuration.
 
@@ -998,3 +977,77 @@ class TestActualCausationIIT30:
         assert true_effect.mechanism == (2,)
         assert true_effect.purview == (1,)
         assert true_effect.direction == Direction.EFFECT
+
+
+# Paper-fixture acceptance tests: pin alpha values from
+# Albantakis, Marshall, Hoel, Tononi 2019 ("What Caused What?", Entropy 21:459).
+
+
+@pytest.fixture
+def or_and_substrate():
+    """Two-element substrate from 2019 Figs 1-6: OR and AND gates over (A, B).
+
+    Both gates take both nodes as inputs. OR is on if either is on; AND is
+    on only if both are on.
+    """
+    tpm = np.array(
+        [
+            [0, 0],
+            [1, 0],
+            [1, 0],
+            [1, 1],
+        ]
+    )
+    cm = np.array([[1, 1], [1, 1]])
+    return Substrate(tpm, cm, node_labels=("OR", "AND"))
+
+
+def test_paper_fig5_first_order_or_alpha(or_and_substrate):
+    """2019 Fig 5/6: {OR_{t-1}=1}<->{OR_t=1} has alpha approx 0.415 bits."""
+    transition = actual.Transition(
+        or_and_substrate,
+        before_state=(1, 0),
+        after_state=(1, 0),
+        cause_indices=(0, 1),
+        effect_indices=(0, 1),
+    )
+    cause = transition.find_actual_cause((0,))
+    assert cause.alpha == pytest.approx(0.415, abs=1e-2)
+
+
+def test_paper_fig6_second_order_or_and_cause_alpha(or_and_substrate):
+    """2019 Fig 6: {(OR,AND)_{t-1}=10}<-{(OR,AND)_t=10} has alpha approx 0.170 bits."""
+    transition = actual.Transition(
+        or_and_substrate,
+        before_state=(1, 0),
+        after_state=(1, 0),
+        cause_indices=(0, 1),
+        effect_indices=(0, 1),
+    )
+    cause = transition.find_actual_cause((0, 1))
+    assert cause.alpha == pytest.approx(0.170, abs=1e-2)
+
+
+@pytest.mark.skip(reason="paper-fixture TPM construction follow-up")
+def test_paper_fig7b_conjunction_alpha():
+    pass
+
+
+@pytest.mark.skip(reason="paper-fixture TPM construction follow-up")
+def test_paper_fig7c_biconditional_alpha():
+    pass
+
+
+@pytest.mark.skip(reason="paper-fixture TPM construction follow-up")
+def test_paper_fig8a_majority_alpha():
+    pass
+
+
+@pytest.mark.skip(reason="paper-fixture TPM construction follow-up")
+def test_paper_fig11_three_candidate_alpha():
+    pass
+
+
+@pytest.mark.skip(reason="paper-fixture TPM construction follow-up")
+def test_paper_fig12_probabilistic_alpha():
+    pass

@@ -380,16 +380,7 @@ def differentiation_example_micro_1():
 
 @pytest.fixture
 def transition():
-    """An OR gate with two inputs. The OR gate is ON, others are OFF.
-
-    Skipped while actual.Transition is being refactored to compose with the
-    frozen :class:`pyphi.System` value type. The legacy implementation relied
-    on mutable Subsystem state.
-    """
-    pytest.skip(
-        "actual.Transition pending refactor for frozen System "
-        "(uses _external_indices override + state mutation)"
-    )
+    """An OR gate with two inputs. The OR gate is ON, others are OFF."""
     # fmt: off
     tpm = np.array([
         [0, 0.5, 0.5],
