@@ -96,6 +96,8 @@ def _loadable_models():
         pyphi.models.Bipartition,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.CausalLink,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.Distinctions,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.ResolvedDistinctions,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.UnresolvedDistinctions,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.Concept,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.SystemPartition,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.cuts.GeneralKCut,  # pyright: ignore[reportAttributeAccessIssue]

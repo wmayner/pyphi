@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import warnings
 from collections import defaultdict
 from collections.abc import Iterable
 from functools import cached_property
@@ -23,9 +22,9 @@ from .data_structures import PyPhiFloat
 from .direction import Direction
 from .models import cmp
 from .models import fmt
+from .models.distinctions import ResolvedDistinctions
 from .parallel import MapReduce
 from .registry import Registry
-from .warnings import PyPhiWarning
 
 if TYPE_CHECKING:
     from graphillion import setset  # noqa: F401
@@ -371,22 +370,21 @@ class AnalyticalRelations(Relations):
         return fmt.box(fmt.header("AnalyticalRelations", body, "", fmt.HEADER_BAR_2))
 
 
-_CONGRUENCE_WARNING_MSG = (
-    "distinctions.resolve_congruence() has not been called; results may "
-    "include relations that do not exist after filtering out distinctions "
-    "incongruent with the SIA specified state. Consider using "
-    "`pyphi.formalism.iit4.phi_structure()` to obtain a consistent structure."
-)
-
-
 def relations(
-    distinctions: Iterable[Distinction],
+    distinctions: ResolvedDistinctions,
     relation_computation: str | None = None,
     **kwargs: Any,
 ) -> Relations:
-    """Return causal relations among a set of distinctions."""
-    if not distinctions.resolved_congruence:  # type: ignore[attr-defined]  # Distinctions
-        warnings.warn(_CONGRUENCE_WARNING_MSG, PyPhiWarning, stacklevel=2)
+    """Return causal relations among a set of distinctions.
+
+    Requires :class:`~pyphi.models.distinctions.ResolvedDistinctions`:
+    relations between distinctions whose tied specified states haven't
+    been disambiguated by a SIA system_state can include phantom faces
+    that wouldn't exist after resolution. Pass the result of
+    :meth:`~pyphi.models.distinctions.Distinctions.resolve_congruence`
+    or use :func:`pyphi.formalism.iit4.phi_structure` to obtain a
+    consistent structure.
+    """
     return relation_computations[
         fallback(relation_computation, config.formalism.relation_computation)  # type: ignore[index]  # config.Option descriptor
     ](distinctions, **kwargs)

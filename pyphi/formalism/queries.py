@@ -33,9 +33,9 @@ from pyphi.conf import fallback
 from pyphi.core import repertoire_algebra as _ra
 from pyphi.direction import Direction
 from pyphi.models import Concept
-from pyphi.models import Distinctions
 from pyphi.models import MaximallyIrreducibleCause
 from pyphi.models import MaximallyIrreducibleEffect
+from pyphi.models import UnresolvedDistinctions
 from pyphi.models import _null_ria
 from pyphi.models.ria import ShortCircuitConditions
 from pyphi.parallel import MapReduce
@@ -333,7 +333,11 @@ def all_distinctions(cs: System, **kwargs: Any) -> Any:  # noqa: ARG001
         mechanisms = tqdm(mechanisms, total=total)
 
     distinctions = filter(None, (distinction(cs, mechanism) for mechanism in mechanisms))
-    return Distinctions(distinctions)
+    # The active formalism's find_mice may return tied specified states
+    # (IIT 4.0). Conservative default: return UnresolvedDistinctions; the
+    # caller resolves against a SIA system_state if it needs to flow into
+    # relations() or CauseEffectStructure.
+    return UnresolvedDistinctions(distinctions)
 
 
 # ---- system irreducibility ----

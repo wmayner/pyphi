@@ -37,6 +37,7 @@ from pyphi.models.cuts import GeneralKCut
 from pyphi.models.cuts import NullCut
 from pyphi.models.cuts import SystemPartition
 from pyphi.models.distinctions import Distinctions
+from pyphi.models.distinctions import ResolvedDistinctions
 from pyphi.models.ria import RepertoireIrreducibilityAnalysis
 from pyphi.models.state_specification import StateSpecification
 from pyphi.models.state_specification import SystemStateSpecification
@@ -714,7 +715,7 @@ class NullCauseEffectStructure(CauseEffectStructure):
     def __init__(self, **kwargs):
         super().__init__(
             sia=NullSystemIrreducibilityAnalysis(),
-            distinctions=Distinctions([]),
+            distinctions=ResolvedDistinctions([]),
             relations=ConcreteRelations([]),
             **kwargs,
         )
@@ -744,17 +745,23 @@ def phi_structure(
         # the iit3 helper is reused because the outer mechanism x purview
         # iteration is the same in both formalisms.
         distinctions = iit3.ces(system, **ces_kwargs)  # type: ignore[arg-type]
-    # Filter out incongruent distinctions
+    # Resolve tied specified states against a SIA system_state. When the
+    # SIA is null (degenerate substrate, e.g., not strongly connected)
+    # we still want a usable bag of distinctions for diagnostics, so
+    # fall back to the system's intrinsic-information state.
     if sia.system_state is not None:
-        distinctions = distinctions.resolve_congruence(sia.system_state)
+        resolution_state = sia.system_state
+    else:
+        resolution_state = system_intrinsic_information(system)
+    resolved_distinctions = distinctions.resolve_congruence(resolution_state)
 
     # Compute relations if not provided
     if relations is None:
-        relations = compute_relations(distinctions, **relations_kwargs)
+        relations = compute_relations(resolved_distinctions, **relations_kwargs)
 
     return CauseEffectStructure(
         sia=sia,
-        distinctions=distinctions,
+        distinctions=resolved_distinctions,
         relations=relations,
     )
 

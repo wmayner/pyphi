@@ -7,8 +7,8 @@ from collections.abc import Iterable
 from copy import deepcopy
 
 from .direction import Direction
-from .models.ces import Distinctions
 from .models.distinction import Distinction as Concept
+from .models.distinctions import Distinctions
 
 DIRECTIONS = [
     Direction.CAUSE,
@@ -262,14 +262,13 @@ class CompositionalState(UserDict):
 
     def filter(self, distinctions):
         """Return only the distinctions that are consistent with this
-        CompositionalState.
+        CompositionalState. The result preserves the resolution subtype
+        of the input.
         """
-        return Distinctions(
-            [
-                distinction
-                for distinction in distinctions
-                if not self.conflicts_with_distinction(distinction)
-            ],
+        return type(distinctions)(
+            distinction
+            for distinction in distinctions
+            if not self.conflicts_with_distinction(distinction)
         )
 
     @classmethod

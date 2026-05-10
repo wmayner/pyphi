@@ -5,6 +5,25 @@ In IIT 4.0 paper terminology, the cause-effect structure of any candidate
 system is *distinctions + relations* — that compound object lives in
 :mod:`pyphi.models.ces` as :class:`CauseEffectStructure`. This module
 holds just the bag-of-distinctions side.
+
+The collection comes in two concrete subtypes that encode whether
+ties on the per-distinction specified states have been disambiguated:
+
+- :class:`UnresolvedDistinctions` — the default form returned by raw
+  computation. Per-distinction specified states may still be tied, and
+  no SIA-level ``system_state`` has been used to pick among them.
+- :class:`ResolvedDistinctions` — the form after
+  :meth:`UnresolvedDistinctions.resolve_congruence` has filtered each
+  distinction's tied states down to the ones congruent with a SIA
+  ``system_state``. Functions like :func:`pyphi.relations.relations` and
+  :class:`~pyphi.models.ces.CauseEffectStructure` accept only this
+  subtype, so passing unresolved distinctions is a static type error.
+
+The base :class:`Distinctions` class is abstract — instantiation must
+choose a subtype. IIT 3.0 has no per-distinction ties, so its computation
+emits :class:`ResolvedDistinctions` directly (vacuously resolved); IIT
+4.0 emits :class:`UnresolvedDistinctions` and resolves via the SIA's
+``system_state`` later in the pipeline.
 """
 
 from __future__ import annotations
@@ -67,18 +86,21 @@ def _get_state(mice):
 
 
 class Distinctions(cmp.Orderable, Sequence, ToPandasMixin):
-    """A collection of concepts."""
+    """Base class for a collection of distinctions.
 
-    def __init__(self, concepts=(), resolved_congruence=False):
+    Holds the read-only operations shared by :class:`UnresolvedDistinctions`
+    and :class:`ResolvedDistinctions`. Instantiable directly for the
+    rare cases where the resolution status is genuinely unknown (e.g.,
+    deserializing a pre-P11.9 JSON fixture); new code should construct
+    one of the marker subtypes so passing the result to a function that
+    requires a specific resolution status is checked at the type level.
+    """
+
+    def __init__(self, concepts: Iterable = ()):
         # Normalize the order of concepts
-        # TODO(4.0) convert to set?
         self.concepts = tuple(sorted(concepts, key=_concept_sort_key))
         self._specifiers = None
         self._purview_inclusion_by_order = defaultdict(defaultdict_set)
-        # Flag to indicate whether distinctions have been filtered according to
-        # congruence with a SIA specified state
-        # TODO(4.0) use a subclass instead, as with MICE?
-        self._resolved_congruence = resolved_congruence
         self._sum_phi = None
 
     def __len__(self):
@@ -195,27 +217,57 @@ class Distinctions(cmp.Orderable, Sequence, ToPandasMixin):
             if order <= max_order:
                 yield from mapping.items()
 
-    def resolve_congruence(self, system_state: SystemStateSpecification):
-        """Filter out incongruent distinctions."""
-        return type(self)(
-            filter(
-                lambda d: d is not None,
-                (distinction.resolve_congruence(system_state) for distinction in self),
-            ),
-            resolved_congruence=True,
-        )
-
     def mechanism_multiplicities(self):
         return _find_multiplicities(_get_mechanism, self)
 
     def state_multiplicities(self):
         return _find_multiplicities(_get_state, self)
 
-    @property
-    def resolved_congruence(self):
-        return self._resolved_congruence
+    def resolve_congruence(
+        self, system_state: SystemStateSpecification
+    ) -> ResolvedDistinctions:
+        """Filter each distinction's tied states down to the ones
+        congruent with ``system_state``, dropping distinctions that have
+        no congruent reading. Returns a :class:`ResolvedDistinctions`
+        regardless of the input subtype — calling on an already-resolved
+        bag is well-defined and just refilters.
+        """
+        return ResolvedDistinctions(
+            filter(
+                lambda d: d is not None,
+                (distinction.resolve_congruence(system_state) for distinction in self),
+            )
+        )
 
 
-def _null_ces(system=None):  # noqa: ARG001 - system retained for backward-compatible signature
-    """Return an empty CES."""
-    return Distinctions(())
+class UnresolvedDistinctions(Distinctions):
+    """Distinctions whose per-distinction tied states have not been disambiguated.
+
+    Returned by raw computation paths that don't carry a SIA
+    ``system_state``. Cannot be passed to functions that require a
+    canonical specified state per distinction (relations,
+    CauseEffectStructure construction); call :meth:`resolve_congruence`
+    first.
+    """
+
+
+class ResolvedDistinctions(Distinctions):
+    """Distinctions whose tied states have been disambiguated.
+
+    Either constructed directly when no resolution is needed (IIT 3.0,
+    where there are no tied states), or returned by
+    :meth:`Distinctions.resolve_congruence` after the SIA determines a
+    system-level ``system_state``. Required for
+    :func:`pyphi.relations.relations` and the ``distinctions`` field of
+    :class:`~pyphi.models.ces.CauseEffectStructure`.
+    """
+
+
+def _null_ces(system=None) -> ResolvedDistinctions:  # noqa: ARG001 - retained for backward-compatible signature
+    """Return an empty CES.
+
+    The empty case is vacuously resolved — there are no tied states to
+    disambiguate — so the return type is :class:`ResolvedDistinctions`,
+    suitable for any downstream function that requires resolved input.
+    """
+    return ResolvedDistinctions(())

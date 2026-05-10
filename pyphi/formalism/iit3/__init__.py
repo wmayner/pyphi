@@ -32,8 +32,10 @@ from pyphi.metrics.ces import ces_distance
 from pyphi.models import Concept
 from pyphi.models import Distinctions
 from pyphi.models import KCut
+from pyphi.models import ResolvedDistinctions
 from pyphi.models import SystemIrreducibilityAnalysis
 from pyphi.models import SystemPartition
+from pyphi.models import UnresolvedDistinctions
 from pyphi.models import _null_sia
 from pyphi.models import cmp
 from pyphi.parallel import MapReduce
@@ -158,7 +160,12 @@ def ces(
         total=total,
         **parallel_kwargs,  # type: ignore[arg-type]  # parallel_kwargs contains MapReduce params
     ).run()
-    return Distinctions(concepts)
+    # ``find_mice`` may return tied specified states under the active
+    # formalism (IIT 4.0 in particular), so the conservative answer is
+    # ``UnresolvedDistinctions``. Callers in IIT 4.0 phi_structure
+    # immediately call ``resolve_congruence``; IIT 3.0 callers route
+    # through ``ces_distance`` which accepts the base ``Distinctions``.
+    return UnresolvedDistinctions(concepts)
 
 
 def _only_positive_phi(concepts: Iterable[Any]) -> list[Concept]:
@@ -175,7 +182,7 @@ def conceptual_info(system: System, **kwargs: Any) -> float:
     This is the distance from the system's |Distinctions| to the
     null concept.
     """
-    ci = ces_distance(ces(system, **kwargs), Distinctions(()))
+    ci = ces_distance(ces(system, **kwargs), ResolvedDistinctions(()))
     return round(ci, config.numerics.precision)  # type: ignore[arg-type]  # config.Option descriptor
 
 

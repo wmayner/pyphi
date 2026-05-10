@@ -56,6 +56,8 @@ from .cuts import Tripartition
 from .distinction import Concept
 from .distinction import Distinction
 from .distinctions import Distinctions
+from .distinctions import ResolvedDistinctions
+from .distinctions import UnresolvedDistinctions
 from .distinctions import _null_ces
 from .mice import MaximallyIrreducibleCause
 from .mice import MaximallyIrreducibleCauseOrEffect
@@ -94,6 +96,7 @@ __all__ = [
     "NullCut",
     "Part",
     "RepertoireIrreducibilityAnalysis",
+    "ResolvedDistinctions",
     "ShortCircuitConditions",
     "StateSpecification",
     "SystemIrreducibilityAnalysis",
@@ -101,6 +104,7 @@ __all__ = [
     "SystemStateSpecification",
     "Tripartition",
     "UnitState",
+    "UnresolvedDistinctions",
     "_null_ac_ria",
     "_null_ac_sia",
     "_null_ces",

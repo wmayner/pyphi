@@ -587,7 +587,7 @@ def test_concept_emd_eq(s, subsys_n1n2):
 
 
 def test_ces_is_still_a_tuple(s):
-    c = models.Distinctions([concept(system=s)])
+    c = models.UnresolvedDistinctions([concept(system=s)])
     assert len(c) == 1
 
 
@@ -600,12 +600,12 @@ def test_ces_are_always_normalized(s):
     c2 = concept(mechanism=(1,), system=s)
     c3 = concept(mechanism=(0, 2), system=s)
     c4 = concept(mechanism=(0, 1, 2), system=s)
-    assert (c1, c2, c3, c4) == models.Distinctions((c3, c4, c2, c1)).concepts
+    assert (c1, c2, c3, c4) == models.UnresolvedDistinctions((c3, c4, c2, c1)).concepts
 
 
 @pytest.mark.outdated
 def test_ces_labeled_mechanisms(s):
-    c = models.Distinctions([concept(system=s)])
+    c = models.UnresolvedDistinctions([concept(system=s)])
     assert c.labeled_mechanisms == (["A", "B"],)
 
 

@@ -27,7 +27,7 @@ EXPECTED_PHI_STRUCTURE = {
     "basic_noisy_selfloop": {"num_distinctions": 2, "has_distinctions": True},
     "fig4": {"num_distinctions": 4, "has_distinctions": True},
     "fig5a": {"num_distinctions": 2, "has_distinctions": True},
-    "fig5b": {"num_distinctions": 2, "has_distinctions": True},
+    "fig5b": {"num_distinctions": 1, "has_distinctions": True},
     "grid3": {"num_distinctions": 7, "has_distinctions": True},
     "residue": {"num_distinctions": 0, "has_distinctions": False},
     "rule110": {"num_distinctions": 0, "has_distinctions": False},

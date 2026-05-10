@@ -31,7 +31,7 @@ from typing import Any
 
 from . import cmp
 from . import fmt
-from .distinctions import Distinctions
+from .distinctions import ResolvedDistinctions
 
 if TYPE_CHECKING:
     from pyphi.data_structures import PyPhiFloat
@@ -51,7 +51,7 @@ class CauseEffectStructure(cmp.Orderable):
     """
 
     sia: Any  # SystemIrreducibilityAnalysis from formalism.iit4
-    distinctions: Distinctions
+    distinctions: ResolvedDistinctions
     relations: Relations
     config: Any = None  # ConfigSnapshot from pyphi.conf.snapshot
 
