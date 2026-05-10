@@ -41,6 +41,7 @@ IIT_3_CONFIG = config.override(
         config.formalism.iit,
         version="IIT_3_0",
         mechanism_phi_measure="EMD",
+        system_phi_measure="EMD",
         mechanism_partition_scheme="BI",
         system_partition_scheme="DIRECTED_BI",
         purview_tie_resolution=["PHI", "PURVIEW_SIZE"],
@@ -53,6 +54,7 @@ IIT_3_CONFIG = config.override(
 IIT_4_CONFIG = config.override(
     version="IIT_4_0_2023",
     mechanism_phi_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
+    system_phi_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
     system_partition_scheme="SET_UNI/BI",
 )
 
