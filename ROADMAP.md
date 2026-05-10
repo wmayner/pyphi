@@ -1374,17 +1374,18 @@ test inventory — that a deliberate re-ordering pass is in order.
    against ``system_intrinsic_information`` (regenerated fig5b
    fixture).
 
-4. **P14 — ``macro.py`` + ``actual.py`` resurrection.** Promoted ahead
-   of P12. Survey on 2026-05-09: ``pyphi/actual.py`` is ~95%
-   salvageable (concentrated breakage in 20 lines of
-   ``Transition.__init__``); ``pyphi/macro.py`` is ~70% salvageable
-   (free functions still pass; ``MacroSystem`` class needs port from
-   the preserved ``__init_disabled__`` reference). Together they
-   carry **1,400+ lines of currently-dark test code** (``test_actual.py``
-   skipped, ``test_macro_system.py`` skipped) and bit-rot grows with
-   each subsequent rename. Doing P14 *before* P12 keeps non-binary
-   work scoped to one place rather than fragmenting across core +
-   macro. Estimated 5–7 days.
+4. **P14 — ``actual.py`` resurrection.** *(landed 2026-05-09, commit
+   ``71d22611``.)* Scope narrowed to ``actual.py`` only.
+   ``pyphi.actual.TransitionSystem`` (frozen dataclass parametric in
+   ``Direction``) satisfies ``SystemPublicInterface``; ``Transition``
+   becomes a frozen wrapper. The 826 lines of previously-skipped
+   ``test/test_actual.py`` are back online, plus paper-fixture
+   acceptance tests against Albantakis et al. 2019. Bundled config
+   audit nests ``formalism`` into ``iit`` / ``actual_causation``
+   sub-namespaces, applies a uniform ``*_distance`` → ``*_measure``
+   rename map, and removes the orphaned concept-style cuts machinery.
+   Macro work split off into its own paper-faithful project (item 10
+   below).
 
 5. **P11.8 Tier 1 — inline pytest perf budget.** Hours of work, ~30
    lines. Catches catastrophic regressions of the form just
@@ -1413,6 +1414,16 @@ test inventory — that a deliberate re-ordering pass is in order.
    benchmark rewrite naturally pairs with the docstring/repr/jsonify
    pass.
 
+10. **Macro framework — Marshall 2024 intrinsic units.** Deferred
+    candidate, post-2.0 unless it slots in. Paper-faithful rewrite
+    of the macro layer per Marshall, Findlay, Albantakis, Tononi
+    2024 ("Intrinsic Units"): hierarchical meso constituents,
+    sliding-window state mappings $g_J$ over $\tau$ micro updates,
+    explicit background apportionment $W^J$, intrinsic-unit search
+    via $\varphi_s$. Replaces legacy ``pyphi/macro.py`` outright.
+    Disabled ``MacroSystem`` class and 593-line
+    ``test/test_macro_system.py`` stay dark until this lands.
+
 **Ship criterion for 2.0:**
 
 The original roadmap doesn't state a release criterion explicitly.
@@ -1427,8 +1438,9 @@ Codifying one now:
    with a tracking issue.
 3. Goldens (fast + slow) green; Hypothesis property suite green
    at default seed and on a 1000-run nightly; ``test_actual.py``
-   and the macro ``xfail(strict=True)`` are no longer skipped;
-   perf budget green.
+   is no longer skipped (the macro ``test_macro_system.py`` stays
+   skipped pending the Marshall-2024 intrinsic-units project,
+   which is post-2.0); perf budget green.
 4. Sphinx site rebuilt; ``docs/migration-2.0.md`` ships;
    ``pyphi_config.yml`` auto-load uses the layered format
    (legacy YAML rejected with a rename map); ``_GlobalConfig``
@@ -1503,19 +1515,63 @@ fixture runs.
 
 ### Phase G — Downstream cleanup and future extensibility
 
-**P14. `macro.py` + `actual.py` resurrection**
+**P14. `actual.py` resurrection** — ✅ **Landed 2026-05-09 (`71d22611`)**
 
-Port both modules to the new core kernel. Macro subsystems become `CausalModel`
-transformations (coarse-graining as a functor from one model to another). Actual
-causation becomes a third `PhiFormalism` implementation — the underlying equations
-are different but fit the abstraction cleanly.
+Resurrected `pyphi.actual` against the frozen `System` value type. The data
+layer is unified with IIT via `SystemPublicInterface`: a new frozen
+`TransitionSystem` dataclass (parametric in `Direction`) satisfies the protocol,
+and `Transition` becomes a frozen wrapper holding two `TransitionSystem`
+instances (one per direction). The dispatch layer stays separate — actual
+causation is a parallel analysis mode with its own free functions
+(`pyphi.actual.sia`, `pyphi.actual.account`, etc.); IIT-formalism dispatchers
+raise `NotImplementedError` when called on a `TransitionSystem` (category
+errors).
 
-- *Why last among code projects:* They're flagged "out of date" in `PROJECTS.md`;
-  they need to follow every preceding decision; they have the lowest blast radius so
-  deferring them is safe; doing them before the core refactor would mean refactoring
-  them twice.
-- *Files:* `pyphi/macro.py` (1094 lines), `pyphi/actual.py` (953 lines),
-  `pyphi/models/actual_causation.py`, `test/test_macro*.py`, `test/test_actual.py`.
+The 826 lines of previously-skipped `test/test_actual.py` are back online,
+plus paper-fixture acceptance tests against the worked-example α values from
+Albantakis et al. 2019 ("What caused what?", `papers/2019__albantakis-et-al__what-caused-what.pdf`).
+
+The accompanying config audit restructured `config.formalism` into nested
+`IITConfig` and `ActualCausationConfig` dataclasses, applied a uniform
+rename map (`*_distance` → `*_measure`, `partition_type` →
+`mechanism_partition_scheme`, etc.), and added AC-specific knobs
+(`mechanism_partition_scheme`, `partitioned_repertoire_scheme`,
+`background_strategy`, `alpha_aggregation`). The orphaned concept-style
+cuts machinery (`ConceptStyleSystem`, `concept_cuts`, `directional_sia`,
+`SystemIrreducibilityAnalysisConceptStyle`, `sia_concept_style`,
+`config.system_cuts`) was removed.
+
+Macro work is split off into a separate paper-faithful project tracking
+Marshall et al. 2024 (intrinsic units); see "Macro framework — Marshall
+2024 intrinsic units" below. The disabled `MacroSystem` class and
+`test/test_macro_system.py` (593 lines) remain disabled until that
+project lands.
+
+- *Files touched:* `pyphi/actual.py`, `pyphi/models/actual_causation.py`,
+  `pyphi/conf/formalism.py`, `pyphi/conf/_global.py`,
+  `test/test_actual.py`, new `test/test_actual_paper_fixtures.py`.
+
+**Macro framework — Marshall 2024 intrinsic units**
+
+Paper-faithful macro framework replacing legacy `pyphi/macro.py` outright.
+The 2024 formalism organizes macro structure as hierarchical meso
+constituents, with sliding-window state mappings $g_J$ over sequences of
+$\tau$ micro updates, explicit background apportionment $W^J$, and
+intrinsic-unit search via $\varphi_s$ optimization.
+
+> Marshall W, Findlay G, Albantakis L, Tononi G (2024). *Intrinsic Units:
+> Identifying a system's causal grain.* (See
+> `papers/2024__marshall-et-al__intrinsic-units.pdf`.)
+
+- *Status:* Deferred. The disabled `MacroSystem` class and the 593-line
+  `test/test_macro_system.py` remain dark until this lands.
+- *Why a fresh project:* The 2024 paper specifies the formalism in terms
+  of objects (meso constituents, $g_J$, $W^J$, $\varphi_s$) that don't
+  map onto the legacy `MacroSubsystem` design. A faithful port is closer
+  to a rewrite than a resurrection.
+- *Files:* `pyphi/macro.py` (legacy, ~1094 lines, to be replaced),
+  `test/test_macro_system.py` (593 lines, to be unskipped against the
+  new design).
 
 **P14b. Fold matching/perception extension into PyPhi**
 
