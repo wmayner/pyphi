@@ -18,11 +18,17 @@ If you use this module, please cite the following papers:
 
 import contextlib
 import logging
+from dataclasses import dataclass
+from dataclasses import field
+from dataclasses import replace
+from functools import cached_property
 from itertools import chain
+from typing import Any
 
 import numpy as np
 
 from pyphi.formalism import iit3 as _iit3
+from pyphi.registry import Registry
 
 from . import conf
 from . import connectivity
@@ -43,11 +49,569 @@ from .models import NullCut
 from .models import _null_ac_ria
 from .models import _null_ac_sia
 from .models import fmt
+from .models.cuts import SystemPartition
 from .parallel import MapReduce
 from .partition import mip_partitions
+from .substrate import Substrate
 from .system import System
 
 log = logging.getLogger(__name__)
+
+
+class PartitionedRepertoireSchemeRegistry(Registry):
+    """Registry of partitioned-repertoire computation schemes for actual causation.
+
+    Schemes consume ``(transition_system, direction, partition)`` and
+    return the partitioned repertoire as a probability distribution
+    consistent with the parent System's TPM shape.
+    """
+
+    desc = "partitioned-repertoire schemes"
+
+
+class BackgroundStrategyRegistry(Registry):
+    """Registry of background-conditioning strategies for actual causation.
+
+    Strategies consume ``(substrate, before_state, external_indices)`` and
+    return either ``None`` (signaling uniform causal marginalization) or
+    a state-weight callable.
+    """
+
+    desc = "background-conditioning strategies"
+
+
+class AlphaAggregationRegistry(Registry):
+    """Registry of α-aggregation rules for actual causation.
+
+    Aggregators consume ``(rho, rho_partitioned)`` and return α — the
+    integrated information of an actual cause/effect link.
+    """  # noqa: RUF002
+
+    desc = "α-aggregation rules"  # noqa: RUF001
+
+
+partitioned_repertoire_schemes = PartitionedRepertoireSchemeRegistry()
+background_strategies = BackgroundStrategyRegistry()
+alpha_aggregations = AlphaAggregationRegistry()
+
+
+@partitioned_repertoire_schemes.register("PRODUCT")
+def _partitioned_repertoire_product(
+    transition_system: Any,
+    direction: Direction,
+    partition: Any,
+) -> Any:
+    return transition_system.partitioned_repertoire(direction, partition)
+
+
+@background_strategies.register("UNIFORM")
+def _background_uniform(
+    substrate: Any,  # noqa: ARG001
+    before_state: Any,  # noqa: ARG001
+    external_indices: Any,  # noqa: ARG001
+) -> Any:
+    return None
+
+
+@alpha_aggregations.register("SUBTRACTIVE")
+def _alpha_subtractive(rho: float, rho_partitioned: float) -> float:
+    return rho - rho_partitioned
+
+
+@dataclass(frozen=True, eq=False)
+class TransitionSystem:
+    """A directional view of a state transition.
+
+    Implements :class:`pyphi.protocols.SystemPublicInterface` via the
+    standard System surface (cause_tpm, effect_tpm, cm, node_indices,
+    state, repertoire methods, etc.).
+
+    The TPMs are conditioned on ``before_state`` for every substrate
+    index outside ``cause_indices`` (the asymmetric background-conditioning
+    rule from the 2019 Albantakis et al. formalism). The mechanism-
+    evaluation ``state`` is ``after_state`` for the CAUSE direction and
+    ``before_state`` for the EFFECT direction. Two TransitionSystem
+    instances live inside each :class:`Transition`, one per direction.
+    """
+
+    substrate: Substrate
+    before_state: tuple[int, ...]
+    after_state: tuple[int, ...]
+    cause_indices: tuple[int, ...]
+    effect_indices: tuple[int, ...]
+    direction: Direction
+    cut: SystemPartition = field(default=None)  # type: ignore[assignment]
+    noise_background: bool = False
+
+    def __post_init__(self) -> None:
+        validate.state_length(self.before_state, self.substrate.size)
+        validate.state_length(self.after_state, self.substrate.size)
+        validate.node_states(self.before_state)
+        validate.node_states(self.after_state)
+        coerce = self.substrate.node_labels.coerce_to_indices
+        object.__setattr__(self, "cause_indices", coerce(self.cause_indices))
+        object.__setattr__(self, "effect_indices", coerce(self.effect_indices))
+        if self.cut is None:
+            object.__setattr__(
+                self, "cut", NullCut(self.node_indices, self.substrate.node_labels)
+            )
+        if (
+            self.direction == Direction.CAUSE
+            and config.infrastructure.validate_system_states
+        ):
+            with config.override(validate_system_states=False):
+                temp_system = System(
+                    substrate=self.substrate,
+                    state=self.after_state,
+                    node_indices=self.node_indices,
+                    cut=self.cut,
+                )
+                validate.state_reachable(temp_system)
+
+    @cached_property
+    def node_indices(self) -> tuple[int, ...]:
+        return tuple(sorted(set(self.cause_indices) | set(self.effect_indices)))
+
+    @cached_property
+    def state(self) -> tuple[int, ...]:
+        return (
+            self.after_state if self.direction == Direction.CAUSE else self.before_state
+        )
+
+    @cached_property
+    def external_indices(self) -> tuple[int, ...]:
+        if self.noise_background:
+            return ()
+        all_indices = set(self.substrate.node_indices)
+        return tuple(sorted(all_indices - set(self.cause_indices)))
+
+    @cached_property
+    def node_labels(self) -> Any:
+        return self.substrate.node_labels
+
+    @cached_property
+    def proper_state(self) -> Any:
+        return utils.state_of(self.node_indices, self.state)
+
+    @cached_property
+    def _underlying_system(self) -> Any:
+        with config.override(validate_system_states=False):
+            return System(
+                substrate=self.substrate,
+                state=self.before_state,
+                node_indices=self.cause_indices,
+                cut=self.cut,
+            )
+
+    @cached_property
+    def cause_tpm(self) -> Any:
+        return self._underlying_system.cause_tpm
+
+    @cached_property
+    def effect_tpm(self) -> Any:
+        return self._underlying_system.effect_tpm
+
+    @cached_property
+    def cm(self) -> Any:
+        return self._underlying_system.cm
+
+    @cached_property
+    def proper_cause_tpm(self) -> Any:
+        return self._underlying_system.proper_cause_tpm
+
+    @cached_property
+    def proper_effect_tpm(self) -> Any:
+        return self._underlying_system.proper_effect_tpm
+
+    @cached_property
+    def proper_cm(self) -> Any:
+        return self._underlying_system.proper_cm
+
+    @cached_property
+    def connectivity_matrix(self) -> Any:
+        return self.cm
+
+    @cached_property
+    def cut_indices(self) -> tuple[int, ...]:
+        return self.node_indices
+
+    @cached_property
+    def cut_node_labels(self) -> Any:
+        return self.node_labels
+
+    @cached_property
+    def is_cut(self) -> bool:
+        return not isinstance(self.cut, NullCut)
+
+    @cached_property
+    def size(self) -> int:
+        return len(self.node_indices)
+
+    @cached_property
+    def tpm_size(self) -> int:
+        return self.substrate.size
+
+    @cached_property
+    def nodes(self) -> Any:
+        from pyphi.node import generate_nodes
+
+        return generate_nodes(
+            self.cause_tpm,
+            self.effect_tpm,
+            self.cm,
+            self.state,
+            self.node_indices,
+            self.node_labels,
+        )
+
+    @cached_property
+    def cut_mechanisms(self) -> Any:
+        return list(self.cut.all_cut_mechanisms())
+
+    @cached_property
+    def null_distinction(self) -> Any:
+        from pyphi.core import repertoire_algebra as ra
+
+        return ra.null_distinction(self)
+
+    @cached_property
+    def null_concept(self) -> Any:
+        return self.null_distinction
+
+    def apply_cut(self, cut: SystemPartition) -> "TransitionSystem":
+        return replace(self, cut=cut)
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, TransitionSystem):
+            return NotImplemented
+        return (
+            self.substrate == other.substrate
+            and self.before_state == other.before_state
+            and self.after_state == other.after_state
+            and self.cause_indices == other.cause_indices
+            and self.effect_indices == other.effect_indices
+            and self.direction == other.direction
+            and self.cut == other.cut
+        )
+
+    def __hash__(self) -> int:
+        return hash(
+            (
+                self.substrate,
+                self.before_state,
+                self.after_state,
+                self.cause_indices,
+                self.effect_indices,
+                self.direction,
+                self.cut,
+            )
+        )
+
+    def __len__(self) -> int:
+        return len(self.node_indices)
+
+    def __str__(self) -> str:
+        labels = self.node_labels.coerce_to_labels(self.node_indices)
+        joined = ", ".join(str(label) for label in labels)
+        return f"TransitionSystem({self.direction}, {joined})"
+
+    def cause_repertoire(self, mechanism: Any, purview: Any, **kw: Any) -> Any:
+        from pyphi.core import repertoire_algebra as ra
+
+        return ra.cause_repertoire(self, mechanism, purview, **kw)
+
+    def effect_repertoire(self, mechanism: Any, purview: Any, **kw: Any) -> Any:
+        from pyphi.core import repertoire_algebra as ra
+
+        return ra.effect_repertoire(self, mechanism, purview, **kw)
+
+    def repertoire(
+        self, direction: Direction, mechanism: Any, purview: Any, **kw: Any
+    ) -> Any:
+        from pyphi.core import repertoire_algebra as ra
+
+        return ra.repertoire(self, direction, mechanism, purview, **kw)
+
+    def unconstrained_cause_repertoire(self, purview: Any) -> Any:
+        from pyphi.core import repertoire_algebra as ra
+
+        return ra.unconstrained_cause_repertoire(self, purview)
+
+    def unconstrained_effect_repertoire(self, purview: Any) -> Any:
+        from pyphi.core import repertoire_algebra as ra
+
+        return ra.unconstrained_effect_repertoire(self, purview)
+
+    def unconstrained_repertoire(self, direction: Direction, purview: Any) -> Any:
+        from pyphi.core import repertoire_algebra as ra
+
+        return ra.unconstrained_repertoire(self, direction, purview)
+
+    def partitioned_repertoire(
+        self, direction: Direction, partition: Any, **kw: Any
+    ) -> Any:
+        scheme_name = config.formalism.actual_causation.partitioned_repertoire_scheme
+        scheme = partitioned_repertoire_schemes[scheme_name]
+        return scheme(self, direction, partition, **kw)
+
+    def expand_cause_repertoire(
+        self, repertoire_array: Any, *, new_purview: Any | None = None
+    ) -> Any:
+        from pyphi.core import repertoire_algebra as ra
+
+        return ra.expand_cause_repertoire(
+            self, repertoire_array, new_purview=new_purview
+        )
+
+    def expand_effect_repertoire(
+        self, repertoire_array: Any, *, new_purview: Any | None = None
+    ) -> Any:
+        from pyphi.core import repertoire_algebra as ra
+
+        return ra.expand_effect_repertoire(
+            self, repertoire_array, new_purview=new_purview
+        )
+
+    def expand_repertoire(
+        self,
+        direction: Direction,
+        repertoire_array: Any,
+        new_purview: Any | None = None,
+    ) -> Any:
+        from pyphi.core import repertoire_algebra as ra
+
+        return ra.expand_repertoire(
+            self, direction, repertoire_array, new_purview=new_purview
+        )
+
+    def forward_cause_repertoire(
+        self, mechanism: Any, purview: Any, purview_state: Any | None = None
+    ) -> Any:
+        from pyphi.core import repertoire_algebra as ra
+
+        return ra.forward_cause_repertoire(self, mechanism, purview, purview_state)
+
+    def forward_effect_repertoire(self, mechanism: Any, purview: Any, **kw: Any) -> Any:
+        from pyphi.core import repertoire_algebra as ra
+
+        return ra.forward_effect_repertoire(self, mechanism, purview, **kw)
+
+    def forward_repertoire(
+        self,
+        direction: Direction,
+        mechanism: Any,
+        purview: Any,
+        purview_state: Any | None = None,
+        **kw: Any,
+    ) -> Any:
+        from pyphi.core import repertoire_algebra as ra
+
+        return ra.forward_repertoire(
+            self, direction, mechanism, purview, purview_state, **kw
+        )
+
+    def unconstrained_forward_cause_repertoire(
+        self, mechanism: Any, purview: Any
+    ) -> Any:
+        from pyphi.core import repertoire_algebra as ra
+
+        return ra.unconstrained_forward_cause_repertoire(self, mechanism, purview)
+
+    def unconstrained_forward_effect_repertoire(
+        self, mechanism: Any, purview: Any
+    ) -> Any:
+        from pyphi.core import repertoire_algebra as ra
+
+        return ra.unconstrained_forward_effect_repertoire(self, mechanism, purview)
+
+    def unconstrained_forward_repertoire(
+        self, direction: Direction, mechanism: Any, purview: Any
+    ) -> Any:
+        from pyphi.core import repertoire_algebra as ra
+
+        return ra.unconstrained_forward_repertoire(self, direction, mechanism, purview)
+
+    def forward_cause_probability(
+        self,
+        mechanism: Any,
+        purview: Any,
+        purview_state: Any,
+        mechanism_state: Any | None = None,
+    ) -> float:
+        from pyphi.core import repertoire_algebra as ra
+
+        return ra.forward_cause_probability(
+            self, mechanism, purview, purview_state, mechanism_state
+        )
+
+    def forward_effect_probability(
+        self, mechanism: Any, purview: Any, purview_state: Any
+    ) -> float:
+        from pyphi.core import repertoire_algebra as ra
+
+        return ra.forward_effect_probability(self, mechanism, purview, purview_state)
+
+    def forward_probability(
+        self,
+        direction: Direction,
+        mechanism: Any,
+        purview: Any,
+        purview_state: Any,
+        **kw: Any,
+    ) -> float:
+        from pyphi.core import repertoire_algebra as ra
+
+        return ra.forward_probability(
+            self, direction, mechanism, purview, purview_state, **kw
+        )
+
+    def cause_info(self, mechanism: Any, purview: Any, **kw: Any) -> float:
+        from pyphi.core import repertoire_algebra as ra
+
+        return ra.cause_info(self, mechanism, purview, **kw)
+
+    def effect_info(self, mechanism: Any, purview: Any, **kw: Any) -> float:
+        from pyphi.core import repertoire_algebra as ra
+
+        return ra.effect_info(self, mechanism, purview, **kw)
+
+    def cause_effect_info(self, mechanism: Any, purview: Any, **kw: Any) -> float:
+        from pyphi.core import repertoire_algebra as ra
+
+        return ra.cause_effect_info(self, mechanism, purview, **kw)
+
+    def intrinsic_information(
+        self, direction: Direction, mechanism: Any, purview: Any, **kw: Any
+    ) -> Any:
+        from pyphi.core import repertoire_algebra as ra
+
+        return ra.intrinsic_information(self, direction, mechanism, purview, **kw)
+
+    def potential_purviews(self, direction: Direction, mechanism: Any, **kw: Any) -> Any:
+        from pyphi.core import repertoire_algebra as ra
+
+        return ra.potential_purviews(self, direction, mechanism, **kw)
+
+    def indices2nodes(self, indices: Any) -> Any:
+        from pyphi.core import repertoire_algebra as ra
+
+        return ra.indices2nodes(self, indices)
+
+    def cache_info(self) -> dict[str, Any]:
+        from pyphi.core import repertoire_algebra as ra
+
+        return ra.cache_info()
+
+    def clear_caches(self) -> None:
+        from pyphi.core import repertoire_algebra as ra
+
+        ra.clear_caches(self)
+
+    def sia(self, **kw: Any) -> Any:
+        raise NotImplementedError(
+            "TransitionSystem does not support IIT formalism dispatch. "
+            "Use pyphi.actual.sia(transition) for actual-causation analysis."
+        )
+
+    def phi_structure(self, **kw: Any) -> Any:
+        raise NotImplementedError(
+            "TransitionSystem does not support IIT phi_structure. "
+            "Use pyphi.actual.account(transition, direction) instead."
+        )
+
+    def ces(self, **kw: Any) -> Any:
+        raise NotImplementedError(
+            "TransitionSystem does not support IIT ces. "
+            "Use pyphi.actual.account(transition, direction) instead."
+        )
+
+    def find_mip(
+        self, direction: Direction, mechanism: Any, purview: Any, **kw: Any
+    ) -> Any:
+        raise NotImplementedError(
+            "TransitionSystem does not expose IIT mechanism MIP search. "
+            "Use Transition.find_mip(direction, mechanism, purview) instead."
+        )
+
+    def cause_mip(self, mechanism: Any, purview: Any, **kw: Any) -> Any:
+        raise NotImplementedError("Use Transition.find_mip instead.")
+
+    def effect_mip(self, mechanism: Any, purview: Any, **kw: Any) -> Any:
+        raise NotImplementedError("Use Transition.find_mip instead.")
+
+    def phi_cause_mip(self, mechanism: Any, purview: Any, **kw: Any) -> float:
+        raise NotImplementedError("Use Transition.find_mip instead.")
+
+    def phi_effect_mip(self, mechanism: Any, purview: Any, **kw: Any) -> float:
+        raise NotImplementedError("Use Transition.find_mip instead.")
+
+    def phi(self, mechanism: Any, purview: Any, **kw: Any) -> float:
+        raise NotImplementedError("AC has no IIT-style phi. See pyphi.actual.")
+
+    def find_mice(self, direction: Direction, mechanism: Any, **kw: Any) -> Any:
+        raise NotImplementedError(
+            "Use Transition.find_causal_link(direction, mechanism) instead."
+        )
+
+    def mic(self, mechanism: Any, **kw: Any) -> Any:
+        raise NotImplementedError("Use Transition.find_actual_cause instead.")
+
+    def mie(self, mechanism: Any, **kw: Any) -> Any:
+        raise NotImplementedError("Use Transition.find_actual_effect instead.")
+
+    def phi_max(self, mechanism: Any) -> float:
+        raise NotImplementedError("AC has no IIT-style phi_max.")
+
+    def distinction(self, mechanism: Any) -> Any:
+        raise NotImplementedError("AC has no IIT distinctions.")
+
+    def all_distinctions(self, **kw: Any) -> Any:
+        raise NotImplementedError("AC has no IIT distinctions.")
+
+    def evaluate_partition(
+        self,
+        direction: Direction,
+        mechanism: Any,
+        purview: Any,
+        partition: Any,
+        **kw: Any,
+    ) -> Any:
+        raise NotImplementedError("Use Transition.find_mip / Transition.repertoire.")
+
+    @classmethod
+    def from_substrate(
+        cls,
+        substrate: Substrate,
+        before_state: Any,
+        after_state: Any,
+        cause_indices: Any,
+        effect_indices: Any,
+        direction: Direction,
+        cut: SystemPartition | None = None,
+        **kwargs: Any,
+    ) -> "TransitionSystem":
+        return cls(
+            substrate=substrate,
+            before_state=tuple(before_state),
+            after_state=tuple(after_state),
+            cause_indices=tuple(cause_indices),
+            effect_indices=tuple(effect_indices),
+            direction=direction,
+            cut=cut,  # type: ignore[arg-type]
+            **kwargs,
+        )
+
+    def to_json(self) -> dict[str, Any]:
+        return {
+            "substrate": self.substrate,
+            "before_state": list(self.before_state),
+            "after_state": list(self.after_state),
+            "cause_indices": list(self.cause_indices),
+            "effect_indices": list(self.effect_indices),
+            "direction": self.direction,
+            "cut": self.cut,
+            "noise_background": self.noise_background,
+        }
 
 
 class Transition:

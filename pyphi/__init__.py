@@ -71,6 +71,7 @@ import pkgutil
 
 # Lift main interfaces to top-level namespace
 from .actual import Transition
+from .actual import TransitionSystem
 from .conf import config
 from .direction import Direction
 from .substrate import Substrate
@@ -119,6 +120,7 @@ __all__ = [
     "Substrate",
     "System",
     "Transition",
+    "TransitionSystem",
 ] + [name for name in _submodule_names if not name.startswith("_")]
 
 

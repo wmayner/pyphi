@@ -15,10 +15,172 @@ from pyphi.models import Part
 
 from .conftest import IIT_3_CONFIG
 
-pytestmark = pytest.mark.skip(
-    reason="actual.Transition pending refactor for frozen System "
+
+def test_actual_partitioned_repertoire_schemes_registry():
+    from pyphi import actual
+
+    assert "PRODUCT" in actual.partitioned_repertoire_schemes
+    assert "FORWARD_PROBABILITY" not in actual.partitioned_repertoire_schemes
+
+
+def test_actual_background_strategies_registry():
+    from pyphi import actual
+
+    assert "UNIFORM" in actual.background_strategies
+    assert "STATIONARY" not in actual.background_strategies
+
+
+def test_actual_alpha_aggregations_registry():
+    from pyphi import actual
+
+    assert "SUBTRACTIVE" in actual.alpha_aggregations
+    assert "RATIO" not in actual.alpha_aggregations
+
+
+def test_transition_system_top_level_export():
+    import pyphi
+
+    assert hasattr(pyphi, "TransitionSystem")
+    from pyphi.actual import TransitionSystem
+
+    assert pyphi.TransitionSystem is TransitionSystem
+
+
+def _ts_substrate():
+    """Helper: build the OR/AND-style 3-node substrate used in TransitionSystem tests."""
+    import numpy as np
+
+    from pyphi import Substrate
+
+    tpm = np.array(
+        [
+            [0, 0.5, 0.5],
+            [0, 0.5, 0.5],
+            [1, 0.5, 0.5],
+            [1, 0.5, 0.5],
+            [1, 0.5, 0.5],
+            [1, 0.5, 0.5],
+            [1, 0.5, 0.5],
+            [1, 0.5, 0.5],
+        ]
+    )
+    cm = np.array([[0, 0, 0], [1, 0, 0], [1, 0, 0]])
+    return Substrate(tpm, cm)
+
+
+def test_transition_system_is_frozen():
+    import dataclasses
+
+    import pytest as _pt
+
+    from pyphi import Direction
+    from pyphi.actual import TransitionSystem
+
+    ts = TransitionSystem(
+        substrate=_ts_substrate(),
+        before_state=(0, 1, 1),
+        after_state=(1, 0, 0),
+        cause_indices=(1, 2),
+        effect_indices=(0,),
+        direction=Direction.CAUSE,
+    )
+    with _pt.raises(dataclasses.FrozenInstanceError):
+        ts.before_state = (1, 1, 1)
+
+
+def test_transition_system_satisfies_protocol():
+    from pyphi import Direction
+    from pyphi.actual import TransitionSystem
+    from pyphi.protocols import SystemPublicInterface
+
+    ts = TransitionSystem(
+        substrate=_ts_substrate(),
+        before_state=(0, 1, 1),
+        after_state=(1, 0, 0),
+        cause_indices=(1, 2),
+        effect_indices=(0,),
+        direction=Direction.CAUSE,
+    )
+    assert isinstance(ts, SystemPublicInterface)
+
+
+def test_transition_system_cause_uses_after_state():
+    from pyphi import Direction
+    from pyphi.actual import TransitionSystem
+
+    ts = TransitionSystem(
+        substrate=_ts_substrate(),
+        before_state=(0, 1, 1),
+        after_state=(1, 0, 0),
+        cause_indices=(1, 2),
+        effect_indices=(0,),
+        direction=Direction.CAUSE,
+    )
+    assert ts.state == (1, 0, 0)
+
+
+def test_transition_system_effect_uses_before_state():
+    from pyphi import Direction
+    from pyphi.actual import TransitionSystem
+
+    ts = TransitionSystem(
+        substrate=_ts_substrate(),
+        before_state=(0, 1, 1),
+        after_state=(1, 0, 0),
+        cause_indices=(1, 2),
+        effect_indices=(0,),
+        direction=Direction.EFFECT,
+    )
+    assert ts.state == (0, 1, 1)
+
+
+def test_transition_system_external_indices_excludes_cause_indices():
+    from pyphi import Direction
+    from pyphi.actual import TransitionSystem
+
+    ts = TransitionSystem(
+        substrate=_ts_substrate(),
+        before_state=(0, 1, 1),
+        after_state=(1, 0, 0),
+        cause_indices=(1, 2),
+        effect_indices=(0,),
+        direction=Direction.CAUSE,
+    )
+    assert ts.external_indices == (0,)
+
+
+def test_transition_system_apply_cut_returns_new_instance():
+    from pyphi import Direction
+    from pyphi.actual import TransitionSystem
+    from pyphi.models.cuts import NullCut
+    from pyphi.models.cuts import SystemPartition
+
+    substrate = _ts_substrate()
+    ts = TransitionSystem(
+        substrate=substrate,
+        before_state=(0, 1, 1),
+        after_state=(1, 0, 0),
+        cause_indices=(1, 2),
+        effect_indices=(0,),
+        direction=Direction.CAUSE,
+    )
+    new_cut = SystemPartition(Direction.CAUSE, (0, 1), (2,), substrate.node_labels)
+    ts2 = ts.apply_cut(new_cut)
+    assert ts2 is not ts
+    assert ts2.cut == new_cut
+    assert isinstance(ts.cut, NullCut)
+
+
+_legacy_skip_reason = (
+    "actual.Transition pending refactor for frozen System "
     "(uses _external_indices override + state mutation)"
 )
+_legacy_skip = pytest.mark.skip(reason=_legacy_skip_reason)
+
+
+def _skip_legacy() -> None:
+    pytest.skip(_legacy_skip_reason)
+
 
 # TODO
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -33,6 +195,7 @@ pytestmark = pytest.mark.skip(
 @pytest.fixture
 def transition():
     """An OR gate with two inputs. The OR gate is ON, others are OFF."""
+    _skip_legacy()
     # fmt: off
     tpm = np.array([
         [0, 0.5, 0.5],
@@ -58,6 +221,7 @@ def transition():
 
 @pytest.fixture
 def empty_transition(transition):
+    _skip_legacy()
     return actual.Transition(
         transition.substrate, transition.before_state, transition.after_state, (), ()
     )
@@ -65,6 +229,7 @@ def empty_transition(transition):
 
 @pytest.fixture
 def prevention():
+    _skip_legacy()
     return examples.prevention_transition()
 
 
@@ -76,6 +241,7 @@ def prevention():
 # were outdated. test_background_noised provides coverage for similar functionality.
 
 
+@_legacy_skip
 def test_background_noised():
     # fmt: off
     tpm = np.array([
@@ -105,6 +271,7 @@ def test_background_noised():
 @pytest.fixture
 def background_3_node():
     """A is MAJ(ABC). B is OR(A, C). C is COPY(A)."""
+    _skip_legacy()
     # fmt: off
     tpm = np.array([
         [0, 0, 0],
@@ -123,6 +290,7 @@ def background_3_node():
 # NOTE: test_background_3_node was removed because the expected values were outdated.
 
 
+@_legacy_skip
 def test_potential_purviews(background_3_node):
     """Purviews must be a subset of the corresponding cause/effect system."""
     transition = actual.Transition(
@@ -395,6 +563,7 @@ def test_unconstrained_probability(transition):
     assert transition.unconstrained_probability(Direction.EFFECT, (0,)) == 0.75
 
 
+@_legacy_skip
 def test_state_probability_strict_system():
     """Regression test for ``Transition.state_probability`` on transitions
     whose system is a strict subset of the substrate.
@@ -558,6 +727,7 @@ def test_null_ac_sia(transition):
 @pytest.fixture
 def background_all_off():
     """Transition fixture with all nodes OFF -> all nodes OFF."""
+    _skip_legacy()
     # fmt: off
     tpm = np.array([
         [0, 0],
@@ -573,6 +743,7 @@ def background_all_off():
 @pytest.fixture
 def background_all_on():
     """Transition fixture with all nodes ON -> all nodes ON."""
+    _skip_legacy()
     # fmt: off
     tpm = np.array([
         [0, 0],
@@ -585,6 +756,7 @@ def background_all_on():
     return actual.Transition(substrate, (1, 1), (1, 1), (0,), (1,))
 
 
+@_legacy_skip
 class TestActualCausationIIT30:
     """Regression tests for actual causation with IIT 3.0 configuration.
 
