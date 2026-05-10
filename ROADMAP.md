@@ -1237,7 +1237,30 @@ tier in place to bridge the gap.
 ``test/test_perf_budget.py`` (Tier 1), ``.github/workflows/`` (new
 nightly), ``ROADMAP.md`` (mark P15's Layer D as superseded).
 
-**P11.9. Congruence resolution: make tied-state semantics safe by construction**
+**P11.9. Congruence resolution: make tied-state semantics safe by construction — landed (2026-05-09)**
+
+Implemented as **Option C** (type-level). ``Distinctions`` is now a
+shared base class with two marker subtypes:
+:class:`pyphi.models.distinctions.UnresolvedDistinctions` (raw
+computation result; per-distinction tied states not disambiguated) and
+:class:`pyphi.models.distinctions.ResolvedDistinctions` (post
+``resolve_congruence``; required by
+:func:`pyphi.relations.relations` and the ``distinctions`` field of
+:class:`pyphi.models.ces.CauseEffectStructure`). The boolean
+``_resolved_congruence`` flag and the runtime ``PyPhiWarning`` in
+``relations()`` are deleted — passing an ``UnresolvedDistinctions``
+where a ``ResolvedDistinctions`` is required is a static type error.
+
+For degenerate substrates whose SIA is null (NO_STRONG_CONNECTIVITY
+etc.), ``phi_structure`` resolves against
+``system_intrinsic_information(system)`` instead of skipping
+resolution. The fig5b paper-example fixture is regenerated from 2
+unfiltered distinctions to 1 resolved distinction; all other phi_structure
+fixtures are unchanged.
+
+Landed at commit ``065e7228``.
+
+**Original design discussion** (kept for reference):
 
 In IIT 4.0, a distinction can have multiple *tied* specified states for
 its cause and effect MICs. The "true" specified state of each
@@ -1341,18 +1364,15 @@ test inventory — that a deliberate re-ordering pass is in order.
    tests P14 will re-enable migrate exactly once against the final
    config API.
 
-3. **P11.9 — Congruence resolution: type-level safety.** Correctness
-   work, not features. Tied specified states on distinctions are
-   currently disambiguated only by a boolean ``resolved_congruence``
-   flag with a downgrade-to-warning enforcement; downstream code
-   (relations, ces_distance, fold counting) silently produces wrong
-   results on unresolved distinctions. Recommended fix: split into
-   ``UnresolvedDistinctions`` and ``ResolvedDistinctions`` types so
-   functions that need resolved state cannot accept unresolved input
-   (illegal states unrepresentable). Sequenced before P12 because
-   non-binary alphabets multiply the number of tied states and make
-   incorrect handling more dangerous. Could interleave with or
-   precede P14.
+3. **P11.9 — Congruence resolution: type-level safety.** *(landed
+   2026-05-09, commit ``065e7228``.)* Implemented as Option C:
+   ``Distinctions`` split into ``UnresolvedDistinctions`` /
+   ``ResolvedDistinctions`` marker subtypes. Functions that need
+   resolved state (``relations``, ``CauseEffectStructure``) accept
+   only ``ResolvedDistinctions`` — static type error otherwise. Boolean
+   flag and runtime warning deleted. Degenerate-SIA fallback resolves
+   against ``system_intrinsic_information`` (regenerated fig5b
+   fixture).
 
 4. **P14 — ``macro.py`` + ``actual.py`` resurrection.** Promoted ahead
    of P12. Survey on 2026-05-09: ``pyphi/actual.py`` is ~95%
