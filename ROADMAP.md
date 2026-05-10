@@ -1424,6 +1424,58 @@ test inventory — that a deliberate re-ordering pass is in order.
     Disabled ``MacroSystem`` class and 593-line
     ``test/test_macro_system.py`` stay dark until this lands.
 
+11. **P11.85 — Measure-API unification.** Deferred-cleanup candidate.
+    The current measures registry (``pyphi.metrics.distribution.measures``,
+    ``pyphi.actual.partitioned_repertoire_schemes``, etc.) is
+    fragmented in calling shape: distribution metrics take ``(p, q)``,
+    state-aware metrics take ``(forward, partitioned, selectivity, state)``,
+    composite metrics like ``INTRINSIC_INFORMATION`` internally read other
+    config fields and dispatch. This forces helpers to special-case on
+    measure-name strings (e.g., ``if measure == "INTRINSIC_INFORMATION":
+    measure = "GENERALIZED_INTRINSIC_DIFFERENCE"``) — the
+    Eqs. 19-20 conversion in
+    ``pyphi.formalism.iit4.evaluate_partition`` is one of several. P11.85
+    introduces calling-shape Protocols (``DistributionMeasure``,
+    ``StateAwareMeasure``, ``CompositeMeasure``), tags each registered
+    measure with its Protocol, and replaces string-based dispatch with
+    Protocol-based dispatch. Folds in the deferred metric-API cleanups
+    from P5: return-type normalization (some metrics return ``float``,
+    others ``DistanceResult``), ``INTRINSIC_DIFFERENTIATION``'s awkward
+    ``(p, q, state)`` signature where ``q`` is ignored, ``intrinsic_information``
+    reading ``config.formalism.iit.specification_measure`` /
+    ``differentiation_measure``. Estimated 3-5 days. Useful before P15
+    docs/jsonify retirement (clean metric API stabilizes the docs).
+
+12. **P11.86 — Explicit-parameter measure threading.** Deferred-cleanup
+    candidate. Eliminates the ``with config.override(...)`` wrapper
+    pattern in formalism class methods (``IIT4_2023Formalism``,
+    ``IIT4_2026Formalism``, etc.). Today helpers like
+    ``_evaluate_partition_iit4``, ``_sia``, ``_phi_structure`` read
+    measure / scheme / strategy choices from
+    ``config.formalism.iit.X`` directly, so formalism methods mutate
+    global config to control what helpers see. The pattern is
+    action-at-a-distance, fragile under partial reads, and parallel-hostile
+    (the ``ConfigSnapshot`` machinery from P10b is a workaround). P11.86
+    lifts measure / scheme / strategy choices out of helper bodies
+    into helper signatures: helpers take explicit parameters; public
+    dispatchers (``System.sia``, ``System.phi_structure``, ``actual.sia``)
+    read config and pass values down; formalism classes pass their own
+    values when calling helpers. Eliminates the override pattern, the
+    string-based dispatch from P11.85, and the parallel-state issue at
+    its root. Estimated 5-7 days. Substantial mechanical refactor;
+    paired with P11.85.
+
+13. **P10c — Flat dotted-string config accessor.** Deferred-ergonomics
+    candidate. Adds a Hydra/OmegaConf-style flat dotted-string accessor
+    on top of the nested-dataclass config implementation
+    (``config["formalism.iit.mechanism_phi_measure"]`` alongside the
+    existing ``config.formalism.iit.mechanism_phi_measure``). Internal
+    storage stays nested-dataclass (preserves type checking, validators,
+    ``ConfigSnapshot``); the flat accessor delegates via path traversal.
+    Optional convenience for users who prefer string keys for
+    serialization, CLI overrides, or programmatic enumeration of all
+    config keys. Estimated half-day. Low priority; could fold into P15.
+
 **Ship criterion for 2.0:**
 
 The original roadmap doesn't state a release criterion explicitly.
