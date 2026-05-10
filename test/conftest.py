@@ -83,6 +83,7 @@ def pytest_configure(config):
     - slow: Tier-2 test (skipped by default; opt in with the root conftest's
       ``--slow`` flag). Used by the golden suite to gate IIT 4.0 (2026) and
       large-substrate fixtures.
+    - perf: Wall-time floor assertion on a hot-path fixture.
     """
     config.addinivalue_line(
         "markers",
@@ -91,6 +92,10 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers",
         "robust: Robust component-level test with intermediate checks",
+    )
+    config.addinivalue_line(
+        "markers",
+        "perf: Wall-time floor assertion on a hot-path fixture",
     )
 
 
