@@ -64,12 +64,9 @@ def _evaluate_partition_iit4(
     from pyphi.utils import state_of
 
     repertoire_distance = fallback(
-        kwargs.pop("repertoire_distance", None), config.formalism.iit.repertoire_measure
+        kwargs.pop("repertoire_distance", None),
+        config.formalism.iit.mechanism_phi_measure,
     )
-    # Mechanism-level partition evaluation uses GID; INTRINSIC_INFORMATION
-    # is a system-level composite (Eq. 23) that reduces to GID at this level.
-    if repertoire_distance == "INTRINSIC_INFORMATION":
-        repertoire_distance = "GENERALIZED_INTRINSIC_DIFFERENCE"
 
     if repertoire is None:
         repertoire = system.repertoire(direction, mechanism, purview)
@@ -166,11 +163,12 @@ def _find_mip_iit4(
 
 @dataclass(frozen=True)
 class IIT4_2023Formalism:
-    """IIT 4.0 (Albantakis et al. 2023) — GID-based mechanism integration."""
+    """IIT 4.0 (Albantakis et al. 2023) — GID-based integration at all scopes."""
 
     name: ClassVar[str] = "IIT_4_0_2023"
     exact: ClassVar[Literal[True]] = True
-    default_metric: ClassVar[str] = "GENERALIZED_INTRINSIC_DIFFERENCE"
+    default_mechanism_metric: ClassVar[str] = "GENERALIZED_INTRINSIC_DIFFERENCE"
+    default_system_metric: ClassVar[str] = "GENERALIZED_INTRINSIC_DIFFERENCE"
     compatible_metrics: ClassVar[frozenset[str]] = frozenset(
         {"GENERALIZED_INTRINSIC_DIFFERENCE", "INTRINSIC_INFORMATION"}
     )
@@ -204,7 +202,7 @@ class IIT4_2023Formalism:
         """Internal mechanism-MIP search. Called by ``queries.find_mip``
         after its short-circuit checks; contains the IIT 4.0 logic
         (maximize over specified states, minimize over partitions)."""
-        check_metric_compatible(self, config.formalism.iit.repertoire_measure)
+        check_metric_compatible(self, config.formalism.iit.mechanism_phi_measure)
         return _find_mip_iit4(system, direction, mechanism, purview, **kwargs)
 
     def evaluate_mechanism_partition(
@@ -218,19 +216,19 @@ class IIT4_2023Formalism:
     ) -> Any:
         """IIT 4.0 mechanism-partition integration: forward repertoires +
         scalar selectivity feed a GID-style metric."""
-        check_metric_compatible(self, config.formalism.iit.repertoire_measure)
+        check_metric_compatible(self, config.formalism.iit.mechanism_phi_measure)
         return _evaluate_partition_iit4(
             system, direction, mechanism, purview, partition, **kwargs
         )
 
     def evaluate_system(self, system: Any, **kwargs: Any) -> Any:
         """Delegate to :func:`pyphi.formalism.iit4.sia`."""
-        check_metric_compatible(self, config.formalism.iit.repertoire_measure)
+        check_metric_compatible(self, config.formalism.iit.system_phi_measure)
         return _sia(system, **kwargs)
 
     def build_phi_structure(self, system: Any, **kwargs: Any) -> Any:
         """Delegate to :func:`pyphi.formalism.iit4.phi_structure`."""
-        check_metric_compatible(self, config.formalism.iit.repertoire_measure)
+        check_metric_compatible(self, config.formalism.iit.system_phi_measure)
         return _phi_structure(system, **kwargs)
 
 
@@ -238,17 +236,16 @@ class IIT4_2023Formalism:
 class IIT4_2026Formalism:
     """IIT 4.0 (Mayner, Marshall, Tononi 2026) — intrinsic-information cap.
 
-    Uses the ``INTRINSIC_INFORMATION`` metric with the ``ii(s) = min(i_diff,
-    i_spec)`` cap from Eq. 23. Implementation reuses the IIT 4.0 (2023)
-    algorithms; only the metric configuration differs. The metric override
-    is applied via :class:`pyphi.conf.PyphiConfig.override` so legacy
-    sites that still read ``config.formalism.iit.repertoire_measure`` see the right
-    metric.
+    Mechanism phi uses GID per Eqs. 19-20 (same as IIT 4.0 2023). System
+    phi uses ``INTRINSIC_INFORMATION`` with the ``ii(s) = min(i_diff,
+    i_spec)`` cap from Eq. 23 — that's the 2026-specific divergence.
+    Scope-explicit overrides ensure each level uses the right metric.
     """
 
     name: ClassVar[str] = "IIT_4_0_2026"
     exact: ClassVar[Literal[True]] = True
-    default_metric: ClassVar[str] = "INTRINSIC_INFORMATION"
+    default_mechanism_metric: ClassVar[str] = "GENERALIZED_INTRINSIC_DIFFERENCE"
+    default_system_metric: ClassVar[str] = "INTRINSIC_INFORMATION"
     compatible_metrics: ClassVar[frozenset[str]] = frozenset(
         {"INTRINSIC_INFORMATION", "GENERALIZED_INTRINSIC_DIFFERENCE"}
     )
@@ -266,7 +263,7 @@ class IIT4_2026Formalism:
     ) -> Any:
         from pyphi.formalism.queries import find_mip
 
-        with config.override(repertoire_measure=self.default_metric):
+        with config.override(mechanism_phi_measure=self.default_mechanism_metric):
             return find_mip(system, direction, mechanism, purview, **kwargs)
 
     def _find_mechanism_mip(
@@ -277,8 +274,8 @@ class IIT4_2026Formalism:
         purview: Any,
         **kwargs: Any,
     ) -> Any:
-        check_metric_compatible(self, config.formalism.iit.repertoire_measure)
-        with config.override(repertoire_measure=self.default_metric):
+        check_metric_compatible(self, config.formalism.iit.mechanism_phi_measure)
+        with config.override(mechanism_phi_measure=self.default_mechanism_metric):
             return _find_mip_iit4(system, direction, mechanism, purview, **kwargs)
 
     def evaluate_mechanism_partition(
@@ -292,18 +289,18 @@ class IIT4_2026Formalism:
     ) -> Any:
         """Same shape as IIT 4.0 (2023) mechanism-partition integration; the
         2026 variant differs only at the system level (the ``ii(s)`` cap)."""
-        check_metric_compatible(self, config.formalism.iit.repertoire_measure)
-        with config.override(repertoire_measure=self.default_metric):
+        check_metric_compatible(self, config.formalism.iit.mechanism_phi_measure)
+        with config.override(mechanism_phi_measure=self.default_mechanism_metric):
             return _evaluate_partition_iit4(
                 system, direction, mechanism, purview, partition, **kwargs
             )
 
     def evaluate_system(self, system: Any, **kwargs: Any) -> Any:
-        check_metric_compatible(self, config.formalism.iit.repertoire_measure)
-        with config.override(repertoire_measure=self.default_metric):
+        check_metric_compatible(self, config.formalism.iit.system_phi_measure)
+        with config.override(system_phi_measure=self.default_system_metric):
             return _sia(system, **kwargs)
 
     def build_phi_structure(self, system: Any, **kwargs: Any) -> Any:
-        check_metric_compatible(self, config.formalism.iit.repertoire_measure)
-        with config.override(repertoire_measure=self.default_metric):
+        check_metric_compatible(self, config.formalism.iit.system_phi_measure)
+        with config.override(system_phi_measure=self.default_system_metric):
             return _phi_structure(system, **kwargs)

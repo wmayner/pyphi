@@ -19,6 +19,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from dataclasses import field
+from dataclasses import fields
+from typing import Any
 
 _VALID_DISTINCTION_PHI_NORMALIZATION = frozenset({"NONE", "NUM_CONNECTIONS_CUT"})
 _VALID_RELATION_COMPUTATION = frozenset({"CONCRETE", "ANALYTICAL"})
@@ -33,9 +35,10 @@ class IITConfig:
     """IIT-formalism configuration sub-namespace."""
 
     version: str = "IIT_4_0_2023"
-    repertoire_measure: str = "GENERALIZED_INTRINSIC_DIFFERENCE"
-    repertoire_measure_specification: str = "GENERALIZED_INTRINSIC_DIFFERENCE"
-    repertoire_measure_differentiation: str = "GENERALIZED_INTRINSIC_DIFFERENCE"
+    mechanism_phi_measure: str = "GENERALIZED_INTRINSIC_DIFFERENCE"
+    system_phi_measure: str = "GENERALIZED_INTRINSIC_DIFFERENCE"
+    specification_measure: str = "GENERALIZED_INTRINSIC_DIFFERENCE"
+    differentiation_measure: str = "INTRINSIC_DIFFERENTIATION"
     ces_measure: str = "SUM_SMALL_PHI"
     mechanism_partition_scheme: str = "ALL"
     system_partition_scheme: str = "SET_UNI/BI"
@@ -85,10 +88,10 @@ class ActualCausationConfig:
     alternative registered values let users investigate variants.
     """
 
-    measure: str = "PMI"
+    alpha_measure: str = "PMI"
     mechanism_partition_scheme: str = "ALL"
     partitioned_repertoire_scheme: str = "PRODUCT"
-    background_strategy: str = "UNIFORM"
+    background_scheme: str = "UNIFORM"
     alpha_aggregation: str = "SUBTRACTIVE"
 
     def __post_init__(self) -> None:
@@ -100,9 +103,9 @@ class ActualCausationConfig:
                 f"partitioned_repertoire_scheme={self.partitioned_repertoire_scheme!r} "
                 f"not in {sorted(_VALID_PARTITIONED_REPERTOIRE_SCHEMES)}"
             )
-        if self.background_strategy not in _VALID_BACKGROUND_STRATEGIES:
+        if self.background_scheme not in _VALID_BACKGROUND_STRATEGIES:
             raise ValueError(
-                f"background_strategy={self.background_strategy!r} "
+                f"background_scheme={self.background_scheme!r} "
                 f"not in {sorted(_VALID_BACKGROUND_STRATEGIES)}"
             )
         if self.alpha_aggregation not in _VALID_ALPHA_AGGREGATIONS:
@@ -134,3 +137,24 @@ class FormalismConfig:
                 f"actual_causation must be ActualCausationConfig; "
                 f"got {type(self.actual_causation).__name__}"
             )
+
+    def as_kwargs(self) -> dict[str, Any]:
+        """Return a flat dict of leaf-field name to value for ``override(**...)``.
+
+        Field names that collide between the IIT and AC sub-namespaces
+        (currently only ``mechanism_partition_scheme``) are excluded — flat
+        overrides on those names are ambiguous. To round-trip a
+        colliding-name change, set the sub-namespace wholesale via
+        ``replace(formalism, iit=...)`` or ``config.iit = ...``.
+        """
+        from pyphi.conf._field_routing import colliding_formalism_fields
+
+        excluded = colliding_formalism_fields()
+        out: dict[str, Any] = {}
+        for sub_name in ("iit", "actual_causation"):
+            sub_layer = getattr(self, sub_name)
+            for f in fields(sub_layer):
+                if f.name in excluded:
+                    continue
+                out[f.name] = getattr(sub_layer, f.name)
+        return out

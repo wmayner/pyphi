@@ -936,8 +936,8 @@ def intrinsic_information(
     state=None,
 ):
     iit_cfg = config.formalism.iit
-    specification_func = measures[iit_cfg.repertoire_measure_specification]  # pyright: ignore[reportAttributeAccessIssue]
-    differentiation_func = measures[iit_cfg.repertoire_measure_differentiation]  # pyright: ignore[reportAttributeAccessIssue]
+    specification_func = measures[iit_cfg.specification_measure]  # pyright: ignore[reportAttributeAccessIssue]
+    differentiation_func = measures[iit_cfg.differentiation_measure]  # pyright: ignore[reportAttributeAccessIssue]
 
     specification = specification_func(
         forward_repertoire,
@@ -1052,7 +1052,7 @@ def repertoire_distance(
     Returns:
         float: The distance between ``r1`` and ``r2``, rounded to |PRECISION|.
     """
-    func_key = fallback(repertoire_distance, config.formalism.iit.repertoire_measure)
+    func_key = fallback(repertoire_distance, config.formalism.iit.mechanism_phi_measure)
     func = measures[func_key]  # type: ignore[index]
     try:
         try:

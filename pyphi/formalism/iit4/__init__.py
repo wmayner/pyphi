@@ -63,7 +63,7 @@ def system_intrinsic_information(
 ) -> SystemStateSpecification:
     """Return the cause/effect states specified by the system.
 
-    NOTE: Uses ``config.formalism.iit.repertoire_measure_specification``.
+    NOTE: Uses ``config.formalism.iit.specification_measure``.
     NOTE: State ties are arbitrarily broken (for now).
     """
     directions = fallback(directions, Direction.both())
@@ -76,7 +76,7 @@ def system_intrinsic_information(
     validate.directions(directions)
     repertoire_distance = fallback(
         repertoire_distance,
-        config.formalism.iit.repertoire_measure_specification,  # pyright: ignore[reportAttributeAccessIssue]
+        config.formalism.iit.specification_measure,  # pyright: ignore[reportAttributeAccessIssue]
     )
     # TODO(ties) deal with ties here
     ii = {
@@ -411,7 +411,7 @@ def integration_value(
     repertoire_distance: str | None = None,
 ) -> RepertoireIrreducibilityAnalysis:
     repertoire_distance = fallback(
-        repertoire_distance, config.formalism.iit.repertoire_measure
+        repertoire_distance, config.formalism.iit.system_phi_measure
     )
     cut_system = system.apply_cut(partition)
     specified = system_state[direction]
@@ -484,7 +484,7 @@ def evaluate_partition(
     # Eqs. 19-20: system-level partition integration uses GID only.
     # The ii(s) cap (Eq. 23) is applied separately below.
     effective_distance = fallback(
-        repertoire_distance, config.formalism.iit.repertoire_measure
+        repertoire_distance, config.formalism.iit.system_phi_measure
     )
     partition_distance = (
         "GENERALIZED_INTRINSIC_DIFFERENCE"

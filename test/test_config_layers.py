@@ -47,7 +47,7 @@ class TestIITConfig:
     def test_defaults(self):
         cfg = IITConfig()
         assert cfg.version == "IIT_4_0_2023"
-        assert cfg.repertoire_measure == "GENERALIZED_INTRINSIC_DIFFERENCE"
+        assert cfg.mechanism_phi_measure == "GENERALIZED_INTRINSIC_DIFFERENCE"
         assert cfg.mechanism_partition_scheme == "ALL"
         assert cfg.system_partition_scheme == "SET_UNI/BI"
         assert cfg.shortcircuit_sia is True
@@ -59,9 +59,9 @@ class TestIITConfig:
 
     def test_replace_returns_new_instance(self):
         a = IITConfig()
-        b = replace(a, repertoire_measure="EMD")
-        assert a.repertoire_measure == "GENERALIZED_INTRINSIC_DIFFERENCE"
-        assert b.repertoire_measure == "EMD"
+        b = replace(a, mechanism_phi_measure="EMD")
+        assert a.mechanism_phi_measure == "GENERALIZED_INTRINSIC_DIFFERENCE"
+        assert b.mechanism_phi_measure == "EMD"
 
     def test_mip_tie_resolution_default_is_list(self):
         cfg = IITConfig()
@@ -76,24 +76,24 @@ class TestIITConfig:
 class TestActualCausationConfig:
     def test_defaults_match_paper(self):
         cfg = ActualCausationConfig()
-        assert cfg.measure == "PMI"
+        assert cfg.alpha_measure == "PMI"
         assert cfg.mechanism_partition_scheme == "ALL"
         assert cfg.partitioned_repertoire_scheme == "PRODUCT"
-        assert cfg.background_strategy == "UNIFORM"
+        assert cfg.background_scheme == "UNIFORM"
         assert cfg.alpha_aggregation == "SUBTRACTIVE"
 
     def test_is_frozen(self):
         cfg = ActualCausationConfig()
         with pytest.raises(FrozenInstanceError):
-            cfg.measure = "KLD"  # type: ignore[misc]
+            cfg.alpha_measure = "KLD"  # type: ignore[misc]
 
     def test_invalid_partitioned_repertoire_scheme_raises(self):
         with pytest.raises(ValueError, match="partitioned_repertoire_scheme"):
             ActualCausationConfig(partitioned_repertoire_scheme="BOGUS")
 
-    def test_invalid_background_strategy_raises(self):
-        with pytest.raises(ValueError, match="background_strategy"):
-            ActualCausationConfig(background_strategy="BOGUS")
+    def test_invalid_background_scheme_raises(self):
+        with pytest.raises(ValueError, match="background_scheme"):
+            ActualCausationConfig(background_scheme="BOGUS")
 
     def test_invalid_alpha_aggregation_raises(self):
         with pytest.raises(ValueError, match="alpha_aggregation"):
@@ -109,11 +109,11 @@ class TestFormalismConfig:
     def test_iit_defaults_visible_through_formalism(self):
         cfg = FormalismConfig()
         assert cfg.iit.version == "IIT_4_0_2023"
-        assert cfg.iit.repertoire_measure == "GENERALIZED_INTRINSIC_DIFFERENCE"
+        assert cfg.iit.mechanism_phi_measure == "GENERALIZED_INTRINSIC_DIFFERENCE"
 
     def test_ac_defaults_visible_through_formalism(self):
         cfg = FormalismConfig()
-        assert cfg.actual_causation.measure == "PMI"
+        assert cfg.actual_causation.alpha_measure == "PMI"
 
     def test_is_frozen(self):
         cfg = FormalismConfig()
@@ -122,10 +122,23 @@ class TestFormalismConfig:
 
     def test_replace_swaps_iit(self):
         a = FormalismConfig()
-        new_iit = replace(a.iit, repertoire_measure="EMD")
+        new_iit = replace(a.iit, mechanism_phi_measure="EMD")
         b = replace(a, iit=new_iit)
-        assert a.iit.repertoire_measure == "GENERALIZED_INTRINSIC_DIFFERENCE"
-        assert b.iit.repertoire_measure == "EMD"
+        assert a.iit.mechanism_phi_measure == "GENERALIZED_INTRINSIC_DIFFERENCE"
+        assert b.iit.mechanism_phi_measure == "EMD"
+
+    def test_as_kwargs_flattens_iit_and_ac_subnamespaces(self):
+        cfg = FormalismConfig(iit=IITConfig(mechanism_phi_measure="EMD"))
+        kw = cfg.as_kwargs()
+        assert kw["mechanism_phi_measure"] == "EMD"
+        assert kw["alpha_measure"] == "PMI"
+        assert kw["partitioned_repertoire_scheme"] == "PRODUCT"
+
+    def test_as_kwargs_excludes_colliding_fields(self):
+        cfg = FormalismConfig()
+        kw = cfg.as_kwargs()
+        for collider in colliding_formalism_fields():
+            assert collider not in kw
 
 
 class TestInfrastructureConfig:
@@ -190,13 +203,13 @@ class TestConfigSnapshot:
             numerics=NumericsConfig(precision=13),
         )
         b = ConfigSnapshot(
-            formalism=FormalismConfig(iit=IITConfig(repertoire_measure="EMD")),
+            formalism=FormalismConfig(iit=IITConfig(mechanism_phi_measure="EMD")),
             infrastructure=InfrastructureConfig(),
             numerics=NumericsConfig(precision=6),
         )
         diff = a.diff(b)
         assert diff == {
-            "formalism.iit.repertoire_measure": (
+            "formalism.iit.mechanism_phi_measure": (
                 "GENERALIZED_INTRINSIC_DIFFERENCE",
                 "EMD",
             ),
@@ -218,12 +231,12 @@ class TestConfigSnapshot:
 
     def test_as_kwargs_returns_flat_dict(self):
         snap = ConfigSnapshot(
-            formalism=FormalismConfig(iit=IITConfig(repertoire_measure="EMD")),
+            formalism=FormalismConfig(iit=IITConfig(mechanism_phi_measure="EMD")),
             infrastructure=InfrastructureConfig(parallel=True),
             numerics=NumericsConfig(precision=6),
         )
         kw = snap.as_kwargs()
-        assert kw["repertoire_measure"] == "EMD"
+        assert kw["mechanism_phi_measure"] == "EMD"
         assert kw["parallel"] is True
         assert kw["precision"] == 6
 
@@ -241,11 +254,11 @@ class TestConfigSnapshot:
 class TestFieldRouting:
     def test_unique_iit_fields_route_to_iit_subnamespace(self):
         # Pick a non-colliding IIT-only field and verify the routing target.
-        assert FIELD_TO_LAYER["repertoire_measure"] == ("formalism", "iit")
+        assert FIELD_TO_LAYER["mechanism_phi_measure"] == ("formalism", "iit")
 
     def test_unique_ac_fields_route_to_actual_causation_subnamespace(self):
         # ``measure`` is unique to AC.
-        assert FIELD_TO_LAYER["measure"] == ("formalism", "actual_causation")
+        assert FIELD_TO_LAYER["alpha_measure"] == ("formalism", "actual_causation")
 
     def test_colliding_fields_excluded_from_routing(self):
         # ``mechanism_partition_scheme`` exists in both IIT and AC.
@@ -268,7 +281,7 @@ class TestGlobalConfigFacade:
     def test_layered_reads_work(self):
         assert config.numerics.precision == 13
         assert config.formalism.iit.version == "IIT_4_0_2023"
-        assert config.formalism.actual_causation.measure == "PMI"
+        assert config.formalism.actual_causation.alpha_measure == "PMI"
         assert config.infrastructure.parallel is False
 
     def test_legacy_uppercase_read_still_works(self):
@@ -276,7 +289,7 @@ class TestGlobalConfigFacade:
         assert config.PRECISION == 13
         assert config.PARALLEL is False
         assert config.VERSION == "IIT_4_0_2023"
-        assert config.REPERTOIRE_MEASURE == "GENERALIZED_INTRINSIC_DIFFERENCE"
+        assert config.MECHANISM_PHI_MEASURE == "GENERALIZED_INTRINSIC_DIFFERENCE"
 
     def test_legacy_uppercase_write_propagates_to_layered_view(self):
         original = config.PRECISION
@@ -315,27 +328,27 @@ class TestGlobalConfigFacade:
     def test_replacing_iit_subnamespace_works(self):
         original = config.formalism.iit
         try:
-            config.iit = IITConfig(repertoire_measure="EMD")
-            assert config.formalism.iit.repertoire_measure == "EMD"
-            assert config.formalism.actual_causation.measure == "PMI"
+            config.iit = IITConfig(mechanism_phi_measure="EMD")
+            assert config.formalism.iit.mechanism_phi_measure == "EMD"
+            assert config.formalism.actual_causation.alpha_measure == "PMI"
         finally:
             config.iit = original
 
     def test_replacing_actual_causation_subnamespace_works(self):
         original = config.formalism.actual_causation
         try:
-            config.actual_causation = ActualCausationConfig(measure="KLD")
-            assert config.formalism.actual_causation.measure == "KLD"
+            config.actual_causation = ActualCausationConfig(alpha_measure="KLD")
+            assert config.formalism.actual_causation.alpha_measure == "KLD"
         finally:
             config.actual_causation = original
 
     def test_flat_write_to_unique_iit_field_routes_to_iit(self):
-        original = config.formalism.iit.repertoire_measure
+        original = config.formalism.iit.mechanism_phi_measure
         try:
-            config.repertoire_measure = "EMD"
-            assert config.formalism.iit.repertoire_measure == "EMD"
+            config.mechanism_phi_measure = "EMD"
+            assert config.formalism.iit.mechanism_phi_measure == "EMD"
         finally:
-            config.repertoire_measure = original
+            config.mechanism_phi_measure = original
 
     def test_flat_write_to_colliding_field_raises(self):
         with pytest.raises(ConfigurationError, match="ambiguous"):

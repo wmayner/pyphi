@@ -18,19 +18,19 @@ class TestNestedYAMLLoader:
             ---
             formalism:
               iit:
-                repertoire_measure: EMD
+                mechanism_phi_measure: EMD
             numerics:
               precision: 7
             """)
         )
-        original_metric = config.formalism.iit.repertoire_measure
+        original_metric = config.formalism.iit.mechanism_phi_measure
         original_precision = config.numerics.precision
         try:
             config.load_yaml(str(path))
-            assert config.formalism.iit.repertoire_measure == "EMD"
+            assert config.formalism.iit.mechanism_phi_measure == "EMD"
             assert config.numerics.precision == 7
         finally:
-            config.repertoire_measure = original_metric
+            config.mechanism_phi_measure = original_metric
             config.precision = original_precision
 
     def test_load_actual_causation_subnamespace(self, tmp_path):
@@ -40,15 +40,15 @@ class TestNestedYAMLLoader:
             ---
             formalism:
               actual_causation:
-                measure: KLD
+                alpha_measure: KLD
             """)
         )
-        original = config.formalism.actual_causation.measure
+        original = config.formalism.actual_causation.alpha_measure
         try:
             config.load_yaml(str(path))
-            assert config.formalism.actual_causation.measure == "KLD"
+            assert config.formalism.actual_causation.alpha_measure == "KLD"
         finally:
-            config.measure = original
+            config.alpha_measure = original
 
     def test_old_flat_format_raises_with_rename_map(self, tmp_path):
         path = tmp_path / "config.yml"
@@ -81,10 +81,10 @@ class TestNestedYAMLWriter:
         assert set(data) == {"formalism", "infrastructure", "numerics"}
         assert data["numerics"]["precision"] == config.numerics.precision
         assert (
-            data["formalism"]["iit"]["repertoire_measure"]
-            == config.formalism.iit.repertoire_measure
+            data["formalism"]["iit"]["mechanism_phi_measure"]
+            == config.formalism.iit.mechanism_phi_measure
         )
         assert (
-            data["formalism"]["actual_causation"]["measure"]
-            == config.formalism.actual_causation.measure
+            data["formalism"]["actual_causation"]["alpha_measure"]
+            == config.formalism.actual_causation.alpha_measure
         )

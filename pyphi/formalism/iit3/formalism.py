@@ -30,7 +30,8 @@ class IIT3Formalism:
 
     name: ClassVar[str] = "IIT_3_0"
     exact: ClassVar[Literal[True]] = True
-    default_metric: ClassVar[str] = "EMD"
+    default_mechanism_metric: ClassVar[str] = "EMD"
+    default_system_metric: ClassVar[str] = "EMD"
     compatible_metrics: ClassVar[frozenset[str]] = frozenset(
         {
             "EMD",
@@ -83,7 +84,7 @@ class IIT3Formalism:
             _find_mip_single_state,  # pyright: ignore[reportPrivateUsage]
         )
 
-        check_metric_compatible(self, config.formalism.iit.repertoire_measure)
+        check_metric_compatible(self, config.formalism.iit.mechanism_phi_measure)
         if state is not None:
             raise ValueError("passing `state` is not supported with IIT 3.0")
         return _find_mip_single_state(  # pyright: ignore[reportPrivateUsage]
@@ -120,9 +121,9 @@ class IIT3Formalism:
         from pyphi.models import RepertoireIrreducibilityAnalysis
         from pyphi.utils import state_of
 
-        check_metric_compatible(self, config.formalism.iit.repertoire_measure)
+        check_metric_compatible(self, config.formalism.iit.mechanism_phi_measure)
         repertoire_distance = fallback(
-            repertoire_distance, config.formalism.iit.repertoire_measure
+            repertoire_distance, config.formalism.iit.mechanism_phi_measure
         )
         if repertoire is None:
             repertoire = system.repertoire(direction, mechanism, purview)
@@ -155,7 +156,7 @@ class IIT3Formalism:
 
     def evaluate_system(self, system: Any, **kwargs: Any) -> Any:
         """Delegate to the IIT 3.0 ``sia`` in :mod:`pyphi.formalism.iit3`."""
-        check_metric_compatible(self, config.formalism.iit.repertoire_measure)
+        check_metric_compatible(self, config.formalism.iit.mechanism_phi_measure)
         from pyphi.formalism.iit3 import sia as _sia
 
         return _sia(system, **kwargs)

@@ -1125,7 +1125,7 @@ def probability_distance(p, q, measure=None):
     """Compute the distance between two probabilities in actual causation.
 
     The metric that defines this can be configured with
-    ``config.formalism.actual_causation.measure``.
+    ``config.formalism.actual_causation.alpha_measure``.
 
     Args:
         p (float): The first probability.
@@ -1133,13 +1133,15 @@ def probability_distance(p, q, measure=None):
 
     Keyword Args:
         measure (str): Optionally override
-        ``config.formalism.actual_causation.measure`` with another measure
-        name from the registry.
+        ``config.formalism.actual_causation.alpha_measure`` with another
+        measure name from the registry.
 
     Returns:
         float: The probability distance between ``p`` and ``q``.
     """
-    measure = config.formalism.actual_causation.measure if measure is None else measure
+    measure = (
+        config.formalism.actual_causation.alpha_measure if measure is None else measure
+    )
     dist = measures[measure](p, q)
     return round(dist, config.numerics.precision)
 

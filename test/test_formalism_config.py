@@ -31,8 +31,8 @@ class TestPhiFormalismHasConfig:
         formalism = FORMALISM_REGISTRY["IIT_4_0_2023"]
         instance = formalism() if isinstance(formalism, type) else formalism
         assert (
-            instance.config.iit.repertoire_measure
-            == config.formalism.iit.repertoire_measure
+            instance.config.iit.mechanism_phi_measure
+            == config.formalism.iit.mechanism_phi_measure
         )
 
     def test_formalism_config_is_frozen_at_construction(self):
@@ -42,8 +42,8 @@ class TestPhiFormalismHasConfig:
         pickling)."""
         formalism = FORMALISM_REGISTRY["IIT_4_0_2023"]
         instance = formalism() if isinstance(formalism, type) else formalism
-        captured = instance.config.iit.repertoire_measure
-        with config.override(repertoire_measure="EMD"):
+        captured = instance.config.iit.mechanism_phi_measure
+        with config.override(mechanism_phi_measure="EMD"):
             # Frozen field; the captured value does NOT track global changes.
-            assert instance.config.iit.repertoire_measure == captured
-        assert instance.config.iit.repertoire_measure == captured
+            assert instance.config.iit.mechanism_phi_measure == captured
+        assert instance.config.iit.mechanism_phi_measure == captured

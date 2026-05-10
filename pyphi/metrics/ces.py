@@ -80,9 +80,9 @@ def emd_ground_distance(r1: Repertoire, r2: Repertoire) -> float:
     Returns:
         float: The distance between ``r1`` and ``r2``.
     """
-    if config.formalism.iit.repertoire_measure in distribution.measures.asymmetric():
+    if config.formalism.iit.mechanism_phi_measure in distribution.measures.asymmetric():
         raise ValueError(
-            f"The repertoire measure {config.formalism.iit.repertoire_measure} is "
+            f"The repertoire measure {config.formalism.iit.mechanism_phi_measure} is "
             "asymmetric and cannot be used as the ground distance for "
             "the system-level EMD"
         )

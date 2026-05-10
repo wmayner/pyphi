@@ -72,7 +72,7 @@ def _logistic_3node_k8() -> Substrate:
 # IIT 4.0 (2023) — Albantakis et al. 2023, GID metric, no ii(s) cap.
 IIT_4_2023_CONFIG = {
     "version": "IIT_4_0_2023",
-    "repertoire_measure": "GENERALIZED_INTRINSIC_DIFFERENCE",
+    "mechanism_phi_measure": "GENERALIZED_INTRINSIC_DIFFERENCE",
     "system_partition_scheme": "SET_UNI/BI",
     "progress_bars": False,
     "parallel": False,
@@ -85,7 +85,7 @@ IIT_4_2023_CONFIG = {
 IIT_4_2026_CONFIG = {
     **IIT_4_2023_CONFIG,
     "version": "IIT_4_0_2026",
-    "repertoire_measure": "INTRINSIC_INFORMATION",
+    "mechanism_phi_measure": "INTRINSIC_INFORMATION",
 }
 
 # IIT 3.0 — Oizumi/Albantakis/Tononi 2014. Distribution-distance based.
@@ -96,12 +96,12 @@ IIT_3_CONFIG = {
     "iit": replace(
         config.formalism.iit,
         version="IIT_3_0",
-        repertoire_measure="EMD",
+        mechanism_phi_measure="EMD",
         mechanism_partition_scheme="BI",
         system_partition_scheme="DIRECTED_BI",
         purview_tie_resolution=["PHI", "PURVIEW_SIZE"],
     ),
-    "measure": "PMI",
+    "alpha_measure": "PMI",
     "progress_bars": False,
     "parallel": False,
 }

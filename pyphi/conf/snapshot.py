@@ -11,7 +11,6 @@ from dataclasses import dataclass
 from dataclasses import fields
 from typing import Any
 
-from pyphi.conf._field_routing import colliding_formalism_fields
 from pyphi.conf.formalism import ActualCausationConfig
 from pyphi.conf.formalism import FormalismConfig
 from pyphi.conf.formalism import IITConfig
@@ -37,7 +36,7 @@ class ConfigSnapshot:
 
         Walks one level deeper into ``formalism`` so nested IIT and AC
         sub-namespace fields surface with their qualified paths
-        (``formalism.iit.repertoire_measure``, ...).
+        (``formalism.iit.mechanism_phi_measure``, ...).
         """
         result: dict[str, tuple[Any, Any]] = {}
         for layer_name in ("infrastructure", "numerics"):
@@ -63,22 +62,17 @@ class ConfigSnapshot:
 
         Field names that collide between the formalism's IIT and AC
         sub-namespaces (currently only ``mechanism_partition_scheme``)
-        are excluded — flat overrides on those names are ambiguous and
-        :class:`pyphi.conf._global._GlobalConfig.__setattr__` rejects
-        them. To round-trip a colliding-name change, use sub-namespace
-        wholesale replacement (``config.iit = ...``).
+        are excluded by :meth:`FormalismConfig.as_kwargs` — flat overrides
+        on those names are ambiguous and
+        :class:`pyphi.conf._global._GlobalConfig.__setattr__` rejects them.
+        To round-trip a colliding-name change, use sub-namespace wholesale
+        replacement (``config.iit = ...``).
         """
         result: dict[str, Any] = {}
         for layer in (self.infrastructure, self.numerics):
             for f in fields(layer):
                 result[f.name] = getattr(layer, f.name)
-        excluded = colliding_formalism_fields()
-        for sub_name in ("iit", "actual_causation"):
-            sub_layer = getattr(self.formalism, sub_name)
-            for f in fields(sub_layer):
-                if f.name in excluded:
-                    continue
-                result[f.name] = getattr(sub_layer, f.name)
+        result.update(self.formalism.as_kwargs())
         return result
 
 

@@ -29,9 +29,9 @@ def test_iit3_formalism_pickle_roundtrip():
 def test_iit3_formalism_carries_independent_config():
     """Snapshot taken at construction; later global changes don't leak in."""
     f = IIT3Formalism()
-    captured = f.config.iit.repertoire_measure
-    with config.override(repertoire_measure="L1"):
-        assert f.config.iit.repertoire_measure == captured
+    captured = f.config.iit.mechanism_phi_measure
+    with config.override(mechanism_phi_measure="L1"):
+        assert f.config.iit.mechanism_phi_measure == captured
 
 
 def test_iit4_2023_formalism_is_frozen_dataclass():
@@ -64,6 +64,6 @@ def test_iit4_2026_formalism_pickle_roundtrip():
 
 def test_iit4_formalisms_carry_independent_config():
     f = IIT4_2023Formalism()
-    captured = f.config.iit.repertoire_measure
-    with config.override(repertoire_measure="L1"):
-        assert f.config.iit.repertoire_measure == captured
+    captured = f.config.iit.mechanism_phi_measure
+    with config.override(mechanism_phi_measure="L1"):
+        assert f.config.iit.mechanism_phi_measure == captured

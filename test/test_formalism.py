@@ -25,7 +25,8 @@ class _DummyFormalism:
     """
 
     name = "DUMMY"
-    default_metric = "EMD"
+    default_mechanism_metric = "EMD"
+    default_system_metric = "EMD"
     compatible_metrics = frozenset({"EMD"})
     partition_scheme = "BI"
 
@@ -52,7 +53,8 @@ class _NotCallableEnough:
     """Missing ``evaluate_system``; should not satisfy the Protocol."""
 
     name = "BROKEN"
-    default_metric = "EMD"
+    default_mechanism_metric = "EMD"
+    default_system_metric = "EMD"
     compatible_metrics = frozenset({"EMD"})
     partition_scheme = "BI"
 
@@ -110,7 +112,7 @@ def test_concrete_formalisms_satisfy_protocol():
             f"{name} does not satisfy PhiFormalism"
         )
         assert formalism.name == name
-        assert formalism.default_metric in formalism.compatible_metrics
+        assert formalism.default_mechanism_metric in formalism.compatible_metrics
 
 
 def test_formalism_evaluate_system_matches_legacy_path():

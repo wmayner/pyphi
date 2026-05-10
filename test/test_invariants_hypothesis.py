@@ -221,7 +221,7 @@ class TestMetricInvariants:
         rep1 = s.cause_repertoire(mech1, purview)
         rep2 = s.cause_repertoire(mech2, purview)
 
-        with config.override(repertoire_measure="EMD"):
+        with config.override(mechanism_phi_measure="EMD"):
             try:
                 d = repertoire_distance(rep1, rep2, direction=Direction.CAUSE)
             except ImportError:
@@ -259,7 +259,7 @@ class TestMetricInvariants:
 
         rep = s.cause_repertoire(mechanism, purview)
 
-        with config.override(repertoire_measure="EMD"):
+        with config.override(mechanism_phi_measure="EMD"):
             try:
                 d = repertoire_distance(rep, rep, direction=Direction.CAUSE)
             except ImportError:
@@ -291,7 +291,7 @@ class TestMetricInvariants:
             iit=replace(
                 config.formalism.iit,
                 version="IIT_3_0",
-                repertoire_measure="EMD",
+                mechanism_phi_measure="EMD",
                 mechanism_partition_scheme="BI",
             ),
             validate_system_states=False,

@@ -40,19 +40,19 @@ IIT_3_CONFIG = config.override(
     iit=_replace(
         config.formalism.iit,
         version="IIT_3_0",
-        repertoire_measure="EMD",
+        mechanism_phi_measure="EMD",
         mechanism_partition_scheme="BI",
         system_partition_scheme="DIRECTED_BI",
         purview_tie_resolution=["PHI", "PURVIEW_SIZE"],
     ),
-    measure="PMI",
+    alpha_measure="PMI",
 )
 
 # IIT 4.0 configuration (current defaults, made explicit for clarity)
 # Use this when you want to explicitly test IIT 4.0 behavior
 IIT_4_CONFIG = config.override(
     version="IIT_4_0_2023",
-    repertoire_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
+    mechanism_phi_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
     system_partition_scheme="SET_UNI/BI",
 )
 

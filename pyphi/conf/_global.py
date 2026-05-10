@@ -7,11 +7,11 @@ layer (or formalism sub-namespace) via :func:`dataclasses.replace`, so
 each layer remains immutable.
 
 Both flat (``config.precision``) and layered
-(``config.numerics.precision``, ``config.formalism.iit.repertoire_measure``)
+(``config.numerics.precision``, ``config.formalism.iit.mechanism_phi_measure``)
 forms work for reads. Writes use the flat form (``config.precision = 6``)
 or :meth:`override` for scoped changes; wholesale layer replacement
 (``config.numerics = NumericsConfig(precision=6)``) and sub-namespace
-replacement (``config.iit = IITConfig(repertoire_measure="EMD")``) are
+replacement (``config.iit = IITConfig(mechanism_phi_measure="EMD")``) are
 also supported.
 
 Legacy uppercase access (``config.PRECISION``) is preserved as syntax
@@ -188,7 +188,7 @@ class _GlobalConfig:
         """Advertise leaf setting names for tab completion.
 
         ``pyphi.config.<TAB>`` shows leaf settings (``precision``,
-        ``parallel``, ``repertoire_measure``, …) directly, so users
+        ``parallel``, ``mechanism_phi_measure``, …) directly, so users
         don't have to memorize which setting lives in which layer.
         Also includes the layer objects themselves and the methods.
         """
