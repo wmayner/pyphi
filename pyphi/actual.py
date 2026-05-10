@@ -369,7 +369,7 @@ class Transition:
     def partitioned_repertoire(self, direction, partition):
         """Compute the repertoire over the partition in the given direction."""
         system = self.system[direction]
-        if config.formalism.repertoire_distance in [
+        if config.formalism.iit.repertoire_measure in [
             "GENERALIZED_INTRINSIC_DIFFERENCE",
             "INTRINSIC_INFORMATION",
         ]:
@@ -585,7 +585,7 @@ def probability_distance(p, q, measure=None):
     """Compute the distance between two probabilities in actual causation.
 
     The metric that defines this can be configured with
-    ``config.formalism.actual_causation_measure``.
+    ``config.formalism.actual_causation.measure``.
 
     Args:
         p (float): The first probability.
@@ -593,13 +593,13 @@ def probability_distance(p, q, measure=None):
 
     Keyword Args:
         measure (str): Optionally override
-        ``config.formalism.actual_causation_measure`` with another measure name from
-        the registry.
+        ``config.formalism.actual_causation.measure`` with another measure
+        name from the registry.
 
     Returns:
         float: The probability distance between ``p`` and ``q``.
     """
-    measure = config.formalism.actual_causation_measure if measure is None else measure
+    measure = config.formalism.actual_causation.measure if measure is None else measure
     dist = measures[measure](p, q)
     return round(dist, config.numerics.precision)
 

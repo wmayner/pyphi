@@ -5,9 +5,14 @@
 # config layers: formalism (what PyPhi computes), infrastructure (how it
 # runs — parallelism, caching, logging), and numerics (precision).
 #
+# The ``formalism`` layer is split into two sub-namespaces: ``iit`` for
+# IIT-formalism knobs and ``actual_causation`` for AC-framework knobs.
+#
 # Only override fields you actually want to change; omitted fields use the
 # default values defined on the layer dataclasses.
 ---
-formalism: {}
+formalism:
+  iit: {}
+  actual_causation: {}
 infrastructure: {}
 numerics: {}

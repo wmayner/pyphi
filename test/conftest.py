@@ -1,3 +1,5 @@
+from dataclasses import replace as _replace
+
 import numpy as np
 import pytest
 
@@ -31,21 +33,27 @@ pyphi.config.validate_json_version = False
 
 # IIT 3.0 configuration for regression tests
 # These settings replicate the IIT 3.0 computational approach.
+# ``mechanism_partition_scheme`` is colliding (lives in both ``iit`` and
+# ``actual_causation`` sub-namespaces), so it must travel inside an
+# ``IITConfig`` replacement rather than as a flat kwarg.
 IIT_3_CONFIG = config.override(
-    formalism="IIT_3_0",
-    repertoire_distance="EMD",
-    partition_type="BI",
-    system_partition_type="DIRECTED_BI",
-    actual_causation_measure="PMI",
-    purview_tie_resolution=["PHI", "PURVIEW_SIZE"],
+    iit=_replace(
+        config.formalism.iit,
+        version="IIT_3_0",
+        repertoire_measure="EMD",
+        mechanism_partition_scheme="BI",
+        system_partition_scheme="DIRECTED_BI",
+        purview_tie_resolution=["PHI", "PURVIEW_SIZE"],
+    ),
+    measure="PMI",
 )
 
 # IIT 4.0 configuration (current defaults, made explicit for clarity)
 # Use this when you want to explicitly test IIT 4.0 behavior
 IIT_4_CONFIG = config.override(
-    formalism="IIT_4_0_2023",
-    repertoire_distance="GENERALIZED_INTRINSIC_DIFFERENCE",
-    system_partition_type="SET_UNI/BI",
+    version="IIT_4_0_2023",
+    repertoire_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
+    system_partition_scheme="SET_UNI/BI",
 )
 
 # Pytest configuration

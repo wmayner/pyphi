@@ -475,7 +475,7 @@ class System:
         """
         from pyphi.conf import config as _config
 
-        formalism_name = _config.formalism.formalism
+        formalism_name = _config.formalism.iit.version
         if formalism_name == "IIT_3_0":
             from pyphi.formalism.iit3 import ces as _ces
 

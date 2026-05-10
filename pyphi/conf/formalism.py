@@ -1,10 +1,18 @@
 """Formalism layer of the PyPhi config.
 
-Holds knobs that define the IIT mathematical formalism: which metric, which
-partition scheme, which tie-resolution policy. Bundled into the
-:class:`~pyphi.formalism.base.PhiFormalism` instance via composition; the
-active formalism is rebuilt from the registry factory whenever this config
-layer changes.
+Holds knobs that define the mathematical formalism — split into two
+nested sub-namespaces:
+
+- :class:`IITConfig` for IIT-formalism dispatch and IIT-specific knobs
+  (which IIT version, which repertoire measure, which partition scheme,
+  tie-resolution policy, etc.).
+- :class:`ActualCausationConfig` for the actual-causation framework
+  (which information measure, which partitioned-repertoire scheme,
+  which background strategy, which alpha aggregation).
+
+Bundled into the :class:`~pyphi.formalism.base.PhiFormalism` instance via
+composition; the active formalism is rebuilt from the registry factory
+whenever the IIT sub-config changes.
 """
 
 from __future__ import annotations
@@ -15,58 +23,44 @@ from dataclasses import field
 _VALID_DISTINCTION_PHI_NORMALIZATION = frozenset({"NONE", "NUM_CONNECTIONS_CUT"})
 _VALID_RELATION_COMPUTATION = frozenset({"CONCRETE", "ANALYTICAL"})
 
+_VALID_PARTITIONED_REPERTOIRE_SCHEMES = frozenset({"PRODUCT", "FORWARD_PROBABILITY"})
+_VALID_BACKGROUND_STRATEGIES = frozenset({"UNIFORM", "STATIONARY", "OBSERVED"})
+_VALID_ALPHA_AGGREGATIONS = frozenset({"SUBTRACTIVE", "RATIO"})
+
 
 @dataclass(frozen=True)
-class FormalismConfig:
-    """Formalism-scoped configuration.
+class IITConfig:
+    """IIT-formalism configuration sub-namespace."""
 
-    These knobs collectively define what mathematical object PyPhi computes.
-    They travel with each :class:`~pyphi.formalism.base.PhiFormalism`
-    instance and are snapshotted onto every result object so reproducibility
-    doesn't depend on the live global config.
-    """
-
-    formalism: str = "IIT_4_0_2023"
-    assume_cuts_cannot_create_new_concepts: bool = False
-    repertoire_distance: str = "GENERALIZED_INTRINSIC_DIFFERENCE"
-    repertoire_distance_specification: str = "GENERALIZED_INTRINSIC_DIFFERENCE"
-    repertoire_distance_differentiation: str = "GENERALIZED_INTRINSIC_DIFFERENCE"
-    ces_distance: str = "SUM_SMALL_PHI"
-    actual_causation_measure: str = "PMI"
-    partition_type: str = "ALL"
-    system_partition_type: str = "SET_UNI/BI"
+    version: str = "IIT_4_0_2023"
+    repertoire_measure: str = "GENERALIZED_INTRINSIC_DIFFERENCE"
+    repertoire_measure_specification: str = "GENERALIZED_INTRINSIC_DIFFERENCE"
+    repertoire_measure_differentiation: str = "GENERALIZED_INTRINSIC_DIFFERENCE"
+    ces_measure: str = "SUM_SMALL_PHI"
+    mechanism_partition_scheme: str = "ALL"
+    system_partition_scheme: str = "SET_UNI/BI"
     system_partition_include_complete: bool = False
     distinction_phi_normalization: str = "NUM_CONNECTIONS_CUT"
     relation_computation: str = "CONCRETE"
+    assume_partitions_cannot_create_new_concepts: bool = False
+    shortcircuit_sia: bool = True
+    single_micro_nodes_with_selfloops_have_phi: bool = True
     state_tie_resolution: str = "PHI"
     mip_tie_resolution: list[str] = field(
         default_factory=lambda: ["NORMALIZED_PHI", "NEGATIVE_PHI"]
     )
     purview_tie_resolution: str = "PHI"
-    shortcircuit_sia: bool = True
-    single_micro_nodes_with_selfloops_have_phi: bool = True
 
     def __post_init__(self) -> None:
-        if not isinstance(self.assume_cuts_cannot_create_new_concepts, bool):
-            raise ValueError(
-                "assume_cuts_cannot_create_new_concepts must be bool; "
-                f"got {type(self.assume_cuts_cannot_create_new_concepts).__name__}"
-            )
-        if not isinstance(self.system_partition_include_complete, bool):
-            raise ValueError(
-                "system_partition_include_complete must be bool; "
-                f"got {type(self.system_partition_include_complete).__name__}"
-            )
-        if not isinstance(self.shortcircuit_sia, bool):
-            raise ValueError(
-                "shortcircuit_sia must be bool; got "
-                f"{type(self.shortcircuit_sia).__name__}"
-            )
-        if not isinstance(self.single_micro_nodes_with_selfloops_have_phi, bool):
-            raise ValueError(
-                "single_micro_nodes_with_selfloops_have_phi must be bool; "
-                f"got {type(self.single_micro_nodes_with_selfloops_have_phi).__name__}"
-            )
+        for name in (
+            "assume_partitions_cannot_create_new_concepts",
+            "system_partition_include_complete",
+            "shortcircuit_sia",
+            "single_micro_nodes_with_selfloops_have_phi",
+        ):
+            value = getattr(self, name)
+            if not isinstance(value, bool):
+                raise ValueError(f"{name} must be bool; got {type(value).__name__}")
         if (
             self.distinction_phi_normalization
             not in _VALID_DISTINCTION_PHI_NORMALIZATION
@@ -79,4 +73,64 @@ class FormalismConfig:
             raise ValueError(
                 f"relation_computation={self.relation_computation!r} "
                 f"not in {sorted(_VALID_RELATION_COMPUTATION)}"
+            )
+
+
+@dataclass(frozen=True)
+class ActualCausationConfig:
+    """Actual-causation configuration sub-namespace.
+
+    Decomposes the 2019 Albantakis et al. AC framework into its
+    parameterized choices. Defaults match the published formalism;
+    alternative registered values let users investigate variants.
+    """
+
+    measure: str = "PMI"
+    mechanism_partition_scheme: str = "ALL"
+    partitioned_repertoire_scheme: str = "PRODUCT"
+    background_strategy: str = "UNIFORM"
+    alpha_aggregation: str = "SUBTRACTIVE"
+
+    def __post_init__(self) -> None:
+        if (
+            self.partitioned_repertoire_scheme
+            not in _VALID_PARTITIONED_REPERTOIRE_SCHEMES
+        ):
+            raise ValueError(
+                f"partitioned_repertoire_scheme={self.partitioned_repertoire_scheme!r} "
+                f"not in {sorted(_VALID_PARTITIONED_REPERTOIRE_SCHEMES)}"
+            )
+        if self.background_strategy not in _VALID_BACKGROUND_STRATEGIES:
+            raise ValueError(
+                f"background_strategy={self.background_strategy!r} "
+                f"not in {sorted(_VALID_BACKGROUND_STRATEGIES)}"
+            )
+        if self.alpha_aggregation not in _VALID_ALPHA_AGGREGATIONS:
+            raise ValueError(
+                f"alpha_aggregation={self.alpha_aggregation!r} "
+                f"not in {sorted(_VALID_ALPHA_AGGREGATIONS)}"
+            )
+
+
+@dataclass(frozen=True)
+class FormalismConfig:
+    """Formalism-scoped configuration.
+
+    Thin holder of :class:`IITConfig` and :class:`ActualCausationConfig`.
+    Both travel with each :class:`~pyphi.formalism.base.PhiFormalism`
+    instance and are snapshotted onto every result object.
+    """
+
+    iit: IITConfig = field(default_factory=IITConfig)
+    actual_causation: ActualCausationConfig = field(
+        default_factory=ActualCausationConfig
+    )
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.iit, IITConfig):
+            raise ValueError(f"iit must be IITConfig; got {type(self.iit).__name__}")
+        if not isinstance(self.actual_causation, ActualCausationConfig):
+            raise ValueError(
+                f"actual_causation must be ActualCausationConfig; "
+                f"got {type(self.actual_causation).__name__}"
             )

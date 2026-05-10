@@ -8,7 +8,7 @@ this module holds the operations whose definition is *formalism-policy*
 The dispatch path is::
 
     queries.X(cs, ...)
-        → FORMALISM_REGISTRY[config.formalism.formalism].evaluate_X(cs, ...)
+        → FORMALISM_REGISTRY[config.formalism.iit.version].evaluate_X(cs, ...)
         → concrete formalism's algorithm
 
 The kernel never imports this module — see
@@ -66,7 +66,7 @@ def evaluate_partition(
 
     Dispatches to the active formalism's ``evaluate_mechanism_partition``.
     """
-    formalism = FORMALISM_REGISTRY[config.formalism.formalism]  # pyright: ignore[reportAttributeAccessIssue]
+    formalism = FORMALISM_REGISTRY[config.formalism.iit.version]  # pyright: ignore[reportAttributeAccessIssue]
     return formalism.evaluate_mechanism_partition(  # pyright: ignore[reportFunctionMemberAccess]
         cs,
         direction,
@@ -170,7 +170,7 @@ def find_mip(
         dict(config.infrastructure.parallel_mechanism_partition_evaluation),  # pyright: ignore[reportAttributeAccessIssue]
         **kwargs,
     )
-    formalism = FORMALISM_REGISTRY[config.formalism.formalism]  # pyright: ignore[reportAttributeAccessIssue]
+    formalism = FORMALISM_REGISTRY[config.formalism.iit.version]  # pyright: ignore[reportAttributeAccessIssue]
     return formalism._find_mechanism_mip(  # pyright: ignore[reportFunctionMemberAccess]
         cs,
         direction,
@@ -345,5 +345,5 @@ def all_distinctions(cs: System, **kwargs: Any) -> Any:  # noqa: ARG001
 
 def sia(cs: System, **kwargs: Any) -> Any:
     """Run system irreducibility analysis via the active formalism."""
-    formalism = FORMALISM_REGISTRY[config.formalism.formalism]  # pyright: ignore[reportAttributeAccessIssue]
+    formalism = FORMALISM_REGISTRY[config.formalism.iit.version]  # pyright: ignore[reportAttributeAccessIssue]
     return formalism.evaluate_system(cs, **kwargs)  # pyright: ignore[reportFunctionMemberAccess]

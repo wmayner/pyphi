@@ -80,9 +80,9 @@ def emd_ground_distance(r1: Repertoire, r2: Repertoire) -> float:
     Returns:
         float: The distance between ``r1`` and ``r2``.
     """
-    if config.formalism.repertoire_distance in distribution.measures.asymmetric():
+    if config.formalism.iit.repertoire_measure in distribution.measures.asymmetric():
         raise ValueError(
-            f"The repertoire-distance {config.formalism.repertoire_distance} is "
+            f"The repertoire measure {config.formalism.iit.repertoire_measure} is "
             "asymmetric and cannot be used as the ground distance for "
             "the system-level EMD"
         )
@@ -243,6 +243,6 @@ def ces_distance(
     Returns:
         float: The distance between the two cause-effect structures.
     """
-    measure_name: str = config.formalism.ces_distance if measure is None else measure  # type: ignore[assignment]
+    measure_name: str = config.formalism.iit.ces_measure if measure is None else measure  # type: ignore[assignment]
     dist: float = measures[measure_name](C1, C2)
     return round(dist, config.numerics.precision)  # type: ignore[arg-type]

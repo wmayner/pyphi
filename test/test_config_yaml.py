@@ -17,20 +17,38 @@ class TestNestedYAMLLoader:
             textwrap.dedent("""\
             ---
             formalism:
-              repertoire_distance: EMD
+              iit:
+                repertoire_measure: EMD
             numerics:
               precision: 7
             """)
         )
-        original_metric = config.formalism.repertoire_distance
+        original_metric = config.formalism.iit.repertoire_measure
         original_precision = config.numerics.precision
         try:
             config.load_yaml(str(path))
-            assert config.formalism.repertoire_distance == "EMD"
+            assert config.formalism.iit.repertoire_measure == "EMD"
             assert config.numerics.precision == 7
         finally:
-            config.repertoire_distance = original_metric
+            config.repertoire_measure = original_metric
             config.precision = original_precision
+
+    def test_load_actual_causation_subnamespace(self, tmp_path):
+        path = tmp_path / "config.yml"
+        path.write_text(
+            textwrap.dedent("""\
+            ---
+            formalism:
+              actual_causation:
+                measure: KLD
+            """)
+        )
+        original = config.formalism.actual_causation.measure
+        try:
+            config.load_yaml(str(path))
+            assert config.formalism.actual_causation.measure == "KLD"
+        finally:
+            config.measure = original
 
     def test_old_flat_format_raises_with_rename_map(self, tmp_path):
         path = tmp_path / "config.yml"
@@ -63,6 +81,10 @@ class TestNestedYAMLWriter:
         assert set(data) == {"formalism", "infrastructure", "numerics"}
         assert data["numerics"]["precision"] == config.numerics.precision
         assert (
-            data["formalism"]["repertoire_distance"]
-            == config.formalism.repertoire_distance
+            data["formalism"]["iit"]["repertoire_measure"]
+            == config.formalism.iit.repertoire_measure
+        )
+        assert (
+            data["formalism"]["actual_causation"]["measure"]
+            == config.formalism.actual_causation.measure
         )

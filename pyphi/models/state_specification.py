@@ -172,7 +172,8 @@ def _(partition: object) -> int | float | None:
 
 
 def normalization_factor(partition: object) -> int | float | None:
-    func = distinction_phi_normalizations[config.formalism.distinction_phi_normalization]  # type: ignore[index]
+    key = config.formalism.iit.distinction_phi_normalization
+    func = distinction_phi_normalizations[key]  # type: ignore[index]
     return func(partition)
 
 

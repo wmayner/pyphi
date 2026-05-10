@@ -82,7 +82,7 @@ def test_sia_disconnected_substrate(reducible):
 @pytest.mark.emd
 @skip_if_no_pyemd
 @config.override(single_micro_nodes_with_selfloops_have_phi=True)
-@config.override(formalism="IIT_3_0", repertoire_distance="EMD")
+@config.override(version="IIT_3_0", repertoire_measure="EMD")
 def test_sia_single_micro_node_selfloops_have_phi(noisy_selfloop_single):
     """Test that single micro-nodes with self-loops have phi under IIT 3.0 + EMD.
 

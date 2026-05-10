@@ -8,14 +8,14 @@ from pyphi.conf import config
 def test_install_snapshot_replaces_global_layers():
     original = config.snapshot()
     try:
-        with config.override(precision=11, repertoire_distance="L1"):
+        with config.override(precision=11, repertoire_measure="L1"):
             captured = config.snapshot()
 
         assert config.numerics.precision == original.numerics.precision
 
         config.install_snapshot(captured)
         assert config.numerics.precision == 11
-        assert config.formalism.repertoire_distance == "L1"
+        assert config.formalism.iit.repertoire_measure == "L1"
     finally:
         config.install_snapshot(original)
 

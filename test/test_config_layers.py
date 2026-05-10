@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import FrozenInstanceError
+from dataclasses import fields
 from dataclasses import replace
 
 import pytest
@@ -10,8 +11,11 @@ import pytest
 from pyphi.conf import config
 from pyphi.conf._field_routing import FIELD_TO_LAYER
 from pyphi.conf._field_routing import ConfigurationError
+from pyphi.conf._field_routing import colliding_formalism_fields
 from pyphi.conf._global import _GlobalConfig
+from pyphi.conf.formalism import ActualCausationConfig
 from pyphi.conf.formalism import FormalismConfig
+from pyphi.conf.formalism import IITConfig
 from pyphi.conf.infrastructure import InfrastructureConfig
 from pyphi.conf.numerics import NumericsConfig
 from pyphi.conf.snapshot import ConfigSnapshot
@@ -39,34 +43,89 @@ class TestNumericsConfig:
         assert hash(NumericsConfig(precision=13)) == hash(NumericsConfig(precision=13))
 
 
-class TestFormalismConfig:
-    def test_defaults_match_legacy(self):
-        cfg = FormalismConfig()
-        assert cfg.formalism == "IIT_4_0_2023"
-        assert cfg.repertoire_distance == "GENERALIZED_INTRINSIC_DIFFERENCE"
-        assert cfg.partition_type == "ALL"
-        assert cfg.system_partition_type == "SET_UNI/BI"
+class TestIITConfig:
+    def test_defaults(self):
+        cfg = IITConfig()
+        assert cfg.version == "IIT_4_0_2023"
+        assert cfg.repertoire_measure == "GENERALIZED_INTRINSIC_DIFFERENCE"
+        assert cfg.mechanism_partition_scheme == "ALL"
+        assert cfg.system_partition_scheme == "SET_UNI/BI"
         assert cfg.shortcircuit_sia is True
+
+    def test_is_frozen(self):
+        cfg = IITConfig()
+        with pytest.raises(FrozenInstanceError):
+            cfg.version = "IIT_3_0"  # type: ignore[misc]
+
+    def test_replace_returns_new_instance(self):
+        a = IITConfig()
+        b = replace(a, repertoire_measure="EMD")
+        assert a.repertoire_measure == "GENERALIZED_INTRINSIC_DIFFERENCE"
+        assert b.repertoire_measure == "EMD"
+
+    def test_mip_tie_resolution_default_is_list(self):
+        cfg = IITConfig()
+        assert cfg.mip_tie_resolution == ["NORMALIZED_PHI", "NEGATIVE_PHI"]
+
+    def test_mip_tie_resolution_each_instance_independent(self):
+        a = IITConfig()
+        b = IITConfig()
+        assert a.mip_tie_resolution is not b.mip_tie_resolution
+
+
+class TestActualCausationConfig:
+    def test_defaults_match_paper(self):
+        cfg = ActualCausationConfig()
+        assert cfg.measure == "PMI"
+        assert cfg.mechanism_partition_scheme == "ALL"
+        assert cfg.partitioned_repertoire_scheme == "PRODUCT"
+        assert cfg.background_strategy == "UNIFORM"
+        assert cfg.alpha_aggregation == "SUBTRACTIVE"
+
+    def test_is_frozen(self):
+        cfg = ActualCausationConfig()
+        with pytest.raises(FrozenInstanceError):
+            cfg.measure = "KLD"  # type: ignore[misc]
+
+    def test_invalid_partitioned_repertoire_scheme_raises(self):
+        with pytest.raises(ValueError, match="partitioned_repertoire_scheme"):
+            ActualCausationConfig(partitioned_repertoire_scheme="BOGUS")
+
+    def test_invalid_background_strategy_raises(self):
+        with pytest.raises(ValueError, match="background_strategy"):
+            ActualCausationConfig(background_strategy="BOGUS")
+
+    def test_invalid_alpha_aggregation_raises(self):
+        with pytest.raises(ValueError, match="alpha_aggregation"):
+            ActualCausationConfig(alpha_aggregation="BOGUS")
+
+
+class TestFormalismConfig:
+    def test_holds_two_subnamespaces(self):
+        cfg = FormalismConfig()
+        assert isinstance(cfg.iit, IITConfig)
+        assert isinstance(cfg.actual_causation, ActualCausationConfig)
+
+    def test_iit_defaults_visible_through_formalism(self):
+        cfg = FormalismConfig()
+        assert cfg.iit.version == "IIT_4_0_2023"
+        assert cfg.iit.repertoire_measure == "GENERALIZED_INTRINSIC_DIFFERENCE"
+
+    def test_ac_defaults_visible_through_formalism(self):
+        cfg = FormalismConfig()
+        assert cfg.actual_causation.measure == "PMI"
 
     def test_is_frozen(self):
         cfg = FormalismConfig()
         with pytest.raises(FrozenInstanceError):
-            cfg.formalism = "IIT_3_0"  # type: ignore[misc]
+            cfg.iit = IITConfig()  # type: ignore[misc]
 
-    def test_replace_returns_new_instance(self):
+    def test_replace_swaps_iit(self):
         a = FormalismConfig()
-        b = replace(a, repertoire_distance="EMD")
-        assert a.repertoire_distance == "GENERALIZED_INTRINSIC_DIFFERENCE"
-        assert b.repertoire_distance == "EMD"
-
-    def test_mip_tie_resolution_default_is_list(self):
-        cfg = FormalismConfig()
-        assert cfg.mip_tie_resolution == ["NORMALIZED_PHI", "NEGATIVE_PHI"]
-
-    def test_mip_tie_resolution_each_instance_independent(self):
-        a = FormalismConfig()
-        b = FormalismConfig()
-        assert a.mip_tie_resolution is not b.mip_tie_resolution
+        new_iit = replace(a.iit, repertoire_measure="EMD")
+        b = replace(a, iit=new_iit)
+        assert a.iit.repertoire_measure == "GENERALIZED_INTRINSIC_DIFFERENCE"
+        assert b.iit.repertoire_measure == "EMD"
 
 
 class TestInfrastructureConfig:
@@ -113,7 +172,7 @@ class TestConfigSnapshot:
             numerics=NumericsConfig(),
         )
         assert snap.numerics.precision == 13
-        assert snap.formalism.formalism == "IIT_4_0_2023"
+        assert snap.formalism.iit.version == "IIT_4_0_2023"
 
     def test_is_frozen(self):
         snap = ConfigSnapshot(
@@ -131,13 +190,13 @@ class TestConfigSnapshot:
             numerics=NumericsConfig(precision=13),
         )
         b = ConfigSnapshot(
-            formalism=FormalismConfig(repertoire_distance="EMD"),
+            formalism=FormalismConfig(iit=IITConfig(repertoire_measure="EMD")),
             infrastructure=InfrastructureConfig(),
             numerics=NumericsConfig(precision=6),
         )
         diff = a.diff(b)
         assert diff == {
-            "formalism.repertoire_distance": (
+            "formalism.iit.repertoire_measure": (
                 "GENERALIZED_INTRINSIC_DIFFERENCE",
                 "EMD",
             ),
@@ -159,67 +218,65 @@ class TestConfigSnapshot:
 
     def test_as_kwargs_returns_flat_dict(self):
         snap = ConfigSnapshot(
-            formalism=FormalismConfig(repertoire_distance="EMD"),
+            formalism=FormalismConfig(iit=IITConfig(repertoire_measure="EMD")),
             infrastructure=InfrastructureConfig(parallel=True),
             numerics=NumericsConfig(precision=6),
         )
         kw = snap.as_kwargs()
-        assert kw["repertoire_distance"] == "EMD"
+        assert kw["repertoire_measure"] == "EMD"
         assert kw["parallel"] is True
         assert kw["precision"] == 6
 
+    def test_as_kwargs_excludes_colliding_formalism_fields(self):
+        snap = ConfigSnapshot(
+            formalism=FormalismConfig(),
+            infrastructure=InfrastructureConfig(),
+            numerics=NumericsConfig(),
+        )
+        kw = snap.as_kwargs()
+        for collider in colliding_formalism_fields():
+            assert collider not in kw
+
 
 class TestFieldRouting:
-    def test_all_layer_fields_present(self):
-        from dataclasses import fields
+    def test_unique_iit_fields_route_to_iit_subnamespace(self):
+        # Pick a non-colliding IIT-only field and verify the routing target.
+        assert FIELD_TO_LAYER["repertoire_measure"] == ("formalism", "iit")
 
-        for layer_name, layer_cls in [
-            ("formalism", FormalismConfig),
-            ("infrastructure", InfrastructureConfig),
-            ("numerics", NumericsConfig),
-        ]:
-            for f in fields(layer_cls):
-                assert FIELD_TO_LAYER[f.name] == layer_name
+    def test_unique_ac_fields_route_to_actual_causation_subnamespace(self):
+        # ``measure`` is unique to AC.
+        assert FIELD_TO_LAYER["measure"] == ("formalism", "actual_causation")
 
-    def test_no_collisions_in_current_layers(self):
-        from dataclasses import fields
+    def test_colliding_fields_excluded_from_routing(self):
+        # ``mechanism_partition_scheme`` exists in both IIT and AC.
+        for name in colliding_formalism_fields():
+            assert name not in FIELD_TO_LAYER
 
-        all_fields: list[str] = []
-        for layer_cls in (FormalismConfig, InfrastructureConfig, NumericsConfig):
-            all_fields.extend(f.name for f in fields(layer_cls))
-        assert len(all_fields) == len(set(all_fields)), (
-            f"Collision in field names: {sorted(all_fields)}"
-        )
+    def test_collisions_set_matches_intersection(self):
+        iit_names = {f.name for f in fields(IITConfig)}
+        ac_names = {f.name for f in fields(ActualCausationConfig)}
+        assert colliding_formalism_fields() == iit_names & ac_names
 
-    def test_collision_raises(self):
-        from dataclasses import dataclass
-
-        from pyphi.conf._field_routing import _build_field_map
-
-        @dataclass(frozen=True)
-        class _LayerA:
-            x: int = 0
-
-        @dataclass(frozen=True)
-        class _LayerB:
-            x: int = 0
-
-        with pytest.raises(ConfigurationError, match="Config field name collision"):
-            _build_field_map([("a", _LayerA), ("b", _LayerB)])
+    def test_non_formalism_layer_fields_route_with_none_subnamespace(self):
+        for f in fields(NumericsConfig):
+            assert FIELD_TO_LAYER[f.name] == ("numerics", None)
+        for f in fields(InfrastructureConfig):
+            assert FIELD_TO_LAYER[f.name] == ("infrastructure", None)
 
 
 class TestGlobalConfigFacade:
     def test_layered_reads_work(self):
         assert config.numerics.precision == 13
-        assert config.formalism.formalism == "IIT_4_0_2023"
+        assert config.formalism.iit.version == "IIT_4_0_2023"
+        assert config.formalism.actual_causation.measure == "PMI"
         assert config.infrastructure.parallel is False
 
     def test_legacy_uppercase_read_still_works(self):
-        # Uppercase legacy access is preserved as syntax sugar — names
-        # are case-folded and routed to the appropriate layer.
+        # Uppercase legacy access is preserved for non-colliding leaves.
         assert config.PRECISION == 13
-        assert config.FORMALISM == "IIT_4_0_2023"
         assert config.PARALLEL is False
+        assert config.VERSION == "IIT_4_0_2023"
+        assert config.REPERTOIRE_MEASURE == "GENERALIZED_INTRINSIC_DIFFERENCE"
 
     def test_legacy_uppercase_write_propagates_to_layered_view(self):
         original = config.PRECISION
@@ -254,6 +311,39 @@ class TestGlobalConfigFacade:
     def test_replacing_layer_with_wrong_type_raises(self):
         with pytest.raises(ConfigurationError, match="Cannot replace layer"):
             config.numerics = "not a NumericsConfig"  # type: ignore[assignment]
+
+    def test_replacing_iit_subnamespace_works(self):
+        original = config.formalism.iit
+        try:
+            config.iit = IITConfig(repertoire_measure="EMD")
+            assert config.formalism.iit.repertoire_measure == "EMD"
+            assert config.formalism.actual_causation.measure == "PMI"
+        finally:
+            config.iit = original
+
+    def test_replacing_actual_causation_subnamespace_works(self):
+        original = config.formalism.actual_causation
+        try:
+            config.actual_causation = ActualCausationConfig(measure="KLD")
+            assert config.formalism.actual_causation.measure == "KLD"
+        finally:
+            config.actual_causation = original
+
+    def test_flat_write_to_unique_iit_field_routes_to_iit(self):
+        original = config.formalism.iit.repertoire_measure
+        try:
+            config.repertoire_measure = "EMD"
+            assert config.formalism.iit.repertoire_measure == "EMD"
+        finally:
+            config.repertoire_measure = original
+
+    def test_flat_write_to_colliding_field_raises(self):
+        with pytest.raises(ConfigurationError, match="ambiguous"):
+            config.mechanism_partition_scheme = "BI"
+
+    def test_flat_read_of_colliding_field_raises(self):
+        with pytest.raises(AttributeError, match="ambiguous"):
+            _ = config.mechanism_partition_scheme
 
     def test_snapshot_returns_config_snapshot(self):
         snap = config.snapshot()

@@ -386,7 +386,7 @@ def relations(
     consistent structure.
     """
     return relation_computations[
-        fallback(relation_computation, config.formalism.relation_computation)  # type: ignore[index]  # config.Option descriptor
+        fallback(relation_computation, config.formalism.iit.relation_computation)  # type: ignore[index]  # config.Option descriptor
     ](distinctions, **kwargs)
 
 

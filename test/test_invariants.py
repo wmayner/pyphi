@@ -231,9 +231,9 @@ class TestConfigurationInvariants:
 
         # With config enabled and EMD, phi should be > 0
         with config.override(
-            formalism="IIT_3_0",
+            version="IIT_3_0",
             single_micro_nodes_with_selfloops_have_phi=True,
-            repertoire_distance="EMD",
+            repertoire_measure="EMD",
         ):
             result_enabled = noisy_selfloop_single.sia()
             assert result_enabled.phi > 0.0, (

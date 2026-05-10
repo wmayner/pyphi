@@ -203,7 +203,7 @@ def evaluate_cut(
 
     cut_system = uncut_system.apply_cut(cut)
 
-    if config.formalism.assume_cuts_cannot_create_new_concepts:
+    if config.formalism.iit.assume_partitions_cannot_create_new_concepts:
         mechanisms = list(unpartitioned_ces.mechanisms)
     else:
         # Mechanisms can only produce concepts if they were concepts in the
@@ -233,7 +233,7 @@ def sia_partitions(
 ) -> list[SystemPartition]:
     """Return all |big_phi| cuts for the given nodes.
 
-    Controlled by the :const:`config.formalism.system_partition_type` option.
+    Controlled by the :const:`config.formalism.iit.system_partition_scheme` option.
 
     Arguments:
         nodes (tuple[int]): The node indices to partition.
@@ -246,14 +246,14 @@ def sia_partitions(
 
     """
     # TODO(4.0 consolidate 3.0 and 4.0 cuts)
-    scheme = config.formalism.system_partition_type
+    scheme = config.formalism.iit.system_partition_scheme
     valid = ["DIRECTED_BI", "DIRECTED_BI_CUT_ONE"]
     if scheme not in valid:
         raise ValueError(
             "IIT 3.0 calculations must use one of the following system "
             f"partition schemes: {valid}; got {scheme}"
         )
-    return system_partition_types[config.formalism.system_partition_type](  # type: ignore[index]  # config.Option descriptor
+    return system_partition_types[config.formalism.iit.system_partition_scheme](  # type: ignore[index]  # config.Option descriptor
         nodes, node_labels=node_labels
     )
 
@@ -337,7 +337,7 @@ def _sia(system: System, **kwargs: Any) -> SystemIrreducibilityAnalysis:
             )
             return _null_sia(system)
         # Even if the node has a self-loop, we may still define phi to be zero.
-        if not config.formalism.single_micro_nodes_with_selfloops_have_phi:
+        if not config.formalism.iit.single_micro_nodes_with_selfloops_have_phi:
             log.info(
                 "Single micro nodes %s with selfloops cannot have "
                 "phi; returning null SIA immediately.",

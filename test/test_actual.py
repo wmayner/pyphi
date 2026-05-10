@@ -1,3 +1,5 @@
+from dataclasses import replace
+
 import numpy as np
 import pytest
 
@@ -494,7 +496,7 @@ def ac_cut(direction, *parts):
     return models.ActualCut(direction, KPartition(*parts))
 
 
-@config.override(partition_type="TRI")
+@config.override(iit=replace(config.formalism.iit, mechanism_partition_scheme="TRI"))
 @pytest.mark.parametrize(
     "direction,answer",
     [
@@ -662,7 +664,7 @@ class TestActualCausationIIT30:
         assert np.isclose(sia_effect.alpha, 0.4150374992788)
         assert sia_effect.direction == Direction.EFFECT
 
-    @config.override(partition_type="TRI")
+    @config.override(iit=replace(config.formalism.iit, mechanism_partition_scheme="TRI"))
     def test_prevention(self, prevention):
         """Test prevention example under IIT 3.0 with tripartitions.
 

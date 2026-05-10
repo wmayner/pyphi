@@ -151,12 +151,12 @@ def plot_distribution(
 
 
 def plot_repertoires(system, sia, **kwargs):
-    if config.formalism.repertoire_distance not in [
+    if config.formalism.iit.repertoire_measure not in [
         "GENERALIZED_INTRINSIC_DIFFERENCE",
         "INTRINSIC_INFORMATION",
     ]:
         raise NotImplementedError(
-            "Only REPERTOIRE_DISTANCE = "
+            "Only repertoire_measure = "
             "GENERALIZED_INTRINSIC_DIFFERENCE or INTRINSIC_INFORMATION is supported"
         )
     cut_system = system.apply_cut(sia.partition)

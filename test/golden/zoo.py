@@ -36,11 +36,13 @@ Excluded from the initial set: tied-state cases that are flaky on develop
 from __future__ import annotations
 
 import itertools
+from dataclasses import replace
 
 import numpy as np
 
 from pyphi import Substrate
 from pyphi import examples
+from pyphi.conf import config
 
 from .fixture import GoldenFixture
 
@@ -69,11 +71,11 @@ def _logistic_3node_k8() -> Substrate:
 
 # IIT 4.0 (2023) — Albantakis et al. 2023, GID metric, no ii(s) cap.
 IIT_4_2023_CONFIG = {
-    "FORMALISM": "IIT_4_0_2023",
-    "REPERTOIRE_DISTANCE": "GENERALIZED_INTRINSIC_DIFFERENCE",
-    "SYSTEM_PARTITION_TYPE": "SET_UNI/BI",
-    "PROGRESS_BARS": False,
-    "PARALLEL": False,
+    "version": "IIT_4_0_2023",
+    "repertoire_measure": "GENERALIZED_INTRINSIC_DIFFERENCE",
+    "system_partition_scheme": "SET_UNI/BI",
+    "progress_bars": False,
+    "parallel": False,
 }
 
 # IIT 4.0 (2026) — Mayner, Marshall, Tononi 2026. ii(s) = min(i_diff, i_spec)
@@ -82,20 +84,26 @@ IIT_4_2023_CONFIG = {
 # but phi is capped by min_d(min(i_diff_d, i_spec_d)).
 IIT_4_2026_CONFIG = {
     **IIT_4_2023_CONFIG,
-    "FORMALISM": "IIT_4_0_2026",
-    "REPERTOIRE_DISTANCE": "INTRINSIC_INFORMATION",
+    "version": "IIT_4_0_2026",
+    "repertoire_measure": "INTRINSIC_INFORMATION",
 }
 
 # IIT 3.0 — Oizumi/Albantakis/Tononi 2014. Distribution-distance based.
+# ``mechanism_partition_scheme`` is a colliding name (lives in both
+# ``iit`` and ``actual_causation`` sub-namespaces), so it travels inside
+# an ``IITConfig`` replacement rather than as a flat kwarg.
 IIT_3_CONFIG = {
-    "FORMALISM": "IIT_3_0",
-    "REPERTOIRE_DISTANCE": "EMD",
-    "PARTITION_TYPE": "BI",
-    "SYSTEM_PARTITION_TYPE": "DIRECTED_BI",
-    "ACTUAL_CAUSATION_MEASURE": "PMI",
-    "PURVIEW_TIE_RESOLUTION": ["PHI", "PURVIEW_SIZE"],
-    "PROGRESS_BARS": False,
-    "PARALLEL": False,
+    "iit": replace(
+        config.formalism.iit,
+        version="IIT_3_0",
+        repertoire_measure="EMD",
+        mechanism_partition_scheme="BI",
+        system_partition_scheme="DIRECTED_BI",
+        purview_tie_resolution=["PHI", "PURVIEW_SIZE"],
+    ),
+    "measure": "PMI",
+    "progress_bars": False,
+    "parallel": False,
 }
 
 # Skip layers that don't apply to a given formalism
@@ -178,10 +186,14 @@ def _make_fixtures() -> list[GoldenFixture]:
     fixtures.append(
         GoldenFixture(
             name="basic_iit3_emd_tri",
-            description="basic_substrate IIT 3.0 + EMD with PARTITION_TYPE=TRI "
-            "(tripartitions). Different combinatorial path than BI; supports "
-            "the partition-algebra consolidation in P6.",
-            config_overrides={**IIT_3_CONFIG, "PARTITION_TYPE": "TRI"},
+            description="basic_substrate IIT 3.0 + EMD with "
+            "mechanism_partition_scheme=TRI (tripartitions). Different "
+            "combinatorial path than BI; supports the partition-algebra "
+            "consolidation in P6.",
+            config_overrides={
+                **{k: v for k, v in IIT_3_CONFIG.items() if k != "iit"},
+                "iit": replace(IIT_3_CONFIG["iit"], mechanism_partition_scheme="TRI"),
+            },
             substrate_factory=examples.basic_substrate,
             state=(1, 0, 0),
             skip_layers=SKIP_FOR_IIT_3,

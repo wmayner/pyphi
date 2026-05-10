@@ -120,7 +120,7 @@ def states[T](
 
     Controlled by the STATE_TIE_RESOLUTION configuration option.
     """
-    strategy = fallback(strategy, config.formalism.state_tie_resolution)
+    strategy = fallback(strategy, config.formalism.iit.state_tie_resolution)
     assert strategy is not None, "STATE_TIE_RESOLUTION config must be set"
     return resolve(rias, strategy, operation=max, **kwargs)
 
@@ -132,7 +132,7 @@ def partitions[T](
 
     Controlled by the MIP_TIE_RESOLUTION configuration option.
     """
-    strategy = fallback(strategy, config.formalism.mip_tie_resolution)
+    strategy = fallback(strategy, config.formalism.iit.mip_tie_resolution)
     assert strategy is not None, "MIP_TIE_RESOLUTION config must be set"
     return resolve(mips, strategy, operation=min, **kwargs)
 
@@ -144,6 +144,6 @@ def purviews[T](
 
     Controlled by the PURVIEW_TIE_RESOLUTION configuration option.
     """
-    strategy = fallback(strategy, config.formalism.purview_tie_resolution)
+    strategy = fallback(strategy, config.formalism.iit.purview_tie_resolution)
     assert strategy is not None, "PURVIEW_TIE_RESOLUTION config must be set"
     yield from resolve(mice, strategy, operation=max, **kwargs)

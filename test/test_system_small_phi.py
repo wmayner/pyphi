@@ -248,7 +248,7 @@ parameter_string = "direction,system,cut,mechanism,purview,expected"
 @pytest.mark.emd
 @skip_if_no_pyemd
 @pytest.mark.parametrize(parameter_string, scenarios)
-@config.override(formalism="IIT_3_0", repertoire_distance="EMD")
+@config.override(version="IIT_3_0", repertoire_measure="EMD")
 def test_find_mip(direction, system, cut, mechanism, purview, expected):
     # Set up testing parameters from scenario
     result = system.find_mip(direction, mechanism, purview)

@@ -41,7 +41,7 @@ class TestSIASnapshot:
 
     def test_snapshot_records_formalism_at_construction(self, cs):
         result = sia(cs)
-        assert result.config.formalism.formalism == config.formalism.formalism
+        assert result.config.formalism.iit.version == config.formalism.iit.version
 
     def test_snapshot_as_kwargs_can_reproduce_override(self, cs):
         with config.override(precision=11):

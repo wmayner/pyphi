@@ -63,7 +63,7 @@ def system_intrinsic_information(
 ) -> SystemStateSpecification:
     """Return the cause/effect states specified by the system.
 
-    NOTE: Uses ``config.formalism.repertoire_distance_specification``.
+    NOTE: Uses ``config.formalism.iit.repertoire_measure_specification``.
     NOTE: State ties are arbitrarily broken (for now).
     """
     directions = fallback(directions, Direction.both())
@@ -76,7 +76,7 @@ def system_intrinsic_information(
     validate.directions(directions)
     repertoire_distance = fallback(
         repertoire_distance,
-        config.formalism.repertoire_distance_specification,  # pyright: ignore[reportAttributeAccessIssue]
+        config.formalism.iit.repertoire_measure_specification,  # pyright: ignore[reportAttributeAccessIssue]
     )
     # TODO(ties) deal with ties here
     ii = {
@@ -411,7 +411,7 @@ def integration_value(
     repertoire_distance: str | None = None,
 ) -> RepertoireIrreducibilityAnalysis:
     repertoire_distance = fallback(
-        repertoire_distance, config.formalism.repertoire_distance
+        repertoire_distance, config.formalism.iit.repertoire_measure
     )
     cut_system = system.apply_cut(partition)
     specified = system_state[direction]
@@ -484,7 +484,7 @@ def evaluate_partition(
     # Eqs. 19-20: system-level partition integration uses GID only.
     # The ii(s) cap (Eq. 23) is applied separately below.
     effective_distance = fallback(
-        repertoire_distance, config.formalism.repertoire_distance
+        repertoire_distance, config.formalism.iit.repertoire_measure
     )
     partition_distance = (
         "GENERALIZED_INTRINSIC_DIFFERENCE"
@@ -589,7 +589,9 @@ def sia(
     **kwargs,
 ) -> SystemIrreducibilityAnalysis:
     """Find the minimum information partition of a system."""
-    partition_scheme = fallback(partition_scheme, config.formalism.system_partition_type)
+    partition_scheme = fallback(
+        partition_scheme, config.formalism.iit.system_partition_scheme
+    )
 
     # TODO(4.0): trivial reducibility
 
@@ -624,7 +626,7 @@ def sia(
         if not system.cm[system.node_indices][system.node_indices]:
             return _null_sia(reasons=[ShortCircuitConditions.MONAD_WITH_NO_SELFLOOP])
         # Even if the node has a self-loop, we may still define phi to be zero.
-        if not config.formalism.single_micro_nodes_with_selfloops_have_phi:
+        if not config.formalism.iit.single_micro_nodes_with_selfloops_have_phi:
             return _null_sia(
                 reasons=[
                     ShortCircuitConditions.MONAD_WITH_SELFLOOP_DEFINED_TO_BE_ZERO_PHI
@@ -654,7 +656,7 @@ def sia(
     if system_state is None:
         system_state = system_intrinsic_information(system, directions=directions)
 
-    if config.formalism.shortcircuit_sia:
+    if config.formalism.iit.shortcircuit_sia:
         shortcircuit_reasons = _has_no_cause_or_effect(system_state)
         if shortcircuit_reasons:
             return _null_sia(reasons=shortcircuit_reasons)

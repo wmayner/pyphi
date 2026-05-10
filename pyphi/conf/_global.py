@@ -3,15 +3,24 @@
 The :class:`_GlobalConfig` instance owns three frozen dataclass layers
 (``formalism``, ``infrastructure``, ``numerics``) directly. Top-level
 field writes route through :data:`FIELD_TO_LAYER` and replace the owning
-layer via :func:`dataclasses.replace`, so each layer remains immutable.
+layer (or formalism sub-namespace) via :func:`dataclasses.replace`, so
+each layer remains immutable.
 
-Both flat (``config.precision``) and layered (``config.numerics.precision``)
+Both flat (``config.precision``) and layered
+(``config.numerics.precision``, ``config.formalism.iit.repertoire_measure``)
 forms work for reads. Writes use the flat form (``config.precision = 6``)
 or :meth:`override` for scoped changes; wholesale layer replacement
-(``config.numerics = NumericsConfig(precision=6)``) is also supported.
+(``config.numerics = NumericsConfig(precision=6)``) and sub-namespace
+replacement (``config.iit = IITConfig(repertoire_measure="EMD")``) are
+also supported.
 
 Legacy uppercase access (``config.PRECISION``) is preserved as syntax
 sugar — names are case-folded and routed to the appropriate layer.
+
+Field names that collide between the formalism's IIT and AC
+sub-namespaces (currently only ``mechanism_partition_scheme``) are NOT
+flat-routable; reads and writes against the bare leaf name raise. Use
+the qualified path or replace the sub-namespace as a whole.
 """
 
 from __future__ import annotations
@@ -29,7 +38,10 @@ from pyphi.conf._callbacks import configure_logging
 from pyphi.conf._callbacks import warn_distinction_phi_normalization_change
 from pyphi.conf._field_routing import FIELD_TO_LAYER
 from pyphi.conf._field_routing import ConfigurationError
+from pyphi.conf._field_routing import colliding_formalism_fields
+from pyphi.conf.formalism import ActualCausationConfig
 from pyphi.conf.formalism import FormalismConfig
+from pyphi.conf.formalism import IITConfig
 from pyphi.conf.infrastructure import InfrastructureConfig
 from pyphi.conf.numerics import NumericsConfig
 from pyphi.conf.snapshot import ConfigSnapshot
@@ -43,12 +55,43 @@ _LAYER_TYPES: dict[str, type] = {
 _LOG_FIELDS = frozenset({"log_file", "log_file_level", "log_stdout_level"})
 
 
+def _read_via_target(
+    cfg: _GlobalConfig, target: tuple[str, str | None], field_name: str
+) -> Any:
+    """Read ``field_name`` from the (layer[, sub-namespace]) path in ``target``."""
+    layer_name, sub_namespace = target
+    layer = getattr(cfg, "_" + layer_name)
+    if sub_namespace is None:
+        return getattr(layer, field_name)
+    return getattr(getattr(layer, sub_namespace), field_name)
+
+
+def _write_via_target(
+    cfg: _GlobalConfig,
+    target: tuple[str, str | None],
+    field_name: str,
+    value: Any,
+) -> None:
+    """Replace ``field_name`` on the resolved (layer[, sub-namespace]) immutably."""
+    layer_name, sub_namespace = target
+    layer_attr = "_" + layer_name
+    current_layer = getattr(cfg, layer_attr)
+    if sub_namespace is None:
+        new_layer = replace(current_layer, **{field_name: value})
+    else:
+        current_sub = getattr(current_layer, sub_namespace)
+        new_sub = replace(current_sub, **{field_name: value})
+        new_layer = replace(current_layer, **{sub_namespace: new_sub})
+    object.__setattr__(cfg, layer_attr, new_layer)
+
+
 class _GlobalConfig:
     """Layered configuration global.
 
     Stores a :class:`FormalismConfig`, :class:`InfrastructureConfig`, and
     :class:`NumericsConfig` instance directly. Field writes are routed to
-    the owning layer and replace it via :func:`dataclasses.replace`.
+    the owning layer (and sub-namespace, for formalism) and replace it
+    via :func:`dataclasses.replace`.
     """
 
     def __init__(self) -> None:
@@ -85,8 +128,20 @@ class _GlobalConfig:
         scheduler. Distinct from :meth:`override`, which is a scoped
         context manager.
         """
-        for key, value in snapshot.as_kwargs().items():
-            setattr(self, key, value)
+        # Replace whole layers wholesale rather than streaming via
+        # ``as_kwargs``: ``as_kwargs`` excludes colliding formalism field
+        # names, so per-key restoration would silently lose those values.
+        old_formalism = self._formalism
+        object.__setattr__(self, "_formalism", snapshot.formalism)
+        self._fire_layer_replacement_callbacks(old_formalism, snapshot.formalism)
+
+        old_infra = self._infrastructure
+        object.__setattr__(self, "_infrastructure", snapshot.infrastructure)
+        self._fire_layer_replacement_callbacks(old_infra, snapshot.infrastructure)
+
+        old_numerics = self._numerics
+        object.__setattr__(self, "_numerics", snapshot.numerics)
+        self._fire_layer_replacement_callbacks(old_numerics, snapshot.numerics)
 
     def override(self, **kwargs: Any) -> _OverrideContext:
         """Scoped override of one or more config fields.
@@ -102,15 +157,21 @@ class _GlobalConfig:
     def load_yaml(self, path: str | Path) -> None:
         """Load a 2.0 nested-format YAML config file.
 
-        Each layer's section is applied via per-field writes. Raises
-        :class:`ConfigurationError` on unrecognized keys or 1.x flat
-        format.
+        ``formalism`` is loaded from its nested ``iit`` and
+        ``actual_causation`` sub-sections. Each leaf write is applied via
+        :meth:`__setattr__` so the field-routing checks (unknown names,
+        colliding names) fire identically to programmatic writes.
         """
         from pyphi.conf._io import load_yaml as _load
 
         data = _load(path)
+        formalism_data = data.pop("formalism", {})
         for fields_dict in data.values():
             for field_name, value in fields_dict.items():
+                setattr(self, field_name, value)
+        for sub_name in ("iit", "actual_causation"):
+            sub_data = formalism_data.get(sub_name, {})
+            for field_name, value in sub_data.items():
                 setattr(self, field_name, value)
 
     def to_yaml(self, path: str | Path) -> None:
@@ -127,7 +188,7 @@ class _GlobalConfig:
         """Advertise leaf setting names for tab completion.
 
         ``pyphi.config.<TAB>`` shows leaf settings (``precision``,
-        ``parallel``, ``repertoire_distance``, …) directly, so users
+        ``parallel``, ``repertoire_measure``, …) directly, so users
         don't have to memorize which setting lives in which layer.
         Also includes the layer objects themselves and the methods.
         """
@@ -148,8 +209,14 @@ class _GlobalConfig:
         if name.isupper():
             field_name = name.lower()
             if field_name in FIELD_TO_LAYER:
-                layer_name = FIELD_TO_LAYER[field_name]
-                return getattr(getattr(self, "_" + layer_name), field_name)
+                return _read_via_target(self, FIELD_TO_LAYER[field_name], field_name)
+        if name in colliding_formalism_fields():
+            raise AttributeError(
+                f"{name!r} is ambiguous (exists in both formalism.iit and "
+                "formalism.actual_causation). Use the qualified path: "
+                f"config.formalism.iit.{name} or "
+                f"config.formalism.actual_causation.{name}."
+            )
         raise AttributeError(f"{type(self).__name__!r} object has no attribute {name!r}")
 
     def __setattr__(self, name: str, value: Any) -> None:
@@ -159,18 +226,39 @@ class _GlobalConfig:
 
         field_name = name.lower() if name.isupper() else name
 
+        # Wholesale layer replacement (e.g. config.numerics = NumericsConfig(...))
         if field_name in _LAYER_NAMES and isinstance(value, _LAYER_TYPES[field_name]):
             old_layer = getattr(self, "_" + field_name)
             object.__setattr__(self, "_" + field_name, value)
             self._fire_layer_replacement_callbacks(old_layer, value)
             return
 
+        # Wholesale formalism sub-namespace replacement
+        if field_name == "iit" and isinstance(value, IITConfig):
+            old_formalism = self._formalism
+            new_formalism = replace(old_formalism, iit=value)
+            object.__setattr__(self, "_formalism", new_formalism)
+            self._fire_layer_replacement_callbacks(old_formalism, new_formalism)
+            return
+        if field_name == "actual_causation" and isinstance(value, ActualCausationConfig):
+            old_formalism = self._formalism
+            new_formalism = replace(old_formalism, actual_causation=value)
+            object.__setattr__(self, "_formalism", new_formalism)
+            self._fire_layer_replacement_callbacks(old_formalism, new_formalism)
+            return
+
+        if field_name in colliding_formalism_fields():
+            raise ConfigurationError(
+                f"Field {field_name!r} is ambiguous (exists in both "
+                "formalism.iit and formalism.actual_causation). Use the "
+                "nested form: config.iit = replace(config.formalism.iit, "
+                f"{field_name}=...) or config.actual_causation = "
+                f"replace(config.formalism.actual_causation, {field_name}=...)."
+            )
+
         if field_name in FIELD_TO_LAYER:
-            layer_name = FIELD_TO_LAYER[field_name]
-            layer_attr = "_" + layer_name
-            current_layer = getattr(self, layer_attr)
-            new_layer = replace(current_layer, **{field_name: value})
-            object.__setattr__(self, layer_attr, new_layer)
+            target = FIELD_TO_LAYER[field_name]
+            _write_via_target(self, target, field_name, value)
             self._fire_field_callback(field_name)
             return
 
@@ -195,18 +283,32 @@ class _GlobalConfig:
             warn_distinction_phi_normalization_change()
 
     def _fire_layer_replacement_callbacks(self, old_layer: Any, new_layer: Any) -> None:
+        # Walk leaf fields so a top-level FormalismConfig replacement
+        # still surfaces nested IIT/AC field changes to the per-field
+        # callbacks. Iteration is shallow for non-formalism layers
+        # (whose fields are all leaves) and one level deeper for
+        # formalism (iit + actual_causation).
         for f in fields(type(new_layer)):
             old_val = getattr(old_layer, f.name)
             new_val = getattr(new_layer, f.name)
-            if old_val != new_val:
+            if old_val == new_val:
+                continue
+            if isinstance(new_val, (IITConfig, ActualCausationConfig)):
+                for sub_f in fields(type(new_val)):
+                    sub_old = getattr(old_val, sub_f.name)
+                    sub_new = getattr(new_val, sub_f.name)
+                    if sub_old != sub_new:
+                        self._fire_field_callback(sub_f.name)
+            else:
                 self._fire_field_callback(f.name)
 
 
 class _OverrideContext(contextlib.ContextDecorator):
     """Scoped override returned by :meth:`_GlobalConfig.override`.
 
-    Saves a full snapshot on entry and restores any changed fields on
-    exit. Usable as both a context manager and a decorator.
+    Saves a full snapshot on entry and restores all three layers on exit
+    (wholesale, not key-by-key) so colliding sub-namespace fields still
+    round-trip correctly.
     """
 
     def __init__(self, config: _GlobalConfig, kwargs: dict[str, Any]) -> None:
@@ -224,10 +326,6 @@ class _OverrideContext(contextlib.ContextDecorator):
         del exc
         if self._saved is None:
             return False
-        saved_kwargs = self._saved.as_kwargs()
-        current_kwargs = self._config.snapshot().as_kwargs()
-        for name, saved_value in saved_kwargs.items():
-            if current_kwargs[name] != saved_value:
-                setattr(self._config, name, saved_value)
+        self._config.install_snapshot(self._saved)
         self._saved = None
         return False
