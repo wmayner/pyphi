@@ -14,7 +14,6 @@ from dataclasses import field
 
 _VALID_DISTINCTION_PHI_NORMALIZATION = frozenset({"NONE", "NUM_CONNECTIONS_CUT"})
 _VALID_RELATION_COMPUTATION = frozenset({"CONCRETE", "ANALYTICAL"})
-_VALID_SYSTEM_CUTS = frozenset({"3.0_STYLE", "CONCEPT_STYLE"})
 
 
 @dataclass(frozen=True)
@@ -37,7 +36,6 @@ class FormalismConfig:
     partition_type: str = "ALL"
     system_partition_type: str = "SET_UNI/BI"
     system_partition_include_complete: bool = False
-    system_cuts: str = "3.0_STYLE"
     distinction_phi_normalization: str = "NUM_CONNECTIONS_CUT"
     relation_computation: str = "CONCRETE"
     state_tie_resolution: str = "PHI"
@@ -68,10 +66,6 @@ class FormalismConfig:
             raise ValueError(
                 "single_micro_nodes_with_selfloops_have_phi must be bool; "
                 f"got {type(self.single_micro_nodes_with_selfloops_have_phi).__name__}"
-            )
-        if self.system_cuts not in _VALID_SYSTEM_CUTS:
-            raise ValueError(
-                f"system_cuts={self.system_cuts!r} not in {sorted(_VALID_SYSTEM_CUTS)}"
             )
         if (
             self.distinction_phi_normalization

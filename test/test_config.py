@@ -32,7 +32,6 @@ def test_reconfigure_logging_on_change(capsys):
 @pytest.mark.parametrize(
     "name,valid,invalid",
     [
-        ("SYSTEM_CUTS", ["3.0_STYLE", "CONCEPT_STYLE"], ["OTHER"]),
         ("REPR_VERBOSITY", [0, 1, 2], [-1, 3]),
         ("PARALLEL", [True, False], ["True", "False", "no", 0, 1]),
         ("LOG_FILE", ["filename", Path("filename")], [0, 1]),

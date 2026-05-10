@@ -269,17 +269,6 @@ def test_sia_macro_parallel(macro_s, macro_s_expected_sia):
 """
 
 
-@pytest.mark.outdated
-@pytest.mark.slow
-@config.override(system_partition_type="DIRECTED_BI")
-def test_system_cut_styles(s):
-    with config.override(system_cuts="3.0_STYLE"):
-        assert iit3.phi(s) == 0.5  # 2.3125
-
-    with config.override(system_cuts="CONCEPT_STYLE"):
-        assert iit3.phi(s) == 0.6875
-
-
 # Not relevant anymore because ces concepts do not store system
 """@pytest.mark.parametrize("parallel", [False, True])
 def test_ces_concepts_share_the_same_system(parallel, s):

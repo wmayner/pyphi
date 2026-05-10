@@ -14,12 +14,10 @@ computation.
 from __future__ import annotations
 
 import contextlib
-import functools
 import logging
 from collections.abc import Iterable
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import ClassVar
 
 from more_itertools import collapse
 
@@ -31,15 +29,12 @@ from pyphi.direction import Direction
 from pyphi.metrics.ces import ces_distance
 from pyphi.models import Concept
 from pyphi.models import Distinctions
-from pyphi.models import KCut
 from pyphi.models import ResolvedDistinctions
 from pyphi.models import SystemIrreducibilityAnalysis
 from pyphi.models import SystemPartition
 from pyphi.models import UnresolvedDistinctions
 from pyphi.models import _null_sia
-from pyphi.models import cmp
 from pyphi.parallel import MapReduce
-from pyphi.partition import mip_partitions
 from pyphi.partition import system_partition_types
 from pyphi.types import Mechanism
 from pyphi.types import Purview
@@ -386,175 +381,12 @@ def _sia(system: System, **kwargs: Any) -> SystemIrreducibilityAnalysis:
     return result
 
 
-@functools.wraps(_sia)
-def sia(
-    system: System, **kwargs: Any
-) -> SystemIrreducibilityAnalysis | SystemIrreducibilityAnalysisConceptStyle:
-    if config.formalism.system_cuts == "CONCEPT_STYLE":
-        return sia_concept_style(system, **kwargs)
-    return _sia(system, **kwargs)
+sia = _sia
 
 
 def phi(system: System) -> float:
     """Return the |big_phi| value of a system."""
     return sia(system).phi
-
-
-class ConceptStyleSystem:
-    """A functional replacement for ``System`` implementing concept-style
-    system cuts.
-    """
-
-    def __init__(
-        self,
-        system: System,
-        direction: Direction,
-        cut: SystemPartition | None = None,
-    ) -> None:
-        self.system = system
-        self.direction = direction
-        self.cut = cut
-        if cut is not None:
-            self.cut_system = system.apply_cut(cut)
-        else:
-            self.cut_system = system
-
-    def apply_cut(self, cut: SystemPartition) -> ConceptStyleSystem:
-        return ConceptStyleSystem(self.system, self.direction, cut)
-
-    def __getattr__(self, name: str) -> Any:
-        """Pass attribute access through to the basic system."""
-        # Unpickling calls `__getattr__` before the object's dict is populated;
-        # check that `system` exists to avoid a recursion error.
-        # See https://bugs.python.org/issue5370.
-        if "system" in self.__dict__:
-            return getattr(self.system, name)
-        raise AttributeError(name)
-
-    def __len__(self) -> int:
-        return len(self.system)
-
-    @property
-    def cause_system(self) -> System:
-        return {
-            Direction.CAUSE: self.cut_system,
-            Direction.EFFECT: self.system,
-        }[self.direction]
-
-    @property
-    def effect_system(self) -> System:
-        return {
-            Direction.CAUSE: self.system,
-            Direction.EFFECT: self.cut_system,
-        }[self.direction]
-
-    def concept(
-        self,
-        mechanism: Mechanism,
-        purviews: Iterable[Purview] | bool = False,
-        cause_purviews: Iterable[Purview] | bool = False,
-        effect_purviews: Iterable[Purview] | bool = False,
-    ) -> Concept:
-        """Compute a concept, using the appropriate system for each side of the
-        cut.
-        """
-        # Convert bool to None for purviews parameters
-        cause_p: Iterable[Purview] | None = cause_purviews or purviews or None  # type: ignore[assignment]
-        effect_p: Iterable[Purview] | None = effect_purviews or purviews or None  # type: ignore[assignment]
-
-        from pyphi.formalism.queries import mic
-        from pyphi.formalism.queries import mie
-
-        cause = mic(self.cause_system, mechanism, purviews=cause_p)
-        effect = mie(self.effect_system, mechanism, purviews=effect_p)
-
-        return Concept(
-            mechanism=mechanism,
-            cause=cause,
-            effect=effect,
-        )
-
-    def __str__(self) -> str:
-        return f"ConceptStyleSystem{self.node_indices}"
-
-
-def concept_cuts(
-    direction: Direction,
-    node_indices: tuple[int, ...],
-    node_labels: NodeLabels | None = None,
-) -> Iterable[KCut]:
-    """Generator over all concept-syle cuts for these nodes."""
-    for partition in mip_partitions(node_indices, node_indices):
-        yield KCut(direction, partition, node_labels)
-
-
-def directional_sia(
-    system: System,
-    direction: Direction,
-    unpartitioned_ces: Distinctions | None = None,
-    **kwargs: Any,
-) -> SystemIrreducibilityAnalysis:
-    """Calculate a concept-style SystemIrreducibilityAnalysisCause or
-    SystemIrreducibilityAnalysisEffect.
-    """
-    if unpartitioned_ces is None:
-        unpartitioned_ces = _ces(system)
-
-    c_system = ConceptStyleSystem(system, direction)
-    cuts = concept_cuts(direction, c_system.cut_indices, system.node_labels)
-
-    # Type ignore: ConceptStyleSystem duck-types as System, KCut as SystemPartition
-    return _sia_map_reduce(cuts, c_system, unpartitioned_ces, **kwargs)  # type: ignore[arg-type]
-
-
-# TODO: only return the minimal SIA, instead of both
-class SystemIrreducibilityAnalysisConceptStyle(cmp.Orderable):
-    """Represents a |SIA| computed using concept-style system cuts."""
-
-    def __init__(
-        self,
-        sia_cause: SystemIrreducibilityAnalysis,
-        sia_effect: SystemIrreducibilityAnalysis,
-    ) -> None:
-        self.sia_cause = sia_cause
-        self.sia_effect = sia_effect
-
-    @property
-    def min_sia(self) -> SystemIrreducibilityAnalysis:
-        return min(self.sia_cause, self.sia_effect, key=lambda m: m.phi)
-
-    def __getattr__(self, name: str) -> Any:
-        """Pass attribute access through to the minimal SIA."""
-        if "sia_cause" in self.__dict__ and "sia_effect" in self.__dict__:
-            return getattr(self.min_sia, name)
-        raise AttributeError(name)
-
-    def __eq__(self, other: object) -> bool:
-        return cmp.general_eq(self, other, ["phi"])
-
-    unorderable_unless_eq: ClassVar[list[str]] = ["substrate"]
-
-    def order_by(self) -> list[Any]:
-        return [self.phi, len(self.system)]
-
-    def __repr__(self) -> str:
-        return repr(self.min_sia)
-
-    def __str__(self) -> str:
-        return str(self.min_sia)
-
-
-# TODO: cache
-def sia_concept_style(
-    system: System,
-) -> SystemIrreducibilityAnalysisConceptStyle:
-    """Compute a concept-style SystemIrreducibilityAnalysis"""
-    unpartitioned_ces = _ces(system)
-
-    sia_cause = directional_sia(system, Direction.CAUSE, unpartitioned_ces)
-    sia_effect = directional_sia(system, Direction.EFFECT, unpartitioned_ces)
-
-    return SystemIrreducibilityAnalysisConceptStyle(sia_cause, sia_effect)
 
 
 # ============================================================================
