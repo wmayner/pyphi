@@ -1028,26 +1028,159 @@ def test_paper_fig6_second_order_or_and_cause_alpha(or_and_substrate):
     assert cause.alpha == pytest.approx(0.170, abs=1e-2)
 
 
-@pytest.mark.skip(reason="paper-fixture TPM construction follow-up")
-def test_paper_fig7b_conjunction_alpha():
-    pass
+@pytest.fixture
+def conjunction_substrate():
+    """3-node substrate from 2019 Fig 7B: A, B independent inputs to AND-gate D.
+
+    A and B have no inputs (uniform random under causal marginalization);
+    D fires when both A_{t-1} and B_{t-1} are on.
+    """
+    tpm = np.array(
+        [
+            [0.5, 0.5, 0],
+            [0.5, 0.5, 0],
+            [0.5, 0.5, 0],
+            [0.5, 0.5, 1],
+            [0.5, 0.5, 0],
+            [0.5, 0.5, 0],
+            [0.5, 0.5, 0],
+            [0.5, 0.5, 1],
+        ]
+    )
+    cm = np.array([[0, 0, 1], [0, 0, 1], [0, 0, 0]])
+    return Substrate(tpm, cm, node_labels=("A", "B", "D"))
 
 
-@pytest.mark.skip(reason="paper-fixture TPM construction follow-up")
-def test_paper_fig7c_biconditional_alpha():
-    pass
+def test_paper_fig7b_conjunction_alpha(conjunction_substrate):
+    """2019 Fig 7B: {AB=11}<-{D=1} has alpha_c^max = 2.0 bits."""
+    transition = actual.Transition(
+        conjunction_substrate,
+        before_state=(1, 1, 0),
+        after_state=(1, 1, 1),
+        cause_indices=(0, 1),
+        effect_indices=(2,),
+    )
+    cause = transition.find_actual_cause((2,))
+    assert cause.alpha == pytest.approx(2.0, abs=1e-2)
+    assert tuple(sorted(cause.purview)) == (0, 1)
 
 
-@pytest.mark.skip(reason="paper-fixture TPM construction follow-up")
-def test_paper_fig8a_majority_alpha():
-    pass
+@pytest.fixture
+def biconditional_substrate():
+    """3-node substrate from 2019 Fig 7C: A, B independent inputs to XNOR-gate E.
+
+    E fires when A_{t-1} == B_{t-1} (both 0 or both 1).
+    """
+    tpm = np.array(
+        [
+            [0.5, 0.5, 1],
+            [0.5, 0.5, 0],
+            [0.5, 0.5, 0],
+            [0.5, 0.5, 1],
+            [0.5, 0.5, 1],
+            [0.5, 0.5, 0],
+            [0.5, 0.5, 0],
+            [0.5, 0.5, 1],
+        ]
+    )
+    cm = np.array([[0, 0, 1], [0, 0, 1], [0, 0, 0]])
+    return Substrate(tpm, cm, node_labels=("A", "B", "E"))
 
 
-@pytest.mark.skip(reason="paper-fixture TPM construction follow-up")
+def test_paper_fig7c_biconditional_alpha(biconditional_substrate):
+    """2019 Fig 7C: {AB=11}<-{E=1} has alpha = 1.0 bits via second-order purview.
+
+    First-order purviews {A} and {B} have alpha = 0 (their cause information
+    is zero); only the joint occurrence specifies a constraint.
+    """
+    transition = actual.Transition(
+        biconditional_substrate,
+        before_state=(1, 1, 0),
+        after_state=(1, 1, 1),
+        cause_indices=(0, 1),
+        effect_indices=(2,),
+    )
+    cause = transition.find_actual_cause((2,))
+    assert cause.alpha == pytest.approx(1.0, abs=1e-2)
+    assert tuple(sorted(cause.purview)) == (0, 1)
+
+
+@pytest.fixture
+def majority_substrate():
+    """5-node substrate from 2019 Fig 8A: A, B, C, D random inputs to majority-gate M.
+
+    M fires when sum(A_{t-1}, B_{t-1}, C_{t-1}, D_{t-1}) >= 3.
+    """
+    n_nodes = 5
+    n_states = 2**n_nodes
+    tpm = np.zeros((n_states, n_nodes))
+    for idx in range(n_states):
+        bits = [(idx >> i) & 1 for i in range(n_nodes)]
+        a, b, c, d, _m = bits
+        tpm[idx, 0:4] = 0.5
+        tpm[idx, 4] = 1.0 if (a + b + c + d) >= 3 else 0.0
+    cm = np.array(
+        [
+            [0, 0, 0, 0, 1],
+            [0, 0, 0, 0, 1],
+            [0, 0, 0, 0, 1],
+            [0, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0],
+        ]
+    )
+    return Substrate(tpm, cm, node_labels=("A", "B", "C", "D", "M"))
+
+
+def test_paper_fig8a_majority_alpha(majority_substrate):
+    """2019 Fig 8A: {ABC=111}<-{M=1} has alpha_c^max = 1.678 bits."""
+    transition = actual.Transition(
+        majority_substrate,
+        before_state=(1, 1, 1, 0, 0),
+        after_state=(1, 1, 1, 0, 1),
+        cause_indices=(0, 1, 2, 3),
+        effect_indices=(4,),
+    )
+    cause = transition.find_actual_cause((4,))
+    assert cause.alpha == pytest.approx(1.678, abs=1e-2)
+    # Minimality: actual cause is the third-order occurrence (3 of 4 inputs)
+    assert len(cause.purview) == 3
+
+
+@pytest.mark.skip(
+    reason="non-binary substrate (3-state voters, 4-state W); needs non-binary units"
+)
 def test_paper_fig11_three_candidate_alpha():
     pass
 
 
-@pytest.mark.skip(reason="paper-fixture TPM construction follow-up")
-def test_paper_fig12_probabilistic_alpha():
-    pass
+@pytest.fixture
+def probabilistic_substrate():
+    """2-node substrate from 2019 Fig 12: A is a random input; N is noisy COPY of A.
+
+    p(N_t=1 | A_{t-1}=1) = 0.9; p(N_t=1 | A_{t-1}=0) = 0.1.
+    """
+    tpm = np.array(
+        [
+            [0.5, 0.1],
+            [0.5, 0.9],
+            [0.5, 0.1],
+            [0.5, 0.9],
+        ]
+    )
+    cm = np.array([[0, 1], [0, 0]])
+    return Substrate(tpm, cm, node_labels=("A", "N"))
+
+
+def test_paper_fig12_probabilistic_alpha(probabilistic_substrate):
+    """2019 Fig 12: {A=1}<->{N=1} has alpha_c^max = alpha_e^max approx 0.848 bits."""
+    transition = actual.Transition(
+        probabilistic_substrate,
+        before_state=(1, 0),
+        after_state=(1, 1),
+        cause_indices=(0,),
+        effect_indices=(1,),
+    )
+    cause = transition.find_actual_cause((1,))
+    effect = transition.find_actual_effect((0,))
+    assert cause.alpha == pytest.approx(0.848, abs=1e-2)
+    assert effect.alpha == pytest.approx(0.848, abs=1e-2)
