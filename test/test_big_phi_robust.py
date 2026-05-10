@@ -403,7 +403,7 @@ class TestEq23IntrinsicInformationCap:
     """
 
     II_CONFIG: ClassVar[dict[str, str]] = {
-        "mechanism_phi_measure": "INTRINSIC_INFORMATION",
+        "system_phi_measure": "INTRINSIC_INFORMATION",
         "specification_measure": "INTRINSIC_SPECIFICATION",
         "differentiation_measure": "INTRINSIC_DIFFERENTIATION",
     }
@@ -512,7 +512,7 @@ class TestPaperExamples:
     """
 
     II_CONFIG: ClassVar[dict[str, str]] = {
-        "mechanism_phi_measure": "INTRINSIC_INFORMATION",
+        "system_phi_measure": "INTRINSIC_INFORMATION",
         "specification_measure": "INTRINSIC_SPECIFICATION",
         "differentiation_measure": "INTRINSIC_DIFFERENTIATION",
     }
