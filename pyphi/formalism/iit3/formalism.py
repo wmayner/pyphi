@@ -166,9 +166,27 @@ class IIT3Formalism:
             selectivity=None,
         )
 
-    def evaluate_system(self, system: Any, **kwargs: Any) -> Any:
-        """Delegate to the IIT 3.0 ``sia`` in :mod:`pyphi.formalism.iit3`."""
-        check_metric_compatible(self, config.formalism.iit.mechanism_phi_measure)
+    def evaluate_system(
+        self,
+        system: Any,
+        *,
+        system_metric: Any = None,
+        specification_metric: Any = None,
+        **kwargs: Any,
+    ) -> Any:
+        """Delegate to the IIT 3.0 ``sia`` in :mod:`pyphi.formalism.iit3`.
+
+        Explicit ``system_metric`` overrides the config-driven fallback;
+        compatibility is checked against the active formalism's
+        ``compatible_metrics``. ``specification_metric`` is accepted for
+        API parity with the IIT 4.0 formalisms but unused under IIT 3.0
+        (no specified-state phase).
+        """
+        del specification_metric  # API parity only
+        if system_metric is None:
+            check_metric_compatible(self, config.formalism.iit.mechanism_phi_measure)
+        else:
+            check_metric_compatible(self, system_metric.name)
         from pyphi.formalism.iit3 import sia as _sia
 
         return _sia(system, **kwargs)

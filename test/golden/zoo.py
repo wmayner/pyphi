@@ -80,12 +80,15 @@ IIT_4_2023_CONFIG = {
 
 # IIT 4.0 (2026) — Mayner, Marshall, Tononi 2026. ii(s) = min(i_diff, i_spec)
 # cap on system phi. INTRINSIC_INFORMATION is a system-level mode flag in this
-# regime (per commit c61d95d9): GID is still used for partition integration,
-# but phi is capped by min_d(min(i_diff_d, i_spec_d)).
+# regime: mechanism phi still uses GID (Eqs. 19-20), but system phi is capped
+# by min_d(min(i_diff_d, i_spec_d)). ``system_phi_measure`` selects the cap
+# at the system level; ``mechanism_phi_measure`` stays at GID per the 2026
+# spec. User config is authoritative (formalism ClassVars are only no-config
+# fallbacks).
 IIT_4_2026_CONFIG = {
     **IIT_4_2023_CONFIG,
     "version": "IIT_4_0_2026",
-    "mechanism_phi_measure": "INTRINSIC_INFORMATION",
+    "system_phi_measure": "INTRINSIC_INFORMATION",
 }
 
 # IIT 3.0 — Oizumi/Albantakis/Tononi 2014. Distribution-distance based.

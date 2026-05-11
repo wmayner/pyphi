@@ -491,15 +491,35 @@ class System:
     # :mod:`pyphi.formalism` for callers who prefer that grammar.
 
     def sia(self, **kwargs: Any) -> Any:
-        """Return the system irreducibility analysis under the active formalism."""
-        from pyphi.formalism import sia as _sia
+        """Return the system irreducibility analysis under the active formalism.
 
+        Resolves the system- and specification-level metrics from config at
+        the public boundary and threads them to the active formalism
+        explicitly, so formalism methods are never called without explicit
+        metrics in normal flow.
+        """
+        from pyphi.conf import config as _config
+        from pyphi.formalism import sia as _sia
+        from pyphi.metrics.distribution import resolve_mechanism_metric
+        from pyphi.metrics.distribution import resolve_system_metric
+
+        if _config.formalism.iit.version != "IIT_3_0":
+            kwargs.setdefault(
+                "system_metric",
+                resolve_system_metric(_config.formalism.iit.system_phi_measure),
+            )
+            kwargs.setdefault(
+                "specification_metric",
+                resolve_mechanism_metric(_config.formalism.iit.specification_measure),
+            )
         return _sia(self, **kwargs)
 
     def phi_structure(self, **kwargs: Any) -> Any:
         """Return the IIT 4.0 :class:`CauseEffectStructure` for this system.
 
         Defined under IIT 4.0 only; the IIT 3.0 analogue is :meth:`ces`.
+        Resolves metrics from config at the public boundary; explicit
+        ``system_metric``/``specification_metric`` kwargs override.
         """
         from pyphi.conf import config as _config
         from pyphi.formalism.iit4 import phi_structure as _phi_structure
@@ -536,9 +556,26 @@ class System:
     def find_mip(
         self, direction: Any, mechanism: Any, purview: Any, **kwargs: Any
     ) -> Any:
-        """Return the minimum information partition for a mechanism over a purview."""
-        from pyphi.formalism import find_mip as _find_mip
+        """Return the minimum information partition for a mechanism over a purview.
 
+        Resolves mechanism- and specification-level metrics from config at
+        the public boundary so the active formalism's MIP search is never
+        called without explicit metrics in normal flow. Explicit
+        ``mechanism_metric``/``specification_metric`` kwargs override.
+        """
+        from pyphi.conf import config as _config
+        from pyphi.formalism import find_mip as _find_mip
+        from pyphi.metrics.distribution import resolve_mechanism_metric
+
+        if _config.formalism.iit.version != "IIT_3_0":
+            kwargs.setdefault(
+                "mechanism_metric",
+                resolve_mechanism_metric(_config.formalism.iit.mechanism_phi_measure),
+            )
+            kwargs.setdefault(
+                "specification_metric",
+                resolve_mechanism_metric(_config.formalism.iit.specification_measure),
+            )
         return _find_mip(self, direction, mechanism, purview, **kwargs)
 
     def cause_mip(self, mechanism: Any, purview: Any, **kwargs: Any) -> Any:

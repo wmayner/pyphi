@@ -203,20 +203,31 @@ class IIT4_2023Formalism:
         direction: Any,
         mechanism: Any,
         purview: Any,
+        *,
+        mechanism_metric: Any = None,
+        specification_metric: Any = None,
         **kwargs: Any,
     ) -> Any:
         """Internal mechanism-MIP search. Called by ``queries.find_mip``
         after its short-circuit checks; contains the IIT 4.0 logic
-        (maximize over specified states, minimize over partitions)."""
+        (maximize over specified states, minimize over partitions).
+
+        Explicit ``mechanism_metric``/``specification_metric`` override the
+        config-driven fallback; when omitted, they resolve from
+        ``config.formalism.iit.mechanism_phi_measure`` /
+        ``specification_measure`` respectively.
+        """
         from pyphi.metrics.distribution import resolve_mechanism_metric
 
-        check_metric_compatible(self, config.formalism.iit.mechanism_phi_measure)
-        mechanism_metric = resolve_mechanism_metric(
-            config.formalism.iit.mechanism_phi_measure
-        )
-        specification_metric = resolve_mechanism_metric(
-            config.formalism.iit.specification_measure
-        )
+        if mechanism_metric is None:
+            check_metric_compatible(self, config.formalism.iit.mechanism_phi_measure)
+            mechanism_metric = resolve_mechanism_metric(
+                config.formalism.iit.mechanism_phi_measure
+            )
+        if specification_metric is None:
+            specification_metric = resolve_mechanism_metric(
+                config.formalism.iit.specification_measure
+            )
         return _find_mip_iit4(
             system,
             direction,
@@ -234,17 +245,22 @@ class IIT4_2023Formalism:
         mechanism: Any,
         purview: Any,
         partition: Any,
+        *,
+        mechanism_metric: Any = None,
         **kwargs: Any,
     ) -> Any:
         """IIT 4.0 mechanism-partition integration: forward repertoires +
-        scalar selectivity feed a GID-style metric."""
+        scalar selectivity feed a GID-style metric.
+
+        Explicit ``mechanism_metric`` overrides the config-driven fallback.
+        """
         from pyphi.metrics.distribution import resolve_mechanism_metric
 
-        check_metric_compatible(self, config.formalism.iit.mechanism_phi_measure)
-        mechanism_metric = kwargs.pop(
-            "mechanism_metric",
-            resolve_mechanism_metric(config.formalism.iit.mechanism_phi_measure),
-        )
+        if mechanism_metric is None:
+            check_metric_compatible(self, config.formalism.iit.mechanism_phi_measure)
+            mechanism_metric = resolve_mechanism_metric(
+                config.formalism.iit.mechanism_phi_measure
+            )
         return _evaluate_partition_iit4(
             system,
             direction,
@@ -255,16 +271,35 @@ class IIT4_2023Formalism:
             **kwargs,
         )
 
-    def evaluate_system(self, system: Any, **kwargs: Any) -> Any:
-        """Delegate to :func:`pyphi.formalism.iit4.sia`."""
+    def evaluate_system(
+        self,
+        system: Any,
+        *,
+        system_metric: Any = None,
+        specification_metric: Any = None,
+        **kwargs: Any,
+    ) -> Any:
+        """Delegate to :func:`pyphi.formalism.iit4.sia`.
+
+        Explicit ``system_metric``/``specification_metric`` override the
+        config-driven fallback. When omitted, they resolve from
+        ``config.formalism.iit.system_phi_measure`` /
+        ``specification_measure`` — user config is authoritative.
+        """
         from pyphi.metrics.distribution import resolve_mechanism_metric
         from pyphi.metrics.distribution import resolve_system_metric
 
-        check_metric_compatible(self, config.formalism.iit.system_phi_measure)
-        system_metric = resolve_system_metric(config.formalism.iit.system_phi_measure)
-        specification_metric = resolve_mechanism_metric(
-            config.formalism.iit.specification_measure
-        )
+        if system_metric is None:
+            check_metric_compatible(self, config.formalism.iit.system_phi_measure)
+            system_metric = resolve_system_metric(
+                config.formalism.iit.system_phi_measure
+            )
+        else:
+            check_metric_compatible(self, system_metric.name)
+        if specification_metric is None:
+            specification_metric = resolve_mechanism_metric(
+                config.formalism.iit.specification_measure
+            )
         return _sia(
             system,
             system_metric=system_metric,
@@ -272,16 +307,33 @@ class IIT4_2023Formalism:
             **kwargs,
         )
 
-    def build_phi_structure(self, system: Any, **kwargs: Any) -> Any:
-        """Delegate to :func:`pyphi.formalism.iit4.phi_structure`."""
+    def build_phi_structure(
+        self,
+        system: Any,
+        *,
+        system_metric: Any = None,
+        specification_metric: Any = None,
+        **kwargs: Any,
+    ) -> Any:
+        """Delegate to :func:`pyphi.formalism.iit4.phi_structure`.
+
+        Explicit ``system_metric``/``specification_metric`` override the
+        config-driven fallback.
+        """
         from pyphi.metrics.distribution import resolve_mechanism_metric
         from pyphi.metrics.distribution import resolve_system_metric
 
-        check_metric_compatible(self, config.formalism.iit.system_phi_measure)
-        system_metric = resolve_system_metric(config.formalism.iit.system_phi_measure)
-        specification_metric = resolve_mechanism_metric(
-            config.formalism.iit.specification_measure
-        )
+        if system_metric is None:
+            check_metric_compatible(self, config.formalism.iit.system_phi_measure)
+            system_metric = resolve_system_metric(
+                config.formalism.iit.system_phi_measure
+            )
+        else:
+            check_metric_compatible(self, system_metric.name)
+        if specification_metric is None:
+            specification_metric = resolve_mechanism_metric(
+                config.formalism.iit.specification_measure
+            )
         return _phi_structure(
             system,
             system_metric=system_metric,
@@ -329,18 +381,27 @@ class IIT4_2026Formalism:
         direction: Any,
         mechanism: Any,
         purview: Any,
+        *,
+        mechanism_metric: Any = None,
+        specification_metric: Any = None,
         **kwargs: Any,
     ) -> Any:
+        """Mechanism-level MIP search.
+
+        Explicit ``mechanism_metric``/``specification_metric`` override the
+        config-driven fallback.
+        """
         from pyphi.metrics.distribution import resolve_mechanism_metric
 
-        check_metric_compatible(self, config.formalism.iit.mechanism_phi_measure)
-        # 2026 fixes mechanism-level metric to GID per the formalism's
-        # class-level default; system-level metric (Eq. 23 cap) is the
-        # 2026-specific divergence and is wired in ``evaluate_system``.
-        mechanism_metric = resolve_mechanism_metric(self.default_mechanism_metric)
-        specification_metric = resolve_mechanism_metric(
-            config.formalism.iit.specification_measure
-        )
+        if mechanism_metric is None:
+            check_metric_compatible(self, config.formalism.iit.mechanism_phi_measure)
+            mechanism_metric = resolve_mechanism_metric(
+                config.formalism.iit.mechanism_phi_measure
+            )
+        if specification_metric is None:
+            specification_metric = resolve_mechanism_metric(
+                config.formalism.iit.specification_measure
+            )
         return _find_mip_iit4(
             system,
             direction,
@@ -358,15 +419,22 @@ class IIT4_2026Formalism:
         mechanism: Any,
         purview: Any,
         partition: Any,
+        *,
+        mechanism_metric: Any = None,
         **kwargs: Any,
     ) -> Any:
         """Same shape as IIT 4.0 (2023) mechanism-partition integration; the
-        2026 variant differs only at the system level (the ``ii(s)`` cap)."""
+        2026 variant differs only at the system level (the ``ii(s)`` cap).
+
+        Explicit ``mechanism_metric`` overrides the config-driven fallback.
+        """
         from pyphi.metrics.distribution import resolve_mechanism_metric
 
-        check_metric_compatible(self, config.formalism.iit.mechanism_phi_measure)
-        kwargs.pop("mechanism_metric", None)
-        mechanism_metric = resolve_mechanism_metric(self.default_mechanism_metric)
+        if mechanism_metric is None:
+            check_metric_compatible(self, config.formalism.iit.mechanism_phi_measure)
+            mechanism_metric = resolve_mechanism_metric(
+                config.formalism.iit.mechanism_phi_measure
+            )
         return _evaluate_partition_iit4(
             system,
             direction,
@@ -377,15 +445,36 @@ class IIT4_2026Formalism:
             **kwargs,
         )
 
-    def evaluate_system(self, system: Any, **kwargs: Any) -> Any:
+    def evaluate_system(
+        self,
+        system: Any,
+        *,
+        system_metric: Any = None,
+        specification_metric: Any = None,
+        **kwargs: Any,
+    ) -> Any:
+        """Delegate to :func:`pyphi.formalism.iit4.sia`.
+
+        Explicit ``system_metric``/``specification_metric`` override the
+        config-driven fallback. When omitted, ``system_metric`` resolves
+        from ``config.formalism.iit.system_phi_measure`` (user config is
+        authoritative). The ``ii(s)`` cap (Eq. 23) fires when the
+        resolved metric's ``name`` is ``"INTRINSIC_INFORMATION"``.
+        """
         from pyphi.metrics.distribution import resolve_mechanism_metric
         from pyphi.metrics.distribution import resolve_system_metric
 
-        check_metric_compatible(self, config.formalism.iit.system_phi_measure)
-        system_metric = resolve_system_metric(self.default_system_metric)
-        specification_metric = resolve_mechanism_metric(
-            config.formalism.iit.specification_measure
-        )
+        if system_metric is None:
+            check_metric_compatible(self, config.formalism.iit.system_phi_measure)
+            system_metric = resolve_system_metric(
+                config.formalism.iit.system_phi_measure
+            )
+        else:
+            check_metric_compatible(self, system_metric.name)
+        if specification_metric is None:
+            specification_metric = resolve_mechanism_metric(
+                config.formalism.iit.specification_measure
+            )
         return _sia(
             system,
             system_metric=system_metric,
@@ -393,15 +482,33 @@ class IIT4_2026Formalism:
             **kwargs,
         )
 
-    def build_phi_structure(self, system: Any, **kwargs: Any) -> Any:
+    def build_phi_structure(
+        self,
+        system: Any,
+        *,
+        system_metric: Any = None,
+        specification_metric: Any = None,
+        **kwargs: Any,
+    ) -> Any:
+        """Delegate to :func:`pyphi.formalism.iit4.phi_structure`.
+
+        Explicit ``system_metric``/``specification_metric`` override the
+        config-driven fallback.
+        """
         from pyphi.metrics.distribution import resolve_mechanism_metric
         from pyphi.metrics.distribution import resolve_system_metric
 
-        check_metric_compatible(self, config.formalism.iit.system_phi_measure)
-        system_metric = resolve_system_metric(self.default_system_metric)
-        specification_metric = resolve_mechanism_metric(
-            config.formalism.iit.specification_measure
-        )
+        if system_metric is None:
+            check_metric_compatible(self, config.formalism.iit.system_phi_measure)
+            system_metric = resolve_system_metric(
+                config.formalism.iit.system_phi_measure
+            )
+        else:
+            check_metric_compatible(self, system_metric.name)
+        if specification_metric is None:
+            specification_metric = resolve_mechanism_metric(
+                config.formalism.iit.specification_measure
+            )
         return _phi_structure(
             system,
             system_metric=system_metric,
