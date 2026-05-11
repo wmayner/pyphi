@@ -81,15 +81,23 @@ def emd_ground_distance(r1: Repertoire, r2: Repertoire) -> float:
         float: The distance between ``r1`` and ``r2``.
     """
     measure_name = config.formalism.iit.mechanism_phi_measure
-    asymmetric_metrics = {
-        name
-        for name, metric in distribution.distribution_metrics.items()
-        if getattr(metric, "asymmetric", False)
-    } | {
-        name
-        for name, metric in distribution.stateful_distribution_metrics.items()
-        if getattr(metric, "asymmetric", False)
-    }
+    asymmetric_metrics = (
+        {
+            name
+            for name, metric in distribution.distribution_metrics.items()
+            if getattr(metric, "asymmetric", False)
+        }
+        | {
+            name
+            for name, metric in distribution.stateful_distribution_metrics.items()
+            if getattr(metric, "asymmetric", False)
+        }
+        | {
+            name
+            for name, metric in distribution.composite_metrics.items()
+            if getattr(metric, "asymmetric", False)
+        }
+    )
     if measure_name in asymmetric_metrics:
         raise ValueError(
             f"The repertoire measure {measure_name} is "

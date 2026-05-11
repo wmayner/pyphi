@@ -359,9 +359,17 @@ class CompositeMetricRegistry(Registry):
     desc = "composite metrics"
 
     def register(  # type: ignore[override]
-        self, name: str
+        self, name: str, asymmetric: bool = False
     ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
-        """Decorator for registering a :class:`CompositeMetric`."""
+        """Decorator for registering a :class:`CompositeMetric`.
+
+        Args:
+            name: The name of the measure.
+
+        Keyword Args:
+            asymmetric: ``True`` if the measure is asymmetric. Stored as
+                an attribute on the function.
+        """
 
         def register_func(func: Callable[..., Any]) -> Callable[..., Any]:
             if not satisfies_composite_metric(func):
@@ -372,6 +380,7 @@ class CompositeMetricRegistry(Registry):
                     f"{list(inspect.signature(func).parameters)}."
                 )
             func.name = name  # type: ignore[attr-defined]
+            func.asymmetric = asymmetric  # type: ignore[attr-defined]
             self.store[name] = func
             return func
 
@@ -429,7 +438,7 @@ class ActualCausationMeasureRegistry(Registry):
     Users can define custom measures:
 
     Examples:
-        >>> @measures.register('ALWAYS_ZERO')  # doctest: +SKIP
+        >>> @actual_causation_measures.register('ALWAYS_ZERO')  # doctest: +SKIP
         ... def always_zero(a, b):
         ...    return 0
 
@@ -984,8 +993,8 @@ def iit_4_small_phi_no_absolute_value(p: ArrayLike, q: ArrayLike, state: State) 
     )
 
 
-@composite_metrics.register("GENERALIZED_INTRINSIC_DIFFERENCE")
-@composite_metrics.register("INTRINSIC_SPECIFICATION")
+@composite_metrics.register("GENERALIZED_INTRINSIC_DIFFERENCE", asymmetric=True)
+@composite_metrics.register("INTRINSIC_SPECIFICATION", asymmetric=True)
 def generalized_intrinsic_difference(
     forward_repertoire: ArrayLike,
     partitioned_forward_repertoire: ArrayLike,
@@ -1028,7 +1037,7 @@ def intrinsic_differentiation(p, state):
     )
 
 
-@composite_metrics.register("INTRINSIC_INFORMATION")
+@composite_metrics.register("INTRINSIC_INFORMATION", asymmetric=True)
 def intrinsic_information(
     forward_repertoire,
     partitioned_forward_repertoire,

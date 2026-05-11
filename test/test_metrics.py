@@ -30,15 +30,23 @@ def test_default_distribution_measures():
 
 
 def test_default_asymmetric_distribution_measures():
-    asymmetric_names = {
-        name
-        for name, fn in metrics.distribution.distribution_metrics.items()
-        if getattr(fn, "asymmetric", False)
-    } | {
-        name
-        for name, fn in metrics.distribution.stateful_distribution_metrics.items()
-        if getattr(fn, "asymmetric", False)
-    }
+    asymmetric_names = (
+        {
+            name
+            for name, fn in metrics.distribution.distribution_metrics.items()
+            if getattr(fn, "asymmetric", False)
+        }
+        | {
+            name
+            for name, fn in metrics.distribution.stateful_distribution_metrics.items()
+            if getattr(fn, "asymmetric", False)
+        }
+        | {
+            name
+            for name, fn in metrics.distribution.composite_metrics.items()
+            if getattr(fn, "asymmetric", False)
+        }
+    )
     assert asymmetric_names == {
         "IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE",
         "IIT_4.0_SMALL_PHI",
@@ -49,6 +57,9 @@ def test_default_asymmetric_distribution_measures():
         "KLM",
         "BLD",
         "ID",
+        "GENERALIZED_INTRINSIC_DIFFERENCE",
+        "INTRINSIC_INFORMATION",
+        "INTRINSIC_SPECIFICATION",
     }
 
 
