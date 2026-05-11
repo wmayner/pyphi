@@ -443,7 +443,6 @@ def integration_value(
 def intrinsic_differentiation_value(
     direction: Direction,
     system: System,
-    partition: SystemPartition,  # noqa: ARG001
 ) -> float:
     mechanism = purview = system.node_indices
 
@@ -499,7 +498,6 @@ def evaluate_partition(
         direction: intrinsic_differentiation_value(
             direction,
             system,
-            partition,
         )
         for direction in directions
     }

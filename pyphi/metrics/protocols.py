@@ -4,16 +4,21 @@ Four Protocol classes capture the shape diversity in pyphi's metric
 machinery. Each registered metric satisfies exactly one of these
 Protocols; the registries are typed against the corresponding Protocol.
 
-- ``DistributionMetric``: (p, q) -> float. Distribution-to-distribution
-  distance. Symmetric or asymmetric (see ``asymmetric`` attribute).
-- ``StateAwareMetric``: (p, state) -> float. Pointwise probability at a
-  specified state.
+- ``DistributionMetric``: (p, q) -> float | DistanceResult.
+  Distribution-to-distribution distance. Symmetric or asymmetric (see
+  ``asymmetric`` attribute). Most implementations return a plain float,
+  but several (ID, AID, L1, EMD, etc.) return DistanceResult.
+- ``StateAwareMetric``: (p, state) -> float | DistanceResult. Pointwise
+  probability at a specified state. INTRINSIC_DIFFERENTIATION returns
+  DistanceResult.
 - ``CompositeMetric``: (forward, partitioned, selectivity, *, state)
   -> DistanceResult. Multi-input metric returning rich metadata; used
   by GID / INTRINSIC_INFORMATION / INTRINSIC_SPECIFICATION at the
   system level.
-- ``StatefulDistributionMetric``: (p, q, state) -> float. Two-distribution
-  metric evaluated at a specified state. Both distributions are load-bearing.
+- ``StatefulDistributionMetric``: (p, q, state) -> float | DistanceResult.
+  Two-distribution metric evaluated at a specified state. Both
+  distributions are load-bearing. IIT_4.0_SMALL_PHI variants return
+  DistanceResult.
 """
 
 from __future__ import annotations
@@ -35,7 +40,7 @@ class DistributionMetric(Protocol):
     name: str
     asymmetric: bool
 
-    def __call__(self, p: ArrayLike, q: ArrayLike) -> float: ...
+    def __call__(self, p: ArrayLike, q: ArrayLike) -> float | DistanceResult: ...
 
 
 @runtime_checkable
@@ -44,7 +49,7 @@ class StateAwareMetric(Protocol):
 
     name: str
 
-    def __call__(self, p: ArrayLike, state: object) -> float: ...
+    def __call__(self, p: ArrayLike, state: object) -> float | DistanceResult: ...
 
 
 @runtime_checkable
@@ -78,4 +83,4 @@ class StatefulDistributionMetric(Protocol):
         p: ArrayLike,
         q: ArrayLike,
         state: object,
-    ) -> float: ...
+    ) -> float | DistanceResult: ...

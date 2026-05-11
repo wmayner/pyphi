@@ -11,7 +11,7 @@ structural intent — that each metric satisfies exactly one Protocol
 shape — is captured by inspecting parameter names.
 
 Protocol shapes:
-  DistributionMetric          : first two required params are (p, q)
+  DistributionMetric          : exactly two required params (p, q)
   StateAwareMetric            : exactly two required params (p, state) — no q
   CompositeMetric             : first three params name forward, partitioned,
                                 selectivity repertoires
@@ -83,11 +83,9 @@ def _all_params(metric) -> list[str]:
 
 
 def _satisfies_distribution_metric(metric) -> bool:
-    """Check (p, q, ...) shape: first two required params are p and q."""
+    """Check (p, q) shape: required params are exactly p and q."""
     req = _required_params(metric)
-    if len(req) < 2:
-        return False
-    return req[0] == "p" and req[1] == "q"
+    return req == ["p", "q"]
 
 
 def _satisfies_state_aware_metric(metric) -> bool:
@@ -121,18 +119,21 @@ def _satisfies_stateful_distribution_metric(metric) -> bool:
 
 @pytest.mark.parametrize("name", DISTRIBUTION_METRICS)
 def test_distribution_metric_satisfies_protocol(name: str) -> None:
-    """DistributionMetric: first two required params are (p, q)."""
+    """DistributionMetric: required params are exactly (p, q)."""
     metric = distribution.measures[name]
     assert _satisfies_distribution_metric(metric), (
         f"{name!r} does not satisfy DistributionMetric Protocol — "
         f"required params: {_required_params(metric)!r}"
     )
-    # Also confirm it doesn't satisfy StateAwareMetric or CompositeMetric
+    # Confirm it doesn't satisfy any other Protocol shape
     assert not _satisfies_state_aware_metric(metric), (
         f"{name!r} unexpectedly satisfies StateAwareMetric"
     )
     assert not _satisfies_composite_metric(metric), (
         f"{name!r} unexpectedly satisfies CompositeMetric"
+    )
+    assert not _satisfies_stateful_distribution_metric(metric), (
+        f"{name!r} unexpectedly satisfies StatefulDistributionMetric"
     )
 
 
