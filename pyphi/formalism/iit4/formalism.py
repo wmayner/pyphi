@@ -20,10 +20,15 @@ from dataclasses import field
 from typing import Any
 from typing import ClassVar
 from typing import Literal
+from typing import cast
 
 from pyphi.conf import config
 from pyphi.conf.formalism import FormalismConfig
 from pyphi.formalism.base import check_metric_compatible
+from pyphi.metrics.protocols import CompositeMetric
+from pyphi.metrics.protocols import DistributionMetric
+from pyphi.metrics.protocols import StateAwareMetric
+from pyphi.metrics.protocols import StatefulDistributionMetric
 from pyphi.parallel import MapReduce
 
 from . import (
@@ -173,8 +178,6 @@ class IIT4_2023Formalism:
 
     name: ClassVar[str] = "IIT_4_0_2023"
     exact: ClassVar[Literal[True]] = True
-    default_mechanism_metric: ClassVar[str] = "GENERALIZED_INTRINSIC_DIFFERENCE"
-    default_system_metric: ClassVar[str] = "GENERALIZED_INTRINSIC_DIFFERENCE"
     compatible_metrics: ClassVar[frozenset[str]] = frozenset(
         {"GENERALIZED_INTRINSIC_DIFFERENCE", "INTRINSIC_INFORMATION"}
     )
@@ -204,8 +207,15 @@ class IIT4_2023Formalism:
         mechanism: Any,
         purview: Any,
         *,
-        mechanism_metric: Any = None,
-        specification_metric: Any = None,
+        mechanism_metric: CompositeMetric
+        | StateAwareMetric
+        | StatefulDistributionMetric
+        | None = None,
+        specification_metric: CompositeMetric
+        | StateAwareMetric
+        | StatefulDistributionMetric
+        | DistributionMetric
+        | None = None,
         **kwargs: Any,
     ) -> Any:
         """Internal mechanism-MIP search. Called by ``queries.find_mip``
@@ -221,8 +231,14 @@ class IIT4_2023Formalism:
 
         if mechanism_metric is None:
             check_metric_compatible(self, config.formalism.iit.mechanism_phi_measure)
-            mechanism_metric = resolve_mechanism_metric(
-                config.formalism.iit.mechanism_phi_measure
+            # ``check_metric_compatible`` above guarantees the configured
+            # name is in this formalism's ``compatible_metrics`` (GID /
+            # INTRINSIC_INFORMATION), neither of which is a
+            # ``DistributionMetric`` — narrow the broader resolver
+            # return type to match the declared kwarg union.
+            mechanism_metric = cast(
+                "CompositeMetric | StateAwareMetric | StatefulDistributionMetric",
+                resolve_mechanism_metric(config.formalism.iit.mechanism_phi_measure),
             )
         if specification_metric is None:
             specification_metric = resolve_mechanism_metric(
@@ -246,7 +262,10 @@ class IIT4_2023Formalism:
         purview: Any,
         partition: Any,
         *,
-        mechanism_metric: Any = None,
+        mechanism_metric: CompositeMetric
+        | StateAwareMetric
+        | StatefulDistributionMetric
+        | None = None,
         **kwargs: Any,
     ) -> Any:
         """IIT 4.0 mechanism-partition integration: forward repertoires +
@@ -258,8 +277,14 @@ class IIT4_2023Formalism:
 
         if mechanism_metric is None:
             check_metric_compatible(self, config.formalism.iit.mechanism_phi_measure)
-            mechanism_metric = resolve_mechanism_metric(
-                config.formalism.iit.mechanism_phi_measure
+            # ``check_metric_compatible`` above guarantees the configured
+            # name is in this formalism's ``compatible_metrics`` (GID /
+            # INTRINSIC_INFORMATION), neither of which is a
+            # ``DistributionMetric`` — narrow the broader resolver
+            # return type to match the declared kwarg union.
+            mechanism_metric = cast(
+                "CompositeMetric | StateAwareMetric | StatefulDistributionMetric",
+                resolve_mechanism_metric(config.formalism.iit.mechanism_phi_measure),
             )
         return _evaluate_partition_iit4(
             system,
@@ -275,8 +300,12 @@ class IIT4_2023Formalism:
         self,
         system: Any,
         *,
-        system_metric: Any = None,
-        specification_metric: Any = None,
+        system_metric: CompositeMetric | None = None,
+        specification_metric: CompositeMetric
+        | StateAwareMetric
+        | StatefulDistributionMetric
+        | DistributionMetric
+        | None = None,
         **kwargs: Any,
     ) -> Any:
         """Delegate to :func:`pyphi.formalism.iit4.sia`.
@@ -311,8 +340,12 @@ class IIT4_2023Formalism:
         self,
         system: Any,
         *,
-        system_metric: Any = None,
-        specification_metric: Any = None,
+        system_metric: CompositeMetric | None = None,
+        specification_metric: CompositeMetric
+        | StateAwareMetric
+        | StatefulDistributionMetric
+        | DistributionMetric
+        | None = None,
         **kwargs: Any,
     ) -> Any:
         """Delegate to :func:`pyphi.formalism.iit4.phi_structure`.
@@ -354,8 +387,6 @@ class IIT4_2026Formalism:
 
     name: ClassVar[str] = "IIT_4_0_2026"
     exact: ClassVar[Literal[True]] = True
-    default_mechanism_metric: ClassVar[str] = "GENERALIZED_INTRINSIC_DIFFERENCE"
-    default_system_metric: ClassVar[str] = "INTRINSIC_INFORMATION"
     compatible_metrics: ClassVar[frozenset[str]] = frozenset(
         {"INTRINSIC_INFORMATION", "GENERALIZED_INTRINSIC_DIFFERENCE"}
     )
@@ -382,8 +413,15 @@ class IIT4_2026Formalism:
         mechanism: Any,
         purview: Any,
         *,
-        mechanism_metric: Any = None,
-        specification_metric: Any = None,
+        mechanism_metric: CompositeMetric
+        | StateAwareMetric
+        | StatefulDistributionMetric
+        | None = None,
+        specification_metric: CompositeMetric
+        | StateAwareMetric
+        | StatefulDistributionMetric
+        | DistributionMetric
+        | None = None,
         **kwargs: Any,
     ) -> Any:
         """Mechanism-level MIP search.
@@ -395,8 +433,14 @@ class IIT4_2026Formalism:
 
         if mechanism_metric is None:
             check_metric_compatible(self, config.formalism.iit.mechanism_phi_measure)
-            mechanism_metric = resolve_mechanism_metric(
-                config.formalism.iit.mechanism_phi_measure
+            # ``check_metric_compatible`` above guarantees the configured
+            # name is in this formalism's ``compatible_metrics`` (GID /
+            # INTRINSIC_INFORMATION), neither of which is a
+            # ``DistributionMetric`` — narrow the broader resolver
+            # return type to match the declared kwarg union.
+            mechanism_metric = cast(
+                "CompositeMetric | StateAwareMetric | StatefulDistributionMetric",
+                resolve_mechanism_metric(config.formalism.iit.mechanism_phi_measure),
             )
         if specification_metric is None:
             specification_metric = resolve_mechanism_metric(
@@ -420,7 +464,10 @@ class IIT4_2026Formalism:
         purview: Any,
         partition: Any,
         *,
-        mechanism_metric: Any = None,
+        mechanism_metric: CompositeMetric
+        | StateAwareMetric
+        | StatefulDistributionMetric
+        | None = None,
         **kwargs: Any,
     ) -> Any:
         """Same shape as IIT 4.0 (2023) mechanism-partition integration; the
@@ -432,8 +479,14 @@ class IIT4_2026Formalism:
 
         if mechanism_metric is None:
             check_metric_compatible(self, config.formalism.iit.mechanism_phi_measure)
-            mechanism_metric = resolve_mechanism_metric(
-                config.formalism.iit.mechanism_phi_measure
+            # ``check_metric_compatible`` above guarantees the configured
+            # name is in this formalism's ``compatible_metrics`` (GID /
+            # INTRINSIC_INFORMATION), neither of which is a
+            # ``DistributionMetric`` — narrow the broader resolver
+            # return type to match the declared kwarg union.
+            mechanism_metric = cast(
+                "CompositeMetric | StateAwareMetric | StatefulDistributionMetric",
+                resolve_mechanism_metric(config.formalism.iit.mechanism_phi_measure),
             )
         return _evaluate_partition_iit4(
             system,
@@ -449,8 +502,12 @@ class IIT4_2026Formalism:
         self,
         system: Any,
         *,
-        system_metric: Any = None,
-        specification_metric: Any = None,
+        system_metric: CompositeMetric | None = None,
+        specification_metric: CompositeMetric
+        | StateAwareMetric
+        | StatefulDistributionMetric
+        | DistributionMetric
+        | None = None,
         **kwargs: Any,
     ) -> Any:
         """Delegate to :func:`pyphi.formalism.iit4.sia`.
@@ -486,8 +543,12 @@ class IIT4_2026Formalism:
         self,
         system: Any,
         *,
-        system_metric: Any = None,
-        specification_metric: Any = None,
+        system_metric: CompositeMetric | None = None,
+        specification_metric: CompositeMetric
+        | StateAwareMetric
+        | StatefulDistributionMetric
+        | DistributionMetric
+        | None = None,
         **kwargs: Any,
     ) -> Any:
         """Delegate to :func:`pyphi.formalism.iit4.phi_structure`.

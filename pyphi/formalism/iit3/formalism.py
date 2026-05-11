@@ -30,8 +30,6 @@ class IIT3Formalism:
 
     name: ClassVar[str] = "IIT_3_0"
     exact: ClassVar[Literal[True]] = True
-    default_mechanism_metric: ClassVar[str] = "EMD"
-    default_system_metric: ClassVar[str] = "EMD"
     compatible_metrics: ClassVar[frozenset[str]] = frozenset(
         {
             "EMD",
@@ -166,27 +164,19 @@ class IIT3Formalism:
             selectivity=None,
         )
 
-    def evaluate_system(
-        self,
-        system: Any,
-        *,
-        system_metric: Any = None,
-        specification_metric: Any = None,
-        **kwargs: Any,
-    ) -> Any:
+    def evaluate_system(self, system: Any, **kwargs: Any) -> Any:
         """Delegate to the IIT 3.0 ``sia`` in :mod:`pyphi.formalism.iit3`.
 
-        Explicit ``system_metric`` overrides the config-driven fallback;
-        compatibility is checked against the active formalism's
-        ``compatible_metrics``. ``specification_metric`` is accepted for
-        API parity with the IIT 4.0 formalisms but unused under IIT 3.0
-        (no specified-state phase).
+        IIT 3.0 has no specified-state phase, so metric kwargs are not
+        threaded through this method. The system-level metric is read
+        from ``config.formalism.iit.mechanism_phi_measure`` inside the
+        underlying ``sia`` implementation; compatibility is checked
+        against the active formalism's ``compatible_metrics`` here.
+        Callers attempting to pass ``system_metric`` /
+        ``specification_metric`` receive a :class:`TypeError` rather
+        than a silent no-op.
         """
-        del specification_metric  # API parity only
-        if system_metric is None:
-            check_metric_compatible(self, config.formalism.iit.mechanism_phi_measure)
-        else:
-            check_metric_compatible(self, system_metric.name)
+        check_metric_compatible(self, config.formalism.iit.mechanism_phi_measure)
         from pyphi.formalism.iit3 import sia as _sia
 
         return _sia(system, **kwargs)

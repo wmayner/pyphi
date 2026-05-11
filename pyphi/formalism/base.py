@@ -45,14 +45,6 @@ class PhiFormalism(Protocol):
 
     - ``name``: stable string identifier used in ``config.formalism.iit.version`` and
       registered in :data:`FORMALISM_REGISTRY`.
-    - ``default_mechanism_metric``: metric name used at the mechanism level
-      (small phi computation). Per the 2026 paper, mechanism phi uses GID
-      regardless of which IIT 4.0 variant; per IIT 4.0 (2023) the same
-      metric is used at both scopes.
-    - ``default_system_metric``: metric name used at the system level
-      (big phi computation). Differs from ``default_mechanism_metric``
-      under IIT 4.0 (2026), where system phi uses ``INTRINSIC_INFORMATION``
-      to apply the ``ii(s) = min(i_diff, i_spec)`` cap (Eq. 23).
     - ``compatible_metrics``: frozenset of metric names that this
       formalism accepts.
     - ``partition_scheme``: name (string) of the partition scheme
@@ -66,8 +58,6 @@ class PhiFormalism(Protocol):
     """
 
     name: ClassVar[str]
-    default_mechanism_metric: ClassVar[str]
-    default_system_metric: ClassVar[str]
     compatible_metrics: ClassVar[frozenset[str]]
     partition_scheme: ClassVar[str | None]
 
