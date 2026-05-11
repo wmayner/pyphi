@@ -215,7 +215,7 @@ class IIT4_2023Formalism:
             config.formalism.iit.mechanism_phi_measure
         )
         specification_metric = resolve_mechanism_metric(
-            config.formalism.iit.specification_measure  # pyright: ignore[reportAttributeAccessIssue]
+            config.formalism.iit.specification_measure
         )
         return _find_mip_iit4(
             system,
@@ -263,7 +263,7 @@ class IIT4_2023Formalism:
         check_metric_compatible(self, config.formalism.iit.system_phi_measure)
         system_metric = resolve_system_metric(config.formalism.iit.system_phi_measure)
         specification_metric = resolve_mechanism_metric(
-            config.formalism.iit.specification_measure  # pyright: ignore[reportAttributeAccessIssue]
+            config.formalism.iit.specification_measure
         )
         return _sia(
             system,
@@ -280,7 +280,7 @@ class IIT4_2023Formalism:
         check_metric_compatible(self, config.formalism.iit.system_phi_measure)
         system_metric = resolve_system_metric(config.formalism.iit.system_phi_measure)
         specification_metric = resolve_mechanism_metric(
-            config.formalism.iit.specification_measure  # pyright: ignore[reportAttributeAccessIssue]
+            config.formalism.iit.specification_measure
         )
         return _phi_structure(
             system,
@@ -339,7 +339,7 @@ class IIT4_2026Formalism:
         # 2026-specific divergence and is wired in ``evaluate_system``.
         mechanism_metric = resolve_mechanism_metric(self.default_mechanism_metric)
         specification_metric = resolve_mechanism_metric(
-            config.formalism.iit.specification_measure  # pyright: ignore[reportAttributeAccessIssue]
+            config.formalism.iit.specification_measure
         )
         return _find_mip_iit4(
             system,
@@ -384,7 +384,7 @@ class IIT4_2026Formalism:
         check_metric_compatible(self, config.formalism.iit.system_phi_measure)
         system_metric = resolve_system_metric(self.default_system_metric)
         specification_metric = resolve_mechanism_metric(
-            config.formalism.iit.specification_measure  # pyright: ignore[reportAttributeAccessIssue]
+            config.formalism.iit.specification_measure
         )
         return _sia(
             system,
@@ -400,7 +400,7 @@ class IIT4_2026Formalism:
         check_metric_compatible(self, config.formalism.iit.system_phi_measure)
         system_metric = resolve_system_metric(self.default_system_metric)
         specification_metric = resolve_mechanism_metric(
-            config.formalism.iit.specification_measure  # pyright: ignore[reportAttributeAccessIssue]
+            config.formalism.iit.specification_measure
         )
         return _phi_structure(
             system,
