@@ -6,7 +6,7 @@ import pytest
 
 from pyphi.metrics.distribution import composite_metrics
 from pyphi.metrics.distribution import distribution_metrics
-from pyphi.metrics.distribution import resolve_alpha_measure
+from pyphi.metrics.distribution import resolve_distribution_metric
 from pyphi.metrics.distribution import resolve_mechanism_metric
 from pyphi.metrics.distribution import resolve_system_metric
 from pyphi.metrics.distribution import state_aware_metrics
@@ -38,8 +38,8 @@ def test_resolve_system_metric_rejects_state_aware() -> None:
         resolve_system_metric("INTRINSIC_DIFFERENTIATION")
 
 
-def test_resolve_alpha_measure_returns_distribution_metric() -> None:
-    metric = resolve_alpha_measure("EMD")
+def test_resolve_distribution_metric_returns_distribution_metric() -> None:
+    metric = resolve_distribution_metric("EMD")
     assert metric is distribution_metrics["EMD"]
 
 

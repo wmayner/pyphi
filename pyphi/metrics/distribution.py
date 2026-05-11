@@ -1199,8 +1199,8 @@ def resolve_system_metric(name: str) -> CompositeMetric:
     )
 
 
-def resolve_alpha_measure(name: str) -> DistributionMetric:
-    """Look up a metric usable for actual-causation alpha.
+def resolve_distribution_metric(name: str) -> DistributionMetric:
+    """Look up a distribution metric for EMD ground distance and IIT-side dispatch.
 
     Only distribution metrics (symmetric two-distribution distances) are
     valid here; the return type is :class:`DistributionMetric` so pyright
@@ -1211,7 +1211,8 @@ def resolve_alpha_measure(name: str) -> DistributionMetric:
     if name in distribution_metrics:
         return cast(DistributionMetric, distribution_metrics[name])
     raise ValueError(
-        f"Unknown alpha measure {name!r}. Available: {sorted(distribution_metrics)}"
+        f"Unknown distribution metric {name!r}. "
+        f"Available: {sorted(distribution_metrics)}"
     )
 
 
