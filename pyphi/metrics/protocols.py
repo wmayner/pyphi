@@ -1,6 +1,6 @@
 """Protocol types for metric callables.
 
-Three Protocol classes capture the shape diversity in pyphi's metric
+Four Protocol classes capture the shape diversity in pyphi's metric
 machinery. Each registered metric satisfies exactly one of these
 Protocols; the registries are typed against the corresponding Protocol.
 
@@ -12,6 +12,8 @@ Protocols; the registries are typed against the corresponding Protocol.
   -> DistanceResult. Multi-input metric returning rich metadata; used
   by GID / INTRINSIC_INFORMATION / INTRINSIC_SPECIFICATION at the
   system level.
+- ``StatefulDistributionMetric``: (p, q, state) -> float. Two-distribution
+  metric evaluated at a specified state. Both distributions are load-bearing.
 """
 
 from __future__ import annotations
@@ -59,3 +61,21 @@ class CompositeMetric(Protocol):
         *,
         state: object | None = None,
     ) -> DistanceResult: ...
+
+
+@runtime_checkable
+class StatefulDistributionMetric(Protocol):
+    """Two-distribution metric evaluated at a specified state.
+
+    Both distributions are load-bearing; the state selects a single
+    element from the resulting pointwise array.
+    """
+
+    name: str
+
+    def __call__(
+        self,
+        p: ArrayLike,
+        q: ArrayLike,
+        state: object,
+    ) -> float: ...

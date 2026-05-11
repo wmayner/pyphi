@@ -11,10 +11,11 @@ structural intent — that each metric satisfies exactly one Protocol
 shape — is captured by inspecting parameter names.
 
 Protocol shapes:
-  DistributionMetric : first two required params are (p, q)
-  StateAwareMetric   : exactly two required params (p, state) — no q
-  CompositeMetric    : first three params name forward, partitioned,
-                       selectivity repertoires
+  DistributionMetric          : first two required params are (p, q)
+  StateAwareMetric            : exactly two required params (p, state) — no q
+  CompositeMetric             : first three params name forward, partitioned,
+                                selectivity repertoires
+  StatefulDistributionMetric  : exactly three required params (p, q, state)
 """
 
 from __future__ import annotations
@@ -50,6 +51,12 @@ COMPOSITE_METRICS = [
     "GENERALIZED_INTRINSIC_DIFFERENCE",
     "INTRINSIC_SPECIFICATION",
     "INTRINSIC_INFORMATION",
+]
+
+STATEFUL_DISTRIBUTION_METRICS = [
+    "IIT_4.0_SMALL_PHI",
+    "IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE",
+    "APMI",
 ]
 
 # ---------------------------------------------------------------------------
@@ -99,6 +106,12 @@ def _satisfies_composite_metric(metric) -> bool:
         and "partitioned" in params[1]
         and "selectivity" in params[2]
     )
+
+
+def _satisfies_stateful_distribution_metric(metric) -> bool:
+    """Check (p, q, state) shape: required params are exactly p, q, state."""
+    req = _required_params(metric)
+    return req == ["p", "q", "state"]
 
 
 # ---------------------------------------------------------------------------
@@ -152,4 +165,20 @@ def test_composite_metric_satisfies_protocol(name: str) -> None:
     )
     assert not _satisfies_state_aware_metric(metric), (
         f"{name!r} unexpectedly satisfies StateAwareMetric"
+    )
+
+
+@pytest.mark.parametrize("name", STATEFUL_DISTRIBUTION_METRICS)
+def test_stateful_distribution_metric_satisfies_protocol(name: str) -> None:
+    """StatefulDistributionMetric: required params are exactly (p, q, state)."""
+    metric = distribution.measures[name]
+    assert _satisfies_stateful_distribution_metric(metric), (
+        f"{name!r} does not satisfy StatefulDistributionMetric Protocol — "
+        f"required params: {_required_params(metric)!r}"
+    )
+    assert not _satisfies_state_aware_metric(metric), (
+        f"{name!r} unexpectedly satisfies StateAwareMetric"
+    )
+    assert not _satisfies_composite_metric(metric), (
+        f"{name!r} unexpectedly satisfies CompositeMetric"
     )
