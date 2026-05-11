@@ -20,6 +20,22 @@ from . import example_substrates
 from .conftest import skip_if_no_pyemd
 
 
+def _sia_kwargs():
+    """Resolve metric kwargs from current config for module-level iit4 calls.
+
+    The module-level ``sia``/``phi_structure``/``system_intrinsic_information``
+    require explicit metrics; tests invoke them with default-config metrics.
+    """
+    return {
+        "system_metric": config.formalism.iit.system_phi_measure,
+        "specification_metric": config.formalism.iit.specification_measure,
+    }
+
+
+def _spec_kwargs():
+    return {"specification_metric": config.formalism.iit.specification_measure}
+
+
 class TestPhiInvariants:
     """Test invariants related to phi values.
 
@@ -293,7 +309,7 @@ class TestCauseEffectStructureInvariants:
         from pyphi.examples import EXAMPLES
 
         system = EXAMPLES["system"][example_name]()
-        result = new_big_phi.phi_structure(system)
+        result = new_big_phi.phi_structure(system, **_sia_kwargs())
 
         # Systems that have phi should have distinctions
         if hasattr(result, "phi") and result.phi > 0:
@@ -317,7 +333,7 @@ class TestCauseEffectStructureInvariants:
         from pyphi.examples import EXAMPLES
 
         system = EXAMPLES["system"][example_name]()
-        result = new_big_phi.phi_structure(system)
+        result = new_big_phi.phi_structure(system, **_sia_kwargs())
 
         # If system has multiple distinctions, check for relations
         if hasattr(result, "distinctions") and len(result.distinctions) >= 2:
@@ -343,8 +359,8 @@ class TestPermutationSymmetry:
         """Cause/effect intrinsic information must be equal for permuted systems."""
         sub_ax = System(example_substrates.and_xor_substrate(), (0, 1))
         sub_xa = System(example_substrates.xor_and_substrate(), (1, 0))
-        ss_ax = new_big_phi.system_intrinsic_information(sub_ax)
-        ss_xa = new_big_phi.system_intrinsic_information(sub_xa)
+        ss_ax = new_big_phi.system_intrinsic_information(sub_ax, **_spec_kwargs())
+        ss_xa = new_big_phi.system_intrinsic_information(sub_xa, **_spec_kwargs())
         assert float(ss_ax.cause.intrinsic_information) == pytest.approx(
             float(ss_xa.cause.intrinsic_information)
         )
@@ -356,8 +372,8 @@ class TestPermutationSymmetry:
         """Overall phi must be equal for permuted systems."""
         sub_ax = System(example_substrates.and_xor_substrate(), (0, 1))
         sub_xa = System(example_substrates.xor_and_substrate(), (1, 0))
-        sia_ax = new_big_phi.sia(sub_ax)
-        sia_xa = new_big_phi.sia(sub_xa)
+        sia_ax = new_big_phi.sia(sub_ax, **_sia_kwargs())
+        sia_xa = new_big_phi.sia(sub_xa, **_sia_kwargs())
         assert float(sia_ax.phi) == pytest.approx(float(sia_xa.phi))
 
     def test_sia_phi_c_symmetric(self):
@@ -369,8 +385,8 @@ class TestPermutationSymmetry:
         """
         sub_ax = System(example_substrates.and_xor_substrate(), (0, 1))
         sub_xa = System(example_substrates.xor_and_substrate(), (1, 0))
-        sia_ax = new_big_phi.sia(sub_ax)
-        sia_xa = new_big_phi.sia(sub_xa)
+        sia_ax = new_big_phi.sia(sub_ax, **_sia_kwargs())
+        sia_xa = new_big_phi.sia(sub_xa, **_sia_kwargs())
         phi_c_ax = float(sia_ax.cause.phi) if sia_ax.cause else 0.0
         phi_c_xa = float(sia_xa.cause.phi) if sia_xa.cause else 0.0
         assert phi_c_ax == pytest.approx(phi_c_xa), (
@@ -382,8 +398,8 @@ class TestPermutationSymmetry:
         """phi_e must be equal for permuted systems."""
         sub_ax = System(example_substrates.and_xor_substrate(), (0, 1))
         sub_xa = System(example_substrates.xor_and_substrate(), (1, 0))
-        sia_ax = new_big_phi.sia(sub_ax)
-        sia_xa = new_big_phi.sia(sub_xa)
+        sia_ax = new_big_phi.sia(sub_ax, **_sia_kwargs())
+        sia_xa = new_big_phi.sia(sub_xa, **_sia_kwargs())
         phi_e_ax = float(sia_ax.effect.phi) if sia_ax.effect else 0.0
         phi_e_xa = float(sia_xa.effect.phi) if sia_xa.effect else 0.0
         assert phi_e_ax == pytest.approx(phi_e_xa), (
@@ -399,7 +415,7 @@ class TestPermutationSymmetry:
         system_state, so downstream consumers see the correct state.
         """
         sub = System(example_substrates.and_xor_substrate(), (0, 1))
-        sia = new_big_phi.sia(sub)
+        sia = new_big_phi.sia(sub, **_sia_kwargs())
         if sia.cause and sia.cause.specified_state:
             assert sia.system_state.cause.state == sia.cause.specified_state.state
         if sia.effect and sia.effect.specified_state:
@@ -408,7 +424,7 @@ class TestPermutationSymmetry:
     def test_system_state_preserves_ties_after_resolution(self):
         """system_state should still record all tied states after resolution."""
         sub = System(example_substrates.and_xor_substrate(), (0, 1))
-        sia = new_big_phi.sia(sub)
+        sia = new_big_phi.sia(sub, **_sia_kwargs())
         # The cause direction had 2 tied states
         assert len(sia.system_state.cause.ties) == 2
         tied_states = {t.state for t in sia.system_state.cause.ties}
@@ -418,8 +434,8 @@ class TestPermutationSymmetry:
         """system_state.cause.state should be permutation-equivalent."""
         sub_ax = System(example_substrates.and_xor_substrate(), (0, 1))
         sub_xa = System(example_substrates.xor_and_substrate(), (1, 0))
-        sia_ax = new_big_phi.sia(sub_ax)
-        sia_xa = new_big_phi.sia(sub_xa)
+        sia_ax = new_big_phi.sia(sub_ax, **_sia_kwargs())
+        sia_xa = new_big_phi.sia(sub_xa, **_sia_kwargs())
         ax_state = sia_ax.system_state.cause.state
         xa_state = sia_xa.system_state.cause.state
         assert ax_state == tuple(reversed(xa_state)), (

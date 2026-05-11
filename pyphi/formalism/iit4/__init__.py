@@ -58,12 +58,16 @@ from pyphi.warnings import warn_about_tie_serialization
 # TODO(4.0) refactor
 def system_intrinsic_information(
     system: System,
-    repertoire_distance: str | None = None,
+    *,
+    specification_metric: str,
     directions: Iterable[Direction] | None = None,
 ) -> SystemStateSpecification:
     """Return the cause/effect states specified by the system.
 
-    NOTE: Uses ``config.formalism.iit.specification_measure``.
+    ``specification_metric`` is the name of a composite metric used to
+    compute intrinsic information; passed explicitly by the active
+    formalism rather than read from config.
+
     NOTE: State ties are arbitrarily broken (for now).
     """
     directions = fallback(directions, Direction.both())
@@ -74,17 +78,13 @@ def system_intrinsic_information(
     # TODO move to Direction
     # TODO have validation methods return the validated value
     validate.directions(directions)
-    repertoire_distance = fallback(
-        repertoire_distance,
-        config.formalism.iit.specification_measure,  # pyright: ignore[reportAttributeAccessIssue]
-    )
     # TODO(ties) deal with ties here
     ii = {
         direction: system.intrinsic_information(
             direction,
             mechanism=system.node_indices,
             purview=system.node_indices,
-            repertoire_distance=repertoire_distance,
+            specification_metric=specification_metric,
         )
         for direction in directions
     }
@@ -408,11 +408,15 @@ def integration_value(
     system: System,
     partition: SystemPartition,
     system_state: SystemStateSpecification,
-    repertoire_distance: str | None = None,
+    *,
+    system_metric: str,
 ) -> RepertoireIrreducibilityAnalysis:
-    repertoire_distance = fallback(
-        repertoire_distance, config.formalism.iit.system_phi_measure
-    )
+    """Compute integration value for a partition along a direction.
+
+    ``system_metric`` is the name of a composite metric used at the
+    system level; passed explicitly by the caller (no config fallback).
+    """
+    repertoire_distance = system_metric
     cut_system = system.apply_cut(partition)
     specified = system_state[direction]
     tied_specs = specified.ties if specified.ties else (specified,)
@@ -463,9 +467,17 @@ def evaluate_partition(
     partition: SystemPartition,
     system: System,
     system_state: SystemStateSpecification,
-    repertoire_distance: str | None = None,
+    *,
+    system_metric: str,
     directions: Iterable[Direction] | None = None,
 ) -> SystemIrreducibilityAnalysis:
+    """Evaluate a system-level partition and return the resulting SIA.
+
+    ``system_metric`` is the name of a composite metric used at the
+    system level; passed explicitly by the caller (no config fallback).
+    Under ``INTRINSIC_INFORMATION``, partition integration is computed
+    with GID, then the ``ii(s)`` cap (Eq. 23) is applied below.
+    """
     directions = fallback(directions, Direction.both())
     if directions is None:
         directions = Direction.both()
@@ -474,13 +486,10 @@ def evaluate_partition(
 
     # Eqs. 19-20: system-level partition integration uses GID only.
     # The ii(s) cap (Eq. 23) is applied separately below.
-    effective_distance = fallback(
-        repertoire_distance, config.formalism.iit.system_phi_measure
-    )
     partition_distance = (
         "GENERALIZED_INTRINSIC_DIFFERENCE"
-        if effective_distance == "INTRINSIC_INFORMATION"
-        else effective_distance
+        if system_metric == "INTRINSIC_INFORMATION"
+        else system_metric
     )
 
     integration = {
@@ -489,7 +498,7 @@ def evaluate_partition(
             system,
             partition,
             system_state,
-            repertoire_distance=partition_distance,
+            system_metric=partition_distance,
         )
         for direction in directions
     }
@@ -515,7 +524,7 @@ def evaluate_partition(
     # Clamp the cap components via the |·|+ operator (Eqs. 19-20); the
     # result still flows through ``signed_phi`` so the clamp at SIA
     # construction yields the right canonical value.
-    if effective_distance == "INTRINSIC_INFORMATION":
+    if system_metric == "INTRINSIC_INFORMATION":
         for direction in directions:
             i_spec = utils.positive_part(system_state[direction].intrinsic_information)
             i_diff = utils.positive_part(intrinsic_differentiation[direction])
@@ -571,14 +580,23 @@ def sia_minimization_key(sia):
 
 def sia(
     system: System,
-    repertoire_distance: str | None = None,
+    *,
+    system_metric: str,
+    specification_metric: str,
     directions: Iterable[Direction] | None = None,
     partition_scheme: str | None = None,
     partitions: Iterable | None = None,
     system_state: SystemStateSpecification | None = None,
     **kwargs,
 ) -> SystemIrreducibilityAnalysis:
-    """Find the minimum information partition of a system."""
+    """Find the minimum information partition of a system.
+
+    ``system_metric`` and ``specification_metric`` are composite-metric
+    names passed explicitly by the active formalism (no config fallback).
+    ``system_metric`` drives system-level partition integration (and the
+    ``ii(s)`` cap, if ``INTRINSIC_INFORMATION``); ``specification_metric``
+    drives the intrinsic-information computation of the system state.
+    """
     partition_scheme = fallback(
         partition_scheme, config.formalism.iit.system_partition_scheme
     )
@@ -644,7 +662,11 @@ def sia(
         )
 
     if system_state is None:
-        system_state = system_intrinsic_information(system, directions=directions)
+        system_state = system_intrinsic_information(
+            system,
+            specification_metric=specification_metric,
+            directions=directions,
+        )
 
     if config.formalism.iit.shortcircuit_sia:
         shortcircuit_reasons = _has_no_cause_or_effect(system_state)
@@ -662,7 +684,7 @@ def sia(
         map_kwargs={
             "system": system,
             "system_state": system_state,
-            "repertoire_distance": repertoire_distance,
+            "system_metric": system_metric,
             "directions": directions,
         },
         shortcircuit_func=utils.is_falsy,
@@ -715,6 +737,9 @@ class NullCauseEffectStructure(CauseEffectStructure):
 
 def phi_structure(
     system: System,
+    *,
+    system_metric: str,
+    specification_metric: str,
     sia: SystemIrreducibilityAnalysis | None = None,
     distinctions: Distinctions | None = None,
     relations: Relations | None = None,
@@ -722,14 +747,23 @@ def phi_structure(
     ces_kwargs: dict | None = None,
     relations_kwargs: dict | None = None,
 ) -> CauseEffectStructure:
-    """Analyze the irreducible cause-effect structure of a system."""
+    """Analyze the irreducible cause-effect structure of a system.
+
+    ``system_metric`` and ``specification_metric`` are composite-metric
+    names passed explicitly by the active formalism (no config fallback).
+    """
     sia_kwargs = sia_kwargs or {}
     ces_kwargs = ces_kwargs or {}
     relations_kwargs = relations_kwargs or {}
 
     # Analyze irreducibility if not provided
     if sia is None:
-        sia = _sia(system, **sia_kwargs)
+        sia = _sia(
+            system,
+            system_metric=system_metric,
+            specification_metric=specification_metric,
+            **sia_kwargs,
+        )
 
     # Compute distinctions if not provided
     if distinctions is None:
@@ -744,7 +778,9 @@ def phi_structure(
     if sia.system_state is not None:
         resolution_state = sia.system_state
     else:
-        resolution_state = system_intrinsic_information(system)
+        resolution_state = system_intrinsic_information(
+            system, specification_metric=specification_metric
+        )
     resolved_distinctions = distinctions.resolve_congruence(resolution_state)
 
     # Compute relations if not provided

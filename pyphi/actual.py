@@ -493,24 +493,40 @@ class TransitionSystem:
     def cause_info(self, mechanism: Any, purview: Any, **kw: Any) -> float:
         from pyphi.core import repertoire_algebra as ra
 
+        kw.setdefault("repertoire_distance", config.formalism.iit.mechanism_phi_measure)
         return ra.cause_info(self, mechanism, purview, **kw)
 
     def effect_info(self, mechanism: Any, purview: Any, **kw: Any) -> float:
         from pyphi.core import repertoire_algebra as ra
 
+        kw.setdefault("repertoire_distance", config.formalism.iit.mechanism_phi_measure)
         return ra.effect_info(self, mechanism, purview, **kw)
 
     def cause_effect_info(self, mechanism: Any, purview: Any, **kw: Any) -> float:
         from pyphi.core import repertoire_algebra as ra
 
+        kw.setdefault("repertoire_distance", config.formalism.iit.mechanism_phi_measure)
         return ra.cause_effect_info(self, mechanism, purview, **kw)
 
     def intrinsic_information(
-        self, direction: Direction, mechanism: Any, purview: Any, **kw: Any
+        self,
+        direction: Direction,
+        mechanism: Any,
+        purview: Any,
+        *,
+        specification_metric: str,
+        **kw: Any,
     ) -> Any:
         from pyphi.core import repertoire_algebra as ra
 
-        return ra.intrinsic_information(self, direction, mechanism, purview, **kw)
+        return ra.intrinsic_information(
+            self,
+            direction,
+            mechanism,
+            purview,
+            specification_metric=specification_metric,
+            **kw,
+        )
 
     def potential_purviews(
         self,

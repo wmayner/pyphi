@@ -28,8 +28,6 @@ from pyphi import distribution as _dist
 from pyphi import metrics as _metrics
 from pyphi import utils as _utils
 from pyphi import validate as _validate
-from pyphi.conf import config
-from pyphi.conf import fallback
 from pyphi.data_structures import FrozenMap
 from pyphi.data_structures import PyPhiFloat
 from pyphi.direction import Direction
@@ -284,18 +282,19 @@ def partitioned_repertoire(
     cs: Any,
     direction: Direction,
     partition: Any,
-    repertoire_distance: str | None = None,
+    *,
+    mechanism_metric: str,
     **kwargs: Any,
 ) -> Any:
     """Compute the repertoire of a partitioned mechanism and purview.
 
     Routes to the state-aware path (forward probabilities + product of
-    scalars) when the configured repertoire distance is GID/II; otherwise
-    returns the product of the per-part repertoires.
+    scalars) when ``mechanism_metric`` is GID/II; otherwise returns the
+    product of the per-part repertoires. ``mechanism_metric`` is a
+    composite-metric name passed explicitly by the caller (no config
+    fallback).
     """
-    repertoire_distance = fallback(
-        repertoire_distance, config.formalism.iit.mechanism_phi_measure
-    )
+    repertoire_distance = mechanism_metric
     if repertoire_distance in [
         "GENERALIZED_INTRINSIC_DIFFERENCE",
         "INTRINSIC_INFORMATION",
@@ -519,16 +518,19 @@ def intrinsic_information(
     direction: Direction,
     mechanism: tuple[int, ...],
     purview: tuple[int, ...],
-    repertoire_distance: str | None = None,
+    *,
+    specification_metric: str,
     states: Any | None = None,
 ) -> Any:
-    """Compute intrinsic information and the maximally specified state."""
+    """Compute intrinsic information and the maximally specified state.
+
+    ``specification_metric`` is the name of a composite or
+    distribution-distance metric used to score candidate purview states;
+    passed explicitly by the caller (no config fallback).
+    """
     from pyphi.models.state_specification import StateSpecification
 
-    repertoire_distance = fallback(
-        repertoire_distance,
-        config.formalism.iit.specification_measure,  # pyright: ignore[reportAttributeAccessIssue]
-    )
+    repertoire_distance = specification_metric
     if states is None:
         states = _utils.all_states(len(purview))
 
@@ -556,7 +558,12 @@ def intrinsic_information(
         unconstrained_rep = unconstrained_repertoire(cs, direction, purview)
 
         def evaluate_state(state: Any) -> float:
-            return _repertoire_distance(rep, unconstrained_rep, state=state)
+            return _repertoire_distance(
+                rep,
+                unconstrained_rep,
+                state=state,
+                repertoire_distance=repertoire_distance,
+            )
 
     state_to_information = {state: evaluate_state(state) for state in states}
     max_information = max(state_to_information.values())

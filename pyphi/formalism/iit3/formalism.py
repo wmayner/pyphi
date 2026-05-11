@@ -125,12 +125,18 @@ class IIT3Formalism:
         repertoire_distance = fallback(
             repertoire_distance, config.formalism.iit.mechanism_phi_measure
         )
+        # Internal helpers below the formalism boundary require an
+        # explicit ``mechanism_metric``; resolve it here.
+        mechanism_metric = kwargs.pop("mechanism_metric", repertoire_distance)
         if repertoire is None:
             repertoire = system.repertoire(direction, mechanism, purview)
         if partitioned_repertoire is None:
             partitioned_repertoire_kwargs = partitioned_repertoire_kwargs or {}
             partitioned_repertoire = system.partitioned_repertoire(
-                direction, partition, **partitioned_repertoire_kwargs
+                direction,
+                partition,
+                mechanism_metric=mechanism_metric,
+                **partitioned_repertoire_kwargs,
             )
         phi = _repertoire_distance(
             repertoire,

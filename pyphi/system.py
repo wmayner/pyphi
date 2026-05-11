@@ -300,11 +300,18 @@ class System:
         return ra.unconstrained_repertoire(self, direction, purview)
 
     def partitioned_repertoire(
-        self, direction: Any, partition: Any, **kwargs: Any
+        self,
+        direction: Any,
+        partition: Any,
+        *,
+        mechanism_metric: str,
+        **kwargs: Any,
     ) -> Any:
         from pyphi.core import repertoire_algebra as ra
 
-        return ra.partitioned_repertoire(self, direction, partition, **kwargs)
+        return ra.partitioned_repertoire(
+            self, direction, partition, mechanism_metric=mechanism_metric, **kwargs
+        )
 
     def expand_repertoire(
         self,
@@ -422,26 +429,51 @@ class System:
     # ---- info / phi proxies ----
 
     def cause_info(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
+        from pyphi.conf import config as _config
         from pyphi.core import repertoire_algebra as ra
 
+        kwargs.setdefault(
+            "repertoire_distance", _config.formalism.iit.mechanism_phi_measure
+        )
         return ra.cause_info(self, mechanism, purview, **kwargs)
 
     def effect_info(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
+        from pyphi.conf import config as _config
         from pyphi.core import repertoire_algebra as ra
 
+        kwargs.setdefault(
+            "repertoire_distance", _config.formalism.iit.mechanism_phi_measure
+        )
         return ra.effect_info(self, mechanism, purview, **kwargs)
 
     def cause_effect_info(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
+        from pyphi.conf import config as _config
         from pyphi.core import repertoire_algebra as ra
 
+        kwargs.setdefault(
+            "repertoire_distance", _config.formalism.iit.mechanism_phi_measure
+        )
         return ra.cause_effect_info(self, mechanism, purview, **kwargs)
 
     def intrinsic_information(
-        self, direction: Any, mechanism: Any, purview: Any, **kwargs: Any
+        self,
+        direction: Any,
+        mechanism: Any,
+        purview: Any,
+        *,
+        specification_metric: str,
+        **kwargs: Any,
     ) -> Any:
         from pyphi.core import repertoire_algebra as ra
 
-        return ra.intrinsic_information(self, direction, mechanism, purview, **kwargs)
+        return ra.intrinsic_information(
+            self,
+            direction,
+            mechanism,
+            purview,
+            specification_metric=specification_metric,
+            **kwargs,
+        )
 
     # ---- formalism queries ----
     #
@@ -463,8 +495,13 @@ class System:
 
         Defined under IIT 4.0 only; the IIT 3.0 analogue is :meth:`ces`.
         """
+        from pyphi.conf import config as _config
         from pyphi.formalism.iit4 import phi_structure as _phi_structure
 
+        kwargs.setdefault("system_metric", _config.formalism.iit.system_phi_measure)
+        kwargs.setdefault(
+            "specification_metric", _config.formalism.iit.specification_measure
+        )
         return _phi_structure(self, **kwargs)
 
     def ces(self, **kwargs: Any) -> Any:

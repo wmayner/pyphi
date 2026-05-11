@@ -248,12 +248,17 @@ def _compute_sia(system: System, stash: Any, iit_version: float) -> dict[str, An
 def _compute_phi_structure(system: System, stash: Any) -> dict[str, Any]:
     """Capture the IIT 4.0 CauseEffectStructure."""
     try:
+        from pyphi import config as _config
         from pyphi.formalism.iit4 import phi_structure
     except ImportError:
         return {"error": "phi_structure not available"}
 
     try:
-        ps = phi_structure(system)
+        ps = phi_structure(
+            system,
+            system_metric=_config.formalism.iit.system_phi_measure,
+            specification_metric=_config.formalism.iit.specification_measure,
+        )
     except Exception as e:
         return {"error": f"{type(e).__name__}: {e}"}
 

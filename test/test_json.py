@@ -5,6 +5,7 @@ import numpy as np
 import pytest
 
 from pyphi import Direction
+from pyphi import config
 from pyphi import exceptions
 from pyphi import jsonify
 from pyphi import labels
@@ -62,7 +63,11 @@ def test_json_deserialization(s, transition):
         iit3.ces(s),
         # iit3.sia(s),
         s.sia(),
-        new_big_phi.phi_structure(s),
+        new_big_phi.phi_structure(
+            s,
+            system_metric=config.formalism.iit.system_phi_measure,
+            specification_metric=config.formalism.iit.specification_measure,
+        ),
         transition,
         # transition.find_actual_cause((0,), (0,)),
         # actual.account(transition),

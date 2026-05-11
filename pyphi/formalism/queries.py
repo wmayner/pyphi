@@ -58,13 +58,15 @@ def evaluate_partition(
     partition: Any,
     repertoire: Any = None,
     partitioned_repertoire: Any = None,
-    repertoire_distance: str | None = None,
     partitioned_repertoire_kwargs: dict[str, Any] | None = None,
     **kwargs: Any,
 ) -> Any:
     """Evaluate a mechanism partition's |small_phi|.
 
     Dispatches to the active formalism's ``evaluate_mechanism_partition``.
+    The caller is expected to thread ``mechanism_metric`` (and any other
+    metric kwargs) through ``**kwargs``; the active formalism's method
+    forwards them to its internal helper.
     """
     formalism = FORMALISM_REGISTRY[config.formalism.iit.version]  # pyright: ignore[reportAttributeAccessIssue]
     return formalism.evaluate_mechanism_partition(  # pyright: ignore[reportFunctionMemberAccess]
@@ -75,7 +77,6 @@ def evaluate_partition(
         partition,
         repertoire=repertoire,
         partitioned_repertoire=partitioned_repertoire,
-        repertoire_distance=repertoire_distance,
         partitioned_repertoire_kwargs=partitioned_repertoire_kwargs,
         **kwargs,
     )

@@ -42,6 +42,7 @@ from pathlib import Path
 
 import pytest
 
+from pyphi import config
 from pyphi import jsonify
 from pyphi.examples import EXAMPLES
 from pyphi.formalism import iit4 as new_big_phi
@@ -88,7 +89,11 @@ def test(example_name):
     Note: rule154 is marked as slow due to computational expense (11 distinctions).
     """
     system = EXAMPLES["system"][example_name]()
-    actual = new_big_phi.phi_structure(system)
+    actual = new_big_phi.phi_structure(
+        system,
+        system_metric=config.formalism.iit.system_phi_measure,
+        specification_metric=config.formalism.iit.specification_measure,
+    )
     expected = load_expected(example_name)
     assert actual == expected
 

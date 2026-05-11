@@ -223,7 +223,12 @@ class TestMetricInvariants:
 
         with config.override(mechanism_phi_measure="EMD"):
             try:
-                d = repertoire_distance(rep1, rep2, direction=Direction.CAUSE)
+                d = repertoire_distance(
+                    rep1,
+                    rep2,
+                    direction=Direction.CAUSE,
+                    repertoire_distance="EMD",
+                )
             except ImportError:
                 pytest.skip("pyemd not installed")
                 return
@@ -261,7 +266,12 @@ class TestMetricInvariants:
 
         with config.override(mechanism_phi_measure="EMD"):
             try:
-                d = repertoire_distance(rep, rep, direction=Direction.CAUSE)
+                d = repertoire_distance(
+                    rep,
+                    rep,
+                    direction=Direction.CAUSE,
+                    repertoire_distance="EMD",
+                )
             except ImportError:
                 pytest.skip("pyemd not installed")
                 return

@@ -122,11 +122,16 @@ def test_formalism_evaluate_system_matches_legacy_path():
     Pins the wrapper's behavior against the underlying implementation
     before the cut-over commit moves the dispatch the other way.
     """
+    from pyphi import config as _config
     from pyphi import examples
     from pyphi.formalism import iit4
 
     s = examples.basic_system()
-    direct = iit4.sia(s)
+    direct = iit4.sia(
+        s,
+        system_metric=_config.formalism.iit.system_phi_measure,
+        specification_metric=_config.formalism.iit.specification_measure,
+    )
     via_formalism = FORMALISM_REGISTRY["IIT_4_0_2023"].evaluate_system(s)
     assert direct == via_formalism, (
         f"IIT 4.0 (2023) formalism wrapper diverges from iit4.sia: "

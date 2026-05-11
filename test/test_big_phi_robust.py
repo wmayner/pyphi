@@ -443,8 +443,15 @@ class TestEq23IntrinsicInformationCap:
 
         system = self._noisy_copy_system(0.8, (1, 1))
         with config.override(**self.II_CONFIG):
-            sys_state = system_intrinsic_information(system)
-            result = sia(system)
+            sys_state = system_intrinsic_information(
+                system,
+                specification_metric=config.formalism.iit.specification_measure,
+            )
+            result = sia(
+                system,
+                system_metric=config.formalism.iit.system_phi_measure,
+                specification_metric=config.formalism.iit.specification_measure,
+            )
 
             # Compute ii(s) from components
             ii_cause = min(
@@ -475,7 +482,11 @@ class TestEq23IntrinsicInformationCap:
 
         system = self._noisy_copy_system(0.8, (1, 1))
         with config.override(**self.II_CONFIG):
-            result = sia(system)
+            result = sia(
+                system,
+                system_metric=config.formalism.iit.system_phi_measure,
+                specification_metric=config.formalism.iit.specification_measure,
+            )
 
             i_diff = float(result.intrinsic_differentiation[Direction.CAUSE])
             cause_phi = float(result.cause.phi)
@@ -494,7 +505,11 @@ class TestEq23IntrinsicInformationCap:
         from pyphi.formalism.iit4 import sia
 
         # Default config uses GENERALIZED_INTRINSIC_DIFFERENCE
-        result = sia(s)
+        result = sia(
+            s,
+            system_metric=config.formalism.iit.system_phi_measure,
+            specification_metric=config.formalism.iit.specification_measure,
+        )
         assert float(result.phi) == pytest.approx(EXPECTED_PHI_VALUES["s"], abs=1e-9)
 
 
@@ -547,7 +562,10 @@ class TestPaperExamples:
         ii_expected = min(i_diff_expected, i_spec_expected)
 
         with config.override(**self.II_CONFIG):
-            sys_state = system_intrinsic_information(system)
+            sys_state = system_intrinsic_information(
+                system,
+                specification_metric=config.formalism.iit.specification_measure,
+            )
             # system_intrinsic_information uses INTRINSIC_SPECIFICATION,
             # so it returns i_spec
             i_spec_pyphi = float(sys_state.effect.intrinsic_information)
@@ -575,7 +593,10 @@ class TestPaperExamples:
         system = self._monad_system(p)
 
         with config.override(**self.II_CONFIG):
-            sys_state = system_intrinsic_information(system)
+            sys_state = system_intrinsic_information(
+                system,
+                specification_metric=config.formalism.iit.specification_measure,
+            )
             i_spec = float(sys_state.effect.intrinsic_information)
             assert i_spec == pytest.approx(i_spec_expected, abs=1e-5)
 

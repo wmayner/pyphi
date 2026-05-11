@@ -260,6 +260,7 @@ def test_partitioned_repertoire_with_tripartition(s):
         s.partitioned_repertoire(
             Direction.CAUSE,
             tripartition,
+            mechanism_metric=config.formalism.iit.mechanism_phi_measure,
             state=tuple(s.state[node] for node in tripartition.purview),
         )
         == 0.75

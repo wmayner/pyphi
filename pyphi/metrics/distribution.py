@@ -20,7 +20,6 @@ from pyphi import utils
 from pyphi import validate
 from pyphi.cache import joblib_memory
 from pyphi.conf import config
-from pyphi.conf import fallback
 from pyphi.data_structures.pyphi_float import PyPhiFloat
 from pyphi.direction import Direction
 from pyphi.distribution import flatten
@@ -1201,11 +1200,20 @@ def repertoire_distance(
         r1 (np.ndarray): The first repertoire.
         r2 (np.ndarray): The second repertoire.
         direction (Direction): |CAUSE| or |EFFECT|.
+        repertoire_distance (str): The name of the metric to use. Required
+            for callers below the formalism-class boundary; public-API
+            callers (``System.cause_info``, etc.) resolve from config at
+            their method boundary and pass it through.
 
     Returns:
         float: The distance between ``r1`` and ``r2``, rounded to |PRECISION|.
     """
-    func_key = fallback(repertoire_distance, config.formalism.iit.mechanism_phi_measure)
+    if repertoire_distance is None:
+        raise ValueError(
+            "repertoire_distance must be provided explicitly; callers below "
+            "the formalism boundary thread the metric name as a kwarg."
+        )
+    func_key = repertoire_distance
     if func_key in distribution_metrics:
         func = distribution_metrics[func_key]
     else:

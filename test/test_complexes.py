@@ -119,9 +119,15 @@ class TestCauseEffectStructureIIT40:
     These tests validate the phi_structure function under IIT 4.0 defaults.
     """
 
+    def _metric_kwargs(self):
+        return {
+            "system_metric": config.formalism.iit.system_phi_measure,
+            "specification_metric": config.formalism.iit.specification_measure,
+        }
+
     def test_phi_structure_basic(self, s):
         """Golden test: phi_structure for basic system (IIT 4.0)."""
-        result = phi_structure(s)
+        result = phi_structure(s, **self._metric_kwargs())
 
         # Golden values computed with IIT 4.0 defaults
         assert result.big_phi == pytest.approx(1.0, rel=1e-6)
@@ -139,7 +145,7 @@ class TestCauseEffectStructureIIT40:
         state = (1, 0, 0)
         system = System(substrate, state)
 
-        result = phi_structure(system)
+        result = phi_structure(system, **self._metric_kwargs())
 
         assert result.big_phi == pytest.approx(1.0, rel=1e-6)
         assert len(result.distinctions) == 2

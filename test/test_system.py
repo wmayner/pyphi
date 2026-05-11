@@ -209,7 +209,12 @@ class TestIntrinsicInformationTies:
         """
         net = example_substrates.and_xor_substrate()
         sub = System(net, (0, 1))
-        spec = sub.intrinsic_information(Direction.CAUSE, (0, 1), (0, 1))
+        spec = sub.intrinsic_information(
+            Direction.CAUSE,
+            (0, 1),
+            (0, 1),
+            specification_metric=config.formalism.iit.specification_measure,
+        )
         assert len(spec.ties) == 2
         tied_states = {t.state for t in spec.ties}
         assert tied_states == {(0, 1), (1, 0)}
@@ -218,7 +223,12 @@ class TestIntrinsicInformationTies:
         """All tied StateSpecifications must have the same intrinsic information."""
         net = example_substrates.and_xor_substrate()
         sub = System(net, (0, 1))
-        spec = sub.intrinsic_information(Direction.CAUSE, (0, 1), (0, 1))
+        spec = sub.intrinsic_information(
+            Direction.CAUSE,
+            (0, 1),
+            (0, 1),
+            specification_metric=config.formalism.iit.specification_measure,
+        )
         ii_values = {float(t.intrinsic_information) for t in spec.ties}
         assert len(ii_values) == 1, f"Tied states have different II: {ii_values}"
 
@@ -226,7 +236,12 @@ class TestIntrinsicInformationTies:
         """When a single state uniquely maximizes II, ties should have length 1."""
         net = example_substrates.and_xor_substrate()
         sub = System(net, (0, 1))
-        spec = sub.intrinsic_information(Direction.EFFECT, (0, 1), (0, 1))
+        spec = sub.intrinsic_information(
+            Direction.EFFECT,
+            (0, 1),
+            (0, 1),
+            specification_metric=config.formalism.iit.specification_measure,
+        )
         # Effect direction should have a unique max (no tie)
         assert len(spec.ties) == 1
 

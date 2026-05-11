@@ -56,5 +56,13 @@ def test_all_relations(case_name):
         answers = jsonify.load(f)
     # Compute and check relations
     # TODO(4.0) config.override doesn't seem to work with joblib parallel?
-    results = list(relations.relations(new_big_phi.phi_structure(system).distinctions))
+    results = list(
+        relations.relations(
+            new_big_phi.phi_structure(
+                system,
+                system_metric=config.formalism.iit.system_phi_measure,
+                specification_metric=config.formalism.iit.specification_measure,
+            ).distinctions
+        )
+    )
     assert set(results) == set(answers)
