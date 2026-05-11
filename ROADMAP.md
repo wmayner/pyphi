@@ -1476,6 +1476,24 @@ test inventory — that a deliberate re-ordering pass is in order.
     serialization, CLI overrides, or programmatic enumeration of all
     config keys. Estimated half-day. Low priority; could fold into P15.
 
+14. **P11.95 — Paper-faithful SIA tie-breaking.** Should land before
+    P12. Per Albantakis et al. 2023 Eq. 12 + S1 Text, when multiple
+    cause/effect states tie at max ``ii``, the canonical winner is the
+    one with maximum unnormalized ``φ_s``. PyPhi's current ``argmax``
+    over ``ii`` picks any first-encountered state, which is
+    non-deterministic on symmetric substrates (``big_subsys_all_complete``,
+    fully-connected lattices). Surfaces in the slow lane as fixture
+    drift on symmetric goldens. Same canonicalization gap exists for
+    IIT 3.0 SIA cut tie-breaking (multiple cuts at min φ — long-noted
+    cross-cutting registry entry). Scope: implement the secondary
+    max-φ_s tie-break for state selection in IIT 4.0; add a
+    structural tie-break (e.g., lex order on (cut.from, cut.to)) for
+    IIT 3.0 cut selection on top of ``OrderableByPhi``. May require
+    regenerating goldens on symmetric fixtures. Estimated 2-3 days.
+    P12 introduces non-binary units which will exacerbate the
+    non-determinism (more states → more ties), so this should land
+    first.
+
 **Ship criterion for 2.0:**
 
 The original roadmap doesn't state a release criterion explicitly.

@@ -199,18 +199,12 @@ class TransitionSystem:
             object.__setattr__(
                 self, "cut", NullCut(self.node_indices, self.substrate.node_labels)
             )
-        if (
-            self.direction == Direction.CAUSE
-            and config.infrastructure.validate_system_states
-        ):
-            with config.override(validate_system_states=False):
-                temp_system = System(
-                    substrate=self.substrate,
-                    state=self.after_state,
-                    node_indices=self.node_indices,
-                    cut=self.cut,
-                )
-                validate.state_reachable(temp_system)
+        # The paper (Albantakis et al. 2019, Section 2.4) imposes only the
+        # Realization axiom on a transition: p_u(after | before) > 0 over
+        # the full system TPM. Subsystem forward-reachability on the
+        # causally marginalized TPM (Eq. 2-4) has no paper basis — the
+        # marginalized TPM is a tool for computing repertoires, not a
+        # dynamical TPM with reachability semantics.
 
     @cached_property
     def node_indices(self) -> tuple[int, ...]:
