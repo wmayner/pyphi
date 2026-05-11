@@ -35,7 +35,6 @@ def test_default_asymmetric_distribution_measures():
         "BLD",
         "ID",
         "GENERALIZED_INTRINSIC_DIFFERENCE",
-        "INTRINSIC_DIFFERENTIATION",
         "INTRINSIC_INFORMATION",
         "INTRINSIC_SPECIFICATION",
     }

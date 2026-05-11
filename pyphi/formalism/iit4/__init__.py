@@ -443,9 +443,8 @@ def integration_value(
 def intrinsic_differentiation_value(
     direction: Direction,
     system: System,
-    partition: SystemPartition,
+    partition: SystemPartition,  # noqa: ARG001
 ) -> float:
-    cut_system = system.apply_cut(partition)
     mechanism = purview = system.node_indices
 
     unpartitioned_repertoire = repertoire.forward_repertoire(
@@ -454,16 +453,9 @@ def intrinsic_differentiation_value(
         mechanism,  # pyright: ignore[reportArgumentType]
         purview,  # pyright: ignore[reportArgumentType]
     )
-    partitioned_repertoire = repertoire.forward_repertoire(
-        cut_system,
-        direction,
-        mechanism,  # pyright: ignore[reportArgumentType]
-        purview,  # pyright: ignore[reportArgumentType]
-    )
 
     return metrics.distribution.intrinsic_differentiation(
         unpartitioned_repertoire,
-        partitioned_repertoire,
         state=system.proper_state,
     )
 

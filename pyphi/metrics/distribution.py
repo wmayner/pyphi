@@ -913,17 +913,16 @@ def pointwise_intrinsic_differentiation(p):
     return -np.log2(p, where=(p > 0))
 
 
-@measures.register("INTRINSIC_DIFFERENTIATION", asymmetric=True)
-def intrinsic_differentiation(p, q, state=None):
-    if state is not None:
-        p = p.squeeze()[state]
+@measures.register("INTRINSIC_DIFFERENTIATION")
+def intrinsic_differentiation(p, state):
+    p = p.squeeze()[state]
     positive_entries = pointwise_intrinsic_differentiation(p)[
         pointwise_intrinsic_differentiation(p) > 0
     ]
     return DistanceResult(
         np.min(positive_entries) if positive_entries.size > 0 else 0.0,
         method="INTRINSIC_DIFFERENTIATION",
-        asymmetric=True,
+        asymmetric=False,
         state=state,
     )
 
@@ -945,9 +944,7 @@ def intrinsic_information(
         selectivity_repertoire,
         state=state,
     )
-    differentiation = differentiation_func(
-        forward_repertoire, partitioned_forward_repertoire, state=state
-    )
+    differentiation = differentiation_func(forward_repertoire, state=state)
     # Assumes single value at this point; state selection delegated to sub-functions.
     if not np.isscalar(specification) or not np.isscalar(differentiation):
         return np.minimum(specification, differentiation)

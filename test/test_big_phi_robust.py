@@ -588,7 +588,7 @@ class TestPaperExamples:
             )
             i_diff = float(
                 metrics.distribution.intrinsic_differentiation(
-                    fr, fr, state=system.proper_state
+                    fr, state=system.proper_state
                 )
             )
             assert i_diff == pytest.approx(i_diff_expected, abs=1e-5)
