@@ -12,8 +12,8 @@ except ImportError as exc:
         MissingOptionalDependenciesError.MSG.format(dependencies="visualize")
     ) from exc
 
+from . import ces
 from . import ising
-from . import phi_structure
 from .ces import highlight_phi_fold
 from .ces import plot_phi_structure
 from .connectivity import plot_graph
@@ -23,9 +23,9 @@ from .distribution import plot_repertoires
 from .dynamics import plot_dynamics
 
 __all__ = [
+    "ces",
     "highlight_phi_fold",
     "ising",
-    "phi_structure",
     "plot_distribution",
     "plot_dynamics",
     "plot_graph",

@@ -1,4 +1,4 @@
-# visualize/phi_structure/utils.py
+# visualize/ces/utils.py
 """Common utilities for plotting |big_phi|-structures."""
 
 from math import isclose

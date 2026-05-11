@@ -1,4 +1,4 @@
-# visualize/phi_structure/geometry.py
+# visualize/ces/geometry.py
 """Utilities for specifying the spatial layout of |big_phi|-structures."""
 
 from collections.abc import Mapping
@@ -211,8 +211,8 @@ def arrange(
 
 def arrange_by_mechanism(
     mechanism_mapping,
-    cause_offset: ArrayLike = None,
-    effect_offset: ArrayLike = None,
+    cause_offset: ArrayLike | None = None,
+    effect_offset: ArrayLike | None = None,
 ):
     """Return a mapping from direction to mechanism to coordinates,
     to be used in initialization of a PurviewCoordinates object"""

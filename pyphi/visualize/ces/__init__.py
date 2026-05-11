@@ -1,4 +1,4 @@
-# visualize/phi_structure/__init__.py
+# visualize/ces/__init__.py
 """Visualize |big_phi|-structures."""
 
 import warnings

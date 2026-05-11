@@ -1,4 +1,4 @@
-# visualize/phi_structure/text.py
+# visualize/ces/text.py
 """Utilities for handling text."""
 
 from toolz import identity

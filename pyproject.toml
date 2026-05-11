@@ -198,7 +198,7 @@ max-statements = 100
 "pyphi/models/mechanism.py" = ["ARG001"]
 "pyphi/parallel/__init__.py" = ["ARG001", "PLW0603"]
 "pyphi/relations.py" = ["ARG001", "ARG002"]
-"pyphi/visualize/phi_structure/__init__.py" = ["ARG001"]
+"pyphi/visualize/ces/__init__.py" = ["ARG001"]
 
 [tool.pytest.ini_options]
 testpaths = ["pyphi", "test"]
