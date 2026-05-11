@@ -2,7 +2,13 @@ from pyphi import metrics
 
 
 def test_default_distribution_measures():
-    assert set(metrics.distribution.measures.all()) == {
+    all_metric_names = (
+        set(metrics.distribution.distribution_metrics.all())
+        | set(metrics.distribution.state_aware_metrics.all())
+        | set(metrics.distribution.composite_metrics.all())
+        | set(metrics.distribution.stateful_distribution_metrics.all())
+    )
+    assert all_metric_names == {
         "EMD",
         "L1",
         "KLD",
@@ -24,7 +30,16 @@ def test_default_distribution_measures():
 
 
 def test_default_asymmetric_distribution_measures():
-    assert set(metrics.distribution.measures.asymmetric()) == {
+    asymmetric_names = {
+        name
+        for name, fn in metrics.distribution.distribution_metrics.items()
+        if getattr(fn, "asymmetric", False)
+    } | {
+        name
+        for name, fn in metrics.distribution.stateful_distribution_metrics.items()
+        if getattr(fn, "asymmetric", False)
+    }
+    assert asymmetric_names == {
         "IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE",
         "IIT_4.0_SMALL_PHI",
         "APMI",
@@ -34,9 +49,6 @@ def test_default_asymmetric_distribution_measures():
         "KLM",
         "BLD",
         "ID",
-        "GENERALIZED_INTRINSIC_DIFFERENCE",
-        "INTRINSIC_INFORMATION",
-        "INTRINSIC_SPECIFICATION",
     }
 
 

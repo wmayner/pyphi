@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import inspect
 from collections.abc import Callable
 from collections.abc import Iterable
 from contextlib import ContextDecorator
@@ -25,6 +26,10 @@ from pyphi.direction import Direction
 from pyphi.distribution import flatten
 from pyphi.distribution import marginal_zero
 from pyphi.exceptions import MissingOptionalDependenciesError
+from pyphi.metrics.protocols import satisfies_composite_metric
+from pyphi.metrics.protocols import satisfies_distribution_metric
+from pyphi.metrics.protocols import satisfies_state_aware_metric
+from pyphi.metrics.protocols import satisfies_stateful_distribution_metric
 from pyphi.registry import Registry
 from pyphi.types import Repertoire
 from pyphi.types import State
@@ -264,64 +269,158 @@ class OptionalEMD:
 EMD = OptionalEMD()
 
 
-class DistributionMeasureRegistry(Registry):
-    """Storage for distance functions between probability distributions.
+class DistributionMetricRegistry(Registry):
+    """Storage for ``(p, q) -> float | DistanceResult`` distance functions.
 
-    Users can define custom measures:
+    Each registered function is validated at registration time to have
+    exactly two required positional parameters named ``p`` and ``q``;
+    signature drift fails at import rather than deep in a phi
+    computation. The ``asymmetric`` flag attaches to the function as an
+    attribute so callers can filter without consulting a parallel list.
 
     Examples:
-        >>> @measures.register('ALWAYS_ZERO')  # doctest: +SKIP
-        ... def always_zero(a, b):
+        >>> @distribution_metrics.register('ALWAYS_ZERO')  # doctest: +SKIP
+        ... def always_zero(p, q):
         ...    return 0
-
-    And use them by setting, *e.g.*, ``config.repertoire_distance = 'ALWAYS_ZERO'``.
     """
 
     # pylint: disable=arguments-differ
 
-    desc = "distance functions between probability distributions"
+    desc = "distribution-to-distribution distance functions"
 
-    def __init__(self) -> None:
-        super().__init__()
-        self._asymmetric: list[str] = []
-
-    def register(
+    def register(  # type: ignore[override]
         self, name: str, asymmetric: bool = False
     ) -> Callable[[Callable[..., float]], Callable[..., float]]:
-        """Decorator for registering a distribution measure with PyPhi.
-
-        Validates the registered object against
-        :class:`pyphi.protocols.DistanceMetric`; non-callable objects fail
-        at import rather than at the bottom of a phi computation.
+        """Decorator for registering a :class:`DistributionMetric`.
 
         Args:
-            name (string): The name of the measure.
+            name: The name of the measure.
 
         Keyword Args:
-            asymmetric (boolean): ``True`` if the measure is asymmetric.
+            asymmetric: ``True`` if the measure is asymmetric. Stored as
+                an attribute on the function.
         """
-        from pyphi.protocols import DistanceMetric
 
         def register_func(func: Callable[..., float]) -> Callable[..., float]:
-            if not isinstance(func, DistanceMetric):
+            if not satisfies_distribution_metric(func):
                 raise TypeError(
-                    f"Cannot register {func!r} as distance metric {name!r}: "
-                    f"object does not satisfy the DistanceMetric Protocol "
-                    f"(must be callable)."
+                    f"Cannot register {func!r} as DistributionMetric {name!r}: "
+                    f"required params must be exactly (p, q); got "
+                    f"{list(inspect.signature(func).parameters)}."
                 )
-            if asymmetric:
-                self._asymmetric.append(name)
+            func.name = name  # type: ignore[attr-defined]
+            func.asymmetric = asymmetric  # type: ignore[attr-defined]
             self.store[name] = func
             return func
 
         return register_func
 
-    def asymmetric(self) -> list[str]:
-        """Return a list of asymmetric measures."""
-        return self._asymmetric
+
+class StateAwareMetricRegistry(Registry):
+    """Storage for ``(p, state) -> float | DistanceResult`` metrics.
+
+    The function reads off a single state's value from a single
+    distribution.
+    """
+
+    # pylint: disable=arguments-differ
+
+    desc = "pointwise state-aware metrics"
+
+    def register(  # type: ignore[override]
+        self, name: str
+    ) -> Callable[[Callable[..., float]], Callable[..., float]]:
+        """Decorator for registering a :class:`StateAwareMetric`."""
+
+        def register_func(func: Callable[..., float]) -> Callable[..., float]:
+            if not satisfies_state_aware_metric(func):
+                raise TypeError(
+                    f"Cannot register {func!r} as StateAwareMetric {name!r}: "
+                    f"required params must be exactly (p, state); got "
+                    f"{list(inspect.signature(func).parameters)}."
+                )
+            func.name = name  # type: ignore[attr-defined]
+            self.store[name] = func
+            return func
+
+        return register_func
 
 
-measures = DistributionMeasureRegistry()
+class CompositeMetricRegistry(Registry):
+    """Storage for composite metrics of shape
+    ``(forward, partitioned, selectivity, *, state) -> DistanceResult``.
+
+    Used at the system / mechanism boundary by GID, INTRINSIC_SPECIFICATION,
+    and INTRINSIC_INFORMATION.
+    """
+
+    # pylint: disable=arguments-differ
+
+    desc = "composite metrics"
+
+    def register(  # type: ignore[override]
+        self, name: str
+    ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+        """Decorator for registering a :class:`CompositeMetric`."""
+
+        def register_func(func: Callable[..., Any]) -> Callable[..., Any]:
+            if not satisfies_composite_metric(func):
+                raise TypeError(
+                    f"Cannot register {func!r} as CompositeMetric {name!r}: "
+                    f"first three params must include 'forward', "
+                    f"'partitioned', and 'selectivity'; got "
+                    f"{list(inspect.signature(func).parameters)}."
+                )
+            func.name = name  # type: ignore[attr-defined]
+            self.store[name] = func
+            return func
+
+        return register_func
+
+
+class StatefulDistributionMetricRegistry(Registry):
+    """Storage for ``(p, q, state) -> float | DistanceResult`` metrics.
+
+    Both distributions are load-bearing; the state selects an element.
+    Used by IIT_4.0_SMALL_PHI variants and APMI.
+    """
+
+    # pylint: disable=arguments-differ
+
+    desc = "two-distribution state-aware metrics"
+
+    def register(  # type: ignore[override]
+        self, name: str, asymmetric: bool = False
+    ) -> Callable[[Callable[..., float]], Callable[..., float]]:
+        """Decorator for registering a :class:`StatefulDistributionMetric`.
+
+        Args:
+            name: The name of the measure.
+
+        Keyword Args:
+            asymmetric: ``True`` if the measure is asymmetric. Stored as
+                an attribute on the function.
+        """
+
+        def register_func(func: Callable[..., float]) -> Callable[..., float]:
+            if not satisfies_stateful_distribution_metric(func):
+                raise TypeError(
+                    f"Cannot register {func!r} as StatefulDistributionMetric "
+                    f"{name!r}: required params must be exactly (p, q, state); "
+                    f"got {list(inspect.signature(func).parameters)}."
+                )
+            func.name = name  # type: ignore[attr-defined]
+            func.asymmetric = asymmetric  # type: ignore[attr-defined]
+            self.store[name] = func
+            return func
+
+        return register_func
+
+
+distribution_metrics = DistributionMetricRegistry()
+state_aware_metrics = StateAwareMetricRegistry()
+composite_metrics = CompositeMetricRegistry()
+stateful_distribution_metrics = StatefulDistributionMetricRegistry()
 
 
 class ActualCausationMeasureRegistry(Registry):
@@ -484,7 +583,7 @@ def effect_emd(p: ArrayLike, q: ArrayLike) -> float:
     )
 
 
-@measures.register("EMD")
+@distribution_metrics.register("EMD")
 def emd(p: ArrayLike, q: ArrayLike, direction: Direction | None = None) -> float:
     """Compute the EMD between two repertoires for a given direction.
 
@@ -516,7 +615,7 @@ def emd(p: ArrayLike, q: ArrayLike, direction: Direction | None = None) -> float
     return DistanceResult(func(p, q), method="EMD", direction=direction)
 
 
-@measures.register("L1")
+@distribution_metrics.register("L1")
 def l1(p: ArrayLike, q: ArrayLike) -> float:
     """Return the L1 distance between two distributions.
 
@@ -532,7 +631,7 @@ def l1(p: ArrayLike, q: ArrayLike) -> float:
     return DistanceResult(np.abs(p - q).sum(), method="L1")
 
 
-@measures.register("ENTROPY_DIFFERENCE")
+@distribution_metrics.register("ENTROPY_DIFFERENCE")
 def entropy_difference(p: ArrayLike, q: ArrayLike) -> float:
     """Return the difference in entropy between two distributions."""
     hp = entr(p).sum() / _LN_OF_2
@@ -540,7 +639,7 @@ def entropy_difference(p: ArrayLike, q: ArrayLike) -> float:
     return DistanceResult(abs(hp - hq), method="ENTROPY_DIFFERENCE")
 
 
-@measures.register("PSQ2")
+@distribution_metrics.register("PSQ2")
 def psq2(p: ArrayLike, q: ArrayLike) -> float:
     r"""Compute the PSQ2 measure.
 
@@ -560,7 +659,7 @@ def psq2(p: ArrayLike, q: ArrayLike) -> float:
     return DistanceResult(abs(fp - fq), method="PSQ2")
 
 
-@measures.register("MP2Q", asymmetric=True)
+@distribution_metrics.register("MP2Q", asymmetric=True)
 @np_suppress()
 def mp2q(p: ArrayLike, q: ArrayLike) -> float:
     r"""Compute the MP2Q measure.
@@ -605,7 +704,7 @@ def information_density(p: ArrayLike, q: ArrayLike) -> np.ndarray:
     return rel_entr(p, q) / _LN_OF_2
 
 
-@measures.register("KLD", asymmetric=True)
+@distribution_metrics.register("KLD", asymmetric=True)
 def kld(p: ArrayLike, q: ArrayLike) -> float:
     """Return the Kullback-Leibler Divergence (KLD) between two distributions.
 
@@ -804,7 +903,7 @@ def approximate_specified_state(
     return specified_states.astype(int).T
 
 
-@measures.register("ID", asymmetric=True)
+@distribution_metrics.register("ID", asymmetric=True)
 def intrinsic_difference(p: ArrayLike, q: ArrayLike) -> float:
     r"""Compute the intrinsic difference (ID) between two distributions.
 
@@ -836,9 +935,9 @@ def intrinsic_difference(p: ArrayLike, q: ArrayLike) -> float:
     )
 
 
-@measures.register("AID", asymmetric=True)
-@measures.register("KLM", asymmetric=True)  # Backwards-compatible alias
-@measures.register("BLD", asymmetric=True)  # Backwards-compatible alias
+@distribution_metrics.register("AID", asymmetric=True)
+@distribution_metrics.register("KLM", asymmetric=True)  # Backwards-compatible alias
+@distribution_metrics.register("BLD", asymmetric=True)  # Backwards-compatible alias
 def absolute_intrinsic_difference(p: ArrayLike, q: ArrayLike) -> float:
     """Compute the absolute intrinsic difference (AID) between two
     distributions.
@@ -861,7 +960,7 @@ def absolute_intrinsic_difference(p: ArrayLike, q: ArrayLike) -> float:
     )
 
 
-@measures.register("IIT_4.0_SMALL_PHI", asymmetric=True)
+@stateful_distribution_metrics.register("IIT_4.0_SMALL_PHI", asymmetric=True)
 def iit_4_small_phi(p: ArrayLike, q: ArrayLike, state: State) -> float:
     # TODO docstring
     return DistanceResult(
@@ -872,7 +971,9 @@ def iit_4_small_phi(p: ArrayLike, q: ArrayLike, state: State) -> float:
     )
 
 
-@measures.register("IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE", asymmetric=True)
+@stateful_distribution_metrics.register(
+    "IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE", asymmetric=True
+)
 def iit_4_small_phi_no_absolute_value(p: ArrayLike, q: ArrayLike, state: State) -> float:
     # TODO docstring
     return DistanceResult(
@@ -883,8 +984,8 @@ def iit_4_small_phi_no_absolute_value(p: ArrayLike, q: ArrayLike, state: State) 
     )
 
 
-@measures.register("GENERALIZED_INTRINSIC_DIFFERENCE", asymmetric=True)  # type: ignore[arg-type]  # pyright: ignore[reportArgumentType]
-@measures.register("INTRINSIC_SPECIFICATION", asymmetric=True)  # pyright: ignore[reportArgumentType]
+@composite_metrics.register("GENERALIZED_INTRINSIC_DIFFERENCE")
+@composite_metrics.register("INTRINSIC_SPECIFICATION")
 def generalized_intrinsic_difference(
     forward_repertoire: ArrayLike,
     partitioned_forward_repertoire: ArrayLike,
@@ -913,7 +1014,7 @@ def pointwise_intrinsic_differentiation(p):
     return -np.log2(p, where=(p > 0))
 
 
-@measures.register("INTRINSIC_DIFFERENTIATION")
+@state_aware_metrics.register("INTRINSIC_DIFFERENTIATION")
 def intrinsic_differentiation(p, state):
     p = p.squeeze()[state]
     positive_entries = pointwise_intrinsic_differentiation(p)[
@@ -927,7 +1028,7 @@ def intrinsic_differentiation(p, state):
     )
 
 
-@measures.register("INTRINSIC_INFORMATION", asymmetric=True)  # pyright: ignore[reportArgumentType]
+@composite_metrics.register("INTRINSIC_INFORMATION")
 def intrinsic_information(
     forward_repertoire,
     partitioned_forward_repertoire,
@@ -935,8 +1036,8 @@ def intrinsic_information(
     state=None,
 ):
     iit_cfg = config.formalism.iit
-    specification_func = measures[iit_cfg.specification_measure]  # pyright: ignore[reportAttributeAccessIssue]
-    differentiation_func = measures[iit_cfg.differentiation_measure]  # pyright: ignore[reportAttributeAccessIssue]
+    specification_func = composite_metrics[iit_cfg.specification_measure]
+    differentiation_func = state_aware_metrics[iit_cfg.differentiation_measure]
 
     specification = specification_func(
         forward_repertoire,
@@ -959,7 +1060,7 @@ def intrinsic_information(
     )
 
 
-@measures.register("APMI", asymmetric=True)
+@stateful_distribution_metrics.register("APMI", asymmetric=True)
 @np_suppress()
 def absolute_pointwise_mutual_information(
     p: ArrayLike, q: ArrayLike, state: int | tuple[int, ...]
@@ -1032,6 +1133,52 @@ def weighted_pointwise_mutual_information(p: float, q: float) -> float:
     return p * pointwise_mutual_information(p, q)
 
 
+# ---------------------------------------------------------------------------
+# Resolver helpers: name -> typed metric callable
+# ---------------------------------------------------------------------------
+
+
+def resolve_mechanism_metric(
+    name: str,
+) -> Callable[..., Any]:
+    """Look up a metric usable at the mechanism level.
+
+    Mechanism-level integration accepts state-aware pointwise metrics,
+    stateful-distribution metrics (IIT 4.0 small-phi variants), or
+    composite metrics (GID at the partition layer).
+    """
+    if name in state_aware_metrics:
+        return state_aware_metrics[name]
+    if name in stateful_distribution_metrics:
+        return stateful_distribution_metrics[name]
+    if name in composite_metrics:
+        return composite_metrics[name]
+    available = sorted(
+        set(state_aware_metrics)
+        | set(stateful_distribution_metrics)
+        | set(composite_metrics)
+    )
+    raise ValueError(f"Unknown mechanism metric {name!r}. Available: {available}")
+
+
+def resolve_system_metric(name: str) -> Callable[..., Any]:
+    """Look up a metric usable at the system level."""
+    if name in composite_metrics:
+        return composite_metrics[name]
+    raise ValueError(
+        f"Unknown system metric {name!r}. Available: {sorted(composite_metrics)}"
+    )
+
+
+def resolve_alpha_measure(name: str) -> Callable[..., float]:
+    """Look up a metric usable for actual-causation alpha."""
+    if name in distribution_metrics:
+        return distribution_metrics[name]
+    raise ValueError(
+        f"Unknown alpha measure {name!r}. Available: {sorted(distribution_metrics)}"
+    )
+
+
 def repertoire_distance(
     r1: ArrayLike,
     r2: ArrayLike,
@@ -1050,7 +1197,10 @@ def repertoire_distance(
         float: The distance between ``r1`` and ``r2``, rounded to |PRECISION|.
     """
     func_key = fallback(repertoire_distance, config.formalism.iit.mechanism_phi_measure)
-    func = measures[func_key]  # type: ignore[index]
+    if func_key in distribution_metrics:
+        func = distribution_metrics[func_key]
+    else:
+        func = resolve_mechanism_metric(func_key)
     try:
         try:
             distance = func(r1, r2, direction=direction, **kwargs)

@@ -71,7 +71,7 @@ def _evaluate_partition_iit4(
     if repertoire is None:
         repertoire = system.repertoire(direction, mechanism, purview)
 
-    func = metrics.distribution.measures[repertoire_distance]
+    func = metrics.distribution.resolve_mechanism_metric(repertoire_distance)
     assert not isinstance(repertoire, (int, float)), "GID requires full repertoire"
 
     purview_state = kwargs["state"].state

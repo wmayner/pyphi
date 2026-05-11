@@ -537,7 +537,7 @@ def intrinsic_information(
         "INTRINSIC_INFORMATION",
         "INTRINSIC_SPECIFICATION",
     ]:
-        func = _metrics.distribution.measures[repertoire_distance]
+        func = _metrics.distribution.composite_metrics[repertoire_distance]
         selectivity_repertoire = repertoire(cs, direction, mechanism, purview)
         rep = forward_repertoire(cs, direction, mechanism, purview, None)
         unconstrained_rep = unconstrained_forward_repertoire(

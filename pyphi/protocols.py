@@ -3,10 +3,10 @@
 
 Defines the structural contracts that registered metrics, partition schemes,
 and phi formalisms must satisfy. The corresponding registries
-(``pyphi.metrics.distribution.measures``, ``pyphi.partition.partition_types``)
-validate registered objects against these Protocols at registration time, so
-wrong-shape registrations fail at import — not at the bottom of a long phi
-computation.
+(the typed metric registries in :mod:`pyphi.metrics.distribution`,
+``pyphi.partition.partition_types``) validate registered objects against
+these Protocols at registration time, so wrong-shape registrations fail
+at import — not at the bottom of a long phi computation.
 
 Also declares the public-surface contract for ``System`` as
 :class:`SystemPublicInterface`. This is the cross-module contract the
