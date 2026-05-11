@@ -2,7 +2,7 @@
 """Protocols and registry for phi formalisms.
 
 A *formalism* is a strategy for computing integrated information. Each
-formalism bundles a partition scheme, the distance metrics it accepts, and
+formalism bundles a partition scheme, the distance measures it accepts, and
 algorithms that combine them into mechanism-level RIAs, system-level SIAs,
 and Φ-structures.
 
@@ -31,9 +31,9 @@ __all__ = [
     "ErrorInfo",
     "ExactFormalism",
     "FormalismRegistry",
-    "MetricNotCompatibleError",
+    "MeasureNotCompatibleError",
     "PhiFormalism",
-    "check_metric_compatible",
+    "check_measure_compatible",
 ]
 
 
@@ -45,7 +45,7 @@ class PhiFormalism(Protocol):
 
     - ``name``: stable string identifier used in ``config.formalism.iit.version`` and
       registered in :data:`FORMALISM_REGISTRY`.
-    - ``compatible_metrics``: frozenset of metric names that this
+    - ``compatible_measures``: frozenset of measure names that this
       formalism accepts.
     - ``partition_scheme``: name (string) of the partition scheme
       registered in ``pyphi.partition.partition_types`` to use by default.
@@ -53,12 +53,12 @@ class PhiFormalism(Protocol):
     - ``config``: the :class:`FormalismConfig` snapshot the formalism
       operates against.
 
-    Signatures are intentionally permissive (``Any``) until the metric and
+    Signatures are intentionally permissive (``Any``) until the measure and
     partition Protocols tighten in a future cleanup pass.
     """
 
     name: ClassVar[str]
-    compatible_metrics: ClassVar[frozenset[str]]
+    compatible_measures: ClassVar[frozenset[str]]
     partition_scheme: ClassVar[str | None]
 
     @property
@@ -83,31 +83,31 @@ class PhiFormalism(Protocol):
     def build_phi_structure(self, system: Any, **kwargs: Any) -> Any: ...
 
 
-class MetricNotCompatibleError(Exception):
-    """Raised when a configured metric isn't compatible with the active formalism.
+class MeasureNotCompatibleError(Exception):
+    """Raised when a configured measure isn't compatible with the active formalism.
 
-    Each :class:`PhiFormalism` declares ``compatible_metrics`` as a frozenset
-    of metric names it accepts. Combinations outside that set (e.g., the IIT
-    4.0 formalism with the EMD distribution metric) compute a different
+    Each :class:`PhiFormalism` declares ``compatible_measures`` as a frozenset
+    of measure names it accepts. Combinations outside that set (e.g., the IIT
+    4.0 formalism with the EMD distribution measure) compute a different
     mathematical object than the formalism's ``φ`` definition; rejecting them
     early prevents silently misleading results.
     """
 
 
-def check_metric_compatible(formalism: PhiFormalism, metric: str) -> None:
-    """Raise :class:`MetricNotCompatibleError` if ``metric`` isn't accepted
+def check_measure_compatible(formalism: PhiFormalism, measure: str) -> None:
+    """Raise :class:`MeasureNotCompatibleError` if ``measure`` isn't accepted
     by ``formalism``.
 
     Called from each formalism's ``evaluate_*`` methods so the failure
     surface is at the dispatch boundary, not deep inside the math.
     """
-    if metric not in formalism.compatible_metrics:
-        raise MetricNotCompatibleError(
-            f"REPERTOIRE_DISTANCE {metric!r} is not compatible with "
-            f"FORMALISM {formalism.name!r}. Compatible metrics for "
-            f"this formalism: {sorted(formalism.compatible_metrics)}. "
-            "If you want a different metric, switch FORMALISM to one "
-            "whose compatible_metrics set contains it."
+    if measure not in formalism.compatible_measures:
+        raise MeasureNotCompatibleError(
+            f"REPERTOIRE_DISTANCE {measure!r} is not compatible with "
+            f"FORMALISM {formalism.name!r}. Compatible measures for "
+            f"this formalism: {sorted(formalism.compatible_measures)}. "
+            "If you want a different measure, switch FORMALISM to one "
+            "whose compatible_measures set contains it."
         )
 
 

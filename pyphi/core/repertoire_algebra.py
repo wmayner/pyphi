@@ -33,10 +33,10 @@ from pyphi.direction import Direction
 from pyphi.distribution import max_entropy_distribution
 from pyphi.distribution import repertoire_shape
 from pyphi.metrics.distribution import repertoire_distance as _repertoire_distance
-from pyphi.metrics.protocols import CompositeMetric
-from pyphi.metrics.protocols import DistributionMetric
-from pyphi.metrics.protocols import StateAwareMetric
-from pyphi.metrics.protocols import StatefulDistributionMetric
+from pyphi.metrics.protocols import CompositeMeasure
+from pyphi.metrics.protocols import DistributionMeasure
+from pyphi.metrics.protocols import StateAwareMeasure
+from pyphi.metrics.protocols import StatefulDistributionMeasure
 
 # One cache dict per memoized function name.
 _caches: dict[str, dict[tuple, Any]] = {}
@@ -286,30 +286,30 @@ def partitioned_repertoire(
     direction: Direction,
     partition: Any,
     *,
-    mechanism_metric: (
-        DistributionMetric
-        | StateAwareMetric
-        | StatefulDistributionMetric
-        | CompositeMetric
+    mechanism_measure: (
+        DistributionMeasure
+        | StateAwareMeasure
+        | StatefulDistributionMeasure
+        | CompositeMeasure
     ),
     **kwargs: Any,
 ) -> Any:
     """Compute the repertoire of a partitioned mechanism and purview.
 
     Routes to the state-aware path (forward probabilities + product of
-    scalars) when ``mechanism_metric`` is GID/II; otherwise returns the
-    product of the per-part repertoires. ``mechanism_metric`` is a
-    Protocol-typed metric callable passed explicitly by the caller (no
-    config fallback); the GID/II routing keys off ``mechanism_metric.name``.
+    scalars) when ``mechanism_measure`` is GID/II; otherwise returns the
+    product of the per-part repertoires. ``mechanism_measure`` is a
+    Protocol-typed measure callable passed explicitly by the caller (no
+    config fallback); the GID/II routing keys off ``mechanism_measure.name``.
     """
-    if mechanism_metric.name in (
+    if mechanism_measure.name in (
         "GENERALIZED_INTRINSIC_DIFFERENCE",
         "INTRINSIC_INFORMATION",
     ):
         if "state" not in kwargs:
             raise ValueError(
                 f"must provide purview state for repertoire distance "
-                f"{mechanism_metric.name}"
+                f"{mechanism_measure.name}"
             )
         purview_state = kwargs.pop("state")
         prs = [
@@ -526,19 +526,19 @@ def intrinsic_information(
     mechanism: tuple[int, ...],
     purview: tuple[int, ...],
     *,
-    specification_metric: (
-        DistributionMetric
-        | StateAwareMetric
-        | StatefulDistributionMetric
-        | CompositeMetric
+    specification_measure: (
+        DistributionMeasure
+        | StateAwareMeasure
+        | StatefulDistributionMeasure
+        | CompositeMeasure
     ),
     states: Any | None = None,
 ) -> Any:
     """Compute intrinsic information and the maximally specified state.
 
-    ``specification_metric`` is a Protocol-typed metric callable used to
+    ``specification_measure`` is a Protocol-typed measure callable used to
     score candidate purview states; passed explicitly by the caller (no
-    config fallback). Composite metrics (GID / INTRINSIC_INFORMATION /
+    config fallback). Composite measures (GID / INTRINSIC_INFORMATION /
     INTRINSIC_SPECIFICATION) take the multi-argument path; other shapes
     fall through to :func:`repertoire_distance`.
     """
@@ -547,17 +547,17 @@ def intrinsic_information(
     if states is None:
         states = _utils.all_states(len(purview))
 
-    if specification_metric.name in (
+    if specification_measure.name in (
         "GENERALIZED_INTRINSIC_DIFFERENCE",
         "INTRINSIC_INFORMATION",
         "INTRINSIC_SPECIFICATION",
     ):
-        # ``specification_metric`` is one of the composite metrics named
+        # ``specification_measure`` is one of the composite measures named
         # above; cast to that Protocol so pyright sees the 3-argument
         # composite shape rather than the wider union.
         from typing import cast
 
-        composite = cast(CompositeMetric, specification_metric)
+        composite = cast(CompositeMeasure, specification_measure)
         selectivity_repertoire = repertoire(cs, direction, mechanism, purview)
         rep = forward_repertoire(cs, direction, mechanism, purview, None)
         unconstrained_rep = unconstrained_forward_repertoire(
@@ -565,7 +565,7 @@ def intrinsic_information(
         )
         dist = composite(rep, unconstrained_rep, selectivity_repertoire)
         assert not isinstance(dist, (int, float)), (
-            "Distance metrics should return array when state is None"
+            "Distance measures should return array when state is None"
         )
         dist = dist.squeeze()
 
@@ -580,7 +580,7 @@ def intrinsic_information(
                 rep,
                 unconstrained_rep,
                 state=state,
-                repertoire_distance=specification_metric,
+                repertoire_distance=specification_measure,
             )
 
     state_to_information = {state: evaluate_state(state) for state in states}

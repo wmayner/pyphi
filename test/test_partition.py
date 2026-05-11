@@ -3,7 +3,7 @@ import itertools
 from pyphi import Direction
 from pyphi import config
 from pyphi.combinatorics import set_partitions as partitions
-from pyphi.metrics.distribution import resolve_mechanism_metric
+from pyphi.metrics.distribution import resolve_mechanism_measure
 from pyphi.models import Bipartition
 from pyphi.models import KPartition
 from pyphi.models import Part
@@ -261,7 +261,7 @@ def test_partitioned_repertoire_with_tripartition(s):
         s.partitioned_repertoire(
             Direction.CAUSE,
             tripartition,
-            mechanism_metric=resolve_mechanism_metric(
+            mechanism_measure=resolve_mechanism_measure(
                 config.formalism.iit.mechanism_phi_measure
             ),
             state=tuple(s.state[node] for node in tripartition.purview),

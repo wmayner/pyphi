@@ -5,7 +5,7 @@ from pyphi import Direction
 from pyphi import Substrate
 from pyphi import config
 from pyphi import exceptions
-from pyphi.metrics.distribution import resolve_mechanism_metric
+from pyphi.metrics.distribution import resolve_mechanism_measure
 from pyphi.models import Concept
 from pyphi.models import MaximallyIrreducibleCause
 from pyphi.models import MaximallyIrreducibleEffect
@@ -214,7 +214,7 @@ class TestIntrinsicInformationTies:
             Direction.CAUSE,
             (0, 1),
             (0, 1),
-            specification_metric=resolve_mechanism_metric(
+            specification_measure=resolve_mechanism_measure(
                 config.formalism.iit.specification_measure
             ),
         )
@@ -230,7 +230,7 @@ class TestIntrinsicInformationTies:
             Direction.CAUSE,
             (0, 1),
             (0, 1),
-            specification_metric=resolve_mechanism_metric(
+            specification_measure=resolve_mechanism_measure(
                 config.formalism.iit.specification_measure
             ),
         )
@@ -245,7 +245,7 @@ class TestIntrinsicInformationTies:
             Direction.EFFECT,
             (0, 1),
             (0, 1),
-            specification_metric=resolve_mechanism_metric(
+            specification_measure=resolve_mechanism_measure(
                 config.formalism.iit.specification_measure
             ),
         )

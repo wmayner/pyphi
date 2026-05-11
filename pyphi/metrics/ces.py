@@ -84,17 +84,17 @@ def emd_ground_distance(r1: Repertoire, r2: Repertoire) -> float:
     asymmetric_metrics = (
         {
             name
-            for name, metric in distribution.distribution_metrics.items()
+            for name, metric in distribution.distribution_measures.items()
             if getattr(metric, "asymmetric", False)
         }
         | {
             name
-            for name, metric in distribution.stateful_distribution_metrics.items()
+            for name, metric in distribution.stateful_distribution_measures.items()
             if getattr(metric, "asymmetric", False)
         }
         | {
             name
-            for name, metric in distribution.composite_metrics.items()
+            for name, metric in distribution.composite_measures.items()
             if getattr(metric, "asymmetric", False)
         }
     )
@@ -104,7 +104,7 @@ def emd_ground_distance(r1: Repertoire, r2: Repertoire) -> float:
             "asymmetric and cannot be used as the ground distance for "
             "the system-level EMD"
         )
-    measure = distribution.resolve_distribution_metric(measure_name)
+    measure = distribution.resolve_distribution_measure(measure_name)
     return distribution.repertoire_distance(
         r1, r2, direction=None, repertoire_distance=measure
     )

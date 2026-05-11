@@ -5,11 +5,11 @@ A prior bug was discovered where setting ``mechanism_phi_measure`` to
 cap (the cap is gated on ``system_phi_measure``, not on
 ``mechanism_phi_measure``). The original fix was test-side; the
 subsequent refactor makes the underlying architecture immune to the bug
-class by requiring callers to pass metric callables explicitly.
+class by requiring callers to pass measure callables explicitly.
 
 This test pins the new invariant: raw module-level ``sia()`` requires
-explicit metric kwargs. Setting ``mechanism_phi_measure`` and calling
-raw ``sia()`` without explicit metrics produces a ``TypeError`` (missing
+explicit measure kwargs. Setting ``mechanism_phi_measure`` and calling
+raw ``sia()`` without explicit measures produces a ``TypeError`` (missing
 kwarg), not a silent wrong-scope read.
 """
 
@@ -22,7 +22,7 @@ from pyphi import Substrate
 from pyphi import System
 from pyphi import config
 from pyphi.formalism.iit4 import sia
-from pyphi.metrics.distribution import composite_metrics
+from pyphi.metrics.distribution import composite_measures
 
 
 @pytest.fixture
@@ -47,32 +47,32 @@ def noisy_copy_system():
     return System(substrate, (1, 1))
 
 
-def test_raw_sia_requires_explicit_system_metric(noisy_copy_system):
+def test_raw_sia_requires_explicit_system_measure(noisy_copy_system):
     """The cap-regression bug shape now raises TypeError.
 
     Setting ``mechanism_phi_measure`` to ``INTRINSIC_INFORMATION`` and
     calling raw ``sia()`` used to silently miss the Eq. 23 cap. After
-    the refactor, ``sia()`` requires ``system_metric`` as an explicit
+    the refactor, ``sia()`` requires ``system_measure`` as an explicit
     keyword argument, so the same call now fails loudly.
     """
     with (
         config.override(mechanism_phi_measure="INTRINSIC_INFORMATION"),
-        pytest.raises(TypeError, match="system_metric"),
+        pytest.raises(TypeError, match="system_measure"),
     ):
         sia(noisy_copy_system)
 
 
-def test_raw_sia_with_explicit_metrics_works(noisy_copy_system):
-    """Sanity: with explicit metrics, raw ``sia()`` works.
+def test_raw_sia_with_explicit_measures_works(noisy_copy_system):
+    """Sanity: with explicit measures, raw ``sia()`` works.
 
-    Callers must declare which metric they want at the call site; no
+    Callers must declare which measure they want at the call site; no
     implicit fallback to config. Under ``INTRINSIC_INFORMATION`` the
     Eq. 23 ``ii(s)`` cap fires and phi is ~0.644 for the canonical
     noisy-COPY fixture.
     """
     result = sia(
         noisy_copy_system,
-        system_metric=composite_metrics["INTRINSIC_INFORMATION"],
-        specification_metric=composite_metrics["INTRINSIC_SPECIFICATION"],
+        system_measure=composite_measures["INTRINSIC_INFORMATION"],
+        specification_measure=composite_measures["INTRINSIC_SPECIFICATION"],
     )
     assert float(result.phi) == pytest.approx(0.644, abs=0.001)

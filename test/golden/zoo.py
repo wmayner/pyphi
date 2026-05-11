@@ -69,7 +69,7 @@ def _logistic_3node_k8() -> Substrate:
     return Substrate(tpm, cm)
 
 
-# IIT 4.0 (2023) — Albantakis et al. 2023, GID metric, no ii(s) cap.
+# IIT 4.0 (2023) — Albantakis et al. 2023, GID measure, no ii(s) cap.
 IIT_4_2023_CONFIG = {
     "version": "IIT_4_0_2023",
     "mechanism_phi_measure": "GENERALIZED_INTRINSIC_DIFFERENCE",

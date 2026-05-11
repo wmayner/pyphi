@@ -46,8 +46,8 @@ from pyphi import config
 from pyphi import jsonify
 from pyphi.examples import EXAMPLES
 from pyphi.formalism import iit4 as new_big_phi
-from pyphi.metrics.distribution import resolve_mechanism_metric
-from pyphi.metrics.distribution import resolve_system_metric
+from pyphi.metrics.distribution import resolve_mechanism_measure
+from pyphi.metrics.distribution import resolve_system_measure
 
 EXAMPLE_NAMES = [
     "basic",
@@ -93,8 +93,8 @@ def test(example_name):
     system = EXAMPLES["system"][example_name]()
     actual = new_big_phi.phi_structure(
         system,
-        system_metric=resolve_system_metric(config.formalism.iit.system_phi_measure),
-        specification_metric=resolve_mechanism_metric(
+        system_measure=resolve_system_measure(config.formalism.iit.system_phi_measure),
+        specification_measure=resolve_mechanism_measure(
             config.formalism.iit.specification_measure
         ),
     )

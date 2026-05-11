@@ -14,8 +14,8 @@ import pytest
 from pyphi import config
 from pyphi.formalism import iit4 as new_big_phi
 from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
-from pyphi.metrics.distribution import resolve_mechanism_metric
-from pyphi.metrics.distribution import resolve_system_metric
+from pyphi.metrics.distribution import resolve_mechanism_measure
+from pyphi.metrics.distribution import resolve_system_measure
 from pyphi.system import System
 
 from . import example_substrates
@@ -23,14 +23,16 @@ from .conftest import skip_if_no_pyemd
 
 
 def _sia_kwargs():
-    """Resolve metric kwargs from current config for module-level iit4 calls.
+    """Resolve measure kwargs from current config for module-level iit4 calls.
 
     The module-level ``sia``/``phi_structure``/``system_intrinsic_information``
-    require explicit metrics; tests invoke them with default-config metrics.
+    require explicit measures; tests invoke them with default-config measures.
     """
     return {
-        "system_metric": resolve_system_metric(config.formalism.iit.system_phi_measure),
-        "specification_metric": resolve_mechanism_metric(
+        "system_measure": resolve_system_measure(
+            config.formalism.iit.system_phi_measure
+        ),
+        "specification_measure": resolve_mechanism_measure(
             config.formalism.iit.specification_measure
         ),
     }
@@ -38,7 +40,7 @@ def _sia_kwargs():
 
 def _spec_kwargs():
     return {
-        "specification_metric": resolve_mechanism_metric(
+        "specification_measure": resolve_mechanism_measure(
             config.formalism.iit.specification_measure
         )
     }

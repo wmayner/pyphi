@@ -23,14 +23,14 @@ class TestNestedYAMLLoader:
               precision: 7
             """)
         )
-        original_metric = config.formalism.iit.mechanism_phi_measure
+        original_measure = config.formalism.iit.mechanism_phi_measure
         original_precision = config.numerics.precision
         try:
             config.load_yaml(str(path))
             assert config.formalism.iit.mechanism_phi_measure == "EMD"
             assert config.numerics.precision == 7
         finally:
-            config.mechanism_phi_measure = original_metric
+            config.mechanism_phi_measure = original_measure
             config.precision = original_precision
 
     def test_load_actual_causation_subnamespace(self, tmp_path):

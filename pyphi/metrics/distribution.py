@@ -25,14 +25,14 @@ from pyphi.direction import Direction
 from pyphi.distribution import flatten
 from pyphi.distribution import marginal_zero
 from pyphi.exceptions import MissingOptionalDependenciesError
-from pyphi.metrics.protocols import CompositeMetric
-from pyphi.metrics.protocols import DistributionMetric
-from pyphi.metrics.protocols import StateAwareMetric
-from pyphi.metrics.protocols import StatefulDistributionMetric
-from pyphi.metrics.protocols import satisfies_composite_metric
-from pyphi.metrics.protocols import satisfies_distribution_metric
-from pyphi.metrics.protocols import satisfies_state_aware_metric
-from pyphi.metrics.protocols import satisfies_stateful_distribution_metric
+from pyphi.metrics.protocols import CompositeMeasure
+from pyphi.metrics.protocols import DistributionMeasure
+from pyphi.metrics.protocols import StateAwareMeasure
+from pyphi.metrics.protocols import StatefulDistributionMeasure
+from pyphi.metrics.protocols import satisfies_composite_measure
+from pyphi.metrics.protocols import satisfies_distribution_measure
+from pyphi.metrics.protocols import satisfies_state_aware_measure
+from pyphi.metrics.protocols import satisfies_stateful_distribution_measure
 from pyphi.registry import Registry
 from pyphi.types import Repertoire
 from pyphi.types import State
@@ -272,7 +272,7 @@ class OptionalEMD:
 EMD = OptionalEMD()
 
 
-class DistributionMetricRegistry(Registry):
+class DistributionMeasureRegistry(Registry):
     """Storage for ``(p, q) -> float | DistanceResult`` distance functions.
 
     Each registered function is validated at registration time to have
@@ -282,7 +282,7 @@ class DistributionMetricRegistry(Registry):
     attribute so callers can filter without consulting a parallel list.
 
     Examples:
-        >>> @distribution_metrics.register('ALWAYS_ZERO')  # doctest: +SKIP
+        >>> @distribution_measures.register('ALWAYS_ZERO')  # doctest: +SKIP
         ... def always_zero(p, q):
         ...    return 0
     """
@@ -294,7 +294,7 @@ class DistributionMetricRegistry(Registry):
     def register(  # type: ignore[override]
         self, name: str, asymmetric: bool = False
     ) -> Callable[[Callable[..., float]], Callable[..., float]]:
-        """Decorator for registering a :class:`DistributionMetric`.
+        """Decorator for registering a :class:`DistributionMeasure`.
 
         Args:
             name: The name of the measure.
@@ -305,9 +305,9 @@ class DistributionMetricRegistry(Registry):
         """
 
         def register_func(func: Callable[..., float]) -> Callable[..., float]:
-            if not satisfies_distribution_metric(func):
+            if not satisfies_distribution_measure(func):
                 raise TypeError(
-                    f"Cannot register {func!r} as DistributionMetric {name!r}: "
+                    f"Cannot register {func!r} as DistributionMeasure {name!r}: "
                     f"required params must be exactly (p, q); got "
                     f"{list(inspect.signature(func).parameters)}."
                 )
@@ -319,8 +319,8 @@ class DistributionMetricRegistry(Registry):
         return register_func
 
 
-class StateAwareMetricRegistry(Registry):
-    """Storage for ``(p, state) -> float | DistanceResult`` metrics.
+class StateAwareMeasureRegistry(Registry):
+    """Storage for ``(p, state) -> float | DistanceResult`` measures.
 
     The function reads off a single state's value from a single
     distribution.
@@ -328,17 +328,17 @@ class StateAwareMetricRegistry(Registry):
 
     # pylint: disable=arguments-differ
 
-    desc = "pointwise state-aware metrics"
+    desc = "pointwise state-aware measures"
 
     def register(  # type: ignore[override]
         self, name: str
     ) -> Callable[[Callable[..., float]], Callable[..., float]]:
-        """Decorator for registering a :class:`StateAwareMetric`."""
+        """Decorator for registering a :class:`StateAwareMeasure`."""
 
         def register_func(func: Callable[..., float]) -> Callable[..., float]:
-            if not satisfies_state_aware_metric(func):
+            if not satisfies_state_aware_measure(func):
                 raise TypeError(
-                    f"Cannot register {func!r} as StateAwareMetric {name!r}: "
+                    f"Cannot register {func!r} as StateAwareMeasure {name!r}: "
                     f"required params must be exactly (p, state); got "
                     f"{list(inspect.signature(func).parameters)}."
                 )
@@ -349,8 +349,8 @@ class StateAwareMetricRegistry(Registry):
         return register_func
 
 
-class CompositeMetricRegistry(Registry):
-    """Storage for composite metrics of shape
+class CompositeMeasureRegistry(Registry):
+    """Storage for composite measures of shape
     ``(forward, partitioned, selectivity, *, state) -> DistanceResult``.
 
     Used at the system / mechanism boundary by GID, INTRINSIC_SPECIFICATION,
@@ -359,12 +359,12 @@ class CompositeMetricRegistry(Registry):
 
     # pylint: disable=arguments-differ
 
-    desc = "composite metrics"
+    desc = "composite measures"
 
     def register(  # type: ignore[override]
         self, name: str, asymmetric: bool = False
     ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
-        """Decorator for registering a :class:`CompositeMetric`.
+        """Decorator for registering a :class:`CompositeMeasure`.
 
         Args:
             name: The name of the measure.
@@ -375,9 +375,9 @@ class CompositeMetricRegistry(Registry):
         """
 
         def register_func(func: Callable[..., Any]) -> Callable[..., Any]:
-            if not satisfies_composite_metric(func):
+            if not satisfies_composite_measure(func):
                 raise TypeError(
-                    f"Cannot register {func!r} as CompositeMetric {name!r}: "
+                    f"Cannot register {func!r} as CompositeMeasure {name!r}: "
                     f"first three params must include 'forward', "
                     f"'partitioned', and 'selectivity'; got "
                     f"{list(inspect.signature(func).parameters)}."
@@ -390,8 +390,8 @@ class CompositeMetricRegistry(Registry):
         return register_func
 
 
-class StatefulDistributionMetricRegistry(Registry):
-    """Storage for ``(p, q, state) -> float | DistanceResult`` metrics.
+class StatefulDistributionMeasureRegistry(Registry):
+    """Storage for ``(p, q, state) -> float | DistanceResult`` measures.
 
     Both distributions are load-bearing; the state selects an element.
     Used by IIT_4.0_SMALL_PHI variants and APMI.
@@ -399,12 +399,12 @@ class StatefulDistributionMetricRegistry(Registry):
 
     # pylint: disable=arguments-differ
 
-    desc = "two-distribution state-aware metrics"
+    desc = "two-distribution state-aware measures"
 
     def register(  # type: ignore[override]
         self, name: str, asymmetric: bool = False
     ) -> Callable[[Callable[..., float]], Callable[..., float]]:
-        """Decorator for registering a :class:`StatefulDistributionMetric`.
+        """Decorator for registering a :class:`StatefulDistributionMeasure`.
 
         Args:
             name: The name of the measure.
@@ -415,9 +415,9 @@ class StatefulDistributionMetricRegistry(Registry):
         """
 
         def register_func(func: Callable[..., float]) -> Callable[..., float]:
-            if not satisfies_stateful_distribution_metric(func):
+            if not satisfies_stateful_distribution_measure(func):
                 raise TypeError(
-                    f"Cannot register {func!r} as StatefulDistributionMetric "
+                    f"Cannot register {func!r} as StatefulDistributionMeasure "
                     f"{name!r}: required params must be exactly (p, q, state); "
                     f"got {list(inspect.signature(func).parameters)}."
                 )
@@ -429,10 +429,10 @@ class StatefulDistributionMetricRegistry(Registry):
         return register_func
 
 
-distribution_metrics = DistributionMetricRegistry()
-state_aware_metrics = StateAwareMetricRegistry()
-composite_metrics = CompositeMetricRegistry()
-stateful_distribution_metrics = StatefulDistributionMetricRegistry()
+distribution_measures = DistributionMeasureRegistry()
+state_aware_measures = StateAwareMeasureRegistry()
+composite_measures = CompositeMeasureRegistry()
+stateful_distribution_measures = StatefulDistributionMeasureRegistry()
 
 
 class ActualCausationMeasureRegistry(Registry):
@@ -595,7 +595,7 @@ def effect_emd(p: ArrayLike, q: ArrayLike) -> float:
     )
 
 
-@distribution_metrics.register("EMD")
+@distribution_measures.register("EMD")
 def emd(p: ArrayLike, q: ArrayLike, direction: Direction | None = None) -> float:
     """Compute the EMD between two repertoires for a given direction.
 
@@ -627,7 +627,7 @@ def emd(p: ArrayLike, q: ArrayLike, direction: Direction | None = None) -> float
     return DistanceResult(func(p, q), method="EMD", direction=direction)
 
 
-@distribution_metrics.register("L1")
+@distribution_measures.register("L1")
 def l1(p: ArrayLike, q: ArrayLike) -> float:
     """Return the L1 distance between two distributions.
 
@@ -643,7 +643,7 @@ def l1(p: ArrayLike, q: ArrayLike) -> float:
     return DistanceResult(np.abs(p - q).sum(), method="L1")
 
 
-@distribution_metrics.register("ENTROPY_DIFFERENCE")
+@distribution_measures.register("ENTROPY_DIFFERENCE")
 def entropy_difference(p: ArrayLike, q: ArrayLike) -> float:
     """Return the difference in entropy between two distributions."""
     hp = entr(p).sum() / _LN_OF_2
@@ -651,7 +651,7 @@ def entropy_difference(p: ArrayLike, q: ArrayLike) -> float:
     return DistanceResult(abs(hp - hq), method="ENTROPY_DIFFERENCE")
 
 
-@distribution_metrics.register("PSQ2")
+@distribution_measures.register("PSQ2")
 def psq2(p: ArrayLike, q: ArrayLike) -> float:
     r"""Compute the PSQ2 measure.
 
@@ -671,7 +671,7 @@ def psq2(p: ArrayLike, q: ArrayLike) -> float:
     return DistanceResult(abs(fp - fq), method="PSQ2")
 
 
-@distribution_metrics.register("MP2Q", asymmetric=True)
+@distribution_measures.register("MP2Q", asymmetric=True)
 @np_suppress()
 def mp2q(p: ArrayLike, q: ArrayLike) -> float:
     r"""Compute the MP2Q measure.
@@ -716,7 +716,7 @@ def information_density(p: ArrayLike, q: ArrayLike) -> np.ndarray:
     return rel_entr(p, q) / _LN_OF_2
 
 
-@distribution_metrics.register("KLD", asymmetric=True)
+@distribution_measures.register("KLD", asymmetric=True)
 def kld(p: ArrayLike, q: ArrayLike) -> float:
     """Return the Kullback-Leibler Divergence (KLD) between two distributions.
 
@@ -915,7 +915,7 @@ def approximate_specified_state(
     return specified_states.astype(int).T
 
 
-@distribution_metrics.register("ID", asymmetric=True)
+@distribution_measures.register("ID", asymmetric=True)
 def intrinsic_difference(p: ArrayLike, q: ArrayLike) -> float:
     r"""Compute the intrinsic difference (ID) between two distributions.
 
@@ -947,9 +947,9 @@ def intrinsic_difference(p: ArrayLike, q: ArrayLike) -> float:
     )
 
 
-@distribution_metrics.register("AID", asymmetric=True)
-@distribution_metrics.register("KLM", asymmetric=True)  # Backwards-compatible alias
-@distribution_metrics.register("BLD", asymmetric=True)  # Backwards-compatible alias
+@distribution_measures.register("AID", asymmetric=True)
+@distribution_measures.register("KLM", asymmetric=True)  # Backwards-compatible alias
+@distribution_measures.register("BLD", asymmetric=True)  # Backwards-compatible alias
 def absolute_intrinsic_difference(p: ArrayLike, q: ArrayLike) -> float:
     """Compute the absolute intrinsic difference (AID) between two
     distributions.
@@ -972,7 +972,7 @@ def absolute_intrinsic_difference(p: ArrayLike, q: ArrayLike) -> float:
     )
 
 
-@stateful_distribution_metrics.register("IIT_4.0_SMALL_PHI", asymmetric=True)
+@stateful_distribution_measures.register("IIT_4.0_SMALL_PHI", asymmetric=True)
 def iit_4_small_phi(p: ArrayLike, q: ArrayLike, state: State) -> float:
     # TODO docstring
     return DistanceResult(
@@ -983,7 +983,7 @@ def iit_4_small_phi(p: ArrayLike, q: ArrayLike, state: State) -> float:
     )
 
 
-@stateful_distribution_metrics.register(
+@stateful_distribution_measures.register(
     "IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE", asymmetric=True
 )
 def iit_4_small_phi_no_absolute_value(p: ArrayLike, q: ArrayLike, state: State) -> float:
@@ -996,8 +996,8 @@ def iit_4_small_phi_no_absolute_value(p: ArrayLike, q: ArrayLike, state: State) 
     )
 
 
-@composite_metrics.register("GENERALIZED_INTRINSIC_DIFFERENCE", asymmetric=True)
-@composite_metrics.register("INTRINSIC_SPECIFICATION", asymmetric=True)
+@composite_measures.register("GENERALIZED_INTRINSIC_DIFFERENCE", asymmetric=True)
+@composite_measures.register("INTRINSIC_SPECIFICATION", asymmetric=True)
 def generalized_intrinsic_difference(
     forward_repertoire: ArrayLike,
     partitioned_forward_repertoire: ArrayLike,
@@ -1026,7 +1026,7 @@ def pointwise_intrinsic_differentiation(p):
     return -np.log2(p, where=(p > 0))
 
 
-@state_aware_metrics.register("INTRINSIC_DIFFERENTIATION")
+@state_aware_measures.register("INTRINSIC_DIFFERENTIATION")
 def intrinsic_differentiation(p, state):
     p = p.squeeze()[state]
     positive_entries = pointwise_intrinsic_differentiation(p)[
@@ -1040,7 +1040,7 @@ def intrinsic_differentiation(p, state):
     )
 
 
-@composite_metrics.register("INTRINSIC_INFORMATION", asymmetric=True)
+@composite_measures.register("INTRINSIC_INFORMATION", asymmetric=True)
 def intrinsic_information(
     forward_repertoire,
     partitioned_forward_repertoire,
@@ -1048,8 +1048,8 @@ def intrinsic_information(
     state=None,
 ):
     iit_cfg = config.formalism.iit
-    specification_func = composite_metrics[iit_cfg.specification_measure]
-    differentiation_func = state_aware_metrics[iit_cfg.differentiation_measure]
+    specification_func = composite_measures[iit_cfg.specification_measure]
+    differentiation_func = state_aware_measures[iit_cfg.differentiation_measure]
 
     specification = specification_func(
         forward_repertoire,
@@ -1072,7 +1072,7 @@ def intrinsic_information(
     )
 
 
-@stateful_distribution_metrics.register("APMI", asymmetric=True)
+@stateful_distribution_measures.register("APMI", asymmetric=True)
 @np_suppress()
 def absolute_pointwise_mutual_information(
     p: ArrayLike, q: ArrayLike, state: int | tuple[int, ...]
@@ -1146,88 +1146,91 @@ def weighted_pointwise_mutual_information(p: float, q: float) -> float:
 
 
 # ---------------------------------------------------------------------------
-# Resolver helpers: name -> typed metric callable
+# Resolver helpers: name -> typed measure callable
 # ---------------------------------------------------------------------------
 
 
-def resolve_mechanism_metric(
+def resolve_mechanism_measure(
     name: str,
 ) -> (
-    DistributionMetric | StateAwareMetric | StatefulDistributionMetric | CompositeMetric
+    DistributionMeasure
+    | StateAwareMeasure
+    | StatefulDistributionMeasure
+    | CompositeMeasure
 ):
-    """Look up a metric usable at the mechanism level.
+    """Look up a measure usable at the mechanism level.
 
-    Mechanism-level integration accepts distribution metrics (IIT 3.0
-    EMD/L1/KLD/...), state-aware pointwise metrics, stateful-distribution
-    metrics (IIT 4.0 small-phi variants), or composite metrics (GID at
+    Mechanism-level integration accepts distribution measures (IIT 3.0
+    EMD/L1/KLD/...), state-aware pointwise measures, stateful-distribution
+    measures (IIT 4.0 small-phi variants), or composite measures (GID at
     the partition layer). Pyright sees the Protocol union; downstream
     parameters typed as a narrower Protocol (e.g.,
-    :class:`CompositeMetric` at the system level) statically reject
+    :class:`CompositeMeasure` at the system level) statically reject
     scope-mismatched assignments.
     """
     from typing import cast
 
-    if name in distribution_metrics:
-        return cast(DistributionMetric, distribution_metrics[name])
-    if name in state_aware_metrics:
-        return cast(StateAwareMetric, state_aware_metrics[name])
-    if name in stateful_distribution_metrics:
-        return cast(StatefulDistributionMetric, stateful_distribution_metrics[name])
-    if name in composite_metrics:
-        return cast(CompositeMetric, composite_metrics[name])
+    if name in distribution_measures:
+        return cast(DistributionMeasure, distribution_measures[name])
+    if name in state_aware_measures:
+        return cast(StateAwareMeasure, state_aware_measures[name])
+    if name in stateful_distribution_measures:
+        return cast(StatefulDistributionMeasure, stateful_distribution_measures[name])
+    if name in composite_measures:
+        return cast(CompositeMeasure, composite_measures[name])
     available = sorted(
-        set(distribution_metrics)
-        | set(state_aware_metrics)
-        | set(stateful_distribution_metrics)
-        | set(composite_metrics)
+        set(distribution_measures)
+        | set(state_aware_measures)
+        | set(stateful_distribution_measures)
+        | set(composite_measures)
     )
-    raise ValueError(f"Unknown mechanism metric {name!r}. Available: {available}")
+    raise ValueError(f"Unknown mechanism measure {name!r}. Available: {available}")
 
 
-def resolve_system_metric(name: str) -> CompositeMetric:
-    """Look up a metric usable at the system level.
+def resolve_system_measure(name: str) -> CompositeMeasure:
+    """Look up a measure usable at the system level.
 
-    Only composite metrics are valid system-level metrics; the return
-    type is :class:`CompositeMetric` so pyright catches scope mismatches.
+    Only composite measures are valid system-level measures; the return
+    type is :class:`CompositeMeasure` so pyright catches scope mismatches.
     """
     from typing import cast
 
-    if name in composite_metrics:
-        return cast(CompositeMetric, composite_metrics[name])
+    if name in composite_measures:
+        return cast(CompositeMeasure, composite_measures[name])
     raise ValueError(
-        f"Unknown system metric {name!r}. Available: {sorted(composite_metrics)}"
+        f"Unknown system measure {name!r}. Available: {sorted(composite_measures)}"
     )
 
 
-def resolve_distribution_metric(name: str) -> DistributionMetric:
-    """Look up a distribution metric for EMD ground distance and IIT-side dispatch.
+def resolve_distribution_measure(name: str) -> DistributionMeasure:
+    """Look up a distribution measure for EMD ground distance and IIT-side dispatch.
 
-    Only distribution metrics (symmetric two-distribution distances) are
-    valid here; the return type is :class:`DistributionMetric` so pyright
+    Only distribution measures (two-distribution distances) are valid
+    here; the return type is :class:`DistributionMeasure` so pyright
     catches scope mismatches.
     """
     from typing import cast
 
-    if name in distribution_metrics:
-        return cast(DistributionMetric, distribution_metrics[name])
+    if name in distribution_measures:
+        return cast(DistributionMeasure, distribution_measures[name])
     raise ValueError(
-        f"Unknown distribution metric {name!r}. "
-        f"Available: {sorted(distribution_metrics)}"
+        f"Unknown distribution measure {name!r}. "
+        f"Available: {sorted(distribution_measures)}"
     )
 
 
-def resolve_actual_causation_measure(name: str) -> DistributionMetric:
+def resolve_actual_causation_measure(name: str) -> DistributionMeasure:
     """Look up a measure registered in :data:`actual_causation_measures`.
 
     The actual-causation alpha computation uses ``(p, q) -> float``
     distribution-shape callables from :data:`actual_causation_measures`
-    (e.g., ``PMI``, ``WPMI``). The return type is :class:`DistributionMetric`
+    (e.g., ``PMI``, ``WPMI``). The return type is :class:`DistributionMeasure`
     so call-site type checks reject scope-mismatched assignments.
     """
     from typing import cast
 
     if name in actual_causation_measures:
-        return cast(DistributionMetric, actual_causation_measures[name])
+        return cast(DistributionMeasure, actual_causation_measures[name])
     raise ValueError(
         f"Unknown actual-causation measure {name!r}. "
         f"Available: {sorted(actual_causation_measures)}"
@@ -1239,10 +1242,10 @@ def repertoire_distance(
     r2: ArrayLike,
     direction: Direction | None = None,
     repertoire_distance: (
-        DistributionMetric
-        | StateAwareMetric
-        | StatefulDistributionMetric
-        | CompositeMetric
+        DistributionMeasure
+        | StateAwareMeasure
+        | StatefulDistributionMeasure
+        | CompositeMeasure
         | None
     ) = None,
     **kwargs,
@@ -1253,10 +1256,10 @@ def repertoire_distance(
         r1 (np.ndarray): The first repertoire.
         r2 (np.ndarray): The second repertoire.
         direction (Direction): |CAUSE| or |EFFECT|.
-        repertoire_distance: A Protocol-typed metric callable
-            (:class:`DistributionMetric`, :class:`StateAwareMetric`,
-            :class:`StatefulDistributionMetric`, or
-            :class:`CompositeMetric`). Required for callers below the
+        repertoire_distance: A Protocol-typed measure callable
+            (:class:`DistributionMeasure`, :class:`StateAwareMeasure`,
+            :class:`StatefulDistributionMeasure`, or
+            :class:`CompositeMeasure`). Required for callers below the
             formalism-class boundary; public-API callers
             (``System.cause_info``, etc.) resolve from config at their
             method boundary and pass the object through.
@@ -1267,25 +1270,25 @@ def repertoire_distance(
     if repertoire_distance is None:
         raise ValueError(
             "repertoire_distance must be provided explicitly; callers below "
-            "the formalism boundary thread the metric object as a kwarg."
+            "the formalism boundary thread the measure object as a kwarg."
         )
     func = repertoire_distance
-    if satisfies_stateful_distribution_metric(func):
+    if satisfies_stateful_distribution_measure(func):
         # (p, q, state) — caller threads ``state`` via kwargs. ``direction``
-        # is not part of the stateful metric signature.
+        # is not part of the stateful measure signature.
         try:
             state = kwargs.pop("state")
         except KeyError as exc:
             raise TypeError(
-                f"StatefulDistributionMetric "
+                f"StatefulDistributionMeasure "
                 f"{getattr(func, 'name', repr(func))!r} requires a 'state' "
                 f"keyword argument, but none was provided."
             ) from exc
         distance = func(r1, r2, state)  # type: ignore[call-arg]
-    elif satisfies_distribution_metric(func):
+    elif satisfies_distribution_measure(func):
         # (p, q) — may accept an optional ``direction`` parameter (e.g. EMD)
         # and/or additional keyword arguments. Pass only those that appear
-        # in the metric's signature so unrecognized kwargs do not produce
+        # in the measure's signature so unrecognized kwargs do not produce
         # signature-mismatch TypeErrors masquerading as bugs.
         sig_params = inspect.signature(func).parameters
         call_kwargs: dict[str, Any] = {
@@ -1297,10 +1300,10 @@ def repertoire_distance(
     else:
         observed_params = list(inspect.signature(func).parameters)
         raise TypeError(
-            f"Cannot dispatch repertoire_distance with metric "
+            f"Cannot dispatch repertoire_distance with measure "
             f"{getattr(func, 'name', repr(func))!r}: signature parameters "
-            f"{observed_params} do not match any registered metric Protocol "
-            f"that takes two repertoires (DistributionMetric or "
-            f"StatefulDistributionMetric)."
+            f"{observed_params} do not match any registered measure Protocol "
+            f"that takes two repertoires (DistributionMeasure or "
+            f"StatefulDistributionMeasure)."
         )
     return round(distance, config.numerics.precision)  # type: ignore[arg-type]

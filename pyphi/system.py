@@ -304,13 +304,13 @@ class System:
         direction: Any,
         partition: Any,
         *,
-        mechanism_metric: Any,
+        mechanism_measure: Any,
         **kwargs: Any,
     ) -> Any:
         from pyphi.core import repertoire_algebra as ra
 
         return ra.partitioned_repertoire(
-            self, direction, partition, mechanism_metric=mechanism_metric, **kwargs
+            self, direction, partition, mechanism_measure=mechanism_measure, **kwargs
         )
 
     def expand_repertoire(
@@ -431,33 +431,33 @@ class System:
     def cause_info(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
         from pyphi.conf import config as _config
         from pyphi.core import repertoire_algebra as ra
-        from pyphi.metrics.distribution import resolve_mechanism_metric
+        from pyphi.metrics.distribution import resolve_mechanism_measure
 
         kwargs.setdefault(
             "repertoire_distance",
-            resolve_mechanism_metric(_config.formalism.iit.mechanism_phi_measure),
+            resolve_mechanism_measure(_config.formalism.iit.mechanism_phi_measure),
         )
         return ra.cause_info(self, mechanism, purview, **kwargs)
 
     def effect_info(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
         from pyphi.conf import config as _config
         from pyphi.core import repertoire_algebra as ra
-        from pyphi.metrics.distribution import resolve_mechanism_metric
+        from pyphi.metrics.distribution import resolve_mechanism_measure
 
         kwargs.setdefault(
             "repertoire_distance",
-            resolve_mechanism_metric(_config.formalism.iit.mechanism_phi_measure),
+            resolve_mechanism_measure(_config.formalism.iit.mechanism_phi_measure),
         )
         return ra.effect_info(self, mechanism, purview, **kwargs)
 
     def cause_effect_info(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
         from pyphi.conf import config as _config
         from pyphi.core import repertoire_algebra as ra
-        from pyphi.metrics.distribution import resolve_mechanism_metric
+        from pyphi.metrics.distribution import resolve_mechanism_measure
 
         kwargs.setdefault(
             "repertoire_distance",
-            resolve_mechanism_metric(_config.formalism.iit.mechanism_phi_measure),
+            resolve_mechanism_measure(_config.formalism.iit.mechanism_phi_measure),
         )
         return ra.cause_effect_info(self, mechanism, purview, **kwargs)
 
@@ -467,7 +467,7 @@ class System:
         mechanism: Any,
         purview: Any,
         *,
-        specification_metric: Any,
+        specification_measure: Any,
         **kwargs: Any,
     ) -> Any:
         from pyphi.core import repertoire_algebra as ra
@@ -477,7 +477,7 @@ class System:
             direction,
             mechanism,
             purview,
-            specification_metric=specification_metric,
+            specification_measure=specification_measure,
             **kwargs,
         )
 
@@ -493,24 +493,24 @@ class System:
     def sia(self, **kwargs: Any) -> Any:
         """Return the system irreducibility analysis under the active formalism.
 
-        Resolves the system- and specification-level metrics from config at
+        Resolves the system- and specification-level measures from config at
         the public boundary and threads them to the active formalism
         explicitly, so formalism methods are never called without explicit
-        metrics in normal flow.
+        measures in normal flow.
         """
         from pyphi.conf import config as _config
         from pyphi.formalism import sia as _sia
-        from pyphi.metrics.distribution import resolve_mechanism_metric
-        from pyphi.metrics.distribution import resolve_system_metric
+        from pyphi.metrics.distribution import resolve_mechanism_measure
+        from pyphi.metrics.distribution import resolve_system_measure
 
         if _config.formalism.iit.version != "IIT_3_0":
             kwargs.setdefault(
-                "system_metric",
-                resolve_system_metric(_config.formalism.iit.system_phi_measure),
+                "system_measure",
+                resolve_system_measure(_config.formalism.iit.system_phi_measure),
             )
             kwargs.setdefault(
-                "specification_metric",
-                resolve_mechanism_metric(_config.formalism.iit.specification_measure),
+                "specification_measure",
+                resolve_mechanism_measure(_config.formalism.iit.specification_measure),
             )
         return _sia(self, **kwargs)
 
@@ -518,21 +518,21 @@ class System:
         """Return the IIT 4.0 :class:`CauseEffectStructure` for this system.
 
         Defined under IIT 4.0 only; the IIT 3.0 analogue is :meth:`ces`.
-        Resolves metrics from config at the public boundary; explicit
-        ``system_metric``/``specification_metric`` kwargs override.
+        Resolves measures from config at the public boundary; explicit
+        ``system_measure``/``specification_measure`` kwargs override.
         """
         from pyphi.conf import config as _config
         from pyphi.formalism.iit4 import phi_structure as _phi_structure
-        from pyphi.metrics.distribution import resolve_mechanism_metric
-        from pyphi.metrics.distribution import resolve_system_metric
+        from pyphi.metrics.distribution import resolve_mechanism_measure
+        from pyphi.metrics.distribution import resolve_system_measure
 
         kwargs.setdefault(
-            "system_metric",
-            resolve_system_metric(_config.formalism.iit.system_phi_measure),
+            "system_measure",
+            resolve_system_measure(_config.formalism.iit.system_phi_measure),
         )
         kwargs.setdefault(
-            "specification_metric",
-            resolve_mechanism_metric(_config.formalism.iit.specification_measure),
+            "specification_measure",
+            resolve_mechanism_measure(_config.formalism.iit.specification_measure),
         )
         return _phi_structure(self, **kwargs)
 
@@ -558,23 +558,23 @@ class System:
     ) -> Any:
         """Return the minimum information partition for a mechanism over a purview.
 
-        Resolves mechanism- and specification-level metrics from config at
+        Resolves mechanism- and specification-level measures from config at
         the public boundary so the active formalism's MIP search is never
-        called without explicit metrics in normal flow. Explicit
-        ``mechanism_metric``/``specification_metric`` kwargs override.
+        called without explicit measures in normal flow. Explicit
+        ``mechanism_measure``/``specification_measure`` kwargs override.
         """
         from pyphi.conf import config as _config
         from pyphi.formalism import find_mip as _find_mip
-        from pyphi.metrics.distribution import resolve_mechanism_metric
+        from pyphi.metrics.distribution import resolve_mechanism_measure
 
         if _config.formalism.iit.version != "IIT_3_0":
             kwargs.setdefault(
-                "mechanism_metric",
-                resolve_mechanism_metric(_config.formalism.iit.mechanism_phi_measure),
+                "mechanism_measure",
+                resolve_mechanism_measure(_config.formalism.iit.mechanism_phi_measure),
             )
             kwargs.setdefault(
-                "specification_metric",
-                resolve_mechanism_metric(_config.formalism.iit.specification_measure),
+                "specification_measure",
+                resolve_mechanism_measure(_config.formalism.iit.specification_measure),
             )
         return _find_mip(self, direction, mechanism, purview, **kwargs)
 

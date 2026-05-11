@@ -5,8 +5,8 @@ from pyphi import config
 from pyphi import examples
 from pyphi.formalism import iit3
 from pyphi.formalism.iit4 import phi_structure
-from pyphi.metrics.distribution import resolve_mechanism_metric
-from pyphi.metrics.distribution import resolve_system_metric
+from pyphi.metrics.distribution import resolve_mechanism_measure
+from pyphi.metrics.distribution import resolve_system_measure
 from pyphi.substrate import possible_complexes
 
 from .conftest import IIT_3_CONFIG
@@ -121,19 +121,19 @@ class TestCauseEffectStructureIIT40:
     These tests validate the phi_structure function under IIT 4.0 defaults.
     """
 
-    def _metric_kwargs(self):
+    def _measure_kwargs(self):
         return {
-            "system_metric": resolve_system_metric(
+            "system_measure": resolve_system_measure(
                 config.formalism.iit.system_phi_measure
             ),
-            "specification_metric": resolve_mechanism_metric(
+            "specification_measure": resolve_mechanism_measure(
                 config.formalism.iit.specification_measure
             ),
         }
 
     def test_phi_structure_basic(self, s):
         """Golden test: phi_structure for basic system (IIT 4.0)."""
-        result = phi_structure(s, **self._metric_kwargs())
+        result = phi_structure(s, **self._measure_kwargs())
 
         # Golden values computed with IIT 4.0 defaults
         assert result.big_phi == pytest.approx(1.0, rel=1e-6)
@@ -151,7 +151,7 @@ class TestCauseEffectStructureIIT40:
         state = (1, 0, 0)
         system = System(substrate, state)
 
-        result = phi_structure(system, **self._metric_kwargs())
+        result = phi_structure(system, **self._measure_kwargs())
 
         assert result.big_phi == pytest.approx(1.0, rel=1e-6)
         assert len(result.distinctions) == 2

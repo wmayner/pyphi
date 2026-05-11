@@ -15,7 +15,7 @@ from pyphi import Substrate
 from pyphi import System
 from pyphi.formalism.iit4.formalism import IIT4_2023Formalism
 from pyphi.formalism.iit4.formalism import IIT4_2026Formalism
-from pyphi.metrics.distribution import composite_metrics
+from pyphi.metrics.distribution import composite_measures
 
 
 @pytest.fixture
@@ -43,18 +43,18 @@ def test_2026_explicit_gid_skips_cap(noisy_copy_system):
     """Passing GID explicitly to 2026 ``evaluate_system`` -> no cap applied.
 
     The 2026 formalism's ``ii(s)`` cap (Eq. 23) is keyed off the resolved
-    ``system_metric.name``. When the caller passes
+    ``system_measure.name``. When the caller passes
     ``GENERALIZED_INTRINSIC_DIFFERENCE`` explicitly, the cap branch
     doesn't fire, so ``phi = GID(MIP) ~ 0.868``.
     """
     formalism = IIT4_2026Formalism()
-    gid_metric = composite_metrics["GENERALIZED_INTRINSIC_DIFFERENCE"]
-    spec_metric = composite_metrics["INTRINSIC_SPECIFICATION"]
+    gid_metric = composite_measures["GENERALIZED_INTRINSIC_DIFFERENCE"]
+    spec_metric = composite_measures["INTRINSIC_SPECIFICATION"]
 
     result = formalism.evaluate_system(
         noisy_copy_system,
-        system_metric=gid_metric,
-        specification_metric=spec_metric,
+        system_measure=gid_metric,
+        specification_measure=spec_metric,
     )
 
     # Without cap: phi = GID(MIP) ~ 0.868
@@ -62,7 +62,7 @@ def test_2026_explicit_gid_skips_cap(noisy_copy_system):
 
 
 def test_2026_omitted_metric_uses_config(noisy_copy_system):
-    """Omitting ``system_metric`` -> falls back to config -> cap fires.
+    """Omitting ``system_measure`` -> falls back to config -> cap fires.
 
     With ``config.formalism.iit.system_phi_measure="INTRINSIC_INFORMATION"``
     the cap binds: phi = min(GID(MIP), ii_s) = ii_s ~ 0.644.
@@ -70,7 +70,7 @@ def test_2026_omitted_metric_uses_config(noisy_copy_system):
     from pyphi import config
 
     formalism = IIT4_2026Formalism()
-    spec_metric = composite_metrics["INTRINSIC_SPECIFICATION"]
+    spec_metric = composite_measures["INTRINSIC_SPECIFICATION"]
 
     with config.override(
         system_phi_measure="INTRINSIC_INFORMATION",
@@ -78,7 +78,7 @@ def test_2026_omitted_metric_uses_config(noisy_copy_system):
     ):
         result = formalism.evaluate_system(
             noisy_copy_system,
-            specification_metric=spec_metric,
+            specification_measure=spec_metric,
         )
 
     # With cap: phi = min(GID(MIP), ii_s) = ii_s ~ 0.644
@@ -92,11 +92,11 @@ def test_2023_omitted_metric_uses_default(noisy_copy_system):
     the 2023 formalism applies no cap: phi = GID(MIP) ~ 0.868.
     """
     formalism = IIT4_2023Formalism()
-    spec_metric = composite_metrics["INTRINSIC_SPECIFICATION"]
+    spec_metric = composite_measures["INTRINSIC_SPECIFICATION"]
 
     result = formalism.evaluate_system(
         noisy_copy_system,
-        specification_metric=spec_metric,
+        specification_measure=spec_metric,
     )
 
     assert float(result.phi) == pytest.approx(0.868, abs=0.001)

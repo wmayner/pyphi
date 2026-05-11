@@ -1,7 +1,7 @@
 """Phi formalisms — strategies for computing integrated information.
 
 A *formalism* is the top-level strategy that bundles a partition scheme, a
-compatible distance metric, and the algorithms that combine them into
+compatible distance measure, and the algorithms that combine them into
 mechanism-level RIAs, system-level SIAs, and Φ-structures. The
 :class:`pyphi.formalism.base.PhiFormalism` Protocol declares the contract;
 concrete implementations live in :mod:`pyphi.formalism.iit3` and
@@ -14,9 +14,9 @@ from .base import ApproximateFormalism
 from .base import ErrorInfo
 from .base import ExactFormalism
 from .base import FormalismRegistry
-from .base import MetricNotCompatibleError
+from .base import MeasureNotCompatibleError
 from .base import PhiFormalism
-from .base import check_metric_compatible
+from .base import check_measure_compatible
 from .iit3.formalism import IIT3Formalism
 from .iit4.formalism import IIT4_2023Formalism
 from .iit4.formalism import IIT4_2026Formalism
@@ -50,11 +50,11 @@ __all__ = [
     "IIT3Formalism",
     "IIT4_2023Formalism",
     "IIT4_2026Formalism",
-    "MetricNotCompatibleError",
+    "MeasureNotCompatibleError",
     "PhiFormalism",
     "all_distinctions",
     "cause_mip",
-    "check_metric_compatible",
+    "check_measure_compatible",
     "distinction",
     "effect_mip",
     "evaluate_partition",

@@ -3,9 +3,9 @@
 
 Two variants are registered:
 
-- ``IIT_4_0_2023``: Albantakis et al. 2023. Default metric
+- ``IIT_4_0_2023``: Albantakis et al. 2023. Default measure
   ``GENERALIZED_INTRINSIC_DIFFERENCE``.
-- ``IIT_4_0_2026``: Mayner, Marshall, Tononi 2026. Default metric
+- ``IIT_4_0_2026``: Mayner, Marshall, Tononi 2026. Default measure
   ``INTRINSIC_INFORMATION`` with the ``ii(s) = min(i_diff, i_spec)`` cap.
 
 Both delegate to the algorithms in :mod:`pyphi.formalism.iit4` (the
@@ -24,11 +24,11 @@ from typing import cast
 
 from pyphi.conf import config
 from pyphi.conf.formalism import FormalismConfig
-from pyphi.formalism.base import check_metric_compatible
-from pyphi.metrics.protocols import CompositeMetric
-from pyphi.metrics.protocols import DistributionMetric
-from pyphi.metrics.protocols import StateAwareMetric
-from pyphi.metrics.protocols import StatefulDistributionMetric
+from pyphi.formalism.base import check_measure_compatible
+from pyphi.metrics.protocols import CompositeMeasure
+from pyphi.metrics.protocols import DistributionMeasure
+from pyphi.metrics.protocols import StateAwareMeasure
+from pyphi.metrics.protocols import StatefulDistributionMeasure
 from pyphi.parallel import MapReduce
 
 from . import (
@@ -50,7 +50,7 @@ def _evaluate_partition_iit4(
     purview: Any,
     partition: Any,
     *,
-    mechanism_metric: Any,
+    mechanism_measure: Any,
     repertoire: Any = None,
     partitioned_repertoire: Any = None,
     **kwargs: Any,
@@ -58,10 +58,10 @@ def _evaluate_partition_iit4(
     """IIT 4.0 mechanism-partition integration.
 
     State-aware: takes a forward repertoire, a partitioned forward repertoire,
-    and a scalar selectivity, then calls a GID-style metric.
+    and a scalar selectivity, then calls a GID-style measure.
 
-    ``mechanism_metric`` is a Protocol-typed mechanism-level metric callable
-    (StateAwareMetric, StatefulDistributionMetric, or CompositeMetric)
+    ``mechanism_measure`` is a Protocol-typed mechanism-level measure callable
+    (StateAwareMeasure, StatefulDistributionMeasure, or CompositeMeasure)
     resolved at the formalism-class boundary; compatibility is the
     caller's responsibility (``IIT4_2023Formalism`` and
     ``IIT4_2026Formalism`` validate before calling this helper).
@@ -81,13 +81,13 @@ def _evaluate_partition_iit4(
         partitioned_pr = system.partitioned_repertoire(
             direction,
             partition,
-            mechanism_metric=mechanism_metric,
+            mechanism_measure=mechanism_measure,
             state=purview_state,
         )
     else:
         partitioned_pr = partitioned_repertoire
 
-    phi: Any = mechanism_metric(  # pyright: ignore[reportUnknownVariableType]
+    phi: Any = mechanism_measure(  # pyright: ignore[reportUnknownVariableType]
         forward_repertoire=forward_pr,
         partitioned_forward_repertoire=partitioned_pr,
         selectivity_repertoire=selectivity,
@@ -109,95 +109,101 @@ def _evaluate_partition_iit4(
     )
 
 
-def _resolve_system_metrics(
+def _resolve_system_measures(
     formalism: Any,
-    system_metric: CompositeMetric | None,
-    specification_metric: CompositeMetric
-    | StateAwareMetric
-    | StatefulDistributionMetric
-    | DistributionMetric
+    system_measure: CompositeMeasure | None,
+    specification_measure: CompositeMeasure
+    | StateAwareMeasure
+    | StatefulDistributionMeasure
+    | DistributionMeasure
     | None,
 ) -> tuple[
-    CompositeMetric,
-    CompositeMetric | StateAwareMetric | StatefulDistributionMetric | DistributionMetric,
+    CompositeMeasure,
+    CompositeMeasure
+    | StateAwareMeasure
+    | StatefulDistributionMeasure
+    | DistributionMeasure,
 ]:
-    """Resolve system-level metric kwargs from config when omitted; check compatibility.
+    """Resolve system-level measure kwargs from config when omitted; check compatibility.
 
     Shared by ``evaluate_system`` and ``build_phi_structure`` across both
-    IIT4 variants. When ``system_metric`` is provided, only its name is
-    checked against the formalism's ``compatible_metrics``; when omitted,
+    IIT4 variants. When ``system_measure`` is provided, only its name is
+    checked against the formalism's ``compatible_measures``; when omitted,
     the configured name is checked and then resolved.
     """
-    from pyphi.metrics.distribution import resolve_mechanism_metric
-    from pyphi.metrics.distribution import resolve_system_metric
+    from pyphi.metrics.distribution import resolve_mechanism_measure
+    from pyphi.metrics.distribution import resolve_system_measure
 
-    if system_metric is None:
-        check_metric_compatible(formalism, config.formalism.iit.system_phi_measure)
-        system_metric = resolve_system_metric(config.formalism.iit.system_phi_measure)
+    if system_measure is None:
+        check_measure_compatible(formalism, config.formalism.iit.system_phi_measure)
+        system_measure = resolve_system_measure(config.formalism.iit.system_phi_measure)
     else:
-        check_metric_compatible(formalism, system_metric.name)
-    if specification_metric is None:
-        specification_metric = resolve_mechanism_metric(
+        check_measure_compatible(formalism, system_measure.name)
+    if specification_measure is None:
+        specification_measure = resolve_mechanism_measure(
             config.formalism.iit.specification_measure
         )
-    return system_metric, specification_metric
+    return system_measure, specification_measure
 
 
-def _resolve_mechanism_metric(
+def _resolve_mechanism_measure(
     formalism: Any,
-    mechanism_metric: CompositeMetric
-    | StateAwareMetric
-    | StatefulDistributionMetric
+    mechanism_measure: CompositeMeasure
+    | StateAwareMeasure
+    | StatefulDistributionMeasure
     | None,
-) -> CompositeMetric | StateAwareMetric | StatefulDistributionMetric:
-    """Resolve the IIT4 mechanism-level metric kwarg from config when omitted.
+) -> CompositeMeasure | StateAwareMeasure | StatefulDistributionMeasure:
+    """Resolve the IIT4 mechanism-level measure kwarg from config when omitted.
 
-    ``check_metric_compatible`` guarantees the configured name is in this
-    formalism's ``compatible_metrics`` (GID / INTRINSIC_INFORMATION),
-    neither of which is a ``DistributionMetric`` — the ``cast`` narrows
+    ``check_measure_compatible`` guarantees the configured name is in this
+    formalism's ``compatible_measures`` (GID / INTRINSIC_INFORMATION),
+    neither of which is a ``DistributionMeasure`` — the ``cast`` narrows
     the broader resolver return type to match the mechanism-method kwarg
     union accepted by IIT 4.0.
     """
-    from pyphi.metrics.distribution import resolve_mechanism_metric
+    from pyphi.metrics.distribution import resolve_mechanism_measure
 
-    if mechanism_metric is None:
-        check_metric_compatible(formalism, config.formalism.iit.mechanism_phi_measure)
-        mechanism_metric = cast(
-            "CompositeMetric | StateAwareMetric | StatefulDistributionMetric",
-            resolve_mechanism_metric(config.formalism.iit.mechanism_phi_measure),
+    if mechanism_measure is None:
+        check_measure_compatible(formalism, config.formalism.iit.mechanism_phi_measure)
+        mechanism_measure = cast(
+            "CompositeMeasure | StateAwareMeasure | StatefulDistributionMeasure",
+            resolve_mechanism_measure(config.formalism.iit.mechanism_phi_measure),
         )
-    return mechanism_metric
+    return mechanism_measure
 
 
-def _resolve_mip_metrics(
+def _resolve_mip_measures(
     formalism: Any,
-    mechanism_metric: CompositeMetric
-    | StateAwareMetric
-    | StatefulDistributionMetric
+    mechanism_measure: CompositeMeasure
+    | StateAwareMeasure
+    | StatefulDistributionMeasure
     | None,
-    specification_metric: CompositeMetric
-    | StateAwareMetric
-    | StatefulDistributionMetric
-    | DistributionMetric
+    specification_measure: CompositeMeasure
+    | StateAwareMeasure
+    | StatefulDistributionMeasure
+    | DistributionMeasure
     | None,
 ) -> tuple[
-    CompositeMetric | StateAwareMetric | StatefulDistributionMetric,
-    CompositeMetric | StateAwareMetric | StatefulDistributionMetric | DistributionMetric,
+    CompositeMeasure | StateAwareMeasure | StatefulDistributionMeasure,
+    CompositeMeasure
+    | StateAwareMeasure
+    | StatefulDistributionMeasure
+    | DistributionMeasure,
 ]:
-    """Resolve mechanism-MIP metric kwargs from config when omitted.
+    """Resolve mechanism-MIP measure kwargs from config when omitted.
 
     Used by ``_find_mechanism_mip`` on both IIT4 variants:
-    ``mechanism_metric`` drives per-partition phi; ``specification_metric``
+    ``mechanism_measure`` drives per-partition phi; ``specification_measure``
     drives the intrinsic-information search over candidate purview states.
     """
-    from pyphi.metrics.distribution import resolve_mechanism_metric
+    from pyphi.metrics.distribution import resolve_mechanism_measure
 
-    mechanism_metric = _resolve_mechanism_metric(formalism, mechanism_metric)
-    if specification_metric is None:
-        specification_metric = resolve_mechanism_metric(
+    mechanism_measure = _resolve_mechanism_measure(formalism, mechanism_measure)
+    if specification_measure is None:
+        specification_measure = resolve_mechanism_measure(
             config.formalism.iit.specification_measure
         )
-    return mechanism_metric, specification_metric
+    return mechanism_measure, specification_measure
 
 
 def _find_mip_iit4(
@@ -206,8 +212,8 @@ def _find_mip_iit4(
     mechanism: Any,
     purview: Any,
     *,
-    mechanism_metric: Any,
-    specification_metric: Any,
+    mechanism_measure: Any,
+    specification_measure: Any,
     repertoire: Any,
     partitions: Any,
     state: Any,
@@ -217,10 +223,10 @@ def _find_mip_iit4(
     """IIT 4.0 mechanism MIP: maximize over candidate specified states,
     minimize over partitions per state.
 
-    ``mechanism_metric`` and ``specification_metric`` are Protocol-typed
-    metric callables provided by the active formalism.
-    ``specification_metric`` drives the intrinsic-information search
-    over candidate purview states; ``mechanism_metric`` drives the
+    ``mechanism_measure`` and ``specification_measure`` are Protocol-typed
+    measure callables provided by the active formalism.
+    ``specification_measure`` drives the intrinsic-information search
+    over candidate purview states; ``mechanism_measure`` drives the
     per-partition phi.
     """
     from pyphi import resolve_ties
@@ -230,7 +236,7 @@ def _find_mip_iit4(
             direction,
             mechanism,
             purview,
-            specification_metric=specification_metric,
+            specification_measure=specification_measure,
         ).ties
     else:
         specified_states = [state]
@@ -251,7 +257,7 @@ def _find_mip_iit4(
             "repertoire": repertoire,
             "partitions": partitions,
             "parallel_kwargs": parallel_kwargs,
-            "mechanism_metric": mechanism_metric,
+            "mechanism_measure": mechanism_measure,
         },
         desc="Finding MIP for maximum intrinsic information states",
         **parallel_kwargs,
@@ -269,7 +275,7 @@ class IIT4_2023Formalism:
 
     name: ClassVar[str] = "IIT_4_0_2023"
     exact: ClassVar[Literal[True]] = True
-    compatible_metrics: ClassVar[frozenset[str]] = frozenset(
+    compatible_measures: ClassVar[frozenset[str]] = frozenset(
         {"GENERALIZED_INTRINSIC_DIFFERENCE", "INTRINSIC_INFORMATION"}
     )
     partition_scheme: ClassVar[str | None] = "ALL"
@@ -298,14 +304,14 @@ class IIT4_2023Formalism:
         mechanism: Any,
         purview: Any,
         *,
-        mechanism_metric: CompositeMetric
-        | StateAwareMetric
-        | StatefulDistributionMetric
+        mechanism_measure: CompositeMeasure
+        | StateAwareMeasure
+        | StatefulDistributionMeasure
         | None = None,
-        specification_metric: CompositeMetric
-        | StateAwareMetric
-        | StatefulDistributionMetric
-        | DistributionMetric
+        specification_measure: CompositeMeasure
+        | StateAwareMeasure
+        | StatefulDistributionMeasure
+        | DistributionMeasure
         | None = None,
         **kwargs: Any,
     ) -> Any:
@@ -313,21 +319,21 @@ class IIT4_2023Formalism:
         after its short-circuit checks; contains the IIT 4.0 logic
         (maximize over specified states, minimize over partitions).
 
-        Explicit ``mechanism_metric``/``specification_metric`` override the
+        Explicit ``mechanism_measure``/``specification_measure`` override the
         config-driven fallback; when omitted, they resolve from
         ``config.formalism.iit.mechanism_phi_measure`` /
         ``specification_measure`` respectively.
         """
-        mechanism_metric, specification_metric = _resolve_mip_metrics(
-            self, mechanism_metric, specification_metric
+        mechanism_measure, specification_measure = _resolve_mip_measures(
+            self, mechanism_measure, specification_measure
         )
         return _find_mip_iit4(
             system,
             direction,
             mechanism,
             purview,
-            mechanism_metric=mechanism_metric,
-            specification_metric=specification_metric,
+            mechanism_measure=mechanism_measure,
+            specification_measure=specification_measure,
             **kwargs,
         )
 
@@ -339,25 +345,25 @@ class IIT4_2023Formalism:
         purview: Any,
         partition: Any,
         *,
-        mechanism_metric: CompositeMetric
-        | StateAwareMetric
-        | StatefulDistributionMetric
+        mechanism_measure: CompositeMeasure
+        | StateAwareMeasure
+        | StatefulDistributionMeasure
         | None = None,
         **kwargs: Any,
     ) -> Any:
         """IIT 4.0 mechanism-partition integration: forward repertoires +
-        scalar selectivity feed a GID-style metric.
+        scalar selectivity feed a GID-style measure.
 
-        Explicit ``mechanism_metric`` overrides the config-driven fallback.
+        Explicit ``mechanism_measure`` overrides the config-driven fallback.
         """
-        mechanism_metric = _resolve_mechanism_metric(self, mechanism_metric)
+        mechanism_measure = _resolve_mechanism_measure(self, mechanism_measure)
         return _evaluate_partition_iit4(
             system,
             direction,
             mechanism,
             purview,
             partition,
-            mechanism_metric=mechanism_metric,
+            mechanism_measure=mechanism_measure,
             **kwargs,
         )
 
@@ -365,28 +371,28 @@ class IIT4_2023Formalism:
         self,
         system: Any,
         *,
-        system_metric: CompositeMetric | None = None,
-        specification_metric: CompositeMetric
-        | StateAwareMetric
-        | StatefulDistributionMetric
-        | DistributionMetric
+        system_measure: CompositeMeasure | None = None,
+        specification_measure: CompositeMeasure
+        | StateAwareMeasure
+        | StatefulDistributionMeasure
+        | DistributionMeasure
         | None = None,
         **kwargs: Any,
     ) -> Any:
         """Delegate to :func:`pyphi.formalism.iit4.sia`.
 
-        Explicit ``system_metric``/``specification_metric`` override the
+        Explicit ``system_measure``/``specification_measure`` override the
         config-driven fallback. When omitted, they resolve from
         ``config.formalism.iit.system_phi_measure`` /
         ``specification_measure`` — user config is authoritative.
         """
-        system_metric, specification_metric = _resolve_system_metrics(
-            self, system_metric, specification_metric
+        system_measure, specification_measure = _resolve_system_measures(
+            self, system_measure, specification_measure
         )
         return _sia(
             system,
-            system_metric=system_metric,
-            specification_metric=specification_metric,
+            system_measure=system_measure,
+            specification_measure=specification_measure,
             **kwargs,
         )
 
@@ -394,26 +400,26 @@ class IIT4_2023Formalism:
         self,
         system: Any,
         *,
-        system_metric: CompositeMetric | None = None,
-        specification_metric: CompositeMetric
-        | StateAwareMetric
-        | StatefulDistributionMetric
-        | DistributionMetric
+        system_measure: CompositeMeasure | None = None,
+        specification_measure: CompositeMeasure
+        | StateAwareMeasure
+        | StatefulDistributionMeasure
+        | DistributionMeasure
         | None = None,
         **kwargs: Any,
     ) -> Any:
         """Delegate to :func:`pyphi.formalism.iit4.phi_structure`.
 
-        Explicit ``system_metric``/``specification_metric`` override the
+        Explicit ``system_measure``/``specification_measure`` override the
         config-driven fallback.
         """
-        system_metric, specification_metric = _resolve_system_metrics(
-            self, system_metric, specification_metric
+        system_measure, specification_measure = _resolve_system_measures(
+            self, system_measure, specification_measure
         )
         return _phi_structure(
             system,
-            system_metric=system_metric,
-            specification_metric=specification_metric,
+            system_measure=system_measure,
+            specification_measure=specification_measure,
             **kwargs,
         )
 
@@ -425,12 +431,12 @@ class IIT4_2026Formalism:
     Mechanism phi uses GID per Eqs. 19-20 (same as IIT 4.0 2023). System
     phi uses ``INTRINSIC_INFORMATION`` with the ``ii(s) = min(i_diff,
     i_spec)`` cap from Eq. 23 — that's the 2026-specific divergence.
-    Scope-explicit overrides ensure each level uses the right metric.
+    Scope-explicit overrides ensure each level uses the right measure.
     """
 
     name: ClassVar[str] = "IIT_4_0_2026"
     exact: ClassVar[Literal[True]] = True
-    compatible_metrics: ClassVar[frozenset[str]] = frozenset(
+    compatible_measures: ClassVar[frozenset[str]] = frozenset(
         {"INTRINSIC_INFORMATION", "GENERALIZED_INTRINSIC_DIFFERENCE"}
     )
     partition_scheme: ClassVar[str | None] = "ALL"
@@ -456,32 +462,32 @@ class IIT4_2026Formalism:
         mechanism: Any,
         purview: Any,
         *,
-        mechanism_metric: CompositeMetric
-        | StateAwareMetric
-        | StatefulDistributionMetric
+        mechanism_measure: CompositeMeasure
+        | StateAwareMeasure
+        | StatefulDistributionMeasure
         | None = None,
-        specification_metric: CompositeMetric
-        | StateAwareMetric
-        | StatefulDistributionMetric
-        | DistributionMetric
+        specification_measure: CompositeMeasure
+        | StateAwareMeasure
+        | StatefulDistributionMeasure
+        | DistributionMeasure
         | None = None,
         **kwargs: Any,
     ) -> Any:
         """Mechanism-level MIP search.
 
-        Explicit ``mechanism_metric``/``specification_metric`` override the
+        Explicit ``mechanism_measure``/``specification_measure`` override the
         config-driven fallback.
         """
-        mechanism_metric, specification_metric = _resolve_mip_metrics(
-            self, mechanism_metric, specification_metric
+        mechanism_measure, specification_measure = _resolve_mip_measures(
+            self, mechanism_measure, specification_measure
         )
         return _find_mip_iit4(
             system,
             direction,
             mechanism,
             purview,
-            mechanism_metric=mechanism_metric,
-            specification_metric=specification_metric,
+            mechanism_measure=mechanism_measure,
+            specification_measure=specification_measure,
             **kwargs,
         )
 
@@ -493,25 +499,25 @@ class IIT4_2026Formalism:
         purview: Any,
         partition: Any,
         *,
-        mechanism_metric: CompositeMetric
-        | StateAwareMetric
-        | StatefulDistributionMetric
+        mechanism_measure: CompositeMeasure
+        | StateAwareMeasure
+        | StatefulDistributionMeasure
         | None = None,
         **kwargs: Any,
     ) -> Any:
         """Same shape as IIT 4.0 (2023) mechanism-partition integration; the
         2026 variant differs only at the system level (the ``ii(s)`` cap).
 
-        Explicit ``mechanism_metric`` overrides the config-driven fallback.
+        Explicit ``mechanism_measure`` overrides the config-driven fallback.
         """
-        mechanism_metric = _resolve_mechanism_metric(self, mechanism_metric)
+        mechanism_measure = _resolve_mechanism_measure(self, mechanism_measure)
         return _evaluate_partition_iit4(
             system,
             direction,
             mechanism,
             purview,
             partition,
-            mechanism_metric=mechanism_metric,
+            mechanism_measure=mechanism_measure,
             **kwargs,
         )
 
@@ -519,29 +525,29 @@ class IIT4_2026Formalism:
         self,
         system: Any,
         *,
-        system_metric: CompositeMetric | None = None,
-        specification_metric: CompositeMetric
-        | StateAwareMetric
-        | StatefulDistributionMetric
-        | DistributionMetric
+        system_measure: CompositeMeasure | None = None,
+        specification_measure: CompositeMeasure
+        | StateAwareMeasure
+        | StatefulDistributionMeasure
+        | DistributionMeasure
         | None = None,
         **kwargs: Any,
     ) -> Any:
         """Delegate to :func:`pyphi.formalism.iit4.sia`.
 
-        Explicit ``system_metric``/``specification_metric`` override the
-        config-driven fallback. When omitted, ``system_metric`` resolves
+        Explicit ``system_measure``/``specification_measure`` override the
+        config-driven fallback. When omitted, ``system_measure`` resolves
         from ``config.formalism.iit.system_phi_measure`` (user config is
         authoritative). The ``ii(s)`` cap (Eq. 23) fires when the
-        resolved metric's ``name`` is ``"INTRINSIC_INFORMATION"``.
+        resolved measure's ``name`` is ``"INTRINSIC_INFORMATION"``.
         """
-        system_metric, specification_metric = _resolve_system_metrics(
-            self, system_metric, specification_metric
+        system_measure, specification_measure = _resolve_system_measures(
+            self, system_measure, specification_measure
         )
         return _sia(
             system,
-            system_metric=system_metric,
-            specification_metric=specification_metric,
+            system_measure=system_measure,
+            specification_measure=specification_measure,
             **kwargs,
         )
 
@@ -549,25 +555,25 @@ class IIT4_2026Formalism:
         self,
         system: Any,
         *,
-        system_metric: CompositeMetric | None = None,
-        specification_metric: CompositeMetric
-        | StateAwareMetric
-        | StatefulDistributionMetric
-        | DistributionMetric
+        system_measure: CompositeMeasure | None = None,
+        specification_measure: CompositeMeasure
+        | StateAwareMeasure
+        | StatefulDistributionMeasure
+        | DistributionMeasure
         | None = None,
         **kwargs: Any,
     ) -> Any:
         """Delegate to :func:`pyphi.formalism.iit4.phi_structure`.
 
-        Explicit ``system_metric``/``specification_metric`` override the
+        Explicit ``system_measure``/``specification_measure`` override the
         config-driven fallback.
         """
-        system_metric, specification_metric = _resolve_system_metrics(
-            self, system_metric, specification_metric
+        system_measure, specification_measure = _resolve_system_measures(
+            self, system_measure, specification_measure
         )
         return _phi_structure(
             system,
-            system_metric=system_metric,
-            specification_metric=specification_metric,
+            system_measure=system_measure,
+            specification_measure=specification_measure,
             **kwargs,
         )

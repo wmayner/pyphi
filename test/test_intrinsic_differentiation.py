@@ -1,7 +1,7 @@
 from pyphi import Direction
 from pyphi import config
 from pyphi.examples import EXAMPLES
-from pyphi.metrics.distribution import resolve_mechanism_metric
+from pyphi.metrics.distribution import resolve_mechanism_measure
 
 
 def test_intrinsic_information():
@@ -12,7 +12,7 @@ def test_intrinsic_information():
             Direction.CAUSE,
             mechanism,
             mechanism,
-            specification_metric=resolve_mechanism_metric(
+            specification_measure=resolve_mechanism_measure(
                 config.formalism.iit.specification_measure
             ),
         )

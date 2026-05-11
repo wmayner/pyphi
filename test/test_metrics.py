@@ -3,10 +3,10 @@ from pyphi import metrics
 
 def test_default_distribution_measures():
     all_metric_names = (
-        set(metrics.distribution.distribution_metrics.all())
-        | set(metrics.distribution.state_aware_metrics.all())
-        | set(metrics.distribution.composite_metrics.all())
-        | set(metrics.distribution.stateful_distribution_metrics.all())
+        set(metrics.distribution.distribution_measures.all())
+        | set(metrics.distribution.state_aware_measures.all())
+        | set(metrics.distribution.composite_measures.all())
+        | set(metrics.distribution.stateful_distribution_measures.all())
     )
     assert all_metric_names == {
         "EMD",
@@ -33,17 +33,17 @@ def test_default_asymmetric_distribution_measures():
     asymmetric_names = (
         {
             name
-            for name, fn in metrics.distribution.distribution_metrics.items()
+            for name, fn in metrics.distribution.distribution_measures.items()
             if getattr(fn, "asymmetric", False)
         }
         | {
             name
-            for name, fn in metrics.distribution.stateful_distribution_metrics.items()
+            for name, fn in metrics.distribution.stateful_distribution_measures.items()
             if getattr(fn, "asymmetric", False)
         }
         | {
             name
-            for name, fn in metrics.distribution.composite_metrics.items()
+            for name, fn in metrics.distribution.composite_measures.items()
             if getattr(fn, "asymmetric", False)
         }
     )

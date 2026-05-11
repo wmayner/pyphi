@@ -2,7 +2,7 @@
 """IIT 3.0 (Oizumi et al. 2014) algorithms.
 
 Distribution-distance-based phi computation. Partition scheme: bipartitions
-(``BI``). Compatible metrics: ``EMD``, ``L1``, ``KLD``, ``ENTROPY_DIFFERENCE``,
+(``BI``). Compatible measures: ``EMD``, ``L1``, ``KLD``, ``ENTROPY_DIFFERENCE``,
 ``PSQ2``, ``MP2Q``, ``ABSOLUTE_INTRINSIC_DIFFERENCE``,
 ``INTRINSIC_DIFFERENCE``.
 

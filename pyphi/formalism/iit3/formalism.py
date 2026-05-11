@@ -15,7 +15,7 @@ from typing import Literal
 
 from pyphi.conf import config
 from pyphi.conf.formalism import FormalismConfig
-from pyphi.formalism.base import check_metric_compatible
+from pyphi.formalism.base import check_measure_compatible
 
 
 def _default_formalism_config() -> FormalismConfig:
@@ -30,7 +30,7 @@ class IIT3Formalism:
 
     name: ClassVar[str] = "IIT_3_0"
     exact: ClassVar[Literal[True]] = True
-    compatible_metrics: ClassVar[frozenset[str]] = frozenset(
+    compatible_measures: ClassVar[frozenset[str]] = frozenset(
         {
             "EMD",
             "L1",
@@ -82,7 +82,7 @@ class IIT3Formalism:
             _find_mip_single_state,  # pyright: ignore[reportPrivateUsage]
         )
 
-        check_metric_compatible(self, config.formalism.iit.mechanism_phi_measure)
+        check_measure_compatible(self, config.formalism.iit.mechanism_phi_measure)
         if state is not None:
             raise ValueError("passing `state` is not supported with IIT 3.0")
         return _find_mip_single_state(  # pyright: ignore[reportPrivateUsage]
@@ -113,25 +113,25 @@ class IIT3Formalism:
         """IIT 3.0 mechanism-partition integration: distribution-distance
         between unpartitioned and partitioned repertoires.
 
-        ``repertoire_distance`` is a Protocol-typed metric callable
-        (resolved here from config if not provided); ``mechanism_metric``
+        ``repertoire_distance`` is a Protocol-typed measure callable
+        (resolved here from config if not provided); ``mechanism_measure``
         is threaded through to the partitioned-repertoire helper.
         """
         from pyphi.metrics.distribution import (
             repertoire_distance as _repertoire_distance,  # pyright: ignore[reportUnknownVariableType]
         )
-        from pyphi.metrics.distribution import resolve_mechanism_metric
+        from pyphi.metrics.distribution import resolve_mechanism_measure
         from pyphi.models import RepertoireIrreducibilityAnalysis
         from pyphi.utils import state_of
 
-        check_metric_compatible(self, config.formalism.iit.mechanism_phi_measure)
+        check_measure_compatible(self, config.formalism.iit.mechanism_phi_measure)
         if repertoire_distance is None:
-            repertoire_distance = resolve_mechanism_metric(
+            repertoire_distance = resolve_mechanism_measure(
                 config.formalism.iit.mechanism_phi_measure
             )
         # Internal helpers below the formalism boundary require an
-        # explicit ``mechanism_metric``; resolve it here.
-        mechanism_metric = kwargs.pop("mechanism_metric", repertoire_distance)
+        # explicit ``mechanism_measure``; resolve it here.
+        mechanism_measure = kwargs.pop("mechanism_measure", repertoire_distance)
         if repertoire is None:
             repertoire = system.repertoire(direction, mechanism, purview)
         if partitioned_repertoire is None:
@@ -139,7 +139,7 @@ class IIT3Formalism:
             partitioned_repertoire = system.partitioned_repertoire(
                 direction,
                 partition,
-                mechanism_metric=mechanism_metric,
+                mechanism_measure=mechanism_measure,
                 **partitioned_repertoire_kwargs,
             )
         phi = _repertoire_distance(
@@ -167,16 +167,16 @@ class IIT3Formalism:
     def evaluate_system(self, system: Any, **kwargs: Any) -> Any:
         """Delegate to the IIT 3.0 ``sia`` in :mod:`pyphi.formalism.iit3`.
 
-        IIT 3.0 has no specified-state phase, so metric kwargs are not
-        threaded through this method. The system-level metric is read
+        IIT 3.0 has no specified-state phase, so measure kwargs are not
+        threaded through this method. The system-level measure is read
         from ``config.formalism.iit.mechanism_phi_measure`` inside the
         underlying ``sia`` implementation; compatibility is checked
-        against the active formalism's ``compatible_metrics`` here.
-        Callers attempting to pass ``system_metric`` /
-        ``specification_metric`` receive a :class:`TypeError` rather
+        against the active formalism's ``compatible_measures`` here.
+        Callers attempting to pass ``system_measure`` /
+        ``specification_measure`` receive a :class:`TypeError` rather
         than a silent no-op.
         """
-        check_metric_compatible(self, config.formalism.iit.mechanism_phi_measure)
+        check_measure_compatible(self, config.formalism.iit.mechanism_phi_measure)
         from pyphi.formalism.iit3 import sia as _sia
 
         return _sia(system, **kwargs)

@@ -15,8 +15,8 @@ from pyphi.formalism import ApproximateFormalism
 from pyphi.formalism import ExactFormalism
 from pyphi.formalism import FormalismRegistry
 from pyphi.formalism import PhiFormalism
-from pyphi.metrics.distribution import resolve_mechanism_metric
-from pyphi.metrics.distribution import resolve_system_metric
+from pyphi.metrics.distribution import resolve_mechanism_measure
+from pyphi.metrics.distribution import resolve_system_measure
 
 
 class _DummyFormalism:
@@ -27,7 +27,7 @@ class _DummyFormalism:
     """
 
     name = "DUMMY"
-    compatible_metrics = frozenset({"EMD"})
+    compatible_measures = frozenset({"EMD"})
     partition_scheme = "BI"
 
     @property
@@ -53,7 +53,7 @@ class _NotCallableEnough:
     """Missing ``evaluate_system``; should not satisfy the Protocol."""
 
     name = "BROKEN"
-    compatible_metrics = frozenset({"EMD"})
+    compatible_measures = frozenset({"EMD"})
     partition_scheme = "BI"
 
     def evaluate_mechanism(self, *args, **kwargs):  # noqa: ARG002
@@ -111,12 +111,12 @@ def test_concrete_formalisms_satisfy_protocol():
         )
         assert formalism.name == name
         # Structural sanity: every formalism declares at least one
-        # compatible metric (otherwise it could never compute anything).
-        assert isinstance(formalism.compatible_metrics, frozenset)
-        assert formalism.compatible_metrics, (
-            f"{name} declares an empty compatible_metrics set"
+        # compatible measure (otherwise it could never compute anything).
+        assert isinstance(formalism.compatible_measures, frozenset)
+        assert formalism.compatible_measures, (
+            f"{name} declares an empty compatible_measures set"
         )
-        assert all(isinstance(m, str) for m in formalism.compatible_metrics)
+        assert all(isinstance(m, str) for m in formalism.compatible_measures)
 
 
 def test_formalism_evaluate_system_matches_legacy_path():
@@ -133,8 +133,8 @@ def test_formalism_evaluate_system_matches_legacy_path():
     s = examples.basic_system()
     direct = iit4.sia(
         s,
-        system_metric=resolve_system_metric(_config.formalism.iit.system_phi_measure),
-        specification_metric=resolve_mechanism_metric(
+        system_measure=resolve_system_measure(_config.formalism.iit.system_phi_measure),
+        specification_measure=resolve_mechanism_measure(
             _config.formalism.iit.specification_measure
         ),
     )

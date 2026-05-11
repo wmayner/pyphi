@@ -26,8 +26,8 @@ import numpy as np
 from pyphi import Direction
 from pyphi import System
 from pyphi import utils as pyphi_utils
-from pyphi.metrics.distribution import resolve_mechanism_metric
-from pyphi.metrics.distribution import resolve_system_metric
+from pyphi.metrics.distribution import resolve_mechanism_measure
+from pyphi.metrics.distribution import resolve_system_measure
 
 from .canonicalize import canonical_mechanism
 from .canonicalize import canonical_partition
@@ -178,7 +178,7 @@ def _compute_sia(system: System, stash: Any, iit_version: float) -> dict[str, An
     (``pyphi/system.py:1391``). The genuine IIT 3.0 SIA path is reachable
     only via ``pyphi.formalism.iit3.sia(s)``. Without this dispatch, IIT 3.0
     fixtures would silently test the IIT 4.0 SIA framework with EMD as the
-    metric — not the actual IIT 3.0 SIA algorithm. P4 (formalism split) is
+    measure — not the actual IIT 3.0 SIA algorithm. P4 (formalism split) is
     expected to make the entry-point dispatch consistent; until then we route
     explicitly here so the harness covers both code paths.
     """
@@ -258,10 +258,10 @@ def _compute_phi_structure(system: System, stash: Any) -> dict[str, Any]:
     try:
         ps = phi_structure(
             system,
-            system_metric=resolve_system_metric(
+            system_measure=resolve_system_measure(
                 _config.formalism.iit.system_phi_measure
             ),
-            specification_metric=resolve_mechanism_metric(
+            specification_measure=resolve_mechanism_measure(
                 _config.formalism.iit.specification_measure
             ),
         )

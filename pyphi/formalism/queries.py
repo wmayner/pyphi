@@ -64,8 +64,8 @@ def evaluate_partition(
     """Evaluate a mechanism partition's |small_phi|.
 
     Dispatches to the active formalism's ``evaluate_mechanism_partition``.
-    The caller is expected to thread ``mechanism_metric`` (and any other
-    metric kwargs) through ``**kwargs``; the active formalism's method
+    The caller is expected to thread ``mechanism_measure`` (and any other
+    measure kwargs) through ``**kwargs``; the active formalism's method
     forwards them to its internal helper.
     """
     formalism = FORMALISM_REGISTRY[config.formalism.iit.version]  # pyright: ignore[reportAttributeAccessIssue]

@@ -1,22 +1,22 @@
-"""Protocol types for metric callables.
+"""Protocol types for measure callables.
 
-Four Protocol classes capture the shape diversity in pyphi's metric
-machinery. Each registered metric satisfies exactly one of these
+Four Protocol classes capture the shape diversity in pyphi's measure
+machinery. Each registered measure satisfies exactly one of these
 Protocols; the registries are typed against the corresponding Protocol.
 
-- ``DistributionMetric``: (p, q) -> float | DistanceResult.
+- ``DistributionMeasure``: (p, q) -> float | DistanceResult.
   Distribution-to-distribution distance. Symmetric or asymmetric (see
   ``asymmetric`` attribute). Most implementations return a plain float,
   but several (ID, AID, L1, EMD, etc.) return DistanceResult.
-- ``StateAwareMetric``: (p, state) -> float | DistanceResult. Pointwise
+- ``StateAwareMeasure``: (p, state) -> float | DistanceResult. Pointwise
   probability at a specified state. INTRINSIC_DIFFERENTIATION returns
   DistanceResult.
-- ``CompositeMetric``: (forward, partitioned, selectivity, *, state)
-  -> DistanceResult. Multi-input metric returning rich metadata; used
+- ``CompositeMeasure``: (forward, partitioned, selectivity, *, state)
+  -> DistanceResult. Multi-input measure returning rich metadata; used
   by GID / INTRINSIC_INFORMATION / INTRINSIC_SPECIFICATION at the
   system level.
-- ``StatefulDistributionMetric``: (p, q, state) -> float | DistanceResult.
-  Two-distribution metric evaluated at a specified state. Both
+- ``StatefulDistributionMeasure``: (p, q, state) -> float | DistanceResult.
+  Two-distribution measure evaluated at a specified state. Both
   distributions are load-bearing. IIT_4.0_SMALL_PHI variants return
   DistanceResult.
 
@@ -44,7 +44,7 @@ if TYPE_CHECKING:
 
 
 @runtime_checkable
-class DistributionMetric(Protocol):
+class DistributionMeasure(Protocol):
     """Distribution-to-distribution distance."""
 
     name: str
@@ -54,7 +54,7 @@ class DistributionMetric(Protocol):
 
 
 @runtime_checkable
-class StateAwareMetric(Protocol):
+class StateAwareMeasure(Protocol):
     """Pointwise probability at a specified state."""
 
     name: str
@@ -63,8 +63,8 @@ class StateAwareMetric(Protocol):
 
 
 @runtime_checkable
-class CompositeMetric(Protocol):
-    """Multi-input metric returning DistanceResult metadata."""
+class CompositeMeasure(Protocol):
+    """Multi-input measure returning DistanceResult metadata."""
 
     name: str
 
@@ -79,8 +79,8 @@ class CompositeMetric(Protocol):
 
 
 @runtime_checkable
-class StatefulDistributionMetric(Protocol):
-    """Two-distribution metric evaluated at a specified state.
+class StatefulDistributionMeasure(Protocol):
+    """Two-distribution measure evaluated at a specified state.
 
     Both distributions are load-bearing; the state selects a single
     element from the resulting pointwise array.
@@ -118,19 +118,19 @@ def _all_params(func: Callable[..., object]) -> list[str]:
     return list(inspect.signature(func).parameters.keys())
 
 
-def satisfies_distribution_metric(func: Callable[..., object]) -> bool:
-    """Return True if ``func`` has the (p, q) shape of a DistributionMetric."""
+def satisfies_distribution_measure(func: Callable[..., object]) -> bool:
+    """Return True if ``func`` has the (p, q) shape of a DistributionMeasure."""
     return _required_params(func) == ["p", "q"]
 
 
-def satisfies_state_aware_metric(func: Callable[..., object]) -> bool:
-    """Return True if ``func`` has the (p, state) shape of a StateAwareMetric."""
+def satisfies_state_aware_measure(func: Callable[..., object]) -> bool:
+    """Return True if ``func`` has the (p, state) shape of a StateAwareMeasure."""
     return _required_params(func) == ["p", "state"]
 
 
-def satisfies_composite_metric(func: Callable[..., object]) -> bool:
+def satisfies_composite_measure(func: Callable[..., object]) -> bool:
     """Return True if ``func`` has the (forward, partitioned, selectivity, ...)
-    shape of a CompositeMetric.
+    shape of a CompositeMeasure.
 
     Matches on parameter-name substrings to permit the canonical PyPhi
     spellings (``forward_repertoire``, ``partitioned_forward_repertoire``,
@@ -146,7 +146,7 @@ def satisfies_composite_metric(func: Callable[..., object]) -> bool:
     )
 
 
-def satisfies_stateful_distribution_metric(func: Callable[..., object]) -> bool:
+def satisfies_stateful_distribution_measure(func: Callable[..., object]) -> bool:
     """Return True if ``func`` has the (p, q, state) shape of a
-    StatefulDistributionMetric."""
+    StatefulDistributionMeasure."""
     return _required_params(func) == ["p", "q", "state"]
