@@ -304,7 +304,7 @@ class System:
         direction: Any,
         partition: Any,
         *,
-        mechanism_metric: str,
+        mechanism_metric: Any,
         **kwargs: Any,
     ) -> Any:
         from pyphi.core import repertoire_algebra as ra
@@ -431,27 +431,33 @@ class System:
     def cause_info(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
         from pyphi.conf import config as _config
         from pyphi.core import repertoire_algebra as ra
+        from pyphi.metrics.distribution import resolve_mechanism_metric
 
         kwargs.setdefault(
-            "repertoire_distance", _config.formalism.iit.mechanism_phi_measure
+            "repertoire_distance",
+            resolve_mechanism_metric(_config.formalism.iit.mechanism_phi_measure),
         )
         return ra.cause_info(self, mechanism, purview, **kwargs)
 
     def effect_info(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
         from pyphi.conf import config as _config
         from pyphi.core import repertoire_algebra as ra
+        from pyphi.metrics.distribution import resolve_mechanism_metric
 
         kwargs.setdefault(
-            "repertoire_distance", _config.formalism.iit.mechanism_phi_measure
+            "repertoire_distance",
+            resolve_mechanism_metric(_config.formalism.iit.mechanism_phi_measure),
         )
         return ra.effect_info(self, mechanism, purview, **kwargs)
 
     def cause_effect_info(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
         from pyphi.conf import config as _config
         from pyphi.core import repertoire_algebra as ra
+        from pyphi.metrics.distribution import resolve_mechanism_metric
 
         kwargs.setdefault(
-            "repertoire_distance", _config.formalism.iit.mechanism_phi_measure
+            "repertoire_distance",
+            resolve_mechanism_metric(_config.formalism.iit.mechanism_phi_measure),
         )
         return ra.cause_effect_info(self, mechanism, purview, **kwargs)
 
@@ -461,7 +467,7 @@ class System:
         mechanism: Any,
         purview: Any,
         *,
-        specification_metric: str,
+        specification_metric: Any,
         **kwargs: Any,
     ) -> Any:
         from pyphi.core import repertoire_algebra as ra
@@ -497,10 +503,16 @@ class System:
         """
         from pyphi.conf import config as _config
         from pyphi.formalism.iit4 import phi_structure as _phi_structure
+        from pyphi.metrics.distribution import resolve_mechanism_metric
+        from pyphi.metrics.distribution import resolve_system_metric
 
-        kwargs.setdefault("system_metric", _config.formalism.iit.system_phi_measure)
         kwargs.setdefault(
-            "specification_metric", _config.formalism.iit.specification_measure
+            "system_metric",
+            resolve_system_metric(_config.formalism.iit.system_phi_measure),
+        )
+        kwargs.setdefault(
+            "specification_metric",
+            resolve_mechanism_metric(_config.formalism.iit.specification_measure),
         )
         return _phi_structure(self, **kwargs)
 

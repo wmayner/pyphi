@@ -14,6 +14,8 @@ import pytest
 from pyphi import config
 from pyphi.formalism import iit4 as new_big_phi
 from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
+from pyphi.metrics.distribution import resolve_mechanism_metric
+from pyphi.metrics.distribution import resolve_system_metric
 from pyphi.system import System
 
 from . import example_substrates
@@ -27,13 +29,19 @@ def _sia_kwargs():
     require explicit metrics; tests invoke them with default-config metrics.
     """
     return {
-        "system_metric": config.formalism.iit.system_phi_measure,
-        "specification_metric": config.formalism.iit.specification_measure,
+        "system_metric": resolve_system_metric(config.formalism.iit.system_phi_measure),
+        "specification_metric": resolve_mechanism_metric(
+            config.formalism.iit.specification_measure
+        ),
     }
 
 
 def _spec_kwargs():
-    return {"specification_metric": config.formalism.iit.specification_measure}
+    return {
+        "specification_metric": resolve_mechanism_metric(
+            config.formalism.iit.specification_measure
+        )
+    }
 
 
 class TestPhiInvariants:

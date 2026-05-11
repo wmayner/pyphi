@@ -21,6 +21,8 @@ import pytest
 
 from pyphi import config
 from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
+from pyphi.metrics.distribution import resolve_mechanism_metric
+from pyphi.metrics.distribution import resolve_system_metric
 from pyphi.models.cuts import NullCut
 
 from .conftest import skip_if_no_pyemd
@@ -445,12 +447,18 @@ class TestEq23IntrinsicInformationCap:
         with config.override(**self.II_CONFIG):
             sys_state = system_intrinsic_information(
                 system,
-                specification_metric=config.formalism.iit.specification_measure,
+                specification_metric=resolve_mechanism_metric(
+                    config.formalism.iit.specification_measure
+                ),
             )
             result = sia(
                 system,
-                system_metric=config.formalism.iit.system_phi_measure,
-                specification_metric=config.formalism.iit.specification_measure,
+                system_metric=resolve_system_metric(
+                    config.formalism.iit.system_phi_measure
+                ),
+                specification_metric=resolve_mechanism_metric(
+                    config.formalism.iit.specification_measure
+                ),
             )
 
             # Compute ii(s) from components
@@ -484,8 +492,12 @@ class TestEq23IntrinsicInformationCap:
         with config.override(**self.II_CONFIG):
             result = sia(
                 system,
-                system_metric=config.formalism.iit.system_phi_measure,
-                specification_metric=config.formalism.iit.specification_measure,
+                system_metric=resolve_system_metric(
+                    config.formalism.iit.system_phi_measure
+                ),
+                specification_metric=resolve_mechanism_metric(
+                    config.formalism.iit.specification_measure
+                ),
             )
 
             i_diff = float(result.intrinsic_differentiation[Direction.CAUSE])
@@ -507,8 +519,10 @@ class TestEq23IntrinsicInformationCap:
         # Default config uses GENERALIZED_INTRINSIC_DIFFERENCE
         result = sia(
             s,
-            system_metric=config.formalism.iit.system_phi_measure,
-            specification_metric=config.formalism.iit.specification_measure,
+            system_metric=resolve_system_metric(config.formalism.iit.system_phi_measure),
+            specification_metric=resolve_mechanism_metric(
+                config.formalism.iit.specification_measure
+            ),
         )
         assert float(result.phi) == pytest.approx(EXPECTED_PHI_VALUES["s"], abs=1e-9)
 
@@ -564,7 +578,9 @@ class TestPaperExamples:
         with config.override(**self.II_CONFIG):
             sys_state = system_intrinsic_information(
                 system,
-                specification_metric=config.formalism.iit.specification_measure,
+                specification_metric=resolve_mechanism_metric(
+                    config.formalism.iit.specification_measure
+                ),
             )
             # system_intrinsic_information uses INTRINSIC_SPECIFICATION,
             # so it returns i_spec
@@ -595,7 +611,9 @@ class TestPaperExamples:
         with config.override(**self.II_CONFIG):
             sys_state = system_intrinsic_information(
                 system,
-                specification_metric=config.formalism.iit.specification_measure,
+                specification_metric=resolve_mechanism_metric(
+                    config.formalism.iit.specification_measure
+                ),
             )
             i_spec = float(sys_state.effect.intrinsic_information)
             assert i_spec == pytest.approx(i_spec_expected, abs=1e-5)

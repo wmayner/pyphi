@@ -26,6 +26,8 @@ import numpy as np
 from pyphi import Direction
 from pyphi import System
 from pyphi import utils as pyphi_utils
+from pyphi.metrics.distribution import resolve_mechanism_metric
+from pyphi.metrics.distribution import resolve_system_metric
 
 from .canonicalize import canonical_mechanism
 from .canonicalize import canonical_partition
@@ -256,8 +258,12 @@ def _compute_phi_structure(system: System, stash: Any) -> dict[str, Any]:
     try:
         ps = phi_structure(
             system,
-            system_metric=_config.formalism.iit.system_phi_measure,
-            specification_metric=_config.formalism.iit.specification_measure,
+            system_metric=resolve_system_metric(
+                _config.formalism.iit.system_phi_measure
+            ),
+            specification_metric=resolve_mechanism_metric(
+                _config.formalism.iit.specification_measure
+            ),
         )
     except Exception as e:
         return {"error": f"{type(e).__name__}: {e}"}

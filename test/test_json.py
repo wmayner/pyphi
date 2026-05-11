@@ -13,6 +13,8 @@ from pyphi import models
 from pyphi import substrate
 from pyphi.formalism import iit3
 from pyphi.formalism import iit4 as new_big_phi
+from pyphi.metrics.distribution import resolve_mechanism_metric
+from pyphi.metrics.distribution import resolve_system_metric
 
 
 def test_jsonify_native():
@@ -65,8 +67,10 @@ def test_json_deserialization(s, transition):
         s.sia(),
         new_big_phi.phi_structure(
             s,
-            system_metric=config.formalism.iit.system_phi_measure,
-            specification_metric=config.formalism.iit.specification_measure,
+            system_metric=resolve_system_metric(config.formalism.iit.system_phi_measure),
+            specification_metric=resolve_mechanism_metric(
+                config.formalism.iit.specification_measure
+            ),
         ),
         transition,
         # transition.find_actual_cause((0,), (0,)),

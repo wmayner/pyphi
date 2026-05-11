@@ -15,6 +15,8 @@ from pyphi.formalism import ApproximateFormalism
 from pyphi.formalism import ExactFormalism
 from pyphi.formalism import FormalismRegistry
 from pyphi.formalism import PhiFormalism
+from pyphi.metrics.distribution import resolve_mechanism_metric
+from pyphi.metrics.distribution import resolve_system_metric
 
 
 class _DummyFormalism:
@@ -129,8 +131,10 @@ def test_formalism_evaluate_system_matches_legacy_path():
     s = examples.basic_system()
     direct = iit4.sia(
         s,
-        system_metric=_config.formalism.iit.system_phi_measure,
-        specification_metric=_config.formalism.iit.specification_measure,
+        system_metric=resolve_system_metric(_config.formalism.iit.system_phi_measure),
+        specification_metric=resolve_mechanism_metric(
+            _config.formalism.iit.specification_measure
+        ),
     )
     via_formalism = FORMALISM_REGISTRY["IIT_4_0_2023"].evaluate_system(s)
     assert direct == via_formalism, (

@@ -7,6 +7,8 @@ from pyphi import jsonify
 from pyphi import relations
 from pyphi.formalism import iit3
 from pyphi.formalism import iit4 as new_big_phi
+from pyphi.metrics.distribution import resolve_mechanism_metric
+from pyphi.metrics.distribution import resolve_system_metric
 
 
 def test_only_nonsubsets():
@@ -60,8 +62,12 @@ def test_all_relations(case_name):
         relations.relations(
             new_big_phi.phi_structure(
                 system,
-                system_metric=config.formalism.iit.system_phi_measure,
-                specification_metric=config.formalism.iit.specification_measure,
+                system_metric=resolve_system_metric(
+                    config.formalism.iit.system_phi_measure
+                ),
+                specification_metric=resolve_mechanism_metric(
+                    config.formalism.iit.specification_measure
+                ),
             ).distinctions
         )
     )

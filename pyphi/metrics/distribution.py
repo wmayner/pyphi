@@ -25,6 +25,10 @@ from pyphi.direction import Direction
 from pyphi.distribution import flatten
 from pyphi.distribution import marginal_zero
 from pyphi.exceptions import MissingOptionalDependenciesError
+from pyphi.metrics.protocols import CompositeMetric
+from pyphi.metrics.protocols import DistributionMetric
+from pyphi.metrics.protocols import StateAwareMetric
+from pyphi.metrics.protocols import StatefulDistributionMetric
 from pyphi.metrics.protocols import satisfies_composite_metric
 from pyphi.metrics.protocols import satisfies_distribution_metric
 from pyphi.metrics.protocols import satisfies_state_aware_metric
@@ -1148,40 +1152,64 @@ def weighted_pointwise_mutual_information(p: float, q: float) -> float:
 
 def resolve_mechanism_metric(
     name: str,
-) -> Callable[..., Any]:
+) -> (
+    DistributionMetric | StateAwareMetric | StatefulDistributionMetric | CompositeMetric
+):
     """Look up a metric usable at the mechanism level.
 
-    Mechanism-level integration accepts state-aware pointwise metrics,
-    stateful-distribution metrics (IIT 4.0 small-phi variants), or
-    composite metrics (GID at the partition layer).
+    Mechanism-level integration accepts distribution metrics (IIT 3.0
+    EMD/L1/KLD/...), state-aware pointwise metrics, stateful-distribution
+    metrics (IIT 4.0 small-phi variants), or composite metrics (GID at
+    the partition layer). Pyright sees the Protocol union; downstream
+    parameters typed as a narrower Protocol (e.g.,
+    :class:`CompositeMetric` at the system level) statically reject
+    scope-mismatched assignments.
     """
+    from typing import cast
+
+    if name in distribution_metrics:
+        return cast(DistributionMetric, distribution_metrics[name])
     if name in state_aware_metrics:
-        return state_aware_metrics[name]
+        return cast(StateAwareMetric, state_aware_metrics[name])
     if name in stateful_distribution_metrics:
-        return stateful_distribution_metrics[name]
+        return cast(StatefulDistributionMetric, stateful_distribution_metrics[name])
     if name in composite_metrics:
-        return composite_metrics[name]
+        return cast(CompositeMetric, composite_metrics[name])
     available = sorted(
-        set(state_aware_metrics)
+        set(distribution_metrics)
+        | set(state_aware_metrics)
         | set(stateful_distribution_metrics)
         | set(composite_metrics)
     )
     raise ValueError(f"Unknown mechanism metric {name!r}. Available: {available}")
 
 
-def resolve_system_metric(name: str) -> Callable[..., Any]:
-    """Look up a metric usable at the system level."""
+def resolve_system_metric(name: str) -> CompositeMetric:
+    """Look up a metric usable at the system level.
+
+    Only composite metrics are valid system-level metrics; the return
+    type is :class:`CompositeMetric` so pyright catches scope mismatches.
+    """
+    from typing import cast
+
     if name in composite_metrics:
-        return composite_metrics[name]
+        return cast(CompositeMetric, composite_metrics[name])
     raise ValueError(
         f"Unknown system metric {name!r}. Available: {sorted(composite_metrics)}"
     )
 
 
-def resolve_alpha_measure(name: str) -> Callable[..., float]:
-    """Look up a metric usable for actual-causation alpha."""
+def resolve_alpha_measure(name: str) -> DistributionMetric:
+    """Look up a metric usable for actual-causation alpha.
+
+    Only distribution metrics (symmetric two-distribution distances) are
+    valid here; the return type is :class:`DistributionMetric` so pyright
+    catches scope mismatches.
+    """
+    from typing import cast
+
     if name in distribution_metrics:
-        return distribution_metrics[name]
+        return cast(DistributionMetric, distribution_metrics[name])
     raise ValueError(
         f"Unknown alpha measure {name!r}. Available: {sorted(distribution_metrics)}"
     )
@@ -1191,7 +1219,13 @@ def repertoire_distance(
     r1: ArrayLike,
     r2: ArrayLike,
     direction: Direction | None = None,
-    repertoire_distance: str | None = None,
+    repertoire_distance: (
+        DistributionMetric
+        | StateAwareMetric
+        | StatefulDistributionMetric
+        | CompositeMetric
+        | None
+    ) = None,
     **kwargs,
 ) -> float:
     """Compute the distance between two repertoires for the given direction.
@@ -1200,10 +1234,13 @@ def repertoire_distance(
         r1 (np.ndarray): The first repertoire.
         r2 (np.ndarray): The second repertoire.
         direction (Direction): |CAUSE| or |EFFECT|.
-        repertoire_distance (str): The name of the metric to use. Required
-            for callers below the formalism-class boundary; public-API
-            callers (``System.cause_info``, etc.) resolve from config at
-            their method boundary and pass it through.
+        repertoire_distance: A Protocol-typed metric callable
+            (:class:`DistributionMetric`, :class:`StateAwareMetric`,
+            :class:`StatefulDistributionMetric`, or
+            :class:`CompositeMetric`). Required for callers below the
+            formalism-class boundary; public-API callers
+            (``System.cause_info``, etc.) resolve from config at their
+            method boundary and pass the object through.
 
     Returns:
         float: The distance between ``r1`` and ``r2``, rounded to |PRECISION|.
@@ -1211,18 +1248,14 @@ def repertoire_distance(
     if repertoire_distance is None:
         raise ValueError(
             "repertoire_distance must be provided explicitly; callers below "
-            "the formalism boundary thread the metric name as a kwarg."
+            "the formalism boundary thread the metric object as a kwarg."
         )
-    func_key = repertoire_distance
-    if func_key in distribution_metrics:
-        func = distribution_metrics[func_key]
-    else:
-        func = resolve_mechanism_metric(func_key)
+    func = repertoire_distance
     try:
         try:
-            distance = func(r1, r2, direction=direction, **kwargs)
+            distance = func(r1, r2, direction=direction, **kwargs)  # type: ignore[call-arg]
         except TypeError:
-            distance = func(r1, r2, **kwargs)
+            distance = func(r1, r2, **kwargs)  # type: ignore[call-arg]
     except TypeError:
-        distance = func(r1, r2, direction=direction)
+        distance = func(r1, r2, direction=direction)  # type: ignore[call-arg]
     return round(distance, config.numerics.precision)  # type: ignore[arg-type]

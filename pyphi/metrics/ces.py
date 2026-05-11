@@ -104,8 +104,9 @@ def emd_ground_distance(r1: Repertoire, r2: Repertoire) -> float:
             "asymmetric and cannot be used as the ground distance for "
             "the system-level EMD"
         )
+    measure = distribution.resolve_alpha_measure(measure_name)
     return distribution.repertoire_distance(
-        r1, r2, direction=None, repertoire_distance=measure_name
+        r1, r2, direction=None, repertoire_distance=measure
     )
 
 

@@ -108,23 +108,29 @@ class IIT3Formalism:
         partition: Any,
         repertoire: Any = None,
         partitioned_repertoire: Any = None,
-        repertoire_distance: str | None = None,
+        repertoire_distance: Any = None,
         partitioned_repertoire_kwargs: Any = None,
         **kwargs: Any,
     ) -> Any:
         """IIT 3.0 mechanism-partition integration: distribution-distance
-        between unpartitioned and partitioned repertoires."""
-        from pyphi.conf import fallback
+        between unpartitioned and partitioned repertoires.
+
+        ``repertoire_distance`` is a Protocol-typed metric callable
+        (resolved here from config if not provided); ``mechanism_metric``
+        is threaded through to the partitioned-repertoire helper.
+        """
         from pyphi.metrics.distribution import (
             repertoire_distance as _repertoire_distance,  # pyright: ignore[reportUnknownVariableType]
         )
+        from pyphi.metrics.distribution import resolve_mechanism_metric
         from pyphi.models import RepertoireIrreducibilityAnalysis
         from pyphi.utils import state_of
 
         check_metric_compatible(self, config.formalism.iit.mechanism_phi_measure)
-        repertoire_distance = fallback(
-            repertoire_distance, config.formalism.iit.mechanism_phi_measure
-        )
+        if repertoire_distance is None:
+            repertoire_distance = resolve_mechanism_metric(
+                config.formalism.iit.mechanism_phi_measure
+            )
         # Internal helpers below the formalism boundary require an
         # explicit ``mechanism_metric``; resolve it here.
         mechanism_metric = kwargs.pop("mechanism_metric", repertoire_distance)

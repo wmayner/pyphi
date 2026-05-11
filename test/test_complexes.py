@@ -5,6 +5,8 @@ from pyphi import config
 from pyphi import examples
 from pyphi.formalism import iit3
 from pyphi.formalism.iit4 import phi_structure
+from pyphi.metrics.distribution import resolve_mechanism_metric
+from pyphi.metrics.distribution import resolve_system_metric
 from pyphi.substrate import possible_complexes
 
 from .conftest import IIT_3_CONFIG
@@ -121,8 +123,12 @@ class TestCauseEffectStructureIIT40:
 
     def _metric_kwargs(self):
         return {
-            "system_metric": config.formalism.iit.system_phi_measure,
-            "specification_metric": config.formalism.iit.specification_measure,
+            "system_metric": resolve_system_metric(
+                config.formalism.iit.system_phi_measure
+            ),
+            "specification_metric": resolve_mechanism_metric(
+                config.formalism.iit.specification_measure
+            ),
         }
 
     def test_phi_structure_basic(self, s):

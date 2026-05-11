@@ -492,20 +492,32 @@ class TransitionSystem:
 
     def cause_info(self, mechanism: Any, purview: Any, **kw: Any) -> float:
         from pyphi.core import repertoire_algebra as ra
+        from pyphi.metrics.distribution import resolve_mechanism_metric
 
-        kw.setdefault("repertoire_distance", config.formalism.iit.mechanism_phi_measure)
+        kw.setdefault(
+            "repertoire_distance",
+            resolve_mechanism_metric(config.formalism.iit.mechanism_phi_measure),
+        )
         return ra.cause_info(self, mechanism, purview, **kw)
 
     def effect_info(self, mechanism: Any, purview: Any, **kw: Any) -> float:
         from pyphi.core import repertoire_algebra as ra
+        from pyphi.metrics.distribution import resolve_mechanism_metric
 
-        kw.setdefault("repertoire_distance", config.formalism.iit.mechanism_phi_measure)
+        kw.setdefault(
+            "repertoire_distance",
+            resolve_mechanism_metric(config.formalism.iit.mechanism_phi_measure),
+        )
         return ra.effect_info(self, mechanism, purview, **kw)
 
     def cause_effect_info(self, mechanism: Any, purview: Any, **kw: Any) -> float:
         from pyphi.core import repertoire_algebra as ra
+        from pyphi.metrics.distribution import resolve_mechanism_metric
 
-        kw.setdefault("repertoire_distance", config.formalism.iit.mechanism_phi_measure)
+        kw.setdefault(
+            "repertoire_distance",
+            resolve_mechanism_metric(config.formalism.iit.mechanism_phi_measure),
+        )
         return ra.cause_effect_info(self, mechanism, purview, **kw)
 
     def intrinsic_information(
@@ -514,7 +526,7 @@ class TransitionSystem:
         mechanism: Any,
         purview: Any,
         *,
-        specification_metric: str,
+        specification_metric: Any,
         **kw: Any,
     ) -> Any:
         from pyphi.core import repertoire_algebra as ra

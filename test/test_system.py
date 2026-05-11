@@ -5,6 +5,7 @@ from pyphi import Direction
 from pyphi import Substrate
 from pyphi import config
 from pyphi import exceptions
+from pyphi.metrics.distribution import resolve_mechanism_metric
 from pyphi.models import Concept
 from pyphi.models import MaximallyIrreducibleCause
 from pyphi.models import MaximallyIrreducibleEffect
@@ -213,7 +214,9 @@ class TestIntrinsicInformationTies:
             Direction.CAUSE,
             (0, 1),
             (0, 1),
-            specification_metric=config.formalism.iit.specification_measure,
+            specification_metric=resolve_mechanism_metric(
+                config.formalism.iit.specification_measure
+            ),
         )
         assert len(spec.ties) == 2
         tied_states = {t.state for t in spec.ties}
@@ -227,7 +230,9 @@ class TestIntrinsicInformationTies:
             Direction.CAUSE,
             (0, 1),
             (0, 1),
-            specification_metric=config.formalism.iit.specification_measure,
+            specification_metric=resolve_mechanism_metric(
+                config.formalism.iit.specification_measure
+            ),
         )
         ii_values = {float(t.intrinsic_information) for t in spec.ties}
         assert len(ii_values) == 1, f"Tied states have different II: {ii_values}"
@@ -240,7 +245,9 @@ class TestIntrinsicInformationTies:
             Direction.EFFECT,
             (0, 1),
             (0, 1),
-            specification_metric=config.formalism.iit.specification_measure,
+            specification_metric=resolve_mechanism_metric(
+                config.formalism.iit.specification_measure
+            ),
         )
         # Effect direction should have a unique max (no tie)
         assert len(spec.ties) == 1

@@ -20,6 +20,8 @@ import pytest
 from pyphi import config
 from pyphi.examples import EXAMPLES
 from pyphi.formalism import iit4 as new_big_phi
+from pyphi.metrics.distribution import resolve_mechanism_metric
+from pyphi.metrics.distribution import resolve_system_metric
 
 
 def _phi_structure_kwargs():
@@ -29,8 +31,10 @@ def _phi_structure_kwargs():
     these tests use defaults so resolve from ``config`` at call time.
     """
     return {
-        "system_metric": config.formalism.iit.system_phi_measure,
-        "specification_metric": config.formalism.iit.specification_measure,
+        "system_metric": resolve_system_metric(config.formalism.iit.system_phi_measure),
+        "specification_metric": resolve_mechanism_metric(
+            config.formalism.iit.specification_measure
+        ),
     }
 
 

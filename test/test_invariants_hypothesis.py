@@ -216,6 +216,7 @@ class TestMetricInvariants:
             )
         )
 
+        from pyphi.metrics.distribution import distribution_metrics
         from pyphi.metrics.distribution import repertoire_distance
 
         rep1 = s.cause_repertoire(mech1, purview)
@@ -227,7 +228,7 @@ class TestMetricInvariants:
                     rep1,
                     rep2,
                     direction=Direction.CAUSE,
-                    repertoire_distance="EMD",
+                    repertoire_distance=distribution_metrics["EMD"],
                 )
             except ImportError:
                 pytest.skip("pyemd not installed")
@@ -260,6 +261,7 @@ class TestMetricInvariants:
             )
         )
 
+        from pyphi.metrics.distribution import distribution_metrics
         from pyphi.metrics.distribution import repertoire_distance
 
         rep = s.cause_repertoire(mechanism, purview)
@@ -270,7 +272,7 @@ class TestMetricInvariants:
                     rep,
                     rep,
                     direction=Direction.CAUSE,
-                    repertoire_distance="EMD",
+                    repertoire_distance=distribution_metrics["EMD"],
                 )
             except ImportError:
                 pytest.skip("pyemd not installed")

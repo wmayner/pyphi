@@ -45,7 +45,7 @@ def _evaluate_partition_iit4(
     purview: Any,
     partition: Any,
     *,
-    mechanism_metric: str,
+    mechanism_metric: Any,
     repertoire: Any = None,
     partitioned_repertoire: Any = None,
     **kwargs: Any,
@@ -55,19 +55,18 @@ def _evaluate_partition_iit4(
     State-aware: takes a forward repertoire, a partitioned forward repertoire,
     and a scalar selectivity, then calls a GID-style metric.
 
-    ``mechanism_metric`` is the name of the mechanism-level composite
-    metric (resolved at the formalism-class boundary); compatibility is
-    the caller's responsibility (``IIT4_2023Formalism`` and
+    ``mechanism_metric`` is a Protocol-typed mechanism-level metric callable
+    (StateAwareMetric, StatefulDistributionMetric, or CompositeMetric)
+    resolved at the formalism-class boundary; compatibility is the
+    caller's responsibility (``IIT4_2023Formalism`` and
     ``IIT4_2026Formalism`` validate before calling this helper).
     """
-    from pyphi import metrics
     from pyphi.models import RepertoireIrreducibilityAnalysis
     from pyphi.utils import state_of
 
     if repertoire is None:
         repertoire = system.repertoire(direction, mechanism, purview)
 
-    func = metrics.distribution.resolve_mechanism_metric(mechanism_metric)
     assert not isinstance(repertoire, (int, float)), "GID requires full repertoire"
 
     purview_state = kwargs["state"].state
@@ -83,7 +82,7 @@ def _evaluate_partition_iit4(
     else:
         partitioned_pr = partitioned_repertoire
 
-    phi: Any = func(  # pyright: ignore[reportUnknownVariableType]
+    phi: Any = mechanism_metric(  # pyright: ignore[reportUnknownVariableType]
         forward_repertoire=forward_pr,
         partitioned_forward_repertoire=partitioned_pr,
         selectivity_repertoire=selectivity,
@@ -111,8 +110,8 @@ def _find_mip_iit4(
     mechanism: Any,
     purview: Any,
     *,
-    mechanism_metric: str,
-    specification_metric: str,
+    mechanism_metric: Any,
+    specification_metric: Any,
     repertoire: Any,
     partitions: Any,
     state: Any,
@@ -122,10 +121,11 @@ def _find_mip_iit4(
     """IIT 4.0 mechanism MIP: maximize over candidate specified states,
     minimize over partitions per state.
 
-    ``mechanism_metric`` and ``specification_metric`` are composite-metric
-    names provided by the active formalism. ``specification_metric``
-    drives the intrinsic-information search over candidate purview
-    states; ``mechanism_metric`` drives the per-partition phi.
+    ``mechanism_metric`` and ``specification_metric`` are Protocol-typed
+    metric callables provided by the active formalism.
+    ``specification_metric`` drives the intrinsic-information search
+    over candidate purview states; ``mechanism_metric`` drives the
+    per-partition phi.
     """
     from pyphi import resolve_ties
 
@@ -208,9 +208,15 @@ class IIT4_2023Formalism:
         """Internal mechanism-MIP search. Called by ``queries.find_mip``
         after its short-circuit checks; contains the IIT 4.0 logic
         (maximize over specified states, minimize over partitions)."""
+        from pyphi.metrics.distribution import resolve_mechanism_metric
+
         check_metric_compatible(self, config.formalism.iit.mechanism_phi_measure)
-        mechanism_metric = config.formalism.iit.mechanism_phi_measure
-        specification_metric = config.formalism.iit.specification_measure  # pyright: ignore[reportAttributeAccessIssue]
+        mechanism_metric = resolve_mechanism_metric(
+            config.formalism.iit.mechanism_phi_measure
+        )
+        specification_metric = resolve_mechanism_metric(
+            config.formalism.iit.specification_measure  # pyright: ignore[reportAttributeAccessIssue]
+        )
         return _find_mip_iit4(
             system,
             direction,
@@ -232,9 +238,12 @@ class IIT4_2023Formalism:
     ) -> Any:
         """IIT 4.0 mechanism-partition integration: forward repertoires +
         scalar selectivity feed a GID-style metric."""
+        from pyphi.metrics.distribution import resolve_mechanism_metric
+
         check_metric_compatible(self, config.formalism.iit.mechanism_phi_measure)
         mechanism_metric = kwargs.pop(
-            "mechanism_metric", config.formalism.iit.mechanism_phi_measure
+            "mechanism_metric",
+            resolve_mechanism_metric(config.formalism.iit.mechanism_phi_measure),
         )
         return _evaluate_partition_iit4(
             system,
@@ -248,9 +257,14 @@ class IIT4_2023Formalism:
 
     def evaluate_system(self, system: Any, **kwargs: Any) -> Any:
         """Delegate to :func:`pyphi.formalism.iit4.sia`."""
+        from pyphi.metrics.distribution import resolve_mechanism_metric
+        from pyphi.metrics.distribution import resolve_system_metric
+
         check_metric_compatible(self, config.formalism.iit.system_phi_measure)
-        system_metric = config.formalism.iit.system_phi_measure
-        specification_metric = config.formalism.iit.specification_measure  # pyright: ignore[reportAttributeAccessIssue]
+        system_metric = resolve_system_metric(config.formalism.iit.system_phi_measure)
+        specification_metric = resolve_mechanism_metric(
+            config.formalism.iit.specification_measure  # pyright: ignore[reportAttributeAccessIssue]
+        )
         return _sia(
             system,
             system_metric=system_metric,
@@ -260,9 +274,14 @@ class IIT4_2023Formalism:
 
     def build_phi_structure(self, system: Any, **kwargs: Any) -> Any:
         """Delegate to :func:`pyphi.formalism.iit4.phi_structure`."""
+        from pyphi.metrics.distribution import resolve_mechanism_metric
+        from pyphi.metrics.distribution import resolve_system_metric
+
         check_metric_compatible(self, config.formalism.iit.system_phi_measure)
-        system_metric = config.formalism.iit.system_phi_measure
-        specification_metric = config.formalism.iit.specification_measure  # pyright: ignore[reportAttributeAccessIssue]
+        system_metric = resolve_system_metric(config.formalism.iit.system_phi_measure)
+        specification_metric = resolve_mechanism_metric(
+            config.formalism.iit.specification_measure  # pyright: ignore[reportAttributeAccessIssue]
+        )
         return _phi_structure(
             system,
             system_metric=system_metric,
@@ -312,17 +331,22 @@ class IIT4_2026Formalism:
         purview: Any,
         **kwargs: Any,
     ) -> Any:
+        from pyphi.metrics.distribution import resolve_mechanism_metric
+
         check_metric_compatible(self, config.formalism.iit.mechanism_phi_measure)
         # 2026 fixes mechanism-level metric to GID per the formalism's
         # class-level default; system-level metric (Eq. 23 cap) is the
         # 2026-specific divergence and is wired in ``evaluate_system``.
-        specification_metric = config.formalism.iit.specification_measure  # pyright: ignore[reportAttributeAccessIssue]
+        mechanism_metric = resolve_mechanism_metric(self.default_mechanism_metric)
+        specification_metric = resolve_mechanism_metric(
+            config.formalism.iit.specification_measure  # pyright: ignore[reportAttributeAccessIssue]
+        )
         return _find_mip_iit4(
             system,
             direction,
             mechanism,
             purview,
-            mechanism_metric=self.default_mechanism_metric,
+            mechanism_metric=mechanism_metric,
             specification_metric=specification_metric,
             **kwargs,
         )
@@ -338,34 +362,49 @@ class IIT4_2026Formalism:
     ) -> Any:
         """Same shape as IIT 4.0 (2023) mechanism-partition integration; the
         2026 variant differs only at the system level (the ``ii(s)`` cap)."""
+        from pyphi.metrics.distribution import resolve_mechanism_metric
+
         check_metric_compatible(self, config.formalism.iit.mechanism_phi_measure)
         kwargs.pop("mechanism_metric", None)
+        mechanism_metric = resolve_mechanism_metric(self.default_mechanism_metric)
         return _evaluate_partition_iit4(
             system,
             direction,
             mechanism,
             purview,
             partition,
-            mechanism_metric=self.default_mechanism_metric,
+            mechanism_metric=mechanism_metric,
             **kwargs,
         )
 
     def evaluate_system(self, system: Any, **kwargs: Any) -> Any:
+        from pyphi.metrics.distribution import resolve_mechanism_metric
+        from pyphi.metrics.distribution import resolve_system_metric
+
         check_metric_compatible(self, config.formalism.iit.system_phi_measure)
-        specification_metric = config.formalism.iit.specification_measure  # pyright: ignore[reportAttributeAccessIssue]
+        system_metric = resolve_system_metric(self.default_system_metric)
+        specification_metric = resolve_mechanism_metric(
+            config.formalism.iit.specification_measure  # pyright: ignore[reportAttributeAccessIssue]
+        )
         return _sia(
             system,
-            system_metric=self.default_system_metric,
+            system_metric=system_metric,
             specification_metric=specification_metric,
             **kwargs,
         )
 
     def build_phi_structure(self, system: Any, **kwargs: Any) -> Any:
+        from pyphi.metrics.distribution import resolve_mechanism_metric
+        from pyphi.metrics.distribution import resolve_system_metric
+
         check_metric_compatible(self, config.formalism.iit.system_phi_measure)
-        specification_metric = config.formalism.iit.specification_measure  # pyright: ignore[reportAttributeAccessIssue]
+        system_metric = resolve_system_metric(self.default_system_metric)
+        specification_metric = resolve_mechanism_metric(
+            config.formalism.iit.specification_measure  # pyright: ignore[reportAttributeAccessIssue]
+        )
         return _phi_structure(
             system,
-            system_metric=self.default_system_metric,
+            system_metric=system_metric,
             specification_metric=specification_metric,
             **kwargs,
         )
