@@ -1215,6 +1215,24 @@ def resolve_alpha_measure(name: str) -> DistributionMetric:
     )
 
 
+def resolve_actual_causation_measure(name: str) -> DistributionMetric:
+    """Look up a measure registered in :data:`actual_causation_measures`.
+
+    The actual-causation alpha computation uses ``(p, q) -> float``
+    distribution-shape callables from :data:`actual_causation_measures`
+    (e.g., ``PMI``, ``WPMI``). The return type is :class:`DistributionMetric`
+    so call-site type checks reject scope-mismatched assignments.
+    """
+    from typing import cast
+
+    if name in actual_causation_measures:
+        return cast(DistributionMetric, actual_causation_measures[name])
+    raise ValueError(
+        f"Unknown actual-causation measure {name!r}. "
+        f"Available: {sorted(actual_causation_measures)}"
+    )
+
+
 def repertoire_distance(
     r1: ArrayLike,
     r2: ArrayLike,

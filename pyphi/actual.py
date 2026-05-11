@@ -40,6 +40,7 @@ from . import validate
 from .conf import config
 from .direction import Direction
 from .metrics.distribution import actual_causation_measures as measures
+from .metrics.protocols import DistributionMetric
 from .models import Account
 from .models import AcRepertoireIrreducibilityAnalysis
 from .models import AcSystemIrreducibilityAnalysis
@@ -126,6 +127,39 @@ def _background_uniform(
 @alpha_aggregations.register("SUBTRACTIVE")
 def _alpha_subtractive(rho: float, rho_partitioned: float) -> float:
     return rho - rho_partitioned
+
+
+def _resolve_ac_kwargs() -> dict[str, Any]:
+    """Resolve actual-causation formalism config into explicit kwargs.
+
+    Public AC entry points (``sia``, ``account``, ``directed_account``,
+    ``Transition.find_mip`` and friends) read the active configuration
+    once at their boundary and thread the resolved values through
+    internal helpers. The returned dict carries:
+
+    - ``alpha_metric``: a :class:`DistributionMetric` resolved from
+      :data:`actual_causation_measures` by name
+      (``config.formalism.actual_causation.alpha_measure``).
+    - ``partitioned_repertoire_scheme``: a callable from
+      :data:`partitioned_repertoire_schemes` keyed by
+      ``config.formalism.actual_causation.partitioned_repertoire_scheme``.
+    - ``background_scheme``: a callable from
+      :data:`background_strategies` keyed by
+      ``config.formalism.actual_causation.background_scheme``.
+    - ``alpha_aggregation``: a callable from :data:`alpha_aggregations`
+      keyed by ``config.formalism.actual_causation.alpha_aggregation``.
+    """
+    from pyphi.metrics.distribution import resolve_actual_causation_measure
+
+    ac = config.formalism.actual_causation
+    return {
+        "alpha_metric": resolve_actual_causation_measure(ac.alpha_measure),
+        "partitioned_repertoire_scheme": partitioned_repertoire_schemes[
+            ac.partitioned_repertoire_scheme
+        ],
+        "background_scheme": background_strategies[ac.background_scheme],
+        "alpha_aggregation": alpha_aggregations[ac.alpha_aggregation],
+    }
 
 
 @dataclass(frozen=True, eq=False)
@@ -373,11 +407,14 @@ class TransitionSystem:
         return ra.unconstrained_repertoire(self, direction, purview)
 
     def partitioned_repertoire(
-        self, direction: Direction, partition: Any, **kw: Any
+        self,
+        direction: Direction,
+        partition: Any,
+        *,
+        partitioned_repertoire_scheme: Any,
+        **kw: Any,
     ) -> Any:
-        scheme_name = config.formalism.actual_causation.partitioned_repertoire_scheme
-        scheme = partitioned_repertoire_schemes[scheme_name]
-        return scheme(self, direction, partition, **kw)
+        return partitioned_repertoire_scheme(self, direction, partition, **kw)
 
     def expand_cause_repertoire(
         self, repertoire_array: Any, *, new_purview: Any | None = None
@@ -490,34 +527,43 @@ class TransitionSystem:
             self, direction, mechanism, purview, purview_state, **kw
         )
 
-    def cause_info(self, mechanism: Any, purview: Any, **kw: Any) -> float:
+    def cause_info(
+        self,
+        mechanism: Any,
+        purview: Any,
+        *,
+        mechanism_metric: Any,
+        **kw: Any,
+    ) -> float:
         from pyphi.core import repertoire_algebra as ra
-        from pyphi.metrics.distribution import resolve_mechanism_metric
 
-        kw.setdefault(
-            "repertoire_distance",
-            resolve_mechanism_metric(config.formalism.iit.mechanism_phi_measure),
-        )
+        kw.setdefault("repertoire_distance", mechanism_metric)
         return ra.cause_info(self, mechanism, purview, **kw)
 
-    def effect_info(self, mechanism: Any, purview: Any, **kw: Any) -> float:
+    def effect_info(
+        self,
+        mechanism: Any,
+        purview: Any,
+        *,
+        mechanism_metric: Any,
+        **kw: Any,
+    ) -> float:
         from pyphi.core import repertoire_algebra as ra
-        from pyphi.metrics.distribution import resolve_mechanism_metric
 
-        kw.setdefault(
-            "repertoire_distance",
-            resolve_mechanism_metric(config.formalism.iit.mechanism_phi_measure),
-        )
+        kw.setdefault("repertoire_distance", mechanism_metric)
         return ra.effect_info(self, mechanism, purview, **kw)
 
-    def cause_effect_info(self, mechanism: Any, purview: Any, **kw: Any) -> float:
+    def cause_effect_info(
+        self,
+        mechanism: Any,
+        purview: Any,
+        *,
+        mechanism_metric: Any,
+        **kw: Any,
+    ) -> float:
         from pyphi.core import repertoire_algebra as ra
-        from pyphi.metrics.distribution import resolve_mechanism_metric
 
-        kw.setdefault(
-            "repertoire_distance",
-            resolve_mechanism_metric(config.formalism.iit.mechanism_phi_measure),
-        )
+        kw.setdefault("repertoire_distance", mechanism_metric)
         return ra.cause_effect_info(self, mechanism, purview, **kw)
 
     def intrinsic_information(
@@ -938,29 +984,72 @@ class Transition:
         )
 
     def cause_ratio(self, mechanism, purview):
-        """The cause ratio of the ``purview`` given ``mechanism``."""
+        """The cause ratio of the ``purview`` given ``mechanism``.
+
+        Always evaluated with PMI (pointwise mutual information), per
+        the 2019 Albantakis et al. formalism, independent of
+        ``config.formalism.actual_causation.alpha_measure``.
+        """
         return self._ratio(Direction.CAUSE, mechanism, purview)
 
     def effect_ratio(self, mechanism, purview):
-        """The effect ratio of the ``purview`` given ``mechanism``."""
+        """The effect ratio of the ``purview`` given ``mechanism``.
+
+        Always evaluated with PMI (pointwise mutual information), per
+        the 2019 Albantakis et al. formalism, independent of
+        ``config.formalism.actual_causation.alpha_measure``.
+        """
         return self._ratio(Direction.EFFECT, mechanism, purview)
 
-    def partitioned_repertoire(self, direction, partition):
+    def partitioned_repertoire(
+        self,
+        direction,
+        partition,
+        *,
+        partitioned_repertoire_scheme=None,
+    ):
         """Compute the repertoire over the partition in the given direction."""
-        return self.system[direction].partitioned_repertoire(direction, partition)
+        if partitioned_repertoire_scheme is None:
+            partitioned_repertoire_scheme = partitioned_repertoire_schemes[
+                config.formalism.actual_causation.partitioned_repertoire_scheme
+            ]
+        return self.system[direction].partitioned_repertoire(
+            direction,
+            partition,
+            partitioned_repertoire_scheme=partitioned_repertoire_scheme,
+        )
 
-    def partitioned_probability(self, direction, partition):
+    def partitioned_probability(
+        self,
+        direction,
+        partition,
+        *,
+        partitioned_repertoire_scheme=None,
+    ):
         """Compute the probability of the mechanism over the purview in
         the partition.
         """
-        repertoire = self.partitioned_repertoire(direction, partition)
+        repertoire = self.partitioned_repertoire(
+            direction,
+            partition,
+            partitioned_repertoire_scheme=partitioned_repertoire_scheme,
+        )
         return self.state_probability(direction, repertoire, partition.purview)
 
     # MIP methods
     # =========================================================================
 
     # TODO: alias to `irreducible_cause/effect ratio?
-    def find_mip(self, direction, mechanism, purview, allow_neg=False):
+    def find_mip(
+        self,
+        direction,
+        mechanism,
+        purview,
+        allow_neg=False,
+        *,
+        alpha_metric: DistributionMetric | None = None,
+        partitioned_repertoire_scheme=None,
+    ):
         """Find the ratio minimum information partition for a mechanism
         over a purview.
 
@@ -973,11 +1062,25 @@ class Transition:
             allow_neg (boolean): If true, ``alpha`` is allowed to be negative.
                 Otherwise, negative values of ``alpha`` will be treated as if
                 they were 0.
+            alpha_metric (DistributionMetric): Resolved alpha measure callable.
+                When ``None``, ``config.formalism.actual_causation.alpha_measure``
+                is resolved at the call boundary.
+            partitioned_repertoire_scheme: Resolved partitioned-repertoire
+                scheme callable. When ``None``,
+                ``config.formalism.actual_causation.partitioned_repertoire_scheme``
+                is resolved at the call boundary.
 
         Returns:
             AcRepertoireIrreducibilityAnalysis: The irreducibility analysis for
             the mechanism.
         """
+        if alpha_metric is None or partitioned_repertoire_scheme is None:
+            resolved = _resolve_ac_kwargs()
+            if alpha_metric is None:
+                alpha_metric = resolved["alpha_metric"]
+            if partitioned_repertoire_scheme is None:
+                partitioned_repertoire_scheme = resolved["partitioned_repertoire_scheme"]
+
         if not purview:
             return _null_ac_ria(
                 self.mechanism_state(direction), direction, mechanism, purview
@@ -988,9 +1091,17 @@ class Transition:
         acria = None  # Initialize in case loop doesn't execute
 
         for partition in mip_partitions(mechanism, purview, self.node_labels):
-            partitioned_probability = self.partitioned_probability(direction, partition)
+            partitioned_probability = self.partitioned_probability(
+                direction,
+                partition,
+                partitioned_repertoire_scheme=partitioned_repertoire_scheme,
+            )
 
-            alpha = probability_distance(probability, partitioned_probability)
+            alpha = probability_distance(
+                probability,
+                partitioned_probability,
+                alpha_metric=alpha_metric,
+            )
 
             # First check for 0
             # Default: don't count contrary causes and effects
@@ -1042,7 +1153,16 @@ class Transition:
             if set(purview).issubset(self.purview_indices(direction))
         ]
 
-    def find_causal_link(self, direction, mechanism, purviews=None, allow_neg=False):
+    def find_causal_link(
+        self,
+        direction,
+        mechanism,
+        purviews=None,
+        allow_neg=False,
+        *,
+        alpha_metric: DistributionMetric | None = None,
+        partitioned_repertoire_scheme=None,
+    ):
         """Return the maximally irreducible cause or effect ratio for a
         mechanism.
 
@@ -1057,10 +1177,25 @@ class Transition:
                 to a subset of the system. This may be useful for _e.g._
                 finding only concepts that are "about" a certain subset of
                 nodes.
+            alpha_metric (DistributionMetric): Resolved alpha measure
+                callable. When ``None``,
+                ``config.formalism.actual_causation.alpha_measure`` is
+                resolved at the call boundary.
+            partitioned_repertoire_scheme: Resolved partitioned-repertoire
+                scheme callable. When ``None``,
+                ``config.formalism.actual_causation.partitioned_repertoire_scheme``
+                is resolved at the call boundary.
 
         Returns:
             CausalLink: The maximally-irreducible actual cause or effect.
         """
+        if alpha_metric is None or partitioned_repertoire_scheme is None:
+            resolved = _resolve_ac_kwargs()
+            if alpha_metric is None:
+                alpha_metric = resolved["alpha_metric"]
+            if partitioned_repertoire_scheme is None:
+                partitioned_repertoire_scheme = resolved["partitioned_repertoire_scheme"]
+
         purviews = self.potential_purviews(direction, mechanism, purviews)
 
         # Find the maximal RIA over the remaining purviews.
@@ -1072,7 +1207,14 @@ class Transition:
 
         # Finds rias with maximum alpha
         all_ria = [
-            self.find_mip(direction, mechanism, purview, allow_neg=allow_neg)
+            self.find_mip(
+                direction,
+                mechanism,
+                purview,
+                allow_neg=allow_neg,
+                alpha_metric=alpha_metric,
+                partitioned_repertoire_scheme=partitioned_repertoire_scheme,
+            )
             for purview in purviews
         ]
         # Filter out None values before finding max
@@ -1093,13 +1235,13 @@ class Transition:
         extended_purview = filter(is_not_superset, purviews)
         return CausalLink(max_ria, tuple(extended_purview))
 
-    def find_actual_cause(self, mechanism, purviews=None):
+    def find_actual_cause(self, mechanism, purviews=None, **kw):
         """Return the actual cause of a mechanism."""
-        return self.find_causal_link(Direction.CAUSE, mechanism, purviews)
+        return self.find_causal_link(Direction.CAUSE, mechanism, purviews, **kw)
 
-    def find_actual_effect(self, mechanism, purviews=None):
+    def find_actual_effect(self, mechanism, purviews=None, **kw):
         """Return the actual effect of a mechanism."""
-        return self.find_causal_link(Direction.EFFECT, mechanism, purviews)
+        return self.find_causal_link(Direction.EFFECT, mechanism, purviews, **kw)
 
     def find_mice(self, *args, **kwargs):
         """Backwards-compatible alias for :func:`find_causal_link`."""
@@ -1112,16 +1254,45 @@ class Transition:
 
 
 def directed_account(
-    transition, direction, mechanisms=None, purviews=None, allow_neg=False
+    transition,
+    direction,
+    mechanisms=None,
+    purviews=None,
+    allow_neg=False,
+    *,
+    alpha_metric: DistributionMetric | None = None,
+    partitioned_repertoire_scheme=None,
 ):
-    """Return the set of all |CausalLinks| of the specified direction."""
+    """Return the set of all |CausalLinks| of the specified direction.
+
+    Keyword Args:
+        alpha_metric (DistributionMetric): Resolved alpha measure callable.
+            When ``None``, ``config.formalism.actual_causation.alpha_measure``
+            is resolved at the call boundary.
+        partitioned_repertoire_scheme: Resolved partitioned-repertoire scheme
+            callable. When ``None``, the active
+            ``config.formalism.actual_causation.partitioned_repertoire_scheme``
+            is resolved at the call boundary.
+    """
+    if alpha_metric is None or partitioned_repertoire_scheme is None:
+        resolved = _resolve_ac_kwargs()
+        if alpha_metric is None:
+            alpha_metric = resolved["alpha_metric"]
+        if partitioned_repertoire_scheme is None:
+            partitioned_repertoire_scheme = resolved["partitioned_repertoire_scheme"]
+
     if mechanisms is None:
         mechanisms = utils.powerset(
             transition.mechanism_indices(direction), nonempty=True
         )
     links = [
         transition.find_causal_link(
-            direction, mechanism, purviews=purviews, allow_neg=allow_neg
+            direction,
+            mechanism,
+            purviews=purviews,
+            allow_neg=allow_neg,
+            alpha_metric=alpha_metric,
+            partitioned_repertoire_scheme=partitioned_repertoire_scheme,
         )
         for mechanism in mechanisms
     ]
@@ -1130,7 +1301,13 @@ def directed_account(
     return DirectedAccount(filter(None, links))
 
 
-def account(transition, direction=Direction.BIDIRECTIONAL):
+def account(
+    transition,
+    direction=Direction.BIDIRECTIONAL,
+    *,
+    alpha_metric: DistributionMetric | None = None,
+    partitioned_repertoire_scheme=None,
+):
     """Return the set of all causal links for a |Transition|.
 
     Args:
@@ -1139,38 +1316,88 @@ def account(transition, direction=Direction.BIDIRECTIONAL):
     Keyword Args:
         direction (Direction): By default the account contains actual causes
             and actual effects.
+        alpha_metric (DistributionMetric): Resolved alpha measure callable.
+            When ``None``, ``config.formalism.actual_causation.alpha_measure``
+            is resolved at the call boundary.
+        partitioned_repertoire_scheme: Resolved partitioned-repertoire scheme
+            callable. When ``None``, the active
+            ``config.formalism.actual_causation.partitioned_repertoire_scheme``
+            is resolved at the call boundary.
     """
+    if alpha_metric is None or partitioned_repertoire_scheme is None:
+        resolved = _resolve_ac_kwargs()
+        if alpha_metric is None:
+            alpha_metric = resolved["alpha_metric"]
+        if partitioned_repertoire_scheme is None:
+            partitioned_repertoire_scheme = resolved["partitioned_repertoire_scheme"]
+
     if direction != Direction.BIDIRECTIONAL:
-        return directed_account(transition, direction)
+        return directed_account(
+            transition,
+            direction,
+            alpha_metric=alpha_metric,
+            partitioned_repertoire_scheme=partitioned_repertoire_scheme,
+        )
 
     return Account(
-        directed_account(transition, Direction.CAUSE)
-        + directed_account(transition, Direction.EFFECT)
+        directed_account(
+            transition,
+            Direction.CAUSE,
+            alpha_metric=alpha_metric,
+            partitioned_repertoire_scheme=partitioned_repertoire_scheme,
+        )
+        + directed_account(
+            transition,
+            Direction.EFFECT,
+            alpha_metric=alpha_metric,
+            partitioned_repertoire_scheme=partitioned_repertoire_scheme,
+        )
     )
 
 
-def probability_distance(p, q, measure=None):
+def probability_distance(
+    p: float,
+    q: float,
+    measure: str | None = None,
+    *,
+    alpha_metric: DistributionMetric | None = None,
+) -> float:
     """Compute the distance between two probabilities in actual causation.
-
-    The metric that defines this can be configured with
-    ``config.formalism.actual_causation.alpha_measure``.
 
     Args:
         p (float): The first probability.
         q (float): The second probability.
 
     Keyword Args:
-        measure (str): Optionally override
-        ``config.formalism.actual_causation.alpha_measure`` with another
-        measure name from the registry.
+        measure (str): Optional measure name registered in
+            :data:`pyphi.metrics.distribution.actual_causation_measures`.
+            Mutually exclusive with ``alpha_metric``.
+        alpha_metric (DistributionMetric): Optional resolved measure callable
+            (e.g., from
+            :func:`pyphi.metrics.distribution.resolve_actual_causation_measure`).
+            Internal callers thread the resolved object through to avoid
+            repeated registry lookups; external callers may pass ``measure``.
+            If both are ``None``, the active configuration's
+            ``alpha_measure`` is resolved.
 
     Returns:
         float: The probability distance between ``p`` and ``q``.
     """
-    measure = (
-        config.formalism.actual_causation.alpha_measure if measure is None else measure
-    )
-    dist = measures[measure](p, q)
+    if alpha_metric is not None and measure is not None:
+        raise ValueError(
+            "probability_distance accepts at most one of "
+            "`measure` or `alpha_metric`; got both."
+        )
+    if alpha_metric is None:
+        name = (
+            config.formalism.actual_causation.alpha_measure
+            if measure is None
+            else measure
+        )
+        metric_func = measures[name]
+    else:
+        metric_func = alpha_metric
+    dist = metric_func(p, q)
     return round(dist, config.numerics.precision)
 
 
@@ -1194,11 +1421,22 @@ def account_distance(A1, A2):
 
 
 def _evaluate_cut(
-    cut, transition, unpartitioned_account, direction=Direction.BIDIRECTIONAL
+    cut,
+    transition,
+    unpartitioned_account,
+    direction=Direction.BIDIRECTIONAL,
+    *,
+    alpha_metric: DistributionMetric,
+    partitioned_repertoire_scheme,
 ):
     """Find the |AcSystemIrreducibilityAnalysis| for a given cut."""
     cut_transition = transition.apply_cut(cut)
-    partitioned_account = account(cut_transition, direction)
+    partitioned_account = account(
+        cut_transition,
+        direction,
+        alpha_metric=alpha_metric,
+        partitioned_repertoire_scheme=partitioned_repertoire_scheme,
+    )
 
     log.debug("Finished evaluating %s.", cut)
     alpha = account_distance(unpartitioned_account, partitioned_account)
@@ -1262,8 +1500,17 @@ def sia(transition, direction=Direction.BIDIRECTIONAL, **kwargs):
         )
         return _null_ac_sia(transition, direction)
 
+    resolved = _resolve_ac_kwargs()
+    alpha_metric = resolved["alpha_metric"]
+    partitioned_repertoire_scheme = resolved["partitioned_repertoire_scheme"]
+
     log.debug("Finding unpartitioned account...")
-    unpartitioned_account = account(transition, direction)
+    unpartitioned_account = account(
+        transition,
+        direction,
+        alpha_metric=alpha_metric,
+        partitioned_repertoire_scheme=partitioned_repertoire_scheme,
+    )
     log.debug("Found unpartitioned account.")
 
     if not unpartitioned_account:
@@ -1282,6 +1529,8 @@ def sia(transition, direction=Direction.BIDIRECTIONAL, **kwargs):
             "transition": transition,
             "direction": direction,
             "unpartitioned_account": unpartitioned_account,
+            "alpha_metric": alpha_metric,
+            "partitioned_repertoire_scheme": partitioned_repertoire_scheme,
         },
         reduce_func=min,
         reduce_kwargs={
