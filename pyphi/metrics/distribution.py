@@ -1270,11 +1270,37 @@ def repertoire_distance(
             "the formalism boundary thread the metric object as a kwarg."
         )
     func = repertoire_distance
-    try:
+    if satisfies_stateful_distribution_metric(func):
+        # (p, q, state) — caller threads ``state`` via kwargs. ``direction``
+        # is not part of the stateful metric signature.
         try:
-            distance = func(r1, r2, direction=direction, **kwargs)  # type: ignore[call-arg]
-        except TypeError:
-            distance = func(r1, r2, **kwargs)  # type: ignore[call-arg]
-    except TypeError:
-        distance = func(r1, r2, direction=direction)  # type: ignore[call-arg]
+            state = kwargs.pop("state")
+        except KeyError as exc:
+            raise TypeError(
+                f"StatefulDistributionMetric "
+                f"{getattr(func, 'name', repr(func))!r} requires a 'state' "
+                f"keyword argument, but none was provided."
+            ) from exc
+        distance = func(r1, r2, state)  # type: ignore[call-arg]
+    elif satisfies_distribution_metric(func):
+        # (p, q) — may accept an optional ``direction`` parameter (e.g. EMD)
+        # and/or additional keyword arguments. Pass only those that appear
+        # in the metric's signature so unrecognized kwargs do not produce
+        # signature-mismatch TypeErrors masquerading as bugs.
+        sig_params = inspect.signature(func).parameters
+        call_kwargs: dict[str, Any] = {
+            name: value for name, value in kwargs.items() if name in sig_params
+        }
+        if "direction" in sig_params:
+            call_kwargs["direction"] = direction
+        distance = func(r1, r2, **call_kwargs)  # type: ignore[call-arg]
+    else:
+        observed_params = list(inspect.signature(func).parameters)
+        raise TypeError(
+            f"Cannot dispatch repertoire_distance with metric "
+            f"{getattr(func, 'name', repr(func))!r}: signature parameters "
+            f"{observed_params} do not match any registered metric Protocol "
+            f"that takes two repertoires (DistributionMetric or "
+            f"StatefulDistributionMetric)."
+        )
     return round(distance, config.numerics.precision)  # type: ignore[arg-type]
