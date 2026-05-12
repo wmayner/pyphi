@@ -56,7 +56,6 @@ def test_sia_uses_ces_distances(s):
 @skip_if_no_pyemd
 @patch("pyphi.metrics.ces._emd_simple")
 @patch("pyphi.metrics.ces._emd")
-@pytest.mark.outdated
 def test_ces_distance_uses_simple_vs_emd(mock_emd_distance, mock_simple_distance, s):
     """Quick check that we use the correct EMD distance function for CESs.
 
@@ -85,18 +84,19 @@ def test_ces_distance_uses_simple_vs_emd(mock_emd_distance, mock_simple_distance
         effect=make_mice(),
         mechanism=(0, 1),
     )
-    # lone concept -> null concept
-    ces_distance((lone_concept,), ())
-    assert mock_emd_distance.called is False
-    assert mock_simple_distance.called is True
-    mock_simple_distance.reset_mock()
+    with config.override(ces_measure="EMD"):
+        # lone concept -> null concept
+        ces_distance((lone_concept,), (), system=s)
+        assert mock_emd_distance.called is False
+        assert mock_simple_distance.called is True
+        mock_simple_distance.reset_mock()
 
-    other_concept = models.Concept(
-        cause=make_mice(),
-        effect=make_mice(),
-        mechanism=(0, 1, 2),
-    )
-    # different concepts in CES
-    ces_distance((lone_concept,), (other_concept,))
-    assert mock_emd_distance.called is True
-    assert mock_simple_distance.called is False
+        other_concept = models.Concept(
+            cause=make_mice(),
+            effect=make_mice(),
+            mechanism=(0, 1, 2),
+        )
+        # different concepts in CES
+        ces_distance((lone_concept,), (other_concept,), system=s)
+        assert mock_emd_distance.called is True
+        assert mock_simple_distance.called is False

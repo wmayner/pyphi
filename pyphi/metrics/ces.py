@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -19,16 +20,19 @@ from . import distribution
 if TYPE_CHECKING:
     from pyphi.models.distinction import Distinction as Concept
     from pyphi.models.distinctions import Distinctions
+    from pyphi.system import System
 
 
 class CESMeasureRegistry(Registry):
     """Storage for distance functions between cause-effect structures.
 
-    Users can define custom measures:
+    Users can define custom measures. The third positional / keyword
+    argument is the |System| context; measures that don't need it can
+    accept it as ``system=None`` and ignore it.
 
     Examples:
         >>> @measures.register('ALWAYS_ZERO')  # doctest: +SKIP
-        ... def always_zero(a, b):
+        ... def always_zero(a, b, system=None):
         ...    return 0
 
     And use them by setting, *e.g.*, ``config.ces_distance = 'ALWAYS_ZERO'``.
@@ -110,12 +114,15 @@ def emd_ground_distance(r1: Repertoire, r2: Repertoire) -> float:
     )
 
 
-def emd_concept_distance(c1: Concept, c2: Concept) -> float:
+def emd_concept_distance(c1: Concept, c2: Concept, system: System) -> float:
     """Return the EMD distance between two concepts in concept space.
 
     Args:
         c1 (Concept): The first concept.
         c2 (Concept): The second concept.
+        system (System): The system whose repertoire algebra is used to
+            expand each concept's cause and effect repertoires to the
+            combined purview before taking the ground distance.
 
     Returns:
         float: The distance between the two concepts in concept space.
@@ -129,17 +136,20 @@ def emd_concept_distance(c1: Concept, c2: Concept) -> float:
     assert c2.effect is not None
     cause_purview = tuple(set(c1.cause.purview + c2.cause.purview))
     effect_purview = tuple(set(c1.effect.purview + c2.effect.purview))
-    # Take the sum
     return emd_ground_distance(
-        c1.expand_cause_repertoire(cause_purview),  # type: ignore[attr-defined]  # Legacy IIT 3.0 code
-        c2.expand_cause_repertoire(cause_purview),  # type: ignore[attr-defined]  # Legacy IIT 3.0 code
+        system.expand_cause_repertoire(c1.cause.repertoire, new_purview=cause_purview),
+        system.expand_cause_repertoire(c2.cause.repertoire, new_purview=cause_purview),
     ) + emd_ground_distance(
-        c1.expand_effect_repertoire(effect_purview),  # type: ignore[attr-defined]  # Legacy IIT 3.0 code
-        c2.expand_effect_repertoire(effect_purview),  # type: ignore[attr-defined]  # Legacy IIT 3.0 code
+        system.expand_effect_repertoire(
+            c1.effect.repertoire, new_purview=effect_purview
+        ),
+        system.expand_effect_repertoire(
+            c2.effect.repertoire, new_purview=effect_purview
+        ),
     )
 
 
-def _emd_simple(C1: Distinctions, C2: Distinctions) -> float:
+def _emd_simple(C1: Sequence[Concept], C2: Sequence[Concept], system: System) -> float:
     """Return the distance between two cause-effect structures.
 
     Assumes the only difference between them is that some concepts have
@@ -149,10 +159,13 @@ def _emd_simple(C1: Distinctions, C2: Distinctions) -> float:
     if len(C2) > len(C1):
         C1, C2 = C2, C1
     destroyed = [c1 for c1 in C1 if not any(c1.emd_eq(c2) for c2 in C2)]
-    return sum(c.phi * emd_concept_distance(c, c.system.null_concept) for c in destroyed)
+    null_concept = system.null_concept
+    return sum(c.phi * emd_concept_distance(c, null_concept, system) for c in destroyed)
 
 
-def _emd(unique_C1: Distinctions, unique_C2: Distinctions) -> float:
+def _emd(
+    unique_C1: Sequence[Concept], unique_C2: Sequence[Concept], system: System
+) -> float:
     """Return the distance between two cause-effect structures.
 
     Uses the generalized EMD.
@@ -160,7 +173,7 @@ def _emd(unique_C1: Distinctions, unique_C2: Distinctions) -> float:
     # Get the pairwise distances between the concepts in the unpartitioned and
     # partitioned CESs.
     distances = np.array(
-        [[emd_concept_distance(i, j) for j in unique_C2] for i in unique_C1]
+        [[emd_concept_distance(i, j, system) for j in unique_C2] for i in unique_C1]
     )
     # We need distances from all concepts---in both the unpartitioned and
     # partitioned CESs---to the null concept, because:
@@ -169,9 +182,10 @@ def _emd(unique_C1: Distinctions, unique_C2: Distinctions) -> float:
     # - in certain cases, the partitioned system will have *greater* sum of
     #   small-phi, even though it has less big-phi, which means that some
     #   partitioned-CES concepts will be moved to the null concept.
+    null_concept = system.null_concept
     distances_to_null = np.array(
         [
-            emd_concept_distance(c, c.system.null_concept)
+            emd_concept_distance(c, null_concept, system)
             for ces in (unique_C1, unique_C2)
             for c in ces
         ]
@@ -225,45 +239,66 @@ def _emd(unique_C1: Distinctions, unique_C2: Distinctions) -> float:
 
 
 @measures.register("EMD")
-def emd(C1: Distinctions, C2: Distinctions) -> float:
+def emd(C1: Distinctions, C2: Distinctions, system: System | None = None) -> float:
     """Return the generalized EMD between two cause-effect structures.
 
     Args:
         C1 (Distinctions): The first |Distinctions|.
         C2 (Distinctions): The second |Distinctions|.
+        system (System): The system the CESs were computed over. Required
+            for the EMD measure: repertoire expansion and the null concept
+            both come from the system.
 
     Returns:
         float
     """
+    if system is None:
+        raise ValueError(
+            "The EMD CES measure requires a ``system`` argument; "
+            "pass ``system=`` through ``ces_distance``."
+        )
     concepts_only_in_C1 = [c1 for c1 in C1 if not any(c1.emd_eq(c2) for c2 in C2)]
     concepts_only_in_C2 = [c2 for c2 in C2 if not any(c2.emd_eq(c1) for c1 in C1)]
     # If the only difference in the CESs is that some concepts
     # disappeared, then we don't need to use the EMD.
     if not concepts_only_in_C1 or not concepts_only_in_C2:
-        dist = _emd_simple(C1, C2)
+        dist = _emd_simple(C1, C2, system)
     else:
-        dist = distribution.EMD.compute(concepts_only_in_C1, concepts_only_in_C2)
+        dist = _emd(concepts_only_in_C1, concepts_only_in_C2, system)
     return round(dist, config.numerics.precision)  # type: ignore[arg-type]
 
 
 @measures.register("SUM_SMALL_PHI")
-def sum_small_phi(C1: Distinctions, C2: Distinctions) -> float:
+def sum_small_phi(
+    C1: Distinctions,
+    C2: Distinctions,
+    system: System | None = None,  # noqa: ARG001
+) -> float:
     """Return the difference in |small_phi| between |Distinctions|."""
     return sum(C1.phis) - sum(C2.phis)
 
 
 def ces_distance(
-    C1: Distinctions, C2: Distinctions, measure: str | None = None
+    C1: Distinctions,
+    C2: Distinctions,
+    measure: str | None = None,
+    *,
+    system: System | None = None,
 ) -> float:
     """Return the distance between two cause-effect structures.
 
     Args:
         C1 (Distinctions): The first |Distinctions|.
         C2 (Distinctions): The second |Distinctions|.
+        measure (str): Which registered CES measure to use; defaults to
+            ``config.formalism.iit.ces_measure``.
+        system (System): The system the CESs were computed over. Required
+            by measures that operate on full repertoires (e.g. ``EMD``);
+            ignored by purely phi-summing measures (e.g. ``SUM_SMALL_PHI``).
 
     Returns:
         float: The distance between the two cause-effect structures.
     """
     measure_name: str = config.formalism.iit.ces_measure if measure is None else measure  # type: ignore[assignment]
-    dist: float = measures[measure_name](C1, C2)
+    dist: float = measures[measure_name](C1, C2, system=system)
     return round(dist, config.numerics.precision)  # type: ignore[arg-type]

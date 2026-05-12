@@ -177,7 +177,7 @@ def conceptual_info(system: System, **kwargs: Any) -> float:
     This is the distance from the system's |Distinctions| to the
     null concept.
     """
-    ci = ces_distance(ces(system, **kwargs), ResolvedDistinctions(()))
+    ci = ces_distance(ces(system, **kwargs), ResolvedDistinctions(()), system=system)
     return round(ci, config.numerics.precision)  # type: ignore[arg-type]  # config.Option descriptor
 
 
@@ -218,7 +218,7 @@ def evaluate_partition(
 
     log.debug("Finished evaluating %s.", partition)
 
-    phi_ = ces_distance(unpartitioned_ces, partitioned_ces)
+    phi_ = ces_distance(unpartitioned_ces, partitioned_ces, system=unpartitioned_system)
 
     return SystemIrreducibilityAnalysis(
         phi=phi_,
