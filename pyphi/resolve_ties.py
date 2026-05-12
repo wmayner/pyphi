@@ -64,6 +64,11 @@ def _(m):
     )
 
 
+@phi_object_tie_resolution_strategies.register("PARTITION_LEX")
+def _(m):
+    return m.partition.lex_key()
+
+
 def _strategies_to_key_function(strategies):
     """Convert a tie resolution strategy to a key function."""
     if isinstance(strategies, str):
@@ -147,3 +152,15 @@ def purviews[T](
     strategy = fallback(strategy, config.formalism.iit.purview_tie_resolution)
     assert strategy is not None, "PURVIEW_TIE_RESOLUTION config must be set"
     yield from resolve(mice, strategy, operation=max, **kwargs)
+
+
+def sias[T](
+    sias: Iterable[T], strategy: str | list[str] | None = None, **kwargs: Any
+) -> Iterator[T]:
+    """Resolve ties among system-level SIAs.
+
+    Controlled by the ``sia_tie_resolution`` configuration option.
+    """
+    strategy = fallback(strategy, config.formalism.iit.sia_tie_resolution)
+    assert strategy is not None, "sia_tie_resolution config must be set"
+    return resolve(sias, strategy, operation=min, **kwargs)

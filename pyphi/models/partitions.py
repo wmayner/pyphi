@@ -117,6 +117,19 @@ class _PartitionBase:
             if self.splits_mechanism(mechanism):
                 yield mechanism
 
+    def lex_key(self) -> bytes:
+        """Canonical sortable bytes representation of the induced edge cut.
+
+        Two partitions producing the same edge cut on the same node set
+        sort identically. Returns ``b""`` for an empty edge cut.
+        """
+        if self.is_null:
+            return b""
+        indices = self.indices
+        if not indices:
+            return b""
+        return self.cut_matrix(max(indices) + 1).tobytes()
+
 
 class NullCut(_PartitionBase):
     """The empty edge cut: no connections severed."""

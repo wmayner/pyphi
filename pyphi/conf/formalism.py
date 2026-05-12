@@ -55,6 +55,9 @@ class IITConfig:
         default_factory=lambda: ["NORMALIZED_PHI", "NEGATIVE_PHI"]
     )
     purview_tie_resolution: str = "PHI"
+    sia_tie_resolution: list[str] = field(
+        default_factory=lambda: ["NORMALIZED_PHI", "NEGATIVE_PHI", "PARTITION_LEX"]
+    )
 
     __repr__ = yaml_repr
 
