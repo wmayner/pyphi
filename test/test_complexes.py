@@ -3,7 +3,6 @@ import pytest
 from pyphi import System
 from pyphi import config
 from pyphi import examples
-from pyphi.formalism import iit3
 from pyphi.formalism.iit4 import ces
 from pyphi.metrics.distribution import resolve_mechanism_measure
 from pyphi.metrics.distribution import resolve_system_measure
@@ -42,18 +41,18 @@ class TestComplexesIIT30:
         with IIT_3_CONFIG:
             yield
 
-    def test_complexes_standard(self, s):
-        """Test complexes computation for standard substrate (IIT 3.0).
+    def test_irreducible_sias_standard(self, s):
+        """Test ``irreducible_sias`` for standard substrate (IIT 3.0).
 
         Under IIT 3.0 with ``DIRECTED_BI`` system partitions, the standard
-        ``s`` fixture has exactly three irreducible complexes. Verify the
-        full set: phi values, node indices, and ordering.
+        ``s`` fixture has exactly three irreducible candidate systems
+        (|big_phi| > 0). Verify their phi values, node indices, and
+        ordering (iteration in :func:`possible_complexes` order, not
+        phi-sorted).
         """
-        complexes = list(iit3.complexes(s.substrate, s.state))
-        assert len(complexes) == 3
-        # Verify each complex's phi and node_indices
-        nodes_and_phis = [(c.system.node_indices, float(c.phi)) for c in complexes]
-        # complexes() iterates in possible_complexes order, not phi-sorted
+        sias = s.substrate.irreducible_sias(s.state)
+        assert len(sias) == 3
+        nodes_and_phis = [(c.system.node_indices, float(c.phi)) for c in sias]
         expected = [
             ((0, 1, 2), 0.5),
             ((1, 2), 2.0),
@@ -65,24 +64,36 @@ class TestComplexesIIT30:
             assert got_nodes == exp_nodes
             assert got_phi == pytest.approx(exp_phi, rel=1e-6)
 
-    def test_all_complexes_standard(self, s):
-        """Test all_complexes computation for standard substrate (IIT 3.0).
+    def test_complexes_standard(self, s):
+        """Test ``complexes`` (non-overlapping maxima) for standard substrate.
 
-        ``all_complexes`` iterates over ``possible_complexes`` (not all
-        ``2**n - 1`` subsets), so for the standard ``s`` fixture it returns 5
-        systems with phi values ``[0.0, 0.0, 0.5, 1.0, 2.0]`` — exactly
-        three of which are irreducible (matching
-        :meth:`test_complexes_standard`).
+        Greedy condensation over the three irreducible systems
+        ``[(0,1,2):0.5, (1,2):2.0, (0,2):1.0]`` accepts ``(1,2)`` first
+        (highest phi), then rejects both overlapping candidates, leaving
+        a single complex.
         """
-        complexes = list(iit3.all_complexes(s.substrate, s.state))
-        assert len(complexes) == 5
-        phis = sorted(float(c.phi) for c in complexes)
+        cx = s.substrate.complexes(s.state)
+        assert len(cx) == 1
+        assert cx[0].system.node_indices == (1, 2)
+        assert float(cx[0].phi) == pytest.approx(2.0, rel=1e-6)
+
+    def test_all_sias_standard(self, s):
+        """Test ``all_sias`` for standard substrate (IIT 3.0).
+
+        Iterates over ``possible_complexes`` (not all ``2**n - 1`` subsets),
+        so for the standard ``s`` fixture it returns 5 systems with phi
+        values ``[0.0, 0.0, 0.5, 1.0, 2.0]`` — exactly three of which are
+        irreducible.
+        """
+        sias = s.substrate.all_sias(s.state)
+        assert len(sias) == 5
+        phis = sorted(float(c.phi) for c in sias)
         assert phis == pytest.approx([0.0, 0.0, 0.5, 1.0, 2.0], rel=1e-6)
         assert sum(1 for phi in phis if phi > 0) == 3
 
-    def test_major_complex(self, s):
-        """Test major_complex computation for standard substrate (IIT 3.0)."""
-        major = iit3.major_complex(s.substrate, s.state)
+    def test_maximal_complex(self, s):
+        """Test ``maximal_complex`` for standard substrate (IIT 3.0)."""
+        major = s.substrate.maximal_complex(s.state)
         assert float(major.phi) == pytest.approx(2.0, rel=1e-6)
         assert major.system.node_indices == (1, 2)
 
@@ -101,9 +112,9 @@ class TestComplexesIIT30:
         investigation.
         """
         with config.override(parallel=False, progress_bars=False):
-            serial = list(iit3.all_complexes(s.substrate, s.state))
+            serial = s.substrate.all_sias(s.state)
         with config.override(parallel=True, progress_bars=False):
-            parallel = list(iit3.all_complexes(s.substrate, s.state))
+            parallel = s.substrate.all_sias(s.state)
         assert sorted(serial, key=lambda x: x.phi) == sorted(
             parallel, key=lambda x: x.phi
         )
@@ -156,3 +167,65 @@ class TestCauseEffectStructureIIT40:
         assert result.big_phi == pytest.approx(1.0, rel=1e-6)
         assert len(result.distinctions) == 2
         assert len(result.relations) == 0
+
+
+class TestSubstrateMethodsIIT40:
+    """Substrate-level method coverage under IIT 4.0.
+
+    Exercises the unified substrate-method API (``all_sias``,
+    ``irreducible_sias``, ``complexes``, ``maximal_complex``) which
+    previously had no IIT 4.0 condensation entry point.
+    """
+
+    @staticmethod
+    def _indices(sia):
+        from pyphi.substrate import _sia_node_indices
+
+        return _sia_node_indices(sia)
+
+    def test_substrate_complexes_invariants(self, s):
+        """``substrate.complexes(state)`` returns non-overlapping local maxima.
+
+        Asserts the structural invariants every complexes list must
+        satisfy under either formalism: positive phi, descending order,
+        and pairwise-disjoint node sets.
+        """
+        cx = s.substrate.complexes(s.state)
+        # Phi values positive and non-increasing.
+        for c in cx:
+            assert float(c.phi) > 0
+        phis = [float(c.phi) for c in cx]
+        assert phis == sorted(phis, reverse=True)
+        # Pairwise-disjoint node indices.
+        seen: set[int] = set()
+        for c in cx:
+            indices = self._indices(c)
+            assert indices is not None
+            nodes = set(indices)
+            assert nodes.isdisjoint(seen)
+            seen.update(nodes)
+
+    def test_substrate_maximal_complex_matches_complexes_head(self, s):
+        """``maximal_complex`` agrees with the head of ``complexes``."""
+        cx = s.substrate.complexes(s.state)
+        maximal = s.substrate.maximal_complex(s.state)
+        if cx:
+            assert self._indices(maximal) == self._indices(cx[0])
+            assert float(maximal.phi) == pytest.approx(float(cx[0].phi), rel=1e-9)
+
+    def test_substrate_all_sias_superset_of_irreducible(self, s):
+        """``all_sias`` is a superset of ``irreducible_sias``."""
+        all_ = s.substrate.all_sias(s.state)
+        irr = s.substrate.irreducible_sias(s.state)
+
+        def _key(c):
+            indices = self._indices(c)
+            assert indices is not None
+            return tuple(indices)
+
+        all_nodes = {_key(c) for c in all_}
+        irr_nodes = {_key(c) for c in irr}
+        assert irr_nodes.issubset(all_nodes)
+        # Irreducible ones have phi > 0.
+        for c in irr:
+            assert float(c.phi) > 0

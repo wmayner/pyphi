@@ -29,7 +29,6 @@ from typing import Any
 
 import numpy as np
 
-from pyphi.formalism import iit3 as _iit3
 from pyphi.registry import Registry
 
 from . import conf
@@ -1744,7 +1743,7 @@ def true_events(
     elif indices:
         nodes = indices
     else:
-        major_complex = _iit3.major_complex(substrate, current_state)
+        major_complex = substrate.maximal_complex(current_state)
         nodes = major_complex.system.node_indices  # pyright: ignore[reportOptionalMemberAccess]
 
     return events(substrate, previous_state, current_state, next_state, nodes)
@@ -1780,7 +1779,7 @@ def extrinsic_events(
     elif indices:
         mc_nodes = indices
     else:
-        major_complex = _iit3.major_complex(substrate, current_state)
+        major_complex = substrate.maximal_complex(current_state)
         mc_nodes = major_complex.system.node_indices  # pyright: ignore[reportOptionalMemberAccess]
 
     mechanisms = list(utils.powerset(mc_nodes, nonempty=True))

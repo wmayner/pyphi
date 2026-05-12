@@ -50,7 +50,6 @@ from pyphi.partition import system_partitions
 from pyphi.relations import ConcreteRelations
 from pyphi.relations import Relations
 from pyphi.relations import relations as compute_relations
-from pyphi.substrate import reachable_systems
 from pyphi.system import System
 from pyphi.warnings import warn_about_tie_serialization
 
@@ -821,39 +820,4 @@ def ces(
         sia=sia,
         distinctions=resolved_distinctions,
         relations=relations,
-    )
-
-
-def all_complexes(substrate, state, parallel_kwargs=None, **kwargs):
-    """Return SIAs for all systems of the substrate.
-
-    Dispatches through :class:`pyphi.parallel.MapReduce` using the
-    ``parallel_complex_evaluation`` config; pass ``parallel_kwargs`` to
-    override per-call.
-    """
-    pkwargs = conf.parallel_kwargs(
-        dict(config.infrastructure.parallel_complex_evaluation),
-        **(parallel_kwargs or {}),
-    )
-    systems = list(reachable_systems(substrate, substrate.node_indices, state))
-    return MapReduce(
-        sia,
-        systems,
-        map_kwargs={"progress": False, **kwargs},
-        desc="Evaluating complexes",
-        **pkwargs,
-    ).run()
-
-
-def irreducible_complexes(substrate, state, complexes=None, **kwargs):
-    """Yield SIAs for irreducible systems of the substrate."""
-    if complexes is None:
-        complexes = all_complexes(substrate, state, **kwargs)
-    yield from filter(None, complexes)
-
-
-def maximal_complex(substrate, state, complexes=None, **kwargs):
-    return max(
-        irreducible_complexes(substrate, state, complexes=complexes, **kwargs),
-        default=NullCauseEffectStructure(),
     )
