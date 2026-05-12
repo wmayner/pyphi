@@ -45,14 +45,18 @@ RTOL = 1e-12
 ATOL = 1e-12
 
 
-_IIT3_EMD_XFAIL_REASON = (
-    "IIT 3.0 EMD CES distance path is broken: ``pyphi/metrics/ces.py:245`` "
-    "passes ``Concept`` lists to ``distribution.EMD.compute`` (which expects "
-    "float arrays), and lines 134-138, 152, 174 reference "
-    "``Distinction.system`` / ``Distinction.expand_*_repertoire`` attributes "
-    "that no longer exist. ``strict=False`` because trivially-reducible iit3 "
-    "fixtures (e.g. xor, basic_subset) short-circuit before the EMD CES "
-    "distance is computed and so pass under the broken path."
+_IIT3_EMD_SKIP_REASON = (
+    "iit3_emd goldens are placeholder snapshots captured under broken IIT 3.0 "
+    "code (``pyphi/metrics/ces.py:245`` passes ``Concept`` lists to "
+    "``distribution.EMD.compute`` which expects float arrays; lines 134-138, "
+    "152, 174 reference ``Distinction.system`` / "
+    "``Distinction.expand_*_repertoire`` attributes that no longer exist) "
+    "compounded by prior ``IIT_3_CONFIG`` test drift that left "
+    "``ces_measure=SUM_SMALL_PHI`` instead of EMD. Their stored values are "
+    "not trustworthy correctness baselines: a passing comparison would only "
+    "show that the current code reproduces the broken snapshot. Will be "
+    "regenerated once the EMD CES distance path is restored and ground-truth "
+    "values are independently verified against the IIT 3.0 paper."
 )
 
 
@@ -61,7 +65,7 @@ def _marks_for(fixture: GoldenFixture) -> list[pytest.MarkDecorator]:
     if fixture.slow:
         marks.append(pytest.mark.slow)
     if "iit3_emd" in fixture.name:
-        marks.append(pytest.mark.xfail(reason=_IIT3_EMD_XFAIL_REASON, strict=False))
+        marks.append(pytest.mark.skip(reason=_IIT3_EMD_SKIP_REASON))
     return marks
 
 
