@@ -42,7 +42,7 @@ import numpy as np
 
 from pyphi import Substrate
 from pyphi import examples
-from pyphi.conf import config
+from pyphi.conf import presets
 
 from .fixture import GoldenFixture
 
@@ -92,18 +92,12 @@ IIT_4_2026_CONFIG = {
 }
 
 # IIT 3.0 — Oizumi/Albantakis/Tononi 2014. Distribution-distance based.
-# ``mechanism_partition_scheme`` is a colliding name (lives in both
-# ``iit`` and ``actual_causation`` sub-namespaces), so it travels inside
-# an ``IITConfig`` replacement rather than as a flat kwarg.
+# Sourced from ``presets.iit3`` so this and the library's canonical preset
+# cannot drift apart. ``alpha_measure="PMI"`` is layered for fixtures that
+# also exercise actual-causation paths; ``progress_bars`` and ``parallel``
+# are test-runtime overrides, not formalism fields.
 IIT_3_CONFIG = {
-    "iit": replace(
-        config.formalism.iit,
-        version="IIT_3_0",
-        mechanism_phi_measure="EMD",
-        mechanism_partition_scheme="BI",
-        system_partition_scheme="DIRECTED_BI",
-        purview_tie_resolution=["PHI", "PURVIEW_SIZE"],
-    ),
+    **presets.iit3,
     "alpha_measure": "PMI",
     "progress_bars": False,
     "parallel": False,
