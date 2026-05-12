@@ -1,3 +1,5 @@
+import numpy as np
+
 from pyphi import config
 from pyphi import resolve_ties
 from pyphi.direction import Direction
@@ -69,10 +71,12 @@ def test_lex_key_nullcut_is_empty_bytes():
     assert null.lex_key() == b""
 
 
-def test_lex_key_directed_bipartition_matches_cut_matrix_bytes():
+def test_lex_key_directed_bipartition_encodes_severed_edge():
+    """A 3-node EFFECT bipartition severing 1→2 has a 1 at row 1 col 2."""
     sp = DirectedBipartition(Direction.EFFECT, (1,), (2,))
-    expected = sp.cut_matrix(3).tobytes()
-    assert sp.lex_key() == expected
+    expected = np.zeros((3, 3), dtype=np.uint8)
+    expected[1, 2] = 1
+    assert sp.lex_key() == expected.tobytes()
 
 
 def test_lex_key_equivalent_partitions_compare_equal():
@@ -94,11 +98,31 @@ def test_lex_key_distinct_partitions_compare_distinct():
     assert sp_a.lex_key() != sp_b.lex_key()
 
 
-def test_lex_key_is_total_ordering():
-    """Distinct partitions sort under bytes comparison."""
-    sp_a = DirectedBipartition(Direction.EFFECT, (1,), (2,))
-    sp_b = DirectedBipartition(Direction.EFFECT, (0,), (2,))
-    assert sp_a.lex_key() < sp_b.lex_key() or sp_b.lex_key() < sp_a.lex_key()
+def test_lex_key_complete_edge_cut_is_all_ones():
+    """CompleteEdgeCut severs every connection — key is an all-ones matrix."""
+    from pyphi.models.partitions import CompleteEdgeCut
+
+    cec = CompleteEdgeCut(node_indices=(0, 1, 2))
+    expected = np.ones((3, 3), dtype=np.uint8).tobytes()
+    assert cec.lex_key() == expected
+
+
+def test_lex_key_directed_set_partition_matches_induced_cut():
+    """DirectedSetPartition lex_key encodes the same cut as its cut_matrix."""
+    from pyphi.models.partitions import DirectedSetPartition
+
+    # Build a 3-node partition with parts [[0], [1, 2]]; sever 0→1 and 0→2.
+    node_indices = (0, 1, 2)
+    cut_mat = np.zeros((3, 3), dtype=int)
+    cut_mat[0, 1] = 1
+    cut_mat[0, 2] = 1
+    sp = DirectedSetPartition(
+        node_indices=node_indices,
+        cut_matrix=cut_mat,
+        set_partition=[[0], [1, 2]],
+    )
+    expected = sp.cut_matrix(3).astype(np.uint8)
+    assert sp.lex_key() == expected.tobytes()
 
 
 class DummySia:

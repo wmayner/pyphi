@@ -121,14 +121,15 @@ class _PartitionBase:
         """Canonical sortable bytes representation of the induced edge cut.
 
         Two partitions producing the same edge cut on the same node set
-        sort identically. Returns ``b""`` for an empty edge cut.
+        sort identically. For an empty edge cut, returns ``b""`` so it
+        sorts before any non-empty cut.
         """
         if self.is_null:
             return b""
         indices = self.indices
         if not indices:
             return b""
-        return self.cut_matrix(max(indices) + 1).tobytes()
+        return self.cut_matrix(max(indices) + 1).astype(np.uint8).tobytes()
 
 
 class NullCut(_PartitionBase):

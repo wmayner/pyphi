@@ -155,7 +155,7 @@ def purviews[T](
 
 
 def sias[T](
-    sias: Iterable[T], strategy: str | list[str] | None = None, **kwargs: Any
+    analyses: Iterable[T], strategy: str | list[str] | None = None, **kwargs: Any
 ) -> Iterator[T]:
     """Resolve ties among system-level SIAs.
 
@@ -163,4 +163,4 @@ def sias[T](
     """
     strategy = fallback(strategy, config.formalism.iit.sia_tie_resolution)
     assert strategy is not None, "sia_tie_resolution config must be set"
-    return resolve(sias, strategy, operation=min, **kwargs)
+    return resolve(analyses, strategy, operation=min, **kwargs)
