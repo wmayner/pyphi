@@ -1,14 +1,14 @@
 {
   "fixture_name": "logistic3_k8_iit4_2023",
   "schema_version": 1,
-  "generated_from_commit": "023a359b082dcb825beaa323c150090d51f454dd",
-  "description": "3-node logistic network (sigmoid activation, k=8, weights 0.3) in state (0,0,0). IIT 4.0 (2023). Companion to logistic3_k8_iit4_2026 \u2014 together they exercise the partial ii(s) cap activation regime.",
+  "generated_from_commit": "faafa374f0d7c09e2c9e81bc825bee66ad458dcc",
+  "description": "3-node logistic substrate (sigmoid activation, k=8, weights 0.3) in state (0,0,0). IIT 4.0 (2023). Companion to logistic3_k8_iit4_2026 \u2014 together they exercise the partial ii(s) cap activation regime.",
   "config_overrides": {
-    "FORMALISM": "IIT_4_0_2023",
-    "REPERTOIRE_DISTANCE": "GENERALIZED_INTRINSIC_DIFFERENCE",
-    "SYSTEM_PARTITION_TYPE": "SET_UNI/BI",
-    "PROGRESS_BARS": false,
-    "PARALLEL": false
+    "version": "IIT_4_0_2023",
+    "mechanism_phi_measure": "GENERALIZED_INTRINSIC_DIFFERENCE",
+    "system_partition_scheme": "SET_UNI/BI",
+    "progress_bars": false,
+    "parallel": false
   },
   "state": [
     0,
@@ -4351,7 +4351,7 @@
     "signed_phi": 0.03661738126586076,
     "partition": [
       [
-        "2 parts: {n0,n1n2}\n[[0 1 1]\n [0 0 0]\n [0 0 0]]"
+        "2 parts: {n0n1,n2}\n[[0 0 0]\n [0 0 0]\n [1 1 0]]"
       ]
     ],
     "system_state": {
