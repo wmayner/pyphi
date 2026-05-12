@@ -812,7 +812,7 @@ def fmt_sia(
     data = [
         f"{BIG_PHI}: {fmt_number(sia.phi)}",  # type: ignore[attr-defined]
         sia.system,  # type: ignore[attr-defined]
-        sia.cut,  # type: ignore[attr-defined]
+        sia.partition,  # type: ignore[attr-defined]
     ]
     for line in reversed(data):
         body = header(str(line), body)
@@ -990,7 +990,7 @@ def fmt_ac_sia(ac_sia: object) -> str:
     transition_val = ac_sia.transition  # type: ignore[attr-defined]
     before_state_val = ac_sia.before_state  # type: ignore[attr-defined]
     after_state_val = ac_sia.after_state  # type: ignore[attr-defined]
-    cut_val = ac_sia.cut  # type: ignore[attr-defined]
+    cut_val = ac_sia.partition  # type: ignore[attr-defined]
     alpha_val = round(ac_sia.alpha, 4)  # type: ignore[attr-defined]
 
     body = (

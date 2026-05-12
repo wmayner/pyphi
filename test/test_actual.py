@@ -167,8 +167,8 @@ def test_transition_system_apply_cut_returns_new_instance():
     new_cut = DirectedBipartition(Direction.CAUSE, (0, 1), (2,), substrate.node_labels)
     ts2 = ts.apply_cut(new_cut)
     assert ts2 is not ts
-    assert ts2.cut == new_cut
-    assert isinstance(ts.cut, NullCut)
+    assert ts2.partition == new_cut
+    assert isinstance(ts.partition, NullCut)
 
 
 # TODO
@@ -348,7 +348,7 @@ def test_transition_apply_cut(transition):
     assert cut_transition.after_state == transition.after_state
     assert cut_transition.cause_indices == transition.cause_indices
     assert cut_transition.effect_indices == transition.effect_indices
-    assert cut_transition.cut == cut
+    assert cut_transition.partition == cut
     assert cut_transition != transition
 
 
@@ -390,7 +390,7 @@ def ac_sia(**kwargs):
         "account": account(),
         "partitioned_account": account(),
         "transition": None,
-        "cut": None,
+        "partition": None,
     }
     defaults.update(kwargs)
     return models.AcSystemIrreducibilityAnalysis(**defaults)

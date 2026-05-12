@@ -64,18 +64,18 @@ def macro_system():
     )
 
 
-def test_cut_indices(macro_system, s):
-    assert macro_system.cut_indices == (0, 1, 2, 3)
+def test_partition_indices(macro_system, s):
+    assert macro_system.partition_indices == (0, 1, 2, 3)
     micro = macro.MacroSystem(s.substrate, s.state, s.node_indices)
-    assert micro.cut_indices == (0, 1, 2)
+    assert micro.partition_indices == (0, 1, 2)
 
 
-def test_cut_mechanisms(macro_system, propagation_delay):
+def test_partitioned_mechanisms(macro_system, propagation_delay):
     cut = DirectedBipartition(Direction.EFFECT, (0,), (1, 2, 3))
-    assert list(macro_system.apply_cut(cut).cut_mechanisms) == [(0,), (0, 1)]
+    assert list(macro_system.apply_cut(cut).partitioned_mechanisms) == [(0,), (0, 1)]
 
     cut = DirectedBipartition(Direction.EFFECT, (1, 3), (0, 2, 4, 5, 6, 7))
-    assert list(propagation_delay.apply_cut(cut).cut_mechanisms) == [
+    assert list(propagation_delay.apply_cut(cut).partitioned_mechanisms) == [
         (1,),
         (2,),
         (0, 1),
@@ -85,9 +85,9 @@ def test_cut_mechanisms(macro_system, propagation_delay):
     ]
 
 
-def test_cut_node_labels_are_for_micro_elements(macro_system):
-    assert macro_system.cut_node_labels == macro_system.substrate.node_labels
-    assert macro_system.cut_node_labels != macro_system.node_labels
+def test_partition_node_labels_are_for_micro_elements(macro_system):
+    assert macro_system.partition_node_labels == macro_system.substrate.node_labels
+    assert macro_system.partition_node_labels != macro_system.node_labels
 
 
 # NOTE: test_concept_str_uses_macro_node_labels was removed because it had a broadcasting

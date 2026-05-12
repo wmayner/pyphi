@@ -316,9 +316,9 @@ class MaximallyIrreducibleCauseOrEffect(
         The cut affects the MICE if it either splits the MICE's mechanism
         or splits the connections between the purview and mechanism.
         """
-        return system.cut.splits_mechanism(self.mechanism) or np.any(
+        return system.partition.splits_mechanism(self.mechanism) or np.any(
             self._relevant_connections(system)
-            * system.cut.cut_matrix(system.substrate.size)
+            * system.partition.cut_matrix(system.substrate.size)
             == 1
         )
 

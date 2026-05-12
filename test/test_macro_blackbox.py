@@ -138,7 +138,7 @@ def test_basic_nor_or():
         sia = iit3.sia(sub)
 
     assert sia.phi == 1.958332
-    assert sia.cut == DirectedBipartition(
+    assert sia.partition == DirectedBipartition(
         Direction.EFFECT, (6,), (0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11)
     )
     # After performing the 'ONE_CUT_APPROXIMATION'
@@ -205,7 +205,7 @@ def test_xor_propogation_delay():
 
     sia = iit3.sia(subsys)
     assert sia.phi == 1.874999
-    assert sia.cut == DirectedBipartition(
+    assert sia.partition == DirectedBipartition(
         Direction.EFFECT, (0,), (1, 2, 3, 4, 5, 6, 7, 8)
     )
 

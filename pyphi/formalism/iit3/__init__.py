@@ -183,17 +183,17 @@ def conceptual_info(system: System, **kwargs: Any) -> float:
 
 def evaluate_cut(
     cut: DirectedBipartition,
-    uncut_system: System,
+    unpartitioned_system: System,
     unpartitioned_ces: Distinctions,
     **kwargs: Any,
 ) -> SystemIrreducibilityAnalysis:
     """Compute the system irreducibility for a given cut.
 
     Args:
-        uncut_system (System): The system without the cut applied.
+        unpartitioned_system (System): The system without a partition applied.
         cut (DirectedBipartition): The cut to evaluate.
         unpartitioned_ces (Distinctions): The cause-effect structure of
-            the uncut system.
+            the unpartitioned system.
 
     Returns:
         SystemIrreducibilityAnalysis: The |SystemIrreducibilityAnalysis| for
@@ -201,7 +201,7 @@ def evaluate_cut(
     """
     log.debug("Evaluating %s...", cut)
 
-    cut_system = uncut_system.apply_cut(cut)
+    partitioned_system = unpartitioned_system.apply_cut(cut)
 
     if config.formalism.iit.assume_partitions_cannot_create_new_concepts:
         mechanisms = list(unpartitioned_ces.mechanisms)
@@ -209,11 +209,12 @@ def evaluate_cut(
         # Mechanisms can only produce concepts if they were concepts in the
         # original system, or the cut divides the mechanism.
         mechanisms = set(
-            list(unpartitioned_ces.mechanisms) + list(cut_system.cut_mechanisms)
+            list(unpartitioned_ces.mechanisms)
+            + list(partitioned_system.partitioned_mechanisms)
         )
 
     kwargs = {"progress": False, **kwargs}
-    partitioned_ces = ces(cut_system, mechanisms, **kwargs)
+    partitioned_ces = ces(partitioned_system, mechanisms, **kwargs)
 
     log.debug("Finished evaluating %s.", cut)
 
@@ -223,8 +224,8 @@ def evaluate_cut(
         phi=phi_,
         ces=unpartitioned_ces,
         partitioned_ces=partitioned_ces,
-        system=uncut_system,
-        cut_system=cut_system,
+        system=unpartitioned_system,
+        partitioned_system=partitioned_system,
     )
 
 
@@ -278,7 +279,7 @@ def _sia_map_reduce(
         evaluate_cut,
         cuts,
         map_kwargs={
-            "uncut_system": system,
+            "unpartitioned_system": system,
             "unpartitioned_ces": unpartitioned_ces,
         },
         reduce_func=min,
@@ -327,7 +328,7 @@ def _sia(system: System, **kwargs: Any) -> SystemIrreducibilityAnalysis:
     # Handle elementary micro mechanism cases.
     # Single macro element systems have nontrivial bipartitions because their
     #   bipartitions are over their micro elements.
-    if len(system.cut_indices) == 1:
+    if len(system.partition_indices) == 1:
         # If the node lacks a self-loop, phi is trivially zero.
         if not system.cm[system.node_indices][system.node_indices]:
             log.info(
@@ -358,17 +359,17 @@ def _sia(system: System, **kwargs: Any) -> SystemIrreducibilityAnalysis:
 
     # TODO: move this into sia_bipartitions?
     # Only True if SINGLE_MICRO_NODES...=True, no?
-    if len(system.cut_indices) == 1:
+    if len(system.partition_indices) == 1:
         cuts = [
             DirectedBipartition(
                 Direction.EFFECT,
-                system.cut_indices,
-                system.cut_indices,
-                system.cut_node_labels,
+                system.partition_indices,
+                system.partition_indices,
+                system.partition_node_labels,
             )
         ]
     else:
-        cuts = sia_partitions(system.cut_indices, system.cut_node_labels)
+        cuts = sia_partitions(system.partition_indices, system.partition_node_labels)
 
     result = _sia_map_reduce(cuts, system, unpartitioned_ces, **kwargs)
 

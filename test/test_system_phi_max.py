@@ -22,7 +22,9 @@ from . import example_substrates
 s = example_substrates.s()
 directions = (Direction.CAUSE, Direction.EFFECT)
 cuts = (None, DirectedBipartition(Direction.EFFECT, (1, 2), (0,)))
-system = {cut: System(s.substrate, s.state, s.node_indices, cut=cut) for cut in cuts}
+system = {
+    cut: System(s.substrate, s.state, s.node_indices, partition=cut) for cut in cuts
+}
 
 expected_purview_indices = {
     cuts[0]: {

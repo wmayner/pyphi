@@ -185,7 +185,7 @@ class MacroSystem(System):
         substrate,
         state,
         nodes=None,
-        cut=None,
+        partition=None,
         time_scale=1,
         blackbox=None,
         *_args,
@@ -201,7 +201,7 @@ class MacroSystem(System):
         substrate,
         state,
         nodes=None,
-        cut=None,
+        partition=None,
         time_scale=1,
         blackbox=None,
         coarse_grain=None,
@@ -216,7 +216,7 @@ class MacroSystem(System):
         self.blackbox = blackbox
         self.coarse_grain = coarse_grain
 
-        super().__init__(substrate, state, micro_node_indices, cut)  # pyright: ignore[reportArgumentType]
+        super().__init__(substrate, state, micro_node_indices, partition)  # pyright: ignore[reportArgumentType]
 
         validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
 
@@ -250,7 +250,7 @@ class MacroSystem(System):
         if coarse_grain is not None:
             validate.coarse_grain(coarse_grain)
             coarse_grain = coarse_grain.reindex()
-            system = self._coarsegrain_space(coarse_grain, self.is_cut, system)
+            system = self._coarsegrain_space(coarse_grain, self.is_partitioned, system)
 
         system.apply(self)
 
@@ -386,53 +386,54 @@ class MacroSystem(System):
         return SystemAttrs(cause_tpm, effect_tpm, cm, node_indices, state)
 
     @property
-    def cut_indices(self):  # pyright: ignore[reportIncompatibleVariableOverride]
-        """The indices of this system to be cut for |big_phi| computations.
+    def partition_indices(self):  # pyright: ignore[reportIncompatibleVariableOverride]
+        """The indices of this system's partition for |big_phi| computations.
 
-        For macro computations the cut is applied to the underlying
+        For macro computations the partition is applied to the underlying
         micro-system.
         """
         return self.micro_node_indices
 
     @property
-    def cut_mechanisms(self):  # pyright: ignore[reportIncompatibleVariableOverride]
-        """The mechanisms of this system that are currently cut.
+    def partitioned_mechanisms(self):  # pyright: ignore[reportIncompatibleVariableOverride]
+        """The mechanisms of this system that are currently partitioned.
 
-        Note that although ``cut_indices`` returns micro indices, this
+        Note that although ``partition_indices`` returns micro indices, this
         returns macro mechanisms.
 
         Returns:
-            list[tuple[int, ...]]: The list of cut mechanisms.
+            list[tuple[int, ...]]: The list of partitioned mechanisms.
         """
         return [
             mechanism
             for mechanism in utils.powerset(self.node_indices, nonempty=True)
-            if self.cut.splits_mechanism(self.macro2micro(mechanism))
+            if self.partition.splits_mechanism(self.macro2micro(mechanism))
         ]
 
     @property
-    def cut_node_labels(self):  # pyright: ignore[reportIncompatibleVariableOverride]
-        """Labels for the nodes that can be cut.
+    def partition_node_labels(self):  # pyright: ignore[reportIncompatibleVariableOverride]
+        """Labels for the nodes that can be partitioned.
 
         These are the labels of the micro elements.
         """
         return self.substrate.node_labels
 
-    def apply_cut(self, cut):
-        """Return a cut version of this |MacroSystem|.
+    def apply_cut(self, partition):
+        """Return a partitioned version of this |MacroSystem|.
 
         Args:
-            cut (DirectedBipartition): The cut to apply to this |MacroSystem|.
+            partition (DirectedBipartition): The partition to apply to this
+                |MacroSystem|.
 
         Returns:
-            MacroSystem: The cut version of this |MacroSystem|.
+            MacroSystem: The partitioned version of this |MacroSystem|.
         """
         # TODO: is the MICE cache reusable?
         return MacroSystem(
             self.substrate,
             self.substrate_state,
             self.micro_node_indices,
-            cut=cut,
+            partition=partition,
             time_scale=self.time_scale,
             blackbox=self.blackbox,
             coarse_grain=self.coarse_grain,

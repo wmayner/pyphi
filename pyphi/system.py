@@ -36,7 +36,7 @@ class System:
     substrate: Substrate
     state: State
     node_indices: NodeIndices = field(default=None)  # type: ignore[assignment]
-    cut: DirectedBipartition = field(default=None)  # type: ignore[assignment]
+    partition: DirectedBipartition = field(default=None)  # type: ignore[assignment]
 
     def __post_init__(self) -> None:
         substrate = self.substrate
@@ -50,15 +50,16 @@ class System:
                 "node_indices",
                 substrate.node_labels.coerce_to_indices(self.node_indices),
             )
-        if self.cut is None:
+        if self.partition is None:
             object.__setattr__(
-                self, "cut", NullCut(self.node_indices, substrate.node_labels)
+                self, "partition", NullCut(self.node_indices, substrate.node_labels)
             )
         else:
-            cut_idx = getattr(self.cut, "indices", None)
+            cut_idx = getattr(self.partition, "indices", None)
             if cut_idx is not None and set(cut_idx) != set(self.node_indices):
                 raise ValueError(
-                    f"{self.cut} nodes are not equal to system nodes {self.node_indices}"
+                    f"{self.partition} nodes are not equal to "
+                    f"system nodes {self.node_indices}"
                 )
         from pyphi.conf import config as _config
 
@@ -92,11 +93,11 @@ class System:
             self.substrate == other.substrate
             and self.state == other.state
             and self.node_indices == other.node_indices
-            and self.cut == other.cut
+            and self.partition == other.partition
         )
 
     def __hash__(self) -> int:
-        return hash((self.substrate, self.state, self.node_indices, self.cut))
+        return hash((self.substrate, self.state, self.node_indices, self.partition))
 
     def __len__(self) -> int:
         return len(self.node_indices)
@@ -105,17 +106,17 @@ class System:
         labels = self.node_labels.coerce_to_labels(self.node_indices)
         return f"System({', '.join(str(label) for label in labels)})"
 
-    def apply_cut(self, cut: DirectedBipartition) -> System:
-        """Return a new System with the given cut applied.
+    def apply_cut(self, partition: DirectedBipartition) -> System:
+        """Return a new System with the given partition applied.
 
         ``substrate``, ``state``, and ``node_indices`` are unchanged.
-        Cached derived properties that don't depend on the cut (``cause_tpm``,
+        Cached derived properties that don't depend on the partition (``cause_tpm``,
         ``effect_tpm``) are not re-derived in the new instance until first
         access, so the new instance shares the same numerical values.
         """
         from dataclasses import replace
 
-        return replace(self, cut=cut)
+        return replace(self, partition=partition)
 
     @classmethod
     def from_substrate(
@@ -123,7 +124,7 @@ class System:
         substrate: Substrate,
         state: Any,
         nodes: Any | None = None,
-        cut: DirectedBipartition | None = None,
+        partition: DirectedBipartition | None = None,
         **kwargs: Any,  # noqa: ARG003
     ) -> System:
         """Construct a System from a substrate, state, and optional node subset."""
@@ -133,7 +134,7 @@ class System:
             substrate=substrate,
             state=tuple(state),
             node_indices=tuple(nodes),
-            cut=cut,  # type: ignore[arg-type]
+            partition=partition,  # type: ignore[arg-type]
         )
 
     # ---- cached cheap derived properties ----
@@ -194,7 +195,7 @@ class System:
 
     @cached_property
     def cm(self) -> Any:
-        return self.cut.apply_cut(self.substrate.cm)
+        return self.partition.apply_cut(self.substrate.cm)
 
     @cached_property
     def proper_cm(self) -> Any:
@@ -205,21 +206,21 @@ class System:
         return self.cm
 
     @cached_property
-    def cut_indices(self) -> NodeIndices:
+    def partition_indices(self) -> NodeIndices:
         return self.node_indices
 
     @cached_property
-    def cut_node_labels(self) -> Any:
+    def partition_node_labels(self) -> Any:
         from pyphi.labels import NodeLabels
 
-        if self.cut_indices == self.node_indices:
+        if self.partition_indices == self.node_indices:
             return self.node_labels
-        labels = self.node_labels.coerce_to_labels(self.cut_indices)
-        return NodeLabels(labels, self.cut_indices)
+        labels = self.node_labels.coerce_to_labels(self.partition_indices)
+        return NodeLabels(labels, self.partition_indices)
 
     @cached_property
-    def is_cut(self) -> bool:
-        return not isinstance(self.cut, NullCut)
+    def is_partitioned(self) -> bool:
+        return not isinstance(self.partition, NullCut)
 
     @cached_property
     def size(self) -> int:
@@ -247,8 +248,8 @@ class System:
         )
 
     @cached_property
-    def cut_mechanisms(self) -> Any:
-        return list(self.cut.all_cut_mechanisms())
+    def partitioned_mechanisms(self) -> Any:
+        return list(self.partition.all_cut_mechanisms())
 
     @cached_property
     def _index2node(self) -> dict[int, Any]:
@@ -681,5 +682,5 @@ class System:
             "substrate": self.substrate,
             "state": list(self.state),
             "node_indices": list(self.node_indices),
-            "cut": self.cut,
+            "partition": self.partition,
         }

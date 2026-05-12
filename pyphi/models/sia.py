@@ -16,7 +16,7 @@ from . import cmp
 from . import fmt
 from .distinctions import _null_ces
 
-_sia_attributes = ["phi", "ces", "partitioned_ces", "system", "cut_system"]
+_sia_attributes = ["phi", "ces", "partitioned_ces", "system", "partitioned_system"]
 
 
 class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
@@ -38,9 +38,9 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
         ces (Distinctions): The cause-effect structure of
             the whole system.
         partitioned_ces (Distinctions): The cause-effect structure when
-            the system is cut.
+            the system is partitioned.
         system (System): The system this analysis was calculated for.
-        cut_system (System): The system with the minimal cut applied.
+        partitioned_system (System): The system with the minimal partition applied.
         time (float): The number of seconds it took to calculate.
     """
 
@@ -52,7 +52,7 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
         ces=None,
         partitioned_ces=None,
         system=None,
-        cut_system=None,
+        partitioned_system=None,
         config=None,
     ):
         # Preserve DistanceResult type if possible, otherwise convert to PyPhiFloat
@@ -69,7 +69,7 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
         self.ces = ces
         self.partitioned_ces = partitioned_ces
         self.system = system
-        self.cut_system = cut_system
+        self.partitioned_system = partitioned_system
         # ConfigSnapshot of the layered config at construction time.
         # Lazy-snapshot if None: takes a snapshot of the current global, so
         # callers that don't pass one still get a recorded config. Setting
@@ -93,12 +93,10 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
         """
 
     @property
-    def cut(self):
-        """The unidirectional cut that makes the least difference to the
-        system.
-        """
-        assert self.cut_system is not None
-        return self.cut_system.cut
+    def partition(self):
+        """The partition that makes the least difference to the system."""
+        assert self.partitioned_system is not None
+        return self.partitioned_system.partition
 
     @property
     def substrate(self):
@@ -124,7 +122,7 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
                 self.ces,
                 self.partitioned_ces,
                 self.system,
-                self.cut_system,
+                self.partitioned_system,
             )
         )
 
@@ -148,7 +146,7 @@ def _null_sia(system, phi=0.0):
     """
     return SystemIrreducibilityAnalysis(
         system=system,
-        cut_system=system,
+        partitioned_system=system,
         phi=phi,
         ces=_null_ces(),
         partitioned_ces=_null_ces(),

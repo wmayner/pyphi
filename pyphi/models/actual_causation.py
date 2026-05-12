@@ -318,7 +318,7 @@ _ac_sia_attributes = [
     "account",
     "partitioned_account",
     "transition",
-    "cut",
+    "partition",
 ]
 
 
@@ -339,7 +339,7 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
             transition.
         transition (Transition): The transition this analysis was calculated
             for.
-        cut (DirectedJointPartition): The minimal partition.
+        partition (DirectedJointPartition): The minimal partition.
     """
 
     def __init__(
@@ -349,14 +349,14 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
         account=None,
         partitioned_account=None,
         transition=None,
-        cut=None,
+        partition=None,
     ):
         self.alpha = alpha
         self.direction = direction
         self.account = account
         self.partitioned_account = partitioned_account
         self.transition = transition
-        self.cut = cut
+        self.partition = partition
 
     def __repr__(self):
         return fmt.make_repr(self, _ac_sia_attributes)
@@ -399,7 +399,7 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
                 self.account,
                 self.partitioned_account,
                 self.transition,
-                self.cut,
+                self.partition,
             )
         )
 

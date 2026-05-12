@@ -184,7 +184,7 @@ class TransitionSystem:
     cause_indices: tuple[int, ...]
     effect_indices: tuple[int, ...]
     direction: Direction
-    cut: DirectedBipartition = field(default=None)  # type: ignore[assignment]
+    partition: DirectedBipartition = field(default=None)  # type: ignore[assignment]
     noise_background: bool = False
 
     def __post_init__(self) -> None:
@@ -195,9 +195,9 @@ class TransitionSystem:
         coerce = self.substrate.node_labels.coerce_to_indices
         object.__setattr__(self, "cause_indices", coerce(self.cause_indices))
         object.__setattr__(self, "effect_indices", coerce(self.effect_indices))
-        if self.cut is None:
+        if self.partition is None:
             object.__setattr__(
-                self, "cut", NullCut(self.node_indices, self.substrate.node_labels)
+                self, "partition", NullCut(self.node_indices, self.substrate.node_labels)
             )
         # The paper (Albantakis et al. 2019, Section 2.4) imposes only the
         # Realization axiom on a transition: p_u(after | before) > 0 over
@@ -238,7 +238,7 @@ class TransitionSystem:
                 substrate=self.substrate,
                 state=self.before_state,
                 node_indices=self.node_indices,
-                cut=self.cut,
+                partition=self.partition,
             )
 
     @cached_property
@@ -281,16 +281,16 @@ class TransitionSystem:
         return self.cm
 
     @cached_property
-    def cut_indices(self) -> tuple[int, ...]:
+    def partition_indices(self) -> tuple[int, ...]:
         return self.node_indices
 
     @cached_property
-    def cut_node_labels(self) -> Any:
+    def partition_node_labels(self) -> Any:
         return self.node_labels
 
     @cached_property
-    def is_cut(self) -> bool:
-        return not isinstance(self.cut, NullCut)
+    def is_partitioned(self) -> bool:
+        return not isinstance(self.partition, NullCut)
 
     @cached_property
     def size(self) -> int:
@@ -314,8 +314,8 @@ class TransitionSystem:
         )
 
     @cached_property
-    def cut_mechanisms(self) -> Any:
-        return list(self.cut.all_cut_mechanisms())
+    def partitioned_mechanisms(self) -> Any:
+        return list(self.partition.all_cut_mechanisms())
 
     @cached_property
     def _index2node(self) -> dict[int, Any]:
@@ -331,8 +331,8 @@ class TransitionSystem:
     def null_concept(self) -> Any:
         return self.null_distinction
 
-    def apply_cut(self, cut: DirectedBipartition) -> "TransitionSystem":
-        return replace(self, cut=cut)
+    def apply_cut(self, partition: DirectedBipartition) -> "TransitionSystem":
+        return replace(self, partition=partition)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, TransitionSystem):
@@ -344,7 +344,7 @@ class TransitionSystem:
             and self.cause_indices == other.cause_indices
             and self.effect_indices == other.effect_indices
             and self.direction == other.direction
-            and self.cut == other.cut
+            and self.partition == other.partition
         )
 
     def __hash__(self) -> int:
@@ -356,7 +356,7 @@ class TransitionSystem:
                 self.cause_indices,
                 self.effect_indices,
                 self.direction,
-                self.cut,
+                self.partition,
             )
         )
 
@@ -708,7 +708,7 @@ class TransitionSystem:
             "cause_indices": list(self.cause_indices),
             "effect_indices": list(self.effect_indices),
             "direction": self.direction,
-            "cut": self.cut,
+            "partition": self.partition,
             "noise_background": self.noise_background,
         }
 
@@ -732,8 +732,8 @@ class Transition:
             effect system.
 
     Keyword Args:
-        cut (DirectedBipartition): The cut applied to this transition. Defaults
-            to a :class:`NullCut` over the union of cause and effect indices.
+        partition (DirectedBipartition): The partition applied to this transition.
+            Defaults to a :class:`NullCut` over the union of cause and effect indices.
         noise_background (bool): If ``True``, background conditions are
             noised instead of frozen.
     """
@@ -743,16 +743,16 @@ class Transition:
     after_state: tuple[int, ...]
     cause_indices: tuple[int, ...]
     effect_indices: tuple[int, ...]
-    cut: DirectedBipartition = field(default=None)  # type: ignore[assignment]
+    partition: DirectedBipartition = field(default=None)  # type: ignore[assignment]
     noise_background: bool = False
 
     def __post_init__(self) -> None:
         coerce = self.substrate.node_labels.coerce_to_indices
         object.__setattr__(self, "cause_indices", coerce(self.cause_indices))
         object.__setattr__(self, "effect_indices", coerce(self.effect_indices))
-        if self.cut is None:
+        if self.partition is None:
             object.__setattr__(
-                self, "cut", NullCut(self.node_indices, self.substrate.node_labels)
+                self, "partition", NullCut(self.node_indices, self.substrate.node_labels)
             )
 
     def __eq__(self, other: object) -> bool:
@@ -764,7 +764,7 @@ class Transition:
             and self.after_state == other.after_state
             and self.cause_indices == other.cause_indices
             and self.effect_indices == other.effect_indices
-            and self.cut == other.cut
+            and self.partition == other.partition
         )
 
     def __hash__(self) -> int:
@@ -775,7 +775,7 @@ class Transition:
                 self.after_state,
                 self.cause_indices,
                 self.effect_indices,
-                self.cut,
+                self.partition,
             )
         )
 
@@ -808,7 +808,7 @@ class Transition:
             cause_indices=self.cause_indices,
             effect_indices=self.effect_indices,
             direction=Direction.CAUSE,
-            cut=self.cut,
+            partition=self.partition,
             noise_background=self.noise_background,
         )
 
@@ -821,7 +821,7 @@ class Transition:
             cause_indices=self.cause_indices,
             effect_indices=self.effect_indices,
             direction=Direction.EFFECT,
-            cut=self.cut,
+            partition=self.partition,
             noise_background=self.noise_background,
         )
 
@@ -841,11 +841,11 @@ class Transition:
             "after_state": list(self.after_state),
             "cause_indices": list(self.cause_indices),
             "effect_indices": list(self.effect_indices),
-            "cut": self.cut,
+            "partition": self.partition,
         }
 
-    def apply_cut(self, cut: DirectedBipartition) -> "Transition":
-        return replace(self, cut=cut)
+    def apply_cut(self, partition: DirectedBipartition) -> "Transition":
+        return replace(self, partition=partition)
 
     def cause_repertoire(self, mechanism, purview):
         """Return the cause repertoire."""
@@ -1441,7 +1441,7 @@ def _evaluate_cut(
         account=unpartitioned_account,
         partitioned_account=partitioned_account,
         transition=transition,
-        cut=cut,
+        partition=cut,
     )
 
 

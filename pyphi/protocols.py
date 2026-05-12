@@ -164,7 +164,7 @@ PUBLIC_SYSTEM_ATTRS: frozenset[str] = frozenset(
         # Construction-time attributes
         "cause_tpm",
         "cm",
-        "cut",
+        "partition",
         "effect_tpm",
         "external_indices",
         "from_substrate",
@@ -178,10 +178,10 @@ PUBLIC_SYSTEM_ATTRS: frozenset[str] = frozenset(
         "state",
         # Properties
         "connectivity_matrix",
-        "cut_indices",
-        "cut_mechanisms",
-        "cut_node_labels",
-        "is_cut",
+        "partition_indices",
+        "partitioned_mechanisms",
+        "partition_node_labels",
+        "is_partitioned",
         "null_concept",
         "null_distinction",
         "proper_state",
@@ -266,7 +266,7 @@ class SystemPublicInterface(Protocol):
     # Construction-time attributes
     cause_tpm: Any
     cm: Any
-    cut: Any
+    partition: Any
     effect_tpm: Any
     external_indices: Any
     substrate: Any
@@ -280,10 +280,10 @@ class SystemPublicInterface(Protocol):
     from_substrate: Callable[..., Any]
     # Properties
     connectivity_matrix: Any
-    cut_indices: Any
-    cut_mechanisms: Any
-    cut_node_labels: Any
-    is_cut: Any
+    partition_indices: Any
+    partitioned_mechanisms: Any
+    partition_node_labels: Any
+    is_partitioned: Any
     null_concept: Any
     null_distinction: Any
     proper_state: Any

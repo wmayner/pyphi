@@ -653,7 +653,7 @@ def sia(
     # Handle elementary micro mechanism cases.
     # Single macro element systems have nontrivial bipartitions because their
     #   bipartitions are over their micro elements.
-    if len(system.cut_indices) == 1:
+    if len(system.partition_indices) == 1:
         # If the node lacks a self-loop, phi is trivially zero.
         if not system.cm[system.node_indices][system.node_indices]:
             return _null_sia(reasons=[ShortCircuitConditions.MONAD_WITH_NO_SELFLOOP])

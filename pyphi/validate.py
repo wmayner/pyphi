@@ -143,7 +143,7 @@ def system(s: object) -> bool:
     Checks its state and cut.
     """
     node_states(s.state)  # type: ignore[attr-defined]
-    cut(s.cut, s.cut_indices)  # type: ignore[attr-defined]
+    cut(s.partition, s.partition_indices)  # type: ignore[attr-defined]
     if config.infrastructure.validate_system_states:
         state_reachable(s)
     return True

@@ -213,8 +213,8 @@ class DictCache:
 def validate_parent_cache(parent_cache):
     # TODO: also validate that system is a cut version of
     # parent_cache.system? Do we need to check this at all?
-    if parent_cache.system.is_cut:
-        raise ValueError("parent_cache must be from an uncut system")
+    if parent_cache.system.is_partitioned:
+        raise ValueError("parent_cache must be from an unpartitioned system")
 
 
 class PurviewCache(DictCache):

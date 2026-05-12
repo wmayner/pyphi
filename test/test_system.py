@@ -35,15 +35,15 @@ def test_validate_cut_nodes_equal_system_nodes(s):
     assert s.node_indices == (0, 1, 2)
 
     cut = DirectedBipartition(Direction.EFFECT, (0,), (1, 2))  # A-ok
-    System(s.substrate, s.state, s.node_indices, cut=cut)
+    System(s.substrate, s.state, s.node_indices, partition=cut)
 
     cut = DirectedBipartition(Direction.EFFECT, (0,), (1,))  # missing node 2 in cut
     with pytest.raises(ValueError):
-        System(s.substrate, s.state, s.node_indices, cut=cut)
+        System(s.substrate, s.state, s.node_indices, partition=cut)
 
     cut = DirectedBipartition(Direction.EFFECT, (0,), (1, 2))  # missing node 2 in system
     with pytest.raises(ValueError):
-        System(s.substrate, s.state, (0, 1), cut=cut)
+        System(s.substrate, s.state, (0, 1), partition=cut)
 
 
 def test_empty_init(s):
@@ -105,15 +105,15 @@ def test_indices2nodes_with_bad_indices(subsys_n1n2):
         subsys_n1n2.indices2nodes((0,))  # index n0 in substrate but not subsytem
 
 
-def test_is_cut(s):
-    assert s.is_cut is False
+def test_is_partitioned(s):
+    assert s.is_partitioned is False
     s = System(
         s.substrate,
         s.state,
         s.node_indices,
-        cut=DirectedBipartition(Direction.EFFECT, (0,), (1, 2)),
+        partition=DirectedBipartition(Direction.EFFECT, (0,), (1, 2)),
     )
-    assert s.is_cut is True
+    assert s.is_partitioned is True
 
 
 def test_proper_state(subsys_n0n2, subsys_n1n2):
@@ -133,15 +133,17 @@ def test_apply_cut(s):
     assert np.array_equal(cut_s.cm, cut.apply_cut(s.cm))
 
 
-def test_cut_indices(s, subsys_n1n2):
-    assert s.cut_indices == (0, 1, 2)
-    assert subsys_n1n2.cut_indices == (1, 2)
+def test_partition_indices(s, subsys_n1n2):
+    assert s.partition_indices == (0, 1, 2)
+    assert subsys_n1n2.partition_indices == (1, 2)
 
 
-def test_cut_mechanisms(s):
-    assert list(s.cut_mechanisms) == []
+def test_partitioned_mechanisms(s):
+    assert list(s.partitioned_mechanisms) == []
     assert list(
-        s.apply_cut(DirectedBipartition(Direction.EFFECT, (0, 1), (2,))).cut_mechanisms
+        s.apply_cut(
+            DirectedBipartition(Direction.EFFECT, (0, 1), (2,))
+        ).partitioned_mechanisms
     ) == [
         (0, 2),
         (1, 2),
@@ -149,8 +151,8 @@ def test_cut_mechanisms(s):
     ]
 
 
-def test_cut_node_labels(s):
-    assert s.cut_node_labels == s.node_labels
+def test_partition_node_labels(s):
+    assert s.partition_node_labels == s.node_labels
 
 
 def test_specify_elements_with_labels(standard):

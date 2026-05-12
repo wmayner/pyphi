@@ -81,15 +81,15 @@ def concept(
     )
 
 
-def sia(ces=(), partitioned_ces=(), system=None, cut_system=None, phi=1.0):
+def sia(ces=(), partitioned_ces=(), system=None, partitioned_system=None, phi=1.0):
     """Build a ``SystemIrreducibilityAnalysis``."""
-    cut_system = cut_system or system
+    partitioned_system = partitioned_system or system
 
     return models.SystemIrreducibilityAnalysis(
         ces=ces,
         partitioned_ces=partitioned_ces,
         system=system,
-        cut_system=cut_system,
+        partitioned_system=partitioned_system,
         phi=phi,
     )
 
@@ -466,7 +466,7 @@ def test_relevant_connections(s, subsys_n1n2):
 def test_damaged(s):
     # Build cut system from s
     cut = DirectedBipartition(Direction.EFFECT, (0,), (1, 2))
-    cut_s = System(s.substrate, s.state, s.node_indices, cut=cut)
+    cut_s = System(s.substrate, s.state, s.node_indices, partition=cut)
 
     # Cut splits mechanism:
     m1 = mice(mechanism=(0, 1), purview=(1, 2), direction=Direction.EFFECT)
