@@ -19,6 +19,7 @@ from typing import ClassVar
 from pyphi import conf
 from pyphi import connectivity
 from pyphi import metrics
+from pyphi import resolve_ties
 from pyphi import utils
 from pyphi import validate
 from pyphi.conf import config
@@ -588,13 +589,6 @@ def _has_no_cause_or_effect(system_state):
     return reasons
 
 
-def sia_minimization_key(sia):
-    """Return a sorting key that minimizes the normalized phi value.
-
-    Ties are broken by maximizing the phi value."""
-    return (sia.normalized_phi, -sia.phi)
-
-
 def sia(
     system: System,
     *,
@@ -715,21 +709,11 @@ def sia(
         **parallel_kwargs,
     ).run()
 
-    # Find MIP in one pass, keeping track of ties
-    # TODO(ties) refactor into resolve_ties module
-    mip_sia = default_sia
-    mip_key = (float("inf"), float("-inf"))
-    ties = [default_sia]
-    if sias is None:
-        sias = []
-    for candidate_mip_sia in sias:
-        candidate_key = sia_minimization_key(candidate_mip_sia)
-        if candidate_key < mip_key:
-            mip_sia = candidate_mip_sia
-            mip_key = candidate_key
-            ties = [mip_sia]
-        elif candidate_key == mip_key:
-            ties.append(candidate_mip_sia)
+    candidates = list(sias) if sias is not None else []
+    if not candidates:
+        candidates = [default_sia]
+    ties = tuple(resolve_ties.sias(candidates))
+    mip_sia = ties[0]
     for tied_mip in ties:
         tied_mip.resolve_system_state()
         tied_mip.set_ties(ties)
