@@ -219,10 +219,10 @@ class DirectedBipartition(_PartitionBase):
         return hash((self.direction, self.from_nodes, self.to_nodes))
 
     def __repr__(self) -> str:
-        return fmt.fmt_cut(self, direction=self.direction)
+        return fmt.fmt_partition_arrow(self, direction=self.direction)
 
     def __str__(self) -> str:
-        return fmt.fmt_cut(self, direction=self.direction)
+        return fmt.fmt_partition_arrow(self, direction=self.direction)
 
     def __len__(self) -> int:
         return 2
@@ -292,7 +292,7 @@ class DirectedJointPartition(_PartitionBase):
         return fmt.make_repr(self, ["direction", "partition"])
 
     def __str__(self) -> str:
-        return fmt.fmt_kcut(self)
+        return fmt.fmt_directed_joint_partition(self)
 
     def to_json(self) -> dict[str, Any]:
         return {"direction": self.direction, "partition": self.partition}

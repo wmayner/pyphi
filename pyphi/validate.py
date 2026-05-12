@@ -131,19 +131,21 @@ def state_reachable(system: object) -> None:
         raise exceptions.StateUnreachableForwardsError(system.state)  # type: ignore[attr-defined]
 
 
-def cut(cut: object, node_indices: Sequence[int]) -> None:
-    """Check that the cut is for only the given nodes."""
-    if set(cut.indices) != set(node_indices):  # type: ignore[attr-defined]
-        raise ValueError(f"{cut} nodes are not equal to system nodes {node_indices}")
+def system_partition(partition: object, node_indices: Sequence[int]) -> None:
+    """Check that the partition covers only the given nodes."""
+    if set(partition.indices) != set(node_indices):  # type: ignore[attr-defined]
+        raise ValueError(
+            f"{partition} nodes are not equal to system nodes {node_indices}"
+        )
 
 
 def system(s: object) -> bool:
     """Validate a |System|.
 
-    Checks its state and cut.
+    Checks its state and partition.
     """
     node_states(s.state)  # type: ignore[attr-defined]
-    cut(s.partition, s.partition_indices)  # type: ignore[attr-defined]
+    system_partition(s.partition, s.partition_indices)  # type: ignore[attr-defined]
     if config.infrastructure.validate_system_states:
         state_reachable(s)
     return True

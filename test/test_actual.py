@@ -674,7 +674,7 @@ def ac_cut(direction, *parts):
     ],
 )
 def test_get_actual_cuts(direction, answer, transition):
-    cuts = list(actual._get_cuts(transition, direction))
+    cuts = list(actual._get_partitions(transition, direction))
     assert set(cuts) == set(answer)
 
 

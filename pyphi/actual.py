@@ -1414,7 +1414,7 @@ def account_distance(A1, A2):
     return sum([action.alpha for action in A1]) - sum([action.alpha for action in A2])
 
 
-def _evaluate_cut(
+def _evaluate_partition(
     cut,
     transition,
     unpartitioned_account,
@@ -1423,7 +1423,7 @@ def _evaluate_cut(
     alpha_measure: DistributionMeasure,
     partitioned_repertoire_scheme,
 ):
-    """Find the |AcSystemIrreducibilityAnalysis| for a given cut."""
+    """Find the |AcSystemIrreducibilityAnalysis| for a given partition."""
     cut_transition = transition.apply_cut(cut)
     partitioned_account = account(
         cut_transition,
@@ -1446,15 +1446,15 @@ def _evaluate_cut(
 
 
 # TODO: implement CUT_ONE approximation?
-def _get_cuts(transition, direction):
-    """A list of possible cuts to a transition."""
+def _get_partitions(transition, direction):
+    """A list of possible partitions of a transition."""
     n = transition.substrate.size
 
     if direction is Direction.BIDIRECTIONAL:
         yielded = set()
         for cut in chain(
-            _get_cuts(transition, Direction.CAUSE),
-            _get_cuts(transition, Direction.EFFECT),
+            _get_partitions(transition, Direction.CAUSE),
+            _get_partitions(transition, Direction.EFFECT),
         ):
             cm = utils.np_hashable(cut.cut_matrix(n))
             if cm not in yielded:
@@ -1511,13 +1511,13 @@ def sia(transition, direction=Direction.BIDIRECTIONAL, **kwargs):
         log.info("Empty unpartitioned account; returning null AC SIA immediately.")
         return _null_ac_sia(transition, direction)
 
-    cuts = _get_cuts(transition, direction)
+    cuts = _get_partitions(transition, direction)
 
     parallel_kwargs = conf.parallel_kwargs(
         dict(config.infrastructure.parallel_cut_evaluation), **kwargs
     )
     result = MapReduce(
-        _evaluate_cut,
+        _evaluate_partition,
         cuts,
         map_kwargs={
             "transition": transition,

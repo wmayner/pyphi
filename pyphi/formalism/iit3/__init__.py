@@ -181,23 +181,23 @@ def conceptual_info(system: System, **kwargs: Any) -> float:
     return round(ci, config.numerics.precision)  # type: ignore[arg-type]  # config.Option descriptor
 
 
-def evaluate_cut(
+def evaluate_partition(
     cut: DirectedBipartition,
     unpartitioned_system: System,
     unpartitioned_ces: Distinctions,
     **kwargs: Any,
 ) -> SystemIrreducibilityAnalysis:
-    """Compute the system irreducibility for a given cut.
+    """Compute the system irreducibility for a given partition.
 
     Args:
         unpartitioned_system (System): The system without a partition applied.
-        cut (DirectedBipartition): The cut to evaluate.
+        cut (DirectedBipartition): The partition to evaluate.
         unpartitioned_ces (Distinctions): The cause-effect structure of
             the unpartitioned system.
 
     Returns:
         SystemIrreducibilityAnalysis: The |SystemIrreducibilityAnalysis| for
-        that cut.
+        that partition.
     """
     log.debug("Evaluating %s...", cut)
 
@@ -276,7 +276,7 @@ def _sia_map_reduce(
 ) -> SystemIrreducibilityAnalysis:
     kwargs = {"parallel": config.infrastructure.parallel_cut_evaluation, **kwargs}
     result = MapReduce(
-        evaluate_cut,
+        evaluate_partition,
         cuts,
         map_kwargs={
             "unpartitioned_system": system,

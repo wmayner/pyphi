@@ -578,7 +578,11 @@ def fmt_partitioned_phi_structure(
     if isinstance(ps.partition, (NullCut, CompleteEdgeCut)):  # type: ignore[attr-defined]
         cut = str(ps.partition)  # type: ignore[attr-defined]
     else:
-        cut = fmt_cut(ps.partition, direction=ps.partition.direction, name=False)  # type: ignore[attr-defined]
+        cut = fmt_partition_arrow(
+            ps.partition,  # type: ignore[attr-defined]
+            direction=ps.partition.direction,  # type: ignore[attr-defined]
+            name=False,
+        )
     lines = align_columns(
         [
             *fmt_phi_structure(ps, title=None, system=system).split("\n"),
@@ -715,8 +719,10 @@ def fmt_ria(ria: object, verbose: bool = True, mip: bool = False) -> str:
     return "\n".join(data)
 
 
-def fmt_cut(cut: object, direction: object | None = None, name: bool = True) -> str:
-    """Format a |DirectedBipartition|."""
+def fmt_partition_arrow(
+    cut: object, direction: object | None = None, name: bool = True
+) -> str:
+    """Format a |DirectedBipartition| as an arrow expression."""
     try:
         if name:
             name_str = cut.__class__.__name__ + " "
@@ -736,7 +742,7 @@ def fmt_cut(cut: object, direction: object | None = None, name: bool = True) -> 
         return str(cut)
 
 
-def fmt_kcut(cut: object) -> str:
+def fmt_directed_joint_partition(cut: object) -> str:
     """Format a |DirectedJointPartition|."""
     return f"DirectedJointPartition {cut.direction}\n{cut.partition}"  # type: ignore[attr-defined]
 
@@ -779,7 +785,11 @@ def fmt_sia_4(
     if isinstance(sia.partition, (NullCut, CompleteEdgeCut)):  # type: ignore[attr-defined]
         cut = str(sia.partition)  # type: ignore[attr-defined]
     else:
-        cut = fmt_cut(sia.partition, direction=sia.partition.direction, name=False)  # type: ignore[attr-defined]
+        cut = fmt_partition_arrow(
+            sia.partition,  # type: ignore[attr-defined]
+            direction=sia.partition.direction,  # type: ignore[attr-defined]
+            name=False,
+        )
 
     data = [
         sia.system.nodes,  # type: ignore[attr-defined]

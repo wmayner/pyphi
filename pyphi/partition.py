@@ -702,16 +702,12 @@ class SystemPartitionRegistry(Registry):
 system_partition_types = SystemPartitionRegistry()
 
 
-def _bipartitions_to_cuts(func):
-    """Decorator to return DirectedBipartition objects from a set of bipartitions.
+def _bipartitions_to_directed_bipartitions(func):
+    """Wrap a bipartition generator to yield |DirectedBipartition| objects.
 
-    The IIT 3.0 SIA uses unidirectional cuts where the causal direction is
-    not part of the math (the cut is symmetric in its effect on the
-    connectivity matrix). After the formalism split (P4) and the
-    Cut/DirectedBipartition consolidation (P6), every system partition carries
-    a ``Direction``; IIT 3.0 cuts default to ``Direction.EFFECT``. The
-    direction is unused by ``compute.system.evaluate_cut`` for IIT 3.0,
-    so this default has no semantic effect on phi values.
+    Each plain bipartition tuple is wrapped with ``Direction.EFFECT``.  IIT 3.0
+    system partitions are symmetric with respect to causal direction, so the
+    default direction has no effect on phi values.
     """
 
     @functools.wraps(func)
@@ -731,7 +727,7 @@ def _bipartitions_to_cuts(func):
 
 
 @system_partition_types.register("DIRECTED_BI")
-@_bipartitions_to_cuts
+@_bipartitions_to_directed_bipartitions
 def system_directed_bipartitions(nodes):
     """Return nontrivial directed bipartition cuts for the given nodes."""
     # Don't consider trivial partitions where one part is empty
@@ -739,7 +735,7 @@ def system_directed_bipartitions(nodes):
 
 
 @system_partition_types.register("DIRECTED_BI_CUT_ONE")
-@_bipartitions_to_cuts
+@_bipartitions_to_directed_bipartitions
 def system_directed_bipartitions_cut_one(nodes):
     """Return directed bipartition cuts where one part has a single node."""
     return directed_bipartition_of_one(nodes)
