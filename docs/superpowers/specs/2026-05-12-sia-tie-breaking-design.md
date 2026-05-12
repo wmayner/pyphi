@@ -1,18 +1,26 @@
-# Paper-Faithful SIA Tie-Breaking — Design
+# Deterministic SIA Selection — Design
 
 **Status:** Draft for review
 **Branch:** `2.0` (local-only)
-**Tracks:** ROADMAP item 14 — Paper-faithful SIA tie-breaking; gates two
-currently-xfailed tests at HEAD `24912ca`.
+**Tracks:** ROADMAP item 14 (partial); gates two currently-xfailed tests
+at HEAD `24912ca`.
 
 ## Goal
 
 Make `Substrate.sia()` produce a single deterministic
-`SystemIrreducibilityAnalysis` for any input, including substrates with
-state-ties at max `ii(s)` and partition-ties at the MIP key, and align
-state-selection with Albantakis et al. 2023, Eq. 12 + S1 Text (the
-canonical state among states tied at max intrinsic information is the
-one with maximum unnormalized `φ_s`).
+`SystemIrreducibilityAnalysis` for any input, including substrates where
+multiple partitions tie at the minimum `(normalized_phi, -phi)` key.
+The existing cruelest-cut convention for tied specified states is
+preserved; the only behaviour change is that previously-arbitrary
+"first-encountered" choices among tied partitions are now resolved
+structurally.
+
+**Out of scope (deferred):** Paper-faithful state-tie resolution per
+Albantakis et al. 2023, Eq. 12 + S1 Text (max unnormalized `φ_s` among
+states tied at max intrinsic information). That is a substantive
+correctness change — it would replace the cruelest-cut convention and
+shift which distinctions survive congruence filtering in downstream
+CES — and is tracked separately on the ROADMAP.
 
 ## Why this matters
 
@@ -24,39 +32,37 @@ one with maximum unnormalized `φ_s`).
   fails.
 - Non-binary units (next in the schedule after this) multiply the number
   of candidate states quadratically and will exacerbate the tie surface.
-  Tightening tie semantics before that lands is required.
+  Tightening determinism before that lands keeps the test surface stable.
 - The fixture at `test/data/sia/big_subsys_all_complete.json` was captured
   under whichever ordering happened at fixture-write time. Any consumer
   comparing full SIA structure (golden tests, downstream caches, JSON
   round-trip) is affected.
 
-## Two sources of non-determinism (both must be fixed)
+## Source of non-determinism
 
-### 1. System-state ties — IIT 4.0 only
+### State-ties at `intrinsic_information` are not the load-bearing source
 
-`pyphi/core/repertoire_algebra.py:586-602` (`intrinsic_information`):
+`pyphi/core/repertoire_algebra.py:586-602` returns `ties[0]` — the
+arbitrary first-encountered tied `StateSpecification`. This propagates
+into `system_intrinsic_information` (`pyphi/formalism/iit4/__init__.py:62-105`)
+which packages a `SystemStateSpecification` with that representative per
+direction. The full tie set is preserved on `.ties`.
 
-```python
-state_to_information = {state: evaluate_state(state) for state in states}
-max_information = max(state_to_information.values())
-ties = [StateSpecification(...) for state, info in state_to_information.items()
-        if info == max_information]
-for tie in ties:
-    tie.set_ties(ties)
-return ties[0]   # ← arbitrary first entry
-```
+However, this initial choice is *irrelevant to the final SIA*:
 
-`pyphi/formalism/iit4/__init__.py:62-105` (`system_intrinsic_information`)
-calls this once per direction and packages the returned representatives
-into a `SystemStateSpecification`. The `.ties` set is preserved on each
-`StateSpecification`, but the representative chosen as the canonical
-`system_state[direction]` is whichever the dict-iteration order yielded
-first.
+1. `integration_value` (iit4 line 419-457) iterates `specified.ties`
+   for every partition and picks the cruelest tied spec — independent
+   of which spec was named canonical.
+2. `evaluate_partition` records the cruelest spec as `MIP.cause.specified_state`
+   and `MIP.effect.specified_state`.
+3. `resolve_system_state` (iit4 line 206) overwrites
+   `system_state.cause/effect` with those MIP RIA `specified_state`s.
 
-This representative flows into SIA equality through
-`SystemIrreducibilityAnalysis.system_state`.
+Once the MIP is fixed, the post-resolve canonical state is the
+cruelest-at-MIP — deterministic by construction. The initial `ties[0]`
+is overwritten and never escapes the SIA boundary.
 
-### 2. MIP partition ties — IIT 3.0 and IIT 4.0
+### MIP partition ties — IIT 3.0 and IIT 4.0 — are the actual problem
 
 **IIT 4.0** (`pyphi/formalism/iit4/__init__.py:591-735`):
 
@@ -95,6 +101,29 @@ result = MapReduce(
 With ties at `phi`, `min()` returns the first-encountered tied element —
 non-deterministic across runs.
 
+### Why downstream-CES considerations don't apply here
+
+`system_state` flows into `pyphi.models.distinction.Concept.resolve_congruence`
+(distinction.py:199-225) which filters each concept's `state_ties +
+purview_ties` by congruence against the system state. Two different
+tied system states project to different sub-tuples on a concept's
+purview, so congruence filtering picks different mice. The CES bag of
+distinctions can shift.
+
+This is real — but it is *already* true under the existing
+cruelest-cut convention. This spec keeps that convention and only
+makes the *MIP* selection deterministic; the post-resolve `system_state`
+is still the cruelest-at-MIP. CES composition is unchanged from
+current behaviour on substrates where the MIP itself was unique;
+on substrates with tied MIPs, the canonical CES is now well-defined
+where before it was a coin flip among CES bags that all share the
+same `φ_s`.
+
+A behavioural switch — replacing cruelest-cut with paper-faithful
+max-`φ_s` state resolution per Albantakis 2023 Eq. 12 + S1 Text —
+would shift CES composition. That work is deferred (see the
+"Deferred follow-up" section below).
+
 ## Existing infrastructure to reuse
 
 `pyphi/resolve_ties.py` already exposes a strategy registry and resolver
@@ -109,9 +138,6 @@ What's missing:
 - A config knob for system-level SIA tie-breaks: `sia_tie_resolution`.
 - A registered strategy for structural lex order on partitions:
   `PARTITION_LEX`.
-- An IIT 4.0 hook that canonicalises `system_state` per Eq. 12 + S1 Text
-  when `SystemStateSpecification.ties` carries more than one
-  representative.
 
 ## Final design
 
@@ -141,7 +167,7 @@ canonicalise to the same `lex_key`.
 For `NullCut` (empty edge cut), `lex_key()` returns `b""`, which sorts
 before any non-null cut.
 
-### Component 2 — `resolve_ties.sias()` and new strategies
+### Component 2 — `resolve_ties.sias()` and `PARTITION_LEX` strategy
 
 Add to `pyphi/resolve_ties.py`:
 
@@ -149,20 +175,6 @@ Add to `pyphi/resolve_ties.py`:
 @phi_object_tie_resolution_strategies.register("PARTITION_LEX")
 def _(m):
     return m.partition.lex_key()
-
-@phi_object_tie_resolution_strategies.register("STATE_LEX")
-def _(m):
-    cause = m.system_state.cause.state if m.system_state and m.system_state.cause else ()
-    effect = m.system_state.effect.state if m.system_state and m.system_state.effect else ()
-    return (cause, effect)
-
-@phi_object_tie_resolution_strategies.register("UNNORMALIZED_PHI")
-def _(m):
-    return m.phi
-
-@phi_object_tie_resolution_strategies.register("NEGATIVE_UNNORMALIZED_PHI")
-def _(m):
-    return -m.phi
 
 
 def sias[T](
@@ -177,10 +189,8 @@ def sias[T](
     return resolve(sias, strategy, operation=min, **kwargs)
 ```
 
-`UNNORMALIZED_PHI` and `NEGATIVE_UNNORMALIZED_PHI` are aliases of the
-existing `PHI` / `NEGATIVE_PHI` strategies; the longer names disambiguate
-in the SIA context (where `phi` is already the unnormalized system
-`φ_s`, distinct from `normalized_phi`).
+The existing `NORMALIZED_PHI` and `NEGATIVE_PHI` strategies cover the
+primary and secondary keys. Only `PARTITION_LEX` is new.
 
 ### Component 3 — Config key
 
@@ -217,86 +227,11 @@ for tied_mip in ties:
 
 The returned `ties` is already strategy-resolved (deterministic via
 `PARTITION_LEX` tertiary). `mip_sia = ties[0]` picks the canonical
-representative.
+representative. `resolve_system_state` keeps its current signature and
+behaviour — it writes the MIP's cruelest spec into `system_state`,
+which is now deterministic because the MIP itself is.
 
-### Component 5 — Paper-faithful state canonicalisation (IIT 4.0)
-
-When `system_state[direction].ties` carries multiple representatives at
-MIP-time, the canonical state per Albantakis 2023 Eq. 12 + S1 Text is
-the one with maximum unnormalized `φ_s` at the MIP partition.
-
-Extend `resolve_system_state` (`pyphi/formalism/iit4/__init__.py:206`)
-to accept `system` and `system_measure` as parameters — the call sites
-in `sia()` (line 734) already have both in scope, so passing them in
-avoids any dataclass change:
-
-```python
-def resolve_system_state(self, system, system_measure) -> None:
-    """Canonicalise ``system_state`` after MIP selection.
-
-    Among states tied at max intrinsic information, the canonical
-    representative is the one with maximum unnormalized phi for the
-    MIP partition (Albantakis et al. 2023, Eq. 12 + S1 Text). Structural
-    state-tuple lex order breaks any remaining tie.
-    """
-    if self.system_state is None:
-        return
-    new_cause = self._canonicalize_tied_state(
-        Direction.CAUSE, system, system_measure
-    )
-    new_effect = self._canonicalize_tied_state(
-        Direction.EFFECT, system, system_measure
-    )
-    if (new_cause is not self.system_state.cause
-            or new_effect is not self.system_state.effect):
-        self.system_state = replace(
-            self.system_state, cause=new_cause, effect=new_effect
-        )
-
-def _canonicalize_tied_state(self, direction, system, system_measure):
-    spec = self.system_state[direction]
-    if spec is None:
-        return None
-    tied = spec.ties
-    if not tied or len(tied) <= 1:
-        # No tie at the ii level — keep the MIP's cruelest spec.
-        ria = self.cause if direction == Direction.CAUSE else self.effect
-        if ria is not None and ria.specified_state is not None:
-            return ria.specified_state
-        return spec
-    # Evaluate the MIP partition once per tied state to find max phi.
-    cut_system = system.apply_cut(self.partition)
-    evaluated = [
-        (_integration_value_for_state(
-            direction, system, cut_system, self.partition,
-            tied_spec, system_measure,
-        ), tied_spec)
-        for tied_spec in tied
-    ]
-    # argmax on (signed_phi, state_tuple) — max phi, state-tuple lex tiebreak.
-    _, _, canonical = max(
-        (ria.signed_phi, tied_spec.state, tied_spec)
-        for ria, tied_spec in evaluated
-    )
-    return canonical
-```
-
-`_integration_value_for_state` (line 376) has the matching signature
-already.
-
-The call site in `sia()` at line 734 becomes:
-
-```python
-for tied_mip in ties:
-    tied_mip.resolve_system_state(system, system_measure)
-    tied_mip.set_ties(ties)
-```
-
-Cost: at most O(|ties|) extra `forward_repertoire` evaluations at the
-MIP — typical tie sizes are 2-8; negligible against the partition loop
-that preceded it.
-
-### Component 6 — IIT 3.0 integration
+### Component 5 — IIT 3.0 integration
 
 The IIT 3.0 `SystemIrreducibilityAnalysis` in `pyphi/models/sia.py`
 inherits from `cmp.OrderableByPhi`, whose `order_by` returns `self.phi`
@@ -315,6 +250,41 @@ No state-canonicalisation work for IIT 3.0 — it operates on CES
 distances, not state specifications. Mechanism-level state and purview
 ties already route through `resolve_ties.states` and
 `resolve_ties.purviews`.
+
+## Deferred follow-up — paper-faithful state-tie resolution
+
+Albantakis et al. 2023 Eq. 12 + S1 Text specifies that among states
+tied at max intrinsic information, the canonical state is the one with
+maximum unnormalized `φ_s`. PyPhi's current cruelest-cut convention
+(`integration_value` at iit4 line 449-456) picks the *minimum*
+unnormalized phi among ties — explicitly noted in-comment as
+"PyPhi-specific, not paper-mandated".
+
+Replacing cruelest-cut with paper-faithful max-`φ_s` is a substantive
+correctness change, not a canonicalisation:
+
+- It shifts which `specified_state` is recorded on the MIP RIA.
+- That `specified_state` propagates through `resolve_system_state` into
+  `SIA.system_state`.
+- `SIA.system_state` is the filter passed to
+  `Concept.resolve_congruence`, which selects one mice per direction
+  per concept from its state/purview tie sets.
+- Different filter states pick different mice → CES bag of distinctions
+  can change → relations and CES-distance comparisons that ride on top
+  inherit the change → `find_complex` rankings across subsystems can
+  shift.
+
+This is not in scope here. It is tracked separately on the ROADMAP and
+needs its own brainstorm, including:
+
+- Confirming the paper's algorithm with the paper open (Eq. 12 + S1
+  Text), since multiple interpretations exist (max-phi at MIP vs. min-P
+  max-c construction).
+- Deciding the integration-value semantics: keep cruelest-cut for
+  computing `φ_s` and use paper-faithful only for selecting the
+  reported canonical state, or replace cruelest-cut throughout.
+- Quantifying CES-composition drift on existing goldens.
+- Planning golden regeneration with the new convention.
 
 ## Testing strategy
 
@@ -374,8 +344,8 @@ This is the architectural guarantee the project is intended to deliver.
 
 **New:**
 
-- `pyphi/resolve_ties.py` — add `sias()`, `PARTITION_LEX`,
-  `STATE_LEX`, `UNNORMALIZED_PHI`, `NEGATIVE_UNNORMALIZED_PHI`.
+- `pyphi/resolve_ties.py` — add `sias()` and the `PARTITION_LEX`
+  strategy.
 
 **Modified:**
 
@@ -385,10 +355,7 @@ This is the architectural guarantee the project is intended to deliver.
   `IITConfig`.
 - `pyphi/formalism/iit4/__init__.py`:
   - Replace the manual MIP loop (lines 718-735) with
-    `resolve_ties.sias`.
-  - Extend `resolve_system_state` to accept `system` and `system_measure`
-    parameters and canonicalise per Eq. 12 + S1 Text. No SIA-dataclass
-    fields added; the caller in `sia()` has both values in scope.
+    `resolve_ties.sias`. `resolve_system_state` is unchanged.
 - `pyphi/models/sia.py` — override `order_by` on the IIT 3.0
   `SystemIrreducibilityAnalysis` to include the partition lex key.
   IIT 3.0's `_sia_map_reduce` (`pyphi/formalism/iit3/__init__.py:293`)
@@ -404,30 +371,31 @@ This is the architectural guarantee the project is intended to deliver.
 
 ## Changelog
 
-Single fragment, `changelog.d/sia-tie-breaking.fix.md`:
+Single fragment, `changelog.d/sia-determinism.fix.md`:
 
 ```
-Made `Substrate.sia()` results fully deterministic across runs. When
-multiple cause/effect states tie at max intrinsic information, the
-canonical representative is the one with maximum unnormalized phi
-(Albantakis et al. 2023, Eq. 12 + S1 Text). Among partitions tied at the
-MIP key, a structural lex break on the induced edge cut selects the
-canonical partition. Configurable via the new `sia_tie_resolution`
-option.
+Made `Substrate.sia()` results deterministic across runs by adding a
+structural tie-break on partitions tied at the MIP minimisation key.
+The new `sia_tie_resolution` config option exposes the ordering for
+users who want to customise it; the default is
+`["NORMALIZED_PHI", "NEGATIVE_PHI", "PARTITION_LEX"]`. No change to
+phi values, the cruelest-cut convention, or which states are recorded
+as canonical on substrates without tied MIPs.
 ```
 
 ## Risk register
 
 | Risk | Likelihood | Mitigation |
 |---|---|---|
-| Captured golden fixtures don't match new canonical ordering | Medium | Regenerate affected fixtures via existing entry point; document in commit |
+| Captured golden fixtures don't match new canonical MIP ordering | Medium | Regenerate affected fixtures via existing entry point; document in commit |
 | `lex_key()` byte comparison is slow for large `cut_matrix` | Low | Tertiary key — only invoked when primary+secondary tied; n is small (n≤8 typical) |
-| `_canonicalize_tied_state` re-evaluates `forward_repertoire` at the MIP unnecessarily | Low | Cost dominated by partition loop that preceded it; ties are rare |
-| Changing `system_state` after MIP selection breaks downstream consumers expecting the cruelest spec | Low | `resolve_system_state` already does this rewrite; we're changing which state is written, not whether |
-| New strategies aliasing existing names (`UNNORMALIZED_PHI` vs `PHI`) confuse users | Low | Aliases are explicit; `PHI` keeps backward compatibility for mechanism-level configs |
+| New `PARTITION_LEX` strategy unintentionally applied to mechanism-level resolvers | Low | Strategy is generic, but only `sia_tie_resolution` config defaults to using it; mechanism-level configs unchanged |
+| Future paper-faithful state-tie work conflicts with this commit | Low | Cruelest-cut path untouched; deferred work is orthogonal and rewrites different code (`integration_value` + `resolve_system_state`) |
 
 ## Effort estimate
 
-~2 days of focused work. Mechanical edits dominate. The novel piece is
-`_canonicalize_tied_state`; the partition lex key and `resolve_ties.sias`
-are mechanical adaptations of existing patterns.
+~1 day of focused work. All edits are mechanical adaptations of
+existing patterns (`resolve_ties.{states,partitions,purviews}` for the
+new `sias`, the existing `mip_tie_resolution` config layout for
+`sia_tie_resolution`). Fixture regeneration adds a small notebook-run
+step.

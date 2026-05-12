@@ -158,11 +158,11 @@ def test_sia_micro_parallel(micro_s, micro_s_expected_sia):
 
 _BIG_SUBSYS_ALL_COMPLETE_TIE_XFAIL = pytest.mark.xfail(
     reason=(
-        "Fully-connected 5-node substrate has multiple cause/effect states tied at "
-        "max ii; the canonical paper winner (max unnormalized φ_s among tied states, "
-        "Eq. 12 + S1 Text in Albantakis et al. 2023) is not yet implemented. Tracked "
-        "in ROADMAP item 14 — Paper-faithful SIA tie-breaking. Should land before "
-        "P12 (non-binary units), which will exacerbate the non-determinism."
+        "Fully-connected 5-node substrate has multiple partitions tied at the MIP "
+        "minimisation key (normalized_phi, -phi); the first-encountered tied "
+        "partition under MapReduce iteration is non-deterministic across runs. "
+        "Deterministic MIP selection via a structural lex tie-break on the "
+        "induced edge cut is tracked in ROADMAP item 14a."
     ),
     strict=False,
 )
