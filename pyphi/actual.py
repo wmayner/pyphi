@@ -1514,7 +1514,7 @@ def sia(transition, direction=Direction.BIDIRECTIONAL, **kwargs):
     cuts = _get_partitions(transition, direction)
 
     parallel_kwargs = conf.parallel_kwargs(
-        dict(config.infrastructure.parallel_cut_evaluation), **kwargs
+        dict(config.infrastructure.parallel_partition_evaluation), **kwargs
     )
     result = MapReduce(
         _evaluate_partition,

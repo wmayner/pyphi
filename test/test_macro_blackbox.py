@@ -216,7 +216,7 @@ def test_xor_propogation_delay():
 def test_soup():
     with config.override(
         parallel_concept_evaluation=False,
-        parallel_cut_evaluation=False,
+        parallel_partition_evaluation=False,
         parallel_complex_evaluation=False,
     ):
         # An first example attempting to capture the "soup" metaphor

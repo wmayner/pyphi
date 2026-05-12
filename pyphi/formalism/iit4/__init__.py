@@ -700,7 +700,7 @@ def sia(
     default_sia = _null_sia(reasons=[ShortCircuitConditions.NO_VALID_PARTITIONS])
 
     parallel_kwargs = conf.parallel_kwargs(
-        dict(config.infrastructure.parallel_cut_evaluation), **kwargs
+        dict(config.infrastructure.parallel_partition_evaluation), **kwargs
     )
     sias = MapReduce(
         evaluate_partition,

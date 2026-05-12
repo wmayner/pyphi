@@ -60,7 +60,7 @@ class InfrastructureConfig:
     parallel_complex_evaluation: Mapping[str, Any] = field(
         default_factory=lambda: _default_parallel_dict(2**4, 2**6, progress=True)
     )
-    parallel_cut_evaluation: Mapping[str, Any] = field(
+    parallel_partition_evaluation: Mapping[str, Any] = field(
         default_factory=lambda: _default_parallel_dict(2**10, 2**12, progress=False)
     )
     parallel_concept_evaluation: Mapping[str, Any] = field(
@@ -149,7 +149,7 @@ class InfrastructureConfig:
             )
         for parallel_field_name in (
             "parallel_complex_evaluation",
-            "parallel_cut_evaluation",
+            "parallel_partition_evaluation",
             "parallel_concept_evaluation",
             "parallel_purview_evaluation",
             "parallel_mechanism_partition_evaluation",

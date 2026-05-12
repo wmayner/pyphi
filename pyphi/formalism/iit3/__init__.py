@@ -264,7 +264,7 @@ def _ces(system: System, **kwargs: Any) -> Distinctions:
     cuts, since we have free processors because we're not computing any cuts
     yet.
     """
-    kwargs = {"parallel": config.infrastructure.parallel_cut_evaluation, **kwargs}
+    kwargs = {"parallel": config.infrastructure.parallel_partition_evaluation, **kwargs}
     return ces(system, **kwargs)
 
 
@@ -274,7 +274,7 @@ def _sia_map_reduce(
     unpartitioned_ces: Distinctions,
     **kwargs: Any,
 ) -> SystemIrreducibilityAnalysis:
-    kwargs = {"parallel": config.infrastructure.parallel_cut_evaluation, **kwargs}
+    kwargs = {"parallel": config.infrastructure.parallel_partition_evaluation, **kwargs}
     result = MapReduce(
         evaluate_partition,
         cuts,
