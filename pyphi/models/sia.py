@@ -135,8 +135,8 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
             )
         )
 
-    def order_by(self) -> Any:
-        """Sort key: phi (primary), then partition lex key (structural fallback)."""
+    def order_by(self) -> tuple[Any, bytes]:
+        """Sort key: ``(phi, partition.lex_key())``."""
         if self.partition is None:
             return (self.phi, b"")
         return (self.phi, self.partition.lex_key())

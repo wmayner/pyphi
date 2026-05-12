@@ -97,7 +97,7 @@ class OrderableByPhi(Orderable):
 
     phi: float  # Must be provided by subclass
 
-    def order_by(self) -> float:
+    def order_by(self) -> Any:
         return self.phi
 
 
