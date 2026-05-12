@@ -101,22 +101,6 @@ def pytest_configure(config):
     )
 
 
-@pytest.fixture(autouse=True)
-def _restore_config_after_test():
-    """Snapshot the global config before each test and restore after.
-
-    Defensive test hygiene: even if a test mutates ``pyphi.config`` outside a
-    ``config.override`` context (or an ``override`` fails to unwind cleanly for
-    any reason), the next test sees the original state. Cheap — snapshot is
-    three references to frozen dataclasses.
-    """
-    snapshot = pyphi.config.snapshot()
-    try:
-        yield
-    finally:
-        pyphi.config.install_snapshot(snapshot)
-
-
 def pytest_assertrepr_compare(op, left, right):
     """Custom assertion messages for SIA comparisons.
 

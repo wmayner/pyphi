@@ -70,6 +70,22 @@ def disable_progress_bars():
         yield
 
 
+@pytest.fixture(autouse=True)
+def _restore_config_after_test():
+    """Snapshot the global config before each test and restore after.
+
+    Defensive test hygiene against any test or doctest that mutates
+    ``pyphi.config`` without unwinding (e.g. a raw assignment outside an
+    ``override`` block). Lives at the root so it covers doctests collected
+    from ``pyphi/`` as well as tests under ``test/``.
+    """
+    snapshot = pyphi.config.snapshot()
+    try:
+        yield
+    finally:
+        pyphi.config.install_snapshot(snapshot)
+
+
 @pytest.fixture(scope="function")
 def use_iit_3_config():
     """Use the IIT-3 configuration for all tests."""
