@@ -1036,7 +1036,7 @@ def emergence(
         MacroNetwork: The maximal macro-system generated from the
         micro-system.
     """
-    micro_phi = _iit3.major_complex(substrate, state).phi
+    micro_phi = substrate.maximal_complex(state).phi
 
     max_phi = float("-inf")
     max_substrate = None

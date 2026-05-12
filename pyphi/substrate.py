@@ -183,6 +183,76 @@ class Substrate:
         all_purviews = utils.powerset(self._node_indices)
         return irreducible_purviews(self.cm, direction, mechanism, all_purviews)
 
+    # ---- substrate-level analysis ----
+    #
+    # Thin convenience methods that delegate to the formalism-agnostic
+    # module-level functions defined below. ``sia`` and ``ces`` construct
+    # a :class:`pyphi.system.System` over the requested node subset; the
+    # remaining methods (``all_sias``, ``irreducible_sias``, ``complexes``,
+    # ``maximal_complex``) walk the candidate space.
+
+    def sia(
+        self,
+        state: tuple[int, ...],
+        indices: NodeIndices | None = None,
+        **kwargs: Any,
+    ) -> Any:
+        """Return the SIA of a single candidate system over this substrate."""
+        from pyphi.system import System
+
+        return System.from_substrate(
+            self, state, indices if indices is not None else self.node_indices
+        ).sia(**kwargs)
+
+    def ces(
+        self,
+        state: tuple[int, ...],
+        indices: NodeIndices | None = None,
+        **kwargs: Any,
+    ) -> Any:
+        """Return the cause-effect structure of a single candidate system."""
+        from pyphi.system import System
+
+        return System.from_substrate(
+            self, state, indices if indices is not None else self.node_indices
+        ).ces(**kwargs)
+
+    def all_sias(
+        self,
+        state: tuple[int, ...],
+        candidates: Iterable[Any] | None = None,
+        **kwargs: Any,
+    ) -> list[Any]:
+        """Return SIAs for every candidate system; see :func:`all_sias`."""
+        return all_sias(self, state, candidates=candidates, **kwargs)
+
+    def irreducible_sias(
+        self,
+        state: tuple[int, ...],
+        candidates: Iterable[Any] | None = None,
+        **kwargs: Any,
+    ) -> list[Any]:
+        """Return SIAs with |big_phi| > 0; see :func:`irreducible_sias`."""
+        return irreducible_sias(self, state, candidates=candidates, **kwargs)
+
+    def complexes(
+        self,
+        state: tuple[int, ...],
+        candidates: Iterable[Any] | None = None,
+        **kwargs: Any,
+    ) -> list[Any]:
+        """Return the substrate's complexes; see :func:`complexes`."""
+        return complexes(self, state, candidates=candidates, **kwargs)
+
+    def maximal_complex(
+        self,
+        state: tuple[int, ...],
+        candidates: Iterable[Any] | None = None,
+        **kwargs: Any,
+    ) -> Any:
+        """Return the maximal complex; see :func:`maximal_complex`."""
+        return maximal_complex(self, state, candidates=candidates, **kwargs)
+
     def __len__(self) -> int:
         """int: The number of nodes in the substrate."""
         return self.tpm.shape[-1]
@@ -331,3 +401,170 @@ def possible_complexes(
     return reachable_systems(
         substrate, substrate.causally_significant_nodes, state, **kwargs
     )
+
+
+# ============================================================================
+# Substrate-level analysis (formalism-agnostic)
+# ============================================================================
+#
+# The per-candidate SIA computation is the only formalism-specific step;
+# iteration, filtering, and condensation are identical across IIT 3.0 and
+# IIT 4.0. These functions resolve the active formalism once at the call
+# site (avoiding per-subprocess config-mismatch hazards under parallel
+# MapReduce) and then map it over the candidate iterator.
+
+
+def _resolved_sia(**sia_kwargs: Any) -> tuple[Any, dict[str, Any]]:
+    """Resolve the formalism's per-system ``sia`` callable and its kwargs.
+
+    Reads the active formalism from ``config.formalism.iit.version`` and,
+    under IIT 4.0, fills in ``system_measure`` and ``specification_measure``
+    from config when not supplied. Returns a ``(callable, kwargs)`` pair
+    safe to hand to :class:`pyphi.parallel.MapReduce`.
+    """
+    from pyphi.conf import config as _config
+
+    kwargs = dict(sia_kwargs)
+    if _config.formalism.iit.version == "IIT_3_0":
+        from pyphi.formalism.iit3 import sia as _sia
+    else:
+        from pyphi.formalism.iit4 import sia as _sia
+        from pyphi.metrics.distribution import resolve_mechanism_measure
+        from pyphi.metrics.distribution import resolve_system_measure
+
+        kwargs.setdefault(
+            "system_measure",
+            resolve_system_measure(_config.formalism.iit.system_phi_measure),
+        )
+        kwargs.setdefault(
+            "specification_measure",
+            resolve_mechanism_measure(_config.formalism.iit.specification_measure),
+        )
+    return _sia, kwargs
+
+
+def all_sias(
+    substrate: Substrate,
+    state: tuple[int, ...],
+    candidates: Iterable[Any] | None = None,
+    parallel_kwargs: dict[str, Any] | None = None,
+    **sia_kwargs: Any,
+) -> list[Any]:
+    """Return SIAs for every candidate system of the substrate.
+
+    Includes reducible (|big_phi| = 0) candidates. The default candidate
+    iterator is :func:`possible_complexes`, which skips subsets containing
+    nodes that lack either inputs or outputs in the substrate — a
+    mathematically safe optimization under both formalisms, since such
+    candidates are not strongly connected and have |big_phi| = 0.
+    """
+    from pyphi import conf as _conf
+    from pyphi.conf import config as _config
+    from pyphi.parallel import MapReduce
+
+    iterable = possible_complexes(substrate, state) if candidates is None else candidates
+
+    sia_fn, map_kwargs = _resolved_sia(**sia_kwargs)
+    map_kwargs.setdefault("progress", False)
+
+    pkwargs = _conf.parallel_kwargs(
+        _config.infrastructure.parallel_complex_evaluation,
+        **(parallel_kwargs or {}),
+    )
+    result = MapReduce(
+        sia_fn,
+        iterable,
+        total=2 ** len(substrate) - 1,
+        map_kwargs=map_kwargs,
+        desc="Evaluating complexes",
+        **pkwargs,
+    ).run()
+    assert result is not None
+    return result
+
+
+def irreducible_sias(
+    substrate: Substrate,
+    state: tuple[int, ...],
+    candidates: Iterable[Any] | None = None,
+    **kwargs: Any,
+) -> list[Any]:
+    """Return candidate SIAs with |big_phi| > 0.
+
+    These are *not* complexes — overlapping candidates may both appear in
+    the returned list. The complexes (a subset satisfying exclusion) are
+    obtained from :func:`complexes`.
+    """
+    return list(filter(None, all_sias(substrate, state, candidates, **kwargs)))
+
+
+def _sia_node_indices(sia: Any) -> tuple[int, ...] | None:
+    """Return the candidate-system node indices of a SIA, across formalisms.
+
+    IIT 3.0 SIAs carry a ``System`` reference under ``.system``; IIT 4.0
+    SIAs expose ``.node_indices`` directly.
+    """
+    system = getattr(sia, "system", None)
+    if system is not None:
+        return system.node_indices
+    return getattr(sia, "node_indices", None)
+
+
+def complexes(
+    substrate: Substrate,
+    state: tuple[int, ...],
+    candidates: Iterable[Any] | None = None,
+    **kwargs: Any,
+) -> list[Any]:
+    """Return the complexes of the substrate in its current state.
+
+    A complex is a set of units that is a local maximum of |big_phi| — no
+    overlapping candidate has higher |big_phi|. The returned list is
+    non-overlapping (exclusion), ordered by |big_phi| descending.
+
+    Found by greedy condensation: iterate irreducible candidates in
+    descending |big_phi| order; accept each whose units do not overlap
+    any already-accepted complex. This is equivalent to the recursive
+    search of Albantakis et al. 2023 (Eqs. 24-25), which identifies
+    :math:`S^*_k = \\mathrm{argmax}_{S \\subseteq U_k} \\varphi_s(S)` over
+    a shrinking universe :math:`U_{k+1} = U_k \\setminus S^*_k`.
+    """
+    result: list[Any] = []
+    covered: set[int] = set()
+    for sia in sorted(
+        irreducible_sias(substrate, state, candidates, **kwargs), reverse=True
+    ):
+        indices = _sia_node_indices(sia)
+        if indices is not None and not (set(indices) & covered):
+            result.append(sia)
+            covered.update(indices)
+    return result
+
+
+def maximal_complex(
+    substrate: Substrate,
+    state: tuple[int, ...],
+    candidates: Iterable[Any] | None = None,
+    **kwargs: Any,
+) -> Any:
+    """Return the complex with maximum |big_phi| over the substrate.
+
+    Equivalent to the first element of :func:`complexes`. Returns a null
+    SIA over the empty system when no irreducible candidate exists.
+    """
+    from pyphi.system import System
+
+    found = complexes(substrate, state, candidates, **kwargs)
+    if found:
+        return found[0]
+    # No irreducible candidate; return a null SIA over the empty system.
+    empty = System.from_substrate(substrate, state, ())
+    from pyphi.conf import config as _config
+
+    if _config.formalism.iit.version == "IIT_3_0":
+        from pyphi.formalism.iit3 import _null_sia
+
+        return _null_sia(empty)
+    from pyphi.formalism.iit4 import NullCauseEffectStructure
+
+    return NullCauseEffectStructure()
