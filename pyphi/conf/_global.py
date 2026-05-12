@@ -176,13 +176,21 @@ class _GlobalConfig:
 
     def to_yaml(self, path: str | Path) -> None:
         """Write the current config in 2.0 nested-format YAML."""
-        data = {
+        with open(path, "w") as f:
+            yaml.safe_dump(self._as_nested_dict(), f, sort_keys=False)
+
+    def _as_nested_dict(self) -> dict[str, Any]:
+        """Return the layered config as a nested dict."""
+        return {
             "formalism": asdict(self._formalism),
             "infrastructure": asdict(self._infrastructure),
             "numerics": asdict(self._numerics),
         }
-        with open(path, "w") as f:
-            yaml.safe_dump(data, f, sort_keys=False)
+
+    def __repr__(self) -> str:
+        return yaml.safe_dump(
+            self._as_nested_dict(), sort_keys=False, default_flow_style=False
+        ).rstrip()
 
     def __dir__(self) -> list[str]:
         """Advertise leaf setting names for tab completion.
