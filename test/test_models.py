@@ -316,7 +316,7 @@ def test_cut_matrix():
     assert np.array_equal(cut.cut_matrix(0), np.ndarray(shape=(0, 0)))
 
 
-def test_cut_indices():
+def test_partition_indices():
     cut = DirectedBipartition(Direction.EFFECT, (0,), (1, 2))
     assert cut.indices == (0, 1, 2)
     cut = DirectedBipartition(Direction.EFFECT, (7,), (3, 1))

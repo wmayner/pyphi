@@ -43,7 +43,7 @@
 							"__id__": -4157031232332679764
 						}
 					],
-					"__class__": "Tripartition",
+					"__class__": "JointTripartition",
 					"__version__": "1.2.0",
 					"__id__": -3998311811114352659
 				},
@@ -116,7 +116,7 @@
 							"__id__": -4157031232332679764
 						}
 					],
-					"__class__": "Tripartition",
+					"__class__": "JointTripartition",
 					"__version__": "1.2.0",
 					"__id__": 2612507319034389755
 				},
@@ -199,7 +199,7 @@
 							"__id__": 7084645342196539507
 						}
 					],
-					"__class__": "Tripartition",
+					"__class__": "JointTripartition",
 					"__version__": "1.2.0",
 					"__id__": 3613355037206176788
 				},
@@ -276,7 +276,7 @@
 							"__id__": 7084645342196539507
 						}
 					],
-					"__class__": "Tripartition",
+					"__class__": "JointTripartition",
 					"__version__": "1.2.0",
 					"__id__": 2976697445275801961
 				},

@@ -137,7 +137,7 @@ def test_macro_system(macro_system):
     )
 
 
-def test_macro_cut_system(macro_system):
+def test_macro_apply_partition(macro_system):
     cut = DirectedBipartition(Direction.EFFECT, (0,), (1, 2, 3))
     cut_system = macro_system.apply_cut(cut)
     # fmt: off

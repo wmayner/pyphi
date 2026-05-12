@@ -223,6 +223,13 @@ class Substrate:
     def from_json(cls, json_dict: dict[str, Any]) -> Substrate:
         """Return a |Substrate| object from a JSON dictionary representation."""
         del json_dict["size"]
+        # Older fixtures serialized tpm/cm as raw arrays, which the JSON
+        # decoder converts to tuples.  Convert them back to ndarray so that
+        # Substrate.__init__ can accept them.
+        if isinstance(json_dict.get("tpm"), tuple):
+            json_dict["tpm"] = np.asarray(json_dict["tpm"], dtype=float)
+        if isinstance(json_dict.get("cm"), tuple):
+            json_dict["cm"] = np.asarray(json_dict["cm"])
         return Substrate(**json_dict)
 
 

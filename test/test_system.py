@@ -31,7 +31,7 @@ def test_system_validation(s):
         s = System(net, (0, 1, 0), s.node_indices)
 
 
-def test_validate_cut_nodes_equal_system_nodes(s):
+def test_validate_partition_nodes_equal_system_nodes(s):
     assert s.node_indices == (0, 1, 2)
 
     cut = DirectedBipartition(Direction.EFFECT, (0,), (1, 2))  # A-ok

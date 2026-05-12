@@ -43,7 +43,7 @@
 							"__id__": -4157031232332679764
 						}
 					],
-					"__class__": "Tripartition",
+					"__class__": "JointTripartition",
 					"__version__": "1.2.0",
 					"__id__": -3998311811114352659
 				},
@@ -114,7 +114,7 @@
 							"__id__": -4157031232332679764
 						}
 					],
-					"__class__": "Tripartition",
+					"__class__": "JointTripartition",
 					"__version__": "1.2.0",
 					"__id__": 8495934584091207659
 				},
@@ -195,7 +195,7 @@
 							"__id__": 7084645342196539507
 						}
 					],
-					"__class__": "Tripartition",
+					"__class__": "JointTripartition",
 					"__version__": "1.2.0",
 					"__id__": 2976697445275801961
 				},
@@ -288,7 +288,7 @@
 							"__id__": 7084645342196539507
 						}
 					],
-					"__class__": "Tripartition",
+					"__class__": "JointTripartition",
 					"__version__": "1.2.0",
 					"__id__": 2976697445275801961
 				},
@@ -385,7 +385,7 @@
 							"__id__": 2441169688291153174
 						}
 					],
-					"__class__": "Tripartition",
+					"__class__": "JointTripartition",
 					"__version__": "1.2.0",
 					"__id__": -4881490687156830023
 				},
@@ -466,7 +466,7 @@
 							"__id__": -756425342273080151
 						}
 					],
-					"__class__": "Tripartition",
+					"__class__": "JointTripartition",
 					"__version__": "1.2.0",
 					"__id__": -5920123844273525910
 				},
@@ -547,7 +547,7 @@
 							"__id__": 2441169688291153174
 						}
 					],
-					"__class__": "Tripartition",
+					"__class__": "JointTripartition",
 					"__version__": "1.2.0",
 					"__id__": 1405858736550380266
 				},
@@ -656,7 +656,7 @@
 							"__id__": -6432310090824253359
 						}
 					],
-					"__class__": "Tripartition",
+					"__class__": "JointTripartition",
 					"__version__": "1.2.0",
 					"__id__": -6715881879274534580
 				},

@@ -72,8 +72,14 @@ def compute_all_layers(
         structured["mechanism_mips"] = _compute_mechanism_mips(system, stash)
 
     if "sia" not in fixture.skip_layers:
-        formalism_name = fixture.config_overrides.get("FORMALISM", "IIT_4_0_2023")
-        iit_version = 3.0 if formalism_name == "IIT_3_0" else 4.0
+        # Detect IIT version from the nested iit config override (if present),
+        # falling back to the flat FORMALISM key for older-style fixtures.
+        iit_override = fixture.config_overrides.get("iit")
+        if iit_override is not None and hasattr(iit_override, "version"):
+            iit_version = 3.0 if iit_override.version == "IIT_3_0" else 4.0
+        else:
+            formalism_name = fixture.config_overrides.get("FORMALISM", "IIT_4_0_2023")
+            iit_version = 3.0 if formalism_name == "IIT_3_0" else 4.0
         structured["sia"] = _compute_sia(system, stash, iit_version)
 
     if "phi_structure" not in fixture.skip_layers:
@@ -219,7 +225,7 @@ def _compute_sia(system: System, stash: Any, iit_version: float) -> dict[str, An
     # winner. Both are code changes outside P6's type-system cleanup
     # scope; tracked for a follow-up. IIT 4.0 SIAs always expose
     # ``partition`` (a DirectedSetPartition / EdgeCut), captured below.
-    if hasattr(sia, "partition") and sia.partition is not None:
+    if iit_version != 3.0 and hasattr(sia, "partition") and sia.partition is not None:
         out["partition"] = canonical_partition(sia.partition)
 
     if hasattr(sia, "system_state") and sia.system_state is not None:

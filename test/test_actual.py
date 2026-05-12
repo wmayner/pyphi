@@ -149,7 +149,7 @@ def test_transition_system_external_indices_excludes_cause_indices():
     assert ts.external_indices == (0,)
 
 
-def test_transition_system_apply_cut_returns_new_instance():
+def test_transition_system_apply_partition_returns_new_instance():
     from pyphi import Direction
     from pyphi.actual import TransitionSystem
     from pyphi.models.partitions import DirectedBipartition
@@ -341,7 +341,7 @@ def test_transition_equal(transition, empty_transition):
     assert hash(transition) != hash(empty_transition)
 
 
-def test_transition_apply_cut(transition):
+def test_transition_apply_partition(transition):
     cut = ac_cut(Direction.CAUSE, Part((1,), (2,)), Part((), (0,)))
     cut_transition = transition.apply_cut(cut)
     assert cut_transition.before_state == transition.before_state
@@ -611,14 +611,14 @@ def test_effect_ratio(mechanism, purview, ratio, transition):
 # NOTE: test_ac_ex1_transition was removed because the expected values were outdated.
 
 
-def test_actual_cut_indices():
+def test_actual_partition_indices():
     cut = ac_cut(Direction.CAUSE, Part((0,), (2,)), Part((4,), (5,)))
     assert cut.indices == (0, 2, 4, 5)
     cut = ac_cut(Direction.EFFECT, Part((0, 2), (0, 2)), Part((), ()))
     assert cut.indices == (0, 2)
 
 
-def test_actual_apply_cut():
+def test_actual_apply_partition():
     cut = ac_cut(Direction.CAUSE, Part((0,), (0, 2)), Part((2,), ()))
     cm = np.ones((3, 3))
     # fmt: off
@@ -673,7 +673,7 @@ def ac_cut(direction, *parts):
         ),
     ],
 )
-def test_get_actual_cuts(direction, answer, transition):
+def test_get_actual_partitions(direction, answer, transition):
     cuts = list(actual._get_partitions(transition, direction))
     assert set(cuts) == set(answer)
 
