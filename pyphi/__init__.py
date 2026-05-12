@@ -73,9 +73,9 @@ import pkgutil
 from .actual import Transition
 from .actual import TransitionSystem
 from .conf import config
-from .conf import iit3_settings
-from .conf import iit4_2023_settings
-from .conf import iit4_2026_settings
+from .conf import iit3
+from .conf import iit4_2023
+from .conf import iit4_2026
 from .direction import Direction
 from .substrate import Substrate
 from .system import System
@@ -124,9 +124,9 @@ __all__ = [
     "System",
     "Transition",
     "TransitionSystem",
-    "iit3_settings",
-    "iit4_2023_settings",
-    "iit4_2026_settings",
+    "iit3",
+    "iit4_2023",
+    "iit4_2026",
 ] + [name for name in _submodule_names if not name.startswith("_")]
 
 

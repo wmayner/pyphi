@@ -1,17 +1,17 @@
-"""Canonical IIT settings presets.
+"""Canonical IIT formalism presets.
 
 Each preset is a :class:`dict` consumable by :meth:`config.override`:
 
-- :data:`iit3_settings` — IIT 3.0 (Oizumi et al. 2014).
-- :data:`iit4_2023_settings` — IIT 4.0 (Albantakis et al. 2023).
-- :data:`iit4_2026_settings` — IIT 4.0 with the intrinsic-information cap
+- :data:`iit3` — IIT 3.0 (Oizumi et al. 2014).
+- :data:`iit4_2023` — IIT 4.0 (Albantakis et al. 2023).
+- :data:`iit4_2026` — IIT 4.0 with the intrinsic-information cap
   (Mayner, Marshall, Tononi 2026).
 
 Usage::
 
-    from pyphi import config, iit3_settings
+    from pyphi import config, iit3
 
-    with config.override(**iit3_settings):
+    with config.override(**iit3):
         ...  # computations use the IIT 3.0 formalism
 
 A preset specifies its IIT sub-namespace wholesale via an
@@ -27,7 +27,7 @@ from typing import Any
 
 from pyphi.conf.formalism import IITConfig
 
-iit3_settings: dict[str, Any] = {
+iit3: dict[str, Any] = {
     "iit": IITConfig(
         version="IIT_3_0",
         mechanism_phi_measure="EMD",
@@ -41,13 +41,13 @@ iit3_settings: dict[str, Any] = {
     "precision": 6,
 }
 
-iit4_2023_settings: dict[str, Any] = {
+iit4_2023: dict[str, Any] = {
     "iit": IITConfig(
         version="IIT_4_0_2023",
     ),
 }
 
-iit4_2026_settings: dict[str, Any] = {
+iit4_2026: dict[str, Any] = {
     "iit": IITConfig(
         version="IIT_4_0_2026",
         # System phi caps differentiation with specification per Eq. 23.
@@ -56,7 +56,7 @@ iit4_2026_settings: dict[str, Any] = {
 }
 
 __all__ = [
-    "iit3_settings",
-    "iit4_2023_settings",
-    "iit4_2026_settings",
+    "iit3",
+    "iit4_2023",
+    "iit4_2026",
 ]

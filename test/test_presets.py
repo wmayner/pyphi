@@ -4,72 +4,72 @@ from __future__ import annotations
 
 import pytest
 
-from pyphi import iit3_settings as top_iit3_settings
-from pyphi import iit4_2023_settings as top_iit4_2023_settings
-from pyphi import iit4_2026_settings as top_iit4_2026_settings
+from pyphi import iit3 as top_iit3
+from pyphi import iit4_2023 as top_iit4_2023
+from pyphi import iit4_2026 as top_iit4_2026
 from pyphi.conf import config
-from pyphi.conf import iit3_settings
-from pyphi.conf import iit4_2023_settings
-from pyphi.conf import iit4_2026_settings
+from pyphi.conf import iit3
+from pyphi.conf import iit4_2023
+from pyphi.conf import iit4_2026
 from pyphi.conf.formalism import IITConfig
 
 
 class TestTopLevelReExports:
-    def test_iit3_settings_lifted(self):
-        assert top_iit3_settings is iit3_settings
+    def test_iit3_lifted(self):
+        assert top_iit3 is iit3
 
-    def test_iit4_2023_settings_lifted(self):
-        assert top_iit4_2023_settings is iit4_2023_settings
+    def test_iit4_2023_lifted(self):
+        assert top_iit4_2023 is iit4_2023
 
-    def test_iit4_2026_settings_lifted(self):
-        assert top_iit4_2026_settings is iit4_2026_settings
+    def test_iit4_2026_lifted(self):
+        assert top_iit4_2026 is iit4_2026
 
 
 class TestIIT3Settings:
     def test_iit_subnamespace_is_iitconfig(self):
-        assert isinstance(iit3_settings["iit"], IITConfig)
+        assert isinstance(iit3["iit"], IITConfig)
 
     def test_version(self):
-        assert iit3_settings["iit"].version == "IIT_3_0"
+        assert iit3["iit"].version == "IIT_3_0"
 
     def test_mechanism_phi_measure_is_emd(self):
-        assert iit3_settings["iit"].mechanism_phi_measure == "EMD"
+        assert iit3["iit"].mechanism_phi_measure == "EMD"
 
     def test_ces_measure_is_emd(self):
-        assert iit3_settings["iit"].ces_measure == "EMD"
+        assert iit3["iit"].ces_measure == "EMD"
 
     def test_mechanism_partition_scheme_is_bi(self):
-        assert iit3_settings["iit"].mechanism_partition_scheme == "BI"
+        assert iit3["iit"].mechanism_partition_scheme == "BI"
 
     def test_system_partition_scheme_is_directed_bi(self):
-        assert iit3_settings["iit"].system_partition_scheme == "DIRECTED_BI"
+        assert iit3["iit"].system_partition_scheme == "DIRECTED_BI"
 
     def test_no_selfloop_phi(self):
-        assert iit3_settings["iit"].single_micro_nodes_with_selfloops_have_phi is False
+        assert iit3["iit"].single_micro_nodes_with_selfloops_have_phi is False
 
     def test_purview_tie_resolution(self):
-        assert iit3_settings["iit"].purview_tie_resolution == "PHI"
+        assert iit3["iit"].purview_tie_resolution == "PHI"
 
     def test_precision_is_6(self):
-        assert iit3_settings["precision"] == 6
+        assert iit3["precision"] == 6
 
 
 class TestIIT4_2023Settings:
     def test_iit_subnamespace_is_iitconfig(self):
-        assert isinstance(iit4_2023_settings["iit"], IITConfig)
+        assert isinstance(iit4_2023["iit"], IITConfig)
 
     def test_version(self):
-        assert iit4_2023_settings["iit"].version == "IIT_4_0_2023"
+        assert iit4_2023["iit"].version == "IIT_4_0_2023"
 
     def test_no_precision_override(self):
-        assert "precision" not in iit4_2023_settings
+        assert "precision" not in iit4_2023
 
     def test_matches_iitconfig_defaults_apart_from_version(self):
         # The 2023 paper's settings are the IITConfig defaults; the preset
         # exists to give a named entry point and a reset-to-canonical
         # semantics regardless of prior overrides.
         defaults = IITConfig()
-        preset = iit4_2023_settings["iit"]
+        preset = iit4_2023["iit"]
         assert preset.version == "IIT_4_0_2023" == defaults.version
         assert preset.mechanism_phi_measure == defaults.mechanism_phi_measure
         assert preset.system_phi_measure == defaults.system_phi_measure
@@ -79,25 +79,24 @@ class TestIIT4_2023Settings:
 
 class TestIIT4_2026Settings:
     def test_iit_subnamespace_is_iitconfig(self):
-        assert isinstance(iit4_2026_settings["iit"], IITConfig)
+        assert isinstance(iit4_2026["iit"], IITConfig)
 
     def test_version(self):
-        assert iit4_2026_settings["iit"].version == "IIT_4_0_2026"
+        assert iit4_2026["iit"].version == "IIT_4_0_2026"
 
     def test_system_phi_measure_is_intrinsic_information(self):
         # The 2026 paper caps φ_s by min{i_diff, i_spec} (Eq. 23).
-        assert iit4_2026_settings["iit"].system_phi_measure == "INTRINSIC_INFORMATION"
+        assert iit4_2026["iit"].system_phi_measure == "INTRINSIC_INFORMATION"
 
     def test_mechanism_phi_measure_stays_gid(self):
         # 2026 only modifies system-level integration; mechanism phi
         # still uses GID per Eqs. 19-20.
         assert (
-            iit4_2026_settings["iit"].mechanism_phi_measure
-            == "GENERALIZED_INTRINSIC_DIFFERENCE"
+            iit4_2026["iit"].mechanism_phi_measure == "GENERALIZED_INTRINSIC_DIFFERENCE"
         )
 
     def test_no_precision_override(self):
-        assert "precision" not in iit4_2026_settings
+        assert "precision" not in iit4_2026
 
 
 class TestOverrideApplication:
@@ -107,7 +106,7 @@ class TestOverrideApplication:
         original_version = config.formalism.iit.version
         original_precision = config.numerics.precision
 
-        with config.override(**iit3_settings):
+        with config.override(**iit3):
             assert config.formalism.iit.version == "IIT_3_0"
             assert config.formalism.iit.mechanism_phi_measure == "EMD"
             assert config.formalism.iit.mechanism_partition_scheme == "BI"
@@ -120,7 +119,7 @@ class TestOverrideApplication:
     def test_iit4_2023_applies_and_restores(self):
         original = config.formalism.iit
 
-        with config.override(**iit4_2023_settings):
+        with config.override(**iit4_2023):
             assert config.formalism.iit.version == "IIT_4_0_2023"
             assert (
                 config.formalism.iit.system_phi_measure
@@ -132,7 +131,7 @@ class TestOverrideApplication:
     def test_iit4_2026_applies_and_restores(self):
         original = config.formalism.iit
 
-        with config.override(**iit4_2026_settings):
+        with config.override(**iit4_2026):
             assert config.formalism.iit.version == "IIT_4_0_2026"
             assert config.formalism.iit.system_phi_measure == "INTRINSIC_INFORMATION"
             assert (
@@ -148,7 +147,7 @@ class TestOverrideApplication:
         # under a second preset application.
         with config.override(mechanism_phi_measure="L1"):
             assert config.formalism.iit.mechanism_phi_measure == "L1"
-            with config.override(**iit4_2023_settings):
+            with config.override(**iit4_2023):
                 assert (
                     config.formalism.iit.mechanism_phi_measure
                     == "GENERALIZED_INTRINSIC_DIFFERENCE"
@@ -156,7 +155,7 @@ class TestOverrideApplication:
 
     @pytest.mark.parametrize(
         "preset",
-        [iit3_settings, iit4_2023_settings, iit4_2026_settings],
+        [iit3, iit4_2023, iit4_2026],
     )
     def test_preset_keys_route_through_override(self, preset):
         # Every key in a preset must be addressable by ``override`` —
