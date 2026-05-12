@@ -224,8 +224,11 @@ def evaluate_partition(
         phi=phi_,
         ces=unpartitioned_ces,
         partitioned_ces=partitioned_ces,
-        system=unpartitioned_system,
-        partitioned_system=partitioned_system,
+        partition=partitioned_system.partition,
+        node_indices=unpartitioned_system.node_indices,
+        node_labels=unpartitioned_system.substrate.node_labels,
+        current_state=unpartitioned_system.state,
+        substrate=unpartitioned_system.substrate,
     )
 
 

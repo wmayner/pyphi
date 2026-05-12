@@ -819,9 +819,20 @@ def fmt_sia(
     else:
         body = ""
 
+    node_indices = sia.node_indices  # type: ignore[attr-defined]
+    node_labels = sia.node_labels  # type: ignore[attr-defined]
+    if node_labels is not None and node_indices is not None:
+        system_label = ",".join(
+            str(label) for label in node_labels.coerce_to_labels(node_indices)
+        )
+    elif node_indices is not None:
+        system_label = ",".join(str(i) for i in node_indices)
+    else:
+        system_label = ""
+
     data = [
         f"{BIG_PHI}: {fmt_number(sia.phi)}",  # type: ignore[attr-defined]
-        sia.system,  # type: ignore[attr-defined]
+        system_label,
         sia.partition,  # type: ignore[attr-defined]
     ]
     for line in reversed(data):
@@ -997,7 +1008,16 @@ def fmt_ac_sia(ac_sia: object) -> str:
     """Format a AcSystemIrreducibilityAnalysis."""
     # Extract attributes explicitly for type checking
     direction_val = ac_sia.direction  # type: ignore[attr-defined]
-    transition_val = ac_sia.transition  # type: ignore[attr-defined]
+    node_indices = ac_sia.node_indices  # type: ignore[attr-defined]
+    node_labels = ac_sia.node_labels  # type: ignore[attr-defined]
+    if node_labels is not None and node_indices is not None:
+        transition_label = ",".join(
+            str(label) for label in node_labels.coerce_to_labels(node_indices)
+        )
+    elif node_indices is not None:
+        transition_label = ",".join(str(i) for i in node_indices)
+    else:
+        transition_label = ""
     before_state_val = ac_sia.before_state  # type: ignore[attr-defined]
     after_state_val = ac_sia.after_state  # type: ignore[attr-defined]
     cut_val = ac_sia.partition  # type: ignore[attr-defined]
@@ -1015,7 +1035,7 @@ def fmt_ac_sia(ac_sia: object) -> str:
             ALPHA=ALPHA,
             alpha=alpha_val,
             direction=direction_val,
-            transition=transition_val,
+            transition=transition_label,
             before_state=before_state_val,
             after_state=after_state_val,
             cut=cut_val,

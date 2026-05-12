@@ -88,8 +88,11 @@ def sia(ces=(), partitioned_ces=(), system=None, partitioned_system=None, phi=1.
     return models.SystemIrreducibilityAnalysis(
         ces=ces,
         partitioned_ces=partitioned_ces,
-        system=system,
-        partitioned_system=partitioned_system,
+        partition=partitioned_system.partition if partitioned_system else None,
+        node_indices=system.node_indices if system else None,
+        node_labels=system.substrate.node_labels if system else None,
+        current_state=system.state if system else None,
+        substrate=system.substrate if system else None,
         phi=phi,
     )
 

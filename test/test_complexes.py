@@ -52,7 +52,7 @@ class TestComplexesIIT30:
         """
         sias = s.substrate.irreducible_sias(s.state)
         assert len(sias) == 3
-        nodes_and_phis = [(c.system.node_indices, float(c.phi)) for c in sias]
+        nodes_and_phis = [(c.node_indices, float(c.phi)) for c in sias]
         expected = [
             ((0, 1, 2), 0.5),
             ((1, 2), 2.0),
@@ -74,7 +74,7 @@ class TestComplexesIIT30:
         """
         cx = s.substrate.complexes(s.state)
         assert len(cx) == 1
-        assert cx[0].system.node_indices == (1, 2)
+        assert cx[0].node_indices == (1, 2)
         assert float(cx[0].phi) == pytest.approx(2.0, rel=1e-6)
 
     def test_all_sias_standard(self, s):
@@ -95,7 +95,7 @@ class TestComplexesIIT30:
         """Test ``maximal_complex`` for standard substrate (IIT 3.0)."""
         major = s.substrate.maximal_complex(s.state)
         assert float(major.phi) == pytest.approx(2.0, rel=1e-6)
-        assert major.system.node_indices == (1, 2)
+        assert major.node_indices == (1, 2)
 
     @pytest.mark.slow
     @pytest.mark.outdated

@@ -1439,8 +1439,12 @@ def _evaluate_partition(
         direction=direction,
         account=unpartitioned_account,
         partitioned_account=partitioned_account,
-        transition=transition,
         partition=partition,
+        before_state=transition.before_state,
+        after_state=transition.after_state,
+        size=len(transition),
+        node_indices=transition.node_indices,
+        node_labels=transition.substrate.node_labels,
     )
 
 
@@ -1739,12 +1743,12 @@ def true_events(
     # TODO: validate triplet of states
 
     if major_complex:
-        nodes = major_complex.system.node_indices
+        nodes = major_complex.node_indices
     elif indices:
         nodes = indices
     else:
         major_complex = substrate.maximal_complex(current_state)
-        nodes = major_complex.system.node_indices  # pyright: ignore[reportOptionalMemberAccess]
+        nodes = major_complex.node_indices  # pyright: ignore[reportOptionalMemberAccess]
 
     return events(substrate, previous_state, current_state, next_state, nodes)
 
@@ -1775,12 +1779,12 @@ def extrinsic_events(
         tuple(actions): List of extrinsic events in the major complex.
     """
     if major_complex:
-        mc_nodes = major_complex.system.node_indices
+        mc_nodes = major_complex.node_indices
     elif indices:
         mc_nodes = indices
     else:
         major_complex = substrate.maximal_complex(current_state)
-        mc_nodes = major_complex.system.node_indices  # pyright: ignore[reportOptionalMemberAccess]
+        mc_nodes = major_complex.node_indices  # pyright: ignore[reportOptionalMemberAccess]
 
     mechanisms = list(utils.powerset(mc_nodes, nonempty=True))
     all_nodes = substrate.node_indices

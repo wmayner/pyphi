@@ -16,7 +16,16 @@ from . import cmp
 from . import fmt
 from .distinctions import _null_ces
 
-_sia_attributes = ["phi", "ces", "partitioned_ces", "system", "partitioned_system"]
+_sia_attributes = [
+    "phi",
+    "ces",
+    "partitioned_ces",
+    "partition",
+    "node_indices",
+    "node_labels",
+    "current_state",
+    "substrate",
+]
 
 
 class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
@@ -39,8 +48,13 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
             the whole system.
         partitioned_ces (Distinctions): The cause-effect structure when
             the system is partitioned.
-        system (System): The system this analysis was calculated for.
-        partitioned_system (System): The system with the minimal partition applied.
+        partition (DirectedBipartition): The minimum-information partition.
+        node_indices (tuple[int, ...]): Indices of the nodes the analysis
+            was computed over.
+        node_labels (NodeLabels): Labels corresponding to ``node_indices``.
+        current_state (tuple[int, ...]): The system state at the time of
+            analysis.
+        substrate (Substrate): The substrate the system belongs to.
         time (float): The number of seconds it took to calculate.
     """
 
@@ -51,8 +65,11 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
         phi=None,
         ces=None,
         partitioned_ces=None,
-        system=None,
-        partitioned_system=None,
+        partition=None,
+        node_indices=None,
+        node_labels=None,
+        current_state=None,
+        substrate=None,
         config=None,
     ):
         # Preserve DistanceResult type if possible, otherwise convert to PyPhiFloat
@@ -68,13 +85,14 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
                 self.phi = PyPhiFloat(phi)  # type: ignore[assignment]
         self.ces = ces
         self.partitioned_ces = partitioned_ces
-        self.system = system
-        self.partitioned_system = partitioned_system
+        self.partition = partition
+        self.node_indices = node_indices
+        self.node_labels = node_labels
+        self.current_state = current_state
+        self.substrate = substrate
         # ConfigSnapshot of the layered config at construction time.
         # Lazy-snapshot if None: takes a snapshot of the current global, so
-        # callers that don't pass one still get a recorded config. Setting
-        # to None explicitly is rare; mostly used for back-construction in
-        # tests/fixtures.
+        # callers that don't pass one still get a recorded config.
         if config is None:
             from pyphi.conf import config as _global
 
@@ -91,18 +109,6 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
         """Print this |SystemIrreducibilityAnalysis|, optionally without
         cause-effect structures.
         """
-
-    @property
-    def partition(self):
-        """The partition that makes the least difference to the system."""
-        assert self.partitioned_system is not None
-        return self.partitioned_system.partition
-
-    @property
-    def substrate(self):
-        """The substrate the system belongs to."""
-        assert self.system is not None
-        return self.system.substrate
 
     unorderable_unless_eq: ClassVar[list[str]] = ["substrate"]
 
@@ -121,8 +127,10 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
                 self.phi,
                 self.ces,
                 self.partitioned_ces,
-                self.system,
-                self.partitioned_system,
+                self.partition,
+                self.node_indices,
+                self.current_state,
+                self.substrate,
             )
         )
 
@@ -145,9 +153,12 @@ def _null_sia(system, phi=0.0):
     This is the analysis result for a reducible system.
     """
     return SystemIrreducibilityAnalysis(
-        system=system,
-        partitioned_system=system,
         phi=phi,
         ces=_null_ces(),
         partitioned_ces=_null_ces(),
+        partition=system.partition,
+        node_indices=system.node_indices,
+        node_labels=system.substrate.node_labels,
+        current_state=system.state,
+        substrate=system.substrate,
     )

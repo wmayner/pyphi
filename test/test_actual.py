@@ -389,9 +389,18 @@ def ac_sia(**kwargs):
         "direction": Direction.BIDIRECTIONAL,
         "account": account(),
         "partitioned_account": account(),
-        "transition": None,
         "partition": None,
     }
+    transition = kwargs.pop("transition", None)
+    if transition is not None:
+        defaults.update(
+            before_state=transition.before_state,
+            after_state=transition.after_state,
+            size=len(transition),
+            node_indices=transition.node_indices,
+            node_labels=transition.substrate.node_labels,
+            partition=transition.partition,
+        )
     defaults.update(kwargs)
     return models.AcSystemIrreducibilityAnalysis(**defaults)
 
@@ -683,7 +692,10 @@ def test_get_actual_partitions(direction, answer, transition):
 
 def test_null_ac_sia(transition):
     sia = actual._null_ac_sia(transition, Direction.CAUSE)
-    assert sia.transition == transition
+    assert sia.before_state == transition.before_state
+    assert sia.after_state == transition.after_state
+    assert sia.size == len(transition)
+    assert sia.node_indices == transition.node_indices
     assert sia.direction == Direction.CAUSE
     assert sia.account == ()
     assert sia.partitioned_account == ()

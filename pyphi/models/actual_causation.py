@@ -317,8 +317,12 @@ _ac_sia_attributes = [
     "direction",
     "account",
     "partitioned_account",
-    "transition",
     "partition",
+    "before_state",
+    "after_state",
+    "size",
+    "node_indices",
+    "node_labels",
 ]
 
 
@@ -337,9 +341,12 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
         account (Account): The account of the whole transition.
         partitioned_account (Account): The account of the partitioned
             transition.
-        transition (Transition): The transition this analysis was calculated
-            for.
         partition (DirectedJointPartition): The minimal partition.
+        before_state (tuple[int, ...]): The state of the substrate at time |t-1|.
+        after_state (tuple[int, ...]): The state of the substrate at time |t|.
+        size (int): Number of nodes in the transition.
+        node_indices (tuple[int, ...]): Indices of nodes in the transition.
+        node_labels (NodeLabels): Labels corresponding to ``node_indices``.
     """
 
     def __init__(
@@ -348,15 +355,23 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
         direction=None,
         account=None,
         partitioned_account=None,
-        transition=None,
         partition=None,
+        before_state=None,
+        after_state=None,
+        size=None,
+        node_indices=None,
+        node_labels=None,
     ):
         self.alpha = alpha
         self.direction = direction
         self.account = account
         self.partitioned_account = partitioned_account
-        self.transition = transition
         self.partition = partition
+        self.before_state = before_state
+        self.after_state = after_state
+        self.size = size
+        self.node_indices = node_indices
+        self.node_labels = node_labels
 
     def __repr__(self):
         return fmt.make_repr(self, _ac_sia_attributes)
@@ -364,24 +379,11 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
     def __str__(self):
         return fmt.fmt_ac_sia(self)
 
-    @property
-    def before_state(self):
-        """Return the actual previous state of the |Transition|."""
-        assert self.transition is not None
-        return self.transition.before_state
-
-    @property
-    def after_state(self):
-        """Return the actual current state of the |Transition|."""
-        assert self.transition is not None
-        return self.transition.after_state
-
     unorderable_unless_eq: ClassVar[list[str]] = ["direction"]
 
     # TODO: shouldn't the minimal irreducible account be chosen?
     def order_by(self):
-        assert self.transition is not None
-        return [self.alpha, len(self.transition)]
+        return [self.alpha, self.size]
 
     def __eq__(self, other):
         return cmp.general_eq(self, other, _ac_sia_attributes)
@@ -398,8 +400,11 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
                 self.alpha,
                 self.account,
                 self.partitioned_account,
-                self.transition,
                 self.partition,
+                self.before_state,
+                self.after_state,
+                self.size,
+                self.node_indices,
             )
         )
 
@@ -412,9 +417,14 @@ def _null_ac_sia(transition, direction, alpha=0.0):
     empty accounts.
     """
     return AcSystemIrreducibilityAnalysis(
-        transition=transition,
         direction=direction,
         alpha=alpha,
         account=(),
         partitioned_account=(),
+        partition=transition.partition,
+        before_state=transition.before_state,
+        after_state=transition.after_state,
+        size=len(transition),
+        node_indices=transition.node_indices,
+        node_labels=transition.substrate.node_labels,
     )
