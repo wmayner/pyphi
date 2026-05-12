@@ -33,11 +33,11 @@ jobs:
 
       - name: Run tests
         if: ${{ !(matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13') }}
-        run: uv run pytest test/ --tb=short -v
+        run: uv run pytest --tb=short -v
 
       - name: Run tests with coverage
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13'
-        run: uv run pytest test/ --tb=short -v --cov=pyphi --cov-report=xml
+        run: uv run pytest --tb=short -v --cov=pyphi --cov-report=xml
 
       - name: Upload coverage to Codecov
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13'
