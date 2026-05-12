@@ -452,3 +452,16 @@ class TestPermutationSymmetry:
             f"system_state.cause.state not permutation-equivalent: "
             f"AND-XOR={ax_state}, XOR-AND={xa_state}"
         )
+
+
+@pytest.mark.slow
+def test_sia_is_deterministic_across_runs(big_subsys_all_complete):
+    """Running .sia() twice on the same substrate must yield equal SIAs.
+
+    The fully-connected 5-node substrate has multiple partitions tied
+    at the MIP minimisation key; structural tie-breaking guarantees a
+    single canonical SIA across runs.
+    """
+    s1 = big_subsys_all_complete.sia()
+    s2 = big_subsys_all_complete.sia()
+    assert s1 == s2
