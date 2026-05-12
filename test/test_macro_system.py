@@ -13,7 +13,7 @@ from pyphi import timescale  # noqa: E402
 from pyphi.convert import state_by_node2state_by_state as sbn2sbs  # noqa: E402
 from pyphi.convert import state_by_state2state_by_node as sbs2sbn  # noqa: E402
 from pyphi.direction import Direction  # noqa: E402
-from pyphi.models import SystemPartition  # noqa: E402
+from pyphi.models import DirectedBipartition  # noqa: E402
 
 from .conftest import IIT_3_CONFIG  # noqa: E402
 
@@ -71,10 +71,10 @@ def test_cut_indices(macro_system, s):
 
 
 def test_cut_mechanisms(macro_system, propagation_delay):
-    cut = SystemPartition(Direction.EFFECT, (0,), (1, 2, 3))
+    cut = DirectedBipartition(Direction.EFFECT, (0,), (1, 2, 3))
     assert list(macro_system.apply_cut(cut).cut_mechanisms) == [(0,), (0, 1)]
 
-    cut = SystemPartition(Direction.EFFECT, (1, 3), (0, 2, 4, 5, 6, 7))
+    cut = DirectedBipartition(Direction.EFFECT, (1, 3), (0, 2, 4, 5, 6, 7))
     assert list(propagation_delay.apply_cut(cut).cut_mechanisms) == [
         (1,),
         (2,),
@@ -138,7 +138,7 @@ def test_macro_system(macro_system):
 
 
 def test_macro_cut_system(macro_system):
-    cut = SystemPartition(Direction.EFFECT, (0,), (1, 2, 3))
+    cut = DirectedBipartition(Direction.EFFECT, (0,), (1, 2, 3))
     cut_system = macro_system.apply_cut(cut)
     # fmt: off
     answer_tpm = np.array([

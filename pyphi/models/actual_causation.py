@@ -339,7 +339,7 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
             transition.
         transition (Transition): The transition this analysis was calculated
             for.
-        cut (ActualCut): The minimal partition.
+        cut (DirectedJointPartition): The minimal partition.
     """
 
     def __init__(

@@ -17,8 +17,8 @@ from typing import Any
 from pyphi import connectivity
 from pyphi import utils
 from pyphi import validate
+from pyphi.models.partitions import DirectedBipartition
 from pyphi.models.partitions import NullCut
-from pyphi.models.partitions import SystemPartition
 from pyphi.substrate import Substrate
 
 from .core.tpm.marginalization import cause_tpm as _marginalize_cause
@@ -36,7 +36,7 @@ class System:
     substrate: Substrate
     state: State
     node_indices: NodeIndices = field(default=None)  # type: ignore[assignment]
-    cut: SystemPartition = field(default=None)  # type: ignore[assignment]
+    cut: DirectedBipartition = field(default=None)  # type: ignore[assignment]
 
     def __post_init__(self) -> None:
         substrate = self.substrate
@@ -105,7 +105,7 @@ class System:
         labels = self.node_labels.coerce_to_labels(self.node_indices)
         return f"System({', '.join(str(label) for label in labels)})"
 
-    def apply_cut(self, cut: SystemPartition) -> System:
+    def apply_cut(self, cut: DirectedBipartition) -> System:
         """Return a new System with the given cut applied.
 
         ``substrate``, ``state``, and ``node_indices`` are unchanged.
@@ -123,7 +123,7 @@ class System:
         substrate: Substrate,
         state: Any,
         nodes: Any | None = None,
-        cut: SystemPartition | None = None,
+        cut: DirectedBipartition | None = None,
         **kwargs: Any,  # noqa: ARG003
     ) -> System:
         """Construct a System from a substrate, state, and optional node subset."""

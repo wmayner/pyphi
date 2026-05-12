@@ -11,7 +11,7 @@ from pyphi import macro  # noqa: E402
 from pyphi import utils  # noqa: E402
 from pyphi.direction import Direction  # noqa: E402
 from pyphi.formalism import iit3  # noqa: E402
-from pyphi.models import SystemPartition  # noqa: E402
+from pyphi.models import DirectedBipartition  # noqa: E402
 
 
 # TODO: move these to examples.py
@@ -138,7 +138,7 @@ def test_basic_nor_or():
         sia = iit3.sia(sub)
 
     assert sia.phi == 1.958332
-    assert sia.cut == SystemPartition(
+    assert sia.cut == DirectedBipartition(
         Direction.EFFECT, (6,), (0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11)
     )
     # After performing the 'ONE_CUT_APPROXIMATION'
@@ -205,7 +205,9 @@ def test_xor_propogation_delay():
 
     sia = iit3.sia(subsys)
     assert sia.phi == 1.874999
-    assert sia.cut == SystemPartition(Direction.EFFECT, (0,), (1, 2, 3, 4, 5, 6, 7, 8))
+    assert sia.cut == DirectedBipartition(
+        Direction.EFFECT, (0,), (1, 2, 3, 4, 5, 6, 7, 8)
+    )
 
 
 # TODO(wmayner) this test hangs on helicon
@@ -375,6 +377,6 @@ def test_basic_propagation_delay(s, propagation_delay):
     # TODO
     # sia = iit3.sia(propagation_delay)
     # assert sia.phi == 2.125
-    # assert sia.cut == SystemPartition(Direction.EFFECT, (0, 1, 2, 3, 4, 5, 6), (7,))
+    # assert sia.cut == DirectedBipartition(Direction.EFFECT, (0, 1, 2, 3, 4, 5, 6), (7,))
 
     assert np.array_equal(propagation_delay.cm, s.cm)

@@ -7,8 +7,9 @@ Attributes:
      :class:`pyphi.models.actual_causation.AcRepertoireIrreducibilityAnalysis`.
     AcSystemIrreducibilityAnalysis: Alias for
         :class:`pyphi.models.actual_causation.AcSystemIrreducibilityAnalysis`.
-    ActualCut: Alias for :class:`pyphi.models.partitions.ActualCut`.
-    Bipartition: Alias for :class:`pyphi.models.partitions.Bipartition`.
+    DirectedJointPartition: Alias for
+        :class:`pyphi.models.partitions.DirectedJointPartition`.
+    JointBipartition: Alias for :class:`pyphi.models.partitions.JointBipartition`.
     CausalLink: Alias for :class:`pyphi.models.actual_causation.CausalLink`.
     CauseEffectStructure: Alias for
         :class:`pyphi.models.ces.CauseEffectStructure` — the
@@ -54,14 +55,16 @@ from .distinctions import _null_ces
 from .mice import MaximallyIrreducibleCause
 from .mice import MaximallyIrreducibleCauseOrEffect
 from .mice import MaximallyIrreducibleEffect
-from .partitions import ActualCut
-from .partitions import Bipartition
-from .partitions import KCut
-from .partitions import KPartition
+from .partitions import CompleteEdgeCut
+from .partitions import DirectedBipartition
+from .partitions import DirectedJointPartition
+from .partitions import DirectedSetPartition
+from .partitions import EdgeCut
+from .partitions import JointBipartition
+from .partitions import JointPartition
+from .partitions import JointTripartition
 from .partitions import NullCut
 from .partitions import Part
-from .partitions import SystemPartition
-from .partitions import Tripartition
 from .ria import RepertoireIrreducibilityAnalysis
 from .ria import ShortCircuitConditions
 from .ria import _null_ria
@@ -78,18 +81,22 @@ __all__ = [
     "AcRepertoireIrreducibilityAnalysis",
     "AcSystemIrreducibilityAnalysis",
     "Account",
-    "ActualCut",
-    "Bipartition",
     "CausalLink",
     "CauseEffectStructure",
+    "CompleteEdgeCut",
     "Concept",
     "DirectedAccount",
+    "DirectedBipartition",
+    "DirectedJointPartition",
+    "DirectedSetPartition",
     "Distinction",
     "DistinctionPhiNormalizationRegistry",
     "Distinctions",
+    "EdgeCut",
     "Event",
-    "KCut",
-    "KPartition",
+    "JointBipartition",
+    "JointPartition",
+    "JointTripartition",
     "MaximallyIrreducibleCause",
     "MaximallyIrreducibleCauseOrEffect",
     "MaximallyIrreducibleEffect",
@@ -100,9 +107,7 @@ __all__ = [
     "ShortCircuitConditions",
     "StateSpecification",
     "SystemIrreducibilityAnalysis",
-    "SystemPartition",
     "SystemStateSpecification",
-    "Tripartition",
     "UnitState",
     "UnresolvedDistinctions",
     "_null_ac_ria",

@@ -39,9 +39,9 @@ from pyphi.models import fmt
 from pyphi.models.ces import CauseEffectStructure
 from pyphi.models.distinctions import Distinctions
 from pyphi.models.distinctions import ResolvedDistinctions
-from pyphi.models.partitions import GeneralKCut
+from pyphi.models.partitions import DirectedBipartition
+from pyphi.models.partitions import EdgeCut
 from pyphi.models.partitions import NullCut
-from pyphi.models.partitions import SystemPartition
 from pyphi.models.ria import RepertoireIrreducibilityAnalysis
 from pyphi.models.state_specification import StateSpecification
 from pyphi.models.state_specification import SystemStateSpecification
@@ -125,7 +125,7 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
     """
 
     phi: float | DistanceResult
-    partition: SystemPartition | SystemPartition | NullCut
+    partition: DirectedBipartition | DirectedBipartition | NullCut
     normalized_phi: float = 0
     cause: RepertoireIrreducibilityAnalysis | None = None
     effect: RepertoireIrreducibilityAnalysis | None = None
@@ -364,10 +364,10 @@ class NullSystemIrreducibilityAnalysis(SystemIrreducibilityAnalysis):
         return columns
 
 
-def normalization_factor(partition: SystemPartition | GeneralKCut) -> float:
+def normalization_factor(partition: DirectedBipartition | EdgeCut) -> float:
     if hasattr(partition, "normalization_factor"):
         return partition.normalization_factor()  # pyright: ignore[reportAttributeAccessIssue]
-    # For GeneralKCut, we need to check hasattr before accessing attributes
+    # For EdgeCut, we need to check hasattr before accessing attributes
     if hasattr(partition, "from_nodes") and hasattr(partition, "to_nodes"):
         return 1 / (len(partition.from_nodes) * len(partition.to_nodes))  # pyright: ignore[reportAttributeAccessIssue]
     # Default fallback
@@ -378,7 +378,7 @@ def _integration_value_for_state(
     direction: Direction,
     system: System,
     cut_system: System,
-    partition: SystemPartition,
+    partition: DirectedBipartition,
     specified: StateSpecification,
     repertoire_distance: (
         DistributionMeasure
@@ -410,7 +410,7 @@ def _integration_value_for_state(
         direction,
         system.node_indices,
         system.node_indices,
-        partition,  # pyright: ignore[reportArgumentType] - SystemPartition passed to Bipartition param in IIT 4.0
+        partition,  # pyright: ignore[reportArgumentType] - DirectedBipartition passed to JointBipartition param in IIT 4.0
         partitioned_repertoire=partitioned_repertoire,
         repertoire_distance=repertoire_distance,
         state=specified,
@@ -420,7 +420,7 @@ def _integration_value_for_state(
 def integration_value(
     direction: Direction,
     system: System,
-    partition: SystemPartition,
+    partition: DirectedBipartition,
     system_state: SystemStateSpecification,
     *,
     system_measure: CompositeMeasure,
@@ -478,7 +478,7 @@ def intrinsic_differentiation_value(
 
 
 def evaluate_partition(
-    partition: SystemPartition,
+    partition: DirectedBipartition,
     system: System,
     system_state: SystemStateSpecification,
     *,

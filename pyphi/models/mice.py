@@ -103,7 +103,7 @@ class MaximallyIrreducibleCauseOrEffect(
 
     @property
     def mip(self):
-        """KPartition: The partition that makes the least difference to the
+        """JointPartition: The partition that makes the least difference to the
         mechanism's repertoire.
         """
         return self._ria.partition

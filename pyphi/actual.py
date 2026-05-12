@@ -44,15 +44,15 @@ from .metrics.protocols import DistributionMeasure
 from .models import Account
 from .models import AcRepertoireIrreducibilityAnalysis
 from .models import AcSystemIrreducibilityAnalysis
-from .models import ActualCut
 from .models import CausalLink
 from .models import DirectedAccount
+from .models import DirectedJointPartition
 from .models import Event
 from .models import NullCut
 from .models import _null_ac_ria
 from .models import _null_ac_sia
 from .models import fmt
-from .models.partitions import SystemPartition
+from .models.partitions import DirectedBipartition
 from .parallel import MapReduce
 from .partition import mip_partitions
 from .substrate import Substrate
@@ -184,7 +184,7 @@ class TransitionSystem:
     cause_indices: tuple[int, ...]
     effect_indices: tuple[int, ...]
     direction: Direction
-    cut: SystemPartition = field(default=None)  # type: ignore[assignment]
+    cut: DirectedBipartition = field(default=None)  # type: ignore[assignment]
     noise_background: bool = False
 
     def __post_init__(self) -> None:
@@ -331,7 +331,7 @@ class TransitionSystem:
     def null_concept(self) -> Any:
         return self.null_distinction
 
-    def apply_cut(self, cut: SystemPartition) -> "TransitionSystem":
+    def apply_cut(self, cut: DirectedBipartition) -> "TransitionSystem":
         return replace(self, cut=cut)
 
     def __eq__(self, other: object) -> bool:
@@ -686,7 +686,7 @@ class TransitionSystem:
         cause_indices: Any,
         effect_indices: Any,
         direction: Direction,
-        cut: SystemPartition | None = None,
+        cut: DirectedBipartition | None = None,
         **kwargs: Any,
     ) -> "TransitionSystem":
         return cls(
@@ -732,7 +732,7 @@ class Transition:
             effect system.
 
     Keyword Args:
-        cut (SystemPartition): The cut applied to this transition. Defaults
+        cut (DirectedBipartition): The cut applied to this transition. Defaults
             to a :class:`NullCut` over the union of cause and effect indices.
         noise_background (bool): If ``True``, background conditions are
             noised instead of frozen.
@@ -743,7 +743,7 @@ class Transition:
     after_state: tuple[int, ...]
     cause_indices: tuple[int, ...]
     effect_indices: tuple[int, ...]
-    cut: SystemPartition = field(default=None)  # type: ignore[assignment]
+    cut: DirectedBipartition = field(default=None)  # type: ignore[assignment]
     noise_background: bool = False
 
     def __post_init__(self) -> None:
@@ -844,7 +844,7 @@ class Transition:
             "cut": self.cut,
         }
 
-    def apply_cut(self, cut: SystemPartition) -> "Transition":
+    def apply_cut(self, cut: DirectedBipartition) -> "Transition":
         return replace(self, cut=cut)
 
     def cause_repertoire(self, mechanism, purview):
@@ -1465,7 +1465,7 @@ def _get_cuts(transition, direction):
         mechanism = transition.mechanism_indices(direction)
         purview = transition.purview_indices(direction)
         for partition in mip_partitions(mechanism, purview, transition.node_labels):
-            yield ActualCut(direction, partition, transition.node_labels)
+            yield DirectedJointPartition(direction, partition, transition.node_labels)
 
 
 def sia(transition, direction=Direction.BIDIRECTIONAL, **kwargs):

@@ -9,8 +9,8 @@ from pyphi.formalism import find_mip
 from pyphi.formalism import mic
 from pyphi.formalism import mie
 from pyphi.formalism import phi_max
+from pyphi.models import DirectedBipartition
 from pyphi.models import MaximallyIrreducibleCauseOrEffect
-from pyphi.models import SystemPartition
 from pyphi.models import _null_ria
 from pyphi.utils import eq
 
@@ -21,7 +21,7 @@ from . import example_substrates
 
 s = example_substrates.s()
 directions = (Direction.CAUSE, Direction.EFFECT)
-cuts = (None, SystemPartition(Direction.EFFECT, (1, 2), (0,)))
+cuts = (None, DirectedBipartition(Direction.EFFECT, (1, 2), (0,)))
 system = {cut: System(s.substrate, s.state, s.node_indices, cut=cut) for cut in cuts}
 
 expected_purview_indices = {

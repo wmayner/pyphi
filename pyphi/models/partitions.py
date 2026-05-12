@@ -1,5 +1,47 @@
-# models/partitions.py
-"""Objects that represent partitions of sets of nodes."""
+"""Partition and edge-cut value types.
+
+Two distinct mathematical concepts share this module's
+:class:`_PartitionBase` interface:
+
+**Vertex partitions** (IIT 4.0 paper terminology):
+
+- :class:`DirectedBipartition` — a directed bipartition of an index set
+  (Θ(S), Eq. 14-18). Stores ``(direction, from_nodes, to_nodes)``.
+- :class:`JointPartition` — a sequence of :class:`Part` blocks, each a
+  ``(mechanism, purview)`` pair (Π(M,Z), Eq. 5-7). Subclasses
+  :class:`JointBipartition` (k=2) and :class:`JointTripartition` (k=3,
+  wedge constraint).
+- :class:`DirectedJointPartition` — a :class:`JointPartition` together
+  with a :class:`Direction`, used for AC (Ψ, Eq. 7 of Albantakis et al.
+  2019) and for disintegrating partitions (Θ(M,Z), Eq. 38 of IIT 4.0).
+- :class:`DirectedSetPartition` — a k-way set partition with per-part
+  direction.
+
+**Edge cuts** (graph theory terminology):
+
+- :class:`EdgeCut` — an explicit n by n binary severance matrix.
+- :class:`CompleteEdgeCut` — all edges severed (boundary).
+- :class:`NullCut` — no edges severed (identity).
+
+A vertex partition *induces* an edge cut: every concrete
+:class:`_PartitionBase` exposes :meth:`cut_matrix(n)` returning the
+binary matrix of severed connections. :meth:`apply_cut(cm)` applies
+the induced cut to a connectivity matrix.
+
+The boundary classes (:class:`CompleteJointPartition`,
+:class:`AtomicJointPartition`) live in :mod:`pyphi.partition` alongside
+the partition generators.
+
+**Use-case mapping:**
+
+- IIT 3.0 / IIT 4.0 SIA partitioning → :class:`DirectedBipartition` and
+  :class:`DirectedSetPartition` (via the ``DIRECTED_BI``, ``SET_UNI/BI``,
+  etc. scheme registries).
+- IIT 4.0 system SIA general scheme → :class:`EdgeCut` (matrix-based).
+- IIT 4.0 mechanism MIP search → :class:`JointPartition` and subclasses
+  (via the ``BI``, ``TRI``, ``ALL`` mechanism partition schemes).
+- Actual causation distinction finding → :class:`DirectedJointPartition`.
+"""
 
 from __future__ import annotations
 
@@ -23,83 +65,61 @@ from . import fmt
 
 
 class _PartitionBase:
-    """Base class for all unidirectional system cuts.
+    """Base class for partitions and edge cuts.
 
-    Concrete cut classes must implement a ``cut_matrix`` method and an
-    ``indices`` property. See ``SystemPartition`` for a concrete example.
+    Concrete subclasses implement :meth:`cut_matrix` and the
+    :attr:`indices` property. :meth:`apply_cut`, :meth:`cuts_connections`,
+    :meth:`splits_mechanism`, and :meth:`all_cut_mechanisms` are derived.
     """
 
     @property
     def indices(self) -> tuple[int, ...]:
-        """Indices of this cut."""
+        """Indices of the partitioned nodes."""
         raise NotImplementedError
 
     def cut_matrix(self, n: int) -> NDArray[np.int_]:
-        """Return the cut matrix for this cut.
+        """Return the binary edge-cut matrix induced by this partition.
 
-        The cut matrix is a square matrix representing  connections severed
-        by the cut: if the connection from node `a` to node `b` is cut,
-        `cut_matrix[a, b]` is `1`; otherwise it is `0`.
+        ``cut_matrix[a, b] == 1`` iff the directed connection a→b is
+        severed.
 
         Args:
-           n (int): The size of the substrate.
+            n (int): The size of the substrate.
         """
         raise NotImplementedError
 
     @property
     def is_null(self) -> bool:
-        """Is this cut a null cut?
-
-        All concrete cuts should return ``False``.
-        """
+        """``True`` if this partition severs no connections."""
         return False
 
     def apply_cut(self, cm: NDArray[np.int_]) -> NDArray[np.int_]:
-        """Return a modified connectivity matrix with all connections that are
-        severed by this cut removed.
+        """Return ``cm`` with the partition's induced edge cut removed.
 
         Args:
             cm (np.ndarray): A connectivity matrix.
         """
-        # Invert the cut matrix, creating a matrix of preserved connections
         inverse = np.logical_not(self.cut_matrix(cm.shape[0])).astype(int)
         return cm * inverse
 
     def cuts_connections(self, a: tuple[int, ...], b: tuple[int, ...]) -> bool:
-        """Check if this cut severs any connections from ``a`` to ``b``.
-
-        Args:
-            a (tuple[int]): A set of nodes.
-            b (tuple[int]): A set of nodes.
-        """
+        """Whether this partition severs any connection from ``a`` to ``b``."""
         n = max(self.indices + a + b) + 1
         return bool(self.cut_matrix(n)[np.ix_(a, b)].any())
 
     def splits_mechanism(self, mechanism: tuple[int, ...]) -> bool:
-        """Check if this cut splits a mechanism.
-
-        Args:
-            mechanism (tuple[int]): The mechanism in question.
-
-        Returns:
-            bool: ``True`` if `mechanism` has elements on both sides of the
-            cut; ``False`` otherwise.
-        """
+        """Whether this partition splits ``mechanism`` across its parts."""
         return self.cuts_connections(mechanism, mechanism)
 
     def all_cut_mechanisms(self) -> Iterator[tuple[int, ...]]:
-        """Return all mechanisms with elements on both sides of this cut.
-
-        Yields:
-            tuple[int]: The next cut mechanism.
-        """
+        """Yield all mechanisms with elements split by this partition."""
         for mechanism in utils.powerset(self.indices, nonempty=True):
             if self.splits_mechanism(mechanism):
                 yield mechanism
 
 
 class NullCut(_PartitionBase):
-    """The cut that does nothing."""
+    """The empty edge cut: no connections severed."""
 
     def __init__(
         self, indices: tuple[int, ...], node_labels: NodeLabels | None = None
@@ -109,16 +129,13 @@ class NullCut(_PartitionBase):
 
     @property
     def is_null(self) -> bool:
-        """This is the only cut where ``is_null == True``."""
         return True
 
     @property
     def indices(self) -> tuple[int, ...]:
-        """Indices of the cut."""
         return self._indices
 
     def cut_matrix(self, n: int) -> NDArray[np.int_]:
-        """Return a matrix of zeros."""
         return np.zeros((n, n), dtype=int)
 
     def to_json(self) -> dict[str, Any]:
@@ -138,29 +155,18 @@ class NullCut(_PartitionBase):
         return hash(self.indices)
 
 
-class SystemPartition(_PartitionBase):
-    """A unidirectional system-level partition / cut.
+class DirectedBipartition(_PartitionBase):
+    """A directed bipartition of an index set.
 
-    Represents the severing of connections from ``from_nodes`` to ``to_nodes``
-    in a particular causal ``direction`` (CAUSE or EFFECT). For IIT 3.0 SIA
-    partitions, the direction was previously implicit; in 2.0 the formalism
-    layer always passes a direction explicitly.
-
-    Replaces the ``Cut`` class from earlier versions. Migration::
-
-        # before
-        Cut(from_nodes, to_nodes)
-        # after — IIT 3.0 callers default to EFFECT (no semantic change; the
-        # IIT 3.0 phi computation does not read the direction field)
-        SystemPartition(Direction.EFFECT, from_nodes, to_nodes)
+    Severs connections from ``from_nodes`` to ``to_nodes`` in a causal
+    ``direction`` (CAUSE or EFFECT). Corresponds to θ ∈ Θ(S) in IIT 4.0
+    Eq. 14-18 in the bipartite case.
 
     Attributes:
-        direction (Direction): The causal direction of the cut.
-        from_nodes (tuple[int]): Connections from these nodes to ``to_nodes``
-            are severed.
-        to_nodes (tuple[int]): Connections to these nodes from ``from_nodes``
-            are severed.
-        node_labels (NodeLabels | None): Optional labels for pretty-printing.
+        direction: The causal direction of the cut.
+        from_nodes: Source side; connections from these to ``to_nodes`` are severed.
+        to_nodes: Target side; connections from ``from_nodes`` to these are severed.
+        node_labels: Optional labels for pretty-printing.
     """
 
     __slots__ = ("direction", "from_nodes", "node_labels", "to_nodes")
@@ -184,21 +190,14 @@ class SystemPartition(_PartitionBase):
 
     @property
     def indices(self) -> tuple[int, ...]:
-        """Indices of this partition."""
         return tuple(sorted(set(self.from_nodes + self.to_nodes)))
 
     def cut_matrix(self, n: int) -> NDArray[np.int_]:
-        """Compute the cut matrix for this partition.
-
-        The cut matrix is a square matrix which represents connections severed
-        by the cut.
-
-        Args:
-           n (int): The size of the substrate.
+        """Connections from ``from_nodes`` to ``to_nodes`` are severed.
 
         Example:
             >>> from pyphi.direction import Direction
-            >>> sp = SystemPartition(Direction.EFFECT, (1,), (2,))
+            >>> sp = DirectedBipartition(Direction.EFFECT, (1,), (2,))
             >>> sp.cut_matrix(3)
             array([[0, 0, 0],
                    [0, 0, 1],
@@ -226,14 +225,12 @@ class SystemPartition(_PartitionBase):
         return fmt.fmt_cut(self, direction=self.direction)
 
     def __len__(self) -> int:
-        """The number of parts in the partition."""
         return 2
 
     def format(self, node_labels: NodeLabels | None = None) -> str:
         return fmt.fmt_part(self, node_labels=node_labels)
 
     def to_json(self) -> dict[str, Any]:
-        """Return a JSON-serializable representation."""
         return {
             "direction": self.direction,
             "from_nodes": self.from_nodes,
@@ -241,37 +238,31 @@ class SystemPartition(_PartitionBase):
         }
 
     @classmethod
-    def from_json(cls, data: dict[str, Any]) -> SystemPartition:
-        """Return a SystemPartition object from a JSON-serializable representation."""
+    def from_json(cls, data: dict[str, Any]) -> DirectedBipartition:
         return cls(data["direction"], data["from_nodes"], data["to_nodes"])
 
 
-class CompleteSystemPartition(_PartitionBase):
-    """Represents the SystemPartition that destroys all distinctions & relations."""
+class DirectedJointPartition(_PartitionBase):
+    """A joint partition with a causal direction.
 
-    @property
-    def indices(self) -> tuple[int, ...]:
-        return ()
+    Wraps a :class:`JointPartition` with a :class:`Direction`. Corresponds
+    to disintegrating partitions Θ(M,Z) in IIT 4.0 Eq. 38 and to AC
+    partitions ψ in Albantakis et al. 2019 Eq. 7.
 
-    def cut_matrix(self, n: int) -> NDArray[np.int_]:
-        """All connections severed."""
-        return np.ones((n, n), dtype=int)
-
-    def __repr__(self) -> str:
-        return "Complete"
-
-
-class KCut(_PartitionBase):
-    """A cut that severs all connections between parts of a K-partition."""
+    Attributes:
+        direction: Causal direction of the induced edge cut.
+        partition: The joint partition (sequence of (mechanism, purview) parts).
+        node_labels: Optional labels for pretty-printing.
+    """
 
     direction: Direction
-    partition: KPartition
+    partition: JointPartition
     node_labels: NodeLabels | None
 
     def __init__(
         self,
         direction: Direction,
-        partition: KPartition,
+        partition: JointPartition,
         node_labels: NodeLabels | None = None,
     ) -> None:
         self.direction = direction
@@ -280,19 +271,14 @@ class KCut(_PartitionBase):
 
     @property
     def indices(self) -> tuple[int, ...]:
-        assert set(self.partition.mechanism) == set(self.partition.purview)
-        return self.partition.mechanism
+        return tuple(sorted(set(self.partition.mechanism + self.partition.purview)))
 
     def cut_matrix(self, n: int) -> NDArray[np.int_]:
-        """The matrix of connections that are severed by this cut."""
         cm = np.zeros((n, n), dtype=int)
-
         for part in self.partition:
             from_, to = self.direction.order(part.mechanism, part.purview)
-            # All indices external to this part
             external = tuple(set(self.indices) - set(to))
             cm[np.ix_(from_, external)] = 1
-
         return cm
 
     @cmp.sametype
@@ -305,7 +291,6 @@ class KCut(_PartitionBase):
     def __repr__(self) -> str:
         return fmt.make_repr(self, ["direction", "partition"])
 
-    # TODO: improve
     def __str__(self) -> str:
         return fmt.fmt_kcut(self)
 
@@ -313,16 +298,15 @@ class KCut(_PartitionBase):
         return {"direction": self.direction, "partition": self.partition}
 
 
-class ActualCut(KCut):
-    """Represents an cut for a |Transition|."""
+class EdgeCut(_PartitionBase):
+    """An edge cut specified by an explicit binary severance matrix.
 
-    @property
-    def indices(self) -> tuple[int, ...]:
-        return tuple(sorted(set(self.partition.mechanism + self.partition.purview)))
-
-
-class GeneralKCut(_PartitionBase):
-    """A cut defined by a matrix of cut connections."""
+    Stores ``(node_indices, _cut_matrix)`` where ``_cut_matrix[i, j] == 1``
+    indicates that the connection from node ``node_indices[i]`` to
+    ``node_indices[j]`` is severed. The full n by n cut matrix is produced
+    by embedding ``_cut_matrix`` at the rows/cols corresponding to
+    ``node_indices``.
+    """
 
     node_indices: tuple[int, ...]
     _cut_matrix: NDArray[np.int_]
@@ -339,7 +323,7 @@ class GeneralKCut(_PartitionBase):
         self.node_labels = node_labels
 
     def normalization_factor(self) -> float:
-        """The normalization factor for this cut."""
+        """Normalization factor: 1 / number of severed connections."""
         return float(1 / np.sum(self._cut_matrix))
 
     @property
@@ -347,7 +331,6 @@ class GeneralKCut(_PartitionBase):
         return self.node_indices
 
     def cut_matrix(self, n: int) -> NDArray[np.int_]:
-        """The matrix of connections that are severed by this cut."""
         cm = np.zeros([n, n], dtype=int)
         cm[np.ix_(self.node_indices, self.node_indices)] = self._cut_matrix
         return cm
@@ -369,14 +352,13 @@ class GeneralKCut(_PartitionBase):
         return fmt.make_repr(self, ["node_indices", "_cut_matrix"])
 
     def __str__(self) -> str:
-        # TODO: improve
         return str(self._cut_matrix)
 
     def to_json(self) -> dict[str, Any]:
         return self.__dict__.copy()
 
     @classmethod
-    def from_json(cls, data: dict[str, Any]) -> GeneralKCut:
+    def from_json(cls, data: dict[str, Any]) -> EdgeCut:
         return cls(
             node_indices=data["node_indices"],
             cut_matrix=data["_cut_matrix"],
@@ -384,7 +366,13 @@ class GeneralKCut(_PartitionBase):
         )
 
 
-class CompleteGeneralKCut(GeneralKCut):
+class CompleteEdgeCut(EdgeCut):
+    """Edge cut that severs every connection (all-ones matrix).
+
+    Used as the boundary case in partition enumeration and as the
+    "complete" cut against which an SIA's partition is compared.
+    """
+
     def __init__(
         self, node_indices: tuple[int, ...], node_labels: NodeLabels | None = None
     ) -> None:
@@ -393,11 +381,21 @@ class CompleteGeneralKCut(GeneralKCut):
         self._cut_matrix = np.ones([len(node_indices), len(node_indices)], dtype=int)
 
     def normalization_factor(self) -> float:
-        """The normalization factor for this cut."""
         return 1 / len(self.node_indices)
 
+    def __repr__(self) -> str:
+        return "Complete"
 
-class GeneralSetPartition(GeneralKCut):
+
+class DirectedSetPartition(EdgeCut):
+    """A k-way set partition of nodes with per-part directional cuts.
+
+    Stores both the explicit severance matrix (inherited from
+    :class:`EdgeCut`) and the semantic set-partition structure
+    (``set_partition``: which node indices group together; ``parts``:
+    the corresponding actual node indices).
+    """
+
     set_partition: list[list[int]]
     parts: list[list[int]]
 
@@ -437,21 +435,20 @@ class GeneralSetPartition(GeneralKCut):
         return dct
 
     @classmethod
-    def from_json(cls, data: dict[str, Any]) -> GeneralSetPartition:
+    def from_json(cls, data: dict[str, Any]) -> DirectedSetPartition:
         data["cut_matrix"] = np.array(data.pop("_cut_matrix"))
         return cls(**data)
 
-    # TODO(4.0) add to other classes after consolidating partitions
     def relabel(
         self,
         node_indices: tuple[int, ...],
         node_labels: NodeLabels | None = None,
-    ) -> GeneralSetPartition:
+    ) -> DirectedSetPartition:
         if node_labels is None:
             node_labels = self.node_labels
         if not len(node_indices) == len(self.node_indices):
             raise ValueError("New node indices must have same length as the old.")
-        return GeneralSetPartition(
+        return DirectedSetPartition(
             node_indices,
             self._cut_matrix,
             set_partition=self.set_partition,
@@ -459,28 +456,21 @@ class GeneralSetPartition(GeneralKCut):
         )
 
 
-# ``CompleteGeneralSetPartition`` was a class adding only a ``"Complete\n"``
-# prefix to ``CompleteGeneralKCut.__str__``. It has been removed in 2.0;
-# callers can format with ``f"Complete\n{cgkcut}"`` if desired.
-
-
 @dataclass(order=True, frozen=True)
 class Part:
-    """Represents one part of a |Bipartition|.
+    """One block of a :class:`JointPartition`.
 
     Attributes:
-        mechanism (tuple[int]): The nodes in the mechanism for this part.
-        purview (tuple[int]): The nodes in the mechanism for this part.
+        mechanism: Nodes on the mechanism side of this block.
+        purview: Nodes on the purview side of this block.
 
     Example:
-        When calculating |small_phi| of a 3-node system, we partition the
-        system in the following way::
+        For a |small_phi| computation on a 3-node system, a 2-block
+        partition could be::
 
             mechanism:  A,C    B
                         ─── ✕ ───
               purview:   B    A,C
-
-        This class represents one term in the above product.
     """
 
     mechanism: tuple[int, ...]
@@ -499,12 +489,21 @@ class Part:
         return fmt.fmt_part(self, node_labels=self.node_labels)
 
     def to_json(self) -> dict[str, Any]:
-        """Return a JSON-serializable representation."""
         return {"mechanism": self.mechanism, "purview": self.purview}
 
 
-class KPartition(Sequence[Part], _PartitionBase):
-    """A partition with an arbitrary number of parts."""
+class JointPartition(Sequence[Part], _PartitionBase):
+    """A joint partition of a (mechanism, purview) pair into k matched parts.
+
+    Stores a sequence of :class:`Part` blocks. Each Part pairs a
+    mechanism subset with a purview subset; the mechanism subsets across
+    all Parts form a partition of the union mechanism, and likewise for
+    the purview subsets. The two side-partitions are matched index-by-index.
+
+    Corresponds to Π(M,Z) in IIT 4.0 Eq. 5-7. Subclasses
+    :class:`JointBipartition` (k=2) and :class:`JointTripartition` (k=3)
+    add semantic markers.
+    """
 
     __slots__ = ["_mechanism", "_purview", "node_labels", "parts"]
 
@@ -529,7 +528,7 @@ class KPartition(Sequence[Part], _PartitionBase):
         return self.parts[index]
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, KPartition):
+        if not isinstance(other, JointPartition):
             return NotImplemented
         return self.parts == other.parts
 
@@ -544,20 +543,16 @@ class KPartition(Sequence[Part], _PartitionBase):
 
     @property
     def mechanism(self) -> tuple[int, ...]:
-        """tuple[int]: The nodes of the mechanism in the partition."""
-        # TODO(4.0) do we need to sort here? slow
         if self._mechanism is None:
             self._mechanism = tuple(chain.from_iterable(part.mechanism for part in self))
         return self._mechanism
 
     @property
     def purview(self) -> tuple[int, ...]:
-        """tuple[int]: The nodes of the purview in the partition."""
         if self._purview is None:
-            # NOTE: Must sort here as long as states are tuples and not
-            # mappings; we need to be able to combine a purview and a state in
-            # order, e.g. in `System.partitioned_repertoire`.
-            # TODO(states) remove sorting once states are mappings?
+            # Sort because downstream callers index by sorted purview
+            # (e.g., System.partitioned_repertoire pairs state with purview
+            # in order); states are positional tuples, not mappings.
             self._purview = tuple(
                 sorted(chain.from_iterable(part.purview for part in self))
             )
@@ -568,11 +563,11 @@ class KPartition(Sequence[Part], _PartitionBase):
         return tuple(sorted(set(self.mechanism + self.purview)))
 
     def normalize(self) -> Self:
-        """Normalize the order of parts in the partition."""
+        """Return a copy with parts sorted into a canonical order."""
         return type(self)(*sorted(self), node_labels=self.node_labels)
 
     def num_connections_cut(self) -> int:
-        """The number of connections cut by this partition."""
+        """Number of connections severed by the induced edge cut (IIT 4.0 Eq. 24)."""
         n = 0
         purview_lengths = [len(part.purview) for part in self.parts]
         for i, part in enumerate(self.parts):
@@ -581,46 +576,39 @@ class KPartition(Sequence[Part], _PartitionBase):
             )
         return n
 
-    # TODO(4.0) consolidate cut classes
     def cut_matrix(self, n: int) -> NDArray[np.int_]:
-        """The matrix of connections that are severed by this cut."""
         cm = np.zeros((n, n), dtype=int)
-
         for part in self.parts:
-            # Indices of all other part's purviews
             outside_part = tuple(set(self.purview) - set(part.purview))
             cm[np.ix_(part.mechanism, outside_part)] = 1
-
         return cm
 
     def to_json(self) -> dict[str, Any]:
         return {"parts": list(self)}
 
     @classmethod
-    def from_json(cls, dct: dict[str, Any]) -> KPartition:
+    def from_json(cls, dct: dict[str, Any]) -> JointPartition:
         return cls(*dct["parts"])
 
 
-class Bipartition(KPartition):
-    """A bipartition of a mechanism and purview.
+class JointBipartition(JointPartition):
+    """A :class:`JointPartition` with exactly two parts."""
 
-    Attributes:
-        part0 (Part): The first part of the partition.
-        part1 (Part): The second part of the partition.
-    """
-
-    __slots__ = KPartition.__slots__
+    __slots__ = JointPartition.__slots__
 
     def to_json(self) -> dict[str, Any]:
-        """Return a JSON-serializable representation."""
         return {"part0": self[0], "part1": self[1]}
 
     @classmethod
-    def from_json(cls, dct: dict[str, Any]) -> Bipartition:
+    def from_json(cls, dct: dict[str, Any]) -> JointBipartition:
         return cls(dct["part0"], dct["part1"])
 
 
-class Tripartition(KPartition):
-    """A partition with three parts."""
+class JointTripartition(JointPartition):
+    """A :class:`JointPartition` with exactly three parts.
 
-    __slots__ = KPartition.__slots__
+    Typically the "wedge" partition where the mechanism is strictly split
+    across the first two parts.
+    """
+
+    __slots__ = JointPartition.__slots__

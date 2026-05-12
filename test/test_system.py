@@ -7,10 +7,10 @@ from pyphi import config
 from pyphi import exceptions
 from pyphi.metrics.distribution import resolve_mechanism_measure
 from pyphi.models import Concept
+from pyphi.models import DirectedBipartition
 from pyphi.models import MaximallyIrreducibleCause
 from pyphi.models import MaximallyIrreducibleEffect
 from pyphi.models import RepertoireIrreducibilityAnalysis
-from pyphi.models import SystemPartition
 from pyphi.system import System
 
 from . import example_substrates
@@ -34,14 +34,14 @@ def test_system_validation(s):
 def test_validate_cut_nodes_equal_system_nodes(s):
     assert s.node_indices == (0, 1, 2)
 
-    cut = SystemPartition(Direction.EFFECT, (0,), (1, 2))  # A-ok
+    cut = DirectedBipartition(Direction.EFFECT, (0,), (1, 2))  # A-ok
     System(s.substrate, s.state, s.node_indices, cut=cut)
 
-    cut = SystemPartition(Direction.EFFECT, (0,), (1,))  # missing node 2 in cut
+    cut = DirectedBipartition(Direction.EFFECT, (0,), (1,))  # missing node 2 in cut
     with pytest.raises(ValueError):
         System(s.substrate, s.state, s.node_indices, cut=cut)
 
-    cut = SystemPartition(Direction.EFFECT, (0,), (1, 2))  # missing node 2 in system
+    cut = DirectedBipartition(Direction.EFFECT, (0,), (1, 2))  # missing node 2 in system
     with pytest.raises(ValueError):
         System(s.substrate, s.state, (0, 1), cut=cut)
 
@@ -111,7 +111,7 @@ def test_is_cut(s):
         s.substrate,
         s.state,
         s.node_indices,
-        cut=SystemPartition(Direction.EFFECT, (0,), (1, 2)),
+        cut=DirectedBipartition(Direction.EFFECT, (0,), (1, 2)),
     )
     assert s.is_cut is True
 
@@ -123,7 +123,7 @@ def test_proper_state(subsys_n0n2, subsys_n1n2):
 
 
 def test_apply_cut(s):
-    cut = SystemPartition(Direction.EFFECT, (0, 1), (2,))
+    cut = DirectedBipartition(Direction.EFFECT, (0, 1), (2,))
     cut_s = s.apply_cut(cut)
     assert s.substrate == cut_s.substrate
     assert s.state == cut_s.state
@@ -141,7 +141,7 @@ def test_cut_indices(s, subsys_n1n2):
 def test_cut_mechanisms(s):
     assert list(s.cut_mechanisms) == []
     assert list(
-        s.apply_cut(SystemPartition(Direction.EFFECT, (0, 1), (2,))).cut_mechanisms
+        s.apply_cut(DirectedBipartition(Direction.EFFECT, (0, 1), (2,))).cut_mechanisms
     ) == [
         (0, 2),
         (1, 2),

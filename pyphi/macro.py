@@ -422,7 +422,7 @@ class MacroSystem(System):
         """Return a cut version of this |MacroSystem|.
 
         Args:
-            cut (SystemPartition): The cut to apply to this |MacroSystem|.
+            cut (DirectedBipartition): The cut to apply to this |MacroSystem|.
 
         Returns:
             MacroSystem: The cut version of this |MacroSystem|.

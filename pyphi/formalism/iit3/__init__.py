@@ -28,10 +28,10 @@ from pyphi.conf import config
 from pyphi.direction import Direction
 from pyphi.metrics.ces import ces_distance
 from pyphi.models import Concept
+from pyphi.models import DirectedBipartition
 from pyphi.models import Distinctions
 from pyphi.models import ResolvedDistinctions
 from pyphi.models import SystemIrreducibilityAnalysis
-from pyphi.models import SystemPartition
 from pyphi.models import UnresolvedDistinctions
 from pyphi.models import _null_sia
 from pyphi.parallel import MapReduce
@@ -182,7 +182,7 @@ def conceptual_info(system: System, **kwargs: Any) -> float:
 
 
 def evaluate_cut(
-    cut: SystemPartition,
+    cut: DirectedBipartition,
     uncut_system: System,
     unpartitioned_ces: Distinctions,
     **kwargs: Any,
@@ -191,7 +191,7 @@ def evaluate_cut(
 
     Args:
         uncut_system (System): The system without the cut applied.
-        cut (SystemPartition): The cut to evaluate.
+        cut (DirectedBipartition): The cut to evaluate.
         unpartitioned_ces (Distinctions): The cause-effect structure of
             the uncut system.
 
@@ -230,7 +230,7 @@ def evaluate_cut(
 
 def sia_partitions(
     nodes: tuple[int, ...], node_labels: NodeLabels | None = None
-) -> list[SystemPartition]:
+) -> list[DirectedBipartition]:
     """Return all |big_phi| cuts for the given nodes.
 
     Controlled by the :const:`config.formalism.iit.system_partition_scheme` option.
@@ -242,7 +242,7 @@ def sia_partitions(
         node_labels (NodeLabels): Enables printing the partition with labels.
 
     Returns:
-        list[SystemPartition]: All unidirectional partitions.
+        list[DirectedBipartition]: All unidirectional partitions.
 
     """
     # TODO(4.0 consolidate 3.0 and 4.0 cuts)
@@ -268,7 +268,7 @@ def _ces(system: System, **kwargs: Any) -> Distinctions:
 
 
 def _sia_map_reduce(
-    cuts: Iterable[SystemPartition],
+    cuts: Iterable[DirectedBipartition],
     system: System,
     unpartitioned_ces: Distinctions,
     **kwargs: Any,
@@ -360,7 +360,7 @@ def _sia(system: System, **kwargs: Any) -> SystemIrreducibilityAnalysis:
     # Only True if SINGLE_MICRO_NODES...=True, no?
     if len(system.cut_indices) == 1:
         cuts = [
-            SystemPartition(
+            DirectedBipartition(
                 Direction.EFFECT,
                 system.cut_indices,
                 system.cut_indices,

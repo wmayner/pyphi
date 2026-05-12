@@ -270,7 +270,7 @@ rst_prolog = "".join(
 .. |Cuts| replace:: :class:`~pyphi.models.partitions.Cut`
 .. |Part| replace:: :class:`~pyphi.models.partitions.Part`
 .. |Parts| replace:: :class:`~pyphi.models.partitions.Part`
-.. |Bipartition| replace:: :class:`~pyphi.models.partitions.Bipartition`
+.. |JointBipartition| replace:: :class:`~pyphi.models.partitions.JointBipartition`
 
 .. |RepertoireIrreducibilityAnalysis| replace:: :class:`~pyphi.models.mechanism.RepertoireIrreducibilityAnalysis`
 .. |MaximallyIrreducibleCauseOrEffect| replace:: :class:`~pyphi.models.mechanism.MaximallyIrreducibleCauseOrEffect`

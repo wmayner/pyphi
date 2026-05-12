@@ -4,10 +4,10 @@ from pyphi import Direction
 from pyphi import config
 from pyphi.combinatorics import set_partitions as partitions
 from pyphi.metrics.distribution import resolve_mechanism_measure
-from pyphi.models import Bipartition
-from pyphi.models import KPartition
+from pyphi.models import JointBipartition
+from pyphi.models import JointPartition
+from pyphi.models import JointTripartition
 from pyphi.models import Part
-from pyphi.models import Tripartition
 from pyphi.partition import all_partitions
 from pyphi.partition import directed_bipartition
 from pyphi.partition import directed_tripartition_indices
@@ -227,9 +227,9 @@ def test_k_partition():
 def test_mip_bipartitions():
     mechanism, purview = (0,), (1, 2)
     answer = {
-        Bipartition(Part((), (2,)), Part((0,), (1,))),
-        Bipartition(Part((), (1,)), Part((0,), (2,))),
-        Bipartition(Part((), (1, 2)), Part((0,), ())),
+        JointBipartition(Part((), (2,)), Part((0,), (1,))),
+        JointBipartition(Part((), (1,)), Part((0,), (2,))),
+        JointBipartition(Part((), (1, 2)), Part((0,), ())),
     }
     assert set(mip_bipartitions(mechanism, purview)) == answer
 
@@ -237,25 +237,25 @@ def test_mip_bipartitions():
 def test_wedge_partitions():
     mechanism, purview = (0,), (1, 2)
     assert set(wedge_partitions(mechanism, purview)) == {
-        Tripartition(Part((), ()), Part((), (1, 2)), Part((0,), ())),
+        JointTripartition(Part((), ()), Part((), (1, 2)), Part((0,), ())),
     }
 
     mechanism, purview = (3, 4), (5, 6)
     assert set(wedge_partitions(mechanism, purview)) == {
-        Tripartition(Part((), ()), Part((), (5, 6)), Part((3, 4), ())),
-        Tripartition(Part((), ()), Part((3,), ()), Part((4,), (5, 6))),
-        Tripartition(Part((), ()), Part((3,), (5,)), Part((4,), (6,))),
-        Tripartition(Part((), ()), Part((3,), (5, 6)), Part((4,), ())),
-        Tripartition(Part((), ()), Part((3,), (6,)), Part((4,), (5,))),
-        Tripartition(Part((), (5,)), Part((3,), ()), Part((4,), (6,))),
-        Tripartition(Part((), (5,)), Part((3,), (6,)), Part((4,), ())),
-        Tripartition(Part((), (6,)), Part((3,), ()), Part((4,), (5,))),
-        Tripartition(Part((), (6,)), Part((3,), (5,)), Part((4,), ())),
+        JointTripartition(Part((), ()), Part((), (5, 6)), Part((3, 4), ())),
+        JointTripartition(Part((), ()), Part((3,), ()), Part((4,), (5, 6))),
+        JointTripartition(Part((), ()), Part((3,), (5,)), Part((4,), (6,))),
+        JointTripartition(Part((), ()), Part((3,), (5, 6)), Part((4,), ())),
+        JointTripartition(Part((), ()), Part((3,), (6,)), Part((4,), (5,))),
+        JointTripartition(Part((), (5,)), Part((3,), ()), Part((4,), (6,))),
+        JointTripartition(Part((), (5,)), Part((3,), (6,)), Part((4,), ())),
+        JointTripartition(Part((), (6,)), Part((3,), ()), Part((4,), (5,))),
+        JointTripartition(Part((), (6,)), Part((3,), (5,)), Part((4,), ())),
     }
 
 
 def test_partitioned_repertoire_with_tripartition(s):
-    tripartition = Tripartition(Part((), (1,)), Part((0,), ()), Part((), (2,)))
+    tripartition = JointTripartition(Part((), (1,)), Part((0,), ()), Part((), (2,)))
 
     assert (
         s.partitioned_repertoire(
@@ -283,24 +283,24 @@ def test_tripartitions_choses_smallest_purview(s):
 def test_all_partitions():
     mechanism, purview = (0, 1), (2,)
     assert set(all_partitions(mechanism, purview)) == {
-        KPartition(Part((0, 1), ()), Part((), (2,))),
-        KPartition(Part((0,), ()), Part((1,), ()), Part((), (2,))),
-        KPartition(Part((0,), (2,)), Part((1,), ()), Part((), ())),
-        KPartition(Part((0,), ()), Part((1,), (2,)), Part((), ())),
+        JointPartition(Part((0, 1), ()), Part((), (2,))),
+        JointPartition(Part((0,), ()), Part((1,), ()), Part((), (2,))),
+        JointPartition(Part((0,), (2,)), Part((1,), ()), Part((), ())),
+        JointPartition(Part((0,), ()), Part((1,), (2,)), Part((), ())),
     }
 
     mechanism, purview = (0, 1), (2, 3)
     assert set(all_partitions(mechanism, purview)) == {
-        KPartition(Part((0, 1), ()), Part((), (2, 3))),
-        KPartition(Part((0,), ()), Part((1,), (2, 3)), Part((), ())),
-        KPartition(Part((0,), (2, 3)), Part((1,), ()), Part((), ())),
-        KPartition(Part((0,), ()), Part((1,), ()), Part((), (2, 3))),
-        KPartition(Part((0,), ()), Part((1,), (3,)), Part((), (2,))),
-        KPartition(Part((0,), (2,)), Part((1,), ()), Part((), (3,))),
-        KPartition(Part((0,), ()), Part((1,), (2,)), Part((), (3,))),
-        KPartition(Part((0,), (3,)), Part((1,), (2,)), Part((), ())),
-        KPartition(Part((0,), (3,)), Part((1,), ()), Part((), (2,))),
-        KPartition(Part((0,), (2,)), Part((1,), (3,)), Part((), ())),
+        JointPartition(Part((0, 1), ()), Part((), (2, 3))),
+        JointPartition(Part((0,), ()), Part((1,), (2, 3)), Part((), ())),
+        JointPartition(Part((0,), (2, 3)), Part((1,), ()), Part((), ())),
+        JointPartition(Part((0,), ()), Part((1,), ()), Part((), (2, 3))),
+        JointPartition(Part((0,), ()), Part((1,), (3,)), Part((), (2,))),
+        JointPartition(Part((0,), (2,)), Part((1,), ()), Part((), (3,))),
+        JointPartition(Part((0,), ()), Part((1,), (2,)), Part((), (3,))),
+        JointPartition(Part((0,), (3,)), Part((1,), (2,)), Part((), ())),
+        JointPartition(Part((0,), (3,)), Part((1,), ()), Part((), (2,))),
+        JointPartition(Part((0,), (2,)), Part((1,), (3,)), Part((), ())),
     }
 
 

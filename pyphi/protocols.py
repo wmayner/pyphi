@@ -67,9 +67,9 @@ class DistanceMetric(Protocol):
 class MechanismPartition(Protocol):
     """A partition of a mechanism over a purview.
 
-    Concrete realizations are :class:`pyphi.models.partitions.Bipartition`,
-    :class:`pyphi.models.partitions.Tripartition`, and the more general
-    :class:`pyphi.models.partitions.KPartition`. The partition exposes the union
+    Concrete realizations are :class:`pyphi.models.partitions.JointBipartition`,
+    :class:`pyphi.models.partitions.JointTripartition`, and the more general
+    :class:`pyphi.models.partitions.JointPartition`. The partition exposes the union
     of indices on each side via ``mechanism`` and ``purview`` properties; it
     is iterable over its constituent :class:`pyphi.models.partitions.Part` objects.
 
@@ -93,10 +93,10 @@ class MechanismPartition(Protocol):
 class SystemPartitionLike(Protocol):
     """A directional partition of a set of system nodes.
 
-    Concrete realizations are :class:`pyphi.models.partitions.SystemPartition`
+    Concrete realizations are :class:`pyphi.models.partitions.DirectedBipartition`
     (the canonical 2.0 type, with explicit ``Direction``) and the general
-    set-partition variants (:class:`pyphi.models.partitions.GeneralKCut`,
-    :class:`pyphi.models.partitions.GeneralSetPartition`).
+    set-partition variants (:class:`pyphi.models.partitions.EdgeCut`,
+    :class:`pyphi.models.partitions.DirectedSetPartition`).
 
     All system-level partitions expose ``cut_matrix(n)`` for applying the
     cut to a connectivity matrix and ``indices`` for the partitioned nodes.
@@ -118,9 +118,9 @@ class MechanismPartitionScheme(Protocol):
     Concrete schemes registered in ``pyphi.partition.partition_types``
     (``BI``, ``TRI``, ``ALL``, etc.) all share this signature. Each yields
     an iterable of :class:`MechanismPartition` instances — concrete types
-    are :class:`pyphi.models.partitions.Bipartition`,
-    :class:`pyphi.models.partitions.Tripartition`, and
-    :class:`pyphi.models.partitions.KPartition` — that the MIP search enumerates.
+    are :class:`pyphi.models.partitions.JointBipartition`,
+    :class:`pyphi.models.partitions.JointTripartition`, and
+    :class:`pyphi.models.partitions.JointPartition` — that the MIP search enumerates.
 
     Distinct from :class:`SystemPartitionScheme` because mechanism-level
     partitions are over a (mechanism, purview) pair rather than a single

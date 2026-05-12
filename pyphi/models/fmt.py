@@ -15,7 +15,7 @@ from pyphi import utils
 from pyphi.conf import config
 from pyphi.direction import Direction
 
-from .partitions import CompleteSystemPartition
+from .partitions import CompleteEdgeCut
 from .partitions import NullCut
 
 # REPR_VERBOSITY levels
@@ -491,7 +491,7 @@ def fmt_part(part: object, node_labels: object | None = None) -> str:
 
 
 def fmt_partition(partition: object) -> str:
-    """Format a |Bipartition|.
+    """Format a |JointBipartition|.
 
     The returned string looks like::
 
@@ -500,7 +500,7 @@ def fmt_partition(partition: object) -> str:
          2    0,1
 
     Args:
-        partition (Bipartition): The partition in question.
+        partition (JointBipartition): The partition in question.
 
     Returns:
         str: A human-readable string representation of the partition.
@@ -575,7 +575,7 @@ def fmt_partitioned_phi_structure(
     system: bool = True,
 ) -> str:
     """Format a PartitionedCauseEffectStructure."""
-    if isinstance(ps.partition, (NullCut, CompleteSystemPartition)):  # type: ignore[attr-defined]
+    if isinstance(ps.partition, (NullCut, CompleteEdgeCut)):  # type: ignore[attr-defined]
         cut = str(ps.partition)  # type: ignore[attr-defined]
     else:
         cut = fmt_cut(ps.partition, direction=ps.partition.direction, name=False)  # type: ignore[attr-defined]
@@ -716,7 +716,7 @@ def fmt_ria(ria: object, verbose: bool = True, mip: bool = False) -> str:
 
 
 def fmt_cut(cut: object, direction: object | None = None, name: bool = True) -> str:
-    """Format a |SystemPartition|."""
+    """Format a |DirectedBipartition|."""
     try:
         if name:
             name_str = cut.__class__.__name__ + " "
@@ -737,8 +737,8 @@ def fmt_cut(cut: object, direction: object | None = None, name: bool = True) -> 
 
 
 def fmt_kcut(cut: object) -> str:
-    """Format a |KCut|."""
-    return f"KCut {cut.direction}\n{cut.partition}"  # type: ignore[attr-defined]
+    """Format a |DirectedJointPartition|."""
+    return f"DirectedJointPartition {cut.direction}\n{cut.partition}"  # type: ignore[attr-defined]
 
 
 def fmt_sia_4(
@@ -776,7 +776,7 @@ def fmt_sia_4(
     lines = align_columns(lines_list)
     body = "\n".join(["\n".join(lines), body])
 
-    if isinstance(sia.partition, (NullCut, CompleteSystemPartition)):  # type: ignore[attr-defined]
+    if isinstance(sia.partition, (NullCut, CompleteEdgeCut)):  # type: ignore[attr-defined]
         cut = str(sia.partition)  # type: ignore[attr-defined]
     else:
         cut = fmt_cut(sia.partition, direction=sia.partition.direction, name=False)  # type: ignore[attr-defined]

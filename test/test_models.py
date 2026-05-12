@@ -9,8 +9,8 @@ from pyphi import config
 from pyphi import exceptions
 from pyphi import models  # used by other tests in this module
 from pyphi.labels import NodeLabels
-from pyphi.models import SystemPartition
-from pyphi.models.partitions import KPartition
+from pyphi.models import DirectedBipartition
+from pyphi.models.partitions import JointPartition
 
 EPSILON = 10 ** (-config.numerics.precision)
 
@@ -259,21 +259,21 @@ def test_general_eq_attribute_missing():
 
 
 def test_cut_equality():
-    cut1 = SystemPartition(Direction.EFFECT, (0,), (1,))
-    cut2 = SystemPartition(Direction.EFFECT, (0,), (1,))
+    cut1 = DirectedBipartition(Direction.EFFECT, (0,), (1,))
+    cut2 = DirectedBipartition(Direction.EFFECT, (0,), (1,))
     assert cut1 == cut2
     assert hash(cut1) == hash(cut2)
 
 
 def test_cut_splits_mechanism():
-    cut = SystemPartition(Direction.EFFECT, (0,), (1, 2))
+    cut = DirectedBipartition(Direction.EFFECT, (0,), (1, 2))
     assert cut.splits_mechanism((0, 1))
     assert not cut.splits_mechanism((0,))
     assert not cut.splits_mechanism((1, 2))
 
 
 def test_cut_splits_connections():
-    cut = SystemPartition(Direction.EFFECT, (0, 3), (1, 2))
+    cut = DirectedBipartition(Direction.EFFECT, (0, 3), (1, 2))
     assert cut.cuts_connections((0,), (1, 2))
     assert cut.cuts_connections((0, 3), (1,))
     assert not cut.cuts_connections((1, 2), (0,))
@@ -281,19 +281,19 @@ def test_cut_splits_connections():
 
 
 def test_cut_all_cut_mechanisms():
-    cut = SystemPartition(Direction.EFFECT, (0,), (1, 2))
+    cut = DirectedBipartition(Direction.EFFECT, (0,), (1, 2))
     assert list(cut.all_cut_mechanisms()) == [(0, 1), (0, 2), (0, 1, 2)]
 
-    cut = SystemPartition(Direction.EFFECT, (1,), (5,))
+    cut = DirectedBipartition(Direction.EFFECT, (1,), (5,))
     assert list(cut.all_cut_mechanisms()) == [(1, 5)]
 
 
 def test_cut_matrix():
-    cut = SystemPartition(Direction.EFFECT, (), (0,))
+    cut = DirectedBipartition(Direction.EFFECT, (), (0,))
     matrix = np.array([[0]])
     assert np.array_equal(cut.cut_matrix(1), matrix)
 
-    cut = SystemPartition(Direction.EFFECT, (0,), (1,))
+    cut = DirectedBipartition(Direction.EFFECT, (0,), (1,))
     matrix = np.array(
         [
             [0, 1],
@@ -302,7 +302,7 @@ def test_cut_matrix():
     )
     assert np.array_equal(cut.cut_matrix(2), matrix)
 
-    cut = SystemPartition(Direction.EFFECT, (0, 2), (1, 2))
+    cut = DirectedBipartition(Direction.EFFECT, (0, 2), (1, 2))
     matrix = np.array(
         [
             [0, 1, 1],
@@ -312,14 +312,14 @@ def test_cut_matrix():
     )
     assert np.array_equal(cut.cut_matrix(3), matrix)
 
-    cut = SystemPartition(Direction.EFFECT, (), ())
+    cut = DirectedBipartition(Direction.EFFECT, (), ())
     assert np.array_equal(cut.cut_matrix(0), np.ndarray(shape=(0, 0)))
 
 
 def test_cut_indices():
-    cut = SystemPartition(Direction.EFFECT, (0,), (1, 2))
+    cut = DirectedBipartition(Direction.EFFECT, (0,), (1, 2))
     assert cut.indices == (0, 1, 2)
-    cut = SystemPartition(Direction.EFFECT, (7,), (3, 1))
+    cut = DirectedBipartition(Direction.EFFECT, (7,), (3, 1))
     assert cut.indices == (1, 3, 7)
 
 
@@ -332,7 +332,7 @@ def test_apply_cut():
         [1, 0, 1, 0],
     ])
     # fmt: on
-    cut = SystemPartition(Direction.EFFECT, from_nodes=(0, 3), to_nodes=(1, 2))
+    cut = DirectedBipartition(Direction.EFFECT, from_nodes=(0, 3), to_nodes=(1, 2))
     # fmt: off
     cut_cm = np.array([
         [1, 0, 0, 0],
@@ -345,7 +345,7 @@ def test_apply_cut():
 
 
 def test_cut_is_null():
-    cut = SystemPartition(Direction.EFFECT, (0,), (1, 2))
+    cut = DirectedBipartition(Direction.EFFECT, (0,), (1, 2))
     assert not cut.is_null
 
 
@@ -370,12 +370,12 @@ def test_null_cut_equality():
 
 def test_cuts_can_have_node_labels(node_labels):
     models.NullCut((0, 1), node_labels=node_labels)
-    SystemPartition(Direction.EFFECT, (0,), (1,), node_labels=node_labels)
+    DirectedBipartition(Direction.EFFECT, (0,), (1,), node_labels=node_labels)
 
-    k_partition = models.KPartition(
+    k_partition = models.JointPartition(
         models.Part((0, 1), (0,)), models.Part((), (1,)), node_labels=node_labels
     )
-    models.KCut(Direction.CAUSE, k_partition, node_labels=node_labels)
+    models.DirectedJointPartition(Direction.CAUSE, k_partition, node_labels=node_labels)
 
 
 # Test ria
@@ -399,7 +399,7 @@ def test_null_ria():
     assert null_ria.direction == direction
     assert null_ria.mechanism == mechanism
     assert null_ria.purview == purview
-    assert null_ria.partition == KPartition()
+    assert null_ria.partition == JointPartition()
     assert null_ria.repertoire == "repertoire"
     assert null_ria.partitioned_repertoire is None
     assert null_ria.phi == 0
@@ -465,7 +465,7 @@ def test_relevant_connections(s, subsys_n1n2):
 
 def test_damaged(s):
     # Build cut system from s
-    cut = SystemPartition(Direction.EFFECT, (0,), (1, 2))
+    cut = DirectedBipartition(Direction.EFFECT, (0,), (1, 2))
     cut_s = System(s.substrate, s.state, s.node_indices, cut=cut)
 
     # Cut splits mechanism:
@@ -686,7 +686,7 @@ def node_labels():
 
 @pytest.fixture
 def bipartition(node_labels):
-    return models.Bipartition(
+    return models.JointBipartition(
         models.Part((0,), (0, 4)), models.Part((), (1,)), node_labels=node_labels
     )
 
@@ -702,7 +702,7 @@ def test_bipartition_str(bipartition):
 
 @pytest.fixture
 def tripartition(node_labels):
-    return models.Tripartition(
+    return models.JointTripartition(
         models.Part((0,), (0, 4)),
         models.Part((), (1,)),
         models.Part((2,), (2,)),
@@ -720,7 +720,7 @@ def test_tripartion_str(tripartition):
 
 
 def k_partition(node_labels=None):
-    return models.KPartition(
+    return models.JointPartition(
         models.Part((0,), (0, 4)),
         models.Part((), (1,)),
         models.Part((6,), (5,)),
@@ -730,7 +730,7 @@ def k_partition(node_labels=None):
 
 
 def test_partition_normalize():
-    assert k_partition().normalize() == models.KPartition(
+    assert k_partition().normalize() == models.JointPartition(
         models.Part((), (1,)),
         models.Part((0,), (0, 4)),
         models.Part((2,), (2,)),

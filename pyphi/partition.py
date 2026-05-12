@@ -18,14 +18,14 @@ from .cache import cache
 from .conf import config, fallback
 from .direction import Direction
 from .models.partitions import (
-    Bipartition,
-    CompleteGeneralKCut,
-    GeneralKCut,
-    GeneralSetPartition,
-    KPartition,
+    JointBipartition,
+    CompleteEdgeCut,
+    EdgeCut,
+    DirectedSetPartition,
+    JointPartition,
     Part,
-    SystemPartition,
-    Tripartition,
+    DirectedBipartition,
+    JointTripartition,
 )
 from .registry import Registry
 
@@ -438,7 +438,7 @@ def mip_bipartitions(
     mechanism: tuple[int, ...],
     purview: tuple[int, ...],
     node_labels: Any = None,
-) -> Iterable[Bipartition]:
+) -> Iterable[JointBipartition]:
     r"""Return an generator of all |small_phi| bipartitions of a mechanism over
     a purview.
 
@@ -461,7 +461,7 @@ def mip_bipartitions(
         purview (tuple[int]): The purview to partition
 
     Yields:
-        Bipartition: Where each bipartition is::
+        JointBipartition: Where each bipartition is::
 
             bipart[0].mechanism   bipart[1].mechanism
             ─────────────────── ✕ ───────────────────
@@ -489,7 +489,7 @@ def mip_bipartitions(
 
     for n, d in product(numerators, denominators):
         if (n[0] or d[0]) and (n[1] or d[1]):
-            yield Bipartition(
+            yield JointBipartition(
                 Part(n[0], d[0], node_labels=node_labels),
                 Part(n[1], d[1], node_labels=node_labels),
                 node_labels=node_labels,
@@ -501,7 +501,7 @@ def wedge_partitions(
     mechanism: tuple[int, ...],
     purview: tuple[int, ...],
     node_labels: Any = None,
-) -> Iterable[Tripartition]:
+) -> Iterable[JointTripartition]:
     """Return an iterator over all wedge partitions.
 
     These are partitions which strictly split the mechanism and allow a subset
@@ -518,7 +518,7 @@ def wedge_partitions(
         purview (tuple[int]): A purview.
 
     Yields:
-        Tripartition: all unique tripartitions of this mechanism and purview.
+        JointTripartition: all unique tripartitions of this mechanism and purview.
     """
     numerators = bipartition(mechanism)
     denominators = directed_tripartition(purview)
@@ -541,7 +541,7 @@ def wedge_partitions(
 
     for n, d in filter(valid, product(numerators, denominators)):
         # Normalize order of parts to remove duplicates.
-        tripart = Tripartition(
+        tripart = JointTripartition(
             Part(n[0], d[0], node_labels=node_labels),
             Part(n[1], d[1], node_labels=node_labels),
             Part((), d[2], node_labels=node_labels),
@@ -581,7 +581,7 @@ def all_partitions(
     mechanism: tuple[int, ...],
     purview: tuple[int, ...],
     node_labels: Any = None,
-) -> Iterable[KPartition]:
+) -> Iterable[JointPartition]:
     """Return all possible partitions of a mechanism and purview.
 
     Partitions can consist of any number of parts.
@@ -591,7 +591,7 @@ def all_partitions(
         purview (tuple[int]): A purview.
 
     Yields:
-        KPartition: A partition of this mechanism and purview into ``k`` parts.
+        JointPartition: A partition of this mechanism and purview into ``k`` parts.
     """
     # TODO(4.0): yield complete partition directly, then use nontrivial set partitions
     for mechanism_partition in combinatorics.set_partitions(mechanism):
@@ -616,10 +616,10 @@ def all_partitions(
                     # TODO(4.0) find a way to avoid generating these in the first place
                     if parts[0].mechanism == mechanism and parts[0].purview:
                         continue
-                    yield KPartition(*parts, node_labels=node_labels)
+                    yield JointPartition(*parts, node_labels=node_labels)
 
 
-class CompletePartition(KPartition):
+class CompleteJointPartition(JointPartition):
     """Represents the partition that completely separates mechanism and purview."""
 
 
@@ -631,14 +631,14 @@ def complete_partition(mechanism, purview):
         purview (tuple[int]): Purview indices.
 
     Returns:
-        CompletePartition: Partition with empty cross-connections.
+        CompleteJointPartition: Partition with empty cross-connections.
     """
     n_parts = len(next(mip_partitions(mechanism, purview)))
     parts = [Part((), ())] * (n_parts - 2) + [Part((), purview), Part(mechanism, ())]
-    return CompletePartition(*parts)
+    return CompleteJointPartition(*parts)
 
 
-class AtomicPartition(KPartition):
+class AtomicJointPartition(JointPartition):
     """Represents the partition that separates all inter-element connections."""
 
 
@@ -649,9 +649,9 @@ def atomic_partition(elements):
         elements (Iterable[int]): Elements to separate.
 
     Returns:
-        AtomicPartition: Partition where each element is its own part.
+        AtomicJointPartition: Partition where each element is its own part.
     """
-    return AtomicPartition(*[Part((elt,), (elt,)) for elt in elements])
+    return AtomicJointPartition(*[Part((elt,), (elt,)) for elt in elements])
 
 
 # System partitions
@@ -703,12 +703,12 @@ system_partition_types = SystemPartitionRegistry()
 
 
 def _bipartitions_to_cuts(func):
-    """Decorator to return SystemPartition objects from a set of bipartitions.
+    """Decorator to return DirectedBipartition objects from a set of bipartitions.
 
     The IIT 3.0 SIA uses unidirectional cuts where the causal direction is
     not part of the math (the cut is symmetric in its effect on the
     connectivity matrix). After the formalism split (P4) and the
-    Cut/SystemPartition consolidation (P6), every system partition carries
+    Cut/DirectedBipartition consolidation (P6), every system partition carries
     a ``Direction``; IIT 3.0 cuts default to ``Direction.EFFECT``. The
     direction is unused by ``compute.system.evaluate_cut`` for IIT 3.0,
     so this default has no semantic effect on phi values.
@@ -718,7 +718,7 @@ def _bipartitions_to_cuts(func):
     def wrapper(*args, node_labels=None, **kwargs):
         bipartitions = func(*args, **kwargs)
         return [
-            SystemPartition(
+            DirectedBipartition(
                 Direction.EFFECT,
                 bipartition[0],
                 bipartition[1],
@@ -749,25 +749,25 @@ def system_directed_bipartitions_cut_one(nodes):
 def system_bipartitions_simple(
     nodes: Sequence[int],
     node_labels: Any = None,
-) -> list[SystemPartition]:
+) -> list[DirectedBipartition]:
     """Return ordered directed bipartitions by splitting the node list once."""
     # Use a list instead of generator for progress bar totals since it's linear
     # in the size of the system
-    partitions: list[SystemPartition] = []
+    partitions: list[DirectedBipartition] = []
     nodes_t = tuple(nodes)
     for n in range(1, len(nodes_t)):
         part1, part2 = nodes_t[:n], nodes_t[n:]
         partitions.append(
-            SystemPartition(Direction.EFFECT, part1, part2, node_labels=node_labels)
+            DirectedBipartition(Direction.EFFECT, part1, part2, node_labels=node_labels)
         )
         partitions.append(
-            SystemPartition(Direction.EFFECT, part2, part1, node_labels=node_labels)
+            DirectedBipartition(Direction.EFFECT, part2, part1, node_labels=node_labels)
         )
     return partitions
 
 
 def _bipartitions_to_temporal_system_partitions(func):
-    """Decorator to return temporally-directed SystemPartition objects from a
+    """Decorator to return temporally-directed DirectedBipartition objects from a
     set of bipartitions.
     """
 
@@ -775,7 +775,7 @@ def _bipartitions_to_temporal_system_partitions(func):
     def wrapper(*args, node_labels=None, **kwargs):
         for bipartition in func(*args, **kwargs):
             for direction in Direction.both():
-                yield SystemPartition(
+                yield DirectedBipartition(
                     direction,
                     bipartition[0],
                     bipartition[1],
@@ -831,11 +831,11 @@ def _cut_matrices(n, symmetric=False):
 def general(
     node_indices: tuple[int, ...],
     node_labels: Any = None,
-) -> Iterable[GeneralKCut]:
+) -> Iterable[EdgeCut]:
     """Yield all general cut-based partitions for a set of nodes."""
-    yield CompleteGeneralKCut(node_indices, node_labels=node_labels)
+    yield CompleteEdgeCut(node_indices, node_labels=node_labels)
     for cut_matrix in _cut_matrices(len(node_indices)):
-        yield GeneralKCut(node_indices, cut_matrix, node_labels=node_labels)
+        yield EdgeCut(node_indices, cut_matrix, node_labels=node_labels)
 
 
 def num_general_partitions(n: int) -> int:
@@ -847,20 +847,20 @@ def num_general_partitions(n: int) -> int:
 def general_bidirectional(
     node_indices: tuple[int, ...],
     node_labels: Any = None,
-) -> Iterable[GeneralKCut]:
+) -> Iterable[EdgeCut]:
     """Yield all bidirectional general partitions for a set of nodes."""
-    yield CompleteGeneralKCut(node_indices, node_labels=node_labels)
+    yield CompleteEdgeCut(node_indices, node_labels=node_labels)
     for cut_matrix in _cut_matrices(len(node_indices), symmetric=True):
-        yield GeneralKCut(node_indices, cut_matrix, node_labels=node_labels)
+        yield EdgeCut(node_indices, cut_matrix, node_labels=node_labels)
 
 
 def _unidirectional_set_partitions(
     node_indices: tuple[int, ...],
     node_labels: Any = None,
-) -> Iterable[GeneralKCut]:
+) -> Iterable[EdgeCut]:
     """Generate all unidirectional set partitions of a set of nodes."""
     if len(node_indices) == 1 or config.formalism.iit.system_partition_include_complete:
-        yield CompleteGeneralKCut(node_indices, node_labels=node_labels)
+        yield CompleteEdgeCut(node_indices, node_labels=node_labels)
     _node_indices = set(range(len(node_indices)))
     # Convert set to list for set_partitions which expects Sequence
     for partition in combinatorics.set_partitions(list(_node_indices), nontrivial=True):
@@ -875,7 +875,7 @@ def _unidirectional_set_partitions(
                 cut_matrix[np.ix_(source, target)] = 1
                 if direction == Direction.BIDIRECTIONAL:
                     cut_matrix[np.ix_(target, source)] = 1
-            yield GeneralSetPartition(
+            yield DirectedSetPartition(
                 node_indices,
                 cut_matrix,
                 node_labels=node_labels,

@@ -218,7 +218,7 @@ def _compute_sia(system: System, stash: Any, iit_version: float) -> dict[str, An
     # tie-breaker to ``OrderableByPhi`` so ``min()`` picks a canonical
     # winner. Both are code changes outside P6's type-system cleanup
     # scope; tracked for a follow-up. IIT 4.0 SIAs always expose
-    # ``partition`` (a GeneralSetPartition / GeneralKCut), captured below.
+    # ``partition`` (a DirectedSetPartition / EdgeCut), captured below.
     if hasattr(sia, "partition") and sia.partition is not None:
         out["partition"] = canonical_partition(sia.partition)
 

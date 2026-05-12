@@ -49,16 +49,16 @@ def test_json_deserialization(s, transition):
         Direction.CAUSE,
         s.substrate,  # Substrate
         s,  # System
-        models.Bipartition(models.Part((0,), ()), models.Part((1,), (2, 3))),
-        models.KPartition(models.Part((0,), ()), models.Part((1,), (2, 3))),
-        models.Tripartition(
+        models.JointBipartition(models.Part((0,), ()), models.Part((1,), (2, 3))),
+        models.JointPartition(models.Part((0,), ()), models.Part((1,), (2, 3))),
+        models.JointTripartition(
             models.Part((0,), ()), models.Part((1,), (2, 3)), models.Part((3,), (4,))
         ),
-        models.SystemPartition(Direction.EFFECT, (0,), (2,)),
+        models.DirectedBipartition(Direction.EFFECT, (0,), (2,)),
         models.NullCut((0, 1)),
-        models.KCut(
+        models.DirectedJointPartition(
             Direction.CAUSE,
-            models.KPartition(models.Part((0,), ()), models.Part((1,), (2, 3))),
+            models.JointPartition(models.Part((0,), ()), models.Part((1,), (2, 3))),
         ),
         # s.concept((1, 2)),
         # s.concept((1,)),

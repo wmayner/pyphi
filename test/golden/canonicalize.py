@@ -31,17 +31,17 @@ def canonical_partition(partition: Any) -> list:
     """Reduce a partition object to a deterministic structural form.
 
     Accepts:
-    - ``SystemPartition`` (from_nodes + to_nodes; direction not captured —
+    - ``DirectedBipartition`` (from_nodes + to_nodes; direction not captured —
       see note below)
-    - ``KCut`` / ``KPartition`` / ``Bipartition`` (sequence of Parts)
-    - ``NullCut`` / ``CompleteSystemPartition`` (markers)
+    - ``DirectedJointPartition`` / ``JointPartition`` / ``JointBipartition`` (sequence of Parts)
+    - ``NullCut`` / ``CompleteEdgeCut`` (markers)
 
     Returns nested lists of int sequences. Each "part" is internally sorted;
     parts are sorted among themselves.
 
-    The :class:`pyphi.models.partitions.SystemPartition` direction is intentionally
+    The :class:`pyphi.models.partitions.DirectedBipartition` direction is intentionally
     not captured here. The only fixtures that currently emit
-    ``SystemPartition`` cuts are IIT 3.0 SIAs, which always use
+    ``DirectedBipartition`` cuts are IIT 3.0 SIAs, which always use
     ``Direction.EFFECT`` (the IIT 3.0 phi computation does not read the
     direction field). IIT 3.0 cut capture is currently disabled at the
     compute-layer level due to tie-breaking non-determinism (see
@@ -53,18 +53,18 @@ def canonical_partition(partition: Any) -> list:
 
     cls_name = type(partition).__name__
 
-    # NullCut / CompleteSystemPartition: marker classes
-    if cls_name in {"NullCut", "CompleteSystemPartition", "_NullCut"}:
+    # NullCut / CompleteEdgeCut: marker classes
+    if cls_name in {"NullCut", "CompleteEdgeCut", "_NullCut"}:
         return [["@null"]]
 
-    # SystemPartition: (from_nodes, to_nodes)
+    # DirectedBipartition: (from_nodes, to_nodes)
     if hasattr(partition, "from_nodes") and hasattr(partition, "to_nodes"):
         return [
             sorted(int(n) for n in partition.from_nodes),
             sorted(int(n) for n in partition.to_nodes),
         ]
 
-    # KPartition / Bipartition / KCut: iterable of Parts
+    # JointPartition / JointBipartition / DirectedJointPartition: iterable of Parts
     parts = []
     try:
         for part in partition:

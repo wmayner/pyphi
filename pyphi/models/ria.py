@@ -29,7 +29,7 @@ from pyphi import utils
 from pyphi.data_structures import PyPhiFloat
 from pyphi.direction import Direction
 from pyphi.metrics.distribution import DistanceResult
-from pyphi.models.partitions import KPartition
+from pyphi.models.partitions import JointPartition
 from pyphi.warnings import warn_about_tie_serialization
 
 from . import cmp
@@ -86,7 +86,7 @@ class RepertoireIrreducibilityAnalysis(
     _direction: Direction
     _mechanism: tuple[int, ...]
     _purview: tuple[int, ...]
-    _partition: KPartition
+    _partition: JointPartition
     _mechanism_state: tuple[int, ...] | None
     _purview_state: tuple[int, ...] | None
     _repertoire: NDArray[np.float64] | None
@@ -106,7 +106,7 @@ class RepertoireIrreducibilityAnalysis(
         direction: Direction,
         mechanism: tuple[int, ...],
         purview: tuple[int, ...],
-        partition: KPartition,
+        partition: JointPartition,
         repertoire: ArrayLike | None,
         partitioned_repertoire: ArrayLike | None,
         specified_state: StateSpecification | None = None,
@@ -255,7 +255,7 @@ class RepertoireIrreducibilityAnalysis(
 
     @property
     def partition(self):
-        """KPartition: The partition of the mechanism-purview pair that was
+        """JointPartition: The partition of the mechanism-purview pair that was
         analyzed.
         """
         return self._partition
@@ -489,7 +489,7 @@ def _null_ria(
         direction=direction,
         mechanism=mechanism,
         purview=purview,
-        partition=KPartition(),
+        partition=JointPartition(),
         repertoire=repertoire,
         partitioned_repertoire=None,
         phi=phi,

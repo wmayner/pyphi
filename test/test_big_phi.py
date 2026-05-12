@@ -251,33 +251,33 @@ def test_sia_macro_parallel(macro_s, macro_s_expected_sia):
 """def test_sia_bipartitions():
     with config.override(CUT_ONE_APPROXIMATION=False):
         answer = [
-            SystemPartition(Direction.EFFECT, (1,), (2, 3, 4)),
-            SystemPartition(Direction.EFFECT, (2,), (1, 3, 4)),
-            SystemPartition(Direction.EFFECT, (1, 2), (3, 4)),
-            SystemPartition(Direction.EFFECT, (3,), (1, 2, 4)),
-            SystemPartition(Direction.EFFECT, (1, 3), (2, 4)),
-            SystemPartition(Direction.EFFECT, (2, 3), (1, 4)),
-            SystemPartition(Direction.EFFECT, (1, 2, 3), (4,)),
-            SystemPartition(Direction.EFFECT, (4,), (1, 2, 3)),
-            SystemPartition(Direction.EFFECT, (1, 4), (2, 3)),
-            SystemPartition(Direction.EFFECT, (2, 4), (1, 3)),
-            SystemPartition(Direction.EFFECT, (1, 2, 4), (3,)),
-            SystemPartition(Direction.EFFECT, (3, 4), (1, 2)),
-            SystemPartition(Direction.EFFECT, (1, 3, 4), (2,)),
-            SystemPartition(Direction.EFFECT, (2, 3, 4), (1,)),
+            DirectedBipartition(Direction.EFFECT, (1,), (2, 3, 4)),
+            DirectedBipartition(Direction.EFFECT, (2,), (1, 3, 4)),
+            DirectedBipartition(Direction.EFFECT, (1, 2), (3, 4)),
+            DirectedBipartition(Direction.EFFECT, (3,), (1, 2, 4)),
+            DirectedBipartition(Direction.EFFECT, (1, 3), (2, 4)),
+            DirectedBipartition(Direction.EFFECT, (2, 3), (1, 4)),
+            DirectedBipartition(Direction.EFFECT, (1, 2, 3), (4,)),
+            DirectedBipartition(Direction.EFFECT, (4,), (1, 2, 3)),
+            DirectedBipartition(Direction.EFFECT, (1, 4), (2, 3)),
+            DirectedBipartition(Direction.EFFECT, (2, 4), (1, 3)),
+            DirectedBipartition(Direction.EFFECT, (1, 2, 4), (3,)),
+            DirectedBipartition(Direction.EFFECT, (3, 4), (1, 2)),
+            DirectedBipartition(Direction.EFFECT, (1, 3, 4), (2,)),
+            DirectedBipartition(Direction.EFFECT, (2, 3, 4), (1,)),
         ]
         assert iit3.sia_bipartitions((1, 2, 3, 4)) == answer
 
     with config.override(CUT_ONE_APPROXIMATION=True):
         answer = [
-            SystemPartition(Direction.EFFECT, (1,), (2, 3, 4)),
-            SystemPartition(Direction.EFFECT, (2,), (1, 3, 4)),
-            SystemPartition(Direction.EFFECT, (3,), (1, 2, 4)),
-            SystemPartition(Direction.EFFECT, (4,), (1, 2, 3)),
-            SystemPartition(Direction.EFFECT, (2, 3, 4), (1,)),
-            SystemPartition(Direction.EFFECT, (1, 3, 4), (2,)),
-            SystemPartition(Direction.EFFECT, (1, 2, 4), (3,)),
-            SystemPartition(Direction.EFFECT, (1, 2, 3), (4,)),
+            DirectedBipartition(Direction.EFFECT, (1,), (2, 3, 4)),
+            DirectedBipartition(Direction.EFFECT, (2,), (1, 3, 4)),
+            DirectedBipartition(Direction.EFFECT, (3,), (1, 2, 4)),
+            DirectedBipartition(Direction.EFFECT, (4,), (1, 2, 3)),
+            DirectedBipartition(Direction.EFFECT, (2, 3, 4), (1,)),
+            DirectedBipartition(Direction.EFFECT, (1, 3, 4), (2,)),
+            DirectedBipartition(Direction.EFFECT, (1, 2, 4), (3,)),
+            DirectedBipartition(Direction.EFFECT, (1, 2, 3), (4,)),
         ]
         assert iit3.sia_bipartitions((1, 2, 3, 4)) == answer
 """

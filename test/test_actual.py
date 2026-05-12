@@ -10,7 +10,7 @@ from pyphi import actual
 from pyphi import config
 from pyphi import examples
 from pyphi import models
-from pyphi.models import KPartition
+from pyphi.models import JointPartition
 from pyphi.models import Part
 
 from .conftest import IIT_3_CONFIG
@@ -152,8 +152,8 @@ def test_transition_system_external_indices_excludes_cause_indices():
 def test_transition_system_apply_cut_returns_new_instance():
     from pyphi import Direction
     from pyphi.actual import TransitionSystem
+    from pyphi.models.partitions import DirectedBipartition
     from pyphi.models.partitions import NullCut
-    from pyphi.models.partitions import SystemPartition
 
     substrate = _ts_substrate()
     ts = TransitionSystem(
@@ -164,7 +164,7 @@ def test_transition_system_apply_cut_returns_new_instance():
         effect_indices=(0,),
         direction=Direction.CAUSE,
     )
-    new_cut = SystemPartition(Direction.CAUSE, (0, 1), (2,), substrate.node_labels)
+    new_cut = DirectedBipartition(Direction.CAUSE, (0, 1), (2,), substrate.node_labels)
     ts2 = ts.apply_cut(new_cut)
     assert ts2 is not ts
     assert ts2.cut == new_cut
@@ -644,7 +644,7 @@ def test_actual_cut_matrix():
 
 
 def ac_cut(direction, *parts):
-    return models.ActualCut(direction, KPartition(*parts))
+    return models.DirectedJointPartition(direction, JointPartition(*parts))
 
 
 @config.override(iit=replace(config.formalism.iit, mechanism_partition_scheme="TRI"))
@@ -846,7 +846,7 @@ class TestActualCausationIIT30:
         assert np.isclose(cria.alpha, 0.4150374992788)
         assert cria.probability == 2 / 3
         assert cria.partitioned_probability == 0.5
-        assert cria.partition == models.Bipartition(
+        assert cria.partition == models.JointBipartition(
             models.Part((), (1,)),
             models.Part((0,), ()),
         )
@@ -863,7 +863,7 @@ class TestActualCausationIIT30:
         assert np.isclose(eria0.alpha, 0.4150374992788)
         assert eria0.probability == 1.0
         assert eria0.partitioned_probability == 0.75
-        assert eria0.partition == models.Bipartition(
+        assert eria0.partition == models.JointBipartition(
             models.Part((), (0,)),
             models.Part((1,), ()),
         )
@@ -875,7 +875,7 @@ class TestActualCausationIIT30:
         assert np.isclose(eria1.alpha, 0.4150374992788)
         assert eria1.probability == 1.0
         assert eria1.partitioned_probability == 0.75
-        assert eria1.partition == models.Bipartition(
+        assert eria1.partition == models.JointBipartition(
             models.Part((), (0,)),
             models.Part((2,), ()),
         )

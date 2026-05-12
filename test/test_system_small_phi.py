@@ -4,7 +4,7 @@ import pytest
 from pyphi import Direction
 from pyphi import config
 from pyphi import utils
-from pyphi.models import Bipartition
+from pyphi.models import JointBipartition
 from pyphi.models import Part
 from pyphi.models import RepertoireIrreducibilityAnalysis
 
@@ -49,7 +49,7 @@ scenarios = [
         (0,),
         {
             "partitions": {
-                Bipartition(
+                JointBipartition(
                     Part(mechanism=(), purview=(0,)), Part(mechanism=(0,), purview=())
                 ): np.array([0.5, 0.5]).reshape(2, 1, 1, order="F")
             },
@@ -68,7 +68,7 @@ scenarios = [
         (2,),
         {
             "partitions": {
-                Bipartition(
+                JointBipartition(
                     Part(mechanism=(), purview=(2,)), Part(mechanism=(1,), purview=())
                 ): np.array([0.5, 0.5]).reshape(1, 1, 2, order="F")
             },
@@ -92,55 +92,55 @@ scenarios = [
             "partitions": {
                 # Any of these partitions is valid; there is no well-defined way of
                 # breaking ties
-                Bipartition(
+                JointBipartition(
                     Part(mechanism=(2,), purview=()),
                     Part(mechanism=(0, 1), purview=(0, 1, 2)),
                 ): np.array([0.0, 0.0, 0.5, 0.5, 0.0, 0.0, 0.0, 0.0]).reshape(
                     2, 2, 2, order="F"
                 ),
-                Bipartition(
+                JointBipartition(
                     Part(mechanism=(), purview=(0,)),
                     Part(mechanism=(0, 1, 2), purview=(1, 2)),
                 ): np.array([0.0, 0.0, 0.5, 0.5, 0.0, 0.0, 0.0, 0.0]).reshape(
                     2, 2, 2, order="F"
                 ),
-                Bipartition(
+                JointBipartition(
                     Part(mechanism=(2,), purview=(0,)),
                     Part(mechanism=(0, 1), purview=(1, 2)),
                 ): np.array([0.0, 0.0, 0.5, 0.5, 0.0, 0.0, 0.0, 0.0]).reshape(
                     2, 2, 2, order="F"
                 ),
-                Bipartition(
+                JointBipartition(
                     Part(mechanism=(0,), purview=()),
                     Part(mechanism=(1, 2), purview=(0, 1, 2)),
                 ): np.array([0.5, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0]).reshape(
                     2, 2, 2, order="F"
                 ),
-                Bipartition(
+                JointBipartition(
                     Part(mechanism=(), purview=(1,)),
                     Part(mechanism=(0, 1, 2), purview=(0, 2)),
                 ): np.array([0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.5, 0.0]).reshape(
                     2, 2, 2, order="F"
                 ),
-                Bipartition(
+                JointBipartition(
                     Part(mechanism=(2,), purview=(1,)),
                     Part(mechanism=(0, 1), purview=(0, 2)),
                 ): np.array([0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.0, 0.0]).reshape(
                     2, 2, 2, order="F"
                 ),
-                Bipartition(
+                JointBipartition(
                     Part(mechanism=(), purview=(2,)),
                     Part(mechanism=(0, 1, 2), purview=(0, 1)),
                 ): np.array([0.5, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0]).reshape(
                     2, 2, 2, order="F"
                 ),
-                Bipartition(
+                JointBipartition(
                     Part(mechanism=(0,), purview=(2,)),
                     Part(mechanism=(1, 2), purview=(0, 1)),
                 ): np.array([0.5, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0]).reshape(
                     2, 2, 2, order="F"
                 ),
-                Bipartition(
+                JointBipartition(
                     Part(mechanism=(2,), purview=(0, 1)),
                     Part(mechanism=(0, 1), purview=(2,)),
                 ): np.array([0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.0, 0.0]).reshape(
@@ -164,7 +164,7 @@ scenarios = [
         (1,),
         {
             "partitions": {
-                Bipartition(
+                JointBipartition(
                     Part(mechanism=(), purview=(1,)), Part(mechanism=(2,), purview=())
                 ): np.array([0.5, 0.5]).reshape(1, 2, 1, order="F")
             },
@@ -180,7 +180,7 @@ scenarios = [
         (0,),
         {
             "partitions": {
-                Bipartition(
+                JointBipartition(
                     Part(mechanism=(), purview=(0,)), Part(mechanism=(2,), purview=())
                 ): np.array([0.25, 0.75]).reshape(2, 1, 1, order="F")
             },
@@ -198,23 +198,23 @@ scenarios = [
             "partitions": {
                 # Any of these partitions is valid; there is no well-defined way of
                 # breaking ties
-                Bipartition(
+                JointBipartition(
                     Part(mechanism=(0,), purview=()),
                     Part(mechanism=(1, 2), purview=(0, 2)),
                 ): np.array([0.5, 0.0, 0.5, 0.0]).reshape(2, 1, 2, order="F"),
-                Bipartition(
+                JointBipartition(
                     Part(mechanism=(2,), purview=()),
                     Part(mechanism=(0, 1), purview=(0, 2)),
                 ): np.array([0.0, 0.0, 0.5, 0.5]).reshape(2, 1, 2, order="F"),
-                Bipartition(
+                JointBipartition(
                     Part(mechanism=(2,), purview=(0,)),
                     Part(mechanism=(0, 1), purview=(2,)),
                 ): np.array([0.0, 0.0, 0.5, 0.5]).reshape(2, 1, 2, order="F"),
-                Bipartition(
+                JointBipartition(
                     Part(mechanism=(), purview=(2,)),
                     Part(mechanism=(0, 1, 2), purview=(0,)),
                 ): np.array([0.5, 0.0, 0.5, 0.0]).reshape(2, 1, 2, order="F"),
-                Bipartition(
+                JointBipartition(
                     Part(mechanism=(0,), purview=(2,)),
                     Part(mechanism=(1, 2), purview=(0,)),
                 ): np.array([0.5, 0.0, 0.5, 0.0]).reshape(2, 1, 2, order="F"),
@@ -231,7 +231,7 @@ scenarios = [
         (0,),
         {
             "partitions": {
-                Bipartition(
+                JointBipartition(
                     Part(mechanism=(), purview=(0,)), Part(mechanism=(1,), purview=())
                 ): np.array([0.25, 0.75]).reshape(2, 1, 1, order="F")
             },
