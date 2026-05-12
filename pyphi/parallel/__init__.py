@@ -16,8 +16,9 @@ Backend selection:
 
 Example:
     >>> import pyphi
-    >>> pyphi.config.parallel = True
-    >>> # Parallelization is now enabled using the local backend
+    >>> with pyphi.config.override(parallel=True):
+    ...     pyphi.config.infrastructure.parallel
+    True
 """
 
 from __future__ import annotations
