@@ -210,7 +210,7 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
         When the system has tied specified states, the MIP resolves the tie by
         selecting the state most vulnerable to the winning partition. This
         back-propagates that resolution into system_state so that downstream
-        consumers (e.g., congruence filtering in phi_structure) see the correct
+        consumers (e.g., congruence filtering in ces) see the correct
         specified states.
         """
         if self.system_state is None:
@@ -759,7 +759,7 @@ class NullCauseEffectStructure(CauseEffectStructure):
         )
 
 
-def phi_structure(
+def ces(
     system: System,
     *,
     system_measure: CompositeMeasure,
@@ -776,7 +776,7 @@ def phi_structure(
     ces_kwargs: dict | None = None,
     relations_kwargs: dict | None = None,
 ) -> CauseEffectStructure:
-    """Analyze the irreducible cause-effect structure of a system.
+    """Analyze the irreducible cause-effect structure of a system (Eq. 57).
 
     ``system_measure`` and ``specification_measure`` are Protocol-typed
     measure callables passed explicitly by the active formalism (no

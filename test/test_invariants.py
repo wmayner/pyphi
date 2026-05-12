@@ -319,7 +319,7 @@ class TestCauseEffectStructureInvariants:
         from pyphi.examples import EXAMPLES
 
         system = EXAMPLES["system"][example_name]()
-        result = new_big_phi.phi_structure(system, **_sia_kwargs())
+        result = new_big_phi.ces(system, **_sia_kwargs())
 
         # Systems that have phi should have distinctions
         if hasattr(result, "phi") and result.phi > 0:
@@ -343,7 +343,7 @@ class TestCauseEffectStructureInvariants:
         from pyphi.examples import EXAMPLES
 
         system = EXAMPLES["system"][example_name]()
-        result = new_big_phi.phi_structure(system, **_sia_kwargs())
+        result = new_big_phi.ces(system, **_sia_kwargs())
 
         # If system has multiple distinctions, check for relations
         if hasattr(result, "distinctions") and len(result.distinctions) >= 2:

@@ -9,17 +9,17 @@ The IIT 4.0 paper distinguishes two terms:
   irreducible substrate). The IIT 4.0 paper (p11) reserves the Greek-Φ
   spelling for that complex-specific reading.
 
-PyPhi exposes only :class:`CauseEffectStructure` as a runtime type; the
-"this is a Φ-structure" reading is communicated by context (a SIA
-result's :attr:`SystemIrreducibilityAnalysis.phi_structure` attribute
-holds the cause-effect structure of what won the SIA competition, i.e.
-the complex). The bag-of-distinctions side (without relations) is
+PyPhi exposes only :class:`CauseEffectStructure` as a runtime type;
+the "this is a Φ-structure" reading is communicated by context (the
+substrate that specified the CES is a maximal substrate, i.e. a
+complex). The bag-of-distinctions side (without relations) is
 :class:`pyphi.models.distinctions.Distinctions` — see that module's
 docstring.
 
 The algorithms that compute cause-effect structures live in
-:mod:`pyphi.formalism.iit4` (which still exposes ``phi_structure()``
-as the canonical entry point — paper-faithful for the SIA-winner case).
+:mod:`pyphi.formalism.iit4` as ``ces()`` (full CES with relations) and
+:mod:`pyphi.formalism.iit3` as ``ces()`` (distinctions only — IIT 3.0
+has no relations).
 """
 
 from __future__ import annotations

@@ -612,15 +612,15 @@ class TransitionSystem:
             "Use pyphi.actual.sia(transition) for actual-causation analysis."
         )
 
-    def phi_structure(self, **kw: Any) -> Any:
-        raise NotImplementedError(
-            "TransitionSystem does not support IIT phi_structure. "
-            "Use pyphi.actual.account(transition, direction) instead."
-        )
-
     def ces(self, **kw: Any) -> Any:
         raise NotImplementedError(
             "TransitionSystem does not support IIT ces. "
+            "Use pyphi.actual.account(transition, direction) instead."
+        )
+
+    def distinctions(self, **kw: Any) -> Any:
+        raise NotImplementedError(
+            "TransitionSystem does not support IIT distinctions. "
             "Use pyphi.actual.account(transition, direction) instead."
         )
 

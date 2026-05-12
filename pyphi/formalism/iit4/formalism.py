@@ -9,7 +9,7 @@ Two variants are registered:
   ``INTRINSIC_INFORMATION`` with the ``ii(s) = min(i_diff, i_spec)`` cap.
 
 Both delegate to the algorithms in :mod:`pyphi.formalism.iit4` (the
-``__init__`` module that holds ``sia``, ``phi_structure``,
+``__init__`` module that holds ``sia``, ``ces``,
 ``system_intrinsic_information``).
 """
 
@@ -31,9 +31,7 @@ from pyphi.metrics.protocols import StateAwareMeasure
 from pyphi.metrics.protocols import StatefulDistributionMeasure
 from pyphi.parallel import MapReduce
 
-from . import (
-    phi_structure as _phi_structure,  # pyright: ignore[reportUnknownVariableType]
-)
+from . import ces as _ces  # pyright: ignore[reportUnknownVariableType]
 from . import sia as _sia  # pyright: ignore[reportUnknownVariableType]
 
 
@@ -126,7 +124,7 @@ def _resolve_system_measures(
 ]:
     """Resolve system-level measure kwargs from config when omitted; check compatibility.
 
-    Shared by ``evaluate_system`` and ``build_phi_structure`` across both
+    Shared by ``evaluate_system`` and ``build_ces`` across both
     IIT4 variants. When ``system_measure`` is provided, only its name is
     checked against the formalism's ``compatible_measures``; when omitted,
     the configured name is checked and then resolved.
@@ -396,7 +394,7 @@ class IIT4_2023Formalism:
             **kwargs,
         )
 
-    def build_phi_structure(
+    def build_ces(
         self,
         system: Any,
         *,
@@ -408,7 +406,7 @@ class IIT4_2023Formalism:
         | None = None,
         **kwargs: Any,
     ) -> Any:
-        """Delegate to :func:`pyphi.formalism.iit4.phi_structure`.
+        """Delegate to :func:`pyphi.formalism.iit4.ces`.
 
         Explicit ``system_measure``/``specification_measure`` override the
         config-driven fallback.
@@ -416,7 +414,7 @@ class IIT4_2023Formalism:
         system_measure, specification_measure = _resolve_system_measures(
             self, system_measure, specification_measure
         )
-        return _phi_structure(
+        return _ces(
             system,
             system_measure=system_measure,
             specification_measure=specification_measure,
@@ -551,7 +549,7 @@ class IIT4_2026Formalism:
             **kwargs,
         )
 
-    def build_phi_structure(
+    def build_ces(
         self,
         system: Any,
         *,
@@ -563,7 +561,7 @@ class IIT4_2026Formalism:
         | None = None,
         **kwargs: Any,
     ) -> Any:
-        """Delegate to :func:`pyphi.formalism.iit4.phi_structure`.
+        """Delegate to :func:`pyphi.formalism.iit4.ces`.
 
         Explicit ``system_measure``/``specification_measure`` override the
         config-driven fallback.
@@ -571,7 +569,7 @@ class IIT4_2026Formalism:
         system_measure, specification_measure = _resolve_system_measures(
             self, system_measure, specification_measure
         )
-        return _phi_structure(
+        return _ces(
             system,
             system_measure=system_measure,
             specification_measure=specification_measure,

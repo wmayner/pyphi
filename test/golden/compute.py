@@ -77,7 +77,7 @@ def compute_all_layers(
         structured["sia"] = _compute_sia(system, stash, iit_version)
 
     if "phi_structure" not in fixture.skip_layers:
-        structured["phi_structure"] = _compute_phi_structure(system, stash)
+        structured["phi_structure"] = _compute_ces(system, stash)
 
     return structured, arrays
 
@@ -247,16 +247,16 @@ def _compute_sia(system: System, stash: Any, iit_version: float) -> dict[str, An
 # ============== Layer 3b: Phi-structure (IIT 4.0 only) ==============
 
 
-def _compute_phi_structure(system: System, stash: Any) -> dict[str, Any]:
+def _compute_ces(system: System, stash: Any) -> dict[str, Any]:
     """Capture the IIT 4.0 CauseEffectStructure."""
     try:
         from pyphi import config as _config
-        from pyphi.formalism.iit4 import phi_structure
+        from pyphi.formalism.iit4 import ces
     except ImportError:
         return {"error": "phi_structure not available"}
 
     try:
-        ps = phi_structure(
+        ps = ces(
             system,
             system_measure=resolve_system_measure(
                 _config.formalism.iit.system_phi_measure

@@ -4,7 +4,7 @@ from pyphi import System
 from pyphi import config
 from pyphi import examples
 from pyphi.formalism import iit3
-from pyphi.formalism.iit4 import phi_structure
+from pyphi.formalism.iit4 import ces
 from pyphi.metrics.distribution import resolve_mechanism_measure
 from pyphi.metrics.distribution import resolve_system_measure
 from pyphi.substrate import possible_complexes
@@ -112,7 +112,7 @@ class TestComplexesIIT30:
 # IIT 4.0 Golden Tests
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-# These tests validate the current IIT 4.0 behavior using new_big_phi.phi_structure().
+# These tests validate the current IIT 4.0 behavior using new_big_phi.ces().
 
 
 class TestCauseEffectStructureIIT40:
@@ -133,7 +133,7 @@ class TestCauseEffectStructureIIT40:
 
     def test_phi_structure_basic(self, s):
         """Golden test: phi_structure for basic system (IIT 4.0)."""
-        result = phi_structure(s, **self._measure_kwargs())
+        result = ces(s, **self._measure_kwargs())
 
         # Golden values computed with IIT 4.0 defaults
         assert result.big_phi == pytest.approx(1.0, rel=1e-6)
@@ -151,7 +151,7 @@ class TestCauseEffectStructureIIT40:
         state = (1, 0, 0)
         system = System(substrate, state)
 
-        result = phi_structure(system, **self._measure_kwargs())
+        result = ces(system, **self._measure_kwargs())
 
         assert result.big_phi == pytest.approx(1.0, rel=1e-6)
         assert len(result.distinctions) == 2

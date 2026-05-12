@@ -214,8 +214,8 @@ PUBLIC_SYSTEM_ATTRS: frozenset[str] = frozenset(
         "intrinsic_information",
         # Formalism-level convenience dispatchers
         "sia",
-        "phi_structure",
         "ces",
+        "distinctions",
         "find_mip",
         "cause_mip",
         "effect_mip",
@@ -316,8 +316,8 @@ class SystemPublicInterface(Protocol):
     intrinsic_information: Callable[..., Any]
     # Formalism-level convenience dispatchers
     sia: Callable[..., Any]
-    phi_structure: Callable[..., Any]
     ces: Callable[..., Any]
+    distinctions: Callable[..., Any]
     find_mip: Callable[..., Any]
     cause_mip: Callable[..., Any]
     effect_mip: Callable[..., Any]

@@ -483,7 +483,7 @@ class System:
 
     # ---- formalism queries ----
     #
-    # System-level entry points (``sia``, ``phi_structure``, ``ces``) and the
+    # System-level entry points (``sia``, ``ces``, ``distinctions``) and the
     # mechanism-level queries used to build them (``find_mip``, ``find_mice``,
     # ``distinction``, ``all_distinctions``, ``evaluate_partition``, …) are
     # exposed as thin convenience methods that dispatch via the active
@@ -514,15 +514,22 @@ class System:
             )
         return _sia(self, **kwargs)
 
-    def phi_structure(self, **kwargs: Any) -> Any:
-        """Return the IIT 4.0 :class:`CauseEffectStructure` for this system.
+    def ces(self, **kwargs: Any) -> Any:
+        """Return the cause-effect structure of this system (Eq. 57).
 
-        Defined under IIT 4.0 only; the IIT 3.0 analogue is :meth:`ces`.
-        Resolves measures from config at the public boundary; explicit
-        ``system_measure``/``specification_measure`` kwargs override.
+        Under IIT 4.0 returns a :class:`CauseEffectStructure` (distinctions
+        plus their relations). Under IIT 3.0 returns the
+        :class:`Distinctions` (IIT 3.0 has no relations, so the CES is
+        exactly the set of distinctions).
         """
         from pyphi.conf import config as _config
-        from pyphi.formalism.iit4 import phi_structure as _phi_structure
+
+        formalism_name = _config.formalism.iit.version
+        if formalism_name == "IIT_3_0":
+            from pyphi.formalism.iit3 import ces as _ces
+
+            return _ces(self, **kwargs)
+        from pyphi.formalism.iit4 import ces as _ces
         from pyphi.metrics.distribution import resolve_mechanism_measure
         from pyphi.metrics.distribution import resolve_system_measure
 
@@ -534,21 +541,21 @@ class System:
             "specification_measure",
             resolve_mechanism_measure(_config.formalism.iit.specification_measure),
         )
-        return _phi_structure(self, **kwargs)
+        return _ces(self, **kwargs)
 
-    def ces(self, **kwargs: Any) -> Any:
-        """Return the cause-effect structure for this system.
+    def distinctions(self, **kwargs: Any) -> Any:
+        """Return the :class:`Distinctions` of this system.
 
-        Under IIT 3.0 this returns concepts; under IIT 4.0 this returns
-        distinctions. Both are :class:`Distinctions` instances.
+        The set of irreducible cause-effect distinctions specified by
+        mechanisms in the system, without the relations that bind them.
         """
         from pyphi.conf import config as _config
 
         formalism_name = _config.formalism.iit.version
         if formalism_name == "IIT_3_0":
-            from pyphi.formalism.iit3 import ces as _ces
+            from pyphi.formalism.iit3 import ces as _distinctions
 
-            return _ces(self, **kwargs)
+            return _distinctions(self, **kwargs)
         from pyphi.formalism import all_distinctions as _all_distinctions
 
         return _all_distinctions(self, **kwargs)

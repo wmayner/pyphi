@@ -91,7 +91,7 @@ def test(example_name):
     Note: rule154 is marked as slow due to computational expense (11 distinctions).
     """
     system = EXAMPLES["system"][example_name]()
-    actual = new_big_phi.phi_structure(
+    actual = new_big_phi.ces(
         system,
         system_measure=resolve_system_measure(config.formalism.iit.system_phi_measure),
         specification_measure=resolve_mechanism_measure(

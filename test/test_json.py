@@ -65,7 +65,7 @@ def test_json_deserialization(s, transition):
         iit3.ces(s),
         # iit3.sia(s),
         s.sia(),
-        new_big_phi.phi_structure(
+        new_big_phi.ces(
             s,
             system_measure=resolve_system_measure(
                 config.formalism.iit.system_phi_measure

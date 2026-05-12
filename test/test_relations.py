@@ -60,7 +60,7 @@ def test_all_relations(case_name):
     # TODO(4.0) config.override doesn't seem to work with joblib parallel?
     results = list(
         relations.relations(
-            new_big_phi.phi_structure(
+            new_big_phi.ces(
                 system,
                 system_measure=resolve_system_measure(
                     config.formalism.iit.system_phi_measure

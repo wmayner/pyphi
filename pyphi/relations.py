@@ -382,7 +382,7 @@ def relations(
     been disambiguated by a SIA system_state can include phantom faces
     that wouldn't exist after resolution. Pass the result of
     :meth:`~pyphi.models.distinctions.Distinctions.resolve_congruence`
-    or use :func:`pyphi.formalism.iit4.phi_structure` to obtain a
+    or use :func:`pyphi.formalism.iit4.ces` to obtain a
     consistent structure.
     """
     return relation_computations[

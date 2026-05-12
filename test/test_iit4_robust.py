@@ -24,10 +24,10 @@ from pyphi.metrics.distribution import resolve_mechanism_measure
 from pyphi.metrics.distribution import resolve_system_measure
 
 
-def _phi_structure_kwargs():
+def _ces_kwargs():
     """Measure kwargs resolved from current config.
 
-    Module-level ``new_big_phi.phi_structure`` requires explicit measures;
+    Module-level ``new_big_phi.ces`` requires explicit measures;
     these tests use defaults so resolve from ``config`` at call time.
     """
     return {
@@ -79,7 +79,7 @@ class TestDistinctionCounts:
         or the basic example substrate definition was modified.
         """
         system = EXAMPLES["system"]["basic"]()
-        result = new_big_phi.phi_structure(system, **_phi_structure_kwargs())
+        result = new_big_phi.ces(system, **_ces_kwargs())
 
         expected_count = EXPECTED_PHI_STRUCTURE["basic"]["num_distinctions"]
         actual_count = len(result.distinctions) if hasattr(result, "distinctions") else 0
@@ -99,7 +99,7 @@ class TestDistinctionCounts:
         Tests distinction finding with stochastic transitions.
         """
         system = EXAMPLES["system"]["basic_noisy_selfloop"]()
-        result = new_big_phi.phi_structure(system, **_phi_structure_kwargs())
+        result = new_big_phi.ces(system, **_ces_kwargs())
 
         expected_count = EXPECTED_PHI_STRUCTURE["basic_noisy_selfloop"][
             "num_distinctions"
@@ -122,7 +122,7 @@ class TestDistinctionCounts:
         is validated against the paper.
         """
         system = EXAMPLES["system"]["fig4"]()
-        result = new_big_phi.phi_structure(system, **_phi_structure_kwargs())
+        result = new_big_phi.ces(system, **_ces_kwargs())
 
         expected_count = EXPECTED_PHI_STRUCTURE["fig4"]["num_distinctions"]
         actual_count = len(result.distinctions) if hasattr(result, "distinctions") else 0
@@ -143,7 +143,7 @@ class TestDistinctionCounts:
         Tests distinction finding on grid-structured substrates.
         """
         system = EXAMPLES["system"]["grid3"]()
-        result = new_big_phi.phi_structure(system, **_phi_structure_kwargs())
+        result = new_big_phi.ces(system, **_ces_kwargs())
 
         expected_count = EXPECTED_PHI_STRUCTURE["grid3"]["num_distinctions"]
         actual_count = len(result.distinctions) if hasattr(result, "distinctions") else 0
@@ -163,7 +163,7 @@ class TestDistinctionCounts:
         Tests distinction finding with XOR logic gates.
         """
         system = EXAMPLES["system"]["xor"]()
-        result = new_big_phi.phi_structure(system, **_phi_structure_kwargs())
+        result = new_big_phi.ces(system, **_ces_kwargs())
 
         expected_count = EXPECTED_PHI_STRUCTURE["xor"]["num_distinctions"]
         actual_count = len(result.distinctions) if hasattr(result, "distinctions") else 0
@@ -213,7 +213,7 @@ class TestCauseEffectStructureComponents:
         Note: rule154 is marked as slow due to computational expense (11 distinctions).
         """
         system = EXAMPLES["system"][example_name]()
-        result = new_big_phi.phi_structure(system, **_phi_structure_kwargs())
+        result = new_big_phi.ces(system, **_ces_kwargs())
 
         assert hasattr(result, "distinctions"), (
             f"CauseEffectStructure for '{example_name}' missing 'distinctions' attribute"
@@ -245,7 +245,7 @@ class TestCauseEffectStructureComponents:
         Note: rule154 is marked as slow due to computational expense (11 distinctions).
         """
         system = EXAMPLES["system"][example_name]()
-        result = new_big_phi.phi_structure(system, **_phi_structure_kwargs())
+        result = new_big_phi.ces(system, **_ces_kwargs())
 
         assert hasattr(result, "relations"), (
             f"CauseEffectStructure for '{example_name}' missing 'relations' attribute"
@@ -273,7 +273,7 @@ class TestCauseEffectStructureComponents:
         Note: rule154 is marked as slow due to computational expense (11 distinctions).
         """
         system = EXAMPLES["system"][example_name]()
-        result = new_big_phi.phi_structure(system, **_phi_structure_kwargs())
+        result = new_big_phi.ces(system, **_ces_kwargs())
 
         assert hasattr(result, "distinctions"), (
             "CauseEffectStructure missing distinctions attribute"
@@ -318,7 +318,7 @@ class TestDistinctionProperties:
         must have a 'mechanism' attribute identifying the nodes.
         """
         system = EXAMPLES["system"]["basic"]()
-        result = new_big_phi.phi_structure(system, **_phi_structure_kwargs())
+        result = new_big_phi.ces(system, **_ces_kwargs())
 
         assert hasattr(result, "distinctions"), "No distinctions attribute"
 
@@ -344,7 +344,7 @@ class TestDistinctionProperties:
         outside the system boundaries.
         """
         system = EXAMPLES["system"]["basic"]()
-        result = new_big_phi.phi_structure(system, **_phi_structure_kwargs())
+        result = new_big_phi.ces(system, **_ces_kwargs())
 
         system_nodes = set(system.node_indices)
 
@@ -404,8 +404,8 @@ class TestCrossExampleConsistency:
         system = EXAMPLES["system"][example_name]()
 
         # Compute twice
-        result1 = new_big_phi.phi_structure(system, **_phi_structure_kwargs())
-        result2 = new_big_phi.phi_structure(system, **_phi_structure_kwargs())
+        result1 = new_big_phi.ces(system, **_ces_kwargs())
+        result2 = new_big_phi.ces(system, **_ces_kwargs())
 
         # Should get same number of distinctions
         count1 = len(result1.distinctions) if hasattr(result1, "distinctions") else 0

@@ -45,7 +45,7 @@ class _DummyFormalism:
     def evaluate_system(self, system, **kwargs):  # noqa: ARG002
         return None
 
-    def build_phi_structure(self, system, **kwargs):  # noqa: ARG002
+    def build_ces(self, system, **kwargs):  # noqa: ARG002
         return None
 
 

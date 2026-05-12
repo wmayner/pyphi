@@ -181,14 +181,12 @@ class IIT3Formalism:
 
         return _sia(system, **kwargs)
 
-    def build_phi_structure(self, system: Any, **kwargs: Any) -> Any:
-        """IIT 3.0 has no Φ-structure; raises ``NotImplementedError``.
+    def build_ces(self, system: Any, **kwargs: Any) -> Any:
+        """IIT 3.0 CES is exactly the set of distinctions (no relations).
 
-        Use ``evaluate_system(system).ces`` to obtain the cause-effect
-        structure.
+        Returns the distinctions specified by the system; this is the IIT
+        3.0 cause-effect structure.
         """
-        del system, kwargs
-        raise NotImplementedError(
-            "IIT 3.0 has no Φ-structure (distinctions + relations); "
-            "use evaluate_system().ces for the cause-effect structure."
-        )
+        from pyphi.formalism.iit3 import ces as _ces
+
+        return _ces(system, **kwargs)
