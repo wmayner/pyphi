@@ -54,9 +54,9 @@ class TestComplexesIIT30:
         assert len(sias) == 3
         nodes_and_phis = [(c.node_indices, float(c.phi)) for c in sias]
         expected = [
-            ((0, 1, 2), 0.5),
-            ((1, 2), 2.0),
-            ((0, 2), 1.0),
+            ((0, 1, 2), 2.3125),
+            ((1, 2), 1.0),
+            ((0, 2), 0.5),
         ]
         for (got_nodes, got_phi), (exp_nodes, exp_phi) in zip(
             nodes_and_phis, expected, strict=True
@@ -68,34 +68,34 @@ class TestComplexesIIT30:
         """Test ``complexes`` (non-overlapping maxima) for standard substrate.
 
         Greedy condensation over the three irreducible systems
-        ``[(0,1,2):0.5, (1,2):2.0, (0,2):1.0]`` accepts ``(1,2)`` first
+        ``[(0,1,2):2.3125, (1,2):1.0, (0,2):0.5]`` accepts ``(0,1,2)`` first
         (highest phi), then rejects both overlapping candidates, leaving
-        a single complex.
+        a single complex — the full substrate.
         """
         cx = s.substrate.complexes(s.state)
         assert len(cx) == 1
-        assert cx[0].node_indices == (1, 2)
-        assert float(cx[0].phi) == pytest.approx(2.0, rel=1e-6)
+        assert cx[0].node_indices == (0, 1, 2)
+        assert float(cx[0].phi) == pytest.approx(2.3125, rel=1e-6)
 
     def test_all_sias_standard(self, s):
         """Test ``all_sias`` for standard substrate (IIT 3.0).
 
         Iterates over ``possible_complexes`` (not all ``2**n - 1`` subsets),
         so for the standard ``s`` fixture it returns 5 systems with phi
-        values ``[0.0, 0.0, 0.5, 1.0, 2.0]`` — exactly three of which are
-        irreducible.
+        values ``[0.0, 0.0, 0.5, 1.0, 2.3125]`` — exactly three of which
+        are irreducible.
         """
         sias = s.substrate.all_sias(s.state)
         assert len(sias) == 5
         phis = sorted(float(c.phi) for c in sias)
-        assert phis == pytest.approx([0.0, 0.0, 0.5, 1.0, 2.0], rel=1e-6)
+        assert phis == pytest.approx([0.0, 0.0, 0.5, 1.0, 2.3125], rel=1e-6)
         assert sum(1 for phi in phis if phi > 0) == 3
 
     def test_maximal_complex(self, s):
         """Test ``maximal_complex`` for standard substrate (IIT 3.0)."""
         major = s.substrate.maximal_complex(s.state)
-        assert float(major.phi) == pytest.approx(2.0, rel=1e-6)
-        assert major.node_indices == (1, 2)
+        assert float(major.phi) == pytest.approx(2.3125, rel=1e-6)
+        assert major.node_indices == (0, 1, 2)
 
     @pytest.mark.slow
     @pytest.mark.outdated

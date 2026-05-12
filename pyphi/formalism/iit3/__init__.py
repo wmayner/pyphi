@@ -263,11 +263,11 @@ def sia_partitions(
 
 
 def _ces(system: System, **kwargs: Any) -> Distinctions:
-    """Parallelize the unpartitioned |Distinctions| if parallelizing
-    cuts, since we have free processors because we're not computing any cuts
-    yet.
+    """Compute the unpartitioned |Distinctions| using the partition-evaluation
+    parallel settings, on the rationale that no cuts are being evaluated yet
+    so the same worker budget is available.
     """
-    kwargs = {"parallel": config.infrastructure.parallel_partition_evaluation, **kwargs}
+    kwargs = {**dict(config.infrastructure.parallel_partition_evaluation), **kwargs}
     return ces(system, **kwargs)
 
 
@@ -277,7 +277,7 @@ def _sia_map_reduce(
     unpartitioned_ces: Distinctions,
     **kwargs: Any,
 ) -> SystemIrreducibilityAnalysis:
-    kwargs = {"parallel": config.infrastructure.parallel_partition_evaluation, **kwargs}
+    kwargs = {**dict(config.infrastructure.parallel_partition_evaluation), **kwargs}
     result = MapReduce(
         evaluate_partition,
         cuts,
