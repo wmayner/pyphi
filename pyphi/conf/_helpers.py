@@ -13,7 +13,24 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from copy import copy
+from dataclasses import asdict
 from typing import Any
+
+import yaml
+
+
+def yaml_repr(self: Any) -> str:
+    """Render a frozen-dataclass config layer as nested YAML.
+
+    Used as ``__repr__`` on the five config-layer dataclasses
+    (``FormalismConfig``, ``IITConfig``, ``ActualCausationConfig``,
+    ``InfrastructureConfig``, ``NumericsConfig``) so a layer or
+    sub-namespace inspected in isolation renders the same way as
+    the top-level ``pyphi.config``.
+    """
+    return yaml.safe_dump(
+        asdict(self), sort_keys=False, default_flow_style=False
+    ).rstrip()
 
 
 def fallback(*args: Any) -> Any:

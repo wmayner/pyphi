@@ -22,6 +22,8 @@ from dataclasses import field
 from dataclasses import fields
 from typing import Any
 
+from pyphi.conf._helpers import yaml_repr
+
 _VALID_DISTINCTION_PHI_NORMALIZATION = frozenset({"NONE", "NUM_CONNECTIONS_CUT"})
 _VALID_RELATION_COMPUTATION = frozenset({"CONCRETE", "ANALYTICAL"})
 
@@ -53,6 +55,8 @@ class IITConfig:
         default_factory=lambda: ["NORMALIZED_PHI", "NEGATIVE_PHI"]
     )
     purview_tie_resolution: str = "PHI"
+
+    __repr__ = yaml_repr
 
     def __post_init__(self) -> None:
         for name in (
@@ -94,6 +98,8 @@ class ActualCausationConfig:
     background_scheme: str = "UNIFORM"
     alpha_aggregation: str = "SUBTRACTIVE"
 
+    __repr__ = yaml_repr
+
     def __post_init__(self) -> None:
         if (
             self.partitioned_repertoire_scheme
@@ -128,6 +134,8 @@ class FormalismConfig:
     actual_causation: ActualCausationConfig = field(
         default_factory=ActualCausationConfig
     )
+
+    __repr__ = yaml_repr
 
     def __post_init__(self) -> None:
         if not isinstance(self.iit, IITConfig):

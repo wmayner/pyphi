@@ -13,6 +13,8 @@ from dataclasses import field
 from pathlib import Path
 from typing import Any
 
+from pyphi.conf._helpers import yaml_repr
+
 _VALID_LOG_LEVELS = frozenset(
     {None, "CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"}
 )
@@ -94,6 +96,8 @@ class InfrastructureConfig:
     validate_system_states: bool = True
     validate_conditional_independence: bool = True
     validate_json_version: bool = True
+
+    __repr__ = yaml_repr
 
     def __post_init__(self) -> None:
         _check_bool("parallel", self.parallel)

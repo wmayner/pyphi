@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from pyphi.conf._helpers import yaml_repr
+
 
 @dataclass(frozen=True)
 class NumericsConfig:
@@ -23,6 +25,8 @@ class NumericsConfig:
     """
 
     precision: int = 13
+
+    __repr__ = yaml_repr
 
     def __post_init__(self) -> None:
         if not isinstance(self.precision, int) or isinstance(self.precision, bool):
