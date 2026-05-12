@@ -686,7 +686,7 @@ class TransitionSystem:
         cause_indices: Any,
         effect_indices: Any,
         direction: Direction,
-        cut: DirectedBipartition | None = None,
+        partition: DirectedBipartition | None = None,
         **kwargs: Any,
     ) -> "TransitionSystem":
         return cls(
@@ -696,7 +696,7 @@ class TransitionSystem:
             cause_indices=tuple(cause_indices),
             effect_indices=tuple(effect_indices),
             direction=direction,
-            cut=cut,  # type: ignore[arg-type]
+            partition=partition,  # type: ignore[arg-type]
             **kwargs,
         )
 
@@ -1415,7 +1415,7 @@ def account_distance(A1, A2):
 
 
 def _evaluate_partition(
-    cut,
+    partition,
     transition,
     unpartitioned_account,
     direction=Direction.BIDIRECTIONAL,
@@ -1424,15 +1424,15 @@ def _evaluate_partition(
     partitioned_repertoire_scheme,
 ):
     """Find the |AcSystemIrreducibilityAnalysis| for a given partition."""
-    cut_transition = transition.apply_cut(cut)
+    partitioned_transition = transition.apply_cut(partition)
     partitioned_account = account(
-        cut_transition,
+        partitioned_transition,
         direction,
         alpha_measure=alpha_measure,
         partitioned_repertoire_scheme=partitioned_repertoire_scheme,
     )
 
-    log.debug("Finished evaluating %s.", cut)
+    log.debug("Finished evaluating %s.", partition)
     alpha = account_distance(unpartitioned_account, partitioned_account)
 
     return AcSystemIrreducibilityAnalysis(
@@ -1441,7 +1441,7 @@ def _evaluate_partition(
         account=unpartitioned_account,
         partitioned_account=partitioned_account,
         transition=transition,
-        partition=cut,
+        partition=partition,
     )
 
 
@@ -1452,20 +1452,24 @@ def _get_partitions(transition, direction):
 
     if direction is Direction.BIDIRECTIONAL:
         yielded = set()
-        for cut in chain(
+        for partition in chain(
             _get_partitions(transition, Direction.CAUSE),
             _get_partitions(transition, Direction.EFFECT),
         ):
-            cm = utils.np_hashable(cut.cut_matrix(n))
+            cm = utils.np_hashable(partition.cut_matrix(n))
             if cm not in yielded:
                 yielded.add(cm)
-                yield cut
+                yield partition
 
     else:
         mechanism = transition.mechanism_indices(direction)
         purview = transition.purview_indices(direction)
-        for partition in mip_partitions(mechanism, purview, transition.node_labels):
-            yield DirectedJointPartition(direction, partition, transition.node_labels)
+        for inner_partition in mip_partitions(
+            mechanism, purview, transition.node_labels
+        ):
+            yield DirectedJointPartition(
+                direction, inner_partition, transition.node_labels
+            )
 
 
 def sia(transition, direction=Direction.BIDIRECTIONAL, **kwargs):

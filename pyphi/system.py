@@ -1,9 +1,9 @@
-"""System value type — ``(Substrate, state, node_subset, cut)``.
+"""System value type — ``(Substrate, state, node_subset, partition)``.
 
 A System is the unit of analysis for IIT: a substrate evaluated in a specific
-state over a specific subset of its nodes, optionally with a cut applied.
-Immutable, hashable. The cut is a constructor argument (default
-:class:`NullCut`), not a hidden mode.
+state over a specific subset of its nodes, optionally with a partition
+applied. Immutable, hashable. The partition is a constructor argument
+(default :class:`NullCut`, i.e. no edges severed), not a hidden mode.
 """
 
 from __future__ import annotations
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True, eq=False)
 class System:
-    """A substrate evaluated in a specific state over a node subset, with cut."""
+    """A substrate evaluated in a specific state over a node subset, with partition."""
 
     substrate: Substrate
     state: State

@@ -182,7 +182,7 @@ def conceptual_info(system: System, **kwargs: Any) -> float:
 
 
 def evaluate_partition(
-    cut: DirectedBipartition,
+    partition: DirectedBipartition,
     unpartitioned_system: System,
     unpartitioned_ces: Distinctions,
     **kwargs: Any,
@@ -191,7 +191,7 @@ def evaluate_partition(
 
     Args:
         unpartitioned_system (System): The system without a partition applied.
-        cut (DirectedBipartition): The partition to evaluate.
+        partition (DirectedBipartition): The partition to evaluate.
         unpartitioned_ces (Distinctions): The cause-effect structure of
             the unpartitioned system.
 
@@ -199,15 +199,15 @@ def evaluate_partition(
         SystemIrreducibilityAnalysis: The |SystemIrreducibilityAnalysis| for
         that partition.
     """
-    log.debug("Evaluating %s...", cut)
+    log.debug("Evaluating %s...", partition)
 
-    partitioned_system = unpartitioned_system.apply_cut(cut)
+    partitioned_system = unpartitioned_system.apply_cut(partition)
 
     if config.formalism.iit.assume_partitions_cannot_create_new_concepts:
         mechanisms = list(unpartitioned_ces.mechanisms)
     else:
         # Mechanisms can only produce concepts if they were concepts in the
-        # original system, or the cut divides the mechanism.
+        # original system, or the partition splits the mechanism.
         mechanisms = set(
             list(unpartitioned_ces.mechanisms)
             + list(partitioned_system.partitioned_mechanisms)
@@ -216,7 +216,7 @@ def evaluate_partition(
     kwargs = {"progress": False, **kwargs}
     partitioned_ces = ces(partitioned_system, mechanisms, **kwargs)
 
-    log.debug("Finished evaluating %s.", cut)
+    log.debug("Finished evaluating %s.", partition)
 
     phi_ = ces_distance(unpartitioned_ces, partitioned_ces)
 

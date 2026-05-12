@@ -2110,3 +2110,8 @@ to ease transition:
 - **Mathematician's acceptance test:** open the post-P7 code and point at every
   Greek letter in Albantakis et al. 2023 to a corresponding class, method, or
   registered function. If that test passes, the refactor has succeeded.
+
+
+---
+- need to put substrate-level functions as thin methods on Substrate, like .ces on System. these are totally missing for iit4- can they be a single implementation? i think so, no change to that logic between iit3 and 4? what's the right design?
+- need an easily accessible canonical set of IIT3 settings and IIT4_2023 / IIT4_2026 settings, so you can override with one **<iit3_settings> call.

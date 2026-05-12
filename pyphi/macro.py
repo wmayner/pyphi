@@ -272,8 +272,8 @@ class MacroSystem(System):
         effect_tpm = remove_singleton_dimensions(system.effect_tpm)
 
         # The connectivity matrix is the substrate's connectivity matrix, with
-        # cut applied, with all connections to/from external nodes severed,
-        # shrunk to the size of the internal nodes.
+        # partition applied, with all connections to/from external nodes
+        # severed, shrunk to the size of the internal nodes.
         cm = system.cm[np.ix_(internal_indices, internal_indices)]
 
         state = utils.state_of(internal_indices, system.state)
@@ -282,7 +282,7 @@ class MacroSystem(System):
         node_indices = reindex(internal_indices)
         nodes = generate_nodes(cause_tpm, effect_tpm, cm, state, node_indices)
 
-        # Re-calcuate the tpm based on the results of the cut
+        # Re-calculate the tpm based on the results of the partition
         cause_tpm = rebuild_system_tpm(node.cause_tpm_on for node in nodes)
         effect_tpm = rebuild_system_tpm(node.effect_tpm_on for node in nodes)
 
