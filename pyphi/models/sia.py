@@ -8,6 +8,7 @@ IIT 3.0 result type that ``compute.system.sia`` produces.
 
 from __future__ import annotations
 
+from typing import Any
 from typing import ClassVar
 
 from pyphi import utils
@@ -133,6 +134,12 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
                 self.substrate,
             )
         )
+
+    def order_by(self) -> Any:
+        """Sort key: phi (primary), then partition lex key (structural fallback)."""
+        if self.partition is None:
+            return (self.phi, b"")
+        return (self.phi, self.partition.lex_key())
 
     def to_json(self):
         """Return a JSON-serializable representation."""
