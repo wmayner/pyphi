@@ -55,6 +55,17 @@ _LAYER_TYPES: dict[str, type] = {
 _LOG_FIELDS = frozenset({"log_file", "log_file_level", "log_stdout_level"})
 
 
+def _rebuild_nested(current: Any, parts: list[str], value: Any, full_path: str) -> Any:
+    """Replace a leaf field inside a frozen nested dataclass via path."""
+    if not hasattr(current, parts[0]):
+        raise KeyError(f"Unknown config path: {full_path!r}")
+    if len(parts) == 1:
+        return replace(current, **{parts[0]: value})
+    sub = getattr(current, parts[0])
+    new_sub = _rebuild_nested(sub, parts[1:], value, full_path)
+    return replace(current, **{parts[0]: new_sub})
+
+
 def _read_via_target(
     cfg: _GlobalConfig, target: tuple[str, str | None], field_name: str
 ) -> Any:
@@ -186,6 +197,46 @@ class _GlobalConfig:
             "infrastructure": asdict(self._infrastructure),
             "numerics": asdict(self._numerics),
         }
+
+    def __getitem__(self, path: str) -> Any:
+        """Read a config field by dotted path.
+
+        ``config["numerics.precision"]``,
+        ``config["formalism.iit.mechanism_phi_measure"]``,
+        ``config["infrastructure.parallel"]``.
+        """
+        parts = path.split(".")
+        if not parts or not all(parts):
+            raise KeyError(f"Invalid config path: {path!r}")
+        obj: Any = self
+        for p in parts:
+            try:
+                obj = getattr(obj, p)
+            except AttributeError as exc:
+                raise KeyError(f"Unknown config path: {path!r}") from exc
+        return obj
+
+    def __setitem__(self, path: str, value: Any) -> None:
+        """Write a config field by dotted path.
+
+        ``config["numerics.precision"] = 6``,
+        ``config["formalism.iit.mechanism_phi_measure"] = "EMD"``.
+        """
+        parts = path.split(".")
+        if len(parts) < 2 or not all(parts):
+            raise KeyError(
+                f"Path must address a leaf field on a layer "
+                f"(e.g. 'numerics.precision'): {path!r}"
+            )
+        layer_name = parts[0]
+        if layer_name not in _LAYER_NAMES:
+            raise KeyError(
+                f"Unknown top-level layer {layer_name!r}; expected one of {_LAYER_NAMES}"
+            )
+        new_layer = _rebuild_nested(
+            getattr(self, "_" + layer_name), parts[1:], value, path
+        )
+        setattr(self, layer_name, new_layer)
 
     def __repr__(self) -> str:
         return yaml.safe_dump(

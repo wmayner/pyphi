@@ -365,3 +365,72 @@ class TestGlobalConfigFacade:
 
     def test_global_config_is_global_config_instance(self):
         assert isinstance(config, _GlobalConfig)
+
+
+class TestDottedPathAccessor:
+    def test_read_top_level_layer_field(self):
+        assert config["numerics.precision"] == config.numerics.precision
+
+    def test_read_nested_formalism_field(self):
+        assert (
+            config["formalism.iit.mechanism_phi_measure"]
+            == config.formalism.iit.mechanism_phi_measure
+        )
+
+    def test_read_actual_causation_field(self):
+        assert (
+            config["formalism.actual_causation.alpha_measure"]
+            == config.formalism.actual_causation.alpha_measure
+        )
+
+    def test_read_infrastructure_field(self):
+        assert config["infrastructure.parallel"] == config.infrastructure.parallel
+
+    def test_write_top_level_layer_field(self):
+        original = config.numerics.precision
+        try:
+            config["numerics.precision"] = 7
+            assert config.numerics.precision == 7
+            assert config["numerics.precision"] == 7
+        finally:
+            config["numerics.precision"] = original
+
+    def test_write_nested_formalism_field(self):
+        original = config.formalism.iit.mechanism_phi_measure
+        try:
+            config["formalism.iit.mechanism_phi_measure"] = "EMD"
+            assert config.formalism.iit.mechanism_phi_measure == "EMD"
+        finally:
+            config["formalism.iit.mechanism_phi_measure"] = original
+
+    def test_write_actual_causation_field(self):
+        original = config.formalism.actual_causation.alpha_measure
+        try:
+            config["formalism.actual_causation.alpha_measure"] = "KLD"
+            assert config.formalism.actual_causation.alpha_measure == "KLD"
+        finally:
+            config["formalism.actual_causation.alpha_measure"] = original
+
+    def test_read_unknown_path_raises_keyerror(self):
+        with pytest.raises(KeyError, match="Unknown config path"):
+            _ = config["formalism.iit.nonexistent_field"]
+
+    def test_read_empty_path_raises_keyerror(self):
+        with pytest.raises(KeyError, match="Invalid config path"):
+            _ = config[""]
+
+    def test_write_empty_path_raises_keyerror(self):
+        with pytest.raises(KeyError, match="Path must address a leaf"):
+            config[""] = 1
+
+    def test_write_single_part_path_raises_keyerror(self):
+        with pytest.raises(KeyError, match="Path must address a leaf"):
+            config["precision"] = 1
+
+    def test_write_unknown_layer_raises_keyerror(self):
+        with pytest.raises(KeyError, match="Unknown top-level layer"):
+            config["bogus.precision"] = 1
+
+    def test_write_unknown_field_within_known_layer_raises_keyerror(self):
+        with pytest.raises(KeyError, match="Unknown config path"):
+            config["numerics.nonexistent_field"] = 1
