@@ -1,5 +1,5 @@
 # models/__init__.py
-"""See |models.system|, |models.mechanism|, and |models.cuts| for documentation.
+"""See |models.system|, |models.mechanism|, and |models.partitions| for documentation.
 
 Attributes:
     Account: Alias for :class:`pyphi.models.actual_causation.Account`.
@@ -7,8 +7,8 @@ Attributes:
      :class:`pyphi.models.actual_causation.AcRepertoireIrreducibilityAnalysis`.
     AcSystemIrreducibilityAnalysis: Alias for
         :class:`pyphi.models.actual_causation.AcSystemIrreducibilityAnalysis`.
-    ActualCut: Alias for :class:`pyphi.models.cuts.ActualCut`.
-    Bipartition: Alias for :class:`pyphi.models.cuts.Bipartition`.
+    ActualCut: Alias for :class:`pyphi.models.partitions.ActualCut`.
+    Bipartition: Alias for :class:`pyphi.models.partitions.Bipartition`.
     CausalLink: Alias for :class:`pyphi.models.actual_causation.CausalLink`.
     CauseEffectStructure: Alias for
         :class:`pyphi.models.ces.CauseEffectStructure` — the
@@ -29,7 +29,7 @@ Attributes:
         :class:`pyphi.models.mechanism.MaximallyIrreducibleEffect`.
     MaximallyIrreducibleCauseOrEffect: Alias for
         :class:`pyphi.models.mechanism.MaximallyIrreducibleCauseOrEffect`.
-    Part: Alias for :class:`pyphi.models.cuts.Part`.
+    Part: Alias for :class:`pyphi.models.partitions.Part`.
     RepertoireIrreducibilityAnalysis: Alias for
         :class:`pyphi.models.mechanism.RepertoireIrreducibilityAnalysis`.
     SystemIrreducibilityAnalysis: Alias for
@@ -45,14 +45,6 @@ from .actual_causation import Event
 from .actual_causation import _null_ac_ria
 from .actual_causation import _null_ac_sia
 from .ces import CauseEffectStructure
-from .cuts import ActualCut
-from .cuts import Bipartition
-from .cuts import KCut
-from .cuts import KPartition
-from .cuts import NullCut
-from .cuts import Part
-from .cuts import SystemPartition
-from .cuts import Tripartition
 from .distinction import Concept
 from .distinction import Distinction
 from .distinctions import Distinctions
@@ -62,6 +54,14 @@ from .distinctions import _null_ces
 from .mice import MaximallyIrreducibleCause
 from .mice import MaximallyIrreducibleCauseOrEffect
 from .mice import MaximallyIrreducibleEffect
+from .partitions import ActualCut
+from .partitions import Bipartition
+from .partitions import KCut
+from .partitions import KPartition
+from .partitions import NullCut
+from .partitions import Part
+from .partitions import SystemPartition
+from .partitions import Tripartition
 from .ria import RepertoireIrreducibilityAnalysis
 from .ria import ShortCircuitConditions
 from .ria import _null_ria

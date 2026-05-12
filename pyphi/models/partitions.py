@@ -1,4 +1,4 @@
-# models/cuts.py
+# models/partitions.py
 """Objects that represent partitions of sets of nodes."""
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ from . import cmp
 from . import fmt
 
 
-class _CutBase:
+class _PartitionBase:
     """Base class for all unidirectional system cuts.
 
     Concrete cut classes must implement a ``cut_matrix`` method and an
@@ -98,7 +98,7 @@ class _CutBase:
                 yield mechanism
 
 
-class NullCut(_CutBase):
+class NullCut(_PartitionBase):
     """The cut that does nothing."""
 
     def __init__(
@@ -138,7 +138,7 @@ class NullCut(_CutBase):
         return hash(self.indices)
 
 
-class SystemPartition(_CutBase):
+class SystemPartition(_PartitionBase):
     """A unidirectional system-level partition / cut.
 
     Represents the severing of connections from ``from_nodes`` to ``to_nodes``
@@ -246,12 +246,8 @@ class SystemPartition(_CutBase):
         return cls(data["direction"], data["from_nodes"], data["to_nodes"])
 
 
-class CompleteSystemPartition(_CutBase):
-    """Represents the SystemPartition that destroys all distinctions & relations.
-
-    Inherits from :class:`_CutBase` (in 2.0 — previously stood alone, which
-    was inconsistent with the rest of the cut hierarchy).
-    """
+class CompleteSystemPartition(_PartitionBase):
+    """Represents the SystemPartition that destroys all distinctions & relations."""
 
     @property
     def indices(self) -> tuple[int, ...]:
@@ -265,7 +261,7 @@ class CompleteSystemPartition(_CutBase):
         return "Complete"
 
 
-class KCut(_CutBase):
+class KCut(_PartitionBase):
     """A cut that severs all connections between parts of a K-partition."""
 
     direction: Direction
@@ -325,7 +321,7 @@ class ActualCut(KCut):
         return tuple(sorted(set(self.partition.mechanism + self.partition.purview)))
 
 
-class GeneralKCut(_CutBase):
+class GeneralKCut(_PartitionBase):
     """A cut defined by a matrix of cut connections."""
 
     node_indices: tuple[int, ...]
@@ -507,7 +503,7 @@ class Part:
         return {"mechanism": self.mechanism, "purview": self.purview}
 
 
-class KPartition(Sequence[Part], _CutBase):
+class KPartition(Sequence[Part], _PartitionBase):
     """A partition with an arbitrary number of parts."""
 
     __slots__ = ["_mechanism", "_purview", "node_labels", "parts"]

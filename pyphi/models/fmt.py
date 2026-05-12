@@ -15,8 +15,8 @@ from pyphi import utils
 from pyphi.conf import config
 from pyphi.direction import Direction
 
-from .cuts import CompleteSystemPartition
-from .cuts import NullCut
+from .partitions import CompleteSystemPartition
+from .partitions import NullCut
 
 # REPR_VERBOSITY levels
 LOW = 0

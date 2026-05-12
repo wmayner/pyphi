@@ -179,7 +179,7 @@ class TestStructuralInvariants:
 
         This tests internal consistency of the SIA result.
         """
-        from pyphi.models.cuts import NullCut
+        from pyphi.models.partitions import NullCut
 
         # Irreducible systems with phi > 0 should have non-null partitions
         s_result = s.sia()

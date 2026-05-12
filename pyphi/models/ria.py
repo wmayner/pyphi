@@ -29,7 +29,7 @@ from pyphi import utils
 from pyphi.data_structures import PyPhiFloat
 from pyphi.direction import Direction
 from pyphi.metrics.distribution import DistanceResult
-from pyphi.models.cuts import KPartition
+from pyphi.models.partitions import KPartition
 from pyphi.warnings import warn_about_tie_serialization
 
 from . import cmp

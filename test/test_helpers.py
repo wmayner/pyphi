@@ -13,8 +13,8 @@ import pytest
 from pyphi import config
 from pyphi import utils
 from pyphi.formalism.iit4 import SystemIrreducibilityAnalysis
-from pyphi.models.cuts import NullCut
-from pyphi.models.cuts import SystemPartition
+from pyphi.models.partitions import NullCut
+from pyphi.models.partitions import SystemPartition
 
 
 def compare_phi_values(

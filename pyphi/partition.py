@@ -17,7 +17,7 @@ from . import combinatorics
 from .cache import cache
 from .conf import config, fallback
 from .direction import Direction
-from .models.cuts import (
+from .models.partitions import (
     Bipartition,
     CompleteGeneralKCut,
     GeneralKCut,

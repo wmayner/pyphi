@@ -10,7 +10,7 @@ from pyphi import exceptions
 from pyphi import models  # used by other tests in this module
 from pyphi.labels import NodeLabels
 from pyphi.models import SystemPartition
-from pyphi.models.cuts import KPartition
+from pyphi.models.partitions import KPartition
 
 EPSILON = 10 ** (-config.numerics.precision)
 

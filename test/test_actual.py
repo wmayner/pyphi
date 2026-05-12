@@ -152,8 +152,8 @@ def test_transition_system_external_indices_excludes_cause_indices():
 def test_transition_system_apply_cut_returns_new_instance():
     from pyphi import Direction
     from pyphi.actual import TransitionSystem
-    from pyphi.models.cuts import NullCut
-    from pyphi.models.cuts import SystemPartition
+    from pyphi.models.partitions import NullCut
+    from pyphi.models.partitions import SystemPartition
 
     substrate = _ts_substrate()
     ts = TransitionSystem(

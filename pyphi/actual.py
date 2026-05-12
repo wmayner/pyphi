@@ -52,7 +52,7 @@ from .models import NullCut
 from .models import _null_ac_ria
 from .models import _null_ac_sia
 from .models import fmt
-from .models.cuts import SystemPartition
+from .models.partitions import SystemPartition
 from .parallel import MapReduce
 from .partition import mip_partitions
 from .substrate import Substrate

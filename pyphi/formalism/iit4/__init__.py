@@ -37,11 +37,11 @@ from pyphi.metrics.protocols import StatefulDistributionMeasure
 from pyphi.models import cmp
 from pyphi.models import fmt
 from pyphi.models.ces import CauseEffectStructure
-from pyphi.models.cuts import GeneralKCut
-from pyphi.models.cuts import NullCut
-from pyphi.models.cuts import SystemPartition
 from pyphi.models.distinctions import Distinctions
 from pyphi.models.distinctions import ResolvedDistinctions
+from pyphi.models.partitions import GeneralKCut
+from pyphi.models.partitions import NullCut
+from pyphi.models.partitions import SystemPartition
 from pyphi.models.ria import RepertoireIrreducibilityAnalysis
 from pyphi.models.state_specification import StateSpecification
 from pyphi.models.state_specification import SystemStateSpecification

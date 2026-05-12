@@ -39,7 +39,7 @@ def canonical_partition(partition: Any) -> list:
     Returns nested lists of int sequences. Each "part" is internally sorted;
     parts are sorted among themselves.
 
-    The :class:`pyphi.models.cuts.SystemPartition` direction is intentionally
+    The :class:`pyphi.models.partitions.SystemPartition` direction is intentionally
     not captured here. The only fixtures that currently emit
     ``SystemPartition`` cuts are IIT 3.0 SIAs, which always use
     ``Direction.EFFECT`` (the IIT 3.0 phi computation does not read the

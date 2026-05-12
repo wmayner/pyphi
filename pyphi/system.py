@@ -17,8 +17,8 @@ from typing import Any
 from pyphi import connectivity
 from pyphi import utils
 from pyphi import validate
-from pyphi.models.cuts import NullCut
-from pyphi.models.cuts import SystemPartition
+from pyphi.models.partitions import NullCut
+from pyphi.models.partitions import SystemPartition
 from pyphi.substrate import Substrate
 
 from .core.tpm.marginalization import cause_tpm as _marginalize_cause

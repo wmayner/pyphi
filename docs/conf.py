@@ -223,7 +223,7 @@ rst_prolog = "".join(
 
 .. |models.subsystem| replace:: :mod:`pyphi.models.subsystem`
 .. |models.mechanism| replace:: :mod:`pyphi.models.mechanism`
-.. |models.cuts| replace:: :mod:`pyphi.models.cuts`
+.. |models.cuts| replace:: :mod:`pyphi.models.partitions`
 
 .. |network| replace:: :mod:`~pyphi.network`
 .. |subsystem| replace:: :mod:`~pyphi.subsystem`
@@ -266,11 +266,11 @@ rst_prolog = "".join(
 
 .. |Concept| replace:: :class:`~pyphi.models.mechanism.Concept`
 
-.. |Cut| replace:: :class:`~pyphi.models.cuts.Cut`
-.. |Cuts| replace:: :class:`~pyphi.models.cuts.Cut`
-.. |Part| replace:: :class:`~pyphi.models.cuts.Part`
-.. |Parts| replace:: :class:`~pyphi.models.cuts.Part`
-.. |Bipartition| replace:: :class:`~pyphi.models.cuts.Bipartition`
+.. |Cut| replace:: :class:`~pyphi.models.partitions.Cut`
+.. |Cuts| replace:: :class:`~pyphi.models.partitions.Cut`
+.. |Part| replace:: :class:`~pyphi.models.partitions.Part`
+.. |Parts| replace:: :class:`~pyphi.models.partitions.Part`
+.. |Bipartition| replace:: :class:`~pyphi.models.partitions.Bipartition`
 
 .. |RepertoireIrreducibilityAnalysis| replace:: :class:`~pyphi.models.mechanism.RepertoireIrreducibilityAnalysis`
 .. |MaximallyIrreducibleCauseOrEffect| replace:: :class:`~pyphi.models.mechanism.MaximallyIrreducibleCauseOrEffect`

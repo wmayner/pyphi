@@ -23,7 +23,7 @@ from pyphi import config
 from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
 from pyphi.metrics.distribution import resolve_mechanism_measure
 from pyphi.metrics.distribution import resolve_system_measure
-from pyphi.models.cuts import NullCut
+from pyphi.models.partitions import NullCut
 
 from .conftest import skip_if_no_pyemd
 
