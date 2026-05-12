@@ -455,12 +455,27 @@ class TestPermutationSymmetry:
 
 
 @pytest.mark.slow
-def test_sia_is_deterministic_across_runs(big_subsys_all_complete):
-    """Running .sia() twice on the same substrate must yield equal SIAs.
+@config.override(parallel=False)
+def test_sia_is_deterministic_across_runs_sequential(big_subsys_all_complete):
+    """Two consecutive ``.sia()`` calls return equal SIAs in sequential mode.
 
-    The fully-connected 5-node substrate has multiple partitions tied
-    at the MIP minimisation key; structural tie-breaking guarantees a
-    single canonical SIA across runs.
+    The fully-connected 5-node substrate has multiple partitions tied at
+    the MIP key ``(normalized_phi, -phi)``; ``PARTITION_LEX`` selects a
+    canonical winner.
+    """
+    s1 = big_subsys_all_complete.sia()
+    s2 = big_subsys_all_complete.sia()
+    assert s1 == s2
+
+
+@pytest.mark.slow
+@config.override(parallel=True)
+def test_sia_is_deterministic_across_runs_parallel(big_subsys_all_complete):
+    """Two consecutive ``.sia()`` calls return equal SIAs in parallel mode.
+
+    The parallel dispatch path delivers MapReduce results in worker-completion
+    order; deterministic SIA selection requires the strategy chain to fully
+    canonicalize across runs.
     """
     s1 = big_subsys_all_complete.sia()
     s2 = big_subsys_all_complete.sia()
