@@ -531,12 +531,9 @@ def complexes(
     not qualify as complexes (exclusion postulate violation) and the
     search proceeds to the next-best by |small_phi_s|.
 
-    Under IIT 3.0 the |big_phi| escalation does not apply; the
-    fallback is greedy condensation by |small_phi_s| descending.
-
-    See ROADMAP P11.95c — cross-substrate canonicalization (so
-    permutation-equivalent substrates produce identical complex lists)
-    is tracked separately.
+    Under IIT 3.0 the |big_phi| escalation does not apply; complexes
+    are identified by greedy condensation in |small_phi_s|-descending
+    order.
     """
     sorted_sias = sorted(
         irreducible_sias(substrate, state, candidates, **kwargs), reverse=True

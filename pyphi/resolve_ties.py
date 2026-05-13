@@ -266,13 +266,9 @@ def cascade[U](
 class _StateMIP(Protocol):
     """Structural type for a per-state MIP result consumed by the state-tie cascade.
 
-    Concrete types satisfying this (e.g.,
-    :class:`pyphi.formalism.iit4.SystemIrreducibilityAnalysis`) need to
-    expose ``phi`` (the Integration-level cascade key). ``big_phi``
-    (Composition-level key) is only read when the cascade escalates
-    past Integration; callers whose results lack ``big_phi`` may rely
-    on the cascade short-circuiting at Integration via
-    ``context.max_escalation_level``.
+    Requires ``phi`` (the Integration-level cascade key). ``big_phi``
+    (Composition-level key) is read only when the cascade escalates
+    past Integration.
     """
 
     @property
@@ -361,8 +357,7 @@ def resolve_distinction_tie[V: _CongruentMice](
       ``φ_d(m, Z)`` across different purviews. Returns the largest
       congruent purview (the "typically favors larger purviews"
       heuristic for "supports the most relations with other
-      distinctions"). The more expensive joint-relations-count
-      computation is captured under ROADMAP P11.95c as opt-in.
+      distinctions").
 
     State-tie congruence is preferred over purview-tie heuristic: if any
     state-tie MICE is congruent, it is returned; only when none is
@@ -388,7 +383,7 @@ def resolve_state_tie[K, V: _StateMIP](
     context: ResolutionContext,
     on_unresolved: OnUnresolved = "defer",
 ) -> CascadeOutcome[K]:
-    """Resolve a state tie via the paper-faithful per-state max-min cascade.
+    """Resolve a state tie via the per-state max-min cascade.
 
     Per Albantakis et al. 2023 S1 Text + Eq 20 parenthetical: among states
     tied at maximum intrinsic information ``ii``, the canonical winner is

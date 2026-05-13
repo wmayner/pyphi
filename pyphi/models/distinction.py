@@ -202,11 +202,9 @@ class Distinction(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixi
         For each direction, applies the distinction-state cascade per
         Albantakis et al. 2023 S1 Text: state ties within a purview
         resolve to the congruent MICE; cross-purview ties resolve to
-        the largest congruent purview (the default heuristic for
-        "supports the most relations with other distinctions"; see
-        ROADMAP P11.95c for the joint-relations-count alternative).
-        Returns ``None`` when no congruent MICE exists in either
-        direction.
+        the largest congruent purview (the heuristic for "supports the
+        most relations with other distinctions"). Returns ``None`` when
+        no congruent MICE exists in either direction.
         """
         from pyphi.resolve_ties import ResolutionContext
         from pyphi.resolve_ties import resolve_distinction_tie

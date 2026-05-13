@@ -803,7 +803,7 @@ def xor_and_substrate():
 # =============================================
 #
 # Substrates engineered to exercise distinct branches of the IIT 4.0
-# substrate-exclusion cascade (see ROADMAP P11.95c / S1 Text):
+# substrate-exclusion cascade per Albantakis et al. 2023 S1 Text:
 # disjoint complexes accepted at the same φ_s tier, and an overlapping
 # symmetric clique whose Composition tie violates the exclusion
 # postulate.

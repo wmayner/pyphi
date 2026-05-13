@@ -738,11 +738,11 @@ def sia(
                     default_sia=default_sia,
                 )
 
-        # Apply the per-state max-min cascade at Integration level.
-        # Composition-level escalation (max Φ) is reachable when a future
-        # caller provides ``max_escalation_level="Composition"`` and the
-        # per-pair SIAs expose ``big_phi``; today it is gated by the
-        # Integration budget, so Composition keys are never read.
+        # Apply the per-state max-min cascade at the Integration level.
+        # The Composition step of the cascade requires a ``big_phi`` value
+        # on each per-pair SIA (CES Φ), which the SIA does not carry; the
+        # Integration budget keeps that key out of the resolver's read
+        # path.
         ctx = resolve_ties.ResolutionContext(max_escalation_level="Integration")
         outcome = resolve_ties.resolve_state_tie(per_pair_sias, context=ctx)
         chosen_key = outcome.resolved
