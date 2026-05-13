@@ -10,6 +10,7 @@ from dataclasses import field
 from itertools import tee
 from typing import Any
 from typing import Literal
+from typing import Protocol
 from typing import TypeVar
 
 from .conf import config
@@ -258,6 +259,65 @@ def cascade[U](
         tied_set=survivors,
         cascade_level=final_level,
         outcome="UNRESOLVED_WITHIN_BUDGET",
+    )
+
+
+class _StateMIP(Protocol):
+    """Structural type for a per-state MIP result consumed by the state-tie cascade.
+
+    Concrete types satisfying this (e.g.,
+    :class:`pyphi.formalism.iit4.SystemIrreducibilityAnalysis`) need only
+    expose the two scalar fields the cascade reads.
+    """
+
+    @property
+    def phi(self) -> float: ...
+    @property
+    def big_phi(self) -> float: ...
+
+
+def resolve_state_tie[K, V: _StateMIP](
+    per_state_mips: "dict[K, V]",
+    *,
+    context: ResolutionContext,
+    on_unresolved: OnUnresolved = "defer",
+) -> CascadeOutcome[K]:
+    """Resolve a state tie via the paper-faithful per-state max-min cascade.
+
+    Per Albantakis et al. 2023 S1 Text + Eq 20 parenthetical: among states
+    tied at maximum intrinsic information ``ii``, the canonical winner is
+    the state whose per-state ``φ_s`` (the value of integrated information
+    at that state's MIP) is greatest. If ``φ_s`` ties too, the cascade
+    escalates to per-state ``Φ`` (the cause-effect structure's integrated
+    information at Composition). If ``Φ`` ties as well, the substrate
+    fails the information postulate — :exc:`NotAComplex` is raised under
+    ``on_unresolved='fail'``.
+
+    ``per_state_mips`` maps each candidate state spec to a per-state MIP
+    result object (typically a :class:`SystemIrreducibilityAnalysis` or
+    similar). The object must expose ``.phi``; ``.big_phi`` is consulted
+    only when Composition escalation fires.
+
+    Returns a :class:`CascadeOutcome` whose ``resolved`` field is the
+    winning key from ``per_state_mips`` (or ``None`` when budget caps
+    escalation short of resolution).
+    """
+    return cascade(
+        list(per_state_mips.keys()),
+        levels=[
+            CascadeLevel(
+                postulate="Integration",
+                op="argmax",
+                key=lambda spec: per_state_mips[spec].phi,
+            ),
+            CascadeLevel(
+                postulate="Composition",
+                op="argmax",
+                key=lambda spec: per_state_mips[spec].big_phi,
+            ),
+        ],
+        context=context,
+        on_unresolved=on_unresolved,
     )
 
 

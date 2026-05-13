@@ -18,6 +18,7 @@ from pyphi.resolve_ties import CascadeLevel
 from pyphi.resolve_ties import NotAComplex
 from pyphi.resolve_ties import ResolutionContext
 from pyphi.resolve_ties import cascade
+from pyphi.resolve_ties import resolve_state_tie
 
 # ----- Postulate ordering -----
 
@@ -259,3 +260,81 @@ def test_cascade_calls_key_function_once_per_candidate_per_level():
         context=ctx,
     )
     assert call_counts["phi"] == 2
+
+
+# ----- State-tie cascade (Phase C.1: paper-faithful per-state max-min) -----
+#
+# Per Albantakis et al. 2023 S1 Text + Eq 20 parenthetical: when multiple
+# cause/effect states tie at max ii, the canonical winner is the state
+# whose per-state φ_s (its own MIP value) is maximum. If still tied at
+# φ_s, escalate to Composition (max per-state Φ). If still tied, the
+# substrate fails the information postulate (NotAComplex) unless the
+# CESes are intrinsically identical.
+
+
+@dataclass(frozen=True)
+class FakeStateMIP:
+    """Synthetic per-state MIP value — stand-in for SystemIrreducibilityAnalysis."""
+
+    spec_label: str
+    phi: float
+    big_phi: float = 0.0
+
+
+def test_resolve_state_tie_picks_max_phi_paper_faithful():
+    """Among tied specs, pick the one with maximum per-state φ_s.
+
+    This is the *paper-faithful* rule (S1 Text): the system "exists the most"
+    in the state that maximizes integrated information. The legacy
+    cruelest-cut convention would pick the *minimum* φ_s among ties.
+    """
+    spec_a = "spec_a"
+    spec_b = "spec_b"
+    per_state_mips = {
+        spec_a: FakeStateMIP(spec_label="a", phi=2.0),
+        spec_b: FakeStateMIP(spec_label="b", phi=5.0),  # higher → wins
+    }
+    ctx = ResolutionContext(max_escalation_level="Integration")
+    outcome = resolve_state_tie(per_state_mips, context=ctx)
+    assert outcome.outcome == "RESOLVED"
+    assert outcome.resolved == spec_b
+
+
+def test_resolve_state_tie_escalates_to_composition_when_phi_ties():
+    """If per-state φ_s ties, cascade escalates to per-state Φ (Composition)."""
+    spec_a = "spec_a"
+    spec_b = "spec_b"
+    per_state_mips = {
+        spec_a: FakeStateMIP(spec_label="a", phi=3.0, big_phi=10.0),
+        spec_b: FakeStateMIP(spec_label="b", phi=3.0, big_phi=20.0),  # higher Φ → wins
+    }
+    ctx = ResolutionContext(max_escalation_level="Composition")
+    outcome = resolve_state_tie(per_state_mips, context=ctx)
+    assert outcome.outcome == "RESOLVED"
+    assert outcome.resolved == spec_b
+    assert outcome.cascade_level == "Composition"
+
+
+def test_resolve_state_tie_defers_when_budget_only_integration():
+    """If budget caps at Integration, Φ-escalation defers; tied set surfaced."""
+    spec_a = "spec_a"
+    spec_b = "spec_b"
+    per_state_mips = {
+        spec_a: FakeStateMIP(spec_label="a", phi=3.0, big_phi=10.0),
+        spec_b: FakeStateMIP(spec_label="b", phi=3.0, big_phi=20.0),
+    }
+    ctx = ResolutionContext(max_escalation_level="Integration")
+    outcome = resolve_state_tie(per_state_mips, context=ctx)
+    assert outcome.outcome == "UNRESOLVED_WITHIN_BUDGET"
+    assert outcome.resolved is None
+    assert set(outcome.tied_set) == {spec_a, spec_b}
+
+
+def test_resolve_state_tie_single_spec_resolves_trivially():
+    """A single-spec input is already resolved."""
+    spec_a = "spec_a"
+    per_state_mips = {spec_a: FakeStateMIP(spec_label="a", phi=1.0)}
+    ctx = ResolutionContext(max_escalation_level="Integration")
+    outcome = resolve_state_tie(per_state_mips, context=ctx)
+    assert outcome.outcome == "RESOLVED"
+    assert outcome.resolved == spec_a
