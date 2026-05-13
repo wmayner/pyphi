@@ -32,9 +32,8 @@ pyphi.config.validate_json_version = False
 
 # IIT 3.0 configuration for regression tests.
 # Sourced from the canonical ``presets.iit3`` so the test config and the
-# library's documented preset cannot drift apart. ``alpha_measure="PMI"`` is
-# layered on top for tests that also exercise actual-causation paths.
-IIT_3_CONFIG = config.override(**presets.iit3, alpha_measure="PMI")
+# library's documented preset cannot drift apart.
+IIT_3_CONFIG = config.override(**presets.iit3)
 
 # IIT 4.0 configuration (current defaults, made explicit for clarity)
 # Use this when you want to explicitly test IIT 4.0 behavior

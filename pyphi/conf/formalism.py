@@ -54,7 +54,7 @@ class IITConfig:
     mip_tie_resolution: list[str] = field(
         default_factory=lambda: ["NORMALIZED_PHI", "NEGATIVE_PHI"]
     )
-    purview_tie_resolution: str = "PHI"
+    purview_tie_resolution: str | list[str] = "PHI"
     sia_tie_resolution: list[str] = field(
         default_factory=lambda: ["NORMALIZED_PHI", "NEGATIVE_PHI", "PARTITION_LEX"]
     )

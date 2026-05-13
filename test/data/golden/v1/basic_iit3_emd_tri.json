@@ -1,11 +1,17 @@
 {
   "fixture_name": "basic_iit3_emd_tri",
   "schema_version": 1,
-  "generated_from_commit": "bbabbd9f5b5bb7a8556a0166af631cadc1f7fb4a",
+  "generated_from_commit": "760bf3bffe0b47d3f53d68f7f7e249c34ac9a297",
   "description": "basic_substrate IIT 3.0 + EMD with mechanism_partition_scheme=TRI (tripartitions). Different combinatorial path than BI; supports the partition-algebra consolidation in P6.",
   "config_overrides": {
+    "actual_causation": {
+      "alpha_measure": "PMI",
+      "mechanism_partition_scheme": "ALL",
+      "partitioned_repertoire_scheme": "PRODUCT",
+      "background_scheme": "UNIFORM",
+      "alpha_aggregation": "SUBTRACTIVE"
+    },
     "precision": 6,
-    "alpha_measure": "PMI",
     "progress_bars": false,
     "parallel": false,
     "iit": {
@@ -28,7 +34,10 @@
         "NORMALIZED_PHI",
         "NEGATIVE_PHI"
       ],
-      "purview_tie_resolution": "PHI",
+      "purview_tie_resolution": [
+        "PHI",
+        "PURVIEW_SIZE"
+      ],
       "sia_tie_resolution": [
         "NORMALIZED_PHI",
         "NEGATIVE_PHI",

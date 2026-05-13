@@ -93,12 +93,10 @@ IIT_4_2026_CONFIG = {
 
 # IIT 3.0 — Oizumi/Albantakis/Tononi 2014. Distribution-distance based.
 # Sourced from ``presets.iit3`` so this and the library's canonical preset
-# cannot drift apart. ``alpha_measure="PMI"`` is layered for fixtures that
-# also exercise actual-causation paths; ``progress_bars`` and ``parallel``
-# are test-runtime overrides, not formalism fields.
+# cannot drift apart. ``progress_bars`` and ``parallel`` are test-runtime
+# overrides, not formalism fields.
 IIT_3_CONFIG = {
     **presets.iit3,
-    "alpha_measure": "PMI",
     "progress_bars": False,
     "parallel": False,
 }
