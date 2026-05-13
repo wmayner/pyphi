@@ -45,27 +45,10 @@ RTOL = 1e-12
 ATOL = 1e-12
 
 
-_IIT3_EMD_SKIP_REASON = (
-    "iit3_emd goldens are placeholder snapshots captured under broken IIT 3.0 "
-    "code (``pyphi/metrics/ces.py:245`` passes ``Concept`` lists to "
-    "``distribution.EMD.compute`` which expects float arrays; lines 134-138, "
-    "152, 174 reference ``Distinction.system`` / "
-    "``Distinction.expand_*_repertoire`` attributes that no longer exist) "
-    "compounded by prior ``IIT_3_CONFIG`` test drift that left "
-    "``ces_measure=SUM_SMALL_PHI`` instead of EMD. Their stored values are "
-    "not trustworthy correctness baselines: a passing comparison would only "
-    "show that the current code reproduces the broken snapshot. Will be "
-    "regenerated once the EMD CES distance path is restored and ground-truth "
-    "values are independently verified against the IIT 3.0 paper."
-)
-
-
 def _marks_for(fixture: GoldenFixture) -> list[pytest.MarkDecorator]:
     marks: list[pytest.MarkDecorator] = []
     if fixture.slow:
         marks.append(pytest.mark.slow)
-    if "iit3_emd" in fixture.name:
-        marks.append(pytest.mark.skip(reason=_IIT3_EMD_SKIP_REASON))
     return marks
 
 
@@ -209,6 +192,37 @@ def _compare(
 
     # Default: equality
     assert actual == expected, f"{path}: {actual!r} != {expected!r}"
+
+
+# ============== Coverage guardrails ==============
+
+
+def test_canonical_iit3_preset_is_exercised() -> None:
+    """At least one golden fixture must exercise the canonical IIT 3.0 preset.
+
+    Without this guardrail, a future config rename or default change could
+    silently remove EMD CES distance coverage from regression testing — which
+    is exactly how the EMD path went unmaintained from 2023 through 2026.
+    """
+    from pyphi.conf import presets
+
+    canonical = presets.iit3["iit"]
+    matching = [
+        f
+        for f in ALL_FIXTURES
+        if isinstance(f.config_overrides.get("iit"), type(canonical))
+        and f.config_overrides["iit"].version == canonical.version
+        and f.config_overrides["iit"].ces_measure == canonical.ces_measure
+        and f.config_overrides["iit"].mechanism_phi_measure
+        == canonical.mechanism_phi_measure
+    ]
+    assert matching, (
+        "No fixture in ALL_FIXTURES exercises the canonical IIT 3.0 preset "
+        f"(version={canonical.version}, ces_measure={canonical.ces_measure}, "
+        f"mechanism_phi_measure={canonical.mechanism_phi_measure}). The "
+        "EMD CES distance code path will go unmaintained again without at "
+        "least one fixture covering it."
+    )
 
 
 # ============== Helpers ==============

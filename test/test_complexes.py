@@ -100,19 +100,8 @@ class TestComplexesIIT30:
         assert major.node_indices == (0, 1, 2)
 
     @pytest.mark.slow
-    @pytest.mark.outdated
     def test_all_complexes_parallelization(self, s):
-        """Test that parallel and serial computation give same results (IIT 3.0).
-
-        Known-broken on develop with the comment "TODO fix this horribly
-        outdated mess that never worked in the first place :P". The failure
-        is order-dependent: runs green in isolation but fails when run after
-        other tests in the same session (likely cache/state leak from an
-        earlier test). Marked ``outdated`` to match develop's posture — it
-        should not run under the normal ``--slow`` lane until the underlying
-        flake is diagnosed. Opt in with ``--outdated --slow`` for targeted
-        investigation.
-        """
+        """Parallel and serial ``all_sias`` must produce identical results."""
         with config.override(parallel=False, progress_bars=False):
             serial = s.substrate.all_sias(s.state)
         with config.override(parallel=True, progress_bars=False):

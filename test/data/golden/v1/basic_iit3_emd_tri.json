@@ -1,20 +1,40 @@
 {
   "fixture_name": "basic_iit3_emd_tri",
   "schema_version": 1,
-  "generated_from_commit": "023a359b082dcb825beaa323c150090d51f454dd",
-  "description": "basic_network IIT 3.0 + EMD with PARTITION_TYPE=TRI (tripartitions). Different combinatorial path than BI; supports the partition-algebra consolidation in P6.",
+  "generated_from_commit": "bbabbd9f5b5bb7a8556a0166af631cadc1f7fb4a",
+  "description": "basic_substrate IIT 3.0 + EMD with mechanism_partition_scheme=TRI (tripartitions). Different combinatorial path than BI; supports the partition-algebra consolidation in P6.",
   "config_overrides": {
-    "FORMALISM": "IIT_3_0",
-    "REPERTOIRE_DISTANCE": "EMD",
-    "PARTITION_TYPE": "TRI",
-    "SYSTEM_PARTITION_TYPE": "DIRECTED_BI",
-    "ACTUAL_CAUSATION_MEASURE": "PMI",
-    "PURVIEW_TIE_RESOLUTION": [
-      "PHI",
-      "PURVIEW_SIZE"
-    ],
-    "PROGRESS_BARS": false,
-    "PARALLEL": false
+    "precision": 6,
+    "alpha_measure": "PMI",
+    "progress_bars": false,
+    "parallel": false,
+    "iit": {
+      "version": "IIT_3_0",
+      "mechanism_phi_measure": "EMD",
+      "system_phi_measure": "GENERALIZED_INTRINSIC_DIFFERENCE",
+      "specification_measure": "GENERALIZED_INTRINSIC_DIFFERENCE",
+      "differentiation_measure": "INTRINSIC_DIFFERENTIATION",
+      "ces_measure": "EMD",
+      "mechanism_partition_scheme": "TRI",
+      "system_partition_scheme": "DIRECTED_BI",
+      "system_partition_include_complete": false,
+      "distinction_phi_normalization": "NUM_CONNECTIONS_CUT",
+      "relation_computation": "CONCRETE",
+      "assume_partitions_cannot_create_new_concepts": false,
+      "shortcircuit_sia": true,
+      "single_micro_nodes_with_selfloops_have_phi": false,
+      "state_tie_resolution": "PHI",
+      "mip_tie_resolution": [
+        "NORMALIZED_PHI",
+        "NEGATIVE_PHI"
+      ],
+      "purview_tie_resolution": "PHI",
+      "sia_tie_resolution": [
+        "NORMALIZED_PHI",
+        "NEGATIVE_PHI",
+        "PARTITION_LEX"
+      ]
+    }
   },
   "state": [
     1,
@@ -797,7 +817,7 @@
         1
       ],
       "direction": "CAUSE",
-      "phi": 0.1666666666667,
+      "phi": 0.166667,
       "partition": [
         [
           [],
@@ -859,7 +879,7 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": 0.1666666666667,
+      "phi": 0.166667,
       "partition": [
         [
           [],
@@ -922,7 +942,7 @@
         1
       ],
       "direction": "CAUSE",
-      "phi": 0.1666666666667,
+      "phi": 0.166667,
       "partition": [
         [
           [],
@@ -988,7 +1008,7 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": 0.1666666666667,
+      "phi": 0.166667,
       "partition": [
         [
           [],
@@ -1054,7 +1074,7 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": 0.3333333333333,
+      "phi": 0.333333,
       "partition": [
         [
           [],
@@ -1121,7 +1141,7 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": 0.3333333333333,
+      "phi": 0.333333,
       "partition": [
         [
           [],
@@ -2520,7 +2540,7 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": 0.3333333333333,
+      "phi": 0.333333,
       "partition": [
         [
           [],
@@ -3018,7 +3038,7 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": 0.6666666666667,
+      "phi": 0.666667,
       "partition": [
         [
           [],
@@ -4111,9 +4131,9 @@
     }
   ],
   "sia": {
-    "phi": 0.5,
-    "ces_size": 2,
-    "ces_phi_sum": 1.0,
+    "phi": 2.8125,
+    "ces_size": 4,
+    "ces_phi_sum": 1.75,
     "partitioned_ces_size": 1
   }
 }
