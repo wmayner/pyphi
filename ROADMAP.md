@@ -1533,6 +1533,143 @@ test inventory — that a deliberate re-ordering pass is in order.
     P11.95a (touches different code: ``integration_value`` and
     ``resolve_system_state``, not the MIP-selection loop).
 
+16. **P11.95c — Substrate canonicalization for intrinsic equivalence.**
+    Post-2.0 unless a smaller subset is folded in. PyPhi today computes
+    Φ, distinctions, and per-direction breakdowns in a way that is
+    sensitive to node labels. Two substrates that are permutations of
+    each other (e.g., AND-XOR and XOR-AND with their nodes swapped)
+    produce structurally equivalent CESes but PyPhi's outputs can
+    differ in incidental fields — the chosen MIP partition, the
+    cause/effect RIA's recorded phi at the MIP, the lex-canonical
+    state when multiple states tie at φ_s. Cruelest-cut accidentally
+    masked this for the per-direction breakdown by making the
+    "integration value" symmetric in cause-spec choice; paper-faithful
+    state-tie resolution (P11.95b) makes it visible.
+
+    The theoretical desideratum: **PyPhi outputs should depend only on
+    the substrate's intrinsic structure, not on its node labels.** The
+    paper's S1 Text "extrinsic-tie / intrinsically identical CESes"
+    escape clause names a special case of this; the broader
+    requirement extends to cross-substrate isomorphism comparison.
+
+    Three sub-cases to handle, in priority order:
+
+    **(a) Cross-substrate isomorphism — primary.** Two distinct
+    substrates whose TPMs differ only by a node-permutation π. Detection
+    via graph canonicalization: compute a canonical form of each
+    substrate's TPM (treated as a labeled, directed, weighted graph or
+    appropriately-shaped tensor) and compare canonical forms. Isomorphic
+    substrates have identical canonical forms. PyPhi can then:
+    - Compute SIA/CES on the canonical form (so output is permutation-
+      independent at construction), or
+    - Compute normally and use canonicalization only to verify
+      equivalence in tests / cross-substrate comparisons.
+
+    The first is more invasive (changes how every result is presented
+    to the user) but more honest. The second is a smaller change
+    (canonicalization is a sidecar utility) but the user-visible API
+    still reports label-dependent values.
+
+    **(b) Structural CES coincidence without substrate isomorphism —
+    deferred, opt-in.** Two genuinely-different substrates (not related
+    by node permutation) whose CESes happen to have the same multiset
+    of distinctions and same relation structure. Detection requires
+    graph-isomorphism *on the CES itself* — treating each distinction
+    as a labeled vertex (mechanism index in canonical labeling, cause
+    state, effect state, φ_d) and relations as labeled edges
+    (overlap set, φ_r).
+
+    **Open theoretical question for (b):** is the CES a complete
+    invariant of the substrate? That is, does ``CES(S1) = CES(S2)``
+    (as labeled structure up to substrate relabeling) imply there
+    exists a substrate isomorphism ``π`` with ``π(S1) = S2``? The
+    ``←`` direction is trivial. The ``→`` direction is the load-
+    bearing claim for case (b) being empty vs. non-empty. The CES
+    is built from a very rich set of intrinsic-information
+    computations (paper Eqs 5, 7, 19-23, 34-47); intuition says CES
+    uniquely determines substrate up to isomorphism, but I have no
+    proof and the analogous "graph reconstruction" problems in
+    combinatorics have open cases. **Before committing implementation
+    effort to (b), settle this question** — either by proof, by
+    counterexample construction (search for non-isomorphic substrate
+    pairs with matching CES via brute force on small n), or by
+    citing existing literature. If CES is a complete invariant,
+    case (a) suffices and (b) is empty; otherwise (b) is a genuine
+    distinct case warranting an opt-in API.
+
+    Computing the CES-graph-isomorphism check is doable but expensive
+    (CES sizes can be in the thousands of distinctions for n=6+); it
+    is not needed for the S1 escape clause as written. Reserve this
+    for a research-mode opt-in API (e.g.,
+    ``pyphi.intrinsic_equivalence(ces1, ces2)``) rather than wiring
+    it into the SIA hot path.
+
+    **(c) State-symmetric TPMs — primary.** A TPM may be invariant
+    under a state permutation σ (e.g., a bit-flip symmetry on a
+    homogeneous network where flipping every node maps each row/column
+    to another row/column). This produces CES equivalence between
+    states without a node permutation — the "automorphism" is on the
+    state space, not the node label space. The canonicalization
+    machinery should detect state-level symmetries as well; in
+    practice this means computing automorphisms of the TPM viewed as
+    a labeled tensor whose two axes are both state-indexed.
+
+    **Dependency: ``pynauty`` (nauty bindings) — primary tool.**
+    Hand-rolled graph automorphism is feasible for n ≤ 8 (O(n!) brute
+    force ≈ 40k permutations for n=8, ms-level on the typical
+    substrate) but scales poorly past n ≈ 10 and does not provide
+    canonical labelings. Nauty handles both with mature C
+    implementations; pynauty ships wheels and is widely used in
+    combinatorics tooling. Alternatives (igraph, networkx) lack the
+    canonical-form output. The dep adds ~500KB to install size; it
+    fits in a new ``pyphi[symmetry]`` extra if we want it opt-in.
+
+    **Module placement: new ``pyphi/automorphism.py``.** Single-purpose,
+    easy to find. Exposes:
+    - ``substrate_automorphisms(substrate) -> list[Permutation]`` —
+      Aut(TPM) for case (c) and within-substrate ties.
+    - ``substrate_canonical_form(substrate) -> Substrate`` — for case
+      (a) cross-substrate comparison and canonical labeling.
+    - ``are_substrates_isomorphic(s1, s2) -> bool`` — exposed for
+      tests + downstream comparison.
+    - Possibly ``ces_canonical_fingerprint(ces, substrate) -> bytes``
+      for case (b), behind a feature flag.
+
+    **Performance evaluation must answer:**
+    - At what substrate size does canonical form computation become
+      the SIA bottleneck (vs. partition enumeration, MIP search,
+      CES build)? Likely n ≥ 10 if it's the bottleneck at all.
+    - Are canonical forms cacheable per ``Substrate`` instance?
+      Substrates are immutable; canonical form is a derived
+      property; cache once per construction.
+    - Is the "compute SIA on canonical form" path uniformly faster,
+      slower, or wash vs. the current label-dependent path? Need
+      benchmarks on the existing golden fixtures.
+    - For case (b) opt-in: what is the CES-fingerprint cost for the
+      worst-case fixture (logistic3, large rule110)? If it's a
+      multi-second operation, it must stay strictly opt-in.
+
+    **Test surface affected:**
+    - ``test_invariants.py::TestPermutationSymmetry`` —
+      ``test_sia_phi_c_symmetric``, ``test_sia_phi_e_symmetric``,
+      ``test_system_state_symmetric``, ``test_sia_phi_symmetric``.
+      Under P11.95b the per-direction breakdown asymmetry surfaces;
+      under P11.95c the strict per-direction equality is restored.
+      Until P11.95c lands, these tests are relaxed to multiset
+      equality on ``(cause.phi, effect.phi)``.
+    - Cross-formalism consistency tests benefit similarly:
+      canonicalizing the substrate before SIA means the IIT 3.0 and
+      IIT 4.0 outputs no longer depend on the arbitrary substrate
+      labeling the user passed in.
+
+    Estimated effort: 1-2 weeks for cases (a) and (c) with caching
+    and benchmarks. Case (b) is a separate research-scoped project,
+    weeks to months depending on the CES isomorphism approach. The
+    public surface change for case (a) — "computation on canonical
+    form, decanonicalize for output" — is invasive enough that it
+    should be paired with a clear migration note in
+    ``docs/migration-2.0.md`` (or 3.0.md if it slips post-2.0).
+
 **Ship criterion for 2.0:**
 
 The original roadmap doesn't state a release criterion explicitly.

@@ -691,10 +691,155 @@ def sia(
             return _null_sia(reasons=shortcircuit_reasons)
 
     default_sia = _null_sia(reasons=[ShortCircuitConditions.NO_VALID_PARTITIONS])
-
     parallel_kwargs = conf.parallel_kwargs(
         dict(config.infrastructure.parallel_partition_evaluation), **kwargs
     )
+
+    # Per Albantakis et al. 2023 S1: when cause/effect specified states
+    # tie at maximum intrinsic information, the canonical winner is the
+    # joint ``(cause_spec, effect_spec)`` pair whose system phi
+    # ``φ_s = min(φ_c, φ_e)`` is greatest. The cascade enumerates the
+    # Cartesian product of tied specs and selects via
+    # :func:`resolve_ties.resolve_state_tie`. ``partitions`` is
+    # materialized so each per-pair MIP search can iterate it
+    # independently.
+    if not isinstance(partitions, (list, tuple)):
+        partitions = list(partitions)
+
+    cause_specs = _spec_candidates(system_state.cause)
+    effect_specs = _spec_candidates(system_state.effect)
+
+    if len(cause_specs) <= 1 and len(effect_specs) <= 1:
+        mip_sia = _find_mip_for_fixed_state(
+            system=system,
+            system_state=system_state,
+            partitions=partitions,
+            system_measure=system_measure,
+            directions=directions,
+            parallel_kwargs=parallel_kwargs,
+            default_sia=default_sia,
+        )
+    else:
+        per_pair_sias: dict[tuple, SystemIrreducibilityAnalysis] = {}
+        for c in cause_specs:
+            for e in effect_specs:
+                forced_state = _build_untied_system_state(c, e)
+                key = (
+                    c.state if c is not None else None,
+                    e.state if e is not None else None,
+                )
+                per_pair_sias[key] = _find_mip_for_fixed_state(
+                    system=system,
+                    system_state=forced_state,
+                    partitions=partitions,
+                    system_measure=system_measure,
+                    directions=directions,
+                    parallel_kwargs=parallel_kwargs,
+                    default_sia=default_sia,
+                )
+
+        # Apply the per-state max-min cascade at Integration level.
+        # Composition-level escalation (max Φ) is reachable when a future
+        # caller provides ``max_escalation_level="Composition"`` and the
+        # per-pair SIAs expose ``big_phi``; today it is gated by the
+        # Integration budget, so Composition keys are never read.
+        ctx = resolve_ties.ResolutionContext(max_escalation_level="Integration")
+        outcome = resolve_ties.resolve_state_tie(per_pair_sias, context=ctx)
+        chosen_key = outcome.resolved
+        if chosen_key is None:
+            assert outcome.tied_set, "cascade outcome has neither winner nor ties"
+            chosen_key = outcome.tied_set[0]
+        mip_sia = per_pair_sias[chosen_key]
+
+        _restore_tie_metadata(
+            mip_sia,
+            original_cause=system_state.cause,
+            original_effect=system_state.effect,
+        )
+        mip_sia.set_ties(tuple(per_pair_sias.values()))
+
+    if config.infrastructure.clear_system_caches_after_computing_sia:
+        system.clear_caches()
+
+    return mip_sia
+
+
+_sia = sia
+
+
+def _spec_candidates(state_spec: StateSpecification | None) -> tuple:
+    """Return the tied set of state specs, or ``(state_spec,)`` if untied.
+
+    Empty tuple when ``state_spec`` is ``None`` (degenerate / null state).
+    """
+    if state_spec is None:
+        return ()
+    return state_spec.ties if state_spec.ties else (state_spec,)
+
+
+def _build_untied_system_state(
+    cause: StateSpecification | None,
+    effect: StateSpecification | None,
+) -> SystemStateSpecification:
+    """Build a ``SystemStateSpecification`` whose ``cause`` and ``effect``
+    fields are the given specs with empty ``ties``. Used by the
+    system-state cascade to force a single (cause, effect) pair through
+    one MIP search.
+    """
+    cause_untied = replace(cause, _ties=()) if cause is not None else None
+    effect_untied = replace(effect, _ties=()) if effect is not None else None
+    return SystemStateSpecification(
+        cause=cause_untied,  # pyright: ignore[reportArgumentType]
+        effect=effect_untied,  # pyright: ignore[reportArgumentType]
+    )
+
+
+def _restore_tie_metadata(
+    sia_result: SystemIrreducibilityAnalysis,
+    *,
+    original_cause: StateSpecification | None,
+    original_effect: StateSpecification | None,
+) -> None:
+    """Set ``sia_result.system_state.cause.ties`` and ``.effect.ties`` to
+    the tied sets from ``original_cause`` / ``original_effect`` while
+    keeping the chosen state values. Surfaces the full tied set to
+    downstream consumers that inspect ``sia.system_state.cause.ties``.
+    """
+    if sia_result.system_state is None:
+        return
+    chosen_cause = sia_result.system_state.cause
+    chosen_effect = sia_result.system_state.effect
+    new_cause = chosen_cause
+    new_effect = chosen_effect
+    if chosen_cause is not None and original_cause is not None and original_cause.ties:
+        new_cause = replace(chosen_cause, _ties=original_cause.ties)
+    if (
+        chosen_effect is not None
+        and original_effect is not None
+        and original_effect.ties
+    ):
+        new_effect = replace(chosen_effect, _ties=original_effect.ties)
+    sia_result.system_state = replace(
+        sia_result.system_state, cause=new_cause, effect=new_effect
+    )
+
+
+def _find_mip_for_fixed_state(
+    *,
+    system: System,
+    system_state: SystemStateSpecification,
+    partitions: Iterable,
+    system_measure: CompositeMeasure,
+    directions: Iterable[Direction] | None,
+    parallel_kwargs: dict,
+    default_sia: SystemIrreducibilityAnalysis,
+) -> SystemIrreducibilityAnalysis:
+    """Find the MIP for a given (fixed) system state.
+
+    Runs the partition MapReduce with the supplied ``system_state``,
+    selects the MIP via :func:`resolve_ties.sias`, and back-propagates
+    the chosen state onto each tied MIP's ``system_state``.
+    """
     sias = MapReduce(
         evaluate_partition,
         partitions,
@@ -717,14 +862,7 @@ def sia(
     for tied_mip in ties:
         tied_mip.resolve_system_state()
         tied_mip.set_ties(ties)
-
-    if config.infrastructure.clear_system_caches_after_computing_sia:
-        system.clear_caches()
-
     return mip_sia
-
-
-_sia = sia
 
 
 ##############################################################################

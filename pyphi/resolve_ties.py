@@ -4,6 +4,7 @@
 from collections.abc import Callable
 from collections.abc import Iterable
 from collections.abc import Iterator
+from collections.abc import Mapping
 from collections.abc import Sequence
 from dataclasses import dataclass
 from dataclasses import field
@@ -266,18 +267,20 @@ class _StateMIP(Protocol):
     """Structural type for a per-state MIP result consumed by the state-tie cascade.
 
     Concrete types satisfying this (e.g.,
-    :class:`pyphi.formalism.iit4.SystemIrreducibilityAnalysis`) need only
-    expose the two scalar fields the cascade reads.
+    :class:`pyphi.formalism.iit4.SystemIrreducibilityAnalysis`) need to
+    expose ``phi`` (the Integration-level cascade key). ``big_phi``
+    (Composition-level key) is only read when the cascade escalates
+    past Integration; callers whose results lack ``big_phi`` may rely
+    on the cascade short-circuiting at Integration via
+    ``context.max_escalation_level``.
     """
 
     @property
     def phi(self) -> float: ...
-    @property
-    def big_phi(self) -> float: ...
 
 
 def resolve_state_tie[K, V: _StateMIP](
-    per_state_mips: "dict[K, V]",
+    per_state_mips: "Mapping[K, V]",
     *,
     context: ResolutionContext,
     on_unresolved: OnUnresolved = "defer",
@@ -313,7 +316,7 @@ def resolve_state_tie[K, V: _StateMIP](
             CascadeLevel(
                 postulate="Composition",
                 op="argmax",
-                key=lambda spec: per_state_mips[spec].big_phi,
+                key=lambda spec: per_state_mips[spec].big_phi,  # pyright: ignore[reportAttributeAccessIssue]
             ),
         ],
         context=context,
