@@ -136,11 +136,10 @@ def is_falsy(x: object) -> bool:
 def positive_part(x: float) -> float:
     """Return ``max(0, x)``.
 
-    The ``|·|+`` operator from Eqs. 19-20 of the IIT 4.0 paper. Used to clamp
-    integration values that would otherwise be negative under PyPhi's
-    signed-phi semantics; the clamped value is the paper-faithful φ, with
-    the raw signed value retained as metadata for "preventative cause"
-    visibility.
+    The ``|·|+`` operator from Eqs. 19-20 of the IIT 4.0 paper. Clamps a
+    raw integration value to zero from below; PyPhi retains the raw
+    signed value as metadata for "preventative cause" visibility while
+    exposing the clamped value as ``φ``.
     """
     return max(0.0, float(x))
 

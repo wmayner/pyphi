@@ -115,13 +115,14 @@ def system_intrinsic_information(
 class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
     """System-level integrated information.
 
-    ``phi`` is the paper-faithful, non-negative integrated information value
-    (Eqs. 19-20 with the ``|·|+`` operator applied). ``signed_phi`` is the
-    raw value before clamping — when negative, it indicates "preventative
-    cause" structure that would otherwise be invisible. Constructors pass
-    the *signed* value as ``phi``; ``__post_init__`` clamps it and stores
-    the raw value in ``signed_phi``. ``normalized_phi`` and
-    ``signed_normalized_phi`` follow the same pattern.
+    ``phi`` is the non-negative integrated-information value defined by
+    Eqs. 19-20 (the ``|·|+`` operator applied to the raw integration).
+    ``signed_phi`` is the raw value before clamping; when negative, it
+    flags "preventative cause" structure that the clamp hides. Construction
+    accepts the signed value as ``phi`` and ``__post_init__`` writes the
+    clamped value to ``phi`` while preserving the raw value on
+    ``signed_phi``. ``normalized_phi`` and ``signed_normalized_phi``
+    follow the same pattern.
     """
 
     phi: float | DistanceResult
@@ -149,16 +150,14 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
             self.signed_phi = self.phi
         if self.signed_normalized_phi is None:
             self.signed_normalized_phi = self.normalized_phi
-        # Apply the |·|+ operator to surface the paper-faithful value.
+        # Eqs 19-20: clamp negative integration to zero via ``|·|+``.
         clamped_phi = utils.positive_part(self.signed_phi)
         clamped_normalized = utils.positive_part(self.signed_normalized_phi)
         if not isinstance(self.phi, DistanceResult):
             self.phi = PyPhiFloat(clamped_phi)
         else:
-            # Preserve metadata-bearing DistanceResult while clamping the
-            # numeric value. PyPhi's measure machinery never produces a
-            # DistanceResult with negative signed phi today, but the
-            # contract is explicit.
+            # Clamp the numeric component while preserving the
+            # DistanceResult's metadata.
             self.phi = type(self.phi)(clamped_phi, **self.phi._public_aux_data())
         if not isinstance(self.normalized_phi, DistanceResult):
             self.normalized_phi = PyPhiFloat(clamped_normalized)
@@ -425,37 +424,24 @@ def integration_value(
     *,
     system_measure: CompositeMeasure,
 ) -> RepertoireIrreducibilityAnalysis:
-    """Compute integration value for a partition along a direction.
+    """Compute the integration value for a partition along a direction.
 
-    ``system_measure`` is a Protocol-typed composite measure used at the
-    system level; passed explicitly by the caller (no config fallback).
+    Evaluates against the spec stored at ``system_state[direction]``;
+    tied specified states are handled at the orchestration layer (see
+    :func:`sia`) by enumerating them and calling this function per
+    candidate. ``system_measure`` is a Protocol-typed composite measure
+    passed explicitly by the caller (no config fallback).
     """
-    repertoire_distance = system_measure
     cut_system = system.apply_cut(partition)
     specified = system_state[direction]
-    tied_specs = specified.ties if specified.ties else (specified,)
-    # When there are tied specified states, evaluate all of them and take the
-    # minimum integration (the "cruelest cut"): among equally-specified states,
-    # the partition should be evaluated against the one it hurts most.
-    best_ria = None
-    for spec in tied_specs:
-        ria = _integration_value_for_state(
-            direction,
-            system,
-            cut_system,
-            partition,
-            spec,
-            repertoire_distance,  # pyright: ignore[reportArgumentType]
-        )
-        # Cruelest-cut convention (PyPhi-specific, not paper-mandated):
-        # among tied specified states, prefer the one with the lowest
-        # *signed* phi — i.e., the most preventative state pin. We
-        # compare on ``signed_phi`` (raw) rather than ``phi`` (clamped)
-        # so that all-negative tied pins resolve to the most-preventative
-        # one rather than first-encountered.
-        if best_ria is None or ria.signed_phi < best_ria.signed_phi:
-            best_ria = ria
-    return best_ria  # pyright: ignore[reportReturnType]
+    return _integration_value_for_state(
+        direction,
+        system,
+        cut_system,
+        partition,
+        specified,
+        system_measure,  # pyright: ignore[reportArgumentType]
+    )
 
 
 def intrinsic_differentiation_value(

@@ -3,8 +3,8 @@
 
 A :class:`RepertoireIrreducibilityAnalysis` records the result of testing a
 mechanism's irreducibility against a single partition in one temporal
-direction. It carries both the canonical (paper-faithful, ``|·|+`` clamped)
-``phi`` and the raw ``signed_phi`` for diagnostic use.
+direction. It carries both the canonical ``|·|+``-clamped ``phi`` (Eqs.
+19-20) and the raw ``signed_phi`` for diagnostic use.
 
 :class:`ShortCircuitConditions` enumerates reasons the analysis returned a
 trivial null result. ``_null_ria`` is the convenience constructor used when
@@ -117,15 +117,11 @@ class RepertoireIrreducibilityAnalysis(
         reasons: list[ShortCircuitConditions] | None = None,
         signed_phi: float | DistanceResult | None = None,
     ) -> None:
-        # ``signed_phi`` is the raw value that may be negative under
-        # preventative-cause semantics; the canonical ``phi`` exposes the
-        # paper-faithful ``|·|+`` clamp (Eqs. 19-20 of the IIT 4.0 paper).
-        #
-        # Constructors pass the *signed* value as ``phi`` (so existing
-        # callers and JSON round-trips work unchanged); we snapshot it
-        # into ``signed_phi`` if not provided explicitly, then clamp the
-        # canonical ``phi``. Callers needing the raw value (e.g. for
-        # cruelest-cut argmin) read ``signed_phi`` explicitly.
+        # ``signed_phi`` is the raw integration value, possibly negative
+        # under preventative-cause semantics. ``phi`` exposes the ``|·|+``
+        # clamp (Eqs. 19-20). Construction accepts the signed value as
+        # ``phi``; if ``signed_phi`` is not supplied explicitly it is
+        # snapshotted from ``phi`` before the clamp is applied.
         if signed_phi is None:
             signed_phi = phi
         clamped_phi = utils.positive_part(signed_phi)
@@ -164,7 +160,7 @@ class RepertoireIrreducibilityAnalysis(
             self._signed_normalized_phi = None
         else:
             # Compute the signed normalized phi (raw) first, then derive
-            # the paper-faithful clamped value.
+            # the clamped canonical value.
             if isinstance(signed_phi, DistanceResult):
                 signed_norm = float(signed_phi) * norm
             else:
@@ -177,7 +173,7 @@ class RepertoireIrreducibilityAnalysis(
 
     @property
     def phi(self) -> PyPhiFloat:  # type: ignore[override]
-        """PyPhiFloat: Canonical, paper-faithful |small_phi| value (|·|+ clamped).
+        """PyPhiFloat: Canonical |small_phi| value (|·|+ clamped).
 
         This is ``positive_part(signed_phi)`` — the integrated information
         value with the |·|+ operator applied (Eqs. 19-20 of the IIT 4.0
@@ -191,10 +187,9 @@ class RepertoireIrreducibilityAnalysis(
     def signed_phi(self) -> PyPhiFloat | DistanceResult:
         """The raw |small_phi| before the |·|+ clamp.
 
-        When negative, indicates preventative-cause structure. The public
-        ``phi`` returns ``positive_part(signed_phi)``. Used internally for
-        cruelest-cut argmin (PyPhi convention; see
-        ``integration_value`` in ``pyphi.formalism.iit4``).
+        When negative, flags preventative-cause structure that the
+        clamped ``phi`` hides. Surfaced for diagnostic inspection of
+        substrates with preventative mechanisms.
         """
         return self._signed_phi
 
