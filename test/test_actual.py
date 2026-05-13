@@ -894,23 +894,37 @@ class TestActualCausationIIT30:
 
     @pytest.mark.slow
     def test_causal_nexus(self, standard):
-        """Test causal nexus computation (IIT 3.0)."""
+        """Test causal nexus computation (IIT 3.0).
+
+        The nexus is a ``BIDIRECTIONAL`` ``AcSIA`` whose underlying transition
+        has mechanism ``(A, B)`` and purview ``(C,)``; verify both directions
+        of the irreducible account agree on that shape with the expected
+        alpha.
+        """
         nexus = actual.causal_nexus(standard, (0, 0, 1), (1, 1, 0))
         assert np.isclose(nexus.alpha, 2.0)
         assert nexus.direction == Direction.BIDIRECTIONAL
-        assert nexus.transition.cause_indices == (0, 1)
-        assert nexus.transition.effect_indices == (2,)
+        effect_link = nexus.account.irreducible_effects[0]
+        cause_link = nexus.account.irreducible_causes[0]
+        assert effect_link.mechanism == (0, 1)
+        assert effect_link.purview == (2,)
+        assert cause_link.mechanism == (2,)
+        assert cause_link.purview == (0, 1)
 
     @pytest.mark.slow
     def test_true_events(self, standard):
         """Full regression for true events on the standard substrate (IIT 3.0).
 
         Verifies both events' mechanisms and each event's cause/effect RIA
-        mechanism, purview, alpha, and direction. Values verified against
-        current code under ``IIT_3_CONFIG``.
+        mechanism, purview, alpha, and direction. The ``indices=(1, 2)``
+        pin is deliberate: at ``current_state=(0,0,1)`` two SIAs tie at
+        phi=1.0 (``(1,2)`` and ``(0,2)``); the test exercises event
+        detection on a known irreducible complex rather than the
+        tie-broken major-complex selection (which is covered separately
+        in ``test_complexes.py``).
         """
         states = ((1, 0, 0), (0, 0, 1), (1, 1, 0))  # previous, current, next
-        events = actual.true_events(standard, *states)
+        events = actual.true_events(standard, *states, indices=(1, 2))
 
         assert len(events) == 2
 
