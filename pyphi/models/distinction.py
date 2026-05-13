@@ -7,10 +7,10 @@ that vocabulary for callers using the IIT 3.0 idiom."""
 from __future__ import annotations
 
 from functools import cached_property
+from typing import Any
 from typing import ClassVar
 
 import numpy as np
-from toolz import concat
 
 from pyphi import utils
 from pyphi import validate
@@ -195,33 +195,40 @@ class Distinction(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixi
             for direction in Direction.both()
         )
 
-    # TODO(ties) refactor
     def resolve_congruence(self, system_state):
-        """Choose the MIC/MIE that are congruent, if any."""
-        cause, effect = [
-            next(
-                filter(
-                    lambda mice: mice.is_congruent(system_state[direction]),  # type: ignore[union-attr]
-                    concat(
-                        filter(
-                            None,
-                            [
-                                self.mice(direction).state_ties,  # type: ignore[union-attr]
-                                self.mice(direction).purview_ties,  # type: ignore[union-attr]
-                            ],
-                        )
-                    ),
-                ),
-                None,
+        """Select the cause and effect MICEs congruent with the SIA's
+        system-level specified cause-effect state.
+
+        For each direction, applies the distinction-state cascade per
+        Albantakis et al. 2023 S1 Text: state ties within a purview
+        resolve to the congruent MICE; cross-purview ties resolve to
+        the largest congruent purview (the default heuristic for
+        "supports the most relations with other distinctions"; see
+        ROADMAP P11.95c for the joint-relations-count alternative).
+        Returns ``None`` when no congruent MICE exists in either
+        direction.
+        """
+        from pyphi.resolve_ties import ResolutionContext
+        from pyphi.resolve_ties import resolve_distinction_tie
+
+        context = ResolutionContext(max_escalation_level="Composition")
+        chosen: dict[Direction, Any] = {}
+        for direction in Direction.both():
+            mice = self.mice(direction)
+            if mice is None:
+                return None
+            chosen[direction] = resolve_distinction_tie(
+                state_ties=mice.state_ties,
+                purview_ties=mice.purview_ties,
+                system_state_spec=system_state[direction],
+                context=context,
             )
-            for direction in Direction.both()
-        ]
-        if cause is None or effect is None:
+        if chosen[Direction.CAUSE] is None or chosen[Direction.EFFECT] is None:
             return None
         return type(self)(
             mechanism=self.mechanism,
-            cause=cause,
-            effect=effect,
+            cause=chosen[Direction.CAUSE],
+            effect=chosen[Direction.EFFECT],
         )
 
     def eq_repertoires(self, other):

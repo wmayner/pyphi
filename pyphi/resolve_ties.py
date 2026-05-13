@@ -326,6 +326,62 @@ def resolve_complex_tie[V: _ComplexCandidate](
     )
 
 
+class _CongruentMice(Protocol):
+    """Structural type for a MICE consumed by the distinction-state cascade.
+
+    Requires ``is_congruent`` (against a per-direction state spec) and
+    ``purview`` (used by the cross-purview heuristic).
+    """
+
+    @property
+    def purview(self) -> Sequence[int]: ...
+
+    def is_congruent(self, other: Any) -> bool: ...
+
+
+def resolve_distinction_tie[V: _CongruentMice](
+    state_ties: "Sequence[V] | None",
+    purview_ties: "Sequence[V] | None",
+    system_state_spec: Any,
+    *,
+    context: ResolutionContext,  # noqa: ARG001
+) -> V | None:
+    """Resolve a per-direction distinction-state tie per Albantakis et al.
+    2023 S1 Text.
+
+    Two cases:
+
+    - **Same-purview state ties** (``state_ties``): MICEs tied at maximum
+      ``ii(m, z)`` within a single purview. Returns the MICE whose
+      specified state is congruent with ``system_state_spec`` — the
+      direction-specific component of the system's specified
+      cause-effect state.
+
+    - **Cross-purview ties** (``purview_ties``): MICEs tied at maximum
+      ``φ_d(m, Z)`` across different purviews. Returns the largest
+      congruent purview (the "typically favors larger purviews"
+      heuristic for "supports the most relations with other
+      distinctions"). The more expensive joint-relations-count
+      computation is captured under ROADMAP P11.95c as opt-in.
+
+    State-tie congruence is preferred over purview-tie heuristic: if any
+    state-tie MICE is congruent, it is returned; only when none is
+    congruent does the cross-purview branch fire. Returns ``None`` when
+    no congruent MICE is found in either branch.
+    """
+    if state_ties:
+        congruent_state = [m for m in state_ties if m.is_congruent(system_state_spec)]
+        if congruent_state:
+            return congruent_state[0]
+    if purview_ties:
+        congruent_purview = [
+            m for m in purview_ties if m.is_congruent(system_state_spec)
+        ]
+        if congruent_purview:
+            return max(congruent_purview, key=lambda m: len(m.purview))
+    return None
+
+
 def resolve_state_tie[K, V: _StateMIP](
     per_state_mips: "Mapping[K, V]",
     *,
