@@ -1578,6 +1578,20 @@ test inventory — that a deliberate re-ordering pass is in order.
     keys (``NORMALIZED_PHI``, ``NEGATIVE_PHI``, ``PARTITION_LEX``)
     should be different defaults for IIT 3.0 vs 4.0.
 
+    **Worked example: standard substrate @ ``current_state=(0,0,1)``
+    has two SIAs that genuinely tie at ``phi=1.0`` — the subsystem
+    over nodes ``(1,2)`` (B=AND, C=XOR) and the subsystem over nodes
+    ``(0,2)`` (A=OR, C=XOR). These are physically distinct subsystems
+    (different gate compositions), not symmetry-equivalent. PyPhi
+    1.x picked ``(1,2)`` by iteration order; the post-``82b778ca``
+    ``partition.lex_key()`` tie-break picks ``(0,2)``. The downstream
+    consequence is observable: for the transition ``(1,0,0) → (0,0,1)
+    → (1,1,0)``, ``true_events(substrate, *states)`` returns 2 events
+    under ``(1,2)`` and 0 events under ``(0,2)``. The IIT 3.0 paper
+    does not prescribe a system-level tie-break, so neither choice is
+    paper-canonical. ``test/test_actual.py::TestActualCausationIIT30::test_true_events``
+    is currently ``@pytest.mark.skip`` pending this resolution.
+
     Independent of P11.95a (which lands the determinism floor) and
     P11.95b (which is paper-faithful state-tie for 4.0). Estimated
     1-2 days for the brainstorm + design, plus regeneration of any
