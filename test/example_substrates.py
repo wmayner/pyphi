@@ -797,3 +797,78 @@ def xor_and_substrate():
     # fmt: on
     cm = np.ones((2, 2))
     return Substrate(tpm, cm=cm, node_labels=NodeLabels(("XOR", "AND"), tuple(range(2))))
+
+
+# Substrate-exclusion cascade test substrates
+# =============================================
+#
+# Substrates engineered to exercise distinct branches of the IIT 4.0
+# substrate-exclusion cascade (see ROADMAP P11.95c / S1 Text):
+# disjoint complexes accepted at the same φ_s tier, and an overlapping
+# symmetric clique whose Composition tie violates the exclusion
+# postulate.
+
+
+def dual_and_xor_substrate():
+    """Two independent AND-XOR pairs as a single 4-node substrate.
+
+    Nodes (0, 1) form one AND-XOR pair and nodes (2, 3) form an
+    independent AND-XOR pair; the two pairs do not connect. Each pair
+    is irreducible in isolation, and the 4-node system is reducible
+    (not strongly connected). Used to exercise the substrate-exclusion
+    cascade's disjoint-complex branch: both 2-node subsystems should
+    be accepted as separate complexes at the same φ_s tier.
+    """
+    n = 4
+    tpm = np.zeros((2**n, n))
+    for i in range(2**n):
+        s0 = (i >> 0) & 1
+        s1 = (i >> 1) & 1
+        s2 = (i >> 2) & 1
+        s3 = (i >> 3) & 1
+        tpm[i, 0] = s0 & s1
+        tpm[i, 1] = s0 ^ s1
+        tpm[i, 2] = s2 & s3
+        tpm[i, 3] = s2 ^ s3
+    cm = np.array(
+        [
+            [1, 1, 0, 0],
+            [1, 1, 0, 0],
+            [0, 0, 1, 1],
+            [0, 0, 1, 1],
+        ]
+    )
+    return Substrate(
+        tpm,
+        cm=cm,
+        node_labels=NodeLabels(("A1", "X1", "A2", "X2"), tuple(range(4))),
+    )
+
+
+def symmetric_triple_substrate():
+    """Three-node substrate with a node-permutation symmetry across all three pairs.
+
+    Each node receives input from the other two; the update function is
+    the same parity-style rule for every node, so the substrate's TPM
+    is invariant under any permutation of node labels. As a result, the
+    three 2-node subsystems ``(0,1)``, ``(0,2)``, ``(1,2)`` are
+    equivalent under permutation, producing identical ``φ_s`` and
+    identical ``Φ`` values. Used to exercise the substrate-exclusion
+    cascade's "tied at Composition" branch: the overlap clique among
+    the three pairs should be skipped (exclusion postulate violation).
+    """
+    n = 3
+    tpm = np.zeros((2**n, n))
+    for i in range(2**n):
+        s = [(i >> k) & 1 for k in range(n)]
+        for k in range(n):
+            others = [s[j] for j in range(n) if j != k]
+            tpm[i, k] = others[0] ^ others[1]
+    cm = np.array(
+        [
+            [0, 1, 1],
+            [1, 0, 1],
+            [1, 1, 0],
+        ]
+    )
+    return Substrate(tpm, cm=cm, node_labels=NodeLabels(("A", "B", "C"), (0, 1, 2)))

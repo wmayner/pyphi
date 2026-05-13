@@ -213,6 +213,34 @@ class TestSubstrateMethodsIIT40:
             assert self._indices(maximal) == self._indices(cx[0])
             assert float(maximal.phi) == pytest.approx(float(cx[0].phi), rel=1e-9)
 
+    def test_dual_and_xor_substrate_exclusion_cascade(self):
+        """``dual_and_xor`` in state ``(1,0,1,0)`` exercises the IIT 4.0
+        substrate-exclusion cascade across two φ_s tiers with disjoint
+        complexes plus overlap-filtering.
+
+        ``irreducible_sias`` returns four candidates: two 2-node systems
+        at ``φ_s=2.0`` over the disjoint pairs ``(0,1)`` and ``(2,3)``,
+        and two single-node systems at ``φ_s=1.0`` over ``(1,)`` and
+        ``(3,)``. The cascade:
+
+        - Accepts both 2-node systems at the top tier (disjoint, no
+          Composition escalation needed).
+        - Filters out both single-node systems at the lower tier
+          because their units overlap the already-accepted complexes.
+
+        Asserts the algorithm yields exactly the two 2-node complexes.
+        """
+        from test.example_substrates import dual_and_xor_substrate
+
+        substrate = dual_and_xor_substrate()
+        state = (1, 0, 1, 0)
+        cx = substrate.complexes(state)
+        assert len(cx) == 2
+        node_index_sets = {tuple(sorted(c.node_indices)) for c in cx}
+        assert node_index_sets == {(0, 1), (2, 3)}
+        for c in cx:
+            assert float(c.phi) == pytest.approx(2.0, rel=1e-6)
+
     def test_substrate_all_sias_superset_of_irreducible(self, s):
         """``all_sias`` is a superset of ``irreducible_sias``."""
         all_ = s.substrate.all_sias(s.state)
