@@ -2289,4 +2289,20 @@ to ease transition:
 
 
 ---
+
+## Informal notes — pre-release housekeeping
+
 - clean up / reorganize test suite
+
+- **Condense changelog fragments before 2.0 ships.** Several
+  fragments in ``changelog.d/`` describe transitions between
+  intermediate 2.0-development states that no released version ever
+  exposed (e.g., the cruelest-cut → paper-faithful switch in
+  ``paper-faithful-state-tie.change.md`` describes replacing a
+  PyPhi-specific convention that itself only existed during the 2.0
+  push). A user reading the 2.0 changelog will not have seen those
+  intermediate states. Before release, sweep the fragment set and
+  rewrite as if 2.0 is the first time the user encounters this
+  behaviour — squash transition-describing language into "in 2.0,
+  the SIA selects ...". Probably an evening's work just before the
+  towncrier-build step of the release.
