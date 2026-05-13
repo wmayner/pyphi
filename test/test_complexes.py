@@ -3,6 +3,8 @@ import pytest
 from pyphi import System
 from pyphi import config
 from pyphi import examples
+from pyphi.conf import presets
+from pyphi.formalism import iit3
 from pyphi.formalism.iit4 import ces
 from pyphi.metrics.distribution import resolve_mechanism_measure
 from pyphi.metrics.distribution import resolve_system_measure
@@ -117,6 +119,43 @@ class TestComplexesIIT30:
             parallel = s.substrate.all_sias(s.state)
         assert sorted(serial, key=lambda x: x.phi) == sorted(
             parallel, key=lambda x: x.phi
+        )
+
+
+class TestSiaCesConsistencyIIT30:
+    """``iit3.sia(s).ces`` must equal ``iit3.ces(s)`` for every canonical
+    substrate.
+
+    ``iit3.sia`` builds the unpartitioned CES internally and attaches it to
+    the returned ``SystemIrreducibilityAnalysis``. That CES must be the same
+    object the standalone ``iit3.ces`` would compute for the same system.
+    A divergence indicates the SIA's internal CES-building path is using a
+    different mechanism set, partition scheme, measure, or parallel dispatch
+    than the public ``ces()`` function.
+    """
+
+    @pytest.mark.parametrize(
+        ("substrate_factory", "state"),
+        [
+            (examples.basic_substrate, (1, 0, 0)),
+            (examples.xor_substrate, (0, 0, 0)),
+            (examples.rule110_substrate, (1, 0, 1)),
+            (examples.grid3_substrate, (1, 0, 0)),
+        ],
+        ids=["basic", "xor", "rule110", "grid3"],
+    )
+    def test_sia_ces_matches_standalone_ces(self, substrate_factory, state):
+        with config.override(**presets.iit3, progress_bars=False):
+            substrate = substrate_factory()
+            system = System.from_substrate(substrate, state, substrate.node_indices)
+            standalone_ces = iit3.ces(system)
+            sia_ces = iit3.sia(system).ces
+        standalone_mechs = {tuple(c.mechanism): float(c.phi) for c in standalone_ces}
+        sia_mechs = {tuple(c.mechanism): float(c.phi) for c in sia_ces}
+        assert standalone_mechs == sia_mechs, (
+            f"sia.ces and ces() diverged: "
+            f"standalone={sorted(standalone_mechs.items())}, "
+            f"sia={sorted(sia_mechs.items())}"
         )
 
 
