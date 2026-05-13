@@ -18,6 +18,7 @@ from pyphi.resolve_ties import CascadeLevel
 from pyphi.resolve_ties import NotAComplex
 from pyphi.resolve_ties import ResolutionContext
 from pyphi.resolve_ties import cascade
+from pyphi.resolve_ties import resolve_complex_tie
 from pyphi.resolve_ties import resolve_state_tie
 
 # ----- Postulate ordering -----
@@ -338,3 +339,58 @@ def test_resolve_state_tie_single_spec_resolves_trivially():
     outcome = resolve_state_tie(per_state_mips, context=ctx)
     assert outcome.outcome == "RESOLVED"
     assert outcome.resolved == spec_a
+
+
+# ----- Substrate-exclusion cascade (S1 Eq. 25 escalation) -----
+#
+# Per Albantakis et al. 2023 S1 Text: among overlapping substrates tied
+# at maximum φ_s, the exclusion postulate is resolved by escalating to
+# Φ (Composition). The candidate with the maximum Φ becomes the complex;
+# overlapping losers are excluded. If multiple substrates also tie at
+# Φ, the exclusion postulate fails for that group and they do not
+# qualify as complexes (caller skips to next-best by φ_s).
+
+
+@dataclass(frozen=True)
+class FakeComplexCandidate:
+    """Synthetic SIA-like candidate for substrate-exclusion cascade tests."""
+
+    label: str
+    phi: float
+    big_phi: float
+
+
+def test_resolve_complex_tie_picks_max_big_phi():
+    """Overlapping candidates tied at φ_s: max-Φ candidate wins."""
+    candidates = [
+        FakeComplexCandidate(label="a", phi=2.0, big_phi=5.0),
+        FakeComplexCandidate(label="b", phi=2.0, big_phi=8.0),  # max Φ
+        FakeComplexCandidate(label="c", phi=2.0, big_phi=3.0),
+    ]
+    ctx = ResolutionContext(max_escalation_level="Composition")
+    outcome = resolve_complex_tie(candidates, context=ctx)
+    assert outcome.outcome == "RESOLVED"
+    assert outcome.resolved is candidates[1]
+    assert outcome.cascade_level == "Composition"
+
+
+def test_resolve_complex_tie_fails_when_big_phi_also_ties():
+    """Φ-tied overlapping candidates do not qualify as complexes."""
+    candidates = [
+        FakeComplexCandidate(label="a", phi=2.0, big_phi=5.0),
+        FakeComplexCandidate(label="b", phi=2.0, big_phi=5.0),
+    ]
+    ctx = ResolutionContext(max_escalation_level="Composition")
+    with pytest.raises(NotAComplex) as exc_info:
+        resolve_complex_tie(candidates, context=ctx, on_unresolved="fail")
+    assert exc_info.value.cascade_level == "Composition"
+    assert len(exc_info.value.tied_set) == 2
+
+
+def test_resolve_complex_tie_single_candidate_resolves():
+    """Trivial: one candidate is already resolved."""
+    candidates = [FakeComplexCandidate(label="only", phi=1.0, big_phi=4.0)]
+    ctx = ResolutionContext(max_escalation_level="Composition")
+    outcome = resolve_complex_tie(candidates, context=ctx)
+    assert outcome.outcome == "RESOLVED"
+    assert outcome.resolved is candidates[0]

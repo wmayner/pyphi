@@ -518,26 +518,176 @@ def complexes(
 ) -> list[Any]:
     """Return the complexes of the substrate in its current state.
 
-    A complex is a set of units that is a local maximum of |big_phi| — no
-    overlapping candidate has higher |big_phi|. The returned list is
-    non-overlapping (exclusion), ordered by |big_phi| descending.
+    A complex is a set of units that is a local maximum of |big_phi|
+    (|small_phi_s|) — no overlapping candidate has higher |small_phi_s|.
+    The returned list is non-overlapping (exclusion), ordered by
+    |small_phi_s| descending.
 
-    Found by greedy condensation: iterate irreducible candidates in
-    descending |big_phi| order; accept each whose units do not overlap
-    any already-accepted complex. This is equivalent to the recursive
-    search of Albantakis et al. 2023 (Eqs. 24-25), which identifies
-    :math:`S^*_k = \\mathrm{argmax}_{S \\subseteq U_k} \\varphi_s(S)` over
-    a shrinking universe :math:`U_{k+1} = U_k \\setminus S^*_k`.
+    Under IIT 4.0, the substrate-exclusion cascade per Albantakis et al.
+    2023 S1 Text resolves ties at maximum |small_phi_s|: when multiple
+    overlapping candidates tie, the cascade escalates to maximum
+    structure-integrated information |big_phi| (Composition). If
+    |big_phi| also ties for the overlapping group, those candidates do
+    not qualify as complexes (exclusion postulate violation) and the
+    search proceeds to the next-best by |small_phi_s|.
+
+    Under IIT 3.0 the |big_phi| escalation does not apply; the
+    fallback is greedy condensation by |small_phi_s| descending.
+
+    See ROADMAP P11.95c — cross-substrate canonicalization (so
+    permutation-equivalent substrates produce identical complex lists)
+    is tracked separately.
     """
+    sorted_sias = sorted(
+        irreducible_sias(substrate, state, candidates, **kwargs), reverse=True
+    )
+    if not sorted_sias:
+        return []
+
+    if _config_iit_version() == "IIT_3_0":
+        return _greedy_condensation(sorted_sias)
+    return _substrate_exclusion_cascade(sorted_sias, substrate, state)
+
+
+def _config_iit_version() -> str:
+    from pyphi.conf import config as _config
+
+    return _config.formalism.iit.version
+
+
+def _accept(sia: Any, result: list[Any], covered: set[int]) -> None:
+    """Add a SIA to the accepted-complex result list and mark its units as covered."""
+    indices = _sia_node_indices(sia)
+    if indices is None:
+        return
+    result.append(sia)
+    covered.update(indices)
+
+
+def _greedy_condensation(sorted_sias: list[Any]) -> list[Any]:
+    """Iterate SIAs in descending |small_phi_s| order; accept each whose units
+    don't overlap any already-accepted complex. No |big_phi| escalation."""
     result: list[Any] = []
     covered: set[int] = set()
-    for sia in sorted(
-        irreducible_sias(substrate, state, candidates, **kwargs), reverse=True
-    ):
+    for sia in sorted_sias:
         indices = _sia_node_indices(sia)
         if indices is not None and not (set(indices) & covered):
-            result.append(sia)
-            covered.update(indices)
+            _accept(sia, result, covered)
+    return result
+
+
+def _phi_groups(sorted_sias: list[Any]) -> Iterable[list[Any]]:
+    """Yield contiguous groups of SIAs sharing the same |small_phi_s| value
+    (precision-aware), assuming the input is sorted by ``.order_by()``
+    descending."""
+    from pyphi import utils as _utils
+
+    i = 0
+    while i < len(sorted_sias):
+        tier_phi = float(sorted_sias[i].phi)
+        j = i + 1
+        while j < len(sorted_sias) and _utils.eq(float(sorted_sias[j].phi), tier_phi):
+            j += 1
+        yield sorted_sias[i:j]
+        i = j
+
+
+def _find_overlap_cliques(sias: list[Any]) -> list[list[Any]]:
+    """Group SIAs into connected components by unit overlap."""
+    n = len(sias)
+    parent = list(range(n))
+
+    def find(x: int) -> int:
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    def union(x: int, y: int) -> None:
+        rx, ry = find(x), find(y)
+        if rx != ry:
+            parent[rx] = ry
+
+    units = [set(_sia_node_indices(sia) or ()) for sia in sias]
+    for i in range(n):
+        for j in range(i + 1, n):
+            if units[i] & units[j]:
+                union(i, j)
+
+    groups: dict[int, list[Any]] = {}
+    for i in range(n):
+        groups.setdefault(find(i), []).append(sias[i])
+    return list(groups.values())
+
+
+def _big_phi_of_sia(sia: Any, substrate: Substrate, state: tuple[int, ...]) -> float:
+    """Compute the structure-integrated information |big_phi| of the SIA's
+    candidate system. Builds the system from substrate + state + the
+    SIA's units and invokes the active formalism's cause-effect-structure
+    computation.
+    """
+    from pyphi.system import System
+
+    indices = _sia_node_indices(sia)
+    if indices is None:
+        return 0.0
+    system = System.from_substrate(substrate, state, indices)
+    return float(system.ces().big_phi)
+
+
+def _resolve_clique_by_big_phi(
+    clique: list[Any], substrate: Substrate, state: tuple[int, ...]
+) -> Any | None:
+    """Pick the |big_phi|-maximal candidate in an overlap clique via the
+    substrate-exclusion cascade (Composition escalation). Returns ``None``
+    when |big_phi| ties — the exclusion postulate is violated for that
+    clique and none of its candidates qualify as a complex.
+    """
+    from dataclasses import dataclass
+
+    from pyphi import resolve_ties
+
+    @dataclass(frozen=True)
+    class _CandidateProxy:
+        sia: Any
+        big_phi: float
+
+    proxies = [
+        _CandidateProxy(sia=sia, big_phi=_big_phi_of_sia(sia, substrate, state))
+        for sia in clique
+    ]
+    ctx = resolve_ties.ResolutionContext(max_escalation_level="Composition")
+    outcome = resolve_ties.resolve_complex_tie(proxies, context=ctx)
+    if outcome.outcome == "RESOLVED" and outcome.resolved is not None:
+        return outcome.resolved.sia
+    return None
+
+
+def _substrate_exclusion_cascade(
+    sorted_sias: list[Any],
+    substrate: Substrate,
+    state: tuple[int, ...],
+) -> list[Any]:
+    """Walk SIAs in descending |small_phi_s| tiers, applying the S1
+    substrate-exclusion cascade within each tier."""
+    result: list[Any] = []
+    covered: set[int] = set()
+
+    for tier in _phi_groups(sorted_sias):
+        # Within this tier, discard candidates whose units overlap any
+        # already-accepted complex.
+        survivors = [
+            sia for sia in tier if not (set(_sia_node_indices(sia) or ()) & covered)
+        ]
+        if not survivors:
+            continue
+        for clique in _find_overlap_cliques(survivors):
+            if len(clique) == 1:
+                _accept(clique[0], result, covered)
+                continue
+            winner = _resolve_clique_by_big_phi(clique, substrate, state)
+            if winner is not None:
+                _accept(winner, result, covered)
     return result
 
 

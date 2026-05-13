@@ -279,6 +279,53 @@ class _StateMIP(Protocol):
     def phi(self) -> float: ...
 
 
+class _ComplexCandidate(Protocol):
+    """Structural type for a candidate complex consumed by the
+    substrate-exclusion cascade. Requires ``big_phi`` (Composition-level
+    integrated information of the cause-effect structure).
+    """
+
+    @property
+    def big_phi(self) -> float: ...
+
+
+def resolve_complex_tie[V: _ComplexCandidate](
+    candidates: "Iterable[V]",
+    *,
+    context: ResolutionContext,
+    on_unresolved: OnUnresolved = "defer",
+) -> CascadeOutcome[V]:
+    """Resolve a substrate-exclusion tie via the Composition cascade.
+
+    Per Albantakis et al. 2023 S1 Text: when overlapping substrates tie
+    at maximum ``φ_s``, the exclusion postulate is resolved by
+    escalating to ``Φ`` (Composition). The substrate with maximum ``Φ``
+    qualifies as the complex; overlapping losers are excluded. If
+    multiple substrates also tie at ``Φ``, the exclusion postulate
+    fails for that group and they do not qualify as complexes — under
+    ``on_unresolved='fail'`` this raises :exc:`NotAComplex`; under
+    ``'defer'`` the outcome is ``UNRESOLVED_WITHIN_BUDGET`` carrying
+    the tied set so the caller can proceed to the next-best by
+    ``φ_s``.
+
+    Callers are expected to pre-filter candidates to a single
+    ``φ_s``-tied overlap-clique; this function only walks the
+    Composition step.
+    """
+    return cascade(
+        candidates,
+        levels=[
+            CascadeLevel(
+                postulate="Composition",
+                op="argmax",
+                key=lambda c: c.big_phi,
+            ),
+        ],
+        context=context,
+        on_unresolved=on_unresolved,
+    )
+
+
 def resolve_state_tie[K, V: _StateMIP](
     per_state_mips: "Mapping[K, V]",
     *,
