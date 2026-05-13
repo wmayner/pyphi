@@ -277,6 +277,11 @@ but does not drive tie-break. No new strategy added.
 **PyPhi current**: `pyphi/formalism/iit4/__init__.py:142-172`
 `__post_init__` clamps. Unchanged.
 
+**Regression pin**: `test/test_resolve_ties.py` —
+`test_default_mip_tie_resolution_does_not_consult_signed_phi`,
+`test_default_mip_tie_chain_does_not_register_signed_phi_strategy`,
+`test_sia_tie_chain_with_clamped_phi_falls_through_to_partition_lex`.
+
 ### 9. Actual causation: find_mip (per-purview alpha)
 
 **Paper rule** (Albantakis et al. 2019):

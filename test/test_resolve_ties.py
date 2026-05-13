@@ -180,3 +180,74 @@ def test_sias_secondary_prefers_larger_unnormalized_phi():
     ):
         resolved = list(resolve_ties.sias([lower_phi, higher_phi]))
     assert resolved == [higher_phi]
+
+
+class DummyClampedMip:
+    """MIP-shaped object with both clamped ``phi`` and raw ``signed_phi``.
+
+    Mirrors the post-clamp shape of ``RepertoireIrreducibilityAnalysis``
+    and ``SystemIrreducibilityAnalysis`` for partitions whose raw
+    integration value is non-positive.
+    """
+
+    def __init__(self, phi, normalized_phi, signed_phi, partition):
+        self.phi = phi
+        self.normalized_phi = normalized_phi
+        self.signed_phi = signed_phi
+        self.partition = partition
+
+
+def test_default_mip_tie_resolution_does_not_consult_signed_phi():
+    """Two MIP candidates clamped to phi=0 with differing signed_phi tie.
+
+    The ``|·|+`` clamp (Eqs 19-20) maps any non-positive integration
+    value to zero. The default ``mip_tie_resolution`` chain keys on the
+    clamped ``phi`` only, so partitions whose raw ``signed_phi`` differs
+    but whose clamped ``phi`` matches surface as a tied set; their
+    signed value is preserved as diagnostic metadata, not as a
+    tie-break key.
+    """
+    bp = DirectedBipartition(Direction.EFFECT, (1,), (2,))
+    less_negative = DummyClampedMip(
+        phi=0.0, normalized_phi=0.0, signed_phi=-0.5, partition=bp
+    )
+    more_negative = DummyClampedMip(
+        phi=0.0, normalized_phi=0.0, signed_phi=-1.0, partition=bp
+    )
+    resolved = list(resolve_ties.partitions([less_negative, more_negative]))
+    assert resolved == [less_negative, more_negative]
+
+
+def test_default_mip_tie_chain_does_not_register_signed_phi_strategy():
+    """``signed_phi`` has no registered phi-object tie-resolution strategy.
+
+    The Q3 design decision is that signed_phi is diagnostic-only: no
+    strategy keys on it, and the default tie chain falls through to
+    deterministic lex-canonical resolution at higher cascade levels
+    rather than preferring a less-negative raw integration.
+    """
+    assert "NEGATIVE_SIGNED_PHI" not in resolve_ties.phi_object_tie_resolution_strategies
+    assert "SIGNED_PHI" not in resolve_ties.phi_object_tie_resolution_strategies
+    default_chain = config.formalism.iit.mip_tie_resolution
+    assert all("SIGNED" not in s for s in default_chain)
+
+
+def test_sia_tie_chain_with_clamped_phi_falls_through_to_partition_lex():
+    """Default ``sia_tie_resolution`` resolves clamped-phi ties via lex.
+
+    At equal ``normalized_phi`` and equal clamped ``phi``, the default
+    ``sia_tie_resolution = [NORMALIZED_PHI, NEGATIVE_PHI, PARTITION_LEX]``
+    breaks the tie on canonical partition order, regardless of any
+    difference in ``signed_phi``.
+    """
+    bp_hi = DirectedBipartition(Direction.EFFECT, (0,), (2,))
+    bp_lo = DirectedBipartition(Direction.EFFECT, (1,), (2,))
+    assert bp_lo.lex_key() < bp_hi.lex_key()
+    less_negative_hi_lex = DummyClampedMip(
+        phi=0.0, normalized_phi=0.0, signed_phi=-0.5, partition=bp_hi
+    )
+    more_negative_lo_lex = DummyClampedMip(
+        phi=0.0, normalized_phi=0.0, signed_phi=-1.0, partition=bp_lo
+    )
+    resolved = list(resolve_ties.sias([less_negative_hi_lex, more_negative_lo_lex]))
+    assert resolved == [more_negative_lo_lex]
