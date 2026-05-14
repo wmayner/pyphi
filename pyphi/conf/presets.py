@@ -14,17 +14,20 @@ Usage::
     with config.override(**iit3):
         ...  # computations use the IIT 3.0 formalism
 
-A preset specifies its IIT sub-namespace wholesale via an
-:class:`~pyphi.conf.formalism.IITConfig` instance, so applying a preset
-resets every IIT field to its canonical value for that paper. Fields
-outside the IIT sub-namespace (e.g. ``precision``) appear as additional
-top-level keys when the paper's behavior depends on them.
+A preset specifies its formalism sub-namespaces wholesale via
+:class:`~pyphi.conf.formalism.IITConfig` and
+:class:`~pyphi.conf.formalism.ActualCausationConfig` instances, so
+applying a preset resets every field in those sub-namespaces to its
+canonical value for that paper. Fields outside the formalism layer
+(e.g. ``precision``) appear as additional top-level keys when the
+paper's behavior depends on them.
 """
 
 from __future__ import annotations
 
 from typing import Any
 
+from pyphi.conf.formalism import ActualCausationConfig
 from pyphi.conf.formalism import IITConfig
 
 iit3: dict[str, Any] = {
@@ -35,7 +38,11 @@ iit3: dict[str, Any] = {
         mechanism_partition_scheme="BI",
         system_partition_scheme="DIRECTED_BI",
         single_micro_nodes_with_selfloops_have_phi=False,
-        purview_tie_resolution="PHI",
+        purview_tie_resolution=["PHI", "PURVIEW_SIZE"],
+        assume_partitions_cannot_create_new_concepts=False,
+    ),
+    "actual_causation": ActualCausationConfig(
+        alpha_measure="PMI",
     ),
     # pyemd's EMD comparison tolerance fails at finer precisions.
     "precision": 6,

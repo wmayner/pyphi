@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
+import yaml
 
 from pyphi import iit3 as top_iit3
 from pyphi import iit4_2023 as top_iit4_2023
@@ -23,6 +26,51 @@ class TestTopLevelReExports:
 
     def test_iit4_2026_lifted(self):
         assert top_iit4_2026 is iit4_2026
+
+
+class TestIIT3MatchesYamlReference:
+    """``presets.iit3`` should encode the same IIT 3.0 fields as the
+    library's reference ``pyphi_config_3.0.yml``.
+    """
+
+    @pytest.fixture(scope="class")
+    def yml(self) -> dict:
+        path = Path(__file__).resolve().parent.parent / "pyphi_config_3.0.yml"
+        with path.open() as f:
+            return yaml.safe_load(f)
+
+    def test_repertoire_distance(self, yml):
+        assert iit3["iit"].mechanism_phi_measure == yml["REPERTOIRE_DISTANCE"]
+
+    def test_ces_distance(self, yml):
+        assert iit3["iit"].ces_measure == yml["CES_DISTANCE"]
+
+    def test_partition_type(self, yml):
+        assert iit3["iit"].mechanism_partition_scheme == yml["PARTITION_TYPE"]
+
+    def test_system_partition_type(self, yml):
+        assert iit3["iit"].system_partition_scheme == yml["SYSTEM_PARTITION_TYPE"]
+
+    def test_purview_tie_resolution(self, yml):
+        assert iit3["iit"].purview_tie_resolution == yml["PURVIEW_TIE_RESOLUTION"]
+
+    def test_single_micro_nodes_with_selfloops_have_phi(self, yml):
+        assert (
+            iit3["iit"].single_micro_nodes_with_selfloops_have_phi
+            == yml["SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI"]
+        )
+
+    def test_assume_partitions_cannot_create_new_concepts(self, yml):
+        assert (
+            iit3["iit"].assume_partitions_cannot_create_new_concepts
+            == yml["ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS"]
+        )
+
+    def test_actual_causation_alpha_measure(self, yml):
+        assert iit3["actual_causation"].alpha_measure == yml["ACTUAL_CAUSATION_MEASURE"]
+
+    def test_precision(self, yml):
+        assert iit3["precision"] == yml["PRECISION"]
 
 
 class TestIIT3Settings:
@@ -48,7 +96,13 @@ class TestIIT3Settings:
         assert iit3["iit"].single_micro_nodes_with_selfloops_have_phi is False
 
     def test_purview_tie_resolution(self):
-        assert iit3["iit"].purview_tie_resolution == "PHI"
+        assert iit3["iit"].purview_tie_resolution == ["PHI", "PURVIEW_SIZE"]
+
+    def test_assume_partitions_cannot_create_new_concepts_is_false(self):
+        assert iit3["iit"].assume_partitions_cannot_create_new_concepts is False
+
+    def test_actual_causation_alpha_measure_is_pmi(self):
+        assert iit3["actual_causation"].alpha_measure == "PMI"
 
     def test_precision_is_6(self):
         assert iit3["precision"] == 6
