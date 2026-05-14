@@ -22,7 +22,7 @@ from pyphi import Substrate
 from pyphi import System
 from pyphi import config
 from pyphi.formalism.iit4 import sia
-from pyphi.metrics.distribution import composite_measures
+from pyphi.measures.distribution import composite_measures
 
 
 @pytest.fixture

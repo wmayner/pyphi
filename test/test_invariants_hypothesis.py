@@ -216,8 +216,8 @@ class TestMetricInvariants:
             )
         )
 
-        from pyphi.metrics.distribution import distribution_measures
-        from pyphi.metrics.distribution import repertoire_distance
+        from pyphi.measures.distribution import distribution_measures
+        from pyphi.measures.distribution import repertoire_distance
 
         rep1 = s.cause_repertoire(mech1, purview)
         rep2 = s.cause_repertoire(mech2, purview)
@@ -261,8 +261,8 @@ class TestMetricInvariants:
             )
         )
 
-        from pyphi.metrics.distribution import distribution_measures
-        from pyphi.metrics.distribution import repertoire_distance
+        from pyphi.measures.distribution import distribution_measures
+        from pyphi.measures.distribution import repertoire_distance
 
         rep = s.cause_repertoire(mechanism, purview)
 

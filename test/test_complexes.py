@@ -4,8 +4,8 @@ from pyphi import System
 from pyphi import config
 from pyphi import examples
 from pyphi.formalism.iit4 import ces
-from pyphi.metrics.distribution import resolve_mechanism_measure
-from pyphi.metrics.distribution import resolve_system_measure
+from pyphi.measures.distribution import resolve_mechanism_measure
+from pyphi.measures.distribution import resolve_system_measure
 from pyphi.substrate import possible_complexes
 
 from .conftest import IIT_3_CONFIG

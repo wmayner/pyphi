@@ -2,7 +2,7 @@ Add ``pyphi.protocols`` with runtime-checkable Protocols for PyPhi's
 dispatch points and core abstractions:
 
 - ``DistanceMetric``: contract for distance functions registered in
-  ``pyphi.metrics.distribution.measures``.
+  ``pyphi.measures.distribution.measures``.
 - ``PartitionScheme``: contract for partition schemes registered in
   ``pyphi.partition.partition_types``.
 - ``PhiFormalism``: placeholder contract for the strategy that bundles

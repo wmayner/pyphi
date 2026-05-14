@@ -88,7 +88,7 @@ def _loadable_models():
         pyphi.data_structures.PyPhiFloat,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.Direction,
         pyphi.labels.NodeLabels,  # pyright: ignore[reportAttributeAccessIssue]
-        pyphi.metrics.distribution.DistanceResult,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.measures.distribution.DistanceResult,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.Account,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.AcRepertoireIrreducibilityAnalysis,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.AcSystemIrreducibilityAnalysis,  # pyright: ignore[reportAttributeAccessIssue]

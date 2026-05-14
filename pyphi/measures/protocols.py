@@ -40,7 +40,7 @@ from numpy.typing import ArrayLike
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from pyphi.metrics.distribution import DistanceResult
+    from pyphi.measures.distribution import DistanceResult
 
 
 @runtime_checkable

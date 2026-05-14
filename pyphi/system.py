@@ -432,7 +432,7 @@ class System:
     def cause_info(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
         from pyphi.conf import config as _config
         from pyphi.core import repertoire_algebra as ra
-        from pyphi.metrics.distribution import resolve_mechanism_measure
+        from pyphi.measures.distribution import resolve_mechanism_measure
 
         kwargs.setdefault(
             "repertoire_distance",
@@ -443,7 +443,7 @@ class System:
     def effect_info(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
         from pyphi.conf import config as _config
         from pyphi.core import repertoire_algebra as ra
-        from pyphi.metrics.distribution import resolve_mechanism_measure
+        from pyphi.measures.distribution import resolve_mechanism_measure
 
         kwargs.setdefault(
             "repertoire_distance",
@@ -454,7 +454,7 @@ class System:
     def cause_effect_info(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
         from pyphi.conf import config as _config
         from pyphi.core import repertoire_algebra as ra
-        from pyphi.metrics.distribution import resolve_mechanism_measure
+        from pyphi.measures.distribution import resolve_mechanism_measure
 
         kwargs.setdefault(
             "repertoire_distance",
@@ -501,8 +501,8 @@ class System:
         """
         from pyphi.conf import config as _config
         from pyphi.formalism import sia as _sia
-        from pyphi.metrics.distribution import resolve_mechanism_measure
-        from pyphi.metrics.distribution import resolve_system_measure
+        from pyphi.measures.distribution import resolve_mechanism_measure
+        from pyphi.measures.distribution import resolve_system_measure
 
         if _config.formalism.iit.version != "IIT_3_0":
             kwargs.setdefault(
@@ -531,8 +531,8 @@ class System:
 
             return _ces(self, **kwargs)
         from pyphi.formalism.iit4 import ces as _ces
-        from pyphi.metrics.distribution import resolve_mechanism_measure
-        from pyphi.metrics.distribution import resolve_system_measure
+        from pyphi.measures.distribution import resolve_mechanism_measure
+        from pyphi.measures.distribution import resolve_system_measure
 
         kwargs.setdefault(
             "system_measure",
@@ -573,7 +573,7 @@ class System:
         """
         from pyphi.conf import config as _config
         from pyphi.formalism import find_mip as _find_mip
-        from pyphi.metrics.distribution import resolve_mechanism_measure
+        from pyphi.measures.distribution import resolve_mechanism_measure
 
         if _config.formalism.iit.version != "IIT_3_0":
             kwargs.setdefault(

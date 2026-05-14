@@ -7,8 +7,8 @@ from pyphi import jsonify
 from pyphi import relations
 from pyphi.formalism import iit3
 from pyphi.formalism import iit4 as new_big_phi
-from pyphi.metrics.distribution import resolve_mechanism_measure
-from pyphi.metrics.distribution import resolve_system_measure
+from pyphi.measures.distribution import resolve_mechanism_measure
+from pyphi.measures.distribution import resolve_system_measure
 
 
 def test_only_nonsubsets():

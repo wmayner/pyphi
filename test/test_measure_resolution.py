@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import pytest
 
-from pyphi.metrics.distribution import composite_measures
-from pyphi.metrics.distribution import distribution_measures
-from pyphi.metrics.distribution import resolve_distribution_measure
-from pyphi.metrics.distribution import resolve_mechanism_measure
-from pyphi.metrics.distribution import resolve_system_measure
-from pyphi.metrics.distribution import state_aware_measures
-from pyphi.metrics.distribution import stateful_distribution_measures
+from pyphi.measures.distribution import composite_measures
+from pyphi.measures.distribution import distribution_measures
+from pyphi.measures.distribution import resolve_distribution_measure
+from pyphi.measures.distribution import resolve_mechanism_measure
+from pyphi.measures.distribution import resolve_system_measure
+from pyphi.measures.distribution import state_aware_measures
+from pyphi.measures.distribution import stateful_distribution_measures
 
 
 def test_resolve_mechanism_measure_accepts_state_aware() -> None:

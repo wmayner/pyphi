@@ -3,7 +3,7 @@ import itertools
 from pyphi import Direction
 from pyphi import config
 from pyphi.combinatorics import set_partitions as partitions
-from pyphi.metrics.distribution import resolve_mechanism_measure
+from pyphi.measures.distribution import resolve_mechanism_measure
 from pyphi.models import JointBipartition
 from pyphi.models import JointPartition
 from pyphi.models import JointTripartition

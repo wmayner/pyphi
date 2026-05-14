@@ -22,7 +22,7 @@ from numpy.typing import ArrayLike
 from pyphi.conf import config
 from pyphi.data_structures import PyPhiFloat
 from pyphi.direction import Direction
-from pyphi.metrics.distribution import DistanceResult
+from pyphi.measures.distribution import DistanceResult
 from pyphi.registry import Registry
 
 from . import cmp

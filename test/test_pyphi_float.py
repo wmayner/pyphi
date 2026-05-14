@@ -26,7 +26,7 @@ import numpy as np
 
 from pyphi.conf import config
 from pyphi.data_structures import PyPhiFloat
-from pyphi.metrics.distribution import DistanceResult
+from pyphi.measures.distribution import DistanceResult
 
 
 class TestPyPhiFloatComparison:

@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 
 from pyphi.data_structures import PyPhiFloat
-from pyphi.metrics import distribution
-from pyphi.metrics.distribution import DistanceResult
+from pyphi.measures import distribution
+from pyphi.measures.distribution import DistanceResult
 
 from .conftest import skip_if_no_pyemd
 

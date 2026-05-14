@@ -1,7 +1,7 @@
 import pytest
 
 from pyphi import config
-from pyphi.metrics.distribution import hamming_emd
+from pyphi.measures.distribution import hamming_emd
 
 from .conftest import skip_if_no_pyemd
 

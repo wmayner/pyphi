@@ -756,7 +756,7 @@ class TestRepertoireIrreducibilityAnalysisDistanceResult:
 
     def test_ria_preserves_distance_result_phi(self):
         """Test that RIA preserves DistanceResult type in phi attribute."""
-        from pyphi.metrics.distribution import DistanceResult
+        from pyphi.measures.distribution import DistanceResult
 
         # Create a DistanceResult with auxiliary data
         distance_result = DistanceResult(0.42, method="EMD", direction="CAUSE", state=1)
@@ -791,7 +791,7 @@ class TestRepertoireIrreducibilityAnalysisDistanceResult:
 
     def test_multiple_rias_with_distance_results_min_comparison(self):
         """Test min() comparison across multiple RIAs with DistanceResults."""
-        from pyphi.metrics.distribution import DistanceResult
+        from pyphi.measures.distribution import DistanceResult
 
         # Create multiple RIAs with DistanceResult phi values
         rias = [
@@ -829,7 +829,7 @@ class TestRepertoireIrreducibilityAnalysisDistanceResult:
 
     def test_ria_comparison_preserves_types(self):
         """Test that RIA comparison operations preserve DistanceResult types."""
-        from pyphi.metrics.distribution import DistanceResult
+        from pyphi.measures.distribution import DistanceResult
 
         # Create RIAs with different phi values
         ria1 = ria(phi=DistanceResult(0.7, method="EMD", direction="CAUSE"))

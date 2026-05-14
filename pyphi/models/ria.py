@@ -29,7 +29,7 @@ from toolz import unique
 from pyphi import utils
 from pyphi.data_structures import PyPhiFloat
 from pyphi.direction import Direction
-from pyphi.metrics.distribution import DistanceResult
+from pyphi.measures.distribution import DistanceResult
 from pyphi.models.partitions import JointPartition
 
 from . import cmp

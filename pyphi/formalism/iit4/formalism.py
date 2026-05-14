@@ -25,10 +25,10 @@ from typing import cast
 from pyphi.conf import config
 from pyphi.conf.formalism import FormalismConfig
 from pyphi.formalism.base import check_measure_compatible
-from pyphi.metrics.protocols import CompositeMeasure
-from pyphi.metrics.protocols import DistributionMeasure
-from pyphi.metrics.protocols import StateAwareMeasure
-from pyphi.metrics.protocols import StatefulDistributionMeasure
+from pyphi.measures.protocols import CompositeMeasure
+from pyphi.measures.protocols import DistributionMeasure
+from pyphi.measures.protocols import StateAwareMeasure
+from pyphi.measures.protocols import StatefulDistributionMeasure
 from pyphi.parallel import MapReduce
 
 from . import ces as _ces  # pyright: ignore[reportUnknownVariableType]
@@ -129,8 +129,8 @@ def _resolve_system_measures(
     checked against the formalism's ``compatible_measures``; when omitted,
     the configured name is checked and then resolved.
     """
-    from pyphi.metrics.distribution import resolve_mechanism_measure
-    from pyphi.metrics.distribution import resolve_system_measure
+    from pyphi.measures.distribution import resolve_mechanism_measure
+    from pyphi.measures.distribution import resolve_system_measure
 
     if system_measure is None:
         check_measure_compatible(formalism, config.formalism.iit.system_phi_measure)
@@ -159,7 +159,7 @@ def _resolve_mechanism_measure(
     the broader resolver return type to match the mechanism-method kwarg
     union accepted by IIT 4.0.
     """
-    from pyphi.metrics.distribution import resolve_mechanism_measure
+    from pyphi.measures.distribution import resolve_mechanism_measure
 
     if mechanism_measure is None:
         check_measure_compatible(formalism, config.formalism.iit.mechanism_phi_measure)
@@ -194,7 +194,7 @@ def _resolve_mip_measures(
     ``mechanism_measure`` drives per-partition phi; ``specification_measure``
     drives the intrinsic-information search over candidate purview states.
     """
-    from pyphi.metrics.distribution import resolve_mechanism_measure
+    from pyphi.measures.distribution import resolve_mechanism_measure
 
     mechanism_measure = _resolve_mechanism_measure(formalism, mechanism_measure)
     if specification_measure is None:

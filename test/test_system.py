@@ -5,7 +5,7 @@ from pyphi import Direction
 from pyphi import Substrate
 from pyphi import config
 from pyphi import exceptions
-from pyphi.metrics.distribution import resolve_mechanism_measure
+from pyphi.measures.distribution import resolve_mechanism_measure
 from pyphi.models import Concept
 from pyphi.models import DirectedBipartition
 from pyphi.models import MaximallyIrreducibleCause

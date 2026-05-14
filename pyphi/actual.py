@@ -39,8 +39,8 @@ from . import utils
 from . import validate
 from .conf import config
 from .direction import Direction
-from .metrics.distribution import actual_causation_measures as measures
-from .metrics.protocols import DistributionMeasure
+from .measures.distribution import actual_causation_measures as measures
+from .measures.protocols import DistributionMeasure
 from .models import Account
 from .models import AcRepertoireIrreducibilityAnalysis
 from .models import AcSystemIrreducibilityAnalysis
@@ -149,7 +149,7 @@ def _resolve_ac_kwargs() -> dict[str, Any]:
     - ``alpha_aggregation``: a callable from :data:`alpha_aggregations`
       keyed by ``config.formalism.actual_causation.alpha_aggregation``.
     """
-    from pyphi.metrics.distribution import resolve_actual_causation_measure
+    from pyphi.measures.distribution import resolve_actual_causation_measure
 
     ac = config.formalism.actual_causation
     return {
@@ -1360,11 +1360,11 @@ def probability_distance(
 
     Keyword Args:
         measure (str): Optional measure name registered in
-            :data:`pyphi.metrics.distribution.actual_causation_measures`.
+            :data:`pyphi.measures.distribution.actual_causation_measures`.
             Mutually exclusive with ``alpha_measure``.
         alpha_measure (DistributionMeasure): Optional resolved measure callable
             (e.g., from
-            :func:`pyphi.metrics.distribution.resolve_actual_causation_measure`).
+            :func:`pyphi.measures.distribution.resolve_actual_causation_measure`).
             Internal callers thread the resolved object through to avoid
             repeated registry lookups; external callers may pass ``measure``.
             If both are ``None``, the active configuration's

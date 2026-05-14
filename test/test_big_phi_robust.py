@@ -21,8 +21,8 @@ import pytest
 
 from pyphi import config
 from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
-from pyphi.metrics.distribution import resolve_mechanism_measure
-from pyphi.metrics.distribution import resolve_system_measure
+from pyphi.measures.distribution import resolve_mechanism_measure
+from pyphi.measures.distribution import resolve_system_measure
 from pyphi.models.partitions import NullCut
 
 from .conftest import skip_if_no_pyemd
@@ -603,7 +603,7 @@ class TestPaperExamples:
         i_diff = -log2(p), i_spec = p*log2(2p) for a monad in its ON state.
         """
         from pyphi import direction
-        from pyphi import metrics
+        from pyphi import measures
         from pyphi.formalism.iit4 import system_intrinsic_information
 
         system = self._monad_system(p)
@@ -626,7 +626,7 @@ class TestPaperExamples:
                 None,
             )
             i_diff = float(
-                metrics.distribution.intrinsic_differentiation(
+                measures.distribution.intrinsic_differentiation(
                     fr, state=system.proper_state
                 )
             )

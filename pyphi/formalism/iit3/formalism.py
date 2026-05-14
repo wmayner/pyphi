@@ -117,10 +117,10 @@ class IIT3Formalism:
         (resolved here from config if not provided); ``mechanism_measure``
         is threaded through to the partitioned-repertoire helper.
         """
-        from pyphi.metrics.distribution import (
+        from pyphi.measures.distribution import (
             repertoire_distance as _repertoire_distance,  # pyright: ignore[reportUnknownVariableType]
         )
-        from pyphi.metrics.distribution import resolve_mechanism_measure
+        from pyphi.measures.distribution import resolve_mechanism_measure
         from pyphi.models import RepertoireIrreducibilityAnalysis
         from pyphi.utils import state_of
 

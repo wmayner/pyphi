@@ -44,7 +44,7 @@ class RelationFace(frozenset):
 
         # Preserve DistanceResult type if possible, otherwise convert to PyPhiFloat
         from pyphi.data_structures.pyphi_float import PyPhiFloat
-        from pyphi.metrics.distribution import DistanceResult
+        from pyphi.measures.distribution import DistanceResult
 
         if isinstance(phi, DistanceResult):
             self.phi = phi  # type: ignore[misc]  # frozenset is immutable but we set this in __new__

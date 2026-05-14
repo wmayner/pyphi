@@ -25,14 +25,14 @@ from pyphi.direction import Direction
 from pyphi.distribution import flatten
 from pyphi.distribution import marginal_zero
 from pyphi.exceptions import MissingOptionalDependenciesError
-from pyphi.metrics.protocols import CompositeMeasure
-from pyphi.metrics.protocols import DistributionMeasure
-from pyphi.metrics.protocols import StateAwareMeasure
-from pyphi.metrics.protocols import StatefulDistributionMeasure
-from pyphi.metrics.protocols import satisfies_composite_measure
-from pyphi.metrics.protocols import satisfies_distribution_measure
-from pyphi.metrics.protocols import satisfies_state_aware_measure
-from pyphi.metrics.protocols import satisfies_stateful_distribution_measure
+from pyphi.measures.protocols import CompositeMeasure
+from pyphi.measures.protocols import DistributionMeasure
+from pyphi.measures.protocols import StateAwareMeasure
+from pyphi.measures.protocols import StatefulDistributionMeasure
+from pyphi.measures.protocols import satisfies_composite_measure
+from pyphi.measures.protocols import satisfies_distribution_measure
+from pyphi.measures.protocols import satisfies_state_aware_measure
+from pyphi.measures.protocols import satisfies_stateful_distribution_measure
 from pyphi.registry import Registry
 from pyphi.types import Repertoire
 from pyphi.types import State
@@ -74,7 +74,7 @@ class DistanceResult(PyPhiFloat):
     Examples:
         Basic usage with metadata:
 
-        >>> from pyphi.metrics.distribution import DistanceResult
+        >>> from pyphi.measures.distribution import DistanceResult
         >>> result = DistanceResult(0.5, method='EMD', direction='CAUSE')
         >>> float(result)  # Extract numeric value
         0.5

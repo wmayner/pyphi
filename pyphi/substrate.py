@@ -429,8 +429,8 @@ def _resolved_sia(**sia_kwargs: Any) -> tuple[Any, dict[str, Any]]:
         from pyphi.formalism.iit3 import sia as _sia
     else:
         from pyphi.formalism.iit4 import sia as _sia
-        from pyphi.metrics.distribution import resolve_mechanism_measure
-        from pyphi.metrics.distribution import resolve_system_measure
+        from pyphi.measures.distribution import resolve_mechanism_measure
+        from pyphi.measures.distribution import resolve_system_measure
 
         kwargs.setdefault(
             "system_measure",

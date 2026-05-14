@@ -14,8 +14,8 @@ import pytest
 from pyphi import config
 from pyphi.formalism import iit4 as new_big_phi
 from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
-from pyphi.metrics.distribution import resolve_mechanism_measure
-from pyphi.metrics.distribution import resolve_system_measure
+from pyphi.measures.distribution import resolve_mechanism_measure
+from pyphi.measures.distribution import resolve_system_measure
 from pyphi.system import System
 
 from . import example_substrates

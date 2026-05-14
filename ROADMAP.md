@@ -1425,7 +1425,7 @@ test inventory — that a deliberate re-ordering pass is in order.
     ``test/test_macro_system.py`` stay dark until this lands.
 
 11. **P11.85 — Measure-API unification.** Deferred-cleanup candidate.
-    The current measures registry (``pyphi.metrics.distribution.measures``,
+    The current measures registry (``pyphi.measures.distribution.measures``,
     ``pyphi.actual.partitioned_repertoire_schemes``, etc.) is
     fragmented in calling shape: distribution metrics take ``(p, q)``,
     state-aware metrics take ``(forward, partitioned, selectivity, state)``,

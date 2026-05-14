@@ -1,12 +1,12 @@
-from pyphi import metrics
+from pyphi import measures
 
 
 def test_default_distribution_measures():
     all_metric_names = (
-        set(metrics.distribution.distribution_measures.all())
-        | set(metrics.distribution.state_aware_measures.all())
-        | set(metrics.distribution.composite_measures.all())
-        | set(metrics.distribution.stateful_distribution_measures.all())
+        set(measures.distribution.distribution_measures.all())
+        | set(measures.distribution.state_aware_measures.all())
+        | set(measures.distribution.composite_measures.all())
+        | set(measures.distribution.stateful_distribution_measures.all())
     )
     assert all_metric_names == {
         "EMD",
@@ -33,17 +33,17 @@ def test_default_asymmetric_distribution_measures():
     asymmetric_names = (
         {
             name
-            for name, fn in metrics.distribution.distribution_measures.items()
+            for name, fn in measures.distribution.distribution_measures.items()
             if getattr(fn, "asymmetric", False)
         }
         | {
             name
-            for name, fn in metrics.distribution.stateful_distribution_measures.items()
+            for name, fn in measures.distribution.stateful_distribution_measures.items()
             if getattr(fn, "asymmetric", False)
         }
         | {
             name
-            for name, fn in metrics.distribution.composite_measures.items()
+            for name, fn in measures.distribution.composite_measures.items()
             if getattr(fn, "asymmetric", False)
         }
     )
@@ -64,14 +64,14 @@ def test_default_asymmetric_distribution_measures():
 
 
 def test_default_ces_measures():
-    assert set(metrics.ces.measures.all()) == {
+    assert set(measures.ces.measures.all()) == {
         "EMD",
         "SUM_SMALL_PHI",
     }
 
 
 def test_default_actual_causation_measures():
-    assert set(metrics.distribution.actual_causation_measures.all()) == {
+    assert set(measures.distribution.actual_causation_measures.all()) == {
         "PMI",
         "WPMI",
     }

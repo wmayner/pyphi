@@ -15,8 +15,8 @@ from pyphi.formalism import ApproximateFormalism
 from pyphi.formalism import ExactFormalism
 from pyphi.formalism import FormalismRegistry
 from pyphi.formalism import PhiFormalism
-from pyphi.metrics.distribution import resolve_mechanism_measure
-from pyphi.metrics.distribution import resolve_system_measure
+from pyphi.measures.distribution import resolve_mechanism_measure
+from pyphi.measures.distribution import resolve_system_measure
 
 
 class _DummyFormalism:

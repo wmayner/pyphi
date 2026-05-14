@@ -20,7 +20,7 @@ from typing import ClassVar
 
 from pyphi import conf
 from pyphi import connectivity
-from pyphi import metrics
+from pyphi import measures
 from pyphi import resolve_ties
 from pyphi import utils
 from pyphi import validate
@@ -32,12 +32,12 @@ from pyphi.data_structures import PyPhiFloat
 from pyphi.direction import Direction
 from pyphi.formalism import iit3
 from pyphi.labels import NodeLabels
-from pyphi.metrics.distribution import DistanceResult
-from pyphi.metrics.protocols import CompositeMeasure
-from pyphi.metrics.protocols import DistributionMeasure
-from pyphi.metrics.protocols import StateAwareMeasure
-from pyphi.metrics.protocols import StatefulDistributionMeasure
-from pyphi.metrics.protocols import satisfies_composite_measure
+from pyphi.measures.distribution import DistanceResult
+from pyphi.measures.protocols import CompositeMeasure
+from pyphi.measures.protocols import DistributionMeasure
+from pyphi.measures.protocols import StateAwareMeasure
+from pyphi.measures.protocols import StatefulDistributionMeasure
+from pyphi.measures.protocols import satisfies_composite_measure
 from pyphi.models import cmp
 from pyphi.models import fmt
 from pyphi.models.ces import CauseEffectStructure
@@ -482,7 +482,7 @@ def intrinsic_differentiation_value(
         purview,  # pyright: ignore[reportArgumentType]
     )
 
-    return metrics.distribution.intrinsic_differentiation(
+    return measures.distribution.intrinsic_differentiation(
         unpartitioned_repertoire,
         state=system.proper_state,
     )

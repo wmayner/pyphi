@@ -15,7 +15,7 @@ from pyphi import Substrate
 from pyphi import System
 from pyphi.formalism.iit4.formalism import IIT4_2023Formalism
 from pyphi.formalism.iit4.formalism import IIT4_2026Formalism
-from pyphi.metrics.distribution import composite_measures
+from pyphi.measures.distribution import composite_measures
 
 
 @pytest.fixture

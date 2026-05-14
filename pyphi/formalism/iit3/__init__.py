@@ -26,7 +26,7 @@ from pyphi import connectivity
 from pyphi import utils
 from pyphi.conf import config
 from pyphi.direction import Direction
-from pyphi.metrics.ces import ces_distance
+from pyphi.measures.ces import ces_distance
 from pyphi.models import Concept
 from pyphi.models import DirectedBipartition
 from pyphi.models import Distinctions

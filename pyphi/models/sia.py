@@ -78,7 +78,7 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
             self.phi = phi  # type: ignore[assignment]
         else:
             from pyphi.data_structures.pyphi_float import PyPhiFloat
-            from pyphi.metrics.distribution import DistanceResult
+            from pyphi.measures.distribution import DistanceResult
 
             if isinstance(phi, DistanceResult):
                 self.phi = phi  # type: ignore[assignment]

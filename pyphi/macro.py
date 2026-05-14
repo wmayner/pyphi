@@ -912,7 +912,7 @@ class MacroNetwork:
     ):
         # Preserve DistanceResult type if possible, otherwise convert to PyPhiFloat
         from pyphi.data_structures.pyphi_float import PyPhiFloat
-        from pyphi.metrics.distribution import DistanceResult
+        from pyphi.measures.distribution import DistanceResult
 
         self.substrate = substrate
         self.system = system

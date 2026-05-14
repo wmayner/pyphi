@@ -46,8 +46,8 @@ from pyphi import config
 from pyphi import jsonify
 from pyphi.examples import EXAMPLES
 from pyphi.formalism import iit4 as new_big_phi
-from pyphi.metrics.distribution import resolve_mechanism_measure
-from pyphi.metrics.distribution import resolve_system_measure
+from pyphi.measures.distribution import resolve_mechanism_measure
+from pyphi.measures.distribution import resolve_system_measure
 
 EXAMPLE_NAMES = [
     "basic",

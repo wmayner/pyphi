@@ -13,8 +13,8 @@ from pyphi import models
 from pyphi import substrate
 from pyphi.formalism import iit3
 from pyphi.formalism import iit4 as new_big_phi
-from pyphi.metrics.distribution import resolve_mechanism_measure
-from pyphi.metrics.distribution import resolve_system_measure
+from pyphi.measures.distribution import resolve_mechanism_measure
+from pyphi.measures.distribution import resolve_system_measure
 
 
 def test_jsonify_native():
@@ -144,7 +144,7 @@ def test_version_check_during_deserialization(s):
 
 def test_distance_result_json_serialization_basic():
     """Test basic DistanceResult serialization without auxiliary data."""
-    from pyphi.metrics.distribution import DistanceResult
+    from pyphi.measures.distribution import DistanceResult
 
     result = DistanceResult(0.5)
     loaded = jsonify.loads(jsonify.dumps(result))
@@ -155,7 +155,7 @@ def test_distance_result_json_serialization_basic():
 
 def test_distance_result_json_serialization_with_metadata():
     """Test DistanceResult serialization with auxiliary metadata."""
-    from pyphi.metrics.distribution import DistanceResult
+    from pyphi.measures.distribution import DistanceResult
 
     result = DistanceResult(
         0.5, method="INTRINSIC_DIFFERENTIATION", asymmetric=True, state=(1, 0, 0)
@@ -171,7 +171,7 @@ def test_distance_result_json_serialization_with_metadata():
 
 def test_distance_result_json_preserves_all_attributes():
     """Test that all auxiliary attributes are preserved during serialization."""
-    from pyphi.metrics.distribution import DistanceResult
+    from pyphi.measures.distribution import DistanceResult
 
     result = DistanceResult(
         0.75, method="EMD", direction="CAUSE", custom_attr="custom_value", num=42
@@ -191,7 +191,7 @@ def test_distance_result_json_preserves_all_attributes():
 
 def test_enum_keyed_dict_serialization():
     """Test that dicts with enum keys are properly serialized and deserialized."""
-    from pyphi.metrics.distribution import DistanceResult
+    from pyphi.measures.distribution import DistanceResult
 
     original = {
         Direction.CAUSE: DistanceResult(0.5, method="GID"),
@@ -209,7 +209,7 @@ def test_enum_keyed_dict_serialization():
 
 def test_enum_keyed_dict_preserves_metadata():
     """Test that enum-keyed dicts preserve DistanceResult metadata."""
-    from pyphi.metrics.distribution import DistanceResult
+    from pyphi.measures.distribution import DistanceResult
 
     original = {
         Direction.CAUSE: DistanceResult(
@@ -255,7 +255,7 @@ def test_regular_dict_not_affected():
 
 def test_nested_enum_keyed_dicts():
     """Test that nested structures with enum-keyed dicts work correctly."""
-    from pyphi.metrics.distribution import DistanceResult
+    from pyphi.measures.distribution import DistanceResult
 
     original = {
         "outer": {

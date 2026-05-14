@@ -26,8 +26,8 @@ import numpy as np
 from pyphi import Direction
 from pyphi import System
 from pyphi import utils as pyphi_utils
-from pyphi.metrics.distribution import resolve_mechanism_measure
-from pyphi.metrics.distribution import resolve_system_measure
+from pyphi.measures.distribution import resolve_mechanism_measure
+from pyphi.measures.distribution import resolve_system_measure
 
 from .canonicalize import canonical_mechanism
 from .canonicalize import canonical_partition

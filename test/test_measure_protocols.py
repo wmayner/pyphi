@@ -9,7 +9,7 @@ plain functions do not carry the ``name``/``asymmetric`` class-level
 attributes that the runtime-checkable Protocols declare.  The
 structural intent — that each metric satisfies exactly one Protocol
 shape — is captured by the shared ``satisfies_*`` predicates in
-:mod:`pyphi.metrics.protocols`, which the typed registries also use at
+:mod:`pyphi.measures.protocols`, which the typed registries also use at
 registration time.
 
 Protocol shapes:
@@ -24,11 +24,11 @@ from __future__ import annotations
 
 import pytest
 
-from pyphi.metrics import distribution
-from pyphi.metrics.protocols import satisfies_composite_measure
-from pyphi.metrics.protocols import satisfies_distribution_measure
-from pyphi.metrics.protocols import satisfies_state_aware_measure
-from pyphi.metrics.protocols import satisfies_stateful_distribution_measure
+from pyphi.measures import distribution
+from pyphi.measures.protocols import satisfies_composite_measure
+from pyphi.measures.protocols import satisfies_distribution_measure
+from pyphi.measures.protocols import satisfies_state_aware_measure
+from pyphi.measures.protocols import satisfies_stateful_distribution_measure
 
 # ---------------------------------------------------------------------------
 # Classification lists

@@ -3,7 +3,7 @@
 
 Defines the structural contracts that registered metrics, partition schemes,
 and phi formalisms must satisfy. The corresponding registries
-(the typed metric registries in :mod:`pyphi.metrics.distribution`,
+(the typed metric registries in :mod:`pyphi.measures.distribution`,
 ``pyphi.partition.partition_types``) validate registered objects against
 these Protocols at registration time, so wrong-shape registrations fail
 at import — not at the bottom of a long phi computation.
@@ -52,7 +52,7 @@ class DistanceMetric(Protocol):
 
     The minimum common contract is callability with positional repertoires
     and arbitrary keyword arguments. A unified, narrower signature is the
-    target of the metric-API refactor (see ``pyphi/metrics/distribution.py``
+    target of the metric-API refactor (see ``pyphi/measures/distribution.py``
     around ``repertoire_distance``); until that lands, this Protocol
     documents the minimum shape and the registry validates against it.
     """

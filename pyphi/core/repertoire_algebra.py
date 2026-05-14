@@ -32,12 +32,12 @@ from pyphi.data_structures import PyPhiFloat
 from pyphi.direction import Direction
 from pyphi.distribution import max_entropy_distribution
 from pyphi.distribution import repertoire_shape
-from pyphi.metrics.distribution import repertoire_distance as _repertoire_distance
-from pyphi.metrics.protocols import CompositeMeasure
-from pyphi.metrics.protocols import DistributionMeasure
-from pyphi.metrics.protocols import StateAwareMeasure
-from pyphi.metrics.protocols import StatefulDistributionMeasure
-from pyphi.metrics.protocols import satisfies_composite_measure
+from pyphi.measures.distribution import repertoire_distance as _repertoire_distance
+from pyphi.measures.protocols import CompositeMeasure
+from pyphi.measures.protocols import DistributionMeasure
+from pyphi.measures.protocols import StateAwareMeasure
+from pyphi.measures.protocols import StatefulDistributionMeasure
+from pyphi.measures.protocols import satisfies_composite_measure
 
 # One cache dict per memoized function name.
 _caches: dict[str, dict[tuple, Any]] = {}

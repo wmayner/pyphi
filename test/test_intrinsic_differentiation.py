@@ -1,7 +1,7 @@
 from pyphi import Direction
 from pyphi import config
 from pyphi.examples import EXAMPLES
-from pyphi.metrics.distribution import resolve_mechanism_measure
+from pyphi.measures.distribution import resolve_mechanism_measure
 
 
 def test_intrinsic_information():
