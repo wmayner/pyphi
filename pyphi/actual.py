@@ -1441,6 +1441,8 @@ def _evaluate_partition(
         after_state=transition.after_state,
         size=len(transition),
         node_indices=transition.node_indices,
+        cause_indices=transition.cause_indices,
+        effect_indices=transition.effect_indices,
         node_labels=transition.substrate.node_labels,
     )
 

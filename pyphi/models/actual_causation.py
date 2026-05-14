@@ -429,6 +429,8 @@ _ac_sia_attributes = [
     "after_state",
     "size",
     "node_indices",
+    "cause_indices",
+    "effect_indices",
     "node_labels",
 ]
 
@@ -467,6 +469,8 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
         after_state=None,
         size=None,
         node_indices=None,
+        cause_indices=None,
+        effect_indices=None,
         node_labels=None,
     ):
         self.alpha = alpha
@@ -478,6 +482,8 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
         self.after_state = after_state
         self.size = size
         self.node_indices = node_indices
+        self.cause_indices = cause_indices
+        self.effect_indices = effect_indices
         self.node_labels = node_labels
 
     def __repr__(self):
@@ -512,6 +518,8 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
                 self.after_state,
                 self.size,
                 self.node_indices,
+                self.cause_indices,
+                self.effect_indices,
             )
         )
 
@@ -533,5 +541,7 @@ def _null_ac_sia(transition, direction, alpha=0.0):
         after_state=transition.after_state,
         size=len(transition),
         node_indices=transition.node_indices,
+        cause_indices=transition.cause_indices,
+        effect_indices=transition.effect_indices,
         node_labels=transition.substrate.node_labels,
     )
