@@ -34,6 +34,7 @@ from pyphi.registry import Registry
 from . import conf
 from . import connectivity
 from . import exceptions
+from . import resolve_ties
 from . import utils
 from . import validate
 from .conf import config
@@ -1079,25 +1080,23 @@ class Transition:
                 self.mechanism_state(direction), direction, mechanism, purview
             )
 
-        alpha_min = float("inf")
         probability = self.probability(direction, mechanism, purview)
-        acria = None  # Initialize in case loop doesn't execute
-
+        candidates: list[AcRepertoireIrreducibilityAnalysis] = []
         for partition in mip_partitions(mechanism, purview, self.node_labels):
             partitioned_probability = self.partitioned_probability(
                 direction,
                 partition,
                 partitioned_repertoire_scheme=partitioned_repertoire_scheme,
             )
-
             alpha = probability_distance(
                 probability,
                 partitioned_probability,
                 alpha_measure=alpha_measure,
             )
-
-            # First check for 0
-            # Default: don't count contrary causes and effects
+            # Reducibility short-circuit: |alpha|=0 (or negative when
+            # disallowed) means the mechanism is reducible against this
+            # partition; no need to keep searching since min |alpha| can't
+            # go lower.
             if utils.eq(alpha, 0) or (alpha < 0 and not allow_neg):
                 return _null_ac_ria(
                     self.mechanism_state(direction),
@@ -1106,12 +1105,8 @@ class Transition:
                     purview,
                     partition,
                 )
-
-            # Then take closest to 0
-            # TODO(4.0)
-            if (abs(alpha_min) - abs(alpha)) > 10 ** (-config.numerics.precision):
-                alpha_min = alpha
-                acria = AcRepertoireIrreducibilityAnalysis(
+            candidates.append(
+                AcRepertoireIrreducibilityAnalysis(
                     state=self.mechanism_state(direction),
                     direction=direction,
                     mechanism=mechanism,
@@ -1120,9 +1115,17 @@ class Transition:
                     probability=probability,
                     partitioned_probability=partitioned_probability,
                     node_labels=self.node_labels,
-                    alpha=alpha_min,
+                    alpha=alpha,
                 )
-        return acria
+            )
+        if not candidates:
+            return None
+        context = resolve_ties.ResolutionContext(max_escalation_level="Determinism")
+        outcome = resolve_ties.resolve_ac_partition_tie(candidates, context=context)
+        winner = outcome.resolved
+        if winner is not None and len(outcome.tied_set) > 1:
+            winner.set_partition_ties(outcome.tied_set)
+        return winner
 
     # Phi_max methods
     # =========================================================================
@@ -1210,23 +1213,17 @@ class Transition:
             )
             for purview in purviews
         ]
-        # Filter out None values before finding max
-        valid_ria = [ria for ria in all_ria if ria is not None]
+        # Filter out None values and bail if no candidates have alpha > 0.
+        valid_ria = [ria for ria in all_ria if ria is not None and bool(ria)]
         if not valid_ria:
             return []
-        max_ria = max(valid_ria)
-        purviews = [ria.purview for ria in valid_ria if ria.alpha == max_ria.alpha]
-
-        # Selected rias whose purview is not a superset of any other
-        def is_not_superset(purview):
-            return all(
-                (not set(purview).issuperset(set(other_purview)))
-                or (set(purview) == set(other_purview))
-                for other_purview in purviews
-            )
-
-        extended_purview = filter(is_not_superset, purviews)
-        return CausalLink(max_ria, tuple(extended_purview))
+        context = resolve_ties.ResolutionContext(max_escalation_level="Determinism")
+        outcome = resolve_ties.resolve_ac_causal_link_tie(valid_ria, context=context)
+        winner = outcome.resolved
+        assert winner is not None, "AC causal-link cascade returned no winner"
+        extended_purview = tuple(r.purview for r in outcome.tied_set)
+        purview_ties = tuple(outcome.tied_set) if len(outcome.tied_set) > 1 else None
+        return CausalLink(winner, extended_purview, purview_ties=purview_ties)
 
     def find_actual_cause(self, mechanism, purviews=None, **kw):
         """Return the actual cause of a mechanism."""

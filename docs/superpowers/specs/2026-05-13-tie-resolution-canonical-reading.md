@@ -298,10 +298,12 @@ partition with minimum |α| wins; the paper does not specify a
 tie-break for ties within MIP search. Pragmatic rule: lex-canonical
 partition (matches IIT 4.0's `PARTITION_LEX` convention).
 
-**PyPhi current**: `pyphi/actual.py:1086-1125` strict precision
-comparison, no tie-set tracking. First-encountered wins on tie.
-Deterministic given `mip_partitions` iteration order, but no
-canonical key. **Gap** filled by routing through cascade in C.5.
+**PyPhi current** (post-C.5): `pyphi/actual.py::find_mip` routes
+through `resolve_ties.resolve_ac_partition_tie`. Step 1
+(Integration) is `argmin` over `abs(alpha)`; step 2 (Determinism)
+is `argmin` over `partition.lex_key()`. Reducibility short-circuit
+(`alpha == 0`) remains at the outer loop for efficiency. Tied
+AcRIAs are exposed via the new `AcRIA.partition_ties` accessor.
 
 **Cascade encoding**:
 ```
@@ -329,23 +331,26 @@ all tied minimal candidates.
 4. If multiple minimal occurrences (genuine indeterminism): return
    all as the tied set; the result is "undetermined".
 
-**PyPhi current**: `pyphi/actual.py:1217-1228` approximately
-correct:
-- `max(valid_ria)` via `order_by = [alpha, len(mechanism),
-  -len(purview)]` picks a representative.
-- Collects all purviews tied at max alpha.
-- Filters out strict supersets (`is_not_superset`).
-- Returns `CausalLink(max_ria, extended_purview)` with all minimal
-  purviews surfaced.
+**PyPhi current** (post-C.5): `pyphi/actual.py::find_causal_link`
+routes through `resolve_ties.resolve_ac_causal_link_tie`:
+- Cascade step 1 (Information): `argmax` over `alpha`.
+- Cascade step 2 (Exclusion): minimality filter
+  (`_ac_minimal_purviews`) drops strict-superset purviews.
+- Cascade step 3 (Determinism): when multiple minimal candidates
+  remain, lex-smallest purview is the representative; the full
+  minimal set is the canonical tied set.
+- `CausalLink.purview_ties` surfaces the tied AcRIA set as a
+  first-class accessor; `extended_purview` still exposes purviews
+  for backward compatibility.
 
-**Two issues with current**:
-1. `len(mechanism)` not negated in `order_by` → larger mechanism wins
-   on tie. The paper's minimality says **smaller** mechanism wins.
-   This is a minor bug: comparing AC RIAs across different
-   mechanisms should favor smaller. Fix: negate `len(mechanism)`.
-2. The representative `max_ria` doesn't carry the tie-set as a
-   first-class value; consumers see `extended_purview` only.
-   Cascade should surface the tied set explicitly via `set_ties`.
+**Honest assessment of the pre-cascade implementation**: the previous
+code used `order_by = [alpha, len(mechanism), -len(purview)]` plus
+the `is_not_superset` filter. Within a single `find_causal_link`
+call every AcRIA shares the same input mechanism, so the
+`len(mechanism)` secondary key never actually fires; no codepath
+in pyphi maxes AcRIAs across mechanisms. The key was vestigial,
+not paper-violating. The cascade migration drops it as part of
+unifying with the cascade primitive — clean-up, not a bug fix.
 
 **Cascade encoding**:
 ```
@@ -463,8 +468,8 @@ CascadeOutcome = {
 | Substrate exclusion | §6 | `complexes` substrate.py:513-541 | C.2 |
 | Distinction state | §7 | `resolve_congruence` distinction.py:199-225 | C.3 |
 | Clamp interaction | §8 | `__post_init__` iit4/__init__.py:142-172 | OK |
-| AC find_mip | §9 | actual.py:1086-1125 | C.5 |
-| AC find_causal_link | §10 | actual.py:1217-1228 | C.5 |
+| AC find_mip | §9 | `find_mip` actual.py | OK (C.5) |
+| AC find_causal_link | §10 | `find_causal_link` actual.py | OK (C.5) |
 | Tie serialization | §12 | warn_about_tie_serialization warnings.py | C.7 |
 
 ## Paper references

@@ -1,8 +1,12 @@
 # models/actual_causation.py
 """Objects that represent structures used in actual causation."""
 
+from __future__ import annotations
+
+import contextvars
 from collections import namedtuple
 from collections.abc import Sequence
+from typing import Any
 from typing import ClassVar
 
 from pyphi import utils
@@ -10,6 +14,10 @@ from pyphi.direction import Direction
 
 from . import cmp
 from . import fmt
+
+_SERIALIZING_AS_TIE_PEER: contextvars.ContextVar[bool] = contextvars.ContextVar(
+    "ac_serializing_as_tie_peer", default=False
+)
 
 # TODO(slipperyhank): add second state
 _acria_attributes = [
@@ -91,8 +99,32 @@ class AcRepertoireIrreducibilityAnalysis(cmp.Orderable):
         self.probability = probability
         self.partitioned_probability = partitioned_probability
         self.node_labels = node_labels
+        self._partition_ties: tuple[AcRepertoireIrreducibilityAnalysis, ...] | None = (
+            None
+        )
 
     __slots__ = ()
+
+    @property
+    def partition_ties(
+        self,
+    ) -> tuple[AcRepertoireIrreducibilityAnalysis, ...] | None:
+        """Tuple of AcRIAs tied with this one at the cascade's min |alpha|
+        level over the MIP search, or ``None`` if no tie."""
+        return self._partition_ties
+
+    def set_partition_ties(
+        self, ties: Sequence[AcRepertoireIrreducibilityAnalysis] | None
+    ) -> None:
+        """Attach a tied AcRIA set to this analysis. The tied set is
+        shared by reference among peers; each tied member exposes the
+        same tuple via ``.partition_ties``."""
+        if ties is None or len(tuple(ties)) <= 1:
+            self._partition_ties = None
+            return
+        tied = tuple(ties)
+        for member in tied:
+            member._partition_ties = tied
 
     unorderable_unless_eq: ClassVar[list[str]] = ["direction"]
 
@@ -121,7 +153,35 @@ class AcRepertoireIrreducibilityAnalysis(cmp.Orderable):
 
     def to_json(self):
         """Return a JSON-serializable representation."""
-        return {attr: getattr(self, attr) for attr in _acria_attributes}
+        dct: dict[str, Any] = {attr: getattr(self, attr) for attr in _acria_attributes}
+        if _SERIALIZING_AS_TIE_PEER.get():
+            return dct
+        if self._partition_ties is None:
+            return dct
+        partition_peers = tuple(t for t in self._partition_ties if t is not self)
+        if not partition_peers:
+            return dct
+        from pyphi.jsonify import jsonify
+
+        token = _SERIALIZING_AS_TIE_PEER.set(True)
+        try:
+            dct["_partition_tie_peers"] = [jsonify(p.to_json()) for p in partition_peers]
+        finally:
+            _SERIALIZING_AS_TIE_PEER.reset(token)
+        return dct
+
+    @classmethod
+    def from_json(cls, data):
+        """Reconstruct an AcRIA, restoring tied peer set when present."""
+        partition_peers_raw: Any = data.pop("_partition_tie_peers", ())
+        partition_peers = tuple(cls(**dict(p)) for p in partition_peers_raw)
+        instance = cls(**data)
+        if partition_peers:
+            tied = (instance, *partition_peers)
+            instance._partition_ties = tied
+            for peer in partition_peers:
+                peer._partition_ties = tied
+        return instance
 
     def __repr__(self):
         return fmt.make_repr(self, _acria_attributes)
@@ -152,10 +212,21 @@ class CausalLink(cmp.Orderable):
     up to |PRECISION|, the size of the mechanism is compared.
     """
 
-    def __init__(self, ria, extended_purview=None):
+    def __init__(
+        self,
+        ria,
+        extended_purview=None,
+        *,
+        purview_ties: Sequence[AcRepertoireIrreducibilityAnalysis] | None = None,
+    ):
         self._ria = ria
         self._extended_purview = (
             tuple(extended_purview) if extended_purview is not None else None
+        )
+        self._purview_ties: tuple[AcRepertoireIrreducibilityAnalysis, ...] | None = (
+            tuple(purview_ties)
+            if purview_ties is not None and len(tuple(purview_ties)) > 1
+            else None
         )
 
     @property
@@ -199,6 +270,17 @@ class CausalLink(cmp.Orderable):
         return self._extended_purview
 
     @property
+    def purview_ties(
+        self,
+    ) -> tuple[AcRepertoireIrreducibilityAnalysis, ...] | None:
+        """Tuple of tied :class:`AcRepertoireIrreducibilityAnalysis`
+        instances under symmetric over-determination — minimal candidates
+        sharing alpha_max with non-comparable purviews (Albantakis et al.
+        2019, Definition 1 outcome 2). ``None`` when the actual cause
+        is unique."""
+        return self._purview_ties
+
+    @property
     def ria(self):
         """AcRepertoireIrreducibilityAnalysis: The irreducibility analysis for
         this mechanism.
@@ -234,7 +316,32 @@ class CausalLink(cmp.Orderable):
 
     def to_json(self):
         """Return a JSON-serializable representation."""
-        return {"ria": self.ria}
+        dct: dict[str, Any] = {
+            "ria": self.ria,
+            "extended_purview": self._extended_purview,
+        }
+        if self._purview_ties is not None:
+            from pyphi.jsonify import jsonify
+
+            token = _SERIALIZING_AS_TIE_PEER.set(True)
+            try:
+                dct["_purview_tie_peers"] = [
+                    jsonify(p.to_json()) for p in self._purview_ties
+                ]
+            finally:
+                _SERIALIZING_AS_TIE_PEER.reset(token)
+        return dct
+
+    @classmethod
+    def from_json(cls, data):
+        """Reconstruct a CausalLink, restoring the tied purview set."""
+        peers_raw: Any = data.pop("_purview_tie_peers", ())
+        peers = tuple(AcRepertoireIrreducibilityAnalysis(**dict(p)) for p in peers_raw)
+        return cls(
+            ria=data["ria"],
+            extended_purview=data.get("extended_purview"),
+            purview_ties=peers if peers else None,
+        )
 
 
 class Event(namedtuple("Event", ["actual_cause", "actual_effect"])):
@@ -277,7 +384,7 @@ class Account(cmp.Orderable, Sequence):
     def __hash__(self):
         return hash(self.causal_links)
 
-    def __add__(self, other: object) -> "Account":
+    def __add__(self, other: object) -> Account:
         if not isinstance(other, Account):
             return NotImplemented
         return self.__class__(self.causal_links + other.causal_links)

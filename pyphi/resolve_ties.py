@@ -377,6 +377,119 @@ def resolve_distinction_tie[V: _CongruentMice](
     return None
 
 
+class _AcRIALike(Protocol):
+    """Structural type for an AC repertoire-irreducibility analysis."""
+
+    @property
+    def alpha(self) -> float: ...
+
+    @property
+    def purview(self) -> Sequence[int]: ...
+
+    @property
+    def partition(self) -> Any: ...
+
+
+def resolve_ac_partition_tie[V: _AcRIALike](
+    rias: "Iterable[V]",
+    *,
+    context: ResolutionContext,
+    on_unresolved: OnUnresolved = "defer",
+) -> CascadeOutcome[V]:
+    """Resolve a tie among per-partition AcRIAs at min ``|alpha|``.
+
+    The 2019 AC paper defines the MIP as ``argmin over partitions of
+    (rho - rho_psi)``; tie-break behavior at this level is unspecified by the
+    paper. The cascade walks Integration (argmin ``|alpha|``) and falls
+    through to a pyphi-specific Determinism level (lex-canonical
+    partition) so identical-alpha partitions resolve reproducibly across
+    iteration orderings.
+    """
+    return cascade(
+        rias,
+        levels=[
+            CascadeLevel(
+                postulate="Integration",
+                op="argmin",
+                key=lambda r: abs(r.alpha),
+            ),
+            CascadeLevel(
+                postulate="Determinism",
+                op="argmin",
+                key=lambda r: r.partition.lex_key(),
+            ),
+        ],
+        context=context,
+        on_unresolved=on_unresolved,
+    )
+
+
+def _ac_minimal_purviews[V: _AcRIALike](rias: "Sequence[V]") -> tuple[V, ...]:
+    """Filter to minimal-purview AcRIAs — drop strict supersets.
+
+    Implements the Exclusion postulate's minimality condition from
+    Albantakis et al. 2019 (Definition 1 condition 2 / "AC3" clause):
+    among candidates tied at alpha_max, an actual cause cannot contain
+    another tied candidate as a strict subset.
+    """
+    purview_sets = [set(r.purview) for r in rias]
+    keep = []
+    for i, r in enumerate(rias):
+        p_i = purview_sets[i]
+        is_strict_superset_of_any = any(
+            p_i > p_j for j, p_j in enumerate(purview_sets) if i != j
+        )
+        if not is_strict_superset_of_any:
+            keep.append(r)
+    return tuple(keep)
+
+
+def resolve_ac_causal_link_tie[V: _AcRIALike](
+    rias: "Iterable[V]",
+    *,
+    context: ResolutionContext,  # noqa: ARG001
+) -> CascadeOutcome[V]:
+    """Resolve a causal-link tie per the 2019 AC paper Definition 1.
+
+    Three-step cascade:
+
+    1. **Information**: ``argmax`` over ``alpha`` selects candidates at
+       ``alpha_max``.
+    2. **Exclusion**: minimality filter drops any candidate whose
+       purview is a strict superset of another tied candidate's — no
+       actual cause contains another actual cause as a strict subset.
+    3. **Determinism** (pyphi canonicalization): when multiple minimal
+       candidates remain (genuine symmetric over-determination per
+       Def. 1 outcome 2), pick the lex-smallest purview as the
+       representative; the full minimal set is the tied set.
+
+    A surviving tied set of size > 1 signals an "indeterminate" actual
+    cause in paper terms; the cascade outcome is
+    ``UNRESOLVED_WITHIN_BUDGET`` with ``tied_set`` carrying every
+    minimal candidate.
+    """
+    survivors = tuple(rias)
+    if not survivors:
+        raise ValueError("resolve_ac_causal_link_tie requires at least one AcRIA")
+    max_alpha = max(r.alpha for r in survivors)
+    info_tied = tuple(r for r in survivors if r.alpha == max_alpha)
+    minimal = _ac_minimal_purviews(info_tied)
+    if len(minimal) == 1:
+        return CascadeOutcome(
+            resolved=minimal[0],
+            tied_set=minimal,
+            cascade_level="Information",
+            outcome="RESOLVED",
+        )
+    representative = min(minimal, key=lambda r: tuple(sorted(r.purview)))
+    return CascadeOutcome(
+        resolved=representative,
+        tied_set=minimal,
+        cascade_level="Exclusion",
+        outcome="UNRESOLVED_WITHIN_BUDGET",
+    )
+
+
 def resolve_state_tie[K, V: _StateMIP](
     per_state_mips: "Mapping[K, V]",
     *,
