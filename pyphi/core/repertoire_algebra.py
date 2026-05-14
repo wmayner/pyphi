@@ -37,6 +37,7 @@ from pyphi.metrics.protocols import CompositeMeasure
 from pyphi.metrics.protocols import DistributionMeasure
 from pyphi.metrics.protocols import StateAwareMeasure
 from pyphi.metrics.protocols import StatefulDistributionMeasure
+from pyphi.metrics.protocols import satisfies_composite_measure
 
 # One cache dict per memoized function name.
 _caches: dict[str, dict[tuple, Any]] = {}
@@ -296,16 +297,13 @@ def partitioned_repertoire(
 ) -> Any:
     """Compute the repertoire of a partitioned mechanism and purview.
 
-    Routes to the state-aware path (forward probabilities + product of
-    scalars) when ``mechanism_measure`` is GID/II; otherwise returns the
-    product of the per-part repertoires. ``mechanism_measure`` is a
-    Protocol-typed measure callable passed explicitly by the caller (no
-    config fallback); the GID/II routing keys off ``mechanism_measure.name``.
+    For composite measures (multi-argument signature consuming forward,
+    partitioned, and selectivity repertoires at a specific state), the
+    result is a scalar product of forward probabilities evaluated at the
+    purview state. For other measure shapes, the result is the product
+    of per-part repertoires as a distribution.
     """
-    if mechanism_measure.name in (
-        "GENERALIZED_INTRINSIC_DIFFERENCE",
-        "INTRINSIC_INFORMATION",
-    ):
+    if satisfies_composite_measure(mechanism_measure):
         if "state" not in kwargs:
             raise ValueError(
                 f"must provide purview state for repertoire distance "
@@ -536,10 +534,8 @@ def intrinsic_information(
 ) -> Any:
     """Compute intrinsic information and the maximally specified state.
 
-    ``specification_measure`` is a Protocol-typed measure callable used to
-    score candidate purview states; passed explicitly by the caller (no
-    config fallback). Composite measures (GID / INTRINSIC_INFORMATION /
-    INTRINSIC_SPECIFICATION) take the multi-argument path; other shapes
+    Composite measures take the multi-argument path (forward, partitioned,
+    selectivity repertoires evaluated at a state); other measure shapes
     fall through to :func:`repertoire_distance`.
     """
     from pyphi.models.state_specification import StateSpecification
@@ -547,14 +543,7 @@ def intrinsic_information(
     if states is None:
         states = _utils.all_states(len(purview))
 
-    if specification_measure.name in (
-        "GENERALIZED_INTRINSIC_DIFFERENCE",
-        "INTRINSIC_INFORMATION",
-        "INTRINSIC_SPECIFICATION",
-    ):
-        # ``specification_measure`` is one of the composite measures named
-        # above; cast to that Protocol so pyright sees the 3-argument
-        # composite shape rather than the wider union.
+    if satisfies_composite_measure(specification_measure):
         from typing import cast
 
         composite = cast(CompositeMeasure, specification_measure)

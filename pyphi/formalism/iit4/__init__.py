@@ -37,6 +37,7 @@ from pyphi.metrics.protocols import CompositeMeasure
 from pyphi.metrics.protocols import DistributionMeasure
 from pyphi.metrics.protocols import StateAwareMeasure
 from pyphi.metrics.protocols import StatefulDistributionMeasure
+from pyphi.metrics.protocols import satisfies_composite_measure
 from pyphi.models import cmp
 from pyphi.models import fmt
 from pyphi.models.ces import CauseEffectStructure
@@ -415,10 +416,7 @@ def _integration_value_for_state(
 ) -> RepertoireIrreducibilityAnalysis:
     """Compute the integration value for a single specified state."""
     mechanism = purview = system.node_indices
-    if repertoire_distance.name in (
-        "GENERALIZED_INTRINSIC_DIFFERENCE",
-        "INTRINSIC_INFORMATION",
-    ):
+    if satisfies_composite_measure(repertoire_distance):
         partitioned_repertoire = cut_system.forward_repertoire(
             direction,
             mechanism,
@@ -502,9 +500,9 @@ def evaluate_partition(
 
     ``system_measure`` is a Protocol-typed composite measure used at the
     system level; passed explicitly by the caller (no config fallback).
-    Under ``INTRINSIC_INFORMATION``, partition integration is computed
-    with GID, then the ``ii(s)`` cap (Eq. 23) is applied below; the
-    cap branch keys off ``system_measure.name``.
+    Partition integration uses ``system_measure.partition_measure`` if
+    set (otherwise ``system_measure`` itself), and the ``ii(s)`` cap
+    (Eq. 23) is applied when ``system_measure.applies_ii_cap`` is True.
     """
     directions = fallback(directions, Direction.both())
     if directions is None:
@@ -512,16 +510,12 @@ def evaluate_partition(
     directions = tuple(directions)
     validate.directions(directions)
 
-    # Eqs. 19-20: system-level partition integration uses GID only.
-    # The ii(s) cap (Eq. 23) is applied separately below.
-    if system_measure.name == "INTRINSIC_INFORMATION":
-        from pyphi.metrics.distribution import resolve_system_measure
-
-        partition_distance: CompositeMeasure = resolve_system_measure(
-            "GENERALIZED_INTRINSIC_DIFFERENCE"
-        )
-    else:
-        partition_distance = system_measure
+    # Eqs. 19-20: partition integration uses the composite measure's
+    # ``partition_measure`` (GID for II; self for GID). The ii(s) cap
+    # (Eq. 23) is applied separately below.
+    partition_distance: CompositeMeasure = (
+        system_measure.partition_measure or system_measure
+    )
 
     integration = {
         direction: integration_value(
@@ -555,7 +549,7 @@ def evaluate_partition(
     # Clamp the cap components via the |·|+ operator (Eqs. 19-20); the
     # result still flows through ``signed_phi`` so the clamp at SIA
     # construction yields the right canonical value.
-    if system_measure.name == "INTRINSIC_INFORMATION":
+    if system_measure.applies_ii_cap:
         for direction in directions:
             i_spec = utils.positive_part(system_state[direction].intrinsic_information)
             i_diff = utils.positive_part(intrinsic_differentiation[direction])

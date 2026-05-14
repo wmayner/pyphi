@@ -40,7 +40,6 @@ class IITConfig:
     mechanism_phi_measure: str = "GENERALIZED_INTRINSIC_DIFFERENCE"
     system_phi_measure: str = "GENERALIZED_INTRINSIC_DIFFERENCE"
     specification_measure: str = "GENERALIZED_INTRINSIC_DIFFERENCE"
-    differentiation_measure: str = "INTRINSIC_DIFFERENTIATION"
     ces_measure: str = "SUM_SMALL_PHI"
     mechanism_partition_scheme: str = "ALL"
     system_partition_scheme: str = "SET_UNI/BI"

@@ -131,3 +131,51 @@ def test_stateful_distribution_metric_satisfies_protocol(name: str) -> None:
     assert not satisfies_composite_measure(metric), (
         f"{name!r} unexpectedly satisfies CompositeMeasure"
     )
+
+
+# ---------------------------------------------------------------------------
+# Structural-attribute tests
+#
+# Composite measures carry attributes that drive dispatch in
+# ``pyphi.formalism.iit4`` and ``pyphi.core.repertoire_algebra``, replacing
+# string comparisons on ``measure.name``:
+#
+#   - ``applies_ii_cap``: True only for INTRINSIC_INFORMATION (Eq. 23 cap).
+#   - ``partition_measure``: the measure used at partition level (II swaps
+#     to GID; GID uses itself, encoded as ``None``).
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("name", COMPOSITE_METRICS)
+def test_composite_measure_has_applies_ii_cap_attribute(name: str) -> None:
+    metric = distribution.composite_measures[name]
+    assert hasattr(metric, "applies_ii_cap"), (
+        f"{name!r} composite measure missing ``applies_ii_cap`` attribute"
+    )
+    assert isinstance(metric.applies_ii_cap, bool)
+
+
+@pytest.mark.parametrize("name", COMPOSITE_METRICS)
+def test_composite_measure_has_partition_measure_attribute(name: str) -> None:
+    metric = distribution.composite_measures[name]
+    assert hasattr(metric, "partition_measure"), (
+        f"{name!r} composite measure missing ``partition_measure`` attribute"
+    )
+
+
+def test_only_intrinsic_information_applies_cap() -> None:
+    ii = distribution.composite_measures["INTRINSIC_INFORMATION"]
+    gid = distribution.composite_measures["GENERALIZED_INTRINSIC_DIFFERENCE"]
+    assert ii.applies_ii_cap is True
+    assert gid.applies_ii_cap is False
+
+
+def test_intrinsic_information_partition_measure_is_gid() -> None:
+    ii = distribution.composite_measures["INTRINSIC_INFORMATION"]
+    gid = distribution.composite_measures["GENERALIZED_INTRINSIC_DIFFERENCE"]
+    assert ii.partition_measure is gid
+
+
+def test_generalized_intrinsic_difference_partition_measure_is_none() -> None:
+    gid = distribution.composite_measures["GENERALIZED_INTRINSIC_DIFFERENCE"]
+    assert gid.partition_measure is None

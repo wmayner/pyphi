@@ -362,7 +362,11 @@ class CompositeMeasureRegistry(Registry):
     desc = "composite measures"
 
     def register(  # type: ignore[override]
-        self, name: str, asymmetric: bool = False
+        self,
+        name: str,
+        asymmetric: bool = False,
+        applies_ii_cap: bool = False,
+        partition_measure: Callable[..., Any] | None = None,
     ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
         """Decorator for registering a :class:`CompositeMeasure`.
 
@@ -370,8 +374,12 @@ class CompositeMeasureRegistry(Registry):
             name: The name of the measure.
 
         Keyword Args:
-            asymmetric: ``True`` if the measure is asymmetric. Stored as
-                an attribute on the function.
+            asymmetric: ``True`` if the measure is asymmetric.
+            applies_ii_cap: ``True`` if the measure carries the Eq. 23
+                ``ii(s)`` cap (``INTRINSIC_INFORMATION`` only).
+            partition_measure: The composite measure used to score
+                partitions when this measure is the system measure;
+                ``None`` means "use self".
         """
 
         def register_func(func: Callable[..., Any]) -> Callable[..., Any]:
@@ -384,6 +392,8 @@ class CompositeMeasureRegistry(Registry):
                 )
             func.name = name  # type: ignore[attr-defined]
             func.asymmetric = asymmetric  # type: ignore[attr-defined]
+            func.applies_ii_cap = applies_ii_cap  # type: ignore[attr-defined]
+            func.partition_measure = partition_measure  # type: ignore[attr-defined]
             self.store[name] = func
             return func
 
@@ -1040,24 +1050,25 @@ def intrinsic_differentiation(p, state):
     )
 
 
-@composite_measures.register("INTRINSIC_INFORMATION", asymmetric=True)
+@composite_measures.register(
+    "INTRINSIC_INFORMATION",
+    asymmetric=True,
+    applies_ii_cap=True,
+    partition_measure=generalized_intrinsic_difference,
+)
 def intrinsic_information(
     forward_repertoire,
     partitioned_forward_repertoire,
     selectivity_repertoire,
     state=None,
 ):
-    iit_cfg = config.formalism.iit
-    specification_func = composite_measures[iit_cfg.specification_measure]
-    differentiation_func = state_aware_measures[iit_cfg.differentiation_measure]
-
-    specification = specification_func(
+    specification = generalized_intrinsic_difference(
         forward_repertoire,
         partitioned_forward_repertoire,
         selectivity_repertoire,
         state=state,
     )
-    differentiation = differentiation_func(forward_repertoire, state=state)
+    differentiation = intrinsic_differentiation(forward_repertoire, state=state)
     # Assumes single value at this point; state selection delegated to sub-functions.
     if not np.isscalar(specification) or not np.isscalar(differentiation):
         return np.minimum(specification, differentiation)

@@ -64,9 +64,21 @@ class StateAwareMeasure(Protocol):
 
 @runtime_checkable
 class CompositeMeasure(Protocol):
-    """Multi-input measure returning DistanceResult metadata."""
+    """Multi-input measure returning DistanceResult metadata.
+
+    ``applies_ii_cap`` is True only for ``INTRINSIC_INFORMATION``; it
+    gates the Eq. 23 cap ``φ_s = min(φ_c, φ_e, ii(s))``.
+
+    ``partition_measure`` names the measure used to score partitions
+    when this composite is the system measure. ``None`` means
+    "use self"; ``INTRINSIC_INFORMATION`` sets it to GID so that
+    partition integration is computed with GID and the cap is layered
+    on top.
+    """
 
     name: str
+    applies_ii_cap: bool
+    partition_measure: CompositeMeasure | None
 
     def __call__(
         self,

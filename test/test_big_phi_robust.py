@@ -407,7 +407,6 @@ class TestEq23IntrinsicInformationCap:
     II_CONFIG: ClassVar[dict[str, str]] = {
         "system_phi_measure": "INTRINSIC_INFORMATION",
         "specification_measure": "INTRINSIC_SPECIFICATION",
-        "differentiation_measure": "INTRINSIC_DIFFERENTIATION",
     }
 
     @staticmethod
@@ -545,7 +544,6 @@ class TestPaperExamples:
     II_CONFIG: ClassVar[dict[str, str]] = {
         "system_phi_measure": "INTRINSIC_INFORMATION",
         "specification_measure": "INTRINSIC_SPECIFICATION",
-        "differentiation_measure": "INTRINSIC_DIFFERENTIATION",
     }
 
     @staticmethod
