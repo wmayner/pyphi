@@ -237,19 +237,56 @@ def _and_xor_system() -> System:
     return System(example_substrates.and_xor_substrate(), (0, 1))
 
 
-def _run_sia_n_times(system: System, n: int, parallel: bool) -> list:
-    with config.override(parallel=parallel):
-        return [system.sia() for _ in range(n)]
+def _force_loky_parallel() -> dict:
+    """Override that forces every parallel evaluation path through loky.
+
+    Each per-site ``parallel_*_evaluation`` dict carries
+    ``parallel: False`` by default, gated on by ``infrastructure.parallel``
+    as a global switch. To actually engage loky on small substrates we
+    enable each per-site flag *and* drop ``sequential_threshold`` to 1
+    so candidate batches below the normal threshold still dispatch
+    through ``MapReduce``.
+    """
+    from pyphi.conf import config as _cfg
+
+    forced = {"parallel": True, "sequential_threshold": 1}
+    return {
+        "parallel": True,
+        "parallel_complex_evaluation": {
+            **_cfg.infrastructure.parallel_complex_evaluation,
+            **forced,
+        },
+        "parallel_partition_evaluation": {
+            **_cfg.infrastructure.parallel_partition_evaluation,
+            **forced,
+        },
+        "parallel_concept_evaluation": {
+            **_cfg.infrastructure.parallel_concept_evaluation,
+            **forced,
+        },
+        "parallel_purview_evaluation": {
+            **_cfg.infrastructure.parallel_purview_evaluation,
+            **forced,
+        },
+        "parallel_mechanism_partition_evaluation": {
+            **_cfg.infrastructure.parallel_mechanism_partition_evaluation,
+            **forced,
+        },
+        "parallel_relation_evaluation": {
+            **_cfg.infrastructure.parallel_relation_evaluation,
+            **forced,
+        },
+    }
 
 
 class TestStateTieStressDeterminism:
     """Repeated invocations of ``sia()`` on a substrate with state ties
-    produce identical results. Exercises the state-tie cascade hot path
-    under both sequential and parallel execution."""
+    produce identical results. Catches dict/set ordering and shared-state
+    mutations on the cascade hot path."""
 
-    @pytest.mark.slow
     def test_and_xor_sequential_stress(self):
-        results = _run_sia_n_times(_and_xor_system(), n=50, parallel=False)
+        with config.override(parallel=False):
+            results = [_and_xor_system().sia() for _ in range(50)]
         baseline = results[0]
         for idx, r in enumerate(results[1:], start=1):
             assert r == baseline, (
@@ -259,18 +296,31 @@ class TestStateTieStressDeterminism:
             )
 
     @pytest.mark.slow
-    def test_and_xor_parallel_stress(self):
-        results = _run_sia_n_times(_and_xor_system(), n=50, parallel=True)
+    def test_and_xor_parallel_stress_under_loky(self):
+        """50 iterations with every parallel path forced through loky.
+
+        Slow-gated because loky worker spinup dominates the runtime;
+        the goal is to surface cross-process nondeterminism (cloudpickle
+        rehydration order, ``ProcessPoolExecutor`` future-completion
+        order) that the sequential test cannot catch.
+        """
+        with config.override(**_force_loky_parallel()):
+            results = [_and_xor_system().sia() for _ in range(50)]
         baseline = results[0]
         for idx, r in enumerate(results[1:], start=1):
             assert r == baseline, (
-                f"Iteration {idx} (parallel) diverged from baseline:\n"
+                f"Iteration {idx} (parallel/loky) diverged from baseline:\n"
                 f"  baseline phi={baseline.phi}\n"
                 f"  iteration phi={r.phi}"
             )
 
-    def test_and_xor_sequential_equals_parallel(self):
-        seq = _run_sia_n_times(_and_xor_system(), n=1, parallel=False)[0]
-        par = _run_sia_n_times(_and_xor_system(), n=1, parallel=True)[0]
+    def test_and_xor_sequential_equals_parallel_default(self):
+        """At default thresholds AND-XOR collapses to sequential under
+        ``parallel=True``; this guards against any future regression
+        where the two paths diverge on a small substrate."""
+        with config.override(parallel=False):
+            seq = _and_xor_system().sia()
+        with config.override(parallel=True):
+            par = _and_xor_system().sia()
         assert seq == par
         assert seq.phi == par.phi
