@@ -15,6 +15,12 @@ from . import example_substrates
 # Test data may be generated with different pyphi versions than what CI derives
 pyphi.config.validate_json_version = False
 
+# Suppress tqdm progress bars in test output. The global gate cascades
+# to every ``parallel_*_evaluation`` per-site ``progress`` flag (see
+# ``pyphi.conf._helpers.parallel_kwargs``), so this single switch covers
+# all parallel and sequential progress chrome at once.
+pyphi.config.progress_bars = False
+
 
 # IIT Version Configuration Overrides
 # =============================================================================
