@@ -8,12 +8,14 @@ classes wrapping these algorithms live in :mod:`pyphi.formalism.iit4.formalism`.
 
 from __future__ import annotations
 
+import contextvars
 from collections.abc import Iterable
 from dataclasses import dataclass
 from dataclasses import replace
 from enum import Enum
 from enum import auto
 from enum import unique
+from typing import Any
 from typing import ClassVar
 
 from pyphi import conf
@@ -52,7 +54,10 @@ from pyphi.relations import ConcreteRelations
 from pyphi.relations import Relations
 from pyphi.relations import relations as compute_relations
 from pyphi.system import System
-from pyphi.warnings import warn_about_tie_serialization
+
+_SERIALIZING_AS_TIE_PEER: contextvars.ContextVar[bool] = contextvars.ContextVar(
+    "sia_serializing_as_tie_peer", default=False
+)
 
 ##############################################################################
 # Information
@@ -304,12 +309,34 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
         return fmt.box(body)
 
     def to_json(self):
-        warn_about_tie_serialization(self.__class__.__name__, serialize=True)
         dct = self.__dict__.copy()
-        # TODO(ties) implement serialization of ties
-        # Remove ties because of circular references (if present)
         dct.pop("_ties", None)
+        if _SERIALIZING_AS_TIE_PEER.get():
+            return dct
+        peers = tuple(t for t in self.ties if t is not self)
+        if peers:
+            from pyphi.jsonify import jsonify
+
+            token = _SERIALIZING_AS_TIE_PEER.set(True)
+            try:
+                dct["_tie_peers"] = [jsonify(p.to_json()) for p in peers]
+            finally:
+                _SERIALIZING_AS_TIE_PEER.reset(token)
         return dct
+
+    @classmethod
+    def from_json(cls, dct):
+        peers_raw: Any = dct.pop("_tie_peers", ())
+        peers: tuple[SystemIrreducibilityAnalysis, ...] = tuple(
+            cls(**dict(p)) for p in peers_raw
+        )
+        instance = cls(**dct)
+        if peers:
+            tied: list[SystemIrreducibilityAnalysis] = [instance, *peers]
+            instance._ties = tied
+            for peer in peers:
+                peer._ties = tied
+        return instance
 
 
 class NullSystemIrreducibilityAnalysis(SystemIrreducibilityAnalysis):

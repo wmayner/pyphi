@@ -13,6 +13,7 @@ short-circuiting.
 
 from __future__ import annotations
 
+import contextvars
 from enum import Enum
 from enum import auto
 from enum import unique as unique_enum
@@ -30,7 +31,6 @@ from pyphi.data_structures import PyPhiFloat
 from pyphi.direction import Direction
 from pyphi.metrics.distribution import DistanceResult
 from pyphi.models.partitions import JointPartition
-from pyphi.warnings import warn_about_tie_serialization
 
 from . import cmp
 from . import fmt
@@ -39,6 +39,10 @@ from .pandas import ToPandasMixin
 from .state_specification import StateSpecification
 from .state_specification import UnitState
 from .state_specification import normalization_factor
+
+_SERIALIZING_AS_TIE_PEER: contextvars.ContextVar[bool] = contextvars.ContextVar(
+    "ria_serializing_as_tie_peer", default=False
+)
 
 if TYPE_CHECKING:
     from pyphi.labels import NodeLabels
@@ -451,21 +455,57 @@ class RepertoireIrreducibilityAnalysis(
     _dict_attrs = _ria_dict_attrs
 
     def to_json(self):
-        # TODO(ties) implement serialization of ties
-        warn_about_tie_serialization(self.__class__.__name__, serialize=True)
-        return {
+        dct = {
             attr: getattr(self, attr)
             for attr in self._dict_attrs
             if attr not in {"mechanism_label", "purview_label"}
         }
+        if _SERIALIZING_AS_TIE_PEER.get():
+            return dct
+        partition_peers = tuple(t for t in self._partition_ties if t is not self)
+        state_peers = tuple(t for t in self._state_ties if t is not self)
+        if partition_peers or state_peers:
+            from pyphi.jsonify import jsonify
+
+            token = _SERIALIZING_AS_TIE_PEER.set(True)
+            try:
+                if partition_peers:
+                    dct["_partition_tie_peers"] = [
+                        jsonify(p.to_json()) for p in partition_peers
+                    ]
+                if state_peers:
+                    dct["_state_tie_peers"] = [jsonify(p.to_json()) for p in state_peers]
+            finally:
+                _SERIALIZING_AS_TIE_PEER.reset(token)
+        return dct
 
     @classmethod
     def from_json(cls, data):
-        # TODO(ties) implement serialization of ties
-        warn_about_tie_serialization(cls.__name__, deserialize=True)
+        partition_peers_raw: Any = data.pop("_partition_tie_peers", ())
+        state_peers_raw: Any = data.pop("_state_tie_peers", ())
+        partition_peers: tuple[RepertoireIrreducibilityAnalysis, ...] = tuple(
+            cls(**dict(p)) for p in partition_peers_raw
+        )
+        state_peers: tuple[RepertoireIrreducibilityAnalysis, ...] = tuple(
+            cls(**dict(p)) for p in state_peers_raw
+        )
         instance = cls(**data)
-        instance._partition_ties = (instance,)
-        instance._state_ties = (instance,)
+        if partition_peers:
+            partition_tied: tuple[RepertoireIrreducibilityAnalysis, ...] = (
+                instance,
+                *partition_peers,
+            )
+            instance._partition_ties = partition_tied
+            for peer in partition_peers:
+                peer._partition_ties = partition_tied
+        if state_peers:
+            state_tied: tuple[RepertoireIrreducibilityAnalysis, ...] = (
+                instance,
+                *state_peers,
+            )
+            instance._state_ties = state_tied
+            for peer in state_peers:
+                peer._state_ties = state_tied
         return instance
 
 

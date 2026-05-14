@@ -10,6 +10,7 @@ of a node (without a state value).
 
 from __future__ import annotations
 
+import contextvars
 from collections.abc import Iterable
 from dataclasses import dataclass
 from functools import total_ordering
@@ -23,12 +24,15 @@ from pyphi.data_structures import PyPhiFloat
 from pyphi.direction import Direction
 from pyphi.metrics.distribution import DistanceResult
 from pyphi.registry import Registry
-from pyphi.warnings import warn_about_tie_serialization
 
 from . import cmp
 from . import fmt
 from .pandas import ToDictMixin
 from .pandas import ToPandasMixin
+
+_SERIALIZING_AS_TIE_PEER: contextvars.ContextVar[bool] = contextvars.ContextVar(
+    "state_spec_serializing_as_tie_peer", default=False
+)
 
 
 @total_ordering
@@ -133,17 +137,32 @@ class StateSpecification(ToDictMixin, ToPandasMixin):
         )
 
     def to_json(self) -> dict[str, Any]:
-        warn_about_tie_serialization(self.__class__.__name__, serialize=True)
         dct = self.to_dict()
+        if _SERIALIZING_AS_TIE_PEER.get():
+            return dct
+        peers = tuple(t for t in self._ties if t is not self)
+        if peers:
+            from pyphi.jsonify import jsonify
+
+            token = _SERIALIZING_AS_TIE_PEER.set(True)
+            try:
+                dct["_tie_peers"] = [jsonify(p) for p in peers]
+            finally:
+                _SERIALIZING_AS_TIE_PEER.reset(token)
         return dct
 
     @classmethod
     def from_json(cls, data: dict[str, Any]) -> StateSpecification:
-        warn_about_tie_serialization(cls.__name__, deserialize=True)
+        peers_raw: Any = data.pop("_tie_peers", ())
+        peers: tuple[StateSpecification, ...] = tuple(peers_raw)
         for key in ["repertoire", "unconstrained_repertoire"]:
             data[key] = np.array(data[key])
         instance = cls(**data)
-        object.__setattr__(instance, "_ties", (instance,))
+        if peers:
+            tied: tuple[StateSpecification, ...] = (instance, *peers)
+            object.__setattr__(instance, "_ties", tied)
+            for peer in peers:
+                object.__setattr__(peer, "_ties", tied)
         return instance
 
 
