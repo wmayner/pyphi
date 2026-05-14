@@ -904,23 +904,23 @@ class TestActualCausationIIT30:
     @pytest.mark.slow
     @pytest.mark.skip(
         reason=(
-            "Post-C.2 cascade behavior: maximal_complex on the standard "
-            "substrate at state (0,0,1) now returns the 2-node complex "
-            "(0, 2), not the 3-node (0, 1, 2) this test was pinned to. "
-            "Whether (0, 2) is paper-faithful under the substrate-"
-            "exclusion cascade needs verification before the test "
-            "expectations are refreshed. See "
-            "docs/superpowers/specs/2026-05-13-tie-resolution-canonical-reading.md "
-            "§6."
+            "Major-complex selection at current_state=(0,0,1) is genuinely "
+            "tied: SIAs over (1,2) and (0,2) both yield phi=1.0. The IIT 3.0 "
+            "paper (Albantakis et al. 2019, p.17) explicitly says symmetric "
+            "ties of this form are 'undetermined' — neither winner is "
+            "paper-canonical. PyPhi must pick something deterministically, "
+            "but that choice is a policy decision, not a math one. PyPhi 1.x "
+            "picked (1,2) by iteration order; the current cascade picks "
+            "(0,2) via partition.lex_key(), at which there are 0 true "
+            "events. The downstream regression target — true_events output "
+            "shape on a known irreducible complex — is covered by "
+            "test_true_events_on_known_complex below. This test stays "
+            "skipped until PyPhi adopts an explicit policy for symmetric "
+            "major-complex ties (ROADMAP P11.95c)."
         )
     )
     def test_true_events(self, standard):
-        """Full regression for true events on the standard substrate (IIT 3.0).
-
-        Verifies both events' mechanisms and each event's cause/effect RIA
-        mechanism, purview, alpha, and direction. Values verified against
-        current code under ``IIT_3_CONFIG``.
-        """
+        """Full regression for true events with default major-complex selection."""
         states = ((1, 0, 0), (0, 0, 1), (1, 1, 0))  # previous, current, next
         events = actual.true_events(standard, *states)
 
@@ -947,6 +947,45 @@ class TestActualCausationIIT30:
         assert true_cause2.purview == (1,)
         assert true_cause2.direction == Direction.CAUSE
 
+        assert true_effect2.alpha == 1.0
+        assert true_effect2.mechanism == (2,)
+        assert true_effect2.purview == (1,)
+        assert true_effect2.direction == Direction.EFFECT
+
+    @pytest.mark.slow
+    def test_true_events_on_known_complex(self, standard):
+        """Event detection on a known-irreducible IIT 3.0 complex.
+
+        Sibling to ``test_true_events`` that pins ``indices=(1, 2)`` so
+        the regression target (``true_events`` output shape, per-event
+        ``RIA`` mechanism / purview / alpha / direction) is covered
+        without depending on ``maximal_complex`` tie-break. At
+        ``current_state=(0,0,1)`` the SIA over ``(1, 2)`` is one of two
+        equally-irreducible candidates (phi=1.0), so this test exercises
+        event detection on it directly.
+        """
+        states = ((1, 0, 0), (0, 0, 1), (1, 1, 0))  # previous, current, next
+        events = actual.true_events(standard, *states, indices=(1, 2))
+
+        assert len(events) == 2
+
+        true_cause1, true_effect1 = events[0]
+        assert events[0].mechanism == (1,)
+        assert true_cause1.alpha == 1.0
+        assert true_cause1.mechanism == (1,)
+        assert true_cause1.purview == (2,)
+        assert true_cause1.direction == Direction.CAUSE
+        assert true_effect1.alpha == 1.0
+        assert true_effect1.mechanism == (1,)
+        assert true_effect1.purview == (2,)
+        assert true_effect1.direction == Direction.EFFECT
+
+        true_cause2, true_effect2 = events[1]
+        assert events[1].mechanism == (2,)
+        assert true_cause2.alpha == 1.0
+        assert true_cause2.mechanism == (2,)
+        assert true_cause2.purview == (1,)
+        assert true_cause2.direction == Direction.CAUSE
         assert true_effect2.alpha == 1.0
         assert true_effect2.mechanism == (2,)
         assert true_effect2.purview == (1,)
