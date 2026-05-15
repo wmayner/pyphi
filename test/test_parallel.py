@@ -375,7 +375,7 @@ class TestGetNumProcesses:
     """Tests for get_num_processes edge cases."""
 
     def test_zero_workers_raises_error(self):
-        """PARALLEL_WORKERS=0 raises ValueError."""
+        """``parallel_workers=0`` raises ValueError."""
         from pyphi import config
 
         with (
@@ -385,7 +385,7 @@ class TestGetNumProcesses:
             parallel.get_num_processes()
 
     def test_negative_workers_calculates_correctly(self):
-        """PARALLEL_WORKERS=-1 means all CPUs, -2 means all but one."""
+        """``parallel_workers=-1`` means all CPUs, ``-2`` means all but one."""
         import multiprocessing
 
         from pyphi import config
@@ -400,13 +400,13 @@ class TestGetNumProcesses:
             assert parallel.get_num_processes() == cpu_count - 1
 
     def test_negative_workers_too_negative_raises(self):
-        """PARALLEL_WORKERS too negative raises ValueError."""
+        """``parallel_workers`` too negative raises ValueError."""
         import multiprocessing
 
         from pyphi import config
 
         cpu_count = multiprocessing.cpu_count()
-        # e.g., if cpu_count=8, PARALLEL_WORKERS=-9 would give 0 or negative
+        # e.g., if cpu_count=8, parallel_workers=-9 would give 0 or negative
         too_negative = -(cpu_count + 1)
         with (
             config.override(parallel_workers=too_negative),
@@ -426,7 +426,7 @@ class TestGetNumProcesses:
             assert result == cpu_count
 
     def test_positive_workers_returns_value(self):
-        """Positive PARALLEL_WORKERS returns that value."""
+        """Positive ``parallel_workers`` returns that value."""
         from pyphi import config
 
         with config.override(parallel_workers=2):

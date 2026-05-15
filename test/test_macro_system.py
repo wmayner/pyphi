@@ -23,11 +23,7 @@ from .conftest import IIT_3_CONFIG  # noqa: E402
 def _iit_30_config_for_macro_tests(request):
     """Apply IIT 3.0 config settings for tests marked as outdated."""
     if request.node.get_closest_marker("outdated"):
-        with config.override(
-            formalism="IIT_3_0",
-            repertoire_distance="EMD",
-            system_partition_type="DIRECTED_BIPARTITION",
-        ):
+        with IIT_3_CONFIG:
             yield
     else:
         yield

@@ -1,86 +1,67 @@
-# PyPhi configuration
-# ~~~~~~~~~~~~~~~~~~~
-# See the documentation for ``pyphi.config`` for more info.
+# PyPhi configuration: IIT 3.0 reference
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Reflects the published IIT 3.0 formalism (Oizumi, Albantakis, Tononi 2014).
+# Mirrors the ``pyphi.iit3`` preset. Load with
+# ``pyphi.config.load_yaml('pyphi_config_3.0.yml')``.
 ---
-# Approximations and theoretical options
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# The phi formalism to use
-FORMALISM: IIT_3_0
-# In certain cases, making a cut can actually cause a previously reducible
-# concept to become a proper, irreducible concept. Assuming this can never
-# happen can increase performance significantly, however the obtained results
-# are not strictly accurate.
-ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS: false
-# The measure to use when computing phi ("EMD", "KLD", "L1", ...)
-REPERTOIRE_DISTANCE: "EMD"
-# The measure to use when computing big-phi.
-CES_DISTANCE: "EMD"
-# The measure to use when computing actual causation alpha values.
-ACTUAL_CAUSATION_MEASURE: "PMI"
-# Controls the partitioning scheme for distinctions.
-PARTITION_TYPE: "JOINT_BIPARTITION"
-# The type of system cuts to use.
-SYSTEM_PARTITION_TYPE: "DIRECTED_BIPARTITION"
-# The type of system cuts to use.
-SYSTEM_CUTS: "3.0_STYLE"
-# Controls how ties among MICE are broken.
-PURVIEW_TIE_RESOLUTION: ["PHI", "PURVIEW_SIZE"]
-# In some applications of this library, you may want to allow single
-# micro-nodes with a self-loop to have nonzero Phi. See ``pyphi.config`` for
-# details.
-SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI: false
-# Controls whether a subsystem's state is validated when the subsystem is
-# created.
-VALIDATE_SYSTEM_STATES: true
-# Controls whether a system is validated for conditional independence.
-VALIDATE_CONDITIONAL_INDEPENDENCE: true
+formalism:
+  iit:
+    # Theory version.
+    version: IIT_3_0
+    # In some cases a partition can cause a previously reducible concept to
+    # become irreducible. Assuming this can never happen speeds things up at
+    # the cost of strict accuracy.
+    assume_partitions_cannot_create_new_concepts: false
+    # The repertoire-distance measure used at the mechanism level.
+    mechanism_phi_measure: EMD
+    # The CES-distance measure used at the system level.
+    ces_measure: EMD
+    # Mechanism-partition scheme.
+    mechanism_partition_scheme: JOINT_BIPARTITION
+    # System-partition scheme.
+    system_partition_scheme: DIRECTED_BIPARTITION
+    # How ties among MICE are broken.
+    purview_tie_resolution: ["PHI", "PURVIEW_SIZE"]
+    # Whether single micro-nodes with self-loops have nonzero phi.
+    single_micro_nodes_with_selfloops_have_phi: false
+  actual_causation:
+    # The information measure used for actual-causation alpha values.
+    alpha_measure: PMI
 
-# Parallelization and system resources
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Controls whether concepts are evaluated in parallel.
-PARALLEL_CONCEPT_EVALUATION: false
-# Controls whether complexes are evaluated in parallel.
-PARALLEL_COMPLEX_EVALUATION: false
-# The number of worker processes to use in parallel.
-# -1 means all available CPUs, -2 means all but one, etc.
-PARALLEL_WORKERS: -1
-# Backend for parallel computation. Options: "local" (ProcessPoolExecutor),
-# "auto" (auto-detect best available).
-PARALLEL_BACKEND: "local"
-# Some functions are memoized using an in-memory cache. This is the maximum
-# percentage of memory that these caches can collectively use.
-MAXIMUM_CACHE_MEMORY_PERCENTAGE: 100
+infrastructure:
+  # Whether subsystem states are validated on construction.
+  validate_system_states: true
+  # Whether the substrate is validated for conditional independence.
+  validate_conditional_independence: true
+  # Per-level parallel evaluation defaults. Set ``parallel: true`` to enable
+  # at that level (sequential_threshold / chunksize keep their defaults).
+  parallel_concept_evaluation:
+    parallel: false
+  parallel_complex_evaluation:
+    parallel: false
+  # Number of worker processes: -1 means all available CPUs, -2 means all
+  # but one, etc.
+  parallel_workers: -1
+  # Backend for parallel computation: "local" (ProcessPoolExecutor) or "auto".
+  parallel_backend: local
+  # Memory ceiling (percent) for in-memory caches.
+  maximum_cache_memory_percentage: 100
+  # Repertoire and purview caches.
+  cache_repertoires: true
+  cache_potential_purviews: true
+  # Clear subsystem caches after each SIA computation.
+  clear_system_caches_after_computing_sia: false
+  # Suppress the welcome message.
+  welcome_off: false
+  # Logging.
+  log_stdout_level: WARNING
+  log_file_level: INFO
+  log_file: pyphi.log
+  # Progress bars and ``repr``/``__str__`` verbosity.
+  progress_bars: true
+  repr_verbosity: 2
+  print_fractions: true
 
-# Memoization and caching
-# ~~~~~~~~~~~~~~~~~~~~~~~
-# Controls whether cause and effect repertoires are cached.
-CACHE_REPERTOIRES: true
-# Controls whether the potential purviews of the mechanisms of a network are
-# cached. Speeds up calculations when the same network is used repeatedly, but
-# takes up additional memory, and makes network initialization slow.
-CACHE_POTENTIAL_PURVIEWS: true
-# Controls whether subsystem caches are automatically cleared after computing
-# the SIA for the subsystem.
-CLEAR_SYSTEM_CACHES_AFTER_COMPUTING_SIA: false
-
-# Logging
-# ~~~~~~~
-# Whether to suppress the welcome message.
-WELCOME_OFF: false
-# The log level to write to stdout.
-LOG_STDOUT_LEVEL: "WARNING"
-# The log level to write to `LOG_FILE`.
-LOG_FILE_LEVEL: "INFO"
-# The file to log to.
-LOG_FILE: "pyphi.log"
-# Enable/disable progress bars
-PROGRESS_BARS: true
-# Use pretty __str__-like formatting in repr calls.
-REPR_VERBOSITY: 2
-# Print numbers as fractions if the denominator isn't too big.
-PRINT_FRACTIONS: true
-
-# Numerical precision
-# ~~~~~~~~~~~~~~~~~~~
-# The number of decimal places to which Phi values are considered accurate.
-PRECISION: 6
+numerics:
+  # Decimal places of agreement required when comparing phi values.
+  precision: 6

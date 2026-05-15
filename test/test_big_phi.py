@@ -79,6 +79,45 @@ def test_sia_disconnected_substrate(reducible):
     )
 
 
+def test_sia_edge_cut_all_filters_non_disconnecting_partitions(s, monkeypatch):
+    """EDGE_CUT_ALL enumerates every binary edge-cut matrix; sia() must
+    filter the enumeration to disconnecting cuts only before MIP search.
+
+    Eq. 14 of Albantakis et al. 2023 requires partitions to yield
+    non-empty disjoint parts covering all units of the system; edge
+    cuts that don't disconnect the system violate that. The filter is
+    installed inside ``iit4.sia`` when the scheme is ``EDGE_CUT_ALL``.
+    """
+    from dataclasses import replace
+
+    from pyphi import connectivity
+    from pyphi.partition import system_partitions as real_system_partitions
+
+    seen: list = []
+
+    def capture(*args, **kwargs):
+        partitions = list(real_system_partitions(*args, **kwargs))
+        seen.extend(partitions)
+        return iter(partitions)
+
+    monkeypatch.setattr(new_big_phi, "system_partitions", capture)
+
+    with config.override(
+        iit=replace(
+            config.formalism.iit,
+            system_partition_scheme="EDGE_CUT_ALL",
+        ),
+    ):
+        s.sia()
+
+    assert seen, "system_partitions was not invoked"
+    for partition in seen:
+        cut_system = s.apply_cut(partition)
+        assert not connectivity.is_strong(cut_system.proper_cm) or len(s) == 1, (
+            f"Non-disconnecting partition leaked into MIP search: {partition!r}"
+        )
+
+
 @pytest.mark.emd
 @skip_if_no_pyemd
 @config.override(single_micro_nodes_with_selfloops_have_phi=True)
@@ -87,9 +126,9 @@ def test_sia_single_micro_node_selfloops_have_phi(noisy_selfloop_single):
     """Test that single micro-nodes with self-loops have phi under IIT 3.0 + EMD.
 
     Configuration:
-    - FORMALISM="IIT_3_0"
-    - SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=True
-    - REPERTOIRE_DISTANCE="EMD"
+    - ``version="IIT_3_0"``
+    - ``single_micro_nodes_with_selfloops_have_phi=True``
+    - ``mechanism_phi_measure="EMD"``
 
     Substrate: Single node with noisy self-loop
 

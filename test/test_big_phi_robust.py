@@ -304,9 +304,9 @@ class TestConfigurationDependentValues:
         """Single node with self-loop has phi under IIT 3.0 + EMD.
 
         Configuration:
-        - FORMALISM="IIT_3_0"
-        - SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=True
-        - REPERTOIRE_DISTANCE="EMD"
+        - ``version="IIT_3_0"``
+        - ``single_micro_nodes_with_selfloops_have_phi=True``
+        - ``mechanism_phi_measure="EMD"``
 
         Substrate: Single node with noisy self-loop
 
@@ -328,7 +328,7 @@ class TestConfigurationDependentValues:
     def test_sia_selfloop_node_no_phi_when_disabled(self, noisy_selfloop_single):
         """Single node with self-loop has phi=0 when config disabled.
 
-        Configuration: SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=False
+        Configuration: ``single_micro_nodes_with_selfloops_have_phi=False``
 
         When this configuration is disabled, single micro-nodes should
         not have phi even if they have self-loops.
@@ -337,7 +337,7 @@ class TestConfigurationDependentValues:
 
         assert result.phi == 0.0, (
             "Single node should have phi=0 when "
-            "SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=False"
+            "single_micro_nodes_with_selfloops_have_phi=False"
         )
 
 

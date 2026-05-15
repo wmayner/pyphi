@@ -103,11 +103,12 @@ def check_measure_compatible(formalism: PhiFormalism, measure: str) -> None:
     """
     if measure not in formalism.compatible_measures:
         raise MeasureNotCompatibleError(
-            f"REPERTOIRE_DISTANCE {measure!r} is not compatible with "
-            f"FORMALISM {formalism.name!r}. Compatible measures for "
+            f"Measure {measure!r} is not compatible with "
+            f"formalism {formalism.name!r}. Compatible measures for "
             f"this formalism: {sorted(formalism.compatible_measures)}. "
-            "If you want a different measure, switch FORMALISM to one "
-            "whose compatible_measures set contains it."
+            "If you want a different measure, set "
+            "config.formalism.iit.version to one whose compatible_measures "
+            "set contains it."
         )
 
 

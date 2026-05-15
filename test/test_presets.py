@@ -39,38 +39,53 @@ class TestIIT3MatchesYamlReference:
         with path.open() as f:
             return yaml.safe_load(f)
 
-    def test_repertoire_distance(self, yml):
-        assert iit3["iit"].mechanism_phi_measure == yml["REPERTOIRE_DISTANCE"]
+    def test_mechanism_phi_measure(self, yml):
+        assert (
+            iit3["iit"].mechanism_phi_measure
+            == yml["formalism"]["iit"]["mechanism_phi_measure"]
+        )
 
-    def test_ces_distance(self, yml):
-        assert iit3["iit"].ces_measure == yml["CES_DISTANCE"]
+    def test_ces_measure(self, yml):
+        assert iit3["iit"].ces_measure == yml["formalism"]["iit"]["ces_measure"]
 
-    def test_partition_type(self, yml):
-        assert iit3["iit"].mechanism_partition_scheme == yml["PARTITION_TYPE"]
+    def test_mechanism_partition_scheme(self, yml):
+        assert (
+            iit3["iit"].mechanism_partition_scheme
+            == yml["formalism"]["iit"]["mechanism_partition_scheme"]
+        )
 
-    def test_system_partition_type(self, yml):
-        assert iit3["iit"].system_partition_scheme == yml["SYSTEM_PARTITION_TYPE"]
+    def test_system_partition_scheme(self, yml):
+        assert (
+            iit3["iit"].system_partition_scheme
+            == yml["formalism"]["iit"]["system_partition_scheme"]
+        )
 
     def test_purview_tie_resolution(self, yml):
-        assert iit3["iit"].purview_tie_resolution == yml["PURVIEW_TIE_RESOLUTION"]
+        assert (
+            iit3["iit"].purview_tie_resolution
+            == yml["formalism"]["iit"]["purview_tie_resolution"]
+        )
 
     def test_single_micro_nodes_with_selfloops_have_phi(self, yml):
         assert (
             iit3["iit"].single_micro_nodes_with_selfloops_have_phi
-            == yml["SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI"]
+            == yml["formalism"]["iit"]["single_micro_nodes_with_selfloops_have_phi"]
         )
 
     def test_assume_partitions_cannot_create_new_concepts(self, yml):
         assert (
             iit3["iit"].assume_partitions_cannot_create_new_concepts
-            == yml["ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS"]
+            == yml["formalism"]["iit"]["assume_partitions_cannot_create_new_concepts"]
         )
 
     def test_actual_causation_alpha_measure(self, yml):
-        assert iit3["actual_causation"].alpha_measure == yml["ACTUAL_CAUSATION_MEASURE"]
+        assert (
+            iit3["actual_causation"].alpha_measure
+            == yml["formalism"]["actual_causation"]["alpha_measure"]
+        )
 
     def test_precision(self, yml):
-        assert iit3["precision"] == yml["PRECISION"]
+        assert iit3["precision"] == yml["numerics"]["precision"]
 
 
 class TestIIT3Settings:

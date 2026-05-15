@@ -367,73 +367,87 @@ sequential collection means the fast result is gated on the slow one.
 
 ### How Configuration Works
 
-1. **Default configuration**: Defined in `pyphi/conf.py`
-2. **User configuration**: Loaded from `pyphi_config.yml` in working directory
-3. **Runtime changes**: `pyphi.config.OPTION_NAME = value`
-4. **Context managers**: Temporarily change settings
+1. **Default configuration**: Defined as frozen dataclasses in
+   `pyphi/conf/` — `formalism.py` (`IITConfig`, `ActualCausationConfig`),
+   `infrastructure.py` (`InfrastructureConfig`), `numerics.py`
+   (`NumericsConfig`).
+2. **User configuration**: Loaded from `pyphi_config.yml` in working
+   directory (nested format: top-level keys ``formalism`` /
+   ``infrastructure`` / ``numerics``).
+3. **Runtime changes**: `pyphi.config.option_name = value` (top-level
+   write routes to the right layer) or `pyphi.config.numerics.override(...)`.
+4. **Context managers**: `pyphi.config.override(...)` for temporary scopes.
 
 Example:
 ```python
 import pyphi
 
 # Check current value
-print(pyphi.config.PRECISION)  # 13
+print(pyphi.config.numerics.precision)  # 13
 
 # Change at runtime
-pyphi.config.PRECISION = 6
+pyphi.config.precision = 6
 
 # Temporary change
-with pyphi.config.override(PRECISION=10):
+with pyphi.config.override(precision=10):
     # Computation with higher precision
     pass
 ```
 
 ### Important Configuration Options
 
-#### Computational Behavior
+#### Computational Behavior (``config.formalism.iit``)
 
-- **`IIT_VERSION`**: `"3.0"` or `"4.0"` - Theory version
-- **`PRECISION`**: Numerical precision for phi comparisons (default: 13)
-- **`SHORTCIRCUIT_SIA`**: Short-circuit if reducibility detected (default: true)
+- **`version`**: ``"IIT_3_0"`` / ``"IIT_4_0_2023"`` / ``"IIT_4_0_2026"``
+- **`shortcircuit_sia`**: Short-circuit if reducibility detected (default: true)
 
-#### Performance & Parallelization
+#### Numerics (``config.numerics``)
 
-- **`PARALLEL`**: Global switch for parallelization (default: false)
-  - Requires `pip install pyphi[parallel]` (Ray dependency)
-- **`NUMBER_OF_CORES`**: CPU cores to use (default: -1 = all)
-- **`PARALLEL_*_EVALUATION`**: Fine-grained parallel control
-  - `parallel`: Enable for this operation
-  - `chunksize`: Items per chunk
-  - `sequential_threshold`: Don't parallelize below this size
-  - `progress`: Show progress bars
+- **`precision`**: Numerical precision for phi comparisons (default: 13)
 
-#### Caching
+#### Performance & Parallelization (``config.infrastructure``)
 
-- **`CACHE_REPERTOIRES`**: Cache repertoire computations (default: true)
-- **`CACHE_POTENTIAL_PURVIEWS`**: Cache purviews (default: true)
-- **`REDIS_CACHE`**: Use Redis for distributed caching (default: false)
-- **`MAXIMUM_CACHE_MEMORY_PERCENTAGE`**: Memory limit for in-memory caches (default: 50)
+- **`parallel`**: Global switch for parallelization (default: false)
+- **`parallel_workers`**: CPU cores to use (default: -1 = all)
+- **`parallel_backend`**: ``"local"`` (ProcessPoolExecutor) or ``"auto"``
+- **`parallel_*_evaluation`**: Fine-grained per-level dicts with keys
+  ``parallel`` / ``chunksize`` / ``sequential_threshold`` / ``progress``
+  (e.g. ``parallel_concept_evaluation``, ``parallel_complex_evaluation``,
+  ``parallel_partition_evaluation``, ``parallel_purview_evaluation``,
+  ``parallel_mechanism_partition_evaluation``, ``parallel_relation_evaluation``)
 
-#### Distance Measures
+#### Caching (``config.infrastructure``)
 
-- **`REPERTOIRE_DISTANCE`**: Integration measure (default: `"GENERALIZED_INTRINSIC_DIFFERENCE"`)
-  - Options: `"EMD"`, `"KLD"`, `"L1"`, `"GID"`, etc.
-- **`CES_DISTANCE`**: Big Phi measure (default: `"SUM_SMALL_PHI"`)
+- **`cache_repertoires`**: Cache repertoire computations (default: true)
+- **`cache_potential_purviews`**: Cache purviews (default: true)
+- **`clear_system_caches_after_computing_sia`**: Clear after each SIA (default: false)
+- **`maximum_cache_memory_percentage`**: Memory limit for in-memory caches (default: 50)
 
-#### Partitioning
+#### Measures (``config.formalism.iit``)
 
-- **`PARTITION_TYPE`**: Mechanism partition scheme (default: `"ALL"`)
-- **`SYSTEM_PARTITION_TYPE`**: System partition scheme (default: `"SET_UNI/BI"`)
-- **`SYSTEM_CUTS`**: Cut style for IIT 3.0 (default: `"3.0_STYLE"`)
+- **`mechanism_phi_measure`**: Mechanism-level repertoire-distance measure
+  (default: ``"GENERALIZED_INTRINSIC_DIFFERENCE"``)
+- **`system_phi_measure`**: System-level phi measure
+  (default: ``"GENERALIZED_INTRINSIC_DIFFERENCE"``; ``"INTRINSIC_INFORMATION"``
+  enables the Eq. 23 cap in IIT 4.0 2026)
+- **`ces_measure`**: Cause-effect-structure distance measure
+  (default: ``"SUM_SMALL_PHI"``)
+- **`config.formalism.actual_causation.alpha_measure`**: AC alpha measure
+  (default: ``"PMI"``)
 
-#### Debugging & Output
+#### Partitioning (``config.formalism.iit``)
 
-- **`LOG_FILE`**: Log file path (default: `"pyphi.log"`)
-- **`LOG_FILE_LEVEL`**: File logging level (default: `"INFO"`)
-- **`LOG_STDOUT_LEVEL`**: Console logging level (default: `"WARNING"`)
-- **`PROGRESS_BARS`**: Show progress bars (default: true)
-- **`REPR_VERBOSITY`**: Detail level in `repr()` output (default: 2)
-- **`WELCOME_OFF`**: Suppress welcome message (default: false)
+- **`mechanism_partition_scheme`**: Default ``"JOINT_PARTITION_ALL"``
+- **`system_partition_scheme`**: Default ``"DIRECTED_SET_PARTITION"``
+
+#### Debugging & Output (``config.infrastructure``)
+
+- **`log_file`**: Log file path (default: ``"pyphi.log"``)
+- **`log_file_level`**: File logging level (default: ``"INFO"``)
+- **`log_stdout_level`**: Console logging level (default: ``"WARNING"``)
+- **`progress_bars`**: Show progress bars (default: true)
+- **`repr_verbosity`**: Detail level in ``repr()`` output (default: 2)
+- **`welcome_off`**: Suppress welcome message (default: false)
 
 ---
 

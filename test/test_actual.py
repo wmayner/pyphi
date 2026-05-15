@@ -768,7 +768,7 @@ class TestActualCausationIIT30:
         Substrate: two OR gates with full all-to-all connectivity. Both fixtures
         transition state -> state (fixed point), so the only thing that changes
         between them is whether the shared fixed point is ``(0, 0)`` or
-        ``(1, 1)``. Ratios are computed with ``ACTUAL_CAUSATION_MEASURE="PMI"``
+        ``(1, 1)``. Ratios are computed with ``alpha_measure="PMI"``
         (inherited from ``IIT_3_CONFIG``), so each ratio is
         ``log2(constrained / unconstrained)``.
 
@@ -854,7 +854,7 @@ class TestActualCausationIIT30:
         Verifies cause and effect accounts including each RIA's mechanism,
         purview, direction, state, alpha, probability, partitioned probability,
         and partition. Values verified against current code under
-        ``IIT_3_CONFIG`` with ``ACTUAL_CAUSATION_MEASURE="PMI"``.
+        ``IIT_3_CONFIG`` with ``alpha_measure="PMI"``.
         """
         cause_account = actual.account(transition, Direction.CAUSE)
         assert len(cause_account) == 1

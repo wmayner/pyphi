@@ -670,10 +670,10 @@ def purviews[T](
 ) -> Iterator[T]:
     """Resolve ties among purviews (MICEs).
 
-    Controlled by the PURVIEW_TIE_RESOLUTION configuration option.
+    Controlled by the ``purview_tie_resolution`` configuration option.
     """
     strategy = fallback(strategy, config.formalism.iit.purview_tie_resolution)
-    assert strategy is not None, "PURVIEW_TIE_RESOLUTION config must be set"
+    assert strategy is not None, "purview_tie_resolution config must be set"
     yield from resolve(mice, strategy, operation=max, **kwargs)
 
 

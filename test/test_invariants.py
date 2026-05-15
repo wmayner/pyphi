@@ -242,7 +242,7 @@ class TestConfigurationInvariants:
     def test_selfloop_phi_depends_on_config(self, noisy_selfloop_single):
         """Single nodes with self-loops: phi depends on config.
 
-        Configuration: SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI
+        Configuration: ``single_micro_nodes_with_selfloops_have_phi``
         - When False: single micro-nodes with self-loops should have phi=0
         - When True (with EMD): should have phi > 0
 
@@ -252,7 +252,7 @@ class TestConfigurationInvariants:
         with config.override(single_micro_nodes_with_selfloops_have_phi=False):
             result_disabled = noisy_selfloop_single.sia()
             assert result_disabled.phi == 0.0, (
-                "Expected phi=0 when SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=False"
+                "Expected phi=0 when single_micro_nodes_with_selfloops_have_phi=False"
             )
 
         # With config enabled and EMD, phi should be > 0
@@ -263,14 +263,15 @@ class TestConfigurationInvariants:
         ):
             result_enabled = noisy_selfloop_single.sia()
             assert result_enabled.phi > 0.0, (
-                "Expected phi > 0 when SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=True "
+                "Expected phi > 0 when "
+                "single_micro_nodes_with_selfloops_have_phi=True "
                 "and using EMD distance measure"
             )
 
     def test_cache_clearing_option(self, s):
         """Cache clearing configuration should be respected.
 
-        Configuration: CLEAR_SYSTEM_CACHES_AFTER_COMPUTING_SIA
+        Configuration: ``clear_system_caches_after_computing_sia``
         - When True: caches should be empty after SIA computation
         - When False: caches should contain data after SIA computation
 
