@@ -6,6 +6,7 @@
 
 import string
 from collections import defaultdict
+from dataclasses import replace
 
 import numpy as np
 
@@ -1278,8 +1279,11 @@ def prevention_transition():
 
 @register_example
 @config.override(
-    mechanism_partition_scheme="WEDGE_TRIPARTITION",
-    mechanism_phi_measure="BLD",
+    iit=replace(
+        config.formalism.iit,
+        mechanism_partition_scheme="WEDGE_TRIPARTITION",
+        mechanism_phi_measure="BLD",
+    ),
     validate_system_states=False,
     alpha_measure="WPMI",
 )

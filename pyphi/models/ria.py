@@ -337,14 +337,10 @@ class RepertoireIrreducibilityAnalysis(
 
     @property
     def num_state_ties(self):
-        if self._state_ties is None:
-            return np.nan
         return len(self._state_ties) - 1
 
     @property
     def num_partition_ties(self):
-        if self._partition_ties is None:
-            return np.nan
         return len(self._partition_ties) - 1
 
     @property

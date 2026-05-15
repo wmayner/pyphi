@@ -2,6 +2,8 @@ import pytest
 
 pytestmark = pytest.mark.skip(reason="P7b: MacroSystem port pending")
 
+from dataclasses import replace  # noqa: E402
+
 import numpy as np  # noqa: E402
 
 from pyphi import ExplicitTPM  # noqa: E402
@@ -134,7 +136,12 @@ def test_basic_nor_or():
         substrate, state, substrate.node_indices, blackbox=blackbox, time_scale=time
     )
 
-    with config.override(CUT_ONE_APPROXIMATION=True):
+    with config.override(
+        iit=replace(
+            config.formalism.iit,
+            system_partition_scheme="DIRECTED_BIPARTITION_CUT_ONE",
+        ),
+    ):
         sia = iit3.sia(sub)
 
     assert sia.phi == 1.958332
@@ -214,11 +221,7 @@ def test_xor_propogation_delay():
 @pytest.mark.xfail
 @pytest.mark.slow
 def test_soup():
-    with config.override(
-        parallel_concept_evaluation=False,
-        parallel_partition_evaluation=False,
-        parallel_complex_evaluation=False,
-    ):
+    with config.override(parallel=False):
         # An first example attempting to capture the "soup" metaphor
         #
         # The system will consist of 6 elements:

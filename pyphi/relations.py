@@ -400,7 +400,7 @@ class RelationComputationsRegistry(Registry):
         ... def no_relations(system, ces):
         ...    return Relations([])
 
-    And use them by setting ``config.RELATION_COMPUTATIONS = 'NONE'``
+    And use them by setting ``config.formalism.iit.relation_computation = 'NONE'``.
     """
 
     desc = "methods for computing relations"
