@@ -38,9 +38,5 @@ def test_example_tpms_construct(name, func):
 
 @pytest.mark.parametrize("name, func", _example_items("transition"))
 def test_example_transitions_construct(name, func):
-    pytest.skip(
-        "actual.Transition pending refactor for frozen System "
-        "(uses _external_indices override + state mutation)"
-    )
     transition = func()
     assert isinstance(transition, Transition)

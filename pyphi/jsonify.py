@@ -118,6 +118,7 @@ def _loadable_models():
         pyphi.formalism.iit4.CauseEffectStructure,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.formalism.iit4.SystemIrreducibilityAnalysis,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.formalism.iit4.NullSystemIrreducibilityAnalysis,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.formalism.iit4.NullCauseEffectStructure,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.relations.AnalyticalRelations,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.relations.ConcreteRelations,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.relations.Relation,  # pyright: ignore[reportAttributeAccessIssue]

@@ -900,7 +900,6 @@ class TestActualCausationIIT30:
             models.Part((2,), ()),
         )
 
-    @pytest.mark.slow
     def test_causal_nexus(self, standard):
         """Test causal nexus computation (IIT 3.0)."""
         nexus = actual.causal_nexus(standard, (0, 0, 1), (1, 1, 0))
@@ -960,7 +959,6 @@ class TestActualCausationIIT30:
         assert true_effect2.purview == (1,)
         assert true_effect2.direction == Direction.EFFECT
 
-    @pytest.mark.slow
     def test_true_events_on_known_complex(self, standard):
         """Event detection on a known-irreducible IIT 3.0 complex.
 

@@ -210,7 +210,7 @@ class TestCauseEffectStructureComponents:
 
         If this fails, the CauseEffectStructure data model was changed.
 
-        Note: rule154 is marked as slow due to computational expense (11 distinctions).
+        Note: rule154 is marked as veryslow due to computational expense (11 distinctions).
         """
         system = EXAMPLES["system"][example_name]()
         result = new_big_phi.ces(system, **_ces_kwargs())
@@ -242,7 +242,7 @@ class TestCauseEffectStructureComponents:
 
         If this fails, the CauseEffectStructure data model was changed.
 
-        Note: rule154 is marked as slow due to computational expense (11 distinctions).
+        Note: rule154 is marked as veryslow due to computational expense (11 distinctions).
         """
         system = EXAMPLES["system"][example_name]()
         result = new_big_phi.ces(system, **_ces_kwargs())
@@ -270,7 +270,7 @@ class TestCauseEffectStructureComponents:
         These examples are known to have irreducible distinctions.
         If the distinctions list is empty, distinction finding failed.
 
-        Note: rule154 is marked as slow due to computational expense (11 distinctions).
+        Note: rule154 is marked as veryslow due to computational expense (11 distinctions).
         """
         system = EXAMPLES["system"][example_name]()
         result = new_big_phi.ces(system, **_ces_kwargs())
@@ -399,7 +399,7 @@ class TestCrossExampleConsistency:
 
         This test catches non-deterministic bugs in computation.
 
-        Note: rule154 is marked as slow due to computational expense (11 distinctions).
+        Note: rule154 is marked as veryslow due to computational expense (11 distinctions).
         """
         system = EXAMPLES["system"][example_name]()
 

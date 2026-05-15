@@ -460,7 +460,6 @@ class TestPermutationSymmetry:
         )
 
 
-@pytest.mark.slow
 @config.override(parallel=False)
 def test_sia_is_deterministic_across_runs_sequential(big_subsys_all_complete):
     """Two consecutive ``.sia()`` calls return equal SIAs in sequential mode.
@@ -474,7 +473,6 @@ def test_sia_is_deterministic_across_runs_sequential(big_subsys_all_complete):
     assert s1 == s2
 
 
-@pytest.mark.slow
 @config.override(parallel=True)
 def test_sia_is_deterministic_across_runs_parallel(big_subsys_all_complete):
     """Two consecutive ``.sia()`` calls return equal SIAs in parallel mode.

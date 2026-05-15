@@ -195,7 +195,6 @@ def test_sia_micro_parallel(micro_s, micro_s_expected_sia):
 # big_subsys_all_complete ======================================================
 
 
-@pytest.mark.slow
 @config.override(parallel=False)
 def test_sia_big_subsys_all_complete_sequential(
     big_subsys_all_complete, big_subsys_all_complete_expected_sia
@@ -203,7 +202,6 @@ def test_sia_big_subsys_all_complete_sequential(
     assert big_subsys_all_complete.sia() == big_subsys_all_complete_expected_sia
 
 
-@pytest.mark.slow
 def test_sia_big_subsys_all_complete_parallel(
     big_subsys_all_complete, big_subsys_all_complete_expected_sia
 ):
@@ -236,10 +234,8 @@ def test_sia_big_substrate_0_thru_3_parallel(
 #
 # Substrate: 5-node cellular automaton following rule 152
 # Expected phi: 0.83...
-# Marked @veryslow: Cellular automaton substrates are computationally very expensive
 
 
-@pytest.mark.veryslow
 @config.override(parallel=False)
 def test_sia_rule152_s_sequential(rule152_s, rule152_s_expected_sia):
     """Rule 152 cellular automaton sequential computation.
@@ -249,7 +245,6 @@ def test_sia_rule152_s_sequential(rule152_s, rule152_s_expected_sia):
     assert rule152_s.sia().phi == rule152_s_expected_sia.phi
 
 
-@pytest.mark.veryslow
 def test_sia_rule152_s_parallel(rule152_s, rule152_s_expected_sia):
     """Rule 152 cellular automaton parallel computation.
 
@@ -318,7 +313,6 @@ def test_ces_concepts_share_the_same_system(parallel, s):
 """
 
 
-@pytest.mark.slow
 def test_parallel_and_sequential_ces_are_equal(s, micro_s, macro_s):
     with config.override(parallel=False):
         c = iit3.ces(s)

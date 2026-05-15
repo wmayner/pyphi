@@ -879,12 +879,10 @@ def _find_mip_for_fixed_state(
 
 class NullCauseEffectStructure(CauseEffectStructure):
     def __init__(self, **kwargs):
-        super().__init__(
-            sia=NullSystemIrreducibilityAnalysis(),
-            distinctions=ResolvedDistinctions([]),
-            relations=ConcreteRelations([]),
-            **kwargs,
-        )
+        kwargs.setdefault("sia", NullSystemIrreducibilityAnalysis())
+        kwargs.setdefault("distinctions", ResolvedDistinctions([]))
+        kwargs.setdefault("relations", ConcreteRelations([]))
+        super().__init__(**kwargs)
 
 
 def ces(

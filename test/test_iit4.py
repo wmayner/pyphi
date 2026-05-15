@@ -88,7 +88,7 @@ def test(example_name):
     - For fig4: Cross-reference with IIT 4.0 paper
     - Consider if JSON serialization format changed
 
-    Note: rule154 is marked as slow due to computational expense (11 distinctions).
+    Note: rule154 is marked as veryslow due to computational expense (11 distinctions).
     """
     system = EXAMPLES["system"][example_name]()
     actual = new_big_phi.ces(

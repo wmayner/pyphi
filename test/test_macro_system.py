@@ -1,21 +1,23 @@
+import numpy as np
 import pytest
 
-pytestmark = pytest.mark.skip(reason="P7b: MacroSystem port pending")
+import pyphi
+from pyphi import config
+from pyphi import convert
+from pyphi import macro
+from pyphi import models  # noqa: F401  # used by other tests
+from pyphi import timescale
+from pyphi.convert import state_by_node2state_by_state as sbn2sbs
+from pyphi.convert import state_by_state2state_by_node as sbs2sbn
+from pyphi.direction import Direction
+from pyphi.models import DirectedBipartition
 
-import numpy as np  # noqa: E402
+from .conftest import IIT_3_CONFIG
 
-import pyphi  # noqa: E402
-from pyphi import config  # noqa: E402
-from pyphi import convert  # noqa: E402
-from pyphi import macro  # noqa: E402
-from pyphi import models  # noqa: F401, E402  # used by other tests
-from pyphi import timescale  # noqa: E402
-from pyphi.convert import state_by_node2state_by_state as sbn2sbs  # noqa: E402
-from pyphi.convert import state_by_state2state_by_node as sbs2sbn  # noqa: E402
-from pyphi.direction import Direction  # noqa: E402
-from pyphi.models import DirectedBipartition  # noqa: E402
-
-from .conftest import IIT_3_CONFIG  # noqa: E402
+# Tests that depend on the in-progress MacroSystem rewrite are skipped
+# individually below; helpers that don't touch MacroSystem (Blackbox /
+# TPM utilities) remain active.
+_skip_p7b = pytest.mark.skip(reason="P7b: MacroSystem port pending")
 
 
 # Apply IIT 3.0 config to outdated tests
@@ -60,12 +62,14 @@ def macro_system():
     )
 
 
+@_skip_p7b
 def test_partition_indices(macro_system, s):
     assert macro_system.partition_indices == (0, 1, 2, 3)
     micro = macro.MacroSystem(s.substrate, s.state, s.node_indices)
     assert micro.partition_indices == (0, 1, 2)
 
 
+@_skip_p7b
 def test_partitioned_mechanisms(macro_system, propagation_delay):
     cut = DirectedBipartition(Direction.EFFECT, (0,), (1, 2, 3))
     assert list(macro_system.apply_cut(cut).partitioned_mechanisms) == [(0,), (0, 1)]
@@ -81,6 +85,7 @@ def test_partitioned_mechanisms(macro_system, propagation_delay):
     ]
 
 
+@_skip_p7b
 def test_partition_node_labels_are_for_micro_elements(macro_system):
     assert macro_system.partition_node_labels == macro_system.substrate.node_labels
     assert macro_system.partition_node_labels != macro_system.node_labels
@@ -90,16 +95,19 @@ def test_partition_node_labels_are_for_micro_elements(macro_system):
 # error due to macro system TPM shape incompatibilities.
 
 
+@_skip_p7b
 def test_node_indices_can_be_none(s):
     ms = macro.MacroSystem(s.substrate, s.state)
     assert ms.micro_node_indices == (0, 1, 2)
 
 
+@_skip_p7b
 def test_pass_node_indices_as_a_range(s):
     # Test that node_indices can be a `range`
     macro.MacroSystem(s.substrate, s.state, range(s.size))
 
 
+@_skip_p7b
 def test_node_labels(macro_system):
     assert macro_system.nodes[0].label == "m0"
     assert macro_system.nodes[1].label == "m1"
@@ -116,6 +124,7 @@ answer_cm = np.ones((2, 2))
 EPSILON = 10 ** (-config.numerics.precision)
 
 
+@_skip_p7b
 def test_macro_system(macro_system):
     # fmt: off
     answer_tpm = np.array([
@@ -133,6 +142,7 @@ def test_macro_system(macro_system):
     )
 
 
+@_skip_p7b
 def test_macro_apply_partition(macro_system):
     cut = DirectedBipartition(Direction.EFFECT, (0,), (1, 2, 3))
     cut_system = macro_system.apply_cut(cut)
@@ -260,6 +270,7 @@ def test_run_tpm():
 # NOTE: test_macro_cut_is_for_micro_indices was removed because it was outdated.
 
 
+@_skip_p7b
 def test_system_equality(s):
     macro_subsys = macro.MacroSystem(s.substrate, s.state, s.node_indices)
     assert s != macro_subsys
@@ -284,6 +295,7 @@ def test_system_equality(s):
 # ===============================================================
 
 
+@_skip_p7b
 def test_blackbox(s):
     ms = macro.MacroSystem(
         s.substrate, s.state, s.node_indices, blackbox=macro.Blackbox(((0, 1, 2),), (1,))
@@ -294,6 +306,7 @@ def test_blackbox(s):
     assert ms.state == (0,)
 
 
+@_skip_p7b
 def test_blackbox_external(s):
     # Which is the same if one of these indices is external
     ms = macro.MacroSystem(
@@ -305,6 +318,7 @@ def test_blackbox_external(s):
     assert ms.state == (0,)
 
 
+@_skip_p7b
 def test_coarse_grain(s):
     coarse_grain = macro.CoarseGrain(
         partition=((0, 1), (2,)), grouping=((((0, 1), (2,)), ((0,), (1,))))
@@ -344,6 +358,7 @@ def test_blackbox_and_coarse_grain(s):
     assert ms.state == (0,)
 
 
+@_skip_p7b
 def test_blackbox_and_coarse_grain_external():
     # Larger, with external nodes, blackboxed and coarse-grained
     tpm = np.zeros((2**6, 6))
@@ -464,6 +479,7 @@ class TestMacroEmergenceIIT30:
 # is updated for IIT 4.0 compatibility.
 
 
+@_skip_p7b
 def test_macro2micro(s):
     # Only blackboxing
     blackbox = macro.Blackbox(((0, 2), (1,)), (1, 2))
@@ -511,6 +527,7 @@ def test_macro2micro(s):
         subsys.macro2blackbox_outputs((1,))
 
 
+@_skip_p7b
 def test_blackbox_partial_noise(s):
     blackbox = macro.Blackbox(((0,), (1, 2)), (0, 1))
     subsys = macro.MacroSystem(s.substrate, s.state, s.node_indices, blackbox=blackbox)

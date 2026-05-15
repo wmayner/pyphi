@@ -606,7 +606,6 @@ def test_ces_are_always_normalized(s):
     assert (c1, c2, c3, c4) == models.UnresolvedDistinctions((c3, c4, c2, c1)).concepts
 
 
-@pytest.mark.outdated
 def test_ces_labeled_mechanisms(s):
     c = models.UnresolvedDistinctions([concept(system=s)])
     assert c.labeled_mechanisms == (["A", "B"],)

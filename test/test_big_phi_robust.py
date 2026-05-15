@@ -121,7 +121,6 @@ class TestPhiValues:
         expected_phi = EXPECTED_PHI_VALUES["big_subsys_0_thru_3"]
         assert float(result.phi) == pytest.approx(expected_phi, abs=1e-13)
 
-    @pytest.mark.slow
     def test_sia_big_substrate_complete_phi_value(self, big_subsys_all_complete):
         """Big substrate all nodes (complete graph) phi value.
 
@@ -134,7 +133,6 @@ class TestPhiValues:
         expected_phi = EXPECTED_PHI_VALUES["big_subsys_all_complete"]
         assert float(result.phi) == pytest.approx(expected_phi, abs=1e-13)
 
-    @pytest.mark.veryslow
     def test_sia_rule152_phi_value(self, rule152_s):
         """Rule 152 cellular automaton computes correct phi value.
 

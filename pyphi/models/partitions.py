@@ -400,6 +400,13 @@ class CompleteEdgeCut(EdgeCut):
     def __repr__(self) -> str:
         return "Complete"
 
+    @classmethod
+    def from_json(cls, data: dict[str, Any]) -> CompleteEdgeCut:
+        return cls(
+            node_indices=data["node_indices"],
+            node_labels=data["node_labels"],
+        )
+
 
 class DirectedSetPartition(EdgeCut):
     """A k-way set partition of nodes with per-part directional cuts.
