@@ -41,8 +41,8 @@ class IITConfig:
     system_phi_measure: str = "GENERALIZED_INTRINSIC_DIFFERENCE"
     specification_measure: str = "GENERALIZED_INTRINSIC_DIFFERENCE"
     ces_measure: str = "SUM_SMALL_PHI"
-    mechanism_partition_scheme: str = "ALL"
-    system_partition_scheme: str = "SET_UNI/BI"
+    mechanism_partition_scheme: str = "JOINT_PARTITION_ALL"
+    system_partition_scheme: str = "DIRECTED_SET_PARTITION"
     system_partition_include_complete: bool = False
     distinction_phi_normalization: str = "NUM_CONNECTIONS_CUT"
     relation_computation: str = "CONCRETE"
@@ -95,7 +95,7 @@ class ActualCausationConfig:
     """
 
     alpha_measure: str = "PMI"
-    mechanism_partition_scheme: str = "ALL"
+    mechanism_partition_scheme: str = "JOINT_PARTITION_ALL"
     partitioned_repertoire_scheme: str = "PRODUCT"
     background_scheme: str = "UNIFORM"
     alpha_aggregation: str = "SUBTRACTIVE"

@@ -86,11 +86,11 @@ class TestIIT3Settings:
     def test_ces_measure_is_emd(self):
         assert iit3["iit"].ces_measure == "EMD"
 
-    def test_mechanism_partition_scheme_is_bi(self):
-        assert iit3["iit"].mechanism_partition_scheme == "BI"
+    def test_mechanism_partition_scheme_is_joint_bipartition(self):
+        assert iit3["iit"].mechanism_partition_scheme == "JOINT_BIPARTITION"
 
-    def test_system_partition_scheme_is_directed_bi(self):
-        assert iit3["iit"].system_partition_scheme == "DIRECTED_BI"
+    def test_system_partition_scheme_is_directed_bipartition(self):
+        assert iit3["iit"].system_partition_scheme == "DIRECTED_BIPARTITION"
 
     def test_no_selfloop_phi(self):
         assert iit3["iit"].single_micro_nodes_with_selfloops_have_phi is False
@@ -163,8 +163,8 @@ class TestOverrideApplication:
         with config.override(**iit3):
             assert config.formalism.iit.version == "IIT_3_0"
             assert config.formalism.iit.mechanism_phi_measure == "EMD"
-            assert config.formalism.iit.mechanism_partition_scheme == "BI"
-            assert config.formalism.iit.system_partition_scheme == "DIRECTED_BI"
+            assert config.formalism.iit.mechanism_partition_scheme == "JOINT_BIPARTITION"
+            assert config.formalism.iit.system_partition_scheme == "DIRECTED_BIPARTITION"
             assert config.numerics.precision == 6
 
         assert config.formalism.iit.version == original_version

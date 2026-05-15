@@ -39,7 +39,7 @@ from pyphi.models import UnresolvedDistinctions
 from pyphi.models import _null_ria
 from pyphi.models.ria import ShortCircuitConditions
 from pyphi.parallel import MapReduce
-from pyphi.partition import mip_partitions
+from pyphi.partition import mechanism_partitions
 
 from .base import FORMALISM_REGISTRY
 
@@ -99,7 +99,9 @@ def _find_mip_single_state(
     mechanism partitions for a (state, direction, mechanism, purview)
     combination.
     """
-    partitions = fallback(partitions, mip_partitions(mechanism, purview, cs.node_labels))
+    partitions = fallback(
+        partitions, mechanism_partitions(mechanism, purview, cs.node_labels)
+    )
 
     def _eval(partition: Any) -> Any:
         return evaluate_partition(

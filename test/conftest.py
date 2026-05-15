@@ -48,8 +48,8 @@ IIT_3_CONFIG = config.override(
         version="IIT_3_0",
         mechanism_phi_measure="EMD",
         system_phi_measure="EMD",
-        mechanism_partition_scheme="BI",
-        system_partition_scheme="DIRECTED_BI",
+        mechanism_partition_scheme="JOINT_BIPARTITION",
+        system_partition_scheme="DIRECTED_BIPARTITION",
         purview_tie_resolution=["PHI", "PURVIEW_SIZE"],
     ),
     alpha_measure="PMI",
@@ -61,7 +61,7 @@ IIT_4_CONFIG = config.override(
     version="IIT_4_0_2023",
     mechanism_phi_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
     system_phi_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
-    system_partition_scheme="SET_UNI/BI",
+    system_partition_scheme="DIRECTED_SET_PARTITION",
 )
 
 # Pytest configuration

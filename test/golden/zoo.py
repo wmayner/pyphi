@@ -73,7 +73,7 @@ def _logistic_3node_k8() -> Substrate:
 IIT_4_2023_CONFIG = {
     "version": "IIT_4_0_2023",
     "mechanism_phi_measure": "GENERALIZED_INTRINSIC_DIFFERENCE",
-    "system_partition_scheme": "SET_UNI/BI",
+    "system_partition_scheme": "DIRECTED_SET_PARTITION",
     "progress_bars": False,
     "parallel": False,
 }
@@ -100,8 +100,8 @@ IIT_3_CONFIG = {
         config.formalism.iit,
         version="IIT_3_0",
         mechanism_phi_measure="EMD",
-        mechanism_partition_scheme="BI",
-        system_partition_scheme="DIRECTED_BI",
+        mechanism_partition_scheme="JOINT_BIPARTITION",
+        system_partition_scheme="DIRECTED_BIPARTITION",
         purview_tie_resolution=["PHI", "PURVIEW_SIZE"],
     ),
     "alpha_measure": "PMI",
@@ -190,12 +190,15 @@ def _make_fixtures() -> list[GoldenFixture]:
         GoldenFixture(
             name="basic_iit3_emd_tri",
             description="basic_substrate IIT 3.0 + EMD with "
-            "mechanism_partition_scheme=TRI (tripartitions). Different "
-            "combinatorial path than BI; supports the partition-algebra "
-            "consolidation in P6.",
+            "mechanism_partition_scheme=WEDGE_TRIPARTITION. Different "
+            "combinatorial path than JOINT_BIPARTITION; supports the "
+            "partition-algebra consolidation in P6.",
             config_overrides={
                 **{k: v for k, v in IIT_3_CONFIG.items() if k != "iit"},
-                "iit": replace(IIT_3_CONFIG["iit"], mechanism_partition_scheme="TRI"),
+                "iit": replace(
+                    IIT_3_CONFIG["iit"],
+                    mechanism_partition_scheme="WEDGE_TRIPARTITION",
+                ),
             },
             substrate_factory=examples.basic_substrate,
             state=(1, 0, 0),

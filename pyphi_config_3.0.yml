@@ -18,9 +18,9 @@ CES_DISTANCE: "EMD"
 # The measure to use when computing actual causation alpha values.
 ACTUAL_CAUSATION_MEASURE: "PMI"
 # Controls the partitioning scheme for distinctions.
-PARTITION_TYPE: "BI"
+PARTITION_TYPE: "JOINT_BIPARTITION"
 # The type of system cuts to use.
-SYSTEM_PARTITION_TYPE: "DIRECTED_BI"
+SYSTEM_PARTITION_TYPE: "DIRECTED_BIPARTITION"
 # The type of system cuts to use.
 SYSTEM_CUTS: "3.0_STYLE"
 # Controls how ties among MICE are broken.

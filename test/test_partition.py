@@ -8,13 +8,13 @@ from pyphi.models import JointBipartition
 from pyphi.models import JointPartition
 from pyphi.models import JointTripartition
 from pyphi.models import Part
-from pyphi.partition import all_partitions
+from pyphi.partition import all_joint_partitions
 from pyphi.partition import directed_bipartition
 from pyphi.partition import directed_tripartition_indices
+from pyphi.partition import joint_bipartitions
 from pyphi.partition import k_partitions
-from pyphi.partition import mip_bipartitions
 from pyphi.partition import partition_types
-from pyphi.partition import wedge_partitions
+from pyphi.partition import wedge_tripartitions
 
 
 def test_partitions():
@@ -224,24 +224,24 @@ def test_k_partition():
     ]
 
 
-def test_mip_bipartitions():
+def test_joint_bipartitions():
     mechanism, purview = (0,), (1, 2)
     answer = {
         JointBipartition(Part((), (2,)), Part((0,), (1,))),
         JointBipartition(Part((), (1,)), Part((0,), (2,))),
         JointBipartition(Part((), (1, 2)), Part((0,), ())),
     }
-    assert set(mip_bipartitions(mechanism, purview)) == answer
+    assert set(joint_bipartitions(mechanism, purview)) == answer
 
 
-def test_wedge_partitions():
+def test_wedge_tripartitions():
     mechanism, purview = (0,), (1, 2)
-    assert set(wedge_partitions(mechanism, purview)) == {
+    assert set(wedge_tripartitions(mechanism, purview)) == {
         JointTripartition(Part((), ()), Part((), (1, 2)), Part((0,), ())),
     }
 
     mechanism, purview = (3, 4), (5, 6)
-    assert set(wedge_partitions(mechanism, purview)) == {
+    assert set(wedge_tripartitions(mechanism, purview)) == {
         JointTripartition(Part((), ()), Part((), (5, 6)), Part((3, 4), ())),
         JointTripartition(Part((), ()), Part((3,), ()), Part((4,), (5, 6))),
         JointTripartition(Part((), ()), Part((3,), (5,)), Part((4,), (6,))),
@@ -280,9 +280,9 @@ def test_tripartitions_choses_smallest_purview(s):
         assert mie.purview == (0,)
 
 
-def test_all_partitions():
+def test_all_joint_partitions():
     mechanism, purview = (0, 1), (2,)
-    assert set(all_partitions(mechanism, purview)) == {
+    assert set(all_joint_partitions(mechanism, purview)) == {
         JointPartition(Part((0, 1), ()), Part((), (2,))),
         JointPartition(Part((0,), ()), Part((1,), ()), Part((), (2,))),
         JointPartition(Part((0,), (2,)), Part((1,), ()), Part((), ())),
@@ -290,7 +290,7 @@ def test_all_partitions():
     }
 
     mechanism, purview = (0, 1), (2, 3)
-    assert set(all_partitions(mechanism, purview)) == {
+    assert set(all_joint_partitions(mechanism, purview)) == {
         JointPartition(Part((0, 1), ()), Part((), (2, 3))),
         JointPartition(Part((0,), ()), Part((1,), (2, 3)), Part((), ())),
         JointPartition(Part((0,), (2, 3)), Part((1,), ()), Part((), ())),
@@ -305,7 +305,11 @@ def test_all_partitions():
 
 
 def test_partition_types():
-    assert partition_types["BI"] == mip_bipartitions
-    assert partition_types["TRI"] == wedge_partitions
-    assert partition_types["ALL"] == all_partitions
-    assert set(partition_types.all()) == {"BI", "TRI", "ALL"}
+    assert partition_types["JOINT_BIPARTITION"] == joint_bipartitions
+    assert partition_types["WEDGE_TRIPARTITION"] == wedge_tripartitions
+    assert partition_types["JOINT_PARTITION_ALL"] == all_joint_partitions
+    assert set(partition_types.all()) == {
+        "JOINT_BIPARTITION",
+        "WEDGE_TRIPARTITION",
+        "JOINT_PARTITION_ALL",
+    }

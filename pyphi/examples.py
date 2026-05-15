@@ -1278,7 +1278,7 @@ def prevention_transition():
 
 @register_example
 @config.override(
-    mechanism_partition_scheme="TRI",
+    mechanism_partition_scheme="WEDGE_TRIPARTITION",
     mechanism_phi_measure="BLD",
     validate_system_states=False,
     alpha_measure="WPMI",

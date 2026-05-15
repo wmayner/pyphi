@@ -28,7 +28,7 @@ class _DummyFormalism:
 
     name = "DUMMY"
     compatible_measures = frozenset({"EMD"})
-    partition_scheme = "BI"
+    partition_scheme = "JOINT_BIPARTITION"
 
     @property
     def config(self):
@@ -54,7 +54,7 @@ class _NotCallableEnough:
 
     name = "BROKEN"
     compatible_measures = frozenset({"EMD"})
-    partition_scheme = "BI"
+    partition_scheme = "JOINT_BIPARTITION"
 
     def evaluate_mechanism(self, *args, **kwargs):  # noqa: ARG002
         return None

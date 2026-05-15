@@ -395,7 +395,7 @@ class PartitionRegistry(Registry):
         ... def no_partitions(mechanism, purview):
         ...    return []
 
-    And use them by setting ``config.partition_type = 'NONE'``.
+    And use them by setting ``config.formalism.iit.mechanism_partition_scheme = 'NONE'``.
 
     Registered objects are validated against
     :class:`pyphi.protocols.MechanismPartitionScheme` so wrong-shape
@@ -425,7 +425,7 @@ class PartitionRegistry(Registry):
 partition_types = PartitionRegistry()
 
 
-def mip_partitions(mechanism, purview, node_labels=None):
+def mechanism_partitions(mechanism, purview, node_labels=None):
     """Return a generator over all mechanism-purview partitions, based on the
     current configuration.
     """
@@ -433,8 +433,8 @@ def mip_partitions(mechanism, purview, node_labels=None):
     return func(mechanism, purview, node_labels)
 
 
-@partition_types.register("BI")
-def mip_bipartitions(
+@partition_types.register("JOINT_BIPARTITION")
+def joint_bipartitions(
     mechanism: tuple[int, ...],
     purview: tuple[int, ...],
     node_labels: Any = None,
@@ -470,7 +470,7 @@ def mip_bipartitions(
     Example:
         >>> mechanism = (0,)
         >>> purview = (2, 3)
-        >>> for partition in mip_bipartitions(mechanism, purview):
+        >>> for partition in joint_bipartitions(mechanism, purview):
         ...     print(partition, '\n')  # doctest: +NORMALIZE_WHITESPACE
          ∅     0
         ─── ✕ ───
@@ -496,8 +496,8 @@ def mip_bipartitions(
             )
 
 
-@partition_types.register("TRI")
-def wedge_partitions(
+@partition_types.register("WEDGE_TRIPARTITION")
+def wedge_tripartitions(
     mechanism: tuple[int, ...],
     purview: tuple[int, ...],
     node_labels: Any = None,
@@ -576,8 +576,8 @@ def wedge_partitions(
             yield tripart
 
 
-@partition_types.register("ALL")
-def all_partitions(
+@partition_types.register("JOINT_PARTITION_ALL")
+def all_joint_partitions(
     mechanism: tuple[int, ...],
     purview: tuple[int, ...],
     node_labels: Any = None,
@@ -623,7 +623,7 @@ class CompleteJointPartition(JointPartition):
     """Represents the partition that completely separates mechanism and purview."""
 
 
-def complete_partition(mechanism, purview):
+def complete_joint_partition(mechanism, purview):
     """Return the partition that disconnects mechanism and purview entirely.
 
     Args:
@@ -633,7 +633,7 @@ def complete_partition(mechanism, purview):
     Returns:
         CompleteJointPartition: Partition with empty cross-connections.
     """
-    n_parts = len(next(mip_partitions(mechanism, purview)))
+    n_parts = len(next(mechanism_partitions(mechanism, purview)))
     parts = [Part((), ())] * (n_parts - 2) + [Part((), purview), Part(mechanism, ())]
     return CompleteJointPartition(*parts)
 
@@ -642,7 +642,7 @@ class AtomicJointPartition(JointPartition):
     """Represents the partition that separates all inter-element connections."""
 
 
-def atomic_partition(elements):
+def atomic_joint_partition(elements):
     """Return the partition that isolates every element.
 
     Args:
@@ -672,7 +672,7 @@ class SystemPartitionRegistry(Registry):
         ... def no_partitions(nodes):
         ...    return []
 
-    And use them by setting ``config.system_partition_type = 'NONE'``.
+    And use them by setting ``config.formalism.iit.system_partition_scheme = 'NONE'``.
 
     Registered objects are validated against
     :class:`pyphi.protocols.SystemPartitionScheme` so wrong-shape
@@ -726,27 +726,31 @@ def _bipartitions_to_directed_bipartitions(func):
     return wrapper
 
 
-@system_partition_types.register("DIRECTED_BI")
+@system_partition_types.register("DIRECTED_BIPARTITION")
 @_bipartitions_to_directed_bipartitions
-def system_directed_bipartitions(nodes):
-    """Return nontrivial directed bipartition cuts for the given nodes."""
+def directed_bipartitions(nodes):
+    """Yield every nontrivial directed bipartition of the given nodes."""
     # Don't consider trivial partitions where one part is empty
     return directed_bipartition(nodes, nontrivial=True)
 
 
-@system_partition_types.register("DIRECTED_BI_CUT_ONE")
+@system_partition_types.register("DIRECTED_BIPARTITION_CUT_ONE")
 @_bipartitions_to_directed_bipartitions
-def system_directed_bipartitions_cut_one(nodes):
-    """Return directed bipartition cuts where one part has a single node."""
+def directed_bipartitions_cut_one(nodes):
+    """Yield directed bipartitions where one part has a single node."""
     return directed_bipartition_of_one(nodes)
 
 
-@system_partition_types.register("DIRECTED_BI_SIMPLE")
-def system_bipartitions_simple(
+@system_partition_types.register("DIRECTED_BIPARTITION_SEQUENTIAL")
+def directed_bipartitions_sequential(
     nodes: Sequence[int],
     node_labels: Any = None,
 ) -> list[DirectedBipartition]:
-    """Return ordered directed bipartitions by splitting the node list once."""
+    """Yield directed bipartitions by linearly splitting the node sequence.
+
+    Produces ``2 * (n - 1)`` partitions for ``n`` nodes: each split point
+    in ``range(1, n)`` yields one partition and its complement.
+    """
     # Use a list instead of generator for progress bar totals since it's linear
     # in the size of the system
     partitions: list[DirectedBipartition] = []
@@ -762,8 +766,8 @@ def system_bipartitions_simple(
     return partitions
 
 
-def _bipartitions_to_temporal_system_partitions(func):
-    """Decorator to return temporally-directed DirectedBipartition objects from a
+def _bipartitions_to_temporal_directed_bipartitions(func):
+    """Decorator to yield temporally directed DirectedBipartition objects from a
     set of bipartitions.
     """
 
@@ -781,18 +785,18 @@ def _bipartitions_to_temporal_system_partitions(func):
     return wrapper
 
 
-@system_partition_types.register("TEMPORAL_DIRECTED_BI")
-@_bipartitions_to_temporal_system_partitions
-def system_temporal_directed_bipartitions(nodes):
-    """Return temporally directed bipartitions for the given nodes."""
+@system_partition_types.register("TEMPORAL_DIRECTED_BIPARTITION")
+@_bipartitions_to_temporal_directed_bipartitions
+def temporal_directed_bipartitions(nodes):
+    """Yield directed bipartitions in both temporal directions."""
     # Don't consider trivial partitions where one part is empty
     return directed_bipartition(nodes, nontrivial=True)
 
 
-@system_partition_types.register("TEMPORAL_DIRECTED_BI_CUT_ONE")
-@_bipartitions_to_temporal_system_partitions
-def system_temporal_directed_bipartitions_cut_one(nodes):
-    """Return temporally directed bipartitions where one part has one node."""
+@system_partition_types.register("TEMPORAL_DIRECTED_BIPARTITION_CUT_ONE")
+@_bipartitions_to_temporal_directed_bipartitions
+def temporal_directed_bipartitions_cut_one(nodes):
+    """Yield temporal directed bipartitions where one part has a single node."""
     return directed_bipartition_of_one(nodes)
 
 
@@ -823,38 +827,42 @@ def _cut_matrices(n, symmetric=False):
         yield cm
 
 
-@system_partition_types.register("GENERAL")
-def general(
+@system_partition_types.register("EDGE_CUT_ALL")
+def all_edge_cuts(
     node_indices: tuple[int, ...],
     node_labels: Any = None,
 ) -> Iterable[EdgeCut]:
-    """Yield all general cut-based partitions for a set of nodes."""
+    """Yield every edge cut on the given nodes (with the complete cut)."""
     yield CompleteEdgeCut(node_indices, node_labels=node_labels)
     for cut_matrix in _cut_matrices(len(node_indices)):
         yield EdgeCut(node_indices, cut_matrix, node_labels=node_labels)
 
 
-def num_general_partitions(n: int) -> int:
-    """Return the number of possible general partitions for ``n`` nodes."""
+def num_edge_cuts(n: int) -> int:
+    """Return the number of possible edge cuts on ``n`` nodes."""
     return 2 ** (n**2 - n)
 
 
-@system_partition_types.register("GENERAL_BIDIRECTIONAL")
-def general_bidirectional(
+@system_partition_types.register("EDGE_CUT_BIDIRECTIONAL")
+def bidirectional_edge_cuts(
     node_indices: tuple[int, ...],
     node_labels: Any = None,
 ) -> Iterable[EdgeCut]:
-    """Yield all bidirectional general partitions for a set of nodes."""
+    """Yield every bidirectional (symmetric) edge cut on the given nodes."""
     yield CompleteEdgeCut(node_indices, node_labels=node_labels)
     for cut_matrix in _cut_matrices(len(node_indices), symmetric=True):
         yield EdgeCut(node_indices, cut_matrix, node_labels=node_labels)
 
 
-def _unidirectional_set_partitions(
+def _directed_set_partitions(
     node_indices: tuple[int, ...],
     node_labels: Any = None,
 ) -> Iterable[EdgeCut]:
-    """Generate all unidirectional set partitions of a set of nodes."""
+    """Yield every directed set partition of the given nodes.
+
+    Each set partition is yielded once per assignment of a direction
+    (``CAUSE``, ``EFFECT``, or ``BIDIRECTIONAL``) to each part.
+    """
     if len(node_indices) == 1 or config.formalism.iit.system_partition_include_complete:
         yield CompleteEdgeCut(node_indices, node_labels=node_labels)
     _node_indices = set(range(len(node_indices)))
@@ -879,13 +887,11 @@ def _unidirectional_set_partitions(
             )
 
 
-@system_partition_types.register("SET_UNI/BI")
-@functools.wraps(_unidirectional_set_partitions)
-def unidirectional_set_partitions(node_indices, node_labels=None):
+@system_partition_types.register("DIRECTED_SET_PARTITION")
+@functools.wraps(_directed_set_partitions)
+def directed_set_partitions(node_indices, node_labels=None):
     # TODO(4.0) generate properly without using set
-    yield from unique(
-        _unidirectional_set_partitions(node_indices, node_labels=node_labels)
-    )
+    yield from unique(_directed_set_partitions(node_indices, node_labels=node_labels))
 
 
 def system_partitions(nodes, node_labels=None, partition_scheme=None, filter_func=None):

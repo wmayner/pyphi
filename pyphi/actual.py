@@ -54,7 +54,7 @@ from .models import _null_ac_sia
 from .models import fmt
 from .models.partitions import DirectedBipartition
 from .parallel import MapReduce
-from .partition import mip_partitions
+from .partition import mechanism_partitions
 from .substrate import Substrate
 from .system import System
 
@@ -1082,7 +1082,7 @@ class Transition:
 
         probability = self.probability(direction, mechanism, purview)
         candidates: list[AcRepertoireIrreducibilityAnalysis] = []
-        for partition in mip_partitions(mechanism, purview, self.node_labels):
+        for partition in mechanism_partitions(mechanism, purview, self.node_labels):
             partitioned_probability = self.partitioned_probability(
                 direction,
                 partition,
@@ -1466,7 +1466,7 @@ def _get_partitions(transition, direction):
     else:
         mechanism = transition.mechanism_indices(direction)
         purview = transition.purview_indices(direction)
-        for inner_partition in mip_partitions(
+        for inner_partition in mechanism_partitions(
             mechanism, purview, transition.node_labels
         ):
             yield DirectedJointPartition(

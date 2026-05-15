@@ -42,7 +42,7 @@ class IIT3Formalism:
             "INTRINSIC_DIFFERENCE",
         }
     )
-    partition_scheme: ClassVar[str | None] = "BI"
+    partition_scheme: ClassVar[str | None] = "JOINT_BIPARTITION"
 
     config: FormalismConfig = field(default_factory=_default_formalism_config)
 

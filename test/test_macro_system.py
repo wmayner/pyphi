@@ -26,7 +26,7 @@ def _iit_30_config_for_macro_tests(request):
         with config.override(
             formalism="IIT_3_0",
             repertoire_distance="EMD",
-            system_partition_type="DIRECTED_BI",
+            system_partition_type="DIRECTED_BIPARTITION",
         ):
             yield
     else:

@@ -29,7 +29,7 @@ from pyphi.direction import Direction
 from pyphi.distribution import repertoire_shape
 from pyphi.partition import bipartition
 from pyphi.partition import directed_bipartition
-from pyphi.partition import mip_bipartitions
+from pyphi.partition import joint_bipartitions
 from pyphi.substrate import Substrate
 from pyphi.system import System
 
@@ -304,7 +304,7 @@ class TestMetricInvariants:
                 config.formalism.iit,
                 version="IIT_3_0",
                 mechanism_phi_measure="EMD",
-                mechanism_partition_scheme="BI",
+                mechanism_partition_scheme="JOINT_BIPARTITION",
             ),
             validate_system_states=False,
         ):
@@ -391,8 +391,8 @@ class TestPartitionCounts:
         m=st.integers(min_value=1, max_value=4),
         p=st.integers(min_value=1, max_value=4),
     )
-    def test_mip_bipartition_count(self, m, p):
-        """``|mip_bipartitions(M, P)| = 2^M * 2^P - <trivials>``.
+    def test_joint_bipartition_count(self, m, p):
+        """``|joint_bipartitions(M, P)| = 2^M * 2^P - <trivials>``.
 
         With ``M`` mechanism nodes and ``P`` purview nodes:
           - bipartitions of mechanism: ``2^(M-1)`` undirected wrappers, each
@@ -406,7 +406,7 @@ class TestPartitionCounts:
         """
         mechanism = tuple(range(m))
         purview = tuple(range(p))
-        partitions = list(mip_bipartitions(mechanism, purview))
+        partitions = list(joint_bipartitions(mechanism, purview))
         # Every partition covers the union of mechanism and purview (mechanism
         # halves form a bipartition of M; purview halves a directed bipartition
         # of P).

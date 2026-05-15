@@ -668,7 +668,7 @@ def sia(
 
     if partitions is None:
         filter_func = None
-        if partitions == "GENERAL":
+        if partitions == "EDGE_CUT_ALL":
 
             def is_disconnecting_partition(partition):
                 # Special case for length 1 systems so complete partition is included

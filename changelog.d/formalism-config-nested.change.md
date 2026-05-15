@@ -30,7 +30,7 @@ still works for unique field names. Names that collide between
 ``iit`` and ``actual_causation`` (currently only
 ``mechanism_partition_scheme``) require the qualified form, e.g.
 ``config.iit = replace(config.formalism.iit,
-mechanism_partition_scheme="BI")``.
+mechanism_partition_scheme="JOINT_BIPARTITION")``.
 
 YAML config files now use the nested formalism format::
 

@@ -48,8 +48,8 @@ class TestIITConfig:
         cfg = IITConfig()
         assert cfg.version == "IIT_4_0_2023"
         assert cfg.mechanism_phi_measure == "GENERALIZED_INTRINSIC_DIFFERENCE"
-        assert cfg.mechanism_partition_scheme == "ALL"
-        assert cfg.system_partition_scheme == "SET_UNI/BI"
+        assert cfg.mechanism_partition_scheme == "JOINT_PARTITION_ALL"
+        assert cfg.system_partition_scheme == "DIRECTED_SET_PARTITION"
         assert cfg.shortcircuit_sia is True
 
     def test_is_frozen(self):
@@ -77,7 +77,7 @@ class TestActualCausationConfig:
     def test_defaults_match_paper(self):
         cfg = ActualCausationConfig()
         assert cfg.alpha_measure == "PMI"
-        assert cfg.mechanism_partition_scheme == "ALL"
+        assert cfg.mechanism_partition_scheme == "JOINT_PARTITION_ALL"
         assert cfg.partitioned_repertoire_scheme == "PRODUCT"
         assert cfg.background_scheme == "UNIFORM"
         assert cfg.alpha_aggregation == "SUBTRACTIVE"
@@ -352,7 +352,7 @@ class TestGlobalConfigFacade:
 
     def test_flat_write_to_colliding_field_raises(self):
         with pytest.raises(ConfigurationError, match="ambiguous"):
-            config.mechanism_partition_scheme = "BI"
+            config.mechanism_partition_scheme = "JOINT_BIPARTITION"
 
     def test_flat_read_of_colliding_field_raises(self):
         with pytest.raises(AttributeError, match="ambiguous"):

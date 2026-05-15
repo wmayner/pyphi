@@ -656,7 +656,9 @@ def ac_cut(direction, *parts):
     return models.DirectedJointPartition(direction, JointPartition(*parts))
 
 
-@config.override(iit=replace(config.formalism.iit, mechanism_partition_scheme="TRI"))
+@config.override(
+    iit=replace(config.formalism.iit, mechanism_partition_scheme="WEDGE_TRIPARTITION")
+)
 @pytest.mark.parametrize(
     "direction,answer",
     [
@@ -809,13 +811,14 @@ class TestActualCausationIIT30:
     def test_sia_cause_direction(self, transition):
         """Test SIA with CAUSE direction only under IIT 3.0 bipartitions.
 
-        Under ``PARTITION_TYPE="BI"`` (inherited from ``IIT_3_CONFIG``), the
-        cause direction reduces to ``alpha == 0.0`` for this fixture even
-        though individual causal links have nonzero alpha. The effect and
-        bidirectional directions remain nonzero — see
+        Under ``mechanism_partition_scheme="JOINT_BIPARTITION"`` (inherited
+        from ``IIT_3_CONFIG``), the cause direction reduces to ``alpha == 0.0``
+        for this fixture even though individual causal links have nonzero
+        alpha. The effect and bidirectional directions remain nonzero — see
         :meth:`test_sia_effect_direction` and :meth:`test_sia`. Under
-        ``PARTITION_TYPE="TRI"`` the cause direction is also nonzero; that
-        regime is exercised by :meth:`test_prevention`.
+        ``mechanism_partition_scheme="WEDGE_TRIPARTITION"`` the cause
+        direction is also nonzero; that regime is exercised by
+        :meth:`test_prevention`.
         """
         sia_cause = actual.sia(transition, Direction.CAUSE)
         assert sia_cause.alpha == 0.0
@@ -827,14 +830,19 @@ class TestActualCausationIIT30:
         assert np.isclose(sia_effect.alpha, 0.4150374992788)
         assert sia_effect.direction == Direction.EFFECT
 
-    @config.override(iit=replace(config.formalism.iit, mechanism_partition_scheme="TRI"))
+    @config.override(
+        iit=replace(
+            config.formalism.iit, mechanism_partition_scheme="WEDGE_TRIPARTITION"
+        )
+    )
     def test_prevention(self, prevention):
         """Test prevention example under IIT 3.0 with tripartitions.
 
-        The original test deliberately exercised tripartition (``PARTITION_TYPE``
-        = ``"TRI"``). Do not silently inherit ``BI`` from ``IIT_3_CONFIG`` — the
-        BI and TRI results differ and are different claims about the prevention
-        example.
+        The original test deliberately exercised tripartition
+        (``mechanism_partition_scheme="WEDGE_TRIPARTITION"``). Do not silently
+        inherit ``JOINT_BIPARTITION`` from ``IIT_3_CONFIG`` — the bipartition
+        and tripartition results differ and are different claims about the
+        prevention example.
         """
         assert np.isclose(actual.sia(prevention, Direction.CAUSE).alpha, 0.4150374992788)
         assert actual.sia(prevention, Direction.EFFECT).alpha == 0.0
