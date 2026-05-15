@@ -33,8 +33,11 @@ Attributes:
     Part: Alias for :class:`pyphi.models.partitions.Part`.
     RepertoireIrreducibilityAnalysis: Alias for
         :class:`pyphi.models.mechanism.RepertoireIrreducibilityAnalysis`.
-    SystemIrreducibilityAnalysis: Alias for
-        :class:`pyphi.models.system.SystemIrreducibilityAnalysis`.
+    IIT3SystemIrreducibilityAnalysis: Alias for
+        :class:`pyphi.models.sia.IIT3SystemIrreducibilityAnalysis` — the
+        IIT 3.0 result type. The IIT 4.0 result type with the same role
+        lives in :mod:`pyphi.formalism.iit4` and is called
+        ``SystemIrreducibilityAnalysis`` there.
 """
 
 from .actual_causation import Account
@@ -68,7 +71,7 @@ from .partitions import Part
 from .ria import RepertoireIrreducibilityAnalysis
 from .ria import ShortCircuitConditions
 from .ria import _null_ria
-from .sia import SystemIrreducibilityAnalysis
+from .sia import IIT3SystemIrreducibilityAnalysis
 from .sia import _null_sia
 from .state_specification import DistinctionPhiNormalizationRegistry
 from .state_specification import StateSpecification
@@ -94,6 +97,7 @@ __all__ = [
     "Distinctions",
     "EdgeCut",
     "Event",
+    "IIT3SystemIrreducibilityAnalysis",
     "JointBipartition",
     "JointPartition",
     "JointTripartition",
@@ -106,7 +110,6 @@ __all__ = [
     "ResolvedDistinctions",
     "ShortCircuitConditions",
     "StateSpecification",
-    "SystemIrreducibilityAnalysis",
     "SystemStateSpecification",
     "UnitState",
     "UnresolvedDistinctions",

@@ -112,7 +112,7 @@ def _loadable_models():
         pyphi.models.Part,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.RepertoireIrreducibilityAnalysis,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.SystemStateSpecification,  # pyright: ignore[reportAttributeAccessIssue]
-        pyphi.models.SystemIrreducibilityAnalysis,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.IIT3SystemIrreducibilityAnalysis,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.JointTripartition,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.Substrate,
         pyphi.formalism.iit4.CauseEffectStructure,  # pyright: ignore[reportAttributeAccessIssue]

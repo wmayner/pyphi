@@ -30,8 +30,8 @@ from pyphi.measures.ces import ces_distance
 from pyphi.models import Concept
 from pyphi.models import DirectedBipartition
 from pyphi.models import Distinctions
+from pyphi.models import IIT3SystemIrreducibilityAnalysis
 from pyphi.models import ResolvedDistinctions
-from pyphi.models import SystemIrreducibilityAnalysis
 from pyphi.models import UnresolvedDistinctions
 from pyphi.models import _null_sia
 from pyphi.parallel import MapReduce
@@ -186,7 +186,7 @@ def evaluate_partition(
     unpartitioned_system: System,
     unpartitioned_ces: Distinctions,
     **kwargs: Any,
-) -> SystemIrreducibilityAnalysis:
+) -> IIT3SystemIrreducibilityAnalysis:
     """Compute the system irreducibility for a given partition.
 
     Args:
@@ -196,7 +196,7 @@ def evaluate_partition(
             the unpartitioned system.
 
     Returns:
-        SystemIrreducibilityAnalysis: The |SystemIrreducibilityAnalysis| for
+        IIT3SystemIrreducibilityAnalysis: The |big_phi| analysis for
         that partition.
     """
     log.debug("Evaluating %s...", partition)
@@ -220,7 +220,7 @@ def evaluate_partition(
 
     phi_ = ces_distance(unpartitioned_ces, partitioned_ces)
 
-    return SystemIrreducibilityAnalysis(
+    return IIT3SystemIrreducibilityAnalysis(
         phi=phi_,
         ces=unpartitioned_ces,
         partitioned_ces=partitioned_ces,
@@ -276,7 +276,7 @@ def _sia_map_reduce(
     system: System,
     unpartitioned_ces: Distinctions,
     **kwargs: Any,
-) -> SystemIrreducibilityAnalysis:
+) -> IIT3SystemIrreducibilityAnalysis:
     kwargs = {"parallel": config.infrastructure.parallel_partition_evaluation, **kwargs}
     result = MapReduce(
         evaluate_partition,
@@ -295,14 +295,14 @@ def _sia_map_reduce(
     return result
 
 
-def _sia(system: System, **kwargs: Any) -> SystemIrreducibilityAnalysis:
+def _sia(system: System, **kwargs: Any) -> IIT3SystemIrreducibilityAnalysis:
     """Return the minimal information partition of a system.
 
     Args:
         system (System): The candidate set of nodes.
 
     Returns:
-        SystemIrreducibilityAnalysis: A nested structure containing all the
+        IIT3SystemIrreducibilityAnalysis: A nested structure containing all the
         data from the intermediate calculations. The top level contains the
         basic irreducibility information for the given system.
     """

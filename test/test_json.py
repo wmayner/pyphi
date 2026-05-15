@@ -63,7 +63,6 @@ def test_json_deserialization(s, transition):
         # s.concept((1, 2)),
         # s.concept((1,)),
         iit3.ces(s),
-        # iit3.sia(s),
         s.sia(),
         new_big_phi.ces(
             s,
@@ -277,3 +276,23 @@ def test_empty_enum_keyed_dict():
     original = {}
     loaded = jsonify.loads(jsonify.dumps(original))
     assert loaded == original
+
+
+def test_iit3_sia_round_trip(s):
+    """IIT 3.0 ``IIT3SystemIrreducibilityAnalysis`` round-trips through JSON.
+
+    Two prior bugs blocked this:
+    - ``to_json`` / ``from_json`` referenced a non-existent ``small_phi_time``
+      attribute.
+    - The ``__class__`` marker collided with the IIT 4.0 SIA class (both
+      were named ``SystemIrreducibilityAnalysis``), so a deserialized
+      IIT 3.0 SIA came back as the wrong type.
+    """
+    from .conftest import IIT_3_CONFIG
+
+    with IIT_3_CONFIG:
+        sia = iit3.sia(s)
+
+    decoded = jsonify.loads(jsonify.dumps(sia))
+    assert isinstance(decoded, models.IIT3SystemIrreducibilityAnalysis)
+    assert decoded == sia

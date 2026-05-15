@@ -29,7 +29,7 @@ _sia_attributes = [
 ]
 
 
-class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
+class IIT3SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
     """An analysis of system irreducibility (|big_phi|).
 
     Contains the |big_phi| value of the |System|, the cause-effect
@@ -143,23 +143,20 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
 
     def to_json(self):
         """Return a JSON-serializable representation."""
-        return {
-            attr: getattr(self, attr) for attr in [*_sia_attributes, "small_phi_time"]
-        }
+        return {attr: getattr(self, attr) for attr in _sia_attributes}
 
     @classmethod
     def from_json(cls, dct):
-        del dct["small_phi_time"]
         return cls(**dct)
 
 
 def _null_sia(system, phi=0.0):
-    """Return a |SystemIrreducibilityAnalysis| with zero |big_phi| and empty
-    cause-effect structures.
+    """Return an |IIT3SystemIrreducibilityAnalysis| with zero |big_phi| and
+    empty cause-effect structures.
 
     This is the analysis result for a reducible system.
     """
-    return SystemIrreducibilityAnalysis(
+    return IIT3SystemIrreducibilityAnalysis(
         phi=phi,
         ces=_null_ces(),
         partitioned_ces=_null_ces(),

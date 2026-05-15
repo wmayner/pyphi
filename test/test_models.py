@@ -82,10 +82,10 @@ def concept(
 
 
 def sia(ces=(), partitioned_ces=(), system=None, partitioned_system=None, phi=1.0):
-    """Build a ``SystemIrreducibilityAnalysis``."""
+    """Build an ``IIT3SystemIrreducibilityAnalysis``."""
     partitioned_system = partitioned_system or system
 
-    return models.SystemIrreducibilityAnalysis(
+    return models.IIT3SystemIrreducibilityAnalysis(
         ces=ces,
         partitioned_ces=partitioned_ces,
         partition=partitioned_system.partition if partitioned_system else None,
