@@ -88,7 +88,7 @@ def concept(
     return Concept(mechanism=mechanism, cause=cause, effect=effect)
 
 
-def ces(
+def _compute_distinctions(
     system: System,
     mechanisms: Iterable[Mechanism] | None = None,
     purviews: Iterable[Purview] | None = None,
@@ -98,11 +98,8 @@ def ces(
     only_positive_phi: bool = True,
     **kwargs: Any,
 ) -> Distinctions:
-    """Return the conceptual structure of this system, optionally restricted
-    to concepts with the mechanisms and purviews given in keyword arguments.
-
-    If you don't need the full |Distinctions|, restricting the possible
-    mechanisms and purviews can make this function much faster.
+    """Compute the bag of distinctions for a system, restricted by the
+    given mechanism / purview / direction filters.
 
     Args:
         system (System): The system for which to determine the
@@ -177,7 +174,9 @@ def conceptual_info(system: System, **kwargs: Any) -> float:
     This is the distance from the system's |Distinctions| to the
     null concept.
     """
-    ci = ces_distance(ces(system, **kwargs), ResolvedDistinctions(()), system=system)
+    ci = ces_distance(
+        _compute_distinctions(system, **kwargs), ResolvedDistinctions(()), system=system
+    )
     return round(ci, config.numerics.precision)  # type: ignore[arg-type]  # config.Option descriptor
 
 
@@ -214,7 +213,7 @@ def evaluate_partition(
         )
 
     kwargs = {"progress": False, **kwargs}
-    partitioned_ces = ces(partitioned_system, mechanisms, **kwargs)
+    partitioned_ces = _compute_distinctions(partitioned_system, mechanisms, **kwargs)
 
     log.debug("Finished evaluating %s.", partition)
 
@@ -268,7 +267,7 @@ def _ces(system: System, **kwargs: Any) -> Distinctions:
     so the same worker budget is available.
     """
     kwargs = {**dict(config.infrastructure.parallel_partition_evaluation), **kwargs}
-    return ces(system, **kwargs)
+    return _compute_distinctions(system, **kwargs)
 
 
 def _sia_map_reduce(

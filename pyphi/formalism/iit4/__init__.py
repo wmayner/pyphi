@@ -926,7 +926,7 @@ def ces(
         # CES building dispatches find_mice through the active formalism;
         # the iit3 helper is reused because the outer mechanism x purview
         # iteration is the same in both formalisms.
-        distinctions = iit3.ces(system, **ces_kwargs)  # type: ignore[arg-type]
+        distinctions = iit3._compute_distinctions(system, **ces_kwargs)  # type: ignore[arg-type]
     # Resolve tied specified states against a SIA system_state. When the
     # SIA is null (degenerate substrate, e.g., not strongly connected)
     # we still want a usable bag of distinctions for diagnostics, so
