@@ -294,11 +294,21 @@ class MapReduce:
         )
 
     def _run_parallel(self) -> Any:
-        """Perform the computation in parallel using local backend."""
+        """Perform the computation in parallel using local backend.
+
+        Captures the parent's ``ConfigSnapshot`` and wraps the map
+        function so each worker installs the snapshot before applying
+        ``map_func``. Without this, workers compute under their stale
+        default config and the result records the wrong snapshot.
+        """
         from .backends.local_process import LocalMapReduce
+        from .backends.local_process import _make_worker_fn
+
+        snapshot = config.snapshot()
+        wrapped_map_func = _make_worker_fn(self.map_func, snapshot)
 
         local_mr = LocalMapReduce(
-            map_func=self.map_func,
+            map_func=wrapped_map_func,
             iterables=self.iterables,
             reduce_func=self.reduce_func,
             reduce_kwargs=self.reduce_kwargs,

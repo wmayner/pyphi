@@ -472,6 +472,7 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
         cause_indices=None,
         effect_indices=None,
         node_labels=None,
+        config=None,
     ):
         self.alpha = alpha
         self.direction = direction
@@ -485,6 +486,14 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
         self.cause_indices = cause_indices
         self.effect_indices = effect_indices
         self.node_labels = node_labels
+        # ConfigSnapshot of the layered config at construction time.
+        # Lazy-snapshot if None: callers that don't pass one still get a
+        # recorded config (matching SystemIrreducibilityAnalysis).
+        if config is None:
+            from pyphi.conf import config as _global
+
+            config = _global.snapshot()
+        self.config = config
 
     def __repr__(self):
         return fmt.make_repr(self, _ac_sia_attributes)
