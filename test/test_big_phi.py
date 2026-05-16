@@ -305,12 +305,12 @@ def test_ces_concepts_share_the_same_system(parallel, s):
 
 
 def test_parallel_and_sequential_ces_are_equal(s, micro_s, macro_s):
-    with config.override(parallel=False):
-        c = iit3.ces(s)
-        c_micro = iit3.ces(micro_s)
-        c_macro = iit3.ces(macro_s)
+    with config.override(**presets.iit3, parallel=False):
+        c = iit3.ces(s).distinctions
+        c_micro = iit3.ces(micro_s).distinctions
+        c_macro = iit3.ces(macro_s).distinctions
 
-    with config.override(parallel=True):
-        assert set(c) == set(iit3.ces(s))
-        assert set(c_micro) == set(iit3.ces(micro_s))
-        assert set(c_macro) == set(iit3.ces(macro_s))
+    with config.override(**presets.iit3, parallel=True):
+        assert set(c) == set(iit3.ces(s).distinctions)
+        assert set(c_micro) == set(iit3.ces(micro_s).distinctions)
+        assert set(c_macro) == set(iit3.ces(macro_s).distinctions)

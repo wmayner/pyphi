@@ -11,6 +11,7 @@ from pyphi import jsonify
 from pyphi import labels
 from pyphi import models
 from pyphi import substrate
+from pyphi.conf import presets
 from pyphi.formalism import iit3
 from pyphi.formalism import iit4 as new_big_phi
 from pyphi.measures.distribution import resolve_mechanism_measure
@@ -45,6 +46,8 @@ def test_jsonify_numpy():
 
 
 def test_json_deserialization(s, transition):
+    with config.override(**presets.iit3):
+        iit3_distinctions = iit3.ces(s).distinctions
     objects = [
         Direction.CAUSE,
         s.substrate,  # Substrate
@@ -62,7 +65,7 @@ def test_json_deserialization(s, transition):
         ),
         # s.concept((1, 2)),
         # s.concept((1,)),
-        iit3.ces(s),
+        iit3_distinctions,
         s.sia(),
         new_big_phi.ces(
             s,

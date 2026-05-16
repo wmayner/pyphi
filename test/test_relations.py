@@ -78,7 +78,7 @@ def test_all_relations(case_name):
         answer_ces = jsonify.load(f)
     # Compute and check CES
     system = getattr(examples, f"{case_name}_system")()
-    ces = iit3.ces(system)
+    ces = iit3._compute_distinctions(system)
     assert ces == answer_ces
 
     with open(f"test/data/relations/relations_{case_name}.json") as f:

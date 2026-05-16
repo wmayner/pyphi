@@ -137,7 +137,7 @@ class TestSiaCesConsistencyIIT30:
         with config.override(**presets.iit3, progress_bars=False):
             substrate = substrate_factory()
             system = System.from_substrate(substrate, state, substrate.node_indices)
-            standalone_ces = iit3.ces(system)
+            standalone_ces = iit3.ces(system).distinctions
             sia_ces = iit3.sia(system).ces
         standalone_mechs = {tuple(c.mechanism): float(c.phi) for c in standalone_ces}
         sia_mechs = {tuple(c.mechanism): float(c.phi) for c in sia_ces}
@@ -285,3 +285,20 @@ class TestSubstrateMethodsIIT40:
         # Irreducible ones have phi > 0.
         for c in irr:
             assert float(c.phi) > 0
+
+
+def test_iit3_ces_returns_cause_effect_structure(s):
+    """iit3.ces returns a CauseEffectStructure with sia, distinctions, and
+    NullRelations.
+    """
+    from pyphi.models.ces import CauseEffectStructure
+    from pyphi.relations import NullRelations
+
+    with config.override(**presets.iit3):
+        result = iit3.ces(s)
+
+    assert isinstance(result, CauseEffectStructure)
+    assert result.sia is not None
+    assert isinstance(result.relations, NullRelations)
+    assert result.relations.num_relations() == 0
+    assert result.distinctions is not None

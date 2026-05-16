@@ -34,8 +34,10 @@ from pyphi.models import IIT3SystemIrreducibilityAnalysis
 from pyphi.models import ResolvedDistinctions
 from pyphi.models import UnresolvedDistinctions
 from pyphi.models import _null_sia
+from pyphi.models.ces import CauseEffectStructure
 from pyphi.parallel import MapReduce
 from pyphi.partition import system_partition_types
+from pyphi.relations import NullRelations
 from pyphi.types import Mechanism
 from pyphi.types import Purview
 
@@ -158,6 +160,40 @@ def _compute_distinctions(
     # immediately call ``resolve_congruence``; IIT 3.0 callers route
     # through ``ces_distance`` which accepts the base ``Distinctions``.
     return UnresolvedDistinctions(concepts)
+
+
+def ces(
+    system: System,
+    *,
+    sia: IIT3SystemIrreducibilityAnalysis | None = None,
+    distinctions: Distinctions | None = None,
+    sia_kwargs: dict | None = None,
+    distinctions_kwargs: dict | None = None,
+) -> CauseEffectStructure:
+    """Compute the cause-effect structure of a system under IIT 3.0.
+
+    Returns a :class:`CauseEffectStructure` wrapping the SIA, the resolved
+    distinctions, and an empty :class:`NullRelations` (IIT 3.0 does not
+    define relations between distinctions).
+
+    Pass ``sia=`` or ``distinctions=`` to reuse pre-computed values.
+    """
+    sia_kwargs = sia_kwargs or {}
+    distinctions_kwargs = distinctions_kwargs or {}
+
+    if sia is None:
+        sia = _sia(system, **sia_kwargs)
+    if distinctions is None:
+        distinctions = _compute_distinctions(system, **distinctions_kwargs)
+
+    if not isinstance(distinctions, ResolvedDistinctions):
+        distinctions = ResolvedDistinctions(distinctions)
+
+    return CauseEffectStructure(
+        sia=sia,
+        distinctions=distinctions,
+        relations=NullRelations(),
+    )
 
 
 def _only_positive_phi(concepts: Iterable[Any]) -> list[Concept]:
