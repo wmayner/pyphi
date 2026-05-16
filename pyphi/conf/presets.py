@@ -30,18 +30,39 @@ from typing import Any
 from pyphi.conf.formalism import ActualCausationConfig
 from pyphi.conf.formalism import IITConfig
 
+# IIT 3.0 (Oizumi, Albantakis, Tononi 2014).
+#
+# Mirrors ``pyphi_config_3.0.yml``. Fields not listed here (the
+# IIT-4.0-only ``specification_measure``, ``differentiation_measure``,
+# ``distinction_phi_normalization``, ``relation_computation``, the
+# specified-state ``state_tie_resolution``, ``mip_tie_resolution``,
+# ``sia_tie_resolution``, ``system_phi_measure``, etc.) are unused on
+# the IIT 3.0 code path and left at their library defaults.
 iit3: dict[str, Any] = {
     "iit": IITConfig(
         version="IIT_3_0",
+        # Distribution-distance measures used at the mechanism and CES
+        # levels. The 2015 EMD-fix in ``_emd`` enforces inter-constellation-
+        # only mass flow; see ``pyphi/measures/ces.py:194-213``.
         mechanism_phi_measure="EMD",
         ces_measure="EMD",
+        # IIT 3.0 partition schemes.
         mechanism_partition_scheme="JOINT_BIPARTITION",
         system_partition_scheme="DIRECTED_BIPARTITION",
+        # Paper-faithful: a single node with a self-loop does not generate
+        # phi by itself.
         single_micro_nodes_with_selfloops_have_phi=False,
+        # Two-step purview tie resolution: prefer larger phi, break
+        # remaining ties by larger purview. Matches PyPhi 1.x's
+        # ``pyphi_config_3.0.yml`` default.
         purview_tie_resolution=["PHI", "PURVIEW_SIZE"],
+        # Paper-faithful: a cut can introduce a new concept; PyPhi does
+        # not optimize this away.
         assume_partitions_cannot_create_new_concepts=False,
     ),
     "actual_causation": ActualCausationConfig(
+        # PMI is the paper-canonical alpha measure for IIT 3.0 actual
+        # causation (Albantakis et al. 2019).
         alpha_measure="PMI",
     ),
     # pyemd's EMD comparison tolerance fails at finer precisions.

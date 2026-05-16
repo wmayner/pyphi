@@ -16,8 +16,10 @@ import hashlib
 import json
 from collections.abc import Callable
 from contextlib import AbstractContextManager
+from dataclasses import asdict
 from dataclasses import dataclass
 from dataclasses import field
+from dataclasses import is_dataclass
 from pathlib import Path
 from typing import Any
 
@@ -146,7 +148,7 @@ def load_fixture(fixture: GoldenFixture) -> tuple[dict[str, Any], dict[str, np.n
 
 
 def _json_default(obj: Any) -> Any:
-    """JSON encoder for numpy types and tuples."""
+    """JSON encoder for numpy types, tuples, frozensets, and dataclass instances."""
     if isinstance(obj, np.integer):
         return int(obj)
     if isinstance(obj, np.floating):
@@ -157,6 +159,8 @@ def _json_default(obj: Any) -> Any:
         return list(obj)
     if isinstance(obj, frozenset):
         return sorted(obj)
+    if is_dataclass(obj) and not isinstance(obj, type):
+        return asdict(obj)
     raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
 
 

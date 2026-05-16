@@ -1,20 +1,49 @@
 {
   "fixture_name": "basic_iit3_emd",
   "schema_version": 1,
-  "generated_from_commit": "023a359b082dcb825beaa323c150090d51f454dd",
-  "description": "Basic 3-node network (Marshall et al. 2023 Fig. 1 reference). IIT 3.0 (Oizumi et al. 2014) + EMD + BI partitions.",
+  "generated_from_commit": "760bf3bffe0b47d3f53d68f7f7e249c34ac9a297",
+  "description": "Basic 3-node substrate (Marshall et al. 2023 Fig. 1 reference). IIT 3.0 (Oizumi et al. 2014) + EMD + BI partitions.",
   "config_overrides": {
-    "FORMALISM": "IIT_3_0",
-    "REPERTOIRE_DISTANCE": "EMD",
-    "PARTITION_TYPE": "BI",
-    "SYSTEM_PARTITION_TYPE": "DIRECTED_BI",
-    "ACTUAL_CAUSATION_MEASURE": "PMI",
-    "PURVIEW_TIE_RESOLUTION": [
-      "PHI",
-      "PURVIEW_SIZE"
-    ],
-    "PROGRESS_BARS": false,
-    "PARALLEL": false
+    "iit": {
+      "version": "IIT_3_0",
+      "mechanism_phi_measure": "EMD",
+      "system_phi_measure": "GENERALIZED_INTRINSIC_DIFFERENCE",
+      "specification_measure": "GENERALIZED_INTRINSIC_DIFFERENCE",
+      "differentiation_measure": "INTRINSIC_DIFFERENTIATION",
+      "ces_measure": "EMD",
+      "mechanism_partition_scheme": "BI",
+      "system_partition_scheme": "DIRECTED_BI",
+      "system_partition_include_complete": false,
+      "distinction_phi_normalization": "NUM_CONNECTIONS_CUT",
+      "relation_computation": "CONCRETE",
+      "assume_partitions_cannot_create_new_concepts": false,
+      "shortcircuit_sia": true,
+      "single_micro_nodes_with_selfloops_have_phi": false,
+      "state_tie_resolution": "PHI",
+      "mip_tie_resolution": [
+        "NORMALIZED_PHI",
+        "NEGATIVE_PHI"
+      ],
+      "purview_tie_resolution": [
+        "PHI",
+        "PURVIEW_SIZE"
+      ],
+      "sia_tie_resolution": [
+        "NORMALIZED_PHI",
+        "NEGATIVE_PHI",
+        "PARTITION_LEX"
+      ]
+    },
+    "actual_causation": {
+      "alpha_measure": "PMI",
+      "mechanism_partition_scheme": "ALL",
+      "partitioned_repertoire_scheme": "PRODUCT",
+      "background_scheme": "UNIFORM",
+      "alpha_aggregation": "SUBTRACTIVE"
+    },
+    "precision": 6,
+    "progress_bars": false,
+    "parallel": false
   },
   "state": [
     1,
@@ -789,7 +818,7 @@
         1
       ],
       "direction": "CAUSE",
-      "phi": 0.1666666666667,
+      "phi": 0.166667,
       "partition": [
         [
           [],
@@ -843,7 +872,7 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": 0.1666666666667,
+      "phi": 0.166667,
       "partition": [
         [
           [],
@@ -1018,7 +1047,7 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": 0.3333333333333,
+      "phi": 0.333333,
       "partition": [
         [
           [],
@@ -2258,7 +2287,7 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": 0.3333333333333,
+      "phi": 0.333333,
       "partition": [
         [
           [
@@ -2761,7 +2790,7 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": 0.1666666666667,
+      "phi": 0.166667,
       "partition": [
         [
           [],
@@ -3727,9 +3756,9 @@
     }
   ],
   "sia": {
-    "phi": 0.5,
-    "ces_size": 2,
-    "ces_phi_sum": 1.0,
+    "phi": 2.312499,
+    "ces_size": 4,
+    "ces_phi_sum": 1.583333,
     "partitioned_ces_size": 1
   }
 }

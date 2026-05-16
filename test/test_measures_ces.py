@@ -5,6 +5,7 @@ import pytest
 
 from pyphi import config
 from pyphi import models
+from pyphi.conf import presets
 from pyphi.formalism import iit3
 from pyphi.measures.ces import ces_distance
 from pyphi.measures.ces import emd_ground_distance
@@ -23,40 +24,39 @@ def test_emd_ground_distance_must_be_symmetric():
 
 @pytest.mark.emd
 @skip_if_no_pyemd
-@pytest.mark.outdated
 def test_ces_distances(s):
-    with config.override(version="IIT_3_0", mechanism_phi_measure="EMD"):
+    """Canonical IIT 3.0 CES distance for the basic substrate (1,0,0)."""
+    with config.override(**presets.iit3):
         sia = iit3.sia(s)
 
-    with config.override(ces_measure="EMD"):
-        assert ces_distance(sia.ces, sia.partitioned_ces) == 2.3125
+    with config.override(**presets.iit3, ces_measure="EMD"):
+        assert ces_distance(sia.ces, sia.partitioned_ces, system=s) == pytest.approx(
+            2.3125, rel=1e-6
+        )
 
-    with config.override(ces_measure="SUM_SMALL_PHI"):
-        assert ces_distance(sia.ces, sia.partitioned_ces) == 1.083333
+    with config.override(**presets.iit3, ces_measure="SUM_SMALL_PHI"):
+        assert ces_distance(sia.ces, sia.partitioned_ces) == pytest.approx(
+            1.083333, rel=1e-6
+        )
 
 
 @pytest.mark.emd
 @skip_if_no_pyemd
-@pytest.mark.outdated
 def test_sia_uses_ces_distances(s):
-    with config.override(
-        version="IIT_3_0", mechanism_phi_measure="EMD", ces_measure="EMD"
-    ):
+    """Canonical sia.phi under the IIT 3.0 preset (EMD / EMD)."""
+    with config.override(**presets.iit3):
         sia = iit3.sia(s)
-        assert sia.phi == 2.3125
+        assert sia.phi == pytest.approx(2.3125, rel=1e-6)
 
-    with config.override(
-        version="IIT_3_0", mechanism_phi_measure="EMD", ces_measure="SUM_SMALL_PHI"
-    ):
+    with config.override(**presets.iit3, ces_measure="SUM_SMALL_PHI"):
         sia = iit3.sia(s)
-        assert sia.phi == 1.083333
+        assert sia.phi == pytest.approx(1.083333, rel=1e-6)
 
 
 @pytest.mark.emd
 @skip_if_no_pyemd
 @patch("pyphi.measures.ces._emd_simple")
 @patch("pyphi.measures.ces._emd")
-@pytest.mark.outdated
 def test_ces_distance_uses_simple_vs_emd(mock_emd_distance, mock_simple_distance, s):
     """Quick check that we use the correct EMD distance function for CESs.
 
@@ -85,18 +85,19 @@ def test_ces_distance_uses_simple_vs_emd(mock_emd_distance, mock_simple_distance
         effect=make_mice(),
         mechanism=(0, 1),
     )
-    # lone concept -> null concept
-    ces_distance((lone_concept,), ())
-    assert mock_emd_distance.called is False
-    assert mock_simple_distance.called is True
-    mock_simple_distance.reset_mock()
+    with config.override(ces_measure="EMD"):
+        # lone concept -> null concept
+        ces_distance((lone_concept,), (), system=s)
+        assert mock_emd_distance.called is False
+        assert mock_simple_distance.called is True
+        mock_simple_distance.reset_mock()
 
-    other_concept = models.Concept(
-        cause=make_mice(),
-        effect=make_mice(),
-        mechanism=(0, 1, 2),
-    )
-    # different concepts in CES
-    ces_distance((lone_concept,), (other_concept,))
-    assert mock_emd_distance.called is True
-    assert mock_simple_distance.called is False
+        other_concept = models.Concept(
+            cause=make_mice(),
+            effect=make_mice(),
+            mechanism=(0, 1, 2),
+        )
+        # different concepts in CES
+        ces_distance((lone_concept,), (other_concept,), system=s)
+        assert mock_emd_distance.called is True
+        assert mock_simple_distance.called is False

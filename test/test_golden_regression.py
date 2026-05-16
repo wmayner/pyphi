@@ -45,12 +45,16 @@ RTOL = 1e-12
 ATOL = 1e-12
 
 
+def _marks_for(fixture: GoldenFixture) -> list[pytest.MarkDecorator]:
+    marks: list[pytest.MarkDecorator] = []
+    if fixture.slow:
+        marks.append(pytest.mark.slow)
+    return marks
+
+
 def _golden_params() -> list[Any]:
-    """Build parametrize entries, attaching the ``slow`` marker per fixture."""
-    return [
-        pytest.param(f, marks=[pytest.mark.slow]) if f.slow else pytest.param(f)
-        for f in ALL_FIXTURES
-    ]
+    """Build parametrize entries, attaching per-fixture markers."""
+    return [pytest.param(f, marks=_marks_for(f)) for f in ALL_FIXTURES]
 
 
 @pytest.mark.golden
@@ -77,52 +81,7 @@ def test_golden_regression(
 
     expected_structured, expected_arrays = load_fixture(fixture)
 
-    # The IIT 3.0 EMD goldens occasionally hit a BrokenProcessPool from
-    # loky workers when run as part of the full session (deferred P9
-    # curiosity; see ROADMAP P9 deferred items + the spec at
-    # docs/superpowers/specs/2026-05-09-p11-parallelization-design.md).
-    # The worker failure can surface at either the mechanism_mips layer
-    # (find_mip raises, captured as ``{"error": ...}`` per
-    # ``test/golden/compute.py:132-141``) or at the SIA layer. Skip rather
-    # than fail when the symptom is present on any IIT 3.0 EMD fixture;
-    # real numerical regressions still fail.
-    _IIT3_EMD_FIXTURES = {
-        "basic_iit3_emd",
-        "basic_iit3_emd_tri",
-        "basic_subset_iit3_emd",
-        "xor_iit3_emd",
-    }
-    if fixture.name in _IIT3_EMD_FIXTURES:
-        flake_reason = _detect_p9_flake_marker(structured)
-        if flake_reason is not None:
-            pytest.skip(
-                f"Known intermittent P9 loky/cloudpickle flake on "
-                f"{fixture.name}: {flake_reason}"
-            )
-
     _assert_matches(structured, expected_structured, arrays, expected_arrays, fixture)
-
-
-def _detect_p9_flake_marker(structured: dict[str, Any]) -> str | None:
-    """Return a description of the flake if its symptom is present, else None.
-
-    The P9 loky/cloudpickle worker failure manifests as an ``error`` key on
-    a result object the test framework otherwise expects to be fully
-    populated. Layer 2 (mechanism_mips) captures find_mip exceptions
-    per-entry; Layer 3 (sia) captures top-level failures.
-    """
-    sia = structured.get("sia")
-    if isinstance(sia, dict) and "error" in sia:
-        return f"sia error: {sia.get('error')!r}"
-    mips = structured.get("mechanism_mips")
-    if isinstance(mips, list):
-        errored = [m for m in mips if isinstance(m, dict) and "error" in m]
-        if errored:
-            return (
-                f"{len(errored)}/{len(mips)} mechanism_mips entries errored; "
-                f"first: {errored[0].get('error')!r}"
-            )
-    return None
 
 
 # ============== Comparison ==============
@@ -233,6 +192,37 @@ def _compare(
 
     # Default: equality
     assert actual == expected, f"{path}: {actual!r} != {expected!r}"
+
+
+# ============== Coverage guardrails ==============
+
+
+def test_canonical_iit3_preset_is_exercised() -> None:
+    """At least one golden fixture must exercise the canonical IIT 3.0 preset.
+
+    Without this guardrail, a future config rename or default change could
+    silently remove EMD CES distance coverage from regression testing — which
+    is exactly how the EMD path went unmaintained from 2023 through 2026.
+    """
+    from pyphi.conf import presets
+
+    canonical = presets.iit3["iit"]
+    matching = [
+        f
+        for f in ALL_FIXTURES
+        if isinstance(f.config_overrides.get("iit"), type(canonical))
+        and f.config_overrides["iit"].version == canonical.version
+        and f.config_overrides["iit"].ces_measure == canonical.ces_measure
+        and f.config_overrides["iit"].mechanism_phi_measure
+        == canonical.mechanism_phi_measure
+    ]
+    assert matching, (
+        "No fixture in ALL_FIXTURES exercises the canonical IIT 3.0 preset "
+        f"(version={canonical.version}, ces_measure={canonical.ces_measure}, "
+        f"mechanism_phi_measure={canonical.mechanism_phi_measure}). The "
+        "EMD CES distance code path will go unmaintained again without at "
+        "least one fixture covering it."
+    )
 
 
 # ============== Helpers ==============

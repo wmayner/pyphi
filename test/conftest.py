@@ -1,5 +1,3 @@
-from dataclasses import replace as _replace
-
 import numpy as np
 import pytest
 
@@ -8,6 +6,7 @@ from pyphi import Substrate
 from pyphi import actual
 from pyphi import config
 from pyphi import jsonify
+from pyphi.conf import presets
 
 from . import example_substrates
 
@@ -37,23 +36,10 @@ pyphi.config.progress_bars = False
 #         def test_something(self):
 #             ...
 
-# IIT 3.0 configuration for regression tests
-# These settings replicate the IIT 3.0 computational approach.
-# ``mechanism_partition_scheme`` is colliding (lives in both ``iit`` and
-# ``actual_causation`` sub-namespaces), so it must travel inside an
-# ``IITConfig`` replacement rather than as a flat kwarg.
-IIT_3_CONFIG = config.override(
-    iit=_replace(
-        config.formalism.iit,
-        version="IIT_3_0",
-        mechanism_phi_measure="EMD",
-        system_phi_measure="EMD",
-        mechanism_partition_scheme="JOINT_BIPARTITION",
-        system_partition_scheme="DIRECTED_BIPARTITION",
-        purview_tie_resolution=["PHI", "PURVIEW_SIZE"],
-    ),
-    alpha_measure="PMI",
-)
+# IIT 3.0 configuration for regression tests.
+# Sourced from the canonical ``presets.iit3`` so the test config and the
+# library's documented preset cannot drift apart.
+IIT_3_CONFIG = config.override(**presets.iit3)
 
 # IIT 4.0 configuration (current defaults, made explicit for clarity)
 # Use this when you want to explicitly test IIT 4.0 behavior

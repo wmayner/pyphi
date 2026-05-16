@@ -3,6 +3,8 @@ import pytest
 from pyphi import System
 from pyphi import config
 from pyphi import examples
+from pyphi.conf import presets
+from pyphi.formalism import iit3
 from pyphi.formalism.iit4 import ces
 from pyphi.measures.distribution import resolve_mechanism_measure
 from pyphi.measures.distribution import resolve_system_measure
@@ -54,9 +56,9 @@ class TestComplexesIIT30:
         assert len(sias) == 3
         nodes_and_phis = [(c.node_indices, float(c.phi)) for c in sias]
         expected = [
-            ((0, 1, 2), 0.5),
-            ((1, 2), 2.0),
-            ((0, 2), 1.0),
+            ((0, 1, 2), 2.3125),
+            ((1, 2), 1.0),
+            ((0, 2), 0.5),
         ]
         for (got_nodes, got_phi), (exp_nodes, exp_phi) in zip(
             nodes_and_phis, expected, strict=True
@@ -68,55 +70,81 @@ class TestComplexesIIT30:
         """Test ``complexes`` (non-overlapping maxima) for standard substrate.
 
         Greedy condensation over the three irreducible systems
-        ``[(0,1,2):0.5, (1,2):2.0, (0,2):1.0]`` accepts ``(1,2)`` first
+        ``[(0,1,2):2.3125, (1,2):1.0, (0,2):0.5]`` accepts ``(0,1,2)`` first
         (highest phi), then rejects both overlapping candidates, leaving
-        a single complex.
+        a single complex — the full substrate.
         """
         cx = s.substrate.complexes(s.state)
         assert len(cx) == 1
-        assert cx[0].node_indices == (1, 2)
-        assert float(cx[0].phi) == pytest.approx(2.0, rel=1e-6)
+        assert cx[0].node_indices == (0, 1, 2)
+        assert float(cx[0].phi) == pytest.approx(2.3125, rel=1e-6)
 
     def test_all_sias_standard(self, s):
         """Test ``all_sias`` for standard substrate (IIT 3.0).
 
         Iterates over ``possible_complexes`` (not all ``2**n - 1`` subsets),
         so for the standard ``s`` fixture it returns 5 systems with phi
-        values ``[0.0, 0.0, 0.5, 1.0, 2.0]`` — exactly three of which are
-        irreducible.
+        values ``[0.0, 0.0, 0.5, 1.0, 2.3125]`` — exactly three of which
+        are irreducible.
         """
         sias = s.substrate.all_sias(s.state)
         assert len(sias) == 5
         phis = sorted(float(c.phi) for c in sias)
-        assert phis == pytest.approx([0.0, 0.0, 0.5, 1.0, 2.0], rel=1e-6)
+        assert phis == pytest.approx([0.0, 0.0, 0.5, 1.0, 2.3125], rel=1e-6)
         assert sum(1 for phi in phis if phi > 0) == 3
 
     def test_maximal_complex(self, s):
         """Test ``maximal_complex`` for standard substrate (IIT 3.0)."""
         major = s.substrate.maximal_complex(s.state)
-        assert float(major.phi) == pytest.approx(2.0, rel=1e-6)
-        assert major.node_indices == (1, 2)
+        assert float(major.phi) == pytest.approx(2.3125, rel=1e-6)
+        assert major.node_indices == (0, 1, 2)
 
     @pytest.mark.slow
-    @pytest.mark.outdated
     def test_all_complexes_parallelization(self, s):
-        """Test that parallel and serial computation give same results (IIT 3.0).
-
-        Known-broken on develop with the comment "TODO fix this horribly
-        outdated mess that never worked in the first place :P". The failure
-        is order-dependent: runs green in isolation but fails when run after
-        other tests in the same session (likely cache/state leak from an
-        earlier test). Marked ``outdated`` to match develop's posture — it
-        should not run under the normal ``--slow`` lane until the underlying
-        flake is diagnosed. Opt in with ``--outdated --slow`` for targeted
-        investigation.
-        """
+        """Parallel and serial ``all_sias`` must produce identical results."""
         with config.override(parallel=False, progress_bars=False):
             serial = s.substrate.all_sias(s.state)
         with config.override(parallel=True, progress_bars=False):
             parallel = s.substrate.all_sias(s.state)
         assert sorted(serial, key=lambda x: x.phi) == sorted(
             parallel, key=lambda x: x.phi
+        )
+
+
+class TestSiaCesConsistencyIIT30:
+    """``iit3.sia(s).ces`` must equal ``iit3.ces(s)`` for every canonical
+    substrate.
+
+    ``iit3.sia`` builds the unpartitioned CES internally and attaches it to
+    the returned ``SystemIrreducibilityAnalysis``. That CES must be the same
+    object the standalone ``iit3.ces`` would compute for the same system.
+    A divergence indicates the SIA's internal CES-building path is using a
+    different mechanism set, partition scheme, measure, or parallel dispatch
+    than the public ``ces()`` function.
+    """
+
+    @pytest.mark.parametrize(
+        ("substrate_factory", "state"),
+        [
+            (examples.basic_substrate, (1, 0, 0)),
+            (examples.xor_substrate, (0, 0, 0)),
+            (examples.rule110_substrate, (1, 0, 1)),
+            (examples.grid3_substrate, (1, 0, 0)),
+        ],
+        ids=["basic", "xor", "rule110", "grid3"],
+    )
+    def test_sia_ces_matches_standalone_ces(self, substrate_factory, state):
+        with config.override(**presets.iit3, progress_bars=False):
+            substrate = substrate_factory()
+            system = System.from_substrate(substrate, state, substrate.node_indices)
+            standalone_ces = iit3.ces(system)
+            sia_ces = iit3.sia(system).ces
+        standalone_mechs = {tuple(c.mechanism): float(c.phi) for c in standalone_ces}
+        sia_mechs = {tuple(c.mechanism): float(c.phi) for c in sia_ces}
+        assert standalone_mechs == sia_mechs, (
+            f"sia.ces and ces() diverged: "
+            f"standalone={sorted(standalone_mechs.items())}, "
+            f"sia={sorted(sia_mechs.items())}"
         )
 
 

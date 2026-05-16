@@ -1670,6 +1670,70 @@ test inventory — that a deliberate re-ordering pass is in order.
     should be paired with a clear migration note in
     ``docs/migration-2.0.md`` (or 3.0.md if it slips post-2.0).
 
+17. **P11.95d — IIT 3.0 tie-resolution audit.** Brainstorm only;
+    deferrable to post-2.0. The IIT 3.0 restoration project (commits
+    ``4055a682``–``760bf3bf``) surfaced two ways the IIT 3.0 path is
+    sensitive to tie-resolution policy beyond what P11.95a addresses:
+
+    - ``purview_tie_resolution`` (used by ``resolve_ties.purviews`` at
+      MICE selection — ``pyphi/resolve_ties.py:145-154``) takes
+      ``str | list[str]``. The value substantively affects ``sia.phi``
+      for substrates with phi-ties at the purview level. Measured at
+      basic substrate ``(1,0,0)``: ``"PHI"`` and ``["PHI", "PURVIEW_SIZE"]``
+      converge on ``sia.phi = 2.3125``; on ``rule110 (1,0,1)`` they
+      diverge (2.356476 vs 2.406476); on ``grid3 (1,0,0)`` they diverge
+      again (0.026700 vs 0.016918). The canonical
+      ``pyphi_config_3.0.yml`` value is the two-step
+      ``["PHI", "PURVIEW_SIZE"]``. The current ``presets.iit3`` was
+      reconciled to match in the restoration work.
+
+    - ``IITConfig.purview_tie_resolution`` was annotated as ``str`` but
+      the runtime resolver (``resolve_ties.purviews``) accepts
+      ``str | list[str]``; the annotation has been tightened.
+
+    - ``mip_tie_resolution`` and ``sia_tie_resolution`` defaults are
+      IIT-4.0-shaped (``["NORMALIZED_PHI", "NEGATIVE_PHI"]`` and
+      ``["NORMALIZED_PHI", "NEGATIVE_PHI", "PARTITION_LEX"]``). For
+      IIT 3.0, ``normalized_phi`` is well-defined (Tononi 2008 used
+      the ``Cut.normalized_phi`` ratio), but PyPhi's IIT 3.0 ``_sia``
+      currently picks the MIP via ``reduce_func=min`` over
+      ``OrderableByPhi`` — which compares by raw ``phi`` only, not
+      ``(normalized_phi, -phi)``. P11.95a's plan to override
+      ``order_by`` on the IIT 3.0 SIA addresses the determinism side;
+      the deeper question of whether the IIT 3.0 paper-canonical MIP
+      key includes normalization is open.
+
+    Scope for P11.95c, when picked up: (a) decide whether the IIT 3.0
+    path should also key on ``(normalized_phi, -phi)`` like IIT 4.0,
+    or stay at raw ``phi``; (b) decide whether the IIT 3.0 paper's
+    behavior on a tied MIC purview is fully specified (paper says
+    "max phi") or whether ``PURVIEW_SIZE`` (PyPhi 1.x's secondary
+    tiebreaker) is canonical; (c) audit whether ``mip_tie_resolution``
+    has any IIT-3.0 effect today (probably not, since IIT 3.0 has a
+    single MIP per (mechanism, purview) by construction, but worth
+    confirming); (d) decide whether ``sia_tie_resolution`` strategy
+    keys (``NORMALIZED_PHI``, ``NEGATIVE_PHI``, ``PARTITION_LEX``)
+    should be different defaults for IIT 3.0 vs 4.0.
+
+    **Worked example: standard substrate @ ``current_state=(0,0,1)``
+    has two SIAs that genuinely tie at ``phi=1.0`` — the subsystem
+    over nodes ``(1,2)`` (B=AND, C=XOR) and the subsystem over nodes
+    ``(0,2)`` (A=OR, C=XOR). These are physically distinct subsystems
+    (different gate compositions), not symmetry-equivalent. PyPhi
+    1.x picked ``(1,2)`` by iteration order; the post-``82b778ca``
+    ``partition.lex_key()`` tie-break picks ``(0,2)``. The downstream
+    consequence is observable: for the transition ``(1,0,0) → (0,0,1)
+    → (1,1,0)``, ``true_events(substrate, *states)`` returns 2 events
+    under ``(1,2)`` and 0 events under ``(0,2)``. The IIT 3.0 paper
+    does not prescribe a system-level tie-break, so neither choice is
+    paper-canonical. ``test/test_actual.py::TestActualCausationIIT30::test_true_events``
+    is currently ``@pytest.mark.skip`` pending this resolution.
+
+    Independent of P11.95a (which lands the determinism floor) and
+    P11.95b (which is paper-faithful state-tie for 4.0). Estimated
+    1-2 days for the brainstorm + design, plus regeneration of any
+    iit3 goldens whose values change.
+
 **Ship criterion for 2.0:**
 
 The original roadmap doesn't state a release criterion explicitly.

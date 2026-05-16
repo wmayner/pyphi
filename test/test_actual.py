@@ -901,12 +901,24 @@ class TestActualCausationIIT30:
         )
 
     def test_causal_nexus(self, standard):
-        """Test causal nexus computation (IIT 3.0)."""
+        """Test causal nexus computation (IIT 3.0).
+
+        The nexus is a ``BIDIRECTIONAL`` ``AcSIA`` whose underlying transition
+        has mechanism ``(A, B)`` and purview ``(C,)``; verify both directions
+        of the irreducible account agree on that shape with the expected
+        alpha.
+        """
         nexus = actual.causal_nexus(standard, (0, 0, 1), (1, 1, 0))
         assert np.isclose(nexus.alpha, 2.0)
         assert nexus.direction == Direction.BIDIRECTIONAL
         assert nexus.cause_indices == (0, 1)
         assert nexus.effect_indices == (2,)
+        effect_link = nexus.account.irreducible_effects[0]
+        cause_link = nexus.account.irreducible_causes[0]
+        assert effect_link.mechanism == (0, 1)
+        assert effect_link.purview == (2,)
+        assert cause_link.mechanism == (2,)
+        assert cause_link.purview == (0, 1)
 
     @pytest.mark.slow
     @pytest.mark.skip(
@@ -927,7 +939,11 @@ class TestActualCausationIIT30:
         )
     )
     def test_true_events(self, standard):
-        """Full regression for true events with default major-complex selection."""
+        """Full regression for true events with default major-complex selection.
+
+        Verifies both events' mechanisms and each event's cause/effect RIA
+        mechanism, purview, alpha, and direction.
+        """
         states = ((1, 0, 0), (0, 0, 1), (1, 1, 0))  # previous, current, next
         events = actual.true_events(standard, *states)
 

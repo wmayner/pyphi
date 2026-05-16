@@ -177,7 +177,7 @@ def conceptual_info(system: System, **kwargs: Any) -> float:
     This is the distance from the system's |Distinctions| to the
     null concept.
     """
-    ci = ces_distance(ces(system, **kwargs), ResolvedDistinctions(()))
+    ci = ces_distance(ces(system, **kwargs), ResolvedDistinctions(()), system=system)
     return round(ci, config.numerics.precision)  # type: ignore[arg-type]  # config.Option descriptor
 
 
@@ -218,7 +218,7 @@ def evaluate_partition(
 
     log.debug("Finished evaluating %s.", partition)
 
-    phi_ = ces_distance(unpartitioned_ces, partitioned_ces)
+    phi_ = ces_distance(unpartitioned_ces, partitioned_ces, system=unpartitioned_system)
 
     return IIT3SystemIrreducibilityAnalysis(
         phi=phi_,
@@ -263,11 +263,11 @@ def sia_partitions(
 
 
 def _ces(system: System, **kwargs: Any) -> Distinctions:
-    """Parallelize the unpartitioned |Distinctions| if parallelizing
-    cuts, since we have free processors because we're not computing any cuts
-    yet.
+    """Compute the unpartitioned |Distinctions| using the partition-evaluation
+    parallel settings, on the rationale that no cuts are being evaluated yet
+    so the same worker budget is available.
     """
-    kwargs = {"parallel": config.infrastructure.parallel_partition_evaluation, **kwargs}
+    kwargs = {**dict(config.infrastructure.parallel_partition_evaluation), **kwargs}
     return ces(system, **kwargs)
 
 
@@ -277,7 +277,7 @@ def _sia_map_reduce(
     unpartitioned_ces: Distinctions,
     **kwargs: Any,
 ) -> IIT3SystemIrreducibilityAnalysis:
-    kwargs = {"parallel": config.infrastructure.parallel_partition_evaluation, **kwargs}
+    kwargs = {**dict(config.infrastructure.parallel_partition_evaluation), **kwargs}
     result = MapReduce(
         evaluate_partition,
         cuts,
