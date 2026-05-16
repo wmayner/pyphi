@@ -631,6 +631,25 @@ def test_sia_ordering(s, s_noised, subsys_n0n2, subsys_n1n2):
     _ = phi1 >= different_system
 
 
+def test_iit3_sia_orderable_across_substrates(s, micro_s):
+    """IIT 3.0 SIAs from different substrates are comparable by phi alone.
+
+    The IIT 3.0 SIA's substrate-keyed equality guard was removed when the
+    substrate field was dropped; comparisons now reduce to phi-ordering.
+    """
+    from pyphi.conf import presets
+    from pyphi.formalism import iit3
+
+    with config.override(**presets.iit3, progress_bars=False):
+        sia_a = iit3.sia(s)
+        sia_b = iit3.sia(micro_s)
+
+    # Comparison must not raise; result reduces to phi-ordering
+    assert (sia_a == sia_b) == (sia_a.phi == sia_b.phi)
+    assert (sia_a < sia_b) == (sia_a.phi < sia_b.phi)
+    assert (sia_a > sia_b) == (sia_a.phi > sia_b.phi)
+
+
 def test_sia_equality(s):
     bm = sia(system=s)
     close_enough = sia(system=s, phi=(1.0 - EPSILON / 2))
