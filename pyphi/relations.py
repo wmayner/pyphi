@@ -293,6 +293,31 @@ class Relations:
         return cls(data["relations"])
 
 
+class NullRelations(Relations):
+    """An empty set of relations specified by a substrate whose formalism
+    does not define relations.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+
+    def __iter__(self):
+        return iter(())
+
+    def _sum_phi(self):
+        return 0
+
+    def _num_relations(self):
+        return 0
+
+    def to_json(self):
+        return {"relations": []}
+
+    @classmethod
+    def from_json(cls, data):  # noqa: ARG003
+        return cls()
+
+
 class ConcreteRelations(frozenset, Relations):
     def _sum_phi(self):
         return sum(relation.phi for relation in self)

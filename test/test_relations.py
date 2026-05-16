@@ -39,6 +39,26 @@ def test_only_nonsubsets():
 # - test_maximally_irreducible_relation: uses old relations API
 
 
+def test_null_relations_is_empty():
+    """NullRelations has zero phi, zero relations, empty iteration."""
+    from pyphi.relations import NullRelations
+
+    nr = NullRelations()
+    assert nr.sum_phi() == 0
+    assert nr.num_relations() == 0
+    assert list(nr) == []
+
+
+def test_null_relations_to_json_round_trips():
+    from pyphi import jsonify
+    from pyphi.relations import NullRelations
+
+    nr = NullRelations()
+    encoded = jsonify.loads(jsonify.dumps(nr))
+    assert isinstance(encoded, NullRelations)
+    assert encoded.sum_phi() == 0
+
+
 NETWORKS = ["grid3", "basic", "xor", "rule110", "fig4"]
 
 

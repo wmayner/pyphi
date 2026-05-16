@@ -121,6 +121,7 @@ def _loadable_models():
         pyphi.formalism.iit4.NullCauseEffectStructure,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.relations.AnalyticalRelations,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.relations.ConcreteRelations,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.relations.NullRelations,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.relations.Relation,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.relations.RelationFace,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.System,
