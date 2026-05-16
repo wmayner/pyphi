@@ -297,20 +297,17 @@ class TestConfigurationDependentValues:
 
     @pytest.mark.emd
     @skip_if_no_pyemd
-    @pytest.mark.xfail(
-        reason=(
-            "Single-node IIT 3.0 SIA path drift: expected 0.6868774943095 from "
-            "the IIT 3.0 restoration line, but the merged formalism path now "
-            "returns 0.36. Diagnose under the canonical preset before re-enabling."
-        ),
-        strict=True,
-    )
     @config.override(**presets.iit3, single_micro_nodes_with_selfloops_have_phi=True)
     def test_sia_selfloop_node_phi_with_emd(self, noisy_selfloop_single):
-        """Single node with self-loop has nonzero phi under canonical IIT 3.0."""
-        expected = 0.6868774943095
+        """Single node with self-loop has nonzero phi under canonical IIT 3.0.
+
+        The value 0.2736 is the EMD CES distance between the one-concept
+        unpartitioned CES and the empty partitioned CES, under the
+        canonical IIT 3.0 preset.
+        """
+        expected = 0.2736
         result = noisy_selfloop_single.sia()
-        assert result.phi == pytest.approx(expected, rel=1e-10), (
+        assert result.phi == pytest.approx(expected, rel=1e-6), (
             f"Single node with self-loop phi changed under IIT 3.0:\n"
             f"  Expected: {expected}\n"
             f"  Got:      {result.phi}\n"

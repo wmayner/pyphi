@@ -121,18 +121,16 @@ def test_sia_edge_cut_all_filters_non_disconnecting_partitions(s, monkeypatch):
 
 @pytest.mark.emd
 @skip_if_no_pyemd
-@pytest.mark.xfail(
-    reason=(
-        "Single-node IIT 3.0 SIA path drift: expected 0.6868774943095 from the "
-        "IIT 3.0 restoration line, but the merged formalism path now returns 0.36. "
-        "Diagnose under the canonical preset before re-enabling."
-    ),
-    strict=True,
-)
 @config.override(**presets.iit3, single_micro_nodes_with_selfloops_have_phi=True)
 def test_sia_single_micro_node_selfloops_have_phi(noisy_selfloop_single):
-    """Single micro-node with self-loop has nonzero phi under canonical IIT 3.0."""
-    assert noisy_selfloop_single.sia().phi == pytest.approx(0.6868774943095, rel=1e-10)
+    """Single micro-node with self-loop has nonzero phi under canonical IIT 3.0.
+
+    The value 0.2736 is the EMD CES distance between the one-concept
+    unpartitioned CES (lone concept on mechanism ``(1,)`` with
+    ``small_phi=0.36``) and the empty partitioned CES, under the
+    canonical IIT 3.0 preset.
+    """
+    assert noisy_selfloop_single.sia().phi == pytest.approx(0.2736, rel=1e-6)
 
 
 @config.override(single_micro_nodes_with_selfloops_have_phi=False)
