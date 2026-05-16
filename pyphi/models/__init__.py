@@ -68,6 +68,9 @@ from .partitions import JointPartition
 from .partitions import JointTripartition
 from .partitions import NullCut
 from .partitions import Part
+from .protocols import AcSIAInterface
+from .protocols import CauseEffectStructureInterface
+from .protocols import SIAInterface
 from .ria import RepertoireIrreducibilityAnalysis
 from .ria import ShortCircuitConditions
 from .ria import _null_ria
@@ -82,10 +85,12 @@ from .state_specification import normalization_factor
 
 __all__ = [
     "AcRepertoireIrreducibilityAnalysis",
+    "AcSIAInterface",
     "AcSystemIrreducibilityAnalysis",
     "Account",
     "CausalLink",
     "CauseEffectStructure",
+    "CauseEffectStructureInterface",
     "CompleteEdgeCut",
     "Concept",
     "DirectedAccount",
@@ -108,6 +113,7 @@ __all__ = [
     "Part",
     "RepertoireIrreducibilityAnalysis",
     "ResolvedDistinctions",
+    "SIAInterface",
     "ShortCircuitConditions",
     "StateSpecification",
     "SystemStateSpecification",
