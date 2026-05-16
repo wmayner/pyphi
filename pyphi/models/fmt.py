@@ -831,6 +831,93 @@ def fmt_sia(sia: object, title: str = "System irreducibility analysis") -> str:
     return box(center(body))
 
 
+def fmt_sia_columns(sia: object) -> list[tuple[str, Any]]:
+    """Column list shared by every SIA __repr__: System, Current state,
+    phi, Partition.
+    """
+    node_indices = getattr(sia, "node_indices", None)
+    node_labels = getattr(sia, "node_labels", None)
+    if node_labels is not None and node_indices is not None:
+        system_label = ",".join(
+            str(label) for label in node_labels.coerce_to_labels(node_indices)
+        )
+    elif node_indices is not None:
+        system_label = ",".join(str(i) for i in node_indices)
+    else:
+        system_label = None
+
+    current_state = getattr(sia, "current_state", None)
+    phi = getattr(sia, "phi", None)
+    partition = getattr(sia, "partition", None)
+
+    return [
+        ("System", system_label),
+        ("Current state", state(current_state) if current_state is not None else None),
+        (f"           {SMALL_PHI}_s", phi),
+        ("Partition", partition),
+    ]
+
+
+def fmt_ces_columns(ces: object) -> list[tuple[str, Any]]:
+    """Column list for a CauseEffectStructure: Φ, number of distinctions,
+    sum of distinction phis, number of relations, sum of relation phis.
+    """
+    sia = getattr(ces, "sia", None)
+    distinctions = getattr(ces, "distinctions", None)
+    relations = getattr(ces, "relations", None)
+
+    big_phi = getattr(sia, "phi", None) if sia is not None else None
+    num_distinctions = len(distinctions) if distinctions is not None else None
+    sum_phi_d = (
+        distinctions.sum_phi()
+        if distinctions is not None and hasattr(distinctions, "sum_phi")
+        else None
+    )
+    num_relations = (
+        relations.num_relations()
+        if relations is not None and hasattr(relations, "num_relations")
+        else None
+    )
+    sum_phi_r = (
+        relations.sum_phi()
+        if relations is not None and hasattr(relations, "sum_phi")
+        else None
+    )
+
+    return [
+        ("Φ", big_phi),
+        ("#(distinctions)", num_distinctions),
+        (f"Σ {SMALL_PHI}_d", sum_phi_d),
+        ("#(relations)", num_relations),
+        (f"Σ {SMALL_PHI}_r", sum_phi_r),
+    ]
+
+
+def fmt_ac_sia_columns(acsia: object) -> list[tuple[str, Any]]:
+    """Column list for an AcSystemIrreducibilityAnalysis: system, direction,
+    before/after state, alpha, partition.
+    """
+    node_indices = getattr(acsia, "node_indices", None)
+    node_labels = getattr(acsia, "node_labels", None)
+    if node_labels is not None and node_indices is not None:
+        system_label = ",".join(
+            str(label) for label in node_labels.coerce_to_labels(node_indices)
+        )
+    elif node_indices is not None:
+        system_label = ",".join(str(i) for i in node_indices)
+    else:
+        system_label = None
+
+    return [
+        ("System", system_label),
+        ("Direction", getattr(acsia, "direction", None)),
+        ("Before state", getattr(acsia, "before_state", None)),
+        ("After state", getattr(acsia, "after_state", None)),
+        (ALPHA, getattr(acsia, "alpha", None)),
+        ("Partition", getattr(acsia, "partition", None)),
+    ]
+
+
 def fmt_repertoire(r: Any, mark_states: list | None = None) -> str:
     """Format a repertoire."""
     # TODO: will this get unwieldy with large repertoires?
