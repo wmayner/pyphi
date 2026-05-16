@@ -310,6 +310,9 @@ class NullRelations(Relations):
     def _num_relations(self):
         return 0
 
+    def __len__(self):
+        return 0
+
     def to_json(self):
         return {"relations": []}
 

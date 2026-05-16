@@ -59,6 +59,13 @@ def test_null_relations_to_json_round_trips():
     assert encoded.sum_phi() == 0
 
 
+def test_null_relations_len_is_zero():
+    """len(NullRelations()) returns 0, matching the sister classes' contract."""
+    from pyphi.relations import NullRelations
+
+    assert len(NullRelations()) == 0
+
+
 NETWORKS = ["grid3", "basic", "xor", "rule110", "fig4"]
 
 
