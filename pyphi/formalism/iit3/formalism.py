@@ -187,6 +187,8 @@ class IIT3Formalism:
         Returns the distinctions specified by the system; this is the IIT
         3.0 cause-effect structure.
         """
-        from pyphi.formalism.iit3 import ces as _ces
+        from pyphi.formalism.iit3 import (
+            _compute_distinctions as _ces,  # pyright: ignore[reportPrivateUsage]
+        )
 
         return _ces(system, **kwargs)

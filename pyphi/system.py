@@ -527,7 +527,9 @@ class System:
 
         formalism_name = _config.formalism.iit.version
         if formalism_name == "IIT_3_0":
-            from pyphi.formalism.iit3 import ces as _ces
+            from pyphi.formalism.iit3 import (
+                _compute_distinctions as _ces,  # pyright: ignore[reportPrivateUsage]
+            )
 
             return _ces(self, **kwargs)
         from pyphi.formalism.iit4 import ces as _ces
@@ -554,7 +556,9 @@ class System:
 
         formalism_name = _config.formalism.iit.version
         if formalism_name == "IIT_3_0":
-            from pyphi.formalism.iit3 import ces as _distinctions
+            from pyphi.formalism.iit3 import (
+                _compute_distinctions as _distinctions,  # pyright: ignore[reportPrivateUsage]
+            )
 
             return _distinctions(self, **kwargs)
         from pyphi.formalism import all_distinctions as _all_distinctions
