@@ -71,3 +71,39 @@ def test_iit3_and_iit4_sia_repr_share_columns(s):
     for label in ("System", "Current state", "Partition"):
         assert label in repr_3, f"{label!r} missing from IIT 3.0 SIA repr"
         assert label in repr_4, f"{label!r} missing from IIT 4.0 SIA repr"
+
+
+def test_iit3_sia_repr_html(s):
+    """IIT 3.0 SIA has a Jupyter HTML repr."""
+    from pyphi.formalism import iit3
+
+    with config.override(**presets.iit3):
+        sia = iit3.sia(s)
+    html = sia._repr_html_()
+    assert "<table" in html or "<div" in html
+
+
+def test_iit4_sia_repr_html(s):
+    from pyphi.formalism import FORMALISM_REGISTRY
+
+    sia = FORMALISM_REGISTRY["IIT_4_0_2023"].evaluate_system(s)
+    html = sia._repr_html_()
+    assert "<table" in html or "<div" in html
+
+
+def test_iit3_ces_repr_html(s):
+    from pyphi.formalism import iit3
+
+    with config.override(**presets.iit3):
+        ces = iit3.ces(s)
+    html = ces._repr_html_()
+    assert "<table" in html or "<div" in html
+
+
+def test_acsia_repr_html(transition):
+    from pyphi import actual
+
+    with config.override(**presets.iit3):
+        acsia = actual.sia(transition)
+    html = acsia._repr_html_()
+    assert "<table" in html or "<div" in html

@@ -282,6 +282,9 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
             columns.append(("Reasons", ", ".join(self.reasons)))
         return columns
 
+    def _repr_html_(self) -> str:
+        return fmt.html_columns(self._repr_columns(), title=self.__class__.__name__)
+
     def __repr__(self):
         body = "\n".join(fmt.align_columns(self._repr_columns()))
         body = fmt.header(self.__class__.__name__, body, under_char=fmt.HEADER_BAR_2)

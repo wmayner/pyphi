@@ -923,6 +923,30 @@ def fmt_ac_sia_columns(acsia: object) -> list[tuple[str, Any]]:
     ]
 
 
+def html_columns(columns: list[tuple[str, Any]], title: str | None = None) -> str:
+    """Render a column list as an HTML table for Jupyter rendering.
+
+    Each entry in ``columns`` becomes a row with a bold label and the
+    value rendered as HTML-escaped text.
+    """
+    import html as _html
+
+    rows: list[str] = []
+    for label, value in columns:
+        if value is None:
+            value_str = ""
+        else:
+            value_str = _html.escape(str(value))
+        rows.append(
+            f"<tr><td><b>{_html.escape(label)}</b></td><td>{value_str}</td></tr>"
+        )
+
+    body = "<table>" + "".join(rows) + "</table>"
+    if title is not None:
+        body = f"<div><b>{_html.escape(title)}</b></div>{body}"
+    return body
+
+
 def fmt_repertoire(r: Any, mark_states: list | None = None) -> str:
     """Format a repertoire."""
     # TODO: will this get unwieldy with large repertoires?
