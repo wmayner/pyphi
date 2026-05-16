@@ -1520,62 +1520,36 @@ test inventory — that a deliberate re-ordering pass is in order.
     serialization, CLI overrides, or programmatic enumeration of all
     config keys. Estimated half-day. Low priority; could fold into P15.
 
-15. **P11.95a — Deterministic SIA selection.** Should land before
-    P12. ``Substrate.sia()`` currently returns whichever MIP-tied
-    partition is first-encountered when multiple partitions tie at
-    ``(normalized_phi, -phi)``; iteration order under ``MapReduce``
-    isn't guaranteed, so symmetric substrates
-    (``big_subsys_all_complete``, fully-connected lattices) flake the
-    full-SIA equality tests. The IIT 3.0 path has the same gap via
-    ``reduce_func=min`` over ``OrderableByPhi`` (which compares on
-    ``phi`` only). Scope: add a structural ``lex_key()`` on
-    ``_PartitionBase`` and a ``PARTITION_LEX`` strategy in
-    ``resolve_ties``; replace the manual MIP loop in IIT 4.0 with
-    ``resolve_ties.sias`` keyed off a new ``sia_tie_resolution``
-    config; override ``order_by`` on the IIT 3.0
-    ``SystemIrreducibilityAnalysis`` to include the partition lex
-    key. Cruelest-cut state selection is preserved (becomes
-    deterministic for free once the MIP is). Spec at
+15. **P11.95a — Deterministic SIA selection.** *(landed; see commits
+    ``2a163b6f`` partition ``lex_key`` + ``resolve_ties.sias`` +
+    ``sia_tie_resolution`` config, ``18137fef`` IIT 4.0 SIA MIP
+    selection through ``resolve_ties.sias``, ``82b778ca`` IIT 3.0
+    SIA ``lex_key`` fallback, ``ff064aef`` SIA-determinism property
+    test, ``faafa374`` sequential/parallel split, ``fd135387``
+    symmetric-substrate fixture regen + drop xfails.)* Added
+    structural ``lex_key()`` on ``_PartitionBase`` and the
+    ``PARTITION_LEX`` strategy in ``resolve_ties``; routed both IIT
+    3.0 and IIT 4.0 SIA MIP selection through a deterministic
+    cascade keyed off the new ``sia_tie_resolution`` config. Spec at
     ``docs/superpowers/specs/2026-05-12-sia-tie-breaking-design.md``.
-    Estimated 1 day. P12 introduces non-binary units which expand
-    the tie surface; landing this first keeps the test surface
-    stable.
 
-16. **P11.95b — Paper-faithful state-tie resolution.** Substantive
-    correctness change, not a canonicalisation. Per Albantakis et al.
-    2023 Eq. 12 + S1 Text, when multiple cause/effect states tie at
-    max ``ii``, the canonical winner is the one with maximum
-    unnormalized ``φ_s``. PyPhi's current cruelest-cut convention
-    (``integration_value`` at ``pyphi/formalism/iit4/__init__.py:449-456``,
-    explicitly commented as "PyPhi-specific, not paper-mandated") picks
-    the *minimum* unnormalized phi among tied specs — the opposite of
-    the paper's prescription. Switching has real downstream effects:
-    the chosen ``specified_state`` propagates through
-    ``resolve_system_state`` into ``SIA.system_state``, which then
-    filters distinctions via ``Concept.resolve_congruence``. Different
-    canonical states → different surviving distinctions → different
-    relations → different CES-distance comparisons across subsystems
-    (affecting ``find_complex`` rankings).
-
-    Needs its own brainstorm:
-    - Reconcile algorithmic interpretation with the paper open
-      (the cruelest-cut convention amounts to ``min_P min_c
-      integration(P, c)``; the paper-faithful reading is likely
-      ``max_c min_P integration(P, c)`` — these can give different
-      MIPs as well as different canonical states).
-    - Decide integration-value semantics: keep cruelest-cut for
-      computing ``φ_s`` and use paper-faithful only for selecting the
-      reported canonical state, or replace cruelest-cut throughout.
-    - Quantify CES-composition drift on existing goldens by running
-      both algorithms side-by-side on the surviving fixture set;
-      decide whether all 17 goldens regenerate or just symmetric
-      ones.
-    - Confirm: does it land before P12 (non-binary will multiply ties
-      and may force the issue) or can it slip to post-2.0?
-
-    Estimated 3-5 days once the brainstorm is concluded. Independent of
-    P11.95a (touches different code: ``integration_value`` and
-    ``resolve_system_state``, not the MIP-selection loop).
+16. **P11.95b — Paper-faithful state-tie resolution.** *(landed; see
+    commits ``137a010c`` spec, ``77156e66`` cascade primitive,
+    ``3415f199`` ``resolve_state_tie`` helper, ``18c3ff3e`` switch
+    from cruelest-cut to paper-faithful, ``834aaf2f`` cruelest-cut
+    narrative removal, ``85ae3f56`` perf budgets,  ``1baae7fb``
+    distinction-state cascade in ``resolve_congruence``, plus fixture
+    regenerations ``2c489439`` / ``b2d14e43`` / ``593adef4`` and
+    ``4f802354`` cascade-invariant property tests.)* Per Albantakis
+    et al. 2023 Eq. 12 + S1 Text, when multiple cause/effect states
+    tie at max ``ii``, the canonical winner is the one with maximum
+    unnormalized ``φ_s``. Replaces the prior cruelest-cut convention
+    (``min_c min_P integration(P, c)``) with the paper-faithful
+    ``max_c min_P`` reading via a generic ``resolve_state_tie``
+    cascade. The chosen ``specified_state`` propagates through
+    ``resolve_system_state`` into ``SIA.system_state``, filters
+    distinctions via ``Concept.resolve_congruence``, and the cascade
+    also resolves distinction-state ties.
 
 17. **P11.95c — Substrate canonicalization for intrinsic equivalence.**
     Post-2.0 unless a smaller subset is folded in. PyPhi today computes
