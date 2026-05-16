@@ -81,18 +81,16 @@ def concept(
     )
 
 
-def sia(ces=(), partitioned_ces=(), system=None, partitioned_system=None, phi=1.0):
+def sia(partitioned_distinctions=(), system=None, partitioned_system=None, phi=1.0):
     """Build an ``IIT3SystemIrreducibilityAnalysis``."""
     partitioned_system = partitioned_system or system
 
     return models.IIT3SystemIrreducibilityAnalysis(
-        ces=ces,
-        partitioned_ces=partitioned_ces,
+        partitioned_distinctions=partitioned_distinctions,
         partition=partitioned_system.partition if partitioned_system else None,
         node_indices=system.node_indices if system else None,
         node_labels=system.substrate.node_labels if system else None,
         current_state=system.state if system else None,
-        substrate=system.substrate if system else None,
         phi=phi,
     )
 
@@ -626,11 +624,11 @@ def test_sia_ordering(s, s_noised, subsys_n0n2, subsys_n1n2):
     assert phi1 <= phi2
     assert phi2 >= phi1
 
+    # SIAs from different systems are now orderable by phi alone; substrate
+    # was removed from the SIA fields so unorderable_unless_eq is empty.
     different_system = sia(system=s_noised)
-    with pytest.raises(TypeError):
-        phi1 <= different_system  # noqa: B015
-    with pytest.raises(TypeError):
-        phi1 >= different_system  # noqa: B015
+    _ = phi1 <= different_system
+    _ = phi1 >= different_system
 
 
 def test_sia_equality(s):

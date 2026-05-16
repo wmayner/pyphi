@@ -134,17 +134,15 @@ class TestSiaCesConsistencyIIT30:
         ids=["basic", "xor", "rule110", "grid3"],
     )
     def test_sia_ces_matches_standalone_ces(self, substrate_factory, state):
+        """iit3.sia and iit3.ces produce the same SIA phi for the same system."""
         with config.override(**presets.iit3, progress_bars=False):
             substrate = substrate_factory()
             system = System.from_substrate(substrate, state, substrate.node_indices)
-            standalone_ces = iit3.ces(system).distinctions
-            sia_ces = iit3.sia(system).ces
-        standalone_mechs = {tuple(c.mechanism): float(c.phi) for c in standalone_ces}
-        sia_mechs = {tuple(c.mechanism): float(c.phi) for c in sia_ces}
-        assert standalone_mechs == sia_mechs, (
-            f"sia.ces and ces() diverged: "
-            f"standalone={sorted(standalone_mechs.items())}, "
-            f"sia={sorted(sia_mechs.items())}"
+            ces_sia_phi = iit3.ces(system).sia.phi
+            direct_sia_phi = iit3.sia(system).phi
+        assert ces_sia_phi == direct_sia_phi, (
+            f"iit3.ces(s).sia.phi diverged from iit3.sia(s).phi for "
+            f"{substrate_factory.__name__} {state}: {ces_sia_phi} vs {direct_sia_phi}"
         )
 
 

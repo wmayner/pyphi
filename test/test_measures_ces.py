@@ -27,17 +27,17 @@ def test_emd_ground_distance_must_be_symmetric():
 def test_ces_distances(s):
     """Canonical IIT 3.0 CES distance for the basic substrate (1,0,0)."""
     with config.override(**presets.iit3):
-        sia = iit3.sia(s)
+        ces = iit3.ces(s)
 
     with config.override(**presets.iit3, ces_measure="EMD"):
-        assert ces_distance(sia.ces, sia.partitioned_ces, system=s) == pytest.approx(
-            2.3125, rel=1e-6
-        )
+        assert ces_distance(
+            ces.distinctions, ces.sia.partitioned_distinctions, system=s
+        ) == pytest.approx(2.3125, rel=1e-6)
 
     with config.override(**presets.iit3, ces_measure="SUM_SMALL_PHI"):
-        assert ces_distance(sia.ces, sia.partitioned_ces) == pytest.approx(
-            1.083333, rel=1e-6
-        )
+        assert ces_distance(
+            ces.distinctions, ces.sia.partitioned_distinctions
+        ) == pytest.approx(1.083333, rel=1e-6)
 
 
 @pytest.mark.emd

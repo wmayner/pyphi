@@ -238,14 +238,14 @@ def _compute_sia(system: System, stash: Any, iit_version: float) -> dict[str, An
         if ss_dict:
             out["system_state"] = ss_dict
 
-    # IIT 3.0 SIA additionally has .ces (the constellation of concepts) and
-    # .partitioned_ces. Capture summary stats; per-concept detail is captured
-    # at Layer 2 (mechanism_mips).
-    if hasattr(sia, "ces") and sia.ces is not None:
-        out["ces_size"] = len(sia.ces)
-        out["ces_phi_sum"] = float(sum(c.phi for c in sia.ces))
-    if hasattr(sia, "partitioned_ces") and sia.partitioned_ces is not None:
-        out["partitioned_ces_size"] = len(sia.partitioned_ces)
+    if (
+        hasattr(sia, "partitioned_distinctions")
+        and sia.partitioned_distinctions is not None
+    ):
+        out["partitioned_distinctions_size"] = len(sia.partitioned_distinctions)
+        out["partitioned_distinctions_phi_sum"] = float(
+            sum(d.phi for d in sia.partitioned_distinctions)
+        )
 
     return out
 
