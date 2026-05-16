@@ -804,21 +804,10 @@ def fmt_sia_4(
     return box(center(body))
 
 
-def fmt_sia(
-    sia: object, ces: bool = True, title: str = "System irreducibility analysis"
-) -> str:
-    """Format a |SystemIrreducibilityAnalysis|."""
-    if ces:
-        body = "{ces}\n{partitioned_ces}".format(
-            ces=fmt_ces(sia.ces, "Cause-effect structure"),  # type: ignore[attr-defined]
-            partitioned_ces=fmt_ces(
-                sia.partitioned_ces,  # type: ignore[attr-defined]
-                "Partitioned cause-effect structure",
-            ),
-        )
-    else:
-        body = ""
-
+def fmt_sia(sia: object, title: str = "System irreducibility analysis") -> str:
+    """Format an IIT 3.0 SystemIrreducibilityAnalysis as a multi-line
+    summary including phi, partition, and node info.
+    """
     node_indices = sia.node_indices  # type: ignore[attr-defined]
     node_labels = sia.node_labels  # type: ignore[attr-defined]
     if node_labels is not None and node_indices is not None:
@@ -835,6 +824,7 @@ def fmt_sia(
         system_label,
         sia.partition,  # type: ignore[attr-defined]
     ]
+    body = ""
     for line in reversed(data):
         body = header(str(line), body)
     body = header(title, body, under_char=HEADER_BAR_2)

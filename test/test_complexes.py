@@ -302,3 +302,22 @@ def test_iit3_ces_returns_cause_effect_structure(s):
     assert isinstance(result.relations, NullRelations)
     assert result.relations.num_relations() == 0
     assert result.distinctions is not None
+
+
+def test_iit3_sia_no_longer_carries_unpartitioned_ces(s):
+    """IIT 3.0 SIA stores partitioned_distinctions but not ces or substrate.
+
+    The unpartitioned distinctions live on the wrapping CauseEffectStructure.
+    """
+    with config.override(**presets.iit3):
+        sia = iit3.sia(s)
+
+    assert not hasattr(sia, "ces"), (
+        "sia.ces removed; access via iit3.ces(s).distinctions"
+    )
+    assert not hasattr(sia, "substrate"), (
+        "sia.substrate removed; callers hold it externally"
+    )
+    assert not hasattr(sia, "partitioned_ces"), "renamed to partitioned_distinctions"
+    assert hasattr(sia, "partitioned_distinctions"), "compute receipt of the MIP"
+    assert sia.partitioned_distinctions is not None

@@ -19,44 +19,36 @@ from .distinctions import _null_ces
 
 _sia_attributes = [
     "phi",
-    "ces",
-    "partitioned_ces",
+    "partitioned_distinctions",
     "partition",
     "node_indices",
     "node_labels",
     "current_state",
-    "substrate",
 ]
 
 
 class IIT3SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
     """An analysis of system irreducibility (|big_phi|).
 
-    Contains the |big_phi| value of the |System|, the cause-effect
-    structure, and all the intermediate results obtained in the course of
-    computing them.
+    Contains the |big_phi| value of the |System| and the intermediate
+    results obtained in the course of computing it.
 
     These can be compared with the built-in Python comparison operators (``<``,
     ``>``, etc.). First, |big_phi| values are compared. Then, if these are
     equal up to |PRECISION|, the one with the larger system is greater.
 
     Attributes:
-        phi (float): The |big_phi| value for the system when taken against
-            this analysis, *i.e.* the difference between the cause-effect
-            structure and the partitioned cause-effect structure for this
-            analysis.
-        ces (Distinctions): The cause-effect structure of
-            the whole system.
-        partitioned_ces (Distinctions): The cause-effect structure when
-            the system is partitioned.
+        phi (float): The |big_phi| value for the system, *i.e.* the distance
+            between the unpartitioned and partitioned cause-effect structures
+            under the minimum-information partition.
+        partitioned_distinctions (Distinctions): The cause-effect structure
+            when the system is partitioned according to the MIP.
         partition (DirectedBipartition): The minimum-information partition.
         node_indices (tuple[int, ...]): Indices of the nodes the analysis
             was computed over.
         node_labels (NodeLabels): Labels corresponding to ``node_indices``.
         current_state (tuple[int, ...]): The system state at the time of
             analysis.
-        substrate (Substrate): The substrate the system belongs to.
-        time (float): The number of seconds it took to calculate.
     """
 
     phi: float  # Override parent to allow None during init
@@ -64,16 +56,13 @@ class IIT3SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
     def __init__(
         self,
         phi=None,
-        ces=None,
-        partitioned_ces=None,
+        partitioned_distinctions=None,
         partition=None,
         node_indices=None,
         node_labels=None,
         current_state=None,
-        substrate=None,
         config=None,
     ):
-        # Preserve DistanceResult type if possible, otherwise convert to PyPhiFloat
         if phi is None:
             self.phi = phi  # type: ignore[assignment]
         else:
@@ -84,16 +73,11 @@ class IIT3SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
                 self.phi = phi  # type: ignore[assignment]
             else:
                 self.phi = PyPhiFloat(phi)  # type: ignore[assignment]
-        self.ces = ces
-        self.partitioned_ces = partitioned_ces
+        self.partitioned_distinctions = partitioned_distinctions
         self.partition = partition
         self.node_indices = node_indices
         self.node_labels = node_labels
         self.current_state = current_state
-        self.substrate = substrate
-        # ConfigSnapshot of the layered config at construction time.
-        # Lazy-snapshot if None: takes a snapshot of the current global, so
-        # callers that don't pass one still get a recorded config.
         if config is None:
             from pyphi.conf import config as _global
 
@@ -103,15 +87,16 @@ class IIT3SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
     def __repr__(self):
         return fmt.make_repr(self, _sia_attributes)
 
-    def __str__(self, ces=True):
-        return fmt.fmt_sia(self, ces=ces)
+    def __str__(self):
+        return fmt.fmt_sia(self)
 
-    def print(self, ces=True):
-        """Print this |SystemIrreducibilityAnalysis|, optionally without
-        cause-effect structures.
-        """
+    def print(self):
+        """Print this SystemIrreducibilityAnalysis."""
+        import sys
 
-    unorderable_unless_eq: ClassVar[list[str]] = ["substrate"]
+        sys.stdout.write(str(self) + "\n")
+
+    unorderable_unless_eq: ClassVar[list[str]] = []
 
     def __eq__(self, other):
         return cmp.general_eq(self, other, _sia_attributes)
@@ -126,12 +111,10 @@ class IIT3SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
         return hash(
             (
                 self.phi,
-                self.ces,
-                self.partitioned_ces,
+                self.partitioned_distinctions,
                 self.partition,
                 self.node_indices,
                 self.current_state,
-                self.substrate,
             )
         )
 
@@ -151,18 +134,15 @@ class IIT3SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
 
 
 def _null_sia(system, phi=0.0):
-    """Return an |IIT3SystemIrreducibilityAnalysis| with zero |big_phi| and
-    empty cause-effect structures.
+    """Return an IIT3SystemIrreducibilityAnalysis with zero phi.
 
     This is the analysis result for a reducible system.
     """
     return IIT3SystemIrreducibilityAnalysis(
         phi=phi,
-        ces=_null_ces(),
-        partitioned_ces=_null_ces(),
+        partitioned_distinctions=_null_ces(),
         partition=system.partition,
         node_indices=system.node_indices,
         node_labels=system.substrate.node_labels,
         current_state=system.state,
-        substrate=system.substrate,
     )

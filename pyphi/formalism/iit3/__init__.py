@@ -257,13 +257,11 @@ def evaluate_partition(
 
     return IIT3SystemIrreducibilityAnalysis(
         phi=phi_,
-        ces=unpartitioned_ces,
-        partitioned_ces=partitioned_ces,
+        partitioned_distinctions=partitioned_ces,
         partition=partitioned_system.partition,
         node_indices=unpartitioned_system.node_indices,
         node_labels=unpartitioned_system.substrate.node_labels,
         current_state=unpartitioned_system.state,
-        substrate=unpartitioned_system.substrate,
     )
 
 
