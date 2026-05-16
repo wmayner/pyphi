@@ -134,6 +134,8 @@ class AcRepertoireIrreducibilityAnalysis(cmp.Orderable):
 
     def __eq__(self, other):
         # TODO(slipperyhank): include 2nd state here?
+        if type(other) is not type(self):
+            return NotImplemented
         return cmp.general_eq(self, other, _acria_attributes_for_eq)
 
     def __bool__(self):
@@ -517,6 +519,8 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
         return [self.alpha, self.size]
 
     def __eq__(self, other):
+        if type(other) is not type(self):
+            return NotImplemented
         return cmp.general_eq(self, other, _ac_sia_attributes)
 
     def __bool__(self):

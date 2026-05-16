@@ -235,6 +235,8 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
             )
 
     def __eq__(self, other):
+        if type(other) is not type(self):
+            return NotImplemented
         return cmp.general_eq(self, other, self._sia_attributes)
 
     def __bool__(self):

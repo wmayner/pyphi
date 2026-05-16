@@ -108,6 +108,8 @@ class IIT3SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
     unorderable_unless_eq: ClassVar[list[str]] = []
 
     def __eq__(self, other):
+        if type(other) is not type(self):
+            return NotImplemented
         return cmp.general_eq(self, other, _sia_attributes)
 
     def __bool__(self):

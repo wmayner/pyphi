@@ -78,7 +78,7 @@ class CauseEffectStructure(cmp.Orderable):
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, CauseEffectStructure):
-            return False
+            return NotImplemented
         return (
             self.sia == other.sia
             and self.distinctions == other.distinctions

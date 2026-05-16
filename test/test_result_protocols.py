@@ -107,3 +107,28 @@ def test_acsia_repr_html(transition):
         acsia = actual.sia(transition)
     html = acsia._repr_html_()
     assert "<table" in html or "<div" in html
+
+
+def test_iit3_sia_neq_iit4_sia(s):
+    """Cross-formalism __eq__ returns False without exception."""
+    from pyphi.formalism import FORMALISM_REGISTRY
+    from pyphi.formalism import iit3
+
+    with config.override(**presets.iit3):
+        sia_3 = iit3.sia(s)
+    sia_4 = FORMALISM_REGISTRY["IIT_4_0_2023"].evaluate_system(s)
+
+    # Must not raise; must return False (Python falls back from NotImplemented)
+    assert (sia_3 == sia_4) is False
+    assert (sia_4 == sia_3) is False
+    assert sia_3 != sia_4
+
+
+def test_iit3_sia_eq_via_notimplemented_on_unrelated(s):
+    """Compare an IIT 3.0 SIA to an unrelated type — returns False, no raise."""
+    from pyphi.formalism import iit3
+
+    with config.override(**presets.iit3):
+        sia = iit3.sia(s)
+    assert (sia == "not a sia") is False
+    assert (sia == 42) is False
