@@ -4,6 +4,7 @@ import pytest
 from pyphi import Direction
 from pyphi import config
 from pyphi import utils
+from pyphi.conf import presets
 from pyphi.models import JointBipartition
 from pyphi.models import Part
 from pyphi.models import RepertoireIrreducibilityAnalysis
@@ -248,7 +249,7 @@ parameter_string = "direction,system,cut,mechanism,purview,expected"
 @pytest.mark.emd
 @skip_if_no_pyemd
 @pytest.mark.parametrize(parameter_string, scenarios)
-@config.override(version="IIT_3_0", mechanism_phi_measure="EMD")
+@config.override(**presets.iit3)
 def test_find_mip(direction, system, cut, mechanism, purview, expected):
     # Set up testing parameters from scenario
     result = system.find_mip(direction, mechanism, purview)

@@ -14,7 +14,6 @@ and serves as a mutation-detection canary: a sign-flip in
 from __future__ import annotations
 
 import math
-from dataclasses import replace
 
 import numpy as np
 import pytest
@@ -25,6 +24,7 @@ from hypothesis import settings
 from hypothesis import strategies as st
 
 from pyphi import config
+from pyphi.conf import presets
 from pyphi.direction import Direction
 from pyphi.distribution import repertoire_shape
 from pyphi.partition import bipartition
@@ -299,15 +299,7 @@ class TestMetricInvariants:
         and so is the minimum over partitions. A sign-flipped EMD would
         produce negative MIP phi and fail here.
         """
-        with config.override(
-            iit=replace(
-                config.formalism.iit,
-                version="IIT_3_0",
-                mechanism_phi_measure="EMD",
-                mechanism_partition_scheme="JOINT_BIPARTITION",
-            ),
-            validate_system_states=False,
-        ):
+        with config.override(**presets.iit3, validate_system_states=False):
             s = data.draw(small_system())
             mechanism, purview = data.draw(mechanism_purview_pair(s))
             direction = data.draw(st.sampled_from([Direction.CAUSE, Direction.EFFECT]))

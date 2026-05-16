@@ -12,6 +12,7 @@ hold true, making them excellent regression tests for refactoring.
 import pytest
 
 from pyphi import config
+from pyphi.conf import presets
 from pyphi.formalism import iit4 as new_big_phi
 from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
 from pyphi.measures.distribution import resolve_mechanism_measure
@@ -255,11 +256,10 @@ class TestConfigurationInvariants:
                 "Expected phi=0 when single_micro_nodes_with_selfloops_have_phi=False"
             )
 
-        # With config enabled and EMD, phi should be > 0
+        # With config enabled under the canonical IIT 3.0 preset, phi > 0
         with config.override(
-            version="IIT_3_0",
+            **presets.iit3,
             single_micro_nodes_with_selfloops_have_phi=True,
-            mechanism_phi_measure="EMD",
         ):
             result_enabled = noisy_selfloop_single.sia()
             assert result_enabled.phi > 0.0, (
