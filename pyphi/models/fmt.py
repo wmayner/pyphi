@@ -854,7 +854,7 @@ def fmt_sia_columns(sia: object) -> list[tuple[str, Any]]:
         ("System", system_label),
         ("Current state", state(current_state) if current_state is not None else None),
         (f"           {SMALL_PHI}_s", phi),
-        ("Partition", partition),
+        ("Partition", str(partition) if partition is not None else None),
     ]
 
 
@@ -908,13 +908,18 @@ def fmt_ac_sia_columns(acsia: object) -> list[tuple[str, Any]]:
     else:
         system_label = None
 
+    direction = getattr(acsia, "direction", None)
+    before_state = getattr(acsia, "before_state", None)
+    after_state = getattr(acsia, "after_state", None)
+    partition = getattr(acsia, "partition", None)
+
     return [
         ("System", system_label),
-        ("Direction", getattr(acsia, "direction", None)),
-        ("Before state", getattr(acsia, "before_state", None)),
-        ("After state", getattr(acsia, "after_state", None)),
+        ("Direction", str(direction) if direction is not None else None),
+        ("Before state", state(before_state) if before_state is not None else None),
+        ("After state", state(after_state) if after_state is not None else None),
         (ALPHA, getattr(acsia, "alpha", None)),
-        ("Partition", getattr(acsia, "partition", None)),
+        ("Partition", str(partition) if partition is not None else None),
     ]
 
 

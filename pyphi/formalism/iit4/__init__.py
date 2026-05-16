@@ -250,51 +250,33 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
         )
 
     def _repr_columns(self):
-        if self.node_labels is not None and self.node_indices is not None:
-            # coerce_to_labels returns tuple[str | int, ...], need to convert to str
-            system_label = ",".join(
-                str(label)
-                for label in self.node_labels.coerce_to_labels(self.node_indices)
-            )
-        elif self.node_indices is not None:
-            system_label = ",".join(str(i) for i in self.node_indices)
-        else:
-            system_label = None
-
-        columns = [
-            ("System", system_label),
-            (
-                "Current state",
+        # Shared columns (System, Current state, φ_s); exclude "Partition" entry
+        # because IIT 4.0 renders the partition separately in __repr__ via fmt.indent.
+        columns = [col for col in fmt.fmt_sia_columns(self) if col[0] != "Partition"]
+        # IIT 4.0-specific columns
+        columns.extend(
+            [
+                (f"Normalized {fmt.SMALL_PHI}_s", self.normalized_phi),
                 (
-                    fmt.state(self.current_state)
-                    if self.current_state is not None
-                    else None
+                    "Int. diff. CAUSE",
+                    (
+                        self.intrinsic_differentiation[Direction.CAUSE]
+                        if self.intrinsic_differentiation
+                        else None
+                    ),
                 ),
-            ),
-            (f"           {fmt.SMALL_PHI}_s", self.phi),
-            (f"Normalized {fmt.SMALL_PHI}_s", self.normalized_phi),
-            (
-                "Int. diff. CAUSE",
                 (
-                    self.intrinsic_differentiation[Direction.CAUSE]
-                    if self.intrinsic_differentiation
-                    else None
+                    "Int. diff. EFFECT",
+                    (
+                        self.intrinsic_differentiation[Direction.EFFECT]
+                        if self.intrinsic_differentiation
+                        else None
+                    ),
                 ),
-            ),
-            (
-                "Int. diff. EFFECT",
-                (
-                    self.intrinsic_differentiation[Direction.EFFECT]
-                    if self.intrinsic_differentiation
-                    else None
-                ),
-            ),
-        ]
-
-        # Add system_state columns if it exists
+            ]
+        )
         if self.system_state is not None:
             columns.extend(self.system_state._repr_columns())
-
         columns.extend([("#(tied MIPs)", len(self.ties) - 1), ("Partition", "")])
         if self.reasons:
             columns.append(("Reasons", ", ".join(self.reasons)))

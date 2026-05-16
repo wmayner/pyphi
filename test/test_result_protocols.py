@@ -55,3 +55,19 @@ def test_fmt_sia_columns_shared_keys(s):
     shared = {"System", "Current state", "Partition"}
     assert shared.issubset(cols_3.keys())
     assert shared.issubset(cols_4.keys())
+
+
+def test_iit3_and_iit4_sia_repr_share_columns(s):
+    """The shared SIA columns appear in both formalism reprs identically."""
+    from pyphi.formalism import FORMALISM_REGISTRY
+    from pyphi.formalism import iit3
+
+    with config.override(**presets.iit3):
+        repr_3 = repr(iit3.sia(s))
+
+    repr_4 = repr(FORMALISM_REGISTRY["IIT_4_0_2023"].evaluate_system(s))
+
+    # Both reprs must contain the shared column labels
+    for label in ("System", "Current state", "Partition"):
+        assert label in repr_3, f"{label!r} missing from IIT 3.0 SIA repr"
+        assert label in repr_4, f"{label!r} missing from IIT 4.0 SIA repr"

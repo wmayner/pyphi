@@ -86,19 +86,7 @@ class CauseEffectStructure(cmp.Orderable):
         )
 
     def _repr_columns(self) -> list[tuple[str, Any]]:
-        # Relations may not have __len__ in base class — use num_relations()
-        num_relations = (
-            self.relations.num_relations()
-            if hasattr(self.relations, "num_relations")
-            else 0
-        )
-        return [
-            ("Φ", self.big_phi),
-            ("#(distinctions)", len(self.distinctions)),
-            ("Σ φ_d", self.sum_phi_distinctions),
-            ("#(relations)", num_relations),
-            ("Σ φ_r", self.sum_phi_relations),
-        ]
+        return fmt.fmt_ces_columns(self)
 
     def __repr__(self) -> str:
         body = "\n".join(fmt.align_columns(self._repr_columns()))

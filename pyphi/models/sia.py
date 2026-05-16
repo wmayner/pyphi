@@ -84,8 +84,14 @@ class IIT3SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
             config = _global.snapshot()
         self.config = config
 
+    def _repr_columns(self):
+        return fmt.fmt_sia_columns(self)
+
     def __repr__(self):
-        return fmt.make_repr(self, _sia_attributes)
+        body = "\n".join(fmt.align_columns(self._repr_columns()))
+        body = fmt.header(self.__class__.__name__, body, under_char=fmt.HEADER_BAR_2)
+        body = fmt.center(body)
+        return fmt.box(body)
 
     def __str__(self):
         return fmt.fmt_sia(self)
