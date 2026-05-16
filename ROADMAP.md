@@ -1465,7 +1465,51 @@ test inventory — that a deliberate re-ordering pass is in order.
     its root. Estimated 5-7 days. Substantial mechanical refactor;
     paired with P11.85.
 
-13. **P10c — Flat dotted-string config accessor.** Deferred-ergonomics
+13. **P11.87 — Cross-formalism SIA / CES surface unification.**
+    Deferred-cleanup candidate. The IIT 3.0 and IIT 4.0 result objects
+    are different classes with divergent ``__repr__``, ``__eq__``, and
+    JSON shapes. ``pyphi.models.IIT3SystemIrreducibilityAnalysis``
+    (3.0) and ``pyphi.formalism.iit4.SystemIrreducibilityAnalysis``
+    (4.0) share roughly the same fields (``phi``, ``ces``,
+    ``partitioned_ces``, ``partition``, ``substrate_state``) but
+    render and serialize differently; downstream code that wants to
+    display, store, or compare results across formalisms has to
+    special-case. The cause-effect-structure layer has the same
+    issue: 3.0's ``CauseEffectStructure`` and 4.0's
+    ``ResolvedDistinctions`` / 4.0 ``CauseEffectStructure`` have
+    different reprs and JSON keys for what are conceptually the same
+    quantity (a set of distinctions over a substrate state).
+
+    Scope:
+    - Reconcile field names — ``cut`` / ``partition``, ``ces`` /
+      ``distinctions``, ``cause_repertoire`` / ``cause`` — so the
+      same conceptual field has the same name across both
+      formalisms' results, or document why the divergence is load-
+      bearing.
+    - Common ``__repr__`` / ``_repr_html_`` templates parametrized
+      by formalism so cross-formalism diffs read naturally and
+      pretty-print under Jupyter uniformly.
+    - Canonical JSON shape that round-trips both formalisms through
+      the same loader (post-P15 ``msgspec``-based serialization).
+      Either a shared schema with a ``formalism`` discriminator
+      field, or per-formalism schemas linked by a common parent
+      type that the loader dispatches on.
+    - Audit ``__eq__`` semantics: today the two SIA classes have
+      incompatible equality (cross-class comparison silently
+      returns ``False``). Decide whether they should ever compare
+      equal — probably not, but the asymmetry should be explicit.
+
+    Pairs naturally with P15 (``jsonify`` retirement) since both
+    rewrite the serialization layer; ordering between the two
+    depends on whether P15 picks a serialization library that makes
+    cross-formalism shapes easy (``msgspec`` does, via tagged
+    unions). Pairs with P11.85 / P11.86 which already collapses one
+    axis of cross-formalism divergence (the measure-call surface).
+
+    Estimated 3-5 days. Could fold into P15 directly if the timing
+    works.
+
+14. **P10c — Flat dotted-string config accessor.** Deferred-ergonomics
     candidate. Adds a Hydra/OmegaConf-style flat dotted-string accessor
     on top of the nested-dataclass config implementation
     (``config["formalism.iit.mechanism_phi_measure"]`` alongside the
@@ -1476,7 +1520,7 @@ test inventory — that a deliberate re-ordering pass is in order.
     serialization, CLI overrides, or programmatic enumeration of all
     config keys. Estimated half-day. Low priority; could fold into P15.
 
-14. **P11.95a — Deterministic SIA selection.** Should land before
+15. **P11.95a — Deterministic SIA selection.** Should land before
     P12. ``Substrate.sia()`` currently returns whichever MIP-tied
     partition is first-encountered when multiple partitions tie at
     ``(normalized_phi, -phi)``; iteration order under ``MapReduce``
@@ -1497,7 +1541,7 @@ test inventory — that a deliberate re-ordering pass is in order.
     the tie surface; landing this first keeps the test surface
     stable.
 
-15. **P11.95b — Paper-faithful state-tie resolution.** Substantive
+16. **P11.95b — Paper-faithful state-tie resolution.** Substantive
     correctness change, not a canonicalisation. Per Albantakis et al.
     2023 Eq. 12 + S1 Text, when multiple cause/effect states tie at
     max ``ii``, the canonical winner is the one with maximum
@@ -1533,7 +1577,7 @@ test inventory — that a deliberate re-ordering pass is in order.
     P11.95a (touches different code: ``integration_value`` and
     ``resolve_system_state``, not the MIP-selection loop).
 
-16. **P11.95c — Substrate canonicalization for intrinsic equivalence.**
+17. **P11.95c — Substrate canonicalization for intrinsic equivalence.**
     Post-2.0 unless a smaller subset is folded in. PyPhi today computes
     Φ, distinctions, and per-direction breakdowns in a way that is
     sensitive to node labels. Two substrates that are permutations of
@@ -1670,7 +1714,7 @@ test inventory — that a deliberate re-ordering pass is in order.
     should be paired with a clear migration note in
     ``docs/migration-2.0.md`` (or 3.0.md if it slips post-2.0).
 
-17. **P11.95d — IIT 3.0 tie-resolution audit.** Brainstorm only;
+18. **P11.95d — IIT 3.0 tie-resolution audit.** Brainstorm only;
     deferrable to post-2.0. The IIT 3.0 restoration project (commits
     ``4055a682``–``760bf3bf``) surfaced two ways the IIT 3.0 path is
     sensitive to tie-resolution policy beyond what P11.95a addresses:
