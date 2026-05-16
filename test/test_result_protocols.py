@@ -132,3 +132,69 @@ def test_iit3_sia_eq_via_notimplemented_on_unrelated(s):
         sia = iit3.sia(s)
     assert (sia == "not a sia") is False
     assert (sia == 42) is False
+
+
+def test_iit3_ces_json_round_trip(s):
+    """IIT 3.0 CES round-trips through jsonify with structural equality."""
+    from pyphi import jsonify
+    from pyphi.formalism import iit3
+    from pyphi.models.ces import CauseEffectStructure
+
+    with config.override(**presets.iit3):
+        ces = iit3.ces(s)
+
+    encoded = jsonify.dumps(ces)
+    decoded = jsonify.loads(encoded)
+
+    assert isinstance(decoded, CauseEffectStructure)
+    assert decoded.sia.phi == ces.sia.phi
+    assert len(decoded.distinctions) == len(ces.distinctions)
+    assert decoded.relations.num_relations() == ces.relations.num_relations()
+
+
+def test_iit3_sia_json_round_trip(s):
+    """IIT 3.0 SIA round-trips through jsonify."""
+    from pyphi import jsonify
+    from pyphi.formalism import iit3
+    from pyphi.models.sia import IIT3SystemIrreducibilityAnalysis
+
+    with config.override(**presets.iit3):
+        sia = iit3.sia(s)
+
+    encoded = jsonify.dumps(sia)
+    decoded = jsonify.loads(encoded)
+
+    assert isinstance(decoded, IIT3SystemIrreducibilityAnalysis)
+    assert decoded.phi == sia.phi
+    assert decoded.partition == sia.partition
+    assert decoded.partitioned_distinctions == sia.partitioned_distinctions
+
+
+def test_iit4_sia_json_round_trip(s):
+    """IIT 4.0 SIA round-trips through jsonify."""
+    from pyphi import jsonify
+    from pyphi.formalism import FORMALISM_REGISTRY
+    from pyphi.formalism.iit4 import SystemIrreducibilityAnalysis
+
+    sia = FORMALISM_REGISTRY["IIT_4_0_2023"].evaluate_system(s)
+    encoded = jsonify.dumps(sia)
+    decoded = jsonify.loads(encoded)
+
+    assert isinstance(decoded, SystemIrreducibilityAnalysis)
+    assert decoded == sia
+
+
+def test_acsia_json_round_trip(transition):
+    """AcSIA round-trips through jsonify."""
+    from pyphi import actual
+    from pyphi import jsonify
+    from pyphi.models.actual_causation import AcSystemIrreducibilityAnalysis
+
+    with config.override(**presets.iit3):
+        acsia = actual.sia(transition)
+
+    encoded = jsonify.dumps(acsia)
+    decoded = jsonify.loads(encoded)
+
+    assert isinstance(decoded, AcSystemIrreducibilityAnalysis)
+    assert decoded.alpha == acsia.alpha

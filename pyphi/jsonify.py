@@ -27,6 +27,51 @@ The JSON encoder adds the name of the object and the current PyPhi version to
 the JSON stream. The JSON decoder uses this metadata to recursively deserialize
 the stream to a nested PyPhi object structure. The decoder will raise an
 exception if current PyPhi version doesn't match the version in the JSON data.
+
+Canonical JSON shapes for the primary result types
+==================================================
+
+Result objects are discriminated by the ``__class__`` metadata key added by
+``_push_metadata``; no separate formalism discriminator field is used. Each
+class's ``to_json`` emits its field set, and ``from_json`` reconstructs from
+the same set.
+
+**IIT 3.0 SIA** — ``__class__: "IIT3SystemIrreducibilityAnalysis"``::
+
+    {"__class__": "IIT3SystemIrreducibilityAnalysis",
+     "__version__": "...", "__id__": ...,
+     "phi": ..., "partition": ...,
+     "partitioned_distinctions": ...,
+     "current_state": ..., "node_indices": ..., "node_labels": ...}
+
+**IIT 4.0 SIA** — ``__class__: "SystemIrreducibilityAnalysis"``::
+
+    {"__class__": "SystemIrreducibilityAnalysis",
+     "__version__": "...", "__id__": ...,
+     "phi": ..., "partition": ...,
+     "normalized_phi": ..., "signed_phi": ...,
+     "signed_normalized_phi": ..., "cause": ..., "effect": ...,
+     "system_state": ..., "current_state": ..., "node_indices": ...,
+     "intrinsic_differentiation": ..., "config": ...}
+
+**CauseEffectStructure** — ``__class__: "CauseEffectStructure"``; the shape
+is shared by both IIT 3.0 and IIT 4.0 (the inner ``sia`` carries its
+formalism via its own ``__class__``)::
+
+    {"__class__": "CauseEffectStructure",
+     "__version__": "...", "__id__": ...,
+     "sia": {...}, "distinctions": ..., "relations": ...}
+
+**AcSystemIrreducibilityAnalysis** — ``__class__:
+"AcSystemIrreducibilityAnalysis"``::
+
+    {"__class__": "AcSystemIrreducibilityAnalysis",
+     "__version__": "...", "__id__": ...,
+     "alpha": ..., "direction": ...,
+     "account": ..., "partitioned_account": ...,
+     "partition": ..., "before_state": ..., "after_state": ...,
+     "size": ..., "node_indices": ...,
+     "cause_indices": ..., "effect_indices": ..., "node_labels": ...}
 """
 
 import json
