@@ -1387,10 +1387,13 @@ test inventory — that a deliberate re-ordering pass is in order.
    Macro work split off into its own paper-faithful project (item 10
    below).
 
-5. **P11.8 Tier 1 — inline pytest perf budget.** Hours of work, ~30
-   lines. Catches catastrophic regressions of the form just
-   experienced (60–300x on ``IIT4_2026Formalism``). Must precede P12
-   and P13 because both touch hot paths.
+5. **P11.8 Tier 1 — inline pytest perf budget.** *(landed; spec
+   ``cad8a967``, plan ``2d88dd78``, implementation ``ea8ebcf6``.)*
+   Inline ``@pytest.mark.perf`` wall-time floors on 5 hot-path
+   fixtures (basic / xor / rule110 / grid3 / micro_s), catching
+   catastrophic regressions of the form previously experienced
+   (60–300x on ``IIT4_2026Formalism``). Calibrated to ``max(3.0,
+   4× median)`` per fixture.
 
 6. **P12 — Non-binary units.** With perf gate up and macro/actual on
    the new core, alphabet generalization is bounded: PR #105 is the
@@ -1457,101 +1460,65 @@ test inventory — that a deliberate re-ordering pass is in order.
     Disabled ``MacroSystem`` class and 593-line
     ``test/test_macro_system.py`` stay dark until this lands.
 
-11. **P11.85 — Measure-API unification.** Deferred-cleanup candidate.
-    The current measures registry (``pyphi.measures.distribution.measures``,
-    ``pyphi.actual.partitioned_repertoire_schemes``, etc.) is
-    fragmented in calling shape: distribution metrics take ``(p, q)``,
-    state-aware metrics take ``(forward, partitioned, selectivity, state)``,
-    composite metrics like ``INTRINSIC_INFORMATION`` internally read other
-    config fields and dispatch. This forces helpers to special-case on
-    measure-name strings (e.g., ``if measure == "INTRINSIC_INFORMATION":
-    measure = "GENERALIZED_INTRINSIC_DIFFERENCE"``) — the
-    Eqs. 19-20 conversion in
-    ``pyphi.formalism.iit4.evaluate_partition`` is one of several. P11.85
-    introduces calling-shape Protocols (``DistributionMeasure``,
-    ``StateAwareMeasure``, ``CompositeMeasure``), tags each registered
-    measure with its Protocol, and replaces string-based dispatch with
-    Protocol-based dispatch. Folds in the deferred metric-API cleanups
-    from P5: return-type normalization (some metrics return ``float``,
-    others ``DistanceResult``), ``INTRINSIC_DIFFERENTIATION``'s awkward
-    ``(p, q, state)`` signature where ``q`` is ignored, ``intrinsic_information``
-    reading ``config.formalism.iit.specification_measure`` /
-    ``differentiation_measure``. Estimated 3-5 days. Useful before P15
-    docs/jsonify retirement (clean metric API stabilizes the docs).
+11. **P11.85 — Measure-API unification.** *(landed; spec ``90ca10be``,
+    plan ``0da5d0ad``, implementation commits ``08a48e5a`` metric
+    Protocol types + INTRINSIC_DIFFERENTIATION q-arg drop, ``e382afe7``
+    StatefulDistributionMetric Protocol, ``d8ffd83a`` Phase 1 tighten,
+    ``67caa112`` + ``6a12a4f6`` registry split + asymmetric-flag fix,
+    ``f0ae1baa`` + ``4a4bc7cc`` + ``380dfa2b`` threading + strings →
+    objects, ``5d648d94`` resolve_alpha_measure rename, ``1166ab67``
+    explicit Protocol dispatch in repertoire_distance.)* Introduces
+    calling-shape Protocols (``DistributionMetric``,
+    ``StateAwareMetric``, ``StatefulDistributionMetric``,
+    ``CompositeMetric``), tags each registered metric with its
+    Protocol, and replaces string-based dispatch with Protocol-based
+    dispatch. Folds in P5's deferred metric-API cleanups: return-type
+    normalization, ``INTRINSIC_DIFFERENTIATION``'s vestigial ``q``
+    argument, ``intrinsic_information`` config-read reduction.
 
-12. **P11.86 — Explicit-parameter measure threading.** Deferred-cleanup
-    candidate. Eliminates the ``with config.override(...)`` wrapper
-    pattern in formalism class methods (``IIT4_2023Formalism``,
-    ``IIT4_2026Formalism``, etc.). Today helpers like
-    ``_evaluate_partition_iit4``, ``_sia``, ``_phi_structure`` read
-    measure / scheme / strategy choices from
-    ``config.formalism.iit.X`` directly, so formalism methods mutate
-    global config to control what helpers see. The pattern is
-    action-at-a-distance, fragile under partial reads, and parallel-hostile
-    (the ``ConfigSnapshot`` machinery from P10b is a workaround). P11.86
-    lifts measure / scheme / strategy choices out of helper bodies
-    into helper signatures: helpers take explicit parameters; public
-    dispatchers (``System.sia``, ``System.phi_structure``, ``actual.sia``)
-    read config and pass values down; formalism classes pass their own
-    values when calling helpers. Eliminates the override pattern, the
-    string-based dispatch from P11.85, and the parallel-state issue at
-    its root. Estimated 5-7 days. Substantial mechanical refactor;
-    paired with P11.85.
+12. **P11.86 — Explicit-parameter measure threading.** *(landed; key
+    commits ``6e3eafb0`` formalism class methods accept explicit
+    metric kwargs, ``003ee133`` Actual Causation metrics threaded
+    through internal helpers, ``6c4bbdd9`` DRY the resolve+check
+    pattern.)* Eliminated the ``with config.override(...)`` wrapper
+    pattern in formalism class methods. Helpers
+    (``_evaluate_partition_iit4``, ``_sia``, ``_phi_structure``,
+    actual-causation internals) now take explicit measure / scheme /
+    strategy parameters; public dispatchers read config and pass
+    values down; formalism classes pass their own values when
+    calling helpers. Eliminates the override pattern, the string-
+    based dispatch handover from P11.85, and the parallel-state
+    issue at its root. Cap-regression-impossible test pins the
+    architectural guarantee.
 
 13. **P11.87 — Cross-formalism SIA / CES surface unification.**
-    Deferred-cleanup candidate. The IIT 3.0 and IIT 4.0 result objects
-    are different classes with divergent ``__repr__``, ``__eq__``, and
-    JSON shapes. ``pyphi.models.IIT3SystemIrreducibilityAnalysis``
-    (3.0) and ``pyphi.formalism.iit4.SystemIrreducibilityAnalysis``
-    (4.0) share roughly the same fields (``phi``, ``ces``,
-    ``partitioned_ces``, ``partition``, ``substrate_state``) but
-    render and serialize differently; downstream code that wants to
-    display, store, or compare results across formalisms has to
-    special-case. The cause-effect-structure layer has the same
-    issue: 3.0's ``CauseEffectStructure`` and 4.0's
-    ``ResolvedDistinctions`` / 4.0 ``CauseEffectStructure`` have
-    different reprs and JSON keys for what are conceptually the same
-    quantity (a set of distinctions over a substrate state).
+    *(landed; spec ``e699d031``, plan ``92e39b4c``, implementation
+    ``50fdf92b``..``9dbf4bb4``, 17 commits.)* IIT 3.0 adopted IIT
+    4.0's CES-wraps-SIA topology: ``iit3.ces()`` returns
+    ``CauseEffectStructure(sia, distinctions, NullRelations())``;
+    3.0 SIA dropped ``ces`` / ``substrate`` fields and renamed
+    ``partitioned_ces`` → ``partitioned_distinctions`` (3.0-specific
+    compute receipt). New ``SIAInterface`` /
+    ``CauseEffectStructureInterface`` / ``AcSIAInterface`` Protocols
+    (runtime_checkable). Common ``__repr__`` template via
+    ``fmt_sia_columns`` / ``fmt_ces_columns`` / ``fmt_ac_sia_columns``;
+    new ``_repr_html_`` on each class for Jupyter. Cross-class
+    ``__eq__`` returns ``NotImplemented``. Canonical JSON shape
+    documented in :mod:`pyphi.jsonify` module docstring (the target
+    shape for P15's msgspec migration via tagged-union ``__class__``
+    discrimination).
 
-    Scope:
-    - Reconcile field names — ``cut`` / ``partition``, ``ces`` /
-      ``distinctions``, ``cause_repertoire`` / ``cause`` — so the
-      same conceptual field has the same name across both
-      formalisms' results, or document why the divergence is load-
-      bearing.
-    - Common ``__repr__`` / ``_repr_html_`` templates parametrized
-      by formalism so cross-formalism diffs read naturally and
-      pretty-print under Jupyter uniformly.
-    - Canonical JSON shape that round-trips both formalisms through
-      the same loader (post-P15 ``msgspec``-based serialization).
-      Either a shared schema with a ``formalism`` discriminator
-      field, or per-formalism schemas linked by a common parent
-      type that the loader dispatches on.
-    - Audit ``__eq__`` semantics: today the two SIA classes have
-      incompatible equality (cross-class comparison silently
-      returns ``False``). Decide whether they should ever compare
-      equal — probably not, but the asymmetry should be explicit.
-
-    Pairs naturally with P15 (``jsonify`` retirement) since both
-    rewrite the serialization layer; ordering between the two
-    depends on whether P15 picks a serialization library that makes
-    cross-formalism shapes easy (``msgspec`` does, via tagged
-    unions). Pairs with P11.85 / P11.86 which already collapses one
-    axis of cross-formalism divergence (the measure-call surface).
-
-    Estimated 3-5 days. Could fold into P15 directly if the timing
-    works.
-
-14. **P10c — Flat dotted-string config accessor.** Deferred-ergonomics
-    candidate. Adds a Hydra/OmegaConf-style flat dotted-string accessor
-    on top of the nested-dataclass config implementation
-    (``config["formalism.iit.mechanism_phi_measure"]`` alongside the
-    existing ``config.formalism.iit.mechanism_phi_measure``). Internal
-    storage stays nested-dataclass (preserves type checking, validators,
-    ``ConfigSnapshot``); the flat accessor delegates via path traversal.
-    Optional convenience for users who prefer string keys for
-    serialization, CLI overrides, or programmatic enumeration of all
-    config keys. Estimated half-day. Low priority; could fold into P15.
+14. **P10c — Flat dotted-string config accessor.** *(landed; spec
+    ``05f35a92``, plan ``dfadf9cd``, implementation ``575e152a``.)*
+    The dotted-path read / write
+    (``config["formalism.iit.mechanism_phi_measure"]``,
+    ``config["numerics.precision"] = 6``) was already in place pre-
+    P10c; this completed the Mapping protocol on ``_GlobalConfig``:
+    ``__iter__``, ``__contains__``, ``__len__``, ``keys``,
+    ``values``, ``items``, ``get(path, default)``. ``__getitem__``
+    extended to accept bare leaf keys (``config["precision"]``) via
+    the existing ``FIELD_TO_LAYER`` routing. Internal storage stays
+    nested-dataclass.
 
 15. **P11.95a — Deterministic SIA selection.** *(landed; see commits
     ``2a163b6f`` partition ``lex_key`` + ``resolve_ties.sias`` +
