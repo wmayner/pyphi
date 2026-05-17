@@ -1414,6 +1414,39 @@ test inventory — that a deliberate re-ordering pass is in order.
    benchmark rewrite naturally pairs with the docstring/repr/jsonify
    pass.
 
+   **Open subdecision: config storage construct.** ``pyphi.conf``
+   today uses frozen :class:`~dataclasses.dataclass` instances for
+   the three layers, with substantial custom scaffolding around
+   them (``_GlobalConfig`` facade with ``__getattr__`` / ``__setattr__``
+   / ``__getitem__`` / ``__setitem__`` / Mapping protocol routing,
+   ``FIELD_TO_LAYER`` flat-name mapping, ``_rebuild_nested`` for
+   immutable updates, layer-replacement callbacks). The scaffolding
+   handles flat-namespace ergonomics that dataclass alone can't
+   provide. Candidate alternatives, in increasing migration cost:
+
+   - **dataclass (status quo).** stdlib, no dep, frozen + validators
+     via ``__post_init__``, `fields()` introspection used by
+     ``_iter_leaf_paths``. Custom scaffolding stays.
+   - ``attrs``. Adds the dep; built-in ``@validator`` shortens
+     ``__post_init__`` boilerplate; otherwise similar. Net win small.
+   - ``msgspec.Struct``. The natural P15 alignment — designed for
+     JSON / YAML / msgpack (de)serialization, tagged-union
+     discrimination matching the canonical ``__class__`` shape that
+     P11.87 documented in :mod:`pyphi.jsonify`, validators-as-types,
+     much faster (de)ser. Substantial refactor but pays for itself
+     when ``jsonify`` retires. **Recommended target.**
+   - ``pydantic.BaseModel``. Rich validators, heavy dep, ergonomic
+     ``model_dump`` / ``model_validate``. Overkill for an
+     internal config store; better suited to user-facing input
+     validation.
+   - Flat ``TypedDict`` + dict-of-validators. Drops immutability +
+     runtime validation; sidesteps the layered-class shape entirely.
+     Loses too much.
+
+   When P15 picks msgspec for serialization, migrate the config
+   layers in the same pass — the canonical JSON shape already lines
+   up with the tagged-union pattern msgspec supports.
+
 10. **Macro framework — Marshall 2024 intrinsic units.** Deferred
     candidate, post-2.0 unless it slots in. Paper-faithful rewrite
     of the macro layer per Marshall, Findlay, Albantakis, Tononi
