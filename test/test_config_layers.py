@@ -434,3 +434,98 @@ class TestDottedPathAccessor:
     def test_write_unknown_field_within_known_layer_raises_keyerror(self):
         with pytest.raises(KeyError, match="Unknown config path"):
             config["numerics.nonexistent_field"] = 1
+
+
+# ---------------------------------------------------------------------------
+# Mapping protocol surface
+# ---------------------------------------------------------------------------
+
+
+class TestConfigMappingProtocol:
+    """Pin the Mapping protocol behavior on the global config facade."""
+
+    def test_iter_yields_all_leaves(self):
+        """iter(config) yields every leaf as a dotted path in declaration order."""
+        keys = list(config)
+        assert "numerics.precision" in keys
+        assert "formalism.iit.version" in keys
+        assert "formalism.iit.mechanism_phi_measure" in keys
+        assert "formalism.actual_causation.alpha_measure" in keys
+        assert "infrastructure.parallel" in keys
+        assert "numerics" not in keys
+        assert "formalism" not in keys
+        assert "formalism.iit" not in keys
+
+    def test_len_matches_iter(self):
+        """len(config) equals the number of paths yielded by iteration."""
+        assert len(config) == len(list(iter(config)))
+        assert len(config) > 0
+
+    def test_contains_dotted_path(self):
+        """'numerics.precision' in config is True."""
+        assert "numerics.precision" in config
+        assert "formalism.iit.mechanism_phi_measure" in config
+        assert "infrastructure.parallel" in config
+
+    def test_contains_bare_leaf(self):
+        """A bare leaf name resolves via FIELD_TO_LAYER routing."""
+        assert "precision" in config
+        assert "mechanism_phi_measure" in config
+
+    def test_contains_invalid_path(self):
+        """An unknown path is not contained."""
+        assert "foo.bar" not in config
+        assert "numerics.nonexistent" not in config
+        assert "nonexistent" not in config
+
+    def test_contains_non_string(self):
+        """Non-string keys are not contained (and do not raise)."""
+        assert 42 not in config
+        assert None not in config
+        assert ("numerics", "precision") not in config
+
+    def test_get_existing_dotted_path(self):
+        """config.get('numerics.precision') matches attribute access."""
+        assert config.get("numerics.precision") == config.numerics.precision
+
+    def test_get_existing_bare_leaf(self):
+        """config.get('precision') routes via FIELD_TO_LAYER."""
+        assert config.get("precision") == config.numerics.precision
+
+    def test_get_missing_returns_default(self):
+        """config.get on a missing path returns the default."""
+        assert config.get("nonexistent", 42) == 42
+        assert config.get("foo.bar.baz") is None
+
+    def test_keys_values_items_consistent(self):
+        """keys, values, and items agree on order and content."""
+        keys = config.keys()
+        values = config.values()
+        items = config.items()
+        assert len(keys) == len(values) == len(items)
+        for i, key in enumerate(keys):
+            assert items[i] == (key, values[i])
+            assert config[key] == values[i]
+
+    def test_items_round_trip(self):
+        """Capturing items, mutating, and restoring via __setitem__ recovers state."""
+        original_precision = config.numerics.precision
+        try:
+            config["numerics.precision"] = 99
+            assert config["numerics.precision"] == 99
+            config["numerics.precision"] = original_precision
+            assert config.numerics.precision == original_precision
+        finally:
+            config["numerics.precision"] = original_precision
+
+    def test_getitem_bare_leaf(self):
+        """config['precision'] returns config.numerics.precision."""
+        assert config["precision"] == config.numerics.precision
+        assert (
+            config["mechanism_phi_measure"] == config.formalism.iit.mechanism_phi_measure
+        )
+
+    def test_getitem_unknown_bare_leaf(self):
+        """An unknown bare leaf key raises KeyError."""
+        with pytest.raises(KeyError, match="Unknown config path"):
+            config["nonexistent"]

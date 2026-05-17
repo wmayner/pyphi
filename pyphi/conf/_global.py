@@ -26,8 +26,10 @@ the qualified path or replace the sub-namespace as a whole.
 from __future__ import annotations
 
 import contextlib
+from collections.abc import Iterator
 from dataclasses import asdict
 from dataclasses import fields
+from dataclasses import is_dataclass
 from dataclasses import replace
 from pathlib import Path
 from typing import Any
@@ -94,6 +96,23 @@ def _write_via_target(
         new_sub = replace(current_sub, **{field_name: value})
         new_layer = replace(current_layer, **{sub_namespace: new_sub})
     object.__setattr__(cfg, layer_attr, new_layer)
+
+
+def _iter_leaf_paths(dc_instance: Any, prefix: str) -> Iterator[str]:
+    """Yield dotted leaf paths under ``prefix`` for a dataclass instance.
+
+    For a nested dataclass field (e.g. ``FormalismConfig.iit``), recurses
+    one level into the sub-dataclass. For flat layers (numerics,
+    infrastructure), yields one path per field directly.
+    """
+    for field in fields(dc_instance):
+        attr = getattr(dc_instance, field.name)
+        if is_dataclass(attr) and not isinstance(attr, type):
+            sub_prefix = f"{prefix}.{field.name}"
+            for sub_field in fields(attr):
+                yield f"{sub_prefix}.{sub_field.name}"
+        else:
+            yield f"{prefix}.{field.name}"
 
 
 class _GlobalConfig:
@@ -199,15 +218,26 @@ class _GlobalConfig:
         }
 
     def __getitem__(self, path: str) -> Any:
-        """Read a config field by dotted path.
+        """Read a config field by dotted path or by bare leaf name.
 
+        Dotted paths address layered fields:
         ``config["numerics.precision"]``,
         ``config["formalism.iit.mechanism_phi_measure"]``,
         ``config["infrastructure.parallel"]``.
+
+        Bare leaf names route through ``FIELD_TO_LAYER`` to the owning
+        layer: ``config["precision"]`` returns ``config.numerics.precision``.
         """
         parts = path.split(".")
         if not parts or not all(parts):
             raise KeyError(f"Invalid config path: {path!r}")
+
+        if len(parts) == 1:
+            leaf = parts[0]
+            if leaf in FIELD_TO_LAYER:
+                return _read_via_target(self, FIELD_TO_LAYER[leaf], leaf)
+            raise KeyError(f"Unknown config path: {path!r}")
+
         obj: Any = self
         for p in parts:
             try:
@@ -237,6 +267,49 @@ class _GlobalConfig:
             getattr(self, "_" + layer_name), parts[1:], value, path
         )
         setattr(self, layer_name, new_layer)
+
+    def __iter__(self) -> Iterator[str]:
+        """Yield every leaf field as a dotted path in dataclass declaration order.
+
+        Order: numerics fields, formalism fields (iit then actual_causation
+        leaves, in declaration order), infrastructure fields.
+        """
+        yield from _iter_leaf_paths(self._numerics, "numerics")
+        yield from _iter_leaf_paths(self._formalism, "formalism")
+        yield from _iter_leaf_paths(self._infrastructure, "infrastructure")
+
+    def __contains__(self, path: object) -> bool:
+        """Return True if ``path`` resolves to a leaf via ``__getitem__``."""
+        if not isinstance(path, str):
+            return False
+        try:
+            self[path]
+        except KeyError:
+            return False
+        return True
+
+    def __len__(self) -> int:
+        """Return the number of leaf fields across all layers."""
+        return sum(1 for _ in self)
+
+    def keys(self) -> list[str]:
+        """Return a list of dotted leaf paths in declaration order."""
+        return list(self)
+
+    def values(self) -> list[Any]:
+        """Return a list of leaf values in declaration order."""
+        return [self[k] for k in self]
+
+    def items(self) -> list[tuple[str, Any]]:
+        """Return a list of ``(path, value)`` pairs in declaration order."""
+        return [(k, self[k]) for k in self]
+
+    def get(self, path: str, default: Any = None) -> Any:
+        """Return ``self[path]`` or ``default`` if the path doesn't resolve."""
+        try:
+            return self[path]
+        except KeyError:
+            return default
 
     def __repr__(self) -> str:
         return yaml.safe_dump(
