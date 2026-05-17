@@ -28,3 +28,13 @@ benchmarks/results
 ignore
 matplotlibrc
 dump.rdb
+
+# Claude Code local state (project-level config in .claude/commands/ and
+# .claude/settings.json IS tracked; everything else is local-only).
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+.claude/worktrees/
+.claude/rules/
+
+# OpenWolf runtime state (third-party tool; per-clone cache).
+.wolf/
