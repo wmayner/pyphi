@@ -1450,6 +1450,46 @@ test inventory — that a deliberate re-ordering pass is in order.
    layers in the same pass — the canonical JSON shape already lines
    up with the tagged-union pattern msgspec supports.
 
+   **Open subdecision: per-formalism IIT config split.** ``IITConfig``
+   currently carries fields for both IIT 3.0 and IIT 4.0, with the
+   ``version`` string switching dispatch. After P11.95d this is a
+   visible code smell: ``presets.iit3`` overrides ~6 fields and 5
+   other fields (``system_phi_measure``, ``specification_measure``,
+   ``system_partition_include_complete``, ``relation_computation``,
+   ``state_tie_resolution``, ``shortcircuit_sia``,
+   ``distinction_phi_normalization``) are documented no-ops on the
+   3.0 path — they exist on the dataclass but are guarded out at
+   the call boundary. The implicit-default audit table in
+   ``presets.iit3``'s comment block is the cost of that asymmetry.
+
+   Proposed direction (pair with the construct subdecision above):
+   sum-type ``config.formalism.iit: IIT3Config | IIT4Config`` with
+   a shared base (or :class:`~typing.Protocol`) for genuinely common
+   fields (``mechanism_partition_scheme``,
+   ``purview_tie_resolution``, ``mip_tie_resolution``,
+   ``assume_partitions_cannot_create_new_concepts``,
+   ``single_micro_nodes_with_selfloops_have_phi``). Each variant
+   carries only the fields its formalism's code actually consumes;
+   IIT 4.0-paper-only fields literally don't exist on
+   ``IIT3Config``. Switching formalisms swaps the variant rather
+   than flipping a ``version`` string.
+
+   Tradeoff: migration churn. Every consumer reading
+   ``config.formalism.iit.X`` for X outside the shared subset has
+   to narrow on the variant (or accept :class:`AttributeError` at
+   call time). The compensation is that pyright catches "IIT 3.0
+   code accidentally reads a 4.0-only field" at type-check time
+   rather than via an audit six months later — exactly the class
+   of error P11.95d's ``mip_tie_resolution`` finding represented.
+
+   Pairs naturally with P11.95e (post-2.0 code-path-divergence
+   audit): if ``IIT3Config`` lacks ``distinction_phi_normalization``
+   as a field, the auditor doesn't need to ask "does any 3.0 code
+   path read it?" — the type system has answered. Sum-type and
+   msgspec migration land in the same P15 pass; the canonical
+   JSON shape's tagged-union ``__class__`` discriminator extends
+   naturally to discriminating ``IIT3Config`` from ``IIT4Config``.
+
 10. **Macro framework — Marshall 2024 intrinsic units.** Deferred
     candidate, post-2.0 unless it slots in. Paper-faithful rewrite
     of the macro layer per Marshall, Findlay, Albantakis, Tononi
