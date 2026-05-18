@@ -283,7 +283,7 @@ def _make_fixtures() -> list[GoldenFixture]:
 
     # IIT 3.0 only for the smaller binary substrates (4-node disjunction_conjunction
     # under DIRECTED_BI is fine; we just don't add EMD coverage for 4-node).
-    for net_name in ("basic", "xor"):
+    for net_name in ("basic", "xor", "rule110", "grid3"):
         net_idx = next(i for i, (n, *_) in enumerate(_NETWORKS) if n == net_name)
         _, factory, state, desc = _NETWORKS[net_idx]
         fixtures.append(
