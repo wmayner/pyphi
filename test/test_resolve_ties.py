@@ -329,3 +329,35 @@ def test_resolve_iit3_complex_tie_on_unresolved_warn_emits_warning():
             [sia_a, sia_b], context=ctx, on_unresolved="warn"
         )
     assert outcome.outcome == "UNRESOLVED_WITHIN_BUDGET"
+
+
+def test_iit3_sia_map_reduce_consults_sia_tie_resolution():
+    """The IIT 3.0 within-subsystem MIP selection routes through
+    resolve_ties.sias and consults config.formalism.iit.sia_tie_resolution.
+
+    Override the strategy to a registered-but-bogus name; the call must
+    raise KeyError. The default preset value is ["PHI", "PARTITION_LEX"]
+    which selects argmin raw phi (paper-canonical IIT 3.0 within-subsystem
+    MIP) with lex-canonical partition tie-break.
+    """
+    from dataclasses import replace
+
+    from pyphi import examples
+    from pyphi.conf import presets
+    from pyphi.system import System
+
+    substrate = examples.basic_substrate()
+    state = (1, 0, 0)
+    bad = {**presets.iit3}
+    bad["iit"] = replace(bad["iit"], sia_tie_resolution=["DEFINITELY_NOT_A_STRATEGY"])
+    with config.override(**bad):
+        sys = System.from_substrate(substrate, state, substrate.node_indices)
+        with pytest.raises(KeyError):
+            sys.sia()
+
+
+def test_iit3_default_sia_tie_resolution_is_phi_partition_lex():
+    """presets.iit3's sia_tie_resolution is ["PHI", "PARTITION_LEX"]."""
+    from pyphi.conf import presets
+
+    assert presets.iit3["iit"].sia_tie_resolution == ["PHI", "PARTITION_LEX"]

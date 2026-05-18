@@ -310,22 +310,30 @@ def _sia_map_reduce(
     unpartitioned_ces: Distinctions,
     **kwargs: Any,
 ) -> IIT3SystemIrreducibilityAnalysis:
+    """Evaluate every partition and select the MIP via
+    ``resolve_ties.sias``. The config knob
+    ``config.formalism.iit.sia_tie_resolution`` controls the selection
+    strategy.
+    """
+    from pyphi import resolve_ties
+
     kwargs = {**dict(config.infrastructure.parallel_partition_evaluation), **kwargs}
-    result = MapReduce(
+    null = _null_sia(system)
+    candidates = MapReduce(
         evaluate_partition,
         cuts,
         map_kwargs={
             "unpartitioned_system": system,
             "unpartitioned_ces": unpartitioned_ces,
         },
-        reduce_func=min,
-        reduce_kwargs={"default": _null_sia(system)},
         shortcircuit_func=utils.is_falsy,
         desc="Evaluating cuts",
         **kwargs,
     ).run()
-    assert result is not None
-    return result
+    if not candidates:
+        return null
+    ties = tuple(resolve_ties.sias(candidates, default=null))
+    return ties[0] if ties else null
 
 
 def _sia(system: System, **kwargs: Any) -> IIT3SystemIrreducibilityAnalysis:

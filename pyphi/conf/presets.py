@@ -56,6 +56,7 @@ iit3: dict[str, Any] = {
         # remaining ties by larger purview. Matches PyPhi 1.x's
         # ``pyphi_config_3.0.yml`` default.
         purview_tie_resolution=["PHI", "PURVIEW_SIZE"],
+        sia_tie_resolution=["PHI", "PARTITION_LEX"],
         # Paper-faithful: a cut can introduce a new concept; PyPhi does
         # not optimize this away.
         assume_partitions_cannot_create_new_concepts=False,
