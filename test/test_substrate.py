@@ -4,6 +4,7 @@ import pytest
 from pyphi import Direction
 from pyphi import config
 from pyphi import exceptions
+from pyphi import substrate as substrate_mod
 from pyphi.substrate import Substrate
 
 
@@ -91,11 +92,6 @@ def test_len(standard):
 
 def test_size(standard):
     assert standard.size == 3
-
-
-import pytest  # noqa: E402 — import at bottom to keep test-class grouping clear
-
-from pyphi import substrate as substrate_mod  # noqa: E402
 
 
 class _StubSia:
