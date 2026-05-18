@@ -35,9 +35,8 @@ from pyphi.conf.formalism import IITConfig
 # Mirrors ``pyphi_config_3.0.yml``. Fields not listed here (the
 # IIT-4.0-only ``specification_measure``, ``differentiation_measure``,
 # ``distinction_phi_normalization``, ``relation_computation``, the
-# specified-state ``state_tie_resolution``, ``mip_tie_resolution``,
-# ``sia_tie_resolution``, ``system_phi_measure``, etc.) are unused on
-# the IIT 3.0 code path and left at their library defaults.
+# specified-state ``state_tie_resolution``, ``system_phi_measure``, etc.)
+# are unused on the IIT 3.0 code path and left at their library defaults.
 iit3: dict[str, Any] = {
     "iit": IITConfig(
         version="IIT_3_0",
@@ -56,6 +55,7 @@ iit3: dict[str, Any] = {
         # remaining ties by larger purview. Matches PyPhi 1.x's
         # ``pyphi_config_3.0.yml`` default.
         purview_tie_resolution=["PHI", "PURVIEW_SIZE"],
+        mip_tie_resolution=["PHI", "PARTITION_LEX"],
         sia_tie_resolution=["PHI", "PARTITION_LEX"],
         # Paper-faithful: a cut can introduce a new concept; PyPhi does
         # not optimize this away.

@@ -1,7 +1,7 @@
 {
   "fixture_name": "basic_iit3_emd_tri",
   "schema_version": 1,
-  "generated_from_commit": "22282705bd59d017291cfd2aa15be645008a2817",
+  "generated_from_commit": "3c767fd64e3e900ff0d7f83a2844966155f1d633",
   "description": "basic_substrate IIT 3.0 + EMD with mechanism_partition_scheme=WEDGE_TRIPARTITION. Different combinatorial path than JOINT_BIPARTITION; supports the partition-algebra consolidation in P6.",
   "config_overrides": {
     "actual_causation": {
@@ -30,16 +30,15 @@
       "single_micro_nodes_with_selfloops_have_phi": false,
       "state_tie_resolution": "PHI",
       "mip_tie_resolution": [
-        "NORMALIZED_PHI",
-        "NEGATIVE_PHI"
+        "PHI",
+        "PARTITION_LEX"
       ],
       "purview_tie_resolution": [
         "PHI",
         "PURVIEW_SIZE"
       ],
       "sia_tie_resolution": [
-        "NORMALIZED_PHI",
-        "NEGATIVE_PHI",
+        "PHI",
         "PARTITION_LEX"
       ]
     }
@@ -2301,14 +2300,15 @@
           []
         ],
         [
-          [],
+          [
+            0
+          ],
           [
             2
           ]
         ],
         [
           [
-            0,
             1
           ],
           []
@@ -2442,15 +2442,15 @@
       "partition": [
         [
           [],
-          [
-            2
-          ]
+          []
         ],
         [
           [
             0
           ],
-          []
+          [
+            2
+          ]
         ],
         [
           [
@@ -2475,19 +2475,19 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": 0.5,
+      "phi": 0.333333,
       "partition": [
         [
           [],
-          [
-            1
-          ]
+          []
         ],
         [
           [
             0
           ],
-          []
+          [
+            1
+          ]
         ],
         [
           [
@@ -2519,7 +2519,9 @@
           []
         ],
         [
-          [],
+          [
+            0
+          ],
           [
             1,
             2
@@ -2527,7 +2529,6 @@
         ],
         [
           [
-            0,
             1
           ],
           []
@@ -2552,15 +2553,14 @@
       "partition": [
         [
           [],
-          [
-            0
-          ]
+          []
         ],
         [
           [
             0
           ],
           [
+            0,
             1
           ]
         ],
@@ -2592,16 +2592,16 @@
       "partition": [
         [
           [],
-          [
-            1,
-            2
-          ]
+          []
         ],
         [
           [
             0
           ],
-          []
+          [
+            1,
+            2
+          ]
         ],
         [
           [
@@ -2828,25 +2828,26 @@
         1
       ],
       "direction": "CAUSE",
-      "phi": 0.5,
+      "phi": 0.333333,
       "partition": [
         [
           [],
           []
         ],
         [
-          [],
+          [
+            0
+          ],
+          []
+        ],
+        [
+          [
+            2
+          ],
           [
             0,
             1
           ]
-        ],
-        [
-          [
-            0,
-            2
-          ],
-          []
         ]
       ],
       "specified_states": [],
@@ -3046,26 +3047,28 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": 0.666667,
+      "phi": 0.333333,
       "partition": [
         [
           [],
           []
         ],
         [
-          [],
           [
-            0,
-            1,
+            0
+          ],
+          [
             2
           ]
         ],
         [
           [
-            0,
             2
           ],
-          []
+          [
+            0,
+            1
+          ]
         ]
       ],
       "specified_states": [],
@@ -3153,21 +3156,22 @@
         0
       ],
       "direction": "EFFECT",
-      "phi": 0.75,
+      "phi": 0.5,
       "partition": [
         [
           [],
           []
         ],
         [
-          [],
+          [
+            1
+          ],
           [
             0
           ]
         ],
         [
           [
-            1,
             2
           ],
           []
@@ -3357,19 +3361,19 @@
         1
       ],
       "direction": "EFFECT",
-      "phi": 0.75,
+      "phi": 0.5,
       "partition": [
         [
           [],
-          [
-            0
-          ]
+          []
         ],
         [
           [
             1
           ],
-          []
+          [
+            0
+          ]
         ],
         [
           [
@@ -3434,16 +3438,15 @@
       "partition": [
         [
           [],
-          [
-            2
-          ]
+          []
         ],
         [
           [
             1
           ],
           [
-            0
+            0,
+            2
           ]
         ],
         [
@@ -3584,16 +3587,15 @@
       "partition": [
         [
           [],
-          [
-            2
-          ]
+          []
         ],
         [
           [
             1
           ],
           [
-            0
+            0,
+            2
           ]
         ],
         [
@@ -3954,24 +3956,23 @@
       "partition": [
         [
           [],
-          [
-            2
-          ]
-        ],
-        [
-          [
-            0
-          ],
           []
         ],
         [
           [
-            1,
-            2
+            0,
+            1
           ],
           [
-            0
+            0,
+            2
           ]
+        ],
+        [
+          [
+            2
+          ],
+          []
         ]
       ],
       "specified_states": [],
@@ -4071,9 +4072,7 @@
       "partition": [
         [
           [],
-          [
-            0
-          ]
+          []
         ],
         [
           [
@@ -4081,6 +4080,7 @@
             1
           ],
           [
+            0,
             1,
             2
           ]
@@ -4112,23 +4112,23 @@
       "partition": [
         [
           [],
+          []
+        ],
+        [
           [
+            0,
+            1
+          ],
+          [
+            0,
             2
           ]
         ],
         [
           [
-            0
-          ],
-          []
-        ],
-        [
-          [
-            1,
             2
           ],
           [
-            0,
             1
           ]
         ]
@@ -4139,7 +4139,7 @@
     }
   ],
   "sia": {
-    "phi": 2.8125,
+    "phi": 2.520833,
     "partitioned_distinctions_size": 1,
     "partitioned_distinctions_phi_sum": 0.5
   }

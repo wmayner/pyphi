@@ -361,3 +361,37 @@ def test_iit3_default_sia_tie_resolution_is_phi_partition_lex():
     from pyphi.conf import presets
 
     assert presets.iit3["iit"].sia_tie_resolution == ["PHI", "PARTITION_LEX"]
+
+
+def test_iit3_find_mip_consults_mip_tie_resolution():
+    """The IIT 3.0 mechanism MIP selection routes through
+    resolve_ties.partitions and consults
+    config.formalism.iit.mip_tie_resolution.
+
+    Override to a registered-but-bogus strategy; the call must raise
+    KeyError. The default preset value is ["PHI", "PARTITION_LEX"]
+    which selects argmin raw phi (paper-canonical IIT 3.0 mechanism
+    MIP).
+    """
+    from dataclasses import replace
+
+    from pyphi import examples
+    from pyphi.conf import presets
+    from pyphi.direction import Direction
+    from pyphi.system import System
+
+    substrate = examples.basic_substrate()
+    state = (1, 0, 0)
+    bad = {**presets.iit3}
+    bad["iit"] = replace(bad["iit"], mip_tie_resolution=["DEFINITELY_NOT_A_STRATEGY"])
+    with config.override(**bad):
+        sys = System.from_substrate(substrate, state, substrate.node_indices)
+        with pytest.raises(KeyError):
+            sys.find_mip(Direction.CAUSE, (1,), (2,))
+
+
+def test_iit3_default_mip_tie_resolution_is_raw_phi():
+    """presets.iit3's mip_tie_resolution is ["PHI", "PARTITION_LEX"]."""
+    from pyphi.conf import presets
+
+    assert presets.iit3["iit"].mip_tie_resolution == ["PHI", "PARTITION_LEX"]

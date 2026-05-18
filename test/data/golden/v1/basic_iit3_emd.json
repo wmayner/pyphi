@@ -1,7 +1,7 @@
 {
   "fixture_name": "basic_iit3_emd",
   "schema_version": 1,
-  "generated_from_commit": "22282705bd59d017291cfd2aa15be645008a2817",
+  "generated_from_commit": "3c767fd64e3e900ff0d7f83a2844966155f1d633",
   "description": "Basic 3-node substrate (Marshall et al. 2023 Fig. 1 reference). IIT 3.0 (Oizumi et al. 2014) + EMD + BI partitions.",
   "config_overrides": {
     "iit": {
@@ -20,16 +20,15 @@
       "single_micro_nodes_with_selfloops_have_phi": false,
       "state_tie_resolution": "PHI",
       "mip_tie_resolution": [
-        "NORMALIZED_PHI",
-        "NEGATIVE_PHI"
+        "PHI",
+        "PARTITION_LEX"
       ],
       "purview_tie_resolution": [
         "PHI",
         "PURVIEW_SIZE"
       ],
       "sia_tie_resolution": [
-        "NORMALIZED_PHI",
-        "NEGATIVE_PHI",
+        "PHI",
         "PARTITION_LEX"
       ]
     },
@@ -1046,12 +1045,11 @@
         2
       ],
       "direction": "CAUSE",
-      "phi": 0.333333,
+      "phi": 0.166667,
       "partition": [
         [
           [],
           [
-            1,
             2
           ]
         ],
@@ -1059,7 +1057,9 @@
           [
             0
           ],
-          []
+          [
+            1
+          ]
         ]
       ],
       "specified_states": [],
@@ -1742,7 +1742,6 @@
         [
           [],
           [
-            0,
             1
           ]
         ],
@@ -1750,7 +1749,9 @@
           [
             2
           ],
-          []
+          [
+            0
+          ]
         ]
       ],
       "specified_states": [],
@@ -2131,14 +2132,15 @@
       "phi": 0.5,
       "partition": [
         [
-          [],
+          [
+            0
+          ],
           [
             2
           ]
         ],
         [
           [
-            0,
             1
           ],
           []
@@ -2597,21 +2599,22 @@
         1
       ],
       "direction": "CAUSE",
-      "phi": 0.5,
+      "phi": 0.333333,
       "partition": [
         [
-          [],
+          [
+            0
+          ],
+          []
+        ],
+        [
+          [
+            2
+          ],
           [
             0,
             1
           ]
-        ],
-        [
-          [
-            0,
-            2
-          ],
-          []
         ]
       ],
       "specified_states": [],
@@ -2884,17 +2887,18 @@
         0
       ],
       "direction": "EFFECT",
-      "phi": 0.75,
+      "phi": 0.5,
       "partition": [
         [
-          [],
+          [
+            1
+          ],
           [
             0
           ]
         ],
         [
           [
-            1,
             2
           ],
           []
@@ -3590,20 +3594,20 @@
       "phi": 0.5,
       "partition": [
         [
-          [],
           [
+            0,
+            1
+          ],
+          [
+            0,
             2
           ]
         ],
         [
           [
-            0,
-            1,
             2
           ],
-          [
-            0
-          ]
+          []
         ]
       ],
       "specified_states": [],
@@ -3699,6 +3703,7 @@
             1
           ],
           [
+            0,
             1,
             2
           ]
@@ -3707,9 +3712,7 @@
           [
             2
           ],
-          [
-            0
-          ]
+          []
         ]
       ],
       "specified_states": [],
@@ -3731,16 +3734,15 @@
       "phi": 0.5,
       "partition": [
         [
-          [
-            0,
-            1
-          ],
+          [],
           [
             2
           ]
         ],
         [
           [
+            0,
+            1,
             2
           ],
           [
