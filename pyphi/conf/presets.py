@@ -30,13 +30,36 @@ from typing import Any
 from pyphi.conf.formalism import ActualCausationConfig
 from pyphi.conf.formalism import IITConfig
 
-# IIT 3.0 (Oizumi, Albantakis, Tononi 2014).
+# IIT 3.0 — Oizumi/Albantakis/Tononi 2014. Distribution-distance based.
 #
-# Mirrors ``pyphi_config_3.0.yml``. Fields not listed here (the
-# IIT-4.0-only ``specification_measure``, ``differentiation_measure``,
-# ``distinction_phi_normalization``, ``relation_computation``, the
-# specified-state ``state_tie_resolution``, ``system_phi_measure``, etc.)
-# are unused on the IIT 3.0 code path and left at their library defaults.
+# Tie-resolution paths consulted by the IIT 3.0 code path:
+#
+#   1. ``mip_tie_resolution`` — mechanism MIP selection
+#      (``formalism.queries._find_mip_single_state`` →
+#      ``resolve_ties.partitions``). Raw φ argmin per Oizumi 2014.
+#   2. ``purview_tie_resolution`` — purview at MICE selection
+#      (``resolve_ties.purviews``). ``["PHI", "PURVIEW_SIZE"]``
+#      matches the canonical PyPhi 1.x ``pyphi_config_3.0.yml``.
+#   3. ``sia_tie_resolution`` — system MIP within a subsystem
+#      (``formalism.iit3._sia_map_reduce`` → ``resolve_ties.sias``).
+#      Raw φ argmin with lex tie-break.
+#   4. Cross-subsystem complex selection — hard-coded via
+#      ``substrate._iit3_exclusion_cascade`` (no config knob).
+#      Multi-candidate cliques are exclusion-postulate failures;
+#      IIT 3.0 has no further postulate for escalation.
+#
+# Knobs that have no effect on the IIT 3.0 code path:
+# ``system_phi_measure``, ``specification_measure``,
+# ``system_partition_include_complete``, ``relation_computation``,
+# ``state_tie_resolution`` — guarded out at the call boundary or
+# only consumed by 4.0-exclusive code.
+# ``distinction_phi_normalization`` set to ``"NONE"`` here for
+# documentation (post-fix, the 3.0 path no longer reads
+# ``RIA.normalized_phi`` for any decision; this short-circuits
+# the per-RIA division cost).
+# ``shortcircuit_sia`` does NOT gate IIT 3.0's short-circuit logic;
+# 3.0's early-exit conditions live in ``iit3._sia`` independent of
+# the flag.
 iit3: dict[str, Any] = {
     "iit": IITConfig(
         version="IIT_3_0",
@@ -60,6 +83,7 @@ iit3: dict[str, Any] = {
         # Paper-faithful: a cut can introduce a new concept; PyPhi does
         # not optimize this away.
         assume_partitions_cannot_create_new_concepts=False,
+        distinction_phi_normalization="NONE",
     ),
     "actual_causation": ActualCausationConfig(
         # PMI is the paper-canonical alpha measure for IIT 3.0 actual
