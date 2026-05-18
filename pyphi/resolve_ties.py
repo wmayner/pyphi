@@ -501,15 +501,16 @@ def resolve_iit3_complex_tie[V: _IIT3SiaLike](
     sias: "Iterable[V]",
     *,
     context: ResolutionContext,  # noqa: ARG001
-    on_unresolved: OnUnresolved = "defer",  # noqa: ARG001
+    on_unresolved: OnUnresolved = "defer",
 ) -> CascadeOutcome[V]:
     """Resolve a cross-subsystem complex tie on the IIT 3.0 path.
 
-    Albantakis et al. 2019 (p. 17) notes that ties at this level are
-    undetermined; IIT 3.0 has no further postulate to escalate to.
-    Returns a lex-smallest representative for diagnostic display
-    and flags ``UNRESOLVED_WITHIN_BUDGET`` so the caller treats the
-    clique as failing the exclusion postulate.
+    The IIT 3.0 formalism (Oizumi et al. 2014) does not prescribe a
+    system-level tie-break, and no further postulate provides a
+    paper-canonical escalation. Returns a lex-smallest candidate as
+    a diagnostic representative and flags
+    ``UNRESOLVED_WITHIN_BUDGET`` so callers treat the clique as
+    failing the exclusion postulate.
     """
     survivors = tuple(sias)
     if not survivors:
@@ -522,6 +523,23 @@ def resolve_iit3_complex_tie[V: _IIT3SiaLike](
             outcome="RESOLVED",
         )
     representative = min(survivors, key=lambda s: tuple(sorted(s.node_indices)))
+    if on_unresolved == "fail":
+        raise NotAComplex(
+            tied_set=survivors,
+            cascade_level="Exclusion",
+            failure_reason=(
+                f"IIT 3.0 cross-subsystem complex tie with {len(survivors)} candidates; "
+                "no paper-canonical escalation available"
+            ),
+        )
+    if on_unresolved == "warn":
+        import warnings
+
+        warnings.warn(
+            f"IIT 3.0 cross-subsystem complex tie with {len(survivors)} candidates; "
+            "no paper-canonical escalation available",
+            stacklevel=2,
+        )
     return CascadeOutcome(
         resolved=representative,
         tied_set=survivors,

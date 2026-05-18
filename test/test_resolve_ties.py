@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from pyphi import config
 from pyphi import resolve_ties
@@ -254,15 +255,10 @@ def test_sia_tie_chain_with_clamped_phi_falls_through_to_partition_lex():
 
 
 class DummyIIT3Sia:
-    """Minimal IIT 3.0-SIA-shaped object for resolve_iit3_complex_tie tests.
+    """Minimal IIT 3.0-SIA-shaped object for resolve_iit3_complex_tie tests."""
 
-    Only needs ``node_indices`` and ``phi`` (phi for sorting in
-    upstream callers, node_indices for the cascade key).
-    """
-
-    def __init__(self, node_indices, phi=1.0):
+    def __init__(self, node_indices):
         self.node_indices = node_indices
-        self.phi = phi
 
 
 def test_resolve_iit3_complex_tie_single_candidate_resolves():
@@ -278,8 +274,8 @@ def test_resolve_iit3_complex_tie_single_candidate_resolves():
 def test_resolve_iit3_complex_tie_multi_candidate_returns_unresolved():
     """Multiple candidates flag UNRESOLVED_WITHIN_BUDGET with a lex-smallest representative.
 
-    The 2019 AC paper notes that ties at this level are
-    'undetermined'; the cascade picks a representative for diagnostic
+    IIT 3.0 (Oizumi et al. 2014) provides no system-level tie-break
+    postulate; the cascade picks a representative for diagnostic
     display but signals indeterminacy so the caller treats the
     clique as failing the exclusion postulate.
     """
@@ -290,13 +286,12 @@ def test_resolve_iit3_complex_tie_multi_candidate_returns_unresolved():
     assert outcome.outcome == "UNRESOLVED_WITHIN_BUDGET"
     assert outcome.resolved is sia_lo  # lex-smallest representative
     assert set(outcome.tied_set) == {sia_lo, sia_hi}
+    assert outcome.cascade_level == "Exclusion"
 
 
 def test_resolve_iit3_complex_tie_empty_raises():
     """Empty candidate list is a programming error."""
     ctx = resolve_ties.ResolutionContext(max_escalation_level="Determinism")
-    import pytest
-
     with pytest.raises(ValueError, match="at least one"):
         resolve_ties.resolve_iit3_complex_tie([], context=ctx)
 
@@ -309,3 +304,28 @@ def test_resolve_iit3_complex_tie_representative_lex_canonical():
     ctx = resolve_ties.ResolutionContext(max_escalation_level="Determinism")
     outcome = resolve_ties.resolve_iit3_complex_tie([sia_b, sia_a], context=ctx)
     assert outcome.resolved is sia_a
+
+
+def test_resolve_iit3_complex_tie_on_unresolved_fail_raises_not_a_complex():
+    """on_unresolved='fail' raises NotAComplex carrying the tied set."""
+    sia_a = DummyIIT3Sia(node_indices=(0, 2))
+    sia_b = DummyIIT3Sia(node_indices=(1, 2))
+    ctx = resolve_ties.ResolutionContext(max_escalation_level="Determinism")
+    with pytest.raises(resolve_ties.NotAComplex) as exc_info:
+        resolve_ties.resolve_iit3_complex_tie(
+            [sia_a, sia_b], context=ctx, on_unresolved="fail"
+        )
+    assert set(exc_info.value.tied_set) == {sia_a, sia_b}
+    assert exc_info.value.cascade_level == "Exclusion"
+
+
+def test_resolve_iit3_complex_tie_on_unresolved_warn_emits_warning():
+    """on_unresolved='warn' returns UNRESOLVED_WITHIN_BUDGET and emits a UserWarning."""
+    sia_a = DummyIIT3Sia(node_indices=(0, 2))
+    sia_b = DummyIIT3Sia(node_indices=(1, 2))
+    ctx = resolve_ties.ResolutionContext(max_escalation_level="Determinism")
+    with pytest.warns(UserWarning, match="cross-subsystem complex tie"):
+        outcome = resolve_ties.resolve_iit3_complex_tie(
+            [sia_a, sia_b], context=ctx, on_unresolved="warn"
+        )
+    assert outcome.outcome == "UNRESOLVED_WITHIN_BUDGET"
