@@ -20,7 +20,80 @@
       "(0,1,2)": 0.5
     },
     "partitioned_ces_size": 1,
-    "sum_partitioned_small_phis": 0.5
+    "sum_partitioned_small_phis": 0.5,
+    "mechanism_mip_partitions": {
+      "comment": "Per-(mechanism, direction) MIC selections; detects mechanism-MIP regressions that don't propagate to sia.phi.",
+      "(0,)|CAUSE": {
+        "purview": [1],
+        "phi": 0.166667,
+        "partition": [[[],[1]],[[0],[]]]
+      },
+      "(0,)|EFFECT": {
+        "purview": [0],
+        "phi": 0.0,
+        "partition": [[[],[0]],[[0],[]]]
+      },
+      "(0,1,)|CAUSE": {
+        "purview": [1,2],
+        "phi": 0.333333,
+        "partition": [[[0],[1]],[[1],[2]]]
+      },
+      "(0,1,)|EFFECT": {
+        "purview": [2],
+        "phi": 0.5,
+        "partition": [[[0],[2]],[[1],[]]]
+      },
+      "(0,1,2,)|CAUSE": {
+        "purview": [0,1,2],
+        "phi": 0.5,
+        "partition": [[[0,1],[0,1,2]],[[2],[]]]
+      },
+      "(0,1,2,)|EFFECT": {
+        "purview": [0,2],
+        "phi": 0.5,
+        "partition": [[[0,1],[0,2]],[[2],[]]]
+      },
+      "(0,2,)|CAUSE": {
+        "purview": [0,1],
+        "phi": 0.333333,
+        "partition": [[[0],[]],[[2],[0,1]]]
+      },
+      "(0,2,)|EFFECT": {
+        "purview": [0],
+        "phi": 0.0,
+        "partition": [[[0],[]],[[2],[0]]]
+      },
+      "(1,)|CAUSE": {
+        "purview": [2],
+        "phi": 0.5,
+        "partition": [[[],[2]],[[1],[]]]
+      },
+      "(1,)|EFFECT": {
+        "purview": [0],
+        "phi": 0.25,
+        "partition": [[[],[0]],[[1],[]]]
+      },
+      "(1,2,)|CAUSE": {
+        "purview": [0],
+        "phi": 0.0,
+        "partition": [[[],[0]],[[1,2],[]]]
+      },
+      "(1,2,)|EFFECT": {
+        "purview": [0],
+        "phi": 0.5,
+        "partition": [[[1],[0]],[[2],[]]]
+      },
+      "(2,)|CAUSE": {
+        "purview": [0,1],
+        "phi": 0.5,
+        "partition": [[[],[1]],[[2],[0]]]
+      },
+      "(2,)|EFFECT": {
+        "purview": [1],
+        "phi": 0.5,
+        "partition": [[[],[1]],[[2],[]]]
+      }
+    }
   },
 
   "context": "This is the canonical PyPhi-IIT-3.0 value for the basic substrate in state (1,0,0). It is the bisect target for Phase 4 of the IIT 3.0 restoration. The expected output of `iit3.sia(System(basic, (1,0,0)))` under `config.override(**presets.iit3)` once Bug 3 is resolved.",

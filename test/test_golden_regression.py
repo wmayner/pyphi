@@ -228,6 +228,88 @@ def test_canonical_iit3_preset_is_exercised() -> None:
 # ============== Helpers ==============
 
 
+def _load_canonical(name: str) -> dict:
+    """Load a canonical-reference JSON from test/data/iit3-canonical/."""
+    import json
+    from pathlib import Path
+
+    return json.loads(Path(f"test/data/iit3-canonical/{name}.json").read_text())
+
+
+def _load_fixture(name: str) -> dict:
+    """Load a stored golden fixture JSON from test/data/golden/v1/."""
+    import json
+    from pathlib import Path
+
+    return json.loads(Path(f"test/data/golden/v1/{name}.json").read_text())
+
+
+def test_basic_iit3_emd_sia_phi_matches_canonical_reference() -> None:
+    """basic_iit3_emd's sia.phi matches the canonical reference."""
+    fixture = _load_fixture("basic_iit3_emd")
+    canonical = _load_canonical("basic_sia_phi_canonical")
+    fixture_phi = fixture["sia"]["phi"]
+    canonical_phi = canonical["canonical_target"]["sia_phi"]
+    tolerance = canonical["canonical_target"]["tolerance"]
+    assert abs(fixture_phi - canonical_phi) < tolerance, (
+        f"basic_iit3_emd sia.phi {fixture_phi} does not match canonical "
+        f"{canonical_phi} (tolerance {tolerance})"
+    )
+
+
+def test_basic_iit3_emd_tri_sia_phi_matches_canonical_reference() -> None:
+    """basic_iit3_emd_tri's sia.phi matches the WEDGE_TRIPARTITION canonical reference."""
+    fixture = _load_fixture("basic_iit3_emd_tri")
+    canonical = _load_canonical("basic_tri_sia_phi_canonical")
+    fixture_phi = fixture["sia"]["phi"]
+    canonical_phi = canonical["canonical_target"]["sia_phi"]
+    tolerance = canonical["canonical_target"]["tolerance"]
+    assert abs(fixture_phi - canonical_phi) < tolerance, (
+        f"basic_iit3_emd_tri sia.phi {fixture_phi} does not match canonical "
+        f"{canonical_phi} (tolerance {tolerance})"
+    )
+
+
+def test_basic_iit3_emd_mechanism_mip_partitions_match_canonical_reference() -> None:
+    """basic_iit3_emd's MIC mechanism-MIP partitions match the canonical reference.
+
+    Detects mechanism-MIP regressions that don't propagate to sia.phi.
+    """
+    fixture = _load_fixture("basic_iit3_emd")
+    canonical = _load_canonical("basic_sia_phi_canonical")
+    if "mechanism_mip_partitions" not in canonical["canonical_target"]:
+        import pytest
+
+        pytest.skip("canonical reference does not pin mechanism_mip_partitions")
+    expected = canonical["canonical_target"]["mechanism_mip_partitions"]
+    expected_keys = {k for k in expected if k != "comment"}
+
+    # Build the actual MIC map from the fixture's mechanism_mips list
+    by_md: dict = {}
+    for m in fixture["mechanism_mips"]:
+        key = (tuple(m["mechanism"]), m["direction"])
+        if key not in by_md or m["phi"] > by_md[key]["phi"]:
+            by_md[key] = m
+
+    actual = {}
+    for (mech, direction), mip in by_md.items():
+        canonical_key = f"({','.join(str(i) for i in mech)},)|{direction}"
+        actual[canonical_key] = {
+            "purview": list(mip["purview"]),
+            "phi": mip["phi"],
+            "partition": mip["partition"],
+        }
+
+    missing = expected_keys - actual.keys()
+    assert not missing, f"Canonical keys missing from fixture: {missing}"
+    for key in sorted(expected_keys):
+        assert actual[key]["partition"] == expected[key]["partition"], (
+            f"Mechanism-MIP partition mismatch at {key}:\n"
+            f"  fixture:   {actual[key]['partition']}\n"
+            f"  canonical: {expected[key]['partition']}"
+        )
+
+
 def _current_commit_hash() -> str:
     """Return the current git commit hash (or empty string if unavailable)."""
     import subprocess

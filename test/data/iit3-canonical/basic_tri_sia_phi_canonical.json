@@ -1,0 +1,30 @@
+{
+  "substrate": "basic",
+  "substrate_factory": "pyphi.examples.basic_substrate",
+  "substrate_description": "3-node binary substrate: A=OR(B,C), B=AND(A,C), C=XOR(A,B). The canonical IIT example used in the IIT 3.0 paper (Oizumi 2014) and the PyPhi paper (Mayner 2018). Computed under WEDGE_TRIPARTITION (TRI) mechanism partition scheme.",
+  "state": [1, 0, 0],
+  "node_labels": ["A", "B", "C"],
+  "node_indices": [0, 1, 2],
+  "scheme": "WEDGE_TRIPARTITION",
+
+  "canonical_target": {
+    "sia_phi": 2.520833,
+    "tolerance": 1e-4,
+    "ces_size": 4,
+    "partition_json": null,
+    "small_phi_per_mechanism": {
+      "(1,)": 0.25,
+      "(2,)": 0.5,
+      "(0,1)": 0.333333,
+      "(0,1,2)": 0.5
+    },
+    "partitioned_ces_size": 1,
+    "sum_partitioned_small_phis": 0.5
+  },
+
+  "context": "Paper-canonical IIT 3.0 value for the basic substrate at (1,0,0) under WEDGE_TRIPARTITION. Computed under config.override(**presets.iit3 with mechanism_partition_scheme='WEDGE_TRIPARTITION', mip_tie_resolution=['PHI', 'PARTITION_LEX']). The previous fixture value 2.8125 was wrong: it was generated under the inherited mip_tie_resolution default ['NORMALIZED_PHI', 'NEGATIVE_PHI'], which applied IIT 4.0's NUM_CONNECTIONS_CUT normalization to 3.0 mechanism MIPs — non-canonical for IIT 3.0 per Oizumi et al. 2014.",
+
+  "historical_provenance": {
+    "summary": "Fixture committed at e3d88148 (regenerated under the corrected mip_tie_resolution). Prior value 2.8125 (in goldens 760bf3bf through e7a3346f) reflected the inherited 4.0-flavored mip_tie_resolution default."
+  }
+}
