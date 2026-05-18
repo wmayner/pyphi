@@ -921,59 +921,41 @@ class TestActualCausationIIT30:
         assert cause_link.purview == (0, 1)
 
     @pytest.mark.slow
-    @pytest.mark.skip(
-        reason=(
-            "Major-complex selection at current_state=(0,0,1) is genuinely "
-            "tied: SIAs over (1,2) and (0,2) both yield phi=1.0. The IIT 3.0 "
-            "paper (Albantakis et al. 2019, p.17) explicitly says symmetric "
-            "ties of this form are 'undetermined' — neither winner is "
-            "paper-canonical. PyPhi must pick something deterministically, "
-            "but that choice is a policy decision, not a math one. PyPhi 1.x "
-            "picked (1,2) by iteration order; the current cascade picks "
-            "(0,2) via partition.lex_key(), at which there are 0 true "
-            "events. The downstream regression target — true_events output "
-            "shape on a known irreducible complex — is covered by "
-            "test_true_events_on_known_complex below. This test stays "
-            "skipped until PyPhi adopts an explicit policy for symmetric "
-            "major-complex ties (ROADMAP P11.95c)."
-        )
-    )
     def test_true_events(self, standard):
-        """Full regression for true events with default major-complex selection.
+        """Major-complex selection at current_state=(0,0,1) is indeterminate at
+        the top tier and falls through to (0,1,2).
 
-        Verifies both events' mechanisms and each event's cause/effect RIA
-        mechanism, purview, alpha, and direction.
+        Two SIAs over (1,2) and (0,2) both yield phi=1.0 (Oizumi et al. 2014;
+        not symmetry-equivalent — distinct gate compositions). The IIT 3.0
+        formalism provides no system-level tie-break for them, so the cascade
+        treats the clique as exclusion-postulate failure and continues to the
+        next tier. The full subsystem (0,1,2) at phi=0.1875 has no overlap with
+        the (empty) covered set and is accepted as the sole complex. This
+        mirrors IIT 4.0's cascade behavior: indeterminate cliques skip without
+        poisoning their overlap region.
+
+        On the (0,1,2) major complex, the transition (1,0,0) -> (0,0,1) ->
+        (1,1,0) yields one true event at mechanism (2,) with cause purview
+        (0, 1) and effect purview (1,). Coverage of event-detection logic on a
+        pinned-indices complex is in test_true_events_on_known_complex.
         """
         states = ((1, 0, 0), (0, 0, 1), (1, 1, 0))  # previous, current, next
         events = actual.true_events(standard, *states)
 
-        assert len(events) == 2
+        assert len(events) == 1
 
-        true_cause1, true_effect1 = events[0]
-        assert events[0].mechanism == (1,)
+        true_cause, true_effect = events[0]
+        assert events[0].mechanism == (2,)
 
-        assert true_cause1.alpha == 1.0
-        assert true_cause1.mechanism == (1,)
-        assert true_cause1.purview == (2,)
-        assert true_cause1.direction == Direction.CAUSE
+        assert true_cause.alpha == 1.0
+        assert true_cause.mechanism == (2,)
+        assert true_cause.purview == (0, 1)
+        assert true_cause.direction == Direction.CAUSE
 
-        assert true_effect1.alpha == 1.0
-        assert true_effect1.mechanism == (1,)
-        assert true_effect1.purview == (2,)
-        assert true_effect1.direction == Direction.EFFECT
-
-        true_cause2, true_effect2 = events[1]
-        assert events[1].mechanism == (2,)
-
-        assert true_cause2.alpha == 1.0
-        assert true_cause2.mechanism == (2,)
-        assert true_cause2.purview == (1,)
-        assert true_cause2.direction == Direction.CAUSE
-
-        assert true_effect2.alpha == 1.0
-        assert true_effect2.mechanism == (2,)
-        assert true_effect2.purview == (1,)
-        assert true_effect2.direction == Direction.EFFECT
+        assert true_effect.alpha == 1.0
+        assert true_effect.mechanism == (2,)
+        assert true_effect.purview == (1,)
+        assert true_effect.direction == Direction.EFFECT
 
     def test_true_events_on_known_complex(self, standard):
         """Event detection on a known-irreducible IIT 3.0 complex.
