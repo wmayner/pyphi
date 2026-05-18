@@ -523,17 +523,14 @@ def complexes(
     The returned list is non-overlapping (exclusion), ordered by
     |small_phi_s| descending.
 
-    Under IIT 4.0, the substrate-exclusion cascade per Albantakis et al.
-    2023 S1 Text resolves ties at maximum |small_phi_s|: when multiple
-    overlapping candidates tie, the cascade escalates to maximum
-    structure-integrated information |big_phi| (Composition). If
-    |big_phi| also ties for the overlapping group, those candidates do
-    not qualify as complexes (exclusion postulate violation) and the
-    search proceeds to the next-best by |small_phi_s|.
-
-    Under IIT 3.0 the |big_phi| escalation does not apply; complexes
-    are identified by greedy condensation in |small_phi_s|-descending
-    order.
+    Both formalisms walk SIAs in descending |big_phi| tiers and group
+    survivors into overlap cliques per tier. Under IIT 4.0, each
+    multi-candidate clique escalates to the Composition cascade (max
+    |big_phi|), and ties at Composition fail the exclusion postulate.
+    Under IIT 3.0, no further escalation exists (IIT 3.0 provides no
+    paper-canonical system-level tie-break); multi-candidate cliques
+    are skipped as indeterminate, and the tier walk continues to the
+    next group.
     """
     sorted_sias = sorted(
         irreducible_sias(substrate, state, candidates, **kwargs), reverse=True
@@ -542,7 +539,7 @@ def complexes(
         return []
 
     if _config_iit_version() == "IIT_3_0":
-        return _greedy_condensation(sorted_sias)
+        return _iit3_exclusion_cascade(sorted_sias, substrate, state)
     return _substrate_exclusion_cascade(sorted_sias, substrate, state)
 
 
@@ -559,18 +556,6 @@ def _accept(sia: Any, result: list[Any], covered: set[int]) -> None:
         return
     result.append(sia)
     covered.update(indices)
-
-
-def _greedy_condensation(sorted_sias: list[Any]) -> list[Any]:
-    """Iterate SIAs in descending |small_phi_s| order; accept each whose units
-    don't overlap any already-accepted complex. No |big_phi| escalation."""
-    result: list[Any] = []
-    covered: set[int] = set()
-    for sia in sorted_sias:
-        indices = _sia_node_indices(sia)
-        if indices is not None and not (set(indices) & covered):
-            _accept(sia, result, covered)
-    return result
 
 
 def _phi_groups(sorted_sias: list[Any]) -> Iterable[list[Any]]:
@@ -683,6 +668,55 @@ def _substrate_exclusion_cascade(
                 _accept(clique[0], result, covered)
                 continue
             winner = _resolve_clique_by_big_phi(clique, substrate, state)
+            if winner is not None:
+                _accept(winner, result, covered)
+    return result
+
+
+def _resolve_clique_iit3(clique: list[Any]) -> Any | None:
+    """Return the unique complex from an IIT 3.0 overlap clique, or None
+    when the clique is indeterminate.
+
+    Single-candidate cliques resolve trivially; multi-candidate cliques
+    always flag ``UNRESOLVED_WITHIN_BUDGET`` because IIT 3.0 has no
+    paper-canonical escalation level. The caller treats None as
+    exclusion-postulate failure for the clique.
+    """
+    from pyphi import resolve_ties
+
+    if len(clique) == 1:
+        return clique[0]
+    ctx = resolve_ties.ResolutionContext(max_escalation_level="Exclusion")
+    outcome = resolve_ties.resolve_iit3_complex_tie(clique, context=ctx)
+    if outcome.outcome == "RESOLVED" and outcome.resolved is not None:
+        return outcome.resolved
+    return None
+
+
+def _iit3_exclusion_cascade(
+    sorted_sias: list[Any],
+    substrate: Any,  # noqa: ARG001 — kept for parity with iit4 cascade signature
+    state: Any,  # noqa: ARG001 — kept for parity with iit4 cascade signature
+) -> list[Any]:
+    """Walk SIAs in descending |big_phi| tiers, applying the IIT 3.0
+    cross-subsystem cascade within each overlap clique.
+
+    Within a tier, drop candidates whose units overlap an already-
+    accepted complex, then group survivors into overlap cliques.
+    Each clique with one member is accepted directly; cliques with
+    multiple members run through ``_resolve_clique_iit3`` and are
+    skipped when indeterminate.
+    """
+    result: list[Any] = []
+    covered: set[int] = set()
+    for tier in _phi_groups(sorted_sias):
+        survivors = [
+            sia for sia in tier if not (set(_sia_node_indices(sia) or ()) & covered)
+        ]
+        if not survivors:
+            continue
+        for clique in _find_overlap_cliques(survivors):
+            winner = _resolve_clique_iit3(clique)
             if winner is not None:
                 _accept(winner, result, covered)
     return result
