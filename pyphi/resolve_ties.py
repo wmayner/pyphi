@@ -490,6 +490,46 @@ def resolve_ac_causal_link_tie[V: _AcRIALike](
     )
 
 
+class _IIT3SiaLike(Protocol):
+    """Structural type for an IIT 3.0 SIA consumed by the cross-subsystem cascade."""
+
+    @property
+    def node_indices(self) -> Sequence[int]: ...
+
+
+def resolve_iit3_complex_tie[V: _IIT3SiaLike](
+    sias: "Iterable[V]",
+    *,
+    context: ResolutionContext,  # noqa: ARG001
+    on_unresolved: OnUnresolved = "defer",  # noqa: ARG001
+) -> CascadeOutcome[V]:
+    """Resolve a cross-subsystem complex tie on the IIT 3.0 path.
+
+    Albantakis et al. 2019 (p. 17) notes that ties at this level are
+    undetermined; IIT 3.0 has no further postulate to escalate to.
+    Returns a lex-smallest representative for diagnostic display
+    and flags ``UNRESOLVED_WITHIN_BUDGET`` so the caller treats the
+    clique as failing the exclusion postulate.
+    """
+    survivors = tuple(sias)
+    if not survivors:
+        raise ValueError("resolve_iit3_complex_tie requires at least one SIA")
+    if len(survivors) == 1:
+        return CascadeOutcome(
+            resolved=survivors[0],
+            tied_set=survivors,
+            cascade_level="Exclusion",
+            outcome="RESOLVED",
+        )
+    representative = min(survivors, key=lambda s: tuple(sorted(s.node_indices)))
+    return CascadeOutcome(
+        resolved=representative,
+        tied_set=survivors,
+        cascade_level="Exclusion",
+        outcome="UNRESOLVED_WITHIN_BUDGET",
+    )
+
+
 def resolve_state_tie[K, V: _StateMIP](
     per_state_mips: "Mapping[K, V]",
     *,
