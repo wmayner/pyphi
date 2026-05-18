@@ -71,6 +71,23 @@ Additional key theoretical papers are in @papers.
 - Changes to core computation logic require extreme care
 - When in doubt, consult the IIT papers and existing tests
 
+### Don't defer confirmation experiments
+
+When an audit or investigation produces a "probably no effect, worth
+confirming later" claim, run the confirmation experiment as part of
+the audit. Locking state (goldens, fixtures, baselines, snapshot
+tests) onto an unconfirmed assumption multiplies the revalidation
+cost when the assumption turns out wrong — and once the state is
+committed, downstream work that builds on it inherits the
+assumption silently.
+
+*Motivating case:* an IIT 3.0 tie-resolution audit deferred a
+five-minute confirmation experiment based on the structural
+assumption "the path has a unique MIP by construction". The
+assumption was false; four goldens were locked to buggy values for
+six days before the deferred experiment finally ran in a downstream
+investigation and exposed the bug.
+
 ### Maintenance Status
 
 **The project has not been carefully maintained recently and needs refactoring/testing work.**

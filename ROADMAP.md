@@ -1688,50 +1688,67 @@ test inventory — that a deliberate re-ordering pass is in order.
     should be paired with a clear migration note in
     ``docs/migration-2.0.md`` (or 3.0.md if it slips post-2.0).
 
-18. **P11.95d — IIT 3.0 tie-resolution audit.** Brainstorm only;
-    deferrable to post-2.0. The IIT 3.0 restoration project (commits
-    ``4055a682``–``760bf3bf``) surfaced two ways the IIT 3.0 path is
-    sensitive to tie-resolution policy beyond what P11.95a addresses:
+18. **P11.95d — IIT 3.0 tie resolution.** In-scope for 2.0 (required
+    by ship criterion #3, which mandates unskipping
+    ``test_actual.py``). Design spec at
+    ``docs/superpowers/specs/2026-05-17-p11.95d-iit3-tie-resolution-design.md``.
 
-    - ``purview_tie_resolution`` (used by ``resolve_ties.purviews`` at
-      MICE selection — ``pyphi/resolve_ties.py:145-154``) takes
-      ``str | list[str]``. The value substantively affects ``sia.phi``
-      for substrates with phi-ties at the purview level. Measured at
-      basic substrate ``(1,0,0)``: ``"PHI"`` and ``["PHI", "PURVIEW_SIZE"]``
-      converge on ``sia.phi = 2.3125``; on ``rule110 (1,0,1)`` they
-      diverge (2.356476 vs 2.406476); on ``grid3 (1,0,0)`` they diverge
-      again (0.026700 vs 0.016918). The canonical
-      ``pyphi_config_3.0.yml`` value is the two-step
+    The IIT 3.0 restoration project (commits
+    ``4055a682``–``760bf3bf``) surfaced three tie-resolution issues
+    on the IIT 3.0 path, plus the ``purview_tie_resolution``
+    diagnostic that the restoration already settled:
+
+    - ``purview_tie_resolution`` (used by ``resolve_ties.purviews``
+      at MICE selection) substantively affects ``sia.phi`` for
+      substrates with phi-ties at the purview level. Measured at
+      basic substrate ``(1,0,0)``: ``"PHI"`` and
+      ``["PHI", "PURVIEW_SIZE"]`` converge on ``sia.phi = 2.3125``;
+      on ``rule110 (1,0,1)`` they diverge (2.356476 vs 2.406476); on
+      ``grid3 (1,0,0)`` they diverge again (0.026700 vs 0.016918).
+      The canonical ``pyphi_config_3.0.yml`` value is the two-step
       ``["PHI", "PURVIEW_SIZE"]``. The current ``presets.iit3`` was
-      reconciled to match in the restoration work.
+      reconciled to match in the restoration work, and the
+      ``IITConfig.purview_tie_resolution`` annotation was tightened
+      from ``str`` to ``str | list[str]`` to match
+      ``resolve_ties.purviews``'s runtime acceptance. No further
+      change.
 
-    - ``IITConfig.purview_tie_resolution`` was annotated as ``str`` but
-      the runtime resolver (``resolve_ties.purviews``) accepts
-      ``str | list[str]``; the annotation has been tightened.
+    - **Cross-subsystem complex selection on tie is incidental.**
+      When two subsystems tie at maximum ``Φ``,
+      ``substrate.complexes`` falls through to ``partition.lex_key()``
+      on each within-subsystem MIP — a property of cuts inside one
+      subsystem used to compare across different subsystems. The
+      post-``82b778ca`` cascade picks ``(0,2)`` for the worked
+      example below by this route. The spec replaces this with a
+      Determinism-level cascade that flags the tie as
+      ``UNRESOLVED_WITHIN_BUDGET`` and signals exclusion-postulate
+      failure, mirroring IIT 4.0's ``_resolve_clique_by_big_phi``
+      behavior.
 
-    - ``mip_tie_resolution`` and ``sia_tie_resolution`` defaults are
-      IIT-4.0-shaped (``["NORMALIZED_PHI", "NEGATIVE_PHI"]`` and
-      ``["NORMALIZED_PHI", "NEGATIVE_PHI", "PARTITION_LEX"]``). For
-      IIT 3.0, ``normalized_phi`` is well-defined (Tononi 2008 used
-      the ``Cut.normalized_phi`` ratio), but PyPhi's IIT 3.0 ``_sia``
-      currently picks the MIP via ``reduce_func=min`` over
-      ``OrderableByPhi`` — which compares by raw ``phi`` only, not
-      ``(normalized_phi, -phi)``. P11.95a's plan to override
-      ``order_by`` on the IIT 3.0 SIA addresses the determinism side;
-      the deeper question of whether the IIT 3.0 paper-canonical MIP
-      key includes normalization is open.
+    - **``sia_tie_resolution`` is dead code on the IIT 3.0 path.**
+      IIT 4.0's ``_find_mip_for_fixed_state`` consults
+      ``sia_tie_resolution`` via ``resolve_ties.sias()``. IIT 3.0's
+      ``_sia_map_reduce`` uses ``MapReduce(reduce_func=min)``
+      directly and never reads the config. The spec refactors the
+      3.0 path through ``resolve_ties.sias()`` and adds
+      ``sia_tie_resolution = ["PHI", "PARTITION_LEX"]`` to
+      ``presets.iit3`` — observable no-op, architectural unification.
 
-    Scope for P11.95c, when picked up: (a) decide whether the IIT 3.0
-    path should also key on ``(normalized_phi, -phi)`` like IIT 4.0,
-    or stay at raw ``phi``; (b) decide whether the IIT 3.0 paper's
-    behavior on a tied MIC purview is fully specified (paper says
-    "max phi") or whether ``PURVIEW_SIZE`` (PyPhi 1.x's secondary
-    tiebreaker) is canonical; (c) audit whether ``mip_tie_resolution``
-    has any IIT-3.0 effect today (probably not, since IIT 3.0 has a
-    single MIP per (mechanism, purview) by construction, but worth
-    confirming); (d) decide whether ``sia_tie_resolution`` strategy
-    keys (``NORMALIZED_PHI``, ``NEGATIVE_PHI``, ``PARTITION_LEX``)
-    should be different defaults for IIT 3.0 vs 4.0.
+    - **``mip_tie_resolution`` default applies IIT 4.0 normalization
+      on the IIT 3.0 path** — a latent bug. The shared default
+      ``["NORMALIZED_PHI", "NEGATIVE_PHI"]`` selects ``argmin
+      normalized_phi`` (then ``argmax raw φ``), where
+      ``normalized_phi = phi / num_connections_cut(partition)`` per
+      the IIT 4.0 ``NUM_CONNECTIONS_CUT`` registry. The IIT 3.0
+      paper (Oizumi et al. 2014) defines the MIP as raw
+      ``argmin φ(cut)`` with no normalization — 3.0 dropped the
+      system-level normalization that IIT 2.0 (Tononi 2008,
+      ``Cut.normalized_phi``) used, and never introduced a
+      mechanism-level normalization. The spec sets
+      ``mip_tie_resolution = ["PHI", "PARTITION_LEX"]`` in
+      ``presets.iit3`` — paper-canonical correction. This may shift
+      some 3.0 goldens; the implementation order audits the impact
+      between commits.
 
     **Worked example: standard substrate @ ``current_state=(0,0,1)``
     has two SIAs that genuinely tie at ``phi=1.0`` — the subsystem
@@ -1739,18 +1756,21 @@ test inventory — that a deliberate re-ordering pass is in order.
     ``(0,2)`` (A=OR, C=XOR). These are physically distinct subsystems
     (different gate compositions), not symmetry-equivalent. PyPhi
     1.x picked ``(1,2)`` by iteration order; the post-``82b778ca``
-    ``partition.lex_key()`` tie-break picks ``(0,2)``. The downstream
+    ``partition.lex_key()`` route picks ``(0,2)``. The downstream
     consequence is observable: for the transition ``(1,0,0) → (0,0,1)
     → (1,1,0)``, ``true_events(substrate, *states)`` returns 2 events
-    under ``(1,2)`` and 0 events under ``(0,2)``. The IIT 3.0 paper
-    does not prescribe a system-level tie-break, so neither choice is
-    paper-canonical. ``test/test_actual.py::TestActualCausationIIT30::test_true_events``
-    is currently ``@pytest.mark.skip`` pending this resolution.
+    under ``(1,2)`` and 0 events under ``(0,2)``. Under the spec's
+    new cascade, neither subsystem qualifies as a complex (the
+    clique is indeterminate); ``maximal_complex`` returns a null
+    SIA and ``true_events`` returns 0 events. The 2019 AC paper
+    (p. 17) explicitly notes such ties are "undetermined".
+    ``test/test_actual.py::TestActualCausationIIT30::test_true_events``
+    is unskipped with expectations updated to match.
 
-    Independent of P11.95a (which lands the determinism floor) and
-    P11.95b (which is paper-faithful state-tie for 4.0). Estimated
-    1-2 days for the brainstorm + design, plus regeneration of any
-    iit3 goldens whose values change.
+    Independent of P11.95a (deterministic floor) and P11.95b
+    (paper-faithful state-tie for 4.0). Estimated 1.5-2 days
+    including goldens regeneration for the
+    ``mip_tie_resolution`` correction.
 
 **Ship criterion for 2.0:**
 
