@@ -1768,9 +1768,78 @@ test inventory — that a deliberate re-ordering pass is in order.
     is unskipped with expectations updated to match.
 
     Independent of P11.95a (deterministic floor) and P11.95b
-    (paper-faithful state-tie for 4.0). Estimated 1.5-2 days
+    (paper-faithful state-tie for 4.0). Estimated 2-3 days
     including goldens regeneration for the
-    ``mip_tie_resolution`` correction.
+    ``mip_tie_resolution`` correction and the in-scope coverage
+    expansion.
+
+    **In-scope coverage expansion.** The
+    ``mip_tie_resolution`` bug was caught only after goldens had
+    locked the buggy values; the spec's audit-process post-mortem
+    flags two coverage gaps that allowed this: the canonical
+    SIA-φ reference (``basic_sia_phi_canonical.json``) only covers
+    the default BI scheme, and per-(mechanism, direction) MIP
+    partition shapes have no independent reference. The spec
+    expands coverage in three ways within P11.95d:
+
+    - Add ``basic_tri_sia_phi_canonical.json`` for the
+      WEDGE_TRIPARTITION scheme (paper-canonical SIA-φ=2.520833).
+    - Extend canonical references with per-mechanism MIP partition
+      shapes, wired into the golden regression cross-check.
+    - Add ``rule110_iit3_emd`` and ``grid3_iit3_emd`` fixtures —
+      the tie-prone substrates the ``purview_tie_resolution`` audit
+      already identified.
+
+    **Implicit-default audit.** The natural follow-on question
+    ("are other implicit 4.0-flavored defaults silently affecting
+    the 3.0 path?") was settled during the P11.95d brainstorm by
+    tracing each implicit ``IITConfig`` field for 3.0-path
+    reachability. Result: after this spec's fix, every implicit
+    4.0-flavored default the 3.0 preset doesn't override
+    (``system_phi_measure``, ``specification_measure``,
+    ``system_partition_include_complete``,
+    ``distinction_phi_normalization``, ``relation_computation``,
+    ``shortcircuit_sia``, ``state_tie_resolution``) is a no-op on
+    the 3.0 path — each is guarded out at the call boundary or
+    only consumed by 4.0-exclusive code. The
+    ``mip_tie_resolution`` finding doesn't generalize to a class
+    of latent bugs; it was specifically one knob with a real
+    consumer on the shared ``formalism.queries.find_mip`` code
+    path. Audit table is in the spec.
+
+19. **P11.95e — IIT 3.0 code-path-divergence audit.**
+    *Brainstorm only; post-2.0 unless a smoking gun appears.*
+    The ``mip_tie_resolution`` bug was an instance of 4.0-paper-
+    faithful logic baked into shared code that runs on the 3.0
+    path. P11.95d settled the config-knob category exhaustively
+    (see audit table). What remains is the broader question: are
+    there shared mathematical functions on the 3.0 pipeline that
+    use 4.0-paper-faithful logic without going through a config
+    knob? Candidate inspection points:
+
+    - ``RepertoireIrreducibilityAnalysis.__init__`` shared path —
+      does any 4.0-paper-faithful clamp or filter leak into 3.0
+      RIA construction? (The ``positive_part`` clamp at
+      ``ria.py:131`` is shared; for 3.0 EMD distances are
+      always non-negative, so the clamp should be a no-op —
+      worth confirming with a single override-and-diff
+      experiment.)
+    - ``_compute_distinctions`` on the 3.0 path — does it apply
+      any 4.0-only filters (specified-state congruence,
+      relation-aware accounting)?
+    - Other ``resolve_ties.*`` callers shared between formalisms
+      whose strategy defaults are 4.0-flavored — most are now
+      paper-canonical for 3.0 via ``presets.iit3``, but
+      ``resolve_ties.partitions`` was the prior surprise so
+      worth tracing the others (``resolve_ac_*``,
+      ``resolve_distinction_tie``).
+
+    Method: for each candidate, run the same 5-minute
+    override-and-diff experiment against the IIT 3.0 goldens
+    (now coverage-expanded per P11.95d). If no observable diff,
+    the candidate is settled. Estimated 1-2 days for the full
+    sweep once P11.95d's coverage expansion lands. Probably
+    post-2.0 unless an obvious smoking gun appears mid-sweep.
 
 **Ship criterion for 2.0:**
 
