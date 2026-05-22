@@ -40,6 +40,11 @@ class ExplicitTPM:
     def n_nodes(self) -> int:
         return int(self.shape[-1]) if self.shape else 0
 
+    @property
+    def alphabet_sizes(self) -> tuple[int, ...]:
+        """All nodes are binary in the joint-storage form."""
+        return (2,) * self.n_nodes
+
     def condition(self, fixed: Mapping[int, int]) -> ExplicitTPM:
         return ExplicitTPM(self._inner.condition_tpm(dict(fixed)))
 
@@ -50,8 +55,7 @@ class ExplicitTPM:
         return np.asarray(self._inner)
 
     def __getattr__(self, name: str) -> Any:
-        # During the worktree, callers may still need legacy methods we
-        # haven't lifted yet. This passthrough is removed at Phase 8.
+        # Passthrough for legacy methods not yet lifted to the Protocol surface.
         # Guard: skip dunder/sunder names (pickle, copy, etc.) and bail
         # if _inner hasn't been set (during unpickling __new__).
         if name.startswith("_"):
