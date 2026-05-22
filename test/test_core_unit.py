@@ -31,3 +31,19 @@ def test_unit_is_hashable() -> None:
     u = Unit(0, "A")
     assert hash(u) == hash(Unit(0, "A"))
     assert {u, Unit(0, "A")} == {u}
+
+
+def test_unit_has_alphabet_size_default_2() -> None:
+    """Unit defaults to alphabet_size=2."""
+    from pyphi.core.unit import Unit
+
+    u = Unit(index=0, label="A")
+    assert u.alphabet_size == 2
+
+
+def test_unit_alphabet_size_overridable() -> None:
+    """Unit.alphabet_size accepts a non-default value."""
+    from pyphi.core.unit import Unit
+
+    u = Unit(index=0, label="A", alphabet_size=3)
+    assert u.alphabet_size == 3

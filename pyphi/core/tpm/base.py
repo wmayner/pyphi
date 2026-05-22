@@ -15,8 +15,7 @@ class TPM(Protocol):
     """Structural protocol satisfied by every PyPhi TPM.
 
     Implementations: :class:`pyphi.core.tpm.explicit.ExplicitTPM` (joint
-    ndarray storage) and :class:`pyphi.core.tpm.factored.FactoredTPM`
-    (per-node factor storage).
+    ndarray storage).
     """
 
     @property
