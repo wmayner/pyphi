@@ -1,8 +1,7 @@
 """Internal storage backends for FactoredTPM.
 
 Not part of the public API. The chosen backend is selected by
-:data:`pyphi.core.tpm.factored._FACTORED_TPM_DEFAULT_BACKEND` (set by
-the in-project benchmark; see ``benchmarks/factored_tpm_backend.py``).
+:data:`pyphi.core.tpm.factored._FACTORED_TPM_DEFAULT_BACKEND`.
 """
 
 from __future__ import annotations
@@ -81,11 +80,10 @@ def _make_default_backend(
     if backend_name == "ndarray":
         return _NdarrayBackend(factors, alphabet_sizes)
     if backend_name == "xarray":
-        from pyphi.core.tpm._factored_backends_xarray import (  # type: ignore[import]
-            _XarrayBackend,
+        raise NotImplementedError(
+            "xarray backend is not yet available; use backend='ndarray' "
+            "(or omit the argument for the module default)"
         )
-
-        return _XarrayBackend(factors, alphabet_sizes)
     raise ValueError(
         f"Unknown backend {backend_name!r}; expected 'ndarray' or 'xarray'."
     )

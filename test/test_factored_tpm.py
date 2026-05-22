@@ -82,3 +82,25 @@ def test_factored_tpm_pickling() -> None:
     f = _two_node_factored()
     restored = pickle.loads(pickle.dumps(f))
     assert restored == f
+
+
+def test_factored_tpm_hash_consistent_with_eq_for_signed_zeros() -> None:
+    """eq/hash contract: a == b implies hash(a) == hash(b), including for -0.0 vs 0.0."""
+    f0a = np.array(
+        [[[0.0, 1.0], [0.5, 0.5]], [[0.5, 0.5], [0.5, 0.5]]], dtype=np.float64
+    )
+    f0b = f0a.copy()
+    f0b[0, 0, 0] = -0.0
+    a = FactoredTPM(factors=[f0a, f0a.copy()], alphabet_sizes=(2, 2))
+    b = FactoredTPM(factors=[f0b, f0a.copy()], alphabet_sizes=(2, 2))
+    assert a == b
+    assert hash(a) == hash(b)
+
+
+def test_factored_tpm_rejects_factor_count_mismatch() -> None:
+    """n_nodes (from factors) must match len(alphabet_sizes)."""
+    f = np.full((2, 2, 2), 0.5, dtype=np.float64)
+    with pytest.raises(InvalidTPM, match="n_nodes"):
+        FactoredTPM(factors=[f, f, f], alphabet_sizes=(2, 2))
+    with pytest.raises(InvalidTPM, match="n_nodes"):
+        FactoredTPM(factors=[f], alphabet_sizes=(2, 2))

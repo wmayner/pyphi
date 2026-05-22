@@ -85,8 +85,14 @@ class FactoredTPM:
         return self.to_joint()
 
     def to_joint(self) -> NDArray[np.float64]:
-        # Replaced in the next task with a real materialization.
-        return np.zeros(self.shape, dtype=np.float64)
+        """Materialize the joint conditional ``P(s_{t+1} | s_t)`` from the factors.
+
+        Slow path — used at boundaries (serialization, legacy fixture comparison,
+        Substrate.joint_tpm()).
+        """
+        raise NotImplementedError(
+            "FactoredTPM.to_joint() materialization is not yet implemented"
+        )
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, FactoredTPM):
@@ -103,7 +109,7 @@ class FactoredTPM:
         return hash(
             (
                 self._alphabet_sizes,
-                tuple(self.factor(i).tobytes() for i in range(self.n_nodes)),
+                tuple((self.factor(i) + 0.0).tobytes() for i in range(self.n_nodes)),
             )
         )
 
@@ -133,6 +139,10 @@ def _factored_tpm_from_pickle(
 def _validate(factored: FactoredTPM) -> None:
     """Validate a freshly constructed FactoredTPM."""
     a = factored.alphabet_sizes
+    if factored.n_nodes != len(a):
+        raise exceptions.InvalidTPM(
+            f"n_nodes={factored.n_nodes} does not match alphabet_sizes length {len(a)}"
+        )
     if any(size < 2 for size in a):
         raise exceptions.InvalidTPM(f"alphabet_sizes must all be >= 2; got {a}")
     tol = max(10 ** (-config.numerics.precision), 1e-15)
