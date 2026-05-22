@@ -1,6 +1,5 @@
-"""TPM Protocol and concrete backends.
-
-Layer 0 of the kernel: zero formalism logic.
-"""
+"""Kernel TPM types."""
 
 from .base import TPM as TPM
+from .explicit import ExplicitTPM as ExplicitTPM
+from .factored import FactoredTPM as FactoredTPM

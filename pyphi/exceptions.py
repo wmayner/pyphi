@@ -60,3 +60,7 @@ class JSONVersionError(ValueError):
 
 class WrongDirectionError(ValueError):
     """The wrong direction was provided."""
+
+
+class InvalidTPM(ValueError):
+    """A TPM violates a structural or probability axiom."""
