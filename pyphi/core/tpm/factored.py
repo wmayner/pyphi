@@ -70,6 +70,76 @@ class FactoredTPM:
     def factor(self, i: int) -> NDArray[np.float64]:
         return self._backend.get_factor(i)
 
+    @classmethod
+    def from_joint(
+        cls,
+        joint: ArrayLike,
+        /,
+        alphabet_sizes: Sequence[int] | None = None,
+    ) -> FactoredTPM:
+        """Convert a joint conditional TPM into the factored form.
+
+        Accepts either:
+
+        - Legacy binary form: shape ``(2,) * n + (n,)``, where the last
+          dim's entry ``i`` is ``P(node_i = 1 | s_t)``. Factor ``i`` is
+          built by stacking ``[1 - p_on, p_on]`` along an explicit
+          alphabet dim.
+
+        - Explicit-alphabet form: shape ``(a_1, ..., a_N, N, a_i)``.
+          Factor ``i`` is ``joint[..., i, :]``.
+
+        ``alphabet_sizes`` defaults to ``(2,) * n`` for the legacy form;
+        for the explicit form it must be supplied and must match the
+        per-row last-dim shapes.
+        """
+        joint_arr = np.asarray(joint, dtype=np.float64)
+        ndim = joint_arr.ndim
+        if alphabet_sizes is None:
+            if ndim < 2 or joint_arr.shape[-1] != ndim - 1:
+                raise ValueError(
+                    f"Cannot infer alphabet_sizes from joint shape "
+                    f"{joint_arr.shape}; expected legacy form "
+                    f"(2,)*n + (n,) or pass alphabet_sizes explicitly."
+                )
+            n = ndim - 1
+            alphabet_sizes = (2,) * n
+        else:
+            alphabet_sizes = tuple(int(a) for a in alphabet_sizes)
+            n = len(alphabet_sizes)
+
+        if joint_arr.shape[:-1] != alphabet_sizes:
+            # Explicit-alphabet form: (a_1, ..., a_N, N, a_max)
+            if (
+                ndim == n + 2
+                and joint_arr.shape[:n] == alphabet_sizes
+                and joint_arr.shape[n] == n
+            ):
+                factors = tuple(joint_arr[..., i, :] for i in range(n))
+                return cls(factors=factors, alphabet_sizes=alphabet_sizes)
+            raise ValueError(
+                f"Joint shape {joint_arr.shape} not consistent with "
+                f"alphabet_sizes {alphabet_sizes}."
+            )
+
+        if joint_arr.shape[-1] != n:
+            raise ValueError(
+                f"Legacy joint shape requires last dim == n_nodes={n}; "
+                f"got shape {joint_arr.shape}."
+            )
+        if alphabet_sizes != (2,) * n:
+            raise ValueError(
+                f"Legacy joint form is binary-only; "
+                f"alphabet_sizes={alphabet_sizes} requires explicit-form joint."
+            )
+
+        factors_list: list[NDArray[np.float64]] = []
+        for i in range(n):
+            p_on = joint_arr[..., i]
+            factor_i = np.stack([1.0 - p_on, p_on], axis=-1)
+            factors_list.append(factor_i)
+        return cls(factors=tuple(factors_list), alphabet_sizes=alphabet_sizes)
+
     def condition(self, fixed: Mapping[int, int]) -> FactoredTPM:
         conditioned = [self._backend.select(i, fixed) for i in range(self.n_nodes)]
         return FactoredTPM(
@@ -87,12 +157,22 @@ class FactoredTPM:
     def to_joint(self) -> NDArray[np.float64]:
         """Materialize the joint conditional ``P(s_{t+1} | s_t)`` from the factors.
 
-        Slow path — used at boundaries (serialization, legacy fixture comparison,
-        Substrate.joint_tpm()).
+        Output shape is ``alphabet_sizes + (n_nodes, max_alphabet)`` where the
+        per-row last dim slot holds factor ``i``'s distribution. For uniform
+        alphabets this equals ``(a, a, ..., a, n, a)``. Slow path — only used
+        at boundaries (serialization, legacy fixture comparison,
+        ``Substrate.joint_tpm()``).
         """
-        raise NotImplementedError(
-            "FactoredTPM.to_joint() materialization is not yet implemented"
-        )
+        n = self.n_nodes
+        max_alphabet = max(self._alphabet_sizes)
+        shape = (*self._alphabet_sizes, n, max_alphabet)
+        out = np.zeros(shape, dtype=np.float64)
+        for i in range(n):
+            factor = self.factor(i)
+            a_i = self._alphabet_sizes[i]
+            broadcast_shape = (*self._alphabet_sizes, a_i)
+            out[..., i, :a_i] = np.broadcast_to(factor, broadcast_shape)
+        return out
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, FactoredTPM):

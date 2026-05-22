@@ -104,3 +104,57 @@ def test_factored_tpm_rejects_factor_count_mismatch() -> None:
         FactoredTPM(factors=[f, f, f], alphabet_sizes=(2, 2))
     with pytest.raises(InvalidTPM, match="n_nodes"):
         FactoredTPM(factors=[f], alphabet_sizes=(2, 2))
+
+
+# --- round-trip tests ---
+
+
+def _random_joint_tpm(rng: np.random.Generator, n: int) -> np.ndarray:
+    """Random binary joint TPM, shape (2,)*n + (n,) — entries are P(node_i=1)."""
+    return rng.uniform(size=(2,) * n + (n,))
+
+
+def test_from_joint_round_trip_n2() -> None:
+    rng = np.random.default_rng(42)
+    joint = _random_joint_tpm(rng, 2)
+    factored = FactoredTPM.from_joint(joint, alphabet_sizes=(2, 2))
+    reconstructed = factored.to_joint()
+    p_on = joint
+    explicit_joint = np.stack([1.0 - p_on, p_on], axis=-1)
+    np.testing.assert_allclose(reconstructed, explicit_joint, atol=1e-12)
+
+
+def test_from_joint_round_trip_n3() -> None:
+    rng = np.random.default_rng(99)
+    joint = _random_joint_tpm(rng, 3)
+    factored = FactoredTPM.from_joint(joint, alphabet_sizes=(2, 2, 2))
+    reconstructed = factored.to_joint()
+    p_on = joint
+    explicit_joint = np.stack([1.0 - p_on, p_on], axis=-1)
+    np.testing.assert_allclose(reconstructed, explicit_joint, atol=1e-12)
+
+
+def test_from_joint_invalid_shape_raises() -> None:
+    bad = np.zeros((2, 2))
+    with pytest.raises(ValueError, match="shape"):
+        FactoredTPM.from_joint(bad, alphabet_sizes=(2, 2))
+
+
+def test_to_joint_shape() -> None:
+    f = _two_node_factored()
+    joint = f.to_joint()
+    assert joint.shape[:-2] == (2, 2)
+    assert joint.shape[-2] == 2  # n_nodes
+    assert joint.shape[-1] == 2  # alphabet
+
+
+def test_from_joint_to_joint_roundtrip_stability_binary() -> None:
+    """Round-trip preserves the joint to floating-point precision."""
+    rng = np.random.default_rng(2026)
+    for n in (2, 3, 4):
+        joint = _random_joint_tpm(rng, n)
+        factored = FactoredTPM.from_joint(joint, alphabet_sizes=(2,) * n)
+        reconstructed = factored.to_joint()
+        p_on = joint
+        explicit_joint = np.stack([1.0 - p_on, p_on], axis=-1)
+        np.testing.assert_allclose(reconstructed, explicit_joint, atol=1e-12)
