@@ -75,25 +75,6 @@ def node_labels(node_labels: Sequence[str], node_indices: Sequence[int]) -> None
         raise ValueError(f"Labels {node_labels} must be unique.")
 
 
-def factored_tpm(factored: object) -> bool:
-    """Validate a |FactoredTPM|."""
-    from pyphi.core.tpm.factored import FactoredTPM
-    from pyphi.core.tpm.factored import _validate
-
-    if not isinstance(factored, FactoredTPM):
-        raise ValueError(f"Expected FactoredTPM, got {type(factored).__name__}")
-    _validate(factored)
-    return True
-
-
-def joint_tpm(arr: object) -> bool:
-    """Validate the shape of a joint TPM ndarray."""
-    joint = np.asarray(arr)
-    if joint.ndim < 2:
-        raise ValueError(f"Joint TPM must be at least 2-D; got shape {joint.shape}")
-    return True
-
-
 def substrate(n: object) -> bool:
     """Validate a |Substrate|.
 

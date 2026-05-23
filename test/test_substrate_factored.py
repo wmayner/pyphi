@@ -43,3 +43,12 @@ def test_substrate_from_factored_factory() -> None:
     factored = FactoredTPM(factors=[f0, f1], alphabet_sizes=(2, 2))
     s = Substrate.from_factored(factored)
     assert s.factored_tpm is factored or s.factored_tpm == factored
+
+
+def test_substrate_rejects_factored_via_tpm_keyword() -> None:
+    """FactoredTPM instances must use marginals= or from_factored, not tpm=."""
+    f0 = np.full((2, 2, 2), 0.5)
+    f1 = np.full((2, 2, 2), 0.5)
+    factored = FactoredTPM(factors=[f0, f1], alphabet_sizes=(2, 2))
+    with pytest.raises(ValueError, match="marginals"):
+        Substrate(tpm=factored)  # type: ignore[arg-type]

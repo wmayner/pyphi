@@ -33,31 +33,38 @@ from .types import Purview
 class Substrate:
     """A substrate of nodes.
 
-    Represents the substrate under analysis and holds auxilary data about it.
+    Represents the substrate under analysis and holds auxiliary data about it.
+
+    The TPM is stored canonically as a :class:`~pyphi.core.tpm.factored.FactoredTPM`
+    (per-node-factored conditional). ``substrate.tpm`` returns this
+    ``FactoredTPM`` directly. The joint conditional ndarray is available on
+    demand via :meth:`joint_tpm`.
+
+    Two mutually exclusive forms of TPM input are accepted — exactly one must
+    be supplied:
+
+    * **Joint form** (``tpm=``): a standard joint conditional array.  Accepted
+      shapes are 2-D state-by-node ``(s, n)``, 2-D state-by-state ``(s, s)``,
+      or multidimensional state-by-node ``[2]*n + [n]``.  Row indices follow
+      the little-endian convention (see :ref:`little-endian-convention`).
+      Passing a :class:`~pyphi.core.tpm.factored.FactoredTPM` via ``tpm=``
+      raises ``ValueError``; use ``marginals=`` or
+      :meth:`from_factored` instead.
+
+    * **Factored form** (``marginals=``): a sequence of per-node conditional
+      arrays, one per node.  Each factor has shape
+      ``(*alphabet_sizes, alphabet_size_i)``.
 
     Args:
-        tpm (np.ndarray): The transition probability matrix of the substrate.
-
-            The TPM can be provided in any of three forms: **state-by-state**,
-            **state-by-node**, or **multidimensional state-by-node** form.
-            In the state-by-node forms, row indices must follow the
-            little-endian convention (see :ref:`little-endian-convention`). In
-            state-by-state form, column indices must also follow the
-            little-endian convention.
-
-            If the TPM is given in state-by-node form, it can be either
-            2-dimensional, so that ``tpm[i]`` gives the probabilities of each
-            node being ON if the previous state is encoded by |i| according to
-            the little-endian convention, or in multidimensional form, so that
-            ``tpm[(0, 0, 1)]`` gives the probabilities of each node being ON if
-            the previous state is |N_0 = 0, N_1 = 0, N_2 = 1|.
-
-            The shape of the 2-dimensional form of a state-by-node TPM must be
-            ``(s, n)``, and the shape of the multidimensional form of the TPM
-            must be ``[2] * n + [n]``, where ``s`` is the number of states and
-            ``n`` is the number of nodes in the substrate.
+        tpm (np.ndarray): The joint transition probability matrix of the
+            substrate (joint form only — see above).
 
     Keyword Args:
+        marginals (sequence of np.ndarray): Per-node conditional arrays
+            (factored form). Mutually exclusive with ``tpm=``.
+        alphabet_sizes (sequence of int): Alphabet size for each node.
+            Required when using ``marginals=`` for non-binary nodes;
+            defaults to ``(2,) * n`` when omitted.
         cm (np.ndarray): A square binary adjacency matrix indicating the
             connections between nodes in the substrate. ``cm[i][j] == 1`` means
             that node |i| is connected to node |j| (see :ref:`cm-conventions`).
@@ -65,6 +72,10 @@ class Substrate:
             is connected to every node (including itself)**.
         node_labels (tuple[str] or |NodeLabels|): Human-readable labels for
             each node in the substrate.
+
+    See Also:
+        :meth:`from_factored`: Build a ``Substrate`` directly from an existing
+        :class:`~pyphi.core.tpm.factored.FactoredTPM`.
 
     Example:
         In a 3-node substrate, ``the_substrate.joint_tpm()[(0, 0, 1)]`` gives
@@ -86,6 +97,12 @@ class Substrate:
             raise ValueError("Pass tpm= or marginals=, not both")
         if tpm is None and marginals is None:
             raise ValueError("Must pass tpm= (joint) or marginals= (factored)")
+
+        if tpm is not None and isinstance(tpm, FactoredTPM):
+            raise ValueError(
+                "pass FactoredTPM instances via marginals=... or use "
+                "Substrate.from_factored(...), not tpm="
+            )
 
         if marginals is not None:
             self._factored_tpm = FactoredTPM(

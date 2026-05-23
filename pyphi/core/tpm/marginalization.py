@@ -1,5 +1,11 @@
 """Causal marginalization — named operations against IIT 4.0 Eq. 3 / Eq. 4."""
 
+# The FactoredTPM dispatch path for cause_tpm / effect_tpm currently
+# materializes the joint conditional via SBN-form stacking and delegates
+# to the legacy backward_tpm. This is a binary-only bridge; native
+# per-factor Bayesian inversion is reserved for the multi-valued
+# milestone.
+
 from __future__ import annotations
 
 from collections.abc import Mapping
@@ -48,6 +54,12 @@ def _cause_tpm_factored(
     Converts the factored form to the binary state-by-node representation,
     then applies the Bayesian inversion via the joint backward-TPM path.
     """
+    if not all(a == 2 for a in factored.alphabet_sizes):
+        raise NotImplementedError(
+            f"FactoredTPM marginalization requires binary alphabets; "
+            f"got alphabet_sizes={factored.alphabet_sizes}. "
+            f"Multi-valued substrate analysis is the next milestone."
+        )
     n = factored.n_nodes
     sbn = np.stack([factored.factor(i)[..., 1] for i in range(n)], axis=-1)
     joint = JointTPM(sbn)
@@ -63,6 +75,12 @@ def _effect_tpm_factored(
     Converts the factored form to the binary state-by-node representation,
     then applies conditioning via the joint path.
     """
+    if not all(a == 2 for a in factored.alphabet_sizes):
+        raise NotImplementedError(
+            f"FactoredTPM marginalization requires binary alphabets; "
+            f"got alphabet_sizes={factored.alphabet_sizes}. "
+            f"Multi-valued substrate analysis is the next milestone."
+        )
     n = factored.n_nodes
     sbn = np.stack([factored.factor(i)[..., 1] for i in range(n)], axis=-1)
     joint = JointTPM(sbn)
