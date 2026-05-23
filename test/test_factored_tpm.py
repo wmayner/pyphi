@@ -236,3 +236,18 @@ def test_factored_tpm_xarray_factor_equals_ndarray_factor() -> None:
         backend="xarray",
     )
     assert nd == xr
+
+
+def test_factored_per_node_matches_joint_marginalize() -> None:
+    """Per-node factor reads from FactoredTPM match the legacy
+    joint-then-marginalize computation."""
+    from pyphi.core.tpm.joint import JointTPM  # noqa: F401  (referenced for context)
+
+    rng = np.random.default_rng(2026)
+    joint_arr = rng.uniform(size=(2, 2, 2, 3))
+    factored = FactoredTPM.from_joint(joint_arr, alphabet_sizes=(2, 2, 2))
+    p_on_per_node = [joint_arr[..., i] for i in range(3)]
+    for i in range(3):
+        factor_i = factored.factor(i)
+        # factor_i shape (2,2,2,2); factor_i[..., 1] is P(node_i = 1)
+        np.testing.assert_allclose(factor_i[..., 1], p_on_per_node[i], atol=1e-12)
