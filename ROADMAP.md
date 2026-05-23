@@ -2596,3 +2596,41 @@ to ease transition:
   behaviour — squash transition-describing language into "in 2.0,
   the SIA selects ...". Probably an evening's work just before the
   towncrier-build step of the release.
+
+- **Paper-aligned cause/effect terminology cleanup.** ``System.cause_tpm``
+  and ``System.effect_tpm`` are misnomers: ``cause_tpm`` returns a
+  posterior distribution over past states (a ``CausePosterior`` after
+  P12b's type-hierarchy refactor), not a transition probability matrix;
+  ``effect_tpm`` returns the conditioned forward TPM (less misleading
+  but still loose). Same shape of project as P11.7 (concept/distinction
+  rename) — mechanical search-replace through callers, tests, docs, with
+  a brief IIT 4.0 paper read first to pick the paper-faithful names
+  (``cause_function`` / ``effect_function``? ``cause_posterior``?
+  ``intrinsic_information_*``? Albantakis et al. 2023 has specific
+  vocabulary worth aligning to). Touches ``pyphi/system.py``,
+  ``pyphi/actual.py``, ``pyphi/core/tpm/marginalization.py``,
+  ``pyphi/core/repertoire_algebra.py``, plus consumers and ~30 test
+  sites. Roughly 1–3 days. Independent of any other in-flight project.
+
+- **Unify binary cause-TPM onto the native factored path; retire
+  ``_legacy_backward_tpm``.** P12b leaves a dual implementation: the
+  binary cause-TPM goes through ``_legacy_backward_tpm`` (via the SBN
+  conversion bridge) to preserve byte-identical goldens; k>2 uses the
+  native per-factor-likelihood-product code path. Once the native path
+  is trusted, the binary path can be unified onto it (regenerating
+  goldens within ``config.numerics.precision``). The function
+  ``pyphi.tpm.backward_tpm`` (still called ``_legacy_backward_tpm``
+  internally) goes away. Probably half a day plus golden regeneration.
+  Requires explicit consent to regenerate (goldens are the cross-
+  version regression net P12a/P12b leaned on for safety).
+
+- **Consolidate ``pyphi/tpm.py`` into ``pyphi/core/tpm/``.** The
+  legacy module ``pyphi/tpm.py`` (~650 lines) hosts ``JointTPM`` (and,
+  after P12b, ``JointDistribution`` and ``CausePosterior`` will live
+  in ``pyphi/core/tpm/``). After P12b the module boundary between
+  ``pyphi/tpm.py`` and ``pyphi/core/tpm/`` is fuzzy. Consolidation
+  step: move the legacy ``JointTPM`` machinery into
+  ``pyphi/core/tpm/joint.py`` (which currently is a thin port wrapper),
+  delete ``pyphi/tpm.py``, update importers. Mechanical refactor;
+  benefits from running after P12b lands because P12b touches the
+  surface already.
