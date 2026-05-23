@@ -358,11 +358,32 @@ make test
 
 **Note**: Coverage configuration is now in `pyproject.toml` under `[tool.coverage.*]`.
 
+#### Doctest scope — important
+
+The pytest config in `pyproject.toml` sets ``testpaths = ["pyphi",
+"test"]`` and ``addopts = ["--doctest-modules", "--doctest-glob=*.rst",
+...]``. **CI runs `uv run pytest` with no path argument, which uses
+testpaths and collects doctests in `pyphi/` source modules.** Bare-path
+invocations (`pytest test/`, `pytest pyphi/specific.py`) **override
+testpaths and skip the doctest sweep entirely** — local verifications
+scoped this way will report green even when a doctest is broken.
+
+When verifying a project as complete (especially renames, signature
+changes, or anything touching `pyphi/` source), run `uv run pytest`
+**without a path argument** at least once. The fast-lane shortcut
+(`pytest test/ -m "not slow"`) is fine for inner-loop iteration but is
+not a complete verification recipe.
+
+Doctests don't run on `docs/*.rst` files either, because `docs/` isn't
+in testpaths even though `--doctest-glob=*.rst` would match. Treat
+`docs/*.rst` doctests as documentation that users can copy — verify by
+reading, not by pytest.
+
 ### Running tests in parallel for faster feedback
 
-The full suite takes 8-15 minutes (Hypothesis property tests dominate).
-For faster signal, split into independent test files and run them as
-parallel background jobs rather than sequentially in one command:
+The full suite takes a while. For faster signal, split into independent test
+files and run them as parallel background jobs rather than sequentially in one
+command:
 
 - **Fast lane** (seconds-to-minute): `test_partition.py`,
   `test_subsystem_surface.py`, `test_golden_regression.py`,
