@@ -115,7 +115,7 @@ class FactoredTPM:
                 and joint_arr.shape[:n] == alphabet_sizes
                 and joint_arr.shape[n] == n
             ):
-                factors = tuple(joint_arr[..., i, :] for i in range(n))
+                factors = tuple(joint_arr[..., i, : alphabet_sizes[i]] for i in range(n))
                 return cls(factors=factors, alphabet_sizes=alphabet_sizes)
             raise ValueError(
                 f"Joint shape {joint_arr.shape} not consistent with "
@@ -157,10 +157,12 @@ class FactoredTPM:
     def to_joint(self) -> NDArray[np.float64]:
         """Materialize the joint conditional ``P(s_{t+1} | s_t)`` from the factors.
 
-        Output shape is ``alphabet_sizes + (n_nodes, max_alphabet)`` where the
-        per-row last dim slot holds factor ``i``'s distribution. For uniform
-        alphabets this equals ``(a, a, ..., a, n, a)``. Slow path — only used
-        at boundaries (serialization, legacy fixture comparison,
+        Output shape is ``alphabet_sizes + (n_nodes, max_alphabet)``: the
+        per-row last dim holds factor ``i``'s distribution in slots
+        ``[:alphabet_sizes[i]]``; trailing slots are zero when alphabets are
+        heterogeneous. For uniform alphabets this collapses to
+        ``(a, ..., a, n, a)`` with no padding. Slow path — only used at
+        boundaries (serialization, legacy fixture comparison,
         ``Substrate.joint_tpm()``).
         """
         n = self.n_nodes

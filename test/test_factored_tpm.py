@@ -158,3 +158,46 @@ def test_from_joint_to_joint_roundtrip_stability_binary() -> None:
         p_on = joint
         explicit_joint = np.stack([1.0 - p_on, p_on], axis=-1)
         np.testing.assert_allclose(reconstructed, explicit_joint, atol=1e-12)
+
+
+def test_from_joint_explicit_alphabet_uniform_k3() -> None:
+    """Uniform k=3 round-trip via the explicit-alphabet form."""
+    rng = np.random.default_rng(2027)
+    # Build a uniform-k=3 joint of shape (3, 3, n, 3): for each input state
+    # and each node i, the last dim is the per-node output distribution.
+    n = 2
+    raw = rng.uniform(size=(3, 3, n, 3))
+    # Normalize each per-node distribution to sum to 1.
+    joint = raw / raw.sum(axis=-1, keepdims=True)
+    factored = FactoredTPM.from_joint(joint, alphabet_sizes=(3, 3))
+    reconstructed = factored.to_joint()
+    np.testing.assert_allclose(reconstructed, joint, atol=1e-12)
+
+
+def test_from_joint_explicit_alphabet_heterogeneous_round_trip() -> None:
+    """Heterogeneous-alphabet round-trip: to_joint then from_joint preserves factors."""
+    rng = np.random.default_rng(2028)
+    n = 2
+    a = (2, 3)
+    # Build factor 0 with shape (2, 3, 2); factor 1 with shape (2, 3, 3).
+    f0_raw = rng.uniform(size=(2, 3, 2))
+    f0 = f0_raw / f0_raw.sum(axis=-1, keepdims=True)
+    f1_raw = rng.uniform(size=(2, 3, 3))
+    f1 = f1_raw / f1_raw.sum(axis=-1, keepdims=True)
+    factored = FactoredTPM(factors=[f0, f1], alphabet_sizes=a)
+    joint = factored.to_joint()
+    # Round-trip through from_joint
+    reconstructed = FactoredTPM.from_joint(joint, alphabet_sizes=a)
+    for i in range(n):
+        np.testing.assert_allclose(
+            reconstructed.factor(i), factored.factor(i), atol=1e-12
+        )
+
+
+def test_from_joint_to_joint_bit_exact_for_legacy_binary() -> None:
+    """Stack([1-p, p]) is exact in IEEE-754 for p in [0, 1]; lock that in."""
+    joint = np.full((2, 2, 2), 0.5)
+    factored = FactoredTPM.from_joint(joint, alphabet_sizes=(2, 2))
+    reconstructed = factored.to_joint()
+    expected = np.stack([1.0 - joint, joint], axis=-1)
+    np.testing.assert_array_equal(reconstructed, expected)  # not allclose — exact
