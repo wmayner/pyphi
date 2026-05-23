@@ -201,3 +201,38 @@ def test_from_joint_to_joint_bit_exact_for_legacy_binary() -> None:
     reconstructed = factored.to_joint()
     expected = np.stack([1.0 - joint, joint], axis=-1)
     np.testing.assert_array_equal(reconstructed, expected)  # not allclose — exact
+
+
+# --- xarray backend (optional) ---
+
+xarray = pytest.importorskip("xarray")
+
+
+def _two_node_factored_xarray() -> FactoredTPM:
+    f0 = np.array(
+        [[[0.5, 0.5], [0.5, 0.5]], [[0.5, 0.5], [0.5, 0.5]]],
+        dtype=np.float64,
+    )
+    f1 = f0.copy()
+    return FactoredTPM(factors=[f0, f1], alphabet_sizes=(2, 2), backend="xarray")
+
+
+def test_factored_tpm_xarray_backend_selectable() -> None:
+    f = _two_node_factored_xarray()
+    assert f.n_nodes == 2
+    assert f.alphabet_sizes == (2, 2)
+
+
+def test_factored_tpm_xarray_factor_equals_ndarray_factor() -> None:
+    """Cross-backend equality on identical factor data."""
+    nd = FactoredTPM(
+        factors=[np.full((2, 2, 2), 0.5), np.full((2, 2, 2), 0.5)],
+        alphabet_sizes=(2, 2),
+        backend="ndarray",
+    )
+    xr = FactoredTPM(
+        factors=[np.full((2, 2, 2), 0.5), np.full((2, 2, 2), 0.5)],
+        alphabet_sizes=(2, 2),
+        backend="xarray",
+    )
+    assert nd == xr

@@ -80,10 +80,9 @@ def _make_default_backend(
     if backend_name == "ndarray":
         return _NdarrayBackend(factors, alphabet_sizes)
     if backend_name == "xarray":
-        raise NotImplementedError(
-            "xarray backend is not yet available; use backend='ndarray' "
-            "(or omit the argument for the module default)"
-        )
+        from pyphi.core.tpm._factored_backends_xarray import _XarrayBackend
+
+        return _XarrayBackend(factors, alphabet_sizes)
     raise ValueError(
         f"Unknown backend {backend_name!r}; expected 'ndarray' or 'xarray'."
     )

@@ -54,6 +54,7 @@ caching = ["redis>=2.10.5"]
 # pyemd 2.0 is required for numpy 2.x compatibility on Python 3.13+;
 # 1.x raises ModuleNotFoundError on `pkg_resources` import.
 emd = ["pyemd>=2.0.0"]
+xarray = ["xarray>=2024.1"]
 
 [dependency-groups]
 dev = [
