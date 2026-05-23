@@ -116,21 +116,6 @@ def clear_caches(cs: Any | None = None) -> None:
     _evict(id(cs))
 
 
-def _factored_view_of_substrate(substrate: Any) -> Any:
-    """Return a FactoredTPM view of the substrate's TPM.
-
-    Bridging helper while the substrate stores a JointTPM canonically.
-    Replaced by direct ``substrate.factored_tpm`` access when the
-    substrate-storage cutover lands.
-    """
-    from pyphi.core.tpm.factored import FactoredTPM
-
-    joint = substrate.tpm
-    arr = joint.to_array() if hasattr(joint, "to_array") else np.asarray(joint)
-    n = arr.shape[-1]
-    return FactoredTPM.from_joint(arr, alphabet_sizes=(2,) * n)
-
-
 # ---- repertoire computation ----
 
 

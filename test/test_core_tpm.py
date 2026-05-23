@@ -59,8 +59,11 @@ def test_cause_tpm_parity() -> None:
     state = (1, 0, 0)
     node_indices = (0, 1, 2)
 
-    new_tpm = cause_tpm(JointTPM(substrate.tpm), state, node_indices)
-    old_tpm = legacy_backward_tpm(substrate.tpm, state, node_indices)
+    from pyphi.tpm import JointTPM as _LegacyJointTPM
+
+    joint = substrate.joint_tpm()
+    new_tpm = cause_tpm(JointTPM(joint), state, node_indices)
+    old_tpm = legacy_backward_tpm(_LegacyJointTPM(joint), state, node_indices)
     np.testing.assert_array_equal(new_tpm.to_array(), np.asarray(old_tpm))
 
 
@@ -77,6 +80,9 @@ def test_effect_tpm_parity() -> None:
     external_state = utils.state_of(external_indices, state)
     background = dict(zip(external_indices, external_state, strict=False))
 
-    new_tpm = effect_tpm(JointTPM(substrate.tpm), background)
-    old_tpm = substrate.tpm.condition_tpm(background)
+    from pyphi.tpm import JointTPM as _LegacyJointTPM
+
+    joint = substrate.joint_tpm()
+    new_tpm = effect_tpm(JointTPM(joint), background)
+    old_tpm = _LegacyJointTPM(joint).condition_tpm(background)
     np.testing.assert_array_equal(new_tpm.to_array(), np.asarray(old_tpm))

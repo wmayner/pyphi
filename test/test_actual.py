@@ -249,8 +249,12 @@ def test_background_noised():
     transition = actual.Transition(
         substrate, state, state, (0,), (0,), noise_background=True
     )
-    assert transition.cause_system.effect_tpm.array_equal(substrate.tpm)
-    assert transition.effect_system.effect_tpm.array_equal(substrate.tpm)
+    assert np.array_equal(
+        np.asarray(transition.cause_system.effect_tpm), substrate.joint_tpm()
+    )
+    assert np.array_equal(
+        np.asarray(transition.effect_system.effect_tpm), substrate.joint_tpm()
+    )
 
 
 @pytest.fixture

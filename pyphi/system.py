@@ -154,21 +154,8 @@ class System:
 
     @cached_property
     def _typed_tpm(self) -> Any:
-        """The typed-kernel TPM used by marginalization.
-
-        Returns a FactoredTPM view of the substrate's TPM.
-        """
-        import numpy as np
-
-        from pyphi.core.tpm.factored import FactoredTPM
-
-        legacy_tpm = self.substrate.tpm
-        if hasattr(legacy_tpm, "to_array"):
-            arr = legacy_tpm.to_array()
-        else:
-            arr = np.asarray(legacy_tpm)
-        n = arr.shape[-1]
-        return FactoredTPM.from_joint(arr, alphabet_sizes=(2,) * n)
+        """The canonical FactoredTPM stored on the substrate."""
+        return self.substrate.factored_tpm
 
     @cached_property
     def cause_tpm(self) -> Any:

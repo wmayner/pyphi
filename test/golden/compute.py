@@ -52,7 +52,7 @@ def compute_all_layers(
 
     structured: dict[str, Any] = {
         "substrate_hash": substrate_hash(
-            np.asarray(substrate.tpm), np.asarray(substrate.cm)
+            np.asarray(substrate.joint_tpm()), np.asarray(substrate.cm)
         ),
     }
     arrays: dict[str, np.ndarray] = {}

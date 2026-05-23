@@ -76,7 +76,7 @@ def test_validate_connectivity_matrix_not_binary():
 
 def test_validate_substrate_wrong_cm_size(s):
     with pytest.raises(ValueError):
-        Substrate(s.substrate.tpm.tpm, np.ones(16).reshape(4, 4))
+        Substrate(s.substrate.joint_tpm(), np.ones(16).reshape(4, 4))
 
 
 def test_validate_is_substrate(s):

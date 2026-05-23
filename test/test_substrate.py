@@ -62,15 +62,15 @@ def test_potential_purviews(s):
 
 def test_node_labels(standard):
     labels = ("A", "B", "C")
-    substrate = Substrate(standard.tpm.tpm, node_labels=labels)
+    substrate = Substrate(standard.joint_tpm(), node_labels=labels)
     assert substrate.node_labels.labels == labels
 
     labels = ("A", "B")  # Too few labels
     with pytest.raises(ValueError):
-        Substrate(standard.tpm.tpm, node_labels=labels)
+        Substrate(standard.joint_tpm(), node_labels=labels)
 
     # Auto-generated labels
-    substrate = Substrate(standard.tpm.tpm, node_labels=None)
+    substrate = Substrate(standard.joint_tpm(), node_labels=None)
     assert substrate.node_labels.labels == ("n0", "n1", "n2")
 
 

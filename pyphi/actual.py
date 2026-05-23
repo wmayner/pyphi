@@ -250,11 +250,7 @@ class TransitionSystem:
         from pyphi.core.tpm.joint import JointTPM as _TypedTPM
         from pyphi.core.tpm.marginalization import effect_tpm as _marginalize_effect
 
-        legacy_tpm = self.substrate.tpm
-        if hasattr(legacy_tpm, "to_array"):
-            typed = _TypedTPM(legacy_tpm.to_array())
-        else:
-            typed = _TypedTPM(legacy_tpm)
+        typed = _TypedTPM(self.substrate.joint_tpm())
         external_state = utils.state_of(self.external_indices, self.before_state)
         background = dict(zip(self.external_indices, external_state, strict=False))
         result = _marginalize_effect(typed, background)

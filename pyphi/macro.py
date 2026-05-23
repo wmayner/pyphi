@@ -1106,7 +1106,7 @@ def effective_info(substrate):
     """
     validate.is_substrate(substrate)
 
-    sbs_tpm = convert.state_by_node2state_by_state(substrate.tpm.tpm)
+    sbs_tpm = convert.state_by_node2state_by_state(substrate.joint_tpm())
     avg_repertoire = np.mean(sbs_tpm, 0)
 
     return np.mean([entropy(repertoire, avg_repertoire, 2.0) for repertoire in sbs_tpm])

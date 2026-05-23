@@ -20,6 +20,7 @@ from . import connectivity
 from . import jsonify
 from . import utils
 from . import validate
+from .core.tpm.factored import FactoredTPM
 from .direction import Direction
 from .labels import NodeLabels
 from .tpm import JointTPM
@@ -66,29 +67,35 @@ class Substrate:
             each node in the substrate.
 
     Example:
-        In a 3-node substrate, ``the_substrate.tpm[(0, 0, 1)]`` gives the
-        transition probabilities for each node at |t| given that state at |t-1|
-        was |N_0 = 0, N_1 = 0, N_2 = 1|.
+        In a 3-node substrate, ``the_substrate.joint_tpm()[(0, 0, 1)]`` gives
+        the transition probabilities for each node at |t| given that state
+        at |t-1| was |N_0 = 0, N_1 = 0, N_2 = 1|.
     """
 
-    # TODO make tpm also optional when implementing logical substrate definition
     def __init__(
         self,
-        tpm: JointTPM | NDArray[np.float64] | dict[str, Any],
+        tpm: JointTPM | NDArray[np.float64] | dict[str, Any] | None = None,
         cm: ArrayLike | None = None,
         node_labels: Sequence[str] | NodeLabels | None = None,
         purview_cache: cache.PurviewCache | None = None,
+        *,
+        marginals: Sequence[ArrayLike] | None = None,
+        alphabet_sizes: Sequence[int] | None = None,
     ) -> None:
-        # Initialize _tpm according to argument type.
-        if isinstance(tpm, JointTPM):
-            self._tpm = tpm
-        elif isinstance(tpm, np.ndarray):
-            self._tpm = JointTPM(tpm, validate=True)
-        elif isinstance(tpm, dict):
-            # From JSON.
-            self._tpm = JointTPM(tpm["_tpm"], validate=True)
+        if tpm is not None and marginals is not None:
+            raise ValueError("Pass tpm= or marginals=, not both")
+        if tpm is None and marginals is None:
+            raise ValueError("Must pass tpm= (joint) or marginals= (factored)")
+
+        if marginals is not None:
+            self._factored_tpm = FactoredTPM(
+                factors=marginals, alphabet_sizes=alphabet_sizes
+            )
         else:
-            raise TypeError(f"Invalid tpm of type {type(tpm)}.")
+            arr = self._coerce_joint_array(tpm)
+            n = arr.shape[-1]
+            sizes = tuple(alphabet_sizes) if alphabet_sizes is not None else (2,) * n
+            self._factored_tpm = FactoredTPM.from_joint(arr, alphabet_sizes=sizes)
 
         self._cm, self._cm_hash = self._build_cm(cm)
         self._node_indices = tuple(range(self.size))
@@ -97,13 +104,75 @@ class Substrate:
 
         validate.substrate(self)
 
-    @property
-    def tpm(self) -> JointTPM:
-        """pyphi.tpm.JointTPM: The TPM object which contains this
-        substrate's transition probability matrix, in multidimensional
-        form.
+    @staticmethod
+    def _coerce_joint_array(
+        tpm: JointTPM | NDArray[np.float64] | dict[str, Any] | Any,
+    ) -> NDArray[np.float64]:
+        """Coerce supported ``tpm=`` argument forms to a multidimensional
+        state-by-node joint ndarray.
+
+        Accepts the same input forms as the legacy ``JointTPM`` constructor
+        (2-D state-by-node, 2-D state-by-state, multidimensional
+        state-by-node) and routes them through the legacy validator so
+        callers don't have to pre-reshape.
         """
-        return self._tpm
+        if isinstance(tpm, dict):
+            key = "_tpm" if "_tpm" in tpm else "tpm"
+            data: Any = tpm[key]
+        elif isinstance(tpm, JointTPM):
+            return np.asarray(tpm)
+        elif hasattr(tpm, "to_array"):
+            data = tpm.to_array()  # type: ignore[attr-defined]
+        else:
+            data = tpm
+        # Route through the legacy joint TPM so 2-D and state-by-state forms
+        # get normalized to multidimensional state-by-node form.
+        return np.asarray(JointTPM(data, validate=True), dtype=np.float64)
+
+    @property
+    def tpm(self) -> FactoredTPM:
+        """The per-node-factored conditional TPM of the substrate."""
+        return self._factored_tpm
+
+    @property
+    def factored_tpm(self) -> FactoredTPM:
+        """Alias for :attr:`tpm` — explicit per-node-factored access."""
+        return self._factored_tpm
+
+    def joint_tpm(self) -> NDArray[np.float64]:
+        """Materialize the joint conditional TPM on demand.
+
+        Returns the multidimensional state-by-node array
+        ``[a_1, ..., a_N, N]`` for binary substrates (matching the legacy
+        joint storage shape), and the explicit-alphabet form
+        ``[a_1, ..., a_N, N, max_alphabet]`` otherwise. Recomputes on every
+        call (no cache); callers needing it repeatedly should cache locally.
+        """
+        if all(a == 2 for a in self._factored_tpm.alphabet_sizes):
+            n = self._factored_tpm.n_nodes
+            return np.stack(
+                [self._factored_tpm.factor(i)[..., 1] for i in range(n)],
+                axis=-1,
+            )
+        return self._factored_tpm.to_joint()
+
+    @classmethod
+    def from_factored(
+        cls,
+        factored: FactoredTPM,
+        cm: ArrayLike | None = None,
+        node_labels: Sequence[str] | NodeLabels | None = None,
+        purview_cache: cache.PurviewCache | None = None,
+    ) -> Substrate:
+        """Construct a Substrate from an existing FactoredTPM."""
+        s = cls.__new__(cls)
+        s._factored_tpm = factored
+        s._cm, s._cm_hash = s._build_cm(cm)
+        s._node_indices = tuple(range(s.size))
+        s._node_labels = NodeLabels(node_labels, s._node_indices)
+        s.purview_cache = purview_cache or cache.PurviewCache()
+        validate.substrate(s)
+        return s
 
     @property
     def cm(self) -> ConnectivityMatrix:
@@ -270,7 +339,7 @@ class Substrate:
         """
         return (
             isinstance(other, Substrate)
-            and self.tpm.array_equal(other.tpm)
+            and self._factored_tpm == other._factored_tpm
             and np.array_equal(self.cm, other.cm)
         )
 
@@ -278,12 +347,16 @@ class Substrate:
         return not self.__eq__(other)
 
     def __hash__(self) -> int:
-        return hash((hash(self.tpm), self._cm_hash))
+        return hash((hash(self._factored_tpm), self._cm_hash))
 
     def to_json(self) -> dict[str, Any]:
-        """Return a JSON-serializable representation."""
+        """Return a JSON-serializable representation.
+
+        Serializes the substrate's TPM in joint form for portability across
+        the canonical-storage change.
+        """
         return {
-            "tpm": self.tpm,
+            "tpm": self.joint_tpm(),
             "cm": self.cm,
             "size": self.size,
             "node_labels": self.node_labels,

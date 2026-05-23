@@ -156,7 +156,7 @@ def test_partition_node_labels(s):
 
 
 def test_specify_elements_with_labels(standard):
-    substrate = Substrate(standard.tpm.tpm, node_labels=("A", "B", "C"))
+    substrate = Substrate(standard.joint_tpm(), node_labels=("A", "B", "C"))
     system = System(substrate, (0, 0, 0), ("B", "C"))
     assert system.node_indices == (1, 2)
     assert tuple(node.label for node in system.nodes) == ("B", "C")
