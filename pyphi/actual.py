@@ -247,7 +247,7 @@ class TransitionSystem:
 
     @cached_property
     def effect_tpm(self) -> Any:
-        from pyphi.core.tpm.explicit import ExplicitTPM as _TypedTPM
+        from pyphi.core.tpm.joint import JointTPM as _TypedTPM
         from pyphi.core.tpm.marginalization import effect_tpm as _marginalize_effect
 
         legacy_tpm = self.substrate.tpm

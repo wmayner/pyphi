@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from pyphi import convert, macro, ExplicitTPM
+from pyphi import convert, macro, JointTPM
 from pyphi.exceptions import ConditionallyDependentError
 
 # flake8: noqa
@@ -272,13 +272,13 @@ def test_blackbox_len(bb, cg_bb):
 
 def test_rebuild_system_tpm(s):
     # fmt: off
-    node0_tpm = ExplicitTPM(
+    node0_tpm = JointTPM(
         np.array([
             [0, 1],
             [0, 0],
         ]),
     )
-    node1_tpm = ExplicitTPM(
+    node1_tpm = JointTPM(
         np.array([
             [0, 1],  # Singleton first dimension
         ]),
@@ -287,7 +287,7 @@ def test_rebuild_system_tpm(s):
     node_tpms = [node0_tpm, node1_tpm]
 
     # fmt: off
-    answer = ExplicitTPM(
+    answer = JointTPM(
         np.array([
             [[0, 0],
              [1, 1]],
@@ -307,7 +307,7 @@ def test_rebuild_system_tpm(s):
 def test_remove_singleton_dimensions():
     # Don't squeeze out last dimension of single-node tpm
     # fmt: off
-    tpm = ExplicitTPM(
+    tpm = JointTPM(
         np.array([
             [0],
             [1],
@@ -318,13 +318,13 @@ def test_remove_singleton_dimensions():
     assert macro.remove_singleton_dimensions(tpm).array_equal(tpm)
 
     # fmt: off
-    tpm = ExplicitTPM(
+    tpm = JointTPM(
         np.array([
             [[[0.,  0.,  1.]],
              [[1.,  0.,  0.]]]
         ]),
     )
-    answer = ExplicitTPM(
+    answer = JointTPM(
         np.array([
             [0],
             [0],
@@ -335,7 +335,7 @@ def test_remove_singleton_dimensions():
     assert macro.remove_singleton_dimensions(tpm).array_equal(answer)
 
     # fmt: off
-    tpm = ExplicitTPM(
+    tpm = JointTPM(
         np.array([
             [[[0., 0., 0.],
               [1., 1., 0.]]],
@@ -343,7 +343,7 @@ def test_remove_singleton_dimensions():
               [1., 1., 1.]]],
         ]),
     )
-    answer = ExplicitTPM(
+    answer = JointTPM(
         np.array([
             [[0., 0.],
              [1., 0.]],

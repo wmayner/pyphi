@@ -9,7 +9,7 @@ import pandas as pd
 from numpy.typing import ArrayLike
 
 from . import utils
-from .tpm import ExplicitTPM
+from .tpm import JointTPM
 
 
 def mean_dynamics(
@@ -18,7 +18,7 @@ def mean_dynamics(
     **kwargs,
 ):
     """Return a sample of the dynamics averaged over all initial states."""
-    tpm = ExplicitTPM(tpm)
+    tpm = JointTPM(tpm)
     clamp = kwargs.get("clamp", {})
     initial_states = [
         insert_clamp(clamp, state)
@@ -45,11 +45,11 @@ def simulate(
 ):
     """Return a simulated timeseries of system states."""
     if isinstance(tpm, pd.DataFrame):
-        N = len(tpm.index[0])
+        N = len(tpm.index[0])  # pyright: ignore[reportIndexIssue, reportAttributeAccessIssue]
         simulate_one_timestep = simulate_one_timestep_from_pandas_state_by_state
     else:
         # Assumes state-by-node multidimensional TPM
-        tpm = ExplicitTPM(tpm)
+        tpm = JointTPM(tpm)
         N = tpm.number_of_units
         simulate_one_timestep = simulate_one_timestep_from_explicit_tpm_state_by_node
 
@@ -60,7 +60,7 @@ def simulate(
         clamp = {}
 
     if initial_state is None:
-        initial_state = tuple(rng.integers(low=0, high=2, size=tpm.number_of_units))
+        initial_state = tuple(rng.integers(low=0, high=2, size=tpm.number_of_units))  # pyright: ignore[reportAttributeAccessIssue]
     elif len(initial_state) != N:
         raise ValueError("initial_state must have length equal to the number of units")
 
@@ -86,7 +86,7 @@ def simulate_one_timestep_from_pandas_state_by_state(rng, tpm, state):
 
 
 def simulate_one_timestep_from_explicit_tpm_state_by_node(rng, tpm, state):
-    """Simulate one timestep given an ExplicitTPM in multidimensional
+    """Simulate one timestep given an JointTPM in multidimensional
     state-by-node form."""
     # Assumes state-by-node multidimensional TPM
     elementwise_probabilities = tpm[state]

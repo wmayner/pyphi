@@ -6,7 +6,7 @@ from dataclasses import replace  # noqa: E402
 
 import numpy as np  # noqa: E402
 
-from pyphi import ExplicitTPM  # noqa: E402
+from pyphi import JointTPM  # noqa: E402
 from pyphi import Substrate  # noqa: E402
 from pyphi import config  # noqa: E402
 from pyphi import macro  # noqa: E402
@@ -355,7 +355,7 @@ def test_coarsegrain_spatial_degenerate():
 @pytest.mark.outdated
 def test_degenerate(degenerate):
     # fmt: off
-    answer = ExplicitTPM(
+    answer = JointTPM(
         np.array(
             [[0, 0],
              [0, 1],

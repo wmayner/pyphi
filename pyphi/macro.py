@@ -23,7 +23,7 @@ from .node import expand_node_tpm
 from .node import generate_nodes
 from .substrate import irreducible_purviews
 from .system import System
-from .tpm import ExplicitTPM
+from .tpm import JointTPM
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
@@ -42,13 +42,13 @@ def rebuild_system_tpm(node_tpms):
     """Reconstruct the substrate TPM from a collection of node TPMs.
 
     Args:
-        node_tpms (Iterable[ExplicitTPM]): The collection of node TPMs.
+        node_tpms (Iterable[JointTPM]): The collection of node TPMs.
 
     Returns:
-        ExplicitTPM: The system TPM which comprises the input node TPMs.
+        JointTPM: The system TPM which comprises the input node TPMs.
     """
     tpm = np.stack([expand_node_tpm(tpm).tpm for tpm in node_tpms], axis=-1)
-    return ExplicitTPM(tpm, validate=True)
+    return JointTPM(tpm, validate=True)
 
 
 # TODO This should be a method of the TPM class in tpm.py
@@ -74,7 +74,7 @@ def run_tpm(system, direction, steps, blackbox):
     """Iterate the TPM for the given number of timesteps.
 
     Returns:
-        ExplicitTPM: tpm * (noise_tpm^(t-1))
+        JointTPM: tpm * (noise_tpm^(t-1))
     """
     # Generate noised TPM
     # Noise the connections from every output element to elements in other
@@ -109,7 +109,7 @@ def run_tpm(system, direction, steps, blackbox):
     # Muliply by noise
     tpm = np.dot(tpm, np.linalg.matrix_power(noised_tpm, steps - 1))
 
-    return ExplicitTPM(convert.state_by_state2state_by_node(tpm), validate=True)
+    return JointTPM(convert.state_by_state2state_by_node(tpm), validate=True)
 
 
 class SystemAttrs(
@@ -381,8 +381,8 @@ class MacroSystem(System):
         n = len(node_indices)
         cm = np.ones((n, n))
 
-        cause_tpm = ExplicitTPM(cause_tpm, validate=True)
-        effect_tpm = ExplicitTPM(effect_tpm, validate=True)
+        cause_tpm = JointTPM(cause_tpm, validate=True)
+        effect_tpm = JointTPM(effect_tpm, validate=True)
         return SystemAttrs(cause_tpm, effect_tpm, cm, node_indices, state)
 
     @property
@@ -622,7 +622,7 @@ class CoarseGrain(namedtuple("CoarseGrain", ["partition", "grouping"])):
         Returns:
             np.ndarray: The state-by-state TPM of the macro-system.
         """
-        tpm = ExplicitTPM(state_by_state_micro_tpm)
+        tpm = JointTPM(state_by_state_micro_tpm)
         tpm.validate(check_independence=False)
 
         mapping = self.make_mapping()
@@ -659,13 +659,13 @@ class CoarseGrain(namedtuple("CoarseGrain", ["partition", "grouping"])):
         Returns:
             np.ndarray: The state-by-node TPM of the macro-system.
         """
-        if not ExplicitTPM(micro_tpm).is_state_by_state():
+        if not JointTPM(micro_tpm).is_state_by_state():
             micro_tpm = convert.state_by_node2state_by_state(micro_tpm)
 
         macro_tpm = self.macro_tpm_sbs(micro_tpm)
 
         if check_independence:
-            tpm = ExplicitTPM(macro_tpm)
+            tpm = JointTPM(macro_tpm)
             tpm.conditionally_independent()
 
         return convert.state_by_state2state_by_node(macro_tpm)

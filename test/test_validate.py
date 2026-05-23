@@ -7,7 +7,7 @@ from pyphi import System
 from pyphi import exceptions
 from pyphi import macro
 from pyphi import validate
-from pyphi.tpm import ExplicitTPM
+from pyphi.tpm import JointTPM
 
 
 def test_validate_direction():
@@ -24,19 +24,19 @@ def test_validate_direction():
 
 def test_validate_tpm_wrong_shape():
     with pytest.raises(ValueError):
-        tpm = ExplicitTPM(np.arange(3**3).reshape(3, 3, 3))
+        tpm = JointTPM(np.arange(3**3).reshape(3, 3, 3))
         assert tpm.validate()
 
 
 def test_validate_tpm_nonbinary_nodes():
     with pytest.raises(ValueError):
-        tpm = ExplicitTPM(np.arange(3 * 3 * 2).reshape(3, 3, 2))
+        tpm = JointTPM(np.arange(3 * 3 * 2).reshape(3, 3, 2))
         assert tpm.validate()
 
 
 def test_validate_tpm_conditional_independence():
     # fmt: off
-    tpm = ExplicitTPM(
+    tpm = JointTPM(
         np.array([
             [1, 0.0, 0.0, 0],
             [0, 0.5, 0.5, 0],

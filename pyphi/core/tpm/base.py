@@ -14,7 +14,7 @@ from numpy.typing import NDArray
 class TPM(Protocol):
     """Structural protocol satisfied by every PyPhi TPM.
 
-    Implementations: :class:`pyphi.core.tpm.explicit.ExplicitTPM` (joint
+    Implementations: :class:`pyphi.core.tpm.joint.JointTPM` (joint
     ndarray storage).
     """
 

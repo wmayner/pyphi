@@ -22,7 +22,7 @@ from . import utils
 from . import validate
 from .direction import Direction
 from .labels import NodeLabels
-from .tpm import ExplicitTPM
+from .tpm import JointTPM
 from .types import ConnectivityMatrix
 from .types import Mechanism
 from .types import NodeIndices
@@ -74,19 +74,19 @@ class Substrate:
     # TODO make tpm also optional when implementing logical substrate definition
     def __init__(
         self,
-        tpm: ExplicitTPM | NDArray[np.float64] | dict[str, Any],
+        tpm: JointTPM | NDArray[np.float64] | dict[str, Any],
         cm: ArrayLike | None = None,
         node_labels: Sequence[str] | NodeLabels | None = None,
         purview_cache: cache.PurviewCache | None = None,
     ) -> None:
         # Initialize _tpm according to argument type.
-        if isinstance(tpm, ExplicitTPM):
+        if isinstance(tpm, JointTPM):
             self._tpm = tpm
         elif isinstance(tpm, np.ndarray):
-            self._tpm = ExplicitTPM(tpm, validate=True)
+            self._tpm = JointTPM(tpm, validate=True)
         elif isinstance(tpm, dict):
             # From JSON.
-            self._tpm = ExplicitTPM(tpm["_tpm"], validate=True)
+            self._tpm = JointTPM(tpm["_tpm"], validate=True)
         else:
             raise TypeError(f"Invalid tpm of type {type(tpm)}.")
 
@@ -98,8 +98,8 @@ class Substrate:
         validate.substrate(self)
 
     @property
-    def tpm(self) -> ExplicitTPM:
-        """pyphi.tpm.ExplicitTPM: The TPM object which contains this
+    def tpm(self) -> JointTPM:
+        """pyphi.tpm.JointTPM: The TPM object which contains this
         substrate's transition probability matrix, in multidimensional
         form.
         """

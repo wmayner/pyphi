@@ -1,16 +1,16 @@
-"""Verify the TPM Protocol contract and ExplicitTPM conformance."""
+"""Verify the TPM Protocol contract and JointTPM conformance."""
 
 from __future__ import annotations
 
 import numpy as np
 
 from pyphi.core.tpm.base import TPM
-from pyphi.core.tpm.explicit import ExplicitTPM
+from pyphi.core.tpm.joint import JointTPM
 
 
 def test_tpm_protocol_has_alphabet_sizes() -> None:
     """The TPM Protocol exposes alphabet_sizes as a property."""
-    tpm = ExplicitTPM(np.zeros((2, 2, 2, 3)))
+    tpm = JointTPM(np.zeros((2, 2, 2, 3)))
     assert isinstance(tpm, TPM)
     assert tpm.alphabet_sizes == (2, 2, 2)
 

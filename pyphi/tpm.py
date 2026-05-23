@@ -166,8 +166,8 @@ class Wrapper(metaclass=ProxyMetaclass):
             raise ValueError(f"Wrapped object must be of type {self.__wraps__}")
 
 
-class ExplicitTPM(data_structures.ArrayLike):
-    """An explicit substrate TPM in multidimensional form."""
+class JointTPM(data_structures.ArrayLike):
+    """A substrate TPM storing the full joint transition distribution."""
 
     _VALUE_ATTR = "_tpm"
 
@@ -359,7 +359,7 @@ class ExplicitTPM(data_structures.ArrayLike):
             )
         return True
 
-    def condition_tpm(self, condition: Mapping[int, int]) -> ExplicitTPM:
+    def condition_tpm(self, condition: Mapping[int, int]) -> JointTPM:
         """Return a TPM conditioned on the given fixed node indices, whose
         states are fixed according to the given state-tuple.
 
@@ -394,14 +394,14 @@ class ExplicitTPM(data_structures.ArrayLike):
         # singleton dimensions.
         return type(self)(tpm)
 
-    def marginalize_out(self, node_indices: Iterable[int]) -> ExplicitTPM:
+    def marginalize_out(self, node_indices: Iterable[int]) -> JointTPM:
         """Marginalize out nodes from this TPM.
 
         Args:
             node_indices (list[int]): The indices of nodes to be marginalized out.
 
         Returns:
-            ExplicitTPM: A TPM with the same number of dimensions, with the nodes
+            JointTPM: A TPM with the same number of dimensions, with the nodes
             marginalized out.
         """
         tpm = self._tpm.sum(tuple(node_indices), keepdims=True) / (
@@ -423,9 +423,7 @@ class ExplicitTPM(data_structures.ArrayLike):
         """
         return self.ndim == 2 and self.shape[0] == self.shape[1]
 
-    def subtpm(
-        self, fixed_nodes: tuple[int, ...], state: tuple[int, ...]
-    ) -> ExplicitTPM:
+    def subtpm(self, fixed_nodes: tuple[int, ...], state: tuple[int, ...]) -> JointTPM:
         """Return the TPM for a subset of nodes, conditioned on other nodes.
 
         Arguments:
@@ -433,13 +431,13 @@ class ExplicitTPM(data_structures.ArrayLike):
             state (tuple[int]): The state of the fixed nodes.
 
         Returns:
-            ExplicitTPM: The TPM of just the system of the free nodes.
+            JointTPM: The TPM of just the system of the free nodes.
 
         Examples:
             >>> from pyphi import examples
             >>> # Get the TPM for nodes only 1 and 2, conditioned on node 0 = OFF
             >>> examples.grid3_substrate().tpm.subtpm((0,), (0,))
-            ExplicitTPM([[[[0.02931223 0.04742587]
+            JointTPM([[[[0.02931223 0.04742587]
                [0.07585818 0.88079708]]
             <BLANKLINE>
               [[0.81757448 0.11920292]
@@ -451,7 +449,7 @@ class ExplicitTPM(data_structures.ArrayLike):
         # TODO test indicing behavior on xr.DataArray
         return conditioned[..., free_nodes]
 
-    def expand_tpm(self) -> ExplicitTPM:
+    def expand_tpm(self) -> JointTPM:
         """Broadcast a state-by-node TPM so that singleton dimensions are expanded
         over the full substrate.
         """
@@ -513,7 +511,7 @@ class ExplicitTPM(data_structures.ArrayLike):
             pass
 
     # TODO(4.0) docstring
-    def permute_nodes(self, permutation: tuple[int, ...]) -> ExplicitTPM:
+    def permute_nodes(self, permutation: tuple[int, ...]) -> JointTPM:
         if not len(permutation) == self.ndim - 1:
             raise ValueError(
                 f"Permutation must have length {self.ndim - 1}, but has length "
@@ -524,7 +522,7 @@ class ExplicitTPM(data_structures.ArrayLike):
             self._tpm.transpose(dimension_permutation)[..., list(permutation)],
         )
 
-    def __getitem__(self, i: int | slice | tuple[Any, ...] | Any) -> ExplicitTPM | Any:
+    def __getitem__(self, i: int | slice | tuple[Any, ...] | Any) -> JointTPM | Any:
         item: Any = self._tpm[i]
         if isinstance(item, type(self._tpm)):
             item = type(self)(item)
@@ -533,7 +531,7 @@ class ExplicitTPM(data_structures.ArrayLike):
     def array_equal(self, o: object) -> bool:
         """Return whether this TPM equals the other object.
 
-        Two TPMs are equal if they are instances of the ExplicitTPM class
+        Two TPMs are equal if they are instances of the JointTPM class
         and their numpy arrays are equal.
         """
         return isinstance(o, type(self)) and np.array_equal(self._tpm, o._tpm)
@@ -542,7 +540,7 @@ class ExplicitTPM(data_structures.ArrayLike):
         return self.__repr__()
 
     def __repr__(self) -> str:
-        return f"ExplicitTPM({self._tpm})"
+        return f"JointTPM({self._tpm})"
 
     def __hash__(self) -> int:
         return self._hash
@@ -571,7 +569,7 @@ def reconstitute_tpm(system: Any) -> NDArray[np.float64]:
 
 
 def simulate(
-    tpm: ExplicitTPM | ArrayLike,
+    tpm: JointTPM | ArrayLike,
     initial_state: int,
     timesteps: int,
     rng: np.random.Generator,
@@ -589,9 +587,9 @@ def simulate(
     Returns:
         list: a list of (decimally-indexed) states.
     """
-    # Ensure tpm is an ExplicitTPM
-    if not isinstance(tpm, ExplicitTPM):
-        tpm = ExplicitTPM(tpm)
+    # Ensure tpm is a JointTPM
+    if not isinstance(tpm, JointTPM):
+        tpm = JointTPM(tpm)
 
     if not tpm.is_state_by_state():
         raise ValueError("TPM must be in state-by-state form.")
@@ -623,7 +621,7 @@ def _new_attribute(
     name: str,
     closures: set[str] | frozenset[str],
     tpm: NDArray[np.float64],
-    cls: type[ExplicitTPM] = ExplicitTPM,
+    cls: type[JointTPM] = JointTPM,
 ) -> object:
     """Helper function to return adequate proxy attributes for TPM arrays.
 
@@ -673,14 +671,14 @@ def _new_attribute(
 
 
 def probability_of_current_state(
-    sbn_tpm: ExplicitTPM,
+    sbn_tpm: JointTPM,
     current_state: tuple[int, ...],
 ) -> NDArray[np.float64]:
     """Return the probability of the current state as a distribution over
     previous states.
 
     Arguments:
-        sbn_tpm (ExplicitTPM): State-by-node TPM.
+        sbn_tpm (JointTPM): State-by-node TPM.
         current_state (tuple[int]): The current state.
     """
     state_probabilities = np.empty(sbn_tpm.shape)
@@ -698,11 +696,11 @@ def probability_of_current_state(
 
 
 def backward_tpm(
-    forward_tpm: ExplicitTPM,
+    forward_tpm: JointTPM,
     current_state: tuple[int, ...],
     system_indices: Iterable[int],
     remove_background: bool = False,
-) -> ExplicitTPM:
+) -> JointTPM:
     """Compute the backward TPM for a given substrate state."""
     all_indices = tuple(range(forward_tpm.number_of_units))
     system_indices = tuple(sorted(system_indices))
@@ -731,4 +729,4 @@ def backward_tpm(
     if remove_background:
         # Remove background units from last dimension of the state-by-node TPM
         backward_tpm = backward_tpm[..., list(system_indices)]
-    return ExplicitTPM(backward_tpm)
+    return JointTPM(backward_tpm)

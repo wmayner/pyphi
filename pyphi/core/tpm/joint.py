@@ -1,6 +1,6 @@
-"""Numpy-backed ExplicitTPM port behind the TPM Protocol.
+"""Numpy-backed JointTPM port behind the TPM Protocol.
 
-Wraps :class:`pyphi.tpm.ExplicitTPM`.
+Wraps :class:`pyphi.tpm.JointTPM`.
 """
 
 from __future__ import annotations
@@ -15,10 +15,10 @@ from numpy.typing import NDArray
 from pyphi import tpm as _legacy_tpm
 
 
-class ExplicitTPM:
+class JointTPM:
     """Numpy-backed transition probability matrix.
 
-    Wraps the legacy :class:`pyphi.tpm.ExplicitTPM` and exposes the
+    Wraps the legacy :class:`pyphi.tpm.JointTPM` and exposes the
     :class:`pyphi.core.tpm.TPM` Protocol surface. Numerical behavior is
     delegated to the legacy implementation; the wrapper exists to give the
     new layering a single, type-checked entry point.
@@ -27,10 +27,10 @@ class ExplicitTPM:
     __slots__ = ("_inner",)
 
     def __init__(self, data: ArrayLike) -> None:
-        if isinstance(data, _legacy_tpm.ExplicitTPM):
+        if isinstance(data, _legacy_tpm.JointTPM):
             self._inner = data
         else:
-            self._inner = _legacy_tpm.ExplicitTPM(data)
+            self._inner = _legacy_tpm.JointTPM(data)
 
     @property
     def shape(self) -> tuple[int, ...]:
@@ -45,11 +45,11 @@ class ExplicitTPM:
         """All nodes are binary in the joint-storage form."""
         return (2,) * self.n_nodes
 
-    def condition(self, fixed: Mapping[int, int]) -> ExplicitTPM:
-        return ExplicitTPM(self._inner.condition_tpm(dict(fixed)))
+    def condition(self, fixed: Mapping[int, int]) -> JointTPM:
+        return JointTPM(self._inner.condition_tpm(dict(fixed)))
 
-    def squeeze(self) -> ExplicitTPM:
-        return ExplicitTPM(self._inner.squeeze())
+    def squeeze(self) -> JointTPM:
+        return JointTPM(self._inner.squeeze())
 
     def to_array(self) -> NDArray[np.float64]:
         return np.asarray(self._inner)
@@ -67,4 +67,4 @@ class ExplicitTPM:
         return getattr(inner, name)
 
     def __repr__(self) -> str:
-        return f"ExplicitTPM(shape={self.shape})"
+        return f"JointTPM(shape={self.shape})"

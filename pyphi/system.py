@@ -154,8 +154,8 @@ class System:
 
     @cached_property
     def _typed_tpm(self) -> Any:
-        """The typed-kernel ``ExplicitTPM`` used by marginalization."""
-        from pyphi.core.tpm.explicit import ExplicitTPM as _TypedTPM
+        """The typed-kernel ``JointTPM`` used by marginalization."""
+        from pyphi.core.tpm.joint import JointTPM as _TypedTPM
 
         legacy_tpm = self.substrate.tpm
         if hasattr(legacy_tpm, "to_array"):

@@ -4,7 +4,7 @@ from pyphi.node import Node
 from pyphi.node import expand_node_tpm
 from pyphi.node import generate_nodes
 from pyphi.system import System
-from pyphi.tpm import ExplicitTPM
+from pyphi.tpm import JointTPM
 
 
 def test_node_init_tpm(s):
@@ -27,7 +27,7 @@ def test_node_init_tpm(s):
                [[1, 0]]],
         ]),
     ]
-    answer = [ExplicitTPM(tpm) for tpm in answer]
+    answer = [JointTPM(tpm) for tpm in answer]
     # fmt: on
     for node in s.nodes:
         assert node.cause_tpm.array_equal(node.effect_tpm)
@@ -64,12 +64,12 @@ def test_str(s):
 
 def test_expand_tpm():
     # fmt: off
-    tpm = ExplicitTPM(
+    tpm = JointTPM(
         np.array([
             [[0, 1]],
         ])
     )
-    answer = ExplicitTPM(
+    answer = JointTPM(
         np.array([
             [[0, 1],
              [0, 1]],
@@ -87,7 +87,7 @@ def test_generate_nodes(s):
     )
 
     # fmt: off
-    node0_tpm = ExplicitTPM(
+    node0_tpm = JointTPM(
         np.array([
             [[[1, 0],
               [0, 1]],
@@ -104,7 +104,7 @@ def test_generate_nodes(s):
     assert nodes[0].label == "A"
 
     # fmt: off
-    node1_tpm = ExplicitTPM(
+    node1_tpm = JointTPM(
         np.array([
             [[[1, 0],
               [0, 1]]],
@@ -119,7 +119,7 @@ def test_generate_nodes(s):
     assert nodes[1].label == "B"
 
     # fmt: off
-    node2_tpm = ExplicitTPM(
+    node2_tpm = JointTPM(
         np.array([
             [[[1, 0]],
              [[0, 1]]],

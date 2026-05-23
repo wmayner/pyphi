@@ -76,10 +76,11 @@ from .conf import config
 from .conf import iit3
 from .conf import iit4_2023
 from .conf import iit4_2026
+from .core.tpm import FactoredTPM as FactoredTPM
 from .direction import Direction
 from .substrate import Substrate
 from .system import System
-from .tpm import ExplicitTPM
+from .tpm import JointTPM
 
 # Skip modules that require optional dependencies
 _skip_import = ["visualize", "graphs"]
@@ -119,7 +120,8 @@ _submodule_names = {name.split(".")[1] for name in _submodules}
 __all__ = [
     "config",
     "Direction",
-    "ExplicitTPM",
+    "FactoredTPM",
+    "JointTPM",
     "Substrate",
     "System",
     "Transition",

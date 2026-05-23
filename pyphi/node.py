@@ -9,7 +9,7 @@ from . import utils
 from .connectivity import get_inputs_from_cm
 from .connectivity import get_outputs_from_cm
 from .labels import NodeLabels
-from .tpm import ExplicitTPM
+from .tpm import JointTPM
 
 
 # TODO extend to nonbinary nodes
@@ -18,16 +18,16 @@ class Node:
     """A node in a system.
 
     Args:
-        cause_tpm (ExplicitTPM): The cause (backward) TPM of the system.
-        effect_tpm (ExplicitTPM): The effect (forward) TPM of the system.
+        cause_tpm (JointTPM): The cause (backward) TPM of the system.
+        effect_tpm (JointTPM): The effect (forward) TPM of the system.
         cm (np.ndarray): The CM of the system.
         index (int): The node's index in the substrate.
         state (int): The state of this node.
         node_labels (|NodeLabels|): Labels for these nodes.
 
     Attributes:
-        cause_tpm (ExplicitTPM),
-        effect_tpm (ExplicitTPM): The node TPM is an array with shape ``(2,)*(n + 1)``,
+        cause_tpm (JointTPM),
+        effect_tpm (JointTPM): The node TPM is an array with shape ``(2,)*(n + 1)``,
             where ``n`` is the size of the |Substrate|. The first ``n``
             dimensions correspond to each node in the system. Dimensions
             corresponding to nodes that provide input to this node are of size
@@ -84,10 +84,10 @@ class Node:
         # the state of the node's inputs at t, and the last dimension is
         # indexed by the node's state at t+1. This representation makes it easy
         # to condition on the node state.
-        self.cause_tpm = ExplicitTPM(
+        self.cause_tpm = JointTPM(
             np.stack([cause_tpm_off, cause_tpm_on], axis=-1),
         )
-        self.effect_tpm = ExplicitTPM(
+        self.effect_tpm = JointTPM(
             np.stack([effect_tpm_off, effect_tpm_on], axis=-1),
         )
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -185,8 +185,8 @@ def generate_nodes(
     """Generate |Node| objects for a system.
 
     Args:
-        cause_tpm (ExplicitTPM): The system's cause (backward) TPM
-        effect_tpm (ExplicitTPM): The system's effect (forward) TPM
+        cause_tpm (JointTPM): The system's cause (backward) TPM
+        effect_tpm (JointTPM): The system's effect (forward) TPM
         cm (np.ndarray): The corresponding CM.
         substrate_state (tuple): The state of the substrate.
         indices (tuple[int]): Indices to generate nodes for.
@@ -212,11 +212,11 @@ def expand_node_tpm(tpm):
     """Broadcast a node TPM over the full substrate.
 
     Args:
-        tpm (ExplicitTPM): The node TPM to expand.
+        tpm (JointTPM): The node TPM to expand.
 
     This is different from broadcasting the TPM of a full system since the last
     dimension (containing the state of the node) contains only the probability
     of *this* node being on, rather than the probabilities for each node.
     """
-    uc = ExplicitTPM(np.ones([2 for node in tpm.shape]))
+    uc = JointTPM(np.ones([2 for node in tpm.shape]))
     return uc * tpm
