@@ -154,13 +154,21 @@ class System:
 
     @cached_property
     def _typed_tpm(self) -> Any:
-        """The typed-kernel ``JointTPM`` used by marginalization."""
-        from pyphi.core.tpm.joint import JointTPM as _TypedTPM
+        """The typed-kernel TPM used by marginalization.
+
+        Returns a FactoredTPM view of the substrate's TPM.
+        """
+        import numpy as np
+
+        from pyphi.core.tpm.factored import FactoredTPM
 
         legacy_tpm = self.substrate.tpm
         if hasattr(legacy_tpm, "to_array"):
-            return _TypedTPM(legacy_tpm.to_array())
-        return _TypedTPM(legacy_tpm)
+            arr = legacy_tpm.to_array()
+        else:
+            arr = np.asarray(legacy_tpm)
+        n = arr.shape[-1]
+        return FactoredTPM.from_joint(arr, alphabet_sizes=(2,) * n)
 
     @cached_property
     def cause_tpm(self) -> Any:
@@ -169,7 +177,7 @@ class System:
             self.state,
             self.node_indices,
         )
-        return typed._inner if hasattr(typed, "_inner") else typed
+        return typed._inner if hasattr(typed, "_inner") else typed  # type: ignore[union-attr]
 
     @cached_property
     def effect_tpm(self) -> Any:
@@ -179,7 +187,7 @@ class System:
             self._typed_tpm,  # type: ignore[arg-type]
             background,
         )
-        return typed._inner if hasattr(typed, "_inner") else typed
+        return typed._inner if hasattr(typed, "_inner") else typed  # type: ignore[union-attr]
 
     @cached_property
     def proper_effect_tpm(self) -> Any:
