@@ -258,7 +258,7 @@ class TransitionSystem:
         external_state = utils.state_of(self.external_indices, self.before_state)
         background = dict(zip(self.external_indices, external_state, strict=False))
         result = _marginalize_effect(typed, background)
-        return result._inner if hasattr(result, "_inner") else result
+        return result._inner if hasattr(result, "_inner") else result  # type: ignore[attr-defined]
 
     @cached_property
     def cm(self) -> Any:
