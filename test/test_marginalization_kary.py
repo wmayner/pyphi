@@ -87,3 +87,18 @@ def test_cause_unreachable_state_raises() -> None:
     factored = FactoredTPM(factors=factors)
     with pytest.raises(StateUnreachableBackwardsError):
         _cause_tpm_factored_kary(factored, state=(1, 1), node_indices=(0, 1))
+
+
+def test_effect_tpm_kary_does_not_raise() -> None:
+    """Effect TPM works for k>2 substrates via FactoredTPM.condition."""
+    from pyphi.core.tpm.marginalization import effect_tpm
+
+    factors = [_random_kary_factor(2, 3, seed=30 + i) for i in range(2)]
+    factored = FactoredTPM(factors=factors)
+    result = effect_tpm(factored, background={1: 1})
+    assert result is not None
+    # Conditioning fixes node 1's input axis to index 1; per-factor shape
+    # collapses that axis to size 1.
+    for i in range(factored.n_nodes):
+        f = result.factor(i)
+        assert f.shape[1] == 1

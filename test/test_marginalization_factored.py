@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 from pyphi.core.tpm.factored import FactoredTPM
 from pyphi.core.tpm.joint import JointTPM
@@ -35,16 +34,27 @@ def test_effect_tpm_factored_dispatch_matches_joint() -> None:
 
     via_joint = effect_tpm(joint, background)
     via_factored = effect_tpm(factored, background)
-    np.testing.assert_allclose(via_factored.to_array(), via_joint.to_array(), atol=1e-10)
+    assert isinstance(via_factored, FactoredTPM)
+    # Extract P(on) slices from the factored result and compare to the SBN
+    # joint result which stores P(node_i=1 | s_t) in the last axis.
+    joint_sbn = via_joint.to_array()  # shape: (1, 2, 2, 3)
+    for i in range(factored.n_nodes):
+        p_on_factored = via_factored.factor(i)[..., 1]  # shape: (1, 2, 2)
+        np.testing.assert_allclose(
+            p_on_factored,
+            joint_sbn[..., i],
+            atol=1e-10,
+            err_msg=f"factor {i} P(on) mismatch",
+        )
 
 
-def test_effect_tpm_kary_raises() -> None:
-    """k>2 FactoredTPM marginalization is not supported in the current release."""
+def test_effect_tpm_kary_factored_returns_factored_tpm() -> None:
+    """effect_tpm on a k>2 FactoredTPM returns a FactoredTPM."""
     f0 = np.full((3, 3, 3), 1.0 / 3.0)
     f1 = np.full((3, 3, 3), 1.0 / 3.0)
     factored = FactoredTPM(factors=[f0, f1], alphabet_sizes=(3, 3))
-    with pytest.raises(NotImplementedError, match="binary"):
-        effect_tpm(factored, background={0: 0})
+    result = effect_tpm(factored, background={0: 0})
+    assert isinstance(result, FactoredTPM)
 
 
 def test_cause_tpm_returns_cause_posterior_for_jointtpm_input() -> None:

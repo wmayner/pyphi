@@ -168,12 +168,21 @@ class System:
 
     @cached_property
     def effect_tpm(self) -> Any:
+        from .core.tpm.factored import FactoredTPM
+        from .core.tpm.joint import JointTPM
+
         external_state = utils.state_of(self.external_indices, self.state)
         background = dict(zip(self.external_indices, external_state, strict=False))
         typed = _marginalize_effect(
             self._typed_tpm,  # type: ignore[arg-type]
             background,
         )
+        if isinstance(typed, FactoredTPM) and all(a == 2 for a in typed.alphabet_sizes):
+            import numpy as np
+
+            n = typed.n_nodes
+            sbn = np.stack([typed.factor(i)[..., 1] for i in range(n)], axis=-1)
+            return JointTPM(sbn)._inner
         return typed._inner if hasattr(typed, "_inner") else typed  # type: ignore[union-attr]
 
     @cached_property

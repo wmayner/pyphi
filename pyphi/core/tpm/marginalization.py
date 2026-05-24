@@ -152,19 +152,6 @@ def _cause_tpm_factored_kary(
 def _effect_tpm_factored(
     factored: FactoredTPM,
     background: Mapping[int, int],
-) -> JointTPM:
-    """Condition a factored TPM on background nodes.
-
-    Converts the factored form to the binary state-by-node representation,
-    then applies conditioning via the joint path.
-    """
-    if not all(a == 2 for a in factored.alphabet_sizes):
-        raise NotImplementedError(
-            f"FactoredTPM marginalization requires binary alphabets; "
-            f"got alphabet_sizes={factored.alphabet_sizes}. "
-            f"Multi-valued substrate analysis is the next milestone."
-        )
-    n = factored.n_nodes
-    sbn = np.stack([factored.factor(i)[..., 1] for i in range(n)], axis=-1)
-    joint = JointTPM(sbn)
-    return joint.condition(background)
+) -> FactoredTPM:
+    """Condition a factored TPM on background nodes."""
+    return factored.condition(background)
