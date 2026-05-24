@@ -911,6 +911,39 @@ What did *not* land (deferred):
   `CachePolicy` Protocol is the integration target for any future distributed
   cache backend.
 
+**P9.5. Math-fingerprint cache keys (cross-label cache reuse)**
+
+The repertoire cache in `pyphi/core/repertoire_algebra._memoize` keys
+on `(id(system), args)`. Two Systems whose substrates differ only by
+labels (`state_space` or `node_labels`) produce mathematically identical
+repertoires / SIA / CES, but currently get distinct cache entries —
+wasted recomputation. Surfaced during P12b design discussion.
+
+Cleanest fix: separate the cache key from object identity. Add a
+`System._math_fingerprint` cached property (content-hash of factor bytes
++ cm + state-as-indices + partition content hash, deliberately omitting
+labels). `_memoize` keys on the fingerprint instead of `id`. Dict
+semantics on System / Substrate stay instance-based (preserves
+user-facing label distinction); only the cache changes.
+
+Same idea applies to other id-based caches in pyphi (`Network.purview_cache`
+etc.) — needs an audit during this project. The deferred-from-P9 item
+"`(CandidateSystem, mechanism, purview)` content-hash key scheme" is
+this project's antecedent.
+
+- *Why here:* Builds on P9's CachePolicy Protocol foundation. Independent
+  of other in-flight projects.
+- *Files:* `pyphi/core/repertoire_algebra.py`, `pyphi/system.py`, possibly
+  `pyphi/network.py` (purview cache); test additions for fingerprint
+  correctness and cross-label cache reuse.
+- *Risk:* Low. Math-fingerprint correctness verified by Hypothesis tests
+  asserting `equivalent_substrates → equal_fingerprint` and the converse
+  for distinguishable substrates.
+- *Leverage:* Eliminates redundant computation across label-distinct
+  Systems. Particularly valuable when users explore the same substrate
+  under different labelings (debugging, paper-reproduction, etc.).
+- *Style:* ~1-2 days plus the audit. One focused PR.
+
 ### Phase E — Infrastructure refresh
 
 **P10. Config split with result-object snapshotting — landed (2026-05-08)**
@@ -1947,6 +1980,36 @@ PR #105 has done substantial work here — ~1918 additions with tests passing.
   can be parameterized over alphabet size.
 - *Leverage:* Unlocks Gómez-style multivalued research; retires ~12 TODOs.
 
+**P12c. xarray state_space coord labels**
+
+The xarray backend for `FactoredTPM` (P12a opt-in) uses generic
+``"in_0", "in_1", ..., "out_i"`` dim names. After P12b adds `state_space`
+as TPM-level metadata, the xarray backend could carry per-node state
+labels as named coords on the underlying `xr.DataArray`, enabling
+xarray-native indexing like ``factor.sel(in_0="LOW", in_1="MID")``.
+
+Scope:
+
+- ``_XarrayBackend.__init__`` attaches ``state_space[j]`` as the coord
+  values for dim ``f"in_{j}"``, and ``state_space[i]`` for the output
+  dim ``f"out_{i}"``.
+- Optionally extend FactoredTPM with a ``sel(...)`` method that
+  delegates to the backend's xarray-native indexing (when xarray backend
+  is active). ndarray backend would raise or fall back to integer
+  indexing.
+
+Decoupled from P12b. Whether this enhancement earns its keep depends on
+the xarray-backend default decision (P12a's benchmark selected ndarray;
+xarray is opt-in). Revisit if/when xarray becomes the default backend.
+
+- *Why here:* Strictly an enhancement to the xarray backend; not
+  blocking any user-facing feature.
+- *Files:* ``pyphi/core/tpm/_factored_backends_xarray.py``, possibly
+  ``pyphi/core/tpm/factored.py`` for a delegating ``.sel()`` method.
+- *Risk:* Low — additive; doesn't affect ndarray-backend behavior.
+- *Leverage:* Low absolute, but high for users on the xarray opt-in path.
+- *Style:* ~1 day; gated on actual user demand for xarray-native indexing.
+
 **P13. Zaeemzadeh upper bounds for pruning**
 
 Implement the Zaeemzadeh & Tononi 2024 upper bounds on Φ. Use them in `find_mip` to
@@ -2635,18 +2698,4 @@ to ease transition:
   benefits from running after P12b lands because P12b touches the
   surface already.
 
-- **Math-fingerprint cache keys (cross-label cache reuse).** The
-  repertoire cache in ``pyphi/core/repertoire_algebra._memoize`` keys
-  on ``(id(system), args)``. Two Systems whose substrates differ only
-  by labels (``state_space`` or ``node_labels``) produce mathematically
-  identical repertoires / SIA / CES, but currently get distinct cache
-  entries — wasted recomputation. Cleanest fix: separate the cache key
-  from object identity. Add a ``System._math_fingerprint`` (cached
-  property; content-hash of factor bytes + cm + state-as-indices +
-  partition hash, deliberately omitting labels). ``_memoize`` keys on
-  the fingerprint instead of ``id``. Same idea applies to other
-  id-based caches in pyphi (``Network.purview_cache`` etc.) — needs an
-  audit. Dict semantics on System / Substrate stay instance-based
-  (preserves user-facing label distinction); only the cache changes.
-  ~1-2 days plus the audit. Independent project; not blocked by other
-  in-flight work.
+(Math-fingerprint cache keys was promoted to **P9.5** above.)
