@@ -76,6 +76,7 @@ from .conf import config
 from .conf import iit3
 from .conf import iit4_2023
 from .conf import iit4_2026
+from .core.tpm import CausePosterior as CausePosterior
 from .core.tpm import FactoredTPM as FactoredTPM
 from .core.tpm import JointDistribution as JointDistribution
 from .direction import Direction
@@ -119,6 +120,7 @@ _submodules = _import_submodules(__name__)
 # Populate __all__ with public modules of depth 1
 _submodule_names = {name.split(".")[1] for name in _submodules}
 __all__ = [
+    "CausePosterior",
     "config",
     "Direction",
     "FactoredTPM",
