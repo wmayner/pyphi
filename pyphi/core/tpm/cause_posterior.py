@@ -18,6 +18,9 @@ probability slice used by downstream consumers.
 
 from __future__ import annotations
 
+import numpy as np
+from numpy.typing import NDArray
+
 from .joint_distribution import JointDistribution
 
 
@@ -27,6 +30,20 @@ class CausePosterior(JointDistribution):
     Inherits all storage, marginalization, and array machinery from
     :class:`JointDistribution`.
     """
+
+    def factor(self, i: int) -> NDArray[np.float64]:
+        """Per-output-unit factor of shape ``(*alphabet_sizes, 2)``.
+
+        Constructs ``[1 - x, x]`` along a new trailing axis from the
+        SBN-form ``P(node_i = 1 | s_t)`` slice at output index ``i``.
+
+        Binary-only: the SBN storage encodes only firing probability and
+        cannot represent k-ary alphabets.
+        """
+        arr = np.asarray(self._tpm)
+        on = arr[..., i]
+        off = 1.0 - on
+        return np.stack([off, on], axis=-1)
 
     def __repr__(self) -> str:
         return f"CausePosterior({self._tpm!r})"
