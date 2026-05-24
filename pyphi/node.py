@@ -60,7 +60,14 @@ class Node:
         # but its last dimension will be gone, since now there's just a single
         # scalar value (this node's state) rather than a state-vector for all
         # the substrate nodes.
-        cause_tpm_on = cause_tpm[..., self.index]
+
+        # Cause: use the per-unit factor accessor to obtain shape
+        # (*alphabet_sizes, 2) with [P(off), P(on)] along the trailing axis,
+        # then marginalize out substrate nodes that are not inputs to this node.
+        cause_factor = JointTPM(cause_tpm.factor(self.index))
+        cause_non_inputs = set(cause_factor.tpm_indices()) - self._inputs
+        self.cause_tpm = cause_factor.marginalize_out(cause_non_inputs)
+
         effect_tpm_on = effect_tpm[..., self.index]
 
         # TODO extend to nonbinary nodes
@@ -69,24 +76,17 @@ class Node:
         # the system's TPM.
 
         # TODO use names rather than indices
-        cause_non_inputs = set(cause_tpm.tpm_indices()) - self._inputs
-        cause_tpm_on = cause_tpm_on.marginalize_out(cause_non_inputs).tpm
-
         effect_non_inputs = set(effect_tpm.tpm_indices()) - self._inputs
         effect_tpm_on = effect_tpm_on.marginalize_out(effect_non_inputs).tpm
 
         # Get the TPM that gives the probability of the node being off, rather
         # than on.
-        cause_tpm_off = 1 - cause_tpm_on
         effect_tpm_off = 1 - effect_tpm_on
 
         # Combine the on- and off-TPM so that the first dimension is indexed by
         # the state of the node's inputs at t, and the last dimension is
         # indexed by the node's state at t+1. This representation makes it easy
         # to condition on the node state.
-        self.cause_tpm = JointTPM(
-            np.stack([cause_tpm_off, cause_tpm_on], axis=-1),
-        )
         self.effect_tpm = JointTPM(
             np.stack([effect_tpm_off, effect_tpm_on], axis=-1),
         )
