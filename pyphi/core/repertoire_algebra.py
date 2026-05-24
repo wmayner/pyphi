@@ -123,8 +123,20 @@ def clear_caches(cs: Any | None = None) -> None:
 def _single_node_cause_repertoire(
     cs: Any, mechanism_node_index: int, purview_set: frozenset[int]
 ) -> Any:
-    """Single-node cause repertoire — used as a building block for full
-    cause repertoires (legacy ``System._single_node_cause_repertoire``).
+    """Single-node cause repertoire — building block for full cause
+    repertoires.
+
+    Indexes the mechanism node's per-unit cause factor at
+    ``mechanism_node.cause_tpm[..., mechanism_node.state]`` to extract
+    the slice corresponding to the node's observed state, then
+    marginalizes out the node's inputs that are not in the purview.
+    The returned array is the unnormalized per-node contribution;
+    normalization is applied in :func:`_cause_repertoire_inner` after
+    the per-node contributions are multiplied.
+
+    Alphabet-generic: ``mechanism_node.state`` is an integer index into
+    the trailing per-node alphabet axis, so the indexing works
+    uniformly for any per-node alphabet size.
     """
     mechanism_node = cs._index2node[mechanism_node_index]
     tpm = mechanism_node.cause_tpm[..., mechanism_node.state]
