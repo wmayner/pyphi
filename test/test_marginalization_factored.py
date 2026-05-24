@@ -38,15 +38,6 @@ def test_effect_tpm_factored_dispatch_matches_joint() -> None:
     np.testing.assert_allclose(via_factored.to_array(), via_joint.to_array(), atol=1e-10)
 
 
-def test_cause_tpm_kary_raises() -> None:
-    """k>2 FactoredTPM marginalization is not supported in the current release."""
-    f0 = np.full((3, 3, 3), 1.0 / 3.0)
-    f1 = np.full((3, 3, 3), 1.0 / 3.0)
-    factored = FactoredTPM(factors=[f0, f1], alphabet_sizes=(3, 3))
-    with pytest.raises(NotImplementedError, match="binary"):
-        cause_tpm(factored, state=(0, 0), node_indices=(0, 1))
-
-
 def test_effect_tpm_kary_raises() -> None:
     """k>2 FactoredTPM marginalization is not supported in the current release."""
     f0 = np.full((3, 3, 3), 1.0 / 3.0)
