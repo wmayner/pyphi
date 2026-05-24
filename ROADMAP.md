@@ -2634,3 +2634,19 @@ to ease transition:
   delete ``pyphi/tpm.py``, update importers. Mechanical refactor;
   benefits from running after P12b lands because P12b touches the
   surface already.
+
+- **Math-fingerprint cache keys (cross-label cache reuse).** The
+  repertoire cache in ``pyphi/core/repertoire_algebra._memoize`` keys
+  on ``(id(system), args)``. Two Systems whose substrates differ only
+  by labels (``state_space`` or ``node_labels``) produce mathematically
+  identical repertoires / SIA / CES, but currently get distinct cache
+  entries — wasted recomputation. Cleanest fix: separate the cache key
+  from object identity. Add a ``System._math_fingerprint`` (cached
+  property; content-hash of factor bytes + cm + state-as-indices +
+  partition hash, deliberately omitting labels). ``_memoize`` keys on
+  the fingerprint instead of ``id``. Same idea applies to other
+  id-based caches in pyphi (``Network.purview_cache`` etc.) — needs an
+  audit. Dict semantics on System / Substrate stay instance-based
+  (preserves user-facing label distinction); only the cache changes.
+  ~1-2 days plus the audit. Independent project; not blocked by other
+  in-flight work.
