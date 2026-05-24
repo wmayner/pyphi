@@ -3,8 +3,6 @@
 
 from __future__ import annotations
 
-import contextlib
-import math
 from collections.abc import Iterable
 from collections.abc import Mapping
 from itertools import chain
@@ -15,11 +13,12 @@ from numpy.typing import ArrayLike
 from numpy.typing import NDArray
 
 from . import convert
-from . import data_structures
 from . import exceptions
 from .conf import config
 from .constants import OFF
 from .constants import ON
+from .core.tpm.joint_distribution import JointDistribution
+from .core.tpm.joint_distribution import _new_attribute
 from .data_structures import FrozenMap
 from .utils import all_states
 from .utils import np_hash
@@ -120,7 +119,7 @@ class ProxyMetaclass(type):
             """
 
             def proxy(self):
-                return _new_attribute(name, __closures__, self._tpm)
+                return _new_attribute(name, __closures__, self._tpm, type(self))
 
             return proxy
 
@@ -166,77 +165,12 @@ class Wrapper(metaclass=ProxyMetaclass):
             raise ValueError(f"Wrapped object must be of type {self.__wraps__}")
 
 
-class JointTPM(data_structures.ArrayLike):
+class JointTPM(JointDistribution):
     """A substrate TPM storing the full joint transition distribution."""
-
-    _VALUE_ATTR = "_tpm"
-
-    # TODO(tpm) remove pending ArrayLike refactor
-    __wraps__ = np.ndarray
-
-    # TODO(tpm) remove pending ArrayLike refactor
-    # Casting semantics: values belonging to our custom TPM class should
-    # remain closed under the following methods:
-
-    # TODO attributes data, real and imag return arrays that should also be
-    # cast, even though they are not callable.
-    __closures__ = frozenset(
-        {
-            "argpartition",
-            "astype",
-            "byteswap",
-            "choose",
-            "clip",
-            "compress",
-            "conj",
-            "conjugate",
-            "copy",
-            "cumprod",
-            "cumsum",
-            "diagonal",
-            "dot",
-            "fill",
-            "flatten",
-            "getfield",
-            "item",
-            "itemset",
-            "max",
-            "mean",
-            "min",
-            "newbyteorder",
-            "partition",
-            "prod",
-            "ptp",
-            "put",
-            "ravel",
-            "repeat",
-            "reshape",
-            "resize",
-            "round",
-            "setfield",
-            "sort",
-            "squeeze",
-            "std",
-            "sum",
-            "swapaxes",
-            "take",
-            "transpose",
-            "var",
-            "view",
-        }
-    )
-
-    def __getattr__(self, name: str) -> Any:
-        if name in self.__closures__:
-            return _new_attribute(name, set(self.__closures__), self._tpm)
-        return getattr(self.__getattribute__(self._VALUE_ATTR), name)
-
-    def __len__(self) -> int:
-        return len(self.__getattribute__(self._VALUE_ATTR))
 
     def __init__(self, tpm: ArrayLike, validate: bool = False) -> None:
         self._tpm = np.array(tpm)
-        super().__init__()
+        super(JointDistribution, self).__init__()
 
         if validate:
             self.validate(
@@ -247,28 +181,11 @@ class JointTPM(data_structures.ArrayLike):
         self._tpm = np_immutable(self._tpm)
         self._hash = np_hash(self._tpm)
 
-    @property
-    def tpm(self) -> NDArray[np.float64]:
-        """Return the underlying `tpm` object."""
-        return self._tpm
-
     def validate(self, check_independence: bool = True) -> bool:
         """Validate this TPM."""
         return self._validate_probabilities() and self._validate_shape(
             check_independence
         )
-
-    def _validate_probabilities(self) -> bool:
-        """Check that the probabilities in a TPM are valid."""
-        if (self._tpm < 0.0).any() or (self._tpm > 1.0).any():
-            raise ValueError(
-                "Invalid TPM: probabilities must be in the interval [0, 1]."
-            )
-        if self.is_state_by_state() and not np.all(
-            np.isclose(np.sum(self._tpm, axis=1), 1.0, atol=1e-15)
-        ):
-            raise ValueError("Invalid TPM: probabilities must sum to 1.")
-        return True
 
     def _validate_shape(self, check_independence: bool = True) -> bool:
         """Validate this TPM's shape.
@@ -314,30 +231,6 @@ class JointTPM(data_structures.ArrayLike):
                 f"{see_tpm_docs}"
             )
         return True
-
-    @property
-    def number_of_units(self) -> int:
-        if self.is_state_by_state():
-            # Assumes binary nodes
-            return int(math.log2(self._tpm.shape[1]))
-        return self._tpm.shape[-1]
-
-    def to_multidimensional_state_by_node(self) -> NDArray[np.float64]:
-        """Return the current TPM re-represented in multidimensional
-        state-by-node form.
-
-        See the PyPhi documentation on :ref:`tpm-conventions` for more
-        information.
-
-        Returns:
-            np.ndarray: The TPM in multidimensional state-by-node format.
-        """
-        if self.is_state_by_state():
-            tpm = convert.state_by_state2state_by_node(self._tpm)
-        else:
-            tpm = convert.to_multidimensional(self._tpm)
-
-        return tpm
 
     def conditionally_independent(self) -> bool:
         """Validate that the TPM is conditionally independent."""
@@ -394,35 +287,6 @@ class JointTPM(data_structures.ArrayLike):
         # singleton dimensions.
         return type(self)(tpm)
 
-    def marginalize_out(self, node_indices: Iterable[int]) -> JointTPM:
-        """Marginalize out nodes from this TPM.
-
-        Args:
-            node_indices (list[int]): The indices of nodes to be marginalized out.
-
-        Returns:
-            JointTPM: A TPM with the same number of dimensions, with the nodes
-            marginalized out.
-        """
-        tpm = self._tpm.sum(tuple(node_indices), keepdims=True) / (
-            np.array(self.shape)[list(node_indices)].prod()
-        )
-        # Return new TPM object of the same type as self.
-        # self._tpm has already been validated and converted to multidimensional
-        # state-by-node form. Further validation would be problematic for
-        # singleton dimensions.
-        return type(self)(tpm)
-
-    def is_deterministic(self) -> bool:
-        """Return whether the TPM is deterministic."""
-        return bool(np.all(np.logical_or(self._tpm == 1, self._tpm == 0)))
-
-    def is_state_by_state(self) -> bool:
-        """Return ``True`` if ``tpm`` is in state-by-state form, otherwise
-        ``False``.
-        """
-        return self.ndim == 2 and self.shape[0] == self.shape[1]
-
     def subtpm(self, fixed_nodes: tuple[int, ...], state: tuple[int, ...]) -> JointTPM:
         """Return the TPM for a subset of nodes, conditioned on other nodes.
 
@@ -447,7 +311,8 @@ class JointTPM(data_structures.ArrayLike):
         condition: Mapping[int, int] = FrozenMap(zip(fixed_nodes, state, strict=False))
         conditioned = self.condition_tpm(condition)
         # TODO test indicing behavior on xr.DataArray
-        return conditioned[..., free_nodes]
+        result = conditioned[..., free_nodes]
+        return result  # type: ignore[return-value]
 
     def expand_tpm(self) -> JointTPM:
         """Broadcast a state-by-node TPM so that singleton dimensions are expanded
@@ -499,51 +364,6 @@ class JointTPM(data_structures.ArrayLike):
         for a, b in np.ndindex(cm.shape):
             cm[a][b] = self.infer_edge(a, b, all_contexts)
         return cm
-
-    def tpm_indices(self) -> tuple[int, ...]:
-        """Return the indices of nodes in the TPM."""
-        # TODO This currently assumes binary elements (2)
-        return tuple(np.where(np.array(self.shape[:-1]) == 2)[0])
-
-    def print(self) -> None:
-        tpm = convert.to_multidimensional(self._tpm)
-        for _state in all_states(tpm.shape[-1]):
-            pass
-
-    # TODO(4.0) docstring
-    def permute_nodes(self, permutation: tuple[int, ...]) -> JointTPM:
-        if not len(permutation) == self.ndim - 1:
-            raise ValueError(
-                f"Permutation must have length {self.ndim - 1}, but has length "
-                f"{len(permutation)}."
-            )
-        dimension_permutation = (*tuple(permutation), self.ndim - 1)
-        return type(self)(
-            self._tpm.transpose(dimension_permutation)[..., list(permutation)],
-        )
-
-    def __getitem__(self, i: int | slice | tuple[Any, ...] | Any) -> JointTPM | Any:
-        item: Any = self._tpm[i]
-        if isinstance(item, type(self._tpm)):
-            item = type(self)(item)
-        return item
-
-    def array_equal(self, o: object) -> bool:
-        """Return whether this TPM equals the other object.
-
-        Two TPMs are equal if they are instances of the JointTPM class
-        and their numpy arrays are equal.
-        """
-        return isinstance(o, type(self)) and np.array_equal(self._tpm, o._tpm)
-
-    def __str__(self) -> str:
-        return self.__repr__()
-
-    def __repr__(self) -> str:
-        return f"JointTPM({self._tpm})"
-
-    def __hash__(self) -> int:
-        return self._hash
 
 
 def reconstitute_tpm(system: Any) -> NDArray[np.float64]:
@@ -614,60 +434,6 @@ def simulate(
             )
         )
     return path
-
-
-# TODO(tpm) remove pending ArrayLike refactor
-def _new_attribute(
-    name: str,
-    closures: set[str] | frozenset[str],
-    tpm: NDArray[np.float64],
-    cls: type[JointTPM] = JointTPM,
-) -> object:
-    """Helper function to return adequate proxy attributes for TPM arrays.
-
-    Args:
-        name (str): The name of the attribute to  proxy.
-        closures (set[str]): Attribute names which should return a PyPhi TPM.
-        tpm (np.ndarray): The array to introspect for attributes.
-        cls (type): The TPM type that the proxied attribute should return.
-
-    Returns:
-        object: A proxy to the underlying array's attribute, whether unmodified
-            or decorated with casting to `cls`.
-    """
-    attribute = getattr(tpm, name)
-
-    if name not in closures:
-        return attribute
-
-    def overriding_attribute(*args, **kwargs):
-        # If second operand is a custom TPM object, access its array.
-        if args and isinstance(args[0], cls):
-            args = list(args)
-            args[0] = args[0]._tpm
-            args = tuple(args)
-
-        # Evaluate n-ary operator with self and rest of operands.
-        result = attribute(*args, **kwargs)
-
-        # Test type of result and cast (or not) accordingly.
-
-        # Array.
-        if isinstance(result, cls.__wraps__):
-            return cls(result)
-
-        # Multivalued "functions" returning a tuple (__divmod__()).
-        if isinstance(result, tuple):
-            return (cls(r) for r in result)
-
-        # Scalars (e.g. sum(), max()), etc.
-        return result
-
-    with contextlib.suppress(AttributeError):
-        # TODO search and replace return type.
-        overriding_attribute.__doc__ = attribute.__doc__
-
-    return overriding_attribute
 
 
 def probability_of_current_state(

@@ -77,6 +77,7 @@ from .conf import iit3
 from .conf import iit4_2023
 from .conf import iit4_2026
 from .core.tpm import FactoredTPM as FactoredTPM
+from .core.tpm import JointDistribution as JointDistribution
 from .direction import Direction
 from .substrate import Substrate
 from .system import System
@@ -121,6 +122,7 @@ __all__ = [
     "config",
     "Direction",
     "FactoredTPM",
+    "JointDistribution",
     "JointTPM",
     "Substrate",
     "System",
