@@ -1,0 +1,1 @@
+``cause_tpm`` and ``_cause_tpm_factored`` now return ``CausePosterior`` instead of ``JointTPM``. Both inherit from ``JointDistribution``; code using ``marginalize_out`` or array access continues to work via Liskov, but ``isinstance(result, JointTPM)`` on cause-side returns is now ``False``.

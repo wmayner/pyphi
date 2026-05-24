@@ -15,6 +15,7 @@ import numpy as np
 from pyphi.tpm import backward_tpm as _legacy_backward_tpm
 
 from .base import TPM
+from .cause_posterior import CausePosterior
 from .factored import FactoredTPM
 from .joint import JointTPM
 
@@ -23,15 +24,15 @@ def cause_tpm(
     tpm: TPM,
     state: tuple[int, ...],
     node_indices: tuple[int, ...],
-) -> TPM:
+) -> CausePosterior:
     """Backward TPM — IIT 4.0 Eq. 3."""
     if isinstance(tpm, FactoredTPM):
         return _cause_tpm_factored(tpm, state, node_indices)
     if isinstance(tpm, JointTPM):
-        return JointTPM(_legacy_backward_tpm(tpm._inner, state, node_indices))
+        return CausePosterior(_legacy_backward_tpm(tpm._inner, state, node_indices))
     arr = tpm.to_array()
     legacy = JointTPM(arr)
-    return JointTPM(_legacy_backward_tpm(legacy._inner, state, node_indices))
+    return CausePosterior(_legacy_backward_tpm(legacy._inner, state, node_indices))
 
 
 def effect_tpm(
@@ -48,7 +49,7 @@ def _cause_tpm_factored(
     factored: FactoredTPM,
     state: tuple[int, ...],
     node_indices: tuple[int, ...],
-) -> JointTPM:
+) -> CausePosterior:
     """Compute the cause TPM from a factored TPM.
 
     Converts the factored form to the binary state-by-node representation,
@@ -63,7 +64,7 @@ def _cause_tpm_factored(
     n = factored.n_nodes
     sbn = np.stack([factored.factor(i)[..., 1] for i in range(n)], axis=-1)
     joint = JointTPM(sbn)
-    return JointTPM(_legacy_backward_tpm(joint._inner, state, node_indices))
+    return CausePosterior(_legacy_backward_tpm(joint._inner, state, node_indices))
 
 
 def _effect_tpm_factored(

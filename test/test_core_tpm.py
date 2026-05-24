@@ -64,7 +64,7 @@ def test_cause_tpm_parity() -> None:
     joint = substrate.joint_tpm()
     new_tpm = cause_tpm(JointTPM(joint), state, node_indices)
     old_tpm = legacy_backward_tpm(_LegacyJointTPM(joint), state, node_indices)
-    np.testing.assert_array_equal(new_tpm.to_array(), np.asarray(old_tpm))
+    np.testing.assert_array_equal(np.asarray(new_tpm), np.asarray(old_tpm))
 
 
 def test_effect_tpm_parity() -> None:

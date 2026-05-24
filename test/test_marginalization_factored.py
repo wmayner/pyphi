@@ -21,7 +21,9 @@ def test_cause_tpm_factored_dispatch_matches_joint() -> None:
 
     via_joint = cause_tpm(joint, state, node_indices)
     via_factored = cause_tpm(factored, state, node_indices)
-    np.testing.assert_allclose(via_factored.to_array(), via_joint.to_array(), atol=1e-10)
+    np.testing.assert_allclose(
+        np.asarray(via_factored), np.asarray(via_joint), atol=1e-10
+    )
 
 
 def test_effect_tpm_factored_dispatch_matches_joint() -> None:
@@ -52,3 +54,25 @@ def test_effect_tpm_kary_raises() -> None:
     factored = FactoredTPM(factors=[f0, f1], alphabet_sizes=(3, 3))
     with pytest.raises(NotImplementedError, match="binary"):
         effect_tpm(factored, background={0: 0})
+
+
+def test_cause_tpm_returns_cause_posterior_for_jointtpm_input() -> None:
+    """cause_tpm wraps the backward_tpm result in CausePosterior for JointTPM input."""
+    from pyphi.core.tpm.cause_posterior import CausePosterior
+
+    rng = np.random.default_rng(2026)
+    joint_arr = rng.uniform(size=(2, 2, 2, 3))
+    joint = JointTPM(joint_arr)
+    result = cause_tpm(joint, state=(0, 1, 0), node_indices=(0, 1, 2))
+    assert isinstance(result, CausePosterior)
+
+
+def test_cause_tpm_returns_cause_posterior_for_factored_input() -> None:
+    """cause_tpm wraps the backward_tpm result in CausePosterior for FactoredTPM input."""
+    from pyphi.core.tpm.cause_posterior import CausePosterior
+
+    rng = np.random.default_rng(2026)
+    joint_arr = rng.uniform(size=(2, 2, 2, 3))
+    factored = FactoredTPM.from_joint(joint_arr, alphabet_sizes=(2, 2, 2))
+    result = cause_tpm(factored, state=(0, 1, 0), node_indices=(0, 1, 2))
+    assert isinstance(result, CausePosterior)

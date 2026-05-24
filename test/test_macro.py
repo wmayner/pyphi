@@ -300,7 +300,9 @@ def test_rebuild_system_tpm(s):
 
     cause_node_tpms = [node.cause_tpm_on for node in s.nodes]
     effect_node_tpms = [node.effect_tpm_on for node in s.nodes]
-    assert macro.rebuild_system_tpm(cause_node_tpms).array_equal(s.cause_tpm)
+    assert np.array_equal(
+        np.asarray(macro.rebuild_system_tpm(cause_node_tpms)), np.asarray(s.cause_tpm)
+    )
     assert macro.rebuild_system_tpm(effect_node_tpms).array_equal(s.effect_tpm)
 
 
