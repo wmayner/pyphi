@@ -88,16 +88,6 @@ assumption was false; four goldens were locked to buggy values for
 six days before the deferred experiment finally ran in a downstream
 investigation and exposed the bug.
 
-### Maintenance Status
-
-**The project has not been carefully maintained recently and needs refactoring/testing work.**
-
-Current issues (see [TODO.md](TODO.md)):
-- Incomplete type hints
-- API documentation needs updating
-- Some code organization needs improvement
-- Test coverage could be better (currently ~460 test functions, ~8,300 lines of tests)
-
 **Approach changes conservatively**:
 - Read existing code thoroughly before modifying
 - Prioritize refactoring and testing over new features
@@ -108,7 +98,7 @@ Current issues (see [TODO.md](TODO.md)):
 
 ## Architecture & Organization
 
-### Core Abstractions
+### Core Abstractions (pre v2.0 refactoring)
 
 The library is built around these primary objects:
 
@@ -127,7 +117,7 @@ The library is built around these primary objects:
    - Can be deterministic or probabilistic
    - Multiple representations: state-by-node, state-by-state
 
-### Module Organization
+### Module Organization (pre v2.0 refactoring)
 
 ```
 pyphi/
@@ -158,7 +148,7 @@ pyphi/
 └── ...
 ```
 
-### IIT Version Switching
+### IIT Version Switching (pre v2.0 refactoring)
 
 The library supports both IIT 3.0 and IIT 4.0:
 
@@ -261,11 +251,6 @@ uv venv
 # Install development dependencies
 uv pip install -e ".[dev,parallel,visualize,graphs,emd,caching]"
 
-# Run tests
-make test
-# or
-uv run pytest test/
-
 # Run type checking
 uv run pyright pyphi
 
@@ -297,7 +282,7 @@ uv run python -c "import pyphi; print(pyphi.config)"
 
 ## Python version
 
-**We will support only Python 3.12+ for this version.** Therefore, when writing code, do not attempt to maintain backward compatibility with previous Python versions.
+**We will support only Python 3.12+ for this version.** Therefore, when writing code, **do not attempt to maintain backward compatibility with previous Python versions.**
 
 ---
 
@@ -306,7 +291,9 @@ uv run python -c "import pyphi; print(pyphi.config)"
 ### Test Organization
 
 ```
-test/
+pyphi/                       # Doctests
+docs/                        # Doctests
+test/                        # Unit, regression, and e2e tests
 ├── conftest.py              # Pytest configuration and fixtures
 ├── example_networks.py      # Reusable network definitions
 ├── test_*.py                # ~460 test functions across ~30 files
@@ -323,6 +310,7 @@ test/
 2. **Integration Tests**: Test complete computations (e.g., full Φ calculation)
 3. **Property-Based Tests**: Use Hypothesis for invariant testing
 4. **Regression Tests**: Ensure results match expected values from papers
+5. **Doctests**: Ensure documentation is current and documented behavior is as expected
 
 ### Example Networks
 
@@ -339,8 +327,11 @@ network = examples.fig1a()  # From IIT 3.0 paper
 ### Running Tests
 
 ```bash
-# All tests
+# All tests, including doctests
 uv run pytest
+
+# Test suite
+uv run pytest test/
 
 # Specific test file
 uv run pytest test/test_subsystem.py
@@ -700,6 +691,11 @@ When improving the codebase, prioritize:
 #### Commit messages
 Commit messages must succinctly describe what changed and why. Do not include anything related to the narrative flow of conversations with the user, or context that is irrelevant to the actual final set of changes. BAD: "User flagged an important issue. This commit fixes…". GOOD: "This commit fixes a bug where…".
 
+#### Using worktrees
+
+The default is to work on whatever branch the conversation starts on. However, for significant chunks of work that require discussion and planning, you should prefer working in a git worktree (after confirming with the user).
+**Create worktrees in `.claude/worktrees/`.**
+
 ---
 
 ## Quick Reference
@@ -718,7 +714,7 @@ Commit messages must succinctly describe what changed and why. Do not include an
 
 ```bash
 # Development setup
-uv venv                                              # Create virtual environment
+uv venv                                             # Create virtual environment
 uv pip install -e ".[dev,parallel,visualize]"       # Install with dev dependencies
 
 # Testing
@@ -747,6 +743,10 @@ pre-commit run --all-files
 - **PyPhi Paper**: https://doi.org/10.1371/journal.pcbi.1006343
 
 ---
+
+## Keeping this file up to date
+
+As the codebase changes, make sure to update the contents of this file as necessary.
 
 ## Final Notes
 
