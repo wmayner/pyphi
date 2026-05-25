@@ -2685,7 +2685,28 @@ to ease transition:
   ``pyphi.tpm.backward_tpm`` (still called ``_legacy_backward_tpm``
   internally) goes away. Probably half a day plus golden regeneration.
   Requires explicit consent to regenerate (goldens are the cross-
-  version regression net P12a/P12b leaned on for safety).
+  version regression net P12a/P12b leaned on for safety). (Completed
+  in P12b Task 15, 2026-05-24: binary path now delegates to
+  ``_cause_tpm_factored_kary``; ``backward_tpm`` and
+  ``probability_of_current_state`` removed; the two affected
+  ``phi_structure`` fixtures regenerated within machine precision; the
+  23 cross-version goldens in ``test_golden_regression.py`` remained
+  byte-identical.)
+
+- **Precision-aware comparator for ``intrinsic_information`` in test
+  fixtures.** The test helpers ``numpy_aware_eq`` / ``general_eq`` in
+  ``pyphi/jsonify.py`` do strict ``==`` comparison on
+  ``intrinsic_information`` dict values, which is brittle: op-order
+  changes that produce drift well below ``config.numerics.precision``
+  (1e-13) trip the comparison and force fixture regeneration. The
+  ``test_iit4.py`` fixtures (``basic_noisy_selfloop.json``,
+  ``grid3.json``) have been regenerated five times across the 2.0
+  refactor on this pattern. Fix: replace strict ``==`` with
+  ``np.allclose(..., atol=1e-13)`` on intrinsic_information dict
+  values in the comparator, with care that
+  ``test_golden_regression.py`` (which uses the same helper) doesn't
+  loosen unintentionally. Probably half a day; audit
+  ``numpy_aware_eq`` callers carefully first.
 
 - **Consolidate ``pyphi/tpm.py`` into ``pyphi/core/tpm/``.** The
   legacy module ``pyphi/tpm.py`` (~650 lines) hosts ``JointTPM`` (and,

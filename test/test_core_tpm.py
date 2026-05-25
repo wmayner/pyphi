@@ -48,32 +48,6 @@ def test_joint_tpm_parity_with_legacy() -> None:
     np.testing.assert_array_equal(new_squeezed.to_array(), np.asarray(old_squeezed))
 
 
-def test_cause_tpm_parity() -> None:
-    """core.tpm.marginalization.cause_tpm per-unit on-probability slices
-    match legacy backward_tpm output."""
-    from pyphi import examples
-    from pyphi.core.tpm.factored import FactoredTPM
-    from pyphi.core.tpm.joint import JointTPM
-    from pyphi.core.tpm.marginalization import cause_tpm
-    from pyphi.tpm import backward_tpm as legacy_backward_tpm
-
-    substrate = examples.basic_substrate()
-    state = (1, 0, 0)
-    node_indices = (0, 1, 2)
-
-    from pyphi.tpm import JointTPM as _LegacyJointTPM
-
-    joint = substrate.joint_tpm()
-    new_tpm = cause_tpm(JointTPM(joint), state, node_indices)
-    old_tpm = legacy_backward_tpm(_LegacyJointTPM(joint), state, node_indices)
-    assert isinstance(new_tpm, FactoredTPM)
-    old_arr = np.asarray(old_tpm)
-    for i in range(new_tpm.n_nodes):
-        np.testing.assert_allclose(
-            new_tpm.factor(i)[..., 1], old_arr[..., i], atol=1e-10
-        )
-
-
 def test_effect_tpm_parity() -> None:
     """core.tpm.marginalization.effect_tpm matches legacy condition_tpm."""
     from pyphi import examples

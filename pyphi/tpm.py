@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
 from collections.abc import Mapping
 from itertools import chain
 from typing import Any
@@ -442,65 +441,3 @@ def simulate(
             )
         )
     return path
-
-
-def probability_of_current_state(
-    sbn_tpm: JointTPM,
-    current_state: tuple[int, ...],
-) -> NDArray[np.float64]:
-    """Return the probability of the current state as a distribution over
-    previous states.
-
-    Arguments:
-        sbn_tpm (JointTPM): State-by-node TPM.
-        current_state (tuple[int]): The current state.
-    """
-    state_probabilities = np.empty(sbn_tpm.shape)
-    if not len(current_state) == sbn_tpm.shape[-1]:
-        raise ValueError(
-            f"current_state must have length {sbn_tpm.shape[-1]}"
-            f"for state-by-node TPM of shape {sbn_tpm.shape}"
-        )
-    for i in range(sbn_tpm.shape[-1]):
-        # TODO extend to nonbinary nodes
-        state_probabilities[..., i] = (
-            sbn_tpm[..., i] if current_state[i] else (1 - sbn_tpm[..., i])
-        )
-    return state_probabilities.prod(axis=-1, keepdims=True)
-
-
-def backward_tpm(
-    forward_tpm: JointTPM,
-    current_state: tuple[int, ...],
-    system_indices: Iterable[int],
-    remove_background: bool = False,
-) -> JointTPM:
-    """Compute the backward TPM for a given substrate state."""
-    all_indices = tuple(range(forward_tpm.number_of_units))
-    system_indices = tuple(sorted(system_indices))
-    background_indices = tuple(sorted(set(all_indices) - set(system_indices)))
-    if not set(system_indices).issubset(set(all_indices)):
-        raise ValueError(
-            "system_indices must be a subset of `range(forward_tpm.number_of_units))`"
-        )
-
-    # p(u_t | s_{t-1}, w_{t-1})
-    pr_current_state = probability_of_current_state(forward_tpm, current_state)
-    # Σ_{s_{t-1}}  p(u_t | s_{t-1}, w_{t-1})
-    pr_current_state_given_only_background = pr_current_state.sum(
-        axis=tuple(system_indices), keepdims=True
-    )
-    # Σ_{u'_{t-1}} p(u_t | u'_{t-1})
-    normalization = np.sum(pr_current_state)
-    if normalization == 0.0:
-        raise exceptions.StateUnreachableBackwardsError(current_state)
-    #                                              Σ_{s_{t-1}} p(u_t | s_{t-1}, w_{t-1})
-    # Σ_{w_{t-1}}   p(s_{i,t} | s_{t-1}, w_{t-1}) ———————————————————————————————————————
-    #                                                 Σ_{u'_{t-1}} p(u_t | u'_{t-1})
-    backward_tpm = (
-        forward_tpm * pr_current_state_given_only_background / normalization
-    ).sum(axis=background_indices, keepdims=True)
-    if remove_background:
-        # Remove background units from last dimension of the state-by-node TPM
-        backward_tpm = backward_tpm[..., list(system_indices)]
-    return JointTPM(backward_tpm)

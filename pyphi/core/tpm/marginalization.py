@@ -7,7 +7,6 @@ from collections.abc import Mapping
 import numpy as np
 
 from pyphi import exceptions
-from pyphi.tpm import backward_tpm as _legacy_backward_tpm
 
 from .base import TPM
 from .factored import FactoredTPM
@@ -53,23 +52,12 @@ def _cause_tpm_factored_binary(
     state: tuple[int, ...],
     node_indices: tuple[int, ...],
 ) -> FactoredTPM:
-    """Binary cause TPM via SBN-form Bayesian inversion.
+    """Binary cause TPM — dispatches to the unified k-ary path.
 
-    Stacks per-output-unit ``P(node_i = 1 | s_t)`` slices into the
-    state-by-node form, applies the legacy backward TPM, and re-expands
-    the trailing on-probability axis into explicit ``[P(off), P(on)]``
-    factors per output unit.
+    Binary and k-ary substrates share the same Bayesian inversion math;
+    this entry point is retained as the explicit binary dispatch site.
     """
-    n = factored.n_nodes
-    sbn = np.stack([factored.factor(i)[..., 1] for i in range(n)], axis=-1)
-    joint = JointTPM(sbn)
-    raw = np.asarray(_legacy_backward_tpm(joint._inner, state, node_indices))
-    out_factors = []
-    for i in range(n):
-        on = raw[..., i]
-        off = 1.0 - on
-        out_factors.append(np.stack([off, on], axis=-1))
-    return FactoredTPM(factors=out_factors)
+    return _cause_tpm_factored_kary(factored, state, node_indices)
 
 
 def _cause_tpm_factored_kary(
