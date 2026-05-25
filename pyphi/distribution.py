@@ -110,7 +110,9 @@ def purview_size(repertoire: Repertoire | None) -> int:
 
 
 def repertoire_shape(
-    all_node_indices: NodeIndices | Iterable[int], purview: Purview | Iterable[int]
+    all_node_indices: NodeIndices | Iterable[int],
+    purview: Purview | Iterable[int],
+    alphabet_sizes: tuple[int, ...] | None = None,
 ) -> list[int]:
     """Return the shape a repertoire.
 
@@ -118,17 +120,25 @@ def repertoire_shape(
         all_node_indices (tuple[int]): The node indices of the substrate.
         purview (tuple[int]): The indices of nodes in the repertoire.
 
+    Keyword Args:
+        alphabet_sizes: Per-node alphabet sizes indexed by node index.
+            When ``None`` (the default), all purview nodes are treated as
+            binary (alphabet size 2), preserving backward compatibility.
+
     Returns:
-        list[int]: The shape of the repertoire. Purview nodes have two
-        dimensions and non-purview nodes are collapsed to a unitary dimension.
+        list[int]: The shape of the repertoire. Purview nodes have their
+        alphabet size (or 2 for binary) and non-purview nodes are collapsed
+        to a unitary dimension.
 
     Example:
         >>> purview = (0, 2)
         >>> repertoire_shape(range(3), purview)
         [2, 1, 2]
     """
-    # TODO: extend to non-binary nodes
-    return [2 if i in purview else 1 for i in all_node_indices]
+    purview_set = set(purview)
+    if alphabet_sizes is None:
+        return [2 if i in purview_set else 1 for i in all_node_indices]
+    return [alphabet_sizes[i] if i in purview_set else 1 for i in all_node_indices]
 
 
 def flatten(
@@ -183,7 +193,9 @@ def unflatten(
 
 @cache(cache={}, maxmem=None)
 def max_entropy_distribution(
-    all_node_indices: NodeIndices, purview: Purview
+    all_node_indices: NodeIndices,
+    purview: Purview,
+    alphabet_sizes: tuple[int, ...] | None = None,
 ) -> Repertoire:
     """Return the maximum entropy distribution over a set of nodes.
 
@@ -195,8 +207,14 @@ def max_entropy_distribution(
         all_node_indices (tuple[int]): The node indices of the substrate.
         purview (tuple[int]): The indices of nodes in the distribution.
 
+    Keyword Args:
+        alphabet_sizes: Per-node alphabet sizes indexed by node index.
+            When ``None``, all nodes are treated as binary.
+
     Returns:
         np.ndarray: The maximum entropy distribution over the set of nodes.
     """
-    distribution = np.ones(repertoire_shape(all_node_indices, purview))
+    distribution = np.ones(
+        repertoire_shape(all_node_indices, purview, alphabet_sizes=alphabet_sizes)
+    )
     return distribution / distribution.size

@@ -123,12 +123,24 @@ def state_length(state: Sequence[int], size: int) -> bool:
 
 def state_reachable(system: object) -> None:
     """Return whether a state can be reached according to the substrate's TPM."""
-    # If there is a row `r` in the TPM such that all entries of `r - state` are
-    # between -1 and 1, then the given state has a nonzero probability of being
-    # reached from some state.
+    from .core.tpm.factored import FactoredTPM as _FactoredTPM
+
+    effect_tpm = system.effect_tpm  # type: ignore[attr-defined]
+
+    # k-ary substrates: the reachability check is defined only for binary
+    # substrates (the SBN form gives P(on|s_t) whose range (0, 1) bounds
+    # the test). Skip for k>2 to avoid a spurious failure; a caller
+    # wanting alphabet-generic reachability should use FactoredTPM.condition
+    # explicitly.
+    if isinstance(effect_tpm, _FactoredTPM):
+        return
+
+    # If there is a row `r` in the TPM such that all entries of `r - state`
+    # are between -1 and 1, then the given state has a nonzero probability of
+    # being reached from some state.
     # First we take the submatrix of the conditioned TPM that corresponds to
     # the nodes that are actually in the system...
-    tpm = system.effect_tpm.tpm[..., system.node_indices]  # type: ignore[attr-defined]
+    tpm = effect_tpm.tpm[..., system.node_indices]  # type: ignore[attr-defined]
     # Then we do the subtraction and test.
     test = tpm - np.array(system.proper_state)  # type: ignore[attr-defined]
     if not np.any(np.logical_and(test > -1, test < 1).all(-1)):

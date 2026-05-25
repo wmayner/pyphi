@@ -47,6 +47,40 @@ from pyphi.conf import presets
 from .fixture import GoldenFixture
 
 
+def _multivalued_k3_tiny() -> Substrate:
+    """2-node fully-connected substrate with alphabet size 3.
+
+    Generated deterministically from seed 2026. Exercises the k-ary
+    cause and effect repertoire paths end-to-end.
+    """
+    rng = np.random.default_rng(2026)
+    f0 = rng.uniform(size=(3, 3, 3))
+    f0 /= f0.sum(axis=-1, keepdims=True)
+    f1 = rng.uniform(size=(3, 3, 3))
+    f1 /= f1.sum(axis=-1, keepdims=True)
+    return Substrate(marginals=[f0, f1], state_space=(0, 1, 2))
+
+
+def _multivalued_2x3x3() -> Substrate:
+    """3-node heterogeneous substrate with alphabet sizes (2, 3, 3).
+
+    Generated deterministically from seed 2027. The first node is binary;
+    the second and third are ternary. Exercises mixed-alphabet repertoire
+    computation, including the alphabet_sizes branch in repertoire_shape.
+    """
+    rng = np.random.default_rng(2027)
+    g0 = rng.uniform(size=(2, 3, 3, 2))
+    g0 /= g0.sum(axis=-1, keepdims=True)
+    g1 = rng.uniform(size=(2, 3, 3, 3))
+    g1 /= g1.sum(axis=-1, keepdims=True)
+    g2 = rng.uniform(size=(2, 3, 3, 3))
+    g2 /= g2.sum(axis=-1, keepdims=True)
+    return Substrate(
+        marginals=[g0, g1, g2],
+        state_space=((0, 1), (0, 1, 2), (0, 1, 2)),
+    )
+
+
 def _logistic_3node_k8() -> Substrate:
     """3-node fully-connected logistic substrate with weights 0.3 and k=8.
 
@@ -250,6 +284,40 @@ def _make_fixtures() -> list[GoldenFixture]:
             "non-edge point.",
             config_overrides=IIT_4_2026_CONFIG,
             substrate_factory=_logistic_3node_k8,
+            state=(0, 0, 0),
+        )
+    )
+
+    # ============== k>2 (multivalued) fixtures ==============
+
+    # Small k=3 substrate (2-node, uniform alphabet). The first fixture to
+    # exercise the k-ary cause/effect repertoire paths end-to-end. SIA phi
+    # is 0 for this random substrate under GID (the system is reducible),
+    # but all repertoire layers and mechanism MIPs are captured, locking the
+    # k-ary math against regressions.
+    fixtures.append(
+        GoldenFixture(
+            name="multivalued_k3_tiny_iit4_2023",
+            description="2-node k=3 substrate (seed 2026). Exercises alphabet-generic "
+            "cause/effect repertoire paths under IIT 4.0 (2023). SIA phi = 0 "
+            "(reducible), but all layers are captured.",
+            config_overrides=IIT_4_2023_CONFIG,
+            substrate_factory=_multivalued_k3_tiny,
+            state=(0, 0),
+        )
+    )
+
+    # Heterogeneous (2,3,3) substrate (3-node). Mixed alphabet: first node
+    # binary, second and third ternary. Exercises repertoire_shape with
+    # non-uniform alphabet_sizes.
+    fixtures.append(
+        GoldenFixture(
+            name="multivalued_2x3x3_iit4_2023",
+            description="3-node heterogeneous substrate with alphabet sizes (2,3,3) "
+            "(seed 2027). First node is binary; second and third are ternary. "
+            "Exercises mixed-alphabet repertoire paths under IIT 4.0 (2023).",
+            config_overrides=IIT_4_2023_CONFIG,
+            substrate_factory=_multivalued_2x3x3,
             state=(0, 0, 0),
         )
     )

@@ -1,0 +1,4485 @@
+{
+  "fixture_name": "multivalued_2x3x3_iit4_2023",
+  "schema_version": 1,
+  "generated_from_commit": "8391b33830bfc0309111d4147872a102ffddbac4",
+  "description": "3-node heterogeneous substrate with alphabet sizes (2,3,3) (seed 2027). First node is binary; second and third are ternary. Exercises mixed-alphabet repertoire paths under IIT 4.0 (2023).",
+  "config_overrides": {
+    "version": "IIT_4_0_2023",
+    "mechanism_phi_measure": "GENERALIZED_INTRINSIC_DIFFERENCE",
+    "system_partition_scheme": "DIRECTED_SET_PARTITION",
+    "progress_bars": false,
+    "parallel": false
+  },
+  "state": [
+    0,
+    0,
+    0
+  ],
+  "node_indices": null,
+  "substrate_hash": {
+    "tpm_shape": [
+      2,
+      3,
+      3,
+      3,
+      3
+    ],
+    "tpm_sha1": "0ed8fc750aea6440",
+    "cm_shape": [
+      3,
+      3
+    ],
+    "cm_sha1": "d158a20976b5d5dd"
+  },
+  "repertoires": [
+    {
+      "mechanism": [],
+      "purview": [],
+      "cause_repertoire": "@npz:a0",
+      "effect_repertoire": "@npz:a1"
+    },
+    {
+      "mechanism": [],
+      "purview": [
+        0
+      ],
+      "cause_repertoire": "@npz:a2",
+      "effect_repertoire": "@npz:a3"
+    },
+    {
+      "mechanism": [],
+      "purview": [
+        1
+      ],
+      "cause_repertoire": "@npz:a4",
+      "effect_repertoire": "@npz:a5"
+    },
+    {
+      "mechanism": [],
+      "purview": [
+        2
+      ],
+      "cause_repertoire": "@npz:a6",
+      "effect_repertoire": "@npz:a7"
+    },
+    {
+      "mechanism": [],
+      "purview": [
+        0,
+        1
+      ],
+      "cause_repertoire": "@npz:a8",
+      "effect_repertoire": "@npz:a9"
+    },
+    {
+      "mechanism": [],
+      "purview": [
+        0,
+        2
+      ],
+      "cause_repertoire": "@npz:a10",
+      "effect_repertoire": "@npz:a11"
+    },
+    {
+      "mechanism": [],
+      "purview": [
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a12",
+      "effect_repertoire": "@npz:a13"
+    },
+    {
+      "mechanism": [],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a14",
+      "effect_repertoire": "@npz:a15"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [],
+      "cause_repertoire": "@npz:a16",
+      "effect_repertoire": "@npz:a17"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0
+      ],
+      "cause_repertoire": "@npz:a18",
+      "effect_repertoire": "@npz:a19"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        1
+      ],
+      "cause_repertoire": "@npz:a20",
+      "effect_repertoire": "@npz:a21"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        2
+      ],
+      "cause_repertoire": "@npz:a22",
+      "effect_repertoire": "@npz:a23"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "cause_repertoire": "@npz:a24",
+      "effect_repertoire": "@npz:a25"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "cause_repertoire": "@npz:a26",
+      "effect_repertoire": "@npz:a27"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a28",
+      "effect_repertoire": "@npz:a29"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a30",
+      "effect_repertoire": "@npz:a31"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [],
+      "cause_repertoire": "@npz:a32",
+      "effect_repertoire": "@npz:a33"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0
+      ],
+      "cause_repertoire": "@npz:a34",
+      "effect_repertoire": "@npz:a35"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        1
+      ],
+      "cause_repertoire": "@npz:a36",
+      "effect_repertoire": "@npz:a37"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        2
+      ],
+      "cause_repertoire": "@npz:a38",
+      "effect_repertoire": "@npz:a39"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "cause_repertoire": "@npz:a40",
+      "effect_repertoire": "@npz:a41"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "cause_repertoire": "@npz:a42",
+      "effect_repertoire": "@npz:a43"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a44",
+      "effect_repertoire": "@npz:a45"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a46",
+      "effect_repertoire": "@npz:a47"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [],
+      "cause_repertoire": "@npz:a48",
+      "effect_repertoire": "@npz:a49"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0
+      ],
+      "cause_repertoire": "@npz:a50",
+      "effect_repertoire": "@npz:a51"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        1
+      ],
+      "cause_repertoire": "@npz:a52",
+      "effect_repertoire": "@npz:a53"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        2
+      ],
+      "cause_repertoire": "@npz:a54",
+      "effect_repertoire": "@npz:a55"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "cause_repertoire": "@npz:a56",
+      "effect_repertoire": "@npz:a57"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "cause_repertoire": "@npz:a58",
+      "effect_repertoire": "@npz:a59"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a60",
+      "effect_repertoire": "@npz:a61"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a62",
+      "effect_repertoire": "@npz:a63"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [],
+      "cause_repertoire": "@npz:a64",
+      "effect_repertoire": "@npz:a65"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0
+      ],
+      "cause_repertoire": "@npz:a66",
+      "effect_repertoire": "@npz:a67"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        1
+      ],
+      "cause_repertoire": "@npz:a68",
+      "effect_repertoire": "@npz:a69"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        2
+      ],
+      "cause_repertoire": "@npz:a70",
+      "effect_repertoire": "@npz:a71"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "cause_repertoire": "@npz:a72",
+      "effect_repertoire": "@npz:a73"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "cause_repertoire": "@npz:a74",
+      "effect_repertoire": "@npz:a75"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a76",
+      "effect_repertoire": "@npz:a77"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a78",
+      "effect_repertoire": "@npz:a79"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [],
+      "cause_repertoire": "@npz:a80",
+      "effect_repertoire": "@npz:a81"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0
+      ],
+      "cause_repertoire": "@npz:a82",
+      "effect_repertoire": "@npz:a83"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        1
+      ],
+      "cause_repertoire": "@npz:a84",
+      "effect_repertoire": "@npz:a85"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        2
+      ],
+      "cause_repertoire": "@npz:a86",
+      "effect_repertoire": "@npz:a87"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "cause_repertoire": "@npz:a88",
+      "effect_repertoire": "@npz:a89"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "cause_repertoire": "@npz:a90",
+      "effect_repertoire": "@npz:a91"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a92",
+      "effect_repertoire": "@npz:a93"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a94",
+      "effect_repertoire": "@npz:a95"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [],
+      "cause_repertoire": "@npz:a96",
+      "effect_repertoire": "@npz:a97"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0
+      ],
+      "cause_repertoire": "@npz:a98",
+      "effect_repertoire": "@npz:a99"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        1
+      ],
+      "cause_repertoire": "@npz:a100",
+      "effect_repertoire": "@npz:a101"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        2
+      ],
+      "cause_repertoire": "@npz:a102",
+      "effect_repertoire": "@npz:a103"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "cause_repertoire": "@npz:a104",
+      "effect_repertoire": "@npz:a105"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "cause_repertoire": "@npz:a106",
+      "effect_repertoire": "@npz:a107"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a108",
+      "effect_repertoire": "@npz:a109"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a110",
+      "effect_repertoire": "@npz:a111"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [],
+      "cause_repertoire": "@npz:a112",
+      "effect_repertoire": "@npz:a113"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0
+      ],
+      "cause_repertoire": "@npz:a114",
+      "effect_repertoire": "@npz:a115"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        1
+      ],
+      "cause_repertoire": "@npz:a116",
+      "effect_repertoire": "@npz:a117"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        2
+      ],
+      "cause_repertoire": "@npz:a118",
+      "effect_repertoire": "@npz:a119"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "cause_repertoire": "@npz:a120",
+      "effect_repertoire": "@npz:a121"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "cause_repertoire": "@npz:a122",
+      "effect_repertoire": "@npz:a123"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a124",
+      "effect_repertoire": "@npz:a125"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "cause_repertoire": "@npz:a126",
+      "effect_repertoire": "@npz:a127"
+    }
+  ],
+  "mechanism_mips": [
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "CAUSE",
+      "phi": 0.13273098092900004,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1
+        ]
+      ],
+      "repertoire": "@npz:a128",
+      "partitioned_repertoire": "@npz:a129"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "EFFECT",
+      "phi": 0.14753234976335655,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1
+        ]
+      ],
+      "repertoire": "@npz:a130",
+      "partitioned_repertoire": "@npz:a131"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "CAUSE",
+      "phi": 0.29033202295548083,
+      "partition": [
+        [
+          [],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          2
+        ]
+      ],
+      "repertoire": "@npz:a132",
+      "partitioned_repertoire": "@npz:a133"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "EFFECT",
+      "phi": 0.015664881869753698,
+      "partition": [
+        [
+          [],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          2
+        ]
+      ],
+      "repertoire": "@npz:a134",
+      "partitioned_repertoire": "@npz:a135"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "CAUSE",
+      "phi": 0.037779539845451564,
+      "partition": [
+        [
+          [],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1
+        ]
+      ],
+      "repertoire": "@npz:a136",
+      "partitioned_repertoire": "@npz:a137"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "EFFECT",
+      "phi": 0.043580455741289444,
+      "partition": [
+        [
+          [],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1
+        ]
+      ],
+      "repertoire": "@npz:a138",
+      "partitioned_repertoire": "@npz:a139"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "CAUSE",
+      "phi": 0.17228008124549296,
+      "partition": [
+        [
+          [],
+          [
+            0,
+            1
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          2
+        ]
+      ],
+      "repertoire": "@npz:a140",
+      "partitioned_repertoire": "@npz:a141"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "EFFECT",
+      "phi": 0.06189211986465998,
+      "partition": [
+        [
+          [],
+          [
+            0,
+            1
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          1
+        ]
+      ],
+      "repertoire": "@npz:a142",
+      "partitioned_repertoire": "@npz:a143"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "CAUSE",
+      "phi": 0.051893258177782654,
+      "partition": [
+        [
+          [],
+          [
+            0,
+            2
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          1
+        ]
+      ],
+      "repertoire": "@npz:a144",
+      "partitioned_repertoire": "@npz:a145"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "EFFECT",
+      "phi": 0.07020400798851098,
+      "partition": [
+        [
+          [],
+          [
+            0,
+            2
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          1
+        ]
+      ],
+      "repertoire": "@npz:a146",
+      "partitioned_repertoire": "@npz:a147"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "phi": 0.1235503319614366,
+      "partition": [
+        [
+          [],
+          [
+            1,
+            2
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          2,
+          0
+        ]
+      ],
+      "repertoire": "@npz:a148",
+      "partitioned_repertoire": "@npz:a149"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "phi": 0.020043729331030373,
+      "partition": [
+        [
+          [],
+          [
+            1,
+            2
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          1
+        ]
+      ],
+      "repertoire": "@npz:a150",
+      "partitioned_repertoire": "@npz:a151"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "phi": 0.08086165479236163,
+      "partition": [
+        [
+          [],
+          [
+            0,
+            1,
+            2
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          0,
+          2,
+          0
+        ]
+      ],
+      "repertoire": "@npz:a152",
+      "partitioned_repertoire": "@npz:a153"
+    },
+    {
+      "mechanism": [
+        0
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "phi": 0.028443089247940905,
+      "partition": [
+        [
+          [],
+          [
+            0,
+            1,
+            2
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          1,
+          1
+        ]
+      ],
+      "repertoire": "@npz:a154",
+      "partitioned_repertoire": "@npz:a155"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "CAUSE",
+      "phi": 0.04586760286247811,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1
+        ]
+      ],
+      "repertoire": "@npz:a156",
+      "partitioned_repertoire": "@npz:a157"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "EFFECT",
+      "phi": 0.3553029539162193,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1
+        ]
+      ],
+      "repertoire": "@npz:a158",
+      "partitioned_repertoire": "@npz:a159"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "CAUSE",
+      "phi": 0.0882319393801107,
+      "partition": [
+        [
+          [],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          2
+        ]
+      ],
+      "repertoire": "@npz:a160",
+      "partitioned_repertoire": "@npz:a161"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "EFFECT",
+      "phi": 0.060761862557652556,
+      "partition": [
+        [
+          [],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1
+        ]
+      ],
+      "repertoire": "@npz:a162",
+      "partitioned_repertoire": "@npz:a163"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "CAUSE",
+      "phi": 0.04039593222746002,
+      "partition": [
+        [
+          [],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          2
+        ]
+      ],
+      "repertoire": "@npz:a164",
+      "partitioned_repertoire": "@npz:a165"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "EFFECT",
+      "phi": 0.07930865709742331,
+      "partition": [
+        [
+          [],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          0
+        ]
+      ],
+      "repertoire": "@npz:a166",
+      "partitioned_repertoire": "@npz:a167"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "CAUSE",
+      "phi": 0.053949125626092095,
+      "partition": [
+        [
+          [],
+          [
+            0,
+            1
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          2
+        ]
+      ],
+      "repertoire": "@npz:a168",
+      "partitioned_repertoire": "@npz:a169"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "EFFECT",
+      "phi": 0.1853749903695835,
+      "partition": [
+        [
+          [],
+          [
+            0,
+            1
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          1
+        ]
+      ],
+      "repertoire": "@npz:a170",
+      "partitioned_repertoire": "@npz:a171"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "CAUSE",
+      "phi": 0.13914013382309268,
+      "partition": [
+        [
+          [],
+          [
+            0,
+            2
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          2
+        ]
+      ],
+      "repertoire": "@npz:a172",
+      "partitioned_repertoire": "@npz:a173"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "EFFECT",
+      "phi": 0.19167275708607878,
+      "partition": [
+        [
+          [],
+          [
+            0,
+            2
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          0
+        ]
+      ],
+      "repertoire": "@npz:a174",
+      "partitioned_repertoire": "@npz:a175"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "phi": 0.10977552773208142,
+      "partition": [
+        [
+          [],
+          [
+            1,
+            2
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          2,
+          0
+        ]
+      ],
+      "repertoire": "@npz:a176",
+      "partitioned_repertoire": "@npz:a177"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "phi": 0.05631480069499429,
+      "partition": [
+        [
+          [],
+          [
+            1,
+            2
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          0
+        ]
+      ],
+      "repertoire": "@npz:a178",
+      "partitioned_repertoire": "@npz:a179"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "phi": 0.15143371431470726,
+      "partition": [
+        [
+          [],
+          [
+            0,
+            1,
+            2
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          0,
+          2
+        ]
+      ],
+      "repertoire": "@npz:a180",
+      "partitioned_repertoire": "@npz:a181"
+    },
+    {
+      "mechanism": [
+        1
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "phi": 0.0941349477271431,
+      "partition": [
+        [
+          [],
+          [
+            0,
+            1,
+            2
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          1,
+          0
+        ]
+      ],
+      "repertoire": "@npz:a182",
+      "partitioned_repertoire": "@npz:a183"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "CAUSE",
+      "phi": 0.01015108982051644,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          0
+        ]
+      ],
+      "repertoire": "@npz:a184",
+      "partitioned_repertoire": "@npz:a185"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "EFFECT",
+      "phi": 0.008583959376347577,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1
+        ]
+      ],
+      "repertoire": "@npz:a186",
+      "partitioned_repertoire": "@npz:a187"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "CAUSE",
+      "phi": 0.14841999590445573,
+      "partition": [
+        [
+          [],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          2
+        ]
+      ],
+      "repertoire": "@npz:a188",
+      "partitioned_repertoire": "@npz:a189"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "EFFECT",
+      "phi": 0.09197940375646563,
+      "partition": [
+        [
+          [],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          2
+        ]
+      ],
+      "repertoire": "@npz:a190",
+      "partitioned_repertoire": "@npz:a191"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "CAUSE",
+      "phi": 0.15233928584537673,
+      "partition": [
+        [
+          [],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          0
+        ]
+      ],
+      "repertoire": "@npz:a192",
+      "partitioned_repertoire": "@npz:a193"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "EFFECT",
+      "phi": 0.15600012541184946,
+      "partition": [
+        [
+          [],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          0
+        ]
+      ],
+      "repertoire": "@npz:a194",
+      "partitioned_repertoire": "@npz:a195"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "CAUSE",
+      "phi": 0.11645639774923221,
+      "partition": [
+        [
+          [],
+          [
+            0,
+            1
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          0,
+          2
+        ]
+      ],
+      "repertoire": "@npz:a196",
+      "partitioned_repertoire": "@npz:a197"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "EFFECT",
+      "phi": 0.04653098406910922,
+      "partition": [
+        [
+          [],
+          [
+            0,
+            1
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          0,
+          2
+        ]
+      ],
+      "repertoire": "@npz:a198",
+      "partitioned_repertoire": "@npz:a199"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "CAUSE",
+      "phi": 0.10235054882670983,
+      "partition": [
+        [
+          [],
+          [
+            0,
+            2
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          0,
+          0
+        ]
+      ],
+      "repertoire": "@npz:a200",
+      "partitioned_repertoire": "@npz:a201"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "EFFECT",
+      "phi": 0.0808056640836566,
+      "partition": [
+        [
+          [],
+          [
+            0,
+            2
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          0,
+          0
+        ]
+      ],
+      "repertoire": "@npz:a202",
+      "partitioned_repertoire": "@npz:a203"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "phi": 0.27470305597439143,
+      "partition": [
+        [
+          [],
+          [
+            1,
+            2
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          2,
+          0
+        ]
+      ],
+      "repertoire": "@npz:a204",
+      "partitioned_repertoire": "@npz:a205"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "phi": 0.10088377598964372,
+      "partition": [
+        [
+          [],
+          [
+            1,
+            2
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          2,
+          0
+        ]
+      ],
+      "repertoire": "@npz:a206",
+      "partitioned_repertoire": "@npz:a207"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "phi": 0.22335921996040445,
+      "partition": [
+        [
+          [],
+          [
+            0,
+            1,
+            2
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          0,
+          2,
+          0
+        ]
+      ],
+      "repertoire": "@npz:a208",
+      "partitioned_repertoire": "@npz:a209"
+    },
+    {
+      "mechanism": [
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "phi": 0.05321193249612495,
+      "partition": [
+        [
+          [],
+          [
+            0,
+            1,
+            2
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          0,
+          2,
+          0
+        ]
+      ],
+      "repertoire": "@npz:a210",
+      "partitioned_repertoire": "@npz:a211"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "CAUSE",
+      "phi": 0.053119156989883475,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0
+          ],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1
+        ]
+      ],
+      "repertoire": "@npz:a212",
+      "partitioned_repertoire": "@npz:a213"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "EFFECT",
+      "phi": 0.25419052269261005,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ],
+        [
+          [
+            1
+          ],
+          [
+            0
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          1
+        ]
+      ],
+      "repertoire": "@npz:a214",
+      "partitioned_repertoire": "@npz:a215"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "CAUSE",
+      "phi": 0.12688642511826972,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0
+          ],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          2
+        ]
+      ],
+      "repertoire": "@npz:a216",
+      "partitioned_repertoire": "@npz:a217"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "EFFECT",
+      "phi": 0.09673163907493997,
+      "partition": [
+        [
+          [],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            0,
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          2
+        ]
+      ],
+      "repertoire": "@npz:a218",
+      "partitioned_repertoire": "@npz:a219"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "CAUSE",
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0
+          ],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1
+        ]
+      ],
+      "repertoire": "@npz:a220",
+      "partitioned_repertoire": "@npz:a221"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "EFFECT",
+      "phi": 0.046357213266459904,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ],
+        [
+          [
+            1
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          1
+        ]
+      ],
+      "repertoire": "@npz:a222",
+      "partitioned_repertoire": "@npz:a223"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "CAUSE",
+      "phi": 0.10259380895890005,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          2
+        ]
+      ],
+      "repertoire": "@npz:a224",
+      "partitioned_repertoire": "@npz:a225"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "EFFECT",
+      "phi": 0.1785397681363668,
+      "partition": [
+        [
+          [],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ],
+        [
+          [
+            1
+          ],
+          [
+            0
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          2
+        ]
+      ],
+      "repertoire": "@npz:a226",
+      "partitioned_repertoire": "@npz:a227"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "CAUSE",
+      "phi": 0.05006730392873415,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ],
+        [
+          [
+            1
+          ],
+          [
+            0,
+            2
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          2
+        ]
+      ],
+      "repertoire": "@npz:a228",
+      "partitioned_repertoire": "@npz:a229"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "EFFECT",
+      "phi": 0.08293817383148527,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ],
+        [
+          [
+            1
+          ],
+          [
+            0,
+            2
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          0
+        ]
+      ],
+      "repertoire": "@npz:a230",
+      "partitioned_repertoire": "@npz:a231"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "phi": 0.19988357405710655,
+      "partition": [
+        [
+          [],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          2,
+          0
+        ]
+      ],
+      "repertoire": "@npz:a232",
+      "partitioned_repertoire": "@npz:a233"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "phi": 0.052653481339274805,
+      "partition": [
+        [
+          [],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ],
+        [
+          [
+            1
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          2,
+          1
+        ]
+      ],
+      "repertoire": "@npz:a234",
+      "partitioned_repertoire": "@npz:a235"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "phi": 0.10893299736093891,
+      "partition": [
+        [
+          [],
+          [
+            0,
+            2
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          2,
+          0
+        ]
+      ],
+      "repertoire": "@npz:a236",
+      "partitioned_repertoire": "@npz:a237"
+    },
+    {
+      "mechanism": [
+        0,
+        1
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "phi": 0.06255184237138989,
+      "partition": [
+        [
+          [],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ],
+        [
+          [
+            1
+          ],
+          [
+            0,
+            2
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          2,
+          0
+        ]
+      ],
+      "repertoire": "@npz:a238",
+      "partitioned_repertoire": "@npz:a239"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "CAUSE",
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0
+          ],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1
+        ]
+      ],
+      "repertoire": "@npz:a240",
+      "partitioned_repertoire": "@npz:a241"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "EFFECT",
+      "phi": 0.02448212782711068,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0
+          ],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1
+        ]
+      ],
+      "repertoire": "@npz:a242",
+      "partitioned_repertoire": "@npz:a243"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "CAUSE",
+      "phi": 0.21283127894573955,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0
+          ],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          2
+        ]
+      ],
+      "repertoire": "@npz:a244",
+      "partitioned_repertoire": "@npz:a245"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "EFFECT",
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ],
+        [
+          [
+            2
+          ],
+          [
+            1
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          2
+        ]
+      ],
+      "repertoire": "@npz:a246",
+      "partitioned_repertoire": "@npz:a247"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "CAUSE",
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ],
+        [
+          [
+            2
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          0
+        ]
+      ],
+      "repertoire": "@npz:a248",
+      "partitioned_repertoire": "@npz:a249"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "EFFECT",
+      "phi": 0.04325688564771188,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ],
+        [
+          [
+            2
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          0
+        ]
+      ],
+      "repertoire": "@npz:a250",
+      "partitioned_repertoire": "@npz:a251"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "CAUSE",
+      "phi": 0.13292592916339518,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            0
+          ],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          0,
+          2
+        ]
+      ],
+      "repertoire": "@npz:a252",
+      "partitioned_repertoire": "@npz:a253"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "EFFECT",
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0
+          ],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          [
+            1
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          2
+        ]
+      ],
+      "repertoire": "@npz:a254",
+      "partitioned_repertoire": "@npz:a255"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "CAUSE",
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0
+          ],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          0
+        ]
+      ],
+      "repertoire": "@npz:a256",
+      "partitioned_repertoire": "@npz:a257"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "EFFECT",
+      "phi": 0.03573642513317147,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0
+          ],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          0
+        ]
+      ],
+      "repertoire": "@npz:a258",
+      "partitioned_repertoire": "@npz:a259"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "phi": 0.2597101865203163,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ],
+        [
+          [
+            2
+          ],
+          [
+            1,
+            2
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          2,
+          0
+        ]
+      ],
+      "repertoire": "@npz:a260",
+      "partitioned_repertoire": "@npz:a261"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "phi": 0.008573143889423021,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ],
+        [
+          [
+            2
+          ],
+          [
+            1,
+            2
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          2,
+          0
+        ]
+      ],
+      "repertoire": "@npz:a262",
+      "partitioned_repertoire": "@npz:a263"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "phi": 0.19738047340773646,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ],
+        [
+          [
+            2
+          ],
+          [
+            0,
+            1,
+            2
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          0,
+          2,
+          0
+        ]
+      ],
+      "repertoire": "@npz:a264",
+      "partitioned_repertoire": "@npz:a265"
+    },
+    {
+      "mechanism": [
+        0,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "phi": 0.009126301276823299,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0
+          ],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          [
+            1,
+            2
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          2,
+          0
+        ]
+      ],
+      "repertoire": "@npz:a266",
+      "partitioned_repertoire": "@npz:a267"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "CAUSE",
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            1
+          ],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1
+        ]
+      ],
+      "repertoire": "@npz:a268",
+      "partitioned_repertoire": "@npz:a269"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "EFFECT",
+      "phi": 0.16606190718724245,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            1
+          ],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1
+        ]
+      ],
+      "repertoire": "@npz:a270",
+      "partitioned_repertoire": "@npz:a271"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "CAUSE",
+      "phi": 0.10953081412668823,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ],
+        [
+          [
+            2
+          ],
+          [
+            1
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          2
+        ]
+      ],
+      "repertoire": "@npz:a272",
+      "partitioned_repertoire": "@npz:a273"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "EFFECT",
+      "phi": 0.17764494428008495,
+      "partition": [
+        [
+          [],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            1,
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1
+        ]
+      ],
+      "repertoire": "@npz:a274",
+      "partitioned_repertoire": "@npz:a275"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "CAUSE",
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ],
+        [
+          [
+            2
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          0
+        ]
+      ],
+      "repertoire": "@npz:a276",
+      "partitioned_repertoire": "@npz:a277"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "EFFECT",
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ],
+        [
+          [
+            2
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          0
+        ]
+      ],
+      "repertoire": "@npz:a278",
+      "partitioned_repertoire": "@npz:a279"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "CAUSE",
+      "phi": 0.047437820889841484,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ],
+        [
+          [
+            2
+          ],
+          [
+            0,
+            1
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          0,
+          2
+        ]
+      ],
+      "repertoire": "@npz:a280",
+      "partitioned_repertoire": "@npz:a281"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "EFFECT",
+      "phi": 0.21517137103237902,
+      "partition": [
+        [
+          [],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          1
+        ]
+      ],
+      "repertoire": "@npz:a282",
+      "partitioned_repertoire": "@npz:a283"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "CAUSE",
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            1
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          2
+        ]
+      ],
+      "repertoire": "@npz:a284",
+      "partitioned_repertoire": "@npz:a285"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "EFFECT",
+      "phi": 0.0574758318864093,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            1
+          ],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          0
+        ]
+      ],
+      "repertoire": "@npz:a286",
+      "partitioned_repertoire": "@npz:a287"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "phi": 0.21805398355696928,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ],
+        [
+          [
+            2
+          ],
+          [
+            1,
+            2
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          2,
+          0
+        ]
+      ],
+      "repertoire": "@npz:a288",
+      "partitioned_repertoire": "@npz:a289"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "phi": 0.037165796535196916,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            1
+          ],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          0
+        ]
+      ],
+      "repertoire": "@npz:a290",
+      "partitioned_repertoire": "@npz:a291"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "phi": 0.09334297638090178,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ],
+        [
+          [
+            2
+          ],
+          [
+            0,
+            1,
+            2
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          0,
+          2,
+          0
+        ]
+      ],
+      "repertoire": "@npz:a292",
+      "partitioned_repertoire": "@npz:a293"
+    },
+    {
+      "mechanism": [
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "phi": 0.062143938483160334,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            1
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          1,
+          0
+        ]
+      ],
+      "repertoire": "@npz:a294",
+      "partitioned_repertoire": "@npz:a295"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "CAUSE",
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0,
+            1
+          ],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1
+        ]
+      ],
+      "repertoire": "@npz:a296",
+      "partitioned_repertoire": "@npz:a297"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0
+      ],
+      "direction": "EFFECT",
+      "phi": 0.25797097337091746,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0,
+            1
+          ],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1
+        ]
+      ],
+      "repertoire": "@npz:a298",
+      "partitioned_repertoire": "@npz:a299"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "CAUSE",
+      "phi": 0.1504720126044333,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0,
+            2
+          ],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          2
+        ]
+      ],
+      "repertoire": "@npz:a300",
+      "partitioned_repertoire": "@npz:a301"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        1
+      ],
+      "direction": "EFFECT",
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0,
+            1
+          ],
+          []
+        ],
+        [
+          [
+            2
+          ],
+          [
+            1
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          2
+        ]
+      ],
+      "repertoire": "@npz:a302",
+      "partitioned_repertoire": "@npz:a303"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "CAUSE",
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0
+          ],
+          []
+        ],
+        [
+          [
+            1,
+            2
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          0
+        ]
+      ],
+      "repertoire": "@npz:a304",
+      "partitioned_repertoire": "@npz:a305"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        2
+      ],
+      "direction": "EFFECT",
+      "phi": 0.2786164679186963,
+      "partition": [
+        [
+          [],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            0,
+            1,
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1
+        ]
+      ],
+      "repertoire": "@npz:a306",
+      "partitioned_repertoire": "@npz:a307"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "CAUSE",
+      "phi": 0.08328598880906123,
+      "partition": [
+        [
+          [],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            2
+          ],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          0,
+          2
+        ]
+      ],
+      "repertoire": "@npz:a308",
+      "partitioned_repertoire": "@npz:a309"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1
+      ],
+      "direction": "EFFECT",
+      "phi": 0.09126189228339623,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0,
+            1
+          ],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          [
+            1
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          2
+        ]
+      ],
+      "repertoire": "@npz:a310",
+      "partitioned_repertoire": "@npz:a311"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "CAUSE",
+      "phi": 0.0,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          2
+        ]
+      ],
+      "repertoire": "@npz:a312",
+      "partitioned_repertoire": "@npz:a313"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        2
+      ],
+      "direction": "EFFECT",
+      "phi": 0.07807599601525901,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0,
+            1
+          ],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          0
+        ]
+      ],
+      "repertoire": "@npz:a314",
+      "partitioned_repertoire": "@npz:a315"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "phi": 0.31387426164645527,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0,
+            2
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          2,
+          0
+        ]
+      ],
+      "repertoire": "@npz:a316",
+      "partitioned_repertoire": "@npz:a317"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "phi": 0.04930857200267264,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0,
+            1
+          ],
+          [
+            2
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          [
+            1
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          2,
+          1
+        ]
+      ],
+      "repertoire": "@npz:a318",
+      "partitioned_repertoire": "@npz:a319"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "CAUSE",
+      "phi": 0.14622080693239728,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            1,
+            2
+          ]
+        ],
+        [
+          [
+            1
+          ],
+          []
+        ]
+      ],
+      "specified_states": [
+        [
+          0,
+          2,
+          0
+        ]
+      ],
+      "repertoire": "@npz:a320",
+      "partitioned_repertoire": "@npz:a321"
+    },
+    {
+      "mechanism": [
+        0,
+        1,
+        2
+      ],
+      "purview": [
+        0,
+        1,
+        2
+      ],
+      "direction": "EFFECT",
+      "phi": 0.026752314444222606,
+      "partition": [
+        [
+          [],
+          []
+        ],
+        [
+          [
+            0,
+            1
+          ],
+          [
+            0
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          [
+            1,
+            2
+          ]
+        ]
+      ],
+      "specified_states": [
+        [
+          1,
+          2,
+          0
+        ]
+      ],
+      "repertoire": "@npz:a322",
+      "partitioned_repertoire": "@npz:a323"
+    }
+  ],
+  "sia": {
+    "phi": 0.0,
+    "signed_phi": -0.0015430780182424167,
+    "partition": [
+      [
+        "2 parts: {n0,n1n2}\n[[0 1 1]\n [1 0 0]\n [1 0 0]]"
+      ]
+    ],
+    "system_state": {
+      "cause": [
+        [
+          0,
+          2,
+          0
+        ]
+      ],
+      "effect": [
+        [
+          1,
+          2,
+          0
+        ]
+      ]
+    }
+  },
+  "phi_structure": {
+    "big_phi": 1.2694913336252203,
+    "distinctions": [
+      {
+        "mechanism": [
+          0
+        ],
+        "phi": 0.14753234976335655,
+        "cause_purview": [
+          1
+        ],
+        "effect_purview": [
+          0
+        ]
+      },
+      {
+        "mechanism": [
+          0,
+          1
+        ],
+        "phi": 0.19988357405710655,
+        "cause_purview": [
+          1,
+          2
+        ],
+        "effect_purview": [
+          0
+        ]
+      },
+      {
+        "mechanism": [
+          0,
+          2
+        ],
+        "phi": 0.04325688564771188,
+        "cause_purview": [
+          1,
+          2
+        ],
+        "effect_purview": [
+          2
+        ]
+      },
+      {
+        "mechanism": [
+          2
+        ],
+        "phi": 0.15600012541184946,
+        "cause_purview": [
+          1,
+          2
+        ],
+        "effect_purview": [
+          2
+        ]
+      }
+    ],
+    "num_distinctions": 4,
+    "num_relations": 13,
+    "sum_phi_relations": 0.7228183987451959
+  }
+}

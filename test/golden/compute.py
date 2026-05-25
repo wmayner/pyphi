@@ -50,14 +50,16 @@ def compute_all_layers(
     nodes = fixture.node_indices or substrate.node_indices
     system = System(substrate, fixture.state, nodes)
 
+    # For binary substrates use the legacy SBN shape so existing fixtures remain
+    # byte-stable across any future joint_tpm() shape changes.  For k>2 substrates
+    # there is no binary equivalent, so fall through to joint_tpm().
+    try:
+        tpm_for_hash = np.asarray(substrate._legacy_binary_joint())
+    except ValueError:
+        tpm_for_hash = substrate.joint_tpm()
+
     structured: dict[str, Any] = {
-        "substrate_hash": substrate_hash(
-            # Hash the legacy binary joint shape so fixtures stay stable
-            # across the Substrate.joint_tpm() shape unification. All golden
-            # fixtures are binary substrates.
-            np.asarray(substrate._legacy_binary_joint()),
-            np.asarray(substrate.cm),
-        ),
+        "substrate_hash": substrate_hash(tpm_for_hash, np.asarray(substrate.cm)),
     }
     arrays: dict[str, np.ndarray] = {}
     array_counter = [0]

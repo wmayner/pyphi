@@ -68,28 +68,38 @@ class Node:
         cause_non_inputs = set(cause_factor.tpm_indices()) - self._inputs
         self.cause_tpm = cause_factor.marginalize_out(cause_non_inputs)
 
-        effect_tpm_on = effect_tpm[..., self.index]
+        # Extract the per-node forward factor. For binary substrates
+        # system.effect_tpm is a legacy ndarray (SBN-form), so
+        # effect_tpm[..., index] gives P(on | inputs). For k-ary substrates
+        # system.effect_tpm is a FactoredTPM; factor(index) gives the full
+        # per-node conditional (*alpha, k_i).
+        from .core.tpm.factored import FactoredTPM as _FactoredTPM
 
-        # TODO extend to nonbinary nodes
-        # Marginalize out non-input nodes that are in the system, since the
-        # external nodes have already been dealt with as boundary conditions in
-        # the system's TPM.
+        if isinstance(effect_tpm, _FactoredTPM):
+            # k-ary path: extract per-node factor as JointTPM for uniform
+            # downstream handling (condition_tpm, marginalize_out, reshape).
+            node_factor = JointTPM(effect_tpm.factor(self.index))
+            effect_non_inputs = set(node_factor.tpm_indices()) - self._inputs
+            self.effect_tpm = node_factor.marginalize_out(effect_non_inputs)
+        else:
+            # Binary path: legacy SBN-form ndarray.
+            effect_tpm_on = effect_tpm[..., self.index]
+            # Marginalize out non-input nodes that are in the system, since the
+            # external nodes have already been dealt with as boundary conditions
+            # in the system's TPM.
+            effect_non_inputs = set(effect_tpm.tpm_indices()) - self._inputs
+            effect_tpm_on = effect_tpm_on.marginalize_out(effect_non_inputs).tpm
 
-        # TODO use names rather than indices
-        effect_non_inputs = set(effect_tpm.tpm_indices()) - self._inputs
-        effect_tpm_on = effect_tpm_on.marginalize_out(effect_non_inputs).tpm
+            # Get the TPM that gives the probability of the node being off,
+            # rather than on.
+            effect_tpm_off = 1 - effect_tpm_on
 
-        # Get the TPM that gives the probability of the node being off, rather
-        # than on.
-        effect_tpm_off = 1 - effect_tpm_on
-
-        # Combine the on- and off-TPM so that the first dimension is indexed by
-        # the state of the node's inputs at t, and the last dimension is
-        # indexed by the node's state at t+1. This representation makes it easy
-        # to condition on the node state.
-        self.effect_tpm = JointTPM(
-            np.stack([effect_tpm_off, effect_tpm_on], axis=-1),
-        )
+            # Combine the on- and off-TPM so that the first dimension is indexed
+            # by the state of the node's inputs at t, and the last dimension is
+            # indexed by the node's state at t+1.
+            self.effect_tpm = JointTPM(
+                np.stack([effect_tpm_off, effect_tpm_on], axis=-1),
+            )
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         # Only compute the hash once.

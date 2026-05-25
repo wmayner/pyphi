@@ -160,8 +160,13 @@ def _single_node_effect_repertoire(
         raise AssertionError("unreachable")
     nonmechanism_inputs = purview_node.inputs - set(condition)
     tpm = tpm.marginalize_out(nonmechanism_inputs)
+    alphabet_sizes = cs.substrate.factored_tpm.alphabet_sizes
     return tpm.reshape(
-        repertoire_shape(cs.substrate.node_indices, (purview_node_index,))
+        repertoire_shape(
+            cs.substrate.node_indices,
+            (purview_node_index,),
+            alphabet_sizes=alphabet_sizes,
+        )
     ).tpm
 
 
@@ -176,7 +181,12 @@ def _cause_repertoire_inner(
     ``System._cause_repertoire``.
     """
     purview_set: frozenset[int] = frozenset(purview)
-    joint = np.ones(repertoire_shape(cs.substrate.node_indices, purview_set))
+    alphabet_sizes = cs.substrate.factored_tpm.alphabet_sizes
+    joint = np.ones(
+        repertoire_shape(
+            cs.substrate.node_indices, purview_set, alphabet_sizes=alphabet_sizes
+        )
+    )
     joint *= functools.reduce(
         np.multiply,
         [_single_node_cause_repertoire(cs, m, purview_set) for m in mechanism],
@@ -191,7 +201,12 @@ def _effect_repertoire_inner(
     purview: tuple[int, ...],
     direction: Direction,
 ) -> Any:
-    joint = np.ones(repertoire_shape(cs.substrate.node_indices, purview))
+    alphabet_sizes = cs.substrate.factored_tpm.alphabet_sizes
+    joint = np.ones(
+        repertoire_shape(
+            cs.substrate.node_indices, purview, alphabet_sizes=alphabet_sizes
+        )
+    )
     return joint * functools.reduce(
         np.multiply,
         [_single_node_effect_repertoire(cs, condition, p, direction) for p in purview],
@@ -208,7 +223,8 @@ def cause_repertoire(
     if not purview:
         return np.array([1.0])
     if not mechanism:
-        return max_entropy_distribution(cs.node_indices, purview)
+        alphabet_sizes = cs.substrate.factored_tpm.alphabet_sizes
+        return max_entropy_distribution(cs.node_indices, purview, alphabet_sizes)
     return _cause_repertoire_inner(cs, mechanism, purview)
 
 
@@ -355,22 +371,31 @@ def forward_cause_repertoire(
     mechanism_state: tuple[int, ...] | None = None,
 ) -> Any:
     """Forward cause repertoire — legacy ``_repertoire.forward_cause_repertoire``."""
+    import itertools
+
     if mechanism_state is None:
         mechanism_state = _utils.state_of(mechanism, cs.state)
+    alphabet_sizes = cs.substrate.factored_tpm.alphabet_sizes
     if purview:
-        result = np.empty([2] * len(purview))
+        # Per-purview-node alphabet sizes determine the result shape.
+        purview_k = [alphabet_sizes[i] for i in purview]
+        result = np.empty(purview_k)
         if purview_state is None:
-            purview_states = _utils.all_states(len(purview))
+            purview_states = itertools.product(*[range(k) for k in purview_k])
         else:
-            purview_states = [purview_state]
+            purview_states = iter([purview_state])
     else:
         result = np.array([1])
-        purview_states = [()]
+        purview_states = iter([()])
     for state in purview_states:
         result[state] = forward_cause_probability(
             cs, mechanism, purview, state, mechanism_state=mechanism_state
         )
-    return result.reshape(repertoire_shape(cs.substrate.node_indices, purview))
+    return result.reshape(
+        repertoire_shape(
+            cs.substrate.node_indices, purview, alphabet_sizes=alphabet_sizes
+        )
+    )
 
 
 def forward_effect_repertoire(
@@ -404,10 +429,21 @@ def unconstrained_forward_effect_repertoire(
     cs: Any, mechanism: tuple[int, ...], purview: tuple[int, ...]
 ) -> Any:
     """Unconstrained forward effect repertoire — average over all mechanism states."""
+    import itertools
+
+    alphabet_sizes = cs.substrate.factored_tpm.alphabet_sizes
+    mech_k = [alphabet_sizes[i] for i in mechanism]
+    if all(k == 2 for k in mech_k):
+        # Binary: use all_states for ordering parity with the pre-existing
+        # implementation so that floating-point accumulation in mean() is
+        # bit-identical to stored golden values.
+        all_mech_states: list[tuple[int, ...]] = list(_utils.all_states(len(mechanism)))
+    else:
+        all_mech_states = list(itertools.product(*[range(k) for k in mech_k]))
     repertoires = np.stack(
         [
             forward_effect_repertoire(cs, mechanism, purview, mechanism_state=state)
-            for state in _utils.all_states(len(mechanism))
+            for state in all_mech_states
         ]
     )
     return repertoires.mean(axis=0)
@@ -425,7 +461,12 @@ def unconstrained_forward_cause_repertoire(
     mean_forward_cause_probability = forward_cause_repertoire(
         cs, mechanism, purview, None
     ).mean()
-    result = np.empty(repertoire_shape(cs.substrate.node_indices, purview))
+    alphabet_sizes = cs.substrate.factored_tpm.alphabet_sizes
+    result = np.empty(
+        repertoire_shape(
+            cs.substrate.node_indices, purview, alphabet_sizes=alphabet_sizes
+        )
+    )
     result.fill(mean_forward_cause_probability)
     return result
 
@@ -553,7 +594,15 @@ def intrinsic_information(
     from pyphi.models.state_specification import StateSpecification
 
     if states is None:
-        states = _utils.all_states(len(purview))
+        import itertools
+
+        alphabet_sizes = cs.substrate.factored_tpm.alphabet_sizes
+        # Little-endian ordering: iterate axes in reverse so that the least
+        # significant axis (index 0) changes fastest — mirroring all_states().
+        purview_k = [alphabet_sizes[i] for i in purview]
+        states = list(itertools.product(*[range(k) for k in reversed(purview_k)]))
+        # Reverse each state tuple to restore little-endian index order.
+        states = [s[::-1] for s in states]
 
     if satisfies_composite_measure(specification_measure):
         from typing import cast
