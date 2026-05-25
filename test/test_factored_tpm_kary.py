@@ -33,7 +33,9 @@ def _factored_strategy(draw: st.DrawFn, max_nodes: int = 4) -> FactoredTPM:
         raw = rng.uniform(size=shape)
         normalized = raw / raw.sum(axis=-1, keepdims=True)
         factors.append(normalized)
-    return FactoredTPM(factors=factors, alphabet_sizes=alphabet_sizes)
+    return FactoredTPM(
+        factors=factors, state_space=tuple(tuple(range(a)) for a in alphabet_sizes)
+    )
 
 
 FAST_LANE = settings(
@@ -54,13 +56,14 @@ def _assert_round_trip(factored: FactoredTPM) -> None:
     joint = factored.to_joint()
     n = factored.n_nodes
     a = factored.alphabet_sizes
+    ss = factored.state_space
     if len(set(a)) == 1:
-        reconstructed = FactoredTPM.from_joint(joint, alphabet_sizes=a)
+        reconstructed = FactoredTPM.from_joint(joint, state_space=ss)
     else:
         explicit = np.zeros((*a, n, max(a)))
         for i in range(n):
             explicit[..., i, : a[i]] = factored.factor(i)
-        reconstructed = FactoredTPM.from_joint(explicit, alphabet_sizes=a)
+        reconstructed = FactoredTPM.from_joint(explicit, state_space=ss)
     for i in range(n):
         np.testing.assert_allclose(
             reconstructed.factor(i), factored.factor(i), atol=1e-10
@@ -112,9 +115,9 @@ def test_k3_explicit_round_trip() -> None:
     """Spot-check k=3 with a hand-crafted FactoredTPM."""
     f0 = np.full((3, 3, 3), 1.0 / 3.0)
     f1 = np.full((3, 3, 3), 1.0 / 3.0)
-    factored = FactoredTPM(factors=[f0, f1], alphabet_sizes=(3, 3))
+    factored = FactoredTPM(factors=[f0, f1], state_space=((0, 1, 2), (0, 1, 2)))
     joint = factored.to_joint()
-    reconstructed = FactoredTPM.from_joint(joint, alphabet_sizes=(3, 3))
+    reconstructed = FactoredTPM.from_joint(joint, state_space=((0, 1, 2), (0, 1, 2)))
     for i in range(2):
         np.testing.assert_allclose(
             reconstructed.factor(i), factored.factor(i), atol=1e-12
@@ -127,6 +130,8 @@ def test_k4_explicit_construction_validates() -> None:
     f1 = np.full((4, 4), 0.25)
     f0_full = np.broadcast_to(f0[:, np.newaxis, :], (4, 4, 4)).copy()
     f1_full = np.broadcast_to(f1[np.newaxis, :, :], (4, 4, 4)).copy()
-    factored = FactoredTPM(factors=[f0_full, f1_full], alphabet_sizes=(4, 4))
+    factored = FactoredTPM(
+        factors=[f0_full, f1_full], state_space=((0, 1, 2, 3), (0, 1, 2, 3))
+    )
     assert factored.n_nodes == 2
     assert factored.alphabet_sizes == (4, 4)

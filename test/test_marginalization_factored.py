@@ -14,7 +14,7 @@ def test_cause_tpm_factored_dispatch_matches_joint() -> None:
     rng = np.random.default_rng(2026)
     joint_arr = rng.uniform(size=(2, 2, 2, 3))
     joint = JointTPM(joint_arr)
-    factored = FactoredTPM.from_joint(joint_arr, alphabet_sizes=(2, 2, 2))
+    factored = FactoredTPM.from_joint(joint_arr, state_space=((0, 1), (0, 1), (0, 1)))
     state = (0, 1, 0)
     node_indices = (0, 1, 2)
 
@@ -32,7 +32,7 @@ def test_effect_tpm_factored_dispatch_matches_joint() -> None:
     rng = np.random.default_rng(99)
     joint_arr = rng.uniform(size=(2, 2, 2, 3))
     joint = JointTPM(joint_arr)
-    factored = FactoredTPM.from_joint(joint_arr, alphabet_sizes=(2, 2, 2))
+    factored = FactoredTPM.from_joint(joint_arr, state_space=((0, 1), (0, 1), (0, 1)))
     background = {0: 1}
 
     via_joint = effect_tpm(joint, background)
@@ -55,7 +55,7 @@ def test_effect_tpm_kary_factored_returns_factored_tpm() -> None:
     """effect_tpm on a k>2 FactoredTPM returns a FactoredTPM."""
     f0 = np.full((3, 3, 3), 1.0 / 3.0)
     f1 = np.full((3, 3, 3), 1.0 / 3.0)
-    factored = FactoredTPM(factors=[f0, f1], alphabet_sizes=(3, 3))
+    factored = FactoredTPM(factors=[f0, f1], state_space=((0, 1, 2), (0, 1, 2)))
     result = effect_tpm(factored, background={0: 0})
     assert isinstance(result, FactoredTPM)
 
@@ -73,6 +73,6 @@ def test_cause_tpm_returns_factored_tpm_for_factored_input() -> None:
     """cause_tpm returns a FactoredTPM for FactoredTPM input."""
     rng = np.random.default_rng(2026)
     joint_arr = rng.uniform(size=(2, 2, 2, 3))
-    factored = FactoredTPM.from_joint(joint_arr, alphabet_sizes=(2, 2, 2))
+    factored = FactoredTPM.from_joint(joint_arr, state_space=((0, 1), (0, 1), (0, 1)))
     result = cause_tpm(factored, state=(0, 1, 0), node_indices=(0, 1, 2))
     assert isinstance(result, FactoredTPM)

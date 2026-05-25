@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from collections.abc import Sequence
+from typing import Any
 from typing import Literal
 
 import numpy as np
@@ -30,38 +31,81 @@ from ._factored_backends import _NdarrayBackend
 # Set from the storage-backend benchmark result.
 _FACTORED_TPM_DEFAULT_BACKEND: Literal["ndarray", "xarray"] = "ndarray"
 
+# Type alias for the state_space argument.
+StateSpace = Sequence[Any] | Sequence[Sequence[Any]] | None
+
+
+def _normalize_state_space(
+    raw: StateSpace,
+    factors: Sequence[NDArray[np.float64]],
+) -> tuple[tuple[Any, ...], ...]:
+    """Normalize state_space input to a per-node tuple-of-tuples.
+
+    ``raw`` may be:
+
+    - ``None``: integer labels ``0..k-1`` are inferred from each factor's
+      last-dim size.
+    - A flat sequence: the same labels are applied uniformly to all nodes.
+    - A sequence of sequences: each inner sequence gives per-node labels.
+    """
+    n_factors = len(factors)
+    if raw is None:
+        return tuple(tuple(range(int(f.shape[-1]))) for f in factors)
+
+    raw_tuple = tuple(raw)
+    if len(raw_tuple) == 0:
+        raise ValueError("state_space cannot be empty")
+
+    def _is_sequence_not_string(x: Any) -> bool:
+        return hasattr(x, "__iter__") and not isinstance(x, (str, bytes))
+
+    if all(_is_sequence_not_string(elem) for elem in raw_tuple):
+        # Per-node form: each element is a sub-sequence of labels.
+        if len(raw_tuple) != n_factors:
+            raise exceptions.InvalidTPM(
+                f"state_space has {len(raw_tuple)} per-node entries; "
+                f"factors imply {n_factors} nodes"
+            )
+        return tuple(tuple(elem) for elem in raw_tuple)  # type: ignore[arg-type]
+    # Uniform form: same labels for all nodes.
+    uniform = tuple(raw_tuple)
+    return tuple(uniform for _ in range(n_factors))
+
 
 class FactoredTPM:
     """Per-node-factored conditional TPM."""
 
-    __slots__ = ("_alphabet_sizes", "_backend")
+    __slots__ = ("_backend", "_state_space")
 
     def __init__(
         self,
         factors: Sequence[ArrayLike],
-        alphabet_sizes: Sequence[int] | None = None,
+        state_space: StateSpace = None,
         backend: Literal["ndarray", "xarray"] | None = None,
     ) -> None:
         factor_arrays = tuple(np.asarray(f, dtype=np.float64) for f in factors)
-        if alphabet_sizes is None:
-            alphabet_sizes = tuple(int(f.shape[-1]) for f in factor_arrays)
-        else:
-            alphabet_sizes = tuple(int(a) for a in alphabet_sizes)
-        self._alphabet_sizes = alphabet_sizes
+        self._state_space = _normalize_state_space(state_space, factor_arrays)
+        alphabet_sizes = tuple(len(s) for s in self._state_space)
         self._backend = _make_default_backend(factor_arrays, alphabet_sizes, backend)
         _validate(self)
 
     @property
+    def state_space(self) -> tuple[tuple[Any, ...], ...]:
+        """Per-node label tuples, e.g. ``((0, 1), (0, 1))`` for binary nodes."""
+        return self._state_space
+
+    @property
+    def alphabet_sizes(self) -> tuple[int, ...]:
+        """Number of states per node, derived from ``state_space``."""
+        return tuple(len(s) for s in self._state_space)
+
+    @property
     def shape(self) -> tuple[int, ...]:
-        return (*self._alphabet_sizes, self.n_nodes)
+        return (*self.alphabet_sizes, self.n_nodes)
 
     @property
     def n_nodes(self) -> int:
         return self._backend.n_factors()
-
-    @property
-    def alphabet_sizes(self) -> tuple[int, ...]:
-        return self._alphabet_sizes
 
     @property
     def factors(self) -> tuple[NDArray[np.float64], ...]:
@@ -75,7 +119,7 @@ class FactoredTPM:
         cls,
         joint: ArrayLike,
         /,
-        alphabet_sizes: Sequence[int] | None = None,
+        state_space: StateSpace = None,
     ) -> FactoredTPM:
         """Convert a joint conditional TPM into the factored form.
 
@@ -89,24 +133,45 @@ class FactoredTPM:
         - Explicit-alphabet form: shape ``(a_1, ..., a_N, N, a_i)``.
           Factor ``i`` is ``joint[..., i, :]``.
 
-        ``alphabet_sizes`` defaults to ``(2,) * n`` for the legacy form;
-        for the explicit form it must be supplied and must match the
-        per-row last-dim shapes.
+        ``state_space`` follows the same rules as ``FactoredTPM.__init__``.
+        When ``None``, integer labels are inferred from the joint's shape.
         """
         joint_arr = np.asarray(joint, dtype=np.float64)
         ndim = joint_arr.ndim
-        if alphabet_sizes is None:
+
+        # Determine alphabet_sizes from state_space or infer from shape.
+        if state_space is None:
             if ndim < 2 or joint_arr.shape[-1] != ndim - 1:
                 raise ValueError(
-                    f"Cannot infer alphabet_sizes from joint shape "
+                    f"Cannot infer state_space from joint shape "
                     f"{joint_arr.shape}; expected legacy form "
-                    f"(2,)*n + (n,) or pass alphabet_sizes explicitly."
+                    f"(2,)*n + (n,) or pass state_space explicitly."
                 )
             n = ndim - 1
-            alphabet_sizes = (2,) * n
+            alphabet_sizes: tuple[int, ...] = (2,) * n
         else:
-            alphabet_sizes = tuple(int(a) for a in alphabet_sizes)
-            n = len(alphabet_sizes)
+            # Build a temporary normalized state_space to extract alphabet_sizes.
+            # We use a dummy factors list since we need n to build it.
+            # For per-node form, len gives n directly; for flat form we need joint shape.
+            raw_tuple = tuple(state_space)  # type: ignore[arg-type]
+
+            def _is_sequence_not_string(x: Any) -> bool:
+                return hasattr(x, "__iter__") and not isinstance(x, (str, bytes))
+
+            if all(_is_sequence_not_string(elem) for elem in raw_tuple):
+                # Per-node form.
+                n = len(raw_tuple)
+                alphabet_sizes = tuple(len(elem) for elem in raw_tuple)  # type: ignore[arg-type]
+            else:
+                # Uniform form: need n from joint shape.
+                if ndim < 2 or joint_arr.shape[-1] != ndim - 1:
+                    raise ValueError(
+                        f"Cannot infer n_nodes from joint shape "
+                        f"{joint_arr.shape} with flat state_space; expected legacy form "
+                        f"(2,)*n + (n,) or use per-node state_space."
+                    )
+                n = ndim - 1
+                alphabet_sizes = (len(raw_tuple),) * n
 
         if joint_arr.shape[:-1] != alphabet_sizes:
             # Explicit-alphabet form: (a_1, ..., a_N, N, a_max)
@@ -116,7 +181,7 @@ class FactoredTPM:
                 and joint_arr.shape[n] == n
             ):
                 factors = tuple(joint_arr[..., i, : alphabet_sizes[i]] for i in range(n))
-                return cls(factors=factors, alphabet_sizes=alphabet_sizes)
+                return cls(factors=factors, state_space=state_space)
             raise ValueError(
                 f"Joint shape {joint_arr.shape} not consistent with "
                 f"alphabet_sizes {alphabet_sizes}."
@@ -138,7 +203,7 @@ class FactoredTPM:
             p_on = joint_arr[..., i]
             factor_i = np.stack([1.0 - p_on, p_on], axis=-1)
             factors_list.append(factor_i)
-        return cls(factors=tuple(factors_list), alphabet_sizes=alphabet_sizes)
+        return cls(factors=tuple(factors_list), state_space=state_space)
 
     def tpm_indices(self) -> tuple[int, ...]:
         """Substrate-unit indices: one entry per output unit (the leading
@@ -150,7 +215,7 @@ class FactoredTPM:
         conditioned = [self._backend.select(i, fixed) for i in range(self.n_nodes)]
         return FactoredTPM(
             factors=conditioned,
-            alphabet_sizes=self._alphabet_sizes,
+            state_space=self._state_space,
             backend=None,
         )
 
@@ -172,20 +237,21 @@ class FactoredTPM:
         ``Substrate.joint_tpm()``).
         """
         n = self.n_nodes
-        max_alphabet = max(self._alphabet_sizes)
-        shape = (*self._alphabet_sizes, n, max_alphabet)
+        a = self.alphabet_sizes
+        max_alphabet = max(a)
+        shape = (*a, n, max_alphabet)
         out = np.zeros(shape, dtype=np.float64)
         for i in range(n):
             factor = self.factor(i)
-            a_i = self._alphabet_sizes[i]
-            broadcast_shape = (*self._alphabet_sizes, a_i)
+            a_i = a[i]
+            broadcast_shape = (*a, a_i)
             out[..., i, :a_i] = np.broadcast_to(factor, broadcast_shape)
         return out
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, FactoredTPM):
             return NotImplemented
-        if self._alphabet_sizes != other._alphabet_sizes:
+        if self.alphabet_sizes != other.alphabet_sizes:
             return False
         if self.n_nodes != other.n_nodes:
             return False
@@ -196,14 +262,14 @@ class FactoredTPM:
     def __hash__(self) -> int:
         return hash(
             (
-                self._alphabet_sizes,
+                self.alphabet_sizes,
                 tuple((self.factor(i) + 0.0).tobytes() for i in range(self.n_nodes)),
             )
         )
 
     def __repr__(self) -> str:
         return (
-            f"FactoredTPM(n_nodes={self.n_nodes}, alphabet_sizes={self._alphabet_sizes})"
+            f"FactoredTPM(n_nodes={self.n_nodes}, alphabet_sizes={self.alphabet_sizes})"
         )
 
     def __reduce__(self) -> tuple:  # type: ignore[override]
@@ -212,33 +278,50 @@ class FactoredTPM:
         )
         return (
             _factored_tpm_from_pickle,
-            (tuple(self.factors), self._alphabet_sizes, backend_name),
+            (tuple(self.factors), self._state_space, backend_name),
         )
 
 
 def _factored_tpm_from_pickle(
     factors: tuple,  # type: ignore[type-arg]
-    alphabet_sizes: tuple,  # type: ignore[type-arg]
+    state_space: tuple,  # type: ignore[type-arg]
     backend: str,
 ) -> FactoredTPM:
-    return FactoredTPM(factors=factors, alphabet_sizes=alphabet_sizes, backend=backend)  # type: ignore[arg-type]
+    return FactoredTPM(factors=factors, state_space=state_space, backend=backend)  # type: ignore[arg-type]
 
 
 def _validate(factored: FactoredTPM) -> None:
     """Validate a freshly constructed FactoredTPM."""
     a = factored.alphabet_sizes
-    if factored.n_nodes != len(a):
+    ss = factored.state_space
+    n = factored.n_nodes
+
+    if len(ss) != n:
+        raise exceptions.InvalidTPM(f"state_space has {len(ss)} entries; n_nodes={n}")
+    for i, labels in enumerate(ss):
+        if len(labels) != a[i]:
+            raise exceptions.InvalidTPM(
+                f"state_space[{i}] has {len(labels)} labels but "
+                f"factor[{i}] has alphabet size {a[i]}"
+            )
+        if len(set(labels)) != len(labels):
+            raise exceptions.InvalidTPM(
+                f"state_space[{i}] has duplicate labels: {labels}"
+            )
+
+    if n != len(a):
         raise exceptions.InvalidTPM(
-            f"n_nodes={factored.n_nodes} does not match alphabet_sizes length {len(a)}"
+            f"n_nodes={n} does not match alphabet_sizes length {len(a)}"
         )
     if any(size < 2 for size in a):
         raise exceptions.InvalidTPM(f"alphabet_sizes must all be >= 2; got {a}")
     tol = max(10 ** (-config.numerics.precision), 1e-15)
-    for i in range(factored.n_nodes):
+    for i in range(n):
         f = factored.factor(i)
         if f.shape[-1] != a[i]:
             raise exceptions.InvalidTPM(
-                f"factor {i} last-dim size {f.shape[-1]} != alphabet_sizes[{i}]={a[i]}"
+                f"state_space[{i}] has {a[i]} labels but "
+                f"factor[{i}] last-dim size is {f.shape[-1]}"
             )
         for j, dim_size in enumerate(f.shape[:-1]):
             if dim_size not in (1, a[j]):

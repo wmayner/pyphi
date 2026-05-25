@@ -105,14 +105,21 @@ class Substrate:
             )
 
         if marginals is not None:
-            self._factored_tpm = FactoredTPM(
-                factors=marginals, alphabet_sizes=alphabet_sizes
+            state_space = (
+                tuple(range(a) for a in alphabet_sizes)
+                if alphabet_sizes is not None
+                else None
             )
+            self._factored_tpm = FactoredTPM(factors=marginals, state_space=state_space)
         else:
             arr = self._coerce_joint_array(tpm)
-            n = arr.shape[-1]
-            sizes = tuple(alphabet_sizes) if alphabet_sizes is not None else (2,) * n
-            self._factored_tpm = FactoredTPM.from_joint(arr, alphabet_sizes=sizes)
+            sizes = tuple(alphabet_sizes) if alphabet_sizes is not None else None
+            state_space_joint = (
+                tuple(tuple(range(a)) for a in sizes) if sizes is not None else None
+            )
+            self._factored_tpm = FactoredTPM.from_joint(
+                arr, state_space=state_space_joint
+            )
 
         self._cm, self._cm_hash = self._build_cm(cm)
         self._node_indices = tuple(range(self.size))
