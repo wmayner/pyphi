@@ -516,3 +516,43 @@ guess.
    semantics (which only makes sense for SBN-form forward TPMs) or
    whether the macro rewrite can adopt the joint-posterior cause
    representation natively.
+
+---
+
+## Resolution status (post-consumer-migration sweep)
+
+Re-run of the catalogue search pattern after Tasks 9–12 on branch
+`feature/p12b-factored-kary` (head `2809f3cc`). Search command:
+
+```bash
+grep -rn "\[\.\.\., self\.index\]\|cause_tpm\[\.\.\., \|cause_tpm\.tpm_indices\|1 - cause_tpm_on" pyphi/ --include="*.py"
+```
+
+| Site | Status |
+|---|---|
+| `pyphi/node.py::Node.__init__` lines 63, 72, 80, 87–88 | Migrated to `factor(i)` accessor (Task 9). The grep pattern no longer matches: `[..., self.index]` on the substrate-level cause TPM is gone; `cause_tpm.tpm_indices()` is now called on a `JointTPM` wrapping the per-unit factor; `1 - cause_tpm_on` is eliminated; the off/on stack is handled inside `CausePosterior.factor(i)`. |
+| `pyphi/core/repertoire_algebra.py::_single_node_cause_repertoire` line 130 | Migrated: alphabet-generic indexing `mechanism_node.cause_tpm[..., mechanism_node.state]` locked (Task 10). The grep hit on line 130 is a docstring; line 142 is the live call, which indexes the **per-node** cause TPM (post-Task-9 shape `(*alphabet_sizes, a_node)`) by `mechanism_node.state` — the intended alphabet-generic pattern. Not an SBN consumer. |
+| `pyphi/system.py::System.proper_cause_tpm` lines 186–189 | Recomputed via `_cause_tpm_factored_kary` returning a `FactoredTPM`; the SBN trailing-axis slice `[..., list(self.node_indices)]` is gone (Task 11). |
+| `pyphi/core/tpm/joint_distribution.py::tpm_indices` | Per-class overrides added (Task 12): `JointTPM` retains binary singleton-exclusion contract; `CausePosterior` returns `tuple(range(ndim - 1))`; `FactoredTPM` returns `tuple(range(n_nodes))`. The base class now raises `NotImplementedError` to enforce overrides. |
+| `pyphi/macro.py:266` — `cause_tpm.tpm_indices()` in `_squeeze` | Dead code; `MacroSystem.__init__` raises `NotImplementedError`. Deferred to macro rewrite milestone. |
+| `pyphi/macro.py:344` — `cause_tpm.tpm_indices()` in `_blackbox_partial_noise` | Dead code; same `MacroSystem` gate. Deferred to macro rewrite milestone. |
+| `pyphi/macro.py:103` — `state_by_node2state_by_state(system.cause_tpm.tpm)` in `run_tpm` | Dead code; deferred. |
+| `pyphi/macro.py:271` — `remove_singleton_dimensions(system.cause_tpm)` | Dead code; deferred. |
+| `pyphi/macro.py:286` — `rebuild_system_tpm(node.cause_tpm_on ...)` | Dead code; deferred. |
+| `pyphi/macro.py:371` — `coarse_grain.macro_tpm(system.cause_tpm.tpm, ...)` | Dead code; deferred. |
+| `pyphi/actual.py::TransitionSystem.cause_tpm` | Pass-through to `System.cause_tpm`; covered transitively by Task 9. |
+| `pyphi/actual.py::TransitionSystem.proper_cause_tpm` | Pass-through to `System.proper_cause_tpm`; covered transitively by Task 11. |
+| `pyphi/actual.py:303–310` — `generate_nodes(self.cause_tpm, ...)` | Pass-through to `generate_nodes`; covered transitively by Task 9. |
+| `pyphi/protocols.py:165, 175, 267, 276, 370` | Protocol declarations only; typed `Any`; no math. Invariant. |
+| `pyphi/node.py:110, 120` — `cause_tpm_off` / `cause_tpm_on` properties | Category A (per-node TPM accessors). These index the per-node `(*alphabet_sizes, a_node)` shape; not substrate-level SBN consumers. Shape follows from the Task 9 rewrite of `Node.__init__`. |
+
+### Sweep outcome
+
+**No remaining live SBN consumers found.** Every category B site that
+was reachable from the production path has been migrated by Tasks 9–12.
+The only `cause_tpm.tpm_indices()` and `[..., node_index]` hits
+remaining in `pyphi/` are inside `pyphi/macro.py`, which is
+unreachable while `MacroSystem.__init__` raises `NotImplementedError`.
+
+Full test suite after sweep: **1422 passed, 40 skipped, 3 xfailed**.
+Golden regression suite: **23/23 byte-identical**.
