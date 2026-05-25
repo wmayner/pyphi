@@ -21,6 +21,8 @@ from pyphi.models.partitions import DirectedBipartition
 from pyphi.models.partitions import NullCut
 from pyphi.substrate import Substrate
 
+from .core.tpm.factored import FactoredTPM
+from .core.tpm.marginalization import _cause_tpm_factored_kary
 from .core.tpm.marginalization import cause_tpm as _marginalize_cause
 from .core.tpm.marginalization import effect_tpm as _marginalize_effect
 
@@ -192,10 +194,33 @@ class System:
         return np.asarray(self.effect_tpm.squeeze())[..., list(self.node_indices)]
 
     @cached_property
-    def proper_cause_tpm(self) -> Any:
+    def proper_cause_tpm(self) -> FactoredTPM:
+        """Cause TPM restricted to system units.
+
+        Per system unit ``i`` in ``node_indices``, the returned FactoredTPM
+        carries the cause factor produced by Bayesian inversion of the
+        substrate's forward TPM under the observed state. Background units
+        are marginalized via ``pr_bg / norm`` weighting per IIT 4.0 Eq. 4
+        and dropped from each factor's input dims, so the returned shape
+        is ``(*system_alphabet, k_i)`` per system output unit.
+        """
         import numpy as np
 
-        return np.asarray(self.cause_tpm.squeeze())[..., list(self.node_indices)]
+        factored = _cause_tpm_factored_kary(
+            self._typed_tpm,
+            self.state,
+            self.node_indices,
+        )
+        background_indices = tuple(
+            i for i in range(factored.n_nodes) if i not in set(self.node_indices)
+        )
+        system_factors = []
+        for i in self.node_indices:
+            f = factored.factor(i)
+            if background_indices:
+                f = np.squeeze(f, axis=background_indices)
+            system_factors.append(f)
+        return FactoredTPM(factors=system_factors)
 
     @cached_property
     def cm(self) -> Any:

@@ -260,3 +260,37 @@ class TestIntrinsicInformationTies:
 
         null_sia = NullSystemIrreducibilityAnalysis()
         null_sia.resolve_system_state()  # Should not raise
+
+
+def test_proper_cause_tpm_kary_returns_factored_view() -> None:
+    """proper_cause_tpm for a k=3 system returns per-system-unit factors
+    restricted to the system's node indices."""
+    from pyphi.core.tpm.factored import FactoredTPM
+
+    rng = np.random.default_rng(99)
+    factors = []
+    for _ in range(2):
+        arr = rng.uniform(size=(3, 3, 3))
+        factors.append(arr / arr.sum(axis=-1, keepdims=True))
+    sub = Substrate(marginals=factors)
+    with config.override(validate_system_states=False):
+        sys = System(sub, state=(0, 0))
+        proper = sys.proper_cause_tpm
+    assert isinstance(proper, FactoredTPM)
+    assert proper.n_nodes == len(sys.node_indices)
+    for i in range(proper.n_nodes):
+        assert proper.factor(i).shape[-1] == 3
+
+
+def test_proper_cause_tpm_binary_matches_legacy_slice(s) -> None:
+    """For binary substrates the per-system-unit on-probability slice of
+    ``proper_cause_tpm`` matches the legacy substrate-slice form."""
+    from pyphi.core.tpm.factored import FactoredTPM
+
+    legacy = np.asarray(s.cause_tpm.squeeze())[..., list(s.node_indices)]
+    proper = s.proper_cause_tpm
+    assert isinstance(proper, FactoredTPM)
+    assert proper.n_nodes == len(s.node_indices)
+    for slot, _node in enumerate(s.node_indices):
+        on = np.squeeze(proper.factor(slot)[..., 1])
+        assert np.allclose(on, legacy[..., slot], atol=1e-10)

@@ -1,0 +1,1 @@
+``System.proper_cause_tpm`` (and ``TransitionSystem.proper_cause_tpm``) now returns a ``FactoredTPM`` with one factor per system unit instead of an ndarray slice of the substrate-level cause TPM. Binary substrates produce the same per-unit on-probability values via ``factor(i)[..., 1]``; multi-valued (k > 2) substrates get a meaningful answer for the first time.
