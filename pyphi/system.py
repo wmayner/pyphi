@@ -20,6 +20,7 @@ from pyphi import validate
 from pyphi.models.partitions import DirectedBipartition
 from pyphi.models.partitions import NullCut
 from pyphi.substrate import Substrate
+from pyphi.substrate import _coerce_state_to_indices
 
 from .core.tpm.factored import FactoredTPM
 from .core.tpm.marginalization import _cause_tpm_factored_kary
@@ -42,6 +43,9 @@ class System:
 
     def __post_init__(self) -> None:
         substrate = self.substrate
+        # Coerce label-states to integer indices before length/value validation.
+        coerced = _coerce_state_to_indices(tuple(self.state), substrate.state_space)
+        object.__setattr__(self, "state", coerced)
         validate.state_length(self.state, substrate.size)
         validate.node_states(self.state)
         if self.node_indices is None:

@@ -21,6 +21,7 @@ from . import jsonify
 from . import utils
 from . import validate
 from .core.tpm.factored import FactoredTPM
+from .core.tpm.factored import StateSpace
 from .direction import Direction
 from .labels import NodeLabels
 from .tpm import JointTPM
@@ -28,6 +29,45 @@ from .types import ConnectivityMatrix
 from .types import Mechanism
 from .types import NodeIndices
 from .types import Purview
+
+
+def _coerce_state_to_indices(
+    state: tuple[Any, ...],
+    state_space: tuple[tuple[Any, ...], ...],
+) -> tuple[int, ...]:
+    """Convert a state tuple to integer indices via ``state_space`` lookup.
+
+    Each element of ``state`` is either an integer index into the
+    corresponding alphabet or a label present in ``state_space[i]``.
+    Returns a tuple of integer indices in the same order.
+
+    Args:
+        state: The state to coerce — may mix integer indices and labels.
+        state_space: Per-node label tuples from :attr:`Substrate.state_space`.
+
+    Returns:
+        tuple[int]: Integer-indexed state.
+
+    Raises:
+        ValueError: If ``len(state) != len(state_space)`` or any element
+            is neither a valid label nor a valid index.
+    """
+    if len(state) != len(state_space):
+        raise ValueError(
+            f"state length {len(state)} != state_space length {len(state_space)}"
+        )
+    indices: list[int] = []
+    for i, (s, labels) in enumerate(zip(state, state_space, strict=True)):
+        if s in labels:
+            indices.append(labels.index(s))
+        elif isinstance(s, int) and 0 <= s < len(labels):
+            indices.append(s)
+        else:
+            raise ValueError(
+                f"state[{i}] = {s!r} is not in state_space[{i}] = {labels!r} "
+                f"and is not a valid index for alphabet size {len(labels)}"
+            )
+    return tuple(indices)
 
 
 class Substrate:
@@ -62,9 +102,14 @@ class Substrate:
     Keyword Args:
         marginals (sequence of np.ndarray): Per-node conditional arrays
             (factored form). Mutually exclusive with ``tpm=``.
-        alphabet_sizes (sequence of int): Alphabet size for each node.
-            Required when using ``marginals=`` for non-binary nodes;
-            defaults to ``(2,) * n`` when omitted.
+        state_space: The state space for the substrate nodes. Accepts a
+            uniform-flat integer alphabet size, a tuple of per-node label
+            tuples ``((labels_0, ...), (labels_1, ...), ...)``, or a single
+            flat tuple of labels applied uniformly to every node. When
+            ``None``, defaults to binary ``(0, 1)`` per node.
+        alphabet (int): Shortcut for a uniform integer alphabet of the given
+            size — equivalent to ``state_space=tuple(range(alphabet))``.
+            Mutually exclusive with ``state_space=``.
         cm (np.ndarray): A square binary adjacency matrix indicating the
             connections between nodes in the substrate. ``cm[i][j] == 1`` means
             that node |i| is connected to node |j| (see :ref:`cm-conventions`).
@@ -91,12 +136,15 @@ class Substrate:
         purview_cache: cache.PurviewCache | None = None,
         *,
         marginals: Sequence[ArrayLike] | None = None,
-        alphabet_sizes: Sequence[int] | None = None,
+        state_space: StateSpace = None,
+        alphabet: int | None = None,
     ) -> None:
         if tpm is not None and marginals is not None:
             raise ValueError("Pass tpm= or marginals=, not both")
         if tpm is None and marginals is None:
             raise ValueError("Must pass tpm= (joint) or marginals= (factored)")
+        if alphabet is not None and state_space is not None:
+            raise ValueError("Pass alphabet= or state_space=, not both")
 
         if tpm is not None and isinstance(tpm, FactoredTPM):
             raise ValueError(
@@ -104,22 +152,17 @@ class Substrate:
                 "Substrate.from_factored(...), not tpm="
             )
 
+        # Translate alphabet= shortcut to a uniform integer state_space.
+        if alphabet is not None:
+            if alphabet < 2:
+                raise ValueError(f"alphabet must be >= 2; got {alphabet}")
+            state_space = tuple(range(alphabet))  # type: ignore[assignment]
+
         if marginals is not None:
-            state_space = (
-                tuple(range(a) for a in alphabet_sizes)
-                if alphabet_sizes is not None
-                else None
-            )
             self._factored_tpm = FactoredTPM(factors=marginals, state_space=state_space)
         else:
             arr = self._coerce_joint_array(tpm)
-            sizes = tuple(alphabet_sizes) if alphabet_sizes is not None else None
-            state_space_joint = (
-                tuple(tuple(range(a)) for a in sizes) if sizes is not None else None
-            )
-            self._factored_tpm = FactoredTPM.from_joint(
-                arr, state_space=state_space_joint
-            )
+            self._factored_tpm = FactoredTPM.from_joint(arr, state_space=state_space)
 
         self._cm, self._cm_hash = self._build_cm(cm)
         self._node_indices = tuple(range(self.size))
@@ -162,6 +205,11 @@ class Substrate:
     def factored_tpm(self) -> FactoredTPM:
         """Alias for :attr:`tpm` — explicit per-node-factored access."""
         return self._factored_tpm
+
+    @property
+    def state_space(self) -> tuple[tuple[Any, ...], ...]:
+        """Per-node label tuples, delegated from the underlying FactoredTPM."""
+        return self._factored_tpm.state_space
 
     def joint_tpm(self) -> NDArray[np.float64]:
         """Materialize the joint conditional TPM on demand.
