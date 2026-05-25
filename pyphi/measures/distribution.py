@@ -39,6 +39,20 @@ from pyphi.types import State
 
 _LN_OF_2 = np.log(2)
 
+# ---------------------------------------------------------------------------
+# Alphabet-support helpers
+# ---------------------------------------------------------------------------
+
+
+def _binary_only(alphabet_sizes: tuple[int, ...]) -> bool:
+    """Return ``True`` when all nodes are binary (alphabet size 2)."""
+    return all(a == 2 for a in alphabet_sizes)
+
+
+def _any_alphabet(_alphabet_sizes: tuple[int, ...]) -> bool:
+    """Return ``True`` for any combination of node cardinalities."""
+    return True
+
 
 class DistanceResult(PyPhiFloat):
     """A numeric result that can carry auxiliary data about its computation.
@@ -292,7 +306,10 @@ class DistributionMeasureRegistry(Registry):
     desc = "distribution-to-distribution distance functions"
 
     def register(  # type: ignore[override]
-        self, name: str, asymmetric: bool = False
+        self,
+        name: str,
+        asymmetric: bool = False,
+        supports_alphabet: Callable[[tuple[int, ...]], bool] = _any_alphabet,
     ) -> Callable[[Callable[..., float]], Callable[..., float]]:
         """Decorator for registering a :class:`DistributionMeasure`.
 
@@ -302,6 +319,9 @@ class DistributionMeasureRegistry(Registry):
         Keyword Args:
             asymmetric: ``True`` if the measure is asymmetric. Stored as
                 an attribute on the function.
+            supports_alphabet: Callable ``(alphabet_sizes) -> bool``
+                indicating whether the measure handles the given node
+                cardinalities. Defaults to :data:`_any_alphabet`.
         """
 
         def register_func(func: Callable[..., float]) -> Callable[..., float]:
@@ -313,6 +333,7 @@ class DistributionMeasureRegistry(Registry):
                 )
             func.name = name  # type: ignore[attr-defined]
             func.asymmetric = asymmetric  # type: ignore[attr-defined]
+            func.supports_alphabet = supports_alphabet  # type: ignore[attr-defined]
             self.store[name] = func
             return func
 
@@ -331,9 +352,20 @@ class StateAwareMeasureRegistry(Registry):
     desc = "pointwise state-aware measures"
 
     def register(  # type: ignore[override]
-        self, name: str
+        self,
+        name: str,
+        supports_alphabet: Callable[[tuple[int, ...]], bool] = _any_alphabet,
     ) -> Callable[[Callable[..., float]], Callable[..., float]]:
-        """Decorator for registering a :class:`StateAwareMeasure`."""
+        """Decorator for registering a :class:`StateAwareMeasure`.
+
+        Args:
+            name: The name of the measure.
+
+        Keyword Args:
+            supports_alphabet: Callable ``(alphabet_sizes) -> bool``
+                indicating whether the measure handles the given node
+                cardinalities. Defaults to :data:`_any_alphabet`.
+        """
 
         def register_func(func: Callable[..., float]) -> Callable[..., float]:
             if not satisfies_state_aware_measure(func):
@@ -343,6 +375,7 @@ class StateAwareMeasureRegistry(Registry):
                     f"{list(inspect.signature(func).parameters)}."
                 )
             func.name = name  # type: ignore[attr-defined]
+            func.supports_alphabet = supports_alphabet  # type: ignore[attr-defined]
             self.store[name] = func
             return func
 
@@ -367,6 +400,7 @@ class CompositeMeasureRegistry(Registry):
         asymmetric: bool = False,
         applies_ii_cap: bool = False,
         partition_measure: Callable[..., Any] | None = None,
+        supports_alphabet: Callable[[tuple[int, ...]], bool] = _any_alphabet,
     ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
         """Decorator for registering a :class:`CompositeMeasure`.
 
@@ -380,6 +414,9 @@ class CompositeMeasureRegistry(Registry):
             partition_measure: The composite measure used to score
                 partitions when this measure is the system measure;
                 ``None`` means "use self".
+            supports_alphabet: Callable ``(alphabet_sizes) -> bool``
+                indicating whether the measure handles the given node
+                cardinalities. Defaults to :data:`_any_alphabet`.
         """
 
         def register_func(func: Callable[..., Any]) -> Callable[..., Any]:
@@ -394,6 +431,7 @@ class CompositeMeasureRegistry(Registry):
             func.asymmetric = asymmetric  # type: ignore[attr-defined]
             func.applies_ii_cap = applies_ii_cap  # type: ignore[attr-defined]
             func.partition_measure = partition_measure  # type: ignore[attr-defined]
+            func.supports_alphabet = supports_alphabet  # type: ignore[attr-defined]
             self.store[name] = func
             return func
 
@@ -412,7 +450,10 @@ class StatefulDistributionMeasureRegistry(Registry):
     desc = "two-distribution state-aware measures"
 
     def register(  # type: ignore[override]
-        self, name: str, asymmetric: bool = False
+        self,
+        name: str,
+        asymmetric: bool = False,
+        supports_alphabet: Callable[[tuple[int, ...]], bool] = _any_alphabet,
     ) -> Callable[[Callable[..., float]], Callable[..., float]]:
         """Decorator for registering a :class:`StatefulDistributionMeasure`.
 
@@ -422,6 +463,9 @@ class StatefulDistributionMeasureRegistry(Registry):
         Keyword Args:
             asymmetric: ``True`` if the measure is asymmetric. Stored as
                 an attribute on the function.
+            supports_alphabet: Callable ``(alphabet_sizes) -> bool``
+                indicating whether the measure handles the given node
+                cardinalities. Defaults to :data:`_any_alphabet`.
         """
 
         def register_func(func: Callable[..., float]) -> Callable[..., float]:
@@ -433,6 +477,7 @@ class StatefulDistributionMeasureRegistry(Registry):
                 )
             func.name = name  # type: ignore[attr-defined]
             func.asymmetric = asymmetric  # type: ignore[attr-defined]
+            func.supports_alphabet = supports_alphabet  # type: ignore[attr-defined]
             self.store[name] = func
             return func
 
@@ -467,7 +512,10 @@ class ActualCausationMeasureRegistry(Registry):
         self._asymmetric: list[str] = []
 
     def register(
-        self, name: str, asymmetric: bool = False
+        self,
+        name: str,
+        asymmetric: bool = False,
+        supports_alphabet: Callable[[tuple[int, ...]], bool] = _any_alphabet,
     ) -> Callable[[Callable[..., float]], Callable[..., float]]:
         """Decorator for registering an actual causation measure with PyPhi.
 
@@ -476,11 +524,15 @@ class ActualCausationMeasureRegistry(Registry):
 
         Keyword Args:
             asymmetric (boolean): ``True`` if the measure is asymmetric.
+            supports_alphabet: Callable ``(alphabet_sizes) -> bool``
+                indicating whether the measure handles the given node
+                cardinalities. Defaults to :data:`_any_alphabet`.
         """
 
         def register_func(func: Callable[..., float]) -> Callable[..., float]:
             if asymmetric:
                 self._asymmetric.append(name)
+            func.supports_alphabet = supports_alphabet  # type: ignore[attr-defined]
             self.store[name] = func
             return func
 
@@ -605,7 +657,7 @@ def effect_emd(p: ArrayLike, q: ArrayLike) -> float:
     )
 
 
-@distribution_measures.register("EMD")
+@distribution_measures.register("EMD", supports_alphabet=_binary_only)
 def emd(p: ArrayLike, q: ArrayLike, direction: Direction | None = None) -> float:
     """Compute the EMD between two repertoires for a given direction.
 
