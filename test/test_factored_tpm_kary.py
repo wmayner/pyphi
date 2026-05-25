@@ -1,7 +1,6 @@
 """Hypothesis property tests for FactoredTPM with k-ary alphabets.
 
-User-facing P12a is binary-only; these tests exercise the alphabet-
-generic internals against k in {2, 3, 4, 5}.
+Exercises the alphabet-generic internals against k in {2, 3, 4, 5}.
 """
 
 from __future__ import annotations

@@ -188,8 +188,8 @@ class System:
 
             n = typed.n_nodes
             sbn = np.stack([typed.factor(i)[..., 1] for i in range(n)], axis=-1)
-            return JointTPM(sbn)._inner
-        return typed._inner if hasattr(typed, "_inner") else typed  # type: ignore[union-attr]
+            return JointTPM(sbn)
+        return typed
 
     @cached_property
     def proper_effect_tpm(self) -> Any:
@@ -269,9 +269,7 @@ class System:
 
         return generate_nodes(
             self.cause_tpm,
-            self.effect_tpm._inner
-            if hasattr(self.effect_tpm, "_inner")
-            else self.effect_tpm,
+            self.effect_tpm,
             self.cm,
             self.state,
             self.node_indices,

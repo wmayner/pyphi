@@ -2719,4 +2719,25 @@ to ease transition:
   benefits from running after P12b lands because P12b touches the
   surface already.
 
+- **AC k-ary cutover (deferred from P12b).** The actual-causation pipeline
+  (``pyphi/actual.py::TransitionSystem``) remains binary-only: it calls
+  ``Substrate._legacy_binary_joint()`` and passes through ``validate.node_states``
+  which enforces a binary alphabet. The original P12b amendment included an
+  "AC parallel cutover" but it turned out to require a deeper refactor than
+  fit P12b's scope — analogous to the ``System`` cause/effect-TPM migration
+  that P12b completed for the SIA pipeline. The follow-up work is a
+  ``TransitionSystem`` rewrite: replace ``_legacy_binary_joint()`` with the
+  native ``FactoredTPM`` code path, propagate ``state_space`` through the AC
+  margin/condition kernels, and relax ``validate.node_states``. Estimate: 1–2
+  days once the SIA k-ary path has had a release cycle of field use.
+
+- **p53-Mdm2 golden fixture (deferred from P12b Task 22).** Two synthetic
+  k>2 fixtures (``multivalued_k3_tiny``, ``multivalued_2x3x3``) were landed in
+  P12b; the p53-Mdm2 network from Gomez et al. 2021 was deferred. Follow-up:
+  reconstruct the substrate from the paper's Table 1; if the SIA Φ value
+  reproduces the paper's within ``config.numerics.precision = 13``, land it as
+  a third k>2 golden alongside the two synthetic ones. The reference is:
+  Gomez et al. (2021), "Integrated information theory predicts …",
+  *PLoS Computational Biology* 17(11): e1009585.
+
 (Math-fingerprint cache keys was promoted to **P9.5** above.)

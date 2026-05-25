@@ -272,12 +272,12 @@ class JointDistribution(data_structures.ArrayLike):
         return item
 
     def array_equal(self, o: object) -> bool:
-        """Return whether this distribution equals the other object.
+        """Return whether this distribution equals another, numerically.
 
-        Two distributions are equal if they are instances of the same class
-        and their numpy arrays are equal.
+        Compares the underlying numpy arrays; accepts any array-compatible
+        object (including ``core.tpm.joint.JointTPM`` wrappers).
         """
-        return isinstance(o, type(self)) and np.array_equal(self._tpm, o._tpm)
+        return np.array_equal(self._tpm, np.asarray(o))
 
     def __str__(self) -> str:
         return self.__repr__()

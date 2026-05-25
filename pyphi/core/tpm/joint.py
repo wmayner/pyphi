@@ -61,6 +61,19 @@ class JointTPM:
     def to_array(self) -> NDArray[np.float64]:
         return np.asarray(self._inner)
 
+    def __getitem__(self, key: Any) -> Any:
+        return self._inner[key]
+
+    def __array__(self, dtype: Any = None, copy: Any = None) -> NDArray[np.float64]:
+        arr = np.asarray(self._inner)
+        if dtype is not None:
+            arr = arr.astype(dtype)
+        return arr
+
+    def array_equal(self, other: object) -> bool:
+        """Return whether this TPM equals another, numerically."""
+        return np.array_equal(np.asarray(self), np.asarray(other))
+
     def __getattr__(self, name: str) -> Any:
         # Passthrough for legacy methods not yet lifted to the Protocol surface.
         # Guard: skip dunder/sunder names (pickle, copy, etc.) and bail
