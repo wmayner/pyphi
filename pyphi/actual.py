@@ -25,6 +25,7 @@ from dataclasses import replace
 from functools import cached_property
 from itertools import chain
 from types import MappingProxyType
+from typing import TYPE_CHECKING
 from typing import Any
 
 import numpy as np
@@ -57,6 +58,9 @@ from .parallel import MapReduce
 from .partition import mechanism_partitions
 from .substrate import Substrate
 from .system import System
+
+if TYPE_CHECKING:
+    from .core.tpm.factored import FactoredTPM
 
 log = logging.getLogger(__name__)
 
@@ -242,7 +246,7 @@ class TransitionSystem:
             )
 
     @cached_property
-    def cause_tpm(self) -> Any:
+    def cause_tpm(self) -> "FactoredTPM":
         return self._underlying_system.cause_tpm
 
     @cached_property

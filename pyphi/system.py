@@ -160,13 +160,13 @@ class System:
         return self.substrate.factored_tpm
 
     @cached_property
-    def cause_tpm(self) -> Any:
-        typed = _marginalize_cause(
-            self._typed_tpm,  # type: ignore[arg-type]
+    def cause_tpm(self) -> FactoredTPM:
+        """Per-output-unit cause factors for the system; see IIT 4.0 Eq. 4."""
+        return _marginalize_cause(
+            self._typed_tpm,
             self.state,
             self.node_indices,
         )
-        return typed._inner if hasattr(typed, "_inner") else typed  # type: ignore[union-attr]
 
     @cached_property
     def effect_tpm(self) -> Any:
@@ -264,9 +264,7 @@ class System:
         from pyphi.node import generate_nodes
 
         return generate_nodes(
-            self.cause_tpm._inner
-            if hasattr(self.cause_tpm, "_inner")
-            else self.cause_tpm,
+            self.cause_tpm,
             self.effect_tpm._inner
             if hasattr(self.effect_tpm, "_inner")
             else self.effect_tpm,

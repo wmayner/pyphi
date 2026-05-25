@@ -129,7 +129,7 @@ def test_apply_cut(s):
     assert s.state == cut_s.state
     assert s.node_indices == cut_s.node_indices
     assert np.array_equal(cut_s.effect_tpm.tpm, s.effect_tpm.tpm)
-    assert np.array_equal(cut_s.cause_tpm.tpm, s.cause_tpm.tpm)
+    assert cut_s.cause_tpm == s.cause_tpm
     assert np.array_equal(cut_s.cm, cut.apply_cut(s.cm))
 
 
@@ -284,13 +284,16 @@ def test_proper_cause_tpm_kary_returns_factored_view() -> None:
 
 def test_proper_cause_tpm_binary_matches_legacy_slice(s) -> None:
     """For binary substrates the per-system-unit on-probability slice of
-    ``proper_cause_tpm`` matches the legacy substrate-slice form."""
+    ``proper_cause_tpm`` matches the substrate cause TPM's on-probability
+    slice for the same unit."""
     from pyphi.core.tpm.factored import FactoredTPM
 
-    legacy = np.asarray(s.cause_tpm.squeeze())[..., list(s.node_indices)]
+    substrate_cause = s.cause_tpm
+    assert isinstance(substrate_cause, FactoredTPM)
     proper = s.proper_cause_tpm
     assert isinstance(proper, FactoredTPM)
     assert proper.n_nodes == len(s.node_indices)
-    for slot, _node in enumerate(s.node_indices):
-        on = np.squeeze(proper.factor(slot)[..., 1])
-        assert np.allclose(on, legacy[..., slot], atol=1e-10)
+    for slot, node in enumerate(s.node_indices):
+        proper_on = np.squeeze(proper.factor(slot)[..., 1])
+        substrate_on = np.squeeze(substrate_cause.factor(node)[..., 1])
+        assert np.allclose(proper_on, substrate_on, atol=1e-10)

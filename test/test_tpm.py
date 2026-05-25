@@ -112,7 +112,9 @@ def test_expand_tpm():
 
 
 def test_marginalize_out(s):
-    assert s.cause_tpm == s.effect_tpm
+    effect_arr = np.asarray(s.effect_tpm)
+    for i in range(s.cause_tpm.n_nodes):
+        np.testing.assert_array_equal(s.cause_tpm.factor(i)[..., 1], effect_arr[..., i])
     marginalized_distribution = s.effect_tpm.marginalize_out([0])
     # fmt: off
     answer = JointTPM(

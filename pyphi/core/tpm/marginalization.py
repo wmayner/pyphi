@@ -10,7 +10,6 @@ from pyphi import exceptions
 from pyphi.tpm import backward_tpm as _legacy_backward_tpm
 
 from .base import TPM
-from .cause_posterior import CausePosterior
 from .factored import FactoredTPM
 from .joint import JointTPM
 
@@ -19,44 +18,24 @@ def cause_tpm(
     tpm: TPM,
     state: tuple[int, ...],
     node_indices: tuple[int, ...],
-) -> CausePosterior:
-    """Backward TPM — IIT 4.0 Eq. 4.
+) -> FactoredTPM:
+    """Cause TPM — IIT 4.0 Eq. 4.
 
-    Internally the per-output-unit factors are computed under a unified
-    FactoredTPM-based path. The dispatcher currently wraps the result in
-    CausePosterior to preserve the existing return contract; a later task
-    switches the return type to FactoredTPM directly.
+    Returns a FactoredTPM with one factor per substrate unit (each factor
+    of shape ``(*alphabet_sizes, k_i)``). Output factors represent
+    ``P(s_i,t | s_{M,t+1} = state_M)`` per output unit, with background
+    units marginalized under ``pr_bg / norm`` weighting.
     """
     if isinstance(tpm, FactoredTPM):
         if all(a == 2 for a in tpm.alphabet_sizes):
-            factored_out = _cause_tpm_factored_binary(tpm, state, node_indices)
-        else:
-            factored_out = _cause_tpm_factored_kary(tpm, state, node_indices)
-        return _as_cause_posterior(factored_out)
+            return _cause_tpm_factored_binary(tpm, state, node_indices)
+        return _cause_tpm_factored_kary(tpm, state, node_indices)
     if isinstance(tpm, JointTPM):
-        return CausePosterior(_legacy_backward_tpm(tpm._inner, state, node_indices))
+        factored = FactoredTPM.from_joint(tpm._inner)
+        return cause_tpm(factored, state, node_indices)
     arr = tpm.to_array()
-    legacy = JointTPM(arr)
-    return CausePosterior(_legacy_backward_tpm(legacy._inner, state, node_indices))
-
-
-def _as_cause_posterior(factored: FactoredTPM) -> CausePosterior:
-    """Bridge a FactoredTPM cause result back to the legacy SBN-shaped
-    CausePosterior. Stacks per-unit on-probability slices into the
-    ``(*alphabet_sizes, n)`` array that downstream consumers currently
-    expect.
-
-    Binary-only: k-ary cause TPMs have no SBN-equivalent shape and must
-    be consumed via ``factor(i)`` directly.
-    """
-    n = factored.n_nodes
-    if not all(a == 2 for a in factored.alphabet_sizes):
-        raise NotImplementedError(
-            "Non-binary cause TPMs are not representable in SBN-form. "
-            "Use the FactoredTPM-returning path."
-        )
-    on_slices = np.stack([factored.factor(i)[..., 1] for i in range(n)], axis=-1)
-    return CausePosterior(on_slices)
+    factored = FactoredTPM.from_joint(arr)
+    return cause_tpm(factored, state, node_indices)
 
 
 def effect_tpm(
