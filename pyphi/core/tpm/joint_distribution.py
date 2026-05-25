@@ -243,9 +243,12 @@ class JointDistribution(data_structures.ArrayLike):
         return self.ndim == 2 and self.shape[0] == self.shape[1]
 
     def tpm_indices(self) -> tuple[int, ...]:
-        """Return the indices of nodes in the TPM."""
-        # TODO This currently assumes binary elements (2)
-        return tuple(np.where(np.array(self.shape[:-1]) == 2)[0])
+        """Return the substrate-unit axis indices for this distribution.
+
+        Subclasses must override this method; the base class carries no
+        semantic axis labels.
+        """
+        raise NotImplementedError(f"{type(self).__name__} must override tpm_indices()")
 
     def print(self) -> None:
         tpm = convert.to_multidimensional(self._tpm)

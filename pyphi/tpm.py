@@ -314,6 +314,14 @@ class JointTPM(JointDistribution):
         result = conditioned[..., free_nodes]
         return result  # type: ignore[return-value]
 
+    def tpm_indices(self) -> tuple[int, ...]:
+        """Substrate-unit axis indices: leading axes whose size equals 2.
+
+        Singleton axes (size 1) arising from marginalizing out non-input nodes
+        are excluded; only axes with full binary state space are returned.
+        """
+        return tuple(np.where(np.array(self.shape[:-1]) == 2)[0])
+
     def expand_tpm(self) -> JointTPM:
         """Broadcast a state-by-node TPM so that singleton dimensions are expanded
         over the full substrate.

@@ -140,6 +140,12 @@ class FactoredTPM:
             factors_list.append(factor_i)
         return cls(factors=tuple(factors_list), alphabet_sizes=alphabet_sizes)
 
+    def tpm_indices(self) -> tuple[int, ...]:
+        """Substrate-unit indices: one entry per output unit (the leading
+        factor axes); the trailing alphabet axis is per-unit.
+        """
+        return tuple(range(self.n_nodes))
+
     def condition(self, fixed: Mapping[int, int]) -> FactoredTPM:
         conditioned = [self._backend.select(i, fixed) for i in range(self.n_nodes)]
         return FactoredTPM(

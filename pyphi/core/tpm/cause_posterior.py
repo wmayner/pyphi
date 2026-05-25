@@ -31,6 +31,12 @@ class CausePosterior(JointDistribution):
     :class:`JointDistribution`.
     """
 
+    def tpm_indices(self) -> tuple[int, ...]:
+        """Past-state-axis indices: all leading axes are per-substrate-unit
+        past-state axes; the trailing axis indexes observed mechanism units.
+        """
+        return tuple(range(self.ndim - 1))
+
     def factor(self, i: int) -> NDArray[np.float64]:
         """Per-output-unit factor of shape ``(*alphabet_sizes, 2)``.
 

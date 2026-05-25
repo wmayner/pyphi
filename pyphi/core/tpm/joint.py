@@ -45,6 +45,13 @@ class JointTPM:
         """All nodes are binary in the joint-storage form."""
         return (2,) * self.n_nodes
 
+    def tpm_indices(self) -> tuple[int, ...]:
+        """Substrate-unit indices: all leading axes are per-substrate-unit
+        past-state axes; the trailing axis carries per-output-unit firing
+        probability (SBN-form) or output state.
+        """
+        return tuple(range(len(self.shape) - 1))
+
     def condition(self, fixed: Mapping[int, int]) -> JointTPM:
         return JointTPM(self._inner.condition_tpm(dict(fixed)))
 
