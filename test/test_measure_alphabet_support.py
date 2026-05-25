@@ -66,3 +66,50 @@ def test_intrinsic_information_supports_alphabet_any() -> None:
     ii = composite_measures["INTRINSIC_INFORMATION"]
     assert ii.supports_alphabet((2, 2)) is True
     assert ii.supports_alphabet((3, 4, 5)) is True
+
+
+# ---------------------------------------------------------------------------
+# Dispatcher guard: resolve_mechanism_measure raises for unsupported combos
+# ---------------------------------------------------------------------------
+
+
+def test_resolve_mechanism_measure_emd_raises_for_kary() -> None:
+    """resolve_mechanism_measure raises NotImplementedError for EMD on k>2."""
+    from pyphi.measures.distribution import resolve_mechanism_measure
+
+    with pytest.raises(NotImplementedError, match="Gomez"):
+        resolve_mechanism_measure("EMD", alphabet_sizes=(3, 3))
+
+
+def test_resolve_mechanism_measure_emd_ok_for_binary() -> None:
+    """resolve_mechanism_measure does not raise for EMD on binary substrates."""
+    from pyphi.measures.distribution import resolve_mechanism_measure
+
+    measure = resolve_mechanism_measure("EMD", alphabet_sizes=(2, 2, 2))
+    assert measure is not None
+
+
+def test_resolve_mechanism_measure_emd_ok_without_alphabet() -> None:
+    """resolve_mechanism_measure does not check alphabet when sizes are omitted."""
+    from pyphi.measures.distribution import resolve_mechanism_measure
+
+    measure = resolve_mechanism_measure("EMD")
+    assert measure is not None
+
+
+def test_resolve_mechanism_measure_aid_ok_for_kary() -> None:
+    """resolve_mechanism_measure does not raise for AID on k>2 substrates."""
+    from pyphi.measures.distribution import resolve_mechanism_measure
+
+    measure = resolve_mechanism_measure("AID", alphabet_sizes=(3, 3, 3))
+    assert measure is not None
+
+
+def test_resolve_mechanism_measure_gid_ok_for_kary() -> None:
+    """resolve_mechanism_measure does not raise for GENERALIZED_INTRINSIC_DIFFERENCE on k>2."""
+    from pyphi.measures.distribution import resolve_mechanism_measure
+
+    measure = resolve_mechanism_measure(
+        "GENERALIZED_INTRINSIC_DIFFERENCE", alphabet_sizes=(3, 3)
+    )
+    assert measure is not None

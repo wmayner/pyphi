@@ -1215,6 +1215,7 @@ def weighted_pointwise_mutual_information(p: float, q: float) -> float:
 
 def resolve_mechanism_measure(
     name: str,
+    alphabet_sizes: tuple[int, ...] | None = None,
 ) -> (
     DistributionMeasure
     | StateAwareMeasure
@@ -1230,24 +1231,44 @@ def resolve_mechanism_measure(
     parameters typed as a narrower Protocol (e.g.,
     :class:`CompositeMeasure` at the system level) statically reject
     scope-mismatched assignments.
+
+    When ``alphabet_sizes`` is provided, the resolved measure's
+    ``supports_alphabet`` predicate is evaluated and
+    :class:`NotImplementedError` is raised for unsupported combinations
+    (e.g., EMD on a k>2 substrate).
     """
     from typing import cast
 
     if name in distribution_measures:
-        return cast(DistributionMeasure, distribution_measures[name])
-    if name in state_aware_measures:
-        return cast(StateAwareMeasure, state_aware_measures[name])
-    if name in stateful_distribution_measures:
-        return cast(StatefulDistributionMeasure, stateful_distribution_measures[name])
-    if name in composite_measures:
-        return cast(CompositeMeasure, composite_measures[name])
-    available = sorted(
-        set(distribution_measures)
-        | set(state_aware_measures)
-        | set(stateful_distribution_measures)
-        | set(composite_measures)
-    )
-    raise ValueError(f"Unknown mechanism measure {name!r}. Available: {available}")
+        measure = cast(DistributionMeasure, distribution_measures[name])
+    elif name in state_aware_measures:
+        measure = cast(StateAwareMeasure, state_aware_measures[name])
+    elif name in stateful_distribution_measures:
+        measure = cast(StatefulDistributionMeasure, stateful_distribution_measures[name])
+    elif name in composite_measures:
+        measure = cast(CompositeMeasure, composite_measures[name])
+    else:
+        available = sorted(
+            set(distribution_measures)
+            | set(state_aware_measures)
+            | set(stateful_distribution_measures)
+            | set(composite_measures)
+        )
+        raise ValueError(f"Unknown mechanism measure {name!r}. Available: {available}")
+    if alphabet_sizes is not None:
+        supports = getattr(measure, "supports_alphabet", None)
+        if supports is not None and not supports(alphabet_sizes):
+            raise NotImplementedError(
+                f"Measure {name!r} does not support alphabet sizes "
+                f"{alphabet_sizes}. "
+                f"For multi-valued substrates, use an alphabet-generic "
+                f"measure (AID, GID, INTRINSIC_INFORMATION, "
+                f"GENERALIZED_INTRINSIC_DIFFERENCE). "
+                f"See Gomez et al. 2021 §2.3 "
+                f"(https://doi.org/10.3390/e23010006) for the theoretical "
+                f"rationale."
+            )
+    return measure
 
 
 def resolve_system_measure(name: str) -> CompositeMeasure:

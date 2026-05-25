@@ -467,7 +467,10 @@ class System:
 
         kwargs.setdefault(
             "repertoire_distance",
-            resolve_mechanism_measure(_config.formalism.iit.mechanism_phi_measure),
+            resolve_mechanism_measure(
+                _config.formalism.iit.mechanism_phi_measure,
+                self.substrate.factored_tpm.alphabet_sizes,
+            ),
         )
         return ra.cause_info(self, mechanism, purview, **kwargs)
 
@@ -478,7 +481,10 @@ class System:
 
         kwargs.setdefault(
             "repertoire_distance",
-            resolve_mechanism_measure(_config.formalism.iit.mechanism_phi_measure),
+            resolve_mechanism_measure(
+                _config.formalism.iit.mechanism_phi_measure,
+                self.substrate.factored_tpm.alphabet_sizes,
+            ),
         )
         return ra.effect_info(self, mechanism, purview, **kwargs)
 
@@ -489,7 +495,10 @@ class System:
 
         kwargs.setdefault(
             "repertoire_distance",
-            resolve_mechanism_measure(_config.formalism.iit.mechanism_phi_measure),
+            resolve_mechanism_measure(
+                _config.formalism.iit.mechanism_phi_measure,
+                self.substrate.factored_tpm.alphabet_sizes,
+            ),
         )
         return ra.cause_effect_info(self, mechanism, purview, **kwargs)
 
@@ -611,9 +620,12 @@ class System:
         from pyphi.measures.distribution import resolve_mechanism_measure
 
         if _config.formalism.iit.version != "IIT_3_0":
+            alphabet_sizes = self.substrate.factored_tpm.alphabet_sizes
             kwargs.setdefault(
                 "mechanism_measure",
-                resolve_mechanism_measure(_config.formalism.iit.mechanism_phi_measure),
+                resolve_mechanism_measure(
+                    _config.formalism.iit.mechanism_phi_measure, alphabet_sizes
+                ),
             )
             kwargs.setdefault(
                 "specification_measure",

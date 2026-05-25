@@ -127,7 +127,8 @@ class IIT3Formalism:
         check_measure_compatible(self, config.formalism.iit.mechanism_phi_measure)
         if repertoire_distance is None:
             repertoire_distance = resolve_mechanism_measure(
-                config.formalism.iit.mechanism_phi_measure
+                config.formalism.iit.mechanism_phi_measure,
+                system.substrate.factored_tpm.alphabet_sizes,
             )
         # Internal helpers below the formalism boundary require an
         # explicit ``mechanism_measure``; resolve it here.
