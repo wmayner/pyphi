@@ -1,13 +1,9 @@
 """Joint distribution base class — multidimensional joint probability storage.
 
 Shared base for typed wrappers around multidimensional ndarrays representing
-joint probability distributions over substrate state spaces. Concrete
-subclasses:
-
-- :class:`pyphi.JointTPM` — joint conditional ``P(s_{t+1} | s_t)`` with
-  TPM-specific affordances.
-- :class:`pyphi.CausePosterior` — joint posterior over past states given an
-  observed mechanism state.
+joint probability distributions over substrate state spaces. The concrete
+subclass in production use is :class:`pyphi.JointTPM`, which wraps
+``P(s_{t+1} | s_t)`` with TPM-specific affordances.
 """
 
 from __future__ import annotations
