@@ -20,7 +20,10 @@ def test_substrate_joint_tpm_method() -> None:
     joint = np.array([[[0.5, 0.5], [0.5, 0.5]], [[0.5, 0.5], [0.5, 0.5]]])
     s = Substrate(tpm=joint)
     materialized = s.joint_tpm()
-    np.testing.assert_allclose(materialized[..., 0], joint[..., 0], atol=1e-12)
+    # Explicit-alphabet shape: (a_1, ..., a_N, N, max_alphabet).
+    assert materialized.shape == (2, 2, 2, 2)
+    # The trailing alphabet axis encodes P(node_i = k); slot 1 == P(node_i = 1).
+    np.testing.assert_allclose(materialized[..., 1], joint, atol=1e-12)
 
 
 def test_substrate_marginals_keyword() -> None:

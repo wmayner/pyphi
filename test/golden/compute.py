@@ -52,7 +52,11 @@ def compute_all_layers(
 
     structured: dict[str, Any] = {
         "substrate_hash": substrate_hash(
-            np.asarray(substrate.joint_tpm()), np.asarray(substrate.cm)
+            # Hash the legacy binary joint shape so fixtures stay stable
+            # across the Substrate.joint_tpm() shape unification. All golden
+            # fixtures are binary substrates.
+            np.asarray(substrate._legacy_binary_joint()),
+            np.asarray(substrate.cm),
         ),
     }
     arrays: dict[str, np.ndarray] = {}

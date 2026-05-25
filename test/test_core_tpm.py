@@ -63,7 +63,8 @@ def test_effect_tpm_parity() -> None:
 
     from pyphi.tpm import JointTPM as _LegacyJointTPM
 
-    joint = substrate.joint_tpm()
+    # Legacy JointTPM expects the (2,...,2,N) shape.
+    joint = substrate._legacy_binary_joint()
     new_tpm = effect_tpm(JointTPM(joint), background)
     old_tpm = _LegacyJointTPM(joint).condition_tpm(background)
     np.testing.assert_array_equal(new_tpm.to_array(), np.asarray(old_tpm))

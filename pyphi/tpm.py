@@ -299,7 +299,8 @@ class JointTPM(JointDistribution):
         Examples:
             >>> from pyphi import JointTPM, examples
             >>> # Get the TPM for nodes only 1 and 2, conditioned on node 0 = OFF
-            >>> JointTPM(examples.grid3_substrate().joint_tpm()).subtpm((0,), (0,))
+            >>> sub = examples.grid3_substrate()
+            >>> JointTPM(sub._legacy_binary_joint()).subtpm((0,), (0,))
             JointTPM([[[[0.02931223 0.04742587]
                [0.07585818 0.88079708]]
             <BLANKLINE>

@@ -141,6 +141,23 @@ class FactoredTPM:
 
         # Determine alphabet_sizes from state_space or infer from shape.
         if state_space is None:
+            # Try explicit-alphabet shape first: (a_1, ..., a_N, N, max_alpha).
+            # Identified by ndim >= 3, second-to-last axis equals N, leading
+            # axes give the per-unit alphabet sizes, and the last axis equals
+            # max(alphabet_sizes).
+            if ndim >= 3:
+                n_cand = int(joint_arr.shape[-2])
+                if ndim == n_cand + 2:
+                    leading = joint_arr.shape[:n_cand]
+                    if all(s >= 2 for s in leading) and joint_arr.shape[-1] == max(
+                        leading
+                    ):
+                        n = n_cand
+                        alphabet_sizes: tuple[int, ...] = leading
+                        factors = tuple(
+                            joint_arr[..., i, : alphabet_sizes[i]] for i in range(n)
+                        )
+                        return cls(factors=factors, state_space=None)
             if ndim < 2 or joint_arr.shape[-1] != ndim - 1:
                 raise ValueError(
                     f"Cannot infer state_space from joint shape "
@@ -148,7 +165,7 @@ class FactoredTPM:
                     f"(2,)*n + (n,) or pass state_space explicitly."
                 )
             n = ndim - 1
-            alphabet_sizes: tuple[int, ...] = (2,) * n
+            alphabet_sizes = (2,) * n
         else:
             # Build a temporary normalized state_space to extract alphabet_sizes.
             # We use a dummy factors list since we need n to build it.

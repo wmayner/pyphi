@@ -254,7 +254,10 @@ class TransitionSystem:
         from pyphi.core.tpm.joint import JointTPM as _TypedTPM
         from pyphi.core.tpm.marginalization import effect_tpm as _marginalize_effect
 
-        typed = _TypedTPM(self.substrate.joint_tpm())
+        # Wrap the legacy binary joint in JointTPM so the legacy actual-causation
+        # code path (which expects (2,...,2,N) shapes) sees the same array it
+        # always saw.
+        typed = _TypedTPM(self.substrate._legacy_binary_joint())
         external_state = utils.state_of(self.external_indices, self.before_state)
         background = dict(zip(self.external_indices, external_state, strict=False))
         result = _marginalize_effect(typed, background)

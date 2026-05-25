@@ -144,14 +144,15 @@ def test_marginalize_out(s):
 def test_infer_cm(rule152):
     from pyphi.tpm import JointTPM as _LegacyJointTPM
 
-    legacy_tpm = _LegacyJointTPM(rule152.joint_tpm())
+    # Legacy JointTPM/infer_cm expects the (2,...,2,N) shape.
+    legacy_tpm = _LegacyJointTPM(rule152._legacy_binary_joint())
     assert np.array_equal(legacy_tpm.infer_cm(), rule152.cm)
 
 
 def test_reconstitute_tpm(standard, s_complete, rule152, noised):
     # Check system and substrate TPM are the same when the system is the
-    # whole substrate
-    assert np.array_equal(reconstitute_tpm(s_complete), standard.joint_tpm())
+    # whole substrate. reconstitute_tpm returns the legacy binary shape.
+    assert np.array_equal(reconstitute_tpm(s_complete), standard._legacy_binary_joint())
 
     # Regression tests
     # fmt: off

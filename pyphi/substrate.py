@@ -123,9 +123,11 @@ class Substrate:
         :class:`~pyphi.core.tpm.factored.FactoredTPM`.
 
     Example:
-        In a 3-node substrate, ``the_substrate.joint_tpm()[(0, 0, 1)]`` gives
-        the transition probabilities for each node at |t| given that state
-        at |t-1| was |N_0 = 0, N_1 = 0, N_2 = 1|.
+        In a 3-node binary substrate, ``the_substrate.joint_tpm()[(0, 0, 1)]``
+        gives, for each node at |t|, the per-alphabet-value distribution
+        given that state at |t-1| was |N_0 = 0, N_1 = 0, N_2 = 1|; e.g.
+        ``the_substrate.joint_tpm()[(0, 0, 1)][i, 1]`` is the probability
+        that node |i| at |t| takes value 1.
     """
 
     def __init__(
@@ -175,13 +177,14 @@ class Substrate:
     def _coerce_joint_array(
         tpm: JointTPM | NDArray[np.float64] | dict[str, Any] | Any,
     ) -> NDArray[np.float64]:
-        """Coerce supported ``tpm=`` argument forms to a multidimensional
-        state-by-node joint ndarray.
+        """Coerce supported ``tpm=`` argument forms to a joint ndarray.
 
         Accepts the same input forms as the legacy ``JointTPM`` constructor
         (2-D state-by-node, 2-D state-by-state, multidimensional
         state-by-node) and routes them through the legacy validator so
-        callers don't have to pre-reshape.
+        callers don't have to pre-reshape. Also accepts the explicit-alphabet
+        shape ``(*alphabet_sizes, n_nodes, max_alphabet)`` produced by
+        :meth:`joint_tpm`, which is forwarded as-is to ``FactoredTPM.from_joint``.
         """
         if isinstance(tpm, dict):
             key = "_tpm" if "_tpm" in tpm else "tpm"
@@ -192,8 +195,24 @@ class Substrate:
             data = tpm.to_array()  # type: ignore[attr-defined]
         else:
             data = tpm
-        # Route through the legacy joint TPM so 2-D and state-by-state forms
-        # get normalized to multidimensional state-by-node form.
+
+        arr = np.asarray(data, dtype=np.float64)
+        # Explicit-alphabet shape: (*alphabet_sizes, n_nodes, max_alphabet).
+        # Detected when ndim == n + 2 with a leading per-axis alphabet block.
+        # For binary substrates that's (2, ..., 2, n, 2) where ndim == n + 2
+        # and the second-to-last axis equals n.
+        if arr.ndim >= 3:
+            n_candidate = int(arr.shape[-2])
+            if (
+                arr.ndim == n_candidate + 2
+                and all(s >= 2 for s in arr.shape[:n_candidate])
+                and arr.shape[-1] == max(arr.shape[:n_candidate])
+            ):
+                return arr
+
+        # Otherwise route through the legacy joint TPM so 2-D and
+        # state-by-state forms get normalized to multidimensional
+        # state-by-node form.
         return np.asarray(JointTPM(data, validate=True), dtype=np.float64)
 
     @property
@@ -214,19 +233,32 @@ class Substrate:
     def joint_tpm(self) -> NDArray[np.float64]:
         """Materialize the joint conditional TPM on demand.
 
-        Returns the multidimensional state-by-node array
-        ``[a_1, ..., a_N, N]`` for binary substrates (matching the legacy
-        joint storage shape), and the explicit-alphabet form
-        ``[a_1, ..., a_N, N, max_alphabet]`` otherwise. Recomputes on every
-        call (no cache); callers needing it repeatedly should cache locally.
+        Returns the explicit-alphabet array
+        ``[a_1, ..., a_N, N, max_alphabet]`` for both binary and k-ary
+        substrates. Per-row, axis ``-1`` holds factor ``i``'s distribution
+        in slots ``[:alphabet_sizes[i]]``; trailing slots are zero when
+        alphabets are heterogeneous. Recomputes on every call (no cache);
+        callers needing it repeatedly should cache locally.
         """
-        if all(a == 2 for a in self._factored_tpm.alphabet_sizes):
-            n = self._factored_tpm.n_nodes
-            return np.stack(
-                [self._factored_tpm.factor(i)[..., 1] for i in range(n)],
-                axis=-1,
-            )
         return self._factored_tpm.to_joint()
+
+    def _legacy_binary_joint(self) -> NDArray[np.float64]:
+        """Return the legacy binary joint shape ``[a_1, ..., a_N, N]``.
+
+        Each entry holds ``P(node_i = 1 | s_t)``. Available only for
+        binary substrates; raises ``ValueError`` for k-ary substrates,
+        which have no equivalent collapsed representation.
+        """
+        if not all(a == 2 for a in self._factored_tpm.alphabet_sizes):
+            raise ValueError(
+                "legacy binary joint shape is binary-only; "
+                f"alphabet_sizes={self._factored_tpm.alphabet_sizes}"
+            )
+        n = self._factored_tpm.n_nodes
+        return np.stack(
+            [self._factored_tpm.factor(i)[..., 1] for i in range(n)],
+            axis=-1,
+        )
 
     @classmethod
     def from_factored(
@@ -424,11 +456,14 @@ class Substrate:
     def to_json(self) -> dict[str, Any]:
         """Return a JSON-serializable representation.
 
-        Serializes the substrate's TPM in joint form for portability across
-        the canonical-storage change.
+        Serializes the substrate's TPM in the legacy binary joint shape
+        ``(2, ..., 2, N)`` so the payload round-trips through
+        ``Substrate.from_json`` (which routes ``tpm=`` through the legacy
+        joint validator). Only binary substrates are supported by this
+        legacy serialization path.
         """
         return {
-            "tpm": self.joint_tpm(),
+            "tpm": self._legacy_binary_joint(),
             "cm": self.cm,
             "size": self.size,
             "node_labels": self.node_labels,
