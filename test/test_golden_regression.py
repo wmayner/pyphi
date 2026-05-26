@@ -20,6 +20,8 @@ from typing import Any
 import numpy as np
 import pytest
 
+from pyphi.models.cmp import EQUALITY_TOLERANCE
+
 from .golden import ALL_FIXTURES
 from .golden import GoldenFixture
 from .golden.compute import compute_all_layers
@@ -28,21 +30,22 @@ from .golden.fixture import is_array_ref
 from .golden.fixture import load_fixture
 from .golden.fixture import store_fixture
 
-# Tolerances for array comparisons. config.numerics.precision default is 13, so
-# 1e-12 is one digit looser than the equality threshold — strict enough to
-# catch any meaningful numerical drift while absorbing minor LAPACK / BLAS
-# variations across platforms.
+# Tolerances for array comparisons. Shared with ``pyphi.models.cmp``'s
+# ``numpy_aware_eq`` (the production-side structural-equality comparator)
+# so the test-fixture comparator and the model-level ``__eq__`` ask the
+# same question: did this value drift by more than float64 op-order noise?
 #
 # Platform sensitivity note: fixtures committed to the repository were
-# generated on macOS aarch64 (Apple Silicon) with Python 3.13.13, NumPy 2.4,
-# SciPy 1.17, and pyemd 2.0. Linux x86_64 may produce drift below 1e-12 due
-# to BLAS implementation differences (Accelerate vs OpenBLAS) and EMD
-# library backend variations. If CI fails on Linux/Windows with sub-1e-10
-# differences and the structural fields (partitions, mechanisms, distinction
-# counts) match exactly, raise these tolerances to 1e-10 and document.
-# Differences above 1e-10 should be investigated as potential bugs.
-RTOL = 1e-12
-ATOL = 1e-12
+# generated on macOS aarch64 (Apple Silicon) with Python 3.13.13, NumPy
+# 2.4, SciPy 1.17, and pyemd 2.0. Linux x86_64 may produce drift below
+# 1e-13 due to BLAS implementation differences (Accelerate vs OpenBLAS)
+# and EMD library backend variations. If CI fails on Linux/Windows with
+# sub-1e-10 differences and the structural fields (partitions, mechanisms,
+# distinction counts) match exactly, raise the constant in ``cmp.py`` and
+# document. Differences above 1e-10 should be investigated as potential
+# bugs.
+RTOL = EQUALITY_TOLERANCE
+ATOL = EQUALITY_TOLERANCE
 
 
 def _marks_for(fixture: GoldenFixture) -> list[pytest.MarkDecorator]:

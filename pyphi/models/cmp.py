@@ -2,6 +2,7 @@
 """Utilities for comparing phi-objects."""
 
 import functools
+import math
 from collections.abc import Callable
 from collections.abc import Iterable
 from collections.abc import Sequence
@@ -105,13 +106,28 @@ class OrderableByPhi(Orderable):
 # =============================================================================
 
 
-# TODO use builtin numpy methods here
-def numpy_aware_eq(a: Any, b: Any) -> bool:
-    """Return whether two objects are equal via recursion, using
-    :func:`numpy.array_equal` for comparing numpy arays.
+EQUALITY_TOLERANCE = 1e-13
+"""Tolerance for structural equality on IIT quantities. Absorbs op-order
+drift in float64 arithmetic on IIT measures while distinguishing real
+math regressions. Used by `numpy_aware_eq` (model `__eq__`) and by
+golden-fixture comparisons in the test suite. Independent of
+`config.numerics.precision`, which governs user-configurable phi
+comparison via `utils.eq`."""
+
+
+def numpy_aware_eq(a: Any, b: Any) -> bool:  # noqa: PLR0911
+    """Return whether two objects are equal via recursion, with float
+    leaves compared up to ``EQUALITY_TOLERANCE``.
+
+    Arrays compare via :func:`numpy.allclose`; float scalars via
+    :func:`math.isclose`; other types via ``==``. Shape-mismatched or
+    non-numeric arrays compare unequal rather than raising.
     """
     if isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
-        return np.array_equal(a, b)
+        try:
+            return np.allclose(a, b, rtol=EQUALITY_TOLERANCE, atol=EQUALITY_TOLERANCE)
+        except (ValueError, TypeError):
+            return False
     # TODO(4.0) this is broken if the iterables are sets
     if (
         (isinstance(a, Iterable) and isinstance(b, Iterable))
@@ -121,6 +137,18 @@ def numpy_aware_eq(a: Any, b: Any) -> bool:
         if len(a) != len(b):  # type: ignore[arg-type]
             return False
         return all(numpy_aware_eq(x, y) for x, y in zip(a, b, strict=False))
+    if isinstance(a, (float, np.floating)) or isinstance(b, (float, np.floating)):
+        a_any: Any = a
+        b_any: Any = b
+        try:
+            return math.isclose(
+                float(a_any),
+                float(b_any),
+                rel_tol=EQUALITY_TOLERANCE,
+                abs_tol=EQUALITY_TOLERANCE,
+            )
+        except (TypeError, ValueError):
+            return False
     return a == b
 
 

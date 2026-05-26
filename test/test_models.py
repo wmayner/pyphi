@@ -211,6 +211,56 @@ def test_numpy_aware_eq_identical():
     assert models.cmp.numpy_aware_eq(a, b)
 
 
+def test_equality_tolerance_constant_exists():
+    """``EQUALITY_TOLERANCE`` is exposed at module level and equals 1e-13."""
+    from pyphi.models.cmp import EQUALITY_TOLERANCE
+
+    assert EQUALITY_TOLERANCE == 1e-13
+
+
+def test_numpy_aware_eq_float_within_tolerance():
+    """Float scalars differing by ~1e-15 (op-order noise) compare equal."""
+    assert models.cmp.numpy_aware_eq(1.0, 1.0 + 1e-15)
+
+
+def test_numpy_aware_eq_float_outside_tolerance():
+    """Float scalars differing by a real-regression-scale amount compare unequal."""
+    assert not models.cmp.numpy_aware_eq(1.0, 1.001)
+
+
+def test_numpy_aware_eq_array_within_tolerance():
+    """Arrays differing by ~1e-15 (op-order noise) compare equal."""
+    a_ = np.ones(3)
+    b_ = np.ones(3) + 1e-15
+    assert models.cmp.numpy_aware_eq(a_, b_)
+
+
+def test_numpy_aware_eq_array_outside_tolerance():
+    """Arrays differing by a real-regression-scale amount compare unequal."""
+    a_ = np.zeros(3)
+    b_ = np.ones(3)
+    assert not models.cmp.numpy_aware_eq(a_, b_)
+
+
+def test_numpy_aware_eq_array_shape_mismatch_returns_false():
+    """Shape mismatch on arrays must return False, not raise."""
+    a_ = np.zeros(3)
+    b_ = np.zeros(4)
+    assert not models.cmp.numpy_aware_eq(a_, b_)
+
+
+def test_numpy_aware_eq_nan_scalar_not_equal():
+    """NaN ≠ NaN preserved (math.isclose default behavior)."""
+    assert not models.cmp.numpy_aware_eq(float("nan"), float("nan"))
+
+
+def test_numpy_aware_eq_nan_array_not_equal():
+    """NaN array ≠ NaN array preserved (np.allclose equal_nan=False default)."""
+    a_ = np.array([np.nan])
+    b_ = np.array([np.nan])
+    assert not models.cmp.numpy_aware_eq(a_, b_)
+
+
 def test_general_eq_different_attributes():
     similar_nt = namedtuple("nt", [*nt_attributes, "supbro"])
     b = similar_nt(a.this, a.that, a.phi, a.mechanism, a.purview, supbro="nothin' much")

@@ -2693,20 +2693,28 @@ to ease transition:
   23 cross-version goldens in ``test_golden_regression.py`` remained
   byte-identical.)
 
-- **Precision-aware comparator for ``intrinsic_information`` in test
-  fixtures.** The test helpers ``numpy_aware_eq`` / ``general_eq`` in
-  ``pyphi/jsonify.py`` do strict ``==`` comparison on
-  ``intrinsic_information`` dict values, which is brittle: op-order
-  changes that produce drift well below ``config.numerics.precision``
-  (1e-13) trip the comparison and force fixture regeneration. The
-  ``test_iit4.py`` fixtures (``basic_noisy_selfloop.json``,
-  ``grid3.json``) have been regenerated five times across the 2.0
-  refactor on this pattern. Fix: replace strict ``==`` with
-  ``np.allclose(..., atol=1e-13)`` on intrinsic_information dict
-  values in the comparator, with care that
-  ``test_golden_regression.py`` (which uses the same helper) doesn't
-  loosen unintentionally. Probably half a day; audit
-  ``numpy_aware_eq`` callers carefully first.
+- **Retire ``config.numerics.precision`` when IIT 3.0 is dropped.** The
+  setting is a holdover from the EMD-era ``pyemd`` C-library noise.
+  Once 3.0 support is gone, ``utils.eq`` should migrate to use a fixed
+  module-level constant (or import ``cmp.EQUALITY_TOLERANCE`` directly),
+  and the config field should be removed. For IIT 4.0 the
+  "op-order-noise threshold" is a property of float64 arithmetic on
+  IIT quantities, not a user preference.
+
+- **Migrate ``Distinction`` and ``CauseEffectStructure`` ``__eq__`` to the
+  precision-aware path.** Unlike ``SIA`` / ``AcSIA`` / ``RIA`` /
+  ``StateSpecification`` (which delegate to ``cmp.general_eq`` and thus
+  inherit ``EQUALITY_TOLERANCE`` via ``numpy_aware_eq``),
+  ``Distinction.__eq__`` (``pyphi/models/distinction.py:163``) uses raw
+  ``==`` on ``phi`` and ``np.array_equal`` on repertoires directly, and
+  ``CauseEffectStructure.__eq__`` (``pyphi/models/ces.py:79``) delegates
+  to ``Distinctions``/``Distinction`` for the distinction-set half. These
+  paths are brittle to op-order noise. Migration is non-trivial because
+  ``Distinction.__hash__`` also uses raw ``phi`` and array hashing — the
+  ``__eq__`` / ``__hash__`` contract must be preserved together. Pairs
+  naturally with the per-class ``__eq__`` refactor (replacing the
+  attribute-list pattern in ``general_eq``) as a single follow-up
+  project.
 
 - **Consolidate ``pyphi/tpm.py`` into ``pyphi/core/tpm/``.** The
   legacy module ``pyphi/tpm.py`` (~650 lines) hosts ``JointTPM`` (and,
