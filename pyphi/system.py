@@ -50,7 +50,7 @@ class System:
         coerced = _coerce_state_to_indices(tuple(self.state), substrate.state_space)
         object.__setattr__(self, "state", coerced)
         validate.state_length(self.state, substrate.size)
-        validate.node_states(self.state)
+        validate.node_states(self.state, substrate.factored_tpm.alphabet_sizes)
         if self.node_indices is None:
             object.__setattr__(self, "node_indices", tuple(range(substrate.size)))
         else:

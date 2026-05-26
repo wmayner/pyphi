@@ -68,9 +68,6 @@ def test_system_state_as_labels_resolves_to_indices() -> None:
     # 2 nodes, each with 3-state alphabet {"L", "M", "H"}
     sub = pyphi.Substrate(marginals=_k3_marginals(), state_space=("L", "M", "H"))
     # State has one entry per node (2), not per alphabet-size (3).
-    # Disable state-reachability validation — that check is binary-only and
-    # is a separate concern from the label-to-index coercion tested here.
-    with pyphi.config.override(validate_system_states=False):
-        sys_via_labels = pyphi.System(sub, state=("L", "M"))
-        sys_via_indices = pyphi.System(sub, state=(0, 1))
+    sys_via_labels = pyphi.System(sub, state=("L", "M"))
+    sys_via_indices = pyphi.System(sub, state=(0, 1))
     assert sys_via_labels.state == sys_via_indices.state

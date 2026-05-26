@@ -194,8 +194,9 @@ class TransitionSystem:
     def __post_init__(self) -> None:
         validate.state_length(self.before_state, self.substrate.size)
         validate.state_length(self.after_state, self.substrate.size)
-        validate.node_states(self.before_state)
-        validate.node_states(self.after_state)
+        alphabet_sizes = self.substrate.factored_tpm.alphabet_sizes
+        validate.node_states(self.before_state, alphabet_sizes)
+        validate.node_states(self.after_state, alphabet_sizes)
         coerce = self.substrate.node_labels.coerce_to_indices
         object.__setattr__(self, "cause_indices", coerce(self.cause_indices))
         object.__setattr__(self, "effect_indices", coerce(self.effect_indices))

@@ -104,10 +104,25 @@ def is_substrate(substrate: object) -> None:
         )
 
 
-def node_states(state: Sequence[int]) -> None:
-    """Check that the state contains only zeros and ones."""
-    if not all(n in (0, 1) for n in state):
-        raise ValueError("Invalid state: states must consist of only zeros and ones.")
+def node_states(state: Sequence[int], alphabet_sizes: Sequence[int]) -> None:
+    """Check that each state entry is a valid index into its node's alphabet.
+
+    Args:
+        state: Per-node state indices.
+        alphabet_sizes: Per-node alphabet sizes; ``state[i]`` must satisfy
+            ``0 <= state[i] < alphabet_sizes[i]``.
+    """
+    if len(state) != len(alphabet_sizes):
+        raise ValueError(
+            f"State length {len(state)} does not match alphabet_sizes length "
+            f"{len(alphabet_sizes)}."
+        )
+    for i, (s, k) in enumerate(zip(state, alphabet_sizes, strict=False)):
+        if not (0 <= s < k):
+            raise ValueError(
+                f"Invalid state: state[{i}]={s} is not in [0, {k}) for "
+                f"alphabet size {k}."
+            )
 
 
 def state_length(state: Sequence[int], size: int) -> bool:
@@ -122,28 +137,18 @@ def state_length(state: Sequence[int], size: int) -> bool:
 
 
 def state_reachable(system: object) -> None:
-    """Return whether a state can be reached according to the substrate's TPM."""
-    from .core.tpm.factored import FactoredTPM as _FactoredTPM
+    """Raise |StateUnreachableForwardsError| if the state is unreachable.
 
-    effect_tpm = system.effect_tpm  # type: ignore[attr-defined]
-
-    # k-ary substrates: the reachability check is defined only for binary
-    # substrates (the SBN form gives P(on|s_t) whose range (0, 1) bounds
-    # the test). Skip for k>2 to avoid a spurious failure; a caller
-    # wanting alphabet-generic reachability should use FactoredTPM.condition
-    # explicitly.
-    if isinstance(effect_tpm, _FactoredTPM):
-        return
-
-    # If there is a row `r` in the TPM such that all entries of `r - state`
-    # are between -1 and 1, then the given state has a nonzero probability of
-    # being reached from some state.
-    # First we take the submatrix of the conditioned TPM that corresponds to
-    # the nodes that are actually in the system...
-    tpm = effect_tpm.tpm[..., system.node_indices]  # type: ignore[attr-defined]
-    # Then we do the subtraction and test.
-    test = tpm - np.array(system.proper_state)  # type: ignore[attr-defined]
-    if not np.any(np.logical_and(test > -1, test < 1).all(-1)):
+    A state is unreachable iff no past state has a nonzero probability of
+    transitioning to it.  Equivalently, the marginal probability
+    ``P(state) = Σ_{s_t} ∏_i factor_i(s_t)[state[i]]`` must be positive.
+    """
+    factored = system.substrate.factored_tpm  # type: ignore[attr-defined]
+    state = system.state  # type: ignore[attr-defined]
+    pr_joint = np.ones(factored.alphabet_sizes, dtype=np.float64)
+    for i in range(factored.n_nodes):
+        pr_joint = pr_joint * factored.factor(i)[..., state[i]]
+    if pr_joint.sum() <= 0.0:
         raise exceptions.StateUnreachableForwardsError(system.state)  # type: ignore[attr-defined]
 
 
@@ -160,7 +165,7 @@ def system(s: object) -> bool:
 
     Checks its state and partition.
     """
-    node_states(s.state)  # type: ignore[attr-defined]
+    node_states(s.state, s.substrate.factored_tpm.alphabet_sizes)  # type: ignore[attr-defined]
     system_partition(s.partition, s.partition_indices)  # type: ignore[attr-defined]
     if config.infrastructure.validate_system_states:
         state_reachable(s)
