@@ -243,11 +243,14 @@ class Substrate:
         return self._factored_tpm.to_joint()
 
     def _legacy_binary_joint(self) -> NDArray[np.float64]:
-        """Return the legacy binary joint shape ``[a_1, ..., a_N, N]``.
+        """Binary-only SBN-form rendering of the substrate's TPM.
 
-        Each entry holds ``P(node_i = 1 | s_t)``. Available only for
-        binary substrates; raises ``ValueError`` for k-ary substrates,
-        which have no equivalent collapsed representation.
+        Returns an array of shape ``[a_1, ..., a_N, N]`` where each entry
+        holds ``P(node_i = 1 | s_t)``. Used by ``to_json`` serialization,
+        AC's ``TransitionSystem``, the ``pyphi/macro.py`` legacy module, and
+        several tests. Raises ``ValueError`` for k-ary substrates because
+        SBN-form encodes only ``P(node=1|s_t)``, which has no k-ary
+        generalization.
         """
         if not all(a == 2 for a in self._factored_tpm.alphabet_sizes):
             raise ValueError(

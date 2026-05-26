@@ -14,6 +14,8 @@ from functools import cached_property
 from typing import TYPE_CHECKING
 from typing import Any
 
+import numpy as np
+
 from pyphi import connectivity
 from pyphi import utils
 from pyphi import validate
@@ -23,6 +25,7 @@ from pyphi.substrate import Substrate
 from pyphi.substrate import _coerce_state_to_indices
 
 from .core.tpm.factored import FactoredTPM
+from .core.tpm.joint import JointTPM
 from .core.tpm.marginalization import _cause_tpm_factored
 from .core.tpm.marginalization import cause_tpm as _marginalize_cause
 from .core.tpm.marginalization import effect_tpm as _marginalize_effect
@@ -174,27 +177,29 @@ class System:
 
     @cached_property
     def effect_tpm(self) -> Any:
-        from .core.tpm.factored import FactoredTPM
-        from .core.tpm.joint import JointTPM
+        """Returns the effect TPM for the system.
 
+        For binary substrates, rendered in legacy state-by-node (SBN) form via
+        a transient bridge to keep legacy consumers (validate.state_reachable,
+        macro, actual.TransitionSystem) working. The bridge retires once those
+        callers consume FactoredTPM directly.
+        """
         external_state = utils.state_of(self.external_indices, self.state)
         background = dict(zip(self.external_indices, external_state, strict=False))
-        typed = _marginalize_effect(
+        result = _marginalize_effect(
             self._typed_tpm,  # type: ignore[arg-type]
             background,
         )
-        if isinstance(typed, FactoredTPM) and all(a == 2 for a in typed.alphabet_sizes):
-            import numpy as np
-
-            n = typed.n_nodes
-            sbn = np.stack([typed.factor(i)[..., 1] for i in range(n)], axis=-1)
+        if isinstance(result, FactoredTPM) and all(
+            a == 2 for a in result.alphabet_sizes
+        ):
+            n = result.n_nodes
+            sbn = np.stack([result.factor(i)[..., 1] for i in range(n)], axis=-1)
             return JointTPM(sbn)
-        return typed
+        return result
 
     @cached_property
     def proper_effect_tpm(self) -> Any:
-        import numpy as np
-
         return np.asarray(self.effect_tpm.squeeze())[..., list(self.node_indices)]
 
     @cached_property
@@ -208,8 +213,6 @@ class System:
         and dropped from each factor's input dims, so the returned shape
         is ``(*system_alphabet, k_i)`` per system output unit.
         """
-        import numpy as np
-
         factored = _cause_tpm_factored(
             self._typed_tpm,
             self.state,
