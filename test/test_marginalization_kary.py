@@ -9,8 +9,7 @@ from hypothesis import settings
 from hypothesis import strategies as st
 
 from pyphi.core.tpm.factored import FactoredTPM
-from pyphi.core.tpm.marginalization import _cause_tpm_factored_binary
-from pyphi.core.tpm.marginalization import _cause_tpm_factored_kary
+from pyphi.core.tpm.marginalization import _cause_tpm_factored
 
 
 def _random_kary_factor(n_nodes: int, alphabet: int, seed: int) -> np.ndarray:
@@ -24,20 +23,20 @@ def _random_binary_factor(n_nodes: int, seed: int) -> np.ndarray:
     return _random_kary_factor(n_nodes, 2, seed)
 
 
-def test_cause_kary_returns_factored_tpm() -> None:
-    """The native k-ary path returns a FactoredTPM."""
+def test_cause_tpm_factored_returns_factored_tpm() -> None:
+    """Returns a FactoredTPM for k-ary substrates."""
     factors = [_random_kary_factor(2, 3, seed=10 + i) for i in range(2)]
     factored = FactoredTPM(factors=factors)
-    result = _cause_tpm_factored_kary(factored, state=(0, 0), node_indices=(0, 1))
+    result = _cause_tpm_factored(factored, state=(0, 0), node_indices=(0, 1))
     assert isinstance(result, FactoredTPM)
 
 
-def test_cause_kary_per_factor_sums_to_one() -> None:
+def test_cause_tpm_factored_per_factor_sums_to_one() -> None:
     """Each per-output-unit factor of the returned FactoredTPM is a
     probability distribution over its trailing alphabet axis."""
     factors = [_random_kary_factor(2, 3, seed=20 + i) for i in range(2)]
     factored = FactoredTPM(factors=factors)
-    result = _cause_tpm_factored_kary(factored, state=(1, 2), node_indices=(0, 1))
+    result = _cause_tpm_factored(factored, state=(1, 2), node_indices=(0, 1))
     for i in range(result.n_nodes):
         f = result.factor(i)
         assert f.shape[-1] == 3
@@ -46,25 +45,24 @@ def test_cause_kary_per_factor_sums_to_one() -> None:
 
 @given(seed=st.integers(min_value=0, max_value=10_000))
 @settings(max_examples=25, deadline=None)
-def test_cause_kary_binary_equivalent_to_binary_path(seed: int) -> None:
-    """On binary inputs the k-ary path and the binary path produce
-    equivalent factors (within atol=1e-10) per output unit."""
+def test_cause_tpm_factored_binary_gives_valid_distribution(seed: int) -> None:
+    """On binary inputs each output factor is a valid probability distribution."""
     factors = [_random_binary_factor(3, seed=seed + i) for i in range(3)]
     factored = FactoredTPM(factors=factors)
     state = (0, 1, 0)
     node_indices = (0, 1, 2)
-    kary = _cause_tpm_factored_kary(factored, state, node_indices)
-    binary = _cause_tpm_factored_binary(factored, state, node_indices)
+    result = _cause_tpm_factored(factored, state, node_indices)
     for i in range(factored.n_nodes):
+        f = result.factor(i)
         np.testing.assert_allclose(
-            kary.factor(i),
-            binary.factor(i),
+            f.sum(axis=-1),
+            1.0,
             atol=1e-10,
-            err_msg=f"factor {i} disagrees",
+            err_msg=f"factor {i} does not sum to 1",
         )
 
 
-def test_cause_kary_subset_system_uses_background_weighting() -> None:
+def test_cause_tpm_factored_subset_system_uses_background_weighting() -> None:
     """When system_indices is a proper subset of the substrate, the
     posterior factor for system unit i depends on the background state
     via pr_bg / norm. Verify against a hand-built 2-node binary case."""
@@ -73,9 +71,9 @@ def test_cause_kary_subset_system_uses_background_weighting() -> None:
     f1 = np.array([[[0.7, 0.3], [0.2, 0.8]], [[0.6, 0.4], [0.3, 0.7]]], dtype=np.float64)
     factored = FactoredTPM(factors=[f0, f1])
     state = (1, 0)
-    binary = _cause_tpm_factored_binary(factored, state, node_indices=(0,))
-    kary = _cause_tpm_factored_kary(factored, state, node_indices=(0,))
-    np.testing.assert_allclose(kary.factor(0), binary.factor(0), atol=1e-10)
+    result = _cause_tpm_factored(factored, state, node_indices=(0,))
+    # Node 0's factor must be a valid distribution over its 2 output states.
+    np.testing.assert_allclose(result.factor(0).sum(axis=-1), 1.0, atol=1e-10)
 
 
 def test_cause_unreachable_state_raises() -> None:
@@ -86,7 +84,7 @@ def test_cause_unreachable_state_raises() -> None:
         f[..., 0] = 1.0  # always outputs 0
     factored = FactoredTPM(factors=factors)
     with pytest.raises(StateUnreachableBackwardsError):
-        _cause_tpm_factored_kary(factored, state=(1, 1), node_indices=(0, 1))
+        _cause_tpm_factored(factored, state=(1, 1), node_indices=(0, 1))
 
 
 def test_effect_tpm_kary_does_not_raise() -> None:

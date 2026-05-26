@@ -26,9 +26,7 @@ def cause_tpm(
     units marginalized under ``pr_bg / norm`` weighting.
     """
     if isinstance(tpm, FactoredTPM):
-        if all(a == 2 for a in tpm.alphabet_sizes):
-            return _cause_tpm_factored_binary(tpm, state, node_indices)
-        return _cause_tpm_factored_kary(tpm, state, node_indices)
+        return _cause_tpm_factored(tpm, state, node_indices)
     if isinstance(tpm, JointTPM):
         factored = FactoredTPM.from_joint(tpm._inner)
         return cause_tpm(factored, state, node_indices)
@@ -47,26 +45,13 @@ def effect_tpm(
     return tpm.condition(background)
 
 
-def _cause_tpm_factored_binary(
+def _cause_tpm_factored(
     factored: FactoredTPM,
     state: tuple[int, ...],
     node_indices: tuple[int, ...],
 ) -> FactoredTPM:
-    """Binary cause TPM — dispatches to the unified k-ary path.
-
-    Binary and k-ary substrates share the same Bayesian inversion math;
-    this entry point is retained as the explicit binary dispatch site.
-    """
-    return _cause_tpm_factored_kary(factored, state, node_indices)
-
-
-def _cause_tpm_factored_kary(
-    factored: FactoredTPM,
-    state: tuple[int, ...],
-    node_indices: tuple[int, ...],
-) -> FactoredTPM:
-    """Native k-ary cause TPM via per-output-unit Bayesian inversion with
-    background weighting.
+    """Cause TPM via per-output-unit Bayesian inversion with background
+    weighting.
 
     Implements IIT 4.0 Eq. 4. For each system unit ``i`` and each possible
     output value ``s_i`` the returned factor stores

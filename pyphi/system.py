@@ -23,7 +23,7 @@ from pyphi.substrate import Substrate
 from pyphi.substrate import _coerce_state_to_indices
 
 from .core.tpm.factored import FactoredTPM
-from .core.tpm.marginalization import _cause_tpm_factored_kary
+from .core.tpm.marginalization import _cause_tpm_factored
 from .core.tpm.marginalization import cause_tpm as _marginalize_cause
 from .core.tpm.marginalization import effect_tpm as _marginalize_effect
 
@@ -210,7 +210,7 @@ class System:
         """
         import numpy as np
 
-        factored = _cause_tpm_factored_kary(
+        factored = _cause_tpm_factored(
             self._typed_tpm,
             self.state,
             self.node_indices,
