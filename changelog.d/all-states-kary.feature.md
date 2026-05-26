@@ -1,0 +1,1 @@
+`utils.all_states` now accepts either an integer (binary, backwards-compatible) or a sequence of per-node alphabet sizes for k-ary systems. The inline k-ary state enumeration in `core/repertoire_algebra.py` has been replaced with calls to the generalized function.

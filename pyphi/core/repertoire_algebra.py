@@ -429,17 +429,9 @@ def unconstrained_forward_effect_repertoire(
     cs: Any, mechanism: tuple[int, ...], purview: tuple[int, ...]
 ) -> Any:
     """Unconstrained forward effect repertoire — average over all mechanism states."""
-    import itertools
-
     alphabet_sizes = cs.substrate.factored_tpm.alphabet_sizes
-    mech_k = [alphabet_sizes[i] for i in mechanism]
-    if all(k == 2 for k in mech_k):
-        # Binary: use all_states for ordering parity with the pre-existing
-        # implementation so that floating-point accumulation in mean() is
-        # bit-identical to stored golden values.
-        all_mech_states: list[tuple[int, ...]] = list(_utils.all_states(len(mechanism)))
-    else:
-        all_mech_states = list(itertools.product(*[range(k) for k in mech_k]))
+    mech_k = tuple(alphabet_sizes[i] for i in mechanism)
+    all_mech_states: list[tuple[int, ...]] = list(_utils.all_states(mech_k))
     repertoires = np.stack(
         [
             forward_effect_repertoire(cs, mechanism, purview, mechanism_state=state)
@@ -594,15 +586,9 @@ def intrinsic_information(
     from pyphi.models.state_specification import StateSpecification
 
     if states is None:
-        import itertools
-
         alphabet_sizes = cs.substrate.factored_tpm.alphabet_sizes
-        # Little-endian ordering: iterate axes in reverse so that the least
-        # significant axis (index 0) changes fastest — mirroring all_states().
-        purview_k = [alphabet_sizes[i] for i in purview]
-        states = list(itertools.product(*[range(k) for k in reversed(purview_k)]))
-        # Reverse each state tuple to restore little-endian index order.
-        states = [s[::-1] for s in states]
+        purview_k = tuple(alphabet_sizes[i] for i in purview)
+        states = list(_utils.all_states(purview_k))
 
     if satisfies_composite_measure(specification_measure):
         from typing import cast

@@ -27,6 +27,26 @@ def test_all_states():
     assert list(utils.all_states(3, big_endian=True)) == [
         tuple(reversed(state)) for state in states
     ]
+    # Sequence spec (k-ary): ternary first node, binary second — little-endian
+    assert list(utils.all_states((3, 2))) == [
+        (0, 0),
+        (1, 0),
+        (2, 0),
+        (0, 1),
+        (1, 1),
+        (2, 1),
+    ]
+    # Empty sequence
+    assert list(utils.all_states(())) == []
+    # Sequence spec with big_endian=True
+    assert list(utils.all_states((3, 2), big_endian=True)) == [
+        (0, 0),
+        (0, 1),
+        (1, 0),
+        (1, 1),
+        (2, 0),
+        (2, 1),
+    ]
 
 
 def test_eq():

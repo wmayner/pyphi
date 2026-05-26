@@ -7,6 +7,7 @@ import operator
 from collections.abc import Callable
 from collections.abc import Generator
 from collections.abc import Iterable
+from collections.abc import Sequence
 from itertools import chain
 from itertools import combinations
 from itertools import product
@@ -49,26 +50,48 @@ def state_of_system_nodes(
     return state_of(tuple(node_indices.index(n) for n in nodes), system_state)
 
 
-def all_states(n: int, big_endian: bool = False) -> Generator[tuple[int, ...]]:
-    """Return all binary states for a system.
+def all_states(
+    spec: int | Sequence[int],
+    big_endian: bool = False,
+) -> Generator[tuple[int, ...]]:
+    """Return all states for a system.
 
     Args:
-        n (int): The number of elements in the system.
-        big_endian (bool): Whether to return the states in big-endian order
-            instead of little-endian order.
+        spec: Either an integer ``n`` (binary, ``n`` nodes) or a sequence of
+            per-node alphabet sizes.
+        big_endian: Return states in big-endian order if ``True``, otherwise
+            little-endian (index 0 varies fastest).
 
     Yields:
-        Tuple[int]: The next state of an ``n``-element system, in little-endian
-        order unless ``big_endian`` is ``True``.
+        tuple[int, ...]: Each possible state.
+
+    Examples:
+        Binary, 2 nodes (little-endian):
+
+        >>> from pyphi.utils import all_states
+        >>> list(all_states(2))
+        [(0, 0), (1, 0), (0, 1), (1, 1)]
+
+        Ternary first node, binary second (little-endian):
+
+        >>> list(all_states((3, 2)))
+        [(0, 0), (1, 0), (2, 0), (0, 1), (1, 1), (2, 1)]
     """
-    if n == 0:
+    if isinstance(spec, int):
+        alphabet_sizes: tuple[int, ...] = (2,) * spec
+    else:
+        alphabet_sizes = tuple(spec)
+
+    if not alphabet_sizes:
         return
 
-    for state in product((0, 1), repeat=n):
-        if big_endian:
+    ranges = [range(k) for k in alphabet_sizes]
+    if big_endian:
+        for state in product(*ranges):
             yield state
-        else:
-            yield state[::-1]  # Convert to little-endian ordering
+    else:
+        for state in product(*reversed(ranges)):
+            yield state[::-1]
 
 
 def np_immutable(a: np.ndarray) -> np.ndarray:
