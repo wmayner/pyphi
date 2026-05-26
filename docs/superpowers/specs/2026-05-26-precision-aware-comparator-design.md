@@ -100,17 +100,16 @@ The pattern of special-casing `phi`/`alpha` (precision-aware via `utils.eq`) and
 
 `mechanism` and `purview` are tuples of integer indices; set equality is the right operation and is unrelated to floating-point tolerance.
 
-## Three thresholds in the codebase
+## Two thresholds in the codebase
 
-After this change, the codebase has three distinct precision-related thresholds. Each answers a different question:
+After this change, the codebase has two distinct precision-related thresholds. Each answers a different question:
 
 | Location | Value | Configurable | Question answered |
 |---|---|---|---|
 | `utils.eq` | `10**(-config.numerics.precision)`, default `1e-13` | yes (`config.numerics.precision`) | User-facing φ comparison ("are these two φ values equal under my tolerance setting?") |
-| `cmp.EQUALITY_TOLERANCE` | `1e-13` | no | Structural equality on IIT result objects ("are these two SIA/CES objects equivalent up to op-order noise?") |
-| `test_golden_regression.py` RTOL/ATOL | imported from `cmp.EQUALITY_TOLERANCE` | no | Golden-fixture regression detection ("did the stored values shift beyond op-order noise?") |
+| `cmp.EQUALITY_TOLERANCE` | `1e-13` | no | Op-order-noise threshold on IIT quantities. Used by `numpy_aware_eq` (production `__eq__` on result objects) AND by `test_golden_regression.py` (fixture comparison) — both ask the same underlying question, so they share the constant by import. |
 
-The values happen to be equal under default configuration, but the answers to the three questions are independent and the three thresholds remain logically independent.
+The values happen to be equal at default configuration (`config.numerics.precision = 13` gives `10**(-13) = 1e-13`). They remain logically independent: changing the user's config affects only `utils.eq`; `EQUALITY_TOLERANCE` is fixed in code. Changing `EQUALITY_TOLERANCE` requires a deliberate edit in `cmp.py` and propagates to both consumers atomically.
 
 `config.numerics.precision` is a holdover from the IIT 3.0 / EMD era. The `pyemd` C library produced numerical noise in low bits, and `13` was tuned to absorb it. The configurability existed so users could tighten or loosen based on their `pyemd` build. For IIT 4.0 (intrinsic-difference measures implemented in pure NumPy / Python), the "right tolerance for op-order drift" is a property of float64 arithmetic on IIT quantities, not a user preference.
 
