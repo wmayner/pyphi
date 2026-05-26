@@ -1,0 +1,31 @@
+{
+  "config_snapshot": {
+    "ces_measure": "EMD",
+    "mechanism_partition_scheme": "JOINT_BIPARTITION",
+    "mechanism_phi_measure": "EMD",
+    "parallel": false,
+    "sia_tie_resolution": [
+      "PHI",
+      "PARTITION_LEX"
+    ],
+    "system_partition_scheme": "DIRECTED_BIPARTITION",
+    "system_phi_measure": "GENERALIZED_INTRINSIC_DIFFERENCE",
+    "version": "IIT_3_0"
+  },
+  "generation": "post",
+  "measurement": "iit3_sia",
+  "n_nodes": 3,
+  "network": "basic",
+  "phase_times_s": {
+    "pyphi/formalism/iit3::_sia": 0.16546195900000002,
+    "pyphi/formalism/queries.py::sia": 0.16547725000000002,
+    "pyphi/measures::ces_distance": 0.014602957000000001
+  },
+  "pstats_path": "basic_iit3_sia_seed0_trial0.pstats",
+  "pyphi_version": "unknown",
+  "result_phi": 2.312499,
+  "seed": 0,
+  "trial": 0,
+  "wall_ns": 165510916,
+  "wall_s": 0.165510916
+}

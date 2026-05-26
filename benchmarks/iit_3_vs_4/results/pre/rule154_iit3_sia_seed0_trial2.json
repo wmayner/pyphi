@@ -1,0 +1,39 @@
+{
+  "config_snapshot": {
+    "CES_DISTANCE": "SUM_SMALL_PHI",
+    "IIT_VERSION": 3.0,
+    "PARALLEL": false,
+    "PARTITION_TYPE": "ALL",
+    "REPERTOIRE_DISTANCE": "EMD",
+    "SHORTCIRCUIT_SIA": true,
+    "SYSTEM_PARTITION_TYPE": "DIRECTED_BI"
+  },
+  "generation": "pre",
+  "measurement": "iit3_sia",
+  "n_nodes": 5,
+  "network": "rule154",
+  "phase_times_s": {
+    "pyphi/compute/subsystem.py::_ces": 76.395001917,
+    "pyphi/compute/subsystem.py::_sia": 538.694672792,
+    "pyphi/compute/subsystem.py::ces": 538.6391120010001,
+    "pyphi/compute/subsystem.py::evaluate_cut": 462.290591543,
+    "pyphi/metrics/ces.py::ces_distance": 0.002836752,
+    "pyphi/metrics/distribution.py::effect_emd": 48.328060848,
+    "pyphi/metrics/distribution.py::emd": 278.729987242,
+    "pyphi/metrics/distribution.py::hamming_emd": 221.440504112,
+    "pyphi/subsystem.py::_find_mip_single_state": 536.3906032040001,
+    "pyphi/subsystem.py::cause_repertoire": 14.240170145,
+    "pyphi/subsystem.py::concept": 538.624215392,
+    "pyphi/subsystem.py::effect_repertoire": 91.914660174,
+    "pyphi/subsystem.py::find_mice": 538.552644664,
+    "pyphi/subsystem.py::mic": 303.439729133,
+    "pyphi/subsystem.py::mie": 235.11774398000003
+  },
+  "pstats_path": "rule154_iit3_sia_seed0_trial2.pstats",
+  "pyphi_version": "unknown",
+  "result_phi": 4.875,
+  "seed": 0,
+  "trial": 2,
+  "wall_ns": 538695836833,
+  "wall_s": 538.695836833
+}

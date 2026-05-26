@@ -2191,6 +2191,85 @@ and the same parallelization infrastructure. The `PartitionScheme` Protocol alre
 accommodates non-exhaustive search strategies. Users select an approximation via
 `pyphi.approx.phi_star(subsystem)` alongside `pyphi.iit4.phi_structure(subsystem)`.
 
+**P17. Cross-formalism performance characterization + targeted optimization**
+
+*Motivation.* The 2.0 work delivered large IIT 4.0 speedups: a cross-temporal
+benchmark against commit `b3aaa3e5` (last pre-2.0 commit, parent of P0) shows
+4.0 went from 2.5× faster on 3-node networks to 19× faster on `macro` (4n)
+and 43× faster on `rule154` (5n) — the speedup widens with network size,
+which points at an algorithmic change in the formalism split rather than
+constant-factor overhead. Larissa Albantakis's original puzzle — "why isn't
+4.0 faster than 3.0?" — is now empirically resolved on the post-refactor
+surface, but the *mechanism* behind the gain hasn't been characterized, the
+2026 cap variant still returns φ=0 on every standard `pyphi.examples`
+network we ran, and the benchmark only covers up to 5 nodes because IIT 3.0
+on `rule154` already costs ~9 minutes per trial pre-refactor.
+
+*Scope.*
+
+- **Extended network coverage.** Push the benchmark beyond 5 nodes. Likely
+  needs synthesized networks rather than relying on the `pyphi.examples`
+  catalog, plus a way to time-bound IIT 3.0 runs (or skip them past a
+  size threshold). Identify the network size at which `iit4_sia_2023`
+  hits the limits of being interactive (~10s/trial) and at which it
+  becomes batch-only (~minutes/trial).
+- **2026-cap exercising networks.** All standard 3–5-node example
+  networks make `iit4_sia_2026` return φ=0 (cap collapses + short-circuit).
+  We can't honestly cost the 2026 variant without a network where it
+  produces a non-zero result. Either synthesize one, or pull from the
+  paper's worked examples.
+- **Mechanism deep-dive.** Take a representative network (likely `macro`
+  or `rule154`) and walk through the pre/post profiles function by
+  function to identify which 2.0 changes actually produced the 4.0
+  speedup. Candidate hypotheses to test: (a) the `formalism.iit4.sia`
+  loop no longer recomputes the unpartitioned CES per cut the way
+  `compute._sia` did pre-refactor; (b) the layered config split (P10)
+  eliminated per-call `__getattr__` overhead in tight loops; (c) the
+  P11 parallelization redesign matters at this scale. Write up findings
+  as an internal performance-architecture note.
+- **Residual shipping-hack sweep.** The construction of the cross-temporal
+  benchmark surfaced two real issues (`PARALLEL=False` not actually
+  disabling subprocess evaluation in pre-refactor `_sia_map_reduce`;
+  IIT 3.0 + `GENERALIZED_INTRINSIC_DIFFERENCE` raising AttributeError).
+  The first was post-refactor-relevant; the second was pre-only.
+  Spend a 1–2-day sweep looking for analogous issues in the current
+  2.0 hot paths — places where a config flag's documented behavior
+  doesn't match its actual behavior, or where a config combination
+  raises rather than producing a clean result.
+- **Optional: top-1 targeted optimization.** If the mechanism deep-dive
+  identifies a clear remaining bottleneck (e.g. a redundant repertoire
+  recomputation, a parallelism gate that doesn't fire when it should),
+  land a targeted fix and re-benchmark. Bound to ~1 week; bigger
+  rewrites get their own roadmap item.
+
+*Why here.* Post-surface-freeze (P15 has shipped, the public API is
+stable, ASV-in-CI from P11.8 Tier 2 exists). The investigation needs the
+clean post-2.0 surface as the reference point, and the benchmark
+infrastructure from P11.8 Tier 2 to avoid re-inventing harness work.
+Pairs naturally with P16 (approximation framework) because knowing where
+the exact-computation cost lives informs which approximations are worth
+building — e.g. if 80% of the cost is in mechanism-MIP search, then
+`φ*`-style mechanism-level approximations have higher leverage than
+`φ_G`-style system-level ones.
+
+*Files.* `benchmarks/iit_3_vs_4/` (extend the existing cross-temporal
+harness with larger-network support and synthesized fixtures); new
+`benchmarks/iit_3_vs_4/findings.md` (or equivalent) for the mechanism
+write-up; possibly small fixes in `pyphi/formalism/` if the targeted
+optimization lands.
+
+*Risk.* Low for the measurement portions; medium for any landed
+optimization (perf fixes in hot paths have a history of subtle
+correctness regressions — see the P11.8 motivating story of the
+60–300× slowdown that survived golden tests).
+
+*Leverage.* Documents a publication-relevant claim (the 2.0 work
+delivered measurable speedup at scale), informs the P16 approximation
+design, and closes the loop on Larissa's question with reproducible
+numbers. Existing benchmark harness in `benchmarks/iit_3_vs_4/` already
+runs against both pre- (`b3aaa3e5` worktree) and post-refactor
+checkouts; the harness needs extension rather than rewrite.
+
 ---
 
 ## Path-Dependency Graph

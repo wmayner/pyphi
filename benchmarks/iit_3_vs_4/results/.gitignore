@@ -1,0 +1,6 @@
+# cProfile binary dumps — large and machine-specific; regeneratable by rerunning run.py
+*.pstats
+
+# pyphi runtime artifacts that land here when the harness runs from this dir
+__pyphi_cache__/
+pyphi.log
