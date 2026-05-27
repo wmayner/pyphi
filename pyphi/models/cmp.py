@@ -7,7 +7,6 @@ from collections.abc import Callable
 from collections.abc import Iterable
 from collections.abc import Sequence
 from typing import Any
-from typing import ClassVar
 from typing import TypeVar
 
 import numpy as np
@@ -41,21 +40,14 @@ def sametype(func: Callable[[T, T], bool]) -> Callable[[T, object], bool | Any]:
 class Orderable:
     """Base mixin for implementing rich object comparisons on phi-objects.
 
-    Both ``__eq__`` and `order_by`` need to be implemented on the subclass.
+    Both ``__eq__`` and ``order_by`` need to be implemented on the subclass.
     The ``order_by`` method returns a list of attributes which are compared
     to implement the ordering.
 
-    Subclasses can optionally set a value for `unorderable_unless_eq`. This
-    attribute controls whether objects are orderable: if all attributes listed
-    in `unorderable_unless_eq` are not equal then the objects are not orderable
-    with respect to one another and a TypeError is raised. For example: it
-    doesn't make sense to compare ``Concepts`` unless they are from the same
-    ``System`` or compare ``MechanismIrreducibilityAnalyses`` with different
-    directions.
+    Subclasses can optionally override ``is_orderable_with`` to enforce
+    constraints (for example, ``AcSystemIrreducibilityAnalysis`` requires
+    both operands to have the same ``direction``).
     """
-
-    # The object is not orderable unless these attributes are all equal
-    unorderable_unless_eq: ClassVar[list[str]] = []
 
     def order_by(self) -> Any:
         """Return a list of values to compare for ordering.
@@ -65,11 +57,19 @@ class Orderable:
         """
         raise NotImplementedError
 
+    def is_orderable_with(self, other: object) -> bool:  # noqa: ARG002
+        """Whether ``self`` and ``other`` are mutually orderable.
+
+        Default: any two instances are orderable. Override in subclasses
+        that need cross-instance guards.
+        """
+        return True
+
     def __lt__(self, other: object) -> bool:
-        if not general_eq(self, other, self.unorderable_unless_eq):
+        if not self.is_orderable_with(other):
             raise TypeError(
-                f"Unorderable: the following attrs must be equal: "
-                f"{self.unorderable_unless_eq}"
+                f"Unorderable: {type(self).__name__} instances do not satisfy "
+                f"the orderability constraint of this type."
             )
         return self.order_by() < other.order_by()  # type: ignore[attr-defined]
 

@@ -9,7 +9,6 @@ IIT 3.0 result type that ``compute.system.sia`` produces.
 from __future__ import annotations
 
 from typing import Any
-from typing import ClassVar
 
 from pyphi import utils
 
@@ -104,8 +103,6 @@ class IIT3SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
         import sys
 
         sys.stdout.write(str(self) + "\n")
-
-    unorderable_unless_eq: ClassVar[list[str]] = []
 
     def __eq__(self, other):
         if type(other) is not type(self):

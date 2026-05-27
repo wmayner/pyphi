@@ -7,7 +7,6 @@ import contextvars
 from collections import namedtuple
 from collections.abc import Sequence
 from typing import Any
-from typing import ClassVar
 
 from pyphi import utils
 from pyphi.direction import Direction
@@ -126,7 +125,10 @@ class AcRepertoireIrreducibilityAnalysis(cmp.Orderable):
         for member in tied:
             member._partition_ties = tied
 
-    unorderable_unless_eq: ClassVar[list[str]] = ["direction"]
+    def is_orderable_with(self, other: object) -> bool:
+        return isinstance(other, AcRepertoireIrreducibilityAnalysis) and (
+            self.direction == other.direction
+        )
 
     def order_by(self):
         # Here we enforce that ties are broken in favor of smaller purviews
@@ -299,7 +301,8 @@ class CausalLink(cmp.Orderable):
     def __str__(self):
         return "CausalLink\n" + fmt.indent(fmt.fmt_causal_link(self))
 
-    unorderable_unless_eq = AcRepertoireIrreducibilityAnalysis.unorderable_unless_eq
+    def is_orderable_with(self, other: object) -> bool:
+        return isinstance(other, CausalLink) and (self.direction == other.direction)
 
     def order_by(self):
         return self.ria.order_by()
@@ -512,7 +515,10 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
     def __str__(self):
         return fmt.fmt_ac_sia(self)
 
-    unorderable_unless_eq: ClassVar[list[str]] = ["direction"]
+    def is_orderable_with(self, other: object) -> bool:
+        return isinstance(other, AcSystemIrreducibilityAnalysis) and (
+            self.direction == other.direction
+        )
 
     # TODO: shouldn't the minimal irreducible account be chosen?
     def order_by(self):

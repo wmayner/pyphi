@@ -21,7 +21,6 @@ from pyphi.exceptions import WrongDirectionError
 
 from .pandas import ToDictFromExplicitAttrsMixin
 from .pandas import ToPandasMixin
-from .ria import RepertoireIrreducibilityAnalysis
 from .ria import _ria_dict_attrs
 
 if TYPE_CHECKING:
@@ -241,8 +240,6 @@ class MaximallyIrreducibleCauseOrEffect(
 
     def __str__(self):
         return self.__repr__()
-
-    unorderable_unless_eq = RepertoireIrreducibilityAnalysis.unorderable_unless_eq
 
     def order_by(self):
         return self.ria.order_by()

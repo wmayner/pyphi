@@ -675,7 +675,8 @@ def test_sia_ordering(s, s_noised, subsys_n0n2, subsys_n1n2):
     assert phi2 >= phi1
 
     # SIAs from different systems are now orderable by phi alone; substrate
-    # was removed from the SIA fields so unorderable_unless_eq is empty.
+    # was removed from the SIA fields and the default Orderable behavior
+    # permits cross-instance ordering.
     different_system = sia(system=s_noised)
     _ = phi1 <= different_system
     _ = phi1 >= different_system
@@ -910,3 +911,30 @@ class TestRepertoireIrreducibilityAnalysisDistanceResult:
         assert isinstance(ria2.phi, DistanceResult)
         assert ria1.phi.method == "EMD"
         assert ria2.phi.method == "L1"
+
+
+def test_orderable_is_orderable_with_default_true():
+    """Default Orderable.is_orderable_with returns True."""
+
+    class A(models.cmp.Orderable):
+        def order_by(self):
+            return 0
+
+        def __eq__(self, other):
+            return type(self) is type(other)
+
+        def __hash__(self):
+            return 0
+
+    assert A().is_orderable_with(A())
+
+
+def test_ac_sia_is_orderable_with_direction_guard():
+    """AcSIA.is_orderable_with returns False when directions differ."""
+    from pyphi.models.actual_causation import AcSystemIrreducibilityAnalysis
+
+    a = AcSystemIrreducibilityAnalysis(alpha=1.0, direction=Direction.CAUSE)
+    b = AcSystemIrreducibilityAnalysis(alpha=1.0, direction=Direction.EFFECT)
+    assert not a.is_orderable_with(b)
+    c = AcSystemIrreducibilityAnalysis(alpha=2.0, direction=Direction.CAUSE)
+    assert a.is_orderable_with(c)

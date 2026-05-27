@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from functools import cached_property
 from typing import Any
-from typing import ClassVar
 
 import numpy as np
 
@@ -157,8 +156,6 @@ class Distinction(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixi
         if self.cause.node_labels != self.effect.node_labels:
             raise ValueError("Inconsistent cause and effect node labels!")
         return self.cause.node_labels
-
-    unorderable_unless_eq: ClassVar[list[str]] = []
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Distinction):
