@@ -116,13 +116,13 @@ class IIT3SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
         """
         return not utils.eq(self.phi, 0)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(
             (
-                self.phi,
                 self.partitioned_distinctions,
                 self.partition,
                 self.node_indices,
+                self.node_labels,
                 self.current_state,
             )
         )

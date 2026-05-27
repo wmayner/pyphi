@@ -986,6 +986,30 @@ def test_sia_3_eq_outside_tolerance():
     assert a != b
 
 
+def test_sia_3_hash_consistent_with_eq_under_tolerance():
+    """eq → same hash for IIT 3.0 SIA under tolerance-aware equality."""
+    from pyphi.models.sia import IIT3SystemIrreducibilityAnalysis
+
+    a = IIT3SystemIrreducibilityAnalysis(
+        phi=1.0,
+        partitioned_distinctions=None,
+        partition=None,
+        node_indices=(0,),
+        node_labels=None,
+        current_state=(0,),
+    )
+    b = IIT3SystemIrreducibilityAnalysis(
+        phi=1.0 + 1e-15,
+        partitioned_distinctions=None,
+        partition=None,
+        node_indices=(0,),
+        node_labels=None,
+        current_state=(0,),
+    )
+    assert a == b
+    assert hash(a) == hash(b)
+
+
 def test_sia_4_eq_within_tolerance():
     """IIT 4.0 SIA: phi values differing by ~1e-15 compare equal."""
     from pyphi.formalism.iit4 import SystemIrreducibilityAnalysis
