@@ -455,7 +455,7 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
         node_labels (NodeLabels): Labels corresponding to ``node_indices``.
     """
 
-    alpha: float
+    alpha: float  # Override parent to allow None during init
 
     def __init__(
         self,

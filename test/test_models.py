@@ -1124,3 +1124,69 @@ def test_ac_sia_hash_contract():
     b = AcSystemIrreducibilityAnalysis(alpha=1.0 + 1e-15, direction=Direction.CAUSE)
     assert a == b
     assert hash(a) == hash(b)
+
+
+def test_ac_ria_eq_outside_tolerance():
+    """AcRIA: alpha values differing by 1e-3 compare unequal."""
+    from pyphi.direction import Direction
+    from pyphi.models.actual_causation import AcRepertoireIrreducibilityAnalysis
+
+    a = AcRepertoireIrreducibilityAnalysis(
+        alpha=1.0,
+        state=(0,),
+        direction=Direction.CAUSE,
+        mechanism=(0,),
+        purview=(0,),
+        partition=None,
+        probability=0.5,
+        partitioned_probability=None,
+    )
+    b = AcRepertoireIrreducibilityAnalysis(
+        alpha=1.001,
+        state=(0,),
+        direction=Direction.CAUSE,
+        mechanism=(0,),
+        purview=(0,),
+        partition=None,
+        probability=0.5,
+        partitioned_probability=None,
+    )
+    assert a != b
+
+
+def test_ac_ria_eq_probability_within_tolerance():
+    """AcRIA: probability values differing by ~1e-15 compare equal."""
+    from pyphi.direction import Direction
+    from pyphi.models.actual_causation import AcRepertoireIrreducibilityAnalysis
+
+    a = AcRepertoireIrreducibilityAnalysis(
+        alpha=1.0,
+        state=(0,),
+        direction=Direction.CAUSE,
+        mechanism=(0,),
+        purview=(0,),
+        partition=None,
+        probability=0.5,
+        partitioned_probability=None,
+    )
+    b = AcRepertoireIrreducibilityAnalysis(
+        alpha=1.0,
+        state=(0,),
+        direction=Direction.CAUSE,
+        mechanism=(0,),
+        purview=(0,),
+        partition=None,
+        probability=0.5 + 1e-15,
+        partitioned_probability=None,
+    )
+    assert a == b
+
+
+def test_ac_sia_eq_outside_tolerance():
+    """AcSIA: alpha values differing by 1e-3 compare unequal."""
+    from pyphi.direction import Direction
+    from pyphi.models.actual_causation import AcSystemIrreducibilityAnalysis
+
+    a = AcSystemIrreducibilityAnalysis(alpha=1.0, direction=Direction.CAUSE)
+    b = AcSystemIrreducibilityAnalysis(alpha=1.001, direction=Direction.CAUSE)
+    assert a != b
