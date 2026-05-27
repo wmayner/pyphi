@@ -1292,3 +1292,65 @@ def test_state_specification_eq_outside_tolerance():
         unconstrained_repertoire=np.array([0.5, 0.5]),
     )
     assert a != b
+
+
+def _make_distinction(phi_val: float = 1.0, repertoire_offset: float = 0.0):
+    """Helper: build a minimal Distinction with given phi and repertoire offset."""
+    cause = mic(
+        phi=phi_val,
+        direction=Direction.CAUSE,
+        mechanism=(0,),
+        purview=(0,),
+        repertoire=np.array([0.5, 0.5]) + repertoire_offset,
+        partitioned_repertoire=np.array([0.5, 0.5]),
+    )
+    effect = mie(
+        phi=phi_val,
+        direction=Direction.EFFECT,
+        mechanism=(0,),
+        purview=(0,),
+        repertoire=np.array([0.5, 0.5]) + repertoire_offset,
+        partitioned_repertoire=np.array([0.5, 0.5]),
+    )
+    return models.Distinction(mechanism=(0,), cause=cause, effect=effect)
+
+
+def test_distinction_eq_within_tolerance():
+    """Distinction: phi values differing by ~1e-15 compare equal."""
+    a = _make_distinction(phi_val=1.0)
+    b = _make_distinction(phi_val=1.0 + 1e-15)
+    assert a == b
+
+
+def test_distinction_eq_outside_tolerance():
+    """Distinction: phi values differing by 1e-3 compare unequal."""
+    a = _make_distinction(phi_val=1.0)
+    b = _make_distinction(phi_val=1.001)
+    assert a != b
+
+
+def test_distinction_eq_repertoire_within_tolerance():
+    """Distinction: repertoires differing by ~1e-15 compare equal."""
+    a = _make_distinction(phi_val=1.0, repertoire_offset=0.0)
+    b = _make_distinction(phi_val=1.0, repertoire_offset=1e-15)
+    assert a == b
+
+
+def test_distinction_hash_contract_within_tolerance():
+    """eq -> same hash for Distinction under tolerance-aware equality."""
+    a = _make_distinction(phi_val=1.0)
+    b = _make_distinction(phi_val=1.0 + 1e-15)
+    assert a == b
+    assert hash(a) == hash(b)
+
+
+def test_distinction_hash_structural_only():
+    """Hash uses only (mechanism, mechanism_state, cause_purview, effect_purview).
+
+    Distinctions sharing structural attrs but differing in phi hash the same
+    even though they are not __eq__.
+    """
+    a = _make_distinction(phi_val=1.0)
+    b = _make_distinction(phi_val=2.0)
+    assert hash(a) == hash(b)
+    assert a != b

@@ -157,28 +157,33 @@ class Distinction(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixi
             raise ValueError("Inconsistent cause and effect node labels!")
         return self.cause.node_labels
 
-    def __eq__(self, other: object) -> bool:
+    def __eq__(self, other: object) -> bool:  # noqa: PLR0911
         if not isinstance(other, Distinction):
             return NotImplemented
-        return (
-            self.phi == other.phi
-            and self.mechanism == other.mechanism
-            and self.mechanism_state == other.mechanism_state
-            and self.cause_purview == other.cause_purview
-            and self.effect_purview == other.effect_purview
-            and self.eq_repertoires(other)
-        )
+        if self.mechanism != other.mechanism:
+            return False
+        if self.mechanism_state != other.mechanism_state:
+            return False
+        if self.cause_purview != other.cause_purview:
+            return False
+        if self.effect_purview != other.effect_purview:
+            return False
+        if not utils.eq(self.phi, other.phi):
+            return False
+        if not cmp.numpy_aware_eq(self.cause_repertoire, other.cause_repertoire):
+            return False
+        return cmp.numpy_aware_eq(self.effect_repertoire, other.effect_repertoire)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
+        # Hash uses only strict-equality attrs from __eq__; phi and repertoires
+        # are tolerance-compared in __eq__ so they cannot appear here without
+        # violating the a == b -> hash(a) == hash(b) contract.
         return hash(
             (
-                self.phi,
                 self.mechanism,
                 self.mechanism_state,
                 self.cause_purview,
                 self.effect_purview,
-                utils.np_hash(self.cause_repertoire),
-                utils.np_hash(self.effect_repertoire),
             )
         )
 
