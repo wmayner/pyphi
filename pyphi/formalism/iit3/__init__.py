@@ -333,7 +333,17 @@ def _sia_map_reduce(
     if not candidates:
         return null
     ties = tuple(resolve_ties.sias(candidates, default=null))
-    return ties[0] if ties else null
+    if not ties:
+        return null
+    winner = ties[0]
+    # Capture phi-tied peers (same minimum phi value) before any
+    # lex-based tiebreaker collapses the set to a single winner. These
+    # peers are equally valid MIPs for the system; preserving them on
+    # the winner lets callers (serialization, diagnostic display, and
+    # fixtures comparing across tied alternatives) see the full tie set.
+    phi_ties = tuple(resolve_ties.sias(candidates, strategy=["PHI"], default=null))
+    winner.set_ties(list(phi_ties) if len(phi_ties) > 1 else [winner])
+    return winner
 
 
 def _sia(system: System, **kwargs: Any) -> IIT3SystemIrreducibilityAnalysis:

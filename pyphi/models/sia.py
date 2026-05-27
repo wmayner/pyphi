@@ -8,6 +8,7 @@ IIT 3.0 result type that ``compute.system.sia`` produces.
 
 from __future__ import annotations
 
+import contextvars
 from typing import Any
 
 from pyphi import utils
@@ -15,6 +16,10 @@ from pyphi import utils
 from . import cmp
 from . import fmt
 from .distinctions import _null_ces
+
+_SERIALIZING_AS_TIE_PEER: contextvars.ContextVar[bool] = contextvars.ContextVar(
+    "iit3_sia_serializing_as_tie_peer", default=False
+)
 
 
 class IIT3SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
@@ -133,9 +138,26 @@ class IIT3SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
             return (self.phi, b"")
         return (self.phi, self.partition.lex_key())
 
+    @property
+    def ties(self) -> list[Any]:
+        """The full tied set this SIA belongs to (winner first, peers after).
+
+        For an SIA without ties, returns a single-element list containing self.
+        Populated by ``set_ties`` after partition evaluation; preserved across
+        JSON round-trips via ``_tie_peers``.
+        """
+        try:
+            return self._ties
+        except AttributeError:
+            self._ties = [self]
+            return self._ties
+
+    def set_ties(self, ties: list[Any]) -> None:
+        self._ties = list(ties)
+
     def to_json(self):
         """Return a JSON-serializable representation."""
-        return {
+        dct = {
             attr: getattr(self, attr)
             for attr in (
                 "phi",
@@ -146,10 +168,32 @@ class IIT3SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
                 "current_state",
             )
         }
+        if _SERIALIZING_AS_TIE_PEER.get():
+            return dct
+        peers = tuple(t for t in self.ties if t is not self)
+        if peers:
+            from pyphi.jsonify import jsonify
+
+            token = _SERIALIZING_AS_TIE_PEER.set(True)
+            try:
+                dct["_tie_peers"] = [jsonify(p.to_json()) for p in peers]
+            finally:
+                _SERIALIZING_AS_TIE_PEER.reset(token)
+        return dct
 
     @classmethod
     def from_json(cls, dct):
-        return cls(**dct)
+        peers_raw: Any = dct.pop("_tie_peers", ())
+        peers: tuple[IIT3SystemIrreducibilityAnalysis, ...] = tuple(
+            cls(**dict(p)) for p in peers_raw
+        )
+        instance = cls(**dct)
+        if peers:
+            tied: list[IIT3SystemIrreducibilityAnalysis] = [instance, *peers]
+            instance._ties = tied
+            for peer in peers:
+                peer._ties = tied
+        return instance
 
 
 def _null_sia(system, phi=0.0):

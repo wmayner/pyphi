@@ -37,6 +37,7 @@ from pyphi.conf import presets
 from pyphi.formalism import iit3
 from pyphi.formalism import iit4 as new_big_phi
 
+from .conftest import IIT_3_CONFIG
 from .conftest import skip_if_no_pyemd
 
 # pylint: disable=unused-argument
@@ -216,32 +217,34 @@ def test_sia_big_substrate_0_thru_3_parallel(
 
 
 # rule152_s ======================================================
-# Has ties, so just checking big phi for now
-#
-# Note: The rule152 cellular automaton substrate has tied partitions (multiple
-# partitions with the same phi value). When ties exist, the partition selection
-# may vary between runs while phi remains constant. Therefore, we only check
-# the phi value rather than full SIA equality.
-#
-# Substrate: 5-node cellular automaton following rule 152
-# Expected phi: 0.83...
+# IIT 3.0 regression: 5-node cellular automaton (rule 152). The substrate
+# has multiple partitions tied at the maximum phi; the fixture stores the
+# full tie set via ``_tie_peers`` so the live winner is verified to be
+# one of the semantically valid MIPs (the cascade's lex tiebreaker may
+# pick different winners across code versions, all of which are correct).
 
 
+def _live_sia_matches_tied_fixture(live, expected):
+    """Whether ``live`` SIA matches any partition in ``expected``'s tie set."""
+    candidates = expected.ties or [expected]
+    return any(live == candidate for candidate in candidates)
+
+
+@pytest.mark.slow
 @config.override(parallel=False)
 def test_sia_rule152_s_sequential(rule152_s, rule152_s_expected_sia):
-    """Rule 152 cellular automaton sequential computation.
+    """Rule 152 cellular automaton sequential computation (IIT 3.0)."""
+    with IIT_3_CONFIG:
+        live = rule152_s.sia()
+    assert _live_sia_matches_tied_fixture(live, rule152_s_expected_sia)
 
-    Only checks phi value due to tied partitions - see note above.
-    """
-    assert rule152_s.sia().phi == rule152_s_expected_sia.phi
 
-
+@pytest.mark.slow
 def test_sia_rule152_s_parallel(rule152_s, rule152_s_expected_sia):
-    """Rule 152 cellular automaton parallel computation.
-
-    Only checks phi value due to tied partitions - see note above.
-    """
-    assert rule152_s.sia().phi == rule152_s_expected_sia.phi
+    """Rule 152 cellular automaton parallel computation (IIT 3.0)."""
+    with IIT_3_CONFIG:
+        live = rule152_s.sia()
+    assert _live_sia_matches_tied_fixture(live, rule152_s_expected_sia)
 
 
 # macro_s ======================================================
