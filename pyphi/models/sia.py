@@ -16,15 +16,6 @@ from . import cmp
 from . import fmt
 from .distinctions import _null_ces
 
-_sia_attributes = [
-    "phi",
-    "partitioned_distinctions",
-    "partition",
-    "node_indices",
-    "node_labels",
-    "current_state",
-]
-
 
 class IIT3SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
     """An analysis of system irreducibility (|big_phi|).
@@ -104,10 +95,20 @@ class IIT3SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
 
         sys.stdout.write(str(self) + "\n")
 
-    def __eq__(self, other):
-        if type(other) is not type(self):
+    def __eq__(self, other: object) -> bool:  # noqa: PLR0911
+        if not isinstance(other, IIT3SystemIrreducibilityAnalysis):
             return NotImplemented
-        return cmp.general_eq(self, other, _sia_attributes)
+        if self.partitioned_distinctions != other.partitioned_distinctions:
+            return False
+        if self.partition != other.partition:
+            return False
+        if self.node_indices != other.node_indices:
+            return False
+        if self.node_labels != other.node_labels:
+            return False
+        if self.current_state != other.current_state:
+            return False
+        return utils.eq(self.phi, other.phi)
 
     def __bool__(self):
         """A |SystemIrreducibilityAnalysis| is ``True`` if it has
@@ -134,7 +135,17 @@ class IIT3SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
 
     def to_json(self):
         """Return a JSON-serializable representation."""
-        return {attr: getattr(self, attr) for attr in _sia_attributes}
+        return {
+            attr: getattr(self, attr)
+            for attr in (
+                "phi",
+                "partitioned_distinctions",
+                "partition",
+                "node_indices",
+                "node_labels",
+                "current_state",
+            )
+        }
 
     @classmethod
     def from_json(cls, dct):

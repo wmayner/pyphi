@@ -156,17 +156,26 @@ class TestStructuralInvariants:
     def test_sia_has_required_attributes(self, s):
         """SIA must have all required attributes.
 
-        The SystemIrreducibilityAnalysis class defines _sia_attributes
-        as the canonical list of required attributes. All SIA objects
-        must have these attributes present (even if some are None).
-
-        If this fails, the SIA data structure has been modified in a
-        way that breaks compatibility with the defined schema.
+        All SIA objects must have these attributes present (even if some
+        are None). If this fails, the SIA data structure has been modified
+        in a way that breaks compatibility with the defined schema.
         """
         result = s.sia()
 
-        # Check all _sia_attributes are present
-        for attr in result._sia_attributes:
+        required_attributes = (
+            "phi",
+            "partition",
+            "normalized_phi",
+            "signed_phi",
+            "signed_normalized_phi",
+            "cause",
+            "effect",
+            "system_state",
+            "current_state",
+            "node_indices",
+            "intrinsic_differentiation",
+        )
+        for attr in required_attributes:
             assert hasattr(result, attr), (
                 f"SIA is missing required attribute: '{attr}'\n"
                 f"This indicates a structural change to SystemIrreducibilityAnalysis"

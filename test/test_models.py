@@ -938,3 +938,87 @@ def test_ac_sia_is_orderable_with_direction_guard():
     assert not a.is_orderable_with(b)
     c = AcSystemIrreducibilityAnalysis(alpha=2.0, direction=Direction.CAUSE)
     assert a.is_orderable_with(c)
+
+
+def test_sia_3_eq_within_tolerance():
+    """IIT 3.0 SIA: phi values differing by ~1e-15 compare equal."""
+    from pyphi.models.sia import IIT3SystemIrreducibilityAnalysis
+
+    a = IIT3SystemIrreducibilityAnalysis(
+        phi=1.0,
+        partitioned_distinctions=None,
+        partition=None,
+        node_indices=(0,),
+        node_labels=None,
+        current_state=(0,),
+    )
+    b = IIT3SystemIrreducibilityAnalysis(
+        phi=1.0 + 1e-15,
+        partitioned_distinctions=None,
+        partition=None,
+        node_indices=(0,),
+        node_labels=None,
+        current_state=(0,),
+    )
+    assert a == b
+
+
+def test_sia_3_eq_outside_tolerance():
+    """IIT 3.0 SIA: phi values differing by 1e-3 compare unequal."""
+    from pyphi.models.sia import IIT3SystemIrreducibilityAnalysis
+
+    a = IIT3SystemIrreducibilityAnalysis(
+        phi=1.0,
+        partitioned_distinctions=None,
+        partition=None,
+        node_indices=(0,),
+        node_labels=None,
+        current_state=(0,),
+    )
+    b = IIT3SystemIrreducibilityAnalysis(
+        phi=1.001,
+        partitioned_distinctions=None,
+        partition=None,
+        node_indices=(0,),
+        node_labels=None,
+        current_state=(0,),
+    )
+    assert a != b
+
+
+def test_sia_4_eq_within_tolerance():
+    """IIT 4.0 SIA: phi values differing by ~1e-15 compare equal."""
+    from pyphi.formalism.iit4 import SystemIrreducibilityAnalysis
+    from pyphi.models.partitions import NullCut
+
+    partition = NullCut((0,), None)
+    a = SystemIrreducibilityAnalysis(phi=1.0, partition=partition, node_indices=(0,))
+    b = SystemIrreducibilityAnalysis(
+        phi=1.0 + 1e-15, partition=partition, node_indices=(0,)
+    )
+    assert a == b
+
+
+def test_sia_4_eq_outside_tolerance():
+    """IIT 4.0 SIA: phi values differing by 1e-3 compare unequal."""
+    from pyphi.formalism.iit4 import SystemIrreducibilityAnalysis
+    from pyphi.models.partitions import NullCut
+
+    partition = NullCut((0,), None)
+    a = SystemIrreducibilityAnalysis(phi=1.0, partition=partition, node_indices=(0,))
+    b = SystemIrreducibilityAnalysis(phi=1.001, partition=partition, node_indices=(0,))
+    assert a != b
+
+
+def test_sia_4_hash_consistent_with_eq_under_tolerance():
+    """IIT 4.0 SIA: a == b implies hash(a) == hash(b)."""
+    from pyphi.formalism.iit4 import SystemIrreducibilityAnalysis
+    from pyphi.models.partitions import NullCut
+
+    partition = NullCut((0,), None)
+    a = SystemIrreducibilityAnalysis(phi=1.0, partition=partition, node_indices=(0,))
+    b = SystemIrreducibilityAnalysis(
+        phi=1.0 + 1e-15, partition=partition, node_indices=(0,)
+    )
+    assert a == b
+    assert hash(a) == hash(b)

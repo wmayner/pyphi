@@ -16,7 +16,6 @@ from enum import Enum
 from enum import auto
 from enum import unique
 from typing import Any
-from typing import ClassVar
 
 from pyphi import conf
 from pyphi import connectivity
@@ -117,6 +116,26 @@ def system_intrinsic_information(
 ##############################################################################
 
 
+def _optional_eq(
+    a: float | DistanceResult | None,
+    b: float | DistanceResult | None,
+) -> bool:
+    """Tolerance-equal comparison that handles ``None`` operands."""
+    if a is None or b is None:
+        return a is b
+    return utils.eq(a, b)
+
+
+def _intrinsic_differentiation_eq(a: dict | None, b: dict | None) -> bool:
+    """Equality check for ``intrinsic_differentiation`` dicts.
+
+    Both ``None`` or same direction key set; values are not compared.
+    """
+    if a is None or b is None:
+        return a is b
+    return set(a.keys()) == set(b.keys())
+
+
 @dataclass
 class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
     """System-level integrated information.
@@ -181,20 +200,6 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
                 Direction.EFFECT: PyPhiFloat(0),
             }
 
-    _sia_attributes: ClassVar[list[str]] = [
-        "phi",
-        "partition",
-        "normalized_phi",
-        "signed_phi",
-        "signed_normalized_phi",
-        "cause",
-        "effect",
-        "system_state",
-        "current_state",
-        "node_indices",
-        "intrinsic_differentiation",
-    ]
-
     def order_by(self):
         return self.phi
 
@@ -234,20 +239,44 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
                 self.system_state, cause=new_cause, effect=new_effect
             )
 
-    def __eq__(self, other):
-        if type(other) is not type(self):
+    def __eq__(self, other: object) -> bool:  # noqa: PLR0911
+        if not isinstance(other, SystemIrreducibilityAnalysis):
             return NotImplemented
-        return cmp.general_eq(self, other, self._sia_attributes)
+        if self.partition != other.partition:
+            return False
+        if self.cause != other.cause:
+            return False
+        if self.effect != other.effect:
+            return False
+        if self.system_state != other.system_state:
+            return False
+        if self.current_state != other.current_state:
+            return False
+        if self.node_indices != other.node_indices:
+            return False
+        if not utils.eq(self.phi, other.phi):
+            return False
+        if not utils.eq(self.normalized_phi, other.normalized_phi):
+            return False
+        if not _optional_eq(self.signed_phi, other.signed_phi):
+            return False
+        if not _optional_eq(self.signed_normalized_phi, other.signed_normalized_phi):
+            return False
+        return _intrinsic_differentiation_eq(
+            self.intrinsic_differentiation, other.intrinsic_differentiation
+        )
 
     def __bool__(self):
         """Whether |big_phi > 0|."""
         return utils.is_positive(self.phi)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(
             (
-                self.phi,
                 self.partition,
+                self.system_state,
+                self.current_state,
+                self.node_indices,
             )
         )
 
