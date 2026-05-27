@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 
 from pyphi.core.tpm.joint_distribution import JointDistribution
-from pyphi.tpm import JointTPM
+from pyphi.core.tpm.joint_distribution import JointTPM
 
 
 def test_joint_distribution_exists() -> None:

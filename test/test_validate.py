@@ -7,7 +7,7 @@ from pyphi import System
 from pyphi import exceptions
 from pyphi import macro
 from pyphi import validate
-from pyphi.tpm import JointTPM
+from pyphi.core.tpm.joint_distribution import JointTPM
 
 
 def test_validate_direction():

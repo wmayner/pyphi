@@ -78,10 +78,10 @@ from .conf import iit4_2023
 from .conf import iit4_2026
 from .core.tpm import FactoredTPM as FactoredTPM
 from .core.tpm import JointDistribution as JointDistribution
+from .core.tpm.joint_distribution import JointTPM
 from .direction import Direction
 from .substrate import Substrate
 from .system import System
-from .tpm import JointTPM
 
 # Skip modules that require optional dependencies
 _skip_import = ["visualize", "graphs"]

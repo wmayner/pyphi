@@ -1,10 +1,10 @@
 import numpy as np
 
+from pyphi.core.tpm.joint_distribution import JointTPM
 from pyphi.node import Node
 from pyphi.node import expand_node_tpm
 from pyphi.node import generate_nodes
 from pyphi.system import System
-from pyphi.tpm import JointTPM
 
 
 def test_node_init_tpm(s):

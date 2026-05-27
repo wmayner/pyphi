@@ -116,7 +116,7 @@ def test_single_node_cause_repertoire_k3() -> None:
     multiplied.
     """
     from pyphi.core.repertoire_algebra import _single_node_cause_repertoire
-    from pyphi.tpm import JointTPM
+    from pyphi.core.tpm.joint_distribution import JointTPM
 
     class _Node:
         def __init__(self, state: int, inputs: frozenset[int], cause_tpm: JointTPM):

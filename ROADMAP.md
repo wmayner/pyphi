@@ -2683,17 +2683,6 @@ to ease transition:
   "op-order-noise threshold" is a property of float64 arithmetic on
   IIT quantities, not a user preference.
 
-- **Consolidate ``pyphi/tpm.py`` into ``pyphi/core/tpm/``.** The
-  legacy module ``pyphi/tpm.py`` (~650 lines) hosts ``JointTPM`` (and,
-  after P12b, ``JointDistribution`` and ``CausePosterior`` will live
-  in ``pyphi/core/tpm/``). After P12b the module boundary between
-  ``pyphi/tpm.py`` and ``pyphi/core/tpm/`` is fuzzy. Consolidation
-  step: move the legacy ``JointTPM`` machinery into
-  ``pyphi/core/tpm/joint.py`` (which currently is a thin port wrapper),
-  delete ``pyphi/tpm.py``, update importers. Mechanical refactor;
-  benefits from running after P12b lands because P12b touches the
-  surface already.
-
 - **AC k-ary cutover (deferred from P12b).** The actual-causation pipeline
   (``pyphi/actual.py::TransitionSystem``) remains binary-only: it calls
   ``Substrate._legacy_binary_joint()`` and passes through ``validate.node_states``

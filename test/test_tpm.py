@@ -6,8 +6,8 @@ from numpy.random import default_rng
 
 from pyphi import JointTPM
 from pyphi import System
-from pyphi.tpm import reconstitute_tpm
-from pyphi.tpm import simulate
+from pyphi.core.tpm.joint_distribution import reconstitute_tpm
+from pyphi.core.tpm.joint_distribution import simulate
 
 
 @pytest.mark.parametrize("tpm", [JointTPM(np.random.rand(42)), JointTPM(np.arange(42))])
@@ -142,7 +142,7 @@ def test_marginalize_out(s):
 
 
 def test_infer_cm(rule152):
-    from pyphi.tpm import JointTPM as _LegacyJointTPM
+    from pyphi.core.tpm.joint_distribution import JointTPM as _LegacyJointTPM
 
     # Legacy JointTPM/infer_cm expects the (2,...,2,N) shape.
     legacy_tpm = _LegacyJointTPM(rule152._legacy_binary_joint())

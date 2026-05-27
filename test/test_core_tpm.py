@@ -30,7 +30,7 @@ def test_joint_tpm_is_a_tpm() -> None:
 
 def test_joint_tpm_parity_with_legacy() -> None:
     """JointTPM produces bit-identical output to legacy JointTPM."""
-    import pyphi.tpm as legacy
+    from pyphi.core.tpm import joint_distribution as legacy
     from pyphi.core.tpm.joint import JointTPM
 
     arr = np.array(
@@ -61,7 +61,7 @@ def test_effect_tpm_parity() -> None:
     external_state = utils.state_of(external_indices, state)
     background = dict(zip(external_indices, external_state, strict=False))
 
-    from pyphi.tpm import JointTPM as _LegacyJointTPM
+    from pyphi.core.tpm.joint_distribution import JointTPM as _LegacyJointTPM
 
     # Legacy JointTPM expects the (2,...,2,N) shape.
     joint = substrate._legacy_binary_joint()

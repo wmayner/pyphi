@@ -22,9 +22,9 @@ from . import utils
 from . import validate
 from .core.tpm.factored import FactoredTPM
 from .core.tpm.factored import StateSpace
+from .core.tpm.joint_distribution import JointTPM
 from .direction import Direction
 from .labels import NodeLabels
-from .tpm import JointTPM
 from .types import ConnectivityMatrix
 from .types import Mechanism
 from .types import NodeIndices

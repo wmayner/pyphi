@@ -9,7 +9,7 @@ import pandas as pd
 from numpy.typing import ArrayLike
 
 from . import utils
-from .tpm import JointTPM
+from .core.tpm.joint_distribution import JointTPM
 
 
 def mean_dynamics(

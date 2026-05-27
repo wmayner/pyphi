@@ -15,6 +15,7 @@ from . import distribution
 from . import utils
 from . import validate
 from .conf import config
+from .core.tpm.joint_distribution import JointTPM
 from .direction import Direction
 from .exceptions import ConditionallyDependentError
 from .exceptions import StateUnreachableError
@@ -23,7 +24,6 @@ from .node import expand_node_tpm
 from .node import generate_nodes
 from .substrate import irreducible_purviews
 from .system import System
-from .tpm import JointTPM
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)

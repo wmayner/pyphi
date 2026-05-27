@@ -6,7 +6,7 @@ import numpy as np
 
 from pyphi.core.tpm.factored import FactoredTPM
 from pyphi.core.tpm.joint import JointTPM
-from pyphi.tpm import JointTPM as LegacyJointTPM
+from pyphi.core.tpm.joint_distribution import JointTPM as LegacyJointTPM
 
 
 def test_joint_tpm_indices_returns_range_ndim_minus_one() -> None:
@@ -22,7 +22,7 @@ def test_factored_tpm_indices_returns_range_n_nodes() -> None:
 
 
 def test_legacy_joint_tpm_indices_excludes_singleton_axes() -> None:
-    """Legacy ``pyphi.tpm.JointTPM`` excludes size-1 axes (those collapsed by
+    """``JointTPM.tpm_indices`` excludes size-1 axes (those collapsed by
     marginalizing out non-input nodes) and returns only the size-2 leading
     axes. ``pyphi/macro.py`` indexes the squeezed array against these
     indices, so the singleton-exclusion semantics is load-bearing.

@@ -8,8 +8,8 @@ import numpy as np
 from . import utils
 from .connectivity import get_inputs_from_cm
 from .connectivity import get_outputs_from_cm
+from .core.tpm.joint_distribution import JointTPM
 from .labels import NodeLabels
-from .tpm import JointTPM
 
 
 # TODO extend to nonbinary nodes
