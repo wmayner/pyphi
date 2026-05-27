@@ -29,14 +29,6 @@ _acria_attributes = [
     "probability",
     "partitioned_probability",
 ]
-_acria_attributes_for_eq = [
-    "alpha",
-    "state",
-    "direction",
-    "mechanism",
-    "purview",
-    "probability",
-]
 
 
 def greater_than_zero(alpha):
@@ -134,11 +126,21 @@ class AcRepertoireIrreducibilityAnalysis(cmp.Orderable):
         # Here we enforce that ties are broken in favor of smaller purviews
         return [self.alpha, len(self.mechanism), -len(self.purview)]
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:  # noqa: PLR0911
         # TODO(slipperyhank): include 2nd state here?
-        if type(other) is not type(self):
+        if not isinstance(other, AcRepertoireIrreducibilityAnalysis):
             return NotImplemented
-        return cmp.general_eq(self, other, _acria_attributes_for_eq)
+        if self.state != other.state:
+            return False
+        if self.direction != other.direction:
+            return False
+        if self.mechanism != other.mechanism:
+            return False
+        if self.purview != other.purview:
+            return False
+        if not utils.eq(self.alpha, other.alpha):
+            return False
+        return utils.eq(self.probability, other.probability)
 
     def __bool__(self):
         """An |AcRepertoireIrreducibilityAnalysis| is ``True`` if it has
@@ -151,9 +153,15 @@ class AcRepertoireIrreducibilityAnalysis(cmp.Orderable):
         """Alias for |alpha| for PyPhi utility functions."""
         return self.alpha
 
-    def __hash__(self):
-        attrs = tuple(getattr(self, attr) for attr in _acria_attributes_for_eq)
-        return hash(attrs)
+    def __hash__(self) -> int:
+        return hash(
+            (
+                self.state,
+                self.direction,
+                self.mechanism,
+                self.purview,
+            )
+        )
 
     def to_json(self):
         """Return a JSON-serializable representation."""
@@ -424,22 +432,6 @@ class DirectedAccount(Account):
     """
 
 
-_ac_sia_attributes = [
-    "alpha",
-    "direction",
-    "account",
-    "partitioned_account",
-    "partition",
-    "before_state",
-    "after_state",
-    "size",
-    "node_indices",
-    "cause_indices",
-    "effect_indices",
-    "node_labels",
-]
-
-
 # TODO(slipperyhank): Check if we do the same, i.e. take the bigger system, or
 # take the smaller?
 class AcSystemIrreducibilityAnalysis(cmp.Orderable):
@@ -463,6 +455,8 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
         node_labels (NodeLabels): Labels corresponding to ``node_indices``.
     """
 
+    alpha: float
+
     def __init__(
         self,
         alpha=None,
@@ -479,7 +473,7 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
         node_labels=None,
         config=None,
     ):
-        self.alpha = alpha
+        self.alpha = alpha  # type: ignore[assignment]
         self.direction = direction
         self.account = account
         self.partitioned_account = partitioned_account
@@ -524,10 +518,32 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
     def order_by(self):
         return [self.alpha, self.size]
 
-    def __eq__(self, other):
-        if type(other) is not type(self):
+    def __eq__(self, other: object) -> bool:  # noqa: PLR0911
+        if not isinstance(other, AcSystemIrreducibilityAnalysis):
             return NotImplemented
-        return cmp.general_eq(self, other, _ac_sia_attributes)
+        if self.direction != other.direction:
+            return False
+        if self.account != other.account:
+            return False
+        if self.partitioned_account != other.partitioned_account:
+            return False
+        if self.partition != other.partition:
+            return False
+        if self.before_state != other.before_state:
+            return False
+        if self.after_state != other.after_state:
+            return False
+        if self.size != other.size:
+            return False
+        if self.node_indices != other.node_indices:
+            return False
+        if self.cause_indices != other.cause_indices:
+            return False
+        if self.effect_indices != other.effect_indices:
+            return False
+        if self.node_labels != other.node_labels:
+            return False
+        return utils.eq(self.alpha, other.alpha)
 
     def __bool__(self):
         """An |AcSystemIrreducibilityAnalysis| is ``True`` if it has
@@ -535,10 +551,10 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
         """
         return greater_than_zero(self.alpha)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(
             (
-                self.alpha,
+                self.direction,
                 self.account,
                 self.partitioned_account,
                 self.partition,
@@ -548,11 +564,26 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
                 self.node_indices,
                 self.cause_indices,
                 self.effect_indices,
+                self.node_labels,
             )
         )
 
     def to_json(self):
-        return {attr: getattr(self, attr) for attr in _ac_sia_attributes}
+        attrs = (
+            "alpha",
+            "direction",
+            "account",
+            "partitioned_account",
+            "partition",
+            "before_state",
+            "after_state",
+            "size",
+            "node_indices",
+            "cause_indices",
+            "effect_indices",
+            "node_labels",
+        )
+        return {attr: getattr(self, attr) for attr in attrs}
 
 
 def _null_ac_sia(transition, direction, alpha=0.0):

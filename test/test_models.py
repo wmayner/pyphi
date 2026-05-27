@@ -1046,3 +1046,81 @@ def test_sia_4_hash_consistent_with_eq_under_tolerance():
     )
     assert a == b
     assert hash(a) == hash(b)
+
+
+def test_ac_ria_eq_within_tolerance():
+    """AcRIA: alpha values differing by ~1e-15 compare equal."""
+    from pyphi.direction import Direction
+    from pyphi.models.actual_causation import AcRepertoireIrreducibilityAnalysis
+
+    a = AcRepertoireIrreducibilityAnalysis(
+        alpha=1.0,
+        state=(0,),
+        direction=Direction.CAUSE,
+        mechanism=(0,),
+        purview=(0,),
+        partition=None,
+        probability=0.5,
+        partitioned_probability=None,
+    )
+    b = AcRepertoireIrreducibilityAnalysis(
+        alpha=1.0 + 1e-15,
+        state=(0,),
+        direction=Direction.CAUSE,
+        mechanism=(0,),
+        purview=(0,),
+        partition=None,
+        probability=0.5,
+        partitioned_probability=None,
+    )
+    assert a == b
+
+
+def test_ac_ria_hash_contract():
+    """eq -> same hash for AcRIA."""
+    from pyphi.direction import Direction
+    from pyphi.models.actual_causation import AcRepertoireIrreducibilityAnalysis
+
+    a = AcRepertoireIrreducibilityAnalysis(
+        alpha=1.0,
+        state=(0,),
+        direction=Direction.CAUSE,
+        mechanism=(0,),
+        purview=(0,),
+        partition=None,
+        probability=0.5,
+        partitioned_probability=None,
+    )
+    b = AcRepertoireIrreducibilityAnalysis(
+        alpha=1.0 + 1e-15,
+        state=(0,),
+        direction=Direction.CAUSE,
+        mechanism=(0,),
+        purview=(0,),
+        partition=None,
+        probability=0.5,
+        partitioned_probability=None,
+    )
+    assert a == b
+    assert hash(a) == hash(b)
+
+
+def test_ac_sia_eq_within_tolerance():
+    """AcSIA: alpha values differing by ~1e-15 compare equal."""
+    from pyphi.direction import Direction
+    from pyphi.models.actual_causation import AcSystemIrreducibilityAnalysis
+
+    a = AcSystemIrreducibilityAnalysis(alpha=1.0, direction=Direction.CAUSE)
+    b = AcSystemIrreducibilityAnalysis(alpha=1.0 + 1e-15, direction=Direction.CAUSE)
+    assert a == b
+
+
+def test_ac_sia_hash_contract():
+    """eq -> same hash for AcSIA."""
+    from pyphi.direction import Direction
+    from pyphi.models.actual_causation import AcSystemIrreducibilityAnalysis
+
+    a = AcSystemIrreducibilityAnalysis(alpha=1.0, direction=Direction.CAUSE)
+    b = AcSystemIrreducibilityAnalysis(alpha=1.0 + 1e-15, direction=Direction.CAUSE)
+    assert a == b
+    assert hash(a) == hash(b)
