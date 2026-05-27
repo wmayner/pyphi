@@ -95,6 +95,24 @@ def test_validate_state_error(s):
         System(s.substrate, state, s.node_indices)
 
 
+def test_validate_state_subsystem_unreachable(s):
+    """Subsystem-level reachability: state component must be in image of
+    background-conditioned subsystem dynamics.
+
+    For the standard substrate ``s`` in state ``(1, 0, 0)``, the singleton
+    subsystem ``{A}`` cannot have A=1 because the conditioned dynamics
+    (B=0, C=0) deterministically produce A_next = OR(B,C) = 0. Likewise
+    ``{C}`` cannot have C=0 because conditioned C_next = XOR(A=1,B=0) = 1.
+    ``{B}`` passes because conditioned B_next = COPY(C=0) = 0 matches B=0.
+    """
+    with pytest.raises(exceptions.StateUnreachableForwardsError):
+        System(s.substrate, s.state, (0,))
+    with pytest.raises(exceptions.StateUnreachableForwardsError):
+        System(s.substrate, s.state, (2,))
+    # No raise for B:
+    System(s.substrate, s.state, (1,))
+
+
 @pytest.mark.skip(
     reason="StateUnreachableBackwardsError not raised by current state_reachable; "
     "backward-reachability check pending implementation"
