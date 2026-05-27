@@ -348,11 +348,21 @@ class RepertoireIrreducibilityAnalysis(
         """|NodeLabels| for this system."""
         return self._node_labels
 
-    def __eq__(self, other):
-        # We don't consider the partition and partitioned repertoire in
-        # checking for RIA equality.
-        attrs = ["phi", "direction", "mechanism", "purview", "repertoire"]
-        return cmp.general_eq(self, other, attrs)
+    def __eq__(self, other: object) -> bool:  # noqa: PLR0911
+        # The partition and partitioned repertoire are not considered.
+        if not isinstance(other, RepertoireIrreducibilityAnalysis):
+            return NotImplemented
+        if self.direction != other.direction:
+            return False
+        if self.mechanism != other.mechanism:
+            return False
+        if self.purview != other.purview:
+            return False
+        if self.specified_state != other.specified_state:
+            return False
+        if not utils.eq(self.phi, other.phi):
+            return False
+        return cmp.numpy_aware_eq(self.repertoire, other.repertoire)
 
     def __bool__(self):
         """A |RepertoireIrreducibilityAnalysis| is ``True`` if it has
@@ -360,15 +370,13 @@ class RepertoireIrreducibilityAnalysis(
         """
         return utils.is_positive(self.phi)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(
             (
-                self.phi,
                 self.direction,
                 self.mechanism,
                 self.purview,
                 self.specified_state,
-                utils.np_hash(self.repertoire),
             )
         )
 

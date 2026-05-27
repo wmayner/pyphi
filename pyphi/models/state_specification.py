@@ -19,6 +19,7 @@ from typing import Any
 import numpy as np
 from numpy.typing import ArrayLike
 
+from pyphi import utils
 from pyphi.conf import config
 from pyphi.data_structures import PyPhiFloat
 from pyphi.direction import Direction
@@ -92,24 +93,25 @@ class StateSpecification(ToDictMixin, ToPandasMixin):
     def __getitem__(self, i: int) -> int:
         return self.state[i]
 
-    def __eq__(self, other: object) -> bool:
-        return cmp.general_eq(
-            self,
-            other,
-            [
-                "direction",
-                "purview",
-                "state",
-                "intrinsic_information",
-                "repertoire",
-                "unconstrained_repertoire",
-            ],
+    def __eq__(self, other: object) -> bool:  # noqa: PLR0911
+        if not isinstance(other, StateSpecification):
+            return NotImplemented
+        if self.direction != other.direction:
+            return False
+        if self.purview != other.purview:
+            return False
+        if self.state != other.state:
+            return False
+        if not utils.eq(self.intrinsic_information, other.intrinsic_information):
+            return False
+        if not cmp.numpy_aware_eq(self.repertoire, other.repertoire):
+            return False
+        return cmp.numpy_aware_eq(
+            self.unconstrained_repertoire, other.unconstrained_repertoire
         )
 
     def __hash__(self) -> int:
-        return hash(
-            (self.direction, self.purview, self.state, self.intrinsic_information)
-        )
+        return hash((self.direction, self.purview, self.state))
 
     def _repr_columns(self, prefix: str = "") -> list[tuple[str, Any]]:
         # TODO(fmt) include purview

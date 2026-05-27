@@ -1190,3 +1190,105 @@ def test_ac_sia_eq_outside_tolerance():
     a = AcSystemIrreducibilityAnalysis(alpha=1.0, direction=Direction.CAUSE)
     b = AcSystemIrreducibilityAnalysis(alpha=1.001, direction=Direction.CAUSE)
     assert a != b
+
+
+def test_ria_eq_within_tolerance():
+    """RIA: phi values differing by ~1e-15 compare equal, with matching hash."""
+    from pyphi.direction import Direction
+    from pyphi.models.ria import RepertoireIrreducibilityAnalysis
+
+    a = RepertoireIrreducibilityAnalysis(
+        phi=1.0,
+        direction=Direction.CAUSE,
+        mechanism=(0,),
+        purview=(0,),
+        partition=None,
+        repertoire=np.array([0.5, 0.5]),
+        partitioned_repertoire=np.array([0.5, 0.5]),
+    )
+    b = RepertoireIrreducibilityAnalysis(
+        phi=1.0 + 1e-15,
+        direction=Direction.CAUSE,
+        mechanism=(0,),
+        purview=(0,),
+        partition=None,
+        repertoire=np.array([0.5, 0.5]) + 1e-15,
+        partitioned_repertoire=np.array([0.5, 0.5]),
+    )
+    assert a == b
+    assert hash(a) == hash(b)
+
+
+def test_ria_eq_outside_tolerance():
+    """RIA: phi values differing by 1e-3 compare unequal."""
+    from pyphi.direction import Direction
+    from pyphi.models.ria import RepertoireIrreducibilityAnalysis
+
+    a = RepertoireIrreducibilityAnalysis(
+        phi=1.0,
+        direction=Direction.CAUSE,
+        mechanism=(0,),
+        purview=(0,),
+        partition=None,
+        repertoire=np.array([0.5, 0.5]),
+        partitioned_repertoire=np.array([0.5, 0.5]),
+    )
+    b = RepertoireIrreducibilityAnalysis(
+        phi=1.001,
+        direction=Direction.CAUSE,
+        mechanism=(0,),
+        purview=(0,),
+        partition=None,
+        repertoire=np.array([0.5, 0.5]),
+        partitioned_repertoire=np.array([0.5, 0.5]),
+    )
+    assert a != b
+
+
+def test_state_specification_eq_within_tolerance():
+    """StateSpecification: intrinsic_information ~1e-15 apart compare equal."""
+    from pyphi.direction import Direction
+    from pyphi.models.state_specification import StateSpecification
+
+    a = StateSpecification(
+        direction=Direction.CAUSE,
+        purview=(0,),
+        state=(0,),
+        intrinsic_information=1.0,
+        repertoire=np.array([0.5, 0.5]),
+        unconstrained_repertoire=np.array([0.5, 0.5]),
+    )
+    b = StateSpecification(
+        direction=Direction.CAUSE,
+        purview=(0,),
+        state=(0,),
+        intrinsic_information=1.0 + 1e-15,
+        repertoire=np.array([0.5, 0.5]),
+        unconstrained_repertoire=np.array([0.5, 0.5]),
+    )
+    assert a == b
+    assert hash(a) == hash(b)
+
+
+def test_state_specification_eq_outside_tolerance():
+    """StateSpecification: intrinsic_information 1e-3 apart compare unequal."""
+    from pyphi.direction import Direction
+    from pyphi.models.state_specification import StateSpecification
+
+    a = StateSpecification(
+        direction=Direction.CAUSE,
+        purview=(0,),
+        state=(0,),
+        intrinsic_information=1.0,
+        repertoire=np.array([0.5, 0.5]),
+        unconstrained_repertoire=np.array([0.5, 0.5]),
+    )
+    b = StateSpecification(
+        direction=Direction.CAUSE,
+        purview=(0,),
+        state=(0,),
+        intrinsic_information=1.001,
+        repertoire=np.array([0.5, 0.5]),
+        unconstrained_repertoire=np.array([0.5, 0.5]),
+    )
+    assert a != b
