@@ -179,7 +179,13 @@ class Relation(frozenset, cmp.OrderableByPhi):
     def __bool__(self):
         return utils.is_positive(self.phi)
 
-    # TODO(4.0) need to also implement __eq__ here
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Relation):
+            return NotImplemented
+        return frozenset.__eq__(self, other)
+
+    def __hash__(self) -> int:
+        return frozenset.__hash__(self)
 
     @cached_property
     def mechanisms(self):

@@ -79,11 +79,11 @@ class CauseEffectStructure(cmp.Orderable):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, CauseEffectStructure):
             return NotImplemented
-        return (
-            self.sia == other.sia
-            and self.distinctions == other.distinctions
-            and self.relations == other.relations
-        )
+        if self.sia != other.sia:
+            return False
+        if self.distinctions != other.distinctions:
+            return False
+        return self.relations == other.relations
 
     def _repr_columns(self) -> list[tuple[str, Any]]:
         return fmt.fmt_ces_columns(self)
