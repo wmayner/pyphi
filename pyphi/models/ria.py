@@ -371,6 +371,9 @@ class RepertoireIrreducibilityAnalysis(
         return utils.is_positive(self.phi)
 
     def __hash__(self) -> int:
+        # specified_state must be in __hash__ (not just __eq__): RIA.ties uses
+        # toolz.unique (set-backed) to distinguish state-ties that share
+        # (direction, mechanism, purview) but differ in specified_state.
         return hash(
             (
                 self.direction,
