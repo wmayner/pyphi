@@ -223,8 +223,20 @@ def diff_sia_results(
     """
     lines = []
 
-    # Compare each attribute from _sia_attributes
-    for attr in actual._sia_attributes:
+    sia_attributes = (
+        "phi",
+        "partition",
+        "normalized_phi",
+        "signed_phi",
+        "signed_normalized_phi",
+        "cause",
+        "effect",
+        "system_state",
+        "current_state",
+        "node_indices",
+        "intrinsic_differentiation",
+    )
+    for attr in sia_attributes:
         actual_val = getattr(actual, attr, None)
         expected_val = getattr(expected, attr, None)
 
