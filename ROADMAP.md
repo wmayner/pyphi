@@ -2701,21 +2701,6 @@ to ease transition:
   "op-order-noise threshold" is a property of float64 arithmetic on
   IIT quantities, not a user preference.
 
-- **Migrate ``Distinction`` and ``CauseEffectStructure`` ``__eq__`` to the
-  precision-aware path.** Unlike ``SIA`` / ``AcSIA`` / ``RIA`` /
-  ``StateSpecification`` (which delegate to ``cmp.general_eq`` and thus
-  inherit ``EQUALITY_TOLERANCE`` via ``numpy_aware_eq``),
-  ``Distinction.__eq__`` (``pyphi/models/distinction.py:163``) uses raw
-  ``==`` on ``phi`` and ``np.array_equal`` on repertoires directly, and
-  ``CauseEffectStructure.__eq__`` (``pyphi/models/ces.py:79``) delegates
-  to ``Distinctions``/``Distinction`` for the distinction-set half. These
-  paths are brittle to op-order noise. Migration is non-trivial because
-  ``Distinction.__hash__`` also uses raw ``phi`` and array hashing — the
-  ``__eq__`` / ``__hash__`` contract must be preserved together. Pairs
-  naturally with the per-class ``__eq__`` refactor (replacing the
-  attribute-list pattern in ``general_eq``) as a single follow-up
-  project.
-
 - **Consolidate ``pyphi/tpm.py`` into ``pyphi/core/tpm/``.** The
   legacy module ``pyphi/tpm.py`` (~650 lines) hosts ``JointTPM`` (and,
   after P12b, ``JointDistribution`` and ``CausePosterior`` will live

@@ -261,51 +261,6 @@ def test_numpy_aware_eq_nan_array_not_equal():
     assert not models.cmp.numpy_aware_eq(a_, b_)
 
 
-def test_general_eq_different_attributes():
-    similar_nt = namedtuple("nt", [*nt_attributes, "supbro"])
-    b = similar_nt(a.this, a.that, a.phi, a.mechanism, a.purview, supbro="nothin' much")
-    assert models.cmp.general_eq(a, b, nt_attributes)
-
-
-def test_general_eq_phi_precision_comparison_true():
-    b = nt(a.this, a.that, (a.phi - EPSILON / 2), a.mechanism, a.purview)
-    assert models.cmp.general_eq(a, b, nt_attributes)
-
-
-def test_general_eq_phi_precision_comparison_false():
-    b = nt(a.this, a.that, (a.phi - EPSILON * 2), a.mechanism, a.purview)
-    assert not models.cmp.general_eq(a, b, nt_attributes)
-
-
-def test_general_eq_different_mechanism_order():
-    b = nt(a.this, a.that, a.phi, a.mechanism[::-1], a.purview)
-    assert models.cmp.general_eq(a, b, nt_attributes)
-
-
-def test_general_eq_different_purview_order():
-    b = nt(a.this, a.that, a.phi, a.mechanism, a.purview[::-1])
-    assert models.cmp.general_eq(a, b, nt_attributes)
-
-
-def test_general_eq_different_mechanism_and_purview_order():
-    b = nt(a.this, a.that, a.phi, a.mechanism[::-1], a.purview[::-1])
-    assert models.cmp.general_eq(a, b, nt_attributes)
-
-
-def test_general_eq_purview_mechanism_none():
-    b = nt(a.this, a.that, a.phi, None, None)
-    assert models.cmp.general_eq(b, b, nt_attributes)
-    c = nt(a.this, a.that, a.phi, a.mechanism, None)
-    assert not models.cmp.general_eq(a, b, nt_attributes)
-    c = nt(a.this, a.that, a.phi, None, a.purview)
-    assert not models.cmp.general_eq(a, c, nt_attributes)
-
-
-def test_general_eq_attribute_missing():
-    b = namedtuple("no_purview", nt_attributes[:-1])(a.this, a.that, a.phi, a.mechanism)
-    assert not models.cmp.general_eq(a, b, nt_attributes)
-
-
 # Test Cut
 
 

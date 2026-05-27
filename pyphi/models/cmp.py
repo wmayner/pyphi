@@ -5,13 +5,10 @@ import functools
 import math
 from collections.abc import Callable
 from collections.abc import Iterable
-from collections.abc import Sequence
 from typing import Any
 from typing import TypeVar
 
 import numpy as np
-
-from pyphi import utils
 
 # Rich comparison (ordering) helpers
 # =============================================================================
@@ -150,30 +147,3 @@ def numpy_aware_eq(a: Any, b: Any) -> bool:  # noqa: PLR0911
         except (TypeError, ValueError):
             return False
     return a == b
-
-
-def general_eq(a: object, b: object, attributes: Sequence[str]) -> bool:
-    """Return whether two objects are equal up to the given attributes.
-
-    If an attribute is called ``'phi'``, it is compared up to |PRECISION|.
-    If an attribute is called ``'mechanism'`` or ``'purview'``, it is
-    compared using set equality.  All other attributes are compared with
-    :func:`numpy_aware_eq`.
-    """
-    try:
-        for attr in attributes:
-            _a, _b = getattr(a, attr), getattr(b, attr)
-            if attr in ["phi", "alpha"]:
-                if not utils.eq(_a, _b):
-                    return False
-            elif attr in ["mechanism", "purview"]:
-                if _a is None or _b is None:
-                    if _a != _b:
-                        return False
-                elif set(_a) != set(_b):
-                    return False
-            elif not numpy_aware_eq(_a, _b):
-                return False
-        return True
-    except AttributeError:
-        return False
