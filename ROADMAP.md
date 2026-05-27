@@ -2675,24 +2675,6 @@ to ease transition:
   ``pyphi/core/repertoire_algebra.py``, plus consumers and ~30 test
   sites. Roughly 1–3 days. Independent of any other in-flight project.
 
-- **Unify binary cause-TPM onto the native factored path; retire
-  ``_legacy_backward_tpm``.** P12b leaves a dual implementation: the
-  binary cause-TPM goes through ``_legacy_backward_tpm`` (via the SBN
-  conversion bridge) to preserve byte-identical goldens; k>2 uses the
-  native per-factor-likelihood-product code path. Once the native path
-  is trusted, the binary path can be unified onto it (regenerating
-  goldens within ``config.numerics.precision``). The function
-  ``pyphi.tpm.backward_tpm`` (still called ``_legacy_backward_tpm``
-  internally) goes away. Probably half a day plus golden regeneration.
-  Requires explicit consent to regenerate (goldens are the cross-
-  version regression net P12a/P12b leaned on for safety). (Completed
-  in P12b Task 15, 2026-05-24: binary path now delegates to
-  ``_cause_tpm_factored_kary``; ``backward_tpm`` and
-  ``probability_of_current_state`` removed; the two affected
-  ``phi_structure`` fixtures regenerated within machine precision; the
-  23 cross-version goldens in ``test_golden_regression.py`` remained
-  byte-identical.)
-
 - **Retire ``config.numerics.precision`` when IIT 3.0 is dropped.** The
   setting is a holdover from the EMD-era ``pyemd`` C-library noise.
   Once 3.0 support is gone, ``utils.eq`` should migrate to use a fixed
