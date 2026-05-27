@@ -127,13 +127,16 @@ def _optional_eq(
 
 
 def _intrinsic_differentiation_eq(a: dict | None, b: dict | None) -> bool:
-    """Equality check for ``intrinsic_differentiation`` dicts.
+    """Tolerance-aware equality for ``intrinsic_differentiation`` dicts.
 
-    Both ``None`` or same direction key set; values are not compared.
+    Returns True when both are ``None``, or when both have the same
+    direction keys and each per-direction value is tolerance-equal.
     """
     if a is None or b is None:
         return a is b
-    return set(a.keys()) == set(b.keys())
+    if set(a.keys()) != set(b.keys()):
+        return False
+    return all(utils.eq(a[k], b[k]) for k in a)
 
 
 @dataclass

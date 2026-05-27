@@ -2647,6 +2647,23 @@ to ease transition:
 
 - clean up / reorganize test suite
 
+- **Tie-aware SIA fixture comparison.** ``test_sia_rule152_s_*`` in
+  ``test/test_big_phi.py`` compares only ``.phi`` against
+  ``rule152_s_expected_sia`` because the rule152 substrate has tied
+  system partitions (multiple partitions yield the same |big_phi|).
+  Across code changes the live winner has drifted from the fixture's
+  stored partition (the partition has been a stale snapshot since
+  ``96406293`` "Update JSONs for 2.0.0a1" landed in 2024-07; no test
+  ever exercised it because of the partial assertion). The
+  ``_tie_peers`` machinery on SIA (used by
+  ``big_subsys_all_complete``) already supports a tie-tolerant
+  ``__eq__`` path. Project: promote ``test_sia_rule152_s_*`` to a
+  full SIA ``==`` assertion by storing the tied peers (or a
+  representative + ``_tie_peers``) in ``rule152_s.json`` and letting
+  the equality check pass if the live winner is any member of the
+  tie set. Roughly half a day plus fixture regeneration. Independent
+  of any in-flight project.
+
 - **Condense changelog fragments before 2.0 ships.** Several
   fragments in ``changelog.d/`` describe transitions between
   intermediate 2.0-development states that no released version ever
