@@ -217,16 +217,24 @@ TRANSITION_SYSTEM_OWN_ATTRS: frozenset[str] = frozenset(
 class TransitionSystem:
     """A directional view of a state transition.
 
-    Implements :class:`pyphi.protocols.SystemPublicInterface` via the
-    standard System surface (cause_tpm, effect_tpm, cm, node_indices,
-    state, repertoire methods, etc.).
+    Implements :class:`pyphi.protocols.SystemPublicInterface` by holding
+    an underlying :class:`pyphi.system.System` (via
+    :attr:`_underlying_system`) and delegating the protocol surface
+    through :meth:`__getattr__`. The underlying System is constructed
+    with ``external_indices = substrate.indices - cause_indices`` (or
+    ``()`` when :attr:`noise_background` is True), encoding the AC
+    paper's Section 3.3 extended-background convention applied to
+    substrate units outside the cause set.
 
-    The TPMs are conditioned on ``before_state`` for every substrate
-    index outside ``cause_indices`` (the asymmetric background-conditioning
-    rule from the 2019 Albantakis et al. formalism). The mechanism-
-    evaluation ``state`` is ``after_state`` for the CAUSE direction and
-    ``before_state`` for the EFFECT direction. Two TransitionSystem
-    instances live inside each :class:`Transition`, one per direction.
+    The mechanism-evaluation ``state`` is direction-aware:
+    ``after_state`` for the CAUSE direction (Bayesian-inverting from the
+    observed effect) and ``before_state`` for the EFFECT direction
+    (forward conditioning on the observed cause). Two
+    :class:`TransitionSystem` instances live inside each
+    :class:`Transition`, one per direction.
+
+    Members handled locally rather than delegated are listed in
+    :data:`TRANSITION_SYSTEM_OWN_ATTRS`.
     """
 
     substrate: Substrate
