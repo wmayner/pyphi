@@ -2683,17 +2683,93 @@ to ease transition:
   "op-order-noise threshold" is a property of float64 arithmetic on
   IIT quantities, not a user preference.
 
-- **AC k-ary cutover (deferred from P12b).** The actual-causation pipeline
-  (``pyphi/actual.py::TransitionSystem``) remains binary-only: it calls
-  ``Substrate._legacy_binary_joint()`` and passes through ``validate.node_states``
-  which enforces a binary alphabet. The original P12b amendment included an
-  "AC parallel cutover" but it turned out to require a deeper refactor than
-  fit P12b's scope — analogous to the ``System`` cause/effect-TPM migration
-  that P12b completed for the SIA pipeline. The follow-up work is a
-  ``TransitionSystem`` rewrite: replace ``_legacy_binary_joint()`` with the
-  native ``FactoredTPM`` code path, propagate ``state_space`` through the AC
-  margin/condition kernels, and relax ``validate.node_states``. Estimate: 1–2
-  days once the SIA k-ary path has had a release cycle of field use.
+- **Collapse ``TransitionSystem`` onto ``System`` via ``external_indices``
+  override.** ``System`` and ``TransitionSystem`` both implement
+  ``SystemPublicInterface``. ``TransitionSystem`` already uses composition
+  via ``_underlying_system`` (a ``System`` with ``validate_system_states=False``)
+  and most of its surface is mechanical delegation. The genuine divergence
+  is narrow: ``state`` flips with ``Direction``, and ``external_indices`` is
+  ``substrate - cause_indices`` instead of ``substrate - node_indices``.
+  ``effect_tpm`` and ``proper_effect_tpm`` are reimplemented today —
+  ``proper_effect_tpm`` is literally a copy-paste between the two files,
+  which is a regression-waiting-to-happen.
+
+  The fix is to add an optional ``external_indices`` override field to
+  ``System``. When ``None``, ``System`` computes ``substrate - node_indices``
+  (today's behavior); when set, it uses the override. ``effect_tpm`` reads
+  ``self.external_indices`` instead of recomputing. ``TransitionSystem``
+  then collapses to a frozen-dataclass façade holding AC-specific metadata
+  (``before_state``, ``after_state``, ``cause_indices``, ``effect_indices``,
+  ``direction``, ``noise_background``, ``partition``) plus an
+  ``_underlying_system`` constructed with the AC-specific ``state`` and
+  ``external_indices``. Every property and repertoire-algebra delegation in
+  ``TransitionSystem`` becomes a one-line passthrough.
+
+  Side effect: closes the long-standing "AC k-ary cutover" item, because
+  ``System`` already handles k-ary substrates correctly. Once
+  ``TransitionSystem`` delegates ``effect_tpm`` through ``_underlying_system``,
+  AC inherits k-ary support for free. The single call to
+  ``Substrate._legacy_binary_joint()`` in ``TransitionSystem.effect_tpm``
+  disappears as part of the collapse.
+
+  Estimate: half a day to one day. Touches ``pyphi/system.py`` (~30 lines
+  added for the override) and ``pyphi/actual.py`` (~400 lines deleted as
+  ``TransitionSystem`` shrinks to a façade). No public-API changes; the
+  ``SystemPublicInterface`` protocol is unchanged. Risk surface: golden
+  parity (existing tests) and the full AC suite (63 tests) must remain
+  green. Add a few k-ary parameter cases to ``test/test_actual.py`` while
+  the surgery is open — the rewrite removes the structural reason AC was
+  binary-only, so a few k=3 parameterized cases of the paper-figure tests
+  are cheap to add and lock the win in.
+
+- **Retire the SBN bridge in ``System.effect_tpm``.** ``System.effect_tpm``
+  currently applies a bridge for binary substrates: marginalize to
+  ``FactoredTPM`` via ``_marginalize_effect``, then stack ``factor(i)[..., 1]``
+  into legacy SBN form and wrap in ``JointTPM``. The bridge exists so
+  legacy consumers (``validate._proper_state_in_image_of_conditioned_tpm``,
+  ``proper_effect_tpm``, ``pyphi/macro.py``) see the array shape they
+  always saw. The docstring acknowledges this is scaffold: "The bridge
+  retires once those callers consume ``FactoredTPM`` directly."
+
+  Three consumers to rewrite: ``proper_effect_tpm`` (the one-liner
+  ``np.asarray(self.effect_tpm.squeeze())[..., list(self.node_indices)]``
+  is the load-bearing SBN-shape operation),
+  ``validate._proper_state_in_image_of_conditioned_tpm`` (already
+  short-circuits for k-ary via ``hasattr(effect, "tpm")``; needs to be
+  rewritten to consume ``FactoredTPM`` directly so it actually checks
+  reachability for k-ary substrates too), and ``pyphi/macro.py:1111``
+  (binary-by-construction, so retire the macro call to
+  ``_legacy_binary_joint`` separately or leave the macro path on the
+  legacy joint as a binary-only scaffold).
+
+  Most cleanly done after the ``TransitionSystem`` collapse above,
+  because then there is only one ``effect_tpm`` site and one SBN bridge
+  to retire instead of two. Estimate: half a day.
+
+- **AC default: extended background vs. strict Eq. 2.** PyPhi's
+  ``TransitionSystem`` currently freezes substrate units outside
+  ``cause_indices`` at their observed ``before_state`` (the IIT 4.0
+  extended-background convention). The 2019 AC paper's *default*
+  prescription (Eq. 2) is uniform causal marginalization over
+  ``V_{t-1} \ X_{t-1}``; the paper presents extended background
+  (Section 3.3, "Distinct Background Conditions") as an optional
+  modeling choice driven by domain knowledge, not the default.
+  ``noise_background=True`` is the closer-to-paper-Eq.2 mode.
+
+  The current docstring describes the extended-background path as
+  "the asymmetric background-conditioning rule from the 2019
+  Albantakis et al. formalism" — this elides that the 2019 paper
+  presents it as Section 3.3's option, not the framework's default.
+  PyPhi has effectively retrofitted AC into the IIT 4.0 (2023)
+  extended-background convention.
+
+  Open question: should ``noise_background=True`` be the default, to
+  match the AC paper's Eq. 2? This would be a breaking change for
+  downstream AC results, so deferring; surfaced here so the question
+  isn't forgotten. If we keep the current default, the docstring
+  should at least be sharpened to acknowledge the semantic choice
+  rather than claim paper-fidelity it doesn't have. No action
+  required before release; flag for a future AC-semantics review.
 
 - **p53-Mdm2 golden fixture (deferred from P12b Task 22).** Two synthetic
   k>2 fixtures (``multivalued_k3_tiny``, ``multivalued_2x3x3``) were landed in
