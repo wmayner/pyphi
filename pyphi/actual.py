@@ -162,53 +162,65 @@ def _resolve_ac_kwargs() -> dict[str, Any]:
     }
 
 
-# Attributes that TransitionSystem handles locally rather than delegating to
-# its underlying System. Anything not in this set falls through __getattr__
-# to self._underlying_system.
-TRANSITION_SYSTEM_OWN_ATTRS: frozenset[str] = frozenset(
+# The System surface that TransitionSystem delegates to its underlying
+# System. This is an explicit allow-list: ``__getattr__`` (which fires only
+# on attribute-lookup misses) delegates a name iff it appears here, and
+# raises AttributeError otherwise. Names handled locally (dataclass fields,
+# cached properties, AC-specific methods, IIT-formalism stubs) are found by
+# normal attribute resolution before ``__getattr__`` is ever consulted, so
+# they do not appear here.
+#
+# Allow-list rather than block-list by design: a new method added to
+# ``System`` does NOT silently leak through TransitionSystem. In particular
+# the IIT-formalism methods (sia, ces, find_mip, ...) are deliberately
+# absent — they are stubbed locally to raise NotImplementedError, and any
+# future IIT method is unsupported-by-default rather than silently returning
+# a meaningless result computed over the background-conditioned system.
+_DELEGATED_TO_SYSTEM: frozenset[str] = frozenset(
     {
-        # Dataclass fields:
-        "substrate",
-        "before_state",
-        "after_state",
-        "cause_indices",
-        "effect_indices",
-        "direction",
-        "partition",
-        "noise_background",
-        # Computed locally because _underlying_system depends on them:
-        "node_indices",
-        "state",
-        "external_indices",
-        # Local AC-specific:
-        "partition_indices",
-        "partition_node_labels",
-        "is_partitioned",
-        "partitioned_mechanisms",
-        # AC-specific methods (override System's IIT-flavored versions):
-        "apply_cut",
-        "from_substrate",
-        "to_json",
-        "partitioned_repertoire",
-        # IIT-formalism stubs (raise NotImplementedError):
-        "sia",
-        "ces",
-        "distinctions",
-        "find_mip",
-        "cause_mip",
-        "effect_mip",
-        "phi_cause_mip",
-        "phi_effect_mip",
-        "phi",
-        "find_mice",
-        "mic",
-        "mie",
-        "phi_max",
-        "distinction",
-        "all_distinctions",
-        "evaluate_partition",
-        # Internals:
-        "_underlying_system",
+        # TPM / structural surface:
+        "cause_tpm",
+        "effect_tpm",
+        "proper_cause_tpm",
+        "proper_effect_tpm",
+        "cm",
+        "proper_cm",
+        "connectivity_matrix",
+        "node_labels",
+        "nodes",
+        "_index2node",
+        "proper_state",
+        "size",
+        "tpm_size",
+        "null_distinction",
+        "null_concept",
+        # Repertoire algebra:
+        "cause_repertoire",
+        "effect_repertoire",
+        "repertoire",
+        "unconstrained_cause_repertoire",
+        "unconstrained_effect_repertoire",
+        "unconstrained_repertoire",
+        "expand_cause_repertoire",
+        "expand_effect_repertoire",
+        "expand_repertoire",
+        "forward_cause_repertoire",
+        "forward_effect_repertoire",
+        "forward_repertoire",
+        "forward_cause_probability",
+        "forward_effect_probability",
+        "forward_probability",
+        "unconstrained_forward_cause_repertoire",
+        "unconstrained_forward_effect_repertoire",
+        "unconstrained_forward_repertoire",
+        "cause_info",
+        "effect_info",
+        "cause_effect_info",
+        "intrinsic_information",
+        "potential_purviews",
+        "indices2nodes",
+        "cache_info",
+        "clear_caches",
     }
 )
 
@@ -233,8 +245,9 @@ class TransitionSystem:
     :class:`TransitionSystem` instances live inside each
     :class:`Transition`, one per direction.
 
-    Members handled locally rather than delegated are listed in
-    :data:`TRANSITION_SYSTEM_OWN_ATTRS`.
+    The shared System surface delegated to the underlying System is the
+    explicit allow-list :data:`_DELEGATED_TO_SYSTEM`; everything else is
+    handled locally or unsupported.
     """
 
     substrate: Substrate
@@ -380,18 +393,17 @@ class TransitionSystem:
         return f"TransitionSystem({self.direction}, {joined})"
 
     def __getattr__(self, name: str) -> Any:
-        """Delegate to the underlying System for anything not handled locally.
+        """Delegate the shared System surface to the underlying System.
 
-        Locally-handled attributes are listed in
-        :data:`TRANSITION_SYSTEM_OWN_ATTRS`. Dunder names are refused so
-        Python's standard protocols (pickling, copy) fall back to default
-        behavior rather than picking up the underlying System's dunders.
+        Fires only on attribute-lookup misses. Delegates a name iff it is in
+        the explicit :data:`_DELEGATED_TO_SYSTEM` allow-list; otherwise
+        raises AttributeError. This keeps unsupported and future System
+        methods (notably the IIT-formalism methods) from silently leaking
+        through.
         """
-        if (name.startswith("__") and name.endswith("__")) or (
-            name in TRANSITION_SYSTEM_OWN_ATTRS
-        ):
-            raise AttributeError(name)
-        return getattr(self._underlying_system, name)
+        if name in _DELEGATED_TO_SYSTEM:
+            return getattr(self._underlying_system, name)
+        raise AttributeError(name)
 
     def sia(self, **kw: Any) -> Any:
         raise NotImplementedError(
