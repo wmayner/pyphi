@@ -89,9 +89,18 @@ def test_transition_system_is_frozen():
 
 
 def test_transition_system_satisfies_protocol():
+    """TransitionSystem exposes every member of the System public surface.
+
+    Uses ``hasattr`` rather than ``isinstance(_, SystemPublicInterface)``
+    because Python's ``@runtime_checkable`` Protocol uses
+    ``inspect.getattr_static``, which bypasses ``__getattr__`` and
+    therefore doesn't see TransitionSystem's delegation through
+    ``_underlying_system``. ``hasattr`` reflects the actual semantics:
+    every protocol member is reachable on a TransitionSystem instance.
+    """
     from pyphi import Direction
     from pyphi.actual import TransitionSystem
-    from pyphi.protocols import SystemPublicInterface
+    from pyphi.protocols import PUBLIC_SYSTEM_ATTRS
 
     ts = TransitionSystem(
         substrate=_ts_substrate(),
@@ -101,7 +110,8 @@ def test_transition_system_satisfies_protocol():
         effect_indices=(0,),
         direction=Direction.CAUSE,
     )
-    assert isinstance(ts, SystemPublicInterface)
+    for attr in PUBLIC_SYSTEM_ATTRS:
+        assert hasattr(ts, attr), f"TransitionSystem missing attribute: {attr}"
 
 
 def test_transition_system_cause_uses_after_state():
@@ -1251,3 +1261,42 @@ def test_paper_fig12_probabilistic_alpha(probabilistic_substrate):
     effect = transition.find_actual_effect((0,))
     assert cause.alpha == pytest.approx(0.848, abs=1e-2)
     assert effect.alpha == pytest.approx(0.848, abs=1e-2)
+
+
+# __getattr__ delegation tests
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+def test_transition_system_delegates_protocol_surface() -> None:
+    """Every PUBLIC_SYSTEM_ATTRS attribute is accessible on TransitionSystem,
+    either locally or via __getattr__ delegation."""
+    from pyphi.actual import TransitionSystem
+    from pyphi.protocols import PUBLIC_SYSTEM_ATTRS
+
+    ts = TransitionSystem(
+        substrate=_ts_substrate(),
+        before_state=(0, 1, 1),
+        after_state=(1, 0, 0),
+        cause_indices=(1, 2),
+        effect_indices=(0,),
+        direction=Direction.CAUSE,
+    )
+    for attr in PUBLIC_SYSTEM_ATTRS:
+        assert hasattr(ts, attr), f"TransitionSystem missing attribute: {attr}"
+
+
+def test_transition_system_delegated_repertoire_matches_underlying() -> None:
+    """Delegated methods return the same values as the underlying System."""
+    from pyphi.actual import TransitionSystem
+
+    ts = TransitionSystem(
+        substrate=_ts_substrate(),
+        before_state=(0, 1, 1),
+        after_state=(1, 0, 0),
+        cause_indices=(1, 2),
+        effect_indices=(0,),
+        direction=Direction.CAUSE,
+    )
+    rep_ts = ts.cause_repertoire((1,), (1,))
+    rep_us = ts._underlying_system.cause_repertoire((1,), (1,))
+    assert np.array_equal(np.asarray(rep_ts), np.asarray(rep_us))

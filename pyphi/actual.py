@@ -25,7 +25,6 @@ from dataclasses import replace
 from functools import cached_property
 from itertools import chain
 from types import MappingProxyType
-from typing import TYPE_CHECKING
 from typing import Any
 
 import numpy as np
@@ -58,9 +57,6 @@ from .parallel import MapReduce
 from .partition import mechanism_partitions
 from .substrate import Substrate
 from .system import System
-
-if TYPE_CHECKING:
-    from .core.tpm.factored import FactoredTPM
 
 log = logging.getLogger(__name__)
 
@@ -166,6 +162,57 @@ def _resolve_ac_kwargs() -> dict[str, Any]:
     }
 
 
+# Attributes that TransitionSystem handles locally rather than delegating to
+# its underlying System. Anything not in this set falls through __getattr__
+# to self._underlying_system.
+TRANSITION_SYSTEM_OWN_ATTRS: frozenset[str] = frozenset(
+    {
+        # Dataclass fields:
+        "substrate",
+        "before_state",
+        "after_state",
+        "cause_indices",
+        "effect_indices",
+        "direction",
+        "partition",
+        "noise_background",
+        # Computed locally because _underlying_system depends on them:
+        "node_indices",
+        "state",
+        "external_indices",
+        # Local AC-specific:
+        "partition_indices",
+        "partition_node_labels",
+        "is_partitioned",
+        "partitioned_mechanisms",
+        # AC-specific methods (override System's IIT-flavored versions):
+        "apply_cut",
+        "from_substrate",
+        "to_json",
+        "partitioned_repertoire",
+        # IIT-formalism stubs (raise NotImplementedError):
+        "sia",
+        "ces",
+        "distinctions",
+        "find_mip",
+        "cause_mip",
+        "effect_mip",
+        "phi_cause_mip",
+        "phi_effect_mip",
+        "phi",
+        "find_mice",
+        "mic",
+        "mie",
+        "phi_max",
+        "distinction",
+        "all_distinctions",
+        "evaluate_partition",
+        # Internals:
+        "_underlying_system",
+    }
+)
+
+
 @dataclass(frozen=True, eq=False)
 class TransitionSystem:
     """A directional view of a state transition.
@@ -248,39 +295,11 @@ class TransitionSystem:
         with config.override(validate_system_states=False):
             return System(
                 substrate=self.substrate,
-                state=self.before_state,
+                state=self.state,
                 node_indices=self.node_indices,
                 partition=self.partition,
                 external_indices=external,
             )
-
-    @cached_property
-    def cause_tpm(self) -> "FactoredTPM":
-        return self._underlying_system.cause_tpm
-
-    @cached_property
-    def effect_tpm(self) -> Any:
-        return self._underlying_system.effect_tpm
-
-    @cached_property
-    def cm(self) -> Any:
-        return self._underlying_system.cm
-
-    @cached_property
-    def proper_cause_tpm(self) -> Any:
-        return self._underlying_system.proper_cause_tpm
-
-    @cached_property
-    def proper_effect_tpm(self) -> Any:
-        return self._underlying_system.proper_effect_tpm
-
-    @cached_property
-    def proper_cm(self) -> Any:
-        return self._underlying_system.proper_cm
-
-    @cached_property
-    def connectivity_matrix(self) -> Any:
-        return self.cm
 
     @cached_property
     def partition_indices(self) -> tuple[int, ...]:
@@ -295,46 +314,28 @@ class TransitionSystem:
         return not isinstance(self.partition, NullCut)
 
     @cached_property
-    def size(self) -> int:
-        return len(self.node_indices)
-
-    @cached_property
-    def tpm_size(self) -> int:
-        return self.substrate.size
-
-    @cached_property
-    def nodes(self) -> Any:
-        from pyphi.node import generate_nodes
-
-        return generate_nodes(
-            self.cause_tpm,
-            self.effect_tpm,
-            self.cm,
-            self.state,
-            self.node_indices,
-            self.node_labels,
-        )
-
-    @cached_property
     def partitioned_mechanisms(self) -> Any:
         return list(self.partition.all_cut_mechanisms())
 
-    @cached_property
-    def _index2node(self) -> dict[int, Any]:
-        return {node.index: node for node in self.nodes}
-
-    @cached_property
-    def null_distinction(self) -> Any:
-        from pyphi.core import repertoire_algebra as ra
-
-        return ra.null_distinction(self)
-
-    @cached_property
-    def null_concept(self) -> Any:
-        return self.null_distinction
-
     def apply_cut(self, partition: DirectedBipartition) -> "TransitionSystem":
         return replace(self, partition=partition)
+
+    def partitioned_repertoire(
+        self,
+        direction: Direction,
+        partition: Any,
+        *,
+        partitioned_repertoire_scheme: Any,
+        **kw: Any,
+    ) -> Any:
+        """Compute the partitioned repertoire using the AC-paper scheme.
+
+        Unlike ``System.partitioned_repertoire`` (which uses a
+        mechanism-measure for IIT), AC's partitioned repertoire is the
+        product of per-part repertoires (Eq. 8 in the 2019 paper),
+        dispatched via the ``partitioned_repertoire_scheme`` registry.
+        """
+        return partitioned_repertoire_scheme(self, direction, partition, **kw)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, TransitionSystem):
@@ -370,243 +371,19 @@ class TransitionSystem:
         joined = ", ".join(str(label) for label in labels)
         return f"TransitionSystem({self.direction}, {joined})"
 
-    def cause_repertoire(self, mechanism: Any, purview: Any, **kw: Any) -> Any:
-        from pyphi.core import repertoire_algebra as ra
+    def __getattr__(self, name: str) -> Any:
+        """Delegate to the underlying System for anything not handled locally.
 
-        return ra.cause_repertoire(self, mechanism, purview, **kw)
-
-    def effect_repertoire(self, mechanism: Any, purview: Any, **kw: Any) -> Any:
-        from pyphi.core import repertoire_algebra as ra
-
-        return ra.effect_repertoire(self, mechanism, purview, **kw)
-
-    def repertoire(
-        self, direction: Direction, mechanism: Any, purview: Any, **kw: Any
-    ) -> Any:
-        from pyphi.core import repertoire_algebra as ra
-
-        return ra.repertoire(self, direction, mechanism, purview, **kw)
-
-    def unconstrained_cause_repertoire(self, purview: Any) -> Any:
-        from pyphi.core import repertoire_algebra as ra
-
-        return ra.unconstrained_cause_repertoire(self, purview)
-
-    def unconstrained_effect_repertoire(self, purview: Any) -> Any:
-        from pyphi.core import repertoire_algebra as ra
-
-        return ra.unconstrained_effect_repertoire(self, purview)
-
-    def unconstrained_repertoire(self, direction: Direction, purview: Any) -> Any:
-        from pyphi.core import repertoire_algebra as ra
-
-        return ra.unconstrained_repertoire(self, direction, purview)
-
-    def partitioned_repertoire(
-        self,
-        direction: Direction,
-        partition: Any,
-        *,
-        partitioned_repertoire_scheme: Any,
-        **kw: Any,
-    ) -> Any:
-        return partitioned_repertoire_scheme(self, direction, partition, **kw)
-
-    def expand_cause_repertoire(
-        self, repertoire_array: Any, *, new_purview: Any | None = None
-    ) -> Any:
-        from pyphi.core import repertoire_algebra as ra
-
-        return ra.expand_cause_repertoire(
-            self, repertoire_array, new_purview=new_purview
-        )
-
-    def expand_effect_repertoire(
-        self, repertoire_array: Any, *, new_purview: Any | None = None
-    ) -> Any:
-        from pyphi.core import repertoire_algebra as ra
-
-        return ra.expand_effect_repertoire(
-            self, repertoire_array, new_purview=new_purview
-        )
-
-    def expand_repertoire(
-        self,
-        direction: Direction,
-        repertoire_array: Any,
-        new_purview: Any | None = None,
-    ) -> Any:
-        from pyphi.core import repertoire_algebra as ra
-
-        return ra.expand_repertoire(
-            self, direction, repertoire_array, new_purview=new_purview
-        )
-
-    def forward_cause_repertoire(
-        self, mechanism: Any, purview: Any, purview_state: Any | None = None
-    ) -> Any:
-        from pyphi.core import repertoire_algebra as ra
-
-        return ra.forward_cause_repertoire(self, mechanism, purview, purview_state)
-
-    def forward_effect_repertoire(self, mechanism: Any, purview: Any, **kw: Any) -> Any:
-        from pyphi.core import repertoire_algebra as ra
-
-        return ra.forward_effect_repertoire(self, mechanism, purview, **kw)
-
-    def forward_repertoire(
-        self,
-        direction: Direction,
-        mechanism: Any,
-        purview: Any,
-        purview_state: Any | None = None,
-        **kw: Any,
-    ) -> Any:
-        from pyphi.core import repertoire_algebra as ra
-
-        return ra.forward_repertoire(
-            self, direction, mechanism, purview, purview_state, **kw
-        )
-
-    def unconstrained_forward_cause_repertoire(
-        self, mechanism: Any, purview: Any
-    ) -> Any:
-        from pyphi.core import repertoire_algebra as ra
-
-        return ra.unconstrained_forward_cause_repertoire(self, mechanism, purview)
-
-    def unconstrained_forward_effect_repertoire(
-        self, mechanism: Any, purview: Any
-    ) -> Any:
-        from pyphi.core import repertoire_algebra as ra
-
-        return ra.unconstrained_forward_effect_repertoire(self, mechanism, purview)
-
-    def unconstrained_forward_repertoire(
-        self, direction: Direction, mechanism: Any, purview: Any
-    ) -> Any:
-        from pyphi.core import repertoire_algebra as ra
-
-        return ra.unconstrained_forward_repertoire(self, direction, mechanism, purview)
-
-    def forward_cause_probability(
-        self,
-        mechanism: Any,
-        purview: Any,
-        purview_state: Any,
-        mechanism_state: Any | None = None,
-    ) -> float:
-        from pyphi.core import repertoire_algebra as ra
-
-        return ra.forward_cause_probability(
-            self, mechanism, purview, purview_state, mechanism_state
-        )
-
-    def forward_effect_probability(
-        self, mechanism: Any, purview: Any, purview_state: Any
-    ) -> float:
-        from pyphi.core import repertoire_algebra as ra
-
-        return ra.forward_effect_probability(self, mechanism, purview, purview_state)
-
-    def forward_probability(
-        self,
-        direction: Direction,
-        mechanism: Any,
-        purview: Any,
-        purview_state: Any,
-        **kw: Any,
-    ) -> float:
-        from pyphi.core import repertoire_algebra as ra
-
-        return ra.forward_probability(
-            self, direction, mechanism, purview, purview_state, **kw
-        )
-
-    def cause_info(
-        self,
-        mechanism: Any,
-        purview: Any,
-        *,
-        mechanism_measure: Any,
-        **kw: Any,
-    ) -> float:
-        from pyphi.core import repertoire_algebra as ra
-
-        kw.setdefault("repertoire_distance", mechanism_measure)
-        return ra.cause_info(self, mechanism, purview, **kw)
-
-    def effect_info(
-        self,
-        mechanism: Any,
-        purview: Any,
-        *,
-        mechanism_measure: Any,
-        **kw: Any,
-    ) -> float:
-        from pyphi.core import repertoire_algebra as ra
-
-        kw.setdefault("repertoire_distance", mechanism_measure)
-        return ra.effect_info(self, mechanism, purview, **kw)
-
-    def cause_effect_info(
-        self,
-        mechanism: Any,
-        purview: Any,
-        *,
-        mechanism_measure: Any,
-        **kw: Any,
-    ) -> float:
-        from pyphi.core import repertoire_algebra as ra
-
-        kw.setdefault("repertoire_distance", mechanism_measure)
-        return ra.cause_effect_info(self, mechanism, purview, **kw)
-
-    def intrinsic_information(
-        self,
-        direction: Direction,
-        mechanism: Any,
-        purview: Any,
-        *,
-        specification_measure: Any,
-        **kw: Any,
-    ) -> Any:
-        from pyphi.core import repertoire_algebra as ra
-
-        return ra.intrinsic_information(
-            self,
-            direction,
-            mechanism,
-            purview,
-            specification_measure=specification_measure,
-            **kw,
-        )
-
-    def potential_purviews(
-        self,
-        direction: Direction,
-        mechanism: Any,
-        purviews: Any | None = None,
-        **kw: Any,
-    ) -> Any:
-        from pyphi.core import repertoire_algebra as ra
-
-        return ra.potential_purviews(self, direction, mechanism, purviews, **kw)
-
-    def indices2nodes(self, indices: Any) -> Any:
-        from pyphi.core import repertoire_algebra as ra
-
-        return ra.indices2nodes(self, indices)
-
-    def cache_info(self) -> dict[str, Any]:
-        from pyphi.core import repertoire_algebra as ra
-
-        return ra.cache_info()
-
-    def clear_caches(self) -> None:
-        from pyphi.core import repertoire_algebra as ra
-
-        ra.clear_caches(self)
+        Locally-handled attributes are listed in
+        :data:`TRANSITION_SYSTEM_OWN_ATTRS`. Dunder names are refused so
+        Python's standard protocols (pickling, copy) fall back to default
+        behavior rather than picking up the underlying System's dunders.
+        """
+        if (name.startswith("__") and name.endswith("__")) or (
+            name in TRANSITION_SYSTEM_OWN_ATTRS
+        ):
+            raise AttributeError(name)
+        return getattr(self._underlying_system, name)
 
     def sia(self, **kw: Any) -> Any:
         raise NotImplementedError(
@@ -1147,7 +924,9 @@ class Transition:
         system = self.system[direction]
         return [
             purview
-            for purview in system.potential_purviews(direction, mechanism, purviews)  # pyright: ignore[reportCallIssue]
+            for purview in system.potential_purviews(
+                direction, mechanism, purviews=purviews
+            )
             if set(purview).issubset(self.purview_indices(direction))
         ]
 

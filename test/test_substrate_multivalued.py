@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 import pyphi
 from pyphi import actual
@@ -55,12 +54,12 @@ def test_heterogeneous_alphabet_sia() -> None:
     assert result.phi >= 0
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="Actual causation (AC) uses _legacy_binary_joint and is binary-only; k>2 AC is not yet implemented.",
-)
 def test_kary_account_end_to_end() -> None:
-    """Construct a k=3 substrate; compute an Account (expected to fail until AC supports k>2)."""
+    """Construct a k=3 substrate; compute an Account.
+
+    AC inherits k-ary substrate support from ``System`` via
+    ``TransitionSystem``'s delegation through ``_underlying_system``.
+    """
     sub = _k3_two_node_substrate()
     transition = pyphi.Transition(
         substrate=sub,
