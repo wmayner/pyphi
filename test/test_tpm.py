@@ -112,10 +112,16 @@ def test_expand_tpm():
 
 
 def test_marginalize_out(s):
-    effect_arr = np.asarray(s.effect_tpm)
+    effect_sbn = JointTPM(
+        np.stack(
+            [s.effect_tpm.factor(i)[..., 1] for i in range(s.effect_tpm.n_nodes)],
+            axis=-1,
+        )
+    )
+    effect_arr = np.asarray(effect_sbn)
     for i in range(s.cause_tpm.n_nodes):
         np.testing.assert_array_equal(s.cause_tpm.factor(i)[..., 1], effect_arr[..., i])
-    marginalized_distribution = s.effect_tpm.marginalize_out([0])
+    marginalized_distribution = effect_sbn.marginalize_out([0])
     # fmt: off
     answer = JointTPM(
         np.array([
@@ -129,7 +135,7 @@ def test_marginalize_out(s):
     # fmt: on
     assert marginalized_distribution.array_equal(answer)
 
-    marginalized_distribution = s.effect_tpm.marginalize_out([0, 1])
+    marginalized_distribution = effect_sbn.marginalize_out([0, 1])
     # fmt: off
     answer = JointTPM(
         np.array([

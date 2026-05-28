@@ -305,7 +305,11 @@ def test_rebuild_system_tpm(s):
         np.testing.assert_array_equal(
             s.cause_tpm.factor(i)[..., 1], rebuilt_cause[..., i]
         )
-    assert macro.rebuild_system_tpm(effect_node_tpms).array_equal(s.effect_tpm)
+    rebuilt_effect = np.asarray(macro.rebuild_system_tpm(effect_node_tpms))
+    for i in range(s.effect_tpm.n_nodes):
+        np.testing.assert_array_equal(
+            s.effect_tpm.factor(i)[..., 1], rebuilt_effect[..., i]
+        )
 
 
 def test_remove_singleton_dimensions():
@@ -363,7 +367,7 @@ def test_remove_singleton_dimensions():
 def test_pack_attrs(s):
     attrs = macro.SystemAttrs.pack(s)
     assert attrs.cause_tpm == s.cause_tpm
-    assert attrs.effect_tpm.array_equal(s.effect_tpm)
+    assert attrs.effect_tpm == s.effect_tpm
     assert np.array_equal(attrs.cm, s.cm)
     assert attrs.node_indices == s.node_indices
     assert attrs.state == s.state
@@ -380,7 +384,7 @@ def test_apply_attrs(s):
 
     attrs.apply(target)
     assert target.cause_tpm == s.cause_tpm
-    assert target.effect_tpm.array_equal(s.effect_tpm)
+    assert target.effect_tpm == s.effect_tpm
     assert np.array_equal(target.cm, s.cm)
     assert target.node_indices == s.node_indices
     assert target.state == s.state

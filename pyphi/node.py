@@ -68,11 +68,10 @@ class Node:
         cause_non_inputs = set(cause_factor.tpm_indices()) - self._inputs
         self.cause_tpm = cause_factor.marginalize_out(cause_non_inputs)
 
-        # Extract the per-node forward factor. For binary substrates
-        # system.effect_tpm is a legacy ndarray (SBN-form), so
-        # effect_tpm[..., index] gives P(on | inputs). For k-ary substrates
-        # system.effect_tpm is a FactoredTPM; factor(index) gives the full
-        # per-node conditional (*alpha, k_i).
+        # Extract the per-node forward factor. A FactoredTPM exposes
+        # factor(index) as the full per-node conditional (*alpha, k_i); a
+        # state-by-node ndarray exposes the per-node on-probability as
+        # effect_tpm[..., index].
         from .core.tpm.factored import FactoredTPM as _FactoredTPM
 
         if isinstance(effect_tpm, _FactoredTPM):

@@ -25,11 +25,9 @@ from pyphi.substrate import Substrate
 from pyphi.substrate import _coerce_state_to_indices
 
 from .core.tpm.factored import FactoredTPM
-from .core.tpm.joint import JointTPM
 from .core.tpm.marginalization import _cause_tpm_factored
 from .core.tpm.marginalization import _effect_tpm_factored
 from .core.tpm.marginalization import cause_tpm as _marginalize_cause
-from .core.tpm.marginalization import effect_tpm as _marginalize_effect
 
 if TYPE_CHECKING:
     from pyphi.types import NodeIndices
@@ -215,27 +213,11 @@ class System:
         )
 
     @cached_property
-    def effect_tpm(self) -> Any:
-        """Returns the effect TPM for the system.
-
-        For binary substrates, rendered in legacy state-by-node (SBN) form via
-        a transient bridge to keep legacy consumers (validate.state_reachable,
-        macro, actual.TransitionSystem) working. The bridge retires once those
-        callers consume FactoredTPM directly.
-        """
+    def effect_tpm(self) -> FactoredTPM:
+        """Forward TPM conditioned on the external units at their observed state."""
         external_state = utils.state_of(self.external_indices, self.state)
         background = dict(zip(self.external_indices, external_state, strict=False))
-        result = _marginalize_effect(
-            self._typed_tpm,  # type: ignore[arg-type]
-            background,
-        )
-        if isinstance(result, FactoredTPM) and all(
-            a == 2 for a in result.alphabet_sizes
-        ):
-            n = result.n_nodes
-            sbn = np.stack([result.factor(i)[..., 1] for i in range(n)], axis=-1)
-            return JointTPM(sbn)
-        return result
+        return _effect_tpm_factored(self._typed_tpm, background)
 
     @cached_property
     def proper_effect_tpm(self) -> FactoredTPM:

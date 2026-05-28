@@ -128,7 +128,7 @@ def test_apply_cut(s):
     assert s.substrate == cut_s.substrate
     assert s.state == cut_s.state
     assert s.node_indices == cut_s.node_indices
-    assert np.array_equal(cut_s.effect_tpm.tpm, s.effect_tpm.tpm)
+    assert cut_s.effect_tpm == s.effect_tpm
     assert cut_s.cause_tpm == s.cause_tpm
     assert np.array_equal(cut_s.cm, cut.apply_cut(s.cm))
 
