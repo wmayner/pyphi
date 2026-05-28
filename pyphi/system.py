@@ -37,12 +37,21 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True, eq=False)
 class System:
-    """A substrate evaluated in a specific state over a node subset, with partition."""
+    """A substrate evaluated in a specific state over a node subset, with partition.
+
+    The ``external_indices`` field specifies which substrate units are
+    conditioned at their observed state when computing repertoires. When
+    ``None`` (the default), it resolves in ``__post_init__`` to
+    ``substrate - node_indices`` — the "extended background" convention
+    of IIT 4.0. An explicit override (used by ``TransitionSystem`` for
+    actual-causation analysis) may overlap with ``node_indices``.
+    """
 
     substrate: Substrate
     state: State
     node_indices: NodeIndices = field(default=None)  # type: ignore[assignment]
     partition: DirectedBipartition = field(default=None)  # type: ignore[assignment]
+    external_indices: tuple[int, ...] = field(default=None)  # type: ignore[assignment]
 
     def __post_init__(self) -> None:
         substrate = self.substrate
@@ -70,6 +79,31 @@ class System:
                     f"{self.partition} nodes are not equal to "
                     f"system nodes {self.node_indices}"
                 )
+        # Resolve external_indices: None resolves to substrate-minus-system
+        # (the IIT 4.0 extended-background convention). An explicit override
+        # is validated for shape, then accepted as-is.
+        if self.external_indices is None:
+            all_indices = set(range(substrate.size))
+            object.__setattr__(
+                self,
+                "external_indices",
+                tuple(sorted(all_indices - set(self.node_indices))),
+            )
+        else:
+            ext = tuple(self.external_indices)
+            for i in ext:
+                if not (0 <= i < substrate.size):
+                    raise ValueError(
+                        f"external_indices contains out of range index {i}; "
+                        f"must satisfy 0 <= i < {substrate.size}"
+                    )
+            if list(ext) != sorted(ext):
+                raise ValueError(f"external_indices must be sorted; got {ext}")
+            if len(set(ext)) != len(ext):
+                raise ValueError(
+                    f"external_indices must not contain duplicates; got {ext}"
+                )
+            object.__setattr__(self, "external_indices", ext)
         from pyphi.conf import config as _config
 
         if _config.infrastructure.validate_system_states:
@@ -103,10 +137,19 @@ class System:
             and self.state == other.state
             and self.node_indices == other.node_indices
             and self.partition == other.partition
+            and self.external_indices == other.external_indices
         )
 
     def __hash__(self) -> int:
-        return hash((self.substrate, self.state, self.node_indices, self.partition))
+        return hash(
+            (
+                self.substrate,
+                self.state,
+                self.node_indices,
+                self.partition,
+                self.external_indices,
+            )
+        )
 
     def __len__(self) -> int:
         return len(self.node_indices)
@@ -151,11 +194,6 @@ class System:
     @cached_property
     def node_labels(self) -> Any:
         return self.substrate.node_labels
-
-    @cached_property
-    def external_indices(self) -> tuple[int, ...]:
-        all_indices = set(range(self.substrate.size))
-        return tuple(sorted(all_indices - set(self.node_indices)))
 
     @cached_property
     def proper_state(self) -> Any:
@@ -731,4 +769,5 @@ class System:
             "state": list(self.state),
             "node_indices": list(self.node_indices),
             "partition": self.partition,
+            "external_indices": list(self.external_indices),
         }

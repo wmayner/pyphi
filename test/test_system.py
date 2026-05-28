@@ -297,3 +297,157 @@ def test_proper_cause_tpm_binary_matches_legacy_slice(s) -> None:
         proper_on = np.squeeze(proper.factor(slot)[..., 1])
         substrate_on = np.squeeze(substrate_cause.factor(node)[..., 1])
         assert np.allclose(proper_on, substrate_on, atol=1e-10)
+
+
+# external_indices field tests
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+def test_system_external_indices_default_matches_today(subsys_n1n2) -> None:
+    """When external_indices=None (default), resolves to substrate - node_indices."""
+    assert subsys_n1n2.external_indices == (0,)
+
+
+def test_system_external_indices_full_system_has_empty_default(s) -> None:
+    """When node_indices covers the whole substrate, default external is ()."""
+    assert s.external_indices == ()
+
+
+def test_system_external_indices_explicit_override_accepted(s) -> None:
+    """An explicit override is stored and accepted."""
+    overridden = System(
+        substrate=s.substrate,
+        state=s.state,
+        node_indices=(1, 2),
+        external_indices=(),
+    )
+    assert overridden.external_indices == ()
+
+
+def test_system_external_indices_rejects_out_of_range(s) -> None:
+    """Indices must be in range(substrate.size)."""
+    with pytest.raises(ValueError, match="out of range"):
+        System(
+            substrate=s.substrate,
+            state=s.state,
+            node_indices=(0, 1),
+            external_indices=(99,),
+        )
+
+
+def test_system_external_indices_rejects_negative(s) -> None:
+    """Negative indices are out of range."""
+    with pytest.raises(ValueError, match="out of range"):
+        System(
+            substrate=s.substrate,
+            state=s.state,
+            node_indices=(0, 1),
+            external_indices=(-1,),
+        )
+
+
+def test_system_external_indices_rejects_unsorted(s) -> None:
+    """Override must be sorted."""
+    with pytest.raises(ValueError, match="sorted"):
+        System(
+            substrate=s.substrate,
+            state=s.state,
+            node_indices=(0,),
+            external_indices=(2, 1),
+        )
+
+
+def test_system_external_indices_rejects_duplicates(s) -> None:
+    """Override must have unique entries."""
+    with pytest.raises(ValueError, match="duplicate"):
+        System(
+            substrate=s.substrate,
+            state=s.state,
+            node_indices=(0,),
+            external_indices=(1, 1),
+        )
+
+
+def test_system_external_indices_included_in_eq(s) -> None:
+    """Two Systems differing only in external_indices are not equal."""
+    s_default = System(
+        substrate=s.substrate,
+        state=s.state,
+        node_indices=(0, 1),
+    )
+    s_override = System(
+        substrate=s.substrate,
+        state=s.state,
+        node_indices=(0, 1),
+        external_indices=(),
+    )
+    # default resolves to (2,), override is (), so they differ.
+    assert s_default.external_indices == (2,)
+    assert s_override.external_indices == ()
+    assert s_default != s_override
+
+
+def test_system_external_indices_default_equal_to_explicit_same_value(s) -> None:
+    """None-default and explicit-default-value resolve to the same field
+    value and therefore compare equal."""
+    s_implicit = System(
+        substrate=s.substrate,
+        state=s.state,
+        node_indices=(0, 1),
+    )
+    s_explicit = System(
+        substrate=s.substrate,
+        state=s.state,
+        node_indices=(0, 1),
+        external_indices=(2,),
+    )
+    assert s_implicit == s_explicit
+    assert hash(s_implicit) == hash(s_explicit)
+
+
+def test_system_external_indices_included_in_hash(s) -> None:
+    """Hash distinguishes Systems with different external_indices."""
+    s1 = System(
+        substrate=s.substrate,
+        state=s.state,
+        node_indices=(0, 1),
+    )
+    s2 = System(
+        substrate=s.substrate,
+        state=s.state,
+        node_indices=(0, 1),
+        external_indices=(),
+    )
+    assert hash(s1) != hash(s2)
+
+
+def test_system_external_indices_apply_cut_propagates(s) -> None:
+    """apply_cut returns new System with external_indices preserved."""
+    from pyphi.models.partitions import DirectedBipartition as _DBP
+
+    base = System(
+        substrate=s.substrate,
+        state=s.state,
+        node_indices=(0, 1),
+        external_indices=(),
+    )
+    new_cut = _DBP(Direction.EFFECT, (0,), (1,), s.substrate.node_labels)
+    cut = base.apply_cut(new_cut)
+    assert cut.external_indices == ()
+
+
+def test_system_external_indices_overlap_with_node_indices_allowed(s) -> None:
+    """The override may overlap with node_indices (the AC use case).
+
+    Validation is disabled because the AC use case (freezing an in-system
+    unit at observed state) creates conditioned dynamics that may not
+    cover the full state. Reachability is not what this test checks.
+    """
+    with config.override(validate_system_states=False):
+        overlapping = System(
+            substrate=s.substrate,
+            state=s.state,
+            node_indices=(0, 1, 2),
+            external_indices=(1,),
+        )
+    assert overlapping.external_indices == (1,)
