@@ -113,6 +113,38 @@ def test_validate_state_subsystem_unreachable(s):
     System(s.substrate, s.state, (1,))
 
 
+def _k3_copy_substrate() -> Substrate:
+    """k=3 two-node substrate. Node 0 copies node 1's input; node 1 is
+    constant 0. So node 0's conditioned dynamics (node 1 fixed at the
+    external state) can only output that fixed value."""
+    f0 = np.zeros((3, 3, 3))
+    f1 = np.zeros((3, 3, 3))
+    for a in range(3):
+        for b in range(3):
+            f0[a, b, b] = 1.0  # node 0 next = node 1's input value
+            f1[a, b, 0] = 1.0  # node 1 next = 0 (constant)
+    return Substrate(marginals=[f0, f1])
+
+
+def test_validate_state_subsystem_unreachable_kary():
+    """Subsystem-level reachability for a k>2 substrate.
+
+    Full state ``(1, 0)`` is substrate-reachable (a past with node 1 = 1
+    produces node-0-next = 1, and node 1 is always 0). But subsystem
+    ``{0}`` with node 1 fixed at its observed value 0 can only produce
+    node-0-next = 0, so ``proper_state = (1,)`` is unreachable under the
+    conditioned dynamics.
+    """
+    sub = _k3_copy_substrate()
+    # Full substrate: reachable, no raise.
+    System(sub, (1, 0), (0, 1))
+    # Subsystem {0}: node-0 conditioned dynamics cannot produce 1.
+    with pytest.raises(exceptions.StateUnreachableForwardsError):
+        System(sub, (1, 0), (0,))
+    # Subsystem {1}: node 1 is constant 0, so {1}=0 is reachable.
+    System(sub, (1, 0), (1,))
+
+
 @pytest.mark.skip(
     reason="StateUnreachableBackwardsError not raised by current state_reachable; "
     "backward-reachability check pending implementation"

@@ -27,6 +27,7 @@ from pyphi.substrate import _coerce_state_to_indices
 from .core.tpm.factored import FactoredTPM
 from .core.tpm.joint import JointTPM
 from .core.tpm.marginalization import _cause_tpm_factored
+from .core.tpm.marginalization import _effect_tpm_factored
 from .core.tpm.marginalization import cause_tpm as _marginalize_cause
 from .core.tpm.marginalization import effect_tpm as _marginalize_effect
 
@@ -237,8 +238,28 @@ class System:
         return result
 
     @cached_property
-    def proper_effect_tpm(self) -> Any:
-        return np.asarray(self.effect_tpm.squeeze())[..., list(self.node_indices)]
+    def proper_effect_tpm(self) -> FactoredTPM:
+        """Effect TPM restricted to system units.
+
+        Per system unit ``i`` in ``node_indices``, the returned FactoredTPM
+        carries the forward factor conditioned on the background units (all
+        substrate units outside ``node_indices``) at their observed state,
+        with those background input dims dropped, so the returned shape is
+        ``(*system_alphabet, k_i)`` per system output unit. The effect-side
+        dual of :attr:`proper_cause_tpm`.
+        """
+        background_indices = tuple(
+            i for i in range(self._typed_tpm.n_nodes) if i not in set(self.node_indices)
+        )
+        background = {i: self.state[i] for i in background_indices}
+        factored = _effect_tpm_factored(self._typed_tpm, background)
+        system_factors = []
+        for i in self.node_indices:
+            f = factored.factor(i)
+            if background_indices:
+                f = np.squeeze(f, axis=background_indices)
+            system_factors.append(f)
+        return FactoredTPM(factors=system_factors)
 
     @cached_property
     def proper_cause_tpm(self) -> FactoredTPM:

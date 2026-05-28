@@ -299,6 +299,43 @@ def test_proper_cause_tpm_binary_matches_legacy_slice(s) -> None:
         assert np.allclose(proper_on, substrate_on, atol=1e-10)
 
 
+def test_proper_effect_tpm_kary_returns_factored_view() -> None:
+    """proper_effect_tpm for a k=3 system returns per-system-unit factors
+    restricted to the system's node indices."""
+    from pyphi.core.tpm.factored import FactoredTPM
+
+    rng = np.random.default_rng(99)
+    factors = []
+    for _ in range(2):
+        arr = rng.uniform(size=(3, 3, 3))
+        factors.append(arr / arr.sum(axis=-1, keepdims=True))
+    sub = Substrate(marginals=factors)
+    with config.override(validate_system_states=False):
+        sys = System(sub, state=(0, 0))
+        proper = sys.proper_effect_tpm
+    assert isinstance(proper, FactoredTPM)
+    assert proper.n_nodes == len(sys.node_indices)
+    for i in range(proper.n_nodes):
+        assert proper.factor(i).shape[-1] == 3
+
+
+def test_proper_effect_tpm_binary_matches_legacy_on_probability(s) -> None:
+    """For binary substrates the per-system-unit on-probability slice of
+    ``proper_effect_tpm`` reproduces the legacy state-by-node forward
+    on-probability column for that unit — the substrate forward factor's
+    on-probability as a function of the full input state."""
+    from pyphi.core.tpm.factored import FactoredTPM
+
+    proper = s.proper_effect_tpm
+    assert isinstance(proper, FactoredTPM)
+    assert proper.n_nodes == len(s.node_indices)
+    forward = s.substrate.factored_tpm
+    for slot, node in enumerate(s.node_indices):
+        proper_on = np.squeeze(proper.factor(slot)[..., 1])
+        forward_on = np.squeeze(forward.factor(node)[..., 1])
+        assert np.allclose(proper_on, forward_on, atol=1e-10)
+
+
 # external_indices field tests
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

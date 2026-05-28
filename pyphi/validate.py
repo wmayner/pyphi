@@ -165,23 +165,22 @@ def state_reachable(system: object) -> None:
 
 def _proper_state_in_image_of_conditioned_tpm(system: object) -> bool:
     """Whether the subsystem's ``proper_state`` is in the image of the
-    background-conditioned effect TPM.
+    background-conditioned effect dynamics.
 
-    For binary substrates (``effect_tpm`` rendered in state-by-node form
-    via the SBN bridge), each cell of ``proper_effect_tpm`` is the
-    probability of the corresponding subsystem node firing. The state is
-    in the image iff some input row produces all subsystem-node
-    probabilities consistent with ``proper_state`` (i.e., not certain to
-    differ at any node). For k-ary substrates the conditioned dynamics
-    are not yet routed through this check; assume reachable.
+    ``proper_effect_tpm`` is a FactoredTPM with one factor per system
+    output unit (background fixed at the external state, background input
+    dims dropped). The state is in the image iff some system-input
+    configuration assigns positive joint probability to ``proper_state`` —
+    i.e. every system factor gives positive probability to its component
+    of ``proper_state`` for that input. Works for any per-unit alphabet
+    size.
     """
-    effect = system.effect_tpm  # type: ignore[attr-defined]
-    if not hasattr(effect, "tpm"):
-        return True  # k-ary path not yet covered
-    tpm = system.proper_effect_tpm  # type: ignore[attr-defined]
-    proper_state = np.asarray(system.proper_state)  # type: ignore[attr-defined]
-    test = tpm - proper_state
-    return bool(np.any(np.logical_and(test > -1, test < 1).all(-1)))
+    proper = system.proper_effect_tpm  # type: ignore[attr-defined]
+    proper_state = system.proper_state  # type: ignore[attr-defined]
+    joint = np.ones(proper.alphabet_sizes, dtype=np.float64)
+    for slot in range(proper.n_nodes):
+        joint = joint * proper.factor(slot)[..., proper_state[slot]]
+    return bool(np.any(joint > 0.0))
 
 
 def system_partition(partition: object, node_indices: Sequence[int]) -> None:
