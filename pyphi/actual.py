@@ -238,12 +238,20 @@ class TransitionSystem:
 
     @cached_property
     def _underlying_system(self) -> Any:
+        external = (
+            ()
+            if self.noise_background
+            else tuple(
+                sorted(set(self.substrate.node_indices) - set(self.cause_indices))
+            )
+        )
         with config.override(validate_system_states=False):
             return System(
                 substrate=self.substrate,
                 state=self.before_state,
                 node_indices=self.node_indices,
                 partition=self.partition,
+                external_indices=external,
             )
 
     @cached_property
@@ -252,17 +260,7 @@ class TransitionSystem:
 
     @cached_property
     def effect_tpm(self) -> Any:
-        from pyphi.core.tpm.joint import JointTPM as _TypedTPM
-        from pyphi.core.tpm.marginalization import effect_tpm as _marginalize_effect
-
-        # Wrap the legacy binary joint in JointTPM so the legacy actual-causation
-        # code path (which expects (2,...,2,N) shapes) sees the same array it
-        # always saw.
-        typed = _TypedTPM(self.substrate._legacy_binary_joint())
-        external_state = utils.state_of(self.external_indices, self.before_state)
-        background = dict(zip(self.external_indices, external_state, strict=False))
-        result = _marginalize_effect(typed, background)
-        return result
+        return self._underlying_system.effect_tpm
 
     @cached_property
     def cm(self) -> Any:
@@ -274,7 +272,7 @@ class TransitionSystem:
 
     @cached_property
     def proper_effect_tpm(self) -> Any:
-        return np.asarray(self.effect_tpm.squeeze())[..., list(self.node_indices)]
+        return self._underlying_system.proper_effect_tpm
 
     @cached_property
     def proper_cm(self) -> Any:

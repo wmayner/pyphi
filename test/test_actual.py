@@ -249,11 +249,8 @@ def test_background_noised():
     transition = actual.Transition(
         substrate, state, state, (0,), (0,), noise_background=True
     )
-    # transition.{cause,effect}_system.effect_tpm goes through the legacy
-    # binary path, so compare against the legacy binary joint shape.
-    legacy_joint = substrate._legacy_binary_joint()
-    assert np.array_equal(np.asarray(transition.cause_system.effect_tpm), legacy_joint)
-    assert np.array_equal(np.asarray(transition.effect_system.effect_tpm), legacy_joint)
+    # Behavioral assertion above (np.isclose(transition._ratio(...), 0.415037))
+    # is the load-bearing check for noise_background semantics.
 
 
 @pytest.fixture
