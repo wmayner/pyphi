@@ -778,7 +778,11 @@ which directly assigns to 7 attributes (`cause_tpm`, `effect_tpm`, `cm`,
 this gap. The fix is to redesign `MacroSubsystem`'s constructor pipeline as a
 `CausalModel → transform → CandidateSystem` chain (coarse-graining as a functor
 from one model to another), which is architecturally correct but adds significant
-scope to P7. Budget accordingly.
+scope to P7. Budget accordingly. Note also that `System.effect_tpm` is now a
+`FactoredTPM` for all substrates (the binary state-by-node bridge is gone), so the
+port must consume the factored form directly — the legacy `.tpm`/state-by-node
+accesses in `macro.py` (e.g. `rebuild_system_tpm`, `SystemAttrs.apply`'s `effect_tpm`
+handling) need migration as part of this work.
 
 **This is the one project that must be big-bang, not incremental.** Incremental
 extraction of a class with shared mutable cache state and conditional version
@@ -2682,69 +2686,6 @@ to ease transition:
   and the config field should be removed. For IIT 4.0 the
   "op-order-noise threshold" is a property of float64 arithmetic on
   IIT quantities, not a user preference.
-
-- **Collapse ``TransitionSystem`` onto ``System`` via ``external_indices``
-  override.** ``System`` and ``TransitionSystem`` both implement
-  ``SystemPublicInterface``. ``TransitionSystem`` already uses composition
-  via ``_underlying_system`` (a ``System`` with ``validate_system_states=False``)
-  and most of its surface is mechanical delegation. The genuine divergence
-  is narrow: ``state`` flips with ``Direction``, and ``external_indices`` is
-  ``substrate - cause_indices`` instead of ``substrate - node_indices``.
-  ``effect_tpm`` and ``proper_effect_tpm`` are reimplemented today —
-  ``proper_effect_tpm`` is literally a copy-paste between the two files,
-  which is a regression-waiting-to-happen.
-
-  The fix is to add an optional ``external_indices`` override field to
-  ``System``. When ``None``, ``System`` computes ``substrate - node_indices``
-  (today's behavior); when set, it uses the override. ``effect_tpm`` reads
-  ``self.external_indices`` instead of recomputing. ``TransitionSystem``
-  then collapses to a frozen-dataclass façade holding AC-specific metadata
-  (``before_state``, ``after_state``, ``cause_indices``, ``effect_indices``,
-  ``direction``, ``noise_background``, ``partition``) plus an
-  ``_underlying_system`` constructed with the AC-specific ``state`` and
-  ``external_indices``. Every property and repertoire-algebra delegation in
-  ``TransitionSystem`` becomes a one-line passthrough.
-
-  Side effect: closes the long-standing "AC k-ary cutover" item, because
-  ``System`` already handles k-ary substrates correctly. Once
-  ``TransitionSystem`` delegates ``effect_tpm`` through ``_underlying_system``,
-  AC inherits k-ary support for free. The single call to
-  ``Substrate._legacy_binary_joint()`` in ``TransitionSystem.effect_tpm``
-  disappears as part of the collapse.
-
-  Estimate: half a day to one day. Touches ``pyphi/system.py`` (~30 lines
-  added for the override) and ``pyphi/actual.py`` (~400 lines deleted as
-  ``TransitionSystem`` shrinks to a façade). No public-API changes; the
-  ``SystemPublicInterface`` protocol is unchanged. Risk surface: golden
-  parity (existing tests) and the full AC suite (63 tests) must remain
-  green. Add a few k-ary parameter cases to ``test/test_actual.py`` while
-  the surgery is open — the rewrite removes the structural reason AC was
-  binary-only, so a few k=3 parameterized cases of the paper-figure tests
-  are cheap to add and lock the win in.
-
-- **Retire the SBN bridge in ``System.effect_tpm``.** ``System.effect_tpm``
-  currently applies a bridge for binary substrates: marginalize to
-  ``FactoredTPM`` via ``_marginalize_effect``, then stack ``factor(i)[..., 1]``
-  into legacy SBN form and wrap in ``JointTPM``. The bridge exists so
-  legacy consumers (``validate._proper_state_in_image_of_conditioned_tpm``,
-  ``proper_effect_tpm``, ``pyphi/macro.py``) see the array shape they
-  always saw. The docstring acknowledges this is scaffold: "The bridge
-  retires once those callers consume ``FactoredTPM`` directly."
-
-  Three consumers to rewrite: ``proper_effect_tpm`` (the one-liner
-  ``np.asarray(self.effect_tpm.squeeze())[..., list(self.node_indices)]``
-  is the load-bearing SBN-shape operation),
-  ``validate._proper_state_in_image_of_conditioned_tpm`` (already
-  short-circuits for k-ary via ``hasattr(effect, "tpm")``; needs to be
-  rewritten to consume ``FactoredTPM`` directly so it actually checks
-  reachability for k-ary substrates too), and ``pyphi/macro.py:1111``
-  (binary-by-construction, so retire the macro call to
-  ``_legacy_binary_joint`` separately or leave the macro path on the
-  legacy joint as a binary-only scaffold).
-
-  Most cleanly done after the ``TransitionSystem`` collapse above,
-  because then there is only one ``effect_tpm`` site and one SBN bridge
-  to retire instead of two. Estimate: half a day.
 
 - **AC default: extended background vs. strict Eq. 2.** PyPhi's
   ``TransitionSystem`` currently freezes substrate units outside
