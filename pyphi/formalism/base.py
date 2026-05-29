@@ -26,7 +26,10 @@ if TYPE_CHECKING:
     from pyphi.conf.formalism import FormalismConfig
 
 __all__ = [
+    "ACTUAL_CAUSATION_FORMALISM_REGISTRY",
     "FORMALISM_REGISTRY",
+    "ActualCausationFormalism",
+    "ActualCausationFormalismRegistry",
     "ApproximateFormalism",
     "ErrorInfo",
     "ExactFormalism",
@@ -189,3 +192,80 @@ class FormalismRegistry(Registry[PhiFormalism]):
 FORMALISM_REGISTRY: FormalismRegistry = FormalismRegistry()
 """Global registry of phi formalisms. Looked up by string name (the value
 held in ``config.formalism.iit.version``)."""
+
+
+@runtime_checkable
+class ActualCausationFormalism(Protocol):
+    """The minimum shape every actual-causation formalism satisfies.
+
+    The AC analog of :class:`PhiFormalism`. AC operates on transitions
+    (before/after state pairs) rather than systems-in-a-state, so its
+    evaluation surface differs: ``evaluate_account`` / ``evaluate_system`` /
+    ``evaluate_mechanism`` / ``evaluate_causal_link``.
+
+    Concrete formalisms also declare:
+
+    - ``name``: stable identifier held in
+      ``config.formalism.actual_causation.version`` and registered in
+      :data:`ACTUAL_CAUSATION_FORMALISM_REGISTRY`.
+    - ``compatible_measures``: frozenset of alpha-measure names accepted.
+    - ``config``: the :class:`FormalismConfig` snapshot operated against.
+
+    Signatures are intentionally permissive (``Any``), matching
+    :class:`PhiFormalism`.
+    """
+
+    name: ClassVar[str]
+    compatible_measures: ClassVar[frozenset[str]]
+
+    @property
+    def config(self) -> FormalismConfig: ...
+
+    def evaluate_account(
+        self, transition: Any, direction: Any, **kwargs: Any
+    ) -> Any: ...
+
+    def evaluate_system(self, transition: Any, direction: Any, **kwargs: Any) -> Any: ...
+
+    def evaluate_mechanism(
+        self,
+        transition: Any,
+        direction: Any,
+        mechanism: Any,
+        purview: Any,
+        **kwargs: Any,
+    ) -> Any: ...
+
+    def evaluate_causal_link(
+        self, transition: Any, direction: Any, mechanism: Any, **kwargs: Any
+    ) -> Any: ...
+
+
+class ActualCausationFormalismRegistry(Registry[ActualCausationFormalism]):
+    """Storage for actual-causation formalisms.
+
+    Validates registrations against :class:`ActualCausationFormalism` so
+    wrong-shape registrations fail at import. Lookup uses the string held in
+    ``config.formalism.actual_causation.version``. Parallel to
+    :class:`FormalismRegistry` / :class:`ActualCausationMeasureRegistry`.
+    """
+
+    desc = "actual-causation formalisms"
+
+    def register(  # type: ignore[override]
+        self, name: str, formalism: object
+    ) -> ActualCausationFormalism:
+        if not isinstance(formalism, ActualCausationFormalism):
+            raise TypeError(
+                f"Cannot register {formalism!r} as AC formalism {name!r}: "
+                "object does not satisfy the ActualCausationFormalism Protocol."
+            )
+        self.store[name] = formalism  # type: ignore[assignment]
+        return formalism
+
+
+ACTUAL_CAUSATION_FORMALISM_REGISTRY: ActualCausationFormalismRegistry = (
+    ActualCausationFormalismRegistry()
+)
+"""Global registry of actual-causation formalisms. Looked up by the string
+held in ``config.formalism.actual_causation.version``."""
