@@ -1938,9 +1938,9 @@ test inventory — that a deliberate re-ordering pass is in order.
     addressable as ``config["actual_causation.version"]``. Pure refactor: zero
     numeric change (``test_actual.py`` + goldens byte-identical). Deferred
     IIT-4.0-style AC measures (generalized intrinsic difference / intrinsic
-    information instead of the 2019 PMI/WPMI) are the next AC step; only the
-    registry seam is built here, and that work intersects the open
-    cause-weighting question.
+    information instead of the 2019 PMI/WPMI) are the next AC step, tracked as
+    P14c; only the registry seam is built here. The cause-weighting question
+    that work touched is now resolved (see P14c).
 
 **Ship criterion for 2.0:**
 
@@ -2205,6 +2205,47 @@ All of these are stable after P8. No core API changes needed.
   computation itself is straightforward (PMI + normalization).
 - *Leverage:* High for research impact — enables PyPhi to be the reference library
   for IIT's account of perception, not just consciousness.
+
+**P14c. Second AC formalism — IIT-4.0-style α measures**
+
+Register a second actual-causation formalism alongside `AC2019Formalism` that
+computes α from IIT-4.0-style information (generalized intrinsic difference /
+intrinsic information over repertoires) rather than the 2019 framework's
+pointwise mutual information (PMI/WPMI). Selected by
+`config.formalism.actual_causation.version`, mirroring the IIT-version switch
+across the registered IIT formalisms.
+
+The registry seam was built in P11.88: `ACTUAL_CAUSATION_FORMALISM_REGISTRY`,
+`config.formalism.actual_causation.version`, and per-formalism
+`compatible_measures` gating all exist; only `AC_2019` is registered.
+
+Not a measure swap. The 2019 α is `probability_distance` (PMI/WPMI) applied to
+scalar state-probabilities `(p, q) -> float` from the
+`actual_causation_measures` registry. IIT-4.0-style α uses GID / intrinsic
+information, which are distribution/system measures over *repertoires*, not
+`(p, q)` scalars. The α definition, the measure plumbing, the
+partitioned-repertoire and α-aggregation schemes, and the `version` key are all
+design questions requiring a fresh spec.
+
+- *Status:* Deferred, blocked on theory. Albantakis endorses the direction
+  ("always use forward information," which also dissolves the cause-weighting
+  asymmetry), but the load-bearing pieces are unsettled: normalization, the
+  updated 4.0 cut scheme, and whether the current AC code matches the 2019
+  paper. The planned 4.0 AC implementation was never written, so there is no
+  reference. Resume after her notes / a design conversation.
+- *Precursor resolved:* the cause-direction background-weighting question is
+  answered (cause conditions on the after-state, effect on the before-state; a
+  2016 bug, fixed by the `TransitionSystem` refactor and locked by
+  `test_cause_repertoire_conditions_background_on_after_state`). It no longer
+  blocks this work; a forward-information reformulation would make the question
+  moot regardless.
+- *Files:* `pyphi/formalism/actual_causation/formalism.py` (new formalism
+  object), `compute.py` (α via GID/II; new entries in the
+  partitioned-repertoire / background / α-aggregation registries),
+  `pyphi/formalism/base.py` (registration), `pyphi/conf/formalism.py`
+  (`ActualCausationConfig` version key + compatible measures).
+- *Process:* brainstorm → spec → plan → implement; surface the unsettled theory
+  decisions rather than baking in defaults.
 
 **P15. `jsonify` retirement + test reorg + docs / Jupyter / pandas / ASV-in-CI**
 
