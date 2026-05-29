@@ -1961,13 +1961,16 @@ Codifying one now:
    which is post-2.0); perf budget green.
 4. Sphinx site rebuilt; ``docs/migration-2.0.md`` ships;
    ``pyphi_config.yml`` auto-load uses the layered format
-   (legacy YAML rejected with a rename map); ``_GlobalConfig``
-   facade is gone (legacy backend self-owning); no
+   (legacy YAML rejected with a rename map); the legacy
+   ``_conf_legacy`` backend and the old config facade are gone
+   (``_GlobalConfig`` is now the self-owning config); no
    ``TODO(4.0)`` or ``TODO(nonbinary)`` breadcrumbs survive in
    ``pyphi/``.
-5. ``import pyphi; pyphi.iit4.cause_effect_structure(system)``
-   runs to completion on the basic 3-node example with no
-   ``DeprecationWarning`` from internal code paths.
+5. ``import pyphi; pyphi.examples.basic_system().ces()`` (IIT 4.0,
+   the default formalism) runs to completion on the basic 3-node
+   example with no ``DeprecationWarning`` from internal code paths.
+   The version-specific namespaces are ``pyphi.iit4_2023`` /
+   ``pyphi.iit4_2026`` (there is no bare ``pyphi.iit4``).
 
 Conditions 1, 4, and 5 together mean the public surface is stable
 enough that 2.1 can be additive — which is the point of releasing
