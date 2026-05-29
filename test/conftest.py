@@ -44,7 +44,7 @@ IIT_3_CONFIG = config.override(**presets.iit3)
 # IIT 4.0 configuration (current defaults, made explicit for clarity)
 # Use this when you want to explicitly test IIT 4.0 behavior
 IIT_4_CONFIG = config.override(
-    version="IIT_4_0_2023",
+    {"iit.version": "IIT_4_0_2023"},
     mechanism_phi_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
     system_phi_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
     system_partition_scheme="DIRECTED_SET_PARTITION",
