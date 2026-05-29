@@ -105,7 +105,7 @@ def _logistic_3node_k8() -> Substrate:
 
 # IIT 4.0 (2023) — Albantakis et al. 2023, GID measure, no ii(s) cap.
 IIT_4_2023_CONFIG = {
-    "version": "IIT_4_0_2023",
+    "iit.version": "IIT_4_0_2023",
     "mechanism_phi_measure": "GENERALIZED_INTRINSIC_DIFFERENCE",
     "system_partition_scheme": "DIRECTED_SET_PARTITION",
     "progress_bars": False,
@@ -121,7 +121,7 @@ IIT_4_2023_CONFIG = {
 # fallbacks).
 IIT_4_2026_CONFIG = {
     **IIT_4_2023_CONFIG,
-    "version": "IIT_4_0_2026",
+    "iit.version": "IIT_4_0_2026",
     "system_phi_measure": "INTRINSIC_INFORMATION",
 }
 

@@ -288,7 +288,7 @@ class TestGlobalConfigFacade:
         # Uppercase legacy access is preserved for non-colliding leaves.
         assert config.PRECISION == 13
         assert config.PARALLEL is False
-        assert config.VERSION == "IIT_4_0_2023"
+        assert config.CES_MEASURE == "SUM_SMALL_PHI"
         assert config.MECHANISM_PHI_MEASURE == "GENERALIZED_INTRINSIC_DIFFERENCE"
 
     def test_legacy_uppercase_write_propagates_to_layered_view(self):

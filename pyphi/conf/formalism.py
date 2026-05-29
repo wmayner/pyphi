@@ -94,6 +94,7 @@ class ActualCausationConfig:
     alternative registered values let users investigate variants.
     """
 
+    version: str = "AC_2019"
     alpha_measure: str = "PMI"
     mechanism_partition_scheme: str = "JOINT_PARTITION_ALL"
     partitioned_repertoire_scheme: str = "PRODUCT"
@@ -152,8 +153,8 @@ class FormalismConfig:
         """Return a flat dict of leaf-field name to value for ``override(**...)``.
 
         Field names that collide between the IIT and AC sub-namespaces
-        (currently only ``mechanism_partition_scheme``) are excluded — flat
-        overrides on those names are ambiguous. To round-trip a
+        (e.g. ``version``, ``mechanism_partition_scheme``) are excluded —
+        flat overrides on those names are ambiguous. To round-trip a
         colliding-name change, set the sub-namespace wholesale via
         ``replace(formalism, iit=...)`` or ``config.iit = ...``.
         """

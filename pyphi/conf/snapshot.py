@@ -61,7 +61,7 @@ class ConfigSnapshot:
         """Return a flat dict suitable for ``pyphi.config.override(**snap.as_kwargs())``.
 
         Field names that collide between the formalism's IIT and AC
-        sub-namespaces (currently only ``mechanism_partition_scheme``)
+        sub-namespaces (e.g. ``version``, ``mechanism_partition_scheme``)
         are excluded by :meth:`FormalismConfig.as_kwargs` — flat overrides
         on those names are ambiguous and
         :class:`pyphi.conf._global._GlobalConfig.__setattr__` rejects them.

@@ -50,6 +50,31 @@ class TestNestedYAMLLoader:
         finally:
             config.alpha_measure = original
 
+    def test_load_colliding_subnamespace_fields_route_by_nesting(self, tmp_path):
+        # ``version`` and ``mechanism_partition_scheme`` exist in both the
+        # iit and actual_causation sub-namespaces. A nested YAML must route
+        # each to the sub-namespace it is nested under, not raise on the
+        # ambiguous bare name.
+        path = tmp_path / "config.yml"
+        path.write_text(
+            textwrap.dedent("""\
+            ---
+            formalism:
+              iit:
+                version: IIT_3_0
+                mechanism_partition_scheme: JOINT_BIPARTITION
+            """)
+        )
+        original = config.snapshot()
+        try:
+            config.load_yaml(str(path))
+            assert config.formalism.iit.version == "IIT_3_0"
+            assert config.formalism.iit.mechanism_partition_scheme == "JOINT_BIPARTITION"
+            # The AC sub-namespace keeps its default version.
+            assert config.formalism.actual_causation.version == "AC_2019"
+        finally:
+            config.install_snapshot(original)
+
     def test_old_flat_format_raises_with_rename_map(self, tmp_path):
         path = tmp_path / "config.yml"
         path.write_text(

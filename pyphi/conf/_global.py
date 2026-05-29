@@ -18,8 +18,8 @@ Legacy uppercase access (``config.PRECISION``) is preserved as syntax
 sugar — names are case-folded and routed to the appropriate layer.
 
 Field names that collide between the formalism's IIT and AC
-sub-namespaces (currently only ``mechanism_partition_scheme``) are NOT
-flat-routable; reads and writes against the bare leaf name raise. Use
+sub-namespaces (e.g. ``version``, ``mechanism_partition_scheme``) are
+NOT flat-routable; reads and writes against the bare leaf name raise. Use
 the qualified path or replace the sub-namespace as a whole.
 """
 
@@ -217,10 +217,13 @@ class _GlobalConfig:
     def load_yaml(self, path: str | Path) -> None:
         """Load a 2.0 nested-format YAML config file.
 
-        ``formalism`` is loaded from its nested ``iit`` and
-        ``actual_causation`` sub-sections. Each leaf write is applied via
-        :meth:`__setattr__` so the field-routing checks (unknown names,
-        colliding names) fire identically to programmatic writes.
+        Top-level ``infrastructure`` / ``numerics`` leaves are written by
+        flat name. ``formalism`` is loaded from its nested ``iit`` and
+        ``actual_causation`` sub-sections; each sub-namespace leaf is
+        written by its qualified path (``iit.version``) so fields whose bare
+        name collides between the two sub-namespaces (e.g. ``version``,
+        ``mechanism_partition_scheme``) route to the sub-namespace the YAML
+        nests them under.
         """
         from pyphi.conf._io import load_yaml as _load
 
@@ -232,7 +235,7 @@ class _GlobalConfig:
         for sub_name in ("iit", "actual_causation"):
             sub_data = formalism_data.get(sub_name, {})
             for field_name, value in sub_data.items():
-                setattr(self, field_name, value)
+                self[f"{sub_name}.{field_name}"] = value
 
     def to_yaml(self, path: str | Path) -> None:
         """Write the current config in 2.0 nested-format YAML."""
