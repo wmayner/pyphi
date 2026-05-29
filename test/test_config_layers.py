@@ -529,3 +529,20 @@ class TestConfigMappingProtocol:
         """An unknown bare leaf key raises KeyError."""
         with pytest.raises(KeyError, match="Unknown config path"):
             config["nonexistent"]
+
+
+def test_dotted_subscript_subnamespace_shorthand_read():
+    assert config["iit.version"] == config["formalism.iit.version"]
+    assert (
+        config["actual_causation.alpha_measure"]
+        == config["formalism.actual_causation.alpha_measure"]
+    )
+
+
+def test_dotted_subscript_subnamespace_shorthand_write():
+    original = config["formalism.iit.mechanism_phi_measure"]
+    try:
+        config["iit.mechanism_phi_measure"] = "EMD"
+        assert config["formalism.iit.mechanism_phi_measure"] == "EMD"
+    finally:
+        config["formalism.iit.mechanism_phi_measure"] = original

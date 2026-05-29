@@ -56,6 +56,26 @@ _LAYER_TYPES: dict[str, type] = {
 }
 _LOG_FIELDS = frozenset({"log_file", "log_file_level", "log_stdout_level"})
 
+_FORMALISM_SUBNAMESPACES: frozenset[str] = frozenset(
+    f.name for f in fields(FormalismConfig)
+)
+"""Names of the formalism sub-namespaces ('iit', 'actual_causation') —
+recognized as dotted-path roots that imply a leading 'formalism.'."""
+
+
+def _normalize_config_path(path: str) -> str:
+    """Expand a sub-namespace-rooted dotted path to its full layer path.
+
+    ``iit.version`` -> ``formalism.iit.version``;
+    ``actual_causation.alpha_measure`` ->
+    ``formalism.actual_causation.alpha_measure``. Paths already rooted at a
+    top-level layer (or bare leaf names) are returned unchanged.
+    """
+    head, sep, _rest = path.partition(".")
+    if sep and head in _FORMALISM_SUBNAMESPACES:
+        return "formalism." + path
+    return path
+
 
 def _rebuild_nested(current: Any, parts: list[str], value: Any, full_path: str) -> Any:
     """Replace a leaf field inside a frozen nested dataclass via path."""
@@ -227,7 +247,10 @@ class _GlobalConfig:
 
         Bare leaf names route through ``FIELD_TO_LAYER`` to the owning
         layer: ``config["precision"]`` returns ``config.numerics.precision``.
+        Sub-namespace-rooted paths (``config["iit.version"]``) are accepted
+        as shorthand for the full path (``formalism.iit.version``).
         """
+        path = _normalize_config_path(path)
         parts = path.split(".")
         if not parts or not all(parts):
             raise KeyError(f"Invalid config path: {path!r}")
@@ -251,7 +274,10 @@ class _GlobalConfig:
 
         ``config["numerics.precision"] = 6``,
         ``config["formalism.iit.mechanism_phi_measure"] = "EMD"``.
+        Sub-namespace-rooted paths (``config["iit.version"] = ...``) are
+        accepted as shorthand for the full path.
         """
+        path = _normalize_config_path(path)
         parts = path.split(".")
         if len(parts) < 2 or not all(parts):
             raise KeyError(
