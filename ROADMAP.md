@@ -1918,6 +1918,30 @@ test inventory — that a deliberate re-ordering pass is in order.
     sweep once P11.95d's coverage expansion lands. Probably
     post-2.0 unless an obvious smoking gun appears mid-sweep.
 
+20. **P11.88 — AC formalism object at parity with IIT.** *(landed; spec
+    ``66207102``, plan ``010d56be``, implementation ``1cde4966`` AC
+    ``version`` config field + nested-YAML colliding-field load fix,
+    ``c6ba1232`` AC compute moved to
+    ``pyphi/formalism/actual_causation/``, ``314556e7`` ``AC2019Formalism``
+    object + registry registration, ``5fc6d832`` public AC API dispatches
+    through the formalism with ``_resolve_ac_kwargs`` collapsed into
+    ``_resolve_ac_measures``.)* Brings Actual Causation to structural parity
+    with the IIT formalism objects: a registered ``AC2019Formalism`` selected
+    by ``config.formalism.actual_causation.version`` owns measure/scheme
+    resolution (with a ``compatible_measures = {PMI, WPMI}`` gate at resolve
+    time) and evaluation dispatch, mirroring ``IIT4_2023Formalism``. The AC
+    compute algorithms, the ``probability_distance`` / ``account_distance``
+    utilities, and the three AC scheme registries moved into the new
+    ``pyphi/formalism/actual_causation/`` package; ``actual.py`` keeps
+    ``Transition`` / ``TransitionSystem`` plus thin public dispatchers. Builds
+    on the dotted-config accessor so the now-colliding ``version`` field is
+    addressable as ``config["actual_causation.version"]``. Pure refactor: zero
+    numeric change (``test_actual.py`` + goldens byte-identical). Deferred
+    IIT-4.0-style AC measures (generalized intrinsic difference / intrinsic
+    information instead of the 2019 PMI/WPMI) are the next AC step; only the
+    registry seam is built here, and that work intersects the open
+    cause-weighting question.
+
 **Ship criterion for 2.0:**
 
 The original roadmap doesn't state a release criterion explicitly.
