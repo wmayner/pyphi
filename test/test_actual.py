@@ -17,24 +17,24 @@ from .conftest import IIT_3_CONFIG
 
 
 def test_actual_partitioned_repertoire_schemes_registry():
-    from pyphi import actual
+    from pyphi.formalism.actual_causation.compute import partitioned_repertoire_schemes
 
-    assert "PRODUCT" in actual.partitioned_repertoire_schemes
-    assert "FORWARD_PROBABILITY" not in actual.partitioned_repertoire_schemes
+    assert "PRODUCT" in partitioned_repertoire_schemes
+    assert "FORWARD_PROBABILITY" not in partitioned_repertoire_schemes
 
 
 def test_actual_background_strategies_registry():
-    from pyphi import actual
+    from pyphi.formalism.actual_causation.compute import background_strategies
 
-    assert "UNIFORM" in actual.background_strategies
-    assert "STATIONARY" not in actual.background_strategies
+    assert "UNIFORM" in background_strategies
+    assert "STATIONARY" not in background_strategies
 
 
 def test_actual_alpha_aggregations_registry():
-    from pyphi import actual
+    from pyphi.formalism.actual_causation.compute import alpha_aggregations
 
-    assert "SUBTRACTIVE" in actual.alpha_aggregations
-    assert "RATIO" not in actual.alpha_aggregations
+    assert "SUBTRACTIVE" in alpha_aggregations
+    assert "RATIO" not in alpha_aggregations
 
 
 def test_transition_system_top_level_export():
@@ -695,7 +695,9 @@ def ac_cut(direction, *parts):
     ],
 )
 def test_get_actual_partitions(direction, answer, transition):
-    cuts = list(actual._get_partitions(transition, direction))
+    from pyphi.formalism.actual_causation.compute import _get_partitions
+
+    cuts = list(_get_partitions(transition, direction))
     assert set(cuts) == set(answer)
 
 

@@ -21,6 +21,7 @@ import pytest
 from pyphi import Substrate
 from pyphi import actual
 from pyphi import jsonify
+from pyphi.models import AcRepertoireIrreducibilityAnalysis
 from pyphi.models import CausalLink
 
 
@@ -155,7 +156,7 @@ class TestDisjunctionOverdetermination:
         assert len(ties) == 2
         # Each tied member is a full AcRIA.
         for tied in ties:
-            assert isinstance(tied, actual.AcRepertoireIrreducibilityAnalysis)
+            assert isinstance(tied, AcRepertoireIrreducibilityAnalysis)
             assert tied.alpha == pytest.approx(0.415, abs=1e-2)
         purviews = {tuple(sorted(t.purview)) for t in ties}
         assert purviews == {(0,), (1,)}
