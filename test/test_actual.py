@@ -237,6 +237,72 @@ def prevention():
 # were outdated. test_background_noised provides coverage for similar functionality.
 
 
+def test_cause_repertoire_conditions_background_on_after_state():
+    """Cause-direction background units are conditioned on the after-state.
+
+    In a partial actual-causation analysis (the occurrence is a strict
+    subset of the network), units outside the cause set are frozen at the
+    realized present state (time |t|) when computing a cause repertoire. The
+    repertoire therefore matches a system conditioned on the after-state and
+    differs from one conditioned on the before-state whenever the two states
+    disagree on a background unit.
+    """
+
+    # 4-node network. Node 2 is a background unit (outside both the cause and
+    # effect sets) that feeds the effect node, so its conditioned value
+    # changes the cause repertoire over the cause purview.
+    #   node0 = OR(node1, node2);   node1 = COPY(node3)
+    #   node2 = node1 AND node3;    node3 = COPY(node0)
+    def logic(s):
+        n0, n1, n2, n3 = s
+        return (int(n1 or n2), int(n3), int(n1 and n3), int(n0))
+
+    n = 4
+    tpm = np.zeros((2**n, n))
+    for i in range(2**n):
+        tpm[i] = logic(tuple((i >> k) & 1 for k in range(n)))
+    # fmt: off
+    cm = np.array([
+        [0, 0, 0, 1],
+        [1, 0, 1, 0],
+        [1, 0, 0, 0],
+        [0, 1, 1, 0],
+    ])
+    # fmt: on
+    substrate = Substrate(tpm, cm)
+
+    cause_indices = (1,)
+    effect_indices = (0,)
+    before_state = (1, 1, 0, 1)
+    after_state = (1, 1, 1, 1)  # = logic(before_state); background unit 2 flips 0 -> 1
+
+    transition = actual.Transition(
+        substrate, before_state, after_state, cause_indices, effect_indices
+    )
+    repertoire = transition.cause_repertoire(effect_indices, cause_indices)
+
+    node_indices = tuple(sorted(set(cause_indices) | set(effect_indices)))
+    external = tuple(sorted(set(range(n)) - set(cause_indices)))
+    after_ref = System(
+        substrate=substrate,
+        state=after_state,
+        node_indices=node_indices,
+        external_indices=external,
+    ).repertoire(Direction.CAUSE, effect_indices, cause_indices)
+    before_ref = System(
+        substrate=substrate,
+        state=before_state,
+        node_indices=node_indices,
+        external_indices=external,
+    ).repertoire(Direction.CAUSE, effect_indices, cause_indices)
+
+    # The two conditionings genuinely differ for this partial transition,
+    assert not np.allclose(after_ref, before_ref)
+    # and the cause repertoire uses the after-state.
+    assert np.allclose(repertoire, after_ref)
+    assert not np.allclose(repertoire, before_ref)
+
+
 def test_background_noised():
     # fmt: off
     tpm = np.array([
