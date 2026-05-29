@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import contextlib
 from collections.abc import Iterator
+from collections.abc import Mapping
 from dataclasses import asdict
 from dataclasses import fields
 from dataclasses import is_dataclass
@@ -193,16 +194,25 @@ class _GlobalConfig:
         object.__setattr__(self, "_numerics", snapshot.numerics)
         self._fire_layer_replacement_callbacks(old_numerics, snapshot.numerics)
 
-    def override(self, **kwargs: Any) -> _OverrideContext:
+    def override(
+        self, _paths: Mapping[str, Any] | None = None, /, **kwargs: Any
+    ) -> _OverrideContext:
         """Scoped override of one or more config fields.
 
         Returns a :class:`contextlib.ContextDecorator` — usable as
         ``with config.override(...):`` or ``@config.override(...)``.
-        Accepts both layered lowercase names (``precision=6``) and legacy
-        uppercase names (``PRECISION=6``); unknown names raise
+
+        Accepts flat layered names (``precision=6``), legacy uppercase names
+        (``PRECISION=6``), and dotted paths via the positional mapping or
+        kwargs (``override({"iit.version": "IIT_3_0"})`` or
+        ``override(**{"iit.version": "IIT_3_0"})``). Dotted paths accept the
+        sub-namespace shorthand (``iit.version``) or the full path
+        (``formalism.iit.version``). Unknown names raise
         :class:`ConfigurationError`.
         """
-        return _OverrideContext(self, kwargs)
+        merged: dict[str, Any] = dict(_paths) if _paths else {}
+        merged.update(kwargs)
+        return _OverrideContext(self, merged)
 
     def load_yaml(self, path: str | Path) -> None:
         """Load a 2.0 nested-format YAML config file.
@@ -477,7 +487,10 @@ class _OverrideContext(contextlib.ContextDecorator):
     def __enter__(self) -> _OverrideContext:
         self._saved = self._config.snapshot()
         for name, value in self._new_values.items():
-            setattr(self._config, name, value)
+            if "." in name:
+                self._config[name] = value
+            else:
+                setattr(self._config, name, value)
         return self
 
     def __exit__(self, *exc: Any) -> bool:

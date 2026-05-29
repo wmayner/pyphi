@@ -546,3 +546,27 @@ def test_dotted_subscript_subnamespace_shorthand_write():
         assert config["formalism.iit.mechanism_phi_measure"] == "EMD"
     finally:
         config["formalism.iit.mechanism_phi_measure"] = original
+
+
+def test_override_dotted_positional_dict():
+    before = config["formalism.iit.version"]
+    with config.override({"iit.version": "IIT_3_0"}):
+        assert config["formalism.iit.version"] == "IIT_3_0"
+    assert config["formalism.iit.version"] == before
+
+
+def test_override_dotted_via_kwargs():
+    before = config["formalism.iit.version"]
+    with config.override(**{"iit.version": "IIT_3_0"}):
+        assert config["formalism.iit.version"] == "IIT_3_0"
+    assert config["formalism.iit.version"] == before
+
+
+def test_override_mixed_dotted_and_flat():
+    before_v = config["formalism.iit.version"]
+    before_p = config["numerics.precision"]
+    with config.override({"iit.version": "IIT_3_0"}, precision=6):
+        assert config["formalism.iit.version"] == "IIT_3_0"
+        assert config["numerics.precision"] == 6
+    assert config["formalism.iit.version"] == before_v
+    assert config["numerics.precision"] == before_p
