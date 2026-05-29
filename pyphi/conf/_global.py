@@ -381,9 +381,10 @@ class _GlobalConfig:
         if name in colliding_formalism_fields():
             raise AttributeError(
                 f"{name!r} is ambiguous (exists in both formalism.iit and "
-                "formalism.actual_causation). Use the qualified path: "
-                f"config.formalism.iit.{name} or "
-                f"config.formalism.actual_causation.{name}."
+                "formalism.actual_causation). Use a qualified form: "
+                f"config.formalism.iit.{name}, "
+                f'config["iit.{name}"], or '
+                f'config["actual_causation.{name}"].'
             )
         raise AttributeError(f"{type(self).__name__!r} object has no attribute {name!r}")
 
@@ -418,10 +419,12 @@ class _GlobalConfig:
         if field_name in colliding_formalism_fields():
             raise ConfigurationError(
                 f"Field {field_name!r} is ambiguous (exists in both "
-                "formalism.iit and formalism.actual_causation). Use the "
-                "nested form: config.iit = replace(config.formalism.iit, "
-                f"{field_name}=...) or config.actual_causation = "
-                f"replace(config.formalism.actual_causation, {field_name}=...)."
+                "formalism.iit and formalism.actual_causation). Qualify it: "
+                f'config["iit.{field_name}"] = ... (or '
+                f'"actual_causation.{field_name}"), '
+                f'config.override({{"iit.{field_name}": ...}}), or set the '
+                "sub-namespace wholesale via config.iit = "
+                f"replace(config.formalism.iit, {field_name}=...)."
             )
 
         if field_name in FIELD_TO_LAYER:

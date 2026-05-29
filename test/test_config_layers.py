@@ -570,3 +570,17 @@ def test_override_mixed_dotted_and_flat():
         assert config["numerics.precision"] == 6
     assert config["formalism.iit.version"] == before_v
     assert config["numerics.precision"] == before_p
+
+
+def test_colliding_setattr_error_mentions_dotted_form():
+    with pytest.raises(ConfigurationError) as exc:
+        config.mechanism_partition_scheme = "JOINT_BIPARTITION"
+    msg = str(exc.value)
+    assert "override(" in msg
+    assert "iit.mechanism_partition_scheme" in msg
+
+
+def test_colliding_getattr_error_mentions_dotted_form():
+    with pytest.raises(AttributeError) as exc:
+        _ = config.mechanism_partition_scheme
+    assert 'config["iit.mechanism_partition_scheme"]' in str(exc.value)
