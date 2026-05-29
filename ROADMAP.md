@@ -1,5 +1,12 @@
 # PyPhi Strategic Refactoring Roadmap
 
+> **⚠️ Keep this roadmap current.** When an item lands, mark it in the same
+> change that lands it: add a `*(landed; <commits>)*` marker (and a one-line
+> completion note) to **both** its phase-letter section and its entry in the
+> ordering list. This document has drifted before — items were implemented
+> but left described as upcoming — so **verify an item's status against the
+> code, `changelog.d/`, and git history before trusting its marker here.**
+
 ## Context
 
 PyPhi is a scientific library implementing Integrated Information Theory (IIT). It has
@@ -1432,12 +1439,14 @@ test inventory — that a deliberate re-ordering pass is in order.
    (60–300x on ``IIT4_2026Formalism``). Calibrated to ``max(3.0,
    4× median)`` per fixture.
 
-6. **P12 — Non-binary units.** With perf gate up and macro/actual on
-   the new core, alphabet generalization is bounded: PR #105 is the
-   reference; binary golden fixtures stay as oracles.
+6. **P12 — Non-binary units.** *(landed — P12a factored TPM + P12b
+   multivalued units; k>2 supported through the SIA/CES pipeline with
+   binary goldens byte-identical. AC k-ary deferred. See Phase F.)*
 
-7. **P13 — Zaeemzadeh upper bounds.** Pure feature; depends on
-   P12's alphabet generalization.
+7. **P13 — Zaeemzadeh upper bounds.** *(partial — upper-bound option
+   merged via PRs #56–#59 + `BoundKind` taxonomy; the pruning feature
+   itself, shadow-mode gate, and spec/changelog remain. See Phase F.)*
+   Pure feature; P12's alphabet generalization (its dependency) is done.
 
 8. **P14b — Matching/perception fold-in.** Cleanest deferral
    candidate if the schedule slips: self-contained extension whose
@@ -1987,33 +1996,37 @@ this updated ordering is authoritative for **schedule**.
 
 ### Phase F — Features and new algorithms
 
-**P12. Non-binary (multi-valued) unit support**
+**P12. Non-binary (multi-valued) unit support** — ✅ **Landed (P12a + P12b)**
 
-Resolve the ~12 `TODO extend to nonbinary nodes` TODOs. Start from **two** existing
-references: (a) the experimental `nonbinary` github branch from Gómez et al. 2020,
-and (b) **PR #105 (implicit TPMs)**, which already implements per-node state-space
-tracking via `state_space.py` and handles non-binary natively in `ImplicitTPM`.
-PR #105 has done substantial work here — ~1918 additions with tests passing.
+Multi-valued (k>2) units are supported throughout the SIA / CES pipeline.
+Substrates with heterogeneous per-node alphabets are constructed via
+`Substrate(state_space=...)`; `FactoredTPM` is the canonical representation for
+both cause and effect TPMs, unified with the binary math per IIT 4.0 Eq. 4.
+Repertoire shapes, `all_states`, and state validation are alphabet-generic. Two
+k>2 golden fixtures (`multivalued_k3_tiny`, `multivalued_2x3x3`) verify
+end-to-end correctness; the binary goldens remain byte-identical.
 
-- `TPM` base class with `alphabet_size` per axis (trivial once the TPM is
-  xarray-backed, with explicit coordinate labels).
-- `Node.n_states` replacing hardcoded `2`.
-- Per-unit state space in `Unit.alphabet_size`.
-- `DistanceMetric` Protocol gets `state_space` parameter; binary stays default.
-- Generalize `repertoire_shape` and all `2**n` calls.
-- Golden fixtures remain exclusively binary; property tests get parameterized over
-  state-space sizes.
+- **P12a — factored TPM** (spec `2026-05-22-p12a-factored-tpm-design.md`,
+  plan `2026-05-22-p12a-factored-tpm.md`): `FactoredTPM` with per-unit factors,
+  `state_space=` / `alphabet=` keywords, `Substrate.joint_tpm()` unifying on the
+  explicit-alphabet shape, TPM-module consolidation, legacy backward-TPM and
+  SBN-bridge retirement. Changelogs: `factored-tpm`, `consolidate-tpm-module`,
+  `proper-cause-tpm-factored`, `rename-explicit-tpm-to-joint-tpm`,
+  `retire-legacy-backward-tpm`, `retire-effect-tpm-sbn-bridge`.
+- **P12b — multivalued units** (spec `2026-05-24-p12b-multivalued-units-design.md`
+  + `…-unification-amendment.md`, revised plan
+  `2026-05-24-p12b-multivalued-units-revised.md`): native k-ary cause path
+  unified with the binary path, alphabet-generic validators
+  (`validate.node_states` / `state_reachable`), k-ary AC code-path assertion,
+  k>2 SIA / CES pipeline + goldens. Changelogs: `p12b-multivalued-units-complete`,
+  `native-kary-cause`, `all-states-kary`, `kary-golden-fixtures`,
+  `state-space-api`.
 
-- *Why here:* After P7 because it fundamentally changes what `CausalModel` wraps,
-  and after P5 because non-binary exposes the same "implicit binary" assumption in
-  multiple distance metrics. Doing it earlier would force P7 to be done twice.
-- *Files:* `pyphi/tpm.py`, `pyphi/node.py`, `pyphi/network.py`, `pyphi/repertoire.py`,
-  `pyphi/metrics/distribution.py`, `pyphi/distribution.py`, and every file flagged
-  with `TODO extend to nonbinary nodes`.
-- *Risk:* High — adds a dimension to the math. Mitigated because the binary golden
-  fixtures remain valid oracles (nothing binary should change) and property tests
-  can be parameterized over alphabet size.
-- *Leverage:* Unlocks Gómez-style multivalued research; retires ~12 TODOs.
+- *Deferred:* the actual-causation (AC) pipeline remains binary-only; AC k-ary
+  support is deferred (it intersects the AC formalism work, see P14c). A handful
+  of `TODO extend to nonbinary` comments remain in narrower helper/measure paths
+  (`distribution.py`, `node.py`, `measures/distribution.py`) and on the AC path.
+- *Leverage:* Unlocks Gómez-style multivalued research.
 
 **P12c. xarray state_space coord labels**
 
@@ -2045,7 +2058,15 @@ xarray is opt-in). Revisit if/when xarray becomes the default backend.
 - *Leverage:* Low absolute, but high for users on the xarray opt-in path.
 - *Style:* ~1 day; gated on actual user demand for xarray-native indexing.
 
-**P13. Zaeemzadeh upper bounds for pruning**
+**P13. Zaeemzadeh upper bounds for pruning** — 🟡 **Partial**
+
+*Status:* groundwork merged, feature not complete. The Zaeemzadeh upper-bound
+PRs (#56–#59) landed an upper-bound option (now the default) and
+`formalism/base.py` declares a `BoundKind` taxonomy that includes certified
+Zaeemzadeh-style pruning. What remains for a clean P13: a dedicated
+`compute_upper_bound` / bounds module, wiring into `find_mip` and
+`all_complexes` for actual pruning, the shadow-mode equality gate, and a
+spec/plan/changelog. No P13 spec or changelog fragment exists yet.
 
 Implement the Zaeemzadeh & Tononi 2024 upper bounds on Φ. Use them in `find_mip` to
 prune partitions that cannot achieve the best-so-far φ. Use them in `all_complexes`
