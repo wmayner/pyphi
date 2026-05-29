@@ -1765,8 +1765,12 @@ test inventory — that a deliberate re-ordering pass is in order.
     should be paired with a clear migration note in
     ``docs/migration-2.0.md`` (or 3.0.md if it slips post-2.0).
 
-18. **P11.95d — IIT 3.0 tie resolution.** In-scope for 2.0 (required
-    by ship criterion #3, which mandates unskipping
+18. **P11.95d — IIT 3.0 tie resolution.** *(landed; spec ``db2f31f2``,
+    plan ``0e89b2d8``, implementation ``a7e51a12`` ``resolve_iit3_complex_tie``
+    cascade resolver, ``2dddb8d2`` IIT 3.0 complex selection routed through the
+    indeterminate-on-tie cascade, ``9d58e9b4`` four-path documentation in
+    ``presets.iit3``, ``92fd7522`` rule110/grid3 IIT 3.0 fixtures, ``d83e46bc``
+    changelog.)* Required by ship criterion #3 (unskipping
     ``test_actual.py``). Design spec at
     ``docs/superpowers/specs/2026-05-17-p11.95d-iit3-tie-resolution-design.md``.
 
@@ -1845,10 +1849,10 @@ test inventory — that a deliberate re-ordering pass is in order.
     is unskipped with expectations updated to match.
 
     Independent of P11.95a (deterministic floor) and P11.95b
-    (paper-faithful state-tie for 4.0). Estimated 2-3 days
-    including goldens regeneration for the
-    ``mip_tie_resolution`` correction and the in-scope coverage
-    expansion.
+    (paper-faithful state-tie for 4.0). The ``mip_tie_resolution``
+    correction regenerated the affected IIT 3.0 goldens, and the
+    coverage expansion (per-mechanism MIP shapes, WEDGE_TRIPARTITION
+    canonical reference, rule110/grid3 fixtures) landed alongside.
 
     **In-scope coverage expansion.** The
     ``mip_tie_resolution`` bug was caught only after goldens had
