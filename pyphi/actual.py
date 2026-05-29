@@ -24,6 +24,7 @@ from dataclasses import field
 from dataclasses import replace
 from functools import cached_property
 from types import MappingProxyType
+from typing import TYPE_CHECKING
 from typing import Any
 
 import numpy as np
@@ -40,6 +41,9 @@ from .models import fmt
 from .models.partitions import DirectedBipartition
 from .substrate import Substrate
 from .system import System
+
+if TYPE_CHECKING:
+    from pyphi.formalism.base import ActualCausationFormalism
 
 log = logging.getLogger(__name__)
 
@@ -721,32 +725,15 @@ class Transition:
     # =========================================================================
 
     # TODO: alias to `irreducible_cause/effect ratio?
-    def find_mip(
-        self,
-        direction,
-        mechanism,
-        purview,
-        allow_neg=False,
-        *,
-        alpha_measure=None,
-        partitioned_repertoire_scheme=None,
-    ):
+    def find_mip(self, direction, mechanism, purview, allow_neg=False, **kwargs):
         """Find the ratio minimum information partition for a mechanism
         over a purview.
 
-        Delegates to
-        :func:`pyphi.formalism.actual_causation.compute._find_mip`.
+        Dispatches through the active actual-causation formalism
+        (``config.formalism.actual_causation.version``).
         """
-        from pyphi.formalism.actual_causation.compute import _find_mip
-
-        return _find_mip(
-            self,
-            direction,
-            mechanism,
-            purview,
-            allow_neg,
-            alpha_measure=alpha_measure,
-            partitioned_repertoire_scheme=partitioned_repertoire_scheme,
+        return _active_ac_formalism().evaluate_mechanism(
+            self, direction, mechanism, purview, allow_neg=allow_neg, **kwargs
         )
 
     # Phi_max methods
@@ -774,31 +761,16 @@ class Transition:
         ]
 
     def find_causal_link(
-        self,
-        direction,
-        mechanism,
-        purviews=None,
-        allow_neg=False,
-        *,
-        alpha_measure=None,
-        partitioned_repertoire_scheme=None,
+        self, direction, mechanism, purviews=None, allow_neg=False, **kwargs
     ):
         """Return the maximally irreducible cause or effect ratio for a
         mechanism.
 
-        Delegates to
-        :func:`pyphi.formalism.actual_causation.compute._find_causal_link`.
+        Dispatches through the active actual-causation formalism
+        (``config.formalism.actual_causation.version``).
         """
-        from pyphi.formalism.actual_causation.compute import _find_causal_link
-
-        return _find_causal_link(
-            self,
-            direction,
-            mechanism,
-            purviews,
-            allow_neg,
-            alpha_measure=alpha_measure,
-            partitioned_repertoire_scheme=partitioned_repertoire_scheme,
+        return _active_ac_formalism().evaluate_causal_link(
+            self, direction, mechanism, purviews=purviews, allow_neg=allow_neg, **kwargs
         )
 
     def find_actual_cause(self, mechanism, purviews=None, **kw):
@@ -819,65 +791,65 @@ class Transition:
 # =============================================================================
 
 
+def _active_ac_formalism() -> "ActualCausationFormalism":
+    """Return the actual-causation formalism selected by config.
+
+    Looks up ``ACTUAL_CAUSATION_FORMALISM_REGISTRY`` by
+    ``config.formalism.actual_causation.version``. Imported lazily inside
+    the function body to avoid an import cycle (mirroring
+    :mod:`pyphi.formalism.queries`).
+    """
+    from typing import cast
+
+    from pyphi.conf import config
+    from pyphi.formalism.base import ACTUAL_CAUSATION_FORMALISM_REGISTRY
+
+    return cast(
+        "ActualCausationFormalism",
+        ACTUAL_CAUSATION_FORMALISM_REGISTRY[config.formalism.actual_causation.version],
+    )
+
+
 def directed_account(
     transition,
     direction,
     mechanisms=None,
     purviews=None,
     allow_neg=False,
-    *,
-    alpha_measure=None,
-    partitioned_repertoire_scheme=None,
+    **kwargs,
 ):
     """Return the set of all |CausalLinks| of the specified direction.
 
-    Dispatches to
-    :func:`pyphi.formalism.actual_causation.compute._directed_account`.
+    Dispatches through the active actual-causation formalism
+    (``config.formalism.actual_causation.version``).
     """
-    from pyphi.formalism.actual_causation.compute import _directed_account
-
-    return _directed_account(
+    return _active_ac_formalism().evaluate_account(
         transition,
         direction,
-        mechanisms,
-        purviews,
-        allow_neg,
-        alpha_measure=alpha_measure,
-        partitioned_repertoire_scheme=partitioned_repertoire_scheme,
+        mechanisms=mechanisms,
+        purviews=purviews,
+        allow_neg=allow_neg,
+        **kwargs,
     )
 
 
-def account(
-    transition,
-    direction=Direction.BIDIRECTIONAL,
-    *,
-    alpha_measure=None,
-    partitioned_repertoire_scheme=None,
-):
+def account(transition, direction=Direction.BIDIRECTIONAL, **kwargs):
     """Return the set of all causal links for a |Transition|.
 
-    Dispatches to
-    :func:`pyphi.formalism.actual_causation.compute._account`.
+    Dispatches through the active actual-causation formalism
+    (``config.formalism.actual_causation.version``).
     """
-    from pyphi.formalism.actual_causation.compute import _account
-
-    return _account(
-        transition,
-        direction,
-        alpha_measure=alpha_measure,
-        partitioned_repertoire_scheme=partitioned_repertoire_scheme,
-    )
+    return _active_ac_formalism().evaluate_account(transition, direction, **kwargs)
 
 
 def sia(transition, direction=Direction.BIDIRECTIONAL, **kwargs):
     """Return the minimal information partition of a transition in a specific
     direction.
 
-    Dispatches to :func:`pyphi.formalism.actual_causation.compute._sia`.
+    Dispatches through the active actual-causation formalism
+    (``config.formalism.actual_causation.version``).
     """
-    from pyphi.formalism.actual_causation.compute import _sia
-
-    return _sia(transition, direction, **kwargs)
+    return _active_ac_formalism().evaluate_system(transition, direction, **kwargs)
 
 
 # =============================================================================

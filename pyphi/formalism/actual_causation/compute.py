@@ -111,38 +111,6 @@ def _alpha_subtractive(rho: float, rho_partitioned: float) -> float:
     return rho - rho_partitioned
 
 
-def _resolve_ac_kwargs() -> dict[str, Any]:
-    """Resolve actual-causation formalism config into explicit kwargs.
-
-    The AC compute entry points read the active configuration once at
-    their boundary and thread the resolved values through internal
-    helpers. The returned dict carries:
-
-    - ``alpha_measure``: a :class:`DistributionMeasure` resolved from
-      :data:`actual_causation_measures` by name
-      (``config.formalism.actual_causation.alpha_measure``).
-    - ``partitioned_repertoire_scheme``: a callable from
-      :data:`partitioned_repertoire_schemes` keyed by
-      ``config.formalism.actual_causation.partitioned_repertoire_scheme``.
-    - ``background_scheme``: a callable from
-      :data:`background_strategies` keyed by
-      ``config.formalism.actual_causation.background_scheme``.
-    - ``alpha_aggregation``: a callable from :data:`alpha_aggregations`
-      keyed by ``config.formalism.actual_causation.alpha_aggregation``.
-    """
-    from pyphi.measures.distribution import resolve_actual_causation_measure
-
-    ac = config.formalism.actual_causation
-    return {
-        "alpha_measure": resolve_actual_causation_measure(ac.alpha_measure),
-        "partitioned_repertoire_scheme": partitioned_repertoire_schemes[
-            ac.partitioned_repertoire_scheme
-        ],
-        "background_scheme": background_strategies[ac.background_scheme],
-        "alpha_aggregation": alpha_aggregations[ac.alpha_aggregation],
-    }
-
-
 def probability_distance(
     p: float,
     q: float,
@@ -237,13 +205,6 @@ def _find_mip(
         AcRepertoireIrreducibilityAnalysis: The irreducibility analysis for
         the mechanism.
     """
-    if alpha_measure is None or partitioned_repertoire_scheme is None:
-        resolved = _resolve_ac_kwargs()
-        if alpha_measure is None:
-            alpha_measure = resolved["alpha_measure"]
-        if partitioned_repertoire_scheme is None:
-            partitioned_repertoire_scheme = resolved["partitioned_repertoire_scheme"]
-
     if not purview:
         return _null_ac_ria(
             transition.mechanism_state(direction), direction, mechanism, purview
@@ -333,13 +294,6 @@ def _find_causal_link(
     Returns:
         CausalLink: The maximally-irreducible actual cause or effect.
     """
-    if alpha_measure is None or partitioned_repertoire_scheme is None:
-        resolved = _resolve_ac_kwargs()
-        if alpha_measure is None:
-            alpha_measure = resolved["alpha_measure"]
-        if partitioned_repertoire_scheme is None:
-            partitioned_repertoire_scheme = resolved["partitioned_repertoire_scheme"]
-
     purviews = transition.potential_purviews(direction, mechanism, purviews)
 
     # Find the maximal RIA over the remaining purviews.
@@ -396,13 +350,6 @@ def _directed_account(
             ``config.formalism.actual_causation.partitioned_repertoire_scheme``
             is resolved at the call boundary.
     """
-    if alpha_measure is None or partitioned_repertoire_scheme is None:
-        resolved = _resolve_ac_kwargs()
-        if alpha_measure is None:
-            alpha_measure = resolved["alpha_measure"]
-        if partitioned_repertoire_scheme is None:
-            partitioned_repertoire_scheme = resolved["partitioned_repertoire_scheme"]
-
     if mechanisms is None:
         mechanisms = utils.powerset(
             transition.mechanism_indices(direction), nonempty=True
@@ -447,13 +394,6 @@ def _account(
             ``config.formalism.actual_causation.partitioned_repertoire_scheme``
             is resolved at the call boundary.
     """
-    if alpha_measure is None or partitioned_repertoire_scheme is None:
-        resolved = _resolve_ac_kwargs()
-        if alpha_measure is None:
-            alpha_measure = resolved["alpha_measure"]
-        if partitioned_repertoire_scheme is None:
-            partitioned_repertoire_scheme = resolved["partitioned_repertoire_scheme"]
-
     if direction != Direction.BIDIRECTIONAL:
         return _directed_account(
             transition,
@@ -541,7 +481,14 @@ def _get_partitions(transition, direction):
             )
 
 
-def _sia(transition, direction=Direction.BIDIRECTIONAL, **kwargs):
+def _sia(
+    transition,
+    direction=Direction.BIDIRECTIONAL,
+    *,
+    alpha_measure=None,
+    partitioned_repertoire_scheme=None,
+    **kwargs,
+):
     """Return the minimal information partition of a transition in a specific
     direction.
 
@@ -566,10 +513,6 @@ def _sia(transition, direction=Direction.BIDIRECTIONAL, **kwargs):
             transition,
         )
         return _null_ac_sia(transition, direction)
-
-    resolved = _resolve_ac_kwargs()
-    alpha_measure = resolved["alpha_measure"]
-    partitioned_repertoire_scheme = resolved["partitioned_repertoire_scheme"]
 
     log.debug("Finding unpartitioned account...")
     unpartitioned_account = _account(

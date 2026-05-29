@@ -126,7 +126,14 @@ class AC2019Formalism:
         self, transition: Any, direction: Any = Direction.BIDIRECTIONAL, **kwargs: Any
     ) -> Any:
         """Compute the system irreducibility analysis (big-alpha) of a transition."""
-        return compute._sia(transition, direction, **kwargs)
+        resolved = _resolve_ac_measures(self)
+        return compute._sia(
+            transition,
+            direction,
+            alpha_measure=resolved["alpha_measure"],
+            partitioned_repertoire_scheme=resolved["partitioned_repertoire_scheme"],
+            **kwargs,
+        )
 
     def evaluate_mechanism(
         self,
