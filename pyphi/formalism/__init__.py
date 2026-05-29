@@ -9,6 +9,8 @@ concrete implementations live in :mod:`pyphi.formalism.iit3` and
 ``config.formalism.iit.version``.
 """
 
+from .actual_causation import AC2019Formalism
+from .base import ACTUAL_CAUSATION_FORMALISM_REGISTRY
 from .base import FORMALISM_REGISTRY
 from .base import ApproximateFormalism
 from .base import ErrorInfo
@@ -42,7 +44,9 @@ FORMALISM_REGISTRY.register("IIT_4_0_2023", IIT4_2023Formalism())
 FORMALISM_REGISTRY.register("IIT_4_0_2026", IIT4_2026Formalism())
 
 __all__ = [
+    "ACTUAL_CAUSATION_FORMALISM_REGISTRY",
     "FORMALISM_REGISTRY",
+    "AC2019Formalism",
     "ApproximateFormalism",
     "ErrorInfo",
     "ExactFormalism",

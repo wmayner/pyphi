@@ -42,3 +42,44 @@ def test_version_is_colliding_field():
         _ = config.version
     with pytest.raises(ConfigurationError), config.override(version="AC_2019"):
         pass
+
+
+def test_ac2019_formalism_registered_and_satisfies_protocol():
+    from pyphi.formalism.base import ACTUAL_CAUSATION_FORMALISM_REGISTRY
+    from pyphi.formalism.base import ActualCausationFormalism
+
+    formalism = ACTUAL_CAUSATION_FORMALISM_REGISTRY["AC_2019"]
+    assert isinstance(formalism, ActualCausationFormalism)
+    assert formalism.name == "AC_2019"
+    assert "PMI" in formalism.compatible_measures
+    assert "WPMI" in formalism.compatible_measures
+
+
+def test_ac_formalism_rejects_incompatible_measure():
+    from pyphi.formalism.actual_causation.formalism import _resolve_ac_measures
+    from pyphi.formalism.base import ACTUAL_CAUSATION_FORMALISM_REGISTRY
+    from pyphi.formalism.base import MeasureNotCompatibleError
+
+    formalism = ACTUAL_CAUSATION_FORMALISM_REGISTRY["AC_2019"]
+    # An IIT measure name is not in AC's compatible_measures.
+    with pytest.raises(MeasureNotCompatibleError):
+        _resolve_ac_measures(
+            formalism, alpha_measure_name="GENERALIZED_INTRINSIC_DIFFERENCE"
+        )
+
+
+def test_ac_formalism_resolves_default_measures():
+    from pyphi.formalism.actual_causation.formalism import _resolve_ac_measures
+    from pyphi.formalism.base import ACTUAL_CAUSATION_FORMALISM_REGISTRY
+
+    formalism = ACTUAL_CAUSATION_FORMALISM_REGISTRY["AC_2019"]
+    resolved = _resolve_ac_measures(formalism)
+    assert callable(resolved["alpha_measure"])
+    assert callable(resolved["partitioned_repertoire_scheme"])
+
+
+def test_ac_formalism_unknown_version_raises():
+    from pyphi.formalism.base import ACTUAL_CAUSATION_FORMALISM_REGISTRY
+
+    with pytest.raises(KeyError):
+        ACTUAL_CAUSATION_FORMALISM_REGISTRY["NOPE"]
