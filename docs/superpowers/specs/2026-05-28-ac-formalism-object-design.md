@@ -25,14 +25,14 @@ selection, no `compatible_measures` gate, and `alpha_measure` is the only
 measure-typed field with no early structural home.
 
 This spec brings AC to **structural parity** with the IIT formalism
-abstraction: a registered `AcFormalism` object that owns measure/scheme
+abstraction: a registered `AC2019Formalism` object that owns measure/scheme
 resolution and evaluation dispatch, selected by a new
 `config.formalism.actual_causation.version` field, in a self-contained
 `pyphi/formalism/actual_causation/` package mirroring `pyphi/formalism/iit4/`.
 
 ## Goals
 
-- A registered `AcFormalism` object owning AC evaluation dispatch and
+- A registered `AC2019Formalism` object owning AC evaluation dispatch and
   measure/scheme resolution, mirroring `IIT4_2023Formalism`.
 - A `compatible_measures` gate so a misconfigured `alpha_measure` fails with a
   clear error at resolve time (matching IIT's behavior).
@@ -87,10 +87,10 @@ and `account_distance`. No formalism object exists.
 New package `pyphi/formalism/actual_causation/`, mirroring
 `pyphi/formalism/iit4/`:
 
-- `__init__.py` — exports `AcFormalism`; registers it
-  (`AC_FORMALISM_REGISTRY.register("AC_2019", AcFormalism())`); re-exports the
+- `__init__.py` — exports `AC2019Formalism`; registers it
+  (`ACTUAL_CAUSATION_FORMALISM_REGISTRY.register("AC_2019", AC2019Formalism())`); re-exports the
   algorithm functions used by the public dispatchers.
-- `formalism.py` — the `AcFormalism` frozen dataclass and the
+- `formalism.py` — the `AC2019Formalism` frozen dataclass and the
   `_resolve_ac_measures(...)` helper.
 - Algorithm module(s) holding the functions **moved from `actual.py`**:
   `_account`, `_directed_account`, `_find_mip`, `_find_causal_link`, `_sia`,
@@ -105,11 +105,11 @@ New package `pyphi/formalism/actual_causation/`, mirroring
 `TransitionSystem`, and their repertoire/probability/structural methods. Its
 public compute entry points become thin dispatchers (see *Public API*).
 
-### `AcFormalism` object
+### `AC2019Formalism` object
 
 ```python
 @dataclass(frozen=True)
-class AcFormalism:
+class AC2019Formalism:
     """Actual Causation formalism (Albantakis et al. 2019, "What Caused What?")."""
 
     name: ClassVar[str] = "AC_2019"
@@ -151,14 +151,16 @@ replaces `_resolve_ac_kwargs()`. It:
 Added to `pyphi/formalism/base.py`, beside `PhiFormalism` /
 `FormalismRegistry` / `FORMALISM_REGISTRY`:
 
-- `AcPhiFormalism` — a `@runtime_checkable` Protocol declaring the AC method
+- `ActualCausationFormalism` — a `@runtime_checkable` Protocol declaring the AC method
   surface (`name`, `compatible_measures` ClassVars; `config` property;
   `evaluate_account` / `evaluate_system` / `evaluate_mechanism` /
   `evaluate_causal_link`). Separate from `PhiFormalism` because AC methods are
   transition-based with different signatures.
-- `AcFormalismRegistry(Registry[AcPhiFormalism])` validating registrations
-  against `AcPhiFormalism`, and a module-level `AC_FORMALISM_REGISTRY`
-  instance. Lookup key is `config.formalism.actual_causation.version`.
+- `ActualCausationFormalismRegistry(Registry[ActualCausationFormalism])`
+  validating registrations against `ActualCausationFormalism`, and a
+  module-level `ACTUAL_CAUSATION_FORMALISM_REGISTRY` instance (exact parallel
+  to `ActualCausationMeasureRegistry`). Lookup key is
+  `config.formalism.actual_causation.version`.
 
 ### Config changes
 
@@ -168,15 +170,15 @@ In `pyphi/conf/formalism.py`, `ActualCausationConfig`:
 - **Validation policy mirrors IIT:** `version` and `alpha_measure` are **not**
   validated in `__post_init__` (the config module imports before formalism
   registries populate; IIT defers measure-name validation to resolve time for
-  exactly this reason). Validation happens when `AcFormalism` resolves the
+  exactly this reason). Validation happens when `AC2019Formalism` resolves the
   measure and checks `compatible_measures`, and when a dispatcher looks the
-  formalism up in `AC_FORMALISM_REGISTRY` (a missing key raises). The existing
+  formalism up in `ACTUAL_CAUSATION_FORMALISM_REGISTRY` (a missing key raises). The existing
   `__post_init__` frozenset checks for the three scheme fields are unchanged.
 
 ### Public API (unchanged surface; dispatch indirection)
 
 These keep their names and signatures and become thin dispatchers to
-`AC_FORMALISM_REGISTRY[config.formalism.actual_causation.version]`:
+`ACTUAL_CAUSATION_FORMALISM_REGISTRY[config.formalism.actual_causation.version]`:
 
 - `pyphi.actual.account(transition, direction=..., **kw)` →
   `formalism.evaluate_account(...)`.
@@ -210,8 +212,8 @@ numerically. The contract is enforced by:
 New tests (in `test/test_actual.py` or a new
 `test/test_ac_formalism.py`):
 
-- `AcFormalism` satisfies `AcPhiFormalism` and is retrievable from
-  `AC_FORMALISM_REGISTRY["AC_2019"]`.
+- `AC2019Formalism` satisfies `ActualCausationFormalism` and is retrievable from
+  `ACTUAL_CAUSATION_FORMALISM_REGISTRY["AC_2019"]`.
 - An unknown or incompatible `alpha_measure` raises at resolve time (parity
   with IIT's `check_measure_compatible`).
 - `config.formalism.actual_causation.version` selects the formalism;
@@ -224,7 +226,7 @@ New tests (in `test/test_actual.py` or a new
 
 | Risk | Mitigation |
 |---|---|
-| Import-ordering: `AC_FORMALISM_REGISTRY` must be populated before a dispatcher resolves `version`. | Register `AcFormalism` at formalism-package import, exactly as IIT formalisms register at `pyphi/formalism/__init__.py` import. |
+| Import-ordering: `ACTUAL_CAUSATION_FORMALISM_REGISTRY` must be populated before a dispatcher resolves `version`. | Register `AC2019Formalism` at formalism-package import, exactly as IIT formalisms register at `pyphi/formalism/__init__.py` import. |
 | Moving the three AC registries changes import paths for any user registering custom schemes. | Update all in-repo references; document the moved paths in the changelog fragment. No silent compat shim. |
 | Circular imports between `pyphi/formalism/actual_causation/` (needs `Transition` types) and `pyphi/actual.py` (dispatchers call the formalism). | Keep `Transition`/`TransitionSystem` in `actual.py`; the formalism package imports them; `actual.py` imports the registry lazily inside the dispatcher functions (as `_resolve_ac_kwargs` already imports lazily), mirroring `queries.py`. |
 | Numeric drift from accidental logic change during the move. | Move algorithm bodies verbatim; the byte-identical paper-fixture acceptance tests are the gate. |
