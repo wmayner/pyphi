@@ -35,6 +35,10 @@ _Next version_
 ### Fixes
 - Fixed `convert.be2le_state_by_state()` and `convert.le2be_state_by_state()`;
   previously the columns were not permuted
+- `test_cache.py` and `test_parallel.py` now use `pytest.importorskip` for their
+  optional dependencies (`redis` and `ray`). Previously a plain `pytest` run
+  errored at collection time on any environment without the `caching`/`parallel`
+  extras installed; these modules now skip cleanly instead.
 
 1.2.0
 -----

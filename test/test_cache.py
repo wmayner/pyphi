@@ -3,7 +3,10 @@ import multiprocessing
 from unittest import mock
 
 import pytest
-import redis
+
+# `redis` is an optional dependency (the `caching` extra). Skip this module
+# rather than erroring at collection time when it isn't installed.
+redis = pytest.importorskip("redis")
 
 from pyphi import Direction, Subsystem, cache, config, examples, models
 
