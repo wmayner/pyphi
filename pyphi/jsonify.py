@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # jsonify.py
 """
 PyPhi- and NumPy-aware JSON serialization.
@@ -31,17 +32,19 @@ exception if current PyPhi version doesn't match the version in the JSON data.
 
 from importlib.metadata import version as get_version
 import json
+import warnings
 
 import numpy as np
+from packaging.version import InvalidVersion, Version
 
 import pyphi
 from pyphi import cache
 
-CLASS_KEY = "__class__"
-VERSION_KEY = "__version__"
-ID_KEY = "__id__"
+CLASS_KEY = '__class__'
+VERSION_KEY = '__version__'
+ID_KEY = '__id__'
 
-PYPHI_VERSION = get_version("pyphi")
+PYPHI_VERSION = get_version('pyphi')
 
 # TODO: extend to `macro` objects
 # TODO: resolve schema issues with `vphi` and other external consumers
@@ -127,7 +130,7 @@ def jsonify(obj):  # pylint: disable=too-many-return-statements
     native lists and types along the way.
     """
     # Call the `to_json` method if available and add metadata.
-    if hasattr(obj, "to_json"):
+    if hasattr(obj, 'to_json'):
         d = obj.to_json()
         if isinstance(d, dict):
             _push_metadata(d, obj)
@@ -148,7 +151,7 @@ def jsonify(obj):  # pylint: disable=too-many-return-statements
         return _jsonify_dict(obj)
 
     # Recurse over object dictionaries.
-    if hasattr(obj, "__dict__"):
+    if hasattr(obj, '__dict__'):
         dct = _jsonify_dict(obj.__dict__)
         # Push metadata if the model is registered as loadable
         if _is_loadable_model_object(obj):
@@ -177,7 +180,7 @@ class PyPhiJSONEncoder(json.JSONEncoder):
 
 def _encoder_kwargs(user_kwargs):
     """Update kwargs for `dump` and `dumps` to use the PyPhi encoder."""
-    kwargs = {"separators": (",", ":"), "cls": PyPhiJSONEncoder}
+    kwargs = {'separators': (',', ':'), 'cls': PyPhiJSONEncoder}
     kwargs.update(user_kwargs)
 
     return kwargs
@@ -196,14 +199,30 @@ def dump(obj, fp, **user_kwargs):
 
 
 def _check_version(version):
-    """Check whether the JSON version matches the PyPhi version."""
-    if version != PYPHI_VERSION:
+    """Check whether serialized JSON can be loaded by the current PyPhi.
+
+    The version string embedded in the JSON is compared against the current
+    PyPhi version. An exact match is not required: the on-disk schema is
+    generally stable across PyPhi releases, and the package version reported by
+    a development checkout (e.g. ``1.2.1.dev1470+g...``) need not match the
+    version that produced the data (e.g. a tagged ``2.0.0a1``). So a parseable
+    but differing version only warns, and loading proceeds on a best-effort
+    basis. A version string that cannot be parsed at all gives us no basis to
+    reason about compatibility, so it still raises.
+    """
+    try:
+        Version(version)
+    except (InvalidVersion, TypeError):
         raise pyphi.exceptions.JSONVersionError(
-            "Cannot load JSON from a different version of PyPhi. "
-            "JSON version = {0}, current version = {1}.".format(
-                version,
-                PYPHI_VERSION,
-            )
+            'Cannot load PyPhi JSON: unrecognized version {0!r} '
+            '(current version = {1}).'.format(version, PYPHI_VERSION)
+        )
+    if version != PYPHI_VERSION:
+        warnings.warn(
+            'Loading PyPhi JSON produced by a different version. '
+            'JSON version = {0}, current version = {1}. Loading on a '
+            'best-effort basis.'.format(version, PYPHI_VERSION),
+            stacklevel=2,
         )
 
 
@@ -224,7 +243,7 @@ class PyPhiJSONDecoder(json.JSONDecoder):
     """
 
     def __init__(self, *args, **kwargs):
-        kwargs["object_hook"] = self._load_object
+        kwargs['object_hook'] = self._load_object
         super().__init__(*args, **kwargs)
 
         # Cache for loaded objects
@@ -251,7 +270,7 @@ class PyPhiJSONDecoder(json.JSONDecoder):
 
         return obj
 
-    @cache.method("_object_cache")
+    @cache.method('_object_cache')
     def _load_model(self, dct):
         """Load a serialized PyPhi model.
 
@@ -263,7 +282,7 @@ class PyPhiJSONDecoder(json.JSONDecoder):
         cls = _loadable_models()[classname]
 
         # Use `from_json` if available
-        if hasattr(cls, "from_json"):
+        if hasattr(cls, 'from_json'):
             return cls.from_json(dct)
 
         # Default to object constructor

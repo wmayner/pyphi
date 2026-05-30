@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # cache/__init__.py
 """Memoization and caching utilities."""
 
@@ -146,7 +147,7 @@ class DictCache:
            prefix: A constant to prefix to the key.
         """
         if kwargs:
-            raise NotImplementedError("kwarg cache keys not implemented")
+            raise NotImplementedError('kwarg cache keys not implemented')
         return (_prefix,) + tuple(args)
 
 
@@ -154,7 +155,7 @@ def validate_parent_cache(parent_cache):
     # TODO: also validate that subsystem is a cut version of
     # parent_cache.subsystem? Do we need to check this at all?
     if parent_cache.subsystem.is_cut:
-        raise ValueError("parent_cache must be from an uncut subsystem")
+        raise ValueError('parent_cache must be from an uncut subsystem')
 
 
 class PurviewCache(DictCache):
@@ -180,7 +181,7 @@ def method(cache_name, key_prefix=None):
     """
 
     def decorator(func):
-        if not config.CACHE_REPERTOIRES and "repertoire" in func.__name__:
+        if not config.CACHE_REPERTOIRES and 'repertoire' in func.__name__:
             return func
 
         @wraps(func)

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # models/mechanism.py
 """Mechanism-level objects."""
 
@@ -76,12 +77,12 @@ class StateSpecification(ToDictMixin, ToPandasMixin):
             self,
             other,
             [
-                "direction",
-                "purview",
-                "state",
-                "intrinsic_information",
-                "repertoire",
-                "unconstrained_repertoire",
+                'direction',
+                'purview',
+                'state',
+                'intrinsic_information',
+                'repertoire',
+                'unconstrained_repertoire',
             ],
         )
 
@@ -90,7 +91,7 @@ class StateSpecification(ToDictMixin, ToPandasMixin):
             (self.direction, self.purview, self.state, self.intrinsic_information)
         )
 
-    def _repr_columns(self, prefix=""):
+    def _repr_columns(self, prefix=''):
         # TODO(fmt) include purview
         return [
             (f"{prefix}{self.direction}", fmt.state(self.state)),
@@ -101,7 +102,7 @@ class StateSpecification(ToDictMixin, ToPandasMixin):
         ]
 
     def __repr__(self):
-        body = "\n".join(fmt.align_columns(self._repr_columns()))
+        body = '\n'.join(fmt.align_columns(self._repr_columns()))
         body = fmt.header(
             f"Specified {self.direction}", body, under_char=fmt.HEADER_BAR_3
         )
@@ -123,7 +124,7 @@ class StateSpecification(ToDictMixin, ToPandasMixin):
     @classmethod
     def from_json(cls, data):
         warn_about_tie_serialization(cls.__name__, deserialize=True)
-        for key in ["repertoire", "unconstrained_repertoire"]:
+        for key in ['repertoire', 'unconstrained_repertoire']:
             data[key] = np.array(data[key])
         instance = cls(**data)
         instance._ties = (instance,)
@@ -133,18 +134,18 @@ class StateSpecification(ToDictMixin, ToPandasMixin):
 class DistinctionPhiNormalizationRegistry(Registry):
     """Storage for distinction |small_phi| normalizations."""
 
-    desc = "functions for normalizing distinction |small_phi| values"
+    desc = 'functions for normalizing distinction |small_phi| values'
 
 
 distinction_phi_normalizations = DistinctionPhiNormalizationRegistry()
 
 
-@distinction_phi_normalizations.register("NONE")
+@distinction_phi_normalizations.register('NONE')
 def _(partition):
     return 1
 
 
-@distinction_phi_normalizations.register("NUM_CONNECTIONS_CUT")
+@distinction_phi_normalizations.register('NUM_CONNECTIONS_CUT')
 def _(partition):
     try:
         return 1 / partition.num_connections_cut()
@@ -171,19 +172,19 @@ class ShortCircuitConditions(Enum):
 
 
 _ria_dict_attrs = [
-    "phi",
-    "direction",
-    "mechanism",
-    "mechanism_label",
-    "mechanism_state",
-    "purview",
-    "purview_label",
-    "purview_state",
-    "partition",
-    "repertoire",
-    "partitioned_repertoire",
-    "specified_state",
-    "node_labels",
+    'phi',
+    'direction',
+    'mechanism',
+    'mechanism_label',
+    'mechanism_state',
+    'purview',
+    'purview_label',
+    'purview_state',
+    'partition',
+    'repertoire',
+    'partitioned_repertoire',
+    'specified_state',
+    'node_labels',
 ]
 
 
@@ -391,7 +392,7 @@ class RepertoireIrreducibilityAnalysis(
     def __eq__(self, other):
         # We don't consider the partition and partitioned repertoire in
         # checking for RIA equality.
-        attrs = ["phi", "direction", "mechanism", "purview", "repertoire"]
+        attrs = ['phi', 'direction', 'mechanism', 'purview', 'repertoire']
         return cmp.general_eq(self, other, attrs)
 
     def __bool__(self):
@@ -416,15 +417,15 @@ class RepertoireIrreducibilityAnalysis(
         cols = [
             (fmt.SMALL_PHI, self.phi),
             (f"Normalized {fmt.SMALL_PHI}", self.normalized_phi),
-            ("Mechanism", fmt.fmt_mechanism(self.mechanism, self.node_labels)),
-            ("Purview", fmt.fmt_mechanism(self.purview, self.node_labels)),
+            ('Mechanism', fmt.fmt_mechanism(self.mechanism, self.node_labels)),
+            ('Purview', fmt.fmt_mechanism(self.purview, self.node_labels)),
         ]
 
         if self.specified_state is not None:
-            cols.append(("Specified state", str(self.specified_state)))
+            cols.append(('Specified state', str(self.specified_state)))
 
         if self.selectivity is not None:
-            cols.append(("Selectivity", self.selectivity))
+            cols.append(('Selectivity', self.selectivity))
 
         if self.repertoire is not None:
             if self.specified_state is not None:
@@ -435,22 +436,22 @@ class RepertoireIrreducibilityAnalysis(
                 mark_states = []
             if self.repertoire.size == 1:
                 repertoire_str = self.repertoire
-                repertoire = ("Forward Pr", repertoire_str)
+                repertoire = ('Forward Pr', repertoire_str)
                 partitioned_repertoire_str = self.partitioned_repertoire
                 partitioned_repertoire = (
-                    "Partitioned forward Pr",
+                    'Partitioned forward Pr',
                     partitioned_repertoire_str,
                 )
             else:
                 repertoire_str = fmt.fmt_repertoire(
                     self.repertoire, mark_states=mark_states
                 )
-                repertoire = ("Repertoire", repertoire_str)
+                repertoire = ('Repertoire', repertoire_str)
                 partitioned_repertoire_str = fmt.fmt_repertoire(
                     self.partitioned_repertoire, mark_states=mark_states
                 )
                 partitioned_repertoire = (
-                    "Partitioned repertoire",
+                    'Partitioned repertoire',
                     partitioned_repertoire_str,
                 )
             cols.append(repertoire)
@@ -459,15 +460,15 @@ class RepertoireIrreducibilityAnalysis(
         if self.partition:
             partition_str = fmt.fmt_partition(self.partition)
         else:
-            partition_str = "empty"
-        cols.append(("Partition", partition_str))
+            partition_str = 'empty'
+        cols.append(('Partition', partition_str))
 
         if self.reasons is not None:
-            cols.append(("Reasons", ", ".join(map(str, self.reasons))))
+            cols.append(('Reasons', ', '.join(map(str, self.reasons))))
 
         cols += [
-            ("State ties", self.num_state_ties),
-            ("Partition ties", self.num_partition_ties),
+            ('State ties', self.num_state_ties),
+            ('Partition ties', self.num_partition_ties),
         ]
 
         return cols
@@ -478,7 +479,7 @@ class RepertoireIrreducibilityAnalysis(
         if columns is None:
             columns = self._repr_columns()
         lines = fmt.align_columns(columns)
-        body = "\n".join(lines)
+        body = '\n'.join(lines)
         body = fmt.header(title, body, under_char=fmt.HEADER_BAR_2, center=True)
         return fmt.box(body)
 
@@ -496,7 +497,7 @@ class RepertoireIrreducibilityAnalysis(
         return {
             attr: getattr(self, attr)
             for attr in self._dict_attrs
-            if attr not in {"mechanism_label", "purview_label"}
+            if attr not in {'mechanism_label', 'purview_label'}
         }
 
     @classmethod
@@ -719,13 +720,13 @@ class MaximallyIrreducibleCauseOrEffect(
 
     def _repr_columns(self):
         return self.ria._repr_columns() + [
-            ("#(partition ties)", self.num_partition_ties),
+            ('#(partition ties)', self.num_partition_ties),
         ]
 
     def __repr__(self):
         # TODO just use normal repr when subclass of RIA
         title = f"Maximally-irreducible {str(self.direction).lower()}"
-        columns = self.ria._repr_columns() + [("Purview ties", self.num_partition_ties)]
+        columns = self.ria._repr_columns() + [('Purview ties', self.num_partition_ties)]
         return self.ria.make_repr(title=title, columns=columns)
 
     def __str__(self):
@@ -746,18 +747,18 @@ class MaximallyIrreducibleCauseOrEffect(
 
     def to_dict(self):
         dct = super().to_dict()
-        dct["is_mice"] = True
+        dct['is_mice'] = True
         return dct
 
     def to_json(self):
-        return {"ria": self.ria}
+        return {'ria': self.ria}
 
     # TODO(to_pandas): This is currently broken; MICE should become a subclass
     # of RIA, and then a consistent implementation of `from_json` can be used
     # there
     @classmethod
     def from_json(cls, data):
-        instance = cls(data["ria"])
+        instance = cls(data['ria'])
         instance._purview_ties = (instance,)
         return instance
 
@@ -811,7 +812,7 @@ class MaximallyIrreducibleCauseOrEffect(
 
     def __getstate__(self):
         dct = self.__dict__.copy()
-        dct["parent"] = None
+        dct['parent'] = None
         return dct
 
 
@@ -825,7 +826,7 @@ class MaximallyIrreducibleCause(MaximallyIrreducibleCauseOrEffect):
     def __init__(self, ria):
         if ria.direction != Direction.CAUSE:
             raise WrongDirectionError(
-                "A MIC must be initialized with a RIA in the cause direction."
+                'A MIC must be initialized with a RIA in the cause direction.'
             )
         super().__init__(ria)
 
@@ -848,7 +849,7 @@ class MaximallyIrreducibleEffect(MaximallyIrreducibleCauseOrEffect):
     def __init__(self, ria):
         if ria.direction != Direction.EFFECT:
             raise WrongDirectionError(
-                "A MIE must be initialized with a RIA in the effect direction."
+                'A MIE must be initialized with a RIA in the effect direction.'
             )
         super().__init__(ria)
 
@@ -861,12 +862,12 @@ class MaximallyIrreducibleEffect(MaximallyIrreducibleCauseOrEffect):
 # =============================================================================
 
 _concept_attributes = [
-    "phi",
-    "mechanism",
-    "mechanism_state",
-    "mechanism_label",
-    "cause",
-    "effect",
+    'phi',
+    'mechanism',
+    'mechanism_state',
+    'mechanism_label',
+    'cause',
+    'effect',
 ]
 
 
@@ -929,12 +930,12 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
     @property
     def cause_purview(self):
         """tuple[int]: The cause purview."""
-        return getattr(self.cause, "purview", None)
+        return getattr(self.cause, 'purview', None)
 
     @property
     def effect_purview(self):
         """tuple[int]: The effect purview."""
-        return getattr(self.effect, "purview", None)
+        return getattr(self.effect, 'purview', None)
 
     @cached_property
     def both_purview_unit_sets(self):
@@ -953,18 +954,18 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
     @property
     def cause_repertoire(self):
         """np.ndarray: The cause repertoire."""
-        return getattr(self.cause, "repertoire", None)
+        return getattr(self.cause, 'repertoire', None)
 
     @property
     def effect_repertoire(self):
         """np.ndarray: The effect repertoire."""
-        return getattr(self.effect, "repertoire", None)
+        return getattr(self.effect, 'repertoire', None)
 
     @property
     def mechanism_state(self):
         """tuple(int): The state of this mechanism."""
         if self.cause.mechanism_state != self.effect.mechanism_state:
-            raise ValueError("Inconsistent cause and effect mechanism states!")
+            raise ValueError('Inconsistent cause and effect mechanism states!')
         return self.cause.mechanism_state
 
     @cached_property
@@ -978,15 +979,15 @@ class Concept(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
             return self.cause.purview
         if direction == Direction.EFFECT:
             return self.effect.purview
-        raise ValueError("invalid direction")
+        raise ValueError('invalid direction')
 
     @property
     def node_labels(self):
         if self.cause.node_labels != self.effect.node_labels:
-            raise ValueError("Inconsistent cause and effect node labels!")
+            raise ValueError('Inconsistent cause and effect node labels!')
         return self.cause.node_labels
 
-    unorderable_unless_eq = ["subsystem"]
+    unorderable_unless_eq = ['subsystem']
 
     def __eq__(self, other):
         try:

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # visualize/phi_structure/text.py
 """Utilities for handling text."""
 
@@ -7,7 +8,7 @@ from ... import config, utils
 from ...models import fmt
 
 
-def indent(lines, amount=4, char="&nbsp;", newline="<br>"):
+def indent(lines, amount=4, char='&nbsp;', newline='<br>'):
     return fmt.indent(lines, amount=amount, char=char, newline=newline)
 
 
@@ -21,7 +22,7 @@ class Labeler:
         if state is None:
             state = utils.state_of(nodes, self.state)
         return self.postprocessor(
-            "".join(
+            ''.join(
                 n.upper() if state[i] else n.lower()
                 for i, n in enumerate(self.node_labels.coerce_to_labels(nodes))
             )
@@ -37,11 +38,11 @@ class Labeler:
         return f"{self.nodes(mice.purview, state=mice.specified_state)}"
 
     def hover_mice(self, mice):
-        return "<br>".join(
+        return '<br>'.join(
             [
                 f"Distinction ({mice.direction})",
                 indent(
-                    "<br>".join(
+                    '<br>'.join(
                         [
                             f"M: {self.nodes(mice.mechanism)}",
                             f"P: {self.nodes(mice.purview, state=mice.specified_state)}",
@@ -54,15 +55,15 @@ class Labeler:
         )
 
     def hover_relata(self, relata):
-        return "<br>".join(map(self.mice, relata))
+        return '<br>'.join(map(self.mice, relata))
 
     def hover_relation(self, relation):
         return f"{len(relation)}-relation<br>" + indent(
-            "<br>".join(
+            '<br>'.join(
                 [
                     f"P: {self.units(relation.purview)}",
                     f"φ: {round(relation.phi, config.PRECISION)}",
-                    "Relata:",
+                    'Relata:',
                     indent(self.relata(relation)),
                 ]
             )
@@ -70,11 +71,11 @@ class Labeler:
 
     def hover_relation_face(self, face):
         return f"{len(face)}-face<br>" + indent(
-            "<br>".join(
+            '<br>'.join(
                 [
                     f"P: {self.units(face.purview)}",
                     f"φ: {round(face.phi, config.PRECISION)}",
-                    "Relata:",
+                    'Relata:',
                     indent(self.hover_relata(face)),
                 ]
             )

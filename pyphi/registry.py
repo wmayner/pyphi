@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # registry.py
 """Provides a ``Registry`` class for storing user-provided functions."""
 
@@ -5,7 +6,7 @@ from collections.abc import Mapping
 from typing import Callable, Dict, Iterator, List, TypeVar
 
 
-T = TypeVar("T")
+T = TypeVar('T')
 
 
 class Registry(Mapping):
@@ -15,7 +16,7 @@ class Registry(Mapping):
     ``pyphi.distance.MeasureRegistry`` for concrete usage examples.
     """
 
-    desc = ""
+    desc = ''
 
     def __init__(self) -> None:
         self.store: Dict[str, Callable[..., T]] = {}
@@ -49,5 +50,5 @@ class Registry(Mapping):
         except KeyError:
             raise KeyError(
                 '"{}" not found. Try using one of the installed {} {} or '
-                "register your own.".format(name, self.desc, self.all())
+                'register your own.'.format(name, self.desc, self.all())
             )

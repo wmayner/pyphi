@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from itertools import chain
 
 import pytest
@@ -49,12 +50,12 @@ pair_indices_answers = [
 ]
 
 
-@pytest.mark.parametrize("args, kwargs, answer", pair_indices_answers)
+@pytest.mark.parametrize('args, kwargs, answer', pair_indices_answers)
 def test_pair_indices(args, kwargs, answer):
     assert list(combinatorics.pair_indices(*args, **kwargs)) == answer
 
 
-@pytest.mark.parametrize("args, kwargs, answer", pair_indices_answers)
+@pytest.mark.parametrize('args, kwargs, answer', pair_indices_answers)
 def test_pairs(args, kwargs, answer):
     if len(args) == 1:
         args = [list(range(n)) for n in args]
@@ -97,7 +98,7 @@ def nonempty_intersection_answer(nonempty_intersection_answer_by_order):
 size_args = [(0, None), (2, None), (4, None), (999, None), (0, 4), (3, 4), (0, 999)]
 
 
-@pytest.mark.parametrize("min_size, max_size", size_args)
+@pytest.mark.parametrize('min_size, max_size', size_args)
 def test_combinations_with_nonempty_intersection(
     sets, nonempty_intersection_answer_by_order, min_size, max_size
 ):
@@ -114,7 +115,7 @@ def test_combinations_with_nonempty_intersection(
     assert answer == result
 
 
-@pytest.mark.parametrize("min_size, max_size", size_args)
+@pytest.mark.parametrize('min_size, max_size', size_args)
 def test_explicit_combinations_with_nonempty_intersection(
     sets, nonempty_intersection_answer, min_size, max_size
 ):

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # data_structures/hashable_ordered_set.py
 
 from ordered_set import OrderedSet

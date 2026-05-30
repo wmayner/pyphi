@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import numpy as np
 import pytest
 
@@ -88,7 +89,7 @@ def test_suppress_np_warnings():
         np.array([1, 0]) * np.log(0)
 
     # Try and trigger an error:
-    with np.errstate(divide="raise", invalid="raise"):
+    with np.errstate(divide='raise', invalid='raise'):
         divide_by_zero()
         multiply_by_nan()
 
@@ -122,7 +123,7 @@ def test_hamming_emd_validates_distribution_shapes():
 
 
 @pytest.mark.parametrize(
-    "pq,answer",
+    'pq,answer',
     zip(
         TEST_DATA,
         [
@@ -147,7 +148,7 @@ def test_hamming_emd(pq, answer):
 
 
 @pytest.mark.parametrize(
-    "pq,answer",
+    'pq,answer',
     zip(
         TEST_DATA,
         [
@@ -171,7 +172,7 @@ def test_l1(pq, answer):
 
 
 @pytest.mark.parametrize(
-    "pq,answer",
+    'pq,answer',
     zip(
         TEST_DATA,
         [
@@ -199,19 +200,19 @@ def test_entropy_difference(pq, answer):
 
 
 @pytest.mark.parametrize(
-    "pq,answer",
+    'pq,answer',
     zip(
         TEST_DATA,
         [
             0.0,
             2.0,
-            float("inf"),
+            float('inf'),
             0.7924812503605783,
             -0.3962406251802891,
             0.13172658759386474,
             0.1376866963458108,
             1.0,
-            float("inf"),
+            float('inf'),
             0.0,
             6.989064076830283,
             3.866290893689359,
@@ -223,7 +224,7 @@ def test_kld(pq, answer):
 
 
 @pytest.mark.parametrize(
-    "pq,answer",
+    'pq,answer',
     zip(
         TEST_DATA,
         [
@@ -247,19 +248,19 @@ def test_psq2(pq, answer):
 
 
 @pytest.mark.parametrize(
-    "pq,answer",
+    'pq,answer',
     zip(
         TEST_DATA,
         [
             0.0,
             4.0,
-            float("inf"),
+            float('inf'),
             1.717042709114586,
             -0.13208020839342968,
             0.19958628702442655,
             0.24185916736968496,
             1.0,
-            float("inf"),
+            float('inf'),
             np.nan,
             38.83048445250753,
             8.277494548476637,
@@ -275,19 +276,19 @@ def test_mp2q(pq, answer):
 
 
 @pytest.mark.parametrize(
-    "pq,answer",
+    'pq,answer',
     zip(
         TEST_DATA,
         [
             np.zeros((2, 2, 2)),
             np.array([[[2.0]], [[0.0]]]),
-            np.array([[[-0.5]], [[float("inf")]]]),
+            np.array([[[-0.5]], [[float('inf')]]]),
             np.array([[[-0.39624063]], [[1.18872188]]]),
             np.array([[[-0.39624063]]]),
             np.array([[0.07891032, 0.27122876], [-0.12091875, -0.09749375]]),
             np.array([[-0.0657586, -0.16951798], [0.22672265, 0.14624063]]),
             np.array([0.0, 1.0]),
-            np.array([float("inf"), -0.5]),
+            np.array([float('inf'), -0.5]),
             np.array([0.0, 0.0]),
             np.array(
                 [
@@ -325,19 +326,19 @@ def test_information_density(pq, answer):
 
 
 @pytest.mark.parametrize(
-    "pq,answer",
+    'pq,answer',
     zip(
         TEST_DATA,
         [
             0.0,
             2.0,
-            float("inf"),
+            float('inf'),
             1.18872188,
             -0.39624063,
             0.27122876204505514,
             0.22672264890212962,
             1.0,
-            float("inf"),
+            float('inf'),
             0.0,
             2.7813405239249747,
             4.07682535456649,
@@ -349,19 +350,19 @@ def test_intrinsic_difference(pq, answer):
 
 
 @pytest.mark.parametrize(
-    "pq,answer",
+    'pq,answer',
     zip(
         TEST_DATA,
         [
             0.0,
             2.0,
-            float("inf"),
+            float('inf'),
             1.18872188,
             0.39624063,
             0.27122876204505514,
             0.22672264890212962,
             1.0,
-            float("inf"),
+            float('inf'),
             0.0,
             2.7813405239249747,
             4.07682535456649,

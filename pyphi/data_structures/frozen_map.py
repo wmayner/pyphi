@@ -1,15 +1,16 @@
+# -*- coding: utf-8 -*-
 # data_structures/frozen_map.py
 
 import typing
 
-K = typing.TypeVar("K")
-V = typing.TypeVar("V")
+K = typing.TypeVar('K')
+V = typing.TypeVar('V')
 
 
 class FrozenMap(typing.Mapping[K, V]):
     """An immutable mapping from keys to values."""
 
-    __slots__ = ("_dict", "_hash")
+    __slots__ = ('_dict', '_hash')
 
     def __init__(self, *args, **kwargs):
         self._dict: typing.Dict[K, V] = dict(*args, **kwargs)

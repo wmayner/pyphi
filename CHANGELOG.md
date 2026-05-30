@@ -35,6 +35,12 @@ _Next version_
 ### Fixes
 - Fixed `convert.be2le_state_by_state()` and `convert.le2be_state_by_state()`;
   previously the columns were not permuted
+- `jsonify` no longer refuses to load JSON whose embedded PyPhi version differs
+  from the running one. A parseable but differing version now warns and loads on
+  a best-effort basis (the on-disk schema is stable across releases), while an
+  unparseable version still raises `JSONVersionError`. This fixes loading the
+  serialized test fixtures (tagged `2.0.0a1`) from a development checkout, whose
+  reported version is derived from the latest git tag (e.g. `1.2.1.dev...`).
 
 1.2.0
 -----

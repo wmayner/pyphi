@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # compositional_state.py
 
 import pprint
@@ -78,7 +79,7 @@ class CompositionalState(UserDict):
 
     def _update(self, distinction):
         if not isinstance(distinction, Concept):
-            raise ValueError("distinction must be a Concept")
+            raise ValueError('distinction must be a Concept')
         for direction in DIRECTIONS:
             purview = distinction.purview(direction)
             if purview not in self.data:
@@ -225,7 +226,7 @@ class CompositionalState(UserDict):
             # resolved, since the mechanisms may not be singletons
             if self.has_conflicts():
                 raise ValueError(
-                    "Cannot check conflict with a CompositionalState that already has conflicts!"
+                    'Cannot check conflict with a CompositionalState that already has conflicts!'
                 )
         return result
 
@@ -287,7 +288,7 @@ class CompositionalState(UserDict):
             for distinctions in distinction_set
         ):
             raise ValueError(
-                "The given CESs must contain only CauseEffectStructures (not Flat)"
+                'The given CESs must contain only CauseEffectStructures (not Flat)'
             )
         if reference is None:
             reference = cls(

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # parallel/progress.py
 """Progress bars for distributed computations."""
 
@@ -68,18 +69,18 @@ def wait_then_finish(progress_bar, object_refs):
 class ProgressBar:
     """Handles interactions with a remote ProgressBarActor."""
 
-    _actor: "ActorHandle"
+    _actor: 'ActorHandle'
     total: Optional[int]
     desc: str
     pbar: tqdm
 
-    def __init__(self, total: Optional[int], desc: str = ""):
+    def __init__(self, total: Optional[int], desc: str = ''):
         self._actor = ProgressBarActor.remote()  # type: ignore
         self.total = total
         self.desc = desc
 
     @property
-    def actor(self) -> "ActorHandle":
+    def actor(self) -> 'ActorHandle':
         """Returns a reference to the remote `ProgressBarActor`.
 
         When you complete tasks, call `update` on the actor.
@@ -94,7 +95,7 @@ class ProgressBar:
         When the progress meter reaches 100%, this method returns.
         """
         pbar = tqdm(desc=self.desc, total=self.total)
-        total = fallback(self.total, float("inf"))
+        total = fallback(self.total, float('inf'))
         while True:
             delta, counter, finished, interrupted = ray.get(
                 self.actor.wait_for_update.remote()

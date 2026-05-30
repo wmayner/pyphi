@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # data_structures/deepchainmap.py
 
 # From https://github.com/neutrinoceros/deep_chainmap; MIT License
@@ -55,7 +56,7 @@ class AttrDeepChainMap(DeepChainMap):
 
     def __setattr__(self, name: str, value: Any) -> None:
         # Special-case `maps` since this is used internally by ChainMap
-        if name == "maps" or name in self.__dict__:
+        if name == 'maps' or name in self.__dict__:
             super().__setattr__(name, value)
         else:
             self.maps[0][name] = value

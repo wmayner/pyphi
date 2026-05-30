@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # visualize/__init__.py
 """Visualize the Ising model."""
 
@@ -16,12 +17,12 @@ def plot_sigmoid(x, temperature=1.0, field=0.0):
     y = utils.sigmoid(x, temperature=temperature, field=field)
     ax = sb.lineplot(x=x, y=y, linewidth=3)
     ax.set_title(f"T = {temperature}")
-    ax.vlines(x=0, ymin=0, ymax=1, color="grey", linewidth=1)
+    ax.vlines(x=0, ymin=0, ymax=1, color='grey', linewidth=1)
     return ax
 
 
 def plot_inputs(data, x, y, label, ax=None, sep=0.015):
-    ax = sb.scatterplot(data=data, x=x, y=y, ax=ax, s=100, color="red", alpha=0.25)
+    ax = sb.scatterplot(data=data, x=x, y=y, ax=ax, s=100, color='red', alpha=0.25)
     seen = dict()
     for _, row in data.iterrows():
         if row[x] in seen:
@@ -50,19 +51,19 @@ def plot(weights, temperature, field, N=None, spin=0):
 
     data = pd.DataFrame(
         {
-            "energy": energies,
-            "probability": probabilities,
-            "state": ["".join(map(str, state)) for state in states],
+            'energy': energies,
+            'probability': probabilities,
+            'state': [''.join(map(str, state)) for state in states],
         }
     )
 
-    limit = np.max(np.abs(data["energy"]))
+    limit = np.max(np.abs(data['energy']))
     x = np.linspace(-limit, limit, num=200)
 
     fig = plt.figure(figsize=(15, 6))
     ax = plot_sigmoid(x, temperature=temperature, field=field)
     ax = plot_inputs(
-        data=data, x="energy", y="probability", label="state", ax=ax, sep=0.05
+        data=data, x='energy', y='probability', label='state', ax=ax, sep=0.05
     )
 
     return fig
