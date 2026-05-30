@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # validate.py
 """Methods for validating user input."""
 
@@ -57,11 +58,11 @@ def connectivity_matrix(cm: np.ndarray) -> bool:
     if cm.size == 0:
         return True
     if cm.ndim != 2:
-        raise ValueError("Connectivity matrix must be 2-dimensional.")
+        raise ValueError('Connectivity matrix must be 2-dimensional.')
     if cm.shape[0] != cm.shape[1]:
-        raise ValueError("Connectivity matrix must be square.")
+        raise ValueError('Connectivity matrix must be square.')
     if not np.all(np.logical_or(cm == 1, cm == 0)):
-        raise ValueError("Connectivity matrix must contain only binary " "values.")
+        raise ValueError('Connectivity matrix must contain only binary ' 'values.')
     return True
 
 
@@ -69,11 +70,11 @@ def node_labels(node_labels: Sequence[str], node_indices: Sequence[int]) -> None
     """Validate that there is a label for each node."""
     if len(node_labels) != len(node_indices):
         raise ValueError(
-            "Labels {0} must label every node {1}.".format(node_labels, node_indices)
+            'Labels {0} must label every node {1}.'.format(node_labels, node_indices)
         )
 
     if len(node_labels) != len(set(node_labels)):
-        raise ValueError("Labels {0} must be unique.".format(node_labels))
+        raise ValueError('Labels {0} must be unique.'.format(node_labels))
 
 
 def network(n) -> bool:
@@ -85,8 +86,8 @@ def network(n) -> bool:
     connectivity_matrix(n.cm)
     if n.cm.shape[0] != n.size:
         raise ValueError(
-            "Connectivity matrix must be NxN, where N is the "
-            "number of nodes in the network."
+            'Connectivity matrix must be NxN, where N is the '
+            'number of nodes in the network.'
         )
     return True
 
@@ -97,23 +98,23 @@ def is_network(network) -> None:
 
     if not isinstance(network, Network):
         raise ValueError(
-            "Input must be a Network (perhaps you passed a Subsystem instead?"
+            'Input must be a Network (perhaps you passed a Subsystem instead?'
         )
 
 
 def node_states(state: Sequence[int]) -> None:
     """Check that the state contains only zeros and ones."""
     if not all(n in (0, 1) for n in state):
-        raise ValueError("Invalid state: states must consist of only zeros and ones.")
+        raise ValueError('Invalid state: states must consist of only zeros and ones.')
 
 
 def state_length(state: Sequence[int], size: int) -> bool:
     """Check that the state is the given size."""
     if len(state) != size:
         raise ValueError(
-            "Invalid state: there must be one entry per "
-            "node in the network; this state has {} entries, but "
-            "there are {} nodes.".format(len(state), size)
+            'Invalid state: there must be one entry per '
+            'node in the network; this state has {} entries, but '
+            'there are {} nodes.'.format(len(state), size)
         )
     return True
 
@@ -136,7 +137,7 @@ def cut(cut, node_indices: Sequence[int]) -> None:
     """Check that the cut is for only the given nodes."""
     if set(cut.indices) != set(node_indices):
         raise ValueError(
-            "{} nodes are not equal to subsystem nodes " "{}".format(cut, node_indices)
+            '{} nodes are not equal to subsystem nodes ' '{}'.format(cut, node_indices)
         )
 
 
@@ -155,7 +156,7 @@ def subsystem(s) -> bool:
 def time_scale(time_scale: int) -> None:
     """Validate a macro temporal time scale."""
     if time_scale <= 0 or isinstance(time_scale, float):
-        raise ValueError("time scale must be a positive integer")
+        raise ValueError('time scale must be a positive integer')
 
 
 def partition(partition: Iterable[Iterable[int]]) -> None:
@@ -165,8 +166,8 @@ def partition(partition: Iterable[Iterable[int]]) -> None:
         for node in part:
             if node in nodes:
                 raise ValueError(
-                    "Micro-element {} may not be partitioned into multiple "
-                    "macro-elements".format(node)
+                    'Micro-element {} may not be partitioned into multiple '
+                    'macro-elements'.format(node)
                 )
             nodes.add(node)
 
@@ -176,15 +177,15 @@ def coarse_grain(coarse_grain) -> None:
     partition(coarse_grain.partition)
 
     if len(coarse_grain.partition) != len(coarse_grain.grouping):
-        raise ValueError("output and state groupings must be the same size")
+        raise ValueError('output and state groupings must be the same size')
 
     for part, group in zip(coarse_grain.partition, coarse_grain.grouping):
         if set(range(len(part) + 1)) != set(group[0] + group[1]):
             # Check that all elements in the partition are in one of the two
             # state groupings
             raise ValueError(
-                "elements in output grouping {0} do not match "
-                "elements in state grouping {1}".format(part, group)
+                'elements in output grouping {0} do not match '
+                'elements in state grouping {1}'.format(part, group)
             )
 
 
@@ -192,7 +193,7 @@ def blackbox(blackbox) -> None:
     """Validate a macro blackboxing."""
     if tuple(sorted(blackbox.output_indices)) != blackbox.output_indices:
         raise ValueError(
-            "Output indices {} must be ordered".format(blackbox.output_indices)
+            'Output indices {} must be ordered'.format(blackbox.output_indices)
         )
 
     partition(blackbox.partition)
@@ -200,7 +201,7 @@ def blackbox(blackbox) -> None:
     for part in blackbox.partition:
         if not set(part) & set(blackbox.output_indices):
             raise ValueError(
-                "Every blackbox must have an output - {} does not".format(part)
+                'Every blackbox must have an output - {} does not'.format(part)
             )
 
 
@@ -217,19 +218,19 @@ def blackbox_and_coarse_grain(blackbox, coarse_grain) -> None:
 
         if coarse_grain is None and len(outputs) > 1:
             raise ValueError(
-                "A blackboxing with multiple outputs per box must be " "coarse-grained."
+                'A blackboxing with multiple outputs per box must be ' 'coarse-grained.'
             )
 
         if coarse_grain and not any(
             outputs.issubset(part) for part in coarse_grain.partition
         ):
             raise ValueError(
-                "Multiple outputs from a blackbox must be partitioned into "
-                "the same macro-element of the coarse-graining"
+                'Multiple outputs from a blackbox must be partitioned into '
+                'the same macro-element of the coarse-graining'
             )
 
 
 def relata(relata: Optional[Iterable[object]]) -> None:
     """Validate a set of relata."""
     if not relata:
-        raise ValueError("relata cannot be empty")
+        raise ValueError('relata cannot be empty')

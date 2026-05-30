@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # models/cmp.py
 """Utilities for comparing phi-objects."""
 
@@ -60,7 +61,7 @@ class Orderable:
     def __lt__(self, other):
         if not general_eq(self, other, self.unorderable_unless_eq):
             raise TypeError(
-                "Unorderable: the following attrs must be equal: {}".format(
+                'Unorderable: the following attrs must be equal: {}'.format(
                     self.unorderable_unless_eq
                 )
             )
@@ -126,10 +127,10 @@ def general_eq(a, b, attributes):
     try:
         for attr in attributes:
             _a, _b = getattr(a, attr), getattr(b, attr)
-            if attr in ["phi", "alpha"]:
+            if attr in ['phi', 'alpha']:
                 if not utils.eq(_a, _b):
                     return False
-            elif attr in ["mechanism", "purview"]:
+            elif attr in ['mechanism', 'purview']:
                 if _a is None or _b is None:
                     if _a != _b:
                         return False

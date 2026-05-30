@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # timescale.py
 """Functions for manipulating the timescale of TPMs."""
 

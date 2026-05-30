@@ -2,7 +2,7 @@ Getting started
 ===============
 
 This page provides a walkthrough of how to use PyPhi in an interactive Python
-session. For a theoretical explanation of the computational steps and a complete overview 
+session. For a theoretical explanation of the computational steps and a complete overview
 of the mathematical formalism please consult the `IIT 4.0 paper <https://doi.org/10.1371/journal.pcbi.1011465>`_.
 
 .. tip::
@@ -35,9 +35,9 @@ First we import the required packages and set up PyPhi configuration settings (t
     >>> pyphi.config.SHORTCIRCUIT_SIA = False
     >>> pyphi.config.VALIDATE_SUBSYSTEM_STATES = False
 
-Then we have to create our universal substrate; in PyPhi this corresponds to creating a |Network| object. 
+Then we have to create our universal substrate; in PyPhi this corresponds to creating a |Network| object.
 To do so, we need a TPM and (optionally) a connectivity matrix. The
-TPM can be in more than one form; see the documentation for |Network|. 
+TPM can be in more than one form; see the documentation for |Network|.
 Here we'll use the 2-dimensional state-by-node form.
 
     >>> tpm = np.array([
@@ -52,7 +52,7 @@ Here we'll use the 2-dimensional state-by-node form.
     ...    ])
 
 The connectivity matrix is a square matrix such that the |i,jth| entry is 1 if
-there is a connection from node |i| to node |j|, and 0 otherwise. 
+there is a connection from node |i| to node |j|, and 0 otherwise.
 In this case the network is all-to-all connected:
 
     >>> cm = np.array([
@@ -71,7 +71,7 @@ Now we construct the network object itself with the arguments we just created:
     >>> network = pyphi.Network(tpm, cm=cm, node_labels=labels)
 
 The next step is to define the candidate complex we want to unfold.
-This correponds to creating PyPhi |Subsystem| objects (one for the cause and one for the effect). 
+This correponds to creating PyPhi |Subsystem| objects (one for the cause and one for the effect).
 To make a subsystem, we need the network that it belongs to, the state of that
 network, and the indices of the subset of nodes which should be included.
 
@@ -88,7 +88,7 @@ we simply include every node in the network in our subsystem (PyPhi does so auto
     >>> subsystem_cause = pyphi.Subsystem(network, state, nodes=node_indices, backward_tpm=True)
     >>> subsystem_effect = pyphi.Subsystem(network, state, nodes=node_indices, backward_tpm=False)
 
-Next we compute the |small_phi_s| of our candidate complex. We can do so using :func:`~pyphi.backwards.sia`. 
+Next we compute the |small_phi_s| of our candidate complex. We can do so using :func:`~pyphi.backwards.sia`.
 This returns a nested object, |SystemIrreducibilityAnalysis|, that contains data about the subsystem's
 irreducibility, cause and effect repertoires, etc.
 
@@ -115,7 +115,7 @@ irreducibility, cause and effect repertoires, etc.
 
 .. tip::
     Note that if we wanted to apply the postulate of exlusion and find the main complex (the one with maximal |small_phi_s|)
-    we would have to call the :func:`~pyphi.backwards.sia` function on each possible candidate complex, 
+    we would have to call the :func:`~pyphi.backwards.sia` function on each possible candidate complex,
     creating a subsystem for each possible subset of the network.
 
 We can then apply the composition postulate to unfold the cause-effect structure of our (candidate) complex.

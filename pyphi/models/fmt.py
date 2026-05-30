@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # models/fmt.py
 """Helper functions for formatting pretty representations of PyPhi models."""
 
@@ -19,26 +20,26 @@ MEDIUM = 1
 HIGH = 2
 
 # Unicode symbols
-SMALL_PHI = "\u03C6"
-BIG_PHI = "\u03A6"
-ALPHA = "\u03B1"
-TOP_LEFT_CORNER = "\u250C"
-TOP_RIGHT_CORNER = "\u2510"
-BOTTOM_LEFT_CORNER = "\u2514"
-BOTTOM_RIGHT_CORNER = "\u2518"
-HORIZONTAL_BAR = "\u2500"
-VERTICAL_SIDE = "\u2502"
-HEADER_BAR_1 = "\u2550"
-HEADER_BAR_2 = "\u2501"
-HEADER_BAR_3 = "\u254D"
-DOTTED_HEADER = "\u2574"
-LINE = "\u2501"
-ARROW_LEFT = "\u25C0" + LINE * 2
-ARROW_RIGHT = LINE * 2 + "\u25B6"
-BACKWARD_CUT_SYMBOL = ARROW_LEFT + "/ /" + LINE * 2
-FORWARD_CUT_SYMBOL = LINE * 2 + "/ /" + ARROW_RIGHT
-EMPTY_SET = "\u2205"
-MULTIPLY = "\u2715"
+SMALL_PHI = '\u03C6'
+BIG_PHI = '\u03A6'
+ALPHA = '\u03B1'
+TOP_LEFT_CORNER = '\u250C'
+TOP_RIGHT_CORNER = '\u2510'
+BOTTOM_LEFT_CORNER = '\u2514'
+BOTTOM_RIGHT_CORNER = '\u2518'
+HORIZONTAL_BAR = '\u2500'
+VERTICAL_SIDE = '\u2502'
+HEADER_BAR_1 = '\u2550'
+HEADER_BAR_2 = '\u2501'
+HEADER_BAR_3 = '\u254D'
+DOTTED_HEADER = '\u2574'
+LINE = '\u2501'
+ARROW_LEFT = '\u25C0' + LINE * 2
+ARROW_RIGHT = LINE * 2 + '\u25B6'
+BACKWARD_CUT_SYMBOL = ARROW_LEFT + '/ /' + LINE * 2
+FORWARD_CUT_SYMBOL = LINE * 2 + '/ /' + ARROW_RIGHT
+EMPTY_SET = '\u2205'
+MULTIPLY = '\u2715'
 
 CUT_SYMBOLS_BY_DIRECTION = {
     Direction.CAUSE: BACKWARD_CUT_SYMBOL,
@@ -72,15 +73,15 @@ def make_repr(self, attrs):
         return self.__str__()
 
     elif config.REPR_VERBOSITY is LOW:
-        return "{}({})".format(
+        return '{}({})'.format(
             self.__class__.__name__,
-            ", ".join(attr + "=" + repr(getattr(self, attr)) for attr in attrs),
+            ', '.join(attr + '=' + repr(getattr(self, attr)) for attr in attrs),
         )
 
-    raise ValueError("Invalid value for `config.REPR_VERBOSITY`")
+    raise ValueError('Invalid value for `config.REPR_VERBOSITY`')
 
 
-def indent(lines, amount=2, char=" ", newline="\n"):
+def indent(lines, amount=2, char=' ', newline='\n'):
     r"""Indent a string.
 
     Prepends whitespace to every line in the passed string. (Lines are
@@ -113,11 +114,11 @@ def margin(text):
         >>> margin('line1\nline2')
         '  line1  \n  line2  '
     """
-    lines = str(text).split("\n")
-    return "\n".join("  {}  ".format(l) for l in lines)
+    lines = str(text).split('\n')
+    return '\n'.join('  {}  '.format(l) for l in lines)
 
 
-LINES_FORMAT_STR = VERTICAL_SIDE + " {line:<{width}} " + VERTICAL_SIDE
+LINES_FORMAT_STR = VERTICAL_SIDE + ' {line:<{width}} ' + VERTICAL_SIDE
 
 
 def box(text):
@@ -130,7 +131,7 @@ def box(text):
         │ line2 │
         └───────┘
     """
-    lines = text.split("\n")
+    lines = text.split('\n')
 
     w = width(lines)
     top_bar = TOP_LEFT_CORNER + HORIZONTAL_BAR * (2 + w) + TOP_RIGHT_CORNER
@@ -138,7 +139,7 @@ def box(text):
 
     lines = [LINES_FORMAT_STR.format(line=line, width=w) for line in lines]
 
-    return top_bar + "\n" + "\n".join(lines) + "\n" + bottom_bar
+    return top_bar + '\n' + '\n'.join(lines) + '\n' + bottom_bar
 
 
 def side_by_side(left, right):
@@ -154,19 +155,19 @@ def side_by_side(left, right):
         C D
         <BLANKLINE>
     """
-    left_lines = list(left.split("\n"))
-    right_lines = list(right.split("\n"))
+    left_lines = list(left.split('\n'))
+    right_lines = list(right.split('\n'))
 
     # Pad the shorter column with whitespace
     diff = abs(len(left_lines) - len(right_lines))
     if len(left_lines) > len(right_lines):
-        fill = " " * len(right_lines[0])
+        fill = ' ' * len(right_lines[0])
         right_lines += [fill] * diff
     elif len(right_lines) > len(left_lines):
-        fill = " " * len(left_lines[0])
+        fill = ' ' * len(left_lines[0])
         left_lines += [fill] * diff
 
-    return "\n".join(a + b for a, b in zip(left_lines, right_lines)) + "\n"
+    return '\n'.join(a + b for a, b in zip(left_lines, right_lines)) + '\n'
 
 
 def width(lines):
@@ -184,22 +185,22 @@ def header(head, text, over_char=None, under_char=None, center=True):
 
     The width of the text is the width of the longest line of the text.
     """
-    lines = list(text.split("\n"))
+    lines = list(text.split('\n'))
     w = width(lines)
 
     # Center or left-justify
     if center:
-        head = head.center(w) + "\n"
+        head = head.center(w) + '\n'
     else:
-        head = head.ljust(w) + "\n"
+        head = head.ljust(w) + '\n'
 
     # Underline head
     if under_char:
-        head = head + under_char * w + "\n"
+        head = head + under_char * w + '\n'
 
     # 'Overline' head
     if over_char:
-        head = over_char * w + "\n" + head
+        head = over_char * w + '\n' + head
 
     return head + text
 
@@ -213,10 +214,10 @@ def labels(indices, node_labels=None):
 
 def is_multiline(text):
     """Return True if the text contains newlines."""
-    return "\n" in text
+    return '\n' in text
 
 
-def align(lines: Iterable[str], direction="<"):
+def align(lines: Iterable[str], direction='<'):
     """Align lines by padding with spaces.
 
     Examples:
@@ -232,18 +233,18 @@ def align(lines: Iterable[str], direction="<"):
 
     """
     lines = list(
-        concat([text.split("\n") if is_multiline(text) else [text] for text in lines])
+        concat([text.split('\n') if is_multiline(text) else [text] for text in lines])
     )
     w = width(lines)
-    if direction == "c":
+    if direction == 'c':
         return [line.center(w) for line in lines]
-    spec = " {direction}{width}".format(direction=direction, width=w)
+    spec = ' {direction}{width}'.format(direction=direction, width=w)
     return [format(line, spec) for line in lines]
 
 
 def center(text):
     """Center-align a string."""
-    return "\n".join(align(text.split("\n"), direction="c"))
+    return '\n'.join(align(text.split('\n'), direction='c'))
 
 
 def split_decimal(n):
@@ -265,27 +266,27 @@ def split_decimal(n):
         ['', 'None']
     """
     if n is None:
-        return ["", str(None)]
+        return ['', str(None)]
     try:
         if np.isnan(n):
             # nan
-            return ["", str(n)]
+            return ['', str(n)]
     except TypeError:
         pass
     if isinstance(n, float):
         # float
-        return str(n).split(".")
+        return str(n).split('.')
     try:
         n = float(n)
         if n.is_integer():
             # int
-            return [str(int(n)), ""]
+            return [str(int(n)), '']
         # float
-        return str(n).split(".")
+        return str(n).split('.')
     except ValueError:
         pass
     # Assume str
-    return ["", str(n)]
+    return ['', str(n)]
 
 
 def align_decimals(numbers):
@@ -302,14 +303,14 @@ def align_decimals(numbers):
         ['  0.5     ', '  0      ', '  1      ', '  0.99    ', '100.5     ', ' 80.123   ', '   string']
     """
     units, decimals = zip(*map(split_decimal, numbers))
-    points = ["." if unit and decimal else "" for unit, decimal in zip(units, decimals)]
-    units = align(units, direction=">")
-    decimals = align(decimals, direction="<")
-    return ["".join(elements) for elements in zip(units, points, decimals)]
+    points = ['.' if unit and decimal else '' for unit, decimal in zip(units, decimals)]
+    units = align(units, direction='>')
+    decimals = align(decimals, direction='<')
+    return [''.join(elements) for elements in zip(units, points, decimals)]
 
 
 def _multiline_string_to_columns(text):
-    return [("", line) for line in text.split("\n")]
+    return [('', line) for line in text.split('\n')]
 
 
 def _expand_multiline_strings(left, right):
@@ -326,9 +327,9 @@ def _expand_multiline_strings(left, right):
 
 def align_columns(
     lines,
-    delimiter=": ",
-    alignment="><",
-    types="tn",
+    delimiter=': ',
+    alignment='><',
+    types='tn',
     split_columns=False,
 ):
     """Align columns of text.
@@ -375,7 +376,7 @@ def align_columns(
     # Reorient into columns
     columns = list(zip(*lines))
     for i, t in enumerate(types):
-        if t == "n":
+        if t == 'n':
             columns[i] = align_decimals(columns[i])
     alignment = cycle(alignment)
     columns = [align(column, direction=a) for column, a in zip(columns, alignment)]
@@ -409,12 +410,12 @@ def fmt_number(p):
 
 def fmt_nodes(nodes, node_labels=None):
     """Format nodes, optionally with labels."""
-    return ",".join(labels(nodes, node_labels)) if nodes else EMPTY_SET
+    return ','.join(labels(nodes, node_labels)) if nodes else EMPTY_SET
 
 
 def fmt_mechanism(indices, node_labels=None):
     """Format a mechanism or purview."""
-    return "[" + fmt_nodes(indices, node_labels=node_labels) + "]"
+    return '[' + fmt_nodes(indices, node_labels=node_labels) + ']'
 
 
 def fmt_fraction(numer: str, denom: str):
@@ -427,7 +428,7 @@ def fmt_fraction(numer: str, denom: str):
     w = max(3, len(numer), len(denom))
     divider = HORIZONTAL_BAR * w
 
-    return ("{numer:^{width}}\n" "{divider}\n" "{denom:^{width}}").format(
+    return ('{numer:^{width}}\n' '{divider}\n' '{denom:^{width}}').format(
         numer=numer, divider=divider, denom=denom, width=w
     )
 
@@ -464,36 +465,36 @@ def fmt_partition(partition):
     """
     # TODO(4.0) deprecate
     if not partition:
-        return ""
+        return ''
     try:
         parts = [
             # TODO(4.0)
             # str(part).split("\n")
-            fmt_part(part, node_labels=partition.node_labels).split("\n")
+            fmt_part(part, node_labels=partition.node_labels).split('\n')
             for part in partition
         ]
 
-        times = ("   ", " {} ".format(MULTIPLY), "   ")
-        breaks = ("\n", "\n", "")  # No newline at the end of string
+        times = ('   ', ' {} '.format(MULTIPLY), '   ')
+        breaks = ('\n', '\n', '')  # No newline at the end of string
         between = [times] * (len(parts) - 1) + [breaks]
 
         # Alternate [part, break, part, ..., end]
         elements = chain.from_iterable(zip(parts, between))
 
         # Transform vertical stacks into horizontal lines
-        return "".join(chain.from_iterable(zip(*elements)))
+        return ''.join(chain.from_iterable(zip(*elements)))
     except TypeError:
         return repr(partition)
 
 
-def fmt_phi_structure(ps, title="Phi-structure", subsystem=True):
+def fmt_phi_structure(ps, title='Phi-structure', subsystem=True):
     """Format a PhiStructure."""
     distinctions = len(ps.distinctions)
 
     if ps.requires_filter_relations:
-        relations = sum_phi = sum_phi_r = sii = selectivity = "[requires filter]"
+        relations = sum_phi = sum_phi_r = sii = selectivity = '[requires filter]'
     elif ps.relations is None:
-        relations = sum_phi = sum_phi_r = sii = selectivity = "[not computed]"
+        relations = sum_phi = sum_phi_r = sii = selectivity = '[not computed]'
     else:
         relations = len(ps.relations)
         sum_phi = ps.sum_phi()
@@ -502,22 +503,22 @@ def fmt_phi_structure(ps, title="Phi-structure", subsystem=True):
         selectivity = ps.selectivity()
 
     columns = [
-        ("Distinctions", distinctions),
-        ("Relations", relations),
-        ("Σφ_d", ps.sum_phi_distinctions()),
-        ("Σφ_r", sum_phi_r),
-        ("Σφ", sum_phi),
-        ("Selectivity", selectivity),
-        ("S.I.I.", sii),
+        ('Distinctions', distinctions),
+        ('Relations', relations),
+        ('Σφ_d', ps.sum_phi_distinctions()),
+        ('Σφ_r', sum_phi_r),
+        ('Σφ', sum_phi),
+        ('Selectivity', selectivity),
+        ('S.I.I.', sii),
     ]
     lines = align_columns(columns)
     if subsystem:
         lines = align_columns(
             lines + [f"Subsystem: {ps.subsystem.nodes}"],
-            types="tt",
+            types='tt',
             split_columns=True,
         )
-    body = "\n".join(lines)
+    body = '\n'.join(lines)
     if title:
         body = header(title, body, HEADER_BAR_1, HEADER_BAR_1)
     return body
@@ -525,7 +526,7 @@ def fmt_phi_structure(ps, title="Phi-structure", subsystem=True):
 
 def fmt_partitioned_phi_structure(
     ps,
-    title="Partitioned phi-structure",
+    title='Partitioned phi-structure',
     subsystem=True,
 ):
     """Format a PartitionedPhiStructure."""
@@ -534,12 +535,12 @@ def fmt_partitioned_phi_structure(
     else:
         cut = fmt_cut(ps.partition, direction=ps.partition.direction, name=False)
     lines = align_columns(
-        fmt_phi_structure(ps, title=None, subsystem=subsystem).split("\n")
+        fmt_phi_structure(ps, title=None, subsystem=subsystem).split('\n')
         + [f"Partition: {cut}"],
-        types="tt",
+        types='tt',
         split_columns=True,
     )
-    body = "\n".join(lines)
+    body = '\n'.join(lines)
     if title:
         body = header(title, body, HEADER_BAR_1, HEADER_BAR_1)
     return body
@@ -550,11 +551,11 @@ def fmt_ces(ces, title=None):
     if title is None:
         title = ces.__class__.__name__
     if not ces:
-        return "()\n"
+        return '()\n'
 
-    concepts = center("\n".join(margin(x) for x in ces) + "\n")
-    title = "{} ({} distinction{})".format(
-        title, len(ces), "" if len(ces) == 1 else "s"
+    concepts = center('\n'.join(margin(x) for x in ces) + '\n')
+    title = '{} ({} distinction{})'.format(
+        title, len(ces), '' if len(ces) == 1 else 's'
     )
 
     return header(title, concepts, HEADER_BAR_1, HEADER_BAR_1)
@@ -572,13 +573,13 @@ def fmt_concept(concept):
 
     mechanism = fmt_mechanism(concept.mechanism, concept.node_labels)
     # TODO(4.0) reconsider using Nodes in the mechanism to facilitate access to their state, etc.
-    title = "\n".join(
+    title = '\n'.join(
         align(
             [
                 f"{concept.__class__.__name__}: mechanism = {mechanism}, state = {list(concept.mechanism_state)}",
                 f"{SMALL_PHI} = {fmt_number(concept.phi)}",
             ],
-            direction="c",
+            direction='c',
         )
     )
 
@@ -593,18 +594,18 @@ def fmt_ria(ria, verbose=True, mip=False):
         mechanism = f"Mechanism: {fmt_mechanism(ria.mechanism, ria.node_labels)}"
         direction = f"Direction: {ria.direction}"
     else:
-        mechanism = ""
-        direction = ""
+        mechanism = ''
+        direction = ''
 
     # TODO(4.0):  position repertoire and partitioned repertoire side by side
     # TODO(ties) fix state-marking logic
     if config.REPR_VERBOSITY is HIGH:
-        partition_name = "MIP" if mip else "Partition"
+        partition_name = 'MIP' if mip else 'Partition'
         partition = f"{partition_name}: "
         if ria.partition:
             partition += f"\n{indent(fmt_partition(ria.partition))}"
         else:
-            partition += "empty"
+            partition += 'empty'
         if ria.specified_state is not None:
             mark_states = [specified.state for specified in ria.specified_state.ties]
         else:
@@ -615,10 +616,10 @@ def fmt_ria(ria, verbose=True, mip=False):
                 repertoire = f"Forward probability:\n    {ria.repertoire}"
                 partitioned_repertoire = f"Partitioned forward probability:\n    {ria.partitioned_repertoire}"
             else:
-                repertoire = "Repertoire:\n{}".format(
+                repertoire = 'Repertoire:\n{}'.format(
                     indent(fmt_repertoire(ria.repertoire, mark_states=mark_states))
                 )
-                partitioned_repertoire = "Partitioned repertoire:\n{}".format(
+                partitioned_repertoire = 'Partitioned repertoire:\n{}'.format(
                     indent(
                         fmt_repertoire(
                             ria.partitioned_repertoire,
@@ -627,12 +628,12 @@ def fmt_ria(ria, verbose=True, mip=False):
                     )
                 )
         else:
-            repertoire = ""
-            partitioned_repertoire = ""
+            repertoire = ''
+            partitioned_repertoire = ''
     else:
-        partition = ""
-        repertoire = ""
-        partitioned_repertoire = ""
+        partition = ''
+        repertoire = ''
+        partitioned_repertoire = ''
 
     data = (
         [
@@ -652,21 +653,21 @@ def fmt_ria(ria, verbose=True, mip=False):
             f"#(partition ties): {ria.num_partition_ties}",
         ]
     )
-    if hasattr(ria, "num_purview_ties"):
+    if hasattr(ria, 'num_purview_ties'):
         data.append(f"#(purview ties): {ria.num_purview_ties}")
     if ria.reasons is not None:
-        data.append("Reasons: " + ", ".join(map(str, ria.reasons)))
-    return "\n".join(data)
+        data.append('Reasons: ' + ', '.join(map(str, ria.reasons)))
+    return '\n'.join(data)
 
 
 def fmt_cut(cut, direction=None, name=True):
     """Format a |Cut|."""
     try:
         if name:
-            name = cut.__class__.__name__ + " "
+            name = cut.__class__.__name__ + ' '
         else:
-            name = ""
-        return "{name}{from_nodes} {symbol} {to_nodes}".format(
+            name = ''
+        return '{name}{from_nodes} {symbol} {to_nodes}'.format(
             name=name,
             from_nodes=fmt_mechanism(cut.from_nodes, cut.node_labels),
             symbol=(
@@ -682,39 +683,39 @@ def fmt_cut(cut, direction=None, name=True):
 
 def fmt_kcut(cut):
     """Format a |KCut|."""
-    return "KCut {}\n{}".format(cut.direction, cut.partition)
+    return 'KCut {}\n{}'.format(cut.direction, cut.partition)
 
 
-def fmt_sia_4(sia, phi_structure=True, title="System irreducibility analysis"):
+def fmt_sia_4(sia, phi_structure=True, title='System irreducibility analysis'):
     """Format an IIT 4.0 |SystemIrreducibilityAnalysis|."""
     if phi_structure:
-        body = "\n".join(
+        body = '\n'.join(
             [
                 fmt_phi_structure(sia.phi_structure, subsystem=False),
                 fmt_phi_structure(
                     sia.partitioned_phi_structure,
-                    title="Partitioned phi-structure",
+                    title='Partitioned phi-structure',
                     subsystem=False,
                 ),
             ]
         )
     else:
-        body = ""
+        body = ''
 
     selectivity = sia.selectivity
     if selectivity is None:
-        selectivity = "[not computed]"
+        selectivity = '[not computed]'
     informativeness = sia.informativeness
     if informativeness is None:
-        informativeness = "[not computed]"
+        informativeness = '[not computed]'
 
     lines = [
         (BIG_PHI, sia.phi),
-        ("Selectivity", selectivity),
-        ("Informativeness", informativeness),
+        ('Selectivity', selectivity),
+        ('Informativeness', informativeness),
     ]
     lines = align_columns(lines)
-    body = "\n".join(["\n".join(lines), body])
+    body = '\n'.join(['\n'.join(lines), body])
 
     if isinstance(sia.partition, (NullCut, CompleteSystemPartition)):
         cut = str(sia.partition)
@@ -726,25 +727,25 @@ def fmt_sia_4(sia, phi_structure=True, title="System irreducibility analysis"):
         cut,
     ]
     if sia.reasons:
-        data.append("[trivially reducible]\n" + "\n".join(map(str, sia.reasons)))
-    data.append("")
+        data.append('[trivially reducible]\n' + '\n'.join(map(str, sia.reasons)))
+    data.append('')
     for line in reversed(data):
         body = header(str(line), body)
     body = header(title, body, under_char=HEADER_BAR_2)
     return box(center(body))
 
 
-def fmt_sia(sia, ces=True, title="System irreducibility analysis"):
+def fmt_sia(sia, ces=True, title='System irreducibility analysis'):
     """Format a |SystemIrreducibilityAnalysis|."""
     if ces:
-        body = "{ces}\n{partitioned_ces}".format(
-            ces=fmt_ces(sia.ces, "Cause-effect structure"),
+        body = '{ces}\n{partitioned_ces}'.format(
+            ces=fmt_ces(sia.ces, 'Cause-effect structure'),
             partitioned_ces=fmt_ces(
-                sia.partitioned_ces, "Partitioned cause-effect structure"
+                sia.partitioned_ces, 'Partitioned cause-effect structure'
             ),
         )
     else:
-        body = ""
+        body = ''
 
     data = [
         f"{BIG_PHI}: {fmt_number(sia.phi)}",
@@ -761,91 +762,91 @@ def fmt_repertoire(r, mark_states=None):
     """Format a repertoire."""
     # TODO: will this get unwieldy with large repertoires?
     if r is None:
-        return ""
+        return ''
 
     r = r.squeeze()
 
     lines = []
 
     # Header: 'S      P(S)'
-    space = " " * 4
-    head = "{S:^{s_width}}{space}Pr({S})".format(S="S", s_width=r.ndim, space=space)
+    space = ' ' * 4
+    head = '{S:^{s_width}}{space}Pr({S})'.format(S='S', s_width=r.ndim, space=space)
     lines.append(head)
 
     # Lines: '001     .25'
     for state in utils.all_states(r.ndim):
-        state_str = "".join(str(i) for i in state)
+        state_str = ''.join(str(i) for i in state)
         if state in mark_states:
-            state_str += " *"
+            state_str += ' *'
         else:
-            state_str += "  "
-        lines.append("{0}{1}{2}".format(state_str, space[:-2], fmt_number(r[state])))
+            state_str += '  '
+        lines.append('{0}{1}{2}'.format(state_str, space[:-2], fmt_number(r[state])))
 
     w = width(lines)
     lines.insert(1, DOTTED_HEADER * (w + 1))
 
-    return box("\n".join(lines))
+    return box('\n'.join(lines))
 
 
 def fmt_relatum(relatum, node_labels=None):
-    direction = "Cause" if relatum.direction == Direction.CAUSE else "Effect"
+    direction = 'Cause' if relatum.direction == Direction.CAUSE else 'Effect'
     return (
         direction
         + fmt_mechanism(relatum.mechanism, node_labels=node_labels)
-        + "/"
+        + '/'
         + fmt_mechanism(relatum.purview, node_labels=node_labels)
     )
 
 
 def fmt_relata(relata, node_labels=None):
     lines = [fmt_relatum(relatum, node_labels=node_labels) for relatum in relata]
-    lines = align_columns(lines, delimiter="/", split_columns=True)
+    lines = align_columns(lines, delimiter='/', split_columns=True)
     # TODO(4.0) align purview nodes?
-    return "\n".join(lines)
+    return '\n'.join(lines)
 
 
 def fmt_relation(relation):
     labels = relation.subsystem.node_labels
     body = fmt_relata(relation.relata, node_labels=labels)
     data = [
-        ("φ", relation.phi),
-        ("Purview", fmt_mechanism(relation.purview, node_labels=labels)),
-        ("Relata", ""),
+        ('φ', relation.phi),
+        ('Purview', fmt_mechanism(relation.purview, node_labels=labels)),
+        ('Relata', ''),
     ]
-    data = "\n".join(align_columns(data))
+    data = '\n'.join(align_columns(data))
     body = center(header(data, body))
-    return header("Relation", body, over_char=HEADER_BAR_3, under_char=HEADER_BAR_3)
+    return header('Relation', body, over_char=HEADER_BAR_3, under_char=HEADER_BAR_3)
 
 
-def _fmt_relations(relations, title=None, body="", data=None):
+def _fmt_relations(relations, title=None, body='', data=None):
     if title is None:
         title = relations.__class__.__name__
     if data is None:
         data = []
     data = [
-        ("#", len(relations)),
-        ("Σφ", relations.sum_phi()),
+        ('#', len(relations)),
+        ('Σφ', relations.sum_phi()),
     ] + data
-    data = "\n".join(align_columns(data))
+    data = '\n'.join(align_columns(data))
     body = header(data, body)
     body = header(title, body, under_char=HEADER_BAR_1)
     return center(body)
 
 
 def fmt_concrete_relations(relations, title=None):
-    body = "\n".join(map(fmt_relation, relations))
+    body = '\n'.join(map(fmt_relation, relations))
     return _fmt_relations(relations, title, body)
 
 
 def fmt_analytical_relations(relations, title=None):
-    body = ""
+    body = ''
     return _fmt_relations(relations, title, body)
 
 
 def fmt_sampled_relations(relations, title=None):
-    body = "\n".join(map(fmt_relation, relations.sample))
+    body = '\n'.join(map(fmt_relation, relations.sample))
     return _fmt_relations(
-        relations, title, body, data=[("Sampled", len(relations.sample))]
+        relations, title, body, data=[('Sampled', len(relations.sample))]
     )
 
 
@@ -857,7 +858,7 @@ def fmt_extended_purview(extended_purview, node_labels=None):
     purviews = [
         fmt_mechanism(purview, node_labels=node_labels) for purview in extended_purview
     ]
-    return "[" + ", ".join(purviews) + "]"
+    return '[' + ', '.join(purviews) + ']'
 
 
 def fmt_causal_link(causal_link):
@@ -887,9 +888,9 @@ def fmt_ac_ria(ria, extended_purview=None):
             ),
         ),
     }[ria.direction]
-    causality = " ".join(causality)
+    causality = ' '.join(causality)
 
-    return "{ALPHA} = {alpha}  {causality}".format(
+    return '{ALPHA} = {alpha}  {causality}'.format(
         ALPHA=ALPHA, alpha=round(ria.alpha, 4), causality=causality
     )
 
@@ -899,48 +900,48 @@ def fmt_account(account, title=None):
     if title is None:
         title = account.__class__.__name__  # `Account` or `DirectedAccount`
 
-    title = "{} ({} causal link{})".format(
-        title, len(account), "" if len(account) == 1 else "s"
+    title = '{} ({} causal link{})'.format(
+        title, len(account), '' if len(account) == 1 else 's'
     )
 
-    body = ""
-    body += "Irreducible effects\n"
-    body += "\n".join(fmt_causal_link(m) for m in account.irreducible_effects)
-    body += "\nIrreducible causes\n"
-    body += "\n".join(fmt_causal_link(m) for m in account.irreducible_causes)
+    body = ''
+    body += 'Irreducible effects\n'
+    body += '\n'.join(fmt_causal_link(m) for m in account.irreducible_effects)
+    body += '\nIrreducible causes\n'
+    body += '\n'.join(fmt_causal_link(m) for m in account.irreducible_causes)
 
-    return "\n" + header(title, body, under_char="*")
+    return '\n' + header(title, body, under_char='*')
 
 
 def fmt_ac_sia(ac_sia):
     """Format a AcSystemIrreducibilityAnalysis."""
     body = (
-        "{ALPHA} = {alpha}\n"
-        "direction: {ac_sia.direction}\n"
-        "transition: {ac_sia.transition}\n"
-        "before state: {ac_sia.before_state}\n"
-        "after state: {ac_sia.after_state}\n"
-        "cut:\n{ac_sia.cut}\n"
-        "{account}\n"
-        "{partitioned_account}".format(
+        '{ALPHA} = {alpha}\n'
+        'direction: {ac_sia.direction}\n'
+        'transition: {ac_sia.transition}\n'
+        'before state: {ac_sia.before_state}\n'
+        'after state: {ac_sia.after_state}\n'
+        'cut:\n{ac_sia.cut}\n'
+        '{account}\n'
+        '{partitioned_account}'.format(
             ALPHA=ALPHA,
             alpha=round(ac_sia.alpha, 4),
             ac_sia=ac_sia,
-            account=fmt_account(ac_sia.account, "Account"),
+            account=fmt_account(ac_sia.account, 'Account'),
             partitioned_account=fmt_account(
-                ac_sia.partitioned_account, "Partitioned Account"
+                ac_sia.partitioned_account, 'Partitioned Account'
             ),
         )
     )
 
     return box(
-        header("AcSystemIrreducibilityAnalysis", body, under_char=HORIZONTAL_BAR)
+        header('AcSystemIrreducibilityAnalysis', body, under_char=HORIZONTAL_BAR)
     )
 
 
 def fmt_transition(t):
     """Format a |Transition|."""
-    return "Transition({} {} {})".format(
+    return 'Transition({} {} {})'.format(
         fmt_mechanism(t.cause_indices, t.node_labels),
         ARROW_RIGHT,
         fmt_mechanism(t.effect_indices, t.node_labels),
@@ -949,4 +950,4 @@ def fmt_transition(t):
 
 def state(state):
     """Format a state."""
-    return "(" + ",".join(map(str, state)) + ")"
+    return '(' + ','.join(map(str, state)) + ')'

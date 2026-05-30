@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # metrics/distribution.py
 """Metrics on probability distributions."""
 
@@ -39,7 +40,7 @@ class OptionalEMD:
                 self._pyemd = pyemd
             except ModuleNotFoundError as exc:
                 raise ModuleNotFoundError(
-                    MissingOptionalDependenciesError.MSG.format(dependencies="pyemd")
+                    MissingOptionalDependenciesError.MSG.format(dependencies='pyemd')
                 ) from exc
         return self._pyemd
 
@@ -66,7 +67,7 @@ class DistributionMeasureRegistry(Registry):
 
     # pylint: disable=arguments-differ
 
-    desc = "distance functions between probability distributions"
+    desc = 'distance functions between probability distributions'
 
     def __init__(self) -> None:
         super().__init__()
@@ -115,7 +116,7 @@ class ActualCausationMeasureRegistry(Registry):
 
     # pylint: disable=arguments-differ
 
-    desc = "distance functions for use in actual causation calculations"
+    desc = 'distance functions for use in actual causation calculations'
 
     def __init__(self) -> None:
         super().__init__()
@@ -159,13 +160,13 @@ class np_suppress(np.errstate, ContextDecorator):
     """
 
     def __init__(self) -> None:
-        super().__init__(divide="ignore", invalid="ignore")
+        super().__init__(divide='ignore', invalid='ignore')
 
 
 # Load precomputed hamming matrices.
 _NUM_PRECOMPUTED_HAMMING_MATRICES = 10
 _hamming_matrices = utils.load_data(
-    "hamming_matrices", _NUM_PRECOMPUTED_HAMMING_MATRICES
+    'hamming_matrices', _NUM_PRECOMPUTED_HAMMING_MATRICES
 )
 
 
@@ -217,7 +218,7 @@ def _compute_hamming_matrix(N: int) -> np.ndarray:
     use |_hamming_matrix| instead.
     """
     possible_states = np.array(list(utils.all_states((N))))
-    return cdist(possible_states, possible_states, "hamming") * N
+    return cdist(possible_states, possible_states, 'hamming') * N
 
 
 # TODO extend to nonbinary nodes
@@ -251,7 +252,7 @@ def effect_emd(p: ArrayLike, q: ArrayLike) -> float:
     return sum(abs(marginal_zero(p, i) - marginal_zero(q, i)) for i in range(p.ndim))
 
 
-@measures.register("EMD")
+@measures.register('EMD')
 def emd(p: ArrayLike, q: ArrayLike, direction: Optional[Direction] = None) -> float:
     """Compute the EMD between two repertoires for a given direction.
 
@@ -282,7 +283,7 @@ def emd(p: ArrayLike, q: ArrayLike, direction: Optional[Direction] = None) -> fl
     return round(func(p, q), config.PRECISION)
 
 
-@measures.register("L1")
+@measures.register('L1')
 def l1(p: ArrayLike, q: ArrayLike) -> float:
     """Return the L1 distance between two distributions.
 
@@ -296,7 +297,7 @@ def l1(p: ArrayLike, q: ArrayLike) -> float:
     return np.abs(p - q).sum()
 
 
-@measures.register("ENTROPY_DIFFERENCE")
+@measures.register('ENTROPY_DIFFERENCE')
 def entropy_difference(p: ArrayLike, q: ArrayLike) -> float:
     """Return the difference in entropy between two distributions."""
     hp = entr(p).sum() / _LN_OF_2
@@ -304,7 +305,7 @@ def entropy_difference(p: ArrayLike, q: ArrayLike) -> float:
     return abs(hp - hq)
 
 
-@measures.register("PSQ2")
+@measures.register('PSQ2')
 def psq2(p: ArrayLike, q: ArrayLike) -> float:
     r"""Compute the PSQ2 measure.
 
@@ -322,7 +323,7 @@ def psq2(p: ArrayLike, q: ArrayLike) -> float:
     return abs(fp - fq)
 
 
-@measures.register("MP2Q", asymmetric=True)
+@measures.register('MP2Q', asymmetric=True)
 @np_suppress()
 def mp2q(p: ArrayLike, q: ArrayLike) -> float:
     r"""Compute the MP2Q measure.
@@ -361,7 +362,7 @@ def information_density(p: ArrayLike, q: ArrayLike) -> np.ndarray:
     return rel_entr(p, q) / _LN_OF_2
 
 
-@measures.register("KLD", asymmetric=True)
+@measures.register('KLD', asymmetric=True)
 def kld(p: ArrayLike, q: ArrayLike) -> float:
     """Return the Kullback-Leibler Divergence (KLD) between two distributions.
 
@@ -558,7 +559,7 @@ def approximate_specified_state(
     return specified_states.astype(int).T
 
 
-@measures.register("ID", asymmetric=True)
+@measures.register('ID', asymmetric=True)
 def intrinsic_difference(p: ArrayLike, q: ArrayLike) -> float:
     r"""Compute the intrinsic difference (ID) between two distributions.
 
@@ -588,9 +589,9 @@ def intrinsic_difference(p: ArrayLike, q: ArrayLike) -> float:
     return np.max(information_density(p, q))
 
 
-@measures.register("AID", asymmetric=True)
-@measures.register("KLM", asymmetric=True)  # Backwards-compatible alias
-@measures.register("BLD", asymmetric=True)  # Backwards-compatible alias
+@measures.register('AID', asymmetric=True)
+@measures.register('KLM', asymmetric=True)  # Backwards-compatible alias
+@measures.register('BLD', asymmetric=True)  # Backwards-compatible alias
 def absolute_intrinsic_difference(p: ArrayLike, q: ArrayLike) -> float:
     """Compute the absolute intrinsic difference (AID) between two
     distributions.
@@ -611,13 +612,13 @@ def absolute_intrinsic_difference(p: ArrayLike, q: ArrayLike) -> float:
     return np.max(absolute_information_density(p, q))
 
 
-@measures.register("IIT_4.0_SMALL_PHI", asymmetric=True)
+@measures.register('IIT_4.0_SMALL_PHI', asymmetric=True)
 def iit_4_small_phi(p: ArrayLike, q: ArrayLike, state: Union[int, Tuple[int, ...]]):
     # TODO docstring
     return absolute_information_density(p, q).squeeze()[state]
 
 
-@measures.register("IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE", asymmetric=True)
+@measures.register('IIT_4.0_SMALL_PHI_NO_ABSOLUTE_VALUE', asymmetric=True)
 def iit_4_small_phi_no_absolute_value(
     p: ArrayLike, q: ArrayLike, state: Union[int, Tuple[int, ...]]
 ):
@@ -625,7 +626,7 @@ def iit_4_small_phi_no_absolute_value(
     return information_density(p, q).squeeze()[state]
 
 
-@measures.register("GENERALIZED_INTRINSIC_DIFFERENCE", asymmetric=True)
+@measures.register('GENERALIZED_INTRINSIC_DIFFERENCE', asymmetric=True)
 def generalized_intrinsic_difference(
     forward_repertoire: ArrayLike,
     partitioned_forward_repertoire: ArrayLike,
@@ -641,7 +642,7 @@ def generalized_intrinsic_difference(
     return gid[state]
 
 
-@measures.register("APMI", asymmetric=True)
+@measures.register('APMI', asymmetric=True)
 @np_suppress()
 def absolute_pointwise_mutual_information(
     p: ArrayLike, q: ArrayLike, state: Union[int, Tuple[int, ...]]
@@ -666,7 +667,7 @@ def pointwise_mutual_information_vector(p: ArrayLike, q: ArrayLike) -> np.ndarra
     return np.nan_to_num(np.log2(p / q), nan=0.0)
 
 
-@actual_causation_measures.register("PMI", asymmetric=True)
+@actual_causation_measures.register('PMI', asymmetric=True)
 def pointwise_mutual_information(p: float, q: float) -> float:
     """Compute the pointwise mutual information (PMI).
 
@@ -689,7 +690,7 @@ def pointwise_mutual_information(p: float, q: float) -> float:
     return log2(p / q)
 
 
-@actual_causation_measures.register("WPMI", asymmetric=True)
+@actual_causation_measures.register('WPMI', asymmetric=True)
 def weighted_pointwise_mutual_information(p: float, q: float) -> float:
     """Compute the weighted pointwise mutual information (WPMI).
 

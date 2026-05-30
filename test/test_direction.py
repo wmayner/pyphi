@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import pytest
 
 from pyphi import Direction
@@ -14,11 +15,11 @@ def test_direction_order():
 
 
 @pytest.mark.parametrize(
-    "direction,json_dict",
+    'direction,json_dict',
     [
-        (Direction.CAUSE, {"direction": "CAUSE"}),
-        (Direction.EFFECT, {"direction": "EFFECT"}),
-        (Direction.BIDIRECTIONAL, {"direction": "BIDIRECTIONAL"}),
+        (Direction.CAUSE, {'direction': 'CAUSE'}),
+        (Direction.EFFECT, {'direction': 'EFFECT'}),
+        (Direction.BIDIRECTIONAL, {'direction': 'BIDIRECTIONAL'}),
     ],
 )
 def test_direction_json(direction, json_dict):
@@ -27,6 +28,6 @@ def test_direction_json(direction, json_dict):
 
 
 def test_direction_str():
-    assert str(Direction.CAUSE) == "CAUSE"
-    assert str(Direction.EFFECT) == "EFFECT"
-    assert str(Direction.BIDIRECTIONAL) == "BIDIRECTIONAL"
+    assert str(Direction.CAUSE) == 'CAUSE'
+    assert str(Direction.EFFECT) == 'EFFECT'
+    assert str(Direction.BIDIRECTIONAL) == 'BIDIRECTIONAL'

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # models/subsystem.py
 """Subsystem-level objects."""
 
@@ -15,7 +16,7 @@ from . import cmp, fmt
 from .mechanism import Concept, StateSpecification
 from .pandas import ToDictMixin, ToPandasMixin
 
-_sia_attributes = ["phi", "ces", "partitioned_ces", "subsystem", "cut_subsystem"]
+_sia_attributes = ['phi', 'ces', 'partitioned_ces', 'subsystem', 'cut_subsystem']
 
 
 @dataclass(frozen=True)
@@ -28,9 +29,9 @@ class SystemStateSpecification(ToDictMixin, ToPandasMixin):
             return self.cause
         elif direction == Direction.EFFECT:
             return self.effect
-        raise KeyError("Invalid direction")
+        raise KeyError('Invalid direction')
 
-    def _repr_columns(self, prefix=""):
+    def _repr_columns(self, prefix=''):
         cols = []
         # TODO(4.0) create NullStateSpecification and use that instead of None
         if self.cause is not None:
@@ -44,8 +45,8 @@ class SystemStateSpecification(ToDictMixin, ToPandasMixin):
         return cols
 
     def __repr__(self):
-        body = "\n".join(fmt.align_columns(self._repr_columns()))
-        body = fmt.header("Specified System State", body, under_char=fmt.HEADER_BAR_3)
+        body = '\n'.join(fmt.align_columns(self._repr_columns()))
+        body = fmt.header('Specified System State', body, under_char=fmt.HEADER_BAR_3)
         return fmt.box(fmt.center(body))
 
     def __hash__(self):
@@ -125,7 +126,7 @@ class CauseEffectStructure(cmp.Orderable, Sequence, ToPandasMixin):
 
     def __repr__(self):
         # TODO(4.0) remove dependence on subsystem & time
-        return fmt.make_repr(self, ["concepts", "subsystem"])
+        return fmt.make_repr(self, ['concepts', 'subsystem'])
 
     def __str__(self):
         return fmt.fmt_ces(self)
@@ -141,7 +142,7 @@ class CauseEffectStructure(cmp.Orderable, Sequence, ToPandasMixin):
         return [self.concepts]
 
     def to_json(self):
-        return {"concepts": self.concepts}
+        return {'concepts': self.concepts}
 
     @property
     def flat(self):
@@ -195,7 +196,7 @@ class CauseEffectStructure(cmp.Orderable, Sequence, ToPandasMixin):
 
     def purview_inclusion_of_intersection(self, min_order, max_order):
         return _purview_inclusion(
-            "purview_intersection",
+            'purview_intersection',
             distinctions=self,
             min_order=min_order,
             max_order=max_order,
@@ -203,7 +204,7 @@ class CauseEffectStructure(cmp.Orderable, Sequence, ToPandasMixin):
 
     def _purview_inclusion_of_union(self, min_order, max_order):
         return _purview_inclusion(
-            "purview_union", distinctions=self, min_order=min_order, max_order=max_order
+            'purview_union', distinctions=self, min_order=min_order, max_order=max_order
         )
 
     def purview_inclusion(self, max_order=None):
@@ -220,7 +221,7 @@ class CauseEffectStructure(cmp.Orderable, Sequence, ToPandasMixin):
                     max_order=max_order,
                 )
             )
-        max_order = fallback(max_order, float("inf"))
+        max_order = fallback(max_order, float('inf'))
         for order, mapping in self._purview_inclusion_by_order.items():
             if order <= max_order:
                 yield from mapping.items()
@@ -272,7 +273,7 @@ class FlatCauseEffectStructure(CauseEffectStructure):
         super().__init__(concepts=_concepts, subsystem=subsystem)
 
     def __str__(self):
-        return fmt.fmt_ces(self, title="Flat cause-effect structure")
+        return fmt.fmt_ces(self, title='Flat cause-effect structure')
 
     @property
     def purviews(self):
@@ -330,7 +331,7 @@ class FlatCauseEffectStructure(CauseEffectStructure):
 
     def _purview_inclusion_of_union(self, min_order, max_order):
         return _purview_inclusion(
-            "purview_units", distinctions=self, min_order=min_order, max_order=max_order
+            'purview_units', distinctions=self, min_order=min_order, max_order=max_order
         )
 
 
@@ -397,7 +398,7 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
         """The network the subsystem belongs to."""
         return self.subsystem.network
 
-    unorderable_unless_eq = ["network"]
+    unorderable_unless_eq = ['network']
 
     def __eq__(self, other):
         return cmp.general_eq(self, other, _sia_attributes)
@@ -422,12 +423,12 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
     def to_json(self):
         """Return a JSON-serializable representation."""
         return {
-            attr: getattr(self, attr) for attr in _sia_attributes + ["small_phi_time"]
+            attr: getattr(self, attr) for attr in _sia_attributes + ['small_phi_time']
         }
 
     @classmethod
     def from_json(cls, dct):
-        del dct["small_phi_time"]
+        del dct['small_phi_time']
         return cls(**dct)
 
 

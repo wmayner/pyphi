@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # convert.py
 """Conversion functions.
 
@@ -69,7 +70,7 @@ def state2be_index(state):
         >>> state2be_index((1, 1, 1, 0, 0, 0, 0, 0))
         224
     """
-    return int("".join(str(int(n)) for n in state), 2)
+    return int(''.join(str(int(n)) for n in state), 2)
 
 
 def state2le_index(state):
@@ -90,7 +91,7 @@ def state2le_index(state):
         >>> state2le_index((1, 1, 1, 0, 0, 0, 0, 0))
         7
     """
-    return int("".join(str(int(n)) for n in state[::-1]), 2)
+    return int(''.join(str(int(n)) for n in state[::-1]), 2)
 
 
 def le_index2state(i, number_of_nodes):
@@ -188,15 +189,15 @@ def to_multidimensional(tpm):
     # little-endian convention (least-significant bits correspond to low-index
     # nodes). Note that this does not change the actual memory layout (C- or
     # Fortran-contiguous), so there is no performance loss.
-    return tpm.reshape([2] * n_prev + [n_next], order="F").astype(float)
+    return tpm.reshape([2] * n_prev + [n_next], order='F').astype(float)
 
 
 def sbs_to_multidimensional(tpm):
     if not tpm.ndim == 2:
-        raise ValueError("tpm must be 2-dimensional")
+        raise ValueError('tpm must be 2-dimensional')
     num_prev_nodes = assume_integer(log2(tpm.shape[0]))
     num_next_nodes = assume_integer(log2(tpm.shape[1]))
-    return tpm.reshape([2] * num_prev_nodes + [2] * num_next_nodes, order="F")
+    return tpm.reshape([2] * num_prev_nodes + [2] * num_next_nodes, order='F')
 
 
 def to_2dimensional(tpm):
@@ -212,7 +213,7 @@ def to_2dimensional(tpm):
     # Get the number of next states
     N = tpm.shape[-1]
     # Reshape
-    return tpm.reshape([S, N], order="F").astype(float)
+    return tpm.reshape([S, N], order='F').astype(float)
 
 
 def state_by_state2state_by_node(tpm):

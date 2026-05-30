@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import numpy as np
 import pytest
 
@@ -94,12 +95,12 @@ def background_all_off():
 
 
 @pytest.mark.parametrize(
-    "transition,direction,mechanism,purview,ratio",
+    'transition,direction,mechanism,purview,ratio',
     [
-        (pytest.lazy_fixture("background_all_off"), Direction.EFFECT, (0,), (1,), 1),
-        (pytest.lazy_fixture("background_all_off"), Direction.CAUSE, (1,), (0,), 1),
-        (pytest.lazy_fixture("background_all_on"), Direction.EFFECT, (0,), (1,), 0),
-        (pytest.lazy_fixture("background_all_on"), Direction.CAUSE, (1,), (0,), 0),
+        (pytest.lazy_fixture('background_all_off'), Direction.EFFECT, (0,), (1,), 1),
+        (pytest.lazy_fixture('background_all_off'), Direction.CAUSE, (1,), (0,), 1),
+        (pytest.lazy_fixture('background_all_on'), Direction.EFFECT, (0,), (1,), 0),
+        (pytest.lazy_fixture('background_all_on'), Direction.CAUSE, (1,), (0,), 0),
     ],
 )
 @pytest.mark.outdated
@@ -152,7 +153,7 @@ def background_3_node():
 
 
 @pytest.mark.parametrize(
-    "before_state,purview,alpha",
+    'before_state,purview,alpha',
     [
         # If C = 1, then AB over AC should be reducible.
         ((1, 1, 1), (0, 2), 0.0),
@@ -264,14 +265,14 @@ def test_to_json(transition):
 
 def acria(**kwargs):
     defaults = {
-        "alpha": 0.0,
-        "state": None,
-        "direction": None,
-        "mechanism": (),
-        "purview": (),
-        "partition": None,
-        "probability": 0.0,
-        "partitioned_probability": 0.0,
+        'alpha': 0.0,
+        'state': None,
+        'direction': None,
+        'mechanism': (),
+        'purview': (),
+        'partition': None,
+        'probability': 0.0,
+        'partitioned_probability': 0.0,
     }
     defaults.update(kwargs)
     return models.AcRepertoireIrreducibilityAnalysis(**defaults)
@@ -287,12 +288,12 @@ def account(links=()):
 
 def ac_sia(**kwargs):
     defaults = {
-        "alpha": 0.0,
-        "direction": Direction.BIDIRECTIONAL,
-        "account": account(),
-        "partitioned_account": account(),
-        "transition": None,
-        "cut": None,
+        'alpha': 0.0,
+        'direction': Direction.BIDIRECTIONAL,
+        'account': account(),
+        'partitioned_account': account(),
+        'transition': None,
+        'cut': None,
     }
     defaults.update(kwargs)
     return models.AcSystemIrreducibilityAnalysis(**defaults)
@@ -387,7 +388,7 @@ def test_ac_sia_ordering(transition, empty_transition):
 
 
 @pytest.mark.parametrize(
-    "direction,mechanism,purview,repertoire",
+    'direction,mechanism,purview,repertoire',
     [
         (Direction.CAUSE, (0,), (1,), [[[0.3333333], [0.66666667]]]),
         (Direction.CAUSE, (0,), (2,), [[[0.3333333, 0.66666667]]]),
@@ -429,7 +430,7 @@ def test_unconstrained_repertoires(transition):
 
 
 @pytest.mark.parametrize(
-    "direction,mechanism,purview,probability",
+    'direction,mechanism,purview,probability',
     [
         (Direction.CAUSE, (0,), (1,), 0.66666667),
         (Direction.CAUSE, (0,), (2,), 0.66666667),
@@ -451,7 +452,7 @@ def test_unconstrained_probability(transition):
 
 
 @pytest.mark.parametrize(
-    "mechanism,purview,ratio",
+    'mechanism,purview,ratio',
     [
         ((0,), (1,), 0.41504),
         ((0,), (2,), 0.41504),
@@ -463,7 +464,7 @@ def test_cause_ratio(mechanism, purview, ratio, transition):
 
 
 @pytest.mark.parametrize(
-    "mechanism,purview,ratio",
+    'mechanism,purview,ratio',
     [
         ((1,), (0,), 0.41504),
         ((2,), (0,), 0.41504),
@@ -560,9 +561,9 @@ def ac_cut(direction, *parts):
     return models.ActualCut(direction, KPartition(*parts))
 
 
-@config.override(PARTITION_TYPE="TRI")
+@config.override(PARTITION_TYPE='TRI')
 @pytest.mark.parametrize(
-    "direction,answer",
+    'direction,answer',
     [
         (
             Direction.BIDIRECTIONAL,
@@ -618,11 +619,11 @@ def test_null_ac_sia(transition):
     assert sia.partitioned_account == ()
     assert sia.alpha == 0.0
 
-    sia = actual._null_ac_sia(transition, Direction.CAUSE, alpha=float("inf"))
-    assert sia.alpha == float("inf")
+    sia = actual._null_ac_sia(transition, Direction.CAUSE, alpha=float('inf'))
+    assert sia.alpha == float('inf')
 
 
-@config.override(PARTITION_TYPE="TRI")
+@config.override(PARTITION_TYPE='TRI')
 @pytest.mark.outdated
 def test_prevention(prevention):
     assert actual.sia(prevention, Direction.CAUSE).alpha == 0.415037

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # visualize/phi_structure/geometry.py
 """Utilities for specifying the spatial layout of |big_phi|-structures."""
 
@@ -26,7 +27,7 @@ def linear(N):
     return np.arange(N)[::-1]
 
 
-SHAPES = {"linear": linear, "log_n_choose_k": log_n_choose_k}
+SHAPES = {'linear': linear, 'log_n_choose_k': log_n_choose_k}
 
 
 class Coordinates:
@@ -41,7 +42,7 @@ class Coordinates:
         state_multiplicities: Optional[float] = None,
         state_offset_radius: Optional[float] = 0.0,
         rotation: Optional[float] = 0.0,
-        rotation_plane: Optional[str] = "xy",
+        rotation_plane: Optional[str] = 'xy',
         scale: Optional[ArrayLike] = 1.0,
         translate: Optional[ArrayLike] = 0.0,
     ):
@@ -136,7 +137,7 @@ def _multiplicity_mapping(multiplicities, radius, **kwargs):
 
 def rotate(coordinates, theta, plane):
     """Return the coordinates rotated theta degrees in the specified plane."""
-    if plane == "xy":
+    if plane == 'xy':
         rotation_matrix = np.array(
             [
                 [np.cos(theta), -np.sin(theta), 0],
@@ -144,7 +145,7 @@ def rotate(coordinates, theta, plane):
                 [0, 0, 1],
             ]
         )
-    elif plane == "yz":
+    elif plane == 'yz':
         rotation_matrix = np.array(
             [
                 [1, 0, 0],
@@ -152,7 +153,7 @@ def rotate(coordinates, theta, plane):
                 [0, np.sin(theta), np.cos(theta)],
             ]
         )
-    elif plane == "xz":
+    elif plane == 'xz':
         rotation_matrix = np.array(
             [
                 [np.cos(theta), 0, np.sin(theta)],
@@ -266,7 +267,7 @@ class PurviewCoordinates:
         self,
         mapping: Mapping[Direction, Mapping[tuple[int], ArrayLike]],
         rotation: Optional[float] = 0.0,
-        rotation_plane: Optional[str] = "xy",
+        rotation_plane: Optional[str] = 'xy',
         scale: Optional[ArrayLike] = 1.0,
         translate: Optional[ArrayLike] = 0.0,
     ):

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import pytest
 
 from pyphi import config, compute, models, new_big_phi, jsonify
@@ -43,7 +44,7 @@ def test_sia_disconnected_network(reducible):
 
 
 @config.override(SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=True)
-@config.override(REPERTOIRE_DISTANCE="EMD")
+@config.override(REPERTOIRE_DISTANCE='EMD')
 def test_sia_single_micro_node_selfloops_have_phi(noisy_selfloop_single):
     assert noisy_selfloop_single.sia().phi == 0.36
 
@@ -198,12 +199,12 @@ def test_sia_macro_parallel(macro_s, macro_s_expected_sia):
 
 @pytest.mark.outdated
 @pytest.mark.slow
-@config.override(SYSTEM_PARTITION_TYPE="DIRECTED_BI")
+@config.override(SYSTEM_PARTITION_TYPE='DIRECTED_BI')
 def test_system_cut_styles(s):
-    with config.override(SYSTEM_CUTS="3.0_STYLE"):
+    with config.override(SYSTEM_CUTS='3.0_STYLE'):
         assert compute.subsystem.phi(s) == 0.5  # 2.3125
 
-    with config.override(SYSTEM_CUTS="CONCEPT_STYLE"):
+    with config.override(SYSTEM_CUTS='CONCEPT_STYLE'):
         assert compute.subsystem.phi(s) == 0.6875
 
 

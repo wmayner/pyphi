@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # parallel/__init__.py
 """Provides an interface for distributed computation."""
 
@@ -29,11 +30,11 @@ def get_num_processes():
     cpu_count = multiprocessing.cpu_count()
 
     if config.NUMBER_OF_CORES == 0:
-        raise ValueError("Invalid NUMBER_OF_CORES; value may not be 0.")
+        raise ValueError('Invalid NUMBER_OF_CORES; value may not be 0.')
 
     if config.NUMBER_OF_CORES > cpu_count:
         log.info(
-            "Requesting %s cores; only %s available", config.NUMBER_OF_CORES, cpu_count
+            'Requesting %s cores; only %s available', config.NUMBER_OF_CORES, cpu_count
         )
         return cpu_count
 
@@ -41,7 +42,7 @@ def get_num_processes():
         num = cpu_count + config.NUMBER_OF_CORES + 1
         if num <= 0:
             raise ValueError(
-                "Invalid NUMBER_OF_CORES; negative value is too negative: "
+                'Invalid NUMBER_OF_CORES; negative value is too negative: '
                 f"requesting {num} cores, {cpu_count} available."
             )
 
@@ -80,7 +81,7 @@ def shortcircuit(
             return
 
 
-def as_completed(object_refs: "List[ObjectRef]", num_returns: int = 1):
+def as_completed(object_refs: 'List[ObjectRef]', num_returns: int = 1):
     """Yield remote results in order of completion."""
     unfinished = object_refs
     while unfinished:
@@ -186,7 +187,7 @@ def _map_reduce_tree(
     Useful when the reduction function is expensive or when reducing in one
     chunk is otherwise problematic.
     """
-    total = fallback(try_len(*iterables), float("inf"))
+    total = fallback(try_len(*iterables), float('inf'))
     branch = _level < tree.depth and constraints.sequential_threshold < total
     if branch:
         chunksize = max(chunksize, constraints.sequential_threshold)
@@ -310,7 +311,7 @@ class MapReduce:
             if NO_RAY:
                 raise MissingOptionalDependenciesError(
                     MissingOptionalDependenciesError.MSG.format(
-                        dependencies="parallel"
+                        dependencies='parallel'
                     ),
                 )
             self.constraints = get_constraints(
@@ -340,29 +341,29 @@ class MapReduce:
 
     def _repr_attrs(self):
         attrs = [
-            "map_func",
-            "map_kwargs",
-            "iterables",
-            "reduce_func",
-            "reduce_kwargs",
-            "parallel",
-            "ordered",
-            "total",
-            "shortcircuit_func",
-            "shortcircuit_callback",
-            "shortcircuit_callback_args",
-            "inflight_limit",
-            "progress",
-            "desc",
+            'map_func',
+            'map_kwargs',
+            'iterables',
+            'reduce_func',
+            'reduce_kwargs',
+            'parallel',
+            'ordered',
+            'total',
+            'shortcircuit_func',
+            'shortcircuit_callback',
+            'shortcircuit_callback_args',
+            'inflight_limit',
+            'progress',
+            'desc',
         ]
         if self.parallel:
-            attrs += ["constraints", "tree"]
+            attrs += ['constraints', 'tree']
         return attrs
 
     def __repr__(self):
         data = [f"{attr}={getattr(self, attr)}" for attr in self._repr_attrs()]
-        return "\n".join(
-            [f"{self.__class__.__name__}(", indent("\n".join(data), "  "), ")"]
+        return '\n'.join(
+            [f"{self.__class__.__name__}(", indent('\n'.join(data), '  '), ')']
         )
 
     def _run_parallel(self):

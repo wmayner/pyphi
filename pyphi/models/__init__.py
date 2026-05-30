@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # models/__init__.py
 """See |models.subsystem|, |models.mechanism|, and |models.cuts| for documentation.
 

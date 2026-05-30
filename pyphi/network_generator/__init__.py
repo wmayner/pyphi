@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # network_generator/__init__.py
 """High-level interface for creating systems by specifying architecture."""
 
@@ -13,16 +14,16 @@ from ..utils import all_states
 from . import ising, unit_functions, weights
 
 UNIT_FUNCTIONS = {
-    "ising": ising.probability,
-    "boolean": unit_functions.boolean_function,
-    "gaussian": unit_functions.gaussian,
-    "naka_rushton": unit_functions.naka_rushton,
-    "or": unit_functions.logical_or_function,
-    "and": unit_functions.logical_and_function,
-    "parity": unit_functions.logical_parity_function,
-    "nor": unit_functions.logical_nor_function,
-    "nand": unit_functions.logical_nand_function,
-    "nparity": unit_functions.logical_nparity_function,
+    'ising': ising.probability,
+    'boolean': unit_functions.boolean_function,
+    'gaussian': unit_functions.gaussian,
+    'naka_rushton': unit_functions.naka_rushton,
+    'or': unit_functions.logical_or_function,
+    'and': unit_functions.logical_and_function,
+    'parity': unit_functions.logical_parity_function,
+    'nor': unit_functions.logical_nor_function,
+    'nand': unit_functions.logical_nand_function,
+    'nparity': unit_functions.logical_nparity_function,
 }
 
 
@@ -32,7 +33,7 @@ def build_tpm(
     **kwargs,
 ):
     if weights.ndim != 2 or weights.shape[0] != weights.shape[1]:
-        raise ValueError("weights must be a square matrix")
+        raise ValueError('weights must be a square matrix')
 
     N = weights.shape[0]
 
@@ -40,8 +41,8 @@ def build_tpm(
         unit_functions = list(unit_functions)
         if len(unit_functions) != weights.shape[0]:
             raise ValueError(
-                "Number of unit functions must match number of nodes in weight "
-                "matrix"
+                'Number of unit functions must match number of nodes in weight '
+                'matrix'
             )
     else:
         unit_functions = [unit_functions] * N

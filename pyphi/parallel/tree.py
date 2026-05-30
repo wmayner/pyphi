@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # parallel/tree.py
 """Classes for specifying distributed computations."""
 
@@ -29,35 +30,35 @@ class TreeConstraints:
         max_leaves: Optional[int] = None,
         branch_factor: int = 2,
     ) -> None:
-        self.total = enforce_integer_or_none(total, name="total", min=0)
-        self.chunksize = enforce_integer_or_none(chunksize, name="chunksize", min=1)
+        self.total = enforce_integer_or_none(total, name='total', min=0)
+        self.chunksize = enforce_integer_or_none(chunksize, name='chunksize', min=1)
         self.current_chunksize = self.chunksize
         self.sequential_threshold = enforce_integer(
-            sequential_threshold, name="sequential_threshold", min=1
+            sequential_threshold, name='sequential_threshold', min=1
         )
         self.max_depth = fallback(
-            enforce_integer_or_none(max_depth, name="max_depth", min=1), float("inf")
+            enforce_integer_or_none(max_depth, name='max_depth', min=1), float('inf')
         )
         self.max_size = fallback(
-            enforce_integer_or_none(max_size, name="max_size", min=1), float("inf")
+            enforce_integer_or_none(max_size, name='max_size', min=1), float('inf')
         )
         self.max_leaves = fallback(
-            enforce_integer_or_none(max_leaves, name="max_leaves", min=1),
-            float("inf"),
+            enforce_integer_or_none(max_leaves, name='max_leaves', min=1),
+            float('inf'),
         )
-        self.branch_factor = enforce_integer(branch_factor, name="branch_factor", min=2)
+        self.branch_factor = enforce_integer(branch_factor, name='branch_factor', min=2)
 
     def __repr__(self):
-        attrs = ", ".join(
+        attrs = ', '.join(
             f"{attr}={getattr(self, attr)}"
             for attr in [
-                "total",
-                "chunksize",
-                "sequential_threshold",
-                "max_depth",
-                "max_size",
-                "max_leaves",
-                "branch_factor",
+                'total',
+                'chunksize',
+                'sequential_threshold',
+                'max_depth',
+                'max_size',
+                'max_leaves',
+                'branch_factor',
             ]
         )
         return f"{self.__class__.__name__}({attrs})"
@@ -138,12 +139,12 @@ def get_constraints(
     if total is None:
         if chunksize is None:
             # No chunksize and no total; cannot determine tree size
-            raise ValueError("if no total is given, chunksize must be provided")
+            raise ValueError('if no total is given, chunksize must be provided')
         if not all(arg is None for arg in [max_size, max_leaves]):
             # Cannot enforce max_size or max_leaves with chunksize constraints if
             # total is not given
             raise ValueError(
-                "if no total is given, only max_depth can be enforced; "
+                'if no total is given, only max_depth can be enforced; '
                 f"got max_size={max_size}, max_leaves={max_leaves}"
             )
         cls = TreeConstraintsChunksize

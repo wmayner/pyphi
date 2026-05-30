@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # connectivity.py
 """Functions for determining network connectivity properties. """
 
@@ -198,7 +199,7 @@ def is_strong(cm: ArrayLike, nodes: Optional[Tuple[int, ...]] = None) -> bool:
     Keyword Args:
         nodes (tuple[int]): A subset of nodes to consider.
     """
-    return _connected(cm, nodes, "strong")
+    return _connected(cm, nodes, 'strong')
 
 
 def is_weak(cm: ArrayLike, nodes: Optional[Tuple[int, ...]] = None) -> bool:
@@ -210,7 +211,7 @@ def is_weak(cm: ArrayLike, nodes: Optional[Tuple[int, ...]] = None) -> bool:
     Keyword Args:
         nodes (tuple[int]): A subset of nodes to consider.
     """
-    return _connected(cm, nodes, "weak")
+    return _connected(cm, nodes, 'weak')
 
 
 def is_full(cm: ArrayLike, nodes1: Tuple[int, ...], nodes2: Tuple[int, ...]) -> bool:
