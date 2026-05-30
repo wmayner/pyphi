@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # resolve_ties.py
 """Resolve ties between IIT objects."""
 
@@ -11,47 +12,47 @@ from .utils import NO_DEFAULT, iter_with_default
 class PhiObjectTieResolutionRegistry(Registry):
     """Storage for functions for resolving ties among phi-objects."""
 
-    desc = "functions for resolving ties among phi-objects"
+    desc = 'functions for resolving ties among phi-objects'
 
 
 phi_object_tie_resolution_strategies = PhiObjectTieResolutionRegistry()
 
 
-@phi_object_tie_resolution_strategies.register("PURVIEW_SIZE")
+@phi_object_tie_resolution_strategies.register('PURVIEW_SIZE')
 def _(m):
     return len(m.purview)
 
 
-@phi_object_tie_resolution_strategies.register("NEGATIVE_PURVIEW_SIZE")
+@phi_object_tie_resolution_strategies.register('NEGATIVE_PURVIEW_SIZE')
 def _(m):
     return -len(m.purview)
 
 
-@phi_object_tie_resolution_strategies.register("PHI")
+@phi_object_tie_resolution_strategies.register('PHI')
 def _(m):
     return m.phi
 
 
-@phi_object_tie_resolution_strategies.register("NEGATIVE_PHI")
+@phi_object_tie_resolution_strategies.register('NEGATIVE_PHI')
 def _(m):
     return -m.phi
 
 
-@phi_object_tie_resolution_strategies.register("NORMALIZED_PHI")
+@phi_object_tie_resolution_strategies.register('NORMALIZED_PHI')
 def _(m):
     return m.normalized_phi
 
 
-@phi_object_tie_resolution_strategies.register("NEGATIVE_NORMALIZED_PHI")
+@phi_object_tie_resolution_strategies.register('NEGATIVE_NORMALIZED_PHI')
 def _(m):
     return -m.normalized_phi
 
 
-@phi_object_tie_resolution_strategies.register("NONE")
+@phi_object_tie_resolution_strategies.register('NONE')
 def _(m):
     raise NotImplementedError(
         'tie resolution strategy "NONE" should never be called; '
-        "it must be special-cased in the resolve() function"
+        'it must be special-cased in the resolve() function'
     )
 
 
@@ -86,7 +87,7 @@ def _strategies_to_key_function(strategies):
 
 def resolve(objects, strategy, operation, default=NO_DEFAULT):
     """Filter phi-objects according to a strategy."""
-    if strategy == "NONE":
+    if strategy == 'NONE':
         yield from iter_with_default(objects, default=default)
         return
     sort_key = _strategies_to_key_function(strategy)

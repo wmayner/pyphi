@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # examples.py
 """Example networks and subsystems to go along with the documentation."""
 
@@ -22,9 +23,9 @@ EXAMPLES = defaultdict(dict)
 
 
 def register_example(func):
-    name = func.__name__.split("_")
+    name = func.__name__.split('_')
     obj = name[-1]
-    name = "_".join(name[:-1])
+    name = '_'.join(name[:-1])
     EXAMPLES[obj][name] = func
     return func
 
@@ -54,7 +55,7 @@ def grid3_network():
         [0, 1, 1],
     ])
     # fmt: on
-    return Network(tpm, cm=cm, node_labels=["A", "B", "C"])
+    return Network(tpm, cm=cm, node_labels=['A', 'B', 'C'])
 
 
 @register_example
@@ -1208,7 +1209,7 @@ def actual_causation_network():
         [1, 1],
     ])
     # fmt: on
-    return Network(tpm, cm, node_labels=("OR", "AND"))
+    return Network(tpm, cm, node_labels=('OR', 'AND'))
 
 
 @register_example
@@ -1269,7 +1270,7 @@ def prevention_transition():
         [0, 0, 0],
     ])
     # fmt: on
-    network = Network(tpm, cm, node_labels=["A", "B", "F"])
+    network = Network(tpm, cm, node_labels=['A', 'B', 'F'])
     x_state = (1, 1, 1)
     y_state = (1, 1, 1)
 
@@ -1278,10 +1279,10 @@ def prevention_transition():
 
 @register_example
 @config.override(
-    PARTITION_TYPE="TRI",
-    REPERTOIRE_DISTANCE="BLD",
+    PARTITION_TYPE='TRI',
+    REPERTOIRE_DISTANCE='BLD',
     VALIDATE_SUBSYSTEM_STATES=False,
-    ACTUAL_CAUSATION_MEASURE="WPMI",
+    ACTUAL_CAUSATION_MEASURE='WPMI',
 )
 def frog_example():
     """
@@ -1353,18 +1354,18 @@ def frog_example():
 
             for z in node_indices:
                 # g = Gaussian
-                if mech_func[z] == "g":
+                if mech_func[z] == 'g':
                     val = Gauss(
                         sum(state * np.array([weights[z][n] for n in node_indices])),
                         mu,
                         si,
                     )
                 # nr = Naka Rushton, s = space
-                elif mech_func[z] == "nr" or mech_func[z] == "s":
+                elif mech_func[z] == 'nr' or mech_func[z] == 's':
                     input_sum = sum(state * weights[z])
                     val = NR(input_sum, exp, th)
                 # l = LogFunc
-                elif mech_func[z] == "l":
+                elif mech_func[z] == 'l':
                     val = LogFunc(
                         sum(state * np.array([weights[z][n] for n in node_indices])),
                         l,
@@ -1372,7 +1373,7 @@ def frog_example():
                         x0,
                     )
                 # i = inhibiting input
-                elif mech_func[z] == "i":
+                elif mech_func[z] == 'i':
                     non_input_nodes = [n for n in node_indices if n not in input_nodes]
                     input_weights = [
                         -input_modifier if state[n] == 0 else 1 for n in input_nodes
@@ -1383,7 +1384,7 @@ def frog_example():
                     weights_sum = sum(input_weights) + sum(other_weights)
                     val = Gauss(weights_sum, mu, si)
                 else:
-                    raise NameError("Mechanism function not recognized")
+                    raise NameError('Mechanism function not recognized')
 
                 tpm_line.append(val)
 
@@ -1398,11 +1399,11 @@ def frog_example():
         return network
 
     # F3 Frog
-    print("F3 frog:\n")
+    print('F3 frog:\n')
     mu = 1
     si = 0.3
 
-    mech_func = ["g", "g", "g", "g", "g", "g", "g", "g"]
+    mech_func = ['g', 'g', 'g', 'g', 'g', 'g', 'g', 'g']
     #'S1','S2','S3','H1','H2','H3','M1','M2'
 
     weights = np.array(
@@ -1418,7 +1419,7 @@ def frog_example():
         ]
     )  # S1,S2,S3,H1,H3,H2,M1,M2
 
-    node_labels = ["SL", "SC", "SR", "CL", "CC", "CR", "ML", "MR"]
+    node_labels = ['SL', 'SC', 'SR', 'CL', 'CC', 'CR', 'ML', 'MR']
 
     network = get_net(mech_func, weights, mu=mu, si=si, node_labels=node_labels)
 
@@ -1434,19 +1435,19 @@ def frog_example():
     print(account)
 
     # F2 Frog
-    print("F2 frog:\n")
+    print('F2 frog:\n')
 
     mu = 1
     si = 0.3
 
     mech_func = [
-        "g",
-        "g",
-        "g",
-        "g",
-        "g",
-        "g",
-        "g",
+        'g',
+        'g',
+        'g',
+        'g',
+        'g',
+        'g',
+        'g',
     ]
     #'S1','S2','S3', N1','N2','M1','M2',
 
@@ -1462,7 +1463,7 @@ def frog_example():
         ]
     )  # S1,S2,S3,H1,H2,M1,M2
 
-    node_labels = ["SL", "SC", "SR", "CL", "CR", "ML", "MR"]
+    node_labels = ['SL', 'SC', 'SR', 'CL', 'CR', 'ML', 'MR']
 
     network = get_net(mech_func, weights, mu=mu, si=si, node_labels=node_labels)
 
@@ -1478,11 +1479,11 @@ def frog_example():
     print(account)
 
     # F1 Frog
-    print("\n\nF1 frog:\n")
+    print('\n\nF1 frog:\n')
     mu = 1
     si = 0.3
 
-    mech_func = ["g", "g", "g", "g", "g", "g", "g", "g"]
+    mech_func = ['g', 'g', 'g', 'g', 'g', 'g', 'g', 'g']
     #'S1','S2','S3','S4','N1','N2','M1','M2',
 
     weights = np.array(
@@ -1498,7 +1499,7 @@ def frog_example():
         ]
     )  # S1,S2,S3,S4,H1,H2,M1,M2
 
-    node_labels = ["S1", "S2", "S3", "S4", "H1", "H2", "M1", "M2"]
+    node_labels = ['S1', 'S2', 'S3', 'S4', 'H1', 'H2', 'M1', 'M2']
 
     network = get_net(mech_func, weights, mu=mu, si=si, node_labels=node_labels)
 

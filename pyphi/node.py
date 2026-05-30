@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # node.py
 """Represents a node in a network."""
 

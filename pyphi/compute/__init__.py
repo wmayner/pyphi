@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # compute/__init__.py
 """See |compute.subsystem| and |compute.network| for documentation."""
 

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # conf.py
 """
 Configuring PyPhi
@@ -71,7 +72,7 @@ from .warnings import MissingOptionalDependenciesWarning, PyPhiWarning
 
 log = logging.getLogger(__name__)
 
-_VALID_LOG_LEVELS = [None, "CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"]
+_VALID_LOG_LEVELS = [None, 'CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'NOTSET']
 
 # Flag to prevent writing to the managed config until we've tried to load an
 # existing one
@@ -126,21 +127,21 @@ class Option:
         self.name = name
 
     def _docstring(self):
-        default = "``default={}``".format(repr(self.default))
+        default = '``default={}``'.format(repr(self.default))
 
         values = (
-            ", ``values={}``".format(repr(self.values))
+            ', ``values={}``'.format(repr(self.values))
             if self.values is not None
-            else ""
+            else ''
         )
 
         on_change = (
-            ", ``on_change={}``".format(self.on_change.__name__)
+            ', ``on_change={}``'.format(self.on_change.__name__)
             if self.on_change is not None
-            else ""
+            else ''
         )
 
-        return "{}{}{}\n{}".format(default, values, on_change, self.doc or "")
+        return '{}{}{}\n{}'.format(default, values, on_change, self.doc or '')
 
     def __get__(self, obj, cls=None):
         if obj is None:
@@ -161,17 +162,17 @@ class Option:
         """Validate the new value."""
         if self.type is not None and not isinstance(value, self.type):
             raise ConfigurationError(
-                "{} must be of type {} for {}; got {}".format(
+                '{} must be of type {} for {}; got {}'.format(
                     value, self.type, self.name, type(value)
                 )
             )
         if self.values and value not in self.values:
             raise ConfigurationError(
-                "{} ({}) is not a valid value for {}; must be one of:\n    {}".format(
+                '{} ({}) is not a valid value for {}; must be one of:\n    {}'.format(
                     value,
                     type(value),
                     self.name,
-                    "\n    ".join(["{} ({})".format(v, type(v)) for v in self.values]),
+                    '\n    '.join(['{} ({})'.format(v, type(v)) for v in self.values]),
                 )
             )
 
@@ -231,10 +232,10 @@ class Config:
         return repr(self)
 
     def __setattr__(self, name, value):
-        if name.startswith("_") or name in self.options().keys():
+        if name.startswith('_') or name in self.options().keys():
             super().__setattr__(name, value)
         else:
-            raise ConfigurationError("{} is not a valid config option".format(name))
+            raise ConfigurationError('{} is not a valid config option'.format(name))
 
     def __getitem__(self, name):
         return self._values[name]
@@ -268,14 +269,14 @@ class Config:
         """Load config from a YAML file."""
         filename = os.path.abspath(filename)
 
-        with open(filename, mode="rt") as f:
+        with open(filename, mode='rt') as f:
             self.load_dict(yaml.safe_load(f))
 
         self._loaded_files.append(filename)
 
     def to_yaml(self, filename):
         """Write config to a YAML file."""
-        with open(filename, mode="wt") as f:
+        with open(filename, mode='wt') as f:
             yaml.dump(self._values, f)
         return filename
 
@@ -343,31 +344,31 @@ def configure_logging(conf, opt):
     """Reconfigure PyPhi logging based on the current configuration."""
     logging.config.dictConfig(
         {
-            "version": 1,
-            "disable_existing_loggers": False,
-            "formatters": {
-                "standard": {
-                    "format": "%(asctime)s [%(name)s] %(levelname)s "
-                    "%(processName)s: %(message)s"
+            'version': 1,
+            'disable_existing_loggers': False,
+            'formatters': {
+                'standard': {
+                    'format': '%(asctime)s [%(name)s] %(levelname)s '
+                    '%(processName)s: %(message)s'
                 }
             },
-            "handlers": {
-                "file": {
-                    "level": conf.LOG_FILE_LEVEL,
-                    "filename": conf.LOG_FILE,
-                    "class": "logging.FileHandler",
-                    "formatter": "standard",
+            'handlers': {
+                'file': {
+                    'level': conf.LOG_FILE_LEVEL,
+                    'filename': conf.LOG_FILE,
+                    'class': 'logging.FileHandler',
+                    'formatter': 'standard',
                 },
-                "stdout": {
-                    "level": conf.LOG_STDOUT_LEVEL,
-                    "class": "pyphi.log.TqdmHandler",
-                    "formatter": "standard",
+                'stdout': {
+                    'level': conf.LOG_STDOUT_LEVEL,
+                    'class': 'pyphi.log.TqdmHandler',
+                    'formatter': 'standard',
                 },
             },
-            "root": {
-                "level": "DEBUG",
-                "handlers": (["file"] if conf.LOG_FILE_LEVEL else [])
-                + (["stdout"] if conf.LOG_STDOUT_LEVEL else []),
+            'root': {
+                'level': 'DEBUG',
+                'handlers': (['file'] if conf.LOG_FILE_LEVEL else [])
+                + (['stdout'] if conf.LOG_STDOUT_LEVEL else []),
             },
         }
     )
@@ -395,7 +396,7 @@ def on_change_parallel_global(obj, opt):
             message=(
                 f"""
     '{opt.name}' option: """
-                + MissingOptionalDependenciesWarning.MSG.format(dependencies="parallel")
+                + MissingOptionalDependenciesWarning.MSG.format(dependencies='parallel')
             ),
             category=MissingOptionalDependenciesWarning,
             stacklevel=6,
@@ -403,12 +404,12 @@ def on_change_parallel_global(obj, opt):
 
 
 def on_change_parallel_suboption(obj, opt):
-    if NO_RAY and obj[opt.name].get("parallel"):
+    if NO_RAY and obj[opt.name].get('parallel'):
         warn(
             message=(
                 f"""
     '{opt.name}' option: """
-                + MissingOptionalDependenciesWarning.MSG.format(dependencies="parallel")
+                + MissingOptionalDependenciesWarning.MSG.format(dependencies='parallel')
             ),
             category=MissingOptionalDependenciesWarning,
             stacklevel=6,
@@ -437,7 +438,7 @@ class PyphiConfig(Config):
     )
 
     REPERTOIRE_DISTANCE = Option(
-        "GENERALIZED_INTRINSIC_DIFFERENCE",
+        'GENERALIZED_INTRINSIC_DIFFERENCE',
         doc="""
     The measure to use when computing distances between repertoires and
     concepts. A full list of currently installed measures is available by
@@ -462,7 +463,7 @@ class PyphiConfig(Config):
     )
 
     REPERTOIRE_DISTANCE_INFORMATION = Option(
-        "GENERALIZED_INTRINSIC_DIFFERENCE",
+        'GENERALIZED_INTRINSIC_DIFFERENCE',
         doc="""
     The repertoire distance used for evaluating information specified by a
     mechanism (i.e., finding the maximal state with respect to a purview).
@@ -470,7 +471,7 @@ class PyphiConfig(Config):
     )
 
     CES_DISTANCE = Option(
-        "SUM_SMALL_PHI",
+        'SUM_SMALL_PHI',
         doc="""
     The measure to use when computing distances between cause-effect structures.
 
@@ -480,7 +481,7 @@ class PyphiConfig(Config):
     )
 
     ACTUAL_CAUSATION_MEASURE = Option(
-        "PMI",
+        'PMI',
         doc="""
     The measure to use when computing the pointwise information between state
     probabilities in the actual causation module.
@@ -649,10 +650,10 @@ class PyphiConfig(Config):
 
     REDIS_CONFIG = Option(
         {
-            "host": "localhost",
-            "port": 6379,
-            "db": 0,
-            "test_db": 1,
+            'host': 'localhost',
+            'port': 6379,
+            'db': 0,
+            'test_db': 1,
         },
         type=dict,
         doc="""
@@ -678,7 +679,7 @@ class PyphiConfig(Config):
     )
 
     LOG_FILE = Option(
-        "pyphi.log",
+        'pyphi.log',
         type=(str, Path),
         on_change=configure_logging,
         doc="""
@@ -686,7 +687,7 @@ class PyphiConfig(Config):
     )
 
     LOG_FILE_LEVEL = Option(
-        "INFO",
+        'INFO',
         values=_VALID_LOG_LEVELS,
         on_change=configure_logging,
         doc="""
@@ -696,7 +697,7 @@ class PyphiConfig(Config):
     )
 
     LOG_STDOUT_LEVEL = Option(
-        "WARNING",
+        'WARNING',
         values=_VALID_LOG_LEVELS,
         on_change=configure_logging,
         doc="""
@@ -766,7 +767,7 @@ class PyphiConfig(Config):
     )
 
     LABEL_SEPARATOR = Option(
-        "",
+        '',
         type=str,
         doc="""
     Separator to use between labels in the string representation of a set of nodes.""",
@@ -800,7 +801,7 @@ class PyphiConfig(Config):
     )
 
     PARTITION_TYPE = Option(
-        "ALL",
+        'ALL',
         doc="""
     Controls the type of partition used for |small_phi| computations.
 
@@ -875,31 +876,31 @@ class PyphiConfig(Config):
 
     # TODO(4.0) finish documenting
     SYSTEM_PARTITION_TYPE = Option(
-        "SET_UNI/BI",
+        'SET_UNI/BI',
         doc="""
     Controls the system partitioning scheme.
     """,
     )
 
     DISTINCTION_PHI_NORMALIZATION = Option(
-        "NUM_CONNECTIONS_CUT",
+        'NUM_CONNECTIONS_CUT',
         on_change=on_change_distinction_phi_normalization,
-        values=["NONE", "NUM_CONNECTIONS_CUT"],
+        values=['NONE', 'NUM_CONNECTIONS_CUT'],
         doc="""
     Controls how distinction |small_phi| values are normalized for determining the MIP.
     """,
     )
 
     RELATION_COMPUTATION = Option(
-        "CONCRETE",
-        values=["CONCRETE", "ANALYTICAL"],
+        'CONCRETE',
+        values=['CONCRETE', 'ANALYTICAL'],
         doc="""
     Controls how relations are computed.
     """,
     )
 
     STATE_TIE_RESOLUTION = Option(
-        "PHI",
+        'PHI',
         doc="""
     Controls how ties among states are resolved.
 
@@ -908,7 +909,7 @@ class PyphiConfig(Config):
     )
 
     MIP_TIE_RESOLUTION = Option(
-        ["NORMALIZED_PHI", "NEGATIVE_PHI"],
+        ['NORMALIZED_PHI', 'NEGATIVE_PHI'],
         doc="""
     Controls how ties among mechanism partitions are resolved.
 
@@ -918,7 +919,7 @@ class PyphiConfig(Config):
     )
 
     PURVIEW_TIE_RESOLUTION = Option(
-        "PHI",
+        'PHI',
         doc="""
     Controls how ties among purviews are resolved.
 
@@ -927,8 +928,8 @@ class PyphiConfig(Config):
     )
 
     SYSTEM_CUTS = Option(
-        "3.0_STYLE",
-        values=["3.0_STYLE", "CONCEPT_STYLE"],
+        '3.0_STYLE',
+        values=['3.0_STYLE', 'CONCEPT_STYLE'],
         doc="""
     If set to ``'3.0_STYLE'``, then traditional IIT 3.0 cuts will be used when
     computing |big_phi|. If set to ``'CONCEPT_STYLE'``, then experimental
@@ -945,29 +946,29 @@ class PyphiConfig(Config):
 
     def log(self):
         """Log current settings."""
-        log.info("PyPhi v%s", version("pyphi"))
+        log.info('PyPhi v%s', version('pyphi'))
         if self._loaded_files:
-            log.info("Loaded configuration from %s", self._loaded_files)
+            log.info('Loaded configuration from %s', self._loaded_files)
         else:
-            log.info("Using default configuration (no configuration file " "provided)")
-        log.info("Current PyPhi configuration:\n %s", str(self))
+            log.info('Using default configuration (no configuration file ' 'provided)')
+        log.info('Current PyPhi configuration:\n %s', str(self))
 
 
 def _validate_combinations(config, options, combinations, valid_if_included=True):
     values = tuple(map(config._values.get, options))
     if valid_if_included ^ (values in combinations):
-        msg = "\n".join(
+        msg = '\n'.join(
             [
-                "invalid combination:",
-                "{options}",
-                "must {valid_if_in}form one of the following combinations:",
-                "{combinations}",
-                "got:",
-                "{values}",
+                'invalid combination:',
+                '{options}',
+                'must {valid_if_in}form one of the following combinations:',
+                '{combinations}',
+                'got:',
+                '{values}',
             ]
         )
         text = {
-            name: "  " + "\n  ".join(map(str, value))
+            name: '  ' + '\n  '.join(map(str, value))
             for name, value in dict(
                 options=options,
                 combinations=combinations,
@@ -975,7 +976,7 @@ def _validate_combinations(config, options, combinations, valid_if_included=True
             ).items()
         }
         raise ConfigurationError(
-            msg.format(valid_if_in=("" if valid_if_included else "NOT "), **text)
+            msg.format(valid_if_in=('' if valid_if_included else 'NOT '), **text)
         )
 
 
@@ -994,9 +995,9 @@ def validate(config):
     pass
 
 
-PYPHI_USER_CONFIG_PATH = Path("pyphi_config.yml")
+PYPHI_USER_CONFIG_PATH = Path('pyphi_config.yml')
 PYPHI_MANAGED_CONFIG_PATH = (
-    constants.DISK_CACHE_LOCATION / "config" / PYPHI_USER_CONFIG_PATH
+    constants.DISK_CACHE_LOCATION / 'config' / PYPHI_USER_CONFIG_PATH
 )
 PYPHI_MANAGED_CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
 
@@ -1005,7 +1006,7 @@ def atomic_write_yaml(data, path):
     try:
         # delete=True in case there's an error, but ignore if we fail to delete
         # after successfully renaming the file
-        with tempfile.NamedTemporaryFile(mode="wt", delete=True) as f:
+        with tempfile.NamedTemporaryFile(mode='wt', delete=True) as f:
             yaml.dump(data, f)
             # Use `shutil.move()` instead of `rename()` to properly deal with
             # atomic writes across filesystems
@@ -1035,7 +1036,7 @@ def on_driver():
         try:
             # Ignore warning log
             current_level = ray.runtime_context.logger.level
-            ray.runtime_context.logger.setLevel("ERROR")
+            ray.runtime_context.logger.setLevel('ERROR')
             ray.get_runtime_context().get_task_id()
             ray.runtime_context.logger.setLevel(current_level)
             return False
@@ -1084,24 +1085,24 @@ def fallback(*args):
 
 
 PARALLEL_KWARGS = [
-    "reduce_func",
-    "reduce_kwargs",
-    "parallel",
-    "ordered",
-    "total",
-    "chunksize",
-    "sequential_threshold",
-    "max_depth",
-    "max_size",
-    "max_leaves",
-    "branch_factor",
-    "shortcircuit_func",
-    "shortcircuit_callback",
-    "shortcircuit_callback_args",
-    "inflight_limit",
-    "progress",
-    "desc",
-    "map_kwargs",
+    'reduce_func',
+    'reduce_kwargs',
+    'parallel',
+    'ordered',
+    'total',
+    'chunksize',
+    'sequential_threshold',
+    'max_depth',
+    'max_size',
+    'max_leaves',
+    'branch_factor',
+    'shortcircuit_func',
+    'shortcircuit_callback',
+    'shortcircuit_callback_args',
+    'inflight_limit',
+    'progress',
+    'desc',
+    'map_kwargs',
 ]
 
 
@@ -1112,9 +1113,9 @@ def parallel_kwargs(option_kwargs, **user_kwargs):
     """
     kwargs = copy(option_kwargs)
     if not config.PROGRESS_BARS:
-        kwargs["progress"] = False
+        kwargs['progress'] = False
     if not config.PARALLEL:
-        kwargs["parallel"] = False
+        kwargs['parallel'] = False
     kwargs.update(
         {
             user_kwarg: value

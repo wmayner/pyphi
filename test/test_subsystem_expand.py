@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import numpy as np
 import pytest
 
@@ -19,14 +20,14 @@ def test_expand_cause_repertoire(micro_s_all_off):
     assert np.all(abs(A.expand_cause_repertoire(CD) - cause) < EPSILON)
     assert np.all(
         abs(
-            A.expand_cause_repertoire(BCD).flatten(order="F")
+            A.expand_cause_repertoire(BCD).flatten(order='F')
             - np.array([1 / 6 if i < 6 else 0 for i in range(8)])
         )
         < EPSILON
     )
     assert np.all(
         abs(
-            A.expand_cause_repertoire(ABCD).flatten(order="F")
+            A.expand_cause_repertoire(ABCD).flatten(order='F')
             - np.array([1 / 12 if i < 12 else 0 for i in range(16)])
         )
         < EPSILON
@@ -45,7 +46,7 @@ def test_expand_effect_repertoire(micro_s_all_off):
     assert np.all(abs(A.expand_effect_repertoire(CD) - effect) < EPSILON)
     assert np.all(
         abs(
-            A.expand_effect_repertoire(BCD).flatten(order="F")
+            A.expand_effect_repertoire(BCD).flatten(order='F')
             - np.array(
                 [0.25725, 0.23275, 0.11025, 0.09975, 0.11025, 0.09975, 0.04725, 0.04275]
             )
@@ -54,7 +55,7 @@ def test_expand_effect_repertoire(micro_s_all_off):
     )
     assert np.all(
         abs(
-            A.expand_effect_repertoire(ABCD).flatten(order="F")
+            A.expand_effect_repertoire(ABCD).flatten(order='F')
             - np.array(
                 [
                     0.13505625,

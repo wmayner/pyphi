@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # actual.py
 """
 Methods for computing actual causation of subsystems and mechanisms.
@@ -205,12 +206,12 @@ class Transition:
     def to_json(self):
         """Return a JSON-serializable representation."""
         return {
-            "network": self.network,
-            "before_state": self.before_state,
-            "after_state": self.after_state,
-            "cause_indices": self.cause_indices,
-            "effect_indices": self.effect_indices,
-            "cut": self.cut,
+            'network': self.network,
+            'before_state': self.before_state,
+            'after_state': self.after_state,
+            'cause_indices': self.cause_indices,
+            'effect_indices': self.effect_indices,
+            'cut': self.cut,
         }
 
     def apply_cut(self, cut):
@@ -252,14 +253,14 @@ class Transition:
 
         if not set(purview).issubset(self.purview_indices(direction)):
             raise ValueError(
-                "{} is not a {} purview in {}".format(
+                '{} is not a {} purview in {}'.format(
                     fmt.fmt_mechanism(purview, node_labels), direction, self
                 )
             )
 
         if not set(mechanism).issubset(self.mechanism_indices(direction)):
             raise ValueError(
-                "{} is no a {} mechanism in {}".format(
+                '{} is no a {} mechanism in {}'.format(
                     fmt.fmt_mechanism(mechanism, node_labels), direction, self
                 )
             )
@@ -339,7 +340,7 @@ class Transition:
         return probability_distance(
             self.probability(direction, mechanism, purview),
             self.unconstrained_probability(direction, purview),
-            measure="PMI",
+            measure='PMI',
         )
 
     def cause_ratio(self, mechanism, purview):
@@ -353,7 +354,7 @@ class Transition:
     def partitioned_repertoire(self, direction, partition):
         """Compute the repertoire over the partition in the given direction."""
         system = self.system[direction]
-        if config.REPERTOIRE_DISTANCE == "GENERALIZED_INTRINSIC_DIFFERENCE":
+        if config.REPERTOIRE_DISTANCE == 'GENERALIZED_INTRINSIC_DIFFERENCE':
             purview_state = tuple(self.purview_state(direction)[node] for node in partition.purview)
             return system.partitioned_repertoire(
                 direction, partition, state=purview_state
@@ -395,7 +396,7 @@ class Transition:
                 self.mechanism_state(direction), direction, mechanism, purview
             )
 
-        alpha_min = float("inf")
+        alpha_min = float('inf')
         probability = self.probability(direction, mechanism, purview)
 
         for partition in mip_partitions(mechanism, purview, self.node_labels):
@@ -605,7 +606,7 @@ def _evaluate_cut(
     cut_transition = transition.apply_cut(cut)
     partitioned_account = account(cut_transition, direction)
 
-    log.debug("Finished evaluating %s.", cut)
+    log.debug('Finished evaluating %s.', cut)
     alpha = account_distance(unpartitioned_account, partitioned_account)
 
     return AcSystemIrreducibilityAnalysis(
@@ -655,27 +656,27 @@ def sia(transition, direction=Direction.BIDIRECTIONAL, **kwargs):
         basic irreducibility information for the given subsystem.
     """
     validate.direction(direction, allow_bi=True)
-    log.info("Calculating big-alpha for %s...", transition)
+    log.info('Calculating big-alpha for %s...', transition)
 
     if not transition:
         log.info(
-            "Transition %s is empty; returning null SIA " "immediately.", transition
+            'Transition %s is empty; returning null SIA ' 'immediately.', transition
         )
         return _null_ac_sia(transition, direction)
 
     if not connectivity.is_weak(transition.network.cm, transition.node_indices):
         log.info(
-            "%s is not strongly/weakly connected; returning null SIA " "immediately.",
+            '%s is not strongly/weakly connected; returning null SIA ' 'immediately.',
             transition,
         )
         return _null_ac_sia(transition, direction)
 
-    log.debug("Finding unpartitioned account...")
+    log.debug('Finding unpartitioned account...')
     unpartitioned_account = account(transition, direction)
-    log.debug("Found unpartitioned account.")
+    log.debug('Found unpartitioned account.')
 
     if not unpartitioned_account:
-        log.info("Empty unpartitioned account; returning null AC SIA " "immediately.")
+        log.info('Empty unpartitioned account; returning null AC SIA ' 'immediately.')
         return _null_ac_sia(transition, direction)
 
     cuts = _get_cuts(transition, direction)
@@ -691,13 +692,13 @@ def sia(transition, direction=Direction.BIDIRECTIONAL, **kwargs):
         ),
         reduce_func=min,
         reduce_kwargs=dict(
-            default=_null_ac_sia(transition, direction, alpha=float("inf"))
+            default=_null_ac_sia(transition, direction, alpha=float('inf'))
         ),
         shortcircuit_func=utils.is_falsy,
         **parallel_kwargs,
     ).run()
-    log.info("Finished calculating big-ac-phi data for %s.", transition)
-    log.debug("RESULT: \n%s", result)
+    log.info('Finished calculating big-ac-phi data for %s.', transition)
+    log.debug('RESULT: \n%s', result)
     return result
 
 
@@ -741,7 +742,7 @@ def causal_nexus(network, before_state, after_state, direction=Direction.BIDIREC
     """Return the causal nexus of the network."""
     validate.is_network(network)
 
-    log.info("Calculating causal nexus...")
+    log.info('Calculating causal nexus...')
     result = nexus(network, before_state, after_state, direction)
     if result:
         result = max(result)
@@ -749,8 +750,8 @@ def causal_nexus(network, before_state, after_state, direction=Direction.BIDIREC
         null_transition = Transition(network, before_state, after_state, (), ())
         result = _null_ac_sia(null_transition, direction)
 
-    log.info("Finished calculating causal nexus.")
-    log.debug("RESULT: \n%s", result)
+    log.info('Finished calculating causal nexus.')
+    log.debug('RESULT: \n%s', result)
     return result
 
 
@@ -764,13 +765,13 @@ def nice_true_ces(tc):
     """Format a true |CauseEffectStructure|."""
     cause_list = []
     next_list = []
-    cause = "<--"
-    effect = "-->"
+    cause = '<--'
+    effect = '-->'
     for event in tc:
         if event.direction == Direction.CAUSE:
             cause_list.append(
                 [
-                    "{0:.4f}".format(round(event.alpha, 4)),
+                    '{0:.4f}'.format(round(event.alpha, 4)),
                     event.mechanism,
                     cause,
                     event.purview,
@@ -779,7 +780,7 @@ def nice_true_ces(tc):
         elif event.direction == Direction.EFFECT:
             next_list.append(
                 [
-                    "{0:.4f}".format(round(event.alpha, 4)),
+                    '{0:.4f}'.format(round(event.alpha, 4)),
                     event.mechanism,
                     effect,
                     event.purview,
@@ -795,14 +796,14 @@ def nice_true_ces(tc):
 
 
 def _actual_causes(network, previous_state, current_state, nodes, mechanisms=None):
-    log.info("Calculating true causes ...")
+    log.info('Calculating true causes ...')
     transition = Transition(network, previous_state, current_state, nodes, nodes)
 
     return directed_account(transition, Direction.CAUSE, mechanisms=mechanisms)
 
 
 def _actual_effects(network, current_state, next_state, nodes, mechanisms=None):
-    log.info("Calculating true effects ...")
+    log.info('Calculating true effects ...')
     transition = Transition(network, current_state, next_state, nodes, nodes)
 
     return directed_account(transition, Direction.EFFECT, mechanisms=mechanisms)
@@ -858,15 +859,15 @@ def true_ces(subsystem, previous_state, next_state):
     _events = events(network, previous_state, state, next_state, nodes)
 
     if not _events:
-        log.info("Finished calculating, no echo events.")
+        log.info('Finished calculating, no echo events.')
         return None
 
     result = tuple(
         [event.actual_cause for event in _events]
         + [event.actual_effect for event in _events]
     )
-    log.info("Finished calculating true events.")
-    log.debug("RESULT: \n%s", result)
+    log.info('Finished calculating true events.')
+    log.debug('RESULT: \n%s', result)
 
     return result
 

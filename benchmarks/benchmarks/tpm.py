@@ -14,8 +14,8 @@ ENTROPY = 19283591005102385916723052837195786192730157108218751289951982
 
 class SimulateTPM:
     def setup(self):
-        test_data = Path(__file__).resolve().parent / "../../test/data"
-        self.tpm = np.load(test_data / "ising_tpm.npy")
+        test_data = Path(__file__).resolve().parent / '../../test/data'
+        self.tpm = np.load(test_data / 'ising_tpm.npy')
 
         seed_sequence = np.random.SeedSequence(ENTROPY)
         self.rng = np.random.default_rng(seed_sequence)

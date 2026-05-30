@@ -1,10 +1,14 @@
+# -*- coding: utf-8 -*-
 import time
 from datetime import timedelta
 from decimal import Decimal
 from unittest.mock import Mock, patch
 
 import pytest
-import ray
+
+# `ray` is an optional dependency (the `parallel` extra). Skip this module
+# rather than erroring at collection time when it isn't installed.
+ray = pytest.importorskip('ray')
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 from hypothesis.strategies import composite
@@ -100,7 +104,7 @@ def test_cancel_all(ray_context):
 
 @given(st.lists(everything_except(Decimal)))
 def test_get_local(items):
-    with patch("pyphi.parallel.cancel_all") as mock:
+    with patch('pyphi.parallel.cancel_all') as mock:
         expected = list(items)
         actual = list(parallel.get(items))
         mock.assert_not_called()
@@ -242,7 +246,7 @@ def test_map_with_iterators(
         parallel=True,
         **kwargs,
     ).run()
-    if kwargs["ordered"]:
+    if kwargs['ordered']:
         assert expected == actual
     else:
         assert set(expected) == set(actual)
