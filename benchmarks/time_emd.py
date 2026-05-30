@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import random
 import timeit
 from collections import defaultdict
@@ -337,10 +338,10 @@ def time_emd(emd_type, data):
 
 def print_results(emd, time):
     """Report the results of timing an EMD computation"""
-    print("%s  %.2fs" % (emd, time))
+    print('%s  %.2fs' % (emd, time))
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 
     # Dict of repertoires organized by purview size
     repertoires = defaultdict(list)
@@ -349,12 +350,12 @@ if __name__ == "__main__":
         """Time and print results"""
 
         print()
-        print("The reported times are the minimum of %d repetitions" % REPEAT)
-        print("Each timing is %d executions" % NUMBER)
+        print('The reported times are the minimum of %d repetitions' % REPEAT)
+        print('Each timing is %d executions' % NUMBER)
         print()
         print(
-            "Set set n = 0 for the `utils.purview_size(d1) > n` check \n"
-            "in `cause_emd` to see accurate timings for all purview sizes.")
+            'Set set n = 0 for the `utils.purview_size(d1) > n` check \n'
+            'in `cause_emd` to see accurate timings for all purview sizes.')
         print()
 
         # There are at least `k` data points for each purview size
@@ -365,16 +366,16 @@ if __name__ == "__main__":
             data = random.sample(repertoires[purview_size], k)
             num_repertoires = len(repertoires[purview_size])
 
-            print("%s-node purviews (timing %d/%d repertoires)" % (
+            print('%s-node purviews (timing %d/%d repertoires)' % (
                 purview_size, k, num_repertoires))
 
             num_independent = len([d for d in repertoires[purview_size]
                                    if pyphi.utils.independent(d[0])])
 
-            print("%d%% independent" % (
+            print('%d%% independent' % (
                 num_independent / num_repertoires * 100))
 
-            print("----------------------------------------------")
+            print('----------------------------------------------')
 
             t = time_emd('hamming', data)
             print_results('hamming', t)

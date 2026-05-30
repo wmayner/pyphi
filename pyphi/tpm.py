@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # tpm.py
 """Provides classes for representing TPMs."""
 
@@ -38,62 +39,62 @@ class ProxyMetaclass(type):
         __closures__ = frozenset(
             {
                 # 1-ary
-                "__abs__",
-                "__copy__",
-                "__invert__",
-                "__neg__",
-                "__pos__",
+                '__abs__',
+                '__copy__',
+                '__invert__',
+                '__neg__',
+                '__pos__',
                 # 2-ary
-                "__add__",
-                "__iadd__",
-                "__radd__",
-                "__sub__",
-                "__isub__",
-                "__rsub__",
-                "__mul__",
-                "__imul__",
-                "__rmul__",
-                "__matmul__",
-                "__imatmul__",
-                "__rmatmul__",
-                "__truediv__",
-                "__itruediv__",
-                "__rtruediv__",
-                "__floordiv__",
-                "__ifloordiv__",
-                "__rfloordiv__",
-                "__mod__",
-                "__imod__",
-                "__rmod__",
-                "__and__",
-                "__iand__",
-                "__rand__",
-                "__lshift__",
-                "__ilshift__",
-                "__irshift__",
-                "__rlshift__",
-                "__rrshift__",
-                "__rshift__",
-                "__ior__",
-                "__or__",
-                "__ror__",
-                "__xor__",
-                "__ixor__",
-                "__rxor__",
-                "__eq__",
-                "__ne__",
-                "__ge__",
-                "__gt__",
-                "__lt__",
-                "__le__",
-                "__deepcopy__",
+                '__add__',
+                '__iadd__',
+                '__radd__',
+                '__sub__',
+                '__isub__',
+                '__rsub__',
+                '__mul__',
+                '__imul__',
+                '__rmul__',
+                '__matmul__',
+                '__imatmul__',
+                '__rmatmul__',
+                '__truediv__',
+                '__itruediv__',
+                '__rtruediv__',
+                '__floordiv__',
+                '__ifloordiv__',
+                '__rfloordiv__',
+                '__mod__',
+                '__imod__',
+                '__rmod__',
+                '__and__',
+                '__iand__',
+                '__rand__',
+                '__lshift__',
+                '__ilshift__',
+                '__irshift__',
+                '__rlshift__',
+                '__rrshift__',
+                '__rshift__',
+                '__ior__',
+                '__or__',
+                '__ror__',
+                '__xor__',
+                '__ixor__',
+                '__rxor__',
+                '__eq__',
+                '__ne__',
+                '__ge__',
+                '__gt__',
+                '__lt__',
+                '__le__',
+                '__deepcopy__',
                 # 3-ary
-                "__pow__",
-                "__ipow__",
-                "__rpow__",
+                '__pow__',
+                '__ipow__',
+                '__rpow__',
                 # 2-ary, 2-valued
-                "__divmod__",
-                "__rdivmod__",
+                '__divmod__',
+                '__rdivmod__',
             }
         )
 
@@ -122,7 +123,7 @@ class ProxyMetaclass(type):
         # Go through all the attribute strings in the wrapped array type.
         for name in dir(cls.__wraps__):
             # Filter special attributes, rest will be handled by `__getattr__()`
-            if any([not name.startswith("__"), name in ignore, name in dct]):
+            if any([not name.startswith('__'), name in ignore, name in dct]):
                 continue
 
             # Create function for `name` and bind to future instances of `cls`.
@@ -136,19 +137,19 @@ class Wrapper(metaclass=ProxyMetaclass):
 
     __ignore__ = frozenset(
         {
-            "__class__",
-            "__mro__",
-            "__new__",
-            "__init__",
-            "__setattr__",
-            "__getattr__",
-            "__getattribute__",
+            '__class__',
+            '__mro__',
+            '__new__',
+            '__init__',
+            '__setattr__',
+            '__getattr__',
+            '__getattribute__',
         }
     )
 
     def __init__(self):
         if self.__wraps__ is None:
-            raise TypeError("Base class Wrapper may not be instantiated.")
+            raise TypeError('Base class Wrapper may not be instantiated.')
 
         if not isinstance(self._tpm, self.__wraps__):
             raise ValueError(f"Wrapped object must be of type {self.__wraps__}")
@@ -157,7 +158,7 @@ class Wrapper(metaclass=ProxyMetaclass):
 class ExplicitTPM(data_structures.ArrayLike):
     """An explicit network TPM in multidimensional form."""
 
-    _VALUE_ATTR = "_tpm"
+    _VALUE_ATTR = '_tpm'
 
     # TODO(tpm) remove pending ArrayLike refactor
     __wraps__ = np.ndarray
@@ -170,47 +171,47 @@ class ExplicitTPM(data_structures.ArrayLike):
     # cast, even though they are not callable.
     __closures__ = frozenset(
         {
-            "argpartition",
-            "astype",
-            "byteswap",
-            "choose",
-            "clip",
-            "compress",
-            "conj",
-            "conjugate",
-            "copy",
-            "cumprod",
-            "cumsum",
-            "diagonal",
-            "dot",
-            "fill",
-            "flatten",
-            "getfield",
-            "item",
-            "itemset",
-            "max",
-            "mean",
-            "min",
-            "newbyteorder",
-            "partition",
-            "prod",
-            "ptp",
-            "put",
-            "ravel",
-            "repeat",
-            "reshape",
-            "resize",
-            "round",
-            "setfield",
-            "sort",
-            "squeeze",
-            "std",
-            "sum",
-            "swapaxes",
-            "take",
-            "transpose",
-            "var",
-            "view",
+            'argpartition',
+            'astype',
+            'byteswap',
+            'choose',
+            'clip',
+            'compress',
+            'conj',
+            'conjugate',
+            'copy',
+            'cumprod',
+            'cumsum',
+            'diagonal',
+            'dot',
+            'fill',
+            'flatten',
+            'getfield',
+            'item',
+            'itemset',
+            'max',
+            'mean',
+            'min',
+            'newbyteorder',
+            'partition',
+            'prod',
+            'ptp',
+            'put',
+            'ravel',
+            'repeat',
+            'reshape',
+            'resize',
+            'round',
+            'setfield',
+            'sort',
+            'squeeze',
+            'std',
+            'sum',
+            'swapaxes',
+            'take',
+            'transpose',
+            'var',
+            'view',
         }
     )
 
@@ -249,12 +250,12 @@ class ExplicitTPM(data_structures.ArrayLike):
         """Check that the probabilities in a TPM are valid."""
         if (self._tpm < 0.0).any() or (self._tpm > 1.0).any():
             raise ValueError(
-                "Invalid TPM: probabilities must be in the interval [0, 1]."
+                'Invalid TPM: probabilities must be in the interval [0, 1].'
             )
         if self.is_state_by_state() and not np.all(
             np.isclose(np.sum(self._tpm, axis=1), 1.0, atol=1e-15)
         ):
-            raise ValueError("Invalid TPM: probabilities must sum to 1.")
+            raise ValueError('Invalid TPM: probabilities must sum to 1.')
         return True
 
     def _validate_shape(self, check_independence=True):
@@ -267,8 +268,8 @@ class ExplicitTPM(data_structures.ArrayLike):
             * multidimensional state-by-node form.
         """
         see_tpm_docs = (
-            "See the documentation on TPM conventions and the `pyphi.Network` "
-            "object for more information on TPM forms."
+            'See the documentation on TPM conventions and the `pyphi.Network` '
+            'object for more information on TPM forms.'
         )
         tpm = self._tpm
         # Get the number of nodes from the state-by-node TPM.
@@ -279,26 +280,26 @@ class ExplicitTPM(data_structures.ArrayLike):
                 or (tpm.shape[0] == tpm.shape[1])
             ):
                 raise ValueError(
-                    "Invalid shape for 2-D TPM: {}\nFor a state-by-node TPM, "
-                    "there must be "
-                    "2^N rows and N columns, where N is the "
-                    "number of nodes. State-by-state TPM must be square. "
-                    "{}".format(tpm.shape, see_tpm_docs)
+                    'Invalid shape for 2-D TPM: {}\nFor a state-by-node TPM, '
+                    'there must be '
+                    '2^N rows and N columns, where N is the '
+                    'number of nodes. State-by-state TPM must be square. '
+                    '{}'.format(tpm.shape, see_tpm_docs)
                 )
             if tpm.shape[0] == tpm.shape[1] and check_independence:
                 self.conditionally_independent()
         elif tpm.ndim == (N + 1):
             if tpm.shape != tuple([2] * N + [N]):
                 raise ValueError(
-                    "Invalid shape for multidimensional state-by-node TPM: {}\n"
-                    "The shape should be {} for {} nodes. {}".format(
+                    'Invalid shape for multidimensional state-by-node TPM: {}\n'
+                    'The shape should be {} for {} nodes. {}'.format(
                         tpm.shape, ([2] * N) + [N], N, see_tpm_docs
                     )
                 )
         else:
             raise ValueError(
-                "Invalid TPM: Must be either 2-dimensional or multidimensional. "
-                "{}".format(see_tpm_docs)
+                'Invalid TPM: Must be either 2-dimensional or multidimensional. '
+                '{}'.format(see_tpm_docs)
             )
         return True
 
@@ -340,9 +341,9 @@ class ExplicitTPM(data_structures.ArrayLike):
             )
         if not np.allclose((tpm - there_and_back_again), 0.0):
             raise exceptions.ConditionallyDependentError(
-                "TPM is not conditionally independent.\n"
-                "See the conditional independence example in the documentation "
-                "for more info."
+                'TPM is not conditionally independent.\n'
+                'See the conditional independence example in the documentation '
+                'for more info.'
             )
         return True
 
@@ -527,7 +528,7 @@ class ExplicitTPM(data_structures.ArrayLike):
         return self.__repr__()
 
     def __repr__(self):
-        return "ExplicitTPM({})".format(self._tpm)
+        return 'ExplicitTPM({})'.format(self._tpm)
 
     def __hash__(self):
         return self._hash
@@ -574,7 +575,7 @@ def simulate(tpm, initial_state, timesteps, rng):
         tpm = ExplicitTPM(tpm)
 
     if not tpm.is_state_by_state():
-        raise ValueError("TPM must be in state-by-state form.")
+        raise ValueError('TPM must be in state-by-state form.')
     # Get the conditional cumulative distributions
     # Use .tpm to get the underlying numpy array
     cumulative_tpm = np.cumsum(tpm.tpm, axis=1)
@@ -684,7 +685,7 @@ def backward_tpm(
     background_indices = tuple(sorted(set(all_indices) - set(system_indices)))
     if not set(system_indices).issubset(set(all_indices)):
         raise ValueError(
-            "system_indices must be a subset of `range(forward_tpm.number_of_units))`"
+            'system_indices must be a subset of `range(forward_tpm.number_of_units))`'
         )
 
     # p(u_t | s_{t–1}, w_{t–1})

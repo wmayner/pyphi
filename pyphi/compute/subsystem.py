@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # compute/subsystem.py
 """Functions for computing subsystem-level properties."""
 
@@ -91,7 +92,7 @@ def ces(
             directions=directions,
         ),
         reduce_func=reduce_func,
-        desc="Computing concepts",
+        desc='Computing concepts',
         total=total,
         **parallel_kwargs,
     ).run()
@@ -135,7 +136,7 @@ def evaluate_cut(cut, uncut_subsystem, unpartitioned_ces, **kwargs):
         SystemIrreducibilityAnalysis: The |SystemIrreducibilityAnalysis| for
         that cut.
     """
-    log.debug("Evaluating %s...", cut)
+    log.debug('Evaluating %s...', cut)
 
     cut_subsystem = uncut_subsystem.apply_cut(cut)
 
@@ -148,10 +149,10 @@ def evaluate_cut(cut, uncut_subsystem, unpartitioned_ces, **kwargs):
             list(unpartitioned_ces.mechanisms) + list(cut_subsystem.cut_mechanisms)
         )
 
-    kwargs = {"progress": False, **kwargs}
+    kwargs = {'progress': False, **kwargs}
     partitioned_ces = ces(cut_subsystem, mechanisms, **kwargs)
 
-    log.debug("Finished evaluating %s.", cut)
+    log.debug('Finished evaluating %s.', cut)
 
     phi_ = ces_distance(unpartitioned_ces, partitioned_ces)
 
@@ -181,10 +182,10 @@ def sia_partitions(nodes, node_labels=None):
     """
     # TODO(4.0 consolidate 3.0 and 4.0 cuts)
     scheme = config.SYSTEM_PARTITION_TYPE
-    valid = ["DIRECTED_BI", "DIRECTED_BI_CUT_ONE"]
+    valid = ['DIRECTED_BI', 'DIRECTED_BI_CUT_ONE']
     if scheme not in valid:
         raise ValueError(
-            "IIT 3.0 calculations must use one of the following system "
+            'IIT 3.0 calculations must use one of the following system '
             f"partition schemes: {valid}; got {scheme}"
         )
     return system_partition_types[config.SYSTEM_PARTITION_TYPE](
@@ -197,12 +198,12 @@ def _ces(subsystem, **kwargs):
     cuts, since we have free processors because we're not computing any cuts
     yet.
     """
-    kwargs = {"parallel": config.PARALLEL_CUT_EVALUATION, **kwargs}
+    kwargs = {'parallel': config.PARALLEL_CUT_EVALUATION, **kwargs}
     return ces(subsystem, **kwargs)
 
 
 def _sia_map_reduce(cuts, subsystem, unpartitioned_ces, **kwargs):
-    kwargs = {"parallel": config.PARALLEL_CUT_EVALUATION, **kwargs}
+    kwargs = {'parallel': config.PARALLEL_CUT_EVALUATION, **kwargs}
     return MapReduce(
         evaluate_cut,
         cuts,
@@ -213,7 +214,7 @@ def _sia_map_reduce(cuts, subsystem, unpartitioned_ces, **kwargs):
         reduce_func=min,
         reduce_kwargs=dict(default=_null_sia(subsystem)),
         shortcircuit_func=utils.is_falsy,
-        desc="Evaluating cuts",
+        desc='Evaluating cuts',
         **kwargs,
     ).run()
 
@@ -231,7 +232,7 @@ def _sia(subsystem, **kwargs):
     """
     # pylint: disable=unused-argument
 
-    log.info("Calculating big-phi data for %s...", subsystem)
+    log.info('Calculating big-phi data for %s...', subsystem)
 
     # Check for degenerate cases
     # =========================================================================
@@ -241,12 +242,12 @@ def _sia(subsystem, **kwargs):
     #   - an elementary micro mechanism (i.e. no nontrivial bipartitions).
     # So in those cases we immediately return a null SIA.
     if not subsystem:
-        log.info("Subsystem %s is empty; returning null SIA " "immediately.", subsystem)
+        log.info('Subsystem %s is empty; returning null SIA ' 'immediately.', subsystem)
         return _null_sia(subsystem)
 
     if not connectivity.is_strong(subsystem.cm, subsystem.node_indices):
         log.info(
-            "%s is not strongly connected; returning null SIA " "immediately.",
+            '%s is not strongly connected; returning null SIA ' 'immediately.',
             subsystem,
         )
         return _null_sia(subsystem)
@@ -258,33 +259,33 @@ def _sia(subsystem, **kwargs):
         # If the node lacks a self-loop, phi is trivially zero.
         if not subsystem.cm[subsystem.node_indices][subsystem.node_indices]:
             log.info(
-                "Single micro nodes %s without selfloops cannot have "
-                "phi; returning null SIA immediately.",
+                'Single micro nodes %s without selfloops cannot have '
+                'phi; returning null SIA immediately.',
                 subsystem,
             )
             return _null_sia(subsystem)
         # Even if the node has a self-loop, we may still define phi to be zero.
         elif not config.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI:
             log.info(
-                "Single micro nodes %s with selfloops cannot have "
-                "phi; returning null SIA immediately.",
+                'Single micro nodes %s with selfloops cannot have '
+                'phi; returning null SIA immediately.',
                 subsystem,
             )
             return _null_sia(subsystem)
     # =========================================================================
 
-    log.debug("Finding unpartitioned CauseEffectStructure...")
-    unpartitioned_ces = _ces(subsystem, progress=kwargs.get("progress"))
+    log.debug('Finding unpartitioned CauseEffectStructure...')
+    unpartitioned_ces = _ces(subsystem, progress=kwargs.get('progress'))
 
     if not unpartitioned_ces:
         log.info(
-            "Empty unpartitioned CauseEffectStructure; returning null "
-            "SIA immediately."
+            'Empty unpartitioned CauseEffectStructure; returning null '
+            'SIA immediately.'
         )
         # Short-circuit if there are no concepts in the unpartitioned CES.
         return _null_sia(subsystem)
 
-    log.debug("Found unpartitioned CauseEffectStructure.")
+    log.debug('Found unpartitioned CauseEffectStructure.')
 
     # TODO: move this into sia_bipartitions?
     # Only True if SINGLE_MICRO_NODES...=True, no?
@@ -299,17 +300,17 @@ def _sia(subsystem, **kwargs):
     result = _sia_map_reduce(cuts, subsystem, unpartitioned_ces, **kwargs)
 
     if config.CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA:
-        log.debug("Clearing subsystem caches.")
+        log.debug('Clearing subsystem caches.')
         subsystem.clear_caches()
 
-    log.info("Finished calculating big-phi data for %s.", subsystem)
+    log.info('Finished calculating big-phi data for %s.', subsystem)
 
     return result
 
 
 @functools.wraps(_sia)
 def sia(subsystem, **kwargs):
-    if config.SYSTEM_CUTS == "CONCEPT_STYLE":
+    if config.SYSTEM_CUTS == 'CONCEPT_STYLE':
         return sia_concept_style(subsystem, **kwargs)
     return _sia(subsystem, **kwargs)
 
@@ -338,7 +339,7 @@ class ConceptStyleSystem:
         # Unpickling calls `__getattr__` before the object's dict is populated;
         # check that `subsystem` exists to avoid a recursion error.
         # See https://bugs.python.org/issue5370.
-        if "subsystem" in self.__dict__:
+        if 'subsystem' in self.__dict__:
             return getattr(self.subsystem, name)
         raise AttributeError(name)
 
@@ -376,7 +377,7 @@ class ConceptStyleSystem:
         )
 
     def __str__(self):
-        return "ConceptStyleSystem{}".format(self.node_indices)
+        return 'ConceptStyleSystem{}'.format(self.node_indices)
 
 
 def concept_cuts(direction, node_indices, node_labels=None):
@@ -412,14 +413,14 @@ class SystemIrreducibilityAnalysisConceptStyle(cmp.Orderable):
 
     def __getattr__(self, name):
         """Pass attribute access through to the minimal SIA."""
-        if "sia_cause" in self.__dict__ and "sia_effect" in self.__dict__:
+        if 'sia_cause' in self.__dict__ and 'sia_effect' in self.__dict__:
             return getattr(self.min_sia, name)
         raise AttributeError(name)
 
     def __eq__(self, other):
-        return cmp.general_eq(self, other, ["phi"])
+        return cmp.general_eq(self, other, ['phi'])
 
-    unorderable_unless_eq = ["network"]
+    unorderable_unless_eq = ['network']
 
     def order_by(self):
         return [self.phi, len(self.subsystem)]

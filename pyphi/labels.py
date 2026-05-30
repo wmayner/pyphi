@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # labels.py
 """Helper class representing labels of network nodes."""
 
@@ -13,7 +14,7 @@ from .models import cmp
 
 def default_label(index: int) -> str:
     """Default label for a node."""
-    return "n{}".format(index)
+    return 'n{}'.format(index)
 
 
 def default_labels(indices: Sequence[int]) -> Tuple[str, ...]:
@@ -65,7 +66,7 @@ class NodeLabels(Sequence):
         return self.labels[x]
 
     def __repr__(self) -> str:
-        return "NodeLabels({})".format(self.labels)
+        return 'NodeLabels({})'.format(self.labels)
 
     @cmp.sametype
     def __eq__(self, other: object) -> bool:
@@ -145,4 +146,4 @@ class NodeLabels(Sequence):
         ]
 
     def to_json(self) -> dict:
-        return {"labels": self.labels, "node_indices": self.node_indices}
+        return {'labels': self.labels, 'node_indices': self.node_indices}

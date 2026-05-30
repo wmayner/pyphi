@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # metrics/ces.py
 """Functions for computing distances between cause-effect structures."""
 
@@ -24,7 +25,7 @@ class CESMeasureRegistry(Registry):
 
     # pylint: disable=arguments-differ
 
-    desc = "distance functions between cause-effect structures"
+    desc = 'distance functions between cause-effect structures'
 
     def __init__(self):
         super().__init__()
@@ -68,8 +69,8 @@ def emd_ground_distance(r1, r2):
     """
     if config.REPERTOIRE_DISTANCE in distribution.measures.asymmetric():
         raise ValueError(
-            "The repertoire-distance {} is asymmetric and cannot be used as the "
-            "ground distance for the system-level EMD".format(
+            'The repertoire-distance {} is asymmetric and cannot be used as the '
+            'ground distance for the system-level EMD'.format(
                 config.REPERTOIRE_DISTANCE
             )
         )
@@ -188,7 +189,7 @@ def _emd(unique_C1, unique_C2):
     return distribution.EMD.compute(np.array(d1), np.array(d2), distance_matrix)
 
 
-@measures.register("EMD")
+@measures.register('EMD')
 def emd(C1, C2):
     """Return the generalized EMD between two cause-effect structures.
 
@@ -210,7 +211,7 @@ def emd(C1, C2):
     return round(dist, config.PRECISION)
 
 
-@measures.register("SUM_SMALL_PHI")
+@measures.register('SUM_SMALL_PHI')
 def sum_small_phi(C1, C2):
     """Return the difference in |small_phi| between |CauseEffectStructure|."""
     return sum(C1.phis) - sum(C2.phis)

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # PyPhi documentation build configuration file, created by
 # sphinx-quickstart on Fri Jan 17 11:15:55 2014.
 #
@@ -19,9 +20,9 @@ import os
 import sys
 from importlib.metadata import metadata
 
-meta = metadata("pyphi")
-__author__ = meta["author-email"]
-__version__ = meta["version"]
+meta = metadata('pyphi')
+__author__ = meta['author-email']
+__version__ = meta['version']
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
@@ -30,7 +31,7 @@ import sphinx_rtd_theme
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath(".."))
+sys.path.insert(0, os.path.abspath('..'))
 
 
 # -- General configuration ------------------------------------------------
@@ -42,37 +43,37 @@ sys.path.insert(0, os.path.abspath(".."))
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "sphinx.ext.autodoc",
-    "sphinx.ext.todo",
-    "sphinx.ext.coverage",
-    "sphinx.ext.mathjax",
-    "sphinx.ext.napoleon",
+    'sphinx.ext.autodoc',
+    'sphinx.ext.todo',
+    'sphinx.ext.coverage',
+    'sphinx.ext.mathjax',
+    'sphinx.ext.napoleon',
 ]
 
-mathjax_path = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-MML-AM_CHTML"
+mathjax_path = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-MML-AM_CHTML'
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ["_templates"]
+templates_path = ['_templates']
 
 # The suffix of source filenames.
-source_suffix = ".rst"
+source_suffix = '.rst'
 
 # The encoding of source files.
 # source_encoding = 'utf-8-sig'
 
 # The master toctree document.
-master_doc = "index"
+master_doc = 'index'
 
 # General information about the project.
-project = "PyPhi"
-copyright = "2014–{year} {author}".format(year=datetime.today().year, author=__author__)
+project = 'PyPhi'
+copyright = '2014–{year} {author}'.format(year=datetime.today().year, author=__author__)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 # The short X.Y version.
-version = "v" + __version__
+version = 'v' + __version__
 # The full version, including alpha/beta/rc tags.
 release = version
 
@@ -88,7 +89,7 @@ release = version
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ["_build", "_themes/README.rst"]
+exclude_patterns = ['_build', '_themes/README.rst']
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -106,7 +107,7 @@ exclude_patterns = ["_build", "_themes/README.rst"]
 # show_authors = Fale
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = "default"
+pygments_style = 'default'
 
 # A list of ignored prefixes for module index sorting.
 # modindex_common_prefix = []
@@ -115,7 +116,7 @@ pygments_style = "default"
 # keep_warnings = False
 
 # Global substitutions
-rst_prolog = "".join(
+rst_prolog = ''.join(
     [
         # Math
         r"""
@@ -337,25 +338,25 @@ napoleon_use_rtype = True
 # -- Options for HTML output ----------------------------------------------
 
 
-html_theme = "sphinx_rtd_theme"
+html_theme = 'sphinx_rtd_theme'
 # Add any paths that contain custom themes here, relative to this
 # directory.
-html_theme_path = ["_themes"] + [sphinx_rtd_theme.get_html_theme_path()]
+html_theme_path = ['_themes'] + [sphinx_rtd_theme.get_html_theme_path()]
 
 # (Optional) Logo. Should be small enough to fit the navbar (ideally 24x24).
 # Path should be relative to the ``_static`` files directory.
-html_logo = "_static/blank.png"
+html_logo = '_static/blank.png'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-html_theme_options = {"navigation_depth": 3}
+html_theme_options = {'navigation_depth': 3}
 
-html_sidebars = {"**": ["localtoc.html"]}
+html_sidebars = {'**': ['localtoc.html']}
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-html_title = version + " documentation"
+html_title = version + ' documentation'
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 # html_short_title = None
@@ -372,7 +373,7 @@ html_title = version + " documentation"
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["_static"]
+html_static_path = ['_static']
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied
@@ -381,7 +382,7 @@ html_static_path = ["_static"]
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
-html_last_updated_fmt = "%b %d, %Y"
+html_last_updated_fmt = '%b %d, %Y'
 
 # Custom sidebar templates, maps document names to template names.
 # html_sidebars = {}
@@ -417,7 +418,7 @@ html_show_sphinx = False
 # html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "PyPhidoc"
+htmlhelp_basename = 'PyPhidoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -435,7 +436,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    ("index", "PyPhi.tex", "PyPhi Documentation", __author__, "manual"),
+    ('index', 'PyPhi.tex', 'PyPhi Documentation', __author__, 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -463,7 +464,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [("index", "pyphi", "PyPhi Documentation", [__author__], 1)]
+man_pages = [('index', 'pyphi', 'PyPhi Documentation', [__author__], 1)]
 
 # If true, show URL addresses after external links.
 # man_show_urls = False
@@ -476,13 +477,13 @@ man_pages = [("index", "pyphi", "PyPhi Documentation", [__author__], 1)]
 #  dir menu entry, description, category)
 texinfo_documents = [
     (
-        "index",
-        "PyPhi",
-        "PyPhi Documentation",
+        'index',
+        'PyPhi',
+        'PyPhi Documentation',
         __author__,
-        "PyPhi",
-        "A Python module for computing integrated information",
-        "Miscellaneous",
+        'PyPhi',
+        'A Python module for computing integrated information',
+        'Miscellaneous',
     ),
 ]
 
@@ -499,5 +500,5 @@ texinfo_documents = [
 # texinfo_no_detailmenu = False
 
 # -- Options for autodoc output ------------------------------------------
-autoclass_content = "both"
-autodoc_member_order = "bysource"
+autoclass_content = 'both'
+autodoc_member_order = 'bysource'

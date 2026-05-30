@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from unittest.mock import patch
 import numpy as np
 import pytest
@@ -10,36 +11,36 @@ from pyphi import models
 def test_emd_ground_distance_must_be_symmetric():
     a = np.ones((2, 2, 2)) / 8
     b = np.ones((2, 2, 2)) / 8
-    with config.override(REPERTOIRE_DISTANCE="KLD"):
+    with config.override(REPERTOIRE_DISTANCE='KLD'):
         with pytest.raises(ValueError):
             emd_ground_distance(a, b)
 
 
 @pytest.mark.outdated
 def test_ces_distances(s):
-    with config.override(REPERTOIRE_DISTANCE="EMD"):
+    with config.override(REPERTOIRE_DISTANCE='EMD'):
         sia = compute.subsystem.sia(s)
 
-    with config.override(CES_DISTANCE="EMD"):
+    with config.override(CES_DISTANCE='EMD'):
         assert ces_distance(sia.ces, sia.partitioned_ces) == 2.3125
 
-    with config.override(CES_DISTANCE="SUM_SMALL_PHI"):
+    with config.override(CES_DISTANCE='SUM_SMALL_PHI'):
         assert ces_distance(sia.ces, sia.partitioned_ces) == 1.083333
 
 
 @pytest.mark.outdated
 def test_sia_uses_ces_distances(s):
-    with config.override(REPERTOIRE_DISTANCE="EMD", CES_DISTANCE="EMD"):
+    with config.override(REPERTOIRE_DISTANCE='EMD', CES_DISTANCE='EMD'):
         sia = compute.subsystem.sia(s)
         assert sia.phi == 2.3125
 
-    with config.override(REPERTOIRE_DISTANCE="EMD", CES_DISTANCE="SUM_SMALL_PHI"):
+    with config.override(REPERTOIRE_DISTANCE='EMD', CES_DISTANCE='SUM_SMALL_PHI'):
         sia = compute.subsystem.sia(s)
         assert sia.phi == 1.083333
 
 
-@patch("pyphi.metrics.ces._emd_simple")
-@patch("pyphi.metrics.ces._emd")
+@patch('pyphi.metrics.ces._emd_simple')
+@patch('pyphi.metrics.ces._emd')
 @pytest.mark.outdated
 def test_ces_distance_uses_simple_vs_emd(mock_emd_distance, mock_simple_distance, s):
     """Quick check that we use the correct EMD distance function for CESs.
