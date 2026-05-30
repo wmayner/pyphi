@@ -1291,11 +1291,46 @@ def test_paper_fig8a_majority_alpha(majority_substrate):
     assert len(cause.purview) == 3
 
 
-@pytest.mark.skip(
-    reason="non-binary substrate (3-state voters, 4-state W); needs non-binary units"
-)
 def test_paper_fig11_three_candidate_alpha():
-    pass
+    """2019 Fig. 11: three-candidate voting.
+
+    Seven three-state voters (A-G) feed one four-state winner W = plurality of
+    the votes, with W = 0 on a tie for the maximum. For the transition
+    {ABCDEFG = 1111122} (five votes for candidate 1, two for candidate 2),
+    W = 1. The actual cause is an undetermined set of four of the five
+    candidate-1 voters, with alpha_c^max = 1.893 bits; the two candidate-2
+    voters contribute zero.
+    """
+    import itertools
+
+    nv, kc, kw = 7, 3, 4
+    alph = (kc,) * nv + (kw,)
+    wcore = np.zeros((kc,) * nv + (kw,))
+    for combo in itertools.product(range(kc), repeat=nv):
+        counts = [combo.count(c) for c in range(kc)]
+        m = max(counts)
+        winners = [c for c in range(kc) if counts[c] == m]
+        w = (winners[0] + 1) if len(winners) == 1 else 0
+        wcore[(*combo, w)] = 1.0
+    voter = np.full((*alph, kc), 1.0 / kc)
+    wfull = np.broadcast_to(np.expand_dims(wcore, axis=nv), (*alph, kw)).copy()
+    cm = np.zeros((nv + 1, nv + 1), dtype=int)
+    cm[0:nv, nv] = 1
+    sub = Substrate(
+        marginals=[voter] * nv + [wfull],
+        state_space=tuple(tuple(range(k)) for k in alph),
+        cm=cm,
+    )
+    before = (0, 0, 0, 0, 0, 1, 1, 0)
+    after = (0, 0, 0, 0, 0, 1, 1, 1)
+    t = actual.Transition(
+        sub, before, after, cause_indices=tuple(range(nv)), effect_indices=(nv,)
+    )
+    cause = t.find_actual_cause((nv,))
+    assert cause.alpha == pytest.approx(1.893, abs=1e-2)
+    assert len(cause.purview) == 4
+    # candidate-1 voters A-E; candidate-2 voters F, G contribute nothing
+    assert set(cause.purview).issubset({0, 1, 2, 3, 4})
 
 
 @pytest.fixture
