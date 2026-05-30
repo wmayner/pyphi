@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # new_big_phi/__init__.py
 """Implements the IIT 4.0 formalism for system-level analysis."""
 
@@ -85,14 +86,14 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
         self.normalized_phi = PyPhiFloat(self.normalized_phi)
 
     _sia_attributes = [
-        "phi",
-        "partition",
-        "normalized_phi",
-        "cause",
-        "effect",
-        "system_state",
-        "current_state",
-        "node_indices",
+        'phi',
+        'partition',
+        'normalized_phi',
+        'cause',
+        'effect',
+        'system_state',
+        'current_state',
+        'node_indices',
     ]
 
     def order_by(self):
@@ -126,34 +127,34 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
 
     def _repr_columns(self):
         if self.node_labels is not None:
-            subsystem_label = ",".join(
+            subsystem_label = ','.join(
                 self.node_labels.coerce_to_labels(self.node_indices)
             )
         elif self.node_indices is not None:
-            subsystem_label = ",".join(map(str, self.node_indices))
+            subsystem_label = ','.join(map(str, self.node_indices))
         else:
             subsystem_label = None
         columns = (
             [
-                ("Subsystem", subsystem_label),
-                ("Current state", fmt.state(self.current_state)),
+                ('Subsystem', subsystem_label),
+                ('Current state', fmt.state(self.current_state)),
                 (f"           {fmt.SMALL_PHI}_s", self.phi),
                 (f"Normalized {fmt.SMALL_PHI}_s", self.normalized_phi),
             ]
             + self.system_state._repr_columns()
-            + [("#(tied MIPs)", len(self.ties) - 1), ("Partition", "")]
+            + [('#(tied MIPs)', len(self.ties) - 1), ('Partition', '')]
         )
         if self.reasons:
-            columns.append(("Reasons", ", ".join(self.reasons)))
+            columns.append(('Reasons', ', '.join(self.reasons)))
         return columns
 
     def __repr__(self):
-        body = "\n".join(fmt.align_columns(self._repr_columns()))
+        body = '\n'.join(fmt.align_columns(self._repr_columns()))
         body = fmt.header(self.__class__.__name__, body, under_char=fmt.HEADER_BAR_2)
         body = fmt.center(body)
-        column_extent = body.split("\n")[2].index(":")
+        column_extent = body.split('\n')[2].index(':')
         if self.partition:
-            body += "\n" + fmt.indent(str(self.partition), column_extent + 2)
+            body += '\n' + fmt.indent(str(self.partition), column_extent + 2)
         return fmt.box(body)
 
     def to_json(self):
@@ -161,7 +162,7 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
         dct = self.__dict__.copy()
         # TODO(ties) implement serialization of ties
         # Remove ties because of circular references
-        del dct["_ties"]
+        del dct['_ties']
         return dct
 
 
@@ -178,20 +179,20 @@ class NullSystemIrreducibilityAnalysis(SystemIrreducibilityAnalysis):
     def _repr_columns(self):
         columns = [
             (
-                "Subsystem",
-                ",".join(self.node_labels.coerce_to_labels(self.node_indices)),
+                'Subsystem',
+                ','.join(self.node_labels.coerce_to_labels(self.node_indices)),
             ),
             (f"           {fmt.BIG_PHI}", self.phi),
         ]
         if self.system_state is not None:
             columns.append(self.system_state._repr_columns())
         if self.reasons:
-            columns.append(("Reasons", ", ".join([r.name for r in self.reasons])))
+            columns.append(('Reasons', ', '.join([r.name for r in self.reasons])))
         return columns
 
 
 def normalization_factor(partition: Union[Cut, GeneralKCut]) -> float:
-    if hasattr(partition, "normalization_factor"):
+    if hasattr(partition, 'normalization_factor'):
         return partition.normalization_factor()
     return 1 / (len(partition.from_nodes) * len(partition.to_nodes))
 
@@ -206,7 +207,7 @@ def integration_value(
     repertoire_distance = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
     cut_subsystem = subsystem.apply_cut(partition)
     # TODO(4.0) deal with proliferation of special cases for GID
-    if repertoire_distance == "GENERALIZED_INTRINSIC_DIFFERENCE":
+    if repertoire_distance == 'GENERALIZED_INTRINSIC_DIFFERENCE':
         partitioned_repertoire = cut_subsystem.forward_repertoire(
             direction,
             subsystem.node_indices,
@@ -349,7 +350,7 @@ def sia(
 
     if partitions is None:
         filter_func = None
-        if partitions == "GENERAL":
+        if partitions == 'GENERAL':
 
             def is_disconnecting_partition(partition):
                 # Special case for length 1 subsystems so complete partition is included
@@ -387,14 +388,14 @@ def sia(
             directions=directions,
         ),
         shortcircuit_func=utils.is_falsy,
-        desc="Evaluating partitions",
+        desc='Evaluating partitions',
         **parallel_kwargs,
     ).run()
 
     # Find MIP in one pass, keeping track of ties
     # TODO(ties) refactor into resolve_ties module
     mip_sia = default_sia
-    mip_key = (float("inf"), float("-inf"))
+    mip_key = (float('inf'), float('-inf'))
     ties = [default_sia]
     for candidate_mip_sia in sias:
         candidate_key = sia_minimization_key(candidate_mip_sia)
@@ -422,7 +423,7 @@ _sia = sia
 
 
 class PhiStructure(cmp.Orderable):
-    _SIA_INHERITED_ATTRIBUTES = ["phi", "partition", "system_state"]
+    _SIA_INHERITED_ATTRIBUTES = ['phi', 'partition', 'system_state']
 
     def __init__(
         self,
@@ -476,17 +477,17 @@ class PhiStructure(cmp.Orderable):
 
     def _repr_columns(self):
         return [
-            ("Φ", self.big_phi),
-            ("#(distinctions)", len(self.distinctions)),
-            ("Σ φ_d", self.sum_phi_distinctions),
-            ("#(relations)", len(self.relations)),
-            ("Σ φ_r", self.sum_phi_relations),
+            ('Φ', self.big_phi),
+            ('#(distinctions)', len(self.distinctions)),
+            ('Σ φ_d', self.sum_phi_distinctions),
+            ('#(relations)', len(self.relations)),
+            ('Σ φ_r', self.sum_phi_relations),
         ]
 
     def __repr__(self):
-        body = "\n".join(fmt.align_columns(self._repr_columns()))
+        body = '\n'.join(fmt.align_columns(self._repr_columns()))
         body = fmt.header(self.__class__.__name__, body, under_char=fmt.HEADER_BAR_1)
-        body += "\n" + str(self.sia)
+        body += '\n' + str(self.sia)
         return fmt.box(fmt.center(body))
 
     @property

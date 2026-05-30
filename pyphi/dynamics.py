@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # dynamics.py
 """Functions for simulating system state trajectories."""
 
@@ -18,7 +19,7 @@ def mean_dynamics(
 ):
     """Return a sample of the dynamics averaged over all initial states."""
     tpm = ExplicitTPM(tpm)
-    clamp = kwargs.get("clamp", dict())
+    clamp = kwargs.get('clamp', dict())
     initial_states = [
         insert_clamp(clamp, state)
         for state in utils.all_states(number_of_units(tpm) - len(clamp))
@@ -61,7 +62,7 @@ def simulate(
     if initial_state is None:
         initial_state = tuple(rng.integers(low=0, high=2, size=tpm.number_of_units))
     elif len(initial_state) != N:
-        raise ValueError("initial_state must have length equal to the number of units")
+        raise ValueError('initial_state must have length equal to the number of units')
 
     if isinstance(clamp, Mapping):
         clamps = [clamp] * timesteps

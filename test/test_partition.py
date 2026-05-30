@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import itertools
 
 import numpy as np
@@ -273,7 +274,7 @@ def test_tripartitions_choses_smallest_purview(s):
     mechanism = (1, 2)
 
     # In phi-tie, chose the smaller purview (0,)
-    with config.override(PURVIEW_TIE_RESOLUTION=["PHI", "NEGATIVE_PURVIEW_SIZE"]):
+    with config.override(PURVIEW_TIE_RESOLUTION=['PHI', 'NEGATIVE_PURVIEW_SIZE']):
         mie = s.mie(mechanism)
         assert mie.phi == 2.0
         assert mie.purview == (0,)
@@ -308,7 +309,7 @@ def test_all_partitions():
 
 
 def test_partition_types():
-    assert partition_types["BI"] == mip_bipartitions
-    assert partition_types["TRI"] == wedge_partitions
-    assert partition_types["ALL"] == all_partitions
-    assert set(partition_types.all()) == set(["BI", "TRI", "ALL"])
+    assert partition_types['BI'] == mip_bipartitions
+    assert partition_types['TRI'] == wedge_partitions
+    assert partition_types['ALL'] == all_partitions
+    assert set(partition_types.all()) == set(['BI', 'TRI', 'ALL'])

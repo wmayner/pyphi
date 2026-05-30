@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # __init__.py
 
 #      _|_|_|
@@ -78,7 +79,7 @@ from .subsystem import Subsystem
 from .tpm import ExplicitTPM
 
 # Skip modules that require optional dependencies
-_skip_import = ["visualize", "graphs"]
+_skip_import = ['visualize', 'graphs']
 
 
 def _import_submodules(package, recursive=True):
@@ -98,7 +99,7 @@ def _import_submodules(package, recursive=True):
     results = {}
     for loader, name, is_pkg in pkgutil.walk_packages(package.__path__):
         if name not in _skip_import:
-            full_name = package.__name__ + "." + name
+            full_name = package.__name__ + '.' + name
             results[full_name] = importlib.import_module(full_name)
             if recursive and is_pkg:
                 results.update(_import_submodules(full_name))
@@ -111,18 +112,18 @@ def _import_submodules(package, recursive=True):
 _submodules = _import_submodules(__name__)
 
 # Populate __all__ with public modules of depth 1
-_submodule_names = set([name.split(".")[1] for name in _submodules.keys()])
+_submodule_names = set([name.split('.')[1] for name in _submodules.keys()])
 __all__ = [
-    "config",
-    "Direction",
-    "ExplicitTPM",
-    "Network",
-    "Subsystem",
-    "Transition",
-] + [name for name in _submodule_names if not name.startswith("_")]
+    'config',
+    'Direction',
+    'ExplicitTPM',
+    'Network',
+    'Subsystem',
+    'Transition',
+] + [name for name in _submodule_names if not name.startswith('_')]
 
 
-if not (config.WELCOME_OFF or "PYPHI_WELCOME_OFF" in os.environ):
+if not (config.WELCOME_OFF or 'PYPHI_WELCOME_OFF' in os.environ):
     print(
         """
 Welcome to PyPhi!

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # data_structures/array_like.py
 
 from numbers import Number
@@ -19,10 +20,10 @@ class ArrayLike(NDArrayOperatorsMixin):
     )
 
     # Holds the underlying array
-    _VALUE_ATTR = "value"
+    _VALUE_ATTR = 'value'
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
-        out = kwargs.get("out", ())
+        out = kwargs.get('out', ())
         for x in inputs + out:
             # Only support operations with instances of _HANDLED_TYPES.
             # Use ArrayLike instead of type(self) for isinstance to
@@ -34,13 +35,13 @@ class ArrayLike(NDArrayOperatorsMixin):
         # Defer to the implementation of the ufunc on unwrapped values.
         inputs = tuple(self._unwrap_arraylike(inputs))
         if out:
-            kwargs["out"] = tuple(self._unwrap_arraylike(out))
+            kwargs['out'] = tuple(self._unwrap_arraylike(out))
         result = getattr(ufunc, method)(*inputs, **kwargs)
 
         if type(result) is tuple:
             # Multiple return values
             return tuple(type(self)(x) for x in result)
-        elif method == "at":
+        elif method == 'at':
             # No return value
             return None
         else:

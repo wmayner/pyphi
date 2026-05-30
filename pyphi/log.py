@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # log.py
 """Utilities for logging and progress bars."""
 

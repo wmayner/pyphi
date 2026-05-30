@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # visualize/phi_structure/__init__.py
 """Visualize |big_phi|-structures."""
 
@@ -90,12 +91,12 @@ def plot_phi_structure(
     """
     if phi_structure is None and (distinctions is None or relations is None):
         raise ValueError(
-            "Either phi_structure or both distinctions and relations are required"
+            'Either phi_structure or both distinctions and relations are required'
         )
     if distinctions is None:
         distinctions = phi_structure.distinctions
     if not distinctions:
-        raise ValueError("No distinctions; cannot plot")
+        raise ValueError('No distinctions; cannot plot')
     if relations is None:
         relations = phi_structure.relations
 
@@ -103,7 +104,7 @@ def plot_phi_structure(
         variable is None for variable in [state, node_indices, node_labels]
     ):
         raise ValueError(
-            "Either subsystem or each of state, node_indices, and node_labels are required"
+            'Either subsystem or each of state, node_indices, and node_labels are required'
         )
     if state is None:
         state = subsystem.state
@@ -118,54 +119,54 @@ def plot_phi_structure(
 
     if fig is None:
         fig = go.Figure()
-    fig.update_layout(theme["layout"])
+    fig.update_layout(theme['layout'])
 
-    labeler = text.Labeler(state, node_labels, **theme["labels"])
+    labeler = text.Labeler(state, node_labels, **theme['labels'])
 
-    mechanism_mapping = theme["geometry"]["mechanisms"].get("mapping")
+    mechanism_mapping = theme['geometry']['mechanisms'].get('mapping')
     if mechanism_mapping is None:
         mechanism_mapping = geometry.arrange(
             node_indices,
-            **theme["geometry"]["mechanisms"]["arrange"],
+            **theme['geometry']['mechanisms']['arrange'],
         )
-    mechanism_coords = mechanism_coords or theme["mechanisms"].get("coords")
+    mechanism_coords = mechanism_coords or theme['mechanisms'].get('coords')
     if mechanism_coords is None:
         mechanism_coords = geometry.Coordinates(
             mechanism_mapping,
-            **theme["geometry"]["mechanisms"].get("coordinate_kwargs", dict()),
+            **theme['geometry']['mechanisms'].get('coordinate_kwargs', dict()),
         )
     else:
         mechanism_mapping = mechanism_coords.mapping
 
-    purview_mapping = theme["geometry"]["purviews"].get("mapping")
+    purview_mapping = theme['geometry']['purviews'].get('mapping')
     if purview_mapping is None:
-        if theme["geometry"]["purviews"].get("arrange_by_mechanism") is not None:
+        if theme['geometry']['purviews'].get('arrange_by_mechanism') is not None:
             purview_mapping = geometry.arrange_by_mechanism(
                 mechanism_mapping,
-                **theme["geometry"]["purviews"].get("arrange_by_mechanism"),
+                **theme['geometry']['purviews'].get('arrange_by_mechanism'),
             )
         else:
             purview_mapping = geometry.arrange(
                 node_indices,
-                **theme["geometry"]["purviews"].get("arrange", dict()),
+                **theme['geometry']['purviews'].get('arrange', dict()),
             )
-    purview_coords = purview_coords or theme["geometry"]["purviews"].get("coords")
+    purview_coords = purview_coords or theme['geometry']['purviews'].get('coords')
     if purview_coords is None:
-        if theme["geometry"]["purviews"].get("arrange_by_mechanism") is not None:
+        if theme['geometry']['purviews'].get('arrange_by_mechanism') is not None:
             purview_coords = geometry.PurviewCoordinates(
                 purview_mapping,
-                **theme["geometry"]["mechanisms"].get("coordinate_kwargs", dict()),
+                **theme['geometry']['mechanisms'].get('coordinate_kwargs', dict()),
             )
         else:
             purview_coords = geometry.Coordinates(
                 purview_mapping,
                 subset_multiplicities=distinctions.mechanism_multiplicities(),
                 state_multiplicities=distinctions.state_multiplicities(),
-                **theme["geometry"]["purviews"].get("coordinate_kwargs", dict()),
+                **theme['geometry']['purviews'].get('coordinate_kwargs', dict()),
             )
 
     # Relations
-    if theme["show"].get("two_faces") or theme["show"].get("three_faces"):
+    if theme['show'].get('two_faces') or theme['show'].get('three_faces'):
         two_faces = relation_two_faces
         three_faces = relation_three_faces
         if two_faces is None or three_faces is None:
@@ -203,7 +204,7 @@ def plot_phi_structure(
                 )
 
         # 2-relations
-        if theme["show"].get("two_faces") and two_faces:
+        if theme['show'].get('two_faces') and two_faces:
             fig = _plot_two_relation_faces(
                 fig=fig,
                 face_to_coords=face_to_coords,
@@ -213,7 +214,7 @@ def plot_phi_structure(
             )
 
         # 3-relations
-        if theme["show"].get("three_faces") and three_faces:
+        if theme['show'].get('three_faces') and three_faces:
             fig = _plot_three_relation_faces(
                 fig=fig,
                 face_to_coords=face_to_coords,
@@ -223,7 +224,7 @@ def plot_phi_structure(
             )
 
     # Cause-effect links
-    if theme["show"].get("cause_effect_links"):
+    if theme['show'].get('cause_effect_links'):
         fig = _plot_cause_effect_links(
             fig,
             distinctions,
@@ -232,7 +233,7 @@ def plot_phi_structure(
         )
 
     # Mechanism-purview links
-    if theme["show"].get("mechanism_purview_links"):
+    if theme['show'].get('mechanism_purview_links'):
         fig = _plot_mechanism_purview_links(
             fig,
             distinctions,
@@ -242,11 +243,11 @@ def plot_phi_structure(
         )
 
     # Mechanisms
-    if theme["show"].get("mechanisms"):
+    if theme['show'].get('mechanisms'):
         fig = _plot_mechanisms(fig, distinctions, mechanism_coords, labeler, theme)
 
     # Distinctions
-    if theme["show"].get("purviews"):
+    if theme['show'].get('purviews'):
         fig = _plot_purviews(
             fig,
             distinctions,
@@ -263,7 +264,7 @@ def plot_phi_structure(
 def scatter_from_coords(coords, theme=DEFAULT_THEME, **kwargs):
     """Return a Scatter3d given labels and coordinates."""
     x, y, z = np.stack(coords).transpose()
-    defaults = dict(textfont=dict(family=theme["fontfamily"], size=theme["fontsize"]))
+    defaults = dict(textfont=dict(family=theme['fontfamily'], size=theme['fontsize']))
     kwargs = Theme(
         defaults,
         **kwargs,
@@ -317,19 +318,19 @@ def _plot_purviews(
 ):
     marker_size = get_values(
         distinctions,
-        theme["purviews"]["marker"].pop("size", None),
-        rescale=theme["pointsizerange"],
+        theme['purviews']['marker'].pop('size', None),
+        rescale=theme['pointsizerange'],
     )
     marker_color = get_values(
-        distinctions, theme["purviews"]["marker"].pop("color", None)
+        distinctions, theme['purviews']['marker'].pop('color', None)
     )
-    textfont_color = theme["purviews"]["textfont"].pop("color", None)
+    textfont_color = theme['purviews']['textfont'].pop('color', None)
 
-    showscale = theme["purviews"]["marker"].pop("showscale", True)
+    showscale = theme['purviews']['marker'].pop('showscale', True)
     traces = []
     for direction, direction_color in zip(
         Direction.both(),
-        [theme["direction"]["cause_color"], theme["direction"]["effect_color"]],
+        [theme['direction']['cause_color'], theme['direction']['effect_color']],
         strict=True,
     ):
         if isinstance(purview_coords, geometry.PurviewCoordinates):
@@ -363,10 +364,10 @@ def _plot_purviews(
         ]
 
         current_marker_color = marker_color
-        if not isinstance(marker_color, np.ndarray) and marker_color == "direction":
+        if not isinstance(marker_color, np.ndarray) and marker_color == 'direction':
             current_marker_color = direction_color
         current_textfont_color = textfont_color
-        if current_textfont_color == "direction":
+        if current_textfont_color == 'direction':
             current_textfont_color = direction_color
 
         traces.append(
@@ -376,12 +377,12 @@ def _plot_purviews(
                 marker_color=current_marker_color,
                 marker_size=marker_size,
                 marker_showscale=showscale,
-                name=f"{direction} distinctions" + theme["legendgroup_postfix"],
+                name=f"{direction} distinctions" + theme['legendgroup_postfix'],
                 text=labels,
                 hovertext=hovertext,
                 hoverlabel_bgcolor=direction_color,
                 textfont_color=current_textfont_color,
-                **theme["purviews"],
+                **theme['purviews'],
             )
         )
         showscale = False
@@ -394,22 +395,22 @@ def _plot_cause_effect_links(
     purview_coords,
     theme,
 ):
-    name = "Cause-effect links" + theme["legendgroup_postfix"]
+    name = 'Cause-effect links' + theme['legendgroup_postfix']
     widths = get_values(
         distinctions,
-        theme["cause_effect_links"]["line"].pop("width", None),
-        rescale=theme["linewidthrange"],
+        theme['cause_effect_links']['line'].pop('width', None),
+        rescale=theme['linewidthrange'],
     )
     if not isinstance(widths, np.ndarray):
         widths = [widths] * len(distinctions)
 
-    color = theme["cause_effect_links"]["line"].pop("color", "direction")
-    if color == "direction":
-        colors = [theme["direction"]["cause_color"], theme["direction"]["effect_color"]]
+    color = theme['cause_effect_links']['line'].pop('color', 'direction')
+    if color == 'direction':
+        colors = [theme['direction']['cause_color'], theme['direction']['effect_color']]
     else:
         colors = [color] * 2
 
-    showlegend = theme["cause_effect_links"].pop("showlegend", True)
+    showlegend = theme['cause_effect_links'].pop('showlegend', True)
     traces = []
     for distinction, width in zip(distinctions, widths, strict=True):
         if isinstance(purview_coords, geometry.PurviewCoordinates):
@@ -441,11 +442,11 @@ def _plot_cause_effect_links(
                 y=y,
                 z=z,
                 showlegend=showlegend,
-                legendgroup=name + theme["legendgroup_postfix"],
+                legendgroup=name + theme['legendgroup_postfix'],
                 name=name,
                 line_width=width,
                 line_color=colors,
-                **theme["cause_effect_links"],
+                **theme['cause_effect_links'],
             )
         )
         showlegend = False
@@ -453,7 +454,7 @@ def _plot_cause_effect_links(
 
 
 def _plot_mechanisms(fig, distinctions, mechanism_coords, label, theme):
-    name = "Mechanisms" + theme["legendgroup_postfix"]
+    name = 'Mechanisms' + theme['legendgroup_postfix']
     labels = []
     coords = []
     for distinction in distinctions:
@@ -468,23 +469,23 @@ def _plot_mechanisms(fig, distinctions, mechanism_coords, label, theme):
 
     marker_size = get_values(
         distinctions,
-        theme["mechanisms"]["marker"].pop("size", None),
-        rescale=theme["pointsizerange"],
+        theme['mechanisms']['marker'].pop('size', None),
+        rescale=theme['pointsizerange'],
     )
     marker_color = get_values(
-        distinctions, theme["mechanisms"]["marker"].pop("color", None)
+        distinctions, theme['mechanisms']['marker'].pop('color', None)
     )
 
     return fig.add_trace(
         scatter_from_coords(
             coords,
             theme=theme,
-            legendgroup=name + theme["legendgroup_postfix"],
+            legendgroup=name + theme['legendgroup_postfix'],
             name=name,
             text=labels,
             marker_size=marker_size,
             marker_color=marker_color,
-            **theme["mechanisms"],
+            **theme['mechanisms'],
         )
     )
 
@@ -496,22 +497,22 @@ def _plot_mechanism_purview_links(
     mechanism_coords,
     theme,
 ):
-    name = "Mechanism-purview links" + theme["legendgroup_postfix"]
-    showlegend = theme["mechanism_purview_links"].pop("showlegend", True)
+    name = 'Mechanism-purview links' + theme['legendgroup_postfix']
+    showlegend = theme['mechanism_purview_links'].pop('showlegend', True)
 
     widths = get_values(
         distinctions,
-        theme["mechanism_purview_links"]["line"].pop("width", None),
-        rescale=theme["linewidthrange"],
+        theme['mechanism_purview_links']['line'].pop('width', None),
+        rescale=theme['linewidthrange'],
     )
     if not isinstance(widths, np.ndarray):
         widths = [widths] * len(distinctions)
 
-    color = theme["mechanism_purview_links"]["line"].pop("color", "direction")
-    if color == "direction":
+    color = theme['mechanism_purview_links']['line'].pop('color', 'direction')
+    if color == 'direction':
         cause_color, effect_color = standardize_colors(
-            [theme["direction"]["cause_color"], theme["direction"]["effect_color"]],
-            colortype="tuple",
+            [theme['direction']['cause_color'], theme['direction']['effect_color']],
+            colortype='tuple',
         )
         colors = [
             cause_color,
@@ -570,11 +571,11 @@ def _plot_mechanism_purview_links(
                 y=y,
                 z=z,
                 showlegend=showlegend,
-                legendgroup=name + theme["legendgroup_postfix"],
+                legendgroup=name + theme['legendgroup_postfix'],
                 name=name,
                 line_color=colors,
                 line_width=width,
-                **theme["mechanism_purview_links"],
+                **theme['mechanism_purview_links'],
             )
         )
 
@@ -583,26 +584,26 @@ def _plot_mechanism_purview_links(
 
 
 def _plot_two_relation_faces(fig, face_to_coords, relation_faces, labeler, theme):
-    name = "2-relations" + theme["legendgroup_postfix"]
+    name = '2-relations' + theme['legendgroup_postfix']
 
-    color_spec = theme["two_faces"]["line"].pop("color", None)
+    color_spec = theme['two_faces']['line'].pop('color', None)
     colors = _two_relation_line_colors(relation_faces, color_spec)
     if not isinstance(colors, np.ndarray):
         colors = [colors] * len(relation_faces)
 
     widths = get_values(
         relation_faces,
-        theme["two_faces"]["line"].pop("width", None),
-        rescale=theme["linewidthrange"],
+        theme['two_faces']['line'].pop('width', None),
+        rescale=theme['linewidthrange'],
     )
     if not isinstance(widths, np.ndarray):
         widths = [widths] * len(relation_faces)
 
     hovertexts = list(map(labeler.hover_relation_face, relation_faces))
 
-    detail_threshold = theme["two_faces"].pop("detail_threshold", 100)
+    detail_threshold = theme['two_faces'].pop('detail_threshold', 100)
     if len(relation_faces) >= detail_threshold:
-        if color_spec == "type":
+        if color_spec == 'type':
             raise NotImplementedError(
                 'Cannot use the "type" color scheme for more than '
                 f"`detail_threshold` 2-faces (currently set to {detail_threshold})"
@@ -654,14 +655,14 @@ def _plot_two_relation_faces_multiple_traces(
     widths,
     hovertexts,
 ):
-    showlegend = theme["two_faces"].pop("showlegend", True)
-    showscale = theme["two_faces"]["line"].pop("showscale", True)
+    showlegend = theme['two_faces'].pop('showlegend', True)
+    showscale = theme['two_faces']['line'].pop('showscale', True)
 
-    coloraxis = theme["two_faces"]["line"].get("coloraxis")
+    coloraxis = theme['two_faces']['line'].get('coloraxis')
     if coloraxis is not None:
-        colorscale = theme["layout"][coloraxis]["colorscale"]
+        colorscale = theme['layout'][coloraxis]['colorscale']
     else:
-        colorscale = theme["two_faces"]["line"]["colorscale"]
+        colorscale = theme['two_faces']['line']['colorscale']
     if colors is None:
         colors = [
             get_color(colorscale, value) for value in utils.rescale(colors, (0, 1))
@@ -681,13 +682,13 @@ def _plot_two_relation_faces_multiple_traces(
                 y=y,
                 z=z,
                 name=name,
-                legendgroup=name + theme["legendgroup_postfix"],
+                legendgroup=name + theme['legendgroup_postfix'],
                 showlegend=showlegend,
                 line_showscale=showscale,
                 line_color=[color] * 2,
                 line_width=width,
                 hovertext=hovertext,
-                **theme["two_faces"],
+                **theme['two_faces'],
             )
         )
         # Only show the first trace in the legend
@@ -714,17 +715,17 @@ def _plot_two_relation_faces_single_trace(
     if not np.all(widths == width):
         warnings.warn(
             f"Cannot plot different widths with a single trace; using mean width {width}. "
-            "Try increasing `detail_threshold`."
+            'Try increasing `detail_threshold`.'
         )
     return fig.add_trace(
         lines_from_coords(
             coords,
-            legendgroup=name + theme["legendgroup_postfix"],
+            legendgroup=name + theme['legendgroup_postfix'],
             name=name,
             line_color=colors,
             line_width=width,
             hovertext=hovertexts,
-            **theme["two_faces"],
+            **theme['two_faces'],
         )
     )
 
@@ -741,25 +742,25 @@ def _line_color_values(values):
 
 
 def _plot_three_relation_faces(fig, face_to_coords, relation_faces, labeler, theme):
-    name = "3-relations" + theme["legendgroup_postfix"]
+    name = '3-relations' + theme['legendgroup_postfix']
     # Build vertices:
     # Stack the [relation, relata] axes together and tranpose to put the 3D axis
     # first to get lists of x, y, z coordinates
     x, y, z = np.vstack(list(map(face_to_coords, relation_faces))).transpose()
     intensities = get_values(
         relation_faces,
-        theme["three_faces"].pop("intensity", None),
-        rescale=theme["three_faces"].pop("intensity_range", None),
+        theme['three_faces'].pop('intensity', None),
+        rescale=theme['three_faces'].pop('intensity_range', None),
     )
     opacities = get_values(
         relation_faces,
-        theme["three_faces"].pop("opacity", None),
-        rescale=theme["three_faces"].pop("opacity_range", None),
+        theme['three_faces'].pop('opacity', None),
+        rescale=theme['three_faces'].pop('opacity_range', None),
     )
     if not isinstance(opacities, np.ndarray):
         opacities = [opacities] * len(relation_faces)
     hovertexts = list(map(labeler.hover_relation_face, relation_faces))
-    if len(relation_faces) >= theme["three_faces"].pop("detail_threshold", 100):
+    if len(relation_faces) >= theme['three_faces'].pop('detail_threshold', 100):
         return _plot_three_relation_faces_single_trace(
             x=x,
             y=y,
@@ -813,12 +814,12 @@ def _plot_three_relation_faces_single_trace(
             i=i,
             j=j,
             k=k,
-            legendgroup=name + theme["legendgroup_postfix"],
+            legendgroup=name + theme['legendgroup_postfix'],
             name=name,
             intensity=intensities,
             opacity=opacity,
             hovertext=hovertexts,
-            **theme["three_faces"],
+            **theme['three_faces'],
         )
     )
 
@@ -835,8 +836,8 @@ def _plot_three_relation_faces_multiple_traces(
     opacities,
     hovertexts,
 ):
-    showlegend = theme["three_faces"].pop("showlegend", True)
-    showscale = theme["three_faces"].pop("showscale", True)
+    showlegend = theme['three_faces'].pop('showlegend', True)
+    showscale = theme['three_faces'].pop('showscale', True)
     traces = []
     for _x, _y, _z, intensity, opacity, hovertext in zip(
         partition(3, x),
@@ -855,14 +856,14 @@ def _plot_three_relation_faces_multiple_traces(
                 i=[0],
                 j=[1],
                 k=[2],
-                legendgroup=name + theme["legendgroup_postfix"],
+                legendgroup=name + theme['legendgroup_postfix'],
                 name=name,
                 showlegend=showlegend,
                 showscale=showscale,
                 intensity=[intensity],
                 opacity=opacity,
                 hovertext=hovertext,
-                **theme["three_faces"],
+                **theme['three_faces'],
             )
         )
         showlegend = False

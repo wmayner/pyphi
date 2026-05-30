@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # network.py
 """Represents the network of interest.
 
@@ -63,7 +64,7 @@ class Network:
             self._tpm = ExplicitTPM(tpm, validate=True)
         elif isinstance(tpm, dict):
             # From JSON.
-            self._tpm = ExplicitTPM(tpm["_tpm"], validate=True)
+            self._tpm = ExplicitTPM(tpm['_tpm'], validate=True)
         else:
             raise TypeError(f"Invalid tpm of type {type(tpm)}.")
 
@@ -141,7 +142,7 @@ class Network:
 
     # TODO: this should really be a Subsystem method, but we're
     # interested in caching at the Network-level...
-    @cache.method("purview_cache")
+    @cache.method('purview_cache')
     def potential_purviews(self, direction, mechanism):
         """All purviews which are not clearly reducible for mechanism.
 
@@ -162,7 +163,7 @@ class Network:
         return self.tpm.shape[-1]
 
     def __repr__(self):
-        return "Network({}, cm={})".format(self.tpm, self.cm)
+        return 'Network({}, cm={})'.format(self.tpm, self.cm)
 
     def __str__(self):
         return self.__repr__()
@@ -187,16 +188,16 @@ class Network:
     def to_json(self):
         """Return a JSON-serializable representation."""
         return {
-            "tpm": self.tpm,
-            "cm": self.cm,
-            "size": self.size,
-            "node_labels": self.node_labels,
+            'tpm': self.tpm,
+            'cm': self.cm,
+            'size': self.size,
+            'node_labels': self.node_labels,
         }
 
     @classmethod
     def from_json(cls, json_dict):
         """Return a |Network| object from a JSON dictionary representation."""
-        del json_dict["size"]
+        del json_dict['size']
         return Network(**json_dict)
 
 

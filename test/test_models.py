@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from collections import namedtuple
 from pyphi.models.cuts import KPartition
 from pyphi.models.subsystem import FlatCauseEffectStructure
@@ -138,10 +139,10 @@ def test_sametype_decorator():
     assert Thing().do_it(object()) == NotImplemented
 
 
-nt_attributes = ["this", "that", "phi", "mechanism", "purview"]
-nt = namedtuple("nt", nt_attributes)
+nt_attributes = ['this', 'that', 'phi', 'mechanism', 'purview']
+nt = namedtuple('nt', nt_attributes)
 a = nt(
-    this=("consciousness", "is phi"),
+    this=('consciousness', 'is phi'),
     that=np.arange(3),
     phi=0.5,
     mechanism=(0, 1, 2),
@@ -170,7 +171,7 @@ def test_numpy_aware_eq_identical():
 
 
 def test_general_eq_different_attributes():
-    similar_nt = namedtuple("nt", nt_attributes + ["supbro"])
+    similar_nt = namedtuple('nt', nt_attributes + ['supbro'])
     b = similar_nt(a.this, a.that, a.phi, a.mechanism, a.purview, supbro="nothin' much")
     assert models.cmp.general_eq(a, b, nt_attributes)
 
@@ -210,7 +211,7 @@ def test_general_eq_purview_mechanism_none():
 
 
 def test_general_eq_attribute_missing():
-    b = namedtuple("no_purview", nt_attributes[:-1])(a.this, a.that, a.phi, a.mechanism)
+    b = namedtuple('no_purview', nt_attributes[:-1])(a.this, a.that, a.phi, a.mechanism)
     assert not models.cmp.general_eq(a, b, nt_attributes)
 
 
@@ -317,7 +318,7 @@ def test_null_cut():
 
 def test_null_cut_str():
     cut = models.NullCut((2, 3))
-    assert str(cut) == "NullCut((2, 3))"
+    assert str(cut) == 'NullCut((2, 3))'
 
 
 def test_null_cut_equality():
@@ -353,13 +354,13 @@ def test_null_ria():
     direction = Direction.CAUSE
     mechanism = (0,)
     purview = (1,)
-    repertoire = "repertoire"
+    repertoire = 'repertoire'
     null_ria = models._null_ria(direction, mechanism, purview, repertoire)
     assert null_ria.direction == direction
     assert null_ria.mechanism == mechanism
     assert null_ria.purview == purview
     assert null_ria.partition == KPartition()
-    assert null_ria.repertoire == "repertoire"
+    assert null_ria.repertoire == 'repertoire'
     assert null_ria.partitioned_repertoire is None
     assert null_ria.phi == 0
 
@@ -380,7 +381,7 @@ def test_mice_ordering():
     assert phi1 <= phi2
     assert phi2 >= phi1
 
-    different_direction = mice(direction="different")
+    different_direction = mice(direction='different')
     assert phi2 > different_direction
     assert different_direction < phi2
     assert phi2 >= different_direction
@@ -454,8 +455,8 @@ def test_mie_raises_wrong_direction():
 
 
 @config.override(
-    PARTITION_TYPE="TRI",
-    REPERTOIRE_DISTANCE="AID",
+    PARTITION_TYPE='TRI',
+    REPERTOIRE_DISTANCE='AID',
 )
 @pytest.mark.outdated
 def test_specified_states_and_indices():
@@ -607,7 +608,7 @@ def test_ces_are_always_normalized(s):
 @pytest.mark.outdated
 def test_ces_labeled_mechanisms(s):
     c = models.CauseEffectStructure([concept(subsystem=s)], subsystem=s)
-    assert c.labeled_mechanisms == (["A", "B"],)
+    assert c.labeled_mechanisms == (['A', 'B'],)
 
 
 @pytest.mark.outdated
@@ -657,8 +658,8 @@ def test_sia_repr_str(s):
 
 
 def test_indent():
-    s = "line1\n" "line2"
-    answer = "  line1\n" "  line2"
+    s = 'line1\n' 'line2'
+    answer = '  line1\n' '  line2'
     assert models.fmt.indent(s) == answer
 
 
@@ -668,20 +669,20 @@ class ReadableReprClass:
     some_attr = 3.14
 
     def __repr__(self):
-        return models.fmt.make_repr(self, ["some_attr"])
+        return models.fmt.make_repr(self, ['some_attr'])
 
     def __str__(self):
-        return "A nice fat explicit string"
+        return 'A nice fat explicit string'
 
 
 @config.override(REPR_VERBOSITY=0)
 def test_make_reprs_uses___repr__():
-    assert repr(ReadableReprClass()) == "ReadableReprClass(some_attr=3.14)"
+    assert repr(ReadableReprClass()) == 'ReadableReprClass(some_attr=3.14)'
 
 
 @config.override(REPR_VERBOSITY=2)
 def test_make_reprs_calls_out_to_string():
-    assert repr(ReadableReprClass()) == "A nice fat explicit string"
+    assert repr(ReadableReprClass()) == 'A nice fat explicit string'
 
 
 # Test partitions
@@ -689,7 +690,7 @@ def test_make_reprs_calls_out_to_string():
 
 @pytest.fixture
 def node_labels():
-    return NodeLabels("ABCDE", tuple(range(5)))
+    return NodeLabels('ABCDE', tuple(range(5)))
 
 
 @pytest.fixture
@@ -705,7 +706,7 @@ def test_bipartition_properties(bipartition):
 
 
 def test_bipartition_str(bipartition):
-    assert str(bipartition) == (" A     ∅ \n" "─── ✕ ───\n" "A,E    B ")
+    assert str(bipartition) == (' A     ∅ \n' '─── ✕ ───\n' 'A,E    B ')
 
 
 @pytest.fixture
@@ -725,7 +726,7 @@ def test_tripartion_properties(tripartition):
 
 def test_tripartion_str(tripartition):
     assert str(tripartition) == (
-        " A     ∅     C \n" "─── ✕ ─── ✕ ───\n" "A,E    B     C "
+        ' A     ∅     C \n' '─── ✕ ─── ✕ ───\n' 'A,E    B     C '
     )
 
 

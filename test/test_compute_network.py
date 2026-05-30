@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import pickle
 
 import pytest
@@ -15,7 +16,7 @@ def test_possible_complexes(s):
     ]
 
 
-@config.override(SYSTEM_PARTITION_TYPE="DIRECTED_BI", PARALLEL=False)
+@config.override(SYSTEM_PARTITION_TYPE='DIRECTED_BI', PARALLEL=False)
 @pytest.mark.outdated
 def test_complexes_standard(s, s_expected_sia):
     complexes = list(compute.network.complexes(s.network, s.state))
@@ -24,14 +25,14 @@ def test_complexes_standard(s, s_expected_sia):
 
 # TODO!! add more assertions for the smaller subsystems
 @pytest.mark.slow
-@config.override(SYSTEM_PARTITION_TYPE="DIRECTED_BI", PARALLEL=False)
+@config.override(SYSTEM_PARTITION_TYPE='DIRECTED_BI', PARALLEL=False)
 @pytest.mark.outdated
 def test_all_complexes_standard(s, s_expected_sia):
     complexes = list(compute.network.all_complexes(s.network, s.state))
     assert complexes[0] == s_expected_sia
 
 
-@config.override(SYSTEM_PARTITION_TYPE="DIRECTED_BI")
+@config.override(SYSTEM_PARTITION_TYPE='DIRECTED_BI')
 @pytest.mark.outdated
 def test_all_complexes_parallelization(s):
     with config.override(PARALLEL=False):
@@ -83,7 +84,7 @@ def test_rule152_complexes_no_caching(rule152):
         29: 29,
         30: 30,
     }
-    with open("test/data/rule152_results.pkl", "rb") as f:
+    with open('test/data/rule152_results.pkl', 'rb') as f:
         results = pickle.load(f)
 
     # Don't use concept caching for this test.
@@ -98,35 +99,35 @@ def test_rule152_complexes_no_caching(rule152):
         complexes = list(compute.network.complexes(net))[1:]
         # Check the phi values of all complexes.
         zz = [
-            (sia.phi, result["subsystem_phis"][perm[i]])
+            (sia.phi, result['subsystem_phis'][perm[i]])
             for i, sia in list(enumerate(complexes))
         ]
         diff = [
-            utils.eq(sia.phi, result["subsystem_phis"][perm[i]])
+            utils.eq(sia.phi, result['subsystem_phis'][perm[i]])
             for i, sia in list(enumerate(complexes))
         ]
         assert all(
-            utils.eq(sia.phi, result["subsystem_phis"][perm[i]])
+            utils.eq(sia.phi, result['subsystem_phis'][perm[i]])
             for i, sia in list(enumerate(complexes))[:]
         )
         # Check the major complex in particular.
         major = compute.subsystem.major_complex(net)
         # Check the phi value of the major complex.
-        assert utils.eq(major.phi, result["phi"])
+        assert utils.eq(major.phi, result['phi'])
         # Check that the nodes are the same.
         assert (
             major.subsystem.node_indices
-            == complexes[result["major_complex"] - 1].subsystem.node_indices
+            == complexes[result['major_complex'] - 1].subsystem.node_indices
         )
         # Check that the concept's phi values are the same.
-        result_concepts = [c for c in result["concepts"] if c["is_irreducible"]]
-        z = list(zip([c.phi for c in major.ces], [c["phi"] for c in result_concepts]))
+        result_concepts = [c for c in result['concepts'] if c['is_irreducible']]
+        z = list(zip([c.phi for c in major.ces], [c['phi'] for c in result_concepts]))
         diff = [i for i in range(len(z)) if not utils.eq(z[i][0], z[i][1])]
         assert all(
             list(
-                utils.eq(c.phi, result_concepts[i]["phi"])
+                utils.eq(c.phi, result_concepts[i]['phi'])
                 for i, c in enumerate(major.ces)
             )
         )
         # Check that the minimal cut is the same.
-        assert major.cut == result["cut"]
+        assert major.cut == result['cut']

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from itertools import chain
 
 import pytest
@@ -96,14 +97,14 @@ mice_scenarios = [
 mice_scenarios = list(chain(*list(chain(*mice_scenarios))))
 
 
-mice_parameter_string = "cut,direction,expected"
+mice_parameter_string = 'cut,direction,expected'
 
 
 @pytest.mark.parametrize(mice_parameter_string, mice_scenarios)
 def test_find_mice(cut, direction, expected):
     result = subsystem[cut].find_mice(direction, expected.mechanism)
-    print("Expected:\n", expected)
-    print("Result:\n", result)
+    print('Expected:\n', expected)
+    print('Result:\n', result)
     assert result == expected
 
 
@@ -142,7 +143,7 @@ phi_max_scenarios = [
 phi_max_scenarios = list(chain(*phi_max_scenarios))
 
 
-@pytest.mark.parametrize("cut,mechanism,expected_phi_max", phi_max_scenarios)
+@pytest.mark.parametrize('cut,mechanism,expected_phi_max', phi_max_scenarios)
 def test_phi_max(cut, expected_phi_max, mechanism):
     assert eq(subsystem[cut].phi_max(mechanism), expected_phi_max)
 

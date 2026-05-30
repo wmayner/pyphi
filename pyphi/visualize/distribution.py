@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # visualize/distribution.py
 """Visualize distributions."""
 
@@ -15,34 +16,34 @@ from ..direction import Direction
 def all_states_str(*args, **kwargs):
     """Return all states as bit strings."""
     for state in utils.all_states(*args, **kwargs):
-        yield "".join(map(str, state))
+        yield ''.join(map(str, state))
 
 
 def _plot_distribution_bar(data, ax, label, **kwargs):
-    sb.barplot(data=data, x="state", y="probability", ax=ax, **kwargs)
+    sb.barplot(data=data, x='state', y='probability', ax=ax, **kwargs)
 
-    plt.xticks(rotation=90, ha="center", va="top")
+    plt.xticks(rotation=90, ha='center', va='top')
     # Add state label
     xtick_pad = 6
     xtick_length = 6
-    ax.tick_params(axis="x", pad=xtick_pad, length=xtick_length)
+    ax.tick_params(axis='x', pad=xtick_pad, length=xtick_length)
     ax.annotate(
-        str(label) if label is not None else "",
+        str(label) if label is not None else '',
         xy=(-0.5, 0),
-        xycoords="data",
+        xycoords='data',
         xytext=(0, -(xtick_pad + xtick_length)),
-        textcoords="offset points",
+        textcoords='offset points',
         annotation_clip=False,
         rotation=90,
-        ha="right",
-        va="top",
+        ha='right',
+        va='top',
     )
 
     return ax
 
 
 def _plot_distribution_line(data, ax, **kwargs):
-    sb.lineplot(data=data, x="state", y="probability", ax=ax, **kwargs)
+    sb.lineplot(data=data, x='state', y='probability', ax=ax, **kwargs)
     return ax
 
 
@@ -54,8 +55,8 @@ def plot_distribution(
     fig=None,
     ax=None,
     lineplot_threshold=64,
-    title="State distribution",
-    y_label="Pr(state)",
+    title='State distribution',
+    y_label='Pr(state)',
     validate=True,
     labels=None,
     **kwargs,
@@ -74,7 +75,7 @@ def plot_distribution(
         **kwargs: Passed to ``sb.barplot()``.
     """
     if validate and not all(np.allclose(d.sum(), 1, rtol=1e-4) for d in distributions):
-        raise ValueError("a distribution does not sum to 1!")
+        raise ValueError('a distribution does not sum to 1!')
 
     defaults = dict()
     # Overrride defaults with keyword arguments
@@ -93,7 +94,7 @@ def plot_distribution(
     if validate and not all(
         (distributions[0].index == d.index).all() for d in distributions
     ):
-        raise ValueError("distribution indices do not match")
+        raise ValueError('distribution indices do not match')
 
     N = log2(np.prod(d.shape))
     if states is None:
@@ -116,27 +117,27 @@ def plot_distribution(
     ).reset_index(drop=True)
 
     if len(d) > lineplot_threshold:
-        ax = _plot_distribution_line(data, ax, hue="hue", **kwargs)
+        ax = _plot_distribution_line(data, ax, hue='hue', **kwargs)
     else:
-        ax = _plot_distribution_bar(data, ax, label, hue="hue", **kwargs)
+        ax = _plot_distribution_bar(data, ax, label, hue='hue', **kwargs)
 
     ax.set_title(title)
     ax.set_ylabel(y_label, labelpad=12)
-    ax.set_xlabel("state", labelpad=12)
+    ax.set_xlabel('state', labelpad=12)
     ax.legend(bbox_to_anchor=(1.1, 1.05))
 
     return fig, ax
 
 
 def plot_repertoires(subsystem, sia, **kwargs):
-    if config.REPERTOIRE_DISTANCE != "GENERALIZED_INTRINSIC_DIFFERENCE":
+    if config.REPERTOIRE_DISTANCE != 'GENERALIZED_INTRINSIC_DIFFERENCE':
         raise NotImplementedError(
-            "Only REPERTOIRE_DISTANCE = "
-            "GENERALIZED_INTRINSIC_DIFFERENCE is supported"
+            'Only REPERTOIRE_DISTANCE = '
+            'GENERALIZED_INTRINSIC_DIFFERENCE is supported'
         )
     cut_subsystem = subsystem.apply_cut(sia.partition)
 
-    labels = ["unpartitioned", "partitioned"]
+    labels = ['unpartitioned', 'partitioned']
     subsystems = dict(zip(labels, [subsystem, cut_subsystem]))
     repertoires = {
         direction: {

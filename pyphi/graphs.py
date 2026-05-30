@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # graphs.py
 """Graph-theoretic algorithms."""
 
@@ -7,7 +8,7 @@ try:
     import igraph as ig
 except ModuleNotFoundError as exc:
     raise MissingOptionalDependenciesError(
-        MissingOptionalDependenciesError.MSG.format(dependencies="graphs")
+        MissingOptionalDependenciesError.MSG.format(dependencies='graphs')
     ) from exc
 
 
@@ -22,7 +23,7 @@ def maximal_independent_sets(nx_graph):
     G = ig.Graph.from_networkx(nx_graph)
     for vertices in G.maximal_independent_vertex_sets():
         # Convert node IDs to mechanisms
-        yield G.vs[vertices]["_nx_name"]
+        yield G.vs[vertices]['_nx_name']
 
 
 def largest_independent_sets(nx_graph):
@@ -36,4 +37,4 @@ def largest_independent_sets(nx_graph):
     G = ig.Graph.from_networkx(nx_graph)
     for vertices in G.largest_independent_vertex_sets():
         # Convert node IDs to mechanisms
-        yield G.vs[vertices]["_nx_name"]
+        yield G.vs[vertices]['_nx_name']
