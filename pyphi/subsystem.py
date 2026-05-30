@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # subsystem.py
 """Represents a candidate system."""
 
@@ -216,14 +217,14 @@ class Subsystem:
         """int: The number of nodes in the TPM."""
         # forward and backward TPM sizes should be the same
         if self.cause_tpm.shape[-1] != self.effect_tpm.shape[-1]:
-            raise ValueError("cause and effect TPM sizes should be the same")
+            raise ValueError('cause and effect TPM sizes should be the same')
         return self.effect_tpm.shape[-1]
 
     def cache_info(self):
         """Report repertoire cache statistics."""
         return {
-            "single_node_repertoire": self._single_node_repertoire_cache.info(),
-            "repertoire": self._repertoire_cache.info(),
+            'single_node_repertoire': self._single_node_repertoire_cache.info(),
+            'repertoire': self._repertoire_cache.info(),
         }
 
     def clear_caches(self):
@@ -232,7 +233,7 @@ class Subsystem:
         self._repertoire_cache.clear()
 
     def __repr__(self):
-        return "Subsystem(" + ", ".join(map(repr, self.nodes)) + ")"
+        return 'Subsystem(' + ', '.join(map(repr, self.nodes)) + ')'
 
     def __str__(self):
         return repr(self)
@@ -286,10 +287,10 @@ class Subsystem:
     def to_json(self):
         """Return a JSON-serializable representation."""
         return {
-            "network": self.network,
-            "state": self.state,
-            "nodes": self.node_indices,
-            "cut": self.cut,
+            'network': self.network,
+            'state': self.state,
+            'nodes': self.node_indices,
+            'cut': self.cut,
         }
 
     def apply_cut(self, cut):
@@ -325,7 +326,7 @@ class Subsystem:
         return tuple(self._index2node[n] for n in indices)
 
     # TODO extend to nonbinary nodes
-    @cache.method("_single_node_repertoire_cache", Direction.CAUSE)
+    @cache.method('_single_node_repertoire_cache', Direction.CAUSE)
     def _single_node_cause_repertoire(self, mechanism_node_index, purview):
         # pylint: disable=missing-docstring
         mechanism_node = self._index2node[mechanism_node_index]
@@ -337,7 +338,7 @@ class Subsystem:
         return tpm.marginalize_out((mechanism_node.inputs - purview)).tpm
 
     # TODO extend to nonbinary nodes
-    @cache.method("_repertoire_cache", Direction.CAUSE)
+    @cache.method('_repertoire_cache', Direction.CAUSE)
     def _cause_repertoire(self, mechanism, purview):
         # Use a frozenset so the arguments to `_single_node_cause_repertoire`
         # can be hashed and cached.
@@ -385,7 +386,7 @@ class Subsystem:
         return self._cause_repertoire(mechanism, purview)
 
     # TODO extend to nonbinary nodes
-    @cache.method("_single_node_repertoire_cache", Direction.EFFECT)
+    @cache.method('_single_node_repertoire_cache', Direction.EFFECT)
     def _single_node_effect_repertoire(
         self,
         condition: FrozenMap[int, int],
@@ -411,7 +412,7 @@ class Subsystem:
             repertoire_shape(self.network.node_indices, (purview_node_index,))
         ).tpm
 
-    @cache.method("_repertoire_cache", Direction.EFFECT)
+    @cache.method('_repertoire_cache', Direction.EFFECT)
     def _effect_repertoire(
         self, condition: FrozenMap[int, int], purview: Tuple[int], direction: Direction
     ):
@@ -505,12 +506,12 @@ class Subsystem:
     ):
         """Compute the repertoire of a partitioned mechanism and purview."""
         repertoire_distance = fallback(repertoire_distance, config.REPERTOIRE_DISTANCE)
-        if repertoire_distance == "GENERALIZED_INTRINSIC_DIFFERENCE":
-            if "state" not in kwargs:
+        if repertoire_distance == 'GENERALIZED_INTRINSIC_DIFFERENCE':
+            if 'state' not in kwargs:
                 raise ValueError(
-                    "must provide purview state for generalized intrinsic difference"
+                    'must provide purview state for generalized intrinsic difference'
                 )
-            purview_state = kwargs.pop("state")
+            purview_state = kwargs.pop('state')
             prs = [
                 self.forward_probability(
                     direction,
@@ -585,7 +586,7 @@ class Subsystem:
             return self.forward_effect_repertoire(mechanism, purview, **kwargs)
         return validate.direction(direction)
 
-    @cache.method("_forward_repertoire_cache", Direction.CAUSE)
+    @cache.method('_forward_repertoire_cache', Direction.CAUSE)
     def forward_cause_repertoire(
         self, mechanism: Tuple[int], purview: Tuple[int], purview_state
     ) -> ArrayLike:
@@ -612,7 +613,7 @@ class Subsystem:
             return self.unconstrained_forward_effect_repertoire(mechanism, purview)
         return validate.direction(direction)
 
-    @cache.method("_unconstrained_forward_repertoire_cache", Direction.EFFECT)
+    @cache.method('_unconstrained_forward_repertoire_cache', Direction.EFFECT)
     def unconstrained_forward_effect_repertoire(
         self, mechanism: Tuple[int], purview: Tuple[int]
     ) -> ArrayLike:
@@ -620,7 +621,7 @@ class Subsystem:
             self, mechanism, purview
         )
 
-    @cache.method("_unconstrained_forward_repertoire_cache", Direction.CAUSE)
+    @cache.method('_unconstrained_forward_repertoire_cache', Direction.CAUSE)
     def unconstrained_forward_cause_repertoire(
         self, mechanism: Tuple[int], purview: Tuple[int]
     ) -> ArrayLike:
@@ -657,7 +658,7 @@ class Subsystem:
             new_purview = self.node_indices  # full subsystem
 
         if not set(purview).issubset(new_purview):
-            raise ValueError("Expanded purview must contain original purview.")
+            raise ValueError('Expanded purview must contain original purview.')
 
         # Get the unconstrained repertoire over the other nodes in the network.
         non_purview_indices = tuple(set(new_purview) - set(purview))
@@ -742,8 +743,8 @@ class Subsystem:
         if repertoire is None:
             repertoire = self.repertoire(direction, mechanism, purview)
         # TODO(4.0) use same partitioned_repertoire func
-        if repertoire_distance == "GENERALIZED_INTRINSIC_DIFFERENCE":
-            purview_state = kwargs["state"].state
+        if repertoire_distance == 'GENERALIZED_INTRINSIC_DIFFERENCE':
+            purview_state = kwargs['state'].state
             selectivity = repertoire.squeeze()[purview_state]
             forward_pr = self.forward_probability(
                 direction, mechanism, purview, purview_state
@@ -787,7 +788,7 @@ class Subsystem:
             mechanism_state=state_of(mechanism, self.state),
             purview_state=state_of(purview, self.state),
             # TODO(4.0) refactor
-            specified_state=kwargs.get("state"),
+            specified_state=kwargs.get('state'),
             node_labels=self.node_labels,
             selectivity=selectivity,
         )
@@ -825,7 +826,7 @@ class Subsystem:
             _evaluate_partition,
             partitions,
             shortcircuit_func=utils.is_falsy,
-            desc="Evaluating mechanism partitions",
+            desc='Evaluating mechanism partitions',
             **parallel_kwargs,
         ).run()
 
@@ -909,12 +910,12 @@ class Subsystem:
                     partitions=partitions,
                     parallel_kwargs=parallel_kwargs,
                 ),
-                desc="Finding MIP for maximum intrinsic information states",
+                desc='Finding MIP for maximum intrinsic information states',
                 **parallel_kwargs,
             ).run()
         elif config.IIT_VERSION == 3:
             if state is not None:
-                raise ValueError("passing `state` is not supported with IIT 3.0")
+                raise ValueError('passing `state` is not supported with IIT 3.0')
             return self._find_mip_single_state(
                 None,
                 direction,
@@ -989,7 +990,7 @@ class Subsystem:
             states = utils.all_states(len(purview))
 
         # TODO(4.0) refactor for consistent API across metrics
-        if repertoire_distance == "GENERALIZED_INTRINSIC_DIFFERENCE":
+        if repertoire_distance == 'GENERALIZED_INTRINSIC_DIFFERENCE':
             # TODO(4.0) include selectivity_repertoire in StateSpecification
             selectivity_repertoire = self.repertoire(
                 direction,
@@ -1135,7 +1136,7 @@ class Subsystem:
             _find_mip,
             purviews,
             total=len(purviews),
-            desc="Evaluating purviews",
+            desc='Evaluating purviews',
             **parallel_kwargs,
         )
 
@@ -1226,11 +1227,11 @@ class Subsystem:
             Concept: The pair of maximally irreducible cause/effect repertoires
             that constitute the concept specified by the given mechanism.
         """
-        log.debug("Computing concept %s...", mechanism)
+        log.debug('Computing concept %s...', mechanism)
 
         # If the mechanism is empty, there is no concept.
         if not mechanism:
-            log.debug("Empty concept; returning null concept")
+            log.debug('Empty concept; returning null concept')
             return self.null_concept
 
         cause_purviews = cause_purviews if cause_purviews is not None else purviews
@@ -1239,7 +1240,7 @@ class Subsystem:
         effect_purviews = effect_purviews if effect_purviews is not None else purviews
         effect = self.mie(mechanism, purviews=effect_purviews, **kwargs)
 
-        log.debug("Found concept %s", mechanism)
+        log.debug('Found concept %s', mechanism)
         # NOTE: Make sure to expand the repertoires to the size of the
         # subsystem when calculating concept distance. For now, they must
         # remain un-expanded so the concept doesn't depend on the subsystem.

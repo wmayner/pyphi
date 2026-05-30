@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import copy
 import timeit
 
@@ -9,28 +10,28 @@ from .subsystem import clear_subsystem_caches
 
 class BenchmarkConstellation:
 
-    params = [["parallel", "sequential"], ["basic", "rule154", "fig16"]]
-    param_names = ["mode", "network"]
+    params = [['parallel', 'sequential'], ['basic', 'rule154', 'fig16']]
+    param_names = ['mode', 'network']
     number = 1
     repeat = 1
 
     def setup(self, mode, network):
-        if network == "basic":
+        if network == 'basic':
             self.subsys = examples.basic_subsystem()
-        elif network == "rule154":
+        elif network == 'rule154':
             network = examples.rule154_network()
             state = (1,) * 5
             self.subsys = Subsystem(network, state, network.node_indices)
-        elif network == "fig16":
+        elif network == 'fig16':
             network = examples.fig16()
             state = (0,) * 7
             self.subsys = Subsystem(network, state, network.node_indices)
         else:
             raise ValueError(network)
 
-        if mode == "parallel":
+        if mode == 'parallel':
             config.PARALLEL_CONCEPT_EVALUATION = True
-        elif mode == "sequential":
+        elif mode == 'sequential':
             config.PARALLEL_CONCEPT_EVALUATION = False
         else:
             raise ValueError(mode)
@@ -44,11 +45,11 @@ class BenchmarkConstellation:
 class BenchmarkMainComplex:
 
     params = [
-        ["parallel", "sequential"],
-        ["basic", "rule154", "fig16"],
-        ["local", "redis"],
+        ['parallel', 'sequential'],
+        ['basic', 'rule154', 'fig16'],
+        ['local', 'redis'],
     ]
-    param_names = ["mode", "network", "cache"]
+    param_names = ['mode', 'network', 'cache']
 
     # Use `default_timer` (clock time) instead of process time because
     # parallel execution spawns separate processes which are not counted
@@ -63,13 +64,13 @@ class BenchmarkMainComplex:
 
     def setup(self, mode, network, cache):
 
-        if network == "basic":
+        if network == 'basic':
             self.network = examples.basic_network()
             self.state = (0, 1, 1)
-        elif network == "rule154":
+        elif network == 'rule154':
             self.network = examples.rule154_network()
             self.state = (0, 1, 0, 1, 1)
-        elif network == "fig16":
+        elif network == 'fig16':
             self.network = examples.fig16()
             self.state = (1, 0, 0, 1, 1, 1, 0)
         else:
@@ -79,17 +80,17 @@ class BenchmarkMainComplex:
         self.default_config = copy.copy(config.__dict__)
 
         # Execution mode
-        if mode == "parallel":
+        if mode == 'parallel':
             config.PARALLEL_CUT_EVALUATION = True
-        elif mode == "sequential":
+        elif mode == 'sequential':
             config.PARALLEL_CUT_EVALUATION = False
         else:
             raise ValueError(mode)
 
         # Cache mode
-        if cache == "local":
+        if cache == 'local':
             config.REDIS_CACHE = False
-        elif cache == "redis":
+        elif cache == 'redis':
             config.REDIS_CACHE = True
             if _cache.RedisConn().ping() is False:
                 # No server running

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # partition.py
 """Utilities for generating partitions."""
 
@@ -389,7 +390,7 @@ class PartitionRegistry(Registry):
     And use them by setting ``config.PARTITION_TYPE = 'NONE'``
     """
 
-    desc = "distinction partitions"
+    desc = 'distinction partitions'
 
 
 partition_types = PartitionRegistry()
@@ -403,7 +404,7 @@ def mip_partitions(mechanism, purview, node_labels=None):
     return func(mechanism, purview, node_labels)
 
 
-@partition_types.register("BI")
+@partition_types.register('BI')
 def mip_bipartitions(mechanism, purview, node_labels=None):
     r"""Return an generator of all |small_phi| bipartitions of a mechanism over
     a purview.
@@ -462,7 +463,7 @@ def mip_bipartitions(mechanism, purview, node_labels=None):
             )
 
 
-@partition_types.register("TRI")
+@partition_types.register('TRI')
 def wedge_partitions(mechanism, purview, node_labels=None):
     """Return an iterator over all wedge partitions.
 
@@ -538,7 +539,7 @@ def wedge_partitions(mechanism, purview, node_labels=None):
             yield tripart
 
 
-@partition_types.register("ALL")
+@partition_types.register('ALL')
 def all_partitions(mechanism, purview, node_labels=None):
     """Return all possible partitions of a mechanism and purview.
 
@@ -629,7 +630,7 @@ class SystemPartitionRegistry(Registry):
     And use them by setting ``config.SYSTEM_PARTITION_TYPE = 'NONE'``
     """
 
-    desc = "system partitions"
+    desc = 'system partitions'
 
 
 system_partition_types = SystemPartitionRegistry()
@@ -652,7 +653,7 @@ def _bipartitions_to_cuts(func):
     return wrapper
 
 
-@system_partition_types.register("DIRECTED_BI")
+@system_partition_types.register('DIRECTED_BI')
 @_bipartitions_to_cuts
 def system_directed_bipartitions(nodes):
     """Return nontrivial directed bipartition cuts for the given nodes."""
@@ -660,14 +661,14 @@ def system_directed_bipartitions(nodes):
     return directed_bipartition(nodes, nontrivial=True)
 
 
-@system_partition_types.register("DIRECTED_BI_CUT_ONE")
+@system_partition_types.register('DIRECTED_BI_CUT_ONE')
 @_bipartitions_to_cuts
 def system_directed_bipartitions_cut_one(nodes):
     """Return directed bipartition cuts where one part has a single node."""
     return directed_bipartition_of_one(nodes)
 
 
-@system_partition_types.register("DIRECTED_BI_SIMPLE")
+@system_partition_types.register('DIRECTED_BI_SIMPLE')
 def system_bipartitions_simple(nodes, node_labels=None):
     """Return ordered directed bipartitions by splitting the node list once."""
     # Use a list instead of generator for progress bar totals since it's linear
@@ -703,7 +704,7 @@ def _bipartitions_to_temporal_system_partitions(func):
     return wrapper
 
 
-@system_partition_types.register("TEMPORAL_DIRECTED_BI")
+@system_partition_types.register('TEMPORAL_DIRECTED_BI')
 @_bipartitions_to_temporal_system_partitions
 def system_temporal_directed_bipartitions(nodes):
     """Return temporally directed bipartitions for the given nodes."""
@@ -711,7 +712,7 @@ def system_temporal_directed_bipartitions(nodes):
     return directed_bipartition(nodes, nontrivial=True)
 
 
-@system_partition_types.register("TEMPORAL_DIRECTED_BI_CUT_ONE")
+@system_partition_types.register('TEMPORAL_DIRECTED_BI_CUT_ONE')
 @_bipartitions_to_temporal_system_partitions
 def system_temporal_directed_bipartitions_cut_one(nodes):
     """Return temporally directed bipartitions where one part has one node."""
@@ -745,7 +746,7 @@ def _cut_matrices(n, symmetric=False):
         yield cm
 
 
-@system_partition_types.register("GENERAL")
+@system_partition_types.register('GENERAL')
 def general(node_indices, node_labels=None):
     """Yield all general cut-based partitions for a set of nodes."""
     yield CompleteGeneralKCut(node_indices, node_labels=node_labels)
@@ -758,7 +759,7 @@ def num_general_partitions(n):
     return 2 ** (n**2 - n)
 
 
-@system_partition_types.register("GENERAL_BIDIRECTIONAL")
+@system_partition_types.register('GENERAL_BIDIRECTIONAL')
 def general_bidirectional(node_indices, node_labels=None):
     """Yield all bidirectional general partitions for a set of nodes."""
     yield CompleteGeneralKCut(node_indices, node_labels=node_labels)
@@ -791,7 +792,7 @@ def _unidirectional_set_partitions(node_indices, node_labels=None):
             )
 
 
-@system_partition_types.register("SET_UNI/BI")
+@system_partition_types.register('SET_UNI/BI')
 @functools.wraps(_unidirectional_set_partitions)
 def unidirectional_set_partitions(node_indices, node_labels=None):
     # TODO(4.0) generate properly without using set

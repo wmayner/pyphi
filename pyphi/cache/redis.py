@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # cache/redis.py
 """Provides a Redis backend for caching."""
 
@@ -20,7 +21,7 @@ def init(db):
     if NO_REDIS:
         return None
     return redis.StrictRedis(
-        host=config.REDIS_CONFIG["host"], port=config.REDIS_CONFIG["port"], db=db
+        host=config.REDIS_CONFIG['host'], port=config.REDIS_CONFIG['port'], db=db
     )
 
 
@@ -31,7 +32,7 @@ def init(db):
 #
 # TODO(redis): rebuild connection after config changes and warn in on_change if
 # set to True
-conn = init(config.REDIS_CONFIG["db"])
+conn = init(config.REDIS_CONFIG['db'])
 
 
 def available():
@@ -66,7 +67,7 @@ class RedisCache:
         .. note:: This is not the cache info for the entire Redis key space.
         """
         info = conn.info()
-        return _CacheInfo(info["keyspace_hits"], info["keyspace_misses"], self.size())
+        return _CacheInfo(info['keyspace_hits'], info['keyspace_misses'], self.size())
 
     def get(self, key):
         """Get a value from the cache.

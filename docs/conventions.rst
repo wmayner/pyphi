@@ -153,7 +153,7 @@ Connectivity matrix conventions
 ===============================
 
 Throughout PyPhi, if |CM| is a connectivity matrix, then |CM[i][j] = 1| means
-that there is a directed edge |(i,j)| from node |i| to node |j|, and 
+that there is a directed edge |(i,j)| from node |i| to node |j|, and
 |CM[i][j] = 0| means there is no edge from |i| to |j|.
 
 For example, this network of four nodes

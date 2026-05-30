@@ -10,7 +10,7 @@ def weighted_inputs(element, weights, state):
     return weights * state
 
 
-def inputs(element, weights, state, ordering="topological", layers=None):
+def inputs(element, weights, state, ordering='topological', layers=None):
     """Return the inputs being sent to the given element.
 
     Inputs are returned in the order specified by `ordering`.
@@ -20,7 +20,7 @@ def inputs(element, weights, state, ordering="topological", layers=None):
     _input_weights = input_weights(element, weights)
     if layers is None:
         layers = [list(range(weights.shape[0]))]
-    if ordering == "topological":
+    if ordering == 'topological':
         _input_weights, state = to_topological_ordering(
             element, _input_weights, state, layers
         )
@@ -36,7 +36,7 @@ def to_topological_ordering(element, weights, state, layers):
         layer_sizes.add(len(layer))
         if len(layer_sizes) > 1:
             raise NotImplemented(
-                "cannot use topological ordering with different layer sizes"
+                'cannot use topological ordering with different layer sizes'
             )
         layer = sorted(layer)
         layer_input_weights = weights[layer]

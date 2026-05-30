@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import numpy as np
 import pickle
 import pytest
@@ -8,7 +9,7 @@ from pyphi.tpm import reconstitute_tpm, simulate
 
 
 @pytest.mark.parametrize(
-    "tpm", [ExplicitTPM(np.random.rand(42)), ExplicitTPM(np.arange(42))]
+    'tpm', [ExplicitTPM(np.random.rand(42)), ExplicitTPM(np.arange(42))]
 )
 def test_serialization(tpm):
     assert tpm.array_equal(pickle.loads(pickle.dumps(tpm)))
@@ -194,9 +195,9 @@ def test_simulate_tpm():
     seed = 42
     rng = default_rng(seed)
 
-    tpm = np.load("test/data/ising_tpm.npy")
+    tpm = np.load('test/data/ising_tpm.npy')
     analytical_stationary_distribution = np.load(
-        "test/data/ising_stationary_distribution.npy"
+        'test/data/ising_stationary_distribution.npy'
     )
 
     timesteps = 1e6

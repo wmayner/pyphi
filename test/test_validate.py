@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import numpy as np
 import pytest
 
@@ -19,7 +20,7 @@ def test_validate_direction():
     validate.direction(Direction.EFFECT)
 
     with pytest.raises(ValueError):
-        validate.direction("dogeeeee")
+        validate.direction('dogeeeee')
 
     validate.direction(Direction.BIDIRECTIONAL, allow_bi=True)
     with pytest.raises(ValueError):
@@ -111,14 +112,14 @@ def test_validate_state_no_error_2():
 
 
 def test_validate_node_labels():
-    validate.node_labels(["A", "B"], (0, 1))
+    validate.node_labels(['A', 'B'], (0, 1))
 
     with pytest.raises(ValueError):
-        validate.node_labels(["A"], (0, 1))
+        validate.node_labels(['A'], (0, 1))
     with pytest.raises(ValueError):
-        validate.node_labels(["A", "B"], (0,))
+        validate.node_labels(['A', 'B'], (0,))
     with pytest.raises(ValueError):
-        validate.node_labels(["A", "A"], (0, 1))
+        validate.node_labels(['A', 'A'], (0, 1))
 
 
 def test_validate_time_scale():

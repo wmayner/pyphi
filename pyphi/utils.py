@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # utils.py
 """Package-wide utilities."""
 
@@ -94,7 +95,7 @@ class np_hashable:
     def __hash__(self) -> int:
         return np_hash(self._array)
 
-    def __eq__(self, other: "np_hashable") -> bool:
+    def __eq__(self, other: 'np_hashable') -> bool:
         return np.array_equal(self._array, other._array)
 
     def __repr__(self) -> str:
@@ -143,7 +144,7 @@ def combs(a: np.ndarray, r: int) -> np.ndarray:
         return np.asarray([])
 
     a = np.asarray(a)
-    data_type = a.dtype if r == 0 else np.dtype([("", a.dtype)] * r)
+    data_type = a.dtype if r == 0 else np.dtype([('', a.dtype)] * r)
     b = np.fromiter(combinations(a, r), data_type)
     return b.view(a.dtype).reshape(-1, r)
 
@@ -250,7 +251,7 @@ def load_data(directory, num):
     root = os.path.abspath(os.path.dirname(__file__))
 
     def get_path(i):  # pylint: disable=missing-docstring
-        return os.path.join(root, "data", directory, str(i) + ".npy")
+        return os.path.join(root, 'data', directory, str(i) + '.npy')
 
     return [np.load(get_path(i), allow_pickle=True) for i in range(num)]
 
@@ -265,7 +266,7 @@ def extremum_with_short_circuit(
     seq,
     value_func=lambda item: item.phi,
     cmp=operator.lt,
-    initial=float("inf"),
+    initial=float('inf'),
     shortcircuit_value=0,
     shortcircuit_callback=None,
 ):
@@ -343,7 +344,7 @@ def assume_integer(x: float) -> int:
     return int(x)
 
 
-def enforce_integer(i: int, name: str = "", min: float = float("-inf")) -> int:
+def enforce_integer(i: int, name: str = '', min: float = float('-inf')) -> int:
     """Ensure ``i`` is an int not less than ``min``, raising on violation."""
     if not isinstance(i, int) or i < min:
         raise ValueError(f"{name} must be a positive integer")
@@ -398,7 +399,7 @@ def all_extrema(comparison, seq, default=NO_DEFAULT):
     current_extremum = next(seq, sentinel)
     if current_extremum is sentinel:
         if default is NO_DEFAULT:
-            raise ValueError("Cannot find extrema of empty sequence without default")
+            raise ValueError('Cannot find extrema of empty sequence without default')
         else:
             return [default]
     extrema.append(current_extremum)
@@ -423,5 +424,5 @@ def iter_with_default(seq, default):
         yielded = True
     if not yielded:
         if default is NO_DEFAULT:
-            raise ValueError("Cannot iterate over empty sequence without default")
+            raise ValueError('Cannot iterate over empty sequence without default')
         yield default

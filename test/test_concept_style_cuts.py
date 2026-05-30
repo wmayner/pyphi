@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import pickle
 
 import numpy as np
@@ -89,7 +90,7 @@ def test_all_cut_mechanisms(kcut_cause):
     ]
 
 
-@config.override(PARTITION_TYPE="TRI")
+@config.override(PARTITION_TYPE='TRI')
 def test_concept_style_cuts():
     assert list(compute.subsystem.concept_cuts(Direction.CAUSE, (0,))) == [
         KCut(Direction.CAUSE, KPartition(Part((), ()), Part((), (0,)), Part((0,), ())))
@@ -152,25 +153,25 @@ def test_sia_concept_style(s):
     sia = compute.subsystem.sia_concept_style(s)
     assert sia.min_sia is sia.sia_effect
     for attr in [
-        "phi",
-        "ces",
-        "cut",
-        "subsystem",
-        "cut_subsystem",
-        "network",
-        "partitioned_ces",
+        'phi',
+        'ces',
+        'cut',
+        'subsystem',
+        'cut_subsystem',
+        'network',
+        'partitioned_ces',
     ]:
         assert getattr(sia, attr) is getattr(sia.sia_effect, attr)
 
 
-@config.override(SYSTEM_CUTS="CONCEPT_STYLE")
+@config.override(SYSTEM_CUTS='CONCEPT_STYLE')
 @pytest.mark.outdated
 def test_unpickle(s):
     bm = compute.subsystem.sia(s)
     pickle.loads(pickle.dumps(bm))
 
 
-@config.override(SYSTEM_CUTS="CONCEPT_STYLE")
+@config.override(SYSTEM_CUTS='CONCEPT_STYLE')
 @pytest.mark.outdated
 def test_concept_style_phi(s):
     assert compute.subsystem.phi(s) == 0.6875

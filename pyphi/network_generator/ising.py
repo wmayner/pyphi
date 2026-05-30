@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # network_generator/ising.py
 """Utitlies for implementing the Ising model."""
 
@@ -23,7 +24,7 @@ def probability(
 ):
     """Return the probability that the given spin flips."""
     if temperature == 0:
-        raise NotImplementedError("temperature is 0: need to decide correct behavior")
+        raise NotImplementedError('temperature is 0: need to decide correct behavior')
 
     if constant_log_odds:
         total_input_weight = weights[:, element].sum()

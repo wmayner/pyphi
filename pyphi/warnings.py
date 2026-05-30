@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # warnings.py
 """PyPhi warnings."""
 
@@ -15,16 +16,16 @@ def warn_about_tie_serialization(
 ):
     # XOR; exactly one of serialize or deserialize must be True
     if not serialize ^ deserialize:
-        raise ValueError("Exactly one of ``serialize``, ``deserialize`` must be True")
+        raise ValueError('Exactly one of ``serialize``, ``deserialize`` must be True')
     if serialize:
         msg = (
-            "Serializing ties in {name} is not currently supported; tie "
-            "information will be lost."
+            'Serializing ties in {name} is not currently supported; tie '
+            'information will be lost.'
         )
     if deserialize:
         msg = (
-            "Deserializing ties in {name} is not currently supported; tie "
-            "information was lost during serialization."
+            'Deserializing ties in {name} is not currently supported; tie '
+            'information was lost during serialization.'
         )
     warnings.warn(msg.format(name=name), PyPhiWarning, stacklevel=stacklevel)
 

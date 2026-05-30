@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import functools
 import multiprocessing
 from unittest import mock
@@ -6,7 +7,7 @@ import pytest
 
 # `redis` is an optional dependency (the `caching` extra). Skip this module
 # rather than erroring at collection time when it isn't installed.
-redis = pytest.importorskip("redis")
+redis = pytest.importorskip('redis')
 
 from pyphi import Direction, Subsystem, cache, config, examples, models
 
@@ -14,7 +15,7 @@ from pyphi import Direction, Subsystem, cache, config, examples, models
 def test_cache():
     c = cache.DictCache()
     key = (0, 1)
-    value = "value"
+    value = 'value'
 
     assert c.get(key) is None
     assert c.hits == 0
@@ -42,22 +43,22 @@ class SomeObject:
     def __init__(self):
         self.my_cache = cache.DictCache()
 
-    @cache.method("my_cache", "key_prefix")
+    @cache.method('my_cache', 'key_prefix')
     def cached_method(self, some_arg):
-        return "expensive computation"
+        return 'expensive computation'
 
 
 def test_cache_decorator():
     o = SomeObject()
-    assert o.cached_method(1) == "expensive computation"
+    assert o.cached_method(1) == 'expensive computation'
     # generated from the key prefix and method arguments
-    expected_key = ("key_prefix", 1)
+    expected_key = ('key_prefix', 1)
     assert expected_key in o.my_cache.cache
 
 
 def test_cache_key_generation():
     c = cache.DictCache()
-    assert c.key("arg", _prefix="CONSTANT") == ("CONSTANT", "arg")
+    assert c.key('arg', _prefix='CONSTANT') == ('CONSTANT', 'arg')
 
 
 def factory():
@@ -74,13 +75,13 @@ def factory():
         def __init__(self):
             self.repertoire_cache = cache.DictCache()
 
-        @cache.method("repertoire_cache", "cause")
+        @cache.method('repertoire_cache', 'cause')
         def cause_repertoire(self, some_arg):
-            return "expensive computation"
+            return 'expensive computation'
 
-        @cache.method("repertoire_cache", "effect")
+        @cache.method('repertoire_cache', 'effect')
         def effect_repertoire(self, some_arg):
-            return "expensive computation"
+            return 'expensive computation'
 
     return SomeObject
 
@@ -90,18 +91,18 @@ def test_cache_repertoires_config_option():
     with config.override(CACHE_REPERTOIRES=True):
         SomeObject = factory()
         o = SomeObject()
-        assert o.cause_repertoire(1) == "expensive computation"
-        assert o.effect_repertoire(1) == "expensive computation"
-        expected_key = ("cause", 1)
+        assert o.cause_repertoire(1) == 'expensive computation'
+        assert o.effect_repertoire(1) == 'expensive computation'
+        expected_key = ('cause', 1)
         assert expected_key in o.repertoire_cache.cache
-        expected_key = ("effect", 1)
+        expected_key = ('effect', 1)
         assert expected_key in o.repertoire_cache.cache
 
     with config.override(CACHE_REPERTOIRES=False):
         SomeObject = factory()
         o = SomeObject()
-        assert o.cause_repertoire(1) == "expensive computation"
-        assert o.effect_repertoire(1) == "expensive computation"
+        assert o.cause_repertoire(1) == 'expensive computation'
+        assert o.effect_repertoire(1) == 'expensive computation'
         # Repertoire cache should be empty
         assert not o.repertoire_cache.cache
 
@@ -121,5 +122,5 @@ def test_purview_cache(standard):
 @config.override(CACHE_POTENTIAL_PURVIEWS=False)
 def test_only_cache_purviews_if_configured():
     c = cache.PurviewCache()
-    c.set(c.key(Direction.CAUSE, (0,)), ("some purview"))
+    c.set(c.key(Direction.CAUSE, (0,)), ('some purview'))
     assert c.size() == 0

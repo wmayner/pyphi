@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # macro.py
 """Methods for coarse-graining systems to different levels of spatial analysis."""
 
@@ -23,7 +24,7 @@ log = logging.getLogger(__name__)
 
 # Load precomputed partition lists.
 _NUM_PRECOMPUTED_PARTITION_LISTS = 10
-_partition_lists = utils.load_data("partition_lists", _NUM_PRECOMPUTED_PARTITION_LISTS)
+_partition_lists = utils.load_data('partition_lists', _NUM_PRECOMPUTED_PARTITION_LISTS)
 
 
 def reindex(indices):
@@ -105,7 +106,7 @@ def run_tpm(system, direction, steps, blackbox):
 
 class SystemAttrs(
     namedtuple(
-        "SystemAttrs", ["cause_tpm", "effect_tpm", "cm", "node_indices", "state"]
+        'SystemAttrs', ['cause_tpm', 'effect_tpm', 'cm', 'node_indices', 'state']
     )
 ):
     """An immutable container that holds all the attributes of a subsystem.
@@ -118,7 +119,7 @@ class SystemAttrs(
     def node_labels(self):
         """Return the labels for macro nodes."""
         assert list(self.node_indices)[0] == 0
-        labels = list("m{}".format(i) for i in self.node_indices)
+        labels = list('m{}'.format(i) for i in self.node_indices)
         return NodeLabels(labels, self.node_indices)
 
     @property
@@ -443,7 +444,7 @@ class MacroSubsystem(Subsystem):
         which compose these elements.
         """
         if not self.blackbox:
-            raise ValueError("System is not blackboxed")
+            raise ValueError('System is not blackboxed')
 
         return tuple(
             sorted(
@@ -454,7 +455,7 @@ class MacroSubsystem(Subsystem):
         )
 
     def __repr__(self):
-        return "MacroSubsystem(" + repr(self.nodes) + ")"
+        return 'MacroSubsystem(' + repr(self.nodes) + ')'
 
     def __str__(self):
         return repr(self)
@@ -479,7 +480,7 @@ class MacroSubsystem(Subsystem):
         )
 
 
-class CoarseGrain(namedtuple("CoarseGrain", ["partition", "grouping"])):
+class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
     """Represents a coarse graining of a collection of nodes.
 
     Attributes:
@@ -643,7 +644,7 @@ class CoarseGrain(namedtuple("CoarseGrain", ["partition", "grouping"])):
         return convert.state_by_state2state_by_node(macro_tpm)
 
 
-class Blackbox(namedtuple("Blackbox", ["partition", "output_indices"])):
+class Blackbox(namedtuple('Blackbox', ['partition', 'output_indices'])):
     """Class representing a blackboxing of a system.
 
     Attributes:
@@ -754,8 +755,8 @@ def _partitions_list(N):
         return list(_partition_lists[N])
     else:
         raise ValueError(
-            "Partition lists not yet available for system with {} "
-            "nodes or more".format(_NUM_PRECOMPUTED_PARTITION_LISTS)
+            'Partition lists not yet available for system with {} '
+            'nodes or more'.format(_NUM_PRECOMPUTED_PARTITION_LISTS)
         )
 
 
@@ -794,7 +795,7 @@ def all_groupings(partition):
     """
     if not all(partition):
         raise ValueError(
-            "Each part of the partition must have at least one " "element."
+            'Each part of the partition must have at least one ' 'element.'
         )
 
     micro_groupings = [
@@ -901,7 +902,7 @@ class MacroNetwork:
         self.blackbox = blackbox
 
     def __str__(self):
-        return "MacroNetwork(phi={0}, emergence={1})".format(self.phi, self.emergence)
+        return 'MacroNetwork(phi={0}, emergence={1})'.format(self.phi, self.emergence)
 
     @property
     def emergence(self):
@@ -920,7 +921,7 @@ def coarse_graining(network, state, internal_indices):
     Returns:
         tuple[int, CoarseGrain]: The phi-value of the maximal |CoarseGrain|.
     """
-    max_phi = float("-inf")
+    max_phi = float('-inf')
     max_coarse_grain = CoarseGrain((), ())
 
     for coarse_grain in all_coarse_grains(internal_indices):
@@ -1008,7 +1009,7 @@ def emergence(
     """
     micro_phi = compute.major_complex(network, state).phi
 
-    max_phi = float("-inf")
+    max_phi = float('-inf')
     max_network = None
 
     for subsystem in all_macro_systems(

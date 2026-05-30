@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # models/actual_causation.py
 """Objects that represent structures used in actual causation."""
 
@@ -10,22 +11,22 @@ from . import cmp, fmt
 
 # TODO(slipperyhank): add second state
 _acria_attributes = [
-    "alpha",
-    "state",
-    "direction",
-    "mechanism",
-    "purview",
-    "partition",
-    "probability",
-    "partitioned_probability",
+    'alpha',
+    'state',
+    'direction',
+    'mechanism',
+    'purview',
+    'partition',
+    'probability',
+    'partitioned_probability',
 ]
 _acria_attributes_for_eq = [
-    "alpha",
-    "state",
-    "direction",
-    "mechanism",
-    "purview",
-    "probability",
+    'alpha',
+    'state',
+    'direction',
+    'mechanism',
+    'purview',
+    'probability',
 ]
 
 
@@ -91,7 +92,7 @@ class AcRepertoireIrreducibilityAnalysis(cmp.Orderable):
 
     __slots__ = ()
 
-    unorderable_unless_eq = ["direction"]
+    unorderable_unless_eq = ['direction']
 
     def order_by(self):
         # Here we enforce that ties are broken in favor of smaller purviews
@@ -124,7 +125,7 @@ class AcRepertoireIrreducibilityAnalysis(cmp.Orderable):
         return fmt.make_repr(self, _acria_attributes)
 
     def __str__(self):
-        return "RepertoireIrreducibilityAnalysis\n" + fmt.indent(fmt.fmt_ac_sia(self))
+        return 'RepertoireIrreducibilityAnalysis\n' + fmt.indent(fmt.fmt_ac_sia(self))
 
 
 def _null_ac_ria(state, direction, mechanism, purview, partition=None):
@@ -207,10 +208,10 @@ class CausalLink(cmp.Orderable):
         return self._ria.node_labels
 
     def __repr__(self):
-        return fmt.make_repr(self, ["ria", "extended_purview"])
+        return fmt.make_repr(self, ['ria', 'extended_purview'])
 
     def __str__(self):
-        return "CausalLink\n" + fmt.indent(fmt.fmt_causal_link(self))
+        return 'CausalLink\n' + fmt.indent(fmt.fmt_causal_link(self))
 
     unorderable_unless_eq = AcRepertoireIrreducibilityAnalysis.unorderable_unless_eq
 
@@ -229,10 +230,10 @@ class CausalLink(cmp.Orderable):
 
     def to_json(self):
         """Return a JSON-serializable representation."""
-        return {"ria": self.ria}
+        return {'ria': self.ria}
 
 
-class Event(namedtuple("Event", ["actual_cause", "actual_effect"])):
+class Event(namedtuple('Event', ['actual_cause', 'actual_effect'])):
     """A mechanism which has both an actual cause and an actual effect.
 
     Attributes:
@@ -286,17 +287,17 @@ class Account(cmp.Orderable, Sequence):
         return tuple(link for link in self if link.direction is Direction.EFFECT)
 
     def __repr__(self):
-        return fmt.make_repr(self, ["causal_links"])
+        return fmt.make_repr(self, ['causal_links'])
 
     def __str__(self):
         return fmt.fmt_account(self)
 
     def to_json(self):
-        return {"causal_links": tuple(self)}
+        return {'causal_links': tuple(self)}
 
     @classmethod
     def from_json(cls, dct):
-        return cls(dct["causal_links"])
+        return cls(dct['causal_links'])
 
 
 class DirectedAccount(Account):
@@ -306,12 +307,12 @@ class DirectedAccount(Account):
 
 
 _ac_sia_attributes = [
-    "alpha",
-    "direction",
-    "account",
-    "partitioned_account",
-    "transition",
-    "cut",
+    'alpha',
+    'direction',
+    'account',
+    'partitioned_account',
+    'transition',
+    'cut',
 ]
 
 
@@ -367,7 +368,7 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
         """Return the actual current state of the |Transition|."""
         return self.transition.after_state
 
-    unorderable_unless_eq = ["direction"]
+    unorderable_unless_eq = ['direction']
 
     # TODO: shouldn't the minimal irreducible account be chosen?
     def order_by(self):

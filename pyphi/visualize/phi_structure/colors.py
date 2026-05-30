@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # visualize/colors.py
 """Handle color computations."""
 
@@ -7,14 +8,14 @@ import plotly
 from _plotly_utils.basevalidators import ColorscaleValidator
 
 
-_TYPE_COLORS = {"isotext": "magenta", "inclusion": "indigo", "paratext": "cyan"}
+_TYPE_COLORS = {'isotext': 'magenta', 'inclusion': 'indigo', 'paratext': 'cyan'}
 
 
 def type_color(relation_face):
     return _TYPE_COLORS[two_relation_face_type(relation_face)]
 
 
-TWO_RELATION_COLORSCHEMES = {"type": type_color}
+TWO_RELATION_COLORSCHEMES = {'type': type_color}
 
 
 def two_relation_face_type(relation_face):
@@ -23,26 +24,26 @@ def two_relation_face_type(relation_face):
     purview = list(map(set, relation_face.relata_purviews))
     # Isotext (mutual full-overlap)
     if purview[0] == purview[1] == relation_face.purview:
-        return "isotext"
+        return 'isotext'
     # Sub/Supertext (inclusion / full-overlap)
     elif purview[0].issubset(purview[1]) or purview[0].issuperset(purview[1]):
-        return "inclusion"
+        return 'inclusion'
     # Paratext (connection / partial-overlap)
     else:
-        return "paratext"
+        return 'paratext'
 
 
 def get_color(colorscale, loc):
     """Return the interpolated color at `loc` using the given colorscale."""
     # first parameter: Name of the property being validated
     # second parameter: a string, doesn't really matter in our use case
-    cv = ColorscaleValidator("colorscale", "")
+    cv = ColorscaleValidator('colorscale', '')
     # colorscale will be a list of lists: [[loc1, "rgb1"], [loc2, "rgb2"], ...]
     colorscale = cv.validate_coerce(colorscale)
 
     # convert to rgb strings
     locs, colors = zip(*colorscale)
-    colors = standardize_colors(colors, colortype="rgb")
+    colors = standardize_colors(colors, colortype='rgb')
     colorscale = list(zip(locs, colors))
 
     if isinstance(loc, Iterable):
@@ -50,7 +51,7 @@ def get_color(colorscale, loc):
     return _get_color(colorscale, loc)
 
 
-def standardize_colors(colors, colortype="tuple", **kwargs):
+def standardize_colors(colors, colortype='tuple', **kwargs):
     colors, _ = plotly.colors.convert_colors_to_same_type(
         colors, colortype=colortype, **kwargs
     )
@@ -59,7 +60,7 @@ def standardize_colors(colors, colortype="tuple", **kwargs):
 
 def _get_color(colorscale, intermed):
     if len(colorscale) < 1:
-        raise ValueError("colorscale must have at least one color")
+        raise ValueError('colorscale must have at least one color')
 
     if intermed <= 0 or len(colorscale) == 1:
         return colorscale[0][1]
@@ -77,5 +78,5 @@ def _get_color(colorscale, intermed):
         lowcolor=low_color,
         highcolor=high_color,
         intermed=((intermed - low_cutoff) / (high_cutoff - low_cutoff)),
-        colortype="rgb",
+        colortype='rgb',
     )
