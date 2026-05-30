@@ -35,6 +35,10 @@ _Next version_
 ### Fixes
 - Fixed `convert.be2le_state_by_state()` and `convert.le2be_state_by_state()`;
   previously the columns were not permuted
+- Fixed `distribution.unflatten()`, which passed its arguments to
+  `repertoire_shape()` in the wrong order (`(purview, N)` instead of
+  `(range(N), purview)`) and raised `TypeError: argument of type 'int' is not
+  iterable` on every call.
 
 1.2.0
 -----

@@ -162,7 +162,7 @@ def unflatten(repertoire, purview, N, big_endian=False):
         np.ndarray: The unflattened repertoire.
     """
     order = "C" if big_endian else "F"
-    return repertoire.reshape(repertoire_shape(purview, N), order=order)
+    return repertoire.reshape(repertoire_shape(range(N), purview), order=order)
 
 
 @cache(cache={}, maxmem=None)
