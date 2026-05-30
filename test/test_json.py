@@ -124,10 +124,24 @@ def test_network_from_json(network_file, standard):
 def test_version_check_during_deserialization(s):
     string = jsonify.dumps(s)
 
-    # Change the version
+    # Change the version to an unparseable string
     _obj = json.loads(string)
     _obj[jsonify.VERSION_KEY] = "0.1.bogus"
     string = json.dumps(_obj)
 
     with pytest.raises(exceptions.JSONVersionError):
         jsonify.loads(string)
+
+
+def test_load_from_different_but_valid_version_warns(s):
+    # A parseable version that differs from the current one should not block
+    # loading (e.g. data tagged 2.0.0a1 loaded by a 1.2.1.dev checkout); it
+    # should warn and load on a best-effort basis.
+    string = jsonify.dumps(s)
+    _obj = json.loads(string)
+    _obj[jsonify.VERSION_KEY] = "2.0.0a1"
+    string = json.dumps(_obj)
+
+    with pytest.warns(UserWarning, match="best-effort"):
+        loaded = jsonify.loads(string)
+    assert loaded == s

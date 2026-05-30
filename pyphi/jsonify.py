@@ -31,8 +31,10 @@ exception if current PyPhi version doesn't match the version in the JSON data.
 
 from importlib.metadata import version as get_version
 import json
+import warnings
 
 import numpy as np
+from packaging.version import InvalidVersion, Version
 
 import pyphi
 from pyphi import cache
@@ -196,14 +198,30 @@ def dump(obj, fp, **user_kwargs):
 
 
 def _check_version(version):
-    """Check whether the JSON version matches the PyPhi version."""
-    if version != PYPHI_VERSION:
+    """Check whether serialized JSON can be loaded by the current PyPhi.
+
+    The version string embedded in the JSON is compared against the current
+    PyPhi version. An exact match is not required: the on-disk schema is
+    generally stable across PyPhi releases, and the package version reported by
+    a development checkout (e.g. ``1.2.1.dev1470+g...``) need not match the
+    version that produced the data (e.g. a tagged ``2.0.0a1``). So a parseable
+    but differing version only warns, and loading proceeds on a best-effort
+    basis. A version string that cannot be parsed at all gives us no basis to
+    reason about compatibility, so it still raises.
+    """
+    try:
+        Version(version)
+    except (InvalidVersion, TypeError):
         raise pyphi.exceptions.JSONVersionError(
-            "Cannot load JSON from a different version of PyPhi. "
-            "JSON version = {0}, current version = {1}.".format(
-                version,
-                PYPHI_VERSION,
-            )
+            "Cannot load PyPhi JSON: unrecognized version {0!r} "
+            "(current version = {1}).".format(version, PYPHI_VERSION)
+        )
+    if version != PYPHI_VERSION:
+        warnings.warn(
+            "Loading PyPhi JSON produced by a different version. "
+            "JSON version = {0}, current version = {1}. Loading on a "
+            "best-effort basis.".format(version, PYPHI_VERSION),
+            stacklevel=2,
         )
 
 
