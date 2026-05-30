@@ -81,6 +81,30 @@ def _multivalued_2x3x3() -> Substrate:
     )
 
 
+def _multivalued_k3k3_k4_sparse() -> Substrate:
+    """3-node sparse heterogeneous substrate with alphabet sizes (3, 3, 4).
+
+    Generated deterministically from seed 2028. The connectivity is a directed
+    3-cycle (0 -> 1 -> 2 -> 0), so each node has a single input and the
+    connectivity is sparse rather than complete. Exercises the sparse +
+    heterogeneous-alphabet repertoire path, where non-input dimensions and
+    severed-input dimensions (under a partition) must collapse for k > 2 units.
+    """
+    rng = np.random.default_rng(2028)
+    alph = (3, 3, 4)
+    factors = []
+    for k_i in alph:
+        f = rng.uniform(size=(*alph, k_i))
+        f /= f.sum(axis=-1, keepdims=True)
+        factors.append(f)
+    cm = np.array([[0, 1, 0], [0, 0, 1], [1, 0, 0]])
+    return Substrate(
+        marginals=factors,
+        state_space=((0, 1, 2), (0, 1, 2), (0, 1, 2, 3)),
+        cm=cm,
+    )
+
+
 def _logistic_3node_k8() -> Substrate:
     """3-node fully-connected logistic substrate with weights 0.3 and k=8.
 
@@ -318,6 +342,21 @@ def _make_fixtures() -> list[GoldenFixture]:
             "Exercises mixed-alphabet repertoire paths under IIT 4.0 (2023).",
             config_overrides=IIT_4_2023_CONFIG,
             substrate_factory=_multivalued_2x3x3,
+            state=(0, 0, 0),
+        )
+    )
+
+    # Sparse heterogeneous (3,3,4) substrate (3-node directed cycle). Each node
+    # has a single input, so partitions sever real k-ary dependencies. Locks the
+    # sparse + heterogeneous-alphabet repertoire and partition paths.
+    fixtures.append(
+        GoldenFixture(
+            name="multivalued_k3k3_k4_sparse_iit4_2023",
+            description="3-node sparse heterogeneous substrate with alphabet sizes "
+            "(3,3,4) on a directed 3-cycle (seed 2028). Exercises sparse + "
+            "mixed-alphabet repertoire and partition paths under IIT 4.0 (2023).",
+            config_overrides=IIT_4_2023_CONFIG,
+            substrate_factory=_multivalued_k3k3_k4_sparse,
             state=(0, 0, 0),
         )
     )
