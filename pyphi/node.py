@@ -62,10 +62,14 @@ class Node:
         # the substrate nodes.
 
         # Cause: use the per-unit factor accessor to obtain shape
-        # (*alphabet_sizes, 2) with [P(off), P(on)] along the trailing axis,
-        # then marginalize out substrate nodes that are not inputs to this node.
+        # (*alphabet_sizes, k_i) with the per-state conditional along the
+        # trailing axis, then marginalize out substrate nodes that are not
+        # inputs to this node. The substrate-unit axes are the leading
+        # ``ndim - 1`` dimensions; deriving non-inputs from those collapses the
+        # node's own previous-state dimension and any non-input dimension to
+        # size 1 for every per-node alphabet size.
         cause_factor = JointTPM(cause_tpm.factor(self.index))
-        cause_non_inputs = set(cause_factor.tpm_indices()) - self._inputs
+        cause_non_inputs = set(range(cause_factor.ndim - 1)) - self._inputs
         self.cause_tpm = cause_factor.marginalize_out(cause_non_inputs)
 
         # Extract the per-node forward factor. A FactoredTPM exposes
@@ -78,7 +82,7 @@ class Node:
             # k-ary path: extract per-node factor as JointTPM for uniform
             # downstream handling (condition_tpm, marginalize_out, reshape).
             node_factor = JointTPM(effect_tpm.factor(self.index))
-            effect_non_inputs = set(node_factor.tpm_indices()) - self._inputs
+            effect_non_inputs = set(range(node_factor.ndim - 1)) - self._inputs
             self.effect_tpm = node_factor.marginalize_out(effect_non_inputs)
         else:
             # Binary path: legacy SBN-form ndarray.

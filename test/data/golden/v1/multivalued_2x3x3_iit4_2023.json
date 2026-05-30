@@ -1,10 +1,10 @@
 {
   "fixture_name": "multivalued_2x3x3_iit4_2023",
   "schema_version": 1,
-  "generated_from_commit": "8391b33830bfc0309111d4147872a102ffddbac4",
+  "generated_from_commit": "9079bcea51607d93c7e855cbede24dbe11e56680",
   "description": "3-node heterogeneous substrate with alphabet sizes (2,3,3) (seed 2027). First node is binary; second and third are ternary. Exercises mixed-alphabet repertoire paths under IIT 4.0 (2023).",
   "config_overrides": {
-    "version": "IIT_4_0_2023",
+    "iit.version": "IIT_4_0_2023",
     "mechanism_phi_measure": "GENERALIZED_INTRINSIC_DIFFERENCE",
     "system_partition_scheme": "DIRECTED_SET_PARTITION",
     "progress_bars": false,
@@ -4401,7 +4401,7 @@
     "signed_phi": -0.0015430780182424167,
     "partition": [
       [
-        "2 parts: {n0,n1n2}\n[[0 1 1]\n [1 0 0]\n [1 0 0]]"
+        "2 parts: {n0,n1n2}\n[[0 1 1]\n [0 0 0]\n [0 0 0]]"
       ]
     ],
     "system_state": {
@@ -4422,7 +4422,7 @@
     }
   },
   "phi_structure": {
-    "big_phi": 1.2694913336252203,
+    "big_phi": 1.2694913336252207,
     "distinctions": [
       {
         "mechanism": [
@@ -4480,6 +4480,6 @@
     ],
     "num_distinctions": 4,
     "num_relations": 13,
-    "sum_phi_relations": 0.7228183987451959
+    "sum_phi_relations": 0.7228183987451962
   }
 }

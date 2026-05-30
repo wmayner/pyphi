@@ -1,10 +1,10 @@
 {
   "fixture_name": "multivalued_k3_tiny_iit4_2023",
   "schema_version": 1,
-  "generated_from_commit": "8391b33830bfc0309111d4147872a102ffddbac4",
+  "generated_from_commit": "9079bcea51607d93c7e855cbede24dbe11e56680",
   "description": "2-node k=3 substrate (seed 2026). Exercises alphabet-generic cause/effect repertoire paths under IIT 4.0 (2023). SIA phi = 0 (reducible), but all layers are captured.",
   "config_overrides": {
-    "version": "IIT_4_0_2023",
+    "iit.version": "IIT_4_0_2023",
     "mechanism_phi_measure": "GENERALIZED_INTRINSIC_DIFFERENCE",
     "system_partition_scheme": "DIRECTED_SET_PARTITION",
     "progress_bars": false,
@@ -800,11 +800,11 @@
     }
   ],
   "sia": {
-    "phi": 0.0,
-    "signed_phi": 0.0,
+    "phi": 0.040225764952554866,
+    "signed_phi": 0.040225764952554866,
     "partition": [
       [
-        "2 parts: {n0,n1}\n[[0 1]\n [1 0]]"
+        "2 parts: {n0,n1}\n[[0 1]\n [0 0]]"
       ]
     ],
     "system_state": {
