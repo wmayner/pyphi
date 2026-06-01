@@ -19,7 +19,7 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.10
+    rev: v0.15.15
     hooks:
       # Run the linter
       - id: ruff-check
@@ -28,12 +28,12 @@ repos:
       - id: ruff-format
 
   - repo: https://github.com/RobertCraigie/pyright-python
-    rev: v1.1.407
+    rev: v1.1.410
     hooks:
       - id: pyright
         additional_dependencies: [types-PyYAML]
 
   - repo: https://github.com/twisted/towncrier
-    rev: 24.8.0
+    rev: 25.8.0
     hooks:
       - id: towncrier-check
