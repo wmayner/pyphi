@@ -37,7 +37,12 @@ def test_reconfigure_logging_on_change(capsys):
         ("LOG_FILE", ["filename", Path("filename")], [0, 1]),
     ],
 )
-def test_config_validation(name, valid, invalid):
+def test_config_validation(name, valid, invalid, tmp_path, monkeypatch):
+    # Setting LOG_FILE reconfigures logging, which opens a logging.FileHandler
+    # immediately and creates the target file. Run in a temp cwd so that
+    # side-effect file lands in tmp_path rather than the repo root.
+    monkeypatch.chdir(tmp_path)
+
     for value in valid:
         setattr(config, name, value)
 
