@@ -140,6 +140,12 @@ def _single_node_cause_repertoire(
     """
     mechanism_node = cs._index2node[mechanism_node_index]
     tpm = mechanism_node.cause_tpm[..., mechanism_node.state]
+    # The result is size 1 on every purview node that is not an input to this
+    # mechanism node. It is NOT self-contained canonical: it relies on the
+    # ``joint = np.ones(repertoire_shape(...))`` allocation in
+    # ``_cause_repertoire_inner`` to broadcast those size-1 axes up to the full
+    # purview alphabet. Keeping them size 1 (rather than broadcasting here) is
+    # deliberate — the product over mechanism nodes stays cheap.
     return tpm.marginalize_out(mechanism_node.inputs - purview_set).tpm
 
 
@@ -161,6 +167,9 @@ def _single_node_effect_repertoire(
     nonmechanism_inputs = purview_node.inputs - set(condition)
     tpm = tpm.marginalize_out(nonmechanism_inputs)
     alphabet_sizes = cs.substrate.factored_tpm.alphabet_sizes
+    # Unlike the cause builder, the effect builder reshapes to canonical here,
+    # so its output is self-describingly canonical (this purview node at full
+    # alphabet, every other axis size 1) regardless of the caller's allocation.
     return tpm.reshape(
         repertoire_shape(
             cs.substrate.node_indices,
@@ -182,6 +191,11 @@ def _cause_repertoire_inner(
     """
     purview_set: frozenset[int] = frozenset(purview)
     alphabet_sizes = cs.substrate.factored_tpm.alphabet_sizes
+    # Load-bearing: this canonical-shaped allocation establishes the full
+    # purview shape, so per-mechanism-node contributions (which are size 1 on
+    # purview nodes they do not constrain — see _single_node_cause_repertoire)
+    # broadcast up correctly. Do not replace with a bare product of the
+    # per-node contributions.
     joint = np.ones(
         repertoire_shape(
             cs.substrate.node_indices, purview_set, alphabet_sizes=alphabet_sizes
