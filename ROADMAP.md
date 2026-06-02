@@ -1955,6 +1955,19 @@ test inventory — that a deliberate re-ordering pass is in order.
     P14c; only the registry seam is built here. The cause-weighting question
     that work touched is now resolved (see P14c).
 
+21. **P14d — Auxiliary module refresh.** In-scope for 2.0. Engineering
+    pass over the peripheral modules that ring the core formalism —
+    `substrate_generator`, `visualize` (the priority: ~2058 LOC, no tests,
+    tightly coupled to `PhiStructure` / `Distinction` internals), and the
+    small downstream utilities (`dynamics`, `timescale`, `graphs`,
+    `connectivity`). Decouples visualize from core model internals via the
+    stable public surface, reorganizes the 895-line `ces/__init__.py`,
+    settles the plotly/matplotlib/seaborn public API, and back-fills
+    figure-structure and generator tests. Depends on stable model types
+    (P8). Sequences immediately **before** the P15 surface-freeze bundle
+    (item 9) so the new auxiliary public API is what gets frozen, and
+    supersedes P15's "update visualize" compatibility bullet. See Phase G.
+
 **Ship criterion for 2.0:**
 
 The original roadmap doesn't state a release criterion explicitly.
@@ -1964,7 +1977,7 @@ Codifying one now:
    ii(s)-cap addendum) maps to a named runtime type in PyPhi —
    the "mathematician's acceptance test" from the original
    Verification Plan.
-2. P11.7, P14, P11.8 Tier 1, P12, P13 are landed; P14b and
+2. P11.7, P14, P11.8 Tier 1, P12, P13 are landed; P14b, P14d, and
    P11.8 Tier 2 are landed *or* explicitly deferred to 2.1
    with a tracking issue.
 3. Goldens (fast + slow) green; Hypothesis property suite green
@@ -2275,6 +2288,80 @@ design questions requiring a fresh spec.
 - *Process:* brainstorm → spec → plan → implement; surface the unsettled theory
   decisions rather than baking in defaults.
 
+**P14d. Auxiliary module refresh — substrate generator, visualize, and downstream utilities**
+
+The peripheral modules that sit around the core formalism have not had an
+engineering pass during the 2.0 refactor — they were only carried along by the
+rename sweeps (`network_generator → substrate_generator`,
+`Network → Substrate`, `Subsystem → System`). They consume core types but are
+otherwise distinct from the formalism proper:
+
+- system construction — `pyphi/substrate_generator/` (~508 LOC across
+  `ising.py`, `unit_functions.py`, `weights.py`, `utils.py`),
+- visualization — `pyphi/visualize/` (~2058 LOC, including the `ces/`
+  subpackage),
+- small downstream utilities — `pyphi/dynamics.py`, `pyphi/timescale.py`,
+  `pyphi/graphs.py`, `pyphi/connectivity.py`.
+
+`visualize/` is the priority: it is the largest of the group and the most
+tightly coupled. Four problems, in priority order:
+
+- **Coupling to model internals.** `visualize/ces/` reaches directly into
+  `PhiStructure` / `Distinction` / `SIA` attributes — the
+  `get_values(objects, attr_or_func)` accessor at
+  `visualize/ces/__init__.py:885` walks arbitrary attributes/callables over
+  result objects, and `theme.py` / `text.py` import `pyphi.models.fmt`. Model-
+  shape changes ripple straight into the plotting code with no insulating layer.
+  Decouple by consuming the stable public projection of the result types (the
+  same surface P15 freezes), so future model changes don't break figures.
+- **Internal structure / size.** `visualize/ces/__init__.py` is 895 lines and
+  is almost entirely private `_plot_*` helpers (`_plot_purviews`,
+  `_plot_cause_effect_links`, `_plot_mechanisms`, `_plot_two_relation_faces`,
+  `_plot_three_relation_faces`, and their single/multiple-trace variants)
+  behind two public entry points (`plot_phi_structure`, `highlight_phi_fold`).
+  Split the purview / link / mechanism / relation-face plotting into focused
+  submodules alongside the existing `geometry` / `colors` / `theme` / `text`
+  split.
+- **Backend / API design.** The package hard-requires plotly, matplotlib, and
+  seaborn together (`visualize/__init__.py`) and mixes them across entry points
+  with inconsistent signatures and an ad-hoc `**theme_overrides` convention.
+  Settle a coherent public plotting API — consistent argument order, theme
+  handling, figure return types — and document which backend each entry point
+  uses.
+- **Test coverage.** `visualize/` has no tests today (the only related test is
+  `test/test_connectivity.py`, which covers `pyphi/connectivity.py`, not
+  visualization). Add figure-structure smoke/regression tests — assert on the
+  figure's data structure (trace counts, coordinate shapes, color assignments
+  against a golden), not the rendered image, since visualization is hard to
+  pixel-test.
+
+`substrate_generator/` is smaller and healthier, but the `UNIT_FUNCTIONS`
+registry (`substrate_generator/__init__.py`) and the ising/weights machinery
+have no test file either, and `visualize/ising.py` reuses
+`substrate_generator.ising.energy`. The `dynamics.py` / generator `ising.py`
+overlap that P14b flags should be resolved here rather than there. Add a
+`test_substrate_generator.py` exercising each unit function and the ising
+fixtures already in `test/data/` (`ising_tpm.npy`,
+`ising_stationary_distribution.npy`). The downstream utilities (`dynamics.py`,
+`timescale.py`, `graphs.py`, `connectivity.py`) are small and mostly
+mechanical; the work there is verifying they track the post-rename core types,
+consolidating the ising overlap, and back-filling tests where missing.
+
+- *Why here / dependencies:* depends on stable core model types (P8) —
+  decoupling visualize from `PhiStructure` / `Distinction` internals is only
+  worth doing against the final shapes. Sequences immediately **before** the
+  P15 surface freeze so the new visualize / substrate_generator public API is
+  what gets frozen, and supersedes the "Update `pyphi/visualize/`"
+  compatibility bullet in P15 (that bullet only patched imports to keep figures
+  compiling — this does the real decoupling and reorganization).
+- *Files:* `pyphi/visualize/**` (incl. `ces/`),
+  `pyphi/substrate_generator/**`, `pyphi/dynamics.py`, `pyphi/timescale.py`,
+  `pyphi/graphs.py`, `pyphi/connectivity.py`; new `test/test_visualize.py`,
+  `test/test_substrate_generator.py`.
+- *Risk:* low-to-medium. No numeric results depend on these modules, so golden
+  fixtures are unaffected; the risk is API churn for users who script the
+  plotting functions directly, which the P15 surface freeze scopes anyway.
+
 **P15. `jsonify` retirement + test reorg + docs / Jupyter / pandas / ASV-in-CI**
 
 The victory-lap bundle. Must be last because everything preceding it changes the
@@ -2318,9 +2405,10 @@ public API surface.
   must track the new `CandidateSystem` API from P7.
 - Update `pyphi/dynamics.py` (117 lines) and `pyphi/timescale.py` (54 lines) —
   import from core pyphi; need updating when TPM types change.
-- Update `pyphi/visualize/` (2545+ lines including `phi_structure/`) — tightly
-  coupled to current model types (`PhiStructure`, `Distinction`, `SIA`); must
-  track model changes from P8.
+- Visualize / substrate-generator public surface — the real decoupling and
+  reorganization happens in **P14d** (auxiliary module refresh), which
+  sequences just before this freeze. P15 only confirms the new public plotting
+  API is the one that gets frozen, rather than patching imports further.
 - Update `pyphi/connectivity.py` and `pyphi/graphs.py` — verify compatibility.
 - Also triage and close/merge minor open PRs: #114 (strong connectivity shortcircuit),
   #116 (pandas circular import — likely resolved by file moves), #130 (visualization
@@ -2520,6 +2608,11 @@ checkouts; the harness needs extension rather than rewrite.
    └──────┬──────────┘
           │
    ┌──────▼──────────┐
+   │ P14d Auxiliary   │  (needs stable models P8; freeze-before-P15)
+   │  module refresh  │
+   └──────┬──────────┘
+          │
+   ┌──────▼──────────┐
    │ P15 jsonify +    │
    │    docs + ASV    │
    └─────────────────┘
@@ -2537,6 +2630,7 @@ checkouts; the harness needs extension rather than rewrite.
 - **Parallel track (independent of the formalism chain once P10 lands):** P11.
 - **Strictly after backbone:** P8, P9, P10, P12.
 - **Aggressive features after stability:** P13.
+- **Auxiliary refresh (needs stable models P8; freezes just before P15):** P14d.
 - **Deferred / victory lap:** P14, P15.
 
 ---
