@@ -308,7 +308,11 @@ architecture). Trigger for migration to OxiDD: graphillion blocks on (a) Python
 
 ### Phase A — Safety net (must be green before any numerical refactor)
 
-**P1. Golden regression harness**
+**P1. Golden regression harness — landed (`23ecdde8`)**
+
+> **Status (audited 2026-06-02):** Landed. Fixtures live under
+> `test/data/golden/v1/` (not bare `golden/`); changelog
+> `golden-regression-harness.feature.md`.
 
 Freeze 15–25 (network × subsystem × config) fixtures covering IIT 3.0 and 4.0 with
 every metric/partition scheme combination in use. For each, serialize the **raw
@@ -328,7 +332,11 @@ Barbosa et al. 2020 worked examples). Pin the commit hash in a header comment.
 - *Leverage:* Unblocks P4–P10 (anything that touches math).
 - *Style:* Incremental — start with 3 networks × 2 versions × 3 metrics, grow.
 
-**P2. Property-based invariant tests with Hypothesis**
+**P2. Property-based invariant tests with Hypothesis — landed (`c6a0b0d4`)**
+
+> **Status (audited 2026-06-02):** Landed
+> (`test/test_invariants_hypothesis.py`, `test/hypothesis_utils.py`). Stale
+> path below: `metrics/distribution.py` is now `pyphi/measures/distribution.py`.
 
 Encode every invariant stated in the 4.0 paper as a Hypothesis test:
 - Repertoires sum to 1; `phi ≥ 0`; MIP phi ≤ unpartitioned phi.
@@ -348,7 +356,14 @@ Hypothesis is already a dev dependency but underused.
   `metrics/distribution.py` must fail at least three golden fixtures AND at least one
   property test.
 
-**P3. Protocol-based type hardening** *(can overlap with P2 — independent of Hypothesis)*
+**P3. Protocol-based type hardening** *(can overlap with P2 — independent of Hypothesis)* — landed
+
+> **Status (audited 2026-06-02):** Landed (`pyphi/protocols.py`). Naming drift
+> vs the plan below: `SubsystemInterface` shipped as `SystemPublicInterface`;
+> the partition protocols are `MechanismPartitionScheme` /
+> `SystemPartitionScheme`; the CES/FlatCES Liskov issue was resolved by
+> removing `FlatCES` entirely (`eliminate-flatces.change.md`), not by an
+> `AbstractCES` sibling.
 
 Convert `pyphi/types.py` from a pile of `type` aliases into a set of runtime-checkable
 `Protocol` classes: `DistanceMetric`, `PhiFormalism`, `RepertoireComputer`,
@@ -385,7 +400,13 @@ This was originally in P8 but has no dependency on the subsystem rewrite.
 
 ### Phase B — Formalism split (the architectural pivot)
 
-**P4. Extract `PhiFormalism` and separate IIT 3.0 / IIT 4.0 into parallel packages**
+**P4. Extract `PhiFormalism` and separate IIT 3.0 / IIT 4.0 into parallel packages — landed (`4ed7b73a`)**
+
+> **Status (audited 2026-06-02):** Landed — `pyphi/formalism/` package with
+> `base.py` (`PhiFormalism`), `iit3/`, `iit4/`, `actual_causation/`. Stale
+> references below: `pyphi/subsystem.py` and `pyphi/compute/subsystem.py` are
+> deleted; `new_big_phi/` content moved to `pyphi/formalism/iit4/formalism.py`;
+> the `config.IIT_VERSION` runtime switch is now `config.formalism.iit.version`.
 
 Define:
 
@@ -447,7 +468,17 @@ to avoid making config decisions that P10 later reverses.
 - *Leverage:* Massive. Unblocks P5–P10.
 - *Style:* Big-bang at the commit level; optional env-var gate for one release.
 
-**P5. Unify distance metric API**
+**P5. Unify distance metric API — landed except `DistanceResult.__array__` removal**
+
+> **Status (audited 2026-06-02):** Substantially landed — the signed-phi
+> redesign (`models/ria.py`, `phi = positive_part(signed_phi)`; grid3 goldens
+> already pin `phi=0` / `signed_phi=-0.0729`) and the PyPhiFloat fixes shipped;
+> `values_array` shipped. `pyphi/metrics/` is now `pyphi/measures/` and was
+> **not** split into the four files described below. Symbols
+> `MechanismRIA.preventative_magnitude` and
+> `SIA.partition_strengthens_specification` were never built (drop them). All
+> `subsystem.py` / `new_big_phi` line references below are dead. **Remaining:**
+> the `DistanceResult.__array__` deprecation/removal.
 
 Promote the 4.0-style signature as the single `DistanceMetric.__call__` signature:
 
@@ -573,7 +604,13 @@ case where the harness catches an intentional formula change.
   internal conditional. Also resolves the grid3 anomaly and makes the 2026
   cap mathematically meaningful.
 
-**P6. Partition algebra consolidation with typed sum type**
+**P6. Partition algebra consolidation with typed sum type — landed (`b312ba5d` + `d5b7573a`)**
+
+> **Status (audited 2026-06-02):** Landed — `Cut` consolidated into
+> `SystemPartition`; typed `Mechanism/SystemPartitionScheme` protocols.
+> `pyphi/models/cuts.py` is now `pyphi/models/partitions.py`. The proposed
+> `partition/algebra.py` extraction and `set_partitions()` move were not done
+> (`set_partitions` stayed in `combinatorics.py`).
 
 Unify `Cut`, `SystemPartition`, `GeneralKCut`, `KPartition`, `Bipartition`, and
 disintegrating partitions under a single `Partition` algebraic datatype. Critically,
@@ -743,7 +780,14 @@ mid-roadmap, P6b promotes back to in-scope.
 
 ### Phase C — Kernel rewrite
 
-**P7. Big-bang layered rewrite of `subsystem.py`**
+**P7. Big-bang layered rewrite of `subsystem.py` — landed (Option D split)**
+
+> **Status (audited 2026-06-02):** Landed — `pyphi/subsystem.py` deleted; the
+> stateless kernel lives in `pyphi/core/` (`repertoire_algebra.py`, `unit.py`,
+> `tpm/`) with a `CandidateSystem` / `System` value type. Deviations from the
+> plan below: formalism dispatch was hoisted to `pyphi.formalism` (Option D);
+> `MacroSystem` was ported but retains `SystemAttrs` post-construction mutation
+> rather than the proposed functor redesign.
 
 Replace the 1422-line `Subsystem` god-object with a layered architecture:
 
@@ -817,7 +861,13 @@ everything not in the Protocol is free to change. This is why P3 is load-bearing
 
 ### Phase D — Model cleanup and consolidation
 
-**P8. `models/mechanism.py` split + Distinction type + Φ-folds**
+**P8. `models/mechanism.py` split + Distinction type + Φ-folds — landed (`db15baee`), except `phi_fold`**
+
+> **Status (audited 2026-06-02):** Split landed — `models/mechanism.py` →
+> `ria.py` / `mice.py` / `distinction.py` / `distinctions.py` /
+> `state_specification.py` (the plan's `state_spec.py`). **Not delivered:** the
+> proposed `pyphi/models/phi_fold.py` (`PhiFold` model) was never created —
+> re-scope or drop.
 
 Split `models/mechanism.py` (1216 lines) into `ria.py`, `state_spec.py`, `mice.py`,
 `distinction.py` (new, 4.0-native replacement for `Concept`). Replace hand-rolled
@@ -844,7 +894,7 @@ matching/perception extension (P14b).
 **P9. Unified cache observability + memory bound + dead-code removal**
 
 **Status (landed 2026-05-08):** Done on `feature/p9-unified-cache`
-(`f828d776..294a956f`, 10 commits, branch local-only).
+(`f828d776..294a956f`, 10 commits; now merged to `2.0`).
 
 Original plan was to replace the four `DictCache` instances with a single
 memoization layer keyed on `(CandidateSystem, mechanism, purview)` plus a
@@ -1142,7 +1192,7 @@ still gated on P6b. No-GIL safety audit of `DictCache` likewise gated on P6b.
 
 Folded `pyphi.compute.subsystem` into the IIT 3.0 formalism module
 (`pyphi.formalism.iit3`) and `pyphi.compute.network` into substrate-level
-helpers (`pyphi.network.systems`, `reachable_systems`, `possible_complexes`).
+helpers (`pyphi.substrate.systems`, `reachable_systems`, `possible_complexes`).
 The legacy `pyphi.compute` namespace is gone.
 
 **P11.6. Paper-aligned user-facing type rename — done (2026-05-09)**
@@ -1437,17 +1487,20 @@ test inventory — that a deliberate re-ordering pass is in order.
 5. **P11.8 Tier 1 — inline pytest perf budget.** *(landed; spec
    ``cad8a967``, plan ``2d88dd78``, implementation ``ea8ebcf6``.)*
    Inline ``@pytest.mark.perf`` wall-time floors on 5 hot-path
-   fixtures (basic / xor / rule110 / grid3 / micro_s), catching
-   catastrophic regressions of the form previously experienced
-   (60–300x on ``IIT4_2026Formalism``). Calibrated to ``max(3.0,
-   4× median)`` per fixture.
+   fixtures (``basic_iit3_emd`` / ``basic_iit4_2023`` /
+   ``basic_iit4_2026`` / ``xor_iit4_2026`` /
+   ``logistic3_k8_iit4_2026``), catching catastrophic regressions of
+   the form previously experienced (60–300x on
+   ``IIT4_2026Formalism``). Hardcoded per-fixture wall-time budgets
+   (3–8s), not a median formula.
 
 6. **P12 — Non-binary units.** *(landed — P12a factored TPM + P12b
    multivalued units; k>2 supported through the SIA/CES pipeline with
    binary goldens byte-identical. AC k-ary deferred. See Phase F.)*
 
 7. **P13 — Zaeemzadeh upper bounds.** *(partial — upper-bound option
-   merged via PRs #56–#59 + `BoundKind` taxonomy; the pruning feature
+   merged via PRs #56–#59 + the `ErrorInfo` protocol (`kind` Literal incl.
+   `upper_bound`); the pruning feature
    itself, shadow-mode gate, and spec/changelog remain. See Phase F.)*
    Pure feature; P12's alphabet generalization (its dependency) is done.
 
@@ -1980,7 +2033,7 @@ Codifying one now:
    ii(s)-cap addendum) maps to a named runtime type in PyPhi —
    the "mathematician's acceptance test" from the original
    Verification Plan.
-2. P11.7, P14, P11.8 Tier 1, P12, P13 are landed; P14b, P14d, and
+2. P11.7, P14, P11.8 Tier 1, P12 are landed; P13, P14b, P14d, and
    P11.8 Tier 2 are landed *or* explicitly deferred to 2.1
    with a tracking issue.
 3. Goldens (fast + slow) green; Hypothesis property suite green
@@ -2078,8 +2131,9 @@ xarray is opt-in). Revisit if/when xarray becomes the default backend.
 
 *Status:* groundwork merged, feature not complete. The Zaeemzadeh upper-bound
 PRs (#56–#59) landed an upper-bound option (now the default) and
-`formalism/base.py` declares a `BoundKind` taxonomy that includes certified
-Zaeemzadeh-style pruning. What remains for a clean P13: a dedicated
+`formalism/base.py` declares an `ErrorInfo` protocol whose `kind` Literal
+includes certified Zaeemzadeh-style pruning (the PR-added bound modules were
+later removed in `e5e27868`). What remains for a clean P13: a dedicated
 `compute_upper_bound` / bounds module, wiring into `find_mip` and
 `all_complexes` for actual pruning, the shadow-mode equality gate, and a
 spec/plan/changelog. No P13 spec or changelog fragment exists yet.
@@ -2128,7 +2182,7 @@ The accompanying config audit restructured `config.formalism` into nested
 rename map (`*_distance` → `*_measure`, `partition_type` →
 `mechanism_partition_scheme`, etc.), and added AC-specific knobs
 (`mechanism_partition_scheme`, `partitioned_repertoire_scheme`,
-`background_strategy`, `alpha_aggregation`). The orphaned concept-style
+`background_scheme`, `alpha_aggregation`). The orphaned concept-style
 cuts machinery (`ConceptStyleSystem`, `concept_cuts`, `directional_sia`,
 `SystemIrreducibilityAnalysisConceptStyle`, `sia_concept_style`,
 `config.system_cuts`) was removed.
@@ -2141,7 +2195,8 @@ project lands.
 
 - *Files touched:* `pyphi/actual.py`, `pyphi/models/actual_causation.py`,
   `pyphi/conf/formalism.py`, `pyphi/conf/_global.py`,
-  `test/test_actual.py`, new `test/test_actual_paper_fixtures.py`.
+  `test/test_actual.py` (the paper-fixture acceptance tests live inside this
+  file, not in a separate `test_actual_paper_fixtures.py`).
 
 **Macro framework — Marshall 2024 intrinsic units**
 
