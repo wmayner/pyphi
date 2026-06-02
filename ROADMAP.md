@@ -1155,7 +1155,7 @@ optional cut. Config keys `SUBSYSTEM_*` renamed to `SYSTEM_*`. The
 package `pyphi.network_generator` became `pyphi.substrate_generator`.
 
 **P11.7. Paper-aligned model-class rename: ``CauseEffectStructure`` /
-``PhiStructure`` / ``Concept`` / ``Distinction``**
+``PhiStructure`` / ``Concept`` / ``Distinction`` — landed (2026-05-09, ``7c4bc012``)**
 
 The IIT 4.0 paper's terminology and PyPhi's class names diverge in two
 places. Both should be reconciled.
@@ -1166,8 +1166,8 @@ is `distinction`. The IIT 3.0 native idiom (``concept(s, m, purviews=...)``)
 remains accessible as `pyphi.formalism.iit3.concept` for IIT 3.0
 callers; the top-level `pyphi.formalism.distinction` does not carry
 the 3.0 ``purviews=`` kwargs. ``System.concept()`` is removed in
-favor of ``System.distinction()``. *Status: in progress (split commit
-on `feature/concept-distinction-rename`).*
+favor of ``System.distinction()``. *Status: landed (``7c4bc012``;
+fragment ``concept-distinction-rename.change.md``).*
 
 *Cause-effect structure vs Φ-structure (Albantakis 2023, p11).* The
 paper distinguishes two terms that PyPhi conflates:
@@ -1196,9 +1196,12 @@ The rename:
   Optionally: a thin ``PhiStructure(CauseEffectStructure)`` subclass
   that SIA results use as a marker — only if it ends up load-bearing.
 
-This is queued as a follow-on commit after the concept→distinction
-rename lands. It touches model definitions, metrics, jsonify, golden
-fixtures, and the public surface; expect comparable scope to P11.6.
+*Status: landed* in ``7c4bc012`` (fragment
+``p11.7-ces-phistructure-rename.change.md``): ``CauseEffectStructure`` →
+``Distinctions`` and ``PhiStructure`` → ``CauseEffectStructure``, with the
+method exposed as ``System.ces()`` rather than the
+``System.cause_effect_structure()`` proposed above. It touched model
+definitions, metrics, jsonify, golden fixtures, and the public surface.
 
 **P11.8. Performance regression gate + benchmark suite rewrite**
 
