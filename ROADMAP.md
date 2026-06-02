@@ -2518,6 +2518,72 @@ numbers. Existing benchmark harness in `benchmarks/iit_3_vs_4/` already
 runs against both pre- (`b3aaa3e5` worktree) and post-refactor
 checkouts; the harness needs extension rather than rewrite.
 
+**P18. Sparse causal inversion — avoid materializing the full substrate joint**
+
+*Motivation.* The cause-side Bayesian inversion is the one place in the 2.0
+compute path that materializes the full substrate joint distribution.
+`_cause_tpm_factored` (`pyphi/core/tpm/marginalization.py`) builds
+`pr_joint = ∏ᵢ factorᵢ(sₜ)[stateᵢ]` as a dense array of shape
+`∏ alphabet_sizes` — `aⁿ` in the substrate size `n` — to perform the inversion
+`P(sᵢ,ₜ | s_M,ₜ₊₁)` (IIT 4.0 Eq. 4). The forward/effect direction
+(`_effect_tpm_factored`) stays factored and never forms the joint, and the
+repertoire builders (`_cause_repertoire_inner`) are already purview-sized
+(`a^|purview|`). So the `aⁿ` cost is localized to this single cached step — but
+it sets a hard exponential floor on substrate size that is *additional to* the
+subsystem/partition combinatorics. For sparse connectivity the inversion
+factorizes over the connectivity graph, so the dense joint is avoidable.
+(Surfaced during the k-ary cut fix, `7a8efe62`, when characterizing where
+full-dimension factors actually cost anything.)
+
+*Scope / task order.*
+
+1. **Confirm the bottleneck binds.** Using the P17 / P11.8 Tier 2 benchmark
+   harness, measure the `_cause_tpm_factored` `aⁿ` materialization against the
+   subsystem/partition combinatorics across network sizes and connectivity
+   densities. Establish the regime (size × sparsity) where the dense joint, not
+   the partition search, is the binding constraint. If it never binds for
+   tractable sizes, stop here and record the negative result.
+2. **Design the sparse inversion.** Factor the inversion over the connectivity
+   structure (connected components of `cm`, or a junction-tree /
+   belief-propagation formulation) so the joint is never formed densely.
+   Specify the exact algebra against Eq. 4 and the conditions under which it
+   reduces to the dense path.
+3. **Introduce a reduced-dimension factor representation.** Reduced factors
+   (spanning only a node's actual inputs, `a^d·k` with `d` = in-degree) become
+   the natural input and intermediate representation. This relaxes the
+   full-dimension rejection from the factored-TPM contract hardening — the
+   rejection stays the default; sparse mode opts in with explicit input-index
+   labels (the xarray backend already carries axis labels).
+4. **Implement, gated behind exact-parity.** The sparse path must produce
+   byte-identical `cause_tpm` / SIA results to the dense path on every existing
+   golden (the dense path is the oracle). Differences are bugs, not
+   approximations — this is an *exact* optimization.
+5. **Benchmark and document.** Re-run the P17 harness; document the achieved
+   scaling and the new tractable-size ceiling.
+
+*Why here.* Exact optimization, not approximation, so it is distinct from P16;
+and it is the kind of "bigger rewrite" that P17 explicitly defers to its own
+item. It needs (a) the factored-TPM contract hardening to have established the
+clean full-dimension default it relaxes, (b) the P17 characterization to
+confirm the bottleneck binds before investing, and (c) the P11.8 Tier 2
+benchmark infrastructure. Pairs with P16: exact sparse compute and bounded
+approximation are complementary levers for large networks.
+
+*Files.* `pyphi/core/tpm/marginalization.py` (`_cause_tpm_factored`),
+`pyphi/core/tpm/factored.py` (reduced-factor representation + opt-in
+validation), `pyphi/system.py` (`proper_cause_tpm` and its consumers),
+`benchmarks/iit_3_vs_4/` (scaling measurement).
+
+*Risk.* Medium-high. Touches a correctness-critical hot path — the cause TPM
+feeds every Φ computation — so the exact-parity gate against the dense oracle
+is the primary mitigation. The sparse algebra must handle recurrent/cyclic `cm`
+(not just feed-forward), where naive component factorization breaks and a
+junction-tree / loopy formulation is required.
+
+*Leverage.* Raises the substrate-size ceiling for sparse networks independently
+of approximation, and gives reduced-dimension factors — rejected by default
+under the contract hardening — a principled home.
+
 ---
 
 ## Path-Dependency Graph
