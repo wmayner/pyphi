@@ -1,5 +1,6 @@
-"""Property tests: cause/effect repertoires are canonical-shaped and
-normalized for arbitrary alphabet sizes and connectivity."""
+"""Property tests: cause/effect repertoires match the independent reference,
+are canonical-shaped, and normalized for arbitrary alphabet sizes and
+connectivity."""
 
 import numpy as np
 from hypothesis import given
@@ -10,6 +11,9 @@ from pyphi import Direction
 from pyphi import Substrate
 from pyphi.distribution import repertoire_shape
 from pyphi.system import System
+from pyphi.utils import state_of
+from test.reference.repertoire import ref_cause
+from test.reference.repertoire import ref_effect
 
 
 def _random_substrate(seed, alphabets, dense):
@@ -29,7 +33,7 @@ def _random_substrate(seed, alphabets, dense):
         f /= f.sum(axis=-1, keepdims=True)
         marginals.append(f)
     state_space = tuple(tuple(range(k)) for k in alph)
-    return Substrate(marginals=marginals, state_space=state_space, cm=cm)
+    return marginals, cm, state_space
 
 
 @settings(max_examples=50, deadline=None)
@@ -39,15 +43,21 @@ def _random_substrate(seed, alphabets, dense):
     dense=st.booleans(),
     direction=st.sampled_from([Direction.CAUSE, Direction.EFFECT]),
 )
-def test_repertoire_canonical_shape_and_normalized(seed, alphabets, dense, direction):
-    sub = _random_substrate(seed, alphabets, dense)
+def test_repertoire_matches_reference(seed, alphabets, dense, direction):
+    marginals, cm, state_space = _random_substrate(seed, alphabets, dense)
     n = len(alphabets)
+    alph = tuple(alphabets)
     state = tuple(0 for _ in range(n))
+    sub = Substrate(marginals=marginals, state_space=state_space, cm=cm)
     s = System(substrate=sub, state=state, node_indices=tuple(range(n)))
     mechanism, purview = (0,), (n - 1,)
-    r = s.repertoire(direction, mechanism, purview)
-    expected = repertoire_shape(
-        s.node_indices, purview, alphabet_sizes=sub.factored_tpm.alphabet_sizes
+    got = np.asarray(s.repertoire(direction, mechanism, purview))
+    reffn = ref_cause if direction == Direction.CAUSE else ref_effect
+    mstate = dict(enumerate(state_of(range(n), state)))
+    expected = reffn(marginals, alph, cm, mechanism, mstate, purview, n)
+    assert got.shape == expected.shape
+    assert np.allclose(got, expected, atol=1e-12)
+    assert tuple(got.shape) == tuple(
+        repertoire_shape(s.node_indices, purview, alphabet_sizes=alph)
     )
-    assert r.shape == tuple(expected)
-    assert np.isclose(r.sum(), 1.0)
+    assert np.isclose(got.sum(), 1.0)
