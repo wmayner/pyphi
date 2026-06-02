@@ -124,3 +124,32 @@ def test_repertoires_match_reference_sweep(n, alph, connectivity):
                     assert tuple(got.shape) == tuple(
                         repertoire_shape(range(n), purv, alphabet_sizes=alph)
                     )
+
+
+def test_partition_repertoire_matches_cut_cm_substrate():
+    # A System with a DirectedBipartition applied yields the same repertoire as
+    # a substrate whose cm IS the partition-induced cm. Closes the gap that the
+    # sweep (which builds cut-cm substrates directly) does not exercise
+    # partition.apply_cut itself.
+    from pyphi.models.partitions import DirectedBipartition
+
+    alph = (3, 3, 4)
+    factors, base_cm, state_space = _make_substrate(2028, alph, "dense")
+    state = (0, 0, 0)
+    base = Substrate(
+        marginals=[f.copy() for f in factors], state_space=state_space, cm=base_cm
+    )
+    s = System(substrate=base, state=state, node_indices=(0, 1, 2))
+    part = DirectedBipartition(
+        Direction.EFFECT, from_nodes=(0,), to_nodes=(1, 2), node_labels=s.node_labels
+    )
+    cut_cm = part.apply_cut(base.cm)
+    s_cut = s.apply_cut(part)
+    ref_sub = Substrate(
+        marginals=[f.copy() for f in factors], state_space=state_space, cm=cut_cm
+    )
+    s_ref = System(substrate=ref_sub, state=state, node_indices=(0, 1, 2))
+    for direction in (Direction.CAUSE, Direction.EFFECT):
+        a = np.asarray(s_cut.repertoire(direction, (0,), (2,)))
+        b = np.asarray(s_ref.repertoire(direction, (0,), (2,)))
+        assert np.allclose(a, b, atol=1e-12)
