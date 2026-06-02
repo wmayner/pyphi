@@ -468,7 +468,7 @@ to avoid making config decisions that P10 later reverses.
 - *Leverage:* Massive. Unblocks P5–P10.
 - *Style:* Big-bang at the commit level; optional env-var gate for one release.
 
-**P5. Unify distance metric API — landed except `DistanceResult.__array__` removal**
+**P5. Unify distance metric API — landed**
 
 > **Status (audited 2026-06-02):** Substantially landed — the signed-phi
 > redesign (`models/ria.py`, `phi = positive_part(signed_phi)`; grid3 goldens
@@ -477,8 +477,19 @@ to avoid making config decisions that P10 later reverses.
 > **not** split into the four files described below. Symbols
 > `MechanismRIA.preventative_magnitude` and
 > `SIA.partition_strengthens_specification` were never built (drop them). All
-> `subsystem.py` / `new_big_phi` line references below are dead. **Remaining:**
-> the `DistanceResult.__array__` deprecation/removal.
+> `subsystem.py` / `new_big_phi` line references below are dead.
+>
+> **`DistanceResult.__array__` removal: closed, no action (2026-06-02).** The
+> plan below to deprecate/remove `__array__` rested on a numpy-semantics
+> misunderstanding. Empirically, `__array__` is a no-op for `DistanceResult`:
+> `np.array([results])` already returns a fast `float64` array because
+> `DistanceResult` subclasses `float`, not because of `__array__` (verified
+> against a plain `float` subclass that has no `__array__` — same result). The
+> metadata drop in such a conversion is inherent to float-subclassing and is
+> the expected outcome for named result objects. `__array__` is load-bearing
+> only for the non-float TPM wrappers, and lives on the shared `ArrayLike`
+> base, so there is nothing to remove here. Kept as-is; `values_array()` remains
+> the explicit float-extraction path.
 
 Promote the 4.0-style signature as the single `DistanceMetric.__call__` signature:
 
