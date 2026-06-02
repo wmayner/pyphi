@@ -865,9 +865,12 @@ everything not in the Protocol is free to change. This is why P3 is load-bearing
 
 > **Status (audited 2026-06-02):** Split landed — `models/mechanism.py` →
 > `ria.py` / `mice.py` / `distinction.py` / `distinctions.py` /
-> `state_specification.py` (the plan's `state_spec.py`). **Not delivered:** the
-> proposed `pyphi/models/phi_fold.py` (`PhiFold` model) was never created —
-> re-scope or drop.
+> `state_specification.py` (the plan's `state_spec.py`). **`phi_fold` not
+> delivered, and correctly so:** `PhiFold` is consumed by the matching
+> extension (P14b lists it among the core outputs it consumes), whose external
+> `~/projects/matching/matching/phi_fold.py` is the reference implementation.
+> Bringing it into core belongs with the P14b fold-in, so it is **deferred to
+> P14b** (a 2.1 candidate), not an orphaned P8 gap.
 
 Split `models/mechanism.py` (1216 lines) into `ria.py`, `state_spec.py`, `mice.py`,
 `distinction.py` (new, 4.0-native replacement for `Concept`). Replace hand-rolled
