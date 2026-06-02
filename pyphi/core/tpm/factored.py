@@ -335,6 +335,12 @@ def _validate(factored: FactoredTPM) -> None:
     tol = max(10 ** (-config.numerics.precision), 1e-15)
     for i in range(n):
         f = factored.factor(i)
+        if f.ndim != n + 1:
+            raise exceptions.InvalidTPM(
+                f"factor {i} has {f.ndim - 1} leading axes; expected {n} "
+                f"(one per substrate unit). Factors must be full-dimension "
+                f"(*alphabet_sizes, k_i)."
+            )
         if f.shape[-1] != a[i]:
             raise exceptions.InvalidTPM(
                 f"state_space[{i}] has {a[i]} labels but "

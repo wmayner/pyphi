@@ -311,3 +311,13 @@ def test_factored_tpm_alphabet_sizes_not_constructor_kwarg() -> None:
     f0 = np.full((2, 2, 2), 0.5)
     with pytest.raises(TypeError, match="alphabet_sizes"):
         FactoredTPM(factors=[f0, f0.copy()], alphabet_sizes=(2, 2))  # type: ignore[call-arg]
+
+
+def test_factored_tpm_rejects_reduced_dimension_factor() -> None:
+    # 2-node binary substrate: full-dim factor is (2, 2, 2). A reduced factor
+    # (2, 2) spans only one leading axis and is silently accepted today, then
+    # crashes downstream. It must be rejected at construction.
+    full = np.full((2, 2, 2), 0.5)
+    reduced = np.full((2, 2), 0.5)
+    with pytest.raises(InvalidTPM, match="leading axes"):
+        FactoredTPM(factors=[full, reduced], state_space=((0, 1), (0, 1)))
