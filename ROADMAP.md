@@ -785,7 +785,8 @@ main 2.0 roadmap (P7–P16) ships. Reasoning:
   and a handful of functions. Migration cost won't grow much during the
   rest of the roadmap.
 
-After 2.0 ships, P6b becomes **P17** on the post-2.0 list. graphillion
+After 2.0 ships, P6b becomes a post-2.0 item (the "P17" label it used to
+carry now belongs to the performance-characterization project). graphillion
 bus-factor risk is acknowledged: if graphillion goes unmaintained
 mid-roadmap, P6b promotes back to in-scope.
 
@@ -1518,10 +1519,11 @@ test inventory — that a deliberate re-ordering pass is in order.
    itself, shadow-mode gate, and spec/changelog remain. See Phase F.)*
    Pure feature; P12's alphabet generalization (its dependency) is done.
 
-8. **P14b — Matching/perception fold-in.** Cleanest deferral
-   candidate if the schedule slips: self-contained extension whose
-   public surface is a new top-level package, so a 2.1 release is
-   minimally disruptive.
+8. **P14b — Matching/perception fold-in.** In scope for 2.0 under the
+   completion gate — it brings `phi_fold` into core, closing P8.
+   Self-contained (its public surface is a new top-level package), so
+   it is the cleanest *last-resort* deferral to 2.1 only if the
+   schedule truly slips.
 
 9. **P11.8 Tier 2 + P15 — Surface-freeze bundle.** Benchmark suite
    rewrite, ASV-in-CI, ``jsonify`` retirement, test reorganization,
@@ -1531,7 +1533,11 @@ test inventory — that a deliberate re-ordering pass is in order.
    ``_conf_legacy.py`` confirmed gone), open-PR triage,
    ``migration-2.0.md``. Tier 2 of P11.8 lives here because the
    benchmark rewrite naturally pairs with the docstring/repr/jsonify
-   pass.
+   pass. After the surface freeze, the post-freeze performance items
+   **P17** (characterization) then **P18** (sparse inversion) land —
+   internal-only, so they don't reopen the frozen surface — and the
+   official 2.0 release follows their completion (or their explicit
+   post-2.0 deferral if scoping shows them too large).
 
    **Open subdecision: config storage construct.** ``pyphi.conf``
    today uses frozen :class:`~dataclasses.dataclass` instances for
@@ -2047,9 +2053,15 @@ Codifying one now:
    ii(s)-cap addendum) maps to a named runtime type in PyPhi —
    the "mathematician's acceptance test" from the original
    Verification Plan.
-2. P11.7, P14, P11.8 Tier 1, P12 are landed; P13, P14b, P14d, and
-   P11.8 Tier 2 are landed *or* explicitly deferred to 2.1
-   with a tracking issue.
+2. **The 2.0 release is gated on completing the roadmap, not on a
+   partial ship.** All 2.0-scoped items are *landed* (not merely
+   deferred): P11.7, P14, P11.8 Tier 1 + Tier 2, P12, **P12c, P13,
+   P14b** (which brings `phi_fold` into core, closing P8), **P14d,
+   P15**, and the post-freeze performance work **P17 and P18**. Two
+   carve-outs only: **P16** (approximation framework) is post-2.0, and
+   **P14c** (second AC formalism) is excluded pending Larissa's notes.
+   P17 / P18 may fall back to post-2.0 *only if* initial scoping shows
+   them too large to fit, recorded with a tracking issue.
 3. Goldens (fast + slow) green; Hypothesis property suite green
    at default seed and on a 1000-run nightly; ``test_actual.py``
    is no longer skipped (the macro ``test_macro_system.py`` stays
@@ -2067,6 +2079,13 @@ Codifying one now:
    example with no ``DeprecationWarning`` from internal code paths.
    The version-specific namespaces are ``pyphi.iit4_2023`` /
    ``pyphi.iit4_2026`` (there is no bare ``pyphi.iit4``).
+
+**Sequencing + release:** all surface-affecting work (P12c, P13, P14b,
+P14d) lands before the P15 surface freeze; the post-freeze performance
+items P17 then P18 follow (they are internal-only and do not reopen the
+frozen surface). The **official 2.0 release is cut only after every item
+above is complete** — P16 (post-2.0) and P14c (pending Larissa) are the
+sole carve-outs.
 
 Conditions 1, 4, and 5 together mean the public surface is stable
 enough that 2.1 can be additive — which is the point of releasing
@@ -2486,7 +2505,14 @@ public API surface.
   #116 (pandas circular import — likely resolved by file moves), #130 (visualization
   limit), #134 (Jupyter fix), #117 (benchmarking notebook).
 
-### Phase H — Tractable approximations (future, unlocked by the architecture)
+### Phase H — Performance and approximations
+
+**Release scope:** P17 (performance characterization) and P18 (sparse causal
+inversion) are **in the 2.0 release**, sequenced *after* the P15 surface freeze —
+they are internal-only optimizations and do not reopen the public surface. They
+may fall back to post-2.0 only if initial scoping shows them too large. P16
+(approximation framework) is **post-2.0**: a separate research direction enabled
+by, but not part of, the 2.0 refactor.
 
 **P16. Approximation framework (φ\*, φ_G, and beyond)**
 
