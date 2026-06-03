@@ -84,7 +84,7 @@ from .substrate import Substrate
 from .system import System
 
 # Skip modules that require optional dependencies
-_skip_import = ["visualize", "graphs"]
+_skip_import = ["visualize"]
 
 
 def _import_submodules(package, recursive=True):

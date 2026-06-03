@@ -49,7 +49,6 @@ dependencies = [
 # The 'cluster' extra will be available in v2.0 for Dask-based cluster support.
 # cluster = ["dask[distributed]>=2024.1.0", "dask-jobqueue>=0.8.0"]
 visualize = ["matplotlib", "networkx>=2.6.2", "plotly>=5.8.2", "seaborn"]
-graphs = ["igraph>=0.9.10", "networkx>=2.6.2"]
 caching = ["redis>=2.10.5"]
 # pyemd 2.0 is required for numpy 2.x compatibility on Python 3.13+;
 # 1.x raises ModuleNotFoundError on `pkg_resources` import.
