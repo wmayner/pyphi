@@ -38,7 +38,7 @@ def mean_dynamics(
 
 def simulate(
     tpm: ArrayLike,
-    initial_state: tuple[int] | None = None,
+    initial_state: tuple[int, ...] | None = None,
     timesteps: int | None = 100,
     clamp: Iterable[Mapping] | Mapping | None = None,
     rng: np.random.Generator | None = None,
