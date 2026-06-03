@@ -31,7 +31,7 @@ UNIT_FUNCTIONS = {
 
 
 def build_tpm(
-    unit_functions: str | Callable | Iterable[Callable],
+    unit_functions: str | Callable | Iterable[str | Callable],
     weights: NDArray[Any],
     **kwargs,
 ):
@@ -67,7 +67,7 @@ def build_tpm(
 
 
 def build_substrate(
-    unit_functions: Callable | Iterable[Callable],
+    unit_functions: str | Callable | Iterable[str | Callable],
     weights: NDArray[Any],
     node_labels: NodeLabels | None = None,
     **kwargs,
