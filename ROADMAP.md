@@ -2390,6 +2390,16 @@ design questions requiring a fresh spec.
 
 **P14d. Auxiliary module refresh — substrate generator, visualize, and downstream utilities**
 
+> **Status (2026-06-03), sub-project B (aux hygiene) — done:** Back-filled
+> value-based tests for `substrate_generator/`, `dynamics.py`, `timescale.py`
+> (which exposed and fixed two too-narrow public type hints). Removed the dead,
+> superseded `graphs.py` and the `igraph` extra (its `maximal_independent_sets`
+> was replaced by the graphillion `setset` logic in `combinatorics`/
+> `relations`). The "`dynamics.py` / ising overlap" this entry describes does
+> not exist (`dynamics.py` has no ising code) — nothing to consolidate. The
+> holistic peripheral-API regroup is deferred to a dedicated pre-P15 pass.
+> **Remaining for P14d:** sub-project A (`visualize/` refresh).
+
 The peripheral modules that sit around the core formalism have not had an
 engineering pass during the 2.0 refactor — they were only carried along by the
 rename sweeps (`network_generator → substrate_generator`,
