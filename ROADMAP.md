@@ -2055,13 +2055,15 @@ Codifying one now:
    Verification Plan.
 2. **The 2.0 release is gated on completing the roadmap, not on a
    partial ship.** All 2.0-scoped items are *landed* (not merely
-   deferred): P11.7, P14, P11.8 Tier 1 + Tier 2, P12, **P12c, P13,
+   deferred): P11.7, P14, P11.8 Tier 1 + Tier 2, P12, **P13,
    P14b** (which brings `phi_fold` into core, closing P8), **P14d,
-   P15**, and the post-freeze performance work **P17 and P18**. Two
-   carve-outs only: **P16** (approximation framework) is post-2.0, and
-   **P14c** (second AC formalism) is excluded pending Larissa's notes.
-   P17 / P18 may fall back to post-2.0 *only if* initial scoping shows
-   them too large to fit, recorded with a tracking issue.
+   P15**, and the post-freeze performance work **P17 and P18**.
+   Carve-outs: **P16** (approximation framework) is post-2.0; **P14c**
+   (second AC formalism) is excluded pending Larissa's notes; **P12c**
+   (xarray coord labels) is deferred pending a hands-on xarray
+   evaluation — included only if the maintainer decides it earns its
+   keep. P17 / P18 may fall back to post-2.0 *only if* initial scoping
+   shows them too large to fit, recorded with a tracking issue.
 3. Goldens (fast + slow) green; Hypothesis property suite green
    at default seed and on a 1000-run nightly; ``test_actual.py``
    is no longer skipped (the macro ``test_macro_system.py`` stays
@@ -2080,7 +2082,7 @@ Codifying one now:
    The version-specific namespaces are ``pyphi.iit4_2023`` /
    ``pyphi.iit4_2026`` (there is no bare ``pyphi.iit4``).
 
-**Sequencing + release:** all surface-affecting work (P12c, P13, P14b,
+**Sequencing + release:** all surface-affecting work (P13, P14b,
 P14d) lands before the P15 surface freeze; the post-freeze performance
 items P17 then P18 follow (they are internal-only and do not reopen the
 frozen surface). The **official 2.0 release is cut only after every item
@@ -2130,7 +2132,14 @@ end-to-end correctness; the binary goldens remain byte-identical.
   (`distribution.py`, `node.py`, `measures/distribution.py`) and on the AC path.
 - *Leverage:* Unlocks Gómez-style multivalued research.
 
-**P12c. xarray state_space coord labels**
+**P12c. xarray state_space coord labels — deferred (gate not met)**
+
+> **Status (2026-06-03):** Deferred, not a hard 2.0 requirement. The gate below
+> is unmet — xarray is opt-in (ndarray is the default per P12a's benchmark) and
+> there is no demonstrated demand; the coords would not flow into any
+> computation (the backend returns plain `.values`, so labels only help a user
+> who reaches directly into the `xr.DataArray`). To be revisited only if the
+> maintainer's hands-on xarray evaluation shows it earns inclusion in 2.0.
 
 The xarray backend for `FactoredTPM` (P12a opt-in) uses generic
 ``"in_0", "in_1", ..., "out_i"`` dim names. After P12b adds `state_space`
