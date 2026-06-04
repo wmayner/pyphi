@@ -40,8 +40,6 @@ __all__ = [
 ]
 
 _VIEWS_PENDING = {
-    "simplicial_complex": "the rebuilt 3-D simplicial-complex view (legacy "
-    "version: pyphi.visualize.ces.plot_phi_structure)",
     "scatter": "the relational-role scatter view",
     "matrix": "the relation matrix/heatmap view",
 }
@@ -59,6 +57,8 @@ def plot_phi_structure(
     rank="chain",
     size_by="sum_phi_relations",
     color_by="phi",
+    geometry=None,
+    show=None,
 ):
     """Plot a |CauseEffectStructure|.
 
@@ -67,10 +67,13 @@ def plot_phi_structure(
             and relations).
 
     Keyword Args:
-        view (str): Which rendering of the structure to produce. Currently
+        view (str): Which rendering of the structure to produce.
             ``"lattice"``: an inclusion partial order over the distinctions
             drawn as a 2-D Hasse diagram, with marker size given by each
             distinction's total relation phi and color by its phi.
+            ``"simplicial_complex"``: the 3-D view with cause/effect purviews
+            as vertices, degree-2 relation faces as line segments, and
+            degree-3 faces as triangles.
         theme (Theme): Visual theme.
         node_labels (NodeLabels): Labels for substrate units. Defaults to the
             labels carried by the distinctions.
@@ -91,23 +94,36 @@ def plot_phi_structure(
             ``"phi"``, or ``None`` for uniform markers.
         color_by (str): Marker color encoding: ``"phi"`` or
             ``"sum_phi_relations"``.
+        geometry (SimplicialComplexGeometry): Layout knobs for the
+            simplicial-complex view.
+        show (tuple[str, ...]): Element classes the simplicial-complex view
+            draws. Defaults to all of them.
     """
     if view in _VIEWS_PENDING:
         raise NotImplementedError(
             f"view={view!r} is not implemented yet ({_VIEWS_PENDING[view]})"
         )
-    if view != "lattice":
-        raise ValueError(f"unknown view {view!r}")
-    from .render.lattice import render_lattice
-
     projection = project_phi_structure(ces_, node_labels=node_labels)
-    return render_lattice(
-        projection,
-        theme,
-        fig=fig,
-        layout=layout,
-        order=order,
-        rank=rank,
-        size_by=size_by,
-        color_by=color_by,
-    )
+    if view == "lattice":
+        from .render.lattice import render_lattice
+
+        return render_lattice(
+            projection,
+            theme,
+            fig=fig,
+            layout=layout,
+            order=order,
+            rank=rank,
+            size_by=size_by,
+            color_by=color_by,
+        )
+    if view == "simplicial_complex":
+        from .render.simplicial_complex import render_simplicial_complex
+
+        kwargs = {}
+        if geometry is not None:
+            kwargs["geometry"] = geometry
+        if show is not None:
+            kwargs["show"] = show
+        return render_simplicial_complex(projection, theme, fig=fig, **kwargs)
+    raise ValueError(f"unknown view {view!r}")

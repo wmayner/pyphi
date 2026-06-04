@@ -109,3 +109,23 @@ def test_render_only_distinctions_filters_without_moving(xor_projection):
     sub_meshes = [t for t in sub.data if isinstance(t, go.Mesh3d)]
     if sub_meshes:
         assert len(sub_meshes[0].i) < len(full_mesh.i)
+
+
+def test_plot_phi_structure_simplicial_complex_view():
+    import plotly.graph_objects as go
+
+    from pyphi import examples
+    from pyphi.visualize import plot_phi_structure
+    from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
+
+    ces = examples.xor_system().ces()
+    fig = plot_phi_structure(ces, view="simplicial_complex")
+    assert isinstance(fig, go.Figure)
+    assert len(fig.data) == 6
+    fig = plot_phi_structure(
+        ces,
+        view="simplicial_complex",
+        geometry=SimplicialComplexGeometry(z_spacing=0.3),
+        show=("purviews",),
+    )
+    assert len(fig.data) == 1
