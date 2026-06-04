@@ -115,6 +115,62 @@ def test_projection_inclusion_accessor(xor_projection):
         proj.inclusion("bogus")
 
 
+def test_state_cased_label():
+    from pyphi.labels import NodeLabels
+    from pyphi.visualize.projection import _state_cased_label
+
+    nl = NodeLabels(("A", "B", "C"), (0, 1, 2))
+    assert _state_cased_label((0, 2), (1, 0), nl) == "Ac"
+    assert _state_cased_label((0, 1, 2), (0, 0, 0), nl) == "abc"
+
+
+def test_project_xor_endpoints_exact(xor_projection):
+    eps = xor_projection.endpoints
+    assert len(eps) == 8
+    assert tuple(e.id for e in eps) == tuple(range(8))
+    # Interleaved cause/effect per distinction.
+    assert [e.direction for e in eps] == ["cause", "effect"] * 4
+    assert [e.distinction_id for e in eps] == [0, 0, 1, 1, 2, 2, 3, 3]
+    # d0 = ab: cause over the whole substrate, effect on c.
+    assert eps[0].purview == (0, 1, 2)
+    assert eps[0].purview_state == (0, 0, 0)
+    assert eps[0].phi == pytest.approx(0.5)
+    assert eps[0].label == "abc"
+    assert eps[1].purview == (2,)
+    assert eps[1].phi == pytest.approx(1.0)
+    assert eps[1].label == "c"
+    # d3 = abc: effect phi 2.
+    assert eps[7].purview == (0, 1, 2)
+    assert eps[7].phi == pytest.approx(2.0)
+
+
+def test_project_xor_faces(xor_projection):
+    faces = xor_projection.faces
+    by_degree = {}
+    for f in faces:
+        by_degree.setdefault(f.degree, []).append(f)
+        assert f.degree == len(f.endpoints)
+        assert all(0 <= i < 8 for i in f.endpoints)
+        assert f.phi >= 0
+    assert len(by_degree[2]) == 25
+    assert len(by_degree[3]) == 40
+    assert set(by_degree) == {2, 3}
+    # Known face: cause and effect of d2 (bc) related over unit a.
+    assert any(
+        f.endpoints == (4, 5) and f.phi == pytest.approx(1 / 6) and f.overlap == (0,)
+        for f in by_degree[2]
+    )
+
+
+def test_projection_faces_deterministic(xor_projection):
+    from pyphi import examples
+    from pyphi.visualize.projection import project_phi_structure
+
+    again = project_phi_structure(examples.xor_system().ces())
+    assert again.faces == xor_projection.faces
+    assert again.endpoints == xor_projection.endpoints
+
+
 def test_theme_simplicial_complex_fields():
     from pyphi.visualize.theme import DEFAULT_THEME
 

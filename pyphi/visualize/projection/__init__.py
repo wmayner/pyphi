@@ -14,9 +14,11 @@ from pyphi.labels import NodeLabels
 
 __all__ = [
     "DistinctionNode",
+    "EndpointNode",
     "InclusionOrder",
     "PhiStructureProjection",
     "RelationEdge",
+    "RelationFaceEdge",
     "project_phi_structure",
 ]
 
@@ -42,6 +44,29 @@ class RelationEdge:
     """Plot-ready data for one relation."""
 
     relata: tuple[int, ...]
+    degree: int
+    phi: float
+    overlap: tuple[int, ...]
+
+
+@dataclass(frozen=True)
+class EndpointNode:
+    """Plot-ready data for one side (cause or effect) of a distinction."""
+
+    id: int
+    distinction_id: int
+    direction: str
+    purview: tuple[int, ...]
+    purview_state: tuple[int, ...]
+    phi: float
+    label: str
+
+
+@dataclass(frozen=True)
+class RelationFaceEdge:
+    """Plot-ready data for one degree-2 or degree-3 relation face."""
+
+    endpoints: tuple[int, ...]
     degree: int
     phi: float
     overlap: tuple[int, ...]
@@ -74,6 +99,12 @@ class PhiStructureProjection:
     region/location order of Haun & Tononi 2019, Fig 9), and
     ``purview_union_inclusion`` by strict subset relation on the unions of
     their cause and effect purviews.
+
+    ``endpoints`` carries one node per distinction side, interleaved so
+    that ``endpoints[2 * d + 0]`` is distinction ``d``'s cause and
+    ``endpoints[2 * d + 1]`` its effect. ``faces`` carries the degree-2 and
+    degree-3 relation faces (the drawable simplices), referencing
+    endpoints by id.
     """
 
     nodes: tuple[DistinctionNode, ...]
@@ -81,6 +112,8 @@ class PhiStructureProjection:
     mechanism_inclusion: InclusionOrder
     purview_union_inclusion: InclusionOrder
     node_labels: NodeLabels
+    endpoints: tuple[EndpointNode, ...] = ()
+    faces: tuple[RelationFaceEdge, ...] = ()
 
     def inclusion(self, order: str) -> InclusionOrder:
         """The inclusion order named by ``order``.
@@ -137,6 +170,59 @@ def _unit_indices(units) -> tuple[int, ...]:
     return tuple(sorted(getattr(u, "index", u) for u in units))
 
 
+def _state_cased_label(purview, purview_state, node_labels) -> str:
+    """Purview label with case set by state (upper = ON, lower = OFF)."""
+    return "".join(
+        node_labels.set_case_by_state(node_labels.indices2labels(purview), purview_state)
+    )
+
+
+def _endpoints(distinctions, node_labels) -> tuple[EndpointNode, ...]:
+    endpoints = []
+    for i, d in enumerate(distinctions):
+        for j, (direction, mice) in enumerate(
+            (("cause", d.cause), ("effect", d.effect))
+        ):
+            purview = tuple(mice.purview)
+            state = tuple(mice.purview_state)
+            endpoints.append(
+                EndpointNode(
+                    id=2 * i + j,
+                    distinction_id=i,
+                    direction=direction,
+                    purview=purview,
+                    purview_state=state,
+                    phi=float(mice.phi),
+                    label=_state_cased_label(purview, state, node_labels),
+                )
+            )
+    return tuple(endpoints)
+
+
+def _faces(relations, mechanism_to_id) -> tuple[RelationFaceEdge, ...]:
+    by_degree = relations.faces_by_degree
+    faces = []
+    for degree in (2, 3):
+        for face in by_degree.get(degree, ()):
+            endpoint_ids = tuple(
+                sorted(
+                    2 * mechanism_to_id[tuple(relatum.mechanism)]
+                    + (0 if relatum.direction.name == "CAUSE" else 1)
+                    for relatum in face
+                )
+            )
+            faces.append(
+                RelationFaceEdge(
+                    endpoints=endpoint_ids,
+                    degree=degree,
+                    phi=float(face.phi),
+                    overlap=_unit_indices(face.overlap),
+                )
+            )
+    faces.sort(key=lambda f: (f.degree, f.endpoints, f.phi))
+    return tuple(faces)
+
+
 def project_phi_structure(ces, node_labels=None) -> PhiStructureProjection:
     """Project a |CauseEffectStructure| into plot-ready data."""
     distinctions = list(ces.distinctions)
@@ -181,4 +267,6 @@ def project_phi_structure(ces, node_labels=None) -> PhiStructureProjection:
         mechanism_inclusion=mechanism_inclusion,
         purview_union_inclusion=purview_union_inclusion,
         node_labels=node_labels,
+        endpoints=_endpoints(distinctions, node_labels),
+        faces=_faces(ces.relations, mechanism_to_id),
     )
