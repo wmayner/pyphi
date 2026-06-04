@@ -31,8 +31,11 @@ def test_endpoint_positions(xor_projection):
     assert set(pos) == set(range(8))
     # Deterministic.
     assert pos == _endpoint_positions(xor_projection, geo)
-    # Flat by default.
-    assert all(p[2] == 0.0 for p in pos.values())
+    # By default, z stacks by purview size: size-1 purviews below size-3.
+    assert pos[1][2] < pos[0][2]
+    # Flat when requested.
+    flat = _endpoint_positions(xor_projection, SimplicialComplexGeometry(z_spacing=0.0))
+    assert all(p[2] == 0.0 for p in flat.values())
     # d3's cause/effect share the purview (0,1,2): cause sits -x, effect +x.
     assert pos[6][0] < pos[7][0]
     # Endpoints sharing (purview, direction) are jittered apart:

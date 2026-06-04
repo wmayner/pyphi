@@ -17,10 +17,14 @@ Point = tuple[float, float, float]
 
 @dataclass(frozen=True)
 class SimplicialComplexGeometry:
-    """Plot-space layout knobs for the simplicial-complex view."""
+    """Plot-space layout knobs for the simplicial-complex view.
+
+    ``z_spacing`` stacks the size shells vertically, so height encodes
+    subset size; set it to 0 for a flat (planar) arrangement.
+    """
 
     max_radius: float = 1.0
-    z_spacing: float = 0.0
+    z_spacing: float = 0.4
     direction_offset: float = 0.5
     purview_jitter: float = 0.1
 
@@ -318,7 +322,12 @@ def render_simplicial_complex(
     figure.add_traces(traces)
     axis = {"visible": False}
     figure.update_layout(
-        scene={"xaxis": axis, "yaxis": axis, "zaxis": axis},
+        scene={
+            "xaxis": axis,
+            "yaxis": axis,
+            "zaxis": axis,
+            "aspectmode": "data",
+        },
         paper_bgcolor=theme.background,
         font={"family": theme.font_family},
         showlegend=False,
