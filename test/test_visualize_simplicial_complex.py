@@ -53,3 +53,59 @@ def test_mechanism_positions(xor_projection):
     # abc (size 3) sits on the outermost shell at max_radius.
     x, y, _z = pos[3]
     assert (x**2 + y**2) ** 0.5 == pytest.approx(2.0)
+
+
+def _render(projection, **kwargs):
+    from pyphi.visualize.render.simplicial_complex import render_simplicial_complex
+    from pyphi.visualize.theme import DEFAULT_THEME
+
+    return render_simplicial_complex(projection, DEFAULT_THEME, **kwargs)
+
+
+def test_render_full_figure_structure(xor_projection):
+    import plotly.graph_objects as go
+
+    fig = _render(xor_projection)
+    assert isinstance(fig, go.Figure)
+    # One trace per element class, in declaration order.
+    assert len(fig.data) == 6
+    purviews, mechanisms, ce_links, mp_links, two_faces, mesh = fig.data
+    assert len(purviews.x) == 8
+    assert len(mechanisms.x) == 4
+    # Cause-effect links: (cause, effect, None) per distinction.
+    assert len(ce_links.x) == 3 * 4
+    # Mechanism-purview links: (cause, mechanism, effect, None) per distinction.
+    assert len(mp_links.x) == 4 * 4
+    # 25 degree-2 faces, (a, b, None) each.
+    assert len(two_faces.x) == 3 * 25
+    # 40 degree-3 faces as one mesh.
+    assert isinstance(mesh, go.Mesh3d)
+    assert len(mesh.i) == 40
+    # Endpoint labels present.
+    assert "abc" in purviews.text and "c" in purviews.text
+
+
+def test_render_show_subsetting(xor_projection):
+    fig = _render(xor_projection, show=("purviews",))
+    assert len(fig.data) == 1
+    fig = _render(xor_projection, show=("purviews", "three_faces"))
+    assert len(fig.data) == 2
+    with pytest.raises(ValueError, match="show"):
+        _render(xor_projection, show=("purviews", "bogus"))
+
+
+def test_render_only_distinctions_filters_without_moving(xor_projection):
+    full = _render(xor_projection)
+    sub = _render(xor_projection, only_distinctions={0, 3})
+    full_points = set(zip(full.data[0].x, full.data[0].y, full.data[0].z, strict=True))
+    sub_points = set(zip(sub.data[0].x, sub.data[0].y, sub.data[0].z, strict=True))
+    # 2 distinctions -> 4 endpoints, at unchanged coordinates.
+    assert len(sub_points) == 4
+    assert sub_points <= full_points
+    # Faces restricted to those entirely within the subset.
+    import plotly.graph_objects as go
+
+    full_mesh = next(t for t in full.data if isinstance(t, go.Mesh3d))
+    sub_meshes = [t for t in sub.data if isinstance(t, go.Mesh3d)]
+    if sub_meshes:
+        assert len(sub_meshes[0].i) < len(full_mesh.i)
