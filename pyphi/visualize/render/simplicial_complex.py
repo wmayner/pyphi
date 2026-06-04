@@ -6,6 +6,7 @@ import math
 from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
+from itertools import combinations
 
 import plotly.graph_objects as go
 
@@ -41,24 +42,34 @@ def _polygon_points(n: int, radius: float, z: float) -> list[Point]:
     ]
 
 
-def _shell_positions(
-    subsets: Iterable[tuple[int, ...]], geometry: SimplicialComplexGeometry
+Rings = dict[int, list[tuple[int, ...]]]
+
+_N_ANGULAR_SWEEPS = 4
+
+
+def _rings(subsets: Iterable[tuple[int, ...]]) -> Rings:
+    """Group unique subsets into size rings, members in sorted order."""
+    by_size: Rings = defaultdict(list)
+    for s in sorted(set(subsets)):
+        by_size[len(s)].append(s)
+    return dict(by_size)
+
+
+def _positions_from_rings(
+    rings: Rings, geometry: SimplicialComplexGeometry
 ) -> dict[tuple[int, ...], Point]:
-    """Place each unique subset on the shell for its size.
+    """Place each subset on the shell for its size, in ring order.
 
     Subsets of size k share a circular shell whose radius grows linearly
     with k up to ``max_radius``; within a shell, subsets sit on a regular
-    polygon in sorted order, and a shell with a single subset sits on the
-    central axis. Shells stack in z by ``z_spacing``.
+    polygon in the given ring order, and a shell with a single subset sits
+    on the central axis. Shells stack in z by ``z_spacing``.
     """
-    by_size: dict[int, list[tuple[int, ...]]] = defaultdict(list)
-    for s in sorted(set(subsets)):
-        by_size[len(s)].append(s)
-    sizes = sorted(by_size)
+    sizes = sorted(rings)
     k_max = max(sizes)
     positions: dict[tuple[int, ...], Point] = {}
     for shell_index, k in enumerate(sizes):
-        members = by_size[k]
+        members = rings[k]
         radius = geometry.max_radius * k / k_max
         z = geometry.z_spacing * shell_index
         points = (
@@ -70,8 +81,99 @@ def _shell_positions(
     return positions
 
 
+def _shell_positions(
+    subsets: Iterable[tuple[int, ...]], geometry: SimplicialComplexGeometry
+) -> dict[tuple[int, ...], Point]:
+    """Place each unique subset on the shell for its size, sorted order."""
+    return _positions_from_rings(_rings(subsets), geometry)
+
+
+def _ring_angles(rings: Rings) -> dict[tuple[int, ...], float]:
+    """Polygon angle of each subset on a multi-member ring."""
+    angles: dict[tuple[int, ...], float] = {}
+    for members in rings.values():
+        if len(members) > 1:
+            for k, s in enumerate(members):
+                angles[s] = 2 * math.pi * k / len(members)
+    return angles
+
+
+def _circular_mean(weighted_angles: list[tuple[float, float]]) -> float | None:
+    """Mean direction of (angle, weight) pairs; None if they cancel."""
+    x = sum(w * math.cos(a) for a, w in weighted_angles)
+    y = sum(w * math.sin(a) for a, w in weighted_angles)
+    if math.hypot(x, y) < 1e-12:
+        return None
+    return math.atan2(y, x) % (2 * math.pi)
+
+
+def _subset_graph(
+    projection: PhiStructureProjection,
+) -> dict[tuple[int, ...], dict[tuple[int, ...], float]]:
+    """Weights between purview subsets connected by drawn elements.
+
+    Relation faces and cause-effect links are the edges actually drawn
+    between endpoints; each contributes weight between the (distinct)
+    purview subsets of its endpoints.
+    """
+    graph: dict[tuple[int, ...], dict[tuple[int, ...], float]] = defaultdict(
+        lambda: defaultdict(float)
+    )
+
+    def add(a: tuple[int, ...], b: tuple[int, ...]) -> None:
+        if a != b:
+            graph[a][b] += 1.0
+            graph[b][a] += 1.0
+
+    for face in projection.faces:
+        for i, j in combinations(face.endpoints, 2):
+            add(projection.endpoints[i].purview, projection.endpoints[j].purview)
+    for node in projection.nodes:
+        add(
+            projection.endpoints[2 * node.id].purview,
+            projection.endpoints[2 * node.id + 1].purview,
+        )
+    return graph
+
+
+def _reorder_rings(
+    rings: Rings,
+    graph: dict[tuple[int, ...], dict[tuple[int, ...], float]],
+) -> Rings:
+    """Reorder each ring to put connected subsets at nearby angles.
+
+    Repeated anchored sweeps: each member's target angle is the circular
+    mean of its graph neighbors' current angles (updated sequentially in
+    sorted order for determinism), then the ring is re-spread evenly in
+    target order. An interim heuristic that shortens drawn edges; not a
+    crossing-minimizer.
+    """
+    rings = {size: list(members) for size, members in rings.items()}
+    angles = _ring_angles(rings)
+    for _ in range(_N_ANGULAR_SWEEPS):
+        for size in sorted(rings):
+            members = rings[size]
+            if len(members) < 2:
+                continue
+            targets: dict[tuple[int, ...], float] = {}
+            for s in sorted(members):
+                weighted = [
+                    (angles[t], w) for t, w in graph.get(s, {}).items() if t in angles
+                ]
+                mean = _circular_mean(weighted) if weighted else None
+                targets[s] = angles[s] if mean is None else mean
+                angles[s] = targets[s]
+            members = sorted(members, key=lambda s: (targets[s], s))
+            rings[size] = members
+            for k, s in enumerate(members):
+                angles[s] = 2 * math.pi * k / len(members)
+    return rings
+
+
 def _endpoint_positions(
-    projection: PhiStructureProjection, geometry: SimplicialComplexGeometry
+    projection: PhiStructureProjection,
+    geometry: SimplicialComplexGeometry,
+    base: dict[tuple[int, ...], Point] | None = None,
 ) -> dict[int, Point]:
     """Position each endpoint near its purview's shell point.
 
@@ -79,7 +181,8 @@ def _endpoint_positions(
     ``direction_offset``; endpoints sharing a purview and direction spread
     on a small polygon of radius ``purview_jitter``.
     """
-    base = _shell_positions((e.purview for e in projection.endpoints), geometry)
+    if base is None:
+        base = _shell_positions((e.purview for e in projection.endpoints), geometry)
     groups: dict[tuple[tuple[int, ...], str], list[int]] = defaultdict(list)
     for e in projection.endpoints:
         groups[(e.purview, e.direction)].append(e.id)
@@ -99,11 +202,56 @@ def _endpoint_positions(
 
 
 def _mechanism_positions(
-    projection: PhiStructureProjection, geometry: SimplicialComplexGeometry
+    projection: PhiStructureProjection,
+    geometry: SimplicialComplexGeometry,
+    base: dict[tuple[int, ...], Point] | None = None,
 ) -> dict[int, Point]:
     """Position each distinction's mechanism on its size shell."""
-    base = _shell_positions((n.mechanism for n in projection.nodes), geometry)
+    if base is None:
+        base = _shell_positions((n.mechanism for n in projection.nodes), geometry)
     return {n.id: base[n.mechanism] for n in projection.nodes}
+
+
+def _positions_3d(
+    projection: PhiStructureProjection,
+    geometry: SimplicialComplexGeometry,
+    layout: str = "barycentric",
+) -> tuple[dict[int, Point], dict[int, Point]]:
+    """Endpoint and mechanism positions under the chosen layout.
+
+    ``layout="sorted"`` orders each shell ring lexicographically.
+    ``layout="barycentric"`` reorders purview rings so subsets connected
+    by drawn elements sit at nearby angles, then orders each mechanism
+    ring by the mean angle of its distinction's purviews.
+    """
+    if layout not in ("barycentric", "sorted"):
+        raise ValueError(f"unknown layout {layout!r}")
+    purview_rings = _rings(e.purview for e in projection.endpoints)
+    mechanism_rings = _rings(n.mechanism for n in projection.nodes)
+    if layout == "barycentric":
+        purview_rings = _reorder_rings(purview_rings, _subset_graph(projection))
+        purview_angles = _ring_angles(purview_rings)
+        targets: dict[tuple[int, ...], float] = {}
+        for node in projection.nodes:
+            weighted = [
+                (purview_angles[projection.endpoints[eid].purview], 1.0)
+                for eid in (2 * node.id, 2 * node.id + 1)
+                if projection.endpoints[eid].purview in purview_angles
+            ]
+            mean = _circular_mean(weighted) if weighted else None
+            if mean is not None:
+                targets[node.mechanism] = mean
+        mechanism_rings = {
+            size: sorted(members, key=lambda s: (targets.get(s, 0.0), s))
+            for size, members in mechanism_rings.items()
+        }
+    endpoint_pos = _endpoint_positions(
+        projection, geometry, base=_positions_from_rings(purview_rings, geometry)
+    )
+    mechanism_pos = _mechanism_positions(
+        projection, geometry, base=_positions_from_rings(mechanism_rings, geometry)
+    )
+    return endpoint_pos, mechanism_pos
 
 
 _ELEMENTS = (
@@ -262,6 +410,7 @@ def render_simplicial_complex(
     geometry: SimplicialComplexGeometry | None = None,
     show: tuple[str, ...] = _ELEMENTS,
     only_distinctions: set[int] | None = None,
+    layout: str = "barycentric",
 ) -> go.Figure:
     """Draw the phi-structure as a 3-D simplicial complex.
 
@@ -276,8 +425,7 @@ def render_simplicial_complex(
         raise ValueError(f"unknown show element(s) {sorted(unknown)!r}")
     if geometry is None:
         geometry = SimplicialComplexGeometry()
-    endpoint_pos = _endpoint_positions(projection, geometry)
-    mechanism_pos = _mechanism_positions(projection, geometry)
+    endpoint_pos, mechanism_pos = _positions_3d(projection, geometry, layout=layout)
     included = (
         set(range(len(projection.nodes)))
         if only_distinctions is None

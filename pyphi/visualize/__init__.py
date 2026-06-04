@@ -77,10 +77,12 @@ def plot_phi_structure(
         node_labels (NodeLabels): Labels for substrate units. Defaults to the
             labels carried by the distinctions.
         fig: An existing plotly figure to draw into.
-        layout (str): Horizontal placement within each rank of the lattice
-            view: ``"barycentric"`` orders each rank by the mean position of
-            its cover neighbors to reduce edge crossings; ``"sorted"`` orders
-            by label.
+        layout (str): Within-level ordering. In the lattice view,
+            ``"barycentric"`` orders each rank by the mean position of its
+            cover neighbors to reduce edge crossings; in the
+            simplicial-complex view it orders each shell ring so subsets
+            connected by drawn elements sit at nearby angles, shortening
+            edges. ``"sorted"`` orders by label in both views.
         order (str): Which partial order the lattice view shows:
             ``"mechanism"`` orders distinctions by subset relation on their
             mechanisms; ``"purview_union"`` by subset relation on the unions
@@ -124,7 +126,9 @@ def plot_phi_structure(
             kwargs["geometry"] = geometry
         if show is not None:
             kwargs["show"] = show
-        return render_simplicial_complex(projection, theme, fig=fig, **kwargs)
+        return render_simplicial_complex(
+            projection, theme, fig=fig, layout=layout, **kwargs
+        )
     raise ValueError(f"unknown view {view!r}")
 
 

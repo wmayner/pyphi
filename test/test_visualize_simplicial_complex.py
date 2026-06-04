@@ -63,6 +63,98 @@ def test_mechanism_positions(xor_projection):
         assert (px**2 + py**2) ** 0.5 == pytest.approx(2.0 * 2 / 3)
 
 
+@pytest.fixture
+def antipodal_projection():
+    """Four singleton purviews whose faces pair them antipodally under
+    lexicographic ring placement: (0,)-(2,) and (1,)-(3,). An angular
+    barycentric layout makes each pair adjacent, shortening the faces.
+    """
+    from pyphi.labels import NodeLabels
+    from pyphi.visualize.projection import DistinctionNode
+    from pyphi.visualize.projection import EndpointNode
+    from pyphi.visualize.projection import InclusionOrder
+    from pyphi.visualize.projection import PhiStructureProjection
+    from pyphi.visualize.projection import RelationFaceEdge
+
+    def node(i):
+        return DistinctionNode(
+            id=i,
+            mechanism=(i,),
+            label="abcd"[i],
+            cause_purview=(i,),
+            effect_purview=(i,),
+            mechanism_state=(0,),
+            phi=1.0,
+            sum_phi_relations=0.0,
+            includes=False,
+            included=False,
+        )
+
+    def endpoint(eid, i, direction):
+        return EndpointNode(
+            id=eid,
+            distinction_id=i,
+            direction=direction,
+            purview=(i,),
+            purview_state=(0,),
+            phi=1.0,
+            label="abcd"[i],
+        )
+
+    endpoints = tuple(
+        endpoint(2 * i + j, i, d)
+        for i in range(4)
+        for j, d in enumerate(("cause", "effect"))
+    )
+    faces = (
+        RelationFaceEdge(endpoints=(0, 4), degree=2, phi=1.0, overlap=()),
+        RelationFaceEdge(endpoints=(2, 6), degree=2, phi=1.0, overlap=()),
+    )
+    order = InclusionOrder(covers=((), (), (), ()), rank=(0, 0, 0, 0), size=(1, 1, 1, 1))
+    return PhiStructureProjection(
+        nodes=tuple(node(i) for i in range(4)),
+        edges=(),
+        mechanism_inclusion=order,
+        purview_union_inclusion=order,
+        node_labels=NodeLabels(("A", "B", "C", "D"), (0, 1, 2, 3)),
+        endpoints=endpoints,
+        faces=faces,
+    )
+
+
+def _total_face_length(projection, pos):
+    from itertools import combinations
+
+    total = 0.0
+    for f in projection.faces:
+        for a, b in combinations((pos[i] for i in f.endpoints), 2):
+            total += sum((u - v) ** 2 for u, v in zip(a, b, strict=True)) ** 0.5
+    return total
+
+
+def test_barycentric_layout_shortens_faces(antipodal_projection):
+    from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
+    from pyphi.visualize.render.simplicial_complex import _positions_3d
+
+    geo = SimplicialComplexGeometry()
+    sorted_pos, _ = _positions_3d(antipodal_projection, geo, layout="sorted")
+    bary_pos, _ = _positions_3d(antipodal_projection, geo, layout="barycentric")
+    assert _total_face_length(antipodal_projection, bary_pos) < _total_face_length(
+        antipodal_projection, sorted_pos
+    )
+    # Deterministic.
+    again, _ = _positions_3d(antipodal_projection, geo, layout="barycentric")
+    assert again == bary_pos
+
+
+def test_unknown_3d_layout_raises(antipodal_projection):
+    from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
+    from pyphi.visualize.render.simplicial_complex import _positions_3d
+
+    with pytest.raises(ValueError, match="layout"):
+        _positions_3d(antipodal_projection, SimplicialComplexGeometry(), layout="bogus")
+
+
 def _render(projection, **kwargs):
     from pyphi.visualize.render.simplicial_complex import render_simplicial_complex
     from pyphi.visualize.theme import DEFAULT_THEME
@@ -137,6 +229,10 @@ def test_plot_phi_structure_simplicial_complex_view():
         show=("purviews",),
     )
     assert len(fig.data) == 1
+    # The shared layout knob applies to this view too.
+    for layout in ("barycentric", "sorted"):
+        fig = plot_phi_structure(ces, view="simplicial_complex", layout=layout)
+        assert len(fig.data) == 6
 
 
 def test_highlight_phi_fold_smoke():
