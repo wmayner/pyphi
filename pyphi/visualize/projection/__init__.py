@@ -49,11 +49,11 @@ class RelationEdge:
 
 @dataclass(frozen=True)
 class InclusionOrder:
-    """The purview-inclusion partial order over distinctions.
+    """An inclusion partial order over distinctions.
 
     ``covers[i]`` lists the node ids that node ``i`` directly down-includes
     (the transitive reduction); ``rank[i]`` is the length of the longest
-    down-chain below ``i`` (single-unit "points" have rank 0, the "whole"
+    down-chain below ``i`` (minimal elements have rank 0, the "whole"
     distinction the maximum), so it is monotonic in the partial order and
     suitable as a vertical layout coordinate.
     """
@@ -64,12 +64,32 @@ class InclusionOrder:
 
 @dataclass(frozen=True)
 class PhiStructureProjection:
-    """Everything a renderer needs to draw a phi-structure."""
+    """Everything a renderer needs to draw a phi-structure.
+
+    Two inclusion orders are carried: ``mechanism_inclusion`` orders
+    distinctions by strict subset relation on their mechanisms (the
+    region/location order of Haun & Tononi 2019, Fig 9), and
+    ``purview_union_inclusion`` by strict subset relation on the unions of
+    their cause and effect purviews.
+    """
 
     nodes: tuple[DistinctionNode, ...]
     edges: tuple[RelationEdge, ...]
-    inclusion: InclusionOrder
+    mechanism_inclusion: InclusionOrder
+    purview_union_inclusion: InclusionOrder
     node_labels: NodeLabels
+
+    def inclusion(self, order: str) -> InclusionOrder:
+        """The inclusion order named by ``order``.
+
+        Args:
+            order (str): ``"mechanism"`` or ``"purview_union"``.
+        """
+        if order == "mechanism":
+            return self.mechanism_inclusion
+        if order == "purview_union":
+            return self.purview_union_inclusion
+        raise ValueError(f"unknown order {order!r}")
 
 
 def _sum_phi_relations(n_nodes: int, edges: Sequence[RelationEdge]) -> tuple[float, ...]:
@@ -128,10 +148,13 @@ def project_phi_structure(ces, node_labels=None) -> PhiStructureProjection:
         )
         for relation in ces.relations
     )
+    mechanism_inclusion = _inclusion_order(
+        tuple(frozenset(d.mechanism) for d in distinctions)
+    )
     unions = tuple(
         frozenset(getattr(u, "index", u) for u in d.purview_union) for d in distinctions
     )
-    inclusion = _inclusion_order(unions)
+    purview_union_inclusion = _inclusion_order(unions)
     sums = _sum_phi_relations(len(distinctions), edges)
     nodes = tuple(
         DistinctionNode(
@@ -143,11 +166,15 @@ def project_phi_structure(ces, node_labels=None) -> PhiStructureProjection:
             mechanism_state=tuple(d.mechanism_state),
             phi=float(d.phi),
             sum_phi_relations=sums[i],
-            includes=bool(inclusion.covers[i]),
-            included=any(i in c for c in inclusion.covers),
+            includes=bool(purview_union_inclusion.covers[i]),
+            included=any(i in c for c in purview_union_inclusion.covers),
         )
         for i, d in enumerate(distinctions)
     )
     return PhiStructureProjection(
-        nodes=nodes, edges=edges, inclusion=inclusion, node_labels=node_labels
+        nodes=nodes,
+        edges=edges,
+        mechanism_inclusion=mechanism_inclusion,
+        purview_union_inclusion=purview_union_inclusion,
+        node_labels=node_labels,
     )

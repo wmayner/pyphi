@@ -55,6 +55,7 @@ def plot_phi_structure(
     node_labels=None,
     fig=None,
     layout="barycentric",
+    order="mechanism",
 ):
     """Plot a |CauseEffectStructure|.
 
@@ -64,9 +65,9 @@ def plot_phi_structure(
 
     Keyword Args:
         view (str): Which rendering of the structure to produce. Currently
-            ``"lattice"``: the purview-inclusion partial order drawn as a 2-D
-            Hasse diagram, with marker size given by each distinction's total
-            relation phi and color by its phi.
+            ``"lattice"``: an inclusion partial order over the distinctions
+            drawn as a 2-D Hasse diagram, with marker size given by each
+            distinction's total relation phi and color by its phi.
         theme (Theme): Visual theme.
         node_labels (NodeLabels): Labels for substrate units. Defaults to the
             labels carried by the distinctions.
@@ -75,6 +76,10 @@ def plot_phi_structure(
             view: ``"barycentric"`` orders each rank by the mean position of
             its cover neighbors to reduce edge crossings; ``"sorted"`` orders
             by label.
+        order (str): Which partial order the lattice view shows:
+            ``"mechanism"`` orders distinctions by subset relation on their
+            mechanisms; ``"purview_union"`` by subset relation on the unions
+            of their cause and effect purviews.
     """
     if view in _VIEWS_PENDING:
         raise NotImplementedError(
@@ -85,4 +90,4 @@ def plot_phi_structure(
     from .render.lattice import render_lattice
 
     projection = project_phi_structure(ces_, node_labels=node_labels)
-    return render_lattice(projection, theme, fig=fig, layout=layout)
+    return render_lattice(projection, theme, fig=fig, layout=layout, order=order)

@@ -39,10 +39,12 @@ def crossing_projection():
             included=False,
         )
 
+    order = InclusionOrder(covers=((), (), (1,), (0,)), rank=(0, 0, 1, 1))
     return PhiStructureProjection(
         nodes=(node(0, "a"), node(1, "b"), node(2, "c"), node(3, "d")),
         edges=(),
-        inclusion=InclusionOrder(covers=((), (), (1,), (0,)), rank=(0, 0, 1, 1)),
+        mechanism_inclusion=order,
+        purview_union_inclusion=order,
         node_labels=NodeLabels(("A", "B", "C", "D"), (0, 1, 2, 3)),
     )
 
@@ -50,14 +52,20 @@ def crossing_projection():
 def test_sorted_layout_orders_by_label(crossing_projection):
     from pyphi.visualize.render.lattice import _positions
 
-    pos = _positions(crossing_projection, layout="sorted")
+    pos = _positions(
+        crossing_projection, crossing_projection.mechanism_inclusion, layout="sorted"
+    )
     assert pos[2][0] < pos[3][0]
 
 
 def test_barycentric_layout_uncrosses_edges(crossing_projection):
     from pyphi.visualize.render.lattice import _positions
 
-    pos = _positions(crossing_projection, layout="barycentric")
+    pos = _positions(
+        crossing_projection,
+        crossing_projection.mechanism_inclusion,
+        layout="barycentric",
+    )
     # d (covering a, on the left) moves left of c (covering b, on the right).
     assert pos[3][0] < pos[2][0]
     assert pos[0][0] < pos[1][0]
@@ -70,7 +78,9 @@ def test_unknown_layout_raises(crossing_projection):
     from pyphi.visualize.render.lattice import _positions
 
     with pytest.raises(ValueError, match="layout"):
-        _positions(crossing_projection, layout="bogus")
+        _positions(
+            crossing_projection, crossing_projection.mechanism_inclusion, layout="bogus"
+        )
 
 
 def test_lattice_figure_structure(xor_projection):
@@ -82,12 +92,14 @@ def test_lattice_figure_structure(xor_projection):
     assert len(fig.data) == 2
     edge_trace, node_trace = fig.data
     n = len(xor_projection.nodes)
-    n_edges = sum(len(c) for c in xor_projection.inclusion.covers)
+    n_edges = sum(len(c) for c in xor_projection.mechanism_inclusion.covers)
     # Edge trace: each cover edge contributes (x0, x1, None).
     assert len(edge_trace.x) == 3 * n_edges
     # Node trace: one marker per distinction, y = inclusion rank.
     assert len(node_trace.x) == n
-    assert tuple(node_trace.y) == tuple(float(r) for r in xor_projection.inclusion.rank)
+    assert tuple(node_trace.y) == tuple(
+        float(r) for r in xor_projection.mechanism_inclusion.rank
+    )
     # Hover text mentions each distinction's label.
     for node, text in zip(xor_projection.nodes, node_trace.hovertext, strict=True):
         assert node.label in text
@@ -101,9 +113,21 @@ def test_plot_phi_structure_lattice_view():
 
     ces = examples.xor_system().ces()
     for layout in ("barycentric", "sorted"):
-        fig = plot_phi_structure(ces, view="lattice", layout=layout)
-        assert isinstance(fig, go.Figure)
-        assert len(fig.data) == 2
+        for order in ("mechanism", "purview_union"):
+            fig = plot_phi_structure(ces, view="lattice", layout=layout, order=order)
+            assert isinstance(fig, go.Figure)
+            assert len(fig.data) == 2
+
+
+def test_lattice_order_selects_partial_order(xor_projection):
+    from pyphi.visualize.render.lattice import render_lattice
+    from pyphi.visualize.theme import DEFAULT_THEME
+
+    fig = render_lattice(xor_projection, DEFAULT_THEME, order="purview_union")
+    node_trace = fig.data[1]
+    assert tuple(node_trace.y) == tuple(
+        float(r) for r in xor_projection.purview_union_inclusion.rank
+    )
 
 
 def test_plot_phi_structure_unimplemented_views_raise():

@@ -6,6 +6,7 @@ from collections import defaultdict
 
 import plotly.graph_objects as go
 
+from pyphi.visualize.projection import InclusionOrder
 from pyphi.visualize.projection import PhiStructureProjection
 from pyphi.visualize.theme import Theme
 
@@ -23,7 +24,9 @@ def _spread(order: dict[int, list[int]]) -> dict[int, tuple[float, float]]:
 
 
 def _positions(
-    projection: PhiStructureProjection, layout: str = "barycentric"
+    projection: PhiStructureProjection,
+    inclusion: InclusionOrder,
+    layout: str = "barycentric",
 ) -> dict[int, tuple[float, float]]:
     """Node positions: y = inclusion rank, x spread within each rank.
 
@@ -35,7 +38,7 @@ def _positions(
         raise ValueError(f"unknown layout {layout!r}")
     by_rank: dict[int, list[int]] = defaultdict(list)
     for node in projection.nodes:
-        by_rank[projection.inclusion.rank[node.id]].append(node.id)
+        by_rank[inclusion.rank[node.id]].append(node.id)
     order = {
         rank: sorted(members, key=lambda i: projection.nodes[i].label)
         for rank, members in by_rank.items()
@@ -43,7 +46,7 @@ def _positions(
     if layout == "sorted":
         return _spread(order)
     neighbors: dict[int, list[int]] = defaultdict(list)
-    for a, cov in enumerate(projection.inclusion.covers):
+    for a, cov in enumerate(inclusion.covers):
         for b in cov:
             neighbors[a].append(b)
             neighbors[b].append(a)
@@ -82,12 +85,14 @@ def render_lattice(
     theme: Theme,
     fig: go.Figure | None = None,
     layout: str = "barycentric",
+    order: str = "mechanism",
 ) -> go.Figure:
-    """Draw the inclusion partial order as a 2-D Hasse diagram."""
-    pos = _positions(projection, layout=layout)
+    """Draw an inclusion partial order as a 2-D Hasse diagram."""
+    inclusion = projection.inclusion(order)
+    pos = _positions(projection, inclusion, layout=layout)
     edge_x: list[float | None] = []
     edge_y: list[float | None] = []
-    for a, cov in enumerate(projection.inclusion.covers):
+    for a, cov in enumerate(inclusion.covers):
         for b in cov:
             edge_x += [pos[a][0], pos[b][0], None]
             edge_y += [pos[a][1], pos[b][1], None]

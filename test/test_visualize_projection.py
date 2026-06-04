@@ -90,11 +90,26 @@ def test_project_xor_sum_phi_relations_consistent(xor_projection):
 
 def test_project_xor_inclusion_monotone(xor_projection):
     proj = xor_projection
-    order = proj.inclusion
-    # rank strictly decreases along covers edges.
-    for a, cov in enumerate(order.covers):
-        for b in cov:
-            assert order.rank[a] > order.rank[b]
+    for order in (proj.mechanism_inclusion, proj.purview_union_inclusion):
+        # rank strictly decreases along covers edges.
+        for a, cov in enumerate(order.covers):
+            for b in cov:
+                assert order.rank[a] > order.rank[b]
+
+
+def test_project_xor_mechanism_inclusion_exact(xor_projection):
+    # Mechanisms ab, ac, bc, abc: the pairs are incomparable; abc covers all.
+    order = xor_projection.mechanism_inclusion
+    assert order.covers == ((), (), (), (0, 1, 2))
+    assert order.rank == (0, 0, 0, 1)
+
+
+def test_projection_inclusion_accessor(xor_projection):
+    proj = xor_projection
+    assert proj.inclusion("mechanism") is proj.mechanism_inclusion
+    assert proj.inclusion("purview_union") is proj.purview_union_inclusion
+    with pytest.raises(ValueError, match="order"):
+        proj.inclusion("bogus")
 
 
 def test_theme_frozen_with_defaults():
