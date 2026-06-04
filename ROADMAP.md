@@ -2399,6 +2399,20 @@ design questions requiring a fresh spec.
 > not exist (`dynamics.py` has no ising code) — nothing to consolidate. The
 > holistic peripheral-API regroup is deferred to a dedicated pre-P15 pass.
 > **Remaining for P14d:** sub-project A (`visualize/` refresh).
+>
+> **Status (2026-06-04), sub-project A progress:** A 1–2 done, A 3–4 remain.
+> **A-1 (projection foundation + lattice view) — done:** projection-core
+> architecture (pure `visualize/projection/` → `render/` backends → `view=`
+> dispatch on `plot_phi_structure` + frozen `Theme`); inclusion-lattice
+> (Hasse) view with `order`/`rank`/`layout`/`size_by`/`color_by` options.
+> Semantic knobs are call-site parameters; `Theme` is purely stylistic.
+> **A-2 (3-D simplicial-complex view) — done:** rebuilt on the projection
+> (`view="simplicial_complex"`; endpoint/face projection, shell geometry,
+> `show` element selection), `highlight_phi_fold` reimplemented over it, and
+> the legacy `pyphi/visualize/ces/` package deleted. **Remaining:** A-3
+> (relational-role scatter + relation-matrix views), A-4 (migrate
+> connectivity/distribution/dynamics/ising onto the projection/render
+> pattern). Specs/plans in `docs/superpowers/`.
 
 The peripheral modules that sit around the core formalism have not had an
 engineering pass during the 2.0 refactor — they were only carried along by the
