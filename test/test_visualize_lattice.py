@@ -175,11 +175,10 @@ def test_lattice_order_selects_partial_order(xor_projection):
     )
 
 
-def test_plot_phi_structure_unimplemented_views_raise():
+def test_plot_phi_structure_unknown_view_raises():
     from pyphi import examples
     from pyphi.visualize import plot_phi_structure
 
     ces = examples.xor_system().ces()
-    for view in ("scatter", "matrix"):
-        with pytest.raises(NotImplementedError, match=view):
-            plot_phi_structure(ces, view=view)
+    with pytest.raises(ValueError, match="view"):
+        plot_phi_structure(ces, view="bogus")

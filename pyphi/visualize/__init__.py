@@ -38,11 +38,6 @@ __all__ = [
     "project_phi_structure",
 ]
 
-_VIEWS_PENDING = {
-    "scatter": "the relational-role scatter view",
-    "matrix": "the relation matrix/heatmap view",
-}
-
 
 def plot_phi_structure(
     ces_,
@@ -55,7 +50,7 @@ def plot_phi_structure(
     order="mechanism",
     rank="chain",
     size_by="sum_phi_relations",
-    color_by="phi",
+    color_by=None,
     geometry=None,
     show=None,
 ):
@@ -73,6 +68,11 @@ def plot_phi_structure(
             ``"simplicial_complex"``: the 3-D view with cause/effect purviews
             as vertices, degree-2 relation faces as line segments, and
             degree-3 faces as triangles.
+            ``"scatter"``: distinctions on a deterministic PCA embedding of
+            their unit composition, sized by total relation phi and colored
+            by relational role.
+            ``"matrix"``: a distinctions-by-distinctions heatmap of shared
+            relation phi, with self-relation strength on the diagonal.
         theme (Theme): Visual theme.
         node_labels (NodeLabels): Labels for substrate units. Defaults to the
             labels carried by the distinctions.
@@ -91,19 +91,19 @@ def plot_phi_structure(
             places each distinction at its longest-down-chain rank
             (compact); ``"size"`` at the cardinality of its mechanism or
             purview union, leaving gaps at sizes with no distinctions.
-        size_by (str): Marker size encoding: ``"sum_phi_relations"``,
-            ``"phi"``, or ``None`` for uniform markers.
-        color_by (str): Marker color encoding: ``"phi"`` or
-            ``"sum_phi_relations"``.
+        size_by (str): Marker size encoding (lattice and scatter views):
+            ``"sum_phi_relations"``, ``"phi"``, or ``None`` for uniform
+            markers.
+        color_by (str): Marker color encoding (lattice and scatter views).
+            ``None`` (the default) uses the view's default — ``"phi"`` for
+            the lattice, ``"role"`` for the scatter. Both views accept
+            ``"phi"`` and ``"sum_phi_relations"``; the scatter additionally
+            accepts ``"role"``.
         geometry (SimplicialComplexGeometry): Layout knobs for the
             simplicial-complex view.
         show (tuple[str, ...]): Element classes the simplicial-complex view
             draws. Defaults to all of them.
     """
-    if view in _VIEWS_PENDING:
-        raise NotImplementedError(
-            f"view={view!r} is not implemented yet ({_VIEWS_PENDING[view]})"
-        )
     projection = project_phi_structure(ces_, node_labels=node_labels)
     if view == "lattice":
         from .render.lattice import render_lattice
@@ -116,7 +116,7 @@ def plot_phi_structure(
             order=order,
             rank=rank,
             size_by=size_by,
-            color_by=color_by,
+            color_by="phi" if color_by is None else color_by,
         )
     if view == "simplicial_complex":
         from .render.simplicial_complex import render_simplicial_complex
@@ -129,6 +129,20 @@ def plot_phi_structure(
         return render_simplicial_complex(
             projection, theme, fig=fig, layout=layout, **kwargs
         )
+    if view == "scatter":
+        from .render.scatter import render_scatter
+
+        return render_scatter(
+            projection,
+            theme,
+            fig=fig,
+            size_by=size_by,
+            color_by="role" if color_by is None else color_by,
+        )
+    if view == "matrix":
+        from .render.matrix import render_matrix
+
+        return render_matrix(projection, theme, fig=fig)
     raise ValueError(f"unknown view {view!r}")
 
 

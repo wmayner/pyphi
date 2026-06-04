@@ -170,3 +170,18 @@ def test_matrix_xor_smoke(xor_projection):
     # Pairs (size 2) before abc (size 3).
     assert tuple(trace.x) == ("ab", "ac", "bc", "abc")
     assert len(trace.z) == 4
+
+
+def test_plot_phi_structure_scatter_and_matrix_views():
+    import plotly.graph_objects as go
+
+    from pyphi import examples
+    from pyphi.visualize import plot_phi_structure
+
+    ces = examples.xor_system().ces()
+    fig = plot_phi_structure(ces, view="scatter")
+    assert isinstance(fig.data[0], go.Scatter)
+    fig = plot_phi_structure(ces, view="scatter", color_by="phi")
+    assert tuple(fig.data[0].marker.color) != ()
+    fig = plot_phi_structure(ces, view="matrix")
+    assert isinstance(fig.data[0], go.Heatmap)
