@@ -20,6 +20,11 @@ class Theme:
         ("includes", "#2f6fdb"),
         ("included", "#d85a46"),
     )
+    cause_color: str = "#8D3D00"
+    effect_color: str = "#006146"
+    face_colorscale: str = "Blues"
+    face_opacity: float = 0.2
+    text_size: int = 12
 
 
 DEFAULT_THEME = Theme()

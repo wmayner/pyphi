@@ -115,6 +115,16 @@ def test_projection_inclusion_accessor(xor_projection):
         proj.inclusion("bogus")
 
 
+def test_theme_simplicial_complex_fields():
+    from pyphi.visualize.theme import DEFAULT_THEME
+
+    assert DEFAULT_THEME.cause_color == "#8D3D00"
+    assert DEFAULT_THEME.effect_color == "#006146"
+    assert DEFAULT_THEME.face_colorscale == "Blues"
+    assert 0 < DEFAULT_THEME.face_opacity <= 1
+    assert DEFAULT_THEME.text_size > 0
+
+
 def test_theme_frozen_with_defaults():
     import dataclasses
 
