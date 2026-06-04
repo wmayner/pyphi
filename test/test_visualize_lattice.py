@@ -29,3 +29,25 @@ def test_lattice_figure_structure(xor_projection):
     # Hover text mentions each distinction's label.
     for node, text in zip(xor_projection.nodes, node_trace.hovertext, strict=True):
         assert node.label in text
+
+
+def test_plot_phi_structure_lattice_view():
+    import plotly.graph_objects as go
+
+    from pyphi import examples
+    from pyphi.visualize import plot_phi_structure
+
+    ces = examples.xor_system().ces()
+    fig = plot_phi_structure(ces, view="lattice")
+    assert isinstance(fig, go.Figure)
+    assert len(fig.data) == 2
+
+
+def test_plot_phi_structure_unimplemented_views_raise():
+    from pyphi import examples
+    from pyphi.visualize import plot_phi_structure
+
+    ces = examples.xor_system().ces()
+    for view in ("evocative", "scatter", "matrix"):
+        with pytest.raises(NotImplementedError, match=view):
+            plot_phi_structure(ces, view=view)
