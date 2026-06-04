@@ -107,7 +107,10 @@ Construction notes:
   include `d`.
 - Inclusion is derived from the existing `Distinctions.purview_inclusion(...)`
   helper (`pyphi/models/distinctions.py`) — the same machinery relations
-  computation already uses — not re-implemented. `covers` is the transitive
+  computation already uses — not re-implemented. *(Implementation note: the
+  helper's unit-keyed return shape did not match the distinction-to-distinction
+  order needed, so the implementation derives the order by subset comparison of
+  `purview_union` index-sets instead — same spirit, simpler shape.)* `covers` is the transitive
   reduction; `rank` is the length of the longest down-chain (so the "whole"
   distinction is at the top, single-unit "points" at the bottom).
 - The builder is the **only** code that touches `Distinction`/`Relation`
