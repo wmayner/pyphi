@@ -13,4 +13,8 @@ simplicial-complex view is rebuilt on the same projection
 (`view="simplicial_complex"`, with `show` element selection and a
 `SimplicialComplexGeometry` layout dataclass), `highlight_phi_fold` is
 reimplemented over it, and the legacy `pyphi.visualize.ces` module is
-removed.
+removed. Two further views complete the set: `view="scatter"` (distinctions
+on a deterministic PCA composition embedding, sized by total relation phi,
+colored by relational role, with connectedness symbols) and `view="matrix"`
+(a distinctions-by-distinctions heatmap of shared relation phi, with
+self-relation strength on the diagonal).
