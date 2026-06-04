@@ -38,3 +38,6 @@ dump.rdb
 
 # OpenWolf runtime state (third-party tool; per-clone cache).
 .wolf/
+
+# Superpowers visual-companion brainstorm artifacts
+.superpowers/
