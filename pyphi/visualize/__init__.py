@@ -48,7 +48,13 @@ _VIEWS_PENDING = {
 
 
 def plot_phi_structure(
-    ces_, *, view="lattice", theme=DEFAULT_THEME, node_labels=None, fig=None
+    ces_,
+    *,
+    view="lattice",
+    theme=DEFAULT_THEME,
+    node_labels=None,
+    fig=None,
+    layout="barycentric",
 ):
     """Plot a |CauseEffectStructure|.
 
@@ -65,6 +71,10 @@ def plot_phi_structure(
         node_labels (NodeLabels): Labels for substrate units. Defaults to the
             labels carried by the distinctions.
         fig: An existing plotly figure to draw into.
+        layout (str): Horizontal placement within each rank of the lattice
+            view: ``"barycentric"`` orders each rank by the mean position of
+            its cover neighbors to reduce edge crossings; ``"sorted"`` orders
+            by label.
     """
     if view in _VIEWS_PENDING:
         raise NotImplementedError(
@@ -75,4 +85,4 @@ def plot_phi_structure(
     from .render.lattice import render_lattice
 
     projection = project_phi_structure(ces_, node_labels=node_labels)
-    return render_lattice(projection, theme, fig=fig)
+    return render_lattice(projection, theme, fig=fig, layout=layout)

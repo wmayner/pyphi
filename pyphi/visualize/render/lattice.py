@@ -9,20 +9,63 @@ import plotly.graph_objects as go
 from pyphi.visualize.projection import PhiStructureProjection
 from pyphi.visualize.theme import Theme
 
+_N_BARYCENTRIC_SWEEPS = 4
 
-def _positions(projection: PhiStructureProjection) -> dict[int, tuple[float, float]]:
-    """x spread within each rank (label-sorted), y = inclusion rank."""
+
+def _spread(order: dict[int, list[int]]) -> dict[int, tuple[float, float]]:
+    """Place each rank's nodes evenly spaced and centered, y = rank."""
+    positions: dict[int, tuple[float, float]] = {}
+    for rank, members in order.items():
+        width = len(members) - 1
+        for k, i in enumerate(members):
+            positions[i] = (k - width / 2.0, float(rank))
+    return positions
+
+
+def _positions(
+    projection: PhiStructureProjection, layout: str = "barycentric"
+) -> dict[int, tuple[float, float]]:
+    """Node positions: y = inclusion rank, x spread within each rank.
+
+    ``layout="sorted"`` orders each rank by label. ``layout="barycentric"``
+    starts from label order, then repeatedly reorders each rank by the mean
+    x of each node's cover neighbors, reducing edge crossings.
+    """
+    if layout not in ("barycentric", "sorted"):
+        raise ValueError(f"unknown layout {layout!r}")
     by_rank: dict[int, list[int]] = defaultdict(list)
     for node in projection.nodes:
         by_rank[projection.inclusion.rank[node.id]].append(node.id)
-    positions: dict[int, tuple[float, float]] = {}
-    for rank, members in by_rank.items():
-        ordered = sorted(members, key=lambda i: projection.nodes[i].label)
-        width = len(ordered) - 1
-        for k, i in enumerate(ordered):
-            x = k - width / 2.0
-            positions[i] = (x, float(rank))
-    return positions
+    order = {
+        rank: sorted(members, key=lambda i: projection.nodes[i].label)
+        for rank, members in by_rank.items()
+    }
+    if layout == "sorted":
+        return _spread(order)
+    neighbors: dict[int, list[int]] = defaultdict(list)
+    for a, cov in enumerate(projection.inclusion.covers):
+        for b in cov:
+            neighbors[a].append(b)
+            neighbors[b].append(a)
+    ranks = sorted(order)
+    for sweep in range(_N_BARYCENTRIC_SWEEPS):
+        sweep_ranks = ranks if sweep % 2 == 0 else list(reversed(ranks))
+        # The first rank in the sweep direction stays fixed as the anchor.
+        for rank in sweep_ranks[1:]:
+            xs = _spread(order)
+            key = {
+                i: (
+                    (
+                        sum(xs[j][0] for j in neighbors[i]) / len(neighbors[i])
+                        if neighbors[i]
+                        else xs[i][0]
+                    ),
+                    projection.nodes[i].label,
+                )
+                for i in order[rank]
+            }
+            order[rank] = sorted(order[rank], key=key.__getitem__)
+    return _spread(order)
 
 
 def _node_sizes(projection: PhiStructureProjection, theme: Theme) -> list[float]:
@@ -38,9 +81,10 @@ def render_lattice(
     projection: PhiStructureProjection,
     theme: Theme,
     fig: go.Figure | None = None,
+    layout: str = "barycentric",
 ) -> go.Figure:
     """Draw the inclusion partial order as a 2-D Hasse diagram."""
-    pos = _positions(projection)
+    pos = _positions(projection, layout=layout)
     edge_x: list[float | None] = []
     edge_y: list[float | None] = []
     for a, cov in enumerate(projection.inclusion.covers):
