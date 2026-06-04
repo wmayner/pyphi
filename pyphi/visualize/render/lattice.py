@@ -8,10 +8,11 @@ import plotly.graph_objects as go
 
 from pyphi.visualize.projection import InclusionOrder
 from pyphi.visualize.projection import PhiStructureProjection
+from pyphi.visualize.render.common import CHANNEL_TITLES
+from pyphi.visualize.render.common import rescale
 from pyphi.visualize.theme import Theme
 
 _N_BARYCENTRIC_SWEEPS = 4
-_CHANNELS = {"phi": "φ", "sum_phi_relations": "Σφ_R"}
 
 
 def _spread(order: dict[int, list[int]]) -> dict[int, tuple[float, float]]:
@@ -85,11 +86,7 @@ def _node_sizes(
     smin, smax = theme.node_size_range
     if size_by is None:
         return [(smin + smax) / 2.0] * len(projection.nodes)
-    values = [getattr(n, size_by) for n in projection.nodes]
-    lo, hi = min(values), max(values)
-    if hi == lo:
-        return [(smin + smax) / 2.0] * len(values)
-    return [smin + (v - lo) / (hi - lo) * (smax - smin) for v in values]
+    return rescale([getattr(n, size_by) for n in projection.nodes], smin, smax)
 
 
 def render_lattice(
@@ -103,9 +100,9 @@ def render_lattice(
     color_by: str = "phi",
 ) -> go.Figure:
     """Draw an inclusion partial order as a 2-D Hasse diagram."""
-    if size_by is not None and size_by not in _CHANNELS:
+    if size_by is not None and size_by not in CHANNEL_TITLES:
         raise ValueError(f"unknown size_by {size_by!r}")
-    if color_by not in _CHANNELS:
+    if color_by not in CHANNEL_TITLES:
         raise ValueError(f"unknown color_by {color_by!r}")
     inclusion = projection.inclusion(order)
     pos = _positions(projection, inclusion, layout=layout, rank=rank)
@@ -143,7 +140,7 @@ def render_lattice(
             "size": _node_sizes(projection, theme, size_by),
             "color": [getattr(n, color_by) for n in projection.nodes],
             "colorscale": theme.colorscale,
-            "colorbar": {"title": _CHANNELS[color_by]},
+            "colorbar": {"title": CHANNEL_TITLES[color_by]},
             "line": {"width": 1, "color": "rgba(0,0,0,0.5)"},
         },
         showlegend=False,

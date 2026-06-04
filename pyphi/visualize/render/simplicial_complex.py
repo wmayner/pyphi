@@ -11,6 +11,7 @@ from itertools import combinations
 import plotly.graph_objects as go
 
 from pyphi.visualize.projection import PhiStructureProjection
+from pyphi.visualize.render.common import rescale
 from pyphi.visualize.theme import Theme
 
 Point = tuple[float, float, float]
@@ -264,13 +265,6 @@ _ELEMENTS = (
 )
 
 
-def _rescale(values: list[float], lo: float, hi: float) -> list[float]:
-    vmin, vmax = min(values), max(values)
-    if vmax == vmin:
-        return [(lo + hi) / 2.0] * len(values)
-    return [lo + (v - vmin) / (vmax - vmin) * (hi - lo) for v in values]
-
-
 def _segments(
     paths: Iterable[tuple[Point, ...]],
 ) -> tuple[list[float | None], list[float | None], list[float | None]]:
@@ -315,7 +309,7 @@ def _purview_trace(endpoints, pos, theme):
         hovertext=hover,
         hoverinfo="text",
         marker={
-            "size": _rescale([e.phi for e in endpoints], *theme.node_size_range),
+            "size": rescale([e.phi for e in endpoints], *theme.node_size_range),
             "color": [e.phi for e in endpoints],
             "colorscale": theme.colorscale,
             "showscale": False,

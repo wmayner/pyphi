@@ -19,6 +19,7 @@ class Theme:
         ("extended", "#e6b422"),
         ("includes", "#2f6fdb"),
         ("included", "#d85a46"),
+        ("none", "#b0b0b0"),
     )
     cause_color: str = "#8D3D00"
     effect_color: str = "#006146"

@@ -171,6 +171,13 @@ def test_projection_faces_deterministic(xor_projection):
     assert again.endpoints == xor_projection.endpoints
 
 
+def test_theme_role_colors_cover_none():
+    from pyphi.visualize.theme import DEFAULT_THEME
+
+    roles = dict(DEFAULT_THEME.role_colors)
+    assert set(roles) == {"extended", "includes", "included", "none"}
+
+
 def test_theme_simplicial_complex_fields():
     from pyphi.visualize.theme import DEFAULT_THEME
 
