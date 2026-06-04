@@ -95,3 +95,16 @@ def test_project_xor_inclusion_monotone(xor_projection):
     for a, cov in enumerate(order.covers):
         for b in cov:
             assert order.rank[a] > order.rank[b]
+
+
+def test_theme_frozen_with_defaults():
+    import dataclasses
+
+    from pyphi.visualize.theme import DEFAULT_THEME
+    from pyphi.visualize.theme import Theme
+
+    assert isinstance(DEFAULT_THEME, Theme)
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        DEFAULT_THEME.colorscale = "Plasma"  # type: ignore[misc]
+    dark = dataclasses.replace(DEFAULT_THEME, background="black")
+    assert dark.background == "black" and DEFAULT_THEME.background == "white"
