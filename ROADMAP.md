@@ -2409,8 +2409,11 @@ design questions requiring a fresh spec.
 > **A-2 (3-D simplicial-complex view) — done:** rebuilt on the projection
 > (`view="simplicial_complex"`; endpoint/face projection, shell geometry,
 > `show` element selection), `highlight_phi_fold` reimplemented over it, and
-> the legacy `pyphi/visualize/ces/` package deleted. **Remaining:** A-3
-> (relational-role scatter + relation-matrix views), A-4 (migrate
+> the legacy `pyphi/visualize/ces/` package deleted.
+> **A-3 (scatter + matrix views) — done:** relational-role scatter
+> (deterministic PCA composition embedding, role colors, connectedness
+> symbols) and relation-matrix heatmap; all four `view=` values ship from
+> the one projection. **Remaining:** A-4 (migrate
 > connectivity/distribution/dynamics/ising onto the projection/render
 > pattern). Specs/plans in `docs/superpowers/`.
 
