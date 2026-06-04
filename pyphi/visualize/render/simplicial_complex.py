@@ -25,7 +25,7 @@ class SimplicialComplexGeometry:
 
     max_radius: float = 1.0
     z_spacing: float = 0.4
-    direction_offset: float = 0.5
+    direction_offset: float = 0.3
     purview_jitter: float = 0.1
 
 
@@ -48,7 +48,8 @@ def _shell_positions(
 
     Subsets of size k share a circular shell whose radius grows linearly
     with k up to ``max_radius``; within a shell, subsets sit on a regular
-    polygon in sorted order. Shells stack in z by ``z_spacing``.
+    polygon in sorted order, and a shell with a single subset sits on the
+    central axis. Shells stack in z by ``z_spacing``.
     """
     by_size: dict[int, list[tuple[int, ...]]] = defaultdict(list)
     for s in sorted(set(subsets)):
@@ -60,9 +61,12 @@ def _shell_positions(
         members = by_size[k]
         radius = geometry.max_radius * k / k_max
         z = geometry.z_spacing * shell_index
-        positions.update(
-            zip(members, _polygon_points(len(members), radius, z), strict=True)
+        points = (
+            [(0.0, 0.0, z)]
+            if len(members) == 1
+            else _polygon_points(len(members), radius, z)
         )
+        positions.update(zip(members, points, strict=True))
     return positions
 
 

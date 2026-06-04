@@ -53,9 +53,14 @@ def test_mechanism_positions(xor_projection):
     assert set(pos) == {0, 1, 2, 3}
     # Mechanisms are unique, so all positions distinct.
     assert len(set(pos.values())) == 4
-    # abc (size 3) sits on the outermost shell at max_radius.
+    # abc is the only size-3 mechanism: a single-member shell sits on the
+    # central axis rather than off on its polygon.
     x, y, _z = pos[3]
-    assert (x**2 + y**2) ** 0.5 == pytest.approx(2.0)
+    assert (x, y) == (0.0, 0.0)
+    # The three pairs share the size-2 shell at its radius.
+    for i in (0, 1, 2):
+        px, py, _pz = pos[i]
+        assert (px**2 + py**2) ** 0.5 == pytest.approx(2.0 * 2 / 3)
 
 
 def _render(projection, **kwargs):
