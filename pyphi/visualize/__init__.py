@@ -40,8 +40,8 @@ __all__ = [
 ]
 
 _VIEWS_PENDING = {
-    "evocative": "the rebuilt 3-D simplicial-complex view (legacy version: "
-    "pyphi.visualize.ces.plot_phi_structure)",
+    "simplicial_complex": "the rebuilt 3-D simplicial-complex view (legacy "
+    "version: pyphi.visualize.ces.plot_phi_structure)",
     "scatter": "the relational-role scatter view",
     "matrix": "the relation matrix/heatmap view",
 }

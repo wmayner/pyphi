@@ -1,4 +1,4 @@
-# Evocative 3-D Renderer Rebuild — Design
+# Simplicial-Complex (3-D) Renderer Rebuild — Design
 
 Date: 2026-06-04
 
@@ -7,7 +7,7 @@ Date: 2026-06-04
 Sub-project 2 of the visualize refresh. Sub-project 1 established the
 projection-core architecture (pure `projection/` → `render/` backends → public
 API with `view=` dispatch and a frozen `Theme`) and shipped the lattice view.
-This sub-project rebuilds the *evocative* 3-D simplicial-complex view — the
+This sub-project rebuilds the 3-D simplicial-complex view (named `view="simplicial_complex"`; "complex" alone is avoided since it means maximal-phi system in IIT) — the
 signature phi-structure figure — onto that seam, then deletes the legacy
 implementation (`pyphi/visualize/ces/`, ~895 lines plus its private
 theme/colors/geometry/text/utils modules, all self-contained with no external
@@ -29,7 +29,7 @@ Decisions taken with the maintainer:
 
 ## Goal
 
-`plot_phi_structure(ces, view="evocative")` produces the 3-D
+`plot_phi_structure(ces, view="simplicial_complex")` produces the 3-D
 simplicial-complex figure from the shared projection; `highlight_phi_fold`
 works on the new path; the legacy module is gone.
 
@@ -82,7 +82,7 @@ Construction notes:
   The projection remains the only model-coupling point; it still imports no
   plotting libraries.
 
-### B. Evocative renderer (`pyphi/visualize/render/evocative.py`)
+### B. Simplicial-complex renderer (`pyphi/visualize/render/simplicial_complex.py`)
 
 Pure plot-space geometry plus plotly traces; consumes only projection
 dataclasses and `Theme`.
@@ -98,7 +98,7 @@ Knobs live in a frozen dataclass passed as one parameter:
 
 ```
 @dataclass(frozen=True)
-class EvocativeGeometry:
+class SimplicialComplexGeometry:
     max_radius: float = 1.0
     z_spacing: float = 0.0        # 0 = flat; >0 stacks shells in z
     direction_offset: float = 0.5 # ±x separation of cause/effect clouds
@@ -119,12 +119,13 @@ class EvocativeGeometry:
 Signature:
 
 ```
-def render_evocative(projection, theme, fig=None,
-                     geometry=EvocativeGeometry(),
-                     show=("purviews", "mechanisms", "cause_effect_links",
-                           "mechanism_purview_links", "two_faces",
-                           "three_faces"),
-                     only_distinctions=None) -> go.Figure
+def render_simplicial_complex(projection, theme, fig=None,
+                              geometry=SimplicialComplexGeometry(),
+                              show=("purviews", "mechanisms",
+                                    "cause_effect_links",
+                                    "mechanism_purview_links", "two_faces",
+                                    "three_faces"),
+                              only_distinctions=None) -> go.Figure
 ```
 
 `show` selects element classes (semantic → parameter). `only_distinctions`
@@ -152,10 +153,10 @@ text_size: int = 12
 
 ### D. Public API (`pyphi/visualize/__init__.py`)
 
-- `view="evocative"` dispatches to `render_evocative`;
-  `_VIEWS_PENDING` drops the entry. Evocative-specific parameters
+- `view="simplicial_complex"` dispatches to `render_simplicial_complex`;
+  `_VIEWS_PENDING` drops the entry. View-specific parameters
   (`geometry`, `show`) are accepted by `plot_phi_structure` and documented
-  as applying to the evocative view.
+  as applying to the simplicial-complex view.
 - `highlight_phi_fold(ces_, phi_fold, *, theme=DEFAULT_THEME, ...)`
   reimplemented: project the full structure once, render it with the dimmed
   derived theme, then render again with `only_distinctions` = the fold's
@@ -176,9 +177,9 @@ Recorded deliberately; all accepted by "behavior preservation off the table":
   `colors.type_color`) — φ-colored only. Can return later as a `color_by`
   channel if wanted.
 - **One purview arrangement** (shells). The legacy alternative
-  (`arrange_by_mechanism`) is dropped; `EvocativeGeometry` can grow a
+  (`arrange_by_mechanism`) is dropped; `SimplicialComplexGeometry` can grow a
   placement mode later if needed.
-- **No rotation/translation transform stack** — `EvocativeGeometry`'s four
+- **No rotation/translation transform stack** — `SimplicialComplexGeometry`'s four
   knobs replace the legacy `Coordinates` composition machinery.
 
 ## Testing
@@ -213,7 +214,7 @@ Recorded deliberately; all accepted by "behavior preservation off the table":
 
 ## Success criteria
 
-- `plot_phi_structure(ces, view="evocative")` returns the 3-D figure;
+- `plot_phi_structure(ces, view="simplicial_complex")` returns the 3-D figure;
   `view="lattice"` unaffected.
 - `highlight_phi_fold` works on the new path with aligned overlay.
 - `pyphi/visualize/ces/` deleted; no dangling imports.

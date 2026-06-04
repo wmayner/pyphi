@@ -180,6 +180,6 @@ def test_plot_phi_structure_unimplemented_views_raise():
     from pyphi.visualize import plot_phi_structure
 
     ces = examples.xor_system().ces()
-    for view in ("evocative", "scatter", "matrix"):
+    for view in ("simplicial_complex", "scatter", "matrix"):
         with pytest.raises(NotImplementedError, match=view):
             plot_phi_structure(ces, view=view)
