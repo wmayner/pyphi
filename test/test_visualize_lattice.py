@@ -39,7 +39,9 @@ def crossing_projection():
             included=False,
         )
 
-    order = InclusionOrder(covers=((), (), (1,), (0,)), rank=(0, 0, 1, 1))
+    order = InclusionOrder(
+        covers=((), (), (1,), (0,)), rank=(0, 0, 1, 1), size=(1, 1, 2, 2)
+    )
     return PhiStructureProjection(
         nodes=(node(0, "a"), node(1, "b"), node(2, "c"), node(3, "d")),
         edges=(),
@@ -117,6 +119,49 @@ def test_plot_phi_structure_lattice_view():
             fig = plot_phi_structure(ces, view="lattice", layout=layout, order=order)
             assert isinstance(fig, go.Figure)
             assert len(fig.data) == 2
+
+
+def test_lattice_rank_size_uses_cardinality(xor_projection):
+    from pyphi.visualize.render.lattice import render_lattice
+    from pyphi.visualize.theme import DEFAULT_THEME
+
+    fig = render_lattice(xor_projection, DEFAULT_THEME, rank="size")
+    node_trace = fig.data[1]
+    # Mechanism sizes for ab, ac, bc, abc.
+    assert tuple(node_trace.y) == (2.0, 2.0, 2.0, 3.0)
+
+
+def test_lattice_size_by_and_color_by(xor_projection):
+    from pyphi.visualize.render.lattice import render_lattice
+    from pyphi.visualize.theme import DEFAULT_THEME
+
+    fig = render_lattice(
+        xor_projection, DEFAULT_THEME, size_by="phi", color_by="sum_phi_relations"
+    )
+    node_trace = fig.data[1]
+    phis = [n.phi for n in xor_projection.nodes]
+    sizes = list(node_trace.marker.size)
+    # The largest marker belongs to the highest-phi node.
+    assert sizes.index(max(sizes)) == phis.index(max(phis))
+    assert tuple(node_trace.marker.color) == tuple(
+        n.sum_phi_relations for n in xor_projection.nodes
+    )
+
+    fig = render_lattice(xor_projection, DEFAULT_THEME, size_by=None)
+    node_trace = fig.data[1]
+    assert len(set(node_trace.marker.size)) == 1
+
+
+def test_lattice_invalid_channels_raise(xor_projection):
+    from pyphi.visualize.render.lattice import render_lattice
+    from pyphi.visualize.theme import DEFAULT_THEME
+
+    with pytest.raises(ValueError, match="rank"):
+        render_lattice(xor_projection, DEFAULT_THEME, rank="bogus")
+    with pytest.raises(ValueError, match="size_by"):
+        render_lattice(xor_projection, DEFAULT_THEME, size_by="bogus")
+    with pytest.raises(ValueError, match="color_by"):
+        render_lattice(xor_projection, DEFAULT_THEME, color_by="bogus")
 
 
 def test_lattice_order_selects_partial_order(xor_projection):

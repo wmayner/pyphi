@@ -31,6 +31,8 @@ def test_inclusion_order_exact():
     assert order.covers == ((), (), (0, 1), (2,))
     # rank = longest down-chain: points 0, pair 1, whole 2.
     assert order.rank == (0, 0, 1, 2)
+    # size = cardinality of each set.
+    assert order.size == (1, 1, 2, 3)
 
 
 def test_inclusion_order_equal_unions_no_edge():
@@ -102,6 +104,7 @@ def test_project_xor_mechanism_inclusion_exact(xor_projection):
     order = xor_projection.mechanism_inclusion
     assert order.covers == ((), (), (), (0, 1, 2))
     assert order.rank == (0, 0, 0, 1)
+    assert order.size == (2, 2, 2, 3)
 
 
 def test_projection_inclusion_accessor(xor_projection):

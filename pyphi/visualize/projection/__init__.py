@@ -55,11 +55,14 @@ class InclusionOrder:
     (the transitive reduction); ``rank[i]`` is the length of the longest
     down-chain below ``i`` (minimal elements have rank 0, the "whole"
     distinction the maximum), so it is monotonic in the partial order and
-    suitable as a vertical layout coordinate.
+    suitable as a vertical layout coordinate. ``size[i]`` is the cardinality
+    of the underlying unit set, an alternative vertical coordinate that
+    leaves gaps at sizes with no distinctions.
     """
 
     covers: tuple[tuple[int, ...], ...]
     rank: tuple[int, ...]
+    size: tuple[int, ...]
 
 
 @dataclass(frozen=True)
@@ -101,13 +104,13 @@ def _sum_phi_relations(n_nodes: int, edges: Sequence[RelationEdge]) -> tuple[flo
     return tuple(sums)
 
 
-def _inclusion_order(purview_unions: Sequence[frozenset]) -> InclusionOrder:
-    """Partial order by strict subset relation on purview-unit sets."""
-    n = len(purview_unions)
+def _inclusion_order(unit_sets: Sequence[frozenset]) -> InclusionOrder:
+    """Partial order by strict subset relation on unit sets."""
+    n = len(unit_sets)
     below: list[set[int]] = [set() for _ in range(n)]
     for a in range(n):
         for b in range(n):
-            if a != b and purview_unions[b] < purview_unions[a]:
+            if a != b and unit_sets[b] < unit_sets[a]:
                 below[a].add(b)
     covers = tuple(
         tuple(
@@ -125,7 +128,8 @@ def _inclusion_order(purview_unions: Sequence[frozenset]) -> InclusionOrder:
         return memo[a]
 
     rank = tuple(longest_chain(a) for a in range(n))
-    return InclusionOrder(covers=covers, rank=rank)
+    size = tuple(len(s) for s in unit_sets)
+    return InclusionOrder(covers=covers, rank=rank, size=size)
 
 
 def _unit_indices(units) -> tuple[int, ...]:

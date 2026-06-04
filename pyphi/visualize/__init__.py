@@ -56,6 +56,9 @@ def plot_phi_structure(
     fig=None,
     layout="barycentric",
     order="mechanism",
+    rank="chain",
+    size_by="sum_phi_relations",
+    color_by="phi",
 ):
     """Plot a |CauseEffectStructure|.
 
@@ -80,6 +83,14 @@ def plot_phi_structure(
             ``"mechanism"`` orders distinctions by subset relation on their
             mechanisms; ``"purview_union"`` by subset relation on the unions
             of their cause and effect purviews.
+        rank (str): Vertical placement in the lattice view: ``"chain"``
+            places each distinction at its longest-down-chain rank
+            (compact); ``"size"`` at the cardinality of its mechanism or
+            purview union, leaving gaps at sizes with no distinctions.
+        size_by (str): Marker size encoding: ``"sum_phi_relations"``,
+            ``"phi"``, or ``None`` for uniform markers.
+        color_by (str): Marker color encoding: ``"phi"`` or
+            ``"sum_phi_relations"``.
     """
     if view in _VIEWS_PENDING:
         raise NotImplementedError(
@@ -90,4 +101,13 @@ def plot_phi_structure(
     from .render.lattice import render_lattice
 
     projection = project_phi_structure(ces_, node_labels=node_labels)
-    return render_lattice(projection, theme, fig=fig, layout=layout, order=order)
+    return render_lattice(
+        projection,
+        theme,
+        fig=fig,
+        layout=layout,
+        order=order,
+        rank=rank,
+        size_by=size_by,
+        color_by=color_by,
+    )
