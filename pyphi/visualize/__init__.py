@@ -14,7 +14,6 @@ except ImportError as exc:
 
 import dataclasses
 
-from . import ces
 from . import ising
 from .connectivity import plot_graph
 from .connectivity import plot_system
@@ -28,7 +27,6 @@ from .theme import Theme
 __all__ = [
     "DEFAULT_THEME",
     "Theme",
-    "ces",
     "highlight_phi_fold",
     "ising",
     "plot_distribution",
