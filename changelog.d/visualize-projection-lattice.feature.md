@@ -8,6 +8,9 @@ distinction phi. Vertical placement is configurable via `rank="chain"`
 (compact) or `rank="size"` (gaps at sizes with no distinctions), horizontal
 placement via `layout="barycentric"` (crossing-reducing, the default) or
 `layout="sorted"` (label order), and the marker encodings via `size_by` and
-`color_by`. A `Theme` dataclass replaces ad-hoc theme overrides. The
-legacy 3-D plot remains available as `pyphi.visualize.ces.plot_phi_structure`
-until its rebuild lands.
+`color_by`. A `Theme` dataclass replaces ad-hoc theme overrides. The 3-D
+simplicial-complex view is rebuilt on the same projection
+(`view="simplicial_complex"`, with `show` element selection and a
+`SimplicialComplexGeometry` layout dataclass), `highlight_phi_fold` is
+reimplemented over it, and the legacy `pyphi.visualize.ces` module is
+removed.
