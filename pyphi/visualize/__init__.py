@@ -12,9 +12,10 @@ except ImportError as exc:
         MissingOptionalDependenciesError.MSG.format(dependencies="visualize")
     ) from exc
 
+import dataclasses
+
 from . import ces
 from . import ising
-from .ces import highlight_phi_fold
 from .connectivity import plot_graph
 from .connectivity import plot_system
 from .distribution import plot_distribution
@@ -127,3 +128,54 @@ def plot_phi_structure(
             kwargs["show"] = show
         return render_simplicial_complex(projection, theme, fig=fig, **kwargs)
     raise ValueError(f"unknown view {view!r}")
+
+
+def highlight_phi_fold(
+    ces_,
+    phi_fold,
+    *,
+    theme=DEFAULT_THEME,
+    node_labels=None,
+    fig=None,
+    geometry=None,
+    show=None,
+):
+    """Plot a |CauseEffectStructure| dimmed, highlighting a phi-fold.
+
+    Args:
+        ces_ (CauseEffectStructure): The full phi-structure.
+        phi_fold: An object with a ``distinctions`` attribute giving the
+            distinctions to highlight; they are matched to the structure's
+            by mechanism.
+
+    Keyword Args:
+        theme (Theme): Visual theme for the highlighted fold; the dimmed
+            background style is derived from it.
+        node_labels (NodeLabels): Labels for substrate units.
+        fig: An existing plotly figure to draw into.
+        geometry (SimplicialComplexGeometry): Layout knobs.
+        show (tuple[str, ...]): Element classes to draw.
+    """
+    from .render.simplicial_complex import render_simplicial_complex
+
+    projection = project_phi_structure(ces_, node_labels=node_labels)
+    dimmed = dataclasses.replace(
+        theme,
+        colorscale="Greys",
+        face_colorscale="Greys",
+        cause_color="#999999",
+        effect_color="#999999",
+        edge_color="rgba(150, 150, 150, 0.2)",
+        face_opacity=theme.face_opacity * 0.25,
+    )
+    kwargs = {}
+    if geometry is not None:
+        kwargs["geometry"] = geometry
+    if show is not None:
+        kwargs["show"] = show
+    figure = render_simplicial_complex(projection, dimmed, fig=fig, **kwargs)
+    fold_mechanisms = {tuple(d.mechanism) for d in phi_fold.distinctions}
+    fold_ids = {n.id for n in projection.nodes if n.mechanism in fold_mechanisms}
+    return render_simplicial_complex(
+        projection, theme, fig=figure, only_distinctions=fold_ids, **kwargs
+    )

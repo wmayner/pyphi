@@ -129,3 +129,22 @@ def test_plot_phi_structure_simplicial_complex_view():
         show=("purviews",),
     )
     assert len(fig.data) == 1
+
+
+def test_highlight_phi_fold_smoke():
+    from types import SimpleNamespace
+
+    from pyphi import examples
+    from pyphi.visualize import highlight_phi_fold
+
+    ces = examples.xor_system().ces()
+    fold = SimpleNamespace(distinctions=list(ces.distinctions)[:2])
+    fig = highlight_phi_fold(ces, fold)
+    # Two passes: dimmed full structure + highlighted fold.
+    assert len(fig.data) == 12
+    # The overlay's endpoint coordinates are a subset of the background's.
+    bg, overlay = fig.data[0], fig.data[6]
+    bg_points = set(zip(bg.x, bg.y, bg.z, strict=True))
+    overlay_points = set(zip(overlay.x, overlay.y, overlay.z, strict=True))
+    assert len(overlay.x) == 4
+    assert overlay_points <= bg_points
