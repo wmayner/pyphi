@@ -13,13 +13,13 @@ from dataclasses import dataclass
 from pyphi.labels import NodeLabels
 
 __all__ = [
+    "CESProjection",
     "DistinctionNode",
     "EndpointNode",
     "InclusionOrder",
-    "PhiStructureProjection",
     "RelationEdge",
     "RelationFaceEdge",
-    "project_phi_structure",
+    "project_ces",
 ]
 
 
@@ -91,8 +91,8 @@ class InclusionOrder:
 
 
 @dataclass(frozen=True)
-class PhiStructureProjection:
-    """Everything a renderer needs to draw a phi-structure.
+class CESProjection:
+    """Everything a renderer needs to draw a cause-effect structure.
 
     Two inclusion orders are carried: ``mechanism_inclusion`` orders
     distinctions by strict subset relation on their mechanisms (the
@@ -223,7 +223,7 @@ def _faces(relations, mechanism_to_id) -> tuple[RelationFaceEdge, ...]:
     return tuple(faces)
 
 
-def project_phi_structure(ces, node_labels=None) -> PhiStructureProjection:
+def project_ces(ces, node_labels=None) -> CESProjection:
     """Project a |CauseEffectStructure| into plot-ready data."""
     distinctions = list(ces.distinctions)
     if node_labels is None:
@@ -261,7 +261,7 @@ def project_phi_structure(ces, node_labels=None) -> PhiStructureProjection:
         )
         for i, d in enumerate(distinctions)
     )
-    return PhiStructureProjection(
+    return CESProjection(
         nodes=nodes,
         edges=edges,
         mechanism_inclusion=mechanism_inclusion,

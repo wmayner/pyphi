@@ -1,4 +1,4 @@
-"""Relation-matrix renderer for phi-structure projections."""
+"""Relation-matrix renderer for CES projections."""
 
 from __future__ import annotations
 
@@ -7,12 +7,12 @@ from itertools import combinations
 import numpy as np
 import plotly.graph_objects as go
 
-from pyphi.visualize.projection import PhiStructureProjection
+from pyphi.visualize.projection import CESProjection
 from pyphi.visualize.theme import Theme
 
 
 def render_matrix(
-    projection: PhiStructureProjection,
+    projection: CESProjection,
     theme: Theme,
     fig: go.Figure | None = None,
 ) -> go.Figure:

@@ -1,4 +1,4 @@
-"""Relational-role scatter renderer for phi-structure projections.
+"""Relational-role scatter renderer for CES projections.
 
 Positions come from a deterministic PCA of each distinction's purview-union
 membership vector — a reproducible stand-in for the t-SNE composition
@@ -12,13 +12,13 @@ from __future__ import annotations
 import numpy as np
 import plotly.graph_objects as go
 
-from pyphi.visualize.projection import PhiStructureProjection
+from pyphi.visualize.projection import CESProjection
 from pyphi.visualize.render.common import CHANNEL_TITLES
 from pyphi.visualize.render.common import rescale
 from pyphi.visualize.theme import Theme
 
 
-def _pca_coords(projection: PhiStructureProjection) -> list[tuple[float, float]]:
+def _pca_coords(projection: CESProjection) -> list[tuple[float, float]]:
     """First two principal components of purview-union composition.
 
     Components are sign-fixed (largest-magnitude loading positive);
@@ -58,7 +58,7 @@ def _role(node) -> str:
     return "none"
 
 
-def _connected(projection: PhiStructureProjection) -> set[int]:
+def _connected(projection: CESProjection) -> set[int]:
     """Ids of distinctions related to at least one other distinction."""
     connected: set[int] = set()
     for e in projection.edges:
@@ -69,7 +69,7 @@ def _connected(projection: PhiStructureProjection) -> set[int]:
 
 
 def render_scatter(
-    projection: PhiStructureProjection,
+    projection: CESProjection,
     theme: Theme,
     fig: go.Figure | None = None,
     size_by: str | None = "sum_phi_relations",

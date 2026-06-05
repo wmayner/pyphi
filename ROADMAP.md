@@ -2398,12 +2398,20 @@ design questions requiring a fresh spec.
 > `relations`). The "`dynamics.py` / ising overlap" this entry describes does
 > not exist (`dynamics.py` has no ising code) — nothing to consolidate. The
 > holistic peripheral-API regroup is deferred to a dedicated pre-P15 pass.
+> Queued for that regroup pass:
+> - Rename `pyphi.visualize.ising.plot` to something specific
+>   (`plot_ising` or similar) — too generic as is.
+> - Revisit `plot_graph` / `plot_system` naming during the regroup.
+> - `plot_ces` should fail with a clear message when given a CES without
+>   relations (e.g. computed under IIT 3.0) instead of an attribute error —
+>   the four structure views all require relations.
+>
 > **Remaining for P14d:** sub-project A (`visualize/` refresh).
 >
 > **Status (2026-06-04), sub-project A progress:** A 1–2 done, A 3–4 remain.
 > **A-1 (projection foundation + lattice view) — done:** projection-core
 > architecture (pure `visualize/projection/` → `render/` backends → `view=`
-> dispatch on `plot_phi_structure` + frozen `Theme`); inclusion-lattice
+> dispatch on `plot_ces` + frozen `Theme`); inclusion-lattice
 > (Hasse) view with `order`/`rank`/`layout`/`size_by`/`color_by` options.
 > Semantic knobs are call-site parameters; `Theme` is purely stylistic.
 > **A-2 (3-D simplicial-complex view) — done:** rebuilt on the projection
@@ -2451,7 +2459,7 @@ tightly coupled. Four problems, in priority order:
   is almost entirely private `_plot_*` helpers (`_plot_purviews`,
   `_plot_cause_effect_links`, `_plot_mechanisms`, `_plot_two_relation_faces`,
   `_plot_three_relation_faces`, and their single/multiple-trace variants)
-  behind two public entry points (`plot_phi_structure`, `highlight_phi_fold`).
+  behind two public entry points (`plot_ces`, `highlight_phi_fold`).
   Split the purview / link / mechanism / relation-face plotting into focused
   submodules alongside the existing `geometry` / `colors` / `theme` / `text`
   split.

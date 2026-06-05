@@ -6,9 +6,9 @@ import pytest
 @pytest.fixture(scope="module")
 def xor_projection():
     from pyphi import examples
-    from pyphi.visualize.projection import project_phi_structure
+    from pyphi.visualize.projection import project_ces
 
-    return project_phi_structure(examples.xor_system().ces())
+    return project_ces(examples.xor_system().ces())
 
 
 def test_geometry_dataclass_frozen():
@@ -70,10 +70,10 @@ def antipodal_projection():
     barycentric layout makes each pair adjacent, shortening the faces.
     """
     from pyphi.labels import NodeLabels
+    from pyphi.visualize.projection import CESProjection
     from pyphi.visualize.projection import DistinctionNode
     from pyphi.visualize.projection import EndpointNode
     from pyphi.visualize.projection import InclusionOrder
-    from pyphi.visualize.projection import PhiStructureProjection
     from pyphi.visualize.projection import RelationFaceEdge
 
     def node(i):
@@ -111,7 +111,7 @@ def antipodal_projection():
         RelationFaceEdge(endpoints=(2, 6), degree=2, phi=1.0, overlap=()),
     )
     order = InclusionOrder(covers=((), (), (), ()), rank=(0, 0, 0, 0), size=(1, 1, 1, 1))
-    return PhiStructureProjection(
+    return CESProjection(
         nodes=tuple(node(i) for i in range(4)),
         edges=(),
         mechanism_inclusion=order,
@@ -211,18 +211,18 @@ def test_render_only_distinctions_filters_without_moving(xor_projection):
         assert len(sub_meshes[0].i) < len(full_mesh.i)
 
 
-def test_plot_phi_structure_simplicial_complex_view():
+def test_plot_ces_simplicial_complex_view():
     import plotly.graph_objects as go
 
     from pyphi import examples
-    from pyphi.visualize import plot_phi_structure
+    from pyphi.visualize import plot_ces
     from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
 
     ces = examples.xor_system().ces()
-    fig = plot_phi_structure(ces, view="simplicial_complex")
+    fig = plot_ces(ces, view="simplicial_complex")
     assert isinstance(fig, go.Figure)
     assert len(fig.data) == 6
-    fig = plot_phi_structure(
+    fig = plot_ces(
         ces,
         view="simplicial_complex",
         geometry=SimplicialComplexGeometry(z_spacing=0.3),
@@ -231,7 +231,7 @@ def test_plot_phi_structure_simplicial_complex_view():
     assert len(fig.data) == 1
     # The shared layout knob applies to this view too.
     for layout in ("barycentric", "sorted"):
-        fig = plot_phi_structure(ces, view="simplicial_complex", layout=layout)
+        fig = plot_ces(ces, view="simplicial_complex", layout=layout)
         assert len(fig.data) == 6
 
 

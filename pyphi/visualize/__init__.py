@@ -21,7 +21,7 @@ from .connectivity import plot_tpm
 from .distribution import plot_distribution
 from .distribution import plot_repertoires
 from .dynamics import plot_dynamics
-from .projection import project_phi_structure
+from .projection import project_ces
 from .theme import DEFAULT_THEME
 from .theme import Theme
 
@@ -30,18 +30,18 @@ __all__ = [
     "Theme",
     "highlight_phi_fold",
     "ising",
+    "plot_ces",
     "plot_distribution",
     "plot_dynamics",
     "plot_graph",
-    "plot_phi_structure",
     "plot_repertoires",
     "plot_system",
     "plot_tpm",
-    "project_phi_structure",
+    "project_ces",
 ]
 
 
-def plot_phi_structure(
+def plot_ces(
     ces_,
     *,
     view="lattice",
@@ -59,8 +59,8 @@ def plot_phi_structure(
     """Plot a |CauseEffectStructure|.
 
     Args:
-        ces_ (CauseEffectStructure): The phi-structure to plot (distinctions
-            and relations).
+        ces_ (CauseEffectStructure): The cause-effect structure to plot
+            (distinctions and relations).
 
     Keyword Args:
         view (str): Which rendering of the structure to produce.
@@ -106,7 +106,7 @@ def plot_phi_structure(
         show (tuple[str, ...]): Element classes the simplicial-complex view
             draws. Defaults to all of them.
     """
-    projection = project_phi_structure(ces_, node_labels=node_labels)
+    projection = project_ces(ces_, node_labels=node_labels)
     if view == "lattice":
         from .render.lattice import render_lattice
 
@@ -161,7 +161,7 @@ def highlight_phi_fold(
     """Plot a |CauseEffectStructure| dimmed, highlighting a phi-fold.
 
     Args:
-        ces_ (CauseEffectStructure): The full phi-structure.
+        ces_ (CauseEffectStructure): The full cause-effect structure.
         phi_fold: An object with a ``distinctions`` attribute giving the
             distinctions to highlight; they are matched to the structure's
             by mechanism.
@@ -176,7 +176,7 @@ def highlight_phi_fold(
     """
     from .render.simplicial_complex import render_simplicial_complex
 
-    projection = project_phi_structure(ces_, node_labels=node_labels)
+    projection = project_ces(ces_, node_labels=node_labels)
     dimmed = dataclasses.replace(
         theme,
         colorscale="Greys",

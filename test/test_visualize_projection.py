@@ -46,10 +46,10 @@ def test_inclusion_order_equal_unions_no_edge():
 @pytest.fixture(scope="module")
 def xor_projection():
     from pyphi import examples
-    from pyphi.visualize.projection import project_phi_structure
+    from pyphi.visualize.projection import project_ces
 
     ces = examples.xor_system().ces()
-    return project_phi_structure(ces)
+    return project_ces(ces)
 
 
 def test_project_xor_nodes(xor_projection):
@@ -164,9 +164,9 @@ def test_project_xor_faces(xor_projection):
 
 def test_projection_faces_deterministic(xor_projection):
     from pyphi import examples
-    from pyphi.visualize.projection import project_phi_structure
+    from pyphi.visualize.projection import project_ces
 
-    again = project_phi_structure(examples.xor_system().ces())
+    again = project_ces(examples.xor_system().ces())
     assert again.faces == xor_projection.faces
     assert again.endpoints == xor_projection.endpoints
 

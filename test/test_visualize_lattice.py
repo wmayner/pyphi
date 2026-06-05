@@ -6,9 +6,9 @@ import pytest
 @pytest.fixture(scope="module")
 def xor_projection():
     from pyphi import examples
-    from pyphi.visualize.projection import project_phi_structure
+    from pyphi.visualize.projection import project_ces
 
-    return project_phi_structure(examples.xor_system().ces())
+    return project_ces(examples.xor_system().ces())
 
 
 @pytest.fixture
@@ -21,9 +21,9 @@ def crossing_projection():
     swaps them.
     """
     from pyphi.labels import NodeLabels
+    from pyphi.visualize.projection import CESProjection
     from pyphi.visualize.projection import DistinctionNode
     from pyphi.visualize.projection import InclusionOrder
-    from pyphi.visualize.projection import PhiStructureProjection
 
     def node(i, label):
         return DistinctionNode(
@@ -42,7 +42,7 @@ def crossing_projection():
     order = InclusionOrder(
         covers=((), (), (1,), (0,)), rank=(0, 0, 1, 1), size=(1, 1, 2, 2)
     )
-    return PhiStructureProjection(
+    return CESProjection(
         nodes=(node(0, "a"), node(1, "b"), node(2, "c"), node(3, "d")),
         edges=(),
         mechanism_inclusion=order,
@@ -107,16 +107,16 @@ def test_lattice_figure_structure(xor_projection):
         assert node.label in text
 
 
-def test_plot_phi_structure_lattice_view():
+def test_plot_ces_lattice_view():
     import plotly.graph_objects as go
 
     from pyphi import examples
-    from pyphi.visualize import plot_phi_structure
+    from pyphi.visualize import plot_ces
 
     ces = examples.xor_system().ces()
     for layout in ("barycentric", "sorted"):
         for order in ("mechanism", "purview_union"):
-            fig = plot_phi_structure(ces, view="lattice", layout=layout, order=order)
+            fig = plot_ces(ces, view="lattice", layout=layout, order=order)
             assert isinstance(fig, go.Figure)
             assert len(fig.data) == 2
 
@@ -175,10 +175,10 @@ def test_lattice_order_selects_partial_order(xor_projection):
     )
 
 
-def test_plot_phi_structure_unknown_view_raises():
+def test_plot_ces_unknown_view_raises():
     from pyphi import examples
-    from pyphi.visualize import plot_phi_structure
+    from pyphi.visualize import plot_ces
 
     ces = examples.xor_system().ces()
     with pytest.raises(ValueError, match="view"):
-        plot_phi_structure(ces, view="bogus")
+        plot_ces(ces, view="bogus")

@@ -6,19 +6,19 @@ import pytest
 @pytest.fixture(scope="module")
 def xor_projection():
     from pyphi import examples
-    from pyphi.visualize.projection import project_phi_structure
+    from pyphi.visualize.projection import project_ces
 
-    return project_phi_structure(examples.xor_system().ces())
+    return project_ces(examples.xor_system().ces())
 
 
 def _make_projection(nodes, edges=()):
     from pyphi.labels import NodeLabels
+    from pyphi.visualize.projection import CESProjection
     from pyphi.visualize.projection import InclusionOrder
-    from pyphi.visualize.projection import PhiStructureProjection
 
     n = len(nodes)
     order = InclusionOrder(covers=((),) * n, rank=(0,) * n, size=(1,) * n)
-    return PhiStructureProjection(
+    return CESProjection(
         nodes=tuple(nodes),
         edges=tuple(edges),
         mechanism_inclusion=order,
@@ -172,16 +172,16 @@ def test_matrix_xor_smoke(xor_projection):
     assert len(trace.z) == 4
 
 
-def test_plot_phi_structure_scatter_and_matrix_views():
+def test_plot_ces_scatter_and_matrix_views():
     import plotly.graph_objects as go
 
     from pyphi import examples
-    from pyphi.visualize import plot_phi_structure
+    from pyphi.visualize import plot_ces
 
     ces = examples.xor_system().ces()
-    fig = plot_phi_structure(ces, view="scatter")
+    fig = plot_ces(ces, view="scatter")
     assert isinstance(fig.data[0], go.Scatter)
-    fig = plot_phi_structure(ces, view="scatter", color_by="phi")
+    fig = plot_ces(ces, view="scatter", color_by="phi")
     assert tuple(fig.data[0].marker.color) != ()
-    fig = plot_phi_structure(ces, view="matrix")
+    fig = plot_ces(ces, view="matrix")
     assert isinstance(fig.data[0], go.Heatmap)

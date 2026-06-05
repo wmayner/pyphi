@@ -1,4 +1,4 @@
-"""Inclusion-lattice (Hasse) renderer for phi-structure projections."""
+"""Inclusion-lattice (Hasse) renderer for CES projections."""
 
 from __future__ import annotations
 
@@ -6,8 +6,8 @@ from collections import defaultdict
 
 import plotly.graph_objects as go
 
+from pyphi.visualize.projection import CESProjection
 from pyphi.visualize.projection import InclusionOrder
-from pyphi.visualize.projection import PhiStructureProjection
 from pyphi.visualize.render.common import CHANNEL_TITLES
 from pyphi.visualize.render.common import rescale
 from pyphi.visualize.theme import Theme
@@ -26,7 +26,7 @@ def _spread(order: dict[int, list[int]]) -> dict[int, tuple[float, float]]:
 
 
 def _positions(
-    projection: PhiStructureProjection,
+    projection: CESProjection,
     inclusion: InclusionOrder,
     layout: str = "barycentric",
     rank: str = "chain",
@@ -81,7 +81,7 @@ def _positions(
 
 
 def _node_sizes(
-    projection: PhiStructureProjection, theme: Theme, size_by: str | None
+    projection: CESProjection, theme: Theme, size_by: str | None
 ) -> list[float]:
     smin, smax = theme.node_size_range
     if size_by is None:
@@ -90,7 +90,7 @@ def _node_sizes(
 
 
 def render_lattice(
-    projection: PhiStructureProjection,
+    projection: CESProjection,
     theme: Theme,
     fig: go.Figure | None = None,
     layout: str = "barycentric",

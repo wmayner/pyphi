@@ -1,4 +1,4 @@
-"""3-D simplicial-complex renderer for phi-structure projections."""
+"""3-D simplicial-complex renderer for CES projections."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from itertools import combinations
 
 import plotly.graph_objects as go
 
-from pyphi.visualize.projection import PhiStructureProjection
+from pyphi.visualize.projection import CESProjection
 from pyphi.visualize.render.common import rescale
 from pyphi.visualize.theme import Theme
 
@@ -109,7 +109,7 @@ def _circular_mean(weighted_angles: list[tuple[float, float]]) -> float | None:
 
 
 def _subset_graph(
-    projection: PhiStructureProjection,
+    projection: CESProjection,
 ) -> dict[tuple[int, ...], dict[tuple[int, ...], float]]:
     """Weights between purview subsets connected by drawn elements.
 
@@ -172,7 +172,7 @@ def _reorder_rings(
 
 
 def _endpoint_positions(
-    projection: PhiStructureProjection,
+    projection: CESProjection,
     geometry: SimplicialComplexGeometry,
     base: dict[tuple[int, ...], Point] | None = None,
 ) -> dict[int, Point]:
@@ -203,7 +203,7 @@ def _endpoint_positions(
 
 
 def _mechanism_positions(
-    projection: PhiStructureProjection,
+    projection: CESProjection,
     geometry: SimplicialComplexGeometry,
     base: dict[tuple[int, ...], Point] | None = None,
 ) -> dict[int, Point]:
@@ -214,7 +214,7 @@ def _mechanism_positions(
 
 
 def _positions_3d(
-    projection: PhiStructureProjection,
+    projection: CESProjection,
     geometry: SimplicialComplexGeometry,
     layout: str = "barycentric",
 ) -> tuple[dict[int, Point], dict[int, Point]]:
@@ -398,7 +398,7 @@ def _three_face_trace(faces, endpoint_pos, theme):
 
 
 def render_simplicial_complex(
-    projection: PhiStructureProjection,
+    projection: CESProjection,
     theme: Theme,
     fig: go.Figure | None = None,
     geometry: SimplicialComplexGeometry | None = None,
@@ -406,7 +406,7 @@ def render_simplicial_complex(
     only_distinctions: set[int] | None = None,
     layout: str = "barycentric",
 ) -> go.Figure:
-    """Draw the phi-structure as a 3-D simplicial complex.
+    """Draw the cause-effect structure as a 3-D simplicial complex.
 
     Purview endpoints are vertices; degree-2 relation faces are line
     segments and degree-3 faces are triangles. Geometry is computed from
