@@ -53,3 +53,12 @@ def test_graphillion_not_loaded_at_pyphi_import() -> None:
         "the GIL on free-threaded Python. Make the import deferred — see "
         "pyphi/combinatorics.py and pyphi/relations.py for the pattern."
     )
+
+
+def test_xarray_backend_not_loaded_at_pyphi_import():
+    """The xarray FactoredTPM backend must load only when requested.
+
+    xarray is an optional extra; an eager import would make ``import
+    pyphi`` fail entirely in environments without it.
+    """
+    assert not _check_module_after_import("pyphi.core.tpm._factored_backends_xarray")

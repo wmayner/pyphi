@@ -83,8 +83,9 @@ from .direction import Direction
 from .substrate import Substrate
 from .system import System
 
-# Skip modules that require optional dependencies
-_skip_import = ["visualize"]
+# Skip modules that require optional dependencies. The xarray FactoredTPM
+# backend is imported lazily when backend="xarray" is requested.
+_skip_import = ["visualize", "_factored_backends_xarray"]
 
 
 def _import_submodules(package, recursive=True):
