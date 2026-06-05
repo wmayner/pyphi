@@ -2413,9 +2413,15 @@ design questions requiring a fresh spec.
 > **A-3 (scatter + matrix views) — done:** relational-role scatter
 > (deterministic PCA composition embedding, role colors, connectedness
 > symbols) and relation-matrix heatmap; all four `view=` values ship from
-> the one projection. **Remaining:** A-4 (migrate
-> connectivity/distribution/dynamics/ising onto the projection/render
-> pattern). Specs/plans in `docs/superpowers/`.
+> the one projection.
+> **A-4 (auxiliary plots) — done:** connectivity/distribution/dynamics/ising
+> brought onto the discipline — data extraction split from figure emission
+> (pure, exact-value tested), `plot_tpm` exported, `plot_dynamics` returns
+> its figure instead of calling `plt.show()`. These remain
+> matplotlib/seaborn by design. Specs/plans in `docs/superpowers/`.
+>
+> **P14d is COMPLETE** (B done 2026-06-03; A-1..A-4 done 2026-06-04). Next
+> per the release gate: P14b.
 
 The peripheral modules that sit around the core formalism have not had an
 engineering pass during the 2.0 refactor — they were only carried along by the
