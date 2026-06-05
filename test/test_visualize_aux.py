@@ -114,3 +114,34 @@ def test_plot_distribution_bars():
     fig, ax = plot_distribution(np.array([0.5, 0.25, 0.125, 0.125]))
     assert sum(len(c) for c in ax.containers) == 4
     plt.close(fig)
+
+
+@pytest.fixture(scope="module")
+def xor_sia(xor_system):
+    return xor_system.sia()
+
+
+def test_repertoire_comparison_values(xor_system, xor_sia):
+    from pyphi.direction import Direction
+    from pyphi.visualize.distribution import _repertoire_comparison
+
+    reps = _repertoire_comparison(xor_system, xor_sia)
+    assert set(reps) == {Direction.CAUSE, Direction.EFFECT}
+    for by_label in reps.values():
+        assert set(by_label) == {"unpartitioned", "partitioned"}
+        for r in by_label.values():
+            assert r.shape == (2, 2, 2)
+    # Partitioning changes the repertoires.
+    cause = reps[Direction.CAUSE]
+    assert not np.allclose(cause["unpartitioned"], cause["partitioned"])
+    # Forward repertoires are unnormalized.
+    assert cause["unpartitioned"].sum() == pytest.approx(2.0)
+
+
+def test_plot_repertoires_smoke(xor_system, xor_sia):
+    from pyphi.visualize.distribution import plot_repertoires
+
+    fig, axes, reps = plot_repertoires(xor_system, xor_sia)
+    assert len(axes) == 2
+    assert len(reps) == 2
+    plt.close(fig)

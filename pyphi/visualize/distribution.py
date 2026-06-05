@@ -156,7 +156,9 @@ def plot_distribution(
     return fig, ax
 
 
-def plot_repertoires(system, sia, **kwargs):
+def _repertoire_comparison(system, sia):
+    """Forward repertoires of the system and its partitioned counterpart,
+    keyed by direction, then by "unpartitioned"/"partitioned"."""
     if config.formalism.iit.mechanism_phi_measure not in [
         "GENERALIZED_INTRINSIC_DIFFERENCE",
         "INTRINSIC_INFORMATION",
@@ -165,11 +167,11 @@ def plot_repertoires(system, sia, **kwargs):
             "Only mechanism_phi_measure = "
             "GENERALIZED_INTRINSIC_DIFFERENCE or INTRINSIC_INFORMATION is supported"
         )
-    cut_system = system.apply_cut(sia.partition)
-
-    labels = ["unpartitioned", "partitioned"]
-    systems = dict(zip(labels, [system, cut_system], strict=False))
-    repertoires = {
+    systems = {
+        "unpartitioned": system,
+        "partitioned": system.apply_cut(sia.partition),
+    }
+    return {
         direction: {
             label: s.forward_repertoire(direction, s.node_indices, s.node_indices)
             for label, s in systems.items()
@@ -177,6 +179,10 @@ def plot_repertoires(system, sia, **kwargs):
         for direction in Direction.both()
     }
 
+
+def plot_repertoires(system, sia, **kwargs):
+    repertoires = _repertoire_comparison(system, sia)
+    labels = ["unpartitioned", "partitioned"]
     fig = plt.figure(figsize=(12, 9))
     axes = fig.subplots(2, 1)
     for ax, direction in zip(axes, Direction.both(), strict=False):
