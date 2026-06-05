@@ -32,18 +32,24 @@ def plot_graph(g, **kwargs):
     )
 
 
-def plot_system(system, **kwargs):
+def _system_graph(system):
+    """Directed graph of the system's connectivity and per-unit colors."""
     g = nx.from_numpy_array(system.cm, create_using=nx.DiGraph)
     nx.relabel_nodes(
         g,
         dict(zip(range(system.substrate.size), system.node_labels, strict=False)),
         copy=False,
     )
-    if "node_color" not in kwargs:
-        kwargs["node_color"] = [
-            NODE_COLORS[(i in system.node_indices, system.state[i])]
-            for i in range(system.substrate.size)
-        ]
+    colors = [
+        NODE_COLORS[(i in system.node_indices, system.state[i])]
+        for i in range(system.substrate.size)
+    ]
+    return g, colors
+
+
+def plot_system(system, **kwargs):
+    g, colors = _system_graph(system)
+    kwargs.setdefault("node_color", colors)
     plot_graph(g, **kwargs)
     return g
 

@@ -17,6 +17,7 @@ import dataclasses
 from . import ising
 from .connectivity import plot_graph
 from .connectivity import plot_system
+from .connectivity import plot_tpm
 from .distribution import plot_distribution
 from .distribution import plot_repertoires
 from .dynamics import plot_dynamics
@@ -35,6 +36,7 @@ __all__ = [
     "plot_phi_structure",
     "plot_repertoires",
     "plot_system",
+    "plot_tpm",
     "project_phi_structure",
 ]
 
