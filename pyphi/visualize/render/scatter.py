@@ -1,13 +1,16 @@
 """Relational-role scatter renderer for CES projections.
 
-Positions come from a deterministic PCA of each distinction's purview-union
-membership vector — a reproducible stand-in for the t-SNE composition
-embedding of Haun & Tononi 2019 (Figs 7-8). Roles are derived from the
-projection's purview-union inclusion flags (the closest computed structure
-to the paper's relation-defined extendedness).
+Positions come from a deterministic PCA of each distinction's composition
+vector (mechanism, cause purview, and effect purview unit memberships) — a
+reproducible stand-in for the t-SNE composition embedding of Haun & Tononi
+2019 (Figs 7-8). Roles are derived from the projection's purview-union
+inclusion flags (the closest computed structure to the paper's
+relation-defined extendedness).
 """
 
 from __future__ import annotations
+
+import math
 
 import numpy as np
 import plotly.graph_objects as go
@@ -19,19 +22,30 @@ from pyphi.visualize.theme import Theme
 
 
 def _pca_coords(projection: CESProjection) -> list[tuple[float, float]]:
-    """First two principal components of purview-union composition.
+    """First two principal components of distinction composition.
 
-    Components are sign-fixed (largest-magnitude loading positive);
-    zero-variance components fall back to spreading nodes evenly by id.
+    Each distinction's vector concatenates the unit memberships of its
+    mechanism, cause purview, and effect purview, so no two distinctions
+    share a vector (mechanisms are unique). Components are sign-fixed
+    (largest-magnitude loading positive); zero-variance components fall
+    back to spreading nodes evenly by id, and points that still project
+    onto the same spot are spread apart on a small circle.
     """
     units = sorted(
-        {u for n in projection.nodes for u in (*n.cause_purview, *n.effect_purview)}
+        {
+            u
+            for n in projection.nodes
+            for u in (*n.mechanism, *n.cause_purview, *n.effect_purview)
+        }
     )
     column = {u: k for k, u in enumerate(units)}
-    members = np.zeros((len(projection.nodes), len(units)))
+    width = len(units)
+    members = np.zeros((len(projection.nodes), 3 * width))
     for n in projection.nodes:
-        for u in set(n.cause_purview) | set(n.effect_purview):
-            members[n.id, column[u]] = 1.0
+        subsets = (n.mechanism, n.cause_purview, n.effect_purview)
+        for block, subset in enumerate(subsets):
+            for u in subset:
+                members[n.id, block * width + column[u]] = 1.0
     centered = members - members.mean(axis=0)
     u_mat, s, vt = np.linalg.svd(centered, full_matrices=False)
     n = len(projection.nodes)
@@ -45,7 +59,31 @@ def _pca_coords(projection: CESProjection) -> list[tuple[float, float]]:
             coords[:, c] = component
         else:
             coords[:, c] = fallback
-    return [(float(x), float(y)) for x, y in coords]
+    return _spread_coincident([(float(x), float(y)) for x, y in coords])
+
+
+def _spread_coincident(
+    coords: list[tuple[float, float]],
+) -> list[tuple[float, float]]:
+    """Spread points sharing (numerically) the same spot on a small circle."""
+    xs = [c[0] for c in coords]
+    ys = [c[1] for c in coords]
+    span = max(max(xs) - min(xs), max(ys) - min(ys)) or 1.0
+    quantum = span * 1e-6
+    groups: dict[tuple[int, int], list[int]] = {}
+    for i, (x, y) in enumerate(coords):
+        groups.setdefault((round(x / quantum), round(y / quantum)), []).append(i)
+    spread = list(coords)
+    radius = 0.03 * span
+    for ids in groups.values():
+        if len(ids) > 1:
+            for k, i in enumerate(ids):
+                angle = 2 * math.pi * k / len(ids)
+                spread[i] = (
+                    coords[i][0] + radius * math.cos(angle),
+                    coords[i][1] + radius * math.sin(angle),
+                )
+    return spread
 
 
 def _role(node) -> str:

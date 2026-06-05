@@ -111,12 +111,12 @@ def test_scatter_positions_deterministic_and_distinct(varied_projection):
     assert len(coords) == 4
 
 
-def test_scatter_degenerate_fallback(xor_projection):
-    # All xor purview unions are identical: PCA variance is zero, the
-    # fallback spreads points by node id.
+def test_scatter_xor_coords_distinct(xor_projection):
+    # All xor purview unions are identical, but mechanisms differ, so the
+    # composition embedding still separates the distinctions.
     trace = _render(xor_projection).data[0]
-    coords = set(zip(trace.x, trace.y, strict=True))
-    assert len(coords) == 4
+    coords = list(zip(trace.x, trace.y, strict=True))
+    assert _min_pairwise_distance(coords) > 0.01 * _span(coords)
     # All roles are "none" and everything is connected.
     from pyphi.visualize.theme import DEFAULT_THEME
 
@@ -185,3 +185,37 @@ def test_plot_ces_scatter_and_matrix_views():
     assert tuple(fig.data[0].marker.color) != ()
     fig = plot_ces(ces, view="matrix")
     assert isinstance(fig.data[0], go.Heatmap)
+
+
+def test_scatter_coincident_points_are_spread():
+    # Two distinctions with identical composition vectors (only possible in
+    # hand-crafted data) land on the same PCA point; the renderer spreads
+    # them apart deterministically so markers and labels stay legible.
+    nodes = [
+        _node(0, "a", (0,)),
+        _node(1, "b", (0,)),  # same mechanism units and purviews as node 0
+        _node(2, "c", (2,)),
+        _node(3, "d", (3,)),
+    ]
+    nodes[1] = nodes[0].__class__(**{**nodes[1].__dict__, "mechanism": (0,)})
+    projection = _make_projection(nodes)
+    trace = _render(projection).data[0]
+    coords = list(zip(trace.x, trace.y, strict=True))
+    assert _min_pairwise_distance(coords) > 0.01 * _span(coords)
+    again = _render(projection).data[0]
+    assert coords == list(zip(again.x, again.y, strict=True))
+
+
+def _span(coords):
+    xs = [c[0] for c in coords]
+    ys = [c[1] for c in coords]
+    return max(max(xs) - min(xs), max(ys) - min(ys))
+
+
+def _min_pairwise_distance(coords):
+    from itertools import combinations
+
+    return min(
+        ((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2) ** 0.5
+        for a, b in combinations(coords, 2)
+    )
