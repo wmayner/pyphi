@@ -67,3 +67,50 @@ def test_plot_tpm_exported_and_labeled():
     assert [t.get_text() for t in ax.get_xticklabels()] == ["00", "10", "01", "11"]
     assert [t.get_text() for t in ax.get_yticklabels()] == ["00", "10", "01", "11"]
     plt.close(fig)
+
+
+def test_distribution_frame_exact():
+    from pyphi.visualize.distribution import _distribution_frame
+
+    d = np.array([0.5, 0.25, 0.125, 0.125])
+    frame, default_label = _distribution_frame([d])
+    assert list(frame["state"]) == ["00", "10", "01", "11"]
+    assert list(frame["probability"]) == [0.5, 0.25, 0.125, 0.125]
+    assert set(frame["hue"]) == {"0"}
+    assert default_label == "AB"
+
+
+def test_distribution_frame_multiple_with_labels():
+    from pyphi.visualize.distribution import _distribution_frame
+
+    d = np.array([0.5, 0.5])
+    frame, _ = _distribution_frame([d, d], labels=["x", "y"])
+    assert len(frame) == 4
+    assert list(frame["hue"]) == ["x", "x", "y", "y"]
+
+
+def test_distribution_frame_validates():
+    from pyphi.visualize.distribution import _distribution_frame
+
+    with pytest.raises(ValueError, match="sum to 1"):
+        _distribution_frame([np.array([0.5, 0.6])])
+    # Disabled validation lets unnormalized data through.
+    frame, _ = _distribution_frame([np.array([0.5, 0.6])], validate=False)
+    assert len(frame) == 2
+
+
+def test_distribution_frame_large_uses_integer_states():
+    from pyphi.visualize.distribution import _distribution_frame
+
+    d = np.full(128, 1 / 128)
+    frame, default_label = _distribution_frame([d])
+    assert default_label is None
+    assert list(frame["state"])[:3] == [0, 1, 2]
+
+
+def test_plot_distribution_bars():
+    from pyphi.visualize import plot_distribution
+
+    fig, ax = plot_distribution(np.array([0.5, 0.25, 0.125, 0.125]))
+    assert sum(len(c) for c in ax.containers) == 4
+    plt.close(fig)

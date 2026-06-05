@@ -21,6 +21,36 @@ def all_states_str(*args, **kwargs):
         yield "".join(map(str, state))
 
 
+def _distribution_frame(
+    distributions, states=None, labels=None, lineplot_threshold=64, validate=True
+):
+    """Tidy frame of probabilities by state and series, plus the default
+    state-space label (unit names) when bit-string states are inferred."""
+    if validate and not all(np.allclose(d.sum(), 1, rtol=1e-4) for d in distributions):
+        raise ValueError("a distribution does not sum to 1!")
+    series = [pd.Series(distribution.flatten(d)) for d in distributions]
+    first = series[0]
+    if validate and not all((first.index == s.index).all() for s in series):
+        raise ValueError("distribution indices do not match")
+    n = log2(np.prod(first.shape))
+    default_label = None
+    if states is None:
+        if n.is_integer() and len(first) <= lineplot_threshold:
+            states = list(all_states_str(int(n)))
+            default_label = string.ascii_uppercase[: int(n)]
+        else:
+            states = np.arange(len(first))
+    if labels is None:
+        labels = list(map(str, range(len(series))))
+    frame = pd.concat(
+        [
+            pd.DataFrame({"probability": s, "state": states, "hue": [lab] * len(s)})
+            for s, lab in zip(series, labels, strict=False)
+        ]
+    ).reset_index(drop=True)
+    return frame, default_label
+
+
 def _plot_distribution_bar(
     data,
     ax,
@@ -94,12 +124,15 @@ def plot_distribution(
             the length of the distribution and assumes little-endian ordering.
         **kwargs: Passed to ``sb.barplot()``.
     """
-    if validate and not all(np.allclose(d.sum(), 1, rtol=1e-4) for d in distributions):
-        raise ValueError("a distribution does not sum to 1!")
-
-    defaults = {}
-    # Overrride defaults with keyword arguments
-    kwargs = {**defaults, **kwargs}
+    data, default_label = _distribution_frame(
+        distributions,
+        states=states,
+        labels=labels,
+        lineplot_threshold=lineplot_threshold,
+        validate=validate,
+    )
+    if label is None:
+        label = default_label
 
     if fig is None and ax is None:
         fig, ax = plt.subplots(figsize=figsize)
@@ -108,35 +141,8 @@ def plot_distribution(
     if ax is None:
         ax = plt.gca()
 
-    distributions = [pd.Series(distribution.flatten(d)) for d in distributions]
-    d = distributions[0]
-
-    if validate and not all(
-        (distributions[0].index == d.index).all() for d in distributions
-    ):
-        raise ValueError("distribution indices do not match")
-
-    N = log2(np.prod(d.shape))
-    if states is None:
-        if N.is_integer() and len(d) <= lineplot_threshold:
-            N = int(N)
-            states = list(all_states_str(N))
-            if label is None:
-                label = string.ascii_uppercase[:N]
-        else:
-            states = np.arange(len(d))
-
-    if labels is None:
-        labels = list(map(str, range(len(distributions))))
-
-    data = pd.concat(
-        [
-            pd.DataFrame({"probability": d, "state": states, "hue": [label] * len(d)})
-            for d, label in zip(distributions, labels, strict=False)
-        ]
-    ).reset_index(drop=True)
-
-    if len(d) > lineplot_threshold:
+    n_points = len(data) // len(distributions)
+    if n_points > lineplot_threshold:
         ax = _plot_distribution_line(data, ax, hue="hue", **kwargs)
     else:
         ax = _plot_distribution_bar(data, ax, label, hue="hue", **kwargs)
