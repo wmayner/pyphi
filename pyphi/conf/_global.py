@@ -432,8 +432,9 @@ class _GlobalConfig:
 
         if field_name in FIELD_TO_LAYER:
             target = FIELD_TO_LAYER[field_name]
+            old_value = _read_via_target(self, target, field_name)
             _write_via_target(self, target, field_name, value)
-            self._fire_field_callback(field_name)
+            self._fire_field_callback(field_name, old_value, value)
             return
 
         if field_name in _LAYER_NAMES:
@@ -447,14 +448,14 @@ class _GlobalConfig:
             "See changelog.d/p10-config-split.refactor.md for the rename map."
         )
 
-    def _fire_field_callback(self, field_name: str) -> None:
+    def _fire_field_callback(self, field_name: str, old: Any, new: Any) -> None:
         if field_name in _LOG_FIELDS:
             infra = self._infrastructure
             configure_logging(
                 infra.log_file, infra.log_file_level, infra.log_stdout_level
             )
         elif field_name == "distinction_phi_normalization":
-            warn_distinction_phi_normalization_change()
+            warn_distinction_phi_normalization_change(old, new)
 
     def _fire_layer_replacement_callbacks(self, old_layer: Any, new_layer: Any) -> None:
         # Walk leaf fields so a top-level FormalismConfig replacement
@@ -472,9 +473,9 @@ class _GlobalConfig:
                     sub_old = getattr(old_val, sub_f.name)
                     sub_new = getattr(new_val, sub_f.name)
                     if sub_old != sub_new:
-                        self._fire_field_callback(sub_f.name)
+                        self._fire_field_callback(sub_f.name, sub_old, sub_new)
             else:
-                self._fire_field_callback(f.name)
+                self._fire_field_callback(f.name, old_val, new_val)
 
 
 class _OverrideContext(contextlib.ContextDecorator):

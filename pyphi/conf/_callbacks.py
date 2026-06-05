@@ -79,15 +79,19 @@ def configure_logging(
     )
 
 
-def warn_distinction_phi_normalization_change() -> None:
+def warn_distinction_phi_normalization_change(old: Any, new: Any) -> None:
     """Warn that cached MICE on existing systems will not reflect the new setting."""
     if not _loaded.value:
         return
     warn(
-        """
-IMPORTANT: Changes to `distinction_phi_normalization` will not be reflected in
-new MICE computations for existing System objects if the MICE have been
-previously computed, since they are cached.
+        f"""
+IMPORTANT: `distinction_phi_normalization` changed: {old!r} -> {new!r}.
+
+The change will not be reflected in new MICE computations for existing
+System objects if the MICE have been previously computed, since they are
+cached. (A scoped `config.override` warns once when it applies the change
+and once more when it restores the previous value on exit; the second
+warning concerns Systems computed inside the block.)
 
 Make sure to call `system.clear_caches()` before re-computing MICE with
 the new setting.

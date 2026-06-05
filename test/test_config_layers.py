@@ -584,3 +584,29 @@ def test_colliding_getattr_error_mentions_dotted_form():
     with pytest.raises(AttributeError) as exc:
         _ = config.mechanism_partition_scheme
     assert 'config["iit.mechanism_partition_scheme"]' in str(exc.value)
+
+
+def test_distinction_phi_normalization_warning_states_transition():
+    """The cache-staleness warning names the value change, so the enter and
+    exit transitions of an override are distinguishable."""
+    import warnings
+
+    import pyphi
+    from pyphi.warnings import PyPhiWarning
+
+    old = pyphi.config.formalism.iit.distinction_phi_normalization
+    assert old == "NUM_CONNECTIONS_CUT"
+    new = "NONE"
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        with pyphi.config.override(**{"iit.distinction_phi_normalization": new}):
+            pass
+    messages = [
+        str(w.message)
+        for w in caught
+        if issubclass(w.category, PyPhiWarning)
+        and "distinction_phi_normalization" in str(w.message)
+    ]
+    assert len(messages) == 2
+    assert f"{old!r} -> {new!r}" in messages[0]
+    assert f"{new!r} -> {old!r}" in messages[1]
