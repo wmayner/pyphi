@@ -62,7 +62,8 @@ def test_plot_tpm_exported_and_labeled():
     image = ax.get_images()[0].get_array()
     assert image is not None
     assert np.array_equal(image, tpm)
-    # 2-bit state labels on both axes.
-    assert [t.get_text() for t in ax.get_xticklabels()] == ["00", "01", "10", "11"]
-    assert [t.get_text() for t in ax.get_yticklabels()] == ["00", "01", "10", "11"]
+    # 2-bit state labels on both axes (little-endian: first unit varies
+    # fastest, per pyphi.utils.all_states).
+    assert [t.get_text() for t in ax.get_xticklabels()] == ["00", "10", "01", "11"]
+    assert [t.get_text() for t in ax.get_yticklabels()] == ["00", "10", "01", "11"]
     plt.close(fig)
