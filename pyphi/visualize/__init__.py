@@ -191,7 +191,9 @@ def highlight_phi_fold(
         kwargs["geometry"] = geometry
     if show is not None:
         kwargs["show"] = show
-    figure = render_simplicial_complex(projection, dimmed, fig=fig, **kwargs)
+    figure = render_simplicial_complex(
+        projection, dimmed, fig=fig, show_colorbars=False, **kwargs
+    )
     fold_mechanisms = {tuple(d.mechanism) for d in phi_fold.distinctions}
     fold_ids = {n.id for n in projection.nodes if n.mechanism in fold_mechanisms}
     return render_simplicial_complex(

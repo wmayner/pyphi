@@ -283,7 +283,7 @@ def _segments(
     return xs, ys, zs
 
 
-def _purview_trace(endpoints, pos, theme):
+def _purview_trace(endpoints, pos, theme, show_colorbar=True):
     hover = [
         (
             f"<b>{e.label}</b> ({e.direction})"
@@ -312,7 +312,8 @@ def _purview_trace(endpoints, pos, theme):
             "size": rescale([e.phi for e in endpoints], *theme.node_size_range),
             "color": [e.phi for e in endpoints],
             "colorscale": theme.colorscale,
-            "showscale": False,
+            "showscale": show_colorbar,
+            "colorbar": {"title": "φ", "x": 1.02, "len": 0.6},
             "line": {"width": 1, "color": "rgba(0,0,0,0.5)"},
         },
         showlegend=False,
@@ -351,7 +352,7 @@ def _link_trace(paths, theme):
     )
 
 
-def _two_face_trace(faces, endpoint_pos, theme):
+def _two_face_trace(faces, endpoint_pos, theme, show_colorbar=True):
     xs, ys, zs = _segments(tuple(endpoint_pos[i] for i in f.endpoints) for f in faces)
     # One color value per vertex, including the None separators.
     colors = [phi for f in faces for phi in [f.phi] * 3]
@@ -369,6 +370,8 @@ def _two_face_trace(faces, endpoint_pos, theme):
             "color": colors,
             "colorscale": theme.face_colorscale,
             "width": 2 * theme.edge_width,
+            "showscale": show_colorbar,
+            "colorbar": {"title": "2-face φ", "x": 1.14, "len": 0.6},
         },
         hovertext=hover,
         hoverinfo="text",
@@ -376,7 +379,7 @@ def _two_face_trace(faces, endpoint_pos, theme):
     )
 
 
-def _three_face_trace(faces, endpoint_pos, theme):
+def _three_face_trace(faces, endpoint_pos, theme, show_colorbar=True):
     n = max(endpoint_pos) + 1
     xs = [endpoint_pos[i][0] for i in range(n)]
     ys = [endpoint_pos[i][1] for i in range(n)]
@@ -392,7 +395,8 @@ def _three_face_trace(faces, endpoint_pos, theme):
         intensitymode="cell",
         colorscale=theme.face_colorscale,
         opacity=theme.face_opacity,
-        showscale=False,
+        showscale=show_colorbar,
+        colorbar={"title": "3-face φ", "x": 1.26, "len": 0.6},
         hoverinfo="skip",
     )
 
@@ -405,6 +409,7 @@ def render_simplicial_complex(
     show: tuple[str, ...] = _ELEMENTS,
     only_distinctions: set[int] | None = None,
     layout: str = "barycentric",
+    show_colorbars: bool = True,
 ) -> go.Figure:
     """Draw the cause-effect structure as a 3-D simplicial complex.
 
@@ -436,7 +441,7 @@ def render_simplicial_complex(
     three_faces = [f for f in faces if f.degree == 3]
     traces = []
     if "purviews" in show:
-        traces.append(_purview_trace(endpoints, endpoint_pos, theme))
+        traces.append(_purview_trace(endpoints, endpoint_pos, theme, show_colorbars))
     if "mechanisms" in show:
         traces.append(_mechanism_trace(nodes, mechanism_pos, theme))
     if "cause_effect_links" in show:
@@ -461,9 +466,11 @@ def render_simplicial_complex(
             )
         )
     if "two_faces" in show and two_faces:
-        traces.append(_two_face_trace(two_faces, endpoint_pos, theme))
+        traces.append(_two_face_trace(two_faces, endpoint_pos, theme, show_colorbars))
     if "three_faces" in show and three_faces:
-        traces.append(_three_face_trace(three_faces, endpoint_pos, theme))
+        traces.append(
+            _three_face_trace(three_faces, endpoint_pos, theme, show_colorbars)
+        )
     figure = go.Figure() if fig is None else fig
     figure.add_traces(traces)
     axis = {"visible": False}

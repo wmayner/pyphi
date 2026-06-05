@@ -252,3 +252,44 @@ def test_highlight_phi_fold_smoke():
     overlay_points = set(zip(overlay.x, overlay.y, overlay.z, strict=True))
     assert len(overlay.x) == 4
     assert overlay_points <= bg_points
+
+
+def test_render_colorbars(xor_projection):
+    import plotly.graph_objects as go
+
+    fig = _render(xor_projection)
+    purviews = fig.data[0]
+    mesh = next(t for t in fig.data if isinstance(t, go.Mesh3d))
+    two_faces = fig.data[4]
+    # Each colored trace gets its own bar with its own scale: relation phi
+    # falls off steeply with degree, so a shared range would flatten the
+    # mesh's variation.
+    assert purviews.marker.showscale
+    assert two_faces.line.showscale
+    assert mesh.showscale
+    titles = {
+        purviews.marker.colorbar.title.text,
+        two_faces.line.colorbar.title.text,
+        mesh.colorbar.title.text,
+    }
+    assert len(titles) == 3
+    # Opt out.
+    fig = _render(xor_projection, show_colorbars=False)
+    assert not fig.data[0].marker.showscale
+    assert not fig.data[4].line.showscale
+    mesh = next(t for t in fig.data if isinstance(t, go.Mesh3d))
+    assert not mesh.showscale
+
+
+def test_highlight_phi_fold_dimmed_pass_has_no_colorbars():
+    from types import SimpleNamespace
+
+    from pyphi import examples
+    from pyphi.visualize import highlight_phi_fold
+
+    ces = examples.xor_system().ces()
+    fold = SimpleNamespace(distinctions=list(ces.distinctions)[:2])
+    fig = highlight_phi_fold(ces, fold)
+    background, overlay = fig.data[0], fig.data[6]
+    assert not background.marker.showscale
+    assert overlay.marker.showscale
