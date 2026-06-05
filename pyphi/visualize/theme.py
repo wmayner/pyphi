@@ -12,7 +12,7 @@ class Theme:
     colorscale: str = "Viridis"
     node_size_range: tuple[float, float] = (10.0, 36.0)
     edge_color: str = "rgba(60, 60, 60, 0.4)"
-    edge_width: float = 1.0
+    edge_width: float = 2.0
     font_family: str = "Helvetica, Arial, sans-serif"
     background: str = "white"
     role_colors: tuple[tuple[str, str], ...] = (
