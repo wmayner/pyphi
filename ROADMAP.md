@@ -2430,6 +2430,22 @@ design questions requiring a fresh spec.
 >
 > **P14d is COMPLETE** (B done 2026-06-03; A-1..A-4 done 2026-06-04). Next
 > per the release gate: P14b.
+>
+> **Queued follow-on (A-5): higher-degree relation representation.**
+> Relation faces of degree >= 4 are currently invisible in every view (the
+> projection carries only degree-2/3 faces; e.g. rule154 has 810 faces of
+> degree 4-8 vs 371 drawable ones). There is no canonical faithful visual
+> for k-simplices with k > 3; standard compromises, in recommended order:
+> (1) **star/incidence expansion** as the honest default — a hub marker per
+> relation at its relata's centroid, spokes to each endpoint, hub
+> sized/colored by phi; faithful at any degree, one merged trace;
+> (2) **convex-hull blobs** (Bubble-Sets style, one translucent Mesh3d hull
+> per face) as the evocative option, behind a phi-threshold/top-N filter to
+> avoid soup; (3) skeleton expansion rejected (conflates one k-relation
+> with many 3-relations). Slots into the existing `show=` vocabulary (a
+> `higher_faces` element class + a `degrees=` selection knob); projection
+> extended to carry all face degrees. Complementary aggregate idea: a
+> phi-by-degree spectrum panel.
 
 The peripheral modules that sit around the core formalism have not had an
 engineering pass during the 2.0 refactor — they were only carried along by the
