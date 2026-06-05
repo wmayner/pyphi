@@ -1,4 +1,4 @@
-# visualize/__init__.py
+# visualize/ising.py
 """Visualize the Ising model."""
 
 import matplotlib.pyplot as plt
@@ -31,37 +31,34 @@ def plot_inputs(data, x, y, label, ax=None, sep=0.015):
     return ax
 
 
-def plot(weights, temperature, field, N=None, spin=0):
+def _state_energies(weights, temperature, field, N=None, spin=0):
+    """Energy and activation probability of one spin across all states."""
     if N is None:
         N = weights.shape[0]
     else:
         weights = weights[:N, :N]
-
-    energies = []
-    probabilities = []
-    states = list(all_states(N))
-    for state in states:
+    rows = []
+    for state in all_states(N):
         spin_state = utils.binary2spin(state)
-        # Compute probability that i'th spin is "on" in the next micro-timestep
-        E = energy(spin, weights, spin_state)
-        energies.append(E)
-        probabilities.append(utils.sigmoid(E, temperature=temperature, field=field))
+        # Probability that the spin is "on" in the next micro-timestep.
+        e = energy(spin, weights, spin_state)
+        rows.append(
+            {
+                "energy": e,
+                "probability": utils.sigmoid(e, temperature=temperature, field=field),
+                "state": "".join(map(str, state)),
+            }
+        )
+    return pd.DataFrame(rows)
 
-    data = pd.DataFrame(
-        {
-            "energy": energies,
-            "probability": probabilities,
-            "state": ["".join(map(str, state)) for state in states],
-        }
-    )
 
+def plot(weights, temperature, field, N=None, spin=0):
+    data = _state_energies(weights, temperature, field, N=N, spin=spin)
     limit = np.max(np.abs(data["energy"]))
     x = np.linspace(-limit, limit, num=200)
-
     fig = plt.figure(figsize=(15, 6))
     ax = plot_sigmoid(x, temperature=temperature, field=field)
     ax = plot_inputs(
         data=data, x="energy", y="probability", label="state", ax=ax, sep=0.05
     )
-
     return fig

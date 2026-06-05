@@ -145,3 +145,24 @@ def test_plot_repertoires_smoke(xor_system, xor_sia):
     assert len(axes) == 2
     assert len(reps) == 2
     plt.close(fig)
+
+
+def test_ising_state_energies_exact():
+    from pyphi.visualize.ising import _state_energies
+
+    w = np.array([[0.0, 1.0], [1.0, 0.0]])
+    data = _state_energies(w, temperature=1.0, field=0.0)
+    assert list(data["state"]) == ["00", "10", "01", "11"]
+    assert list(data["energy"]) == [-1.0, -1.0, 1.0, 1.0]
+    on = pytest.approx(0.731059, abs=1e-5)
+    off = pytest.approx(0.268941, abs=1e-5)
+    assert list(data["probability"]) == [off, off, on, on]
+
+
+def test_ising_plot_smoke():
+    from pyphi.visualize.ising import plot
+
+    w = np.array([[0.0, 1.0], [1.0, 0.0]])
+    fig = plot(w, temperature=1.0, field=0.0)
+    assert fig is not None
+    plt.close(fig)
