@@ -2531,6 +2531,22 @@ public API surface.
   dataclasses this is ~20 lines each.
 - Extend `ToPandasMixin` to `SystemIrreducibilityAnalysis` and `PhiStructure`.
 - ASV already configured; wire into CI on a nightly schedule with regression alerts.
+- **Retire the eager recursive submodule walk in `pyphi/__init__.py`**
+  (`_import_submodules`). It exists for two reasons that have better
+  solutions: (a) registry population via registration decorators — replace
+  the filesystem walk with explicit imports of known registrants at each
+  registry's home module (auditable; third-party plugins are unaffected,
+  they register when the user imports them); (b) submodule attribute
+  convenience (`pyphi.examples` after bare `import pyphi`) — replace with a
+  PEP 562 module-level `__getattr__` that lazily imports on first access
+  (scipy/sklearn pattern). Benefits: `import pyphi` no longer fails when any
+  one module breaks, the `_skip_import` hand-list for optional deps
+  (visualize, the xarray backend) disappears, import time drops, and the
+  P6a lazy-import discipline stops being undermined by the walk. The bulk
+  of the work is the **registry audit**: every decorator-registration site
+  must be reachable from an explicit import, or a measure/scheme silently
+  vanishes from its registry — trace each registry's registrants and pin
+  them with registry-contents tests before removing the walk.
 
 - *Files:* `pyphi/jsonify.py`, new `pyphi/models/_serialize.py`, all of `test/`,
   `docs/`, `benchmarks/`, `.github/workflows/`.
