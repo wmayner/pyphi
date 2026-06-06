@@ -1,17 +1,17 @@
 # Φ-folds in core — design
 
 **Project:** P14b sub-project 1 (of 4). Brings `PhiFold` into `pyphi.models`,
-closing the deferred P8 item. Reference implementation:
-`~/projects/matching/matching/phi_fold.py` (110 lines, pre-2.0 API).
+closing the deferred P8 item. Reference implementation: `phi_fold.py` in the
+external matching research repo (110 lines, pre-2.0 API).
 
 **Paper grounding:**
 
 - IIT 4.0 (Albantakis et al. 2023): the Φ-fold of a distinction — the
   distinction together with all relations it participates in.
-- Matching paper (Mayner, Juel & Tononi, in prep;
-  `~/projects/matching-manuscript/matching.tex` — NOT the stale copy in
-  `~/projects/matching/manuscript/`): the theory section formally defines
-  distinction Φ-folds (`matching:sec:theory:distinction-phi-folds`).
+- Matching paper (Mayner, Juel & Tononi, in prep; the current manuscript,
+  not the stale 2023 copy bundled inside the research-code repo): the
+  theory section formally defines distinction Φ-folds
+  (`matching:sec:theory:distinction-phi-folds`).
   Eq. `eq:distinction-phi-fold` defines Φ_d(CES(d(m))) = Σ_c φ_c/|c| over
   the fold's components — this design's `apportioned_big_phi`.
   Eq. `eq:distinction-phi-fold-partition` is the tiling identity

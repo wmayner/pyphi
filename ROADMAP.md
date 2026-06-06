@@ -2382,15 +2382,13 @@ relations because of the max-over-duplicates step. Derivation sketch for the
 *Sequencing:* implement after P14b sub-project 4 — the concrete projection
 must exist first as the validation oracle; the analytical version then lands
 as a cross-validated optimization (same pattern as the analytical fold sums
-in sub-project 1). Manuscript note (current ms is
-`~/projects/matching-manuscript/matching.tex`, not the stale copy inside the
-matching repo): eq:perception-phi-fold (line ~191) states
-Σ_{c∈fold} p(x,c) = t(x,m)·Φ_d(fold) as an implication, but it only holds
-when all relata share the same triggering coefficient (the LHS weights each
-relation by its relata-mean t̄(r), the RHS by the seed's t). The global
-partition eq:perception-richness-phi-fold IS exact. Implementation follows
-the code's reading: Perception_d := t(x,m)·Φ_d(fold) as a definition.
-Flagged to the author 2026-06-06.
+in sub-project 1). Formalism note: the manuscript's per-fold perception
+equivalence (eq:perception-phi-fold) holds only when all relata share the
+same triggering coefficient (the component sum weights each relation by its
+relata-mean coefficient, the fold form by the seed's); the global partition
+(eq:perception-richness-phi-fold) is exact. The implementation therefore
+takes Perception_d := t(x,m)·Φ_d(fold) as a definition, matching the
+reference research code.
 
 **P14c. Second AC formalism — IIT-4.0-style α measures**
 
