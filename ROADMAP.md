@@ -2347,6 +2347,44 @@ All of these are stable after P8. No core API changes needed.
 - *Leverage:* High for research impact — enables PyPhi to be the reference library
   for IIT's account of perception, not just consciousness.
 
+**P14b follow-on (queued 2026-06-06): analytical cross-structure projections.**
+New research enabling differentiation (and possibly matching) without concrete
+relation enumeration. Context: the P14b sub-project 1 design
+(`docs/superpowers/specs/2026-06-06-phi-fold-core-design.md`) makes
+*single-structure* perception/richness fully analytical via apportioned Φ-fold
+sums; the *cross-structure* projection (union of components across triggered
+Φ-structures, deduplicated, max weight per duplicate) still requires concrete
+relations because of the max-over-duplicates step. Derivation sketch for the
+φ-maximized projection (differentiation):
+
+- The obstacle is Σ over unique relations of max over structures of φ_r^k.
+- Max obeys inclusion-exclusion over minima:
+  max(a_1..a_K) = Σ_{∅≠T} (−1)^(|T|+1) min_{k∈T} a_k.
+- The structure-min commutes with the relata-min:
+  min_{k∈T} min_{d∈S} v_d^k = min_{d∈S} (min_{k∈T} v_d^k), so each T-term is
+  a plain `sum_of_minimum_among_subsets` over element-wise transformed value
+  vectors v_d^T = min_{k∈T} v_d^k, restricted to distinction identities
+  present in *all* structures of T (per purview unit u, as in the existing
+  analytical decomposition). Absent identities make min = −∞, which the
+  membership restriction handles; relations present in no structure drop out.
+- Result: projection Σφ_r = Σ_u Σ_{∅≠T⊆structures} (−1)^(|T|+1)
+  sum_of_min({min_{k∈T} v_d^k : d ∈ ∩_{k∈T} D_u^k}) — 2^K−1 calls to the
+  existing helper, K = number of *unique* triggered structures (small for
+  small sensory interfaces).
+- Distinction identity across structures = (mechanism, mechanism state,
+  purviews, specified states), φ excluded — matching the dedup equality used
+  by the projection.
+- **Open part:** the perception-maximized projection (what matching M needs)
+  has weight min × mean-of-triggering, and the mean factor breaks the
+  pure-min algebra. Bounds are easy (max single-structure richness ≤
+  projection perception ≤ Σ richness); an exact closed form is open research.
+
+*Sequencing:* implement after P14b sub-project 4 — the concrete projection
+must exist first as the validation oracle; the analytical version then lands
+as a cross-validated optimization (same pattern as the analytical fold sums
+in sub-project 1). Manuscript note: Eq. perception_slice (main.tex:521) has a
+double-counted triggering factor (flagged to the author 2026-06-06).
+
 **P14c. Second AC formalism — IIT-4.0-style α measures**
 
 Register a second actual-causation formalism alongside `AC2019Formalism` that
