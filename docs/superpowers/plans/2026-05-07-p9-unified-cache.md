@@ -10,7 +10,7 @@
 
 **Spec:** `docs/superpowers/specs/2026-05-07-p9-unified-cache-design.md`.
 
-**Branch:** `feature/p9-unified-cache` (already cut off `feature/p7-kernel-rewrite` tip in worktree `/Users/will/projects/pyphi-p7-kernel-rewrite`).
+**Branch:** `feature/p9-unified-cache` (already cut off `feature/p7-kernel-rewrite` tip in worktree `../pyphi-p7-kernel-rewrite`).
 
 ---
 
@@ -53,7 +53,7 @@ changelog.d/p9-unified-cache.refactor.md  # CREATE: user-facing changelog
 
 - [ ] **Step 1: Confirm worktree path and branch**
 
-Run: `cd /Users/will/projects/pyphi-p7-kernel-rewrite && git status && git rev-parse --abbrev-ref HEAD`
+Run: `cd ../pyphi-p7-kernel-rewrite && git status && git rev-parse --abbrev-ref HEAD`
 Expected: clean working tree (modulo the untracked `filename` artifact); branch `feature/p9-unified-cache`
 
 - [ ] **Step 2: Confirm baseline tests pass on current branch tip**
@@ -1073,7 +1073,7 @@ EOF
 
 - [ ] **Step 1: Verify no live references**
 
-Run: `cd /Users/will/projects/pyphi-p7-kernel-rewrite && rg -n "from .*\.cache import.*[Rr]edis|pyphi\.cache\.redis|RedisCache" --type py 2>/dev/null`
+Run: `cd ../pyphi-p7-kernel-rewrite && rg -n "from .*\.cache import.*[Rr]edis|pyphi\.cache\.redis|RedisCache" --type py 2>/dev/null`
 Expected: zero matches inside `pyphi/`. Tests OK to ignore — they don't exist.
 
 - [ ] **Step 2: Delete the file**

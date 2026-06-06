@@ -36,7 +36,7 @@ All imports needed (`fields`, `FormalismConfig`, `_LAYER_NAMES`, `replace`) alre
 
 **Files:** none.
 
-- [ ] **Step 1:** Create a worktree off `2.0` HEAD via `superpowers:using-git-worktrees`, sibling convention: `git worktree add /Users/will/projects/pyphi-dotted-config -b feature/dotted-config-access 2.0`.
+- [ ] **Step 1:** Create a worktree off `2.0` HEAD via `superpowers:using-git-worktrees`, sibling convention: `git worktree add ../pyphi-dotted-config -b feature/dotted-config-access 2.0`.
 - [ ] **Step 2:** `uv sync --all-extras --all-groups`.
 - [ ] **Step 3:** Baseline green: `uv run pytest test/test_config_layers.py -q --no-header`. Expected: all pass.
 

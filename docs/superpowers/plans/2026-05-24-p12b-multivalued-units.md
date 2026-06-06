@@ -18,7 +18,7 @@ Spec at `docs/superpowers/specs/2026-05-24-p12b-multivalued-units-design.md` (co
 
 ## Branch state baseline & pre-flight
 
-**Worktree:** `/Users/will/projects/pyphi-p12b` (separate from main `/Users/will/projects/pyphi` repo).
+**Worktree:** `../pyphi-p12b` (separate from main `../pyphi` repo).
 
 **Branch:** `feature/p12b-factored-kary`, head `8d0387c9`.
 
@@ -27,7 +27,7 @@ Spec at `docs/superpowers/specs/2026-05-24-p12b-multivalued-units-design.md` (co
 **Pre-flight check (run before Task 1):**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 git log -1 --oneline  # expect: 8d0387c9 Add P12b multi-valued units design spec
 git status --short    # should be clean or have only untracked items
 uv run pytest test/test_golden_regression.py -v  # 23/23 binary goldens pass
@@ -159,7 +159,7 @@ Open `pyphi/system.py:155-200`. Read `_typed_tpm`, `cause_tpm`, `proper_cause_tp
 Search call sites:
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 grep -rn "\.cause_tpm" pyphi/ test/ --include="*.py" | grep -v "_typed_tpm\|cache" | head -30
 ```
 
@@ -194,7 +194,7 @@ After reading [files above]:
 - [ ] **Step 1.5: Commit the audit.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 git add docs/superpowers/audits/p12b-cause-shape-audit.md
 git diff --cached --stat
 git -c commit.gpgsign=false commit -m "Audit cause-output shape contract for P12b
@@ -262,7 +262,7 @@ def test_joint_distribution_marginalize_out_inherited() -> None:
 - [ ] **Step 2.2: Run failing test.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_joint_distribution.py -v
 ```
 
@@ -545,7 +545,7 @@ class JointTPM(JointDistribution):
 The kernel port currently is a thin wrapper. After Step 2.4, it stays as-is — it imports `JointTPM` from `pyphi.tpm`, which now subclasses `JointDistribution`. No change needed beyond verifying the imports still work.
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run python -c "from pyphi.core.tpm import JointTPM; print(JointTPM)"
 uv run python -c "from pyphi.core.tpm.joint_distribution import JointDistribution; print(JointDistribution)"
 ```
@@ -575,7 +575,7 @@ from .core.tpm import JointDistribution as JointDistribution
 - [ ] **Step 2.7: Run the new tests.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_joint_distribution.py -v
 ```
 
@@ -584,7 +584,7 @@ Expected: 3 tests pass.
 - [ ] **Step 2.8: Verify goldens byte-identical (THE BAR FOR THIS COMMIT).**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_golden_regression.py -v
 ```
 
@@ -593,7 +593,7 @@ Expected: 23/23 binary goldens pass byte-identical. If any drift, the JointTPM m
 - [ ] **Step 2.9: Pyright + ruff + fast lane.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pyright pyphi 2>&1 | tail -3
 uv run ruff check pyphi test 2>&1 | tail -3
 uv run pytest --tb=short -q 2>&1 | tail -3
@@ -604,7 +604,7 @@ Expected: pyright 0 errors / 5 baseline warnings; ruff clean; full suite (includ
 - [ ] **Step 2.10: Commit.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 git add pyphi/core/tpm/joint_distribution.py pyphi/tpm.py pyphi/core/tpm/__init__.py pyphi/__init__.py test/test_joint_distribution.py
 git diff --cached --stat
 git -c commit.gpgsign=false commit -m "Extract JointDistribution base class; refactor JointTPM as subclass
@@ -682,7 +682,7 @@ def test_cause_posterior_repr() -> None:
 - [ ] **Step 3.2: Run failing test.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_cause_posterior.py -v
 ```
 
@@ -779,7 +779,7 @@ from .core.tpm import CausePosterior as CausePosterior
 - [ ] **Step 3.5: Run tests.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_cause_posterior.py -v
 ```
 
@@ -788,7 +788,7 @@ Expected: 5 tests pass.
 - [ ] **Step 3.6: Pyright + ruff + goldens.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pyright pyphi/core/tpm/cause_posterior.py pyphi/core/tpm/__init__.py pyphi/__init__.py test/test_cause_posterior.py 2>&1 | tail -3
 uv run ruff check pyphi/core/tpm/cause_posterior.py test/test_cause_posterior.py 2>&1 | tail -3
 uv run pytest test/test_golden_regression.py -v 2>&1 | tail -3
@@ -799,7 +799,7 @@ Expected: pyright clean; ruff clean; goldens unchanged (CausePosterior isn't con
 - [ ] **Step 3.7: Commit.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 git add pyphi/core/tpm/cause_posterior.py pyphi/core/tpm/__init__.py pyphi/__init__.py test/test_cause_posterior.py
 git diff --cached --stat
 git -c commit.gpgsign=false commit -m "Add CausePosterior as JointDistribution sibling
@@ -858,7 +858,7 @@ def test_cause_tpm_returns_cause_posterior_for_factored_input() -> None:
 - [ ] **Step 4.2: Run failing test.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_marginalization_factored.py::test_cause_tpm_returns_cause_posterior_for_jointtpm_input test/test_marginalization_factored.py::test_cause_tpm_returns_cause_posterior_for_factored_input -v
 ```
 
@@ -918,7 +918,7 @@ def _cause_tpm_factored(
 - [ ] **Step 4.4: Run new tests; verify pass.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_marginalization_factored.py -v
 ```
 
@@ -927,7 +927,7 @@ Expected: all tests pass, including the 2 new CausePosterior return-type checks 
 - [ ] **Step 4.5: Verify goldens byte-identical (CRITICAL BAR for this commit).**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_golden_regression.py -v
 ```
 
@@ -936,7 +936,7 @@ Expected: 23/23 byte-identical. If any drift, the wrap-type change introduced a 
 - [ ] **Step 4.6: Full fast lane + doctests.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest --tb=short -q 2>&1 | tail -5
 ```
 
@@ -945,7 +945,7 @@ Expected: 0 failures.
 - [ ] **Step 4.7: Commit.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 git add pyphi/core/tpm/marginalization.py test/test_marginalization_factored.py
 git diff --cached --stat
 git -c commit.gpgsign=false commit -m "cause_tpm returns CausePosterior; underlying math unchanged
@@ -1007,7 +1007,7 @@ def test_cause_tpm_k3_sums_to_one() -> None:
 - [ ] **Step 5.2: Run failing tests.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_marginalization_kary.py -v
 ```
 
@@ -1079,7 +1079,7 @@ If Task 1's audit chose Option B (canonicalize in CausePosterior.__init__), the 
 - [ ] **Step 5.4: Run new tests.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_marginalization_kary.py -v
 ```
 
@@ -1088,7 +1088,7 @@ Expected: 2 tests pass.
 - [ ] **Step 5.5: Verify binary goldens byte-identical.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_golden_regression.py -v
 ```
 
@@ -1097,7 +1097,7 @@ Expected: 23/23. The binary path now routes through `_cause_tpm_factored_binary`
 - [ ] **Step 5.6: Pyright + ruff + fast lane.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pyright pyphi/core/tpm/marginalization.py test/test_marginalization_kary.py 2>&1 | tail -3
 uv run ruff check pyphi/core/tpm/marginalization.py test/test_marginalization_kary.py 2>&1 | tail -3
 uv run pytest test/ -m "not slow" -q 2>&1 | tail -3
@@ -1108,7 +1108,7 @@ Expected: all clean.
 - [ ] **Step 5.7: Commit.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 git add pyphi/core/tpm/marginalization.py test/test_marginalization_kary.py
 git diff --cached --stat
 git -c commit.gpgsign=false commit -m "Add native k-ary cause path; dispatcher routes binary vs k-ary
@@ -1249,7 +1249,7 @@ def test_cause_kary_unreachable_state_raises() -> None:
 - [ ] **Step 6.2: Run the new property tests.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_marginalization_kary.py -v
 ```
 
@@ -1260,7 +1260,7 @@ If `test_cause_kary_binary_equivalence` fails, Hypothesis prints the minimal fai
 - [ ] **Step 6.3: Run the slow lane variant.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_marginalization_kary.py --slow -v
 ```
 
@@ -1269,7 +1269,7 @@ Expected: slow test passes (max_examples=500); takes 10-60s.
 - [ ] **Step 6.4: Pyright + ruff.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pyright test/test_marginalization_kary.py 2>&1 | tail -3
 uv run ruff check test/test_marginalization_kary.py 2>&1 | tail -3
 ```
@@ -1279,7 +1279,7 @@ Expected: clean.
 - [ ] **Step 6.5: Commit.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 git add test/test_marginalization_kary.py
 git diff --cached --stat
 git -c commit.gpgsign=false commit -m "Add Hypothesis property tests for k-ary cause math
@@ -1322,7 +1322,7 @@ def test_effect_tpm_k3_returns_factored_tpm() -> None:
 - [ ] **Step 7.2: Run failing test.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_marginalization_kary.py::test_effect_tpm_k3_returns_factored_tpm -v
 ```
 
@@ -1385,7 +1385,7 @@ and delete `_effect_tpm_factored`.
 - [ ] **Step 7.4: Run tests.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_marginalization_kary.py -v
 uv run pytest test/test_marginalization_factored.py -v
 ```
@@ -1395,7 +1395,7 @@ Expected: all pass. The k=3 effect_tpm test passes; the P12a effect_tpm tests st
 - [ ] **Step 7.5: Verify goldens.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_golden_regression.py -v
 ```
 
@@ -1404,7 +1404,7 @@ Expected: 23/23 byte-identical.
 - [ ] **Step 7.6: Commit.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 git add pyphi/core/tpm/marginalization.py test/test_marginalization_kary.py
 git diff --cached --stat
 git -c commit.gpgsign=false commit -m "Remove defensive k>2 NotImplementedError from effect_tpm path
@@ -1470,7 +1470,7 @@ def test_system_effect_tpm_returns_factored_tpm() -> None:
 - [ ] **Step 8.3: Run failing tests.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_system.py::test_system_cause_tpm_returns_cause_posterior test/test_system.py::test_system_effect_tpm_returns_factored_tpm -v
 ```
 
@@ -1535,7 +1535,7 @@ def proper_cause_tpm(self) -> Any:
 - [ ] **Step 8.6: Grep audit for `_inner` access.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 grep -rn "_inner if hasattr" pyphi/ --include="*.py" | grep -v ".pyc:"
 ```
 
@@ -1544,7 +1544,7 @@ Expected: only `actual.py:261` remains (handled in Task 9). No other production-
 - [ ] **Step 8.7: Run tests.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_system.py -v
 ```
 
@@ -1553,7 +1553,7 @@ Expected: existing tests pass; new return-type tests pass.
 - [ ] **Step 8.8: Verify goldens byte-identical.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_golden_regression.py -v
 ```
 
@@ -1562,7 +1562,7 @@ Expected: 23/23 byte-identical. If any drift, the type change introduced a subtl
 - [ ] **Step 8.9: Full fast lane + perf budget.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/ -m "not slow" -q 2>&1 | tail -3
 uv run pytest test/test_perf_budget.py -v 2>&1 | tail -10
 ```
@@ -1572,7 +1572,7 @@ Expected: 0 failures; perf budget within floors.
 - [ ] **Step 8.10: Pyright + ruff.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pyright pyphi/system.py test/test_system.py 2>&1 | tail -3
 uv run ruff check pyphi/system.py test/test_system.py 2>&1 | tail -3
 ```
@@ -1582,7 +1582,7 @@ Expected: clean. No more `# type: ignore[attr-defined]` for the `_inner` pattern
 - [ ] **Step 8.11: Commit.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 git add pyphi/system.py test/test_system.py
 git diff --cached --stat
 git -c commit.gpgsign=false commit -m "Hot-path cutover: System.cause_tpm -> CausePosterior, effect_tpm -> FactoredTPM
@@ -1612,7 +1612,7 @@ git show --stat HEAD
 The current code mirrors System's pattern with the `_inner` unwrap and `# type: ignore[attr-defined]`. The line numbers may have shifted; grep:
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 grep -n "_inner if hasattr" pyphi/actual.py
 ```
 
@@ -1660,7 +1660,7 @@ Mirror Task 8's changes. Replace each `return result._inner if hasattr(result, "
 - [ ] **Step 9.4: Grep audit.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 grep -rn "_inner if hasattr" pyphi/ --include="*.py" | grep -v ".pyc:"
 ```
 
@@ -1669,7 +1669,7 @@ Expected: zero matches in production code.
 - [ ] **Step 9.5: Run AC tests.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_actual.py -v 2>&1 | tail -10
 ```
 
@@ -1678,7 +1678,7 @@ Expected: all pass; new return-type assertions pass.
 - [ ] **Step 9.6: Verify goldens.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_golden_regression.py -v
 ```
 
@@ -1687,7 +1687,7 @@ Expected: 23/23 byte-identical.
 - [ ] **Step 9.7: Pyright + ruff.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pyright pyphi/actual.py test/test_actual.py 2>&1 | tail -3
 uv run ruff check pyphi/actual.py 2>&1 | tail -3
 ```
@@ -1697,7 +1697,7 @@ Expected: clean. No `_inner if hasattr` survivor.
 - [ ] **Step 9.8: Commit.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 git add pyphi/actual.py test/test_actual.py
 git diff --cached --stat
 git -c commit.gpgsign=false commit -m "TransitionSystem cutover parallels System: precise typed returns
@@ -1799,7 +1799,7 @@ The exact form depends on the audit from Step 10.2. The implementer should pick 
 - [ ] **Step 10.5: Run the full fast lane.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/ -m "not slow" -x -q 2>&1 | tail -10
 ```
 
@@ -1808,7 +1808,7 @@ Expected: 0 failures. If failures, investigate via the traceback — likely a sh
 - [ ] **Step 10.6: Verify goldens BYTE-IDENTICAL (the most critical bar).**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_golden_regression.py -v
 ```
 
@@ -1817,7 +1817,7 @@ Expected: 23/23 byte-identical. If ANY drift, the per-node cutover changed numer
 - [ ] **Step 10.7: Verify perf budget.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_perf_budget.py -v 2>&1 | tail -10
 ```
 
@@ -1826,7 +1826,7 @@ Expected: all 5 binary fixtures within `max(3.0, 4×median)` floor.
 - [ ] **Step 10.8: Kick off slow lane in background; continue.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/ --slow -q > /tmp/p12b-task10-slow.log 2>&1 &
 echo "Slow lane PID: $!"
 ```
@@ -1836,7 +1836,7 @@ echo "Slow lane PID: $!"
 - [ ] **Step 10.9: Pyright + ruff.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pyright pyphi/core/repertoire_algebra.py pyphi/node.py 2>&1 | tail -3
 uv run ruff check pyphi/core/repertoire_algebra.py pyphi/node.py 2>&1 | tail -3
 ```
@@ -1846,7 +1846,7 @@ Expected: clean.
 - [ ] **Step 10.10: Commit.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 git add pyphi/core/repertoire_algebra.py pyphi/node.py
 git diff --cached --stat
 git -c commit.gpgsign=false commit -m "Downstream cutover: repertoire_algebra consumes CausePosterior + FactoredTPM
@@ -1864,7 +1864,7 @@ git show --stat HEAD
 - [ ] **Step 10.11: Wait for slow lane to finish.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 wait $!
 tail -20 /tmp/p12b-task10-slow.log
 ```
@@ -1944,7 +1944,7 @@ def test_factored_tpm_alphabet_sizes_not_constructor_kwarg() -> None:
 - [ ] **Step 11.2: Run failing tests.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_factored_tpm.py -k "state_space or alphabet" -v
 ```
 
@@ -2082,7 +2082,7 @@ Existing usages of `from_joint(arr, alphabet_sizes=...)` (in `Substrate.__init__
 - [ ] **Step 11.5: Run new tests.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_factored_tpm.py -v
 ```
 
@@ -2091,7 +2091,7 @@ Expected: all pass, including the 6 new state_space tests.
 - [ ] **Step 11.6: Check downstream callers of `FactoredTPM(... alphabet_sizes=...)`.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 grep -rn "alphabet_sizes=" pyphi/ --include="*.py" | grep -v ".pyc:"
 ```
 
@@ -2102,7 +2102,7 @@ For now, the failing callers will raise TypeError when invoked. The fast lane wi
 - [ ] **Step 11.7: Run fast lane.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/ -m "not slow" -x -q 2>&1 | tail -10
 ```
 
@@ -2113,7 +2113,7 @@ If too many failures and the next task isn't ready, consider keeping `alphabet_s
 - [ ] **Step 11.8: Pyright + ruff.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pyright pyphi/core/tpm/factored.py test/test_factored_tpm.py 2>&1 | tail -3
 uv run ruff check pyphi/core/tpm/factored.py 2>&1 | tail -3
 ```
@@ -2123,7 +2123,7 @@ Expected: clean.
 - [ ] **Step 11.9: Commit.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 git add pyphi/core/tpm/factored.py test/test_factored_tpm.py
 git diff --cached --stat
 git -c commit.gpgsign=false commit -m "FactoredTPM: state_space replaces alphabet_sizes; alphabet_sizes derived
@@ -2236,7 +2236,7 @@ def test_system_state_as_labels_resolves_to_indices() -> None:
 - [ ] **Step 12.2: Run failing tests.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_substrate_state_space.py -v
 ```
 
@@ -2353,7 +2353,7 @@ def __post_init__(self) -> None:
 - [ ] **Step 12.6: Run new tests.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_substrate_state_space.py -v
 ```
 
@@ -2362,7 +2362,7 @@ Expected: all 8 tests pass.
 - [ ] **Step 12.7: Verify goldens.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_golden_regression.py -v
 ```
 
@@ -2371,7 +2371,7 @@ Expected: 23/23 byte-identical. Binary substrates with default integer state_spa
 - [ ] **Step 12.8: Run full fast lane.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/ -m "not slow" -x -q 2>&1 | tail -10
 ```
 
@@ -2380,7 +2380,7 @@ Expected: 0 failures. Any test that was calling `Substrate(..., alphabet_sizes=.
 - [ ] **Step 12.9: Pyright + ruff.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pyright pyphi/substrate.py pyphi/system.py 2>&1 | tail -3
 uv run ruff check pyphi/substrate.py pyphi/system.py test/test_substrate_state_space.py 2>&1 | tail -3
 ```
@@ -2390,7 +2390,7 @@ Expected: clean.
 - [ ] **Step 12.10: Commit.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 git add pyphi/substrate.py pyphi/system.py test/test_substrate_state_space.py
 git diff --cached --stat
 git -c commit.gpgsign=false commit -m "Substrate accepts state_space= and alphabet= keywords
@@ -2422,7 +2422,7 @@ git show --stat HEAD
 - [ ] **Step 13.1: Audit legacy callsites.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 grep -rn "joint_tpm()\|\.joint_tpm\b" pyphi/ test/ --include="*.py" | grep -v ".pyc:"
 ```
 
@@ -2488,7 +2488,7 @@ For each affected callsite, write a similar adapter.
 - [ ] **Step 13.4: Run tests.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/ -m "not slow" -x -q 2>&1 | tail -10
 ```
 
@@ -2497,7 +2497,7 @@ Expected: 0 failures. Macro tests in particular should pass — the wrapping is 
 - [ ] **Step 13.5: Verify goldens.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_golden_regression.py -v
 ```
 
@@ -2506,7 +2506,7 @@ Expected: 23/23 byte-identical.
 - [ ] **Step 13.6: Pyright + ruff.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pyright pyphi/substrate.py pyphi/macro.py 2>&1 | tail -3
 uv run ruff check pyphi 2>&1 | tail -3
 ```
@@ -2516,7 +2516,7 @@ Expected: clean.
 - [ ] **Step 13.7: Commit.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 git add pyphi/substrate.py pyphi/macro.py # plus any other touched callsites
 git diff --cached --stat
 git -c commit.gpgsign=false commit -m "Substrate.joint_tpm() unifies on explicit-alphabet shape
@@ -2584,7 +2584,7 @@ def test_aid_supports_alphabet_alphabet_generic() -> None:
 - [ ] **Step 14.2: Run failing test.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_measure_alphabet_support.py -v
 ```
 
@@ -2649,7 +2649,7 @@ Audit ALL existing measure declarations and add the appropriate `supports_alphab
 - [ ] **Step 14.4: Run new tests.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_measure_alphabet_support.py -v
 ```
 
@@ -2658,7 +2658,7 @@ Expected: all pass.
 - [ ] **Step 14.5: Verify goldens.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_golden_regression.py -v
 ```
 
@@ -2667,7 +2667,7 @@ Expected: 23/23 byte-identical. The metadata is additive; no behavior change.
 - [ ] **Step 14.6: Pyright + ruff.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pyright pyphi/measures/distribution.py test/test_measure_alphabet_support.py 2>&1 | tail -3
 uv run ruff check pyphi/measures/distribution.py 2>&1 | tail -3
 ```
@@ -2677,7 +2677,7 @@ Expected: clean.
 - [ ] **Step 14.7: Commit.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 git add pyphi/measures/distribution.py test/test_measure_alphabet_support.py
 git diff --cached --stat
 git -c commit.gpgsign=false commit -m "Add declarative supports_alphabet metadata to measure registry
@@ -2705,7 +2705,7 @@ git show --stat HEAD
 - [ ] **Step 15.1: Find the measure-resolution sites.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 grep -rn "mechanism_phi_measure\|distribution_measures\[" pyphi/ --include="*.py" | head -20
 ```
 
@@ -2764,7 +2764,7 @@ The exact integration depends on the codebase's measure-resolution flow — read
 - [ ] **Step 15.4: Run new tests.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_measure_alphabet_support.py -v
 ```
 
@@ -2773,7 +2773,7 @@ Expected: all pass.
 - [ ] **Step 15.5: Verify binary goldens.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_golden_regression.py -v
 ```
 
@@ -2782,7 +2782,7 @@ Expected: 23/23 byte-identical. The guard fires only on unsupported combinations
 - [ ] **Step 15.6: Pyright + ruff + fast lane.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pyright pyphi 2>&1 | tail -3
 uv run ruff check pyphi test 2>&1 | tail -3
 uv run pytest test/ -m "not slow" -q 2>&1 | tail -3
@@ -2793,7 +2793,7 @@ Expected: clean.
 - [ ] **Step 15.7: Commit.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 git add pyphi/measures/distribution.py # plus the file with the resolution function, if different
 git diff --cached --stat
 git -c commit.gpgsign=false commit -m "Operation-level guard: unsupported (measure, alphabet) raises with citation
@@ -2890,7 +2890,7 @@ The generation script's exact form depends on the existing golden infrastructure
 - [ ] **Step 16.2: Run the generation script.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run python test/golden/generate_p12b_fixtures.py
 ls test/data/golden/v1/multivalued_*
 ```
@@ -2906,7 +2906,7 @@ Open the file and find the fixture loop or list. Add entries for the new fixture
 - [ ] **Step 16.4: Run goldens.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_golden_regression.py -v
 ```
 
@@ -2915,7 +2915,7 @@ Expected: 23 + 2-3 new fixtures pass.
 - [ ] **Step 16.5: Pyright + ruff.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pyright test/test_golden_regression.py 2>&1 | tail -3
 uv run ruff check test/golden/generate_p12b_fixtures.py 2>&1 | tail -3
 ```
@@ -2925,7 +2925,7 @@ Expected: clean.
 - [ ] **Step 16.6: Commit.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 git add test/data/golden/v1/multivalued_*.json test/data/golden/v1/multivalued_*.npz test/golden/generate_p12b_fixtures.py test/test_golden_regression.py
 git diff --cached --stat
 git -c commit.gpgsign=false commit -m "Add k>2 golden fixtures: synthetic k=3 + heterogeneous + p53-Mdm2 (conditional)
@@ -3027,7 +3027,7 @@ def test_heterogeneous_alphabet_sia() -> None:
 - [ ] **Step 17.2: Run the smoke tests.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_substrate_multivalued.py -v
 ```
 
@@ -3036,7 +3036,7 @@ Expected: all 4 tests pass.
 - [ ] **Step 17.3: Run the full fast lane + perf budget.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/ -m "not slow" -q 2>&1 | tail -3
 uv run pytest test/test_perf_budget.py -v 2>&1 | tail -10
 ```
@@ -3046,7 +3046,7 @@ Expected: 0 failures; perf budget within floors.
 - [ ] **Step 17.4: Pyright + ruff.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pyright test/test_substrate_multivalued.py 2>&1 | tail -3
 uv run ruff check test/test_substrate_multivalued.py 2>&1 | tail -3
 ```
@@ -3056,7 +3056,7 @@ Expected: clean.
 - [ ] **Step 17.5: Commit.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 git add test/test_substrate_multivalued.py
 git diff --cached --stat
 git -c commit.gpgsign=false commit -m "End-to-end k>2 IIT analysis smoke tests
@@ -3183,7 +3183,7 @@ def test_no_inner_unwrap_pattern_in_production() -> None:
 - [ ] **Step 18.4: Run the regression test.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_inner_unwrap_pattern.py -v
 ```
 
@@ -3192,7 +3192,7 @@ Expected: passes (no production-code matches).
 - [ ] **Step 18.5: Scaffold-marker sweep.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 grep -rn "# P12\|# P7\|TODO(P\|TODO(4\.0)" pyphi/core/tpm/ pyphi/core/unit.py pyphi/measures/ pyphi/system.py pyphi/actual.py pyphi/substrate.py 2>&1
 ```
 
@@ -3201,7 +3201,7 @@ Expected: no matches. If any P-markers were introduced during the cutover, remov
 - [ ] **Step 18.6: Final acceptance gates.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest --tb=short -q 2>&1 | tail -5
 uv run pytest test/test_golden_regression.py -v 2>&1 | tail -5
 uv run pytest test/test_perf_budget.py -v 2>&1 | tail -5
@@ -3219,7 +3219,7 @@ Expected:
 - [ ] **Step 18.7: End-to-end smoke (manual).**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run python -c "
 import numpy as np
 import pyphi
@@ -3251,7 +3251,7 @@ Expected: prints two values + `END-TO-END OK`.
 - [ ] **Step 18.8: Commit.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 git add changelog.d/p12b-multivalued.feature.md docs/conventions.rst test/test_inner_unwrap_pattern.py # plus any scaffold-marker cleanup files
 git diff --cached --stat
 git -c commit.gpgsign=false commit -m "Documentation + changelog + _inner regression test for P12b
@@ -3275,7 +3275,7 @@ git show --stat HEAD
 After all commits land, run:
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 
 # Full suite including doctests
 uv run pytest --tb=short -q                                # 0 failures expected

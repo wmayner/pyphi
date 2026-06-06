@@ -880,7 +880,7 @@ everything not in the Protocol is free to change. This is why P3 is load-bearing
 > `state_specification.py` (the plan's `state_spec.py`). **`phi_fold` not
 > delivered, and correctly so:** `PhiFold` is consumed by the matching
 > extension (P14b lists it among the core outputs it consumes), whose external
-> `~/projects/matching/matching/phi_fold.py` is the reference implementation.
+> `phi_fold.py` in the external matching research repo is the reference implementation.
 > Bringing it into core belongs with the P14b fold-in, so it is **deferred to
 > P14b** (a 2.1 candidate), not an orphaned P8 gap.
 
@@ -892,7 +892,7 @@ that `Concept` holds no subsystem backreference (from P7), it is a genuine value
 **Add `models/phi_fold.py`:** Φ-folds are a core IIT 4.0 concept (Albantakis et al.
 2023 Section 2.2.3, Eq. 3-4) — a sub-structure of a Φ-structure consisting of a
 single distinction and all relations involving it. Currently implemented only in the
-external `~/projects/matching/matching/phi_fold.py` (111 lines), but they belong in
+matching research repo's `phi_fold.py` (111 lines), but they belong in
 core PyPhi since they characterize how each distinction contributes to total Φ.
 The `PhiFold` type is the natural unit for computing Φ_d(C(d(m))) — each
 distinction's share of the overall Φ-structure. This is also foundational for the
@@ -2266,7 +2266,7 @@ intrinsic-unit search via $\varphi_s$ optimization.
 
 Integrate the formalism from Mayner, Juel, & Tononi 2024 ("Intrinsic meaning,
 perception, and matching") into PyPhi. Currently implemented as research code in
-`~/projects/matching/matching/` (~1500 LOC across 9 modules). This extension adds:
+the external matching research repo (~1500 LOC across 9 modules). This extension adds:
 
 - **Triggered TPMs**: How a system's state evolves when a stimulus x is presented
   at its sensory interface ∂S for τ timesteps (conditioning T_U on ∂S=x, then
@@ -2338,7 +2338,7 @@ All of these are stable after P8. No core API changes needed.
   types (P8) and stable `CausalModel` (P7). Could theoretically start as early as
   P8 completion, but placing after P14 keeps the critical path focused on core
   stability.
-- *Files:* `~/projects/matching/matching/` (source to adapt), new
+- *Files:* the external matching research repo (source to adapt), new
   `pyphi/formalism/perception/` package.
 - *Risk:* Medium — research code needs significant redesign for production quality.
   The mathematical formalism is well-defined (published paper); the engineering work
@@ -3028,18 +3028,18 @@ to have any value.
 
 ## Critical Files (highest blast radius, touched by multiple projects)
 
-- `/Users/will/projects/pyphi/pyphi/subsystem.py` — P4, P5, P6, P7, P9
-- `/Users/will/projects/pyphi/pyphi/new_big_phi/__init__.py` — P4, P7, P11
-- `/Users/will/projects/pyphi/pyphi/metrics/distribution.py` — P3, P5, P12
-- `/Users/will/projects/pyphi/pyphi/partition.py` — P3, P6, P13
-- `/Users/will/projects/pyphi/pyphi/models/mechanism.py` — P7, P8
-- `/Users/will/projects/pyphi/pyphi/models/subsystem.py` — P7, P8
-- `/Users/will/projects/pyphi/pyphi/tpm.py` — P7, P12
-- `/Users/will/projects/pyphi/pyphi/repertoire.py` — P5, P7, P12
-- `/Users/will/projects/pyphi/pyphi/conf.py` — P4, P10
-- `/Users/will/projects/pyphi/pyphi/parallel/` — P11
-- `/Users/will/projects/pyphi/pyphi/cache/` — P9
-- `/Users/will/projects/pyphi/pyphi/relations.py` — P6, P8 (already wired to `phi_structure`)
+- `pyphi/subsystem.py` — P4, P5, P6, P7, P9
+- `pyphi/new_big_phi/__init__.py` — P4, P7, P11
+- `pyphi/metrics/distribution.py` — P3, P5, P12
+- `pyphi/partition.py` — P3, P6, P13
+- `pyphi/models/mechanism.py` — P7, P8
+- `pyphi/models/subsystem.py` — P7, P8
+- `pyphi/tpm.py` — P7, P12
+- `pyphi/repertoire.py` — P5, P7, P12
+- `pyphi/conf.py` — P4, P10
+- `pyphi/parallel/` — P11
+- `pyphi/cache/` — P9
+- `pyphi/relations.py` — P6, P8 (already wired to `phi_structure`)
 
 ## Existing Utilities to Reuse
 
@@ -3066,7 +3066,7 @@ to have any value.
 - **PR #135, #133** — Pre-commit autoupdates. Merge into develop.
 - **PR #137, #136** — Dependabot bumps. Triage for security relevance.
 - **PR #114, #116, #130, #134, #117** — Minor fixes/features. Triage during P15.
-- **`~/projects/matching/`** — External research code implementing Mayner, Juel, &
+- **Matching research repo (external)** — Research code implementing Mayner, Juel, &
   Tononi 2024 (intrinsic meaning, perception, and matching). ~1500 LOC. Folded into
   PyPhi as P14b. Uses subclassing pattern over PhiStructure/Concept/Relation.
 

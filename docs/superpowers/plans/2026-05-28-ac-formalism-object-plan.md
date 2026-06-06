@@ -43,7 +43,7 @@
 
 **Files:** none (environment setup).
 
-- [ ] **Step 1:** Create an isolated worktree off `2.0` HEAD via `superpowers:using-git-worktrees`. Use the project's sibling-directory convention: `git worktree add /Users/will/projects/pyphi-ac-formalism -b feature/ac-formalism-object 2.0`.
+- [ ] **Step 1:** Create an isolated worktree off `2.0` HEAD via `superpowers:using-git-worktrees`. Use the project's sibling-directory convention: `git worktree add ../pyphi-ac-formalism -b feature/ac-formalism-object 2.0`.
 - [ ] **Step 2:** Set up deps in the worktree: `uv sync --all-extras --all-groups`.
 - [ ] **Step 3:** Confirm baseline green: `uv run pytest test/test_actual.py test/test_golden_regression.py -q --no-header`. Expected: all pass.
 

@@ -10,7 +10,7 @@
 
 **Spec:** `docs/superpowers/specs/2026-05-08-p10-config-split-design.md`.
 
-**Branch:** `feature/p10-config-split` (already cut from `feature/p9-unified-cache` tip `0c62db4c` in worktree `/Users/will/projects/pyphi-p7-kernel-rewrite`). Spec already committed at `da5b58a`.
+**Branch:** `feature/p10-config-split` (already cut from `feature/p9-unified-cache` tip `0c62db4c` in worktree `../pyphi-p7-kernel-rewrite`). Spec already committed at `da5b58a`.
 
 ---
 
@@ -67,7 +67,7 @@ ROADMAP.md                             # MODIFY in Phase 6: mark P10 complete
 - [ ] **Step 1: Confirm worktree path and branch**
 
 ```bash
-cd /Users/will/projects/pyphi-p7-kernel-rewrite
+cd ../pyphi-p7-kernel-rewrite
 git rev-parse --abbrev-ref HEAD
 git log --oneline -3
 ```
@@ -166,7 +166,7 @@ Persistent-write form: `config.<lowercase_name> = value` (e.g. `config.precision
 - [ ] **Step 2: Commit Phase 0 — audit + rename map**
 
 ```bash
-cd /Users/will/projects/pyphi-p7-kernel-rewrite
+cd ../pyphi-p7-kernel-rewrite
 git add docs/superpowers/specs/2026-05-08-p10-config-split-design.md docs/superpowers/plans/2026-05-08-p10-config-split.md docs/superpowers/plans/p10-callsite-inventory.md
 git commit -m "$(cat <<'EOF'
 P10 Phase 0: implementation plan + rename map + callsite inventory
@@ -927,7 +927,7 @@ Expected: 17 golden + ~21 invariants + ~16 layer tests pass.
 - [ ] **Step 1: Stage and commit**
 
 ```bash
-cd /Users/will/projects/pyphi-p7-kernel-rewrite
+cd ../pyphi-p7-kernel-rewrite
 git add pyphi/conf/ test/test_config_layers.py
 git commit -m "$(cat <<'EOF'
 P10 Phase 1: introduce three layered configs + ConfigSnapshot (additive)
@@ -2322,7 +2322,7 @@ if _USER_CONFIG.exists():
 - [ ] **Step 3: Run smoke test**
 
 ```bash
-cd /Users/will/projects/pyphi-p7-kernel-rewrite
+cd ../pyphi-p7-kernel-rewrite
 uv run python -c "import pyphi; print(pyphi.config.formalism.formalism)"
 ```
 

@@ -10,7 +10,7 @@
 
 **Spec:** `docs/superpowers/specs/2026-05-26-precision-aware-comparator-design.md` (committed at `0650fe2d`; three-vs-two thresholds correction at `418fc3eb`).
 
-**Branch context:** Working in worktree `/Users/will/projects/pyphi-p12b` on `feature/p12b-factored-kary`, head `418fc3eb`. Local-only, not pushed. Main repo `/Users/will/projects/pyphi` (on `2.0`) MUST NOT be touched. The worktree has unrelated unstaged churn (`uv.lock`, `filename`) that MUST NOT be staged.
+**Branch context:** Working in worktree `../pyphi-p12b` on `feature/p12b-factored-kary`, head `418fc3eb`. Local-only, not pushed. Main repo `../pyphi` (on `2.0`) MUST NOT be touched. The worktree has unrelated unstaged churn (`uv.lock`, `filename`) that MUST NOT be staged.
 
 ---
 
@@ -418,7 +418,7 @@ Expected: clean.
 
 - [ ] **Step 4.4: Stage the five intended files (targeted, never `git add .`)**
 
-Run, from `/Users/will/projects/pyphi-p12b`:
+Run, from `../pyphi-p12b`:
 ```bash
 git add \
   pyphi/models/cmp.py \

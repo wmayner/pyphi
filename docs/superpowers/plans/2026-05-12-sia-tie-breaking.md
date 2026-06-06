@@ -13,7 +13,7 @@
 ## Branch baseline (verify before starting)
 
 - Branch: `2.0` head `0941b62a` (or later — verify with `git log --oneline -1`).
-- Working in the main repo at `/Users/will/projects/pyphi`. No worktree.
+- Working in the main repo at `../pyphi`. No worktree.
 - Approximately 9 unstaged tracked-file changes from earlier sessions exist. **Do not** stage or touch any file your task doesn't explicitly modify. Use targeted `git add <paths>` only.
 - Verify gates green pre-start:
 

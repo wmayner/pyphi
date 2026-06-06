@@ -26,7 +26,7 @@ Supporting audits:
 
 ## Branch state baseline & pre-flight
 
-**Worktree:** `/Users/will/projects/pyphi-p12b` (separate from main `/Users/will/projects/pyphi` repo). The main repo MUST NOT be touched.
+**Worktree:** `../pyphi-p12b` (separate from main `../pyphi` repo). The main repo MUST NOT be touched.
 
 **Branch:** `feature/p12b-factored-kary`, head `5674cb92`.
 
@@ -43,7 +43,7 @@ Supporting audits:
 **Pre-flight check (run before Task 6):**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 git log -1 --oneline                                # expect: 5674cb92 ...
 git status --short                                  # clean or only untracked
 uv run pytest test/test_golden_regression.py -q     # 23/23 binary goldens pass
@@ -240,7 +240,7 @@ def test_cause_unreachable_state_raises() -> None:
 - [ ] **Step 6.2: Run failing tests.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_marginalization_kary.py -v 2>&1 | tail -20
 ```
 
@@ -389,7 +389,7 @@ def _as_cause_posterior(factored: FactoredTPM) -> CausePosterior:
 - [ ] **Step 6.4: Run tests; verify goldens.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_marginalization_kary.py -v
 uv run pytest test/test_golden_regression.py -q 2>&1 | tail -3
 uv run pytest 2>&1 | tail -5
@@ -402,7 +402,7 @@ If goldens drift: STOP. The bridge in `_as_cause_posterior` must reproduce the p
 - [ ] **Step 6.5: Pyright + ruff.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pyright pyphi/core/tpm/marginalization.py test/test_marginalization_kary.py 2>&1 | tail -3
 uv run ruff check pyphi/core/tpm/marginalization.py test/test_marginalization_kary.py 2>&1 | tail -3
 ```
@@ -412,7 +412,7 @@ Expected: clean.
 - [ ] **Step 6.6: Commit.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 git add pyphi/core/tpm/marginalization.py test/test_marginalization_kary.py
 git diff --cached --stat
 git -c commit.gpgsign=false commit -m "Fix k-ary cause TPM to apply background weighting per IIT 4.0 Eq. 4
@@ -466,7 +466,7 @@ def test_effect_tpm_kary_does_not_raise() -> None:
 - [ ] **Step 7.2: Run failing test.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_marginalization_kary.py::test_effect_tpm_kary_does_not_raise -v
 ```
 
@@ -493,7 +493,7 @@ Remove the SBN-stacking fallback. Verify `FactoredTPM.condition` returns a `Fact
 - [ ] **Step 7.4: Run tests.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_marginalization_kary.py -v
 uv run pytest test/test_golden_regression.py -q 2>&1 | tail -3
 uv run pytest 2>&1 | tail -5
@@ -504,7 +504,7 @@ Expected: all marginalization-kary tests pass; goldens at `23 passed`.
 - [ ] **Step 7.5: Pyright + ruff + commit.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pyright pyphi/core/tpm/marginalization.py 2>&1 | tail -3
 uv run ruff check pyphi/core/tpm/marginalization.py 2>&1 | tail -3
 git add pyphi/core/tpm/marginalization.py test/test_marginalization_kary.py
@@ -552,7 +552,7 @@ def test_cause_posterior_factor_returns_per_unit_distribution() -> None:
 - [ ] **Step 8.2: Run failing test.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_cause_posterior.py::test_cause_posterior_factor_returns_per_unit_distribution -v
 ```
 
@@ -588,7 +588,7 @@ class CausePosterior(JointDistribution):
 - [ ] **Step 8.4: Run tests; verify goldens.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_cause_posterior.py -v
 uv run pytest test/test_golden_regression.py -q 2>&1 | tail -3
 uv run pytest 2>&1 | tail -5
@@ -599,7 +599,7 @@ Expected: new accessor test passes; goldens unchanged.
 - [ ] **Step 8.5: Pyright + ruff + commit.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pyright pyphi/core/tpm/cause_posterior.py test/test_cause_posterior.py 2>&1 | tail -3
 uv run ruff check pyphi/core/tpm/cause_posterior.py test/test_cause_posterior.py 2>&1 | tail -3
 git add pyphi/core/tpm/cause_posterior.py test/test_cause_posterior.py
@@ -633,7 +633,7 @@ Per the amendment, each consumer migrates in isolation with a goldens check befo
 - [ ] **Step 9.1: Read the current implementation.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 sed -n '40,110p' pyphi/node.py
 ```
 
@@ -668,7 +668,7 @@ The substitution preserves:
 - [ ] **Step 9.3: Run targeted tests + goldens.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_node.py -v
 uv run pytest test/test_golden_regression.py -q 2>&1 | tail -3
 uv run pytest 2>&1 | tail -5
@@ -681,7 +681,7 @@ If goldens drift: diagnose via `pytest test/test_node.py -k 'test_node_init_tpm'
 - [ ] **Step 9.4: Pyright + ruff + commit.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pyright pyphi/node.py 2>&1 | tail -3
 uv run ruff check pyphi/node.py 2>&1 | tail -3
 git add pyphi/node.py
@@ -712,7 +712,7 @@ git show --stat HEAD
 - [ ] **Step 10.1: Read the current implementation.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 sed -n '115,160p' pyphi/core/repertoire_algebra.py
 ```
 
@@ -738,7 +738,7 @@ def test_single_node_cause_repertoire_k3() -> None:
 - [ ] **Step 10.3: Run the test.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_marginalization_kary.py::test_single_node_cause_repertoire_k3 -v
 ```
 
@@ -770,7 +770,7 @@ def _single_node_cause_repertoire(
 - [ ] **Step 10.5: Run targeted tests + goldens.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_marginalization_kary.py -v
 uv run pytest test/test_golden_regression.py -q 2>&1 | tail -3
 uv run pytest 2>&1 | tail -5
@@ -781,7 +781,7 @@ Expected: k=3 smoke passes; goldens at `23 passed`.
 - [ ] **Step 10.6: Pyright + ruff + commit.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pyright pyphi/core/repertoire_algebra.py 2>&1 | tail -3
 uv run ruff check pyphi/core/repertoire_algebra.py 2>&1 | tail -3
 git add pyphi/core/repertoire_algebra.py test/test_marginalization_kary.py
@@ -811,7 +811,7 @@ git show --stat HEAD
 - [ ] **Step 11.1: Audit current callers of `proper_cause_tpm`.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 grep -rn "proper_cause_tpm" pyphi/ test/ --include="*.py" | grep -v ".pyc:"
 ```
 
@@ -882,7 +882,7 @@ def proper_cause_tpm(self) -> Any:
 - [ ] **Step 11.4: Run targeted tests + goldens.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_system.py -v
 uv run pytest test/test_golden_regression.py -q 2>&1 | tail -3
 uv run pytest 2>&1 | tail -5
@@ -895,7 +895,7 @@ Expected: k=3 case passes; binary regression unchanged; goldens at `23 passed`.
 - [ ] **Step 11.5: Pyright + ruff + commit.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pyright pyphi/system.py pyphi/actual.py 2>&1 | tail -3
 uv run ruff check pyphi/system.py pyphi/actual.py 2>&1 | tail -3
 git add pyphi/system.py pyphi/actual.py test/test_system.py
@@ -936,7 +936,7 @@ After Task 9's migration, `Node.__init__` calls `tpm_indices` on a JointTPM-wrap
 - [ ] **Step 12.1: Audit current `tpm_indices` callers.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 grep -rn "tpm_indices()" pyphi/ test/ --include="*.py" | grep -v ".pyc:"
 ```
 
@@ -1026,7 +1026,7 @@ def tpm_indices(self) -> tuple[int, ...]:
 - [ ] **Step 12.4: Run targeted tests + goldens.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_tpm_indices.py -v
 uv run pytest test/test_golden_regression.py -q 2>&1 | tail -3
 uv run pytest 2>&1 | tail -5
@@ -1037,7 +1037,7 @@ Expected: all three new tests pass; goldens at `23 passed`. If any other test fa
 - [ ] **Step 12.5: Pyright + ruff + commit.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pyright pyphi/core/tpm/ 2>&1 | tail -3
 uv run ruff check pyphi/core/tpm/ 2>&1 | tail -3
 git add pyphi/core/tpm/joint_distribution.py pyphi/core/tpm/joint.py pyphi/core/tpm/factored.py pyphi/core/tpm/cause_posterior.py test/test_tpm_indices.py
@@ -1071,7 +1071,7 @@ git show --stat HEAD
 - [ ] **Step 13.1: Re-run the catalogue search.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 grep -rn "\[\.\.\., self\.index\]\|cause_tpm\[\.\.\., \|cause_tpm\.tpm_indices\|1 - cause_tpm_on" pyphi/ --include="*.py" | grep -v ".pyc:"
 ```
 
@@ -1080,7 +1080,7 @@ Expected: only `pyphi/macro.py` (dead code) and possibly `pyphi/actual.py::Trans
 Check `pyphi/actual.py` specifically:
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 grep -n "generate_nodes\|cause_tpm\b" pyphi/actual.py
 ```
 
@@ -1113,7 +1113,7 @@ Append to `docs/superpowers/audits/p12b-sbn-consumer-catalogue.md`:
 - [ ] **Step 13.4: Run full suite + goldens.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest 2>&1 | tail -5
 uv run pytest test/test_golden_regression.py -q 2>&1 | tail -3
 ```
@@ -1123,7 +1123,7 @@ Expected: full suite passes; goldens at `23 passed`.
 - [ ] **Step 13.5: Commit (only the audit-doc update if no live migrations were needed).**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 git add docs/superpowers/audits/p12b-sbn-consumer-catalogue.md
 # (add any other files if migrations were needed)
 git diff --cached --stat
@@ -1155,7 +1155,7 @@ git show --stat HEAD
 - [ ] **Step 14.1: Read the existing dispatcher and System/TransitionSystem unwrap.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 sed -n '155,180p' pyphi/system.py
 sed -n '240,270p' pyphi/actual.py
 sed -n '15,35p' pyphi/core/tpm/marginalization.py
@@ -1249,7 +1249,7 @@ def test_cause_tpm_parity() -> None:
 - [ ] **Step 14.6: Run targeted tests + full suite + goldens.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest test/test_marginalization_factored.py test/test_core_tpm.py -v
 uv run pytest test/test_golden_regression.py -q 2>&1 | tail -3
 uv run pytest 2>&1 | tail -5
@@ -1262,7 +1262,7 @@ If goldens drift here: this is the riskiest commit. The drift likely comes from 
 - [ ] **Step 14.7: Pyright + ruff + commit.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pyright pyphi 2>&1 | tail -3
 uv run ruff check pyphi test 2>&1 | tail -3
 git add pyphi/core/tpm/marginalization.py pyphi/system.py pyphi/actual.py test/test_marginalization_factored.py test/test_core_tpm.py
@@ -1297,7 +1297,7 @@ git show --stat HEAD
 - [ ] **Step 15.1: Audit `_legacy_backward_tpm` and `backward_tpm` callers.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 grep -rn "_legacy_backward_tpm\|backward_tpm\b" pyphi/ test/ --include="*.py" | grep -v ".pyc:"
 ```
 
@@ -1340,7 +1340,7 @@ In `test/test_core_tpm.py`, remove `test_cause_tpm_parity` (its comparison again
 - [ ] **Step 15.5: Run full suite + goldens.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest 2>&1 | tail -5
 uv run pytest test/test_golden_regression.py -q 2>&1 | tail -3
 ```
@@ -1350,7 +1350,7 @@ Expected: full suite passes; goldens at `23 passed`. If goldens drift here: the 
 - [ ] **Step 15.6: Pyright + ruff + commit.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pyright pyphi 2>&1 | tail -3
 uv run ruff check pyphi test 2>&1 | tail -3
 git add pyphi/core/tpm/marginalization.py pyphi/tpm.py test/test_tpm.py test/test_core_tpm.py
@@ -1385,7 +1385,7 @@ git show --stat HEAD
 - [ ] **Step 16.1: Audit remaining references.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 grep -rn "CausePosterior" pyphi/ test/ docs/ --include="*.py" --include="*.md" --include="*.rst" | grep -v ".pyc:"
 ```
 
@@ -1394,7 +1394,7 @@ Expected: the cause_posterior.py module itself, the export sites, the test file,
 - [ ] **Step 16.2: Delete the module and test file.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 git rm pyphi/core/tpm/cause_posterior.py test/test_cause_posterior.py
 ```
 
@@ -1424,7 +1424,7 @@ For each remaining reference identified in 16.1, update or remove:
 - [ ] **Step 16.5: Run full suite + goldens.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pytest 2>&1 | tail -5
 uv run pytest test/test_golden_regression.py -q 2>&1 | tail -3
 ```
@@ -1434,7 +1434,7 @@ Expected: goldens at `23 passed`. Any ImportError indicates a missed reference; 
 - [ ] **Step 16.6: Pyright + ruff + commit.**
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 uv run pyright pyphi 2>&1 | tail -3
 uv run ruff check pyphi test 2>&1 | tail -3
 git add -A
@@ -1556,7 +1556,7 @@ rewrite milestone for multi-valued state grouping.
 **Marker sweep:** before commit, run:
 
 ```bash
-cd /Users/will/projects/pyphi-p12b
+cd ../pyphi-p12b
 grep -rn "P12b\|Phase [A-Z]\b\|TODO(P12\|per ROADMAP\|original plan" pyphi/ test/ changelog.d/ docs/superpowers/audits/ --include="*.py" --include="*.md" --include="*.rst" 2>/dev/null
 ```
 

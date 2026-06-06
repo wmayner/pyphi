@@ -46,7 +46,7 @@ def proper_cause_tpm(self) -> FactoredTPM:
 
 ## Task 0: Pre-flight worktree
 
-- [ ] **Step 1:** Create a worktree at `/Users/will/projects/pyphi-sbn` on branch `feature/retire-sbn-bridge` (off `2.0` HEAD) via the `superpowers:using-git-worktrees` skill. Set up deps: `uv sync --all-extras --all-groups`.
+- [ ] **Step 1:** Create a worktree at `../pyphi-sbn` on branch `feature/retire-sbn-bridge` (off `2.0` HEAD) via the `superpowers:using-git-worktrees` skill. Set up deps: `uv sync --all-extras --all-groups`.
 - [ ] **Step 2:** Confirm baseline green: `uv run pytest test/test_system.py test/test_validate.py test/test_golden_regression.py -q --no-header`.
 
 ---

@@ -19,7 +19,7 @@
 - [ ] **Step 1: Confirm worktree on `feature/p7-kernel-rewrite`**
 
 ```bash
-cd /Users/will/projects/pyphi-p7-kernel-rewrite
+cd ../pyphi-p7-kernel-rewrite
 git status
 git log --oneline -3
 ```

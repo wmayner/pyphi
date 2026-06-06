@@ -10,7 +10,7 @@
 
 **Spec:** `docs/superpowers/specs/2026-05-26-distinction-ces-equality-design.md` (committed at `d077cb55` on branch `2.0`).
 
-**Branch context:** Work happens in a dedicated worktree at `/Users/will/projects/pyphi-eq` on branch `feature/per-class-eq` (branched off `2.0` at `d077cb55`). Main repo at `/Users/will/projects/pyphi` stays on `2.0` untouched.
+**Branch context:** Work happens in a dedicated worktree at `../pyphi-eq` on branch `feature/per-class-eq` (branched off `2.0` at `d077cb55`). Main repo at `../pyphi` stays on `2.0` untouched.
 
 ---
 
@@ -73,7 +73,7 @@ Existing `__hash__` audit (classes with both `__eq__` and `__hash__` — these n
 ## Task 1: Set up the worktree
 
 **Files:**
-- Create: `/Users/will/projects/pyphi-eq/` (new worktree)
+- Create: `../pyphi-eq/` (new worktree)
 
 This task has no commit. It creates the isolated workspace for the rest of the plan.
 
@@ -81,8 +81,8 @@ This task has no commit. It creates the isolated workspace for the rest of the p
 
 Run from main repo:
 ```bash
-cd /Users/will/projects/pyphi
-git worktree add -b feature/per-class-eq /Users/will/projects/pyphi-eq 2.0
+cd ../pyphi
+git worktree add -b feature/per-class-eq ../pyphi-eq 2.0
 ```
 
 Expected output:
@@ -94,7 +94,7 @@ HEAD is now at d077cb55 Add per-class __eq__ migration design spec
 - [ ] **Step 1.2: Verify worktree state**
 
 ```bash
-cd /Users/will/projects/pyphi-eq
+cd ../pyphi-eq
 git status --short
 git log --oneline -2
 ```
@@ -103,7 +103,7 @@ Expected: clean working tree; HEAD at `d077cb55`.
 
 - [ ] **Step 1.3: Add worktree-local VSCode settings (matches comparator-project pattern)**
 
-Create `/Users/will/projects/pyphi-eq/.vscode/settings.json` with:
+Create `../pyphi-eq/.vscode/settings.json` with:
 ```json
 {
   "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
@@ -116,7 +116,7 @@ This is globally `.gitignore`'d (via `~/.gitignore`) so won't appear in `git sta
 - [ ] **Step 1.4: Verify the python environment**
 
 ```bash
-cd /Users/will/projects/pyphi-eq
+cd ../pyphi-eq
 uv sync
 uv run python -c "import pyphi; print(pyphi.__file__)"
 ```
@@ -318,7 +318,7 @@ Expected: 0 errors / 0 warnings; clean.
 - [ ] **Step 2.10: Commit**
 
 ```bash
-cd /Users/will/projects/pyphi-eq
+cd ../pyphi-eq
 git diff --cached --stat
 git add pyphi/models/cmp.py pyphi/models/sia.py pyphi/models/actual_causation.py pyphi/models/distinction.py test/test_models.py
 git -c commit.gpgsign=false commit -m "$(cat <<'EOF'
@@ -1422,7 +1422,7 @@ git show --stat HEAD
 - [ ] **Step 8.1: Verify no remaining `general_eq` callers**
 
 ```bash
-cd /Users/will/projects/pyphi-eq
+cd ../pyphi-eq
 grep -rn 'general_eq' pyphi/ test/
 ```
 
@@ -1474,7 +1474,7 @@ a = nt(...)
 
 - [ ] **Step 8.5: Remove the now-implemented ROADMAP follow-up entry**
 
-In `/Users/will/projects/pyphi-eq/ROADMAP.md`, find the "Informal notes — pre-release housekeeping" section. Locate the entry titled "Migrate `Distinction` and `CauseEffectStructure` `__eq__` to the precision-aware path." (the one starting around the entry text:
+In `../pyphi-eq/ROADMAP.md`, find the "Informal notes — pre-release housekeeping" section. Locate the entry titled "Migrate `Distinction` and `CauseEffectStructure` `__eq__` to the precision-aware path." (the one starting around the entry text:
 
 ```markdown
 - **Migrate ``Distinction`` and ``CauseEffectStructure`` ``__eq__`` to the
@@ -1495,7 +1495,7 @@ Structural equality on IIT result objects is now precision-aware up to ``EQUALIT
 - [ ] **Step 8.7: Run full pytest (no path argument) to verify clean state**
 
 ```bash
-cd /Users/will/projects/pyphi-eq
+cd ../pyphi-eq
 uv run pytest --tb=short -q
 ```
 
@@ -1544,7 +1544,7 @@ git show --stat HEAD
 After Task 8 lands, all of these MUST be green:
 
 ```bash
-cd /Users/will/projects/pyphi-eq
+cd ../pyphi-eq
 
 # Full suite incl. doctests (CRITICAL: no path argument; uses testpaths + doctest-modules)
 uv run pytest --tb=short -q

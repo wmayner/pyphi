@@ -20,7 +20,7 @@
 
 - [ ] **Step 1: Create the worktree using superpowers:using-git-worktrees**
 
-Worktree path: `/Users/will/projects/pyphi-tscollapse`
+Worktree path: `../pyphi-tscollapse`
 Branch: `feature/transition-system-collapse` (branched off `2.0` at `f3f70996`)
 
 Use the `superpowers:using-git-worktrees` skill to create the worktree. After creation, all subsequent work happens inside the worktree.
@@ -29,7 +29,7 @@ Use the `superpowers:using-git-worktrees` skill to create the worktree. After cr
 
 Run:
 ```bash
-cd /Users/will/projects/pyphi-tscollapse
+cd ../pyphi-tscollapse
 git log --oneline -1
 git status --short
 ```

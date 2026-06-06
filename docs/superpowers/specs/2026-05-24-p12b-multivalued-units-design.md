@@ -2,7 +2,7 @@
 
 **Status:** Draft (awaiting review)
 **Date:** 2026-05-24
-**Branch:** `feature/p12b-factored-kary` (worktree at `/Users/will/projects/pyphi-p12b`)
+**Branch:** `feature/p12b-factored-kary` (worktree at `../pyphi-p12b`)
 **Branch baseline:** `2.0` at `15720651` (post-P12a + follow-ups)
 **Related:**
 - P12a design spec at `docs/superpowers/specs/2026-05-22-p12a-factored-tpm-design.md`
@@ -966,7 +966,7 @@ uv run ruff check pyphi test                       # clean
 
 ### 8.6 Branch & merge strategy
 
-P12b lives on `feature/p12b-factored-kary` (worktree at `/Users/will/projects/pyphi-p12b`).
+P12b lives on `feature/p12b-factored-kary` (worktree at `../pyphi-p12b`).
 
 At completion:
 
