@@ -9,13 +9,16 @@ closing the deferred P8 item. Reference implementation:
 - IIT 4.0 (Albantakis et al. 2023): the Φ-fold of a distinction — the
   distinction together with all relations it participates in.
 - Matching paper (Mayner, Juel & Tononi, in prep;
-  `~/projects/matching/manuscript/main.tex`): Eq. `perception_component`
-  defines a component's contribution as φ_c / |c| (φ divided by the number
-  of distinctions contributing to the component), so that summing
-  per-distinction folds tiles the Φ-structure without double-counting
-  relations. Eq. `perception_slice` computes perception per subset z as the
-  triggering coefficient times the apportioned fold sum — the quantity this
-  design makes a first-class property.
+  `~/projects/matching-manuscript/matching.tex` — NOT the stale copy in
+  `~/projects/matching/manuscript/`): the theory section formally defines
+  distinction Φ-folds (`matching:sec:theory:distinction-phi-folds`).
+  Eq. `eq:distinction-phi-fold` defines Φ_d(CES(d(m))) = Σ_c φ_c/|c| over
+  the fold's components — this design's `apportioned_big_phi`.
+  Eq. `eq:distinction-phi-fold-partition` is the tiling identity
+  (Σ over distinction folds of Φ_d equals the structure's Φ) — this
+  design's tested invariant. Eq. `eq:perception-richness-phi-fold` shows
+  perception per fold is the triggering coefficient times Φ_d — the
+  quantity this design makes a first-class property.
 
 ## Goals
 
