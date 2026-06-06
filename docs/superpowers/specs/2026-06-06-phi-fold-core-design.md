@@ -27,7 +27,11 @@ closing the deferred P8 item. Reference implementation:
    compute their relation sums in closed form, without enumerating
    relations. This removes the old hard error on analytical parents and
    makes downstream perception computable on systems where concrete
-   relation enumeration is intractable.
+   relation enumeration is intractable. Scope note: this covers
+   *single-structure* quantities (perception, richness); the
+   *cross-structure* projection behind differentiation/matching still
+   requires concrete relations (see the P14b follow-on roadmap entry for
+   the analytical-projection research direction).
 4. `highlight_phi_fold` gains a one-argument form.
 
 Out of scope (later sub-projects): `TriggeredDistinctionFold` and anything
