@@ -13,7 +13,7 @@ external matching research repo (110 lines, pre-2.0 API).
   theory section formally defines distinction Φ-folds
   (`matching:sec:theory:distinction-phi-folds`).
   Eq. `eq:distinction-phi-fold` defines Φ_d(CES(d(m))) = Σ_c φ_c/|c| over
-  the fold's components — this design's `apportioned_big_phi`.
+  the fold's components — this design's `big_phi_contribution`.
   Eq. `eq:distinction-phi-fold-partition` is the tiling identity
   (Σ over distinction folds of Φ_d equals the structure's Φ) — this
   design's tested invariant. Eq. `eq:perception-richness-phi-fold` shows
@@ -23,9 +23,9 @@ external matching research repo (110 lines, pre-2.0 API).
 ## Goals
 
 1. A typed, immutable `PhiFold` consistent with the 2.0 model layer.
-2. The apportioned (tiling) quantities as explicitly named properties —
-   never as a silent change to what `sum_phi` means (the old code swapped
-   `_sum_phi` semantics in a subclass).
+2. The fold's Φ-contribution (the paper's Φ_d) as an explicitly named
+   property — never as a silent change to what `sum_phi`/`big_phi` mean
+   (the old code swapped `_sum_phi` semantics in a subclass).
 3. **Analytical fold sums**: folds over `AnalyticalRelations` parents
    compute their relation sums in closed form, without enumerating
    relations. This removes the old hard error on analytical parents and
@@ -65,14 +65,18 @@ field after it.)
   - `parent`: the structure the fold was taken from (provenance; used by
     the one-argument `highlight_phi_fold`).
 - `sum_phi_relations` / `sum_phi_distinctions` / `big_phi` keep their
-  universal CES meaning (full relation φ).
-- New properties:
-  - `apportioned_sum_phi_relations` = Σ_r φ_r / |r| over the fold's
+  universal CES meaning (full relation φ): a `PhiFold` is-a
+  `CauseEffectStructure`, so `big_phi` must mean the same on both
+  (generic consumers like `plot_ces` rely on this).
+- New properties (the paper's Φ_d, Eq. 3 — the fold's additive share of Φ):
+  - `sum_phi_relations_contribution` = Σ_r φ_r / |r| over the fold's
     relations (|r| = number of relata; self-relations have |r| = 1).
-  - `apportioned_big_phi` = `sum_phi_distinctions +
-    apportioned_sum_phi_relations`.
-- **Tiling invariant** (tested): summing `apportioned_big_phi` over all
-  per-distinction folds of a CES equals the parent's `big_phi`.
+  - `big_phi_contribution` = `sum_phi_distinctions +
+    sum_phi_relations_contribution`. This is Φ_d(C(d(m))).
+- **Tiling invariant** (tested, the paper's Eq. 4): summing
+  `big_phi_contribution` over all per-distinction folds of a CES equals the
+  parent's `big_phi`. (Each relation's φ_r/|r| appears in exactly |r|
+  folds, so the apportioned pieces sum back to full φ_r.)
 
 A fold is *not* a self-contained CES: its relations may reference
 distinctions outside `fold.distinctions`. The class docstring states this;
@@ -109,7 +113,11 @@ A relation `r` (a frozenset of relata) is incident to seed set F iff
 
 ### `Relations.apportioned_sum_phi()`
 
-New method on the `Relations` interface, alongside `sum_phi()`:
+New method on the `Relations` interface, alongside `sum_phi()`. Returns
+Σ_r φ_r / |r| over the relation set. (Named for the *operation* —
+apportioning each relation's φ across its relata — at this building-block
+layer; the fold property that consumes it, `sum_phi_relations_contribution`,
+is named for its *role*.)
 
 - `ConcreteRelations`: Σ_r φ_r / len(r).
 - `AnalyticalRelations`: closed form (below).
@@ -208,13 +216,13 @@ Unit (hand-verifiable):
 
 Properties / invariants:
 
-- Tiling: Σ over `distinction_folds()` of `apportioned_big_phi` ==
+- Tiling: Σ over `distinction_folds()` of `big_phi_contribution` ==
   parent `big_phi` (concrete and analytical parents).
 - Fold of all distinctions reproduces the parent's relation count and
   `sum_phi` (concrete); analytical sums match the parent's totals.
 - **Analytical ≡ concrete cross-validation**: on small fixture systems,
   every distinction fold's `sum_phi_relations`, `num_relations`, and
-  `apportioned_sum_phi_relations` agree between a concrete-relations
+  `sum_phi_relations_contribution` agree between a concrete-relations
   parent and an analytical-relations parent. This validates the
   subtraction identity, the new helper, and the existing analytical
   formulas against brute force in one test.
