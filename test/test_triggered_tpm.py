@@ -72,3 +72,46 @@ def test_relay_triggered_tpm_hand_computed():
     assert ttpm.row((1,))[(1,)] == 1.0
     assert ttpm.argmax_state((0,)) == (0,)
     assert ttpm.argmax_state((1,)) == (1,)
+
+
+def test_conditional_probability_relay():
+    import pyphi
+
+    sbn = np.zeros((2, 2, 2))
+    for a in (0, 1):
+        for b in (0, 1):
+            sbn[a, b, 1] = a
+    substrate = pyphi.Substrate(sbn)
+    t = build_triggered_tpm(
+        substrate, sensory_indices=(0,), system_indices=(1,), tau=1, tau_clamp=1
+    )
+    assert t.conditional_probability((1,), (1,), (1,)) == pytest.approx(1.0)
+    assert t.conditional_probability((1,), (0,), (1,)) == pytest.approx(0.0)
+    assert t.conditional_probability((1,), (0,), (0,)) == pytest.approx(1.0)
+
+
+def test_marginal_probability_relay():
+    import pyphi
+
+    sbn = np.zeros((2, 2, 2))
+    for a in (0, 1):
+        for b in (0, 1):
+            sbn[a, b, 1] = a
+    substrate = pyphi.Substrate(sbn)
+    t = build_triggered_tpm(
+        substrate, sensory_indices=(0,), system_indices=(1,), tau=1, tau_clamp=1
+    )
+    assert t.marginal_probability((1,), (1,)) == pytest.approx(0.5)
+    assert t.marginal_probability((1,), (0,)) == pytest.approx(0.5)
+
+
+def test_conditional_probability_subset_marginalizes(ttpm):
+    for x in utils.all_states(1):
+        p1 = ttpm.conditional_probability((1,), (1,), x)
+        row = ttpm.row(x)  # shape (2, 2): axes = unit1, unit2
+        assert p1 == pytest.approx(row[1, :].sum())
+
+
+def test_marginalization_rejects_out_of_system_mechanism(ttpm):
+    with pytest.raises(ValueError):
+        ttpm.conditional_probability((0,), (1,), (0,))

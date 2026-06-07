@@ -37,6 +37,33 @@ class TriggeredTPM:
         flat = int(np.argmax(self.row(stimulus)))
         return convert.le_index2state(flat, len(self.system_indices))
 
+    def _marginalize_system(self, distribution, mechanism, state) -> float:
+        """Given a distribution over the system axes, return Pr(mechanism = state)
+        by summing out the system units not in ``mechanism``."""
+        mechanism = tuple(mechanism)
+        if not set(mechanism) <= set(self.system_indices):
+            raise ValueError(
+                f"mechanism {mechanism} is not a subset of system_indices "
+                f"{self.system_indices}"
+            )
+        if len(state) != len(mechanism):
+            raise ValueError(f"state {state} length != mechanism {mechanism} length")
+        keep = [self.system_indices.index(m) for m in mechanism]
+        sum_axes = tuple(a for a in range(len(self.system_indices)) if a not in keep)
+        reduced = distribution.sum(axis=sum_axes) if sum_axes else distribution
+        # mechanism and system_indices are both sorted, so `keep` is increasing
+        # and the remaining axes are already in mechanism order.
+        return float(reduced[tuple(state)])
+
+    def conditional_probability(self, mechanism, state, stimulus) -> float:
+        """Pr(mechanism = state | dS = stimulus)."""
+        return self._marginalize_system(self.row(stimulus), mechanism, state)
+
+    def marginal_probability(self, mechanism, state) -> float:
+        """Pr(mechanism = state), the uniform-prior marginal over stimuli."""
+        marginal = self.array.mean(axis=tuple(range(len(self.sensory_indices))))
+        return self._marginalize_system(marginal, mechanism, state)
+
     def to_pandas(self) -> pd.DataFrame:
         """Provisional labeled view: rows = stimulus states, columns = system
         states, values = Pr(s | x). Subsumed by the unified to_pandas project.
