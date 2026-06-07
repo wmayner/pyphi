@@ -273,11 +273,17 @@ class Relations:
     def __init__(self, *args, **kwargs):
         self._num_relations_cached = None
         self._sum_phi_cached = None
+        self._apportioned_sum_phi_cached = None
 
     def sum_phi(self):
         if self._sum_phi_cached is None:
             self._sum_phi_cached = self._sum_phi()  # type: ignore[attr-defined]  # Defined in subclass
         return self._sum_phi_cached
+
+    def apportioned_sum_phi(self):
+        if self._apportioned_sum_phi_cached is None:
+            self._apportioned_sum_phi_cached = self._apportioned_sum_phi()  # type: ignore[attr-defined]  # Defined in subclass
+        return self._apportioned_sum_phi_cached
 
     def num_relations(self):
         if self._num_relations_cached is None:
@@ -313,6 +319,9 @@ class NullRelations(Relations):
     def _sum_phi(self):
         return 0
 
+    def _apportioned_sum_phi(self):
+        return 0
+
     def _num_relations(self):
         return 0
 
@@ -330,6 +339,9 @@ class NullRelations(Relations):
 class ConcreteRelations(frozenset, Relations):
     def _sum_phi(self):
         return sum(relation.phi for relation in self)
+
+    def _apportioned_sum_phi(self):
+        return sum(relation.phi / len(relation) for relation in self)
 
     def _num_relations(self):
         return len(self)
@@ -380,6 +392,22 @@ class AnalyticalRelations(Relations):
         # Count self-relations
         sum_phi += sum(relation.phi for relation in self.self_relations)
         return sum_phi
+
+    def _apportioned_sum_phi(self):
+        apportioned = 0
+        # Apportioned sum (Σ φ_r / |r|) excluding self-relations
+        for _, overlapping_distinctions in self.distinctions.purview_inclusion(
+            max_order=1
+        ):
+            apportioned += combinatorics.sum_of_minimum_over_size_among_subsets(
+                [
+                    distinction.phi / len(distinction.purview_union)
+                    for distinction in overlapping_distinctions
+                ]
+            )
+        # Self-relations have |r| = 1, so they enter at full phi
+        apportioned += sum(relation.phi for relation in self.self_relations)
+        return apportioned
 
     def _num_relations(self):
         count = 0
