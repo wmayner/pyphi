@@ -293,3 +293,34 @@ def test_highlight_phi_fold_dimmed_pass_has_no_colorbars():
     background, overlay = fig.data[0], fig.data[6]
     assert not background.marker.showscale
     assert overlay.marker.showscale
+
+
+def test_plot_ces_rejects_phi_fold():
+    from pyphi import examples
+    from pyphi.visualize import plot_ces
+
+    ces = examples.xor_system().ces()
+    fold = ces.fold([ces.distinctions[0]])
+    with pytest.raises(TypeError, match="highlight_phi_fold"):
+        plot_ces(fold)
+
+
+def test_highlight_phi_fold_one_argument():
+    from pyphi import examples
+    from pyphi.visualize import highlight_phi_fold
+
+    ces = examples.xor_system().ces()
+    fold = ces.fold([ces.distinctions[0]])
+    figure = highlight_phi_fold(fold)
+    assert figure is not None
+    assert len(figure.data) > 0
+
+
+def test_highlight_phi_fold_two_argument_still_works():
+    from pyphi import examples
+    from pyphi.visualize import highlight_phi_fold
+
+    ces = examples.xor_system().ces()
+    fold = ces.fold([ces.distinctions[0]])
+    figure = highlight_phi_fold(ces, fold)
+    assert figure is not None

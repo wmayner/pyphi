@@ -106,6 +106,13 @@ def plot_ces(
         show (tuple[str, ...]): Element classes the simplicial-complex view
             draws. Defaults to all of them.
     """
+    from pyphi.models.ces import PhiFold
+
+    if isinstance(ces_, PhiFold):
+        raise TypeError(
+            "cannot plot a PhiFold directly; use highlight_phi_fold(fold) to "
+            "render a fold against its parent structure"
+        )
     projection = project_ces(ces_, node_labels=node_labels)
     if view == "lattice":
         from .render.lattice import render_lattice
@@ -150,7 +157,7 @@ def plot_ces(
 
 def highlight_phi_fold(
     ces_,
-    phi_fold,
+    phi_fold=None,
     *,
     theme=DEFAULT_THEME,
     node_labels=None,
@@ -160,11 +167,16 @@ def highlight_phi_fold(
 ):
     """Plot a |CauseEffectStructure| dimmed, highlighting a phi-fold.
 
+    Call with a single :class:`PhiFold` to highlight it against its own
+    ``parent``, or with ``(ces_, phi_fold)`` to highlight any object with a
+    ``distinctions`` attribute against an explicit structure.
+
     Args:
-        ces_ (CauseEffectStructure): The full cause-effect structure.
+        ces_ (CauseEffectStructure | PhiFold): The full cause-effect structure,
+            or a fold (whose ``parent`` supplies the background).
         phi_fold: An object with a ``distinctions`` attribute giving the
             distinctions to highlight; they are matched to the structure's
-            by mechanism.
+            by mechanism. Omit when ``ces_`` is a fold.
 
     Keyword Args:
         theme (Theme): Visual theme for the highlighted fold; the dimmed
@@ -174,7 +186,18 @@ def highlight_phi_fold(
         geometry (SimplicialComplexGeometry): Layout knobs.
         show (tuple[str, ...]): Element classes to draw.
     """
+    from pyphi.models.ces import PhiFold
+
     from .render.simplicial_complex import render_simplicial_complex
+
+    if phi_fold is None:
+        if not isinstance(ces_, PhiFold):
+            raise TypeError(
+                "single-argument highlight_phi_fold requires a PhiFold; pass "
+                "(ces, phi_fold) otherwise"
+            )
+        phi_fold = ces_
+        ces_ = phi_fold.parent
 
     projection = project_ces(ces_, node_labels=node_labels)
     dimmed = dataclasses.replace(
