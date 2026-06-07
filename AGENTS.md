@@ -691,6 +691,14 @@ When improving the codebase, prioritize:
 #### Commit messages
 Commit messages must succinctly describe what changed and why. Do not include anything related to the narrative flow of conversations with the user, or context that is irrelevant to the actual final set of changes. BAD: "User flagged an important issue. This commit fixes…". GOOD: "This commit fixes a bug where…".
 
+#### Committing specs and plans
+Design specs and implementation plans (e.g. under `docs/superpowers/`) must
+only be committed **after the user has explicitly approved them**. Do not
+commit a spec or plan in the same breath as writing it — write it, ask the
+user to review, and commit only once they sign off. The same applies to
+substantive revisions of an already-approved spec/plan: re-confirm before
+committing the revision.
+
 #### Using worktrees
 
 The default is to work on whatever branch the conversation starts on. However, for significant chunks of work that require discussion and planning, you should prefer working in a git worktree (after confirming with the user).
