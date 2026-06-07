@@ -1,3 +1,4 @@
+import itertools
 from itertools import chain
 
 import pytest
@@ -132,3 +133,40 @@ def test_explicit_combinations_with_nonempty_intersection(
         if min_size <= len(combination) <= max_size
     ]
     assert answer == result
+
+
+def _brute_force_min_over_size(values):
+    total = 0.0
+    for size in range(2, len(values) + 1):
+        for subset in itertools.combinations(values, size):
+            total += min(subset) / size
+    return total
+
+
+@pytest.mark.parametrize(
+    "values",
+    [
+        [],
+        [3.0],
+        [1.0, 2.0],
+        [1.0, 2.0, 3.0],
+        [3.0, 1.0, 2.0],
+        [2.0, 2.0, 2.0],
+        [0.5, 1.5, 0.25, 4.0, 4.0, 0.1],
+    ],
+)
+def test_sum_of_minimum_over_size_matches_brute_force(values):
+    assert combinatorics.sum_of_minimum_over_size_among_subsets(values) == pytest.approx(
+        _brute_force_min_over_size(values)
+    )
+
+
+def test_sum_of_minimum_over_size_small_inputs_are_zero():
+    assert combinatorics.sum_of_minimum_over_size_among_subsets([]) == 0.0
+    assert combinatorics.sum_of_minimum_over_size_among_subsets([7.0]) == 0.0
+
+
+def test_sum_of_minimum_over_size_known_value():
+    assert combinatorics.sum_of_minimum_over_size_among_subsets(
+        [1.0, 2.0, 3.0]
+    ) == pytest.approx(0.5 + 0.5 + 1.0 + 1.0 / 3.0)

@@ -201,6 +201,32 @@ def sum_of_minimum_among_subsets(values: Sequence[float]) -> float:
     return float(np.sum(np.sort(values) * counts))
 
 
+def sum_of_minimum_over_size_among_subsets(values: Sequence[float]) -> float:
+    """Return the sum of ``min(S) / |S|`` over all subsets ``S`` with size > 1.
+
+    For values sorted ascending as ``v_0 <= ... <= v_{n-1}``, ``v_i`` is the
+    minimum of exactly those subsets containing ``i`` whose other elements all
+    come from the ``a = n - 1 - i`` larger positions. Summing ``1/|S|`` over
+    those subsets gives the closed-form coefficient
+
+        Σ_{k=2}^{a+1} C(a, k-1) / k  =  (2^{a+1} - 1 - (a+1)) / (a+1)
+
+    via the hockey-stick identity, so the result is a sorted dot product.
+    This is the apportioned (``φ_r / |r|``) analogue of
+    :func:`sum_of_minimum_among_subsets`.
+    """
+    n = len(values)
+    if n < 2:
+        return 0.0
+    sorted_values = np.sort(np.asarray(values, dtype=float))
+    coefficients = np.zeros(n)
+    for i in range(n):
+        a = n - 1 - i
+        if a > 0:
+            coefficients[i] = (2 ** (a + 1) - 1 - (a + 1)) / (a + 1)
+    return float(np.sum(sorted_values * coefficients))
+
+
 def sum_of_ratio_of_minima_among_subsets(
     num_denom_pairs: list[tuple[float, float]],
 ) -> float:
