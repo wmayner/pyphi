@@ -94,3 +94,36 @@ def test_fold_relations_less_ces_raises():
     )
     with pytest.raises(ValueError, match="requires relations"):
         bare.fold([])
+
+
+@pytest.fixture(scope="module")
+def xor_ces_analytical(xor_ces):
+    # same distinctions/sia, but analytical relations
+    return CauseEffectStructure(
+        sia=xor_ces.sia,
+        distinctions=xor_ces.distinctions,
+        relations=AnalyticalRelations(xor_ces.distinctions),
+    )
+
+
+def test_analytical_fold_sum_matches_concrete_fold(xor_ces, xor_ces_analytical):
+    for distinction in xor_ces.distinctions:
+        mechanism = distinction.mechanism
+        concrete_fold = xor_ces.fold([mechanism])
+        analytical_fold = xor_ces_analytical.fold([mechanism])
+        assert analytical_fold.relations.sum_phi() == pytest.approx(
+            concrete_fold.relations.sum_phi()
+        )
+        assert analytical_fold.relations.num_relations() == (
+            concrete_fold.relations.num_relations()
+        )
+        assert analytical_fold.relations.apportioned_sum_phi() == pytest.approx(
+            concrete_fold.relations.apportioned_sum_phi()
+        )
+
+
+def test_analytical_fold_tiles_big_phi(xor_ces_analytical):
+    total = sum(
+        fold.big_phi_contribution for fold in xor_ces_analytical.distinction_folds()
+    )
+    assert total == pytest.approx(xor_ces_analytical.big_phi)
