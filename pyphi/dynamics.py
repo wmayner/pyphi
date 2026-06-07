@@ -10,6 +10,7 @@ from numpy.typing import ArrayLike
 
 from . import utils
 from .core.tpm.joint_distribution import JointTPM
+from .exceptions import NonConvergenceError
 
 
 def mean_dynamics(
@@ -92,6 +93,55 @@ def simulate_one_timestep_from_explicit_tpm_state_by_node(rng, tpm, state):
     elementwise_probabilities = tpm[state]
     thresholds = rng.random(len(elementwise_probabilities))
     return tuple((elementwise_probabilities > thresholds).astype(int))
+
+
+def most_probable_next_state(tpm, state):
+    """Return the deterministic most-probable next state (binary).
+
+    Counterpart of the sampled `simulate_one_timestep_*`: each unit takes its
+    most-probable next value (ON iff P(ON) > 0.5).
+    """
+    tpm = JointTPM(tpm)
+    elementwise_probabilities = np.asarray(tpm[state])
+    return tuple((elementwise_probabilities > 0.5).astype(int))
+
+
+def settle(tpm, initial_state, *, clamp=None, max_steps=None):
+    """Iterate the most-probable-transition map to a fixed point.
+
+    Deterministic complement to `simulate`: each step takes the most-probable
+    next state instead of sampling. Returns the trajectory (a list of states)
+    ending at the fixed point; the fixed point is the last element and the
+    settling time is ``len(result) - 1``. Raises
+    :class:`~pyphi.exceptions.NonConvergenceError` on a limit cycle.
+
+    Args:
+        tpm: A state-by-node multidimensional TPM (binary).
+        initial_state (tuple[int, ...]): The starting state.
+
+    Keyword Args:
+        clamp (Mapping[int, int] | None): Units held fixed every step.
+        max_steps (int | None): Optional cap; raises if exceeded.
+    """
+    if clamp is None:
+        clamp = {}
+    state = apply_clamp(clamp, tuple(initial_state))
+    trajectory = [state]
+    seen = {state}
+    while True:
+        nxt = apply_clamp(clamp, most_probable_next_state(tpm, state))
+        if nxt == state:
+            return trajectory
+        if nxt in seen:
+            raise NonConvergenceError(
+                f"no fixed point; entered a limit cycle at {nxt} "
+                f"(trajectory: {[*trajectory, nxt]})"
+            )
+        trajectory.append(nxt)
+        seen.add(nxt)
+        state = nxt
+        if max_steps is not None and len(trajectory) > max_steps:
+            raise NonConvergenceError(f"did not settle within max_steps={max_steps}")
 
 
 # TODO(4.0): move to tpm module

@@ -64,3 +64,7 @@ class WrongDirectionError(ValueError):
 
 class InvalidTPM(ValueError):
     """A TPM violates a structural or probability axiom."""
+
+
+class NonConvergenceError(ValueError):
+    """A deterministic trajectory entered a limit cycle instead of a fixed point."""
