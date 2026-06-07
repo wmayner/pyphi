@@ -3,6 +3,8 @@
 import pytest
 
 from pyphi import examples
+from pyphi.models.ces import CauseEffectStructure
+from pyphi.models.ces import PhiFold
 from pyphi.relations import AnalyticalRelations
 from pyphi.relations import NullRelations
 
@@ -33,3 +35,62 @@ def test_analytical_apportioned_matches_concrete(xor_ces):
     assert analytical.apportioned_sum_phi() == pytest.approx(
         xor_ces.relations.apportioned_sum_phi()
     )
+
+
+def test_fold_is_phi_fold_with_parent(xor_ces):
+    seed = xor_ces.distinctions[0]
+    fold = xor_ces.fold([seed])
+    assert isinstance(fold, PhiFold)
+    assert isinstance(fold, CauseEffectStructure)
+    assert fold.parent is xor_ces
+    assert [d.mechanism for d in fold.distinctions] == [seed.mechanism]
+
+
+def test_fold_accepts_mechanism_tuples(xor_ces):
+    by_mech = xor_ces.fold([(0, 1)])
+    by_obj = xor_ces.fold([d for d in xor_ces.distinctions if d.mechanism == (0, 1)])
+    assert [d.mechanism for d in by_mech.distinctions] == [(0, 1)]
+    assert by_mech.relations.sum_phi() == pytest.approx(by_obj.relations.sum_phi())
+
+
+def test_fold_unknown_mechanism_raises(xor_ces):
+    with pytest.raises(ValueError, match="not in this cause-effect structure"):
+        xor_ces.fold([(9,)])
+
+
+def test_fold_relations_are_exactly_the_incident_ones(xor_ces):
+    seed = xor_ces.distinctions[0]
+    fold = xor_ces.fold([seed])
+    expected = {r for r in xor_ces.relations if seed in r}
+    assert set(fold.relations) == expected
+    assert all(seed in r for r in fold.relations)
+
+
+def test_big_phi_contribution_matches_manual(xor_ces):
+    seed = xor_ces.distinctions[0]
+    fold = xor_ces.fold([seed])
+    expected = seed.phi + sum(r.phi / len(r) for r in xor_ces.relations if seed in r)
+    assert fold.big_phi_contribution == pytest.approx(expected)
+
+
+def test_distinction_folds_tile_big_phi(xor_ces):
+    total = sum(fold.big_phi_contribution for fold in xor_ces.distinction_folds())
+    assert total == pytest.approx(xor_ces.big_phi)
+
+
+def test_fold_big_phi_is_universal_not_contribution(xor_ces):
+    seed = xor_ces.distinctions[0]
+    fold = xor_ces.fold([seed])
+    full = seed.phi + sum(r.phi for r in xor_ces.relations if seed in r)
+    assert fold.big_phi == pytest.approx(full)
+    assert fold.big_phi >= fold.big_phi_contribution
+
+
+def test_fold_relations_less_ces_raises():
+    from pyphi.models.distinctions import ResolvedDistinctions
+
+    bare = CauseEffectStructure(
+        sia=None, distinctions=ResolvedDistinctions(()), relations=NullRelations()
+    )
+    with pytest.raises(ValueError, match="requires relations"):
+        bare.fold([])

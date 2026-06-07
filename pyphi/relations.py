@@ -432,6 +432,39 @@ class AnalyticalRelations(Relations):
         return fmt.box(fmt.header("AnalyticalRelations", body, "", fmt.HEADER_BAR_2))
 
 
+class AnalyticalFoldRelations(AnalyticalRelations):
+    """Closed-form sums over the relations incident to a set of seed
+    distinctions within a parent structure.
+
+    Every analytical quantity is a sum over relations, and a relation either
+    touches the seed set ``F`` or it does not, so the incident total is
+    ``total(D) - total(D\\F)`` over two plain :class:`AnalyticalRelations`.
+    Self-relations of ``D\\F`` cancel in the difference; self-relations of the
+    seeds survive. Enumeration (iteration, faces) is not supported -- use
+    concrete relations for that.
+    """
+
+    def __init__(self, parent_distinctions, seeds):
+        super().__init__(parent_distinctions)
+        self._full = AnalyticalRelations(parent_distinctions)
+        seed_mechanisms = {tuple(d.mechanism) for d in seeds}
+        from pyphi.models.distinctions import ResolvedDistinctions
+
+        complement = ResolvedDistinctions(
+            d for d in parent_distinctions if tuple(d.mechanism) not in seed_mechanisms
+        )
+        self._complement = AnalyticalRelations(complement)
+
+    def _sum_phi(self):
+        return self._full.sum_phi() - self._complement.sum_phi()
+
+    def _num_relations(self):
+        return self._full.num_relations() - self._complement.num_relations()
+
+    def _apportioned_sum_phi(self):
+        return self._full.apportioned_sum_phi() - self._complement.apportioned_sum_phi()
+
+
 def relations(
     distinctions: ResolvedDistinctions,
     relation_computation: str | None = None,

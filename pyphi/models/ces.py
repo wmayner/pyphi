@@ -26,6 +26,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import dataclass
+from dataclasses import field
 from typing import TYPE_CHECKING
 from typing import Any
 
@@ -115,3 +116,96 @@ class CauseEffectStructure(cmp.Orderable):
             "distinctions": self.distinctions,
             "relations": self.relations,
         }
+
+    def fold(self, distinctions) -> PhiFold:
+        """Return the Φ-fold seeded by the given distinctions.
+
+        ``distinctions`` is an iterable of :class:`Distinction` objects or
+        mechanism index-tuples drawn from this structure. The fold contains
+        those distinctions and every relation incident to at least one of
+        them.
+        """
+        from pyphi.relations import AnalyticalRelations
+        from pyphi.relations import ConcreteRelations
+        from pyphi.relations import NullRelations
+
+        from .distinction import Distinction
+
+        by_mechanism = {tuple(d.mechanism): d for d in self.distinctions}
+        seeds = []
+        for item in distinctions:
+            mechanism = (
+                tuple(item.mechanism)  # pyright: ignore[reportArgumentType]  # Distinction.mechanism is an index tuple
+                if isinstance(item, Distinction)
+                else tuple(item)
+            )
+            if mechanism not in by_mechanism:
+                raise ValueError(
+                    f"mechanism {mechanism} not in this cause-effect structure"
+                )
+            seeds.append(by_mechanism[mechanism])
+
+        if isinstance(self.relations, NullRelations):
+            raise ValueError(
+                "folding requires relations; this cause-effect structure has "
+                "none (e.g. IIT 3.0)"
+            )
+        seed_set = set(seeds)
+        if isinstance(self.relations, ConcreteRelations):
+            incident = ConcreteRelations(
+                r for r in self.relations if not seed_set.isdisjoint(r)
+            )
+        elif isinstance(self.relations, AnalyticalRelations):
+            from pyphi.relations import AnalyticalFoldRelations
+
+            incident = AnalyticalFoldRelations(
+                self.distinctions, ResolvedDistinctions(seeds)
+            )
+        else:
+            raise TypeError(
+                f"cannot fold a structure with {type(self.relations).__name__} relations"
+            )
+        return PhiFold(
+            sia=self.sia,
+            distinctions=ResolvedDistinctions(seeds),
+            relations=incident,
+            config=self.config,
+            parent=self,
+        )
+
+    def distinction_folds(self):
+        """Yield the single-distinction Φ-fold of each distinction, in order."""
+        for distinction in self.distinctions:
+            yield self.fold([distinction])
+
+
+@dataclass(frozen=True, eq=False)
+class PhiFold(CauseEffectStructure):
+    """A slice of a cause-effect structure: a set of seed distinctions and
+    the relations incident to them.
+
+    ``distinctions`` holds the seeds; ``relations`` holds every relation that
+    binds at least one seed; ``sia`` and ``config`` come from the structure the
+    fold was taken from, available as ``parent``. A fold is not a self-contained
+    cause-effect structure — its relations may reference distinctions outside
+    ``distinctions`` — so it is not accepted by ``plot_ces``/``project_ces``;
+    use ``highlight_phi_fold`` to visualize it.
+    """
+
+    parent: CauseEffectStructure = field(kw_only=True)
+
+    @property
+    def sum_phi_relations_contribution(self):
+        """Σ over incident relations of ``φ_r / |r|`` — the relations' share of
+        the fold's contribution to the structure's Φ.
+        """
+        return self.relations.apportioned_sum_phi()
+
+    @property
+    def big_phi_contribution(self):
+        """The fold's additive contribution to the structure's Φ (the paper's
+        Φ_d): the seed distinctions' full φ plus each incident relation's φ
+        apportioned across the distinctions it binds. Summing this over a
+        structure's single-distinction folds recovers its ``big_phi``.
+        """
+        return self.sum_phi_distinctions + self.sum_phi_relations_contribution
