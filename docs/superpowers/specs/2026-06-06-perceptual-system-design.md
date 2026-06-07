@@ -26,6 +26,9 @@ In scope:
 - Triggered-state computation: argmax-of-row (method A, paper-faithful) and
   iterative settling (method B, physically meaningful, raises on
   non-convergence).
+- A general `dynamics.settle` primitive (the deterministic sibling of
+  `simulate`) that method B is a thin wrapper over — placed in the existing
+  dynamics module, not the matching package, because the algorithm is general.
 
 Out of scope (deferred):
 - Triggering coefficients, perception (sub-project 3).
@@ -154,36 +157,54 @@ Built on 2.0 primitives: `FactoredTPM.condition` / `marginalize_out`,
 `pyphi.convert` (state-by-node ↔ state-by-state), `numpy.linalg.matrix_power`.
 Exact calls are pinned in the implementation plan after verifying signatures.
 
-### `settled_state` (method B)
+### General settling primitive (`pyphi/dynamics.py`)
 
-Iterate the deterministic most-probable-transition map under a clamped
-stimulus:
+The iterative-settling algorithm is **not perception-specific** — it is the
+deterministic sibling of the existing stochastic `simulate`. It belongs in
+`pyphi/dynamics.py` alongside `simulate`, reusing the module's `apply_clamp`
+helper, rather than in the matching package.
 
+```python
+def settle(
+    tpm,                       # JointTPM / multidim state-by-node
+    initial_state,
+    *,
+    clamp=None,                # optional {index: state} held fixed each step
+    max_steps=None,
+) -> tuple[int, ...]:
+    """Iterate the most-probable-transition map to a fixed point.
+
+    Deterministic complement to `simulate`: each step takes the argmax of the
+    next-state distribution (for conditionally-independent TPMs the joint
+    argmax equals the per-unit argmax) instead of sampling. Returns the fixed
+    point; raises NonConvergenceError if the trajectory enters a limit cycle.
+    """
 ```
-s = seed_state
-seen = {s}
-loop:
-    s_next = argmax over system states of Pr(S_{t+1} | ∂S = x, S_t = s)
-    if s_next == s:            # fixed point
-        return s
-    if s_next in seen:          # limit cycle, no fixed point
-        raise NonConvergenceError(naming the cycle states)
-    seen.add(s_next); s = s_next
-    if max_steps and len(seen) > max_steps:
-        raise NonConvergenceError(...)
-```
 
-Each step conditions the substrate TPM on (∂S=x, S=s) and takes the argmax of
-the next-system-state distribution (for conditionally-independent TPMs the
-joint argmax equals the per-unit argmax). The `seen` set both detects cycles
-and guarantees termination within |Ω_S| steps; `max_steps` is an optional
-early safety for very large state spaces.
+Iterate with a `seen` set; on the first repeat without a fixed point, raise.
+The `seen` set both detects cycles and guarantees termination within |Ω|
+steps; `max_steps` is an optional early safety for very large state spaces.
+`clamp` (reusing `apply_clamp`) holds the given units fixed across steps for
+general callers.
 
-**Raises on non-convergence** rather than returning a τ-parity-dependent
-state — a triggered state must be a single well-defined state, and silently
-picking one from an oscillation would hide a real multi-attractor situation.
-The error names the detected cycle for diagnosis. Define a small
-`NonConvergenceError(Exception)` in the package.
+**Raises on non-convergence** rather than returning a step-count-dependent
+state — a settled state must be a single well-defined fixed point, and
+silently picking one from an oscillation would hide a real multi-attractor
+situation. The error names the detected cycle. Add
+`NonConvergenceError(ValueError)` to `pyphi/exceptions.py` (matching the
+module's existing `*Error(ValueError)` convention).
+
+### `settled_state` (method B) — thin wrapper
+
+`PerceptualSystem.settled_state(stimulus, *, seed_state, max_steps=None)`
+conditions the substrate TPM on ∂S=stimulus and restricts outputs to S — the
+same conditioned-and-restricted one-step map the triggered-TPM clamped segment
+builds — yielding an S→S map with ∂S baked in. It then calls
+`dynamics.settle` on that map from `seed_state` (over S) and returns the
+fixed-point system state. Pre-conditioning on ∂S means the environment beyond
+∂S (E∖∂S, if any) never enters the settling, so it cannot cause spurious
+non-convergence; no `clamp` is needed in this call because ∂S is already fixed
+in the conditioned map.
 
 ## Data flow
 
@@ -206,8 +227,10 @@ Substrate U  ──PerceptualSystem(U, S, ∂S)──►  PerceptualSystem
   or `∂S` intersecting `S`, raise `ValueError` naming the offending indices.
 - `triggered_tpm`: `tau`/`tau_clamp` not integers, `tau < 1`, or
   `not 0 <= tau_clamp <= tau` raise `ValueError`.
-- `settled_state`: non-convergence raises `NonConvergenceError` naming the
-  cycle; `seed_state` of wrong length raises `ValueError`.
+- `dynamics.settle`: non-convergence raises `NonConvergenceError` (from
+  `pyphi.exceptions`) naming the cycle.
+- `settled_state`: propagates `NonConvergenceError`; `seed_state` of wrong
+  length raises `ValueError`.
 
 ## Testing
 
@@ -224,13 +247,19 @@ sensory interface and 2-unit system, deterministic-enough TPM):
   values equal `array` entries (label round-trip; guards the little-endian
   ordering).
 
-`settled_state`:
-- A substrate designed to settle (monotone relay) reaches the expected fixed
-  point from the default seed.
-- A substrate designed to oscillate under a clamped input raises
-  `NonConvergenceError`, and the error names the cycle.
-- A different seed that leads to a different fixed point returns that one
-  (seed-dependence is real and tested).
+`dynamics.settle` (general algorithm, tested in `test/test_dynamics.py`):
+- A TPM with a known fixed point reaches it from a given initial state.
+- A TPM designed to oscillate raises `NonConvergenceError`, and the error
+  names the cycle.
+- A different initial state leading to a different fixed point returns that
+  one (seed-dependence is real and tested).
+- `clamp` holds the given units fixed across steps.
+
+`settled_state` (wrapper, tested in `test/test_matching_system.py`):
+- For a substrate designed to settle (monotone relay), `settled_state(x)`
+  returns the expected system fixed point, and matches `dynamics.settle` on
+  the ∂S=x-conditioned, S-restricted map.
+- Propagates `NonConvergenceError` for an oscillating system.
 
 Invariants / property (Hypothesis, small substrates):
 - Every triggered-TPM row is a valid distribution (non-negative, sums to 1).
@@ -244,12 +273,17 @@ matching layer (sub-projects 3–4) where the substrate fixtures live.
 
 ## Files
 
+- `pyphi/dynamics.py` — modify (add general `settle`, reusing `apply_clamp`)
+- `pyphi/exceptions.py` — modify (add `NonConvergenceError(ValueError)`)
 - `pyphi/matching/__init__.py` — new
-- `pyphi/matching/system.py` — new (`PerceptualSystem`, `NonConvergenceError`)
+- `pyphi/matching/system.py` — new (`PerceptualSystem`)
 - `pyphi/matching/triggered_tpm.py` — new (`TriggeredTPM` + construction)
+- `test/test_dynamics.py` — modify (test `settle`)
 - `test/test_matching_system.py` — new
 - `test/test_triggered_tpm.py` — new
 - `changelog.d/perceptual-system.feature.md` — new
+- `changelog.d/dynamics-settle.feature.md` — new (general `settle` is a
+  user-facing addition independent of the matching package)
 
 ## Notes carried from brainstorming
 
