@@ -23,12 +23,18 @@ In scope:
   indices (∂S), the central object everything hangs off.
 - `TriggeredTPM` — the per-stimulus response distribution, a typed
   pyphi-native wrapper with a provisional `to_pandas()` view.
-- Triggered-state computation: argmax-of-row (method A, paper-faithful) and
-  iterative settling (method B, physically meaningful, raises on
-  non-convergence).
+- Triggered-state computation: argmax-of-row only (paper-faithful). The
+  matching formalism streams stimuli at a fixed lag τ, so the response state
+  is the τ-step evolution `argmax Pr(S_t | ∂S_{t−τ}=x)` — the triggered TPM
+  already *is* the fixed-lag model. There is no "settle to an arbitrary-time
+  fixed point" notion for the response: a stimulus occupies a τ-window before
+  the next arrives, it is never held to convergence.
 - A general `dynamics.settle` primitive (the deterministic sibling of
-  `simulate`) that method B is a thin wrapper over — placed in the existing
-  dynamics module, not the matching package, because the algorithm is general.
+  `simulate`), placed in the existing dynamics module. It is **not** the
+  response-state mechanism; its matching-relevant use is *choosing* τ —
+  settle a stimulus to find how many steps it takes the system to converge,
+  then pick τ ≥ that (when the system settles at all). General attractor
+  analysis is its broader use.
 
 Out of scope (deferred):
 - Triggering coefficients, perception (sub-project 3).
@@ -57,9 +63,9 @@ system, not properties of the TPM object).
 ## Reproducibility
 
 This layer is **fully deterministic** — the "noise" in clamp-then-noise is
-*marginalization* of ∂S, not sampling. No RNG is used. `settled_state`'s
-`seed_state` is an initial system state (not an RNG seed); it is part of the
-result's identity and is returned/recorded alongside the settled state.
+*marginalization* of ∂S, not sampling. No RNG is used anywhere in sub-project
+2. (`dynamics.settle` is likewise deterministic — its `initial_state` is a
+state, not an RNG seed.)
 
 ## Components
 
@@ -90,14 +96,16 @@ Methods:
   distribution (below). `tau`/`tau_clamp` validated: integers,
   `0 <= tau_clamp <= tau`, `tau >= 1`.
 - `triggered_states(*, tau, tau_clamp) -> dict[tuple[int,...], tuple[int,...]]`
-  — method A. For each stimulus (state of ∂S), the argmax system state of the
+  — for each stimulus (state of ∂S), the argmax system state of the
   triggered-TPM row. This is the `{stimulus: response_state}` mapping the
   Φ-structure computation consumes (one structure unfolded per response
   state). Keys are ∂S states; values are S states.
 - `triggered_state(stimulus, *, tau, tau_clamp) -> tuple[int,...]` —
   single-stimulus convenience (one row's argmax).
-- `settled_state(stimulus, *, seed_state, max_steps=None) -> tuple[int,...]` —
-  method B (below).
+
+(There is no `settled_state` method: the response is the fixed-τ evolution,
+not an attractor. For choosing τ, use the general `dynamics.settle` on the
+system-restricted map — see below.)
 
 ### `TriggeredTPM` (`pyphi/matching/triggered_tpm.py`)
 
@@ -171,54 +179,62 @@ def settle(
     *,
     clamp=None,                # optional {index: state} held fixed each step
     max_steps=None,
-) -> tuple[int, ...]:
+) -> list[tuple[int, ...]]:
     """Iterate the most-probable-transition map to a fixed point.
 
     Deterministic complement to `simulate`: each step takes the argmax of the
     next-state distribution (for conditionally-independent TPMs the joint
-    argmax equals the per-unit argmax) instead of sampling. Returns the fixed
-    point; raises NonConvergenceError if the trajectory enters a limit cycle.
+    argmax equals the per-unit argmax) instead of sampling. Returns the
+    deterministic trajectory ending at the fixed point (symmetric with
+    `simulate`, which returns a sampled trajectory); the fixed point is the
+    last element and the settling time is ``len(result) - 1``. Raises
+    NonConvergenceError if the trajectory enters a limit cycle.
     """
 ```
 
-Iterate with a `seen` set; on the first repeat without a fixed point, raise.
-The `seen` set both detects cycles and guarantees termination within |Ω|
-steps; `max_steps` is an optional early safety for very large state spaces.
-`clamp` (reusing `apply_clamp`) holds the given units fixed across steps for
-general callers.
+Returning the trajectory (rather than only the fixed point) keeps the return
+type symmetric with `simulate` and exposes the settling time directly — the
+quantity needed to choose τ — without a return-type-changing flag. Iterate
+with a `seen` set; on the first repeat without a fixed point, raise. The
+`seen` set both detects cycles and guarantees termination within |Ω| steps;
+`max_steps` is an optional early safety for very large state spaces. `clamp`
+(reusing `apply_clamp`) holds the given units fixed across steps. The per-step
+transition is the deterministic counterpart of
+`simulate_one_timestep_*` and is factored into a shared
+`most_probable_next_state(tpm, state)` helper.
 
 **Raises on non-convergence** rather than returning a step-count-dependent
-state — a settled state must be a single well-defined fixed point, and
-silently picking one from an oscillation would hide a real multi-attractor
-situation. The error names the detected cycle. Add
-`NonConvergenceError(ValueError)` to `pyphi/exceptions.py` (matching the
-module's existing `*Error(ValueError)` convention).
+state — a fixed point must be well-defined, and silently picking one from an
+oscillation would hide a real multi-attractor situation. The error names the
+detected cycle. Add `NonConvergenceError(ValueError)` to
+`pyphi/exceptions.py` (matching the module's existing `*Error(ValueError)`
+convention).
 
-### `settled_state` (method B) — thin wrapper
+### Choosing τ (no response-state method)
 
-`PerceptualSystem.settled_state(stimulus, *, seed_state, max_steps=None)`
-conditions the substrate TPM on ∂S=stimulus and restricts outputs to S — the
-same conditioned-and-restricted one-step map the triggered-TPM clamped segment
-builds — yielding an S→S map with ∂S baked in. It then calls
-`dynamics.settle` on that map from `seed_state` (over S) and returns the
-fixed-point system state. Pre-conditioning on ∂S means the environment beyond
-∂S (E∖∂S, if any) never enters the settling, so it cannot cause spurious
-non-convergence; no `clamp` is needed in this call because ∂S is already fixed
-in the conditioned map.
+`settle` is **not** wired into `PerceptualSystem` as a response mechanism. To
+choose τ, a caller settles the system-restricted, ∂S=x-conditioned one-step
+map (the same map the triggered-TPM clamped segment builds) and reads the
+settling time across stimuli. If a thin `PerceptualSystem` convenience for
+this proves wanted, it can be added later; sub-project 2 ships only the
+general `dynamics.settle`, keeping the perception layer fixed-τ.
 
 ## Data flow
 
 ```
 Substrate U  ──PerceptualSystem(U, S, ∂S)──►  PerceptualSystem
                                                   │
-                  triggered_tpm(τ, τ_clamp)       │  settled_state(x, seed)
-                          ▼                        ▼
-                    TriggeredTPM            (iterates substrate TPM directly,
-                       │                     independent of TriggeredTPM)
-       triggered_states = idxmax per row
-                       ▼
+                          triggered_tpm(τ, τ_clamp)
+                                  ▼
+                            TriggeredTPM
+                               │
+               triggered_states = argmax per row
+                               ▼
         {stimulus: response_state}  ──►  (sub-project 3: unfold Φ-structures,
                                           triggering coefficients, perception)
+
+dynamics.settle (general; for choosing τ / attractor analysis) is independent
+of this flow — not a response-state mechanism.
 ```
 
 ## Error handling
@@ -228,9 +244,8 @@ Substrate U  ──PerceptualSystem(U, S, ∂S)──►  PerceptualSystem
 - `triggered_tpm`: `tau`/`tau_clamp` not integers, `tau < 1`, or
   `not 0 <= tau_clamp <= tau` raise `ValueError`.
 - `dynamics.settle`: non-convergence raises `NonConvergenceError` (from
-  `pyphi.exceptions`) naming the cycle.
-- `settled_state`: propagates `NonConvergenceError`; `seed_state` of wrong
-  length raises `ValueError`.
+  `pyphi.exceptions`) naming the cycle; `initial_state` of wrong length raises
+  `ValueError`.
 
 ## Testing
 
@@ -248,18 +263,14 @@ sensory interface and 2-unit system, deterministic-enough TPM):
   ordering).
 
 `dynamics.settle` (general algorithm, tested in `test/test_dynamics.py`):
-- A TPM with a known fixed point reaches it from a given initial state.
+- A TPM with a known fixed point reaches it; the returned trajectory ends at
+  that fixed point and its length gives the settling time.
 - A TPM designed to oscillate raises `NonConvergenceError`, and the error
   names the cycle.
 - A different initial state leading to a different fixed point returns that
   one (seed-dependence is real and tested).
 - `clamp` holds the given units fixed across steps.
-
-`settled_state` (wrapper, tested in `test/test_matching_system.py`):
-- For a substrate designed to settle (monotone relay), `settled_state(x)`
-  returns the expected system fixed point, and matches `dynamics.settle` on
-  the ∂S=x-conditioned, S-restricted map.
-- Propagates `NonConvergenceError` for an oscillating system.
+- A 1-step fixed point returns a length-1 trajectory (settling time 0).
 
 Invariants / property (Hypothesis, small substrates):
 - Every triggered-TPM row is a valid distribution (non-negative, sums to 1).
@@ -273,10 +284,12 @@ matching layer (sub-projects 3–4) where the substrate fixtures live.
 
 ## Files
 
-- `pyphi/dynamics.py` — modify (add general `settle`, reusing `apply_clamp`)
+- `pyphi/dynamics.py` — modify (add general `settle` + the shared
+  `most_probable_next_state` helper, reusing `apply_clamp`)
 - `pyphi/exceptions.py` — modify (add `NonConvergenceError(ValueError)`)
 - `pyphi/matching/__init__.py` — new
-- `pyphi/matching/system.py` — new (`PerceptualSystem`)
+- `pyphi/matching/system.py` — new (`PerceptualSystem`; fixed-τ only, no
+  `settled_state`)
 - `pyphi/matching/triggered_tpm.py` — new (`TriggeredTPM` + construction)
 - `test/test_dynamics.py` — modify (test `settle`)
 - `test/test_matching_system.py` — new
@@ -288,8 +301,11 @@ matching layer (sub-projects 3–4) where the substrate fixtures live.
 ## Notes carried from brainstorming
 
 - The reference `simulate_model_fixed_input` / `sequentially_triggered_state`
-  are **not** ported — the paper pipeline used method A; B is reimplemented
-  cleanly here, and the per-node-set Gauss-Seidel variant is dropped.
+  are **not** ported as response-state mechanisms — the matching response is
+  fixed-τ (method A). Their core idea (deterministic settling) survives only
+  as the general `dynamics.settle`, kept for choosing τ and attractor
+  analysis, not for computing the response. The per-node-set Gauss-Seidel
+  variant is dropped.
 - The reference's pandas `groupby(axis=)` marginalization is **not** ported
   (deprecated); marginalization is uniform ndarray axis ops on the
   multidimensional `TriggeredTPM`.
