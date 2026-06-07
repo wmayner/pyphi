@@ -2448,6 +2448,16 @@ design questions requiring a fresh spec.
 > - `plot_ces` should fail with a clear message when given a CES without
 >   relations (e.g. computed under IIT 3.0) instead of an attribute error —
 >   the four structure views all require relations.
+> - **Unified labeled-export (`to_pandas`) across result objects.** Today
+>   `ToPandasMixin` (`pyphi/models/pandas.py`) is bolted onto ~6 model
+>   classes case-by-case with no shared schema or coverage audit. Define
+>   consistent conventions (index schema, units-as-labels), consolidate the
+>   mixin, audit which result objects should expose it, and reconcile with
+>   the xarray labeled-array direction (P12c) so the two "labeled view"
+>   stories — pandas for result objects, xarray for core arrays — are
+>   designed coherently rather than bolted on twice. Precipitated by the
+>   P14b matching work, which adds a provisional `TriggeredTPM.to_pandas()`
+>   (a genuine 2-D labeled matrix) that this project should subsume.
 >
 > **Remaining for P14d:** sub-project A (`visualize/` refresh).
 >
