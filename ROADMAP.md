@@ -2169,37 +2169,44 @@ xarray is opt-in). Revisit if/when xarray becomes the default backend.
 - *Leverage:* Low absolute, but high for users on the xarray opt-in path.
 - *Style:* ~1 day; gated on actual user demand for xarray-native indexing.
 
-**P13. Zaeemzadeh upper bounds for pruning** — 🟡 **Partial**
+**P13. Zaeemzadeh upper bounds** — 🟡 **Sub-project 1 landed; sub-project 2 gated**
 
-*Status:* groundwork merged, feature not complete. The Zaeemzadeh upper-bound
-PRs (#56–#59) landed an upper-bound option (now the default) and
-`formalism/base.py` declares an `ErrorInfo` protocol whose `kind` Literal
-includes certified Zaeemzadeh-style pruning (the PR-added bound modules were
-later removed in `e5e27868`). What remains for a clean P13: a dedicated
-`compute_upper_bound` / bounds module, wiring into `find_mip` and
-`all_complexes` for actual pruning, the shadow-mode equality gate, and a
-spec/plan/changelog. No P13 spec or changelog fragment exists yet.
+*Math correction (2026-06-10):* the original entry directed using the bounds in
+`find_mip` to "prune partitions that cannot achieve the best-so-far φ". That is
+not a valid use: mechanism φ and φ_s are *minima* over partitions, and upper
+bounds prune *maximizations*; pruning a minimization needs per-partition lower
+bounds, which the paper does not provide (the φ=0 shortcircuit already handles
+the floor). The integration candidates that survive scrutiny are maximizations:
+skipping candidate systems in `complexes()` whose certified φ_s ceiling cannot
+beat the best-so-far, and capping mechanism purview search via Theorem 1
+(φ ≤ |M||Z|).
 
-Implement the Zaeemzadeh & Tononi 2024 upper bounds on Φ. Use them in `find_mip` to
-prune partitions that cannot achieve the best-so-far φ. Use them in `all_complexes`
-to skip subsystems whose upper bound falls below a threshold. Expose as
-`compute_upper_bound(candidate_system) -> float` in the `formalism.iit4.bounds`
-module.
+*Sub-project 1 — bounds module (landed):* `pyphi/formalism/iit4/bounds.py`
+exposes the published bound inventory as a research utility: per-object bounds
+(Theorem 1, Lemma 2, relation, system), the Bound I/II/III families for Σφ_d
+and Σφ_r (including the certified Eq 16 growth bound), counting functions, and
+`report()`. Every function returns an `UpperBound` carrying its certificate
+(certified / scenario-conditional / conjectured); a strict domain guard raises
+outside the property-test-confirmed (version, measure) combinations. Bound III
+is computed in closed form from the S3-appendix formulas and validated against
+the 2.0 pipeline on the construction TPM and against reference goldens from
+the author's released code. Spec:
+`docs/superpowers/specs/2026-06-10-zaeemzadeh-bounds-design.md`.
 
-Ship in **shadow mode** for one release: compute both pruned and unpruned results,
-assert equality in CI. Only switch the default after shadow mode passes 1000+
-fixture runs.
+*Sub-project 2 — search integration (gated):* candidate-system skipping in
+`complexes()` and purview caps, consuming only theorem-certified bounds,
+shipped behind a shadow-mode equality gate. Gated on a bite-rate study: per-pair
+Theorem 1 bites only when best-so-far φ exceeds |M||Z|, and φ_s caps bite on
+small candidates in high-φ regimes — whether integration pays is an empirical
+question. If it does not, the sub-project-1 utility surface is the P13
+deliverable on its own. Separate spec when the study runs.
 
-- *Why here:* Depends on typed partitions (P6), typed distinctions (P8), working
-  parallel backend (P11), and especially on Hypothesis testing (P2) — a pruning
-  bug silently produces wrong φ values, and Hypothesis is the only cost-effective
-  way to verify that pruning is provably conservative.
-- *Files:* new `pyphi/formalism/iit4/bounds.py`,
-  `pyphi/formalism/iit4/sia.py` (integration), `pyphi/compute/network.py`
-  (complex search integration).
-- *Risk:* High if pruning is wrong. Mitigated by shadow mode.
-- *Leverage:* Very high for users — order-of-magnitude speedup enabling research
-  that is currently intractable.
+- *Files:* `pyphi/formalism/iit4/bounds.py`, `test/test_bounds.py`,
+  `test/test_bounds_reference_golden.py`, `test/data/bounds/reference_goldens.json`.
+- *Risk:* Low (sub-project 1 is read-only with respect to the pipeline).
+  Sub-project 2 risk is high if pruning is wrong; mitigated by shadow mode and
+  by consuming certified bounds only.
+- *Leverage:* Research utility now; possible complex-search speedup later.
 
 ### Phase G — Downstream cleanup and future extensibility
 
