@@ -36,6 +36,7 @@ from __future__ import annotations
 import math
 from collections.abc import Iterable
 from dataclasses import dataclass
+from fractions import Fraction
 from typing import Any
 
 from pyphi.conf import config
@@ -382,3 +383,141 @@ def sum_phi_distinctions_upper_bound(n: int, bound: str = "I") -> UpperBound:
             citation="Sec 2.1.3",
         )
     raise ValueError(f"unknown bound id {bound!r}; expected 'I', 'II', or 'III'")
+
+
+##############################################################################
+# Sum of relation phi
+##############################################################################
+
+
+def _grouped_subset_min_sum(groups: list[tuple[float, int]]) -> float:
+    """Sum, over all subsets of size >= 2 of a multiset of ratios, of the
+    subset's minimum (the inner sum of Eq 11).
+
+    The i-th smallest of R elements (1-based) is the minimum of
+    2**(R - i) - 1 subsets. Equal-ratio groups are summed as geometric
+    series: a group of multiplicity m with ``after`` elements above it
+    has total weight 2**after (2**m - 1) - m. The computation is exact
+    (arbitrary-precision int) when the ratios are ints.
+
+    Args:
+        groups: ``(ratio, multiplicity)`` pairs; order irrelevant.
+    """
+    groups = sorted(groups)
+    total_count = sum(multiplicity for _, multiplicity in groups)
+    result = 0
+    position = 0  # number of elements strictly below the current group
+    for ratio, multiplicity in groups:
+        after = total_count - position - multiplicity
+        weight = 2**after * (2**multiplicity - 1) - multiplicity
+        result += ratio * weight
+        position += multiplicity
+    return result
+
+
+def _relation_profile(
+    n: int, bound: str
+) -> tuple[list[tuple[float, int]], float, tuple[str, ...]]:
+    """Per-unit (ratio, multiplicity) groups, self-relation term, and
+    extra assumptions for a sum-of-relation-phi scenario.
+
+    The profiles realize the corresponding sum-of-distinction-phi
+    scenarios (Table 3):
+
+    - ``"I"``: every purview is the whole system in a congruent maximal
+      state, so every distinction relates over every unit; ratio |M|.
+    - ``"II"``: every purview is the mechanism itself; a unit relates the
+      mechanisms containing it; ratio |M|.
+    - ``"III"``: the high-selectivity construction profile as implemented
+      in the paper's published experiment code (ratio phi*_K / K over all
+      distinctions). The paper text instead assumes cause purviews span
+      the system (ratio phi*_K / n); the implemented profile dominates
+      both readings.
+    """
+    if bound == "I":
+        groups: list[tuple[float, int]] = [(k, math.comb(n, k)) for k in range(1, n + 1)]
+        self_term: float = sum(k * n * math.comb(n, k) for k in range(1, n + 1))
+        extra = ("Bound I extremal purview profile (all purviews span the system)",)
+    elif bound == "II":
+        groups = [(k, math.comb(n - 1, k - 1)) for k in range(1, n + 1)]
+        self_term = sum(k * k * math.comb(n, k) for k in range(1, n + 1))
+        extra = (
+            "unique purviews: each purview assigned to exactly one mechanism",
+            "Bound II extremal purview profile (every purview is its mechanism)",
+        )
+    elif bound == "III":
+        phi_star = {k: _phi_e_star(n, k) for k in range(1, n + 1)}
+        groups = [(phi_star[k] / k, math.comb(n, k)) for k in range(1, n + 1)]
+        self_term = sum(math.comb(n, k) * phi_star[k] for k in range(1, n + 1))
+        extra = (
+            _CONJECTURE_NOTE,
+            "Bound III extremal purview profile (high-selectivity construction)",
+        )
+    else:
+        raise ValueError(
+            f"unknown bound id {bound!r}; expected 'I', 'II', 'III', or 'GENERAL'"
+        )
+    return groups, self_term, extra
+
+
+def sum_phi_relations_upper_bound(n: int, bound: str = "I") -> UpperBound:
+    """Upper bound on the sum of relation phi (self-relations included).
+
+    For ``bound`` in ``"I"``, ``"II"``, ``"III"``: the exact Eq 11
+    evaluation of the corresponding extremal purview profile (the Table 3
+    closed forms plus the self-relation term). These are scenario
+    bounds: they assume the system's distinction profile matches the
+    scenario, so they are not certified for arbitrary systems.
+
+    For ``bound="GENERAL"``: the certified growth bound of Eq 16, built
+    from S(o) <= n 2**(n-1) (Theorem 1) and |Z(o)| <= 2**n - 1 via the
+    Eq 14 linear-program maximum, summed over all 2n unit-states, plus
+    the Eq 6 ceiling on self-relations.
+    """
+    _require_valid_domain()
+    _require_positive(n)
+    if bound == "GENERAL":
+        budget = Fraction(n * 2**n, 2)  # S(o) <= n 2**(n-1)
+        num_relata = 2**n - 1  # |Z(o)| <= number of distinctions
+        per_unit_state = budget * (Fraction(2**num_relata - 1, num_relata) - 1)
+        exact = (
+            Fraction(sum(k * n * math.comb(n, k) for k in range(1, n + 1)))
+            + 2 * n * per_unit_state
+        )
+        value = int(exact) if exact.denominator == 1 else float(exact)
+        return UpperBound(
+            value=value,
+            certified=True,
+            assumptions=_CORE_ASSUMPTIONS,
+            citation="Eq 16",
+        )
+    groups, self_term, extra = _relation_profile(n, bound)
+    value = self_term + n * _grouped_subset_min_sum(groups)
+    return UpperBound(
+        value=value,
+        certified=False,
+        assumptions=(*_CORE_ASSUMPTIONS, *extra),
+        citation="Eqs 11-15, Table 3",
+    )
+
+
+def big_phi_upper_bound(n: int, bound: str = "I") -> UpperBound:
+    """Upper bound on big phi: the sum of all distinction and relation phi.
+
+    For ``bound`` in ``"I"``, ``"II"``, ``"III"``: the profile-consistent
+    pair of sum bounds. For ``bound="GENERAL"``: the certified pair
+    (Eq 6 + Eq 16).
+    """
+    distinctions = sum_phi_distinctions_upper_bound(
+        n, bound="I" if bound == "GENERAL" else bound
+    )
+    relations = sum_phi_relations_upper_bound(n, bound=bound)
+    assumptions = tuple(
+        dict.fromkeys((*distinctions.assumptions, *relations.assumptions))
+    )
+    return UpperBound(
+        value=distinctions.value + relations.value,
+        certified=distinctions.certified and relations.certified,
+        assumptions=assumptions,
+        citation=f"{distinctions.citation} + {relations.citation}",
+    )

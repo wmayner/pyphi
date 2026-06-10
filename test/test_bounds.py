@@ -9,8 +9,11 @@ Battery (c), reference goldens, lives in test_bounds_reference_golden.py.
 
 import dataclasses
 import itertools
+import math
 
+import numpy as np
 import pytest
+import scipy.optimize
 
 from pyphi import config
 from pyphi.conf import presets
@@ -257,3 +260,144 @@ class TestSumPhiDistinctions:
     def test_invalid_bound_id_raises(self):
         with pytest.raises(ValueError, match="bound"):
             bounds.sum_phi_distinctions_upper_bound(3, bound="IV")
+
+
+def _naive_subset_min_sum(values):
+    """Brute force: sum of the minimum over all subsets of size >= 2."""
+    values = list(values)
+    total = 0.0
+    for r in range(2, len(values) + 1):
+        for combo in itertools.combinations(range(len(values)), r):
+            total += min(values[i] for i in combo)
+    return total
+
+
+def _weighted_sorted_sum(values):
+    """Eq 11 inner sum, expanded: ascending sort, i-th smallest element
+    (0-based) is the minimum of 2**(R - 1 - i) - 1 subsets."""
+    values = sorted(values)
+    count = len(values)
+    return sum(v * (2 ** (count - 1 - i) - 1) for i, v in enumerate(values))
+
+
+def _table3_bound_i_nonself(n):
+    """Verbatim Table 3 Bound I sum-of-relation-phi formula (no self term)."""
+    total = 0
+    for k in range(1, n + 1):
+        exponent = sum(math.comb(n, i) for i in range(k, n + 1))
+        group = math.comb(n, k)
+        total += k * (2**exponent - 2 ** (exponent - group) - group)
+    return n * total
+
+
+def _table3_bound_ii_nonself(n):
+    """Verbatim Table 3 Bound II sum-of-relation-phi formula (no self term)."""
+    total = 0
+    for k in range(1, n + 1):
+        exponent = sum(math.comb(n - 1, i) for i in range(k - 1, n))
+        group = math.comb(n - 1, k - 1)
+        total += k * (2**exponent - 2 ** (exponent - group) - group)
+    return n * total
+
+
+class TestGroupedSubsetMinSum:
+    @pytest.mark.parametrize("n", [2, 3, 4])
+    def test_matches_brute_force_bound_i_profile(self, n):
+        expanded = [k for k in range(1, n + 1) for _ in range(math.comb(n, k))]
+        grouped = bounds._grouped_subset_min_sum(
+            [(k, math.comb(n, k)) for k in range(1, n + 1)]
+        )
+        assert grouped == _naive_subset_min_sum(expanded)
+        assert grouped == _weighted_sorted_sum(expanded)
+
+    @pytest.mark.parametrize("n", range(2, 9))
+    def test_matches_weighted_sum_float_profile(self, n):
+        # Bound III ratios are floats; agreement within float tolerance.
+        ratios = [bounds._phi_e_star(n, k) / k for k in range(1, n + 1)]
+        expanded = [
+            ratios[k - 1] for k in range(1, n + 1) for _ in range(math.comb(n, k))
+        ]
+        grouped = bounds._grouped_subset_min_sum(
+            [(ratios[k - 1], math.comb(n, k)) for k in range(1, n + 1)]
+        )
+        assert grouped == pytest.approx(_weighted_sorted_sum(expanded), rel=1e-12)
+
+
+class TestSumPhiRelations:
+    @pytest.mark.parametrize("n", range(1, 11))
+    def test_bound_i_matches_table3_verbatim(self, n):
+        bound = bounds.sum_phi_relations_upper_bound(n, bound="I")
+        self_term = n * n * 2 ** (n - 1)
+        assert bound.value == _table3_bound_i_nonself(n) + self_term
+        assert isinstance(bound.value, int)
+        assert not bound.certified
+
+    @pytest.mark.parametrize("n", range(1, 11))
+    def test_bound_ii_matches_table3_verbatim(self, n):
+        bound = bounds.sum_phi_relations_upper_bound(n, bound="II")
+        self_term = n * (n + 1) * 2**n // 4
+        assert bound.value == _table3_bound_ii_nonself(n) + self_term
+
+    def test_hand_values_n2(self):
+        assert bounds.sum_phi_relations_upper_bound(2, bound="I").value == 16
+        assert bounds.sum_phi_relations_upper_bound(2, bound="II").value == 8
+        assert bounds.sum_phi_relations_upper_bound(2, bound="III").value == (
+            pytest.approx(14.0)
+        )
+        general = bounds.sum_phi_relations_upper_bound(2, bound="GENERAL")
+        assert float(general) == pytest.approx(88 / 3)
+        assert general.certified
+
+    def test_profile_bounds_are_conditional(self):
+        for bound_id in ("I", "II", "III"):
+            bound = bounds.sum_phi_relations_upper_bound(3, bound=bound_id)
+            assert not bound.certified
+            assert any("profile" in a for a in bound.assumptions)
+
+    @pytest.mark.parametrize("n", range(2, 9))
+    def test_general_dominates_profile_bound_i(self, n):
+        # Eq 16 uses the LP maximum, which dominates any specific profile.
+        general = float(bounds.sum_phi_relations_upper_bound(n, bound="GENERAL"))
+        profile = float(bounds.sum_phi_relations_upper_bound(n, bound="I"))
+        assert general >= profile
+
+    def test_lp_closed_form_matches_linprog(self):
+        # Eq 14: max sum(y_i (2**(R - i) - 1)) over ascending y >= 0 with
+        # sum(y) <= S equals S ((2**R - 1) / R - 1).
+        rng = np.random.default_rng(20260610)
+        for _ in range(20):
+            num_relata = int(rng.integers(2, 9))
+            budget = float(rng.uniform(0.5, 50.0))
+            coeffs = np.array(
+                [2.0 ** (num_relata - i) - 1 for i in range(1, num_relata + 1)]
+            )
+            constraints = np.zeros((num_relata, num_relata))
+            constraints[0] = 1.0  # budget row
+            for i in range(1, num_relata):
+                constraints[i, i - 1] = 1.0  # y_{i-1} <= y_i  (ascending)
+                constraints[i, i] = -1.0
+            limits = np.zeros(num_relata)
+            limits[0] = budget
+            result = scipy.optimize.linprog(
+                c=-coeffs,
+                A_ub=constraints,
+                b_ub=limits,
+                bounds=[(0, None)] * num_relata,
+            )
+            assert result.success
+            expected = budget * ((2.0**num_relata - 1) / num_relata - 1)
+            assert -result.fun == pytest.approx(expected, rel=1e-9)
+
+
+class TestBigPhi:
+    def test_general_is_certified(self):
+        bound = bounds.big_phi_upper_bound(3, bound="GENERAL")
+        assert bound.certified
+        expected = float(bounds.sum_phi_distinctions_upper_bound(3, bound="I")) + (
+            float(bounds.sum_phi_relations_upper_bound(3, bound="GENERAL"))
+        )
+        assert float(bound) == pytest.approx(expected)
+
+    def test_profile_bounds_are_conditional(self):
+        for bound_id in ("I", "II", "III"):
+            assert not bounds.big_phi_upper_bound(3, bound=bound_id).certified
