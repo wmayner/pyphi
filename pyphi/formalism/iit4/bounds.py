@@ -37,9 +37,20 @@ import math
 from collections.abc import Iterable
 from dataclasses import dataclass
 from fractions import Fraction
+from typing import TYPE_CHECKING
 from typing import Any
 
+import numpy as np
+
+from pyphi import utils
 from pyphi.conf import config
+from pyphi.models.partitions import JointPartition
+from pyphi.models.partitions import Part
+
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
+
+    from pyphi.substrate import Substrate
 
 CITATION = (
     "Zaeemzadeh A, Tononi G. (2024). Upper bounds for integrated "
@@ -521,3 +532,104 @@ def big_phi_upper_bound(n: int, bound: str = "I") -> UpperBound:
         assumptions=assumptions,
         citation=f"{distinctions.citation} + {relations.citation}",
     )
+
+
+##############################################################################
+# High-selectivity construction (S3 Appendix, Sec 3)
+##############################################################################
+
+
+def _construction_tpm(n: int, k: int) -> NDArray[np.float64]:
+    """State-by-node TPM of the size-n, order-k high-selectivity construction.
+
+    Unit u turns OFF with probability 1 in exactly the states where u is
+    OFF and at least k - 1 other units are OFF (S3 Appendix Eqs 18, 20);
+    otherwise it turns ON with probability 1. In this TPM every size-k
+    mechanism specifies itself (all-OFF) with probability 1. Rows are in
+    little-endian state order.
+    """
+    _require_positive(n)
+    if not 1 <= k <= n:
+        raise ValueError(f"order must satisfy 1 <= k <= {n}; got {k}")
+    rows = []
+    for state in utils.all_states(n):
+        row = []
+        for unit in range(n):
+            zeros_elsewhere = sum(
+                1 for other in range(n) if other != unit and state[other] == 0
+            )
+            specifies_off = state[unit] == 0 and zeros_elsewhere >= k - 1
+            row.append(0.0 if specifies_off else 1.0)
+        rows.append(row)
+    return np.array(rows)
+
+
+def _candidate_partitions(n: int, k: int):
+    """Yield the k // 2 + 1 candidate MIPs for a size-k mechanism over
+    itself in the size-n high-selectivity construction (S3 Appendix, Sec 3).
+
+    For k < n: the non-self-cutting bipartitions with part sizes
+    (j, k - j), then the cut severing mechanism unit 0 from all purview
+    units. For k = n: only the complete partition.
+    """
+    mechanism = tuple(range(k))
+    if k == n:
+        yield JointPartition(Part(mechanism, ()), Part((), mechanism))
+        return
+    for j in range(1, k // 2 + 1):
+        first = tuple(range(j))
+        rest = tuple(range(j, k))
+        yield JointPartition(Part(first, first), Part(rest, rest))
+    yield JointPartition(Part(tuple(range(1, k)), mechanism), Part((0,), ()))
+
+
+##############################################################################
+# Report
+##############################################################################
+
+
+def report(n: int | None = None, substrate: Substrate | None = None) -> dict[str, Any]:
+    """All size-based bounds for a system of n binary units, in one call.
+
+    Args:
+        n: Number of binary units. Mutually exclusive with ``substrate``.
+        substrate: A substrate whose size is used; its alphabet must be
+            binary.
+
+    Returns:
+        Mapping from flat keys (e.g. ``"sum_phi_distinctions:I"``,
+        ``"big_phi:GENERAL"``) to :class:`UpperBound` values, plus the
+        ``int``-valued counting entries.
+    """
+    if (n is None) == (substrate is None):
+        raise ValueError("provide exactly one of n or substrate")
+    if substrate is not None:
+        alphabet_sizes = substrate.factored_tpm.alphabet_sizes
+        if not all(size == 2 for size in alphabet_sizes):
+            raise ValueError(
+                f"bounds assume binary units; alphabet sizes are {alphabet_sizes}"
+            )
+        n = substrate.size
+    assert n is not None
+    _require_positive(n)
+    _require_valid_domain()
+    _require_valid_system_domain()
+    result: dict[str, Any] = {"system_phi": system_phi_upper_bound(n)}
+    for bound_id in ("I", "II", "III"):
+        result[f"sum_phi_distinctions:{bound_id}"] = sum_phi_distinctions_upper_bound(
+            n, bound=bound_id
+        )
+        result[f"sum_phi_relations:{bound_id}"] = sum_phi_relations_upper_bound(
+            n, bound=bound_id
+        )
+        result[f"big_phi:{bound_id}"] = big_phi_upper_bound(n, bound=bound_id)
+    result["sum_phi_relations:GENERAL"] = sum_phi_relations_upper_bound(
+        n, bound="GENERAL"
+    )
+    result["big_phi:GENERAL"] = big_phi_upper_bound(n, bound="GENERAL")
+    result["number_of_possible_distinctions"] = number_of_possible_distinctions(n)
+    result["number_of_possible_relations"] = number_of_possible_relations(n)
+    result["number_of_possible_relation_faces_with_unique_purviews"] = (
+        number_of_possible_relation_faces_with_unique_purviews(n)
+    )
+    return result

@@ -17,6 +17,7 @@ import scipy.optimize
 
 from pyphi import config
 from pyphi.conf import presets
+from pyphi.examples import EXAMPLES
 from pyphi.formalism.iit4 import bounds
 from pyphi.models.partitions import JointPartition
 from pyphi.models.partitions import Part
@@ -401,3 +402,71 @@ class TestBigPhi:
     def test_profile_bounds_are_conditional(self):
         for bound_id in ("I", "II", "III"):
             assert not bounds.big_phi_upper_bound(3, bound=bound_id).certified
+
+
+class TestConstructionHelpers:
+    def test_construction_tpm_n3_k2(self):
+        # Hand-checked rows (little-endian state order): a unit turns OFF
+        # with probability 1 iff it is OFF and at least one other is OFF.
+        tpm = bounds._construction_tpm(3, 2)
+        expected = np.array(
+            [
+                [0.0, 0.0, 0.0],
+                [1.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0],
+                [1.0, 1.0, 1.0],
+                [0.0, 0.0, 1.0],
+                [1.0, 1.0, 1.0],
+                [1.0, 1.0, 1.0],
+                [1.0, 1.0, 1.0],
+            ]
+        )
+        np.testing.assert_array_equal(tpm, expected)
+
+    def test_candidate_partition_count(self):
+        for n in range(2, 8):
+            for k in range(1, n):
+                assert len(list(bounds._candidate_partitions(n, k))) == k // 2 + 1
+            assert len(list(bounds._candidate_partitions(n, n))) == 1
+
+    def test_candidate_partitions_sever_expected_connections(self):
+        partitions = list(bounds._candidate_partitions(5, 4))
+        # Bipartitions (1, 3), (2, 2): sever 2 j (k - j); special cut: k.
+        assert sorted(p.num_connections_cut() for p in partitions) == [4, 6, 8]
+
+
+class TestReport:
+    def test_report_by_size(self):
+        result = bounds.report(n=3)
+        assert float(result["system_phi"]) == 6
+        assert result["sum_phi_distinctions:I"].value == 36
+        assert result["sum_phi_distinctions:II"].value == 24
+        assert float(result["sum_phi_distinctions:III"]) == pytest.approx(
+            12 + 3 * 0.8300749985576875
+        )
+        assert result["sum_phi_relations:GENERAL"].certified
+        assert result["big_phi:GENERAL"].certified
+        assert result["number_of_possible_distinctions"] == 7
+        assert result["number_of_possible_relations"] == 127
+
+    def test_report_requires_exactly_one_input(self):
+        with pytest.raises(ValueError, match="exactly one"):
+            bounds.report()
+        with pytest.raises(ValueError, match="exactly one"):
+            bounds.report(n=3, substrate=object())  # pyright: ignore[reportArgumentType]
+
+    def test_report_from_substrate(self):
+        substrate = EXAMPLES["substrate"]["basic"]()
+        result = bounds.report(substrate=substrate)
+        assert float(result["system_phi"]) == 6  # 3 binary units
+
+    def test_report_rejects_nonbinary_substrate(self):
+        class FakeTPM:
+            alphabet_sizes = (2, 3)
+
+        class FakeSubstrate:
+            factored_tpm = FakeTPM()
+            size = 2
+
+        with pytest.raises(ValueError, match="binary"):
+            bounds.report(substrate=FakeSubstrate())  # pyright: ignore[reportArgumentType]
