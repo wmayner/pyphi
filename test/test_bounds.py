@@ -10,17 +10,32 @@ Battery (c), reference goldens, lives in test_bounds_reference_golden.py.
 import dataclasses
 import itertools
 import math
+import warnings
 
 import numpy as np
 import pytest
 import scipy.optimize
+from hypothesis import HealthCheck
+from hypothesis import given
+from hypothesis import settings
+from hypothesis import strategies as st
 
 from pyphi import config
 from pyphi.conf import presets
+from pyphi.conf.formalism import IITConfig
 from pyphi.examples import EXAMPLES
+from pyphi.exceptions import StateUnreachableError
+from pyphi.formalism import iit4 as new_big_phi
 from pyphi.formalism.iit4 import bounds
+from pyphi.measures.distribution import resolve_mechanism_measure
+from pyphi.measures.distribution import resolve_system_measure
 from pyphi.models.partitions import JointPartition
 from pyphi.models.partitions import Part
+from pyphi.substrate import Substrate
+from pyphi.system import System
+from pyphi.utils import all_states
+
+from .hypothesis_utils import small_system
 
 
 class TestUpperBound:
@@ -470,3 +485,184 @@ class TestReport:
 
         with pytest.raises(ValueError, match="binary"):
             bounds.report(substrate=FakeSubstrate())  # pyright: ignore[reportArgumentType]
+
+
+# The whitelist admission evidence: under every (version, measure)
+# combination shipped in the domain frozensets, structures computed by the
+# real pipeline never exceed the certified bounds. A combination whose
+# tests are not green here must be removed from the domain.
+DOMAIN_CONFIGS = {
+    "iit4_2023": presets.iit4_2023,
+    "iit4_2026": presets.iit4_2026,  # system measure: INTRINSIC_INFORMATION
+    "iit4_2026_gid_system": {"iit": IITConfig(version="IIT_4_0_2026")},
+}
+
+PROPERTY_SETTINGS = settings(
+    max_examples=10,
+    deadline=None,
+    suppress_health_check=[
+        HealthCheck.too_slow,
+        HealthCheck.function_scoped_fixture,
+        HealthCheck.data_too_large,
+    ],
+)
+
+TOL = 1e-9
+
+
+def _ces(system):
+    return new_big_phi.ces(
+        system,
+        system_measure=resolve_system_measure(config.formalism.iit.system_phi_measure),
+        specification_measure=resolve_mechanism_measure(
+            config.formalism.iit.specification_measure
+        ),
+    )
+
+
+def _assert_certified_bounds_hold(system):
+    n = len(system.node_indices)
+    ces = _ces(system)
+    sum_phi_d = 0.0
+    for distinction in ces.distinctions:
+        phi = float(distinction.phi)
+        sum_phi_d += phi
+        for side in (distinction.cause, distinction.effect):
+            side_phi = float(side.phi)
+            # Theorem 1.
+            theorem_1 = bounds.distinction_phi_upper_bound(
+                distinction.mechanism, side.purview
+            )
+            assert side_phi <= float(theorem_1) + TOL
+            # Lemma 2: phi is bounded by the connections the MIP severed.
+            lemma_2 = bounds.partition_phi_upper_bound(side.partition)
+            assert side_phi <= float(lemma_2) + TOL
+    # Eq 6.
+    assert sum_phi_d <= float(bounds.sum_phi_distinctions_upper_bound(n, bound="I")) + (
+        TOL
+    )
+    # Relation bound. Partially structural in 2.0: Relation.phi is
+    # |overlap| * min(phi_d / |purview union|), which is min-based by
+    # construction; this is a consistency check, not independent evidence.
+    sum_phi_r = 0.0
+    for relation in ces.relations:  # pyright: ignore[reportGeneralTypeIssues]
+        sum_phi_r += float(relation.phi)
+        relata_phis = [float(distinction.phi) for distinction in relation]
+        assert (
+            float(relation.phi)
+            <= float(bounds.relation_phi_upper_bound(relata_phis)) + TOL
+        )
+    # Eq 6 + Eq 16.
+    assert (
+        sum_phi_d + sum_phi_r
+        <= float(bounds.big_phi_upper_bound(n, bound="GENERAL")) + TOL
+    )
+    return ces
+
+
+class TestCertifiedBoundsAgainstPipeline:
+    @pytest.mark.parametrize("config_name", sorted(DOMAIN_CONFIGS))
+    @pytest.mark.parametrize("example_name", ["basic", "xor", "grid3"])
+    def test_examples(self, config_name, example_name):
+        system = EXAMPLES["system"][example_name]()
+        with config.override(**DOMAIN_CONFIGS[config_name]):
+            _assert_certified_bounds_hold(system)
+
+    @pytest.mark.parametrize("config_name", sorted(DOMAIN_CONFIGS))
+    def test_system_phi_bound_on_examples(self, config_name):
+        system = EXAMPLES["system"]["basic"]()
+        n = len(system.node_indices)
+        with config.override(**DOMAIN_CONFIGS[config_name]):
+            sia = new_big_phi.sia(
+                system,
+                system_measure=resolve_system_measure(
+                    config.formalism.iit.system_phi_measure
+                ),
+                specification_measure=resolve_mechanism_measure(
+                    config.formalism.iit.specification_measure
+                ),
+            )
+            assert float(sia.phi) <= float(bounds.system_phi_upper_bound(n)) + TOL
+
+    @pytest.mark.parametrize("config_name", sorted(DOMAIN_CONFIGS))
+    @PROPERTY_SETTINGS
+    @given(data=st.data())
+    def test_random_systems(self, config_name, data):
+        with config.override(
+            **DOMAIN_CONFIGS[config_name], validate_system_states=False
+        ):
+            system = data.draw(small_system(min_size=2, max_size=3))
+            n = len(system.node_indices)
+            sum_phi_d = 0.0
+            for distinction in system.distinctions():
+                phi = float(distinction.phi)
+                sum_phi_d += phi
+                for side in (distinction.cause, distinction.effect):
+                    theorem_1 = bounds.distinction_phi_upper_bound(
+                        distinction.mechanism, side.purview
+                    )
+                    assert float(side.phi) <= float(theorem_1) + TOL
+                    lemma_2 = bounds.partition_phi_upper_bound(side.partition)
+                    assert float(side.phi) <= float(lemma_2) + TOL
+            assert (
+                sum_phi_d
+                <= float(bounds.sum_phi_distinctions_upper_bound(n, bound="I")) + TOL
+            )
+
+
+class TestConjectureProbes:
+    """Non-gating probes of the conditional/conjectured bounds.
+
+    A genuine violation of Bound III on a real system would be a finding
+    about the conjecture (its generality is an open question in the
+    paper), not a test bug: report it, do not fail.
+    """
+
+    @staticmethod
+    def _sum_phi_d_first_reachable_state(substrate, n):
+        """Sum of distinction phi at the first state computable both ways.
+
+        Mirrors the reachable-state scan in the paper's experiment code;
+        returns None if no state of the random TPM supports a full
+        cause-and-effect analysis.
+        """
+        for state in all_states(n):
+            try:
+                with config.override(validate_system_states=False):
+                    system = System(substrate, state=state, node_indices=(0, 1, 2))
+                    return sum(float(d.phi) for d in system.distinctions())
+            except StateUnreachableError:
+                continue
+        return None
+
+    def test_random_deterministic_systems(self):
+        rng = np.random.default_rng(20260610)
+        n = 3
+        bound_values = {
+            bound_id: float(bounds.sum_phi_distinctions_upper_bound(n, bound=bound_id))
+            for bound_id in ("I", "II", "III")
+        }
+        violations = {"II": [], "III": []}
+        analyzed = 0
+        for trial in range(20):
+            tpm = (rng.random((2**n, n)) > rng.random()).astype(float)
+            substrate = Substrate(tpm, cm=np.ones((n, n)))
+            sum_phi_d = self._sum_phi_d_first_reachable_state(substrate, n)
+            if sum_phi_d is None:
+                continue
+            analyzed += 1
+            # Certified: gating.
+            assert sum_phi_d <= bound_values["I"] + TOL
+            for bound_id in ("II", "III"):
+                if sum_phi_d > bound_values[bound_id] + TOL:
+                    violations[bound_id].append((trial, sum_phi_d))
+        assert analyzed >= 10, f"only {analyzed}/20 random systems were analyzable"
+        for bound_id, found in violations.items():
+            if found:
+                warnings.warn(
+                    f"Bound {bound_id} exceeded by {len(found)}/20 random "
+                    f"deterministic 3-unit systems: {found}. The bound is "
+                    f"not certified; this is a data point about its "
+                    f"domain, not a bug.",
+                    stacklevel=1,
+                )
