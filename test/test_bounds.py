@@ -181,3 +181,79 @@ class TestObjectBounds:
         assert bound.certified
         assert bound.citation == "Table 2"
         assert any("self-connections" in a for a in bound.assumptions)
+
+
+class TestSumPhiDistinctions:
+    @pytest.mark.parametrize("n", range(1, 13))
+    def test_bound_i_matches_brute_force(self, n):
+        # Eq 6: every mechanism at phi = |M| * n (purview = whole system).
+        brute = sum(
+            len(mechanism) * n
+            for r in range(1, n + 1)
+            for mechanism in itertools.combinations(range(n), r)
+        )
+        bound = bounds.sum_phi_distinctions_upper_bound(n, bound="I")
+        assert bound.value == brute == n * n * 2 ** (n - 1)
+        assert bound.certified
+        assert bound.citation == "Eq 6"
+        assert isinstance(bound.value, int)
+
+    @pytest.mark.parametrize("n", range(1, 13))
+    def test_bound_ii_matches_brute_force(self, n):
+        # Eq 7: every mechanism at phi = |M| ** 2 (purview = mechanism).
+        brute = sum(
+            len(mechanism) ** 2
+            for r in range(1, n + 1)
+            for mechanism in itertools.combinations(range(n), r)
+        )
+        bound = bounds.sum_phi_distinctions_upper_bound(n, bound="II")
+        assert bound.value == brute == n * (n + 1) * 2**n // 4
+        assert not bound.certified
+        assert any("unique purviews" in a for a in bound.assumptions)
+        assert bound.citation == "Eq 7"
+
+    def test_phi_e_star_endpoints(self):
+        # K = 1: a single self-copy unit; severing the self-connection
+        # halves the probability: phi = 1. K = N: complete partition fully
+        # marginalizes every unit: phi = N ** 2.
+        for n in range(1, 8):
+            assert bounds._phi_e_star(n, 1) == pytest.approx(1.0)
+            assert bounds._phi_e_star(n, n) == pytest.approx(float(n * n))
+
+    def test_phi_e_star_hand_value(self):
+        # N=3, K=2: MIP is the non-self-cutting bipartition;
+        # phi = -2 * log2(3/4). Verified against the 2.0 pipeline.
+        assert bounds._phi_e_star(3, 2) == pytest.approx(0.8300749985576875, abs=1e-12)
+
+    def test_phi_e_star_below_theorem_1(self):
+        # Theorem 3: for 1 < K < N the construction cannot achieve K ** 2.
+        for n in range(3, 9):
+            for k in range(2, n):
+                assert bounds._phi_e_star(n, k) < k * k
+
+    def test_bound_iii_hand_values(self):
+        assert bounds.sum_phi_distinctions_upper_bound(2, bound="III").value == (
+            pytest.approx(6.0)
+        )
+        assert bounds.sum_phi_distinctions_upper_bound(3, bound="III").value == (
+            pytest.approx(12 + 3 * 0.8300749985576875)
+        )
+
+    def test_bound_iii_certificate(self):
+        bound = bounds.sum_phi_distinctions_upper_bound(4, bound="III")
+        assert not bound.certified
+        assert any("conjecture" in a for a in bound.assumptions)
+        assert bound.citation == "Sec 2.1.3"
+
+    @pytest.mark.parametrize("n", range(2, 9))
+    def test_bound_ordering(self, n):
+        # Fig 3: Bound III <= Bound II <= Bound I (equality at n = 2).
+        bound_i = float(bounds.sum_phi_distinctions_upper_bound(n, bound="I"))
+        bound_ii = float(bounds.sum_phi_distinctions_upper_bound(n, bound="II"))
+        bound_iii = float(bounds.sum_phi_distinctions_upper_bound(n, bound="III"))
+        assert bound_iii <= bound_ii + 1e-9
+        assert bound_ii <= bound_i
+
+    def test_invalid_bound_id_raises(self):
+        with pytest.raises(ValueError, match="bound"):
+            bounds.sum_phi_distinctions_upper_bound(3, bound="IV")

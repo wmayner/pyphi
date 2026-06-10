@@ -289,3 +289,96 @@ def system_phi_upper_bound(n: int) -> UpperBound:
         ),
         citation="Table 2",
     )
+
+
+##############################################################################
+# Sum of distinction phi
+##############################################################################
+
+_CONJECTURE_NOTE = (
+    "conjectured: proven for reflexive selectivity-1 systems; "
+    "generality is an open question in the paper"
+)
+
+
+def _log2_pi(n: int, k: int, a: int) -> float:
+    """log2 of the partitioned single-unit effect probability pi(a).
+
+    In the size-n, order-k high-selectivity construction, when the
+    mechanism part connected to a purview unit has size a and contains
+    that unit (S3 Appendix, Sec 3).
+    """
+    numerator = sum(math.comb(n - a, b) for b in range(k - a, n - a + 1))
+    return math.log2(numerator) - (n - a)
+
+
+def _log2_pi_bar(n: int, k: int, a: int) -> float:
+    """log2 of pi-bar(a): as :func:`_log2_pi`, but the connected part does
+    not contain the purview unit. Covers a = 0 (fully severed unit)."""
+    numerator = sum(math.comb(n - a - 1, b - 1) for b in range(k - a, n - a + 1))
+    return math.log2(numerator) - (n - a)
+
+
+def _phi_e_star(n: int, k: int) -> float:
+    """Integrated effect information of a size-k mechanism over itself in
+    the high-selectivity construction (S3 Appendix, Sec 3).
+
+    Selectivity is 1, so phi at a partition equals the informativeness
+    lost. The MIP is among k // 2 + 1 candidates: the bipartitions that
+    keep self-connections intact, and the cut severing one mechanism unit
+    from all purview units (the only candidate for k = 1). Candidates are
+    compared by value normalized by the number of connections severed;
+    the returned phi is unnormalized. For k = n only the complete
+    partition exists and phi equals n ** 2.
+    """
+    if k == n:
+        return float(n * n)
+    candidates: list[tuple[float, int]] = []
+    for j in range(1, k // 2 + 1):
+        value = -(j * _log2_pi(n, k, j) + (k - j) * _log2_pi(n, k, k - j))
+        candidates.append((value, 2 * j * (k - j)))
+    value = -(_log2_pi_bar(n, k, k - 1) + (k - 1) * _log2_pi(n, k, k - 1))
+    candidates.append((value, k))
+    return min(candidates, key=lambda c: (c[0] / c[1], c[0]))[0]
+
+
+def sum_phi_distinctions_upper_bound(n: int, bound: str = "I") -> UpperBound:
+    """Upper bound on the sum of distinction phi for a system of n units.
+
+    Bounds:
+        ``"I"`` (Eq 6, certified, not achievable): every mechanism at
+            phi = |M| n; equals (n**2 / 2) 2**n.
+        ``"II"`` (Eq 7, conditional): assumes each purview is assigned to
+            exactly one mechanism with matching sizes; equals
+            (n (n+1) / 4) 2**n.
+        ``"III"`` (Sec 2.1.3, conjectured): the numerical bound from the
+            high-selectivity reflexive construction,
+            sum over K of C(n, K) phi*_e(K).
+    """
+    _require_valid_domain()
+    _require_positive(n)
+    if bound == "I":
+        return UpperBound(
+            value=sum(k * n * math.comb(n, k) for k in range(1, n + 1)),
+            certified=True,
+            assumptions=_CORE_ASSUMPTIONS,
+            citation="Eq 6",
+        )
+    if bound == "II":
+        return UpperBound(
+            value=sum(k * k * math.comb(n, k) for k in range(1, n + 1)),
+            certified=False,
+            assumptions=(
+                *_CORE_ASSUMPTIONS,
+                "unique purviews: each purview assigned to exactly one mechanism",
+            ),
+            citation="Eq 7",
+        )
+    if bound == "III":
+        return UpperBound(
+            value=sum(math.comb(n, k) * _phi_e_star(n, k) for k in range(1, n + 1)),
+            certified=False,
+            assumptions=(*_CORE_ASSUMPTIONS, _CONJECTURE_NOTE),
+            citation="Sec 2.1.3",
+        )
+    raise ValueError(f"unknown bound id {bound!r}; expected 'I', 'II', or 'III'")
