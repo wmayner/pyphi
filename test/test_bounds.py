@@ -23,6 +23,7 @@ from hypothesis import strategies as st
 from pyphi import config
 from pyphi.conf import presets
 from pyphi.conf.formalism import IITConfig
+from pyphi.direction import Direction
 from pyphi.examples import EXAMPLES
 from pyphi.exceptions import StateUnreachableError
 from pyphi.formalism import iit4 as new_big_phi
@@ -666,3 +667,49 @@ class TestConjectureProbes:
                     f"domain, not a bug.",
                     stacklevel=1,
                 )
+
+
+class TestConstructionParity:
+    """Battery (d): the closed-form Bound III machinery against the real
+    pipeline on the construction TPM. This is the strongest check that
+    2.0's measure semantics (binary GID, NUM_CONNECTIONS_CUT
+    normalization) match the paper's intrinsic-difference setup."""
+
+    @staticmethod
+    def _construction_system(n, k):
+        tpm = bounds._construction_tpm(n, k)
+        substrate = Substrate(tpm, cm=np.ones((n, n)))
+        return System(substrate, state=(0,) * n, node_indices=tuple(range(n)))
+
+    @pytest.mark.parametrize("n,k", [(n, k) for n in (2, 3, 4) for k in range(1, n + 1)])
+    def test_phi_e_star_matches_pipeline_on_candidates(self, n, k):
+        system = self._construction_system(n, k)
+        mechanism = tuple(range(k))
+        mip = system.find_mip(
+            Direction.EFFECT,
+            mechanism,
+            mechanism,
+            partitions=list(bounds._candidate_partitions(n, k)),
+        )
+        assert float(mip.phi) == pytest.approx(bounds._phi_e_star(n, k), abs=1e-10)
+
+    @pytest.mark.parametrize("n,k", [(3, 2), (4, 2), (4, 3)])
+    def test_candidates_contain_the_global_mip(self, n, k):
+        # The S3 narrowing argument: the MIP over ALL mechanism partitions
+        # equals the MIP over the k // 2 + 1 candidates.
+        system = self._construction_system(n, k)
+        mechanism = tuple(range(k))
+        full_mip = system.find_mip(Direction.EFFECT, mechanism, mechanism)
+        assert float(full_mip.phi) == pytest.approx(bounds._phi_e_star(n, k), abs=1e-10)
+
+    @pytest.mark.parametrize("n,k_star", [(3, 2), (3, 3)])
+    def test_achieved_sum_phi_e_below_bound_iii(self, n, k_star):
+        # The full structure of the construction must respect Bound III
+        # (Fig 2: the bound is tight at the best k_star).
+        system = self._construction_system(n, k_star)
+        bound_iii = float(bounds.sum_phi_distinctions_upper_bound(n, bound="III"))
+        achieved = 0.0
+        with config.override(validate_system_states=False):
+            for distinction in system.distinctions():
+                achieved += float(distinction.effect.phi)
+        assert achieved <= bound_iii + 1e-9
