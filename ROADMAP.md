@@ -2390,6 +2390,15 @@ relata-mean coefficient, the fold form by the seed's); the global partition
 takes Perception_d := t(x,m)·Φ_d(fold) as a definition, matching the
 reference research code.
 
+**P14b follow-on (queued 2026-06-09): environment generation.** The matching
+core takes the world distribution over stimuli as an input; generating that
+distribution from environment dynamics is deferred here. Scope:
+`stationary_distribution` of a TPM, a Metropolis Ising sampler, and the
+paper's segment/point stimulus generators (ported from the external matching
+research repo's environment code), plus temporal/Markov (non-i.i.d.)
+stimulus-sequence sampling. *Sequencing:* after P14b sub-project 4, which
+fixed the consumer surface (`MatchingAnalysis(world_distribution=...)`).
+
 **P14c. Second AC formalism — IIT-4.0-style α measures**
 
 Register a second actual-causation formalism alongside `AC2019Formalism` that

@@ -138,3 +138,38 @@ def test_subsequence_max_dominates_full_sequence(analysis):
         np.mean(fancy.world_differentiation) - np.mean(fancy.noise_differentiation)
     )
     assert fancy.value == pytest.approx(reconstructed)
+
+
+# --- Regression self-golden ---------------------------------------------------
+
+# Frozen values for the module fixture with seed=42, n_trials=8, k=3 and
+# world = {(0,): 0.75, (1,): 0.25}. Regenerate only deliberately (they change
+# only if the formalism defaults, the grid3 example, or the sampling change).
+GOLDEN_VALUE = -1.0408340855860843e-17
+GOLDEN_WORLD = (
+    0.32348104943023115,
+    0.32348104943023115,
+    0.32348104943023115,
+    0.32348104943023115,
+    0.32348104943023115,
+    0.16174052471511555,
+    0.32348104943023115,
+    0.32348104943023115,
+)
+GOLDEN_NOISE = (
+    0.32348104943023115,
+    0.32348104943023115,
+    0.32348104943023115,
+    0.32348104943023115,
+    0.32348104943023115,
+    0.32348104943023115,
+    0.16174052471511563,
+    0.32348104943023115,
+)
+
+
+def test_matching_self_golden(analysis):
+    result = analysis.matching(seed=42, n_trials=8, k=3)
+    assert result.value == pytest.approx(GOLDEN_VALUE, abs=1e-10)
+    assert result.world_differentiation == pytest.approx(GOLDEN_WORLD, abs=1e-10)
+    assert result.noise_differentiation == pytest.approx(GOLDEN_NOISE, abs=1e-10)
