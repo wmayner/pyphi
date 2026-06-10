@@ -33,8 +33,11 @@ class TriggeredTPM:
         return self.array[tuple(stimulus)]
 
     def argmax_state(self, stimulus: tuple[int, ...]) -> tuple[int, ...]:
-        """The most-probable system state for a stimulus (the triggered state)."""
-        flat = int(np.argmax(self.row(stimulus)))
+        """The most-probable system state for a stimulus (the triggered state).
+
+        Ties resolve to the first maximum in little-endian state order.
+        """
+        flat = int(np.argmax(self.row(stimulus).ravel(order="F")))
         return convert.le_index2state(flat, len(self.system_indices))
 
     def _marginalize_system(self, distribution, mechanism, state) -> float:
@@ -139,10 +142,16 @@ def build_triggered_tpm(
         composed = clamped @ noised
         rows.append(composed.mean(axis=0))  # marginalize initial system state
 
-    flat = np.array(rows)  # (n_stimuli, n_system_states)
-    shape = (2,) * (len(sensory_indices) + len(system_indices))
+    flat = np.array(rows)  # (n_stimuli, n_system_states), little-endian flat order
+    n_sensory, n_system = len(sensory_indices), len(system_indices)
+    array = flat.reshape((2,) * (n_sensory + n_system))
+    # The flat orders are little-endian (first unit varies fastest) but the
+    # C-order reshape unpacks last-axis-fastest, leaving each axis group in
+    # reversed unit order; transpose each group back to unit order.
+    sensory_axes = tuple(reversed(range(n_sensory)))
+    system_axes = tuple(n_sensory + a for a in reversed(range(n_system)))
     return TriggeredTPM(
-        array=flat.reshape(shape),
+        array=array.transpose(sensory_axes + system_axes),
         sensory_indices=tuple(sensory_indices),
         system_indices=tuple(system_indices),
         node_labels=substrate.node_labels,

@@ -115,3 +115,47 @@ def test_conditional_probability_subset_marginalizes(ttpm):
 def test_marginalization_rejects_out_of_system_mechanism(ttpm):
     with pytest.raises(ValueError):
         ttpm.conditional_probability((0,), (1,), (0,))
+
+
+def test_system_axes_follow_unit_order():
+    import pyphi
+
+    # 3 units; unit 1 copies unit 0, unit 2 is constant OFF. The triggered
+    # distribution for stimulus (1,) puts all mass on (unit1, unit2) = (1, 0)
+    # — an asymmetric state, so any axis-order mixup is visible.
+    sbn = np.zeros((2, 2, 2, 3))
+    for a in (0, 1):
+        for b in (0, 1):
+            for c in (0, 1):
+                sbn[a, b, c, 1] = a
+    substrate = pyphi.Substrate(sbn)
+    t = build_triggered_tpm(
+        substrate, sensory_indices=(0,), system_indices=(1, 2), tau=1, tau_clamp=1
+    )
+    assert t.argmax_state((1,)) == (1, 0)
+    assert t.conditional_probability((1,), (1,), (1,)) == pytest.approx(1.0)
+    assert t.conditional_probability((2,), (1,), (1,)) == pytest.approx(0.0)
+    assert t.row((1,))[1, 0] == pytest.approx(1.0)
+    assert t.array[1, 1, 0] == pytest.approx(1.0)
+    df = t.to_pandas()
+    assert df.loc[(1,), (1, 0)] == pytest.approx(1.0)
+
+
+def test_sensory_axes_follow_unit_order():
+    import pyphi
+
+    # 3 units; unit 2 (system) copies unit 0 (the first sensory unit) only,
+    # so the rows for stimuli (1, 0) and (0, 1) differ.
+    sbn = np.zeros((2, 2, 2, 3))
+    for a in (0, 1):
+        for b in (0, 1):
+            for c in (0, 1):
+                sbn[a, b, c, 2] = a
+    substrate = pyphi.Substrate(sbn)
+    t = build_triggered_tpm(
+        substrate, sensory_indices=(0, 1), system_indices=(2,), tau=1, tau_clamp=1
+    )
+    assert t.conditional_probability((2,), (1,), (1, 0)) == pytest.approx(1.0)
+    assert t.conditional_probability((2,), (1,), (0, 1)) == pytest.approx(0.0)
+    assert t.row((1, 0))[(1,)] == pytest.approx(1.0)
+    assert t.row((0, 1))[(0,)] == pytest.approx(1.0)
