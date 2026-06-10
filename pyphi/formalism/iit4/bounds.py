@@ -34,7 +34,11 @@ floats and overflow for ``n`` greater than about 10.
 from __future__ import annotations
 
 import math
+from collections.abc import Iterable
 from dataclasses import dataclass
+from typing import Any
+
+from pyphi.conf import config
 
 CITATION = (
     "Zaeemzadeh A, Tononi G. (2024). Upper bounds for integrated "
@@ -140,4 +144,148 @@ def number_of_possible_relation_faces_with_unique_purviews(n: int) -> int:
     return sum(
         number_of_possible_relation_faces_with_unique_purviews_of_order(n, k)
         for k in range(1, n + 1)
+    )
+
+
+##############################################################################
+# Domain guard
+##############################################################################
+
+# (version, measure) combinations for which the property-test battery in
+# test/test_bounds.py confirms the bounds against the real pipeline.
+MECHANISM_MEASURE_DOMAIN = frozenset(
+    {
+        ("IIT_4_0_2023", "GENERALIZED_INTRINSIC_DIFFERENCE"),
+        ("IIT_4_0_2026", "GENERALIZED_INTRINSIC_DIFFERENCE"),
+    }
+)
+SYSTEM_MEASURE_DOMAIN = frozenset(
+    {
+        ("IIT_4_0_2023", "GENERALIZED_INTRINSIC_DIFFERENCE"),
+        ("IIT_4_0_2026", "GENERALIZED_INTRINSIC_DIFFERENCE"),
+        ("IIT_4_0_2026", "INTRINSIC_INFORMATION"),
+    }
+)
+# The n(n - 1) system bound counts connections severed by set partitions,
+# which never cut self-connections; schemes that sever them break it.
+SYSTEM_PARTITION_SCHEME_DOMAIN = frozenset({"DIRECTED_SET_PARTITION"})
+
+
+def _require_valid_domain() -> None:
+    """Raise unless the active config is in the confirmed mechanism-level domain."""
+    version = config.formalism.iit.version
+    measure = config.formalism.iit.mechanism_phi_measure
+    if (version, measure) not in MECHANISM_MEASURE_DOMAIN:
+        raise ValueError(
+            f"the mechanism-level bounds are not confirmed for "
+            f"(version={version!r}, mechanism_phi_measure={measure!r}); "
+            f"confirmed combinations: {sorted(MECHANISM_MEASURE_DOMAIN)}. "
+            f"See {CITATION}"
+        )
+
+
+def _require_valid_system_domain() -> None:
+    """Raise unless the active config is in the confirmed system-level domain."""
+    version = config.formalism.iit.version
+    measure = config.formalism.iit.system_phi_measure
+    if (version, measure) not in SYSTEM_MEASURE_DOMAIN:
+        raise ValueError(
+            f"the system-level bound is not confirmed for "
+            f"(version={version!r}, system_phi_measure={measure!r}); "
+            f"confirmed combinations: {sorted(SYSTEM_MEASURE_DOMAIN)}. "
+            f"See {CITATION}"
+        )
+    scheme = config.formalism.iit.system_partition_scheme
+    if scheme not in SYSTEM_PARTITION_SCHEME_DOMAIN:
+        raise ValueError(
+            f"the system-level bound assumes a partition scheme that does "
+            f"not sever self-connections; got system partition scheme "
+            f"{scheme!r}, confirmed: {sorted(SYSTEM_PARTITION_SCHEME_DOMAIN)}. "
+            f"See {CITATION}"
+        )
+
+
+##############################################################################
+# Per-object bounds
+##############################################################################
+
+
+def distinction_phi_upper_bound(
+    mechanism: Iterable[int], purview: Iterable[int]
+) -> UpperBound:
+    """Upper bound on phi of a mechanism over a candidate purview.
+
+    Theorem 1: phi(m, Z) <= |M| |Z|, the number of potential causal
+    connections between the mechanism and the purview. Only the sizes
+    matter.
+    """
+    _require_valid_domain()
+    num_mechanism = len(tuple(mechanism))
+    num_purview = len(tuple(purview))
+    if num_mechanism < 1 or num_purview < 1:
+        raise ValueError("mechanism and purview must be nonempty")
+    return UpperBound(
+        value=num_mechanism * num_purview,
+        certified=True,
+        assumptions=_CORE_ASSUMPTIONS,
+        citation="Theorem 1",
+    )
+
+
+def partition_phi_upper_bound(partition: Any) -> UpperBound:
+    """Upper bound on phi of a mechanism-purview pair under a given partition.
+
+    Lemma 2: phi(m, Z given theta) <= N(theta), the number of connections
+    severed by the partition. Holds for any partitioning, valid or not.
+
+    Args:
+        partition: Any partition exposing ``num_connections_cut()``
+            (e.g. :class:`~pyphi.models.partitions.JointPartition`).
+    """
+    _require_valid_domain()
+    return UpperBound(
+        value=partition.num_connections_cut(),
+        certified=True,
+        assumptions=_CORE_ASSUMPTIONS,
+        citation="Lemma 2",
+    )
+
+
+def relation_phi_upper_bound(relata_phis: Iterable[float]) -> UpperBound:
+    """Upper bound on phi of a relation, given its relata's distinction phis.
+
+    phi_r(d) <= min over relata of phi_d (Sec 2.2): the relation overlap
+    is contained in every relatum's purview union.
+    """
+    _require_valid_domain()
+    phis = tuple(float(phi) for phi in relata_phis)
+    if not phis:
+        raise ValueError("relata_phis must be nonempty")
+    return UpperBound(
+        value=min(phis),
+        certified=True,
+        assumptions=_CORE_ASSUMPTIONS,
+        citation="Sec 2.2",
+    )
+
+
+def system_phi_upper_bound(n: int) -> UpperBound:
+    """Upper bound on system integrated information for n units.
+
+    phi_s <= n(n - 1) (Table 2, citing Marshall et al. 2023): system phi
+    is bounded by the number of connections cut by the selected
+    partition, and set partitions sever at most n(n - 1) connections
+    (all between-part connections at the atomic partition;
+    self-connections are never cut).
+    """
+    _require_valid_system_domain()
+    _require_positive(n)
+    return UpperBound(
+        value=n * (n - 1),
+        certified=True,
+        assumptions=(
+            *_CORE_ASSUMPTIONS,
+            "system partitions do not sever self-connections",
+        ),
+        citation="Table 2",
     )

@@ -12,7 +12,11 @@ import itertools
 
 import pytest
 
+from pyphi import config
+from pyphi.conf import presets
 from pyphi.formalism.iit4 import bounds
+from pyphi.models.partitions import JointPartition
+from pyphi.models.partitions import Part
 
 
 class TestUpperBound:
@@ -106,3 +110,74 @@ class TestCounts:
             bounds.number_of_possible_relation_faces_with_unique_purviews_of_order(2, 2)
             == 1
         )
+
+
+class TestDomainGuard:
+    def test_default_config_is_in_domain(self):
+        # Default: IIT_4_0_2023 + GENERALIZED_INTRINSIC_DIFFERENCE.
+        bound = bounds.distinction_phi_upper_bound((0, 1), (0, 1, 2))
+        assert bound.value == 6
+
+    def test_iit3_raises(self):
+        with (
+            config.override(**presets.iit3),
+            pytest.raises(ValueError, match="Zaeemzadeh"),
+        ):
+            bounds.distinction_phi_upper_bound((0,), (0,))
+
+    def test_unsupported_mechanism_measure_raises(self):
+        with (
+            config.override(mechanism_phi_measure="EMD"),
+            pytest.raises(ValueError, match="EMD"),
+        ):
+            bounds.distinction_phi_upper_bound((0,), (0,))
+
+    def test_system_guard_checks_partition_scheme(self):
+        with (
+            config.override(system_partition_scheme="DIRECTED_BIPARTITION"),
+            pytest.raises(ValueError, match="partition scheme"),
+        ):
+            bounds.system_phi_upper_bound(3)
+
+    def test_counts_are_measure_free(self):
+        with config.override(**presets.iit3):
+            assert bounds.number_of_possible_distinctions(3) == 7
+
+
+class TestObjectBounds:
+    def test_distinction_phi_upper_bound(self):
+        bound = bounds.distinction_phi_upper_bound((0, 1), (1, 2, 3))
+        assert bound.value == 6
+        assert bound.certified
+        assert bound.citation == "Theorem 1"
+        assert "binary units" in bound.assumptions
+
+    def test_distinction_phi_upper_bound_empty_raises(self):
+        with pytest.raises(ValueError, match="nonempty"):
+            bounds.distinction_phi_upper_bound((), (0,))
+        with pytest.raises(ValueError, match="nonempty"):
+            bounds.distinction_phi_upper_bound((0,), ())
+
+    def test_partition_phi_upper_bound(self):
+        # Bipartition of a 2-mechanism over itself severs 2 connections.
+        partition = JointPartition(Part((0,), (0,)), Part((1,), (1,)))
+        bound = bounds.partition_phi_upper_bound(partition)
+        assert bound.value == partition.num_connections_cut() == 2
+        assert bound.certified
+        assert bound.citation == "Lemma 2"
+
+    def test_relation_phi_upper_bound(self):
+        bound = bounds.relation_phi_upper_bound([0.5, 2.0, 1.25])
+        assert bound.value == 0.5
+        assert bound.certified
+
+    def test_relation_phi_upper_bound_empty_raises(self):
+        with pytest.raises(ValueError, match="nonempty"):
+            bounds.relation_phi_upper_bound([])
+
+    def test_system_phi_upper_bound(self):
+        bound = bounds.system_phi_upper_bound(4)
+        assert bound.value == 12
+        assert bound.certified
+        assert bound.citation == "Table 2"
+        assert any("self-connections" in a for a in bound.assumptions)
