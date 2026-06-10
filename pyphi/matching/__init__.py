@@ -1,6 +1,8 @@
 """The matching formalism: perception and matching (Mayner, Juel & Tononi)."""
 
 from .differentiation import Differentiation
+from .matching import MatchingAnalysis
+from .matching import MatchingResult
 from .perception import Perception
 from .system import PerceptualSystem
 from .triggered_tpm import TriggeredTPM
@@ -10,6 +12,8 @@ from .triggering import triggering_coefficient
 
 __all__ = [
     "Differentiation",
+    "MatchingAnalysis",
+    "MatchingResult",
     "Perception",
     "PerceptualSystem",
     "TriggeredTPM",
