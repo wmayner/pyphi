@@ -4,7 +4,10 @@ import numpy as np
 import pytest
 
 from pyphi.macro.tpm import _discounted_on_probabilities
+from pyphi.macro.tpm import _full_transition_matrix
+from pyphi.macro.tpm import _unit_final_state_proportions
 from pyphi.macro.units import MacroUnit
+from pyphi.macro.units import blackbox
 from pyphi.macro.units import coarse_grain
 from pyphi.substrate import Substrate
 
@@ -100,3 +103,42 @@ class TestDiscounting:
         assert discounted[1, 1] == pytest.approx(0.9)
         # row index 2 = state (0,1,0,0): unit 0's rule = 0.1 + 0.5*s[1]
         assert discounted[2, 0] == pytest.approx(0.6)
+
+
+class TestTransitionMatrix:
+    def test_rows_stochastic(self):
+        substrate = _asymmetric_substrate()
+        on = _flat_on_probabilities(substrate)
+        P = _full_transition_matrix(on)
+        assert np.allclose(P.sum(axis=1), 1.0)
+
+    def test_hand_checked_entry(self):
+        substrate = _asymmetric_substrate()
+        on = _flat_on_probabilities(substrate)
+        P = _full_transition_matrix(on)
+        # From state (1,0,0,0) (row 1) to state (1,1,0,0) (column 3):
+        # at s = (1,0,0,0): pA = 0.1, pB = 0.9, pC = 0.05, pD = 0.9
+        # p = pA * pB * (1 - pC) * (1 - pD)
+        expected = 0.1 * 0.9 * 0.95 * 0.1
+        assert P[1, 3] == pytest.approx(expected, abs=1e-15)
+
+
+class TestFinalStateProportions:
+    def test_tau1_uniform_over_preimage(self):
+        unit = MacroUnit((0, 1), 1, coarse_grain(2, on_counts={2}))
+        r0 = _unit_final_state_proportions(unit, 0)
+        r1 = _unit_final_state_proportions(unit, 1)
+        assert np.allclose(r0, [1 / 3, 1 / 3, 1 / 3, 0.0])
+        assert np.allclose(r1, [0.0, 0.0, 0.0, 1.0])
+
+    def test_blackbox_counts_prefix_multiplicity(self):
+        # tau = 2 over 1 constituent, state = final update: preimages
+        # {(a, j) : a free} -> uniform over the final state only.
+        unit = MacroUnit((0,), 2, blackbox(1, 2, (0,)))
+        assert np.allclose(_unit_final_state_proportions(unit, 1), [0.0, 1.0])
+        assert np.allclose(_unit_final_state_proportions(unit, 0), [1.0, 0.0])
+
+    def test_sums_to_one(self):
+        unit = MacroUnit((0, 1), 2, blackbox(2, 2, (1,)))
+        for j in (0, 1):
+            assert _unit_final_state_proportions(unit, j).sum() == pytest.approx(1.0)

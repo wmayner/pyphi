@@ -70,3 +70,114 @@ def _discounted_on_probabilities(
             out = np.full(p_on.shape, p_on.mean())
         columns.append(np.asarray(out).reshape(-1, order="F"))
     return np.stack(columns, axis=1)
+
+
+def _full_transition_matrix(on_probabilities: np.ndarray) -> np.ndarray:
+    """Row-stochastic ``(2**n, 2**n)`` matrix from ON probabilities (Eq. 30).
+
+    Rows and columns are little-endian universe state indices.
+    """
+    num_states, n = on_probabilities.shape
+    transition = np.ones((num_states, num_states))
+    column_bits = np.arange(num_states)
+    for i in range(n):
+        bit = (column_bits >> i) & 1
+        p = on_probabilities[:, i][:, np.newaxis]
+        transition *= np.where(bit[np.newaxis, :] == 1, p, 1.0 - p)
+    return transition
+
+
+def _unit_sequence_distributions(transition: np.ndarray, unit: MacroUnit) -> np.ndarray:
+    """Steps 2+4a fused (Eqs. 31, 35-36).
+
+    Chains ``tau_J`` micro updates of the discounted transition matrix,
+    accumulating probability into per-update state classes of ``U^J``.
+    With the pinned digit convention, a sequence-class index is directly
+    an index into ``unit.micro_mapping``.
+
+    Returns:
+        np.ndarray: ``(2**n, 2**(m * tau_J))`` — for each starting
+        universe state, the probability of each ``U^J`` state-sequence.
+    """
+    num_states = transition.shape[0]
+    m = len(unit.micro_constituents)
+    num_classes = 2**m
+    idx = np.arange(num_states)
+    state_class = np.zeros(num_states, dtype=np.int64)
+    for k, u in enumerate(unit.micro_constituents):
+        state_class |= ((idx >> u) & 1) << k
+    tau = unit.micro_grain
+    dist = np.eye(num_states)[:, np.newaxis, :]  # (start, seq, current)
+    place = 1
+    for step in range(tau):
+        seq_dim = dist.shape[1]
+        advanced = np.einsum("xsu,uv->xsv", dist, transition)
+        if step == tau - 1:
+            out = np.zeros((num_states, seq_dim * num_classes))
+            for a in range(num_classes):
+                selected = state_class == a
+                block = advanced[:, :, selected].sum(axis=2)
+                out[:, a * place : a * place + seq_dim] += block
+            return out
+        out = np.zeros((num_states, seq_dim * num_classes, num_states))
+        for a in range(num_classes):
+            selected = state_class == a
+            out[:, a * place : a * place + seq_dim, selected] = advanced[:, :, selected]
+        dist = out
+        place *= num_classes
+    raise AssertionError("unreachable: tau >= 1 returns inside the loop")
+
+
+def _unit_macro_probabilities(transition: np.ndarray, unit: MacroUnit) -> np.ndarray:
+    """Eq. 35: probability of each macro state of ``J`` per starting state.
+
+    Returns:
+        np.ndarray: ``(2**n, 2)``.
+    """
+    sequence_dist = _unit_sequence_distributions(transition, unit)
+    table = np.asarray(unit.micro_mapping)
+    return np.stack(
+        [
+            sequence_dist[:, table == 0].sum(axis=1),
+            sequence_dist[:, table == 1].sum(axis=1),
+        ],
+        axis=1,
+    )
+
+
+def _unit_final_state_proportions(unit: MacroUnit, j: int) -> np.ndarray:
+    """Per-unit factor of ``r(u^S, s)`` (Eqs. 37-39).
+
+    The proportion of ``g_J``-preimage sequences for macro state ``j``
+    that end in each final ``U^J`` state. Counting is uniform over
+    sequences (Eq. 38), not probability-weighted.
+    """
+    m = len(unit.micro_constituents)
+    tau = unit.micro_grain
+    table = np.asarray(unit.micro_mapping)
+    idx = np.arange(len(table))
+    final_state = idx >> (m * (tau - 1))
+    counts = np.array(
+        [np.sum((table == j) & (final_state == f)) for f in range(2**m)],
+        dtype=np.float64,
+    )
+    return counts / counts.sum()
+
+
+def _state_weights(units, system_indices, macro_state) -> np.ndarray:
+    """``r(u^S, s)`` over system micro states (Eqs. 37-39).
+
+    Factorizes as the product of per-unit final-state proportions
+    because the ``U^J`` are disjoint (Eq. 18) and exactly cover ``U^S``
+    (Eq. 23).
+    """
+    num_system_states = 2 ** len(system_indices)
+    position = {u: k for k, u in enumerate(system_indices)}
+    idx = np.arange(num_system_states)
+    weights = np.ones(num_system_states)
+    for unit, j in zip(units, macro_state, strict=True):
+        local = np.zeros(num_system_states, dtype=np.int64)
+        for b, u in enumerate(unit.micro_constituents):
+            local |= ((idx >> position[u]) & 1) << b
+        weights *= _unit_final_state_proportions(unit, j)[local]
+    return weights
