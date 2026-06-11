@@ -19,8 +19,13 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from enum import Enum
 
+from pyphi import exceptions
 from pyphi import utils
+from pyphi.data_structures.pyphi_float import PyPhiFloat
 from pyphi.macro.system import MacroSystem
+from pyphi.macro.units import MacroUnit
+from pyphi.macro.units import micro_unit
+from pyphi.substrate import Substrate
 
 
 class Reason(Enum):
@@ -111,3 +116,76 @@ def judge_candidate(
         witness_phi=None,
         num_competitors=len(competitors),
     )
+
+
+def _as_unit(constituent: MacroUnit | int) -> MacroUnit:
+    """A constituent as a unit: micro indices become identity units."""
+    if isinstance(constituent, MacroUnit):
+        return constituent
+    return micro_unit(constituent)
+
+
+def canonical_units(units: Iterable[MacroUnit]) -> tuple[MacroUnit, ...]:
+    """The units of a system in canonical order.
+
+    Sorting makes systems that differ only in unit order compare and
+    hash equal, so memoized evaluations are shared.
+    """
+    return tuple(
+        sorted(
+            units,
+            key=lambda unit: (
+                unit.micro_constituents,
+                unit.micro_grain,
+                unit.mapping,
+                unit.background_apportionment,
+            ),
+        )
+    )
+
+
+def constituent_system(
+    substrate: Substrate,
+    constituents: Iterable[MacroUnit | int],
+    micro_history,
+) -> MacroSystem:
+    """The system of a unit's direct constituents (Eq. 15).
+
+    Each element of ``V^J`` participates with its full definition: a
+    micro index becomes an identity micro unit; a meso constituent
+    keeps its mapping, grain, and apportionment. The system spans the
+    full universe, with all remaining micro units as background.
+
+    ``micro_history`` (oldest first; a bare state is accepted when the
+    constituents have micro grain 1) may be longer than the
+    constituents require; only the trailing window is used.
+    """
+    units = canonical_units(_as_unit(c) for c in constituents)
+    history = tuple(micro_history)
+    if history and not isinstance(history[0], (tuple, list)):
+        history = (history,)
+    history = tuple(tuple(s) for s in history)
+    needed = max(unit.micro_grain for unit in units)
+    if len(history) < needed:
+        raise ValueError(
+            f"micro_history must have at least {needed} entries for "
+            f"these constituents; got {len(history)}"
+        )
+    return MacroSystem.from_micro(substrate, units, history[len(history) - needed :])
+
+
+def unit_integration(
+    substrate: Substrate,
+    constituents: Iterable[MacroUnit | int],
+    micro_history,
+) -> PyPhiFloat:
+    """``phi_s(v^J)``: the constituent system's integrated information (Eq. 15).
+
+    A constituent system whose state is unreachable specifies no cause
+    and cannot exist; its integration is zero.
+    """
+    try:
+        system = constituent_system(substrate, constituents, micro_history)
+    except exceptions.StateUnreachableError:
+        return PyPhiFloat(0.0)
+    return PyPhiFloat(system.sia().phi)
