@@ -24,6 +24,7 @@ from pyphi.macro.system import MacroSystem
 from pyphi.substrate import Substrate
 from test.test_macro_criteria import bu_substrate
 from test.test_macro_criteria import min_substrate
+from test.test_macro_tpm import CG_TPM
 from test.test_macro_tpm import _asymmetric_substrate
 
 
@@ -515,3 +516,37 @@ class TestTiePath:
         phis = {r.system: r.phi for r in result.records}
         assert utils.eq(phis[a], phis[b])
         assert phis[a] == pytest.approx(0.3881829280978132, abs=1e-13)
+
+
+@pytest.mark.slow
+class TestCostGuard:
+    """Battery 6: the full default-bounds driver on the cg substrate
+    terminates and its record reproduces the SP1-anchored micro panel."""
+
+    def test_default_driver_on_cg(self):
+        with config.override(**presets.iit4_2023):
+            substrate = Substrate(CG_TPM, node_labels=("A", "B", "C", "D"))
+            result = complexes(substrate, (0, 0, 0, 0))
+        by_units = {r.system.units: r.phi for r in result.records}
+        panel = {
+            (micro_unit(0),): 0.003976279885291341,
+            (micro_unit(0), micro_unit(1)): 0.044088890564147803,
+            tuple(micro_unit(i) for i in range(4)): 0.02015654077792439,
+        }
+        for units, expected in panel.items():
+            assert by_units[units] == pytest.approx(expected, abs=1e-13)
+        for record in result.records:
+            assert_eq18(record.system)
+        # Driver-outcome golden, recorded at implementation time: the
+        # search recovers the paper's Example 1 macro system -- both-on
+        # coarse-grainings over (A, B) and (C, D) -- as the unique
+        # complex, at SP1's exact-construction phi golden.
+        assert len(result.complexes) == 1
+        winner = result.complexes[0]
+        assert winner.units == (
+            MacroUnit((0, 1), 1, (0, 0, 0, 1)),
+            MacroUnit((2, 3), 1, (0, 0, 0, 1)),
+        )
+        phis = {r.system: r.phi for r in result.records}
+        assert phis[winner] == pytest.approx(1.0040208141253277, abs=1e-13)
+        assert result.ties == ()
