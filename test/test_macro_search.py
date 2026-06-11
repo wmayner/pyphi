@@ -492,3 +492,26 @@ class TestBuDriver:
             result = complexes(min_substrate(), (0, 0), bounds)
         assert isinstance(result, ComplexesResult)
         assert len(result.complexes) == 1
+
+
+class TestTiePath:
+    """Battery 5: the exactly-symmetric fixture. Every system on
+    footprint {A,B} has a permutation-identical twin on {B,C}; the top
+    pair (the (0,1,1,1)-mapped one-unit systems, measured at
+    ~0.3881829280978132 during planning) overlap at B and tie at
+    precision, so neither is a complex and nothing else can beat them."""
+
+    def test_no_complex_on_tie(self):
+        bounds = SearchBounds(max_constituents=2)
+        with config.override(**presets.iit4_2023):
+            result = complexes(tie_substrate(), (0, 0, 0), bounds)
+        assert result.complexes == ()
+        assert len(result.ties) == 1
+        a, b = result.ties[0]
+        assert {
+            tuple(u.micro_constituents for u in s.units) for s in (a, b)
+        } == {((0, 1),), ((1, 2),)}
+        assert all(s.units[0].mapping == (0, 1, 1, 1) for s in (a, b))
+        phis = {r.system: r.phi for r in result.records}
+        assert utils.eq(phis[a], phis[b])
+        assert phis[a] == pytest.approx(0.3881829280978132, abs=1e-13)
