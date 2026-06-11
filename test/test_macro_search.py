@@ -12,6 +12,7 @@ from pyphi.macro.search import SearchBounds
 from pyphi.macro.search import candidate_mappings
 from pyphi.macro.search import competing_systems
 from pyphi.macro.search import intrinsic_units
+from pyphi.macro.search import valid_systems
 from pyphi.macro.search import is_intrinsic_unit
 from pyphi.macro.units import MacroUnit
 from pyphi.macro.units import blackbox
@@ -363,3 +364,42 @@ class TestIntrinsicUnits:
             result = intrinsic_units(min_substrate(), (0, 0), SearchBounds())
         with pytest.raises(AttributeError):
             result.units = ()
+
+
+def assert_eq18(system):
+    """Eq 18: stakes (footprint union apportionment) pairwise disjoint."""
+    claimed = set()
+    for unit in system.units:
+        stake = set(unit.micro_constituents) | set(unit.background_apportionment)
+        assert not (claimed & stake)
+        claimed |= stake
+
+
+class TestValidSystems:
+    def test_min_count_and_eq18(self):
+        with config.override(**presets.iit4_2023):
+            systems = valid_systems(min_substrate(), (0, 0), SearchBounds())
+        # {A}, {B}, {A,B} plus the 5 one-unit mapped variants.
+        assert len(systems) == 8
+        for system in systems:
+            assert_eq18(system)
+
+    def test_bu_drops_unreachable_singleton(self):
+        with config.override(**presets.iit4_2023):
+            systems = valid_systems(bu_substrate(), (0, 0, 0), SearchBounds())
+        # 7 micro combinations minus the unconstructable {C}.
+        assert len(systems) == 6
+        assert all(
+            tuple(u.micro_constituents for u in s.units) != ((2,),)
+            for s in systems
+        )
+
+    def test_tie_substrate_count(self):
+        bounds = SearchBounds(max_constituents=2)
+        with config.override(**presets.iit4_2023):
+            systems = valid_systems(tie_substrate(), (0, 0, 0), bounds)
+        # 7 micro combos + 5 [alpha_AB] + 5 [alpha_AB, C] + 5 [alpha_BC]
+        # + 5 [alpha_BC, A].
+        assert len(systems) == 27
+        for system in systems:
+            assert_eq18(system)

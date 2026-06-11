@@ -543,3 +543,20 @@ def intrinsic_units(
     memo: dict[MacroSystem, PyPhiFloat] = {}
     units, verdicts = _derive_units(substrate, history, bounds, memo)
     return IntrinsicUnitsResult(units=units, verdicts=verdicts)
+
+
+def valid_systems(
+    substrate: Substrate, micro_history, bounds: SearchBounds
+) -> tuple[MacroSystem, ...]:
+    """The bounded ``P(u)``: every Eq-18-compatible system of intrinsic
+    units, evaluated over the full universe with everything else as
+    background. Systems whose state is unreachable are dropped."""
+    history = _normalized_history(substrate, micro_history, bounds.max_micro_grain)
+    memo: dict[MacroSystem, PyPhiFloat] = {}
+    units, _ = _derive_units(substrate, history, bounds, memo)
+    systems = []
+    for combo in _assemble_systems(list(units), bounds.max_background):
+        system = _system_of(substrate, combo, history)
+        if system is not None:
+            systems.append(system)
+    return tuple(systems)
