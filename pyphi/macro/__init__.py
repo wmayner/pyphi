@@ -7,5 +7,8 @@ pipeline exactly as micro systems are.
 """
 
 from pyphi.macro.units import MacroUnit
+from pyphi.macro.units import blackbox
+from pyphi.macro.units import coarse_grain
+from pyphi.macro.units import micro_unit
 
-__all__ = ["MacroUnit"]
+__all__ = ["MacroUnit", "blackbox", "coarse_grain", "micro_unit"]

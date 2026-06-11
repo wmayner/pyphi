@@ -5,6 +5,9 @@ import pytest
 from pyphi.macro.units import MacroUnit
 from pyphi.macro.units import _mixed_radix_digits
 from pyphi.macro.units import _mixed_radix_index
+from pyphi.macro.units import blackbox
+from pyphi.macro.units import coarse_grain
+from pyphi.macro.units import micro_unit
 
 
 class TestMixedRadix:
@@ -156,3 +159,52 @@ class TestStateFrom:
             digits = _mixed_radix_digits(index, (2,) * (n * tau))
             history = tuple(digits[t * n : (t + 1) * n] for t in range(tau))
             assert outer.micro_mapping[index] == outer.state_from(history)
+
+
+class TestMappingConstructors:
+    def test_micro_unit_is_identity(self):
+        unit = micro_unit(3)
+        assert unit.micro_constituents == (3,)
+        assert unit.micro_grain == 1
+        assert unit.micro_mapping == (0, 1)
+
+    def test_coarse_grain_both_on(self):
+        # Example 1's mapping: ON iff both constituents ON
+        assert coarse_grain(2, on_counts={2}) == (0, 0, 0, 1)
+
+    def test_coarse_grain_at_least_one(self):
+        assert coarse_grain(2, on_counts={1, 2}) == (0, 1, 1, 1)
+
+    def test_coarse_grain_invalid_counts_rejected(self):
+        with pytest.raises(ValueError, match="count"):
+            coarse_grain(2, on_counts={3})
+
+    def test_coarse_grain_degenerate_rejected(self):
+        with pytest.raises(ValueError, match="both"):
+            MacroUnit(
+                constituents=(0, 1),
+                update_grain=1,
+                mapping=coarse_grain(2, on_counts=set()),
+            )
+
+    def test_blackbox_single_output_final_update(self):
+        # Example 2's mapping: 4 constituents, tau = 2, output = local
+        # index 2 (C); state = C at the final update.
+        table = blackbox(4, update_grain=2, output_constituents=(2,))
+        assert len(table) == 2**8
+        for index in (0, 5, 64, 127, 200, 255):
+            digits = _mixed_radix_digits(index, (2,) * 8)
+            final = digits[4:]
+            assert table[index] == final[2]
+
+    def test_blackbox_multiple_outputs_all_on(self):
+        table = blackbox(2, update_grain=1, output_constituents=(0, 1))
+        assert table == (0, 0, 0, 1)
+
+    def test_blackbox_output_out_of_range_rejected(self):
+        with pytest.raises(ValueError, match="output"):
+            blackbox(2, update_grain=1, output_constituents=(2,))
+
+    def test_blackbox_no_outputs_rejected(self):
+        with pytest.raises(ValueError, match="output"):
+            blackbox(2, update_grain=1, output_constituents=())

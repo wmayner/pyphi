@@ -214,3 +214,59 @@ class MacroUnit:
             history = tuple(digits[t * n : (t + 1) * n] for t in range(tau))
             table.append(self.state_from(history))
         return tuple(table)
+
+
+def micro_unit(index: int, background_apportionment=()) -> MacroUnit:
+    """An identity macro unit over a single micro unit."""
+    return MacroUnit(
+        constituents=(index,),
+        update_grain=1,
+        mapping=(0, 1),
+        background_apportionment=background_apportionment,
+    )
+
+
+def coarse_grain(num_constituents: int, on_counts) -> tuple[int, ...]:
+    """A coarse-graining truth table (update grain 1).
+
+    The macro state is 1 when the number of ON constituents is in
+    ``on_counts``.
+    """
+    on_counts = frozenset(on_counts)
+    if not on_counts <= set(range(num_constituents + 1)):
+        raise ValueError(
+            f"on_counts must be counts in 0..{num_constituents}; got {sorted(on_counts)}"
+        )
+    radices = (2,) * num_constituents
+    return tuple(
+        1 if sum(_mixed_radix_digits(i, radices)) in on_counts else 0
+        for i in range(2**num_constituents)
+    )
+
+
+def blackbox(
+    num_constituents: int, update_grain: int, output_constituents
+) -> tuple[int, ...]:
+    """A black-boxing truth table.
+
+    The macro state is 1 when every designated output constituent is ON
+    at the final update of the window; all other constituents and
+    updates are ignored.
+    """
+    outputs = tuple(output_constituents)
+    if not outputs or len(set(outputs)) != len(outputs):
+        raise ValueError(
+            f"output_constituents must be nonempty and unique; got {outputs}"
+        )
+    if not set(outputs) <= set(range(num_constituents)):
+        raise ValueError(
+            f"output_constituents must be local indices in "
+            f"0..{num_constituents - 1}; got {outputs}"
+        )
+    radices = (2,) * (num_constituents * update_grain)
+    table = []
+    for i in range(2 ** (num_constituents * update_grain)):
+        digits = _mixed_radix_digits(i, radices)
+        final = digits[(update_grain - 1) * num_constituents :]
+        table.append(1 if all(final[o] for o in outputs) else 0)
+    return tuple(table)
