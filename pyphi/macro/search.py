@@ -29,8 +29,19 @@ from __future__ import annotations
 import itertools
 from dataclasses import dataclass
 
+from pyphi import exceptions
+from pyphi.data_structures.pyphi_float import PyPhiFloat
+from pyphi.macro.criteria import Reason
+from pyphi.macro.criteria import UnitVerdict
+from pyphi.macro.criteria import _as_unit
+from pyphi.macro.criteria import canonical_units
+from pyphi.macro.criteria import judge_candidate
+from pyphi.macro.system import MacroSystem
+from pyphi.macro.units import MacroUnit
 from pyphi.macro.units import blackbox
 from pyphi.macro.units import coarse_grain
+from pyphi.macro.units import micro_unit
+from pyphi.substrate import Substrate
 
 _MAPPING_POLICIES = ("FAMILIES", "EXHAUSTIVE")
 _APPORTIONMENT_POLICIES = ("NONE", "ENUMERATE")
@@ -149,3 +160,354 @@ def candidate_mappings(
         for index in range(1, 2**num_states - 1):
             add(tuple((index >> k) & 1 for k in range(num_states)))
     return tuple(tables)
+
+
+def _normalized_history(substrate, micro_history, required: int):
+    """Validate and shape ``micro_history`` (oldest first).
+
+    A bare state is accepted when ``required == 1``.
+    """
+    history = tuple(micro_history)
+    if history and not isinstance(history[0], (tuple, list)):
+        if required != 1:
+            raise ValueError(
+                f"micro_history must be a sequence of {required} universe "
+                "states (oldest first); got a bare state"
+            )
+        history = (history,)
+    history = tuple(tuple(s) for s in history)
+    if len(history) != required:
+        raise ValueError(
+            f"micro_history must have {required} entries (the maximum "
+            f"micro grain admitted); got {len(history)}"
+        )
+    n = substrate.size
+    for state in history:
+        if len(state) != n or any(v not in (0, 1) for v in state):
+            raise ValueError(
+                f"each history entry must be a binary universe state of "
+                f"length {n}; got {state}"
+            )
+    return history
+
+
+def _system_of(substrate, units, micro_history) -> MacroSystem | None:
+    """The system of ``units`` over the full universe, or None.
+
+    Returns None when the system's state is unreachable under its own
+    TPM: such a system specifies no cause and cannot exist (phi_s = 0).
+    """
+    units = canonical_units(units)
+    needed = max(unit.micro_grain for unit in units)
+    window = micro_history[len(micro_history) - needed :]
+    try:
+        return MacroSystem.from_micro(substrate, units, window)
+    except exceptions.StateUnreachableError:
+        return None
+
+
+def _phi(substrate, units, micro_history, memo):
+    """Memoized ``(system, phi_s)`` of the system of ``units``."""
+    system = _system_of(substrate, units, micro_history)
+    if system is None:
+        return None, None
+    if system not in memo:
+        memo[system] = PyPhiFloat(system.sia().phi)
+    return system, memo[system]
+
+
+def _as_constituent(unit: MacroUnit) -> MacroUnit | int:
+    """A pool unit as a constituent: identity micro units become bare
+    indices, so derived units compare equal to hand-built ones."""
+    if (
+        len(unit.constituents) == 1
+        and not isinstance(unit.constituents[0], MacroUnit)
+        and unit.micro_grain == 1
+        and unit.mapping == (0, 1)
+        and not unit.background_apportionment
+    ):
+        return unit.constituents[0]
+    return unit
+
+
+def _assemble_systems(pool, background_cap: int):
+    """Nonempty unit sets with pairwise-disjoint stakes (Eq. 18).
+
+    Yields tuples in depth-first inclusion order over ``pool``.
+    """
+    out: list[tuple[MacroUnit, ...]] = []
+
+    def extend(start, partial, claimed, apportioned):
+        for k in range(start, len(pool)):
+            unit = pool[k]
+            stake = set(unit.micro_constituents) | set(unit.background_apportionment)
+            if claimed & stake:
+                continue
+            total = apportioned + len(unit.background_apportionment)
+            if total > background_cap:
+                continue
+            current = (*partial, unit)
+            out.append(current)
+            extend(k + 1, current, claimed | stake, total)
+
+    extend(0, (), set(), 0)
+    return out
+
+
+def _decompositions(footprint, pool, *, allow_singleton: bool):
+    """Sets of pool units with disjoint footprints whose union is
+    ``footprint``, all sharing one micro grain."""
+    remaining_all = set(footprint)
+    candidates = [
+        unit for unit in pool if set(unit.micro_constituents) <= remaining_all
+    ]
+    out: list[tuple[MacroUnit, ...]] = []
+
+    def extend(partial, remaining):
+        if not remaining:
+            if len(partial) == 1 and not allow_singleton:
+                return
+            if len({unit.micro_grain for unit in partial}) == 1:
+                out.append(tuple(partial))
+            return
+        first = min(remaining)
+        for unit in candidates:
+            fp = set(unit.micro_constituents)
+            if first in fp and fp <= remaining:
+                extend((*partial, unit), remaining - fp)
+
+    extend((), remaining_all)
+    return out
+
+
+def _apportionments(n, footprint, inherited, bounds: SearchBounds):
+    """Candidate ``W^J`` sets for a footprint.
+
+    Always contains the union of the constituents' apportionments
+    (Eq. 12). Under ENUMERATE, extends it with subsets of the remaining
+    background up to ``max_background`` total.
+    """
+    inherited = tuple(sorted(inherited))
+    if bounds.apportionment == "NONE":
+        return (inherited,)
+    if len(inherited) > bounds.max_background:
+        return ()
+    available = sorted(set(range(n)) - set(footprint) - set(inherited))
+    out = []
+    for size in range(bounds.max_background - len(inherited) + 1):
+        for extra in itertools.combinations(available, size):
+            out.append(tuple(sorted((*inherited, *extra))))
+    return tuple(out)
+
+
+def _f(substrate, V, W, footprint, pool, micro_history, bounds, memo):
+    """``f(U^J, W^J)``: evaluated competitor systems (Eq. 16)."""
+    fp = set(footprint)
+    allowed = set(W)
+    members = [
+        unit
+        for unit in pool
+        if set(unit.micro_constituents) < fp
+        and set(unit.background_apportionment) <= allowed
+    ]
+    own = canonical_units(V)
+    competitors = []
+    for combo in _assemble_systems(members, bounds.max_background):
+        if canonical_units(combo) == own:
+            continue
+        system, phi = _phi(substrate, combo, micro_history, memo)
+        if system is None:
+            continue
+        competitors.append((system, phi))
+    return competitors
+
+
+def _variants(V, W, bounds: SearchBounds):
+    """Mapped and grained unit variants of a valid decomposition.
+
+    A single-constituent decomposition is pure grain raising, so its
+    variants start at update grain 2 (a grain-1 wrap is the constituent
+    relabeled).
+    """
+    constituents = tuple(_as_constituent(u) for u in canonical_units(V))
+    min_grain = 2 if len(V) == 1 else 1
+    out = []
+    for update_grain in range(min_grain, bounds.max_update_grain + 1):
+        for mapping in candidate_mappings(len(V), update_grain, bounds):
+            out.append(MacroUnit(constituents, update_grain, mapping, W))
+    return out
+
+
+def _judge(substrate, V, W, footprint, micro_history, bounds, pool, memo):
+    _, phi = _phi(substrate, V, micro_history, memo)
+    competitors = _f(substrate, V, W, footprint, pool, micro_history, bounds, memo)
+    return judge_candidate(0.0 if phi is None else phi, competitors)
+
+
+def _trivial_verdict(phi) -> UnitVerdict:
+    return UnitVerdict(
+        valid=True,
+        reason=Reason.VALID,
+        phi=0.0 if phi is None else float(phi),
+        witness=None,
+        witness_phi=None,
+        num_competitors=0,
+    )
+
+
+def _is_micro(unit: MacroUnit) -> bool:
+    """Micro for gating purposes: one micro constituent at grain 1.
+
+    Eqs. 15-16 gate macroing only; micro units are axiomatically valid.
+    """
+    return len(unit.micro_constituents) == 1 and unit.micro_grain == 1
+
+
+def _unit_history_requirement(unit: MacroUnit, bounds: SearchBounds) -> int:
+    return max(bounds.max_micro_grain, unit.constituent_micro_grain)
+
+
+@dataclass(frozen=True)
+class DecompositionVerdict:
+    """A judged candidate decomposition ``(V^J, W^J)``."""
+
+    constituents: tuple[MacroUnit | int, ...]
+    background_apportionment: tuple[int, ...]
+    verdict: UnitVerdict
+
+
+def _derive_units(substrate, micro_history, bounds, memo, *, within=None, proper=False):
+    """The intrinsic-unit recursion (paper p. 9), bounded by ``bounds``.
+
+    Level 0 is the micro units. Each level derives candidate
+    decompositions from the previous level's pool; the competitor set
+    draws from the incrementally updated pool, with footprints
+    processed smallest-first. Returns ``(pool, verdicts)``.
+    """
+    n = substrate.size
+    indices = tuple(range(n)) if within is None else tuple(sorted(within))
+    pool: list[MacroUnit] = [micro_unit(i) for i in indices]
+    verdicts: list[DecompositionVerdict] = []
+    for unit in pool:
+        _, phi = _phi(substrate, (unit,), micro_history, memo)
+        verdicts.append(
+            DecompositionVerdict(
+                constituents=(unit.constituents[0],),
+                background_apportionment=(),
+                verdict=_trivial_verdict(phi),
+            )
+        )
+    seen: set = set()
+    min_size = 1 if bounds.max_update_grain > 1 else 2
+    for _level in range(bounds.max_depth):
+        pool_prev = tuple(pool)
+        emitted_any = False
+        max_size = min(len(indices) - (1 if proper else 0), bounds.max_constituents)
+        for size in range(min_size, max_size + 1):
+            for footprint in itertools.combinations(indices, size):
+                new_units: list[MacroUnit] = []
+                decompositions = _decompositions(
+                    footprint,
+                    pool_prev,
+                    allow_singleton=bounds.max_update_grain > 1,
+                )
+                for V in decompositions:
+                    inherited = set().union(
+                        *(set(u.background_apportionment) for u in V)
+                    )
+                    for W in _apportionments(n, footprint, inherited, bounds):
+                        key = (canonical_units(V), W)
+                        if key in seen:
+                            continue
+                        seen.add(key)
+                        verdict = _judge(
+                            substrate,
+                            V,
+                            W,
+                            footprint,
+                            micro_history,
+                            bounds,
+                            pool,
+                            memo,
+                        )
+                        verdicts.append(
+                            DecompositionVerdict(
+                                constituents=tuple(
+                                    _as_constituent(u) for u in canonical_units(V)
+                                ),
+                                background_apportionment=W,
+                                verdict=verdict,
+                            )
+                        )
+                        if verdict.valid:
+                            new_units.extend(_variants(V, W, bounds))
+                pool.extend(new_units)
+                emitted_any = emitted_any or bool(new_units)
+        if not emitted_any:
+            break
+    return tuple(pool), tuple(verdicts)
+
+
+def _f_for_unit(substrate, unit, V, micro_history, bounds, memo):
+    pool, _ = _derive_units(
+        substrate,
+        micro_history,
+        bounds,
+        memo,
+        within=unit.micro_constituents,
+        proper=True,
+    )
+    return _f(
+        substrate,
+        V,
+        unit.background_apportionment,
+        unit.micro_constituents,
+        pool,
+        micro_history,
+        bounds,
+        memo,
+    )
+
+
+def competing_systems(
+    substrate: Substrate,
+    unit: MacroUnit,
+    micro_history,
+    bounds: SearchBounds = SearchBounds(),
+) -> tuple[MacroSystem, ...]:
+    """``f(U^J, W^J)`` materialized within the unit's footprint (Eq. 16)."""
+    history = _normalized_history(
+        substrate, micro_history, _unit_history_requirement(unit, bounds)
+    )
+    if _is_micro(unit):
+        return ()
+    memo: dict[MacroSystem, PyPhiFloat] = {}
+    V = canonical_units(_as_unit(c) for c in unit.constituents)
+    return tuple(
+        system for system, _ in _f_for_unit(substrate, unit, V, history, bounds, memo)
+    )
+
+
+def is_intrinsic_unit(
+    substrate: Substrate,
+    unit: MacroUnit,
+    micro_history,
+    bounds: SearchBounds = SearchBounds(),
+) -> UnitVerdict:
+    """Eqs. 15-16 for one candidate; micro units return VALID trivially.
+
+    The unit's own mapping and update grain are ignored (Eq. 15 is
+    mapping-independent); the recursion is run restricted to the unit's
+    footprint to build ``f(U^J, W^J)``.
+    """
+    history = _normalized_history(
+        substrate, micro_history, _unit_history_requirement(unit, bounds)
+    )
+    memo: dict[MacroSystem, PyPhiFloat] = {}
+    if _is_micro(unit):
+        _, phi = _phi(substrate, (unit,), history, memo)
+        return _trivial_verdict(phi)
+    V = canonical_units(_as_unit(c) for c in unit.constituents)
+    _, phi = _phi(substrate, V, history, memo)
+    competitors = _f_for_unit(substrate, unit, V, history, bounds, memo)
+    return judge_candidate(0.0 if phi is None else phi, competitors)

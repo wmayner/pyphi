@@ -1,9 +1,50 @@
 """Tests for pyphi.macro.search: bounded intrinsic-unit search (Eqs 15-19)."""
 
+import numpy as np
 import pytest
 
+from pyphi import config
+from pyphi import utils
+from pyphi.conf import presets
+from pyphi.macro.criteria import Reason
+from pyphi.macro.criteria import unit_integration
 from pyphi.macro.search import SearchBounds
 from pyphi.macro.search import candidate_mappings
+from pyphi.macro.search import competing_systems
+from pyphi.macro.search import is_intrinsic_unit
+from pyphi.macro.units import MacroUnit
+from pyphi.macro.units import blackbox
+from pyphi.macro.units import coarse_grain
+from pyphi.macro.units import micro_unit
+from pyphi.substrate import Substrate
+from test.test_macro_criteria import bu_substrate
+from test.test_macro_criteria import min_substrate
+from test.test_macro_tpm import _asymmetric_substrate
+
+
+def dancing_couples(w_v):
+    """4 units; P(ON next) = 0.05 + 0.05*self + 0.6*horizontal + w_v*vertical.
+
+    Wiring by unit index: 0 -> h=1, v=2; 1 -> h=0, v=3; 2 -> h=3, v=0;
+    3 -> h=2, v=1. The authors' Fig 2 scenarios are w_v = 0.0 (sfn),
+    0.01 (sfnn), 0.25 (sfs), all in state (0, 0, 0, 0).
+    """
+    horizontal = {0: 1, 1: 0, 2: 3, 3: 2}
+    vertical = {0: 2, 1: 3, 2: 0, 3: 1}
+    n = 4
+    tpm = np.zeros((2**n, n))
+    for row in range(2**n):
+        s = tuple((row >> k) & 1 for k in range(n))
+        for i in range(n):
+            tpm[row, i] = (
+                0.05 + 0.05 * s[i] + 0.6 * s[horizontal[i]] + w_v * s[vertical[i]]
+            )
+    return Substrate(tpm, node_labels=("A", "B", "C", "D"))
+
+
+SF_STATE = (0, 0, 0, 0)
+AC = MacroUnit((0, 2), 1, coarse_grain(2, on_counts={2}))
+AB = MacroUnit((0, 1), 1, coarse_grain(2, on_counts={2}))
 
 
 class TestSearchBounds:
@@ -103,3 +144,129 @@ class TestCandidateMappings:
             tables = candidate_mappings(2, 1, SearchBounds(mappings=policy))
             assert len(set(tables)) == len(tables)
             assert all(t[0] == 0 for t in tables)
+
+
+class TestFig2Verdicts:
+    """Battery 1: the three dancing-couples scenarios (authors'
+    committed values, asserted at 1e-13)."""
+
+    def test_sfn_not_integrated(self):
+        with config.override(**presets.iit4_2023):
+            verdict = is_intrinsic_unit(dancing_couples(0.0), AC, SF_STATE)
+        assert not verdict.valid
+        assert verdict.reason is Reason.NOT_INTEGRATED
+        assert verdict.phi == pytest.approx(0.0, abs=1e-13)
+
+    def test_sfn_singleton_anchor(self):
+        with config.override(**presets.iit4_2023):
+            phi = unit_integration(dancing_couples(0.0), (0,), (SF_STATE,))
+        assert phi == pytest.approx(0.02363345634846179, abs=1e-13)
+
+    def test_sfnn_not_maximal(self):
+        with config.override(**presets.iit4_2023):
+            verdict = is_intrinsic_unit(dancing_couples(0.01), AC, SF_STATE)
+        assert not verdict.valid
+        assert verdict.reason is Reason.NOT_MAXIMAL
+        assert verdict.phi == pytest.approx(0.004863714555961354, abs=1e-13)
+        assert verdict.witness is not None
+        assert len(verdict.witness.units) == 1
+        assert verdict.witness_phi == pytest.approx(0.023640988356789627, abs=1e-13)
+        assert verdict.num_competitors == 2
+
+    def test_sfs_valid(self):
+        with config.override(**presets.iit4_2023):
+            verdict = is_intrinsic_unit(dancing_couples(0.25), AC, SF_STATE)
+        assert verdict.valid
+        assert verdict.reason is Reason.VALID
+        assert verdict.phi == pytest.approx(0.16758555077361778, abs=1e-13)
+        assert verdict.witness is None
+        assert verdict.num_competitors == 2
+
+    def test_sfs_horizontal_pair_valid(self):
+        with config.override(**presets.iit4_2023):
+            verdict = is_intrinsic_unit(dancing_couples(0.25), AB, SF_STATE)
+        assert verdict.valid
+        assert verdict.phi == pytest.approx(0.6728123807299448, abs=1e-13)
+
+
+class TestMicroExemption:
+    def test_micro_unit_trivially_valid(self):
+        with config.override(**presets.iit4_2023):
+            verdict = is_intrinsic_unit(min_substrate(), micro_unit(0), (0, 0))
+        assert verdict.valid
+        assert verdict.reason is Reason.VALID
+        # min singletons have phi_s = 0, yet micro units are valid ground.
+        assert verdict.phi == 0.0
+        assert verdict.num_competitors == 0
+
+    def test_micro_unit_with_unreachable_state_still_valid(self):
+        with config.override(**presets.iit4_2023):
+            verdict = is_intrinsic_unit(bu_substrate(), micro_unit(2), (0, 0, 0))
+        assert verdict.valid
+        assert verdict.phi == 0.0
+
+
+class TestGrainRaisedSingleton:
+    def test_no_competitors_and_gated_by_integration(self):
+        # Macroing over updates (Fig 3D): a singleton footprint admits
+        # no proper-subset competitors, so the verdict reduces to Eq 15.
+        unit = MacroUnit((0,), 2, blackbox(1, 2, (0,)))
+        bounds = SearchBounds(max_update_grain=2)
+        history = ((1, 0, 1, 0), (1, 0, 1, 0))
+        with config.override(**presets.iit4_2023):
+            verdict = is_intrinsic_unit(
+                _asymmetric_substrate(), unit, history, bounds
+            )
+        assert verdict.num_competitors == 0
+        assert verdict.valid == utils.is_positive(verdict.phi)
+        assert verdict.reason in (Reason.VALID, Reason.NOT_INTEGRATED)
+
+
+class TestCompetingSystems:
+    def test_sfs_competitors_are_the_singletons(self):
+        with config.override(**presets.iit4_2023):
+            systems = competing_systems(dancing_couples(0.25), AC, SF_STATE)
+        assert len(systems) == 2
+        footprints = {
+            tuple(u.micro_constituents for u in s.units) for s in systems
+        }
+        assert footprints == {((0,),), ((2,),)}
+
+    def test_own_constituent_system_excluded(self):
+        with config.override(**presets.iit4_2023):
+            systems = competing_systems(dancing_couples(0.25), AC, SF_STATE)
+        own = (micro_unit(0), micro_unit(2))
+        assert all(s.units != own for s in systems)
+
+    def test_micro_unit_has_no_competitors(self):
+        with config.override(**presets.iit4_2023):
+            assert competing_systems(min_substrate(), micro_unit(0), (0, 0)) == ()
+
+    def test_all_member_footprints_proper_subsets(self):
+        unit = MacroUnit((0, 1, 2), 1, coarse_grain(3, on_counts={3}))
+        with config.override(**presets.iit4_2023):
+            systems = competing_systems(bu_substrate(), unit, (0, 0, 0))
+        footprint = set(unit.micro_constituents)
+        for system in systems:
+            for member in system.units:
+                assert set(member.micro_constituents) < footprint
+
+
+class TestVerdictMappingIndependence:
+    """Battery 4: Eq 15 mapping-independence -- mapped and grained
+    variants of one decomposition share the verdict."""
+
+    def test_variants_share_verdict(self):
+        variant_a = MacroUnit((0, 2), 1, coarse_grain(2, on_counts={1, 2}))
+        variant_b = MacroUnit((0, 2), 1, blackbox(2, 1, (0,)))
+        with config.override(**presets.iit4_2023):
+            substrate = dancing_couples(0.25)
+            verdicts = [
+                is_intrinsic_unit(substrate, unit, SF_STATE)
+                for unit in (AC, variant_a, variant_b)
+            ]
+        for verdict in verdicts[1:]:
+            assert verdict.valid == verdicts[0].valid
+            assert verdict.reason is verdicts[0].reason
+            assert verdict.phi == verdicts[0].phi
+            assert verdict.num_competitors == verdicts[0].num_competitors
