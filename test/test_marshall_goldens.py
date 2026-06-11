@@ -11,6 +11,7 @@ goldens of their own.
 """
 
 import itertools
+import os
 import re
 from pathlib import Path
 
@@ -24,6 +25,7 @@ from test.test_macro_criteria import bu_substrate
 from test.test_macro_criteria import min_substrate
 from test.test_macro_search import dancing_couples
 from test.test_macro_tpm import CG_TPM
+from test.test_macro_tpm import _bbx_micro_tpm
 from pyphi.substrate import Substrate
 
 DATA_DIR = Path(__file__).parent / "data" / "marshall2024"
@@ -168,3 +170,68 @@ class TestBuDocumentedDeviation:
             assert System(substrate, state).sia().phi == pytest.approx(
                 summary["ABC"], abs=1e-13
             )
+
+
+def _bbx_substrate():
+    return Substrate(_bbx_micro_tpm(), node_labels=tuple("ABCDEFGH"))
+
+
+def _bbx_cases(predicate):
+    return [
+        pytest.param(label, value, id=label)
+        for label, value in load_summary("bbx_micro").items()
+        if predicate(label, value)
+    ]
+
+
+def _assert_bbx_value(label, value):
+    substrate = _bbx_substrate()
+    ones = (1,) * 8
+    with config.override(**presets.iit4_2023):
+        phi = System(substrate, ones, indices_of("bbx_micro", label)).sia().phi
+    assert phi == pytest.approx(value, abs=1e-13)
+
+
+@pytest.mark.slow
+class TestBbxSweepSmall:
+    """Sizes 1-4: all 162 committed values (~20 s total)."""
+
+    @pytest.mark.parametrize(
+        "label,value", _bbx_cases(lambda label, value: len(label) <= 4)
+    )
+    def test_committed_value_reproduces(self, label, value):
+        _assert_bbx_value(label, value)
+
+
+@pytest.mark.slow
+class TestBbxSweepLargeReducible:
+    """Sizes 5-8 with committed value zero at precision (60 values).
+
+    These short-circuit as reducible in seconds. The committed values
+    include unclamped float noise (~1e-17, some negative); at 1e-13
+    they are zeros.
+    """
+
+    @pytest.mark.parametrize(
+        "label,value",
+        _bbx_cases(lambda label, value: len(label) >= 5 and abs(value) < 1e-13),
+    )
+    def test_committed_value_reproduces(self, label, value):
+        _assert_bbx_value(label, value)
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(
+    not os.environ.get("PYPHI_MARSHALL_FULL_SWEEP"),
+    reason="irreducible large bbx subsystems cost minutes-to-tens-of-"
+    "minutes each (hours total); set PYPHI_MARSHALL_FULL_SWEEP=1 to run",
+)
+class TestBbxSweepLargeIrreducible:
+    """Sizes 5-8 with genuinely nonzero committed values (29 values)."""
+
+    @pytest.mark.parametrize(
+        "label,value",
+        _bbx_cases(lambda label, value: len(label) >= 5 and abs(value) >= 1e-13),
+    )
+    def test_committed_value_reproduces(self, label, value):
+        _assert_bbx_value(label, value)
