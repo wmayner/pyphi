@@ -156,3 +156,61 @@ class MacroUnit:
     def micro_grain(self) -> int:
         """``tau_J``: micro updates spanned by one update of this unit."""
         return self.update_grain * self.constituent_micro_grain
+
+    def state_from(self, history) -> int:
+        """The unit's state given a micro-state window of ``U^J`` (Eq. 22).
+
+        Args:
+            history: Sequence of length :attr:`micro_grain` of micro
+                states of ``U^J`` (each a tuple of 0/1 values ordered by
+                ascending micro index), oldest first.
+
+        Returns:
+            int: The macro state ``j = g_J`` applied to the window.
+        """
+        history = tuple(tuple(s) for s in history)
+        if len(history) != self.micro_grain:
+            raise ValueError(
+                f"history must have {self.micro_grain} entries; got {len(history)}"
+            )
+        n = len(self.micro_constituents)
+        for s in history:
+            if len(s) != n or not set(s) <= {0, 1}:
+                raise ValueError(
+                    f"each history state must be a binary tuple of length {n}; got {s}"
+                )
+        position = {u: i for i, u in enumerate(self.micro_constituents)}
+        child_grain = self.constituent_micro_grain
+        digits = []
+        for k in range(self.update_grain):
+            window = history[k * child_grain : (k + 1) * child_grain]
+            for c in self.constituents:
+                if isinstance(c, MacroUnit):
+                    sub = tuple(
+                        tuple(s[position[u]] for u in c.micro_constituents)
+                        for s in window
+                    )
+                    digits.append(c.state_from(sub))
+                else:
+                    # micro constituents imply child_grain == 1
+                    digits.append(window[0][position[c]])
+        radices = self.constituent_alphabet_sizes * self.update_grain
+        return self.mapping[_mixed_radix_index(tuple(digits), radices)]
+
+    @cached_property
+    def micro_mapping(self) -> tuple[int, ...]:
+        """``g_J``: the composed truth table over micro windows (Eq. 14).
+
+        Indexed with the same convention as :attr:`mapping`, with the
+        micro constituents of ``U^J`` in ascending order as the
+        within-update digits.
+        """
+        n = len(self.micro_constituents)
+        tau = self.micro_grain
+        radices = (2,) * (n * tau)
+        table = []
+        for index in range(2 ** (n * tau)):
+            digits = _mixed_radix_digits(index, radices)
+            history = tuple(digits[t * n : (t + 1) * n] for t in range(tau))
+            table.append(self.state_from(history))
+        return tuple(table)

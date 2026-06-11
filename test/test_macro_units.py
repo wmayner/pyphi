@@ -96,3 +96,63 @@ class TestMacroUnitConstruction:
         unit = MacroUnit(constituents=(0,), update_grain=1, mapping=(0, 1))
         with pytest.raises(AttributeError):
             unit.update_grain = 2
+
+
+class TestStateFrom:
+    def test_identity_unit(self):
+        unit = MacroUnit(constituents=(0,), update_grain=1, mapping=(0, 1))
+        assert unit.state_from(((0,),)) == 0
+        assert unit.state_from(((1,),)) == 1
+
+    def test_history_length_validated(self):
+        unit = MacroUnit(constituents=(0,), update_grain=2, mapping=(0, 0, 0, 1))
+        with pytest.raises(ValueError, match="history"):
+            unit.state_from(((0,),))
+
+    def test_entry_shape_validated(self):
+        unit = MacroUnit(constituents=(0, 1), update_grain=1, mapping=(0, 0, 0, 1))
+        with pytest.raises(ValueError, match="state"):
+            unit.state_from(((0,),))
+
+    def test_constituent_order_pins_truth_table_digits(self):
+        # Mapping is over constituents in GIVEN order (3 first), while
+        # state_from input columns follow sorted U^J = (1, 3).
+        # mapping index = digits (state(3), state(1)) little-endian:
+        # ON iff constituent 3 is ON and constituent 1 is OFF -> index 1.
+        unit = MacroUnit(constituents=(3, 1), update_grain=1, mapping=(0, 1, 0, 0))
+        # columns ordered by micro index: (state(1), state(3))
+        assert unit.state_from(((0, 1),)) == 1
+        assert unit.state_from(((1, 0),)) == 0
+        assert unit.state_from(((1, 1),)) == 0
+
+    def test_updates_oldest_first_newest_slowest(self):
+        # tau = 2 over one constituent; digits = (oldest, newest).
+        # mapping index 1 = (1, 0): ON in the OLD update only.
+        unit = MacroUnit(constituents=(5,), update_grain=2, mapping=(0, 1, 0, 0))
+        assert unit.state_from(((1,), (0,))) == 1
+        assert unit.state_from(((0,), (1,))) == 0
+
+    def test_meso_composition_hand_checked(self):
+        # inner: over micro (0, 1), grain 1, ON iff both ON
+        inner = MacroUnit(constituents=(0, 1), update_grain=1, mapping=(0, 0, 0, 1))
+        # outer: over (inner,), grain 2, ON iff inner ON at the NEWER
+        # of its two updates: digits (old, new) -> indices 2, 3 are ON
+        outer = MacroUnit(constituents=(inner,), update_grain=2, mapping=(0, 0, 1, 1))
+        # micro history: two updates of (u0, u1), oldest first
+        assert outer.state_from(((0, 0), (1, 1))) == 1
+        assert outer.state_from(((1, 1), (0, 1))) == 0
+        assert outer.state_from(((1, 1), (1, 1))) == 1
+
+    def test_micro_mapping_identity(self):
+        unit = MacroUnit(constituents=(0,), update_grain=1, mapping=(0, 1))
+        assert unit.micro_mapping == (0, 1)
+
+    def test_micro_mapping_matches_state_from(self):
+        inner = MacroUnit(constituents=(2, 0), update_grain=1, mapping=(0, 1, 1, 0))
+        outer = MacroUnit(constituents=(inner,), update_grain=2, mapping=(0, 1, 1, 0))
+        n = len(outer.micro_constituents)
+        tau = outer.micro_grain
+        for index in range(2 ** (n * tau)):
+            digits = _mixed_radix_digits(index, (2,) * (n * tau))
+            history = tuple(digits[t * n : (t + 1) * n] for t in range(tau))
+            assert outer.micro_mapping[index] == outer.state_from(history)
