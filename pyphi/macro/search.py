@@ -26,7 +26,11 @@ the hashable :class:`~pyphi.macro.system.MacroSystem`.
 
 from __future__ import annotations
 
+import itertools
 from dataclasses import dataclass
+
+from pyphi.macro.units import blackbox
+from pyphi.macro.units import coarse_grain
 
 _MAPPING_POLICIES = ("FAMILIES", "EXHAUSTIVE")
 _APPORTIONMENT_POLICIES = ("NONE", "ENUMERATE")
@@ -85,3 +89,63 @@ class SearchBounds:
         """Largest micro grain a derived unit can reach (grains compose
         down the hierarchy)."""
         return self.max_update_grain**self.max_depth
+
+
+def _canonical_table(table: tuple[int, ...]) -> tuple[int, ...]:
+    """The representative of ``{table, complement}``.
+
+    A mapping and its complement define the same partition of the
+    constituents' sequence-states into two classes; the macro unit's
+    two state labels are conventional and the analysis is invariant
+    under relabeling. The representative maps the all-OFF sequence to
+    macro state 0.
+    """
+    if table[0] == 1:
+        return tuple(1 - entry for entry in table)
+    return table
+
+
+def candidate_mappings(
+    num_constituents: int, update_grain: int, bounds: SearchBounds
+) -> tuple[tuple[int, ...], ...]:
+    """Deduplicated candidate truth tables for a unit shape.
+
+    FAMILIES: every non-degenerate ``coarse_grain`` on-count set
+    (update grain 1 only, by the family's definition) plus every
+    nonempty ``blackbox`` output subset (any grain). EXHAUSTIVE: every
+    surjective table when the sequence-state count is within
+    ``exhaustive_cap``; ``ValueError`` above it.
+
+    Tables are canonicalized up to state-label complementation (the
+    all-OFF sequence maps to macro state 0) and deduplicated,
+    preserving first-seen order.
+    """
+    tables: list[tuple[int, ...]] = []
+    seen: set[tuple[int, ...]] = set()
+
+    def add(table: tuple[int, ...]) -> None:
+        table = _canonical_table(table)
+        if table not in seen:
+            seen.add(table)
+            tables.append(table)
+
+    if bounds.mappings == "FAMILIES":
+        if update_grain == 1:
+            counts = tuple(range(num_constituents + 1))
+            for size in range(1, len(counts)):
+                for on_counts in itertools.combinations(counts, size):
+                    add(coarse_grain(num_constituents, on_counts))
+        for size in range(1, num_constituents + 1):
+            for outputs in itertools.combinations(range(num_constituents), size):
+                add(blackbox(num_constituents, update_grain, outputs))
+    else:  # EXHAUSTIVE
+        num_states = (2**num_constituents) ** update_grain
+        if num_states > bounds.exhaustive_cap:
+            raise ValueError(
+                f"EXHAUSTIVE mappings for {num_constituents} constituents "
+                f"at update grain {update_grain} require {num_states} "
+                f"sequence-states, above exhaustive_cap={bounds.exhaustive_cap}"
+            )
+        for index in range(1, 2**num_states - 1):
+            add(tuple((index >> k) & 1 for k in range(num_states)))
+    return tuple(tables)
