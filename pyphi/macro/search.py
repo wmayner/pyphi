@@ -511,3 +511,35 @@ def is_intrinsic_unit(
     _, phi = _phi(substrate, V, history, memo)
     competitors = _f_for_unit(substrate, unit, V, history, bounds, memo)
     return judge_candidate(0.0 if phi is None else phi, competitors)
+
+
+@dataclass(frozen=True)
+class IntrinsicUnitsResult:
+    """The recursion's output: the valid-unit pool and every verdict.
+
+    Attributes:
+        units: All derived intrinsic units, micro units included, in
+            derivation order (footprints smallest-first per level).
+        verdicts: One :class:`DecompositionVerdict` per judged
+            ``(V^J, W^J)`` candidate, micro units included.
+    """
+
+    units: tuple[MacroUnit, ...]
+    verdicts: tuple[DecompositionVerdict, ...]
+
+    def units_by_footprint(self) -> dict[tuple[int, ...], tuple[MacroUnit, ...]]:
+        """The unit pool grouped by micro footprint."""
+        grouped: dict[tuple[int, ...], list[MacroUnit]] = {}
+        for unit in self.units:
+            grouped.setdefault(unit.micro_constituents, []).append(unit)
+        return {k: tuple(v) for k, v in grouped.items()}
+
+
+def intrinsic_units(
+    substrate: Substrate, micro_history, bounds: SearchBounds
+) -> IntrinsicUnitsResult:
+    """The recursion's fixed point: the valid-unit pool plus all verdicts."""
+    history = _normalized_history(substrate, micro_history, bounds.max_micro_grain)
+    memo: dict[MacroSystem, PyPhiFloat] = {}
+    units, verdicts = _derive_units(substrate, history, bounds, memo)
+    return IntrinsicUnitsResult(units=units, verdicts=verdicts)

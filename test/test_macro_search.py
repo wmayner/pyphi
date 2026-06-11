@@ -11,6 +11,7 @@ from pyphi.macro.criteria import unit_integration
 from pyphi.macro.search import SearchBounds
 from pyphi.macro.search import candidate_mappings
 from pyphi.macro.search import competing_systems
+from pyphi.macro.search import intrinsic_units
 from pyphi.macro.search import is_intrinsic_unit
 from pyphi.macro.units import MacroUnit
 from pyphi.macro.units import blackbox
@@ -40,6 +41,23 @@ def dancing_couples(w_v):
                 0.05 + 0.05 * s[i] + 0.6 * s[horizontal[i]] + w_v * s[vertical[i]]
             )
     return Substrate(tpm, node_labels=("A", "B", "C", "D"))
+
+
+def tie_substrate():
+    """3 units, exactly symmetric under swapping A and C.
+
+    B couples to A and C identically; A and C couple to B only. Any
+    system on footprint {A, B} has an isomorphic twin on {B, C}
+    (overlapping at B), forcing exact phi ties.
+    """
+    n = 3
+    tpm = np.zeros((2**n, n))
+    for row in range(2**n):
+        s = tuple((row >> k) & 1 for k in range(n))
+        tpm[row, 0] = 0.05 + 0.05 * s[0] + 0.6 * s[1]
+        tpm[row, 1] = 0.05 + 0.05 * s[1] + 0.3 * s[0] + 0.3 * s[2]
+        tpm[row, 2] = 0.05 + 0.05 * s[2] + 0.6 * s[1]
+    return Substrate(tpm, node_labels=("A", "B", "C"))
 
 
 SF_STATE = (0, 0, 0, 0)
@@ -270,3 +288,78 @@ class TestVerdictMappingIndependence:
             assert verdict.reason is verdicts[0].reason
             assert verdict.phi == verdicts[0].phi
             assert verdict.num_competitors == verdicts[0].num_competitors
+
+
+class TestIntrinsicUnits:
+    def test_min_pool_and_verdicts(self):
+        with config.override(**presets.iit4_2023):
+            result = intrinsic_units(min_substrate(), (0, 0), SearchBounds())
+        # 2 micro units + 5 canonical FAMILIES variants of (0, 1).
+        assert len(result.units) == 7
+        grouped = result.units_by_footprint()
+        assert set(grouped) == {(0,), (1,), (0, 1)}
+        assert {u.mapping for u in grouped[(0, 1)]} == set(
+            candidate_mappings(2, 1, SearchBounds())
+        )
+        assert all(u.constituents == (0, 1) for u in grouped[(0, 1)])
+        # One verdict per decomposition (not per variant): 2 micro + 1.
+        assert len(result.verdicts) == 3
+        pair = [v for v in result.verdicts if v.constituents == (0, 1)]
+        assert len(pair) == 1
+        assert pair[0].verdict.valid
+        assert pair[0].verdict.phi == pytest.approx(
+            0.005106576483955726, abs=1e-13
+        )
+        assert pair[0].verdict.num_competitors == 2
+
+    def test_micro_units_axiomatically_valid(self):
+        with config.override(**presets.iit4_2023):
+            result = intrinsic_units(min_substrate(), (0, 0), SearchBounds())
+        micro = [v for v in result.verdicts if len(v.constituents) == 1]
+        assert len(micro) == 2
+        for verdict in micro:
+            assert verdict.verdict.valid
+            assert verdict.verdict.phi == 0.0  # valid despite zero phi
+
+    def test_tie_substrate_excludes_unintegrated_footprint(self):
+        bounds = SearchBounds(max_constituents=2)
+        with config.override(**presets.iit4_2023):
+            result = intrinsic_units(tie_substrate(), (0, 0, 0), bounds)
+        grouped = result.units_by_footprint()
+        # (0, 2) is causally disconnected: NOT_INTEGRATED, no variants.
+        assert (0, 2) not in grouped
+        assert set(grouped) == {(0,), (1,), (2,), (0, 1), (1, 2)}
+        assert len(result.units) == 3 + 5 + 5
+        rejected = [v for v in result.verdicts if v.constituents == (0, 2)]
+        assert len(rejected) == 1
+        assert rejected[0].verdict.reason is Reason.NOT_INTEGRATED
+
+    def test_bu_micro_only_pool(self):
+        with config.override(**presets.iit4_2023):
+            result = intrinsic_units(bu_substrate(), (0, 0, 0), SearchBounds())
+        # Pairs are unintegrated; ABC is beaten by the singleton {A}
+        # system at phi 1.0; pool stays micro.
+        assert len(result.units) == 3
+        full = [v for v in result.verdicts if v.constituents == (0, 1, 2)]
+        assert len(full) == 1
+        assert full[0].verdict.reason is Reason.NOT_MAXIMAL
+        assert full[0].verdict.phi == pytest.approx(0.8300749985576875, abs=1e-13)
+        assert full[0].verdict.witness_phi == 1.0
+        # Unit C: unreachable state, phi 0, still valid ground.
+        unit_c = [v for v in result.verdicts if v.constituents == (2,)]
+        assert unit_c[0].verdict.valid
+        assert unit_c[0].verdict.phi == 0.0
+
+    def test_history_length_validated(self):
+        with pytest.raises(ValueError, match="1 entries"):
+            intrinsic_units(min_substrate(), ((0, 0), (0, 0)), SearchBounds())
+        with pytest.raises(ValueError, match="bare state"):
+            intrinsic_units(
+                min_substrate(), (0, 0), SearchBounds(max_update_grain=2)
+            )
+
+    def test_result_is_frozen(self):
+        with config.override(**presets.iit4_2023):
+            result = intrinsic_units(min_substrate(), (0, 0), SearchBounds())
+        with pytest.raises(AttributeError):
+            result.units = ()
