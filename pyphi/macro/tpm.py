@@ -16,8 +16,10 @@ from __future__ import annotations
 
 import numpy as np
 
+from pyphi import exceptions
 from pyphi.core.tpm.factored import FactoredTPM
 from pyphi.macro.units import MacroUnit
+from pyphi.macro.units import _mixed_radix_digits
 
 
 def _system_micro_indices(units) -> tuple[int, ...]:
@@ -181,3 +183,115 @@ def _state_weights(units, system_indices, macro_state) -> np.ndarray:
             local |= ((idx >> position[u]) & 1) << b
         weights *= _unit_final_state_proportions(unit, j)[local]
     return weights
+
+
+def _background_weights_cause(
+    factored: FactoredTPM, system_indices, earliest
+) -> np.ndarray:
+    """``q_c`` (Eq. 34): Bayes posterior over the pre-window background.
+
+    The posterior over the background state one micro update before the
+    earliest state of the current window, given that earliest universe
+    state, with a uniform prior over the full prior state. Computed from
+    the ORIGINAL (undiscounted) TPM.
+
+    Returns:
+        np.ndarray: ``(2**|W|,)`` over little-endian background states.
+    """
+    n = factored.n_nodes
+    likelihood = np.ones((2,) * n)
+    for i in range(n):
+        likelihood = likelihood * factored.factor(i)[..., earliest[i]]
+    total = likelihood.sum()
+    if total <= 0.0:
+        raise exceptions.StateUnreachableBackwardsError(tuple(earliest))
+    system_axes = tuple(sorted(system_indices))
+    if system_axes:
+        posterior = likelihood.sum(axis=system_axes)
+    else:
+        posterior = likelihood
+    return (posterior / total).reshape(-1, order="F")
+
+
+def _background_weights_effect(background_indices, current_state) -> np.ndarray:
+    """``q_e`` (Eq. 33): delta on the current background micro state."""
+    weights = np.zeros(2 ** len(background_indices))
+    index = 0
+    for k, i in enumerate(background_indices):
+        index |= current_state[i] << k
+    weights[index] = 1.0
+    return weights
+
+
+def _initial_distributions(
+    n: int, system_indices, background_weights: np.ndarray
+) -> np.ndarray:
+    """Initial universe-state distribution per system micro state.
+
+    Returns:
+        np.ndarray: ``(2**|U^S|, 2**n)`` — row ``u^S`` is the
+        distribution with the system part pinned to ``u^S`` and the
+        background part distributed per ``background_weights``.
+    """
+    background_indices = tuple(i for i in range(n) if i not in set(system_indices))
+    idx = np.arange(2**n)
+    system_part = np.zeros(2**n, dtype=np.int64)
+    for k, i in enumerate(system_indices):
+        system_part |= ((idx >> i) & 1) << k
+    background_part = np.zeros(2**n, dtype=np.int64)
+    for k, i in enumerate(background_indices):
+        background_part |= ((idx >> i) & 1) << k
+    init = np.zeros((2 ** len(system_indices), 2**n))
+    init[system_part, idx] = background_weights[background_part]
+    return init
+
+
+def macro_tpms(substrate, units, micro_history):
+    """The macro cause and effect TPMs ``(T_c, T_e)`` (Eqs. 26-42).
+
+    Args:
+        substrate: A binary :class:`~pyphi.substrate.Substrate` for the
+            micro universe.
+        units: The system's macro units. Their ``U^J union W^J`` must be
+            pairwise disjoint (Eq. 18).
+        micro_history: Universe micro states, oldest first, of length
+            ``max(tau_J)``; the last entry is the current state.
+
+    Returns:
+        tuple[FactoredTPM, FactoredTPM]: ``(T_c, T_e)`` with one factor
+        per macro unit over the macro system's states.
+    """
+    factored = substrate.factored_tpm
+    n = factored.n_nodes
+    units = tuple(units)
+    micro_history = tuple(tuple(s) for s in micro_history)
+    system_indices = _system_micro_indices(units)
+    background_indices = tuple(i for i in range(n) if i not in set(system_indices))
+    current_state = micro_history[-1]
+    num_macro = len(units)
+    macro_shape = (2,) * num_macro
+    factors_cause = []
+    factors_effect = []
+    effect_weights = _background_weights_effect(background_indices, current_state)
+    for j, unit in enumerate(units):
+        on_probabilities = _discounted_on_probabilities(factored, units, j)
+        transition = _full_transition_matrix(on_probabilities)
+        macro_prob_full = _unit_macro_probabilities(transition, unit)
+        earliest = micro_history[len(micro_history) - unit.micro_grain]
+        cause_weights = _background_weights_cause(factored, system_indices, earliest)
+        unit_factors = []
+        for background_weights in (cause_weights, effect_weights):
+            init = _initial_distributions(n, system_indices, background_weights)
+            prob_given_system_state = init @ macro_prob_full  # (2**|S|, 2)
+            factor = np.zeros((*macro_shape, 2))
+            for s_index in range(2**num_macro):
+                macro_state = _mixed_radix_digits(s_index, macro_shape)
+                weights = _state_weights(units, system_indices, macro_state)
+                factor[macro_state] = weights @ prob_given_system_state
+            unit_factors.append(factor)
+        factors_cause.append(unit_factors[0])
+        factors_effect.append(unit_factors[1])
+    return (
+        FactoredTPM(factors=factors_cause),
+        FactoredTPM(factors=factors_effect),
+    )
