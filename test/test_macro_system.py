@@ -16,6 +16,7 @@ from pyphi.substrate import Substrate
 from pyphi.system import System
 from test.test_macro_tpm import CG_TPM
 from test.test_macro_tpm import _asymmetric_substrate
+from test.test_macro_tpm import _bbx_micro_tpm
 
 
 def _cg_macro_system():
@@ -235,3 +236,95 @@ class TestMicroReduction:
             macro = _identity_macro(substrate, state, subset, ["A", "B"])
             micro = System(substrate, state, subset)
             assert macro.sia().phi == micro.sia().phi
+
+
+class TestPaperExample1:
+    """Marshall et al. 2024, Example 1 (coarse-graining, Fig. 4)."""
+
+    def test_micro_panel(self):
+        with config.override(**presets.iit4_2023):
+            substrate = Substrate(CG_TPM, node_labels=("A", "B", "C", "D"))
+            state = (0, 0, 0, 0)
+            panel = {
+                (0,): 0.003976279885291341,
+                (0, 1): 0.044088890564147803,
+                (0, 1, 2, 3): 0.02015654077792439,
+            }
+            for nodes, expected in panel.items():
+                phi = System(substrate, state, nodes).sia().phi
+                assert phi == pytest.approx(expected, abs=1e-13)
+
+    def test_macro_phi_s(self):
+        """phi_s of the exact construction TPM.
+
+        The authors' committed value (1.0039763812908649) was computed
+        from their hand-entered macro TPM, which contains a rounding
+        (0.006833 for 0.0615/9) and a hand-entry error (0.9212 for
+        0.9216 = 0.96**2); see
+        test_macro_tpm.TestPaperExampleTPMs.test_cg_construction_exact.
+        The value below is the 2.0 pipeline's result for the exact
+        construction TPM, recorded as this project's golden.
+        """
+        with config.override(**presets.iit4_2023):
+            system = _cg_macro_system()
+            assert system.sia().phi == pytest.approx(1.0040208141253277, abs=1e-13)
+
+    def test_authors_committed_tpm_reproduces_their_phi_s(self):
+        """Config-mapping cross-check against the authors' literal TPM."""
+        with config.override(**presets.iit4_2023):
+            authors_tpm = np.array(
+                [
+                    [0.006833, 0.006833],
+                    [0.0256, 0.7855],
+                    [0.7855, 0.0256],
+                    [0.9212, 0.9212],
+                ]
+            )
+            substrate = Substrate(authors_tpm, node_labels=("a", "b"))
+            phi = System(substrate, (0, 0)).sia().phi
+            assert phi == pytest.approx(1.0039763812908649, abs=1e-15)
+
+    def test_macro_beats_micro(self):
+        with config.override(**presets.iit4_2023):
+            system = _cg_macro_system()
+            assert system.sia().phi > 0.044088890564147803
+
+
+class TestPaperExample2:
+    """Marshall et al. 2024, Example 2 (black-boxing, Fig. 5)."""
+
+    def _macro_system(self):
+        substrate = Substrate(_bbx_micro_tpm(), node_labels=tuple("ABCDEFGH"))
+        units = (
+            MacroUnit((0, 1, 2, 3), 2, blackbox(4, 2, (2,))),
+            MacroUnit((4, 5, 6, 7), 2, blackbox(4, 2, (2,))),
+        )
+        ones = (1,) * 8
+        return MacroSystem.from_micro(substrate, units, (ones, ones))
+
+    def test_macro_phi_s(self):
+        """The strong anchor: the authors computed this TPM (rather than
+        entering it by hand), the construction matches it to 1e-16, and
+        the committed phi_s reproduces bit-for-bit under the mapped
+        config."""
+        with config.override(**presets.iit4_2023):
+            assert self._macro_system().sia().phi == pytest.approx(
+                1.1183776016500528, abs=1e-13
+            )
+
+    @pytest.mark.slow
+    def test_micro_panel(self):
+        with config.override(**presets.iit4_2023):
+            substrate = Substrate(_bbx_micro_tpm(), node_labels=tuple("ABCDEFGH"))
+            ones = (1,) * 8
+            panel = {
+                (0, 2, 4, 6): 0.135185781056239,
+                (0, 1, 2, 3): 0.02998866492258486,
+            }
+            for nodes, expected in panel.items():
+                phi = System(substrate, ones, nodes).sia().phi
+                assert phi == pytest.approx(expected, abs=1e-13)
+
+    def test_macro_beats_micro(self):
+        with config.override(**presets.iit4_2023):
+            assert self._macro_system().sia().phi > 0.135185781056239
