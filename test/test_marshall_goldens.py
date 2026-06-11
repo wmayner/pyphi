@@ -16,6 +16,16 @@ from pathlib import Path
 
 import pytest
 
+from pyphi import config
+from pyphi import exceptions
+from pyphi.conf import presets
+from pyphi.system import System
+from test.test_macro_criteria import bu_substrate
+from test.test_macro_criteria import min_substrate
+from test.test_macro_search import dancing_couples
+from test.test_macro_tpm import CG_TPM
+from pyphi.substrate import Substrate
+
 DATA_DIR = Path(__file__).parent / "data" / "marshall2024"
 
 # Greek characters used in the data files, kept out of source literals.
@@ -93,3 +103,68 @@ class TestParser:
             for c in itertools.combinations("ABCDEFGH", k)
         }
         assert tuple(sorted(expected - present)) == BBX_MISSING
+
+
+MICRO_SUBSTRATES = {
+    "cg_micro": lambda: Substrate(CG_TPM, node_labels=tuple("ABCD")),
+    "min_micro": min_substrate,
+    "sfn_micro": lambda: dancing_couples(0.0),
+    "sfnn_micro": lambda: dancing_couples(0.01),
+    "sfs_micro": lambda: dancing_couples(0.25),
+}
+
+
+def _micro_cases(names):
+    return [
+        pytest.param(name, label, value, id=f"{name}-{label}")
+        for name in names
+        for label, value in load_summary(name).items()
+    ]
+
+
+class TestFastMicroSweeps:
+    """Every committed value of the cheap micro sets, at 1e-13."""
+
+    @pytest.mark.parametrize(
+        "name,label,value",
+        _micro_cases(["cg_micro", "min_micro", "sfn_micro", "sfnn_micro", "sfs_micro"]),
+    )
+    def test_committed_value_reproduces(self, name, label, value):
+        substrate = MICRO_SUBSTRATES[name]()
+        state = (0,) * substrate.size
+        with config.override(**presets.iit4_2023):
+            phi = System(substrate, state, indices_of(name, label)).sia().phi
+        assert phi == pytest.approx(value, abs=1e-13)
+
+
+class TestBuDocumentedDeviation:
+    """The bu set's committed singleton zeros are stale (see the data
+    README): they reproduce only under old pyphi's
+    SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI default, which
+    contradicts the authors' committed config and their other result
+    sets. This battery pins both sides of the discrepancy so drift in
+    either the upstream file or the pipeline surfaces."""
+
+    def test_file_claims_all_small_subsystems_zero(self):
+        summary = load_summary("bu_micro")
+        for label, value in summary.items():
+            if len(label) < 3:
+                assert value == 0.0
+
+    def test_pipeline_values_under_consistent_convention(self):
+        summary = load_summary("bu_micro")
+        substrate = bu_substrate()
+        state = (0, 0, 0)
+        with config.override(**presets.iit4_2023):
+            assert System(substrate, state, (0,)).sia().phi == 1.0
+            assert System(substrate, state, (1,)).sia().phi == 1.0
+            with pytest.raises(exceptions.StateUnreachableForwardsError):
+                System(substrate, state, (2,))
+            for pair in [(0, 1), (0, 2), (1, 2)]:
+                assert System(substrate, state, pair).sia().phi == pytest.approx(
+                    0.0, abs=1e-13
+                )
+            # The full-system value is uncontested and matches the file.
+            assert System(substrate, state).sia().phi == pytest.approx(
+                summary["ABC"], abs=1e-13
+            )
