@@ -1670,10 +1670,32 @@ test inventory — that a deliberate re-ordering pass is in order.
       survive the consistent convention. Queued for the authors
       alongside SP1's Example 1 TPM finding and the spec's
       $f(U^J, W^J)$ subset-semantics question.
-    - **SP3 — reference goldens** (gated on SP1): freeze the ten
-      result sets from the authors' repository (cg/bbx/min/bu/sfn/
-      sfs/sfnn) as regression goldens; first published anchor for the
-      nonempty-apportionment path (Eq. 29).
+    - **SP3 — reference goldens** *(landed; spec ``9cc97a2``, plan
+      ``db1d12a``, implementation ``bd92169``..``27ff5c3``)*: the ten
+      result sets from the authors' repository (commit ``48471b5d``)
+      committed verbatim under ``test/data/marshall2024/`` and frozen
+      as regression goldens in ``test/test_marshall_goldens.py``:
+      fast micro sweeps (cg/min/sfn/sfnn/sfs, 63 values), the bu
+      documented-deviation battery (pins both the stale committed
+      zeros and the consistent convention's values), the bbx sweep
+      tiered by measured cost (sizes 1-4 and the 60 reducible large
+      subsystems in the slow lane; the 29 irreducible large values
+      opt-in via ``PYPHI_MARSHALL_FULL_SWEEP`` -- hours), and the
+      macro-network goldens from the authors' macro TPMs. The
+      committed ``*_macro`` values are subsystems of standalone macro
+      *networks* (macro-level background conditioning), a different
+      object from the intrinsic-units candidate systems, which get
+      project-recorded goldens alongside. **Correction to this entry's
+      earlier claim:** no published anchor for the
+      nonempty-apportionment path (Eq. 29) exists -- the authors'
+      code never apportions background, and apportionment provably
+      cannot reproduce their macro singletons (invisible at update
+      grain 1; ~1e-15 at grain 2). A project-recorded apportioned-
+      candidate golden provides the path's end-to-end regression
+      coverage instead. New upstream findings recorded in the data
+      README: bbx_micro is missing 4 of 255 subsystems; several
+      committed large-subsystem values are unclamped float noise
+      (~1e-17, some negative).
 
 11. **P11.85 — Measure-API unification.** *(landed; spec ``90ca10be``,
     plan ``0da5d0ad``, implementation commits ``08a48e5a`` metric

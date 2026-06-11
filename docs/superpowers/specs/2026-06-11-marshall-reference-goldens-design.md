@@ -110,12 +110,12 @@ the authors' pickle files (summaries carry every committed phi value).
    deviation permanently instead of skipping it.
 3. **bbx_micro sweep, tiered by measured cost** (see Costs):
    - 3a (slow lane): sizes 1-4, all 162 committed values.
-   - 3b (slow lane): the 61 size-5-to-8 values that are zero at
+   - 3b (slow lane): the 60 size-5-to-8 values that are zero at
      precision — these short-circuit as reducible in seconds. This
      includes the ~21 committed values that are raw float noise
      (magnitudes ~1e-17, some negative — old pyphi did not clamp);
      at 1e-13 they are zero and the comparison treats them as such.
-   - 3c (opt-in, off by default): the 28 genuinely nonzero size-5-to-8
+   - 3c (opt-in, off by default): the 29 genuinely nonzero size-5-to-8
      values, gated behind an environment variable
      (``PYPHI_MARSHALL_FULL_SWEEP``) because the irreducible large
      subsystems cost minutes-to-tens-of-minutes each (hours total).
@@ -165,7 +165,7 @@ subsystems short-circuit fast: a 5-node in 1.3 s, a 6-node in 2.1 s —
 so battery 3b adds ~3 min. Irreducible large subsystems are the
 expensive ones: the 7-node ABCDEFG took 556 s and the 8-node full
 system exceeded 20 min before the measurement was capped; battery 3c
-(28 values) is therefore estimated at several hours and stays opt-in.
+(29 values) is therefore estimated at several hours and stays opt-in.
 The cg/min/sf*/bu micro sweeps and all macro-network goldens are
 seconds each.
 
