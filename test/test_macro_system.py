@@ -3,13 +3,17 @@
 import numpy as np
 import pytest
 
+from pyphi import config
+from pyphi.conf import presets
 from pyphi.core.tpm.factored import FactoredTPM
+from pyphi.examples import EXAMPLES
 from pyphi.macro import MacroSystem
 from pyphi.macro.units import MacroUnit
 from pyphi.macro.units import blackbox
 from pyphi.macro.units import coarse_grain
 from pyphi.macro.units import micro_unit
 from pyphi.substrate import Substrate
+from pyphi.system import System
 from test.test_macro_tpm import CG_TPM
 from test.test_macro_tpm import _asymmetric_substrate
 
@@ -153,3 +157,81 @@ class TestProtocolSurface:
             ((0, 0, 0, 0),),
         )
         assert a != c
+
+
+def _identity_macro(substrate, state, subset, node_labels):
+    units = tuple(micro_unit(i) for i in subset)
+    return MacroSystem.from_micro(
+        substrate, units, (tuple(state),), node_labels=node_labels
+    )
+
+
+def _examples_for_reduction():
+    # The macro formalism defines no macro connectivity (cm is all-ones),
+    # so micro comparators with explicit sparse cms are rebuilt as
+    # all-ones-cm twins via Substrate.from_factored.
+    basic = EXAMPLES["substrate"]["basic"]()
+    xor = EXAMPLES["substrate"]["xor"]()
+    xor_allones = Substrate.from_factored(xor.factored_tpm, node_labels=["A", "B", "C"])
+    grid3 = EXAMPLES["substrate"]["grid3"]()
+    grid3_allones = Substrate.from_factored(
+        grid3.factored_tpm, node_labels=["A", "B", "C"]
+    )
+    return [
+        (basic, (1, 0, 0)),
+        (xor_allones, (0, 0, 0)),
+        (grid3_allones, (0, 0, 0)),
+    ]
+
+
+class TestMicroReduction:
+    """Identity macroing == System, exactly (paper p. 10)."""
+
+    @pytest.mark.parametrize(
+        "substrate,state",
+        _examples_for_reduction(),
+        ids=["basic", "xor", "grid3"],
+    )
+    def test_full_system_sia_matches(self, substrate, state):
+        with config.override(**presets.iit4_2023):
+            subset = tuple(range(substrate.size))
+            labels = [str(label) for label in substrate.node_labels]
+            macro = _identity_macro(substrate, state, subset, labels)
+            micro = System(substrate, state)
+            macro_sia = macro.sia()
+            micro_sia = micro.sia()
+            assert macro_sia.phi == micro_sia.phi
+            assert macro_sia.partition == micro_sia.partition
+
+    @pytest.mark.parametrize(
+        "substrate,state",
+        _examples_for_reduction(),
+        ids=["basic", "xor", "grid3"],
+    )
+    def test_full_system_ces_matches(self, substrate, state):
+        with config.override(**presets.iit4_2023):
+            subset = tuple(range(substrate.size))
+            labels = [str(label) for label in substrate.node_labels]
+            macro = _identity_macro(substrate, state, subset, labels)
+            micro = System(substrate, state)
+            macro_ces = macro.ces()
+            micro_ces = micro.ces()
+            assert macro_ces.sia.phi == micro_ces.sia.phi
+            macro_distinctions = list(macro_ces.distinctions)
+            micro_distinctions = list(micro_ces.distinctions)
+            assert len(macro_distinctions) == len(micro_distinctions)
+            for m_dist, u_dist in zip(
+                macro_distinctions, micro_distinctions, strict=True
+            ):
+                assert m_dist.mechanism == u_dist.mechanism
+                assert m_dist.phi == u_dist.phi
+
+    def test_subset_system_sia_matches(self):
+        """Background path: identity macroing of a proper subset."""
+        with config.override(**presets.iit4_2023):
+            substrate = EXAMPLES["substrate"]["basic"]()
+            state = (1, 0, 0)
+            subset = (0, 1)
+            macro = _identity_macro(substrate, state, subset, ["A", "B"])
+            micro = System(substrate, state, subset)
+            assert macro.sia().phi == micro.sia().phi
