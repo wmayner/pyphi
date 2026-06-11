@@ -1612,15 +1612,43 @@ test inventory — that a deliberate re-ordering pass is in order.
    JSON shape's tagged-union ``__class__`` discriminator extends
    naturally to discriminating ``IIT3Config`` from ``IIT4Config``.
 
-10. **Macro framework — Marshall 2024 intrinsic units.** Deferred
-    candidate, post-2.0 unless it slots in. Paper-faithful rewrite
-    of the macro layer per Marshall, Findlay, Albantakis, Tononi
-    2024 ("Intrinsic Units"): hierarchical meso constituents,
-    sliding-window state mappings $g_J$ over $\tau$ micro updates,
-    explicit background apportionment $W^J$, intrinsic-unit search
-    via $\varphi_s$. Replaces legacy ``pyphi/macro.py`` outright.
-    Disabled ``MacroSystem`` class and 593-line
-    ``test/test_macro_system.py`` stay dark until this lands.
+10. **Macro framework — Marshall 2024 intrinsic units.** In scope for
+    2.0, ahead of the P15 surface freeze (reverses the 2026-06-03
+    carve-out; the macro surface must exist before the freeze can
+    cover it). Paper-faithful implementation per Marshall, Findlay,
+    Albantakis, Tononi 2024 ("Intrinsic Units"). Three sub-projects:
+
+    - **SP1 — evaluation machinery** *(landed; spec ``1fb750aa``,
+      plan ``e8fbac6b``, implementation ``6dcbf5ef``..``7b036e1d``)*:
+      ``pyphi/macro/`` package with ``MacroUnit`` (hierarchical meso
+      constituents, sliding-window mappings $g_J$ over $\tau$ micro
+      updates, background apportionment $W^J$), the four-step macro
+      TPM construction (Eqs. 26-40, Steps 2+4 fused), and
+      ``MacroSystem`` as a ``System`` subclass over a synthetic macro
+      substrate with the cause TPM overridden. Replaced legacy
+      ``pyphi/macro.py`` outright. Identity macroing reproduces
+      ``System`` results exactly (including proper-subset background
+      conditioning, which pins Eqs. 33-34 against IIT 4.0 Eq. 4);
+      both paper examples reproduce at the authors' committed
+      precision under the bare ``iit4_2023`` preset (legacy
+      ``SET_UNI/BI`` $\equiv$ ``DIRECTED_SET_PARTITION``, confirmed
+      bit-for-bit). Known upstream discrepancy, documented in the
+      acceptance tests: the authors' committed Example 1 macro TPM is
+      hand-entered and contains a rounding ($0.006833$ for $0.0615/9$)
+      and a hand-entry error ($0.9212$ where the construction gives
+      $0.96^2 = 0.9216$), so the construction's $\varphi_s$ golden is
+      $1.0040208141253277$ rather than their $1.0039763812908649$;
+      Example 2's TPM is computed in their code and matches the
+      construction to machine precision, with $\varphi_s$ reproduced
+      bit-for-bit.
+    - **SP2 — intrinsic-unit criteria and search** (gated on SP1):
+      maximal-irreducibility-within criteria (Eqs. 15-16), the
+      admissible-system recursion $f(U^J, W^J)$, cross-grain
+      complexes (Eq. 19), bounded mapping/apportionment enumeration.
+    - **SP3 — reference goldens** (gated on SP1): freeze the ten
+      result sets from the authors' repository (cg/bbx/min/bu/sfn/
+      sfs/sfnn) as regression goldens; first published anchor for the
+      nonempty-apportionment path (Eq. 29).
 
 11. **P11.85 — Measure-API unification.** *(landed; spec ``90ca10be``,
     plan ``0da5d0ad``, implementation commits ``08a48e5a`` metric
