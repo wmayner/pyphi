@@ -104,6 +104,9 @@ class SearchBounds:
         return self.max_update_grain**self.max_depth
 
 
+_DEFAULT_BOUNDS = SearchBounds()
+
+
 def _canonical_table(table: tuple[int, ...]) -> tuple[int, ...]:
     """The representative of ``{table, complement}``.
 
@@ -295,11 +298,11 @@ def _apportionments(n, footprint, inherited, bounds: SearchBounds):
     if len(inherited) > bounds.max_background:
         return ()
     available = sorted(set(range(n)) - set(footprint) - set(inherited))
-    out = []
-    for size in range(bounds.max_background - len(inherited) + 1):
-        for extra in itertools.combinations(available, size):
-            out.append(tuple(sorted((*inherited, *extra))))
-    return tuple(out)
+    return tuple(
+        tuple(sorted((*inherited, *extra)))
+        for size in range(bounds.max_background - len(inherited) + 1)
+        for extra in itertools.combinations(available, size)
+    )
 
 
 def _f(substrate, V, W, footprint, pool, micro_history, bounds, memo):
@@ -333,11 +336,11 @@ def _variants(V, W, bounds: SearchBounds):
     """
     constituents = tuple(_as_constituent(u) for u in canonical_units(V))
     min_grain = 2 if len(V) == 1 else 1
-    out = []
-    for update_grain in range(min_grain, bounds.max_update_grain + 1):
-        for mapping in candidate_mappings(len(V), update_grain, bounds):
-            out.append(MacroUnit(constituents, update_grain, mapping, W))
-    return out
+    return [
+        MacroUnit(constituents, update_grain, mapping, W)
+        for update_grain in range(min_grain, bounds.max_update_grain + 1)
+        for mapping in candidate_mappings(len(V), update_grain, bounds)
+    ]
 
 
 def _judge(substrate, V, W, footprint, micro_history, bounds, pool, memo):
@@ -475,7 +478,7 @@ def competing_systems(
     substrate: Substrate,
     unit: MacroUnit,
     micro_history,
-    bounds: SearchBounds = SearchBounds(),
+    bounds: SearchBounds = _DEFAULT_BOUNDS,
 ) -> tuple[MacroSystem, ...]:
     """``f(U^J, W^J)`` materialized within the unit's footprint (Eq. 16)."""
     history = _normalized_history(
@@ -494,7 +497,7 @@ def is_intrinsic_unit(
     substrate: Substrate,
     unit: MacroUnit,
     micro_history,
-    bounds: SearchBounds = SearchBounds(),
+    bounds: SearchBounds = _DEFAULT_BOUNDS,
 ) -> UnitVerdict:
     """Eqs. 15-16 for one candidate; micro units return VALID trivially.
 
@@ -594,7 +597,7 @@ class ComplexesResult:
 def complexes(
     substrate: Substrate,
     micro_history,
-    bounds: SearchBounds = SearchBounds(),
+    bounds: SearchBounds = _DEFAULT_BOUNDS,
 ) -> ComplexesResult:
     """Eq. 19 over the bounded candidate space -- the one-call driver."""
     history = _normalized_history(substrate, micro_history, bounds.max_micro_grain)
@@ -603,7 +606,7 @@ def complexes(
     evaluated: list[tuple[MacroSystem, PyPhiFloat]] = []
     for combo in _assemble_systems(list(units), bounds.max_background):
         system, phi = _phi(substrate, combo, history, memo)
-        if system is not None:
+        if system is not None and phi is not None:
             evaluated.append((system, phi))
     footprints = [
         set(_system_micro_indices(system.units)) for system, _ in evaluated

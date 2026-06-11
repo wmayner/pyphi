@@ -9,18 +9,18 @@ from pyphi.conf import presets
 from pyphi.macro.criteria import Reason
 from pyphi.macro.criteria import unit_integration
 from pyphi.macro.search import ComplexesResult
-from pyphi.macro.search import complexes
 from pyphi.macro.search import SearchBounds
 from pyphi.macro.search import candidate_mappings
 from pyphi.macro.search import competing_systems
+from pyphi.macro.search import complexes
 from pyphi.macro.search import intrinsic_units
-from pyphi.macro.search import valid_systems
 from pyphi.macro.search import is_intrinsic_unit
+from pyphi.macro.search import valid_systems
+from pyphi.macro.system import MacroSystem
 from pyphi.macro.units import MacroUnit
 from pyphi.macro.units import blackbox
 from pyphi.macro.units import coarse_grain
 from pyphi.macro.units import micro_unit
-from pyphi.macro.system import MacroSystem
 from pyphi.substrate import Substrate
 from test.test_macro_criteria import bu_substrate
 from test.test_macro_criteria import min_substrate
@@ -550,3 +550,18 @@ class TestCostGuard:
         phis = {r.system: r.phi for r in result.records}
         assert phis[winner] == pytest.approx(1.0040208141253277, abs=1e-13)
         assert result.ties == ()
+
+
+def test_public_surface_importable():
+    from pyphi import macro
+
+    for name in (
+        "SearchBounds",
+        "complexes",
+        "intrinsic_units",
+        "is_intrinsic_unit",
+        "judge_candidate",
+        "unit_integration",
+        "valid_systems",
+    ):
+        assert hasattr(macro, name)

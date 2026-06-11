@@ -1641,10 +1641,35 @@ test inventory — that a deliberate re-ordering pass is in order.
       Example 2's TPM is computed in their code and matches the
       construction to machine precision, with $\varphi_s$ reproduced
       bit-for-bit.
-    - **SP2 — intrinsic-unit criteria and search** (gated on SP1):
-      maximal-irreducibility-within criteria (Eqs. 15-16), the
-      admissible-system recursion $f(U^J, W^J)$, cross-grain
-      complexes (Eq. 19), bounded mapping/apportionment enumeration.
+    - **SP2 — intrinsic-unit criteria and search** *(landed; spec
+      ``285843a``, plan ``bc365e3``, implementation
+      ``8a40392``..``acb4556``)*: ``pyphi/macro/criteria.py``
+      (Eqs. 15-16 verdicts with witnesses, ``unit_integration``,
+      ``judge_candidate``) and ``pyphi/macro/search.py``
+      (``SearchBounds``, bounded mapping enumeration, the
+      intrinsic-unit recursion, the valid-system set $\mathbb{P}(u)$,
+      and the Eq. 19 ``complexes()`` driver returning winners, ties,
+      and the full evaluation record). The default-bounds driver
+      recovers Example 1's macro system as the unique complex at the
+      SP1 construction golden ($1.0040208141253277$). Two pins beyond
+      the spec, both forced by experiment: (1) candidate mappings are
+      canonicalized up to state-label complementation — a table and
+      its complement yield bitwise-identical $\varphi_s$ (relabeling
+      isomorphism), so literal enumeration makes Eq. 19's strict
+      inequality unsatisfiable; counts halve (min EXHAUSTIVE 7, cap-8
+      127). (2) The authors' committed ``bu`` summary is stale: its
+      all-zero 1-/2-unit values reproduce only under old pyphi's
+      ``SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI`` default (false),
+      contradicting their committed config and their sfn result set
+      (which require true); replaying their pinned pyphi ``941c65a``
+      with their committed config gives $\varphi_s(A) = \varphi_s(B)
+      = 1.0$ and an unreachable $\{C\}$, matching the 2.0 pipeline.
+      Tests pin the consistent convention; the bu driver verdict is
+      complexes $= \{A\}, \{B\}$ (the singletons beat ABC's
+      $0.8300749985576875$), so the example's bottom-up story does not
+      survive the consistent convention. Queued for the authors
+      alongside SP1's Example 1 TPM finding and the spec's
+      $f(U^J, W^J)$ subset-semantics question.
     - **SP3 — reference goldens** (gated on SP1): freeze the ten
       result sets from the authors' repository (cg/bbx/min/bu/sfn/
       sfs/sfnn) as regression goldens; first published anchor for the
