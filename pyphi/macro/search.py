@@ -30,6 +30,7 @@ import itertools
 from dataclasses import dataclass
 
 from pyphi import exceptions
+from pyphi import utils
 from pyphi.data_structures.pyphi_float import PyPhiFloat
 from pyphi.macro.criteria import Reason
 from pyphi.macro.criteria import UnitVerdict
@@ -37,6 +38,7 @@ from pyphi.macro.criteria import _as_unit
 from pyphi.macro.criteria import canonical_units
 from pyphi.macro.criteria import judge_candidate
 from pyphi.macro.system import MacroSystem
+from pyphi.macro.tpm import _system_micro_indices
 from pyphi.macro.units import MacroUnit
 from pyphi.macro.units import blackbox
 from pyphi.macro.units import coarse_grain
@@ -560,3 +562,80 @@ def valid_systems(
         if system is not None:
             systems.append(system)
     return tuple(systems)
+
+
+@dataclass(frozen=True)
+class EvaluationRecord:
+    """One evaluated system and its ``phi_s``."""
+
+    system: MacroSystem
+    phi: float
+
+
+@dataclass(frozen=True)
+class ComplexesResult:
+    """The Eq. 19 outcome over the bounded candidate space.
+
+    Attributes:
+        complexes: The winners -- members of ``P(u)`` that strictly
+            beat every other member with overlapping micro
+            constituents. Mutually disjoint by construction.
+        records: Every system evaluated during the run (criteria checks
+            included) with its ``phi_s``, in evaluation order.
+        ties: Pairs of overlapping systems that would each be a complex
+            but for their mutual tie at precision.
+    """
+
+    complexes: tuple[MacroSystem, ...]
+    records: tuple[EvaluationRecord, ...]
+    ties: tuple[tuple[MacroSystem, MacroSystem], ...]
+
+
+def complexes(
+    substrate: Substrate,
+    micro_history,
+    bounds: SearchBounds = SearchBounds(),
+) -> ComplexesResult:
+    """Eq. 19 over the bounded candidate space -- the one-call driver."""
+    history = _normalized_history(substrate, micro_history, bounds.max_micro_grain)
+    memo: dict[MacroSystem, PyPhiFloat] = {}
+    units, _ = _derive_units(substrate, history, bounds, memo)
+    evaluated: list[tuple[MacroSystem, PyPhiFloat]] = []
+    for combo in _assemble_systems(list(units), bounds.max_background):
+        system, phi = _phi(substrate, combo, history, memo)
+        if system is not None:
+            evaluated.append((system, phi))
+    footprints = [
+        set(_system_micro_indices(system.units)) for system, _ in evaluated
+    ]
+
+    def overlapping(i):
+        return [
+            j
+            for j in range(len(evaluated))
+            if j != i and footprints[i] & footprints[j]
+        ]
+
+    tops = [
+        i
+        for i, (_, phi) in enumerate(evaluated)
+        if all(
+            utils.eq(phi, evaluated[j][1]) or float(phi) > float(evaluated[j][1])
+            for j in overlapping(i)
+        )
+    ]
+    ties: list[tuple[MacroSystem, MacroSystem]] = []
+    tied: set[int] = set()
+    for a, b in itertools.combinations(tops, 2):
+        if footprints[a] & footprints[b] and utils.eq(
+            evaluated[a][1], evaluated[b][1]
+        ):
+            ties.append((evaluated[a][0], evaluated[b][0]))
+            tied.add(a)
+            tied.add(b)
+    winners = tuple(evaluated[i][0] for i in tops if i not in tied)
+    records = tuple(
+        EvaluationRecord(system=system, phi=float(phi))
+        for system, phi in memo.items()
+    )
+    return ComplexesResult(complexes=winners, records=records, ties=tuple(ties))

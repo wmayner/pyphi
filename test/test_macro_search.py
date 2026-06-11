@@ -8,6 +8,8 @@ from pyphi import utils
 from pyphi.conf import presets
 from pyphi.macro.criteria import Reason
 from pyphi.macro.criteria import unit_integration
+from pyphi.macro.search import ComplexesResult
+from pyphi.macro.search import complexes
 from pyphi.macro.search import SearchBounds
 from pyphi.macro.search import candidate_mappings
 from pyphi.macro.search import competing_systems
@@ -18,6 +20,7 @@ from pyphi.macro.units import MacroUnit
 from pyphi.macro.units import blackbox
 from pyphi.macro.units import coarse_grain
 from pyphi.macro.units import micro_unit
+from pyphi.macro.system import MacroSystem
 from pyphi.substrate import Substrate
 from test.test_macro_criteria import bu_substrate
 from test.test_macro_criteria import min_substrate
@@ -403,3 +406,89 @@ class TestValidSystems:
         assert len(systems) == 27
         for system in systems:
             assert_eq18(system)
+
+
+class TestMinDriver:
+    """Battery 2: min end-to-end with EXHAUSTIVE mappings (7 canonical
+    tables after complement dedup)."""
+
+    def test_macro_complex_found(self):
+        bounds = SearchBounds(mappings="EXHAUSTIVE")
+        with config.override(**presets.iit4_2023):
+            result = complexes(min_substrate(), (0, 0), bounds)
+        assert len(result.complexes) == 1
+        winner = result.complexes[0]
+        # The argmax mapping is the authors' both-on coarse-graining,
+        # in canonical form. Golden recorded at implementation time;
+        # sanity: equals the committed both-on macro phi
+        # (0.7883339770634886) at 1e-13.
+        assert winner.units == (MacroUnit((0, 1), 1, (0, 0, 0, 1)),)
+        phis = {r.system: r.phi for r in result.records}
+        assert phis[winner] == pytest.approx(0.7883339770634884, abs=1e-13)
+        assert result.ties == ()
+
+    def test_records_contain_micro_pair_anchor(self):
+        bounds = SearchBounds(mappings="EXHAUSTIVE")
+        with config.override(**presets.iit4_2023):
+            result = complexes(min_substrate(), (0, 0), bounds)
+        by_units = {r.system.units: r.phi for r in result.records}
+        assert by_units[(micro_unit(0), micro_unit(1))] == pytest.approx(
+            0.005106576483955726, abs=1e-13
+        )
+
+    def test_records_match_independent_recomputation(self):
+        # Battery 4: memoized phi equals a fresh evaluation.
+        bounds = SearchBounds(mappings="EXHAUSTIVE")
+        with config.override(**presets.iit4_2023):
+            result = complexes(min_substrate(), (0, 0), bounds)
+            for record in result.records[:3]:
+                fresh = MacroSystem.from_micro(
+                    record.system.micro_substrate,
+                    record.system.units,
+                    record.system.micro_history,
+                )
+                assert fresh.sia().phi == pytest.approx(record.phi, abs=1e-13)
+
+    def test_every_record_satisfies_eq18(self):
+        bounds = SearchBounds(mappings="EXHAUSTIVE")
+        with config.override(**presets.iit4_2023):
+            result = complexes(min_substrate(), (0, 0), bounds)
+        for record in result.records:
+            assert_eq18(record.system)
+
+
+class TestBuDriver:
+    """Battery 3: micro-exemption under the consistent convention (see
+    bu_substrate's docstring). The full micro system is admissible and
+    reproduces the committed phi, but the singleton systems {A} and {B}
+    (phi 1.0) beat it, so they are the complexes -- golden recorded at
+    implementation time."""
+
+    def test_micro_system_admissible_and_anchored(self):
+        with config.override(**presets.iit4_2023):
+            result = complexes(bu_substrate(), (0, 0, 0), SearchBounds())
+        by_units = {r.system.units: r.phi for r in result.records}
+        full = tuple(micro_unit(i) for i in range(3))
+        assert by_units[full] == pytest.approx(0.8300749985576875, abs=1e-13)
+
+    def test_complexes_are_the_strong_singletons(self):
+        with config.override(**presets.iit4_2023):
+            result = complexes(bu_substrate(), (0, 0, 0), SearchBounds())
+        footprints = {
+            tuple(u.micro_constituents for u in s.units)
+            for s in result.complexes
+        }
+        assert footprints == {((0,),), ((1,),)}
+        phis = {r.system: r.phi for r in result.records}
+        assert all(phis[s] == 1.0 for s in result.complexes)
+        assert result.ties == ()
+
+    def test_empty_complexes_is_a_result_not_an_error(self):
+        # max_depth=0 restricts P(u) to micro systems; the micro pair
+        # (phi 0.0051) beats the overlapping singletons (phi 0), so it
+        # is the only complex at depth 0.
+        bounds = SearchBounds(max_depth=0)
+        with config.override(**presets.iit4_2023):
+            result = complexes(min_substrate(), (0, 0), bounds)
+        assert isinstance(result, ComplexesResult)
+        assert len(result.complexes) == 1
