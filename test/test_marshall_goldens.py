@@ -15,18 +15,24 @@ import os
 import re
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 from pyphi import config
 from pyphi import exceptions
 from pyphi.conf import presets
+from pyphi.macro import MacroSystem
+from pyphi.macro import MacroUnit
+from pyphi.macro import blackbox
+from pyphi.macro import coarse_grain
+from pyphi.macro import macro_tpms
+from pyphi.substrate import Substrate
 from pyphi.system import System
 from test.test_macro_criteria import bu_substrate
 from test.test_macro_criteria import min_substrate
 from test.test_macro_search import dancing_couples
 from test.test_macro_tpm import CG_TPM
 from test.test_macro_tpm import _bbx_micro_tpm
-from pyphi.substrate import Substrate
 
 DATA_DIR = Path(__file__).parent / "data" / "marshall2024"
 
@@ -197,7 +203,7 @@ class TestBbxSweepSmall:
     """Sizes 1-4: all 162 committed values (~20 s total)."""
 
     @pytest.mark.parametrize(
-        "label,value", _bbx_cases(lambda label, value: len(label) <= 4)
+        "label,value", _bbx_cases(lambda label, _value: len(label) <= 4)
     )
     def test_committed_value_reproduces(self, label, value):
         _assert_bbx_value(label, value)
@@ -235,3 +241,136 @@ class TestBbxSweepLargeIrreducible:
     )
     def test_committed_value_reproduces(self, label, value):
         _assert_bbx_value(label, value)
+
+
+def _authors_cg_macro_substrate():
+    """The authors' hand-entered cg macro TPM (see data README, item 1)."""
+    tpm = np.array(
+        [[0.006833, 0.006833], [0.0256, 0.7855], [0.7855, 0.0256], [0.9212, 0.9212]]
+    )
+    return Substrate(tpm, node_labels=("a", "b"))
+
+
+def _authors_min_macro_substrate():
+    """The authors' hand-derived min macro TPM (1 node)."""
+    tpm = np.array([[0.05 * 0.05 + 2 * 0.01 * 0.05 / 3], [0.95 * 0.95]])
+    return Substrate(tpm, node_labels=("a",))
+
+
+BBX_UNITS = (
+    MacroUnit((0, 1, 2, 3), 2, blackbox(4, 2, (2,))),
+    MacroUnit((4, 5, 6, 7), 2, blackbox(4, 2, (2,))),
+)
+CG_UNITS = (
+    MacroUnit((0, 1), 1, coarse_grain(2, on_counts={2})),
+    MacroUnit((2, 3), 1, coarse_grain(2, on_counts={2})),
+)
+
+
+def _bbx_macro_substrate():
+    """Macro network from the exact construction's effect TPM (equal to
+    the authors' computed TPM to ~1e-16; SP1)."""
+    ones = (1,) * 8
+    _, effect = macro_tpms(_bbx_substrate(), BBX_UNITS, (ones, ones))
+    return Substrate.from_factored(effect, node_labels=("a", "b"))
+
+
+class TestMacroNetworkGoldens:
+    """The committed *_macro values: subsystems of standalone macro
+    networks built from the authors' macro TPMs (macro-level background
+    conditioning -- not the intrinsic-units candidate construction)."""
+
+    @pytest.mark.parametrize("label", [ALPHA, BETA, ALPHA + BETA])
+    def test_cg_macro_from_authors_literal_tpm(self, label):
+        value = load_summary("cg_macro")[label]
+        with config.override(**presets.iit4_2023):
+            phi = (
+                System(
+                    _authors_cg_macro_substrate(),
+                    (0, 0),
+                    indices_of("cg_macro", label),
+                )
+                .sia()
+                .phi
+            )
+        assert phi == pytest.approx(value, abs=1e-13)
+
+    def test_min_macro_from_authors_tpm(self):
+        value = load_summary("min_macro")[ALPHA]
+        with config.override(**presets.iit4_2023):
+            phi = System(_authors_min_macro_substrate(), (0,)).sia().phi
+        assert phi == pytest.approx(value, abs=1e-13)
+
+    @pytest.mark.parametrize("label", [ALPHA, BETA, ALPHA + BETA])
+    def test_bbx_macro_from_construction_tpm(self, label):
+        value = load_summary("bbx_macro")[label]
+        with config.override(**presets.iit4_2023):
+            phi = (
+                System(
+                    _bbx_macro_substrate(), (1, 1), indices_of("bbx_macro", label)
+                )
+                .sia()
+                .phi
+            )
+        assert phi == pytest.approx(value, abs=1e-13)
+
+
+class TestFormalismCandidateGoldens:
+    """Project-recorded (unpublished) goldens for the intrinsic-units
+    candidate systems over the micro universes -- a different object
+    from the macro-network subsystems above, with different values."""
+
+    def test_cg_one_unit_candidates(self):
+        substrate = Substrate(CG_TPM, node_labels=tuple("ABCD"))
+        state = (0, 0, 0, 0)
+        with config.override(**presets.iit4_2023):
+            for unit in CG_UNITS:
+                system = MacroSystem.from_micro(substrate, (unit,), (state,))
+                assert system.sia().phi == pytest.approx(
+                    0.007115237059108961, abs=1e-13
+                )
+
+    def test_bbx_one_unit_candidates(self):
+        ones = (1,) * 8
+        with config.override(**presets.iit4_2023):
+            for unit in BBX_UNITS:
+                system = MacroSystem.from_micro(_bbx_substrate(), (unit,), (ones, ones))
+                assert system.sia().phi == pytest.approx(
+                    3.867619951750597e-05, abs=1e-13
+                )
+
+    def test_bbx_apportioned_candidate_eq29(self):
+        # The first end-to-end regression coverage of the
+        # nonempty-apportionment path (Eq. 29). No published anchor
+        # exists; at update grain 2 the apportionment perturbs phi_s
+        # only at ~1e-15 (the TPM-level effect is pinned by the SP1
+        # apportionment tests).
+        unit = MacroUnit(
+            (0, 1, 2, 3),
+            2,
+            blackbox(4, 2, (2,)),
+            background_apportionment=(4, 5, 6, 7),
+        )
+        ones = (1,) * 8
+        with config.override(**presets.iit4_2023):
+            system = MacroSystem.from_micro(_bbx_substrate(), (unit,), (ones, ones))
+            assert system.sia().phi == pytest.approx(
+                3.8676199517666156e-05, abs=1e-13
+            )
+
+    def test_cg_exact_construction_network_singletons(self):
+        # The hand-entry delta made visible at the singleton level:
+        # the authors' literal TPM gives 0.013601886288252735; the
+        # exact construction TPM gives the values below (recorded at
+        # implementation time).
+        state = (0, 0, 0, 0)
+        substrate = Substrate(CG_TPM, node_labels=tuple("ABCD"))
+        with config.override(**presets.iit4_2023):
+            _, effect = macro_tpms(substrate, CG_UNITS, (state,))
+            exact = Substrate.from_factored(effect, node_labels=("a", "b"))
+            assert System(exact, (0, 0), (0,)).sia().phi == pytest.approx(
+                0.013601643567390003, abs=1e-13
+            )
+            assert System(exact, (0, 0), (1,)).sia().phi == pytest.approx(
+                0.013601643567389368, abs=1e-13
+            )
