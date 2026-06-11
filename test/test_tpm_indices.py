@@ -25,8 +25,7 @@ def test_factored_tpm_indices_returns_range_n_nodes() -> None:
 def test_legacy_joint_tpm_indices_excludes_singleton_axes() -> None:
     """``JointTPM.tpm_indices`` excludes size-1 axes (those collapsed by
     marginalizing out non-input nodes) and returns only the size-2 leading
-    axes. ``pyphi/macro.py`` indexes the squeezed array against these
-    indices, so the singleton-exclusion semantics is load-bearing.
+    axes, keeping the indices aligned with a squeezed view of the array.
     """
     arr = np.zeros((2, 1, 2, 2))  # axis 1 marginalized to a singleton
     j = LegacyJointTPM(arr)

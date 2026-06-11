@@ -450,11 +450,10 @@ class JointTPM(JointDistribution):
         """Binary-only substrate-unit axis indices via size-2 grep.
 
         Returns leading axes whose size equals 2, excluding singleton (size-1)
-        axes that arise from marginalizing out non-input nodes. Used by
-        ``pyphi/macro.py`` to index a ``squeeze()``-d array against substrate
-        units; the singleton-exclusion semantics keeps the indices aligned
-        with the squeezed view. Multi-valued substrates use
-        :meth:`FactoredTPM.tpm_indices` instead.
+        axes that arise from marginalizing out non-input nodes, so the
+        indices stay aligned with a ``squeeze()``-d view of the array.
+        Multi-valued substrates use :meth:`FactoredTPM.tpm_indices`
+        instead.
         """
         return tuple(np.where(np.array(self.shape[:-1]) == 2)[0])
 

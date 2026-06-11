@@ -21,15 +21,7 @@ state.
     >>> network = pyphi.examples.rule110_network()
     >>> state = (0, 0, 0)
 
-Next, we want to identify the spatial scale and major complex of the network:
-
-    >>> macro = pyphi.macro.emergence(network, state)
-    >>> print(macro.emergence)
-    -1.112671
-
-Since the emergence value is negative, there is no macro scale which has
-greater integrated information than the original micro scale. We can now
-analyze the micro scale to determine the major complex of the system:
+Next, let's determine the major complex of the system:
 
     >>> major_complex = pyphi.compute.major_complex(network, state)
     >>> major_complex.subsystem

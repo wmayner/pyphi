@@ -247,8 +247,8 @@ class Substrate:
 
         Returns an array of shape ``[a_1, ..., a_N, N]`` where each entry
         holds ``P(node_i = 1 | s_t)``. Used by ``to_json`` serialization,
-        AC's ``TransitionSystem``, the ``pyphi/macro.py`` legacy module, and
-        several tests. Raises ``ValueError`` for k-ary substrates because
+        AC's ``TransitionSystem``, and several tests. Raises
+        ``ValueError`` for k-ary substrates because
         SBN-form encodes only ``P(node=1|s_t)``, which has no k-ary
         generalization.
         """

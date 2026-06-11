@@ -294,11 +294,6 @@ def s_complete():
 
 
 @pytest.fixture()
-def s_noised_complete():
-    return example_substrates.s_noised_complete()
-
-
-@pytest.fixture()
 def big_subsys_all_complete():
     return example_substrates.big_subsys_all_complete()
 
@@ -361,16 +356,6 @@ def micro_s_expected_sia():
 @pytest.fixture()
 def micro_s_all_off():
     return example_substrates.micro_s_all_off()
-
-
-@pytest.fixture()
-def propagation_delay():
-    return example_substrates.propagation_delay()
-
-
-@pytest.fixture()
-def differentiation_example_micro_1():
-    return example_substrates.differentiation_example_micro_1()
 
 
 # Actual causation fixtures

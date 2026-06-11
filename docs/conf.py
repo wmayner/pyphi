@@ -227,7 +227,6 @@ rst_prolog = "".join(
 
 .. |network| replace:: :mod:`~pyphi.network`
 .. |subsystem| replace:: :mod:`~pyphi.subsystem`
-.. |macro| replace:: :mod:`~pyphi.macro`
 .. |convert| replace:: :mod:`~pyphi.convert`
 .. |examples| replace:: :mod:`~pyphi.examples`
 .. |node| replace:: :mod:`~pyphi.node`
@@ -280,12 +279,6 @@ rst_prolog = "".join(
 
 .. |Node| replace:: :class:`~pyphi.node.Node`
 .. |Nodes| replace:: :class:`~pyphi.node.Node`
-
-.. |MacroNetwork| replace:: :class:`~pyphi.macro.MacroNetwork`
-.. |MacroSubsystem| replace:: :class:`~pyphi.macro.MacroSubsystem`
-.. |CoarseGrain| replace:: :class:`~pyphi.macro.CoarseGrain`
-.. |CoarseGrains| replace:: :class:`~pyphi.macro.CoarseGrain`
-.. |Blackbox| replace:: :class:`~pyphi.macro.Blackbox`
 
 .. |Transition| replace:: :class:`~pyphi.actual.Transition`
 

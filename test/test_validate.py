@@ -5,7 +5,6 @@ from pyphi import Direction
 from pyphi import Substrate
 from pyphi import System
 from pyphi import exceptions
-from pyphi import macro
 from pyphi import validate
 from pyphi.core.tpm.joint_distribution import JointTPM
 
@@ -173,55 +172,6 @@ def test_validate_node_labels():
         validate.node_labels(["A", "A"], (0, 1))
 
 
-def test_validate_time_scale():
-    with pytest.raises(ValueError):
-        validate.time_scale(1.3)
-    with pytest.raises(ValueError):
-        validate.time_scale(-1)
-    with pytest.raises(ValueError):
-        validate.time_scale(0)
-    validate.time_scale(1)
-    validate.time_scale(2)
-    # ... etc
-
-
-def test_validate_coarse_grain():
-    # Good:
-    cg = macro.CoarseGrain(((2,), (3,)), (((0,), (1,)), (((0,), (1,)))))
-    validate.coarse_grain(cg)
-
-    # Mismatched output and state lengths
-    cg = macro.CoarseGrain(((2,),), (((0,), (1,)), (((0,), (1,)))))
-    with pytest.raises(ValueError):
-        validate.coarse_grain(cg)
-
-    # Missing 1-node-on specification in second state grouping
-    cg = macro.CoarseGrain(((2,), (3,)), (((0,), (1,)), (((0,), ()))))
-    with pytest.raises(ValueError):
-        validate.coarse_grain(cg)
-
-    # Two partitions contain same element
-    cg = macro.CoarseGrain(((5,), (5,)), (((0,), (1,)), (((0,), (1,)))))
-    with pytest.raises(ValueError):
-        validate.coarse_grain(cg)
-
-
-def test_validate_blackbox():
-    validate.blackbox(macro.Blackbox(((0, 1),), (1,)))
-
-    # Unsorted output indices
-    with pytest.raises(ValueError):
-        validate.blackbox(macro.Blackbox(((0, 1),), (1, 0)))
-
-    # Two boxes may not contain the same elements
-    with pytest.raises(ValueError):
-        validate.blackbox(macro.Blackbox(((0,), (0, 1)), (0, 1)))
-
-    # Every box must have an output
-    with pytest.raises(ValueError):
-        validate.blackbox(macro.Blackbox(((0,), (1,)), (0,)))
-
-
 def test_validate_relata_empty():
     with pytest.raises(ValueError):
         validate.relata([])
@@ -229,36 +179,3 @@ def test_validate_relata_empty():
 
 def test_validate_relata_nonempty():
     validate.relata([object()])
-
-
-def test_validate_partition():
-    # Micro-element appears in two macro-elements
-    with pytest.raises(ValueError):
-        validate.partition(((0,), (0, 1)))
-
-
-def test_validate_blackbox_and_coarsegrain():
-    blackbox = None
-    coarse_grain = macro.CoarseGrain(((0, 1), (2,)), ((0, 1), (2,)))
-    validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
-
-    blackbox = macro.Blackbox(((0, 1), (2,)), (0, 2))
-    coarse_grain = None
-    validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
-
-    blackbox = macro.Blackbox(((0, 1), (2,)), (0, 1, 2))
-    coarse_grain = macro.CoarseGrain(((0, 1), (2,)), ((0, 1), (2,)))
-    validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
-
-    # Blackboxing with multiple outputs must be coarse-grained
-    blackbox = macro.Blackbox(((0, 1), (2,)), (0, 1, 2))
-    coarse_grain = None
-    with pytest.raises(ValueError):
-        validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
-
-    # Coarse-graining does not group multiple outputs of a box into the same
-    # macro element
-    blackbox = macro.Blackbox(((0, 1), (2,)), (0, 1, 2))
-    coarse_grain = macro.CoarseGrain(((0,), (1, 2)), ((0, 1), (2,)))
-    with pytest.raises(ValueError):
-        validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
