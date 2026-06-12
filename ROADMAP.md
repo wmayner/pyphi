@@ -1673,14 +1673,14 @@ test inventory — that a deliberate re-ordering pass is in order.
     - **SP3 — reference goldens** *(landed; spec ``9cc97a2``, plan
       ``db1d12a``, implementation ``bd92169``..``27ff5c3``)*: the ten
       result sets from the authors' repository (commit ``48471b5d``)
-      committed verbatim under ``test/data/marshall2024/`` and frozen
-      as regression goldens in ``test/test_marshall_goldens.py``:
+      committed verbatim under ``test/data/intrinsic_units/`` and frozen
+      as regression goldens in ``test/test_macro_goldens.py``:
       fast micro sweeps (cg/min/sfn/sfnn/sfs, 63 values), the bu
       documented-deviation battery (pins both the stale committed
       zeros and the consistent convention's values), the bbx sweep
       tiered by measured cost (sizes 1-4 and the 60 reducible large
       subsystems in the slow lane; the 29 irreducible large values
-      opt-in via ``PYPHI_MARSHALL_FULL_SWEEP`` -- hours), and the
+      opt-in via ``PYPHI_MACRO_FULL_SWEEP`` -- hours), and the
       macro-network goldens from the authors' macro TPMs. The
       committed ``*_macro`` values are subsystems of standalone macro
       *networks* (macro-level background conditioning), a different

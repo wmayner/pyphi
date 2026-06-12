@@ -1,7 +1,7 @@
 """Regression goldens from Marshall et al. 2024's committed result sets.
 
 The expected values are parsed from the authors' verbatim
-``summary.txt`` files in ``test/data/marshall2024/`` (see that
+``summary.txt`` files in ``test/data/intrinsic_units/`` (see that
 directory's README for provenance and the known upstream
 discrepancies). Micro sets are reproduced with ``System`` over the
 example substrates; macro sets with ``System`` over substrates built
@@ -34,7 +34,7 @@ from test.test_macro_search import dancing_couples
 from test.test_macro_tpm import CG_TPM
 from test.test_macro_tpm import _bbx_micro_tpm
 
-DATA_DIR = Path(__file__).parent / "data" / "marshall2024"
+DATA_DIR = Path(__file__).parent / "data" / "intrinsic_units"
 
 # Greek characters used in the data files, kept out of source literals.
 PHI = "\u03c6"
@@ -228,9 +228,9 @@ class TestBbxSweepLargeReducible:
 
 @pytest.mark.slow
 @pytest.mark.skipif(
-    not os.environ.get("PYPHI_MARSHALL_FULL_SWEEP"),
+    not os.environ.get("PYPHI_MACRO_FULL_SWEEP"),
     reason="irreducible large bbx subsystems cost minutes-to-tens-of-"
-    "minutes each (hours total); set PYPHI_MARSHALL_FULL_SWEEP=1 to run",
+    "minutes each (hours total); set PYPHI_MACRO_FULL_SWEEP=1 to run",
 )
 class TestBbxSweepLargeIrreducible:
     """Sizes 5-8 with genuinely nonzero committed values (29 values)."""

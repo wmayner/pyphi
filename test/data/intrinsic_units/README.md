@@ -21,7 +21,7 @@ macro *networks* built from their macro TPMs (macro-level background
 conditioning — **not** the intrinsic-units candidate-system
 construction; see `pyphi.macro`).
 
-These files are consumed by `test/test_marshall_goldens.py`.
+These files are consumed by `test/test_macro_goldens.py`.
 
 ## Known upstream discrepancies (do not "fix" the files)
 
