@@ -651,3 +651,41 @@ class TestEvaluateSystems:
             with config.override(parallel=True):
                 _evaluate_systems(systems, memo, enabled)
         assert [memo[s] for s in systems] == reference
+
+
+def _results_equal(a, b):
+    """Field-identical ComplexesResult, including record order and
+    bitwise phi."""
+    assert a.complexes == b.complexes
+    assert a.ties == b.ties
+    assert [r.system for r in a.records] == [r.system for r in b.records]
+    assert [float(r.phi) for r in a.records] == [float(r.phi) for r in b.records]
+
+
+class TestParallelEquivalenceSweep:
+    """The P(u) sweep under the macro parallel option reproduces the
+    sequential ComplexesResult exactly."""
+
+    def test_min_exhaustive_driver(self):
+        bounds = SearchBounds(mappings="EXHAUSTIVE")
+        enabled = {"parallel": True, "sequential_threshold": 1, "chunksize": 1}
+        with config.override(**presets.iit4_2023):
+            sequential = complexes(min_substrate(), (0, 0), bounds)
+            with config.override(parallel=True):
+                parallel = complexes(
+                    min_substrate(), (0, 0), bounds, parallel_kwargs=enabled
+                )
+        _results_equal(sequential, parallel)
+
+    def test_tie_path_driver(self):
+        bounds = SearchBounds(max_constituents=2)
+        enabled = {"parallel": True, "sequential_threshold": 1, "chunksize": 1}
+        with config.override(**presets.iit4_2023):
+            sequential = complexes(tie_substrate(), (0, 0, 0), bounds)
+            with config.override(parallel=True):
+                parallel = complexes(
+                    tie_substrate(), (0, 0, 0), bounds, parallel_kwargs=enabled
+                )
+        _results_equal(sequential, parallel)
+        assert parallel.complexes == ()
+        assert len(parallel.ties) == 1

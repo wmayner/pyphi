@@ -531,7 +531,9 @@ def _derive_units(
     return tuple(pool), tuple(verdicts)
 
 
-def _f_for_unit(substrate, unit, V, micro_history, bounds, memo, system_cache):
+def _f_for_unit(
+    substrate, unit, V, micro_history, bounds, memo, system_cache, parallel_kwargs=None
+):
     pool, _ = _derive_units(
         substrate,
         micro_history,
@@ -541,6 +543,21 @@ def _f_for_unit(substrate, unit, V, micro_history, bounds, memo, system_cache):
         within=unit.micro_constituents,
         proper=True,
     )
+    fp = set(unit.micro_constituents)
+    allowed = set(unit.background_apportionment)
+    members = [
+        u
+        for u in pool
+        if set(u.micro_constituents) < fp
+        and set(u.background_apportionment) <= allowed
+    ]
+    own = canonical_units(V)
+    to_eval = [_system_of_cached(substrate, V, micro_history, system_cache)]
+    for combo in _assemble_systems(members, bounds.max_background):
+        if canonical_units(combo) == own:
+            continue
+        to_eval.append(_system_of_cached(substrate, combo, micro_history, system_cache))
+    _evaluate_systems(to_eval, memo, parallel_kwargs)
     return _f(
         substrate,
         V,
@@ -559,6 +576,7 @@ def competing_systems(
     unit: MacroUnit,
     micro_history,
     bounds: SearchBounds = _DEFAULT_BOUNDS,
+    parallel_kwargs: dict | None = None,
 ) -> tuple[MacroSystem, ...]:
     """``f(U^J, W^J)`` materialized within the unit's footprint (Eq. 16)."""
     history = _normalized_history(
@@ -572,7 +590,7 @@ def competing_systems(
     return tuple(
         system
         for system, _ in _f_for_unit(
-            substrate, unit, V, history, bounds, memo, system_cache
+            substrate, unit, V, history, bounds, memo, system_cache, parallel_kwargs
         )
     )
 
@@ -582,6 +600,7 @@ def is_intrinsic_unit(
     unit: MacroUnit,
     micro_history,
     bounds: SearchBounds = _DEFAULT_BOUNDS,
+    parallel_kwargs: dict | None = None,
 ) -> UnitVerdict:
     """Eqs. 15-16 for one candidate; micro units return VALID trivially.
 
@@ -598,8 +617,10 @@ def is_intrinsic_unit(
         _, phi = _phi(substrate, (unit,), history, memo, system_cache)
         return _trivial_verdict(phi)
     V = canonical_units(_as_unit(c) for c in unit.constituents)
+    competitors = _f_for_unit(
+        substrate, unit, V, history, bounds, memo, system_cache, parallel_kwargs
+    )
     _, phi = _phi(substrate, V, history, memo, system_cache)
-    competitors = _f_for_unit(substrate, unit, V, history, bounds, memo, system_cache)
     return judge_candidate(0.0 if phi is None else phi, competitors)
 
 
@@ -685,17 +706,21 @@ def complexes(
     substrate: Substrate,
     micro_history,
     bounds: SearchBounds = _DEFAULT_BOUNDS,
+    parallel_kwargs: dict | None = None,
 ) -> ComplexesResult:
     """Eq. 19 over the bounded candidate space -- the one-call driver."""
     history = _normalized_history(substrate, micro_history, bounds.max_micro_grain)
     memo: dict[MacroSystem, PyPhiFloat] = {}
     system_cache: dict[tuple, MacroSystem | None] = {}
     units, _ = _derive_units(substrate, history, bounds, memo, system_cache)
-    evaluated: list[tuple[MacroSystem, PyPhiFloat]] = []
-    for combo in _assemble_systems(list(units), bounds.max_background):
-        system, phi = _phi(substrate, combo, history, memo, system_cache)
-        if system is not None and phi is not None:
-            evaluated.append((system, phi))
+    sweep_systems = [
+        _system_of_cached(substrate, combo, history, system_cache)
+        for combo in _assemble_systems(list(units), bounds.max_background)
+    ]
+    _evaluate_systems(sweep_systems, memo, parallel_kwargs)
+    evaluated: list[tuple[MacroSystem, PyPhiFloat]] = [
+        (system, memo[system]) for system in sweep_systems if system is not None
+    ]
     footprints = [
         set(_system_micro_indices(system.units)) for system, _ in evaluated
     ]
