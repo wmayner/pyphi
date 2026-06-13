@@ -244,8 +244,10 @@ def _evaluate_one(system: MacroSystem) -> float:
     """
     from pyphi.conf import config as _config
 
+    phi = 0.0
     with _config.override(parallel=False):
-        return float(system.sia().phi)
+        phi = float(system.sia().phi)
+    return phi
 
 
 def _evaluate_systems(systems, memo, parallel_kwargs=None) -> None:
