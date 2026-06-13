@@ -723,3 +723,44 @@ class TestParallelEquivalenceRecursion:
         assert [v.verdict.phi for v in seq.verdicts] == [
             v.verdict.phi for v in par.verdicts
         ]
+
+
+class TestParallelGating:
+    def test_default_config_runs_in_process(self, monkeypatch):
+        # With the global switch off (the default), the driver must not
+        # dispatch to a process pool: MapReduce is never constructed
+        # (it is imported lazily from pyphi.parallel inside the helper).
+        import pyphi.parallel
+
+        def _boom(*args, **kwargs):
+            raise AssertionError("MapReduce should not run under global parallel=False")
+
+        monkeypatch.setattr(pyphi.parallel, "MapReduce", _boom)
+        with config.override(**presets.iit4_2023):
+            result = complexes(
+                min_substrate(), (0, 0), SearchBounds(mappings="EXHAUSTIVE")
+            )
+        assert len(result.complexes) == 1
+
+
+@pytest.mark.slow
+class TestParallelCostGuard:
+    """The default-bounds cg driver under the parallel option matches
+    the sequential SP2 golden exactly."""
+
+    def test_cg_driver_parallel_matches_golden(self):
+        enabled = {"parallel": True, "sequential_threshold": 1}
+        with config.override(**presets.iit4_2023):
+            substrate = Substrate(CG_TPM, node_labels=("A", "B", "C", "D"))
+            sequential = complexes(substrate, (0, 0, 0, 0))
+            with config.override(parallel=True):
+                parallel = complexes(substrate, (0, 0, 0, 0), parallel_kwargs=enabled)
+        _results_equal(sequential, parallel)
+        assert len(parallel.complexes) == 1
+        winner = parallel.complexes[0]
+        assert winner.units == (
+            MacroUnit((0, 1), 1, (0, 0, 0, 1)),
+            MacroUnit((2, 3), 1, (0, 0, 0, 1)),
+        )
+        phis = {r.system: r.phi for r in parallel.records}
+        assert phis[winner] == pytest.approx(1.0040208141253277, abs=1e-13)

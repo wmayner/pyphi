@@ -227,3 +227,26 @@ Every ``phi_s`` evaluation in a driver run is memoized, and
 inspectable: :func:`pyphi.macro.intrinsic_units` returns the unit pool
 with one verdict per judged decomposition, and
 :func:`pyphi.macro.valid_systems` the admissible-system set.
+
+Parallelism
+-----------
+
+A search reduces to many independent ``MacroSystem.sia()`` evaluations,
+which can run across processes. Enable it by turning on the global
+switch and the search's own per-site option, or pass ``parallel_kwargs``
+to a driver for a one-off:
+
+    >>> with config.override(
+    ...     parallel=True,
+    ...     parallel_macro_system_evaluation={"parallel": True},
+    ... ):
+    ...     result = complexes(substrate4, (0, 0, 0, 0))  # doctest: +SKIP
+
+Results are identical to a sequential run — same complexes, ties, and
+records in the same order. Within a worker the per-evaluation
+``sia`` runs sequentially (search-level parallelism is one process-pool
+deep); for a single very large evaluation, leave the search-level
+option off and let the partition-level parallelism inside ``sia`` do
+the work instead. The benefit grows with the number of comparably
+sized evaluations — large substrates and ``EXHAUSTIVE`` sweeps — and is
+slight for small searches dominated by one expensive system.
