@@ -565,3 +565,35 @@ def test_public_surface_importable():
         "valid_systems",
     ):
         assert hasattr(macro, name)
+
+
+class TestMacroParallelConfig:
+    def test_option_exists_with_family_defaults(self):
+        from collections.abc import Mapping
+
+        from pyphi import config
+
+        option = config.infrastructure.parallel_macro_system_evaluation
+        assert isinstance(option, Mapping)
+        assert option["parallel"] is False
+        assert option["sequential_threshold"] == 2**4
+        assert option["chunksize"] == 2**6
+
+    def test_global_switch_gates_the_option(self):
+        # With the global switch off, the option's own parallel flag is
+        # forced off (an explicit per-call override still wins, matching
+        # the rest of the parallel-option family).
+        from pyphi import conf
+        from pyphi import config
+
+        enabled = {
+            "parallel": True,
+            "sequential_threshold": 1,
+            "chunksize": 1,
+            "progress": False,
+        }
+        with config.override(parallel=False):
+            gated = conf.parallel_kwargs(enabled)
+            overridden = conf.parallel_kwargs(enabled, parallel=True)
+        assert gated["parallel"] is False
+        assert overridden["parallel"] is True
