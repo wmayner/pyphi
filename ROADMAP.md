@@ -13,7 +13,7 @@
 
 ### ✅ Landed (verified 2026-06-13)
 
-P0 · P1 · P2 · P3 · P4 · P5 · P6 · P6a · P7 · **P8** (incl. `PhiFold`) · P9 · P10 · P10b · P10c · **P11 core** (Scheduler Protocol + Process/Thread schedulers + cost-sampling chunking + config-snapshot propagation) · P11.5 · P11.6 · P11.7 · **P11.8 Tier 1** · P11.9 · P11.85 · P11.86 · P11.87 · P11.88 · P11.95a · P11.95b · P11.95d · P11.95e · **P12** (factored TPM + multivalued units, incl. AC k-ary) · P14 · **P14b core** (sub-projects 1–4) · P14d (sub-projects B + A-1..A-4) · **Macro / Marshall-2024 intrinsic units** (SP1 + SP2 + SP3 + search parallelization) · **N2** (parallel≡sequential invariant) · **P11 loky-flake** (root-caused to the P9 cache-registry leak; confirmed resolved, N2 guards it) · **B1** (runtime bound-certificate assertions; `validate_phi_bounds`, on suite-wide) · **P13 SP2** (bite-rate study: bounds don't prune in the certified domain → no pruning built, SP1 is the deliverable) · **Eq-23 cap MIP-selection fix** (cap no longer shifts the system MIP; 2026 φ ≤ 2023 φ restored — found via B5) · **B9** (decimal precision oracle: GID/information-density primitives well-conditioned to ≤1 ULP — no catastrophic cancellation, no guard needed) · **B4** (Eq-23 cap differential oracle; cap-biting network = `logistic3_k8`, asserted to strictly bind — the network N1/P17 need)
+P0 · P1 · P2 · P3 · P4 · P5 · P6 · P6a · P7 · **P8** (incl. `PhiFold`) · P9 · P10 · P10b · P10c · **P11 core** (Scheduler Protocol + Process/Thread schedulers + cost-sampling chunking + config-snapshot propagation) · P11.5 · P11.6 · P11.7 · **P11.8 Tier 1** · P11.9 · P11.85 · P11.86 · P11.87 · P11.88 · P11.95a · P11.95b · P11.95d · P11.95e · **P12** (factored TPM + multivalued units, incl. AC k-ary) · P14 · **P14b core** (sub-projects 1–4) · P14d (sub-projects B + A-1..A-4) · **Macro / Marshall-2024 intrinsic units** (SP1 + SP2 + SP3 + search parallelization) · **N2** (parallel≡sequential invariant) · **P11 loky-flake** (root-caused to the P9 cache-registry leak; confirmed resolved, N2 guards it) · **B1** (runtime bound-certificate assertions; `validate_phi_bounds`, on suite-wide) · **P13 SP2** (bite-rate study: bounds don't prune in the certified domain → no pruning built, SP1 is the deliverable) · **Eq-23 cap MIP-selection fix** (cap no longer shifts the system MIP; 2026 φ ≤ 2023 φ restored — found via B5) · **B9** (decimal precision oracle: GID/information-density primitives well-conditioned to ≤1 ULP — no catastrophic cancellation, no guard needed) · **B4** (Eq-23 cap differential oracle; cap-biting network = `logistic3_k8`, asserted to strictly bind — the network N1/P17 need) · **CES-completeness search** (brute force settles P11.95c case (b)'s open theory: the CES is **not** a complete substrate invariant in general — non-isomorphic substrates share an identical CES, down to repertoires/relations, whenever a unit is left unconstrained — but it **is** complete on *complexes*: 0 counterexamples among irreducible systems, n=2 exhaustive + n=3 sampled; `test/test_ces_completeness.py`)
 
 ### ⬜🟡 Remaining 2.0 work — *the schedule lives in [Remaining 2.0 Work](#remaining-20-work)*
 
@@ -21,7 +21,6 @@ P0 · P1 · P2 · P3 · P4 · P5 · P6 · P6a · P7 · **P8** (incl. `PhiFold`) 
 |---|---|---|---|
 | p53-Mdm2 golden | ⬜ open | 1 | Reproduce Gómez 2021 network; land as a further k>2 golden if it matches |
 | N1 paper-reproduction suite | ⬜ open | 1 | Comprehensive paper-reproduction acceptance suite as a CI gate (subsumes p53; yields P17's 2026-cap network) |
-| CES-completeness search | ⬜ open | 1 | Brute-force whether CES is a complete substrate invariant (decides P11.95c-b) |
 | B5 cross-formalism diff testing | 🟡 partial | 1 | Core invariants landed (`2026≤2023` — caught+fixed an Eq-23 cap MIP-selection bug; "3.0/4.0 agree on reducibility" **refuted**). Remaining: AC/IIT sign invariant + `b3aaa3e5` 4.0 byte-match |
 | cause/effect rename | ⬜ open | 2 | Rename `cause_tpm`/`effect_tpm` to paper-faithful names (public API → pre-freeze) |
 | N8 provenance stamp | ⬜ open | 2 | Provenance record on every result (version, git sha, seed, wall-time) extending the P10 config snapshot |
@@ -51,7 +50,7 @@ P0 · P1 · P2 · P3 · P4 · P5 · P6 · P6a · P7 · **P8** (incl. `PhiFold`) 
 | Item | Blocker |
 |---|---|
 | P14c | Second AC formalism (4.0-style α) — unsettled theory **and** awaiting a collaborator's notes; no reference implementation |
-| P11.95c case (b) (impl) | Open theory: is CES a complete invariant of the substrate? *(the cheap test of this is Wave 1)* |
+| P11.95c case (b) (impl) | Theory **resolved** (Wave-1 CES-completeness search): CES is incomplete in general but complete on *complexes*; every counterexample is a reducible system, so the opt-in `intrinsic_equivalence` API addresses only a degenerate regime → low-value research, post-2.0 |
 | P16 | Approximation framework — research direction; its one near slice (Zaeemzadeh bounded-exact) is gated on P13 SP2 |
 | AC default-flip | `noise_background` default — breaking change + unsettled AC background-condition semantics |
 
@@ -74,7 +73,7 @@ P0 · P1 · P2 · P3 · P4 · P5 · P6 · P6a · P7 · **P8** (incl. `PhiFold`) 
 ### Wave 1 — Confirmation experiments & correctness *(cheap, parallel; several are "don't defer confirmation experiments")*
 
 - **p53-Mdm2 golden.** Reconstruct the Gómez et al. 2021 p53-Mdm2 network (Table 1, multi-state nodes); if PyPhi reproduces the paper's Φ within `precision`, land it as a further k>2 golden alongside the three synthetic ones.
-- **CES-completeness search.** Brute-force small-n for non-isomorphic substrate pairs with matching CES, to settle whether CES is a complete invariant of the substrate. Cheap, and it decides whether P11.95c case (b) is empty (so (a)+(c) suffice) or a genuine distinct case.
+- **CES-completeness search — landed (2026-06-13, `test/test_ces_completeness.py`).** Brute force on small binary substrates settled the open theory question gating P11.95c case (b). **Finding:** the CES is **not** a complete invariant of the substrate *in general* — non-isomorphic substrates can share an identical CES (down to repertoires and relations, under node relabeling) whenever a unit is left unconstrained by the structure (a causally inert unit, or a unit specifying no distinction at the evaluated state); concrete n=2 counterexamples are pinned. **But** restricted to *irreducible* systems — the complexes a CES is properly the structure of — **no counterexample is found** (n=2 exhaustive: 132 complexes, all distinct CES fingerprints; n=3 sampled: 250 complexes, 250 distinct). So case (b) is formally non-empty (the "open theory" blocker is removed), yet its only witnesses are reducible (Φ_s = 0) systems; on complexes, substrate canonicalization (a)+(c) suffices and the opt-in `intrinsic_equivalence` API is low-value. The fingerprint matches the roadmap's case-(b) CES-as-labeled-structure definition and uses specified-state *tie sets* so tie-resolution labelling cannot manufacture spurious differences.
 - **N1 — paper-reproduction acceptance suite (CI gate).** Systematically reproduce every published worked example (IIT 4.0 Figs 1/2/4/6/7, Marshall 2024, AC 2019 Fig. 11, Gómez p53) with pinned expected values, wired in as a CI gate. Subsumes the p53-Mdm2 golden above and *yields the network that exercises the 2026 ii-cap with non-zero φ* that P17 (Wave 6) needs. *(Promoted from the wishlist.)* **P11.95e fallout (2026-06-13):** the IIT 3.0 `rule110`/`grid3` `sia.phi` goldens depend on the `PURVIEW_SIZE` purview tie-break (the audit proved it load-bearing for system φ) yet lack an independent reference — only `basic`/`basic_tri` carry canonical values. Reproducing them against a correctly-invoked PyPhi 1.x 3.0 SIA belongs here.
 - **B5 — cross-formalism / pre-refactor differential testing (partial — follow-ons remain).** *Landed (2026-06-13, `test/test_cross_formalism_invariants.py`):* the `φ_2026 ≤ φ_2023` Hypothesis invariant — which **caught a real Eq-23 cap MIP-selection bug** (the cap was applied per-partition inside the system-MIP search, shifting the MIP so 2026 φ could exceed 2023 φ; now fixed, MIP selected on uncapped φ and capped once) — plus the **refutation** of the hypothesized "3.0/4.0 agree on reducibility" invariant (they disagree on ~70% of random reachable small substrates; a reachable witness is pinned). *Remaining:* the AC/IIT sign-agreement invariant (AC is a separate subsystem with an unsettled cross-formalism relation), and a 4.0-only byte-match against the `b3aaa3e5` pre-refactor oracle (reachable after `git fetch --unshallow`; its `compute.phi` is **not** a valid IIT 3.0 SIA — `basic` → 0 — so a 3.0 byte-match needs a genuine PyPhi 1.x oracle, but the 4.0 byte-match is viable).
 
@@ -84,7 +83,7 @@ P0 · P1 · P2 · P3 · P4 · P5 · P6 · P6a · P7 · **P8** (incl. `PhiFold`) 
 - **N8 — provenance stamp on results.** Extend the P10 per-result config snapshot to a full provenance record (pyphi version, git sha, RNG seed, wall-time, host) on every top-level result object. It adds a public field, so it lands before the freeze; supports reproducible re-runs and pairs with N4 (the disk-backed result cache). *(Promoted from the wishlist.)*
 - **P14b tail — environment generation + analytical projection.** *Env-gen:* port the matching-repo world/stimulus generators (`stationary_distribution`, Metropolis Ising sampler, segment/point + temporal stimulus sequences) so `MatchingAnalysis` works without a hand-supplied world distribution. *Analytical projection:* land the closed-form differentiation (φ-maximized) projection (derivation in the archive; `2^K−1` calls to `sum_of_minimum`), cross-validated against the concrete oracle. The perception-maximized projection for matching M stays open research.
 - **P14d — `to_pandas` consolidation (+ A-5 viz).** Unify the per-class `ToPandasMixin` into one labeled-export story (consistent index schema, units-as-labels), reconciled with the matching `TriggeredTPM.to_pandas()` provisional surface — done before the freeze so P15 doesn't freeze an inconsistent surface. A-5 (faithful viz of relation faces of degree ≥4, star/incidence-expansion default) is lower priority.
-- **P11.95c (a)+(c) — substrate canonicalization.** Add `pyphi/automorphism.py` (pynauty-backed): `substrate_automorphisms`, `substrate_canonical_form`, `are_substrates_isomorphic` — shipped first as a non-invasive sidecar so outputs/tests can be made label-independent without touching the SIA hot path. Un-xfails `test_sia_per_direction_phi_multiset_symmetric`. *Open principle to confirm during planning: is the per-direction asymmetry a bug to fix, or expected? Case (b) stays out pending the Wave-1 completeness result.*
+- **P11.95c (a)+(c) — substrate canonicalization.** Add `pyphi/automorphism.py` (pynauty-backed): `substrate_automorphisms`, `substrate_canonical_form`, `are_substrates_isomorphic` — shipped first as a non-invasive sidecar so outputs/tests can be made label-independent without touching the SIA hot path. Un-xfails `test_sia_per_direction_phi_multiset_symmetric`. *Open principle to confirm during planning: is the per-direction asymmetry a bug to fix, or expected? Case (b) stays out — the Wave-1 CES-completeness search settled it: CES is complete on complexes, so (a)+(c) suffice for the regime that matters; the residual incompleteness is reducible-system-only.*
 - **P6b — graphillion → OxiDD.** Reimplement the `setset` family algebra (`powerset_family`, `set_size_family`, …) behind a `ZDDFamily` Protocol with OxiDD as default and graphillion retained as a one-release fallback. Removes the bus-factor-1 dependency, closes the last no-GIL gap (the relations path — unblocking P6a's full no-GIL CI lane and P11's thread scheduler for relations), and drops the macOS `libomp` source-build. Pin the reimplemented `set_size_family(k)` with Hypothesis tests on partition counts. *Accepted risk: OxiDD is younger; the fallback caps the downside.*
 - **B7 — unified `PartitionAlgebra` (directed edge-set `Cut`).** Canonicalize every partition scheme's output as a directed bipartite edge-set with total `removed_edges()` / `num_connections_cut()` and a partial order, making partition-edge introspection one code path and killing the `except AttributeError: return None` fragility in distinction-φ normalization; display classes become thin views. Builds on P6's landed `Cut → DirectedBipartite` consolidation — *scope-check how much already exists post-P6 first.* Highest refactor surface of the Wave-2 adds; the foundation B1/B2/B3 read from. *(Brainstorm B7.)*
 - **B13 — eager config-combination validator.** A declarative registry of `ConfigConstraints` (e.g. EMD needs `precision ≤ 6`; the `INTRINSIC_INFORMATION` cap is inert outside 4.0_2026; IIT 3.0 + a 4.0-only system measure) evaluated on `override`/load and at compute entry, raising `ConfigurationError` naming the two conflicting fields + a concrete fix; an enumeration test forces every registered combo to be classified. Turns silent-wrong-answers into loud errors. Ship permissive/overridable to avoid false rejections. *(Brainstorm B13.)*
@@ -2048,18 +2047,44 @@ test inventory — that a deliberate re-ordering pass is in order.
     (as labeled structure up to substrate relabeling) imply there
     exists a substrate isomorphism ``π`` with ``π(S1) = S2``? The
     ``←`` direction is trivial. The ``→`` direction is the load-
-    bearing claim for case (b) being empty vs. non-empty. The CES
-    is built from a very rich set of intrinsic-information
-    computations (paper Eqs 5, 7, 19-23, 34-47); intuition says CES
-    uniquely determines substrate up to isomorphism, but I have no
-    proof and the analogous "graph reconstruction" problems in
-    combinatorics have open cases. **Before committing implementation
-    effort to (b), settle this question** — either by proof, by
-    counterexample construction (search for non-isomorphic substrate
-    pairs with matching CES via brute force on small n), or by
-    citing existing literature. If CES is a complete invariant,
-    case (a) suffices and (b) is empty; otherwise (b) is a genuine
-    distinct case warranting an opt-in API.
+    bearing claim for case (b) being empty vs. non-empty.
+
+    **RESOLVED (2026-06-13, Wave-1 CES-completeness search;
+    ``test/test_ces_completeness.py``).** The intuition that the CES
+    uniquely determines the substrate up to isomorphism is **refuted
+    in general** but **upheld on complexes**. Brute force on small
+    binary substrates (state-by-node, all-ones connectivity), with a
+    label-independent CES fingerprint — each distinction a vertex
+    (mechanism, cause/effect purview + specified-state *tie set*,
+    cause/effect φ), each relation an edge (relata, purview, φ),
+    minimised over node permutations — found:
+
+    - *In general the ``→`` direction fails.* Non-isomorphic
+      substrates can share an identical CES (identical down to
+      repertoires and relations under relabeling). The coincidence
+      arises whenever the structure leaves a unit unconstrained: a
+      causally inert (constant) unit is invisible to the CES, and a
+      unit that specifies no distinction at the evaluated state leaves
+      its transition rows free to vary. n=2 exhaustive yields concrete
+      counterexamples even among fully-active, full-support substrates;
+      two are pinned as regression fixtures.
+    - *On complexes the ``→`` direction holds (empirically).*
+      Restricted to irreducible systems (``Φ_s > 0`` — the objects a
+      CES is properly the structure of), **no counterexample is
+      found**: n=2 exhaustive (132 complexes → 132 distinct
+      fingerprints) and n=3 sampled (250 complexes → 250 distinct).
+      Every counterexample is a reducible system.
+
+    **Consequence for case (b):** the blocker was the open theory, now
+    settled, so case (b) is formally non-empty. But its only witnesses
+    are reducible (non-complex) systems; for the canonicalization
+    use-case — comparing CESes of complexes — case (a) substrate
+    isomorphism suffices and the opt-in ``intrinsic_equivalence`` API
+    addresses only a degenerate regime. Case (b) therefore stays out
+    of 2.0 as low-value research, not theory-blocked. (A proof that
+    CES is complete on complexes, and a precise characterization of
+    the reducible-system incompleteness, remain open for the
+    literature.)
 
     Computing the CES-graph-isomorphism check is doable but expensive
     (CES sizes can be in the thousands of distinctions for n=6+); it
