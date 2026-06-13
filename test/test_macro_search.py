@@ -597,3 +597,57 @@ class TestMacroParallelConfig:
             overridden = conf.parallel_kwargs(enabled, parallel=True)
         assert gated["parallel"] is False
         assert overridden["parallel"] is True
+
+
+class TestEvaluateSystems:
+    """The shared batch-evaluation helper that drives parallelism."""
+
+    def _min_systems(self):
+        sub = min_substrate()
+        state = (0, 0)
+        tables = [(0, 0, 0, 1), (0, 1, 1, 1), (0, 1, 1, 0)]
+        return [
+            MacroSystem.from_micro(sub, (MacroUnit((0, 1), 1, t),), (state,))
+            for t in tables
+        ]
+
+    def test_in_process_matches_direct_sia_and_order(self):
+        from pyphi.macro.search import _evaluate_systems
+
+        systems = self._min_systems()
+        with config.override(**presets.iit4_2023):
+            reference = [s.sia().phi for s in systems]
+            memo = {}
+            _evaluate_systems(systems, memo, None)
+        assert [memo[s] for s in systems] == reference
+
+    def test_dedups_against_memo_and_within_batch(self):
+        from pyphi.data_structures.pyphi_float import PyPhiFloat
+        from pyphi.macro.search import _evaluate_systems
+
+        systems = self._min_systems()
+        with config.override(**presets.iit4_2023):
+            memo = {systems[0]: PyPhiFloat(123.0)}  # sentinel: must not recompute
+            _evaluate_systems([systems[0], systems[1], systems[1]], memo, None)
+        assert memo[systems[0]] == 123.0  # untouched
+        assert systems[1] in memo
+
+    def test_empty_input_is_noop(self):
+        from pyphi.macro.search import _evaluate_systems
+
+        memo = {}
+        _evaluate_systems([], memo, None)
+        _evaluate_systems([None, None], memo, None)
+        assert memo == {}
+
+    def test_parallel_path_matches_sequential(self):
+        from pyphi.macro.search import _evaluate_systems
+
+        systems = self._min_systems()
+        enabled = {"parallel": True, "sequential_threshold": 1, "chunksize": 1}
+        with config.override(**presets.iit4_2023):
+            reference = [s.sia().phi for s in systems]
+            memo = {}
+            with config.override(parallel=True):
+                _evaluate_systems(systems, memo, enabled)
+        assert [memo[s] for s in systems] == reference

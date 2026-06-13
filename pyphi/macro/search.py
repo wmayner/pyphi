@@ -233,6 +233,60 @@ def _phi(substrate, units, micro_history, memo, system_cache):
     return system, memo[system]
 
 
+def _evaluate_one(system: MacroSystem) -> float:
+    """Worker entry: ``phi_s`` of one system.
+
+    The inner ``sia`` is forced sequential so search-level parallelism
+    stays one process-pool deep (nested pools merely oversubscribe).
+    This runs only on the parallel-dispatch path; the in-process path
+    of :func:`_evaluate_systems` leaves ``sia`` under the ambient
+    config, preserving per-evaluation partition parallelism.
+    """
+    from pyphi.conf import config as _config
+
+    with _config.override(parallel=False):
+        return float(system.sia().phi)
+
+
+def _evaluate_systems(systems, memo, parallel_kwargs=None) -> None:
+    """Evaluate ``systems`` and merge ``phi_s`` into ``memo`` in order.
+
+    Systems already in the memo, duplicates within the batch, and
+    ``None`` (unreachable) entries are skipped. The surviving systems
+    are evaluated in dispatch order -- in parallel when the macro
+    option is enabled, otherwise in-process under the ambient config --
+    and inserted into the memo in that same order, so a parallel run's
+    memo (and every result derived from it) is identical to a
+    sequential one's.
+    """
+    from pyphi import conf as _conf
+    from pyphi.conf import config as _config
+    from pyphi.parallel import MapReduce
+
+    pending: list[MacroSystem] = []
+    seen: set[MacroSystem] = set()
+    for system in systems:
+        if system is None or system in memo or system in seen:
+            continue
+        seen.add(system)
+        pending.append(system)
+    if not pending:
+        return
+    pkwargs = _conf.parallel_kwargs(
+        _config.infrastructure.parallel_macro_system_evaluation,
+        **(parallel_kwargs or {}),
+    )
+    if pkwargs.get("parallel"):
+        pkwargs["ordered"] = True
+        pkwargs["total"] = len(pending)
+        pkwargs.setdefault("desc", "Evaluating macro systems")
+        phis = MapReduce(_evaluate_one, pending, **pkwargs).run()
+    else:
+        phis = [float(system.sia().phi) for system in pending]
+    for system, phi in zip(pending, phis, strict=True):
+        memo[system] = PyPhiFloat(phi)
+
+
 def _as_constituent(unit: MacroUnit) -> MacroUnit | int:
     """A pool unit as a constituent: identity micro units become bare
     indices, so derived units compare equal to hand-built ones."""
