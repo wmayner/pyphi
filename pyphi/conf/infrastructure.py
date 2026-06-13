@@ -100,6 +100,14 @@ class InfrastructureConfig:
     validate_conditional_independence: bool = True
     validate_json_version: bool = True
 
+    # When True, every result-construction site checks its phi against the
+    # theorem-certified Zaeemzadeh (2024) upper bound and raises
+    # BoundViolationError on an in-domain overshoot (a proof of a formalism
+    # bug). Off by default — it adds per-construction bound arithmetic to the
+    # hot path; intended for CI and debugging. Outside the certified domain
+    # (non-binary, non-GID, etc.) the check is silently skipped.
+    validate_phi_bounds: bool = False
+
     __repr__ = yaml_repr
 
     def __post_init__(self) -> None:
@@ -123,6 +131,7 @@ class InfrastructureConfig:
             "validate_conditional_independence", self.validate_conditional_independence
         )
         _check_bool("validate_json_version", self.validate_json_version)
+        _check_bool("validate_phi_bounds", self.validate_phi_bounds)
         if not isinstance(self.log_file, (str, Path)):
             raise ValueError(
                 f"log_file must be str or Path; got {type(self.log_file).__name__}"

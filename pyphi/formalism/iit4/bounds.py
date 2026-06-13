@@ -34,6 +34,7 @@ floats and overflow for ``n`` greater than about 10.
 from __future__ import annotations
 
 import math
+from collections.abc import Callable
 from collections.abc import Iterable
 from dataclasses import dataclass
 from fractions import Fraction
@@ -633,3 +634,98 @@ def report(n: int | None = None, substrate: Substrate | None = None) -> dict[str
         number_of_possible_relation_faces_with_unique_purviews(n)
     )
     return result
+
+
+##############################################################################
+# Runtime bound-certificate assertions (B1)
+##############################################################################
+
+
+class BoundViolationError(AssertionError):
+    """A computed phi exceeded its theorem-certified upper bound.
+
+    Within the certified domain the bound holds for every system, so an
+    overshoot is a *proof* of a formalism bug, not a numerical artifact.
+    Raised only when ``config.infrastructure.validate_phi_bounds`` is set and
+    the system is in the certified domain (IIT 4.0 + GID/II, binary units,
+    and — for the system bound — a set-partition scheme). Subclasses
+    :class:`AssertionError` so it reads as a violated invariant.
+    """
+
+    def __init__(self, label: str, value: float, bound: UpperBound) -> None:
+        super().__init__(
+            f"{label}: phi={value!r} exceeds the certified upper bound "
+            f"{bound.value!r} ({bound.citation}); this is a proof of a "
+            f"formalism bug under assumptions {bound.assumptions}."
+        )
+        self.label = label
+        self.value = value
+        self.bound = bound
+
+
+def _bounds_apply_to(system: Any) -> bool:
+    """True iff ``system`` is in the bounds' certified *substrate* domain: a
+    micro substrate of binary units.
+
+    The bound functions verify the version/measure/scheme config but not the
+    substrate, so this gate covers the two substrate assumptions they leave
+    implicit:
+
+    - **Binary units.** k-ary φ can legitimately exceed the binary ``|M||Z|``
+      and ``n(n-1)`` ceilings.
+    - **Micro (not macro).** A :class:`~pyphi.macro.system.MacroSystem` is a
+      coarse-graining whose φ_s comes from its micro constituents; a single
+      macro unit can have φ_s > 0 while the macro-unit count gives
+      ``n(n-1) = 0``. The Zaeemzadeh bounds are stated over the micro
+      substrate, so macro systems are out of domain.
+    """
+    try:
+        from pyphi.macro.system import MacroSystem
+
+        if isinstance(system, MacroSystem):
+            return False
+    except ImportError:
+        pass
+    try:
+        sizes = system.substrate.factored_tpm.alphabet_sizes
+    except AttributeError:
+        return False
+    return all(int(size) == 2 for size in sizes)
+
+
+def check_phi_bound(
+    value: float,
+    bound: Callable[[], UpperBound],
+    *,
+    system: Any,
+    label: str,
+) -> None:
+    """Assert a computed ``value`` does not exceed its certified upper bound.
+
+    A no-op unless ``config.infrastructure.validate_phi_bounds`` is set. Then,
+    only inside the certified domain — a binary ``system`` and a config in the
+    bound's confirmed version/measure/scheme set — raise
+    :class:`BoundViolationError` when ``value`` exceeds the certified ceiling
+    by more than the active numerical precision. Outside the certified domain
+    (IIT 3.0, non-GID, k-ary, degenerate partitions) it returns silently, so
+    there are no false positives.
+
+    ``bound`` is a thunk: the domain gate raises ``ValueError`` out of domain,
+    so it is evaluated lazily and caught here.
+    """
+    if not config.infrastructure.validate_phi_bounds:
+        return
+    if not _bounds_apply_to(system):
+        return
+    try:
+        certificate = bound()
+    except (ValueError, AttributeError):
+        # Out of the certified domain, or the bound's structural inputs (e.g.
+        # a partition's severed-connection count) are unavailable — no
+        # certified ceiling applies, so skip.
+        return
+    if not certificate.certified:
+        return
+    tolerance = 10.0 ** -config.numerics.precision
+    if float(value) > float(certificate.value) + tolerance:
+        raise BoundViolationError(label, float(value), certificate)

@@ -20,6 +20,15 @@ pyphi.config.validate_json_version = False
 # all parallel and sequential progress chrome at once.
 pyphi.config.progress_bars = False
 
+# B1: exercise the theorem-certified phi upper-bound assertions (Zaeemzadeh
+# 2024) across the whole suite. ``check_phi_bound`` is a no-op outside the
+# certified domain (non-IIT-4.0, non-binary, degenerate partitions), so this
+# only adds checks where the bounds are theorem-backed; any in-domain phi that
+# exceeds its certified ceiling — a proof of a formalism bug — then fails
+# loudly instead of going unnoticed. Tests that need the check off override
+# ``validate_phi_bounds`` locally.
+pyphi.config.validate_phi_bounds = True
+
 
 # IIT Version Configuration Overrides
 # =============================================================================

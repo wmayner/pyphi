@@ -787,6 +787,20 @@ def sia(
     if config.infrastructure.clear_system_caches_after_computing_sia:
         system.clear_caches()
 
+    # n < 2: the n(n-1) system bound is trivially 0 and does not cover the
+    # single-node self-loop phi convention
+    # (``single_micro_nodes_with_selfloops_have_phi``), so it does not apply.
+    n_units = len(system.node_indices)
+    if config.infrastructure.validate_phi_bounds and n_units >= 2:
+        from pyphi.formalism.iit4 import bounds
+
+        bounds.check_phi_bound(
+            mip_sia.phi,
+            lambda: bounds.system_phi_upper_bound(n_units),
+            system=system,
+            label=f"SIA phi_s (nodes={tuple(system.node_indices)})",
+        )
+
     return mip_sia
 
 
@@ -962,8 +976,33 @@ def ces(
     if relations is None:
         relations = compute_relations(resolved_distinctions, **relations_kwargs)
 
-    return CauseEffectStructure(
+    result = CauseEffectStructure(
         sia=sia,
         distinctions=resolved_distinctions,
         relations=relations,
     )
+
+    if config.infrastructure.validate_phi_bounds:
+        from pyphi.formalism.iit4 import bounds
+
+        n = len(system.node_indices)
+        bounds.check_phi_bound(
+            result.sum_phi_distinctions,
+            lambda: bounds.sum_phi_distinctions_upper_bound(n),
+            system=system,
+            label="sum phi_distinctions",
+        )
+        bounds.check_phi_bound(
+            result.sum_phi_relations,
+            lambda: bounds.sum_phi_relations_upper_bound(n),
+            system=system,
+            label="sum phi_relations",
+        )
+        bounds.check_phi_bound(
+            result.big_phi,
+            lambda: bounds.big_phi_upper_bound(n),
+            system=system,
+            label="big_phi",
+        )
+
+    return result

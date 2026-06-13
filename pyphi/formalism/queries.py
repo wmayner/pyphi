@@ -289,7 +289,25 @@ def find_mice(
     ties = tuple(resolve_ties.purviews(all_mice, default=no_purviews))  # type: ignore[arg-type]
     for tie in ties:
         tie.set_purview_ties(ties)
-    return ties[0]
+    winner = ties[0]
+    if config.infrastructure.validate_phi_bounds and winner.purview:
+        from pyphi.formalism.iit4 import bounds
+
+        bounds.check_phi_bound(
+            winner.phi,
+            lambda: bounds.distinction_phi_upper_bound(mechanism, winner.purview),
+            system=cs,
+            label=f"MICE phi ({direction.name}, mechanism={mechanism}, "
+            f"purview={winner.purview})",
+        )
+        bounds.check_phi_bound(
+            winner.phi,
+            lambda: bounds.partition_phi_upper_bound(winner.partition),
+            system=cs,
+            label=f"MICE MIP phi ({direction.name}, mechanism={mechanism}, "
+            f"purview={winner.purview})",
+        )
+    return winner
 
 
 def mic(cs: System, mechanism: tuple[int, ...], **kwargs: Any) -> Any:
