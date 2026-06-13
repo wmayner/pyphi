@@ -1696,6 +1696,21 @@ test inventory — that a deliberate re-ordering pass is in order.
       README: bbx_micro is missing 4 of 255 subsystems; several
       committed large-subsystem values are unclamped float noise
       (~1e-17, some negative).
+    - **Search parallelization** *(landed; spec ``39e2bc7``, plan
+      ``2ca3d47``, implementation ``aee9c84``..``5fa69c4``)*: the search
+      drivers parallelize their independent ``phi_s`` evaluations
+      across processes through the existing ``MapReduce`` engine and a
+      new ``config.infrastructure.parallel_macro_system_evaluation``
+      per-site option (off by default; per-call ``parallel_kwargs``
+      also accepted). The recursion is batched by footprint-size class
+      (each class is mutually independent because ``f(U^J, W^J)`` admits
+      only strict-subset footprints) and the ``P(u)`` sweep is
+      embarrassingly parallel; a per-run construction cache avoids
+      rebuilding macro TPMs. Results are bit-identical to sequential
+      runs (memo warmed in dispatch order; judgments and Eq. 19
+      assembly stay sequential), pinned by equivalence tests against
+      the SP2/SP3 goldens. Workers force the inner ``sia`` sequential
+      so parallelism is one process-pool deep.
 
 11. **P11.85 — Measure-API unification.** *(landed; spec ``90ca10be``,
     plan ``0da5d0ad``, implementation commits ``08a48e5a`` metric
