@@ -689,3 +689,37 @@ class TestParallelEquivalenceSweep:
         _results_equal(sequential, parallel)
         assert parallel.complexes == ()
         assert len(parallel.ties) == 1
+
+
+class TestParallelEquivalenceRecursion:
+    """A full default-bounds driver run (where the recursion does real
+    work) under the parallel option reproduces the sequential result."""
+
+    def test_dancing_couples_driver(self):
+        enabled = {"parallel": True, "sequential_threshold": 1, "chunksize": 1}
+        with config.override(**presets.iit4_2023):
+            sequential = complexes(dancing_couples(0.25), SF_STATE)
+            with config.override(parallel=True):
+                parallel = complexes(
+                    dancing_couples(0.25), SF_STATE, parallel_kwargs=enabled
+                )
+        _results_equal(sequential, parallel)
+
+    def test_intrinsic_units_pool_identical(self):
+        enabled = {"parallel": True, "sequential_threshold": 1, "chunksize": 1}
+        with config.override(**presets.iit4_2023):
+            seq = intrinsic_units(dancing_couples(0.25), SF_STATE, SearchBounds())
+            with config.override(parallel=True):
+                par = intrinsic_units(
+                    dancing_couples(0.25),
+                    SF_STATE,
+                    SearchBounds(),
+                    parallel_kwargs=enabled,
+                )
+        assert seq.units == par.units
+        assert [v.constituents for v in seq.verdicts] == [
+            v.constituents for v in par.verdicts
+        ]
+        assert [v.verdict.phi for v in seq.verdicts] == [
+            v.verdict.phi for v in par.verdicts
+        ]

@@ -449,6 +449,32 @@ class DecompositionVerdict:
     verdict: UnitVerdict
 
 
+def _class_combos(candidates, pool_at_class_start, bounds):
+    """Unit-combos a size class needs, in sequential-first-need order.
+
+    For each candidate ``(footprint, V, W)``: the constituent units
+    ``V``, then each competitor combo in ``_assemble_systems`` order.
+    This mirrors the order in which the judge phase requests systems
+    lazily, so batch evaluation warms the memo identically to a
+    sequential run.
+    """
+    for footprint, V, W in candidates:
+        yield V
+        fp = set(footprint)
+        allowed = set(W)
+        members = [
+            u
+            for u in pool_at_class_start
+            if set(u.micro_constituents) < fp
+            and set(u.background_apportionment) <= allowed
+        ]
+        own = canonical_units(V)
+        for combo in _assemble_systems(members, bounds.max_background):
+            if canonical_units(combo) == own:
+                continue
+            yield combo
+
+
 def _derive_units(
     substrate,
     micro_history,
@@ -458,17 +484,30 @@ def _derive_units(
     *,
     within=None,
     proper=False,
+    parallel_kwargs=None,
 ):
     """The intrinsic-unit recursion (paper p. 9), bounded by ``bounds``.
 
     Level 0 is the micro units. Each level derives candidate
-    decompositions from the previous level's pool; the competitor set
-    draws from the incrementally updated pool, with footprints
-    processed smallest-first. Returns ``(pool, verdicts)``.
+    decompositions from the previous level's pool, processed in
+    footprint-size classes (smallest first). Because ``f(U^J, W^J)``
+    admits only strict-subset footprints, every candidate in a size
+    class is independent of the others, so the class's ``phi_s``
+    evaluations are batched (and optionally parallelized) before the
+    judgments run sequentially over the warm memo. Returns
+    ``(pool, verdicts)``.
     """
     n = substrate.size
     indices = tuple(range(n)) if within is None else tuple(sorted(within))
     pool: list[MacroUnit] = [micro_unit(i) for i in indices]
+    _evaluate_systems(
+        [
+            _system_of_cached(substrate, (u,), micro_history, system_cache)
+            for u in pool
+        ],
+        memo,
+        parallel_kwargs,
+    )
     verdicts: list[DecompositionVerdict] = []
     for unit in pool:
         _, phi = _phi(substrate, (unit,), micro_history, memo, system_cache)
@@ -486,14 +525,12 @@ def _derive_units(
         emitted_any = False
         max_size = min(len(indices) - (1 if proper else 0), bounds.max_constituents)
         for size in range(min_size, max_size + 1):
+            pool_at_class_start = tuple(pool)
+            candidates: list[tuple[tuple[int, ...], tuple, tuple[int, ...]]] = []
             for footprint in itertools.combinations(indices, size):
-                new_units: list[MacroUnit] = []
-                decompositions = _decompositions(
-                    footprint,
-                    pool_prev,
-                    allow_singleton=bounds.max_update_grain > 1,
-                )
-                for V in decompositions:
+                for V in _decompositions(
+                    footprint, pool_prev, allow_singleton=bounds.max_update_grain > 1
+                ):
                     inherited = set().union(
                         *(set(u.background_apportionment) for u in V)
                     )
@@ -502,30 +539,43 @@ def _derive_units(
                         if key in seen:
                             continue
                         seen.add(key)
-                        verdict = _judge(
-                            substrate,
-                            V,
-                            W,
-                            footprint,
-                            micro_history,
-                            bounds,
-                            pool,
-                            memo,
-                            system_cache,
-                        )
-                        verdicts.append(
-                            DecompositionVerdict(
-                                constituents=tuple(
-                                    _as_constituent(u) for u in canonical_units(V)
-                                ),
-                                background_apportionment=W,
-                                verdict=verdict,
-                            )
-                        )
-                        if verdict.valid:
-                            new_units.extend(_variants(V, W, bounds))
-                pool.extend(new_units)
-                emitted_any = emitted_any or bool(new_units)
+                        candidates.append((footprint, V, W))
+            _evaluate_systems(
+                [
+                    _system_of_cached(substrate, units, micro_history, system_cache)
+                    for units in _class_combos(
+                        candidates, pool_at_class_start, bounds
+                    )
+                ],
+                memo,
+                parallel_kwargs,
+            )
+            new_units: list[MacroUnit] = []
+            for footprint, V, W in candidates:
+                verdict = _judge(
+                    substrate,
+                    V,
+                    W,
+                    footprint,
+                    micro_history,
+                    bounds,
+                    pool_at_class_start,
+                    memo,
+                    system_cache,
+                )
+                verdicts.append(
+                    DecompositionVerdict(
+                        constituents=tuple(
+                            _as_constituent(u) for u in canonical_units(V)
+                        ),
+                        background_apportionment=W,
+                        verdict=verdict,
+                    )
+                )
+                if verdict.valid:
+                    new_units.extend(_variants(V, W, bounds))
+            pool.extend(new_units)
+            emitted_any = emitted_any or bool(new_units)
         if not emitted_any:
             break
     return tuple(pool), tuple(verdicts)
@@ -542,6 +592,7 @@ def _f_for_unit(
         system_cache,
         within=unit.micro_constituents,
         proper=True,
+        parallel_kwargs=parallel_kwargs,
     )
     fp = set(unit.micro_constituents)
     allowed = set(unit.background_apportionment)
@@ -647,18 +698,26 @@ class IntrinsicUnitsResult:
 
 
 def intrinsic_units(
-    substrate: Substrate, micro_history, bounds: SearchBounds
+    substrate: Substrate,
+    micro_history,
+    bounds: SearchBounds,
+    parallel_kwargs: dict | None = None,
 ) -> IntrinsicUnitsResult:
     """The recursion's fixed point: the valid-unit pool plus all verdicts."""
     history = _normalized_history(substrate, micro_history, bounds.max_micro_grain)
     memo: dict[MacroSystem, PyPhiFloat] = {}
     system_cache: dict[tuple, MacroSystem | None] = {}
-    units, verdicts = _derive_units(substrate, history, bounds, memo, system_cache)
+    units, verdicts = _derive_units(
+        substrate, history, bounds, memo, system_cache, parallel_kwargs=parallel_kwargs
+    )
     return IntrinsicUnitsResult(units=units, verdicts=verdicts)
 
 
 def valid_systems(
-    substrate: Substrate, micro_history, bounds: SearchBounds
+    substrate: Substrate,
+    micro_history,
+    bounds: SearchBounds,
+    parallel_kwargs: dict | None = None,
 ) -> tuple[MacroSystem, ...]:
     """The bounded ``P(u)``: every Eq-18-compatible system of intrinsic
     units, evaluated over the full universe with everything else as
@@ -666,7 +725,9 @@ def valid_systems(
     history = _normalized_history(substrate, micro_history, bounds.max_micro_grain)
     memo: dict[MacroSystem, PyPhiFloat] = {}
     system_cache: dict[tuple, MacroSystem | None] = {}
-    units, _ = _derive_units(substrate, history, bounds, memo, system_cache)
+    units, _ = _derive_units(
+        substrate, history, bounds, memo, system_cache, parallel_kwargs=parallel_kwargs
+    )
     systems = []
     for combo in _assemble_systems(list(units), bounds.max_background):
         system = _system_of_cached(substrate, combo, history, system_cache)
@@ -712,7 +773,9 @@ def complexes(
     history = _normalized_history(substrate, micro_history, bounds.max_micro_grain)
     memo: dict[MacroSystem, PyPhiFloat] = {}
     system_cache: dict[tuple, MacroSystem | None] = {}
-    units, _ = _derive_units(substrate, history, bounds, memo, system_cache)
+    units, _ = _derive_units(
+        substrate, history, bounds, memo, system_cache, parallel_kwargs=parallel_kwargs
+    )
     sweep_systems = [
         _system_of_cached(substrate, combo, history, system_cache)
         for combo in _assemble_systems(list(units), bounds.max_background)
