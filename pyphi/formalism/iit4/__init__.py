@@ -563,16 +563,16 @@ def evaluate_partition(
     # same as taking the min of clamped values.
     phi = min(integration[direction].signed_phi for direction in directions)
 
-    # Eq. 23: φ_s(s) = min{φ_c(s), φ_e(s), ii(s)}
-    # where ii(s) = min_d{min(i_diff_d, i_spec_d)}.
-    # Clamp the cap components via the |·|+ operator (Eqs. 19-20); the
-    # result still flows through ``signed_phi`` so the clamp at SIA
-    # construction yields the right canonical value.
-    if system_measure.applies_ii_cap:
-        for direction in directions:
-            i_spec = utils.positive_part(system_state[direction].intrinsic_information)
-            i_diff = utils.positive_part(intrinsic_differentiation[direction])
-            phi = min(phi, i_spec, i_diff)
+    # The Eq. 23 ii(s) cap is deliberately NOT applied here. Per the 2026
+    # paper (Eqs. 21-23: the formalism "is the same as the IIT 4.0 definition
+    # of φ_s ... until Equation (23)"), the minimum information partition is
+    # selected on the *uncapped* normalized φ exactly as in IIT 4.0, and the
+    # cap φ_s = min{φ_c, φ_e, ii(s)} is applied once to the selected MIP in
+    # ``sia`` (see ``_apply_ii_cap``). ``intrinsic_differentiation`` and the
+    # system-state ``intrinsic_information`` are carried on the SIA so the cap
+    # can be applied there. Applying the cap per-partition would let it shift
+    # which partition is the MIP — which can make the reported φ_s *exceed*
+    # the 2023 value, contradicting the formalism.
 
     norm = normalization_factor(partition)
     normalized_phi = phi * norm
@@ -613,6 +613,37 @@ def _has_no_cause_or_effect(system_state):
         if system_state[direction].intrinsic_information <= 0:
             reasons.append(reason)
     return reasons
+
+
+def _apply_ii_cap(
+    sia: SystemIrreducibilityAnalysis,
+) -> SystemIrreducibilityAnalysis:
+    """Apply the IIT 4.0 (2026) intrinsic-information cap (Eq. 23) to the MIP.
+
+    The MIP is selected on the uncapped normalized integrated information,
+    exactly as in IIT 4.0 (Eqs. 21-22); this applies the cap
+    ``φ_s = min{φ_c, φ_e, ii(s)}`` once, to the chosen partition's value,
+    where ``ii(s) = min_d min(i_spec_d, i_diff_d)`` is partition-independent.
+    The cap is taken on the raw ``signed_phi`` (so preventative-cause metadata
+    is preserved) and the |·|+-clamped, normalized values are re-derived.
+    Mutates and returns ``sia`` so its tie/state metadata is preserved.
+    """
+    if sia.system_state is None or sia.intrinsic_differentiation is None:
+        return sia
+    cap_terms = [float(sia.signed_phi)]
+    for direction in sia.intrinsic_differentiation:
+        spec = sia.system_state[direction]
+        if spec is not None:
+            cap_terms.append(utils.positive_part(spec.intrinsic_information))
+        cap_terms.append(utils.positive_part(sia.intrinsic_differentiation[direction]))
+    capped_signed = min(cap_terms)
+    norm = normalization_factor(sia.partition)
+    capped_norm = capped_signed * norm if norm is not None else capped_signed
+    sia.signed_phi = PyPhiFloat(capped_signed)
+    sia.phi = PyPhiFloat(utils.positive_part(capped_signed))
+    sia.signed_normalized_phi = PyPhiFloat(capped_norm)
+    sia.normalized_phi = PyPhiFloat(utils.positive_part(capped_norm))
+    return sia
 
 
 def sia(
@@ -783,6 +814,12 @@ def sia(
             original_effect=system_state.effect,
         )
         mip_sia.set_ties(tuple(per_pair_sias.values()))
+
+    # Eq. 23 (2026): cap the selected MIP's φ_s by the intrinsic-information
+    # requirement ii(s). The MIP was selected on uncapped φ above, exactly as
+    # in IIT 4.0; the cap is applied once, here, to the chosen partition.
+    if getattr(system_measure, "applies_ii_cap", False):
+        mip_sia = _apply_ii_cap(mip_sia)
 
     if config.infrastructure.clear_system_caches_after_computing_sia:
         system.clear_caches()
