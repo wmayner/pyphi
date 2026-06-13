@@ -211,9 +211,21 @@ def _system_of(substrate, units, micro_history) -> MacroSystem | None:
         return None
 
 
-def _phi(substrate, units, micro_history, memo):
+def _system_of_cached(substrate, units, micro_history, system_cache):
+    """``_system_of`` memoized on canonical unit order for one run.
+
+    Sharing constructions between the collect and judge phases avoids
+    rebuilding the same macro TPMs twice.
+    """
+    key = canonical_units(units)
+    if key not in system_cache:
+        system_cache[key] = _system_of(substrate, units, micro_history)
+    return system_cache[key]
+
+
+def _phi(substrate, units, micro_history, memo, system_cache):
     """Memoized ``(system, phi_s)`` of the system of ``units``."""
-    system = _system_of(substrate, units, micro_history)
+    system = _system_of_cached(substrate, units, micro_history, system_cache)
     if system is None:
         return None, None
     if system not in memo:
@@ -305,7 +317,7 @@ def _apportionments(n, footprint, inherited, bounds: SearchBounds):
     )
 
 
-def _f(substrate, V, W, footprint, pool, micro_history, bounds, memo):
+def _f(substrate, V, W, footprint, pool, micro_history, bounds, memo, system_cache):
     """``f(U^J, W^J)``: evaluated competitor systems (Eq. 16)."""
     fp = set(footprint)
     allowed = set(W)
@@ -320,7 +332,7 @@ def _f(substrate, V, W, footprint, pool, micro_history, bounds, memo):
     for combo in _assemble_systems(members, bounds.max_background):
         if canonical_units(combo) == own:
             continue
-        system, phi = _phi(substrate, combo, micro_history, memo)
+        system, phi = _phi(substrate, combo, micro_history, memo, system_cache)
         if system is None:
             continue
         competitors.append((system, phi))
@@ -343,9 +355,11 @@ def _variants(V, W, bounds: SearchBounds):
     ]
 
 
-def _judge(substrate, V, W, footprint, micro_history, bounds, pool, memo):
-    _, phi = _phi(substrate, V, micro_history, memo)
-    competitors = _f(substrate, V, W, footprint, pool, micro_history, bounds, memo)
+def _judge(substrate, V, W, footprint, micro_history, bounds, pool, memo, system_cache):
+    _, phi = _phi(substrate, V, micro_history, memo, system_cache)
+    competitors = _f(
+        substrate, V, W, footprint, pool, micro_history, bounds, memo, system_cache
+    )
     return judge_candidate(0.0 if phi is None else phi, competitors)
 
 
@@ -381,7 +395,16 @@ class DecompositionVerdict:
     verdict: UnitVerdict
 
 
-def _derive_units(substrate, micro_history, bounds, memo, *, within=None, proper=False):
+def _derive_units(
+    substrate,
+    micro_history,
+    bounds,
+    memo,
+    system_cache,
+    *,
+    within=None,
+    proper=False,
+):
     """The intrinsic-unit recursion (paper p. 9), bounded by ``bounds``.
 
     Level 0 is the micro units. Each level derives candidate
@@ -394,7 +417,7 @@ def _derive_units(substrate, micro_history, bounds, memo, *, within=None, proper
     pool: list[MacroUnit] = [micro_unit(i) for i in indices]
     verdicts: list[DecompositionVerdict] = []
     for unit in pool:
-        _, phi = _phi(substrate, (unit,), micro_history, memo)
+        _, phi = _phi(substrate, (unit,), micro_history, memo, system_cache)
         verdicts.append(
             DecompositionVerdict(
                 constituents=(unit.constituents[0],),
@@ -434,6 +457,7 @@ def _derive_units(substrate, micro_history, bounds, memo, *, within=None, proper
                             bounds,
                             pool,
                             memo,
+                            system_cache,
                         )
                         verdicts.append(
                             DecompositionVerdict(
@@ -453,12 +477,13 @@ def _derive_units(substrate, micro_history, bounds, memo, *, within=None, proper
     return tuple(pool), tuple(verdicts)
 
 
-def _f_for_unit(substrate, unit, V, micro_history, bounds, memo):
+def _f_for_unit(substrate, unit, V, micro_history, bounds, memo, system_cache):
     pool, _ = _derive_units(
         substrate,
         micro_history,
         bounds,
         memo,
+        system_cache,
         within=unit.micro_constituents,
         proper=True,
     )
@@ -471,6 +496,7 @@ def _f_for_unit(substrate, unit, V, micro_history, bounds, memo):
         micro_history,
         bounds,
         memo,
+        system_cache,
     )
 
 
@@ -487,9 +513,13 @@ def competing_systems(
     if _is_micro(unit):
         return ()
     memo: dict[MacroSystem, PyPhiFloat] = {}
+    system_cache: dict[tuple, MacroSystem | None] = {}
     V = canonical_units(_as_unit(c) for c in unit.constituents)
     return tuple(
-        system for system, _ in _f_for_unit(substrate, unit, V, history, bounds, memo)
+        system
+        for system, _ in _f_for_unit(
+            substrate, unit, V, history, bounds, memo, system_cache
+        )
     )
 
 
@@ -509,12 +539,13 @@ def is_intrinsic_unit(
         substrate, micro_history, _unit_history_requirement(unit, bounds)
     )
     memo: dict[MacroSystem, PyPhiFloat] = {}
+    system_cache: dict[tuple, MacroSystem | None] = {}
     if _is_micro(unit):
-        _, phi = _phi(substrate, (unit,), history, memo)
+        _, phi = _phi(substrate, (unit,), history, memo, system_cache)
         return _trivial_verdict(phi)
     V = canonical_units(_as_unit(c) for c in unit.constituents)
-    _, phi = _phi(substrate, V, history, memo)
-    competitors = _f_for_unit(substrate, unit, V, history, bounds, memo)
+    _, phi = _phi(substrate, V, history, memo, system_cache)
+    competitors = _f_for_unit(substrate, unit, V, history, bounds, memo, system_cache)
     return judge_candidate(0.0 if phi is None else phi, competitors)
 
 
@@ -546,7 +577,8 @@ def intrinsic_units(
     """The recursion's fixed point: the valid-unit pool plus all verdicts."""
     history = _normalized_history(substrate, micro_history, bounds.max_micro_grain)
     memo: dict[MacroSystem, PyPhiFloat] = {}
-    units, verdicts = _derive_units(substrate, history, bounds, memo)
+    system_cache: dict[tuple, MacroSystem | None] = {}
+    units, verdicts = _derive_units(substrate, history, bounds, memo, system_cache)
     return IntrinsicUnitsResult(units=units, verdicts=verdicts)
 
 
@@ -558,10 +590,11 @@ def valid_systems(
     background. Systems whose state is unreachable are dropped."""
     history = _normalized_history(substrate, micro_history, bounds.max_micro_grain)
     memo: dict[MacroSystem, PyPhiFloat] = {}
-    units, _ = _derive_units(substrate, history, bounds, memo)
+    system_cache: dict[tuple, MacroSystem | None] = {}
+    units, _ = _derive_units(substrate, history, bounds, memo, system_cache)
     systems = []
     for combo in _assemble_systems(list(units), bounds.max_background):
-        system = _system_of(substrate, combo, history)
+        system = _system_of_cached(substrate, combo, history, system_cache)
         if system is not None:
             systems.append(system)
     return tuple(systems)
@@ -602,10 +635,11 @@ def complexes(
     """Eq. 19 over the bounded candidate space -- the one-call driver."""
     history = _normalized_history(substrate, micro_history, bounds.max_micro_grain)
     memo: dict[MacroSystem, PyPhiFloat] = {}
-    units, _ = _derive_units(substrate, history, bounds, memo)
+    system_cache: dict[tuple, MacroSystem | None] = {}
+    units, _ = _derive_units(substrate, history, bounds, memo, system_cache)
     evaluated: list[tuple[MacroSystem, PyPhiFloat]] = []
     for combo in _assemble_systems(list(units), bounds.max_background):
-        system, phi = _phi(substrate, combo, history, memo)
+        system, phi = _phi(substrate, combo, history, memo, system_cache)
         if system is not None and phi is not None:
             evaluated.append((system, phi))
     footprints = [
