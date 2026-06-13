@@ -1,11 +1,195 @@
 # PyPhi Strategic Refactoring Roadmap
 
-> **⚠️ Keep this roadmap current.** When an item lands, mark it in the same
-> change that lands it: add a `*(landed; <commits>)*` marker (and a one-line
-> completion note) to **both** its phase-letter section and its entry in the
-> ordering list. This document has drifted before — items were implemented
-> but left described as upcoming — so **verify an item's status against the
-> code, `changelog.d/`, and git history before trusting its marker here.**
+> **⚠️ This document has ONE source of truth for status: the [Status Dashboard](#status-dashboard) below.**
+> When an item lands or changes status, update its dashboard row **in the same change**. The detailed
+> prose under [Design rationale & history (archive)](#design-rationale--history-archive) is historical
+> context, not a status record — it has drifted before (items implemented but left described as
+> upcoming), so **trust the dashboard, and verify against the code, `changelog.d/`, and git history —
+> not the archive prose.** Last full audit: **2026-06-13** (every item verified against the code).
+
+## Status Dashboard
+
+**Legend:** ✅ landed · 🟡 partial (some sub-parts open) · ⬜ open (in 2.0) · ⛔ deferred — out of 2.0 (genuine blocker) · ✖️ dropped / moot.
+
+### ✅ Landed (verified 2026-06-13)
+
+P0 · P1 · P2 · P3 · P4 · P5 · P6 · P6a · P7 · **P8** (incl. `PhiFold`) · P9 · P10 · P10b · P10c · **P11 core** (Scheduler Protocol + Process/Thread schedulers + cost-sampling chunking + config-snapshot propagation) · P11.5 · P11.6 · P11.7 · **P11.8 Tier 1** · P11.9 · P11.85 · P11.86 · P11.87 · P11.88 · P11.95a · P11.95b · P11.95d · **P12** (factored TPM + multivalued units, incl. AC k-ary) · P14 · **P14b core** (sub-projects 1–4) · P14d (sub-projects B + A-1..A-4) · **Macro / Marshall-2024 intrinsic units** (SP1 + SP2 + SP3 + search parallelization)
+
+### ⬜🟡 Remaining 2.0 work — *the schedule lives in [Remaining 2.0 Work](#remaining-20-work)*
+
+| Item | Status | Wave | One-line |
+|---|---|---|---|
+| P11.95e | ⬜ open | 1 | IIT 3.0 code-path divergence audit (confirmation sweep; deps satisfied) |
+| P11 loky bug | 🟡 open | 1 | Root-cause the `BrokenProcessPool` intermittent now masked by a CI skip |
+| N2 parallel≡sequential test | ⬜ open | 1 | Standing Hypothesis invariant — parallel results == sequential, in CI (pairs with the loky fix) |
+| P13 SP2 | 🟡 study→gate | 1 | Run the bounds bite-rate study; ship pruning behind a shadow gate only if it pays |
+| p53-Mdm2 golden | ⬜ open | 1 | Reproduce Gómez 2021 network; land as a further k>2 golden if it matches |
+| N1 paper-reproduction suite | ⬜ open | 1 | Comprehensive paper-reproduction acceptance suite as a CI gate (subsumes p53; yields P17's 2026-cap network) |
+| CES-completeness search | ⬜ open | 1 | Brute-force whether CES is a complete substrate invariant (decides P11.95c-b) |
+| B1 bound-cert assertions | ⬜ open | 1 | Wire certified bounds as runtime φ-ceiling assertions (debug/CI flag) — over-large φ ⇒ proof of a bug |
+| B4 2026-cap oracle | ⬜ open | 1 | Independent reimpl of the Eq-23 cap + a constructed cap-biting network (unblocks N1/P17) |
+| B5 cross-formalism diff testing | ⬜ open | 1 | Paired cross-formalism invariants (2026≤2023, 3.0/4.0 agree) + byte-match vs the `b3aaa3e5` pre-refactor oracle |
+| B9 cancellation oracle | ⬜ open | 1 | mpmath/Fraction sidecar + condition-number guard for the ii/φ catastrophic-cancellation path |
+| cause/effect rename | ⬜ open | 2 | Rename `cause_tpm`/`effect_tpm` to paper-faithful names (public API → pre-freeze) |
+| N8 provenance stamp | ⬜ open | 2 | Provenance record on every result (version, git sha, seed, wall-time) extending the P10 config snapshot |
+| P14b env-generation | ⬜ open | 2 | Built-in world/stimulus generators so matching works out of the box |
+| P14b analytical projection | 🟡 open | 2 | Closed-form differentiation projection (φ-max derivable; perception-max stays research) |
+| P14d `to_pandas` consolidation | ⬜ open | 2 | Unify labeled-export across result objects (interlocks with the freeze) |
+| P14d A-5 | ⬜ open | 2 | Higher-degree (≥4) relation visualization |
+| P11.95c (a)+(c) | ⬜ open | 2 | Substrate canonicalization (pynauty); un-xfails the strict permutation invariant |
+| P6b | ⬜ open | 2 | graphillion → OxiDD (bus-factor, no-GIL relations, install ergonomics) |
+| B7 unified PartitionAlgebra | ⬜ open | 2 | Total directed-edge-set `Cut` (`removed_edges`/`num_connections_cut`) — kills the AttributeError φ-norm fragility |
+| B13 config validator | ⬜ open | 2 | Eager rejection of silently-wrong measure/version/scheme combos with a two-field error + fix |
+| B16 `Complex` marker type | ⬜ open | 2 | First-class `Complex` (exclusion as a checkable invariant); advances ship-criterion #1 |
+| B8 `result.explain()` | ⬜ open | 2 | Typed account of why a quantity came out as it did; unifies the duplicated `ShortCircuitConditions` enum |
+| B15 `result.diff()` | ⬜ open | 2 | Structured delta of two analyses with config-diff attribution (pairs with B8) |
+| P11.8 Tier 2 | ⬜ open | 3 | Rewrite benchmark suite + ASV-in-CI (regression gate *before* the perf work) |
+| P9.5 | ⬜ open | 4 | Math-fingerprint cache keys (cross-label cache reuse) |
+| P6a no-GIL CI | 🟡 open | 4 | no-GIL CI lane (xfail relations until P6b, then full) + `lru_cache` counter-race cleanup |
+| P11 cluster backends | ⬜ open | 4 | Fill HTCondor / full Dask behind the stable Scheduler Protocol (additive) |
+| B18 adaptive chunking | ⬜ open | 4 | Cost-model bin-packing for parallel granularity (activates the dormant `size_func`; guarded by N2) |
+| P15 | ⬜ open | 5 | jsonify→msgspec, test reorg, docstring sweep, repr/pandas, import cleanup, PR triage, changelog condense |
+| B17 drop dead deps | ⬜ open | 5 | Remove unused `tblib`; `ordered-set`→`dict.fromkeys`; audit `toolz`→stdlib (with the P15 import cleanup) |
+| P17 | ⬜ open | 6 | Cross-formalism perf characterization (post-freeze, internal-only) |
+| P18 (+B6) | ⬜ open | 6 | Sparse / treewidth-dispatched exact inference — junction-tree marginals both directions (B6 generalizes the cause-only sparse inversion) |
+
+### ⛔ Deferred — out of 2.0 (genuine blocker)
+
+| Item | Blocker |
+|---|---|
+| P14c | Second AC formalism (4.0-style α) — unsettled theory **and** awaiting a collaborator's notes; no reference implementation |
+| P11.95c case (b) (impl) | Open theory: is CES a complete invariant of the substrate? *(the cheap test of this is Wave 1)* |
+| P16 | Approximation framework — research direction; its one near slice (Zaeemzadeh bounded-exact) is gated on P13 SP2 |
+| AC default-flip | `noise_background` default — breaking change + unsettled AC background-condition semantics |
+
+### ✖️ Dropped / moot
+
+| Item | Why |
+|---|---|
+| P12c (xarray coord labels) | Verified cosmetic — the xarray backend hands plain `.values` to all math, so labels never reach a computation; near-zero value (revisit only if xarray becomes the default backend) |
+| "Retire `precision` when 3.0 is dropped" (note) | Premise is counterfactual — IIT 3.0 is **kept**; moot |
+
+---
+
+## Remaining 2.0 Work
+
+> There is no release deadline; the only valid reason to defer is a genuine blocker (unsettled theory,
+> missing upstream input, or a hard dependency on unlanded work). Everything below has no such blocker.
+> Waves are ordered by dependency; items **within** a wave are independent and can run in parallel. Full
+> design detail for each item is in the [archive](#design-rationale--history-archive) under its P-number.
+
+### Wave 1 — Confirmation experiments & correctness *(cheap, parallel; several are "don't defer confirmation experiments")*
+
+- **P11.95e — IIT 3.0 divergence audit.** Run the override-and-diff confirmation sweep over the shared code paths that could carry 4.0-faithful logic onto the 3.0 path (the `positive_part` clamp in `models/ria.py`, `_compute_distinctions`, the shared `resolve_ties.*` callers), each checked against the now-expanded 3.0 goldens. ~1–2 days; its only dependency (P11.95d coverage) is landed. *The motivating bug (`mip_tie_resolution`) was itself a deferred confirmation experiment that locked four goldens to buggy values — don't repeat that.*
+- **P11 — loky `BrokenProcessPool` root-cause.** A ~50% intermittent on `basic_iit3_emd` / `xor_iit3_emd` parallel cuts is currently masked by a CI skip, so those goldens go unchecked half the time. Root-cause it; if unsolved in ~2 days, at minimum convert the silent skip to a loud `xfail` so the lost coverage is visible.
+- **P13 SP2 — bounds bite-rate study.** With the bounds module (SP1) landed, measure how often the theorem-certified bounds would let `complexes()` skip a candidate (or a Theorem-1 purview cap bite). If they bite enough, build the search-integration pruning behind the shadow-mode equality gate (byte-identical to unpruned); if not, SP1's utility surface is the final P13 deliverable. The study has no blocker — only the pruning *code* is contingent on its outcome.
+- **p53-Mdm2 golden.** Reconstruct the Gómez et al. 2021 p53-Mdm2 network (Table 1, multi-state nodes); if PyPhi reproduces the paper's Φ within `precision`, land it as a further k>2 golden alongside the three synthetic ones.
+- **CES-completeness search.** Brute-force small-n for non-isomorphic substrate pairs with matching CES, to settle whether CES is a complete invariant of the substrate. Cheap, and it decides whether P11.95c case (b) is empty (so (a)+(c) suffice) or a genuine distinct case.
+- **N2 — parallel ≡ sequential invariant (CI).** A standing Hypothesis test asserting parallel and sequential evaluation produce identical SIA / CES results across schedulers, run in CI. Directly addresses the class of bug behind the loky `BrokenProcessPool` skip (results silently diverging) and generalizes beyond the two affected goldens. *(Promoted from the wishlist; pairs with the loky root-cause above.)*
+- **N1 — paper-reproduction acceptance suite (CI gate).** Systematically reproduce every published worked example (IIT 4.0 Figs 1/2/4/6/7, Marshall 2024, AC 2019 Fig. 11, Gómez p53) with pinned expected values, wired in as a CI gate. Subsumes the p53-Mdm2 golden above and *yields the network that exercises the 2026 ii-cap with non-zero φ* that P17 (Wave 6) needs. *(Promoted from the wishlist.)*
+- **B1 — runtime bound-certificate assertions.** Wire the certified bounds (`|M||Z|`, `N(θ)`, `n(n−1)`, the Σφ `I`/`GENERAL` bounds) as live assertions at the ~4 result-construction sites behind a debug/CI flag; any φ exceeding its certified ceiling is a *proof* of a formalism bug (zero false positives in the certified domain). Reuses the landed `formalism/iit4/bounds.py`; no surface change. *(Brainstorm B1; highest payoff/cost in the sweep.)*
+- **B4 — 2026 ii(s)-cap oracle + cap-biting generator.** A from-scratch differential reimplementation of `min(φ_uncapped, i_diff, i_spec)` (Eq. 23) plus a search that constructs the small TPM where the cap strictly binds with non-zero φ, with a golden asserting `2026 < 2023` on it. Closes the cap's un-falsifiable blind spot and *produces the cap-biting network N1 and P17 both need* — sequence it before/with N1. *(Brainstorm B4.)*
+- **B5 — cross-formalism / pre-refactor differential testing.** Paired Hypothesis tests over a shared `(substrate, state)` asserting cross-formalism invariants (`2026 ≤ 2023` always; 3.0/4.0 agree on reducibility; AC/IIT sign agreement) plus a byte-match against the `b3aaa3e5` pre-refactor oracle, elevating the existing cross-temporal benchmark from a perf harness to a correctness gate. Reuses the existing worktree + `config.override`. *(Brainstorm B5; fits the paired-test methodology rule.)*
+- **B9 — high-precision cancellation oracle + condition-number guard.** A sidecar exact recompute of `information_density` / GID / `intrinsic_information` (mpmath/`Fraction`) with a `condition_number(p, q)` estimator and a Hypothesis battery on `p≈q` / 0–1-boundary pairs asserting float64 agrees to `precision`; opt-in warn when a φ's input is too ill-conditioned to trust `precision` digits. Answers the catastrophic-cancellation question with a paired test, not a caveat; pure sidecar, no hot-path change. *(Brainstorm B9.)*
+
+### Wave 2 — Pre-freeze surface-affecting *(must land before the P15 freeze)*
+
+- **`cause_tpm` / `effect_tpm` rename.** Public properties are misnamed (`cause_tpm` returns a posterior over past states, not a TPM). Pick paper-faithful names from a brief IIT 4.0 read, then mechanically rename through `system.py`, `actual.py`, `core/tpm/marginalization.py`, `core/repertoire_algebra.py`, and ~30 test sites. Free now; a deprecation cycle after release. *(Promoted from an informal note — it changes the public surface, so it must precede the freeze.)*
+- **N8 — provenance stamp on results.** Extend the P10 per-result config snapshot to a full provenance record (pyphi version, git sha, RNG seed, wall-time, host) on every top-level result object. It adds a public field, so it lands before the freeze; supports reproducible re-runs and pairs with N4 (the disk-backed result cache). *(Promoted from the wishlist.)*
+- **P14b tail — environment generation + analytical projection.** *Env-gen:* port the matching-repo world/stimulus generators (`stationary_distribution`, Metropolis Ising sampler, segment/point + temporal stimulus sequences) so `MatchingAnalysis` works without a hand-supplied world distribution. *Analytical projection:* land the closed-form differentiation (φ-maximized) projection (derivation in the archive; `2^K−1` calls to `sum_of_minimum`), cross-validated against the concrete oracle. The perception-maximized projection for matching M stays open research.
+- **P14d — `to_pandas` consolidation (+ A-5 viz).** Unify the per-class `ToPandasMixin` into one labeled-export story (consistent index schema, units-as-labels), reconciled with the matching `TriggeredTPM.to_pandas()` provisional surface — done before the freeze so P15 doesn't freeze an inconsistent surface. A-5 (faithful viz of relation faces of degree ≥4, star/incidence-expansion default) is lower priority.
+- **P11.95c (a)+(c) — substrate canonicalization.** Add `pyphi/automorphism.py` (pynauty-backed): `substrate_automorphisms`, `substrate_canonical_form`, `are_substrates_isomorphic` — shipped first as a non-invasive sidecar so outputs/tests can be made label-independent without touching the SIA hot path. Un-xfails `test_sia_per_direction_phi_multiset_symmetric`. *Open principle to confirm during planning: is the per-direction asymmetry a bug to fix, or expected? Case (b) stays out pending the Wave-1 completeness result.*
+- **P6b — graphillion → OxiDD.** Reimplement the `setset` family algebra (`powerset_family`, `set_size_family`, …) behind a `ZDDFamily` Protocol with OxiDD as default and graphillion retained as a one-release fallback. Removes the bus-factor-1 dependency, closes the last no-GIL gap (the relations path — unblocking P6a's full no-GIL CI lane and P11's thread scheduler for relations), and drops the macOS `libomp` source-build. Pin the reimplemented `set_size_family(k)` with Hypothesis tests on partition counts. *Accepted risk: OxiDD is younger; the fallback caps the downside.*
+- **B7 — unified `PartitionAlgebra` (directed edge-set `Cut`).** Canonicalize every partition scheme's output as a directed bipartite edge-set with total `removed_edges()` / `num_connections_cut()` and a partial order, making partition-edge introspection one code path and killing the `except AttributeError: return None` fragility in distinction-φ normalization; display classes become thin views. Builds on P6's landed `Cut → DirectedBipartite` consolidation — *scope-check how much already exists post-P6 first.* Highest refactor surface of the Wave-2 adds; the foundation B1/B2/B3 read from. *(Brainstorm B7.)*
+- **B13 — eager config-combination validator.** A declarative registry of `ConfigConstraints` (e.g. EMD needs `precision ≤ 6`; the `INTRINSIC_INFORMATION` cap is inert outside 4.0_2026; IIT 3.0 + a 4.0-only system measure) evaluated on `override`/load and at compute entry, raising `ConfigurationError` naming the two conflicting fields + a concrete fix; an enumeration test forces every registered combo to be classified. Turns silent-wrong-answers into loud errors. Ship permissive/overridable to avoid false rejections. *(Brainstorm B13.)*
+- **B16 — first-class `Complex` marker type.** A `models/complex.py` `Complex` wrapping a SIA + `is_maximal`, its overlapping-candidate exclusion set, and the selecting substrate, so `complexes()` returns `tuple[Complex, ...]` and the exclusion postulate becomes `validate.non_overlapping(...)` rather than an emergent search-loop property. Advances ship-criterion #1 (every Greek letter a named type); additive wrapper, math unchanged, but touches the `complexes()` / `maximal_complex()` return contract — pre-freeze. *(Brainstorm B16.)*
+- **B8 — `result.explain()`.** Unify the two divergent `ShortCircuitConditions` enums and add `.explain()` returning a typed tree of findings (which short-circuit fired and the offending quantity; for φ>0 the winning/runner-up partition, the φ-gap, the binding min direction, the driving mechanism/purview). The data is already computed and discarded; doubles as a stable test handle for asserting *why*, not just the value. Co-design with B15 + P14d `to_pandas`. *(Brainstorm B8.)*
+- **B15 — `result.diff(a, b)`.** A frozen `ResultDiff` (Δφ, MIP-changed + partition lex-key delta, distinctions/relations gained-lost keyed by mechanism, per-shared Δφ) composing the landed `ConfigSnapshot.diff` to attribute which config differences could explain the change, with `_repr_html_` and `to_pandas()`. Comparison is the core epistemic operation in IIT research; pairs with B8. Use `lex_key` + `EQUALITY_TOLERANCE` so a tie-reshuffle isn't mistaken for a real MIP change. *(Brainstorm B15.)*
+
+### Wave 3 — Regression gate
+
+- **P11.8 Tier 2 — benchmark rewrite + ASV-in-CI.** The `benchmarks/` suite predates 2.0 and no longer imports (`pyphi.Subsystem`, `pyphi.compute`, `BenchmarkConstellation`). Rebuild it in the 2.0 vocabulary on the 2.0 hot paths, point `asv.conf.json` at `2.0`, add a nightly ASV workflow with regression alerts. *Moved ahead of P13 SP2 / P17 / P18* — it is the regression gate those hot-path items need (the class of gate that would have caught the 60–300× YAML-write slowdown).
+
+### Wave 4 — Internal cheap wins *(anytime after their deps)*
+
+- **P9.5 — math-fingerprint cache keys.** Add `System._math_fingerprint` (content hash of factor bytes + cm + state-as-indices + partition hash, omitting labels); key `_memoize` on it so label-distinct-but-identical systems share cached results. Hypothesis-verify `equivalent_substrates → equal_fingerprint`. Independent; prereq (P9) landed.
+- **P6a — no-GIL CI lane.** Add the `PYTHON_GIL=0` matrix entry (xfail relations until P6b, then full) and the deferred `lru_cache` counter-race cleanup.
+- **P11 — cluster backends.** Fill HTCondor / full Dask behind the already-stable `Scheduler` Protocol; additive, sequence on demand.
+- **B18 — adaptive parallel granularity.** Activate the dormant `ChunkingPolicy.size_func` with an analytic per-item cost signal (mechanism: `|potential_purviews| × alphabet-product`; partition: severed-edge count; relation: overlap-size × degree) and bin-pack into equal-predicted-cost chunks instead of uniform timed-sample extrapolation. Eliminates the straggler where one worker draws all the expensive items; chunking can't change results (guarded by N2), so low-risk. *(Brainstorm B18.)*
+
+### Wave 5 — Surface freeze (P15, last surface-affecting work)
+
+jsonify → msgspec serialization; mirror `pyphi/` structure in `test/` + split mixed test files; **docstring sweep** (rewrite to final-state voice; remove planning-artifact leaks like `pre-P11.9` and project-stage markers); `__repr__` / `_repr_html_` on result types; extend `to_pandas`; retire the `_import_submodules` eager walk + PEP-562 `__getattr__` (with the registry audit as the load-bearing risk); open-PR triage (#114/#116/#130/#134/#117); **(B17)** drop dead/micro dependencies — remove the declared-but-unused `tblib`, replace `ordered-set` with a `dict.fromkeys` wrapper, audit `toolz` sites onto stdlib/`more_itertools`; condense changelog fragments to first-encounter voice.
+
+### Wave 6 — Post-freeze internal optimization *(internal-only; do not reopen the frozen surface)*
+
+- **P17 — perf characterization.** Extend the cross-temporal benchmark beyond 5 nodes, find the interactive/batch size thresholds, characterize the mechanism behind the IIT 4.0 speedup (the archive records 19–43× at 4–5 nodes), and synthesize a network that exercises the 2026 ii-cap with non-zero φ. Needs the frozen surface + the P11.8-T2 ASV harness.
+- **P18 (+B6) — sparse / treewidth-dispatched exact inference.** `_cause_tpm_factored` materializes the full `aⁿ` substrate joint; for sparse connectivity it factorizes. Confirm the bottleneck binds (record a negative result if not), then design the inference. **B6 generalizes the original cause-only sparse inversion:** compile the per-node factors into a junction tree and compute repertoire marginals in `O(2^treewidth)` via belief propagation — covering the *effect* repertoires and unconstrained-forward averages too (min-fill treewidth-driven dispatch), not just the cause inversion; treewidth, not node count, is the true exponent, and sparse biological substrates (p53-Mdm2, Gómez) have treewidth far below `n`. Gate behind byte-identical exact parity against the dense oracle. *(This is the sole "P18"; the cluster-backend deferral that once shared the label is folded into Wave 4 / P11.)*
+
+### Ship criterion for 2.0
+
+The release is gated on completing the roadmap, not a partial ship — every ⬜/🟡 dashboard item lands, with two contingent resolutions: P13 SP2's pruning ships only if the study shows it pays, and P14b's perception-maximized projection may remain open research. Concretely:
+
+1. Every Greek letter in Albantakis et al. 2023 (+ the 2026 ii-cap) maps to a named runtime type (the "mathematician's acceptance test").
+2. Goldens (fast + slow) green; Hypothesis suite green at default seed and on the 1000-run nightly; `test_actual.py` **and** `test_macro_system.py` unskipped; perf budget green; **no parallel-only golden left silently skipped** (the loky intermittent resolved or made a loud xfail).
+3. Public surface frozen: jsonify retired for msgspec; layered YAML auto-load (legacy flat YAML rejected with a rename map); `_conf_legacy` gone; `cause_tpm`/`effect_tpm` renamed; no `TODO(4.0)` / `TODO(nonbinary)` and **no project-stage markers** (`P`-numbers, "Phase A") surviving in `pyphi/`.
+4. `import pyphi; pyphi.examples.basic_system().ces()` runs clean (no internal `DeprecationWarning`); version namespaces are `pyphi.iit4_2023` / `pyphi.iit4_2026` (no bare `pyphi.iit4`).
+5. Sphinx site rebuilt; `docs/migration-2.0.md` ships.
+
+**Out of 2.0** (genuine blockers): P14c, P16, the AC default-flip, and P11.95c case (b) implementation — see the dashboard.
+
+---
+
+## Wishlist / candidate new directions
+
+New ideas surfaced by the 2026-06-13 audit (the roadmap "started as an engineering overhaul and wishlist", so formalism-level and algorithmic ideas are in scope). **N1, N2, and N8 are now promoted into the schedule (Waves 1–2).** The rest are candidates for 2.x or for folding into the waves above.
+
+*Correctness & rigor:* **(N1)** a comprehensive **paper-reproduction acceptance suite** as a CI gate — every worked example (IIT 4.0 Figs 1/2/4/6/7, Marshall 2024, AC 2019 Fig 11, Gómez p53) with pinned values, *including a network that exercises the 2026 ii-cap with non-zero φ*. **(N2)** a standing **`parallel ≡ sequential` Hypothesis invariant** in CI (the loky bug shows results can silently diverge/crash). **(N3)** recurring **mutation testing** as a scheduled gate so the golden+property net is proven to bite.
+
+*Performance / algorithmic:* **(N4)** a **disk-backed result cache** keyed on the P9.5 math-fingerprint, so notebook re-runs and paper reproductions skip recomputation. **(N5)** elevate the "**Rust/PyO3 kernel**" aside to a concrete, P17-gated item for the partition-enumeration + repertoire inner loops — the one lever that touches the O(2ⁿ) floor caching can't. **(N6)** a **lazy / top-K relations mode** (relations are the n≥6 bottleneck that OxiDD + analytical folds only partly address).
+
+*API ergonomics / usability:* **(N7)** one high-level **`pyphi.analyze(substrate, state, formalism=…)`** entry point. **(N8)** a full **provenance stamp** on every result (pyphi version, git sha, seed, wall-time) extending the P10 config snapshot. **(N9)** the unified labeled-export (`to_pandas`/xarray) story — already a P14d follow-on, elevated because it interlocks with the freeze.
+
+*Maintainability:* **(N10)** this restructuring + the AGENTS.md/ROADMAP maintenance protocol — the meta-fix that prevents the drift this audit cleaned up.
+
+### 2026-06-13 brainstorm sweep — ranked candidates (B1–B18)
+
+> Generated by a six-lens idea sweep (formalism / algorithm / dependency / performance / API /
+> correctness) + a synthesis pass that deduped against every P-item and N1–N10 (14 near-duplicates
+> dropped, each mapped to the roadmap item it overlaps). Ranked by value × leverage × novelty,
+> weighted toward formalism/algorithm depth. **Scheduled into the waves (2026-06-13):** B1/B4/B5/B9 → Wave 1; B7/B8/B13/B15/B16 → Wave 2;
+> B18 → Wave 4; B17 → Wave 5; B6 folded into P18 (Wave 6). The remaining B-items stay 2.x / research
+> candidates (B2/B3/B10 are P17-gated — build only the lever P17's profiling says will pay). Disposition tags: `2.0` (fold-into-2.0 candidate) · `2.x` · `research` · `quick-win`.
+
+**Key insight:** `pyphi/formalism/iit4/bounds.py` (the landed Zaeemzadeh module) is the most
+under-exploited asset in the codebase — the roadmap only uses it to *prune* (P13). It can also be a
+runtime correctness oracle (B1), a B&B search driver (B2), and a magnitude bracket complementing
+precision analysis (B9). Other themes: differential/paired verification across the 5+ formalisms as
+the dominant correctness strategy (B1/B4/B5/B9/B14); the 2026 ii-cap as the central un-falsifiable
+blind spot (B4); exact algorithmic attacks on the combinatorial floor that caching can't touch
+(B2/B3/B6/B10/B11); cut-aware structural reuse keyed on what a cut actually changes (B3/B7/B18);
+making implicit theory objects named, checkable runtime types (B7/B8/B16).
+
+- **B1** — Runtime bound-certificate assertions. *`2.0`.* Wire the certified bounds (`|M||Z|`, `N(θ)`, `n(n-1)`, Σφ) as live assertions at the ~4 result-construction sites behind a debug/CI flag; any over-large φ is a proof of a formalism bug (zero false positives in the certified domain). Distinct from P13 (compute/prune) and N1 (pins values).
+- **B2** — Branch-and-bound MIP search. *`research`.* Replace the exhaustive min-over-partitions reduction with an incumbent-driven B&B (order by ascending `num_connections_cut`, prune by certified bound), gated by byte-identical shadow-equality. Finer-grained than P13 SP2's candidate-skipping.
+- **B3** — Cut-decomposed repertoire reuse. *`research`.* Re-key the kernel cache on `(substrate, base_state, severed-edges-touching-purview, mechanism, purview)` so a repertoire unchanged by a cut is computed once per SIA, not once per partition. Orthogonal to P9.5/N4 (surfaced in 3 lenses).
+- **B4** — 2026 ii(s)-cap oracle + cap-biting generator. *`2.0`.* From-scratch differential reimplementation of `min(φ_uncapped, i_diff, i_spec)` + a search constructing the small TPM where the cap strictly binds with non-zero φ (golden asserts 2026 < 2023). Closes the cap's un-falsifiable blind spot; yields P17/N1's cap-biting network.
+- **B5** — Cross-formalism / pre-refactor differential testing. *`2.0`.* Paired tests asserting cross-formalism invariants (`2026 ≤ 2023`; 3.0/4.0 agree on reducibility) + a byte-match against the `b3aaa3e5` pre-refactor oracle; elevates the cross-temporal benchmark from perf to a correctness gate.
+- **B6** — Junction-tree / treewidth-dispatched exact inference. *`research`.* Compile per-node factors into a junction tree; compute repertoire marginals in `O(2^treewidth)` via belief propagation, covering effect repertoires + unconstrained-forward averages. Generalizes P18 (cause-inversion only) — candidate to merge with it.
+- **B7** — Unified `PartitionAlgebra` (directed edge-set `Cut`). *`2.0`.* Canonicalize every scheme's output as a directed bipartite edge-set with total `removed_edges()` / `num_connections_cut()`; kills the `except AttributeError: return None` φ-normalization fragility. Realizes the "unified partitioning" debt; highest refactor surface (pre-freeze).
+- **B8** — `result.explain()`. *`2.x`.* Unify the two divergent `ShortCircuitConditions` enums and return a typed tree of findings (which short-circuit fired; for φ>0 the winning/runner-up partition, the φ-gap, the binding min direction, the driving mechanism/purview). The data is already computed and discarded.
+- **B9** — High-precision (mpmath/Fraction) cancellation oracle + condition-number guard. *`2.x`.* Sidecar exact recompute of `information_density`/GID/`intrinsic_information` + a `condition_number(p,q)` estimator + a Hypothesis battery on `p≈q` / 0–1-boundary pairs; opt-in warn when a φ's input is too ill-conditioned to trust `precision` digits.
+- **B10** — Automorphism orbit-pruning of enumeration. *`research`.* Use the substrate's automorphism group (fixing `cm` AND the TPM up to relabeling) to iterate one representative per orbit in mechanism/purview/partition enumeration, expanding φ by the group action. Reduces the *count* of φ computations on symmetric nets; shares the pynauty dep with P11.95c but is a deeper application.
+- **B11** — Batched (state-axis) repertoire kernel (+ optional JAX). *`2.x`.* Carry a leading batch axis (candidate states, or a purview/partition cohort) through the pure-tensor algebra so N tiny dispatches become one broadcasted einsum; expose `phi_over_states` / `analyze_states` + a `jax/vmap` backend. Attacks per-call dispatch overhead in the interactive n≤5 regime.
+- **B12** — `pyphi.Sweep` cartesian batch driver. *`2.x`.* Lazy `Sweep(substrate).over_states().over_subsets().over_formalisms([...]).compute()` → one tidy MultiIndexed DataFrame (φ, n_distinctions, Σφ_r, version) with raw results in `.results` and a `ConfigSnapshot`/seed per row. Co-design the row schema with P14d `to_pandas`.
+- **B13** — Eager config-combination validator. *`2.0`.* A declarative registry of `ConfigConstraints` (EMD needs `precision≤6`; the cap is inert outside 4.0_2026; 3.0 + a 4.0-only system measure) evaluated on override/load + at compute entry, raising `ConfigurationError` with the two conflicting fields + a fix; an enumeration test forces every combo to be classified. Pre-freeze.
+- **B14** — Matching analytic oracle + Monte-Carlo convergence/selection-bias cert. *`2.x`.* `matching_exact()` enumerating the finite M expectation for small alphabets; a paired test that the seeded MC estimate converges to it; `MatchingResult.standard_error` + a `subsequence_max` selection-bias flag; a 0/0 guard on `triggering_coefficient`. Hardens the repo's weakest-validated research code.
+- **B15** — `result.diff(a, b)`. *`2.x`.* A structured `ResultDiff` (Δφ, MIP-changed + partition lex-key delta, distinctions/relations gained-lost keyed by mechanism, per-shared Δφ) that composes `ConfigSnapshot.diff` to attribute which config differences could explain the change; `_repr_html_` + `to_pandas()`. Composes with Sweep + explain().
+- **B16** — First-class `Complex` marker type. *`2.0`.* `models/complex.py` wrapping a SIA + `is_maximal`, its exclusion set, and the selecting substrate; `complexes()` returns `tuple[Complex, ...]` and the exclusion postulate becomes `validate.non_overlapping(...)`. Advances ship-criterion #1 (every Greek letter a named type); pre-freeze (return-contract change).
+- **B17** — Drop dead/micro dependencies. *`quick-win`.* Remove the declared-but-unreferenced `tblib`; replace `ordered-set` with a `dict.fromkeys` wrapper; audit the ~8 `toolz` sites onto stdlib/`more_itertools` (already a dep). Shrinks the install closure; fits the P15 import-cleanup wave.
+- **B18** — Adaptive parallel granularity (analytic cost model). *`2.x`.* Activate the dormant `ChunkingPolicy.size_func` with an analytic per-item cost signal and bin-pack into equal-predicted-cost chunks instead of uniform timed-sample extrapolation; eliminates the straggler where one worker draws all the expensive items. Chunking doesn't affect results (guarded by N2).
+
+*Dropped as duplicates (14):* log-space repertoire algebra, low-rank TPM backend, SCC/modularity factorization, analytic/marginal-polytope specified-state search, four relation-face compaction variants, relation-hypergraph isomorphism, checkpoint/resume ledger, half-precision storage, pyemd→POT swap, numba JIT, `to_xarray()` cube, `config.profile()`, notebook gallery, partition φ-spectrum attribute — each folded under the existing P-item or N-item it overlaps (full mapping in the audit record).
 
 ## Context
 
@@ -136,6 +320,15 @@ path dependence, and correctness risk.
 
 ## Target Architecture
 
+> **Target — partially realized (~40–50% as of 2026-06-13).** This is the intended end-state, not
+> the current tree. Notable deltas: `System`/`Substrate` are top-level `pyphi/system.py` /
+> `pyphi/substrate.py` (not under `core/`); there is no `CausalModel`/`CandidateSystem` type;
+> `metric/` shipped as `pyphi/measures/`; `combinatorics` and `partition` stayed single modules
+> (not packages); config is the `pyphi/conf/` package (no `io/`); `approx/` and the OxiDD/`ZDDFamily`
+> backend are not built (P16 post-2.0; P6b in Wave 2). What did land: the
+> `formalism/{iit3,iit4,actual_causation}` split, `iit4/bounds.py`, frozen-value-type `models/`,
+> the `parallel/` refresh, and the keep-IIT-3.0 decision.
+
 ```
 pyphi/
   core/                          # typed kernel — no formalism logic
@@ -243,7 +436,18 @@ anyway, so keeping 3.0 is not extra work. The version that's wrong is
 
 ---
 
-## Ordered Project List
+## Design rationale & history (archive)
+
+> **Everything from here down is historical design rationale and per-item detail**, kept for context
+> and commit history. It is **not** the status record — the [Status Dashboard](#status-dashboard) is.
+> Landed items are described here in their original (often future-tense / pre-rename) planning voice,
+> so **do not infer current status from this prose**; class and path names in landed-item entries may
+> predate later renames (e.g. `subsystem.py`, `metrics/`, `Cut`/`SystemPartition`, `CandidateSystem`
+> are gone). The [Remaining 2.0 Work](#remaining-20-work) schedule above supersedes the "Updated 2.0
+> ordering" section further down.
+
+The original **Ordered Project List** (Phase A–H) follows, then the **Updated 2.0 ordering**, kept for
+design rationale and commit history.
 
 ### Phase 0 — Prerequisites
 
@@ -873,16 +1077,15 @@ everything not in the Protocol is free to change. This is why P3 is load-bearing
 
 ### Phase D — Model cleanup and consolidation
 
-**P8. `models/mechanism.py` split + Distinction type + Φ-folds — landed (`db15baee`), except `phi_fold`**
+**P8. `models/mechanism.py` split + Distinction type + Φ-folds — landed (`db15baee`; `PhiFold` added later via P14b SP1, `95b8e5fe`)**
 
 > **Status (audited 2026-06-02):** Split landed — `models/mechanism.py` →
 > `ria.py` / `mice.py` / `distinction.py` / `distinctions.py` /
-> `state_specification.py` (the plan's `state_spec.py`). **`phi_fold` not
-> delivered, and correctly so:** `PhiFold` is consumed by the matching
-> extension (P14b lists it among the core outputs it consumes), whose external
-> `phi_fold.py` in the external matching research repo is the reference implementation.
-> Bringing it into core belongs with the P14b fold-in, so it is **deferred to
-> P14b** (a 2.1 candidate), not an orphaned P8 gap.
+> `state_specification.py` (the plan's `state_spec.py`). **`PhiFold` has since landed
+> in core** at `pyphi/models/ces.py` (`class PhiFold`, `CauseEffectStructure.fold()`,
+> `big_phi_contribution`, analytical fold sums) — brought in by P14b sub-project 1
+> (commit `95b8e5fe`, `phi-fold.feature.md`), as a type in `ces.py` rather than a
+> separate `models/phi_fold.py`.
 
 Split `models/mechanism.py` (1216 lines) into `ria.py`, `state_spec.py`, `mice.py`,
 `distinction.py` (new, 4.0-native replacement for `Concept`). Replace hand-rolled
@@ -1182,8 +1385,9 @@ See ROADMAP P9 deferred items above for full detail.
 exists to exercise the `Scheduler` Protocol against three call shapes
 (loky pool, thread pool, dask client) so the abstraction is right; cluster
 deployment fills it in later. **`HTCondorScheduler` and the full Dask
-implementation defer to a post-2.0 follow-up project (`P18`)** — gated by
-real user demand for SLURM/PBS/LSF/SGE/HTCondor cluster runs. The
+implementation are a follow-up** (now Wave 4 / "P11 cluster backends" in the
+[schedule](#remaining-20-work) — *not* the sparse-inversion P18; the old shared
+`P18` label is retired) — additive behind the stable Scheduler Protocol. The
 Scheduler Protocol shape is the contract that unblocks them; nothing else
 in the 2.0 roadmap depends on cluster backends.
 
@@ -1451,7 +1655,11 @@ for both branches.
 
 ---
 
-## Updated 2.0 ordering (2026-05-09)
+## Updated 2.0 ordering (2026-05-09) — superseded
+
+> **Superseded by the [Status Dashboard](#status-dashboard) + [Remaining 2.0 Work](#remaining-20-work) (2026-06-13).**
+> Kept for the per-item design rationale and commit history in the entries below; **not** a status
+> record. Where this section and the dashboard disagree, the dashboard is correct.
 
 The original Phase A–H letters captured logical groupings (safety net,
 formalism split, kernel rewrite, model cleanup, infrastructure refresh,
@@ -2216,10 +2424,11 @@ end-to-end correctness; the binary goldens remain byte-identical.
   `native-kary-cause`, `all-states-kary`, `kary-golden-fixtures`,
   `state-space-api`.
 
-- *Deferred:* the actual-causation (AC) pipeline remains binary-only; AC k-ary
-  support is deferred (it intersects the AC formalism work, see P14c). A handful
-  of `TODO extend to nonbinary` comments remain in narrower helper/measure paths
-  (`distribution.py`, `node.py`, `measures/distribution.py`) and on the AC path.
+- *AC k-ary:* **landed and tested** (`test/test_actual_kary.py`; `test/test_actual.py`
+  validates 2019 Fig. 11 — seven 3-state voters → 4-state winner, α_c = 1.893). What is
+  deferred is the *4.0-style AC formalism object* (P14c), not k-ary AC repertoire support.
+  A handful of `TODO extend to nonbinary` comments remain in narrower helper/measure paths
+  (`distribution.py`, `node.py`, `measures/distribution.py`).
 - *Leverage:* Unlocks Gómez-style multivalued research.
 
 **P12c. xarray state_space coord labels — deferred (gate not met)**
@@ -2328,9 +2537,8 @@ cuts machinery (`ConceptStyleSystem`, `concept_cuts`, `directional_sia`,
 
 Macro work is split off into a separate paper-faithful project tracking
 Marshall et al. 2024 (intrinsic units); see "Macro framework — Marshall
-2024 intrinsic units" below. The disabled `MacroSystem` class and
-`test/test_macro_system.py` (593 lines) remain disabled until that
-project lands.
+2024 intrinsic units" below. That project has **landed** — `MacroSystem`
+is live (`pyphi/macro/system.py`) and `test/test_macro_system.py` is active.
 
 - *Files touched:* `pyphi/actual.py`, `pyphi/models/actual_causation.py`,
   `pyphi/conf/formalism.py`, `pyphi/conf/_global.py`,
@@ -2349,15 +2557,16 @@ intrinsic-unit search via $\varphi_s$ optimization.
 > Identifying a system's causal grain.* (See
 > `papers/2024__marshall-et-al__intrinsic-units.pdf`.)
 
-- *Status:* Deferred. The disabled `MacroSystem` class and the 593-line
-  `test/test_macro_system.py` remain dark until this lands.
+- *Status:* **Landed** (SP1 + SP2 + SP3 + search parallelization). `MacroSystem` is a live,
+  exported class (`pyphi/macro/system.py`); `test/test_macro_system.py` (330 lines) is active.
+  See the "Updated 2.0 ordering" item 10 below for the sub-project breakdown and commits.
 - *Why a fresh project:* The 2024 paper specifies the formalism in terms
   of objects (meso constituents, $g_J$, $W^J$, $\varphi_s$) that don't
   map onto the legacy `MacroSubsystem` design. A faithful port is closer
   to a rewrite than a resurrection.
-- *Files:* `pyphi/macro.py` (legacy, ~1094 lines, to be replaced),
-  `test/test_macro_system.py` (593 lines, to be unskipped against the
-  new design).
+- *Files:* `pyphi/macro/` package (`units.py`, `tpm.py`, `system.py`, `criteria.py`,
+  `search.py`); `test/test_macro_system.py` (330 lines, active). The legacy
+  `pyphi/macro.py` was removed (`6dcbf5ef`).
 
 **P14b. Fold matching/perception extension into PyPhi**
 
@@ -2385,9 +2594,10 @@ the external matching research repo (~1500 LOC across 9 modules). This extension
 
 **Architecture:** The matching extension is a *consumer* of core IIT outputs
 (`PhiStructure`, `Distinction`, `Relation`, `PhiFold`), not a modifier. It follows
-the same pattern as actual causation (P14) and approximation methods (P16). It
-should live in `pyphi/formalism/perception/` (or `pyphi/extensions/perception/`)
-with modules:
+the same pattern as actual causation (P14) and approximation methods (P16). **It landed
+as the top-level package `pyphi/matching/`** (not `pyphi/formalism/perception/`); the
+module sketch below is the original plan, realized with modules `matching.py`,
+`perception.py`, `differentiation.py`, `triggering.py`, `triggered_tpm.py`, `system.py`:
 
 ```
 formalism/perception/
@@ -3144,6 +3354,12 @@ to have any value.
 
 ## Critical Files (highest blast radius, touched by multiple projects)
 
+> **Historical (paths as of project start).** Most of these modules have since been split or
+> renamed — `subsystem.py` → `system.py`/`substrate.py`, `metrics/` → `measures/`, `tpm.py` →
+> `core/tpm/`, `repertoire.py` → `core/repertoire_algebra.py`, `conf.py` → `conf/`,
+> `new_big_phi/` → `formalism/iit4/`, `models/mechanism.py` → `models/{ria,mice,…}.py`. Kept to
+> record which projects co-touched the original high-blast-radius files.
+
 - `pyphi/subsystem.py` — P4, P5, P6, P7, P9
 - `pyphi/new_big_phi/__init__.py` — P4, P7, P11
 - `pyphi/metrics/distribution.py` — P3, P5, P12
@@ -3158,6 +3374,10 @@ to have any value.
 - `pyphi/relations.py` — P6, P8 (already wired to `phi_structure`)
 
 ## Existing Utilities to Reuse
+
+> **Historical.** The data-structure utilities below still exist; some of the *planned moves* did
+> not happen — `combinatorics.py` is still a single module (not a package) and `relations.py` is
+> still top-level (not under `formalism/iit4/`). Kept as a record of the intended reuse.
 
 - `pyphi/data_structures/pyphi_float.py` — `PyPhiFloat`: keep, extend via P5.
 - `pyphi/data_structures/frozen_map.py` — `FrozenMap`: becomes load-bearing in P9.
@@ -3174,6 +3394,10 @@ to have any value.
 - `test/hypothesis_utils.py` — expanded in P2.
 
 ## Open PRs to Absorb
+
+> **Mostly resolved.** PR #138 (substrate modeler) and PR #105 (implicit/factored TPM) were
+> absorbed (P7 / P12 landed). The remaining minor PRs (#114/#116/#130/#134/#117) are triaged in
+> P15 (Wave 5). Kept for provenance.
 
 - **PR #138 (`feature/substrate_modeler`)** — Reviewed as input to P7. Stateless
   substrate design, `unit.py`, `substrate.py` may be directly usable.
@@ -3271,13 +3495,11 @@ to ease transition:
   ``pyphi/core/repertoire_algebra.py``, plus consumers and ~30 test
   sites. Roughly 1–3 days. Independent of any other in-flight project.
 
-- **Retire ``config.numerics.precision`` when IIT 3.0 is dropped.** The
-  setting is a holdover from the EMD-era ``pyemd`` C-library noise.
-  Once 3.0 support is gone, ``utils.eq`` should migrate to use a fixed
-  module-level constant (or import ``cmp.EQUALITY_TOLERANCE`` directly),
-  and the config field should be removed. For IIT 4.0 the
-  "op-order-noise threshold" is a property of float64 arithmetic on
-  IIT quantities, not a user preference.
+- **~~Retire ``config.numerics.precision`` when IIT 3.0 is dropped.~~ (Moot — 3.0 is kept.)**
+  The setting is a holdover from the EMD-era ``pyemd`` C-library noise, and the original idea
+  was to remove it once 3.0 support was gone. But IIT 3.0 is being **kept** behind the
+  `PhiFormalism` Protocol (see the IIT-3.0 decision under [Target Architecture](#target-architecture)),
+  so the triggering condition will not occur; `precision` stays. Revisit only if 3.0 is ever removed.
 
 - **AC default: extended background vs. strict Eq. 2.** PyPhi's
   ``TransitionSystem`` currently freezes substrate units outside

@@ -710,11 +710,12 @@ The default is to work on whatever branch the conversation starts on. However, f
 
 ### Key Files to Know
 
+- [ROADMAP.md](file:///ROADMAP.md) - **Strategic 2.0 roadmap and schedule.** The single source of truth for what has landed and what remains; the Status Dashboard at the top is authoritative. Read it for current priorities, and keep it current (see ["Keeping this file up to date"](#keeping-this-file-up-to-date) below).
 - [pyphi/__init__.py](file:///pyphi/__init__.py) - Main entry point
-- [pyphi/compute/](file:///pyphi/compute/) - Computational entry points
-- [pyphi/subsystem.py](file:///pyphi/subsystem.py) - Core subsystem logic
-- [pyphi/conf.py](file:///pyphi/conf.py) - Configuration system
-- [pyphi/new_big_phi/__init__.py](file:///pyphi/new_big_phi/__init__.py) - IIT 4.0 implementation
+- [pyphi/system.py](file:///pyphi/system.py), [pyphi/substrate.py](file:///pyphi/substrate.py) - Core `System` / `Substrate` value types (formerly `Subsystem` / `Network`)
+- [pyphi/formalism/](file:///pyphi/formalism/) - Formalism strategies: `iit3/`, `iit4/`, `actual_causation/`
+- [pyphi/core/](file:///pyphi/core/) - Stateless kernel: repertoire algebra, TPM (`core/tpm/`), units
+- [pyphi/conf/](file:///pyphi/conf/) - Layered configuration (formalism / infrastructure / numerics)
 - [pyphi_config.yml](file:///pyphi_config.yml) - Default configuration
 - [test/example_networks.py](file:///test/example_networks.py) - Test networks
 
@@ -755,6 +756,16 @@ pre-commit run --all-files
 ## Keeping this file up to date
 
 As the codebase changes, make sure to update the contents of this file as necessary.
+
+### Keep ROADMAP.md current
+
+[ROADMAP.md](file:///ROADMAP.md) is the strategic roadmap for the 2.0 release — the planned
+refactors and features, their dependency-ordered schedule, and their status. **When you land or
+change the status of any roadmapped work, update its row in the ROADMAP.md Status Dashboard in the
+same change** (and any matching detail in "Remaining 2.0 Work"). The document has repeatedly drifted
+— items implemented but left described as upcoming — so the dashboard is the single source of truth;
+verify an item's status against the code, `changelog.d/`, and git history before trusting prose
+elsewhere in the file. If you do substantial work that isn't on the roadmap, add it.
 
 ## Final Notes
 
