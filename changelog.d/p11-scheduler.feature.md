@@ -33,8 +33,9 @@ Re-enabled ``test/test_parallel.py`` in CI (it was previously excluded).
 ``test/test_chunking.py`` was deleted alongside the dead-code
 ``chunking.py`` module.
 
-The IIT 3.0 EMD goldens (``basic_iit3_emd``, ``xor_iit3_emd``)
-intermittently hit a known ``BrokenProcessPool`` flake from worker-side
-state interactions (deferred curiosity from the unified-cache work);
-when the symptom appears the test skips rather than failing CI. Real
-numerical regressions still fail the suite.
+The IIT 3.0 EMD goldens (``basic_iit3_emd``, ``xor_iit3_emd``) once
+intermittently hit a ``BrokenProcessPool`` flake from worker-side state
+interactions (the P9 cache-registry leak). That has since been root-caused
+and resolved (see ``parallel-equals-sequential-invariant``): the goldens
+now run sequentially and the N2 invariant exercises the loky path under
+standing coverage, so no symptom-skip remains.
