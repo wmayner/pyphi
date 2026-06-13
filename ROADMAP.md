@@ -13,13 +13,12 @@
 
 ### ✅ Landed (verified 2026-06-13)
 
-P0 · P1 · P2 · P3 · P4 · P5 · P6 · P6a · P7 · **P8** (incl. `PhiFold`) · P9 · P10 · P10b · P10c · **P11 core** (Scheduler Protocol + Process/Thread schedulers + cost-sampling chunking + config-snapshot propagation) · P11.5 · P11.6 · P11.7 · **P11.8 Tier 1** · P11.9 · P11.85 · P11.86 · P11.87 · P11.88 · P11.95a · P11.95b · P11.95d · P11.95e · **P12** (factored TPM + multivalued units, incl. AC k-ary) · P14 · **P14b core** (sub-projects 1–4) · P14d (sub-projects B + A-1..A-4) · **Macro / Marshall-2024 intrinsic units** (SP1 + SP2 + SP3 + search parallelization) · **N2** (parallel≡sequential invariant) · **P11 loky-flake** (root-caused to the P9 cache-registry leak; confirmed resolved, N2 guards it) · **B1** (runtime bound-certificate assertions; `validate_phi_bounds`, on suite-wide)
+P0 · P1 · P2 · P3 · P4 · P5 · P6 · P6a · P7 · **P8** (incl. `PhiFold`) · P9 · P10 · P10b · P10c · **P11 core** (Scheduler Protocol + Process/Thread schedulers + cost-sampling chunking + config-snapshot propagation) · P11.5 · P11.6 · P11.7 · **P11.8 Tier 1** · P11.9 · P11.85 · P11.86 · P11.87 · P11.88 · P11.95a · P11.95b · P11.95d · P11.95e · **P12** (factored TPM + multivalued units, incl. AC k-ary) · P14 · **P14b core** (sub-projects 1–4) · P14d (sub-projects B + A-1..A-4) · **Macro / Marshall-2024 intrinsic units** (SP1 + SP2 + SP3 + search parallelization) · **N2** (parallel≡sequential invariant) · **P11 loky-flake** (root-caused to the P9 cache-registry leak; confirmed resolved, N2 guards it) · **B1** (runtime bound-certificate assertions; `validate_phi_bounds`, on suite-wide) · **P13 SP2** (bite-rate study: bounds don't prune in the certified domain → no pruning built, SP1 is the deliverable)
 
 ### ⬜🟡 Remaining 2.0 work — *the schedule lives in [Remaining 2.0 Work](#remaining-20-work)*
 
 | Item | Status | Wave | One-line |
 |---|---|---|---|
-| P13 SP2 | 🟡 study→gate | 1 | Run the bounds bite-rate study; ship pruning behind a shadow gate only if it pays |
 | p53-Mdm2 golden | ⬜ open | 1 | Reproduce Gómez 2021 network; land as a further k>2 golden if it matches |
 | N1 paper-reproduction suite | ⬜ open | 1 | Comprehensive paper-reproduction acceptance suite as a CI gate (subsumes p53; yields P17's 2026-cap network) |
 | CES-completeness search | ⬜ open | 1 | Brute-force whether CES is a complete substrate invariant (decides P11.95c-b) |
@@ -76,7 +75,6 @@ P0 · P1 · P2 · P3 · P4 · P5 · P6 · P6a · P7 · **P8** (incl. `PhiFold`) 
 
 ### Wave 1 — Confirmation experiments & correctness *(cheap, parallel; several are "don't defer confirmation experiments")*
 
-- **P13 SP2 — bounds bite-rate study.** With the bounds module (SP1) landed, measure how often the theorem-certified bounds would let `complexes()` skip a candidate (or a Theorem-1 purview cap bite). If they bite enough, build the search-integration pruning behind the shadow-mode equality gate (byte-identical to unpruned); if not, SP1's utility surface is the final P13 deliverable. The study has no blocker — only the pruning *code* is contingent on its outcome.
 - **p53-Mdm2 golden.** Reconstruct the Gómez et al. 2021 p53-Mdm2 network (Table 1, multi-state nodes); if PyPhi reproduces the paper's Φ within `precision`, land it as a further k>2 golden alongside the three synthetic ones.
 - **CES-completeness search.** Brute-force small-n for non-isomorphic substrate pairs with matching CES, to settle whether CES is a complete invariant of the substrate. Cheap, and it decides whether P11.95c case (b) is empty (so (a)+(c) suffice) or a genuine distinct case.
 - **N1 — paper-reproduction acceptance suite (CI gate).** Systematically reproduce every published worked example (IIT 4.0 Figs 1/2/4/6/7, Marshall 2024, AC 2019 Fig. 11, Gómez p53) with pinned expected values, wired in as a CI gate. Subsumes the p53-Mdm2 golden above and *yields the network that exercises the 2026 ii-cap with non-zero φ* that P17 (Wave 6) needs. *(Promoted from the wishlist.)* **P11.95e fallout (2026-06-13):** the IIT 3.0 `rule110`/`grid3` `sia.phi` goldens depend on the `PURVIEW_SIZE` purview tie-break (the audit proved it load-bearing for system φ) yet lack an independent reference — only `basic`/`basic_tri` carry canonical values. Reproducing them against a correctly-invoked PyPhi 1.x 3.0 SIA belongs here.
@@ -120,7 +118,7 @@ jsonify → msgspec serialization; mirror `pyphi/` structure in `test/` + split 
 
 ### Ship criterion for 2.0
 
-The release is gated on completing the roadmap, not a partial ship — every ⬜/🟡 dashboard item lands, with two contingent resolutions: P13 SP2's pruning ships only if the study shows it pays, and P14b's perception-maximized projection may remain open research. Concretely:
+The release is gated on completing the roadmap, not a partial ship — every ⬜/🟡 dashboard item lands, with one remaining contingent resolution: P14b's perception-maximized projection may remain open research. (P13 SP2's bite-rate study has run — the certified bounds do not prune in their valid domain — so no search-integration pruning ships; the bounds module + B1 assertions are the P13 deliverable.) Concretely:
 
 1. Every Greek letter in Albantakis et al. 2023 (+ the 2026 ii-cap) maps to a named runtime type (the "mathematician's acceptance test").
 2. Goldens (fast + slow) green; Hypothesis suite green at default seed and on the 1000-run nightly; `test_actual.py` **and** `test_macro_system.py` unskipped; perf budget green; **no parallel-only golden left silently skipped** (the loky intermittent resolved or made a loud xfail).

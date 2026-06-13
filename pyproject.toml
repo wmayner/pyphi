@@ -177,6 +177,7 @@ max-statements = 100
 # Allow print statements in main init (welcome message) and profiling scripts
 "pyphi/__init__.py" = ["T201"]
 "profiling/**/*.py" = ["T201"]
+"benchmarks/**/*.py" = ["T201"]
 # Allow print and magic values in examples
 "docs/examples/**/*.py" = ["T201", "PLR2004"]
 # Allow explicit re-exports in __init__ files (PEP 484 style)
