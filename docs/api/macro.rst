@@ -18,3 +18,11 @@
 .. automodule:: pyphi.macro.system
     :members:
     :undoc-members:
+
+.. automodule:: pyphi.macro.criteria
+    :members:
+    :undoc-members:
+
+.. automodule:: pyphi.macro.search
+    :members:
+    :undoc-members:

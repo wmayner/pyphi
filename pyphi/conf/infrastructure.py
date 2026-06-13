@@ -75,6 +75,9 @@ class InfrastructureConfig:
     parallel_relation_evaluation: Mapping[str, Any] = field(
         default_factory=lambda: _default_parallel_dict(2**10, 2**12, progress=True)
     )
+    parallel_macro_system_evaluation: Mapping[str, Any] = field(
+        default_factory=lambda: _default_parallel_dict(2**4, 2**6, progress=True)
+    )
     parallel_workers: int = -1
     parallel_backend: str = "local"
 
@@ -154,6 +157,7 @@ class InfrastructureConfig:
             "parallel_purview_evaluation",
             "parallel_mechanism_partition_evaluation",
             "parallel_relation_evaluation",
+            "parallel_macro_system_evaluation",
         ):
             value = getattr(self, parallel_field_name)
             if not isinstance(value, Mapping):

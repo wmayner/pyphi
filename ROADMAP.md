@@ -1641,14 +1641,76 @@ test inventory — that a deliberate re-ordering pass is in order.
       Example 2's TPM is computed in their code and matches the
       construction to machine precision, with $\varphi_s$ reproduced
       bit-for-bit.
-    - **SP2 — intrinsic-unit criteria and search** (gated on SP1):
-      maximal-irreducibility-within criteria (Eqs. 15-16), the
-      admissible-system recursion $f(U^J, W^J)$, cross-grain
-      complexes (Eq. 19), bounded mapping/apportionment enumeration.
-    - **SP3 — reference goldens** (gated on SP1): freeze the ten
-      result sets from the authors' repository (cg/bbx/min/bu/sfn/
-      sfs/sfnn) as regression goldens; first published anchor for the
-      nonempty-apportionment path (Eq. 29).
+    - **SP2 — intrinsic-unit criteria and search** *(landed; spec
+      ``285843a``, plan ``bc365e3``, implementation
+      ``8a40392``..``acb4556``)*: ``pyphi/macro/criteria.py``
+      (Eqs. 15-16 verdicts with witnesses, ``unit_integration``,
+      ``judge_candidate``) and ``pyphi/macro/search.py``
+      (``SearchBounds``, bounded mapping enumeration, the
+      intrinsic-unit recursion, the valid-system set $\mathbb{P}(u)$,
+      and the Eq. 19 ``complexes()`` driver returning winners, ties,
+      and the full evaluation record). The default-bounds driver
+      recovers Example 1's macro system as the unique complex at the
+      SP1 construction golden ($1.0040208141253277$). Two pins beyond
+      the spec, both forced by experiment: (1) candidate mappings are
+      canonicalized up to state-label complementation — a table and
+      its complement yield bitwise-identical $\varphi_s$ (relabeling
+      isomorphism), so literal enumeration makes Eq. 19's strict
+      inequality unsatisfiable; counts halve (min EXHAUSTIVE 7, cap-8
+      127). (2) The authors' committed ``bu`` summary is stale: its
+      all-zero 1-/2-unit values reproduce only under old pyphi's
+      ``SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI`` default (false),
+      contradicting their committed config and their sfn result set
+      (which require true); replaying their pinned pyphi ``941c65a``
+      with their committed config gives $\varphi_s(A) = \varphi_s(B)
+      = 1.0$ and an unreachable $\{C\}$, matching the 2.0 pipeline.
+      Tests pin the consistent convention; the bu driver verdict is
+      complexes $= \{A\}, \{B\}$ (the singletons beat ABC's
+      $0.8300749985576875$), so the example's bottom-up story does not
+      survive the consistent convention. Queued for the authors
+      alongside SP1's Example 1 TPM finding and the spec's
+      $f(U^J, W^J)$ subset-semantics question.
+    - **SP3 — reference goldens** *(landed; spec ``9cc97a2``, plan
+      ``db1d12a``, implementation ``bd92169``..``27ff5c3``)*: the ten
+      result sets from the authors' repository (commit ``48471b5d``)
+      committed verbatim under ``test/data/intrinsic_units/`` and frozen
+      as regression goldens in ``test/test_macro_goldens.py``:
+      fast micro sweeps (cg/min/sfn/sfnn/sfs, 63 values), the bu
+      documented-deviation battery (pins both the stale committed
+      zeros and the consistent convention's values), the bbx sweep
+      tiered by measured cost (sizes 1-4 and the 60 reducible large
+      subsystems in the slow lane; the 29 irreducible large values
+      opt-in via ``PYPHI_MACRO_FULL_SWEEP`` -- hours), and the
+      macro-network goldens from the authors' macro TPMs. The
+      committed ``*_macro`` values are subsystems of standalone macro
+      *networks* (macro-level background conditioning), a different
+      object from the intrinsic-units candidate systems, which get
+      project-recorded goldens alongside. **Correction to this entry's
+      earlier claim:** no published anchor for the
+      nonempty-apportionment path (Eq. 29) exists -- the authors'
+      code never apportions background, and apportionment provably
+      cannot reproduce their macro singletons (invisible at update
+      grain 1; ~1e-15 at grain 2). A project-recorded apportioned-
+      candidate golden provides the path's end-to-end regression
+      coverage instead. New upstream findings recorded in the data
+      README: bbx_micro is missing 4 of 255 subsystems; several
+      committed large-subsystem values are unclamped float noise
+      (~1e-17, some negative).
+    - **Search parallelization** *(landed; spec ``39e2bc7``, plan
+      ``2ca3d47``, implementation ``aee9c84``..``5fa69c4``)*: the search
+      drivers parallelize their independent ``phi_s`` evaluations
+      across processes through the existing ``MapReduce`` engine and a
+      new ``config.infrastructure.parallel_macro_system_evaluation``
+      per-site option (off by default; per-call ``parallel_kwargs``
+      also accepted). The recursion is batched by footprint-size class
+      (each class is mutually independent because ``f(U^J, W^J)`` admits
+      only strict-subset footprints) and the ``P(u)`` sweep is
+      embarrassingly parallel; a per-run construction cache avoids
+      rebuilding macro TPMs. Results are bit-identical to sequential
+      runs (memo warmed in dispatch order; judgments and Eq. 19
+      assembly stay sequential), pinned by equivalence tests against
+      the SP2/SP3 goldens. Workers force the inner ``sia`` sequential
+      so parallelism is one process-pool deep.
 
 11. **P11.85 — Measure-API unification.** *(landed; spec ``90ca10be``,
     plan ``0da5d0ad``, implementation commits ``08a48e5a`` metric
