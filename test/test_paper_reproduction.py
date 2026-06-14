@@ -44,15 +44,22 @@ Currently covered
   and the full causal account of the transition {OR, AND} = 10 -> 10: four
   first-order links at ``alpha = log2(4/3) = 0.415`` bits and one second-order
   (joint) cause link at ``alpha = log2(9/8) = 0.170`` bits.
+* **IIT 3.0 multi-valued (2020), Gómez et al., Fig 3A -- "PyPhi for multi-valued
+  elements".** The original (non-binary) p53-Mdm2 network -- ternary p53 plus
+  binary nuclear/cytoplasmic Mdm2 (``pyphi.examples.gomez_p53_mdm2_substrate``)
+  -- in its fixed point (0, 0, 1), under the paper's exact config (``AID`` +
+  wedge tripartition + ``SUM_SMALL_PHI``): ``Phi = 0.44`` over 3 mechanisms. The
+  suite's first k>2 (ternary-unit) reproduction.
 
 Follow-ons (tracked in ROADMAP N1): the rest of IIT 4.0 Fig 6 (panels A/B/D/E)
 and Fig 7 give weights only graphically and need the authors' exact network
-definitions; and the Gomez et al. 2020 p53-Mdm2 network.
+definitions.
 """
 
 from __future__ import annotations
 
 import itertools
+from dataclasses import replace
 
 import numpy as np
 import pytest
@@ -383,3 +390,53 @@ def test_ac_2019_fig6_or_and_account(_iit3):
         for link in actual.account(transition)
     }
     assert account == _AC_FIG6_ACCOUNT
+
+
+# --------------------------------------------------------------------------- #
+# IIT 3.0, multi-valued -- Gómez, Mayner, Beheler-Amass, Tononi & Albantakis
+# (2020), "PyPhi for multi-valued elements", Entropy 23(1):6, Fig 3A
+# --------------------------------------------------------------------------- #
+# The original (non-binary) p53-Mdm2 network -- ternary p53 (P) plus binary
+# nuclear / cytoplasmic Mdm2 (Mn, Mc); pyphi.examples.gomez_p53_mdm2_substrate --
+# in its fixed point (P, Mc, Mn) = (0, 0, 1). The paper analyses it with the
+# exact PyPhi config quoted in its methods: PARTITION_TYPE='TRI' (wedge
+# tripartition), MEASURE='AID' (absolute intrinsic difference -- the paper notes
+# EMD is unavailable for non-binary systems) and
+# USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE=True (ces_measure='SUM_SMALL_PHI').
+# Fig 3A reports Phi = 0.44 over 3 mechanisms. This is the suite's first k>2
+# (ternary-unit) reproduction and exercises the IIT 3.0 multi-valued path.
+_P53_STATE = (0, 0, 1)  # (P, Mc, Mn)
+
+
+@pytest.fixture
+def _iit3_nonbinary():
+    """IIT 3.0 with the multi-valued config from Gómez et al. (2020) methods."""
+    with config.override(
+        **{k: v for k, v in presets.iit3.items() if k != "iit"},
+        iit=replace(
+            presets.iit3["iit"],
+            mechanism_phi_measure="AID",
+            ces_measure="SUM_SMALL_PHI",
+            mechanism_partition_scheme="WEDGE_TRIPARTITION",
+        ),
+        validate_system_states=False,
+        progress_bars=False,
+    ):
+        yield
+
+
+def test_gomez_2020_p53_mdm2_phi(_iit3_nonbinary):
+    """Fig 3A: the multi-valued p53-Mdm2 network has Phi = 0.44 over 3 concepts.
+
+    PyPhi computes Phi = 0.4387, which rounds to the paper's 0.44, with three
+    irreducible mechanisms -- {P}, {Mc}, {Mn} (the three single units).
+    """
+    system = System(
+        examples.gomez_p53_mdm2_substrate(), _P53_STATE, node_indices=(0, 1, 2)
+    )
+    phi = float(system.sia().phi)
+    assert round(phi, 2) == 0.44
+    assert phi == pytest.approx(0.4387, abs=1e-3)
+    concepts = list(system.ces())
+    assert len(concepts) == 3
+    assert {tuple(c.mechanism) for c in concepts} == {(0,), (1,), (2,)}

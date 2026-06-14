@@ -38,8 +38,8 @@ class IIT3Formalism:
             "ENTROPY_DIFFERENCE",
             "PSQ2",
             "MP2Q",
-            "ABSOLUTE_INTRINSIC_DIFFERENCE",
-            "INTRINSIC_DIFFERENCE",
+            "AID",
+            "ID",
         }
     )
     partition_scheme: ClassVar[str | None] = "JOINT_BIPARTITION"

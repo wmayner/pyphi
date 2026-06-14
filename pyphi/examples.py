@@ -1249,6 +1249,45 @@ def disjunction_conjunction_substrate():
 
 
 @register_example
+def gomez_p53_mdm2_substrate():
+    """The multi-valued p53-Mdm2 regulatory network from Gómez et al. (2020).
+
+    A three-element *non-binary* substrate from "PyPhi for multi-valued
+    elements" (Gómez, Mayner, Beheler-Amass, Tononi & Albantakis, *Entropy*
+    23(1):6; network in Fig. 3A, evolution function in Table 3), itself the
+    logical model of Abou-Jaoudé et al. The units are the tumour-suppressor
+    ``P`` (p53), modelled as *ternary* (activity levels 0/1/2), and the nuclear
+    and cytoplasmic forms of the ubiquitin ligase Mdm2, ``Mn`` and ``Mc`` (each
+    *binary*). Node (and state) order is ``(P, Mc, Mn)`` and the deterministic
+    evolution function from Table 3 is::
+
+        P'  = 2  if Mn == 0 else 0          (nuclear Mdm2 degrades p53)
+        Mc' = 1  if P == 2  else 0          (high p53 up-regulates cyto. Mdm2)
+        Mn' = 0  if (Mc == 0 and P >= 1) else 1
+
+    The fixed point analysed in the paper (Fig. 3A) is ``(P, Mc, Mn) = (0, 0,
+    1)``.
+    """
+    alphabet = (3, 2, 2)  # P ternary; Mc, Mn binary
+    update = (
+        lambda p, mc, mn: 2 if mn == 0 else 0,
+        lambda p, mc, mn: 1 if p == 2 else 0,
+        lambda p, mc, mn: 0 if (mc == 0 and p >= 1) else 1,
+    )
+    marginals = []
+    for i, k in enumerate(alphabet):
+        factor = np.zeros((*alphabet, k))
+        for state in np.ndindex(*alphabet):
+            factor[(*state, update[i](*state))] = 1.0
+        marginals.append(factor)
+    return Substrate(
+        marginals=marginals,
+        state_space=((0, 1, 2), (0, 1), (0, 1)),
+        node_labels=("P", "Mc", "Mn"),
+    )
+
+
+@register_example
 def prevention_transition():
     """The |Transition| for the prevention example from Actual Causation
     Figure 5D.

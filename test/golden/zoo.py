@@ -361,6 +361,34 @@ def _make_fixtures() -> list[GoldenFixture]:
         )
     )
 
+    # Multi-valued p53-Mdm2 network from Gómez et al. 2020 (ternary p53 + binary
+    # nuclear/cytoplasmic Mdm2) in its fixed point (P, Mc, Mn) = (0, 0, 1), under
+    # the paper's exact IIT 3.0 config (AID + wedge tripartition + SUM_SMALL_PHI).
+    # The first k>2 golden under IIT 3.0, and a published reference point
+    # (Fig 3A: Phi = 0.44 over 3 mechanisms; see test_paper_reproduction.py).
+    fixtures.append(
+        GoldenFixture(
+            name="gomez_p53_mdm2_iit3_aid",
+            description="Multi-valued p53-Mdm2 network (alphabet sizes (3,2,2)) "
+            "from Gómez et al. 2020 Fig 3A, state (0,0,1). IIT 3.0 with "
+            "mechanism_phi_measure=AID, ces_measure=SUM_SMALL_PHI, "
+            "mechanism_partition_scheme=WEDGE_TRIPARTITION. First k>2 golden "
+            "under IIT 3.0; reproduces the paper's Phi=0.44 over 3 mechanisms.",
+            config_overrides={
+                **{k: v for k, v in IIT_3_CONFIG.items() if k != "iit"},
+                "iit": replace(
+                    IIT_3_CONFIG["iit"],
+                    mechanism_phi_measure="AID",
+                    ces_measure="SUM_SMALL_PHI",
+                    mechanism_partition_scheme="WEDGE_TRIPARTITION",
+                ),
+            },
+            substrate_factory=examples.gomez_p53_mdm2_substrate,
+            state=(0, 0, 1),
+            skip_layers=SKIP_FOR_IIT_3,
+        )
+    )
+
     # ============== Cross product of substrate x formalism ==============
 
     for net_name, factory, state, desc in _NETWORKS:
