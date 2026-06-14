@@ -215,6 +215,7 @@ addopts = [
     "--doctest-modules",
     "--ignore=./profiling",
     "--ignore=./benchmarks",
+    "--ignore=./scripts",
     "-vv",
 ]
 norecursedirs = ["docs/_*"]
