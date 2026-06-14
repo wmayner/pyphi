@@ -28,9 +28,13 @@ Currently covered
   ``phi_d(B) = 0.32``, ``phi_d(aB) = 0.07`` and their cause/effect purviews.
 * **IIT 4.0 (2023), Fig 4 -- "Composition and causal relations".** The relation
   ``r({a, aB})`` over shared purview unit b: ``phi_r = 0.035`` and 9 faces.
+* **IIT 4.0 (2023), Fig 6C -- "directed cycle".** The 6-unit copy-ring (the only
+  Fig 6 panel whose weights are given exactly in the text): ``phi_s = 1.7467``
+  (paper 1.74) and ``Phi = 7.65`` (relation sum via analytical relations).
 
-Follow-ons (tracked in ROADMAP N1): Fig 6/7 (larger logistic substrates); the
-IIT 3.0 (2014) Fig 1 example; AC 2019 Fig 11; and the Gomez et al. 2020
+Follow-ons (tracked in ROADMAP N1): the rest of Fig 6 (panels A/B/D/E) and Fig 7
+give weights only graphically and need the authors' exact network definitions;
+the IIT 3.0 (2014) Fig 1 example; AC 2019 Fig 11; and the Gomez et al. 2020
 p53-Mdm2 network.
 """
 
@@ -44,7 +48,10 @@ import pytest
 from pyphi.conf import config
 from pyphi.conf import presets
 from pyphi.convert import le_index2state
+from pyphi.relations import AnalyticalRelations
 from pyphi.substrate import Substrate
+from pyphi.substrate_generator import build_substrate
+from pyphi.substrate_generator import ising
 from pyphi.system import System
 
 # --------------------------------------------------------------------------- #
@@ -195,3 +202,44 @@ def test_iit4_2023_fig4_relation_a_aB(_iit4_2023):
     )
     assert relation.num_faces == 9
     assert float(relation.phi) == pytest.approx(0.035, abs=1e-3)
+
+
+# --------------------------------------------------------------------------- #
+# IIT 4.0 (2023) -- Fig 6C, "directed cycle"
+# --------------------------------------------------------------------------- #
+# Of Fig 6's five 6-unit networks, only panel C is specified exactly in the
+# text (p32): "a directed cycle in which six units are unidirectionally
+# connected with weight w = 1.0 and k = 4. Each unit copies the state of the
+# unit before it ... with some indeterminism." The other panels (A, B, D, E)
+# give their weights only graphically and are not reliably reconstructable from
+# the figure (see ROADMAP N1).
+def _fig6c_substrate() -> Substrate:
+    """Build the Fig 6C 6-unit directed copy-ring (i copies i-1, w = 1.0)."""
+    weights = np.zeros((6, 6))
+    for i in range(6):
+        weights[i, (i + 1) % 6] = 1.0  # sender -> receiver (ring)
+    return build_substrate(
+        [ising.probability] * 6,
+        weights,
+        temperature=1.0 / 4.0,  # ising temperature 1/k reproduces sigmoid(k * .)
+        node_labels=tuple("ABCDEF"),
+    )
+
+
+@pytest.mark.slow
+def test_iit4_2023_fig6C_copy_ring(_iit4_2023):
+    """Fig 6C: the copy-ring's system phi and structure phi (Phi).
+
+    phi_s = 1.7467 (the paper's quoted 1.74 is a two-decimal truncation) and Phi
+    -- the summed small-phi of the distinctions and relations -- is 7.65. The
+    relation sum is computed analytically (Albantakis et al. 2023, S3) rather
+    than by enumerating concrete relations.
+    """
+    system = System(_fig6c_substrate(), (1, 0, 0, 0, 0, 0), node_indices=tuple(range(6)))
+    sia = system.sia()
+    assert float(sia.phi) == pytest.approx(1.74, abs=0.01)  # phi_s = 1.7467
+
+    distinctions = system.distinctions().resolve_congruence(sia.system_state)
+    sum_phi_d = sum(float(d.phi) for d in distinctions)
+    sum_phi_r = float(AnalyticalRelations(distinctions).sum_phi())
+    assert round(sum_phi_d + sum_phi_r, 2) == 7.65
