@@ -23,12 +23,15 @@ Currently covered
   not the global maximum -- exactly the paper's claim. Current PyPhi is the
   paper-faithful one: its ``DIRECTED_SET_PARTITION`` scheme reproduces
   ``phi_s(a) = 0.04`` where the old ``SET_UNI/BI`` scheme gives 0.068.
+* **IIT 4.0 (2023), Fig 2 -- "Composition and causal distinctions".** The three
+  irreducible distinctions of complex aB, with ``phi_d(a) = 0.33``,
+  ``phi_d(B) = 0.32``, ``phi_d(aB) = 0.07`` and their cause/effect purviews.
+* **IIT 4.0 (2023), Fig 4 -- "Composition and causal relations".** The relation
+  ``r({a, aB})`` over shared purview unit b: ``phi_r = 0.035`` and 9 faces.
 
-Follow-ons (tracked in ROADMAP N1): Fig 2 (distinction ``phi_d``) and Fig 4
-(relation ``phi_r``) for the same complex -- their numbers live in the figure
-images, not the text, so they need careful image extraction; Fig 6/7 (larger
-logistic substrates); the IIT 3.0 (2014) Fig 1 example; AC 2019 Fig 11; and the
-Gomez et al. 2020 p53-Mdm2 network.
+Follow-ons (tracked in ROADMAP N1): Fig 6/7 (larger logistic substrates); the
+IIT 3.0 (2014) Fig 1 example; AC 2019 Fig 11; and the Gomez et al. 2020
+p53-Mdm2 network.
 """
 
 from __future__ import annotations
@@ -83,6 +86,18 @@ _FIG1_PUBLISHED_PHI_S = {
     (0,): 0.04,  # subset a
     (0, 1): 0.17,  # complex aB
     (0, 1, 2): 0.13,  # superset aBC
+}
+
+# Fig 2 ("Composition and causal distinctions"): the irreducible distinctions
+# D(aB) -- two first-order (a, B) and one second-order (aB) -- with their
+# small-phi (phi_d) and cause/effect purview units. The paper labels purviews by
+# their specified *state* (e.g. cause "b", effect "Ab"); we validate the purview
+# unit sets (node indices) together with phi_d (quoted to two decimals).
+_FIG2_DISTINCTIONS = {
+    # mechanism: (phi_d, cause_purview, effect_purview)
+    (0,): (0.33, (1,), (1,)),  # d(a): cause b, effect b
+    (1,): (0.32, (0,), (0, 1)),  # d(B): cause A, effect Ab
+    (0, 1): (0.07, (1,), (0, 1)),  # d(aB): cause b, effect Ab
 }
 
 
@@ -150,3 +165,33 @@ def test_iit4_2023_fig1D_aB_cause_effect_phi(_iit4_2023):
     assert round(float(sia.cause.phi), 2) == 0.24
     assert round(float(sia.effect.phi), 2) == 0.17
     assert round(float(sia.phi), 2) == 0.17  # phi_s = min(phi_c, phi_e)
+
+
+def test_iit4_2023_fig2_distinctions(_iit4_2023):
+    """Fig 2: the irreducible distinctions D(aB) and their published phi_d and
+    cause/effect purviews."""
+    ces = System(_fig1_substrate(), _FIG1_STATE, node_indices=(0, 1)).ces()
+    by_mechanism = {tuple(d.mechanism): d for d in ces.distinctions}
+    assert set(by_mechanism) == set(_FIG2_DISTINCTIONS)
+    for mechanism, (phi_d, cause_pv, effect_pv) in _FIG2_DISTINCTIONS.items():
+        distinction = by_mechanism[mechanism]
+        assert round(float(distinction.phi), 2) == phi_d
+        assert tuple(distinction.cause.purview) == cause_pv
+        assert tuple(distinction.effect.purview) == effect_pv
+
+
+def test_iit4_2023_fig4_relation_a_aB(_iit4_2023):
+    """Fig 4 ("Composition and causal relations"): the relation r({a, aB}) binds
+    distinctions a and aB over their shared purview unit b, forming all 9 faces.
+
+    PyPhi computes phi_r = 0.0357 = phi_d(aB) / 2 -- the relation reduces to the
+    aB distinction's phi spread over its two-unit purview union (the binding
+    minimum). The paper's reported 0.035 is the same quantity computed from the
+    rounded phi_d(aB) = 0.07 (0.07 / 2 = 0.035).
+    """
+    ces = System(_fig1_substrate(), _FIG1_STATE, node_indices=(0, 1)).ces()
+    relation = next(
+        r for r in ces.relations if {tuple(m) for m in r.mechanisms} == {(0,), (0, 1)}
+    )
+    assert relation.num_faces == 9
+    assert float(relation.phi) == pytest.approx(0.035, abs=1e-3)
