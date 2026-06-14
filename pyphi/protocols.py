@@ -162,19 +162,19 @@ class SystemPartitionScheme(Protocol):
 PUBLIC_SYSTEM_ATTRS: frozenset[str] = frozenset(
     {
         # Construction-time attributes
-        "cause_tpm",
+        "cause_marginal",
         "cm",
         "partition",
-        "effect_tpm",
+        "effect_marginal",
         "external_indices",
         "from_substrate",
         "substrate",
         "node_indices",
         "node_labels",
         "nodes",
-        "proper_cause_tpm",
+        "proper_cause_marginal",
         "proper_cm",
-        "proper_effect_tpm",
+        "proper_effect_marginal",
         "state",
         # Properties
         "connectivity_matrix",
@@ -264,18 +264,18 @@ class SystemPublicInterface(Protocol):
     """
 
     # Construction-time attributes
-    cause_tpm: Any
+    cause_marginal: Any
     cm: Any
     partition: Any
-    effect_tpm: Any
+    effect_marginal: Any
     external_indices: Any
     substrate: Any
     node_indices: Any
     node_labels: Any
     nodes: Any
-    proper_cause_tpm: Any
+    proper_cause_marginal: Any
     proper_cm: Any
-    proper_effect_tpm: Any
+    proper_effect_marginal: Any
     state: Any
     from_substrate: Callable[..., Any]
     # Properties
@@ -367,8 +367,8 @@ class SystemInternalInterface(Protocol):
     phi_effect_mip: Callable[..., Any]
     phi_max: Callable[..., Any]
     potential_purviews: Callable[..., Any]
-    proper_cause_tpm: Any
-    proper_effect_tpm: Any
+    proper_cause_marginal: Any
+    proper_effect_marginal: Any
     tpm_size: Any
     unconstrained_cause_repertoire: Callable[..., Any]
     unconstrained_effect_repertoire: Callable[..., Any]

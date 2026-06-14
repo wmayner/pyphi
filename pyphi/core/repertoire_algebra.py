@@ -127,7 +127,7 @@ def _single_node_cause_repertoire(
     repertoires.
 
     Indexes the mechanism node's per-unit cause factor at
-    ``mechanism_node.cause_tpm[..., mechanism_node.state]`` to extract
+    ``mechanism_node.cause_marginal[..., mechanism_node.state]`` to extract
     the slice corresponding to the node's observed state, then
     marginalizes out the node's inputs that are not in the purview.
     The returned array is the unnormalized per-node contribution;
@@ -139,7 +139,7 @@ def _single_node_cause_repertoire(
     uniformly for any per-node alphabet size.
     """
     mechanism_node = cs._index2node[mechanism_node_index]
-    tpm = mechanism_node.cause_tpm[..., mechanism_node.state]
+    tpm = mechanism_node.cause_marginal[..., mechanism_node.state]
     # The result is size 1 on every purview node that is not an input to this
     # mechanism node. It is NOT self-contained canonical: it relies on the
     # ``joint = np.ones(repertoire_shape(...))`` allocation in
@@ -158,9 +158,9 @@ def _single_node_effect_repertoire(
 ) -> Any:
     purview_node = cs._index2node[purview_node_index]
     if direction == Direction.CAUSE:
-        tpm = purview_node.cause_tpm.condition_tpm(condition)
+        tpm = purview_node.cause_marginal.condition_tpm(condition)
     elif direction == Direction.EFFECT:
-        tpm = purview_node.effect_tpm.condition_tpm(condition)
+        tpm = purview_node.effect_marginal.condition_tpm(condition)
     else:
         _validate.direction(direction)
         raise AssertionError("unreachable")

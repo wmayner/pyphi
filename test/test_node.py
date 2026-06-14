@@ -30,9 +30,9 @@ def test_node_init_tpm(s):
     answer = [JointTPM(tpm) for tpm in answer]
     # fmt: on
     for node in s.nodes:
-        assert node.cause_tpm.array_equal(node.effect_tpm)
-        assert node.cause_tpm.array_equal(answer[node.index])
-        assert node.effect_tpm.array_equal(answer[node.index])
+        assert node.cause_marginal.array_equal(node.effect_marginal)
+        assert node.cause_marginal.array_equal(answer[node.index])
+        assert node.effect_marginal.array_equal(answer[node.index])
 
 
 def test_node_init_inputs(s):
@@ -42,16 +42,16 @@ def test_node_init_inputs(s):
 
 
 def test_node_eq(s):
-    assert s.nodes[1] == Node(s.cause_tpm, s.effect_tpm, s.cm, 1, 0, "B")
+    assert s.nodes[1] == Node(s.cause_marginal, s.effect_marginal, s.cm, 1, 0, "B")
 
 
 def test_node_neq_by_index(s):
-    assert s.nodes[0] != Node(s.cause_tpm, s.effect_tpm, s.cm, 1, 0, "B")
+    assert s.nodes[0] != Node(s.cause_marginal, s.effect_marginal, s.cm, 1, 0, "B")
 
 
 def test_node_neq_by_state(s):
     other_s = System(s.substrate, (1, 1, 1), s.node_indices)
-    assert other_s.nodes[1] != Node(s.cause_tpm, s.effect_tpm, s.cm, 1, 0, "B")
+    assert other_s.nodes[1] != Node(s.cause_marginal, s.effect_marginal, s.cm, 1, 0, "B")
 
 
 def test_repr(s):
@@ -83,7 +83,7 @@ def test_expand_tpm():
 
 def test_generate_nodes(s):
     nodes = generate_nodes(
-        s.cause_tpm, s.effect_tpm, s.cm, s.state, s.node_indices, s.node_labels
+        s.cause_marginal, s.effect_marginal, s.cm, s.state, s.node_indices, s.node_labels
     )
 
     # fmt: off
@@ -96,9 +96,9 @@ def test_generate_nodes(s):
         ])
     )
     # fmt: on
-    assert nodes[0].cause_tpm.array_equal(nodes[0].effect_tpm)
-    assert nodes[0].cause_tpm.array_equal(node0_tpm)
-    assert nodes[0].effect_tpm.array_equal(node0_tpm)
+    assert nodes[0].cause_marginal.array_equal(nodes[0].effect_marginal)
+    assert nodes[0].cause_marginal.array_equal(node0_tpm)
+    assert nodes[0].effect_marginal.array_equal(node0_tpm)
     assert nodes[0].inputs == {1, 2}
     assert nodes[0].outputs == {2}
     assert nodes[0].label == "A"
@@ -111,9 +111,9 @@ def test_generate_nodes(s):
         ])
     )
     # fmt: on
-    assert nodes[1].cause_tpm.array_equal(nodes[1].effect_tpm)
-    assert nodes[1].cause_tpm.array_equal(node1_tpm)
-    assert nodes[1].effect_tpm.array_equal(node1_tpm)
+    assert nodes[1].cause_marginal.array_equal(nodes[1].effect_marginal)
+    assert nodes[1].cause_marginal.array_equal(node1_tpm)
+    assert nodes[1].effect_marginal.array_equal(node1_tpm)
     assert nodes[1].inputs == {2}
     assert nodes[1].outputs == {0, 2}
     assert nodes[1].label == "B"
@@ -128,14 +128,14 @@ def test_generate_nodes(s):
         ])
     )
     # fmt: on
-    assert nodes[2].cause_tpm.array_equal(nodes[2].effect_tpm)
-    assert nodes[2].cause_tpm.array_equal(node2_tpm)
-    assert nodes[2].effect_tpm.array_equal(node2_tpm)
+    assert nodes[2].cause_marginal.array_equal(nodes[2].effect_marginal)
+    assert nodes[2].cause_marginal.array_equal(node2_tpm)
+    assert nodes[2].effect_marginal.array_equal(node2_tpm)
     assert nodes[2].inputs == {0, 1}
     assert nodes[2].outputs == {0, 1}
     assert nodes[2].label == "C"
 
 
 def test_generate_nodes_default_labels(s):
-    nodes = generate_nodes(s.cause_tpm, s.effect_tpm, s.cm, s.state, s.node_indices)
+    nodes = generate_nodes(s.cause_marginal, s.effect_marginal, s.cm, s.state, s.node_indices)
     assert [n.label for n in nodes] == ["n0", "n1", "n2"]

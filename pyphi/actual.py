@@ -65,10 +65,10 @@ log = logging.getLogger(__name__)
 _DELEGATED_TO_SYSTEM: frozenset[str] = frozenset(
     {
         # TPM / structural surface:
-        "cause_tpm",
-        "effect_tpm",
-        "proper_cause_tpm",
-        "proper_effect_tpm",
+        "cause_marginal",
+        "effect_marginal",
+        "proper_cause_marginal",
+        "proper_effect_marginal",
         "cm",
         "proper_cm",
         "connectivity_matrix",

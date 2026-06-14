@@ -167,7 +167,7 @@ def _proper_state_in_image_of_conditioned_tpm(system: object) -> bool:
     """Whether the subsystem's ``proper_state`` is in the image of the
     background-conditioned effect dynamics.
 
-    ``proper_effect_tpm`` is a FactoredTPM with one factor per system
+    ``proper_effect_marginal`` is a FactoredTPM with one factor per system
     output unit (background fixed at the external state, background input
     dims dropped). The state is in the image iff some system-input
     configuration assigns positive joint probability to ``proper_state`` —
@@ -175,7 +175,7 @@ def _proper_state_in_image_of_conditioned_tpm(system: object) -> bool:
     of ``proper_state`` for that input. Works for any per-unit alphabet
     size.
     """
-    proper = system.proper_effect_tpm  # type: ignore[attr-defined]
+    proper = system.proper_effect_marginal  # type: ignore[attr-defined]
     proper_state = system.proper_state  # type: ignore[attr-defined]
     joint = np.ones(proper.alphabet_sizes, dtype=np.float64)
     for slot in range(proper.n_nodes):

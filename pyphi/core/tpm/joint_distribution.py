@@ -514,7 +514,7 @@ def reconstitute_tpm(system: Any) -> NDArray[np.float64]:
     # The last axis of the node TPMs correponds to ON or OFF probabilities
     # (used in the conditioning step when calculating the repertoires); we want
     # ON probabilities.
-    node_tpms = [node.effect_tpm.tpm[..., 1] for node in system.nodes]
+    node_tpms = [node.effect_marginal.tpm[..., 1] for node in system.nodes]
     # Remove the singleton dimensions corresponding to external nodes
     node_tpms = [tpm.squeeze(axis=system.external_indices) for tpm in node_tpms]
     # We add a new singleton axis at the end so that we can use

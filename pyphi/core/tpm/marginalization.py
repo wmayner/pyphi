@@ -13,7 +13,7 @@ from .factored import FactoredTPM
 from .joint import JointTPM
 
 
-def cause_tpm(
+def cause_marginal(
     tpm: TPM,
     state: tuple[int, ...],
     node_indices: tuple[int, ...],
@@ -26,26 +26,26 @@ def cause_tpm(
     units marginalized under ``pr_bg / norm`` weighting.
     """
     if isinstance(tpm, FactoredTPM):
-        return _cause_tpm_factored(tpm, state, node_indices)
+        return _cause_marginal_factored(tpm, state, node_indices)
     if isinstance(tpm, JointTPM):
         factored = FactoredTPM.from_joint(tpm._inner)
-        return cause_tpm(factored, state, node_indices)
+        return cause_marginal(factored, state, node_indices)
     arr = tpm.to_array()
     factored = FactoredTPM.from_joint(arr)
-    return cause_tpm(factored, state, node_indices)
+    return cause_marginal(factored, state, node_indices)
 
 
-def effect_tpm(
+def effect_marginal(
     tpm: TPM,
     background: Mapping[int, int],
 ) -> TPM:
     """Forward TPM conditioned on external state — IIT 4.0 Eq. 4."""
     if isinstance(tpm, FactoredTPM):
-        return _effect_tpm_factored(tpm, background)
+        return _effect_marginal_factored(tpm, background)
     return tpm.condition(background)
 
 
-def _cause_tpm_factored(
+def _cause_marginal_factored(
     factored: FactoredTPM,
     state: tuple[int, ...],
     node_indices: tuple[int, ...],
@@ -101,7 +101,7 @@ def _cause_tpm_factored(
     return FactoredTPM(factors=out_factors)
 
 
-def _effect_tpm_factored(
+def _effect_marginal_factored(
     factored: FactoredTPM,
     background: Mapping[int, int],
 ) -> FactoredTPM:

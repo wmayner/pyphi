@@ -125,7 +125,7 @@ class MacroSystem(System):
     units: tuple[MacroUnit, ...] = ()
     micro_substrate: Substrate | None = None
     micro_history: tuple[tuple[int, ...], ...] = ()
-    macro_cause_tpm: FactoredTPM | None = field(default=None, repr=False)
+    macro_cause_marginal: FactoredTPM | None = field(default=None, repr=False)
 
     def __post_init__(self) -> None:
         if self.micro_substrate is None or not self.units:
@@ -153,15 +153,17 @@ class MacroSystem(System):
         units = tuple(units)
         _validate_units(substrate, units)
         history = _normalize_history(units, substrate, micro_history)
-        cause_tpm, effect_tpm = macro_tpms(substrate, units, history)
-        macro_substrate = Substrate.from_factored(effect_tpm, node_labels=node_labels)
+        cause_marginal, effect_marginal = macro_tpms(substrate, units, history)
+        macro_substrate = Substrate.from_factored(
+            effect_marginal, node_labels=node_labels
+        )
         return cls(
             substrate=macro_substrate,
             state=_macro_state(units, history),
             units=units,
             micro_substrate=substrate,
             micro_history=history,
-            macro_cause_tpm=cause_tpm,
+            macro_cause_marginal=cause_marginal,
         )
 
     @classmethod
@@ -172,15 +174,15 @@ class MacroSystem(System):
         )
 
     @property
-    def cause_tpm(self) -> FactoredTPM:  # type: ignore[override]
+    def cause_marginal(self) -> FactoredTPM:  # type: ignore[override]
         """The construction's cause TPM (Eqs. 26-40, cause weighting)."""
-        assert self.macro_cause_tpm is not None
-        return self.macro_cause_tpm
+        assert self.macro_cause_marginal is not None
+        return self.macro_cause_marginal
 
     @property
-    def proper_cause_tpm(self) -> FactoredTPM:  # type: ignore[override]
-        """Identical to :attr:`cause_tpm`: there is no macro background."""
-        return self.cause_tpm
+    def proper_cause_marginal(self) -> FactoredTPM:  # type: ignore[override]
+        """Identical to :attr:`cause_marginal`: there is no macro background."""
+        return self.cause_marginal
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, MacroSystem):

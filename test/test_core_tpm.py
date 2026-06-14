@@ -48,12 +48,12 @@ def test_joint_tpm_parity_with_legacy() -> None:
     np.testing.assert_array_equal(new_squeezed.to_array(), np.asarray(old_squeezed))
 
 
-def test_effect_tpm_parity() -> None:
-    """core.tpm.marginalization.effect_tpm matches legacy condition_tpm."""
+def test_effect_marginal_parity() -> None:
+    """core.tpm.marginalization.effect_marginal matches legacy condition_tpm."""
     from pyphi import examples
     from pyphi import utils
     from pyphi.core.tpm.joint import JointTPM
-    from pyphi.core.tpm.marginalization import effect_tpm
+    from pyphi.core.tpm.marginalization import effect_marginal
 
     substrate = examples.basic_substrate()
     state = (1, 0, 0)
@@ -65,6 +65,6 @@ def test_effect_tpm_parity() -> None:
 
     # Legacy JointTPM expects the (2,...,2,N) shape.
     joint = substrate._legacy_binary_joint()
-    new_tpm = effect_tpm(JointTPM(joint), background)
+    new_tpm = effect_marginal(JointTPM(joint), background)
     old_tpm = _LegacyJointTPM(joint).condition_tpm(background)
     np.testing.assert_array_equal(new_tpm.to_array(), np.asarray(old_tpm))

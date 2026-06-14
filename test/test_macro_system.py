@@ -112,7 +112,7 @@ class TestProtocolSurface:
         assert system.size == 2
         assert system.node_indices == (0, 1)
         assert np.array_equal(system.cm, np.ones((2, 2)))
-        for tpm in (system.cause_tpm, system.effect_tpm):
+        for tpm in (system.cause_marginal, system.effect_marginal):
             for k in range(2):
                 assert tpm.factor(k).shape == (2, 2, 2)
 
@@ -120,10 +120,10 @@ class TestProtocolSurface:
         system = _cg_macro_system()
         for k in range(2):
             assert np.array_equal(
-                system.proper_cause_tpm.factor(k), system.cause_tpm.factor(k)
+                system.proper_cause_marginal.factor(k), system.cause_marginal.factor(k)
             )
             assert np.array_equal(
-                system.proper_effect_tpm.factor(k), system.effect_tpm.factor(k)
+                system.proper_effect_marginal.factor(k), system.effect_marginal.factor(k)
             )
 
     def test_nodes_use_macro_tpms(self):

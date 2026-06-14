@@ -128,8 +128,8 @@ def test_apply_cut(s):
     assert s.substrate == cut_s.substrate
     assert s.state == cut_s.state
     assert s.node_indices == cut_s.node_indices
-    assert cut_s.effect_tpm == s.effect_tpm
-    assert cut_s.cause_tpm == s.cause_tpm
+    assert cut_s.effect_marginal == s.effect_marginal
+    assert cut_s.cause_marginal == s.cause_marginal
     assert np.array_equal(cut_s.cm, cut.apply_cut(s.cm))
 
 
@@ -262,8 +262,8 @@ class TestIntrinsicInformationTies:
         null_sia.resolve_system_state()  # Should not raise
 
 
-def test_proper_cause_tpm_kary_returns_factored_view() -> None:
-    """proper_cause_tpm for a k=3 system returns per-system-unit factors
+def test_proper_cause_marginal_kary_returns_factored_view() -> None:
+    """proper_cause_marginal for a k=3 system returns per-system-unit factors
     restricted to the system's node indices."""
     from pyphi.core.tpm.factored import FactoredTPM
 
@@ -275,22 +275,22 @@ def test_proper_cause_tpm_kary_returns_factored_view() -> None:
     sub = Substrate(marginals=factors)
     with config.override(validate_system_states=False):
         sys = System(sub, state=(0, 0))
-        proper = sys.proper_cause_tpm
+        proper = sys.proper_cause_marginal
     assert isinstance(proper, FactoredTPM)
     assert proper.n_nodes == len(sys.node_indices)
     for i in range(proper.n_nodes):
         assert proper.factor(i).shape[-1] == 3
 
 
-def test_proper_cause_tpm_binary_matches_legacy_slice(s) -> None:
+def test_proper_cause_marginal_binary_matches_legacy_slice(s) -> None:
     """For binary substrates the per-system-unit on-probability slice of
-    ``proper_cause_tpm`` matches the substrate cause TPM's on-probability
+    ``proper_cause_marginal`` matches the substrate cause TPM's on-probability
     slice for the same unit."""
     from pyphi.core.tpm.factored import FactoredTPM
 
-    substrate_cause = s.cause_tpm
+    substrate_cause = s.cause_marginal
     assert isinstance(substrate_cause, FactoredTPM)
-    proper = s.proper_cause_tpm
+    proper = s.proper_cause_marginal
     assert isinstance(proper, FactoredTPM)
     assert proper.n_nodes == len(s.node_indices)
     for slot, node in enumerate(s.node_indices):
@@ -299,8 +299,8 @@ def test_proper_cause_tpm_binary_matches_legacy_slice(s) -> None:
         assert np.allclose(proper_on, substrate_on, atol=1e-10)
 
 
-def test_proper_effect_tpm_kary_returns_factored_view() -> None:
-    """proper_effect_tpm for a k=3 system returns per-system-unit factors
+def test_proper_effect_marginal_kary_returns_factored_view() -> None:
+    """proper_effect_marginal for a k=3 system returns per-system-unit factors
     restricted to the system's node indices."""
     from pyphi.core.tpm.factored import FactoredTPM
 
@@ -312,21 +312,21 @@ def test_proper_effect_tpm_kary_returns_factored_view() -> None:
     sub = Substrate(marginals=factors)
     with config.override(validate_system_states=False):
         sys = System(sub, state=(0, 0))
-        proper = sys.proper_effect_tpm
+        proper = sys.proper_effect_marginal
     assert isinstance(proper, FactoredTPM)
     assert proper.n_nodes == len(sys.node_indices)
     for i in range(proper.n_nodes):
         assert proper.factor(i).shape[-1] == 3
 
 
-def test_proper_effect_tpm_binary_matches_legacy_on_probability(s) -> None:
+def test_proper_effect_marginal_binary_matches_legacy_on_probability(s) -> None:
     """For binary substrates the per-system-unit on-probability slice of
-    ``proper_effect_tpm`` reproduces the legacy state-by-node forward
+    ``proper_effect_marginal`` reproduces the legacy state-by-node forward
     on-probability column for that unit — the substrate forward factor's
     on-probability as a function of the full input state."""
     from pyphi.core.tpm.factored import FactoredTPM
 
-    proper = s.proper_effect_tpm
+    proper = s.proper_effect_marginal
     assert isinstance(proper, FactoredTPM)
     assert proper.n_nodes == len(s.node_indices)
     forward = s.substrate.factored_tpm

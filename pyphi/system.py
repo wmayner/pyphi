@@ -25,9 +25,9 @@ from pyphi.substrate import Substrate
 from pyphi.substrate import _coerce_state_to_indices
 
 from .core.tpm.factored import FactoredTPM
-from .core.tpm.marginalization import _cause_tpm_factored
-from .core.tpm.marginalization import _effect_tpm_factored
-from .core.tpm.marginalization import cause_tpm as _marginalize_cause
+from .core.tpm.marginalization import _cause_marginal_factored
+from .core.tpm.marginalization import _effect_marginal_factored
+from .core.tpm.marginalization import cause_marginal as _marginalize_cause
 
 if TYPE_CHECKING:
     from pyphi.types import NodeIndices
@@ -161,8 +161,8 @@ class System:
         """Return a new System with the given partition applied.
 
         ``substrate``, ``state``, and ``node_indices`` are unchanged.
-        Cached derived properties that don't depend on the partition (``cause_tpm``,
-        ``effect_tpm``) are not re-derived in the new instance until first
+        Cached derived properties that don't depend on the partition (``cause_marginal``,
+        ``effect_marginal``) are not re-derived in the new instance until first
         access, so the new instance shares the same numerical values.
         """
         from dataclasses import replace
@@ -204,7 +204,7 @@ class System:
         return self.substrate.factored_tpm
 
     @cached_property
-    def cause_tpm(self) -> FactoredTPM:
+    def cause_marginal(self) -> FactoredTPM:
         """Per-output-unit cause factors for the system; see IIT 4.0 Eq. 4."""
         return _marginalize_cause(
             self._typed_tpm,
@@ -213,14 +213,14 @@ class System:
         )
 
     @cached_property
-    def effect_tpm(self) -> FactoredTPM:
+    def effect_marginal(self) -> FactoredTPM:
         """Forward TPM conditioned on the external units at their observed state."""
         external_state = utils.state_of(self.external_indices, self.state)
         background = dict(zip(self.external_indices, external_state, strict=False))
-        return _effect_tpm_factored(self._typed_tpm, background)
+        return _effect_marginal_factored(self._typed_tpm, background)
 
     @cached_property
-    def proper_effect_tpm(self) -> FactoredTPM:
+    def proper_effect_marginal(self) -> FactoredTPM:
         """Effect TPM restricted to system units.
 
         Per system unit ``i`` in ``node_indices``, the returned FactoredTPM
@@ -228,13 +228,13 @@ class System:
         substrate units outside ``node_indices``) at their observed state,
         with those background input dims dropped, so the returned shape is
         ``(*system_alphabet, k_i)`` per system output unit. The effect-side
-        dual of :attr:`proper_cause_tpm`.
+        dual of :attr:`proper_cause_marginal`.
         """
         background_indices = tuple(
             i for i in range(self._typed_tpm.n_nodes) if i not in set(self.node_indices)
         )
         background = {i: self.state[i] for i in background_indices}
-        factored = _effect_tpm_factored(self._typed_tpm, background)
+        factored = _effect_marginal_factored(self._typed_tpm, background)
         system_factors = []
         for i in self.node_indices:
             f = factored.factor(i)
@@ -244,7 +244,7 @@ class System:
         return FactoredTPM(factors=system_factors)
 
     @cached_property
-    def proper_cause_tpm(self) -> FactoredTPM:
+    def proper_cause_marginal(self) -> FactoredTPM:
         """Cause TPM restricted to system units.
 
         Per system unit ``i`` in ``node_indices``, the returned FactoredTPM
@@ -254,7 +254,7 @@ class System:
         and dropped from each factor's input dims, so the returned shape
         is ``(*system_alphabet, k_i)`` per system output unit.
         """
-        factored = _cause_tpm_factored(
+        factored = _cause_marginal_factored(
             self._typed_tpm,
             self.state,
             self.node_indices,
@@ -312,8 +312,8 @@ class System:
         from pyphi.node import generate_nodes
 
         return generate_nodes(
-            self.cause_tpm,
-            self.effect_tpm,
+            self.cause_marginal,
+            self.effect_marginal,
             self.cm,
             self.state,
             self.node_indices,

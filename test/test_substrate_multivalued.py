@@ -77,7 +77,7 @@ def test_kary_account_exercises_kary_code_path() -> None:
     """AC over a k=3 substrate exercises the k-ary code path.
 
     Companion to :func:`test_kary_account_end_to_end`. Locks in that
-    ``effect_tpm.alphabet_sizes`` is not all-binary — proving the
+    ``effect_marginal.alphabet_sizes`` is not all-binary — proving the
     collapse of ``TransitionSystem`` onto ``System`` carries k-ary
     support through to the AC pipeline, in the spirit of the 2019 AC
     paper Section 3.6 (three-candidate voting).
@@ -90,10 +90,10 @@ def test_kary_account_exercises_kary_code_path() -> None:
         cause_indices=(0, 1),
         effect_indices=(0, 1),
     )
-    effect_tpm = transition.effect_system.effect_tpm
+    effect_marginal = transition.effect_system.effect_marginal
     # alphabet_sizes is per-substrate-unit; (3, 3) for a 2-node k=3 substrate.
-    assert effect_tpm.alphabet_sizes != (2,) * len(effect_tpm.alphabet_sizes), (
-        f"effect_tpm.alphabet_sizes should be non-binary; got "
-        f"{effect_tpm.alphabet_sizes}"
+    assert effect_marginal.alphabet_sizes != (2,) * len(effect_marginal.alphabet_sizes), (
+        f"effect_marginal.alphabet_sizes should be non-binary; got "
+        f"{effect_marginal.alphabet_sizes}"
     )
-    assert effect_tpm.alphabet_sizes == (3, 3)
+    assert effect_marginal.alphabet_sizes == (3, 3)

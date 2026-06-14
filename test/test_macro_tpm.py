@@ -353,8 +353,8 @@ class TestMicroReductionWithBackground:
         cause, effect = macro_tpms(substrate, units, (state,))
         system = System(substrate, state, subset)
         for built, reference in (
-            (cause, system.proper_cause_tpm),
-            (effect, system.proper_effect_tpm),
+            (cause, system.proper_cause_marginal),
+            (effect, system.proper_effect_marginal),
         ):
             for k in range(len(subset)):
                 assert np.allclose(built.factor(k), reference.factor(k), atol=1e-15)
