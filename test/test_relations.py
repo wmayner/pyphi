@@ -99,3 +99,27 @@ def test_all_relations(case_name):
         )
     )
     assert set(results) == set(answers)
+
+
+@pytest.mark.parametrize("case_name", ["basic", "xor"])
+@config.override(parallel=False)
+def test_analytical_relations_sum_matches_concrete(case_name):
+    """``AnalyticalRelations.sum_phi()`` equals the concrete relation-phi sum.
+
+    The analytical sum (Albantakis et al. 2023, S3) yields the total relation
+    small-phi without enumerating concrete relations, which the
+    paper-reproduction suite relies on to obtain Phi for larger systems (e.g.
+    IIT 4.0 Fig 6C, and feasibly 6D's ~1.5M relations). This guards that the two
+    routes agree.
+    """
+    system = getattr(examples, f"{case_name}_system")()
+    distinctions = new_big_phi.ces(
+        system,
+        system_measure=resolve_system_measure(config.formalism.iit.system_phi_measure),
+        specification_measure=resolve_mechanism_measure(
+            config.formalism.iit.specification_measure
+        ),
+    ).distinctions
+    concrete_sum = sum(float(r.phi) for r in relations.relations(distinctions))
+    analytical_sum = float(relations.AnalyticalRelations(distinctions).sum_phi())
+    assert analytical_sum == pytest.approx(concrete_sum)
