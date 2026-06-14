@@ -50,11 +50,23 @@ invariants from the roadmap are examined here:
        asserts machine-epsilon equivalence (``atol=1e-12``, ~3000x the observed
        noise floor — tight enough to catch any real algorithmic change).
 
-Deferred slices of B5 (follow-ons): the AC/IIT sign-agreement invariant
-(actual causation is a separate subsystem with an unsettled cross-formalism
-relation). A 3.0 byte-match is not viable from ``b3aaa3e5`` — its
-``compute.phi`` is not a valid IIT 3.0 SIA (basic -> 0) — so it would need a
-genuine PyPhi 1.x oracle.
+  - **AC/IIT sign agreement (holds).** ``TestAcIitSignAgreement`` pins the
+    cross-formalism relation between actual causation's alpha and IIT's
+    integration. Both reduce to ``log2(p/q)`` of the *same* repertoire
+    primitive: AC's alpha (PMI) is ``log2(p/q)`` of the actual purview-state
+    probability ``p = transition.probability(...)`` vs its partitioned value
+    ``q``; IIT's generalized intrinsic difference is
+    ``gid = selectivity * log2(forward/partitioned)`` (Eq. for GID), where the
+    selectivity repertoire is non-negative. Since ``transition.probability``
+    delegates to the same ``system.repertoire`` IIT uses, the structural
+    identity ``gid_at_state == selectivity_at_state * alpha`` holds exactly, and
+    therefore ``sign(gid) == sign(alpha)`` whenever the selectivity at the state is
+    positive — confirming the two formalisms never disagree on the *direction*
+    (excitatory vs "preventative") of a fixed mechanism/purview/partition.
+
+Deferred slices of B5 (follow-ons): none outstanding for the 4.0 path. A 3.0
+byte-match is not viable from ``b3aaa3e5`` — its ``compute.phi`` is not a valid
+IIT 3.0 SIA (basic -> 0) — so it would need a genuine PyPhi 1.x oracle.
 """
 
 from __future__ import annotations
@@ -71,10 +83,15 @@ from hypothesis import strategies as st
 
 from pyphi import Substrate
 from pyphi import System
+from pyphi import actual
 from pyphi.conf import config
 from pyphi.conf import presets
 from pyphi.conf.formalism import IITConfig
+from pyphi.direction import Direction
 from pyphi.formalism import iit3
+from pyphi.formalism.actual_causation.compute import mechanism_partitions
+from pyphi.formalism.actual_causation.compute import probability_distance
+from pyphi.measures.distribution import generalized_intrinsic_difference
 
 from .hypothesis_utils import binary_state
 from .hypothesis_utils import small_substrate
@@ -154,6 +171,126 @@ class TestReducibilityDivergence:
 
 
 _BYTE_MATCH_ATOL = 1e-12
+
+
+def _sign(x: float) -> int:
+    """Sign of ``x`` at config precision (sub-tolerance values count as 0)."""
+    return int(np.sign(round(x, 12)))
+
+
+def _check_ac_iit_sign_agreement(
+    transition: actual.Transition,
+    direction: Direction,
+    mechanism: tuple[int, ...],
+    purview: tuple[int, ...],
+) -> int:
+    """Assert AC alpha and IIT GID agree in sign over every mechanism partition.
+
+    Returns the number of (non-degenerate) partitions checked so callers can
+    guard against a vacuously-passing case.
+    """
+    p = float(transition.probability(direction, mechanism, purview))
+    selectivity = transition.repertoire(direction, (), purview)
+    selectivity_at_state = float(transition.probability(direction, (), purview))
+    forward = transition.repertoire(direction, mechanism, purview)
+
+    checked = 0
+    for partition in mechanism_partitions(mechanism, purview, transition.node_labels):
+        q = float(transition.partitioned_probability(direction, partition))
+        # PMI is undefined when either probability is zero; AC short-circuits
+        # these to a reducible (alpha=0) verdict, so they carry no sign.
+        if p <= _ZERO or q <= _ZERO:
+            continue
+        # AC alpha allowing negatives (the "preventative cause" sign).
+        alpha = probability_distance(p, q, measure="PMI")
+        # IIT GID at the actual purview state, via the real measure.
+        partitioned = transition.partitioned_repertoire(direction, partition)
+        gid_array = generalized_intrinsic_difference(forward, partitioned, selectivity)
+        gid_at_state = float(transition.state_probability(direction, gid_array, purview))
+
+        # Structural identity: GID = selectivity * informativeness, and the AC
+        # alpha *is* that informativeness (same p, q).
+        assert gid_at_state == pytest.approx(selectivity_at_state * alpha, abs=1e-9), (
+            f"GID != selectivity*alpha for {direction} mech={mechanism} "
+            f"purview={purview}: gid={gid_at_state} sel={selectivity_at_state} "
+            f"alpha={alpha}"
+        )
+        # Sign-agreement corollary (selectivity >= 0 cannot flip the sign).
+        if selectivity_at_state > _ZERO:
+            assert _sign(gid_at_state) == _sign(alpha), (
+                f"sign disagreement for {direction} mech={mechanism} "
+                f"purview={purview}: alpha={alpha} gid={gid_at_state}"
+            )
+        checked += 1
+    return checked
+
+
+class TestAcIitSignAgreement:
+    """Actual causation's alpha and IIT's GID never disagree on sign.
+
+    Both formalisms compare an actual purview-state probability to its
+    partitioned value via ``log2(p/q)``; IIT additionally weights by a
+    non-negative selectivity repertoire. So the sign (excitatory vs
+    "preventative") is shared by construction — pinned here through both public
+    surfaces so a refactor that diverged the AC probability primitive from the
+    IIT repertoire would be caught.
+    """
+
+    def test_or_gate_transition(self) -> None:
+        """Deterministic: an OR gate with two ON inputs, all combinations."""
+        # fmt: off
+        tpm = np.array([
+            [0, 0.5, 0.5], [0, 0.5, 0.5], [1, 0.5, 0.5], [1, 0.5, 0.5],
+            [1, 0.5, 0.5], [1, 0.5, 0.5], [1, 0.5, 0.5], [1, 0.5, 0.5],
+        ])
+        cm = np.array([[0, 0, 0], [1, 0, 0], [1, 0, 0]])
+        # fmt: on
+        transition = actual.Transition(
+            Substrate(tpm, cm), (0, 1, 1), (1, 0, 0), (0, 1, 2), (0, 1, 2)
+        )
+        total = 0
+        for direction in (Direction.CAUSE, Direction.EFFECT):
+            mech_indices = transition.mechanism_indices(direction)
+            purv_indices = transition.purview_indices(direction)
+            for mechanism in [(mech_indices[0],), mech_indices]:
+                for purview in [(purv_indices[0],), purv_indices]:
+                    total += _check_ac_iit_sign_agreement(
+                        transition, direction, mechanism, purview
+                    )
+        assert total > 0, "no non-degenerate partitions exercised"
+
+    @settings(max_examples=40, deadline=None)
+    @given(data=st.data())
+    def test_random_substrates(self, data) -> None:
+        substrate = data.draw(small_substrate())
+        n = substrate.size
+        assume(n >= 2)
+        before = data.draw(binary_state(n))
+        after = data.draw(binary_state(n))
+        indices = tuple(range(n))
+        try:
+            transition = actual.Transition(substrate, before, after, indices, indices)
+        except Exception:
+            assume(False)
+            return
+        direction = data.draw(st.sampled_from([Direction.CAUSE, Direction.EFFECT]))
+        mech_indices = transition.mechanism_indices(direction)
+        purv_indices = transition.purview_indices(direction)
+        mechanism = data.draw(
+            st.lists(
+                st.sampled_from(mech_indices), min_size=1, unique=True
+            ).map(lambda xs: tuple(sorted(xs)))
+        )
+        purview = data.draw(
+            st.lists(
+                st.sampled_from(purv_indices), min_size=1, unique=True
+            ).map(lambda xs: tuple(sorted(xs)))
+        )
+        try:
+            _check_ac_iit_sign_agreement(transition, direction, mechanism, purview)
+        except (ValueError, KeyError):
+            # Invalid mechanism/purview combination for this transition.
+            assume(False)
 
 
 def _load_oracle() -> dict:
