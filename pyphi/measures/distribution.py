@@ -23,6 +23,7 @@ from pyphi.conf import config
 from pyphi.data_structures.pyphi_float import PyPhiFloat
 from pyphi.direction import Direction
 from pyphi.distribution import flatten
+from pyphi.distribution import marginal
 from pyphi.distribution import marginal_zero
 from pyphi.exceptions import MissingOptionalDependenciesError
 from pyphi.measures.protocols import CompositeMeasure
@@ -42,11 +43,6 @@ _LN_OF_2 = np.log(2)
 # ---------------------------------------------------------------------------
 # Alphabet-support helpers
 # ---------------------------------------------------------------------------
-
-
-def _binary_only(alphabet_sizes: tuple[int, ...]) -> bool:
-    """Return ``True`` when all nodes are binary (alphabet size 2)."""
-    return all(a == 2 for a in alphabet_sizes)
 
 
 def _any_alphabet(_alphabet_sizes: tuple[int, ...]) -> bool:
@@ -617,31 +613,60 @@ def _compute_hamming_matrix(N: int) -> np.ndarray:
     return cdist(possible_states, possible_states, "hamming") * N
 
 
-# TODO extend to nonbinary nodes
+@joblib_memory.cache
+def _kary_hamming_matrix(alphabet_sizes: tuple[int, ...]) -> np.ndarray:
+    """Hamming ground-distance matrix over a (possibly non-binary) state space.
+
+    Generalizes |_hamming_matrix| to heterogeneous alphabets: the ``(i, j)``
+    entry is the number of nodes whose state differs between the ``i``th and
+    ``j``th joint states, with states enumerated in the little-endian order used
+    by |flatten| (so the matrix indices align with a flattened repertoire).
+    """
+    states = np.array(list(utils.all_states(alphabet_sizes)))
+    return cdist(states, states, "hamming") * len(alphabet_sizes)
+
+
+def _ground_metric(alphabet_sizes: tuple[int, ...]) -> np.ndarray:
+    """Return the Hamming ground-distance matrix for the given alphabet sizes.
+
+    Binary substrates use the precomputed/cached |_hamming_matrix| path (so
+    binary results are byte-identical to prior behavior); non-binary substrates
+    use |_kary_hamming_matrix|.
+    """
+    if all(k == 2 for k in alphabet_sizes):
+        return _hamming_matrix(len(alphabet_sizes))
+    return _kary_hamming_matrix(alphabet_sizes)
+
+
 def hamming_emd(p: ArrayLike, q: ArrayLike) -> float:
     """Return the Earth Mover's Distance between two distributions (indexed
     by state, one dimension per node) using the Hamming distance between states
     as the transportation cost function.
 
-    Singleton dimensions are sqeezed out.
+    Supports non-binary (k-ary) substrates: the ground metric is the number of
+    nodes whose state differs, taken over the substrate's actual (possibly
+    heterogeneous) state space. Singleton dimensions are squeezed out.
     """
     p = np.asarray(p)
     q = np.asarray(q)
-    N = p.squeeze().ndim
+    alphabet_sizes = p.squeeze().shape
     p_flat = flatten(p)
     q_flat = flatten(q)
     assert p_flat is not None
     assert q_flat is not None
-    return EMD.compute(p_flat, q_flat, _hamming_matrix(N))
+    return EMD.compute(p_flat, q_flat, _ground_metric(alphabet_sizes))
 
 
 def effect_emd(p: ArrayLike, q: ArrayLike) -> float:
     """Compute the EMD between two effect repertoires.
 
-    Because the nodes are independent, the EMD between effect repertoires is
-    equal to the sum of the EMDs between the marginal distributions of each
-    node, and the EMD between marginal distribution for a node is the absolute
-    difference in the probabilities that the node is OFF.
+    Because the nodes are independent, the EMD between effect repertoires equals
+    the sum of the EMDs between each node's marginal distributions (this is exact
+    for product distributions under the additive Hamming ground metric). For a
+    node, that per-node EMD is the total variation between its marginals; for a
+    binary node this reduces to the absolute difference in the probabilities that
+    the node is OFF (the original binary expression, kept so binary results are
+    unchanged).
 
     Args:
         p (np.ndarray): The first repertoire.
@@ -652,12 +677,17 @@ def effect_emd(p: ArrayLike, q: ArrayLike) -> float:
     """
     p = np.asarray(p)
     q = np.asarray(q)
-    return float(
-        sum(abs(marginal_zero(p, i) - marginal_zero(q, i)) for i in range(p.ndim))
-    )
+    total = 0.0
+    for i in range(p.ndim):
+        if p.shape[i] == 2:
+            total += abs(marginal_zero(p, i) - marginal_zero(q, i))
+        else:
+            # Total variation = 1/2 * L1 between the node's k-ary marginals.
+            total += 0.5 * np.abs(marginal(p, i) - marginal(q, i)).sum()
+    return float(total)
 
 
-@distribution_measures.register("EMD", supports_alphabet=_binary_only)
+@distribution_measures.register("EMD")
 def emd(p: ArrayLike, q: ArrayLike, direction: Direction | None = None) -> float:
     """Compute the EMD between two repertoires for a given direction.
 
@@ -1234,8 +1264,8 @@ def resolve_mechanism_measure(
 
     When ``alphabet_sizes`` is provided, the resolved measure's
     ``supports_alphabet`` predicate is evaluated and
-    :class:`NotImplementedError` is raised for unsupported combinations
-    (e.g., EMD on a k>2 substrate).
+    :class:`NotImplementedError` is raised for any measure that declares
+    itself incompatible with those cardinalities.
     """
     from typing import cast
 

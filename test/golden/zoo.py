@@ -389,6 +389,31 @@ def _make_fixtures() -> list[GoldenFixture]:
         )
     )
 
+    # k-ary EMD coverage: the 2-node k=3 substrate under IIT 3.0 with EMD as the
+    # mechanism measure. Locks the generalized (non-binary) EMD ground-metric and
+    # effect-EMD paths end-to-end through the SIA/CES pipeline.
+    fixtures.append(
+        GoldenFixture(
+            name="multivalued_k3_tiny_iit3_emd",
+            description="2-node k=3 substrate (seed 2026), IIT 3.0 with "
+            "mechanism_phi_measure=EMD (k-ary EMD), ces_measure=SUM_SMALL_PHI, "
+            "mechanism_partition_scheme=WEDGE_TRIPARTITION. Locks the non-binary "
+            "EMD ground-metric and effect-EMD paths.",
+            config_overrides={
+                **{k: v for k, v in IIT_3_CONFIG.items() if k != "iit"},
+                "iit": replace(
+                    IIT_3_CONFIG["iit"],
+                    mechanism_phi_measure="EMD",
+                    ces_measure="SUM_SMALL_PHI",
+                    mechanism_partition_scheme="WEDGE_TRIPARTITION",
+                ),
+            },
+            substrate_factory=_multivalued_k3_tiny,
+            state=(0, 0),
+            skip_layers=SKIP_FOR_IIT_3,
+        )
+    )
+
     # ============== Cross product of substrate x formalism ==============
 
     for net_name, factory, state, desc in _NETWORKS:

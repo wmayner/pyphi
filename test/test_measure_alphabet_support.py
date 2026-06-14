@@ -32,12 +32,12 @@ def test_all_measures_declare_supports_alphabet(registry) -> None:
         )
 
 
-def test_emd_supports_alphabet_binary_only() -> None:
-    """EMD supports_alphabet returns True for binary-only, False when k>2."""
+def test_emd_supports_alphabet_any() -> None:
+    """EMD supports_alphabet returns True for any alphabet (k-ary EMD)."""
     emd = distribution_measures["EMD"]
     assert emd.supports_alphabet((2, 2, 2)) is True
-    assert emd.supports_alphabet((2, 3, 2)) is False
-    assert emd.supports_alphabet((3, 3)) is False
+    assert emd.supports_alphabet((2, 3, 2)) is True
+    assert emd.supports_alphabet((3, 3)) is True
 
 
 def test_l1_supports_alphabet_any() -> None:
@@ -73,12 +73,12 @@ def test_intrinsic_information_supports_alphabet_any() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_resolve_mechanism_measure_emd_raises_for_kary() -> None:
-    """resolve_mechanism_measure raises NotImplementedError for EMD on k>2."""
+def test_resolve_mechanism_measure_emd_ok_for_kary() -> None:
+    """resolve_mechanism_measure resolves EMD on k>2 substrates (k-ary EMD)."""
     from pyphi.measures.distribution import resolve_mechanism_measure
 
-    with pytest.raises(NotImplementedError, match="Gomez"):
-        resolve_mechanism_measure("EMD", alphabet_sizes=(3, 3))
+    measure = resolve_mechanism_measure("EMD", alphabet_sizes=(3, 3))
+    assert measure is not None
 
 
 def test_resolve_mechanism_measure_emd_ok_for_binary() -> None:
