@@ -39,10 +39,15 @@ Currently covered
   guide reports 1.917 for the same example), and the constellation reproduces the
   six concepts with the published ``phi^Max`` values {0.5, 0.33, 0.25, 0.25, 0.17,
   0.17}.
+* **Actual Causation (2019), Albantakis et al., Fig 6 -- "Causal account".** The
+  canonical 2-unit OR-AND example (``pyphi.examples.actual_causation_substrate``)
+  and the full causal account of the transition {OR, AND} = 10 -> 10: four
+  first-order links at ``alpha = log2(4/3) = 0.415`` bits and one second-order
+  (joint) cause link at ``alpha = log2(9/8) = 0.170`` bits.
 
-Follow-ons (tracked in ROADMAP N1): the rest of Fig 6 (panels A/B/D/E) and Fig 7
-give weights only graphically and need the authors' exact network definitions;
-AC 2019 Fig 11; and the Gomez et al. 2020 p53-Mdm2 network.
+Follow-ons (tracked in ROADMAP N1): the rest of IIT 4.0 Fig 6 (panels A/B/D/E)
+and Fig 7 give weights only graphically and need the authors' exact network
+definitions; and the Gomez et al. 2020 p53-Mdm2 network.
 """
 
 from __future__ import annotations
@@ -52,10 +57,12 @@ import itertools
 import numpy as np
 import pytest
 
+from pyphi import actual
 from pyphi import examples
 from pyphi.conf import config
 from pyphi.conf import presets
 from pyphi.convert import le_index2state
+from pyphi.direction import Direction
 from pyphi.relations import AnalyticalRelations
 from pyphi.substrate import Substrate
 from pyphi.substrate_generator import build_substrate
@@ -321,3 +328,58 @@ def test_iit3_2014_fig12_constellation(_iit3):
     assert set(by_mechanism) == set(_FIG12_CONCEPT_PHI)
     for mechanism, phi in _FIG12_CONCEPT_PHI.items():
         assert round(float(by_mechanism[mechanism].phi), 2) == phi
+
+
+# --------------------------------------------------------------------------- #
+# Actual Causation (2019) -- Albantakis, Marshall, Hoel & Tononi,
+# Entropy 21(5):459, Fig 6 ("Causal account")
+# --------------------------------------------------------------------------- #
+# The paper's canonical actual-causation example (Figs 2/3/6) is a 2-unit
+# substrate -- an OR gate and an AND gate, each with a self-loop and a reciprocal
+# connection (pyphi.examples.actual_causation_substrate). Fig 6 gives the full
+# causal account of the transition {OR, AND} = 10 -> 10 (before = after =
+# (1, 0)): each first-order link (OR and AND, as both cause and effect) has
+# alpha = 0.415 bits = log2(4/3), and the single second-order link -- the joint
+# cause {OR, AND} = 10 -< {OR, AND} = 10 -- has alpha = 0.170 bits = log2(9/8).
+# (There is no irreducible second-order *effect* link, so the joint appears once.)
+#
+# NOTE on figure number: the roadmap's "AC 2019 Fig 11" is the 7-unit "voting"
+# example, whose weights are given only graphically and which is not pre-built in
+# pyphi.examples; Fig 6 is the canonical example pyphi.examples provides.
+_AC_FIG6_BEFORE = (1, 0)
+_AC_FIG6_AFTER = (1, 0)
+
+# (direction, mechanism) -> (purview, alpha-in-bits). Alpha is quoted to the
+# paper's three decimals; PyPhi computes log2(4/3) = 0.415037 and
+# log2(9/8) = 0.169925.
+_AC_FIG6_ACCOUNT = {
+    (Direction.CAUSE, (0,)): ((0,), 0.415),  # OR  -< OR
+    (Direction.CAUSE, (1,)): ((1,), 0.415),  # AND -< AND
+    (Direction.CAUSE, (0, 1)): ((0, 1), 0.170),  # {OR, AND} -< {OR, AND}
+    (Direction.EFFECT, (0,)): ((0,), 0.415),  # OR  >- OR
+    (Direction.EFFECT, (1,)): ((1,), 0.415),  # AND >- AND
+}
+
+
+def test_ac_2019_fig6_or_and_account(_iit3):
+    """AC Fig 6: the full causal account of the OR-AND transition 10 -> 10.
+
+    Four first-order links at alpha = log2(4/3) = 0.415 bits and one
+    second-order (joint) cause link at alpha = log2(9/8) = 0.170 bits, matching
+    the paper's reported account exactly.
+    """
+    transition = actual.Transition(
+        examples.actual_causation_substrate(),
+        _AC_FIG6_BEFORE,
+        _AC_FIG6_AFTER,
+        (0, 1),
+        (0, 1),
+    )
+    account = {
+        (link.direction, tuple(link.mechanism)): (
+            tuple(link.purview),
+            round(float(link.alpha), 3),
+        )
+        for link in actual.account(transition)
+    }
+    assert account == _AC_FIG6_ACCOUNT
