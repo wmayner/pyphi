@@ -146,8 +146,10 @@ class TestDomainGuard:
             bounds.distinction_phi_upper_bound((0,), (0,))
 
     def test_unsupported_mechanism_measure_raises(self):
+        # validate_config=False: deliberately set an off-formalism measure to
+        # exercise the bounds-domain guard (B13 would otherwise reject it).
         with (
-            config.override(mechanism_phi_measure="EMD"),
+            config.override(mechanism_phi_measure="EMD", validate_config=False),
             pytest.raises(ValueError, match="EMD"),
         ):
             bounds.distinction_phi_upper_bound((0,), (0,))

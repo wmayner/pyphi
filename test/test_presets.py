@@ -214,7 +214,9 @@ class TestOverrideApplication:
         # A preset replaces the whole IIT sub-namespace, so prior field
         # mutations inside the same override scope are not preserved
         # under a second preset application.
-        with config.override(mechanism_phi_measure="L1"):
+        # L1 is an IIT 3.0 measure set on the default 4.0 formalism purely to
+        # show the preset resets it; bypass the B13 combination validator.
+        with config.override(mechanism_phi_measure="L1", validate_config=False):
             assert config.formalism.iit.mechanism_phi_measure == "L1"
             with config.override(**iit4_2023):
                 assert (

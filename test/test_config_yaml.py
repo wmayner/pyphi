@@ -21,6 +21,8 @@ class TestNestedYAMLLoader:
                 mechanism_phi_measure: EMD
             numerics:
               precision: 7
+            infrastructure:
+              validate_config: false
             """)
         )
         original_measure = config.formalism.iit.mechanism_phi_measure
@@ -63,6 +65,8 @@ class TestNestedYAMLLoader:
               iit:
                 version: IIT_3_0
                 mechanism_partition_scheme: JOINT_BIPARTITION
+            infrastructure:
+              validate_config: false
             """)
         )
         original = config.snapshot()

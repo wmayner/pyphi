@@ -222,7 +222,7 @@ class TestMetricInvariants:
         rep1 = s.cause_repertoire(mech1, purview)
         rep2 = s.cause_repertoire(mech2, purview)
 
-        with config.override(mechanism_phi_measure="EMD"):
+        with config.override(mechanism_phi_measure="EMD", validate_config=False):
             try:
                 d = repertoire_distance(
                     rep1,
@@ -266,7 +266,7 @@ class TestMetricInvariants:
 
         rep = s.cause_repertoire(mechanism, purview)
 
-        with config.override(mechanism_phi_measure="EMD"):
+        with config.override(mechanism_phi_measure="EMD", validate_config=False):
             try:
                 d = repertoire_distance(
                     rep,

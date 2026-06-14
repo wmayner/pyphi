@@ -229,13 +229,23 @@ class _GlobalConfig:
 
         data = _load(path)
         formalism_data = data.pop("formalism", {})
-        for fields_dict in data.values():
-            for field_name, value in fields_dict.items():
-                setattr(self, field_name, value)
-        for sub_name in ("iit", "actual_causation"):
-            sub_data = formalism_data.get(sub_name, {})
-            for field_name, value in sub_data.items():
-                self[f"{sub_name}.{field_name}"] = value
+        saved = self.snapshot()
+        try:
+            for fields_dict in data.values():
+                for field_name, value in fields_dict.items():
+                    setattr(self, field_name, value)
+            for sub_name in ("iit", "actual_causation"):
+                sub_data = formalism_data.get(sub_name, {})
+                for field_name, value in sub_data.items():
+                    self[f"{sub_name}.{field_name}"] = value
+            if self.infrastructure.validate_config:
+                from pyphi.conf.constraints import check_config_constraints
+
+                check_config_constraints(self)
+        except Exception:
+            # Don't leave a half-loaded / invalid config installed on failure.
+            self.install_snapshot(saved)
+            raise
 
     def to_yaml(self, path: str | Path) -> None:
         """Write the current config in 2.0 nested-format YAML."""
@@ -493,11 +503,22 @@ class _OverrideContext(contextlib.ContextDecorator):
 
     def __enter__(self) -> _OverrideContext:
         self._saved = self._config.snapshot()
-        for name, value in self._new_values.items():
-            if "." in name:
-                self._config[name] = value
-            else:
-                setattr(self._config, name, value)
+        try:
+            for name, value in self._new_values.items():
+                if "." in name:
+                    self._config[name] = value
+                else:
+                    setattr(self._config, name, value)
+            if self._config.infrastructure.validate_config:
+                from pyphi.conf.constraints import check_config_constraints
+
+                check_config_constraints(self._config)
+        except Exception:
+            # A rejected (or otherwise failed) override must not leave the
+            # global config in a half-applied state, since __exit__ won't run.
+            self._config.install_snapshot(self._saved)
+            self._saved = None
+            raise
         return self
 
     def __exit__(self, *exc: Any) -> bool:

@@ -43,7 +43,9 @@ class TestPhiFormalismHasConfig:
         formalism = FORMALISM_REGISTRY["IIT_4_0_2023"]
         instance = formalism() if isinstance(formalism, type) else formalism
         captured = instance.config.iit.mechanism_phi_measure
-        with config.override(mechanism_phi_measure="EMD"):
+        # EMD is an IIT 3.0 measure; this only checks config-snapshot freezing,
+        # not formalism validity, so bypass the B13 combination validator.
+        with config.override(mechanism_phi_measure="EMD", validate_config=False):
             # Frozen field; the captured value does NOT track global changes.
             assert instance.config.iit.mechanism_phi_measure == captured
         assert instance.config.iit.mechanism_phi_measure == captured

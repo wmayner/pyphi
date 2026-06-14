@@ -548,16 +548,20 @@ def test_dotted_subscript_subnamespace_shorthand_write():
         config["formalism.iit.mechanism_phi_measure"] = original
 
 
+# These exercise dotted-path routing only, switching ``iit.version`` to
+# IIT_3_0 without the matching IIT 3.0 measures, so they disable the B13
+# config-combination validator (which would otherwise flag IIT_3_0 paired with
+# the default 4.0 mechanism measure).
 def test_override_dotted_positional_dict():
     before = config["formalism.iit.version"]
-    with config.override({"iit.version": "IIT_3_0"}):
+    with config.override({"iit.version": "IIT_3_0"}, validate_config=False):
         assert config["formalism.iit.version"] == "IIT_3_0"
     assert config["formalism.iit.version"] == before
 
 
 def test_override_dotted_via_kwargs():
     before = config["formalism.iit.version"]
-    with config.override(**{"iit.version": "IIT_3_0"}):
+    with config.override(validate_config=False, **{"iit.version": "IIT_3_0"}):
         assert config["formalism.iit.version"] == "IIT_3_0"
     assert config["formalism.iit.version"] == before
 
@@ -565,7 +569,7 @@ def test_override_dotted_via_kwargs():
 def test_override_mixed_dotted_and_flat():
     before_v = config["formalism.iit.version"]
     before_p = config["numerics.precision"]
-    with config.override({"iit.version": "IIT_3_0"}, precision=6):
+    with config.override({"iit.version": "IIT_3_0"}, precision=6, validate_config=False):
         assert config["formalism.iit.version"] == "IIT_3_0"
         assert config["numerics.precision"] == 6
     assert config["formalism.iit.version"] == before_v

@@ -8,7 +8,9 @@ from pyphi.conf import config
 def test_install_snapshot_replaces_global_layers():
     original = config.snapshot()
     try:
-        with config.override(precision=11, mechanism_phi_measure="L1"):
+        with config.override(
+            precision=11, mechanism_phi_measure="L1", validate_config=False
+        ):
             captured = config.snapshot()
 
         assert config.numerics.precision == original.numerics.precision

@@ -108,6 +108,14 @@ class InfrastructureConfig:
     # (non-binary, non-GID, etc.) the check is silently skipped.
     validate_phi_bounds: bool = False
 
+    # When True (default), config-combination constraints are checked eagerly
+    # on ``override`` and ``load_yaml`` (see :mod:`pyphi.conf.constraints`),
+    # rejecting silently-wrong combinations (e.g. an IIT version paired with a
+    # measure it does not define) with a ``ConfigurationError`` naming the two
+    # conflicting fields and a fix. Set False to opt out (e.g. for
+    # experimentation with unsupported combinations).
+    validate_config: bool = True
+
     __repr__ = yaml_repr
 
     def __post_init__(self) -> None:
@@ -132,6 +140,7 @@ class InfrastructureConfig:
         )
         _check_bool("validate_json_version", self.validate_json_version)
         _check_bool("validate_phi_bounds", self.validate_phi_bounds)
+        _check_bool("validate_config", self.validate_config)
         if not isinstance(self.log_file, (str, Path)):
             raise ValueError(
                 f"log_file must be str or Path; got {type(self.log_file).__name__}"
