@@ -26,7 +26,7 @@ from pyphi.measures.distribution import resolve_mechanism_measure
 from pyphi.measures.distribution import resolve_system_measure
 from pyphi.models.partitions import NullCut
 
-from .conftest import skip_if_no_pyemd
+from .conftest import skip_if_no_emd_backend
 
 # Expected phi values extracted from JSON fixtures in test/data/sia/
 # These values serve as golden references, extracted once to avoid
@@ -296,7 +296,7 @@ class TestConfigurationDependentValues:
     """
 
     @pytest.mark.emd
-    @skip_if_no_pyemd
+    @skip_if_no_emd_backend
     @config.override(**presets.iit3, single_micro_nodes_with_selfloops_have_phi=True)
     def test_sia_selfloop_node_phi_with_emd(self, noisy_selfloop_single):
         """Single node with self-loop has nonzero phi under canonical IIT 3.0.

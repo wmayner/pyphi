@@ -3,11 +3,11 @@ import pytest
 from pyphi import config
 from pyphi.measures.distribution import hamming_emd
 
-from .conftest import skip_if_no_pyemd
+from .conftest import skip_if_no_emd_backend
 
 
 @pytest.mark.emd
-@skip_if_no_pyemd
+@skip_if_no_emd_backend
 @config.override({"iit.version": "IIT_3_0"}, mechanism_phi_measure="EMD")
 def test_cause_info(s):
     mechanism = (0, 1)
@@ -20,7 +20,7 @@ def test_cause_info(s):
 
 
 @pytest.mark.emd
-@skip_if_no_pyemd
+@skip_if_no_emd_backend
 @config.override({"iit.version": "IIT_3_0"}, mechanism_phi_measure="EMD")
 def test_effect_info(s):
     mechanism = (0, 1)
@@ -33,7 +33,7 @@ def test_effect_info(s):
 
 
 @pytest.mark.emd
-@skip_if_no_pyemd
+@skip_if_no_emd_backend
 @config.override({"iit.version": "IIT_3_0"}, mechanism_phi_measure="EMD")
 def test_cause_effect_info(s):
     mechanism = (0, 1)

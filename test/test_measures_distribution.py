@@ -5,7 +5,7 @@ from pyphi.data_structures import PyPhiFloat
 from pyphi.measures import distribution
 from pyphi.measures.distribution import DistanceResult
 
-from .conftest import skip_if_no_pyemd
+from .conftest import skip_if_no_emd_backend
 
 TEST_DATA = (
     (np.ones((2, 2, 2)) / 8, np.ones((2, 2, 2)) / 8),
@@ -118,7 +118,7 @@ def test_large_hamming_matrix():
 
 
 @pytest.mark.emd
-@skip_if_no_pyemd
+@skip_if_no_emd_backend
 def test_hamming_emd_validates_distribution_shapes():
     a = np.ones((2, 2, 2)) / 8
     b = np.ones((3, 3, 3)) / 27
@@ -127,7 +127,7 @@ def test_hamming_emd_validates_distribution_shapes():
 
 
 @pytest.mark.emd
-@skip_if_no_pyemd
+@skip_if_no_emd_backend
 @pytest.mark.parametrize(
     "pq,answer",
     zip(

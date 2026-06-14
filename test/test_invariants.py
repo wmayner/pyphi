@@ -20,7 +20,7 @@ from pyphi.measures.distribution import resolve_system_measure
 from pyphi.system import System
 
 from . import example_substrates
-from .conftest import skip_if_no_pyemd
+from .conftest import skip_if_no_emd_backend
 
 
 def _sia_kwargs():
@@ -248,7 +248,7 @@ class TestConfigurationInvariants:
     """
 
     @pytest.mark.emd
-    @skip_if_no_pyemd
+    @skip_if_no_emd_backend
     def test_selfloop_phi_depends_on_config(self, noisy_selfloop_single):
         """Single nodes with self-loops: phi depends on config.
 

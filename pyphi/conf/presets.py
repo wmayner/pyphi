@@ -90,7 +90,10 @@ iit3: dict[str, Any] = {
         # causation (Albantakis et al. 2019).
         alpha_measure="PMI",
     ),
-    # pyemd's EMD comparison tolerance fails at finer precisions.
+    # IIT 3.0 pins precision 6: the EMD comparison tolerance was unreliable at
+    # finer precisions under the historical pyemd backend, and the published
+    # goldens are calibrated to it. (Whether the POT backend now permits a finer
+    # precision is a separate question, left unchanged here to preserve results.)
     "precision": 6,
 }
 

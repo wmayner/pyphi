@@ -1096,19 +1096,6 @@ wheels = [
 ]
 
 [[package]]
-name = "pyemd"
-version = "2.0.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "numpy" },
-    { name = "pot" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/56/89/3e05f132093b4be0de31608b39c4e6b79c8991c4f6eea822a373fdd2bdea/pyemd-2.0.0.tar.gz", hash = "sha256:15969f94435c2be98e6a36a49307c8366e3dfc1a67012acc306e92c90b503fe5", size = 64296, upload-time = "2026-02-04T06:45:19.506Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/03/0a/8905c3e6f3517d290ccea0c5943daaaab3428497d38865127e9fb9e69285/pyemd-2.0.0-py3-none-any.whl", hash = "sha256:c6d9a4bd2a590f48ecad07332304402e9c091aedc5dc4c778479fb61da24a890", size = 9839, upload-time = "2026-02-04T06:45:18.51Z" },
-]
-
-[[package]]
 name = "pygments"
 version = "2.19.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1161,7 +1148,7 @@ caching = [
     { name = "redis" },
 ]
 emd = [
-    { name = "pyemd" },
+    { name = "pot" },
 ]
 visualize = [
     { name = "matplotlib" },
@@ -1203,8 +1190,8 @@ requires-dist = [
     { name = "ordered-set", specifier = ">=4.0.2" },
     { name = "pandas", specifier = ">=2.0.0" },
     { name = "plotly", marker = "extra == 'visualize'", specifier = ">=5.8.2" },
+    { name = "pot", marker = "extra == 'emd'", specifier = ">=0.9.5" },
     { name = "psutil", specifier = ">=2.1.1" },
-    { name = "pyemd", marker = "extra == 'emd'", specifier = ">=2.0.0" },
     { name = "pyyaml", specifier = ">=3.13" },
     { name = "redis", marker = "extra == 'caching'", specifier = ">=2.10.5" },
     { name = "scipy", specifier = ">=0.13.3" },

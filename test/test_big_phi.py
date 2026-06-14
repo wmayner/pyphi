@@ -38,7 +38,7 @@ from pyphi.formalism import iit3
 from pyphi.formalism import iit4 as new_big_phi
 
 from .conftest import IIT_3_CONFIG
-from .conftest import skip_if_no_pyemd
+from .conftest import skip_if_no_emd_backend
 
 # pylint: disable=unused-argument
 
@@ -121,7 +121,7 @@ def test_sia_edge_cut_all_filters_non_disconnecting_partitions(s, monkeypatch):
 
 
 @pytest.mark.emd
-@skip_if_no_pyemd
+@skip_if_no_emd_backend
 @config.override(**presets.iit3, single_micro_nodes_with_selfloops_have_phi=True)
 def test_sia_single_micro_node_selfloops_have_phi(noisy_selfloop_single):
     """Single micro-node with self-loop has nonzero phi under canonical IIT 3.0.

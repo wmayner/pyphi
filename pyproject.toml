@@ -50,9 +50,10 @@ dependencies = [
 # cluster = ["dask[distributed]>=2024.1.0", "dask-jobqueue>=0.8.0"]
 visualize = ["matplotlib", "networkx>=2.6.2", "plotly>=5.8.2", "seaborn"]
 caching = ["redis>=2.10.5"]
-# pyemd 2.0 is required for numpy 2.x compatibility on Python 3.13+;
-# 1.x raises ModuleNotFoundError on `pkg_resources` import.
-emd = ["pyemd>=2.0.0"]
+# POT (Python Optimal Transport) provides the exact EMD backend (`ot.emd2`).
+# It replaces the now-deprecated `pyemd`; the two agree to machine epsilon on
+# PyPhi's Hamming-ground-metric EMD (binary and k-ary).
+emd = ["pot>=0.9.5"]
 xarray = ["xarray>=2024.1"]
 
 [dependency-groups]
@@ -218,7 +219,7 @@ addopts = [
 ]
 norecursedirs = ["docs/_*"]
 markers = [
-    "emd: marks tests that require the pyemd package (deselect with '-m \"not emd\"')",
+    "emd: marks tests that require the POT package (deselect with '-m \"not emd\"')",
     "outdated: marks tests as outdated (deselect with '-m \"not outdated\"')",
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "veryslow: marks tests as very slow (deselect with '-m \"not veryslow\"')",

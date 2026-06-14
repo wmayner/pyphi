@@ -253,29 +253,46 @@ class DistanceResult(PyPhiFloat):
 
 
 class OptionalEMD:
-    """Class to handle EMD computations.
+    """Class to handle EMD computations via POT (Python Optimal Transport).
 
-    Allows deferring import of `pyemd` in case it is not needed.
+    Allows deferring import of ``ot`` in case it is not needed.
     """
 
     def __init__(self) -> None:
-        self._pyemd = None
+        self._ot = None
 
     @property
-    def pyemd(self):
-        if self._pyemd is None:
+    def ot(self):
+        if self._ot is None:
             try:
-                import pyemd
+                import ot
 
-                self._pyemd = pyemd
+                self._ot = ot
             except ModuleNotFoundError as exc:
                 raise ModuleNotFoundError(
-                    MissingOptionalDependenciesError.MSG.format(dependencies="pyemd")
+                    MissingOptionalDependenciesError.MSG.format(dependencies="pot")
                 ) from exc
-        return self._pyemd
+        return self._ot
 
-    def compute(self, *args, **kwargs) -> float:
-        return float(self.pyemd.emd(*args, **kwargs))
+    def compute(
+        self, first_histogram, second_histogram, distance_matrix
+    ) -> float:
+        first = np.asarray(first_histogram, dtype=float)
+        second = np.asarray(second_histogram, dtype=float)
+        # POT's network simplex normalizes by total mass and returns NaN (with a
+        # divide-by-zero warning) when both signatures are empty; pyemd returned
+        # 0, and the EMD between two zero-mass distributions is 0 by definition
+        # (e.g. the CES-distance between two empty constellations).
+        if not first.any() and not second.any():
+            return 0.0
+        # ``ot.emd2`` returns the exact EMD *cost* (the unique optimal-transport
+        # objective). ``check_marginals=False`` skips POT's mass-balance warning:
+        # callers pass equal-mass distributions (normalized repertoires, or the
+        # balanced phi signatures in ``ces.py``), and the check only warns -- it
+        # does not affect the computed cost.
+        return float(
+            self.ot.emd2(first, second, distance_matrix, check_marginals=False)
+        )
 
 
 # Usage
@@ -654,6 +671,11 @@ def hamming_emd(p: ArrayLike, q: ArrayLike) -> float:
     q_flat = flatten(q)
     assert p_flat is not None
     assert q_flat is not None
+    if p_flat.shape != q_flat.shape:
+        raise ValueError(
+            "hamming_emd requires distributions of equal shape; got "
+            f"{p_flat.shape} and {q_flat.shape}"
+        )
     return EMD.compute(p_flat, q_flat, _ground_metric(alphabet_sizes))
 
 

@@ -10,11 +10,11 @@ from pyphi.formalism import iit3
 from pyphi.measures.ces import ces_distance
 from pyphi.measures.ces import emd_ground_distance
 
-from .conftest import skip_if_no_pyemd
+from .conftest import skip_if_no_emd_backend
 
 
 @pytest.mark.emd
-@skip_if_no_pyemd
+@skip_if_no_emd_backend
 def test_emd_ground_distance_must_be_symmetric():
     a = np.ones((2, 2, 2)) / 8
     b = np.ones((2, 2, 2)) / 8
@@ -23,7 +23,7 @@ def test_emd_ground_distance_must_be_symmetric():
 
 
 @pytest.mark.emd
-@skip_if_no_pyemd
+@skip_if_no_emd_backend
 def test_ces_distances(s):
     """Canonical IIT 3.0 CES distance for the basic substrate (1,0,0)."""
     with config.override(**presets.iit3):
@@ -41,7 +41,7 @@ def test_ces_distances(s):
 
 
 @pytest.mark.emd
-@skip_if_no_pyemd
+@skip_if_no_emd_backend
 def test_sia_uses_ces_distances(s):
     """Canonical sia.phi under the IIT 3.0 preset (EMD / EMD)."""
     with config.override(**presets.iit3):
@@ -54,7 +54,7 @@ def test_sia_uses_ces_distances(s):
 
 
 @pytest.mark.emd
-@skip_if_no_pyemd
+@skip_if_no_emd_backend
 @patch("pyphi.measures.ces._emd_simple")
 @patch("pyphi.measures.ces._emd")
 def test_ces_distance_uses_simple_vs_emd(mock_emd_distance, mock_simple_distance, s):

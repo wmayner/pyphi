@@ -10,7 +10,7 @@ from pyphi.models import Part
 from pyphi.models import RepertoireIrreducibilityAnalysis
 
 from . import example_substrates
-from .conftest import skip_if_no_pyemd
+from .conftest import skip_if_no_emd_backend
 
 s = example_substrates.s()
 
@@ -247,7 +247,7 @@ parameter_string = "direction,system,cut,mechanism,purview,expected"
 
 
 @pytest.mark.emd
-@skip_if_no_pyemd
+@skip_if_no_emd_backend
 @pytest.mark.parametrize(parameter_string, scenarios)
 @config.override(**presets.iit3)
 def test_find_mip(direction, system, cut, mechanism, purview, expected):

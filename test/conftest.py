@@ -135,20 +135,20 @@ def pytest_assertrepr_compare(op, left, right):
     return None
 
 
-# Check if pyemd is available
+# Check if the EMD backend (POT) is available
 # =============================================================================
 
 try:
-    import pyemd  # noqa: F401
+    import ot  # noqa: F401
 
-    PYEMD_AVAILABLE = True
+    EMD_BACKEND_AVAILABLE = True
 except ImportError:
-    PYEMD_AVAILABLE = False
+    EMD_BACKEND_AVAILABLE = False
 
 # Skip decorator for EMD tests
-skip_if_no_pyemd = pytest.mark.skipif(
-    not PYEMD_AVAILABLE,
-    reason="pyemd not installed (install with: pip install pyphi[emd])",
+skip_if_no_emd_backend = pytest.mark.skipif(
+    not EMD_BACKEND_AVAILABLE,
+    reason="EMD backend (POT) not installed (install with: pip install pyphi[emd])",
 )
 
 # Test fixtures from example substrates

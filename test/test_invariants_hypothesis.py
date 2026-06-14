@@ -231,7 +231,7 @@ class TestMetricInvariants:
                     repertoire_distance=distribution_measures["EMD"],
                 )
             except ImportError:
-                pytest.skip("pyemd not installed")
+                pytest.skip("EMD backend (POT) not installed")
                 return
 
         assert float(d) >= -1e-10, (
@@ -275,7 +275,7 @@ class TestMetricInvariants:
                     repertoire_distance=distribution_measures["EMD"],
                 )
             except ImportError:
-                pytest.skip("pyemd not installed")
+                pytest.skip("EMD backend (POT) not installed")
                 return
 
         assert abs(float(d)) < 1e-10
@@ -307,7 +307,7 @@ class TestMetricInvariants:
             try:
                 mip = s.find_mip(direction, mechanism, purview)
             except ImportError:
-                pytest.skip("pyemd not installed")
+                pytest.skip("EMD backend (POT) not installed")
                 return
             except Exception:
                 assume(False)
