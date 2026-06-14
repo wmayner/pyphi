@@ -15,6 +15,14 @@ Currently covered
 * **IIT 4.0 (2023), Albantakis et al., Fig 1 -- "Identifying substrates of
   consciousness".** The logistic substrate of Fig 1A in state ``aBC`` and the
   system integrated information ``phi_s`` of its candidate systems (Fig 1E).
+  Five published values reproduce to two decimals: ``phi_s`` for a / aB / aBC
+  (Fig 1E) and the cause/effect split ``phi_c = 0.24`` / ``phi_e = 0.17`` of aB
+  (Fig 1D). Cross-checked against paper-era PyPhi 1.2.0 (commit 75d0c411): both
+  versions agree that the single unit {C} has the highest ``phi_s`` here
+  (~0.21-0.29), so aB is *a* complex (maximal among the systems overlapping it),
+  not the global maximum -- exactly the paper's claim. Current PyPhi is the
+  paper-faithful one: its ``DIRECTED_SET_PARTITION`` scheme reproduces
+  ``phi_s(a) = 0.04`` where the old ``SET_UNI/BI`` scheme gives 0.068.
 
 Follow-ons (tracked in ROADMAP N1): Fig 2 (distinction ``phi_d``) and Fig 4
 (relation ``phi_r``) for the same complex -- their numbers live in the figure
@@ -133,3 +141,12 @@ def test_iit4_2023_fig1_aB_is_a_complex(_iit4_2023):
                 f"overlapping system {candidate} has phi_s={phi:.4f} >= aB's "
                 f"{phi_aB:.4f}; aB would not be a complex"
             )
+
+
+def test_iit4_2023_fig1D_aB_cause_effect_phi(_iit4_2023):
+    """Fig 1D ("Integration"): aB's phi_s = min(phi_c, phi_e), with the published
+    cause/effect split phi_c = 0.24 and phi_e = 0.17."""
+    sia = System(_fig1_substrate(), _FIG1_STATE, node_indices=(0, 1)).sia()
+    assert round(float(sia.cause.phi), 2) == 0.24
+    assert round(float(sia.effect.phi), 2) == 0.17
+    assert round(float(sia.phi), 2) == 0.17  # phi_s = min(phi_c, phi_e)
