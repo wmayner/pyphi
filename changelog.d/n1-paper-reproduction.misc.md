@@ -1,8 +1,10 @@
 Scaffolded the N1 paper-reproduction acceptance suite
 (`test/test_paper_reproduction.py`): published worked examples pinned against
 the papers themselves and wired in as a CI gate, distinct from the
-PyPhi-self-referential golden regression suite. First entry reproduces **IIT
-4.0 (2023) Albantakis et al. Figure 1** — the Fig 1A logistic substrate is
-reconstructed from its causal-model diagram and its Fig 1E system integrated
-information reproduces the paper to two decimals (`φ_s(a)=0.04`,
-`φ_s(aB)=0.17`, `φ_s(aBC)=0.13`), with `aB` confirmed a complex.
+PyPhi-self-referential golden regression suite. Covers **IIT 4.0 (2023)
+Albantakis et al. Figs 1, 2, 4 & 6C** (the Fig 1A logistic substrate
+reconstructed from its causal-model diagram, its distinctions and a relation,
+and the Fig 6C copy-ring) and **IIT 3.0 (2014) Oizumi et al. Fig 12** — the
+A=OR/B=AND/C=XOR worked example reproducing `Φ = 1.92` (23/12) and its
+six-concept constellation. Each pinned value reproduces its published figure to
+the paper's stated precision.

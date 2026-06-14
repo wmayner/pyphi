@@ -31,11 +31,18 @@ Currently covered
 * **IIT 4.0 (2023), Fig 6C -- "directed cycle".** The 6-unit copy-ring (the only
   Fig 6 panel whose weights are given exactly in the text): ``phi_s = 1.7467``
   (paper 1.74) and ``Phi = 7.65`` (relation sum via analytical relations).
+* **IIT 3.0 (2014), Oizumi et al., Fig 12 -- "Assessing the integrated
+  conceptual information".** The paper's main worked example: a 3-unit logic-gate
+  network (A = OR, B = AND, C = XOR, fully connected; ``pyphi.examples.
+  fig4_substrate``) in state (1, 0, 0). The system big-phi reproduces the figure's
+  ``Phi = 1.92`` (PyPhi computes 23/12 = 1.9167; the Mayner et al. 2018 practical
+  guide reports 1.917 for the same example), and the constellation reproduces the
+  six concepts with the published ``phi^Max`` values {0.5, 0.33, 0.25, 0.25, 0.17,
+  0.17}.
 
 Follow-ons (tracked in ROADMAP N1): the rest of Fig 6 (panels A/B/D/E) and Fig 7
 give weights only graphically and need the authors' exact network definitions;
-the IIT 3.0 (2014) Fig 1 example; AC 2019 Fig 11; and the Gomez et al. 2020
-p53-Mdm2 network.
+AC 2019 Fig 11; and the Gomez et al. 2020 p53-Mdm2 network.
 """
 
 from __future__ import annotations
@@ -45,6 +52,7 @@ import itertools
 import numpy as np
 import pytest
 
+from pyphi import examples
 from pyphi.conf import config
 from pyphi.conf import presets
 from pyphi.convert import le_index2state
@@ -243,3 +251,73 @@ def test_iit4_2023_fig6C_copy_ring(_iit4_2023):
     sum_phi_d = sum(float(d.phi) for d in distinctions)
     sum_phi_r = float(AnalyticalRelations(distinctions).sum_phi())
     assert round(sum_phi_d + sum_phi_r, 2) == 7.65
+
+
+# --------------------------------------------------------------------------- #
+# IIT 3.0 (2014) -- Oizumi, Albantakis & Tononi, PLoS Comput Biol 10(5):
+# e1003588, Fig 12 ("Assessing the integrated conceptual information Phi")
+# --------------------------------------------------------------------------- #
+# The paper's main worked example (Figs 4, 6, 8-12, 14) is a 3-unit network of
+# logic gates -- A = OR, B = AND, C = XOR, fully connected -- evaluated in state
+# (1, 0, 0) (the figure's "s_t(ABC) = 100"). This is pyphi.examples.fig4_substrate.
+# NOTE: fig4_*system* fixes the *different* state (1, 0, 1); the 2014 worked
+# example is in state (1, 0, 0), so we build the substrate and set the state here.
+#
+# Fig 12 reports the system big-phi Phi^MIP = 1.92 (the MIP is the unidirectional
+# cut [A, B] -/-> [C]) and shows the constellation of six concepts with phi^Max
+# values {0.5, 0.33, 0.25, 0.25, 0.17, 0.17}. The identical example is worked
+# end-to-end in the PyPhi practical guide (Mayner et al. 2018, "Calculating phi"),
+# which reports Phi = 1.917 -- the same quantity (23/12 = 1.91666...) to three
+# decimals. The two independent published sources agree.
+_FIG12_STATE = (1, 0, 0)
+
+# Concept small-phi (phi^Max) by mechanism. Concepts are labeled by mechanism in
+# the paper (Figs 9-11); values are quoted to two decimals as in Fig 12. Mechanism
+# AC specifies no concept (phi = 0) and is absent from the constellation, leaving
+# six concepts.
+_FIG12_CONCEPT_PHI = {
+    (0,): 0.17,  # A   (1/6)
+    (1,): 0.17,  # B   (1/6)
+    (2,): 0.25,  # C
+    (0, 1): 0.25,  # AB
+    (1, 2): 0.33,  # BC  (1/3)
+    (0, 1, 2): 0.50,  # ABC
+}
+
+
+@pytest.fixture
+def _iit3():
+    with config.override(
+        **presets.iit3, validate_system_states=False, progress_bars=False
+    ):
+        yield
+
+
+def test_iit3_2014_fig12_system_phi(_iit3):
+    """Fig 12: the worked example's system integrated information Phi = 1.92.
+
+    PyPhi computes 23/12 = 1.91666..., which rounds to the paper's 1.92 and
+    matches the 1.917 reported by the Mayner et al. 2018 practical guide.
+    """
+    sia = System(examples.fig4_substrate(), _FIG12_STATE, node_indices=(0, 1, 2)).sia()
+    assert round(float(sia.phi), 2) == 1.92
+    assert float(sia.phi) == pytest.approx(23 / 12, abs=1e-4)
+
+
+def test_iit3_2014_fig12_constellation(_iit3):
+    """Fig 12: the constellation of six concepts with their published phi^Max.
+
+    Checks the concept count, the phi^Max multiset to the figure's two decimals,
+    and the per-mechanism assignment (concepts are labeled by mechanism in the
+    paper's Figs 9-11).
+    """
+    ces = System(examples.fig4_substrate(), _FIG12_STATE, node_indices=(0, 1, 2)).ces()
+    concepts = list(ces)
+    assert len(concepts) == 6
+    assert sorted(round(float(c.phi), 2) for c in concepts) == sorted(
+        _FIG12_CONCEPT_PHI.values()
+    )
+    by_mechanism = {tuple(c.mechanism): c for c in concepts}
+    assert set(by_mechanism) == set(_FIG12_CONCEPT_PHI)
+    for mechanism, phi in _FIG12_CONCEPT_PHI.items():
+        assert round(float(by_mechanism[mechanism].phi), 2) == phi
