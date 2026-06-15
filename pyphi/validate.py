@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from collections.abc import Sequence
+from typing import TYPE_CHECKING
 from typing import Any
 
 import numpy as np
@@ -12,6 +13,9 @@ import numpy as np
 from . import exceptions
 from .conf import config
 from .direction import Direction
+
+if TYPE_CHECKING:
+    from pyphi.core.tpm.factored import FactoredTPM
 
 # pylint: disable=redefined-outer-name
 
@@ -67,6 +71,30 @@ def connectivity_matrix(cm: np.ndarray) -> bool:
     return True
 
 
+def connectivity(cm: np.ndarray, factored_tpm: FactoredTPM) -> bool:
+    """Validate that a connectivity matrix is not under-specified.
+
+    An edge ``a -> b`` that the TPM implies (factor ``b`` depends on input
+    ``a``) but ``cm`` omits would be silently marginalized out during node
+    construction and excluded from purview search, under-counting phi. Such
+    omissions are rejected. Over-specification (declaring an edge the TPM does
+    not use) is permitted — it only widens the search.
+    """
+    inferred = factored_tpm.infer_cm()
+    cm_arr = np.asarray(cm)
+    missing = np.argwhere((inferred == 1) & (cm_arr == 0))
+    if missing.size:
+        edges = ", ".join(f"{int(a)} -> {int(b)}" for a, b in missing)
+        raise ValueError(
+            "Connectivity matrix is under-specified: the TPM implies "
+            f"edge(s) {edges} that the connectivity matrix omits. These "
+            "dependencies would be silently marginalized out, under-counting "
+            "phi. Add the edge(s) to the connectivity matrix, or set "
+            "validate_connectivity=False to allow a permissive matrix."
+        )
+    return True
+
+
 def node_labels(node_labels: Sequence[str], node_indices: Sequence[int]) -> None:
     """Validate that there is a label for each node."""
     if len(node_labels) != len(node_indices):
@@ -92,6 +120,8 @@ def substrate(n: object) -> bool:
             "Connectivity matrix must be NxN, where N is the "
             "number of nodes in the substrate."
         )
+    if config.infrastructure.validate_connectivity:
+        connectivity(n.cm, factored)  # type: ignore[attr-defined]
     return True
 
 

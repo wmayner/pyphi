@@ -8,11 +8,25 @@ import pytest
 
 from pyphi import Direction
 from pyphi import Substrate
+from pyphi import config
 from pyphi.distribution import repertoire_shape
 from pyphi.system import System
 from pyphi.utils import state_of
 from test.reference.repertoire import ref_cause
 from test.reference.repertoire import ref_effect
+
+
+def _permissive_substrate(**kwargs):
+    """Build a Substrate with the connectivity-consistency check disabled.
+
+    These reference tests intentionally pair dense factors with a reduced
+    (chain/cycle/cut/partition-induced) connectivity matrix to verify that the
+    omitted inputs are marginalized out exactly as the reference computes. That
+    is the permissive behavior the default ``validate_connectivity`` check
+    rejects, so it is disabled here.
+    """
+    with config.override(validate_connectivity=False):
+        return Substrate(**kwargs)
 
 
 def _swap_factors():
@@ -103,7 +117,7 @@ def test_repertoires_match_reference_sweep(n, alph, connectivity):
     mstate = dict(enumerate(state_of(range(n), state)))
     subsets = [s for k in range(1, n + 1) for s in itertools.combinations(range(n), k)]
     for cut_cm in _cut_cms(base_cm):
-        sub = Substrate(
+        sub = _permissive_substrate(
             marginals=[f.copy() for f in factors],
             state_space=state_space,
             cm=cut_cm,
@@ -145,7 +159,7 @@ def test_partition_repertoire_matches_cut_cm_substrate():
     )
     cut_cm = part.apply_cut(base.cm)
     s_cut = s.apply_cut(part)
-    ref_sub = Substrate(
+    ref_sub = _permissive_substrate(
         marginals=[f.copy() for f in factors], state_space=state_space, cm=cut_cm
     )
     s_ref = System(substrate=ref_sub, state=state, node_indices=(0, 1, 2))

@@ -9,6 +9,7 @@ from hypothesis import strategies as st
 
 from pyphi import Direction
 from pyphi import Substrate
+from pyphi import config
 from pyphi.distribution import repertoire_shape
 from pyphi.system import System
 from pyphi.utils import state_of
@@ -48,7 +49,10 @@ def test_repertoire_matches_reference(seed, alphabets, dense, direction):
     n = len(alphabets)
     alph = tuple(alphabets)
     state = tuple(0 for _ in range(n))
-    sub = Substrate(marginals=marginals, state_space=state_space, cm=cm)
+    # The non-dense cm is intentionally reduced against dense factors to verify
+    # marginalization against the reference, so opt out of the check.
+    with config.override(validate_connectivity=False):
+        sub = Substrate(marginals=marginals, state_space=state_space, cm=cm)
     s = System(substrate=sub, state=state, node_indices=tuple(range(n)))
     mechanism, purview = (0,), (n - 1,)
     got = np.asarray(s.repertoire(direction, mechanism, purview))

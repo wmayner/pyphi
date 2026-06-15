@@ -167,6 +167,12 @@ def random_cm(draw, n):
     Self-loops (the diagonal) are always included; off-diagonal entries are
     drawn independently. This avoids fully-disconnected nodes that produce
     trivial systems.
+
+    Note: a CM drawn here is independent of any TPM, so pairing it with a dense
+    TPM (as ``small_substrate(fully_connected=False)`` would) is almost always
+    under-specified and rejected by the default ``validate_connectivity`` check.
+    Callers that exercise the non-fully-connected path must either build a TPM
+    that respects the drawn CM or set ``validate_connectivity=False``.
     """
     bits = draw(st.lists(st.integers(0, 1), min_size=n * n, max_size=n * n))
     cm = np.array(bits, dtype=int).reshape(n, n)

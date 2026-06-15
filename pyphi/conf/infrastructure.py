@@ -100,6 +100,14 @@ class InfrastructureConfig:
     validate_conditional_independence: bool = True
     validate_json_version: bool = True
 
+    # When True (default), a substrate's connectivity matrix is checked against
+    # the edges its TPM implies, and an under-specified CM (one that omits a
+    # real edge, silently marginalizing a true dependency and under-counting
+    # phi) is rejected with a ``ValueError`` naming the missing edge(s).
+    # Over-specification (declaring an unused edge) stays legal. Set False to
+    # opt out (e.g. for a deliberately permissive CM).
+    validate_connectivity: bool = True
+
     # When True, every result-construction site checks its phi against the
     # theorem-certified Zaeemzadeh (2024) upper bound and raises
     # BoundViolationError on an in-domain overshoot (a proof of a formalism
@@ -139,6 +147,7 @@ class InfrastructureConfig:
             "validate_conditional_independence", self.validate_conditional_independence
         )
         _check_bool("validate_json_version", self.validate_json_version)
+        _check_bool("validate_connectivity", self.validate_connectivity)
         _check_bool("validate_phi_bounds", self.validate_phi_bounds)
         _check_bool("validate_config", self.validate_config)
         if not isinstance(self.log_file, (str, Path)):
