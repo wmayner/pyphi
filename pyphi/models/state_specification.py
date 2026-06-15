@@ -17,6 +17,7 @@ from functools import total_ordering
 from typing import Any
 
 import numpy as np
+import pandas as pd
 from numpy.typing import ArrayLike
 
 from pyphi import utils
@@ -138,6 +139,19 @@ class StateSpecification(ToDictMixin, ToPandasMixin):
             ours[purview_node] == theirs[purview_node] for purview_node in mutual
         )
 
+    def _to_pandas(self):
+        from .pandas import _DISTRIBUTION_COLUMNS
+        from .pandas import distribution_rows
+        from .pandas import records_to_frame
+
+        rows = []
+        for kind, rep in (
+            ("repertoire", self.repertoire),
+            ("unconstrained", self.unconstrained_repertoire),
+        ):
+            rows.extend(distribution_rows(self.direction, kind, self.purview, rep))
+        return records_to_frame(rows, columns=_DISTRIBUTION_COLUMNS)
+
     def to_json(self) -> dict[str, Any]:
         dct = self.to_dict()
         if _SERIALIZING_AS_TIE_PEER.get():
@@ -240,3 +254,14 @@ class SystemStateSpecification(ToDictMixin, ToPandasMixin):
 
     def to_json(self) -> dict[str, Any]:
         return self.__dict__
+
+    def _to_pandas(self):
+        from .pandas import _DISTRIBUTION_COLUMNS
+        from .pandas import records_to_frame
+
+        frames = [
+            spec.to_pandas() for spec in (self.cause, self.effect) if spec is not None
+        ]
+        if not frames:
+            return records_to_frame([], columns=_DISTRIBUTION_COLUMNS)
+        return pd.concat(frames, ignore_index=True)

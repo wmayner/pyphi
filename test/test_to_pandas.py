@@ -131,3 +131,57 @@ def test_empty_distinctions_to_pandas_has_schema():
         "effect_purview",
     ]
     assert len(frame) == 0
+
+
+def _make_state_spec(direction, purview):
+    # full-shape repertoire over 2 binary nodes; purview drives the cardinality
+    repertoire = np.array([[0.1, 0.4], [0.2, 0.3]])
+    unconstrained = np.full((2, 2), 0.25)
+    from pyphi.data_structures.pyphi_float import PyPhiFloat
+    from pyphi.models.state_specification import StateSpecification
+
+    return StateSpecification(
+        direction=direction,
+        purview=purview,
+        state=(0, 0),
+        intrinsic_information=PyPhiFloat(0.5),
+        repertoire=repertoire,
+        unconstrained_repertoire=unconstrained,
+    )
+
+
+def test_state_specification_to_pandas_is_tidy():
+    spec = _make_state_spec(Direction.CAUSE, (0, 1))
+    frame = spec.to_pandas()
+    assert isinstance(frame, pd.DataFrame)
+    assert list(frame.columns) == [
+        "direction",
+        "kind",
+        "purview",
+        "state",
+        "probability",
+    ]
+    assert set(frame["kind"]) == {"repertoire", "unconstrained"}
+    assert set(frame["direction"]) == {"CAUSE"}
+    # 2 kinds x 4 states
+    assert len(frame) == 8
+    repertoire_rows = frame[frame["kind"] == "repertoire"]
+    assert repertoire_rows["probability"].sum() == pytest.approx(1.0)
+
+
+def test_system_state_specification_is_concat():
+    from pyphi.models.state_specification import SystemStateSpecification
+
+    cause = _make_state_spec(Direction.CAUSE, (0, 1))
+    effect = _make_state_spec(Direction.EFFECT, (0, 1))
+    system = SystemStateSpecification(cause=cause, effect=effect)
+    frame = system.to_pandas()
+    assert list(frame.columns) == [
+        "direction",
+        "kind",
+        "purview",
+        "state",
+        "probability",
+    ]
+    assert set(frame["direction"]) == {"CAUSE", "EFFECT"}
+    assert len(frame) == len(cause.to_pandas()) + len(effect.to_pandas())
