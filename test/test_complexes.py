@@ -319,3 +319,31 @@ def test_iit3_sia_no_longer_carries_unpartitioned_ces(s):
     assert not hasattr(sia, "partitioned_ces"), "renamed to partitioned_distinctions"
     assert hasattr(sia, "partitioned_distinctions"), "compute receipt of the MIP"
     assert sia.partitioned_distinctions is not None
+
+
+class TestComplexWrapperIIT40:
+    """B16: complexes() returns Complex objects under IIT 4.0."""
+
+    def test_complexes_are_complex_objects(self, s):
+        from pyphi.models.complex import Complex
+
+        cx = s.substrate.complexes(s.state)
+        assert isinstance(cx, tuple)
+        assert all(isinstance(c, Complex) for c in cx)
+
+    def test_exactly_one_is_maximal(self, s):
+        cx = s.substrate.complexes(s.state)
+        assert sum(1 for c in cx if c.is_maximal) == 1
+        assert cx[0].is_maximal is True
+
+    def test_dual_and_xor_excluded_records(self):
+        from test.example_substrates import dual_and_xor_substrate
+
+        substrate = dual_and_xor_substrate()
+        cx = substrate.complexes((1, 0, 1, 0))
+        assert {tuple(sorted(c.node_indices)) for c in cx} == {(0, 1), (2, 3)}
+        by_units = {tuple(sorted(c.node_indices)): c for c in cx}
+        # The single-node candidates (1,) and (3,) are excluded by the
+        # 2-node complexes they overlap.
+        assert {e.node_indices for e in by_units[(0, 1)].excluded} == {(1,)}
+        assert {e.node_indices for e in by_units[(2, 3)].excluded} == {(3,)}
