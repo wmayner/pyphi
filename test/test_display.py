@@ -145,9 +145,26 @@ def test_html_style_injected_once_per_render():
 
 
 def test_render_dispatches_by_backend_name():
-    d = Description(title="Demo")
+    d = Description(
+        title="Demo",
+        sections=(Section(label=None, rows=(Row("x", 1),)),),
+    )
     assert render_pkg.render(d, backend="ascii", verbosity=2).startswith("╭")
     assert 'class="pyphi-card"' in render_pkg.render(d, backend="html", verbosity=2)
+
+
+def test_leaf_ascii_render_is_compact_no_box():
+    d = Description(title="X", compact="2 parts {A,BC}")
+    out = ascii_backend.render(d, verbosity=2)
+    assert out == "2 parts {A,BC}"
+    assert "╭" not in out
+
+
+def test_leaf_html_render_has_leaf_not_card():
+    d = Description(title="X", compact="2 parts {A,BC}")
+    out = html_backend.render(d, verbosity=2)
+    assert 'class="pyphi-leaf"' in out
+    assert 'class="pyphi-card"' not in out
 
 
 def test_render_unknown_backend_raises():

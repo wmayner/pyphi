@@ -96,7 +96,13 @@ def _divider(label: str | None, inner_width: int) -> str:
 
 
 def render(description: Description, verbosity: int) -> str:  # noqa: ARG001
-    """Render a description as a boxed card."""
+    """Render a description as a boxed card.
+
+    If the description has no sections, renders as a single compact line.
+    """
+    if not description.sections:
+        return description.compact or description.title
+
     blocks: list[tuple[str | None, list[str]]] = []
     if description.subtitle:
         blocks.append((None, [description.subtitle]))

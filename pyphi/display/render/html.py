@@ -23,6 +23,8 @@ _STYLE = """\
  border:1px solid #d0d7de;border-radius:10px;overflow:hidden;
  box-shadow:0 1px 3px rgba(0,0,0,.07);font-size:13px;
  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.pyphi-leaf{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+ font-size:13px}
 .pyphi-head{display:flex;align-items:baseline;justify-content:space-between;
  gap:18px;padding:7px 14px;background:#f6f8fa;border-bottom:1px solid #e4e8ec}
 .pyphi-title{font-weight:600}
@@ -91,7 +93,15 @@ def _section_html(section: Section) -> str:
 
 
 def render(description: Description, verbosity: int) -> str:  # noqa: ARG001
-    """Render a description as an HTML-native styled card."""
+    """Render a description as an HTML-native styled card.
+
+    If the description has no sections, renders as a small inline leaf element
+    instead of a full card.
+    """
+    if not description.sections:
+        text = description.compact or description.title
+        return _STYLE + f'<span class="pyphi-leaf">{escape(text)}</span>'
+
     head = [f'<span class="pyphi-title">{escape(description.title)}</span>']
     if description.subtitle:
         head.append(f'<span class="pyphi-badge">{escape(description.subtitle)}</span>')
