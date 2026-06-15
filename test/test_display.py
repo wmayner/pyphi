@@ -661,3 +661,148 @@ def test_relation_low_verbosity_compact():
     with pyphi.config.override(repr_verbosity=0):
         out = repr(r)
     assert out.startswith("Relation(")
+
+
+# ---------------------------------------------------------------------------
+# B21: Distinction, Distinctions, Complex display
+# ---------------------------------------------------------------------------
+
+
+def _basic_distinctions():
+    pyphi.config.progress_bars = False
+    s = pyphi.examples.basic_system()
+    return s.distinctions()
+
+
+def _basic_distinction():
+    return next(iter(_basic_distinctions()))
+
+
+def _basic_complex():
+    pyphi.config.progress_bars = False
+    sub = pyphi.examples.basic_substrate()
+    return sub.maximal_complex((0, 0, 0))
+
+
+def test_distinction_describe_structure():
+    d = _basic_distinction()
+    desc = d._describe(2)
+    assert desc.title == "Distinction"
+    all_row_labels = [r.label for sec in desc.sections for r in sec.rows]
+    assert "Mechanism" in all_row_labels
+    assert "φ_d" in all_row_labels
+    assert "Purview" in all_row_labels
+    assert "Specified state" in all_row_labels
+    section_labels = [sec.label for sec in desc.sections]
+    assert "Cause" in section_labels
+    assert "Effect" in section_labels
+
+
+def test_distinction_repr_is_card():
+    d = _basic_distinction()
+    out = repr(d)
+    assert out.startswith("╭─ Distinction")
+    assert "Mechanism" in out
+    assert "φ_d" in out
+
+
+def test_distinction_html_is_card():
+    d = _basic_distinction()
+    assert 'class="pyphi-card"' in d._repr_html_()
+
+
+def test_distinction_low_verbosity_compact():
+    d = _basic_distinction()
+    with pyphi.config.override(repr_verbosity=0):
+        out = repr(d)
+    assert out.startswith("Distinction(")
+    assert "φ_d=" in out
+
+
+def test_distinctions_describe_structure():
+    dists = _basic_distinctions()
+    desc = dists._describe(2)
+    # Title should be the concrete subclass name
+    assert "Distinctions" in desc.title
+    section_labels = [sec.label for sec in desc.sections]
+    assert "Distinctions" in section_labels
+    top_rows = [r.label for r in desc.sections[0].rows]
+    assert "Distinctions" in top_rows
+    assert "Σφ_d" in top_rows
+
+
+def test_distinctions_table_has_headers():
+    dists = _basic_distinctions()
+    desc = dists._describe(2)
+    distinctions_sec = next(sec for sec in desc.sections if sec.label == "Distinctions")
+    assert len(distinctions_sec.body) == 1
+    table = distinctions_sec.body[0]
+    assert isinstance(table, Table)
+    assert table.headers == ("Mechanism", "φ_d", "Cause purview", "Effect purview")
+    assert len(table.rows) == len(dists)
+
+
+def test_distinctions_repr_is_card():
+    dists = _basic_distinctions()
+    out = repr(dists)
+    assert out.startswith("╭─")
+    assert "Distinctions" in out
+
+
+def test_distinctions_html_is_card():
+    dists = _basic_distinctions()
+    assert 'class="pyphi-card"' in dists._repr_html_()
+
+
+def test_distinctions_low_verbosity_compact():
+    dists = _basic_distinctions()
+    with pyphi.config.override(repr_verbosity=0):
+        out = repr(dists)
+    assert "distinctions" in out
+    assert "Σφ_d=" in out
+
+
+def test_complex_describe_structure():
+    cx = _basic_complex()
+    desc = cx._describe(2)
+    assert desc.title == "Complex"
+    all_row_labels = [r.label for sec in desc.sections for r in sec.rows]
+    assert "Φ" in all_row_labels
+    assert "Nodes" in all_row_labels
+    assert "Is maximal" in all_row_labels
+    assert "Excluded candidates" in all_row_labels
+
+
+def test_complex_repr_is_card():
+    cx = _basic_complex()
+    out = repr(cx)
+    assert out.startswith("╭─ Complex")
+    assert "Φ" in out
+    assert "Is maximal" in out
+
+
+def test_complex_html_is_card():
+    cx = _basic_complex()
+    assert 'class="pyphi-card"' in cx._repr_html_()
+
+
+def test_complex_low_verbosity_compact():
+    cx = _basic_complex()
+    with pyphi.config.override(repr_verbosity=0):
+        out = repr(cx)
+    assert out.startswith("Complex(")
+    assert "Φ=" in out
+    assert "is_maximal=" in out
+
+
+def test_excluded_candidate_is_leaf():
+    from pyphi.models.complex import ExcludedCandidate
+
+    ec = ExcludedCandidate((0, 1), 0.25)
+    out = repr(ec)
+    assert out.startswith("ExcludedCandidate(")
+    assert "(0, 1)" in out
+    assert "φ=0.25" in out
+    assert "╭" not in out
+    assert 'class="pyphi-leaf"' in ec._repr_html_()
+    assert 'class="pyphi-card"' not in ec._repr_html_()

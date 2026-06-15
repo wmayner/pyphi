@@ -8,14 +8,18 @@ from __future__ import annotations
 from typing import Any
 
 from pyphi import utils
+from pyphi.display import Description
+from pyphi.display import Displayable
+from pyphi.display import Row
+from pyphi.display import Section
+from pyphi.display.numbers import format_value
 
 from . import cmp
-from . import fmt
 
 _excluded_candidate_attributes = ["node_indices", "phi"]
 
 
-class ExcludedCandidate:
+class ExcludedCandidate(Displayable):
     """A candidate system excluded from being a complex in favor of an
     overlapping complex with greater-or-equal |big_phi|.
 
@@ -31,11 +35,12 @@ class ExcludedCandidate:
         self.node_indices: tuple[int, ...] = tuple(node_indices)
         self.phi: float = float(phi)
 
-    def __repr__(self) -> str:
-        return fmt.make_repr(self, _excluded_candidate_attributes)
-
-    def __str__(self) -> str:
-        return f"ExcludedCandidate(node_indices={self.node_indices}, phi={self.phi})"
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        cls = type(self).__name__
+        return Description(
+            title=cls,
+            compact=f"{cls}({self.node_indices}, φ={format_value(self.phi)})",
+        )
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, ExcludedCandidate):
@@ -59,7 +64,7 @@ class ExcludedCandidate:
 _complex_attributes = ["node_indices", "phi", "is_maximal", "excluded"]
 
 
-class Complex(cmp.OrderableByPhi):
+class Complex(Displayable, cmp.OrderableByPhi):
     """An irreducible system selected as a complex: a local maximum of
     |big_phi| over overlapping candidate systems (the exclusion postulate).
 
@@ -122,11 +127,26 @@ class Complex(cmp.OrderableByPhi):
     def __hash__(self) -> int:
         return hash((self.node_indices, self.is_maximal))
 
-    def __repr__(self) -> str:
-        return fmt.make_repr(self, _complex_attributes)
-
-    def __str__(self) -> str:
-        return self.__repr__()
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        cls = type(self).__name__
+        num_excluded = len(self.excluded)
+        return Description(
+            title=cls,
+            sections=(
+                Section(
+                    rows=(
+                        Row("Φ", self.phi),
+                        Row("Nodes", str(self.node_indices)),
+                        Row("Is maximal", self.is_maximal),
+                        Row("Excluded candidates", num_excluded),
+                    )
+                ),
+            ),
+            compact=(
+                f"{cls}({self.node_indices}, Φ={format_value(self.phi)},"
+                f" is_maximal={self.is_maximal})"
+            ),
+        )
 
     def to_json(self) -> dict[str, Any]:
         return {

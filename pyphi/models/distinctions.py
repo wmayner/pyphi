@@ -37,9 +37,14 @@ from toolz import concat
 from pyphi import utils
 from pyphi.conf import fallback
 from pyphi.direction import Direction
+from pyphi.display import Description
+from pyphi.display import Displayable
+from pyphi.display import Row
+from pyphi.display import Section
+from pyphi.display import Table
+from pyphi.display.numbers import format_value
 
 from . import cmp
-from . import fmt
 from .pandas import ToPandasMixin
 from .pandas import records_to_frame
 from .state_specification import SystemStateSpecification
@@ -94,7 +99,7 @@ def _get_state(mice):
     return mice.specified_state.state
 
 
-class Distinctions(cmp.Orderable, Sequence, ToPandasMixin):
+class Distinctions(Displayable, cmp.Orderable, Sequence, ToPandasMixin):
     """Base class for a collection of distinctions.
 
     Holds the read-only operations shared by :class:`UnresolvedDistinctions`
@@ -123,11 +128,47 @@ class Distinctions(cmp.Orderable, Sequence, ToPandasMixin):
             return type(self)(self.concepts[value])
         return self.concepts[value]
 
-    def __repr__(self):
-        return fmt.make_repr(self, ["concepts"])
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        cls = type(self).__name__
+        num_d = len(self)
+        sum_phi_d = self.sum_phi()
 
-    def __str__(self):
-        return fmt.fmt_ces(self)
+        distinction_table_rows = tuple(
+            (
+                getattr(d, "mechanism_label", None) or str(getattr(d, "mechanism", "")),
+                getattr(d, "phi", None),
+                str(getattr(d, "cause_purview", "")),
+                str(getattr(d, "effect_purview", "")),
+            )
+            for d in self
+        )
+
+        return Description(
+            title=cls,
+            sections=(
+                Section(
+                    rows=(
+                        Row("Distinctions", num_d),
+                        Row("Σφ_d", sum_phi_d),
+                    )
+                ),
+                Section(
+                    label="Distinctions",
+                    body=(
+                        Table(
+                            headers=(
+                                "Mechanism",
+                                "φ_d",
+                                "Cause purview",
+                                "Effect purview",
+                            ),
+                            rows=distinction_table_rows,
+                        ),
+                    ),
+                ),
+            ),
+            compact=f"{cls}({num_d} distinctions, Σφ_d={format_value(sum_phi_d)})",
+        )
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Distinctions):

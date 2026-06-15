@@ -14,9 +14,13 @@ import numpy as np
 from pyphi import utils
 from pyphi import validate
 from pyphi.direction import Direction
+from pyphi.display import Description
+from pyphi.display import Displayable
+from pyphi.display import Row
+from pyphi.display import Section
+from pyphi.display.numbers import format_value
 
 from . import cmp
-from . import fmt
 from .pandas import ToDictFromExplicitAttrsMixin
 from .pandas import ToPandasMixin
 
@@ -32,7 +36,9 @@ _distinction_attributes = [
 
 # TODO: make mechanism a property
 # TODO: make phi a property
-class Distinction(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin):
+class Distinction(
+    Displayable, cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin
+):
     """The maximally irreducible cause and effect specified by a mechanism.
 
     These can be compared with the built-in Python comparison operators (``<``,
@@ -63,11 +69,60 @@ class Distinction(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixi
         self.cause.parent = self
         self.effect.parent = self
 
-    def __repr__(self):
-        return fmt.make_repr(self, _distinction_attributes)
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        cls = type(self).__name__
+        mechanism_label = getattr(self, "mechanism_label", None) or str(
+            getattr(self, "mechanism", "")
+        )
+        cause_purview = getattr(self, "cause_purview", None)
+        effect_purview = getattr(self, "effect_purview", None)
+        cause_phi = getattr(self.cause, "phi", None) if self.cause is not None else None
+        effect_phi = (
+            getattr(self.effect, "phi", None) if self.effect is not None else None
+        )
 
-    def __str__(self):
-        return fmt.fmt_distinction(self)
+        # Extract just the state tuple (not the full StateSpecification card)
+        _cause_spec = (
+            getattr(self.cause, "specified_state", None)
+            if self.cause is not None
+            else None
+        )
+        _effect_spec = (
+            getattr(self.effect, "specified_state", None)
+            if self.effect is not None
+            else None
+        )
+        cause_state = getattr(_cause_spec, "state", _cause_spec)
+        effect_state = getattr(_effect_spec, "state", _effect_spec)
+
+        return Description(
+            title=cls,
+            sections=(
+                Section(
+                    rows=(
+                        Row("Mechanism", mechanism_label),
+                        Row("φ_d", self.phi),
+                    )
+                ),
+                Section(
+                    label="Cause",
+                    rows=(
+                        Row("Purview", str(cause_purview)),
+                        Row("φ", cause_phi),
+                        Row("Specified state", str(cause_state)),
+                    ),
+                ),
+                Section(
+                    label="Effect",
+                    rows=(
+                        Row("Purview", str(effect_purview)),
+                        Row("φ", effect_phi),
+                        Row("Specified state", str(effect_state)),
+                    ),
+                ),
+            ),
+            compact=f"{cls}({mechanism_label}, φ_d={format_value(self.phi)})",
+        )
 
     # TODO use cached_property
     @property
