@@ -85,19 +85,28 @@ def _multivalued_k3k3_k4_sparse() -> Substrate:
     """3-node sparse heterogeneous substrate with alphabet sizes (3, 3, 4).
 
     Generated deterministically from seed 2028. The connectivity is a directed
-    3-cycle (0 -> 1 -> 2 -> 0), so each node has a single input and the
-    connectivity is sparse rather than complete. Exercises the sparse +
-    heterogeneous-alphabet repertoire path, where non-input dimensions and
-    severed-input dimensions (under a partition) must collapse for k > 2 units.
+    3-cycle (0 -> 1 -> 2 -> 0): each node's next state depends only on its
+    single predecessor in the cycle, so every factor is constant along its
+    non-input axes and the connectivity matrix matches the TPM. Exercises the
+    sparse + heterogeneous-alphabet repertoire path, where non-input dimensions
+    and severed-input dimensions (under a partition) must collapse for k > 2
+    units.
     """
     rng = np.random.default_rng(2028)
     alph = (3, 3, 4)
-    factors = []
-    for k_i in alph:
-        f = rng.uniform(size=(*alph, k_i))
-        f /= f.sum(axis=-1, keepdims=True)
-        factors.append(f)
     cm = np.array([[0, 1, 0], [0, 0, 1], [1, 0, 0]])
+    # node i's single input j under the directed 3-cycle 0 -> 1 -> 2 -> 0.
+    inputs = {0: 2, 1: 0, 2: 1}
+    factors = []
+    for i, k_i in enumerate(alph):
+        j = inputs[i]
+        table = rng.uniform(size=(alph[j], k_i))
+        table /= table.sum(axis=-1, keepdims=True)
+        # Vary only along input axis j; broadcast constant over the others.
+        inter_shape = [1, 1, 1, k_i]
+        inter_shape[j] = alph[j]
+        factor = np.broadcast_to(table.reshape(inter_shape), (*alph, k_i)).copy()
+        factors.append(factor)
     return Substrate(
         marginals=factors,
         state_space=((0, 1, 2), (0, 1, 2), (0, 1, 2, 3)),

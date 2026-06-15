@@ -650,7 +650,10 @@ def test_state_probability_strict_system():
             tpm[i, n] = (i >> (3 - n)) & 1
     cm = np.eye(4, dtype=int)
     # fmt: on
-    substrate = Substrate(tpm, cm)
+    # The cm is intentionally inconsistent with the TPM (this test exercises
+    # repertoire shape-handling, not connectivity), so opt out of the check.
+    with config.override(validate_connectivity=False):
+        substrate = Substrate(tpm, cm)
     with config.override(validate_system_states=False):
         t = actual.Transition(substrate, (1, 1, 1, 1), (1, 1, 1, 1), (2,), (3,))
     # system.node_indices is (2, 3), strictly inside substrate.node_indices

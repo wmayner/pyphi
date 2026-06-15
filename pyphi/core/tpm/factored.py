@@ -265,6 +265,53 @@ class FactoredTPM:
             out[..., i, :a_i] = np.broadcast_to(factor, broadcast_shape)
         return out
 
+    @staticmethod
+    def _varies_along_axis(factor: NDArray[np.float64], axis: int, tol: float) -> bool:
+        """Whether ``factor`` is non-constant along the given input axis.
+
+        A size-1 axis (a declared non-input) is constant by definition. For a
+        full-size axis, the factor varies iff some slice differs from the first
+        by more than ``tol`` in absolute value. The comparison is absolute (no
+        relative tolerance), so a small-but-real dependence is not swallowed.
+        """
+        if factor.shape[axis] == 1:
+            return False
+        base = factor.take(0, axis=axis)
+        return any(
+            not bool(np.all(np.abs(factor.take(idx, axis=axis) - base) <= tol))
+            for idx in range(1, factor.shape[axis])
+        )
+
+    def infer_edge(self, a: int, b: int) -> bool:
+        """Whether the TPM implies a causal edge from node ``a`` to node ``b``.
+
+        There is an edge iff node ``b``'s conditional distribution depends on
+        node ``a``'s state — i.e. factor ``b`` is not constant along input axis
+        ``a``. Equivalently, ``P(b | s) != P(b | s')`` for two input states
+        ``s, s'`` differing only in node ``a``. Holds for any per-node alphabet
+        size.
+        """
+        tol = max(10 ** (-config.numerics.precision), 1e-15)
+        return self._varies_along_axis(self.factor(b), a, tol)
+
+    def infer_cm(self) -> NDArray[np.int_]:
+        """Infer the connectivity matrix implied by the TPM.
+
+        Entry ``[a, b]`` is 1 iff the TPM implies an edge from node ``a`` to
+        node ``b`` (see :meth:`infer_edge`); diagonal entries mark self-edges.
+        Inferred per factor without materializing the joint, so the cost is
+        ``O(N^2 * factor_size)``.
+        """
+        n = self.n_nodes
+        tol = max(10 ** (-config.numerics.precision), 1e-15)
+        cm = np.zeros((n, n), dtype=int)
+        for b in range(n):
+            factor = self.factor(b)
+            for a in range(n):
+                if self._varies_along_axis(factor, a, tol):
+                    cm[a, b] = 1
+        return cm
+
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, FactoredTPM):
             return NotImplemented

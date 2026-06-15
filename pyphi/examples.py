@@ -221,8 +221,16 @@ def basic_noisy_selfloop_system():
 
 
 @register_example
+@config.override(validate_connectivity=False)
 def residue_substrate():
     """The substrate for the residue example.
+
+    The input units C, D, E carry self-copying TPM columns, but the
+    connectivity matrix (matching the diagram below) gives them no inputs, so
+    their self-state is marginalized to an unconstrained (uniform) effect
+    repertoire — the intended input-unit behavior. The connectivity-consistency
+    check is disabled (via the decorator) because it would otherwise flag those
+    self-loops.
 
     Current and previous state are all nodes OFF.
 
