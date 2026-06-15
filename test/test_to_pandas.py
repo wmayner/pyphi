@@ -215,3 +215,32 @@ def test_triggered_tpm_to_pandas_byte_identical():
     pd.testing.assert_frame_equal(result, expected)
     assert list(result.index.names) == ["A"]
     assert list(result.columns.names) == ["B", "C"]
+
+
+def test_label_carrying_types_never_emit_raw_int_units(basic_ces):
+    """Every label-carrying export renders units as label strings, and no
+    export has dotted-path (json_normalize) columns."""
+    distinction = next(iter(basic_ces.distinctions))
+    series_exports = [
+        distinction.to_pandas(),
+        distinction.cause.to_pandas(),
+        distinction.cause.ria.to_pandas(),
+    ]
+    for series in series_exports:
+        assert isinstance(series, pd.Series)
+        assert not any("." in str(label) for label in series.index)
+
+    frame = basic_ces.distinctions.to_pandas()
+    assert not any("." in str(column) for column in frame.columns)
+    for mechanism in frame.index:
+        assert all(isinstance(label, str) for label in mechanism)
+
+
+def test_base_to_pandas_raises_for_unimplemented():
+    from pyphi.models.pandas import ToPandasMixin
+
+    class Unimplemented(ToPandasMixin):
+        pass
+
+    with pytest.raises(NotImplementedError, match="Unimplemented"):
+        Unimplemented().to_pandas()
