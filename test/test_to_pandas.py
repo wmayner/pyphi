@@ -1,8 +1,10 @@
 """Tests for the unified to_pandas labeled-export convention."""
 
 import numpy as np
+import pandas as pd
 import pytest
 
+from pyphi import examples
 from pyphi.direction import Direction
 from pyphi.labels import NodeLabels
 from pyphi.models.pandas import distribution_rows
@@ -62,3 +64,39 @@ def test_records_to_frame_empty_has_columns():
     frame = records_to_frame([], index="mechanism", columns=["mechanism", "phi"])
     assert frame.index.name == "mechanism"
     assert list(frame.columns) == ["phi"]
+
+
+@pytest.fixture(scope="module")
+def basic_ces():
+    return examples.basic_system().ces()
+
+
+def test_distinction_to_pandas_is_labeled_series(basic_ces):
+    distinction = next(iter(basic_ces.distinctions))
+    series = distinction.to_pandas()
+    assert isinstance(series, pd.Series)
+    assert {
+        "phi",
+        "mechanism",
+        "mechanism_state",
+        "cause_purview",
+        "effect_purview",
+    } <= set(series.index)
+    # units render as label strings, never raw ints
+    assert all(isinstance(label, str) for label in series["mechanism"])
+
+
+def test_mice_to_pandas_is_labeled_series(basic_ces):
+    mice = next(iter(basic_ces.distinctions)).cause
+    series = mice.to_pandas()
+    assert isinstance(series, pd.Series)
+    assert all(isinstance(label, str) for label in series["mechanism"])
+    assert str(series["direction"]) == "CAUSE"
+
+
+def test_ria_to_pandas_is_labeled_series(basic_ces):
+    ria = next(iter(basic_ces.distinctions)).cause.ria
+    series = ria.to_pandas()
+    assert isinstance(series, pd.Series)
+    assert all(isinstance(label, str) for label in series["purview"])
+    assert series["direction"] in ("CAUSE", "EFFECT")

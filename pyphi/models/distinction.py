@@ -267,6 +267,26 @@ class Distinction(cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixi
             "effect": self.effect,
         }
 
+    def _pandas_record(self):
+        labels = self.node_labels
+
+        def labelled(nodes):
+            if nodes is None:
+                return None
+            if labels is None:
+                return tuple(nodes)
+            return tuple(labels.coerce_to_labels(nodes))
+
+        return {
+            "phi": float(self.phi),
+            "mechanism": labelled(self.mechanism),
+            "mechanism_state": (
+                None if self.mechanism_state is None else tuple(self.mechanism_state)
+            ),
+            "cause_purview": labelled(self.cause_purview),
+            "effect_purview": labelled(self.effect_purview),
+        }
+
     @classmethod
     def from_json(cls, dct):
         instance = cls(**dct)

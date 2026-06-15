@@ -262,6 +262,9 @@ class MaximallyIrreducibleCauseOrEffect(
     def to_json(self):
         return {"ria": self.ria}
 
+    def _pandas_record(self):
+        return self.ria._pandas_record()
+
     # TODO(to_pandas): This is currently broken; MICE should become a subclass
     # of RIA, and then a consistent implementation of `from_json` can be used
     # there

@@ -487,6 +487,28 @@ class RepertoireIrreducibilityAnalysis(
                 _SERIALIZING_AS_TIE_PEER.reset(token)
         return dct
 
+    def _pandas_record(self):
+        labels = self.node_labels
+
+        def labelled(nodes):
+            if labels is None:
+                return tuple(nodes)
+            return tuple(labels.coerce_to_labels(nodes))
+
+        return {
+            "phi": float(self.phi),
+            "direction": str(self.direction),
+            "mechanism": labelled(self.mechanism),
+            "purview": labelled(self.purview),
+            "mechanism_state": (
+                None if self.mechanism_state is None else tuple(self.mechanism_state)
+            ),
+            "purview_state": (
+                None if self.purview_state is None else tuple(self.purview_state)
+            ),
+            "specified_state": self.specified_state,
+        }
+
     @classmethod
     def from_json(cls, data):
         partition_peers_raw: Any = data.pop("_partition_tie_peers", ())
