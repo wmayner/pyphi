@@ -184,12 +184,13 @@ def _(partition: object) -> int:  # noqa: ARG001
 
 @distinction_phi_normalizations.register("NUM_CONNECTIONS_CUT")
 def _(partition: object) -> int | float | None:
-    try:
-        return 1 / partition.num_connections_cut()  # type: ignore[attr-defined]
-    except ZeroDivisionError:
-        return 1
-    except AttributeError:
+    # A null/unconstrained analysis carries no partition; there is nothing to
+    # normalize against, so normalization is undefined (None).
+    if partition is None:
         return None
+    num = partition.num_connections_cut()  # type: ignore[attr-defined]
+    # A partition that severs no connections has no normalization scale.
+    return 1 / num if num else 1
 
 
 def normalization_factor(partition: object) -> int | float | None:

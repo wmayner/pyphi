@@ -134,3 +134,33 @@ def test_equality_unchanged():
     a = DirectedBipartition(Direction.EFFECT, (0,), (1,))
     b = DirectedBipartition(Direction.EFFECT, (0,), (1,))
     assert a == b and hash(a) == hash(b)
+
+
+@pytest.mark.parametrize("p", PARTITIONS, ids=lambda p: type(p).__name__)
+def test_normalization_factor_real_partition_is_not_none(p):
+    # Every real partition has num_connections_cut(), so NUM_CONNECTIONS_CUT
+    # normalization returns a real factor (1 for a zero-cut partition) — the
+    # AttributeError fallback that previously masked this is gone.
+    from pyphi.conf import config
+    from pyphi.models.state_specification import normalization_factor
+
+    with config.override(distinction_phi_normalization="NUM_CONNECTIONS_CUT"):
+        assert normalization_factor(p) is not None
+
+
+def test_normalization_factor_zero_cut_is_one():
+    from pyphi.conf import config
+    from pyphi.models.state_specification import normalization_factor
+
+    with config.override(distinction_phi_normalization="NUM_CONNECTIONS_CUT"):
+        assert normalization_factor(NullCut((0, 1))) == 1
+
+
+def test_normalization_factor_none_partition_is_none():
+    # A null/unconstrained analysis carries no partition; normalization is
+    # undefined. This is now handled explicitly (was caught via AttributeError).
+    from pyphi.conf import config
+    from pyphi.models.state_specification import normalization_factor
+
+    with config.override(distinction_phi_normalization="NUM_CONNECTIONS_CUT"):
+        assert normalization_factor(None) is None

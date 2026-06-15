@@ -421,7 +421,9 @@ def test_ria_repr_str():
 
 def test_mice_ordering():
     phi1 = mice()
-    phi2 = mice(phi=(1.0 + EPSILON * 2), partition=())
+    # partition defaults to None (the "no partition" sentinel); the ordering
+    # asserted here is by phi, not partition.
+    phi2 = mice(phi=(1.0 + EPSILON * 2))
     assert phi1 < phi2
     assert phi2 > phi1
     assert phi1 <= phi2
