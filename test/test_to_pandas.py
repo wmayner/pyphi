@@ -185,3 +185,33 @@ def test_system_state_specification_is_concat():
     ]
     assert set(frame["direction"]) == {"CAUSE", "EFFECT"}
     assert len(frame) == len(cause.to_pandas()) + len(effect.to_pandas())
+
+
+def test_triggered_tpm_to_pandas_byte_identical():
+    from pyphi.matching.triggered_tpm import TriggeredTPM
+
+    labels = NodeLabels(("A", "B", "C"), (0, 1, 2))
+    sensory = (0,)
+    system = (1, 2)
+    array = np.random.default_rng(0).random((2, 2, 2))
+    ttpm = TriggeredTPM(
+        array=array,
+        sensory_indices=sensory,
+        system_indices=system,
+        node_labels=labels,
+    )
+
+    result = ttpm.to_pandas()
+
+    # expected via the explicit (pre-consolidation) construction
+    sensory_states = list(all_states(len(sensory)))
+    system_states = list(all_states(len(system)))
+    expected = pd.DataFrame(
+        [[array[x + s] for s in system_states] for x in sensory_states],
+        index=pd.MultiIndex.from_tuples(sensory_states, names=["A"]),
+        columns=pd.MultiIndex.from_tuples(system_states, names=["B", "C"]),
+    )
+
+    pd.testing.assert_frame_equal(result, expected)
+    assert list(result.index.names) == ["A"]
+    assert list(result.columns.names) == ["B", "C"]

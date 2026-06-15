@@ -68,16 +68,13 @@ class TriggeredTPM:
         return self._marginalize_system(marginal, mechanism, state)
 
     def to_pandas(self) -> pd.DataFrame:
-        """Provisional labeled view: rows = stimulus states, columns = system
-        states, values = Pr(s | x). Subsumed by the unified to_pandas project.
-        """
-        sensory_states = list(utils.all_states(len(self.sensory_indices)))
-        system_states = list(utils.all_states(len(self.system_indices)))
-        sensory_labels = self.node_labels.coerce_to_labels(self.sensory_indices)
-        system_labels = self.node_labels.coerce_to_labels(self.system_indices)
-        index = pd.MultiIndex.from_tuples(sensory_states, names=list(sensory_labels))
-        columns = pd.MultiIndex.from_tuples(system_states, names=list(system_labels))
-        data = [[self.array[x + s] for s in system_states] for x in sensory_states]
+        """Labeled view: rows = stimulus states, columns = system states,
+        values = Pr(s | x)."""
+        from pyphi.models.pandas import state_multiindex
+
+        index = state_multiindex(self.node_labels, self.sensory_indices)
+        columns = state_multiindex(self.node_labels, self.system_indices)
+        data = [[self.array[tuple(x) + tuple(s)] for s in columns] for x in index]
         return pd.DataFrame(data, index=index, columns=columns)
 
 
