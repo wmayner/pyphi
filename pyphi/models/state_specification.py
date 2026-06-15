@@ -131,7 +131,6 @@ class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
 
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         direction_label = str(self.direction)
-        ii_label = f"II_{direction_label[:1].lower()}"
         return Description(
             title=f"Specified {direction_label}",
             sections=(
@@ -140,7 +139,7 @@ class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
                         Row("Direction", direction_label),
                         Row("Purview", self.purview),
                         Row("Specified state", self.state),
-                        Row(ii_label, self.intrinsic_information),
+                        Row("Intrinsic information", self.intrinsic_information),
                     ),
                 ),
             ),
@@ -263,14 +262,13 @@ class SystemStateSpecification(Displayable, ToDictMixin, ToPandasMixin):
         sections = []
         for direction, spec in (("Cause", self.cause), ("Effect", self.effect)):
             if spec is not None:
-                ii_label = f"II_{direction[0].lower()}"
                 sections.append(
                     Section(
                         label=direction,
                         rows=(
                             Row("Purview", spec.purview),
                             Row("Specified state", spec.state),
-                            Row(ii_label, spec.intrinsic_information),
+                            Row("Intrinsic information", spec.intrinsic_information),
                         ),
                     )
                 )
