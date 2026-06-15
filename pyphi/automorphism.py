@@ -56,3 +56,18 @@ def _candidate_perms(substrate: Substrate) -> tuple[tuple[int, ...], ...]:
             continue
         out.append(perm)
     return tuple(out)
+
+
+def substrate_automorphisms(
+    substrate: Substrate,
+) -> tuple[tuple[int, ...], ...]:
+    """All node permutations preserving connectivity, TPM, and alphabet sizes.
+
+    Always contains the identity permutation.
+    """
+    arr = substrate.tpm.to_joint()
+    return tuple(
+        perm
+        for perm in _candidate_perms(substrate)
+        if np.array_equal(_relabel_joint(arr, perm), arr)
+    )
