@@ -131,6 +131,20 @@ class _PartitionBase:
             return b""
         return self.cut_matrix(max(indices) + 1).astype(np.uint8).tobytes()
 
+    def removed_edges(self) -> frozenset[tuple[int, int]]:
+        """The set of directed edges ``(from, to)`` this partition severs.
+
+        Default derivation from :meth:`cut_matrix`; concrete subclasses
+        override with an equivalent structural form that avoids materializing
+        the full ``n x n`` matrix. The two must agree (verified by
+        ``test_partition_edge_set.py``).
+        """
+        indices = self.indices
+        if not indices:
+            return frozenset()
+        matrix = self.cut_matrix(max(indices) + 1)
+        return frozenset((int(a), int(b)) for a, b in np.argwhere(matrix))
+
 
 class NullCut(_PartitionBase):
     """The empty edge cut: no connections severed."""
@@ -151,6 +165,9 @@ class NullCut(_PartitionBase):
 
     def cut_matrix(self, n: int) -> NDArray[np.int_]:
         return np.zeros((n, n), dtype=int)
+
+    def removed_edges(self) -> frozenset[tuple[int, int]]:
+        return frozenset()
 
     def to_json(self) -> dict[str, Any]:
         return {"indices": self.indices}
@@ -220,6 +237,11 @@ class DirectedBipartition(_PartitionBase):
         return connectivity.relevant_connections(
             n, self.from_nodes, self.to_nodes
         ).astype(np.int_)
+
+    def removed_edges(self) -> frozenset[tuple[int, int]]:
+        # relevant_connections sets cm[f, t] = 1 for f in from_nodes,
+        # t in to_nodes (see connectivity.relevant_connections).
+        return frozenset((f, t) for f in self.from_nodes for t in self.to_nodes)
 
     @cmp.sametype
     def __eq__(self, other: object) -> bool:
@@ -295,6 +317,15 @@ class DirectedJointPartition(_PartitionBase):
             cm[np.ix_(from_, external)] = 1
         return cm
 
+    def removed_edges(self) -> frozenset[tuple[int, int]]:
+        indices = set(self.indices)
+        edges: set[tuple[int, int]] = set()
+        for part in self.partition:
+            from_, to = self.direction.order(part.mechanism, part.purview)
+            external = indices - set(to)
+            edges.update((f, e) for f in from_ for e in external)
+        return frozenset(edges)
+
     @cmp.sametype
     def __eq__(self, other: object) -> bool:
         return self.partition == other.partition and self.direction == other.direction  # type: ignore[attr-defined]
@@ -348,6 +379,10 @@ class EdgeCut(_PartitionBase):
         cm = np.zeros([n, n], dtype=int)
         cm[np.ix_(self.node_indices, self.node_indices)] = self._cut_matrix
         return cm
+
+    def removed_edges(self) -> frozenset[tuple[int, int]]:
+        idx = self.node_indices
+        return frozenset((idx[i], idx[j]) for i, j in np.argwhere(self._cut_matrix))
 
     @cmp.sametype
     def __eq__(self, other: object) -> bool:
@@ -603,6 +638,14 @@ class JointPartition(Sequence[Part], _PartitionBase):
             outside_part = tuple(set(self.purview) - set(part.purview))
             cm[np.ix_(part.mechanism, outside_part)] = 1
         return cm
+
+    def removed_edges(self) -> frozenset[tuple[int, int]]:
+        purview = set(self.purview)
+        edges: set[tuple[int, int]] = set()
+        for part in self.parts:
+            outside = purview - set(part.purview)
+            edges.update((m, o) for m in part.mechanism for o in outside)
+        return frozenset(edges)
 
     def to_json(self) -> dict[str, Any]:
         return {"parts": list(self)}
