@@ -92,3 +92,24 @@ def test_ascii_format_table_aligns_columns():
     assert lines[0] == "dir      purview   α"  # noqa: RUF001
     assert lines[1] == "CAUSE    OR        0.415037"
     assert lines[2] == "EFFECT   AND       0.415037"
+
+
+def test_ascii_render_full_card():
+    d = Description(
+        title="Demo",
+        subtitle="φ_s 0.415037",
+        sections=(
+            Section(label=None, rows=(Row("System", "A,B,C"),)),
+            Section(label="Cause", rows=(Row("purview", "(1,1,0)", (("II_c", 3.0),)),)),
+            Section(label="Links", body=(Table(("a", "b"), (("1", "2"),)),)),
+            Section(label="MIP", body=(Inline("{A,BC}"),)),
+        ),
+    )
+    out = ascii_backend.render(d, verbosity=2)
+    lines = out.splitlines()
+    assert lines[0].startswith("╭─ Demo ") and lines[0].endswith("╮")
+    assert lines[-1].startswith("╰") and lines[-1].endswith("╯")
+    widths = {ascii_backend._vis_len(line) for line in lines}
+    assert len(widths) == 1  # all lines equal width
+    assert "├─ Cause " in out
+    assert "II_c 3" in out
