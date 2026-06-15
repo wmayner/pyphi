@@ -55,3 +55,19 @@ def test_removed_edges_returns_python_ints():
     p = EdgeCut((0, 2), np.array([[0, 1], [0, 0]]))
     (edge,) = p.removed_edges()
     assert type(edge[0]) is int and type(edge[1]) is int
+
+
+@pytest.mark.parametrize("p", PARTITIONS, ids=lambda p: type(p).__name__)
+def test_num_connections_cut_is_edge_count(p):
+    assert p.num_connections_cut() == len(p.removed_edges())
+
+
+def test_num_connections_cut_preserves_eq24_counts():
+    # Values the deleted JointPartition Eq. 24 override produced.
+    assert JointPartition(Part((0,), (1,)), Part((1,), (0,))).num_connections_cut() == 2
+    jb = JointBipartition(Part((0, 2), (1,)), Part((1,), (0, 2)))
+    assert jb.num_connections_cut() == 5
+
+
+def test_nullcut_num_connections_cut_is_zero():
+    assert NullCut((0, 1, 2)).num_connections_cut() == 0

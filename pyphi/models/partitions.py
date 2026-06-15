@@ -145,6 +145,10 @@ class _PartitionBase:
         matrix = self.cut_matrix(max(indices) + 1)
         return frozenset((int(a), int(b)) for a, b in np.argwhere(matrix))
 
+    def num_connections_cut(self) -> int:
+        """Number of directed connections severed (IIT 4.0 Eq. 24)."""
+        return len(self.removed_edges())
+
 
 class NullCut(_PartitionBase):
     """The empty edge cut: no connections severed."""
@@ -621,16 +625,6 @@ class JointPartition(Sequence[Part], _PartitionBase):
     def normalize(self) -> Self:
         """Return a copy with parts sorted into a canonical order."""
         return type(self)(*sorted(self), node_labels=self.node_labels)
-
-    def num_connections_cut(self) -> int:
-        """Number of connections severed by the induced edge cut (IIT 4.0 Eq. 24)."""
-        n = 0
-        purview_lengths = [len(part.purview) for part in self.parts]
-        for i, part in enumerate(self.parts):
-            n += len(part.mechanism) * (
-                sum(purview_lengths[:i]) + sum(purview_lengths[i + 1 :])
-            )
-        return n
 
     def cut_matrix(self, n: int) -> NDArray[np.int_]:
         cm = np.zeros((n, n), dtype=int)
