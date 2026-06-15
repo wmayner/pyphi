@@ -12,6 +12,7 @@ from pyphi.display.description import Row
 from pyphi.display.description import Section
 from pyphi.display.description import Table
 from pyphi.display.numbers import format_value
+from pyphi.display.render import ascii as ascii_backend
 
 
 def test_format_value_rounds_floats_to_6_sig_figs():
@@ -51,3 +52,19 @@ def test_nested_and_inline_are_components():
     s = Section(label=None, body=(Nested(inner), Inline(text="x ─── y")))
     assert isinstance(s.body[0], Nested)
     assert s.body[1].text == "x ─── y"
+
+
+def test_ascii_visual_len_counts_codepoints():
+    assert ascii_backend._vis_len("φ_s") == 3
+    assert ascii_backend._vis_len("A,B,C") == 5
+
+
+def test_ascii_pad_right():
+    assert ascii_backend._pad("ab", 5) == "ab   "
+    assert ascii_backend._pad("abcde", 3) == "abcde"
+
+
+def test_ascii_framed_line_has_borders_and_width():
+    line = ascii_backend._framed("hi", 6)
+    assert line.startswith("│ ") and line.endswith(" │")
+    assert ascii_backend._vis_len(line) == 6 + 4  # content width + "│ " + " │"
