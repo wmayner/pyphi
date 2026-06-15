@@ -1,4 +1,7 @@
 import numpy as np
+from hypothesis import given
+from hypothesis import settings
+from hypothesis import strategies as st
 
 from pyphi import automorphism as auto
 from test import example_substrates as es
@@ -78,3 +81,31 @@ def test_isomorphic_pair_and_nonisomorphic_pair():
 def test_isomorphism_symmetric():
     a, b = es.and_xor_substrate(), es.xor_and_substrate()
     assert auto.are_substrates_isomorphic(a, b) == auto.are_substrates_isomorphic(b, a)
+
+
+def test_canonical_state_linchpin():
+    # The two permuted substrates' corresponding states must canonicalize equal.
+    s_ax = es.and_xor_substrate()
+    s_xa = es.xor_and_substrate()
+    assert auto.canonical_state(s_ax, (0, 1)) == auto.canonical_state(s_xa, (1, 0))
+
+
+def test_canonical_state_idempotent_on_canonical_substrate():
+    s = es.and_xor_substrate()
+    canon, perm = auto.substrate_canonical_form(s)
+    state = (1, 0)
+    canon_state = tuple(state[perm[i]] for i in range(len(perm)))
+    assert auto.canonical_state(canon, canon_state) == auto.canonical_state(s, state)
+
+
+@settings(max_examples=50)
+@given(bits=st.lists(st.integers(0, 1), min_size=2, max_size=2))
+def test_canonical_state_orbit_invariant(bits):
+    # and_xor and xor_and are related by sigma=(1,0): state s on and_xor
+    # corresponds to s'[i]=s[sigma[i]] on xor_and.
+    s_ax = es.and_xor_substrate()
+    s_xa = es.xor_and_substrate()
+    sigma = (1, 0)
+    s = tuple(bits)
+    s_prime = tuple(s[sigma[i]] for i in range(2))
+    assert auto.canonical_state(s_ax, s) == auto.canonical_state(s_xa, s_prime)

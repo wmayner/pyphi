@@ -146,3 +146,17 @@ def are_substrates_isomorphic(s1: Substrate, s2: Substrate) -> bool:
     if sorted(s1.tpm.alphabet_sizes) != sorted(s2.tpm.alphabet_sizes):
         return False
     return _canonical(s1)[0] == _canonical(s2)[0]
+
+
+def canonical_state(substrate: Substrate, state: tuple[int, ...]) -> tuple[int, ...]:
+    """Map ``state`` into canonical coordinates, reduced over the automorphism
+    orbit.
+
+    For substrates related by a node permutation, corresponding states'
+    canonical-coordinate images agree only up to an automorphism, so the
+    permutation-invariant identity of ``state`` is the lexicographically
+    smallest image over every permutation that carries ``substrate`` to its
+    canonical form.
+    """
+    _, achievers = _canonical(substrate)
+    return min(tuple(state[perm[i]] for i in range(len(perm))) for perm in achievers)
