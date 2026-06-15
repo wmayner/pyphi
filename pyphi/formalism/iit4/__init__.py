@@ -810,7 +810,20 @@ def sia(
         chosen_key = outcome.resolved
         if chosen_key is None:
             assert outcome.tied_set, "cascade outcome has neither winner nor ties"
-            chosen_key = outcome.tied_set[0]
+            # The canonical tie-break makes per-direction φ reporting invariant
+            # under substrate relabeling. The specified states are indexed over
+            # ``system.node_indices``, so canonicalization only aligns with the
+            # substrate's node space when the system spans it; for proper
+            # subsystems (e.g. candidates in ``complexes()``) we keep the
+            # deterministic enumeration-order representative.
+            spans_substrate = len(system.node_indices) == system.substrate.tpm.n_nodes
+            if spans_substrate:
+                chosen_key = min(
+                    outcome.tied_set,
+                    key=lambda key: _canonical_tie_break_key(system.substrate, key),
+                )
+            else:
+                chosen_key = outcome.tied_set[0]
         mip_sia = per_pair_sias[chosen_key]
 
         _restore_tie_metadata(
@@ -873,6 +886,23 @@ def _build_untied_system_state(
     return SystemStateSpecification(
         cause=cause_untied,  # pyright: ignore[reportArgumentType]
         effect=effect_untied,  # pyright: ignore[reportArgumentType]
+    )
+
+
+def _canonical_tie_break_key(substrate, key):
+    """Permutation-invariant sort key for a tied ``(cause_state, effect_state)``
+    pair, so per-direction φ reporting is deterministic up to relabeling.
+
+    A ``None`` direction sorts first via the empty tuple. Used only for the
+    residual cascade tie among reducible (``φ_s = 0``) states, where the system
+    MIP is non-unique and enumeration order is otherwise label-dependent.
+    """
+    from pyphi.automorphism import canonical_state
+
+    cause_state, effect_state = key
+    return (
+        canonical_state(substrate, cause_state) if cause_state is not None else (),
+        canonical_state(substrate, effect_state) if effect_state is not None else (),
     )
 
 
