@@ -5,6 +5,8 @@ import dataclasses
 import numpy as np
 import pytest
 
+import pyphi
+from pyphi.display import Displayable
 from pyphi.display import render as render_pkg
 from pyphi.display.description import Description
 from pyphi.display.description import Inline
@@ -145,3 +147,32 @@ def test_render_dispatches_by_backend_name():
 def test_render_unknown_backend_raises():
     with pytest.raises(KeyError):
         render_pkg.render(Description(title="x"), backend="rich", verbosity=2)
+
+
+class _Demo(Displayable):
+    def _describe(self, verbosity):  # noqa: ARG002
+        return Description(
+            title="Demo",
+            subtitle="x 1",
+            sections=(Section(label=None, rows=(Row("x", 1),)),),
+            compact="Demo(x=1)",
+        )
+
+
+def test_displayable_repr_and_str_match_ascii_card():
+    obj = _Demo()
+    assert repr(obj) == str(obj)
+    assert repr(obj).startswith("╭─ Demo")
+
+
+def test_displayable_low_verbosity_uses_compact():
+    obj = _Demo()
+    with pyphi.config.override(repr_verbosity=0):
+        assert repr(obj) == "Demo(x=1)"
+
+
+def test_displayable_html_and_mimebundle():
+    obj = _Demo()
+    assert 'class="pyphi-card"' in obj._repr_html_()
+    bundle = obj._repr_mimebundle_()
+    assert set(bundle) == {"text/plain", "text/html"}
