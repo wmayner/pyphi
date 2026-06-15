@@ -139,6 +139,8 @@ def _loadable_models():
         pyphi.models.AcSystemIrreducibilityAnalysis,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.CausalLink,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.CompleteEdgeCut,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.Complex,  # pyright: ignore[reportAttributeAccessIssue]
+        pyphi.models.ExcludedCandidate,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.Concept,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.DirectedBipartition,  # pyright: ignore[reportAttributeAccessIssue]
         pyphi.models.DirectedJointPartition,  # pyright: ignore[reportAttributeAccessIssue]

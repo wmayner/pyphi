@@ -49,6 +49,8 @@ from .actual_causation import Event
 from .actual_causation import _null_ac_ria
 from .actual_causation import _null_ac_sia
 from .ces import CauseEffectStructure
+from .complex import Complex
+from .complex import ExcludedCandidate
 from .distinction import Concept
 from .distinction import Distinction
 from .distinctions import Distinctions
@@ -92,6 +94,7 @@ __all__ = [
     "CauseEffectStructure",
     "CauseEffectStructureInterface",
     "CompleteEdgeCut",
+    "Complex",
     "Concept",
     "DirectedAccount",
     "DirectedBipartition",
@@ -102,6 +105,7 @@ __all__ = [
     "Distinctions",
     "EdgeCut",
     "Event",
+    "ExcludedCandidate",
     "IIT3SystemIrreducibilityAnalysis",
     "JointBipartition",
     "JointPartition",

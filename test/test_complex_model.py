@@ -81,3 +81,18 @@ def test_complex_orders_by_phi():
     null = Complex(sia=NullSystemIrreducibilityAnalysis(), substrate=substrate)
     assert null < big
     assert max([null, big]) is big
+
+
+def test_complex_json_round_trip():
+    substrate, s = _basic_sia()
+    c = Complex(
+        sia=s,
+        substrate=substrate,
+        is_maximal=True,
+        excluded=(ExcludedCandidate((1, 2), 0.5),),
+    )
+    decoded = jsonify.loads(jsonify.dumps(c))
+    assert isinstance(decoded, Complex)
+    assert decoded.node_indices == c.node_indices
+    assert decoded.is_maximal is True
+    assert {e.node_indices for e in decoded.excluded} == {(1, 2)}
