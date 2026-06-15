@@ -49,3 +49,32 @@ def test_automorphisms_recover_known_symmetries():
     # Two identical AND-XOR blocks -> identity + the block swap.
     dual = set(auto.substrate_automorphisms(es.dual_and_xor_substrate()))
     assert dual == {(0, 1, 2, 3), (2, 3, 0, 1)}
+
+
+def test_canonical_form_invariant_under_relabeling():
+    s_ax = es.and_xor_substrate()
+    s_xa = es.xor_and_substrate()
+    canon_ax, _ = auto.substrate_canonical_form(s_ax)
+    canon_xa, _ = auto.substrate_canonical_form(s_xa)
+    assert canon_ax == canon_xa
+
+
+def test_canonical_permutation_maps_to_canonical_form():
+    s = es.xor_and_substrate()
+    canon, perm = auto.substrate_canonical_form(s)
+    relabeled = auto._relabel_joint(s.tpm.to_joint(), perm)
+    assert np.array_equal(relabeled, canon.tpm.to_joint())
+
+
+def test_isomorphic_pair_and_nonisomorphic_pair():
+    assert auto.are_substrates_isomorphic(es.and_xor_substrate(), es.xor_and_substrate())
+    assert auto.are_substrates_isomorphic(es.and_xor_substrate(), es.and_xor_substrate())
+    # Different node counts -> not isomorphic (2 nodes vs 3 nodes).
+    assert not auto.are_substrates_isomorphic(
+        es.and_xor_substrate(), es.symmetric_triple_substrate()
+    )
+
+
+def test_isomorphism_symmetric():
+    a, b = es.and_xor_substrate(), es.xor_and_substrate()
+    assert auto.are_substrates_isomorphic(a, b) == auto.are_substrates_isomorphic(b, a)
