@@ -1,5 +1,9 @@
+from pyphi import examples
 from pyphi import jsonify
+from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
+from pyphi.models.complex import Complex
 from pyphi.models.complex import ExcludedCandidate
+from pyphi.substrate import irreducible_sias
 
 
 def test_excluded_candidate_fields():
@@ -33,3 +37,47 @@ def test_excluded_candidate_json_round_trip():
     e = ExcludedCandidate((1, 2), 0.5)
     decoded = jsonify.loads(jsonify.dumps(e))
     assert decoded == e
+
+
+def _basic_sia():
+    """Return (substrate, a real irreducible SIA) under IIT 4.0 defaults."""
+    substrate = examples.basic_substrate()
+    sias = irreducible_sias(substrate, (1, 0, 0))
+    return substrate, sias[0]
+
+
+def test_complex_delegates_node_indices_and_phi():
+    substrate, s = _basic_sia()
+    c = Complex(sia=s, substrate=substrate, is_maximal=True)
+    assert c.node_indices == s.node_indices
+    assert float(c.phi) == float(s.phi)
+    assert c.sia is s
+    assert c.substrate is substrate
+    assert c.is_maximal is True
+    assert c.excluded == ()
+
+
+def test_complex_is_truthy_when_phi_positive():
+    substrate, s = _basic_sia()
+    c = Complex(sia=s, substrate=substrate, is_maximal=True)
+    assert bool(c) is True
+
+
+def test_complex_null_object_is_falsy_with_empty_units():
+    substrate = examples.basic_substrate()
+    null = Complex(
+        sia=NullSystemIrreducibilityAnalysis(),
+        substrate=substrate,
+        is_maximal=True,
+    )
+    assert bool(null) is False
+    assert null.node_indices == ()  # None normalized to ()
+    assert float(null.phi) == 0.0
+
+
+def test_complex_orders_by_phi():
+    substrate, s = _basic_sia()
+    big = Complex(sia=s, substrate=substrate)
+    null = Complex(sia=NullSystemIrreducibilityAnalysis(), substrate=substrate)
+    assert null < big
+    assert max([null, big]) is big
