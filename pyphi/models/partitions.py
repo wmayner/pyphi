@@ -149,6 +149,22 @@ class _PartitionBase:
         """Number of directed connections severed (IIT 4.0 Eq. 24)."""
         return len(self.removed_edges())
 
+    def refines(self, other: _PartitionBase) -> bool:
+        """Whether this is *finer-or-equal* to ``other``.
+
+        A partition is finer when it severs more connections, so refinement
+        is **superset** of :meth:`removed_edges`. This is a *partial* order:
+        two partitions can be incomparable (neither refines the other). It is
+        NOT a total order and must not be used as a ``sorted``/``min`` key —
+        use ``<`` (the ``lex_key`` total order) for that.
+        """
+        return self.removed_edges() >= other.removed_edges()
+
+    def coarsens(self, other: _PartitionBase) -> bool:
+        """Whether this is *coarser-or-equal* to ``other`` (inverse of
+        :meth:`refines`)."""
+        return other.refines(self)
+
 
 class NullCut(_PartitionBase):
     """The empty edge cut: no connections severed."""

@@ -71,3 +71,37 @@ def test_num_connections_cut_preserves_eq24_counts():
 
 def test_nullcut_num_connections_cut_is_zero():
     assert NullCut((0, 1, 2)).num_connections_cut() == 0
+
+
+def _edgecut(edges, n=4):
+    m = np.zeros((n, n), dtype=int)
+    for a, b in edges:
+        m[a, b] = 1
+    return EdgeCut(tuple(range(n)), m)
+
+
+def test_refines_is_superset_of_severed_edges():
+    coarse = _edgecut([(0, 1)])
+    fine = _edgecut([(0, 1), (1, 0)])
+    assert fine.refines(coarse)  # fine severs a superset
+    assert not coarse.refines(fine)
+    assert coarse.coarsens(fine)
+    assert not fine.coarsens(coarse)
+
+
+def test_refines_is_reflexive():
+    p = _edgecut([(0, 1), (2, 3)])
+    assert p.refines(p) and p.coarsens(p)
+
+
+def test_refines_partial_order_has_incomparable_pairs():
+    a = _edgecut([(0, 1)])
+    b = _edgecut([(1, 0)])
+    assert not a.refines(b) and not b.refines(a)  # genuinely partial
+
+
+def test_refines_is_transitive():
+    a = _edgecut([(0, 1), (1, 0), (2, 3)])
+    b = _edgecut([(0, 1), (1, 0)])
+    c = _edgecut([(0, 1)])
+    assert a.refines(b) and b.refines(c) and a.refines(c)
