@@ -1,5 +1,8 @@
+import pytest
+
 from pyphi import examples
 from pyphi import jsonify
+from pyphi import validate
 from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
 from pyphi.models.complex import Complex
 from pyphi.models.complex import ExcludedCandidate
@@ -96,3 +99,25 @@ def test_complex_json_round_trip():
     assert decoded.node_indices == c.node_indices
     assert decoded.is_maximal is True
     assert {e.node_indices for e in decoded.excluded} == {(1, 2)}
+
+
+def test_non_overlapping_accepts_disjoint():
+    substrate, s = _basic_sia()
+    a = Complex(sia=s, substrate=substrate)
+
+    class _Stub:
+        def __init__(self, idx):
+            self.node_indices = idx
+
+    disjoint = [a, _Stub((9,))]  # (0,1,2) vs (9,) — disjoint
+    assert validate.non_overlapping(disjoint) is True
+
+
+def test_non_overlapping_rejects_overlap():
+    class _Stub:
+        def __init__(self, idx):
+            self.node_indices = idx
+
+    overlapping = [_Stub((0, 1)), _Stub((1, 2))]  # share unit 1
+    with pytest.raises(ValueError, match="Exclusion violated"):
+        validate.non_overlapping(overlapping)

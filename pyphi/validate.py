@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from collections.abc import Sequence
+from typing import Any
 
 import numpy as np
 
@@ -207,3 +208,28 @@ def relata(relata: Iterable[object] | None) -> None:
     """Validate a set of relata."""
     if not relata:
         raise ValueError("relata cannot be empty")
+
+
+def non_overlapping(complexes: Iterable[Any]) -> bool:
+    """Validate that complexes have pairwise-disjoint units (exclusion).
+
+    The exclusion postulate requires that no unit belongs to more than one
+    complex. Raises if any two of ``complexes`` share a unit.
+
+    Args:
+        complexes (Iterable): Objects exposing ``node_indices``.
+
+    Returns:
+        bool: ``True`` if the complexes are pairwise node-disjoint.
+    """
+    seen: set[int] = set()
+    for c in complexes:
+        units = set(c.node_indices or ())
+        overlap = units & seen
+        if overlap:
+            raise ValueError(
+                f"Exclusion violated: unit(s) {sorted(overlap)} belong to more "
+                f"than one complex."
+            )
+        seen.update(units)
+    return True
