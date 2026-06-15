@@ -416,3 +416,94 @@ def test_mice_low_verbosity_compact():
     with pyphi.config.override(repr_verbosity=0):
         out = repr(mic)
     assert out.startswith("MaximallyIrreducibleCause(φ=")
+
+
+# ---------------------------------------------------------------------------
+# Task 14: System, Substrate, Node, and state-spec display
+# ---------------------------------------------------------------------------
+
+
+def _basic_system():
+    pyphi.config.progress_bars = False
+    return pyphi.examples.basic_system()
+
+
+def test_system_is_leaf():
+    s = _basic_system()
+    out = repr(s)
+    assert out == "System(A, B, C)"
+    assert "╭" not in out
+    assert 'class="pyphi-leaf"' in s._repr_html_()
+    assert 'class="pyphi-card"' not in s._repr_html_()
+
+
+def test_system_str_equals_repr():
+    s = _basic_system()
+    assert str(s) == repr(s) == "System(A, B, C)"
+
+
+def test_system_str_matches_expected_label_subset():
+    """str(system) must produce e.g. 'System(B, C)' for a node subset."""
+    from pyphi.substrate import Substrate
+    from pyphi.system import System
+
+    sub = pyphi.examples.basic_substrate()
+    sub2 = Substrate(sub._legacy_binary_joint(), node_labels=("A", "B", "C"))
+    sys = System(sub2, (0, 0, 0), ("B", "C"))
+    assert str(sys) == "System(B, C)"
+
+
+def test_substrate_is_leaf():
+    s = _basic_system()
+    sub = s.substrate
+    out = repr(sub)
+    assert out.startswith("Substrate(")
+    assert "╭" not in out
+    assert 'class="pyphi-leaf"' in sub._repr_html_()
+    assert 'class="pyphi-card"' not in sub._repr_html_()
+
+
+def test_node_is_leaf():
+    s = _basic_system()
+    node = s.nodes[0]
+    out = repr(node)
+    assert out == node.label
+    assert "╭" not in out
+    assert 'class="pyphi-leaf"' in node._repr_html_()
+    assert 'class="pyphi-card"' not in node._repr_html_()
+
+
+def test_unit_state_is_leaf():
+    from pyphi.models.state_specification import UnitState
+
+    us_on = UnitState(0, 1, "A")
+    us_off = UnitState(0, 0, "A")
+    assert repr(us_on) == "A"
+    assert repr(us_off) == "a"
+    assert 'class="pyphi-leaf"' in us_on._repr_html_()
+    assert 'class="pyphi-card"' not in us_on._repr_html_()
+
+
+def test_state_specification_is_card():
+    s = _basic_system()
+    sia = s.sia()
+    spec = sia.system_state.cause
+    out = repr(spec)
+    assert "╭" in out
+    assert "Direction" in out
+    assert "Purview" in out
+    assert "Specified state" in out
+    assert 'class="pyphi-card"' in spec._repr_html_()
+
+
+def test_system_state_specification_is_card():
+    s = _basic_system()
+    sia = s.sia()
+    sys_state = sia.system_state
+    out = repr(sys_state)
+    assert "╭" in out
+    assert "Cause" in out
+    assert "Effect" in out
+    assert "Purview" in out
+    assert "Specified state" in out
+    assert 'class="pyphi-card"' in sys_state._repr_html_()

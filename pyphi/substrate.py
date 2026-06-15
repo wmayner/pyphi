@@ -24,6 +24,8 @@ from .core.tpm.factored import FactoredTPM
 from .core.tpm.factored import StateSpace
 from .core.tpm.joint_distribution import JointTPM
 from .direction import Direction
+from .display import Description
+from .display import Displayable
 from .labels import NodeLabels
 from .types import ConnectivityMatrix
 from .types import Mechanism
@@ -70,7 +72,7 @@ def _coerce_state_to_indices(
     return tuple(indices)
 
 
-class Substrate:
+class Substrate(Displayable):
     """A substrate of nodes.
 
     Represents the substrate under analysis and holds auxiliary data about it.
@@ -434,11 +436,9 @@ class Substrate:
         """int: The number of nodes in the substrate."""
         return self.tpm.shape[-1]
 
-    def __repr__(self) -> str:
-        return f"Substrate({self.tpm}, cm={self.cm})"
-
-    def __str__(self) -> str:
-        return self.__repr__()
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        compact = f"Substrate({self.tpm}, cm={self.cm})"
+        return Description(title="Substrate", compact=compact)
 
     def __eq__(self, other: object) -> bool:
         """Return whether this substrate equals the other object.

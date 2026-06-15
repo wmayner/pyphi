@@ -19,6 +19,8 @@ import numpy as np
 from pyphi import connectivity
 from pyphi import utils
 from pyphi import validate
+from pyphi.display import Description
+from pyphi.display import Displayable
 from pyphi.models.partitions import DirectedBipartition
 from pyphi.models.partitions import NullCut
 from pyphi.substrate import Substrate
@@ -34,8 +36,8 @@ if TYPE_CHECKING:
     from pyphi.types import State
 
 
-@dataclass(frozen=True, eq=False)
-class System:
+@dataclass(frozen=True, eq=False, repr=False)
+class System(Displayable):
     """A substrate evaluated in a specific state over a node subset, with partition.
 
     The ``external_indices`` field specifies which substrate units are
@@ -153,9 +155,10 @@ class System:
     def __len__(self) -> int:
         return len(self.node_indices)
 
-    def __str__(self) -> str:
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         labels = self.node_labels.coerce_to_labels(self.node_indices)
-        return f"System({', '.join(str(label) for label in labels)})"
+        compact = f"System({', '.join(str(label) for label in labels)})"
+        return Description(title="System", compact=compact)
 
     def apply_cut(self, partition: DirectedBipartition) -> System:
         """Return a new System with the given partition applied.

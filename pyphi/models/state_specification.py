@@ -24,6 +24,10 @@ from pyphi import utils
 from pyphi.conf import config
 from pyphi.data_structures import PyPhiFloat
 from pyphi.direction import Direction
+from pyphi.display import Description
+from pyphi.display import Displayable
+from pyphi.display import Row
+from pyphi.display import Section
 from pyphi.measures.distribution import DistanceResult
 from pyphi.registry import Registry
 
@@ -38,8 +42,8 @@ _SERIALIZING_AS_TIE_PEER: contextvars.ContextVar[bool] = contextvars.ContextVar(
 
 
 @total_ordering
-@dataclass(frozen=True)
-class UnitState:
+@dataclass(frozen=True, repr=False)
+class UnitState(Displayable):
     """A node together with its current state value.
 
     Distinct from :class:`pyphi.core.unit.Unit`, which is the
@@ -65,13 +69,14 @@ class UnitState:
             return NotImplemented
         return (self.index, self.state) < (other.index, other.state)
 
-    def __repr__(self) -> str:
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         label = str(self.index) if self.label is None else self.label
-        return label.lower() if self.state == 0 else label.upper()
+        compact = label.lower() if self.state == 0 else label.upper()
+        return Description(title="UnitState", compact=compact)
 
 
-@dataclass
-class StateSpecification(ToDictMixin, ToPandasMixin):
+@dataclass(repr=False)
+class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
     direction: Direction
     purview: tuple[int, ...]
     state: tuple[int, ...]
@@ -124,12 +129,22 @@ class StateSpecification(ToDictMixin, ToPandasMixin):
             ),
         ]
 
-    def __repr__(self) -> str:
-        body = "\n".join(fmt.align_columns(self._repr_columns()))
-        body = fmt.header(
-            f"Specified {self.direction}", body, under_char=fmt.HEADER_BAR_3
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        direction_label = str(self.direction)
+        ii_label = f"II_{direction_label[:1].lower()}"
+        return Description(
+            title=f"Specified {direction_label}",
+            sections=(
+                Section(
+                    rows=(
+                        Row("Direction", direction_label),
+                        Row("Purview", self.purview),
+                        Row("Specified state", self.state),
+                        Row(ii_label, self.intrinsic_information),
+                    ),
+                ),
+            ),
         )
-        return fmt.box(fmt.center(body))
 
     def is_congruent(self, other: StateSpecification) -> bool:
         ours = dict(zip(self.purview, self.state, strict=False))
@@ -213,8 +228,8 @@ def normalization_factor(partition: object) -> int | float | None:
     return func(partition)
 
 
-@dataclass(frozen=True)
-class SystemStateSpecification(ToDictMixin, ToPandasMixin):
+@dataclass(frozen=True, repr=False)
+class SystemStateSpecification(Displayable, ToDictMixin, ToPandasMixin):
     """A pair of cause/effect ``StateSpecification`` instances.
 
     Used at the system level (IIT 4.0 ``SIA`` and ``CauseEffectStructure``) to
@@ -244,10 +259,27 @@ class SystemStateSpecification(ToDictMixin, ToPandasMixin):
             cols.append((f"{prefix}{Direction.EFFECT}", None))
         return cols
 
-    def __repr__(self) -> str:
-        body = "\n".join(fmt.align_columns(self._repr_columns()))
-        body = fmt.header("Specified System State", body, under_char=fmt.HEADER_BAR_3)
-        return fmt.box(fmt.center(body))
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        sections = []
+        for direction, spec in (("Cause", self.cause), ("Effect", self.effect)):
+            if spec is not None:
+                ii_label = f"II_{direction[0].lower()}"
+                sections.append(
+                    Section(
+                        label=direction,
+                        rows=(
+                            Row("Purview", spec.purview),
+                            Row("Specified state", spec.state),
+                            Row(ii_label, spec.intrinsic_information),
+                        ),
+                    )
+                )
+            else:
+                sections.append(Section(label=direction, rows=(Row("State", None),)))
+        return Description(
+            title="Specified System State",
+            sections=tuple(sections),
+        )
 
     def __hash__(self) -> int:
         return hash((self.cause, self.effect))

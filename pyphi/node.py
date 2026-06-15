@@ -9,12 +9,14 @@ from . import utils
 from .connectivity import get_inputs_from_cm
 from .connectivity import get_outputs_from_cm
 from .core.tpm.joint_distribution import JointTPM
+from .display import Description
+from .display import Displayable
 from .labels import NodeLabels
 
 
 # TODO extend to nonbinary nodes
 @functools.total_ordering
-class Node:
+class Node(Displayable):
     """A node in a system.
 
     Args:
@@ -154,11 +156,8 @@ class Node:
         """The textual label for this node."""
         return self.node_labels[self.index]
 
-    def __repr__(self):
-        return self.label
-
-    def __str__(self):
-        return self.__repr__()
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        return Description(title="Node", compact=self.label)
 
     def __eq__(self, other):
         """Return whether this node equals the other object.
