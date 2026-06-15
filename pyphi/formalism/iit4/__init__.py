@@ -29,6 +29,11 @@ from pyphi.conf.snapshot import ConfigSnapshot
 from pyphi.core import repertoire_algebra as repertoire
 from pyphi.data_structures import PyPhiFloat
 from pyphi.direction import Direction
+from pyphi.display import Description
+from pyphi.display import Displayable
+from pyphi.display import Row
+from pyphi.display import Section
+from pyphi.display.numbers import format_value
 from pyphi.formalism import iit3
 from pyphi.labels import NodeLabels
 from pyphi.measures.distribution import DistanceResult
@@ -38,7 +43,6 @@ from pyphi.measures.protocols import StateAwareMeasure
 from pyphi.measures.protocols import StatefulDistributionMeasure
 from pyphi.measures.protocols import satisfies_composite_measure
 from pyphi.models import cmp
-from pyphi.models import fmt
 from pyphi.models.ces import CauseEffectStructure
 from pyphi.models.distinctions import Distinctions
 from pyphi.models.distinctions import ResolvedDistinctions
@@ -139,8 +143,8 @@ def _intrinsic_differentiation_eq(a: dict | None, b: dict | None) -> bool:
     return all(utils.eq(a[k], b[k]) for k in a)
 
 
-@dataclass
-class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
+@dataclass(repr=False)
+class SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
     """System-level integrated information.
 
     ``phi`` is the non-negative integrated-information value defined by
@@ -283,50 +287,75 @@ class SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
             )
         )
 
-    def _repr_columns(self):
-        # Shared columns (System, Current state, φ_s); exclude "Partition" entry
-        # because IIT 4.0 renders the partition separately in __repr__ via fmt.indent.
-        columns = [col for col in fmt.fmt_sia_columns(self) if col[0] != "Partition"]
-        # IIT 4.0-specific columns
-        columns.extend(
-            [
-                (f"Normalized {fmt.SMALL_PHI}_s", self.normalized_phi),
-                (
-                    "Int. diff. CAUSE",
-                    (
-                        self.intrinsic_differentiation[Direction.CAUSE]
-                        if self.intrinsic_differentiation
-                        else None
-                    ),
+    def _system_label(self) -> str | None:
+        node_indices = self.node_indices
+        node_labels = self.node_labels
+        if node_labels is not None and node_indices is not None:
+            return ",".join(
+                str(label) for label in node_labels.coerce_to_labels(node_indices)
+            )
+        if node_indices is not None:
+            return ",".join(str(i) for i in node_indices)
+        return None
+
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        cls = type(self).__name__
+        idiff = self.intrinsic_differentiation
+        state = self.system_state
+        sections = [
+            Section(
+                rows=(
+                    Row("System", self._system_label()),
+                    Row("Current state", self.current_state),
+                    Row("φ_s", self.phi, (("norm", self.normalized_phi),)),
                 ),
-                (
-                    "Int. diff. EFFECT",
-                    (
-                        self.intrinsic_differentiation[Direction.EFFECT]
-                        if self.intrinsic_differentiation
-                        else None
+            )
+        ]
+        if state is not None and state.cause is not None:
+            sections.append(
+                Section(
+                    label="Cause",
+                    rows=(
+                        Row(
+                            "purview state",
+                            state.cause.state,
+                            (
+                                ("II_c", state.cause.intrinsic_information),
+                                ("int.diff", idiff[Direction.CAUSE] if idiff else None),
+                            ),
+                        ),
                     ),
-                ),
-            ]
-        )
-        if self.system_state is not None:
-            columns.extend(self.system_state._repr_columns())
-        columns.extend([("#(tied MIPs)", len(self.ties) - 1), ("Partition", "")])
+                )
+            )
+        if state is not None and state.effect is not None:
+            sections.append(
+                Section(
+                    label="Effect",
+                    rows=(
+                        Row(
+                            "purview state",
+                            state.effect.state,
+                            (
+                                ("II_e", state.effect.intrinsic_information),
+                                ("int.diff", idiff[Direction.EFFECT] if idiff else None),
+                            ),
+                        ),
+                    ),
+                )
+            )
+        mip_rows = []
+        if self.partition is not None:
+            mip_rows.append(Row("partition", str(self.partition).splitlines()[0]))
+        mip_rows.append(Row("tied", len(self.ties) - 1))
+        sections.append(Section(label="MIP", rows=tuple(mip_rows)))
         if self.reasons:
-            columns.append(("Reasons", ", ".join(self.reasons)))
-        return columns
-
-    def _repr_html_(self) -> str:
-        return fmt.html_columns(self._repr_columns(), title=self.__class__.__name__)
-
-    def __repr__(self):
-        body = "\n".join(fmt.align_columns(self._repr_columns()))
-        body = fmt.header(self.__class__.__name__, body, under_char=fmt.HEADER_BAR_2)
-        body = fmt.center(body)
-        column_extent = body.split("\n")[2].index(":")
-        if self.partition:
-            body += "\n" + fmt.indent(str(self.partition), column_extent + 2)
-        return fmt.box(body)
+            reasons = ", ".join(getattr(r, "name", str(r)) for r in self.reasons)
+            sections.append(Section(label="Reasons", rows=(Row("", reasons),)))
+        return Description(
+            title=cls,
+            sections=tuple(sections),
+            compact=f"{cls}(φ_s={format_value(self.phi)})",
+        )
 
     def to_json(self):
         dct = self.__dict__.copy()
@@ -387,27 +416,6 @@ class NullSystemIrreducibilityAnalysis(SystemIrreducibilityAnalysis):
         obj = object.__new__(cls)
         SystemIrreducibilityAnalysis.__init__(obj, **dct)
         return obj
-
-    def _repr_columns(self):
-        columns = []
-        # Handle node_labels and node_indices being None
-        if self.node_labels is not None and self.node_indices is not None:
-            # coerce_to_labels returns tuple[str | int, ...], need to convert to str
-            system_label = ",".join(
-                str(label)
-                for label in self.node_labels.coerce_to_labels(self.node_indices)
-            )
-            columns.append(("System", system_label))
-        elif self.node_indices is not None:
-            system_label = ",".join(str(i) for i in self.node_indices)
-            columns.append(("System", system_label))
-
-        columns.append((f"           {fmt.BIG_PHI}", self.phi))
-        if self.system_state is not None:
-            columns.append(self.system_state._repr_columns())
-        if self.reasons:
-            columns.append(("Reasons", ", ".join([r.name for r in self.reasons])))
-        return columns
 
 
 def normalization_factor(

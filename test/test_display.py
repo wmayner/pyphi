@@ -176,3 +176,18 @@ def test_displayable_html_and_mimebundle():
     assert 'class="pyphi-card"' in obj._repr_html_()
     bundle = obj._repr_mimebundle_()
     assert set(bundle) == {"text/plain", "text/html"}
+
+
+def test_iit4_sia_describe_structure():
+    s = pyphi.examples.basic_system()
+    sia = s.sia()
+    d = sia._describe(2)
+    assert d.title == "SystemIrreducibilityAnalysis"
+    labels = [r.label for sec in d.sections for r in sec.rows]
+    assert "System" in labels
+    assert "φ_s" in labels
+    section_labels = [sec.label for sec in d.sections]
+    assert "Cause" in section_labels and "Effect" in section_labels
+    out = repr(sia)
+    assert out.startswith("╭─ SystemIrreducibilityAnalysis")
+    assert "0.41503749927884376" not in out  # numbers are rounded

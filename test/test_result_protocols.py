@@ -67,10 +67,14 @@ def test_iit3_and_iit4_sia_repr_share_columns(s):
 
     repr_4 = repr(FORMALISM_REGISTRY["IIT_4_0_2023"].evaluate_system(s))
 
-    # Both reprs must contain the shared column labels
-    for label in ("System", "Current state", "Partition"):
+    # Both reprs must contain the shared field labels
+    for label in ("System", "Current state"):
         assert label in repr_3, f"{label!r} missing from IIT 3.0 SIA repr"
         assert label in repr_4, f"{label!r} missing from IIT 4.0 SIA repr"
+    # Both surface the partition (label casing differs across formalisms until
+    # both render through the unified display model).
+    assert "partition" in repr_3.lower()
+    assert "partition" in repr_4.lower()
 
 
 def test_iit3_sia_repr_html(s):
