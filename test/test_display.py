@@ -507,3 +507,157 @@ def test_system_state_specification_is_card():
     assert "Purview" in out
     assert "Specified state" in out
     assert 'class="pyphi-card"' in sys_state._repr_html_()
+
+
+# ---------------------------------------------------------------------------
+# Task 15: Actual-causation and relations display
+# ---------------------------------------------------------------------------
+
+
+def _ac_transition():
+    """Small OR-gate transition used throughout the AC display tests."""
+    import numpy as np
+
+    from pyphi import actual
+    from pyphi.substrate import Substrate
+
+    pyphi.config.progress_bars = False
+    tpm = np.array(
+        [
+            [0, 0.5, 0.5],
+            [0, 0.5, 0.5],
+            [1, 0.5, 0.5],
+            [1, 0.5, 0.5],
+            [1, 0.5, 0.5],
+            [1, 0.5, 0.5],
+            [1, 0.5, 0.5],
+            [1, 0.5, 0.5],
+        ]
+    )
+    cm = np.array([[0, 0, 0], [1, 0, 0], [1, 0, 0]])
+    substrate = Substrate(tpm, cm)
+    return actual.Transition(substrate, (0, 1, 1), (1, 0, 0), (1, 2), (0,))
+
+
+def _ac_account_and_sia():
+    from pyphi import actual
+    from pyphi.conf import presets
+
+    t = _ac_transition()
+    with pyphi.config.override(**presets.iit3):
+        acc = actual.account(t)
+        acsia = actual.sia(t)
+    return acc, acsia
+
+
+def test_account_is_card():
+    acc, _ = _ac_account_and_sia()
+    out = repr(acc)
+    assert out.startswith("╭")
+    assert "Causal links" in out
+    assert "Σα" in out
+
+
+def test_account_html_is_card():
+    acc, _ = _ac_account_and_sia()
+    assert 'class="pyphi-card"' in acc._repr_html_()
+
+
+def test_account_html_has_table():
+    acc, _ = _ac_account_and_sia()
+    html = acc._repr_html_()
+    assert "<table" in html
+    assert "Direction" in html
+    assert "Mechanism" in html
+
+
+def test_account_low_verbosity_compact():
+    acc, _ = _ac_account_and_sia()
+    with pyphi.config.override(repr_verbosity=0):
+        out = repr(acc)
+    assert out.startswith("Account(")
+    assert "links" in out
+
+
+def test_acsia_is_card():
+    _, acsia = _ac_account_and_sia()
+    out = repr(acsia)
+    assert out.startswith("╭")
+    assert "α" in out  # noqa: RUF001
+    assert "Direction" in out
+    assert "System" in out
+
+
+def test_acsia_html_is_card():
+    _, acsia = _ac_account_and_sia()
+    assert 'class="pyphi-card"' in acsia._repr_html_()
+
+
+def test_acsia_low_verbosity_compact():
+    _, acsia = _ac_account_and_sia()
+    with pyphi.config.override(repr_verbosity=0):
+        out = repr(acsia)
+    assert out.startswith("AcSystemIrreducibilityAnalysis(")
+
+
+# ---------------------------------------------------------------------------
+# Relations display
+# ---------------------------------------------------------------------------
+
+
+def _xor_relations():
+    """XOR system with concrete relations (15 relations)."""
+    pyphi.config.progress_bars = False
+    s = pyphi.examples.xor_system()
+    ces = s.ces()
+    return ces.relations
+
+
+def test_concrete_relations_is_card():
+    rels = _xor_relations()
+    out = repr(rels)
+    assert out.startswith("╭")
+    assert "Relations" in out
+    assert "Σφ_r" in out
+
+
+def test_concrete_relations_html_is_card():
+    rels = _xor_relations()
+    assert 'class="pyphi-card"' in rels._repr_html_()
+
+
+def test_concrete_relations_html_has_table():
+    rels = _xor_relations()
+    html = rels._repr_html_()
+    assert "<table" in html
+    assert "φ_r" in html
+
+
+def test_concrete_relations_table_has_header_row():
+    rels = _xor_relations()
+    out = repr(rels)
+    assert "Relata (mechanisms)" in out
+    assert "Degree" in out
+
+
+def test_relation_is_card():
+    rels = _xor_relations()
+    r = next(iter(rels))
+    out = repr(r)
+    assert out.startswith("╭")
+    assert "φ_r" in out
+    assert "Degree" in out
+
+
+def test_relation_html_is_card():
+    rels = _xor_relations()
+    r = next(iter(rels))
+    assert 'class="pyphi-card"' in r._repr_html_()
+
+
+def test_relation_low_verbosity_compact():
+    rels = _xor_relations()
+    r = next(iter(rels))
+    with pyphi.config.override(repr_verbosity=0):
+        out = repr(r)
+    assert out.startswith("Relation(")

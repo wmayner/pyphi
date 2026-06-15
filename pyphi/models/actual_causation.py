@@ -10,6 +10,12 @@ from typing import Any
 
 from pyphi import utils
 from pyphi.direction import Direction
+from pyphi.display import Description
+from pyphi.display import Displayable
+from pyphi.display import Row
+from pyphi.display import Section
+from pyphi.display import Table
+from pyphi.display.numbers import format_value
 
 from . import cmp
 from . import fmt
@@ -38,7 +44,7 @@ def greater_than_zero(alpha):
     return bool(alpha > 0 and not utils.eq(alpha, 0))
 
 
-class AcRepertoireIrreducibilityAnalysis(cmp.Orderable):
+class AcRepertoireIrreducibilityAnalysis(Displayable, cmp.Orderable):
     """A minimum information partition for ac_coef calculation.
 
 
@@ -195,11 +201,34 @@ class AcRepertoireIrreducibilityAnalysis(cmp.Orderable):
                 peer._partition_ties = tied
         return instance
 
-    def __repr__(self):
-        return fmt.make_repr(self, _acria_attributes)
-
-    def __str__(self):
-        return "RepertoireIrreducibilityAnalysis\n" + fmt.indent(fmt.fmt_ac_sia(self))
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        cls = type(self).__name__
+        mechanism_str = fmt.fmt_mechanism(self.mechanism, self.node_labels)
+        purview_str = fmt.fmt_mechanism(self.purview, self.node_labels)
+        partition_str = (
+            str(self.partition).splitlines()[0] if self.partition is not None else None
+        )
+        return Description(
+            title=cls,
+            sections=(
+                Section(
+                    rows=(
+                        Row("α", self.alpha),  # noqa: RUF001
+                        Row("Direction", str(self.direction)),
+                        Row("Mechanism", mechanism_str),
+                        Row("Purview", purview_str),
+                        Row("State", str(self.state)),
+                        Row("Partition", partition_str),
+                        Row("Probability", self.probability),
+                        Row("Partitioned probability", self.partitioned_probability),
+                    ),
+                ),
+            ),
+            compact=(
+                f"{cls}(α={format_value(self.alpha)}, "  # noqa: RUF001
+                f"{self.direction}, {mechanism_str}→{purview_str})"
+            ),
+        )
 
 
 def _null_ac_ria(state, direction, mechanism, purview, partition=None):
@@ -216,7 +245,7 @@ def _null_ac_ria(state, direction, mechanism, purview, partition=None):
     )
 
 
-class CausalLink(cmp.Orderable):
+class CausalLink(Displayable, cmp.Orderable):
     """A maximally irreducible actual cause or effect.
 
     These can be compared with the built-in Python comparison operators (``<``,
@@ -303,11 +332,31 @@ class CausalLink(cmp.Orderable):
     def node_labels(self):
         return self._ria.node_labels
 
-    def __repr__(self):
-        return fmt.make_repr(self, ["ria", "extended_purview"])
-
-    def __str__(self):
-        return "CausalLink\n" + fmt.indent(fmt.fmt_causal_link(self))
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        cls = type(self).__name__
+        node_labels = self.node_labels
+        mechanism_str = fmt.fmt_mechanism(self.mechanism, node_labels)
+        if self._extended_purview is not None and len(self._extended_purview) > 1:
+            purview_str = fmt.fmt_extended_purview(self._extended_purview, node_labels)
+        else:
+            purview_str = fmt.fmt_mechanism(self.purview, node_labels)
+        return Description(
+            title=cls,
+            sections=(
+                Section(
+                    rows=(
+                        Row("α", self.alpha),  # noqa: RUF001
+                        Row("Direction", str(self.direction)),
+                        Row("Mechanism", mechanism_str),
+                        Row("Purview", purview_str),
+                    ),
+                ),
+            ),
+            compact=(
+                f"{cls}(α={format_value(self.alpha)}, "  # noqa: RUF001
+                f"{self.direction}, {mechanism_str}→{purview_str})"
+            ),
+        )
 
     def is_orderable_with(self, other: object) -> bool:
         return isinstance(other, CausalLink) and (self.direction == other.direction)
@@ -372,7 +421,7 @@ class Event(namedtuple("Event", ["actual_cause", "actual_effect"])):
         return self.actual_cause.mechanism
 
 
-class Account(cmp.Orderable, Sequence):
+class Account(Displayable, cmp.Orderable, Sequence):
     """The set of |CausalLinks| with |alpha > 0|. This includes both actual
     causes and actual effects.
     """
@@ -412,11 +461,46 @@ class Account(cmp.Orderable, Sequence):
         """The set of irreducible effects in this |Account|."""
         return tuple(link for link in self if link.direction is Direction.EFFECT)
 
-    def __repr__(self):
-        return fmt.make_repr(self, ["causal_links"])
+    @property
+    def _sum_alpha(self):
+        """Total alpha across all causal links."""
+        return sum(link.alpha for link in self.causal_links)
 
-    def __str__(self):
-        return fmt.fmt_account(self)
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        cls = type(self).__name__
+        table_rows = tuple(
+            (
+                str(link.direction),
+                fmt.fmt_mechanism(link.mechanism, link.node_labels),
+                fmt.fmt_mechanism(link.purview, link.node_labels),
+                link.alpha,
+            )
+            for link in self.causal_links
+        )
+        return Description(
+            title=cls,
+            sections=(
+                Section(
+                    rows=(
+                        Row("Causal links", len(self.causal_links)),
+                        Row("Σα", self._sum_alpha),
+                    ),
+                ),
+                Section(
+                    label="Causal links",
+                    body=(
+                        Table(
+                            headers=("Direction", "Mechanism", "Purview", "α"),  # noqa: RUF001
+                            rows=table_rows,
+                        ),
+                    ),
+                ),
+            ),
+            compact=(
+                f"{cls}({len(self.causal_links)} links, "
+                f"Σα={format_value(self._sum_alpha)})"
+            ),
+        )
 
     def to_json(self):
         return {"causal_links": tuple(self)}
@@ -434,7 +518,7 @@ class DirectedAccount(Account):
 
 # TODO(slipperyhank): Check if we do the same, i.e. take the bigger system, or
 # take the smaller?
-class AcSystemIrreducibilityAnalysis(cmp.Orderable):
+class AcSystemIrreducibilityAnalysis(Displayable, cmp.Orderable):
     """An analysis of transition-level irreducibility (|big_alpha|).
 
     Contains the |big_alpha| value of the |Transition|, the causal account, and
@@ -494,20 +578,50 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
             config = _global.snapshot()
         self.config = config
 
-    def _repr_columns(self):
-        return fmt.fmt_ac_sia_columns(self)
+    def _system_label(self) -> str | None:
+        node_indices = self.node_indices
+        node_labels = self.node_labels
+        if node_labels is not None and node_indices is not None:
+            return ",".join(
+                str(label) for label in node_labels.coerce_to_labels(node_indices)
+            )
+        if node_indices is not None:
+            return ",".join(str(i) for i in node_indices)
+        return None
 
-    def _repr_html_(self) -> str:
-        return fmt.html_columns(self._repr_columns(), title=self.__class__.__name__)
-
-    def __repr__(self):
-        body = "\n".join(fmt.align_columns(self._repr_columns()))
-        body = fmt.header(self.__class__.__name__, body, under_char=fmt.HEADER_BAR_2)
-        body = fmt.center(body)
-        return fmt.box(body)
-
-    def __str__(self):
-        return fmt.fmt_ac_sia(self)
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        cls = type(self).__name__
+        account = self.account
+        num_links = len(account) if account is not None else None
+        sum_alpha = sum(link.alpha for link in account) if account is not None else None
+        partition_str = (
+            str(self.partition).splitlines()[0] if self.partition is not None else None
+        )
+        before_str = (
+            fmt.state(self.before_state) if self.before_state is not None else None
+        )
+        after_str = fmt.state(self.after_state) if self.after_state is not None else None
+        return Description(
+            title=cls,
+            sections=(
+                Section(
+                    rows=(
+                        Row("α", self.alpha),  # noqa: RUF001
+                        Row(
+                            "Direction",
+                            str(self.direction) if self.direction is not None else None,
+                        ),
+                        Row("System", self._system_label()),
+                        Row("Before state", before_str),
+                        Row("After state", after_str),
+                        Row("Partition", partition_str),
+                        Row("Causal links", num_links),
+                        Row("Σα", sum_alpha),
+                    ),
+                ),
+            ),
+            compact=f"{cls}(α={format_value(self.alpha)})",  # noqa: RUF001
+        )
 
     def is_orderable_with(self, other: object) -> bool:
         return isinstance(other, AcSystemIrreducibilityAnalysis) and (

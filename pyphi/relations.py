@@ -20,8 +20,13 @@ from .conf import config
 from .conf import fallback
 from .data_structures import PyPhiFloat
 from .direction import Direction
+from .display import Description
+from .display import Displayable
+from .display import Row
+from .display import Section
+from .display import Table
+from .display.numbers import format_value
 from .models import cmp
-from .models import fmt
 from .models.distinctions import ResolvedDistinctions
 from .parallel import MapReduce
 from .registry import Registry
@@ -32,7 +37,7 @@ if TYPE_CHECKING:
     from .formalism.iit4 import Distinction  # type: ignore[attr-defined]
 
 
-class RelationFace(frozenset):
+class RelationFace(Displayable, frozenset):
     """A set of (potentially) related causes/effects."""
 
     phi: float  # Set in __new__
@@ -101,19 +106,29 @@ class RelationFace(frozenset):
     def __bool__(self):
         return bool(self.congruent_overlap)
 
-    def _repr_columns(self):
-        return [
-            ("Purview", str(sorted(self.purview))),
-            ("Relata", len(self)),
-        ]
+    def _describe(self, verbosity: int) -> Description:
+        cls = type(self).__name__
+        return Description(
+            title=cls,
+            sections=(
+                Section(
+                    rows=(
+                        Row("Purview", str(sorted(self.purview))),
+                        Row("Relata", len(self)),
+                    ),
+                ),
+            ),
+            compact=f"{cls}(purview={sorted(self.purview)}, relata={len(self)})",
+        )
 
-    def __repr__(self):
-        # TODO(4.0) refactor into fmt function
-        body = "\n".join(fmt.align_columns(self._repr_columns()))
-        body = fmt.center(body)
-        body += "\n" + fmt.indent(fmt.fmt_relata(self), amount=10)
-        body = fmt.header(self.__class__.__name__, body, under_char=fmt.HEADER_BAR_2)
-        return fmt.box(body)
+    # frozenset.__repr__ takes priority in the MRO; delegate to Displayable.
+    def __repr__(self) -> str:
+        return Displayable.__repr__(self)
+
+    __str__ = __repr__
+
+    def _repr_html_(self) -> str:
+        return Displayable._repr_html_(self)
 
     def to_json(self):
         return {"relata": list(self)}
@@ -123,7 +138,7 @@ class RelationFace(frozenset):
         return cls(data["relata"])
 
 
-class Relation(frozenset, cmp.OrderableByPhi):
+class Relation(Displayable, frozenset, cmp.OrderableByPhi):
     """A set of relation faces forming the relation among a set of distinctions."""
 
     @property
@@ -191,19 +206,22 @@ class Relation(frozenset, cmp.OrderableByPhi):
     def mechanisms(self):
         return {distinction.mechanism for distinction in self}
 
-    def _repr_columns(self):
-        return [
-            (fmt.SMALL_PHI + "_r", self.phi),
-            ("Purview", str(sorted(self.purview))),
-            ("#(faces)", self.num_faces),
-        ]
-
-    def __repr__(self):
-        # TODO(4.0) refactor into fmt function
-        body = "\n".join(fmt.align_columns(self._repr_columns()))
-        body = fmt.center(body)
-        body = fmt.header(self.__class__.__name__, body, under_char=fmt.HEADER_BAR_2)
-        return fmt.box(body)
+    def _describe(self, verbosity: int) -> Description:
+        cls = type(self).__name__
+        return Description(
+            title=cls,
+            sections=(
+                Section(
+                    rows=(
+                        Row("φ_r", self.phi),
+                        Row("Purview", str(sorted(self.purview))),
+                        Row("Degree", len(self)),
+                        Row("Faces", self.num_faces),
+                    ),
+                ),
+            ),
+            compact=f"{cls}(φ_r={format_value(self.phi)}, degree={len(self)})",
+        )
 
     def to_json(self):
         """Return a JSON-serializable representation."""
@@ -267,7 +285,7 @@ def _combinations_with_nonempty_congruent_overlap(
     )
 
 
-class Relations:
+class Relations(Displayable):
     """A set of relations among distinctions."""
 
     def __init__(self, *args, **kwargs):
@@ -290,11 +308,56 @@ class Relations:
             self._num_relations_cached = self._num_relations()  # type: ignore[attr-defined]  # Defined in subclass
         return self._num_relations_cached
 
-    def _repr_columns(self):
-        return [
-            (f"Σ{fmt.SMALL_PHI}_r", self.sum_phi()),
-            ("#(relations)", self.num_relations()),
-        ]
+    def _describe(self, verbosity: int) -> Description:
+        cls = type(self).__name__
+        num_r = self.num_relations()
+        sum_phi_r = self.sum_phi()
+        _MAX_TABLE_ROWS = 32
+        # Only concrete (iterable) subclasses support enumeration.
+        try:
+            relations_list = list(self)  # type: ignore[attr-defined]
+        except TypeError:
+            relations_list = None
+        if relations_list is not None:
+            table_rows = tuple(
+                (
+                    str(sorted(r.mechanisms)),
+                    r.phi,
+                    len(r),
+                )
+                for r in relations_list[:_MAX_TABLE_ROWS]
+            )
+            body_components: list = [
+                Table(
+                    headers=("Relata (mechanisms)", "φ_r", "Degree"),
+                    rows=table_rows,
+                )
+            ]
+            if num_r > _MAX_TABLE_ROWS:
+                from pyphi.display.description import Inline
+
+                body_components.append(Inline(text=f"… {num_r - _MAX_TABLE_ROWS} more"))
+            relations_section = (
+                Section(
+                    label="Relations",
+                    body=tuple(body_components),
+                ),
+            )
+        else:
+            relations_section = ()
+        return Description(
+            title=cls,
+            sections=(
+                Section(
+                    rows=(
+                        Row("Relations", num_r),
+                        Row("Σφ_r", sum_phi_r),
+                    ),
+                ),
+                *relations_section,
+            ),
+            compact=f"{cls}({num_r} relations, Σφ_r={format_value(sum_phi_r)})",
+        )
 
     def to_json(self):
         """Return a JSON-serializable representation."""
@@ -346,13 +409,15 @@ class ConcreteRelations(frozenset, Relations):
     def _num_relations(self):
         return len(self)
 
-    def __repr__(self):
-        body = "\n".join(
-            fmt.align_columns(self._repr_columns()) + [fmt.margin(r) for r in self]
-        )
-        return fmt.header(
-            self.__class__.__name__, body, fmt.HEADER_BAR_1, fmt.HEADER_BAR_1
-        )
+    # frozenset.__repr__ and __str__ take priority over Displayable in the MRO;
+    # delegate explicitly so the unified display card is used instead.
+    def __repr__(self) -> str:
+        return Displayable.__repr__(self)
+
+    __str__ = __repr__
+
+    def _repr_html_(self) -> str:
+        return Displayable._repr_html_(self)
 
     @cached_property
     def faces_by_degree(self):
@@ -426,10 +491,6 @@ class AnalyticalRelations(Relations):
 
     def __len__(self):
         return self.num_relations()
-
-    def __repr__(self):
-        body = "\n".join(fmt.align_columns(self._repr_columns()))
-        return fmt.box(fmt.header("AnalyticalRelations", body, "", fmt.HEADER_BAR_2))
 
 
 class AnalyticalFoldRelations(AnalyticalRelations):
