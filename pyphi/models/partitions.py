@@ -45,6 +45,7 @@ the partition generators.
 
 from __future__ import annotations
 
+import functools
 from collections.abc import Iterator
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -64,6 +65,7 @@ from . import cmp
 from . import fmt
 
 
+@functools.total_ordering
 class _PartitionBase:
     """Base class for partitions and edge cuts.
 
@@ -71,6 +73,19 @@ class _PartitionBase:
     :attr:`indices` property. :meth:`apply_cut`, :meth:`cuts_connections`,
     :meth:`splits_mechanism`, and :meth:`all_cut_mechanisms` are derived.
     """
+
+    def __lt__(self, other: object) -> bool:
+        """Total order by induced-cut bytes (:meth:`lex_key`).
+
+        This is the deterministic order already used for tie-breaking
+        (``PARTITION_LEX``, the SIA sort key). ``__eq__``/``__hash__`` are
+        defined per subclass and unchanged; partitions with identical induced
+        cuts but distinct structure sort as equal-rank. For the refinement
+        relation use :meth:`refines`/:meth:`coarsens`, NOT ``<``.
+        """
+        if not isinstance(other, _PartitionBase):
+            return NotImplemented
+        return self.lex_key() < other.lex_key()
 
     @property
     def indices(self) -> tuple[int, ...]:

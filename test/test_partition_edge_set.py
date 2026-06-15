@@ -105,3 +105,32 @@ def test_refines_is_transitive():
     b = _edgecut([(0, 1), (1, 0)])
     c = _edgecut([(0, 1)])
     assert a.refines(b) and b.refines(c) and a.refines(c)
+
+
+def test_total_order_matches_lex_key():
+    items = [
+        DirectedBipartition(Direction.EFFECT, (1,), (2,)),
+        NullCut((0, 1)),
+        DirectedBipartition(Direction.EFFECT, (0,), (1,)),
+    ]
+    assert sorted(items) == sorted(items, key=lambda p: p.lex_key())
+
+
+def test_total_order_operators():
+    a = DirectedBipartition(Direction.EFFECT, (0,), (1,))
+    b = DirectedBipartition(Direction.EFFECT, (1,), (2,))
+    lo, hi = sorted([a, b], key=lambda p: p.lex_key())
+    assert lo < hi and lo <= hi and hi > lo and hi >= lo
+    assert not (hi < lo)
+
+
+def test_nullcut_sorts_first():
+    null = NullCut((0, 1))
+    cut = DirectedBipartition(Direction.EFFECT, (0,), (1,))
+    assert sorted([cut, null]) == [null, cut]  # lex_key("") sorts first
+
+
+def test_equality_unchanged():
+    a = DirectedBipartition(Direction.EFFECT, (0,), (1,))
+    b = DirectedBipartition(Direction.EFFECT, (0,), (1,))
+    assert a == b and hash(a) == hash(b)
