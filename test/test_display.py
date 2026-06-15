@@ -191,7 +191,7 @@ def test_iit4_sia_describe_structure():
     assert d.title == "SystemIrreducibilityAnalysis"
     labels = [r.label for sec in d.sections for r in sec.rows]
     assert "System" in labels
-    assert "φ_s" in (d.subtitle or "")
+    assert "φ_s" in labels
     section_labels = [sec.label for sec in d.sections]
     assert "Cause" in section_labels and "Effect" in section_labels
     out = repr(sia)

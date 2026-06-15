@@ -305,6 +305,8 @@ class SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
         sections = [
             Section(
                 rows=(
+                    Row("φ_s", self.phi),
+                    Row("Normalized φ_s", self.normalized_phi),
                     Row("System", self._system_label()),
                     Row("Current state", self.current_state),
                 ),
@@ -349,12 +351,10 @@ class SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
         if self.reasons:
             reasons = ", ".join(getattr(r, "name", str(r)) for r in self.reasons)
             sections.append(Section(label="Reasons", rows=(Row("", reasons),)))
-        phi_s = format_value(self.phi)
         return Description(
             title=cls,
-            subtitle=f"φ_s {phi_s}   norm {format_value(self.normalized_phi)}",
             sections=tuple(sections),
-            compact=f"{cls}(φ_s={phi_s})",
+            compact=f"{cls}(φ_s={format_value(self.phi)})",
         )
 
     def to_json(self):
