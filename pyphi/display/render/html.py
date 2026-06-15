@@ -1,4 +1,9 @@
-"""Styled-HTML backend for the display description vocabulary."""
+"""Styled-HTML backend for the display description vocabulary.
+
+Unlike the ASCII backend, this renders HTML-native structure: a header with a
+metric badge, sections as flex-wrapping panels (so cause/effect sit
+side-by-side), key/value grids, and real ``<table>`` elements for collections.
+"""
 
 from __future__ import annotations
 
@@ -14,28 +19,48 @@ from pyphi.display.numbers import format_value
 
 _STYLE = """\
 <style>
-.pyphi-card{display:inline-block;border:1px solid #b0b0b0;border-radius:8px;
- font-family:ui-monospace,Menlo,Consolas,monospace;font-size:0.85em;margin:2px 0}
-.pyphi-card .pyphi-title{font-weight:600;padding:4px 10px;
- border-bottom:1px solid #b0b0b0}
-.pyphi-card .pyphi-subtitle{padding:2px 10px;color:#555}
-.pyphi-card .pyphi-section{padding:4px 10px;border-top:1px solid #e0e0e0}
-.pyphi-card .pyphi-section-label{font-weight:600;color:#444}
-.pyphi-card table{border-collapse:collapse;margin:2px 0}
-.pyphi-card td,.pyphi-card th{padding:1px 8px 1px 0;text-align:left}
-.pyphi-card .pyphi-key{color:#444;padding-right:10px}
+.pyphi-card{display:inline-block;background:#fff;color:#1f2328;
+ border:1px solid #d0d7de;border-radius:10px;overflow:hidden;
+ box-shadow:0 1px 3px rgba(0,0,0,.07);font-size:13px;
+ font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.pyphi-head{display:flex;align-items:baseline;justify-content:space-between;
+ gap:18px;padding:7px 14px;background:#f6f8fa;border-bottom:1px solid #e4e8ec}
+.pyphi-title{font-weight:600}
+.pyphi-badge{background:#eef2ff;color:#3538cd;border-radius:6px;
+ padding:2px 8px;font-size:12px;white-space:nowrap;
+ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.pyphi-body{display:block}
+.pyphi-section{padding:8px 14px;border-top:1px solid #eef0f2}
+.pyphi-label{font-weight:600;color:#57606a;font-size:10px;
+ text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.pyphi-kv{display:grid;grid-template-columns:auto 1fr;gap:3px 14px}
+.pyphi-k{color:#8b949e}
+.pyphi-v{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.pyphi-extra{color:#8b949e;margin-left:10px;font-size:12px}
+table.pyphi-table{border-collapse:collapse;width:100%;font-size:12px}
+table.pyphi-table th{text-align:left;color:#57606a;font-weight:600;
+ border-bottom:1px solid #d0d7de;padding:3px 12px 3px 0}
+table.pyphi-table td{padding:3px 12px 3px 0;border-bottom:1px solid #f0f2f4;
+ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 </style>"""
 
 
-def _row_html(row: Row) -> str:
-    extra = "".join(
-        f' <span class="pyphi-extra">{escape(name)} {escape(format_value(val))}</span>'
-        for name, val in row.extra
-    )
-    return (
-        f'<tr><td class="pyphi-key">{escape(row.label)}</td>'
-        f"<td>{escape(format_value(row.value))}{extra}</td></tr>"
-    )
+def _value_html(value: object, extra: tuple[tuple[str, object], ...]) -> str:
+    parts = [f'<span class="pyphi-v">{escape(format_value(value))}</span>']
+    for name, val in extra:
+        parts.append(
+            f'<span class="pyphi-extra">{escape(name)} '
+            f"{escape(format_value(val))}</span>"
+        )
+    return "".join(parts)
+
+
+def _kv_html(rows: tuple[Row, ...]) -> str:
+    cells = []
+    for row in rows:
+        cells.append(f'<span class="pyphi-k">{escape(row.label)}</span>')
+        cells.append(f"<span>{_value_html(row.value, row.extra)}</span>")
+    return f'<div class="pyphi-kv">{"".join(cells)}</div>'
 
 
 def _table_html(table: Table) -> str:
@@ -44,17 +69,15 @@ def _table_html(table: Table) -> str:
         "<tr>" + "".join(f"<td>{escape(format_value(c))}</td>" for c in row) + "</tr>"
         for row in table.rows
     )
-    return f"<table><tr>{head}</tr>{body}</table>"
+    return f'<table class="pyphi-table"><tr>{head}</tr>{body}</table>'
 
 
 def _section_html(section: Section) -> str:
     parts = []
     if section.label:
-        parts.append(f'<div class="pyphi-section-label">{escape(section.label)}</div>')
+        parts.append(f'<div class="pyphi-label">{escape(section.label)}</div>')
     if section.rows:
-        parts.append(
-            "<table>" + "".join(_row_html(r) for r in section.rows) + "</table>"
-        )
+        parts.append(_kv_html(section.rows))
     for comp in section.body:
         if isinstance(comp, Table):
             parts.append(_table_html(comp))
@@ -63,16 +86,19 @@ def _section_html(section: Section) -> str:
         elif isinstance(comp, Nested):
             sub = comp.description
             label = sub.compact or sub.title
-            parts.append(f'<div class="pyphi-nested">{escape(label)}</div>')
+            parts.append(f'<span class="pyphi-extra">{escape(label)}</span>')
     return f'<div class="pyphi-section">{"".join(parts)}</div>'
 
 
 def render(description: Description, verbosity: int) -> str:  # noqa: ARG001
-    """Render a description as a styled HTML card (style block included)."""
-    parts = [_STYLE, '<div class="pyphi-card">']
-    parts.append(f'<div class="pyphi-title">{escape(description.title)}</div>')
+    """Render a description as an HTML-native styled card."""
+    head = [f'<span class="pyphi-title">{escape(description.title)}</span>']
     if description.subtitle:
-        parts.append(f'<div class="pyphi-subtitle">{escape(description.subtitle)}</div>')
-    parts.extend(_section_html(section) for section in description.sections)
-    parts.append("</div>")
-    return "".join(parts)
+        head.append(f'<span class="pyphi-badge">{escape(description.subtitle)}</span>')
+    sections = "".join(_section_html(section) for section in description.sections)
+    return (
+        _STYLE
+        + '<div class="pyphi-card">'
+        + f'<div class="pyphi-head">{"".join(head)}</div>'
+        + f'<div class="pyphi-body">{sections}</div></div>'
+    )

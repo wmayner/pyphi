@@ -307,7 +307,6 @@ class SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
                 rows=(
                     Row("System", self._system_label()),
                     Row("Current state", self.current_state),
-                    Row("φ_s", self.phi, (("norm", self.normalized_phi),)),
                 ),
             )
         ]
@@ -316,13 +315,11 @@ class SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
                 Section(
                     label="Cause",
                     rows=(
+                        Row("Specified state", state.cause.state),
+                        Row("Intrinsic information", state.cause.intrinsic_information),
                         Row(
-                            "purview state",
-                            state.cause.state,
-                            (
-                                ("II_c", state.cause.intrinsic_information),
-                                ("int.diff", idiff[Direction.CAUSE] if idiff else None),
-                            ),
+                            "Intrinsic differentiation",
+                            idiff[Direction.CAUSE] if idiff else None,
                         ),
                     ),
                 )
@@ -332,29 +329,32 @@ class SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
                 Section(
                     label="Effect",
                     rows=(
+                        Row("Specified state", state.effect.state),
                         Row(
-                            "purview state",
-                            state.effect.state,
-                            (
-                                ("II_e", state.effect.intrinsic_information),
-                                ("int.diff", idiff[Direction.EFFECT] if idiff else None),
-                            ),
+                            "Intrinsic information",
+                            state.effect.intrinsic_information,
+                        ),
+                        Row(
+                            "Intrinsic differentiation",
+                            idiff[Direction.EFFECT] if idiff else None,
                         ),
                     ),
                 )
             )
         mip_rows = []
         if self.partition is not None:
-            mip_rows.append(Row("partition", str(self.partition).splitlines()[0]))
-        mip_rows.append(Row("tied", len(self.ties) - 1))
+            mip_rows.append(Row("Partition", str(self.partition).splitlines()[0]))
+        mip_rows.append(Row("Tied MIPs", len(self.ties) - 1))
         sections.append(Section(label="MIP", rows=tuple(mip_rows)))
         if self.reasons:
             reasons = ", ".join(getattr(r, "name", str(r)) for r in self.reasons)
             sections.append(Section(label="Reasons", rows=(Row("", reasons),)))
+        phi_s = format_value(self.phi)
         return Description(
             title=cls,
+            subtitle=f"φ_s {phi_s}   norm {format_value(self.normalized_phi)}",
             sections=tuple(sections),
-            compact=f"{cls}(φ_s={format_value(self.phi)})",
+            compact=f"{cls}(φ_s={phi_s})",
         )
 
     def to_json(self):

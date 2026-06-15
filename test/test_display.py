@@ -24,7 +24,13 @@ def test_format_value_rounds_floats_to_6_sig_figs():
 
 
 def test_format_value_handles_numpy_scalars():
-    assert format_value(np.float64(3.0)) == "3"
+    assert format_value(np.float64(3.0)) == "3.0"
+
+
+def test_format_value_whole_floats_keep_decimal():
+    assert format_value(0.0) == "0.0"
+    assert format_value(3.0) == "3.0"
+    assert format_value(0.41503749927884376) == "0.415037"
 
 
 def test_format_value_passes_through_non_numbers():
@@ -84,7 +90,7 @@ def test_ascii_format_rows_aligns_labels():
 def test_ascii_row_extra_fields_appended():
     rows = (Row("purview", "(1,1,0)", (("II_c", 3.0), ("int.diff", 0.0))),)
     lines = ascii_backend._format_rows(rows)
-    assert lines[0] == "purview   (1,1,0)   II_c 3   int.diff 0"
+    assert lines[0] == "purview   (1,1,0)   II_c 3.0   int.diff 0.0"
 
 
 def test_ascii_format_table_aligns_columns():
@@ -185,7 +191,7 @@ def test_iit4_sia_describe_structure():
     assert d.title == "SystemIrreducibilityAnalysis"
     labels = [r.label for sec in d.sections for r in sec.rows]
     assert "System" in labels
-    assert "φ_s" in labels
+    assert "φ_s" in (d.subtitle or "")
     section_labels = [sec.label for sec in d.sections]
     assert "Cause" in section_labels and "Effect" in section_labels
     out = repr(sia)
