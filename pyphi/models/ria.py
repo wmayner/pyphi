@@ -157,8 +157,9 @@ class RepertoireIrreducibilityAnalysis(
         self._selectivity = selectivity
         self._reasons = reasons
 
+        # ``norm`` is None only for a null/unconstrained analysis (no
+        # partition); such an analysis has no normalized phi.
         norm = normalization_factor(self._partition)
-
         if norm is None:
             self._normalized_phi = None
             self._signed_normalized_phi = None

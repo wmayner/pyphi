@@ -45,6 +45,7 @@ the partition generators.
 
 from __future__ import annotations
 
+import functools
 from collections.abc import Iterator
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -64,6 +65,7 @@ from . import cmp
 from . import fmt
 
 
+@functools.total_ordering
 class _PartitionBase:
     """Base class for partitions and edge cuts.
 
@@ -71,6 +73,19 @@ class _PartitionBase:
     :attr:`indices` property. :meth:`apply_cut`, :meth:`cuts_connections`,
     :meth:`splits_mechanism`, and :meth:`all_cut_mechanisms` are derived.
     """
+
+    def __lt__(self, other: object) -> bool:
+        """Total order by induced-cut bytes (:meth:`lex_key`).
+
+        This is the deterministic order already used for tie-breaking
+        (``PARTITION_LEX``, the SIA sort key). ``__eq__``/``__hash__`` are
+        defined per subclass and unchanged; partitions with identical induced
+        cuts but distinct structure sort as equal-rank. For the refinement
+        relation use :meth:`refines`/:meth:`coarsens`, NOT ``<``.
+        """
+        if not isinstance(other, _PartitionBase):
+            return NotImplemented
+        return self.lex_key() < other.lex_key()
 
     @property
     def indices(self) -> tuple[int, ...]:
@@ -131,6 +146,40 @@ class _PartitionBase:
             return b""
         return self.cut_matrix(max(indices) + 1).astype(np.uint8).tobytes()
 
+    def removed_edges(self) -> frozenset[tuple[int, int]]:
+        """The set of directed edges ``(from, to)`` this partition severs.
+
+        Default derivation from :meth:`cut_matrix`; concrete subclasses
+        override with an equivalent structural form that avoids materializing
+        the full ``n x n`` matrix. The two must agree (verified by
+        ``test_partition_edge_set.py``).
+        """
+        indices = self.indices
+        if not indices:
+            return frozenset()
+        matrix = self.cut_matrix(max(indices) + 1)
+        return frozenset((int(a), int(b)) for a, b in np.argwhere(matrix))
+
+    def num_connections_cut(self) -> int:
+        """Number of directed connections severed (IIT 4.0 Eq. 24)."""
+        return len(self.removed_edges())
+
+    def refines(self, other: _PartitionBase) -> bool:
+        """Whether this is *finer-or-equal* to ``other``.
+
+        A partition is finer when it severs more connections, so refinement
+        is **superset** of :meth:`removed_edges`. This is a *partial* order:
+        two partitions can be incomparable (neither refines the other). It is
+        NOT a total order and must not be used as a ``sorted``/``min`` key —
+        use ``<`` (the ``lex_key`` total order) for that.
+        """
+        return self.removed_edges() >= other.removed_edges()
+
+    def coarsens(self, other: _PartitionBase) -> bool:
+        """Whether this is *coarser-or-equal* to ``other`` (inverse of
+        :meth:`refines`)."""
+        return other.refines(self)
+
 
 class NullCut(_PartitionBase):
     """The empty edge cut: no connections severed."""
@@ -151,6 +200,9 @@ class NullCut(_PartitionBase):
 
     def cut_matrix(self, n: int) -> NDArray[np.int_]:
         return np.zeros((n, n), dtype=int)
+
+    def removed_edges(self) -> frozenset[tuple[int, int]]:
+        return frozenset()
 
     def to_json(self) -> dict[str, Any]:
         return {"indices": self.indices}
@@ -220,6 +272,11 @@ class DirectedBipartition(_PartitionBase):
         return connectivity.relevant_connections(
             n, self.from_nodes, self.to_nodes
         ).astype(np.int_)
+
+    def removed_edges(self) -> frozenset[tuple[int, int]]:
+        # relevant_connections sets cm[f, t] = 1 for f in from_nodes,
+        # t in to_nodes (see connectivity.relevant_connections).
+        return frozenset((f, t) for f in self.from_nodes for t in self.to_nodes)
 
     @cmp.sametype
     def __eq__(self, other: object) -> bool:
@@ -295,6 +352,15 @@ class DirectedJointPartition(_PartitionBase):
             cm[np.ix_(from_, external)] = 1
         return cm
 
+    def removed_edges(self) -> frozenset[tuple[int, int]]:
+        indices = set(self.indices)
+        edges: set[tuple[int, int]] = set()
+        for part in self.partition:
+            from_, to = self.direction.order(part.mechanism, part.purview)
+            external = indices - set(to)
+            edges.update((f, e) for f in from_ for e in external)
+        return frozenset(edges)
+
     @cmp.sametype
     def __eq__(self, other: object) -> bool:
         return self.partition == other.partition and self.direction == other.direction  # type: ignore[attr-defined]
@@ -348,6 +414,10 @@ class EdgeCut(_PartitionBase):
         cm = np.zeros([n, n], dtype=int)
         cm[np.ix_(self.node_indices, self.node_indices)] = self._cut_matrix
         return cm
+
+    def removed_edges(self) -> frozenset[tuple[int, int]]:
+        idx = self.node_indices
+        return frozenset((idx[i], idx[j]) for i, j in np.argwhere(self._cut_matrix))
 
     @cmp.sametype
     def __eq__(self, other: object) -> bool:
@@ -587,22 +657,20 @@ class JointPartition(Sequence[Part], _PartitionBase):
         """Return a copy with parts sorted into a canonical order."""
         return type(self)(*sorted(self), node_labels=self.node_labels)
 
-    def num_connections_cut(self) -> int:
-        """Number of connections severed by the induced edge cut (IIT 4.0 Eq. 24)."""
-        n = 0
-        purview_lengths = [len(part.purview) for part in self.parts]
-        for i, part in enumerate(self.parts):
-            n += len(part.mechanism) * (
-                sum(purview_lengths[:i]) + sum(purview_lengths[i + 1 :])
-            )
-        return n
-
     def cut_matrix(self, n: int) -> NDArray[np.int_]:
         cm = np.zeros((n, n), dtype=int)
         for part in self.parts:
             outside_part = tuple(set(self.purview) - set(part.purview))
             cm[np.ix_(part.mechanism, outside_part)] = 1
         return cm
+
+    def removed_edges(self) -> frozenset[tuple[int, int]]:
+        purview = set(self.purview)
+        edges: set[tuple[int, int]] = set()
+        for part in self.parts:
+            outside = purview - set(part.purview)
+            edges.update((m, o) for m in part.mechanism for o in outside)
+        return frozenset(edges)
 
     def to_json(self) -> dict[str, Any]:
         return {"parts": list(self)}
