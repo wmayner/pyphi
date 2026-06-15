@@ -427,7 +427,7 @@ class Substrate:
         candidates: Iterable[Any] | None = None,
         **kwargs: Any,
     ) -> Any:
-        """Return the maximal complex; see :func:`maximal_complex`."""
+        """Return the maximal |Complex|; see :func:`maximal_complex`."""
         return maximal_complex(self, state, candidates=candidates, **kwargs)
 
     def __len__(self) -> int:
@@ -961,22 +961,27 @@ def maximal_complex(
 ) -> Any:
     """Return the complex with maximum |big_phi| over the substrate.
 
-    Equivalent to the first element of :func:`complexes`. Returns a null
-    SIA over the empty system when no irreducible candidate exists.
+    Equivalent to the first element of :func:`complexes`. Returns a
+    null-object |Complex| (falsy, with empty units) when no irreducible
+    candidate exists.
     """
+    from pyphi.models.complex import Complex
     from pyphi.system import System
 
     found = complexes(substrate, state, candidates, **kwargs)
     if found:
         return found[0]
-    # No irreducible candidate; return a null SIA over the empty system.
-    empty = System.from_substrate(substrate, state, ())
+    # No irreducible candidate; return a null-object Complex over the empty
+    # system (falsy, with empty units).
     from pyphi.conf import config as _config
 
+    empty = System.from_substrate(substrate, state, ())
     if _config.formalism.iit.version == "IIT_3_0":
         from pyphi.formalism.iit3 import _null_sia
 
-        return _null_sia(empty)
-    from pyphi.formalism.iit4 import NullCauseEffectStructure
+        null_sia = _null_sia(empty)
+    else:
+        from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
 
-    return NullCauseEffectStructure()
+        null_sia = NullSystemIrreducibilityAnalysis()
+    return Complex(sia=null_sia, substrate=substrate, is_maximal=True, excluded=())

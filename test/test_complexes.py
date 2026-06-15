@@ -347,3 +347,27 @@ class TestComplexWrapperIIT40:
         # 2-node complexes they overlap.
         assert {e.node_indices for e in by_units[(0, 1)].excluded} == {(1,)}
         assert {e.node_indices for e in by_units[(2, 3)].excluded} == {(3,)}
+
+
+class TestMaximalComplexWrapperIIT40:
+    """B16: maximal_complex() returns a Complex (null-object when empty)."""
+
+    def test_maximal_complex_is_complex(self, s):
+        from pyphi.models.complex import Complex
+
+        mc = s.substrate.maximal_complex(s.state)
+        assert isinstance(mc, Complex)
+        assert mc.is_maximal is True
+        assert mc.node_indices == s.substrate.complexes(s.state)[0].node_indices
+
+    def test_maximal_complex_null_object(self, s):
+        from pyphi.models.complex import Complex
+
+        # Forcing an empty candidate set yields no complexes.
+        mc = s.substrate.maximal_complex(s.state, candidates=[])
+        assert isinstance(mc, Complex)
+        assert bool(mc) is False
+        assert mc.node_indices == ()
+        assert float(mc.phi) == 0.0
+        assert mc.is_maximal is True
+        assert mc.excluded == ()
