@@ -410,7 +410,9 @@ class NullSystemIrreducibilityAnalysis(SystemIrreducibilityAnalysis):
         return columns
 
 
-def normalization_factor(partition: DirectedBipartition | EdgeCut) -> float:
+def normalization_factor(
+    partition: DirectedBipartition | EdgeCut | NullCut,
+) -> float:
     if hasattr(partition, "normalization_factor"):
         return partition.normalization_factor()  # pyright: ignore[reportAttributeAccessIssue]
     # For EdgeCut, we need to check hasattr before accessing attributes
@@ -630,6 +632,9 @@ def _apply_ii_cap(
     """
     if sia.system_state is None or sia.intrinsic_differentiation is None:
         return sia
+    # __post_init__ guarantees signed_phi is set (defaulting to phi) for any
+    # constructed SIA, so it is non-None by the time the cap is applied.
+    assert sia.signed_phi is not None
     cap_terms = [float(sia.signed_phi)]
     for direction in sia.intrinsic_differentiation:
         spec = sia.system_state[direction]

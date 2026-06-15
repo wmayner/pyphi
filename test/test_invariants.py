@@ -396,15 +396,6 @@ class TestPermutationSymmetry:
         sia_xa = new_big_phi.sia(sub_xa, **_sia_kwargs())
         assert float(sia_ax.phi) == pytest.approx(float(sia_xa.phi))
 
-    @pytest.mark.xfail(
-        reason=(
-            "Per-direction phi for permuted substrates is sensitive to the "
-            "cascade's tie-break when sia.phi ties at zero. Strict "
-            "permutation-invariant per-direction reporting requires "
-            "substrate canonicalization — see ROADMAP P11.95c."
-        ),
-        strict=True,
-    )
     def test_sia_per_direction_phi_multiset_symmetric(self):
         """The multiset ``{phi_c, phi_e}`` is equal for permuted systems."""
         sub_ax = System(example_substrates.and_xor_substrate(), (0, 1))
