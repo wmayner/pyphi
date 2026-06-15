@@ -197,3 +197,85 @@ def test_iit4_sia_describe_structure():
     out = repr(sia)
     assert out.startswith("╭─ SystemIrreducibilityAnalysis")
     assert "0.41503749927884376" not in out  # numbers are rounded
+
+
+def test_iit3_sia_describe_structure():
+    import pyphi
+    from pyphi.conf import presets
+    from pyphi.formalism import iit3
+
+    pyphi.config.progress_bars = False
+    with pyphi.config.override(**presets.iit3):
+        s = pyphi.examples.basic_system()
+        sia = iit3.sia(s)
+
+    d = sia._describe(2)
+    assert d.title == "IIT3SystemIrreducibilityAnalysis"
+    labels = [r.label for sec in d.sections for r in sec.rows]
+    assert "Φ" in labels
+    assert "System" in labels
+    assert "Current state" in labels
+    assert "Partition" in labels
+    out = repr(sia)
+    assert out.startswith("╭")
+    assert "pyphi-card" in sia._repr_html_()
+
+
+def test_iit3_sia_low_verbosity_compact():
+    import pyphi
+    from pyphi.conf import presets
+    from pyphi.formalism import iit3
+
+    pyphi.config.progress_bars = False
+    with pyphi.config.override(**presets.iit3):
+        s = pyphi.examples.basic_system()
+        sia = iit3.sia(s)
+
+    with pyphi.config.override(repr_verbosity=0):
+        out = repr(sia)
+    assert out.startswith("IIT3SystemIrreducibilityAnalysis(Φ=")
+
+
+def test_ces_describe_structure():
+    import pyphi
+    from pyphi.conf import presets
+    from pyphi.formalism import iit3
+
+    pyphi.config.progress_bars = False
+    with pyphi.config.override(**presets.iit3):
+        s = pyphi.examples.basic_system()
+        ces = iit3.ces(s)
+
+    d = ces._describe(2)
+    assert d.title == "CauseEffectStructure"
+    section_labels = [sec.label for sec in d.sections]
+    assert "Distinctions" in section_labels
+    top_row_labels = [r.label for r in d.sections[0].rows]
+    assert "Φ" in top_row_labels
+    assert "Distinctions" in top_row_labels
+    assert "Σφ_d" in top_row_labels
+    assert "Relations" in top_row_labels
+    assert "Σφ_r" in top_row_labels
+    out = repr(ces)
+    assert out.startswith("╭")
+    assert "pyphi-card" in ces._repr_html_()
+
+
+def test_ces_distinctions_table_has_headers():
+    import pyphi
+    from pyphi.conf import presets
+    from pyphi.display.description import Table
+    from pyphi.formalism import iit3
+
+    pyphi.config.progress_bars = False
+    with pyphi.config.override(**presets.iit3):
+        s = pyphi.examples.basic_system()
+        ces = iit3.ces(s)
+
+    d = ces._describe(2)
+    distinctions_section = next(sec for sec in d.sections if sec.label == "Distinctions")
+    assert len(distinctions_section.body) == 1
+    table = distinctions_section.body[0]
+    assert isinstance(table, Table)
+    assert table.headers == ("Mechanism", "φ_d", "Cause purview", "Effect purview")
+    assert len(table.rows) == len(ces.distinctions)

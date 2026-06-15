@@ -30,8 +30,14 @@ from dataclasses import field
 from typing import TYPE_CHECKING
 from typing import Any
 
+from pyphi.display import Description
+from pyphi.display import Displayable
+from pyphi.display import Row
+from pyphi.display import Section
+from pyphi.display import Table
+from pyphi.display.numbers import format_value
+
 from . import cmp
-from . import fmt
 from .distinctions import ResolvedDistinctions
 
 if TYPE_CHECKING:
@@ -39,8 +45,8 @@ if TYPE_CHECKING:
     from pyphi.relations import Relations
 
 
-@dataclass(frozen=True, eq=False)
-class CauseEffectStructure(cmp.Orderable):
+@dataclass(frozen=True, eq=False, repr=False)
+class CauseEffectStructure(Displayable, cmp.Orderable):
     """A Φ-structure: SIA + distinctions + relations.
 
     Access the system-level integrated information value via
@@ -86,17 +92,52 @@ class CauseEffectStructure(cmp.Orderable):
             return False
         return self.relations == other.relations
 
-    def _repr_columns(self) -> list[tuple[str, Any]]:
-        return fmt.fmt_ces_columns(self)
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        cls = type(self).__name__
+        num_d = len(self.distinctions)
+        sum_phi_d = self.sum_phi_distinctions
+        num_r = (
+            self.relations.num_relations()
+            if hasattr(self.relations, "num_relations")
+            else None
+        )
+        sum_phi_r = (
+            self.relations.sum_phi() if hasattr(self.relations, "sum_phi") else None
+        )
+        sia_phi = getattr(self.sia, "phi", None)
 
-    def _repr_html_(self) -> str:
-        return fmt.html_columns(self._repr_columns(), title=self.__class__.__name__)
+        summary_rows = [
+            Row("Φ", sia_phi),
+            Row("Distinctions", num_d),
+            Row("Σφ_d", sum_phi_d),
+            Row("Relations", num_r),
+            Row("Σφ_r", sum_phi_r),
+        ]
 
-    def __repr__(self) -> str:
-        body = "\n".join(fmt.align_columns(self._repr_columns()))
-        body = fmt.header(self.__class__.__name__, body, under_char=fmt.HEADER_BAR_1)
-        body += "\n" + str(self.sia)
-        return fmt.box(fmt.center(body))
+        distinction_table_rows = tuple(
+            (
+                getattr(d, "mechanism_label", None) or str(getattr(d, "mechanism", "")),
+                getattr(d, "phi", None),
+                str(getattr(d, "cause_purview", "")),
+                str(getattr(d, "effect_purview", "")),
+            )
+            for d in self.distinctions
+        )
+        distinctions_body = (
+            Table(
+                headers=("Mechanism", "φ_d", "Cause purview", "Effect purview"),
+                rows=distinction_table_rows,
+            ),
+        )
+
+        return Description(
+            title=cls,
+            sections=(
+                Section(rows=tuple(summary_rows)),
+                Section(label="Distinctions", body=distinctions_body),
+            ),
+            compact=f"{cls}(Φ={format_value(sia_phi)})",
+        )
 
     @property
     def sum_phi_relations(self):
@@ -179,7 +220,7 @@ class CauseEffectStructure(cmp.Orderable):
             yield self.fold([distinction])
 
 
-@dataclass(frozen=True, eq=False)
+@dataclass(frozen=True, eq=False, repr=False)
 class PhiFold(CauseEffectStructure):
     """A slice of a cause-effect structure: a set of seed distinctions and
     the relations incident to them.
@@ -193,6 +234,53 @@ class PhiFold(CauseEffectStructure):
     """
 
     parent: CauseEffectStructure = field(kw_only=True)
+
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        cls = type(self).__name__
+        num_d = len(self.distinctions)
+        sum_phi_d = self.sum_phi_distinctions
+        num_r = (
+            self.relations.num_relations()
+            if hasattr(self.relations, "num_relations")
+            else None
+        )
+        sum_phi_r_contrib = self.sum_phi_relations_contribution
+        big_phi_contrib = self.big_phi_contribution
+        sia_phi = getattr(self.sia, "phi", None)
+
+        summary_rows = [
+            Row("Φ_s", sia_phi),
+            Row("Seed distinctions", num_d),
+            Row("Σφ_d", sum_phi_d),
+            Row("Incident relations", num_r),
+            Row("Σφ_r (apportioned)", sum_phi_r_contrib),
+            Row("Φ_d (contribution)", big_phi_contrib),
+        ]
+
+        distinction_table_rows = tuple(
+            (
+                getattr(d, "mechanism_label", None) or str(getattr(d, "mechanism", "")),
+                getattr(d, "phi", None),
+                str(getattr(d, "cause_purview", "")),
+                str(getattr(d, "effect_purview", "")),
+            )
+            for d in self.distinctions
+        )
+        distinctions_body = (
+            Table(
+                headers=("Mechanism", "φ_d", "Cause purview", "Effect purview"),
+                rows=distinction_table_rows,
+            ),
+        )
+
+        return Description(
+            title=cls,
+            sections=(
+                Section(rows=tuple(summary_rows)),
+                Section(label="Seed distinctions", body=distinctions_body),
+            ),
+            compact=f"{cls}(Φ_d={format_value(big_phi_contrib)})",
+        )
 
     @property
     def sum_phi_relations_contribution(self):

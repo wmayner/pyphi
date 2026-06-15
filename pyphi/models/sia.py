@@ -12,9 +12,13 @@ import contextvars
 from typing import Any
 
 from pyphi import utils
+from pyphi.display import Description
+from pyphi.display import Displayable
+from pyphi.display import Row
+from pyphi.display import Section
+from pyphi.display.numbers import format_value
 
 from . import cmp
-from . import fmt
 from .distinctions import _null_ces
 
 _SERIALIZING_AS_TIE_PEER: contextvars.ContextVar[bool] = contextvars.ContextVar(
@@ -22,7 +26,7 @@ _SERIALIZING_AS_TIE_PEER: contextvars.ContextVar[bool] = contextvars.ContextVar(
 )
 
 
-class IIT3SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
+class IIT3SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
     """An analysis of system irreducibility (|big_phi|).
 
     Contains the |big_phi| value of the |System| and the intermediate
@@ -79,20 +83,36 @@ class IIT3SystemIrreducibilityAnalysis(cmp.OrderableByPhi):
             config = _global.snapshot()
         self.config = config
 
-    def _repr_columns(self):
-        return fmt.fmt_sia_columns(self)
+    def _system_label(self) -> str | None:
+        node_indices = self.node_indices
+        node_labels = self.node_labels
+        if node_labels is not None and node_indices is not None:
+            return ",".join(
+                str(label) for label in node_labels.coerce_to_labels(node_indices)
+            )
+        if node_indices is not None:
+            return ",".join(str(i) for i in node_indices)
+        return None
 
-    def _repr_html_(self) -> str:
-        return fmt.html_columns(self._repr_columns(), title=self.__class__.__name__)
-
-    def __repr__(self):
-        body = "\n".join(fmt.align_columns(self._repr_columns()))
-        body = fmt.header(self.__class__.__name__, body, under_char=fmt.HEADER_BAR_2)
-        body = fmt.center(body)
-        return fmt.box(body)
-
-    def __str__(self):
-        return fmt.fmt_sia(self)
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        cls = type(self).__name__
+        partition_str = (
+            str(self.partition).splitlines()[0] if self.partition is not None else None
+        )
+        return Description(
+            title=cls,
+            sections=(
+                Section(
+                    rows=(
+                        Row("Φ", self.phi),
+                        Row("System", self._system_label()),
+                        Row("Current state", self.current_state),
+                        Row("Partition", partition_str),
+                    ),
+                ),
+            ),
+            compact=f"{cls}(Φ={format_value(self.phi)})",
+        )
 
     def print(self):
         """Print this SystemIrreducibilityAnalysis."""
