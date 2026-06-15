@@ -17,7 +17,13 @@ from toolz import concat
 
 from pyphi import connectivity
 from pyphi.direction import Direction
+from pyphi.display import Description
+from pyphi.display import Displayable
+from pyphi.display import Row
+from pyphi.display import Section
+from pyphi.display.numbers import format_value
 from pyphi.exceptions import WrongDirectionError
+from pyphi.models import fmt
 
 from .pandas import ToDictFromExplicitAttrsMixin
 from .pandas import ToPandasMixin
@@ -31,7 +37,7 @@ from . import cmp
 
 # TODO(4.0) implement as a subclass of RIA?
 class MaximallyIrreducibleCauseOrEffect(
-    cmp.Orderable, ToDictFromExplicitAttrsMixin, ToPandasMixin
+    Displayable, cmp.Orderable, ToDictFromExplicitAttrsMixin, ToPandasMixin
 ):
     """A maximally irreducible cause or effect (MICE).
 
@@ -226,20 +232,30 @@ class MaximallyIrreducibleCauseOrEffect(
         """Return whether the state specified by this MICE is congruent."""
         return self.ria.is_congruent(specified_state)
 
-    def _repr_columns(self):
-        return [
-            *self.ria._repr_columns(),
-            ("#(partition ties)", self.num_partition_ties),
-        ]
-
-    def __repr__(self):
-        # TODO just use normal repr when subclass of RIA
-        title = f"Maximally-irreducible {str(self.direction).lower()}"
-        columns = [*self.ria._repr_columns(), ("Purview ties", self.num_partition_ties)]
-        return self.ria.make_repr(title=title, columns=columns)
-
-    def __str__(self):
-        return self.__repr__()
+    def _describe(self, verbosity: int) -> Description:
+        ria_desc = self.ria._describe(verbosity)
+        # Inherit all RIA rows, append purview-ties count
+        extra_row = Row("Purview ties", self.num_purview_ties)
+        if ria_desc.sections:
+            first = ria_desc.sections[0]
+            merged = Section(
+                label=first.label,
+                rows=(*first.rows, extra_row),
+                body=first.body,
+            )
+            sections = (merged, *ria_desc.sections[1:])
+        else:
+            sections = (Section(rows=(extra_row,)),)
+        if self.direction is not None:
+            direction_label = self.direction.name.title()
+        else:
+            direction_label = ""
+        title = f"MaximallyIrreducible{direction_label}"
+        return Description(
+            title=title,
+            sections=sections,
+            compact=f"{title}({fmt.SMALL_PHI}={format_value(self.phi)})",
+        )
 
     def order_by(self):
         return self.ria.order_by()

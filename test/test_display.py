@@ -296,3 +296,123 @@ def test_ces_distinctions_table_has_headers():
     assert isinstance(table, Table)
     assert table.headers == ("Mechanism", "φ_d", "Cause purview", "Effect purview")
     assert len(table.rows) == len(ces.distinctions)
+
+
+# ---------------------------------------------------------------------------
+# Partition display (Steps 2 leaf path)
+# ---------------------------------------------------------------------------
+
+
+def test_partition_nullcut_is_leaf():
+    from pyphi import models
+
+    cut = models.NullCut((2, 3))
+    out = repr(cut)
+    assert out == "NullCut((2, 3))"
+    assert "╭" not in out
+    assert 'class="pyphi-leaf"' in cut._repr_html_()
+    assert 'class="pyphi-card"' not in cut._repr_html_()
+
+
+def test_partition_directed_bipartition_is_leaf():
+    from pyphi.direction import Direction
+    from pyphi.models.partitions import DirectedBipartition
+
+    p = DirectedBipartition(Direction.EFFECT, (0,), (1, 2))
+    out = repr(p)
+    assert "╭" not in out
+    assert "[0]" in out
+    assert "[1,2]" in out
+    assert 'class="pyphi-leaf"' in p._repr_html_()
+
+
+def test_partition_joint_bipartition_compact():
+    from pyphi.labels import NodeLabels
+    from pyphi.models.partitions import JointBipartition
+    from pyphi.models.partitions import Part
+
+    nl = NodeLabels("ABCDE", tuple(range(5)))
+    jb = JointBipartition(Part((0,), (0, 4)), Part((), (1,)), node_labels=nl)
+    out = repr(jb)
+    assert "╭" not in out
+    # Compact form: mechanism/purview joined with × (MULTIPLICATION SIGN)  # noqa: RUF003
+    assert "A/A,E" in out
+    assert "∅/B" in out
+    assert 'class="pyphi-leaf"' in jb._repr_html_()
+
+
+# ---------------------------------------------------------------------------
+# RIA display (Step 3)
+# ---------------------------------------------------------------------------
+
+
+def _basic_mic():
+    pyphi.config.progress_bars = False
+    s = pyphi.examples.basic_system()
+    return s.distinctions()[0].cause
+
+
+def _basic_ria():
+    return _basic_mic().ria
+
+
+def test_ria_describe_structure():
+    ria = _basic_ria()
+    d = ria._describe(2)
+    assert d.title == "RepertoireIrreducibilityAnalysis"
+    labels = [r.label for sec in d.sections for r in sec.rows]
+    assert "Small phi" in labels
+    assert "Direction" in labels
+    assert "Mechanism" in labels
+    assert "Purview" in labels
+    assert "Partition" in labels
+
+
+def test_ria_repr_is_card():
+    ria = _basic_ria()
+    out = repr(ria)
+    assert out.startswith("╭─ RepertoireIrreducibilityAnalysis")
+    assert "CAUSE" in out
+    assert "0.41503" not in out  # numbers are rounded
+
+
+def test_ria_html_is_card():
+    assert 'class="pyphi-card"' in _basic_ria()._repr_html_()
+
+
+def test_ria_low_verbosity_compact():
+    ria = _basic_ria()
+    with pyphi.config.override(repr_verbosity=0):
+        out = repr(ria)
+    assert out.startswith("RepertoireIrreducibilityAnalysis(φ=")
+
+
+# ---------------------------------------------------------------------------
+# MICE display (Step 3)
+# ---------------------------------------------------------------------------
+
+
+def test_mice_describe_structure():
+    mic = _basic_mic()
+    d = mic._describe(2)
+    assert d.title.startswith("MaximallyIrreducible")
+    labels = [r.label for sec in d.sections for r in sec.rows]
+    assert "Small phi" in labels
+    assert "Purview ties" in labels
+
+
+def test_mice_repr_is_card():
+    mic = _basic_mic()
+    out = repr(mic)
+    assert out.startswith("╭─ MaximallyIrreducibleCause")
+
+
+def test_mice_html_is_card():
+    assert 'class="pyphi-card"' in _basic_mic()._repr_html_()
+
+
+def test_mice_low_verbosity_compact():
+    mic = _basic_mic()
+    with pyphi.config.override(repr_verbosity=0):
+        out = repr(mic)
+    assert out.startswith("MaximallyIrreducibleCause(φ=")

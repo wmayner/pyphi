@@ -59,6 +59,8 @@ from numpy.typing import NDArray
 from pyphi import connectivity
 from pyphi import utils
 from pyphi.direction import Direction
+from pyphi.display import Description
+from pyphi.display import Displayable
 from pyphi.labels import NodeLabels
 
 from . import cmp
@@ -181,7 +183,7 @@ class _PartitionBase:
         return other.refines(self)
 
 
-class NullCut(_PartitionBase):
+class NullCut(Displayable, _PartitionBase):
     """The empty edge cut: no connections severed."""
 
     def __init__(
@@ -207,11 +209,9 @@ class NullCut(_PartitionBase):
     def to_json(self) -> dict[str, Any]:
         return {"indices": self.indices}
 
-    def __repr__(self) -> str:
-        return fmt.make_repr(self, ["indices"])
-
-    def __str__(self) -> str:
-        return f"NullCut({self.indices})"
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        compact = f"NullCut({self.indices})"
+        return Description(title="NullCut", compact=compact)
 
     @cmp.sametype
     def __eq__(self, other: object) -> bool:
@@ -221,7 +221,7 @@ class NullCut(_PartitionBase):
         return hash(self.indices)
 
 
-class DirectedBipartition(_PartitionBase):
+class DirectedBipartition(Displayable, _PartitionBase):
     """A directed bipartition of an index set.
 
     Severs connections from ``from_nodes`` to ``to_nodes`` in a causal
@@ -289,17 +289,15 @@ class DirectedBipartition(_PartitionBase):
     def __hash__(self) -> int:
         return hash((self.direction, self.from_nodes, self.to_nodes))
 
-    def __repr__(self) -> str:
-        return fmt.fmt_partition_arrow(self, direction=self.direction)
-
-    def __str__(self) -> str:
-        return fmt.fmt_partition_arrow(self, direction=self.direction)
-
     def __len__(self) -> int:
         return 2
 
     def format(self, node_labels: NodeLabels | None = None) -> str:
         return fmt.fmt_part(self, node_labels=node_labels)
+
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        compact = fmt.fmt_partition_arrow(self, direction=self.direction)
+        return Description(title="DirectedBipartition", compact=compact)
 
     def to_json(self) -> dict[str, Any]:
         return {
@@ -313,7 +311,7 @@ class DirectedBipartition(_PartitionBase):
         return cls(data["direction"], data["from_nodes"], data["to_nodes"])
 
 
-class DirectedJointPartition(_PartitionBase):
+class DirectedJointPartition(Displayable, _PartitionBase):
     """A joint partition with a causal direction.
 
     Wraps a :class:`JointPartition` with a :class:`Direction`. Corresponds
@@ -368,17 +366,15 @@ class DirectedJointPartition(_PartitionBase):
     def __hash__(self) -> int:
         return hash((self.direction, self.partition))
 
-    def __repr__(self) -> str:
-        return fmt.make_repr(self, ["direction", "partition"])
-
-    def __str__(self) -> str:
-        return fmt.fmt_directed_joint_partition(self)
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        compact = fmt.fmt_directed_joint_partition(self).splitlines()[0]
+        return Description(title="DirectedJointPartition", compact=compact)
 
     def to_json(self) -> dict[str, Any]:
         return {"direction": self.direction, "partition": self.partition}
 
 
-class EdgeCut(_PartitionBase):
+class EdgeCut(Displayable, _PartitionBase):
     """An edge cut specified by an explicit binary severance matrix.
 
     Stores ``(node_indices, _cut_matrix)`` where ``_cut_matrix[i, j] == 1``
@@ -432,11 +428,9 @@ class EdgeCut(_PartitionBase):
     def __hash__(self) -> int:
         return hash((self.node_indices, utils.np_hash(self._cut_matrix)))
 
-    def __repr__(self) -> str:
-        return fmt.make_repr(self, ["node_indices", "_cut_matrix"])
-
-    def __str__(self) -> str:
-        return str(self._cut_matrix)
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        compact = str(self._cut_matrix)
+        return Description(title="EdgeCut", compact=compact)
 
     def to_json(self) -> dict[str, Any]:
         return self.__dict__.copy()
@@ -467,8 +461,8 @@ class CompleteEdgeCut(EdgeCut):
     def normalization_factor(self) -> float:
         return 1 / len(self.node_indices)
 
-    def __repr__(self) -> str:
-        return "Complete"
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        return Description(title="CompleteEdgeCut", compact="Complete")
 
     @classmethod
     def from_json(cls, data: dict[str, Any]) -> CompleteEdgeCut:
@@ -507,18 +501,18 @@ class DirectedSetPartition(EdgeCut):
     def num_parts(self) -> int:
         return len(self.set_partition)
 
-    def __str__(self) -> str:
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         if self.node_labels is not None:
             parts = map(self.node_labels.coerce_to_labels, self.parts)
         else:
             parts = map(str, self.parts)  # type: ignore[arg-type]
-        return (
+        compact = (
             f"{self.num_parts} parts: "
             + "{"
             + ",".join("".join(str(x) for x in part) for part in parts)
-            + "}\n"
-            + super().__str__()
+            + "}"
         )
+        return Description(title="DirectedSetPartition", compact=compact)
 
     def to_json(self) -> dict[str, Any]:
         dct = self.__dict__.copy()
@@ -577,13 +571,15 @@ class Part:
         return (self.mechanism == other.mechanism) and (self.purview == other.purview)
 
     def __repr__(self) -> str:
-        return fmt.fmt_part(self, node_labels=self.node_labels)
+        m = fmt.fmt_nodes(self.mechanism, node_labels=self.node_labels)
+        p = fmt.fmt_nodes(self.purview, node_labels=self.node_labels)
+        return f"Part({m}/{p})"
 
     def to_json(self) -> dict[str, Any]:
         return {"mechanism": self.mechanism, "purview": self.purview}
 
 
-class JointPartition(Sequence[Part], _PartitionBase):
+class JointPartition(Displayable, Sequence[Part], _PartitionBase):
     """A joint partition of a (mechanism, purview) pair into k matched parts.
 
     Stores a sequence of :class:`Part` blocks. Each Part pairs a
@@ -626,11 +622,17 @@ class JointPartition(Sequence[Part], _PartitionBase):
     def __hash__(self) -> int:
         return hash(self.parts)
 
-    def __str__(self) -> str:
-        return fmt.fmt_partition(self)
-
-    def __repr__(self) -> str:
-        return fmt.make_repr(self, ["parts", "node_labels"])
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        if not self.parts:
+            compact = "(empty)"
+        else:
+            part_strs = [
+                f"{fmt.fmt_nodes(p.mechanism, self.node_labels)}"
+                f"/{fmt.fmt_nodes(p.purview, self.node_labels)}"
+                for p in self.parts
+            ]
+            compact = " × ".join(part_strs)  # noqa: RUF001
+        return Description(title=type(self).__name__, compact=compact)
 
     @property
     def mechanism(self) -> tuple[int, ...]:

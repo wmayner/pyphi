@@ -724,7 +724,7 @@ def test_bipartition_properties(bipartition):
 
 
 def test_bipartition_str(bipartition):
-    assert str(bipartition) == (" A     ∅ \n─── ✕ ───\nA,E    B ")
+    assert str(bipartition) == "A/A,E × ∅/B"  # noqa: RUF001
 
 
 @pytest.fixture
@@ -743,7 +743,7 @@ def test_tripartion_properties(tripartition):
 
 
 def test_tripartion_str(tripartition):
-    assert str(tripartition) == (" A     ∅     C \n─── ✕ ─── ✕ ───\nA,E    B     C ")
+    assert str(tripartition) == "A/A,E × ∅/B × C/C"  # noqa: RUF001
 
 
 def k_partition(node_labels=None):

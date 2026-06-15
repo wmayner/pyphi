@@ -29,6 +29,12 @@ from toolz import unique
 from pyphi import utils
 from pyphi.data_structures import PyPhiFloat
 from pyphi.direction import Direction
+from pyphi.display import Description
+from pyphi.display import Displayable
+from pyphi.display import Row
+from pyphi.display import Section
+from pyphi.display.mixin import HIGH
+from pyphi.display.numbers import format_value
 from pyphi.measures.distribution import DistanceResult
 from pyphi.models.partitions import JointPartition
 
@@ -76,7 +82,7 @@ _ria_dict_attrs = [
 
 
 class RepertoireIrreducibilityAnalysis(
-    cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin
+    Displayable, cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin
 ):
     """An analysis of the irreducibility (|small_phi|) of a mechanism over a
     purview, for a given partition, in one temporal direction.
@@ -384,81 +390,77 @@ class RepertoireIrreducibilityAnalysis(
             )
         )
 
-    def _repr_columns(self):
-        cols = [
-            (fmt.SMALL_PHI, self.phi),
-            (f"Normalized {fmt.SMALL_PHI}", self.normalized_phi),
-            ("Mechanism", fmt.fmt_mechanism(self.mechanism, self.node_labels)),
-            ("Purview", fmt.fmt_mechanism(self.purview, self.node_labels)),
+    def _describe(self, verbosity: int) -> Description:
+        from pyphi.display.description import Inline
+
+        mech = fmt.fmt_mechanism(self.mechanism, self.node_labels)
+        purv = fmt.fmt_mechanism(self.purview, self.node_labels)
+        rows: list[Row] = [
+            Row("Small phi", self.phi),
+            Row(f"Normalized {fmt.SMALL_PHI}", self.normalized_phi),
+            Row(
+                "Direction",
+                self.direction.name if self.direction is not None else None,
+            ),
+            Row("Mechanism", mech),
+            Row("Purview", purv),
         ]
-
         if self.specified_state is not None:
-            cols.append(("Specified state", str(self.specified_state)))
-
+            ss = self.specified_state
+            dir_name = ss.direction.name if ss.direction is not None else "?"
+            state_str = (
+                f"{dir_name} state={fmt.state(ss.state)}"
+                f" II={format_value(ss.intrinsic_information)}"
+            )
+            rows.append(Row("Specified state", state_str))
         if self.selectivity is not None:
-            cols.append(("Selectivity", self.selectivity))
+            rows.append(Row("Selectivity", self.selectivity))
+        partition_str = str(self.partition) if self.partition else "empty"
+        rows.append(Row("Partition", partition_str))
+        if self.reasons is not None:
+            rows.append(Row("Reasons", ", ".join(map(str, self.reasons))))
+        rows.extend(
+            [
+                Row("State ties", self.num_state_ties),
+                Row("Partition ties", self.num_partition_ties),
+            ]
+        )
 
-        if self.repertoire is not None:
+        body_components = []
+        if verbosity >= HIGH and self.repertoire is not None:
             if self.specified_state is not None:
-                mark_states = [
-                    specified.state for specified in self.specified_state.ties
-                ]
+                mark_states = [s.state for s in self.specified_state.ties]
             else:
                 mark_states = []
             if self.repertoire.size == 1:
-                repertoire_str = self.repertoire
-                repertoire = ("Forward Pr", repertoire_str)
-                partitioned_repertoire_str = self.partitioned_repertoire
-                partitioned_repertoire = (
-                    "Partitioned forward Pr",
-                    partitioned_repertoire_str,
-                )
+                body_components.append(Inline(f"Forward Pr: {self.repertoire.item()!r}"))
+                if self.partitioned_repertoire is not None:
+                    body_components.append(
+                        Inline(
+                            f"Partitioned forward Pr: "
+                            f"{self.partitioned_repertoire.item()!r}"
+                        )
+                    )
             else:
-                repertoire_str = fmt.fmt_repertoire(
-                    self.repertoire, mark_states=mark_states
+                body_components.append(
+                    Inline(fmt.fmt_repertoire(self.repertoire, mark_states=mark_states))
                 )
-                repertoire = ("Repertoire", repertoire_str)
-                partitioned_repertoire_str = fmt.fmt_repertoire(
-                    self.partitioned_repertoire, mark_states=mark_states
-                )
-                partitioned_repertoire = (
-                    "Partitioned repertoire",
-                    partitioned_repertoire_str,
-                )
-            cols.append(repertoire)
-            cols.append(partitioned_repertoire)
+                if self.partitioned_repertoire is not None:
+                    body_components.append(
+                        Inline(
+                            fmt.fmt_repertoire(
+                                self.partitioned_repertoire,
+                                mark_states=mark_states,
+                            )
+                        )
+                    )
 
-        if self.partition:
-            partition_str = fmt.fmt_partition(self.partition)
-        else:
-            partition_str = "empty"
-        cols.append(("Partition", partition_str))
-
-        if self.reasons is not None:
-            cols.append(("Reasons", ", ".join(map(str, self.reasons))))
-
-        cols += [
-            ("State ties", self.num_state_ties),
-            ("Partition ties", self.num_partition_ties),
-        ]
-
-        return cols
-
-    def make_repr(self, title=None, columns=None):
-        if title is None:
-            title = self.__class__.__name__
-        if columns is None:
-            columns = self._repr_columns()
-        lines = fmt.align_columns(columns)
-        body = "\n".join(lines)
-        body = fmt.header(title, body, under_char=fmt.HEADER_BAR_2, center=True)
-        return fmt.box(body)
-
-    def __repr__(self):
-        return self.make_repr()
-
-    def __str__(self):
-        return repr(self)
+        sections = [Section(rows=tuple(rows), body=tuple(body_components))]
+        return Description(
+            title=type(self).__name__,
+            sections=tuple(sections),
+            compact=(f"{type(self).__name__}({fmt.SMALL_PHI}={format_value(self.phi)})"),
+        )
 
     _dict_attrs = _ria_dict_attrs
 
