@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from pyphi.display.description import Row
+from pyphi.display.numbers import format_value
+
 H = "─"
 V = "│"
 TL, TR, BL, BR = "╭", "╮", "╰", "╯"
@@ -22,3 +25,17 @@ def _pad(text: str, width: int) -> str:
 def _framed(content: str, inner_width: int) -> str:
     """Wrap one content line in vertical borders, padded to ``inner_width``."""
     return f"{V} {_pad(content, inner_width)} {V}"
+
+
+def _format_rows(rows: tuple[Row, ...]) -> list[str]:
+    """Render key/value rows with labels aligned to a common width."""
+    if not rows:
+        return []
+    label_w = max(_vis_len(row.label) for row in rows)
+    lines = []
+    for row in rows:
+        parts = [f"{_pad(row.label, label_w)}   {format_value(row.value)}"]
+        for name, val in row.extra:
+            parts.append(f"{name} {format_value(val)}")
+        lines.append("   ".join(parts))
+    return lines

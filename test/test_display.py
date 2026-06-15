@@ -68,3 +68,16 @@ def test_ascii_framed_line_has_borders_and_width():
     line = ascii_backend._framed("hi", 6)
     assert line.startswith("│ ") and line.endswith(" │")
     assert ascii_backend._vis_len(line) == 6 + 4  # content width + "│ " + " │"
+
+
+def test_ascii_format_rows_aligns_labels():
+    rows = (Row("System", "A,B,C"), Row("φ_s", 0.41503749927884376))
+    lines = ascii_backend._format_rows(rows)
+    assert lines[0] == "System   A,B,C"
+    assert lines[1] == "φ_s      0.415037"
+
+
+def test_ascii_row_extra_fields_appended():
+    rows = (Row("purview", "(1,1,0)", (("II_c", 3.0), ("int.diff", 0.0))),)
+    lines = ascii_backend._format_rows(rows)
+    assert lines[0] == "purview   (1,1,0)   II_c 3   int.diff 0"
