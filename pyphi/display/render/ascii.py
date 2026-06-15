@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pyphi.display.description import Row
+from pyphi.display.description import Table
 from pyphi.display.numbers import format_value
 
 H = "─"
@@ -39,3 +40,16 @@ def _format_rows(rows: tuple[Row, ...]) -> list[str]:
             parts.append(f"{name} {format_value(val)}")
         lines.append("   ".join(parts))
     return lines
+
+
+def _format_table(table: Table) -> list[str]:
+    """Render a table with each column padded to its widest cell."""
+    cells = [list(table.headers)] + [
+        [format_value(c) for c in row] for row in table.rows
+    ]
+    ncols = len(table.headers)
+    widths = [max(_vis_len(row[c]) for row in cells) for c in range(ncols)]
+    return [
+        "   ".join(_pad(row[c], widths[c]) for c in range(ncols)).rstrip()
+        for row in cells
+    ]

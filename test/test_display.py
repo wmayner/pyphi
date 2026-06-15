@@ -81,3 +81,14 @@ def test_ascii_row_extra_fields_appended():
     rows = (Row("purview", "(1,1,0)", (("II_c", 3.0), ("int.diff", 0.0))),)
     lines = ascii_backend._format_rows(rows)
     assert lines[0] == "purview   (1,1,0)   II_c 3   int.diff 0"
+
+
+def test_ascii_format_table_aligns_columns():
+    t = Table(
+        headers=("dir", "purview", "α"),  # noqa: RUF001
+        rows=(("CAUSE", "OR", 0.415037), ("EFFECT", "AND", 0.415037)),
+    )
+    lines = ascii_backend._format_table(t)
+    assert lines[0] == "dir      purview   α"  # noqa: RUF001
+    assert lines[1] == "CAUSE    OR        0.415037"
+    assert lines[2] == "EFFECT   AND       0.415037"
