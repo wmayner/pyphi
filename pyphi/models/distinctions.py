@@ -41,7 +41,16 @@ from pyphi.direction import Direction
 from . import cmp
 from . import fmt
 from .pandas import ToPandasMixin
+from .pandas import records_to_frame
 from .state_specification import SystemStateSpecification
+
+_DISTINCTION_COLUMNS = [
+    "phi",
+    "mechanism",
+    "mechanism_state",
+    "cause_purview",
+    "effect_purview",
+]
 
 
 def _concept_sort_key(concept):
@@ -133,6 +142,10 @@ class Distinctions(cmp.Orderable, Sequence, ToPandasMixin):
 
     def to_json(self):
         return {"concepts": self.concepts}
+
+    def _to_pandas(self):
+        rows = [concept._pandas_record() for concept in self.concepts]
+        return records_to_frame(rows, index="mechanism", columns=_DISTINCTION_COLUMNS)
 
     @property
     def flat(self):

@@ -100,3 +100,34 @@ def test_ria_to_pandas_is_labeled_series(basic_ces):
     assert isinstance(series, pd.Series)
     assert all(isinstance(label, str) for label in series["purview"])
     assert series["direction"] in ("CAUSE", "EFFECT")
+
+
+def test_distinctions_to_pandas_dataframe(basic_ces):
+    distinctions = basic_ces.distinctions
+    frame = distinctions.to_pandas()
+    assert isinstance(frame, pd.DataFrame)
+    assert frame.index.name == "mechanism"
+    assert list(frame.columns) == [
+        "phi",
+        "mechanism_state",
+        "cause_purview",
+        "effect_purview",
+    ]
+    assert len(frame) == len(distinctions)
+    # the index holds labeled mechanisms (tuples of label strings)
+    first_mechanism = frame.index[0]
+    assert all(isinstance(label, str) for label in first_mechanism)
+
+
+def test_empty_distinctions_to_pandas_has_schema():
+    from pyphi.models.distinctions import ResolvedDistinctions
+
+    frame = ResolvedDistinctions([]).to_pandas()
+    assert frame.index.name == "mechanism"
+    assert list(frame.columns) == [
+        "phi",
+        "mechanism_state",
+        "cause_purview",
+        "effect_purview",
+    ]
+    assert len(frame) == 0
