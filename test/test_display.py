@@ -5,6 +5,7 @@ import dataclasses
 import numpy as np
 import pytest
 
+from pyphi.display import render as render_pkg
 from pyphi.display.description import Description
 from pyphi.display.description import Inline
 from pyphi.display.description import Nested
@@ -133,3 +134,14 @@ def test_html_render_has_scoped_panel_and_escapes():
 def test_html_style_injected_once_per_render():
     out = html_backend.render(Description(title="A"), verbosity=2)
     assert out.count("<style") == 1
+
+
+def test_render_dispatches_by_backend_name():
+    d = Description(title="Demo")
+    assert render_pkg.render(d, backend="ascii", verbosity=2).startswith("╭")
+    assert 'class="pyphi-card"' in render_pkg.render(d, backend="html", verbosity=2)
+
+
+def test_render_unknown_backend_raises():
+    with pytest.raises(KeyError):
+        render_pkg.render(Description(title="x"), backend="rich", verbosity=2)
