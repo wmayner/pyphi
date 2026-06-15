@@ -110,6 +110,30 @@ class TestComplexesIIT30:
             parallel, key=lambda x: x.phi
         )
 
+    def test_complexes_are_complex_objects_iit3(self, s):
+        from pyphi.models.complex import Complex
+
+        cx = s.substrate.complexes(s.state)
+        assert isinstance(cx, tuple)
+        assert len(cx) == 1
+        assert isinstance(cx[0], Complex)
+        assert cx[0].is_maximal is True
+        assert cx[0].node_indices == (0, 1, 2)
+
+    def test_complexes_excluded_iit3(self, s):
+        # The single complex (0,1,2) excludes the overlapping lower-phi
+        # irreducible candidates (1,2):1.0 and (0,2):0.5.
+        cx = s.substrate.complexes(s.state)
+        assert {e.node_indices for e in cx[0].excluded} == {(1, 2), (0, 2)}
+
+    def test_maximal_complex_null_object_iit3(self, s):
+        from pyphi.models.complex import Complex
+
+        mc = s.substrate.maximal_complex(s.state, candidates=[])
+        assert isinstance(mc, Complex)
+        assert bool(mc) is False
+        assert mc.node_indices == ()
+
 
 class TestSiaCesConsistencyIIT30:
     """``iit3.sia(s).ces`` must equal ``iit3.ces(s)`` for every canonical
@@ -319,3 +343,55 @@ def test_iit3_sia_no_longer_carries_unpartitioned_ces(s):
     assert not hasattr(sia, "partitioned_ces"), "renamed to partitioned_distinctions"
     assert hasattr(sia, "partitioned_distinctions"), "compute receipt of the MIP"
     assert sia.partitioned_distinctions is not None
+
+
+class TestComplexWrapperIIT40:
+    """B16: complexes() returns Complex objects under IIT 4.0."""
+
+    def test_complexes_are_complex_objects(self, s):
+        from pyphi.models.complex import Complex
+
+        cx = s.substrate.complexes(s.state)
+        assert isinstance(cx, tuple)
+        assert all(isinstance(c, Complex) for c in cx)
+
+    def test_exactly_one_is_maximal(self, s):
+        cx = s.substrate.complexes(s.state)
+        assert sum(1 for c in cx if c.is_maximal) == 1
+        assert cx[0].is_maximal is True
+
+    def test_dual_and_xor_excluded_records(self):
+        from test.example_substrates import dual_and_xor_substrate
+
+        substrate = dual_and_xor_substrate()
+        cx = substrate.complexes((1, 0, 1, 0))
+        assert {tuple(sorted(c.node_indices)) for c in cx} == {(0, 1), (2, 3)}
+        by_units = {tuple(sorted(c.node_indices)): c for c in cx}
+        # The single-node candidates (1,) and (3,) are excluded by the
+        # 2-node complexes they overlap.
+        assert {e.node_indices for e in by_units[(0, 1)].excluded} == {(1,)}
+        assert {e.node_indices for e in by_units[(2, 3)].excluded} == {(3,)}
+
+
+class TestMaximalComplexWrapperIIT40:
+    """B16: maximal_complex() returns a Complex (null-object when empty)."""
+
+    def test_maximal_complex_is_complex(self, s):
+        from pyphi.models.complex import Complex
+
+        mc = s.substrate.maximal_complex(s.state)
+        assert isinstance(mc, Complex)
+        assert mc.is_maximal is True
+        assert mc.node_indices == s.substrate.complexes(s.state)[0].node_indices
+
+    def test_maximal_complex_null_object(self, s):
+        from pyphi.models.complex import Complex
+
+        # Forcing an empty candidate set yields no complexes.
+        mc = s.substrate.maximal_complex(s.state, candidates=[])
+        assert isinstance(mc, Complex)
+        assert bool(mc) is False
+        assert mc.node_indices == ()
+        assert float(mc.phi) == 0.0
+        assert mc.is_maximal is True
+        assert mc.excluded == ()

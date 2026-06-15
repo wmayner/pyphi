@@ -416,8 +416,9 @@ class Substrate:
         state: tuple[int, ...],
         candidates: Iterable[Any] | None = None,
         **kwargs: Any,
-    ) -> list[Any]:
-        """Return the substrate's complexes; see :func:`complexes`."""
+    ) -> tuple[Any, ...]:
+        """Return the substrate's complexes as |Complex| objects; see
+        :func:`complexes`."""
         return complexes(self, state, candidates=candidates, **kwargs)
 
     def maximal_complex(
@@ -426,7 +427,7 @@ class Substrate:
         candidates: Iterable[Any] | None = None,
         **kwargs: Any,
     ) -> Any:
-        """Return the maximal complex; see :func:`maximal_complex`."""
+        """Return the maximal |Complex|; see :func:`maximal_complex`."""
         return maximal_complex(self, state, candidates=candidates, **kwargs)
 
     def __len__(self) -> int:
@@ -693,17 +694,45 @@ def _sia_node_indices(sia: Any) -> tuple[int, ...] | None:
     return getattr(sia, "node_indices", None)
 
 
+def _exclusion_records(
+    accepted: list[Any], sorted_sias: list[Any]
+) -> dict[tuple[int, ...], tuple[Any, ...]]:
+    """Map each accepted complex (by units) to the ExcludedCandidate records
+    it excluded: every irreducible candidate that overlaps it and was not
+    itself accepted.
+
+    A candidate that overlaps several accepted complexes appears in each of
+    their exclusion sets. Reads only values the cascade already computed.
+    """
+    from pyphi.models.complex import ExcludedCandidate
+
+    accepted_indices = {tuple(_sia_node_indices(s) or ()) for s in accepted}
+    records: dict[tuple[int, ...], tuple[Any, ...]] = {}
+    for acc in accepted:
+        acc_idx = tuple(_sia_node_indices(acc) or ())
+        acc_set = set(acc_idx)
+        recs = []
+        for cand in sorted_sias:
+            cand_idx = tuple(_sia_node_indices(cand) or ())
+            if cand_idx == acc_idx or cand_idx in accepted_indices:
+                continue
+            if acc_set & set(cand_idx):
+                recs.append(ExcludedCandidate(cand_idx, float(cand.phi)))
+        records[acc_idx] = tuple(recs)
+    return records
+
+
 def complexes(
     substrate: Substrate,
     state: tuple[int, ...],
     candidates: Iterable[Any] | None = None,
     **kwargs: Any,
-) -> list[Any]:
+) -> tuple[Any, ...]:
     """Return the complexes of the substrate in its current state.
 
     A complex is a set of units that is a local maximum of |big_phi|
     (|small_phi_s|) — no overlapping candidate has higher |small_phi_s|.
-    The returned list is non-overlapping (exclusion), ordered by
+    The returned tuple is non-overlapping (exclusion), ordered by
     |small_phi_s| descending.
 
     Both formalisms walk SIAs in descending |big_phi| tiers and group
@@ -715,15 +744,34 @@ def complexes(
     are skipped as indeterminate, and the tier walk continues to the
     next group.
     """
+    from pyphi import validate
+    from pyphi.models.complex import Complex
+
     sorted_sias = sorted(
         irreducible_sias(substrate, state, candidates, **kwargs), reverse=True
     )
     if not sorted_sias:
-        return []
+        return ()
 
     if _config_iit_version() == "IIT_3_0":
-        return _iit3_exclusion_cascade(sorted_sias, substrate, state)
-    return _substrate_exclusion_cascade(sorted_sias, substrate, state)
+        accepted = _iit3_exclusion_cascade(sorted_sias, substrate, state)
+    else:
+        accepted = _substrate_exclusion_cascade(sorted_sias, substrate, state)
+    if not accepted:
+        return ()
+
+    records = _exclusion_records(accepted, sorted_sias)
+    result = tuple(
+        Complex(
+            sia=sia,
+            substrate=substrate,
+            is_maximal=(i == 0),
+            excluded=records[tuple(_sia_node_indices(sia) or ())],
+        )
+        for i, sia in enumerate(accepted)
+    )
+    validate.non_overlapping(result)
+    return result
 
 
 def _config_iit_version() -> str:
@@ -913,22 +961,27 @@ def maximal_complex(
 ) -> Any:
     """Return the complex with maximum |big_phi| over the substrate.
 
-    Equivalent to the first element of :func:`complexes`. Returns a null
-    SIA over the empty system when no irreducible candidate exists.
+    Equivalent to the first element of :func:`complexes`. Returns a
+    null-object |Complex| (falsy, with empty units) when no irreducible
+    candidate exists.
     """
+    from pyphi.models.complex import Complex
     from pyphi.system import System
 
     found = complexes(substrate, state, candidates, **kwargs)
     if found:
         return found[0]
-    # No irreducible candidate; return a null SIA over the empty system.
-    empty = System.from_substrate(substrate, state, ())
+    # No irreducible candidate; return a null-object Complex over the empty
+    # system (falsy, with empty units).
     from pyphi.conf import config as _config
 
+    empty = System.from_substrate(substrate, state, ())
     if _config.formalism.iit.version == "IIT_3_0":
         from pyphi.formalism.iit3 import _null_sia
 
-        return _null_sia(empty)
-    from pyphi.formalism.iit4 import NullCauseEffectStructure
+        null_sia = _null_sia(empty)
+    else:
+        from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
 
-    return NullCauseEffectStructure()
+        null_sia = NullSystemIrreducibilityAnalysis()
+    return Complex(sia=null_sia, substrate=substrate, is_maximal=True, excluded=())
