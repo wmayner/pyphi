@@ -110,6 +110,30 @@ class TestComplexesIIT30:
             parallel, key=lambda x: x.phi
         )
 
+    def test_complexes_are_complex_objects_iit3(self, s):
+        from pyphi.models.complex import Complex
+
+        cx = s.substrate.complexes(s.state)
+        assert isinstance(cx, tuple)
+        assert len(cx) == 1
+        assert isinstance(cx[0], Complex)
+        assert cx[0].is_maximal is True
+        assert cx[0].node_indices == (0, 1, 2)
+
+    def test_complexes_excluded_iit3(self, s):
+        # The single complex (0,1,2) excludes the overlapping lower-phi
+        # irreducible candidates (1,2):1.0 and (0,2):0.5.
+        cx = s.substrate.complexes(s.state)
+        assert {e.node_indices for e in cx[0].excluded} == {(1, 2), (0, 2)}
+
+    def test_maximal_complex_null_object_iit3(self, s):
+        from pyphi.models.complex import Complex
+
+        mc = s.substrate.maximal_complex(s.state, candidates=[])
+        assert isinstance(mc, Complex)
+        assert bool(mc) is False
+        assert mc.node_indices == ()
+
 
 class TestSiaCesConsistencyIIT30:
     """``iit3.sia(s).ces`` must equal ``iit3.ces(s)`` for every canonical
