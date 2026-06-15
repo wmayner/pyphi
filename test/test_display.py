@@ -13,6 +13,7 @@ from pyphi.display.description import Section
 from pyphi.display.description import Table
 from pyphi.display.numbers import format_value
 from pyphi.display.render import ascii as ascii_backend
+from pyphi.display.render import html as html_backend
 
 
 def test_format_value_rounds_floats_to_6_sig_figs():
@@ -113,3 +114,22 @@ def test_ascii_render_full_card():
     assert len(widths) == 1  # all lines equal width
     assert "├─ Cause " in out
     assert "II_c 3" in out
+
+
+def test_html_render_has_scoped_panel_and_escapes():
+    d = Description(
+        title="Demo<>",
+        subtitle="φ_s 0.415037",
+        sections=(Section(label="Cause", rows=(Row("purview", "(1,1,0) & <x>"),)),),
+    )
+    out = html_backend.render(d, verbosity=2)
+    assert 'class="pyphi-card"' in out
+    assert "pyphi-section" in out
+    assert "Demo&lt;&gt;" in out  # title escaped
+    assert "&lt;x&gt;" in out  # value escaped
+    assert "<style" in out  # style block present
+
+
+def test_html_style_injected_once_per_render():
+    out = html_backend.render(Description(title="A"), verbosity=2)
+    assert out.count("<style") == 1
