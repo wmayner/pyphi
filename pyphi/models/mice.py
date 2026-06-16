@@ -17,6 +17,7 @@ from toolz import concat
 
 from pyphi import connectivity
 from pyphi.direction import Direction
+from pyphi.display import LOW
 from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
@@ -244,29 +245,29 @@ class MaximallyIrreducibleCauseOrEffect(
         return self.ria.is_congruent(specified_state)
 
     def _describe(self, verbosity: int) -> Description:
-        ria_desc = self.ria._describe(verbosity)
-        # Inherit all RIA rows, append purview-ties count
-        extra_row = Row("Purview ties", self.num_purview_ties)
-        if ria_desc.sections:
-            first = ria_desc.sections[0]
-            merged = Section(
-                label=first.label,
-                rows=(*first.rows, extra_row),
-                body=first.body,
-            )
-            sections = (merged, *ria_desc.sections[1:])
-        else:
-            sections = (Section(rows=(extra_row,)),)
-        if self.direction is not None:
-            direction_label = self.direction.name.title()
-        else:
-            direction_label = ""
-        title = f"MaximallyIrreducible{direction_label}"
-        return Description(
-            title=title,
-            sections=sections,
-            compact=f"{title}({fmt.SMALL_PHI}={format_value(self.phi)})",
+        direction_label = (
+            self.direction.name.title() if self.direction is not None else ""
         )
+        title = f"MaximallyIrreducible{direction_label}"
+        compact = f"{title}({fmt.SMALL_PHI}={format_value(self.phi)})"
+        if verbosity == LOW:
+            return Description(title=title, compact=compact)
+        # Inherit the RIA's sections, adding the purview-ties count to its
+        # "Ties" section.
+        extra_row = Row("Purview ties", self.num_purview_ties)
+        sections = []
+        injected = False
+        for sec in self.ria._describe(verbosity).sections:
+            if sec.label == "Ties":
+                sections.append(
+                    Section(label="Ties", rows=(*sec.rows, extra_row), body=sec.body)
+                )
+                injected = True
+            else:
+                sections.append(sec)
+        if not injected:
+            sections.append(Section(label="Ties", rows=(extra_row,)))
+        return Description(title=title, sections=tuple(sections), compact=compact)
 
     def order_by(self):
         return self.ria.order_by()

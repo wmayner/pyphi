@@ -31,14 +31,18 @@ from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
 from pyphi.display import Section
+from pyphi.display import Table
 from pyphi.display import tone_of
+from pyphi.display.mixin import FULL
 from pyphi.display.mixin import HIGH
+from pyphi.display.mixin import LOW
 from pyphi.display.numbers import format_value
 from pyphi.measures.distribution import DistanceResult
 from pyphi.models.explanation import Explanation
 from pyphi.models.explanation import Finding
 from pyphi.models.explanation import NullResultReason
 from pyphi.models.partitions import JointPartition
+from pyphi.models.partitions import _cut_grid
 from pyphi.models.partitions import concise_partition
 
 from . import cmp
@@ -75,6 +79,31 @@ _ria_dict_attrs = [
     "specified_state",
     "node_labels",
 ]
+
+
+def _repertoire_table(
+    repertoire: NDArray, partitioned: NDArray | None, mark_states: list
+) -> Table:
+    """Distribution grid for a repertoire: rows = purview states, columns = ``Pr``
+    (and ``Pr (cut)`` when a partitioned repertoire of matching shape is given).
+
+    Tied specified states are marked with ``*``.
+    """
+    r = repertoire.squeeze()
+    p = partitioned.squeeze() if partitioned is not None else None
+    paired = p is not None and p.shape == r.shape
+    headers = ("state", "Pr", "Pr (cut)") if paired else ("state", "Pr")
+    marks = set(mark_states or [])
+    rows = []
+    for state in utils.all_states(r.shape):
+        label = "(" + ",".join(map(str, state)) + ")"
+        if state in marks:
+            label += " *"
+        cells: list[Any] = [label, float(r[state])]
+        if paired:
+            cells.append(float(p[state]))  # type: ignore[index]
+        rows.append(tuple(cells))
+    return Table(headers=headers, rows=tuple(rows), grid=True)
 
 
 class RepertoireIrreducibilityAnalysis(
@@ -438,11 +467,14 @@ class RepertoireIrreducibilityAnalysis(
         )
 
     def _describe(self, verbosity: int) -> Description:
-        from pyphi.display.description import Inline
+        cls = type(self).__name__
+        compact = f"{cls}({fmt.SMALL_PHI}={format_value(self.phi)})"
+        if verbosity == LOW:
+            return Description(title=cls, compact=compact)
 
         mech = fmt.fmt_mechanism(self.mechanism, self.node_labels)
         purv = fmt.fmt_mechanism(self.purview, self.node_labels)
-        rows: list[Row] = [
+        summary: list[Row] = [
             Row(fmt.SMALL_PHI, self.phi),
             Row(f"Normalized {fmt.SMALL_PHI}", self.normalized_phi),
             Row(
@@ -455,56 +487,63 @@ class RepertoireIrreducibilityAnalysis(
         ]
         if self.specified_state is not None:
             ss = self.specified_state
-            rows.append(Row("Specified state", ss.state))
-            rows.append(Row("Intrinsic information", ss.intrinsic_information))
+            summary.append(Row("Specified state", ss.state))
+            summary.append(Row("Intrinsic information", ss.intrinsic_information))
         if self.selectivity is not None:
-            rows.append(Row("Selectivity", self.selectivity))
+            summary.append(Row("Selectivity", self.selectivity))
+        sections = [Section(rows=tuple(summary))]
+
+        # Section order: Repertoire, MIP, Ties.
+        if verbosity >= HIGH and self.repertoire is not None:
+            sections.append(self._repertoire_section())
+
+        # MIP: the concise partition headline, plus its cut grid at FULL.
         partition_str = concise_partition(self.partition) if self.partition else "empty"
-        rows.append(Row("Partition", partition_str))
+        mip_rows = [Row("Partition", partition_str)]
         if self.reasons is not None:
-            rows.append(Row("Reasons", ", ".join(map(str, self.reasons))))
-        rows.extend(
-            [
+            mip_rows.append(Row("Reasons", ", ".join(map(str, self.reasons))))
+        mip_body = (
+            (_cut_grid(self.partition),)
+            if verbosity >= FULL
+            and self.partition
+            and self.partition.num_connections_cut()
+            else ()
+        )
+        sections.append(Section(label="MIP", rows=tuple(mip_rows), body=mip_body))
+
+        sections.append(self._ties_section())
+
+        return Description(title=cls, sections=tuple(sections), compact=compact)
+
+    def _ties_section(self) -> Section:
+        return Section(
+            label="Ties",
+            rows=(
                 Row("State ties", self.num_state_ties),
                 Row("Partition ties", self.num_partition_ties),
-            ]
+            ),
         )
 
-        body_components = []
-        if verbosity >= HIGH and self.repertoire is not None:
-            if self.specified_state is not None:
-                mark_states = [s.state for s in self.specified_state.ties]
-            else:
-                mark_states = []
-            if self.repertoire.size == 1:
-                rows.append(Row("Forward probability", self.repertoire.item()))
-                if self.partitioned_repertoire is not None:
-                    rows.append(
-                        Row(
-                            "Partitioned forward probability",
-                            self.partitioned_repertoire.item(),
-                        )
+    def _repertoire_section(self) -> Section:
+        repertoire = self.repertoire
+        assert repertoire is not None  # guarded by the caller
+        mark_states = (
+            [s.state for s in self.specified_state.ties]
+            if self.specified_state is not None
+            else []
+        )
+        if repertoire.size == 1:
+            rows = [Row("Forward probability", repertoire.item())]
+            if self.partitioned_repertoire is not None:
+                rows.append(
+                    Row(
+                        "Partitioned forward probability",
+                        self.partitioned_repertoire.item(),
                     )
-            else:
-                body_components.append(
-                    Inline(fmt.fmt_repertoire(self.repertoire, mark_states=mark_states))
                 )
-                if self.partitioned_repertoire is not None:
-                    body_components.append(
-                        Inline(
-                            fmt.fmt_repertoire(
-                                self.partitioned_repertoire,
-                                mark_states=mark_states,
-                            )
-                        )
-                    )
-
-        sections = [Section(rows=tuple(rows), body=tuple(body_components))]
-        return Description(
-            title=type(self).__name__,
-            sections=tuple(sections),
-            compact=(f"{type(self).__name__}({fmt.SMALL_PHI}={format_value(self.phi)})"),
-        )
+            return Section(label="Repertoire", rows=tuple(rows))
+        table = _repertoire_table(repertoire, self.partitioned_repertoire, mark_states)
+        return Section(label="Repertoire", body=(table,))
 
     _dict_attrs = _ria_dict_attrs
 

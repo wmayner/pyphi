@@ -18,7 +18,7 @@ from pyphi.conf._helpers import yaml_repr
 _VALID_LOG_LEVELS = frozenset(
     {None, "CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"}
 )
-_VALID_REPR_VERBOSITY = frozenset({0, 1, 2})
+_VALID_REPR_VERBOSITY = frozenset({0, 1, 2, 3})
 
 
 def _format_log_levels() -> list[str | None]:

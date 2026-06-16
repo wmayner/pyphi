@@ -1210,3 +1210,45 @@ def test_low_verbosity_is_compact_leaf_in_both_backends():
         h = sia._repr_html_()
     assert 'class="pyphi-leaf"' in h
     assert 'class="pyphi-card"' not in h
+
+
+def test_ria_card_groups_sections():
+    ria = _basic_ria()
+    out = repr(ria)
+    assert "├─ MIP" in out
+    assert "├─ Ties" in out
+    assert "├─ Repertoire" in out
+
+
+def test_ria_cut_grid_only_at_full_verbosity():
+    ria = _basic_ria()  # its MIP severs a connection
+    with pyphi.config.override(repr_verbosity=2):  # HIGH
+        assert "✕" not in repr(ria)  # concise partition only
+    with pyphi.config.override(repr_verbosity=3):  # FULL
+        assert "✕" in repr(ria)  # cut-matrix grid shown
+
+
+def test_mice_purview_ties_in_ties_section():
+    out = repr(_basic_mic())
+    ties_at = out.index("Ties")
+    assert "Purview ties" in out[ties_at:]  # grouped with the other tie counts
+
+
+def test_repertoire_table_distribution_rows():
+    import numpy as np
+
+    from pyphi.models.ria import _repertoire_table
+
+    rep = np.array([0.1, 0.9])
+    t = _repertoire_table(rep, None, mark_states=[])
+    assert t.headers == ("state", "Pr")
+    assert ("(0)", 0.1) in t.rows and ("(1)", 0.9) in t.rows
+    # paired with a partitioned repertoire of matching shape -> third column
+    t2 = _repertoire_table(rep, np.array([0.5, 0.5]), mark_states=[(1,)])
+    assert t2.headers == ("state", "Pr", "Pr (cut)")
+    assert ("(1) *", 0.9, 0.5) in t2.rows  # tied state marked
+
+
+def test_repr_verbosity_3_is_valid_and_maximal():
+    with pyphi.config.override(repr_verbosity=3):
+        assert pyphi.config.infrastructure.repr_verbosity == 3
