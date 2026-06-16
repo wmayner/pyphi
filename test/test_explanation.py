@@ -1,5 +1,7 @@
 """Tests for pyphi.models.explanation (B8 result.explain())."""
 
+import pytest
+
 from pyphi.models.explanation import NullResultReason
 
 
@@ -103,3 +105,23 @@ def test_runner_up_retained_on_phi_positive_system(s):
     assert sia3.phi > 0
     assert sia3.runner_up is not None
     assert float(sia3.runner_up.phi) > float(sia3.phi)
+
+
+def test_iit4_sia_explain_short_circuit_and_positive(s, s_empty):
+    from pyphi.formalism import FORMALISM_REGISTRY
+
+    # Short-circuit: an empty system → a NO_SYSTEM null-result finding.
+    null_sia = FORMALISM_REGISTRY["IIT_4_0_2023"].evaluate_system(s_empty)
+    expl = null_sia.explain()
+    assert expl.level == "system"
+    assert any(f.kind == "null_result" for f in expl.findings)
+    assert any(f.value is NullResultReason.NO_SYSTEM for f in expl.findings)
+
+    # phi>0: winning partition + binding direction + runner-up/gap findings.
+    sia = FORMALISM_REGISTRY["IIT_4_0_2023"].evaluate_system(s)
+    expl = sia.explain()
+    kinds = {f.kind for f in expl.findings}
+    assert {"winning_partition", "binding_direction"} <= kinds
+    assert sia.runner_up is not None
+    gap = next(f for f in expl.findings if f.kind == "gap")
+    assert float(gap.value) == pytest.approx(float(sia.runner_up.phi) - float(sia.phi))

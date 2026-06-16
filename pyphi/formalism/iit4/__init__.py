@@ -43,6 +43,8 @@ from pyphi.models import cmp
 from pyphi.models.ces import CauseEffectStructure
 from pyphi.models.distinctions import Distinctions
 from pyphi.models.distinctions import ResolvedDistinctions
+from pyphi.models.explanation import Explanation
+from pyphi.models.explanation import Finding
 from pyphi.models.explanation import NullResultReason
 from pyphi.models.explanation import runner_up_from_candidates
 from pyphi.models.partitions import DirectedBipartition
@@ -358,6 +360,63 @@ class SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
             title=cls,
             sections=tuple(sections),
             compact=f"{cls}(φ_s={format_value(self.phi)})",
+        )
+
+    def _findings(self) -> tuple[Finding, ...]:
+        findings: list[Finding] = [
+            Finding(kind="null_result", label="Null result", value=reason)
+            for reason in self.reasons or []
+        ]
+        if self.partition is not None and bool(self):
+            findings.append(
+                Finding(
+                    kind="winning_partition",
+                    label="MIP",
+                    value=concise_partition(self.partition),
+                    detail=(("connections cut", self.partition.num_connections_cut()),),
+                )
+            )
+        if self.runner_up is not None:
+            findings.append(
+                Finding(
+                    kind="runner_up",
+                    label="Runner-up partition",
+                    value=concise_partition(self.runner_up.partition),
+                )
+            )
+            findings.append(
+                Finding(
+                    kind="gap",
+                    label="φ-gap to runner-up",
+                    value=PyPhiFloat(float(self.runner_up.phi) - float(self.phi)),
+                )
+            )
+        if self.cause is not None and self.effect is not None:
+            binding = (
+                Direction.CAUSE
+                if float(self.cause.phi) <= float(self.effect.phi)
+                else Direction.EFFECT
+            )
+            findings.append(
+                Finding(
+                    kind="binding_direction",
+                    label="Binding direction",
+                    value=binding.name,
+                    detail=(
+                        ("φ_cause", self.cause.phi),
+                        ("φ_effect", self.effect.phi),
+                    ),
+                    tone="cause" if binding is Direction.CAUSE else "effect",
+                )
+            )
+        return tuple(findings)
+
+    def explain(self) -> Explanation:
+        """A typed account of why this Φ_s value came out as it did."""
+        return Explanation(
+            subject=f"Φ_s = {format_value(self.phi)}",
+            level="system",
+            findings=self._findings(),
         )
 
     def to_json(self):
