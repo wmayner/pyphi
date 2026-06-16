@@ -125,3 +125,22 @@ def test_iit4_sia_explain_short_circuit_and_positive(s, s_empty):
     assert sia.runner_up is not None
     gap = next(f for f in expl.findings if f.kind == "gap")
     assert float(gap.value) == pytest.approx(float(sia.runner_up.phi) - float(sia.phi))
+
+
+def test_iit3_sia_explain(s, s_empty):
+    import pyphi
+    from pyphi.conf import presets
+    from pyphi.formalism import iit3
+
+    with pyphi.config.override(**presets.iit3):
+        sia = iit3.sia(s)
+        null = iit3.sia(s_empty)
+
+    expl = sia.explain()
+    assert expl.level == "system"
+    assert expl.subject.startswith("Φ")
+    assert any(f.kind == "winning_partition" for f in expl.findings)
+    assert any(f.kind == "gap" for f in expl.findings)
+
+    null_expl = null.explain()
+    assert any(f.value is NullResultReason.NO_SYSTEM for f in null_expl.findings)

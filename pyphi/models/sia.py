@@ -21,6 +21,8 @@ from pyphi.display.numbers import format_value
 from . import cmp
 from .distinctions import Distinctions
 from .distinctions import _null_ces
+from .explanation import Explanation
+from .explanation import Finding
 from .partitions import concise_partition
 
 _SERIALIZING_AS_TIE_PEER: contextvars.ContextVar[bool] = contextvars.ContextVar(
@@ -126,6 +128,37 @@ class IIT3SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
                 ),
             ),
             compact=f"{cls}(Φ={format_value(self.phi)})",
+        )
+
+    def _findings(self) -> tuple[Finding, ...]:
+        findings = [
+            Finding(kind="null_result", label="Null result", value=reason)
+            for reason in (self.reasons or [])
+        ]
+        if self.partition is not None and self.phi is not None and self.phi > 0:
+            findings.append(
+                Finding(
+                    kind="winning_partition",
+                    label="MIP",
+                    value=concise_partition(self.partition),
+                )
+            )
+        if self.runner_up is not None:
+            findings.append(
+                Finding(
+                    kind="gap",
+                    label="Φ-gap to runner-up",
+                    value=float(self.runner_up.phi) - float(self.phi),
+                )
+            )
+        return tuple(findings)
+
+    def explain(self) -> Explanation:
+        """A typed account of why this Φ value came out as it did."""
+        return Explanation(
+            subject=f"Φ = {format_value(self.phi)}",
+            level="system",
+            findings=self._findings(),
         )
 
     def print(self):
