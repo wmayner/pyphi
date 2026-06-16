@@ -38,6 +38,9 @@ from pyphi.display.numbers import format_value
 from pyphi.display.tables import capped_table
 
 from . import cmp
+from .diff import Change
+from .diff import ResultDiff
+from .diff import _diff_common
 from .distinctions import DISTINCTION_HEADER_TONES
 from .distinctions import DISTINCTION_HEADERS
 from .distinctions import ResolvedDistinctions
@@ -215,6 +218,66 @@ class CauseEffectStructure(Displayable, cmp.Orderable):
         """Yield the single-distinction Φ-fold of each distinction, in order."""
         for distinction in self.distinctions:
             yield self.fold([distinction])
+
+    def _changes(self, other) -> tuple[Change, ...]:
+        from pyphi import utils
+
+        changes: list[Change] = []
+        a_by_mech = {d.mechanism: d for d in self.distinctions}
+        b_by_mech = {d.mechanism: d for d in other.distinctions}
+        changes.extend(
+            Change("distinction_lost", mech, a_value=a_by_mech[mech].phi)
+            for mech in a_by_mech.keys() - b_by_mech.keys()
+        )
+        changes.extend(
+            Change("distinction_gained", mech, b_value=b_by_mech[mech].phi)
+            for mech in b_by_mech.keys() - a_by_mech.keys()
+        )
+        for mech in a_by_mech.keys() & b_by_mech.keys():
+            da, db = a_by_mech[mech], b_by_mech[mech]
+            changed = (
+                not utils.eq(float(da.phi), float(db.phi))
+                or da.cause.purview != db.cause.purview
+                or da.effect.purview != db.effect.purview
+            )
+            if changed:
+                changes.append(
+                    Change("distinction_changed", mech, a_value=da.phi, b_value=db.phi)
+                )
+        a_rels = (
+            set(self.relations)  # pyright: ignore[reportArgumentType]
+            if hasattr(self.relations, "__iter__")
+            else set()
+        )
+        b_rels = set(other.relations) if hasattr(other.relations, "__iter__") else set()
+        changes.extend(
+            Change("relation_lost", tuple(r.mechanisms()), a_value=r.phi)
+            for r in a_rels - b_rels
+        )
+        changes.extend(
+            Change("relation_gained", tuple(r.mechanisms()), b_value=r.phi)
+            for r in b_rels - a_rels
+        )
+        return tuple(changes)
+
+    def diff(self, other) -> ResultDiff:
+        """Structured delta from this cause-effect structure to ``other``."""
+        if not isinstance(other, CauseEffectStructure):
+            raise TypeError(
+                f"cannot diff {type(self).__name__} against {type(other).__name__}"
+            )
+        common = _diff_common(self.sia, other.sia)
+        return ResultDiff(
+            subject=f"ΔΦ = {format_value(common['delta_phi'])}",
+            level="system",
+            delta_phi=common["delta_phi"],
+            mip_changed=common["mip_changed"],
+            changes=self._changes(other),
+            config_diff=(
+                self.config.diff(other.config) if self.config and other.config else {}
+            ),
+            substrate_note=common["substrate_note"],
+        )
 
 
 @dataclass(frozen=True, eq=False, repr=False)

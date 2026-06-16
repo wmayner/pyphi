@@ -1,6 +1,7 @@
 """Tests for pyphi.models.diff (B15 result.diff())."""
 
 import pyphi
+from pyphi.conf import presets
 
 
 def test_resultdiff_describe_and_pandas():
@@ -75,3 +76,18 @@ def test_diff_type_mismatch_raises(s):
 
     with pytest.raises(TypeError):
         a.diff("not a result")
+
+
+def test_ces_diff_distinctions_and_relations(s):
+    from pyphi.formalism import iit3
+    from pyphi.models.diff import ResultDiff
+
+    with pyphi.config.override(**presets.iit3):
+        a = iit3.ces(s)
+        b = iit3.ces(s)
+    rd = a.diff(b)
+    assert isinstance(rd, ResultDiff)
+    assert rd.level == "system"
+    # identical CESs: no element changes
+    assert rd.changes == ()
+    assert float(rd.delta_phi) == 0.0
