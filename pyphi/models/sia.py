@@ -25,6 +25,7 @@ from .distinctions import Distinctions
 from .distinctions import _null_ces
 from .explanation import Explanation
 from .explanation import Finding
+from .partitions import _cut_grid
 from .partitions import concise_partition
 
 _SERIALIZING_AS_TIE_PEER: contextvars.ContextVar[bool] = contextvars.ContextVar(
@@ -114,21 +115,26 @@ class IIT3SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
 
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         cls = type(self).__name__
-        partition_str = (
-            concise_partition(self.partition) if self.partition is not None else None
-        )
+        sections = [
+            Section(
+                rows=(
+                    Row("Φ", self.phi),
+                    Row("System", self._system_label()),
+                    Row("Current state", self.current_state),
+                )
+            )
+        ]
+        if self.partition is not None:
+            mip_rows = (Row("Partition", concise_partition(self.partition)),)
+            mip_body = (
+                (_cut_grid(self.partition),)
+                if self.partition.num_connections_cut()
+                else ()
+            )
+            sections.append(Section(label="MIP", rows=mip_rows, body=mip_body))
         return Description(
             title=cls,
-            sections=(
-                Section(
-                    rows=(
-                        Row("Φ", self.phi),
-                        Row("System", self._system_label()),
-                        Row("Current state", self.current_state),
-                        Row("Partition", partition_str),
-                    ),
-                ),
-            ),
+            sections=tuple(sections),
             compact=f"{cls}(Φ={format_value(self.phi)})",
         )
 

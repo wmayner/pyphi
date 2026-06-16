@@ -116,8 +116,14 @@ def render(description: Description, verbosity: int) -> str:  # noqa: ARG001
             blocks.append((section.label, _section_lines(section)))
 
     content_lines = [line for _, block in blocks for line in block]
+    # Card must be wide enough for the longest content line, the title, and every
+    # section-divider label (a label longer than the body would otherwise overflow
+    # the right border).
+    label_widths = [_vis_len(label) + 2 for label, _ in blocks if label]
     inner = max(
-        [_vis_len(line) for line in content_lines] + [_vis_len(description.title) + 2],
+        [_vis_len(line) for line in content_lines]
+        + [_vis_len(description.title) + 2]
+        + label_widths,
         default=0,
     )
 

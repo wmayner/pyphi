@@ -7,6 +7,7 @@ side-by-side), key/value grids, and real ``<table>`` elements for collections.
 
 from __future__ import annotations
 
+import re
 from html import escape
 
 from pyphi.display.description import Description
@@ -78,6 +79,18 @@ def _tone_style(tone: str | None) -> str:
     return f' style="color:{color}"' if color else ""
 
 
+# Trailing ``_x`` on a symbol denotes a subscript (e.g. ``φ_s`` -> φ-sub-s).
+_SUBSCRIPT_RE = re.compile(r"([^\s_])_([A-Za-z0-9]+)")
+
+
+def _sub(text: str) -> str:
+    """Render a symbol subscript as HTML ``<sub>`` (e.g. ``φ_s`` -> ``φ<sub>s</sub>``).
+
+    Applied to already-escaped label/header text, not to values or grid cells.
+    """
+    return _SUBSCRIPT_RE.sub(r"\1<sub>\2</sub>", text)
+
+
 def _value_html(value: object, extra: tuple[tuple[str, object], ...]) -> str:
     parts = [f'<span class="pyphi-v">{escape(format_value(value))}</span>']
     for name, val in extra:
@@ -91,7 +104,7 @@ def _value_html(value: object, extra: tuple[tuple[str, object], ...]) -> str:
 def _kv_html(rows: tuple[Row, ...]) -> str:
     cells = []
     for row in rows:
-        cells.append(f'<span class="pyphi-k">{escape(row.label)}</span>')
+        cells.append(f'<span class="pyphi-k">{_sub(escape(row.label))}</span>')
         val = _value_html(row.value, row.extra)
         cells.append(f'<span class="pyphi-vcell{_tone_cls(row.tone)}">{val}</span>')
     return f'<div class="pyphi-kv">{"".join(cells)}</div>'
@@ -131,7 +144,7 @@ def _table_html(table: Table) -> str:
     head_cells = []
     for i, h in enumerate(table.headers):
         tone = tones[i] if i < len(tones) else None
-        head_cells.append(f"<th{_tone_style(tone)}>{escape(h)}</th>")
+        head_cells.append(f"<th{_tone_style(tone)}>{_sub(escape(h))}</th>")
     head = "".join(head_cells)
     row_tones = table.row_tones
     body_rows = []
@@ -156,7 +169,7 @@ def _section_html(section: Section) -> str:
     parts = []
     if section.label:
         cls = f"pyphi-label{_tone_cls(section.tone)}"
-        parts.append(f'<div class="{cls}">{escape(section.label)}</div>')
+        parts.append(f'<div class="{cls}">{_sub(escape(section.label))}</div>')
     if section.rows:
         parts.append(_kv_html(section.rows))
     for comp in section.body:
@@ -182,9 +195,11 @@ def render(description: Description, verbosity: int) -> str:  # noqa: ARG001
         return _STYLE + f'<span class="pyphi-leaf">{escape(text)}</span>'
 
     title_cls = f"pyphi-title{_tone_cls(description.tone)}"
-    head = [f'<span class="{title_cls}">{escape(description.title)}</span>']
+    head = [f'<span class="{title_cls}">{_sub(escape(description.title))}</span>']
     if description.subtitle:
-        head.append(f'<span class="pyphi-badge">{escape(description.subtitle)}</span>')
+        head.append(
+            f'<span class="pyphi-badge">{_sub(escape(description.subtitle))}</span>'
+        )
     sections = "".join(_section_html(section) for section in description.sections)
     return (
         _STYLE

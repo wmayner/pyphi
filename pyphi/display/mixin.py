@@ -16,7 +16,20 @@ def _verbosity() -> int:
 
 
 class Displayable:
-    """Provides ``repr`` / ``str`` / HTML from a subclass ``_describe()`` hook."""
+    """Provides ``repr`` / ``str`` / HTML from a subclass ``_describe()`` hook.
+
+    Verbosity policy (read from ``config.infrastructure.repr_verbosity``):
+
+    - ``LOW`` (0): the one-line compact form only.
+    - ``MEDIUM`` (1): the full card minus expensive embedded TPM grids
+      (e.g. a ``Substrate``'s TPM, a ``System``'s conditioned cause/effect
+      TPMs — which require computing marginals).
+    - ``HIGH`` (2, the default): everything.
+
+    ``_describe(verbosity)`` honors this: it returns a compact-only
+    ``Description`` at ``LOW`` (so no heavy sections are built) and gates
+    embedded TPM grids behind ``HIGH``.
+    """
 
     def _describe(self, verbosity: int) -> Description:
         raise NotImplementedError
@@ -33,17 +46,24 @@ class Displayable:
     def _compact_repr(self) -> str:
         """A one-line summary suitable for embedding in another object's repr.
 
-        Returns the description's ``compact`` form when defined, regardless of
-        ``repr_verbosity``; otherwise falls back to the title.
+        Describes at ``LOW`` so the compact form is produced without building
+        the (potentially expensive) full card. Returns the description's
+        ``compact`` form when defined, otherwise the title.
         """
-        description = self._describe(_verbosity())
+        description = self._describe(LOW)
         return (
             description.compact if description.compact is not None else description.title
         )
 
     def _repr_html_(self) -> str:
         verbosity = _verbosity()
-        return render(self._describe(verbosity), backend="html", verbosity=verbosity)
+        description = self._describe(verbosity)
+        if verbosity == LOW and description.compact is not None:
+            # Match __repr__: a compact leaf, not a full card, at LOW.
+            description = Description(
+                title=description.title, compact=description.compact
+            )
+        return render(description, backend="html", verbosity=verbosity)
 
     def _repr_mimebundle_(self, **kwargs) -> dict[str, str]:  # noqa: ARG002
         return {"text/plain": str(self), "text/html": self._repr_html_()}

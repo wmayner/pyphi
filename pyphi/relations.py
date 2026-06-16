@@ -24,6 +24,7 @@ from .display import Description
 from .display import Displayable
 from .display import Row
 from .display import Section
+from .display import Table
 from .display.numbers import format_value
 from .display.tables import capped_table
 from .models import cmp
@@ -285,6 +286,26 @@ def _combinations_with_nonempty_congruent_overlap(
     )
 
 
+def relations_table(relations: Relations) -> Table | None:
+    """Capped display table of relations (relata, ``φ_r``, degree).
+
+    Returns ``None`` for relation sets that are not row-enumerable (e.g.
+    :class:`AnalyticalRelations`). The cap
+    (``config.infrastructure.repr_max_table_rows``) bounds how many rows are
+    materialized, so a huge relation set is not fully realized to display.
+    """
+    try:
+        iter(relations)  # type: ignore[arg-type]
+    except TypeError:
+        return None
+    return capped_table(
+        ("Relata (mechanisms)", "φ_r", "Degree"),
+        relations,  # type: ignore[arg-type]  # iterability guarded above
+        lambda r: (str(sorted(r.mechanisms)), r.phi, len(r)),
+        total=relations.num_relations(),
+    )
+
+
 class Relations(Displayable):
     """A set of relations among distinctions."""
 
@@ -312,21 +333,10 @@ class Relations(Displayable):
         cls = type(self).__name__
         num_r = self.num_relations()
         sum_phi_r = self.sum_phi()
-        # Only concrete (iterable) subclasses support row enumeration; the cap
-        # (config.infrastructure.repr_max_table_rows) bounds how many rows are
-        # materialized, so a huge relation set is not fully realized to display.
-        try:
-            iter(self)  # type: ignore[arg-type]
-        except TypeError:
-            relations_section = ()
-        else:
-            table = capped_table(
-                ("Relata (mechanisms)", "φ_r", "Degree"),
-                self,  # type: ignore[arg-type]  # iterability guarded above
-                lambda r: (str(sorted(r.mechanisms)), r.phi, len(r)),
-                total=num_r,
-            )
-            relations_section = (Section(label="Relations", body=(table,)),)
+        table = relations_table(self)
+        relations_section = (
+            (Section(label="Relations", body=(table,)),) if table is not None else ()
+        )
         return Description(
             title=cls,
             sections=(

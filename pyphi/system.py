@@ -19,10 +19,15 @@ import numpy as np
 from pyphi import connectivity
 from pyphi import utils
 from pyphi import validate
+from pyphi.display import HIGH
+from pyphi.display import LOW
 from pyphi.display import Description
 from pyphi.display import Displayable
+from pyphi.display import Row
+from pyphi.display import Section
 from pyphi.models.partitions import DirectedBipartition
 from pyphi.models.partitions import NullCut
+from pyphi.models.partitions import concise_partition
 from pyphi.substrate import Substrate
 from pyphi.substrate import _coerce_state_to_indices
 
@@ -155,10 +160,66 @@ class System(Displayable):
     def __len__(self) -> int:
         return len(self.node_indices)
 
-    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
-        labels = self.node_labels.coerce_to_labels(self.node_indices)
-        compact = f"System({', '.join(str(label) for label in labels)})"
-        return Description(title="System", compact=compact)
+    def _unit_labels(self) -> tuple[str, ...]:
+        """The system's per-unit display labels (node names), in node order."""
+        return tuple(
+            str(label) for label in self.node_labels.coerce_to_labels(self.node_indices)
+        )
+
+    def _describe(self, verbosity: int) -> Description:
+        from pyphi.core.tpm import _display
+
+        labels = list(self._unit_labels())
+        label_str = ", ".join(labels)
+        compact = f"System({label_str})"
+        if verbosity == LOW:
+            return Description(title="System", compact=compact)
+        state_str = ", ".join(
+            f"{label}={self.state[idx]}"
+            for label, idx in zip(labels, self.node_indices, strict=True)
+        )
+        rows = [
+            Row("Units", label_str),
+            Row("State", state_str),
+            Row("Substrate", f"{self.substrate.size} units"),
+        ]
+        if self.external_indices:
+            ext_labels = self.node_labels.coerce_to_labels(self.external_indices)
+            rows.append(
+                Row(
+                    "Background",
+                    ", ".join(
+                        f"{label}={self.state[idx]}"
+                        for label, idx in zip(
+                            ext_labels, self.external_indices, strict=True
+                        )
+                    ),
+                )
+            )
+        if not isinstance(self.partition, NullCut):
+            rows.append(Row("Cut", concise_partition(self.partition)))
+
+        subset_cm = self.substrate.cm[np.ix_(self.node_indices, self.node_indices)]
+        sections = [
+            Section(rows=tuple(rows)),
+            Section(
+                label="Connectivity",
+                body=(_display.connectivity_grid(labels, subset_cm),),
+            ),
+        ]
+        # The conditioned cause/effect marginals are the heavy part — compute
+        # them only at HIGH verbosity.
+        if verbosity >= HIGH:
+            cause = self.proper_cause_marginal.grid_section()
+            effect = self.proper_effect_marginal.grid_section()
+            sections.append(Section(label="Cause TPM", body=cause.body, tone="cause"))
+            sections.append(Section(label="Effect TPM", body=effect.body, tone="effect"))
+        return Description(
+            title="System",
+            subtitle=f"{len(self.node_indices)} units · {label_str}",
+            sections=tuple(sections),
+            compact=compact,
+        )
 
     def apply_cut(self, partition: DirectedBipartition) -> System:
         """Return a new System with the given partition applied.
@@ -244,7 +305,7 @@ class System(Displayable):
             if background_indices:
                 f = np.squeeze(f, axis=background_indices)
             system_factors.append(f)
-        return FactoredTPM(factors=system_factors)
+        return FactoredTPM(factors=system_factors, node_labels=self._unit_labels())
 
     @cached_property
     def proper_cause_marginal(self) -> FactoredTPM:
@@ -271,7 +332,7 @@ class System(Displayable):
             if background_indices:
                 f = np.squeeze(f, axis=background_indices)
             system_factors.append(f)
-        return FactoredTPM(factors=system_factors)
+        return FactoredTPM(factors=system_factors, node_labels=self._unit_labels())
 
     @cached_property
     def cm(self) -> Any:

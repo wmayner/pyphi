@@ -13,7 +13,6 @@ import math
 from collections.abc import Iterable
 from collections.abc import Mapping
 from itertools import chain
-from typing import TYPE_CHECKING
 from typing import Any
 
 import numpy as np
@@ -27,15 +26,16 @@ from pyphi.conf import config
 from pyphi.constants import OFF
 from pyphi.constants import ON
 from pyphi.data_structures import FrozenMap
+from pyphi.display import LOW
+from pyphi.display import Description
 from pyphi.display import Displayable
+from pyphi.display import Row
+from pyphi.display import Section
 from pyphi.utils import all_states
 from pyphi.utils import np_hash
 from pyphi.utils import np_immutable
 
 from . import _display
-
-if TYPE_CHECKING:
-    from pyphi.display import Description
 
 
 # TODO(tpm) remove pending ArrayLike refactor
@@ -514,17 +514,29 @@ class JointTPM(Displayable, JointDistribution):
             cm[a][b] = self.infer_edge(a, b, all_contexts)
         return cm
 
-    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+    def _describe(self, verbosity: int) -> Description:
+        if verbosity == LOW:  # one-liner without materializing the grid
+            n = self.number_of_units
+            return Description(
+                title="JointTPM", compact=f"JointTPM({n} units, {2**n} states)"
+            )
         multidim = self.to_multidimensional_state_by_node()
         n = int(multidim.shape[-1])
         axis_sizes = multidim.shape[:-1]
         total = int(math.prod(axis_sizes)) if axis_sizes else 1
-        return _display.state_by_node_description(
-            title="JointTPM",
-            compact=f"JointTPM({n} units, {total} states)",
+        grid = _display.state_by_node_grid(
             unit_labels=[str(i) for i in range(n)],
             state_axis_sizes=axis_sizes,
             prob_on_for_state=lambda state: multidim[state],
+        )
+        return Description(
+            title="JointTPM",
+            subtitle=f"{n} units · {total} states",
+            sections=(
+                Section(rows=(Row("Units", n), Row("States", total))),
+                Section(label="P(next unit on | current state)", body=(grid,)),
+            ),
+            compact=f"JointTPM({n} units, {total} states)",
         )
 
     def to_xarray(self) -> Any:

@@ -274,9 +274,7 @@ class OptionalEMD:
                 ) from exc
         return self._ot
 
-    def compute(
-        self, first_histogram, second_histogram, distance_matrix
-    ) -> float:
+    def compute(self, first_histogram, second_histogram, distance_matrix) -> float:
         first = np.asarray(first_histogram, dtype=float)
         second = np.asarray(second_histogram, dtype=float)
         # POT's network simplex normalizes by total mass and returns NaN (with a
@@ -290,9 +288,7 @@ class OptionalEMD:
         # callers pass equal-mass distributions (normalized repertoires, or the
         # balanced phi signatures in ``ces.py``), and the check only warns -- it
         # does not affect the computed cost.
-        return float(
-            self.ot.emd2(first, second, distance_matrix, check_marginals=False)
-        )
+        return float(self.ot.emd2(first, second, distance_matrix, check_marginals=False))
 
 
 # Usage
@@ -1137,7 +1133,9 @@ intrinsic_specification = generalized_intrinsic_difference  # alias
 
 
 def pointwise_intrinsic_differentiation(p):
-    return -np.log2(p, where=(p > 0))
+    p = np.asarray(p, dtype=float)
+    out = np.zeros_like(p)
+    return -np.log2(p, out=out, where=(p > 0))
 
 
 @state_aware_measures.register("INTRINSIC_DIFFERENTIATION")
