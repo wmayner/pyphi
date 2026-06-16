@@ -33,6 +33,7 @@ from pyphi.models import AcSystemIrreducibilityAnalysis
 from pyphi.models import CausalLink
 from pyphi.models import DirectedAccount
 from pyphi.models import DirectedJointPartition
+from pyphi.models import NullResultReason
 from pyphi.models import _null_ac_ria
 from pyphi.models import _null_ac_sia
 from pyphi.parallel import MapReduce
@@ -207,7 +208,11 @@ def _find_mip(
     """
     if not purview:
         return _null_ac_ria(
-            transition.mechanism_state(direction), direction, mechanism, purview
+            transition.mechanism_state(direction),
+            direction,
+            mechanism,
+            purview,
+            reasons=[NullResultReason.EMPTY_PURVIEW],
         )
 
     probability = transition.probability(direction, mechanism, purview)
@@ -234,6 +239,7 @@ def _find_mip(
                 mechanism,
                 purview,
                 partition,
+                reasons=[NullResultReason.REDUCIBLE_OVER_PARTITION],
             )
         candidates.append(
             AcRepertoireIrreducibilityAnalysis(
@@ -299,7 +305,11 @@ def _find_causal_link(
     # Find the maximal RIA over the remaining purviews.
     if not purviews:
         max_ria = _null_ac_ria(
-            transition.mechanism_state(direction), direction, mechanism, None
+            transition.mechanism_state(direction),
+            direction,
+            mechanism,
+            None,
+            reasons=[NullResultReason.NO_PURVIEWS],
         )
         return CausalLink(max_ria)
 
@@ -505,14 +515,16 @@ def _sia(
 
     if not transition:
         log.info("Transition %s is empty; returning null SIA immediately.", transition)
-        return _null_ac_sia(transition, direction)
+        return _null_ac_sia(transition, direction, reasons=[NullResultReason.NO_SYSTEM])
 
     if not connectivity.is_weak(transition.substrate.cm, transition.node_indices):
         log.info(
             "%s is not strongly/weakly connected; returning null SIA immediately.",
             transition,
         )
-        return _null_ac_sia(transition, direction)
+        return _null_ac_sia(
+            transition, direction, reasons=[NullResultReason.NO_WEAK_CONNECTIVITY]
+        )
 
     log.debug("Finding unpartitioned account...")
     unpartitioned_account = _account(
@@ -525,7 +537,11 @@ def _sia(
 
     if not unpartitioned_account:
         log.info("Empty unpartitioned account; returning null AC SIA immediately.")
-        return _null_ac_sia(transition, direction)
+        return _null_ac_sia(
+            transition,
+            direction,
+            reasons=[NullResultReason.EMPTY_CAUSE_EFFECT_STRUCTURE],
+        )
 
     cuts = _get_partitions(transition, direction)
 

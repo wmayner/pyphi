@@ -12,6 +12,7 @@ def test_level_partition_is_correct():
     system = {
         NullResultReason.NO_SYSTEM,
         NullResultReason.NO_STRONG_CONNECTIVITY,
+        NullResultReason.NO_WEAK_CONNECTIVITY,
         NullResultReason.MONAD_WITH_NO_SELFLOOP,
         NullResultReason.MONAD_WITH_SELFLOOP_DEFINED_TO_BE_ZERO_PHI,
         NullResultReason.NO_VALID_PARTITIONS,
@@ -67,3 +68,18 @@ def test_iit3_null_sia_carries_reason(s_empty):
         analysis = iit3.sia(s_empty)
     assert analysis.phi == 0
     assert NullResultReason.NO_SYSTEM in (analysis.reasons or [])
+
+
+def test_ac_null_sia_carries_reason():
+    from pyphi import actual
+    from pyphi import examples
+    from pyphi.direction import Direction
+
+    substrate = examples.actual_causation_substrate()
+    # Over the OR-AND substrate this transition has an empty unpartitioned
+    # account in the cause direction, so the AC SIA short-circuits to alpha = 0.
+    transition = actual.Transition(substrate, (1, 1), (0, 0), (0,), (1,))
+    sia = actual.sia(transition, Direction.CAUSE)
+    assert float(sia.alpha) == 0
+    assert NullResultReason.EMPTY_CAUSE_EFFECT_STRUCTURE in (sia.reasons or [])
+    assert all(isinstance(r, NullResultReason) for r in sia.reasons)

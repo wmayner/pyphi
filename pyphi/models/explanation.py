@@ -29,6 +29,7 @@ class NullResultReason(Enum):
     # System level
     NO_SYSTEM = auto()
     NO_STRONG_CONNECTIVITY = auto()
+    NO_WEAK_CONNECTIVITY = auto()
     MONAD_WITH_NO_SELFLOOP = auto()
     MONAD_WITH_SELFLOOP_DEFINED_TO_BE_ZERO_PHI = auto()
     NO_VALID_PARTITIONS = auto()

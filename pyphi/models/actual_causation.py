@@ -88,6 +88,7 @@ class AcRepertoireIrreducibilityAnalysis(Displayable, cmp.Orderable):
         probability,
         partitioned_probability,
         node_labels=None,
+        reasons=None,
     ):
         self.alpha = alpha
         self.state = state
@@ -98,6 +99,7 @@ class AcRepertoireIrreducibilityAnalysis(Displayable, cmp.Orderable):
         self.probability = probability
         self.partitioned_probability = partitioned_probability
         self.node_labels = node_labels
+        self.reasons = reasons or []
         self._partition_ties: tuple[AcRepertoireIrreducibilityAnalysis, ...] | None = (
             None
         )
@@ -237,8 +239,12 @@ class AcRepertoireIrreducibilityAnalysis(Displayable, cmp.Orderable):
         )
 
 
-def _null_ac_ria(state, direction, mechanism, purview, partition=None):
-    """The irreducibility AC analysis for a reducible causal link."""
+def _null_ac_ria(state, direction, mechanism, purview, partition=None, reasons=None):
+    """The irreducibility AC analysis for a reducible causal link.
+
+    ``reasons`` records why (a list of
+    :class:`~pyphi.models.explanation.NullResultReason`).
+    """
     return AcRepertoireIrreducibilityAnalysis(
         state=state,
         direction=direction,
@@ -248,6 +254,7 @@ def _null_ac_ria(state, direction, mechanism, purview, partition=None):
         probability=None,
         partitioned_probability=None,
         alpha=0.0,
+        reasons=reasons,
     )
 
 
@@ -560,6 +567,7 @@ class AcSystemIrreducibilityAnalysis(Displayable, cmp.Orderable):
         effect_indices=None,
         node_labels=None,
         config=None,
+        reasons=None,
     ):
         self.alpha = alpha  # type: ignore[assignment]
         self.direction = direction
@@ -573,6 +581,7 @@ class AcSystemIrreducibilityAnalysis(Displayable, cmp.Orderable):
         self.cause_indices = cause_indices
         self.effect_indices = effect_indices
         self.node_labels = node_labels
+        self.reasons = reasons or []
         # ConfigSnapshot of the layered config at construction time.
         # Lazy-snapshot if None: callers that don't pass one still get a
         # recorded config (matching SystemIrreducibilityAnalysis).
@@ -705,9 +714,10 @@ class AcSystemIrreducibilityAnalysis(Displayable, cmp.Orderable):
         return {attr: getattr(self, attr) for attr in attrs}
 
 
-def _null_ac_sia(transition, direction, alpha=0.0):
+def _null_ac_sia(transition, direction, alpha=0.0, reasons=None):
     """Return an |AcSystemIrreducibilityAnalysis| with zero |big_alpha| and
-    empty accounts.
+    empty accounts. ``reasons`` records why (a list of
+    :class:`~pyphi.models.explanation.NullResultReason`).
     """
     return AcSystemIrreducibilityAnalysis(
         direction=direction,
@@ -722,4 +732,5 @@ def _null_ac_sia(transition, direction, alpha=0.0):
         cause_indices=transition.cause_indices,
         effect_indices=transition.effect_indices,
         node_labels=transition.substrate.node_labels,
+        reasons=reasons,
     )
