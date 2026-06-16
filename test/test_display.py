@@ -361,7 +361,7 @@ def test_ria_describe_structure():
     d = ria._describe(2)
     assert d.title == "RepertoireIrreducibilityAnalysis"
     labels = [r.label for sec in d.sections for r in sec.rows]
-    assert "Small phi" in labels
+    assert "φ" in labels
     assert "Direction" in labels
     assert "Mechanism" in labels
     assert "Purview" in labels
@@ -397,7 +397,7 @@ def test_mice_describe_structure():
     d = mic._describe(2)
     assert d.title.startswith("MaximallyIrreducible")
     labels = [r.label for sec in d.sections for r in sec.rows]
-    assert "Small phi" in labels
+    assert "φ" in labels
     assert "Purview ties" in labels
 
 

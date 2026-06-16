@@ -396,7 +396,7 @@ class RepertoireIrreducibilityAnalysis(
         mech = fmt.fmt_mechanism(self.mechanism, self.node_labels)
         purv = fmt.fmt_mechanism(self.purview, self.node_labels)
         rows: list[Row] = [
-            Row("Small phi", self.phi),
+            Row(fmt.SMALL_PHI, self.phi),
             Row(f"Normalized {fmt.SMALL_PHI}", self.normalized_phi),
             Row(
                 "Direction",
@@ -407,12 +407,8 @@ class RepertoireIrreducibilityAnalysis(
         ]
         if self.specified_state is not None:
             ss = self.specified_state
-            dir_name = ss.direction.name if ss.direction is not None else "?"
-            state_str = (
-                f"{dir_name} state={fmt.state(ss.state)}"
-                f" II={format_value(ss.intrinsic_information)}"
-            )
-            rows.append(Row("Specified state", state_str))
+            rows.append(Row("Specified state", ss.state))
+            rows.append(Row("Intrinsic information", ss.intrinsic_information))
         if self.selectivity is not None:
             rows.append(Row("Selectivity", self.selectivity))
         partition_str = str(self.partition) if self.partition else "empty"
@@ -433,12 +429,12 @@ class RepertoireIrreducibilityAnalysis(
             else:
                 mark_states = []
             if self.repertoire.size == 1:
-                body_components.append(Inline(f"Forward Pr: {self.repertoire.item()!r}"))
+                rows.append(Row("Forward probability", self.repertoire.item()))
                 if self.partitioned_repertoire is not None:
-                    body_components.append(
-                        Inline(
-                            f"Partitioned forward Pr: "
-                            f"{self.partitioned_repertoire.item()!r}"
+                    rows.append(
+                        Row(
+                            "Partitioned forward probability",
+                            self.partitioned_repertoire.item(),
                         )
                     )
             else:
