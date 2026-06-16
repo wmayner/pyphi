@@ -184,7 +184,11 @@ def ces(
     if sia is None:
         sia = _sia(system, **sia_kwargs)
     if distinctions is None:
-        distinctions = _compute_distinctions(system, **distinctions_kwargs)
+        cached = sia.distinctions
+        if cached is not None and not distinctions_kwargs:
+            distinctions = cached
+        else:
+            distinctions = _compute_distinctions(system, **distinctions_kwargs)
 
     if not isinstance(distinctions, ResolvedDistinctions):
         distinctions = ResolvedDistinctions(distinctions)
@@ -426,6 +430,10 @@ def _sia(system: System, **kwargs: Any) -> IIT3SystemIrreducibilityAnalysis:
         cuts = sia_partitions(system.partition_indices, system.partition_node_labels)
 
     result = _sia_map_reduce(cuts, system, unpartitioned_ces, **kwargs)
+
+    # Attach the unpartitioned distinctions already computed above so that
+    # ``ces`` can reuse them rather than recomputing.
+    result.distinctions = unpartitioned_ces
 
     if config.infrastructure.clear_system_caches_after_computing_sia:
         log.debug("Clearing system caches.")

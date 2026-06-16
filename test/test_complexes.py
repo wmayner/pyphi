@@ -326,23 +326,43 @@ def test_iit3_ces_returns_cause_effect_structure(s):
     assert result.distinctions is not None
 
 
-def test_iit3_sia_no_longer_carries_unpartitioned_ces(s):
-    """IIT 3.0 SIA stores partitioned_distinctions but not ces or substrate.
+def test_iit3_sia_carries_unpartitioned_distinctions(s):
+    """IIT 3.0 SIA exposes both unpartitioned and partitioned distinctions.
 
-    The unpartitioned distinctions live on the wrapping CauseEffectStructure.
+    ``distinctions`` is the unpartitioned cause-effect structure (computed in
+    the course of the big-phi analysis); ``partitioned_distinctions`` is the
+    MIP-cut structure. The SIA does not expose ``ces``, ``substrate``, or
+    ``partitioned_ces``.
     """
     with config.override(**presets.iit3):
         sia = iit3.sia(s)
 
-    assert not hasattr(sia, "ces"), (
-        "sia.ces removed; access via iit3.ces(s).distinctions"
-    )
+    assert not hasattr(sia, "ces"), "no sia.ces; use sia.distinctions"
     assert not hasattr(sia, "substrate"), (
         "sia.substrate removed; callers hold it externally"
     )
     assert not hasattr(sia, "partitioned_ces"), "renamed to partitioned_distinctions"
+
+    assert hasattr(sia, "distinctions"), "unpartitioned CES attached to the SIA"
+    assert sia.distinctions is not None
     assert hasattr(sia, "partitioned_distinctions"), "compute receipt of the MIP"
     assert sia.partitioned_distinctions is not None
+
+
+def test_iit3_ces_reuses_sia_distinctions(s):
+    """``ces`` reuses the SIA's unpartitioned distinctions rather than recomputing."""
+    from unittest.mock import patch
+
+    with config.override(**presets.iit3):
+        sia = iit3.sia(s)
+        assert sia.distinctions is not None
+
+        with patch.object(iit3, "_compute_distinctions") as mock_compute:
+            result = iit3.ces(s, sia=sia)
+
+    mock_compute.assert_not_called()
+    assert result.distinctions is not None
+    assert list(result.distinctions.mechanisms) == list(sia.distinctions.mechanisms)
 
 
 class TestComplexWrapperIIT40:

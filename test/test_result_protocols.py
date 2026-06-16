@@ -155,7 +155,9 @@ def test_iit3_sia_json_round_trip(s):
     assert isinstance(decoded, IIT3SystemIrreducibilityAnalysis)
     assert decoded.phi == sia.phi
     assert decoded.partition == sia.partition
+    assert decoded.distinctions == sia.distinctions
     assert decoded.partitioned_distinctions == sia.partitioned_distinctions
+    assert decoded == sia
 
 
 def test_iit4_sia_json_round_trip(s):

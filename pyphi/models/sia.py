@@ -19,6 +19,7 @@ from pyphi.display import Section
 from pyphi.display.numbers import format_value
 
 from . import cmp
+from .distinctions import Distinctions
 from .distinctions import _null_ces
 from .partitions import concise_partition
 
@@ -41,6 +42,12 @@ class IIT3SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
         phi (float): The |big_phi| value for the system, *i.e.* the distance
             between the unpartitioned and partitioned cause-effect structures
             under the minimum-information partition.
+        distinctions (Distinctions): The cause-effect structure of the
+            unpartitioned system, computed in the course of the |big_phi|
+            analysis. ``None`` when the analysis short-circuited to zero
+            |big_phi| before the cause-effect structure was computed (*e.g.*
+            the system is not strongly connected); retrieve it via
+            :func:`pyphi.formalism.iit3.ces` in that case.
         partitioned_distinctions (Distinctions): The cause-effect structure
             when the system is partitioned according to the MIP.
         partition (DirectedBipartition): The minimum-information partition.
@@ -56,6 +63,7 @@ class IIT3SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
     def __init__(
         self,
         phi=None,
+        distinctions: Distinctions | None = None,
         partitioned_distinctions=None,
         partition=None,
         node_indices=None,
@@ -73,6 +81,7 @@ class IIT3SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
                 self.phi = phi  # type: ignore[assignment]
             else:
                 self.phi = PyPhiFloat(phi)  # type: ignore[assignment]
+        self.distinctions = distinctions
         self.partitioned_distinctions = partitioned_distinctions
         self.partition = partition
         self.node_indices = node_indices
@@ -124,6 +133,8 @@ class IIT3SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
     def __eq__(self, other: object) -> bool:  # noqa: PLR0911
         if not isinstance(other, IIT3SystemIrreducibilityAnalysis):
             return NotImplemented
+        if self.distinctions != other.distinctions:
+            return False
         if self.partitioned_distinctions != other.partitioned_distinctions:
             return False
         if self.partition != other.partition:
@@ -145,6 +156,7 @@ class IIT3SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
     def __hash__(self) -> int:
         return hash(
             (
+                self.distinctions,
                 self.partitioned_distinctions,
                 self.partition,
                 self.node_indices,
@@ -182,6 +194,7 @@ class IIT3SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
             attr: getattr(self, attr)
             for attr in (
                 "phi",
+                "distinctions",
                 "partitioned_distinctions",
                 "partition",
                 "node_indices",
