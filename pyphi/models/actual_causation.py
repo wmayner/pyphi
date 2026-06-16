@@ -17,6 +17,8 @@ from pyphi.display import Section
 from pyphi.display import tone_of
 from pyphi.display.numbers import format_value
 from pyphi.display.tables import capped_table
+from pyphi.models.explanation import Explanation
+from pyphi.models.explanation import Finding
 
 from . import cmp
 from . import fmt
@@ -162,6 +164,29 @@ class AcRepertoireIrreducibilityAnalysis(Displayable, cmp.Orderable):
     def phi(self):
         """Alias for |alpha| for PyPhi utility functions."""
         return self.alpha
+
+    def explain(self) -> Explanation:
+        """A typed account of why this actual cause/effect link's |alpha| came
+        out as it did."""
+        findings = [
+            Finding(kind="null_result", label="Null result", value=reason)
+            for reason in (self.reasons or [])
+        ]
+        if self.purview:
+            findings.append(Finding(kind="purview", label="Purview", value=self.purview))
+        if self.partition is not None:
+            findings.append(
+                Finding(
+                    kind="winning_partition",
+                    label="Partition",
+                    value=concise_partition(self.partition),
+                )
+            )
+        return Explanation(
+            subject=f"α = {format_value(self.alpha)}",  # noqa: RUF001
+            level="mechanism",
+            findings=tuple(findings),
+        )
 
     def __hash__(self) -> int:
         return hash(
@@ -513,6 +538,24 @@ class Account(Displayable, cmp.Orderable, Sequence):
             compact=(f"{cls}({num_links} links, Σα={format_value(self._sum_alpha)})"),
         )
 
+    def explain(self) -> Explanation:
+        """A typed account listing each irreducible causal link with its
+        |alpha|."""
+        findings = [
+            Finding(
+                kind="link",
+                label=f"{link.direction}: {link.mechanism} → {link.purview}",
+                value=link.alpha,
+                tone=tone_of(link.direction),
+            )
+            for link in self.causal_links
+        ]
+        return Explanation(
+            subject=f"Account ({len(self.causal_links)} links)",
+            level="system",
+            findings=tuple(findings),
+        )
+
     def to_json(self):
         return {"causal_links": tuple(self)}
 
@@ -635,6 +678,29 @@ class AcSystemIrreducibilityAnalysis(Displayable, cmp.Orderable):
                 ),
             ),
             compact=f"{cls}(α={format_value(self.alpha)})",  # noqa: RUF001
+        )
+
+    def explain(self) -> Explanation:
+        """A typed account of why this transition's |big_alpha| came out as it
+        did. A runner-up / alpha-gap is not retained for actual causation."""
+        findings = [
+            Finding(kind="null_result", label="Null result", value=reason)
+            for reason in (self.reasons or [])
+        ]
+        # A null short-circuit's partition is the trivial default, not a MIP;
+        # only a computed result has a meaningful winning partition.
+        if not self.reasons and self.partition is not None:
+            findings.append(
+                Finding(
+                    kind="winning_partition",
+                    label="Partition",
+                    value=concise_partition(self.partition),
+                )
+            )
+        return Explanation(
+            subject=f"α = {format_value(self.alpha)}",  # noqa: RUF001
+            level="system",
+            findings=tuple(findings),
         )
 
     def is_orderable_with(self, other: object) -> bool:

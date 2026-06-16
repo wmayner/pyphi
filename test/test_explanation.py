@@ -163,3 +163,25 @@ def test_mechanism_explain(s):
     mice_expl = distinction.cause.explain()
     assert mice_expl.level == "mechanism"
     assert any(f.kind == "winning_partition" for f in mice_expl.findings)
+
+
+def test_ac_explain():
+    from pyphi import actual
+    from pyphi import examples
+    from pyphi.direction import Direction
+
+    # A null AC SIA explains its short-circuit reason.
+    substrate = examples.actual_causation_substrate()
+    null_t = actual.Transition(substrate, (1, 1), (0, 0), (0,), (1,))
+    null_expl = actual.sia(null_t, Direction.CAUSE).explain()
+    assert null_expl.level == "system"
+    assert null_expl.subject.startswith("α")  # noqa: RUF001
+    assert any(f.kind == "null_result" for f in null_expl.findings)
+
+    # An account explains its causal links.
+    t = examples.prevention_transition()
+    account = actual.account(t, Direction.BIDIRECTIONAL)
+    acc_expl = account.explain()
+    assert acc_expl.level == "system"
+    assert len(acc_expl.findings) == len(account)
+    assert all(f.kind == "link" for f in acc_expl.findings)
