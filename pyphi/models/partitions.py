@@ -94,7 +94,7 @@ def _cut_grid(partition: _PartitionBase) -> Table:
         )
         for r in range(len(indices))
     )
-    return Table(headers=("", *labels), rows=rows)
+    return Table(headers=("", *labels), rows=rows, grid=True)
 
 
 def _partition_description(partition: _PartitionBase, concise: str) -> Description:

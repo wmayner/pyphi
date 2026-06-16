@@ -926,3 +926,23 @@ def test_ces_distinctions_table_truncates_under_config_cap():
     with pyphi.config.override(repr_max_table_rows=1):
         out = repr(ces)
     assert "… 1 more" in out  # 2 distinctions, cap 1 -> 1 hidden
+
+
+def test_distinctions_table_colors_cause_effect_purview_headers():
+    pyphi.config.progress_bars = False
+    h = pyphi.examples.basic_system().ces()._repr_html_()
+    assert 'class="pyphi-cause">Cause purview' in h
+    assert 'class="pyphi-effect">Effect purview' in h
+
+
+def test_cut_grid_html_uses_inline_alignment():
+    from pyphi.direction import Direction
+    from pyphi.display.render.html import _table_html
+    from pyphi.models.partitions import DirectedBipartition
+    from pyphi.models.partitions import _cut_grid
+
+    html = _table_html(_cut_grid(DirectedBipartition(Direction.EFFECT, (0,), (1, 2))))
+    assert "pyphi-grid" in html
+    assert "text-align:center" in html  # data/header columns centered inline
+    assert "text-align:right" in html  # row-label column
+    assert "pyphi-scroll" not in html  # grids are not wrapped/scrolled

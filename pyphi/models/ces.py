@@ -38,6 +38,7 @@ from pyphi.display.numbers import format_value
 from pyphi.display.tables import capped_table
 
 from . import cmp
+from .distinctions import DISTINCTION_HEADER_TONES
 from .distinctions import DISTINCTION_HEADERS
 from .distinctions import ResolvedDistinctions
 from .distinctions import distinction_table_row
@@ -122,6 +123,7 @@ class CauseEffectStructure(Displayable, cmp.Orderable):
                 self.distinctions,
                 distinction_table_row,
                 total=num_d,
+                header_tones=DISTINCTION_HEADER_TONES,
             ),
         )
 
@@ -258,6 +260,7 @@ class PhiFold(CauseEffectStructure):
                 self.distinctions,
                 distinction_table_row,
                 total=num_d,
+                header_tones=DISTINCTION_HEADER_TONES,
             ),
         )
 

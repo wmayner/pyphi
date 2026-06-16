@@ -101,6 +101,7 @@ def _get_state(mice):
 
 
 DISTINCTION_HEADERS = ("Mechanism", "φ_d", "Cause purview", "Effect purview")
+DISTINCTION_HEADER_TONES = (None, None, "cause", "effect")
 
 
 def distinction_table_row(d: Any) -> tuple[Any, ...]:
@@ -147,7 +148,11 @@ class Distinctions(Displayable, cmp.Orderable, Sequence, ToPandasMixin):
         num_d = len(self)
         sum_phi_d = self.sum_phi()
         table = capped_table(
-            DISTINCTION_HEADERS, self, distinction_table_row, total=num_d
+            DISTINCTION_HEADERS,
+            self,
+            distinction_table_row,
+            total=num_d,
+            header_tones=DISTINCTION_HEADER_TONES,
         )
         return Description(
             title=cls,

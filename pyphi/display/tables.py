@@ -17,16 +17,20 @@ def capped_table(
     row: Callable[[Any], tuple[Any, ...]],
     total: int,
     cap: int | None = None,
+    header_tones: tuple[str | None, ...] = (),
 ) -> Table:
     """Build a :class:`Table` from the first ``cap`` items, recording overflow.
 
     ``total`` is the full collection size; ``cap`` defaults to
     ``config.infrastructure.repr_max_table_rows``. Only ``cap`` items are
     materialized, so a huge collection (e.g. millions of relations) is not
-    fully realized just to display a handful of rows.
+    fully realized just to display a handful of rows. ``header_tones`` optionally
+    color individual column headers (HTML only).
     """
     if cap is None:
         cap = config.infrastructure.repr_max_table_rows
     rows = tuple(row(item) for item in islice(items, cap))
     overflow = max(0, total - len(rows))
-    return Table(headers=headers, rows=rows, overflow=overflow)
+    return Table(
+        headers=headers, rows=rows, overflow=overflow, header_tones=header_tones
+    )

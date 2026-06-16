@@ -35,6 +35,9 @@ class Table:
     headers: tuple[str, ...]
     rows: tuple[tuple[Any, ...], ...]
     overflow: int = 0
+    grid: bool = False  # matrix-style (e.g. a cut grid): tight, center-aligned
+    # Optional per-column semantic tone for the header cells (HTML colors them).
+    header_tones: tuple[str | None, ...] = ()
 
 
 @dataclass(frozen=True)

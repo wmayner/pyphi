@@ -42,12 +42,17 @@ _STYLE = """\
 table.pyphi-table{border-collapse:collapse;width:100%;font-size:12px}
 table.pyphi-table th{text-align:left;color:#57606a;font-weight:600;
  border-bottom:1px solid #d0d7de;padding:3px 12px 3px 0}
-table.pyphi-table td{padding:3px 12px 3px 0;border-bottom:1px solid #f0f2f4;
+table.pyphi-table td{text-align:left;padding:3px 12px 3px 0;
+ border-bottom:1px solid #f0f2f4;
  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 .pyphi-scroll{max-height:18em;overflow:auto}
 .pyphi-more{color:#8b949e;font-size:12px;padding:3px 0}
 .pyphi-cause{color:#D55C00}
 .pyphi-effect{color:#009E73}
+table.pyphi-grid{width:auto}
+table.pyphi-grid th,table.pyphi-grid td{text-align:center;padding:3px 9px}
+table.pyphi-grid th:first-child,table.pyphi-grid td:first-child{
+ text-align:right;color:#57606a;font-weight:600}
 </style>"""
 
 
@@ -75,8 +80,36 @@ def _kv_html(rows: tuple[Row, ...]) -> str:
     return f'<div class="pyphi-kv">{"".join(cells)}</div>'
 
 
+def _grid_cells(values: tuple[object, ...], tag: str) -> str:
+    # Inline text-align so a matrix grid aligns in every notebook front-end
+    # (some, e.g. VS Code, override class-based table alignment); the first
+    # column is the row label (right-aligned), the rest center.
+    out = []
+    for i, v in enumerate(values):
+        align = "right" if i == 0 else "center"
+        out.append(
+            f'<{tag} style="text-align:{align};padding:3px 9px">'
+            f"{escape(format_value(v))}</{tag}>"
+        )
+    return "".join(out)
+
+
 def _table_html(table: Table) -> str:
-    head = "".join(f"<th>{escape(h)}</th>" for h in table.headers)
+    if table.grid:
+        head = f"<tr>{_grid_cells(table.headers, 'th')}</tr>"
+        body = "".join(f"<tr>{_grid_cells(row, 'td')}</tr>" for row in table.rows)
+        return (
+            '<table class="pyphi-table pyphi-grid" '
+            'style="border-collapse:collapse;width:auto">'
+            f"{head}{body}</table>"
+        )
+    tones = table.header_tones
+    head_cells = []
+    for i, h in enumerate(table.headers):
+        tone = tones[i] if i < len(tones) else None
+        cls = f' class="pyphi-{tone}"' if tone in ("cause", "effect") else ""
+        head_cells.append(f"<th{cls}>{escape(h)}</th>")
+    head = "".join(head_cells)
     body = "".join(
         "<tr>" + "".join(f"<td>{escape(format_value(c))}</td>" for c in row) + "</tr>"
         for row in table.rows
