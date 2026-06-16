@@ -14,6 +14,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from pyphi import utils
 from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
@@ -130,3 +131,58 @@ class ResultDiff(Displayable):
                 for path, (a, b) in self.config_diff.items()
             )
         return records_to_frame(rows, columns=["category", "key", "a", "b"])
+
+
+def _phi_of(result: Any) -> Any:
+    """The scalar this result is ordered by (φ for IIT, alpha for AC)."""
+    return getattr(result, "alpha", None) if hasattr(result, "alpha") else result.phi
+
+
+def _mip_changed(a: Any, b: Any) -> bool:
+    """True iff b's MIP partition is not one a could co-optimally have chosen.
+
+    Uses ``lex_key`` over a's tie set (which already encodes EQUALITY_TOLERANCE
+    from tie resolution). Falls back to a tolerance-aware lex_key inequality for
+    results without a ``.ties`` set.
+    """
+    a_part = getattr(a, "partition", None)
+    b_part = getattr(b, "partition", None)
+    if a_part is None or b_part is None:
+        return a_part is not b_part
+    ties = getattr(a, "ties", None)
+    if ties:
+        a_tie_keys = {t.partition.lex_key() for t in ties if t.partition is not None}
+        return b_part.lex_key() not in a_tie_keys
+    # Fallback: a real change only if the partition differs AND phi differs.
+    if b_part.lex_key() == a_part.lex_key():
+        return False
+    return not utils.eq(float(_phi_of(a)), float(_phi_of(b)))
+
+
+def _config_diff(a: Any, b: Any) -> dict[str, tuple[Any, Any]]:
+    a_cfg = getattr(a, "config", None)
+    b_cfg = getattr(b, "config", None)
+    if a_cfg is None or b_cfg is None:
+        return {}
+    return a_cfg.diff(b_cfg)
+
+
+def _substrate_note(a: Any, b: Any) -> str | None:
+    a_idx = getattr(a, "node_indices", None)
+    b_idx = getattr(b, "node_indices", None)
+    if a_idx is not None and b_idx is not None and a_idx != b_idx:
+        return f"substrates differ ({a_idx} vs {b_idx}); deltas keyed by mechanism"
+    return None
+
+
+def _diff_common(a: Any, b: Any) -> dict[str, Any]:
+    """Shared scalar deltas every result type's diff() reuses."""
+    from pyphi.data_structures import PyPhiFloat
+
+    delta = PyPhiFloat(float(_phi_of(b)) - float(_phi_of(a)))
+    return {
+        "delta_phi": delta,
+        "mip_changed": _mip_changed(a, b),
+        "config_diff": _config_diff(a, b),
+        "substrate_note": _substrate_note(a, b),
+    }
