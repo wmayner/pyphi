@@ -461,28 +461,20 @@ def joint_bipartitions(
         purview (tuple[int]): The purview to partition
 
     Yields:
-        JointBipartition: Where each bipartition is::
-
-            bipart[0].mechanism   bipart[1].mechanism
-            ─────────────────── ✕ ───────────────────
-            bipart[0].purview     bipart[1].purview
+        JointBipartition: Where each bipartition is rendered as
+        ``mech0/purview0 × mech1/purview1`` (∅ denotes an empty set).
 
     Example:
         >>> mechanism = (0,)
         >>> purview = (2, 3)
         >>> for partition in joint_bipartitions(mechanism, purview):
         ...     print(partition, '\n')  # doctest: +NORMALIZE_WHITESPACE
-         ∅     0
-        ─── ✕ ───
-         2     3
+        ∅/2 × 0/3
         <BLANKLINE>
-         ∅     0
-        ─── ✕ ───
-         3     2
+        ∅/3 × 0/2
         <BLANKLINE>
-         ∅     0
-        ─── ✕ ───
-        2,3    ∅
+        ∅/2,3 × 0/∅
+        <BLANKLINE>
     """
     numerators = bipartition(mechanism)
     denominators = directed_bipartition(purview)

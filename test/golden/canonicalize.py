@@ -84,8 +84,16 @@ def canonical_partition(partition: Any) -> list:
         # Sort parts canonically
         return sorted(parts)
     except TypeError:
-        # Fallback: stringify
-        return [[str(partition)]]
+        pass
+
+    # Structural fallback via the cut matrix (display-independent): captures the
+    # exact severed connections for set-partition / edge-cut style partitions
+    # without depending on the partition's ``str`` form.
+    if hasattr(partition, "cut_matrix") and hasattr(partition, "node_indices"):
+        indices = tuple(partition.node_indices)
+        n = max(indices) + 1 if indices else 0
+        return partition.cut_matrix(n).astype(int).tolist()
+    return [[str(partition)]]
 
 
 def canonical_purview(purview: Iterable[int] | None) -> list[int] | None:
