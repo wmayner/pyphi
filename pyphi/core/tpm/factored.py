@@ -24,6 +24,7 @@ from numpy.typing import NDArray
 
 from pyphi import exceptions
 from pyphi.conf import config
+from pyphi.display import LOW
 from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
@@ -378,9 +379,12 @@ class FactoredTPM(Displayable):
             label = "P(next unit = state | current state)"
         return Section(label=label, body=(grid,))
 
-    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+    def _describe(self, verbosity: int) -> Description:
         n = self.n_nodes
         a = self.alphabet_sizes
+        compact = f"FactoredTPM(n_nodes={n}, alphabet_sizes={a})"
+        if verbosity == LOW:  # skip building the grid for the one-liner form
+            return Description(title="FactoredTPM", compact=compact)
         total = int(np.prod(a)) if a else 1
         return Description(
             title="FactoredTPM",
@@ -389,7 +393,7 @@ class FactoredTPM(Displayable):
                 Section(rows=(Row("Units", n), Row("States", total))),
                 self.grid_section(),
             ),
-            compact=f"FactoredTPM(n_nodes={n}, alphabet_sizes={a})",
+            compact=compact,
         )
 
     def to_xarray(self) -> Any:

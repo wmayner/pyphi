@@ -25,6 +25,8 @@ from .core.tpm.factored import FactoredTPM
 from .core.tpm.factored import StateSpace
 from .core.tpm.joint_distribution import JointTPM
 from .direction import Direction
+from .display import HIGH
+from .display import LOW
 from .display import Description
 from .display import Displayable
 from .display import Row
@@ -442,30 +444,34 @@ class Substrate(Displayable):
         """int: The number of nodes in the substrate."""
         return self.tpm.shape[-1]
 
-    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+    def _describe(self, verbosity: int) -> Description:
+        compact = f"Substrate({self.tpm._compact_repr()}, cm={self.cm})"
+        if verbosity == LOW:
+            return Description(title="Substrate", compact=compact)
         labels = [str(label) for label in self.node_labels]
         alphabet = self.tpm.alphabet_sizes
         state_space = (
             "binary" if all(a == 2 for a in alphabet) else f"alphabets {tuple(alphabet)}"
         )
-        tpm_section = self.tpm.grid_section()
+        sections = [
+            Section(
+                rows=(
+                    Row("Units", ", ".join(labels)),
+                    Row("State space", state_space),
+                )
+            ),
+            Section(
+                label="Connectivity",
+                body=(_display.connectivity_grid(labels, self.cm),),
+            ),
+        ]
+        if verbosity >= HIGH:  # the embedded TPM grid is the heavy part
+            sections.append(Section(label="TPM", body=self.tpm.grid_section().body))
         return Description(
             title="Substrate",
             subtitle=f"{self.size} units · {', '.join(labels)}",
-            sections=(
-                Section(
-                    rows=(
-                        Row("Units", ", ".join(labels)),
-                        Row("State space", state_space),
-                    )
-                ),
-                Section(
-                    label="Connectivity",
-                    body=(_display.connectivity_grid(labels, self.cm),),
-                ),
-                Section(label="TPM", body=tpm_section.body),
-            ),
-            compact=f"Substrate({self.tpm._compact_repr()}, cm={self.cm})",
+            sections=tuple(sections),
+            compact=compact,
         )
 
     def __eq__(self, other: object) -> bool:

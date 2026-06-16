@@ -1168,3 +1168,45 @@ def test_system_card_embeds_conditioned_tpms():
     assert "Cause TPM" in out and "Effect TPM" in out
     h = sys._repr_html_()
     assert "pyphi-cause" in h and "pyphi-effect" in h  # cause/effect toned
+
+
+# ---------------------------------------------------------------------------
+# Verbosity gating
+# ---------------------------------------------------------------------------
+
+
+def test_system_marginals_gated_to_high_verbosity():
+    from pyphi.system import System
+
+    pyphi.config.progress_bars = False
+    sub = pyphi.examples.basic_system().substrate
+    sysm = System(sub, (1, 0, 0), (1, 2))
+    with pyphi.config.override(repr_verbosity=1):  # MEDIUM
+        out = repr(sysm)
+    assert "Connectivity" in out
+    assert "Cause TPM" not in out  # marginals omitted...
+    assert "proper_cause_marginal" not in sysm.__dict__  # ...and not computed
+    with pyphi.config.override(repr_verbosity=2):  # HIGH (default)
+        assert "Cause TPM" in repr(sysm)
+    assert "proper_cause_marginal" in sysm.__dict__  # computed only at HIGH
+
+
+def test_substrate_tpm_grid_gated_to_high_verbosity():
+    pyphi.config.progress_bars = False
+    sub = pyphi.examples.basic_system().substrate
+    with pyphi.config.override(repr_verbosity=1):  # MEDIUM
+        out = repr(sub)
+        assert "Connectivity" in out and "├─ TPM" not in out
+    with pyphi.config.override(repr_verbosity=2):  # HIGH
+        assert "├─ TPM" in repr(sub)
+
+
+def test_low_verbosity_is_compact_leaf_in_both_backends():
+    pyphi.config.progress_bars = False
+    sia = pyphi.examples.basic_system().sia()
+    with pyphi.config.override(repr_verbosity=0):  # LOW
+        assert repr(sia).startswith("SystemIrreducibilityAnalysis(")
+        assert "╭" not in repr(sia)
+        h = sia._repr_html_()
+    assert 'class="pyphi-leaf"' in h
+    assert 'class="pyphi-card"' not in h

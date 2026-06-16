@@ -26,6 +26,7 @@ from pyphi.conf import config
 from pyphi.constants import OFF
 from pyphi.constants import ON
 from pyphi.data_structures import FrozenMap
+from pyphi.display import LOW
 from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
@@ -513,7 +514,12 @@ class JointTPM(Displayable, JointDistribution):
             cm[a][b] = self.infer_edge(a, b, all_contexts)
         return cm
 
-    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+    def _describe(self, verbosity: int) -> Description:
+        if verbosity == LOW:  # one-liner without materializing the grid
+            n = self.number_of_units
+            return Description(
+                title="JointTPM", compact=f"JointTPM({n} units, {2**n} states)"
+            )
         multidim = self.to_multidimensional_state_by_node()
         n = int(multidim.shape[-1])
         axis_sizes = multidim.shape[:-1]

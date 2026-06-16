@@ -19,6 +19,8 @@ import numpy as np
 from pyphi import connectivity
 from pyphi import utils
 from pyphi import validate
+from pyphi.display import HIGH
+from pyphi.display import LOW
 from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
@@ -164,11 +166,14 @@ class System(Displayable):
             str(label) for label in self.node_labels.coerce_to_labels(self.node_indices)
         )
 
-    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+    def _describe(self, verbosity: int) -> Description:
         from pyphi.core.tpm import _display
 
         labels = list(self._unit_labels())
         label_str = ", ".join(labels)
+        compact = f"System({label_str})"
+        if verbosity == LOW:
+            return Description(title="System", compact=compact)
         state_str = ", ".join(
             f"{label}={self.state[idx]}"
             for label, idx in zip(labels, self.node_indices, strict=True)
@@ -195,21 +200,25 @@ class System(Displayable):
             rows.append(Row("Cut", concise_partition(self.partition)))
 
         subset_cm = self.substrate.cm[np.ix_(self.node_indices, self.node_indices)]
-        cause = self.proper_cause_marginal.grid_section()
-        effect = self.proper_effect_marginal.grid_section()
+        sections = [
+            Section(rows=tuple(rows)),
+            Section(
+                label="Connectivity",
+                body=(_display.connectivity_grid(labels, subset_cm),),
+            ),
+        ]
+        # The conditioned cause/effect marginals are the heavy part — compute
+        # them only at HIGH verbosity.
+        if verbosity >= HIGH:
+            cause = self.proper_cause_marginal.grid_section()
+            effect = self.proper_effect_marginal.grid_section()
+            sections.append(Section(label="Cause TPM", body=cause.body, tone="cause"))
+            sections.append(Section(label="Effect TPM", body=effect.body, tone="effect"))
         return Description(
             title="System",
             subtitle=f"{len(self.node_indices)} units · {label_str}",
-            sections=(
-                Section(rows=tuple(rows)),
-                Section(
-                    label="Connectivity",
-                    body=(_display.connectivity_grid(labels, subset_cm),),
-                ),
-                Section(label="Cause TPM", body=cause.body, tone="cause"),
-                Section(label="Effect TPM", body=effect.body, tone="effect"),
-            ),
-            compact=f"System({label_str})",
+            sections=tuple(sections),
+            compact=compact,
         )
 
     def apply_cut(self, partition: DirectedBipartition) -> System:
