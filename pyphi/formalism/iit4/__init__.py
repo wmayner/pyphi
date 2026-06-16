@@ -480,6 +480,7 @@ def integration_value(
     system_state: SystemStateSpecification,
     *,
     system_measure: CompositeMeasure,
+    cut_system: System | None = None,
 ) -> RepertoireIrreducibilityAnalysis:
     """Compute the integration value for a partition along a direction.
 
@@ -488,8 +489,13 @@ def integration_value(
     :func:`sia`) by enumerating them and calling this function per
     candidate. ``system_measure`` is a Protocol-typed composite measure
     passed explicitly by the caller (no config fallback).
+
+    The induced ``cut_system`` depends only on the partition, not the
+    direction, so a caller evaluating both directions may build it once
+    and pass it in to avoid rebuilding it per direction.
     """
-    cut_system = system.apply_cut(partition)
+    if cut_system is None:
+        cut_system = system.apply_cut(partition)
     specified = system_state[direction]
     return _integration_value_for_state(
         direction,
@@ -549,6 +555,9 @@ def evaluate_partition(
         system_measure.partition_measure or system_measure
     )
 
+    # The induced cut depends only on the partition, not the direction, so
+    # build the cut System once and reuse it across directions.
+    cut_system = system.apply_cut(partition)
     integration = {
         direction: integration_value(
             direction,
@@ -556,6 +565,7 @@ def evaluate_partition(
             partition,
             system_state,
             system_measure=partition_distance,
+            cut_system=cut_system,
         )
         for direction in directions
     }
