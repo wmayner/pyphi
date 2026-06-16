@@ -43,6 +43,9 @@ from pyphi.models.partitions import concise_partition
 
 from . import cmp
 from . import fmt
+from .diff import Change
+from .diff import ResultDiff
+from .diff import _diff_common
 from .pandas import ToDictFromExplicitAttrsMixin
 from .pandas import ToPandasMixin
 from .state_specification import StateSpecification
@@ -305,6 +308,32 @@ class RepertoireIrreducibilityAnalysis(
             subject=f"φ = {format_value(self.phi)}",
             level="mechanism",
             findings=self._findings(),
+        )
+
+    def diff(self, other) -> ResultDiff:
+        """Structured delta from this analysis to ``other`` (``a.diff(b)``).
+
+        A mechanism-level result carries no :class:`ConfigSnapshot`, so
+        ``config_diff`` is always empty.
+        """
+        if not isinstance(other, RepertoireIrreducibilityAnalysis):
+            raise TypeError(
+                f"cannot diff {type(self).__name__} against {type(other).__name__}"
+            )
+        common = _diff_common(self, other)
+        changes = []
+        if self.purview != other.purview:
+            changes.append(
+                Change("purview_changed", self.mechanism, self.purview, other.purview)
+            )
+        return ResultDiff(
+            subject=f"Δφ = {format_value(common['delta_phi'])}",
+            level="mechanism",
+            delta_phi=common["delta_phi"],
+            mip_changed=common["mip_changed"],
+            changes=tuple(changes),
+            config_diff=common["config_diff"],
+            substrate_note=common["substrate_note"],
         )
 
     @property

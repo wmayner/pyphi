@@ -162,6 +162,12 @@ class MaximallyIrreducibleCauseOrEffect(
         delegated to the underlying RIA."""
         return self.ria.explain()
 
+    def diff(self, other):
+        """Structured delta to ``other`` (``a.diff(b)``), delegated to the
+        underlying RIA."""
+        other_ria = other.ria if hasattr(other, "ria") else other
+        return self.ria.diff(other_ria)
+
     @property
     def state_ties(self):
         if self._state_ties is None:

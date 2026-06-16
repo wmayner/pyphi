@@ -21,6 +21,8 @@ from pyphi.display import Section
 from pyphi.display.numbers import format_value
 
 from . import cmp
+from .diff import ResultDiff
+from .diff import _diff_common
 from .explanation import Explanation
 from .explanation import Finding
 from .pandas import ToDictFromExplicitAttrsMixin
@@ -166,6 +168,27 @@ class Distinction(
             subject=f"φ = {format_value(self.phi)}",
             level="mechanism",
             findings=tuple(findings),
+        )
+
+    def diff(self, other) -> ResultDiff:
+        """Structured delta from this distinction to ``other`` (``a.diff(b)``).
+
+        A distinction carries no :class:`ConfigSnapshot`, so ``config_diff`` is
+        always empty.
+        """
+        if not isinstance(other, Distinction):
+            raise TypeError(
+                f"cannot diff {type(self).__name__} against {type(other).__name__}"
+            )
+        common = _diff_common(self, other)
+        return ResultDiff(
+            subject=f"Δφ = {format_value(common['delta_phi'])}",
+            level="mechanism",
+            delta_phi=common["delta_phi"],
+            mip_changed=common["mip_changed"],
+            changes=(),
+            config_diff=common["config_diff"],
+            substrate_note=common["substrate_note"],
         )
 
     # TODO(4.0) rename?

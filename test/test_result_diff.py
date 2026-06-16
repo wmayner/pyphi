@@ -91,3 +91,18 @@ def test_ces_diff_distinctions_and_relations(s):
     # identical CESs: no element changes
     assert rd.changes == ()
     assert float(rd.delta_phi) == 0.0
+
+
+def test_mechanism_diff(s):
+    from pyphi.formalism import iit3
+    from pyphi.models.diff import ResultDiff
+
+    with pyphi.config.override(**presets.iit3):
+        da = iit3.concept(s, (1,))
+        db = iit3.concept(s, (1,))
+    rd = da.diff(db)
+    assert isinstance(rd, ResultDiff)
+    assert rd.level == "mechanism"
+    assert float(rd.delta_phi) == 0.0
+    # MICE delegates
+    assert isinstance(da.cause.diff(db.cause), ResultDiff)
