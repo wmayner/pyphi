@@ -238,7 +238,9 @@ def cause_repertoire(
         return np.array([1.0])
     if not mechanism:
         alphabet_sizes = cs.substrate.factored_tpm.alphabet_sizes
-        return max_entropy_distribution(cs.node_indices, purview, alphabet_sizes)
+        return max_entropy_distribution(
+            cs.substrate.node_indices, purview, alphabet_sizes
+        )
     return _cause_repertoire_inner(cs, mechanism, purview)
 
 
