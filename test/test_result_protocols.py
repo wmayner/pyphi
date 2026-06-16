@@ -41,22 +41,6 @@ def test_acsia_satisfies_acsia_interface(transition):
     assert isinstance(acsia, AcSIAInterface)
 
 
-def test_fmt_sia_columns_shared_keys(s):
-    """fmt_sia_columns returns the same shared columns for both formalism SIAs."""
-    from pyphi.formalism import FORMALISM_REGISTRY
-    from pyphi.formalism import iit3
-    from pyphi.models.fmt import fmt_sia_columns
-
-    with config.override(**presets.iit3):
-        cols_3 = dict(fmt_sia_columns(iit3.sia(s)))
-
-    cols_4 = dict(fmt_sia_columns(FORMALISM_REGISTRY["IIT_4_0_2023"].evaluate_system(s)))
-
-    shared = {"System", "Current state", "Partition"}
-    assert shared.issubset(cols_3.keys())
-    assert shared.issubset(cols_4.keys())
-
-
 def test_iit3_and_iit4_sia_repr_share_columns(s):
     """The shared SIA columns appear in both formalism reprs identically."""
     from pyphi.formalism import FORMALISM_REGISTRY

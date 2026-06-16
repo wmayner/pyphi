@@ -806,3 +806,58 @@ def test_excluded_candidate_is_leaf():
     assert "╭" not in out
     assert 'class="pyphi-leaf"' in ec._repr_html_()
     assert 'class="pyphi-card"' not in ec._repr_html_()
+
+
+def _all_displayable_subclasses():
+    """Every concrete Displayable subclass reachable after importing pyphi."""
+    import pyphi  # noqa: F401  (ensure result modules are imported)
+    from pyphi.display import Displayable
+
+    seen, stack, out = set(), list(Displayable.__subclasses__()), []
+    while stack:
+        cls = stack.pop()
+        if cls in seen:
+            continue
+        seen.add(cls)
+        out.append(cls)
+        stack.extend(cls.__subclasses__())
+    return out
+
+
+def test_every_displayable_type_overrides_describe():
+    """Ship criterion: every result type renders via its own _describe()."""
+    from pyphi.display.mixin import Displayable
+
+    offenders = [
+        cls.__name__
+        for cls in _all_displayable_subclasses()
+        if cls._describe is Displayable._describe
+    ]
+    assert not offenders, f"Displayable types without a _describe(): {offenders}"
+
+
+_GOLDEN_IIT4_SIA = """\
+╭─ SystemIrreducibilityAnalysis ────────╮
+│ φ_s              0.415037             │
+│ Normalized φ_s   0.207519             │
+│ System           A,B,C                │
+│ Current state    (1, 0, 0)            │
+├─ Cause ───────────────────────────────┤
+│ Specified state             (1, 1, 0) │
+│ Intrinsic information       3.0       │
+│ Intrinsic differentiation   0.0       │
+├─ Effect ──────────────────────────────┤
+│ Specified state             (0, 0, 1) │
+│ Intrinsic information       3.0       │
+│ Intrinsic differentiation   0.0       │
+├─ MIP ─────────────────────────────────┤
+│ Partition   2 parts: {A,BC}           │
+│ Tied MIPs   0                         │
+╰───────────────────────────────────────╯"""
+
+
+def test_iit4_sia_ascii_golden():
+    """Exact-render anchor for the locked IIT 4.0 SIA card."""
+    pyphi.config.progress_bars = False
+    sia = pyphi.examples.basic_system().sia()
+    assert repr(sia) == _GOLDEN_IIT4_SIA

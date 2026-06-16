@@ -528,31 +528,3 @@ def fmt_transition(t: object) -> str:
 def state(state: tuple[int, ...]) -> str:
     """Format a state."""
     return "(" + ",".join(map(str, state)) + ")"
-
-
-def fmt_sia_columns(sia: object) -> list[tuple[str, Any]]:
-    """Return a column list for a SystemIrreducibilityAnalysis.
-
-    Yields (label, value) pairs for System, Current state, phi, and Partition.
-    """
-    node_indices = getattr(sia, "node_indices", None)
-    node_labels = getattr(sia, "node_labels", None)
-    if node_labels is not None and node_indices is not None:
-        system_label = ",".join(
-            str(label) for label in node_labels.coerce_to_labels(node_indices)
-        )
-    elif node_indices is not None:
-        system_label = ",".join(str(i) for i in node_indices)
-    else:
-        system_label = None
-
-    current_state = getattr(sia, "current_state", None)
-    phi = getattr(sia, "phi", None)
-    partition = getattr(sia, "partition", None)
-
-    return [
-        ("System", system_label),
-        ("Current state", state(current_state) if current_state is not None else None),
-        (f"           {SMALL_PHI}_s", phi),
-        ("Partition", str(partition) if partition is not None else None),
-    ]
