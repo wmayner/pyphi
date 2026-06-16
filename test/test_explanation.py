@@ -29,3 +29,30 @@ def test_level_partition_is_correct():
     assert {r for r in NullResultReason if r.level == "system"} == system
     assert {r for r in NullResultReason if r.level == "mechanism"} == mechanism
     assert system | mechanism == set(NullResultReason)
+
+
+def test_explanation_describe_and_pandas():
+    from pyphi.models.explanation import Explanation
+    from pyphi.models.explanation import Finding
+
+    expl = Explanation(
+        subject="Φ_s = 0.0",
+        level="system",
+        findings=(
+            Finding(
+                kind="null_result",
+                label="Reason",
+                value=NullResultReason.NO_STRONG_CONNECTIVITY,
+            ),
+            Finding(kind="binding_direction", label="Binding direction", value="CAUSE"),
+        ),
+    )
+    # repr/HTML render without error and mention the subject + reason.
+    assert "Φ_s = 0.0" in repr(expl)
+    assert "NO_STRONG_CONNECTIVITY" in repr(expl)
+    assert "<" in expl._repr_html_()  # HTML backend produced markup
+
+    df = expl.to_pandas()
+    assert list(df.columns) == ["level", "kind", "label", "value"]
+    assert len(df) == 2
+    assert df.iloc[0]["kind"] == "null_result"
