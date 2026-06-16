@@ -16,8 +16,6 @@ from pyphi.display.numbers import format_value
 
 from . import cmp
 
-_excluded_candidate_attributes = ["node_indices", "phi"]
-
 
 class ExcludedCandidate(Displayable):
     """A candidate system excluded from being a complex in favor of an
@@ -59,9 +57,6 @@ class ExcludedCandidate(Displayable):
     @classmethod
     def from_json(cls, dct: dict[str, Any]) -> ExcludedCandidate:
         return cls(node_indices=dct["node_indices"], phi=dct["phi"])
-
-
-_complex_attributes = ["node_indices", "phi", "is_maximal", "excluded"]
 
 
 class Complex(Displayable, cmp.OrderableByPhi):

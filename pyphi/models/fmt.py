@@ -2,9 +2,7 @@
 """Helper functions for formatting pretty representations of PyPhi models."""
 
 from collections.abc import Iterable
-from collections.abc import Sequence
 from fractions import Fraction
-from itertools import chain
 from itertools import cycle
 from typing import Any
 
@@ -13,42 +11,17 @@ from toolz import concat
 
 from pyphi import utils
 from pyphi.conf import config
-from pyphi.direction import Direction
-
-from .partitions import CompleteEdgeCut
-from .partitions import NullCut
-
-# REPR_VERBOSITY levels
-LOW = 0
-MEDIUM = 1
-HIGH = 2
 
 # Unicode symbols
-SMALL_PHI = "\u03c6"
-BIG_PHI = "\u03a6"
+SMALL_PHI = "φ"
+BIG_PHI = "Φ"
 ALPHA = "\u03b1"
-TOP_LEFT_CORNER = "\u250c"
-TOP_RIGHT_CORNER = "\u2510"
-BOTTOM_LEFT_CORNER = "\u2514"
-BOTTOM_RIGHT_CORNER = "\u2518"
-HORIZONTAL_BAR = "\u2500"
-VERTICAL_SIDE = "\u2502"
-HEADER_BAR_1 = "\u2550"
-HEADER_BAR_2 = "\u2501"
-HEADER_BAR_3 = "\u254d"
-DOTTED_HEADER = "\u2574"
-LINE = "\u2501"
-ARROW_LEFT = "\u25c0" + LINE * 2
-ARROW_RIGHT = LINE * 2 + "\u25b6"
-BACKWARD_CUT_SYMBOL = ARROW_LEFT + "/ /" + LINE * 2
-FORWARD_CUT_SYMBOL = LINE * 2 + "/ /" + ARROW_RIGHT
-EMPTY_SET = "\u2205"
-MULTIPLY = "\u2715"
-
-CUT_SYMBOLS_BY_DIRECTION = {
-    Direction.CAUSE: BACKWARD_CUT_SYMBOL,
-    Direction.EFFECT: FORWARD_CUT_SYMBOL,
-}
+HORIZONTAL_BAR = "─"
+DOTTED_HEADER = "╴"
+LINE = "━"
+ARROW_LEFT = "◀" + LINE * 2
+ARROW_RIGHT = LINE * 2 + "▶"
+EMPTY_SET = "∅"
 
 NICE_DENOMINATORS = [*list(range(16)), 16, 32, 64, 128]
 
@@ -70,8 +43,9 @@ def make_repr(self: object, attrs: Iterable[str]) -> str:
     Returns:
         str: the ``repr``esentation of the object
     """
-    # TODO: change this to a closure so we can do
-    # __repr__ = make_repr(attrs) ???
+    LOW = 0
+    MEDIUM = 1
+    HIGH = 2
 
     if config.infrastructure.repr_verbosity in [MEDIUM, HIGH]:
         return self.__str__()  # type: ignore[attr-defined,unused-ignore]
@@ -123,7 +97,7 @@ def margin(text: str) -> str:
     return "\n".join(f"  {line}  " for line in lines)
 
 
-LINES_FORMAT_STR = VERTICAL_SIDE + " {line:<{width}} " + VERTICAL_SIDE
+LINES_FORMAT_STR = "│" + " {line:<{width}} " + "│"
 
 
 def box(text: str) -> str:
@@ -139,8 +113,8 @@ def box(text: str) -> str:
     lines = text.split("\n")
 
     w = width(lines)
-    top_bar = TOP_LEFT_CORNER + HORIZONTAL_BAR * (2 + w) + TOP_RIGHT_CORNER
-    bottom_bar = BOTTOM_LEFT_CORNER + HORIZONTAL_BAR * (2 + w) + BOTTOM_RIGHT_CORNER
+    top_bar = "┌" + HORIZONTAL_BAR * (2 + w) + "┐"
+    bottom_bar = "└" + HORIZONTAL_BAR * (2 + w) + "┘"
 
     lines = [LINES_FORMAT_STR.format(line=line, width=w) for line in lines]
 
@@ -225,11 +199,6 @@ def labels(
     return node_labels.indices2labels(indices)  # type: ignore[attr-defined]
 
 
-def is_multiline(text: str) -> bool:
-    """Return True if the text contains newlines."""
-    return "\n" in text
-
-
 def align(lines: Iterable[str], direction: str = "<") -> list[str]:
     """Align lines by padding with spaces.
 
@@ -246,7 +215,7 @@ def align(lines: Iterable[str], direction: str = "<") -> list[str]:
 
     """
     lines = list(
-        concat([text.split("\n") if is_multiline(text) else [text] for text in lines])
+        concat([text.split("\n") if "\n" in text else [text] for text in lines])
     )
     w = width(lines)
     if direction == "c":
@@ -260,37 +229,19 @@ def center(text: str) -> str:
     return "\n".join(align(text.split("\n"), direction="c"))
 
 
-def split_decimal(n: Any) -> list[str]:  # noqa: PLR0911
-    """Attempt to split an object into unit and decimal parts, handling
-    non-numeric types.
+def _split_decimal(n: Any) -> list[str]:  # noqa: PLR0911
+    """Split an object into unit and decimal parts, handling non-numeric types.
 
     Always returns a 2-element list [units, decimals].
-
-    Examples:
-        >>> split_decimal(1.5)
-        ['1', '5']
-        >>> split_decimal('1.5')
-        ['1', '5']
-        >>> split_decimal(1)
-        ['1', '']
-        >>> split_decimal(1.0)
-        ['1', '0']
-        >>> split_decimal(np.nan)
-        ['', 'nan']
-        >>> split_decimal(None)
-        ['', 'None']
     """
     if n is None:
         return ["", str(None)]
     try:
         if np.isnan(n):
-            # nan
             return ["", str(n)]
     except TypeError:
         pass
     if isinstance(n, float):
-        # float - use float() to get base float value for subclasses that
-        # override __str__ (e.g., DistanceResult)
         parts = str(float(n)).split(".")
         if len(parts) == 1:
             return [parts[0], ""]
@@ -298,41 +249,22 @@ def split_decimal(n: Any) -> list[str]:  # noqa: PLR0911
     try:
         n = float(n)
         if n.is_integer():
-            # int
             return [str(int(n)), ""]
-        # float
         parts = str(n).split(".")
         if len(parts) == 1:
             return [parts[0], ""]
         return parts
     except ValueError:
         pass
-    # Assume str
     return ["", str(n)]
 
 
-def align_decimals(numbers: Iterable[Any]) -> list[str]:
-    """Align numbers on the decimal point.
-
-    Integers (whether of type `int` or `float`) and floats are aligned. `str`
-    elements are aligned to the right of the decimal point.
-
-    Examples:
-        >>> numbers = [0.0, 1, 0.99, 100.5, 80.123, 'string']
-        >>> align_decimals(numbers)  # doctest: +NORMALIZE_WHITESPACE
-        ['  0.0     ', '  1      ', '  0.99    ', '100.5     ',
-         ' 80.123   ', '   string']
-        >>> mixed = [0.5] + list(map(str, numbers))
-        >>> align_decimals(mixed)  # doctest: +NORMALIZE_WHITESPACE
-        ['  0.5     ', '  0      ', '  1      ', '  0.99    ', '100.5     ',
-         ' 80.123   ', '   string']
-        >>> align_decimals([])
-        []
-    """
+def _align_decimals(numbers: Iterable[Any]) -> list[str]:
+    """Align numbers on the decimal point."""
     numbers_list = list(numbers)
     if not numbers_list:
         return []
-    units_tuple, decimals_tuple = zip(*map(split_decimal, numbers_list), strict=False)
+    units_tuple, decimals_tuple = zip(*map(_split_decimal, numbers_list), strict=False)
     points = [
         "." if unit and decimal else ""
         for unit, decimal in zip(units_tuple, decimals_tuple, strict=False)
@@ -345,18 +277,13 @@ def align_decimals(numbers: Iterable[Any]) -> list[str]:
     ]
 
 
-def _multiline_string_to_columns(text: str) -> list[tuple[str, str]]:
-    return [("", line) for line in text.split("\n")]
-
-
 def _expand_multiline_strings(left: str, right: str) -> list[tuple[str, str]]:
     """Expand a multiline 'right side' string into a list of columns with empty
     left sides.
     """
-    # TODO deal with multiline left?
-    if not isinstance(right, str) or not is_multiline(right):
+    if not isinstance(right, str) or "\n" not in right:
         return [(left, right)]
-    columns = _multiline_string_to_columns(right)
+    columns = [("", line) for line in right.split("\n")]
     columns[0] = (left, columns[0][1])
     return columns
 
@@ -369,9 +296,6 @@ def align_columns(
     split_columns: bool = False,
 ) -> list[str]:
     """Align columns of text.
-
-    # If a line does not contain the delimiter, it will be assumed to belong to
-    # the previous line and will be indented.
 
     Arguments:
         lines (Iterable): The lines to align.
@@ -413,7 +337,7 @@ def align_columns(
     columns: list[Any] = list(zip(*lines, strict=False))
     for i, t in enumerate(types):
         if t == "n":
-            columns[i] = align_decimals(columns[i])
+            columns[i] = _align_decimals(columns[i])
     alignment_cycle = cycle(alignment)
     columns_aligned = [
         align(column, direction=a)
@@ -460,21 +384,6 @@ def fmt_mechanism(indices: tuple[int, ...], node_labels: object | None = None) -
     return "[" + fmt_nodes(indices, node_labels=node_labels) + "]"
 
 
-def fmt_fraction(numer: str, denom: str) -> str:
-    """Format a fraction.
-
-    Arguments:
-        numer (str): The numerator.
-        denom (str): The denominator.
-    """
-    w = max(3, len(numer), len(denom))
-    divider = HORIZONTAL_BAR * w
-
-    return ("{numer:^{width}}\n{divider}\n{denom:^{width}}").format(
-        numer=numer, divider=divider, denom=denom, width=w
-    )
-
-
 def fmt_part(part: object, node_labels: object | None = None) -> str:
     """Format a |Part|.
 
@@ -487,7 +396,11 @@ def fmt_part(part: object, node_labels: object | None = None) -> str:
     numer = fmt_nodes(part.mechanism, node_labels=node_labels)  # type: ignore[attr-defined]
     denom = fmt_nodes(part.purview, node_labels=node_labels)  # type: ignore[attr-defined]
 
-    return fmt_fraction(numer, denom)
+    w = max(3, len(numer), len(denom))
+    divider = HORIZONTAL_BAR * w
+    return ("{numer:^{width}}\n{divider}\n{denom:^{width}}").format(
+        numer=numer, divider=divider, denom=denom, width=w
+    )
 
 
 def fmt_partition(partition: object) -> str:
@@ -506,12 +419,14 @@ def fmt_partition(partition: object) -> str:
         str: A human-readable string representation of the partition.
     """
     # TODO(4.0) deprecate
+    from itertools import chain
+
+    MULTIPLY = "✕"
+
     if not partition:
         return ""
     try:
         parts = [
-            # TODO(4.0)
-            # str(part).split("\n")
             fmt_part(part, node_labels=partition.node_labels).split("\n")  # type: ignore[attr-defined]
             for part in partition  # type: ignore[attr-defined]
         ]
@@ -529,215 +444,28 @@ def fmt_partition(partition: object) -> str:
         return repr(partition)
 
 
-def fmt_phi_structure(
-    ps: object, title: str | None = "Phi-structure", system: bool = True
-) -> str:
-    """Format a CauseEffectStructure."""
-    distinctions = len(ps.distinctions)  # type: ignore[attr-defined]
-
-    relations: Any
-    if ps.requires_filter_relations:  # type: ignore[attr-defined]
-        relations = sum_phi = sum_phi_r = sii = selectivity = "[requires filter]"
-    elif ps.relations is None:  # type: ignore[attr-defined]
-        relations = sum_phi = sum_phi_r = sii = selectivity = "[not computed]"
-    else:
-        relations = len(ps.relations)  # type: ignore[attr-defined]
-        sum_phi = ps.sum_phi()  # type: ignore[attr-defined]
-        sum_phi_r = ps.relations.sum_phi()  # type: ignore[attr-defined]
-        sii = ps.system_intrinsic_information()  # type: ignore[attr-defined]
-        selectivity = ps.selectivity()  # type: ignore[attr-defined]
-
-    columns = [
-        ("Distinctions", distinctions),
-        ("Relations", relations),
-        ("Σφ_d", ps.sum_phi_distinctions()),  # type: ignore[attr-defined]
-        ("Σφ_r", sum_phi_r),
-        ("Σφ", sum_phi),
-        ("Selectivity", selectivity),
-        ("S.I.I.", sii),
-    ]
-    lines = align_columns(columns)
-    if system:
-        lines = align_columns(
-            [*lines, f"System: {ps.system.nodes}"],  # type: ignore[attr-defined]
-            types="tt",
-            split_columns=True,
-        )
-    body = "\n".join(lines)
-    if title:
-        body = header(title, body, HEADER_BAR_1, HEADER_BAR_1)
-    return body
-
-
-def fmt_partitioned_phi_structure(
-    ps: object,
-    title: str = "Partitioned phi-structure",
-    system: bool = True,
-) -> str:
-    """Format a PartitionedCauseEffectStructure."""
-    if isinstance(ps.partition, (NullCut, CompleteEdgeCut)):  # type: ignore[attr-defined]
-        cut = str(ps.partition)  # type: ignore[attr-defined]
-    else:
-        cut = fmt_partition_arrow(
-            ps.partition,  # type: ignore[attr-defined]
-            direction=ps.partition.direction,  # type: ignore[attr-defined]
-            name=False,
-        )
-    lines = align_columns(
-        [
-            *fmt_phi_structure(ps, title=None, system=system).split("\n"),
-            f"Partition: {cut}",
-        ],
-        types="tt",
-        split_columns=True,
-    )
-    body = "\n".join(lines)
-    if title:
-        body = header(title, body, HEADER_BAR_1, HEADER_BAR_1)
-    return body
-
-
-def fmt_ces(ces: object, title: str | None = None) -> str:
-    """Format a |Distinctions|."""
-    if title is None:
-        title = ces.__class__.__name__
-    if not ces:
-        return "()\n"
-
-    concepts = center("\n".join(margin(x) for x in ces) + "\n")  # type: ignore[attr-defined]
-    title = "{} ({} distinction{})".format(title, len(ces), "" if len(ces) == 1 else "s")  # type: ignore[arg-type]
-
-    return header(title, concepts, HEADER_BAR_1, HEADER_BAR_1)
-
-
-def fmt_distinction(distinction: object) -> str:
-    """Format a :class:`Distinction`."""
-
-    def fmt_cause_or_effect(x: object) -> str:  # pylint: disable=missing-docstring
-        return indent(str(x), amount=1)
-
-    cause = fmt_cause_or_effect(distinction.cause)  # type: ignore[attr-defined]
-    effect = fmt_cause_or_effect(distinction.effect)  # type: ignore[attr-defined]
-    ce = side_by_side(cause, effect)
-
-    mechanism = fmt_mechanism(distinction.mechanism, distinction.node_labels)  # type: ignore[attr-defined]
-    # TODO(4.0) reconsider using Nodes in the mechanism to facilitate access
-    # to their state, etc.
-    mech_state = list(distinction.mechanism_state)  # type: ignore[attr-defined]
-    title = "\n".join(
-        align(
-            [
-                f"{distinction.__class__.__name__}: mechanism = {mechanism}, "
-                f"state = {mech_state}",
-                f"{SMALL_PHI} = {fmt_number(distinction.phi)}",  # type: ignore[attr-defined]
-            ],
-            direction="c",
-        )
-    )
-
-    # Only center headers for high-verbosity output
-    center_bool = config.infrastructure.repr_verbosity is HIGH
-    return header(title, ce, HEADER_BAR_2, HEADER_BAR_2, center=center_bool)
-
-
-# IIT 3.0 paper terminology calls a distinction a "concept"; the alias
-# preserves that vocabulary for IIT 3.0-native callers.
-fmt_concept = fmt_distinction
-
-
-def fmt_ria(ria: object, verbose: bool = True, mip: bool = False) -> str:
-    """Format a |RepertoireIrreducibilityAnalysis|."""
-    if verbose:
-        mechanism = f"Mechanism: {fmt_mechanism(ria.mechanism, ria.node_labels)}"  # type: ignore[attr-defined]
-        direction = f"Direction: {ria.direction}"  # type: ignore[attr-defined]
-    else:
-        mechanism = ""
-        direction = ""
-
-    # TODO(4.0):  position repertoire and partitioned repertoire side by side
-    # TODO(ties) fix state-marking logic
-    if config.infrastructure.repr_verbosity is HIGH:
-        partition_name = "MIP" if mip else "Partition"
-        partition = f"{partition_name}: "
-        if ria.partition:  # type: ignore[attr-defined]
-            partition += f"\n{indent(fmt_partition(ria.partition))}"  # type: ignore[attr-defined]
-        else:
-            partition += "empty"
-        if ria.specified_state is not None:  # type: ignore[attr-defined]
-            mark_states = [specified.state for specified in ria.specified_state.ties]  # type: ignore[attr-defined]
-        else:
-            mark_states = []
-        # TODO(refactor)
-        if ria.repertoire is not None:  # type: ignore[attr-defined]
-            if ria.repertoire.size == 1:  # type: ignore[attr-defined]
-                repertoire = f"Forward probability:\n    {ria.repertoire}"  # type: ignore[attr-defined]
-                partitioned_repertoire = (
-                    f"Partitioned forward probability:\n    "
-                    f"{ria.partitioned_repertoire}"  # type: ignore[attr-defined]
-                )
-            else:
-                rep_fmt = fmt_repertoire(ria.repertoire, mark_states=mark_states)  # type: ignore[attr-defined]
-                repertoire = f"Repertoire:\n{indent(rep_fmt)}"
-                partitioned_repertoire = "Partitioned repertoire:\n{}".format(
-                    indent(
-                        fmt_repertoire(
-                            ria.partitioned_repertoire,  # type: ignore[attr-defined]
-                            mark_states=mark_states,
-                        )
-                    )
-                )
-        else:
-            repertoire = ""
-            partitioned_repertoire = ""
-    else:
-        partition = ""
-        repertoire = ""
-        partitioned_repertoire = ""
-
-    data = (
-        [
-            f"{SMALL_PHI} = {fmt_number(ria.phi)}",  # type: ignore[attr-defined]
-            f"Normalized {SMALL_PHI} = {fmt_number(ria.normalized_phi)}",  # type: ignore[attr-defined]
-            f"{mechanism}",
-            f"Purview: {fmt_mechanism(ria.purview, ria.node_labels)}",  # type: ignore[attr-defined]
-            f"Specified state:\n{ria.specified_state}",  # type: ignore[attr-defined]
-            f"{direction}",
-            f"{partition}",
-        ]
-        + ([f"Selectivity: {ria.selectivity}"] if ria.selectivity is not None else [])  # type: ignore[attr-defined]
-        + [
-            f"{repertoire}",
-            f"{partitioned_repertoire}",
-            f"#(state ties): {ria.num_state_ties}",  # type: ignore[attr-defined]
-            f"#(partition ties): {ria.num_partition_ties}",  # type: ignore[attr-defined]
-        ]
-    )
-    if hasattr(ria, "num_purview_ties"):
-        data.append(f"#(purview ties): {ria.num_purview_ties}")  # type: ignore[attr-defined]
-    if ria.reasons is not None:  # type: ignore[attr-defined]
-        data.append("Reasons: " + ", ".join(map(str, ria.reasons)))  # type: ignore[attr-defined]
-    return "\n".join(data)
-
-
 def fmt_partition_arrow(
     cut: object, direction: object | None = None, name: bool = True
 ) -> str:
     """Format a |DirectedBipartition| as an arrow expression."""
+    from pyphi.direction import Direction
+
+    CUT_SYMBOLS_BY_DIRECTION = {
+        Direction.CAUSE: ARROW_LEFT + "/ /" + LINE * 2,
+        Direction.EFFECT: LINE * 2 + "/ /" + ARROW_RIGHT,
+    }
+
     try:
         if name:
             name_str = cut.__class__.__name__ + " "
         else:
             name_str = ""
-        return "{name}{from_nodes} {symbol} {to_nodes}".format(
-            name=name_str,
-            from_nodes=fmt_mechanism(cut.from_nodes, cut.node_labels),  # type: ignore[attr-defined]
-            symbol=(
-                FORWARD_CUT_SYMBOL
-                if direction is None
-                else CUT_SYMBOLS_BY_DIRECTION[direction]  # type: ignore[index]
-            ),
-            to_nodes=fmt_mechanism(cut.to_nodes, cut.node_labels),  # type: ignore[attr-defined]
+        from_nodes = fmt_mechanism(cut.from_nodes, cut.node_labels)  # type: ignore[attr-defined]
+        to_nodes = fmt_mechanism(cut.to_nodes, cut.node_labels)  # type: ignore[attr-defined]
+        symbol = (
+            ARROW_RIGHT if direction is None else CUT_SYMBOLS_BY_DIRECTION[direction]  # type: ignore[index]
         )
+        return f"{name_str}{from_nodes} {symbol} {to_nodes}"
     except AttributeError:
         return str(cut)
 
@@ -745,206 +473,6 @@ def fmt_partition_arrow(
 def fmt_directed_joint_partition(cut: object) -> str:
     """Format a |DirectedJointPartition|."""
     return f"DirectedJointPartition {cut.direction}\n{cut.partition}"  # type: ignore[attr-defined]
-
-
-def fmt_sia_4(
-    sia: object,
-    phi_structure: bool = True,
-    title: str = "System irreducibility analysis",
-) -> str:
-    """Format an IIT 4.0 |SystemIrreducibilityAnalysis|."""
-    if phi_structure:
-        body = "\n".join(
-            [
-                fmt_phi_structure(sia.phi_structure, system=False),  # type: ignore[attr-defined]
-                fmt_phi_structure(
-                    sia.partitioned_phi_structure,  # type: ignore[attr-defined]
-                    title="Partitioned phi-structure",
-                    system=False,
-                ),
-            ]
-        )
-    else:
-        body = ""
-
-    selectivity = sia.selectivity  # type: ignore[attr-defined]
-    if selectivity is None:
-        selectivity = "[not computed]"
-    informativeness = sia.informativeness  # type: ignore[attr-defined]
-    if informativeness is None:
-        informativeness = "[not computed]"
-
-    lines_list = [
-        (BIG_PHI, sia.phi),  # type: ignore[attr-defined]
-        ("Selectivity", selectivity),
-        ("Informativeness", informativeness),
-    ]
-    lines = align_columns(lines_list)
-    body = "\n".join(["\n".join(lines), body])
-
-    if isinstance(sia.partition, (NullCut, CompleteEdgeCut)):  # type: ignore[attr-defined]
-        cut = str(sia.partition)  # type: ignore[attr-defined]
-    else:
-        cut = fmt_partition_arrow(
-            sia.partition,  # type: ignore[attr-defined]
-            direction=sia.partition.direction,  # type: ignore[attr-defined]
-            name=False,
-        )
-
-    data = [
-        sia.system.nodes,  # type: ignore[attr-defined]
-        cut,
-    ]
-    if sia.reasons:  # type: ignore[attr-defined]
-        data.append("[trivially reducible]\n" + "\n".join(map(str, sia.reasons)))  # type: ignore[attr-defined]
-    data.append("")
-    for line in reversed(data):
-        body = header(str(line), body)
-    body = header(title, body, under_char=HEADER_BAR_2)
-    return box(center(body))
-
-
-def fmt_sia(sia: object, title: str = "System irreducibility analysis") -> str:
-    """Format an IIT 3.0 SystemIrreducibilityAnalysis as a multi-line
-    summary including phi, partition, and node info.
-    """
-    node_indices = sia.node_indices  # type: ignore[attr-defined]
-    node_labels = sia.node_labels  # type: ignore[attr-defined]
-    if node_labels is not None and node_indices is not None:
-        system_label = ",".join(
-            str(label) for label in node_labels.coerce_to_labels(node_indices)
-        )
-    elif node_indices is not None:
-        system_label = ",".join(str(i) for i in node_indices)
-    else:
-        system_label = ""
-
-    data = [
-        f"{BIG_PHI}: {fmt_number(sia.phi)}",  # type: ignore[attr-defined]
-        system_label,
-        sia.partition,  # type: ignore[attr-defined]
-    ]
-    body = ""
-    for line in reversed(data):
-        body = header(str(line), body)
-    body = header(title, body, under_char=HEADER_BAR_2)
-    return box(center(body))
-
-
-def fmt_sia_columns(sia: object) -> list[tuple[str, Any]]:
-    """Column list shared by every SIA __repr__: System, Current state,
-    phi, Partition.
-    """
-    node_indices = getattr(sia, "node_indices", None)
-    node_labels = getattr(sia, "node_labels", None)
-    if node_labels is not None and node_indices is not None:
-        system_label = ",".join(
-            str(label) for label in node_labels.coerce_to_labels(node_indices)
-        )
-    elif node_indices is not None:
-        system_label = ",".join(str(i) for i in node_indices)
-    else:
-        system_label = None
-
-    current_state = getattr(sia, "current_state", None)
-    phi = getattr(sia, "phi", None)
-    partition = getattr(sia, "partition", None)
-
-    return [
-        ("System", system_label),
-        ("Current state", state(current_state) if current_state is not None else None),
-        (f"           {SMALL_PHI}_s", phi),
-        ("Partition", str(partition) if partition is not None else None),
-    ]
-
-
-def fmt_ces_columns(ces: object) -> list[tuple[str, Any]]:
-    """Column list for a CauseEffectStructure: Φ, number of distinctions,
-    sum of distinction phis, number of relations, sum of relation phis.
-    """
-    sia = getattr(ces, "sia", None)
-    distinctions = getattr(ces, "distinctions", None)
-    relations = getattr(ces, "relations", None)
-
-    big_phi = getattr(sia, "phi", None) if sia is not None else None
-    num_distinctions = len(distinctions) if distinctions is not None else None
-    sum_phi_d = (
-        distinctions.sum_phi()
-        if distinctions is not None and hasattr(distinctions, "sum_phi")
-        else None
-    )
-    num_relations = (
-        relations.num_relations()
-        if relations is not None and hasattr(relations, "num_relations")
-        else None
-    )
-    sum_phi_r = (
-        relations.sum_phi()
-        if relations is not None and hasattr(relations, "sum_phi")
-        else None
-    )
-
-    return [
-        ("Φ", big_phi),
-        ("#(distinctions)", num_distinctions),
-        (f"Σ {SMALL_PHI}_d", sum_phi_d),
-        ("#(relations)", num_relations),
-        (f"Σ {SMALL_PHI}_r", sum_phi_r),
-    ]
-
-
-def fmt_ac_sia_columns(acsia: object) -> list[tuple[str, Any]]:
-    """Column list for an AcSystemIrreducibilityAnalysis: system, direction,
-    before/after state, alpha, partition.
-    """
-    node_indices = getattr(acsia, "node_indices", None)
-    node_labels = getattr(acsia, "node_labels", None)
-    if node_labels is not None and node_indices is not None:
-        system_label = ",".join(
-            str(label) for label in node_labels.coerce_to_labels(node_indices)
-        )
-    elif node_indices is not None:
-        system_label = ",".join(str(i) for i in node_indices)
-    else:
-        system_label = None
-
-    direction = getattr(acsia, "direction", None)
-    before_state = getattr(acsia, "before_state", None)
-    after_state = getattr(acsia, "after_state", None)
-    partition = getattr(acsia, "partition", None)
-
-    return [
-        ("System", system_label),
-        ("Direction", str(direction) if direction is not None else None),
-        ("Before state", state(before_state) if before_state is not None else None),
-        ("After state", state(after_state) if after_state is not None else None),
-        (ALPHA, getattr(acsia, "alpha", None)),
-        ("Partition", str(partition) if partition is not None else None),
-    ]
-
-
-def html_columns(columns: list[tuple[str, Any]], title: str | None = None) -> str:
-    """Render a column list as an HTML table for Jupyter rendering.
-
-    Each entry in ``columns`` becomes a row with a bold label and the
-    value rendered as HTML-escaped text.
-    """
-    import html as _html
-
-    rows: list[str] = []
-    for label, value in columns:
-        if value is None:
-            value_str = ""
-        else:
-            value_str = _html.escape(str(value))
-        rows.append(
-            f"<tr><td><b>{_html.escape(label)}</b></td><td>{value_str}</td></tr>"
-        )
-
-    body = "<table>" + "".join(rows) + "</table>"
-    if title is not None:
-        body = f"<div><b>{_html.escape(title)}</b></div>{body}"
-    return body
 
 
 def fmt_repertoire(r: Any, mark_states: list | None = None) -> str:
@@ -977,76 +505,8 @@ def fmt_repertoire(r: Any, mark_states: list | None = None) -> str:
     return box("\n".join(lines))
 
 
-def fmt_relatum(relatum: object, node_labels: object | None = None) -> str:
-    direction = "Cause" if relatum.direction == Direction.CAUSE else "Effect"  # type: ignore[attr-defined]
-    return (
-        direction
-        + fmt_mechanism(relatum.mechanism, node_labels=node_labels)  # type: ignore[attr-defined]
-        + "/"
-        + fmt_mechanism(relatum.purview, node_labels=node_labels)  # type: ignore[attr-defined]
-    )
-
-
-def fmt_relata(relata: object, node_labels: object | None = None) -> str:
-    lines = [fmt_relatum(relatum, node_labels=node_labels) for relatum in relata]  # type: ignore[attr-defined]
-    lines = align_columns(lines, delimiter="/", split_columns=True)
-    # TODO(4.0) align purview nodes?
-    return "\n".join(lines)
-
-
-def fmt_relation(relation: object) -> str:
-    labels = relation.system.node_labels  # type: ignore[attr-defined]
-    body = fmt_relata(relation.relata, node_labels=labels)  # type: ignore[attr-defined]
-    data_list = [
-        ("φ", relation.phi),  # type: ignore[attr-defined]
-        ("Purview", fmt_mechanism(relation.purview, node_labels=labels)),  # type: ignore[attr-defined]
-        ("Relata", ""),
-    ]
-    data = "\n".join(align_columns(data_list))
-    body = center(header(data, body))
-    return header("Relation", body, over_char=HEADER_BAR_3, under_char=HEADER_BAR_3)
-
-
-def _fmt_relations(
-    relations: object, title: str | None = None, body: str = "", data: list | None = None
-) -> str:
-    if title is None:
-        title = relations.__class__.__name__
-    if data is None:
-        data = []
-    data_list = [
-        ("#", len(relations)),  # type: ignore[arg-type]
-        ("Σφ", relations.sum_phi()),  # type: ignore[attr-defined]
-        *data,
-    ]
-    data_str = "\n".join(align_columns(data_list))
-    body = header(data_str, body)
-    body = header(title, body, under_char=HEADER_BAR_1)
-    return center(body)
-
-
-def fmt_concrete_relations(relations: object, title: str | None = None) -> str:
-    body = "\n".join(map(fmt_relation, relations))  # type: ignore[call-overload]
-    return _fmt_relations(relations, title, body)
-
-
-def fmt_analytical_relations(relations: object, title: str | None = None) -> str:
-    body = ""
-    return _fmt_relations(relations, title, body)
-
-
-def fmt_sampled_relations(relations: object, title: str | None = None) -> str:
-    body = "\n".join(map(fmt_relation, relations.sample))  # type: ignore[attr-defined]
-    return _fmt_relations(
-        relations,
-        title,
-        body,
-        data=[("Sampled", len(relations.sample))],  # type: ignore[attr-defined]
-    )
-
-
 def fmt_extended_purview(
-    extended_purview: Sequence, node_labels: object | None = None
+    extended_purview: Any, node_labels: object | None = None
 ) -> str:
     """Format an extended purview."""
     if len(extended_purview) == 1:
@@ -1056,104 +516,6 @@ def fmt_extended_purview(
         fmt_mechanism(purview, node_labels=node_labels) for purview in extended_purview
     ]
     return "[" + ", ".join(purviews) + "]"
-
-
-def fmt_causal_link(causal_link: object) -> str:
-    """Format a CausalLink."""
-    return fmt_ac_ria(causal_link, extended_purview=causal_link.extended_purview)  # type: ignore[attr-defined]
-
-
-def fmt_ac_ria(ria: object, extended_purview: object | None = None) -> str:
-    """Format an AcRepertoireIrreducibilityAnalysis."""
-    causality = {
-        Direction.CAUSE: (
-            (
-                fmt_mechanism(ria.purview, ria.node_labels)  # type: ignore[attr-defined]
-                if extended_purview is None
-                else fmt_extended_purview(ria.extended_purview, ria.node_labels)  # type: ignore[attr-defined]
-            ),
-            ARROW_LEFT,
-            fmt_mechanism(ria.mechanism, ria.node_labels),  # type: ignore[attr-defined]
-        ),
-        Direction.EFFECT: (
-            fmt_mechanism(ria.mechanism, ria.node_labels),  # type: ignore[attr-defined]
-            ARROW_RIGHT,
-            (
-                fmt_mechanism(ria.purview, ria.node_labels)  # type: ignore[attr-defined]
-                if extended_purview is None
-                else fmt_extended_purview(ria.extended_purview, ria.node_labels)  # type: ignore[attr-defined]
-            ),
-        ),
-    }[ria.direction]  # type: ignore[attr-defined]
-    causality_str = " ".join(causality)
-
-    return f"{ALPHA} = {round(ria.alpha, 4)}  {causality_str}"  # type: ignore[attr-defined]
-
-
-def fmt_account(account: object, title: str | None = None) -> str:
-    """Format an Account or a DirectedAccount."""
-    if title is None:
-        title = account.__class__.__name__  # `Account` or `DirectedAccount`
-
-    title = "{} ({} causal link{})".format(
-        title,
-        len(account),  # type: ignore[arg-type]
-        "" if len(account) == 1 else "s",  # type: ignore[arg-type]
-    )
-
-    body = ""
-    body += "Irreducible effects\n"
-    body += "\n".join(fmt_causal_link(m) for m in account.irreducible_effects)  # type: ignore[attr-defined]
-    body += "\nIrreducible causes\n"
-    body += "\n".join(fmt_causal_link(m) for m in account.irreducible_causes)  # type: ignore[attr-defined]
-
-    return "\n" + header(title, body, under_char="*")
-
-
-def fmt_ac_sia(ac_sia: object) -> str:
-    """Format a AcSystemIrreducibilityAnalysis."""
-    # Extract attributes explicitly for type checking
-    direction_val = ac_sia.direction  # type: ignore[attr-defined]
-    node_indices = ac_sia.node_indices  # type: ignore[attr-defined]
-    node_labels = ac_sia.node_labels  # type: ignore[attr-defined]
-    if node_labels is not None and node_indices is not None:
-        transition_label = ",".join(
-            str(label) for label in node_labels.coerce_to_labels(node_indices)
-        )
-    elif node_indices is not None:
-        transition_label = ",".join(str(i) for i in node_indices)
-    else:
-        transition_label = ""
-    before_state_val = ac_sia.before_state  # type: ignore[attr-defined]
-    after_state_val = ac_sia.after_state  # type: ignore[attr-defined]
-    cut_val = ac_sia.partition  # type: ignore[attr-defined]
-    alpha_val = round(ac_sia.alpha, 4)  # type: ignore[attr-defined]
-
-    body = (
-        "{ALPHA} = {alpha}\n"
-        "direction: {direction}\n"
-        "transition: {transition}\n"
-        "before state: {before_state}\n"
-        "after state: {after_state}\n"
-        "cut:\n{cut}\n"
-        "{account}\n"
-        "{partitioned_account}".format(
-            ALPHA=ALPHA,
-            alpha=alpha_val,
-            direction=direction_val,
-            transition=transition_label,
-            before_state=before_state_val,
-            after_state=after_state_val,
-            cut=cut_val,
-            account=fmt_account(ac_sia.account, "Account"),  # type: ignore[attr-defined]
-            partitioned_account=fmt_account(
-                ac_sia.partitioned_account,  # type: ignore[attr-defined]
-                "Partitioned Account",
-            ),
-        )
-    )
-
-    return box(header("AcSystemIrreducibilityAnalysis", body, under_char=HORIZONTAL_BAR))
 
 
 def fmt_transition(t: object) -> str:
@@ -1166,3 +528,31 @@ def fmt_transition(t: object) -> str:
 def state(state: tuple[int, ...]) -> str:
     """Format a state."""
     return "(" + ",".join(map(str, state)) + ")"
+
+
+def fmt_sia_columns(sia: object) -> list[tuple[str, Any]]:
+    """Return a column list for a SystemIrreducibilityAnalysis.
+
+    Yields (label, value) pairs for System, Current state, phi, and Partition.
+    """
+    node_indices = getattr(sia, "node_indices", None)
+    node_labels = getattr(sia, "node_labels", None)
+    if node_labels is not None and node_indices is not None:
+        system_label = ",".join(
+            str(label) for label in node_labels.coerce_to_labels(node_indices)
+        )
+    elif node_indices is not None:
+        system_label = ",".join(str(i) for i in node_indices)
+    else:
+        system_label = None
+
+    current_state = getattr(sia, "current_state", None)
+    phi = getattr(sia, "phi", None)
+    partition = getattr(sia, "partition", None)
+
+    return [
+        ("System", system_label),
+        ("Current state", state(current_state) if current_state is not None else None),
+        (f"           {SMALL_PHI}_s", phi),
+        ("Partition", str(partition) if partition is not None else None),
+    ]
