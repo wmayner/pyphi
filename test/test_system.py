@@ -160,7 +160,8 @@ def test_specify_elements_with_labels(standard):
     system = System(substrate, (0, 0, 0), ("B", "C"))
     assert system.node_indices == (1, 2)
     assert tuple(node.label for node in system.nodes) == ("B", "C")
-    assert str(system) == "System(B, C)"
+    with config.override(repr_verbosity=0):
+        assert str(system) == "System(B, C)"
 
 
 def test_null_concept(s):

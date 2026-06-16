@@ -15,7 +15,6 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from collections.abc import Sequence
-from typing import TYPE_CHECKING
 from typing import Any
 from typing import Literal
 
@@ -25,14 +24,14 @@ from numpy.typing import NDArray
 
 from pyphi import exceptions
 from pyphi.conf import config
+from pyphi.display import Description
 from pyphi.display import Displayable
+from pyphi.display import Row
+from pyphi.display import Section
 
 from . import _display
 from ._factored_backends import _make_default_backend
 from ._factored_backends import _NdarrayBackend
-
-if TYPE_CHECKING:
-    from pyphi.display import Description
 
 # Set from the storage-backend benchmark result.
 _FACTORED_TPM_DEFAULT_BACKEND: Literal["ndarray", "xarray"] = "ndarray"
@@ -347,27 +346,50 @@ class FactoredTPM(Displayable):
             )
         )
 
-    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+    def unit_labels_for_display(self) -> list[str]:
+        """Per-unit display labels: node names if set, else integer indices."""
+        return list(self._node_labels or (str(i) for i in range(self.n_nodes)))
+
+    def grid_section(self) -> Section:
+        """The transition-probability grid as a labeled display :class:`Section`.
+
+        Binary substrates get one ``P(on)`` column per unit; non-binary ones get
+        one column per ``(unit, next-state)`` pair. Shared by this TPM's own card
+        and the embedding :class:`~pyphi.substrate.Substrate` card.
+        """
         n = self.n_nodes
         a = self.alphabet_sizes
-        unit_labels = list(self._node_labels or (str(i) for i in range(n)))
-        compact = f"FactoredTPM(n_nodes={n}, alphabet_sizes={a})"
+        unit_labels = self.unit_labels_for_display()
         if all(size == 2 for size in a):
-            return _display.state_by_node_description(
-                title="FactoredTPM",
-                compact=compact,
+            grid = _display.state_by_node_grid(
                 unit_labels=unit_labels,
                 state_axis_sizes=a,
                 prob_on_for_state=lambda state: [
                     self.factor(i)[state][1] for i in range(n)
                 ],
             )
-        return _display.distribution_grid_description(
+            label = "P(next unit on | current state)"
+        else:
+            grid = _display.distribution_grid(
+                unit_labels=unit_labels,
+                alphabet_sizes=a,
+                dist_for_state=lambda state: [self.factor(i)[state] for i in range(n)],
+            )
+            label = "P(next unit = state | current state)"
+        return Section(label=label, body=(grid,))
+
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        n = self.n_nodes
+        a = self.alphabet_sizes
+        total = int(np.prod(a)) if a else 1
+        return Description(
             title="FactoredTPM",
-            compact=compact,
-            unit_labels=unit_labels,
-            alphabet_sizes=a,
-            dist_for_state=lambda state: [self.factor(i)[state] for i in range(n)],
+            subtitle=f"{n} units · {total} states",
+            sections=(
+                Section(rows=(Row("Units", n), Row("States", total))),
+                self.grid_section(),
+            ),
+            compact=f"FactoredTPM(n_nodes={n}, alphabet_sizes={a})",
         )
 
     def to_xarray(self) -> Any:

@@ -127,12 +127,20 @@ class CauseEffectStructure(Displayable, cmp.Orderable):
             ),
         )
 
+        sections = [
+            Section(rows=tuple(summary_rows)),
+            Section(label="Distinctions", body=distinctions_body),
+        ]
+        if num_r:
+            from pyphi.relations import relations_table
+
+            table = relations_table(self.relations)
+            if table is not None:
+                sections.append(Section(label="Relations", body=(table,)))
+
         return Description(
             title=cls,
-            sections=(
-                Section(rows=tuple(summary_rows)),
-                Section(label="Distinctions", body=distinctions_body),
-            ),
+            sections=tuple(sections),
             compact=f"{cls}(Φ={format_value(sia_phi)})",
         )
 
@@ -264,12 +272,20 @@ class PhiFold(CauseEffectStructure):
             ),
         )
 
+        sections = [
+            Section(rows=tuple(summary_rows)),
+            Section(label="Seed distinctions", body=distinctions_body),
+        ]
+        if num_r:
+            from pyphi.relations import relations_table
+
+            table = relations_table(self.relations)
+            if table is not None:
+                sections.append(Section(label="Incident relations", body=(table,)))
+
         return Description(
             title=cls,
-            sections=(
-                Section(rows=tuple(summary_rows)),
-                Section(label="Seed distinctions", body=distinctions_body),
-            ),
+            sections=tuple(sections),
             compact=f"{cls}(Φ_d={format_value(big_phi_contrib)})",
         )
 

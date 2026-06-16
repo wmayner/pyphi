@@ -462,39 +462,45 @@ def _basic_system():
     return pyphi.examples.basic_system()
 
 
-def test_system_is_leaf():
+def test_system_is_card():
     s = _basic_system()
     out = repr(s)
-    assert out == "System(A, B, C)"
-    assert "╭" not in out
-    assert 'class="pyphi-leaf"' in s._repr_html_()
-    assert 'class="pyphi-card"' not in s._repr_html_()
+    assert out.startswith("╭─ System")
+    assert "State" in out and "A=1" in out  # the system state is now surfaced
+    assert 'class="pyphi-card"' in s._repr_html_()
+    with pyphi.config.override(repr_verbosity=0):
+        assert repr(s) == "System(A, B, C)"  # compact form retained
 
 
 def test_system_str_equals_repr():
     s = _basic_system()
-    assert str(s) == repr(s) == "System(A, B, C)"
+    assert str(s) == repr(s)
+    with pyphi.config.override(repr_verbosity=0):
+        assert str(s) == repr(s) == "System(A, B, C)"
 
 
-def test_system_str_matches_expected_label_subset():
-    """str(system) must produce e.g. 'System(B, C)' for a node subset."""
+def test_system_compact_matches_expected_label_subset():
+    """The compact form must produce e.g. 'System(B, C)' for a node subset."""
     from pyphi.substrate import Substrate
     from pyphi.system import System
 
     sub = pyphi.examples.basic_substrate()
     sub2 = Substrate(sub._legacy_binary_joint(), node_labels=("A", "B", "C"))
     sys = System(sub2, (0, 0, 0), ("B", "C"))
-    assert str(sys) == "System(B, C)"
+    with pyphi.config.override(repr_verbosity=0):
+        assert str(sys) == "System(B, C)"
 
 
-def test_substrate_is_leaf():
+def test_substrate_is_card():
     s = _basic_system()
     sub = s.substrate
     out = repr(sub)
-    assert out.startswith("Substrate(")
-    assert "╭" not in out
-    assert 'class="pyphi-leaf"' in sub._repr_html_()
-    assert 'class="pyphi-card"' not in sub._repr_html_()
+    assert out.startswith("╭─ Substrate")
+    assert "Connectivity" in out  # connectivity grid section
+    assert "TPM" in out  # embedded TPM grid section
+    assert 'class="pyphi-card"' in sub._repr_html_()
+    with pyphi.config.override(repr_verbosity=0):
+        assert repr(sub).startswith("Substrate(")  # compact form retained
 
 
 def test_node_is_leaf():
@@ -664,7 +670,7 @@ def test_concrete_relations_html_has_table():
     rels = _xor_relations()
     html = rels._repr_html_()
     assert "<table" in html
-    assert "φ_r" in html
+    assert "φ<sub>r</sub>" in html  # φ_r header rendered as a subscript
 
 
 def test_concrete_relations_table_has_header_row():
@@ -887,6 +893,10 @@ _GOLDEN_IIT4_SIA = """\
 ├─ MIP ─────────────────────────────────┤
 │ Partition   2 parts: {A,BC}           │
 │ Tied MIPs   0                         │
+│     A   B   C                         │
+│ A   ·   ·   ·                         │
+│ B   ✕   ·   ·                         │
+│ C   ✕   ·   ·                         │
 ╰───────────────────────────────────────╯"""
 
 
@@ -1106,3 +1116,55 @@ def test_tpm_to_xarray_without_xarray_raises(monkeypatch):
     monkeypatch.setattr(builtins, "__import__", _no_xarray)
     with pytest.raises(ImportError, match="xarray"):
         tpm.to_xarray()
+
+
+def test_substrate_card_has_connectivity_and_tpm_grids():
+    pyphi.config.progress_bars = False
+    h = pyphi.examples.basic_system().substrate._repr_html_()
+    assert h.count("pyphi-grid") >= 2  # connectivity grid + embedded TPM grid
+
+
+def test_sia_mip_embeds_cut_grid():
+    pyphi.config.progress_bars = False
+    sia = pyphi.examples.basic_system().sia()
+    assert "✕" in repr(sia)  # MIP cut grid marks severed edges
+    assert "pyphi-grid" in sia._repr_html_()
+
+
+def test_html_renders_subscripts():
+    pyphi.config.progress_bars = False
+    sia = pyphi.examples.basic_system().sia()
+    assert "φ<sub>s</sub>" in sia._repr_html_()  # φ_s row label
+    ces = pyphi.examples.basic_system().ces()
+    assert "φ<sub>d</sub>" in ces._repr_html_()  # φ_d table header
+
+
+def test_ascii_does_not_render_subscripts():
+    pyphi.config.progress_bars = False
+    out = repr(pyphi.examples.basic_system().sia())
+    assert "φ_s" in out  # ASCII keeps the underscore form
+    assert "<sub>" not in out
+
+
+def test_ces_card_embeds_relations_table():
+    pyphi.config.progress_bars = False
+    ces = pyphi.examples.xor_system().ces()  # 15 concrete relations
+    out = repr(ces)
+    assert "├─ Relations" in out  # relations section in ASCII card
+    assert "Relata (mechanisms)" in out
+    h = ces._repr_html_()
+    assert "Relata (mechanisms)" in h  # and in HTML
+
+
+def test_system_card_embeds_conditioned_tpms():
+    from pyphi.system import System
+
+    pyphi.config.progress_bars = False
+    sub = pyphi.examples.basic_system().substrate
+    sys = System(sub, (1, 0, 0), (1, 2))  # subset {B,C}; A is background, fixed at 1
+    out = repr(sys)
+    assert "Background" in out and "A=1" in out  # conditioning surfaced
+    assert "Connectivity" in out
+    assert "Cause TPM" in out and "Effect TPM" in out
+    h = sys._repr_html_()
+    assert "pyphi-cause" in h and "pyphi-effect" in h  # cause/effect toned

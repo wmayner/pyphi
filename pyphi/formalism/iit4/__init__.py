@@ -50,6 +50,7 @@ from pyphi.models.explanation import runner_up_from_candidates
 from pyphi.models.partitions import DirectedBipartition
 from pyphi.models.partitions import EdgeCut
 from pyphi.models.partitions import NullCut
+from pyphi.models.partitions import _cut_grid
 from pyphi.models.partitions import concise_partition
 from pyphi.models.ria import RepertoireIrreducibilityAnalysis
 from pyphi.models.state_specification import StateSpecification
@@ -349,10 +350,13 @@ class SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
                 )
             )
         mip_rows = []
+        mip_body: tuple[Any, ...] = ()
         if self.partition is not None:
             mip_rows.append(Row("Partition", concise_partition(self.partition)))
+            if self.partition.num_connections_cut():
+                mip_body = (_cut_grid(self.partition),)
         mip_rows.append(Row("Tied MIPs", len(self.ties) - 1))
-        sections.append(Section(label="MIP", rows=tuple(mip_rows)))
+        sections.append(Section(label="MIP", rows=tuple(mip_rows), body=mip_body))
         if self.reasons:
             reasons = ", ".join(getattr(r, "name", str(r)) for r in self.reasons)
             sections.append(Section(label="Reasons", rows=(Row("", reasons),)))

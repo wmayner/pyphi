@@ -20,12 +20,15 @@ from . import connectivity
 from . import jsonify
 from . import utils
 from . import validate
+from .core.tpm import _display
 from .core.tpm.factored import FactoredTPM
 from .core.tpm.factored import StateSpace
 from .core.tpm.joint_distribution import JointTPM
 from .direction import Direction
 from .display import Description
 from .display import Displayable
+from .display import Row
+from .display import Section
 from .labels import NodeLabels
 from .types import ConnectivityMatrix
 from .types import Mechanism
@@ -440,8 +443,30 @@ class Substrate(Displayable):
         return self.tpm.shape[-1]
 
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
-        compact = f"Substrate({self.tpm._compact_repr()}, cm={self.cm})"
-        return Description(title="Substrate", compact=compact)
+        labels = [str(label) for label in self.node_labels]
+        alphabet = self.tpm.alphabet_sizes
+        state_space = (
+            "binary" if all(a == 2 for a in alphabet) else f"alphabets {tuple(alphabet)}"
+        )
+        tpm_section = self.tpm.grid_section()
+        return Description(
+            title="Substrate",
+            subtitle=f"{self.size} units · {', '.join(labels)}",
+            sections=(
+                Section(
+                    rows=(
+                        Row("Units", ", ".join(labels)),
+                        Row("State space", state_space),
+                    )
+                ),
+                Section(
+                    label="Connectivity",
+                    body=(_display.connectivity_grid(labels, self.cm),),
+                ),
+                Section(label="TPM", body=tpm_section.body),
+            ),
+            compact=f"Substrate({self.tpm._compact_repr()}, cm={self.cm})",
+        )
 
     def __eq__(self, other: object) -> bool:
         """Return whether this substrate equals the other object.
