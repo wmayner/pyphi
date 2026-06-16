@@ -57,6 +57,9 @@ from .distinctions import Distinctions
 from .distinctions import ResolvedDistinctions
 from .distinctions import UnresolvedDistinctions
 from .distinctions import _null_ces
+from .explanation import Explanation
+from .explanation import Finding
+from .explanation import NullResultReason
 from .mice import MaximallyIrreducibleCause
 from .mice import MaximallyIrreducibleCauseOrEffect
 from .mice import MaximallyIrreducibleEffect
@@ -74,7 +77,6 @@ from .protocols import AcSIAInterface
 from .protocols import CauseEffectStructureInterface
 from .protocols import SIAInterface
 from .ria import RepertoireIrreducibilityAnalysis
-from .ria import ShortCircuitConditions
 from .ria import _null_ria
 from .sia import IIT3SystemIrreducibilityAnalysis
 from .sia import _null_sia
@@ -106,6 +108,8 @@ __all__ = [
     "EdgeCut",
     "Event",
     "ExcludedCandidate",
+    "Explanation",
+    "Finding",
     "IIT3SystemIrreducibilityAnalysis",
     "JointBipartition",
     "JointPartition",
@@ -114,11 +118,11 @@ __all__ = [
     "MaximallyIrreducibleCauseOrEffect",
     "MaximallyIrreducibleEffect",
     "NullCut",
+    "NullResultReason",
     "Part",
     "RepertoireIrreducibilityAnalysis",
     "ResolvedDistinctions",
     "SIAInterface",
-    "ShortCircuitConditions",
     "StateSpecification",
     "SystemStateSpecification",
     "UnitState",

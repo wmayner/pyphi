@@ -37,7 +37,7 @@ from pyphi.models import MaximallyIrreducibleCause
 from pyphi.models import MaximallyIrreducibleEffect
 from pyphi.models import UnresolvedDistinctions
 from pyphi.models import _null_ria
-from pyphi.models.ria import ShortCircuitConditions
+from pyphi.models.explanation import NullResultReason
 from pyphi.parallel import MapReduce
 from pyphi.partition import mechanism_partitions
 
@@ -159,12 +159,12 @@ def find_mip(
         return _null_ria(direction, mechanism, purview, specified_state=state)
 
     if not purview:
-        return null_mip(reasons=(ShortCircuitConditions.EMPTY_PURVIEW,))
+        return null_mip(reasons=(NullResultReason.EMPTY_PURVIEW,))
 
     rep = _ra.repertoire(cs, direction, mechanism, purview)
 
     if direction == Direction.CAUSE and np.all(rep == 0):
-        return null_mip(reasons=(ShortCircuitConditions.UNREACHABLE_STATE,))
+        return null_mip(reasons=(NullResultReason.UNREACHABLE_STATE,))
 
     if partitions is not None:
         partitions = list(partitions)
@@ -263,7 +263,7 @@ def find_mice(
             direction,
             mechanism,
             (),
-            reasons=(ShortCircuitConditions.NO_PURVIEWS,),
+            reasons=(NullResultReason.NO_PURVIEWS,),
         )
     )
 

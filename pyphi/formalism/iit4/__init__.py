@@ -12,9 +12,6 @@ import contextvars
 from collections.abc import Iterable
 from dataclasses import dataclass
 from dataclasses import replace
-from enum import Enum
-from enum import auto
-from enum import unique
 from typing import Any
 
 from pyphi import conf
@@ -46,6 +43,7 @@ from pyphi.models import cmp
 from pyphi.models.ces import CauseEffectStructure
 from pyphi.models.distinctions import Distinctions
 from pyphi.models.distinctions import ResolvedDistinctions
+from pyphi.models.explanation import NullResultReason
 from pyphi.models.partitions import DirectedBipartition
 from pyphi.models.partitions import EdgeCut
 from pyphi.models.partitions import NullCut
@@ -605,22 +603,11 @@ def evaluate_partition(
     return result
 
 
-@unique
-class ShortCircuitConditions(Enum):
-    NO_VALID_PARTITIONS = auto()
-    NO_CAUSE = auto()
-    NO_EFFECT = auto()
-    NO_SYSTEM = auto()
-    NO_STRONG_CONNECTIVITY = auto()
-    MONAD_WITH_NO_SELFLOOP = auto()
-    MONAD_WITH_SELFLOOP_DEFINED_TO_BE_ZERO_PHI = auto()
-
-
 def _has_no_cause_or_effect(system_state):
     reasons = []
     for direction, reason in zip(
         Direction.both(),
-        [ShortCircuitConditions.NO_CAUSE, ShortCircuitConditions.NO_EFFECT],
+        [NullResultReason.NO_CAUSE, NullResultReason.NO_EFFECT],
         strict=False,
     ):
         if system_state[direction].intrinsic_information <= 0:
@@ -710,11 +697,11 @@ def sia(
 
     if not system:
         # system is empty
-        return _null_sia(reasons=[ShortCircuitConditions.NO_SYSTEM])
+        return _null_sia(reasons=[NullResultReason.NO_SYSTEM])
 
     if not connectivity.is_strong(system.cm, system.node_indices):
         # system is not strongly connected
-        return _null_sia(reasons=[ShortCircuitConditions.NO_STRONG_CONNECTIVITY])
+        return _null_sia(reasons=[NullResultReason.NO_STRONG_CONNECTIVITY])
 
     # Handle elementary micro mechanism cases.
     # Single macro element systems have nontrivial bipartitions because their
@@ -722,13 +709,11 @@ def sia(
     if len(system.partition_indices) == 1:
         # If the node lacks a self-loop, phi is trivially zero.
         if not system.cm[system.node_indices][system.node_indices]:
-            return _null_sia(reasons=[ShortCircuitConditions.MONAD_WITH_NO_SELFLOOP])
+            return _null_sia(reasons=[NullResultReason.MONAD_WITH_NO_SELFLOOP])
         # Even if the node has a self-loop, we may still define phi to be zero.
         if not config.formalism.iit.single_micro_nodes_with_selfloops_have_phi:
             return _null_sia(
-                reasons=[
-                    ShortCircuitConditions.MONAD_WITH_SELFLOOP_DEFINED_TO_BE_ZERO_PHI
-                ]
+                reasons=[NullResultReason.MONAD_WITH_SELFLOOP_DEFINED_TO_BE_ZERO_PHI]
             )
     # =========================================================================
 
@@ -763,7 +748,7 @@ def sia(
         if shortcircuit_reasons:
             return _null_sia(reasons=shortcircuit_reasons)
 
-    default_sia = _null_sia(reasons=[ShortCircuitConditions.NO_VALID_PARTITIONS])
+    default_sia = _null_sia(reasons=[NullResultReason.NO_VALID_PARTITIONS])
     parallel_kwargs = conf.parallel_kwargs(
         dict(config.infrastructure.parallel_partition_evaluation), **kwargs
     )

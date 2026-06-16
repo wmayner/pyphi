@@ -6,17 +6,14 @@ mechanism's irreducibility against a single partition in one temporal
 direction. It carries both the canonical ``|·|+``-clamped ``phi`` (Eqs.
 19-20) and the raw ``signed_phi`` for diagnostic use.
 
-:class:`ShortCircuitConditions` enumerates reasons the analysis returned a
-trivial null result. ``_null_ria`` is the convenience constructor used when
-short-circuiting.
+:class:`~pyphi.models.explanation.NullResultReason` enumerates reasons the
+analysis returned a trivial null result. ``_null_ria`` is the convenience
+constructor used when short-circuiting.
 """
 
 from __future__ import annotations
 
 import contextvars
-from enum import Enum
-from enum import auto
-from enum import unique as unique_enum
 from typing import TYPE_CHECKING
 from typing import Any
 
@@ -37,6 +34,7 @@ from pyphi.display import tone_of
 from pyphi.display.mixin import HIGH
 from pyphi.display.numbers import format_value
 from pyphi.measures.distribution import DistanceResult
+from pyphi.models.explanation import NullResultReason
 from pyphi.models.partitions import JointPartition
 from pyphi.models.partitions import concise_partition
 
@@ -54,16 +52,6 @@ _SERIALIZING_AS_TIE_PEER: contextvars.ContextVar[bool] = contextvars.ContextVar(
 
 if TYPE_CHECKING:
     from pyphi.labels import NodeLabels
-
-
-@unique_enum
-class ShortCircuitConditions(Enum):
-    # MICE level reasons
-    NO_PURVIEWS = auto()
-    NO_PARTITIONS = auto()
-    # MIP level reasons
-    EMPTY_PURVIEW = auto()
-    UNREACHABLE_STATE = auto()
 
 
 _ria_dict_attrs = [
@@ -107,7 +95,7 @@ class RepertoireIrreducibilityAnalysis(
     _partition_ties: tuple[RepertoireIrreducibilityAnalysis, ...]
     _state_ties: tuple[RepertoireIrreducibilityAnalysis, ...]
     _selectivity: float | None
-    _reasons: list[ShortCircuitConditions] | None
+    _reasons: list[NullResultReason] | None
     _normalized_phi: PyPhiFloat | None
     _signed_normalized_phi: PyPhiFloat | None
     _node_labels: NodeLabels | None
@@ -126,7 +114,7 @@ class RepertoireIrreducibilityAnalysis(
         purview_state: tuple[int, ...] | None = None,
         node_labels: NodeLabels | None = None,
         selectivity: float | None = None,
-        reasons: list[ShortCircuitConditions] | None = None,
+        reasons: list[NullResultReason] | None = None,
         signed_phi: float | DistanceResult | None = None,
     ) -> None:
         # ``signed_phi`` is the raw integration value, possibly negative
