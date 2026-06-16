@@ -14,8 +14,8 @@ from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
 from pyphi.display import Section
-from pyphi.display import Table
 from pyphi.display.numbers import format_value
+from pyphi.display.tables import capped_table
 
 from . import cmp
 from . import fmt
@@ -468,38 +468,31 @@ class Account(Displayable, cmp.Orderable, Sequence):
 
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         cls = type(self).__name__
-        table_rows = tuple(
-            (
+        num_links = len(self.causal_links)
+        headers = ("Direction", "Mechanism", "Purview", "α")  # noqa: RUF001
+        table = capped_table(
+            headers,
+            self.causal_links,
+            lambda link: (
                 str(link.direction),
                 fmt.fmt_mechanism(link.mechanism, link.node_labels),
                 fmt.fmt_mechanism(link.purview, link.node_labels),
                 link.alpha,
-            )
-            for link in self.causal_links
+            ),
+            total=num_links,
         )
         return Description(
             title=cls,
             sections=(
                 Section(
                     rows=(
-                        Row("Causal links", len(self.causal_links)),
+                        Row("Causal links", num_links),
                         Row("Σα", self._sum_alpha),
                     ),
                 ),
-                Section(
-                    label="Causal links",
-                    body=(
-                        Table(
-                            headers=("Direction", "Mechanism", "Purview", "α"),  # noqa: RUF001
-                            rows=table_rows,
-                        ),
-                    ),
-                ),
+                Section(label="Causal links", body=(table,)),
             ),
-            compact=(
-                f"{cls}({len(self.causal_links)} links, "
-                f"Σα={format_value(self._sum_alpha)})"
-            ),
+            compact=(f"{cls}({num_links} links, Σα={format_value(self._sum_alpha)})"),
         )
 
     def to_json(self):

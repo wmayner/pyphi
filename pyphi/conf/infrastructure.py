@@ -92,6 +92,11 @@ class InfrastructureConfig:
 
     progress_bars: bool = True
     repr_verbosity: int = 2
+    # Maximum number of rows shown in a collection table (distinctions,
+    # relations, account links) in a result's repr/HTML. Larger collections
+    # are truncated with a "… N more" indicator; the full data is always
+    # available via the object's iterables and ``to_pandas()``.
+    repr_max_table_rows: int = 50
     print_fractions: bool = True
     label_separator: str = ""
     welcome_off: bool = False

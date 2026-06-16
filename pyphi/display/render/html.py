@@ -44,6 +44,8 @@ table.pyphi-table th{text-align:left;color:#57606a;font-weight:600;
  border-bottom:1px solid #d0d7de;padding:3px 12px 3px 0}
 table.pyphi-table td{padding:3px 12px 3px 0;border-bottom:1px solid #f0f2f4;
  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.pyphi-scroll{max-height:18em;overflow:auto}
+.pyphi-more{color:#8b949e;font-size:12px;padding:3px 0}
 </style>"""
 
 
@@ -71,7 +73,13 @@ def _table_html(table: Table) -> str:
         "<tr>" + "".join(f"<td>{escape(format_value(c))}</td>" for c in row) + "</tr>"
         for row in table.rows
     )
-    return f'<table class="pyphi-table"><tr>{head}</tr>{body}</table>'
+    html = (
+        f'<div class="pyphi-scroll">'
+        f'<table class="pyphi-table"><tr>{head}</tr>{body}</table></div>'
+    )
+    if table.overflow:
+        html += f'<div class="pyphi-more">… {table.overflow} more</div>'
+    return html
 
 
 def _section_html(section: Section) -> str:

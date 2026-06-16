@@ -24,8 +24,8 @@ from .display import Description
 from .display import Displayable
 from .display import Row
 from .display import Section
-from .display import Table
 from .display.numbers import format_value
+from .display.tables import capped_table
 from .models import cmp
 from .models.distinctions import ResolvedDistinctions
 from .parallel import MapReduce
@@ -312,39 +312,21 @@ class Relations(Displayable):
         cls = type(self).__name__
         num_r = self.num_relations()
         sum_phi_r = self.sum_phi()
-        _MAX_TABLE_ROWS = 32
-        # Only concrete (iterable) subclasses support enumeration.
+        # Only concrete (iterable) subclasses support row enumeration; the cap
+        # (config.infrastructure.repr_max_table_rows) bounds how many rows are
+        # materialized, so a huge relation set is not fully realized to display.
         try:
-            relations_list = list(self)  # type: ignore[attr-defined]
+            iter(self)  # type: ignore[arg-type]
         except TypeError:
-            relations_list = None
-        if relations_list is not None:
-            table_rows = tuple(
-                (
-                    str(sorted(r.mechanisms)),
-                    r.phi,
-                    len(r),
-                )
-                for r in relations_list[:_MAX_TABLE_ROWS]
-            )
-            body_components: list = [
-                Table(
-                    headers=("Relata (mechanisms)", "φ_r", "Degree"),
-                    rows=table_rows,
-                )
-            ]
-            if num_r > _MAX_TABLE_ROWS:
-                from pyphi.display.description import Inline
-
-                body_components.append(Inline(text=f"… {num_r - _MAX_TABLE_ROWS} more"))
-            relations_section = (
-                Section(
-                    label="Relations",
-                    body=tuple(body_components),
-                ),
-            )
-        else:
             relations_section = ()
+        else:
+            table = capped_table(
+                ("Relata (mechanisms)", "φ_r", "Degree"),
+                self,  # type: ignore[arg-type]  # iterability guarded above
+                lambda r: (str(sorted(r.mechanisms)), r.phi, len(r)),
+                total=num_r,
+            )
+            relations_section = (Section(label="Relations", body=(table,)),)
         return Description(
             title=cls,
             sections=(

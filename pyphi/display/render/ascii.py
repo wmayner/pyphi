@@ -53,10 +53,13 @@ def _format_table(table: Table) -> list[str]:
     ]
     ncols = len(table.headers)
     widths = [max(_vis_len(row[c]) for row in cells) for c in range(ncols)]
-    return [
+    lines = [
         "   ".join(_pad(row[c], widths[c]) for c in range(ncols)).rstrip()
         for row in cells
     ]
+    if table.overflow:
+        lines.append(f"… {table.overflow} more")
+    return lines
 
 
 def _compact(description: Description) -> str:

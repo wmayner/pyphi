@@ -21,10 +21,15 @@ class Row:
 
 @dataclass(frozen=True)
 class Table:
-    """A tabular list (distinctions, relations, account links)."""
+    """A tabular list (distinctions, relations, account links).
+
+    ``overflow`` is the number of rows omitted from ``rows`` (the collection
+    was larger than the display cap); renderers show a "… N more" indicator.
+    """
 
     headers: tuple[str, ...]
     rows: tuple[tuple[Any, ...], ...]
+    overflow: int = 0
 
 
 @dataclass(frozen=True)

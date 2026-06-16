@@ -31,6 +31,7 @@ from __future__ import annotations
 from collections import defaultdict
 from collections.abc import Iterable
 from collections.abc import Sequence
+from typing import Any
 
 from toolz import concat
 
@@ -41,8 +42,8 @@ from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
 from pyphi.display import Section
-from pyphi.display import Table
 from pyphi.display.numbers import format_value
+from pyphi.display.tables import capped_table
 
 from . import cmp
 from .pandas import ToPandasMixin
@@ -99,6 +100,19 @@ def _get_state(mice):
     return mice.specified_state.state
 
 
+DISTINCTION_HEADERS = ("Mechanism", "φ_d", "Cause purview", "Effect purview")
+
+
+def distinction_table_row(d: Any) -> tuple[Any, ...]:
+    """Display-table row for a distinction: mechanism, φ_d, cause/effect purviews."""
+    return (
+        getattr(d, "mechanism_label", None) or str(getattr(d, "mechanism", "")),
+        getattr(d, "phi", None),
+        str(getattr(d, "cause_purview", "")),
+        str(getattr(d, "effect_purview", "")),
+    )
+
+
 class Distinctions(Displayable, cmp.Orderable, Sequence, ToPandasMixin):
     """Base class for a collection of distinctions.
 
@@ -132,40 +146,14 @@ class Distinctions(Displayable, cmp.Orderable, Sequence, ToPandasMixin):
         cls = type(self).__name__
         num_d = len(self)
         sum_phi_d = self.sum_phi()
-
-        distinction_table_rows = tuple(
-            (
-                getattr(d, "mechanism_label", None) or str(getattr(d, "mechanism", "")),
-                getattr(d, "phi", None),
-                str(getattr(d, "cause_purview", "")),
-                str(getattr(d, "effect_purview", "")),
-            )
-            for d in self
+        table = capped_table(
+            DISTINCTION_HEADERS, self, distinction_table_row, total=num_d
         )
-
         return Description(
             title=cls,
             sections=(
-                Section(
-                    rows=(
-                        Row("Distinctions", num_d),
-                        Row("Σφ_d", sum_phi_d),
-                    )
-                ),
-                Section(
-                    label="Distinctions",
-                    body=(
-                        Table(
-                            headers=(
-                                "Mechanism",
-                                "φ_d",
-                                "Cause purview",
-                                "Effect purview",
-                            ),
-                            rows=distinction_table_rows,
-                        ),
-                    ),
-                ),
+                Section(rows=(Row("Distinctions", num_d), Row("Σφ_d", sum_phi_d))),
+                Section(label="Distinctions", body=(table,)),
             ),
             compact=f"{cls}({num_d} distinctions, Σφ_d={format_value(sum_phi_d)})",
         )

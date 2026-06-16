@@ -34,11 +34,13 @@ from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
 from pyphi.display import Section
-from pyphi.display import Table
 from pyphi.display.numbers import format_value
+from pyphi.display.tables import capped_table
 
 from . import cmp
+from .distinctions import DISTINCTION_HEADERS
 from .distinctions import ResolvedDistinctions
+from .distinctions import distinction_table_row
 
 if TYPE_CHECKING:
     from pyphi.data_structures import PyPhiFloat
@@ -114,19 +116,12 @@ class CauseEffectStructure(Displayable, cmp.Orderable):
             Row("Σφ_r", sum_phi_r),
         ]
 
-        distinction_table_rows = tuple(
-            (
-                getattr(d, "mechanism_label", None) or str(getattr(d, "mechanism", "")),
-                getattr(d, "phi", None),
-                str(getattr(d, "cause_purview", "")),
-                str(getattr(d, "effect_purview", "")),
-            )
-            for d in self.distinctions
-        )
         distinctions_body = (
-            Table(
-                headers=("Mechanism", "φ_d", "Cause purview", "Effect purview"),
-                rows=distinction_table_rows,
+            capped_table(
+                DISTINCTION_HEADERS,
+                self.distinctions,
+                distinction_table_row,
+                total=num_d,
             ),
         )
 
@@ -257,19 +252,12 @@ class PhiFold(CauseEffectStructure):
             Row("Φ_d (contribution)", big_phi_contrib),
         ]
 
-        distinction_table_rows = tuple(
-            (
-                getattr(d, "mechanism_label", None) or str(getattr(d, "mechanism", "")),
-                getattr(d, "phi", None),
-                str(getattr(d, "cause_purview", "")),
-                str(getattr(d, "effect_purview", "")),
-            )
-            for d in self.distinctions
-        )
         distinctions_body = (
-            Table(
-                headers=("Mechanism", "φ_d", "Cause purview", "Effect purview"),
-                rows=distinction_table_rows,
+            capped_table(
+                DISTINCTION_HEADERS,
+                self.distinctions,
+                distinction_table_row,
+                total=num_d,
             ),
         )
 

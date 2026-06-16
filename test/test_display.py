@@ -861,3 +861,34 @@ def test_iit4_sia_ascii_golden():
     pyphi.config.progress_bars = False
     sia = pyphi.examples.basic_system().sia()
     assert repr(sia) == _GOLDEN_IIT4_SIA
+
+
+def test_capped_table_respects_config_and_records_overflow():
+    from pyphi.display.tables import capped_table
+
+    items = list(range(100))
+    with pyphi.config.override(repr_max_table_rows=10):
+        t = capped_table(("n",), items, lambda i: (i,), total=len(items))
+    assert len(t.rows) == 10
+    assert t.overflow == 90
+
+
+def test_ascii_table_shows_overflow_line():
+    t = Table(headers=("n",), rows=(("1",), ("2",)), overflow=98)
+    lines = ascii_backend._format_table(t)
+    assert lines[-1] == "… 98 more"
+
+
+def test_html_table_is_scrollable_and_shows_overflow():
+    t = Table(headers=("n",), rows=(("1",),), overflow=5)
+    out = html_backend._table_html(t)
+    assert "pyphi-scroll" in out
+    assert "… 5 more" in out
+
+
+def test_ces_distinctions_table_truncates_under_config_cap():
+    pyphi.config.progress_bars = False
+    ces = pyphi.examples.basic_system().ces()  # 2 distinctions
+    with pyphi.config.override(repr_max_table_rows=1):
+        out = repr(ces)
+    assert "… 1 more" in out  # 2 distinctions, cap 1 -> 1 hidden
