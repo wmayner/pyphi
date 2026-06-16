@@ -51,6 +51,8 @@ from .actual_causation import _null_ac_sia
 from .ces import CauseEffectStructure
 from .complex import Complex
 from .complex import ExcludedCandidate
+from .diff import Change
+from .diff import ResultDiff
 from .distinction import Concept
 from .distinction import Distinction
 from .distinctions import Distinctions
@@ -95,6 +97,7 @@ __all__ = [
     "CausalLink",
     "CauseEffectStructure",
     "CauseEffectStructureInterface",
+    "Change",
     "CompleteEdgeCut",
     "Complex",
     "Concept",
@@ -122,6 +125,7 @@ __all__ = [
     "Part",
     "RepertoireIrreducibilityAnalysis",
     "ResolvedDistinctions",
+    "ResultDiff",
     "SIAInterface",
     "StateSpecification",
     "SystemStateSpecification",
