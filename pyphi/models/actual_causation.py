@@ -22,6 +22,9 @@ from pyphi.models.explanation import Finding
 
 from . import cmp
 from . import fmt
+from .diff import Change
+from .diff import ResultDiff
+from .diff import _diff_common
 from .partitions import concise_partition
 
 _SERIALIZING_AS_TIE_PEER: contextvars.ContextVar[bool] = contextvars.ContextVar(
@@ -561,6 +564,50 @@ class Account(Displayable, cmp.Orderable, Sequence):
             findings=tuple(findings),
         )
 
+    def diff(self, other) -> ResultDiff:
+        """Structured delta from this account to ``other`` (``a.diff(b)``).
+
+        Causal links are keyed by direction + mechanism + purview; a link
+        present in both is *changed* when its |alpha| differs. An account
+        carries no :class:`ConfigSnapshot`, so ``config_diff`` is empty.
+        """
+        from pyphi import utils
+        from pyphi.data_structures import PyPhiFloat
+
+        if not isinstance(other, Account):
+            raise TypeError(
+                f"cannot diff {type(self).__name__} against {type(other).__name__}"
+            )
+
+        def key(link):
+            return (str(link.direction), link.mechanism, link.purview)
+
+        a_by = {key(link): link for link in self.causal_links}
+        b_by = {key(link): link for link in other.causal_links}
+        changes: list[Change] = []
+        changes.extend(
+            Change("link_lost", k, a_value=a_by[k].alpha)
+            for k in a_by.keys() - b_by.keys()
+        )
+        changes.extend(
+            Change("link_gained", k, b_value=b_by[k].alpha)
+            for k in b_by.keys() - a_by.keys()
+        )
+        changes.extend(
+            Change("link_changed", k, a_by[k].alpha, b_by[k].alpha)
+            for k in a_by.keys() & b_by.keys()
+            if not utils.eq(a_by[k].alpha, b_by[k].alpha)
+        )
+        return ResultDiff(
+            subject=f"ΔΣα ({len(self)} → {len(other)} links)",
+            level="system",
+            delta_phi=PyPhiFloat(float(other._sum_alpha) - float(self._sum_alpha)),
+            mip_changed=False,
+            changes=tuple(changes),
+            config_diff={},
+            substrate_note=None,
+        )
+
     def to_json(self):
         return {"causal_links": tuple(self)}
 
@@ -706,6 +753,22 @@ class AcSystemIrreducibilityAnalysis(Displayable, cmp.Orderable):
             subject=f"α = {format_value(self.alpha)}",  # noqa: RUF001
             level="system",
             findings=tuple(findings),
+        )
+
+    def diff(self, other) -> ResultDiff:
+        """Structured delta from this analysis to ``other`` (``a.diff(b)``)."""
+        if not isinstance(other, AcSystemIrreducibilityAnalysis):
+            raise TypeError(
+                f"cannot diff {type(self).__name__} against {type(other).__name__}"
+            )
+        common = _diff_common(self, other)
+        return ResultDiff(
+            subject=f"Δα = {format_value(common['delta_phi'])}",
+            level="system",
+            delta_phi=common["delta_phi"],
+            mip_changed=common["mip_changed"],
+            config_diff=common["config_diff"],
+            substrate_note=common["substrate_note"],
         )
 
     def is_orderable_with(self, other: object) -> bool:

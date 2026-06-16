@@ -106,3 +106,24 @@ def test_mechanism_diff(s):
     assert float(rd.delta_phi) == 0.0
     # MICE delegates
     assert isinstance(da.cause.diff(db.cause), ResultDiff)
+
+
+def test_ac_diff():
+    from pyphi import actual
+    from pyphi import examples
+    from pyphi.direction import Direction
+    from pyphi.models.diff import ResultDiff
+
+    t = examples.prevention_transition()
+    a = actual.sia(t, Direction.BIDIRECTIONAL)
+    b = actual.sia(t, Direction.BIDIRECTIONAL)
+    rd = a.diff(b)
+    assert isinstance(rd, ResultDiff)
+    assert rd.level == "system"
+    assert float(rd.delta_phi) == 0.0
+
+    acc_a = actual.account(t, Direction.BIDIRECTIONAL)
+    acc_b = actual.account(t, Direction.BIDIRECTIONAL)
+    rd_acc = acc_a.diff(acc_b)
+    assert isinstance(rd_acc, ResultDiff)
+    assert rd_acc.changes == ()  # identical accounts
