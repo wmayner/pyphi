@@ -51,3 +51,27 @@ def test_config_diff_surfaces_precision_change(s):
         b = FORMALISM_REGISTRY["IIT_4_0_2023"].evaluate_system(s)
     common = _diff_common(a, b)
     assert "numerics.precision" in common["config_diff"]
+
+
+def test_iit4_sia_diff(s):
+    from pyphi.formalism import FORMALISM_REGISTRY
+    from pyphi.models.diff import ResultDiff
+
+    a = FORMALISM_REGISTRY["IIT_4_0_2023"].evaluate_system(s)
+    b = FORMALISM_REGISTRY["IIT_4_0_2023"].evaluate_system(s)
+    rd = a.diff(b)
+    assert isinstance(rd, ResultDiff)
+    assert rd.level == "system"
+    assert float(rd.delta_phi) == 0.0
+    assert rd.mip_changed is False
+
+
+def test_diff_type_mismatch_raises(s):
+    import pytest
+
+    from pyphi.formalism import FORMALISM_REGISTRY
+
+    a = FORMALISM_REGISTRY["IIT_4_0_2023"].evaluate_system(s)
+
+    with pytest.raises(TypeError):
+        a.diff("not a result")

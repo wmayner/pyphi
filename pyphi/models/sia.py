@@ -19,6 +19,8 @@ from pyphi.display import Section
 from pyphi.display.numbers import format_value
 
 from . import cmp
+from .diff import ResultDiff
+from .diff import _diff_common
 from .distinctions import Distinctions
 from .distinctions import _null_ces
 from .explanation import Explanation
@@ -159,6 +161,22 @@ class IIT3SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
             subject=f"Φ = {format_value(self.phi)}",
             level="system",
             findings=self._findings(),
+        )
+
+    def diff(self, other) -> ResultDiff:
+        """Structured delta from this SIA to ``other`` (``a.diff(b)``)."""
+        if not isinstance(other, IIT3SystemIrreducibilityAnalysis):
+            raise TypeError(
+                f"cannot diff {type(self).__name__} against {type(other).__name__}"
+            )
+        common = _diff_common(self, other)
+        return ResultDiff(
+            subject=f"ΔΦ = {format_value(common['delta_phi'])}",
+            level="system",
+            delta_phi=common["delta_phi"],
+            mip_changed=common["mip_changed"],
+            config_diff=common["config_diff"],
+            substrate_note=common["substrate_note"],
         )
 
     def print(self):

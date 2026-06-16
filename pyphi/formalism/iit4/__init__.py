@@ -41,6 +41,8 @@ from pyphi.measures.protocols import StatefulDistributionMeasure
 from pyphi.measures.protocols import satisfies_composite_measure
 from pyphi.models import cmp
 from pyphi.models.ces import CauseEffectStructure
+from pyphi.models.diff import ResultDiff
+from pyphi.models.diff import _diff_common
 from pyphi.models.distinctions import Distinctions
 from pyphi.models.distinctions import ResolvedDistinctions
 from pyphi.models.explanation import Explanation
@@ -417,6 +419,40 @@ class SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
             subject=f"Φ_s = {format_value(self.phi)}",
             level="system",
             findings=self._findings(),
+        )
+
+    def _binding_direction_changed(self, other) -> bool | None:
+        """Whether the binding direction (the lower-φ side) flipped between the
+        two analyses; ``None`` when either lacks both a cause and an effect."""
+        if (
+            self.cause is None
+            or self.effect is None
+            or other.cause is None
+            or other.effect is None
+        ):
+            return None
+        a_dir = "cause" if float(self.cause.phi) <= float(self.effect.phi) else "effect"
+        b_dir = (
+            "cause" if float(other.cause.phi) <= float(other.effect.phi) else "effect"
+        )
+        return a_dir != b_dir
+
+    def diff(self, other) -> ResultDiff:
+        """Structured delta from this SIA to ``other`` (``a.diff(b)``)."""
+        if not isinstance(other, SystemIrreducibilityAnalysis):
+            raise TypeError(
+                f"cannot diff {type(self).__name__} against {type(other).__name__}"
+            )
+        common = _diff_common(self, other)
+        return ResultDiff(
+            subject=f"ΔΦ_s = {format_value(common['delta_phi'])}",
+            level="system",
+            delta_phi=common["delta_phi"],
+            mip_changed=common["mip_changed"],
+            binding_direction_changed=self._binding_direction_changed(other),
+            changes=(),
+            config_diff=common["config_diff"],
+            substrate_note=common["substrate_note"],
         )
 
     def to_json(self):
