@@ -490,6 +490,7 @@ class Account(Displayable, cmp.Orderable, Sequence):
                 link.alpha,
             ),
             total=num_links,
+            cell_tones=lambda link: (tone_of(link.direction), None, None, None),
         )
         return Description(
             title=cls,
@@ -613,6 +614,7 @@ class AcSystemIrreducibilityAnalysis(Displayable, cmp.Orderable):
                         Row(
                             "Direction",
                             str(self.direction) if self.direction is not None else None,
+                            tone=tone_of(self.direction),
                         ),
                         Row("System", self._system_label()),
                         Row("Before state", before_str),

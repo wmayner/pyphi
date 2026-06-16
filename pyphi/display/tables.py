@@ -18,6 +18,7 @@ def capped_table(
     total: int,
     cap: int | None = None,
     header_tones: tuple[str | None, ...] = (),
+    cell_tones: Callable[[Any], tuple[str | None, ...]] | None = None,
 ) -> Table:
     """Build a :class:`Table` from the first ``cap`` items, recording overflow.
 
@@ -25,12 +26,19 @@ def capped_table(
     ``config.infrastructure.repr_max_table_rows``. Only ``cap`` items are
     materialized, so a huge collection (e.g. millions of relations) is not
     fully realized just to display a handful of rows. ``header_tones`` optionally
-    color individual column headers (HTML only).
+    colors individual column headers; ``cell_tones`` optionally returns a
+    per-column tone tuple for each item, coloring body cells (HTML only).
     """
     if cap is None:
         cap = config.infrastructure.repr_max_table_rows
-    rows = tuple(row(item) for item in islice(items, cap))
+    materialized = list(islice(items, cap))
+    rows = tuple(row(item) for item in materialized)
     overflow = max(0, total - len(rows))
+    row_tones = tuple(cell_tones(item) for item in materialized) if cell_tones else ()
     return Table(
-        headers=headers, rows=rows, overflow=overflow, header_tones=header_tones
+        headers=headers,
+        rows=rows,
+        overflow=overflow,
+        header_tones=header_tones,
+        row_tones=row_tones,
     )

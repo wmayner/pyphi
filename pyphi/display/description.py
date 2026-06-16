@@ -38,6 +38,8 @@ class Table:
     grid: bool = False  # matrix-style (e.g. a cut grid): tight, center-aligned
     # Optional per-column semantic tone for the header cells (HTML colors them).
     header_tones: tuple[str | None, ...] = ()
+    # Optional per-cell semantic tone, aligned with ``rows`` (HTML colors them).
+    row_tones: tuple[tuple[str | None, ...], ...] = ()
 
 
 @dataclass(frozen=True)

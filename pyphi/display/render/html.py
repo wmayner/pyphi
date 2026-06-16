@@ -56,9 +56,23 @@ table.pyphi-grid th:first-child,table.pyphi-grid td:first-child{
 </style>"""
 
 
+_TONE_COLOR = {"cause": "#D55C00", "effect": "#009E73"}
+
+
 def _tone_cls(tone: str | None) -> str:
     """Space-prefixed CSS class for a semantic tone, for appending to a class."""
     return f" pyphi-{tone}" if tone in ("cause", "effect") else ""
+
+
+def _tone_style(tone: str | None) -> str:
+    """Inline ``color`` style for a tone, or empty string for no tone.
+
+    Used for table cells, where a class-based tone would lose to the more
+    specific ``table.pyphi-table th``/``td`` rules (and to some notebook
+    front-ends' own table CSS); an inline color wins regardless.
+    """
+    color = _TONE_COLOR.get(tone or "")
+    return f' style="color:{color}"' if color else ""
 
 
 def _value_html(value: object, extra: tuple[tuple[str, object], ...]) -> str:
@@ -107,13 +121,18 @@ def _table_html(table: Table) -> str:
     head_cells = []
     for i, h in enumerate(table.headers):
         tone = tones[i] if i < len(tones) else None
-        cls = f' class="pyphi-{tone}"' if tone in ("cause", "effect") else ""
-        head_cells.append(f"<th{cls}>{escape(h)}</th>")
+        head_cells.append(f"<th{_tone_style(tone)}>{escape(h)}</th>")
     head = "".join(head_cells)
-    body = "".join(
-        "<tr>" + "".join(f"<td>{escape(format_value(c))}</td>" for c in row) + "</tr>"
-        for row in table.rows
-    )
+    row_tones = table.row_tones
+    body_rows = []
+    for ri, row in enumerate(table.rows):
+        cell_tones = row_tones[ri] if ri < len(row_tones) else ()
+        cells = []
+        for ci, c in enumerate(row):
+            tone = cell_tones[ci] if ci < len(cell_tones) else None
+            cells.append(f"<td{_tone_style(tone)}>{escape(format_value(c))}</td>")
+        body_rows.append("<tr>" + "".join(cells) + "</tr>")
+    body = "".join(body_rows)
     html = (
         f'<div class="pyphi-scroll">'
         f'<table class="pyphi-table"><tr>{head}</tr>{body}</table></div>'

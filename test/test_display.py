@@ -931,8 +931,32 @@ def test_ces_distinctions_table_truncates_under_config_cap():
 def test_distinctions_table_colors_cause_effect_purview_headers():
     pyphi.config.progress_bars = False
     h = pyphi.examples.basic_system().ces()._repr_html_()
-    assert 'class="pyphi-cause">Cause purview' in h
-    assert 'class="pyphi-effect">Effect purview' in h
+    # Inline color (not just a class) so the tone beats the more-specific
+    # ``table.pyphi-table th`` rule and notebook front-ends' own table CSS.
+    assert 'style="color:#D55C00">Cause purview' in h
+    assert 'style="color:#009E73">Effect purview' in h
+
+
+def test_unresolved_distinctions_colors_purview_headers():
+    from pyphi.models.distinctions import UnresolvedDistinctions
+
+    pyphi.config.progress_bars = False
+    distinctions = pyphi.examples.basic_system().ces().distinctions
+    unresolved = UnresolvedDistinctions(tuple(distinctions))
+    h = unresolved._repr_html_()
+    assert 'style="color:#D55C00">Cause purview' in h
+    assert 'style="color:#009E73">Effect purview' in h
+
+
+def test_account_links_table_colors_direction_cells():
+    from pyphi import actual
+
+    pyphi.config.progress_bars = False
+    account = actual.account(pyphi.examples.prevention_transition())
+    h = account._repr_html_()
+    # Per-cell direction coloring: CAUSE cells orange, EFFECT cells green.
+    assert 'style="color:#D55C00">' in h  # a CAUSE link cell
+    assert 'style="color:#009E73">' in h  # an EFFECT link cell
 
 
 def test_cut_grid_html_uses_inline_alignment():
