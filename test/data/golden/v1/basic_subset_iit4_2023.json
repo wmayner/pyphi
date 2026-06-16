@@ -1,14 +1,14 @@
 {
   "fixture_name": "basic_subset_iit4_2023",
   "schema_version": 1,
-  "generated_from_commit": "023a359b082dcb825beaa323c150090d51f454dd",
-  "description": "basic_network with subsystem = nodes (1, 2) only (strict subset of the 3-node network). Exercises the subsystem-shaped repertoire path that the actual.py audit found buggy. Critical for P7's subsystem rewrite.",
+  "generated_from_commit": "28f8e6943d4b99b51ab05520f6af2045b314d800",
+  "description": "basic_substrate with system = nodes (1, 2) only (strict subset of the 3-node substrate). Exercises the system-shaped repertoire path that the actual.py audit found buggy. Critical for P7's system rewrite.",
   "config_overrides": {
-    "FORMALISM": "IIT_4_0_2023",
-    "REPERTOIRE_DISTANCE": "GENERALIZED_INTRINSIC_DIFFERENCE",
-    "SYSTEM_PARTITION_TYPE": "SET_UNI/BI",
-    "PROGRESS_BARS": false,
-    "PARALLEL": false
+    "iit.version": "IIT_4_0_2023",
+    "mechanism_phi_measure": "GENERALIZED_INTRINSIC_DIFFERENCE",
+    "system_partition_scheme": "DIRECTED_SET_PARTITION",
+    "progress_bars": false,
+    "parallel": false
   },
   "state": [
     1,

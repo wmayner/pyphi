@@ -635,13 +635,12 @@ def test_state_probability_strict_system():
     """Regression test for ``Transition.state_probability`` on transitions
     whose system is a strict subset of the substrate.
 
-    ``System.cause_repertoire``/``effect_repertoire`` return
-    substrate-shaped arrays (``ndim == substrate.size``) for non-empty mechanisms,
-    but ``max_entropy_distribution`` (used when the mechanism is empty) returns
-    a system-shaped array (``ndim == system.size``). ``state_probability``
-    must handle both shapes; this test exercises the system-shaped branch,
-    which the existing 3-node fixtures (whose system equals the substrate) do
-    not reach.
+    Cause/effect repertoires carry one axis per substrate unit
+    (``ndim == substrate.size``) whether or not the mechanism is empty, so
+    the unconstrained (empty-mechanism) repertoire and the constrained
+    repertoire share the same dimensionality. This test exercises a
+    strict-subset system (``system.size < substrate.size``), which the 3-node
+    fixtures whose system equals the substrate do not reach.
     """
     # fmt: off
     tpm = np.zeros((16, 4))
@@ -660,11 +659,11 @@ def test_state_probability_strict_system():
     assert t.cause_system.node_indices == (2, 3)
     assert t.cause_system.substrate.size == 4
 
-    # Unconstrained repertoire is system-shaped (ndim=2), constrained
-    # repertoire is substrate-shaped (ndim=4). Both must index correctly.
+    # Both the unconstrained and constrained cause repertoires are
+    # substrate-shaped (ndim == substrate.size).
     unconstrained = t.unconstrained_cause_repertoire((2,))
     constrained = t.cause_repertoire((3,), (2,))
-    assert unconstrained.ndim == t.cause_system.size
+    assert unconstrained.ndim == t.cause_system.substrate.size
     assert constrained.ndim == t.cause_system.substrate.size
 
     # If state_probability mishandles the shape, this raises IndexError.
