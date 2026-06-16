@@ -533,6 +533,7 @@ def evaluate_partition(
     *,
     system_measure: CompositeMeasure,
     directions: Iterable[Direction] | None = None,
+    intrinsic_differentiation: dict | None = None,
 ) -> SystemIrreducibilityAnalysis:
     """Evaluate a system-level partition and return the resulting SIA.
 
@@ -541,6 +542,11 @@ def evaluate_partition(
     Partition integration uses ``system_measure.partition_measure`` if
     set (otherwise ``system_measure`` itself), and the ``ii(s)`` cap
     (Eq. 23) is applied when ``system_measure.applies_ii_cap`` is True.
+
+    ``intrinsic_differentiation`` depends only on ``(direction, system)``,
+    not the partition; a caller evaluating many partitions of the same
+    system may compute it once and pass it in to avoid rebuilding it per
+    partition.
     """
     directions = fallback(directions, Direction.both())
     if directions is None:
@@ -570,13 +576,11 @@ def evaluate_partition(
         for direction in directions
     }
 
-    intrinsic_differentiation = {
-        direction: intrinsic_differentiation_value(
-            direction,
-            system,
-        )
-        for direction in directions
-    }
+    if intrinsic_differentiation is None:
+        intrinsic_differentiation = {
+            direction: intrinsic_differentiation_value(direction, system)
+            for direction in directions
+        }
 
     # Take the min over directions on the *signed* phi so the resulting
     # SIA's ``signed_phi`` metadata captures the raw preventative-cause
@@ -973,6 +977,19 @@ def _find_mip_for_fixed_state(
     selects the MIP via :func:`resolve_ties.sias`, and back-propagates
     the chosen state onto each tied MIP's ``system_state``.
     """
+    resolved_directions = fallback(directions, Direction.both())
+    if resolved_directions is None:
+        resolved_directions = Direction.both()
+    resolved_directions = tuple(resolved_directions)
+
+    # ``intrinsic_differentiation`` depends only on (direction, system), not the
+    # partition, so compute it once here and pass it to every partition rather
+    # than rebuilding it in each ``evaluate_partition`` call.
+    precomputed_intrinsic_differentiation = {
+        direction: intrinsic_differentiation_value(direction, system)
+        for direction in resolved_directions
+    }
+
     sias = MapReduce(
         evaluate_partition,
         partitions,
@@ -980,7 +997,8 @@ def _find_mip_for_fixed_state(
             "system": system,
             "system_state": system_state,
             "system_measure": system_measure,
-            "directions": directions,
+            "directions": resolved_directions,
+            "intrinsic_differentiation": precomputed_intrinsic_differentiation,
         },
         shortcircuit_func=utils.is_falsy,
         desc="Evaluating partitions",
