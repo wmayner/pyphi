@@ -70,6 +70,8 @@ class IIT3SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
         node_labels=None,
         current_state=None,
         config=None,
+        reasons=None,
+        runner_up=None,
     ):
         if phi is None:
             self.phi = phi  # type: ignore[assignment]
@@ -87,6 +89,8 @@ class IIT3SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
         self.node_indices = node_indices
         self.node_labels = node_labels
         self.current_state = current_state
+        self.reasons = reasons or []
+        self.runner_up = runner_up
         if config is None:
             from pyphi.conf import config as _global
 
@@ -230,10 +234,11 @@ class IIT3SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
         return instance
 
 
-def _null_sia(system, phi=0.0):
+def _null_sia(system, phi=0.0, reasons=None):
     """Return an IIT3SystemIrreducibilityAnalysis with zero phi.
 
-    This is the analysis result for a reducible system.
+    This is the analysis result for a reducible system. ``reasons`` records
+    why (a list of :class:`~pyphi.models.explanation.NullResultReason`).
     """
     return IIT3SystemIrreducibilityAnalysis(
         phi=phi,
@@ -242,4 +247,5 @@ def _null_sia(system, phi=0.0):
         node_indices=system.node_indices,
         node_labels=system.substrate.node_labels,
         current_state=system.state,
+        reasons=reasons,
     )

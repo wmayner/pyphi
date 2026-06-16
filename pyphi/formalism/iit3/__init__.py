@@ -31,6 +31,7 @@ from pyphi.models import Concept
 from pyphi.models import DirectedBipartition
 from pyphi.models import Distinctions
 from pyphi.models import IIT3SystemIrreducibilityAnalysis
+from pyphi.models import NullResultReason
 from pyphi.models import ResolvedDistinctions
 from pyphi.models import UnresolvedDistinctions
 from pyphi.models import _null_sia
@@ -322,7 +323,7 @@ def _sia_map_reduce(
     from pyphi import resolve_ties
 
     kwargs = {**dict(config.infrastructure.parallel_partition_evaluation), **kwargs}
-    null = _null_sia(system)
+    null = _null_sia(system, reasons=[NullResultReason.NO_VALID_PARTITIONS])
     candidates = MapReduce(
         evaluate_partition,
         cuts,
@@ -374,14 +375,14 @@ def _sia(system: System, **kwargs: Any) -> IIT3SystemIrreducibilityAnalysis:
     # So in those cases we immediately return a null SIA.
     if not system:
         log.info("System %s is empty; returning null SIA immediately.", system)
-        return _null_sia(system)
+        return _null_sia(system, reasons=[NullResultReason.NO_SYSTEM])
 
     if not connectivity.is_strong(system.cm, system.node_indices):
         log.info(
             "%s is not strongly connected; returning null SIA immediately.",
             system,
         )
-        return _null_sia(system)
+        return _null_sia(system, reasons=[NullResultReason.NO_STRONG_CONNECTIVITY])
 
     # Handle elementary micro mechanism cases.
     # Single macro element systems have nontrivial bipartitions because their
@@ -394,7 +395,7 @@ def _sia(system: System, **kwargs: Any) -> IIT3SystemIrreducibilityAnalysis:
                 "phi; returning null SIA immediately.",
                 system,
             )
-            return _null_sia(system)
+            return _null_sia(system, reasons=[NullResultReason.MONAD_WITH_NO_SELFLOOP])
         # Even if the node has a self-loop, we may still define phi to be zero.
         if not config.formalism.iit.single_micro_nodes_with_selfloops_have_phi:
             log.info(
@@ -402,7 +403,10 @@ def _sia(system: System, **kwargs: Any) -> IIT3SystemIrreducibilityAnalysis:
                 "phi; returning null SIA immediately.",
                 system,
             )
-            return _null_sia(system)
+            return _null_sia(
+                system,
+                reasons=[NullResultReason.MONAD_WITH_SELFLOOP_DEFINED_TO_BE_ZERO_PHI],
+            )
     # =========================================================================
 
     log.debug("Finding unpartitioned Distinctions...")
@@ -411,7 +415,7 @@ def _sia(system: System, **kwargs: Any) -> IIT3SystemIrreducibilityAnalysis:
     if not unpartitioned_ces:
         log.info("Empty unpartitioned Distinctions; returning null SIA immediately.")
         # Short-circuit if there are no concepts in the unpartitioned CES.
-        return _null_sia(system)
+        return _null_sia(system, reasons=[NullResultReason.EMPTY_CAUSE_EFFECT_STRUCTURE])
 
     log.debug("Found unpartitioned Distinctions.")
 

@@ -56,3 +56,14 @@ def test_explanation_describe_and_pandas():
     assert list(df.columns) == ["level", "kind", "label", "value"]
     assert len(df) == 2
     assert df.iloc[0]["kind"] == "null_result"
+
+
+def test_iit3_null_sia_carries_reason(s_empty):
+    import pyphi
+    from pyphi.conf import presets
+    from pyphi.formalism import iit3
+
+    with pyphi.config.override(**presets.iit3):
+        analysis = iit3.sia(s_empty)
+    assert analysis.phi == 0
+    assert NullResultReason.NO_SYSTEM in (analysis.reasons or [])
