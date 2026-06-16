@@ -12,11 +12,16 @@ from typing import Any
 
 @dataclass(frozen=True)
 class Row:
-    """One aligned key/value line with optional trailing extra fields."""
+    """One aligned key/value line with optional trailing extra fields.
+
+    ``tone`` is an optional semantic accent (``"cause"`` / ``"effect"``) that
+    HTML rendering colors; the ASCII backend ignores it.
+    """
 
     label: str
     value: Any
     extra: tuple[tuple[str, Any], ...] = ()
+    tone: str | None = None
 
 
 @dataclass(frozen=True)
@@ -63,6 +68,7 @@ class Section:
     label: str | None = None
     rows: tuple[Row, ...] = ()
     body: tuple[Component, ...] = ()
+    tone: str | None = None
 
 
 @dataclass(frozen=True)
@@ -73,3 +79,4 @@ class Description:
     subtitle: str | None = None
     sections: tuple[Section, ...] = ()
     compact: str | None = None
+    tone: str | None = None

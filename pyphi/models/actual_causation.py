@@ -14,11 +14,13 @@ from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
 from pyphi.display import Section
+from pyphi.display import tone_of
 from pyphi.display.numbers import format_value
 from pyphi.display.tables import capped_table
 
 from . import cmp
 from . import fmt
+from .partitions import concise_partition
 
 _SERIALIZING_AS_TIE_PEER: contextvars.ContextVar[bool] = contextvars.ContextVar(
     "ac_serializing_as_tie_peer", default=False
@@ -206,7 +208,7 @@ class AcRepertoireIrreducibilityAnalysis(Displayable, cmp.Orderable):
         mechanism_str = fmt.fmt_mechanism(self.mechanism, self.node_labels)
         purview_str = fmt.fmt_mechanism(self.purview, self.node_labels)
         partition_str = (
-            str(self.partition).splitlines()[0] if self.partition is not None else None
+            concise_partition(self.partition) if self.partition is not None else None
         )
         return Description(
             title=cls,
@@ -214,7 +216,11 @@ class AcRepertoireIrreducibilityAnalysis(Displayable, cmp.Orderable):
                 Section(
                     rows=(
                         Row("α", self.alpha),  # noqa: RUF001
-                        Row("Direction", str(self.direction)),
+                        Row(
+                            "Direction",
+                            str(self.direction),
+                            tone=tone_of(self.direction),
+                        ),
                         Row("Mechanism", mechanism_str),
                         Row("Purview", purview_str),
                         Row("State", str(self.state)),
@@ -346,7 +352,11 @@ class CausalLink(Displayable, cmp.Orderable):
                 Section(
                     rows=(
                         Row("α", self.alpha),  # noqa: RUF001
-                        Row("Direction", str(self.direction)),
+                        Row(
+                            "Direction",
+                            str(self.direction),
+                            tone=tone_of(self.direction),
+                        ),
                         Row("Mechanism", mechanism_str),
                         Row("Purview", purview_str),
                     ),
@@ -588,7 +598,7 @@ class AcSystemIrreducibilityAnalysis(Displayable, cmp.Orderable):
         num_links = len(account) if account is not None else None
         sum_alpha = sum(link.alpha for link in account) if account is not None else None
         partition_str = (
-            str(self.partition).splitlines()[0] if self.partition is not None else None
+            concise_partition(self.partition) if self.partition is not None else None
         )
         before_str = (
             fmt.state(self.before_state) if self.before_state is not None else None

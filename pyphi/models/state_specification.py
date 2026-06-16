@@ -28,6 +28,7 @@ from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
 from pyphi.display import Section
+from pyphi.display import tone_of
 from pyphi.measures.distribution import DistanceResult
 from pyphi.registry import Registry
 
@@ -131,12 +132,14 @@ class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
 
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         direction_label = str(self.direction)
+        tone = tone_of(self.direction)
         return Description(
             title=f"Specified {direction_label}",
+            tone=tone,
             sections=(
                 Section(
                     rows=(
-                        Row("Direction", direction_label),
+                        Row("Direction", direction_label, tone=tone),
                         Row("Purview", self.purview),
                         Row("Specified state", self.state),
                         Row("Intrinsic information", self.intrinsic_information),
@@ -261,10 +264,12 @@ class SystemStateSpecification(Displayable, ToDictMixin, ToPandasMixin):
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         sections = []
         for direction, spec in (("Cause", self.cause), ("Effect", self.effect)):
+            tone = direction.lower()
             if spec is not None:
                 sections.append(
                     Section(
                         label=direction,
+                        tone=tone,
                         rows=(
                             Row("Purview", spec.purview),
                             Row("Specified state", spec.state),
@@ -273,7 +278,9 @@ class SystemStateSpecification(Displayable, ToDictMixin, ToPandasMixin):
                     )
                 )
             else:
-                sections.append(Section(label=direction, rows=(Row("State", None),)))
+                sections.append(
+                    Section(label=direction, tone=tone, rows=(Row("State", None),))
+                )
         return Description(
             title="Specified System State",
             sections=tuple(sections),

@@ -11,6 +11,7 @@ from pyphi import models  # used by other tests in this module
 from pyphi.labels import NodeLabels
 from pyphi.models import DirectedBipartition
 from pyphi.models.partitions import JointPartition
+from pyphi.models.partitions import concise_partition
 
 EPSILON = 10 ** (-config.numerics.precision)
 
@@ -364,7 +365,7 @@ def test_null_cut():
 
 def test_null_cut_str():
     cut = models.NullCut((2, 3))
-    assert str(cut) == "NullCut((2, 3))"
+    assert concise_partition(cut) == "NullCut((2, 3))"
 
 
 def test_null_cut_equality():
@@ -724,7 +725,7 @@ def test_bipartition_properties(bipartition):
 
 
 def test_bipartition_str(bipartition):
-    assert str(bipartition) == "A/A,E × ∅/B"  # noqa: RUF001
+    assert concise_partition(bipartition) == "A/A,E × ∅/B"  # noqa: RUF001
 
 
 @pytest.fixture
@@ -743,7 +744,7 @@ def test_tripartion_properties(tripartition):
 
 
 def test_tripartion_str(tripartition):
-    assert str(tripartition) == "A/A,E × ∅/B × C/C"  # noqa: RUF001
+    assert concise_partition(tripartition) == "A/A,E × ∅/B × C/C"  # noqa: RUF001
 
 
 def k_partition(node_labels=None):

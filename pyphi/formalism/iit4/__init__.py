@@ -49,6 +49,7 @@ from pyphi.models.distinctions import ResolvedDistinctions
 from pyphi.models.partitions import DirectedBipartition
 from pyphi.models.partitions import EdgeCut
 from pyphi.models.partitions import NullCut
+from pyphi.models.partitions import concise_partition
 from pyphi.models.ria import RepertoireIrreducibilityAnalysis
 from pyphi.models.state_specification import StateSpecification
 from pyphi.models.state_specification import SystemStateSpecification
@@ -316,6 +317,7 @@ class SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
             sections.append(
                 Section(
                     label="Cause",
+                    tone="cause",
                     rows=(
                         Row("Specified state", state.cause.state),
                         Row("Intrinsic information", state.cause.intrinsic_information),
@@ -330,6 +332,7 @@ class SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
             sections.append(
                 Section(
                     label="Effect",
+                    tone="effect",
                     rows=(
                         Row("Specified state", state.effect.state),
                         Row(
@@ -345,7 +348,7 @@ class SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
             )
         mip_rows = []
         if self.partition is not None:
-            mip_rows.append(Row("Partition", str(self.partition).splitlines()[0]))
+            mip_rows.append(Row("Partition", concise_partition(self.partition)))
         mip_rows.append(Row("Tied MIPs", len(self.ties) - 1))
         sections.append(Section(label="MIP", rows=tuple(mip_rows)))
         if self.reasons:

@@ -7,6 +7,7 @@ from pyphi.display.description import Row
 from pyphi.display.description import Section
 from pyphi.display.description import Table
 from pyphi.display.mixin import Displayable
+from pyphi.display.tones import tone_of
 
 __all__ = [
     "Description",
@@ -16,4 +17,5 @@ __all__ = [
     "Row",
     "Section",
     "Table",
+    "tone_of",
 ]

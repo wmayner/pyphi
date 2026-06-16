@@ -46,7 +46,14 @@ table.pyphi-table td{padding:3px 12px 3px 0;border-bottom:1px solid #f0f2f4;
  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 .pyphi-scroll{max-height:18em;overflow:auto}
 .pyphi-more{color:#8b949e;font-size:12px;padding:3px 0}
+.pyphi-cause{color:#D55C00}
+.pyphi-effect{color:#009E73}
 </style>"""
+
+
+def _tone_cls(tone: str | None) -> str:
+    """Space-prefixed CSS class for a semantic tone, for appending to a class."""
+    return f" pyphi-{tone}" if tone in ("cause", "effect") else ""
 
 
 def _value_html(value: object, extra: tuple[tuple[str, object], ...]) -> str:
@@ -63,7 +70,8 @@ def _kv_html(rows: tuple[Row, ...]) -> str:
     cells = []
     for row in rows:
         cells.append(f'<span class="pyphi-k">{escape(row.label)}</span>')
-        cells.append(f"<span>{_value_html(row.value, row.extra)}</span>")
+        val = _value_html(row.value, row.extra)
+        cells.append(f'<span class="pyphi-vcell{_tone_cls(row.tone)}">{val}</span>')
     return f'<div class="pyphi-kv">{"".join(cells)}</div>'
 
 
@@ -85,7 +93,8 @@ def _table_html(table: Table) -> str:
 def _section_html(section: Section) -> str:
     parts = []
     if section.label:
-        parts.append(f'<div class="pyphi-label">{escape(section.label)}</div>')
+        cls = f"pyphi-label{_tone_cls(section.tone)}"
+        parts.append(f'<div class="{cls}">{escape(section.label)}</div>')
     if section.rows:
         parts.append(_kv_html(section.rows))
     for comp in section.body:
@@ -110,7 +119,8 @@ def render(description: Description, verbosity: int) -> str:  # noqa: ARG001
         text = description.compact or description.title
         return _STYLE + f'<span class="pyphi-leaf">{escape(text)}</span>'
 
-    head = [f'<span class="pyphi-title">{escape(description.title)}</span>']
+    title_cls = f"pyphi-title{_tone_cls(description.tone)}"
+    head = [f'<span class="{title_cls}">{escape(description.title)}</span>']
     if description.subtitle:
         head.append(f'<span class="pyphi-badge">{escape(description.subtitle)}</span>')
     sections = "".join(_section_html(section) for section in description.sections)

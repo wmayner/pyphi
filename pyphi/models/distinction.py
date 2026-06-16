@@ -106,6 +106,7 @@ class Distinction(
                 ),
                 Section(
                     label="Cause",
+                    tone="cause",
                     rows=(
                         Row("Purview", str(cause_purview)),
                         Row("φ", cause_phi),
@@ -114,6 +115,7 @@ class Distinction(
                 ),
                 Section(
                     label="Effect",
+                    tone="effect",
                     rows=(
                         Row("Purview", str(effect_purview)),
                         Row("φ", effect_phi),

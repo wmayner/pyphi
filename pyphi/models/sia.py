@@ -20,6 +20,7 @@ from pyphi.display.numbers import format_value
 
 from . import cmp
 from .distinctions import _null_ces
+from .partitions import concise_partition
 
 _SERIALIZING_AS_TIE_PEER: contextvars.ContextVar[bool] = contextvars.ContextVar(
     "iit3_sia_serializing_as_tie_peer", default=False
@@ -97,7 +98,7 @@ class IIT3SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         cls = type(self).__name__
         partition_str = (
-            str(self.partition).splitlines()[0] if self.partition is not None else None
+            concise_partition(self.partition) if self.partition is not None else None
         )
         return Description(
             title=cls,

@@ -61,10 +61,78 @@ from pyphi import utils
 from pyphi.direction import Direction
 from pyphi.display import Description
 from pyphi.display import Displayable
+from pyphi.display import Inline
+from pyphi.display import Row
+from pyphi.display import Section
+from pyphi.display import Table
 from pyphi.labels import NodeLabels
 
 from . import cmp
 from . import fmt
+
+_CUT_MARK = "✕"
+_NO_CUT_MARK = "·"
+
+
+def _cut_grid(partition: _PartitionBase) -> Table:
+    """Labeled grid of severed connections: rows = from-node, cols = to-node.
+
+    A cell is ``✕`` when the directed edge from→to is severed, ``·`` otherwise.
+    Built from :meth:`removed_edges`; node set is the partition's involved
+    indices (always small for IIT, so never hits the table row cap).
+    """
+    indices = list(partition.indices)
+    removed = partition.removed_edges()
+    labels = [fmt.fmt_nodes((i,), partition.node_labels) for i in indices]
+    rows = tuple(
+        (
+            labels[r],
+            *(
+                _CUT_MARK if (indices[r], indices[c]) in removed else _NO_CUT_MARK
+                for c in range(len(indices))
+            ),
+        )
+        for r in range(len(indices))
+    )
+    return Table(headers=("", *labels), rows=rows)
+
+
+def _partition_description(partition: _PartitionBase, concise: str) -> Description:
+    """Universal rich card for a partition: shorthand headline + cut grid.
+
+    ``concise`` is the per-type one-line shorthand (also used as ``compact``
+    for embedding and low-verbosity display).
+    """
+    direction = getattr(partition, "direction", None)
+    title = type(partition).__name__
+    tone = None
+    if direction is not None:
+        dname = direction.name.lower()
+        title = f"{title} · {dname}"
+        if dname in ("cause", "effect"):
+            tone = dname
+    sections = [Section(body=(Inline(concise),))]
+    if partition.removed_edges():
+        sections.append(
+            Section(
+                label="Severed connections",
+                rows=(Row("Connections cut", partition.num_connections_cut()),),
+                body=(_cut_grid(partition),),
+            )
+        )
+    else:
+        sections.append(
+            Section(
+                label="Severed connections",
+                rows=(Row("Connections cut", 0),),
+            )
+        )
+    return Description(title=title, sections=tuple(sections), compact=concise, tone=tone)
+
+
+def concise_partition(partition: _PartitionBase) -> str:
+    """One-line shorthand for a partition (for embedding in other cards)."""
+    return partition._concise()
 
 
 @functools.total_ordering
@@ -75,6 +143,12 @@ class _PartitionBase:
     :attr:`indices` property. :meth:`apply_cut`, :meth:`cuts_connections`,
     :meth:`splits_mechanism`, and :meth:`all_cut_mechanisms` are derived.
     """
+
+    node_labels: NodeLabels | None
+
+    def _concise(self) -> str:
+        """One-line shorthand for embedding; overridden by each concrete type."""
+        raise NotImplementedError
 
     def __lt__(self, other: object) -> bool:
         """Total order by induced-cut bytes (:meth:`lex_key`).
@@ -209,9 +283,11 @@ class NullCut(Displayable, _PartitionBase):
     def to_json(self) -> dict[str, Any]:
         return {"indices": self.indices}
 
+    def _concise(self) -> str:
+        return f"NullCut({self.indices})"
+
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
-        compact = f"NullCut({self.indices})"
-        return Description(title="NullCut", compact=compact)
+        return _partition_description(self, self._concise())
 
     @cmp.sametype
     def __eq__(self, other: object) -> bool:
@@ -295,9 +371,11 @@ class DirectedBipartition(Displayable, _PartitionBase):
     def format(self, node_labels: NodeLabels | None = None) -> str:
         return fmt.fmt_part(self, node_labels=node_labels)
 
+    def _concise(self) -> str:
+        return fmt.fmt_partition_arrow(self, direction=self.direction)
+
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
-        compact = fmt.fmt_partition_arrow(self, direction=self.direction)
-        return Description(title="DirectedBipartition", compact=compact)
+        return _partition_description(self, self._concise())
 
     def to_json(self) -> dict[str, Any]:
         return {
@@ -366,9 +444,11 @@ class DirectedJointPartition(Displayable, _PartitionBase):
     def __hash__(self) -> int:
         return hash((self.direction, self.partition))
 
+    def _concise(self) -> str:
+        return fmt.fmt_directed_joint_partition(self).splitlines()[0]
+
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
-        compact = fmt.fmt_directed_joint_partition(self).splitlines()[0]
-        return Description(title="DirectedJointPartition", compact=compact)
+        return _partition_description(self, self._concise())
 
     def to_json(self) -> dict[str, Any]:
         return {"direction": self.direction, "partition": self.partition}
@@ -428,9 +508,11 @@ class EdgeCut(Displayable, _PartitionBase):
     def __hash__(self) -> int:
         return hash((self.node_indices, utils.np_hash(self._cut_matrix)))
 
+    def _concise(self) -> str:
+        return f"EdgeCut ({self.num_connections_cut()} cut)"
+
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
-        compact = str(self._cut_matrix)
-        return Description(title="EdgeCut", compact=compact)
+        return _partition_description(self, self._concise())
 
     def to_json(self) -> dict[str, Any]:
         return self.__dict__.copy()
@@ -461,8 +543,8 @@ class CompleteEdgeCut(EdgeCut):
     def normalization_factor(self) -> float:
         return 1 / len(self.node_indices)
 
-    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
-        return Description(title="CompleteEdgeCut", compact="Complete")
+    def _concise(self) -> str:
+        return "Complete"
 
     @classmethod
     def from_json(cls, data: dict[str, Any]) -> CompleteEdgeCut:
@@ -501,18 +583,17 @@ class DirectedSetPartition(EdgeCut):
     def num_parts(self) -> int:
         return len(self.set_partition)
 
-    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+    def _concise(self) -> str:
         if self.node_labels is not None:
             parts = map(self.node_labels.coerce_to_labels, self.parts)
         else:
             parts = map(str, self.parts)  # type: ignore[arg-type]
-        compact = (
+        return (
             f"{self.num_parts} parts: "
             + "{"
             + ",".join("".join(str(x) for x in part) for part in parts)
             + "}"
         )
-        return Description(title="DirectedSetPartition", compact=compact)
 
     def to_json(self) -> dict[str, Any]:
         dct = self.__dict__.copy()
@@ -622,17 +703,18 @@ class JointPartition(Displayable, Sequence[Part], _PartitionBase):
     def __hash__(self) -> int:
         return hash(self.parts)
 
-    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+    def _concise(self) -> str:
         if not self.parts:
-            compact = "(empty)"
-        else:
-            part_strs = [
-                f"{fmt.fmt_nodes(p.mechanism, self.node_labels)}"
-                f"/{fmt.fmt_nodes(p.purview, self.node_labels)}"
-                for p in self.parts
-            ]
-            compact = " × ".join(part_strs)  # noqa: RUF001
-        return Description(title=type(self).__name__, compact=compact)
+            return "(empty)"
+        part_strs = [
+            f"{fmt.fmt_nodes(p.mechanism, self.node_labels)}"
+            f"/{fmt.fmt_nodes(p.purview, self.node_labels)}"
+            for p in self.parts
+        ]
+        return " × ".join(part_strs)  # noqa: RUF001
+
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        return _partition_description(self, self._concise())
 
     @property
     def mechanism(self) -> tuple[int, ...]:

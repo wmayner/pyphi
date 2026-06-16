@@ -465,16 +465,14 @@ def joint_bipartitions(
         ``mech0/purview0 × mech1/purview1`` (∅ denotes an empty set).
 
     Example:
+        >>> from pyphi.models.partitions import concise_partition
         >>> mechanism = (0,)
         >>> purview = (2, 3)
         >>> for partition in joint_bipartitions(mechanism, purview):
-        ...     print(partition, '\n')  # doctest: +NORMALIZE_WHITESPACE
+        ...     print(concise_partition(partition))
         ∅/2 × 0/3
-        <BLANKLINE>
         ∅/3 × 0/2
-        <BLANKLINE>
         ∅/2,3 × 0/∅
-        <BLANKLINE>
     """
     numerators = bipartition(mechanism)
     denominators = directed_bipartition(purview)

@@ -303,42 +303,76 @@ def test_ces_distinctions_table_has_headers():
 # ---------------------------------------------------------------------------
 
 
-def test_partition_nullcut_is_leaf():
+def test_partition_nullcut_card_and_concise():
     from pyphi import models
+    from pyphi.models.partitions import concise_partition
 
     cut = models.NullCut((2, 3))
     out = repr(cut)
-    assert out == "NullCut((2, 3))"
-    assert "╭" not in out
-    assert 'class="pyphi-leaf"' in cut._repr_html_()
-    assert 'class="pyphi-card"' not in cut._repr_html_()
+    assert out.startswith("╭─ NullCut")  # rich card now
+    assert "Connections cut" in out
+    assert concise_partition(cut) == "NullCut((2, 3))"  # concise embedding form
+    assert 'class="pyphi-card"' in cut._repr_html_()
 
 
-def test_partition_directed_bipartition_is_leaf():
+def test_partition_directed_bipartition_card_and_grid():
     from pyphi.direction import Direction
     from pyphi.models.partitions import DirectedBipartition
+    from pyphi.models.partitions import concise_partition
 
     p = DirectedBipartition(Direction.EFFECT, (0,), (1, 2))
     out = repr(p)
-    assert "╭" not in out
-    assert "[0]" in out
-    assert "[1,2]" in out
-    assert 'class="pyphi-leaf"' in p._repr_html_()
+    assert out.startswith("╭─ DirectedBipartition · effect")
+    assert "Severed connections" in out
+    assert "✕" in out  # cut grid mark
+    c = concise_partition(p)
+    assert "[0]" in c and "[1,2]" in c
+    assert "pyphi-effect" in p._repr_html_()  # directed partition is toned
 
 
-def test_partition_joint_bipartition_compact():
+def test_partition_joint_bipartition_card_and_concise():
     from pyphi.labels import NodeLabels
     from pyphi.models.partitions import JointBipartition
     from pyphi.models.partitions import Part
+    from pyphi.models.partitions import concise_partition
 
     nl = NodeLabels("ABCDE", tuple(range(5)))
     jb = JointBipartition(Part((0,), (0, 4)), Part((), (1,)), node_labels=nl)
     out = repr(jb)
-    assert "╭" not in out
-    # Compact form: mechanism/purview joined with × (MULTIPLICATION SIGN)  # noqa: RUF003
-    assert "A/A,E" in out
-    assert "∅/B" in out
-    assert 'class="pyphi-leaf"' in jb._repr_html_()
+    assert out.startswith("╭─ JointBipartition")
+    c = concise_partition(jb)
+    assert "A/A,E" in c and "∅/B" in c
+    assert 'class="pyphi-card"' in jb._repr_html_()
+
+
+def test_cut_grid_marks_match_removed_edges():
+    from pyphi.direction import Direction
+    from pyphi.models.partitions import DirectedBipartition
+    from pyphi.models.partitions import _cut_grid
+
+    p = DirectedBipartition(Direction.EFFECT, (0,), (1, 2))  # severs 0->1, 0->2
+    grid = _cut_grid(p)
+    assert grid.headers == ("", "0", "1", "2")
+    row0 = next(r for r in grid.rows if r[0] == "0")
+    assert row0 == ("0", "·", "✕", "✕")
+    row1 = next(r for r in grid.rows if r[0] == "1")
+    assert row1 == ("1", "·", "·", "·")
+
+
+def test_sia_embeds_concise_partition_one_line():
+    pyphi.config.progress_bars = False
+    sia = pyphi.examples.basic_system().sia()
+    part_lines = [ln for ln in repr(sia).splitlines() if "Partition" in ln]
+    assert len(part_lines) == 1
+    assert "╭" not in part_lines[0] and "╰" not in part_lines[0]
+
+
+def test_sia_html_has_cause_effect_colors():
+    pyphi.config.progress_bars = False
+    h = pyphi.examples.basic_system().sia()._repr_html_()
+    assert "#D55C00" in h and "#009E73" in h
+    assert "pyphi-label pyphi-cause" in h
+    assert "pyphi-label pyphi-effect" in h
 
 
 # ---------------------------------------------------------------------------

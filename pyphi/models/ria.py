@@ -33,10 +33,12 @@ from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
 from pyphi.display import Section
+from pyphi.display import tone_of
 from pyphi.display.mixin import HIGH
 from pyphi.display.numbers import format_value
 from pyphi.measures.distribution import DistanceResult
 from pyphi.models.partitions import JointPartition
+from pyphi.models.partitions import concise_partition
 
 from . import cmp
 from . import fmt
@@ -401,6 +403,7 @@ class RepertoireIrreducibilityAnalysis(
             Row(
                 "Direction",
                 self.direction.name if self.direction is not None else None,
+                tone=tone_of(self.direction),
             ),
             Row("Mechanism", mech),
             Row("Purview", purv),
@@ -411,7 +414,7 @@ class RepertoireIrreducibilityAnalysis(
             rows.append(Row("Intrinsic information", ss.intrinsic_information))
         if self.selectivity is not None:
             rows.append(Row("Selectivity", self.selectivity))
-        partition_str = str(self.partition) if self.partition else "empty"
+        partition_str = concise_partition(self.partition) if self.partition else "empty"
         rows.append(Row("Partition", partition_str))
         if self.reasons is not None:
             rows.append(Row("Reasons", ", ".join(map(str, self.reasons))))
