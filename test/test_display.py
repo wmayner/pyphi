@@ -1252,3 +1252,19 @@ def test_repertoire_table_distribution_rows():
 def test_repr_verbosity_3_is_valid_and_maximal():
     with pyphi.config.override(repr_verbosity=3):
         assert pyphi.config.infrastructure.repr_verbosity == 3
+
+
+def test_ces_embeds_sia_card_at_full_verbosity():
+    pyphi.config.progress_bars = False
+    ces = pyphi.examples.basic_system().ces()
+    with pyphi.config.override(repr_verbosity=2):  # HIGH (default)
+        assert "System irreducibility" not in repr(ces)
+    with pyphi.config.override(repr_verbosity=3):  # FULL
+        out = repr(ces)
+        h = ces._repr_html_()
+    # The SIA is embedded flat (its sections become CES sections), not as a
+    # nested card — matching how every other card embeds a sub-object.
+    assert "├─ System irreducibility" in out
+    assert "├─ Cause" in out and "├─ Effect" in out and "├─ MIP" in out
+    assert "╭─ SystemIrreducibilityAnalysis" not in out  # no nested box
+    assert h.count('class="pyphi-card"') == 1  # single card, no nesting

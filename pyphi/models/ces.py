@@ -30,6 +30,7 @@ from dataclasses import field
 from typing import TYPE_CHECKING
 from typing import Any
 
+from pyphi.display import FULL
 from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
@@ -98,7 +99,7 @@ class CauseEffectStructure(Displayable, cmp.Orderable):
             return False
         return self.relations == other.relations
 
-    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+    def _describe(self, verbosity: int) -> Description:
         cls = type(self).__name__
         num_d = len(self.distinctions)
         sum_phi_d = self.sum_phi_distinctions
@@ -140,6 +141,20 @@ class CauseEffectStructure(Displayable, cmp.Orderable):
             table = relations_table(self.relations)
             if table is not None:
                 sections.append(Section(label="Relations", body=(table,)))
+
+        if verbosity >= FULL and self.sia is not None:
+            # Embed the SIA's sections flat (the unlabeled summary becomes a
+            # "System irreducibility" section), matching how every other card
+            # embeds a sub-object — no nested boxes.
+            sections.extend(
+                Section(
+                    label=sec.label or "System irreducibility",
+                    rows=sec.rows,
+                    body=sec.body,
+                    tone=sec.tone,
+                )
+                for sec in self.sia._describe(verbosity).sections
+            )
 
         return Description(
             title=cls,
