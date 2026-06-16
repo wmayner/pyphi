@@ -542,6 +542,7 @@ def integration_value(
     system_state: SystemStateSpecification,
     *,
     system_measure: CompositeMeasure,
+    cut_system: System | None = None,
 ) -> RepertoireIrreducibilityAnalysis:
     """Compute the integration value for a partition along a direction.
 
@@ -550,8 +551,13 @@ def integration_value(
     :func:`sia`) by enumerating them and calling this function per
     candidate. ``system_measure`` is a Protocol-typed composite measure
     passed explicitly by the caller (no config fallback).
+
+    The induced ``cut_system`` depends only on the partition, not the
+    direction, so a caller evaluating both directions may build it once
+    and pass it in to avoid rebuilding it per direction.
     """
-    cut_system = system.apply_cut(partition)
+    if cut_system is None:
+        cut_system = system.apply_cut(partition)
     specified = system_state[direction]
     return _integration_value_for_state(
         direction,
@@ -589,6 +595,7 @@ def evaluate_partition(
     *,
     system_measure: CompositeMeasure,
     directions: Iterable[Direction] | None = None,
+    intrinsic_differentiation: dict | None = None,
 ) -> SystemIrreducibilityAnalysis:
     """Evaluate a system-level partition and return the resulting SIA.
 
@@ -597,6 +604,11 @@ def evaluate_partition(
     Partition integration uses ``system_measure.partition_measure`` if
     set (otherwise ``system_measure`` itself), and the ``ii(s)`` cap
     (Eq. 23) is applied when ``system_measure.applies_ii_cap`` is True.
+
+    ``intrinsic_differentiation`` depends only on ``(direction, system)``,
+    not the partition; a caller evaluating many partitions of the same
+    system may compute it once and pass it in to avoid rebuilding it per
+    partition.
     """
     directions = fallback(directions, Direction.both())
     if directions is None:
@@ -611,6 +623,9 @@ def evaluate_partition(
         system_measure.partition_measure or system_measure
     )
 
+    # The induced cut depends only on the partition, not the direction, so
+    # build the cut System once and reuse it across directions.
+    cut_system = system.apply_cut(partition)
     integration = {
         direction: integration_value(
             direction,
@@ -618,17 +633,16 @@ def evaluate_partition(
             partition,
             system_state,
             system_measure=partition_distance,
+            cut_system=cut_system,
         )
         for direction in directions
     }
 
-    intrinsic_differentiation = {
-        direction: intrinsic_differentiation_value(
-            direction,
-            system,
-        )
-        for direction in directions
-    }
+    if intrinsic_differentiation is None:
+        intrinsic_differentiation = {
+            direction: intrinsic_differentiation_value(direction, system)
+            for direction in directions
+        }
 
     # Take the min over directions on the *signed* phi so the resulting
     # SIA's ``signed_phi`` metadata captures the raw preventative-cause
@@ -1012,6 +1026,19 @@ def _find_mip_for_fixed_state(
     selects the MIP via :func:`resolve_ties.sias`, and back-propagates
     the chosen state onto each tied MIP's ``system_state``.
     """
+    resolved_directions = fallback(directions, Direction.both())
+    if resolved_directions is None:
+        resolved_directions = Direction.both()
+    resolved_directions = tuple(resolved_directions)
+
+    # ``intrinsic_differentiation`` depends only on (direction, system), not the
+    # partition, so compute it once here and pass it to every partition rather
+    # than rebuilding it in each ``evaluate_partition`` call.
+    precomputed_intrinsic_differentiation = {
+        direction: intrinsic_differentiation_value(direction, system)
+        for direction in resolved_directions
+    }
+
     sias = MapReduce(
         evaluate_partition,
         partitions,
@@ -1019,7 +1046,8 @@ def _find_mip_for_fixed_state(
             "system": system,
             "system_state": system_state,
             "system_measure": system_measure,
-            "directions": directions,
+            "directions": resolved_directions,
+            "intrinsic_differentiation": precomputed_intrinsic_differentiation,
         },
         shortcircuit_func=utils.is_falsy,
         desc="Evaluating partitions",

@@ -970,3 +970,139 @@ def test_cut_grid_html_uses_inline_alignment():
     assert "text-align:center" in html  # data/header columns centered inline
     assert "text-align:right" in html  # row-label column
     assert "pyphi-scroll" not in html  # grids are not wrapped/scrolled
+
+
+# ---------------------------------------------------------------------------
+# TPM display
+# ---------------------------------------------------------------------------
+
+
+def _binary_factored_tpm():
+    pyphi.config.progress_bars = False
+    return pyphi.examples.prevention_transition().substrate.tpm
+
+
+def test_factored_tpm_is_displayable_card():
+    tpm = _binary_factored_tpm()
+    r = repr(tpm)
+    assert r.startswith("╭")  # boxed card, not a one-line repr
+    assert "FactoredTPM" in r
+    assert "P(next unit on | current state)" in r
+    assert "(0,0,0)" in r  # a state-by-node row label
+    h = tpm._repr_html_()
+    assert "pyphi-grid" in h
+
+
+def test_joint_tpm_is_displayable_card():
+    import numpy as np
+
+    tpm = _binary_factored_tpm()
+    joint = pyphi.JointTPM(np.asarray(tpm.to_joint())[..., 1])  # multidim SBN P(on)
+    r = repr(joint)
+    assert r.startswith("╭")
+    assert "JointTPM" in r
+    assert "P(next unit on | current state)" in r
+    assert "pyphi-grid" in joint._repr_html_()
+
+
+def test_factored_tpm_low_verbosity_compact():
+    tpm = _binary_factored_tpm()
+    with pyphi.config.override(repr_verbosity=0):
+        r = repr(tpm)
+    assert r == "FactoredTPM(n_nodes=3, alphabet_sizes=(2, 2, 2))"
+
+
+def test_tpm_grid_scrolls_and_overflows_when_capped():
+    tpm = _binary_factored_tpm()  # 8 states
+    with pyphi.config.override(repr_max_table_rows=3):
+        r = repr(tpm)
+        h = tpm._repr_html_()
+    assert "… 5 more" in r  # 8 states, cap 3 -> 5 hidden
+    assert "… 5 more" in h
+    assert "pyphi-scroll" in h  # tall/overflowing grid scrolls
+
+
+def test_non_binary_factored_tpm_distribution_grid():
+    pyphi.config.progress_bars = False
+    # p53-Mdm2: P ternary, Mc/Mn binary -> alphabet_sizes (3, 2, 2); labels P/Mc/Mn
+    tpm = pyphi.examples.gomez_p53_mdm2_substrate().tpm
+    r = repr(tpm)
+    assert r.startswith("╭")
+    assert "P(next unit = state | current state)" in r
+    assert "P=2" in r  # ternary unit P's third next-state column
+    assert "Mc=0" in r  # binary unit Mc's next-state column
+    h = tpm._repr_html_()
+    assert "pyphi-grid" in h
+
+
+def _tpm_header_columns(tpm) -> list[str]:
+    """The column names from a TPM card's 'state ...' header row."""
+    for line in repr(tpm).splitlines():
+        cols = line.replace("│", "").split()  # ['state', col0, col1, ...]
+        if cols and cols[0] == "state":
+            return cols
+    raise AssertionError("no state-by-node header row found")
+
+
+def test_factored_tpm_uses_substrate_node_labels():
+    pyphi.config.progress_bars = False
+    # Binary substrate with explicit node labels A/B/F -> labeled columns.
+    tpm = pyphi.examples.prevention_transition().substrate.tpm
+    assert tpm.node_labels == ("A", "B", "F")
+    assert _tpm_header_columns(tpm) == ["state", "A", "B", "F"]
+
+
+def test_factored_tpm_without_labels_uses_indices():
+    import numpy as np
+
+    pyphi.config.progress_bars = False
+    tpm = pyphi.FactoredTPM(factors=[np.full((2, 2, 2), 0.5)] * 2)
+    assert tpm.node_labels is None
+    assert _tpm_header_columns(tpm) == ["state", "0", "1"]
+
+
+def test_factored_tpm_node_labels_survive_pickle():
+    import pickle
+
+    pyphi.config.progress_bars = False
+    tpm = pyphi.examples.prevention_transition().substrate.tpm
+    restored = pickle.loads(pickle.dumps(tpm))
+    assert restored.node_labels == ("A", "B", "F")
+
+
+def test_factored_tpm_to_xarray():
+    pytest.importorskip("xarray")
+    import numpy as np
+
+    tpm = _binary_factored_tpm()
+    ds = tpm.to_xarray()
+    assert list(ds.data_vars) == ["unit_0", "unit_1", "unit_2"]
+    # unit i's "on" slot matches the factor's P(on).
+    assert np.allclose(np.asarray(ds["unit_2"].isel(u2_next=1)), tpm.factor(2)[..., 1])
+
+
+def test_joint_tpm_to_xarray():
+    pytest.importorskip("xarray")
+    import numpy as np
+
+    tpm = _binary_factored_tpm()
+    sbn = np.asarray(tpm.to_joint())[..., 1]
+    da = pyphi.JointTPM(sbn).to_xarray()
+    assert da.dims == ("u0", "u1", "u2", "next_unit")
+    assert np.allclose(np.asarray(da), sbn)
+
+
+def test_tpm_to_xarray_without_xarray_raises(monkeypatch):
+    import builtins
+
+    tpm = _binary_factored_tpm()
+    real_import = builtins.__import__
+
+    def _no_xarray(name, *args, **kwargs):
+        if name == "xarray":
+            raise ImportError("no xarray")
+        return real_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", _no_xarray)
+    with pytest.raises(ImportError, match="xarray"):
+        tpm.to_xarray()

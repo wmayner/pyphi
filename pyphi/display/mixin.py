@@ -30,6 +30,17 @@ class Displayable:
 
     __str__ = __repr__
 
+    def _compact_repr(self) -> str:
+        """A one-line summary suitable for embedding in another object's repr.
+
+        Returns the description's ``compact`` form when defined, regardless of
+        ``repr_verbosity``; otherwise falls back to the title.
+        """
+        description = self._describe(_verbosity())
+        return (
+            description.compact if description.compact is not None else description.title
+        )
+
     def _repr_html_(self) -> str:
         verbosity = _verbosity()
         return render(self._describe(verbosity), backend="html", verbosity=verbosity)

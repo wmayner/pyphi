@@ -75,7 +75,12 @@ def test_factored_tpm_repr() -> None:
     f = _two_node_factored()
     r = repr(f)
     assert "FactoredTPM" in r
-    assert "n_nodes=2" in r
+    assert "2 units" in r  # state-by-node display card
+    # The LOW-verbosity compact form still carries the precise attributes.
+    import pyphi
+
+    with pyphi.config.override(repr_verbosity=0):
+        assert "n_nodes=2" in repr(f)
 
 
 def test_factored_tpm_pickling() -> None:

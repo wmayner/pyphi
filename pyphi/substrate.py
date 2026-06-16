@@ -171,6 +171,9 @@ class Substrate(Displayable):
         self._cm, self._cm_hash = self._build_cm(cm)
         self._node_indices = tuple(range(self.size))
         self._node_labels = NodeLabels(node_labels, self._node_indices)
+        # Attach display labels to the canonical TPM so its repr shows node names
+        # (the bare TPM otherwise has no knowledge of substrate node names).
+        self._factored_tpm._node_labels = tuple(self._node_labels)
         self.purview_cache = purview_cache or cache.PurviewCache()
 
         validate.substrate(self)
@@ -437,7 +440,7 @@ class Substrate(Displayable):
         return self.tpm.shape[-1]
 
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
-        compact = f"Substrate({self.tpm}, cm={self.cm})"
+        compact = f"Substrate({self.tpm._compact_repr()}, cm={self.cm})"
         return Description(title="Substrate", compact=compact)
 
     def __eq__(self, other: object) -> bool:
