@@ -127,3 +127,50 @@ def test_ac_diff():
     rd_acc = acc_a.diff(acc_b)
     assert isinstance(rd_acc, ResultDiff)
     assert rd_acc.changes == ()  # identical accounts
+
+
+def test_diff_is_total(s):
+    """Every top-level result type diffs against another of its kind into a
+    valid, renderable, exportable ResultDiff (the B15 coverage invariant)."""
+    from pyphi import actual
+    from pyphi import examples
+    from pyphi.direction import Direction
+    from pyphi.formalism import FORMALISM_REGISTRY
+    from pyphi.formalism import iit3
+    from pyphi.models.diff import ResultDiff
+
+    pairs = []
+    pairs.append(
+        (
+            FORMALISM_REGISTRY["IIT_4_0_2023"].evaluate_system(s),
+            FORMALISM_REGISTRY["IIT_4_0_2023"].evaluate_system(s),
+        )
+    )
+    with pyphi.config.override(**presets.iit3):
+        pairs.append((iit3.sia(s), iit3.sia(s)))
+        pairs.append((iit3.ces(s), iit3.ces(s)))
+        da, db = iit3.concept(s, (1,)), iit3.concept(s, (1,))
+    pairs.append((da, db))  # Distinction
+    pairs.append((da.cause, db.cause))  # MICE
+    pairs.append((da.cause.ria, db.cause.ria))  # RIA
+    t = examples.prevention_transition()
+    pairs.append(
+        (
+            actual.sia(t, Direction.BIDIRECTIONAL),
+            actual.sia(t, Direction.BIDIRECTIONAL),
+        )
+    )
+    pairs.append(
+        (
+            actual.account(t, Direction.BIDIRECTIONAL),
+            actual.account(t, Direction.BIDIRECTIONAL),
+        )
+    )
+
+    for a, b in pairs:
+        rd = a.diff(b)
+        name = type(a).__name__
+        assert isinstance(rd, ResultDiff), name
+        assert rd.level in {"system", "mechanism"}, name
+        assert repr(rd)
+        rd.to_pandas()
