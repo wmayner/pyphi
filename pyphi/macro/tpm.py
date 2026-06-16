@@ -40,9 +40,16 @@ def _patron_units(units) -> dict[int, int]:
 
 
 def _discounted_on_probabilities(
-    factored: FactoredTPM, units: tuple[MacroUnit, ...], j: int
+    factored: FactoredTPM,
+    units: tuple[MacroUnit, ...],
+    j: int,
+    patron: dict[int, int] | None = None,
 ) -> np.ndarray:
     """Step 1 (Eqs. 26-30): modified ON probabilities for updating unit ``j``.
+
+    ``patron`` is the ``_patron_units(units)`` map; it depends only on
+    ``units`` (not ``j``), so a caller updating every unit may build it once
+    and pass it in. If ``None``, it is computed here.
 
     Returns:
         np.ndarray: ``(2**n, n)`` — for each universe state (little-endian
@@ -51,7 +58,8 @@ def _discounted_on_probabilities(
     """
     n = factored.n_nodes
     constituents = set(units[j].micro_constituents)
-    patron = _patron_units(units)
+    if patron is None:
+        patron = _patron_units(units)
     columns = []
     for i in range(n):
         p_on = factored.factor(i)[..., 1]
@@ -223,15 +231,14 @@ def _background_weights_effect(background_indices, current_state) -> np.ndarray:
     return weights
 
 
-def _initial_distributions(
-    n: int, system_indices, background_weights: np.ndarray
-) -> np.ndarray:
-    """Initial universe-state distribution per system micro state.
+def _initial_distribution_indices(n: int, system_indices):
+    """Precompute the (loop-invariant) index vectors for the initial
+    universe-state distributions.
 
     Returns:
-        np.ndarray: ``(2**|U^S|, 2**n)`` — row ``u^S`` is the
-        distribution with the system part pinned to ``u^S`` and the
-        background part distributed per ``background_weights``.
+        tuple[np.ndarray, np.ndarray, np.ndarray]: ``(system_part,
+        background_part, idx)`` mapping each universe state to its system
+        and background sub-state indices.
     """
     background_indices = tuple(i for i in range(n) if i not in set(system_indices))
     idx = np.arange(2**n)
@@ -241,7 +248,29 @@ def _initial_distributions(
     background_part = np.zeros(2**n, dtype=np.int64)
     for k, i in enumerate(background_indices):
         background_part |= ((idx >> i) & 1) << k
-    init = np.zeros((2 ** len(system_indices), 2**n))
+    return system_part, background_part, idx
+
+
+def _initial_distributions(
+    num_system_states: int,
+    system_part: np.ndarray,
+    background_part: np.ndarray,
+    idx: np.ndarray,
+    background_weights: np.ndarray,
+) -> np.ndarray:
+    """Initial universe-state distribution per system micro state.
+
+    The index vectors (``system_part``, ``background_part``, ``idx``)
+    depend only on ``(n, system_indices)`` and are precomputed once by
+    :func:`_initial_distribution_indices`; only ``background_weights``
+    varies per direction.
+
+    Returns:
+        np.ndarray: ``(2**|U^S|, 2**n)`` — row ``u^S`` is the
+        distribution with the system part pinned to ``u^S`` and the
+        background part distributed per ``background_weights``.
+    """
+    init = np.zeros((num_system_states, len(idx)))
     init[system_part, idx] = background_weights[background_part]
     return init
 
@@ -270,24 +299,36 @@ def macro_tpms(substrate, units, micro_history):
     current_state = micro_history[-1]
     num_macro = len(units)
     macro_shape = (2,) * num_macro
+    num_system_states = 2 ** len(system_indices)
     factors_cause = []
     factors_effect = []
     effect_weights = _background_weights_effect(background_indices, current_state)
+
+    # These depend only on (units, system_indices, n) — not on the unit ``j``
+    # being updated or the cause/effect direction — so build them once.
+    patron = _patron_units(units)
+    system_part, background_part, idx = _initial_distribution_indices(n, system_indices)
+    weight_table = [
+        _state_weights(units, system_indices, _mixed_radix_digits(s, macro_shape))
+        for s in range(2**num_macro)
+    ]
+
     for j, unit in enumerate(units):
-        on_probabilities = _discounted_on_probabilities(factored, units, j)
+        on_probabilities = _discounted_on_probabilities(factored, units, j, patron)
         transition = _full_transition_matrix(on_probabilities)
         macro_prob_full = _unit_macro_probabilities(transition, unit)
         earliest = micro_history[len(micro_history) - unit.micro_grain]
         cause_weights = _background_weights_cause(factored, system_indices, earliest)
         unit_factors = []
         for background_weights in (cause_weights, effect_weights):
-            init = _initial_distributions(n, system_indices, background_weights)
+            init = _initial_distributions(
+                num_system_states, system_part, background_part, idx, background_weights
+            )
             prob_given_system_state = init @ macro_prob_full  # (2**|S|, 2)
             factor = np.zeros((*macro_shape, 2))
             for s_index in range(2**num_macro):
                 macro_state = _mixed_radix_digits(s_index, macro_shape)
-                weights = _state_weights(units, system_indices, macro_state)
-                factor[macro_state] = weights @ prob_given_system_state
+                factor[macro_state] = weight_table[s_index] @ prob_given_system_state
             unit_factors.append(factor)
         factors_cause.append(unit_factors[0])
         factors_effect.append(unit_factors[1])
