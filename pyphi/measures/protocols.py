@@ -30,6 +30,7 @@ time and the protocol-pinning tests use the same helpers.
 
 from __future__ import annotations
 
+import functools
 import inspect
 from typing import TYPE_CHECKING
 from typing import Protocol
@@ -130,16 +131,23 @@ def _all_params(func: Callable[..., object]) -> list[str]:
     return list(inspect.signature(func).parameters.keys())
 
 
+# These classifiers introspect ``func``'s signature, which is immutable, and
+# are called per partition on the hot path with stable registered-measure
+# singletons; memoizing by function identity collapses the repeated
+# ``inspect.signature`` work to one call per measure.
+@functools.cache
 def satisfies_distribution_measure(func: Callable[..., object]) -> bool:
     """Return True if ``func`` has the (p, q) shape of a DistributionMeasure."""
     return _required_params(func) == ["p", "q"]
 
 
+@functools.cache
 def satisfies_state_aware_measure(func: Callable[..., object]) -> bool:
     """Return True if ``func`` has the (p, state) shape of a StateAwareMeasure."""
     return _required_params(func) == ["p", "state"]
 
 
+@functools.cache
 def satisfies_composite_measure(func: Callable[..., object]) -> bool:
     """Return True if ``func`` has the (forward, partitioned, selectivity, ...)
     shape of a CompositeMeasure.
@@ -158,6 +166,7 @@ def satisfies_composite_measure(func: Callable[..., object]) -> bool:
     )
 
 
+@functools.cache
 def satisfies_stateful_distribution_measure(func: Callable[..., object]) -> bool:
     """Return True if ``func`` has the (p, q, state) shape of a
     StatefulDistributionMeasure."""
