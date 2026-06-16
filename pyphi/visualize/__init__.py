@@ -22,11 +22,13 @@ from .distribution import plot_distribution
 from .distribution import plot_repertoires
 from .dynamics import plot_dynamics
 from .projection import project_ces
+from .render.simplicial_complex import SimplicialComplexGeometry
 from .theme import DEFAULT_THEME
 from .theme import Theme
 
 __all__ = [
     "DEFAULT_THEME",
+    "SimplicialComplexGeometry",
     "Theme",
     "highlight_phi_fold",
     "ising",
