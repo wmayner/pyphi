@@ -14,6 +14,7 @@ short-circuiting.
 from __future__ import annotations
 
 import contextvars
+import functools
 from enum import Enum
 from enum import auto
 from enum import unique as unique_enum
@@ -297,7 +298,7 @@ class RepertoireIrreducibilityAnalysis(
         the unpartitioned and partitioned repertoires among all ties."""
         return self._specified_state
 
-    @property
+    @functools.cached_property
     def purview_units(self):
         assert self.node_labels is not None
         assert self.specified_state is not None
