@@ -34,6 +34,8 @@ from pyphi.display import tone_of
 from pyphi.display.mixin import HIGH
 from pyphi.display.numbers import format_value
 from pyphi.measures.distribution import DistanceResult
+from pyphi.models.explanation import Explanation
+from pyphi.models.explanation import Finding
 from pyphi.models.explanation import NullResultReason
 from pyphi.models.partitions import JointPartition
 from pyphi.models.partitions import concise_partition
@@ -278,6 +280,31 @@ class RepertoireIrreducibilityAnalysis(
     def reasons(self):
         """Reasons why the computation short-circuited."""
         return self._reasons
+
+    def _findings(self) -> tuple[Finding, ...]:
+        findings = [
+            Finding(kind="null_result", label="Null result", value=reason)
+            for reason in (self.reasons or [])
+        ]
+        if self.purview:
+            findings.append(Finding(kind="purview", label="Purview", value=self.purview))
+        if self.partition is not None:
+            findings.append(
+                Finding(
+                    kind="winning_partition",
+                    label="MIP",
+                    value=concise_partition(self.partition),
+                )
+            )
+        return tuple(findings)
+
+    def explain(self) -> Explanation:
+        """A typed account of why this |small_phi| value came out as it did."""
+        return Explanation(
+            subject=f"φ = {format_value(self.phi)}",
+            level="mechanism",
+            findings=self._findings(),
+        )
 
     @property
     def specified_state(self):

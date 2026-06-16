@@ -21,6 +21,8 @@ from pyphi.display import Section
 from pyphi.display.numbers import format_value
 
 from . import cmp
+from .explanation import Explanation
+from .explanation import Finding
 from .pandas import ToDictFromExplicitAttrsMixin
 from .pandas import ToPandasMixin
 
@@ -137,6 +139,34 @@ class Distinction(
         assert self.cause is not None
         assert self.effect is not None
         return min(self.cause.phi, self.effect.phi)
+
+    def explain(self) -> Explanation:
+        """A typed account of why this distinction's |small_phi| came out as it
+        did: which direction (cause or effect) binds, plus that direction's own
+        findings."""
+        assert self.cause is not None
+        assert self.effect is not None
+        binding = (
+            self.cause
+            if float(self.cause.phi) <= float(self.effect.phi)
+            else self.effect
+        )
+        is_cause = binding is self.cause
+        findings = [
+            Finding(
+                kind="binding_direction",
+                label="Binding direction",
+                value="CAUSE" if is_cause else "EFFECT",
+                detail=(("φ_cause", self.cause.phi), ("φ_effect", self.effect.phi)),
+                tone="cause" if is_cause else "effect",
+            ),
+            *binding.explain().findings,
+        ]
+        return Explanation(
+            subject=f"φ = {format_value(self.phi)}",
+            level="mechanism",
+            findings=tuple(findings),
+        )
 
     # TODO(4.0) rename?
     def mice(self, direction):

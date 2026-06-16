@@ -157,6 +157,11 @@ class MaximallyIrreducibleCauseOrEffect(
     def reasons(self):
         return self.ria.reasons
 
+    def explain(self):
+        """A typed account of why this |small_phi| value came out as it did,
+        delegated to the underlying RIA."""
+        return self.ria.explain()
+
     @property
     def state_ties(self):
         if self._state_ties is None:

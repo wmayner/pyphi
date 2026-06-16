@@ -144,3 +144,22 @@ def test_iit3_sia_explain(s, s_empty):
 
     null_expl = null.explain()
     assert any(f.value is NullResultReason.NO_SYSTEM for f in null_expl.findings)
+
+
+def test_mechanism_explain(s):
+    import pyphi
+    from pyphi.conf import presets
+    from pyphi.formalism import iit3
+
+    with pyphi.config.override(**presets.iit3):
+        distinction = iit3.concept(s, (1,))
+
+    expl = distinction.explain()
+    assert expl.level == "mechanism"
+    # A distinction reports which direction (cause/effect) binds its phi.
+    assert any(f.kind == "binding_direction" for f in expl.findings)
+
+    # A MICE delegates to its RIA.
+    mice_expl = distinction.cause.explain()
+    assert mice_expl.level == "mechanism"
+    assert any(f.kind == "winning_partition" for f in mice_expl.findings)
