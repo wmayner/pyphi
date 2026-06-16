@@ -36,6 +36,7 @@ from pyphi.models import ResolvedDistinctions
 from pyphi.models import UnresolvedDistinctions
 from pyphi.models import _null_sia
 from pyphi.models.ces import CauseEffectStructure
+from pyphi.models.explanation import runner_up_from_candidates
 from pyphi.parallel import MapReduce
 from pyphi.partition import system_partition_types
 from pyphi.relations import NullRelations
@@ -341,6 +342,7 @@ def _sia_map_reduce(
     if not ties:
         return null
     winner = ties[0]
+    winner.runner_up = runner_up_from_candidates(candidates, winner.phi)
     # Capture phi-tied peers (same minimum phi value) before any
     # lex-based tiebreaker collapses the set to a single winner. These
     # peers are equally valid MIPs for the system; preserving them on

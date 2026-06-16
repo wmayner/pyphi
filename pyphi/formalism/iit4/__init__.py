@@ -44,6 +44,7 @@ from pyphi.models.ces import CauseEffectStructure
 from pyphi.models.distinctions import Distinctions
 from pyphi.models.distinctions import ResolvedDistinctions
 from pyphi.models.explanation import NullResultReason
+from pyphi.models.explanation import runner_up_from_candidates
 from pyphi.models.partitions import DirectedBipartition
 from pyphi.models.partitions import EdgeCut
 from pyphi.models.partitions import NullCut
@@ -167,6 +168,7 @@ class SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
     node_labels: NodeLabels | None = None
     intrinsic_differentiation: dict | None = None
     reasons: list | None = None
+    runner_up: Any = None
     signed_phi: float | DistanceResult | None = None
     signed_normalized_phi: float | DistanceResult | None = None
     config: ConfigSnapshot | None = None
@@ -361,6 +363,9 @@ class SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
     def to_json(self):
         dct = self.__dict__.copy()
         dct.pop("_ties", None)
+        # runner_up is diagnostic metadata (a RunnerUp record), not part of
+        # the analysis identity; exclude it from serialization.
+        dct.pop("runner_up", None)
         if _SERIALIZING_AS_TIE_PEER.get():
             return dct
         peers = tuple(t for t in self.ties if t is not self)
@@ -967,6 +972,7 @@ def _find_mip_for_fixed_state(
         candidates = [default_sia]
     ties = tuple(resolve_ties.sias(candidates))
     mip_sia = ties[0]
+    mip_sia.runner_up = runner_up_from_candidates(candidates, mip_sia.phi)
     for tied_mip in ties:
         tied_mip.resolve_system_state()
         tied_mip.set_ties(ties)

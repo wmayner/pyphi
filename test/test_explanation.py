@@ -83,3 +83,23 @@ def test_ac_null_sia_carries_reason():
     assert float(sia.alpha) == 0
     assert NullResultReason.EMPTY_CAUSE_EFFECT_STRUCTURE in (sia.reasons or [])
     assert all(isinstance(r, NullResultReason) for r in sia.reasons)
+
+
+def test_runner_up_retained_on_phi_positive_system(s):
+    import pyphi
+    from pyphi.conf import presets
+    from pyphi.formalism import FORMALISM_REGISTRY
+    from pyphi.formalism import iit3
+
+    # IIT 4.0: a phi>0 system has a partition whose phi exceeds the MIP's.
+    sia4 = FORMALISM_REGISTRY["IIT_4_0_2023"].evaluate_system(s)
+    assert sia4.phi > 0
+    assert sia4.runner_up is not None
+    assert float(sia4.runner_up.phi) > float(sia4.phi)
+
+    # IIT 3.0: same property along the distribution-distance path.
+    with pyphi.config.override(**presets.iit3):
+        sia3 = iit3.sia(s)
+    assert sia3.phi > 0
+    assert sia3.runner_up is not None
+    assert float(sia3.runner_up.phi) > float(sia3.phi)
