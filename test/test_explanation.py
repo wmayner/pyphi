@@ -185,3 +185,40 @@ def test_ac_explain():
     assert acc_expl.level == "system"
     assert len(acc_expl.findings) == len(account)
     assert all(f.kind == "link" for f in acc_expl.findings)
+
+
+def test_explain_is_total(s):
+    """Every top-level result type returns a valid Explanation that renders
+    and exports without error (the B8 coverage invariant)."""
+    import pyphi
+    from pyphi import actual
+    from pyphi import examples
+    from pyphi.conf import presets
+    from pyphi.direction import Direction
+    from pyphi.formalism import FORMALISM_REGISTRY
+    from pyphi.formalism import iit3
+    from pyphi.models.explanation import Explanation
+
+    results = [FORMALISM_REGISTRY["IIT_4_0_2023"].evaluate_system(s)]
+    with pyphi.config.override(**presets.iit3):
+        results.append(iit3.sia(s))  # IIT3SystemIrreducibilityAnalysis
+        distinction = iit3.concept(s, (1,))  # Distinction
+    results.append(distinction)
+    results.append(distinction.cause)  # MICE
+    results.append(distinction.cause.ria)  # RIA
+
+    transition = examples.prevention_transition()
+    account = actual.account(transition, Direction.BIDIRECTIONAL)
+    results.append(account)  # Account / DirectedAccount
+    results.append(actual.sia(transition, Direction.BIDIRECTIONAL))  # AcSIA
+    link = next(iter(account))
+    results.append(link)  # CausalLink
+    results.append(link.ria)  # AcRIA
+
+    for result in results:
+        name = type(result).__name__
+        expl = result.explain()
+        assert isinstance(expl, Explanation), name
+        assert expl.level in {"system", "mechanism"}, name
+        assert repr(expl)  # renders without error
+        expl.to_pandas()  # exports without error

@@ -366,6 +366,11 @@ class CausalLink(Displayable, cmp.Orderable):
         """
         return self._ria
 
+    def explain(self) -> Explanation:
+        """A typed account of why this causal link's |alpha| came out as it
+        did, delegated to the underlying AcRIA."""
+        return self._ria.explain()
+
     @property
     def node_labels(self):
         return self._ria.node_labels
