@@ -90,8 +90,12 @@ def _partitioned_repertoire_product(
 ) -> Any:
     from pyphi.core import repertoire_algebra as ra
 
+    # Key on the underlying System so these repertoires share the id()-keyed
+    # kernel cache with the unpartitioned path (which delegates through
+    # ``TransitionSystem.__getattr__`` to the same ``_underlying_system``).
+    underlying_system = transition_system._underlying_system
     repertoires = [
-        ra.repertoire(transition_system, direction, part.mechanism, part.purview)
+        ra.repertoire(underlying_system, direction, part.mechanism, part.purview)
         for part in partition
     ]
     return functools.reduce(np.multiply, repertoires)
