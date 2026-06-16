@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from collections.abc import Sequence
+from typing import TYPE_CHECKING
 from typing import Any
 from typing import Literal
 
@@ -24,9 +25,14 @@ from numpy.typing import NDArray
 
 from pyphi import exceptions
 from pyphi.conf import config
+from pyphi.display import Displayable
 
+from . import _display
 from ._factored_backends import _make_default_backend
 from ._factored_backends import _NdarrayBackend
+
+if TYPE_CHECKING:
+    from pyphi.display import Description
 
 # Set from the storage-backend benchmark result.
 _FACTORED_TPM_DEFAULT_BACKEND: Literal["ndarray", "xarray"] = "ndarray"
@@ -72,27 +78,36 @@ def _normalize_state_space(
     return tuple(uniform for _ in range(n_factors))
 
 
-class FactoredTPM:
+class FactoredTPM(Displayable):
     """Per-node-factored conditional TPM."""
 
-    __slots__ = ("_backend", "_state_space")
+    __slots__ = ("_backend", "_node_labels", "_state_space")
 
     def __init__(
         self,
         factors: Sequence[ArrayLike],
         state_space: StateSpace = None,
         backend: Literal["ndarray", "xarray"] | None = None,
+        node_labels: Sequence[str] | None = None,
     ) -> None:
         factor_arrays = tuple(np.asarray(f, dtype=np.float64) for f in factors)
         self._state_space = _normalize_state_space(state_space, factor_arrays)
         alphabet_sizes = tuple(len(s) for s in self._state_space)
         self._backend = _make_default_backend(factor_arrays, alphabet_sizes, backend)
+        # Optional per-unit display labels (node names); do not affect equality
+        # or hashing — purely for rendering. None falls back to integer indices.
+        self._node_labels = tuple(node_labels) if node_labels is not None else None
         _validate(self)
 
     @property
     def state_space(self) -> tuple[tuple[Any, ...], ...]:
         """Per-node label tuples, e.g. ``((0, 1), (0, 1))`` for binary nodes."""
         return self._state_space
+
+    @property
+    def node_labels(self) -> tuple[str, ...] | None:
+        """Per-unit display labels (node names), or ``None`` for integer indices."""
+        return self._node_labels
 
     @property
     def alphabet_sizes(self) -> tuple[int, ...]:
@@ -234,6 +249,7 @@ class FactoredTPM:
             factors=conditioned,
             state_space=self._state_space,
             backend=None,
+            node_labels=self._node_labels,
         )
 
     def condition_factor(self, i: int, fixed: Mapping[int, int]) -> NDArray[np.float64]:
@@ -331,10 +347,51 @@ class FactoredTPM:
             )
         )
 
-    def __repr__(self) -> str:
-        return (
-            f"FactoredTPM(n_nodes={self.n_nodes}, alphabet_sizes={self.alphabet_sizes})"
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        n = self.n_nodes
+        a = self.alphabet_sizes
+        unit_labels = list(self._node_labels or (str(i) for i in range(n)))
+        compact = f"FactoredTPM(n_nodes={n}, alphabet_sizes={a})"
+        if all(size == 2 for size in a):
+            return _display.state_by_node_description(
+                title="FactoredTPM",
+                compact=compact,
+                unit_labels=unit_labels,
+                state_axis_sizes=a,
+                prob_on_for_state=lambda state: [
+                    self.factor(i)[state][1] for i in range(n)
+                ],
+            )
+        return _display.distribution_grid_description(
+            title="FactoredTPM",
+            compact=compact,
+            unit_labels=unit_labels,
+            alphabet_sizes=a,
+            dist_for_state=lambda state: [self.factor(i)[state] for i in range(n)],
         )
+
+    def to_xarray(self) -> Any:
+        """Return the factored conditional as a labeled :class:`xarray.Dataset`.
+
+        Each unit ``i`` is a data variable ``"unit_{i}"`` holding ``P(unit i
+        next | inputs)`` with dims ``("u0", ..., "u{N-1}", "u{i}_next")`` and
+        integer coordinates from :attr:`state_space`. Requires the optional
+        ``xarray`` dependency.
+        """
+        xr = _display.require_xarray()
+        n = self.n_nodes
+        state_space = self.state_space
+        in_dims = tuple(f"u{j}" for j in range(n))
+        in_coords = {in_dims[j]: list(state_space[j]) for j in range(n)}
+        data_vars = {}
+        for i in range(n):
+            out_dim = f"u{i}_next"
+            data_vars[f"unit_{i}"] = xr.DataArray(
+                self.factor(i),
+                dims=(*in_dims, out_dim),
+                coords={**in_coords, out_dim: list(state_space[i])},
+            )
+        return xr.Dataset(data_vars)
 
     def __reduce__(self) -> tuple:  # type: ignore[override]
         backend_name = (
@@ -342,7 +399,7 @@ class FactoredTPM:
         )
         return (
             _factored_tpm_from_pickle,
-            (tuple(self.factors), self._state_space, backend_name),
+            (tuple(self.factors), self._state_space, backend_name, self._node_labels),
         )
 
 
@@ -350,8 +407,14 @@ def _factored_tpm_from_pickle(
     factors: tuple,  # type: ignore[type-arg]
     state_space: tuple,  # type: ignore[type-arg]
     backend: str,
+    node_labels: tuple | None = None,  # type: ignore[type-arg]
 ) -> FactoredTPM:
-    return FactoredTPM(factors=factors, state_space=state_space, backend=backend)  # type: ignore[arg-type]
+    return FactoredTPM(
+        factors=factors,
+        state_space=state_space,
+        backend=backend,  # type: ignore[arg-type]
+        node_labels=node_labels,
+    )
 
 
 def _validate(factored: FactoredTPM) -> None:
@@ -379,6 +442,9 @@ def _validate(factored: FactoredTPM) -> None:
         )
     if any(size < 2 for size in a):
         raise exceptions.InvalidTPM(f"alphabet_sizes must all be >= 2; got {a}")
+    nl = factored.node_labels
+    if nl is not None and len(nl) != n:
+        raise exceptions.InvalidTPM(f"node_labels has {len(nl)} entries; n_nodes={n}")
     tol = max(10 ** (-config.numerics.precision), 1e-15)
     for i in range(n):
         f = factored.factor(i)

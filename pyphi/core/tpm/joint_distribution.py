@@ -13,6 +13,7 @@ import math
 from collections.abc import Iterable
 from collections.abc import Mapping
 from itertools import chain
+from typing import TYPE_CHECKING
 from typing import Any
 
 import numpy as np
@@ -26,9 +27,15 @@ from pyphi.conf import config
 from pyphi.constants import OFF
 from pyphi.constants import ON
 from pyphi.data_structures import FrozenMap
+from pyphi.display import Displayable
 from pyphi.utils import all_states
 from pyphi.utils import np_hash
 from pyphi.utils import np_immutable
+
+from . import _display
+
+if TYPE_CHECKING:
+    from pyphi.display import Description
 
 
 # TODO(tpm) remove pending ArrayLike refactor
@@ -296,7 +303,7 @@ class JointDistribution(data_structures.ArrayLike):
         return self._hash
 
 
-class JointTPM(JointDistribution):
+class JointTPM(Displayable, JointDistribution):
     """A substrate TPM storing the full joint transition distribution."""
 
     def __init__(self, tpm: ArrayLike, validate: bool = False) -> None:
@@ -432,12 +439,11 @@ class JointTPM(JointDistribution):
             >>> from pyphi import JointTPM, examples
             >>> # Get the TPM for nodes only 1 and 2, conditioned on node 0 = OFF
             >>> sub = examples.grid3_substrate()
-            >>> JointTPM(sub._legacy_binary_joint()).subtpm((0,), (0,))
-            JointTPM([[[[0.02931223 0.04742587]
-               [0.07585818 0.88079708]]
-            <BLANKLINE>
-              [[0.81757448 0.11920292]
-               [0.92414182 0.95257413]]]])
+            >>> result = JointTPM(sub._legacy_binary_joint()).subtpm((0,), (0,))
+            >>> result.shape
+            (1, 2, 2, 2)
+            >>> result.number_of_units
+            2
         """
         free_nodes = sorted(set(range(self.number_of_units)) - set(fixed_nodes))
         condition: Mapping[int, int] = FrozenMap(zip(fixed_nodes, state, strict=False))
@@ -507,6 +513,42 @@ class JointTPM(JointDistribution):
         for a, b in np.ndindex(cm.shape):
             cm[a][b] = self.infer_edge(a, b, all_contexts)
         return cm
+
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        multidim = self.to_multidimensional_state_by_node()
+        n = int(multidim.shape[-1])
+        axis_sizes = multidim.shape[:-1]
+        total = int(math.prod(axis_sizes)) if axis_sizes else 1
+        return _display.state_by_node_description(
+            title="JointTPM",
+            compact=f"JointTPM({n} units, {total} states)",
+            unit_labels=[str(i) for i in range(n)],
+            state_axis_sizes=axis_sizes,
+            prob_on_for_state=lambda state: multidim[state],
+        )
+
+    def to_xarray(self) -> Any:
+        """Return this TPM as a labeled :class:`xarray.DataArray`.
+
+        Dims are ``("u0", ..., "u{N-1}", "next_unit")``: the leading axes index
+        each unit's current state and the trailing ``next_unit`` axis selects
+        the output unit, with values ``P(next unit on | current state)``.
+        Requires the optional ``xarray`` dependency.
+        """
+        xr = _display.require_xarray()
+        multidim = self.to_multidimensional_state_by_node()
+        n = int(multidim.shape[-1])
+        in_dims = tuple(f"u{j}" for j in range(n))
+        coords: dict[str, list[int]] = {
+            in_dims[j]: list(range(int(multidim.shape[j]))) for j in range(n)
+        }
+        coords["next_unit"] = list(range(n))
+        return xr.DataArray(
+            multidim,
+            dims=(*in_dims, "next_unit"),
+            coords=coords,
+            name="P(next unit on)",
+        )
 
 
 def reconstitute_tpm(system: Any) -> NDArray[np.float64]:

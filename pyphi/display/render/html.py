@@ -56,6 +56,9 @@ table.pyphi-grid th:first-child,table.pyphi-grid td:first-child{
 </style>"""
 
 
+# Grids with more rows than this scroll instead of rendering full height.
+_GRID_SCROLL_ROWS = 16
+
 _TONE_COLOR = {"cause": "#D55C00", "effect": "#009E73"}
 
 
@@ -112,11 +115,18 @@ def _table_html(table: Table) -> str:
     if table.grid:
         head = f"<tr>{_grid_cells(table.headers, 'th')}</tr>"
         body = "".join(f"<tr>{_grid_cells(row, 'td')}</tr>" for row in table.rows)
-        return (
+        grid_html = (
             '<table class="pyphi-table pyphi-grid" '
             'style="border-collapse:collapse;width:auto">'
             f"{head}{body}</table>"
         )
+        # Small grids (e.g. cut grids) render inline; tall grids (e.g. TPMs)
+        # scroll and show an overflow indicator.
+        if len(table.rows) > _GRID_SCROLL_ROWS or table.overflow:
+            grid_html = f'<div class="pyphi-scroll">{grid_html}</div>'
+        if table.overflow:
+            grid_html += f'<div class="pyphi-more">… {table.overflow} more</div>'
+        return grid_html
     tones = table.header_tones
     head_cells = []
     for i, h in enumerate(table.headers):
