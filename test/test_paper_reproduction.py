@@ -28,9 +28,21 @@ Currently covered
   ``phi_d(B) = 0.32``, ``phi_d(aB) = 0.07`` and their cause/effect purviews.
 * **IIT 4.0 (2023), Fig 4 -- "Composition and causal relations".** The relation
   ``r({a, aB})`` over shared purview unit b: ``phi_r = 0.035`` and 9 faces.
-* **IIT 4.0 (2023), Fig 6C -- "directed cycle".** The 6-unit copy-ring (the only
-  Fig 6 panel whose weights are given exactly in the text): ``phi_s = 1.7467``
-  (paper 1.74) and ``Phi = 7.65`` (relation sum via analytical relations).
+* **IIT 4.0 (2023), Fig 6 -- "network architectures".** All five 6-unit Ising
+  architectures (``pyphi.examples.iit4_2023_fig6{a,b,c,d,e}_substrate``) in state
+  Abcdef: 6A's bottleneck complex Ab (phi_s=0.05, Phi=0.48) and monads;
+  6B's three modules (phi_s 0.53/0.45/0.45); 6C's copy-ring (phi_s=1.74,
+  Phi=7.65, relation sum via analytical relations); 6D's specialized lattice
+  (phi_s=1.05, 27 distinctions, Phi=11452); and 6E's exclusion (Abef complex
+  phi_s=0.27 excludes the less-irreducible full system, phi_s=0.15).
+* **IIT 4.0 (2023), Fig 7 -- "state-dependence".** The 5-unit substrate
+  (``pyphi.examples.iit4_2023_fig7_substrate``) across all three panels: (A) E
+  active, state ABcdE (phi_s=1.1, 23 distinctions, 13740 relations, Phi=22.26);
+  (B) E inactive, state ABcde (phi_s=1.31, 23 distinctions, 13111 relations,
+  Phi=18.55); and (C) E *inactivated* -- frozen out of the dynamics
+  (``iit4_2023_fig7_inactivated_substrate``), the complex shrinking to {A,B,C,D}
+  (phi_s=0.11, 14 distinctions, 363 relations, Phi=3.35). Inactivation is a
+  lesion, distinct from holding a unit as a background condition.
 * **IIT 3.0 (2014), Oizumi et al., Fig 12 -- "Assessing the integrated
   conceptual information".** The paper's main worked example: a 3-unit logic-gate
   network (A = OR, B = AND, C = XOR, fully connected; ``pyphi.examples.
@@ -51,9 +63,10 @@ Currently covered
   wedge tripartition + ``SUM_SMALL_PHI``): ``Phi = 0.44`` over 3 mechanisms. The
   suite's first k>2 (ternary-unit) reproduction.
 
-Follow-ons (tracked in ROADMAP N1): the rest of IIT 4.0 Fig 6 (panels A/B/D/E)
-and Fig 7 give weights only graphically and need the authors' exact network
-definitions.
+The IIT 4.0 Fig 6 (A/B/D/E) and Fig 7 weight matrices -- given only graphically in
+the paper -- were supplied by the authors and now ship as the
+``iit4_2023_fig6*``/``iit4_2023_fig7`` example substrates, completing the N1
+acceptance suite.
 """
 
 from __future__ import annotations
@@ -71,9 +84,8 @@ from pyphi.conf import presets
 from pyphi.convert import le_index2state
 from pyphi.direction import Direction
 from pyphi.relations import AnalyticalRelations
+from pyphi.relations import relations as concrete_relations
 from pyphi.substrate import Substrate
-from pyphi.substrate_generator import build_substrate
-from pyphi.substrate_generator import ising
 from pyphi.system import System
 
 # --------------------------------------------------------------------------- #
@@ -229,25 +241,11 @@ def test_iit4_2023_fig4_relation_a_aB(_iit4_2023):
 # --------------------------------------------------------------------------- #
 # IIT 4.0 (2023) -- Fig 6C, "directed cycle"
 # --------------------------------------------------------------------------- #
-# Of Fig 6's five 6-unit networks, only panel C is specified exactly in the
-# text (p32): "a directed cycle in which six units are unidirectionally
-# connected with weight w = 1.0 and k = 4. Each unit copies the state of the
-# unit before it ... with some indeterminism." The other panels (A, B, D, E)
-# give their weights only graphically and are not reliably reconstructable from
-# the figure (see ROADMAP N1).
-def _fig6c_substrate() -> Substrate:
-    """Build the Fig 6C 6-unit directed copy-ring (i copies i-1, w = 1.0)."""
-    weights = np.zeros((6, 6))
-    for i in range(6):
-        weights[i, (i + 1) % 6] = 1.0  # sender -> receiver (ring)
-    return build_substrate(
-        [ising.probability] * 6,
-        weights,
-        temperature=1.0 / 4.0,  # ising temperature 1/k reproduces sigmoid(k * .)
-        node_labels=tuple("ABCDEF"),
-    )
-
-
+# Fig 6C is the one panel specified exactly in the text (p32): "a directed cycle
+# in which six units are unidirectionally connected with weight w = 1.0 and
+# k = 4. Each unit copies the state of the unit before it ... with some
+# indeterminism." (The other panels are reproduced from the authors' weight
+# matrices in test_iit4_2023_fig6a/b/d/e below.)
 @pytest.mark.slow
 def test_iit4_2023_fig6C_copy_ring(_iit4_2023):
     """Fig 6C: the copy-ring's system phi and structure phi (Phi).
@@ -257,7 +255,11 @@ def test_iit4_2023_fig6C_copy_ring(_iit4_2023):
     relation sum is computed analytically (Albantakis et al. 2023, S3) rather
     than by enumerating concrete relations.
     """
-    system = System(_fig6c_substrate(), (1, 0, 0, 0, 0, 0), node_indices=tuple(range(6)))
+    system = System(
+        examples.iit4_2023_fig6c_substrate(),
+        (1, 0, 0, 0, 0, 0),
+        node_indices=tuple(range(6)),
+    )
     sia = system.sia()
     assert float(sia.phi) == pytest.approx(1.74, abs=0.01)  # phi_s = 1.7467
 
@@ -440,3 +442,193 @@ def test_gomez_2020_p53_mdm2_phi(_iit3_nonbinary):
     concepts = list(system.ces())
     assert len(concepts) == 3
     assert {tuple(c.mechanism) for c in concepts} == {(0,), (1,), (2,)}
+
+
+# --------------------------------------------------------------------------- #
+# IIT 4.0 (2023) -- Fig 6 (network architectures) & Fig 7 (state-dependence)
+# --------------------------------------------------------------------------- #
+# Fig 6 surveys five 6-unit Ising architectures (k = 4, state Abcdef); Fig 7 a
+# 5-unit network analysed in three states. The exact weight matrices were
+# provided by the paper's authors and ship as
+# pyphi.examples.iit4_2023_fig6{a,b,c,d,e}_substrate and
+# iit4_2023_fig7_substrate. Expected values are read from the *published*
+# figures and captions:
+#
+#   * Fig 6: each panel labels its complexes with phi_s and Phi (= sum phi_d +
+#     sum phi_r) and lists distinction / relation counts. (Fig 6C -- phi_s=1.74,
+#     Phi=7.65 -- is reproduced separately above.)
+#   * Fig 7: each panel labels phi_s, Phi, and distinction / relation counts for
+#     one state of the shared substrate.
+#
+# Two provenance notes:
+#   1. The paper displays phi truncated to two decimals (e.g. PyPhi's 0.0553 is
+#      shown as "0.05", 0.5360 as "0.53"), so values are checked with an absolute
+#      tolerance rather than exact two-decimal rounding.
+#   2. The authors' own working notebooks (the source of the weight matrices)
+#      report several divergent phi magnitudes -- they predate 2.0's
+#      paper-faithful system-partition scheme. Current PyPhi reproduces the
+#      *published* figures (as it does for Fig 1/2/4/6C), which is what these
+#      tests pin.
+
+
+def test_iit4_2023_fig6a_bottleneck(_iit4_2023):
+    """Fig 6A (degenerate "bottleneck" network).
+
+    The first-maximal complex is Ab (phi_s = 0.05, Phi = 0.48, with 2 distinctions
+    and 2 relations); each peripheral unit c/d/e/f is a "monad" complex with
+    phi_s = 0.008 and Phi = 0.02 (1 distinction, 1 relation).
+    """
+    substrate = examples.iit4_2023_fig6a_substrate()
+    state = (1, 0, 0, 0, 0, 0)
+    ab = System(substrate, state, node_indices=(0, 1)).ces()
+    assert float(ab.sia.phi) == pytest.approx(0.05, abs=0.01)  # shown as 0.05
+    assert float(ab.big_phi) == pytest.approx(0.48, abs=0.01)
+    assert len(ab.distinctions) == 2
+    assert ab.relations.num_relations() == 2
+
+    c = System(substrate, state, node_indices=(2,)).ces()
+    assert float(c.sia.phi) == pytest.approx(0.008, abs=0.005)
+    assert float(c.big_phi) == pytest.approx(0.02, abs=0.01)
+    assert len(c.distinctions) == 1
+    assert c.relations.num_relations() == 1
+
+
+def test_iit4_2023_fig6b_modular(_iit4_2023):
+    """Fig 6B (modular network).
+
+    The system condenses into three complexes along its fault lines: Ab
+    (phi_s = 0.53, Phi = 2.74; 2 distinctions, 2 relations) and the symmetric
+    pair cd and ef (each phi_s = 0.45, Phi = 3.18; 3 distinctions, 5 relations).
+    """
+    substrate = examples.iit4_2023_fig6b_substrate()
+    state = (1, 0, 0, 0, 0, 0)
+    ab = System(substrate, state, node_indices=(0, 1)).ces()
+    assert float(ab.sia.phi) == pytest.approx(0.53, abs=0.01)
+    assert float(ab.big_phi) == pytest.approx(2.74, abs=0.02)
+    assert len(ab.distinctions) == 2
+    assert ab.relations.num_relations() == 2
+
+    for module in [(2, 3), (4, 5)]:  # cd and ef are symmetric
+        ces = System(substrate, state, node_indices=module).ces()
+        assert float(ces.sia.phi) == pytest.approx(0.45, abs=0.01)
+        assert float(ces.big_phi) == pytest.approx(3.18, abs=0.01)
+        assert len(ces.distinctions) == 3
+        assert ces.relations.num_relations() == 5
+
+
+def test_iit4_2023_fig6e_near_maximal(_iit4_2023):
+    """Fig 6E (near-maximal substrate and exclusion).
+
+    The 4-unit subset Abef is the first complex (phi_s = 0.27, Phi = 3.24; 8
+    distinctions, 67 relations); the remaining units cd form a second complex
+    (phi_s = 0.08, Phi = 1.32; 3 distinctions, 7 relations). The full 6-unit
+    system is integrated (phi_s = 0.15) but excluded, being less irreducible than
+    its Abef subset.
+    """
+    substrate = examples.iit4_2023_fig6e_substrate()
+    state = (1, 0, 0, 0, 0, 0)
+    abef = System(substrate, state, node_indices=(0, 1, 4, 5)).ces()
+    assert float(abef.sia.phi) == pytest.approx(0.27, abs=0.01)
+    assert float(abef.big_phi) == pytest.approx(3.24, abs=0.02)
+    assert len(abef.distinctions) == 8
+    assert abef.relations.num_relations() == 67
+
+    cd = System(substrate, state, node_indices=(2, 3)).ces()
+    assert float(cd.sia.phi) == pytest.approx(0.08, abs=0.01)
+    assert float(cd.big_phi) == pytest.approx(1.32, abs=0.02)
+    assert len(cd.distinctions) == 3
+    assert cd.relations.num_relations() == 7
+
+    # Exclusion: the full system is less irreducible than its Abef subset.
+    full_phi = float(System(substrate, state, node_indices=tuple(range(6))).sia().phi)
+    assert full_phi == pytest.approx(0.15, abs=0.02)
+    assert full_phi < float(abef.sia.phi)
+
+
+@pytest.mark.slow
+def test_iit4_2023_fig6d_specialized(_iit4_2023):
+    """Fig 6D (specialized lattice).
+
+    The full 6-unit system is the complex: phi_s = 1.05, with 27 distinctions and
+    over 1.5 million relations. Its Phi = 11452 ibits -- the relation sum is
+    computed analytically (Albantakis et al. 2023, S3), as for Fig 6C, rather than
+    by enumerating the >1.5M concrete relations.
+    """
+    system = System(
+        examples.iit4_2023_fig6d_substrate(),
+        (1, 0, 0, 0, 0, 0),
+        node_indices=tuple(range(6)),
+    )
+    sia = system.sia()
+    assert float(sia.phi) == pytest.approx(1.05, abs=0.02)
+
+    distinctions = system.distinctions().resolve_congruence(sia.system_state)
+    assert len(distinctions) == 27
+    sum_phi_d = sum(float(d.phi) for d in distinctions)
+    sum_phi_r = float(AnalyticalRelations(distinctions).sum_phi())
+    assert round(sum_phi_d + sum_phi_r) == 11452  # paper: Phi = 11452 ibits
+
+
+# Fig 7: the same 5-unit substrate, the full system in two states (panels A & B).
+# The published Phi (= sum phi_d + sum phi_r) and relation count use *all* relation
+# degrees (the figures depict only degree-2/3 faces); Phi is summed analytically.
+# (state, phi_s, n_d, n_r, Phi) -- all values from the published Fig 7.
+_FIG7_PANELS = [
+    ((1, 1, 0, 0, 1), 1.1, 23, 13740, 22.26),  # A: ABcdE (E active)
+    ((1, 1, 0, 0, 0), 1.31, 23, 13111, 18.55),  # B: ABcde (E inactive)
+]
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize(("state", "phi_s", "n_d", "n_r", "big_phi"), _FIG7_PANELS)
+def test_iit4_2023_fig7_state_dependence(_iit4_2023, state, phi_s, n_d, n_r, big_phi):
+    """Fig 7: state-dependence of the cause-effect structure.
+
+    The same 5-unit substrate is analysed in two states: (A) ABcdE with E active
+    (phi_s=1.1, 23 distinctions, 13740 relations, Phi=22.26) and (B) ABcde with E
+    inactive (phi_s=1.31, 23 distinctions, 13111 relations, Phi=18.55). Changing
+    a single unit's state leaves the distinction count unchanged but reshapes the
+    relations, lowering Phi.
+    """
+    system = System(
+        examples.iit4_2023_fig7_substrate(), state, node_indices=(0, 1, 2, 3, 4)
+    )
+    sia = system.sia()
+    assert float(sia.phi) == pytest.approx(phi_s, abs=0.01)
+
+    distinctions = system.distinctions().resolve_congruence(sia.system_state)
+    assert len(distinctions) == n_d
+    assert concrete_relations(distinctions).num_relations() == n_r
+    sum_phi_d = sum(float(d.phi) for d in distinctions)
+    sum_phi_r = float(AnalyticalRelations(distinctions).sum_phi())
+    assert float(sum_phi_d + sum_phi_r) == pytest.approx(big_phi, abs=0.02)
+
+
+@pytest.mark.slow
+def test_iit4_2023_fig7C_inactivated(_iit4_2023):
+    """Fig 7C: unit E *inactivated*, the complex shrinking to {A, B, C, D}.
+
+    Inactivation is a lesion -- E's state is frozen and folded into the dynamics
+    of the remaining units (no counterfactual states), which is *distinct* from
+    holding E as a background condition of a candidate system. With E frozen OFF
+    (``iit4_2023_fig7_inactivated_substrate``), the first-maximal complex is
+    {A, B, C, D} with phi_s = 0.11, 14 distinctions, 363 relations, and Phi = 3.35
+    -- reproducing the published panel exactly. (Here phi_s = min(phi_cause,
+    phi_effect) genuinely lands on the effect; analysing the same units as a plain
+    *background-conditioned* subsystem of the full 5-unit substrate instead -- a
+    different operation -- would give a different value.)
+    """
+    system = System(
+        examples.iit4_2023_fig7_inactivated_substrate(),
+        (1, 1, 0, 0, 0),
+        node_indices=(0, 1, 2, 3),
+    )
+    sia = system.sia()
+    assert float(sia.phi) == pytest.approx(0.11, abs=0.01)
+
+    distinctions = system.distinctions().resolve_congruence(sia.system_state)
+    assert len(distinctions) == 14
+    assert concrete_relations(distinctions).num_relations() == 363
+    sum_phi_d = sum(float(d.phi) for d in distinctions)
+    sum_phi_r = float(AnalyticalRelations(distinctions).sum_phi())
+    assert float(sum_phi_d + sum_phi_r) == pytest.approx(3.35, abs=0.02)

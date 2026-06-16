@@ -14,6 +14,7 @@ from . import actual
 from .actual import Transition
 from .conf import config
 from .substrate import Substrate
+from .substrate_generator import build_substrate, ising
 from .system import System
 from .utils import all_states, powerset
 
@@ -1593,4 +1594,249 @@ def differentiation_micro_1_system():
         substrate=Substrate(differentiation_micro_tpm(0.9, 0.01)),
         state=(0, 0),
         node_indices=(0, 1),
+    )
+
+
+# --------------------------------------------------------------------------- #
+# IIT 4.0 (2023) -- Albantakis et al., PLoS Comput Biol 19(10): e1011465
+# --------------------------------------------------------------------------- #
+# The example architectures of Figures 6 and 7 are Ising networks: each unit's
+# next state is a logistic (sigmoid) function of its weighted inputs in {-1, +1}
+# with slope k = 4, realized by `ising.probability` at `temperature = 1 / k`.
+# The connection-weight matrices below are the exact definitions provided by the
+# paper's authors (weights[i, j] is the weight of the edge from unit i to unit j).
+
+
+@register_example
+def iit4_2023_fig6a_substrate():
+    """The 6-unit "bottleneck" architecture of Fig 6A.
+
+    Unit A both drives and is driven by a fan of five units (B-F), each of which
+    is otherwise only weakly self-connected; all causal traffic between the
+    periphery is funnelled through A. The figure shows the cause-effect
+    structures of the subsystems {A, B} and {C} in the canonical state
+    (1, 0, 0, 0, 0, 0).
+    """
+    s = 0.1
+    w = 1 - s  # strong fan connection (0.9)
+    j = 0.22  # B -> A return connection
+    back = (1 - j) / 4  # C-F -> A return connections (0.195)
+    # fmt: off
+    weights = np.array([
+        [0, w, w, w, w, w],
+        [j, s, 0, 0, 0, 0],
+        [back, 0, s, 0, 0, 0],
+        [back, 0, 0, s, 0, 0],
+        [back, 0, 0, 0, s, 0],
+        [back, 0, 0, 0, 0, s],
+    ])
+    # fmt: on
+    return build_substrate([ising.probability] * 6, weights, temperature=1 / 4)
+
+
+@register_example
+def iit4_2023_fig6a_system():
+    return System(
+        iit4_2023_fig6a_substrate(),
+        state=(1, 0, 0, 0, 0, 0),
+        node_indices=tuple(range(6)),
+    )
+
+
+@register_example
+def iit4_2023_fig6b_substrate():
+    """The 6-unit "modular" architecture of Fig 6B.
+
+    Three strongly self-coupled pairs ({A, B}, {C, D}, {E, F}) with sparse weak
+    links between modules. The figure shows the cause-effect structures of the
+    subsystems {A, B}, {C, D} and {E, F} in the canonical state (1, 0, 0, 0, 0, 0).
+    """
+    s = 0.6  # within-module coupling
+    m = 0.2  # self connection
+    w = 0.1  # between-module coupling
+    # fmt: off
+    weights = np.array([
+        [m, s, 0, w, 0, w],
+        [s, m, 0, 0, 0, 0],
+        [0, w, m, s, 0, w],
+        [0, 0, s, m, 0, 0],
+        [0, w, 0, w, m, s],
+        [0, 0, 0, 0, s, m],
+    ])
+    # fmt: on
+    return build_substrate([ising.probability] * 6, weights, temperature=1 / 4)
+
+
+@register_example
+def iit4_2023_fig6b_system():
+    return System(
+        iit4_2023_fig6b_substrate(),
+        state=(1, 0, 0, 0, 0, 0),
+        node_indices=tuple(range(6)),
+    )
+
+
+@register_example
+def iit4_2023_fig6c_substrate():
+    """The 6-unit "copy" architecture of Fig 6C.
+
+    A directed cycle in which six units are unidirectionally connected with
+    weight 1.0: each unit copies the state of the unit before it (A -> B -> ...
+    -> F -> A), with some indeterminism. This is the only Fig 6 panel whose
+    weights are given exactly in the paper's text (p. 32). The figure shows the
+    cause-effect structure of the full system in the canonical state
+    (1, 0, 0, 0, 0, 0).
+    """
+    # fmt: off
+    weights = np.array([
+        [0, 1, 0, 0, 0, 0],
+        [0, 0, 1, 0, 0, 0],
+        [0, 0, 0, 1, 0, 0],
+        [0, 0, 0, 0, 1, 0],
+        [0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0],
+    ])
+    # fmt: on
+    return build_substrate([ising.probability] * 6, weights, temperature=1 / 4)
+
+
+@register_example
+def iit4_2023_fig6c_system():
+    return System(
+        iit4_2023_fig6c_substrate(),
+        state=(1, 0, 0, 0, 0, 0),
+        node_indices=tuple(range(6)),
+    )
+
+
+@register_example
+def iit4_2023_fig6d_substrate():
+    """The 6-unit "specialized" architecture of Fig 6D.
+
+    A densely connected network in which each unit has one strong input, two
+    intermediate inputs and weak inputs from the rest, producing a highly
+    integrated structure with a large number of high-degree relations. The figure
+    shows the cause-effect structure of the full system in the canonical state
+    (1, 0, 0, 0, 0, 0).
+    """
+    s = 0.7  # strong connection
+    d = (1 - s) / 10  # weak connection (0.03)
+    m = 3 * d  # self connection (0.09)
+    w = 4 * d  # intermediate connection (0.12)
+    # fmt: off
+    weights = np.array([
+        [m, s, d, d, d, w],
+        [d, d, w, m, d, s],
+        [d, m, d, s, w, d],
+        [w, d, m, d, s, d],
+        [s, w, d, d, m, d],
+        [d, d, s, w, d, m],
+    ])
+    # fmt: on
+    return build_substrate([ising.probability] * 6, weights, temperature=1 / 4)
+
+
+@register_example
+def iit4_2023_fig6d_system():
+    return System(
+        iit4_2023_fig6d_substrate(),
+        state=(1, 0, 0, 0, 0, 0),
+        node_indices=tuple(range(6)),
+    )
+
+
+@register_example
+def iit4_2023_fig6e_substrate():
+    """The 6-unit "structured" architecture of Fig 6E.
+
+    A variant of the Fig 6D specialized network with the inputs to units C, D and
+    F perturbed away from the regular pattern, breaking some of its symmetry. The
+    figure shows the cause-effect structures of the subsystems {C, D} and
+    {A, B, E, F} in the canonical state (1, 0, 0, 0, 0, 0).
+    """
+    s = 0.8  # strong connection
+    d = (1 - s) / 10  # weak connection (0.02)
+    m = 3 * d  # self connection (0.06)
+    w = 4 * d  # intermediate connection (0.08)
+    # fmt: off
+    weights = np.array([
+        [m, s, d,        d,        d,        w],
+        [d, d, w,        m,        d,        s],
+        [d, m, d + 0.2,  s - 0.2,  w,        d],
+        [w, d, m + 0.2,  d + 0.2,  s - 0.4,  d],
+        [s, w, d,        d,        m,        d],
+        [d, d, s - 0.4,  w,        d + 0.4,  m],
+    ])
+    # fmt: on
+    return build_substrate([ising.probability] * 6, weights, temperature=1 / 4)
+
+
+@register_example
+def iit4_2023_fig6e_system():
+    return System(
+        iit4_2023_fig6e_substrate(),
+        state=(1, 0, 0, 0, 0, 0),
+        node_indices=tuple(range(6)),
+    )
+
+
+@register_example
+def iit4_2023_fig7_substrate():
+    """The 5-unit state-dependent network of Fig 7.
+
+    A near-symmetric ring of five units with predominantly strong forward
+    coupling, a few inhibitory (negative-weight) connections, and one perturbed
+    input (D <- A, weight 0.4). Fig 7 illustrates state-dependence: the same
+    substrate yields different cause-effect structures in different states. The
+    figure analyses the full system {A, B, C, D, E} with unit E active, in state
+    (1, 1, 0, 0, 1) (panel A), and inactive, in state (1, 1, 0, 0, 0) (panel B).
+    Panel C, with E *inactivated*, is :func:`iit4_2023_fig7_inactivated_substrate`.
+    """
+    s = 0.8  # strong forward connection
+    w = (1 - s) / 4  # weak connection (0.05)
+    q = -w  # inhibitory connection (-0.05)
+    m = 0.4  # perturbed D <- A connection
+    # fmt: off
+    weights = np.array([
+        [w, s, w, w, q],
+        [q, w, s, w, w],
+        [w, q, w, s, w],
+        [m, w, q, w, s],
+        [s, w, w, q, w],
+    ])
+    # fmt: on
+    return build_substrate([ising.probability] * 5, weights, temperature=1 / 4)
+
+
+@register_example
+def iit4_2023_fig7_system():
+    return System(
+        iit4_2023_fig7_substrate(), state=(1, 1, 0, 0, 1), node_indices=tuple(range(5))
+    )
+
+
+@register_example
+def iit4_2023_fig7_inactivated_substrate():
+    """The Fig 7 network with unit E *inactivated* (Fig 7C).
+
+    Inactivating a unit abolishes its cause-effect power: its state is frozen and
+    folded into the dynamics of the remaining units (it has no counterfactual
+    states and cannot be intervened upon). This is distinct from holding E as a
+    *background condition* of a candidate system -- it is a lesion of the
+    substrate itself. Here E is frozen in its OFF state, conditioning the Fig 7
+    substrate's transition probabilities so that E's (strong, weight-0.8) input to
+    A becomes a fixed bias; the first-maximal complex then shrinks to {A, B, C, D}.
+    """
+    return Substrate.from_factored(
+        iit4_2023_fig7_substrate().factored_tpm.condition({4: 0}),
+        node_labels=("A", "B", "C", "D", "E"),
+    )
+
+
+@register_example
+def iit4_2023_fig7_inactivated_system():
+    return System(
+        iit4_2023_fig7_inactivated_substrate(),
+        state=(1, 1, 0, 0, 0),
+        node_indices=(0, 1, 2, 3),
     )
