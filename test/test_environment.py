@@ -107,3 +107,34 @@ def test_mixture_uniform_default():
     m = env.mixture([a, b])
     assert m[(1, 0)] == pytest.approx(0.5)
     assert m[(0, 1)] == pytest.approx(0.5)
+
+
+def test_sample_is_seed_deterministic_and_isolated():
+    dist = env.noise(3, 0.3)
+    a = env.sample(dist, 50, seed=7)
+    b = env.sample(dist, 50, seed=7)
+    assert a == b  # reproducible
+    c = env.sample(dist, 50, seed=8)
+    assert a != c  # seed changes output
+    # No global-RNG dependence.
+    np.random.seed(0)
+    d = env.sample(dist, 50, seed=7)
+    np.random.seed(123)
+    e = env.sample(dist, 50, seed=7)
+    assert d == e
+
+
+def test_sample_only_draws_supported_states():
+    dist = env.segment(4, 2, 0.6)
+    drawn = set(env.sample(dist, 200, seed=1))
+    assert drawn <= set(dist)
+
+
+def test_sample_empirical_frequencies_converge():
+    dist = env.noise(2, 0.5)
+    draws = env.sample(dist, 20000, seed=42)
+    counts = dict.fromkeys(dist, 0)
+    for state in draws:
+        counts[state] += 1
+    for state, prob in dist.items():
+        assert counts[state] / len(draws) == pytest.approx(prob, abs=0.02)

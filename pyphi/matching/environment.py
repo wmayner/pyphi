@@ -12,6 +12,8 @@ from __future__ import annotations
 import itertools
 from collections import defaultdict
 
+import numpy as np
+
 Distribution = dict[tuple[int, ...], float]
 
 
@@ -122,3 +124,20 @@ def mixture(
         for state, prob in dist.items():
             result[state] += (weight / total) * prob
     return _normalize(dict(result))
+
+
+def sample(distribution: Distribution, size: int, *, seed: int) -> list[tuple[int, ...]]:
+    """Draw ``size`` i.i.d. states from a distribution (seeded, isolated RNG).
+
+    Uses ``np.random.default_rng(seed)`` — never the global RNG — so a draw is
+    reproducible from ``seed`` alone. A convenience for inspecting an
+    environment; ``MatchingAnalysis.matching`` does its own seeded sampling.
+    """
+    if size < 0:
+        raise ValueError(f"size must be non-negative; got {size}")
+    rng = np.random.default_rng(seed)
+    states = list(distribution.keys())
+    probs = np.array(list(distribution.values()), dtype=float)
+    probs /= probs.sum()
+    indices = rng.choice(len(states), size=size, p=probs)
+    return [states[i] for i in indices]
