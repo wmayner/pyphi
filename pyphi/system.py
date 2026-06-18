@@ -258,6 +258,17 @@ class System(Displayable):
     def node_labels(self) -> Any:
         return self.substrate.node_labels
 
+    def to_networkx(self, connectivity: str = "inferred") -> Any:
+        """Return the substrate's :class:`networkx.DiGraph` with node attributes.
+
+        Each node carries ``state`` and ``in_system``. Edges default to the
+        TPM-inferred causal connectivity (``connectivity="declared"`` for the
+        declared ``cm``).
+        """
+        from pyphi import graph
+
+        return graph.system_to_networkx(self, connectivity)
+
     @cached_property
     def proper_state(self) -> Any:
         return utils.state_of(self.node_indices, self.state)

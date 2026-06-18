@@ -90,3 +90,14 @@ def test_from_networkx_under_specified_topology_rejected():
     empty.add_nodes_from([0, 1])
     with pytest.raises(Exception, match="under-specified"):
         Substrate.from_networkx(empty, tpm)
+
+
+def test_system_to_networkx_node_attributes():
+    system = pyphi.examples.basic_system()
+    g = system.to_networkx()
+    labels = list(system.substrate.node_labels)
+    for i, label in enumerate(labels):
+        assert g.nodes[label]["state"] == system.state[i]
+        assert g.nodes[label]["in_system"] == (i in system.node_indices)
+    # Every node carries both attributes.
+    assert all("state" in d and "in_system" in d for _, d in g.nodes(data=True))

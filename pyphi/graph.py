@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     import networkx
 
     from pyphi.substrate import Substrate
+    from pyphi.system import System
 
 
 def _edge_matrix(substrate: Substrate, connectivity: str = "inferred") -> np.ndarray:
@@ -90,3 +91,19 @@ def substrate_from_networkx(
         )
     cm = nx.to_numpy_array(graph, nodelist=nodes, dtype=int)
     return Substrate(tpm, cm=cm, node_labels=[str(node) for node in nodes])
+
+
+def system_to_networkx(
+    system: System, connectivity: str = "inferred"
+) -> networkx.DiGraph:
+    """Return the substrate graph with per-node state and membership attributes.
+
+    Each node gains ``state`` (its current value) and ``in_system`` (whether the
+    node is in ``system.node_indices`` vs the background).
+    """
+    g = substrate_to_networkx(system.substrate, connectivity)
+    in_system = set(system.node_indices)
+    for index, label in enumerate(system.substrate.node_labels):
+        g.nodes[label]["state"] = int(system.state[index])
+        g.nodes[label]["in_system"] = index in in_system
+    return g
