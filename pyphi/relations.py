@@ -33,8 +33,6 @@ from .parallel import MapReduce
 from .registry import Registry
 
 if TYPE_CHECKING:
-    from graphillion import setset  # noqa: F401
-
     from .formalism.iit4 import Distinction  # type: ignore[attr-defined]
 
 
@@ -267,22 +265,18 @@ def _combinations_with_nonempty_congruent_overlap(
 ):
     """Return combinations of distinctions with nonempty congruent overlap.
 
+    Two distinctions can relate only if their purview-unions share a unit; a
+    combination can relate only if all its members share a common unit, i.e. the
+    intersection of their purview-unions is nonempty. Congruence of the shared
+    state is checked downstream when the :class:`Relation` is constructed.
+
     Arguments:
         components (Distinctions): The distinctions to find overlaps
             among.
     """
-    from graphillion import setset
-
-    # TODO(4.0) remove mapping when/if distinctions allow O(1) random access
-    mapping = {component: i for i, component in enumerate(components)}
-    # Use integers to avoid expensive distinction hashing
-    sets = [
-        list(map(mapping.get, subset))
-        for _, subset in components.purview_inclusion(max_order=1)
-    ]
-    setset.set_universe(range(len(components)))
-    return combinatorics.union_powerset_family(
-        sets, min_size=min_degree, max_size=max_degree
+    purview_unions = [frozenset(component.purview_union) for component in components]
+    return combinatorics.combinations_with_nonempty_intersection(
+        purview_unions, min_size=min_degree, max_size=max_degree
     )
 
 
