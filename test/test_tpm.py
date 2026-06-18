@@ -114,13 +114,18 @@ def test_expand_tpm():
 def test_marginalize_out(s):
     effect_sbn = JointTPM(
         np.stack(
-            [s.effect_marginal.factor(i)[..., 1] for i in range(s.effect_marginal.n_nodes)],
+            [
+                s.effect_marginal.factor(i)[..., 1]
+                for i in range(s.effect_marginal.n_nodes)
+            ],
             axis=-1,
         )
     )
     effect_arr = np.asarray(effect_sbn)
     for i in range(s.cause_marginal.n_nodes):
-        np.testing.assert_array_equal(s.cause_marginal.factor(i)[..., 1], effect_arr[..., i])
+        np.testing.assert_array_equal(
+            s.cause_marginal.factor(i)[..., 1], effect_arr[..., i]
+        )
     marginalized_distribution = effect_sbn.marginalize_out([0])
     # fmt: off
     answer = JointTPM(
@@ -148,11 +153,7 @@ def test_marginalize_out(s):
 
 
 def test_infer_cm(rule152):
-    from pyphi.core.tpm.joint_distribution import JointTPM as _LegacyJointTPM
-
-    # Legacy JointTPM/infer_cm expects the (2,...,2,N) shape.
-    legacy_tpm = _LegacyJointTPM(rule152._legacy_binary_joint())
-    assert np.array_equal(legacy_tpm.infer_cm(), rule152.cm)
+    assert np.array_equal(rule152.tpm.infer_cm(), rule152.cm)
 
 
 def test_reconstitute_tpm(standard, s_complete, rule152, noised):

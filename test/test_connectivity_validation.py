@@ -14,7 +14,6 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from pyphi import JointTPM
 from pyphi import Substrate
 from pyphi import System
 from pyphi import config
@@ -182,13 +181,10 @@ def test_weakly_stochastic_edge_detected():
 # ============== FactoredTPM.infer_cm unit tests ==============
 
 
-def test_infer_cm_binary_matches_legacy():
-    """For binary substrates, infer_cm agrees with the legacy JointTPM path."""
+def test_infer_cm_mutual_copy():
+    """A pair of mutually copying binary nodes yields the off-diagonal cm."""
     sub = _mutual_copy()
-    factored_cm = sub.tpm.infer_cm()
-    legacy_cm = JointTPM(sub._legacy_binary_joint()).infer_cm()
-    assert np.array_equal(factored_cm, np.asarray(legacy_cm))
-    assert np.array_equal(factored_cm, np.array([[0, 1], [1, 0]]))
+    assert np.array_equal(sub.tpm.infer_cm(), np.array([[0, 1], [1, 0]]))
 
 
 def test_infer_cm_heterogeneous_alphabet_gomez():

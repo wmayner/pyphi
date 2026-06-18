@@ -23,8 +23,6 @@ from pyphi import convert
 from pyphi import data_structures
 from pyphi import exceptions
 from pyphi.conf import config
-from pyphi.constants import OFF
-from pyphi.constants import ON
 from pyphi.data_structures import FrozenMap
 from pyphi.display import LOW
 from pyphi.display import Description
@@ -469,50 +467,6 @@ class JointTPM(Displayable, JointDistribution):
         """
         unconstrained = np.ones([2] * (self._tpm.ndim - 1) + [self._tpm.shape[-1]])
         return type(self)(self._tpm * unconstrained)
-
-    def infer_edge(self, a: int, b: int, contexts: tuple[tuple[int, ...], ...]) -> bool:
-        """Infer the presence or absence of an edge from node A to node B.
-
-        Let |S| be the set of all nodes in a substrate. Let |A' = S - {A}|. We
-        call the state of |A'| the context |C| of |A|. There is an edge from |A|
-        to |B| if there exists any context |C(A)| such that
-        |Pr(B | C(A), A=0) != Pr(B | C(A), A=1)|.
-
-        Args:
-            a (int): The index of the putative source node.
-            b (int): The index of the putative sink node.
-            contexts (tuple[tuple[int]]): The tuple of states of ``a``
-        Returns:
-            bool: ``True`` if the edge |A -> B| exists, ``False`` otherwise.
-        """
-
-        def a_in_context(context):
-            """Given a context C(A), return the states of the full system with A
-            OFF and ON, respectively.
-            """
-            a_off = context[:a] + OFF + context[a:]
-            a_on = context[:a] + ON + context[a:]
-            return (a_off, a_on)
-
-        def a_affects_b_in_context(tpm, context):
-            """Return ``True`` if A has an effect on B, given a context."""
-            a_off, a_on = a_in_context(context)
-            return tpm[a_off][b] != tpm[a_on][b]
-
-        tpm = self.to_multidimensional_state_by_node()
-        return any(a_affects_b_in_context(tpm, context) for context in contexts)
-
-    def infer_cm(self) -> NDArray[np.int_]:
-        """Infer the connectivity matrix associated with a state-by-node TPM in
-        multidimensional form.
-        """
-        tpm = self.to_multidimensional_state_by_node()
-        substrate_size = tpm.shape[-1]
-        all_contexts = tuple(all_states(substrate_size - 1))
-        cm = np.empty((substrate_size, substrate_size), dtype=int)
-        for a, b in np.ndindex(cm.shape):
-            cm[a][b] = self.infer_edge(a, b, all_contexts)
-        return cm
 
     def _describe(self, verbosity: int) -> Description:
         if verbosity == LOW:  # one-liner without materializing the grid
