@@ -53,3 +53,43 @@ class Registry[T](Mapping[str, Callable[..., Any]]):
                 f'"{name}" not found. Try using one of the installed '
                 f"{self.desc} {self.all()} or register your own."
             ) from err
+
+
+class InstanceRegistry[T](Mapping[str, T]):
+    """Generic registry for named *instances* (not functions).
+
+    The sibling :class:`Registry` stores callables and is parameterized by
+    their return type; this stores objects directly, so ``self[name]`` returns
+    a ``T`` rather than a callable producing one. Subclasses register concrete
+    instances and typically override :meth:`register` to validate them against
+    a Protocol. See :class:`pyphi.formalism.base.FormalismRegistry`.
+    """
+
+    desc = ""
+
+    def __init__(self) -> None:
+        self.store: dict[str, T] = {}
+
+    def register(self, name: str, instance: T) -> T:
+        """Register ``instance`` under ``name`` and return it."""
+        self.store[name] = instance
+        return instance
+
+    def all(self) -> list[str]:
+        """Return a list of all registered names."""
+        return list(self)
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self.store)
+
+    def __len__(self) -> int:
+        return len(self.store)
+
+    def __getitem__(self, name: str) -> T:
+        try:
+            return self.store[name]
+        except KeyError as err:
+            raise KeyError(
+                f'"{name}" not found. Try using one of the installed '
+                f"{self.desc} {self.all()} or register your own."
+            ) from err

@@ -799,15 +799,10 @@ def _active_ac_formalism() -> "ActualCausationFormalism":
     the function body to avoid an import cycle (mirroring
     :mod:`pyphi.formalism.queries`).
     """
-    from typing import cast
-
     from pyphi.conf import config
     from pyphi.formalism.base import ACTUAL_CAUSATION_FORMALISM_REGISTRY
 
-    return cast(
-        "ActualCausationFormalism",
-        ACTUAL_CAUSATION_FORMALISM_REGISTRY[config.formalism.actual_causation.version],
-    )
+    return ACTUAL_CAUSATION_FORMALISM_REGISTRY[config.formalism.actual_causation.version]
 
 
 def directed_account(

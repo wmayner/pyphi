@@ -69,7 +69,7 @@ def evaluate_partition(
     forwards them to its internal helper.
     """
     formalism = FORMALISM_REGISTRY[config.formalism.iit.version]  # pyright: ignore[reportAttributeAccessIssue]
-    return formalism.evaluate_mechanism_partition(  # pyright: ignore[reportFunctionMemberAccess]
+    return formalism.evaluate_mechanism_partition(
         cs,
         direction,
         mechanism,
@@ -174,7 +174,7 @@ def find_mip(
         **kwargs,
     )
     formalism = FORMALISM_REGISTRY[config.formalism.iit.version]  # pyright: ignore[reportAttributeAccessIssue]
-    return formalism._find_mechanism_mip(  # pyright: ignore[reportFunctionMemberAccess]
+    return formalism._find_mechanism_mip(  # pyright: ignore[reportAttributeAccessIssue]
         cs,
         direction,
         mechanism,
@@ -372,5 +372,5 @@ def sia(cs: System, **kwargs: Any) -> Any:
 
     formalism = FORMALISM_REGISTRY[config.formalism.iit.version]  # pyright: ignore[reportAttributeAccessIssue]
     start = time.perf_counter()
-    result = formalism.evaluate_system(cs, **kwargs)  # pyright: ignore[reportFunctionMemberAccess]
+    result = formalism.evaluate_system(cs, **kwargs)
     return stamp_wall_time(result, time.perf_counter() - start)

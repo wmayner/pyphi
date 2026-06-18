@@ -20,7 +20,7 @@ from typing import Literal
 from typing import Protocol
 from typing import runtime_checkable
 
-from pyphi.registry import Registry
+from pyphi.registry import InstanceRegistry
 
 if TYPE_CHECKING:
     from pyphi.conf.formalism import FormalismConfig
@@ -154,7 +154,7 @@ class ApproximateFormalism(PhiFormalism, Protocol):
     def error_characterization(self, system: Any) -> ErrorInfo: ...
 
 
-class FormalismRegistry(Registry[PhiFormalism]):
+class FormalismRegistry(InstanceRegistry[PhiFormalism]):
     """Storage for phi formalisms.
 
     Validates registered objects against the :class:`PhiFormalism` Protocol
@@ -165,28 +165,25 @@ class FormalismRegistry(Registry[PhiFormalism]):
 
         FORMALISM_REGISTRY.register("IIT_4_0_2023", IIT4_2023Formalism())
 
-    Lookup uses the same string identifier ``config.formalism.iit.version`` holds.
+    Lookup returns the registered formalism instance; the same string
+    identifier ``config.formalism.iit.version`` holds is used as the key.
     """
 
     desc = "phi formalisms"
 
-    def register(self, name: str, formalism: object) -> PhiFormalism:  # type: ignore[override]
-        """Register a formalism instance under ``name``.
+    def register(self, name: str, instance: object) -> PhiFormalism:
+        """Register a formalism instance under ``name``, validating its shape.
 
-        Unlike the parent :meth:`Registry.register`, which is a decorator,
-        formalism registration is direct because formalisms are class
-        instances rather than free functions. The instance is validated
-        against the :class:`PhiFormalism` Protocol; ``object`` is the
-        argument type so the runtime check is meaningful even for callers
-        who don't run a type-checker.
+        ``instance`` is typed ``object`` so the runtime Protocol check below is
+        meaningful even for callers who do not run a type-checker; a wrong-shape
+        object fails at import.
         """
-        if not isinstance(formalism, PhiFormalism):
+        if not isinstance(instance, PhiFormalism):
             raise TypeError(
-                f"Cannot register {formalism!r} as formalism {name!r}: "
+                f"Cannot register {instance!r} as formalism {name!r}: "
                 "object does not satisfy the PhiFormalism Protocol."
             )
-        self.store[name] = formalism  # type: ignore[assignment]
-        return formalism
+        return super().register(name, instance)
 
 
 FORMALISM_REGISTRY: FormalismRegistry = FormalismRegistry()
@@ -241,27 +238,25 @@ class ActualCausationFormalism(Protocol):
     ) -> Any: ...
 
 
-class ActualCausationFormalismRegistry(Registry[ActualCausationFormalism]):
+class ActualCausationFormalismRegistry(InstanceRegistry[ActualCausationFormalism]):
     """Storage for actual-causation formalisms.
 
     Validates registrations against :class:`ActualCausationFormalism` so
-    wrong-shape registrations fail at import. Lookup uses the string held in
+    wrong-shape registrations fail at import. Lookup returns the registered
+    instance, keyed by the string held in
     ``config.formalism.actual_causation.version``. Parallel to
     :class:`FormalismRegistry` / :class:`ActualCausationMeasureRegistry`.
     """
 
     desc = "actual-causation formalisms"
 
-    def register(  # type: ignore[override]
-        self, name: str, formalism: object
-    ) -> ActualCausationFormalism:
-        if not isinstance(formalism, ActualCausationFormalism):
+    def register(self, name: str, instance: object) -> ActualCausationFormalism:
+        if not isinstance(instance, ActualCausationFormalism):
             raise TypeError(
-                f"Cannot register {formalism!r} as AC formalism {name!r}: "
+                f"Cannot register {instance!r} as AC formalism {name!r}: "
                 "object does not satisfy the ActualCausationFormalism Protocol."
             )
-        self.store[name] = formalism  # type: ignore[assignment]
-        return formalism
+        return super().register(name, instance)
 
 
 ACTUAL_CAUSATION_FORMALISM_REGISTRY: ActualCausationFormalismRegistry = (

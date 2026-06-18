@@ -262,7 +262,7 @@ class OptionalEMD:
         self._ot = None
 
     @property
-    def ot(self):
+    def ot(self) -> Any:
         if self._ot is None:
             try:
                 import ot
