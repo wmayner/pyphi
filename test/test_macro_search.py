@@ -7,6 +7,7 @@ from pyphi import config
 from pyphi import utils
 from pyphi.conf import presets
 from pyphi.macro.criteria import Reason
+from pyphi.macro.criteria import judge_candidate
 from pyphi.macro.criteria import unit_integration
 from pyphi.macro.search import ComplexesResult
 from pyphi.macro.search import SearchBounds
@@ -114,8 +115,7 @@ class TestSearchBounds:
         with pytest.raises(ValueError, match="max_background"):
             SearchBounds(apportionment="ENUMERATE")
         assert (
-            SearchBounds(apportionment="ENUMERATE", max_background=1).max_background
-            == 1
+            SearchBounds(apportionment="ENUMERATE", max_background=1).max_background == 1
         )
 
 
@@ -237,9 +237,7 @@ class TestGrainRaisedSingleton:
         bounds = SearchBounds(max_update_grain=2)
         history = ((1, 0, 1, 0), (1, 0, 1, 0))
         with config.override(**presets.iit4_2023):
-            verdict = is_intrinsic_unit(
-                _asymmetric_substrate(), unit, history, bounds
-            )
+            verdict = is_intrinsic_unit(_asymmetric_substrate(), unit, history, bounds)
         assert verdict.num_competitors == 0
         assert verdict.valid == utils.is_positive(verdict.phi)
         assert verdict.reason in (Reason.VALID, Reason.NOT_INTEGRATED)
@@ -250,9 +248,7 @@ class TestCompetingSystems:
         with config.override(**presets.iit4_2023):
             systems = competing_systems(dancing_couples(0.25), AC, SF_STATE)
         assert len(systems) == 2
-        footprints = {
-            tuple(u.micro_constituents for u in s.units) for s in systems
-        }
+        footprints = {tuple(u.micro_constituents for u in s.units) for s in systems}
         assert footprints == {((0,),), ((2,),)}
 
     def test_own_constituent_system_excluded(self):
@@ -273,6 +269,86 @@ class TestCompetingSystems:
         for system in systems:
             for member in system.units:
                 assert set(member.micro_constituents) < footprint
+
+
+MIN_BOTH_ON = MacroUnit((0, 1), 1, coarse_grain(2, on_counts={2}))
+
+
+def _spans_footprint(system, footprint):
+    """True if ``system`` is a single unit covering all of ``footprint``."""
+    return len(system.units) == 1 and set(system.units[0].micro_constituents) == set(
+        footprint
+    )
+
+
+class TestWrappingExcludedFromF:
+    """Eq 16's competition excludes v^J, the candidate itself.
+
+    Marshall (clarification): the subset condition in f(U^J, W^J) is on
+    the total constituents and is not strict, and the comparison is over
+    v' != v^J. A single unit spanning all of U^J is the candidate's own
+    grain, so it never competes; admitting it would force the candidate
+    to beat its own inflated macro phi_s, which the ``min`` example
+    refutes. See ``experiment_marshall_f.py``.
+    """
+
+    def test_wrapping_never_in_competitors_depth_one(self):
+        with config.override(**presets.iit4_2023):
+            systems = competing_systems(min_substrate(), MIN_BOTH_ON, (0, 0))
+        assert all(not _spans_footprint(s, (0, 1)) for s in systems)
+
+    def test_min_unit_valid_despite_higher_wrapping_phi(self):
+        # Constituent-system phi_s is tiny (0.005); the one-unit wrapping
+        # is large (0.788). The unit is still VALID because the wrapping
+        # is excluded from f.
+        with config.override(**presets.iit4_2023):
+            verdict = is_intrinsic_unit(min_substrate(), MIN_BOTH_ON, (0, 0))
+            wrapping_phi = float(
+                MacroSystem.from_micro(min_substrate(), (MIN_BOTH_ON,), ((0, 0),))
+                .sia()
+                .phi
+            )
+        assert verdict.valid
+        assert verdict.reason is Reason.VALID
+        assert verdict.phi == pytest.approx(0.005106576483955726, abs=1e-13)
+        assert wrapping_phi == pytest.approx(0.7883339770634886, abs=1e-12)
+        assert wrapping_phi > verdict.phi
+
+    def test_admitting_wrapping_would_flip_min_verdict(self):
+        # The control: were the wrapping admitted (the naive-literal
+        # reading), min's macro unit would fail Eq 16. This is why the
+        # exclusion is load-bearing, not a free choice.
+        with config.override(**presets.iit4_2023):
+            shipped = competing_systems(min_substrate(), MIN_BOTH_ON, (0, 0))
+            phi_vJ = float(
+                unit_integration(min_substrate(), MIN_BOTH_ON.constituents, (0, 0))
+            )
+            wrapping = MacroSystem.from_micro(min_substrate(), (MIN_BOTH_ON,), ((0, 0),))
+            competitors = [(s, float(s.sia().phi)) for s in shipped]
+            with_wrapping = judge_candidate(
+                phi_vJ, [*competitors, (wrapping, float(wrapping.sia().phi))]
+            )
+            without_wrapping = judge_candidate(phi_vJ, competitors)
+        assert without_wrapping.reason is Reason.VALID
+        assert with_wrapping.reason is Reason.NOT_MAXIMAL
+
+    def test_same_union_meso_reorganizations_compete_depth_two(self):
+        # At depth 2, f for a candidate over the whole footprint includes
+        # same-U^J reorganizations into several smaller units, and still
+        # excludes any single unit spanning U^J.
+        unit = MacroUnit((0, 1, 2), 1, coarse_grain(3, on_counts={3}))
+        bounds = SearchBounds(max_depth=2, max_constituents=3)
+        with config.override(**presets.iit4_2023):
+            systems = competing_systems(dancing_couples(0.25), unit, SF_STATE, bounds)
+        footprint = (0, 1, 2)
+        same_union_multi = [
+            s
+            for s in systems
+            if len(s.units) > 1
+            and {i for u in s.units for i in u.micro_constituents} == set(footprint)
+        ]
+        assert same_union_multi
+        assert all(not _spans_footprint(s, footprint) for s in systems)
 
 
 class TestVerdictMappingIndependence:
@@ -312,9 +388,7 @@ class TestIntrinsicUnits:
         pair = [v for v in result.verdicts if v.constituents == (0, 1)]
         assert len(pair) == 1
         assert pair[0].verdict.valid
-        assert pair[0].verdict.phi == pytest.approx(
-            0.005106576483955726, abs=1e-13
-        )
+        assert pair[0].verdict.phi == pytest.approx(0.005106576483955726, abs=1e-13)
         assert pair[0].verdict.num_competitors == 2
 
     def test_micro_units_axiomatically_valid(self):
@@ -359,9 +433,7 @@ class TestIntrinsicUnits:
         with pytest.raises(ValueError, match="1 entries"):
             intrinsic_units(min_substrate(), ((0, 0), (0, 0)), SearchBounds())
         with pytest.raises(ValueError, match="bare state"):
-            intrinsic_units(
-                min_substrate(), (0, 0), SearchBounds(max_update_grain=2)
-            )
+            intrinsic_units(min_substrate(), (0, 0), SearchBounds(max_update_grain=2))
 
     def test_result_is_frozen(self):
         with config.override(**presets.iit4_2023):
@@ -394,8 +466,7 @@ class TestValidSystems:
         # 7 micro combinations minus the unconstructable {C}.
         assert len(systems) == 6
         assert all(
-            tuple(u.micro_constituents for u in s.units) != ((2,),)
-            for s in systems
+            tuple(u.micro_constituents for u in s.units) != ((2,),) for s in systems
         )
 
     def test_tie_substrate_count(self):
@@ -476,8 +547,7 @@ class TestBuDriver:
         with config.override(**presets.iit4_2023):
             result = complexes(bu_substrate(), (0, 0, 0), SearchBounds())
         footprints = {
-            tuple(u.micro_constituents for u in s.units)
-            for s in result.complexes
+            tuple(u.micro_constituents for u in s.units) for s in result.complexes
         }
         assert footprints == {((0,),), ((1,),)}
         phis = {r.system: r.phi for r in result.records}
@@ -509,9 +579,10 @@ class TestTiePath:
         assert result.complexes == ()
         assert len(result.ties) == 1
         a, b = result.ties[0]
-        assert {
-            tuple(u.micro_constituents for u in s.units) for s in (a, b)
-        } == {((0, 1),), ((1, 2),)}
+        assert {tuple(u.micro_constituents for u in s.units) for s in (a, b)} == {
+            ((0, 1),),
+            ((1, 2),),
+        }
         assert all(s.units[0].mapping == (0, 1, 1, 1) for s in (a, b))
         phis = {r.system: r.phi for r in result.records}
         assert utils.eq(phis[a], phis[b])

@@ -11,11 +11,17 @@ into the pool. Footprints are processed smallest-first, so the
 competitor set ``f(U^J, W^J)`` always draws on every unit already
 validated at strictly finer footprints.
 
-``f(U^J, W^J)`` is the set of systems assembled from valid units whose
-micro constituents are proper subsets of ``U^J`` and whose background
-apportionments are non-overlapping subsets of ``W^J``, excluding the
-candidate's own constituent system. The set ``P(u)`` extends the same
-assembly to the whole universe (Eq. 18), and a member is a complex if
+``f(U^J, W^J)`` is the set of valid systems whose total micro
+constituents are a subset (not necessarily strict) of ``U^J`` and whose
+background apportionments are non-overlapping subsets of ``W^J``,
+excluding the candidate ``v^J`` itself (the comparison in Eq. 16 is
+over ``v' != v^J``). Members are assembled from units validated at
+strictly finer footprints, so a system whose constituents equal ``U^J``
+competes only when it splits them into several smaller meso/micro units
+(a same-union reorganization), while a single unit spanning all of
+``U^J`` -- the candidate's own grain -- never enters ``f``. The set
+``P(u)`` extends the same assembly to the whole universe (Eq. 18), and
+a member is a complex if
 it strictly beats every other member whose micro constituents overlap
 its own (Eq. 19). Candidate systems whose state is unreachable under
 their own TPM specify no cause and cannot exist; they are dropped.
@@ -331,9 +337,7 @@ def _decompositions(footprint, pool, *, allow_singleton: bool):
     """Sets of pool units with disjoint footprints whose union is
     ``footprint``, all sharing one micro grain."""
     remaining_all = set(footprint)
-    candidates = [
-        unit for unit in pool if set(unit.micro_constituents) <= remaining_all
-    ]
+    candidates = [unit for unit in pool if set(unit.micro_constituents) <= remaining_all]
     out: list[tuple[MacroUnit, ...]] = []
 
     def extend(partial, remaining):
@@ -503,10 +507,7 @@ def _derive_units(
     indices = tuple(range(n)) if within is None else tuple(sorted(within))
     pool: list[MacroUnit] = [micro_unit(i) for i in indices]
     _evaluate_systems(
-        [
-            _system_of_cached(substrate, (u,), micro_history, system_cache)
-            for u in pool
-        ],
+        [_system_of_cached(substrate, (u,), micro_history, system_cache) for u in pool],
         memo,
         parallel_kwargs,
     )
@@ -545,9 +546,7 @@ def _derive_units(
             _evaluate_systems(
                 [
                     _system_of_cached(substrate, units, micro_history, system_cache)
-                    for units in _class_combos(
-                        candidates, pool_at_class_start, bounds
-                    )
+                    for units in _class_combos(candidates, pool_at_class_start, bounds)
                 ],
                 memo,
                 parallel_kwargs,
@@ -601,8 +600,7 @@ def _f_for_unit(
     members = [
         u
         for u in pool
-        if set(u.micro_constituents) < fp
-        and set(u.background_apportionment) <= allowed
+        if set(u.micro_constituents) < fp and set(u.background_apportionment) <= allowed
     ]
     own = canonical_units(V)
     to_eval = [_system_of_cached(substrate, V, micro_history, system_cache)]
@@ -786,15 +784,11 @@ def complexes(
     evaluated: list[tuple[MacroSystem, PyPhiFloat]] = [
         (system, memo[system]) for system in sweep_systems if system is not None
     ]
-    footprints = [
-        set(_system_micro_indices(system.units)) for system, _ in evaluated
-    ]
+    footprints = [set(_system_micro_indices(system.units)) for system, _ in evaluated]
 
     def overlapping(i):
         return [
-            j
-            for j in range(len(evaluated))
-            if j != i and footprints[i] & footprints[j]
+            j for j in range(len(evaluated)) if j != i and footprints[i] & footprints[j]
         ]
 
     tops = [
@@ -808,15 +802,12 @@ def complexes(
     ties: list[tuple[MacroSystem, MacroSystem]] = []
     tied: set[int] = set()
     for a, b in itertools.combinations(tops, 2):
-        if footprints[a] & footprints[b] and utils.eq(
-            evaluated[a][1], evaluated[b][1]
-        ):
+        if footprints[a] & footprints[b] and utils.eq(evaluated[a][1], evaluated[b][1]):
             ties.append((evaluated[a][0], evaluated[b][0]))
             tied.add(a)
             tied.add(b)
     winners = tuple(evaluated[i][0] for i in tops if i not in tied)
     records = tuple(
-        EvaluationRecord(system=system, phi=float(phi))
-        for system, phi in memo.items()
+        EvaluationRecord(system=system, phi=float(phi)) for system, phi in memo.items()
     )
     return ComplexesResult(complexes=winners, records=records, ties=tuple(ties))

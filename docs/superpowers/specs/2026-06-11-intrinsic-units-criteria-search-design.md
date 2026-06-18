@@ -72,42 +72,79 @@ Consequences:
 
 ### Eq 16 — maximal irreducibility within, and f(U^J, W^J)
 
-**Pin:** f(U^J, W^J) is the set of valid systems, other than the
-candidate's own constituent system, **composed of intrinsic units whose
-micro constituents are proper subsets of U^J**, with background
-apportionments that are non-overlapping subsets of W^J. The candidate
-is valid iff φ_s(v^J) strictly exceeds φ_s of every member.
+**Pin (confirmed by Marshall, see below):** the candidate is valid iff
 
-This includes strict sub-systems (Fig 2's singleton comparisons) and
-alternative same-union decompositions built from several smaller units
-(the Fig 3E "in one shot" vs "built on meso units" competition, which
-the paper states is *a consequence of* this requirement), and excludes
-any competitor containing a single unit that spans the entire
-footprint.
+    φ_s(v^J) > φ_s(v')  for every v' ≠ v^J in f(U^J, W^J).
 
-**Interpretation risk (documented deviation-by-necessity).** The paper
-defines f as "all valid systems V' (ones that satisfy Eqs. 16 and 18)
-whose micro constituents are a subset of U^J". Read literally, with
-"subset" applied to the competitor system's total constituents and
-including the improper subset, the candidate's own one-unit macro
-wrapping is a competitor — and since macroing typically *raises* φ_s
-(the formalism's central phenomenon), no multi-constituent unit could
-ever be valid. Forcing case: in the authors' `min` example the
-candidate (A,B) has constituent-system φ_s = 0.005106576483955726 while
-its own wrapping {alpha} has φ_s = 0.7883339770634886; the literal
-reading invalidates the very unit the example is built to validate. It
-is also circular (the wrapping is valid only if the candidate is). The
-reading adopted here is the one under which the paper's examples,
-Fig 2, Fig 3E, and the bottom-up recursion description ("candidate
-systems *within* them") are all coherent. The precise wording that
-would have resolved the ambiguity, and the question to put to the
-authors: *in f(U^J, W^J), is the subset condition on the competitor
-system's total constituents or on each of its units' constituents — and
-is it proper?* Our pin: per-unit, proper. No published value can
-distinguish the readings (the published cases are ones where they
-agree), so this is implemented, documented, and queued for confirmation
-with the authors alongside the SP1 finding about their hand-entered
-Example 1 TPM.
+f(U^J, W^J) is the set of valid systems whose **total micro
+constituents are a (not necessarily strict) subset of U^J**, with
+background apportionments that are non-overlapping subsets of W^J. The
+only system removed from the comparison is v^J itself — the candidate.
+Concretely, the comparison includes:
+
+- strict sub-systems (Fig 2's singleton comparisons); and
+- alternative same-union decompositions, where the constituents *equal*
+  U^J but are grouped differently into several smaller meso/micro units
+  (the Fig 3E "in one shot" vs "built on meso units" competition, which
+  the paper states is *a consequence of* this requirement).
+
+It excludes v^J and, with it, any single unit that spans the entire
+footprint as one macro unit (the candidate's own "wrapping"): a unit
+covering all of U^J is the candidate's own grain, not a finer
+organization of it.
+
+**How the implementation realizes this.** `f` is built from the pool of
+units already validated at strictly finer footprints, assembled into
+systems whose members have pairwise-disjoint footprints. Requiring each
+*member* to be a proper subset of U^J yields exactly the set above: a
+system whose members' union equals U^J then necessarily has two or more
+members (a same-union meso reorganization, kept), and a single unit
+spanning U^J (the wrapping) can never be a member (dropped). So the
+per-member-proper construction and Marshall's "total constituents,
+improper subset, exclude v^J" describe the same set.
+
+**Resolution of the prior interpretation risk.** The paper defines f as
+"all valid systems V' (ones that satisfy Eqs. 16 and 18) whose micro
+constituents are a subset of U^J." Read with "subset" applied to the
+competitor system's total constituents *including the improper subset
+and without excluding v^J*, the candidate's own one-unit macro wrapping
+is a competitor — and since macroing typically *raises* φ_s (the
+formalism's central phenomenon), the candidate would have to beat its
+own wrapping. Forcing case, **reproduced** (confirming experiment and
+results table in
+`docs/superpowers/notes/2026-06-18-marshall-f-clarification.md`): in the
+authors' `min` example the candidate (A,B) has constituent-system φ_s =
+0.005106576483955726 while its own wrapping {alpha} has φ_s =
+0.7883339770634886, so admitting the wrapping flips the verdict from
+VALID to NOT_MAXIMAL — invalidating the very unit the example is built
+to validate. The question was put to William Marshall:
+
+> in f(U^J, W^J), is the subset condition on the competitor system's
+> total constituents or on each of its units' constituents — and is it
+> proper?
+
+His answer: the condition is on the total constituents and is **not
+strict**; the fix for the circularity is to **exclude v^J itself**, not
+to require a strict subset — "we do want to consider systems whose
+constituents are equal to U^J, but perhaps organized differently at a
+meso spatial scale." Eq 16 should read φ_s(v^J) > φ_s(v') ∀ v' ≠ v^J ∈
+f(…). The confirming experiment shows the shipped per-member-proper
+construction reproduces this reading verdict-for-verdict on all four
+published result sets (`min`, `sfn`, `sfnn`, `sfs`), every φ_s matching
+the committed value, and at depth 2 includes same-U^J meso
+reorganizations while excluding single-unit wrappings.
+
+**One residual sub-question (flagged, depth ≥ 2 only).** Marshall's
+answer settles the multi-unit reorganizations but does not fully nail
+the case of a competitor that is a *single* macro unit spanning all of
+U^J, built from a *different* meso organization than the candidate.
+Such a system is structurally a one-unit wrapping, so the
+implementation excludes it — the only choice consistent with the
+forcing case (a wrapping carries the inflated macro φ_s, so admitting
+any wrapping would again make macroing self-defeating). This never
+arises at the default `max_depth=1` and has no published anchor; it is
+pinned by test and queued for confirmation alongside the SP1
+hand-entered-TPM finding.
 
 ### Micro units are axiomatically valid
 
@@ -349,7 +386,14 @@ an error.
 - Apportionment: off by default, opt-in enumeration (user choice); the
   Eq 29 evaluation path exists in SP1 but gets its first published
   anchor only in SP3.
-- Questions queued for the paper's authors: the f(U^J, W^J) subset
-  semantics (this spec's pin), and SP1's finding that the committed
-  Example 1 macro TPM contains a hand-entry error (0.9212 vs the
-  construction's 0.9216) and a rounded entry (0.006833 for 0.0615/9).
+- The f(U^J, W^J) subset semantics were **resolved by William
+  Marshall** (see the Eq 16 section): the subset is on total
+  constituents and not strict, and v^J is excluded. One residual
+  sub-question remains queued — whether a single macro unit spanning all
+  of U^J, built from a different meso organization than the candidate,
+  competes (the implementation excludes it; depth ≥ 2 only, no published
+  anchor).
+- Question still queued for the authors: SP1's finding that the
+  committed Example 1 macro TPM contains a hand-entry error (0.9212 vs
+  the construction's 0.9216) and a rounded entry (0.006833 for
+  0.0615/9).
