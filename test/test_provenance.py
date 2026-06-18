@@ -96,3 +96,24 @@ def test_every_config_carrying_result_carries_provenance():
     for result in results:
         assert isinstance(result.config, ConfigSnapshot)
         assert isinstance(result.provenance, Provenance)
+
+
+def test_entry_point_sets_wall_time():
+    sia = _basic_iit4_sia()
+    assert sia.provenance.wall_time is not None
+    assert sia.provenance.wall_time >= 0.0
+
+
+def test_ces_entry_point_sets_wall_time():
+    from pyphi import examples
+
+    ces = examples.basic_system().ces()
+    assert ces.provenance.wall_time is not None
+    assert ces.provenance.wall_time >= 0.0
+
+
+def test_direct_construction_has_no_wall_time():
+    # A result built without going through the entry point keeps wall_time=None.
+    from pyphi.provenance import Provenance
+
+    assert Provenance.capture().wall_time is None

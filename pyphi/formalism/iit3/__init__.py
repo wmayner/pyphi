@@ -180,6 +180,11 @@ def ces(
 
     Pass ``sia=`` or ``distinctions=`` to reuse pre-computed values.
     """
+    import time
+
+    from pyphi.provenance import stamp_wall_time
+
+    start = time.perf_counter()
     sia_kwargs = sia_kwargs or {}
     distinctions_kwargs = distinctions_kwargs or {}
 
@@ -195,11 +200,12 @@ def ces(
     if not isinstance(distinctions, ResolvedDistinctions):
         distinctions = ResolvedDistinctions(distinctions)
 
-    return CauseEffectStructure(
+    result = CauseEffectStructure(
         sia=sia,
         distinctions=distinctions,
         relations=NullRelations(),
     )
+    return stamp_wall_time(result, time.perf_counter() - start)
 
 
 def _only_positive_phi(concepts: Iterable[Any]) -> list[Concept]:

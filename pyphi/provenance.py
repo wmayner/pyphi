@@ -140,4 +140,22 @@ class Provenance:
         return cls(**dct)
 
 
-__all__ = ["Provenance"]
+def stamp_wall_time(result: Any, elapsed: float) -> Any:
+    """Set ``elapsed`` seconds on ``result.provenance`` if it has one.
+
+    Returns ``result``. A no-op when the result carries no provenance, so it
+    is safe to call on any value returned from a compute entry point. The
+    provenance record is frozen, so a copy with ``wall_time`` set replaces it.
+    """
+    prov = getattr(result, "provenance", None)
+    if prov is None:
+        return result
+    stamped = prov.with_wall_time(elapsed)
+    try:
+        result.provenance = stamped
+    except (AttributeError, TypeError):
+        object.__setattr__(result, "provenance", stamped)
+    return result
+
+
+__all__ = ["Provenance", "stamp_wall_time"]

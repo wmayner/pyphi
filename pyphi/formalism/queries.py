@@ -366,5 +366,11 @@ def all_distinctions(cs: System, **kwargs: Any) -> Any:  # noqa: ARG001
 
 def sia(cs: System, **kwargs: Any) -> Any:
     """Run system irreducibility analysis via the active formalism."""
+    import time
+
+    from pyphi.provenance import stamp_wall_time
+
     formalism = FORMALISM_REGISTRY[config.formalism.iit.version]  # pyright: ignore[reportAttributeAccessIssue]
-    return formalism.evaluate_system(cs, **kwargs)  # pyright: ignore[reportFunctionMemberAccess]
+    start = time.perf_counter()
+    result = formalism.evaluate_system(cs, **kwargs)  # pyright: ignore[reportFunctionMemberAccess]
+    return stamp_wall_time(result, time.perf_counter() - start)

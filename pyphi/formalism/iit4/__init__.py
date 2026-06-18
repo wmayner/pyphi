@@ -1146,6 +1146,11 @@ def ces(
     measure callables passed explicitly by the active formalism (no
     config fallback).
     """
+    import time
+
+    from pyphi.provenance import stamp_wall_time
+
+    start = time.perf_counter()
     sia_kwargs = sia_kwargs or {}
     ces_kwargs = ces_kwargs or {}
     relations_kwargs = relations_kwargs or {}
@@ -1210,4 +1215,4 @@ def ces(
             label="big_phi",
         )
 
-    return result
+    return stamp_wall_time(result, time.perf_counter() - start)
