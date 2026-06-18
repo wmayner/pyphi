@@ -2,6 +2,8 @@ import itertools
 from itertools import chain
 
 import pytest
+from hypothesis import given
+from hypothesis import strategies as st
 
 from pyphi import combinatorics
 from pyphi import utils
@@ -132,7 +134,47 @@ def test_explicit_combinations_with_nonempty_intersection(
         for combination in nonempty_intersection_answer
         if min_size <= len(combination) <= max_size
     ]
-    assert answer == result
+    # The enumerator yields unique combinations; order is not part of its
+    # contract (the lazy DFS yields depth-first, not grouped by size).
+    assert set(answer) == set(result)
+    assert len(answer) == len(result)
+
+
+def _bruteforce_nonempty_intersection(sets, min_size, max_size):
+    n = len(sets)
+    upper = n if max_size is None else min(max_size, n)
+    expected = set()
+    for size in range(max(2, min_size), upper + 1):
+        for combo in itertools.combinations(range(n), size):
+            inter = sets[combo[0]]
+            for i in combo[1:]:
+                inter = inter & sets[i]
+            if inter:
+                expected.add(frozenset(combo))
+    return expected
+
+
+@given(
+    sets=st.lists(
+        st.frozensets(st.integers(min_value=0, max_value=5), max_size=4),
+        min_size=0,
+        max_size=8,
+    ),
+    min_size=st.integers(min_value=0, max_value=5),
+    max_size=st.integers(min_value=0, max_value=6),
+)
+def test_combinations_with_nonempty_intersection_matches_bruteforce(
+    sets, min_size, max_size
+):
+    result = list(
+        combinatorics.combinations_with_nonempty_intersection(
+            sets, min_size=min_size, max_size=max_size
+        )
+    )
+    expected = _bruteforce_nonempty_intersection(sets, min_size, max_size)
+    # Yields each combination exactly once, and exactly the oracle's set.
+    assert set(result) == expected
+    assert len(result) == len(expected)
 
 
 def _brute_force_min_over_size(values):

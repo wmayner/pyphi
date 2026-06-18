@@ -8,7 +8,6 @@ from collections import defaultdict
 from collections.abc import Generator
 from collections.abc import Iterable
 from collections.abc import Sequence
-from itertools import chain
 from itertools import product
 from typing import TYPE_CHECKING
 from typing import Any
@@ -47,10 +46,12 @@ def pairs(seq: Sequence, k: int = 0) -> Generator[tuple[Any, Any]]:
 def combinations_with_nonempty_intersection_by_order(
     sets: Sequence[frozenset], min_size: int = 0, max_size: int | None = None
 ) -> dict[int, set[frozenset]]:
-    """Return combinations of sets that have nonempty intersection.
+    """Return nonempty-intersection combinations grouped by size.
 
-    The returned combinations are sets of the indices of the sets in that
-    combination, not the sets themselves.
+    The same combinations as :func:`combinations_with_nonempty_intersection`,
+    bucketed into ``{size: {combination, ...}}``. Each combination is a set of
+    the indices of the sets in that combination, not the sets themselves. Sizes
+    with no combinations are omitted.
 
     Arguments:
         sets (Sequence[frozenset]): The sets to consider. Note that they must be
@@ -63,71 +64,64 @@ def combinations_with_nonempty_intersection_by_order(
             to ``None``, indicating all sizes.
 
     Returns:
-        defaultdict(set): A mapping from combination size to combinations.
+        dict[int, set[frozenset]]: A mapping from combination size to
+        combinations.
     """
-    n = len(sets)
-    if max_size is None:
-        max_size = n
-    min_size = max(2, min_size)
-
-    # Begin by finding pairs with nonempty intersection
-    pairs = list(map(frozenset, pair_indices(n, k=1)))
-    # Store intersections so successive intersections can be computed faster
-    intersections = {
-        pair: frozenset.intersection(*[sets[i] for i in pair]) for pair in pairs
-    }
-    combinations = defaultdict(set, {2: {pair for pair in pairs if intersections[pair]}})
-
-    # Iteratively find larger combinations of sets with nonempty intersection
-    for k in range(2, max_size):
-        nonempty_intersection = combinations[k]
-        if nonempty_intersection:
-            for i in range(n):
-                covered = set()
-                for combination in nonempty_intersection:
-                    if i in combination:
-                        covered.add(combination)
-                    else:
-                        intersection = sets[i] & intersections[combination]
-                        if intersection:
-                            new_combination = frozenset([i]) | combination
-                            intersections[new_combination] = intersection
-                            combinations[k + 1].add(new_combination)
-                nonempty_intersection = nonempty_intersection - covered
-                if not nonempty_intersection:
-                    break
-        else:
-            break
-
-    return {
-        size: combs
-        for size, combs in combinations.items()
-        if (size >= min_size) and combs
-    }
+    by_order: dict[int, set[frozenset]] = defaultdict(set)
+    for combination in combinations_with_nonempty_intersection(
+        sets, min_size=min_size, max_size=max_size
+    ):
+        by_order[len(combination)].add(combination)
+    return dict(by_order)
 
 
 def combinations_with_nonempty_intersection(
     sets: Sequence[frozenset], min_size: int = 0, max_size: int | None = None
-) -> chain[frozenset]:
-    """Return combinations of sets that have nonempty intersection.
+) -> Generator[frozenset[int]]:
+    """Yield index-combinations whose set-intersection is nonempty.
+
+    Each yielded ``frozenset`` holds indices ``i`` into ``sets`` such that the
+    intersection of the corresponding sets is nonempty. Combinations are
+    enumerated by depth-first search over indices in increasing order, pruning a
+    whole subtree as soon as the running intersection becomes empty (sound
+    because intersection is monotone non-increasing under adding elements).
+    Singletons are never yielded; the effective minimum size is
+    ``max(2, min_size)``.
 
     Arguments:
         sets (Sequence[frozenset]): The sets to consider. Note that they must be
             ``frozensets``.
 
     Keyword Arguments:
-        min_size (int): The minimum size of the combinations to return. Defaults
+        min_size (int): The minimum size of the combinations to yield. Defaults
             to 0.
-        max_size (int): The maximum size of the combinations to return. Defaults
-            to ``None``, indicating all sizes.
-
-    Returns:
-        list[frozenset]: The combinations.
+        max_size (int): The maximum size of the combinations to yield. If
+            ``None`` (the default), there is no upper bound.
     """
-    implicit = combinations_with_nonempty_intersection_by_order(
-        sets, min_size=min_size, max_size=max_size
-    )
-    return chain.from_iterable(implicit.values())
+    n = len(sets)
+    effective_min = max(2, min_size)
+    upper = n if max_size is None else max_size
+    if upper < effective_min:
+        return
+
+    def _extend(
+        start: int, chosen: list[int], running: frozenset
+    ) -> Generator[frozenset[int]]:
+        size = len(chosen)
+        if size >= effective_min:
+            yield frozenset(chosen)
+        if size >= upper:
+            return
+        for i in range(start, n):
+            new_running = running & sets[i]
+            if new_running:
+                chosen.append(i)
+                yield from _extend(i + 1, chosen, new_running)
+                chosen.pop()
+
+    for i in range(n):
+        if sets[i]:
+            yield from _extend(i + 1, [i], sets[i])
 
 
 def powerset_family(
