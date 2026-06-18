@@ -10,6 +10,7 @@ from typing import Any
 
 from pyphi import utils
 from pyphi.direction import Direction
+from pyphi.display import PROVENANCE
 from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
@@ -703,7 +704,7 @@ class AcSystemIrreducibilityAnalysis(Displayable, cmp.Orderable):
             return ",".join(str(i) for i in node_indices)
         return None
 
-    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+    def _describe(self, verbosity: int) -> Description:
         cls = type(self).__name__
         account = self.account
         num_links = len(account) if account is not None else None
@@ -715,26 +716,31 @@ class AcSystemIrreducibilityAnalysis(Displayable, cmp.Orderable):
             fmt.state(self.before_state) if self.before_state is not None else None
         )
         after_str = fmt.state(self.after_state) if self.after_state is not None else None
-        return Description(
-            title=cls,
-            sections=(
-                Section(
-                    rows=(
-                        Row("α", self.alpha),  # noqa: RUF001
-                        Row(
-                            "Direction",
-                            str(self.direction) if self.direction is not None else None,
-                            tone=tone_of(self.direction),
-                        ),
-                        Row("System", self._system_label()),
-                        Row("Before state", before_str),
-                        Row("After state", after_str),
-                        Row("Partition", partition_str),
-                        Row("Causal links", num_links),
-                        Row("Σα", sum_alpha),
+        sections = [
+            Section(
+                rows=(
+                    Row("α", self.alpha),  # noqa: RUF001
+                    Row(
+                        "Direction",
+                        str(self.direction) if self.direction is not None else None,
+                        tone=tone_of(self.direction),
                     ),
+                    Row("System", self._system_label()),
+                    Row("Before state", before_str),
+                    Row("After state", after_str),
+                    Row("Partition", partition_str),
+                    Row("Causal links", num_links),
+                    Row("Σα", sum_alpha),
                 ),
             ),
+        ]
+        if verbosity >= PROVENANCE and self.provenance is not None:
+            from pyphi.display.provenance import provenance_section
+
+            sections.append(provenance_section(self.provenance))
+        return Description(
+            title=cls,
+            sections=tuple(sections),
             compact=f"{cls}(α={format_value(self.alpha)})",  # noqa: RUF001
         )
 

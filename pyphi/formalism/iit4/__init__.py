@@ -26,6 +26,7 @@ from pyphi.conf.snapshot import ConfigSnapshot
 from pyphi.core import repertoire_algebra as repertoire
 from pyphi.data_structures import PyPhiFloat
 from pyphi.direction import Direction
+from pyphi.display import PROVENANCE
 from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
@@ -308,7 +309,7 @@ class SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
             return ",".join(str(i) for i in node_indices)
         return None
 
-    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+    def _describe(self, verbosity: int) -> Description:
         cls = type(self).__name__
         idiff = self.intrinsic_differentiation
         state = self.system_state
@@ -366,6 +367,10 @@ class SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
         if self.reasons:
             reasons = ", ".join(getattr(r, "name", str(r)) for r in self.reasons)
             sections.append(Section(label="Reasons", rows=(Row("", reasons),)))
+        if verbosity >= PROVENANCE and self.provenance is not None:
+            from pyphi.display.provenance import provenance_section
+
+            sections.append(provenance_section(self.provenance))
         return Description(
             title=cls,
             sections=tuple(sections),

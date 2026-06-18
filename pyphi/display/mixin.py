@@ -9,7 +9,8 @@ from pyphi.display.render import render
 LOW = 0
 MEDIUM = 1
 HIGH = 2
-FULL = 3  # everything HIGH shows, plus exhaustive extras (e.g. RIA/MICE cut grids)
+FULL = 3  # HIGH plus all mathematical content (e.g. RIA/MICE cut grids)
+PROVENANCE = 4  # FULL plus the provenance metadata section
 
 
 def _verbosity() -> int:
@@ -26,8 +27,10 @@ class Displayable:
       (e.g. a ``Substrate``'s TPM, a ``System``'s conditioned cause/effect
       TPMs — which require computing marginals).
     - ``HIGH`` (2, the default): everything in the standard card.
-    - ``FULL`` (3): the card plus exhaustive extras (e.g. the cut-matrix grid
-      for an RIA/MICE partition).
+    - ``FULL`` (3): the card plus all mathematical content (e.g. the
+      cut-matrix grid for an RIA/MICE partition).
+    - ``PROVENANCE`` (4): ``FULL`` plus a provenance section recording how,
+      when, and by what code the result was computed.
 
     ``_describe(verbosity)`` honors this: it returns a compact-only
     ``Description`` at ``LOW`` (so no heavy sections are built) and gates

@@ -12,6 +12,7 @@ import contextvars
 from typing import Any
 
 from pyphi import utils
+from pyphi.display import PROVENANCE
 from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
@@ -119,7 +120,7 @@ class IIT3SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
             return ",".join(str(i) for i in node_indices)
         return None
 
-    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+    def _describe(self, verbosity: int) -> Description:
         cls = type(self).__name__
         sections = [
             Section(
@@ -138,6 +139,10 @@ class IIT3SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
                 else ()
             )
             sections.append(Section(label="MIP", rows=mip_rows, body=mip_body))
+        if verbosity >= PROVENANCE and self.provenance is not None:
+            from pyphi.display.provenance import provenance_section
+
+            sections.append(provenance_section(self.provenance))
         return Description(
             title=cls,
             sections=tuple(sections),

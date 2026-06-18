@@ -117,3 +117,26 @@ def test_direct_construction_has_no_wall_time():
     from pyphi.provenance import Provenance
 
     assert Provenance.capture().wall_time is None
+
+
+def test_provenance_shown_only_at_level_4():
+    from pyphi import config
+
+    sia = _basic_iit4_sia()
+    with config.override(repr_verbosity=3):
+        assert "Provenance" not in repr(sia)
+    with config.override(repr_verbosity=4):
+        text = repr(sia)
+        assert "Provenance" in text
+        assert sia.provenance.pyphi_version in text
+
+
+def test_repr_verbosity_4_is_valid_and_5_is_rejected():
+    import pytest
+
+    from pyphi import config
+
+    with config.override(repr_verbosity=4):
+        pass  # must not raise
+    with pytest.raises(ValueError), config.override(repr_verbosity=5):
+        pass

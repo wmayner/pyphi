@@ -31,6 +31,7 @@ from typing import TYPE_CHECKING
 from typing import Any
 
 from pyphi.display import FULL
+from pyphi.display import PROVENANCE
 from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
@@ -150,7 +151,9 @@ class CauseEffectStructure(Displayable, cmp.Orderable):
         if verbosity >= FULL and self.sia is not None:
             # Embed the SIA's sections flat (the unlabeled summary becomes a
             # "System irreducibility" section), matching how every other card
-            # embeds a sub-object — no nested boxes.
+            # embeds a sub-object — no nested boxes. Cap the embedded SIA at
+            # FULL so the CES card carries a single Provenance section (its
+            # own) rather than also surfacing the embedded SIA's.
             sections.extend(
                 Section(
                     label=sec.label or "System irreducibility",
@@ -158,8 +161,13 @@ class CauseEffectStructure(Displayable, cmp.Orderable):
                     body=sec.body,
                     tone=sec.tone,
                 )
-                for sec in self.sia._describe(verbosity).sections
+                for sec in self.sia._describe(min(verbosity, FULL)).sections
             )
+
+        if verbosity >= PROVENANCE and self.provenance is not None:
+            from pyphi.display.provenance import provenance_section
+
+            sections.append(provenance_section(self.provenance))
 
         return Description(
             title=cls,
