@@ -68,12 +68,17 @@ class CauseEffectStructure(Displayable, cmp.Orderable):
     distinctions: ResolvedDistinctions
     relations: Relations
     config: Any = None  # ConfigSnapshot from pyphi.conf.snapshot
+    provenance: Any = None  # Provenance from pyphi.provenance
 
     def __post_init__(self) -> None:
         if self.config is None:
             from pyphi.conf import config as _global
 
             object.__setattr__(self, "config", _global.snapshot())
+        if self.provenance is None:
+            from pyphi.provenance import Provenance
+
+            object.__setattr__(self, "provenance", Provenance.capture())
 
     @property
     def components(self) -> Iterable[Any]:

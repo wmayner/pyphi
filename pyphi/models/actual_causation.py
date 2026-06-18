@@ -662,6 +662,7 @@ class AcSystemIrreducibilityAnalysis(Displayable, cmp.Orderable):
         effect_indices=None,
         node_labels=None,
         config=None,
+        provenance=None,
         reasons=None,
     ):
         self.alpha = alpha  # type: ignore[assignment]
@@ -685,6 +686,11 @@ class AcSystemIrreducibilityAnalysis(Displayable, cmp.Orderable):
 
             config = _global.snapshot()
         self.config = config
+        if provenance is None:
+            from pyphi.provenance import Provenance
+
+            provenance = Provenance.capture()
+        self.provenance = provenance
 
     def _system_label(self) -> str | None:
         node_indices = self.node_indices

@@ -48,3 +48,51 @@ def test_jsonify_round_trip():
     restored = loads(dumps(prov))
     assert isinstance(restored, Provenance)
     assert restored == prov
+
+
+def _basic_iit4_sia():
+    """An IIT 4.0 SIA computed through the public dispatch entry point."""
+    from pyphi import examples
+
+    return examples.basic_system().sia()
+
+
+def test_iit4_sia_carries_provenance():
+    sia = _basic_iit4_sia()
+    assert isinstance(sia.provenance, Provenance)
+
+
+def test_provenance_does_not_pollute_equality():
+    # Two independent runs differ in timestamp but must stay equal.
+    a = _basic_iit4_sia()
+    b = _basic_iit4_sia()
+    assert a == b
+
+
+def test_provenance_excluded_from_diff():
+    a = _basic_iit4_sia()
+    b = _basic_iit4_sia()
+    d = a.diff(b)
+    assert float(d.delta_phi) == 0
+    assert d.config_diff == {}
+
+
+def test_every_config_carrying_result_carries_provenance():
+    import pyphi
+    from pyphi import actual
+    from pyphi import examples
+    from pyphi.conf import presets
+    from pyphi.conf.snapshot import ConfigSnapshot
+    from pyphi.direction import Direction
+    from pyphi.formalism import iit3
+
+    system = examples.basic_system()
+    results = [system.sia(), system.ces()]  # IIT 4.0 SIA + CES
+    with pyphi.config.override(**presets.iit3):
+        results.append(iit3.sia(system))  # IIT 3.0 SIA
+    transition = examples.prevention_transition()
+    results.append(actual.sia(transition, Direction.BIDIRECTIONAL))  # AcSIA
+
+    for result in results:
+        assert isinstance(result.config, ConfigSnapshot)
+        assert isinstance(result.provenance, Provenance)

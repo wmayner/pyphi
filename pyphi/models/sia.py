@@ -75,6 +75,7 @@ class IIT3SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
         node_labels=None,
         current_state=None,
         config=None,
+        provenance=None,
         reasons=None,
         runner_up=None,
     ):
@@ -101,6 +102,11 @@ class IIT3SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
 
             config = _global.snapshot()
         self.config = config
+        if provenance is None:
+            from pyphi.provenance import Provenance
+
+            provenance = Provenance.capture()
+        self.provenance = provenance
 
     def _system_label(self) -> str | None:
         node_indices = self.node_indices

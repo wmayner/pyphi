@@ -59,6 +59,7 @@ from pyphi.models.state_specification import StateSpecification
 from pyphi.models.state_specification import SystemStateSpecification
 from pyphi.parallel import MapReduce
 from pyphi.partition import system_partitions
+from pyphi.provenance import Provenance
 from pyphi.relations import ConcreteRelations
 from pyphi.relations import Relations
 from pyphi.relations import relations as compute_relations
@@ -177,12 +178,15 @@ class SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
     signed_phi: float | DistanceResult | None = None
     signed_normalized_phi: float | DistanceResult | None = None
     config: ConfigSnapshot | None = None
+    provenance: Provenance | None = None
 
     def __post_init__(self):
         if self.config is None:
             from pyphi.conf import config as _global
 
             self.config = _global.snapshot()
+        if self.provenance is None:
+            self.provenance = Provenance.capture()
         # Snapshot the raw signed values *before* clamping.
         if self.signed_phi is None:
             self.signed_phi = self.phi
