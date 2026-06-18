@@ -16,6 +16,7 @@ from pyphi.deferred.deferred_import import networkx as nx
 
 if TYPE_CHECKING:
     import networkx
+    import pandas
 
     from pyphi.substrate import Substrate
     from pyphi.system import System
@@ -107,3 +108,20 @@ def system_to_networkx(
         g.nodes[label]["state"] = int(system.state[index])
         g.nodes[label]["in_system"] = index in in_system
     return g
+
+
+def to_graphml(substrate: Substrate, path: str, connectivity: str = "inferred") -> None:
+    """Write the substrate graph to a GraphML file."""
+    nx.write_graphml(substrate_to_networkx(substrate, connectivity), path)
+
+
+def to_adjacency(
+    substrate: Substrate, connectivity: str = "inferred"
+) -> pandas.DataFrame:
+    """Return the chosen connectivity matrix as a node-labeled DataFrame."""
+    import pandas as pd
+
+    labels = pd.Index(list(substrate.node_labels))
+    return pd.DataFrame(
+        _edge_matrix(substrate, connectivity), index=labels, columns=labels
+    )

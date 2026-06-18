@@ -516,6 +516,18 @@ class Substrate(Displayable):
 
         return graph_module.substrate_from_networkx(graph, tpm, node_labels=node_labels)
 
+    def to_graphml(self, path: str, connectivity: str = "inferred") -> None:
+        """Write the substrate graph to a GraphML file (see :meth:`to_networkx`)."""
+        from pyphi import graph
+
+        graph.to_graphml(self, path, connectivity)
+
+    def to_adjacency(self, connectivity: str = "inferred") -> Any:
+        """Return the connectivity matrix as a node-labeled ``pandas.DataFrame``."""
+        from pyphi import graph
+
+        return graph.to_adjacency(self, connectivity)
+
     def to_json(self) -> dict[str, Any]:
         """Return a JSON-serializable representation.
 

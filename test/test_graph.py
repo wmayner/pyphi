@@ -101,3 +101,24 @@ def test_system_to_networkx_node_attributes():
         assert g.nodes[label]["in_system"] == (i in system.node_indices)
     # Every node carries both attributes.
     assert all("state" in d and "in_system" in d for _, d in g.nodes(data=True))
+
+
+def test_to_graphml_round_trip(tmp_path):
+    import networkx as nx
+
+    sub = pyphi.examples.grid3_substrate()
+    path = tmp_path / "grid3.graphml"
+    sub.to_graphml(str(path))
+    reread = nx.read_graphml(str(path))
+    original = sub.to_networkx()
+    assert set(reread.nodes()) == set(original.nodes())
+    assert set(reread.edges()) == set(original.edges())
+
+
+def test_to_adjacency_labeled_dataframe():
+    sub = pyphi.examples.grid3_substrate()
+    df = sub.to_adjacency()
+    labels = list(sub.node_labels)
+    assert list(df.index) == labels
+    assert list(df.columns) == labels
+    assert np.array_equal(df.to_numpy(), sub.factored_tpm.infer_cm())
