@@ -107,6 +107,7 @@ _DELEGATED_TO_SYSTEM: frozenset[str] = frozenset(
         "indices2nodes",
         "cache_info",
         "clear_caches",
+        "to_networkx",
     }
 )
 

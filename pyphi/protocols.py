@@ -236,6 +236,7 @@ PUBLIC_SYSTEM_ATTRS: frozenset[str] = frozenset(
         "cache_info",
         "clear_caches",
         "to_json",
+        "to_networkx",
     }
 )
 """Names that must remain on ``System``'s public surface.
@@ -338,6 +339,7 @@ class SystemPublicInterface(Protocol):
     cache_info: Callable[..., Any]
     clear_caches: Callable[..., Any]
     to_json: Callable[..., Any]
+    to_networkx: Callable[..., Any]
 
 
 class SystemInternalInterface(Protocol):
