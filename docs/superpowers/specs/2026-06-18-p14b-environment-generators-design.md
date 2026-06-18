@@ -22,8 +22,9 @@ as ad-hoc notebook code in the matching repository, not as reusable library func
 
 This item ports the paper's environment generators into PyPhi as library functions producing a
 `world_distribution`, so `MatchingAnalysis` runs end-to-end on paper-faithful environments without a
-hand-coded distribution. It also fixes a reproducibility defect in the reference sampler, which
-draws from the global NumPy RNG.
+hand-coded distribution. (The 2.0 `MatchingAnalysis.matching` already performs its own seeded
+sampling internally and exposes a uniform `noise_distribution`, so no sampling pipeline is
+needed here — only the generators and a single seeded `sample` helper for inspecting an environment.)
 
 **Why not `substrate_generator`.** `substrate_generator/` builds *substrates* — TPMs / dynamics. An
 environment generator builds a *probability distribution over sensory-interface stimuli*, a
@@ -46,8 +47,10 @@ paper.
 - Primitive generators: `segment`, `point`, `noise`.
 - General composition: `superpose` (independent activation combined by OR) and `mixture`
   (weighted choice), both operating on distributions so any generators compose arbitrarily.
-- Seeded sampling utilities (`sample`, `world_sample`, `noise_sample`) using an isolated
-  `np.random.default_rng(seed)` — never the global RNG.
+- A single seeded `sample(distribution, size, *, seed)` helper (isolated `np.random.default_rng`)
+  for drawing example stimuli from an environment — never the global RNG. (No `world_sample` /
+  `noise_sample` wrappers: `MatchingAnalysis.matching` already samples world/noise internally with
+  a seed.)
 - Reproduce the manuscript's environments (E1, E2, E1b, E3) to exact per-stimulus probabilities.
 
 ## 3. Non-goals
@@ -106,12 +109,11 @@ nests arbitrarily.
 ### 4.4 Sampling (seeded)
 
 - `sample(distribution, size, *, seed) -> list[tuple[int, ...]]`: draw `size` i.i.d. states from a
-  distribution using `rng = np.random.default_rng(seed)` and `rng.choice` over the support. Returns
-  a list of state tuples (the form `MatchingAnalysis.matching` consumes as a sample sequence).
-- `world_sample(world_distribution, size, *, seed)` and `noise_sample(n, size, *, seed)` convenience
-  wrappers; `noise_sample` samples from `noise(n, 0.5)` (the uniform structureless world). The
-  `seed` is required (keyword-only) so a sample is always reproducible; callers save the seed
-  alongside results.
+  distribution using `rng = np.random.default_rng(seed)`, mapping uniform deviates through the
+  distribution's support. Returns a list of state tuples. The `seed` is required (keyword-only) so a
+  draw is always reproducible; callers save the seed alongside results. This is a convenience for
+  *inspecting* an environment — `MatchingAnalysis.matching` does its own seeded world/noise sampling
+  internally, so the matching pipeline does not depend on this helper.
 
 ### 4.5 Paper environments (validation fixtures, not shipped API)
 
@@ -142,7 +144,7 @@ generic generators.)
   distributions with the expected support; pinned per-stimulus probabilities for a small interface.
 - **Seeded sampling:** `sample(dist, size, seed=k)` is deterministic given `k`, reproduces across
   calls, differs across seeds, and its empirical frequencies converge to the distribution; uses no
-  global RNG (a global `np.random.seed` does not change its output).
+  global RNG (a global `np.random.seed` does not change its output). (Single `sample` helper only.)
 - **End-to-end:** a `MatchingAnalysis` built with a generator-produced `world_distribution` runs
   `matching(...)` without a hand-coded distribution.
 
@@ -161,8 +163,8 @@ Verification runs `uv run pytest` **with no path argument** (public surface; doc
 
 ## 7. Acceptance criteria
 
-- `pyphi/matching/environment.py` ships `segment`, `point`, `noise`, `superpose`, `mixture`,
-  `sample`, `world_sample`, `noise_sample`, exported from `pyphi.matching`.
+- `pyphi/matching/environment.py` ships `segment`, `point`, `noise`, `superpose`, `mixture`, and
+  `sample`, exported from `pyphi.matching`.
 - E1/E2/E1b/E3 reproduce the paper's per-stimulus probabilities (pinned tests).
 - A `MatchingAnalysis` runs end-to-end on a generator-produced world distribution.
 - Sampling is seeded and global-RNG-free (test asserts it).
