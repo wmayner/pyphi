@@ -413,11 +413,6 @@ wheels = [
 ]
 
 [[package]]
-name = "graphillion"
-version = "2.1"
-source = { git = "https://github.com/takemaru/graphillion#e21b0928fcacd955154032928044ea3ce2efee3c" }
-
-[[package]]
 name = "hypothesis"
 version = "6.150.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1129,7 +1124,6 @@ wheels = [
 name = "pyphi"
 source = { editable = "." }
 dependencies = [
-    { name = "graphillion" },
     { name = "joblib" },
     { name = "more-itertools" },
     { name = "numpy" },
@@ -1181,7 +1175,6 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "graphillion", git = "https://github.com/takemaru/graphillion" },
     { name = "joblib", specifier = ">=0.8.0" },
     { name = "matplotlib", marker = "extra == 'visualize'" },
     { name = "more-itertools", specifier = ">=8.13.0" },

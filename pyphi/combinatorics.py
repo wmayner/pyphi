@@ -9,15 +9,11 @@ from collections.abc import Generator
 from collections.abc import Iterable
 from collections.abc import Sequence
 from itertools import product
-from typing import TYPE_CHECKING
 from typing import Any
 
 import numpy as np
 
 from .cache import cache
-
-if TYPE_CHECKING:
-    from graphillion import setset
 
 # TODO(4.0) move relevant functions from utils here
 
@@ -122,55 +118,6 @@ def combinations_with_nonempty_intersection(
     for i in range(n):
         if sets[i]:
             yield from _extend(i + 1, [i], sets[i])
-
-
-def powerset_family(
-    X: Any, min_size: int = 1, max_size: int | None = None, universe: set | None = None
-) -> setset:
-    """Return the power set of X as a set family.
-
-    NOTE: The universe is assumed to have been set already.
-    """
-    from graphillion import setset
-
-    if universe is None:
-        universe = set(setset.universe())
-
-    # This is necessary since `.set_size(0)` doesn't seem to work
-    negation: list[list[Any]]
-    if min_size > 0:
-        negation = [[]]
-    else:
-        negation = []
-    P = ~setset(negation)
-
-    for e in universe - set(X):
-        P -= P.join(setset([[e]]))
-
-    exclude = list(range(1, min_size))
-    if max_size is not None:
-        exclude += list(range(max_size + 1, len(X) + 1))
-    for k in exclude:
-        P -= P.set_size(k)
-
-    return P
-
-
-def union_powerset_family(
-    sets: Sequence[Any], min_size: int = 1, max_size: int | None = None
-) -> setset:
-    """Return union of the power set of each set in ``sets``.
-
-    NOTE: The universe must already have been set to (at least) the union of the
-    ``sets``.
-    """
-    from graphillion import setset
-
-    U = set(setset.universe())
-    S = setset([])
-    for s in sets:
-        S |= powerset_family(s, min_size=min_size, max_size=max_size, universe=U)
-    return S
 
 
 @cache(cache={}, maxmem=None)

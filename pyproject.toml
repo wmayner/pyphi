@@ -30,7 +30,6 @@ classifiers = [
     "Topic :: Scientific/Engineering",
 ]
 dependencies = [
-    "Graphillion>=1.5",
     "joblib>=0.8.0",
     "more_itertools>=8.13.0",
     "numpy",
@@ -273,11 +272,6 @@ reportUnknownVariableType = false
 reportGeneralTypeIssues = true
 reportOptionalMemberAccess = true
 reportOptionalSubscript = true
-
-[tool.uv.sources]
-# Build graphillion from source to avoid macOS libgomp dependency issues
-# The PyPI wheel has hardcoded paths to Homebrew GCC's libgomp library
-graphillion = { git = "https://github.com/takemaru/graphillion" }
 
 [tool.towncrier]
 directory = "changelog.d"
