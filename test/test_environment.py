@@ -60,3 +60,50 @@ def test_generator_argument_validation():
         env.segment(3, 1, 1.5)  # p out of range
     with pytest.raises(ValueError):
         env.noise(3, -0.1)  # p out of range
+
+
+def test_superpose_or_combines_independently():
+    # Deterministic point at index 0 OR deterministic point at index 1.
+    a = {(1, 0): 1.0}
+    b = {(0, 1): 1.0}
+    assert env.superpose(a, b) == {(1, 1): 1.0}
+
+
+def test_superpose_with_all_off_is_identity():
+    a = env.segment(4, 2, 0.6)
+    off = {(0, 0, 0, 0): 1.0}
+    combined = env.superpose(a, off)
+    assert set(combined) == set(a)
+    for state in a:
+        assert combined[state] == pytest.approx(a[state])
+
+
+def test_superpose_hand_computed_probability():
+    # noise(2, 0.5) OR a deterministic point at index 0.
+    # Result state (1, x): index 0 always on; index 1 on iff noise set it.
+    combined = env.superpose(env.noise(2, 0.5), {(1, 0): 1.0})
+    assert combined[(1, 0)] == pytest.approx(0.5)  # noise gave (0,0) or (1,0)
+    assert combined[(1, 1)] == pytest.approx(0.5)  # noise gave (0,1) or (1,1)
+    assert _sums_to_one(combined)
+
+
+def test_superpose_requires_matching_n():
+    with pytest.raises(ValueError):
+        env.superpose({(0, 0): 1.0}, {(0,): 1.0})
+
+
+def test_mixture_weights():
+    a = {(1, 0): 1.0}
+    b = {(0, 1): 1.0}
+    m = env.mixture([a, b], weights=[3, 1])
+    assert m[(1, 0)] == pytest.approx(0.75)
+    assert m[(0, 1)] == pytest.approx(0.25)
+    assert _sums_to_one(m)
+
+
+def test_mixture_uniform_default():
+    a = {(1, 0): 1.0}
+    b = {(0, 1): 1.0}
+    m = env.mixture([a, b])
+    assert m[(1, 0)] == pytest.approx(0.5)
+    assert m[(0, 1)] == pytest.approx(0.5)

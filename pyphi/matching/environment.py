@@ -69,3 +69,56 @@ def noise(n: int, p: float) -> Distribution:
             prob *= p if s else (1 - p)
         dist[state] = prob
     return _normalize(dist)
+
+
+def _shared_n(distributions) -> int:
+    sizes = {len(next(iter(d))) for d in distributions}
+    if len(sizes) != 1:
+        raise ValueError(f"all distributions must share the same n; got {sizes}")
+    return sizes.pop()
+
+
+def superpose(*distributions: Distribution) -> Distribution:
+    """Independent activation of each generator, combined by elementwise OR.
+
+    Each input distribution is drawn independently; a unit is active in the
+    result iff any generator activates it. Computed exactly over the product of
+    the inputs' supports.
+    """
+    if not distributions:
+        raise ValueError("superpose requires at least one distribution")
+    n = _shared_n(distributions)
+    result: Distribution = defaultdict(float)
+    for combo in itertools.product(*(d.items() for d in distributions)):
+        prob = 1.0
+        merged = [0] * n
+        for state, state_prob in combo:
+            prob *= state_prob
+            for i, s in enumerate(state):
+                if s:
+                    merged[i] = 1
+        result[tuple(merged)] += prob
+    return _normalize(dict(result))
+
+
+def mixture(
+    distributions: list[Distribution], weights: list[float] | None = None
+) -> Distribution:
+    """A weighted convex combination of distributions (pick one per draw)."""
+    if not distributions:
+        raise ValueError("mixture requires at least one distribution")
+    _shared_n(distributions)
+    if weights is None:
+        weights = [1.0] * len(distributions)
+    if len(weights) != len(distributions):
+        raise ValueError("weights must match the number of distributions")
+    if any(w < 0 for w in weights):
+        raise ValueError("weights must be non-negative")
+    total = float(sum(weights))
+    if total <= 0:
+        raise ValueError("weights must have positive sum")
+    result: Distribution = defaultdict(float)
+    for dist, weight in zip(distributions, weights, strict=True):
+        for state, prob in dist.items():
+            result[state] += (weight / total) * prob
+    return _normalize(dict(result))
