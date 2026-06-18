@@ -60,3 +60,33 @@ def test_to_networkx_rejects_unknown_connectivity():
     sub = pyphi.examples.basic_substrate()
     with pytest.raises(ValueError, match="connectivity"):
         sub.to_networkx(connectivity="bogus")
+
+
+def test_from_networkx_round_trip():
+    sub = pyphi.examples.grid3_substrate()
+    g = sub.to_networkx()  # inferred; grid3's declared cm equals its inferred cm
+    rebuilt = Substrate.from_networkx(
+        g, sub.joint_tpm(), node_labels=list(sub.node_labels)
+    )
+    assert np.array_equal(np.asarray(rebuilt.cm), sub.factored_tpm.infer_cm())
+    assert list(rebuilt.node_labels) == list(sub.node_labels)
+
+
+def test_from_networkx_size_mismatch_raises():
+    sub = pyphi.examples.grid3_substrate()  # 3 nodes
+    g = sub.to_networkx()
+    two_node_tpm = np.array([[0.0, 0.0], [0.0, 0.0], [1.0, 0.0], [1.0, 0.0]])
+    with pytest.raises(ValueError, match="node"):
+        Substrate.from_networkx(g, two_node_tpm)
+
+
+def test_from_networkx_under_specified_topology_rejected():
+    # A graph missing a real TPM edge must be rejected by B19's validator.
+    import networkx as nx
+
+    # node0'=node1 (real edge 1->0); supply a graph with NO edges.
+    tpm = np.array([[0.0, 0.0], [0.0, 0.0], [1.0, 0.0], [1.0, 0.0]])
+    empty = nx.DiGraph()
+    empty.add_nodes_from([0, 1])
+    with pytest.raises(Exception, match="under-specified"):
+        Substrate.from_networkx(empty, tpm)

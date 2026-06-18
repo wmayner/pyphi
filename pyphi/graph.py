@@ -59,3 +59,34 @@ def substrate_to_networkx(
         copy=False,
     )
     return g
+
+
+def substrate_from_networkx(
+    graph: networkx.DiGraph,
+    tpm,
+    *,
+    node_labels=None,
+) -> Substrate:
+    """Build a :class:`Substrate` from a DiGraph topology plus a TPM.
+
+    The graph supplies the connectivity (its adjacency, self-loops kept) and the
+    node order (``node_labels`` if given, else ``list(graph.nodes())``). ``tpm``
+    is required and must accept the forms ``Substrate(tpm=...)`` accepts, with a
+    unit order matching the node order. Construction runs the default-on B19
+    connectivity validator, so a topology that omits a real TPM edge is rejected.
+    """
+    from pyphi.substrate import Substrate
+
+    nodes = list(node_labels) if node_labels is not None else list(graph.nodes())
+    n = len(nodes)
+    # Let the canonical constructor determine the TPM's true unit count (robust
+    # across the accepted tpm shapes — state-by-node, multidimensional, and the
+    # explicit-alphabet joint form, whose last axis is the alphabet, not nodes).
+    n_units = Substrate(tpm).size
+    if n != n_units:
+        raise ValueError(
+            f"graph has {n} node(s) but the TPM implies {n_units} unit(s); "
+            "node count and TPM unit count must match"
+        )
+    cm = nx.to_numpy_array(graph, nodelist=nodes, dtype=int)
+    return Substrate(tpm, cm=cm, node_labels=[str(node) for node in nodes])

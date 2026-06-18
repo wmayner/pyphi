@@ -502,6 +502,20 @@ class Substrate(Displayable):
 
         return graph.substrate_to_networkx(self, connectivity)
 
+    @classmethod
+    def from_networkx(
+        cls, graph: Any, tpm: Any, *, node_labels: Any = None
+    ) -> Substrate:
+        """Build a :class:`Substrate` from a networkx DiGraph topology and a TPM.
+
+        The graph supplies connectivity and node order; ``tpm`` supplies the
+        dynamics (required). Runs the B19 connectivity validator, so a graph
+        that omits a real TPM-implied edge is rejected.
+        """
+        from pyphi import graph as graph_module
+
+        return graph_module.substrate_from_networkx(graph, tpm, node_labels=node_labels)
+
     def to_json(self) -> dict[str, Any]:
         """Return a JSON-serializable representation.
 
