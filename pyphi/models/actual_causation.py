@@ -20,6 +20,7 @@ from pyphi.display.numbers import format_value
 from pyphi.display.tables import capped_table
 from pyphi.models.explanation import Explanation
 from pyphi.models.explanation import Finding
+from pyphi.provenance import HasProvenance
 
 from . import cmp
 from . import fmt
@@ -625,7 +626,7 @@ class DirectedAccount(Account):
 
 # TODO(slipperyhank): Check if we do the same, i.e. take the bigger system, or
 # take the smaller?
-class AcSystemIrreducibilityAnalysis(Displayable, cmp.Orderable):
+class AcSystemIrreducibilityAnalysis(HasProvenance, Displayable, cmp.Orderable):
     """An analysis of transition-level irreducibility (|big_alpha|).
 
     Contains the |big_alpha| value of the |Transition|, the causal account, and

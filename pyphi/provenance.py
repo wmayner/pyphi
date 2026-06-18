@@ -70,6 +70,7 @@ class Provenance:
     platform: str
     wall_time: float | None = None
     seed: int | None = None
+    note: str | None = None
 
     @classmethod
     def capture(
@@ -119,6 +120,8 @@ class Provenance:
         ]
         if self.seed is not None:
             rows.append(("Seed", str(self.seed)))
+        if self.note is not None:
+            rows.append(("Note", self.note))
         return rows
 
     def to_json(self) -> dict[str, Any]:
@@ -133,11 +136,20 @@ class Provenance:
             "platform": self.platform,
             "wall_time": self.wall_time,
             "seed": self.seed,
+            "note": self.note,
         }
 
     @classmethod
     def from_json(cls, dct: dict[str, Any]) -> Provenance:
         return cls(**dct)
+
+
+def _set_provenance(result: Any, prov: Provenance) -> None:
+    """Assign ``prov`` to ``result.provenance``, working around frozen results."""
+    try:
+        result.provenance = prov
+    except (AttributeError, TypeError):
+        object.__setattr__(result, "provenance", prov)
 
 
 def stamp_wall_time(result: Any, elapsed: float) -> Any:
@@ -150,12 +162,32 @@ def stamp_wall_time(result: Any, elapsed: float) -> Any:
     prov = getattr(result, "provenance", None)
     if prov is None:
         return result
-    stamped = prov.with_wall_time(elapsed)
-    try:
-        result.provenance = stamped
-    except (AttributeError, TypeError):
-        object.__setattr__(result, "provenance", stamped)
+    _set_provenance(result, prov.with_wall_time(elapsed))
     return result
 
 
-__all__ = ["Provenance", "stamp_wall_time"]
+class HasProvenance:
+    """Mixin for result types that carry a :class:`Provenance` record.
+
+    Provides :meth:`with_provenance` so a user can record their own context
+    (a free-form ``note``, the ``seed`` they controlled) on a computed result.
+    """
+
+    provenance: Provenance | None
+
+    def with_provenance(self, **fields: Any) -> HasProvenance:
+        """Update this result's provenance record in place and return ``self``.
+
+        ``fields`` are merged into the existing record, e.g.
+        ``result.with_provenance(note="run 1", seed=42)``. Unknown field names
+        raise :class:`TypeError`. Provenance is metadata, not part of the
+        result's value, so the update never affects equality, diffs, or stored
+        goldens; updating in place (rather than copying the whole result) keeps
+        that explicit.
+        """
+        prov = self.provenance or Provenance.capture()
+        _set_provenance(self, replace(prov, **fields))
+        return self
+
+
+__all__ = ["HasProvenance", "Provenance", "stamp_wall_time"]

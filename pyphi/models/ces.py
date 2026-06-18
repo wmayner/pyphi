@@ -38,6 +38,7 @@ from pyphi.display import Row
 from pyphi.display import Section
 from pyphi.display.numbers import format_value
 from pyphi.display.tables import capped_table
+from pyphi.provenance import HasProvenance
 
 from . import cmp
 from .diff import Change
@@ -54,7 +55,7 @@ if TYPE_CHECKING:
 
 
 @dataclass(frozen=True, eq=False, repr=False)
-class CauseEffectStructure(Displayable, cmp.Orderable):
+class CauseEffectStructure(HasProvenance, Displayable, cmp.Orderable):
     """A Φ-structure: SIA + distinctions + relations.
 
     Access the system-level integrated information value via

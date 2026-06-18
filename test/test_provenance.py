@@ -140,3 +140,60 @@ def test_repr_verbosity_4_is_valid_and_5_is_rejected():
         pass  # must not raise
     with pytest.raises(ValueError), config.override(repr_verbosity=5):
         pass
+
+
+def test_with_provenance_updates_fields_and_returns_self_mutable():
+    # IIT 4.0 SIA is a (non-frozen) dataclass: update in place.
+    sia = _basic_iit4_sia()
+    returned = sia.with_provenance(note="experiment 1", seed=42)
+    assert returned is sia
+    assert sia.provenance.note == "experiment 1"
+    assert sia.provenance.seed == 42
+
+
+def test_with_provenance_on_frozen_result():
+    # CauseEffectStructure is a frozen dataclass: the frozen-replace path.
+    from pyphi import examples
+
+    ces = examples.basic_system().ces()
+    ces.with_provenance(note="frozen ok")
+    assert ces.provenance.note == "frozen ok"
+
+
+def test_with_provenance_preserves_other_fields():
+    sia = _basic_iit4_sia()
+    version = sia.provenance.pyphi_version
+    wall = sia.provenance.wall_time
+    sia.with_provenance(note="keep the rest")
+    assert sia.provenance.pyphi_version == version
+    assert sia.provenance.wall_time == wall
+
+
+def test_with_provenance_rejects_unknown_field():
+    import pytest
+
+    sia = _basic_iit4_sia()
+    with pytest.raises(TypeError):
+        sia.with_provenance(not_a_field=1)
+
+
+def test_note_renders_at_level_4_when_set():
+    from pyphi import config
+
+    sia = _basic_iit4_sia()
+    sia.with_provenance(note="visible note")
+    with config.override(repr_verbosity=4):
+        assert "visible note" in repr(sia)
+
+
+def test_note_round_trips_through_jsonify():
+    from pyphi.jsonify import dumps
+    from pyphi.jsonify import loads
+
+    prov = Provenance.capture(seed=1).with_wall_time(0.5)
+    from dataclasses import replace
+
+    prov = replace(prov, note="round-trip")
+    restored = loads(dumps(prov))
+    assert restored.note == "round-trip"
+    assert restored == prov

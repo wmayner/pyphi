@@ -18,6 +18,7 @@ from pyphi.display import Displayable
 from pyphi.display import Row
 from pyphi.display import Section
 from pyphi.display.numbers import format_value
+from pyphi.provenance import HasProvenance
 
 from . import cmp
 from .diff import ResultDiff
@@ -34,7 +35,7 @@ _SERIALIZING_AS_TIE_PEER: contextvars.ContextVar[bool] = contextvars.ContextVar(
 )
 
 
-class IIT3SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
+class IIT3SystemIrreducibilityAnalysis(HasProvenance, Displayable, cmp.OrderableByPhi):
     """An analysis of system irreducibility (|big_phi|).
 
     Contains the |big_phi| value of the |System| and the intermediate

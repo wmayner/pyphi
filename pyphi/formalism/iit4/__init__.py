@@ -60,6 +60,7 @@ from pyphi.models.state_specification import StateSpecification
 from pyphi.models.state_specification import SystemStateSpecification
 from pyphi.parallel import MapReduce
 from pyphi.partition import system_partitions
+from pyphi.provenance import HasProvenance
 from pyphi.provenance import Provenance
 from pyphi.relations import ConcreteRelations
 from pyphi.relations import Relations
@@ -151,7 +152,7 @@ def _intrinsic_differentiation_eq(a: dict | None, b: dict | None) -> bool:
 
 
 @dataclass(repr=False)
-class SystemIrreducibilityAnalysis(Displayable, cmp.OrderableByPhi):
+class SystemIrreducibilityAnalysis(HasProvenance, Displayable, cmp.OrderableByPhi):
     """System-level integrated information.
 
     ``phi`` is the non-negative integrated-information value defined by
