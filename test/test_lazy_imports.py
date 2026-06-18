@@ -40,3 +40,8 @@ def test_xarray_backend_not_loaded_at_pyphi_import():
     pyphi`` fail entirely in environments without it.
     """
     assert not _check_module_after_import("pyphi.core.tpm._factored_backends_xarray")
+
+
+def test_networkx_not_loaded_at_pyphi_import():
+    """``import pyphi`` must not eagerly load networkx (optional, visualize extra)."""
+    assert not _check_module_after_import("networkx")

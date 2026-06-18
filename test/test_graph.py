@@ -1,0 +1,62 @@
+import numpy as np
+import pytest
+
+import pyphi
+from pyphi.substrate import Substrate
+
+
+def _phantom_edge_substrate():
+    """2-node binary substrate whose declared cm over-specifies one edge.
+
+    node0' = node1 (copy)  -> real edge 1->0
+    node1' = 0 (constant)  -> no real edge into node1
+    Declared cm adds a phantom edge 0->1 (over-specification, legal under B19).
+    """
+    # state-by-node, LOLI order: (0,0),(1,0),(0,1),(1,1)
+    tpm = np.array([[0.0, 0.0], [0.0, 0.0], [1.0, 0.0], [1.0, 0.0]])
+    declared_cm = np.array([[0, 1], [1, 0]])
+    sub = Substrate(tpm, cm=declared_cm, node_labels=["A", "B"])
+    # Precondition: the inferred (real) connectivity is edge 1->0 only.
+    assert np.array_equal(sub.factored_tpm.infer_cm(), np.array([[0, 0], [1, 0]]))
+    return sub
+
+
+def test_to_networkx_inferred_edges_match_infer_cm():
+    sub = pyphi.examples.grid3_substrate()
+    g = sub.to_networkx()  # inferred default
+    inferred = sub.factored_tpm.infer_cm()
+    labels = list(sub.node_labels)
+    expected = {
+        (labels[a], labels[b])
+        for a in range(sub.size)
+        for b in range(sub.size)
+        if inferred[a, b]
+    }
+    assert set(g.edges()) == expected
+    assert set(g.nodes()) == set(labels)
+
+
+def test_to_networkx_inferred_vs_declared_drops_phantom_edge():
+    sub = _phantom_edge_substrate()
+    inferred = sub.to_networkx()
+    declared = sub.to_networkx(connectivity="declared")
+    assert set(inferred.edges()) == {("B", "A")}
+    assert set(declared.edges()) == {("A", "B"), ("B", "A")}
+
+
+def test_to_networkx_preserves_self_loops_and_kary_labels():
+    sub = pyphi.examples.gomez_p53_mdm2_substrate()  # k-ary (ternary P)
+    g = sub.to_networkx()
+    inferred = sub.factored_tpm.infer_cm()
+    labels = list(sub.node_labels)
+    assert g.number_of_nodes() == sub.size
+    assert set(g.nodes()) == set(labels)
+    # Self-loops preserved where the inferred matrix has a nonzero diagonal.
+    for i in range(sub.size):
+        assert g.has_edge(labels[i], labels[i]) == bool(inferred[i, i])
+
+
+def test_to_networkx_rejects_unknown_connectivity():
+    sub = pyphi.examples.basic_substrate()
+    with pytest.raises(ValueError, match="connectivity"):
+        sub.to_networkx(connectivity="bogus")

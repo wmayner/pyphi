@@ -491,6 +491,17 @@ class Substrate(Displayable):
     def __hash__(self) -> int:
         return hash((hash(self._factored_tpm), self._cm_hash))
 
+    def to_networkx(self, connectivity: str = "inferred") -> Any:
+        """Return a node-labeled :class:`networkx.DiGraph` of the substrate.
+
+        By default edges are the TPM-inferred causal connectivity; pass
+        ``connectivity="declared"`` to use the declared ``cm`` verbatim.
+        Requires the ``visualize`` extra (networkx).
+        """
+        from pyphi import graph
+
+        return graph.substrate_to_networkx(self, connectivity)
+
     def to_json(self) -> dict[str, Any]:
         """Return a JSON-serializable representation.
 
