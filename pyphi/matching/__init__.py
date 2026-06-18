@@ -1,6 +1,12 @@
 """The matching formalism: perception and matching (Mayner, Juel & Tononi)."""
 
 from .differentiation import Differentiation
+from .environment import mixture
+from .environment import noise
+from .environment import point
+from .environment import sample
+from .environment import segment
+from .environment import superpose
 from .matching import MatchingAnalysis
 from .matching import MatchingResult
 from .perception import Perception
@@ -19,5 +25,11 @@ __all__ = [
     "TriggeredTPM",
     "TriggeringCoefficient",
     "build_triggered_tpm",
+    "mixture",
+    "noise",
+    "point",
+    "sample",
+    "segment",
+    "superpose",
     "triggering_coefficient",
 ]

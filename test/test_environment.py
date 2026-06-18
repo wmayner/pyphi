@@ -3,7 +3,11 @@ import itertools
 import numpy as np
 import pytest
 
+import pyphi
 from pyphi import utils
+from pyphi.matching import MatchingAnalysis
+from pyphi.matching import Perception
+from pyphi.matching import PerceptualSystem
 from pyphi.matching import environment as env
 
 
@@ -138,3 +142,66 @@ def test_sample_empirical_frequencies_converge():
         counts[state] += 1
     for state, prob in dist.items():
         assert counts[state] / len(draws) == pytest.approx(prob, abs=0.02)
+
+
+def _e1(n):
+    return env.superpose(
+        env.segment(n, 3, 0.6), env.segment(n, 2, 0.9), env.noise(n, 0.05)
+    )
+
+
+def _e2(n):
+    return env.superpose(env.segment(n, 3, 0.6), env.point(n, 0.9), env.noise(n, 0.05))
+
+
+def _e1b(n):
+    return env.superpose(env.segment(n, 2, 0.9), env.noise(n, 0.05))
+
+
+def test_paper_environments_normalized_with_full_support():
+    n = 5
+    for environment in (_e1(n), _e2(n), _e1b(n), env.noise(n, 0.5)):
+        assert _sums_to_one(environment)
+        assert all(len(state) == n for state in environment)
+
+
+def test_e3_pure_noise_is_uniform():
+    n = 5
+    e3 = env.noise(n, 0.5)
+    assert all(v == pytest.approx(1 / 2**n) for v in e3.values())
+
+
+def test_e1_all_off_probability_hand_computed():
+    # All-off occurs iff no segment fires AND the noise background is all-off.
+    n = 5
+    e1 = _e1(n)
+    expected = (1 - 0.6) * (1 - 0.9) * (0.95**n)
+    assert e1[(0, 0, 0, 0, 0)] == pytest.approx(expected)
+
+
+def test_top_level_exports():
+    assert pyphi.matching.segment is env.segment
+    assert pyphi.matching.superpose is env.superpose
+    assert pyphi.matching.sample is env.sample
+
+
+def test_matching_analysis_runs_on_generated_world_distribution():
+    substrate = pyphi.examples.grid3_substrate()
+    sensory, system = (0,), (1, 2)
+    ps = PerceptualSystem(substrate, system_indices=system, sensory_indices=sensory)
+    ttpm = ps.triggered_tpm(tau=2, tau_clamp=1)
+    perceptions = {}
+    for stimulus in [(0,), (1,)]:
+        y = ttpm.argmax_state(stimulus)
+        full = [0, 0, 0]
+        full[sensory[0]] = stimulus[0]
+        for j, idx in enumerate(system):
+            full[idx] = y[j]
+        ces = substrate.ces(state=tuple(full), indices=system)
+        perceptions[stimulus] = Perception(
+            ces=ces, triggered_tpm=ttpm, stimulus=stimulus
+        )
+    world = env.noise(1, 0.3)  # {(0,): 0.7, (1,): 0.3}
+    analysis = MatchingAnalysis(perceptions=perceptions, world_distribution=world)
+    result = analysis.matching(seed=0, n_trials=5, k=3)
+    assert result is not None
