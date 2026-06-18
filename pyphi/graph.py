@@ -125,3 +125,45 @@ def to_adjacency(
     return pd.DataFrame(
         _edge_matrix(substrate, connectivity), index=labels, columns=labels
     )
+
+
+def is_strongly_connected(substrate: Substrate, connectivity: str = "inferred") -> bool:
+    """Whether the substrate graph is strongly connected (a complex must be)."""
+    return nx.is_strongly_connected(_index_digraph(substrate, connectivity))
+
+
+def strongly_connected_components(
+    substrate: Substrate, connectivity: str = "inferred"
+) -> list[tuple[int, ...]]:
+    """Strongly connected components as tuples of node indices."""
+    return [
+        tuple(sorted(component))
+        for component in nx.strongly_connected_components(
+            _index_digraph(substrate, connectivity)
+        )
+    ]
+
+
+def is_dag(substrate: Substrate, connectivity: str = "inferred") -> bool:
+    """Whether the substrate graph is acyclic."""
+    return nx.is_directed_acyclic_graph(_index_digraph(substrate, connectivity))
+
+
+def simple_cycles(
+    substrate: Substrate, connectivity: str = "inferred"
+) -> list[list[int]]:
+    """All simple cycles as lists of node indices."""
+    return [
+        list(cycle)
+        for cycle in nx.simple_cycles(_index_digraph(substrate, connectivity))
+    ]
+
+
+def in_degree(substrate: Substrate, connectivity: str = "inferred") -> dict[int, int]:
+    """In-degree per node index."""
+    return dict(_index_digraph(substrate, connectivity).in_degree())
+
+
+def out_degree(substrate: Substrate, connectivity: str = "inferred") -> dict[int, int]:
+    """Out-degree per node index."""
+    return dict(_index_digraph(substrate, connectivity).out_degree())

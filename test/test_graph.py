@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 import pyphi
+from pyphi import graph
 from pyphi.substrate import Substrate
 
 
@@ -122,3 +123,29 @@ def test_to_adjacency_labeled_dataframe():
     assert list(df.index) == labels
     assert list(df.columns) == labels
     assert np.array_equal(df.to_numpy(), sub.factored_tpm.infer_cm())
+
+
+def test_topology_helpers_on_cyclic_substrate():
+    import networkx as nx
+
+    sub = pyphi.examples.grid3_substrate()
+    g = sub.to_networkx()
+    assert graph.is_strongly_connected(sub) == nx.is_strongly_connected(
+        nx.convert_node_labels_to_integers(g)
+    )
+    sccs = graph.strongly_connected_components(sub)
+    assert all(isinstance(c, tuple) for c in sccs)
+    assert sum(len(c) for c in sccs) == sub.size
+    assert isinstance(graph.is_dag(sub), bool)
+    assert set(graph.in_degree(sub)) == set(range(sub.size))
+    assert set(graph.out_degree(sub)) == set(range(sub.size))
+
+
+def test_topology_helpers_dag_detection():
+    # node0'=node1 (edge 1->0), node1'=0 (constant): a single edge, acyclic.
+    tpm = np.array([[0.0, 0.0], [0.0, 0.0], [1.0, 0.0], [1.0, 0.0]])
+    sub = Substrate(tpm, cm=np.array([[0, 0], [1, 0]]), node_labels=["A", "B"])
+    assert graph.is_dag(sub) is True
+    assert graph.simple_cycles(sub) == []
+    assert graph.in_degree(sub) == {0: 1, 1: 0}
+    assert graph.out_degree(sub) == {0: 0, 1: 1}
