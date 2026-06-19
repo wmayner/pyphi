@@ -97,13 +97,14 @@ _VERSIONS_USING_SYSTEM_MEASURE = ("IIT_4_0",)
 _FORMALISM_UNAVAILABLE = object()
 
 
-def _compatible_measures(version: str) -> frozenset[str] | None | object:
-    """Return the active formalism's ``compatible_measures``.
+def _active_formalism(version: str) -> Any:
+    """Return the formalism instance for ``version``.
 
     Returns ``None`` if ``version`` is unregistered, or
     :data:`_FORMALISM_UNAVAILABLE` if the formalism registry can't be imported
-    yet. Imported lazily: ``pyphi.formalism`` depends on ``pyphi.conf``, so a
-    module-level import would be circular.
+    yet (the bootstrap window; see :data:`_FORMALISM_UNAVAILABLE`). Imported
+    lazily: ``pyphi.formalism`` depends on ``pyphi.conf``, so a module-level
+    import would be circular.
     """
     try:
         from pyphi.formalism.base import FORMALISM_REGISTRY
@@ -111,9 +112,17 @@ def _compatible_measures(version: str) -> frozenset[str] | None | object:
         return _FORMALISM_UNAVAILABLE
 
     try:
-        formalism = FORMALISM_REGISTRY[version]
+        return FORMALISM_REGISTRY[version]
     except KeyError:
         return None
+
+
+def _compatible_measures(version: str) -> frozenset[str] | None | object:
+    """Return the active formalism's ``compatible_measures`` (or the ``None`` /
+    :data:`_FORMALISM_UNAVAILABLE` sentinels from :func:`_active_formalism`)."""
+    formalism = _active_formalism(version)
+    if formalism is None or formalism is _FORMALISM_UNAVAILABLE:
+        return formalism
     return frozenset(formalism.compatible_measures)
 
 
@@ -156,4 +165,36 @@ def _measure_compatible_with_version(config: Any) -> str | None:
                 f"formalism.iit.version to one whose formalism defines "
                 f"{measure!r}."
             )
+    return None
+
+
+@register_constraint("system_partition_scheme_compatible_with_version")
+def _system_partition_scheme_compatible_with_version(config: Any) -> str | None:
+    """The system partition scheme must be one the active formalism accepts.
+
+    IIT 3.0 only supports ``DIRECTED_BIPARTITION`` /
+    ``DIRECTED_BIPARTITION_CUT_ONE`` system schemes (its ``sia_partitions``
+    raises otherwise); pairing it with any other scheme computes nothing usable.
+    Formalisms that accept any registered scheme declare
+    ``compatible_system_partition_schemes = None`` and are not constrained.
+    """
+    iit = config.formalism.iit
+    version = iit.version
+    formalism = _active_formalism(version)
+    if formalism is None or formalism is _FORMALISM_UNAVAILABLE:
+        # Bootstrap window, or unregistered version (the measure constraint
+        # reports an unregistered version).
+        return None
+    compatible = getattr(formalism, "compatible_system_partition_schemes", None)
+    if compatible is None:
+        return None  # unconstrained (e.g. IIT 4.0)
+    scheme = iit.system_partition_scheme
+    if scheme not in compatible:
+        return (
+            f"formalism.iit.system_partition_scheme={scheme!r} is not compatible "
+            f"with formalism.iit.version={version!r}. Compatible system partition "
+            f"schemes for this version: {sorted(compatible)}. Fix: set "
+            f"formalism.iit.system_partition_scheme to one of those, or change "
+            f"formalism.iit.version to one whose formalism accepts {scheme!r}."
+        )
     return None

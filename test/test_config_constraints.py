@@ -26,9 +26,18 @@ from pyphi.conf import ConfigurationError
 from pyphi.conf import config
 from pyphi.conf import presets
 from pyphi.formalism.base import FORMALISM_REGISTRY
+from pyphi.partition import system_partition_types
 
 # Versions whose formalism consults system_phi_measure (the 4.0 family).
 _FOUR_OH = ["IIT_4_0_2023", "IIT_4_0_2026"]
+
+# Each IIT version's canonical preset (sets a system_partition_scheme the
+# formalism accepts).
+_VERSION_PRESETS = {
+    "IIT_3_0": "iit3",
+    "IIT_4_0_2023": "iit4_2023",
+    "IIT_4_0_2026": "iit4_2026",
+}
 
 
 class TestPresetsPass:
@@ -146,11 +155,13 @@ class TestEnumerationConsistency:
 
     @pytest.mark.parametrize("version", ["IIT_3_0", "IIT_4_0_2023", "IIT_4_0_2026"])
     def test_every_compatible_mechanism_measure_passes(self, version: str) -> None:
+        # Base off the version's preset so the system_partition_scheme is one the
+        # formalism accepts (otherwise IIT 3.0 + the default 4.0 scheme is itself a
+        # rejected combination, unrelated to the measure under test).
+        preset = getattr(presets, _VERSION_PRESETS[version])
         compatible = FORMALISM_REGISTRY[version].compatible_measures
         for measure in compatible:
-            with config.override(
-                **{"iit.version": version, "iit.mechanism_phi_measure": measure}
-            ):
+            with config.override(**preset, **{"iit.mechanism_phi_measure": measure}):
                 assert config.formalism.iit.mechanism_phi_measure == measure
 
     @pytest.mark.parametrize(
@@ -206,3 +217,88 @@ class TestSystemSchemeSingleSourceOfTruth:
             pytest.raises(ValueError, match="system partition scheme"),
         ):
             examples.basic_system().sia()
+
+
+class TestSystemSchemeConstraint:
+    def test_iit3_with_set_partition_scheme_rejected(self) -> None:
+        with (
+            pytest.raises(ConfigurationError) as exc,
+            config.override(
+                **presets.iit3,
+                **{"iit.system_partition_scheme": "DIRECTED_SET_PARTITION"},
+            ),
+        ):
+            pass
+        message = str(exc.value)
+        assert "system_partition_scheme" in message
+        assert "version" in message
+        assert "DIRECTED_SET_PARTITION" in message
+        assert "Fix" in message
+
+    @pytest.mark.parametrize(
+        "scheme", ["DIRECTED_BIPARTITION", "DIRECTED_BIPARTITION_CUT_ONE"]
+    )
+    def test_iit3_with_valid_scheme_passes(self, scheme: str) -> None:
+        with config.override(**presets.iit3, **{"iit.system_partition_scheme": scheme}):
+            assert config.formalism.iit.system_partition_scheme == scheme
+
+    @pytest.mark.parametrize("version", _FOUR_OH)
+    def test_iit4_accepts_every_registered_scheme(self, version: str) -> None:
+        for scheme in system_partition_types.store:
+            with config.override(
+                **{"iit.version": version, "iit.system_partition_scheme": scheme}
+            ):
+                assert config.formalism.iit.system_partition_scheme == scheme
+
+    def test_validate_config_false_bypasses_scheme_constraint(self) -> None:
+        with config.override(
+            **presets.iit3,
+            validate_config=False,
+            **{"iit.system_partition_scheme": "DIRECTED_SET_PARTITION"},
+        ):
+            assert (
+                config.formalism.iit.system_partition_scheme == "DIRECTED_SET_PARTITION"
+            )
+
+    def test_rejected_scheme_override_restores_state(self) -> None:
+        with config.override(**presets.iit3):
+            before = config.formalism.iit.system_partition_scheme
+            with (
+                pytest.raises(ConfigurationError),
+                config.override(
+                    **{"iit.system_partition_scheme": "DIRECTED_SET_PARTITION"}
+                ),
+            ):
+                pass
+            assert config.formalism.iit.system_partition_scheme == before
+
+
+class TestSystemSchemeEnumerationConsistency:
+    """The eager constraint's accept/reject for IIT 3.0 matches whether a real
+    SIA computes vs raises, for every registered system scheme."""
+
+    def test_iit3_classification_matches_sia_behavior(self) -> None:
+        from pyphi import examples
+
+        for scheme in sorted(system_partition_types.store):
+            eager_rejected = False
+            try:
+                with config.override(
+                    **presets.iit3, **{"iit.system_partition_scheme": scheme}
+                ):
+                    pass
+            except ConfigurationError:
+                eager_rejected = True
+
+            sia_raised = False
+            try:
+                with config.override(
+                    **presets.iit3,
+                    validate_config=False,
+                    **{"iit.system_partition_scheme": scheme},
+                ):
+                    examples.basic_system().sia()
+            except ValueError:
+                sia_raised = True
+
+            assert eager_rejected == sia_raised, scheme
