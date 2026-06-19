@@ -296,11 +296,13 @@ def sia_partitions(
     """
     # TODO(4.0 consolidate 3.0 and 4.0 cuts)
     scheme = config.formalism.iit.system_partition_scheme
-    valid = ["DIRECTED_BIPARTITION", "DIRECTED_BIPARTITION_CUT_ONE"]
-    if scheme not in valid:
+    from pyphi.formalism.iit3.formalism import IIT3Formalism
+
+    valid = IIT3Formalism.compatible_system_partition_schemes
+    if valid is not None and scheme not in valid:
         raise ValueError(
             "IIT 3.0 calculations must use one of the following system "
-            f"partition schemes: {valid}; got {scheme}"
+            f"partition schemes: {sorted(valid)}; got {scheme}"
         )
     return system_partition_types[config.formalism.iit.system_partition_scheme](  # type: ignore[index]  # config.Option descriptor
         nodes, node_labels=node_labels

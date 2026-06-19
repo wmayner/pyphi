@@ -277,6 +277,7 @@ class IIT4_2023Formalism:
         {"GENERALIZED_INTRINSIC_DIFFERENCE", "INTRINSIC_INFORMATION"}
     )
     partition_scheme: ClassVar[str | None] = "JOINT_PARTITION_ALL"
+    compatible_system_partition_schemes: ClassVar[frozenset[str] | None] = None
 
     config: FormalismConfig = field(default_factory=_default_formalism_config)
 
@@ -438,6 +439,7 @@ class IIT4_2026Formalism:
         {"INTRINSIC_INFORMATION", "GENERALIZED_INTRINSIC_DIFFERENCE"}
     )
     partition_scheme: ClassVar[str | None] = "JOINT_PARTITION_ALL"
+    compatible_system_partition_schemes: ClassVar[frozenset[str] | None] = None
 
     config: FormalismConfig = field(default_factory=_default_formalism_config)
 

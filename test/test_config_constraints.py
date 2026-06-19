@@ -42,9 +42,12 @@ class TestPresetsPass:
 class TestIncompatibleCombosRejected:
     def test_iit3_with_intrinsic_information_mechanism(self) -> None:
         """The roadmap's headline example: IIT 3.0 + an IIT-4.0-only measure."""
-        with pytest.raises(ConfigurationError) as exc, config.override(
-            **presets.iit3,
-            **{"iit.mechanism_phi_measure": "INTRINSIC_INFORMATION"},
+        with (
+            pytest.raises(ConfigurationError) as exc,
+            config.override(
+                **presets.iit3,
+                **{"iit.mechanism_phi_measure": "INTRINSIC_INFORMATION"},
+            ),
         ):
             pass
         message = str(exc.value)
@@ -55,21 +58,24 @@ class TestIncompatibleCombosRejected:
         assert "Fix" in message
 
     def test_iit4_with_emd_mechanism(self) -> None:
-        with pytest.raises(
-            ConfigurationError, match="mechanism_phi_measure"
-        ), config.override(**{"iit.mechanism_phi_measure": "EMD"}):
+        with (
+            pytest.raises(ConfigurationError, match="mechanism_phi_measure"),
+            config.override(**{"iit.mechanism_phi_measure": "EMD"}),
+        ):
             pass
 
     def test_iit4_with_emd_system_measure(self) -> None:
-        with pytest.raises(
-            ConfigurationError, match="system_phi_measure"
-        ), config.override(**{"iit.system_phi_measure": "EMD"}):
+        with (
+            pytest.raises(ConfigurationError, match="system_phi_measure"),
+            config.override(**{"iit.system_phi_measure": "EMD"}),
+        ):
             pass
 
     def test_unregistered_version(self) -> None:
-        with pytest.raises(
-            ConfigurationError, match="not a registered"
-        ), config.override(**{"iit.version": "IIT_9_9_BOGUS"}):
+        with (
+            pytest.raises(ConfigurationError, match="not a registered"),
+            config.override(**{"iit.version": "IIT_9_9_BOGUS"}),
+        ):
             pass
 
 
@@ -78,9 +84,7 @@ class TestConfirmedValidCombos:
         """The cap is keyed on the measure (``applies_ii_cap``), not the version,
         so IIT_4_0_2023 + INTRINSIC_INFORMATION correctly applies the cap and is
         a valid (if redundant) configuration — it must NOT be rejected."""
-        with config.override(
-            **{"iit.system_phi_measure": "INTRINSIC_INFORMATION"}
-        ):
+        with config.override(**{"iit.system_phi_measure": "INTRINSIC_INFORMATION"}):
             pass
 
     def test_iit3_system_measure_left_at_default_is_allowed(self) -> None:
@@ -107,8 +111,9 @@ class TestOptOut:
 class TestNoStateCorruption:
     def test_rejected_override_restores_state(self) -> None:
         before = config.formalism.iit.mechanism_phi_measure
-        with pytest.raises(ConfigurationError), config.override(
-            **{"iit.mechanism_phi_measure": "EMD"}
+        with (
+            pytest.raises(ConfigurationError),
+            config.override(**{"iit.mechanism_phi_measure": "EMD"}),
         ):
             pass
         assert config.formalism.iit.mechanism_phi_measure == before
@@ -139,9 +144,7 @@ class TestEnumerationConsistency:
     """Every (version, mechanism measure) pair is classified consistently with
     the version's ``compatible_measures`` set."""
 
-    @pytest.mark.parametrize(
-        "version", ["IIT_3_0", "IIT_4_0_2023", "IIT_4_0_2026"]
-    )
+    @pytest.mark.parametrize("version", ["IIT_3_0", "IIT_4_0_2023", "IIT_4_0_2026"])
     def test_every_compatible_mechanism_measure_passes(self, version: str) -> None:
         compatible = FORMALISM_REGISTRY[version].compatible_measures
         for measure in compatible:
@@ -165,7 +168,41 @@ class TestEnumerationConsistency:
     ) -> None:
         compatible = FORMALISM_REGISTRY[version].compatible_measures
         assert incompatible not in compatible  # sanity: truly incompatible
-        with pytest.raises(ConfigurationError), config.override(
-            **{"iit.version": version, "iit.mechanism_phi_measure": incompatible}
+        with (
+            pytest.raises(ConfigurationError),
+            config.override(
+                **{"iit.version": version, "iit.mechanism_phi_measure": incompatible}
+            ),
         ):
             pass
+
+
+class TestSystemSchemeSingleSourceOfTruth:
+    def test_iit3_formalism_declares_restricted_scheme_set(self) -> None:
+        formalism = FORMALISM_REGISTRY["IIT_3_0"]
+        assert formalism.compatible_system_partition_schemes == frozenset(
+            {"DIRECTED_BIPARTITION", "DIRECTED_BIPARTITION_CUT_ONE"}
+        )
+
+    @pytest.mark.parametrize("version", _FOUR_OH)
+    def test_iit4_formalism_leaves_scheme_open(self, version: str) -> None:
+        assert FORMALISM_REGISTRY[version].compatible_system_partition_schemes is None
+
+    def test_reactive_raise_reads_the_attribute(self) -> None:
+        """sia_partitions() rejects an out-of-set scheme under IIT 3.0, using the
+        same set the formalism declares (validation off, so the eager constraint
+        is not what fires)."""
+        from pyphi import examples
+
+        out_of_set = "DIRECTED_SET_PARTITION"
+        compatible = FORMALISM_REGISTRY["IIT_3_0"].compatible_system_partition_schemes
+        assert compatible is not None and out_of_set not in compatible
+        with (
+            config.override(
+                **presets.iit3,
+                validate_config=False,
+                **{"iit.system_partition_scheme": out_of_set},
+            ),
+            pytest.raises(ValueError, match="system partition scheme"),
+        ):
+            examples.basic_system().sia()

@@ -53,6 +53,9 @@ class PhiFormalism(Protocol):
     - ``partition_scheme``: name (string) of the partition scheme
       registered in ``pyphi.partition.partition_types`` to use by default.
       May be ``None`` for approximation methods that bypass partitions.
+    - ``compatible_system_partition_schemes``: frozenset of system partition
+      scheme names this formalism accepts, or ``None`` if it accepts any
+      registered scheme.
     - ``config``: the :class:`FormalismConfig` snapshot the formalism
       operates against.
 
@@ -63,6 +66,7 @@ class PhiFormalism(Protocol):
     name: ClassVar[str]
     compatible_measures: ClassVar[frozenset[str]]
     partition_scheme: ClassVar[str | None]
+    compatible_system_partition_schemes: ClassVar[frozenset[str] | None]
 
     @property
     def config(self) -> FormalismConfig: ...
