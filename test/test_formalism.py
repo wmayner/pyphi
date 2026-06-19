@@ -29,6 +29,7 @@ class _DummyFormalism:
     name = "DUMMY"
     compatible_measures = frozenset({"EMD"})
     partition_scheme = "JOINT_BIPARTITION"
+    compatible_system_partition_schemes = None
 
     @property
     def config(self):

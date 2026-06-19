@@ -35,6 +35,23 @@ Registering more constraints is a matter of appending a
 :class:`ConfigConstraint` to :data:`CONFIG_CONSTRAINTS` (or using
 :func:`register_constraint`); add only ones backed by a confirmation
 experiment.
+
+Two previously-deferred constraints were resolved by confirmation experiment
+(seed 20260618):
+
+- **EMD precision** — no constraint. Under the POT backend (``ot.emd2``, an
+  exact network-simplex LP) the EMD noise floor is machine epsilon, and IIT 3.0
+  phi is stable across precision 6-13 with an identical MIP. The ``precision: 6``
+  pin in the IIT 3.0 preset is a goldens-calibration choice, not a correctness
+  requirement.
+- **System partition scheme x version** -- the
+  ``system_partition_scheme_compatible_with_version`` constraint. IIT 3.0 accepts
+  only ``DIRECTED_BIPARTITION`` / ``DIRECTED_BIPARTITION_CUT_ONE`` (its
+  ``sia_partitions`` raises for any other scheme, so the constraint mirrors that
+  boundary eagerly via the formalism's ``compatible_system_partition_schemes``).
+  IIT 4.0 accepts any registered scheme (a non-default scheme computes a
+  well-defined per-scheme phi), so it declares
+  ``compatible_system_partition_schemes = None`` and is left unconstrained.
 """
 
 from __future__ import annotations
