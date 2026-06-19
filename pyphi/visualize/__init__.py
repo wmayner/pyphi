@@ -57,6 +57,7 @@ def plot_ces(
     color_by=None,
     geometry=None,
     show=None,
+    degrees=None,
 ):
     """Plot a |CauseEffectStructure|.
 
@@ -77,6 +78,8 @@ def plot_ces(
             by relational role.
             ``"matrix"``: a distinctions-by-distinctions heatmap of shared
             relation phi, with self-relation strength on the diagonal.
+            ``"spectrum"``: a 2-D bar panel of relation count and sum of phi
+            per relation degree, summarizing the high-degree structure.
         theme (Theme): Visual theme.
         node_labels (NodeLabels): Labels for substrate units. Defaults to the
             labels carried by the distinctions.
@@ -107,6 +110,8 @@ def plot_ces(
             simplicial-complex view.
         show (tuple[str, ...]): Element classes the simplicial-complex view
             draws. Defaults to all of them.
+        degrees (tuple[int, ...]): Restrict the simplicial-complex view to
+            relation faces of these degrees. Defaults to all degrees present.
     """
     from pyphi.models.ces import PhiFold
 
@@ -137,6 +142,8 @@ def plot_ces(
             kwargs["geometry"] = geometry
         if show is not None:
             kwargs["show"] = show
+        if degrees is not None:
+            kwargs["degrees"] = degrees
         return render_simplicial_complex(
             projection, theme, fig=fig, layout=layout, **kwargs
         )
@@ -154,6 +161,10 @@ def plot_ces(
         from .render.matrix import render_matrix
 
         return render_matrix(projection, theme, fig=fig)
+    if view == "spectrum":
+        from .render.spectrum import render_relation_spectrum
+
+        return render_relation_spectrum(projection, theme, fig=fig)
     raise ValueError(f"unknown view {view!r}")
 
 
