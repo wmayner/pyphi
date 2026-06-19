@@ -134,17 +134,26 @@ published result sets (`min`, `sfn`, `sfnn`, `sfs`), every φ_s matching
 the committed value, and at depth 2 includes same-U^J meso
 reorganizations while excluding single-unit wrappings.
 
-**One residual sub-question (flagged, depth ≥ 2 only).** Marshall's
-answer settles the multi-unit reorganizations but does not fully nail
-the case of a competitor that is a *single* macro unit spanning all of
-U^J, built from a *different* meso organization than the candidate.
-Such a system is structurally a one-unit wrapping, so the
-implementation excludes it — the only choice consistent with the
-forcing case (a wrapping carries the inflated macro φ_s, so admitting
-any wrapping would again make macroing self-defeating). This never
-arises at the default `max_depth=1` and has no published anchor; it is
-pinned by test and queued for confirmation alongside the SP1
-hand-entered-TPM finding.
+**A once-residual sub-question, now settled: full-span units are
+excluded regardless of internal scaffolding.** One case is not spelled
+out word-for-word in Marshall's reply: a competitor that is a *single*
+macro unit spanning all of U^J but built from a *different* meso
+organization than the candidate. It is excluded. The reason is intrinsic
+to Eq 16's "maximally irreducible *within*": that comparison ranges over
+*finer* organizations of the same parts — does the candidate grain beat
+keeping the parts more divided? A single unit spanning all of U^J is not
+finer; it is the *same* coarseness as the candidate (one unit over the
+whole footprint), and its internal scaffolding (in one shot vs. through
+meso pieces) changes only how its own TPM is built, not its grain. Eq
+15's mapping-independence says the same thing from the other side: the
+candidate's validity does not depend on its own internal organization,
+so a full-span rival differing *only* in internal organization is not a
+distinct competitor. Admitting any full-span unit would also re-create
+the forcing case (it carries the inflated macro φ_s). So every single
+unit spanning the whole footprint is the candidate's own grain and
+stays out of f; only genuinely finer decompositions — more, smaller
+units — compete. This never arises at the default `max_depth=1` and is
+pinned by test.
 
 ### Micro units are axiomatically valid
 
@@ -388,11 +397,12 @@ an error.
   anchor only in SP3.
 - The f(U^J, W^J) subset semantics were **resolved by William
   Marshall** (see the Eq 16 section): the subset is on total
-  constituents and not strict, and v^J is excluded. One residual
-  sub-question remains queued — whether a single macro unit spanning all
-  of U^J, built from a different meso organization than the candidate,
-  competes (the implementation excludes it; depth ≥ 2 only, no published
-  anchor).
+  constituents and not strict, and v^J is excluded. The follow-on
+  question — whether a single macro unit spanning all of U^J but built
+  from a different meso organization competes — is also settled: it does
+  not, because a full-span unit is the candidate's own grain, not a
+  finer "within" competitor (see the Eq 16 section). Nothing on f
+  remains queued.
 - Question still queued for the authors: SP1's finding that the
   committed Example 1 macro TPM contains a hand-entry error (0.9212 vs
   the construction's 0.9216) and a rounded entry (0.006833 for

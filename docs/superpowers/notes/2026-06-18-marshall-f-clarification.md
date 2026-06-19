@@ -92,11 +92,15 @@ calls for, and excludes the wrappings.
 - Regression guard: `test/test_macro_search.py::TestWrappingExcludedFromF`
   pins the wrapping exclusion, the `min`-VALID-despite-higher-wrapping
   case, the admitting-the-wrapping control, and the depth-2 behavior.
-- Residual (flagged): whether a *single* macro unit spanning all of U^J
-  built from a different meso organization should compete. It is
-  structurally a wrapping, so the implementation excludes it (the only
-  choice consistent with the forcing case); depth >= 2 only, no
-  published anchor, queued alongside the SP1 hand-entered-TPM finding.
+- Follow-on question, settled: whether a *single* macro unit spanning
+  all of U^J built from a different meso organization should compete. It
+  does not. Eq 16's "maximally irreducible *within*" compares the
+  candidate grain against *finer* organizations of the same parts; a
+  full-span unit is the same coarseness as the candidate (one unit over
+  the whole footprint), not finer, and its internal scaffolding changes
+  only how its TPM is built, not its grain. So every full-span unit is
+  the candidate's own grain and is excluded — the implementation's
+  behavior, now also the settled reading. Nothing on f remains queued.
 
 ## Reproducing
 
