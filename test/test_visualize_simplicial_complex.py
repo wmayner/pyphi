@@ -167,9 +167,10 @@ def test_render_full_figure_structure(xor_projection):
 
     fig = _render(xor_projection)
     assert isinstance(fig, go.Figure)
-    # One trace per element class, in declaration order.
-    assert len(fig.data) == 6
-    purviews, mechanisms, ce_links, mp_links, two_faces, mesh = fig.data
+    # One trace per base element class, plus two for the degree->=4 star
+    # expansion (hub markers + spokes).
+    assert len(fig.data) == 8
+    purviews, mechanisms, ce_links, mp_links, two_faces, mesh, hub, spokes = fig.data
     assert len(purviews.x) == 8
     assert len(mechanisms.x) == 4
     # Cause-effect links: (cause, effect, None) per distinction.
@@ -181,8 +182,65 @@ def test_render_full_figure_structure(xor_projection):
     # 40 degree-3 faces as one mesh.
     assert isinstance(mesh, go.Mesh3d)
     assert len(mesh.i) == 40
+    # 54 degree->=4 faces as one hub trace + one spoke trace.
+    assert not isinstance(hub, go.Mesh3d)
+    assert hub.mode == "markers"
+    assert spokes.mode == "lines"
+    assert len(hub.x) == 54
     # Endpoint labels present.
     assert "abc" in purviews.text and "c" in purviews.text
+
+
+def test_higher_face_trace_hub_at_centroid():
+    from pyphi.visualize.render.simplicial_complex import _higher_face_trace
+    from pyphi.visualize.theme import DEFAULT_THEME
+
+    class _Face:
+        endpoints = (0, 1, 2, 3)
+        degree = 4
+        phi = 0.5
+        overlap = (0,)
+
+    endpoint_pos = {0: (0, 0, 0), 1: (2, 0, 0), 2: (0, 2, 0), 3: (2, 2, 0)}
+    hub_trace, spoke_trace = _higher_face_trace([_Face()], endpoint_pos, DEFAULT_THEME)
+    # Hub sits at the centroid of the four endpoints.
+    assert (hub_trace.x[0], hub_trace.y[0], hub_trace.z[0]) == (1.0, 1.0, 0.0)
+    # One hub marker per face.
+    assert len(hub_trace.x) == 1
+    # Four spokes, each (hub, endpoint, None) -> 3 coords.
+    assert len(spoke_trace.x) == 3 * 4
+
+
+def test_render_includes_higher_face_stars(xor_projection):
+    import plotly.graph_objects as go
+
+    fig = _render(xor_projection)
+    # Default-on higher_faces adds a hub trace + a spoke trace after the six
+    # base element traces.
+    assert len(fig.data) == 8
+    hub, spokes = fig.data[6], fig.data[7]
+    assert isinstance(hub, go.Scatter3d) and hub.mode == "markers"
+    assert isinstance(spokes, go.Scatter3d) and spokes.mode == "lines"
+    # 35 + 16 + 3 = 54 degree->=4 faces, one hub each.
+    assert len(hub.x) == 54
+
+
+def test_render_degrees_filter(xor_projection):
+    import plotly.graph_objects as go
+
+    # degrees=(2, 3) drops the stars (recovers the old look): 6 base traces.
+    low = _render(xor_projection, degrees=(2, 3))
+    assert len(low.data) == 6
+    # degrees=(4, 5, 6) keeps base elements + stars, no two/three faces.
+    high = _render(xor_projection, degrees=(4, 5, 6))
+    assert not any(isinstance(t, go.Mesh3d) for t in high.data)  # no degree-3 mesh
+    assert any(getattr(t, "mode", None) == "markers" for t in high.data)  # hubs
+
+
+def test_render_higher_faces_show_toggle(xor_projection):
+    fig = _render(xor_projection, show=("purviews", "two_faces", "three_faces"))
+    # No higher_faces element -> no star traces.
+    assert len(fig.data) == 3
 
 
 def test_render_show_subsetting(xor_projection):
@@ -221,7 +279,7 @@ def test_plot_ces_simplicial_complex_view():
     ces = examples.xor_system().ces()
     fig = plot_ces(ces, view="simplicial_complex")
     assert isinstance(fig, go.Figure)
-    assert len(fig.data) == 6
+    assert len(fig.data) == 8
     fig = plot_ces(
         ces,
         view="simplicial_complex",
@@ -232,7 +290,7 @@ def test_plot_ces_simplicial_complex_view():
     # The shared layout knob applies to this view too.
     for layout in ("barycentric", "sorted"):
         fig = plot_ces(ces, view="simplicial_complex", layout=layout)
-        assert len(fig.data) == 6
+        assert len(fig.data) == 8
 
 
 def test_highlight_phi_fold_smoke():
@@ -244,10 +302,12 @@ def test_highlight_phi_fold_smoke():
     ces = examples.xor_system().ces()
     fold = SimpleNamespace(distinctions=list(ces.distinctions)[:2])
     fig = highlight_phi_fold(ces, fold)
-    # Two passes: dimmed full structure + highlighted fold.
-    assert len(fig.data) == 12
+    # Two passes: dimmed full structure (eight traces, including the degree->=4
+    # star hub + spokes) + highlighted two-distinction fold (six traces, no
+    # degree->=4 faces).
+    assert len(fig.data) == 14
     # The overlay's endpoint coordinates are a subset of the background's.
-    bg, overlay = fig.data[0], fig.data[6]
+    bg, overlay = fig.data[0], fig.data[8]
     bg_points = set(zip(bg.x, bg.y, bg.z, strict=True))
     overlay_points = set(zip(overlay.x, overlay.y, overlay.z, strict=True))
     assert len(overlay.x) == 4
@@ -290,7 +350,7 @@ def test_highlight_phi_fold_dimmed_pass_has_no_colorbars():
     ces = examples.xor_system().ces()
     fold = SimpleNamespace(distinctions=list(ces.distinctions)[:2])
     fig = highlight_phi_fold(ces, fold)
-    background, overlay = fig.data[0], fig.data[6]
+    background, overlay = fig.data[0], fig.data[8]
     assert not background.marker.showscale
     assert overlay.marker.showscale
 

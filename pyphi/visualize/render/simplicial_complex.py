@@ -262,6 +262,7 @@ _ELEMENTS = (
     "mechanism_purview_links",
     "two_faces",
     "three_faces",
+    "higher_faces",
 )
 
 
@@ -401,6 +402,53 @@ def _three_face_trace(faces, endpoint_pos, theme, show_colorbar=True):
     )
 
 
+def _higher_face_trace(faces, endpoint_pos, theme, show_colorbar=True):
+    """Star expansion for degree >=4 faces: a hub at each face's centroid,
+    sized and colored by phi, with spokes to each endpoint. Two merged traces.
+    """
+    hubs = []
+    spokes = []
+    for face in faces:
+        coords = [endpoint_pos[i] for i in face.endpoints]
+        hub = (
+            sum(c[0] for c in coords) / len(coords),
+            sum(c[1] for c in coords) / len(coords),
+            sum(c[2] for c in coords) / len(coords),
+        )
+        hubs.append((hub, face))
+        spokes.extend((hub, c) for c in coords)
+    hub_trace = go.Scatter3d(
+        x=[h[0] for h, _ in hubs],
+        y=[h[1] for h, _ in hubs],
+        z=[h[2] for h, _ in hubs],
+        mode="markers",
+        marker={
+            "size": rescale([f.phi for _, f in hubs], *theme.node_size_range),
+            "color": [f.phi for _, f in hubs],
+            "colorscale": theme.face_colorscale,
+            "symbol": "diamond",
+            "showscale": show_colorbar,
+            "colorbar": {"title": ">=4-face φ", "x": 1.38, "len": 0.6},
+        },
+        hovertext=[
+            f"{f.degree}-face<br>overlap {f.overlap}<br>φ = {f.phi:.4g}" for _, f in hubs
+        ],
+        hoverinfo="text",
+        showlegend=False,
+    )
+    xs, ys, zs = _segments(spokes)
+    spoke_trace = go.Scatter3d(
+        x=xs,
+        y=ys,
+        z=zs,
+        mode="lines",
+        line={"color": theme.edge_color, "width": theme.edge_width},
+        hoverinfo="skip",
+        showlegend=False,
+    )
+    return [hub_trace, spoke_trace]
+
+
 def render_simplicial_complex(
     projection: CESProjection,
     theme: Theme,
@@ -410,6 +458,7 @@ def render_simplicial_complex(
     only_distinctions: set[int] | None = None,
     layout: str = "barycentric",
     show_colorbars: bool = True,
+    degrees: tuple[int, ...] | None = None,
 ) -> go.Figure:
     """Draw the cause-effect structure as a 3-D simplicial complex.
 
@@ -437,8 +486,11 @@ def render_simplicial_complex(
         for f in projection.faces
         if all(projection.endpoints[i].distinction_id in included for i in f.endpoints)
     ]
+    if degrees is not None:
+        faces = [f for f in faces if f.degree in degrees]
     two_faces = [f for f in faces if f.degree == 2]
     three_faces = [f for f in faces if f.degree == 3]
+    higher_faces = [f for f in faces if f.degree >= 4]
     traces = []
     if "purviews" in show:
         traces.append(_purview_trace(endpoints, endpoint_pos, theme, show_colorbars))
@@ -470,6 +522,10 @@ def render_simplicial_complex(
     if "three_faces" in show and three_faces:
         traces.append(
             _three_face_trace(three_faces, endpoint_pos, theme, show_colorbars)
+        )
+    if "higher_faces" in show and higher_faces:
+        traces.extend(
+            _higher_face_trace(higher_faces, endpoint_pos, theme, show_colorbars)
         )
     figure = go.Figure() if fig is None else fig
     figure.add_traces(traces)

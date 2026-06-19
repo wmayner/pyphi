@@ -64,7 +64,7 @@ class EndpointNode:
 
 @dataclass(frozen=True)
 class RelationFaceEdge:
-    """Plot-ready data for one degree-2 or degree-3 relation face."""
+    """Plot-ready data for one relation face (any degree)."""
 
     endpoints: tuple[int, ...]
     degree: int
@@ -202,7 +202,7 @@ def _endpoints(distinctions, node_labels) -> tuple[EndpointNode, ...]:
 def _faces(relations, mechanism_to_id) -> tuple[RelationFaceEdge, ...]:
     by_degree = relations.faces_by_degree
     faces = []
-    for degree in (2, 3):
+    for degree in sorted(by_degree):
         for face in by_degree.get(degree, ()):
             endpoint_ids = tuple(
                 sorted(

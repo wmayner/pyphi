@@ -152,9 +152,14 @@ def test_project_xor_faces(xor_projection):
         assert f.degree == len(f.endpoints)
         assert all(0 <= i < 8 for i in f.endpoints)
         assert f.phi >= 0
-    assert len(by_degree[2]) == 25
-    assert len(by_degree[3]) == 40
-    assert set(by_degree) == {2, 3}
+    # All face degrees are carried now (degree >= 4 used to be dropped).
+    assert {d: len(v) for d, v in sorted(by_degree.items())} == {
+        2: 25,
+        3: 40,
+        4: 35,
+        5: 16,
+        6: 3,
+    }
     # Known face: cause and effect of d2 (bc) related over unit a.
     assert any(
         f.endpoints == (4, 5) and f.phi == pytest.approx(1 / 6) and f.overlap == (0,)
