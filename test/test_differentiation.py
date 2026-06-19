@@ -147,3 +147,83 @@ def test_perceptual_differentiation_at_most_sum_of_richness(perceptions):
     d = Differentiation(tuple(perceptions.values()))
     total = sum(p.richness for p in perceptions.values())
     assert d.perceptual_differentiation <= total + 1e-12
+
+
+# --- Analytical differentiation (closed-form D) -----------------------------
+
+
+def test_analytical_matches_concrete_disjoint(perceptions):
+    # grid3's two structures are disjoint: the |T|>=2 cross terms vanish, so
+    # analytical D = sum of each structure's big_phi, same as concrete.
+    d = Differentiation(tuple(perceptions.values()))
+    assert d.analytical_differentiation == pytest.approx(d.differentiation)
+
+
+def test_analytical_single_structure_is_big_phi(perceptions):
+    p = perceptions[(0,)]
+    d = Differentiation((p,))
+    assert d.analytical_differentiation == pytest.approx(float(p.ces.big_phi))
+
+
+def test_analytical_duplicate_structure_is_idempotent(perceptions):
+    p = perceptions[(0,)]
+    once = Differentiation((p,))
+    twice = Differentiation((p, p))
+    assert twice.analytical_differentiation == pytest.approx(
+        once.analytical_differentiation
+    )
+
+
+def test_analytical_empty_is_zero():
+    assert Differentiation(()).analytical_differentiation == 0.0
+
+
+def _concrete_ces_subset(ces, n_keep):
+    """A CES over the first ``n_keep`` distinctions of ``ces``, concrete relations."""
+    from pyphi.models.ces import CauseEffectStructure
+    from pyphi.models.distinctions import ResolvedDistinctions
+    from pyphi.relations import relations as compute_relations
+
+    sub_distinctions = ResolvedDistinctions(list(ces.distinctions)[:n_keep])
+    sub_relations = compute_relations(sub_distinctions, "CONCRETE")
+    return CauseEffectStructure(
+        sia=ces.sia, distinctions=sub_distinctions, relations=sub_relations
+    )
+
+
+def test_analytical_partial_overlap_matches_concrete(perceptions):
+    # A structure and a strict sub-structure of it: the union is the full
+    # structure, so D = big_phi(full). The |T|=2 term restricts to the shared
+    # (sub) distinctions, exercising the common-distinction restriction + sign.
+    full = perceptions[(0,)]
+    sub_ces = _concrete_ces_subset(full.ces, len(full.ces.distinctions) - 1)
+    sub = Perception(ces=sub_ces, triggered_tpm=full.triggered_tpm, stimulus=(0,))
+    d = Differentiation((full, sub))
+    assert d.analytical_differentiation == pytest.approx(d.differentiation)
+    assert d.analytical_differentiation == pytest.approx(float(full.ces.big_phi))
+
+
+def test_analytical_runs_on_analytical_relations_where_concrete_cannot(perceptions):
+    from pyphi.models.ces import CauseEffectStructure
+    from pyphi.relations import AnalyticalRelations
+
+    concrete = perceptions[(0,)]
+    analytical_ces = CauseEffectStructure(
+        sia=concrete.ces.sia,
+        distinctions=concrete.ces.distinctions,
+        relations=AnalyticalRelations(concrete.ces.distinctions),
+    )
+    analytical_p = Perception(
+        ces=analytical_ces,
+        triggered_tpm=concrete.triggered_tpm,
+        stimulus=(0,),
+    )
+    d_analytical = Differentiation((analytical_p,))
+    d_concrete = Differentiation((concrete,))
+    # The analytical path runs and agrees with the concrete value...
+    assert d_analytical.analytical_differentiation == pytest.approx(
+        d_concrete.differentiation
+    )
+    # ...while the concrete path cannot walk non-iterable AnalyticalRelations.
+    with pytest.raises(TypeError):
+        _ = d_analytical.differentiation
