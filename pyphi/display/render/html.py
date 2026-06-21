@@ -46,7 +46,7 @@ table.pyphi-table th{text-align:left;color:#57606a;font-weight:600;
 table.pyphi-table td{text-align:left;padding:3px 12px 3px 0;
  border-bottom:1px solid #f0f2f4;
  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-.pyphi-scroll{max-height:18em;overflow:auto}
+.pyphi-scroll{max-height:26em;overflow:auto}
 .pyphi-more{color:#8b949e;font-size:12px;padding:3px 0}
 .pyphi-cause{color:#D55C00}
 .pyphi-effect{color:#009E73}
