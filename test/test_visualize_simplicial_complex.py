@@ -44,6 +44,108 @@ def test_endpoint_positions(xor_projection):
     assert len({pos[i] for i in cause_ids}) == 4
 
 
+def _fake_projection(distinction_ids):
+    """A minimal stand-in exposing ``endpoints[eid].distinction_id``."""
+    from types import SimpleNamespace
+
+    n = max(distinction_ids) + 1 if distinction_ids else 0
+    endpoints = [
+        SimpleNamespace(distinction_id=None) for _ in range(len(distinction_ids))
+    ]
+    for eid, did in distinction_ids.items():
+        endpoints[eid] = SimpleNamespace(distinction_id=did)
+    return SimpleNamespace(endpoints=endpoints), n
+
+
+def test_anchored_offsets_point_toward_mechanism():
+    import math
+
+    from pyphi.visualize.render.simplicial_complex import _anchored_offsets
+
+    # Two endpoints sharing a purview, mechanisms in distinct directions from
+    # the shell base: mech 0 at +x, mech 1 at +y.
+    proj, _ = _fake_projection({0: 0, 1: 1})
+    mech = {0: (1.0, 0.0, 0.0), 1: (0.0, 1.0, 0.0)}
+    offsets = _anchored_offsets([0, 1], (0.0, 0.0), mech, proj, 0.1)
+    # Each leans toward its own mechanism, at radius == jitter.
+    assert offsets[0] == pytest.approx((0.1, 0.0))
+    assert offsets[1] == pytest.approx((0.0, 0.1))
+    assert all(math.hypot(*o) == pytest.approx(0.1) for o in offsets.values())
+
+
+def test_anchored_offsets_collinear_tie_break():
+    import math
+
+    from pyphi.visualize.render.simplicial_complex import _anchored_offsets
+
+    # Both mechanisms lie in the same direction (+x) from the base: the
+    # directional pass would collide, so the tie-break spreads them apart.
+    proj, _ = _fake_projection({0: 0, 1: 1})
+    mech = {0: (1.0, 0.0, 0.0), 1: (2.0, 0.0, 0.0)}
+    offsets = _anchored_offsets([0, 1], (0.0, 0.0), mech, proj, 0.1)
+    assert offsets[0] != offsets[1]  # collision-free
+    assert all(math.hypot(*o) == pytest.approx(0.1) for o in offsets.values())
+
+
+def test_anchored_offsets_degenerate_falls_back():
+    import math
+
+    from pyphi.visualize.render.simplicial_complex import _anchored_offsets
+
+    # Mechanisms coincident with the base (zero direction) carry no angle and
+    # fall to the polygon spread; still distinct, still at radius jitter.
+    proj, _ = _fake_projection({0: 0, 1: 1})
+    mech = {0: (0.0, 0.0, 0.0), 1: (0.0, 0.0, 0.0)}
+    offsets = _anchored_offsets([0, 1], (0.0, 0.0), mech, proj, 0.1)
+    assert offsets[0] != offsets[1]
+    assert all(math.hypot(*o) == pytest.approx(0.1) for o in offsets.values())
+
+
+def test_anchored_endpoints_are_distinct_and_on_radius(xor_projection):
+    import math
+
+    from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
+    from pyphi.visualize.render.simplicial_complex import _endpoint_positions
+    from pyphi.visualize.render.simplicial_complex import _mechanism_positions
+    from pyphi.visualize.render.simplicial_complex import _shell_positions
+
+    geo = SimplicialComplexGeometry()  # mechanism_anchored is the default
+    mech = _mechanism_positions(xor_projection, geo)
+    pos = _endpoint_positions(xor_projection, geo, mechanism_pos=mech)
+    base = _shell_positions((e.purview for e in xor_projection.endpoints), geo)
+    # The four causes sharing purview (0,1,2) stay distinct and each sits at
+    # exactly purview_jitter from the (direction-shifted) shell point.
+    for eid in (0, 2, 4, 6):
+        bx, by, _bz = base[xor_projection.endpoints[eid].purview]
+        bx -= geo.direction_offset  # cause shift
+        assert math.hypot(pos[eid][0] - bx, pos[eid][1] - by) == pytest.approx(0.1)
+    assert len({pos[i] for i in (0, 2, 4, 6)}) == 4
+
+
+def test_polygon_placement_still_available(xor_projection):
+    from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
+    from pyphi.visualize.render.simplicial_complex import _endpoint_positions
+
+    anchored = _endpoint_positions(xor_projection, SimplicialComplexGeometry())
+    polygon = _endpoint_positions(
+        xor_projection, SimplicialComplexGeometry(endpoint_placement="polygon")
+    )
+    # Both keep all endpoints distinct where they share a purview, but place
+    # them differently.
+    assert len({polygon[i] for i in (0, 2, 4, 6)}) == 4
+    assert anchored != polygon
+
+
+def test_unknown_endpoint_placement_raises(xor_projection):
+    from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
+    from pyphi.visualize.render.simplicial_complex import _endpoint_positions
+
+    with pytest.raises(ValueError, match="endpoint_placement"):
+        _endpoint_positions(
+            xor_projection, SimplicialComplexGeometry(endpoint_placement="bogus")
+        )
+
+
 def test_mechanism_positions(xor_projection):
     from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
     from pyphi.visualize.render.simplicial_complex import _mechanism_positions
@@ -165,7 +267,9 @@ def _render(projection, **kwargs):
 def test_render_full_figure_structure(xor_projection):
     import plotly.graph_objects as go
 
-    fig = _render(xor_projection)
+    # star_min_degree=4 exercises every geometric form: degree-2 lines,
+    # degree-3 mesh, and the degree->=4 star expansion.
+    fig = _render(xor_projection, star_min_degree=4)
     assert isinstance(fig, go.Figure)
     # One trace per base element class, plus two for the degree->=4 star
     # expansion (hub markers + spokes).
@@ -191,32 +295,92 @@ def test_render_full_figure_structure(xor_projection):
     assert "abc" in purviews.text and "c" in purviews.text
 
 
+class _Face:
+    endpoints = (0, 1, 2, 3)
+    degree = 4
+    phi = 0.5
+    overlap = (0,)
+
+
+_SQUARE_POS = {0: (0, 0, 0), 1: (2, 0, 0), 2: (0, 2, 0), 3: (2, 2, 0)}
+
+
 def test_higher_face_trace_hub_at_centroid():
+    import dataclasses
+
     from pyphi.visualize.render.simplicial_complex import _higher_face_trace
     from pyphi.visualize.theme import DEFAULT_THEME
 
-    class _Face:
-        endpoints = (0, 1, 2, 3)
-        degree = 4
-        phi = 0.5
-        overlap = (0,)
-
-    endpoint_pos = {0: (0, 0, 0), 1: (2, 0, 0), 2: (0, 2, 0), 3: (2, 2, 0)}
-    hub_trace, spoke_trace = _higher_face_trace([_Face()], endpoint_pos, DEFAULT_THEME)
+    # Straight spokes so the per-spoke coordinate count is exact.
+    theme = dataclasses.replace(DEFAULT_THEME, spoke_curvature=0.0)
+    hub_trace, spoke_trace = _higher_face_trace([_Face()], _SQUARE_POS, theme)
     # Hub sits at the centroid of the four endpoints.
     assert (hub_trace.x[0], hub_trace.y[0], hub_trace.z[0]) == (1.0, 1.0, 0.0)
     # One hub marker per face.
     assert len(hub_trace.x) == 1
-    # Four spokes, each (hub, endpoint, None) -> 3 coords.
+    # Four straight spokes, each (hub, endpoint, None) -> 3 coords.
     assert len(spoke_trace.x) == 3 * 4
+
+
+def test_higher_face_spokes_curve_when_curvature_set():
+    import dataclasses
+
+    from pyphi.visualize.render.simplicial_complex import _SPOKE_ARC_SEGMENTS
+    from pyphi.visualize.render.simplicial_complex import _higher_face_trace
+    from pyphi.visualize.theme import DEFAULT_THEME
+
+    theme = dataclasses.replace(DEFAULT_THEME, spoke_curvature=0.3)
+    _, spoke_trace = _higher_face_trace([_Face()], _SQUARE_POS, theme)
+    # Each spoke is now a sampled arc: (segments + 1) points + a None gap.
+    assert len(spoke_trace.x) == 4 * (_SPOKE_ARC_SEGMENTS + 1 + 1)
+    # The arc bows off the straight hub->endpoint chord: the midpoint of the
+    # first spoke is not the chord midpoint. Hub is (1, 1, 0), endpoint 0 is
+    # (0, 0, 0); the straight midpoint would be (0.5, 0.5, 0.0).
+    mid = _SPOKE_ARC_SEGMENTS // 2
+    assert (spoke_trace.x[mid], spoke_trace.y[mid], spoke_trace.z[mid]) != (
+        0.5,
+        0.5,
+        0.0,
+    )
+
+
+def test_face_hover_names_overlap_and_relata(xor_projection):
+    from pyphi.visualize.render.simplicial_complex import _face_hover_fn
+
+    hover = _face_hover_fn(xor_projection)
+    # The known degree-2 face: cause/effect of bc related over unit a.
+    face = next(
+        f for f in xor_projection.faces if f.degree == 2 and f.endpoints == (4, 5)
+    )
+    text = hover(face)
+    # Degree and phi.
+    assert "2-face" in text and "φ =" in text
+    # Overlap is labelled (unit a), not the raw index tuple.
+    assert "overlap: a" in text
+    assert "(0,)" not in text
+    # Each relatum names its distinction's mechanism, direction, and the
+    # state-cased purview label (read off the endpoints).
+    assert "relata" in text
+    for i in face.endpoints:
+        ep = xor_projection.endpoints[i]
+        assert ep.label in text
+        assert ep.direction in text
+
+
+def test_render_hub_hover_is_rich(xor_projection):
+    fig = _render(xor_projection)
+    hub = next(t for t in fig.data if getattr(t, "mode", None) == "markers")
+    # Every hub carries the rich multi-line hover (overlap + relata), not the
+    # bare fallback.
+    assert all("relata" in h and "overlap:" in h for h in hub.hovertext)
 
 
 def test_render_includes_higher_face_stars(xor_projection):
     import plotly.graph_objects as go
 
-    fig = _render(xor_projection)
-    # Default-on higher_faces adds a hub trace + a spoke trace after the six
-    # base element traces.
+    # star_min_degree=4 keeps degree-2 lines and degree-3 mesh, so the stars
+    # cover only degree->=4 faces and land after the six base element traces.
+    fig = _render(xor_projection, star_min_degree=4)
     assert len(fig.data) == 8
     hub, spokes = fig.data[6], fig.data[7]
     assert isinstance(hub, go.Scatter3d) and hub.mode == "markers"
@@ -228,33 +392,82 @@ def test_render_includes_higher_face_stars(xor_projection):
 def test_render_degrees_filter(xor_projection):
     import plotly.graph_objects as go
 
-    # degrees=(2, 3) drops the stars (recovers the old look): 6 base traces.
-    low = _render(xor_projection, degrees=(2, 3))
+    # With star_min_degree=4, degrees=(2, 3) draws the geometric forms only
+    # (line + mesh): 6 base traces, no stars.
+    low = _render(xor_projection, degrees=(2, 3), star_min_degree=4)
     assert len(low.data) == 6
     # degrees=(4, 5, 6) keeps base elements + stars, no two/three faces.
-    high = _render(xor_projection, degrees=(4, 5, 6))
+    high = _render(xor_projection, degrees=(4, 5, 6), star_min_degree=4)
     assert not any(isinstance(t, go.Mesh3d) for t in high.data)  # no degree-3 mesh
     assert any(getattr(t, "mode", None) == "markers" for t in high.data)  # hubs
 
 
 def test_render_higher_faces_show_toggle(xor_projection):
-    fig = _render(xor_projection, show=("purviews", "two_faces", "three_faces"))
-    # No higher_faces element -> no star traces.
+    # star_min_degree=4 so two_faces/three_faces populate; omitting
+    # higher_faces from show then drops the star traces.
+    fig = _render(
+        xor_projection,
+        show=("purviews", "two_faces", "three_faces"),
+        star_min_degree=4,
+    )
     assert len(fig.data) == 3
+
+
+def test_star_min_degree_two_draws_every_face_as_a_star(xor_projection):
+    import plotly.graph_objects as go
+
+    fig = _render(xor_projection, star_min_degree=2)
+    # No geometric forms: no degree-2 line trace, no degree-3 mesh.
+    assert not any(isinstance(t, go.Mesh3d) for t in fig.data)
+    # Four base traces + the star hub + spokes.
+    assert len(fig.data) == 6
+    hub = next(t for t in fig.data if getattr(t, "mode", None) == "markers")
+    # Every face (25 + 40 + 35 + 16 + 3 = 119) is now a hub.
+    assert len(hub.x) == 119
+
+
+def test_star_min_degree_three_keeps_lines_stars_the_rest(xor_projection):
+    import plotly.graph_objects as go
+
+    fig = _render(xor_projection, star_min_degree=3)
+    # Degree-2 lines remain; degree-3 is no longer a mesh.
+    assert not any(isinstance(t, go.Mesh3d) for t in fig.data)
+    hub = next(t for t in fig.data if getattr(t, "mode", None) == "markers")
+    # 40 + 35 + 16 + 3 = 94 faces of degree >= 3 are hubs.
+    assert len(hub.x) == 94
+
+
+def test_star_min_degree_out_of_range_raises(xor_projection):
+    with pytest.raises(ValueError, match="star_min_degree must be 2, 3, or 4"):
+        _render(xor_projection, star_min_degree=5)
+    with pytest.raises(ValueError, match="star_min_degree must be 2, 3, or 4"):
+        _render(xor_projection, star_min_degree=1)
+
+
+def test_plot_ces_star_min_degree_plumbed():
+    import plotly.graph_objects as go
+
+    from pyphi import examples
+    from pyphi.visualize import plot_ces
+
+    ces = examples.xor_system().ces()
+    fig = plot_ces(ces, view="simplicial_complex", star_min_degree=2)
+    assert not any(isinstance(t, go.Mesh3d) for t in fig.data)
 
 
 def test_render_show_subsetting(xor_projection):
     fig = _render(xor_projection, show=("purviews",))
     assert len(fig.data) == 1
-    fig = _render(xor_projection, show=("purviews", "three_faces"))
+    fig = _render(xor_projection, show=("purviews", "three_faces"), star_min_degree=4)
     assert len(fig.data) == 2
     with pytest.raises(ValueError, match="show"):
         _render(xor_projection, show=("purviews", "bogus"))
 
 
 def test_render_only_distinctions_filters_without_moving(xor_projection):
-    full = _render(xor_projection)
-    sub = _render(xor_projection, only_distinctions={0, 3})
+    # star_min_degree=4 so the degree-3 mesh exists to compare.
+    full = _render(xor_projection, star_min_degree=4)
+    sub = _render(xor_projection, only_distinctions={0, 3}, star_min_degree=4)
     full_points = set(zip(full.data[0].x, full.data[0].y, full.data[0].z, strict=True))
     sub_points = set(zip(sub.data[0].x, sub.data[0].y, sub.data[0].z, strict=True))
     # 2 distinctions -> 4 endpoints, at unchanged coordinates.
@@ -277,9 +490,10 @@ def test_plot_ces_simplicial_complex_view():
     from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
 
     ces = examples.xor_system().ces()
+    # Default is all-stars: four base traces + the star hub + spokes.
     fig = plot_ces(ces, view="simplicial_complex")
     assert isinstance(fig, go.Figure)
-    assert len(fig.data) == 8
+    assert len(fig.data) == 6
     fig = plot_ces(
         ces,
         view="simplicial_complex",
@@ -290,7 +504,7 @@ def test_plot_ces_simplicial_complex_view():
     # The shared layout knob applies to this view too.
     for layout in ("barycentric", "sorted"):
         fig = plot_ces(ces, view="simplicial_complex", layout=layout)
-        assert len(fig.data) == 8
+        assert len(fig.data) == 6
 
 
 def test_highlight_phi_fold_smoke():
@@ -302,12 +516,11 @@ def test_highlight_phi_fold_smoke():
     ces = examples.xor_system().ces()
     fold = SimpleNamespace(distinctions=list(ces.distinctions)[:2])
     fig = highlight_phi_fold(ces, fold)
-    # Two passes: dimmed full structure (eight traces, including the degree->=4
-    # star hub + spokes) + highlighted two-distinction fold (six traces, no
-    # degree->=4 faces).
-    assert len(fig.data) == 14
+    # Two all-stars passes of six traces each: dimmed full structure (indices
+    # 0-5) + highlighted two-distinction fold (indices 6-11).
+    assert len(fig.data) == 12
     # The overlay's endpoint coordinates are a subset of the background's.
-    bg, overlay = fig.data[0], fig.data[8]
+    bg, overlay = fig.data[0], fig.data[6]
     bg_points = set(zip(bg.x, bg.y, bg.z, strict=True))
     overlay_points = set(zip(overlay.x, overlay.y, overlay.z, strict=True))
     assert len(overlay.x) == 4
@@ -317,24 +530,26 @@ def test_highlight_phi_fold_smoke():
 def test_render_colorbars(xor_projection):
     import plotly.graph_objects as go
 
-    fig = _render(xor_projection)
+    # star_min_degree=4 gives the full line + mesh + hub layout.
+    fig = _render(xor_projection, star_min_degree=4)
     purviews = fig.data[0]
     mesh = next(t for t in fig.data if isinstance(t, go.Mesh3d))
     two_faces = fig.data[4]
-    # Each colored trace gets its own bar with its own scale: relation phi
-    # falls off steeply with degree, so a shared range would flatten the
-    # mesh's variation.
+    hub = fig.data[6]
+    # Two colorbars total: distinction phi on the purviews, and one shared
+    # "relation phi" bar drawn by the first relation class (the 2-faces). The
+    # 3-face mesh and the >=4-face hubs share that scale but draw no bar.
     assert purviews.marker.showscale
     assert two_faces.line.showscale
-    assert mesh.showscale
-    titles = {
-        purviews.marker.colorbar.title.text,
-        two_faces.line.colorbar.title.text,
-        mesh.colorbar.title.text,
-    }
-    assert len(titles) == 3
+    assert not mesh.showscale
+    assert not hub.marker.showscale
+    assert purviews.marker.colorbar.title.text == "φ"
+    assert two_faces.line.colorbar.title.text == "relation φ"
+    # The relation classes share one color range (absolute phi across degrees).
+    assert two_faces.line.cmin == mesh.cmin == hub.marker.cmin
+    assert two_faces.line.cmax == mesh.cmax == hub.marker.cmax
     # Opt out.
-    fig = _render(xor_projection, show_colorbars=False)
+    fig = _render(xor_projection, show_colorbars=False, star_min_degree=4)
     assert not fig.data[0].marker.showscale
     assert not fig.data[4].line.showscale
     mesh = next(t for t in fig.data if isinstance(t, go.Mesh3d))
@@ -350,7 +565,7 @@ def test_highlight_phi_fold_dimmed_pass_has_no_colorbars():
     ces = examples.xor_system().ces()
     fold = SimpleNamespace(distinctions=list(ces.distinctions)[:2])
     fig = highlight_phi_fold(ces, fold)
-    background, overlay = fig.data[0], fig.data[8]
+    background, overlay = fig.data[0], fig.data[6]
     assert not background.marker.showscale
     assert overlay.marker.showscale
 

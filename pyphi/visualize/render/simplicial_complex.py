@@ -29,6 +29,15 @@ class SimplicialComplexGeometry:
     z_spacing: float = 0.4
     direction_offset: float = 0.3
     purview_jitter: float = 0.1
+    endpoint_placement: str = "mechanism_anchored"
+
+
+# Endpoints sharing a purview are nudged toward their mechanism; vectors shorter
+# than this (mechanism coincident with the shell point in xy) carry no direction
+# and fall to the polygon tie-break, as do any that land on the same quantized
+# angle (collinear mechanisms).
+_ANCHOR_EPS = 1e-12
+_ANCHOR_ANGLE_GRID = 1e-6
 
 
 def _polygon_points(n: int, radius: float, z: float) -> list[Point]:
@@ -171,19 +180,64 @@ def _reorder_rings(
     return rings
 
 
+def _anchored_offsets(ids, base_xy, mechanism_pos, projection, jitter):
+    """xy offsets that nudge each endpoint toward its mechanism.
+
+    Each endpoint moves ``jitter`` from the shell point in the direction of its
+    distinction's mechanism. Endpoints whose mechanism direction is degenerate
+    (mechanism coincident with the shell point in xy) or collinear with another
+    member's (same quantized angle) carry no usable direction; those residual
+    subgroups fall back to the even polygon spread, so the result is always
+    collision-free and deterministic.
+    """
+    bx, by = base_xy
+    direction: dict[int, float | None] = {}
+    for eid in ids:
+        mx, my, _ = mechanism_pos[projection.endpoints[eid].distinction_id]
+        dx, dy = mx - bx, my - by
+        norm = math.hypot(dx, dy)
+        direction[eid] = math.atan2(dy, dx) if norm > _ANCHOR_EPS else None
+    # Group by quantized angle; a unique angle keeps its mechanism direction,
+    # while ties (and the directionless degenerate ones) are spread evenly.
+    by_angle: dict[float | None, list[int]] = defaultdict(list)
+    for eid in sorted(ids):
+        angle = direction[eid]
+        key = None if angle is None else round(angle / _ANCHOR_ANGLE_GRID)
+        by_angle[key].append(eid)
+    offsets: dict[int, tuple[float, float]] = {}
+    for key, group in by_angle.items():
+        angle = direction[group[0]] if key is not None else None
+        if angle is not None and len(group) == 1:
+            offsets[group[0]] = (jitter * math.cos(angle), jitter * math.sin(angle))
+        else:
+            for point, eid in zip(
+                _polygon_points(len(group), jitter, 0.0), group, strict=True
+            ):
+                offsets[eid] = (point[0], point[1])
+    return offsets
+
+
 def _endpoint_positions(
     projection: CESProjection,
     geometry: SimplicialComplexGeometry,
     base: dict[tuple[int, ...], Point] | None = None,
+    mechanism_pos: dict[int, Point] | None = None,
 ) -> dict[int, Point]:
     """Position each endpoint near its purview's shell point.
 
-    Cause endpoints shift -x and effect endpoints +x by
-    ``direction_offset``; endpoints sharing a purview and direction spread
-    on a small polygon of radius ``purview_jitter``.
+    Cause endpoints shift -x and effect endpoints +x by ``direction_offset``.
+    Endpoints sharing a purview and direction are separated by
+    ``endpoint_placement``: ``"mechanism_anchored"`` nudges each toward its
+    distinction's mechanism (so the dot sits on its mechanism-purview link),
+    while ``"polygon"`` spreads them on a small regular polygon of radius
+    ``purview_jitter``. Both keep the shell point's z.
     """
+    if geometry.endpoint_placement not in ("mechanism_anchored", "polygon"):
+        raise ValueError(f"unknown endpoint_placement {geometry.endpoint_placement!r}")
     if base is None:
         base = _shell_positions((e.purview for e in projection.endpoints), geometry)
+    if mechanism_pos is None and geometry.endpoint_placement == "mechanism_anchored":
+        mechanism_pos = _mechanism_positions(projection, geometry)
     groups: dict[tuple[tuple[int, ...], str], list[int]] = defaultdict(list)
     for e in projection.endpoints:
         groups[(e.purview, e.direction)].append(e.id)
@@ -196,9 +250,15 @@ def _endpoint_positions(
             else -geometry.direction_offset
         )
         jitter = geometry.purview_jitter if len(ids) > 1 else 0.0
-        offsets = _polygon_points(len(ids), jitter, 0.0)
-        for eid, (ox, oy, _) in zip(sorted(ids), offsets, strict=True):
-            positions[eid] = (bx + ox, by + oy, bz)
+        if geometry.endpoint_placement == "mechanism_anchored" and jitter:
+            offsets = _anchored_offsets(ids, (bx, by), mechanism_pos, projection, jitter)
+            for eid in ids:
+                ox, oy = offsets[eid]
+                positions[eid] = (bx + ox, by + oy, bz)
+        else:
+            polygon = _polygon_points(len(ids), jitter, 0.0)
+            for eid, (ox, oy, _) in zip(sorted(ids), polygon, strict=True):
+                positions[eid] = (bx + ox, by + oy, bz)
     return positions
 
 
@@ -246,11 +306,14 @@ def _positions_3d(
             size: sorted(members, key=lambda s: (targets.get(s, 0.0), s))
             for size, members in mechanism_rings.items()
         }
-    endpoint_pos = _endpoint_positions(
-        projection, geometry, base=_positions_from_rings(purview_rings, geometry)
-    )
     mechanism_pos = _mechanism_positions(
         projection, geometry, base=_positions_from_rings(mechanism_rings, geometry)
+    )
+    endpoint_pos = _endpoint_positions(
+        projection,
+        geometry,
+        base=_positions_from_rings(purview_rings, geometry),
+        mechanism_pos=mechanism_pos,
     )
     return endpoint_pos, mechanism_pos
 
@@ -282,6 +345,54 @@ def _segments(
         ys.append(None)
         zs.append(None)
     return xs, ys, zs
+
+
+# Points sampled along each curved spoke; higher is smoother but heavier.
+_SPOKE_ARC_SEGMENTS = 8
+
+
+def _unit_perp(d: Point) -> Point:
+    """A unit vector perpendicular to ``d`` (deterministic; zero if ``d`` is)."""
+    dx, dy, dz = d
+    ref = (0.0, 1.0, 0.0) if abs(dx) < 1e-9 and abs(dy) < 1e-9 else (0.0, 0.0, 1.0)
+    px = dy * ref[2] - dz * ref[1]
+    py = dz * ref[0] - dx * ref[2]
+    pz = dx * ref[1] - dy * ref[0]
+    norm = math.sqrt(px * px + py * py + pz * pz)
+    if norm < 1e-12:
+        return (0.0, 0.0, 0.0)
+    return (px / norm, py / norm, pz / norm)
+
+
+def _arc(p0: Point, p1: Point, curvature: float) -> tuple[Point, ...]:
+    """Sample a quadratic-Bezier arc from ``p0`` to ``p1``, bowed perpendicular
+    to the chord by ``curvature`` times its length. Straight (the two
+    endpoints) when ``curvature`` is zero.
+    """
+    if curvature <= 0.0:
+        return (p0, p1)
+    d = (p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2])
+    length = math.sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2])
+    perp = _unit_perp(d)
+    off = curvature * length
+    ctrl = (
+        (p0[0] + p1[0]) / 2 + perp[0] * off,
+        (p0[1] + p1[1]) / 2 + perp[1] * off,
+        (p0[2] + p1[2]) / 2 + perp[2] * off,
+    )
+    points = []
+    for step in range(_SPOKE_ARC_SEGMENTS + 1):
+        t = step / _SPOKE_ARC_SEGMENTS
+        u = 1.0 - t
+        a, b, c = u * u, 2 * u * t, t * t
+        points.append(
+            (
+                a * p0[0] + b * ctrl[0] + c * p1[0],
+                a * p0[1] + b * ctrl[1] + c * p1[1],
+                a * p0[2] + b * ctrl[2] + c * p1[2],
+            )
+        )
+    return tuple(points)
 
 
 def _purview_trace(endpoints, pos, theme, show_colorbar=True):
@@ -353,15 +464,65 @@ def _link_trace(paths, theme):
     )
 
 
-def _two_face_trace(faces, endpoint_pos, theme, show_colorbar=True):
+_RELATION_COLORBAR = {"title": "relation φ", "x": 1.14, "len": 0.6}
+
+
+def _relation_colorscale(theme):
+    """A fixed-hue scale whose opacity (not lightness) tracks φ, so low-φ
+    relations fade toward transparency rather than toward a pale colour that
+    would compete with the neutral grey spokes.
+    """
+    r, g, b = theme.relation_rgb
+    lo, hi = theme.relation_alpha_range
+    return [[0.0, f"rgba({r}, {g}, {b}, {lo})"], [1.0, f"rgba({r}, {g}, {b}, {hi})"]]
+
+
+def _basic_face_hover(face):
+    """Fallback hover when no endpoint/label lookups are supplied."""
+    return f"{face.degree}-face · φ = {face.phi:.4g}"
+
+
+def _face_hover_fn(projection):
+    """A callable giving rich hover text for a relation face: degree, φ, the
+    labelled overlap units, and each relatum (its distinction's mechanism,
+    direction, and state-cased purview).
+    """
+    endpoint_by_id = {e.id: e for e in projection.endpoints}
+    node_by_did = {n.id: n for n in projection.nodes}
+    labels = projection.node_labels
+
+    def hover(face):
+        # Plain (stateless) unit labels, lowercased so they are not mistaken
+        # for the state-cased purview labels where upper case means ON.
+        overlap = (
+            "".join(labels.indices2labels(face.overlap)).lower() if face.overlap else "∅"
+        )
+        relata = "<br>".join(
+            f"  {node_by_did[ep.distinction_id].label}: {ep.direction} {ep.label}"
+            for ep in (endpoint_by_id[i] for i in face.endpoints)
+        )
+        return (
+            f"<b>{face.degree}-face</b> · φ = {face.phi:.4g}"
+            f"<br>overlap: {overlap}"
+            f"<br>relata:<br>{relata}"
+        )
+
+    return hover
+
+
+def _two_face_trace(
+    faces,
+    endpoint_pos,
+    theme,
+    show_colorbar=True,
+    cmin=None,
+    cmax=None,
+    hover_for_face=_basic_face_hover,
+):
     xs, ys, zs = _segments(tuple(endpoint_pos[i] for i in f.endpoints) for f in faces)
     # One color value per vertex, including the None separators.
     colors = [phi for f in faces for phi in [f.phi] * 3]
-    hover = [
-        f"2-face<br>overlap {f.overlap}<br>φ = {f.phi:.4g}"
-        for f in faces
-        for _ in range(3)
-    ]
+    hover = [hover_for_face(f) for f in faces for _ in range(3)]
     return go.Scatter3d(
         x=xs,
         y=ys,
@@ -369,10 +530,12 @@ def _two_face_trace(faces, endpoint_pos, theme, show_colorbar=True):
         mode="lines",
         line={
             "color": colors,
-            "colorscale": theme.face_colorscale,
+            "colorscale": _relation_colorscale(theme),
+            "cmin": cmin,
+            "cmax": cmax,
             "width": 2 * theme.edge_width,
             "showscale": show_colorbar,
-            "colorbar": {"title": "2-face φ", "x": 1.14, "len": 0.6},
+            "colorbar": _RELATION_COLORBAR,
         },
         hovertext=hover,
         hoverinfo="text",
@@ -380,7 +543,9 @@ def _two_face_trace(faces, endpoint_pos, theme, show_colorbar=True):
     )
 
 
-def _three_face_trace(faces, endpoint_pos, theme, show_colorbar=True):
+def _three_face_trace(
+    faces, endpoint_pos, theme, show_colorbar=True, cmin=None, cmax=None
+):
     n = max(endpoint_pos) + 1
     xs = [endpoint_pos[i][0] for i in range(n)]
     ys = [endpoint_pos[i][1] for i in range(n)]
@@ -394,20 +559,33 @@ def _three_face_trace(faces, endpoint_pos, theme, show_colorbar=True):
         k=[f.endpoints[2] for f in faces],
         intensity=[f.phi for f in faces],
         intensitymode="cell",
-        colorscale=theme.face_colorscale,
+        colorscale=_relation_colorscale(theme),
+        cmin=cmin,
+        cmax=cmax,
         opacity=theme.face_opacity,
         showscale=show_colorbar,
-        colorbar={"title": "3-face φ", "x": 1.26, "len": 0.6},
+        colorbar=_RELATION_COLORBAR,
         hoverinfo="skip",
     )
 
 
-def _higher_face_trace(faces, endpoint_pos, theme, show_colorbar=True):
-    """Star expansion for degree >=4 faces: a hub at each face's centroid,
-    sized and colored by phi, with spokes to each endpoint. Two merged traces.
+def _higher_face_trace(
+    faces,
+    endpoint_pos,
+    theme,
+    show_colorbar=True,
+    cmin=None,
+    cmax=None,
+    hover_for_face=_basic_face_hover,
+):
+    """Star expansion for a face of any degree: a hub at the face's centroid,
+    sized and colored by phi (opacity tracking phi, so low-phi hubs fade), with
+    neutral grey spokes to each endpoint (straight by default; bowed when
+    ``theme.spoke_curvature`` is set). Two merged traces (the hub markers and
+    the spoke lines).
     """
     hubs = []
-    spokes = []
+    spoke_paths = []
     for face in faces:
         coords = [endpoint_pos[i] for i in face.endpoints]
         hub = (
@@ -416,33 +594,33 @@ def _higher_face_trace(faces, endpoint_pos, theme, show_colorbar=True):
             sum(c[2] for c in coords) / len(coords),
         )
         hubs.append((hub, face))
-        spokes.extend((hub, c) for c in coords)
+        spoke_paths.extend(_arc(hub, c, theme.spoke_curvature) for c in coords)
     hub_trace = go.Scatter3d(
         x=[h[0] for h, _ in hubs],
         y=[h[1] for h, _ in hubs],
         z=[h[2] for h, _ in hubs],
         mode="markers",
         marker={
-            "size": rescale([f.phi for _, f in hubs], *theme.node_size_range),
+            "size": rescale([f.phi for _, f in hubs], *theme.hub_size_range),
             "color": [f.phi for _, f in hubs],
-            "colorscale": theme.face_colorscale,
+            "colorscale": _relation_colorscale(theme),
+            "cmin": cmin,
+            "cmax": cmax,
             "symbol": "diamond",
             "showscale": show_colorbar,
-            "colorbar": {"title": ">=4-face φ", "x": 1.38, "len": 0.6},
+            "colorbar": _RELATION_COLORBAR,
         },
-        hovertext=[
-            f"{f.degree}-face<br>overlap {f.overlap}<br>φ = {f.phi:.4g}" for _, f in hubs
-        ],
+        hovertext=[hover_for_face(f) for _, f in hubs],
         hoverinfo="text",
         showlegend=False,
     )
-    xs, ys, zs = _segments(spokes)
+    xs, ys, zs = _segments(spoke_paths)
     spoke_trace = go.Scatter3d(
         x=xs,
         y=ys,
         z=zs,
         mode="lines",
-        line={"color": theme.edge_color, "width": theme.edge_width},
+        line={"color": theme.spoke_color, "width": theme.spoke_width},
         hoverinfo="skip",
         showlegend=False,
     )
@@ -459,18 +637,30 @@ def render_simplicial_complex(
     layout: str = "barycentric",
     show_colorbars: bool = True,
     degrees: tuple[int, ...] | None = None,
+    star_min_degree: int = 2,
 ) -> go.Figure:
     """Draw the cause-effect structure as a 3-D simplicial complex.
 
-    Purview endpoints are vertices; degree-2 relation faces are line
-    segments and degree-3 faces are triangles. Geometry is computed from
-    the full projection regardless of ``only_distinctions``, so successive
-    calls with different subsets align (the primitive
-    ``highlight_phi_fold`` composes on).
+    Purview endpoints are vertices. By default (``star_min_degree=2``) every
+    relation face is drawn as a star expansion (a hub at the face centroid with
+    spokes to each endpoint), so no degree is given special visual weight.
+    Raising ``star_min_degree`` restores geometric forms for the lower degrees:
+    ``3`` draws degree-2 faces as line segments, ``4`` additionally draws
+    degree-3 faces as filled triangles. All relation faces share one
+    ``relation φ`` colorbar, and colour opacity tracks φ so low-φ relations
+    fade rather than obscure the high-φ ones. Geometry is computed from the
+    full projection regardless of ``only_distinctions``, so successive calls
+    with different subsets align (the primitive ``highlight_phi_fold`` composes
+    on).
     """
     unknown = set(show) - set(_ELEMENTS)
     if unknown:
         raise ValueError(f"unknown show element(s) {sorted(unknown)!r}")
+    if star_min_degree not in (2, 3, 4):
+        raise ValueError(
+            f"star_min_degree must be 2, 3, or 4 (got {star_min_degree!r}); "
+            "the geometric forms only cover degree-2 lines and degree-3 meshes"
+        )
     if geometry is None:
         geometry = SimplicialComplexGeometry()
     endpoint_pos, mechanism_pos = _positions_3d(projection, geometry, layout=layout)
@@ -488,9 +678,25 @@ def render_simplicial_complex(
     ]
     if degrees is not None:
         faces = [f for f in faces if f.degree in degrees]
-    two_faces = [f for f in faces if f.degree == 2]
-    three_faces = [f for f in faces if f.degree == 3]
-    higher_faces = [f for f in faces if f.degree >= 4]
+    two_faces = [f for f in faces if f.degree == 2 and star_min_degree > 2]
+    three_faces = [f for f in faces if f.degree == 3 and star_min_degree > 3]
+    higher_faces = [f for f in faces if f.degree >= star_min_degree]
+    # All relation faces share one color scale, so color means absolute phi
+    # across degrees; exactly one face class draws the shared colorbar.
+    relation_phis = [f.phi for f in faces]
+    rel_cmin = min(relation_phis) if relation_phis else None
+    rel_cmax = max(relation_phis) if relation_phis else None
+    if not show_colorbars:
+        bar_owner = None
+    elif "two_faces" in show and two_faces:
+        bar_owner = "two_faces"
+    elif "three_faces" in show and three_faces:
+        bar_owner = "three_faces"
+    elif "higher_faces" in show and higher_faces:
+        bar_owner = "higher_faces"
+    else:
+        bar_owner = None
+    hover_for_face = _face_hover_fn(projection)
     traces = []
     if "purviews" in show:
         traces.append(_purview_trace(endpoints, endpoint_pos, theme, show_colorbars))
@@ -518,14 +724,39 @@ def render_simplicial_complex(
             )
         )
     if "two_faces" in show and two_faces:
-        traces.append(_two_face_trace(two_faces, endpoint_pos, theme, show_colorbars))
+        traces.append(
+            _two_face_trace(
+                two_faces,
+                endpoint_pos,
+                theme,
+                show_colorbar=bar_owner == "two_faces",
+                cmin=rel_cmin,
+                cmax=rel_cmax,
+                hover_for_face=hover_for_face,
+            )
+        )
     if "three_faces" in show and three_faces:
         traces.append(
-            _three_face_trace(three_faces, endpoint_pos, theme, show_colorbars)
+            _three_face_trace(
+                three_faces,
+                endpoint_pos,
+                theme,
+                show_colorbar=bar_owner == "three_faces",
+                cmin=rel_cmin,
+                cmax=rel_cmax,
+            )
         )
     if "higher_faces" in show and higher_faces:
         traces.extend(
-            _higher_face_trace(higher_faces, endpoint_pos, theme, show_colorbars)
+            _higher_face_trace(
+                higher_faces,
+                endpoint_pos,
+                theme,
+                show_colorbar=bar_owner == "higher_faces",
+                cmin=rel_cmin,
+                cmax=rel_cmax,
+                hover_for_face=hover_for_face,
+            )
         )
     figure = go.Figure() if fig is None else fig
     figure.add_traces(traces)

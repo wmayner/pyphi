@@ -58,6 +58,7 @@ def plot_ces(
     geometry=None,
     show=None,
     degrees=None,
+    star_min_degree=None,
 ):
     """Plot a |CauseEffectStructure|.
 
@@ -112,6 +113,11 @@ def plot_ces(
             draws. Defaults to all of them.
         degrees (tuple[int, ...]): Restrict the simplicial-complex view to
             relation faces of these degrees. Defaults to all degrees present.
+        star_min_degree (int): In the simplicial-complex view, the lowest
+            relation-face degree drawn as a star expansion (hub + spokes);
+            lower degrees keep their geometric form (degree-2 lines, degree-3
+            triangles). Must be 2, 3, or 4. ``2`` (the default) draws every
+            face as a star; ``4`` keeps degree-2 lines and degree-3 triangles.
     """
     from pyphi.models.ces import PhiFold
 
@@ -144,6 +150,8 @@ def plot_ces(
             kwargs["show"] = show
         if degrees is not None:
             kwargs["degrees"] = degrees
+        if star_min_degree is not None:
+            kwargs["star_min_degree"] = star_min_degree
         return render_simplicial_complex(
             projection, theme, fig=fig, layout=layout, **kwargs
         )
@@ -221,6 +229,9 @@ def highlight_phi_fold(
         effect_color="#999999",
         edge_color="rgba(150, 150, 150, 0.2)",
         face_opacity=theme.face_opacity * 0.25,
+        relation_rgb=(170, 170, 170),
+        relation_alpha_range=(0.0, theme.relation_alpha_range[1] * 0.3),
+        spoke_color="rgba(170, 170, 170, 0.15)",
     )
     kwargs = {}
     if geometry is not None:

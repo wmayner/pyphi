@@ -26,6 +26,12 @@ class Theme:
     face_colorscale: str = "Blues"
     face_opacity: float = 0.2
     text_size: int = 12
+    spoke_width: float = 1.5
+    spoke_curvature: float = 0.0
+    spoke_color: str = "rgba(100, 100, 100, 0.45)"
+    hub_size_range: tuple[float, float] = (4.0, 22.0)
+    relation_rgb: tuple[int, int, int] = (35, 45, 200)
+    relation_alpha_range: tuple[float, float] = (0.06, 0.95)
 
 
 DEFAULT_THEME = Theme()

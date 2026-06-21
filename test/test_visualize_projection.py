@@ -191,6 +191,25 @@ def test_theme_simplicial_complex_fields():
     assert DEFAULT_THEME.face_colorscale == "Blues"
     assert 0 < DEFAULT_THEME.face_opacity <= 1
     assert DEFAULT_THEME.text_size > 0
+    # Spokes are straight by default (curvature is an opt-in) and a flat
+    # neutral grey.
+    assert DEFAULT_THEME.spoke_curvature == 0.0
+    assert DEFAULT_THEME.spoke_width > 0
+    assert DEFAULT_THEME.spoke_color.startswith("rgba")
+    # Relation faces fade by opacity on a fixed hue; hubs have their own size
+    # range, smaller than the purview markers'.
+    assert len(DEFAULT_THEME.relation_rgb) == 3
+    assert DEFAULT_THEME.relation_alpha_range[0] < DEFAULT_THEME.relation_alpha_range[1]
+    assert DEFAULT_THEME.hub_size_range[0] < DEFAULT_THEME.hub_size_range[1]
+
+
+def test_simplicial_complex_geometry_defaults():
+    from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
+
+    geo = SimplicialComplexGeometry()
+    # Coincident purviews are separated by leaning toward their mechanism by
+    # default; the prior even-polygon spread stays reachable.
+    assert geo.endpoint_placement == "mechanism_anchored"
 
 
 def test_theme_frozen_with_defaults():
