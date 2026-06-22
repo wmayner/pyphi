@@ -210,6 +210,8 @@ def test_simplicial_complex_geometry_defaults():
     # Coincident purviews are separated by leaning toward their mechanism by
     # default; the prior even-polygon spread stays reachable.
     assert geo.endpoint_placement == "mechanism_anchored"
+    # The global-embedding layout defaults to the PCA method.
+    assert geo.embedding_method == "pca"
 
 
 def test_theme_frozen_with_defaults():

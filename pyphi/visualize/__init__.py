@@ -91,6 +91,10 @@ def plot_ces(
             simplicial-complex view it orders each shell ring so subsets
             connected by drawn elements sit at nearby angles, shortening
             edges. ``"sorted"`` orders by label in both views.
+            ``"embedding"`` (simplicial-complex view) ignores the shells and
+            positions each MICE by a deterministic embedding of its composition
+            (``SimplicialComplexGeometry.embedding_method`` selects ``"pca"`` or
+            ``"mds"``), so proximity reflects compositional similarity.
         order (str): Which partial order the lattice view shows:
             ``"mechanism"`` orders distinctions by subset relation on their
             mechanisms; ``"purview_union"`` by subset relation on the unions

@@ -185,6 +185,49 @@ def test_embedding_method_validation(xor_projection):
         _positions_3d(xor_projection, geo, layout="embedding")
 
 
+def test_plot_ces_embedding_layout_runs():
+    import plotly.graph_objects as go
+
+    from pyphi import examples
+    from pyphi.visualize import plot_ces
+    from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
+
+    ces = examples.xor_system().ces()
+    for method in ("pca", "mds"):
+        fig = plot_ces(
+            ces,
+            view="simplicial_complex",
+            layout="embedding",
+            geometry=SimplicialComplexGeometry(embedding_method=method),
+        )
+        assert isinstance(fig, go.Figure)
+        # Purview dots present (the embedded MICE).
+        assert any(getattr(t, "mode", None) == "markers+text" for t in fig.data)
+
+
+def test_embedding_layout_subset_stability(xor_projection):
+    from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
+    from pyphi.visualize.render.simplicial_complex import render_simplicial_complex
+    from pyphi.visualize.theme import DEFAULT_THEME
+
+    geo = SimplicialComplexGeometry()
+    full = render_simplicial_complex(
+        xor_projection, DEFAULT_THEME, geometry=geo, layout="embedding"
+    )
+    sub = render_simplicial_complex(
+        xor_projection,
+        DEFAULT_THEME,
+        geometry=geo,
+        layout="embedding",
+        only_distinctions={0, 3},
+    )
+    full_pts = set(zip(full.data[0].x, full.data[0].y, full.data[0].z, strict=True))
+    sub_pts = set(zip(sub.data[0].x, sub.data[0].y, sub.data[0].z, strict=True))
+    # The retained subset's purview dots keep their full-render coordinates.
+    assert sub_pts <= full_pts
+    assert len(sub_pts) == 4  # 2 distinctions -> 4 endpoints
+
+
 def test_mechanism_positions(xor_projection):
     from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
     from pyphi.visualize.render.simplicial_complex import _mechanism_positions
