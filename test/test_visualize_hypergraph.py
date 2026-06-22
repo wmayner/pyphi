@@ -1,4 +1,4 @@
-"""Tests for the 3-D simplicial-complex renderer."""
+"""Tests for the 3-D hypergraph renderer."""
 
 import pytest
 
@@ -14,19 +14,19 @@ def xor_projection():
 def test_geometry_dataclass_frozen():
     import dataclasses
 
-    from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
+    from pyphi.visualize.render.hypergraph import HypergraphGeometry
 
-    geo = SimplicialComplexGeometry()
+    geo = HypergraphGeometry()
     assert geo.max_radius == 1.0
     with pytest.raises(dataclasses.FrozenInstanceError):
         geo.max_radius = 2.0  # type: ignore[misc]
 
 
 def test_endpoint_positions(xor_projection):
-    from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
-    from pyphi.visualize.render.simplicial_complex import _endpoint_positions
+    from pyphi.visualize.render.hypergraph import HypergraphGeometry
+    from pyphi.visualize.render.hypergraph import _endpoint_positions
 
-    geo = SimplicialComplexGeometry()
+    geo = HypergraphGeometry()
     pos = _endpoint_positions(xor_projection, geo)
     assert set(pos) == set(range(8))
     # Deterministic.
@@ -34,7 +34,7 @@ def test_endpoint_positions(xor_projection):
     # By default, z stacks by purview size: size-1 purviews below size-3.
     assert pos[1][2] < pos[0][2]
     # Flat when requested.
-    flat = _endpoint_positions(xor_projection, SimplicialComplexGeometry(z_spacing=0.0))
+    flat = _endpoint_positions(xor_projection, HypergraphGeometry(z_spacing=0.0))
     assert all(p[2] == 0.0 for p in flat.values())
     # d3's cause/effect share the purview (0,1,2): cause sits -x, effect +x.
     assert pos[6][0] < pos[7][0]
@@ -60,7 +60,7 @@ def _fake_projection(distinction_ids):
 def test_anchored_offsets_point_toward_mechanism():
     import math
 
-    from pyphi.visualize.render.simplicial_complex import _anchored_offsets
+    from pyphi.visualize.render.hypergraph import _anchored_offsets
 
     # Two endpoints sharing a purview, mechanisms in distinct directions from
     # the shell base: mech 0 at +x, mech 1 at +y.
@@ -76,7 +76,7 @@ def test_anchored_offsets_point_toward_mechanism():
 def test_anchored_offsets_collinear_tie_break():
     import math
 
-    from pyphi.visualize.render.simplicial_complex import _anchored_offsets
+    from pyphi.visualize.render.hypergraph import _anchored_offsets
 
     # Both mechanisms lie in the same direction (+x) from the base: the
     # directional pass would collide, so the tie-break spreads them apart.
@@ -90,7 +90,7 @@ def test_anchored_offsets_collinear_tie_break():
 def test_anchored_offsets_degenerate_falls_back():
     import math
 
-    from pyphi.visualize.render.simplicial_complex import _anchored_offsets
+    from pyphi.visualize.render.hypergraph import _anchored_offsets
 
     # Mechanisms coincident with the base (zero direction) carry no angle and
     # fall to the polygon spread; still distinct, still at radius jitter.
@@ -104,12 +104,12 @@ def test_anchored_offsets_degenerate_falls_back():
 def test_anchored_endpoints_are_distinct_and_on_radius(xor_projection):
     import math
 
-    from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
-    from pyphi.visualize.render.simplicial_complex import _endpoint_positions
-    from pyphi.visualize.render.simplicial_complex import _mechanism_positions
-    from pyphi.visualize.render.simplicial_complex import _shell_positions
+    from pyphi.visualize.render.hypergraph import HypergraphGeometry
+    from pyphi.visualize.render.hypergraph import _endpoint_positions
+    from pyphi.visualize.render.hypergraph import _mechanism_positions
+    from pyphi.visualize.render.hypergraph import _shell_positions
 
-    geo = SimplicialComplexGeometry()  # mechanism_anchored is the default
+    geo = HypergraphGeometry()  # mechanism_anchored is the default
     mech = _mechanism_positions(xor_projection, geo)
     pos = _endpoint_positions(xor_projection, geo, mechanism_pos=mech)
     base = _shell_positions((e.purview for e in xor_projection.endpoints), geo)
@@ -123,12 +123,12 @@ def test_anchored_endpoints_are_distinct_and_on_radius(xor_projection):
 
 
 def test_polygon_placement_still_available(xor_projection):
-    from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
-    from pyphi.visualize.render.simplicial_complex import _endpoint_positions
+    from pyphi.visualize.render.hypergraph import HypergraphGeometry
+    from pyphi.visualize.render.hypergraph import _endpoint_positions
 
-    anchored = _endpoint_positions(xor_projection, SimplicialComplexGeometry())
+    anchored = _endpoint_positions(xor_projection, HypergraphGeometry())
     polygon = _endpoint_positions(
-        xor_projection, SimplicialComplexGeometry(endpoint_placement="polygon")
+        xor_projection, HypergraphGeometry(endpoint_placement="polygon")
     )
     # Both keep all endpoints distinct where they share a purview, but place
     # them differently.
@@ -137,20 +137,20 @@ def test_polygon_placement_still_available(xor_projection):
 
 
 def test_unknown_endpoint_placement_raises(xor_projection):
-    from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
-    from pyphi.visualize.render.simplicial_complex import _endpoint_positions
+    from pyphi.visualize.render.hypergraph import HypergraphGeometry
+    from pyphi.visualize.render.hypergraph import _endpoint_positions
 
     with pytest.raises(ValueError, match="endpoint_placement"):
         _endpoint_positions(
-            xor_projection, SimplicialComplexGeometry(endpoint_placement="bogus")
+            xor_projection, HypergraphGeometry(endpoint_placement="bogus")
         )
 
 
 def test_embedding_layout_distinct_normalized_and_centroids(xor_projection):
-    from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
-    from pyphi.visualize.render.simplicial_complex import _positions_3d
+    from pyphi.visualize.render.hypergraph import HypergraphGeometry
+    from pyphi.visualize.render.hypergraph import _positions_3d
 
-    geo = SimplicialComplexGeometry(max_radius=1.0)  # embedding_method defaults to mds
+    geo = HypergraphGeometry(max_radius=1.0)  # embedding_method defaults to mds
     epos, mpos = _positions_3d(xor_projection, geo, layout="embedding")
     # One point per endpoint, all distinct.
     assert set(epos) == set(range(8))
@@ -166,21 +166,21 @@ def test_embedding_layout_distinct_normalized_and_centroids(xor_projection):
 
 
 def test_embedding_layout_deterministic(xor_projection):
-    from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
-    from pyphi.visualize.render.simplicial_complex import _positions_3d
+    from pyphi.visualize.render.hypergraph import HypergraphGeometry
+    from pyphi.visualize.render.hypergraph import _positions_3d
 
     for method in ("pca", "mds"):
-        geo = SimplicialComplexGeometry(embedding_method=method)
+        geo = HypergraphGeometry(embedding_method=method)
         a = _positions_3d(xor_projection, geo, layout="embedding")
         b = _positions_3d(xor_projection, geo, layout="embedding")
         assert a == b
 
 
 def test_embedding_method_validation(xor_projection):
-    from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
-    from pyphi.visualize.render.simplicial_complex import _positions_3d
+    from pyphi.visualize.render.hypergraph import HypergraphGeometry
+    from pyphi.visualize.render.hypergraph import _positions_3d
 
-    geo = SimplicialComplexGeometry(embedding_method="bogus")
+    geo = HypergraphGeometry(embedding_method="bogus")
     with pytest.raises(ValueError, match="embedding_method"):
         _positions_3d(xor_projection, geo, layout="embedding")
 
@@ -190,15 +190,15 @@ def test_plot_ces_embedding_layout_runs():
 
     from pyphi import examples
     from pyphi.visualize import plot_ces
-    from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
+    from pyphi.visualize.render.hypergraph import HypergraphGeometry
 
     ces = examples.xor_system().ces()
     for method in ("pca", "mds"):
         fig = plot_ces(
             ces,
-            view="simplicial_complex",
+            view="hypergraph",
             layout="embedding",
-            geometry=SimplicialComplexGeometry(embedding_method=method),
+            geometry=HypergraphGeometry(embedding_method=method),
         )
         assert isinstance(fig, go.Figure)
         # Purview dots present (the embedded MICE).
@@ -206,15 +206,15 @@ def test_plot_ces_embedding_layout_runs():
 
 
 def test_embedding_layout_subset_stability(xor_projection):
-    from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
-    from pyphi.visualize.render.simplicial_complex import render_simplicial_complex
+    from pyphi.visualize.render.hypergraph import HypergraphGeometry
+    from pyphi.visualize.render.hypergraph import render_hypergraph
     from pyphi.visualize.theme import DEFAULT_THEME
 
-    geo = SimplicialComplexGeometry()
-    full = render_simplicial_complex(
+    geo = HypergraphGeometry()
+    full = render_hypergraph(
         xor_projection, DEFAULT_THEME, geometry=geo, layout="embedding"
     )
-    sub = render_simplicial_complex(
+    sub = render_hypergraph(
         xor_projection,
         DEFAULT_THEME,
         geometry=geo,
@@ -229,10 +229,10 @@ def test_embedding_layout_subset_stability(xor_projection):
 
 
 def test_mechanism_positions(xor_projection):
-    from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
-    from pyphi.visualize.render.simplicial_complex import _mechanism_positions
+    from pyphi.visualize.render.hypergraph import HypergraphGeometry
+    from pyphi.visualize.render.hypergraph import _mechanism_positions
 
-    geo = SimplicialComplexGeometry(max_radius=2.0)
+    geo = HypergraphGeometry(max_radius=2.0)
     pos = _mechanism_positions(xor_projection, geo)
     assert set(pos) == {0, 1, 2, 3}
     # Mechanisms are unique, so all positions distinct.
@@ -317,10 +317,10 @@ def _total_face_length(projection, pos):
 
 
 def test_barycentric_layout_shortens_faces(antipodal_projection):
-    from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
-    from pyphi.visualize.render.simplicial_complex import _positions_3d
+    from pyphi.visualize.render.hypergraph import HypergraphGeometry
+    from pyphi.visualize.render.hypergraph import _positions_3d
 
-    geo = SimplicialComplexGeometry()
+    geo = HypergraphGeometry()
     sorted_pos, _ = _positions_3d(antipodal_projection, geo, layout="sorted")
     bary_pos, _ = _positions_3d(antipodal_projection, geo, layout="barycentric")
     assert _total_face_length(antipodal_projection, bary_pos) < _total_face_length(
@@ -332,18 +332,18 @@ def test_barycentric_layout_shortens_faces(antipodal_projection):
 
 
 def test_unknown_3d_layout_raises(antipodal_projection):
-    from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
-    from pyphi.visualize.render.simplicial_complex import _positions_3d
+    from pyphi.visualize.render.hypergraph import HypergraphGeometry
+    from pyphi.visualize.render.hypergraph import _positions_3d
 
     with pytest.raises(ValueError, match="layout"):
-        _positions_3d(antipodal_projection, SimplicialComplexGeometry(), layout="bogus")
+        _positions_3d(antipodal_projection, HypergraphGeometry(), layout="bogus")
 
 
 def _render(projection, **kwargs):
-    from pyphi.visualize.render.simplicial_complex import render_simplicial_complex
+    from pyphi.visualize.render.hypergraph import render_hypergraph
     from pyphi.visualize.theme import DEFAULT_THEME
 
-    return render_simplicial_complex(projection, DEFAULT_THEME, **kwargs)
+    return render_hypergraph(projection, DEFAULT_THEME, **kwargs)
 
 
 def test_render_full_figure_structure(xor_projection):
@@ -390,7 +390,7 @@ _SQUARE_POS = {0: (0, 0, 0), 1: (2, 0, 0), 2: (0, 2, 0), 3: (2, 2, 0)}
 def test_higher_face_trace_hub_at_centroid():
     import dataclasses
 
-    from pyphi.visualize.render.simplicial_complex import _higher_face_trace
+    from pyphi.visualize.render.hypergraph import _higher_face_trace
     from pyphi.visualize.theme import DEFAULT_THEME
 
     # Straight spokes so the per-spoke coordinate count is exact.
@@ -407,8 +407,8 @@ def test_higher_face_trace_hub_at_centroid():
 def test_higher_face_spokes_curve_when_curvature_set():
     import dataclasses
 
-    from pyphi.visualize.render.simplicial_complex import _SPOKE_ARC_SEGMENTS
-    from pyphi.visualize.render.simplicial_complex import _higher_face_trace
+    from pyphi.visualize.render.hypergraph import _SPOKE_ARC_SEGMENTS
+    from pyphi.visualize.render.hypergraph import _higher_face_trace
     from pyphi.visualize.theme import DEFAULT_THEME
 
     theme = dataclasses.replace(DEFAULT_THEME, spoke_curvature=0.3)
@@ -427,7 +427,7 @@ def test_higher_face_spokes_curve_when_curvature_set():
 
 
 def test_face_hover_names_overlap_and_relata(xor_projection):
-    from pyphi.visualize.render.simplicial_complex import _face_hover_fn
+    from pyphi.visualize.render.hypergraph import _face_hover_fn
 
     hover = _face_hover_fn(xor_projection)
     # The known degree-2 face: cause/effect of bc related over unit a.
@@ -458,7 +458,7 @@ def test_render_hub_hover_is_rich(xor_projection):
 
 
 def test_endpoint_hover_names_distinction_and_sibling(xor_projection):
-    from pyphi.visualize.render.simplicial_complex import _endpoint_hover_fn
+    from pyphi.visualize.render.hypergraph import _endpoint_hover_fn
 
     hover = _endpoint_hover_fn(xor_projection)
     # Endpoint 0 is the cause of distinction ab (cause purview abc, effect c).
@@ -474,7 +474,7 @@ def test_endpoint_hover_names_distinction_and_sibling(xor_projection):
 
 
 def test_distinction_hover_names_both_purviews(xor_projection):
-    from pyphi.visualize.render.simplicial_complex import _distinction_hover_fn
+    from pyphi.visualize.render.hypergraph import _distinction_hover_fn
 
     hover = _distinction_hover_fn(xor_projection)
     node = xor_projection.nodes[0]
@@ -571,7 +571,7 @@ def test_plot_ces_star_min_degree_plumbed():
     from pyphi.visualize import plot_ces
 
     ces = examples.xor_system().ces()
-    fig = plot_ces(ces, view="simplicial_complex", star_min_degree=2)
+    fig = plot_ces(ces, view="hypergraph", star_min_degree=2)
     assert not any(isinstance(t, go.Mesh3d) for t in fig.data)
 
 
@@ -602,28 +602,28 @@ def test_render_only_distinctions_filters_without_moving(xor_projection):
         assert len(sub_meshes[0].i) < len(full_mesh.i)
 
 
-def test_plot_ces_simplicial_complex_view():
+def test_plot_ces_hypergraph_view():
     import plotly.graph_objects as go
 
     from pyphi import examples
     from pyphi.visualize import plot_ces
-    from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
+    from pyphi.visualize.render.hypergraph import HypergraphGeometry
 
     ces = examples.xor_system().ces()
     # Default is all-stars: four base traces + the star hub + spokes.
-    fig = plot_ces(ces, view="simplicial_complex")
+    fig = plot_ces(ces, view="hypergraph")
     assert isinstance(fig, go.Figure)
     assert len(fig.data) == 6
     fig = plot_ces(
         ces,
-        view="simplicial_complex",
-        geometry=SimplicialComplexGeometry(z_spacing=0.3),
+        view="hypergraph",
+        geometry=HypergraphGeometry(z_spacing=0.3),
         show=("purviews",),
     )
     assert len(fig.data) == 1
     # The shared layout knob applies to this view too.
     for layout in ("barycentric", "sorted"):
-        fig = plot_ces(ces, view="simplicial_complex", layout=layout)
+        fig = plot_ces(ces, view="hypergraph", layout=layout)
         assert len(fig.data) == 6
 
 

@@ -17,7 +17,7 @@ def render_relation_spectrum(
 
     Computed from the projection's relation-level ``edges`` (which carry every
     relation's degree and phi), so the high-degree structure that is hard to
-    read in the 3-D simplicial-complex view is summarized at a glance.
+    read in the 3-D hypergraph view is summarized at a glance.
     """
     count: dict[int, int] = defaultdict(int)
     sum_phi: dict[int, float] = defaultdict(float)

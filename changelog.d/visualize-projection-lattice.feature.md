@@ -9,9 +9,9 @@ distinction phi. Vertical placement is configurable via `rank="chain"`
 placement via `layout="barycentric"` (crossing-reducing, the default) or
 `layout="sorted"` (label order), and the marker encodings via `size_by` and
 `color_by`. A `Theme` dataclass replaces ad-hoc theme overrides. The 3-D
-simplicial-complex view is rebuilt on the same projection
-(`view="simplicial_complex"`, with `show` element selection and a
-`SimplicialComplexGeometry` layout dataclass), `highlight_phi_fold` is
+hypergraph view is rebuilt on the same projection
+(`view="hypergraph"`, with `show` element selection and a
+`HypergraphGeometry` layout dataclass), `highlight_phi_fold` is
 reimplemented over it, and the legacy `pyphi.visualize.ces` module is
 removed. Two further views complete the set: `view="scatter"` (distinctions
 on a deterministic PCA composition embedding, sized by total relation phi,

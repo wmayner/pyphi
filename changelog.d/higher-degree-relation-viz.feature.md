@@ -1,4 +1,4 @@
-The simplicial-complex view (`pyphi.visualize.plot_ces`) now draws every
+The hypergraph view (`pyphi.visualize.plot_ces`) now draws every
 relation face as a star expansion by default — a hub at each face's centroid,
 sized by φ, with spokes to its endpoints — so no relation degree is given
 special visual weight. Previously degree-≥4 faces were silently dropped and

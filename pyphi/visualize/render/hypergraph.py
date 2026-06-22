@@ -1,4 +1,4 @@
-"""3-D simplicial-complex renderer for CES projections."""
+"""3-D hypergraph renderer for CES projections."""
 
 from __future__ import annotations
 
@@ -18,8 +18,8 @@ Point = tuple[float, float, float]
 
 
 @dataclass(frozen=True)
-class SimplicialComplexGeometry:
-    """Plot-space layout knobs for the simplicial-complex view.
+class HypergraphGeometry:
+    """Plot-space layout knobs for the hypergraph view.
 
     ``z_spacing`` stacks the size shells vertically, so height encodes
     subset size; set it to 0 for a flat (planar) arrangement.
@@ -67,7 +67,7 @@ def _rings(subsets: Iterable[tuple[int, ...]]) -> Rings:
 
 
 def _positions_from_rings(
-    rings: Rings, geometry: SimplicialComplexGeometry
+    rings: Rings, geometry: HypergraphGeometry
 ) -> dict[tuple[int, ...], Point]:
     """Place each subset on the shell for its size, in ring order.
 
@@ -93,7 +93,7 @@ def _positions_from_rings(
 
 
 def _shell_positions(
-    subsets: Iterable[tuple[int, ...]], geometry: SimplicialComplexGeometry
+    subsets: Iterable[tuple[int, ...]], geometry: HypergraphGeometry
 ) -> dict[tuple[int, ...], Point]:
     """Place each unique subset on the shell for its size, sorted order."""
     return _positions_from_rings(_rings(subsets), geometry)
@@ -220,7 +220,7 @@ def _anchored_offsets(ids, base_xy, mechanism_pos, projection, jitter):
 
 def _endpoint_positions(
     projection: CESProjection,
-    geometry: SimplicialComplexGeometry,
+    geometry: HypergraphGeometry,
     base: dict[tuple[int, ...], Point] | None = None,
     mechanism_pos: dict[int, Point] | None = None,
 ) -> dict[int, Point]:
@@ -265,7 +265,7 @@ def _endpoint_positions(
 
 def _mechanism_positions(
     projection: CESProjection,
-    geometry: SimplicialComplexGeometry,
+    geometry: HypergraphGeometry,
     base: dict[tuple[int, ...], Point] | None = None,
 ) -> dict[int, Point]:
     """Position each distinction's mechanism on its size shell."""
@@ -276,7 +276,7 @@ def _mechanism_positions(
 
 def _positions_3d(
     projection: CESProjection,
-    geometry: SimplicialComplexGeometry,
+    geometry: HypergraphGeometry,
     layout: str = "barycentric",
 ) -> tuple[dict[int, Point], dict[int, Point]]:
     """Endpoint and mechanism positions under the chosen layout.
@@ -674,11 +674,11 @@ def _higher_face_trace(
     return [hub_trace, spoke_trace]
 
 
-def render_simplicial_complex(
+def render_hypergraph(
     projection: CESProjection,
     theme: Theme,
     fig: go.Figure | None = None,
-    geometry: SimplicialComplexGeometry | None = None,
+    geometry: HypergraphGeometry | None = None,
     show: tuple[str, ...] = _ELEMENTS,
     only_distinctions: set[int] | None = None,
     layout: str = "barycentric",
@@ -686,7 +686,7 @@ def render_simplicial_complex(
     degrees: tuple[int, ...] | None = None,
     star_min_degree: int = 2,
 ) -> go.Figure:
-    """Draw the cause-effect structure as a 3-D simplicial complex.
+    """Draw the cause-effect structure as a 3-D hypergraph.
 
     Purview endpoints are vertices. By default (``star_min_degree=2``) every
     relation face is drawn as a star expansion (a hub at the face centroid with
@@ -709,7 +709,7 @@ def render_simplicial_complex(
             "the geometric forms only cover degree-2 lines and degree-3 meshes"
         )
     if geometry is None:
-        geometry = SimplicialComplexGeometry()
+        geometry = HypergraphGeometry()
     endpoint_pos, mechanism_pos = _positions_3d(projection, geometry, layout=layout)
     included = (
         set(range(len(projection.nodes)))

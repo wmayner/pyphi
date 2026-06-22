@@ -183,7 +183,7 @@ def test_theme_role_colors_cover_none():
     assert set(roles) == {"extended", "includes", "included", "none"}
 
 
-def test_theme_simplicial_complex_fields():
+def test_theme_hypergraph_fields():
     from pyphi.visualize.theme import DEFAULT_THEME
 
     assert DEFAULT_THEME.cause_color == "#8D3D00"
@@ -203,10 +203,10 @@ def test_theme_simplicial_complex_fields():
     assert DEFAULT_THEME.hub_size_range[0] < DEFAULT_THEME.hub_size_range[1]
 
 
-def test_simplicial_complex_geometry_defaults():
-    from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
+def test_hypergraph_geometry_defaults():
+    from pyphi.visualize.render.hypergraph import HypergraphGeometry
 
-    geo = SimplicialComplexGeometry()
+    geo = HypergraphGeometry()
     # Coincident purviews are separated by leaning toward their mechanism by
     # default; the prior even-polygon spread stays reachable.
     assert geo.endpoint_placement == "mechanism_anchored"

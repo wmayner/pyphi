@@ -22,13 +22,13 @@ from .distribution import plot_distribution
 from .distribution import plot_repertoires
 from .dynamics import plot_dynamics
 from .projection import project_ces
-from .render.simplicial_complex import SimplicialComplexGeometry
+from .render.hypergraph import HypergraphGeometry
 from .theme import DEFAULT_THEME
 from .theme import Theme
 
 __all__ = [
     "DEFAULT_THEME",
-    "SimplicialComplexGeometry",
+    "HypergraphGeometry",
     "Theme",
     "highlight_phi_fold",
     "ising",
@@ -71,7 +71,7 @@ def plot_ces(
             ``"lattice"``: an inclusion partial order over the distinctions
             drawn as a 2-D Hasse diagram, with marker size given by each
             distinction's total relation phi and color by its phi.
-            ``"simplicial_complex"``: the 3-D view with cause/effect purviews
+            ``"hypergraph"``: the 3-D view with cause/effect purviews
             as vertices, degree-2 relation faces as line segments, and
             degree-3 faces as triangles.
             ``"scatter"``: distinctions on a deterministic PCA embedding of
@@ -88,12 +88,12 @@ def plot_ces(
         layout (str): Within-level ordering. In the lattice view,
             ``"barycentric"`` orders each rank by the mean position of its
             cover neighbors to reduce edge crossings; in the
-            simplicial-complex view it orders each shell ring so subsets
+            hypergraph view it orders each shell ring so subsets
             connected by drawn elements sit at nearby angles, shortening
             edges. ``"sorted"`` orders by label in both views.
-            ``"embedding"`` (simplicial-complex view) ignores the shells and
+            ``"embedding"`` (hypergraph view) ignores the shells and
             positions each MICE by a deterministic embedding of its composition
-            (``SimplicialComplexGeometry.embedding_method`` selects ``"mds"``,
+            (``HypergraphGeometry.embedding_method`` selects ``"mds"``,
             the default, or ``"pca"``), so proximity reflects compositional
             similarity.
         order (str): Which partial order the lattice view shows:
@@ -112,13 +112,13 @@ def plot_ces(
             the lattice, ``"role"`` for the scatter. Both views accept
             ``"phi"`` and ``"sum_phi_relations"``; the scatter additionally
             accepts ``"role"``.
-        geometry (SimplicialComplexGeometry): Layout knobs for the
-            simplicial-complex view.
-        show (tuple[str, ...]): Element classes the simplicial-complex view
+        geometry (HypergraphGeometry): Layout knobs for the
+            hypergraph view.
+        show (tuple[str, ...]): Element classes the hypergraph view
             draws. Defaults to all of them.
-        degrees (tuple[int, ...]): Restrict the simplicial-complex view to
+        degrees (tuple[int, ...]): Restrict the hypergraph view to
             relation faces of these degrees. Defaults to all degrees present.
-        star_min_degree (int): In the simplicial-complex view, the lowest
+        star_min_degree (int): In the hypergraph view, the lowest
             relation-face degree drawn as a star expansion (hub + spokes);
             lower degrees keep their geometric form (degree-2 lines, degree-3
             triangles). Must be 2, 3, or 4. ``2`` (the default) draws every
@@ -145,8 +145,8 @@ def plot_ces(
             size_by=size_by,
             color_by="phi" if color_by is None else color_by,
         )
-    if view == "simplicial_complex":
-        from .render.simplicial_complex import render_simplicial_complex
+    if view == "hypergraph":
+        from .render.hypergraph import render_hypergraph
 
         kwargs = {}
         if geometry is not None:
@@ -157,9 +157,7 @@ def plot_ces(
             kwargs["degrees"] = degrees
         if star_min_degree is not None:
             kwargs["star_min_degree"] = star_min_degree
-        return render_simplicial_complex(
-            projection, theme, fig=fig, layout=layout, **kwargs
-        )
+        return render_hypergraph(projection, theme, fig=fig, layout=layout, **kwargs)
     if view == "scatter":
         from .render.scatter import render_scatter
 
@@ -209,12 +207,12 @@ def highlight_phi_fold(
             background style is derived from it.
         node_labels (NodeLabels): Labels for substrate units.
         fig: An existing plotly figure to draw into.
-        geometry (SimplicialComplexGeometry): Layout knobs.
+        geometry (HypergraphGeometry): Layout knobs.
         show (tuple[str, ...]): Element classes to draw.
     """
     from pyphi.models.ces import PhiFold
 
-    from .render.simplicial_complex import render_simplicial_complex
+    from .render.hypergraph import render_hypergraph
 
     if phi_fold is None:
         if not isinstance(ces_, PhiFold):
@@ -243,11 +241,11 @@ def highlight_phi_fold(
         kwargs["geometry"] = geometry
     if show is not None:
         kwargs["show"] = show
-    figure = render_simplicial_complex(
+    figure = render_hypergraph(
         projection, dimmed, fig=fig, show_colorbars=False, **kwargs
     )
     fold_mechanisms = {tuple(d.mechanism) for d in phi_fold.distinctions}
     fold_ids = {n.id for n in projection.nodes if n.mechanism in fold_mechanisms}
-    return render_simplicial_complex(
+    return render_hypergraph(
         projection, theme, fig=figure, only_distinctions=fold_ids, **kwargs
     )

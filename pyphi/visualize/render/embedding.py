@@ -1,4 +1,4 @@
-"""Global-embedding layout for the simplicial-complex view.
+"""Global-embedding layout for the hypergraph view.
 
 Positions each MICE (endpoint) by a deterministic embedding of its composition,
 so spatial proximity reflects compositional similarity rather than purview size.
