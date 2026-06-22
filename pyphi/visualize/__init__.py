@@ -93,8 +93,9 @@ def plot_ces(
             edges. ``"sorted"`` orders by label in both views.
             ``"embedding"`` (simplicial-complex view) ignores the shells and
             positions each MICE by a deterministic embedding of its composition
-            (``SimplicialComplexGeometry.embedding_method`` selects ``"pca"`` or
-            ``"mds"``), so proximity reflects compositional similarity.
+            (``SimplicialComplexGeometry.embedding_method`` selects ``"mds"``,
+            the default, or ``"pca"``), so proximity reflects compositional
+            similarity.
         order (str): Which partial order the lattice view shows:
             ``"mechanism"`` orders distinctions by subset relation on their
             mechanisms; ``"purview_union"`` by subset relation on the unions

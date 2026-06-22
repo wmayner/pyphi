@@ -30,7 +30,7 @@ class SimplicialComplexGeometry:
     direction_offset: float = 0.3
     purview_jitter: float = 0.1
     endpoint_placement: str = "mechanism_anchored"
-    embedding_method: str = "pca"
+    embedding_method: str = "mds"
 
 
 # Endpoints sharing a purview are nudged toward their mechanism; vectors shorter

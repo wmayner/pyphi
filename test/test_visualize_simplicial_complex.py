@@ -150,7 +150,7 @@ def test_embedding_layout_distinct_normalized_and_centroids(xor_projection):
     from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
     from pyphi.visualize.render.simplicial_complex import _positions_3d
 
-    geo = SimplicialComplexGeometry(max_radius=1.0)  # embedding_method defaults to pca
+    geo = SimplicialComplexGeometry(max_radius=1.0)  # embedding_method defaults to mds
     epos, mpos = _positions_3d(xor_projection, geo, layout="embedding")
     # One point per endpoint, all distinct.
     assert set(epos) == set(range(8))
