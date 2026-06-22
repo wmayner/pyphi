@@ -30,6 +30,7 @@ class SimplicialComplexGeometry:
     direction_offset: float = 0.3
     purview_jitter: float = 0.1
     endpoint_placement: str = "mechanism_anchored"
+    embedding_method: str = "pca"
 
 
 # Endpoints sharing a purview are nudged toward their mechanism; vectors shorter
@@ -285,8 +286,12 @@ def _positions_3d(
     by drawn elements sit at nearby angles, then orders each mechanism
     ring by the mean angle of its distinction's purviews.
     """
-    if layout not in ("barycentric", "sorted"):
+    if layout not in ("barycentric", "sorted", "embedding"):
         raise ValueError(f"unknown layout {layout!r}")
+    if layout == "embedding":
+        from pyphi.visualize.render.embedding import embedding_positions
+
+        return embedding_positions(projection, geometry)
     purview_rings = _rings(e.purview for e in projection.endpoints)
     mechanism_rings = _rings(n.mechanism for n in projection.nodes)
     if layout == "barycentric":

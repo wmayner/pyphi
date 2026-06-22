@@ -146,6 +146,45 @@ def test_unknown_endpoint_placement_raises(xor_projection):
         )
 
 
+def test_embedding_layout_distinct_normalized_and_centroids(xor_projection):
+    from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
+    from pyphi.visualize.render.simplicial_complex import _positions_3d
+
+    geo = SimplicialComplexGeometry(max_radius=1.0)  # embedding_method defaults to pca
+    epos, mpos = _positions_3d(xor_projection, geo, layout="embedding")
+    # One point per endpoint, all distinct.
+    assert set(epos) == set(range(8))
+    assert len(set(epos.values())) == 8
+    # Normalized so the bounding box fits max_radius (plus the small
+    # coincident-spread tolerance).
+    assert all(max(abs(x), abs(y), abs(z)) <= 1.0 + 0.05 for x, y, z in epos.values())
+    # A mechanism sits at the centroid of its two endpoints.
+    for d in range(4):
+        cx, cy, cz = epos[2 * d]
+        ex, ey, ez = epos[2 * d + 1]
+        assert mpos[d] == pytest.approx(((cx + ex) / 2, (cy + ey) / 2, (cz + ez) / 2))
+
+
+def test_embedding_layout_deterministic(xor_projection):
+    from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
+    from pyphi.visualize.render.simplicial_complex import _positions_3d
+
+    for method in ("pca", "mds"):
+        geo = SimplicialComplexGeometry(embedding_method=method)
+        a = _positions_3d(xor_projection, geo, layout="embedding")
+        b = _positions_3d(xor_projection, geo, layout="embedding")
+        assert a == b
+
+
+def test_embedding_method_validation(xor_projection):
+    from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
+    from pyphi.visualize.render.simplicial_complex import _positions_3d
+
+    geo = SimplicialComplexGeometry(embedding_method="bogus")
+    with pytest.raises(ValueError, match="embedding_method"):
+        _positions_3d(xor_projection, geo, layout="embedding")
+
+
 def test_mechanism_positions(xor_projection):
     from pyphi.visualize.render.simplicial_complex import SimplicialComplexGeometry
     from pyphi.visualize.render.simplicial_complex import _mechanism_positions
