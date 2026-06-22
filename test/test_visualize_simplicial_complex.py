@@ -375,6 +375,44 @@ def test_render_hub_hover_is_rich(xor_projection):
     assert all("relata" in h and "overlap:" in h for h in hub.hovertext)
 
 
+def test_endpoint_hover_names_distinction_and_sibling(xor_projection):
+    from pyphi.visualize.render.simplicial_complex import _endpoint_hover_fn
+
+    hover = _endpoint_hover_fn(xor_projection)
+    # Endpoint 0 is the cause of distinction ab (cause purview abc, effect c).
+    cause = xor_projection.endpoints[0]
+    text = hover(cause)
+    assert cause.label in text and "(cause)" in text and "φ =" in text
+    # Names the parent distinction and its φ_d.
+    node = xor_projection.nodes[cause.distinction_id]
+    assert f"distinction {node.label}" in text and "φ_d =" in text
+    # Names the opposite side's purview (the effect sibling).
+    sibling = xor_projection.endpoints[1]
+    assert f"effect: {sibling.label}" in text
+
+
+def test_distinction_hover_names_both_purviews(xor_projection):
+    from pyphi.visualize.render.simplicial_complex import _distinction_hover_fn
+
+    hover = _distinction_hover_fn(xor_projection)
+    node = xor_projection.nodes[0]
+    text = hover(node)
+    assert f"<b>{node.label}</b>" in text and "φ_d =" in text
+    # Cause and effect purviews, each with its own φ, and the total relation φ.
+    assert f"cause: {xor_projection.endpoints[0].label}" in text
+    assert f"effect: {xor_projection.endpoints[1].label}" in text
+    assert "Σφ_r =" in text
+
+
+def test_render_distinction_hovers_are_rich(xor_projection):
+    fig = _render(xor_projection)
+    purviews, mechanisms = fig.data[0], fig.data[1]
+    # Purview dots name their parent distinction; mechanism labels name both
+    # purviews and the relation total.
+    assert all("distinction" in h for h in purviews.hovertext)
+    assert all("Σφ_r =" in h for h in mechanisms.hovertext)
+
+
 def test_render_includes_higher_face_stars(xor_projection):
     import plotly.graph_objects as go
 

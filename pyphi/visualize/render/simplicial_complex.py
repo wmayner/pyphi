@@ -395,15 +395,20 @@ def _arc(p0: Point, p1: Point, curvature: float) -> tuple[Point, ...]:
     return tuple(points)
 
 
-def _purview_trace(endpoints, pos, theme, show_colorbar=True):
-    hover = [
-        (
-            f"<b>{e.label}</b> ({e.direction})"
-            f"<br>purview {e.purview} = {e.purview_state}"
-            f"<br>φ = {e.phi:.4g}"
-        )
-        for e in endpoints
-    ]
+def _basic_endpoint_hover(e):
+    """Fallback hover for a purview endpoint when no projection is supplied."""
+    return f"<b>{e.label}</b> ({e.direction}) · φ = {e.phi:.4g}"
+
+
+def _basic_distinction_hover(n):
+    """Fallback hover for a distinction when no projection is supplied."""
+    return f"<b>{n.label}</b> · φ_d = {n.phi:.4g}"
+
+
+def _purview_trace(
+    endpoints, pos, theme, show_colorbar=True, hover_for=_basic_endpoint_hover
+):
+    hover = [hover_for(e) for e in endpoints]
     return go.Scatter3d(
         x=[pos[e.id][0] for e in endpoints],
         y=[pos[e.id][1] for e in endpoints],
@@ -432,12 +437,8 @@ def _purview_trace(endpoints, pos, theme, show_colorbar=True):
     )
 
 
-def _mechanism_trace(nodes, pos, theme):
-    hover = [
-        f"<b>{n.label}</b><br>mechanism {n.mechanism} = {n.mechanism_state}"
-        f"<br>φ = {n.phi:.4g}"
-        for n in nodes
-    ]
+def _mechanism_trace(nodes, pos, theme, hover_for=_basic_distinction_hover):
+    hover = [hover_for(n) for n in nodes]
     return go.Scatter3d(
         x=[pos[n.id][0] for n in nodes],
         y=[pos[n.id][1] for n in nodes],
@@ -505,6 +506,47 @@ def _face_hover_fn(projection):
             f"<b>{face.degree}-face</b> · φ = {face.phi:.4g}"
             f"<br>overlap: {overlap}"
             f"<br>relata:<br>{relata}"
+        )
+
+    return hover
+
+
+def _endpoint_hover_fn(projection):
+    """Rich hover for a purview endpoint (one side of a distinction): the
+    state-cased purview and direction, this side's φ, and the parent
+    distinction (mechanism, φ_d, and the opposite purview).
+    """
+    nodes_by_id = {n.id: n for n in projection.nodes}
+    endpoints = projection.endpoints
+
+    def hover(e):
+        node = nodes_by_id[e.distinction_id]
+        sibling = endpoints[e.id ^ 1]
+        other = "effect" if e.direction == "cause" else "cause"
+        return (
+            f"<b>{e.label}</b> ({e.direction}) · φ = {e.phi:.4g}"
+            f"<br>distinction {node.label} · φ_d = {node.phi:.4g}"
+            f"<br>{other}: {sibling.label}"
+        )
+
+    return hover
+
+
+def _distinction_hover_fn(projection):
+    """Rich hover for a distinction (its mechanism marker): the mechanism, φ_d,
+    the cause and effect purviews (state-cased, each with its φ), and the total
+    relation φ the distinction carries.
+    """
+    endpoints = projection.endpoints
+
+    def hover(node):
+        cause = endpoints[2 * node.id]
+        effect = endpoints[2 * node.id + 1]
+        return (
+            f"<b>{node.label}</b> · φ_d = {node.phi:.4g}"
+            f"<br>cause: {cause.label} · φ = {cause.phi:.4g}"
+            f"<br>effect: {effect.label} · φ = {effect.phi:.4g}"
+            f"<br>Σφ_r = {node.sum_phi_relations:.4g}"
         )
 
     return hover
@@ -699,9 +741,24 @@ def render_simplicial_complex(
     hover_for_face = _face_hover_fn(projection)
     traces = []
     if "purviews" in show:
-        traces.append(_purview_trace(endpoints, endpoint_pos, theme, show_colorbars))
+        traces.append(
+            _purview_trace(
+                endpoints,
+                endpoint_pos,
+                theme,
+                show_colorbars,
+                hover_for=_endpoint_hover_fn(projection),
+            )
+        )
     if "mechanisms" in show:
-        traces.append(_mechanism_trace(nodes, mechanism_pos, theme))
+        traces.append(
+            _mechanism_trace(
+                nodes,
+                mechanism_pos,
+                theme,
+                hover_for=_distinction_hover_fn(projection),
+            )
+        )
     if "cause_effect_links" in show:
         traces.append(
             _link_trace(
