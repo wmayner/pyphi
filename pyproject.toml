@@ -60,6 +60,9 @@ dev = [
     "asv",
     "build",
     "coverage",
+    # graphify: knowledge-graph CLI (command is `graphify`); used to query and
+    # refresh graphify-out/. Standalone tool, not a pyphi import dependency.
+    "graphifyy>=0.8.44",
     "hypothesis",
     "pre-commit",
     "pytest-cov",

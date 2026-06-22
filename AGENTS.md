@@ -774,3 +774,19 @@ PyPhi implements a complex mathematical theory with real-world scientific applic
 The project needs maintenance and refactoring work, which presents an opportunity to improve code quality while preserving mathematical correctness. Incremental improvements with comprehensive testing are the best approach.
 
 **Remember**: This is scientific software. Correctness > performance > elegance.
+
+## graphify
+
+This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships. The graph also carries hand-built edges linking IIT paper concepts to the code that implements them (`implements`/`cites`), so it can answer "which function implements Theorem 1 / the intrinsic-difference measure / a given equation". `graph.json` and `GRAPH_REPORT.md` are committed and shared; everything else under graphify-out/ is gitignored local state.
+
+graphify is a standalone CLI, not a pyphi import dependency, so it is registered in the `[dependency-groups] dev` list (package name `graphifyy`, double-y; command is `graphify`). It installs with the rest of the dev tooling via `uv sync`, or on its own with `uv tool install 'graphifyy==0.8.44'`.
+
+Rules:
+- For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
+- For paper-to-code traceability ("what implements concept X?"), prefer `graphify path "<concept>" "<symbol>"` and `graphify explain "<concept>"`. They give precise answers, whereas the bare `query` does a broad keyword sweep and returns a large, noisy neighborhood.
+- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
+- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
+
+Keeping the graph current:
+- After modifying code, run `graphify update .` to refresh the structural (AST) layer — cheap, deterministic, no API cost. Do this routinely.
+- The IIT paper-to-code bridge edges do NOT refresh with `graphify update`; they go stale when implementing modules are renamed or rewritten. Rebuild them deliberately (a focused multi-agent pass reading the IIT papers alongside their implementing modules, emitting `implements`/`cites` edges) after a release or before onboarding — not on every commit.

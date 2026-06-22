@@ -14,7 +14,7 @@ repos:
     rev: v6.0.0
     hooks:
       - id: check-added-large-files
-        exclude: ^papers/
+        exclude: ^(papers/|graphify-out/)
       - id: debug-statements
       - id: end-of-file-fixer
       - id: trailing-whitespace
