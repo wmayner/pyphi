@@ -212,6 +212,11 @@ def test_hypergraph_geometry_defaults():
     assert geo.endpoint_placement == "mechanism_anchored"
     # The global-embedding layout defaults to the MDS method.
     assert geo.embedding_method == "mds"
+    # Embedding block weights default so purview dominates mechanism and
+    # direction; they are exposed as knobs.
+    assert geo.embed_purview_weight == 1.0
+    assert geo.embed_mechanism_weight == 0.5
+    assert geo.embed_direction_weight == 0.5
 
 
 def test_theme_frozen_with_defaults():

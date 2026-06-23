@@ -31,7 +31,12 @@ def _units(projection) -> list[int]:
     )
 
 
-def _mice_vectors(projection) -> np.ndarray:
+def _mice_vectors(
+    projection,
+    purview_weight: float = _PURVIEW_WEIGHT,
+    mechanism_weight: float = _MECHANISM_WEIGHT,
+    direction_weight: float = _DIRECTION_WEIGHT,
+) -> np.ndarray:
     """Composition feature vectors for the endpoints (row index == endpoint id).
 
     Each row concatenates three weighted blocks over the sorted unit set:
@@ -44,11 +49,11 @@ def _mice_vectors(projection) -> np.ndarray:
     vectors = np.zeros((len(projection.endpoints), 2 * width + 1))
     for e in projection.endpoints:
         for u in e.purview:
-            vectors[e.id, column[u]] = _PURVIEW_WEIGHT
+            vectors[e.id, column[u]] = purview_weight
         for u in nodes_by_id[e.distinction_id].mechanism:
-            vectors[e.id, width + column[u]] = _MECHANISM_WEIGHT
+            vectors[e.id, width + column[u]] = mechanism_weight
         vectors[e.id, 2 * width] = (
-            _DIRECTION_WEIGHT if e.direction == "effect" else -_DIRECTION_WEIGHT
+            direction_weight if e.direction == "effect" else -direction_weight
         )
     return vectors
 
@@ -59,7 +64,12 @@ def _jaccard(a, b) -> float:
     return 1.0 - len(sa & sb) / len(union) if union else 0.0
 
 
-def _mice_distance(projection) -> np.ndarray:
+def _mice_distance(
+    projection,
+    purview_weight: float = _PURVIEW_WEIGHT,
+    mechanism_weight: float = _MECHANISM_WEIGHT,
+    direction_weight: float = _DIRECTION_WEIGHT,
+) -> np.ndarray:
     """Pairwise endpoint dissimilarity for MDS: a weighted blend of Jaccard
     distance on purviews, Jaccard on mechanisms, and a direction term.
     """
@@ -70,13 +80,13 @@ def _mice_distance(projection) -> np.ndarray:
     for i in range(n):
         for j in range(i + 1, n):
             d = (
-                _PURVIEW_WEIGHT * _jaccard(eps[i].purview, eps[j].purview)
-                + _MECHANISM_WEIGHT
+                purview_weight * _jaccard(eps[i].purview, eps[j].purview)
+                + mechanism_weight
                 * _jaccard(
                     nodes_by_id[eps[i].distinction_id].mechanism,
                     nodes_by_id[eps[j].distinction_id].mechanism,
                 )
-                + _DIRECTION_WEIGHT * float(eps[i].direction != eps[j].direction)
+                + direction_weight * float(eps[i].direction != eps[j].direction)
             )
             dist[i, j] = dist[j, i] = d
     return dist
@@ -164,10 +174,15 @@ def embedding_positions(
     one point; a mechanism sits at the centroid of its two endpoints.
     """
     method = geometry.embedding_method
+    weights = (
+        geometry.embed_purview_weight,
+        geometry.embed_mechanism_weight,
+        geometry.embed_direction_weight,
+    )
     if method == "pca":
-        coords = pca_embed(_mice_vectors(projection))
+        coords = pca_embed(_mice_vectors(projection, *weights))
     elif method == "mds":
-        coords = mds_embed(_mice_distance(projection))
+        coords = mds_embed(_mice_distance(projection, *weights))
     else:
         raise ValueError(f"unknown embedding_method {method!r}")
     coords = _normalize_cloud(coords, geometry.max_radius)

@@ -22,7 +22,9 @@ class HypergraphGeometry:
     """Plot-space layout knobs for the hypergraph view.
 
     ``z_spacing`` stacks the size shells vertically, so height encodes
-    subset size; set it to 0 for a flat (planar) arrangement.
+    subset size; set it to 0 for a flat (planar) arrangement. The
+    ``embed_*_weight`` fields weight the purview, mechanism, and direction
+    blocks of the global-embedding layout; purview dominates by default.
     """
 
     max_radius: float = 1.0
@@ -31,6 +33,9 @@ class HypergraphGeometry:
     purview_jitter: float = 0.1
     endpoint_placement: str = "mechanism_anchored"
     embedding_method: str = "mds"
+    embed_purview_weight: float = 1.0
+    embed_mechanism_weight: float = 0.5
+    embed_direction_weight: float = 0.5
 
 
 # Endpoints sharing a purview are nudged toward their mechanism; vectors shorter
