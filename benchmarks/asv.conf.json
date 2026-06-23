@@ -30,6 +30,22 @@
     // variable.
     "environment_type": "virtualenv",
 
+    // Build each commit with PEP 517 `build` rather than asv's default
+    // `pip wheel -w`. With modern pip the default leaves the wheel in pip's
+    // ephemeral cache instead of {build_cache_dir}, so asv cannot find
+    // {wheel_file} and the install step fails. `python -m build -o` writes
+    // the wheel to the output directory reliably.
+    "build_command": [
+        "python -m build --wheel -o {build_cache_dir} {build_dir}"
+    ],
+
+    // Install the built wheel with the `emd` extra so the EMD microbenchmark
+    // can import POT. asv's default install omits extras; without this the
+    // managed environment lacks `pot` and micro.Emd fails.
+    "install_command": [
+        "in-dir={env_dir} python -m pip install {wheel_file}[emd] --force-reinstall"
+    ],
+
     // the base URL to show a commit for the project.
     "show_commit_url": "http://github.com/wmayner/pyphi/",
 
