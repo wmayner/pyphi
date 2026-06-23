@@ -217,6 +217,8 @@ def test_hypergraph_geometry_defaults():
     assert geo.embed_purview_weight == 1.0
     assert geo.embed_mechanism_weight == 0.5
     assert geo.embed_direction_weight == 0.5
+    # The embedding is volumetric (3-D) by default; planar flattening is opt-in.
+    assert geo.embed_planar is False
 
 
 def test_theme_frozen_with_defaults():

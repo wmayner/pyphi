@@ -25,6 +25,8 @@ class HypergraphGeometry:
     subset size; set it to 0 for a flat (planar) arrangement. The
     ``embed_*_weight`` fields weight the purview, mechanism, and direction
     blocks of the global-embedding layout; purview dominates by default.
+    ``embed_planar`` flattens that layout to two dimensions (``z = 0``),
+    mirroring the planar scatter view.
     """
 
     max_radius: float = 1.0
@@ -36,6 +38,7 @@ class HypergraphGeometry:
     embed_purview_weight: float = 1.0
     embed_mechanism_weight: float = 0.5
     embed_direction_weight: float = 0.5
+    embed_planar: bool = False
 
 
 # Endpoints sharing a purview are nudged toward their mechanism; vectors shorter

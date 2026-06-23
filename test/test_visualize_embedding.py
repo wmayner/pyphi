@@ -178,3 +178,43 @@ def test_embedding_positions_threads_geometry_weights():
         HypergraphGeometry(embed_mechanism_weight=0.0, embed_direction_weight=0.0),
     )
     assert with_mech != without_mech
+
+
+def _two_distinction_projection():
+    from types import SimpleNamespace
+
+    nodes = [
+        SimpleNamespace(id=0, mechanism=(0,), cause_purview=(0,), effect_purview=(1,)),
+        SimpleNamespace(id=1, mechanism=(1,), cause_purview=(1,), effect_purview=(0, 1)),
+    ]
+    endpoints = [
+        SimpleNamespace(id=0, distinction_id=0, direction="cause", purview=(0,)),
+        SimpleNamespace(id=1, distinction_id=0, direction="effect", purview=(1,)),
+        SimpleNamespace(id=2, distinction_id=1, direction="cause", purview=(1,)),
+        SimpleNamespace(id=3, distinction_id=1, direction="effect", purview=(0, 1)),
+    ]
+    return SimpleNamespace(nodes=nodes, endpoints=endpoints)
+
+
+def test_embedding_positions_planar_flattens_z():
+    from pyphi.visualize.render.embedding import embedding_positions
+    from pyphi.visualize.render.hypergraph import HypergraphGeometry
+
+    proj = _two_distinction_projection()
+    endpoint_pos, mechanism_pos = embedding_positions(
+        proj, HypergraphGeometry(embed_planar=True)
+    )
+    assert all(p[2] == 0.0 for p in endpoint_pos.values())
+    assert all(m[2] == 0.0 for m in mechanism_pos.values())
+
+
+def test_embedding_positions_planar_differs_from_volumetric():
+    from pyphi.visualize.render.embedding import embedding_positions
+    from pyphi.visualize.render.hypergraph import HypergraphGeometry
+
+    proj = _two_distinction_projection()
+    flat, _ = embedding_positions(proj, HypergraphGeometry(embed_planar=True))
+    volume, _ = embedding_positions(proj, HypergraphGeometry(embed_planar=False))
+    # The volumetric layout uses the third axis; flattening it changes the cloud.
+    assert flat != volume
+    assert any(p[2] != 0.0 for p in volume.values())

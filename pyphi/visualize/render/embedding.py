@@ -179,12 +179,15 @@ def embedding_positions(
         geometry.embed_mechanism_weight,
         geometry.embed_direction_weight,
     )
+    n_components = 2 if geometry.embed_planar else 3
     if method == "pca":
-        coords = pca_embed(_mice_vectors(projection, *weights))
+        coords = pca_embed(_mice_vectors(projection, *weights), n_components)
     elif method == "mds":
-        coords = mds_embed(_mice_distance(projection, *weights))
+        coords = mds_embed(_mice_distance(projection, *weights), n_components)
     else:
         raise ValueError(f"unknown embedding_method {method!r}")
+    if n_components == 2:
+        coords = np.hstack([coords, np.zeros((len(coords), 1))])
     coords = _normalize_cloud(coords, geometry.max_radius)
     coords = _spread_coincident(coords, geometry.max_radius * 0.02)
     endpoint_pos: dict[int, Point] = {
