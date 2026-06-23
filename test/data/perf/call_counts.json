@@ -1,0 +1,65 @@
+{
+  "actual_causation::account": {
+    "conf/:override": 2,
+    "relations.py:relations": 0,
+    "repertoire_algebra.py:cause_repertoire": 41,
+    "repertoire_algebra.py:effect_repertoire": 43,
+    "system.py:find_mip": 0
+  },
+  "basic_iit3_emd::sia": {
+    "conf/:override": 1,
+    "relations.py:relations": 0,
+    "repertoire_algebra.py:cause_repertoire": 441,
+    "repertoire_algebra.py:effect_repertoire": 432,
+    "system.py:find_mip": 0
+  },
+  "basic_iit4_2023::mechanism_mips": {
+    "conf/:override": 1,
+    "relations.py:relations": 0,
+    "repertoire_algebra.py:cause_repertoire": 98,
+    "repertoire_algebra.py:effect_repertoire": 3867,
+    "system.py:find_mip": 98
+  },
+  "basic_iit4_2023::phi_structure": {
+    "conf/:override": 1,
+    "relations.py:relations": 1,
+    "repertoire_algebra.py:cause_repertoire": 53,
+    "repertoire_algebra.py:effect_repertoire": 2197,
+    "system.py:find_mip": 0
+  },
+  "basic_iit4_2023::repertoires": {
+    "conf/:override": 1,
+    "relations.py:relations": 0,
+    "repertoire_algebra.py:cause_repertoire": 64,
+    "repertoire_algebra.py:effect_repertoire": 64,
+    "system.py:find_mip": 0
+  },
+  "basic_iit4_2023::sia": {
+    "conf/:override": 1,
+    "relations.py:relations": 0,
+    "repertoire_algebra.py:cause_repertoire": 23,
+    "repertoire_algebra.py:effect_repertoire": 129,
+    "system.py:find_mip": 0
+  },
+  "basic_iit4_2026::sia": {
+    "conf/:override": 1,
+    "relations.py:relations": 0,
+    "repertoire_algebra.py:cause_repertoire": 23,
+    "repertoire_algebra.py:effect_repertoire": 129,
+    "system.py:find_mip": 0
+  },
+  "multivalued_k3_tiny_iit4_2023::sia": {
+    "conf/:override": 1,
+    "relations.py:relations": 0,
+    "repertoire_algebra.py:cause_repertoire": 4,
+    "repertoire_algebra.py:effect_repertoire": 36,
+    "system.py:find_mip": 0
+  },
+  "rule110_iit4_2023::phi_structure": {
+    "conf/:override": 1,
+    "relations.py:relations": 1,
+    "repertoire_algebra.py:cause_repertoire": 102,
+    "repertoire_algebra.py:effect_repertoire": 4681,
+    "system.py:find_mip": 0
+  }
+}

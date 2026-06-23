@@ -26,12 +26,15 @@ from .zoo import ALL_FIXTURES
 FIXTURES_BY_NAME = {f.name: f for f in ALL_FIXTURES}
 GRAINS = ("repertoires", "mechanism_mips", "phi_structure", "sia")
 
-# Hot frames as (file_substring, funcname). Tuned against live cProfile stats in
-# Task 7; this is the canonical list every consumer imports.
+# Hot frames as (file_substring, funcname), tuned against live cProfile stats.
+# These are structural call-count sentinels for the redundant-work regression
+# class: the repertoire kernel, the mechanism-MIP search, relations enumeration,
+# and ``config.override`` (the per-partition override blow-up that motivated the
+# gate). Each consumer imports this canonical list.
 FRAMES: list[tuple[str, str]] = [
+    ("repertoire_algebra.py", "cause_repertoire"),
+    ("repertoire_algebra.py", "effect_repertoire"),
     ("system.py", "find_mip"),
-    ("system.py", "cause_repertoire"),
-    ("system.py", "effect_repertoire"),
     ("relations.py", "relations"),
     ("conf/", "override"),
 ]
