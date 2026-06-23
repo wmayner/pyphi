@@ -254,11 +254,11 @@ uv pip install -e ".[dev,parallel,visualize,graphs,emd,caching]"
 # Run type checking
 uv run pyright pyphi
 
-# Run benchmarks
-make benchmark
+# Run benchmarks (quick, current env)
+just bench
 
 # Build documentation
-make docs
+just docs
 
 # Check configuration
 uv run python -c "import pyphi; print(pyphi.config)"
@@ -343,8 +343,8 @@ uv run pytest test/test_subsystem.py::test_cause_repertoire
 uv run coverage run --source pyphi -m pytest
 uv run coverage html
 
-# Watch mode (with watchdog installed)
-make test
+# Run the test suite (forwards args to pytest)
+just test
 ```
 
 **Note**: Coverage configuration is now in `pyproject.toml` under `[tool.coverage.*]`.
@@ -727,16 +727,17 @@ uv venv                                             # Create virtual environment
 uv pip install -e ".[dev,parallel,visualize]"       # Install with dev dependencies
 
 # Testing
-make test                                            # Watch mode
+just test                                            # Run tests (forwards args)
 uv run pytest                                        # All tests
 uv run pytest -k test_name                           # Specific test
 uv run pytest --cov=pyphi                            # With coverage
 
 # Benchmarking
-make benchmark
+just bench                                            # Quick local run (current env)
+just bench-dashboard                                 # Build + serve the ASV HTML dashboard
 
 # Documentation
-make docs
+just docs
 open docs/_build/html/index.html
 
 # Code quality

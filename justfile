@@ -22,9 +22,25 @@ docs:
 serve-docs port="1337": docs
     cd docs/_build/html && uv run python -m http.server {{ port }}
 
-# Run benchmarks
-benchmark:
-    cd benchmarks && uv run asv continuous develop
+# Run the benchmark suite once locally (current env, quick mode)
+bench *args:
+    cd benchmarks && uv run asv run --quick --python=same {{ args }}
+
+# Build the ASV HTML dashboard and serve it locally (readable, left-aligned)
+bench-dashboard:
+    cd benchmarks && uv run asv publish && uv run asv preview
+
+# Compare HEAD against the previous commit on one runner (builds both — slower)
+bench-compare:
+    cd benchmarks && uv run asv continuous --python=same HEAD~1 HEAD
+
+# Run the deterministic perf-counter gate (the PR-blocking check)
+perf-gate:
+    uv run pytest test/test_perf_counters.py
+
+# Regenerate the pinned perf call counts (review the diff like a golden)
+perf-pins:
+    uv run python scripts/gen_perf_counts.py
 
 # Build and upload to PyPI
 dist: clean-dist

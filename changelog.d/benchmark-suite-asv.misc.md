@@ -4,4 +4,6 @@ the three formalisms, layered as repertoires / mechanism MIPs / phi-structure
 / SIA, plus parallel, cache, EMD, and Actual Causation benchmarks). A nightly
 workflow accumulates results and alerts on wall-time regressions, and a
 deterministic cProfile call-count gate (`test/test_perf_counters.py`) fails CI
-on any change to hot-path call counts.
+on any change to hot-path call counts. The `justfile` gained `bench`,
+`bench-dashboard`, `bench-compare`, `perf-gate`, and `perf-pins` recipes for
+running these locally.
