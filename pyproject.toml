@@ -86,6 +86,12 @@ discussion = "https://groups.google.com/forum/#!forum/pyphi-users"
 [tool.hatch.version]
 source = "vcs"
 
+[tool.hatch.version.raw-options]
+# Builds without git metadata (e.g. asv's commit exports, source tarballs)
+# cannot derive a version from tags; fall back instead of failing the build.
+# Ignored whenever git history is present, so normal builds are unaffected.
+fallback_version = "0.0.0"
+
 [tool.hatch.build.targets.sdist]
 include = [
     "README.md",
