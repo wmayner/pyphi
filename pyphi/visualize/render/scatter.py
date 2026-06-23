@@ -10,14 +10,14 @@ relation-defined extendedness).
 
 from __future__ import annotations
 
-import math
-
 import numpy as np
 import plotly.graph_objects as go
 
 from pyphi.visualize.projection import CESProjection
 from pyphi.visualize.render.common import CHANNEL_TITLES
 from pyphi.visualize.render.common import rescale
+from pyphi.visualize.render.common import spread_coincident
+from pyphi.visualize.render.embedding import pca_embed
 from pyphi.visualize.theme import Theme
 
 
@@ -46,44 +46,10 @@ def _pca_coords(projection: CESProjection) -> list[tuple[float, float]]:
         for block, subset in enumerate(subsets):
             for u in subset:
                 members[n.id, block * width + column[u]] = 1.0
-    centered = members - members.mean(axis=0)
-    u_mat, s, vt = np.linalg.svd(centered, full_matrices=False)
-    n = len(projection.nodes)
-    fallback = np.linspace(-0.5, 0.5, n) if n > 1 else np.zeros(1)
-    coords = np.zeros((n, 2))
-    for c in range(2):
-        if c < len(s) and s[c] > 1e-9:
-            component = u_mat[:, c] * s[c]
-            if vt[c, np.argmax(np.abs(vt[c]))] < 0:
-                component = -component
-            coords[:, c] = component
-        else:
-            coords[:, c] = fallback
-    return _spread_coincident([(float(x), float(y)) for x, y in coords])
-
-
-def _spread_coincident(
-    coords: list[tuple[float, float]],
-) -> list[tuple[float, float]]:
-    """Spread points sharing (numerically) the same spot on a small circle."""
-    xs = [c[0] for c in coords]
-    ys = [c[1] for c in coords]
-    span = max(max(xs) - min(xs), max(ys) - min(ys)) or 1.0
-    quantum = span * 1e-6
-    groups: dict[tuple[int, int], list[int]] = {}
-    for i, (x, y) in enumerate(coords):
-        groups.setdefault((round(x / quantum), round(y / quantum)), []).append(i)
-    spread = list(coords)
-    radius = 0.03 * span
-    for ids in groups.values():
-        if len(ids) > 1:
-            for k, i in enumerate(ids):
-                angle = 2 * math.pi * k / len(ids)
-                spread[i] = (
-                    coords[i][0] + radius * math.cos(angle),
-                    coords[i][1] + radius * math.sin(angle),
-                )
-    return spread
+    coords = pca_embed(members, n_components=2)
+    span = max(float(np.ptp(coords[:, 0])), float(np.ptp(coords[:, 1]))) or 1.0
+    spread = spread_coincident(coords, 0.03 * span)
+    return [(float(x), float(y)) for x, y in spread]
 
 
 def _role(node) -> str:

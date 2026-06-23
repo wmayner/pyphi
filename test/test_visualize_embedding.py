@@ -146,6 +146,19 @@ def test_mds_embed_deterministic():
     assert np.array_equal(mds_embed(dist), mds_embed(dist))
 
 
+def test_spread_coincident_separates_xy_and_preserves_other_axes():
+    from pyphi.visualize.render.common import spread_coincident
+
+    coords = np.array([[0.0, 0.0, 0.5], [0.0, 0.0, 0.5], [1.0, 1.0, 0.2]])
+    out = spread_coincident(coords, radius=0.1)
+    # The two coincident points are pushed apart in the xy-plane.
+    assert not np.allclose(out[0, :2], out[1, :2])
+    # A distinct point is left untouched.
+    assert np.allclose(out[2], coords[2])
+    # Axes beyond xy are never modified.
+    assert np.allclose(out[:, 2], coords[:, 2])
+
+
 def test_embedding_positions_threads_geometry_weights():
     from types import SimpleNamespace
 

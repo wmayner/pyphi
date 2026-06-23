@@ -12,6 +12,8 @@ import math
 
 import numpy as np
 
+from pyphi.visualize.render.common import spread_coincident
+
 Point = tuple[float, float, float]
 
 # Feature-vector block weights (PCA) and distance-blend weights (MDS). Purview
@@ -148,23 +150,6 @@ def _normalize_cloud(coords: np.ndarray, max_radius: float) -> np.ndarray:
     return centered / scale * max_radius
 
 
-def _spread_coincident(coords: np.ndarray, radius: float) -> np.ndarray:
-    """Spread points sharing (numerically) the same spot on a small xy circle."""
-    span = float(np.max(np.abs(coords))) or 1.0
-    quantum = span * 1e-6
-    groups: dict[tuple, list[int]] = {}
-    for i, p in enumerate(coords):
-        groups.setdefault(tuple(np.round(p / quantum).astype(int)), []).append(i)
-    out = coords.copy()
-    for ids in groups.values():
-        if len(ids) > 1:
-            for k, i in enumerate(ids):
-                angle = 2 * math.pi * k / len(ids)
-                out[i, 0] += radius * math.cos(angle)
-                out[i, 1] += radius * math.sin(angle)
-    return out
-
-
 def embedding_positions(
     projection, geometry
 ) -> tuple[dict[int, Point], dict[int, Point]]:
@@ -189,7 +174,7 @@ def embedding_positions(
     if n_components == 2:
         coords = np.hstack([coords, np.zeros((len(coords), 1))])
     coords = _normalize_cloud(coords, geometry.max_radius)
-    coords = _spread_coincident(coords, geometry.max_radius * 0.02)
+    coords = spread_coincident(coords, geometry.max_radius * 0.02)
     endpoint_pos: dict[int, Point] = {
         e.id: (float(coords[e.id, 0]), float(coords[e.id, 1]), float(coords[e.id, 2]))
         for e in projection.endpoints
