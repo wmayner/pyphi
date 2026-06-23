@@ -778,16 +778,15 @@ The project needs maintenance and refactoring work, which presents an opportunit
 
 ## graphify
 
-This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships. The graph also carries hand-built edges linking IIT paper concepts to the code that implements them (`implements`/`cites`), so it can answer "which function implements Theorem 1 / the intrinsic-difference measure / a given equation". `graph.json` and `GRAPH_REPORT.md` are committed and shared; everything else under graphify-out/ is gitignored local state.
+This project can build a knowledge graph under graphify-out/ (god nodes, community structure, cross-file relationships) plus hand-built edges linking IIT paper concepts to the code that implements them (`implements`/`cites`), which answer "which function implements Theorem 1 / the intrinsic-difference measure / a given equation". Only the curated bridge edges are committed — `graphify-out/bridge-edges.json` (238 `implements`/`cites` edges + their endpoint nodes). The full `graph.json` and `GRAPH_REPORT.md` are large and regenerable, so they are **local-only** (gitignored) along with the rest of graphify-out/. Build them with `graphify update .`, then restore the committed bridge edges with `uv run python scripts/graphify_bridge.py inject`.
 
 graphify is a standalone CLI, not a pyphi import dependency, so it is registered in the `[dependency-groups] dev` list (package name `graphifyy`, double-y; command is `graphify`). It installs with the rest of the dev tooling via `uv sync`, or on its own with `uv tool install 'graphifyy==0.8.44'`.
 
-Rules:
-- For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
-- For paper-to-code traceability ("what implements concept X?"), prefer `graphify path "<concept>" "<symbol>"` and `graphify explain "<concept>"`. They give precise answers, whereas the bare `query` does a broad keyword sweep and returns a large, noisy neighborhood.
-- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
-- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
+When to use it (optional — graphify is a convenience, not a required first step; it needs a local `graph.json`, which a fresh clone won't have until you run `graphify update .`):
+- It earns its keep for **paper-to-code traceability** ("what implements concept X?", via `graphify path "<concept>" "<symbol>"` / `graphify explain "<concept>"`) — the bridge edges answer questions grep cannot — and for **broad orientation** across many files in code you don't already know.
+- For targeted lookups in code you can already navigate, plain grep/Read are usually faster and more precise than a graph query (the bare `query` does a broad keyword sweep and can return a large, noisy neighborhood).
+- Read graphify-out/GRAPH_REPORT.md (when present locally) only for broad architecture review.
 
-Keeping the graph current:
-- After modifying code, run `graphify update .` to refresh the structural (AST) layer — cheap, deterministic, no API cost. Do this routinely.
-- The IIT paper-to-code bridge edges do NOT refresh with `graphify update`; they go stale when implementing modules are renamed or rewritten. Rebuild them deliberately (a focused multi-agent pass reading the IIT papers alongside their implementing modules, emitting `implements`/`cites` edges) after a release or before onboarding — not on every commit.
+Keeping it current:
+- `graph.json`/`GRAPH_REPORT.md` are local. Run `graphify update .` to refresh the structural (AST) layer (cheap, deterministic, no API cost), then `uv run python scripts/graphify_bridge.py inject` to merge the committed bridge edges back into the freshly built graph.
+- The committed `graphify-out/bridge-edges.json` is the version-controlled asset. The bridge edges do NOT refresh with `graphify update`; rebuild them deliberately (a focused multi-agent pass reading the IIT papers alongside their implementing modules, emitting `implements`/`cites` edges) after a release or before onboarding, then run `uv run python scripts/graphify_bridge.py extract` to refresh the committed sidecar (review the diff like a golden).
