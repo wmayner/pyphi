@@ -42,9 +42,9 @@ dump.rdb
 # Superpowers visual-companion brainstorm artifacts
 .superpowers/
 
-# graphify knowledge graph: track the shareable graph + human report only.
-# The HTML viz is regenerable from graph.json; cache/, cost.json, manifest.json,
-# and the .graphify_* dotfiles are per-clone local state.
+# graphify knowledge graph: only the hand-curated paper-to-code bridge edges are
+# tracked. The full graph.json and GRAPH_REPORT.md are large, churny, and
+# regenerable (`graphify update .`), so they're local-only — as are cache/,
+# cost.json, manifest.json, the HTML viz, and the .graphify_* dotfiles.
 graphify-out/*
-!graphify-out/graph.json
-!graphify-out/GRAPH_REPORT.md
+!graphify-out/bridge-edges.json

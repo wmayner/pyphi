@@ -1,0 +1,5001 @@
+{
+  "edges": [
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "cites",
+      "source": "actual_causation_compute",
+      "source_file": "pyphi/formalism/actual_causation/compute.py",
+      "target": "papers_2019_what_caused_what_paper",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "actual_causation_compute",
+      "source_file": "pyphi/formalism/actual_causation/compute.py",
+      "target": "papers_actual_causation",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "actual_causation_compute_account",
+      "source_file": "pyphi/formalism/actual_causation/compute.py",
+      "target": "papers_actual_causation",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "relation": "implements",
+      "source": "actual_causation_compute_alpha_subtractive",
+      "source_file": "pyphi/formalism/actual_causation/compute.py",
+      "target": "papers_alpha_causal_strength",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "actual_causation_compute_alphaaggregationregistry",
+      "source_file": "pyphi/formalism/actual_causation/compute.py",
+      "target": "papers_alpha_causal_strength",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "actual_causation_compute_directed_account",
+      "source_file": "pyphi/formalism/actual_causation/compute.py",
+      "target": "papers_actual_causation",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "relation": "implements",
+      "source": "actual_causation_compute_find_causal_link",
+      "source_file": "pyphi/formalism/actual_causation/compute.py",
+      "target": "papers_actual_causation",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "actual_causation_compute_find_mip",
+      "source_file": "pyphi/formalism/actual_causation/compute.py",
+      "target": "papers_alpha_causal_strength",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "actual_causation_compute_probability_distance",
+      "source_file": "pyphi/formalism/actual_causation/compute.py",
+      "target": "papers_alpha_causal_strength",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "actual_causation_compute_sia",
+      "source_file": "pyphi/formalism/actual_causation/compute.py",
+      "target": "papers_2019_what_caused_what_paper",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "core_repertoire_algebra",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "target": "papers_cause_effect_repertoire",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "relation": "implements",
+      "source": "core_repertoire_algebra_cause_effect_info",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "target": "papers_cause_effect_repertoire",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "core_repertoire_algebra_cause_info",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "target": "papers_cause_effect_repertoire",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "core_repertoire_algebra_cause_repertoire",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "target": "papers_2021_mechanism_integrated_information_cause_effect_repertoire",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "core_repertoire_algebra_cause_repertoire",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "target": "papers_cause_effect_repertoire",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "core_repertoire_algebra_cause_repertoire_inner",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "target": "papers_cause_effect_repertoire",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "core_repertoire_algebra_effect_info",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "target": "papers_cause_effect_repertoire",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "core_repertoire_algebra_effect_repertoire",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "target": "papers_2021_mechanism_integrated_information_cause_effect_repertoire",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "core_repertoire_algebra_effect_repertoire",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "target": "papers_cause_effect_repertoire",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "core_repertoire_algebra_effect_repertoire_inner",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "target": "papers_cause_effect_repertoire",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "core_repertoire_algebra_intrinsic_information",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "target": "papers_mice",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "core_repertoire_algebra_partitioned_repertoire",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "target": "papers_small_phi_integration",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "cites",
+      "source": "core_repertoire_algebra_rationale_236",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "target": "papers_cause_effect_repertoire",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "cites",
+      "source": "core_repertoire_algebra_rationale_254",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "target": "papers_cause_effect_repertoire",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "cites",
+      "source": "core_repertoire_algebra_rationale_464",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "target": "papers_iit_integrated_information_theory",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "core_repertoire_algebra_repertoire",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "target": "papers_cause_effect_repertoire",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "core_repertoire_algebra_single_node_cause_repertoire",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "target": "papers_2021_mechanism_integrated_information_causal_marginalization",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "core_repertoire_algebra_single_node_effect_repertoire",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "target": "papers_2021_mechanism_integrated_information_causal_marginalization",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "cites",
+      "source": "iit4_bounds",
+      "source_file": "pyphi/formalism/iit4/bounds.py",
+      "target": "papers_2024_upper_bounds_paper",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "iit4_bounds_big_phi_upper_bound",
+      "source_file": "pyphi/formalism/iit4/bounds.py",
+      "target": "papers_2024_upper_bounds_system_integrated_information",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "iit4_bounds_distinction_phi_upper_bound",
+      "source_file": "pyphi/formalism/iit4/bounds.py",
+      "target": "papers_2024_upper_bounds_theorem1_distinction_bound",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "iit4_bounds_grouped_subset_min_sum",
+      "source_file": "pyphi/formalism/iit4/bounds.py",
+      "target": "papers_2024_upper_bounds_linear_programming_relation_bound",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "iit4_bounds_number_of_possible_distinctions",
+      "source_file": "pyphi/formalism/iit4/bounds.py",
+      "target": "papers_2024_upper_bounds_causal_distinction",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "iit4_bounds_number_of_possible_relations",
+      "source_file": "pyphi/formalism/iit4/bounds.py",
+      "target": "papers_2024_upper_bounds_causal_relation",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "iit4_bounds_partition_phi_upper_bound",
+      "source_file": "pyphi/formalism/iit4/bounds.py",
+      "target": "papers_2024_upper_bounds_lemma2_connections_cut_bound",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "iit4_bounds_phi_e_star",
+      "source_file": "pyphi/formalism/iit4/bounds.py",
+      "target": "papers_2024_upper_bounds_integrated_effect_information",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "iit4_bounds_relation_phi_upper_bound",
+      "source_file": "pyphi/formalism/iit4/bounds.py",
+      "target": "papers_2024_upper_bounds_relation_integrated_information",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "iit4_bounds_sum_phi_distinctions_upper_bound",
+      "source_file": "pyphi/formalism/iit4/bounds.py",
+      "target": "papers_2024_upper_bounds_distinction_integrated_information",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "iit4_bounds_sum_phi_relations_upper_bound",
+      "source_file": "pyphi/formalism/iit4/bounds.py",
+      "target": "papers_2024_upper_bounds_linear_programming_relation_bound",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "cites",
+      "source": "iit4_bounds_system_phi_upper_bound",
+      "source_file": "pyphi/formalism/iit4/bounds.py",
+      "target": "papers_2024_upper_bounds_paper",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "iit4_bounds_system_phi_upper_bound",
+      "source_file": "pyphi/formalism/iit4/bounds.py",
+      "target": "papers_2024_upper_bounds_system_integrated_information",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "cites",
+      "source": "iit4_bounds_upperbound",
+      "source_file": "pyphi/formalism/iit4/bounds.py",
+      "target": "papers_2024_upper_bounds_paper",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "iit4_init",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "target": "papers_2023_system_integrated_information_paper",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "iit4_init",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "target": "papers_2026_intrinsic_cause_effect_power_paper",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "iit4_init_apply_ii_cap",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "target": "papers_2026_intrinsic_cause_effect_power_intrinsic_information",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "iit4_init_apply_ii_cap",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "target": "papers_2026_intrinsic_cause_effect_power_system_integrated_information",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "iit4_init_ces",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "target": "papers_2023_system_integrated_information_phi_structure",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "iit4_init_evaluate_partition",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "target": "papers_2023_system_integrated_information_phi_s",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "iit4_init_find_mip_for_fixed_state",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "target": "papers_2023_system_integrated_information_phi_s",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "iit4_init_integration_value",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "target": "papers_2023_system_integrated_information_phi_s",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "iit4_init_intrinsic_differentiation_value",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "target": "papers_2026_intrinsic_cause_effect_power_intrinsic_differentiation",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "iit4_init_rationale_1149",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "target": "papers_2023_system_integrated_information_phi_structure",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "iit4_init_rationale_156",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "target": "papers_2023_system_integrated_information_phi_s",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "iit4_init_rationale_650",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "target": "papers_2023_system_integrated_information_phi_s",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "iit4_init_rationale_749",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "target": "papers_2026_intrinsic_cause_effect_power_intrinsic_information",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "iit4_init_rationale_796",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "target": "papers_2023_system_integrated_information_phi_s",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "iit4_init_sia",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "target": "papers_2023_system_integrated_information_paper",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "iit4_init_system_intrinsic_information",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "target": "papers_2023_system_integrated_information_intrinsic_info_term",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "iit4_init_system_intrinsic_information",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "target": "papers_2026_intrinsic_cause_effect_power_intrinsic_information",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "iit4_init_systemirreducibilityanalysis",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "target": "papers_2023_system_integrated_information_phi_s",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "iit4_init_systemirreducibilityanalysis",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "target": "papers_2026_intrinsic_cause_effect_power_system_integrated_information",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "macro_criteria",
+      "source_file": "pyphi/macro/criteria.py",
+      "target": "papers_2024_intrinsic_units_intrinsic_units",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "cites",
+      "source": "macro_criteria",
+      "source_file": "pyphi/macro/criteria.py",
+      "target": "papers_2024_intrinsic_units_paper",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "macro_criteria_constituent_system",
+      "source_file": "pyphi/macro/criteria.py",
+      "target": "papers_2024_intrinsic_units_candidate_substrate",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "macro_criteria_judge_candidate",
+      "source_file": "pyphi/macro/criteria.py",
+      "target": "papers_2024_intrinsic_units_intrinsic_units",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "macro_criteria_unit_integration",
+      "source_file": "pyphi/macro/criteria.py",
+      "target": "papers_2024_intrinsic_units_intrinsic_units",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "macro_criteria_unitverdict",
+      "source_file": "pyphi/macro/criteria.py",
+      "target": "papers_2024_intrinsic_units_intrinsic_units",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "macro_search",
+      "source_file": "pyphi/macro/search.py",
+      "target": "papers_2024_intrinsic_units_intrinsic_units",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "cites",
+      "source": "macro_search",
+      "source_file": "pyphi/macro/search.py",
+      "target": "papers_2024_intrinsic_units_paper",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "macro_search_assemble_systems",
+      "source_file": "pyphi/macro/search.py",
+      "target": "papers_2024_intrinsic_units_intrinsic_units",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "macro_search_competing_systems",
+      "source_file": "pyphi/macro/search.py",
+      "target": "papers_2024_intrinsic_units_intrinsic_units",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "macro_search_complexes",
+      "source_file": "pyphi/macro/search.py",
+      "target": "papers_2024_intrinsic_units_intrinsic_units",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "macro_search_derive_units",
+      "source_file": "pyphi/macro/search.py",
+      "target": "papers_2024_intrinsic_units_intrinsic_units",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "macro_search_f",
+      "source_file": "pyphi/macro/search.py",
+      "target": "papers_2024_intrinsic_units_intrinsic_units",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "macro_search_intrinsic_units",
+      "source_file": "pyphi/macro/search.py",
+      "target": "papers_2024_intrinsic_units_intrinsic_units",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "macro_search_is_intrinsic_unit",
+      "source_file": "pyphi/macro/search.py",
+      "target": "papers_2024_intrinsic_units_intrinsic_units",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "macro_system_macrosystem",
+      "source_file": "pyphi/macro/system.py",
+      "target": "papers_2024_intrinsic_units_macro_unit",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "relation": "implements",
+      "source": "macro_system_macrosystem_cause_marginal",
+      "source_file": "pyphi/macro/system.py",
+      "target": "papers_2024_intrinsic_units_transition_probability_matrix",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "macro_system_macrosystem_from_micro",
+      "source_file": "pyphi/macro/system.py",
+      "target": "papers_2024_intrinsic_units_macro_unit",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "macro_system_validate_nested_apportionment",
+      "source_file": "pyphi/macro/system.py",
+      "target": "papers_2024_intrinsic_units_intrinsic_units",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "cites",
+      "source": "macro_tpm",
+      "source_file": "pyphi/macro/tpm.py",
+      "target": "papers_2024_intrinsic_units_paper",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "macro_tpm",
+      "source_file": "pyphi/macro/tpm.py",
+      "target": "papers_2024_intrinsic_units_transition_probability_matrix",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "macro_tpm_full_transition_matrix",
+      "source_file": "pyphi/macro/tpm.py",
+      "target": "papers_2024_intrinsic_units_transition_probability_matrix",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "macro_tpm_macro_tpms",
+      "source_file": "pyphi/macro/tpm.py",
+      "target": "papers_2024_intrinsic_units_macro_unit",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "macro_tpm_macro_tpms",
+      "source_file": "pyphi/macro/tpm.py",
+      "target": "papers_2024_intrinsic_units_transition_probability_matrix",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "macro_units",
+      "source_file": "pyphi/macro/units.py",
+      "target": "papers_2024_intrinsic_units_macro_unit",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "cites",
+      "source": "macro_units",
+      "source_file": "pyphi/macro/units.py",
+      "target": "papers_2024_intrinsic_units_paper",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "relation": "implements",
+      "source": "macro_units_blackbox",
+      "source_file": "pyphi/macro/units.py",
+      "target": "papers_2024_intrinsic_units_macro_unit",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "macro_units_coarse_grain",
+      "source_file": "pyphi/macro/units.py",
+      "target": "papers_2024_intrinsic_units_causal_grain",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "macro_units_macrounit",
+      "source_file": "pyphi/macro/units.py",
+      "target": "papers_2024_intrinsic_units_macro_unit",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "macro_units_macrounit_micro_constituents",
+      "source_file": "pyphi/macro/units.py",
+      "target": "papers_2024_intrinsic_units_micro_unit",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "macro_units_macrounit_micro_grain",
+      "source_file": "pyphi/macro/units.py",
+      "target": "papers_2024_intrinsic_units_causal_grain",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "macro_units_macrounit_micro_mapping",
+      "source_file": "pyphi/macro/units.py",
+      "target": "papers_2024_intrinsic_units_macro_unit",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "macro_units_macrounit_state_from",
+      "source_file": "pyphi/macro/units.py",
+      "target": "papers_2024_intrinsic_units_macro_unit",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "macro_units_micro_unit",
+      "source_file": "pyphi/macro/units.py",
+      "target": "papers_2024_intrinsic_units_micro_unit",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "measures_distribution_absolute_intrinsic_difference",
+      "source_file": "pyphi/measures/distribution.py",
+      "target": "papers_2020_intrinsic_information_intrinsic_difference",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "cites",
+      "source": "measures_distribution_absolute_intrinsic_difference",
+      "source_file": "pyphi/measures/distribution.py",
+      "target": "papers_2020_intrinsic_information_paper",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "measures_distribution_absolute_intrinsic_difference",
+      "source_file": "pyphi/measures/distribution.py",
+      "target": "papers_2026_intrinsic_cause_effect_power_intrinsic_difference",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "measures_distribution_absolute_pointwise_mutual_information",
+      "source_file": "pyphi/measures/distribution.py",
+      "target": "papers_2024_upper_bounds_pointwise_mutual_information",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "measures_distribution_generalized_intrinsic_difference",
+      "source_file": "pyphi/measures/distribution.py",
+      "target": "papers_2026_intrinsic_cause_effect_power_intrinsic_specification",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "relation": "implements",
+      "source": "measures_distribution_iit_4_small_phi",
+      "source_file": "pyphi/measures/distribution.py",
+      "target": "papers_2026_intrinsic_cause_effect_power_intrinsic_information",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "measures_distribution_information_density",
+      "source_file": "pyphi/measures/distribution.py",
+      "target": "papers_2020_intrinsic_information_kl_divergence",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "measures_distribution_intrinsic_difference",
+      "source_file": "pyphi/measures/distribution.py",
+      "target": "papers_2020_intrinsic_information_intrinsic_difference",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "cites",
+      "source": "measures_distribution_intrinsic_difference",
+      "source_file": "pyphi/measures/distribution.py",
+      "target": "papers_2020_intrinsic_information_paper",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "measures_distribution_intrinsic_difference",
+      "source_file": "pyphi/measures/distribution.py",
+      "target": "papers_2026_intrinsic_cause_effect_power_intrinsic_difference",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "measures_distribution_intrinsic_differentiation",
+      "source_file": "pyphi/measures/distribution.py",
+      "target": "papers_2026_intrinsic_cause_effect_power_intrinsic_differentiation",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "measures_distribution_intrinsic_information",
+      "source_file": "pyphi/measures/distribution.py",
+      "target": "papers_2020_intrinsic_information_paper",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "measures_distribution_intrinsic_information",
+      "source_file": "pyphi/measures/distribution.py",
+      "target": "papers_2026_intrinsic_cause_effect_power_intrinsic_information",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "relation": "implements",
+      "source": "measures_distribution_intrinsic_information",
+      "source_file": "pyphi/measures/distribution.py",
+      "target": "papers_2026_intrinsic_cause_effect_power_paper",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "measures_distribution_kld",
+      "source_file": "pyphi/measures/distribution.py",
+      "target": "papers_2020_intrinsic_information_kl_divergence",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "measures_distribution_pointwise_intrinsic_differentiation",
+      "source_file": "pyphi/measures/distribution.py",
+      "target": "papers_2026_intrinsic_cause_effect_power_intrinsic_differentiation",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "relation": "implements",
+      "source": "measures_distribution_pointwise_mutual_information",
+      "source_file": "pyphi/measures/distribution.py",
+      "target": "papers_2024_upper_bounds_pointwise_mutual_information",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "measures_distribution_pointwise_mutual_information_vector",
+      "source_file": "pyphi/measures/distribution.py",
+      "target": "papers_2024_upper_bounds_pointwise_mutual_information",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "measures_distribution_weighted_pointwise_mutual_information",
+      "source_file": "pyphi/measures/distribution.py",
+      "target": "papers_2024_upper_bounds_pointwise_mutual_information",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "models_actual_causation_account",
+      "source_file": "pyphi/models/actual_causation.py",
+      "target": "papers_actual_causation",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "relation": "implements",
+      "source": "models_actual_causation_account_sum_alpha",
+      "source_file": "pyphi/models/actual_causation.py",
+      "target": "papers_alpha_causal_strength",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "models_actual_causation_acrepertoireirreducibilityanalysis",
+      "source_file": "pyphi/models/actual_causation.py",
+      "target": "papers_alpha_causal_strength",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "models_actual_causation_acsystemirreducibilityanalysis",
+      "source_file": "pyphi/models/actual_causation.py",
+      "target": "papers_2019_what_caused_what_paper",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "relation": "implements",
+      "source": "models_actual_causation_causallink",
+      "source_file": "pyphi/models/actual_causation.py",
+      "target": "papers_actual_causation",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "models_actual_causation_causallink_alpha",
+      "source_file": "pyphi/models/actual_causation.py",
+      "target": "papers_alpha_causal_strength",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "relation": "implements",
+      "source": "models_ces_causeeffectstructure",
+      "source_file": "pyphi/models/ces.py",
+      "target": "papers_shared_relation",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "relation": "implements",
+      "source": "models_mice",
+      "source_file": "pyphi/models/mice.py",
+      "target": "papers_mice",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "models_mice_maximallyirreduciblecause",
+      "source_file": "pyphi/models/mice.py",
+      "target": "papers_mice",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "models_mice_maximallyirreduciblecauseoreffect",
+      "source_file": "pyphi/models/mice.py",
+      "target": "papers_2021_mechanism_integrated_information_maximally_irreducible_mechanism",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "models_mice_maximallyirreduciblecauseoreffect",
+      "source_file": "pyphi/models/mice.py",
+      "target": "papers_mice",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "models_mice_maximallyirreduciblecauseoreffect_phi",
+      "source_file": "pyphi/models/mice.py",
+      "target": "papers_small_phi_integration",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "models_mice_maximallyirreducibleeffect",
+      "source_file": "pyphi/models/mice.py",
+      "target": "papers_mice",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "models_partitions_directedsetpartition",
+      "source_file": "pyphi/models/partitions.py",
+      "target": "papers_2026_intrinsic_cause_effect_power_directed_partition",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "cites",
+      "source": "models_partitions_partitionbase_num_connections_cut",
+      "source_file": "pyphi/models/partitions.py",
+      "target": "papers_2023_system_integrated_information_phi_s",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "cites",
+      "source": "models_partitions_rationale_240",
+      "source_file": "pyphi/models/partitions.py",
+      "target": "papers_2023_system_integrated_information_phi_s",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "models_partitions_rationale_558",
+      "source_file": "pyphi/models/partitions.py",
+      "target": "papers_2026_intrinsic_cause_effect_power_directed_partition",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "models_ria",
+      "source_file": "pyphi/models/ria.py",
+      "target": "papers_small_phi_integration",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "models_ria_repertoireirreducibilityanalysis",
+      "source_file": "pyphi/models/ria.py",
+      "target": "papers_2021_mechanism_integrated_information_maximally_irreducible_mechanism",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "models_ria_repertoireirreducibilityanalysis",
+      "source_file": "pyphi/models/ria.py",
+      "target": "papers_2021_mechanism_integrated_information_paper",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "relation": "implements",
+      "source": "models_ria_repertoireirreducibilityanalysis",
+      "source_file": "pyphi/models/ria.py",
+      "target": "papers_2021_mechanism_integrated_information_phi",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "relation": "implements",
+      "source": "models_ria_repertoireirreducibilityanalysis",
+      "source_file": "pyphi/models/ria.py",
+      "target": "papers_small_phi_integration",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "models_ria_repertoireirreducibilityanalysis_normalized_phi",
+      "source_file": "pyphi/models/ria.py",
+      "target": "papers_small_phi_integration",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "models_ria_repertoireirreducibilityanalysis_phi",
+      "source_file": "pyphi/models/ria.py",
+      "target": "papers_2021_mechanism_integrated_information_phi",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "relation": "implements",
+      "source": "models_ria_repertoireirreducibilityanalysis_phi",
+      "source_file": "pyphi/models/ria.py",
+      "target": "papers_small_phi_integration",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "models_ria_repertoireirreducibilityanalysis_signed_phi",
+      "source_file": "pyphi/models/ria.py",
+      "target": "papers_small_phi_integration",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "papers_2014_iit_3_0_paper",
+      "source_file": "papers/2014__oizumi-et-al__iit-3.0.pdf",
+      "source_location": null,
+      "target": "papers_iit_integrated_information_theory",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "cites",
+      "source": "papers_2018_pyphi_paper",
+      "source_file": "papers/2018__mayner-et-al__pyphi.pdf",
+      "source_location": null,
+      "target": "papers_2014_iit_3_0_paper",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "papers_2018_pyphi_paper",
+      "source_file": "papers/2018__mayner-et-al__pyphi.pdf",
+      "source_location": null,
+      "target": "papers_iit_integrated_information_theory",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "cites",
+      "source": "papers_2019_what_caused_what_paper",
+      "source_file": "papers/2019__albantakis-et-al__what-caused-what.pdf",
+      "source_location": null,
+      "target": "papers_2014_iit_3_0_paper",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "papers_2019_what_caused_what_paper",
+      "source_file": "papers/2019__albantakis-et-al__what-caused-what.pdf",
+      "source_location": null,
+      "target": "papers_actual_causation",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "cites",
+      "source": "papers_2021_mechanism_integrated_information_paper",
+      "source_file": "papers/2021__barbosa-et-al__mechanism-integrated-information.pdf",
+      "source_location": null,
+      "target": "papers_2020_intrinsic_information_paper",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "cites",
+      "source": "papers_2022_03_01_zaeemzadeh_counting_relations_doc",
+      "source_file": "papers/2022-03-01__zaeemzadeh__counting-relations.pdf",
+      "source_location": null,
+      "target": "papers_2022_02_23_mayner_counting_relations_doc",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "cites",
+      "source": "papers_2023_system_integrated_information_paper",
+      "source_file": "papers/2023__marshall-et-al__system-integrated-information.pdf",
+      "source_location": null,
+      "target": "papers_2020_intrinsic_information_paper",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.65,
+      "relation": "cites",
+      "source": "papers_2024_intrinsic_meaning_perception_and_matching_paper",
+      "source_file": "papers/2024__mayner-et-al__intrinsic-meaning-perception-and-matching.pdf",
+      "source_location": null,
+      "target": "papers_2026_intrinsic_cause_effect_power_paper",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "relation": "cites",
+      "source": "papers_2024_intrinsic_units_paper",
+      "source_file": "papers/2024__marshall-et-al__intrinsic-units.pdf",
+      "source_location": null,
+      "target": "papers_2023_system_integrated_information_paper",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "cites",
+      "source": "papers_2024_upper_bounds_paper",
+      "source_file": "papers/2024__zaeemzadeh-tononi__upper-bounds.pdf",
+      "source_location": null,
+      "target": "papers_2024_upper_bounds_cite_barbosa_intrinsic",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "cites",
+      "source": "papers_2024_upper_bounds_paper",
+      "source_file": "papers/2024__zaeemzadeh-tononi__upper-bounds.pdf",
+      "source_location": null,
+      "target": "papers_2024_upper_bounds_cite_iit40",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "cites",
+      "source": "papers_2024_upper_bounds_paper",
+      "source_file": "papers/2024__zaeemzadeh-tononi__upper-bounds.pdf",
+      "source_location": null,
+      "target": "papers_2024_upper_bounds_cite_spatial_experience",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "cites",
+      "source": "papers_2024_upper_bounds_paper",
+      "source_file": "papers/2024__zaeemzadeh-tononi__upper-bounds.pdf",
+      "source_location": null,
+      "target": "papers_2024_upper_bounds_iit_bounds_code",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "cites",
+      "source": "papers_2024_upper_bounds_paper",
+      "source_file": "papers/2024__zaeemzadeh-tononi__upper-bounds.pdf",
+      "source_location": null,
+      "target": "papers_2024_upper_bounds_pyphi_toolbox",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "papers_shared_pyphi",
+      "source_file": "papers/2020__gomez-et-al__multi-valued-elements.pdf",
+      "source_location": null,
+      "target": "papers_shared_iit",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "cites",
+      "source": "pyphi_actual",
+      "source_file": "pyphi/actual.py",
+      "target": "papers_2019_what_caused_what_paper",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "pyphi_actual",
+      "source_file": "pyphi/actual.py",
+      "target": "papers_actual_causation",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_actual_account",
+      "source_file": "pyphi/actual.py",
+      "target": "papers_actual_causation",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "relation": "implements",
+      "source": "pyphi_actual_causal_nexus",
+      "source_file": "pyphi/actual.py",
+      "target": "papers_2019_what_caused_what_paper",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_actual_directed_account",
+      "source_file": "pyphi/actual.py",
+      "target": "papers_actual_causation",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_actual_events",
+      "source_file": "pyphi/actual.py",
+      "target": "papers_actual_causation",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_actual_sia",
+      "source_file": "pyphi/actual.py",
+      "target": "papers_2019_what_caused_what_paper",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "pyphi_actual_transition",
+      "source_file": "pyphi/actual.py",
+      "target": "papers_2019_what_caused_what_paper",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "pyphi_actual_transition",
+      "source_file": "pyphi/actual.py",
+      "target": "papers_actual_causation",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "pyphi_actual_transition_cause_ratio",
+      "source_file": "pyphi/actual.py",
+      "target": "papers_alpha_causal_strength",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "pyphi_actual_transition_effect_ratio",
+      "source_file": "pyphi/actual.py",
+      "target": "papers_alpha_causal_strength",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "relation": "implements",
+      "source": "pyphi_actual_transition_find_actual_cause",
+      "source_file": "pyphi/actual.py",
+      "target": "papers_actual_causation",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "relation": "implements",
+      "source": "pyphi_actual_transition_find_actual_effect",
+      "source_file": "pyphi/actual.py",
+      "target": "papers_actual_causation",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "relation": "implements",
+      "source": "pyphi_actual_transition_find_causal_link",
+      "source_file": "pyphi/actual.py",
+      "target": "papers_actual_causation",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_actual_transition_find_mip",
+      "source_file": "pyphi/actual.py",
+      "target": "papers_alpha_causal_strength",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_actual_transition_ratio",
+      "source_file": "pyphi/actual.py",
+      "target": "papers_alpha_causal_strength",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "pyphi_actual_transitionsystem",
+      "source_file": "pyphi/actual.py",
+      "target": "papers_2019_what_caused_what_paper",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "relation": "implements",
+      "source": "pyphi_actual_true_events",
+      "source_file": "pyphi/actual.py",
+      "target": "papers_actual_causation",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.65,
+      "relation": "implements",
+      "source": "pyphi_direction_direction_order",
+      "source_file": "pyphi/direction.py",
+      "target": "papers_2023_iit_4_0_s4_iit_algorithm",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "relation": "implements",
+      "source": "pyphi_formalism_iit4_init_py_systemstatespecification",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "target": "papers_2026_intrinsic_cause_effect_power_intrinsic_specification",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "pyphi_macro_criteria_py_macrounit",
+      "source_file": "pyphi/macro/units.py",
+      "target": "papers_2024_intrinsic_units_macro_unit",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_partition_directed_set_partitions",
+      "source_file": "pyphi/partition.py",
+      "target": "papers_2026_intrinsic_cause_effect_power_directed_partition",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_partition_rationale_851",
+      "source_file": "pyphi/partition.py",
+      "target": "papers_2026_intrinsic_cause_effect_power_directed_partition",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "relation": "implements",
+      "source": "pyphi_partition_system_partitions",
+      "source_file": "pyphi/partition.py",
+      "target": "papers_2023_system_integrated_information_phi_s",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_relations",
+      "source_file": "pyphi/relations.py",
+      "target": "papers_shared_relation",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_relations_all_relations",
+      "source_file": "pyphi/relations.py",
+      "target": "papers_shared_relation",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "relation": "implements",
+      "source": "pyphi_relations_analytical_relations",
+      "source_file": "pyphi/relations.py",
+      "target": "papers_2023_iit_4_0_s3_analytical_relations",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "relation": "implements",
+      "source": "pyphi_relations_analyticalfoldrelations",
+      "source_file": "pyphi/relations.py",
+      "target": "papers_2023_iit_4_0_s3_analytical_relations",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_relations_analyticalrelations",
+      "source_file": "pyphi/relations.py",
+      "target": "papers_2023_iit_4_0_s3_analytical_relations",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "relation": "implements",
+      "source": "pyphi_relations_analyticalrelations_apportioned_sum_phi",
+      "source_file": "pyphi/relations.py",
+      "target": "papers_2022_03_01_zaeemzadeh_counting_relations_phi_sum_approximation",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_relations_analyticalrelations_num_relations",
+      "source_file": "pyphi/relations.py",
+      "target": "papers_2022_02_23_mayner_counting_relations_inclusion_exclusion",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "relation": "implements",
+      "source": "pyphi_relations_analyticalrelations_num_relations",
+      "source_file": "pyphi/relations.py",
+      "target": "papers_2022_02_23_mayner_counting_relations_relation",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_relations_analyticalrelations_sum_phi",
+      "source_file": "pyphi/relations.py",
+      "target": "papers_2022_03_01_zaeemzadeh_counting_relations_phi_sum_approximation",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "relation": "implements",
+      "source": "pyphi_relations_analyticalrelations_sum_phi",
+      "source_file": "pyphi/relations.py",
+      "target": "papers_2023_iit_4_0_s3_analytical_relations",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_relations_combinations_with_nonempty_congruent_overlap",
+      "source_file": "pyphi/relations.py",
+      "target": "papers_2023_iit_4_0_s3_relation_overlap",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "relation": "implements",
+      "source": "pyphi_relations_concreterelations",
+      "source_file": "pyphi/relations.py",
+      "target": "papers_shared_relation",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "relation": "implements",
+      "source": "pyphi_relations_concreterelations_faces_by_degree",
+      "source_file": "pyphi/relations.py",
+      "target": "papers_2022_02_23_mayner_counting_relations_relation_degree",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_relations_relation",
+      "source_file": "pyphi/relations.py",
+      "target": "papers_shared_relation",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_relations_relation_faces",
+      "source_file": "pyphi/relations.py",
+      "target": "papers_2023_iit_4_0_s3_relation_face",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "relation": "implements",
+      "source": "pyphi_relations_relation_phi",
+      "source_file": "pyphi/relations.py",
+      "target": "papers_shared_relation",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "relation": "implements",
+      "source": "pyphi_relations_relation_purview",
+      "source_file": "pyphi/relations.py",
+      "target": "papers_2023_iit_4_0_s3_relation_overlap",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_relations_relationface",
+      "source_file": "pyphi/relations.py",
+      "target": "papers_2023_iit_4_0_s3_relation_face",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_relations_relationface_congruent_overlap",
+      "source_file": "pyphi/relations.py",
+      "target": "papers_2023_iit_4_0_s3_relation_overlap",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_relations_relationface_overlap",
+      "source_file": "pyphi/relations.py",
+      "target": "papers_2023_iit_4_0_s3_relation_overlap",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "relation": "implements",
+      "source": "pyphi_relations_relations",
+      "source_file": "pyphi/relations.py",
+      "target": "papers_shared_relation",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_resolve_ties_cascade",
+      "source_file": "pyphi/resolve_ties.py",
+      "target": "papers_2023_iit_4_0_s1_maximal_existence_principle",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "pyphi_resolve_ties_cascade",
+      "source_file": "pyphi/resolve_ties.py",
+      "target": "papers_2023_iit_4_0_s1_resolving_ties",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_resolve_ties_partitions",
+      "source_file": "pyphi/resolve_ties.py",
+      "target": "papers_2023_iit_4_0_s1_tie_resolution",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_resolve_ties_purviews",
+      "source_file": "pyphi/resolve_ties.py",
+      "target": "papers_2023_iit_4_0_s1_tie_resolution",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "pyphi_resolve_ties_resolve_complex_tie",
+      "source_file": "pyphi/resolve_ties.py",
+      "target": "papers_2023_iit_4_0_s1_maximal_existence_principle",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "pyphi_resolve_ties_resolve_complex_tie",
+      "source_file": "pyphi/resolve_ties.py",
+      "target": "papers_2023_iit_4_0_s1_tie_resolution",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "pyphi_resolve_ties_resolve_distinction_tie",
+      "source_file": "pyphi/resolve_ties.py",
+      "target": "papers_2023_iit_4_0_s1_tie_resolution",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "pyphi_resolve_ties_resolve_iit3_complex_tie",
+      "source_file": "pyphi/resolve_ties.py",
+      "target": "papers_2023_iit_4_0_s2_iit_3_0",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "cites",
+      "source": "pyphi_resolve_ties_resolve_state_tie",
+      "source_file": "pyphi/resolve_ties.py",
+      "target": "papers_2023_iit_4_0_s1_resolving_ties",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "pyphi_resolve_ties_resolve_state_tie",
+      "source_file": "pyphi/resolve_ties.py",
+      "target": "papers_2023_iit_4_0_s1_tie_resolution",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_resolve_ties_sias",
+      "source_file": "pyphi/resolve_ties.py",
+      "target": "papers_2023_iit_4_0_s1_tie_resolution",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_resolve_ties_states",
+      "source_file": "pyphi/resolve_ties.py",
+      "target": "papers_2023_iit_4_0_s1_tie_resolution",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_substrate_complexes",
+      "source_file": "pyphi/substrate.py",
+      "target": "papers_2023_iit_4_0_s1_maximal_existence_principle",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_substrate_iit3_exclusion_cascade",
+      "source_file": "pyphi/substrate.py",
+      "target": "papers_2023_iit_4_0_s2_iit_3_0",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_substrate_maximal_complex",
+      "source_file": "pyphi/substrate.py",
+      "target": "papers_2023_iit_4_0_s1_maximal_existence_principle",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_substrate_resolve_clique_by_big_phi",
+      "source_file": "pyphi/substrate.py",
+      "target": "papers_2023_iit_4_0_s1_tie_resolution",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_substrate_resolve_clique_iit3",
+      "source_file": "pyphi/substrate.py",
+      "target": "papers_2023_iit_4_0_s2_iit_3_0",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_substrate_substrate_exclusion_cascade",
+      "source_file": "pyphi/substrate.py",
+      "target": "papers_2023_iit_4_0_s1_maximal_existence_principle",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "pyphi_substrate_substrate_exclusion_cascade",
+      "source_file": "pyphi/substrate.py",
+      "target": "papers_2023_iit_4_0_s1_resolving_ties",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.65,
+      "relation": "implements",
+      "source": "pyphi_substrate_substrate_joint_tpm",
+      "source_file": "pyphi/substrate.py",
+      "target": "papers_2023_iit_4_0_s4_effect_tpm",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "relation": "implements",
+      "source": "pyphi_substrate_substrate_tpm",
+      "source_file": "pyphi/substrate.py",
+      "target": "papers_2023_iit_4_0_s4_effect_tpm",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "pyphi_system_system",
+      "source_file": "pyphi/system.py",
+      "target": "papers_2023_iit_4_0_s2_background_conditions",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "pyphi_system_system_cause_marginal",
+      "source_file": "pyphi/system.py",
+      "target": "papers_2023_iit_4_0_s4_effect_tpm",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "pyphi_system_system_ces",
+      "source_file": "pyphi/system.py",
+      "target": "papers_2023_iit_4_0_s4_unfolding",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "relation": "implements",
+      "source": "pyphi_system_system_distinctions",
+      "source_file": "pyphi/system.py",
+      "target": "papers_2023_iit_4_0_s4_unfolding",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_system_system_effect_marginal",
+      "source_file": "pyphi/system.py",
+      "target": "papers_2023_iit_4_0_s4_effect_tpm",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "pyphi_system_system_post_init",
+      "source_file": "pyphi/system.py",
+      "target": "papers_2023_iit_4_0_s2_background_conditions",
+      "weight": 1.0
+    },
+    {
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "relation": "implements",
+      "source": "pyphi_system_system_proper_cause_marginal",
+      "source_file": "pyphi/system.py",
+      "target": "papers_2023_iit_4_0_s4_effect_tpm",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_system_system_proper_effect_marginal",
+      "source_file": "pyphi/system.py",
+      "target": "papers_2023_iit_4_0_s4_effect_tpm",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "relation": "implements",
+      "source": "pyphi_validate_non_overlapping",
+      "source_file": "pyphi/validate.py",
+      "target": "papers_2023_iit_4_0_s1_maximal_existence_principle",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_validate_proper_state_in_image_of_conditioned_tpm",
+      "source_file": "pyphi/validate.py",
+      "target": "papers_2023_iit_4_0_s2_background_conditions",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "pyphi_validate_state_reachable",
+      "source_file": "pyphi/validate.py",
+      "target": "papers_2023_iit_4_0_s2_background_conditions",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "relation": "implements",
+      "source": "tpm_factored_factoredtpm",
+      "source_file": "pyphi/core/tpm/factored.py",
+      "target": "papers_2023_iit_4_0_s4_effect_tpm",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.65,
+      "relation": "implements",
+      "source": "tpm_factored_factoredtpm_condition",
+      "source_file": "pyphi/core/tpm/factored.py",
+      "target": "papers_2023_iit_4_0_s2_background_conditions",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.65,
+      "relation": "implements",
+      "source": "tpm_factored_factoredtpm_from_joint",
+      "source_file": "pyphi/core/tpm/factored.py",
+      "target": "papers_2023_iit_4_0_s4_effect_tpm",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "relation": "implements",
+      "source": "tpm_factored_factoredtpm_to_joint",
+      "source_file": "pyphi/core/tpm/factored.py",
+      "target": "papers_2023_iit_4_0_s4_effect_tpm",
+      "weight": 1.0
+    },
+    {
+      "confidence": "INFERRED",
+      "confidence_score": 0.65,
+      "relation": "implements",
+      "source": "tpm_joint_distribution_jointtpm_condition_tpm",
+      "source_file": "pyphi/core/tpm/joint_distribution.py",
+      "target": "papers_2023_iit_4_0_s2_background_conditions",
+      "weight": 1.0
+    }
+  ],
+  "nodes": [
+    {
+      "_origin": "ast",
+      "community": 49,
+      "file_type": "code",
+      "id": "actual_causation_compute",
+      "label": "compute.py",
+      "norm_label": "compute.py",
+      "source_file": "pyphi/formalism/actual_causation/compute.py",
+      "source_location": "L1"
+    },
+    {
+      "_origin": "ast",
+      "community": 49,
+      "file_type": "code",
+      "id": "actual_causation_compute_account",
+      "label": "_account()",
+      "norm_label": "_account()",
+      "source_file": "pyphi/formalism/actual_causation/compute.py",
+      "source_location": "L388"
+    },
+    {
+      "_origin": "ast",
+      "community": 49,
+      "file_type": "code",
+      "id": "actual_causation_compute_alpha_subtractive",
+      "label": "_alpha_subtractive()",
+      "norm_label": "_alpha_subtractive()",
+      "source_file": "pyphi/formalism/actual_causation/compute.py",
+      "source_location": "L115"
+    },
+    {
+      "_origin": "ast",
+      "community": 49,
+      "file_type": "code",
+      "id": "actual_causation_compute_alphaaggregationregistry",
+      "label": "AlphaAggregationRegistry",
+      "norm_label": "alphaaggregationregistry",
+      "source_file": "pyphi/formalism/actual_causation/compute.py",
+      "source_location": "L71"
+    },
+    {
+      "_origin": "ast",
+      "community": 49,
+      "file_type": "code",
+      "id": "actual_causation_compute_directed_account",
+      "label": "_directed_account()",
+      "norm_label": "_directed_account()",
+      "source_file": "pyphi/formalism/actual_causation/compute.py",
+      "source_location": "L346"
+    },
+    {
+      "_origin": "ast",
+      "community": 49,
+      "file_type": "code",
+      "id": "actual_causation_compute_find_causal_link",
+      "label": "_find_causal_link()",
+      "norm_label": "_find_causal_link()",
+      "source_file": "pyphi/formalism/actual_causation/compute.py",
+      "source_location": "L271"
+    },
+    {
+      "_origin": "ast",
+      "community": 49,
+      "file_type": "code",
+      "id": "actual_causation_compute_find_mip",
+      "label": "_find_mip()",
+      "norm_label": "_find_mip()",
+      "source_file": "pyphi/formalism/actual_causation/compute.py",
+      "source_location": "L179"
+    },
+    {
+      "_origin": "ast",
+      "community": 49,
+      "file_type": "code",
+      "id": "actual_causation_compute_probability_distance",
+      "label": "probability_distance()",
+      "norm_label": "probability_distance()",
+      "source_file": "pyphi/formalism/actual_causation/compute.py",
+      "source_location": "L119"
+    },
+    {
+      "_origin": "ast",
+      "community": 49,
+      "file_type": "code",
+      "id": "actual_causation_compute_sia",
+      "label": "_sia()",
+      "norm_label": "_sia()",
+      "source_file": "pyphi/formalism/actual_causation/compute.py",
+      "source_location": "L498"
+    },
+    {
+      "_origin": "ast",
+      "community": 29,
+      "file_type": "code",
+      "id": "core_repertoire_algebra",
+      "label": "repertoire_algebra.py",
+      "norm_label": "repertoire_algebra.py",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "source_location": "L1"
+    },
+    {
+      "_origin": "ast",
+      "community": 29,
+      "file_type": "code",
+      "id": "core_repertoire_algebra_cause_effect_info",
+      "label": "cause_effect_info()",
+      "norm_label": "cause_effect_info()",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "source_location": "L572"
+    },
+    {
+      "_origin": "ast",
+      "community": 29,
+      "file_type": "code",
+      "id": "core_repertoire_algebra_cause_info",
+      "label": "cause_info()",
+      "norm_label": "cause_info()",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "source_location": "L548"
+    },
+    {
+      "_origin": "ast",
+      "community": 29,
+      "file_type": "code",
+      "id": "core_repertoire_algebra_cause_repertoire",
+      "label": "cause_repertoire()",
+      "norm_label": "cause_repertoire()",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "source_location": "L230"
+    },
+    {
+      "_origin": "ast",
+      "community": 29,
+      "file_type": "code",
+      "id": "core_repertoire_algebra_cause_repertoire_inner",
+      "label": "_cause_repertoire_inner()",
+      "norm_label": "_cause_repertoire_inner()",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "source_location": "L183"
+    },
+    {
+      "_origin": "ast",
+      "community": 29,
+      "file_type": "code",
+      "id": "core_repertoire_algebra_effect_info",
+      "label": "effect_info()",
+      "norm_label": "effect_info()",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "source_location": "L560"
+    },
+    {
+      "_origin": "ast",
+      "community": 29,
+      "file_type": "code",
+      "id": "core_repertoire_algebra_effect_repertoire",
+      "label": "effect_repertoire()",
+      "norm_label": "effect_repertoire()",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "source_location": "L247"
+    },
+    {
+      "_origin": "ast",
+      "community": 29,
+      "file_type": "code",
+      "id": "core_repertoire_algebra_effect_repertoire_inner",
+      "label": "_effect_repertoire_inner()",
+      "norm_label": "_effect_repertoire_inner()",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "source_location": "L212"
+    },
+    {
+      "_origin": "ast",
+      "community": 29,
+      "file_type": "code",
+      "id": "core_repertoire_algebra_intrinsic_information",
+      "label": "intrinsic_information()",
+      "norm_label": "intrinsic_information()",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "source_location": "L582"
+    },
+    {
+      "_origin": "ast",
+      "community": 29,
+      "file_type": "code",
+      "id": "core_repertoire_algebra_partitioned_repertoire",
+      "label": "partitioned_repertoire()",
+      "norm_label": "partitioned_repertoire()",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "source_location": "L329"
+    },
+    {
+      "_origin": "ast",
+      "community": 29,
+      "file_type": "rationale",
+      "id": "core_repertoire_algebra_rationale_236",
+      "label": "Cause repertoire \u2014 IIT 4.0 Eq. 5 / Eq. 7.",
+      "norm_label": "cause repertoire \u2014 iit 4.0 eq. 5 / eq. 7.",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "source_location": "L236"
+    },
+    {
+      "_origin": "ast",
+      "community": 29,
+      "file_type": "rationale",
+      "id": "core_repertoire_algebra_rationale_254",
+      "label": "Effect repertoire \u2014 IIT 4.0 Eq. 5 / Eq. 7.",
+      "norm_label": "effect repertoire \u2014 iit 4.0 eq. 5 / eq. 7.",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "source_location": "L254"
+    },
+    {
+      "_origin": "ast",
+      "community": 20,
+      "file_type": "rationale",
+      "id": "core_repertoire_algebra_rationale_464",
+      "label": "Unconstrained forward cause repertoire \u2014 see Eq. 32 of the IIT 4.0 paper.      S",
+      "norm_label": "unconstrained forward cause repertoire \u2014 see eq. 32 of the iit 4.0 paper.      s",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "source_location": "L464"
+    },
+    {
+      "_origin": "ast",
+      "community": 29,
+      "file_type": "code",
+      "id": "core_repertoire_algebra_repertoire",
+      "label": "repertoire()",
+      "norm_label": "repertoire()",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "source_location": "L263"
+    },
+    {
+      "_origin": "ast",
+      "community": 29,
+      "file_type": "code",
+      "id": "core_repertoire_algebra_single_node_cause_repertoire",
+      "label": "_single_node_cause_repertoire()",
+      "norm_label": "_single_node_cause_repertoire()",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "source_location": "L123"
+    },
+    {
+      "_origin": "ast",
+      "community": 29,
+      "file_type": "code",
+      "id": "core_repertoire_algebra_single_node_effect_repertoire",
+      "label": "_single_node_effect_repertoire()",
+      "norm_label": "_single_node_effect_repertoire()",
+      "source_file": "pyphi/core/repertoire_algebra.py",
+      "source_location": "L153"
+    },
+    {
+      "_origin": "ast",
+      "community": 70,
+      "file_type": "code",
+      "id": "iit4_bounds",
+      "label": "bounds.py",
+      "norm_label": "bounds.py",
+      "source_file": "pyphi/formalism/iit4/bounds.py",
+      "source_location": "L1"
+    },
+    {
+      "_origin": "ast",
+      "community": 70,
+      "file_type": "code",
+      "id": "iit4_bounds_big_phi_upper_bound",
+      "label": "big_phi_upper_bound()",
+      "norm_label": "big_phi_upper_bound()",
+      "source_file": "pyphi/formalism/iit4/bounds.py",
+      "source_location": "L516"
+    },
+    {
+      "_origin": "ast",
+      "community": 129,
+      "file_type": "code",
+      "id": "iit4_bounds_distinction_phi_upper_bound",
+      "label": "distinction_phi_upper_bound()",
+      "norm_label": "distinction_phi_upper_bound()",
+      "source_file": "pyphi/formalism/iit4/bounds.py",
+      "source_location": "L226"
+    },
+    {
+      "_origin": "ast",
+      "community": 129,
+      "file_type": "code",
+      "id": "iit4_bounds_grouped_subset_min_sum",
+      "label": "_grouped_subset_min_sum()",
+      "norm_label": "_grouped_subset_min_sum()",
+      "source_file": "pyphi/formalism/iit4/bounds.py",
+      "source_location": "L405"
+    },
+    {
+      "_origin": "ast",
+      "community": 70,
+      "file_type": "code",
+      "id": "iit4_bounds_number_of_possible_distinctions",
+      "label": "number_of_possible_distinctions()",
+      "norm_label": "number_of_possible_distinctions()",
+      "source_file": "pyphi/formalism/iit4/bounds.py",
+      "source_location": "L97"
+    },
+    {
+      "_origin": "ast",
+      "community": 70,
+      "file_type": "code",
+      "id": "iit4_bounds_number_of_possible_relations",
+      "label": "number_of_possible_relations()",
+      "norm_label": "number_of_possible_relations()",
+      "source_file": "pyphi/formalism/iit4/bounds.py",
+      "source_location": "L114"
+    },
+    {
+      "_origin": "ast",
+      "community": 347,
+      "file_type": "code",
+      "id": "iit4_bounds_partition_phi_upper_bound",
+      "label": "partition_phi_upper_bound()",
+      "norm_label": "partition_phi_upper_bound()",
+      "source_file": "pyphi/formalism/iit4/bounds.py",
+      "source_location": "L248"
+    },
+    {
+      "_origin": "ast",
+      "community": 105,
+      "file_type": "code",
+      "id": "iit4_bounds_phi_e_star",
+      "label": "_phi_e_star()",
+      "norm_label": "_phi_e_star()",
+      "source_file": "pyphi/formalism/iit4/bounds.py",
+      "source_location": "L335"
+    },
+    {
+      "_origin": "ast",
+      "community": 129,
+      "file_type": "code",
+      "id": "iit4_bounds_relation_phi_upper_bound",
+      "label": "relation_phi_upper_bound()",
+      "norm_label": "relation_phi_upper_bound()",
+      "source_file": "pyphi/formalism/iit4/bounds.py",
+      "source_location": "L267"
+    },
+    {
+      "_origin": "ast",
+      "community": 70,
+      "file_type": "code",
+      "id": "iit4_bounds_sum_phi_distinctions_upper_bound",
+      "label": "sum_phi_distinctions_upper_bound()",
+      "norm_label": "sum_phi_distinctions_upper_bound()",
+      "source_file": "pyphi/formalism/iit4/bounds.py",
+      "source_location": "L358"
+    },
+    {
+      "_origin": "ast",
+      "community": 129,
+      "file_type": "code",
+      "id": "iit4_bounds_sum_phi_relations_upper_bound",
+      "label": "sum_phi_relations_upper_bound()",
+      "norm_label": "sum_phi_relations_upper_bound()",
+      "source_file": "pyphi/formalism/iit4/bounds.py",
+      "source_location": "L475"
+    },
+    {
+      "_origin": "ast",
+      "community": 70,
+      "file_type": "code",
+      "id": "iit4_bounds_system_phi_upper_bound",
+      "label": "system_phi_upper_bound()",
+      "norm_label": "system_phi_upper_bound()",
+      "source_file": "pyphi/formalism/iit4/bounds.py",
+      "source_location": "L285"
+    },
+    {
+      "_origin": "ast",
+      "community": 111,
+      "file_type": "code",
+      "id": "iit4_bounds_upperbound",
+      "label": "UpperBound",
+      "norm_label": "upperbound",
+      "source_file": "pyphi/formalism/iit4/bounds.py",
+      "source_location": "L65"
+    },
+    {
+      "_origin": "ast",
+      "community": 30,
+      "file_type": "code",
+      "id": "iit4_init",
+      "label": "__init__.py",
+      "norm_label": "__init__.py",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "source_location": "L1"
+    },
+    {
+      "_origin": "ast",
+      "community": 51,
+      "file_type": "code",
+      "id": "iit4_init_apply_ii_cap",
+      "label": "_apply_ii_cap()",
+      "norm_label": "_apply_ii_cap()",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "source_location": "L746"
+    },
+    {
+      "_origin": "ast",
+      "community": 2,
+      "file_type": "code",
+      "id": "iit4_init_ces",
+      "label": "ces()",
+      "norm_label": "ces()",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "source_location": "L1132"
+    },
+    {
+      "_origin": "ast",
+      "community": 2,
+      "file_type": "code",
+      "id": "iit4_init_evaluate_partition",
+      "label": "evaluate_partition()",
+      "norm_label": "evaluate_partition()",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "source_location": "L641"
+    },
+    {
+      "_origin": "ast",
+      "community": 2,
+      "file_type": "code",
+      "id": "iit4_init_find_mip_for_fixed_state",
+      "label": "_find_mip_for_fixed_state()",
+      "norm_label": "_find_mip_for_fixed_state()",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "source_location": "L1063"
+    },
+    {
+      "_origin": "ast",
+      "community": 2,
+      "file_type": "code",
+      "id": "iit4_init_integration_value",
+      "label": "integration_value()",
+      "norm_label": "integration_value()",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "source_location": "L588"
+    },
+    {
+      "_origin": "ast",
+      "community": 2,
+      "file_type": "code",
+      "id": "iit4_init_intrinsic_differentiation_value",
+      "label": "intrinsic_differentiation_value()",
+      "norm_label": "intrinsic_differentiation_value()",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "source_location": "L622"
+    },
+    {
+      "_origin": "ast",
+      "community": 51,
+      "file_type": "rationale",
+      "id": "iit4_init_rationale_1149",
+      "label": "Analyze the irreducible cause-effect structure of a system (Eq. 57).      ``syst",
+      "norm_label": "analyze the irreducible cause-effect structure of a system (eq. 57).      ``syst",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "source_location": "L1149"
+    },
+    {
+      "_origin": "ast",
+      "community": 51,
+      "file_type": "rationale",
+      "id": "iit4_init_rationale_156",
+      "label": "System-level integrated information.      ``phi`` is the non-negative integrated",
+      "norm_label": "system-level integrated information.      ``phi`` is the non-negative integrated",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "source_location": "L156"
+    },
+    {
+      "_origin": "ast",
+      "community": 51,
+      "file_type": "rationale",
+      "id": "iit4_init_rationale_650",
+      "label": "Evaluate a system-level partition and return the resulting SIA.      ``system_me",
+      "norm_label": "evaluate a system-level partition and return the resulting sia.      ``system_me",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "source_location": "L650"
+    },
+    {
+      "_origin": "ast",
+      "community": 51,
+      "file_type": "rationale",
+      "id": "iit4_init_rationale_749",
+      "label": "Apply the IIT 4.0 (2026) intrinsic-information cap (Eq. 23) to the MIP.      The",
+      "norm_label": "apply the iit 4.0 (2026) intrinsic-information cap (eq. 23) to the mip.      the",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "source_location": "L749"
+    },
+    {
+      "_origin": "ast",
+      "community": 51,
+      "file_type": "rationale",
+      "id": "iit4_init_rationale_796",
+      "label": "Find the minimum information partition of a system.      ``system_measure`` and",
+      "norm_label": "find the minimum information partition of a system.      ``system_measure`` and",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "source_location": "L796"
+    },
+    {
+      "_origin": "ast",
+      "community": 2,
+      "file_type": "code",
+      "id": "iit4_init_sia",
+      "label": "sia()",
+      "norm_label": "sia()",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "source_location": "L780"
+    },
+    {
+      "_origin": "ast",
+      "community": 2,
+      "file_type": "code",
+      "id": "iit4_init_system_intrinsic_information",
+      "label": "system_intrinsic_information()",
+      "norm_label": "system_intrinsic_information()",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "source_location": "L80"
+    },
+    {
+      "_origin": "ast",
+      "community": 51,
+      "file_type": "code",
+      "id": "iit4_init_systemirreducibilityanalysis",
+      "label": "SystemIrreducibilityAnalysis",
+      "norm_label": "systemirreducibilityanalysis",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "source_location": "L155"
+    },
+    {
+      "_origin": "ast",
+      "community": 34,
+      "file_type": "code",
+      "id": "macro_criteria",
+      "label": "criteria.py",
+      "norm_label": "criteria.py",
+      "source_file": "pyphi/macro/criteria.py",
+      "source_location": "L1"
+    },
+    {
+      "_origin": "ast",
+      "community": 249,
+      "file_type": "code",
+      "id": "macro_criteria_constituent_system",
+      "label": "constituent_system()",
+      "norm_label": "constituent_system()",
+      "source_file": "pyphi/macro/criteria.py",
+      "source_location": "L147"
+    },
+    {
+      "_origin": "ast",
+      "community": 249,
+      "file_type": "code",
+      "id": "macro_criteria_judge_candidate",
+      "label": "judge_candidate()",
+      "norm_label": "judge_candidate()",
+      "source_file": "pyphi/macro/criteria.py",
+      "source_location": "L63"
+    },
+    {
+      "_origin": "ast",
+      "community": 249,
+      "file_type": "code",
+      "id": "macro_criteria_unit_integration",
+      "label": "unit_integration()",
+      "norm_label": "unit_integration()",
+      "source_file": "pyphi/macro/criteria.py",
+      "source_location": "L177"
+    },
+    {
+      "_origin": "ast",
+      "community": 34,
+      "file_type": "code",
+      "id": "macro_criteria_unitverdict",
+      "label": "UnitVerdict",
+      "norm_label": "unitverdict",
+      "source_file": "pyphi/macro/criteria.py",
+      "source_location": "L41"
+    },
+    {
+      "_origin": "ast",
+      "community": 34,
+      "file_type": "code",
+      "id": "macro_search",
+      "label": "search.py",
+      "norm_label": "search.py",
+      "source_file": "pyphi/macro/search.py",
+      "source_location": "L1"
+    },
+    {
+      "_origin": "ast",
+      "community": 34,
+      "file_type": "code",
+      "id": "macro_search_assemble_systems",
+      "label": "_assemble_systems()",
+      "norm_label": "_assemble_systems()",
+      "source_file": "pyphi/macro/search.py",
+      "source_location": "L312"
+    },
+    {
+      "_origin": "ast",
+      "community": 34,
+      "file_type": "code",
+      "id": "macro_search_competing_systems",
+      "label": "competing_systems()",
+      "norm_label": "competing_systems()",
+      "source_file": "pyphi/macro/search.py",
+      "source_location": "L625"
+    },
+    {
+      "_origin": "ast",
+      "community": 25,
+      "file_type": "code",
+      "id": "macro_search_complexes",
+      "label": "complexes()",
+      "norm_label": "complexes()",
+      "source_file": "pyphi/macro/search.py",
+      "source_location": "L766"
+    },
+    {
+      "_origin": "ast",
+      "community": 34,
+      "file_type": "code",
+      "id": "macro_search_derive_units",
+      "label": "_derive_units()",
+      "norm_label": "_derive_units()",
+      "source_file": "pyphi/macro/search.py",
+      "source_location": "L484"
+    },
+    {
+      "_origin": "ast",
+      "community": 34,
+      "file_type": "code",
+      "id": "macro_search_f",
+      "label": "_f()",
+      "norm_label": "_f()",
+      "source_file": "pyphi/macro/search.py",
+      "source_location": "L380"
+    },
+    {
+      "_origin": "ast",
+      "community": 25,
+      "file_type": "code",
+      "id": "macro_search_intrinsic_units",
+      "label": "intrinsic_units()",
+      "norm_label": "intrinsic_units()",
+      "source_file": "pyphi/macro/search.py",
+      "source_location": "L700"
+    },
+    {
+      "_origin": "ast",
+      "community": 34,
+      "file_type": "code",
+      "id": "macro_search_is_intrinsic_unit",
+      "label": "is_intrinsic_unit()",
+      "norm_label": "is_intrinsic_unit()",
+      "source_file": "pyphi/macro/search.py",
+      "source_location": "L649"
+    },
+    {
+      "_origin": "ast",
+      "community": 25,
+      "file_type": "code",
+      "id": "macro_system_macrosystem",
+      "label": "MacroSystem",
+      "norm_label": "macrosystem",
+      "source_file": "pyphi/macro/system.py",
+      "source_location": "L117"
+    },
+    {
+      "_origin": "ast",
+      "community": 154,
+      "file_type": "code",
+      "id": "macro_system_macrosystem_cause_marginal",
+      "label": ".cause_marginal()",
+      "norm_label": ".cause_marginal()",
+      "source_file": "pyphi/macro/system.py",
+      "source_location": "L177"
+    },
+    {
+      "_origin": "ast",
+      "community": 125,
+      "file_type": "code",
+      "id": "macro_system_macrosystem_from_micro",
+      "label": ".from_micro()",
+      "norm_label": ".from_micro()",
+      "source_file": "pyphi/macro/system.py",
+      "source_location": "L136"
+    },
+    {
+      "_origin": "ast",
+      "community": 125,
+      "file_type": "code",
+      "id": "macro_system_validate_nested_apportionment",
+      "label": "_validate_nested_apportionment()",
+      "norm_label": "_validate_nested_apportionment()",
+      "source_file": "pyphi/macro/system.py",
+      "source_location": "L64"
+    },
+    {
+      "_origin": "ast",
+      "community": 41,
+      "file_type": "code",
+      "id": "macro_tpm",
+      "label": "tpm.py",
+      "norm_label": "tpm.py",
+      "source_file": "pyphi/macro/tpm.py",
+      "source_location": "L1"
+    },
+    {
+      "_origin": "ast",
+      "community": 41,
+      "file_type": "code",
+      "id": "macro_tpm_full_transition_matrix",
+      "label": "_full_transition_matrix()",
+      "norm_label": "_full_transition_matrix()",
+      "source_file": "pyphi/macro/tpm.py",
+      "source_location": "L85"
+    },
+    {
+      "_origin": "ast",
+      "community": 41,
+      "file_type": "code",
+      "id": "macro_tpm_macro_tpms",
+      "label": "macro_tpms()",
+      "norm_label": "macro_tpms()",
+      "source_file": "pyphi/macro/tpm.py",
+      "source_location": "L278"
+    },
+    {
+      "_origin": "ast",
+      "community": 36,
+      "file_type": "code",
+      "id": "macro_units",
+      "label": "units.py",
+      "norm_label": "units.py",
+      "source_file": "pyphi/macro/units.py",
+      "source_location": "L1"
+    },
+    {
+      "_origin": "ast",
+      "community": 36,
+      "file_type": "code",
+      "id": "macro_units_blackbox",
+      "label": "blackbox()",
+      "norm_label": "blackbox()",
+      "source_file": "pyphi/macro/units.py",
+      "source_location": "L247"
+    },
+    {
+      "_origin": "ast",
+      "community": 41,
+      "file_type": "code",
+      "id": "macro_units_coarse_grain",
+      "label": "coarse_grain()",
+      "norm_label": "coarse_grain()",
+      "source_file": "pyphi/macro/units.py",
+      "source_location": "L229"
+    },
+    {
+      "_origin": "ast",
+      "community": 36,
+      "file_type": "code",
+      "id": "macro_units_macrounit",
+      "label": "MacroUnit",
+      "norm_label": "macrounit",
+      "source_file": "pyphi/macro/units.py",
+      "source_location": "L46"
+    },
+    {
+      "_origin": "ast",
+      "community": 36,
+      "file_type": "code",
+      "id": "macro_units_macrounit_micro_constituents",
+      "label": ".micro_constituents()",
+      "norm_label": ".micro_constituents()",
+      "source_file": "pyphi/macro/units.py",
+      "source_location": "L139"
+    },
+    {
+      "_origin": "ast",
+      "community": 36,
+      "file_type": "code",
+      "id": "macro_units_macrounit_micro_grain",
+      "label": ".micro_grain()",
+      "norm_label": ".micro_grain()",
+      "source_file": "pyphi/macro/units.py",
+      "source_location": "L156"
+    },
+    {
+      "_origin": "ast",
+      "community": 36,
+      "file_type": "code",
+      "id": "macro_units_macrounit_micro_mapping",
+      "label": ".micro_mapping()",
+      "norm_label": ".micro_mapping()",
+      "source_file": "pyphi/macro/units.py",
+      "source_location": "L201"
+    },
+    {
+      "_origin": "ast",
+      "community": 36,
+      "file_type": "code",
+      "id": "macro_units_macrounit_state_from",
+      "label": ".state_from()",
+      "norm_label": ".state_from()",
+      "source_file": "pyphi/macro/units.py",
+      "source_location": "L160"
+    },
+    {
+      "_origin": "ast",
+      "community": 41,
+      "file_type": "code",
+      "id": "macro_units_micro_unit",
+      "label": "micro_unit()",
+      "norm_label": "micro_unit()",
+      "source_file": "pyphi/macro/units.py",
+      "source_location": "L219"
+    },
+    {
+      "_origin": "ast",
+      "community": 74,
+      "file_type": "code",
+      "id": "measures_distribution_absolute_intrinsic_difference",
+      "label": "absolute_intrinsic_difference()",
+      "norm_label": "absolute_intrinsic_difference()",
+      "source_file": "pyphi/measures/distribution.py",
+      "source_location": "L1063"
+    },
+    {
+      "_origin": "ast",
+      "community": 74,
+      "file_type": "code",
+      "id": "measures_distribution_absolute_pointwise_mutual_information",
+      "label": "absolute_pointwise_mutual_information()",
+      "norm_label": "absolute_pointwise_mutual_information()",
+      "source_file": "pyphi/measures/distribution.py",
+      "source_location": "L1190"
+    },
+    {
+      "_origin": "ast",
+      "community": 74,
+      "file_type": "code",
+      "id": "measures_distribution_generalized_intrinsic_difference",
+      "label": "generalized_intrinsic_difference()",
+      "norm_label": "generalized_intrinsic_difference()",
+      "source_file": "pyphi/measures/distribution.py",
+      "source_location": "L1111"
+    },
+    {
+      "_origin": "ast",
+      "community": 74,
+      "file_type": "code",
+      "id": "measures_distribution_iit_4_small_phi",
+      "label": "iit_4_small_phi()",
+      "norm_label": "iit_4_small_phi()",
+      "source_file": "pyphi/measures/distribution.py",
+      "source_location": "L1086"
+    },
+    {
+      "_origin": "ast",
+      "community": 74,
+      "file_type": "code",
+      "id": "measures_distribution_information_density",
+      "label": "information_density()",
+      "norm_label": "information_density()",
+      "source_file": "pyphi/measures/distribution.py",
+      "source_location": "L813"
+    },
+    {
+      "_origin": "ast",
+      "community": 74,
+      "file_type": "code",
+      "id": "measures_distribution_intrinsic_difference",
+      "label": "intrinsic_difference()",
+      "norm_label": "intrinsic_difference()",
+      "source_file": "pyphi/measures/distribution.py",
+      "source_location": "L1029"
+    },
+    {
+      "_origin": "ast",
+      "community": 74,
+      "file_type": "code",
+      "id": "measures_distribution_intrinsic_differentiation",
+      "label": "intrinsic_differentiation()",
+      "norm_label": "intrinsic_differentiation()",
+      "source_file": "pyphi/measures/distribution.py",
+      "source_location": "L1142"
+    },
+    {
+      "_origin": "ast",
+      "community": 74,
+      "file_type": "code",
+      "id": "measures_distribution_intrinsic_information",
+      "label": "intrinsic_information()",
+      "norm_label": "intrinsic_information()",
+      "source_file": "pyphi/measures/distribution.py",
+      "source_location": "L1161"
+    },
+    {
+      "_origin": "ast",
+      "community": 74,
+      "file_type": "code",
+      "id": "measures_distribution_kld",
+      "label": "kld()",
+      "norm_label": "kld()",
+      "source_file": "pyphi/measures/distribution.py",
+      "source_location": "L830"
+    },
+    {
+      "_origin": "ast",
+      "community": 74,
+      "file_type": "code",
+      "id": "measures_distribution_pointwise_intrinsic_differentiation",
+      "label": "pointwise_intrinsic_differentiation()",
+      "norm_label": "pointwise_intrinsic_differentiation()",
+      "source_file": "pyphi/measures/distribution.py",
+      "source_location": "L1135"
+    },
+    {
+      "_origin": "ast",
+      "community": 74,
+      "file_type": "code",
+      "id": "measures_distribution_pointwise_mutual_information",
+      "label": "pointwise_mutual_information()",
+      "norm_label": "pointwise_mutual_information()",
+      "source_file": "pyphi/measures/distribution.py",
+      "source_location": "L1218"
+    },
+    {
+      "_origin": "ast",
+      "community": 74,
+      "file_type": "code",
+      "id": "measures_distribution_pointwise_mutual_information_vector",
+      "label": "pointwise_mutual_information_vector()",
+      "norm_label": "pointwise_mutual_information_vector()",
+      "source_file": "pyphi/measures/distribution.py",
+      "source_location": "L1211"
+    },
+    {
+      "_origin": "ast",
+      "community": 74,
+      "file_type": "code",
+      "id": "measures_distribution_weighted_pointwise_mutual_information",
+      "label": "weighted_pointwise_mutual_information()",
+      "norm_label": "weighted_pointwise_mutual_information()",
+      "source_file": "pyphi/measures/distribution.py",
+      "source_location": "L1241"
+    },
+    {
+      "_origin": "ast",
+      "community": 3,
+      "file_type": "code",
+      "id": "models_actual_causation_account",
+      "label": "Account",
+      "norm_label": "account",
+      "source_file": "pyphi/models/actual_causation.py",
+      "source_location": "L476"
+    },
+    {
+      "_origin": "ast",
+      "community": 49,
+      "file_type": "code",
+      "id": "models_actual_causation_account_sum_alpha",
+      "label": "._sum_alpha()",
+      "norm_label": "._sum_alpha()",
+      "source_file": "pyphi/models/actual_causation.py",
+      "source_location": "L517"
+    },
+    {
+      "_origin": "ast",
+      "community": 26,
+      "file_type": "code",
+      "id": "models_actual_causation_acrepertoireirreducibilityanalysis",
+      "label": "AcRepertoireIrreducibilityAnalysis",
+      "norm_label": "acrepertoireirreducibilityanalysis",
+      "source_file": "pyphi/models/actual_causation.py",
+      "source_location": "L56"
+    },
+    {
+      "_origin": "ast",
+      "community": 26,
+      "file_type": "code",
+      "id": "models_actual_causation_acsystemirreducibilityanalysis",
+      "label": "AcSystemIrreducibilityAnalysis",
+      "norm_label": "acsystemirreducibilityanalysis",
+      "source_file": "pyphi/models/actual_causation.py",
+      "source_location": "L629"
+    },
+    {
+      "_origin": "ast",
+      "community": 26,
+      "file_type": "code",
+      "id": "models_actual_causation_causallink",
+      "label": "CausalLink",
+      "norm_label": "causallink",
+      "source_file": "pyphi/models/actual_causation.py",
+      "source_location": "L291"
+    },
+    {
+      "_origin": "ast",
+      "community": 49,
+      "file_type": "code",
+      "id": "models_actual_causation_causallink_alpha",
+      "label": ".alpha()",
+      "norm_label": ".alpha()",
+      "source_file": "pyphi/models/actual_causation.py",
+      "source_location": "L317"
+    },
+    {
+      "_origin": "ast",
+      "community": 6,
+      "file_type": "code",
+      "id": "models_ces_causeeffectstructure",
+      "label": "CauseEffectStructure",
+      "norm_label": "causeeffectstructure",
+      "source_file": "pyphi/models/ces.py",
+      "source_location": "L58"
+    },
+    {
+      "_origin": "ast",
+      "community": 30,
+      "file_type": "code",
+      "id": "models_mice",
+      "label": "mice.py",
+      "norm_label": "mice.py",
+      "source_file": "pyphi/models/mice.py",
+      "source_location": "L1"
+    },
+    {
+      "_origin": "ast",
+      "community": 22,
+      "file_type": "code",
+      "id": "models_mice_maximallyirreduciblecause",
+      "label": "MaximallyIrreducibleCause",
+      "norm_label": "maximallyirreduciblecause",
+      "source_file": "pyphi/models/mice.py",
+      "source_location": "L359"
+    },
+    {
+      "_origin": "ast",
+      "community": 11,
+      "file_type": "code",
+      "id": "models_mice_maximallyirreduciblecauseoreffect",
+      "label": "MaximallyIrreducibleCauseOrEffect",
+      "norm_label": "maximallyirreduciblecauseoreffect",
+      "source_file": "pyphi/models/mice.py",
+      "source_location": "L40"
+    },
+    {
+      "_origin": "ast",
+      "community": 11,
+      "file_type": "code",
+      "id": "models_mice_maximallyirreduciblecauseoreffect_phi",
+      "label": ".phi()",
+      "norm_label": ".phi()",
+      "source_file": "pyphi/models/mice.py",
+      "source_location": "L58"
+    },
+    {
+      "_origin": "ast",
+      "community": 22,
+      "file_type": "code",
+      "id": "models_mice_maximallyirreducibleeffect",
+      "label": "MaximallyIrreducibleEffect",
+      "norm_label": "maximallyirreducibleeffect",
+      "source_file": "pyphi/models/mice.py",
+      "source_location": "L382"
+    },
+    {
+      "_origin": "ast",
+      "community": 201,
+      "file_type": "code",
+      "id": "models_partitions_directedsetpartition",
+      "label": "DirectedSetPartition",
+      "norm_label": "directedsetpartition",
+      "source_file": "pyphi/models/partitions.py",
+      "source_location": "L557"
+    },
+    {
+      "_origin": "ast",
+      "community": 52,
+      "file_type": "code",
+      "id": "models_partitions_partitionbase_num_connections_cut",
+      "label": ".num_connections_cut()",
+      "norm_label": ".num_connections_cut()",
+      "source_file": "pyphi/models/partitions.py",
+      "source_location": "L239"
+    },
+    {
+      "_origin": "ast",
+      "community": 52,
+      "file_type": "rationale",
+      "id": "models_partitions_rationale_240",
+      "label": "Number of directed connections severed (IIT 4.0 Eq. 24).",
+      "norm_label": "number of directed connections severed (iit 4.0 eq. 24).",
+      "source_file": "pyphi/models/partitions.py",
+      "source_location": "L240"
+    },
+    {
+      "_origin": "ast",
+      "community": 201,
+      "file_type": "rationale",
+      "id": "models_partitions_rationale_558",
+      "label": "A k-way set partition of nodes with per-part directional cuts.      Stores both",
+      "norm_label": "a k-way set partition of nodes with per-part directional cuts.      stores both",
+      "source_file": "pyphi/models/partitions.py",
+      "source_location": "L558"
+    },
+    {
+      "_origin": "ast",
+      "community": 30,
+      "file_type": "code",
+      "id": "models_ria",
+      "label": "ria.py",
+      "norm_label": "ria.py",
+      "source_file": "pyphi/models/ria.py",
+      "source_location": "L1"
+    },
+    {
+      "_origin": "ast",
+      "community": 22,
+      "file_type": "code",
+      "id": "models_ria_repertoireirreducibilityanalysis",
+      "label": "RepertoireIrreducibilityAnalysis",
+      "norm_label": "repertoireirreducibilityanalysis",
+      "source_file": "pyphi/models/ria.py",
+      "source_location": "L109"
+    },
+    {
+      "_origin": "ast",
+      "community": 22,
+      "file_type": "code",
+      "id": "models_ria_repertoireirreducibilityanalysis_normalized_phi",
+      "label": ".normalized_phi()",
+      "norm_label": ".normalized_phi()",
+      "source_file": "pyphi/models/ria.py",
+      "source_location": "L233"
+    },
+    {
+      "_origin": "ast",
+      "community": 22,
+      "file_type": "code",
+      "id": "models_ria_repertoireirreducibilityanalysis_phi",
+      "label": ".phi()",
+      "norm_label": ".phi()",
+      "source_file": "pyphi/models/ria.py",
+      "source_location": "L211"
+    },
+    {
+      "_origin": "ast",
+      "community": 2,
+      "file_type": "code",
+      "id": "models_ria_repertoireirreducibilityanalysis_signed_phi",
+      "label": ".signed_phi()",
+      "norm_label": ".signed_phi()",
+      "source_file": "pyphi/models/ria.py",
+      "source_location": "L223"
+    },
+    {
+      "author": "Masafumi Oizumi, Larissa Albantakis, Giulio Tononi",
+      "captured_at": null,
+      "community": 20,
+      "contributor": null,
+      "file_type": "paper",
+      "id": "papers_2014_iit_3_0_paper",
+      "label": "IIT 3.0: From the Phenomenology to the Mechanisms of Consciousness (Oizumi et al. 2014)",
+      "norm_label": "iit 3.0: from the phenomenology to the mechanisms of consciousness (oizumi et al. 2014)",
+      "source_file": "papers/2014__oizumi-et-al__iit-3.0.pdf",
+      "source_location": null,
+      "source_url": "https://doi.org/10.1371/journal.pcbi.1003588"
+    },
+    {
+      "author": "William G. P. Mayner, William Marshall, Larissa Albantakis, Graham Findlay, Robert Marchman, Giulio Tononi",
+      "captured_at": null,
+      "community": 20,
+      "contributor": null,
+      "file_type": "paper",
+      "id": "papers_2018_pyphi_paper",
+      "label": "PyPhi: A toolbox for integrated information theory (Mayner et al. 2018)",
+      "norm_label": "pyphi: a toolbox for integrated information theory (mayner et al. 2018)",
+      "source_file": "papers/2018__mayner-et-al__pyphi.pdf",
+      "source_location": null,
+      "source_url": "https://doi.org/10.1371/journal.pcbi.1006343"
+    },
+    {
+      "author": "Larissa Albantakis, William Marshall, Erik Hoel, Giulio Tononi",
+      "captured_at": null,
+      "community": 20,
+      "contributor": null,
+      "file_type": "paper",
+      "id": "papers_2019_what_caused_what_paper",
+      "label": "What Caused What? A Quantitative Account of Actual Causation (Albantakis et al. 2019)",
+      "norm_label": "what caused what? a quantitative account of actual causation (albantakis et al. 2019)",
+      "source_file": "papers/2019__albantakis-et-al__what-caused-what.pdf",
+      "source_location": null,
+      "source_url": "https://doi.org/10.3390/e21050459"
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 74,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2020_intrinsic_information_intrinsic_difference",
+      "label": "Intrinsic Difference (ID)",
+      "norm_label": "intrinsic difference (id)",
+      "source_file": "papers/2020__barbosa-et-al__intrinsic-information.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 74,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2020_intrinsic_information_kl_divergence",
+      "label": "Kullback-Leibler Divergence",
+      "norm_label": "kullback-leibler divergence",
+      "source_file": "papers/2020__barbosa-et-al__intrinsic-information.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": "Leonardo S. Barbosa, William Marshall, Sabrina Streipert, Larissa Albantakis, Giulio Tononi",
+      "captured_at": null,
+      "community": 74,
+      "contributor": null,
+      "file_type": "paper",
+      "id": "papers_2020_intrinsic_information_paper",
+      "label": "A Measure for Intrinsic Information (Barbosa et al. 2020)",
+      "norm_label": "a measure for intrinsic information (barbosa et al. 2020)",
+      "source_file": "papers/2020__barbosa-et-al__intrinsic-information.pdf",
+      "source_location": "Scientific Reports 10:18803",
+      "source_url": "https://doi.org/10.1038/s41598-020-75943-4"
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 45,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2021_mechanism_integrated_information_causal_marginalization",
+      "label": "Causal Marginalization",
+      "norm_label": "causal marginalization",
+      "source_file": "papers/2021__barbosa-et-al__mechanism-integrated-information.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 45,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2021_mechanism_integrated_information_cause_effect_repertoire",
+      "label": "Cause and Effect Repertoire",
+      "norm_label": "cause and effect repertoire",
+      "source_file": "papers/2021__barbosa-et-al__mechanism-integrated-information.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 22,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2021_mechanism_integrated_information_maximally_irreducible_mechanism",
+      "label": "Maximally Irreducible Mechanism",
+      "norm_label": "maximally irreducible mechanism",
+      "source_file": "papers/2021__barbosa-et-al__mechanism-integrated-information.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": "Leonardo S. Barbosa, William Marshall, Larissa Albantakis, Giulio Tononi",
+      "captured_at": null,
+      "community": 22,
+      "contributor": null,
+      "file_type": "paper",
+      "id": "papers_2021_mechanism_integrated_information_paper",
+      "label": "Mechanism Integrated Information (Barbosa et al. 2021)",
+      "norm_label": "mechanism integrated information (barbosa et al. 2021)",
+      "source_file": "papers/2021__barbosa-et-al__mechanism-integrated-information.pdf",
+      "source_location": "Entropy 23:362",
+      "source_url": "https://doi.org/10.3390/e23030362"
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 22,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2021_mechanism_integrated_information_phi",
+      "label": "Mechanism Integrated Information (small phi)",
+      "norm_label": "mechanism integrated information (small phi)",
+      "source_file": "papers/2021__barbosa-et-al__mechanism-integrated-information.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": "Will Mayner",
+      "captured_at": null,
+      "community": 6,
+      "contributor": null,
+      "file_type": "paper",
+      "id": "papers_2022_02_23_mayner_counting_relations_doc",
+      "label": "Counting Possible Relations (Mayner)",
+      "norm_label": "counting possible relations (mayner)",
+      "source_file": "papers/2022-02-23__mayner__counting-relations.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 6,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2022_02_23_mayner_counting_relations_inclusion_exclusion",
+      "label": "Inclusion-Exclusion Principle",
+      "norm_label": "inclusion-exclusion principle",
+      "source_file": "papers/2022-02-23__mayner__counting-relations.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 6,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2022_02_23_mayner_counting_relations_relation",
+      "label": "Possible Relation R(S)",
+      "norm_label": "possible relation r(s)",
+      "source_file": "papers/2022-02-23__mayner__counting-relations.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 6,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2022_02_23_mayner_counting_relations_relation_degree",
+      "label": "Relation Degree k",
+      "norm_label": "relation degree k",
+      "source_file": "papers/2022-02-23__mayner__counting-relations.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": "Alireza Zaeemzadeh",
+      "captured_at": null,
+      "community": 6,
+      "contributor": null,
+      "file_type": "paper",
+      "id": "papers_2022_03_01_zaeemzadeh_counting_relations_doc",
+      "label": "Counting Relations (Zaeemzadeh)",
+      "norm_label": "counting relations (zaeemzadeh)",
+      "source_file": "papers/2022-03-01__zaeemzadeh__counting-relations.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 6,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2022_03_01_zaeemzadeh_counting_relations_phi_sum_approximation",
+      "label": "Sum-of-Phi Approximation over Relations",
+      "norm_label": "sum-of-phi approximation over relations",
+      "source_file": "papers/2022-03-01__zaeemzadeh__counting-relations.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 433,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2023_iit_4_0_s1_maximal_existence_principle",
+      "label": "Principle of Maximal Existence",
+      "norm_label": "principle of maximal existence",
+      "source_file": "papers/2023__albantakis-et-al__iit-4.0__S1-resolving-ties.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": "Larissa Albantakis et al.",
+      "captured_at": null,
+      "community": 76,
+      "contributor": null,
+      "file_type": "paper",
+      "id": "papers_2023_iit_4_0_s1_resolving_ties",
+      "label": "S1 - Resolving Ties in the IIT Algorithm",
+      "norm_label": "s1 - resolving ties in the iit algorithm",
+      "source_file": "papers/2023__albantakis-et-al__iit-4.0__S1-resolving-ties.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 91,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2023_iit_4_0_s1_tie_resolution",
+      "label": "Tie Resolution",
+      "norm_label": "tie resolution",
+      "source_file": "papers/2023__albantakis-et-al__iit-4.0__S1-resolving-ties.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 69,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2023_iit_4_0_s2_background_conditions",
+      "label": "Background Conditions",
+      "norm_label": "background conditions",
+      "source_file": "papers/2023__albantakis-et-al__iit-4.0__S2-comparison-to-1.0-3.0.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 76,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2023_iit_4_0_s2_iit_3_0",
+      "label": "IIT 3.0",
+      "norm_label": "iit 3.0",
+      "source_file": "papers/2023__albantakis-et-al__iit-4.0__S2-comparison-to-1.0-3.0.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": "Larissa Albantakis et al.",
+      "captured_at": null,
+      "community": 6,
+      "contributor": null,
+      "file_type": "paper",
+      "id": "papers_2023_iit_4_0_s3_analytical_relations",
+      "label": "S3 - Analytical Computation of Relations",
+      "norm_label": "s3 - analytical computation of relations",
+      "source_file": "papers/2023__albantakis-et-al__iit-4.0__S3-analytical-relations.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 87,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2023_iit_4_0_s3_relation_face",
+      "label": "Relation Face / Face Overlap",
+      "norm_label": "relation face / face overlap",
+      "source_file": "papers/2023__albantakis-et-al__iit-4.0__S3-analytical-relations.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 87,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2023_iit_4_0_s3_relation_overlap",
+      "label": "Relation Overlap",
+      "norm_label": "relation overlap",
+      "source_file": "papers/2023__albantakis-et-al__iit-4.0__S3-analytical-relations.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 92,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2023_iit_4_0_s4_effect_tpm",
+      "label": "Effect / Cause TPM Computation",
+      "norm_label": "effect / cause tpm computation",
+      "source_file": "papers/2023__albantakis-et-al__iit-4.0__S4-iit-algorithm.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": "Larissa Albantakis et al.",
+      "captured_at": null,
+      "community": 76,
+      "contributor": null,
+      "file_type": "paper",
+      "id": "papers_2023_iit_4_0_s4_iit_algorithm",
+      "label": "S4 - IIT Algorithm",
+      "norm_label": "s4 - iit algorithm",
+      "source_file": "papers/2023__albantakis-et-al__iit-4.0__S4-iit-algorithm.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 76,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2023_iit_4_0_s4_unfolding",
+      "label": "Unfolding the Cause-Effect Structure",
+      "norm_label": "unfolding the cause-effect structure",
+      "source_file": "papers/2023__albantakis-et-al__iit-4.0__S4-iit-algorithm.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 51,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2023_system_integrated_information_intrinsic_info_term",
+      "label": "Intrinsic Information (Informativeness and Selectivity)",
+      "norm_label": "intrinsic information (informativeness and selectivity)",
+      "source_file": "papers/2023__marshall-et-al__system-integrated-information.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": "William Marshall, Matteo Grasso, William G. P. Mayner, Alireza Zaeemzadeh, Leonardo S. Barbosa, Erick Chastain, Graham Findlay, Shuntaro Sasai, Larissa Albantakis, Giulio Tononi",
+      "captured_at": null,
+      "community": 51,
+      "contributor": null,
+      "file_type": "paper",
+      "id": "papers_2023_system_integrated_information_paper",
+      "label": "System Integrated Information (Marshall et al. 2023)",
+      "norm_label": "system integrated information (marshall et al. 2023)",
+      "source_file": "papers/2023__marshall-et-al__system-integrated-information.pdf",
+      "source_location": "Entropy 25:334",
+      "source_url": "https://doi.org/10.3390/e25020334"
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 51,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2023_system_integrated_information_phi_s",
+      "label": "System Integrated Information (phi_s)",
+      "norm_label": "system integrated information (phi_s)",
+      "source_file": "papers/2023__marshall-et-al__system-integrated-information.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 51,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2023_system_integrated_information_phi_structure",
+      "label": "Phi-Structure (Cause-Effect Structure)",
+      "norm_label": "phi-structure (cause-effect structure)",
+      "source_file": "papers/2023__marshall-et-al__system-integrated-information.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": "William G.P. Mayner, Bj\u00f8rn Erik Juel, Giulio Tononi",
+      "captured_at": null,
+      "community": 126,
+      "contributor": null,
+      "file_type": "paper",
+      "id": "papers_2024_intrinsic_meaning_perception_and_matching_paper",
+      "label": "Intrinsic Meaning, Perception, and Matching (2024)",
+      "norm_label": "intrinsic meaning, perception, and matching (2024)",
+      "source_file": "papers/2024__mayner-et-al__intrinsic-meaning-perception-and-matching.pdf",
+      "source_location": null,
+      "source_url": "arXiv:2412.21111v2"
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 249,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2024_intrinsic_units_candidate_substrate",
+      "label": "Candidate Substrate (Candidate System)",
+      "norm_label": "candidate substrate (candidate system)",
+      "source_file": "papers/2024__marshall-et-al__intrinsic-units.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 36,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2024_intrinsic_units_causal_grain",
+      "label": "Causal Grain",
+      "norm_label": "causal grain",
+      "source_file": "papers/2024__marshall-et-al__intrinsic-units.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 34,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2024_intrinsic_units_intrinsic_units",
+      "label": "Intrinsic Units",
+      "norm_label": "intrinsic units",
+      "source_file": "papers/2024__marshall-et-al__intrinsic-units.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 36,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2024_intrinsic_units_macro_unit",
+      "label": "Macro Unit",
+      "norm_label": "macro unit",
+      "source_file": "papers/2024__marshall-et-al__intrinsic-units.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 36,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2024_intrinsic_units_micro_unit",
+      "label": "Micro Unit",
+      "norm_label": "micro unit",
+      "source_file": "papers/2024__marshall-et-al__intrinsic-units.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": "William Marshall, Graham Findlay, Larissa Albantakis, Giulio Tononi",
+      "captured_at": null,
+      "community": 34,
+      "contributor": null,
+      "file_type": "paper",
+      "id": "papers_2024_intrinsic_units_paper",
+      "label": "Intrinsic Units: Identifying a System's Causal Grain (Marshall et al. 2024)",
+      "norm_label": "intrinsic units: identifying a system's causal grain (marshall et al. 2024)",
+      "source_file": "papers/2024__marshall-et-al__intrinsic-units.pdf",
+      "source_location": "bioRxiv 2024.04.12.589163",
+      "source_url": "https://doi.org/10.1101/2024.04.12.589163"
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 41,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2024_intrinsic_units_transition_probability_matrix",
+      "label": "Transition Probability Matrix (TPM)",
+      "norm_label": "transition probability matrix (tpm)",
+      "source_file": "papers/2024__marshall-et-al__intrinsic-units.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 70,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2024_upper_bounds_causal_distinction",
+      "label": "Causal Distinction",
+      "norm_label": "causal distinction",
+      "source_file": "papers/2024__zaeemzadeh-tononi__upper-bounds.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 70,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2024_upper_bounds_causal_relation",
+      "label": "Causal Relation",
+      "norm_label": "causal relation",
+      "source_file": "papers/2024__zaeemzadeh-tononi__upper-bounds.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 105,
+      "contributor": null,
+      "file_type": "paper",
+      "id": "papers_2024_upper_bounds_cite_barbosa_intrinsic",
+      "label": "Barbosa et al. Intrinsic Information / Mechanism Phi",
+      "norm_label": "barbosa et al. intrinsic information / mechanism phi",
+      "source_file": "papers/2024__zaeemzadeh-tononi__upper-bounds.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 105,
+      "contributor": null,
+      "file_type": "paper",
+      "id": "papers_2024_upper_bounds_cite_iit40",
+      "label": "IIT 4.0 (Albantakis et al. 2023)",
+      "norm_label": "iit 4.0 (albantakis et al. 2023)",
+      "source_file": "papers/2024__zaeemzadeh-tononi__upper-bounds.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 105,
+      "contributor": null,
+      "file_type": "paper",
+      "id": "papers_2024_upper_bounds_cite_spatial_experience",
+      "label": "Spatial Experience / Connectivity Quality (ref [5])",
+      "norm_label": "spatial experience / connectivity quality (ref [5])",
+      "source_file": "papers/2024__zaeemzadeh-tononi__upper-bounds.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 129,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2024_upper_bounds_distinction_integrated_information",
+      "label": "Distinction Integrated Information (phi_d)",
+      "norm_label": "distinction integrated information (phi_d)",
+      "source_file": "papers/2024__zaeemzadeh-tononi__upper-bounds.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 105,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2024_upper_bounds_iit_bounds_code",
+      "label": "IIT-bounds experiment code",
+      "norm_label": "iit-bounds experiment code",
+      "source_file": "papers/2024__zaeemzadeh-tononi__upper-bounds.pdf",
+      "source_location": null,
+      "source_url": "https://github.com/zaeemzadeh/IIT-bounds"
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 105,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2024_upper_bounds_integrated_effect_information",
+      "label": "Integrated Effect Information (phi_e)",
+      "norm_label": "integrated effect information (phi_e)",
+      "source_file": "papers/2024__zaeemzadeh-tononi__upper-bounds.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 129,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2024_upper_bounds_lemma2_connections_cut_bound",
+      "label": "Lemma 2: Connections-Cut Bound N(theta)",
+      "norm_label": "lemma 2: connections-cut bound n(theta)",
+      "source_file": "papers/2024__zaeemzadeh-tononi__upper-bounds.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 129,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2024_upper_bounds_linear_programming_relation_bound",
+      "label": "Linear-Programming Bound for Sum of Relation Phi",
+      "norm_label": "linear-programming bound for sum of relation phi",
+      "source_file": "papers/2024__zaeemzadeh-tononi__upper-bounds.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": "Alireza Zaeemzadeh; Giulio Tononi",
+      "captured_at": null,
+      "community": 105,
+      "contributor": null,
+      "file_type": "paper",
+      "id": "papers_2024_upper_bounds_paper",
+      "label": "Upper bounds for integrated information (Zaeemzadeh & Tononi 2024)",
+      "norm_label": "upper bounds for integrated information (zaeemzadeh & tononi 2024)",
+      "source_file": "papers/2024__zaeemzadeh-tononi__upper-bounds.pdf",
+      "source_location": null,
+      "source_url": "https://doi.org/10.1371/journal.pcbi.1012323"
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 74,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2024_upper_bounds_pointwise_mutual_information",
+      "label": "Point-Wise Mutual Information measure",
+      "norm_label": "point-wise mutual information measure",
+      "source_file": "papers/2024__zaeemzadeh-tononi__upper-bounds__s2-appendix.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 105,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2024_upper_bounds_pyphi_toolbox",
+      "label": "PyPhi toolbox",
+      "norm_label": "pyphi toolbox",
+      "source_file": "papers/2024__zaeemzadeh-tononi__upper-bounds.pdf",
+      "source_location": null,
+      "source_url": "https://github.com/wmayner/pyphi"
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 129,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2024_upper_bounds_relation_integrated_information",
+      "label": "Relation Integrated Information (phi_r)",
+      "norm_label": "relation integrated information (phi_r)",
+      "source_file": "papers/2024__zaeemzadeh-tononi__upper-bounds.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 70,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2024_upper_bounds_system_integrated_information",
+      "label": "System Integrated Information (phi_s, Phi)",
+      "norm_label": "system integrated information (phi_s, phi)",
+      "source_file": "papers/2024__zaeemzadeh-tononi__upper-bounds.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 129,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2024_upper_bounds_theorem1_distinction_bound",
+      "label": "Theorem 1: Distinction Upper Bound (phi <= |M||Z|)",
+      "norm_label": "theorem 1: distinction upper bound (phi <= |m||z|)",
+      "rationale": "To disintegrate a maximal integrated mechanism, all causal connections between the mechanism and the purview must be severed; the bound equals the total number of potential connections |M||Z|.",
+      "source_file": "papers/2024__zaeemzadeh-tononi__upper-bounds.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 201,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2026_intrinsic_cause_effect_power_directed_partition",
+      "label": "Directed Partition",
+      "norm_label": "directed partition",
+      "source_file": "papers/2026__mayner-et-al__intrinsic-cause-effect-power.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 74,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2026_intrinsic_cause_effect_power_intrinsic_difference",
+      "label": "Intrinsic Difference (ID)",
+      "norm_label": "intrinsic difference (id)",
+      "source_file": "papers/2026__mayner-et-al__intrinsic-cause-effect-power.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 74,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2026_intrinsic_cause_effect_power_intrinsic_differentiation",
+      "label": "Intrinsic Differentiation",
+      "norm_label": "intrinsic differentiation",
+      "source_file": "papers/2026__mayner-et-al__intrinsic-cause-effect-power.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 74,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2026_intrinsic_cause_effect_power_intrinsic_information",
+      "label": "Intrinsic Information (ii)",
+      "norm_label": "intrinsic information (ii)",
+      "source_file": "papers/2026__mayner-et-al__intrinsic-cause-effect-power.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 74,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2026_intrinsic_cause_effect_power_intrinsic_specification",
+      "label": "Intrinsic Specification",
+      "norm_label": "intrinsic specification",
+      "source_file": "papers/2026__mayner-et-al__intrinsic-cause-effect-power.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": "William G.P. Mayner, William Marshall, Giulio Tononi",
+      "captured_at": null,
+      "community": 74,
+      "contributor": null,
+      "file_type": "paper",
+      "id": "papers_2026_intrinsic_cause_effect_power_paper",
+      "label": "Intrinsic Cause-Effect Power: The Tradeoff Between Differentiation and Specification (2026)",
+      "norm_label": "intrinsic cause-effect power: the tradeoff between differentiation and specification (2026)",
+      "source_file": "papers/2026__mayner-et-al__intrinsic-cause-effect-power.pdf",
+      "source_location": null,
+      "source_url": "https://doi.org/10.3390/e28040410"
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 51,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_2026_intrinsic_cause_effect_power_system_integrated_information",
+      "label": "System Integrated Information (phi_s)",
+      "norm_label": "system integrated information (phi_s)",
+      "source_file": "papers/2026__mayner-et-al__intrinsic-cause-effect-power.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 20,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_actual_causation",
+      "label": "Actual Causation (token causation, what caused what)",
+      "norm_label": "actual causation (token causation, what caused what)",
+      "source_file": "papers/2019__albantakis-et-al__what-caused-what.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 49,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_alpha_causal_strength",
+      "label": "Alpha (actual causal strength measure)",
+      "norm_label": "alpha (actual causal strength measure)",
+      "source_file": "papers/2019__albantakis-et-al__what-caused-what.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 29,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_cause_effect_repertoire",
+      "label": "Cause-Effect Repertoire",
+      "norm_label": "cause-effect repertoire",
+      "source_file": "papers/2014__oizumi-et-al__iit-3.0.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 20,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_iit_integrated_information_theory",
+      "label": "Integrated Information Theory (IIT)",
+      "norm_label": "integrated information theory (iit)",
+      "source_file": "papers/2014__oizumi-et-al__iit-3.0.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 403,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_mice",
+      "label": "Maximally Irreducible Cause-Effect Repertoire (MICE)",
+      "norm_label": "maximally irreducible cause-effect repertoire (mice)",
+      "source_file": "papers/2014__oizumi-et-al__iit-3.0.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 108,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_shared_iit",
+      "label": "Integrated Information Theory (IIT)",
+      "norm_label": "integrated information theory (iit)",
+      "source_file": "papers/2020__gomez-et-al__multi-valued-elements.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 108,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_shared_pyphi",
+      "label": "PyPhi Software Package",
+      "norm_label": "pyphi software package",
+      "source_file": "papers/2020__gomez-et-al__multi-valued-elements.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 6,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_shared_relation",
+      "label": "Relations Between Distinctions (IIT 4.0)",
+      "norm_label": "relations between distinctions (iit 4.0)",
+      "source_file": "papers/2022-02-23__mayner__counting-relations.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "author": null,
+      "captured_at": null,
+      "community": 22,
+      "contributor": null,
+      "file_type": "concept",
+      "id": "papers_small_phi_integration",
+      "label": "Small phi (mechanism integration/irreducibility)",
+      "norm_label": "small phi (mechanism integration/irreducibility)",
+      "source_file": "papers/2014__oizumi-et-al__iit-3.0.pdf",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "_origin": "ast",
+      "community": 20,
+      "file_type": "code",
+      "id": "pyphi_actual",
+      "label": "actual.py",
+      "norm_label": "actual.py",
+      "source_file": "pyphi/actual.py",
+      "source_location": "L1"
+    },
+    {
+      "_origin": "ast",
+      "community": 20,
+      "file_type": "code",
+      "id": "pyphi_actual_account",
+      "label": "account()",
+      "norm_label": "account()",
+      "source_file": "pyphi/actual.py",
+      "source_location": "L832"
+    },
+    {
+      "_origin": "ast",
+      "community": 20,
+      "file_type": "code",
+      "id": "pyphi_actual_causal_nexus",
+      "label": "causal_nexus()",
+      "norm_label": "causal_nexus()",
+      "source_file": "pyphi/actual.py",
+      "source_location": "L885"
+    },
+    {
+      "_origin": "ast",
+      "community": 20,
+      "file_type": "code",
+      "id": "pyphi_actual_directed_account",
+      "label": "directed_account()",
+      "norm_label": "directed_account()",
+      "source_file": "pyphi/actual.py",
+      "source_location": "L809"
+    },
+    {
+      "_origin": "ast",
+      "community": 20,
+      "file_type": "code",
+      "id": "pyphi_actual_events",
+      "label": "events()",
+      "norm_label": "events()",
+      "source_file": "pyphi/actual.py",
+      "source_location": "L958"
+    },
+    {
+      "_origin": "ast",
+      "community": 20,
+      "file_type": "code",
+      "id": "pyphi_actual_sia",
+      "label": "sia()",
+      "norm_label": "sia()",
+      "source_file": "pyphi/actual.py",
+      "source_location": "L841"
+    },
+    {
+      "_origin": "ast",
+      "community": 13,
+      "file_type": "code",
+      "id": "pyphi_actual_transition",
+      "label": "Transition",
+      "norm_label": "transition",
+      "source_file": "pyphi/actual.py",
+      "source_location": "L403"
+    },
+    {
+      "_origin": "ast",
+      "community": 13,
+      "file_type": "code",
+      "id": "pyphi_actual_transition_cause_ratio",
+      "label": ".cause_ratio()",
+      "norm_label": ".cause_ratio()",
+      "source_file": "pyphi/actual.py",
+      "source_location": "L668"
+    },
+    {
+      "_origin": "ast",
+      "community": 13,
+      "file_type": "code",
+      "id": "pyphi_actual_transition_effect_ratio",
+      "label": ".effect_ratio()",
+      "norm_label": ".effect_ratio()",
+      "source_file": "pyphi/actual.py",
+      "source_location": "L677"
+    },
+    {
+      "_origin": "ast",
+      "community": 20,
+      "file_type": "code",
+      "id": "pyphi_actual_transition_find_actual_cause",
+      "label": ".find_actual_cause()",
+      "norm_label": ".find_actual_cause()",
+      "source_file": "pyphi/actual.py",
+      "source_location": "L777"
+    },
+    {
+      "_origin": "ast",
+      "community": 20,
+      "file_type": "code",
+      "id": "pyphi_actual_transition_find_actual_effect",
+      "label": ".find_actual_effect()",
+      "norm_label": ".find_actual_effect()",
+      "source_file": "pyphi/actual.py",
+      "source_location": "L781"
+    },
+    {
+      "_origin": "ast",
+      "community": 20,
+      "file_type": "code",
+      "id": "pyphi_actual_transition_find_causal_link",
+      "label": ".find_causal_link()",
+      "norm_label": ".find_causal_link()",
+      "source_file": "pyphi/actual.py",
+      "source_location": "L764"
+    },
+    {
+      "_origin": "ast",
+      "community": 49,
+      "file_type": "code",
+      "id": "pyphi_actual_transition_find_mip",
+      "label": ".find_mip()",
+      "norm_label": ".find_mip()",
+      "source_file": "pyphi/actual.py",
+      "source_location": "L729"
+    },
+    {
+      "_origin": "ast",
+      "community": 13,
+      "file_type": "code",
+      "id": "pyphi_actual_transition_ratio",
+      "label": "._ratio()",
+      "norm_label": "._ratio()",
+      "source_file": "pyphi/actual.py",
+      "source_location": "L658"
+    },
+    {
+      "_origin": "ast",
+      "community": 23,
+      "file_type": "code",
+      "id": "pyphi_actual_transitionsystem",
+      "label": "TransitionSystem",
+      "norm_label": "transitionsystem",
+      "source_file": "pyphi/actual.py",
+      "source_location": "L116"
+    },
+    {
+      "_origin": "ast",
+      "community": 20,
+      "file_type": "code",
+      "id": "pyphi_actual_true_events",
+      "label": "true_events()",
+      "norm_label": "true_events()",
+      "source_file": "pyphi/actual.py",
+      "source_location": "L1021"
+    },
+    {
+      "_origin": "ast",
+      "community": 76,
+      "file_type": "code",
+      "id": "pyphi_direction_direction_order",
+      "label": ".order()",
+      "norm_label": ".order()",
+      "source_file": "pyphi/direction.py",
+      "source_location": "L35"
+    },
+    {
+      "_origin": "ast",
+      "community": 2,
+      "file_type": "code",
+      "id": "pyphi_formalism_iit4_init_py_systemstatespecification",
+      "label": "SystemStateSpecification",
+      "norm_label": "systemstatespecification",
+      "source_file": "pyphi/formalism/iit4/__init__.py",
+      "source_location": "L80"
+    },
+    {
+      "_origin": "ast",
+      "community": 36,
+      "file_type": "code",
+      "id": "pyphi_macro_criteria_py_macrounit",
+      "label": "MacroUnit",
+      "norm_label": "macrounit",
+      "source_file": "pyphi/macro/criteria.py",
+      "source_location": "L121"
+    },
+    {
+      "_origin": "ast",
+      "community": 201,
+      "file_type": "code",
+      "id": "pyphi_partition_directed_set_partitions",
+      "label": "_directed_set_partitions()",
+      "norm_label": "_directed_set_partitions()",
+      "source_file": "pyphi/partition.py",
+      "source_location": "L847"
+    },
+    {
+      "_origin": "ast",
+      "community": 201,
+      "file_type": "rationale",
+      "id": "pyphi_partition_rationale_851",
+      "label": "Yield every directed set partition of the given nodes.      Each set partition i",
+      "norm_label": "yield every directed set partition of the given nodes.      each set partition i",
+      "source_file": "pyphi/partition.py",
+      "source_location": "L851"
+    },
+    {
+      "_origin": "ast",
+      "community": 30,
+      "file_type": "code",
+      "id": "pyphi_partition_system_partitions",
+      "label": "system_partitions()",
+      "norm_label": "system_partitions()",
+      "source_file": "pyphi/partition.py",
+      "source_location": "L887"
+    },
+    {
+      "_origin": "ast",
+      "community": 30,
+      "file_type": "code",
+      "id": "pyphi_relations",
+      "label": "relations.py",
+      "norm_label": "relations.py",
+      "source_file": "pyphi/relations.py",
+      "source_location": "L1"
+    },
+    {
+      "_origin": "ast",
+      "community": 6,
+      "file_type": "code",
+      "id": "pyphi_relations_all_relations",
+      "label": "all_relations()",
+      "norm_label": "all_relations()",
+      "source_file": "pyphi/relations.py",
+      "source_location": "L234"
+    },
+    {
+      "_origin": "ast",
+      "community": 6,
+      "file_type": "code",
+      "id": "pyphi_relations_analytical_relations",
+      "label": "analytical_relations()",
+      "norm_label": "analytical_relations()",
+      "source_file": "pyphi/relations.py",
+      "source_location": "L562"
+    },
+    {
+      "_origin": "ast",
+      "community": 6,
+      "file_type": "code",
+      "id": "pyphi_relations_analyticalfoldrelations",
+      "label": "AnalyticalFoldRelations",
+      "norm_label": "analyticalfoldrelations",
+      "source_file": "pyphi/relations.py",
+      "source_location": "L482"
+    },
+    {
+      "_origin": "ast",
+      "community": 6,
+      "file_type": "code",
+      "id": "pyphi_relations_analyticalrelations",
+      "label": "AnalyticalRelations",
+      "norm_label": "analyticalrelations",
+      "source_file": "pyphi/relations.py",
+      "source_location": "L422"
+    },
+    {
+      "_origin": "ast",
+      "community": 6,
+      "file_type": "code",
+      "id": "pyphi_relations_analyticalrelations_apportioned_sum_phi",
+      "label": "._apportioned_sum_phi()",
+      "norm_label": "._apportioned_sum_phi()",
+      "source_file": "pyphi/relations.py",
+      "source_location": "L447"
+    },
+    {
+      "_origin": "ast",
+      "community": 6,
+      "file_type": "code",
+      "id": "pyphi_relations_analyticalrelations_num_relations",
+      "label": "._num_relations()",
+      "norm_label": "._num_relations()",
+      "source_file": "pyphi/relations.py",
+      "source_location": "L463"
+    },
+    {
+      "_origin": "ast",
+      "community": 6,
+      "file_type": "code",
+      "id": "pyphi_relations_analyticalrelations_sum_phi",
+      "label": "._sum_phi()",
+      "norm_label": "._sum_phi()",
+      "source_file": "pyphi/relations.py",
+      "source_location": "L431"
+    },
+    {
+      "_origin": "ast",
+      "community": 138,
+      "file_type": "code",
+      "id": "pyphi_relations_combinations_with_nonempty_congruent_overlap",
+      "label": "_combinations_with_nonempty_congruent_overlap()",
+      "norm_label": "_combinations_with_nonempty_congruent_overlap()",
+      "source_file": "pyphi/relations.py",
+      "source_location": "L263"
+    },
+    {
+      "_origin": "ast",
+      "community": 2,
+      "file_type": "code",
+      "id": "pyphi_relations_concreterelations",
+      "label": "ConcreteRelations",
+      "norm_label": "concreterelations",
+      "source_file": "pyphi/relations.py",
+      "source_location": "L388"
+    },
+    {
+      "_origin": "ast",
+      "community": 6,
+      "file_type": "code",
+      "id": "pyphi_relations_concreterelations_faces_by_degree",
+      "label": ".faces_by_degree()",
+      "norm_label": ".faces_by_degree()",
+      "source_file": "pyphi/relations.py",
+      "source_location": "L409"
+    },
+    {
+      "_origin": "ast",
+      "community": 123,
+      "file_type": "code",
+      "id": "pyphi_relations_relation",
+      "label": "Relation",
+      "norm_label": "relation",
+      "source_file": "pyphi/relations.py",
+      "source_location": "L140"
+    },
+    {
+      "_origin": "ast",
+      "community": 87,
+      "file_type": "code",
+      "id": "pyphi_relations_relation_faces",
+      "label": "._faces()",
+      "norm_label": "._faces()",
+      "source_file": "pyphi/relations.py",
+      "source_location": "L147"
+    },
+    {
+      "_origin": "ast",
+      "community": 123,
+      "file_type": "code",
+      "id": "pyphi_relations_relation_phi",
+      "label": ".phi()",
+      "norm_label": ".phi()",
+      "source_file": "pyphi/relations.py",
+      "source_location": "L185"
+    },
+    {
+      "_origin": "ast",
+      "community": 87,
+      "file_type": "code",
+      "id": "pyphi_relations_relation_purview",
+      "label": ".purview()",
+      "norm_label": ".purview()",
+      "source_file": "pyphi/relations.py",
+      "source_location": "L176"
+    },
+    {
+      "_origin": "ast",
+      "community": 87,
+      "file_type": "code",
+      "id": "pyphi_relations_relationface",
+      "label": "RelationFace",
+      "norm_label": "relationface",
+      "source_file": "pyphi/relations.py",
+      "source_location": "L39"
+    },
+    {
+      "_origin": "ast",
+      "community": 87,
+      "file_type": "code",
+      "id": "pyphi_relations_relationface_congruent_overlap",
+      "label": ".congruent_overlap()",
+      "norm_label": ".congruent_overlap()",
+      "source_file": "pyphi/relations.py",
+      "source_location": "L69"
+    },
+    {
+      "_origin": "ast",
+      "community": 87,
+      "file_type": "code",
+      "id": "pyphi_relations_relationface_overlap",
+      "label": ".overlap()",
+      "norm_label": ".overlap()",
+      "source_file": "pyphi/relations.py",
+      "source_location": "L64"
+    },
+    {
+      "_origin": "ast",
+      "community": 2,
+      "file_type": "code",
+      "id": "pyphi_relations_relations",
+      "label": "Relations",
+      "norm_label": "relations",
+      "source_file": "pyphi/relations.py",
+      "source_location": "L303"
+    },
+    {
+      "_origin": "ast",
+      "community": 72,
+      "file_type": "code",
+      "id": "pyphi_resolve_ties_cascade",
+      "label": "cascade()",
+      "norm_label": "cascade()",
+      "source_file": "pyphi/resolve_ties.py",
+      "source_location": "L185"
+    },
+    {
+      "_origin": "ast",
+      "community": 91,
+      "file_type": "code",
+      "id": "pyphi_resolve_ties_partitions",
+      "label": "partitions()",
+      "norm_label": "partitions()",
+      "source_file": "pyphi/resolve_ties.py",
+      "source_location": "L714"
+    },
+    {
+      "_origin": "ast",
+      "community": 91,
+      "file_type": "code",
+      "id": "pyphi_resolve_ties_purviews",
+      "label": "purviews()",
+      "norm_label": "purviews()",
+      "source_file": "pyphi/resolve_ties.py",
+      "source_location": "L726"
+    },
+    {
+      "_origin": "ast",
+      "community": 31,
+      "file_type": "code",
+      "id": "pyphi_resolve_ties_resolve_complex_tie",
+      "label": "resolve_complex_tie()",
+      "norm_label": "resolve_complex_tie()",
+      "source_file": "pyphi/resolve_ties.py",
+      "source_location": "L288"
+    },
+    {
+      "_origin": "ast",
+      "community": 91,
+      "file_type": "code",
+      "id": "pyphi_resolve_ties_resolve_distinction_tie",
+      "label": "resolve_distinction_tie()",
+      "norm_label": "resolve_distinction_tie()",
+      "source_file": "pyphi/resolve_ties.py",
+      "source_location": "L338"
+    },
+    {
+      "_origin": "ast",
+      "community": 31,
+      "file_type": "code",
+      "id": "pyphi_resolve_ties_resolve_iit3_complex_tie",
+      "label": "resolve_iit3_complex_tie()",
+      "norm_label": "resolve_iit3_complex_tie()",
+      "source_file": "pyphi/resolve_ties.py",
+      "source_location": "L500"
+    },
+    {
+      "_origin": "ast",
+      "community": 275,
+      "file_type": "code",
+      "id": "pyphi_resolve_ties_resolve_state_tie",
+      "label": "resolve_state_tie()",
+      "norm_label": "resolve_state_tie()",
+      "source_file": "pyphi/resolve_ties.py",
+      "source_location": "L551"
+    },
+    {
+      "_origin": "ast",
+      "community": 91,
+      "file_type": "code",
+      "id": "pyphi_resolve_ties_sias",
+      "label": "sias()",
+      "norm_label": "sias()",
+      "source_file": "pyphi/resolve_ties.py",
+      "source_location": "L738"
+    },
+    {
+      "_origin": "ast",
+      "community": 91,
+      "file_type": "code",
+      "id": "pyphi_resolve_ties_states",
+      "label": "states()",
+      "norm_label": "states()",
+      "source_file": "pyphi/resolve_ties.py",
+      "source_location": "L702"
+    },
+    {
+      "_origin": "ast",
+      "community": 12,
+      "file_type": "code",
+      "id": "pyphi_substrate_complexes",
+      "label": "complexes()",
+      "norm_label": "complexes()",
+      "source_file": "pyphi/substrate.py",
+      "source_location": "L796"
+    },
+    {
+      "_origin": "ast",
+      "community": 12,
+      "file_type": "code",
+      "id": "pyphi_substrate_iit3_exclusion_cascade",
+      "label": "_iit3_exclusion_cascade()",
+      "norm_label": "_iit3_exclusion_cascade()",
+      "source_file": "pyphi/substrate.py",
+      "source_location": "L998"
+    },
+    {
+      "_origin": "ast",
+      "community": 12,
+      "file_type": "code",
+      "id": "pyphi_substrate_maximal_complex",
+      "label": "maximal_complex()",
+      "norm_label": "maximal_complex()",
+      "source_file": "pyphi/substrate.py",
+      "source_location": "L1027"
+    },
+    {
+      "_origin": "ast",
+      "community": 12,
+      "file_type": "code",
+      "id": "pyphi_substrate_resolve_clique_by_big_phi",
+      "label": "_resolve_clique_by_big_phi()",
+      "norm_label": "_resolve_clique_by_big_phi()",
+      "source_file": "pyphi/substrate.py",
+      "source_location": "L922"
+    },
+    {
+      "_origin": "ast",
+      "community": 12,
+      "file_type": "code",
+      "id": "pyphi_substrate_resolve_clique_iit3",
+      "label": "_resolve_clique_iit3()",
+      "norm_label": "_resolve_clique_iit3()",
+      "source_file": "pyphi/substrate.py",
+      "source_location": "L978"
+    },
+    {
+      "_origin": "ast",
+      "community": 12,
+      "file_type": "code",
+      "id": "pyphi_substrate_substrate_exclusion_cascade",
+      "label": "_substrate_exclusion_cascade()",
+      "norm_label": "_substrate_exclusion_cascade()",
+      "source_file": "pyphi/substrate.py",
+      "source_location": "L950"
+    },
+    {
+      "_origin": "ast",
+      "community": 272,
+      "file_type": "code",
+      "id": "pyphi_substrate_substrate_joint_tpm",
+      "label": ".joint_tpm()",
+      "norm_label": ".joint_tpm()",
+      "source_file": "pyphi/substrate.py",
+      "source_location": "L243"
+    },
+    {
+      "_origin": "ast",
+      "community": 92,
+      "file_type": "code",
+      "id": "pyphi_substrate_substrate_tpm",
+      "label": ".tpm()",
+      "norm_label": ".tpm()",
+      "source_file": "pyphi/substrate.py",
+      "source_location": "L229"
+    },
+    {
+      "_origin": "ast",
+      "community": 4,
+      "file_type": "code",
+      "id": "pyphi_system_system",
+      "label": "System",
+      "norm_label": "system",
+      "source_file": "pyphi/system.py",
+      "source_location": "L45"
+    },
+    {
+      "_origin": "ast",
+      "community": 92,
+      "file_type": "code",
+      "id": "pyphi_system_system_cause_marginal",
+      "label": ".cause_marginal()",
+      "norm_label": ".cause_marginal()",
+      "source_file": "pyphi/system.py",
+      "source_location": "L282"
+    },
+    {
+      "_origin": "ast",
+      "community": 46,
+      "file_type": "code",
+      "id": "pyphi_system_system_ces",
+      "label": ".ces()",
+      "norm_label": ".ces()",
+      "source_file": "pyphi/system.py",
+      "source_location": "L675"
+    },
+    {
+      "_origin": "ast",
+      "community": 4,
+      "file_type": "code",
+      "id": "pyphi_system_system_distinctions",
+      "label": ".distinctions()",
+      "norm_label": ".distinctions()",
+      "source_file": "pyphi/system.py",
+      "source_location": "L706"
+    },
+    {
+      "_origin": "ast",
+      "community": 92,
+      "file_type": "code",
+      "id": "pyphi_system_system_effect_marginal",
+      "label": ".effect_marginal()",
+      "norm_label": ".effect_marginal()",
+      "source_file": "pyphi/system.py",
+      "source_location": "L291"
+    },
+    {
+      "_origin": "ast",
+      "community": 12,
+      "file_type": "code",
+      "id": "pyphi_system_system_post_init",
+      "label": ".__post_init__()",
+      "norm_label": ".__post_init__()",
+      "source_file": "pyphi/system.py",
+      "source_location": "L62"
+    },
+    {
+      "_origin": "ast",
+      "community": 92,
+      "file_type": "code",
+      "id": "pyphi_system_system_proper_cause_marginal",
+      "label": ".proper_cause_marginal()",
+      "norm_label": ".proper_cause_marginal()",
+      "source_file": "pyphi/system.py",
+      "source_location": "L322"
+    },
+    {
+      "_origin": "ast",
+      "community": 92,
+      "file_type": "code",
+      "id": "pyphi_system_system_proper_effect_marginal",
+      "label": ".proper_effect_marginal()",
+      "norm_label": ".proper_effect_marginal()",
+      "source_file": "pyphi/system.py",
+      "source_location": "L298"
+    },
+    {
+      "_origin": "ast",
+      "community": 433,
+      "file_type": "code",
+      "id": "pyphi_validate_non_overlapping",
+      "label": "non_overlapping()",
+      "norm_label": "non_overlapping()",
+      "source_file": "pyphi/validate.py",
+      "source_location": "L243"
+    },
+    {
+      "_origin": "ast",
+      "community": 69,
+      "file_type": "code",
+      "id": "pyphi_validate_proper_state_in_image_of_conditioned_tpm",
+      "label": "_proper_state_in_image_of_conditioned_tpm()",
+      "norm_label": "_proper_state_in_image_of_conditioned_tpm()",
+      "source_file": "pyphi/validate.py",
+      "source_location": "L197"
+    },
+    {
+      "_origin": "ast",
+      "community": 69,
+      "file_type": "code",
+      "id": "pyphi_validate_state_reachable",
+      "label": "state_reachable()",
+      "norm_label": "state_reachable()",
+      "source_file": "pyphi/validate.py",
+      "source_location": "L170"
+    },
+    {
+      "_origin": "ast",
+      "community": 39,
+      "file_type": "code",
+      "id": "tpm_factored_factoredtpm",
+      "label": "FactoredTPM",
+      "norm_label": "factoredtpm",
+      "source_file": "pyphi/core/tpm/factored.py",
+      "source_location": "L81"
+    },
+    {
+      "_origin": "ast",
+      "community": 69,
+      "file_type": "code",
+      "id": "tpm_factored_factoredtpm_condition",
+      "label": ".condition()",
+      "norm_label": ".condition()",
+      "source_file": "pyphi/core/tpm/factored.py",
+      "source_location": "L246"
+    },
+    {
+      "_origin": "ast",
+      "community": 39,
+      "file_type": "code",
+      "id": "tpm_factored_factoredtpm_from_joint",
+      "label": ".from_joint()",
+      "norm_label": ".from_joint()",
+      "source_file": "pyphi/core/tpm/factored.py",
+      "source_location": "L133"
+    },
+    {
+      "_origin": "ast",
+      "community": 39,
+      "file_type": "code",
+      "id": "tpm_factored_factoredtpm_to_joint",
+      "label": ".to_joint()",
+      "norm_label": ".to_joint()",
+      "source_file": "pyphi/core/tpm/factored.py",
+      "source_location": "L261"
+    },
+    {
+      "_origin": "ast",
+      "community": 247,
+      "file_type": "code",
+      "id": "tpm_joint_distribution_jointtpm_condition_tpm",
+      "label": ".condition_tpm()",
+      "norm_label": ".condition_tpm()",
+      "source_file": "pyphi/core/tpm/joint_distribution.py",
+      "source_location": "L391"
+    }
+  ]
+}
