@@ -26,8 +26,6 @@ from more_itertools import flatten
 
 from pyphi.conf import config
 from pyphi.conf import fallback
-from pyphi.parallel.tree import TreeConstraints
-from pyphi.parallel.tree import TreeSpec
 
 from .progress import LocalProgressBar
 
@@ -129,9 +127,8 @@ class LocalMapReduce:
         iterables: tuple[Iterable, ...],
         reduce_func: Callable,
         reduce_kwargs: dict,
-        constraints: TreeConstraints,
-        tree: TreeSpec,
         chunksize: int,
+        sequential_threshold: int = 1,
         shortcircuit_func: Callable = false,
         shortcircuit_callback: Callable | None = None,
         ordered: bool = False,
@@ -144,9 +141,8 @@ class LocalMapReduce:
         self.iterables = iterables
         self.reduce_func = reduce_func
         self.reduce_kwargs = reduce_kwargs
-        self.constraints = constraints
-        self.tree = tree
         self.chunksize = chunksize
+        self.sequential_threshold = sequential_threshold
         self.shortcircuit_func = shortcircuit_func
         self.shortcircuit_callback = shortcircuit_callback
         self.ordered = ordered
@@ -189,6 +185,15 @@ class LocalMapReduce:
         # Yield tuples of corresponding chunks
         yield from zip(*chunked_iterables, strict=False)
 
+    def _should_run_parallel(self) -> bool:
+        """Parallelize only when there is more than one chunk of work."""
+        if self.total is None:
+            return True  # unknown length; let the executor chunk and dispatch
+        if self.total < self.sequential_threshold:
+            return False
+        # a single chunk → no parallel benefit
+        return not (self.chunksize and self.total <= self.chunksize)
+
     def run(self) -> Any:
         """Execute the parallel computation."""
         if self.done:
@@ -202,8 +207,7 @@ class LocalMapReduce:
                     desc=self.desc or "",
                 )
 
-            # If tree depth is 1 or less, run sequentially
-            if self.tree.depth <= 1:
+            if not self._should_run_parallel():
                 return self._run_sequential()
 
             return self._run_parallel()
@@ -380,7 +384,6 @@ class LocalProcessScheduler:
         from pyphi.parallel.scheduler import ChunkingPolicy
         from pyphi.parallel.scheduler import ProgressPolicy
         from pyphi.parallel.scheduler import ShortcircuitPolicy
-        from pyphi.parallel.tree import get_constraints
 
         chunking = chunking or ChunkingPolicy()
         progress = progress or ProgressPolicy()
@@ -402,13 +405,6 @@ class LocalProcessScheduler:
         items_list = list(sampled_iter)
         iterables: tuple[Iterable[Any], ...] = (items_list, *more_items)
 
-        constraints = get_constraints(
-            total=total,
-            chunksize=chunksize,
-            sequential_threshold=chunking.sequential_threshold,
-        )
-        tree = constraints.simulate()
-
         wrapped_fn = _make_worker_fn(fn, snapshot)
 
         def _reduce_wrapper(results: Iterable[Any], **_: Any) -> Any:
@@ -419,9 +415,8 @@ class LocalProcessScheduler:
             iterables=iterables,
             reduce_func=_reduce_wrapper,
             reduce_kwargs={},
-            constraints=constraints,
-            tree=tree,
             chunksize=chunksize,
+            sequential_threshold=chunking.sequential_threshold,
             shortcircuit_func=shortcircuit.func,
             shortcircuit_callback=shortcircuit.callback,
             ordered=ordered,
