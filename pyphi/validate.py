@@ -1,93 +1,63 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # validate.py
+"""Methods for validating user input."""
 
-"""
-Methods for validating arguments.
-"""
+from __future__ import annotations
+
+from collections.abc import Iterable
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
+from typing import Any
 
 import numpy as np
 
-from . import Direction, config, convert, exceptions
-from .tpm import is_state_by_state
+from . import exceptions
+from .conf import config
+from .direction import Direction
+
+if TYPE_CHECKING:
+    from pyphi.core.tpm.factored import FactoredTPM
 
 # pylint: disable=redefined-outer-name
 
 
-def direction(direction, allow_bi=False):
+# TODO(4.0) move to `Direction`
+def directions(directions: Iterable[Direction], **kwargs: bool) -> bool:
+    """Validate each direction in an iterable.
+
+    Args:
+        directions (Iterable[Direction]): Directions to validate.
+        **kwargs: Passed through to |direction|.
+
+    Returns:
+        bool: ``True`` if every element is a valid |Direction|.
+    """
+    return all(direction(d, **kwargs) for d in directions)
+
+
+def direction(direction: Direction, allow_bi: bool = False) -> bool:
     """Validate that the given direction is one of the allowed constants.
 
-    If ``allow_bi`` is ``True`` then ``Direction.BIDIRECTIONAL`` is
-    acceptable.
+    Args:
+        direction (Direction): Direction to validate.
+        allow_bi (bool): Whether bidirectional arrows are allowed.
+
+    Returns:
+        bool: ``True`` if the direction is valid; otherwise raises.
     """
-    valid = [Direction.CAUSE, Direction.EFFECT]
+    valid = set(Direction.both())
     if allow_bi:
-        valid.append(Direction.BIDIRECTIONAL)
+        valid.add(Direction.BIDIRECTIONAL)
 
     if direction not in valid:
-        raise ValueError('`direction` must be one of {}'.format(valid))
-
-    return True
-
-
-def tpm(tpm, check_independence=True):
-    """Validate a TPM.
-
-    The TPM can be in
-
-        * 2-dimensional state-by-state form,
-        * 2-dimensional state-by-node form, or
-        * multidimensional state-by-node form.
-    """
-    see_tpm_docs = (
-        'See the documentation on TPM conventions and the `pyphi.Network` '
-        'object for more information on TPM forms.'
-    )
-    # Cast to np.array.
-    tpm = np.array(tpm)
-    # Get the number of nodes from the state-by-node TPM.
-    N = tpm.shape[-1]
-    if tpm.ndim == 2:
-        if not ((tpm.shape[0] == 2**N and tpm.shape[1] == N) or
-                (tpm.shape[0] == tpm.shape[1])):
-            raise ValueError(
-                'Invalid shape for 2-D TPM: {}\nFor a state-by-node TPM, '
-                'there must be ' '2^N rows and N columns, where N is the '
-                'number of nodes. State-by-state TPM must be square. '
-                '{}'.format(tpm.shape, see_tpm_docs))
-        if tpm.shape[0] == tpm.shape[1] and check_independence:
-            conditionally_independent(tpm)
-    elif tpm.ndim == (N + 1):
-        if tpm.shape != tuple([2] * N + [N]):
-            raise ValueError(
-                'Invalid shape for multidimensional state-by-node TPM: {}\n'
-                'The shape should be {} for {} nodes. {}'.format(
-                    tpm.shape, ([2] * N) + [N], N, see_tpm_docs))
-    else:
         raise ValueError(
-            'Invalid TPM: Must be either 2-dimensional or multidimensional. '
-            '{}'.format(see_tpm_docs))
+            f"`direction` must be one of `Direction.{valid}`; "
+            f"got {type(direction)} `{direction}`"
+        )
+
     return True
 
 
-def conditionally_independent(tpm):
-    """Validate that the TPM is conditionally independent."""
-    tpm = np.array(tpm)
-    if is_state_by_state(tpm):
-        there_and_back_again = convert.state_by_node2state_by_state(
-            convert.state_by_state2state_by_node(tpm))
-    else:
-        there_and_back_again = convert.state_by_state2state_by_node(
-            convert.state_by_node2state_by_state(tpm))
-    if not np.allclose((tpm - there_and_back_again), 0.0):
-        raise exceptions.ConditionallyDependentError(
-            'TPM is not conditionally independent.\n'
-            'See the conditional independence example in the documentation '
-            'for more info.')
-    return True
-
-
-def connectivity_matrix(cm):
+def connectivity_matrix(cm: np.ndarray) -> bool:
     """Validate the given connectivity matrix."""
     # Special case for empty matrices.
     if cm.size == 0:
@@ -97,159 +67,199 @@ def connectivity_matrix(cm):
     if cm.shape[0] != cm.shape[1]:
         raise ValueError("Connectivity matrix must be square.")
     if not np.all(np.logical_or(cm == 1, cm == 0)):
-        raise ValueError("Connectivity matrix must contain only binary "
-                         "values.")
+        raise ValueError("Connectivity matrix must contain only binary values.")
     return True
 
 
-def node_labels(node_labels, node_indices):
+def connectivity(cm: np.ndarray, factored_tpm: FactoredTPM) -> bool:
+    """Validate that a connectivity matrix is not under-specified.
+
+    An edge ``a -> b`` that the TPM implies (factor ``b`` depends on input
+    ``a``) but ``cm`` omits would be silently marginalized out during node
+    construction and excluded from purview search, under-counting phi. Such
+    omissions are rejected. Over-specification (declaring an edge the TPM does
+    not use) is permitted — it only widens the search.
+    """
+    inferred = factored_tpm.infer_cm()
+    cm_arr = np.asarray(cm)
+    missing = np.argwhere((inferred == 1) & (cm_arr == 0))
+    if missing.size:
+        edges = ", ".join(f"{int(a)} -> {int(b)}" for a, b in missing)
+        raise ValueError(
+            "Connectivity matrix is under-specified: the TPM implies "
+            f"edge(s) {edges} that the connectivity matrix omits. These "
+            "dependencies would be silently marginalized out, under-counting "
+            "phi. Add the edge(s) to the connectivity matrix, or set "
+            "validate_connectivity=False to allow a permissive matrix."
+        )
+    return True
+
+
+def node_labels(node_labels: Sequence[str], node_indices: Sequence[int]) -> None:
     """Validate that there is a label for each node."""
     if len(node_labels) != len(node_indices):
-        raise ValueError("Labels {0} must label every node {1}.".format(
-            node_labels, node_indices))
+        raise ValueError(f"Labels {node_labels} must label every node {node_indices}.")
 
     if len(node_labels) != len(set(node_labels)):
-        raise ValueError("Labels {0} must be unique.".format(node_labels))
+        raise ValueError(f"Labels {node_labels} must be unique.")
 
 
-def network(n):
-    """Validate a |Network|.
+def substrate(n: object) -> bool:
+    """Validate a |Substrate|.
 
-    Checks the TPM and connectivity matrix.
+    Checks the FactoredTPM and connectivity matrix.
     """
-    tpm(n.tpm)
-    connectivity_matrix(n.cm)
-    if n.cm.shape[0] != n.size:
-        raise ValueError("Connectivity matrix must be NxN, where N is the "
-                         "number of nodes in the network.")
+    from pyphi.core.tpm.factored import FactoredTPM
+
+    factored = n.factored_tpm  # type: ignore[attr-defined]
+    if not isinstance(factored, FactoredTPM):
+        raise ValueError("substrate.factored_tpm must be a FactoredTPM")
+    connectivity_matrix(n.cm)  # type: ignore[attr-defined]
+    if n.cm.shape[0] != n.size:  # type: ignore[attr-defined]
+        raise ValueError(
+            "Connectivity matrix must be NxN, where N is the "
+            "number of nodes in the substrate."
+        )
+    if config.infrastructure.validate_connectivity:
+        connectivity(n.cm, factored)  # type: ignore[attr-defined]
     return True
 
 
-def is_network(network):
-    """Validate that the argument is a |Network|."""
-    from . import Network
+def is_substrate(substrate: object) -> None:
+    """Validate that the argument is a |Substrate|."""
+    from . import Substrate
 
-    if not isinstance(network, Network):
+    if not isinstance(substrate, Substrate):
         raise ValueError(
-            "Input must be a Network (perhaps you passed a Subsystem instead?")
+            "Input must be a Substrate (perhaps you passed a System instead?"
+        )
 
 
-def node_states(state):
-    """Check that the state contains only zeros and ones."""
-    if not all(n in (0, 1) for n in state):
+def node_states(state: Sequence[int], alphabet_sizes: Sequence[int]) -> None:
+    """Check that each state entry is a valid index into its node's alphabet.
+
+    Args:
+        state: Per-node state indices.
+        alphabet_sizes: Per-node alphabet sizes; ``state[i]`` must satisfy
+            ``0 <= state[i] < alphabet_sizes[i]``.
+    """
+    if len(state) != len(alphabet_sizes):
         raise ValueError(
-            'Invalid state: states must consist of only zeros and ones.')
+            f"State length {len(state)} does not match alphabet_sizes length "
+            f"{len(alphabet_sizes)}."
+        )
+    for i, (s, k) in enumerate(zip(state, alphabet_sizes, strict=False)):
+        if not (0 <= s < k):
+            raise ValueError(
+                f"Invalid state: state[{i}]={s} is not in [0, {k}) for "
+                f"alphabet size {k}."
+            )
 
 
-def state_length(state, size):
+def state_length(state: Sequence[int], size: int) -> bool:
     """Check that the state is the given size."""
     if len(state) != size:
-        raise ValueError('Invalid state: there must be one entry per '
-                         'node in the network; this state has {} entries, but '
-                         'there are {} nodes.'.format(len(state), size))
+        raise ValueError(
+            "Invalid state: there must be one entry per "
+            f"node in the substrate; this state has {len(state)} entries, but "
+            f"there are {size} nodes."
+        )
     return True
 
 
-def state_reachable(subsystem):
-    """Return whether a state can be reached according to the network's TPM."""
-    # If there is a row `r` in the TPM such that all entries of `r - state` are
-    # between -1 and 1, then the given state has a nonzero probability of being
-    # reached from some state.
-    # First we take the submatrix of the conditioned TPM that corresponds to
-    # the nodes that are actually in the subsystem...
-    tpm = subsystem.tpm[..., subsystem.node_indices]
-    # Then we do the subtraction and test.
-    test = tpm - np.array(subsystem.proper_state)
-    if not np.any(np.logical_and(-1 < test, test < 1).all(-1)):
-        raise exceptions.StateUnreachableError(subsystem.state)
+def state_reachable(system: object) -> None:
+    """Raise |StateUnreachableForwardsError| if the state is unreachable.
 
+    Two checks fire:
 
-def cut(cut, node_indices):
-    """Check that the cut is for only the given nodes."""
-    if cut.indices != node_indices:
-        raise ValueError('{} nodes are not equal to subsystem nodes '
-                         '{}'.format(cut, node_indices))
-
-
-def subsystem(s):
-    """Validate a |Subsystem|.
-
-    Checks its state and cut.
+    1. Substrate-level: the marginal probability
+       ``P(state) = Σ_{s_t} ∏_i factor_i(s_t)[state[i]]`` must be positive
+       under the substrate's joint factored TPM.
+    2. Subsystem-level: the subsystem's component of the state must be
+       producible by the background-conditioned subsystem dynamics. Some
+       past state of the *subsystem* (with background fixed at the
+       external state) must transition to the subsystem's ``proper_state``
+       with nonzero probability.
     """
-    node_states(s.state)
-    cut(s.cut, s.cut_indices)
-    if config.VALIDATE_SUBSYSTEM_STATES:
+    factored = system.substrate.factored_tpm  # type: ignore[attr-defined]
+    state = system.state  # type: ignore[attr-defined]
+    pr_joint = np.ones(factored.alphabet_sizes, dtype=np.float64)
+    for i in range(factored.n_nodes):
+        pr_joint = pr_joint * factored.factor(i)[..., state[i]]
+    if pr_joint.sum() <= 0.0:
+        raise exceptions.StateUnreachableForwardsError(system.state)  # type: ignore[attr-defined]
+
+    # Subsystem-level: conditioned dynamics must produce proper_state.
+    if not _proper_state_in_image_of_conditioned_tpm(system):
+        raise exceptions.StateUnreachableForwardsError(system.state)  # type: ignore[attr-defined]
+
+
+def _proper_state_in_image_of_conditioned_tpm(system: object) -> bool:
+    """Whether the subsystem's ``proper_state`` is in the image of the
+    background-conditioned effect dynamics.
+
+    ``proper_effect_marginal`` is a FactoredTPM with one factor per system
+    output unit (background fixed at the external state, background input
+    dims dropped). The state is in the image iff some system-input
+    configuration assigns positive joint probability to ``proper_state`` —
+    i.e. every system factor gives positive probability to its component
+    of ``proper_state`` for that input. Works for any per-unit alphabet
+    size.
+    """
+    proper = system.proper_effect_marginal  # type: ignore[attr-defined]
+    proper_state = system.proper_state  # type: ignore[attr-defined]
+    joint = np.ones(proper.alphabet_sizes, dtype=np.float64)
+    for slot in range(proper.n_nodes):
+        joint = joint * proper.factor(slot)[..., proper_state[slot]]
+    return bool(np.any(joint > 0.0))
+
+
+def system_partition(partition: object, node_indices: Sequence[int]) -> None:
+    """Check that the partition covers only the given nodes."""
+    if set(partition.indices) != set(node_indices):  # type: ignore[attr-defined]
+        raise ValueError(
+            f"{partition} nodes are not equal to system nodes {node_indices}"
+        )
+
+
+def system(s: object) -> bool:
+    """Validate a |System|.
+
+    Checks its state and partition.
+    """
+    node_states(s.state, s.substrate.factored_tpm.alphabet_sizes)  # type: ignore[attr-defined]
+    system_partition(s.partition, s.partition_indices)  # type: ignore[attr-defined]
+    if config.infrastructure.validate_system_states:
         state_reachable(s)
     return True
 
 
-def time_scale(time_scale):
-    """Validate a macro temporal time scale."""
-    if time_scale <= 0 or isinstance(time_scale, float):
-        raise ValueError('time scale must be a positive integer')
+def relata(relata: Iterable[object] | None) -> None:
+    """Validate a set of relata."""
+    if not relata:
+        raise ValueError("relata cannot be empty")
 
 
-def partition(partition):
-    """Validate a partition - used by blackboxes and coarse grains."""
-    nodes = set()
-    for part in partition:
-        for node in part:
-            if node in nodes:
-                raise ValueError(
-                    'Micro-element {} may not be partitioned into multiple '
-                    'macro-elements'.format(node))
-            nodes.add(node)
+def non_overlapping(complexes: Iterable[Any]) -> bool:
+    """Validate that complexes have pairwise-disjoint units (exclusion).
 
+    The exclusion postulate requires that no unit belongs to more than one
+    complex. Raises if any two of ``complexes`` share a unit.
 
-def coarse_grain(coarse_grain):
-    """Validate a macro coarse-graining."""
-    partition(coarse_grain.partition)
+    Args:
+        complexes (Iterable): Objects exposing ``node_indices``.
 
-    if len(coarse_grain.partition) != len(coarse_grain.grouping):
-        raise ValueError('output and state groupings must be the same size')
-
-    for part, group in zip(coarse_grain.partition, coarse_grain.grouping):
-        if set(range(len(part) + 1)) != set(group[0] + group[1]):
-            # Check that all elements in the partition are in one of the two
-            # state groupings
-            raise ValueError('elements in output grouping {0} do not match '
-                             'elements in state grouping {1}'.format(
-                                 part, group))
-
-
-def blackbox(blackbox):
-    """Validate a macro blackboxing."""
-    if tuple(sorted(blackbox.output_indices)) != blackbox.output_indices:
-        raise ValueError('Output indices {} must be ordered'.format(
-            blackbox.output_indices))
-
-    partition(blackbox.partition)
-
-    for part in blackbox.partition:
-        if not set(part) & set(blackbox.output_indices):
-            raise ValueError(
-                'Every blackbox must have an output - {} does not'.format(
-                    part))
-
-
-def blackbox_and_coarse_grain(blackbox, coarse_grain):
-    """Validate that a coarse-graining properly combines the outputs of a
-    blackboxing.
+    Returns:
+        bool: ``True`` if the complexes are pairwise node-disjoint.
     """
-    if blackbox is None:
-        return
-
-    for box in blackbox.partition:
-        # Outputs of the box
-        outputs = set(box) & set(blackbox.output_indices)
-
-        if coarse_grain is None and len(outputs) > 1:
+    seen: set[int] = set()
+    for c in complexes:
+        units = set(c.node_indices or ())
+        overlap = units & seen
+        if overlap:
             raise ValueError(
-                'A blackboxing with multiple outputs per box must be '
-                'coarse-grained.')
-
-        if (coarse_grain and not any(outputs.issubset(part)
-                                     for part in coarse_grain.partition)):
-            raise ValueError(
-                'Multiple outputs from a blackbox must be partitioned into '
-                'the same macro-element of the coarse-graining')
+                f"Exclusion violated: unit(s) {sorted(overlap)} belong to more "
+                f"than one complex."
+            )
+        seen.update(units)
+    return True

@@ -1,0 +1,1 @@
+Removes ``config.formalism.iit.differentiation_measure``. The field was set as a configurable default for the differentiation component of ``INTRINSIC_INFORMATION`` but was no longer read in production after that composite was rewritten to invoke its sub-components directly.

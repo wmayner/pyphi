@@ -1,7 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # log.py
-
 """Utilities for logging and progress bars."""
 
 import logging
@@ -13,6 +10,7 @@ class TqdmHandler(logging.StreamHandler):
     """Logging handler that writes through ``tqdm`` in order to not break
     progress bars.
     """
+
     def emit(self, record):
         try:
             msg = self.format(record)

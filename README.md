@@ -1,14 +1,16 @@
 <p>
   <a href="http://pyphi.readthedocs.io/">
-    <img alt="PyPhi logo" src="https://github.com/wmayner/pyphi/raw/develop/docs/_static/pyphi-logo-text-760x180.png" height="90px" width="380px" style="max-width:100%">
+    <img alt="PyPhi logo" src="https://github.com/wmayner/pyphi/raw/main/docs/_static/pyphi-logo-text-776x196.png" height="90px" width="380px" style="max-width:100%">
   </a>
 </p>
 
-[![Documentation badge](https://readthedocs.org/projects/pyphi/badge/?style=flat-square&maxAge=600)](https://pyphi.readthedocs.io/)
-[![Travis build badge](https://img.shields.io/travis/wmayner/pyphi.svg?style=flat-square&maxAge=600)](https://travis-ci.org/wmayner/pyphi)
-[![Coveralls.io badge](https://img.shields.io/coveralls/wmayner/pyphi/develop.svg?style=flat-square&maxAge=600)](https://coveralls.io/github/wmayner/pyphi?branch=develop)
-[![License badge](https://img.shields.io/github/license/wmayner/pyphi.svg?style=flat-square&maxAge=86400)](https://github.com/wmayner/pyphi/blob/master/LICENSE.md)
-[![Python versions badge](https://img.shields.io/pypi/pyversions/pyphi.svg?style=flat-square&maxAge=86400)](https://wiki.python.org/moin/Python2orPython3)
+[![Tests](https://img.shields.io/github/actions/workflow/status/wmayner/pyphi/test.yml?branch=main&style=flat-square&label=tests)](https://github.com/wmayner/pyphi/actions/workflows/test.yml)
+[![Build](https://img.shields.io/github/actions/workflow/status/wmayner/pyphi/build.yml?branch=main&style=flat-square&label=build)](https://github.com/wmayner/pyphi/actions/workflows/build.yml)
+[![Codecov](https://img.shields.io/codecov/c/github/wmayner/pyphi/main?style=flat-square)](https://codecov.io/gh/wmayner/pyphi)
+[![Documentation](https://img.shields.io/readthedocs/pyphi/stable?style=flat-square)](https://pyphi.readthedocs.io/)
+[![PyPI version](https://img.shields.io/pypi/v/pyphi?style=flat-square)](https://pypi.org/project/pyphi/)
+[![Python 3.12+](https://img.shields.io/pypi/pyversions/pyphi?style=flat-square)](https://pypi.org/project/pyphi/)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat-square)](https://www.gnu.org/licenses/gpl-3.0)
 
 PyPhi is a Python library for computing integrated information (𝚽), and the
 associated quantities and objects.
@@ -24,6 +26,8 @@ Biology 14(7): e1006343. <https://doi.org/10.1371/journal.pcbi.1006343>
 
 ---
 
+An [illustrated tutorial on how Φ is calculated](https://doi.org/10.1371/journal.pcbi.1006343.s001) is available as a supplement to the paper.
+
 
 ## Usage, Examples, and API documentation
 
@@ -37,7 +41,27 @@ Biology 14(7): e1006343. <https://doi.org/10.1371/journal.pcbi.1006343>
 
 ## Installation
 
-Set up a Python 3 virtual environment and install with
+### Using uv (Recommended)
+
+[uv](https://github.com/astral-sh/uv) is a fast Python package manager. Install it with:
+
+```bash
+# macOS/Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+Then install PyPhi:
+
+```bash
+uv pip install pyphi
+```
+
+### Using pip
+
+Set up a Python 3.12+ virtual environment and install with:
 
 ```bash
 pip install pyphi
@@ -47,13 +71,16 @@ To install the latest development version, which is a work in progress and may
 have bugs, run:
 
 ```bash
-pip install "git+https://github.com/wmayner/pyphi@develop#egg=pyphi"
+pip install "git+https://github.com/wmayner/pyphi@main#egg=pyphi"
 ```
 
-**Note:** this software is only supported on Linux and macOS. However, if you
-use Windows, you can run it by using the [Anaconda
+### Legacy: Conda (Deprecated)
+
+**Note:** The conda package is deprecated. Please use uv or pip instead.
+
+If you encounter issues on Windows with older systems, you can use the [Anaconda
 Python](https://www.anaconda.com/what-is-anaconda/) distribution and
-[installing PyPhi with conda](https://anaconda.org/wmayner/pyphi):
+[install PyPhi with conda](https://anaconda.org/wmayner/pyphi):
 
 ```bash
 conda install -c wmayner pyphi
@@ -61,7 +88,7 @@ conda install -c wmayner pyphi
 
 ### Detailed installation guide for Mac OS X
 
-[See here](https://github.com/wmayner/pyphi/blob/develop/INSTALLATION.rst).
+[See here](https://github.com/wmayner/pyphi/blob/main/INSTALLATION.rst).
 
 
 ## User group
@@ -76,11 +103,19 @@ page](https://github.com/wmayner/pyphi/issues).
 
 ## Contributing
 
-To help develop PyPhi, fork the project on GitHub and install the requirements
-with
+To help develop PyPhi, fork the project on GitHub and install with uv:
 
 ```bash
-pip install -r requirements.txt
+# Install uv if you haven't already
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Clone your fork
+git clone https://github.com/YOUR_USERNAME/pyphi.git
+cd pyphi
+
+# Create virtual environment and install with dev dependencies
+uv venv
+uv pip install -e ".[dev,parallel,visualize,graphs,emd,caching]"
 ```
 
 The `Makefile` defines some tasks to help with development:
@@ -105,32 +140,28 @@ builds the HTML documentation.
 
 ### Developing on Linux
 
-Make sure you install the C headers for Python 3, SciPy, and NumPy
-before installing the requirements:
+With uv, all dependencies including compiled packages are installed automatically
+from pre-built wheels. If you need system headers for development:
 
 ```bash
-sudo apt-get install python3-dev python3-scipy python3-numpy
+sudo apt-get install python3-dev
 ```
 
 ### Developing on Windows
 
-If you're just looking for an editable install, pip may work better than the conda develop utility included in the conda-build package. When using pip on Windows, the build of pyemd may fail. The simplest solution to this is to obtain pyemd through conda. 
+All dependencies now have pre-built wheels for Windows, so installation should work
+seamlessly with uv:
 
 ```bash
-conda create -n pyphi_dev
-conda activate pyphi_dev
-conda install -c wmayner pyemd
-cd path/to/local/editable/copy/of/pyphi
-pip install -e .
+# Install uv
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# Install PyPhi for development
+uv venv
+uv pip install -e ".[dev]"
 ```
 
-Unfortunately, pip isn't great at managing the DLLs that some packages (especially scipy) rely on. If you have missing DLL errors, try reinstalling the offending package (here, scipy) with conda. 
-
-```bash
-conda activate pyphi_dev
-pip uninstall scipy
-conda install scipy
-```
+If you encounter issues, the legacy conda approach is still available (see Installation section above).
 
 ## Credit
 
@@ -180,7 +211,7 @@ PLoS Comput Biol 10(5): e1003588. doi: 10.1371/journal.pcbi.1003588.
 
 This project is inspired by a [previous
 project](https://github.com/albantakis/iit) written in Matlab by L. Albantakis,
-M. Oizumi, A. Hashmi, A. Nere, U. Olces, P. Rana, and B. Shababo.
+M. Oizumi, A. Hashmi, A. Nere, U. Olcese, P. Rana, and B. Shababo.
 
 Correspondence regarding this code and the PyPhi paper should be directed to
 Will Mayner, at [<mayner@wisc.edu>](mailto:mayner@wisc.edu). Correspondence

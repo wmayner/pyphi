@@ -1,43 +1,78 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # connectivity.py
+"""Functions for determining substrate connectivity properties."""
 
-"""
-Functions for determining network connectivity properties.
-"""
+from __future__ import annotations
 
 import numpy as np
+from numpy.typing import ArrayLike
+from numpy.typing import NDArray
 from scipy.sparse.csgraph import connected_components
 
 
-def apply_boundary_conditions_to_cm(external_indices, cm):
+def subadjacency(
+    cm: ArrayLike, source: tuple[int, ...], target: tuple[int, ...] | None = None
+) -> NDArray[np.int_]:
+    """Return the sub-adjacency matrix for two groups of nodes.
+
+    This gives the connections from the first group to the second group.
+
+    Arguments:
+        source (Iterable[int]): The source nodes.
+
+    Keyword Arguments:
+        target (Iterable[int] | None): The target nodes. If ``None``,
+            defaults to be the same as the first.
+
+    Example:
+        >>> cm = np.identity(5)
+        >>> subadjacency(cm, (2, 3))
+        array([[1., 0.],
+               [0., 1.]])
+        >>> subadjacency(cm, (0, 1), (1, 2))
+        array([[0., 0.],
+               [1., 0.]])
+    """
+    cm_array = np.asarray(cm)
+    if target is None:
+        target = source
+    return cm_array[np.ix_(source, target)]
+
+
+def apply_boundary_conditions_to_cm(
+    external_indices: tuple[int, ...], cm: ArrayLike
+) -> NDArray[np.int_]:
     """Remove connections to or from external nodes."""
-    cm = cm.copy()
-    cm[external_indices, :] = 0  # Zero-out row
-    cm[:, external_indices] = 0  # Zero-out columnt
-    return cm
+    cm_array = np.asarray(cm).copy()
+    cm_array[external_indices, :] = 0  # Zero-out row
+    cm_array[:, external_indices] = 0  # Zero-out columnt
+    return cm_array
 
 
-def get_inputs_from_cm(index, cm):
+def get_inputs_from_cm(index: int, cm: ArrayLike) -> tuple[int, ...]:
     """Return indices of inputs to the node with the given index."""
-    return tuple(i for i in range(cm.shape[0]) if cm[i][index])
+    cm_array = np.asarray(cm)
+    return tuple(i for i in range(cm_array.shape[0]) if cm_array[i][index])
 
 
-def get_outputs_from_cm(index, cm):
+def get_outputs_from_cm(index: int, cm: ArrayLike) -> tuple[int, ...]:
     """Return indices of the outputs of node with the given index."""
-    return tuple(i for i in range(cm.shape[0]) if cm[index][i])
+    cm_array = np.asarray(cm)
+    return tuple(i for i in range(cm_array.shape[0]) if cm_array[index][i])
 
 
-def causally_significant_nodes(cm):
+def causally_significant_nodes(cm: ArrayLike) -> tuple[int, ...]:
     """Return indices of nodes that have both inputs and outputs."""
-    inputs = cm.sum(0)
-    outputs = cm.sum(1)
+    cm_array = np.asarray(cm)
+    inputs = cm_array.sum(0)
+    outputs = cm_array.sum(1)
     nodes_with_inputs_and_outputs = np.logical_and(inputs > 0, outputs > 0)
     return tuple(np.where(nodes_with_inputs_and_outputs)[0])
 
 
 # TODO: better name?
-def relevant_connections(n, _from, to):
+def relevant_connections(
+    n: int, _from: tuple[int, ...], to: tuple[int, ...]
+) -> NDArray[np.float64]:
     """Construct a connectivity matrix.
 
     Args:
@@ -60,7 +95,7 @@ def relevant_connections(n, _from, to):
     return cm
 
 
-def block_cm(cm):
+def block_cm(cm: ArrayLike) -> bool:
     """Return whether ``cm`` can be arranged as a block connectivity matrix.
 
     If so, the corresponding mechanism/purview is trivially reducible.
@@ -91,24 +126,25 @@ def block_cm(cm):
 
     does not change the structure of the graph.
     """
-    if np.any(cm.sum(1) == 0):
+    cm_array = np.asarray(cm)
+    if np.any(cm_array.sum(1) == 0):
         return True
-    if np.all(cm.sum(1) == 1):
+    if np.all(cm_array.sum(1) == 1):
         return True
 
-    outputs = list(range(cm.shape[1]))
+    outputs = list(range(cm_array.shape[1]))
 
     # CM helpers:
-    def outputs_of(nodes):
+    def outputs_of(nodes: list[int] | NDArray[np.intp]) -> NDArray[np.intp]:
         """Return all nodes that `nodes` connect to (output to)."""
-        return np.where(cm[nodes, :].sum(0))[0]
+        return np.where(cm_array[nodes, :].sum(0))[0]
 
-    def inputs_to(nodes):
+    def inputs_to(nodes: list[int] | NDArray[np.intp]) -> NDArray[np.intp]:
         """Return all nodes which connect to (input to) `nodes`."""
-        return np.where(cm[:, nodes].sum(1))[0]
+        return np.where(cm_array[:, nodes].sum(1))[0]
 
     # Start: source node with most outputs
-    sources = [np.argmax(cm.sum(1))]
+    sources = [int(np.argmax(cm_array.sum(1)))]
     sinks = outputs_of(sources)
     sink_inputs = inputs_to(sinks)
 
@@ -132,11 +168,13 @@ def block_cm(cm):
 
 # TODO: simplify the conditional validation here and in block_cm
 # TODO: combine with fully_connected
-def block_reducible(cm, nodes1, nodes2):
+def block_reducible(
+    cm: ArrayLike, nodes1: tuple[int, ...], nodes2: tuple[int, ...]
+) -> bool:
     """Return whether connections from ``nodes1`` to ``nodes2`` are reducible.
 
     Args:
-        cm (np.ndarray): The network's connectivity matrix.
+        cm (np.ndarray): The substrate's connectivity matrix.
         nodes1 (tuple[int]): Source nodes
         nodes2 (tuple[int]): Sink nodes
     """
@@ -144,26 +182,26 @@ def block_reducible(cm, nodes1, nodes2):
     if not nodes1 or not nodes2:
         return True
 
-    cm = cm[np.ix_(nodes1, nodes2)]
+    cm_array = np.asarray(cm)
+    cm_sub = cm_array[np.ix_(nodes1, nodes2)]
 
     # Validate the connectivity matrix.
-    if not cm.sum(0).all() or not cm.sum(1).all():
+    if not cm_sub.sum(0).all() or not cm_sub.sum(1).all():
         return True
     if len(nodes1) > 1 and len(nodes2) > 1:
-        return block_cm(cm)
+        return block_cm(cm_sub)
     return False
 
 
-def _connected(cm, nodes, connection):
+def _connected(cm: ArrayLike, nodes: tuple[int, ...] | None, connection: str) -> bool:
     """Test connectivity for the connectivity matrix."""
-    if nodes is not None:
-        cm = cm[np.ix_(nodes, nodes)]
+    cm_to_check: ArrayLike = subadjacency(cm, nodes) if nodes is not None else cm
 
-    num_components, _ = connected_components(cm, connection=connection)
+    num_components, _ = connected_components(cm_to_check, connection=connection)
     return num_components < 2
 
 
-def is_strong(cm, nodes=None):
+def is_strong(cm: ArrayLike, nodes: tuple[int, ...] | None = None) -> bool:
     """Return whether the connectivity matrix is strongly connected.
 
     Remember that a singleton graph is strongly connected.
@@ -174,10 +212,10 @@ def is_strong(cm, nodes=None):
     Keyword Args:
         nodes (tuple[int]): A subset of nodes to consider.
     """
-    return _connected(cm, nodes, 'strong')
+    return _connected(cm, nodes, "strong")
 
 
-def is_weak(cm, nodes=None):
+def is_weak(cm: ArrayLike, nodes: tuple[int, ...] | None = None) -> bool:
     """Return whether the connectivity matrix is weakly connected.
 
     Args:
@@ -186,10 +224,10 @@ def is_weak(cm, nodes=None):
     Keyword Args:
         nodes (tuple[int]): A subset of nodes to consider.
     """
-    return _connected(cm, nodes, 'weak')
+    return _connected(cm, nodes, "weak")
 
 
-def is_full(cm, nodes1, nodes2):
+def is_full(cm: ArrayLike, nodes1: tuple[int, ...], nodes2: tuple[int, ...]) -> bool:
     """Test connectivity of one set of nodes to another.
 
     Args:
@@ -208,7 +246,7 @@ def is_full(cm, nodes1, nodes2):
     if not nodes1 or not nodes2:
         return True
 
-    cm = cm[np.ix_(nodes1, nodes2)]
+    cm_sub = subadjacency(cm, nodes1, nodes2)
 
     # Do all nodes have at least one connection?
-    return cm.sum(0).all() and cm.sum(1).all()
+    return bool(cm_sub.sum(0).all() and cm_sub.sum(1).all())

@@ -1,0 +1,42 @@
+{
+  "config_snapshot": {
+    "CES_DISTANCE": "SUM_SMALL_PHI",
+    "IIT_VERSION": 4.0,
+    "PARALLEL": false,
+    "PARTITION_TYPE": "ALL",
+    "REPERTOIRE_DISTANCE": "GENERALIZED_INTRINSIC_DIFFERENCE",
+    "SHORTCIRCUIT_SIA": true,
+    "SYSTEM_PARTITION_TYPE": "DIRECTED_BI"
+  },
+  "generation": "pre",
+  "measurement": "iit4_phi_structure",
+  "n_nodes": 3,
+  "network": "xor",
+  "phase_times_s": {
+    "pyphi/compute/subsystem.py::ces": 0.16630966700000002,
+    "pyphi/metrics/distribution.py::generalized_intrinsic_difference": 0.020702632000000002,
+    "pyphi/new_big_phi/__init__.py::_integration_value_for_state": 0.002927418,
+    "pyphi/new_big_phi/__init__.py::evaluate_partition": 0.023367082,
+    "pyphi/new_big_phi/__init__.py::phi_structure": 0.193939625,
+    "pyphi/new_big_phi/__init__.py::resolve_system_state": 4.5e-06,
+    "pyphi/new_big_phi/__init__.py::sia": 0.026492250000000002,
+    "pyphi/new_big_phi/__init__.py::system_intrinsic_information": 0.002723459,
+    "pyphi/relations.py::all_relations": 0.001030627,
+    "pyphi/subsystem.py::_find_mip_single_state": 0.141832299,
+    "pyphi/subsystem.py::cause_repertoire": 0.000991417,
+    "pyphi/subsystem.py::concept": 0.166153125,
+    "pyphi/subsystem.py::effect_repertoire": 0.077263539,
+    "pyphi/subsystem.py::find_mice": 0.165605627,
+    "pyphi/subsystem.py::forward_repertoire": 0.009642952,
+    "pyphi/subsystem.py::intrinsic_information": 0.01669292,
+    "pyphi/subsystem.py::mic": 0.07271008400000001,
+    "pyphi/subsystem.py::mie": 0.092929458
+  },
+  "pstats_path": "xor_iit4_phi_structure_seed0_trial0.pstats",
+  "pyphi_version": "unknown",
+  "result_phi": 0.5,
+  "seed": 0,
+  "trial": 0,
+  "wall_ns": 193973542,
+  "wall_s": 0.193973542
+}

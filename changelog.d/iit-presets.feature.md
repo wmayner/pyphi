@@ -1,0 +1,1 @@
+Added canonical IIT formalism presets `iit3`, `iit4_2023`, and `iit4_2026` (exported from `pyphi` and `pyphi.conf`) for one-call formalism switching via `with config.override(**iit3): ...`. Each preset configures the IIT sub-namespace wholesale to match its source paper (Oizumi et al. 2014, Albantakis et al. 2023, Mayner et al. 2026 respectively).

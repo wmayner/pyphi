@@ -1,0 +1,1 @@
+Implement Eq. 23 ii(s) cap: system-level partition evaluation now uses GID only (Eqs. 19-20), and phi is capped by ii(s) = min(ii_c, ii_e) where ii_d = min(i_diff_d, i_spec_d). Mechanism-level partition evaluation also uses GID only when `REPERTOIRE_DISTANCE=INTRINSIC_INFORMATION` (the composite metric is a system-level concept).

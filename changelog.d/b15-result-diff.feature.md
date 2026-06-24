@@ -1,0 +1,1 @@
+Added `result.diff(other)` — a typed, displayable `ResultDiff` (Δφ, real-vs-tie-reshuffle MIP change, distinctions/relations/links gained-lost-changed, and config-diff attribution via `ConfigSnapshot.diff`) — across IIT 4.0, IIT 3.0, and actual causation. Pairs with `result.explain()`.

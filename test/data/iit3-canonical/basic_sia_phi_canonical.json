@@ -1,0 +1,186 @@
+{
+  "substrate": "basic",
+  "substrate_factory": "pyphi.examples.basic_substrate",
+  "substrate_description": "3-node binary substrate: A=OR(B,C), B=AND(A,C), C=XOR(A,B). The canonical IIT example used in the IIT 3.0 paper (Oizumi 2014) and the PyPhi paper (Mayner 2018).",
+  "state": [1, 0, 0],
+  "node_labels": ["A", "B", "C"],
+  "node_indices": [0, 1, 2],
+
+  "canonical_target": {
+    "sia_phi": 2.3125,
+    "rational": "37/16",
+    "tolerance": 1e-4,
+    "ces_size": 4,
+    "mip_cut_indexed": {"from_nodes": [1, 2], "to_nodes": [0]},
+    "mip_cut_labeled": "[B, C] --/--> [A]",
+    "small_phi_per_mechanism": {
+      "(1,)": 0.25,
+      "(2,)": 0.5,
+      "(0,1)": 0.333333,
+      "(0,1,2)": 0.5
+    },
+    "partitioned_ces_size": 1,
+    "sum_partitioned_small_phis": 0.5,
+    "mechanism_mip_partitions": {
+      "comment": "Per-(mechanism, direction) MIC selections; detects mechanism-MIP regressions that don't propagate to sia.phi.",
+      "(0,)|CAUSE": {
+        "purview": [1],
+        "phi": 0.166667,
+        "partition": [[[],[1]],[[0],[]]]
+      },
+      "(0,)|EFFECT": {
+        "purview": [0],
+        "phi": 0.0,
+        "partition": [[[],[0]],[[0],[]]]
+      },
+      "(0,1,)|CAUSE": {
+        "purview": [1,2],
+        "phi": 0.333333,
+        "partition": [[[0],[1]],[[1],[2]]]
+      },
+      "(0,1,)|EFFECT": {
+        "purview": [2],
+        "phi": 0.5,
+        "partition": [[[0],[2]],[[1],[]]]
+      },
+      "(0,1,2,)|CAUSE": {
+        "purview": [0,1,2],
+        "phi": 0.5,
+        "partition": [[[0,1],[0,1,2]],[[2],[]]]
+      },
+      "(0,1,2,)|EFFECT": {
+        "purview": [0,2],
+        "phi": 0.5,
+        "partition": [[[0,1],[0,2]],[[2],[]]]
+      },
+      "(0,2,)|CAUSE": {
+        "purview": [0,1],
+        "phi": 0.333333,
+        "partition": [[[0],[]],[[2],[0,1]]]
+      },
+      "(0,2,)|EFFECT": {
+        "purview": [0],
+        "phi": 0.0,
+        "partition": [[[0],[]],[[2],[0]]]
+      },
+      "(1,)|CAUSE": {
+        "purview": [2],
+        "phi": 0.5,
+        "partition": [[[],[2]],[[1],[]]]
+      },
+      "(1,)|EFFECT": {
+        "purview": [0],
+        "phi": 0.25,
+        "partition": [[[],[0]],[[1],[]]]
+      },
+      "(1,2,)|CAUSE": {
+        "purview": [0],
+        "phi": 0.0,
+        "partition": [[[],[0]],[[1,2],[]]]
+      },
+      "(1,2,)|EFFECT": {
+        "purview": [0],
+        "phi": 0.5,
+        "partition": [[[1],[0]],[[2],[]]]
+      },
+      "(2,)|CAUSE": {
+        "purview": [0,1],
+        "phi": 0.5,
+        "partition": [[[],[1]],[[2],[0]]]
+      },
+      "(2,)|EFFECT": {
+        "purview": [1],
+        "phi": 0.5,
+        "partition": [[[],[1]],[[2],[]]]
+      }
+    }
+  },
+
+  "context": "This is the canonical PyPhi-IIT-3.0 value for the basic substrate in state (1,0,0). It is the bisect target for Phase 4 of the IIT 3.0 restoration. The expected output of `iit3.sia(System(basic, (1,0,0)))` under `config.override(**presets.iit3)` once Bug 3 is resolved.",
+
+  "historical_provenance": {
+    "summary": "The value 2.3125 has been the canonical PyPhi-test value since 2015-05-13. It differs from the IIT 3.0 paper's 1.92 and the PyPhi paper's 1.916665 due to a deliberate theoretical refinement to EMD over cause-effect-structures, introduced in 2015.",
+
+    "key_commit": {
+      "hash": "9fc0c0ab",
+      "date": "2015-05-12",
+      "subject": "Ensure no concepts are moved around within a constellation in EMD",
+      "file": "pyphi/compute.py (function `_constellation_distance_emd`, later renamed to `_emd` in pyphi/metrics/ces.py)",
+      "theoretical_change": "The diagonal blocks of the EMD distance matrix (within-constellation moves) were changed from zero to `max(pairwise_distances) + 1`. This enforces that mass can only flow between the unpartitioned and partitioned constellations (or to the null concept) — never within one. The refinement reflects the principle that concepts within a constellation are not interchangeable.",
+      "numerical_effect": "sia.phi for basic substrate (1,0,0) increased from ~1.917 (paper) to ~2.312 (post-fix). The current `_emd` implementation in `pyphi/metrics/ces.py:194-213` preserves this fix (comment at line 195: 'concepts are never moved to another concept within their own CES')."
+    },
+
+    "value_history": [
+      {
+        "period": "2014 IIT 3.0 paper, 2018 PyPhi paper",
+        "value": "1.916666... (23/12)",
+        "ces_size": 6,
+        "mechanisms": ["A", "B", "C", "AB", "BC", "ABC"],
+        "note": "Both papers report this value for the basic substrate. Generated under pre-2015 EMD semantics (zero diagonal in distance matrix; mass could flow within a constellation)."
+      },
+      {
+        "period": "2015-05-13 onward (commit 2cd3ced4: 'Update test values to new rounded values after EMD fix')",
+        "value": "2.312497 (then rounded to 2.3125 in commit 44f85a49 on 2015-11-27)",
+        "ces_size": 4,
+        "mechanisms": ["B", "C", "AB", "ABC"],
+        "note": "Post-fix value. Has been PyPhi's canonical answer for 10+ years across 1.x and 2.x."
+      },
+      {
+        "period": "Current (post-Phase-2 of this restoration)",
+        "value": 0.5,
+        "ces_size": 2,
+        "mechanisms": ["B", "C"],
+        "note": "Further regression beyond the 2015 baseline: AB and ABC concepts are gone too. The 2024-2026 commits that caused this are Phase 4's bisect target. Suspected blast zone: P7 native port of repertoire/MIP code (commits 4c2d0c28 and chain, 2026-04)."
+      }
+    ],
+
+    "sources": [
+      {
+        "type": "paper",
+        "citation": "Oizumi, Albantakis, Tononi 2014 (IIT 3.0). PLoS Comput Biol 10(5):e1003588.",
+        "pdf": "papers/2014__oizumi-et-al__iit-3.0.pdf",
+        "locations": ["Fig 14 (p.15): basic substrate ABC, Phi=1.92", "Fig 15 (p.16): MICS for same complex, Phi^Max=1.92"],
+        "value_reported": 1.92,
+        "note": "Paper predates the EMD fix; reports the pre-fix value."
+      },
+      {
+        "type": "paper",
+        "citation": "Mayner, Marshall, Albantakis, Findlay, Marchman, Tononi 2018 (PyPhi). PLoS Comput Biol 14(7):e1006343.",
+        "pdf": "papers/2018__mayner-et-al__pyphi.pdf",
+        "locations": ["Fig 1 (p.3): basic substrate ABC, Phi=1.92", "p.12: `print(sia.phi)` -> 1.916665; sia.cut: `[A, B] --/--> [C]`"],
+        "value_reported": 1.916665,
+        "note": "Paper published 2018 but the figure shows the pre-2015-EMD-fix value. The figure was apparently generated against a pre-2015 PyPhi snapshot or with a non-default config that bypassed the fix. PyPhi's test suite at the time of publication asserted 2.3125."
+      },
+      {
+        "type": "test_fixture",
+        "citation": "test/test_big_phi.py `standard_answer` (introduced ~2014, value updated by EMD fix in 2015, removed in commit 25d7cf31 on 2024-07-15 during 4.0 migration)",
+        "value_reported": 2.3125,
+        "note": "10-year PyPhi-internal canonical."
+      },
+      {
+        "type": "test_assertion",
+        "citation": "test/test_metrics_ces.py:46 `test_sia_uses_ces_distances` (currently @pytest.mark.outdated)",
+        "config_override": "version=IIT_3_0, mechanism_phi_measure=EMD, ces_measure=EMD",
+        "value_reported": 2.3125
+      },
+      {
+        "type": "test_assertion",
+        "citation": "test/test_metrics_ces.py:52 `test_sia_uses_ces_distances`",
+        "config_override": "version=IIT_3_0, mechanism_phi_measure=EMD, ces_measure=SUM_SMALL_PHI",
+        "value_reported": 1.083333,
+        "note": "Same MIP, different ces_measure. 1.083333 = sum(unpartitioned_phis) - sum(partitioned_phis) = 1.583333 - 0.5."
+      }
+    ]
+  },
+
+  "phase_4_bisect_predicate": {
+    "description": "A working bisect script should checkout each candidate commit, set up the env (uv sync --extra emd), then run the predicate.",
+    "predicate_python": "from pyphi import config, examples, System\nfrom pyphi.conf import presets\nfrom pyphi.formalism import iit3\nsub = examples.basic_substrate()\nwith config.override(**presets.iit3):\n    system = System(sub, (1, 0, 0), sub.node_indices)\n    sia = iit3.sia(system)\nassert abs(sia.phi - 2.3125) < 1e-4, f'sia.phi = {sia.phi}, want 2.3125'",
+    "bisect_window_good": "commits before P7 native port chain (`4c2d0c28` and ancestors)",
+    "bisect_window_bad": "current HEAD on 2.0",
+    "notes": [
+      "The bisect may need to handle API drift: Network->Substrate, Subsystem->System, Concept->Distinction. The predicate above uses the post-rename API; older commits will need a shim or per-era API.",
+      "If the bisect lands on a multi-effect commit (e.g. the P7 native port), additional investigation may be needed to identify the specific change."
+    ]
+  }
+}

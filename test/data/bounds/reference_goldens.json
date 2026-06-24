@@ -1,0 +1,92 @@
+{
+ "metadata": {
+  "generator": "author's IIT-bounds experiment code",
+  "iit_bounds_repo": "github.com/zaeemzadeh/IIT-bounds",
+  "pyphi": "feature/iit-4.0 (b78d0e34)",
+  "generated": "2026-06-10",
+  "recipe": "Driven through the original pyphi pipeline via bound_figures.ipynb functions (cells 3, 4, 12) on the author's utils.py; phi*_e from Subsystem.find_mip over the K/2+1 candidate partitions of the high-selectivity construction; relation sums via the notebook's sum_of_minimum_among_subsets profile evaluations."
+ },
+ "results": [
+  {
+   "n": 2,
+   "phi_e_star": {
+    "1": 1.0,
+    "2": 4.0
+   },
+   "sum_phi_distinctions_iii": 6.0,
+   "sum_phi_relations_i": 16.0,
+   "sum_phi_relations_ii": 8.0,
+   "sum_phi_relations_iii": 14.0
+  },
+  {
+   "n": 3,
+   "phi_e_star": {
+    "1": 1.0,
+    "2": 0.8300749985576875,
+    "3": 9.0
+   },
+   "sum_phi_distinctions_iii": 14.490224995673064,
+   "sum_phi_relations_i": 429.0,
+   "sum_phi_relations_ii": 69.0,
+   "sum_phi_relations_iii": 183.20748725985496
+  },
+  {
+   "n": 4,
+   "phi_e_star": {
+    "1": 1.0,
+    "2": 0.38529015588479165,
+    "3": 1.8300749985576876,
+    "4": 16.0
+   },
+   "sum_phi_distinctions_iii": 29.6320409295395,
+   "sum_phi_relations_i": 139384.0,
+   "sum_phi_relations_ii": 1592.0,
+   "sum_phi_relations_iii": 26146.334694583216
+  },
+  {
+   "n": 5,
+   "phi_e_star": {
+    "1": 1.0,
+    "2": 0.18621880878296293,
+    "3": 0.9258585372474946,
+    "4": 2.923184402949169,
+    "5": 25.0
+   },
+   "sum_phi_distinctions_iii": 55.736695475050425,
+   "sum_phi_relations_i": 11073290545.0,
+   "sum_phi_relations_ii": 501905.0,
+   "sum_phi_relations_iii": 1002018795.9128059
+  },
+  {
+   "n": 6,
+   "phi_e_star": {
+    "1": 1.0,
+    "2": 0.09160737922624972,
+    "3": 0.4857790906418708,
+    "4": 1.5779352338271877,
+    "5": 4.07518749639422,
+    "6": 36.0
+   },
+   "sum_phi_distinctions_iii": 101.2098459870043,
+   "sum_phi_relations_i": 5.620494973788802e+19,
+   "sum_phi_relations_ii": 39057752424.0,
+   "sum_phi_relations_iii": 2.5349829339110554e+18
+  },
+  {
+   "n": 7,
+   "phi_e_star": {
+    "1": 1.0,
+    "2": 0.045440153000167204,
+    "3": 0.25871736506150783,
+    "4": 0.8870107903956841,
+    "5": 2.3111486931322864,
+    "6": 3.075187496394219,
+    "7": 49.0
+   },
+   "sum_phi_distinctions_iii": 167.11516368454278,
+   "sum_phi_relations_i": 1.2002928846305561e+39,
+   "sum_phi_relations_ii": 1.9469964987683622e+20,
+   "sum_phi_relations_iii": 2.7059381001196515e+37
+  }
+ ]
+}

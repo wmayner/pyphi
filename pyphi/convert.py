@@ -1,18 +1,18 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # convert.py
-
-"""
-Conversion functions.
+"""Conversion functions.
 
 See the documentation on PyPhi :ref:`tpm-conventions` for information on the
 different representations that these functions convert between.
 """
 
 import logging
+from itertools import product
 from math import log2
 
 import numpy as np
+
+from .utils import all_states
+from .utils import assume_integer
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
@@ -32,16 +32,6 @@ def reverse_bits(i, n):
     return int(bin(i)[2:].zfill(n)[::-1], 2)
 
 
-def nodes2indices(nodes):
-    """Convert nodes to a tuple of their indices."""
-    return tuple(n.index for n in nodes) if nodes else ()
-
-
-def nodes2state(nodes):
-    """Convert nodes to a tuple of their states."""
-    return tuple(n.state for n in nodes) if nodes else ()
-
-
 def be2le(i, n):
     """Convert between big-endian and little-endian for indices in
     ``range(n)``.
@@ -50,6 +40,16 @@ def be2le(i, n):
 
 
 le2be = be2le
+
+
+def nodes2indices(nodes):
+    """Convert nodes to a tuple of their indices."""
+    return tuple(n.index for n in nodes) if nodes else ()
+
+
+def nodes2state(nodes):
+    """Convert nodes to a tuple of their states."""
+    return tuple(n.state for n in nodes) if nodes else ()
 
 
 def state2be_index(state):
@@ -61,7 +61,7 @@ def state2be_index(state):
             gives the state of the |ith| node.
 
     Returns:
-        int: A decimal integer corresponding to a network state under the
+        int: A decimal integer corresponding to a substrate state under the
         big-endian convention.
 
     Examples:
@@ -70,7 +70,7 @@ def state2be_index(state):
         >>> state2be_index((1, 1, 1, 0, 0, 0, 0, 0))
         224
     """
-    return int(''.join(str(int(n)) for n in state), 2)
+    return int("".join(str(int(n)) for n in state), 2)
 
 
 def state2le_index(state):
@@ -82,7 +82,7 @@ def state2le_index(state):
             gives the state of the |ith| node.
 
     Returns:
-        int: A decimal integer corresponding to a network state under the
+        int: A decimal integer corresponding to a substrate state under the
         little-endian convention.
 
     Examples:
@@ -91,7 +91,7 @@ def state2le_index(state):
         >>> state2le_index((1, 1, 1, 0, 0, 0, 0, 0))
         7
     """
-    return int(''.join(str(int(n)) for n in state[::-1]), 2)
+    return int("".join(str(int(n)) for n in state[::-1]), 2)
 
 
 def le_index2state(i, number_of_nodes):
@@ -101,7 +101,7 @@ def le_index2state(i, number_of_nodes):
     The output is the reverse of |be_index2state()|.
 
     Args:
-        i (int): A decimal integer corresponding to a network state under the
+        i (int): A decimal integer corresponding to a substrate state under the
             little-endian convention.
 
     Returns:
@@ -126,7 +126,7 @@ def be_index2state(i, number_of_nodes):
     The output is the reverse of |le_index2state()|.
 
     Args:
-        i (int): A decimal integer corresponding to a network state under the
+        i (int): A decimal integer corresponding to a substrate state under the
             big-endian convention.
 
     Returns:
@@ -157,16 +157,16 @@ def be2le_state_by_state(tpm):
     Example:
         >>> tpm = np.arange(16).reshape([4, 4])
         >>> be2le_state_by_state(tpm)
-        array([[ 0.,  1.,  2.,  3.],
-               [ 8.,  9., 10., 11.],
-               [ 4.,  5.,  6.,  7.],
-               [12., 13., 14., 15.]])
+        array([[ 0,  2,  1,  3],
+               [ 8, 10,  9, 11],
+               [ 4,  6,  5,  7],
+               [12, 14, 13, 15]])
     """
-    le = np.empty(tpm.shape)
+    le = np.empty(tpm.shape, dtype=tpm.dtype)
     N = tpm.shape[0]
     n = int(log2(N))
-    for i in range(N):
-        le[i, :] = tpm[be2le(i, n), :]
+    for i, j in product(range(N), repeat=2):
+        le[i, j] = tpm[be2le(i, n), be2le(j, n)]
     return le
 
 
@@ -176,32 +176,44 @@ le2be_state_by_state = be2le_state_by_state
 def to_multidimensional(tpm):
     """Reshape a state-by-node TPM to the multidimensional form.
 
-    See documentation for the |Network| object for more information on TPM
+    See documentation for the |Substrate| object for more information on TPM
     formats.
     """
-    # Cast to np.array.
+    # Cast to np.array
     tpm = np.array(tpm)
-    # Get the number of nodes.
-    N = tpm.shape[-1]
+    # Get the number of nodes in the previous state
+    n_prev = int(log2(np.prod(tpm.shape[:-1])))
+    # Get the number of nodes in the next state
+    n_next = tpm.shape[-1]
     # Reshape. We use Fortran ordering here so that the rows use the
     # little-endian convention (least-significant bits correspond to low-index
     # nodes). Note that this does not change the actual memory layout (C- or
     # Fortran-contiguous), so there is no performance loss.
-    return tpm.reshape([2] * N + [N], order="F").astype(float)
+    return tpm.reshape([2] * n_prev + [n_next], order="F").astype(float)
+
+
+def sbs_to_multidimensional(tpm):
+    if not tpm.ndim == 2:
+        raise ValueError("tpm must be 2-dimensional")
+    num_prev_nodes = assume_integer(log2(tpm.shape[0]))
+    num_next_nodes = assume_integer(log2(tpm.shape[1]))
+    return tpm.reshape([2] * num_prev_nodes + [2] * num_next_nodes, order="F")
 
 
 def to_2dimensional(tpm):
     """Reshape a state-by-node TPM to the 2-dimensional form.
 
-    See :ref:`tpm-conventions` and documentation for the |Network| object for
+    See :ref:`tpm-conventions` and documentation for the |Substrate| object for
     more information on TPM representations.
     """
-    # Cast to np.array.
+    # Cast to np.array
     tpm = np.array(tpm)
-    # Get the number of nodes.
+    # Get the number of previous states
+    S = np.prod(tpm.shape[:-1])
+    # Get the number of next states
     N = tpm.shape[-1]
-    # Reshape.
-    return tpm.reshape([2**N, N], order="F").astype(float)
+    # Reshape
+    return tpm.reshape([S, N], order="F").astype(float)
 
 
 def state_by_state2state_by_node(tpm):
@@ -249,7 +261,7 @@ def state_by_state2state_by_node(tpm):
     # Get the number of nodes from the number of states.
     N = int(log2(S))
     # Initialize the new state-by node TPM.
-    sbn_tpm = np.zeros(([2] * N + [N]))
+    sbn_tpm = np.zeros([2] * N + [N])
     # Map indices to state-tuples with the little-endian convention.
     states = {i: le_index2state(i, N) for i in range(S)}
     # Get an array for each node with 1 in positions that correspond to that
@@ -264,10 +276,7 @@ def state_by_state2state_by_node(tpm):
     return sbn_tpm
 
 
-# TODO support nondeterministic TPMs
-# TODO add documentation on TPM representation and conditional independence and
-# reference it here
-def state_by_node2state_by_state(tpm):
+def state_by_node2state_by_state(sbn):
     """Convert a state-by-node TPM to a state-by-state TPM.
 
     .. important::
@@ -286,13 +295,13 @@ def state_by_node2state_by_state(tpm):
 
     Args:
         tpm (list[list] or np.ndarray): A state-by-node TPM with row indices
-            following the little-endian convention and column indices following
-            the big-endian convention.
+            following the little-endian convention.
 
     Returns:
         np.ndarray: A state-by-state TPM, with both row and column indices
-        following the big-endian convention.
+        following the little-endian convention.
 
+    Examples:
     >>> tpm = np.array([[1, 1, 0],
     ...                 [0, 0, 1],
     ...                 [0, 1, 1],
@@ -310,39 +319,77 @@ def state_by_node2state_by_state(tpm):
            [0., 1., 0., 0., 0., 0., 0., 0.],
            [0., 0., 0., 0., 0., 0., 0., 1.],
            [0., 0., 0., 0., 0., 1., 0., 0.]])
+    >>> tpm = np.array([[0.1, 0.3, 0.7],
+    ...                 [0.3, 0.9, 0.2],
+    ...                 [0.3, 0.9, 0.1],
+    ...                 [0.2, 0.8, 0.5],
+    ...                 [0.1, 0.7, 0.4],
+    ...                 [0.4, 0.3, 0.6],
+    ...                 [0.4, 0.3, 0.1],
+    ...                 [0.5, 0.2, 0.1]])
+    >>> state_by_node2state_by_state(tpm)
+    array([[0.189, 0.021, 0.081, 0.009, 0.441, 0.049, 0.189, 0.021],
+           [0.056, 0.024, 0.504, 0.216, 0.014, 0.006, 0.126, 0.054],
+           [0.063, 0.027, 0.567, 0.243, 0.007, 0.003, 0.063, 0.027],
+           [0.08 , 0.02 , 0.32 , 0.08 , 0.08 , 0.02 , 0.32 , 0.08 ],
+           [0.162, 0.018, 0.378, 0.042, 0.108, 0.012, 0.252, 0.028],
+           [0.168, 0.112, 0.072, 0.048, 0.252, 0.168, 0.108, 0.072],
+           [0.378, 0.252, 0.162, 0.108, 0.042, 0.028, 0.018, 0.012],
+           [0.36 , 0.36 , 0.09 , 0.09 , 0.04 , 0.04 , 0.01 , 0.01 ]])
+    >>> tpm = np.array([[1],
+    ...                 [0]])
+    >>> state_by_node2state_by_state(tpm)
+    array([[0., 1.],
+           [1., 0.]])
+    >>> tpm = np.array([[[[0.5, 0.5]]]])
+    >>> state_by_node2state_by_state(tpm)
+    array([[0.25, 0.25, 0.25, 0.25]])
     """
-    # Cast to np.array.
-    tpm = np.array(tpm)
-    # Convert to multidimensional form.
-    tpm = to_multidimensional(tpm)
-    # Get the number of nodes from the last dimension of the TPM.
-    N = tpm.shape[-1]
-    # Get the number of states.
-    S = 2**N
-    # Initialize the state-by-state TPM.
-    sbs_tpm = np.zeros((S, S))
-    if not np.any(np.logical_and(tpm < 1, tpm > 0)):
-        # TPM is deterministic.
-        for previous_state_index in range(S):
-            # Use the little-endian convention to get the row and column
-            # indices.
-            previous_state = le_index2state(previous_state_index, N)
-            current_state_index = state2le_index(tpm[previous_state])
-            sbs_tpm[previous_state_index, current_state_index] = 1
+    # First convert to multidimensional form
+    sbn = to_multidimensional(sbn)
+
+    # Squeeze all but the last axis (i.e., the node axis), since for a
+    # single-node system that axis will be a singleton but we want to keep
+    # it.
+    squeeze_axes = tuple(i for i in range(sbn.ndim - 1) if sbn.shape[i] == 1)
+    sbn = sbn.squeeze(axis=squeeze_axes)
+
+    # Get the number of previous and next nodes
+    n_prev = sbn.ndim - 1
+    n_next = sbn.shape[-1]
+
+    # First make the OFF probabilities explicit; the last dimension will
+    # correpsond to OFF/ON probability
+    sbn = np.stack([1 - sbn, sbn], axis=-1)
+
+    # Preallocate the state-by-state TPM
+    sbs = np.empty([2**n_prev, 2**n_next], dtype=sbn.dtype)
+
+    def fill_row(sbs_row_idx, prev_state):
+        # Overall approach: get the marginal conditional probabilities for each
+        # node, then take the product to get the joint
+
+        # Condition on the previous state corresponding to this row
+        pr_conditioned_on_mech = sbn[prev_state]
+        # Get indices for the next states
+        sbs_col_idx = list(reversed(np.mgrid[[slice(0, 2)] * n_next]))
+        # Get the marginal distributions over next states for each element
+        pr_marginal = [
+            pr_conditioned_on_mech[i, idx.reshape(-1)]
+            for i, idx in enumerate(sbs_col_idx)
+        ]
+        # Take the product across elements to get the conditional joint distribution
+        row = np.prod(pr_marginal, axis=0)
+        # Fill state-by-state row with the joint distribution
+        sbs[sbs_row_idx, :] = row
+
+    if not n_prev:
+        fill_row(0, ())
     else:
-        # TPM is nondeterministic.
-        for previous_state_index in range(S):
-            # Use the little-endian convention to get the row and column
-            # indices.
-            previous_state = le_index2state(previous_state_index, N)
-            marginal_tpm = tpm[previous_state]
-            for current_state_index in range(S):
-                current_state = np.array(
-                    [i for i in le_index2state(current_state_index, N)])
-                sbs_tpm[previous_state_index, current_state_index] = (
-                    np.prod(marginal_tpm[current_state == 1]) *
-                    np.prod(1 - marginal_tpm[current_state == 0]))
-    return sbs_tpm
+        for sbs_row_idx, prev_state in enumerate(all_states(n_prev)):
+            fill_row(sbs_row_idx, prev_state)
+
+    return sbs
 
 
 # Short aliases

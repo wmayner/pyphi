@@ -1,0 +1,18 @@
+{
+    "hooks": {
+        "PostToolUse": [
+            {
+                "matcher": "Edit|MultiEdit|Write",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "[[ \"$CLAUDE_FILE_PATH\" == *.py ]] && uv run ruff check --fix \"$CLAUDE_FILE_PATH\" && uv run ruff format \"$CLAUDE_FILE_PATH\" && uv run pyright \"$CLAUDE_FILE_PATH\" || true"
+                    }
+                ]
+            }
+        ]
+    },
+    "enabledPlugins": {
+        "superpowers@claude-plugins-official": true
+    }
+}

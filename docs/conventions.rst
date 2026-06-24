@@ -37,14 +37,16 @@ With this form, we can take advantage of `NumPy array indexing
 <https://docs.scipy.org/doc/numpy/reference/arrays.indexing.html>`_ and use a
 network state as an index directly:
 
-    >>> from pyphi.examples import basic_noisy_selfloop_network
-    >>> tpm = basic_noisy_selfloop_network().tpm
-    >>> state = (0, 0, 1)  # A network state is a binary tuple
-    >>> tpm[state]
-    array([0.919, 0.91 , 0.756])
+    >>> from pyphi.examples import basic_noisy_selfloop_substrate
+    >>> import numpy as np
+    >>> sub = basic_noisy_selfloop_substrate()
+    >>> state = (0, 0, 1)  # A network state is a tuple
+    >>> ft = sub.factored_tpm
+    >>> [float(ft.factor(i)[state][1]) for i in range(sub.size)]
+    [0.919, 0.91, 0.756]
 
 This tells us that if the current state is |N_0 = 0, N_1 = 0, N_2 = 1|, then
-the for the next state, :math:`\Pr(N_0 = 1) = 0.919`, :math:`\Pr(N_1 = 1) =
+for the next state, :math:`\Pr(N_0 = 1) = 0.919`, :math:`\Pr(N_1 = 1) =
 0.91` and :math:`\Pr(N_2 = 1) = 0.756`.
 
 .. important::
@@ -153,7 +155,7 @@ Connectivity matrix conventions
 ===============================
 
 Throughout PyPhi, if |CM| is a connectivity matrix, then |CM[i][j] = 1| means
-that there is a directed edge |(i,j)| from node |i| to node |j|, and 
+that there is a directed edge |(i,j)| from node |i| to node |j|, and
 |CM[i][j] = 0| means there is no edge from |i| to |j|.
 
 For example, this network of four nodes

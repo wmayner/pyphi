@@ -1,0 +1,10 @@
+=====1-node subsystems=====
+φ_s(A) = 0.0
+φ_s(B) = 0.0
+φ_s(C) = 0.0
+=====2-node subsystems=====
+φ_s(AB) = 0.0
+φ_s(AC) = 0.0
+φ_s(BC) = 0.0
+=====3-node subsystems=====
+φ_s(ABC) = 0.8300749985576875

@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Prints the pstats results for the functions in which the most time was spent.
 """
 
 import argparse
 import pstats
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

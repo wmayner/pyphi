@@ -1,13 +1,16 @@
 @import url(//fonts.googleapis.com/css?family=Roboto+Mono:400,700|Roboto:400,700);
+
 /* Layout */
 .wy-nav-content-wrap {
     background: #fff;
 }
+
 @media screen and (min-width: 1400px) {
     .wy-nav-content-wrap {
         background: #f3f4f4;
     }
 }
+
 .wy-nav-content {
     max-width: 900px;
     background: #fff;
@@ -15,14 +18,21 @@
 
 /* Typography */
 body,
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
     font-family: 'Roboto', 'Helvetica Neue', sans-serif;
 }
+
 body {
-  font-size: 16px;
+    font-size: 16px;
 }
+
 body p {
-  line-height: 1.5;
+    line-height: 1.5;
 }
 
 /* Headers */
@@ -41,8 +51,7 @@ p {
 pre,
 code,
 tt,
-.highlight
-.docutils.literal span.pre,
+.highlight .docutils.literal span.pre,
 .rst-content pre,
 .rst-content tt,
 .rst-content code {
@@ -70,6 +79,7 @@ div[class^='highlight'] {
     border-radius: 3px;
     background: #f6f8fa;
 }
+
 /* Code blocks */
 .rst-content div[class^='highlight'] pre,
 div[class^='highlight'] pre {
@@ -80,36 +90,36 @@ div[class^='highlight'] pre {
     border: none;
     line-height: 1.45;
 }
+
 .admonition div[class^='highlight'] {
     background: rgba(27, 31, 35, 0.05);
 }
 
 
 /* Module headers */
-h1 > code.xref.py.py-mod.docutils.literal {
+h1>code.xref.py.py-mod.docutils.literal {
     background: none;
     padding-left: 0;
     margin-left: 0;
     font-size: 100%;
 }
+
 code.xref.py.docutils.literal {
-  font-weight: normal;
+    font-weight: normal;
 }
 
 /* Lists with code items */
-ul.simple > li > a.reference.internal > code.literal {
+ul.simple>li>a.reference.internal>code.literal {
     line-height: 2.25;
 }
 
 /* Class/function headers */
-.rst-content dl:not(.docutils) dt {
-    border-top: none;
+html.writer-html4 .rst-content dl:not(.docutils)>dt,
+html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.glossary):not(.simple)>dt {
     border-radius: 3px;
+    border-top: none;
     border-left: solid 3px #6ab0de;
     font-size: 100%;
-}
-.rst-content dl.attribute:not(.docutils) dt,
-.rst-content dl.method:not(.docutils) dt {
     font-size: 95%;
 }
 
@@ -117,82 +127,119 @@ ul.simple > li > a.reference.internal > code.literal {
 div.admonition {
     border-radius: 3px;
 }
+
 p.first.admonition-title {
     border-radius: 3px 3px 0 0;
 }
 
- /* Code links */
-a.reference.internal > code.docutils.literal {
+/* Code links */
+a.reference.internal>code.docutils.literal {
     color: inherit;
 }
-a.reference.internal > .docutils.literal:hover {
+
+a.reference.internal>.docutils.literal:hover {
     text-decoration: underline;
 }
 
 /* Breadcrumbs */
-ul.wy-breadcrumbs > li > code.docutils.literal {
+ul.wy-breadcrumbs>li>code.docutils.literal {
     font-size: 100%;
     background: none;
 }
 
 /* Navbar */
-.wy-menu.wy-menu-vertical a.reference.internal > .docutils.literal {
+.wy-menu.wy-menu-vertical a.reference.internal>.docutils.literal {
     font-size: 100%;
     margin: 5px;
 }
-.wy-menu-vertical li.current > a {
+
+.wy-menu-vertical li.current>a {
     border: none;
 }
-.wy-side-nav-search > a img.logo {
+
+.wy-side-nav-search>a img.logo {
     background-image: url(https://github.com/wmayner/pyphi/raw/develop/docs/_static/phi_144x144.png);
     background-size: 144px 144px;
     height: 144px;
     width: 144px;
 }
-@media
-(-webkit-min-device-pixel-ratio: 2),
+
+@media (-webkit-min-device-pixel-ratio: 2),
 (min-resolution: 192dpi) {
+
     /* Retina-specific stuff here */
-    .wy-side-nav-search > a img.logo {
+    .wy-side-nav-search>a img.logo {
         background-image: url(https://github.com/wmayner/pyphi/raw/develop/docs/_static/phi_288x288.png);
     }
 }
 
 /* Napoleon style fixes (parameters, return type, etc.) */
-.wy-table td, .rst-content table.docutils td, .rst-content table.field-list td,
-.wy-table th, .rst-content table.docutils th, .rst-content table.field-list th {
+.wy-table td,
+.rst-content table.docutils td,
+.rst-content table.field-list td,
+.wy-table th,
+.rst-content table.docutils th,
+.rst-content table.field-list th {
     font-size: 100%
 }
+
 .rst-content table.field-list th {
     padding-top: 5px;
 }
+
 .rst-content table.field-list td>strong {
     margin-top: 0;
 }
-.rst-content dt > em {
+
+.rst-content dt>em {
     font-size: 100%;
 }
-.rst-content dt > .sig-paren {
+
+.rst-content dt>.sig-paren {
     font-family: 'Roboto Mono', 'Monaco', monospace;
     font-size: 100%;
 }
-table.field-list td.field-body > p {
+
+.rst-content dt>.sig-param,
+.rst-content dt>.property {
+    font-family: 'Roboto Mono', 'Monaco', monospace;
+    font-style: normal;
+}
+
+.rst-content dt>.sig-param {
+    color: #555;
+    font-size: 100%;
+    margin-left: 4px;
+    margin-right: 2px;
+}
+
+.rst-content dt>.property {
+    font-size: 90%;
+}
+
+.rst-content dt>.sig-param>.default_value {
+    color: #2980b9;
+}
+
+table.field-list td.field-body>p {
     line-height: 1.5;
 }
+
 table.field-list td.field-body {
     padding-top: 3px;
 }
-.section ul > li {
+
+.section ul>li {
     line-height: 1.5;
     margin-top: 5px;
 }
 
 /* Table of contents */
-.toctree-wrapper ul > li {
+.toctree-wrapper ul>li {
     line-height: 1.5;
 }
 
-.toctree-wrapper ul > li > a.reference.internal > code.literal {
+.toctree-wrapper ul>li>a.reference.internal>code.literal {
     line-height: 2.25;
 }
 

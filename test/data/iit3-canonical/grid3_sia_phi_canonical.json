@@ -1,0 +1,61 @@
+{
+  "substrate": "grid3",
+  "substrate_factory": "pyphi.examples.grid3_substrate",
+  "substrate_description": "3-node probabilistic substrate with a chain connectivity (A<->B<->C; no A-C edge). Not a published worked example, so the only independent reference is a genuine PyPhi 1.x IIT 3.0 SIA. This is the 'preventative cause' case: under IIT 4.0 the signed integration is negative and the |.|+ clamp applies, but under IIT 3.0 EMD the SIA phi is a small positive value.",
+  "state": [1, 0, 0],
+  "node_labels": ["A", "B", "C"],
+  "node_indices": [0, 1, 2],
+
+  "canonical_target": {
+    "sia_phi": 0.020341,
+    "tolerance": 1e-4,
+    "ces_size": 6,
+    "sum_small_phi": 1.357545,
+    "mip_cut_indexed": {"from_nodes": [0, 1], "to_nodes": [2]},
+    "mip_cut_labeled": "[A, B] --/--> [C]",
+    "small_phi_per_mechanism": {
+      "(0,)": 0.416686,
+      "(1,)": 0.409136,
+      "(2,)": 0.416686,
+      "(0,1)": 0.050745,
+      "(1,2)": 0.034771,
+      "(0,1,2)": 0.029521
+    },
+    "note": "Mechanism {A, C} (0, 2) specifies no concept because there is no direct A-C edge in the connectivity matrix."
+  },
+
+  "context": "Independent reference for the grid3_iit3_emd golden fixture (test/data/golden/v1/grid3_iit3_emd.json). The 2.0 golden's sia.phi depends on the load-bearing PURVIEW_SIZE purview tie-break (see tie_break_sensitivity below); this file pins it against a correctly-invoked PyPhi 1.2.0 IIT 3.0 SIA so the golden is anchored to an external implementation, not to PyPhi reproducing PyPhi.",
+
+  "provenance": {
+    "oracle": "pyphi==1.2.0 on CPython 3.9.6",
+    "reproducer": "scripts/gen_iit3_emd_oracle.py",
+    "control": {
+      "substrate": "basic",
+      "state": [1, 0, 0],
+      "oracle_sia_phi": 2.3125,
+      "note": "The same PyPhi 1.2.0 oracle reproduces the independently-anchored basic value (2.3125 = 37/16, basic_sia_phi_canonical.json) exactly. This establishes that the 1.x harness is correctly invoked before it is trusted on grid3."
+    },
+    "config": {
+      "MEASURE": "EMD",
+      "USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE": false,
+      "PARTITION_TYPE": "BI",
+      "PRECISION": 6,
+      "CUT_ONE_APPROXIMATION": false,
+      "PICK_SMALLEST_PURVIEW": false,
+      "note": "Matches the 2.0 golden config: EMD mechanism + EMD CES-distance, JOINT_BIPARTITION mechanism partitions, DIRECTED_BIPARTITION system cuts, precision 6. PICK_SMALLEST_PURVIEW=false (PyPhi 1.x's 10-year default) corresponds to 2.0's purview_tie_resolution=[PHI, PURVIEW_SIZE] resolved with operation=max (prefer the larger purview)."
+    },
+    "tie_break_sensitivity": {
+      "summary": "The purview tie-break is load-bearing for the system phi, confirming the roadmap audit. Resolving purview ties toward the larger purview (the 2.0 PURVIEW_SIZE / 1.x default) gives sia.phi = 0.020341; resolving toward the smaller purview gives 0.044527.",
+      "pick_largest_purview_sia_phi": 0.020341,
+      "pick_smallest_purview_sia_phi": 0.044527
+    },
+    "unpartitioned_concepts_pick_largest": [
+      {"mechanism": [0], "phi": 0.416686, "cause_purview": [0], "effect_purview": [0]},
+      {"mechanism": [1], "phi": 0.409136, "cause_purview": [1], "effect_purview": [1]},
+      {"mechanism": [2], "phi": 0.416686, "cause_purview": [2], "effect_purview": [2]},
+      {"mechanism": [0, 1], "phi": 0.050745, "cause_purview": [0, 1], "effect_purview": [0, 1]},
+      {"mechanism": [1, 2], "phi": 0.034771, "cause_purview": [1, 2], "effect_purview": [1, 2]},
+      {"mechanism": [0, 1, 2], "phi": 0.029521, "cause_purview": [0, 1, 2], "effect_purview": [0, 1, 2]}
+    ]
+  }
+}

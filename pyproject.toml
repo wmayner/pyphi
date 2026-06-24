@@ -1,0 +1,330 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs", "numpy"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pyphi"
+dynamic = ["version"]
+description = "A package for integrated information theory"
+readme = "README.md"
+license = { text = "GNU General Public License v3 or later (GPLv3+)" }
+authors = [{ name = "William GP Mayner", email = "wmayner@gmail.com" }]
+keywords = [
+    "neuroscience",
+    "causality",
+    "causal-modeling",
+    "causation",
+    "integrated-information-theory",
+    "iit",
+    "integrated-information",
+    "modeling",
+]
+requires-python = ">=3.13"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "joblib>=0.8.0",
+    "more_itertools>=8.13.0",
+    "numpy",
+    "ordered-set>=4.0.2",
+    "pandas>=2.0.0",
+    "psutil>=2.1.1",
+    "pyyaml>=3.13",
+    "scipy>=0.13.3",
+    "tblib>=1.3.2",
+    "toolz>=0.9.0",
+    "tqdm>=4.20.0",
+]
+
+[project.optional-dependencies]
+# Note: Single-machine parallelization uses stdlib ProcessPoolExecutor - no extra deps needed.
+# The 'cluster' extra will be available in v2.0 for Dask-based cluster support.
+# cluster = ["dask[distributed]>=2024.1.0", "dask-jobqueue>=0.8.0"]
+visualize = ["matplotlib", "networkx>=2.6.2", "plotly>=5.8.2", "seaborn"]
+caching = ["redis>=2.10.5"]
+# POT (Python Optimal Transport) provides the exact EMD backend (`ot.emd2`).
+# It replaces the now-deprecated `pyemd`; the two agree to machine epsilon on
+# PyPhi's Hamming-ground-metric EMD (binary and k-ary).
+emd = ["pot>=0.9.5"]
+xarray = ["xarray>=2024.1"]
+
+[dependency-groups]
+dev = [
+    "asv",
+    "build",
+    "coverage",
+    # graphify: knowledge-graph CLI (command is `graphify`); used to query and
+    # refresh graphify-out/. Standalone tool, not a pyphi import dependency.
+    "graphifyy>=0.8.44",
+    "hypothesis",
+    "pre-commit",
+    "pytest-cov",
+    "pyright>=1.1.407",
+    "pytest<8.0.0",
+    "pytest-lazy-fixture",
+    "ruff",
+    "sphinx",
+    "sphinx-rtd-theme",
+    "towncrier>=24.8.0",
+    "twine",
+    "watchdog",
+]
+
+[project.urls]
+documentation = "https://pyphi.readthedocs.io"
+bugs = "https://github.com/wmayner/pyphi/issues"
+homepage = "http://integratedinformationtheory.org/"
+discussion = "https://groups.google.com/forum/#!forum/pyphi-users"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.version.raw-options]
+# Builds without git metadata (e.g. asv's commit exports, source tarballs)
+# cannot derive a version from tags; fall back instead of failing the build.
+# Ignored whenever git history is present, so normal builds are unaffected.
+fallback_version = "0.0.0"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "README.md",
+    "INSTALLATION.rst",
+    "CACHING.rst",
+    "LICENSE.md",
+    "CHANGELOG.md",
+    "pyphi_config.yml",
+    "redis.conf",
+    "pyphi/data/**",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["pyphi"]
+include = ["pyphi/data/**"]
+
+[tool.ruff]
+line-length = 89
+target-version = "py313"
+exclude = [
+    "__pycache__",
+    "__pyphi_cache__",
+    ".cache",
+    ".git",
+    ".coverage",
+    "build",
+    "dist",
+    "docs",
+    "htmlcov",
+    "benchmarks",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "B",    # flake8-bugbear
+    "C4",   # flake8-comprehensions
+    "C90",  # mccabe complexity
+    "UP",   # pyupgrade
+    "T20",  # flake8-print
+    "TID",  # flake8-tidy-imports
+    "SIM",  # flake8-simplify
+    "RET",  # flake8-return
+    "ARG",  # flake8-unused-arguments
+    "PTH",  # flake8-use-pathlib
+    "ERA",  # eradicate (commented-out code)
+    "PL",   # pylint
+    "PERF", # perflint (performance anti-patterns)
+    "RUF",  # Ruff-specific rules
+]
+ignore = [
+    # Relax some rules for scientific computing
+    "PLR0913", # Too many arguments - common in scientific functions
+    "PLR0912", # Too many branches - common in complex algorithms
+    "PLR0915", # Too many statements - common in scientific code
+    "PLR2004", # Magic value comparisons - common with thresholds
+    "PLW1641", # Missing __hash__ - not needed for all Orderable classes
+    "RET504",  # Unnecessary variable assignment before return
+    "SIM108",  # Use ternary operator - sometimes less readable
+    "PTH123",  # open() instead of Path.open() - open() is fine
+    "ERA001",  # Commented-out code - allow for scientific exploration
+    "PLC0415", # Import outside top-level - needed for optional dependencies
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 88
+
+[tool.ruff.lint.isort]
+known-first-party = ["pyphi"]
+force-single-line = true
+
+[tool.ruff.lint.pylint]
+# Increased limits for scientific computing
+max-args = 10
+max-branches = 20
+max-statements = 100
+
+[tool.ruff.lint.per-file-ignores]
+# Allow certain rules in test files
+"test/**/*.py" = [
+    "ARG001",  # Unused function arguments (fixtures)
+    "E501",    # Line too long (allow generous test data lines)
+    "PLR0913", # Too many arguments (test parametrization)
+    "PLR2004", # Magic values (test data)
+    "S101",    # Use of assert (standard in pytest)
+    "T201",    # Print statements (debugging)
+    "T203",    # Pretty print statements (debugging)
+]
+# Allow print statements in main init (welcome message) and profiling scripts
+"pyphi/__init__.py" = ["T201"]
+"profiling/**/*.py" = ["T201"]
+"benchmarks/**/*.py" = ["T201"]
+# Allow print and magic values in examples
+"docs/examples/**/*.py" = ["T201", "PLR2004"]
+# Allow explicit re-exports in __init__ files (PEP 484 style)
+"pyphi/**/__init__.py" = ["PLC0414"]
+# Allow sentinel object() in cache_utils (standard pattern from functools)
+"pyphi/cache/cache_utils.py" = ["B008"]
+# Allow unused arguments in config callbacks and deferred imports
+"pyphi/_conf_legacy.py" = ["ARG001"]
+"pyphi/deferred/*.py" = ["ARG002"]
+# Allow unused kwargs in substrate generator (interface requirement)
+"pyphi/substrate_generator/unit_functions.py" = ["ARG001"]
+"pyphi/substrate_generator/ising.py" = ["ARG001"]
+"pyphi/substrate_generator/weights.py" = ["ARG001"]
+# Allow unused arguments in specific files (interface/callback requirements)
+"pyphi/dynamics.py" = ["ARG001"]
+"pyphi/jsonify.py" = ["ARG002"]
+"pyphi/macro.py" = ["ARG002", "PLW2901"]
+"pyphi/measures/distribution.py" = ["ARG001"]
+"pyphi/models/mechanism.py" = ["ARG001"]
+"pyphi/parallel/__init__.py" = ["ARG001", "PLW0603"]
+"pyphi/relations.py" = ["ARG001", "ARG002"]
+"pyphi/visualize/ces/__init__.py" = ["ARG001"]
+
+[tool.pytest.ini_options]
+testpaths = ["pyphi", "test"]
+addopts = [
+    "--maxfail=0",
+    "--log-level=INFO",
+    "--strict-markers",
+    "--durations=5",
+    "--color=yes",
+    "--tb=auto",
+    "--doctest-glob=*.rst",
+    "--doctest-modules",
+    "--ignore=./profiling",
+    "--ignore=./benchmarks",
+    "--ignore=./scripts",
+    "-vv",
+]
+norecursedirs = ["docs/_*"]
+markers = [
+    "emd: marks tests that require the POT package (deselect with '-m \"not emd\"')",
+    "outdated: marks tests as outdated (deselect with '-m \"not outdated\"')",
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "veryslow: marks tests as very slow (deselect with '-m \"not veryslow\"')",
+]
+filterwarnings = [
+    "error",
+    "ignore::ImportWarning",
+    "ignore:The distutils package is deprecated:DeprecationWarning",
+    "ignore:distutils Version classes are deprecated:DeprecationWarning",
+    "ignore::FutureWarning",
+    "ignore::UserWarning",
+    "ignore::DeprecationWarning",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["pyphi"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "coverage: disable",
+    "pragma: no cover",
+    "def __repr__",
+    "def __str__",
+    "def __ne__",
+    "if self\\.DEBUG",
+    "if DEBUG",
+    "def print_",
+    "def dprint",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+]
+ignore_errors = true
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+[tool.pyright]
+include = ["pyphi"]
+exclude = ["**/__pycache__", "test", "docs", "benchmarks", "profiling"]
+pythonVersion = "3.13"
+typeCheckingMode = "standard"                                           # Start at standard, not basic
+reportMissingImports = false
+reportMissingTypeStubs = false
+reportUnknownMemberType = false                                         # Disable for gradual migration
+reportUnknownArgumentType = false
+reportUnknownVariableType = false
+reportGeneralTypeIssues = true
+reportOptionalMemberAccess = true
+reportOptionalSubscript = true
+
+[tool.towncrier]
+directory = "changelog.d"
+filename = "CHANGELOG.md"
+title_format = "{version}"
+underlines = ["-", "", ""]
+
+# Fragment types matching PyPhi's existing CHANGELOG categories
+[[tool.towncrier.type]]
+directory = "feature"
+name = "API additions"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "change"
+name = "API changes"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "config"
+name = "Config"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "optimization"
+name = "Optimizations"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "fix"
+name = "Fixes"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "doc"
+name = "Documentation"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "refactor"
+name = "Refactor"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "misc"
+name = "Misc"
+showcontent = false

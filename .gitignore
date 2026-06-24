@@ -1,13 +1,21 @@
-__pycache__
 .cache
 .venv
 .env
+.env.leave
 .agignore
 .tox
 .coverage
+.pytest_cache
+.mypy_cache
+.virtual_documents
+.hypothesis
+.ipynb_checkpoints
+
 **/*.egg-info
 **/*.log
 **/*.BACKUP
+
+__pycache__
 __pyphi_cache__
 dist
 build
@@ -18,3 +26,25 @@ benchmarks/pyphi_config.yml
 benchmarks/env
 benchmarks/results
 ignore
+matplotlibrc
+dump.rdb
+
+# Claude Code local state (project-level config in .claude/commands/ and
+# .claude/settings.json IS tracked; everything else is local-only).
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+.claude/worktrees/
+.claude/rules/
+
+# OpenWolf runtime state (third-party tool; per-clone cache).
+.wolf/
+
+# Superpowers visual-companion brainstorm artifacts
+.superpowers/
+
+# graphify knowledge graph: only the hand-curated paper-to-code bridge edges are
+# tracked. The full graph.json and GRAPH_REPORT.md are large, churny, and
+# regenerable (`graphify update .`), so they're local-only — as are cache/,
+# cost.json, manifest.json, the HTML viz, and the .graphify_* dotfiles.
+graphify-out/*
+!graphify-out/bridge-edges.json

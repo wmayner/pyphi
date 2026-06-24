@@ -1,55 +1,55 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 import logging
-import os
-import shutil
+from pathlib import Path
 
 import pytest
+import yaml
 
 import pyphi
-from pyphi import cache, config, constants, db
 
+log = logging.getLogger("pyphi.test")
 
-log = logging.getLogger('pyphi.test')
-
-collect_ignore = [
-    "setup.py",
-    ".pythonrc.py"
-]
+collect_ignore = ["setup.py", ".pythonrc.py"]
 # Also ignore everything that git ignores.
-git_ignore = os.path.join(os.path.dirname(__file__), '.gitignore')
-collect_ignore += list(filter(None, open(git_ignore).read().split('\n')))
+with open(Path(__file__).parent / ".gitignore") as f:
+    collect_ignore += list(filter(None, f.read().split("\n")))
 
+
+IIT_3_CONFIG = "pyphi_config_3.0.yml"
 
 # Run slow tests separately with command-line option, filter tests
 # ================================================================
 
+
 def pytest_addoption(parser):
-    parser.addoption("--filter", action="store",
-                     help="only run tests with the given mark")
+    parser.addoption(
+        "--filter", action="store", help="only run tests with the given mark"
+    )
+    parser.addoption("--outdated", action="store_true", help="run outdated tests")
     parser.addoption("--slow", action="store_true", help="run slow tests")
-    parser.addoption("--veryslow", action="store_true",
-                     help="run very slow tests")
+    parser.addoption("--veryslow", action="store_true", help="run very slow tests")
 
 
 def pytest_runtest_setup(item):
     filt = item.config.getoption("--filter")
     if filt:
         if filt not in item.keywords:
-            pytest.skip("only running tests with the '{}' mark".format(filt))
+            pytest.skip(f"only running tests with the '{filt}' mark")
     else:
-        if 'slow' in item.keywords and not item.config.getoption("--slow"):
+        if "outdated" in item.keywords and not item.config.getoption("--outdated"):
+            pytest.skip("need --outdated option to run")
+        if "slow" in item.keywords and not item.config.getoption("--slow"):
             pytest.skip("need --slow option to run")
-        if ('veryslow' in item.keywords and
-                not item.config.getoption("--veryslow")):
+        if "veryslow" in item.keywords and not item.config.getoption("--veryslow"):
             pytest.skip("need --veryslow option to run")
 
 
 # PyPhi configuration management
 # ================================================================
 
-@pytest.fixture(scope='function')
+
+@pytest.fixture(scope="function")
 def restore_config_afterwards():
     """Reset PyPhi configuration after a test.
 
@@ -59,7 +59,7 @@ def restore_config_afterwards():
         yield
 
 
-@pytest.fixture(scope='session', autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def disable_progress_bars():
     """Disable progress bars during tests.
 
@@ -70,80 +70,62 @@ def disable_progress_bars():
         yield
 
 
+@pytest.fixture(autouse=True)
+def _restore_config_after_test():
+    """Snapshot the global config before each test and restore after.
+
+    Defensive test hygiene against any test or doctest that mutates
+    ``pyphi.config`` without unwinding (e.g. a raw assignment outside an
+    ``override`` block). Lives at the root so it covers doctests collected
+    from ``pyphi/`` as well as tests under ``test/``.
+    """
+    snapshot = pyphi.config.snapshot()
+    try:
+        yield
+    finally:
+        pyphi.config.install_snapshot(snapshot)
+
+
+@pytest.fixture(scope="function")
+def use_iit_3_config():
+    """Use the IIT-3 configuration for all tests."""
+    with open(IIT_3_CONFIG) as f:
+        iit3_config = yaml.load(f, Loader=yaml.SafeLoader)
+    with pyphi.config.override(**iit3_config):
+        yield
+
+
 # Cache management and fixtures
 # ================================================================
 
-# Use a test database if database caching is enabled.
-if config.CACHING_BACKEND == constants.DATABASE:
-    db.collection = db.database.test
 
-# Backup location for the existing joblib cache directory.
-BACKUP_CACHE_DIR = config.FS_CACHE_DIRECTORY + '.BACKUP'
-
-
-@pytest.fixture(scope="session", autouse=True)
-def protect_caches(request):
-    """Temporarily backup, then restore, the user's joblib, mongo and redis
-    caches before and after the testing session.
-
-    This is called before flushcache, ensuring the cache is saved.
-    """
-    # Move the joblib cache to a backup location and create a fresh cache if
-    # filesystem caching is enabled
-    if config.CACHING_BACKEND == constants.FILESYSTEM:
-        if os.path.exists(BACKUP_CACHE_DIR):
-            raise Exception("You must move the backup of the filesystem cache "
-                            "at {} before running the test suite.".format(
-                                BACKUP_CACHE_DIR))
-        shutil.move(config.FS_CACHE_DIRECTORY, BACKUP_CACHE_DIR)
-        os.mkdir(config.FS_CACHE_DIRECTORY)
-
-    # Initialize a test Redis connection
-    original_redis_conn = cache.redis_conn
-    cache.redis_conn = cache.redis_init(config.REDIS_CONFIG['test_db'])
-
-    def fin():
-        if config.CACHING_BACKEND == constants.FILESYSTEM:
-            # Remove the tests' joblib cache directory.
-            shutil.rmtree(config.FS_CACHE_DIRECTORY)
-            # Restore the old joblib cache.
-            shutil.move(BACKUP_CACHE_DIR, config.FS_CACHE_DIRECTORY)
-
-        cache.redis_conn = original_redis_conn
-
-    # Restore the cache after the last test has run
-    request.addfinalizer(fin)
-
-
-def _flush_joblib_cache():
-    """Remove the old joblib cache directory."""
-    shutil.rmtree(config.FS_CACHE_DIRECTORY)
-    # Make a new, empty one.
-    os.mkdir(config.FS_CACHE_DIRECTORY)
-
-
-def _flush_database_cache():
-    """Flush the `test` collection in the database."""
-    return db.database.test.remove({})
-
-
-def _flush_redis_cache():
-    if cache.redis_available():
-        cache.redis_conn.flushdb()
-        cache.redis_conn.config_resetstat()
-
-
-# TODO: flush Redis cache
 @pytest.fixture(scope="function", autouse=True)
-def flushcache(request):
-    """Flush the currently enabled cache.
+def flushcache(request):  # noqa: ARG001
+    """No-op cache flush between tests.
 
-    This is called before every test case.
+    PyPhi's caches are designed to be safe to share across tests:
+    combinatorial caches in ``partition.py`` / ``distribution.py`` /
+    ``combinatorics.py`` memoize pure functions (no per-test state to
+    pollute); the kernel ``_memoize`` keys on ``id(cs)`` and uses
+    ``weakref.finalize`` to evict cache entries when a CandidateSystem
+    is garbage-collected; Network purview caches are anonymous and die
+    with their Network. Clearing them between every test forces
+    expensive re-enumeration of partitions on every fixture setup
+    (5x suite slowdown observed during P9 bisect).
     """
-    log.info("Flushing caches...")
-    if config.CACHING_BACKEND == constants.DATABASE:
-        _flush_database_cache()
-    elif config.CACHING_BACKEND == constants.FILESYSTEM:
-        _flush_joblib_cache()
+    log.info("Flushing caches... (no-op)")
 
-    _flush_redis_cache()
+
+# Parallel (local backend)
+# ================================================================
+
+
+@pytest.fixture(scope="module")
+def parallel_context():
+    """Set up parallel computation context.
+
+    With the local backend, no special initialization is needed.
+    This fixture is kept for API compatibility with existing tests.
+    """
+    # Local backend uses ProcessPoolExecutor which doesn't require init
+    yield None

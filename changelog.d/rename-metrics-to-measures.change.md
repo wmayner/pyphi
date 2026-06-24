@@ -1,0 +1,1 @@
+Renames ``pyphi.metrics`` to ``pyphi.measures``. The Protocol classes, registries, attributes, config fields, resolver functions, and IIT 4.0 paper terminology all use "measure"; the package name now matches. Most entries in the registries are divergences rather than mathematical metrics, so "measure" is also the more accurate term.

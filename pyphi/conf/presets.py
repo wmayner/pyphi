@@ -1,0 +1,118 @@
+"""Canonical IIT formalism presets.
+
+Each preset is a :class:`dict` consumable by :meth:`config.override`:
+
+- :data:`iit3` — IIT 3.0 (Oizumi et al. 2014).
+- :data:`iit4_2023` — IIT 4.0 (Albantakis et al. 2023).
+- :data:`iit4_2026` — IIT 4.0 with the intrinsic-information cap
+  (Mayner, Marshall, Tononi 2026).
+
+Usage::
+
+    from pyphi import config, iit3
+
+    with config.override(**iit3):
+        ...  # computations use the IIT 3.0 formalism
+
+A preset specifies its formalism sub-namespaces wholesale via
+:class:`~pyphi.conf.formalism.IITConfig` and
+:class:`~pyphi.conf.formalism.ActualCausationConfig` instances, so
+applying a preset resets every field in those sub-namespaces to its
+canonical value for that paper. Fields outside the formalism layer
+(e.g. ``precision``) appear as additional top-level keys when the
+paper's behavior depends on them.
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
+from pyphi.conf.formalism import ActualCausationConfig
+from pyphi.conf.formalism import IITConfig
+
+# IIT 3.0 — Oizumi/Albantakis/Tononi 2014. Distribution-distance based.
+#
+# Tie-resolution paths consulted by the IIT 3.0 code path:
+#
+#   1. ``mip_tie_resolution`` — mechanism MIP selection
+#      (``formalism.queries._find_mip_single_state`` →
+#      ``resolve_ties.partitions``). Raw φ argmin per Oizumi 2014.
+#   2. ``purview_tie_resolution`` — purview at MICE selection
+#      (``resolve_ties.purviews``). ``["PHI", "PURVIEW_SIZE"]``
+#      matches the canonical PyPhi 1.x ``pyphi_config_3.0.yml``.
+#   3. ``sia_tie_resolution`` — system MIP within a subsystem
+#      (``formalism.iit3._sia_map_reduce`` → ``resolve_ties.sias``).
+#      Raw φ argmin with lex tie-break.
+#   4. Cross-subsystem complex selection — hard-coded via
+#      ``substrate._iit3_exclusion_cascade`` (no config knob).
+#      Multi-candidate cliques are exclusion-postulate failures;
+#      IIT 3.0 has no further postulate for escalation.
+#
+# Knobs that have no effect on the IIT 3.0 code path:
+# ``system_phi_measure``, ``specification_measure``,
+# ``system_partition_include_complete``, ``relation_computation``,
+# ``state_tie_resolution`` — guarded out at the call boundary or
+# only consumed by 4.0-exclusive code.
+# ``distinction_phi_normalization`` set to ``"NONE"`` here for
+# documentation (post-fix, the 3.0 path no longer reads
+# ``RIA.normalized_phi`` for any decision; this short-circuits
+# the per-RIA division cost).
+# ``shortcircuit_sia`` does NOT gate IIT 3.0's short-circuit logic;
+# 3.0's early-exit conditions live in ``iit3._sia`` independent of
+# the flag.
+iit3: dict[str, Any] = {
+    "iit": IITConfig(
+        version="IIT_3_0",
+        # Distribution-distance measures used at the mechanism and CES
+        # levels. The 2015 EMD-fix in ``_emd`` enforces inter-constellation-
+        # only mass flow; see ``pyphi/measures/ces.py:194-213``.
+        mechanism_phi_measure="EMD",
+        ces_measure="EMD",
+        # IIT 3.0 partition schemes.
+        mechanism_partition_scheme="JOINT_BIPARTITION",
+        system_partition_scheme="DIRECTED_BIPARTITION",
+        # Paper-faithful: a single node with a self-loop does not generate
+        # phi by itself.
+        single_micro_nodes_with_selfloops_have_phi=False,
+        # Two-step purview tie resolution: prefer larger phi, break
+        # remaining ties by larger purview. Matches PyPhi 1.x's
+        # ``pyphi_config_3.0.yml`` default.
+        purview_tie_resolution=["PHI", "PURVIEW_SIZE"],
+        mip_tie_resolution=["PHI", "PARTITION_LEX"],
+        sia_tie_resolution=["PHI", "PARTITION_LEX"],
+        # Paper-faithful: a cut can introduce a new concept; PyPhi does
+        # not optimize this away.
+        assume_partitions_cannot_create_new_concepts=False,
+        distinction_phi_normalization="NONE",
+    ),
+    "actual_causation": ActualCausationConfig(
+        # PMI is the paper-canonical alpha measure for IIT 3.0 actual
+        # causation (Albantakis et al. 2019).
+        alpha_measure="PMI",
+    ),
+    # IIT 3.0 pins precision 6: the EMD comparison tolerance was unreliable at
+    # finer precisions under the historical pyemd backend, and the published
+    # goldens are calibrated to it. (Whether the POT backend now permits a finer
+    # precision is a separate question, left unchanged here to preserve results.)
+    "precision": 6,
+}
+
+iit4_2023: dict[str, Any] = {
+    "iit": IITConfig(
+        version="IIT_4_0_2023",
+    ),
+}
+
+iit4_2026: dict[str, Any] = {
+    "iit": IITConfig(
+        version="IIT_4_0_2026",
+        # System phi caps differentiation with specification per Eq. 23.
+        system_phi_measure="INTRINSIC_INFORMATION",
+    ),
+}
+
+__all__ = [
+    "iit3",
+    "iit4_2023",
+    "iit4_2026",
+]

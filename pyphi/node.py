@@ -1,37 +1,36 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # node.py
-
-"""
-Represents a node in a network. Each node has a unique index, its position in
-the network's list of nodes.
-"""
+"""Represents a node in a substrate."""
 
 import functools
 
 import numpy as np
 
 from . import utils
-from .connectivity import get_inputs_from_cm, get_outputs_from_cm
+from .connectivity import get_inputs_from_cm
+from .connectivity import get_outputs_from_cm
+from .core.tpm.joint_distribution import JointTPM
+from .display import Description
+from .display import Displayable
 from .labels import NodeLabels
-from .tpm import marginalize_out, tpm_indices
 
 
 # TODO extend to nonbinary nodes
 @functools.total_ordering
-class Node:
-    """A node in a subsystem.
+class Node(Displayable):
+    """A node in a system.
 
     Args:
-        tpm (np.ndarray): The TPM of the subsystem.
-        cm (np.ndarray): The CM of the subsystem.
-        index (int): The node's index in the network.
+        cause_marginal (JointTPM): The cause (backward) TPM of the system.
+        effect_marginal (JointTPM): The effect (forward) TPM of the system.
+        cm (np.ndarray): The CM of the system.
+        index (int): The node's index in the substrate.
         state (int): The state of this node.
         node_labels (|NodeLabels|): Labels for these nodes.
 
     Attributes:
-        tpm (np.ndarray): The node TPM is an array with shape ``(2,)*(n + 1)``,
-            where ``n`` is the size of the |Network|. The first ``n``
+        cause_marginal (JointTPM),
+        effect_marginal (JointTPM): The node TPM is an array with shape ``(2,)*(n + 1)``,
+            where ``n`` is the size of the |Substrate|. The first ``n``
             dimensions correspond to each node in the system. Dimensions
             corresponding to nodes that provide input to this node are of size
             2, while those that do not correspond to inputs are of size 1, so
@@ -42,8 +41,7 @@ class Node:
             probabilities that the node will be 'ON'.
     """
 
-    def __init__(self, tpm, cm, index, state, node_labels):
-
+    def __init__(self, cause_marginal, effect_marginal, cm, index, state, node_labels):
         # This node's index in the list of nodes.
         self.index = index
 
@@ -57,49 +55,91 @@ class Node:
         self._inputs = frozenset(get_inputs_from_cm(self.index, cm))
         self._outputs = frozenset(get_outputs_from_cm(self.index, cm))
 
-        # Generate the node's TPM.
+        # Generate the node's TPMs.
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        # We begin by getting the part of the subsystem's TPM that gives just
-        # the state of this node. This part is still indexed by network state,
+        # We begin by getting the part of the system's TPM that gives just
+        # the state of this node. This part is still indexed by substrate state,
         # but its last dimension will be gone, since now there's just a single
         # scalar value (this node's state) rather than a state-vector for all
-        # the network nodes.
-        tpm_on = tpm[..., self.index]
+        # the substrate nodes.
 
-        # TODO extend to nonbinary nodes
-        # Marginalize out non-input nodes that are in the subsystem, since the
-        # external nodes have already been dealt with as boundary conditions in
-        # the subsystem's TPM.
-        non_inputs = set(tpm_indices(tpm)) - self._inputs
-        tpm_on = marginalize_out(non_inputs, tpm_on)
+        # Cause: use the per-unit factor accessor to obtain shape
+        # (*alphabet_sizes, k_i) with the per-state conditional along the
+        # trailing axis, then marginalize out substrate nodes that are not
+        # inputs to this node. The substrate-unit axes are the leading
+        # ``ndim - 1`` dimensions; deriving non-inputs from those collapses the
+        # node's own previous-state dimension and any non-input dimension to
+        # size 1 for every per-node alphabet size.
+        cause_factor = JointTPM(cause_marginal.factor(self.index))
+        cause_non_inputs = set(range(cause_factor.ndim - 1)) - self._inputs
+        self.cause_marginal = cause_factor.marginalize_out(cause_non_inputs)
 
-        # Get the TPM that gives the probability of the node being off, rather
-        # than on.
-        tpm_off = 1 - tpm_on
+        # Extract the per-node forward factor. A FactoredTPM exposes
+        # factor(index) as the full per-node conditional (*alpha, k_i); a
+        # state-by-node ndarray exposes the per-node on-probability as
+        # effect_marginal[..., index].
+        from .core.tpm.factored import FactoredTPM as _FactoredTPM
 
-        # Combine the on- and off-TPM so that the first dimension is indexed by
-        # the state of the node's inputs at t, and the last dimension is
-        # indexed by the node's state at t+1. This representation makes it easy
-        # to condition on the node state.
-        self.tpm = np.stack([tpm_off, tpm_on], axis=-1)
+        if isinstance(effect_marginal, _FactoredTPM):
+            # k-ary path: extract per-node factor as JointTPM for uniform
+            # downstream handling (condition_tpm, marginalize_out, reshape).
+            node_factor = JointTPM(effect_marginal.factor(self.index))
+            effect_non_inputs = set(range(node_factor.ndim - 1)) - self._inputs
+            self.effect_marginal = node_factor.marginalize_out(effect_non_inputs)
+        else:
+            # Binary path: legacy SBN-form ndarray.
+            effect_marginal_on = effect_marginal[..., self.index]
+            # Marginalize out non-input nodes that are in the system, since the
+            # external nodes have already been dealt with as boundary conditions
+            # in the system's TPM.
+            effect_non_inputs = set(effect_marginal.tpm_indices()) - self._inputs
+            effect_marginal_on = effect_marginal_on.marginalize_out(
+                effect_non_inputs
+            ).tpm
+
+            # Get the TPM that gives the probability of the node being off,
+            # rather than on.
+            effect_marginal_off = 1 - effect_marginal_on
+
+            # Combine the on- and off-TPM so that the first dimension is indexed
+            # by the state of the node's inputs at t, and the last dimension is
+            # indexed by the node's state at t+1.
+            self.effect_marginal = JointTPM(
+                np.stack([effect_marginal_off, effect_marginal_on], axis=-1),
+            )
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        # Make the TPM immutable (for hashing).
-        utils.np_immutable(self.tpm)
-
         # Only compute the hash once.
-        self._hash = hash((index, utils.np_hash(self.tpm), self.state,
-                           self._inputs, self._outputs))
+        self._hash = hash(
+            (
+                index,
+                hash(self.cause_marginal),
+                hash(self.effect_marginal),
+                self.state,
+                self._inputs,
+                self._outputs,
+            )
+        )
 
     @property
-    def tpm_off(self):
-        """The TPM of this node containing only the 'OFF' probabilities."""
-        return self.tpm[..., 0]
+    def cause_marginal_off(self):
+        """Cause (backward) TPM of this node with only 'OFF' probabilities."""
+        return self.cause_marginal[..., 0]
 
     @property
-    def tpm_on(self):
-        """The TPM of this node containing only the 'ON' probabilities."""
-        return self.tpm[..., 1]
+    def effect_marginal_off(self):
+        """Effect (forward) TPM of this node with only 'OFF' probabilities."""
+        return self.effect_marginal[..., 0]
+
+    @property
+    def cause_marginal_on(self):
+        """Cause (backward) TPM of this node with only 'ON' probabilities."""
+        return self.cause_marginal[..., 1]
+
+    @property
+    def effect_marginal_on(self):
+        """Effect (forward) TPM of this node with only 'ON' probabilities."""
+        return self.effect_marginal[..., 1]
 
     @property
     def inputs(self):
@@ -116,27 +156,27 @@ class Node:
         """The textual label for this node."""
         return self.node_labels[self.index]
 
-    def __repr__(self):
-        return self.label
-
-    def __str__(self):
-        return self.__repr__()
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        return Description(title="Node", compact=self.label)
 
     def __eq__(self, other):
         """Return whether this node equals the other object.
 
-        Two nodes are equal if they belong to the same subsystem and have the
+        Two nodes are equal if they belong to the same system and have the
         same index (their TPMs must be the same in that case, so this method
         doesn't need to check TPM equality).
 
         Labels are for display only, so two equal nodes may have different
         labels.
         """
-        return (self.index == other.index and
-                np.array_equal(self.tpm, other.tpm) and
-                self.state == other.state and
-                self.inputs == other.inputs and
-                self.outputs == other.outputs)
+        return (
+            self.index == other.index
+            and self.cause_marginal.array_equal(other.cause_marginal)
+            and self.effect_marginal.array_equal(other.effect_marginal)
+            and self.state == other.state
+            and self.inputs == other.inputs
+            and self.outputs == other.outputs
+        )
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -153,13 +193,16 @@ class Node:
         return self.index
 
 
-def generate_nodes(tpm, cm, network_state, indices, node_labels=None):
-    """Generate |Node| objects for a subsystem.
+def generate_nodes(
+    cause_marginal, effect_marginal, cm, substrate_state, indices, node_labels=None
+):
+    """Generate |Node| objects for a system.
 
     Args:
-        tpm (np.ndarray): The system's TPM
+        cause_marginal (JointTPM): The system's cause (backward) TPM
+        effect_marginal (JointTPM): The system's effect (forward) TPM
         cm (np.ndarray): The corresponding CM.
-        network_state (tuple): The state of the network.
+        substrate_state (tuple): The state of the substrate.
         indices (tuple[int]): Indices to generate nodes for.
 
     Keyword Args:
@@ -171,18 +214,23 @@ def generate_nodes(tpm, cm, network_state, indices, node_labels=None):
     if node_labels is None:
         node_labels = NodeLabels(None, indices)
 
-    node_state = utils.state_of(indices, network_state)
+    node_state = utils.state_of(indices, substrate_state)
 
-    return tuple(Node(tpm, cm, index, state, node_labels)
-                 for index, state in zip(indices, node_state))
+    return tuple(
+        Node(cause_marginal, effect_marginal, cm, index, state, node_labels)
+        for index, state in zip(indices, node_state, strict=False)
+    )
 
 
 def expand_node_tpm(tpm):
-    """Broadcast a node TPM over the full network.
+    """Broadcast a node TPM over the full substrate.
+
+    Args:
+        tpm (JointTPM): The node TPM to expand.
 
     This is different from broadcasting the TPM of a full system since the last
     dimension (containing the state of the node) contains only the probability
     of *this* node being on, rather than the probabilities for each node.
     """
-    uc = np.ones([2 for node in tpm.shape])
+    uc = JointTPM(np.ones([2 for node in tpm.shape]))
     return uc * tpm

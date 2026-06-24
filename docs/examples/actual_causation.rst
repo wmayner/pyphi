@@ -15,6 +15,14 @@ First, we'll import the modules we need:
     >>> import pyphi
     >>> from pyphi import actual, config, Direction
 
+For these examples, we'll configure PyPhi to use IIT 3.0, and disable
+parallelization:
+
+    >>> pyphi.config.load_file('pyphi_config_3.0.yml')
+    >>> pyphi.config.PARALLEL_CONCEPT_EVALUATION = False
+    >>> pyphi.config.PARALLEL_CUT_EVALUATION = False
+    >>> pyphi.config.PARALLEL_COMPLEX_EVALUATION = False
+
 .. only:: never
 
     This py.test fixture resets PyPhi config back to defaults after running
@@ -26,14 +34,12 @@ First, we'll import the modules we need:
 Configuration
 ~~~~~~~~~~~~~
 
-Before we begin we need to set some configuration values. The correct way of
-partitioning for actual causation is using the ``'ALL'`` partitions setting;
-``'TRI'``-partitions are a reasonable approximation. In case of ties the
-smaller purview should be chosen. IIT 3.0 style bipartitions will give
-incorrect results.
+Before we begin we need to configure PyPhi for doing actual causation
+computations. The correct way of partitioning for actual causation is using the
+``'ALL'`` partitions setting; ``'TRI'``-partitions are a reasonable
+approximation. IIT 3.0-style bipartitions will give incorrect results.
 
     >>> config.PARTITION_TYPE = 'TRI'
-    >>> config.PICK_SMALLEST_PURVIEW = True
 
 When calculating a causal account of the transition between a set of elements
 |X| at time |t-1| and a set of elements |Y| at time |t|, with |X| and |Y| being
@@ -50,7 +56,7 @@ Computation
 We will look at how to perform computations over the basic `OR-AND` network
 introduced in Figure 1 of the paper.
 
-   >>> network = pyphi.examples.actual_causation()
+   >>> network = pyphi.examples.actual_causation_network()
 
 This is a standard PyPhi |Network| so we can look at its TPM:
 
@@ -104,18 +110,18 @@ Similarly, as in Figure 2C, we can compute the cause repertoire of
 ratios. For example, the effect ratio of |X_t-1 = {OR = 1}| constraining
 |Y_t = {OR}| (as shown in Figure 3A) is computed as follows:
 
-   >>> transition.effect_ratio((OR,), (OR,))
+   >>> transition.effect_ratio((OR,), (OR,))  # doctest: +NUMBER
    0.415037
 
 The effect ratio of |X_t-1 = {OR = 1}| constraining |Y_t = {AND}| is negative:
 
-   >>> transition.effect_ratio((OR,), (AND,))
+   >>> transition.effect_ratio((OR,), (AND,))  # doctest: +NUMBER
    -0.584963
 
 And the cause ratio of |Y_t = {OR = 1}| constraining |X_t-1 = {OR, AND}|
 (Figure 3B) is:
 
-   >>> transition.cause_ratio((OR,), (OR, AND))
+   >>> transition.cause_ratio((OR,), (OR, AND))  # doctest: +NUMBER
    0.415037
 
 We can evaluate |alpha| for a particular pair of occurences, as in Figure 3C.
@@ -128,7 +134,7 @@ This returns a |AcRepertoireIrreducibilityAnalysis| object, with a number of
 useful properties. This particular MIP is reducible, as we can see by checking
 the value of |alpha|:
 
-   >>> link.alpha
+   >>> link.alpha  # doctest: +NUMBER
    0.0
 
 The ``partition`` property shows the minimum information partition that
@@ -144,7 +150,7 @@ constraining |X_t-1 = {OR, AND}| (Figure 3D). This candidate causal link has
 positive |alpha|:
 
    >>> link = transition.find_mip(Direction.CAUSE, (OR, AND), (OR, AND))
-   >>> link.alpha
+   >>> link.alpha  # doctest: +NUMBER
    0.169925
 
 To find the actual cause or actual effect of a particular occurence, use the
@@ -152,7 +158,7 @@ To find the actual cause or actual effect of a particular occurence, use the
 
    >>> transition.find_actual_cause((OR, AND))
    CausalLink
-     α = 0.1699  [OR, AND] ◀━━ [OR, AND]
+     α = 0.1699  [OR,AND] ◀━━ [OR,AND]
 
 
 Accounts
@@ -164,15 +170,15 @@ The complete causal account of our transition can be computed with the
    >>> account = actual.account(transition)
    >>> print(account)  # doctest: +NORMALIZE_WHITESPACE
    <BLANKLINE>
-         Account (5 causal links)
-   ***********************************
+        Account (5 causal links)
+   *********************************
    Irreducible effects
    α = 0.415  [OR] ━━▶ [OR]
    α = 0.415  [AND] ━━▶ [AND]
    Irreducible causes
    α = 0.415  [OR] ◀━━ [OR]
    α = 0.415  [AND] ◀━━ [AND]
-   α = 0.1699  [OR, AND] ◀━━ [OR, AND]
+   α = 0.1699  [OR,AND] ◀━━ [OR,AND]
 
 We see that this function produces the causal links shown in Figure 4. The
 |Account| object is a subclass of ``tuple``, and can manipulated the same:
@@ -187,7 +193,7 @@ The irreducibility of the causal account of our transition of interest can be
 evaluated using the following function:
 
    >>> sia = actual.sia(transition)
-   >>> sia.alpha
+   >>> sia.alpha  # doctest: +NUMBER
    0.169925
 
 As shown in Figure 4, the second order occurence |Y_t = {OR, AND = 10}| is
@@ -225,13 +231,13 @@ with |big_alpha > 0|:
    ...     print(n.transition, n.alpha)
    Transition([OR] ━━▶ [OR]) 2.0
    Transition([AND] ━━▶ [AND]) 2.0
-   Transition([OR, AND] ━━▶ [OR, AND]) 0.169925
+   Transition([OR,AND] ━━▶ [OR,AND]) 1.169925
 
 The ``causal_nexus`` function computes the maximally irreducible account for
 the transition of interest:
 
    >>> cn = actual.causal_nexus(network, X_state, Y_state)
-   >>> cn.alpha
+   >>> cn.alpha  # doctest: +NUMBER
    2.0
    >>> cn.transition
    Transition([OR] ━━▶ [OR])
@@ -251,5 +257,5 @@ The only irreducible transition is from |X_t-1 = C| to |Y_t = D|, with
 
    >>> cn.transition
    Transition([C] ━━▶ [D])
-   >>> cn.alpha
+   >>> cn.alpha  # doctest: +NUMBER
    2.0

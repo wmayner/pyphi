@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # __init__.py
 
 #      _|_|_|
@@ -39,11 +37,11 @@ welcome.
 Usage
 ~~~~~
 
-The |Network| object is the main object on which computations are performed. It
-represents the network of interest.
+The |Substrate| object is the main object on which computations are performed. It
+represents the substrate of interest.
 
-The |Subsystem| object is the secondary object; it represents a subsystem of a
-network. |big_phi| is a function of subsystems.
+The |System| object is the secondary object; it represents a system of a
+substrate. |big_phi| is a function of systems.
 
 The |compute| module is the main entry-point for the library. It contains
 methods for calculating concepts, cause-effect structures, complexes, etc. See
@@ -67,26 +65,79 @@ See the documentation for the |config| module for a description of the options
 and their defaults.
 """
 
+import importlib
 import os
+import pkgutil
 
-from .__about__ import *  # pylint: disable=wildcard-import
-
-# Initialize config object
-from .conf import config
-
-from .direction import Direction
-from . import (actual, constants, convert, db, examples, jsonify, macro,
-               models, network, node, subsystem, utils, validate)
-from .network import Network
-from .subsystem import Subsystem
+# Lift main interfaces to top-level namespace
 from .actual import Transition
+from .actual import TransitionSystem
+from .conf import config
+from .conf import iit3
+from .conf import iit4_2023
+from .conf import iit4_2026
+from .core.tpm import FactoredTPM as FactoredTPM
+from .core.tpm import JointDistribution as JointDistribution
+from .core.tpm.joint_distribution import JointTPM
+from .direction import Direction
+from .substrate import Substrate
+from .system import System
 
-__all__ = ['Network', 'Subsystem', 'actual', 'config', 'constants', 'convert',
-           'db', 'examples', 'jsonify', 'macro', 'models', 'network', 'node',
-           'subsystem', 'utils', 'validate']
+# Skip modules that require optional dependencies. The xarray FactoredTPM
+# backend is imported lazily when backend="xarray" is requested.
+_skip_import = ["visualize", "_factored_backends_xarray"]
 
-if not (config.WELCOME_OFF or 'PYPHI_WELCOME_OFF' in os.environ):
-    print("""
+
+def _import_submodules(package, recursive=True):
+    """Import all submodules of a module, recursively, including subpackages.
+
+    Args:
+        package (str | module): package to traverse (name or module object).
+
+    Keyword Args:
+        recursive (bool): Whether to import submodules recursively.
+
+    Returns:
+        dict[str, types.ModuleType]: A dictionary mapping names to submodules.
+    """
+    if isinstance(package, str):
+        package = importlib.import_module(package)
+    results = {}
+    for _loader, name, is_pkg in pkgutil.walk_packages(package.__path__):
+        if name not in _skip_import:
+            full_name = package.__name__ + "." + name
+            results[full_name] = importlib.import_module(full_name)
+            if recursive and is_pkg:
+                results.update(_import_submodules(full_name))
+    return results
+
+
+# Recursively import all submodules.
+# This is necessary in order to populate the Registries, since modules must be
+# imported for the registration decorators to be executed.
+_submodules = _import_submodules(__name__)
+
+# Populate __all__ with public modules of depth 1
+_submodule_names = {name.split(".")[1] for name in _submodules}
+__all__ = [
+    "config",
+    "Direction",
+    "FactoredTPM",
+    "JointDistribution",
+    "JointTPM",
+    "Substrate",
+    "System",
+    "Transition",
+    "TransitionSystem",
+    "iit3",
+    "iit4_2023",
+    "iit4_2026",
+] + [name for name in _submodule_names if not name.startswith("_")]
+
+
+if not (config.infrastructure.welcome_off or "PYPHI_WELCOME_OFF" in os.environ):
+    print(
+        """
 Welcome to PyPhi!
 
 If you use PyPhi in your research, please cite the paper:
@@ -109,4 +160,5 @@ To suppress this message, either:
   - Set `WELCOME_OFF: true` in your `pyphi_config.yml` file, or
   - Set the environment variable PYPHI_WELCOME_OFF to any value in your shell:
         export PYPHI_WELCOME_OFF='yes'
-""")
+"""
+    )
