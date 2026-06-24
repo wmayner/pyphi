@@ -226,6 +226,8 @@ class LocalMapReduce:
             if self.progress_bar is not None:
                 self.progress_bar.update(1)
             if self.shortcircuit_func(result):
+                if self.shortcircuit_callback is not None:
+                    self.shortcircuit_callback(collected)
                 break
 
         self.result = _reduce(

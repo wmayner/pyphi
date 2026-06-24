@@ -88,24 +88,21 @@ def test_parallel_exception_handling():
         raise Exception("I don't wanna!")
 
     with pytest.raises(Exception, match=r"I don't wanna!"):
-        parallel.MapReduce(raise_error, [1], parallel=True, chunksize=1).run()
-
-
-def test_map_repr():
-    mr = parallel.MapReduce(lambda x: x, [1, 2, 3])
-    str(mr)
-    repr(mr)
-    print(mr)
+        parallel.map_reduce(raise_error, [1], parallel=True, chunksize=1)
 
 
 def test_map_with_no_args():
     with pytest.raises(TypeError):
-        list(parallel.MapReduce(lambda x: x))
+        parallel.map_reduce(lambda x: x)
 
 
 def test_map_with_iterator_no_chunksize():
-    with pytest.raises(ValueError):
-        parallel.MapReduce(lambda x: x, iter([1, 2, 3]), parallel=True, chunksize=None)
+    # An unknown-length iterable with no explicit chunksize is now handled by
+    # cost-sampling rather than raising; it runs and returns all results.
+    result = parallel.map_reduce(
+        lambda x: x, iter([1, 2, 3]), parallel=True, chunksize=None
+    )
+    assert sorted(result) == [1, 2, 3]
 
 
 def arglists(elements):
@@ -136,7 +133,7 @@ def test_map_sequential(
 ):
     iterables1, iterables2 = args
     expected = list(map(func, *iterables1))
-    actual = list(parallel.MapReduce(func, *iterables2, parallel=False).run())
+    actual = list(parallel.map_reduce(func, *iterables2, parallel=False))
     assert expected == actual
 
 
@@ -160,16 +157,12 @@ def test_map_with_function_parallel():
     function definitions instead.
     """
     expected = {1, 2, 3}
-    actual = set(
-        parallel.MapReduce(_identity, expected, parallel=True, chunksize=1).run()
-    )
+    actual = set(parallel.map_reduce(_identity, expected, parallel=True, chunksize=1))
     assert expected == actual
 
 
 def test_map_with_iterators_and_empty_args():
-    result = parallel.MapReduce(
-        lambda x: x, iter([]), parallel=True, chunksize=100
-    ).run()
+    result = parallel.map_reduce(lambda x: x, iter([]), parallel=True, chunksize=100)
     assert result == []
 
 
@@ -178,8 +171,6 @@ def map_reduce_kwargs_common(draw):
     return {
         "chunksize": draw(st.integers(min_value=1, max_value=8192)),
         "sequential_threshold": draw(st.integers(min_value=1, max_value=2048)),
-        "max_depth": draw(st.integers(min_value=1) | st.none()),
-        "branch_factor": draw(st.integers(min_value=2)),
         "ordered": draw(st.booleans()),
     }
 
@@ -188,11 +179,7 @@ def map_reduce_kwargs_common(draw):
 def map_reduce_kwargs_iterators(draw):
     return {
         **draw(map_reduce_kwargs_common()),
-        **{
-            "max_size": None,
-            "max_leaves": None,
-            "total": None,
-        },
+        "total": None,
     }
 
 
@@ -200,11 +187,7 @@ def map_reduce_kwargs_iterators(draw):
 def map_reduce_kwargs_sequences(draw):
     return {
         **draw(map_reduce_kwargs_common()),
-        **{
-            "max_size": draw(st.integers(min_value=1)),
-            "max_leaves": draw(st.integers(min_value=1)),
-            "total": None,
-        },
+        "total": None,
     }
 
 
@@ -224,12 +207,12 @@ def test_map_with_iterators_parallel(
 ):
     iterables1, iterables2 = args
     expected = list(map(func, *iterables1))
-    actual = parallel.MapReduce(
+    actual = parallel.map_reduce(
         func,
         *iterables2,
         parallel=True,
         **kwargs,
-    ).run()
+    )
     if kwargs["ordered"]:
         assert expected == actual
     else:
@@ -248,12 +231,12 @@ def test_map_with_shortcircuit(
     kwargs,
 ):
     def _func(items, **additional_kwargs):
-        return parallel.MapReduce(
+        return parallel.map_reduce(
             _get_first,
             items,
             **kwargs,
             **additional_kwargs,
-        ).run()
+        )
 
     shortcircuit_tester(
         _func,
@@ -285,14 +268,14 @@ def test_map_reduce(
     iterables1, iterables2 = args
 
     expected = _max_reduce(map(_get_first, *iterables1), some_kwarg=1)
-    actual = parallel.MapReduce(
+    actual = parallel.map_reduce(
         _get_first,
         *iterables2,
         reduce_func=_max_reduce,
         reduce_kwargs={"some_kwarg": 1},
         **kwargs,
         parallel=_parallel,
-    ).run()
+    )
     assert expected == actual
 
 
@@ -307,24 +290,24 @@ def _double(x):
 
 def test_local_backend_basic():
     """Test basic parallel execution with local backend."""
-    result = parallel.MapReduce(
+    result = parallel.map_reduce(
         _double,
         [1, 2, 3, 4, 5],
         parallel=True,
         chunksize=2,
-    ).run()
+    )
     assert set(result) == {2, 4, 6, 8, 10}
 
 
 def test_local_backend_with_reduce():
     """Test parallel execution with custom reduce function."""
-    result = parallel.MapReduce(
+    result = parallel.map_reduce(
         _double,
         [1, 2, 3, 4, 5],
         reduce_func=sum,
         parallel=True,
         chunksize=2,
-    ).run()
+    )
     assert result == 30  # 2+4+6+8+10
 
 
@@ -335,26 +318,27 @@ def test_local_backend_sequential_fallback():
     use multiprocessing.
     """
     # With sequential_threshold high enough, should run sequentially
-    result = parallel.MapReduce(
+    result = parallel.map_reduce(
         lambda x: x * 2,
         [1, 2, 3],
         parallel=True,
         sequential_threshold=100,  # Higher than len(items)
         chunksize=2,
-    ).run()
+    )
     assert set(result) == {2, 4, 6}
 
 
 def test_backend_selection():
-    """Test backend auto-detection and explicit selection."""
-    mr = parallel.MapReduce(lambda x: x, [1, 2, 3], backend="auto")
-    assert mr.backend == "local"
+    """Test backend auto-detection, explicit selection, and rejection."""
+    assert sorted(
+        parallel.map_reduce(_identity, [1, 2, 3], backend="auto", chunksize=1)
+    ) == [1, 2, 3]
+    assert sorted(
+        parallel.map_reduce(_identity, [1, 2, 3], backend="local", chunksize=1)
+    ) == [1, 2, 3]
 
-    mr = parallel.MapReduce(lambda x: x, [1, 2, 3], backend="local")
-    assert mr.backend == "local"
-
-    with pytest.raises(ValueError, match="Unknown backend"):
-        parallel.MapReduce(lambda x: x, [1, 2, 3], backend="invalid")
+    with pytest.raises(ValueError, match="unknown parallel_backend"):
+        parallel.map_reduce(_identity, [1, 2, 3], backend="invalid", chunksize=1)
 
 
 def test_cancel_all_with_futures():
@@ -431,6 +415,3 @@ class TestGetNumProcesses:
 
         with config.override(parallel_workers=2):
             assert parallel.get_num_processes() == 2
-
-
-# NOTE: Tree module tests are now in test/test_tree.py

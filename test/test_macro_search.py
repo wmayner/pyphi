@@ -799,14 +799,14 @@ class TestParallelEquivalenceRecursion:
 class TestParallelGating:
     def test_default_config_runs_in_process(self, monkeypatch):
         # With the global switch off (the default), the driver must not
-        # dispatch to a process pool: MapReduce is never constructed
+        # dispatch to a process pool: map_reduce is never called
         # (it is imported lazily from pyphi.parallel inside the helper).
         import pyphi.parallel
 
         def _boom(*args, **kwargs):
-            raise AssertionError("MapReduce should not run under global parallel=False")
+            raise AssertionError("map_reduce should not run under global parallel=False")
 
-        monkeypatch.setattr(pyphi.parallel, "MapReduce", _boom)
+        monkeypatch.setattr(pyphi.parallel, "map_reduce", _boom)
         with config.override(**presets.iit4_2023):
             result = complexes(
                 min_substrate(), (0, 0), SearchBounds(mappings="EXHAUSTIVE")

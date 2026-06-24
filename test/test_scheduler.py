@@ -262,17 +262,13 @@ def test_apply_snapshot_skips_when_running_in_parent_pid():
 
 
 # ============================================================================
-# MapReduce backend-name acceptance
+# map_reduce backend selection
 # ============================================================================
 #
-# Per the P11 changelog: ``MapReduce`` always dispatches through the
-# local-process pool. ``"thread"`` and ``"dask"`` are accepted as backend
-# names for forward compatibility with config-driven selection, but the
-# actual execution still uses ``LocalMapReduce``. Users who want true
-# thread/dask execution call :func:`default_scheduler` directly.
-#
-# These tests pin that contract so a future change that wires MapReduce
-# through the Scheduler Protocol surfaces explicitly.
+# ``map_reduce`` resolves its ``backend=`` through :func:`default_scheduler`,
+# so ``"thread"`` runs on the thread scheduler and ``"dask"`` reaches the
+# Dask stub (which raises ``NotImplementedError``). These tests pin that
+# the backend argument is actually honored.
 
 
 def _double(x):
@@ -280,47 +276,32 @@ def _double(x):
     return x * 2
 
 
-@pytest.mark.parametrize("backend", ["auto", "local", "process", "thread", "dask"])
-def test_mapreduce_accepts_all_backend_names(backend):
-    """All five backend names are accepted at MapReduce construction."""
-    from pyphi import parallel
+@pytest.mark.parametrize("backend", ["auto", "local", "process", "thread"])
+def test_map_reduce_executes_on_all_local_backends(backend):
+    """map_reduce routes to the selected local backend and computes correctly."""
+    from pyphi.parallel import map_reduce
 
-    mr = parallel.MapReduce(_double, [1, 2, 3], backend=backend)
-    assert mr.backend in {"local", "thread", "dask"}
-
-
-def test_mapreduce_rejects_unknown_backend():
-    from pyphi import parallel
-
-    with pytest.raises(ValueError, match=r"[Uu]nknown backend"):
-        parallel.MapReduce(_double, [1, 2, 3], backend="invalid")
-
-
-def test_mapreduce_thread_backend_executes_successfully():
-    """MapReduce(backend='thread') runs through LocalMapReduce (process pool).
-    The execution path is documented in the P11 changelog: explicit thread
-    selection requires default_scheduler() instead.
-    """
-    from pyphi import parallel
-
-    mr = parallel.MapReduce(
-        _double, [1, 2, 3, 4, 5], backend="thread", parallel=True, chunksize=2
+    out = map_reduce(
+        _double, [1, 2, 3, 4, 5], backend=backend, sequential_threshold=1, chunksize=2
     )
-    result = mr.run()
-    assert sorted(result) == [2, 4, 6, 8, 10]
+    assert sorted(out) == [2, 4, 6, 8, 10]
 
 
-def test_mapreduce_dask_backend_executes_successfully():
-    """MapReduce(backend='dask') runs through LocalMapReduce; the DaskScheduler
-    stub is not invoked from MapReduce dispatch.
-    """
-    from pyphi import parallel
+def test_map_reduce_rejects_unknown_backend():
+    from pyphi.parallel import map_reduce
 
-    mr = parallel.MapReduce(
-        _double, [1, 2, 3, 4, 5], backend="dask", parallel=True, chunksize=2
-    )
-    result = mr.run()
-    assert sorted(result) == [2, 4, 6, 8, 10]
+    with pytest.raises(ValueError, match=r"unknown parallel_backend"):
+        map_reduce(_double, [1, 2, 3], backend="invalid")
+
+
+def test_map_reduce_dask_backend_is_not_implemented():
+    """backend='dask' now actually routes to the DaskScheduler stub."""
+    from pyphi.parallel import map_reduce
+
+    with pytest.raises(NotImplementedError):
+        map_reduce(
+            _double, [1, 2, 3, 4, 5], backend="dask", sequential_threshold=1, chunksize=2
+        )
 
 
 def _increment(x):
