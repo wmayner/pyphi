@@ -154,6 +154,9 @@ def _compute_distinctions(
         reduce_func=reduce_func,
         desc="Computing concepts",
         total=total,
+        # Larger mechanisms span larger cause/effect repertoires; a cheap
+        # directional proxy for per-mechanism cost.
+        size_func=lambda mechanism: 2 ** len(mechanism),
         **parallel_kwargs,  # type: ignore[arg-type]  # parallel_kwargs contains map_reduce params
     )
     # ``find_mice`` may return tied specified states under the active

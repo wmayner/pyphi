@@ -125,3 +125,27 @@ def test_iit4_sia_parallel_equals_sequential(name: str) -> None:
         f"{name}: IIT 4.0 SIA diverged under loky — sequential φ {seq.phi} "
         f"vs parallel φ {par.phi}"
     )
+
+
+@pytest.mark.emd
+def test_iit3_concepts_cost_balanced_chunking_equals_sequential() -> None:
+    """Force a tiny chunksize so the concept level actually chunks under loky,
+    exercising the size_func cost-balanced packing end-to-end; the resulting
+    CES must match sequential exactly.
+    """
+    factory, state = _SUBSTRATES["basic"]
+    # chunksize=2 with ~7 mechanisms forms several cost-balanced chunks
+    concept_cfg = {
+        **config.infrastructure.parallel_concept_evaluation,
+        "parallel": True,
+        "sequential_threshold": 1,
+        "chunksize": 2,
+    }
+    with config.override(**presets.iit3, parallel=False):
+        seq = _ces_signature(iit3.ces(System(factory(), state)).distinctions)
+    with config.override(
+        **presets.iit3, parallel=True, parallel_concept_evaluation=concept_cfg
+    ):
+        par = _ces_signature(iit3.ces(System(factory(), state)).distinctions)
+
+    assert seq == par, f"cost-balanced concept chunking diverged:\n{seq}\n{par}"
