@@ -392,3 +392,12 @@ def test_map_reduce_zipped_iterables_stay_aligned_under_size_func():
     b = [x * 10 for x in a]
     out = map_reduce(_pair, a, b, chunksize=3, size_func=lambda x: x + 1)
     assert sorted(out) == sorted((x, x * 10) for x in a)
+
+
+def test_map_reduce_mismatched_length_iterables_truncate_to_shortest():
+    from pyphi.parallel import map_reduce
+
+    a = list(range(10))
+    b = list(range(5))  # shorter; chunking must not index past it
+    out = map_reduce(_pair, a, b, chunksize=2)
+    assert sorted(out) == sorted((x, x) for x in range(5))

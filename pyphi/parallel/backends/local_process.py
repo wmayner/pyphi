@@ -131,10 +131,13 @@ class LocalMapReduce:
         from pyphi.parallel.chunking import cost_balanced_partition
         from pyphi.parallel.chunking import even_partition
 
-        n = len(materialized[0])
+        # Partition over the shortest iterable so the index applied to every
+        # iterable is in range (matches the old ``zip(strict=False)`` truncation
+        # when iterables differ in length).
+        n = min(len(it) for it in materialized)
         k = max(math.ceil(n / self.chunksize), get_num_processes())
         if self.size_func is not None:
-            weights = [self.size_func(x) for x in materialized[0]]
+            weights = [self.size_func(materialized[0][i]) for i in range(n)]
             index_bins = cost_balanced_partition(weights, k)
         else:
             index_bins = even_partition(n, k)
