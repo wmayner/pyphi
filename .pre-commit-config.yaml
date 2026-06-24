@@ -16,8 +16,12 @@ repos:
       - id: check-added-large-files
         exclude: ^(papers/|graphify-out/)
       - id: debug-statements
+      # Skip generated assets (SVG), test data and goldens, and vendored
+      # scripts: these should not be whitespace-normalized by lint hooks.
       - id: end-of-file-fixer
+        exclude: '(^test/data/|^profiling/|\.svg$)'
       - id: trailing-whitespace
+        exclude: '(^test/data/|^profiling/|\.svg$)'
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.14.10

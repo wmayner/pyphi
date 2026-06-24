@@ -277,14 +277,14 @@ class TestAcIitSignAgreement:
         mech_indices = transition.mechanism_indices(direction)
         purv_indices = transition.purview_indices(direction)
         mechanism = data.draw(
-            st.lists(
-                st.sampled_from(mech_indices), min_size=1, unique=True
-            ).map(lambda xs: tuple(sorted(xs)))
+            st.lists(st.sampled_from(mech_indices), min_size=1, unique=True).map(
+                lambda xs: tuple(sorted(xs))
+            )
         )
         purview = data.draw(
-            st.lists(
-                st.sampled_from(purv_indices), min_size=1, unique=True
-            ).map(lambda xs: tuple(sorted(xs)))
+            st.lists(st.sampled_from(purv_indices), min_size=1, unique=True).map(
+                lambda xs: tuple(sorted(xs))
+            )
         )
         try:
             _check_ac_iit_sign_agreement(transition, direction, mechanism, purview)
@@ -367,9 +367,9 @@ class TestPreRefactorByteMatch:
 
         # The one intended behavioral change: the clamped phi is max(0, raw).
         got_phi = float(sia.phi)
-        assert got_phi == pytest.approx(
-            max(0.0, record["phi"]), abs=_BYTE_MATCH_ATOL
-        ), f"{record['name']}: clamped phi {got_phi!r} != max(0, {record['phi']!r})"
+        assert got_phi == pytest.approx(max(0.0, record["phi"]), abs=_BYTE_MATCH_ATOL), (
+            f"{record['name']}: clamped phi {got_phi!r} != max(0, {record['phi']!r})"
+        )
         got_norm = float(sia.normalized_phi)
         assert got_norm == pytest.approx(
             max(0.0, record["normalized_phi"]), abs=_BYTE_MATCH_ATOL

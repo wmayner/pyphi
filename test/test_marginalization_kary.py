@@ -143,7 +143,9 @@ def test_single_node_cause_repertoire_k3() -> None:
     # ``cause_marginal[..., state]`` with ``state`` in ``[0, k_node)``.
     # Same query with a different output-state index produces a different
     # slice, confirming the trailing axis is being indexed.
-    node_other = _Node(state=2, inputs=frozenset({0, 1}), cause_marginal=JointTPM(factor))
+    node_other = _Node(
+        state=2, inputs=frozenset({0, 1}), cause_marginal=JointTPM(factor)
+    )
     cs_other = _CS({0: node_other})
     rep_other = _single_node_cause_repertoire(cs_other, 0, frozenset({0}))
     assert not np.allclose(rep, rep_other)

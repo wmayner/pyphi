@@ -306,9 +306,7 @@ class TestMacroNetworkGoldens:
         value = load_summary("bbx_macro")[label]
         with config.override(**presets.iit4_2023):
             phi = (
-                System(
-                    _bbx_macro_substrate(), (1, 1), indices_of("bbx_macro", label)
-                )
+                System(_bbx_macro_substrate(), (1, 1), indices_of("bbx_macro", label))
                 .sia()
                 .phi
             )
@@ -326,9 +324,7 @@ class TestFormalismCandidateGoldens:
         with config.override(**presets.iit4_2023):
             for unit in CG_UNITS:
                 system = MacroSystem.from_micro(substrate, (unit,), (state,))
-                assert system.sia().phi == pytest.approx(
-                    0.007115237059108961, abs=1e-13
-                )
+                assert system.sia().phi == pytest.approx(0.007115237059108961, abs=1e-13)
 
     def test_bbx_one_unit_candidates(self):
         ones = (1,) * 8
@@ -354,9 +350,7 @@ class TestFormalismCandidateGoldens:
         ones = (1,) * 8
         with config.override(**presets.iit4_2023):
             system = MacroSystem.from_micro(_bbx_substrate(), (unit,), (ones, ones))
-            assert system.sia().phi == pytest.approx(
-                3.8676199517666156e-05, abs=1e-13
-            )
+            assert system.sia().phi == pytest.approx(3.8676199517666156e-05, abs=1e-13)
 
     def test_cg_exact_construction_network_singletons(self):
         # The hand-entry delta made visible at the singleton level:

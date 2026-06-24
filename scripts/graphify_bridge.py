@@ -48,7 +48,7 @@ def extract() -> None:
     _SIDECAR.write_text(
         json.dumps({"edges": edges, "nodes": nodes}, indent=2, sort_keys=True) + "\n"
     )
-    print(f"wrote {_SIDECAR}: {len(edges)} edges, {len(nodes)} endpoint nodes")  # noqa: T201
+    print(f"wrote {_SIDECAR}: {len(edges)} edges, {len(nodes)} endpoint nodes")
 
 
 def inject() -> None:
@@ -76,7 +76,7 @@ def inject() -> None:
             added_edges += 1
 
     _GRAPH.write_text(json.dumps(graph, indent=2, sort_keys=True) + "\n")
-    print(f"injected into {_GRAPH}: +{added_edges} edges, +{added_nodes} nodes")  # noqa: T201
+    print(f"injected into {_GRAPH}: +{added_edges} edges, +{added_nodes} nodes")
 
 
 def main() -> None:

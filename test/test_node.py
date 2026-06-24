@@ -137,5 +137,7 @@ def test_generate_nodes(s):
 
 
 def test_generate_nodes_default_labels(s):
-    nodes = generate_nodes(s.cause_marginal, s.effect_marginal, s.cm, s.state, s.node_indices)
+    nodes = generate_nodes(
+        s.cause_marginal, s.effect_marginal, s.cm, s.state, s.node_indices
+    )
     assert [n.label for n in nodes] == ["n0", "n1", "n2"]

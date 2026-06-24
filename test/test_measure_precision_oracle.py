@@ -74,7 +74,9 @@ def _adversarial_pq(draw):
     """A (p, q) distribution pair biased toward the dangerous regimes:
     q ≈ p (near-equal at a drawn scale) and 0/1-boundary entries."""
     n = draw(st.integers(2, 5))
-    p = _normalize(np.array(draw(st.lists(st.floats(1e-6, 1.0), min_size=n, max_size=n))))
+    p = _normalize(
+        np.array(draw(st.lists(st.floats(1e-6, 1.0), min_size=n, max_size=n)))
+    )
     mode = draw(st.sampled_from(["near_equal", "boundary", "random"]))
     if mode == "near_equal":
         scale = 10.0 ** draw(st.integers(-13, -3))
@@ -87,7 +89,9 @@ def _adversarial_pq(draw):
         q[0] = 10.0 ** draw(st.integers(-15, -6))
         q = _normalize(q)
     else:
-        q = _normalize(np.array(draw(st.lists(st.floats(1e-6, 1.0), min_size=n, max_size=n))))
+        q = _normalize(
+            np.array(draw(st.lists(st.floats(1e-6, 1.0), min_size=n, max_size=n)))
+        )
     return p, q
 
 
@@ -114,7 +118,9 @@ class TestInformationDensityPrecision:
         for a, e in zip(f64, _dec_information_density(p, q), strict=True):
             if e is None or not np.isfinite(a):
                 continue
-            assert _agrees(a, e), f"near-equal drift at scale {scale}: {a!r} vs {float(e)!r}"
+            assert _agrees(a, e), (
+                f"near-equal drift at scale {scale}: {a!r} vs {float(e)!r}"
+            )
 
 
 class TestPointwiseMutualInformationPrecision:

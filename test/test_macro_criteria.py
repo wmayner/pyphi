@@ -44,6 +44,7 @@ def bu_substrate():
     ]
     return Substrate(np.array(rows, dtype=float), node_labels=("A", "B", "C"))
 
+
 # judge_candidate never introspects competitor systems, so opaque
 # sentinels stand in for MacroSystem objects in these pure-logic tests.
 S1, S2, S3 = object(), object(), object()

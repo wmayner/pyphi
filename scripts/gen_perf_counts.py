@@ -60,12 +60,12 @@ def main() -> None:
         fixture = FIXTURES_BY_NAME[name]
         counts = count_calls(lambda: run_grain(fixture, grain), FRAMES)  # noqa: B023
         pins[f"{name}::{grain}"] = counts
-        print(f"{name}::{grain}: {counts}")  # noqa: T201
+        print(f"{name}::{grain}: {counts}")
     pins["actual_causation::account"] = _account_counts()
-    print(f"actual_causation::account: {pins['actual_causation::account']}")  # noqa: T201
+    print(f"actual_causation::account: {pins['actual_causation::account']}")
     _OUT.parent.mkdir(parents=True, exist_ok=True)
     _OUT.write_text(json.dumps(pins, indent=2, sort_keys=True) + "\n")
-    print(f"wrote {_OUT}")  # noqa: T201
+    print(f"wrote {_OUT}")
 
 
 if __name__ == "__main__":

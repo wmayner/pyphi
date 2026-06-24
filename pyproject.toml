@@ -122,6 +122,8 @@ exclude = [
     "docs",
     "htmlcov",
     "benchmarks",
+    # Vendored third-party tool (gprof2dot); not maintained here.
+    "profiling",
 ]
 
 [tool.ruff.lint]
@@ -187,6 +189,7 @@ max-statements = 100
 "pyphi/__init__.py" = ["T201"]
 "profiling/**/*.py" = ["T201"]
 "benchmarks/**/*.py" = ["T201"]
+"scripts/**/*.py" = ["T201", "E501", "C408"]
 # Allow print and magic values in examples
 "docs/examples/**/*.py" = ["T201", "PLR2004"]
 # Allow explicit re-exports in __init__ files (PEP 484 style)

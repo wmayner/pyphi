@@ -133,7 +133,7 @@ def main():
             for name, spec in NETS.items()
         },
     }
-    print(json.dumps(out, indent=2))  # noqa: T201
+    print(json.dumps(out, indent=2))
 
 
 if __name__ == "__main__":

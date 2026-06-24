@@ -18,9 +18,10 @@ from .conftest import skip_if_no_emd_backend
 def test_emd_ground_distance_must_be_symmetric():
     a = np.ones((2, 2, 2)) / 8
     b = np.ones((2, 2, 2)) / 8
-    with config.override(
-        mechanism_phi_measure="KLD", validate_config=False
-    ), pytest.raises(ValueError):
+    with (
+        config.override(mechanism_phi_measure="KLD", validate_config=False),
+        pytest.raises(ValueError),
+    ):
         emd_ground_distance(a, b)
 
 

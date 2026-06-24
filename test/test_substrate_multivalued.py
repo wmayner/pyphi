@@ -92,7 +92,9 @@ def test_kary_account_exercises_kary_code_path() -> None:
     )
     effect_marginal = transition.effect_system.effect_marginal
     # alphabet_sizes is per-substrate-unit; (3, 3) for a 2-node k=3 substrate.
-    assert effect_marginal.alphabet_sizes != (2,) * len(effect_marginal.alphabet_sizes), (
+    assert effect_marginal.alphabet_sizes != (2,) * len(
+        effect_marginal.alphabet_sizes
+    ), (
         f"effect_marginal.alphabet_sizes should be non-binary; got "
         f"{effect_marginal.alphabet_sizes}"
     )

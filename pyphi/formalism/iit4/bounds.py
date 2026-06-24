@@ -726,6 +726,6 @@ def check_phi_bound(
         return
     if not certificate.certified:
         return
-    tolerance = 10.0 ** -config.numerics.precision
+    tolerance = 10.0**-config.numerics.precision
     if float(value) > float(certificate.value) + tolerance:
         raise BoundViolationError(label, float(value), certificate)

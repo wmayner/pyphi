@@ -33,11 +33,11 @@ jobs:
 
       - name: Run tests
         if: ${{ !(matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13') }}
-        run: uv run pytest --tb=short -v
+        run: uv run --all-extras pytest --tb=short -v
 
       - name: Run tests with coverage
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13'
-        run: uv run pytest --tb=short -v --cov=pyphi --cov-report=xml
+        run: uv run --all-extras pytest --tb=short -v --cov=pyphi --cov-report=xml
 
       - name: Upload coverage to Codecov
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13'
@@ -63,7 +63,7 @@ jobs:
         run: uv python install 3.13
 
       - name: Install pyphi without xarray
-        run: uv sync --python 3.13 --group dev --extra parallel
+        run: uv sync --python 3.13 --group dev
 
       - name: Run tests
         run: uv run pytest test/test_factored_tpm.py -v
