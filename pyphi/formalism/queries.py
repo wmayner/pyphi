@@ -282,6 +282,9 @@ def find_mice(
         purviews_list,
         total=len(purviews_list),
         desc="Evaluating purviews",
+        # Cost ~ repertoire state space over the purview (2**|purview|);
+        # heterogeneous across purviews, cheap and exact.
+        size_func=lambda purview: 2 ** len(purview),
         **parallel_kwargs,
     )
 
