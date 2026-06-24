@@ -66,7 +66,7 @@ jobs:
           script: |
             const title = "Nightly benchmark regression detected";
             const url = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-            const body = `ASV flagged a wall-time regression on \`2.0\`. Workflow run: ${url}`;
+            const body = `ASV flagged a wall-time regression on \`main\`. Workflow run: ${url}`;
             const existing = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,

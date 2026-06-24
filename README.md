@@ -1,12 +1,12 @@
 <p>
   <a href="http://pyphi.readthedocs.io/">
-    <img alt="PyPhi logo" src="https://github.com/wmayner/pyphi/raw/develop/docs/_static/pyphi-logo-text-776x196.png" height="90px" width="380px" style="max-width:100%">
+    <img alt="PyPhi logo" src="https://github.com/wmayner/pyphi/raw/main/docs/_static/pyphi-logo-text-776x196.png" height="90px" width="380px" style="max-width:100%">
   </a>
 </p>
 
-[![Tests](https://img.shields.io/github/actions/workflow/status/wmayner/pyphi/test.yml?branch=develop&style=flat-square&label=tests)](https://github.com/wmayner/pyphi/actions/workflows/test.yml)
-[![Build](https://img.shields.io/github/actions/workflow/status/wmayner/pyphi/build.yml?branch=develop&style=flat-square&label=build)](https://github.com/wmayner/pyphi/actions/workflows/build.yml)
-[![Codecov](https://img.shields.io/codecov/c/github/wmayner/pyphi/develop?style=flat-square)](https://codecov.io/gh/wmayner/pyphi)
+[![Tests](https://img.shields.io/github/actions/workflow/status/wmayner/pyphi/test.yml?branch=main&style=flat-square&label=tests)](https://github.com/wmayner/pyphi/actions/workflows/test.yml)
+[![Build](https://img.shields.io/github/actions/workflow/status/wmayner/pyphi/build.yml?branch=main&style=flat-square&label=build)](https://github.com/wmayner/pyphi/actions/workflows/build.yml)
+[![Codecov](https://img.shields.io/codecov/c/github/wmayner/pyphi/main?style=flat-square)](https://codecov.io/gh/wmayner/pyphi)
 [![Documentation](https://img.shields.io/readthedocs/pyphi/stable?style=flat-square)](https://pyphi.readthedocs.io/)
 [![PyPI version](https://img.shields.io/pypi/v/pyphi?style=flat-square)](https://pypi.org/project/pyphi/)
 [![Python 3.12+](https://img.shields.io/pypi/pyversions/pyphi?style=flat-square)](https://pypi.org/project/pyphi/)
@@ -71,7 +71,7 @@ To install the latest development version, which is a work in progress and may
 have bugs, run:
 
 ```bash
-pip install "git+https://github.com/wmayner/pyphi@develop#egg=pyphi"
+pip install "git+https://github.com/wmayner/pyphi@main#egg=pyphi"
 ```
 
 ### Legacy: Conda (Deprecated)
@@ -88,7 +88,7 @@ conda install -c wmayner pyphi
 
 ### Detailed installation guide for Mac OS X
 
-[See here](https://github.com/wmayner/pyphi/blob/develop/INSTALLATION.rst).
+[See here](https://github.com/wmayner/pyphi/blob/main/INSTALLATION.rst).
 
 
 ## User group

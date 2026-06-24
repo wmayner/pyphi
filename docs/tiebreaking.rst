@@ -115,7 +115,7 @@ partition's |small_phi| value, it is compared to the previously minimal
 |small_phi|. If less, the MIP will be updated. Therefore, the first of all
 minimal |small_phi| found will be selected.
 
-In ``subsystem.py``, `line 610 <https://github.com/wmayner/pyphi/blob/develop/pyphi/subsystem.py#L610>`_:
+In ``subsystem.py``, `line 610 <https://github.com/wmayner/pyphi/blob/pre-2.0/pyphi/subsystem.py#L610>`_:
 
 .. code:: python
 
@@ -131,7 +131,7 @@ After computing the minimum information partition, we take the ``max()`` across
 all potential purviews. In the case of a tie, Python's builtin ``max()``
 function returns the first maximal element.
 
-In ``subsystem.py``, `line 703 <https://github.com/wmayner/pyphi/blob/develop/pyphi/subsystem.py#L703>`_:
+In ``subsystem.py``, `line 703 <https://github.com/wmayner/pyphi/blob/pre-2.0/pyphi/subsystem.py#L703>`_:
 
 .. code:: python
 
@@ -154,7 +154,7 @@ Assuming we don't short-circuit (*i.e.,* find a |SIA| with |big_phi| = 0), each
 new SIA is compared with the previous minimum. Again the returned minimum is the
 first one, as ordered by :func:`pyphi.compute.subsystem.sia_bipartitions`.
 
-In ``compute/subsystem.py``, `line 191 <https://github.com/wmayner/pyphi/blob/develop/pyphi/compute/subsystem.py#L191>`_:
+In ``compute/subsystem.py``, `line 191 <https://github.com/wmayner/pyphi/blob/pre-2.0/pyphi/compute/subsystem.py#L191>`_:
 
 .. code:: python
 
@@ -179,7 +179,7 @@ Finally, a search is performed for the candidate system with maximal |big_phi|.
 We compare the candidate systems with the builtin ``max()``, returning the first
 one, as ordered by :func:`pyphi.compute.networks.possible_complexes`.
 
-In ``compute/network.py``, `line 149 <https://github.com/wmayner/pyphi/blob/develop/pyphi/compute/network.py#L149>`_:
+In ``compute/network.py``, `line 149 <https://github.com/wmayner/pyphi/blob/pre-2.0/pyphi/compute/network.py#L149>`_:
 
 .. code:: python
 
