@@ -13,7 +13,6 @@ to workers via closure.
 from __future__ import annotations
 
 import logging
-import multiprocessing
 from collections.abc import Callable
 from collections.abc import Iterable
 from collections.abc import Iterator
@@ -22,68 +21,17 @@ from typing import Any
 
 from joblib.externals.loky import get_reusable_executor
 from more_itertools import chunked_even
-from more_itertools import flatten
 
 from pyphi.conf import config
 from pyphi.conf import fallback
+from pyphi.parallel import _map_sequential
+from pyphi.parallel import _reduce
+from pyphi.parallel import false
+from pyphi.parallel import get_num_processes
 
 from .progress import LocalProgressBar
 
 log = logging.getLogger(__name__)
-
-
-def get_num_processes() -> int:
-    """Return the number of processes to use in parallel."""
-    cpu_count = multiprocessing.cpu_count()
-
-    if config.infrastructure.parallel_workers == 0:
-        raise ValueError("Invalid parallel_workers; value may not be 0.")
-
-    if cpu_count < config.infrastructure.parallel_workers:
-        log.info(
-            "Requesting %s workers; only %s CPUs available",
-            config.infrastructure.parallel_workers,
-            cpu_count,
-        )
-        return cpu_count
-
-    if config.infrastructure.parallel_workers < 0:
-        num = cpu_count + config.infrastructure.parallel_workers + 1
-        if num <= 0:
-            raise ValueError(
-                "Invalid parallel_workers; negative value is too negative: "
-                f"requesting {num} workers, {cpu_count} CPUs available."
-            )
-        return num
-
-    return config.infrastructure.parallel_workers
-
-
-def false(*_args, **_kwargs) -> bool:
-    """Default short-circuit function that never short-circuits."""
-    return False
-
-
-def _flatten(items: Iterable, branch: bool = False) -> list:
-    """Flatten results if branching occurred."""
-    if branch:
-        items = flatten(items)
-    return list(items)
-
-
-def _map_sequential(func: Callable, *arglists, **kwargs) -> Iterator:
-    """Map function over arguments sequentially."""
-    for args in zip(*arglists, strict=False):
-        yield func(*args, **kwargs)
-
-
-def _reduce(
-    results: Iterable, reduce_func: Callable, reduce_kwargs: dict, branch: bool
-) -> Any:
-    """Apply reduction function to results."""
-    if reduce_func is _flatten:
-        return reduce_func(results, branch=branch)
-    return reduce_func(results, **reduce_kwargs)
 
 
 def _process_chunk(
