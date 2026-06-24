@@ -321,3 +321,48 @@ def test_mapreduce_dask_backend_executes_successfully():
     )
     result = mr.run()
     assert sorted(result) == [2, 4, 6, 8, 10]
+
+
+def _increment(x):
+    return x + 1
+
+
+def _identity(x):
+    return x
+
+
+def test_map_reduce_sequential_matches_builtin():
+    from pyphi.parallel import map_reduce
+
+    out = map_reduce(_double, [1, 2, 3], parallel=False)
+    assert sorted(out) == [2, 4, 6]
+
+
+def test_map_reduce_reduce_func_min_with_kwargs():
+    from pyphi.parallel import map_reduce
+
+    # empty input + min(default=...) must return the default, mirroring AC usage
+    out = map_reduce(
+        _identity, [], reduce_func=min, reduce_kwargs={"default": 99}, parallel=False
+    )
+    assert out == 99
+
+
+def test_map_reduce_parallel_equals_sequential():
+    import pyphi
+    from pyphi.parallel import map_reduce
+
+    items = list(range(50))
+    with pyphi.config.override(parallel=True):
+        par = map_reduce(_square, items, chunksize=8)
+    seq = map_reduce(_square, items, parallel=False)
+    assert sorted(par) == sorted(seq)
+
+
+def test_map_reduce_backend_thread_routes_to_thread_scheduler():
+    from pyphi.parallel import map_reduce
+
+    out = map_reduce(
+        _increment, [1, 2, 3], backend="thread", sequential_threshold=1, chunksize=1
+    )
+    assert sorted(out) == [2, 3, 4]

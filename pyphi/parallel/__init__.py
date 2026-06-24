@@ -143,6 +143,82 @@ def cancel_all(futures: Iterable, *args, **kwargs) -> list:
     return result
 
 
+def _bind_reducer(reduce_func: Callable, reduce_kwargs: dict | None) -> Callable:
+    """Adapt MapReduce-style ``(reduce_func, reduce_kwargs)`` to a 1-arg reducer."""
+    reduce_kwargs = reduce_kwargs or {}
+    if reduce_func is _flatten:
+        return lambda results: _flatten(results, branch=False)
+    if reduce_kwargs:
+        return lambda results: reduce_func(results, **reduce_kwargs)
+    return reduce_func
+
+
+def map_reduce(
+    fn: Callable,
+    items: Iterable,
+    *more_items: Iterable,
+    reduce_func: Callable = _flatten,
+    reduce_kwargs: dict | None = None,
+    parallel: bool = True,
+    ordered: bool = False,
+    total: int | None = None,
+    chunksize: int | None = None,
+    sequential_threshold: int = 1,
+    shortcircuit_func: Callable = false,
+    shortcircuit_callback: Callable | None = None,
+    shortcircuit_callback_args: Any = None,
+    progress: bool | None = None,
+    desc: str | None = None,
+    map_kwargs: dict | None = None,
+    backend: str = "auto",
+) -> Any:
+    """Map ``fn`` over ``items`` (zipped with ``more_items``) and reduce.
+
+    Runs in parallel through the scheduler selected by ``backend`` (or
+    ``config.infrastructure.parallel_backend``). With ``parallel=False`` it
+    runs serially in-process. ``reduce_func`` defaults to flattening the
+    per-item results into a list.
+    """
+    iterables = (items, *more_items)
+    show_progress = fallback(progress, config.infrastructure.progress_bars)
+    resolved_total = fallback(try_len(*iterables), total)
+
+    if not parallel:
+        results = _map_sequential(fn, *iterables, **(map_kwargs or {}))
+        if show_progress:
+            results = tqdm(results, total=resolved_total, desc=desc)
+        results = get(
+            results,
+            shortcircuit_func=shortcircuit_func,
+            shortcircuit_callback=shortcircuit_callback,
+            shortcircuit_callback_args=shortcircuit_callback_args,
+        )
+        return _reduce(list(results), reduce_func, reduce_kwargs or {}, branch=False)
+
+    from .scheduler import ChunkingPolicy
+    from .scheduler import ProgressPolicy
+    from .scheduler import ShortcircuitPolicy
+    from .scheduler import default_scheduler
+
+    scheduler = default_scheduler(None if backend == "auto" else backend)
+    return scheduler.map_reduce(
+        fn,
+        *iterables,
+        reducer=_bind_reducer(reduce_func, reduce_kwargs),
+        chunking=ChunkingPolicy(
+            chunksize=chunksize, sequential_threshold=sequential_threshold
+        ),
+        progress=ProgressPolicy(
+            enabled=show_progress, desc=desc or "", total=resolved_total
+        ),
+        shortcircuit=ShortcircuitPolicy(
+            func=shortcircuit_func, callback=shortcircuit_callback
+        ),
+        ordered=ordered,
+        map_kwargs=map_kwargs,
+    )
+
+
 class MapReduce:
     """Unified map-reduce engine with pluggable backends.
 

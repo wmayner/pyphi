@@ -73,8 +73,8 @@ class Scheduler(Protocol):
     def supports_shared_state(self) -> bool: ...
 
 
-def default_scheduler() -> Scheduler:
-    """Return the scheduler matching ``config.infrastructure.parallel_backend``.
+def default_scheduler(backend: str | None = None) -> Scheduler:
+    """Return the scheduler for ``backend`` (or ``config.parallel_backend``).
 
     ``"auto"`` resolves to ``LocalThreadScheduler`` on free-threaded runtimes
     and ``LocalProcessScheduler`` otherwise.
@@ -83,7 +83,8 @@ def default_scheduler() -> Scheduler:
 
     from pyphi.conf import config
 
-    backend = config.infrastructure.parallel_backend
+    if backend is None:
+        backend = config.infrastructure.parallel_backend
     if backend == "auto":
         gil_enabled = getattr(sys, "_is_gil_enabled", lambda: True)()
         if not gil_enabled:
