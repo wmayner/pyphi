@@ -62,3 +62,13 @@ def test_cost_balanced_partition_property(weights, k):
     flat = [i for b in bins for i in b]
     assert sorted(flat) == list(range(len(weights)))  # exact partition
     assert len([b for b in bins if b]) <= min(k, len(weights))
+
+
+def test_relation_size_func_is_overlap_times_degree():
+    from pyphi.relations import _relation_size_func
+
+    purview_unions = [{0, 1, 2}, {1, 2}, {2, 3}, {5}]
+    cost = _relation_size_func(purview_unions)
+    assert cost((0, 1)) == 2 * 2  # overlap {1,2} size 2, degree 2
+    assert cost((0, 1, 2)) == 1 * 3  # overlap {2} size 1, degree 3
+    assert cost((0, 3)) == 0 * 2  # disjoint purviews -> 0

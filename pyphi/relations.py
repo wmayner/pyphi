@@ -231,6 +231,21 @@ class Relation(Displayable, frozenset, cmp.OrderableByPhi):
         return cls(data["distinctions"])
 
 
+def _relation_size_func(purview_unions):
+    """Build a parent-side relation cost estimate over a combination.
+
+    The cost of a relation rises with its overlap (the relation is computed
+    over the intersection of the relata's purview unions) and its degree. Only
+    the relative ordering matters, so this cheap proxy suffices for chunking.
+    """
+
+    def cost(combination):
+        overlap = set.intersection(*(purview_unions[i] for i in combination))
+        return len(overlap) * len(combination)
+
+    return cost
+
+
 def all_relations(distinctions, min_degree=2, max_degree=None, **kwargs):
     """Yield causal relations among a set of distinctions."""
     # Self relations
@@ -250,6 +265,7 @@ def all_relations(distinctions, min_degree=2, max_degree=None, **kwargs):
         worker,
         combinations,
         desc="Evaluating relations",
+        size_func=_relation_size_func([d.purview_union for d in distinctions]),
         **pkwargs,  # type: ignore[arg-type]  # parallel_kwargs contains map_reduce params
     )
     if result is not None:
