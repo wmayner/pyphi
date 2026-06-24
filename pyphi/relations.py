@@ -29,7 +29,7 @@ from .display.numbers import format_value
 from .display.tables import capped_table
 from .models import cmp
 from .models.distinctions import ResolvedDistinctions
-from .parallel import MapReduce
+from .parallel import map_reduce
 from .registry import Registry
 
 if TYPE_CHECKING:
@@ -246,12 +246,12 @@ def all_relations(distinctions, min_degree=2, max_degree=None, **kwargs):
     pkwargs = conf.parallel_kwargs(
         config.infrastructure.parallel_relation_evaluation, **kwargs
     )
-    result = MapReduce(
+    result = map_reduce(
         worker,
         combinations,
         desc="Evaluating relations",
-        **pkwargs,  # type: ignore[arg-type]  # parallel_kwargs contains MapReduce params
-    ).run()
+        **pkwargs,  # type: ignore[arg-type]  # parallel_kwargs contains map_reduce params
+    )
     if result is not None:
         yield from result
 

@@ -38,7 +38,7 @@ from pyphi.models import MaximallyIrreducibleEffect
 from pyphi.models import UnresolvedDistinctions
 from pyphi.models import _null_ria
 from pyphi.models.explanation import NullResultReason
-from pyphi.parallel import MapReduce
+from pyphi.parallel import map_reduce
 from pyphi.partition import mechanism_partitions
 
 from .base import FORMALISM_REGISTRY
@@ -115,14 +115,14 @@ def _find_mip_single_state(
             **kwargs,
         )
 
-    candidate_mips = MapReduce(
+    candidate_mips = map_reduce(
         _eval,
         partitions,
         shortcircuit_func=_utils.is_falsy,
         desc="Evaluating mechanism partitions",
         **parallel_kwargs,
-    ).run()
-    assert candidate_mips is not None, "MapReduce.run() should not return None"
+    )
+    assert candidate_mips is not None, "map_reduce() should not return None"
 
     ties = tuple(
         resolve_ties.partitions(
@@ -277,7 +277,7 @@ def find_mice(
         dict(config.infrastructure.parallel_purview_evaluation),  # pyright: ignore[reportAttributeAccessIssue]
         **kwargs,
     )
-    map_reduce = MapReduce(
+    mip_results = map_reduce(
         _find_mip,
         purviews_list,
         total=len(purviews_list),
@@ -285,7 +285,7 @@ def find_mice(
         **parallel_kwargs,
     )
 
-    all_mice = map(mice_class, map_reduce.run())  # type: ignore[arg-type]
+    all_mice = map(mice_class, mip_results)  # type: ignore[arg-type]
     ties = tuple(resolve_ties.purviews(all_mice, default=no_purviews))  # type: ignore[arg-type]
     for tie in ties:
         tie.set_purview_ties(ties)

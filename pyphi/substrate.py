@@ -666,7 +666,7 @@ def possible_complexes(
 # iteration, filtering, and condensation are identical across IIT 3.0 and
 # IIT 4.0. These functions resolve the active formalism once at the call
 # site (avoiding per-subprocess config-mismatch hazards under parallel
-# MapReduce) and then map it over the candidate iterator.
+# map_reduce) and then map it over the candidate iterator.
 
 
 def _resolved_sia(**sia_kwargs: Any) -> tuple[Any, dict[str, Any]]:
@@ -675,7 +675,7 @@ def _resolved_sia(**sia_kwargs: Any) -> tuple[Any, dict[str, Any]]:
     Reads the active formalism from ``config.formalism.iit.version`` and,
     under IIT 4.0, fills in ``system_measure`` and ``specification_measure``
     from config when not supplied. Returns a ``(callable, kwargs)`` pair
-    safe to hand to :class:`pyphi.parallel.MapReduce`.
+    safe to hand to :func:`pyphi.parallel.map_reduce`.
     """
     from pyphi.conf import config as _config
 
@@ -715,7 +715,7 @@ def all_sias(
     """
     from pyphi import conf as _conf
     from pyphi.conf import config as _config
-    from pyphi.parallel import MapReduce
+    from pyphi.parallel import map_reduce
 
     iterable = possible_complexes(substrate, state) if candidates is None else candidates
 
@@ -726,14 +726,14 @@ def all_sias(
         _config.infrastructure.parallel_complex_evaluation,
         **(parallel_kwargs or {}),
     )
-    result = MapReduce(
+    result = map_reduce(
         sia_fn,
         iterable,
         total=2 ** len(substrate) - 1,
         map_kwargs=map_kwargs,
         desc="Evaluating complexes",
         **pkwargs,
-    ).run()
+    )
     assert result is not None
     return result
 

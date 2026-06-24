@@ -37,7 +37,7 @@ from pyphi.models import UnresolvedDistinctions
 from pyphi.models import _null_sia
 from pyphi.models.ces import CauseEffectStructure
 from pyphi.models.explanation import runner_up_from_candidates
-from pyphi.parallel import MapReduce
+from pyphi.parallel import map_reduce
 from pyphi.partition import system_partition_types
 from pyphi.relations import NullRelations
 from pyphi.types import Mechanism
@@ -142,7 +142,7 @@ def _compute_distinctions(
     parallel_kwargs = conf.parallel_kwargs(
         dict(config.infrastructure.parallel_concept_evaluation), **kwargs
     )
-    concepts = MapReduce(
+    concepts = map_reduce(
         compute_concept,
         mechanisms,
         map_kwargs={  # type: ignore[arg-type]  # None values allowed in map_kwargs
@@ -154,8 +154,8 @@ def _compute_distinctions(
         reduce_func=reduce_func,
         desc="Computing concepts",
         total=total,
-        **parallel_kwargs,  # type: ignore[arg-type]  # parallel_kwargs contains MapReduce params
-    ).run()
+        **parallel_kwargs,  # type: ignore[arg-type]  # parallel_kwargs contains map_reduce params
+    )
     # ``find_mice`` may return tied specified states under the active
     # formalism (IIT 4.0 in particular), so the conservative answer is
     # ``UnresolvedDistinctions``. Callers in IIT 4.0 phi_structure
@@ -333,7 +333,7 @@ def _sia_map_reduce(
 
     kwargs = {**dict(config.infrastructure.parallel_partition_evaluation), **kwargs}
     null = _null_sia(system, reasons=[NullResultReason.NO_VALID_PARTITIONS])
-    candidates = MapReduce(
+    candidates = map_reduce(
         evaluate_partition,
         cuts,
         map_kwargs={
@@ -343,7 +343,7 @@ def _sia_map_reduce(
         shortcircuit_func=utils.is_falsy,
         desc="Evaluating cuts",
         **kwargs,
-    ).run()
+    )
     if not candidates:
         return null
     ties = tuple(resolve_ties.sias(candidates, default=null))
