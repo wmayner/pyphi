@@ -1,8 +1,9 @@
 """Scheduler Protocol and policy types for the parallelization layer.
 
 The Protocol abstracts process / thread / dask backends behind a single
-``map_reduce`` entry point. Policies bundle the parameters that today live as
-loose kwargs on ``MapReduce.__init__`` so backends share a stable surface.
+``map_reduce`` entry point. Policies bundle the parameters that the public
+``pyphi.parallel.map_reduce`` function passes as flat kwargs so backends share
+a stable surface.
 """
 
 from __future__ import annotations

@@ -477,7 +477,7 @@ def test_sia_is_deterministic_across_runs_sequential(big_subsys_all_complete):
 def test_sia_is_deterministic_across_runs_parallel(big_subsys_all_complete):
     """Two consecutive ``.sia()`` calls return equal SIAs in parallel mode.
 
-    The parallel dispatch path delivers MapReduce results in worker-completion
+    The parallel dispatch path delivers map_reduce results in worker-completion
     order; deterministic SIA selection requires the strategy chain to fully
     canonicalize across runs.
     """

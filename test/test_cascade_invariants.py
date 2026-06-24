@@ -245,7 +245,7 @@ def _force_loky_parallel() -> dict:
     as a global switch. To actually engage loky on small substrates we
     enable each per-site flag *and* drop ``sequential_threshold`` to 1
     so candidate batches below the normal threshold still dispatch
-    through ``MapReduce``.
+    through ``map_reduce``.
     """
     from pyphi.conf import config as _cfg
 

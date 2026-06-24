@@ -215,7 +215,7 @@ def _compute_sia(system: System, stash: Any, iit_version: float) -> dict[str, An
         out["signed_phi"] = float(sia.signed_phi)
 
     # IIT 3.0 SIA cut capture is skipped: the IIT 3.0 SIA selects a MIP via
-    # ``MapReduce(reduce_func=min, ...)`` over ``OrderableByPhi`` analyses,
+    # ``map_reduce(reduce_func=min, ...)`` over ``OrderableByPhi`` analyses,
     # and ``min()`` breaks ties by first-occurrence. When multiple cuts hit
     # the same minimum phi (a frequent case on small substrates), which one
     # ``min()`` picks depends on the iteration order of ``sia_partitions``

@@ -347,3 +347,19 @@ def test_map_reduce_backend_thread_routes_to_thread_scheduler():
         _increment, [1, 2, 3], backend="thread", sequential_threshold=1, chunksize=1
     )
     assert sorted(out) == [2, 3, 4]
+
+
+def test_map_reduce_invokes_shortcircuit_callback_when_sequential():
+    """The shortcircuit callback fires even on the sequential fallback path."""
+    from pyphi.parallel import map_reduce
+
+    seen = []
+    out = map_reduce(
+        _identity,
+        [1, 2, 3, 4, 5],
+        parallel=False,
+        shortcircuit_func=lambda r: r == 3,
+        shortcircuit_callback=lambda *_: seen.append("stopped"),
+    )
+    assert 3 in out
+    assert seen == ["stopped"]

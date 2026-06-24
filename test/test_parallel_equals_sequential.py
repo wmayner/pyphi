@@ -19,7 +19,7 @@ unchecked.
 
 The thread/dask schedulers are exercised by ``test_scheduler.py`` /
 ``test_parallel.py``; the SIA/CES compute entry points dispatch only through
-the loky-backed ``MapReduce``, so this module covers the process scheduler.
+the loky-backed process scheduler, which this module covers.
 """
 
 from __future__ import annotations
@@ -44,7 +44,7 @@ def _outer_loky(threshold: int = 2) -> dict:
     cross-process dispatches (notably the IIT 4.0 relation cohort) that
     dominate runtime without widening coverage.
 
-    This engages real cross-process dispatch — ``MapReduce`` parallelizes only
+    This engages real cross-process dispatch — ``map_reduce`` parallelizes only
     when a level produces more than one chunk, so ``sequential_threshold`` must
     be low — without the ``threshold=1`` dispatch explosion that makes every
     tiny per-purview/per-partition op a separate cloudpickle round-trip (a
@@ -83,9 +83,7 @@ def _ces_signature(distinctions) -> list[tuple[tuple[int, ...], float]]:
     numerical precision so sub-precision float-reassociation noise from
     cross-process reduction never masquerades as a real divergence."""
     p = config.numerics.precision
-    return sorted(
-        (tuple(c.mechanism), round(float(c.phi), p)) for c in distinctions
-    )
+    return sorted((tuple(c.mechanism), round(float(c.phi), p)) for c in distinctions)
 
 
 @pytest.mark.emd

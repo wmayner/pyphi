@@ -81,7 +81,7 @@ def transition():
 class TestIIT3SIASnapshot:
     """The IIT 3.0 SIA path must propagate the parent's snapshot to workers.
 
-    Previously, ``MapReduce._run_parallel`` dispatched ``map_func`` to
+    Previously, the process scheduler dispatched ``map_func`` to
     loky workers without wrapping it in ``_make_worker_fn``. Workers
     computed under their default config (IIT 4.0) and the result's
     ``.config`` recorded that default instead of the parent's IIT 3.0.
@@ -100,7 +100,7 @@ class TestIIT3SIASnapshot:
             r = iit3.sia(cs)
         assert r.config.formalism.iit.version == "IIT_3_0", (
             "Parallel IIT 3.0 SIA must record parent's iit.version. "
-            "If this fails, the legacy MapReduce path isn't wrapping "
+            "If this fails, the process scheduler isn't wrapping "
             "map_func with _make_worker_fn before dispatching. Got "
             f"{r.config.formalism.iit.version!r}."
         )
