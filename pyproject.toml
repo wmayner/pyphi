@@ -124,6 +124,9 @@ exclude = [
     "benchmarks",
     # Vendored third-party tool (gprof2dot); not maintained here.
     "profiling",
+    # Pre-2.0 oracle reproducer: deliberately imports pre-refactor API that
+    # does not exist on this branch; only runs against the oracle worktree.
+    "scripts/gen_iit4_2023_byte_match_oracle.py",
 ]
 
 [tool.ruff.lint]
