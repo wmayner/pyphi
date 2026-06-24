@@ -143,7 +143,9 @@ def cancel_all(futures: Iterable, *args, **kwargs) -> list:
     return result
 
 
-def _bind_reducer(reduce_func: Callable, reduce_kwargs: dict | None) -> Callable:
+def _bind_reducer(
+    reduce_func: Callable[..., Any], reduce_kwargs: dict[str, Any] | None
+) -> Callable[..., Any]:
     """Adapt MapReduce-style ``(reduce_func, reduce_kwargs)`` to a 1-arg reducer."""
     reduce_kwargs = reduce_kwargs or {}
     if reduce_func is _flatten:
@@ -154,22 +156,22 @@ def _bind_reducer(reduce_func: Callable, reduce_kwargs: dict | None) -> Callable
 
 
 def map_reduce(
-    fn: Callable,
-    items: Iterable,
-    *more_items: Iterable,
-    reduce_func: Callable = _flatten,
-    reduce_kwargs: dict | None = None,
+    fn: Callable[..., Any],
+    items: Iterable[Any],
+    *more_items: Iterable[Any],
+    reduce_func: Callable[..., Any] = _flatten,
+    reduce_kwargs: dict[str, Any] | None = None,
     parallel: bool = True,
     ordered: bool = False,
     total: int | None = None,
     chunksize: int | None = None,
     sequential_threshold: int = 1,
-    shortcircuit_func: Callable = false,
-    shortcircuit_callback: Callable | None = None,
+    shortcircuit_func: Callable[..., Any] = false,
+    shortcircuit_callback: Callable[..., Any] | None = None,
     shortcircuit_callback_args: Any = None,
     progress: bool | None = None,
     desc: str | None = None,
-    map_kwargs: dict | None = None,
+    map_kwargs: dict[str, Any] | None = None,
     backend: str = "auto",
 ) -> Any:
     """Map ``fn`` over ``items`` (zipped with ``more_items``) and reduce.

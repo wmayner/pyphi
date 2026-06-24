@@ -269,7 +269,7 @@ def _evaluate_systems(systems, memo, parallel_kwargs=None) -> None:
     """
     from pyphi import conf as _conf
     from pyphi.conf import config as _config
-    from pyphi.parallel import MapReduce
+    from pyphi.parallel import map_reduce
 
     pending: list[MacroSystem] = []
     seen: set[MacroSystem] = set()
@@ -288,7 +288,7 @@ def _evaluate_systems(systems, memo, parallel_kwargs=None) -> None:
         pkwargs["ordered"] = True
         pkwargs["total"] = len(pending)
         pkwargs.setdefault("desc", "Evaluating macro systems")
-        phis = MapReduce(_evaluate_one, pending, **pkwargs).run()
+        phis = map_reduce(_evaluate_one, pending, **pkwargs)
     else:
         phis = [float(system.sia().phi) for system in pending]
     for system, phi in zip(pending, phis, strict=True):

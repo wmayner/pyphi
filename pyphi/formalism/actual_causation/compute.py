@@ -36,7 +36,7 @@ from pyphi.models import DirectedJointPartition
 from pyphi.models import NullResultReason
 from pyphi.models import _null_ac_ria
 from pyphi.models import _null_ac_sia
-from pyphi.parallel import MapReduce
+from pyphi.parallel import map_reduce
 from pyphi.partition import mechanism_partitions
 from pyphi.registry import Registry
 
@@ -552,7 +552,7 @@ def _sia(
     parallel_kwargs = conf.parallel_kwargs(
         dict(config.infrastructure.parallel_partition_evaluation), **kwargs
     )
-    result = MapReduce(
+    result = map_reduce(
         _evaluate_partition,
         cuts,
         map_kwargs={
@@ -568,7 +568,7 @@ def _sia(
         },
         shortcircuit_func=utils.is_falsy,
         **parallel_kwargs,
-    ).run()
+    )
     log.info("Finished calculating big-ac-phi data for %s.", transition)
     log.debug("RESULT: \n%s", result)
     return result

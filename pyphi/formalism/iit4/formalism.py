@@ -29,7 +29,7 @@ from pyphi.measures.protocols import CompositeMeasure
 from pyphi.measures.protocols import DistributionMeasure
 from pyphi.measures.protocols import StateAwareMeasure
 from pyphi.measures.protocols import StatefulDistributionMeasure
-from pyphi.parallel import MapReduce
+from pyphi.parallel import map_reduce
 
 from . import ces as _ces  # pyright: ignore[reportUnknownVariableType]
 from . import sia as _sia  # pyright: ignore[reportUnknownVariableType]
@@ -245,7 +245,7 @@ def _find_mip_iit4(
         _find_mip_single_state,  # pyright: ignore[reportPrivateUsage]
     )
 
-    mips = MapReduce(
+    mips = map_reduce(
         partial(_find_mip_single_state, system),  # pyright: ignore[reportPrivateUsage]
         specified_states,
         map_kwargs={
@@ -259,7 +259,7 @@ def _find_mip_iit4(
         },
         desc="Finding MIP for maximum intrinsic information states",
         **parallel_kwargs,
-    ).run()
+    )
 
     ties = tuple(resolve_ties.states(mips))  # type: ignore[arg-type]
     for tie in ties:

@@ -58,7 +58,7 @@ from pyphi.models.partitions import concise_partition
 from pyphi.models.ria import RepertoireIrreducibilityAnalysis
 from pyphi.models.state_specification import StateSpecification
 from pyphi.models.state_specification import SystemStateSpecification
-from pyphi.parallel import MapReduce
+from pyphi.parallel import map_reduce
 from pyphi.partition import system_partitions
 from pyphi.provenance import HasProvenance
 from pyphi.provenance import Provenance
@@ -1072,7 +1072,7 @@ def _find_mip_for_fixed_state(
 ) -> SystemIrreducibilityAnalysis:
     """Find the MIP for a given (fixed) system state.
 
-    Runs the partition MapReduce with the supplied ``system_state``,
+    Runs the partition map-reduce with the supplied ``system_state``,
     selects the MIP via :func:`resolve_ties.sias`, and back-propagates
     the chosen state onto each tied MIP's ``system_state``.
     """
@@ -1089,7 +1089,7 @@ def _find_mip_for_fixed_state(
         for direction in resolved_directions
     }
 
-    sias = MapReduce(
+    sias = map_reduce(
         evaluate_partition,
         partitions,
         map_kwargs={
@@ -1102,7 +1102,7 @@ def _find_mip_for_fixed_state(
         shortcircuit_func=utils.is_falsy,
         desc="Evaluating partitions",
         **parallel_kwargs,
-    ).run()
+    )
 
     candidates = list(sias) if sias is not None else []
     if not candidates:
