@@ -363,3 +363,32 @@ def test_map_reduce_invokes_shortcircuit_callback_when_sequential():
     )
     assert 3 in out
     assert seen == ["stopped"]
+
+
+def _pair(x, y):
+    return (x, y)
+
+
+def test_map_reduce_size_func_matches_cost_blind_results():
+    from pyphi.parallel import map_reduce
+
+    items = list(range(40))
+    blind = map_reduce(_square, items, chunksize=4)
+    weighted = map_reduce(_square, items, chunksize=4, size_func=lambda x: x + 1)
+    assert sorted(blind) == sorted(weighted)  # chunking never changes results
+
+
+def test_map_reduce_size_func_with_ordered_raises():
+    from pyphi.parallel import map_reduce
+
+    with pytest.raises(ValueError, match=r"size_func.*ordered"):
+        map_reduce(_square, [1, 2, 3], size_func=lambda x: x, ordered=True)
+
+
+def test_map_reduce_zipped_iterables_stay_aligned_under_size_func():
+    from pyphi.parallel import map_reduce
+
+    a = list(range(20))
+    b = [x * 10 for x in a]
+    out = map_reduce(_pair, a, b, chunksize=3, size_func=lambda x: x + 1)
+    assert sorted(out) == sorted((x, x * 10) for x in a)

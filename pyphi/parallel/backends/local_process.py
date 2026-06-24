@@ -13,6 +13,7 @@ to workers via closure.
 from __future__ import annotations
 
 import logging
+import math
 from collections.abc import Callable
 from collections.abc import Iterable
 from collections.abc import Iterator
@@ -20,7 +21,6 @@ from concurrent.futures import as_completed
 from typing import Any
 
 from joblib.externals.loky import get_reusable_executor
-from more_itertools import chunked_even
 
 from pyphi.conf import config
 from pyphi.conf import fallback
@@ -77,6 +77,7 @@ class LocalMapReduce:
         reduce_kwargs: dict,
         chunksize: int,
         sequential_threshold: int = 1,
+        size_func: Callable[..., float] | None = None,
         shortcircuit_func: Callable = false,
         shortcircuit_callback: Callable | None = None,
         ordered: bool = False,
@@ -91,6 +92,7 @@ class LocalMapReduce:
         self.reduce_kwargs = reduce_kwargs
         self.chunksize = chunksize
         self.sequential_threshold = sequential_threshold
+        self.size_func = size_func
         self.shortcircuit_func = shortcircuit_func
         self.shortcircuit_callback = shortcircuit_callback
         self.ordered = ordered
@@ -126,12 +128,21 @@ class LocalMapReduce:
         if not materialized or not materialized[0]:
             return
 
-        chunked_iterables = [
-            list(chunked_even(it, self.chunksize)) for it in materialized
-        ]
+        from pyphi.parallel.chunking import cost_balanced_partition
+        from pyphi.parallel.chunking import even_partition
 
-        # Yield tuples of corresponding chunks
-        yield from zip(*chunked_iterables, strict=False)
+        n = len(materialized[0])
+        k = max(math.ceil(n / self.chunksize), get_num_processes())
+        if self.size_func is not None:
+            weights = [self.size_func(x) for x in materialized[0]]
+            index_bins = cost_balanced_partition(weights, k)
+        else:
+            index_bins = even_partition(n, k)
+
+        for indices in index_bins:
+            if not indices:
+                continue
+            yield tuple([it[i] for i in indices] for it in materialized)
 
     def _should_run_parallel(self) -> bool:
         """Parallelize only when there is more than one chunk of work."""
@@ -365,6 +376,7 @@ class LocalProcessScheduler:
             reduce_kwargs={},
             chunksize=chunksize,
             sequential_threshold=chunking.sequential_threshold,
+            size_func=chunking.size_func,
             shortcircuit_func=shortcircuit.func,
             shortcircuit_callback=shortcircuit.callback,
             ordered=ordered,

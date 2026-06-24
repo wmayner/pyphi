@@ -169,6 +169,7 @@ def map_reduce(
     progress: bool | None = None,
     desc: str | None = None,
     map_kwargs: dict[str, Any] | None = None,
+    size_func: Callable[..., float] | None = None,
     backend: str = "auto",
 ) -> Any:
     """Map ``fn`` over ``items`` (zipped with ``more_items``) and reduce.
@@ -176,8 +177,15 @@ def map_reduce(
     Runs in parallel through the scheduler selected by ``backend`` (or
     ``config.infrastructure.parallel_backend``). With ``parallel=False`` it
     runs serially in-process. ``reduce_func`` defaults to flattening the
-    per-item results into a list.
+    per-item results into a list. ``size_func`` returns a relative per-item
+    cost estimate used to pack cost-balanced chunks (parent-side, so it must
+    be cheap); ``None`` packs equal-count chunks.
     """
+    if size_func is not None and ordered:
+        raise ValueError(
+            "size_func cost-balancing reorders items across chunks and is "
+            "incompatible with ordered=True"
+        )
     iterables = (items, *more_items)
     show_progress = fallback(progress, config.infrastructure.progress_bars)
     resolved_total = fallback(try_len(*iterables), total)
@@ -205,7 +213,9 @@ def map_reduce(
         *iterables,
         reducer=_bind_reducer(reduce_func, reduce_kwargs),
         chunking=ChunkingPolicy(
-            chunksize=chunksize, sequential_threshold=sequential_threshold
+            chunksize=chunksize,
+            sequential_threshold=sequential_threshold,
+            size_func=size_func,
         ),
         progress=ProgressPolicy(
             enabled=show_progress, desc=desc or "", total=resolved_total
