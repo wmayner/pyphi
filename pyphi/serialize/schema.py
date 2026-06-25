@@ -202,6 +202,69 @@ DistinctionsAnySchema = (
 )
 
 
+# --- Provenance, excluded candidates, and SIAs --------------------------------
+
+
+class ProvenanceSchema(msgspec.Struct, frozen=True, tag="provenance"):
+    pyphi_version: str
+    git_sha: str | None
+    git_dirty: bool | None
+    timestamp: str
+    python_version: str
+    numpy_version: str
+    scipy_version: str
+    platform: str
+    wall_time: float | None = None
+    seed: int | None = None
+    note: str | None = None
+
+
+class ExcludedCandidateSchema(msgspec.Struct, frozen=True, tag="excluded_candidate"):
+    node_indices: tuple[int, ...]
+    phi: float
+
+
+class IIT3SIASchema(msgspec.Struct, frozen=True, tag="iit3_sia"):
+    phi: PhiSchema | None
+    distinctions: DistinctionsAnySchema | None
+    partitioned_distinctions: DistinctionsAnySchema | None
+    partition: PartitionSchema | None
+    node_indices: tuple[int, ...] | None
+    node_labels: NodeLabelsSchema | None
+    current_state: tuple[int, ...] | None
+    tie_peers: tuple["IIT3SIASchema", ...] = ()
+
+
+# Direction-keyed phi dict (e.g. intrinsic_differentiation) as ordered pairs.
+DirectionPhiPairs = tuple[tuple[DirectionSchema, PhiSchema], ...]
+
+
+class IIT4SIASchema(msgspec.Struct, frozen=True, tag="iit4_sia"):
+    phi: PhiSchema
+    partition: PartitionSchema
+    normalized_phi: PhiSchema
+    cause: RIASchema | None
+    effect: RIASchema | None
+    system_state: SystemStateSpecificationSchema | None
+    current_state: tuple[int, ...] | None
+    node_indices: tuple[int, ...] | None
+    node_labels: NodeLabelsSchema | None
+    intrinsic_differentiation: DirectionPhiPairs | None
+    reasons: tuple[str, ...] | None
+    signed_phi: PhiSchema | None
+    signed_normalized_phi: PhiSchema | None
+    config: dict[str, Any] | None
+    provenance: ProvenanceSchema | None
+    tie_peers: tuple["IIT4SIASchema", ...] = ()
+
+
+class NullIIT4SIASchema(IIT4SIASchema, frozen=True, tag="null_iit4_sia"):
+    pass
+
+
+SIASchema = IIT3SIASchema | IIT4SIASchema | NullIIT4SIASchema
+
+
 # The tagged union grows one member per serializable type.
 Schema = (
     DirectionSchema
@@ -228,4 +291,9 @@ Schema = (
     | DistinctionsSchema
     | UnresolvedDistinctionsSchema
     | ResolvedDistinctionsSchema
+    | ProvenanceSchema
+    | ExcludedCandidateSchema
+    | IIT3SIASchema
+    | IIT4SIASchema
+    | NullIIT4SIASchema
 )

@@ -9,6 +9,7 @@ all called at import time.
 from collections.abc import Callable
 from typing import Any
 
+import msgspec
 import numpy as np
 
 from pyphi.direction import Direction
@@ -411,6 +412,189 @@ def _register_distinctions() -> None:
     _DECODERS[schema.ResolvedDistinctionsSchema] = decoder(ResolvedDistinctions)
 
 
+def _register_provenance() -> None:
+    from pyphi.provenance import Provenance
+
+    _ENCODERS[Provenance] = lambda p: schema.ProvenanceSchema(**p.to_json())
+    _DECODERS[schema.ProvenanceSchema] = lambda s: Provenance(
+        **msgspec.structs.asdict(s)
+    )
+
+
+def _register_excluded_candidate() -> None:
+    from pyphi.models.complex import ExcludedCandidate
+
+    _ENCODERS[ExcludedCandidate] = lambda e: schema.ExcludedCandidateSchema(
+        node_indices=tuple(e.node_indices), phi=float(e.phi)
+    )
+    _DECODERS[schema.ExcludedCandidateSchema] = lambda s: ExcludedCandidate(
+        s.node_indices, s.phi
+    )
+
+
+def _encode_iit3_sia(sia: Any, *, include_peers: bool) -> Any:
+    peers = tuple(t for t in sia.ties if t is not sia) if include_peers else ()
+    return schema.IIT3SIASchema(
+        phi=_enc_optional(sia.phi),
+        distinctions=_enc_optional(sia.distinctions),
+        partitioned_distinctions=_enc_optional(sia.partitioned_distinctions),
+        partition=_enc_optional(sia.partition),
+        node_indices=_opt_tuple(sia.node_indices),
+        node_labels=_enc_optional(sia.node_labels),
+        current_state=_opt_tuple(sia.current_state),
+        tie_peers=tuple(_encode_iit3_sia(p, include_peers=False) for p in peers),
+    )
+
+
+def _decode_iit3_sia(struct: Any) -> Any:
+    from pyphi.models.sia import IIT3SystemIrreducibilityAnalysis
+
+    instance = IIT3SystemIrreducibilityAnalysis(
+        phi=_dec_optional(struct.phi),
+        distinctions=_dec_optional(struct.distinctions),
+        partitioned_distinctions=_dec_optional(struct.partitioned_distinctions),
+        partition=_dec_optional(struct.partition),
+        node_indices=_opt_tuple(struct.node_indices),
+        node_labels=_dec_optional(struct.node_labels),
+        current_state=_opt_tuple(struct.current_state),
+    )
+    if struct.tie_peers:
+        peers = tuple(_decode_iit3_sia(p) for p in struct.tie_peers)
+        tied = [instance, *peers]
+        instance._ties = tied
+        for peer in peers:
+            peer._ties = tied
+    return instance
+
+
+def _register_iit3_sia() -> None:
+    from pyphi.models.sia import IIT3SystemIrreducibilityAnalysis
+
+    _ENCODERS[IIT3SystemIrreducibilityAnalysis] = lambda s: _encode_iit3_sia(
+        s, include_peers=True
+    )
+    _DECODERS[schema.IIT3SIASchema] = _decode_iit3_sia
+
+
+def _enc_intrinsic_diff(diff: Any) -> Any:
+    if diff is None:
+        return None
+    return tuple(
+        (schema.DirectionSchema(name=k.name), to_schema(v)) for k, v in diff.items()
+    )
+
+
+def _dec_intrinsic_diff(pairs: Any) -> Any:
+    if pairs is None:
+        return None
+    return {from_schema(k): from_schema(v) for k, v in pairs}
+
+
+def _enc_reasons(reasons: Any) -> Any:
+    if reasons is None:
+        return None
+    return tuple(r.name for r in reasons)
+
+
+def _dec_reasons(names: Any) -> Any:
+    if names is None:
+        return None
+    from pyphi.models.explanation import NullResultReason
+
+    return [NullResultReason[n] for n in names]
+
+
+def _enc_config(config: Any) -> Any:
+    if config is None:
+        return None
+    # ConfigSnapshot is a nested frozen-dataclass tree; encode to plain builtins
+    # (config-as-Struct is out of scope, and decode keeps the dict form, which
+    # matches the prior serializer's behaviour).
+    return msgspec.to_builtins(config, enc_hook=str)
+
+
+def _iit4_sia_struct_cls(sia: Any) -> Any:
+    from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
+
+    if isinstance(sia, NullSystemIrreducibilityAnalysis):
+        return schema.NullIIT4SIASchema
+    return schema.IIT4SIASchema
+
+
+def _encode_iit4_sia(sia: Any, *, include_peers: bool) -> Any:
+    peers = tuple(t for t in sia.ties if t is not sia) if include_peers else ()
+    struct_cls = _iit4_sia_struct_cls(sia)
+    return struct_cls(
+        phi=to_schema(sia.phi),
+        partition=to_schema(sia.partition),
+        normalized_phi=to_schema(sia.normalized_phi),
+        cause=_enc_optional(sia.cause),
+        effect=_enc_optional(sia.effect),
+        system_state=_enc_optional(sia.system_state),
+        current_state=_opt_tuple(sia.current_state),
+        node_indices=_opt_tuple(sia.node_indices),
+        node_labels=_enc_optional(sia.node_labels),
+        intrinsic_differentiation=_enc_intrinsic_diff(sia.intrinsic_differentiation),
+        reasons=_enc_reasons(sia.reasons),
+        signed_phi=_enc_optional(sia.signed_phi),
+        signed_normalized_phi=_enc_optional(sia.signed_normalized_phi),
+        config=_enc_config(sia.config),
+        provenance=_enc_optional(sia.provenance),
+        tie_peers=tuple(_encode_iit4_sia(p, include_peers=False) for p in peers),
+    )
+
+
+def _decode_iit4_sia(struct: Any) -> Any:
+    from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
+    from pyphi.formalism.iit4 import SystemIrreducibilityAnalysis
+
+    kwargs = {
+        "phi": from_schema(struct.phi),
+        "partition": from_schema(struct.partition),
+        "normalized_phi": from_schema(struct.normalized_phi),
+        "cause": _dec_optional(struct.cause),
+        "effect": _dec_optional(struct.effect),
+        "system_state": _dec_optional(struct.system_state),
+        "current_state": _opt_tuple(struct.current_state),
+        "node_indices": _opt_tuple(struct.node_indices),
+        "node_labels": _dec_optional(struct.node_labels),
+        "intrinsic_differentiation": _dec_intrinsic_diff(
+            struct.intrinsic_differentiation
+        ),
+        "reasons": _dec_reasons(struct.reasons),
+        "signed_phi": _dec_optional(struct.signed_phi),
+        "signed_normalized_phi": _dec_optional(struct.signed_normalized_phi),
+        "config": struct.config,
+        "provenance": _dec_optional(struct.provenance),
+    }
+    if type(struct) is schema.NullIIT4SIASchema:
+        instance = object.__new__(NullSystemIrreducibilityAnalysis)
+        SystemIrreducibilityAnalysis.__init__(instance, **kwargs)
+    else:
+        instance = SystemIrreducibilityAnalysis(**kwargs)
+    if struct.tie_peers:
+        peers = tuple(_decode_iit4_sia(p) for p in struct.tie_peers)
+        tied = [instance, *peers]
+        instance._ties = tied
+        for peer in peers:
+            peer._ties = tied
+    return instance
+
+
+def _register_iit4_sia() -> None:
+    from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
+    from pyphi.formalism.iit4 import SystemIrreducibilityAnalysis
+
+    _ENCODERS[SystemIrreducibilityAnalysis] = lambda s: _encode_iit4_sia(
+        s, include_peers=True
+    )
+    _ENCODERS[NullSystemIrreducibilityAnalysis] = lambda s: _encode_iit4_sia(
+        s, include_peers=True
+    )
+    _DECODERS[schema.IIT4SIASchema] = _decode_iit4_sia
+    _DECODERS[schema.NullIIT4SIASchema] = _decode_iit4_sia
+
+
 _register_edge_cut()
 _register_complete_edge_cut()
 _register_directed_set_partition()
@@ -418,3 +602,7 @@ _register_ria()
 _register_mice()
 _register_distinction()
 _register_distinctions()
+_register_provenance()
+_register_excluded_candidate()
+_register_iit3_sia()
+_register_iit4_sia()
