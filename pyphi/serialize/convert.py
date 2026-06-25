@@ -9,8 +9,11 @@ all called at import time.
 from collections.abc import Callable
 from typing import Any
 
+import numpy as np
+
 from pyphi.direction import Direction
 
+from . import arrays
 from . import schema
 
 _ENCODERS: dict[type, Callable[[Any], Any]] = {}  # domain type   -> encode
@@ -36,4 +39,93 @@ def _register_direction() -> None:
     _DECODERS[schema.DirectionSchema] = lambda s: Direction[s.name]
 
 
+def _register_pyphi_float() -> None:
+    from pyphi.data_structures import PyPhiFloat
+
+    _ENCODERS[PyPhiFloat] = lambda f: schema.PyPhiFloatSchema(value=float(f))
+    _DECODERS[schema.PyPhiFloatSchema] = lambda s: PyPhiFloat(s.value)
+
+
+def _register_distance_result() -> None:
+    from pyphi.measures.distribution import DistanceResult
+
+    _ENCODERS[DistanceResult] = lambda r: schema.DistanceResultSchema(
+        value=float(r), aux=r._public_aux_data()
+    )
+    _DECODERS[schema.DistanceResultSchema] = lambda s: DistanceResult(s.value, **s.aux)
+
+
+def _register_node_labels() -> None:
+    from pyphi.labels import NodeLabels
+
+    _ENCODERS[NodeLabels] = lambda n: schema.NodeLabelsSchema(
+        labels=tuple(n.labels), node_indices=tuple(n.node_indices)
+    )
+    _DECODERS[schema.NodeLabelsSchema] = lambda s: NodeLabels(s.labels, s.node_indices)
+
+
+def _encode_state_spec(spec: Any, *, include_peers: bool) -> Any:
+    peers = tuple(t for t in spec.ties if t is not spec) if include_peers else ()
+    return schema.StateSpecificationSchema(
+        direction=schema.DirectionSchema(name=spec.direction.name),
+        purview=tuple(spec.purview),
+        state=tuple(spec.state),
+        intrinsic_information=to_schema(spec.intrinsic_information),
+        repertoire=arrays.array_to_bytes(np.asarray(spec.repertoire)),
+        unconstrained_repertoire=arrays.array_to_bytes(
+            np.asarray(spec.unconstrained_repertoire)
+        ),
+        tie_peers=tuple(_encode_state_spec(p, include_peers=False) for p in peers),
+    )
+
+
+def _decode_state_spec(struct: Any) -> Any:
+    from pyphi.models.state_specification import StateSpecification
+
+    instance = StateSpecification(
+        direction=from_schema(struct.direction),
+        purview=tuple(struct.purview),
+        state=tuple(struct.state),
+        intrinsic_information=from_schema(struct.intrinsic_information),
+        repertoire=arrays.bytes_to_array(struct.repertoire),
+        unconstrained_repertoire=arrays.bytes_to_array(struct.unconstrained_repertoire),
+    )
+    if struct.tie_peers:
+        peers = tuple(_decode_state_spec(p) for p in struct.tie_peers)
+        tied = (instance, *peers)
+        instance.set_ties(tied)
+        for peer in peers:
+            peer.set_ties(tied)
+    return instance
+
+
+def _register_state_specification() -> None:
+    from pyphi.models.state_specification import StateSpecification
+
+    _ENCODERS[StateSpecification] = lambda s: _encode_state_spec(s, include_peers=True)
+    _DECODERS[schema.StateSpecificationSchema] = _decode_state_spec
+
+
+def _register_system_state_specification() -> None:
+    from pyphi.models.state_specification import SystemStateSpecification
+
+    _ENCODERS[SystemStateSpecification] = (
+        lambda s: schema.SystemStateSpecificationSchema(
+            cause=to_schema(s.cause),
+            effect=to_schema(s.effect),
+        )
+    )
+    _DECODERS[schema.SystemStateSpecificationSchema] = (
+        lambda s: SystemStateSpecification(
+            cause=from_schema(s.cause),
+            effect=from_schema(s.effect),
+        )
+    )
+
+
 _register_direction()
+_register_pyphi_float()
+_register_distance_result()
+_register_node_labels()
+_register_state_specification()
+_register_system_state_specification()
