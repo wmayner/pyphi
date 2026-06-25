@@ -32,6 +32,7 @@ classifiers = [
 dependencies = [
     "joblib>=0.8.0",
     "more_itertools>=8.13.0",
+    "msgspec>=0.18",
     "numpy",
     "pandas>=2.0.0",
     "psutil>=2.1.1",
