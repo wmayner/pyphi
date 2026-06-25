@@ -33,7 +33,6 @@ dependencies = [
     "joblib>=0.8.0",
     "more_itertools>=8.13.0",
     "numpy",
-    "ordered-set>=4.0.2",
     "pandas>=2.0.0",
     "psutil>=2.1.1",
     "pyyaml>=3.13",
