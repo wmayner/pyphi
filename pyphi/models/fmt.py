@@ -3,11 +3,11 @@
 
 from collections.abc import Iterable
 from fractions import Fraction
+from itertools import chain
 from itertools import cycle
 from typing import Any
 
 import numpy as np
-from toolz import concat
 
 from pyphi import utils
 from pyphi.conf import config
@@ -215,7 +215,9 @@ def align(lines: Iterable[str], direction: str = "<") -> list[str]:
 
     """
     lines = list(
-        concat([text.split("\n") if "\n" in text else [text] for text in lines])
+        chain.from_iterable(
+            [text.split("\n") if "\n" in text else [text] for text in lines]
+        )
     )
     w = width(lines)
     if direction == "c":
@@ -332,7 +334,9 @@ def align_columns(
     if split_columns:
         lines = [str(line).split(delimiter) for line in lines]
     # Expand multiline strings into new columns
-    lines = concat([_expand_multiline_strings(left, right) for left, right in lines])
+    lines = chain.from_iterable(
+        [_expand_multiline_strings(left, right) for left, right in lines]
+    )
     # Reorient into columns
     columns: list[Any] = list(zip(*lines, strict=False))
     for i, t in enumerate(types):
@@ -419,8 +423,6 @@ def fmt_partition(partition: object) -> str:
         str: A human-readable string representation of the partition.
     """
     # TODO(4.0) deprecate
-    from itertools import chain
-
     MULTIPLY = "✕"
 
     if not partition:

@@ -9,11 +9,11 @@ subclasses (:class:`MaximallyIrreducibleCause` and
 
 from __future__ import annotations
 
+from itertools import chain
 from typing import TYPE_CHECKING
 
 import numpy as np
 from more_itertools import flatten
-from toolz import concat
 
 from pyphi import connectivity
 from pyphi.direction import Direction
@@ -185,7 +185,9 @@ class MaximallyIrreducibleCauseOrEffect(
         ties = tuple(ties)
         self._state_ties = ties
         # Update state ties on other tied objects
-        for tie in concat(filter(None, [self.partition_ties, self.purview_ties])):
+        for tie in chain.from_iterable(
+            filter(None, [self.partition_ties, self.purview_ties])
+        ):
             tie._state_ties = ties
 
     @property
@@ -209,7 +211,9 @@ class MaximallyIrreducibleCauseOrEffect(
         ties = tuple(ties)
         self._partition_ties = ties
         # Update partition ties on other tied objects
-        for tie in concat(filter(None, [self.state_ties, self.purview_ties])):
+        for tie in chain.from_iterable(
+            filter(None, [self.state_ties, self.purview_ties])
+        ):
             tie._partition_ties = ties
 
     @property

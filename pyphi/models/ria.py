@@ -15,13 +15,13 @@ from __future__ import annotations
 
 import contextvars
 import functools
+from itertools import chain
 from typing import TYPE_CHECKING
 from typing import Any
 
 import numpy as np
 from numpy.typing import ArrayLike
 from numpy.typing import NDArray
-from toolz import concat
 from toolz import unique
 
 from pyphi import utils
@@ -416,7 +416,7 @@ class RepertoireIrreducibilityAnalysis(
     @property
     def ties(self):
         # TODO(ties) check unique usage here
-        return unique(concat([self._state_ties, self._partition_ties]))
+        return unique(chain.from_iterable([self._state_ties, self._partition_ties]))
 
     @property
     def num_state_ties(self):

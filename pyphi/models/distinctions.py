@@ -31,9 +31,8 @@ from __future__ import annotations
 from collections import defaultdict
 from collections.abc import Iterable
 from collections.abc import Sequence
+from itertools import chain
 from typing import Any
-
-from toolz import concat
 
 from pyphi import utils
 from pyphi.conf import fallback
@@ -187,7 +186,7 @@ class Distinctions(Displayable, cmp.Orderable, Sequence, ToPandasMixin):
         per concept), for callers that want to operate at the MICE level
         rather than the concept level.
         """
-        return concat([concept.cause, concept.effect] for concept in self)
+        return chain.from_iterable([concept.cause, concept.effect] for concept in self)
 
     def sum_phi(self):
         if self._sum_phi is None:
