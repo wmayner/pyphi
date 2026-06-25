@@ -22,6 +22,7 @@ _DECODERS: dict[type, Callable[[Any], Any]] = {}  # schema Struct  -> decode
 
 
 def to_schema(obj: Any) -> Any:
+    _ensure_registered()
     encode = _ENCODERS.get(type(obj))
     if encode is None:
         raise TypeError(f"No serializer registered for {type(obj).__name__}")
@@ -29,6 +30,7 @@ def to_schema(obj: Any) -> Any:
 
 
 def from_schema(struct: Any) -> Any:
+    _ensure_registered()
     decode = _DECODERS.get(type(struct))
     if decode is None:
         raise TypeError(f"No deserializer registered for {type(struct).__name__}")
@@ -363,21 +365,6 @@ def _register_mice() -> None:
     )
 
 
-_register_direction()
-_register_pyphi_float()
-_register_distance_result()
-_register_node_labels()
-_register_state_specification()
-_register_system_state_specification()
-_register_part()
-_register_null_cut()
-_register_directed_bipartition()
-_register_joint_partition()
-_register_joint_bipartition()
-_register_joint_tripartition()
-_register_directed_joint_partition()
-
-
 def _register_distinction() -> None:
     from pyphi.models.distinction import Distinction
 
@@ -609,15 +596,6 @@ def _register_iit4_sia() -> None:
     )
     _DECODERS[schema.IIT4SIASchema] = _decode_iit4_sia
     _DECODERS[schema.NullIIT4SIASchema] = _decode_iit4_sia
-
-
-_register_edge_cut()
-_register_complete_edge_cut()
-_register_directed_set_partition()
-_register_ria()
-_register_mice()
-_register_distinction()
-_register_distinctions()
 
 
 def _register_relation() -> None:
@@ -944,18 +922,52 @@ def _register_complex() -> None:
     )
 
 
-_register_provenance()
-_register_excluded_candidate()
-_register_iit3_sia()
-_register_iit4_sia()
-_register_relation()
-_register_relations()
-_register_ces()
-_register_substrate()
-_register_system()
-_register_transition()
-_register_ac_ria()
-_register_causal_link()
-_register_account()
-_register_ac_sia()
-_register_complex()
+_REGISTERED = False
+
+
+def _ensure_registered() -> None:
+    """Populate the encoder/decoder registries on first use.
+
+    Registration imports the domain modules; deferring it to the first
+    ``to_schema``/``from_schema`` call keeps ``import pyphi.serialize`` free of
+    domain imports (and free of import cycles).
+    """
+    global _REGISTERED  # noqa: PLW0603
+    if _REGISTERED:
+        return
+    _REGISTERED = True
+    _register_direction()
+    _register_pyphi_float()
+    _register_distance_result()
+    _register_node_labels()
+    _register_state_specification()
+    _register_system_state_specification()
+    _register_part()
+    _register_null_cut()
+    _register_directed_bipartition()
+    _register_joint_partition()
+    _register_joint_bipartition()
+    _register_joint_tripartition()
+    _register_directed_joint_partition()
+    _register_edge_cut()
+    _register_complete_edge_cut()
+    _register_directed_set_partition()
+    _register_ria()
+    _register_mice()
+    _register_distinction()
+    _register_distinctions()
+    _register_provenance()
+    _register_excluded_candidate()
+    _register_iit3_sia()
+    _register_iit4_sia()
+    _register_relation()
+    _register_relations()
+    _register_ces()
+    _register_substrate()
+    _register_system()
+    _register_transition()
+    _register_ac_ria()
+    _register_causal_link()
+    _register_account()
+    _register_ac_sia()
+    _register_complex()
