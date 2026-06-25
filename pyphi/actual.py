@@ -109,6 +109,9 @@ _DELEGATED_TO_SYSTEM: frozenset[str] = frozenset(
         "cache_info",
         "clear_caches",
         "to_networkx",
+        # Serialization (Serializable mixin on System):
+        "save",
+        "load",
     }
 )
 
