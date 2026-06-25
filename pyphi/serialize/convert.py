@@ -34,6 +34,16 @@ def from_schema(struct: Any) -> Any:
     return decode(struct)
 
 
+def _enc_optional(obj: Any) -> Any:
+    """Encode a nested domain object that may be ``None``."""
+    return to_schema(obj) if obj is not None else None
+
+
+def _dec_optional(struct: Any) -> Any:
+    """Decode a nested schema struct that may be ``None``."""
+    return from_schema(struct) if struct is not None else None
+
+
 def _register_direction() -> None:
     _ENCODERS[Direction] = lambda d: schema.DirectionSchema(name=d.name)
     _DECODERS[schema.DirectionSchema] = lambda s: Direction[s.name]
@@ -123,9 +133,137 @@ def _register_system_state_specification() -> None:
     )
 
 
+def _register_part() -> None:
+    from pyphi.models.partitions import Part
+
+    _ENCODERS[Part] = lambda p: schema.PartSchema(
+        mechanism=tuple(p.mechanism), purview=tuple(p.purview)
+    )
+    _DECODERS[schema.PartSchema] = lambda s: Part(tuple(s.mechanism), tuple(s.purview))
+
+
+def _register_null_cut() -> None:
+    from pyphi.models.partitions import NullCut
+
+    _ENCODERS[NullCut] = lambda c: schema.NullCutSchema(indices=tuple(c.indices))
+    _DECODERS[schema.NullCutSchema] = lambda s: NullCut(tuple(s.indices))
+
+
+def _register_directed_bipartition() -> None:
+    from pyphi.models.partitions import DirectedBipartition
+
+    _ENCODERS[DirectedBipartition] = lambda p: schema.DirectedBipartitionSchema(
+        direction=schema.DirectionSchema(name=p.direction.name),
+        from_nodes=tuple(p.from_nodes),
+        to_nodes=tuple(p.to_nodes),
+    )
+    _DECODERS[schema.DirectedBipartitionSchema] = lambda s: DirectedBipartition(
+        from_schema(s.direction), tuple(s.from_nodes), tuple(s.to_nodes)
+    )
+
+
+def _register_joint_partition() -> None:
+    from pyphi.models.partitions import JointPartition
+
+    _ENCODERS[JointPartition] = lambda p: schema.JointPartitionSchema(
+        parts=tuple(to_schema(part) for part in p.parts)
+    )
+    _DECODERS[schema.JointPartitionSchema] = lambda s: JointPartition(
+        *(from_schema(p) for p in s.parts)
+    )
+
+
+def _register_joint_bipartition() -> None:
+    from pyphi.models.partitions import JointBipartition
+
+    _ENCODERS[JointBipartition] = lambda p: schema.JointBipartitionSchema(
+        part0=to_schema(p[0]), part1=to_schema(p[1])
+    )
+    _DECODERS[schema.JointBipartitionSchema] = lambda s: JointBipartition(
+        from_schema(s.part0), from_schema(s.part1)
+    )
+
+
+def _register_joint_tripartition() -> None:
+    from pyphi.models.partitions import JointTripartition
+
+    _ENCODERS[JointTripartition] = lambda p: schema.JointTripartitionSchema(
+        parts=tuple(to_schema(part) for part in p.parts)
+    )
+    _DECODERS[schema.JointTripartitionSchema] = lambda s: JointTripartition(
+        *(from_schema(p) for p in s.parts)
+    )
+
+
+def _register_directed_joint_partition() -> None:
+    from pyphi.models.partitions import DirectedJointPartition
+
+    _ENCODERS[DirectedJointPartition] = lambda p: schema.DirectedJointPartitionSchema(
+        direction=schema.DirectionSchema(name=p.direction.name),
+        partition=to_schema(p.partition),
+    )
+    _DECODERS[schema.DirectedJointPartitionSchema] = lambda s: DirectedJointPartition(
+        from_schema(s.direction), from_schema(s.partition)
+    )
+
+
+def _register_edge_cut() -> None:
+    from pyphi.models.partitions import EdgeCut
+
+    _ENCODERS[EdgeCut] = lambda c: schema.EdgeCutSchema(
+        node_indices=tuple(c.node_indices),
+        cut_matrix=arrays.array_to_bytes(np.asarray(c._cut_matrix)),
+        node_labels=_enc_optional(c.node_labels),
+    )
+    _DECODERS[schema.EdgeCutSchema] = lambda s: EdgeCut(
+        tuple(s.node_indices),
+        arrays.bytes_to_array(s.cut_matrix),
+        _dec_optional(s.node_labels),
+    )
+
+
+def _register_complete_edge_cut() -> None:
+    from pyphi.models.partitions import CompleteEdgeCut
+
+    _ENCODERS[CompleteEdgeCut] = lambda c: schema.CompleteEdgeCutSchema(
+        node_indices=tuple(c.node_indices),
+        node_labels=_enc_optional(c.node_labels),
+    )
+    _DECODERS[schema.CompleteEdgeCutSchema] = lambda s: CompleteEdgeCut(
+        tuple(s.node_indices), _dec_optional(s.node_labels)
+    )
+
+
+def _register_directed_set_partition() -> None:
+    from pyphi.models.partitions import DirectedSetPartition
+
+    _ENCODERS[DirectedSetPartition] = lambda c: schema.DirectedSetPartitionSchema(
+        node_indices=tuple(c.node_indices),
+        cut_matrix=arrays.array_to_bytes(np.asarray(c._cut_matrix)),
+        set_partition=tuple(tuple(part) for part in c.set_partition),
+        node_labels=_enc_optional(c.node_labels),
+    )
+    _DECODERS[schema.DirectedSetPartitionSchema] = lambda s: DirectedSetPartition(
+        node_indices=tuple(s.node_indices),
+        cut_matrix=arrays.bytes_to_array(s.cut_matrix),
+        set_partition=[list(part) for part in s.set_partition],
+        node_labels=_dec_optional(s.node_labels),
+    )
+
+
 _register_direction()
 _register_pyphi_float()
 _register_distance_result()
 _register_node_labels()
 _register_state_specification()
 _register_system_state_specification()
+_register_part()
+_register_null_cut()
+_register_directed_bipartition()
+_register_joint_partition()
+_register_joint_bipartition()
+_register_joint_tripartition()
+_register_directed_joint_partition()
+_register_edge_cut()
+_register_complete_edge_cut()
+_register_directed_set_partition()
