@@ -560,22 +560,6 @@ def irreducible_purviews(
     return [purview for purview in purviews if not reducible(purview)]
 
 
-def from_json(filename: str) -> Substrate:
-    """Convert a JSON substrate to a PyPhi substrate.
-
-    Args:
-        filename (str): A path to a JSON file representing a substrate.
-
-    Returns:
-       Substrate: The corresponding PyPhi substrate object.
-    """
-    from . import serialize
-
-    with open(filename, "rb") as f:
-        result: Substrate = serialize.load(f)
-        return result
-
-
 # ============================================================================
 # Substrate-level system iteration (formalism-agnostic)
 # ============================================================================
