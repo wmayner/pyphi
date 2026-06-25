@@ -335,6 +335,89 @@ class NullCESSchema(CESSchema, frozen=True, tag="null_ces"):
     pass
 
 
+# --- Substrate, system, transition --------------------------------------------
+
+
+class SubstrateSchema(msgspec.Struct, frozen=True, tag="substrate"):
+    tpm: bytes
+    cm: bytes
+    node_labels: NodeLabelsSchema | None
+
+
+class SystemSchema(msgspec.Struct, frozen=True, tag="system"):
+    substrate: SubstrateSchema
+    state: tuple[int, ...]
+    node_indices: tuple[int, ...]
+    partition: PartitionSchema
+    external_indices: tuple[int, ...]
+
+
+class TransitionSchema(msgspec.Struct, frozen=True, tag="transition"):
+    substrate: SubstrateSchema
+    before_state: tuple[int, ...]
+    after_state: tuple[int, ...]
+    cause_indices: tuple[int, ...]
+    effect_indices: tuple[int, ...]
+    partition: PartitionSchema
+
+
+# --- Actual causation ---------------------------------------------------------
+
+
+class AcRIASchema(msgspec.Struct, frozen=True, tag="ac_ria"):
+    alpha: float
+    state: tuple[int, ...]
+    direction: DirectionSchema
+    mechanism: tuple[int, ...]
+    purview: tuple[int, ...]
+    partition: PartitionSchema
+    probability: float
+    partitioned_probability: float
+    partition_tie_peers: tuple["AcRIASchema", ...] = ()
+
+
+class CausalLinkSchema(msgspec.Struct, frozen=True, tag="causal_link"):
+    ria: AcRIASchema
+    extended_purview: tuple[tuple[int, ...], ...] | None
+    purview_tie_peers: tuple[AcRIASchema, ...] = ()
+
+
+class AccountSchema(msgspec.Struct, frozen=True, tag="account"):
+    causal_links: tuple[CausalLinkSchema, ...]
+
+
+class DirectedAccountSchema(msgspec.Struct, frozen=True, tag="directed_account"):
+    causal_links: tuple[CausalLinkSchema, ...]
+
+
+AccountAnySchema = AccountSchema | DirectedAccountSchema
+
+
+class AcSIASchema(msgspec.Struct, frozen=True, tag="ac_sia"):
+    alpha: float | None
+    direction: DirectionSchema | None
+    account: AccountAnySchema | None
+    partitioned_account: AccountAnySchema | None
+    partition: PartitionSchema | None
+    before_state: tuple[int, ...] | None
+    after_state: tuple[int, ...] | None
+    size: int | None
+    node_indices: tuple[int, ...] | None
+    cause_indices: tuple[int, ...] | None
+    effect_indices: tuple[int, ...] | None
+    node_labels: NodeLabelsSchema | None
+
+
+# --- Complex (embeds a substrate, hence after the substrate schema) -----------
+
+
+class ComplexSchema(msgspec.Struct, frozen=True, tag="complex"):
+    sia: SIASchema
+    substrate: SubstrateSchema
+    is_maximal: bool
+    excluded: tuple[ExcludedCandidateSchema, ...]
+
+
 # The tagged union grows one member per serializable type.
 Schema = (
     DirectionSchema
@@ -372,4 +455,13 @@ Schema = (
     | AnalyticalRelationsSchema
     | CESSchema
     | NullCESSchema
+    | SubstrateSchema
+    | SystemSchema
+    | TransitionSchema
+    | AcRIASchema
+    | CausalLinkSchema
+    | AccountSchema
+    | DirectedAccountSchema
+    | AcSIASchema
+    | ComplexSchema
 )

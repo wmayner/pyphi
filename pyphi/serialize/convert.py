@@ -720,6 +720,214 @@ def _register_ces() -> None:
     _DECODERS[schema.NullCESSchema] = lambda s: _decode_ces(s, NullCauseEffectStructure)
 
 
+def _register_substrate() -> None:
+    from pyphi.substrate import Substrate
+
+    _ENCODERS[Substrate] = lambda s: schema.SubstrateSchema(
+        tpm=arrays.array_to_bytes(np.asarray(s._legacy_binary_joint())),
+        cm=arrays.array_to_bytes(np.asarray(s.cm)),
+        node_labels=_enc_optional(s.node_labels),
+    )
+    _DECODERS[schema.SubstrateSchema] = lambda s: Substrate(
+        tpm=arrays.bytes_to_array(s.tpm),
+        cm=arrays.bytes_to_array(s.cm),
+        node_labels=_dec_optional(s.node_labels),
+    )
+
+
+def _register_system() -> None:
+    from pyphi.system import System
+
+    _ENCODERS[System] = lambda s: schema.SystemSchema(
+        substrate=to_schema(s.substrate),
+        state=tuple(s.state),
+        node_indices=tuple(s.node_indices),
+        partition=to_schema(s.partition),
+        external_indices=tuple(s.external_indices),
+    )
+    _DECODERS[schema.SystemSchema] = lambda s: System(
+        substrate=from_schema(s.substrate),
+        state=tuple(s.state),
+        node_indices=tuple(s.node_indices),
+        partition=from_schema(s.partition),
+        external_indices=tuple(s.external_indices),
+    )
+
+
+def _register_transition() -> None:
+    from pyphi.actual import Transition
+
+    _ENCODERS[Transition] = lambda t: schema.TransitionSchema(
+        substrate=to_schema(t.substrate),
+        before_state=tuple(t.before_state),
+        after_state=tuple(t.after_state),
+        cause_indices=tuple(t.cause_indices),
+        effect_indices=tuple(t.effect_indices),
+        partition=to_schema(t.partition),
+    )
+    _DECODERS[schema.TransitionSchema] = lambda t: Transition(
+        substrate=from_schema(t.substrate),
+        before_state=tuple(t.before_state),
+        after_state=tuple(t.after_state),
+        cause_indices=tuple(t.cause_indices),
+        effect_indices=tuple(t.effect_indices),
+        partition=from_schema(t.partition),
+    )
+
+
+def _encode_ac_ria(ria: Any, *, include_peers: bool) -> Any:
+    peers: tuple = ()
+    if include_peers and ria._partition_ties is not None:
+        peers = tuple(t for t in ria._partition_ties if t is not ria)
+    return schema.AcRIASchema(
+        alpha=float(ria.alpha),
+        state=tuple(ria.state),
+        direction=schema.DirectionSchema(name=ria.direction.name),
+        mechanism=tuple(ria.mechanism),
+        purview=tuple(ria.purview),
+        partition=to_schema(ria.partition),
+        probability=float(ria.probability),
+        partitioned_probability=float(ria.partitioned_probability),
+        partition_tie_peers=tuple(_encode_ac_ria(p, include_peers=False) for p in peers),
+    )
+
+
+def _decode_ac_ria(struct: Any) -> Any:
+    from pyphi.models.actual_causation import AcRepertoireIrreducibilityAnalysis
+
+    instance = AcRepertoireIrreducibilityAnalysis(
+        alpha=struct.alpha,
+        state=tuple(struct.state),
+        direction=from_schema(struct.direction),
+        mechanism=tuple(struct.mechanism),
+        purview=tuple(struct.purview),
+        partition=from_schema(struct.partition),
+        probability=struct.probability,
+        partitioned_probability=struct.partitioned_probability,
+    )
+    if struct.partition_tie_peers:
+        peers = tuple(_decode_ac_ria(p) for p in struct.partition_tie_peers)
+        tied = (instance, *peers)
+        instance._partition_ties = tied
+        for peer in peers:
+            peer._partition_ties = tied
+    return instance
+
+
+def _register_ac_ria() -> None:
+    from pyphi.models.actual_causation import AcRepertoireIrreducibilityAnalysis
+
+    _ENCODERS[AcRepertoireIrreducibilityAnalysis] = lambda r: _encode_ac_ria(
+        r, include_peers=True
+    )
+    _DECODERS[schema.AcRIASchema] = _decode_ac_ria
+
+
+def _register_causal_link() -> None:
+    from pyphi.models.actual_causation import CausalLink
+
+    def encode(link):
+        peers = link._purview_ties or ()
+        extended = link._extended_purview
+        return schema.CausalLinkSchema(
+            ria=_encode_ac_ria(link.ria, include_peers=True),
+            extended_purview=(
+                None if extended is None else tuple(tuple(p) for p in extended)
+            ),
+            purview_tie_peers=tuple(
+                _encode_ac_ria(p, include_peers=False) for p in peers
+            ),
+        )
+
+    def decode(struct):
+        peers = tuple(_decode_ac_ria(p) for p in struct.purview_tie_peers)
+        extended = struct.extended_purview
+        return CausalLink(
+            ria=_decode_ac_ria(struct.ria),
+            extended_purview=(
+                None if extended is None else tuple(tuple(p) for p in extended)
+            ),
+            purview_ties=peers if peers else None,
+        )
+
+    _ENCODERS[CausalLink] = encode
+    _DECODERS[schema.CausalLinkSchema] = decode
+
+
+def _register_account() -> None:
+    from pyphi.models.actual_causation import Account
+    from pyphi.models.actual_causation import DirectedAccount
+
+    _ENCODERS[Account] = lambda a: schema.AccountSchema(
+        causal_links=tuple(to_schema(link) for link in a)
+    )
+    _ENCODERS[DirectedAccount] = lambda a: schema.DirectedAccountSchema(
+        causal_links=tuple(to_schema(link) for link in a)
+    )
+    _DECODERS[schema.AccountSchema] = lambda s: Account(
+        [from_schema(link) for link in s.causal_links]
+    )
+    _DECODERS[schema.DirectedAccountSchema] = lambda s: DirectedAccount(
+        [from_schema(link) for link in s.causal_links]
+    )
+
+
+def _register_ac_sia() -> None:
+    from pyphi.models.actual_causation import AcSystemIrreducibilityAnalysis
+
+    _ENCODERS[AcSystemIrreducibilityAnalysis] = lambda s: schema.AcSIASchema(
+        alpha=None if s.alpha is None else float(s.alpha),
+        direction=_enc_optional_direction(s.direction),
+        account=_enc_optional(s.account),
+        partitioned_account=_enc_optional(s.partitioned_account),
+        partition=_enc_optional(s.partition),
+        before_state=_opt_tuple(s.before_state),
+        after_state=_opt_tuple(s.after_state),
+        size=s.size,
+        node_indices=_opt_tuple(s.node_indices),
+        cause_indices=_opt_tuple(s.cause_indices),
+        effect_indices=_opt_tuple(s.effect_indices),
+        node_labels=_enc_optional(s.node_labels),
+    )
+    _DECODERS[schema.AcSIASchema] = lambda s: AcSystemIrreducibilityAnalysis(
+        alpha=s.alpha,
+        direction=_dec_optional(s.direction),
+        account=_dec_optional(s.account),
+        partitioned_account=_dec_optional(s.partitioned_account),
+        partition=_dec_optional(s.partition),
+        before_state=_opt_tuple(s.before_state),
+        after_state=_opt_tuple(s.after_state),
+        size=s.size,
+        node_indices=_opt_tuple(s.node_indices),
+        cause_indices=_opt_tuple(s.cause_indices),
+        effect_indices=_opt_tuple(s.effect_indices),
+        node_labels=_dec_optional(s.node_labels),
+    )
+
+
+def _enc_optional_direction(direction: Any) -> Any:
+    if direction is None:
+        return None
+    return schema.DirectionSchema(name=direction.name)
+
+
+def _register_complex() -> None:
+    from pyphi.models.complex import Complex
+
+    _ENCODERS[Complex] = lambda c: schema.ComplexSchema(
+        sia=to_schema(c.sia),
+        substrate=to_schema(c.substrate),
+        is_maximal=bool(c.is_maximal),
+        excluded=tuple(to_schema(e) for e in c.excluded),
+    )
+    _DECODERS[schema.ComplexSchema] = lambda s: Complex(
+        sia=from_schema(s.sia),
+        substrate=from_schema(s.substrate),
+        is_maximal=s.is_maximal,
+        excluded=tuple(from_schema(e) for e in s.excluded),
+    )
+
+
 _register_provenance()
 _register_excluded_candidate()
 _register_iit3_sia()
@@ -727,3 +935,11 @@ _register_iit4_sia()
 _register_relation()
 _register_relations()
 _register_ces()
+_register_substrate()
+_register_system()
+_register_transition()
+_register_ac_ria()
+_register_causal_link()
+_register_account()
+_register_ac_sia()
+_register_complex()
