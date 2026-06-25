@@ -265,6 +265,76 @@ class NullIIT4SIASchema(IIT4SIASchema, frozen=True, tag="null_iit4_sia"):
 SIASchema = IIT3SIASchema | IIT4SIASchema | NullIIT4SIASchema
 
 
+# --- Relations (standalone) ---------------------------------------------------
+
+# A standalone relation embeds its member distinctions in full. Inside a
+# CauseEffectStructure the distinctions are stored once and relations reference
+# them by index (see the normalized CES schema below).
+
+
+class RelationSchema(msgspec.Struct, frozen=True, tag="relation"):
+    distinctions: tuple[DistinctionSchema, ...]
+
+
+class ConcreteRelationsSchema(msgspec.Struct, frozen=True, tag="concrete_relations"):
+    relations: tuple[RelationSchema, ...]
+
+
+class NullRelationsSchema(msgspec.Struct, frozen=True, tag="null_relations"):
+    pass
+
+
+class AnalyticalRelationsSchema(msgspec.Struct, frozen=True, tag="analytical_relations"):
+    distinctions: DistinctionsAnySchema
+
+
+RelationsSchema = (
+    ConcreteRelationsSchema | NullRelationsSchema | AnalyticalRelationsSchema
+)
+
+
+# --- Normalized cause-effect structure ----------------------------------------
+
+# Within a CES the distinctions are stored once in a table; each relation
+# references its members by their index into that table, removing the dominant
+# redundancy of embedding every distinction in every relation.
+
+
+class RelationRefSchema(msgspec.Struct, frozen=True, tag="relation_ref"):
+    distinction_indices: tuple[int, ...]
+
+
+class ConcreteRelationsRefSchema(
+    msgspec.Struct, frozen=True, tag="concrete_relations_ref"
+):
+    relations: tuple[RelationRefSchema, ...]
+
+
+class NullRelationsRefSchema(msgspec.Struct, frozen=True, tag="null_relations_ref"):
+    pass
+
+
+class AnalyticalRelationsRefSchema(
+    msgspec.Struct, frozen=True, tag="analytical_relations_ref"
+):
+    pass
+
+
+RelationsRefSchema = (
+    ConcreteRelationsRefSchema | NullRelationsRefSchema | AnalyticalRelationsRefSchema
+)
+
+
+class CESSchema(msgspec.Struct, frozen=True, tag="ces"):
+    sia: SIASchema
+    distinctions: DistinctionsAnySchema
+    relations: RelationsRefSchema
+
+
+class NullCESSchema(CESSchema, frozen=True, tag="null_ces"):
+    pass
+
+
 # The tagged union grows one member per serializable type.
 Schema = (
     DirectionSchema
@@ -296,4 +366,10 @@ Schema = (
     | IIT3SIASchema
     | IIT4SIASchema
     | NullIIT4SIASchema
+    | RelationSchema
+    | ConcreteRelationsSchema
+    | NullRelationsSchema
+    | AnalyticalRelationsSchema
+    | CESSchema
+    | NullCESSchema
 )

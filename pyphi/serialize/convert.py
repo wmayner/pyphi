@@ -602,7 +602,128 @@ _register_ria()
 _register_mice()
 _register_distinction()
 _register_distinctions()
+
+
+def _register_relation() -> None:
+    from pyphi.relations import Relation
+
+    _ENCODERS[Relation] = lambda r: schema.RelationSchema(
+        distinctions=tuple(to_schema(d) for d in r)
+    )
+    _DECODERS[schema.RelationSchema] = lambda s: Relation(
+        [from_schema(d) for d in s.distinctions]
+    )
+
+
+def _register_relations() -> None:
+    from pyphi.relations import AnalyticalRelations
+    from pyphi.relations import ConcreteRelations
+    from pyphi.relations import NullRelations
+
+    _ENCODERS[ConcreteRelations] = lambda rs: schema.ConcreteRelationsSchema(
+        relations=tuple(to_schema(r) for r in rs)
+    )
+    _ENCODERS[NullRelations] = lambda _rs: schema.NullRelationsSchema()
+    _ENCODERS[AnalyticalRelations] = lambda rs: schema.AnalyticalRelationsSchema(
+        distinctions=to_schema(rs.distinctions)
+    )
+    _DECODERS[schema.ConcreteRelationsSchema] = lambda s: ConcreteRelations(
+        [from_schema(r) for r in s.relations]
+    )
+    _DECODERS[schema.NullRelationsSchema] = lambda _s: NullRelations()
+    _DECODERS[schema.AnalyticalRelationsSchema] = lambda s: AnalyticalRelations(
+        from_schema(s.distinctions)
+    )
+
+
+def _relation_indices(relation: Any, table: list, by_id: dict) -> tuple[int, ...]:
+    indices = []
+    for distinction in relation:
+        index = by_id.get(id(distinction))
+        if index is None:
+            # Fallback to value equality if the relation's distinction is not
+            # the identity-shared instance from the CES table.
+            index = next((j for j, d in enumerate(table) if d == distinction), None)
+            if index is None:
+                raise ValueError(
+                    "relation references a distinction absent from the CES table"
+                )
+        indices.append(index)
+    return tuple(sorted(indices))
+
+
+def _encode_relations_ref(relations: Any, table: list, by_id: dict) -> Any:
+    from pyphi.relations import AnalyticalRelations
+    from pyphi.relations import ConcreteRelations
+    from pyphi.relations import NullRelations
+
+    if isinstance(relations, NullRelations):
+        return schema.NullRelationsRefSchema()
+    if isinstance(relations, AnalyticalRelations):
+        return schema.AnalyticalRelationsRefSchema()
+    if isinstance(relations, ConcreteRelations):
+        refs = tuple(
+            schema.RelationRefSchema(
+                distinction_indices=_relation_indices(rel, table, by_id)
+            )
+            for rel in relations
+        )
+        return schema.ConcreteRelationsRefSchema(relations=refs)
+    raise TypeError(f"Cannot normalize relations of type {type(relations).__name__}")
+
+
+def _decode_relations_ref(struct: Any, table: list) -> Any:
+    from pyphi.models.distinctions import ResolvedDistinctions
+    from pyphi.relations import AnalyticalRelations
+    from pyphi.relations import ConcreteRelations
+    from pyphi.relations import NullRelations
+    from pyphi.relations import Relation
+
+    if type(struct) is schema.NullRelationsRefSchema:
+        return NullRelations()
+    if type(struct) is schema.AnalyticalRelationsRefSchema:
+        return AnalyticalRelations(ResolvedDistinctions(table))
+    relations = tuple(
+        Relation([table[i] for i in ref.distinction_indices]) for ref in struct.relations
+    )
+    return ConcreteRelations(relations)
+
+
+def _encode_ces(ces: Any, struct_cls: Any) -> Any:
+    table = list(ces.distinctions)
+    by_id = {id(d): i for i, d in enumerate(table)}
+    return struct_cls(
+        sia=to_schema(ces.sia),
+        distinctions=to_schema(ces.distinctions),
+        relations=_encode_relations_ref(ces.relations, table, by_id),
+    )
+
+
+def _decode_ces(struct: Any, domain_cls: Any) -> Any:
+    distinctions = from_schema(struct.distinctions)
+    table = list(distinctions)
+    relations = _decode_relations_ref(struct.relations, table)
+    return domain_cls(
+        sia=from_schema(struct.sia),
+        distinctions=distinctions,
+        relations=relations,
+    )
+
+
+def _register_ces() -> None:
+    from pyphi.formalism.iit4 import NullCauseEffectStructure
+    from pyphi.models.ces import CauseEffectStructure
+
+    _ENCODERS[CauseEffectStructure] = lambda c: _encode_ces(c, schema.CESSchema)
+    _ENCODERS[NullCauseEffectStructure] = lambda c: _encode_ces(c, schema.NullCESSchema)
+    _DECODERS[schema.CESSchema] = lambda s: _decode_ces(s, CauseEffectStructure)
+    _DECODERS[schema.NullCESSchema] = lambda s: _decode_ces(s, NullCauseEffectStructure)
+
+
 _register_provenance()
 _register_excluded_candidate()
 _register_iit3_sia()
 _register_iit4_sia()
+_register_relation()
+_register_relations()
+_register_ces()
