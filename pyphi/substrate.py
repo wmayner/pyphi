@@ -31,6 +31,7 @@ from .display import Displayable
 from .display import Row
 from .display import Section
 from .labels import NodeLabels
+from .serializable import Serializable
 from .types import ConnectivityMatrix
 from .types import Mechanism
 from .types import NodeIndices
@@ -76,7 +77,7 @@ def _coerce_state_to_indices(
     return tuple(indices)
 
 
-class Substrate(Displayable):
+class Substrate(Displayable, Serializable):
     """A substrate of nodes.
 
     Represents the substrate under analysis and holds auxiliary data about it.
