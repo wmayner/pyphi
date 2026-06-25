@@ -17,7 +17,6 @@ from numpy.typing import NDArray
 
 from . import cache
 from . import connectivity
-from . import jsonify
 from . import utils
 from . import validate
 from .core.tpm import _display
@@ -528,35 +527,6 @@ class Substrate(Displayable):
 
         return graph.to_adjacency(self, connectivity)
 
-    def to_json(self) -> dict[str, Any]:
-        """Return a JSON-serializable representation.
-
-        Serializes the substrate's TPM in the legacy binary joint shape
-        ``(2, ..., 2, N)`` so the payload round-trips through
-        ``Substrate.from_json`` (which routes ``tpm=`` through the legacy
-        joint validator). Only binary substrates are supported by this
-        legacy serialization path.
-        """
-        return {
-            "tpm": self._legacy_binary_joint(),
-            "cm": self.cm,
-            "size": self.size,
-            "node_labels": self.node_labels,
-        }
-
-    @classmethod
-    def from_json(cls, json_dict: dict[str, Any]) -> Substrate:
-        """Return a |Substrate| object from a JSON dictionary representation."""
-        del json_dict["size"]
-        # Older fixtures serialized tpm/cm as raw arrays, which the JSON
-        # decoder converts to tuples.  Convert them back to ndarray so that
-        # Substrate.__init__ can accept them.
-        if isinstance(json_dict.get("tpm"), tuple):
-            json_dict["tpm"] = np.asarray(json_dict["tpm"], dtype=float)
-        if isinstance(json_dict.get("cm"), tuple):
-            json_dict["cm"] = np.asarray(json_dict["cm"])
-        return Substrate(**json_dict)
-
 
 def irreducible_purviews(
     cm: ConnectivityMatrix,
@@ -598,8 +568,10 @@ def from_json(filename: str) -> Substrate:
     Returns:
        Substrate: The corresponding PyPhi substrate object.
     """
-    with open(filename, encoding="utf-8") as f:
-        result: Substrate = jsonify.load(f)
+    from . import serialize
+
+    with open(filename, "rb") as f:
+        result: Substrate = serialize.load(f)
         return result
 
 

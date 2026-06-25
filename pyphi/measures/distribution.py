@@ -124,13 +124,12 @@ class DistanceResult(PyPhiFloat):
         >>> arr
         array([0.5, 0.3, 0.7])
 
-        JSON serialization with metadata:
+        Serialization through :mod:`pyphi.serialize` preserves the auxiliary
+        metadata:
 
+        >>> from pyphi import serialize
         >>> result = DistanceResult(0.5, method='EMD', direction='CAUSE')
-        >>> json_data = result.to_json()
-        >>> json_data
-        {'value': 0.5, 'method': 'EMD', 'direction': 'CAUSE'}
-        >>> restored = DistanceResult.from_json(json_data)
+        >>> restored = serialize.loads(serialize.dumps(result))
         >>> restored.method
         'EMD'
 
@@ -200,20 +199,6 @@ class DistanceResult(PyPhiFloat):
             k: copy.deepcopy(v, memo) for k, v in self._public_aux_data().items()
         }
         return DistanceResult(float(self), **aux_data)
-
-    def to_json(self) -> dict:
-        """Serialize to JSON, preserving auxiliary data."""
-        result = {"value": float(self)}
-        result.update(self._public_aux_data())
-        return result
-
-    @classmethod
-    def from_json(cls, data: dict) -> DistanceResult:
-        """Deserialize from JSON, restoring auxiliary data."""
-        value = data["value"]
-        # All keys except "value" are auxiliary data
-        aux_data = {k: v for k, v in data.items() if k != "value"}
-        return cls(value, **aux_data)
 
     @classmethod
     def values_array(

@@ -178,19 +178,3 @@ def test_substrate_purview_cache_does_not_register():
     assert not substrate_keys, (
         f"Substrate purview caches leaked into registry: {substrate_keys}"
     )
-
-
-def test_jsonify_object_caches_do_not_leak_into_registry():
-    """Transient _ObjectCache instances inside json decoding should NOT register —
-    they're per-call scratch caches, not process-level state."""
-    from pyphi import cache as cache_module
-    from pyphi import examples
-    from pyphi import jsonify
-
-    before = set(cache_module.info().keys())
-    substrate = examples.basic_substrate()
-    encoded = jsonify.dumps(substrate)
-    jsonify.loads(encoded)
-    after = set(cache_module.info().keys())
-    leaked = {k for k in (after - before) if k.startswith("jsonify.")}
-    assert not leaked, f"transient jsonify caches leaked into registry: {leaked}"

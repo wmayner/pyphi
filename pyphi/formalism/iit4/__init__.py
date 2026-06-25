@@ -8,7 +8,6 @@ classes wrapping these algorithms live in :mod:`pyphi.formalism.iit4.formalism`.
 
 from __future__ import annotations
 
-import contextvars
 from collections.abc import Iterable
 from dataclasses import dataclass
 from dataclasses import replace
@@ -66,10 +65,6 @@ from pyphi.relations import ConcreteRelations
 from pyphi.relations import Relations
 from pyphi.relations import relations as compute_relations
 from pyphi.system import System
-
-_SERIALIZING_AS_TIE_PEER: contextvars.ContextVar[bool] = contextvars.ContextVar(
-    "sia_serializing_as_tie_peer", default=False
-)
 
 ##############################################################################
 # Information
@@ -469,39 +464,6 @@ class SystemIrreducibilityAnalysis(HasProvenance, Displayable, cmp.OrderableByPh
             substrate_note=common["substrate_note"],
         )
 
-    def to_json(self):
-        dct = self.__dict__.copy()
-        dct.pop("_ties", None)
-        # runner_up is diagnostic metadata (a RunnerUp record), not part of
-        # the analysis identity; exclude it from serialization.
-        dct.pop("runner_up", None)
-        if _SERIALIZING_AS_TIE_PEER.get():
-            return dct
-        peers = tuple(t for t in self.ties if t is not self)
-        if peers:
-            from pyphi.jsonify import jsonify
-
-            token = _SERIALIZING_AS_TIE_PEER.set(True)
-            try:
-                dct["_tie_peers"] = [jsonify(p.to_json()) for p in peers]
-            finally:
-                _SERIALIZING_AS_TIE_PEER.reset(token)
-        return dct
-
-    @classmethod
-    def from_json(cls, dct):
-        peers_raw: Any = dct.pop("_tie_peers", ())
-        peers: tuple[SystemIrreducibilityAnalysis, ...] = tuple(
-            cls(**dict(p)) for p in peers_raw
-        )
-        instance = cls(**dct)
-        if peers:
-            tied: list[SystemIrreducibilityAnalysis] = [instance, *peers]
-            instance._ties = tied
-            for peer in peers:
-                peer._ties = tied
-        return instance
-
 
 class NullSystemIrreducibilityAnalysis(SystemIrreducibilityAnalysis):
     def __init__(self, node_indices=None, node_labels=None, **kwargs):
@@ -518,19 +480,6 @@ class NullSystemIrreducibilityAnalysis(SystemIrreducibilityAnalysis):
             node_labels=node_labels,
             **kwargs,
         )
-
-    @classmethod
-    def from_json(cls, dct):
-        """Deserialize from JSON.
-
-        The JSON dict contains all attributes including phi, partition, etc.
-        We can construct directly using the parent class since all attributes
-        are already present in the dictionary.
-        """
-        # Use parent class constructor directly with all attributes
-        obj = object.__new__(cls)
-        SystemIrreducibilityAnalysis.__init__(obj, **dct)
-        return obj
 
 
 def normalization_factor(

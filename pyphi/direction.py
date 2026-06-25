@@ -25,13 +25,6 @@ class Direction(IntEnum):
 
     __format__ = object.__format__
 
-    def to_json(self) -> dict[str, str]:
-        return {"direction": self.name}
-
-    @classmethod
-    def from_json(cls, dct: dict[str, str]) -> "Direction":
-        return cls[dct["direction"]]
-
     def order(
         self, mechanism: tuple[int, ...], purview: tuple[int, ...]
     ) -> tuple[tuple[int, ...], tuple[int, ...]]:

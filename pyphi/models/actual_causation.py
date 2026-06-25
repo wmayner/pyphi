@@ -3,10 +3,8 @@
 
 from __future__ import annotations
 
-import contextvars
 from collections import namedtuple
 from collections.abc import Sequence
-from typing import Any
 
 from pyphi import utils
 from pyphi.direction import Direction
@@ -28,10 +26,6 @@ from .diff import Change
 from .diff import ResultDiff
 from .diff import _diff_common
 from .partitions import concise_partition
-
-_SERIALIZING_AS_TIE_PEER: contextvars.ContextVar[bool] = contextvars.ContextVar(
-    "ac_serializing_as_tie_peer", default=False
-)
 
 # TODO(slipperyhank): add second state
 _acria_attributes = [
@@ -202,38 +196,6 @@ class AcRepertoireIrreducibilityAnalysis(Displayable, cmp.Orderable):
                 self.purview,
             )
         )
-
-    def to_json(self):
-        """Return a JSON-serializable representation."""
-        dct: dict[str, Any] = {attr: getattr(self, attr) for attr in _acria_attributes}
-        if _SERIALIZING_AS_TIE_PEER.get():
-            return dct
-        if self._partition_ties is None:
-            return dct
-        partition_peers = tuple(t for t in self._partition_ties if t is not self)
-        if not partition_peers:
-            return dct
-        from pyphi.jsonify import jsonify
-
-        token = _SERIALIZING_AS_TIE_PEER.set(True)
-        try:
-            dct["_partition_tie_peers"] = [jsonify(p.to_json()) for p in partition_peers]
-        finally:
-            _SERIALIZING_AS_TIE_PEER.reset(token)
-        return dct
-
-    @classmethod
-    def from_json(cls, data):
-        """Reconstruct an AcRIA, restoring tied peer set when present."""
-        partition_peers_raw: Any = data.pop("_partition_tie_peers", ())
-        partition_peers = tuple(cls(**dict(p)) for p in partition_peers_raw)
-        instance = cls(**data)
-        if partition_peers:
-            tied = (instance, *partition_peers)
-            instance._partition_ties = tied
-            for peer in partition_peers:
-                peer._partition_ties = tied
-        return instance
 
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         cls = type(self).__name__
@@ -428,35 +390,6 @@ class CausalLink(Displayable, cmp.Orderable):
         """An |CausalLink| is ``True`` if |alpha > 0|."""
         return greater_than_zero(self.alpha)
 
-    def to_json(self):
-        """Return a JSON-serializable representation."""
-        dct: dict[str, Any] = {
-            "ria": self.ria,
-            "extended_purview": self._extended_purview,
-        }
-        if self._purview_ties is not None:
-            from pyphi.jsonify import jsonify
-
-            token = _SERIALIZING_AS_TIE_PEER.set(True)
-            try:
-                dct["_purview_tie_peers"] = [
-                    jsonify(p.to_json()) for p in self._purview_ties
-                ]
-            finally:
-                _SERIALIZING_AS_TIE_PEER.reset(token)
-        return dct
-
-    @classmethod
-    def from_json(cls, data):
-        """Reconstruct a CausalLink, restoring the tied purview set."""
-        peers_raw: Any = data.pop("_purview_tie_peers", ())
-        peers = tuple(AcRepertoireIrreducibilityAnalysis(**dict(p)) for p in peers_raw)
-        return cls(
-            ria=data["ria"],
-            extended_purview=data.get("extended_purview"),
-            purview_ties=peers if peers else None,
-        )
-
 
 class Event(namedtuple("Event", ["actual_cause", "actual_effect"])):
     """A mechanism which has both an actual cause and an actual effect.
@@ -609,13 +542,6 @@ class Account(Displayable, cmp.Orderable, Sequence):
             config_diff={},
             substrate_note=None,
         )
-
-    def to_json(self):
-        return {"causal_links": tuple(self)}
-
-    @classmethod
-    def from_json(cls, dct):
-        return cls(dct["causal_links"])
 
 
 class DirectedAccount(Account):
@@ -842,23 +768,6 @@ class AcSystemIrreducibilityAnalysis(HasProvenance, Displayable, cmp.Orderable):
                 self.node_labels,
             )
         )
-
-    def to_json(self):
-        attrs = (
-            "alpha",
-            "direction",
-            "account",
-            "partitioned_account",
-            "partition",
-            "before_state",
-            "after_state",
-            "size",
-            "node_indices",
-            "cause_indices",
-            "effect_indices",
-            "node_labels",
-        )
-        return {attr: getattr(self, attr) for attr in attrs}
 
 
 def _null_ac_sia(transition, direction, alpha=0.0, reasons=None):

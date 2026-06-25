@@ -129,13 +129,6 @@ class RelationFace(Displayable, frozenset):
     def _repr_html_(self) -> str:
         return Displayable._repr_html_(self)
 
-    def to_json(self):
-        return {"relata": list(self)}
-
-    @classmethod
-    def from_json(cls, data):
-        return cls(data["relata"])
-
 
 class Relation(Displayable, frozenset, cmp.OrderableByPhi):
     """A set of relation faces forming the relation among a set of distinctions."""
@@ -221,14 +214,6 @@ class Relation(Displayable, frozenset, cmp.OrderableByPhi):
             ),
             compact=f"{cls}(φ_r={format_value(self.phi)}, degree={len(self)})",
         )
-
-    def to_json(self):
-        """Return a JSON-serializable representation."""
-        return {"distinctions": list(self)}
-
-    @classmethod
-    def from_json(cls, data):
-        return cls(data["distinctions"])
 
 
 def _relation_size_func(purview_unions):
@@ -361,14 +346,6 @@ class Relations(Displayable):
             compact=f"{cls}({num_r} relations, Σφ_r={format_value(sum_phi_r)})",
         )
 
-    def to_json(self):
-        """Return a JSON-serializable representation."""
-        return {"relations": list(self)}  # type: ignore[arg-type]  # Self needs __iter__ in subclass
-
-    @classmethod
-    def from_json(cls, data):
-        return cls(data["relations"])
-
 
 class NullRelations(Relations):
     """An empty set of relations specified by a substrate whose formalism
@@ -392,13 +369,6 @@ class NullRelations(Relations):
 
     def __len__(self):
         return 0
-
-    def to_json(self):
-        return {"relations": []}
-
-    @classmethod
-    def from_json(cls, data):  # noqa: ARG003
-        return cls()
 
 
 class ConcreteRelations(frozenset, Relations):

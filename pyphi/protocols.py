@@ -235,7 +235,6 @@ PUBLIC_SYSTEM_ATTRS: frozenset[str] = frozenset(
         "indices2nodes",
         "cache_info",
         "clear_caches",
-        "to_json",
         "to_networkx",
     }
 )
@@ -338,7 +337,6 @@ class SystemPublicInterface(Protocol):
     indices2nodes: Callable[..., Any]
     cache_info: Callable[..., Any]
     clear_caches: Callable[..., Any]
-    to_json: Callable[..., Any]
     to_networkx: Callable[..., Any]
 
 

@@ -386,18 +386,6 @@ class TransitionSystem:
             **kwargs,
         )
 
-    def to_json(self) -> dict[str, Any]:
-        return {
-            "substrate": self.substrate,
-            "before_state": list(self.before_state),
-            "after_state": list(self.after_state),
-            "cause_indices": list(self.cause_indices),
-            "effect_indices": list(self.effect_indices),
-            "direction": self.direction,
-            "partition": self.partition,
-            "noise_background": self.noise_background,
-        }
-
 
 @dataclass(frozen=True, eq=False)
 class Transition:
@@ -519,16 +507,6 @@ class Transition:
                 Direction.EFFECT: self.effect_system,
             }
         )
-
-    def to_json(self) -> dict[str, Any]:
-        return {
-            "substrate": self.substrate,
-            "before_state": list(self.before_state),
-            "after_state": list(self.after_state),
-            "cause_indices": list(self.cause_indices),
-            "effect_indices": list(self.effect_indices),
-            "partition": self.partition,
-        }
 
     def apply_cut(self, partition: DirectedBipartition) -> "Transition":
         return replace(self, partition=partition)

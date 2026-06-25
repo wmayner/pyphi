@@ -188,13 +188,6 @@ class CauseEffectStructure(HasProvenance, Displayable, cmp.Orderable):
     def big_phi(self):
         return self.sum_phi_distinctions + self.sum_phi_relations
 
-    def to_json(self) -> dict[str, Any]:
-        return {
-            "sia": self.sia,
-            "distinctions": self.distinctions,
-            "relations": self.relations,
-        }
-
     def fold(self, distinctions) -> PhiFold:
         """Return the Φ-fold seeded by the given distinctions.
 

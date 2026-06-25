@@ -840,12 +840,3 @@ class System(Displayable):
         from pyphi.core import repertoire_algebra as ra
 
         ra.clear_caches(self)
-
-    def to_json(self) -> dict[str, Any]:
-        return {
-            "substrate": self.substrate,
-            "state": list(self.state),
-            "node_indices": list(self.node_indices),
-            "partition": self.partition,
-            "external_indices": list(self.external_indices),
-        }

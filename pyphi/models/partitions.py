@@ -50,7 +50,6 @@ from collections.abc import Iterator
 from collections.abc import Sequence
 from dataclasses import dataclass
 from itertools import chain
-from typing import Any
 from typing import Self
 
 import numpy as np
@@ -280,9 +279,6 @@ class NullCut(Displayable, _PartitionBase):
     def removed_edges(self) -> frozenset[tuple[int, int]]:
         return frozenset()
 
-    def to_json(self) -> dict[str, Any]:
-        return {"indices": self.indices}
-
     def _concise(self) -> str:
         return f"NullCut({self.indices})"
 
@@ -377,17 +373,6 @@ class DirectedBipartition(Displayable, _PartitionBase):
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         return _partition_description(self, self._concise())
 
-    def to_json(self) -> dict[str, Any]:
-        return {
-            "direction": self.direction,
-            "from_nodes": self.from_nodes,
-            "to_nodes": self.to_nodes,
-        }
-
-    @classmethod
-    def from_json(cls, data: dict[str, Any]) -> DirectedBipartition:
-        return cls(data["direction"], data["from_nodes"], data["to_nodes"])
-
 
 class DirectedJointPartition(Displayable, _PartitionBase):
     """A joint partition with a causal direction.
@@ -450,9 +435,6 @@ class DirectedJointPartition(Displayable, _PartitionBase):
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         return _partition_description(self, self._concise())
 
-    def to_json(self) -> dict[str, Any]:
-        return {"direction": self.direction, "partition": self.partition}
-
 
 class EdgeCut(Displayable, _PartitionBase):
     """An edge cut specified by an explicit binary severance matrix.
@@ -514,17 +496,6 @@ class EdgeCut(Displayable, _PartitionBase):
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         return _partition_description(self, self._concise())
 
-    def to_json(self) -> dict[str, Any]:
-        return self.__dict__.copy()
-
-    @classmethod
-    def from_json(cls, data: dict[str, Any]) -> EdgeCut:
-        return cls(
-            node_indices=data["node_indices"],
-            cut_matrix=data["_cut_matrix"],
-            node_labels=data["node_labels"],
-        )
-
 
 class CompleteEdgeCut(EdgeCut):
     """Edge cut that severs every connection (all-ones matrix).
@@ -545,13 +516,6 @@ class CompleteEdgeCut(EdgeCut):
 
     def _concise(self) -> str:
         return "Complete"
-
-    @classmethod
-    def from_json(cls, data: dict[str, Any]) -> CompleteEdgeCut:
-        return cls(
-            node_indices=data["node_indices"],
-            node_labels=data["node_labels"],
-        )
 
 
 class DirectedSetPartition(EdgeCut):
@@ -594,16 +558,6 @@ class DirectedSetPartition(EdgeCut):
             + ",".join("".join(str(x) for x in part) for part in parts)
             + "}"
         )
-
-    def to_json(self) -> dict[str, Any]:
-        dct = self.__dict__.copy()
-        del dct["parts"]
-        return dct
-
-    @classmethod
-    def from_json(cls, data: dict[str, Any]) -> DirectedSetPartition:
-        data["cut_matrix"] = np.array(data.pop("_cut_matrix"))
-        return cls(**data)
 
     def relabel(
         self,
@@ -655,9 +609,6 @@ class Part:
         m = fmt.fmt_nodes(self.mechanism, node_labels=self.node_labels)
         p = fmt.fmt_nodes(self.purview, node_labels=self.node_labels)
         return f"Part({m}/{p})"
-
-    def to_json(self) -> dict[str, Any]:
-        return {"mechanism": self.mechanism, "purview": self.purview}
 
 
 class JointPartition(Displayable, Sequence[Part], _PartitionBase):
@@ -756,25 +707,11 @@ class JointPartition(Displayable, Sequence[Part], _PartitionBase):
             edges.update((m, o) for m in part.mechanism for o in outside)
         return frozenset(edges)
 
-    def to_json(self) -> dict[str, Any]:
-        return {"parts": list(self)}
-
-    @classmethod
-    def from_json(cls, dct: dict[str, Any]) -> JointPartition:
-        return cls(*dct["parts"])
-
 
 class JointBipartition(JointPartition):
     """A :class:`JointPartition` with exactly two parts."""
 
     __slots__ = JointPartition.__slots__
-
-    def to_json(self) -> dict[str, Any]:
-        return {"part0": self[0], "part1": self[1]}
-
-    @classmethod
-    def from_json(cls, dct: dict[str, Any]) -> JointBipartition:
-        return cls(dct["part0"], dct["part1"])
 
 
 class JointTripartition(JointPartition):

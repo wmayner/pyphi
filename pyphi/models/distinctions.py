@@ -173,9 +173,6 @@ class Distinctions(Displayable, cmp.Orderable, Sequence, ToPandasMixin):
     def order_by(self):
         return [self.concepts]
 
-    def to_json(self):
-        return {"concepts": self.concepts}
-
     def _to_pandas(self):
         rows = [concept._pandas_record() for concept in self.concepts]
         return records_to_frame(rows, index="mechanism", columns=_DISTINCTION_COLUMNS)

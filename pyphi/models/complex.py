@@ -51,13 +51,6 @@ class ExcludedCandidate(Displayable):
     def __hash__(self) -> int:
         return hash(self.node_indices)
 
-    def to_json(self) -> dict[str, Any]:
-        return {"node_indices": list(self.node_indices), "phi": self.phi}
-
-    @classmethod
-    def from_json(cls, dct: dict[str, Any]) -> ExcludedCandidate:
-        return cls(node_indices=dct["node_indices"], phi=dct["phi"])
-
 
 class Complex(Displayable, cmp.OrderableByPhi):
     """An irreducible system selected as a complex: a local maximum of
@@ -141,21 +134,4 @@ class Complex(Displayable, cmp.OrderableByPhi):
                 f"{cls}({self.node_indices}, Φ={format_value(self.phi)},"
                 f" is_maximal={self.is_maximal})"
             ),
-        )
-
-    def to_json(self) -> dict[str, Any]:
-        return {
-            "sia": self.sia,
-            "substrate": self.substrate,
-            "is_maximal": self.is_maximal,
-            "excluded": list(self.excluded),
-        }
-
-    @classmethod
-    def from_json(cls, dct: dict[str, Any]) -> Complex:
-        return cls(
-            sia=dct["sia"],
-            substrate=dct["substrate"],
-            is_maximal=dct["is_maximal"],
-            excluded=dct["excluded"],
         )

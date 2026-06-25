@@ -291,20 +291,8 @@ class MaximallyIrreducibleCauseOrEffect(
         dct["is_mice"] = True
         return dct
 
-    def to_json(self):
-        return {"ria": self.ria}
-
     def _pandas_record(self):
         return self.ria._pandas_record()
-
-    # TODO(to_pandas): This is currently broken; MICE should become a subclass
-    # of RIA, and then a consistent implementation of `from_json` can be used
-    # there
-    @classmethod
-    def from_json(cls, data):
-        instance = cls(data["ria"])
-        instance._purview_ties = (instance,)
-        return instance
 
     def _relevant_connections(self, system):
         """Identify connections that “matter” to this concept.

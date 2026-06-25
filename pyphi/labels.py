@@ -156,6 +156,3 @@ class NodeLabels(Sequence[str]):
             str(label).upper() if state else str(label).lower()
             for label, state in zip(labels, states, strict=True)
         ]
-
-    def to_json(self) -> dict[str, tuple[str, ...] | tuple[int, ...]]:
-        return {"labels": self.labels, "node_indices": self.node_indices}

@@ -187,11 +187,6 @@ class Node(Displayable):
     def __hash__(self):
         return self._hash
 
-    # TODO do we need more than the index?
-    def to_json(self):
-        """Return a JSON-serializable representation."""
-        return self.index
-
 
 def generate_nodes(
     cause_marginal, effect_marginal, cm, substrate_state, indices, node_labels=None

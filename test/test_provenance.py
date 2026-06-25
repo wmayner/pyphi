@@ -40,12 +40,11 @@ def test_git_info_fallback_when_not_a_repo():
     provenance._git_info.cache_clear()
 
 
-def test_jsonify_round_trip():
-    from pyphi.jsonify import dumps
-    from pyphi.jsonify import loads
+def test_serialize_round_trip():
+    from pyphi import serialize
 
     prov = Provenance.capture(wall_time=2.0, seed=7)
-    restored = loads(dumps(prov))
+    restored = serialize.loads(serialize.dumps(prov))
     assert isinstance(restored, Provenance)
     assert restored == prov
 
@@ -186,14 +185,13 @@ def test_note_renders_at_level_4_when_set():
         assert "visible note" in repr(sia)
 
 
-def test_note_round_trips_through_jsonify():
-    from pyphi.jsonify import dumps
-    from pyphi.jsonify import loads
+def test_note_round_trips_through_serialize():
+    from pyphi import serialize
 
     prov = Provenance.capture(seed=1).with_wall_time(0.5)
     from dataclasses import replace
 
     prov = replace(prov, note="round-trip")
-    restored = loads(dumps(prov))
+    restored = serialize.loads(serialize.dumps(prov))
     assert restored.note == "round-trip"
     assert restored == prov

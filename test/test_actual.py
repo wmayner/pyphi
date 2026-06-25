@@ -428,8 +428,10 @@ def test_transition_apply_partition(transition):
     assert cut_transition != transition
 
 
-def test_to_json(transition):
-    transition.to_json()
+def test_transition_serialize_round_trip(transition):
+    from pyphi import serialize
+
+    assert serialize.loads(serialize.dumps(transition)) == transition
 
 
 # Test AC models

@@ -8,7 +8,6 @@ IIT 3.0 result type that ``compute.system.sia`` produces.
 
 from __future__ import annotations
 
-import contextvars
 from typing import Any
 
 from pyphi import utils
@@ -29,10 +28,6 @@ from .explanation import Explanation
 from .explanation import Finding
 from .partitions import _cut_grid
 from .partitions import concise_partition
-
-_SERIALIZING_AS_TIE_PEER: contextvars.ContextVar[bool] = contextvars.ContextVar(
-    "iit3_sia_serializing_as_tie_peer", default=False
-)
 
 
 class IIT3SystemIrreducibilityAnalysis(HasProvenance, Displayable, cmp.OrderableByPhi):
@@ -260,47 +255,6 @@ class IIT3SystemIrreducibilityAnalysis(HasProvenance, Displayable, cmp.Orderable
 
     def set_ties(self, ties: list[Any]) -> None:
         self._ties = list(ties)
-
-    def to_json(self):
-        """Return a JSON-serializable representation."""
-        dct = {
-            attr: getattr(self, attr)
-            for attr in (
-                "phi",
-                "distinctions",
-                "partitioned_distinctions",
-                "partition",
-                "node_indices",
-                "node_labels",
-                "current_state",
-            )
-        }
-        if _SERIALIZING_AS_TIE_PEER.get():
-            return dct
-        peers = tuple(t for t in self.ties if t is not self)
-        if peers:
-            from pyphi.jsonify import jsonify
-
-            token = _SERIALIZING_AS_TIE_PEER.set(True)
-            try:
-                dct["_tie_peers"] = [jsonify(p.to_json()) for p in peers]
-            finally:
-                _SERIALIZING_AS_TIE_PEER.reset(token)
-        return dct
-
-    @classmethod
-    def from_json(cls, dct):
-        peers_raw: Any = dct.pop("_tie_peers", ())
-        peers: tuple[IIT3SystemIrreducibilityAnalysis, ...] = tuple(
-            cls(**dict(p)) for p in peers_raw
-        )
-        instance = cls(**dct)
-        if peers:
-            tied: list[IIT3SystemIrreducibilityAnalysis] = [instance, *peers]
-            instance._ties = tied
-            for peer in peers:
-                peer._ties = tied
-        return instance
 
 
 def _null_sia(system, phi=0.0, reasons=None):

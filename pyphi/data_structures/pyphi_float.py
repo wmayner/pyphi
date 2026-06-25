@@ -67,13 +67,11 @@ class PyPhiFloat(float):
         >>> min(values)  # doctest: +SKIP
         PyPhiFloat(0.3)
 
-        JSON serialization:
+        Serialization round-trips through :mod:`pyphi.serialize`:
 
-        >>> phi = PyPhiFloat(0.5)
-        >>> phi.to_json()
-        {'value': 0.5}
-        >>> PyPhiFloat.from_json({'value': 0.5})
-        0.5
+        >>> from pyphi import serialize
+        >>> serialize.loads(serialize.dumps(PyPhiFloat(0.5))) == PyPhiFloat(0.5)
+        True
     """
 
     # NOTE: Cannot use functools.total_ordering because it doesn't re-implement
@@ -114,10 +112,3 @@ class PyPhiFloat(float):
 
     def __hash__(self) -> int:
         return hash(round(self, self._precision))
-
-    def to_json(self) -> dict[str, float]:
-        return {"value": float(self)}
-
-    @classmethod
-    def from_json(cls, data: dict[str, Any]) -> "PyPhiFloat":
-        return cls(data["value"])

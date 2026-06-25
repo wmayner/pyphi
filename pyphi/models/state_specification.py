@@ -10,13 +10,11 @@ of a node (without a state value).
 
 from __future__ import annotations
 
-import contextvars
 from collections.abc import Iterable
 from dataclasses import dataclass
 from functools import total_ordering
 from typing import Any
 
-import numpy as np
 import pandas as pd
 from numpy.typing import ArrayLike
 
@@ -36,10 +34,6 @@ from . import cmp
 from . import fmt
 from .pandas import ToDictMixin
 from .pandas import ToPandasMixin
-
-_SERIALIZING_AS_TIE_PEER: contextvars.ContextVar[bool] = contextvars.ContextVar(
-    "state_spec_serializing_as_tie_peer", default=False
-)
 
 
 @total_ordering
@@ -169,35 +163,6 @@ class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
             rows.extend(distribution_rows(self.direction, kind, self.purview, rep))
         return records_to_frame(rows, columns=_DISTRIBUTION_COLUMNS)
 
-    def to_json(self) -> dict[str, Any]:
-        dct = self.to_dict()
-        if _SERIALIZING_AS_TIE_PEER.get():
-            return dct
-        peers = tuple(t for t in self._ties if t is not self)
-        if peers:
-            from pyphi.jsonify import jsonify
-
-            token = _SERIALIZING_AS_TIE_PEER.set(True)
-            try:
-                dct["_tie_peers"] = [jsonify(p) for p in peers]
-            finally:
-                _SERIALIZING_AS_TIE_PEER.reset(token)
-        return dct
-
-    @classmethod
-    def from_json(cls, data: dict[str, Any]) -> StateSpecification:
-        peers_raw: Any = data.pop("_tie_peers", ())
-        peers: tuple[StateSpecification, ...] = tuple(peers_raw)
-        for key in ["repertoire", "unconstrained_repertoire"]:
-            data[key] = np.array(data[key])
-        instance = cls(**data)
-        if peers:
-            tied: tuple[StateSpecification, ...] = (instance, *peers)
-            object.__setattr__(instance, "_ties", tied)
-            for peer in peers:
-                object.__setattr__(peer, "_ties", tied)
-        return instance
-
 
 class DistinctionPhiNormalizationRegistry(Registry):
     """Storage for distinction |small_phi| normalizations."""
@@ -288,9 +253,6 @@ class SystemStateSpecification(Displayable, ToDictMixin, ToPandasMixin):
 
     def __hash__(self) -> int:
         return hash((self.cause, self.effect))
-
-    def to_json(self) -> dict[str, Any]:
-        return self.__dict__
 
     def _to_pandas(self):
         from .pandas import _DISTRIBUTION_COLUMNS

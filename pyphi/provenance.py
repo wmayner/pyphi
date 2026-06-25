@@ -124,25 +124,6 @@ class Provenance:
             rows.append(("Note", self.note))
         return rows
 
-    def to_json(self) -> dict[str, Any]:
-        return {
-            "pyphi_version": self.pyphi_version,
-            "git_sha": self.git_sha,
-            "git_dirty": self.git_dirty,
-            "timestamp": self.timestamp,
-            "python_version": self.python_version,
-            "numpy_version": self.numpy_version,
-            "scipy_version": self.scipy_version,
-            "platform": self.platform,
-            "wall_time": self.wall_time,
-            "seed": self.seed,
-            "note": self.note,
-        }
-
-    @classmethod
-    def from_json(cls, dct: dict[str, Any]) -> Provenance:
-        return cls(**dct)
-
 
 def _set_provenance(result: Any, prov: Provenance) -> None:
     """Assign ``prov`` to ``result.provenance``, working around frozen results."""

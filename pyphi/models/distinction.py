@@ -369,14 +369,6 @@ class Distinction(
 
     _dict_attrs = _distinction_attributes
 
-    def to_json(self):
-        """Return a JSON-serializable representation."""
-        return {
-            "mechanism": self.mechanism,
-            "cause": self.cause,
-            "effect": self.effect,
-        }
-
     def _pandas_record(self):
         labels = self.node_labels
 
@@ -396,16 +388,6 @@ class Distinction(
             "cause_purview": labelled(self.cause_purview),
             "effect_purview": labelled(self.effect_purview),
         }
-
-    @classmethod
-    def from_json(cls, dct):
-        instance = cls(**dct)
-        # Restore parent references to MICEs
-        assert instance.cause is not None
-        assert instance.effect is not None
-        instance.cause.parent = instance
-        instance.effect.parent = instance
-        return instance
 
     def __setstate__(self, state):
         self.__dict__.update(state)
