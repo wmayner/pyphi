@@ -143,17 +143,17 @@ Three independent tasks, each landable as its own commit:
 1. **`tblib`** — declared in `pyproject.toml` (line 41) with zero references in
    `pyphi/`. Remove the declaration.
 
-2. **`ordered-set` → `dict.fromkeys`-backed wrapper.** `pyphi/data_structures/`
-   re-exports `OrderedSet` and defines `HashableOrderedSet(OrderedSet[Any])`
-   (the subclass exists specifically to make instances hashable and
-   pickle-compatible). Replace the dependency with an internal insertion-ordered
-   set backed by a `dict`, preserving the surface actually used across the
-   codebase: `add`, `append`, `index`, `intersection`, `union`, `update`, `pop`,
-   iteration, length, membership, equality, hashing, and **pickle round-trip**.
-   *Planning-phase task:* enumerate the exact `OrderedSet` method surface in use
-   (the codebase-wide grep over-counts because `add`/`append`/`pop` collide with
-   plain-list calls) before fixing the wrapper's API. Drop the `ordered-set`
-   dependency.
+2. **`ordered-set` → delete the dead module.** `pyphi/data_structures/`
+   re-exports `OrderedSet` and defines `HashableOrderedSet(OrderedSet[Any])`,
+   but the usage audit found these types are constructed nowhere in `pyphi/`,
+   `test/`, or `docs/` — the only references are the definition and the
+   re-exports. They were a parked idea for representing units in purviews and
+   mechanisms, but a sorted tuple is the better representation there (canonical
+   sorted order for array indexing, immutable and cheaply hashable, far lighter
+   on the hot path where these collections are created in vast quantities), so
+   the idea is not worth keeping. Delete `hashable_ordered_set.py` and the two
+   re-export lines, and drop the `ordered-set` dependency. (No `dict`-backed
+   wrapper is needed, since nothing constructs the type.)
 
 3. **`toolz` → stdlib / `more_itertools`.** Nine imports across `partition.py`,
    `utils.py`, `models/fmt.py`, `models/distinctions.py`, `models/ria.py`,
@@ -195,9 +195,9 @@ Three independent tasks, each landable as its own commit:
 
 - **Missed registrant.** Mitigated by the registry-contents test, which is
   authored before the walk is removed so a regression is caught immediately.
-- **`ordered-set` API gap.** Mitigated by enumerating the in-use method surface
-  before reimplementing, and by the existing test suite exercising the data
-  structures (including pickle paths).
+- **`ordered-set` deletion.** Low risk: the audit found no constructor or
+  import of `OrderedSet`/`HashableOrderedSet` anywhere, so removing them cannot
+  break a call site. The full doctest sweep confirms nothing imported them.
 - **`toolz.curry` semantics.** `toolz.curry` supports partial application across
   multiple calls; the per-site replacement must match each function's actual
   call pattern, verified by the existing tests that exercise those functions.
