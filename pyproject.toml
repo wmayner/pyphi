@@ -37,7 +37,6 @@ dependencies = [
     "psutil>=2.1.1",
     "pyyaml>=3.13",
     "scipy>=0.13.3",
-    "toolz>=0.9.0",
     "tqdm>=4.20.0",
 ]
 

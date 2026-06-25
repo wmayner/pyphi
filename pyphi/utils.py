@@ -1,6 +1,7 @@
 # utils.py
 """Package-wide utilities."""
 
+import functools
 import hashlib
 import math
 import operator
@@ -16,7 +17,6 @@ from typing import Any
 
 import numpy as np
 from scipy.special import comb
-from toolz import curry
 
 from .conf import config
 
@@ -407,7 +407,6 @@ def enforce_integer_or_none(i: int | None, **kwargs: str | float) -> int | None:
     return enforce_integer(i, **kwargs)  # type: ignore[arg-type]
 
 
-@curry
 def all_same(comparison: Callable, seq: Generator | list) -> bool:
     """Return True if all elements compare to the first element."""
     sentinel = object()
@@ -419,15 +418,14 @@ def all_same(comparison: Callable, seq: Generator | list) -> bool:
 
 
 # Compare equality up to precision
-all_are_equal = all_same(eq)  # pyright: ignore[reportCallIssue]
-all_are_identical = all_same(operator.is_)  # pyright: ignore[reportCallIssue]
+all_are_equal = functools.partial(all_same, eq)
+all_are_identical = functools.partial(all_same, operator.is_)
 
 
 NO_DEFAULT = object()
 
 
 # TODO test
-@curry
 def all_extrema(
     comparison: Callable, seq: Generator | list, default: object = NO_DEFAULT
 ) -> list:
@@ -462,8 +460,8 @@ def all_extrema(
     return extrema
 
 
-all_minima = all_extrema(operator.lt)  # pyright: ignore[reportCallIssue]
-all_maxima = all_extrema(operator.gt)  # pyright: ignore[reportCallIssue]
+all_minima = functools.partial(all_extrema, operator.lt)
+all_maxima = functools.partial(all_extrema, operator.gt)
 
 
 def iter_with_default(seq: Iterable[Any], default: object) -> Generator[Any]:

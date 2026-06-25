@@ -1,8 +1,6 @@
 # substrate_generator/ising.py
 """Utitlies for implementing the Ising model."""
 
-from toolz import curry
-
 from . import utils
 
 
@@ -11,7 +9,6 @@ def energy(element, weights, state):
     return utils.total_weighted_input(element, weights, state)
 
 
-@curry
 def probability(
     element,
     weights,

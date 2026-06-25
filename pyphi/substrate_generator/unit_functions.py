@@ -2,7 +2,6 @@
 """Library of functions for single units."""
 
 import numpy as np
-from toolz import curry
 
 from . import utils
 
@@ -33,13 +32,11 @@ def logical_nparity_function(element, weights, state, **kwargs):
     return not (logical_parity_function(element, weights, state))
 
 
-@curry
 def naka_rushton(element, weights, state, exponent=2.0, threshold=1.0, **kwargs):
     x = utils.total_weighted_input(element, weights, state) ** exponent
     return x / (x + threshold)
 
 
-@curry
 def boolean_function(element, weights, state, on_inputs=(), **kwargs):
     """An arbitrary boolean function.
 
@@ -73,7 +70,6 @@ def gauss(x, mu, sigma):
     return np.exp(-0.5 * (((x - mu) / sigma) ** 2))
 
 
-@curry
 def gaussian(
     element,
     weights,
