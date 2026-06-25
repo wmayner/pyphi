@@ -491,9 +491,11 @@ def _dec_intrinsic_diff(pairs: Any) -> Any:
 
 
 def _enc_reasons(reasons: Any) -> Any:
+    # A reason is normally a NullResultReason enum, but some fixtures carry it
+    # as a bare name string; store the name either way.
     if reasons is None:
         return None
-    return tuple(r.name for r in reasons)
+    return tuple(r.name if hasattr(r, "name") else str(r) for r in reasons)
 
 
 def _dec_reasons(names: Any) -> Any:
@@ -501,7 +503,9 @@ def _dec_reasons(names: Any) -> Any:
         return None
     from pyphi.models.explanation import NullResultReason
 
-    return [NullResultReason[n] for n in names]
+    return [
+        NullResultReason[n] if n in NullResultReason.__members__ else n for n in names
+    ]
 
 
 def _enc_config(config: Any) -> Any:
