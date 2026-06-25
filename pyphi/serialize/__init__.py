@@ -5,6 +5,8 @@ structure) and ``"msgpack"`` (binary, compact). The document carries a single
 top-level ``format_version``.
 """
 
+import os
+from pathlib import Path
 from typing import Any
 
 import msgspec
@@ -46,9 +48,38 @@ def loads(data: bytes, *, format: str = "json") -> Any:
     return convert.from_schema(doc.payload)
 
 
-def dump(obj: Any, fp, *, format: str = "json") -> None:
-    fp.write(dumps(obj, format=format))
+_SUFFIX_FORMATS = {".json": "json", ".msgpack": "msgpack", ".mpk": "msgpack"}
 
 
-def load(fp, *, format: str = "json") -> Any:
-    return loads(fp.read(), format=format)
+def _infer_format(target: Any, format: str | None) -> str:
+    if format is not None:
+        return format
+    if isinstance(target, (str, os.PathLike)):
+        return _SUFFIX_FORMATS.get(Path(target).suffix.lower(), "json")
+    return "json"
+
+
+def save(obj: Any, target: Any, *, format: str | None = None) -> None:
+    """Serialize ``obj`` to ``target`` (a path or an open binary file object).
+
+    The wire format is inferred from a path's extension (``.json`` →
+    ``"json"``; ``.msgpack`` / ``.mpk`` → ``"msgpack"``; otherwise ``"json"``)
+    unless ``format`` is given.
+    """
+    data = dumps(obj, format=_infer_format(target, format))
+    if isinstance(target, (str, os.PathLike)):
+        with open(target, "wb") as f:
+            f.write(data)
+    else:
+        target.write(data)
+
+
+def load(target: Any, *, format: str | None = None) -> Any:
+    """Deserialize from ``target`` (a path or an open binary file object)."""
+    fmt = _infer_format(target, format)
+    if isinstance(target, (str, os.PathLike)):
+        with open(target, "rb") as f:
+            data = f.read()
+    else:
+        data = target.read()
+    return loads(data, format=fmt)
