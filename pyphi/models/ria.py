@@ -20,9 +20,9 @@ from typing import TYPE_CHECKING
 from typing import Any
 
 import numpy as np
+from more_itertools import unique_everseen
 from numpy.typing import ArrayLike
 from numpy.typing import NDArray
-from toolz import unique
 
 from pyphi import utils
 from pyphi.data_structures import PyPhiFloat
@@ -416,7 +416,9 @@ class RepertoireIrreducibilityAnalysis(
     @property
     def ties(self):
         # TODO(ties) check unique usage here
-        return unique(chain.from_iterable([self._state_ties, self._partition_ties]))
+        return unique_everseen(
+            chain.from_iterable([self._state_ties, self._partition_ties])
+        )
 
     @property
     def num_state_ties(self):

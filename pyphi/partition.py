@@ -11,7 +11,7 @@ from typing import Any
 
 import numpy as np
 from more_itertools import distinct_permutations
-from toolz import unique
+from more_itertools import unique_everseen
 
 from . import combinatorics
 from .cache import cache
@@ -881,7 +881,9 @@ def _directed_set_partitions(
 @functools.wraps(_directed_set_partitions)
 def directed_set_partitions(node_indices, node_labels=None):
     # TODO(4.0) generate properly without using set
-    yield from unique(_directed_set_partitions(node_indices, node_labels=node_labels))
+    yield from unique_everseen(
+        _directed_set_partitions(node_indices, node_labels=node_labels)
+    )
 
 
 def system_partitions(nodes, node_labels=None, partition_scheme=None, filter_func=None):
