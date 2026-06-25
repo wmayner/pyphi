@@ -40,3 +40,11 @@ def test_unknown_extension_defaults_to_json(tmp_path, sia):
     path = tmp_path / "result.dat"
     serialize.save(sia, path)
     assert serialize.loads(path.read_bytes(), format="json") == sia
+
+
+def test_top_level_save_load(tmp_path, sia):
+    import pyphi
+
+    path = tmp_path / "r.json"
+    pyphi.save(sia, path)
+    assert pyphi.load(path) == sia

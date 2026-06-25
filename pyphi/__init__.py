@@ -96,6 +96,8 @@ from .core.tpm import FactoredTPM as FactoredTPM
 from .core.tpm import JointDistribution as JointDistribution
 from .core.tpm.joint_distribution import JointTPM
 from .direction import Direction
+from .serialize import load
+from .serialize import save
 from .substrate import Substrate
 from .system import System
 
@@ -132,6 +134,8 @@ __all__ = [
     "iit3",
     "iit4_2023",
     "iit4_2026",
+    "load",
+    "save",
 ] + [name for name in sorted(_SUBMODULE_NAMES) if not name.startswith("_")]
 
 
