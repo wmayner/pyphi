@@ -23,16 +23,21 @@ def test_compute_chunksize_with_explicit_chunksize_skips_sampling():
     assert list(remainder) == items
 
 
-def test_compute_chunksize_samples_and_chunks():
-    """A 1ms-per-item workload over 1s target chunks at ~1000 items per chunk."""
-    items = list(range(400))
+def test_compute_chunksize_samples_and_chunks(monkeypatch):
+    """A 1ms-per-item workload over 1s target chunks at ~1000 items per chunk.
 
-    def fast_op(x):
-        time.sleep(0.001)
-        return x
+    The sampling timer is injected rather than measured from ``time.sleep`` so
+    the derived chunksize is deterministic: real sleep over-sleeps on loaded CI
+    runners, which made the ``>= 100`` assertion flaky.
+    """
+    items = list(range(400))
+    # _time_samples() calls perf_counter once before and once after the four
+    # samples; simulate 4 items * 1ms = 4ms total -> ~1000 items per chunk.
+    ticks = iter([0.0, 0.004])
+    monkeypatch.setattr(time, "perf_counter", lambda: next(ticks))
 
     chunksize, remainder = compute_chunksize(
-        items, target_seconds=1.0, fn=fast_op, sample_size=4
+        items, target_seconds=1.0, fn=lambda x: x, sample_size=4
     )
     assert chunksize >= 100
     assert sum(1 for _ in remainder) == len(items)
