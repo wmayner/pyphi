@@ -1,7 +1,7 @@
 import pytest
 
 from pyphi import examples
-from pyphi import jsonify
+from pyphi import serialize
 from pyphi import validate
 from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
 from pyphi.models.complex import Complex
@@ -38,7 +38,7 @@ def test_excluded_candidate_hashable_by_units():
 
 def test_excluded_candidate_json_round_trip():
     e = ExcludedCandidate((1, 2), 0.5)
-    decoded = jsonify.loads(jsonify.dumps(e))
+    decoded = serialize.loads(serialize.dumps(e))
     assert decoded == e
 
 
@@ -94,7 +94,7 @@ def test_complex_json_round_trip():
         is_maximal=True,
         excluded=(ExcludedCandidate((1, 2), 0.5),),
     )
-    decoded = jsonify.loads(jsonify.dumps(c))
+    decoded = serialize.loads(serialize.dumps(c))
     assert isinstance(decoded, Complex)
     assert decoded.node_indices == c.node_indices
     assert decoded.is_maximal is True

@@ -3,8 +3,8 @@ import pytest
 from pyphi import combinatorics
 from pyphi import config
 from pyphi import examples
-from pyphi import jsonify
 from pyphi import relations
+from pyphi import serialize
 from pyphi.formalism import iit3
 from pyphi.formalism import iit4 as new_big_phi
 from pyphi.measures.distribution import resolve_mechanism_measure
@@ -49,12 +49,11 @@ def test_null_relations_is_empty():
     assert list(nr) == []
 
 
-def test_null_relations_to_json_round_trips():
-    from pyphi import jsonify
+def test_null_relations_serialize_round_trips():
     from pyphi.relations import NullRelations
 
     nr = NullRelations()
-    encoded = jsonify.loads(jsonify.dumps(nr))
+    encoded = serialize.loads(serialize.dumps(nr))
     assert isinstance(encoded, NullRelations)
     assert encoded.sum_phi() == 0
 
@@ -75,14 +74,14 @@ NETWORKS = ["grid3", "basic", "xor", "rule110", "fig4"]
 )
 def test_all_relations(case_name):
     with open(f"test/data/relations/ces_{case_name}.json") as f:
-        answer_ces = jsonify.load(f)
+        answer_ces = serialize.load(f)
     # Compute and check CES
     system = getattr(examples, f"{case_name}_system")()
     ces = iit3._compute_distinctions(system)
     assert ces == answer_ces
 
     with open(f"test/data/relations/relations_{case_name}.json") as f:
-        answers = jsonify.load(f)
+        answers = serialize.load(f)
     # Compute and check relations
     # TODO(4.0) config.override doesn't seem to work with joblib parallel?
     results = list(

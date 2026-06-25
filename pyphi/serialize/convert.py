@@ -415,7 +415,19 @@ def _register_distinctions() -> None:
 def _register_provenance() -> None:
     from pyphi.provenance import Provenance
 
-    _ENCODERS[Provenance] = lambda p: schema.ProvenanceSchema(**p.to_json())
+    _ENCODERS[Provenance] = lambda p: schema.ProvenanceSchema(
+        pyphi_version=p.pyphi_version,
+        git_sha=p.git_sha,
+        git_dirty=p.git_dirty,
+        timestamp=p.timestamp,
+        python_version=p.python_version,
+        numpy_version=p.numpy_version,
+        scipy_version=p.scipy_version,
+        platform=p.platform,
+        wall_time=p.wall_time,
+        seed=p.seed,
+        note=p.note,
+    )
     _DECODERS[schema.ProvenanceSchema] = lambda s: Provenance(
         **msgspec.structs.asdict(s)
     )

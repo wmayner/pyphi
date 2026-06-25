@@ -5,7 +5,7 @@ import pyphi
 from pyphi import Substrate
 from pyphi import actual
 from pyphi import config
-from pyphi import jsonify
+from pyphi import serialize
 from pyphi.conf import presets
 
 from . import example_substrates
@@ -192,7 +192,7 @@ def subsys_n1n2():
 @pytest.fixture
 def s_expected_sia():
     with open("./test/data/sia/s.json") as f:
-        expected = jsonify.load(f)
+        expected = serialize.load(f)
     return expected
 
 
@@ -218,7 +218,7 @@ def noisy_selfloop_single():
 @pytest.fixture
 def s_noised_expected_sia():
     with open("./test/data/sia/s_noised.json") as f:
-        expected = jsonify.load(f)
+        expected = serialize.load(f)
     return expected
 
 
@@ -263,7 +263,7 @@ def big_subsys_0_thru_3():
 @pytest.fixture
 def big_subsys_0_thru_3_expected_sia():
     with open("./test/data/sia/big_subsys_0_thru_3.json") as f:
-        expected = jsonify.load(f)
+        expected = serialize.load(f)
     return expected
 
 
@@ -289,7 +289,7 @@ def rule152_s():
 @pytest.fixture
 def rule152_s_expected_sia():
     with open("./test/data/sia/rule152_s.json") as f:
-        expected = jsonify.load(f)
+        expected = serialize.load(f)
     return expected
 
 
@@ -310,7 +310,7 @@ def big_subsys_all_complete():
 @pytest.fixture
 def big_subsys_all_complete_expected_sia():
     with open("./test/data/sia/big_subsys_all_complete.json") as f:
-        expected = jsonify.load(f)
+        expected = serialize.load(f)
     return expected
 
 
@@ -341,7 +341,7 @@ def macro_s():
 @pytest.fixture
 def macro_s_expected_sia():
     with open("./test/data/sia/macro_s.json") as f:
-        expected = jsonify.load(f)
+        expected = serialize.load(f)
     return expected
 
 
@@ -358,7 +358,7 @@ def micro_s():
 @pytest.fixture
 def micro_s_expected_sia():
     with open("./test/data/sia/micro_s.json") as f:
-        expected = jsonify.load(f)
+        expected = serialize.load(f)
     return expected
 
 

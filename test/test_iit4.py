@@ -43,7 +43,7 @@ from pathlib import Path
 import pytest
 
 from pyphi import config
-from pyphi import jsonify
+from pyphi import serialize
 from pyphi.examples import EXAMPLES
 from pyphi.formalism import iit4 as new_big_phi
 from pyphi.measures.distribution import resolve_mechanism_measure
@@ -112,4 +112,4 @@ def load_expected(example_name):
         CauseEffectStructure object deserialized from JSON
     """
     with open(DATA_PATH / f"{example_name}.json") as f:
-        return jsonify.load(f)
+        return serialize.load(f)
