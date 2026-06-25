@@ -68,8 +68,24 @@ and their defaults.
 import importlib
 import os
 import pkgutil
+from types import ModuleType
 
-# Lift main interfaces to top-level namespace
+# Populate the registries. Each built-in measure, partition scheme,
+# tie-resolution strategy, relation computation, distinction normalization,
+# and formalism is registered by a decorator (or an explicit ``.register``
+# call) that runs when its defining module is imported. Importing these
+# modules makes every built-in registrant available. Third-party plugins
+# register when the user imports them.
+import pyphi.measures.ces
+import pyphi.measures.distribution
+import pyphi.models.state_specification  # noqa: F401
+
+from . import formalism  # noqa: F401
+from . import partition  # noqa: F401
+from . import relations  # noqa: F401
+from . import resolve_ties  # noqa: F401
+
+# Lift main interfaces to the top-level namespace.
 from .actual import Transition
 from .actual import TransitionSystem
 from .conf import config
@@ -83,44 +99,27 @@ from .direction import Direction
 from .substrate import Substrate
 from .system import System
 
-# Skip modules that require optional dependencies. The xarray FactoredTPM
-# backend is imported lazily when backend="xarray" is requested.
-_skip_import = ["visualize", "_factored_backends_xarray"]
+# Names of the depth-1 submodules, listed (not imported). Public submodules are
+# available as attributes via the lazy ``__getattr__`` below.
+_SUBMODULE_NAMES = frozenset(name for _, name, _ in pkgutil.iter_modules(__path__))
 
 
-def _import_submodules(package, recursive=True):
-    """Import all submodules of a module, recursively, including subpackages.
+def __getattr__(name: str) -> ModuleType:
+    """Lazily import a public submodule on first attribute access (PEP 562).
 
-    Args:
-        package (str | module): package to traverse (name or module object).
-
-    Keyword Args:
-        recursive (bool): Whether to import submodules recursively.
-
-    Returns:
-        dict[str, types.ModuleType]: A dictionary mapping names to submodules.
+    Keeps ``pyphi.examples``, ``pyphi.compute``, and the like working after a
+    bare ``import pyphi`` without importing the whole package eagerly, so
+    ``import pyphi`` is fast and is not broken by an unrelated submodule that
+    fails to import.
     """
-    if isinstance(package, str):
-        package = importlib.import_module(package)
-    results = {}
-    for _loader, name, is_pkg in pkgutil.walk_packages(package.__path__):
-        if name not in _skip_import:
-            full_name = package.__name__ + "." + name
-            results[full_name] = importlib.import_module(full_name)
-            if recursive and is_pkg:
-                results.update(_import_submodules(full_name))
-    return results
+    if name in _SUBMODULE_NAMES and not name.startswith("_"):
+        module = importlib.import_module(f"{__name__}.{name}")
+        globals()[name] = module
+        return module
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
-# Recursively import all submodules.
-# This is necessary in order to populate the Registries, since modules must be
-# imported for the registration decorators to be executed.
-_submodules = _import_submodules(__name__)
-
-# Populate __all__ with public modules of depth 1
-_submodule_names = {name.split(".")[1] for name in _submodules}
 __all__ = [
-    "config",
     "Direction",
     "FactoredTPM",
     "JointDistribution",
@@ -129,10 +128,11 @@ __all__ = [
     "System",
     "Transition",
     "TransitionSystem",
+    "config",
     "iit3",
     "iit4_2023",
     "iit4_2026",
-] + [name for name in _submodule_names if not name.startswith("_")]
+] + [name for name in sorted(_SUBMODULE_NAMES) if not name.startswith("_")]
 
 
 if not (config.infrastructure.welcome_off or "PYPHI_WELCOME_OFF" in os.environ):

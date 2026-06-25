@@ -1,0 +1,1 @@
+`import pyphi` no longer eagerly imports every submodule: submodules are imported lazily on first attribute access, so import is faster and is not broken by an unrelated submodule that fails to import.
