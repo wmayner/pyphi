@@ -375,8 +375,46 @@ _register_joint_partition()
 _register_joint_bipartition()
 _register_joint_tripartition()
 _register_directed_joint_partition()
+
+
+def _register_distinction() -> None:
+    from pyphi.models.distinction import Distinction
+
+    _ENCODERS[Distinction] = lambda d: schema.DistinctionSchema(
+        mechanism=_opt_tuple(d.mechanism),
+        cause=to_schema(d.cause),
+        effect=to_schema(d.effect),
+    )
+    _DECODERS[schema.DistinctionSchema] = lambda s: Distinction(
+        mechanism=_opt_tuple(s.mechanism),
+        cause=from_schema(s.cause),
+        effect=from_schema(s.effect),
+    )
+
+
+def _register_distinctions() -> None:
+    from pyphi.models.distinctions import Distinctions
+    from pyphi.models.distinctions import ResolvedDistinctions
+    from pyphi.models.distinctions import UnresolvedDistinctions
+
+    def encoder(struct_cls):
+        return lambda d: struct_cls(concepts=tuple(to_schema(c) for c in d.concepts))
+
+    def decoder(domain_cls):
+        return lambda s: domain_cls(tuple(from_schema(c) for c in s.concepts))
+
+    _ENCODERS[Distinctions] = encoder(schema.DistinctionsSchema)
+    _ENCODERS[UnresolvedDistinctions] = encoder(schema.UnresolvedDistinctionsSchema)
+    _ENCODERS[ResolvedDistinctions] = encoder(schema.ResolvedDistinctionsSchema)
+    _DECODERS[schema.DistinctionsSchema] = decoder(Distinctions)
+    _DECODERS[schema.UnresolvedDistinctionsSchema] = decoder(UnresolvedDistinctions)
+    _DECODERS[schema.ResolvedDistinctionsSchema] = decoder(ResolvedDistinctions)
+
+
 _register_edge_cut()
 _register_complete_edge_cut()
 _register_directed_set_partition()
 _register_ria()
 _register_mice()
+_register_distinction()
+_register_distinctions()

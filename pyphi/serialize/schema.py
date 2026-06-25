@@ -168,6 +168,40 @@ class MICEEffectSchema(msgspec.Struct, frozen=True, tag="mice_effect"):
 MICEAnySchema = MICESchema | MICECauseSchema | MICEEffectSchema
 
 
+# --- Distinctions -------------------------------------------------------------
+
+
+class DistinctionSchema(msgspec.Struct, frozen=True, tag="distinction"):
+    mechanism: tuple[int, ...] | None
+    cause: MICEAnySchema
+    effect: MICEAnySchema
+
+
+# IIT 3.0 terminology calls a distinction a "concept".
+ConceptSchema = DistinctionSchema
+
+
+class DistinctionsSchema(msgspec.Struct, frozen=True, tag="distinctions"):
+    concepts: tuple[DistinctionSchema, ...]
+
+
+class UnresolvedDistinctionsSchema(
+    msgspec.Struct, frozen=True, tag="unresolved_distinctions"
+):
+    concepts: tuple[DistinctionSchema, ...]
+
+
+class ResolvedDistinctionsSchema(
+    msgspec.Struct, frozen=True, tag="resolved_distinctions"
+):
+    concepts: tuple[DistinctionSchema, ...]
+
+
+DistinctionsAnySchema = (
+    DistinctionsSchema | UnresolvedDistinctionsSchema | ResolvedDistinctionsSchema
+)
+
+
 # The tagged union grows one member per serializable type.
 Schema = (
     DirectionSchema
@@ -190,4 +224,8 @@ Schema = (
     | MICESchema
     | MICECauseSchema
     | MICEEffectSchema
+    | DistinctionSchema
+    | DistinctionsSchema
+    | UnresolvedDistinctionsSchema
+    | ResolvedDistinctionsSchema
 )
