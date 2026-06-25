@@ -134,6 +134,40 @@ PartitionSchema = (
 )
 
 
+# --- RIA and MICE -------------------------------------------------------------
+
+
+class RIASchema(msgspec.Struct, frozen=True, tag="ria"):
+    phi: PhiSchema
+    direction: DirectionSchema
+    mechanism: tuple[int, ...]
+    mechanism_state: tuple[int, ...] | None
+    purview: tuple[int, ...]
+    purview_state: tuple[int, ...] | None
+    partition: PartitionSchema
+    repertoire: bytes | None
+    partitioned_repertoire: bytes | None
+    specified_state: StateSpecificationSchema | None
+    node_labels: NodeLabelsSchema | None
+    partition_tie_peers: tuple["RIASchema", ...] = ()
+    state_tie_peers: tuple["RIASchema", ...] = ()
+
+
+class MICESchema(msgspec.Struct, frozen=True, tag="mice"):
+    ria: RIASchema
+
+
+class MICECauseSchema(msgspec.Struct, frozen=True, tag="mice_cause"):
+    ria: RIASchema
+
+
+class MICEEffectSchema(msgspec.Struct, frozen=True, tag="mice_effect"):
+    ria: RIASchema
+
+
+MICEAnySchema = MICESchema | MICECauseSchema | MICEEffectSchema
+
+
 # The tagged union grows one member per serializable type.
 Schema = (
     DirectionSchema
@@ -152,4 +186,8 @@ Schema = (
     | JointPartitionSchema
     | JointBipartitionSchema
     | JointTripartitionSchema
+    | RIASchema
+    | MICESchema
+    | MICECauseSchema
+    | MICEEffectSchema
 )

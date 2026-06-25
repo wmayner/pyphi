@@ -251,6 +251,117 @@ def _register_directed_set_partition() -> None:
     )
 
 
+def _enc_array(arr: Any) -> Any:
+    """Encode an optional numpy array to ``.npy`` bytes (``None`` stays ``None``)."""
+    return arrays.array_to_bytes(np.asarray(arr)) if arr is not None else None
+
+
+def _dec_array(data: Any) -> Any:
+    """Decode optional ``.npy`` bytes to a numpy array (``None`` stays ``None``)."""
+    return arrays.bytes_to_array(data) if data is not None else None
+
+
+def _opt_tuple(values: Any) -> Any:
+    return tuple(values) if values is not None else None
+
+
+def _encode_ria(ria: Any, *, include_peers: bool) -> Any:
+    partition_peers = (
+        tuple(t for t in ria._partition_ties if t is not ria) if include_peers else ()
+    )
+    state_peers = (
+        tuple(t for t in ria._state_ties if t is not ria) if include_peers else ()
+    )
+    return schema.RIASchema(
+        phi=to_schema(ria.phi),
+        direction=schema.DirectionSchema(name=ria.direction.name),
+        mechanism=tuple(ria.mechanism),
+        mechanism_state=_opt_tuple(ria.mechanism_state),
+        purview=tuple(ria.purview),
+        purview_state=_opt_tuple(ria.purview_state),
+        partition=to_schema(ria.partition),
+        repertoire=_enc_array(ria.repertoire),
+        partitioned_repertoire=_enc_array(ria.partitioned_repertoire),
+        specified_state=_enc_optional(ria.specified_state),
+        node_labels=_enc_optional(ria.node_labels),
+        partition_tie_peers=tuple(
+            _encode_ria(p, include_peers=False) for p in partition_peers
+        ),
+        state_tie_peers=tuple(_encode_ria(p, include_peers=False) for p in state_peers),
+    )
+
+
+def _decode_ria(struct: Any) -> Any:
+    from pyphi.models.ria import RepertoireIrreducibilityAnalysis
+
+    instance = RepertoireIrreducibilityAnalysis(
+        phi=from_schema(struct.phi),
+        direction=from_schema(struct.direction),
+        mechanism=tuple(struct.mechanism),
+        purview=tuple(struct.purview),
+        partition=from_schema(struct.partition),
+        repertoire=_dec_array(struct.repertoire),
+        partitioned_repertoire=_dec_array(struct.partitioned_repertoire),
+        specified_state=_dec_optional(struct.specified_state),
+        mechanism_state=_opt_tuple(struct.mechanism_state),
+        purview_state=_opt_tuple(struct.purview_state),
+        node_labels=_dec_optional(struct.node_labels),
+    )
+    if struct.partition_tie_peers:
+        peers = tuple(_decode_ria(p) for p in struct.partition_tie_peers)
+        tied = (instance, *peers)
+        instance._partition_ties = tied
+        for peer in peers:
+            peer._partition_ties = tied
+    if struct.state_tie_peers:
+        peers = tuple(_decode_ria(p) for p in struct.state_tie_peers)
+        tied = (instance, *peers)
+        instance._state_ties = tied
+        for peer in peers:
+            peer._state_ties = tied
+    return instance
+
+
+def _register_ria() -> None:
+    from pyphi.models.ria import RepertoireIrreducibilityAnalysis
+
+    _ENCODERS[RepertoireIrreducibilityAnalysis] = lambda r: _encode_ria(
+        r, include_peers=True
+    )
+    _DECODERS[schema.RIASchema] = _decode_ria
+
+
+def _decode_mice(cls: type, struct: Any) -> Any:
+    instance = cls(from_schema(struct.ria))
+    instance._purview_ties = (instance,)
+    return instance
+
+
+def _register_mice() -> None:
+    from pyphi.models.mice import MaximallyIrreducibleCause
+    from pyphi.models.mice import MaximallyIrreducibleCauseOrEffect
+    from pyphi.models.mice import MaximallyIrreducibleEffect
+
+    _ENCODERS[MaximallyIrreducibleCauseOrEffect] = lambda m: schema.MICESchema(
+        ria=to_schema(m.ria)
+    )
+    _ENCODERS[MaximallyIrreducibleCause] = lambda m: schema.MICECauseSchema(
+        ria=to_schema(m.ria)
+    )
+    _ENCODERS[MaximallyIrreducibleEffect] = lambda m: schema.MICEEffectSchema(
+        ria=to_schema(m.ria)
+    )
+    _DECODERS[schema.MICESchema] = lambda s: _decode_mice(
+        MaximallyIrreducibleCauseOrEffect, s
+    )
+    _DECODERS[schema.MICECauseSchema] = lambda s: _decode_mice(
+        MaximallyIrreducibleCause, s
+    )
+    _DECODERS[schema.MICEEffectSchema] = lambda s: _decode_mice(
+        MaximallyIrreducibleEffect, s
+    )
+
+
 _register_direction()
 _register_pyphi_float()
 _register_distance_result()
@@ -267,3 +378,5 @@ _register_directed_joint_partition()
 _register_edge_cut()
 _register_complete_edge_cut()
 _register_directed_set_partition()
+_register_ria()
+_register_mice()
