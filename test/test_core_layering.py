@@ -10,7 +10,7 @@ CORE = PYPHI / "core"
 
 
 def _imports_in(path: Path) -> set[str]:
-    src = path.read_text()
+    src = path.read_text(encoding="utf-8")
     tree = ast.parse(src, filename=str(path))
     out: set[str] = set()
     for node in ast.walk(tree):
@@ -33,7 +33,7 @@ def test_system_does_not_import_formalism_at_module_level() -> None:
     :mod:`pyphi.formalism`. Method bodies may import formalism lazily
     (e.g., the ``sia()`` convenience method), but no top-level import.
     """
-    src = (PYPHI / "system.py").read_text()
+    src = (PYPHI / "system.py").read_text(encoding="utf-8")
     tree = ast.parse(src, filename="pyphi/system.py")
     for node in tree.body:
         if (

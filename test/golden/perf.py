@@ -52,9 +52,13 @@ def count_calls(
     stats = pstats.Stats(profiler)
     counts = {f"{sub}:{func}": 0 for sub, func in frames}
     # stats.stats maps (filename, lineno, funcname) -> (cc, nc, tt, ct, callers).
+    # Frame substrings use forward slashes (e.g. ``conf/``); normalize the
+    # profiled filename so matching is platform-independent (Windows paths use
+    # backslashes).
     for (filename, _lineno, funcname), (_cc, nc, *_rest) in stats.stats.items():  # type: ignore[attr-defined]
+        normalized = filename.replace("\\", "/")
         for sub, func in frames:
-            if func == funcname and sub in filename:
+            if func == funcname and sub in normalized:
                 counts[f"{sub}:{func}"] += nc
     return counts
 

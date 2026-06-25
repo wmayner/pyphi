@@ -14,7 +14,7 @@ MODELS = Path(__file__).resolve().parent.parent / "pyphi" / "models"
 
 
 def _imports_in(path: Path) -> set[str]:
-    src = path.read_text()
+    src = path.read_text(encoding="utf-8")
     tree = ast.parse(src, filename=str(path))
     out: set[str] = set()
     for node in ast.walk(tree):

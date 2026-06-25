@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib.util
 import pickle
 
 import numpy as np
@@ -209,7 +210,13 @@ def test_from_joint_to_joint_bit_exact_for_legacy_binary() -> None:
 
 # --- xarray backend (optional) ---
 
-xarray = pytest.importorskip("xarray")
+# Skip only the xarray-backed tests when xarray is absent (a module-level
+# ``importorskip`` would skip the whole file, including the ndarray tests above,
+# leaving the no-xarray CI job with zero collected tests).
+requires_xarray = pytest.mark.skipif(
+    importlib.util.find_spec("xarray") is None,
+    reason="xarray backend not installed",
+)
 
 
 def _two_node_factored_xarray() -> FactoredTPM:
@@ -221,12 +228,14 @@ def _two_node_factored_xarray() -> FactoredTPM:
     return FactoredTPM(factors=[f0, f1], backend="xarray")
 
 
+@requires_xarray
 def test_factored_tpm_xarray_backend_selectable() -> None:
     f = _two_node_factored_xarray()
     assert f.n_nodes == 2
     assert f.alphabet_sizes == (2, 2)
 
 
+@requires_xarray
 def test_factored_tpm_xarray_factor_equals_ndarray_factor() -> None:
     """Cross-backend equality on identical factor data."""
     nd = FactoredTPM(
