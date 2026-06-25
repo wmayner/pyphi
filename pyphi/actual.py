@@ -39,6 +39,7 @@ from .models import NullCut
 from .models import _null_ac_sia
 from .models import fmt
 from .models.partitions import DirectedBipartition
+from .serializable import Serializable
 from .substrate import Substrate
 from .system import System
 
@@ -388,7 +389,7 @@ class TransitionSystem:
 
 
 @dataclass(frozen=True, eq=False)
-class Transition:
+class Transition(Serializable):
     """A state transition over a substrate, holding two TransitionSystem views.
 
     Implements the actual-causation framework of Albantakis, Marshall, Hoel,

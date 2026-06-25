@@ -28,6 +28,7 @@ from pyphi.display import Section
 from pyphi.models.partitions import DirectedBipartition
 from pyphi.models.partitions import NullCut
 from pyphi.models.partitions import concise_partition
+from pyphi.serializable import Serializable
 from pyphi.substrate import Substrate
 from pyphi.substrate import _coerce_state_to_indices
 
@@ -42,7 +43,7 @@ if TYPE_CHECKING:
 
 
 @dataclass(frozen=True, eq=False, repr=False)
-class System(Displayable):
+class System(Displayable, Serializable):
     """A substrate evaluated in a specific state over a node subset, with partition.
 
     The ``external_indices`` field specifies which substrate units are

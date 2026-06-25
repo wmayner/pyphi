@@ -13,6 +13,7 @@ from pyphi.display import Displayable
 from pyphi.display import Row
 from pyphi.display import Section
 from pyphi.display.numbers import format_value
+from pyphi.serializable import Serializable
 
 from . import cmp
 
@@ -52,7 +53,7 @@ class ExcludedCandidate(Displayable):
         return hash(self.node_indices)
 
 
-class Complex(Displayable, cmp.OrderableByPhi):
+class Complex(Displayable, cmp.OrderableByPhi, Serializable):
     """An irreducible system selected as a complex: a local maximum of
     |big_phi| over overlapping candidate systems (the exclusion postulate).
 

@@ -64,6 +64,7 @@ from pyphi.provenance import Provenance
 from pyphi.relations import ConcreteRelations
 from pyphi.relations import Relations
 from pyphi.relations import relations as compute_relations
+from pyphi.serializable import Serializable
 from pyphi.system import System
 
 ##############################################################################
@@ -147,7 +148,9 @@ def _intrinsic_differentiation_eq(a: dict | None, b: dict | None) -> bool:
 
 
 @dataclass(repr=False)
-class SystemIrreducibilityAnalysis(HasProvenance, Displayable, cmp.OrderableByPhi):
+class SystemIrreducibilityAnalysis(
+    HasProvenance, Displayable, cmp.OrderableByPhi, Serializable
+):
     """System-level integrated information.
 
     ``phi`` is the non-negative integrated-information value defined by

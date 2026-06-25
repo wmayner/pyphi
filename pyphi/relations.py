@@ -31,6 +31,7 @@ from .models import cmp
 from .models.distinctions import ResolvedDistinctions
 from .parallel import map_reduce
 from .registry import Registry
+from .serializable import Serializable
 
 if TYPE_CHECKING:
     from .formalism.iit4 import Distinction  # type: ignore[attr-defined]
@@ -301,7 +302,7 @@ def relations_table(relations: Relations) -> Table | None:
     )
 
 
-class Relations(Displayable):
+class Relations(Displayable, Serializable):
     """A set of relations among distinctions."""
 
     def __init__(self, *args, **kwargs):

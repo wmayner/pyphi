@@ -43,6 +43,7 @@ from pyphi.display import Row
 from pyphi.display import Section
 from pyphi.display.numbers import format_value
 from pyphi.display.tables import capped_table
+from pyphi.serializable import Serializable
 
 from . import cmp
 from .pandas import ToPandasMixin
@@ -113,7 +114,7 @@ def distinction_table_row(d: Any) -> tuple[Any, ...]:
     )
 
 
-class Distinctions(Displayable, cmp.Orderable, Sequence, ToPandasMixin):
+class Distinctions(Displayable, cmp.Orderable, Sequence, ToPandasMixin, Serializable):
     """Base class for a collection of distinctions.
 
     Holds the read-only operations shared by :class:`UnresolvedDistinctions`

@@ -18,6 +18,7 @@ from pyphi.display import Row
 from pyphi.display import Section
 from pyphi.display.numbers import format_value
 from pyphi.provenance import HasProvenance
+from pyphi.serializable import Serializable
 
 from . import cmp
 from .diff import ResultDiff
@@ -30,7 +31,9 @@ from .partitions import _cut_grid
 from .partitions import concise_partition
 
 
-class IIT3SystemIrreducibilityAnalysis(HasProvenance, Displayable, cmp.OrderableByPhi):
+class IIT3SystemIrreducibilityAnalysis(
+    HasProvenance, Displayable, cmp.OrderableByPhi, Serializable
+):
     """An analysis of system irreducibility (|big_phi|).
 
     Contains the |big_phi| value of the |System| and the intermediate

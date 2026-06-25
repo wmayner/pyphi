@@ -19,6 +19,7 @@ from pyphi.display.tables import capped_table
 from pyphi.models.explanation import Explanation
 from pyphi.models.explanation import Finding
 from pyphi.provenance import HasProvenance
+from pyphi.serializable import Serializable
 
 from . import cmp
 from . import fmt
@@ -406,7 +407,7 @@ class Event(namedtuple("Event", ["actual_cause", "actual_effect"])):
         return self.actual_cause.mechanism
 
 
-class Account(Displayable, cmp.Orderable, Sequence):
+class Account(Displayable, cmp.Orderable, Sequence, Serializable):
     """The set of |CausalLinks| with |alpha > 0|. This includes both actual
     causes and actual effects.
     """
@@ -552,7 +553,9 @@ class DirectedAccount(Account):
 
 # TODO(slipperyhank): Check if we do the same, i.e. take the bigger system, or
 # take the smaller?
-class AcSystemIrreducibilityAnalysis(HasProvenance, Displayable, cmp.Orderable):
+class AcSystemIrreducibilityAnalysis(
+    HasProvenance, Displayable, cmp.Orderable, Serializable
+):
     """An analysis of transition-level irreducibility (|big_alpha|).
 
     Contains the |big_alpha| value of the |Transition|, the causal account, and
