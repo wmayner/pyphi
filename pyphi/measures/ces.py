@@ -231,13 +231,10 @@ def _emd(
     d1 = [c.phi for c in unique_C1] + [0] * M + [0]
     d2 = [0] * N + [c.phi for c in unique_C2] + [0]
     # Balance the two phi signatures onto a common total mass by assigning each
-    # side's deficit to its own null concept, keeping both signatures
-    # non-negative (a valid optimal-transport problem). The earlier formulation
-    # put the whole difference on ``d2``'s null as ``sum(d1) - sum(d2)``, which
-    # went negative whenever the partitioned constellation carried more phi than
-    # the unpartitioned one -- a signed "measure" a correct EMD solver cannot
-    # transport. This form is identical to the old one when ``sum(d1) >=
-    # sum(d2)`` and is symmetric in the two constellations.
+    # side's deficit to its own null concept. Both signatures stay non-negative
+    # (a valid optimal-transport problem) even when the partitioned constellation
+    # carries more phi than the unpartitioned one, and the construction is
+    # symmetric in the two constellations.
     sum1, sum2 = sum(d1), sum(d2)
     total = max(sum1, sum2)
     d1[-1] = total - sum1

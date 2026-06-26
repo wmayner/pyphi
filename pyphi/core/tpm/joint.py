@@ -75,7 +75,7 @@ class JointTPM:
         return np.array_equal(np.asarray(self), np.asarray(other))
 
     def __getattr__(self, name: str) -> Any:
-        # Passthrough for legacy methods not yet lifted to the Protocol surface.
+        # Passthrough to the inner array for methods not on the Protocol surface.
         # Guard: skip dunder/sunder names (pickle, copy, etc.) and bail
         # if _inner hasn't been set (during unpickling __new__).
         if name.startswith("_"):

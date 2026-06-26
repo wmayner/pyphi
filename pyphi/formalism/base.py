@@ -59,8 +59,8 @@ class PhiFormalism(Protocol):
     - ``config``: the :class:`FormalismConfig` snapshot the formalism
       operates against.
 
-    Signatures are intentionally permissive (``Any``) until the measure and
-    partition Protocols tighten in a future cleanup pass.
+    Signatures are permissive (``Any``) over the measure and partition
+    arguments.
     """
 
     name: ClassVar[str]

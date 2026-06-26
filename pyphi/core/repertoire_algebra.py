@@ -4,9 +4,6 @@ Layer 2 of the kernel. Functions take a System as the first
 argument; results are memoized via a per-instance decorator that purges
 when the System is garbage-collected.
 
-Numerical bodies are ports of the corresponding System methods in
-the legacy ``pyphi.system`` module. Parity tests guard equivalence.
-
 Threading
 ---------
 The kernel cache is NOT thread-safe — see :mod:`pyphi.cache` for the
@@ -186,8 +183,7 @@ def _cause_repertoire_inner(
     """Joint cause repertoire for non-empty mechanism and purview.
 
     The joint distribution is the (normalized) product of the per-node
-    cause repertoires. Equivalent to legacy
-    ``System._cause_repertoire``.
+    cause repertoires.
     """
     purview_set: frozenset[int] = frozenset(purview)
     alphabet_sizes = cs.substrate.factored_tpm.alphabet_sizes
@@ -386,7 +382,7 @@ def forward_cause_repertoire(
     purview_state: tuple[int, ...] | None = None,
     mechanism_state: tuple[int, ...] | None = None,
 ) -> Any:
-    """Forward cause repertoire — legacy ``_repertoire.forward_cause_repertoire``."""
+    """Forward cause repertoire."""
     import itertools
 
     if mechanism_state is None:

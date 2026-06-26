@@ -90,7 +90,7 @@ def system_intrinsic_information(
     compute intrinsic information; passed explicitly by the active
     formalism rather than read from config.
 
-    NOTE: State ties are arbitrarily broken (for now).
+    NOTE: State ties are arbitrarily broken.
     """
     directions = fallback(directions, Direction.both())
     # Ensure directions is not None before converting to tuple

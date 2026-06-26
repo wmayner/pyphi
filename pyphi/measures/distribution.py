@@ -71,15 +71,10 @@ class DistanceResult(PyPhiFloat):
         passed as keyword arguments.
 
     Note:
-        **NumPy Array Performance**: When creating NumPy arrays from DistanceResult
-        objects, the ``__array__`` protocol automatically extracts float values,
-        creating fast float64 arrays. Metadata is not preserved in the array.
-
-        This design provides the best of both worlds:
-
-        - **Batch numerical analysis**: ``DistanceResult.values_array(results)``
-          returns the float values as a NumPy array (metadata dropped).
-        - **Sophisticated users**: Metadata available on individual results
+        To build a NumPy float64 array from a collection of ``DistanceResult``
+        objects, use ``DistanceResult.values_array(results)``: it extracts the
+        float values and drops the metadata. The metadata stays available on
+        the individual results.
 
     Examples:
         Basic usage with metadata:
@@ -211,8 +206,7 @@ class DistanceResult(PyPhiFloat):
         dropped — callers that need it should iterate the input directly.
         Use this method when you want explicit control over the metadata-loss
         boundary, rather than relying on implicit ``np.array(results)``
-        coercion (which was previously implemented via ``__array__`` and
-        silently dropped metadata at unpredictable points).
+        coercion, which silently drops metadata.
 
         Args:
             results: Iterable of DistanceResult objects.

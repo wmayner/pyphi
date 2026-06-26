@@ -36,8 +36,7 @@ Registering more constraints is a matter of appending a
 :func:`register_constraint`); add only ones backed by a confirmation
 experiment.
 
-Two previously-deferred constraints were resolved by confirmation experiment
-(seed 20260618):
+Two constraints that might seem warranted are deliberately absent:
 
 - **EMD precision** — no constraint. Under the POT backend (``ot.emd2``, an
   exact network-simplex LP) the EMD noise floor is machine epsilon, and IIT 3.0

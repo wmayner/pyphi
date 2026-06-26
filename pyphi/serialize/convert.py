@@ -1,9 +1,8 @@
 """Convert between PyPhi domain objects and their msgspec schema Structs.
 
 Two registries map a domain type to its encoder and a schema Struct type to its
-decoder. This replaces the per-class ``to_json`` / ``from_json`` methods. Each
-serializable type adds one ``_register_<type>()`` populating both registries,
-all called at import time.
+decoder. Each serializable type adds one ``_register_<type>()`` populating both
+registries, invoked on first use via ``_ensure_registered()``.
 """
 
 from collections.abc import Callable
