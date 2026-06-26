@@ -1,0 +1,1 @@
+`pyphi.serialize.save`/`load` (and the `.save()`/`.load()` result methods and `pyphi.save`/`load`) now transparently gzip-compress when the path ends in `.gz`: `result.save("ces.json.gz")` writes gzip-compressed JSON, `serialize.save(x, "x.msgpack.gz")` gzip-compressed msgpack. The wire format is taken from the inner suffix; `format=` still overrides it.
