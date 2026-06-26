@@ -227,7 +227,18 @@ addopts = [
     "--ignore=./scripts",
     "-vv",
 ]
-norecursedirs = ["docs/_*"]
+norecursedirs = [
+    "*.egg",
+    ".*",
+    "_darcs",
+    "build",
+    "CVS",
+    "dist",
+    "node_modules",
+    "venv",
+    "{arch}",
+    "docs/_*",
+]
 markers = [
     "emd: marks tests that require the POT package (deselect with '-m \"not emd\"')",
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
@@ -237,9 +248,11 @@ filterwarnings = [
     "ignore::ImportWarning",
     "ignore:The distutils package is deprecated:DeprecationWarning",
     "ignore:distutils Version classes are deprecated:DeprecationWarning",
-    "ignore::FutureWarning",
-    "ignore::UserWarning",
-    "ignore::DeprecationWarning",
+    # PyPhi's own intentional runtime notice, emitted whenever a config or
+    # preset switch changes `distinction_phi_normalization`. Suppressed here so
+    # the many tests that change config do not fail on an informational warning;
+    # tests that assert it fires still catch it via `pytest.warns`.
+    "ignore::pyphi.warnings.PyPhiWarning",
 ]
 
 [tool.coverage.run]

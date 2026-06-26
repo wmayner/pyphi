@@ -34,7 +34,8 @@ class TestIIT3MatchesYamlReference:
     """
 
     @pytest.fixture(scope="class")
-    def yml(self) -> dict:
+    @staticmethod
+    def yml() -> dict:
         path = Path(__file__).resolve().parent.parent.parent / "pyphi_config_3.0.yml"
         with path.open() as f:
             return yaml.safe_load(f)
