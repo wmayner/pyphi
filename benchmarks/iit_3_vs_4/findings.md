@@ -101,3 +101,61 @@ attribute-access overhead.
 
 *(Raw: `results/{pre,post}/{macro,rule154}_iit4_*_seed0_trial*.{json,pstats}`;
 controls reproducible via `uv run python -m benchmarks.iit_3_vs_4.controls`.)*
+
+## Finding 7 — the hot-path config flags behave as documented; both pre-2.0 config bugs are fixed
+
+The Part 4 config-behavior sweep (`config_sweep.py`) audits the configuration
+flags the IIT 4.0 hot paths read, asserting that documented behavior equals
+observed behavior. Every audited flag matches its documentation, and the two
+config bugs that existed before the 2.0 refactor are both closed.
+
+**The global parallel switch now gates the per-level flags (pre-2.0 bug
+fixed).** Before the refactor, `PARALLEL=False` did not reliably disable
+parallelism: several call sites passed a truthy per-level config dict as the
+`parallel` keyword, bypassing the old `MapReduce` class's `if self.parallel`
+guard, so subprocesses spawned even with the global flag off. In 2.0 the
+per-site kwargs are built by `conf.parallel_kwargs()`, which forces
+`parallel=False` whenever `config.infrastructure.parallel` is off. Spying on
+the two branches of `pyphi.parallel.map_reduce` (the in-process
+`_map_sequential` versus the `default_scheduler` that owns subprocess dispatch)
+across a `macro` SIA confirms the gate: the scheduler is entered **only** when
+both the global flag and the per-level `parallel_partition_evaluation` flag are
+True. With the global flag off, the in-process sequential branch runs even when
+the per-level dict requests parallel.
+
+| global `parallel` | per-level `parallel` | subprocess scheduler entered |
+|---|---|---|
+| False | False | no |
+| False | True | **no** (global gate forces sequential) |
+| True | True | yes |
+| True | False | no |
+
+**Incompatible config combinations raise a clean error, not a raw crash
+(pre-2.0 bug fixed).** Before the refactor, pairing `IIT_3_0` with
+`GENERALIZED_INTRINSIC_DIFFERENCE` raised a raw `AttributeError` deep in the
+compute path. The sweep runs every (version × measure × system-scheme)
+combination on `basic_system`: of the 18 combinations, 9 compute a valid φ and
+9 are cleanly rejected at override time with a `ConfigurationError` that names
+the conflicting fields and a fix; none raise a raw exception. The eager check
+(`validate_config`, on by default) is what converts a deep compute-time failure
+into a config-time error: with `validate_config=False` the `IIT_3_0` + GID
+combination is accepted at override time but raises a *typed*
+`MeasureNotCompatibleError` at compute time (itself an improvement over the
+pre-2.0 raw `AttributeError`); with the default eager check it is rejected
+before any computation runs.
+
+**`shortcircuit_sia` is a φ-preserving optimization.** The flag toggles an
+early null-SIA return for systems with no specified cause or effect. φ is
+identical with the flag on and off on every strongly-connected standard example
+(`basic`, `xor`, `grid3`, `macro`). A pure-noise 2-node substrate (every node
+outputs 0.5) exercises the live short-circuit path: it returns reasons
+`NO_CAUSE`/`NO_EFFECT`, and φ is the same (0.0) with the flag on or off.
+
+**The cache flags never change the result.** `cache_repertoires` and
+`cache_potential_purviews` are performance policy only: `basic_system` φ is
+identical (0.415037) with both caches on and both off.
+
+**No `pyphi/` change was warranted.** The audit found no documented-versus-actual
+mismatch, so no source fix and no golden revalidation were needed.
+
+*(Reproducible via `uv run python -m benchmarks.iit_3_vs_4.config_sweep`.)*
