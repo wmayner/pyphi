@@ -9,7 +9,7 @@
 [![Codecov](https://img.shields.io/codecov/c/github/wmayner/pyphi/main?style=flat-square)](https://codecov.io/gh/wmayner/pyphi)
 [![Documentation](https://img.shields.io/readthedocs/pyphi/stable?style=flat-square)](https://pyphi.readthedocs.io/)
 [![PyPI version](https://img.shields.io/pypi/v/pyphi?style=flat-square)](https://pypi.org/project/pyphi/)
-[![Python 3.12+](https://img.shields.io/pypi/pyversions/pyphi?style=flat-square)](https://pypi.org/project/pyphi/)
+[![Python 3.13+](https://img.shields.io/pypi/pyversions/pyphi?style=flat-square)](https://pypi.org/project/pyphi/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat-square)](https://www.gnu.org/licenses/gpl-3.0)
 
 PyPhi is a Python library for computing integrated information (𝚽), and the
@@ -61,7 +61,7 @@ uv pip install pyphi
 
 ### Using pip
 
-Set up a Python 3.12+ virtual environment and install with:
+Set up a Python 3.13+ virtual environment and install with:
 
 ```bash
 pip install pyphi

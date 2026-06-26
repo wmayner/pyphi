@@ -112,7 +112,7 @@ Create and activate a conda environment:
 
 .. code:: bash
 
-    conda create --name <name_of_your_project> python=3.12
+    conda create --name <name_of_your_project> python=3.13
     conda activate <name_of_your_project>
 
 Install PyPhi:

@@ -282,7 +282,7 @@ uv run python -c "import pyphi; print(pyphi.config)"
 
 ## Python version
 
-**We will support only Python 3.12+ for this version.** Therefore, when writing code, **do not attempt to maintain backward compatibility with previous Python versions.**
+**We will support only Python 3.13+ for this version.** Therefore, when writing code, **do not attempt to maintain backward compatibility with previous Python versions.**
 
 ---
 
