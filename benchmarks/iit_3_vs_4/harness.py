@@ -56,37 +56,42 @@ except ImportError:
     GENERATION = "pre"
 
 
-from pyphi.parallel import MapReduce
-
-
 RESULTS_DIR = Path(__file__).parent / "results" / GENERATION
 
 
 # ---------------------------------------------------------------------------
-# Sequential MapReduce workaround
+# Sequential execution — keep all work in-process so cProfile captures it
 # ---------------------------------------------------------------------------
 
-@contextlib.contextmanager
-def force_sequential_mapreduce() -> Iterator[None]:
-    """Force MapReduce to always run sequentially for the duration of the block.
+if GENERATION == "pre":
+    # Pre-refactor: the parallel engine is the `MapReduce` class, and several
+    # call sites pass a truthy config dict as the `parallel` keyword, bypassing
+    # the `if self.parallel:` check so subprocesses spawn even when the global
+    # flag is False. Patch `MapReduce.run` to force sequential mode.
+    from pyphi.parallel import MapReduce  # type: ignore[attr-defined]
 
-    Several pyphi call sites pass parallel-evaluation config dicts as the
-    `parallel` keyword to MapReduce; the truthy dict bypasses MapReduce's
-    `if self.parallel:` check, so subprocesses spawn even when the global
-    parallel flag is False. cProfile (running only in the parent process)
-    misses the actual work in that case. This patch forces sequential mode.
-    """
-    original_run = MapReduce.run
+    @contextlib.contextmanager
+    def force_sequential_mapreduce() -> Iterator[None]:
+        original_run = MapReduce.run
 
-    def patched_run(self: MapReduce) -> Any:
-        self.parallel = False
-        return original_run(self)
+        def patched_run(self: Any) -> Any:
+            self.parallel = False
+            return original_run(self)
 
-    MapReduce.run = patched_run  # type: ignore[method-assign]
-    try:
+        MapReduce.run = patched_run  # type: ignore[method-assign]
+        try:
+            yield
+        finally:
+            MapReduce.run = original_run  # type: ignore[method-assign]
+else:
+    # Post-refactor: the parallel engine is the `map_reduce()` function; every
+    # call site passes `parallel` from config, so the harness's
+    # `parallel=False` override already forces serial in-process execution
+    # (`map_reduce(..., parallel=False)` runs the map in this process). No
+    # monkeypatch needed; this context manager is a no-op kept for symmetry.
+    @contextlib.contextmanager
+    def force_sequential_mapreduce() -> Iterator[None]:
         yield
-    finally:
-        MapReduce.run = original_run  # type: ignore[method-assign]
 
 
 # ---------------------------------------------------------------------------
@@ -98,6 +103,30 @@ class NetworkFixture:
     name: str
     builder: Callable[[], Any]
     n_nodes: int
+
+
+def _logistic3_k8_system() -> Any:
+    """3-node fully-connected logistic substrate (k=8, weights 0.3) at (0,0,0).
+
+    The cap-biting network from the Eq-23 oracle: phi_2023 ~ 0.037,
+    phi_2026 ~ 0.003, so the 2026 ii(s) cap binds at a non-trivial value
+    (unlike the standard examples, where the 2026 variant short-circuits to 0).
+    """
+    import itertools
+
+    import numpy as np
+
+    from pyphi import Substrate, System
+
+    k = 8.0
+    weights = np.full((3, 3), 0.3)
+    cm = np.ones((3, 3), dtype=int)
+    tpm = np.zeros((8, 3))
+    for i, s in enumerate(itertools.product([-1, 1], repeat=3)):
+        for j in range(3):
+            inp = sum(weights[ki, j] * s[ki] for ki in range(3))
+            tpm[i, j] = 1.0 / (1.0 + np.exp(-k * inp))
+    return System(Substrate(tpm, cm), (0, 0, 0))
 
 
 if GENERATION == "pre":
@@ -117,6 +146,7 @@ else:
         "macro": NetworkFixture("macro", examples.macro_system, 4),
         "residue": NetworkFixture("residue", examples.residue_system, 5),
         "rule154": NetworkFixture("rule154", examples.rule154_system, 5),
+        "logistic3_k8": NetworkFixture("logistic3_k8", _logistic3_k8_system, 3),
     }
 
 

@@ -1,0 +1,33 @@
+{
+  "config_snapshot": {
+    "ces_measure": "SUM_SMALL_PHI",
+    "mechanism_partition_scheme": "JOINT_PARTITION_ALL",
+    "mechanism_phi_measure": "GENERALIZED_INTRINSIC_DIFFERENCE",
+    "parallel": false,
+    "sia_tie_resolution": [
+      "NORMALIZED_PHI",
+      "NEGATIVE_PHI",
+      "PARTITION_LEX"
+    ],
+    "system_partition_scheme": "DIRECTED_SET_PARTITION",
+    "system_phi_measure": "INTRINSIC_INFORMATION",
+    "version": "IIT_4_0_2026"
+  },
+  "generation": "post",
+  "measurement": "iit4_sia_2026",
+  "n_nodes": 3,
+  "network": "logistic3_k8",
+  "phase_times_s": {
+    "pyphi/formalism/iit4::evaluate_partition": 0.040159292,
+    "pyphi/formalism/iit4::sia": 0.048759166,
+    "pyphi/formalism/queries.py::sia": 0.048807042,
+    "pyphi/system.py::intrinsic_information": 0.004861084
+  },
+  "pstats_path": "logistic3_k8_iit4_sia_2026_seed0_trial0.pstats",
+  "pyphi_version": "unknown",
+  "result_phi": 0.0032300813135736992,
+  "seed": 0,
+  "trial": 0,
+  "wall_ns": 48832500,
+  "wall_s": 0.0488325
+}
