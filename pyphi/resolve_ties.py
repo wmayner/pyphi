@@ -660,8 +660,8 @@ def _strategies_to_key_function(strategies):
     )
 
 
-# TODO(4.0) docstring
-# TODO(4.0) fix this implementation so we only need one pass; currently,
+# TODO: docstring
+# TODO: fix this implementation so we only need one pass; currently,
 # all_maxima only works if equality semantics are correct for this purpose, and
 # RIA equality checks purview equality, so they are not.
 # def resolve(objects, strategy, operation=all_maxima, default=NO_DEFAULT):

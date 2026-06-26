@@ -215,7 +215,7 @@ class SystemStateSpecification(Displayable, ToDictMixin, ToPandasMixin):
 
     def _repr_columns(self, prefix: str = "") -> list[tuple[str, Any]]:
         cols = []
-        # TODO(4.0) create NullStateSpecification and use that instead of None
+        # TODO: create NullStateSpecification and use that instead of None
         if self.cause is not None:
             cols.extend(self.cause._repr_columns(prefix))
         else:

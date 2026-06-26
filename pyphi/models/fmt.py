@@ -422,7 +422,7 @@ def fmt_partition(partition: object) -> str:
     Returns:
         str: A human-readable string representation of the partition.
     """
-    # TODO(4.0) deprecate
+    # TODO: deprecate
     MULTIPLY = "✕"
 
     if not partition:

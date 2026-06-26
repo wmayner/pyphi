@@ -144,7 +144,7 @@ def settle(tpm, initial_state, *, clamp=None, max_steps=None):
             raise NonConvergenceError(f"did not settle within max_steps={max_steps}")
 
 
-# TODO(4.0): move to tpm module
+# TODO: move to tpm module
 def number_of_units(tpm: ArrayLike):
     return tpm.shape[-1]  # pyright: ignore[reportAttributeAccessIssue]
 

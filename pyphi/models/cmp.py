@@ -125,7 +125,7 @@ def numpy_aware_eq(a: Any, b: Any) -> bool:  # noqa: PLR0911
             return np.allclose(a, b, rtol=EQUALITY_TOLERANCE, atol=EQUALITY_TOLERANCE)
         except (ValueError, TypeError):
             return False
-    # TODO(4.0) this is broken if the iterables are sets
+    # TODO: this is broken if the iterables are sets
     if (
         (isinstance(a, Iterable) and isinstance(b, Iterable))
         and not isinstance(a, str)

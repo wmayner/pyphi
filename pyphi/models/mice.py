@@ -36,7 +36,7 @@ if TYPE_CHECKING:
 from . import cmp
 
 
-# TODO(4.0) implement as a subclass of RIA?
+# TODO: implement as a subclass of RIA?
 class MaximallyIrreducibleCauseOrEffect(
     Displayable, cmp.Orderable, ToDictFromExplicitAttrsMixin, ToPandasMixin
 ):
@@ -101,7 +101,7 @@ class MaximallyIrreducibleCauseOrEffect(
     def purview_units(self):
         return self.ria.purview_units
 
-    # TODO(4.0) remove or rename to "purview_current_state"
+    # TODO: remove or rename to "purview_current_state"
     @property
     def purview_state(self):
         """tuple[int]: The current state of the purview."""

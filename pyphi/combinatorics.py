@@ -15,7 +15,7 @@ import numpy as np
 
 from .cache import cache
 
-# TODO(4.0) move relevant functions from utils here
+# TODO: move relevant functions from utils here
 
 
 # TODO(docs) finish documenting

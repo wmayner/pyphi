@@ -16,5 +16,4 @@ ON: tuple[int, ...] = (1,)
 
 
 # Probability value below which we issue a warning about precision.
-# TODO(4.0)
 TPM_WARNING_THRESHOLD: float = 1e-10

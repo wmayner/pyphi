@@ -263,7 +263,7 @@ class JointDistribution(data_structures.ArrayLike):
         for _state in all_states(tpm.shape[-1]):
             pass
 
-    # TODO(4.0) docstring
+    # TODO: docstring
     def permute_nodes(self, permutation: tuple[int, ...]) -> JointDistribution:
         if not len(permutation) == self.ndim - 1:
             raise ValueError(
@@ -459,7 +459,7 @@ class JointTPM(Displayable, JointDistribution):
         Multi-valued substrates use :meth:`FactoredTPM.tpm_indices`
         instead.
         """
-        return tuple(np.where(np.array(self.shape[:-1]) == 2)[0])
+        return tuple(int(i) for i in np.where(np.array(self.shape[:-1]) == 2)[0])
 
     def expand_tpm(self) -> JointTPM:
         """Broadcast a state-by-node TPM so that singleton dimensions are expanded

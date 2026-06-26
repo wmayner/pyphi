@@ -72,7 +72,7 @@ from pyphi.system import System
 ##############################################################################
 
 
-# TODO(4.0) refactor
+# TODO: refactor
 def system_intrinsic_information(
     system: System,
     *,
@@ -758,7 +758,7 @@ def sia(
         partition_scheme, config.formalism.iit.system_partition_scheme
     )
 
-    # TODO(4.0): trivial reducibility
+    # TODO: trivial reducibility
 
     # Check for degenerate cases
     # =========================================================================

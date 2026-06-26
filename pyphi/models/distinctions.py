@@ -120,7 +120,7 @@ class Distinctions(Displayable, cmp.Orderable, Sequence, ToPandasMixin, Serializ
     Holds the read-only operations shared by :class:`UnresolvedDistinctions`
     and :class:`ResolvedDistinctions`. Instantiable directly for the
     rare cases where the resolution status is genuinely unknown (e.g.,
-    deserializing a pre-P11.9 JSON fixture); new code should construct
+    deserializing a legacy fixture); new code should construct
     one of the marker subtypes so passing the result to a function that
     requires a specific resolution status is checked at the type level.
     """

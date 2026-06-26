@@ -67,7 +67,7 @@ class Distinction(
         self.cause = cause
         self.effect = effect
         # Attach references to this object on the cause and effect
-        # TODO(4.0) document this
+        # TODO: document this
         assert self.cause is not None
         assert self.effect is not None
         self.cause.parent = self
@@ -191,7 +191,7 @@ class Distinction(
             substrate_note=common["substrate_note"],
         )
 
-    # TODO(4.0) rename?
+    # TODO: rename?
     def mice(self, direction):
         if direction is Direction.CAUSE:
             return self.cause

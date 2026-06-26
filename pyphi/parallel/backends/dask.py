@@ -51,5 +51,5 @@ class DaskScheduler:
         )
         raise NotImplementedError(
             "DaskScheduler is a stub; fill in for cluster deployments. "
-            "See ROADMAP P18 for the follow-up project."
+            "Full Dask/cluster support is a planned follow-up."
         )

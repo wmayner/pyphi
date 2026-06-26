@@ -9,7 +9,7 @@ from pyphi.utils import eq
 _NUMERIC_TYPES = (int, float)
 
 
-# TODO(4.0) use throughout
+# TODO: use throughout
 class PyPhiFloat(float):
     """A floating-point value that's compared using config.numerics.precision.
 

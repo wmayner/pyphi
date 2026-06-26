@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 # pylint: disable=redefined-outer-name
 
 
-# TODO(4.0) move to `Direction`
+# TODO: move to `Direction`
 def directions(directions: Iterable[Direction], **kwargs: bool) -> bool:
     """Validate each direction in an iterable.
 

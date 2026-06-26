@@ -29,7 +29,7 @@ from .models.partitions import (
 )
 from .registry import Registry
 
-# TODO(4.0) move purely combinatorial functions to `combinatorics`
+# TODO: move purely combinatorial functions to `combinatorics`
 
 
 @cache(cache={}, maxmem=None)
@@ -583,7 +583,7 @@ def all_joint_partitions(
     Yields:
         JointPartition: A partition of this mechanism and purview into ``k`` parts.
     """
-    # TODO(4.0): yield complete partition directly, then use nontrivial set partitions
+    # TODO: yield complete partition directly, then use nontrivial set partitions
     for mechanism_partition in combinatorics.set_partitions(mechanism):
         mechanism_partition.append([])
         n_mechanism_parts = len(mechanism_partition)
@@ -603,7 +603,7 @@ def all_joint_partitions(
                     ]
                     # Must partition the mechanism, unless the purview is fully
                     # cut away from the mechanism.
-                    # TODO(4.0) find a way to avoid generating these in the first place
+                    # TODO: find a way to avoid generating these in the first place
                     if parts[0].mechanism == mechanism and parts[0].purview:
                         continue
                     yield JointPartition(*parts, node_labels=node_labels)
@@ -880,7 +880,7 @@ def _directed_set_partitions(
 @system_partition_types.register("DIRECTED_SET_PARTITION")
 @functools.wraps(_directed_set_partitions)
 def directed_set_partitions(node_indices, node_labels=None):
-    # TODO(4.0) generate properly without using set
+    # TODO: generate properly without using set
     yield from unique_everseen(
         _directed_set_partitions(node_indices, node_labels=node_labels)
     )
