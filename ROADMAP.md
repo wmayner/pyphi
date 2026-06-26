@@ -48,7 +48,7 @@ P0 · P1 · P2 · P3 · P4 · P5 · P6 · P6a · **P6b** (graphillion removed; p
 | P15 | 🟡 partial | 5 | Import-surface cleanup landed (eager submodule walk → explicit registry imports + PEP-562 lazy `__getattr__`, guarded by a registry-contents test). jsonify→msgspec landed (`pyphi.serialize` replaces `pyphi.jsonify`; the per-class `to_json`/`from_json` hooks removed) **plus its loading surface** (path-based `serialize.save`/`load`, top-level `pyphi.save`/`pyphi.load`, `.save()`/`.load()` on the result types via a delegation-only `Serializable` mixin, deferred type registration, `substrate.from_json` removed, transparent gzip on `.gz` paths). pandas-extend done (display → B21). Project-stage markers stripped from `pyphi/` + a docstring narrative-removal slice landed. PR triage done (audit against `main`: nothing left to absorb; closes pending a maintainer). Test suite reorganized to mirror the `pyphi/` package layout (`test/<subpackage>/` + `test/integration/`). Remaining: the comprehensive docstring/docs sweep (now its own [Documentation overhaul](#documentation-overhaul-20--iit-40) project), changelog condense |
 | B17 drop dead deps | ✅ landed | 5 | Removed the declared-but-unused `tblib`; deleted the unused `OrderedSet`/`HashableOrderedSet` types (a sorted tuple is the better unit representation) and dropped `ordered-set`; migrated `toolz` to stdlib `itertools.chain.from_iterable`, `more_itertools.unique_everseen`, and `functools.partial`. Landed with the import-surface cleanup; spec/plan `docs/superpowers/{specs,plans}/2026-06-24-import-surface-cleanup*` |
 | EMD backend → POT | ✅ landed | 5 | Swapped deprecated `pyemd` for POT (`ot.emd2`) behind `OptionalEMD`; `pyphi[emd]` extra now installs `pot`. Backends agree to machine epsilon (binary + k-ary, 3600 cases); the IIT 3.0 CES-distance EMD was reformulated to proper non-negative OT (the negative-null-mass / signed-φ case), which **reproduces the existing goldens exactly** — no regen needed. |
-| P17 | ⬜ open | 6 | Cross-formalism perf characterization (post-freeze, internal-only) |
+| P17 | 🟡 partial | 6 | Cross-formalism perf characterization (post-freeze, internal-only). Wave A (local) underway: 2026-cap cost closed (Finding 5 — cap is free) and the IIT 4.0 speedup characterized + the archive's "19–43×" corrected as a scope artifact (Finding 6 — real gain is ~18–20× per SIA partition, ~2× CES). Remaining: >5-node coverage + thresholds (server-gated), config-behavior sweep. `benchmarks/iit_3_vs_4/findings.md` |
 | P18 (+B6) | ⬜ open | 6 | Sparse / treewidth-dispatched exact inference — junction-tree marginals both directions (B6 generalizes the cause-only sparse inversion) |
 | Documentation overhaul (2.0 / IIT 4.0) | ⬜ open | 6 | Comprehensive docs as a first-class project, not a Sphinx rebuild: web-docs tooling overhaul, non-docstring narrative content brought current for 2.0 **and IIT 4.0** (the 4.0 narrative was never written), example notebooks as a curated teaching set, the migration guide, and a final-state docstring sweep. Subsumes the scattered P15 docs bullets + ship-criterion #5. Warrants its own brainstorm; the comprehensive web/notebook work depends on the frozen surface, but the docstring narrative-removal slice can proceed now. See [Documentation overhaul](#documentation-overhaul-20--iit-40). |
 
@@ -141,7 +141,7 @@ and dropped `ordered-set`; migrated `toolz` to `itertools.chain.from_iterable`,
 
 ### Wave 6 — Post-freeze internal optimization *(internal-only; do not reopen the frozen surface)*
 
-- **P17 — perf characterization.** Extend the cross-temporal benchmark beyond 5 nodes, find the interactive/batch size thresholds, characterize the mechanism behind the IIT 4.0 speedup (the archive records 19–43× at 4–5 nodes), and synthesize a network that exercises the 2026 ii-cap with non-zero φ. Needs the frozen surface + the P11.8-T2 ASV harness.
+- **P17 — perf characterization (Wave A in progress).** Extend the cross-temporal benchmark beyond 5 nodes, find the interactive/batch size thresholds, characterize the mechanism behind the IIT 4.0 speedup, and exercise the 2026 ii-cap with non-zero φ. **Correction (2026-06-26):** the archive's "19–43× IIT 4.0 speedup" was a measurement artifact — it compared pre-refactor `phi_structure` (full structure) against post-refactor `sia` (system-φ only). The de-confounded, like-for-like result is a **~18–20× faster SIA partition evaluation and ~2× faster CES**, driven by the `core/repertoire_algebra.py` kernel rewrite; the cap variant is computationally free (`benchmarks/iit_3_vs_4/findings.md`, Findings 5–6). Needs the frozen surface + the P11.8-T2 ASV harness.
 - **P18 (+B6) — sparse / treewidth-dispatched exact inference.** `_cause_tpm_factored` materializes the full `aⁿ` substrate joint; for sparse connectivity it factorizes. Confirm the bottleneck binds (record a negative result if not), then design the inference. **B6 generalizes the original cause-only sparse inversion:** compile the per-node factors into a junction tree and compute repertoire marginals in `O(2^treewidth)` via belief propagation — covering the *effect* repertoires and unconstrained-forward averages too (min-fill treewidth-driven dispatch), not just the cause inversion; treewidth, not node count, is the true exponent, and sparse biological substrates (p53-Mdm2, Gómez) have treewidth far below `n`. Gate behind byte-identical exact parity against the dense oracle. *(This is the sole "P18"; the cluster-backend deferral that once shared the label is folded into Wave 4 / P11.)*
 
 ### Documentation overhaul (2.0 / IIT 4.0)
@@ -3075,17 +3075,23 @@ accommodates non-exhaustive search strategies. Users select an approximation via
 
 **P17. Cross-formalism performance characterization + targeted optimization**
 
-*Motivation.* The 2.0 work delivered large IIT 4.0 speedups: a cross-temporal
-benchmark against commit `b3aaa3e5` (last pre-2.0 commit, parent of P0) shows
-4.0 went from 2.5× faster on 3-node networks to 19× faster on `macro` (4n)
-and 43× faster on `rule154` (5n) — the speedup widens with network size,
-which points at an algorithmic change in the formalism split rather than
-constant-factor overhead. Larissa Albantakis's original puzzle — "why isn't
-4.0 faster than 3.0?" — is now empirically resolved on the post-refactor
-surface, but the *mechanism* behind the gain hasn't been characterized, the
-2026 cap variant still returns φ=0 on every standard `pyphi.examples`
-network we ran, and the benchmark only covers up to 5 nodes because IIT 3.0
-on `rule154` already costs ~9 minutes per trial pre-refactor.
+*Motivation.* The 2.0 work delivered a real IIT 4.0 speedup, but the initial
+cross-temporal benchmark against commit `b3aaa3e5` (last pre-2.0 commit, parent
+of P0) **mis-measured it** (corrected 2026-06-26, Wave A): the harness compared
+pre-refactor `new_big_phi.phi_structure` (full structure: SIA + distinctions +
+relations) against post-refactor `formalism.sia` (system-φ only), so the
+reported "19–43× speedup widening with size" was a scope artifact — on
+`rule154`, ~97% of the gap is the CES work `sia` does not do. The de-confounded,
+like-for-like result: the **SIA inner loop is ~18–20× faster per partition** and
+the **CES ~2× faster**, driven primarily by the `core/repertoire_algebra.py`
+kernel rewrite. Net wall time can still *rise* under the default
+`DIRECTED_SET_PARTITION` scheme, which evaluates ~35× more partitions (each ~18×
+cheaper). Larissa Albantakis's original puzzle resolves as: the per-operation
+gain is real and large but masked by the scope mismatch and the scheme change
+(`benchmarks/iit_3_vs_4/findings.md`, Finding 6). Remaining P17 work: the 2026
+cap cost is now closed (Finding 5 — the cap is free; `logistic3_k8` gives
+non-zero φ_2026), so what is left is the >5-node coverage + interactive/batch
+thresholds (server-gated) and the config-behavior sweep.
 
 *Scope.*
 

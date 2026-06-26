@@ -442,5 +442,5 @@ def write_record(record: dict[str, Any]) -> Path:
         f"_seed{record['seed']}_trial{record['trial']}"
     )
     path = unique_path(RESULTS_DIR, stem, ".json")
-    path.write_text(json.dumps(record, indent=2, sort_keys=True))
+    path.write_text(json.dumps(record, indent=2, sort_keys=True) + "\n")
     return path

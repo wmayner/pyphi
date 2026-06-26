@@ -59,6 +59,17 @@ the larger ones. Phi values were stable across trials within each cell.
 | rule154 | 5 | pre  | 538.8 s  | 96.8 s                                | n/a           |
 | rule154 | 5 | post | 58.0 s   | **2.28 s**                            | 156 ms        |
 
+> **Correction (P17, see `findings.md` Finding 6).** Findings 1 and 3 below
+> compare pre-refactor `phi_structure` (full structure: SIA + distinctions +
+> relations) against post-refactor `sia` (system-φ only) — **different
+> computations**, so the "2.5×–43× speedup" is largely a scope artifact (on
+> rule154, ~97% of the gap is the CES work that `sia` simply does not do).
+> The de-confounded, like-for-like result: the SIA inner loop is **~18–20×
+> faster per partition** and the CES **~2× faster**, but under the default
+> paper-faithful `DIRECTED_SET_PARTITION` scheme the SIA evaluates ~35× more
+> partitions, so a default-config user's SIA *wall time* can be higher than
+> pre. Read Findings 1 and 3 with that correction in mind.
+
 ### Finding 1 — The 2.0 refactor delivered massive IIT 4.0 speedups, scaling with network size
 
 `iit4_sia_2023` (post-refactor) is faster than `iit4_phi_structure`
