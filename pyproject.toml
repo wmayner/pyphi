@@ -7,7 +7,8 @@ name = "pyphi"
 dynamic = ["version"]
 description = "A package for integrated information theory"
 readme = "README.md"
-license = { text = "GNU General Public License v3 or later (GPLv3+)" }
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE.md"]
 authors = [{ name = "William GP Mayner", email = "wmayner@gmail.com" }]
 keywords = [
     "neuroscience",
@@ -24,7 +25,6 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Natural Language :: English",
-    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering",
