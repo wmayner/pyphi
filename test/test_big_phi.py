@@ -15,8 +15,8 @@ Test Substrates:
 - rule152_s: 5-node cellular automaton (rule 152)
 
 Each test compares the full SIA object against a JSON fixture. These tests
-are comprehensive but brittle to serialization format changes. For more
-robust component-level tests, see test_big_phi_robust.py.
+are comprehensive but brittle to serialization format changes. For
+component-level tests, see test_iit4_sia_components.py.
 
 Test Organization:
 - Configuration tests: Verify config-dependent behavior

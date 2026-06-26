@@ -2980,9 +2980,11 @@ public API surface.
   it (SIA, PhiStructure, golden fixtures); delete the custom
   `CLASS_KEY`/`VERSION_KEY`/`ID_KEY` registry; provide `to_dict()` via `ToDictMixin`
   for types that don't need round-trip. Migration tool to rewrite old JSON.
-- Mirror `pyphi/` structure in `test/`. Split mixed `test_big_phi.py` along
-  formalism lines. Kill `test_big_phi_robust.py` by merging into main test files
-  with `robust` pytest marker.
+- Mirror `pyphi/` structure in `test/`. Organize the SIA tests by **formalism**:
+  `test_big_phi.py` mixes IIT 3.0 and 4.0 and can split along those lines.
+  `test_big_phi_robust.py` was renamed to `test_iit4_sia_components.py` (it is
+  the IIT 4.0 SIA component-level test set — scalar φ regression,
+  repertoire/partition structure — distinct from the whole-object golden tests).
 - Sphinx site rebuilt against new architecture. New "Architecture" guide explaining
   the `Substrate → System → PhiFormalism → PhiStructure` layering, with
   direct citations to Albantakis et al. 2023 equations on every public method.

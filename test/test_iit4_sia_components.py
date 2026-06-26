@@ -1,5 +1,5 @@
 """
-Robust component-level tests for System Irreducibility Analysis (SIA).
+Component-level tests for System Irreducibility Analysis (SIA).
 
 These tests complement the golden tests in test_big_phi.py by providing:
 1. Serialization-independent phi value checks
@@ -8,8 +8,8 @@ These tests complement the golden tests in test_big_phi.py by providing:
 4. Fast-running regression tests
 
 Unlike the golden tests which compare entire SIA objects against JSON
-fixtures, these tests check individual components. This makes them more
-robust to refactoring, especially data model changes.
+fixtures, these tests check individual components, so a data-model change
+does not break them.
 
 Expected values are extracted from the same JSON fixtures used by golden
 tests, ensuring consistency.
