@@ -159,3 +159,54 @@ identical (0.415037) with both caches on and both off.
 mismatch, so no source fix and no golden revalidation were needed.
 
 *(Reproducible via `uv run python -m benchmarks.iit_3_vs_4.config_sweep`.)*
+
+## Finding 8 — 6-7 node sizing: the SIA cost is bimodal (reducible short-circuits vs. full search), and n=7 is batch-only
+
+Part 3 extends the harness to seeded 6-7 node networks
+(`harness._synth_system`): an Ising substrate at the all-off state with an
+Erdős–Rényi connectivity mask (a `sparse` and a `dense` density per size), edge
+weights drawn from a fixed-seed `default_rng`, and the TPM built by the Ising
+unit function at `temperature=0.25`. The four networks (`synth_n6_sparse`,
+`synth_n6_dense`, `synth_n7_sparse`, `synth_n7_dense`) and their generative
+inputs are committed under `results/synth_fixtures/`.
+
+**The SIA cost is bimodal, and the generator must target the expensive mode.**
+With mean-zero coupling weights the all-off state is almost always *reducible*:
+the partition search finds a zero-φ partition early and `map_reduce`'s
+`is_falsy` short-circuit stops it, so the SIA returns in well under a second and
+never touches most of the partition set. Out of 20 mean-zero seeds at n=6, none
+produced an integrated system. This makes mean-zero networks useless for
+characterizing the full-search cost. A positive (ferromagnetic) coupling mean
+fixes it: at mean 1.0, 11 of 12 n=6 dense seeds integrate and run the full
+`DIRECTED_SET_PARTITION` search (~11 s bare, ~24 s under the harness's
+`cProfile` wrapper); the generator therefore draws weights with mean 1.0. The φ
+values are small (n=6 sparse φ = 5.96e-4, n=6 dense φ = 2.9e-6) but the
+*computation* is the full search, which is the quantity the matrix sizes.
+
+**Partition count grows ~7.8× per node** under the default
+`DIRECTED_SET_PARTITION` scheme:
+
+| n | DIRECTED_SET_PARTITION partitions | ratio to n−1 |
+|---|---|---|
+| 3 | 22 | — |
+| 4 | 150 | 6.8× |
+| 5 | 1061 | 7.1× |
+| 6 | 7896 | 7.4× |
+| 7 | 61888 | 7.8× |
+
+**Measured n=6 sizing (3 trials each, harness `cProfile` mode):** sparse
+median 25.8 s (25.3 / 27.1 / 25.8), dense median 23.1 s (26.4 / 22.8 / 23.1); φ
+identical across trials (the construction is deterministic in the seed). Bare
+(un-profiled) cost is roughly half that, ~11 s.
+
+**n=7 is batch-only — it belongs on the server (Wave B).** Scaling the n=6
+profiled cost by the 7.8× partition growth alone projects ~3 min/trial at n=7,
+and the true factor is larger because per-partition repertoire algebra also
+grows with n; a single n=7 trial is realistically 4-8 min. The full Wave B 4.0
+matrix (sparse + dense × {2023, 2026} × 3 trials at n=7, plus n=6) is on the
+order of an hour of compute — past the interactive budget, which is why the n=7
+runs are deferred to the lab server. n=7 was deliberately **not** run locally.
+
+*(Fixtures: `results/synth_fixtures/{name}.json` — seed, weights, CM, TPM;
+regenerate with `uv run python -m benchmarks.iit_3_vs_4.synth_fixtures`. n=6
+raw: `results/post/synth_n6_*_iit4_sia_2023_seed0_trial*.json`.)*

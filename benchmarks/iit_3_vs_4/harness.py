@@ -98,6 +98,7 @@ else:
 # Network fixtures (generation-specific)
 # ---------------------------------------------------------------------------
 
+
 @dataclasses.dataclass(frozen=True)
 class NetworkFixture:
     name: str
@@ -129,6 +130,41 @@ def _logistic3_k8_system() -> Any:
     return System(Substrate(tpm, cm), (0, 0, 0))
 
 
+_SYNTH_COUPLING_MEAN = 1.0
+_SYNTH_COUPLING_SD = 0.5
+_SYNTH_TEMPERATURE = 0.25
+
+
+def _synth_system(n: int, density: float, seed: int) -> Any:
+    """A seeded n-node Ising substrate at the all-off state.
+
+    Connectivity is an Erdős–Rényi mask at the given ``density`` (self-loops
+    forced on); edge weights are drawn from an isolated ``default_rng(seed)``
+    (the seed is saved in the result JSON and in the committed fixture). The
+    TPM is built with the Ising unit function at ``temperature=0.25`` (the
+    sharp-sigmoid k=4 regime of the paper-faithful 4.0 examples); the
+    connectivity matrix is derived from the nonzero weights.
+
+    Weights are drawn with a positive (ferromagnetic) mean. With mean-zero
+    weights the all-off state is almost always reducible, so the SIA
+    short-circuits at the first zero-φ partition and never exercises the full
+    partition search; a positive coupling mean makes the system integrate, so
+    the SIA evaluates the full ``DIRECTED_SET_PARTITION`` set — the cost the
+    6-7 node matrix is meant to characterize.
+    """
+    import numpy as np
+
+    from pyphi import System
+    from pyphi.substrate_generator import build_substrate
+
+    rng = np.random.default_rng(seed)
+    mask = rng.random((n, n)) < density
+    np.fill_diagonal(mask, True)
+    weights = mask * rng.normal(_SYNTH_COUPLING_MEAN, _SYNTH_COUPLING_SD, size=(n, n))
+    substrate = build_substrate("ising", weights, temperature=_SYNTH_TEMPERATURE)
+    return System(substrate, (0,) * n)
+
+
 if GENERATION == "pre":
     NETWORKS: dict[str, NetworkFixture] = {
         "basic": NetworkFixture("basic", examples.basic_subsystem, 3),
@@ -147,6 +183,18 @@ else:
         "residue": NetworkFixture("residue", examples.residue_system, 5),
         "rule154": NetworkFixture("rule154", examples.rule154_system, 5),
         "logistic3_k8": NetworkFixture("logistic3_k8", _logistic3_k8_system, 3),
+        "synth_n6_sparse": NetworkFixture(
+            "synth_n6_sparse", lambda: _synth_system(6, 0.35, 6001), 6
+        ),
+        "synth_n6_dense": NetworkFixture(
+            "synth_n6_dense", lambda: _synth_system(6, 0.85, 6002), 6
+        ),
+        "synth_n7_sparse": NetworkFixture(
+            "synth_n7_sparse", lambda: _synth_system(7, 0.30, 7001), 7
+        ),
+        "synth_n7_dense": NetworkFixture(
+            "synth_n7_dense", lambda: _synth_system(7, 0.80, 7002), 7
+        ),
     }
 
 
@@ -181,6 +229,7 @@ def measurement_callable(name: str, target: Any) -> Callable[[], Any]:
 # ---------------------------------------------------------------------------
 # Config overrides (generation-specific schema)
 # ---------------------------------------------------------------------------
+
 
 def overrides_for(measurement: str) -> dict[str, Any]:
     """Return the config.override(**kwargs) dict for a given measurement.
@@ -242,8 +291,13 @@ def snapshot_config() -> dict[str, Any]:
     """
     if GENERATION == "pre":
         names = [
-            "IIT_VERSION", "PARALLEL", "REPERTOIRE_DISTANCE", "CES_DISTANCE",
-            "SYSTEM_PARTITION_TYPE", "PARTITION_TYPE", "SHORTCIRCUIT_SIA",
+            "IIT_VERSION",
+            "PARALLEL",
+            "REPERTOIRE_DISTANCE",
+            "CES_DISTANCE",
+            "SYSTEM_PARTITION_TYPE",
+            "PARTITION_TYPE",
+            "SHORTCIRCUIT_SIA",
         ]
         return {n: getattr(config, n, None) for n in names}
     # post
@@ -316,6 +370,7 @@ PHASE_ANCHORS: list[tuple[str, str]] = [
 # ---------------------------------------------------------------------------
 # Trial execution
 # ---------------------------------------------------------------------------
+
 
 def run_trial(
     measurement: str,
@@ -403,8 +458,8 @@ def _safe_phi(result: Any) -> float | None:
 def extract_phase_times(pstats_path: Path) -> dict[str, float]:
     """Pull cumulative time (seconds) for each anchor function from pstats."""
     stats = pstats.Stats(str(pstats_path))
-    raw: dict[tuple[str, int, str], tuple[int, int, float, float, dict]] = (
-        getattr(stats, "stats")
+    raw: dict[tuple[str, int, str], tuple[int, int, float, float, dict]] = getattr(
+        stats, "stats"
     )
     out: dict[str, float] = {}
     for module_substr, func_name in PHASE_ANCHORS:
