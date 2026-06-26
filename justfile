@@ -36,7 +36,7 @@ bench-compare:
 
 # Run the deterministic perf-counter gate (the PR-blocking check)
 perf-gate:
-    uv run pytest test/test_perf_counters.py
+    uv run pytest test/integration/test_perf_counters.py
 
 # Regenerate the pinned perf call counts (review the diff like a golden)
 perf-pins:

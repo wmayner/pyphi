@@ -3,7 +3,7 @@ name: benchmark
 # Nightly ASV benchmark trend (advisory; never blocks PRs). Results accumulate
 # across runs via the cache so step-detection sees the whole history; a detected
 # wall-time regression opens/updates a tracking issue. Deterministic call-count
-# regressions are gated separately by test/test_perf_counters.py (blocking, PRs).
+# regressions are gated separately by test/integration/test_perf_counters.py (blocking, PRs).
 
 on:
   schedule:

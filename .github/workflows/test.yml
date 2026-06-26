@@ -66,4 +66,4 @@ jobs:
         run: uv sync --python 3.13 --group dev
 
       - name: Run tests
-        run: uv run pytest test/test_factored_tpm.py -v
+        run: uv run pytest test/core/test_factored_tpm.py -v
