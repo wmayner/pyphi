@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling", "hatch-vcs", "numpy"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
@@ -63,9 +63,9 @@ dev = [
     "graphifyy>=0.8.44",
     "hypothesis",
     "pre-commit",
-    "pytest-cov",
     "pyright>=1.1.407",
     "pytest>=9.0.3",
+    "pytest-cov",
     "ruff",
     "sphinx",
     "sphinx-rtd-theme",
@@ -215,7 +215,6 @@ max-statements = 100
 [tool.pytest.ini_options]
 testpaths = ["pyphi", "test"]
 addopts = [
-    "--maxfail=0",
     "--log-level=INFO",
     "--strict-markers",
     "--durations=5",
@@ -231,9 +230,7 @@ addopts = [
 norecursedirs = ["docs/_*"]
 markers = [
     "emd: marks tests that require the POT package (deselect with '-m \"not emd\"')",
-    "outdated: marks tests as outdated (deselect with '-m \"not outdated\"')",
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-    "veryslow: marks tests as very slow (deselect with '-m \"not veryslow\"')",
 ]
 filterwarnings = [
     "error",
