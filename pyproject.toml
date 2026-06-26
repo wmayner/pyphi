@@ -246,8 +246,6 @@ markers = [
 filterwarnings = [
     "error",
     "ignore::ImportWarning",
-    "ignore:The distutils package is deprecated:DeprecationWarning",
-    "ignore:distutils Version classes are deprecated:DeprecationWarning",
     # PyPhi's own intentional runtime notice, emitted whenever a config or
     # preset switch changes `distinction_phi_normalization`. Suppressed here so
     # the many tests that change config do not fail on an informational warning;
