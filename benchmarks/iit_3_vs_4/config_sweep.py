@@ -1,4 +1,4 @@
-"""P17 Part 4 — hot-path config-behavior sweep.
+"""Hot-path config-behavior sweep.
 
 Audits whether the configuration flags the IIT 4.0 hot paths actually read
 behave as their docstrings say, with particular attention to the two
@@ -252,7 +252,7 @@ def audit_config_combinations() -> None:
 
 
 def main() -> int:
-    print("P17 Part 4 — hot-path config-behavior sweep (post-refactor)\n")
+    print("Hot-path config-behavior sweep (post-refactor)\n")
     audit_parallel_gate()
     audit_shortcircuit_sia()
     audit_cache_flags()

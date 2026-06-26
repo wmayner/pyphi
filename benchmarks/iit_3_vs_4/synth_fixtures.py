@@ -1,4 +1,4 @@
-"""Serialize the P17 synthesized 6-7 node fixtures (seed + weights + TPM + CM).
+"""Serialize the synthesized 6-7 node fixtures (seed + weights + TPM + CM).
 
 The four ``synth_n{6,7}_{sparse,dense}`` networks are built from fixed seeds by
 ``harness._synth_system``. This writes each one's generative inputs (seed,

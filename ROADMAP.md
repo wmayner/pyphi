@@ -48,7 +48,7 @@ P0 · P1 · P2 · P3 · P4 · P5 · P6 · P6a · **P6b** (graphillion removed; p
 | P15 | 🟡 partial | 5 | Import-surface cleanup landed (eager submodule walk → explicit registry imports + PEP-562 lazy `__getattr__`, guarded by a registry-contents test). jsonify→msgspec landed (`pyphi.serialize` replaces `pyphi.jsonify`; the per-class `to_json`/`from_json` hooks removed) **plus its loading surface** (path-based `serialize.save`/`load`, top-level `pyphi.save`/`pyphi.load`, `.save()`/`.load()` on the result types via a delegation-only `Serializable` mixin, deferred type registration, `substrate.from_json` removed, transparent gzip on `.gz` paths). pandas-extend done (display → B21). Project-stage markers stripped from `pyphi/` + a docstring narrative-removal slice landed. PR triage done (audit against `main`: nothing left to absorb; closes pending a maintainer). Test suite reorganized to mirror the `pyphi/` package layout (`test/<subpackage>/` + `test/integration/`). Remaining: the comprehensive docstring/docs sweep (now its own [Documentation overhaul](#documentation-overhaul-20--iit-40) project), changelog condense |
 | B17 drop dead deps | ✅ landed | 5 | Removed the declared-but-unused `tblib`; deleted the unused `OrderedSet`/`HashableOrderedSet` types (a sorted tuple is the better unit representation) and dropped `ordered-set`; migrated `toolz` to stdlib `itertools.chain.from_iterable`, `more_itertools.unique_everseen`, and `functools.partial`. Landed with the import-surface cleanup; spec/plan `docs/superpowers/{specs,plans}/2026-06-24-import-surface-cleanup*` |
 | EMD backend → POT | ✅ landed | 5 | Swapped deprecated `pyemd` for POT (`ot.emd2`) behind `OptionalEMD`; `pyphi[emd]` extra now installs `pot`. Backends agree to machine epsilon (binary + k-ary, 3600 cases); the IIT 3.0 CES-distance EMD was reformulated to proper non-negative OT (the negative-null-mass / signed-φ case), which **reproduces the existing goldens exactly** — no regen needed. |
-| P17 | 🟡 partial | 6 | Cross-formalism perf characterization (post-freeze, internal-only). Wave A (local) underway: 2026-cap cost closed (Finding 5 — cap is free) and the IIT 4.0 speedup characterized + the archive's "19–43×" corrected as a scope artifact (Finding 6 — real gain is ~18–20× per SIA partition, ~2× CES). Remaining: >5-node coverage + thresholds (server-gated), config-behavior sweep. `benchmarks/iit_3_vs_4/findings.md` |
+| P17 | 🟡 partial | 6 | Cross-formalism perf characterization (post-freeze, internal-only). Wave A (local) complete: 2026-cap cost closed (cap is free); the IIT 4.0 speedup characterized + the earlier "19–43×" corrected as a scope artifact (real gain ~18–20× per SIA partition, ~2× CES); hot-path config sweep clean (no behavior mismatch; both pre-2.0 config bugs — `PARALLEL=False` still spawning, IIT 3.0 + GID raw crash — confirmed fixed); seeded 6–7 node Ising generator + n=6 sizing (full-search ~24 s/trial profiled; partition count grows ~7.8×/node, so n=7 ≈ minutes). Wave C (optimization) closed — no bounded win, the ~18× gain is already realized by the `core/repertoire_algebra.py` rewrite (the remaining lever is the larger N5 Rust-kernel item). Remaining: Wave B 6–7 node matrix, server-gated (blocked on lab SSH). `benchmarks/iit_3_vs_4/README.md` |
 | P18 (+B6) | ⬜ open | 6 | Sparse / treewidth-dispatched exact inference — junction-tree marginals both directions (B6 generalizes the cause-only sparse inversion) |
 | Documentation overhaul (2.0 / IIT 4.0) | ⬜ open | 6 | Comprehensive docs as a first-class project, not a Sphinx rebuild: web-docs tooling overhaul, non-docstring narrative content brought current for 2.0 **and IIT 4.0** (the 4.0 narrative was never written), example notebooks as a curated teaching set, the migration guide, and a final-state docstring sweep. Subsumes the scattered P15 docs bullets + ship-criterion #5. Warrants its own brainstorm; the comprehensive web/notebook work depends on the frozen surface, but the docstring narrative-removal slice can proceed now. See [Documentation overhaul](#documentation-overhaul-20--iit-40). |
 
@@ -141,7 +141,7 @@ and dropped `ordered-set`; migrated `toolz` to `itertools.chain.from_iterable`,
 
 ### Wave 6 — Post-freeze internal optimization *(internal-only; do not reopen the frozen surface)*
 
-- **P17 — perf characterization (Wave A in progress).** Extend the cross-temporal benchmark beyond 5 nodes, find the interactive/batch size thresholds, characterize the mechanism behind the IIT 4.0 speedup, and exercise the 2026 ii-cap with non-zero φ. **Correction (2026-06-26):** the archive's "19–43× IIT 4.0 speedup" was a measurement artifact — it compared pre-refactor `phi_structure` (full structure) against post-refactor `sia` (system-φ only). The de-confounded, like-for-like result is a **~18–20× faster SIA partition evaluation and ~2× faster CES**, driven by the `core/repertoire_algebra.py` kernel rewrite; the cap variant is computationally free (`benchmarks/iit_3_vs_4/findings.md`, Findings 5–6). Needs the frozen surface + the P11.8-T2 ASV harness.
+- **P17 — perf characterization (Wave A complete; Wave B server-gated; Wave C closed).** Extend the cross-temporal benchmark beyond 5 nodes, find the interactive/batch size thresholds, characterize the mechanism behind the IIT 4.0 speedup, and exercise the 2026 ii-cap with non-zero φ. **Correction (2026-06-26):** the earlier "19–43× IIT 4.0 speedup" was a measurement artifact — it compared pre-refactor `phi_structure` (full structure) against post-refactor `sia` (system-φ only). The de-confounded, like-for-like result is a **~18–20× faster SIA partition evaluation and ~2× faster CES**, driven by the `core/repertoire_algebra.py` kernel rewrite; the cap variant is computationally free. The hot-path config-behavior sweep (`config_sweep.py`) found no documented-versus-actual mismatch and confirmed both pre-2.0 config bugs are fixed (`PARALLEL=False` now truly disables subprocesses via the `parallel_kwargs` global gate; incompatible version/measure combinations raise a clean `ConfigurationError` instead of a raw crash). A seeded 6–7 node Ising generator (`harness._synth_system`, ferromagnetic coupling so the all-off state integrates and the SIA runs the full search rather than short-circuiting) plus committed fixtures land the Part 3 construction; n=6 sizing is ~24 s/trial profiled and the partition count grows ~7.8×/node, so n=7 is batch-only and deferred to the lab server. Wave C (one targeted optimization) is closed with a negative result — no bounded ~1-week win, since the ~18× gain is already realized by the repertoire-algebra rewrite (the remaining lever is the larger N5 Rust-kernel item). Remaining: the Wave B 6–7 node server matrix (blocked on lab SSH). `benchmarks/iit_3_vs_4/README.md`.
 - **P18 (+B6) — sparse / treewidth-dispatched exact inference.** `_cause_tpm_factored` materializes the full `aⁿ` substrate joint; for sparse connectivity it factorizes. Confirm the bottleneck binds (record a negative result if not), then design the inference. **B6 generalizes the original cause-only sparse inversion:** compile the per-node factors into a junction tree and compute repertoire marginals in `O(2^treewidth)` via belief propagation — covering the *effect* repertoires and unconstrained-forward averages too (min-fill treewidth-driven dispatch), not just the cause inversion; treewidth, not node count, is the true exponent, and sparse biological substrates (p53-Mdm2, Gómez) have treewidth far below `n`. Gate behind byte-identical exact parity against the dense oracle. *(This is the sole "P18"; the cluster-backend deferral that once shared the label is folded into Wave 4 / P11.)*
 
 ### Documentation overhaul (2.0 / IIT 4.0)
@@ -3086,12 +3086,13 @@ like-for-like result: the **SIA inner loop is ~18–20× faster per partition** 
 the **CES ~2× faster**, driven primarily by the `core/repertoire_algebra.py`
 kernel rewrite. Net wall time can still *rise* under the default
 `DIRECTED_SET_PARTITION` scheme, which evaluates ~35× more partitions (each ~18×
-cheaper). Larissa Albantakis's original puzzle resolves as: the per-operation
-gain is real and large but masked by the scope mismatch and the scheme change
-(`benchmarks/iit_3_vs_4/findings.md`, Finding 6). Remaining P17 work: the 2026
-cap cost is now closed (Finding 5 — the cap is free; `logistic3_k8` gives
-non-zero φ_2026), so what is left is the >5-node coverage + interactive/batch
-thresholds (server-gated) and the config-behavior sweep.
+cheaper). The per-operation gain is real and large but masked by the scope
+mismatch and the scheme change (`benchmarks/iit_3_vs_4/README.md`). The 2026 cap
+cost is closed (the cap is computationally free; `logistic3_k8` gives non-zero
+φ_2026), the config-behavior sweep found no documented-versus-actual mismatch
+(both pre-2.0 config bugs confirmed fixed), and the seeded 6–7 node generator
+plus n=6 sizing land the Part 3 construction; the only remaining work is the
+6–7 node server matrix (the n=7 runs are batch-only, server-gated).
 
 *Scope.*
 
@@ -3141,10 +3142,9 @@ building — e.g. if 80% of the cost is in mechanism-MIP search, then
 `φ_G`-style system-level ones.
 
 *Files.* `benchmarks/iit_3_vs_4/` (extend the existing cross-temporal
-harness with larger-network support and synthesized fixtures); new
-`benchmarks/iit_3_vs_4/findings.md` (or equivalent) for the mechanism
-write-up; possibly small fixes in `pyphi/formalism/` if the targeted
-optimization lands.
+harness with larger-network support and synthesized fixtures);
+`benchmarks/iit_3_vs_4/README.md` for the results write-up; possibly
+small fixes in `pyphi/formalism/` if the targeted optimization lands.
 
 *Risk.* Low for the measurement portions; medium for any landed
 optimization (perf fixes in hot paths have a history of subtle
@@ -3152,11 +3152,11 @@ correctness regressions — see the P11.8 motivating story of the
 60–300× slowdown that survived golden tests).
 
 *Leverage.* Documents a publication-relevant claim (the 2.0 work
-delivered measurable speedup at scale), informs the P16 approximation
-design, and closes the loop on Larissa's question with reproducible
-numbers. Existing benchmark harness in `benchmarks/iit_3_vs_4/` already
-runs against both pre- (`b3aaa3e5` worktree) and post-refactor
-checkouts; the harness needs extension rather than rewrite.
+delivered a measurable per-operation speedup) with reproducible numbers,
+and informs the P16 approximation design. The existing benchmark harness
+in `benchmarks/iit_3_vs_4/` already runs against both pre-
+(`b3aaa3e5` worktree) and post-refactor checkouts; the harness needs
+extension rather than rewrite.
 
 **P18. Sparse causal inversion — avoid materializing the full substrate joint**
 

@@ -1,4 +1,4 @@
-"""P17 like-for-like controls disentangling the IIT 4.0 cross-temporal gap.
+"""Like-for-like controls disentangling the IIT 4.0 cross-temporal gap.
 
 The harness maps pre ``new_big_phi.phi_structure`` (full structure: SIA +
 distinctions + relations) against post ``formalism.sia`` (system phi only).
@@ -79,7 +79,7 @@ def control_sia_matched_scheme(name: str) -> tuple[float, int]:
 
 
 def main() -> int:
-    print("P17 controls (post-refactor side; pre numbers from existing profiles)\n")
+    print("Cross-temporal controls (post-refactor side; pre numbers from existing profiles)\n")
     # Pre numbers read from results/pre/*phi_structure*.pstats frames:
     pre = {
         "macro": {"sia_s": 0.026, "sia_parts": 1, "ces_s": 1.349},

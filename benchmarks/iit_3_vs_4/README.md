@@ -1,271 +1,200 @@
-# IIT 3.0 vs 4.0 Cross-Temporal Performance Investigation
+# IIT 3.0 vs 4.0 cross-temporal performance harness
 
-Standalone harness that measures, at **two points in the codebase history**,
-where IIT 3.0 and IIT 4.0 spend their time on the same networks. Separate from
-the ASV harness in `benchmarks/benchmarks/` so it can iterate independently
-of ASV modernization (P3.3 main scope).
+A standalone harness that measures, at **two points in the codebase history**,
+where IIT 3.0 and IIT 4.0 spend their time on the same networks. It is separate
+from the ASV suite in `benchmarks/benchmarks/` so it can iterate independently.
 
-## Motivation
-
-Larissa Albantakis raised the puzzle that IIT 4.0 was not empirically faster
-than IIT 3.0 in pyphi, despite the formalism advantages (effect-dominated
-computation, specified states instead of full repertoires). She made the
-observation against pre-2.0 pyphi.
-
-This harness runs both at the pre-refactor anchor (the snapshot of pyphi
-she was likely seeing) and at current 2.0 HEAD (post the substantial
-restructure landed on 2026-05-09), so the comparison is:
-
-- **Did 4.0 used to be slow compared to 3.0?** (answer: depends on network,
-  but yes on some)
-- **Did the 2.0 refactor close the gap?** (answer: yes, dramatically)
+The harness runs the same script against two pyphi generations — a pre-refactor
+anchor and the current 2.0 layout — and writes per-trial JSON and cProfile
+output to `results/{generation}/`. A single `analyze.py` reads both result sets.
 
 ## Anchor commits
 
-- **pre**: `b3aaa3e5` — *Add ROADMAP.md with path-dependency graph* (2026-05-04).
-  Parent of `446c334e` (P0 of the 2.0 work). Has the old layout
-  (`pyphi.compute.sia`, `pyphi.new_big_phi.phi_structure`, flat `IIT_VERSION`
-  config, `Subsystem` objects, no `formalism/` directory).
-- **post**: current HEAD on the `2.0` branch (2026-05-22). New layout
-  (`pyphi.formalism.iit3`/`iit4`, layered `config.formalism.iit.version`,
-  `System` objects, formalism presets in `pyphi.conf.presets`).
+- **pre** — `b3aaa3e5`. Old layout: `pyphi.compute.sia`,
+  `pyphi.new_big_phi.phi_structure`, flat `IIT_VERSION` config, `Subsystem`
+  objects, no `formalism/` package.
+- **post** — current HEAD on the `2.0` branch. New layout:
+  `pyphi.formalism.iit3`/`iit4`, layered `config.formalism.iit.version`,
+  `System` objects, formalism presets in `pyphi.conf.presets`.
 
-## Entry points used (the right ones — see "Lessons learned" below)
+The script auto-detects which generation it is running against by trying
+imports and dispatches to the right entry points.
 
-| label                | pre-refactor                                            | post-refactor                                                                  |
-| -------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| `iit3_sia`           | `compute.sia(subsystem)` + `IIT_VERSION=3.0`            | `formalism.sia(system)` + `pyphi.conf.presets.iit3` applied via override       |
-| `iit4_phi_structure` | `new_big_phi.phi_structure(subsystem)` + `IIT_VERSION=4.0` | (n/a)                                                                       |
-| `iit4_sia_2023`      | (n/a)                                                   | `formalism.sia(system)` + `pyphi.conf.presets.iit4_2023` applied via override  |
-| `iit4_sia_2026`      | (n/a)                                                   | `formalism.sia(system)` + `pyphi.conf.presets.iit4_2026` applied via override  |
+## Entry points
 
-## Findings
+| label                | pre-refactor                                            | post-refactor                                                       |
+| -------------------- | ------------------------------------------------------- | ------------------------------------------------------------------- |
+| `iit3_sia`           | `compute.sia(subsystem)` + `IIT_VERSION=3.0`            | `formalism.sia(system)` + `pyphi.conf.presets.iit3`                 |
+| `iit4_phi_structure` | `new_big_phi.phi_structure(subsystem)` + `IIT_VERSION=4.0` | (n/a)                                                            |
+| `iit4_sia_2023`      | (n/a)                                                   | `formalism.sia(system)` + `pyphi.conf.presets.iit4_2023`           |
+| `iit4_sia_2026`      | (n/a)                                                   | `formalism.sia(system)` + `pyphi.conf.presets.iit4_2026`           |
 
-Run: 5 trials per (network, measurement) for the 3-node networks; 3 trials for
-the larger ones. Phi values were stable across trials within each cell.
+Pre-refactor IIT 4.0 has only the whole-`phi_structure` entry point (SIA + all
+distinctions + relations); post-refactor `sia` computes system irreducibility
+(Φ_s) alone. **The two are different computations** — a raw pre-vs-post
+wall-time ratio between `phi_structure` and `sia` is not a like-for-like
+speedup. The de-confounded comparison is in "Results" below.
 
-### Wall-time medians
+## Results
 
-| network | n | gen  | iit3_sia | iit4 (pre=`phi_structure`, post=2023) | iit4_sia_2026 |
-| ------- | - | ---- | -------- | ------------------------------------- | ------------- |
-| basic   | 3 | pre  | 139 ms   | 106 ms                                | n/a           |
-| basic   | 3 | post | 146 ms   | **42 ms**                             | 8.5 ms        |
-| fig4    | 3 | pre  | 199 ms   | 118 ms                                | n/a           |
-| fig4    | 3 | post | 264 ms   | **23 ms**                             | 10 ms         |
-| xor     | 3 | pre  | 136 ms   | 190 ms                                | n/a           |
-| xor     | 3 | post | 178 ms   | **71 ms**                             | 9.6 ms        |
-| macro   | 4 | pre  | 3.98 s   | 1.50 s                                | n/a           |
-| macro   | 4 | post | 5.01 s   | **79 ms**                             | 77 ms         |
-| rule154 | 5 | pre  | 538.8 s  | 96.8 s                                | n/a           |
-| rule154 | 5 | post | 58.0 s   | **2.28 s**                            | 156 ms        |
+All numbers are medians over the per-trial raw JSON in `results/`. Runs are
+sequential and in-process (`parallel=False`) on a single machine (Apple
+Silicon) unless noted.
 
-> **Correction (P17, see `findings.md` Finding 6).** Findings 1 and 3 below
-> compare pre-refactor `phi_structure` (full structure: SIA + distinctions +
-> relations) against post-refactor `sia` (system-φ only) — **different
-> computations**, so the "2.5×–43× speedup" is largely a scope artifact (on
-> rule154, ~97% of the gap is the CES work that `sia` simply does not do).
-> The de-confounded, like-for-like result: the SIA inner loop is **~18–20×
-> faster per partition** and the CES **~2× faster**, but under the default
-> paper-faithful `DIRECTED_SET_PARTITION` scheme the SIA evaluates ~35× more
-> partitions, so a default-config user's SIA *wall time* can be higher than
-> pre. Read Findings 1 and 3 with that correction in mind.
+### Per-operation speedup from the 2.0 refactor (de-confounded)
 
-### Finding 1 — The 2.0 refactor delivered massive IIT 4.0 speedups, scaling with network size
+`controls.py` isolates the refactor from the entry-point scope and the
+system-partition scheme by timing matched operations: the post-side CES against
+the pre-side CES, and the post-side SIA under the pre era's
+`DIRECTED_BIPARTITION` scheme (so both evaluate the same partitions). Pre
+numbers are read from the `sia`/`ces` frames inside the pre `phi_structure`
+profiles.
 
-`iit4_sia_2023` (post-refactor) is faster than `iit4_phi_structure`
-(pre-refactor) on every network, with the gap widening dramatically at scale:
+| control | macro (4n) | rule154 (5n) |
+| --- | --- | --- |
+| CES-only (post `System.ces()` vs pre `ces`) | 1.35 → 0.69 s (**1.9×**) | 80.1 → 38.9 s (**2.1×**) |
+| SIA per-partition, matched `DIRECTED_BIPARTITION` | 26.0 → 1.28 ms (**~20×**) | 34.9 → 1.89 ms (**~18×**) |
 
-| network | n | pre 4.0  | post 4.0 | speedup |
-| ------- | - | -------- | -------- | ------- |
-| basic   | 3 | 106 ms   | 42 ms    | 2.5×    |
-| fig4    | 3 | 118 ms   | 23 ms    | 5.1×    |
-| xor     | 3 | 190 ms   | 71 ms    | 2.7×    |
-| macro   | 4 | 1.50 s   | 79 ms    | **19×** |
-| rule154 | 5 | 96.8 s   | 2.28 s   | **43×** |
+The SIA inner loop is **~18–20× faster per partition** and the CES is **~2×
+faster**, driven by the `core/repertoire_algebra.py` kernel rewrite. The
+per-partition figure is the robust one: on rule154 the matched scheme evaluates
+the same 30 partitions in both generations.
 
-This isn't a constant-factor improvement — it grows with system size,
-suggesting an algorithmic change, not just better Python overhead. The phi
-values match (or, where they differ, the pre-refactor value is clearly the
-buggier one — e.g., the 2026 paper cap was being skipped).
+This per-operation gain does **not** always show up as lower wall time. The
+default 2.0 system scheme is the paper-faithful `DIRECTED_SET_PARTITION`, which
+evaluates far more partitions than the pre era's `DIRECTED_BI` (rule154: 1061 vs
+30). Each partition is ~18× cheaper but there are ~35× more of them, so a
+default-config SIA wall time on rule154 is ~2.5× *higher* post-refactor (2.55 s
+vs 1.05 s). IIT 4.0 φ also stops matching pre vs post past 3 nodes, because the
+two schemes select different system MIPs (rule154: 1.0 → 2.0).
 
-### Finding 2 — IIT 3.0 went *much* faster in 2.0 on rule154, slower on the small networks
+Reproduce: `uv run python -m benchmarks.iit_3_vs_4.controls`.
 
-The IIT 3.0 picture is mixed and network-dependent:
+### The IIT 4.0 (2026) Eq. 23 cap is computationally free
 
-| network | n | pre 3.0  | post 3.0 | post/pre |
-| ------- | - | -------- | -------- | -------- |
-| basic   | 3 | 139 ms   | 146 ms   | 1.05× SLOWER |
-| fig4    | 3 | 199 ms   | 264 ms   | 1.33× SLOWER |
-| xor     | 3 | 136 ms   | 178 ms   | 1.31× SLOWER |
-| macro   | 4 | 3.98 s   | 5.01 s   | 1.26× SLOWER |
-| rule154 | 5 | 538.8 s  | 58.0 s   | **9.3× FASTER** |
+On the standard `pyphi.examples` networks the 2026 variant returns φ=0 by
+short-circuit, so its wall time there reflects fixed overhead, not the cap's
+cost. `logistic3_k8` (3-node fully-connected logistic substrate, k=8, weights
+0.3, state (0,0,0)) is the network where the cap binds at a non-trivial value.
+Medians over 5 trials:
 
-The 3-node and macro slowdowns are 5–33% — modest. The rule154 speedup is
-nearly an order of magnitude. Phi values also changed across all 3.0 cells
-(e.g., rule154: 4.875 pre → 10.71875 post), consistent with the IIT 3.0
-restoration work on the 2.0 branch (tie resolution, partition scheme, MIP
-selection). So we are *not* measuring the same computation — the 2.0 IIT 3.0
-is paper-faithful where pre-refactor wasn't, with very different scaling
-characteristics on a non-trivial network.
+| measurement | φ | wall (median) |
+| --- | --- | --- |
+| `iit4_sia_2023` | 0.03662 | 0.052 s |
+| `iit4_sia_2026` | 0.00323 | 0.052 s |
 
-### Finding 3 — IIT 4.0 was already faster than IIT 3.0 on bigger networks, even pre-refactor
+The 2026 path costs the same as 2023 at every phase. The Eq. 23 cap is a
+post-hoc `min{φ_c, φ_e, ii(s)}` over terms the 2023 partition search already
+computes; it adds no measurable search cost.
 
-The original puzzle was framed against small networks. With larger ones in
-view, the pre-refactor world had this 4.0/3.0 ratio:
+### Hot-path config flags behave as documented
 
-| network | n | pre iit3_sia | pre iit4_phi_structure | 4.0/3.0 ratio |
-| ------- | - | ------------ | ---------------------- | ------------- |
-| basic   | 3 | 139 ms       | 106 ms                 | 0.76× (4.0 faster) |
-| fig4    | 3 | 199 ms       | 118 ms                 | 0.59× (4.0 faster) |
-| xor     | 3 | 136 ms       | 190 ms                 | **1.40× (4.0 SLOWER)** |
-| macro   | 4 | 3.98 s       | 1.50 s                 | 0.38× (4.0 faster) |
-| rule154 | 5 | 538.8 s      | 96.8 s                 | 0.18× (4.0 5.6× faster) |
+`config_sweep.py` audits the configuration flags the IIT 4.0 hot paths read.
+Every flag matches its documentation, and two config bugs that existed before
+the 2.0 refactor are confirmed closed:
 
-So even pre-refactor, IIT 4.0 *was* faster than 3.0 on the meatier
-networks. The "4.0 not faster than 3.0" puzzle was specifically a
-small-network phenomenon — and on xor pre-refactor, 4.0 was actively
-slower. Once a network gets large enough for the partition cost to
-dominate, 4.0's specified-state machinery starts paying off.
+- **The global parallel switch gates the per-level flags.** Pre-refactor,
+  `PARALLEL=False` did not reliably disable parallelism (several call sites
+  passed a truthy per-level dict as the `parallel` keyword, bypassing the old
+  `MapReduce` bool check). In 2.0 `conf.parallel_kwargs()` forces
+  `parallel=False` whenever `config.infrastructure.parallel` is off; the
+  subprocess scheduler is entered only when both the global and per-level flags
+  are True.
+- **Incompatible config combinations raise a clean error.** Pre-refactor,
+  `IIT_3_0` with `GENERALIZED_INTRINSIC_DIFFERENCE` raised a raw `AttributeError`
+  deep in the compute path. In 2.0 the eager `validate_config` check rejects it
+  at override time with a `ConfigurationError` naming the conflict and a fix;
+  with the check off it raises a typed `MeasureNotCompatibleError` at compute
+  time. Across an 18-combination (version × measure × system scheme) sweep, 9
+  compute and 9 are cleanly rejected; none raise a raw exception.
 
-Post-refactor, IIT 4.0 dominates IIT 3.0 across the board:
+`shortcircuit_sia` and the cache flags are φ-invariant. Reproduce:
+`uv run python -m benchmarks.iit_3_vs_4.config_sweep`.
 
-| network | n | post iit3_sia | post iit4_sia_2023 | 4.0/3.0 ratio |
-| ------- | - | ------------- | ------------------ | ------------- |
-| basic   | 3 | 146 ms        | 42 ms              | 0.29× (4.0 3.5× faster)  |
-| fig4    | 3 | 264 ms        | 23 ms              | 0.09× (4.0 11× faster)   |
-| xor     | 3 | 178 ms        | 71 ms              | 0.40× (4.0 2.5× faster)  |
-| macro   | 4 | 5.01 s        | 79 ms              | 0.016× (4.0 **63× faster**) |
-| rule154 | 5 | 58.0 s        | 2.28 s             | 0.039× (4.0 **25× faster**) |
+### 6–7 node sizing
 
-### Finding 4 — IIT 4.0 2026 (Eq. 23 cap) returns phi=0 on every test network
+`harness._synth_system` builds seeded Ising substrates at the all-off state for
+n ∈ {6, 7} at sparse and dense connectivity; the four networks and their
+generative inputs are committed under `results/synth_fixtures/`.
 
-`iit4_sia_2026` returns phi=0.0 on basic, fig4, xor, macro, rule154 — every
-network we ran. Wall times (8–156 ms) reflect early short-circuit, not the
-algorithm's true cost on non-trivial outputs. To honestly cost the 2026
-variant we'd need a network where it produces non-zero phi. None of the
-standard `pyphi.examples` 3–5-node systems do here.
+The SIA cost is bimodal. With mean-zero coupling the all-off state is almost
+always reducible: the partition search finds a zero-φ partition early and
+`map_reduce`'s `is_falsy` short-circuit stops it, so the SIA returns in under a
+second without touching most partitions (0 of 20 mean-zero seeds at n=6
+integrated). The generator therefore draws **ferromagnetic** weights (mean 1.0),
+which make the system integrate and run the full `DIRECTED_SET_PARTITION` search
+— the cost the matrix is meant to size.
 
-## Larissa's original puzzle, answered (revised)
+Partition count under `DIRECTED_SET_PARTITION` grows ~7.8× per node:
 
-The puzzle as stated — "4.0 should be faster than 3.0, but isn't" — was
-true specifically on small (3-node) networks pre-refactor, and starkly true
-on xor (4.0 was 40% slower). Once you go to 4+ nodes, 4.0 was already
-faster than 3.0 pre-refactor (1.6× on macro, 5.6× on rule154), just by less
-than the formalism would predict.
+| n | partitions | ratio to n−1 |
+|---|---|---|
+| 3 | 22 | — |
+| 4 | 150 | 6.8× |
+| 5 | 1061 | 7.1× |
+| 6 | 7896 | 7.4× |
+| 7 | 61888 | 7.8× |
 
-Post-refactor, the picture is unambiguous: **IIT 4.0 in 2.0 is 2.5×–63×
-faster than IIT 3.0**, scaling with network size. And **post-refactor IIT
-4.0 is 2.5×–43× faster than pre-refactor IIT 4.0**, with the gap also
-widening with network size. The 2.0 work didn't just renumber modules — it
-made the 4.0 path substantially faster, exactly where the asymptotic
-advantage was expected to live.
+Measured n=6 (3 trials, harness `cProfile` mode): sparse median 25.8 s, dense
+median 23.1 s; φ identical across trials (the construction is deterministic in
+the seed). Bare (un-profiled) cost is roughly half that. Scaling by the 7.8×
+partition growth — and the per-partition cost also grows with n — puts a single
+n=7 trial at several minutes and the full n=7 matrix at roughly an hour, so the
+n=7 runs are batch-only and not run here.
+
+Fixtures: `results/synth_fixtures/{name}.json` (seed, weights, CM, TPM);
+regenerate with `uv run python -m benchmarks.iit_3_vs_4.synth_fixtures`.
 
 ## How to run
 
-The harness lives in `benchmarks/iit_3_vs_4/` of the main pyphi checkout
-**and** in a git worktree at the pre-refactor commit. Same script, same
-JSON output format. The script auto-detects which pyphi generation it's
-running against and dispatches to the right entry points.
-
-### Setting up
+The harness lives in `benchmarks/iit_3_vs_4/` of the main pyphi checkout and in
+a git worktree at the pre-refactor commit. Same script, same JSON output format.
 
 ```sh
-# In the main pyphi checkout: harness already present
-cd /path/to/pyphi
-uv pip install pyemd  # needed for IIT 3.0 EMD distance
+# Main checkout (post-refactor): harness already present.
+uv pip install pyemd  # IIT 3.0 EMD distance
 
 # Pre-refactor worktree:
-git worktree add /path/to/pyphi-pre-refactor b3aaa3e5
-cd /path/to/pyphi-pre-refactor
+git worktree add ../pyphi-pre-refactor b3aaa3e5
+cd ../pyphi-pre-refactor
 uv venv --python 3.12
-# graphillion has a git+ssh issue with global git config; bypass with:
-GIT_CONFIG_GLOBAL=/dev/null uv pip install -e ".[emd]"
-cp -r /path/to/pyphi/benchmarks/iit_3_vs_4 benchmarks/
+GIT_CONFIG_GLOBAL=/dev/null uv pip install -e ".[emd]"   # bypass graphillion git+ssh
+cp -r ../pyphi/benchmarks/iit_3_vs_4 benchmarks/
 ```
-
-### Running
 
 ```sh
-# Post-refactor (in main checkout):
+# Post-refactor (main checkout):
 uv run python -m benchmarks.iit_3_vs_4.run --networks basic,fig4,xor --trials 5
 
-# Pre-refactor (in worktree):
-VIRTUAL_ENV=/path/to/pyphi-pre-refactor/.venv \
-  uv run --directory /path/to/pyphi-pre-refactor \
+# Pre-refactor (worktree venv):
+VIRTUAL_ENV=../pyphi-pre-refactor/.venv \
+  uv run --directory ../pyphi-pre-refactor \
   python -m benchmarks.iit_3_vs_4.run --networks basic,fig4,xor --trials 5
 
-# Then copy pre-results back to main checkout for unified analysis:
-cp -r /path/to/pyphi-pre-refactor/benchmarks/iit_3_vs_4/results/pre \
-      /path/to/pyphi/benchmarks/iit_3_vs_4/results/
-
-# Cross-temporal analysis (from main checkout):
-uv run python -m benchmarks.iit_3_vs_4.analyze
-uv run python -m benchmarks.iit_3_vs_4.analyze --top 15  # verbose
+# Copy pre-results into the main checkout for unified analysis, then analyze.
+# Copy only the specific new result files, not the whole results/pre directory.
+uv run python -m benchmarks.iit_3_vs_4.analyze --top 15
 ```
 
-## Outputs
+## Output format
 
 Per trial, two files in `results/{generation}/`:
 
-- `{network}_{measurement}_seed{S}_trial{T}.json` — wall time, phase
-  cumulative time, phi, config snapshot, generation, pyphi version
-- `{network}_{measurement}_seed{S}_trial{T}.pstats` — cProfile output,
-  readable via `python -m pstats <file>` or snakeviz
+- `{network}_{measurement}_seed{S}_trial{T}.json` — wall time, per-phase
+  cumulative time, φ, config snapshot, generation, pyphi version.
+- `{network}_{measurement}_seed{S}_trial{T}.pstats` — cProfile output, readable
+  via `python -m pstats <file>` or snakeviz (gitignored).
 
-`dual_analysis.txt` in `results/` is a captured snapshot of the analyzer
-output for reference.
+## Caveats
 
-## Methodological notes / caveats
-
-1. **`PARALLEL=False` doesn't actually disable subprocess evaluation in
-   `_sia_map_reduce`** on the pre-refactor side
-   (`pyphi/compute/subsystem.py:222,232` passes the full
-   `PARALLEL_*_EVALUATION` dict as the `parallel` keyword to
-   `MapReduce(...)`; the truthy dict bypasses MapReduce's bool check). The
-   harness works around this with a `force_sequential_mapreduce()` context
-   manager. Whether the same hazard exists in the 2.0 code wasn't separately
-   verified — the workaround is harmless either way.
-
-2. **IIT 3.0 phi values differ pre vs post.** Pre: 1.25, 2.166, 1.5 on
-   basic, fig4, xor. Post: 2.312, 1.817, 1.875. The 2.0 IIT 3.0
-   implementation has been overhauled for paper-fidelity (see the recent
-   tie-resolution commits on the `2.0` branch). The wall-time comparison
-   is still meaningful as "what an IIT 3.0 user would see in each era," but
-   strictly we are not measuring the same computation across generations
-   for IIT 3.0.
-
-3. **IIT 4.0 phi values match exactly pre vs post.** `iit4_sia_2023` in
-   2.0 computes the same Φ as `phi_structure` did pre-refactor on these
-   networks. So the 4.0 comparison is apples-to-apples.
-
-4. **Network set is tiny.** Only 3-node networks here. The performance
-   ratios likely scale differently on 4+ node systems. A natural follow-up
-   is to add `residue` (5 nodes) and `rule154` (5 nodes), which the harness
-   already lists as available but doesn't run by default.
-
-5. **`iit4_sia_2026` returns phi=0.0 on all three networks** (likely cap +
-   short-circuit; not investigated here). The 8–10 ms wall time on these
-   small systems is largely fixed overhead, not the actual cost of the 2026
-   algorithm on non-trivial outputs.
-
-## Lessons learned (from getting it wrong the first time)
-
-1. **`compute.sia()` was never the IIT 4.0 entry point.** Pre-refactor,
-   IIT 4.0 went through `new_big_phi.phi_structure()`. An earlier
-   iteration of this harness mistakenly toggled `IIT_VERSION=4.0` while
-   still calling `compute.sia()`, producing meaningless measurements. Per
-   formalism, use:
-   - 3.0 pre: `compute.sia`
-   - 4.0 pre: `new_big_phi.phi_structure`
-   - 3.0/4.0 post: `formalism.sia` with the right preset
-
-2. **Stale `.pyc` files masquerade as live code.** The first run accidentally
-   imported pre-refactor pyphi modules from `pyphi/compute/__pycache__/*.pyc`
-   even though the source files had been deleted weeks earlier. Verify the
-   actual git state before trusting any benchmark result.
-
-3. **`pyphi.conf.presets`** has canonical formalism configurations. Use
-   them via `config.override(**iit3)`, `config.override(**iit4_2023)`,
-   `config.override(**iit4_2026)` rather than hand-rolling overrides. The
-   presets bundle partition scheme, tie resolution, measures, etc. — getting
-   any of these wrong causes errors deep inside SIA computation.
+1. **IIT 3.0 φ differs pre vs post.** The 2.0 IIT 3.0 implementation was
+   overhauled for paper fidelity (tie resolution, partition scheme, MIP
+   selection), so pre and post are not the same computation. The wall-time
+   comparison is still meaningful as "what an IIT 3.0 user saw in each era."
+2. **IIT 4.0 φ matches pre vs post only at n ≤ 3.** On larger networks the
+   default `DIRECTED_SET_PARTITION` scheme selects a different system MIP than
+   the pre era's `DIRECTED_BI`, so φ differs (see Results).
+3. **The pre vs post IIT 4.0 entry points have different scope.** Pre
+   `phi_structure` computes the whole phi-structure; post `sia` computes Φ_s
+   only. Use the `controls.py` matched comparison for a like-for-like number,
+   not the raw entry-point wall times.

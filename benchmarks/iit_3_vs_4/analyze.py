@@ -30,10 +30,9 @@ GENERATIONS = ("pre", "post")
 
 
 # Cross-generation measurement mapping. Used for pre→post comparison rows.
-# IIT 4.0 has multiple post-refactor variants (2023 + 2026), so we map
-# pre's single `iit4_phi_structure` against the closest analog. Tagging which
-# is canonical is a judgment call: 2023 matches the original paper Larissa was
-# probably referencing; 2026 is the newer cap-aware variant.
+# IIT 4.0 has multiple post-refactor variants (2023 + 2026), so pre's single
+# `iit4_phi_structure` is mapped against the closest analog: the 2023 variant
+# matches the original paper's formalism, while 2026 adds the Eq. 23 cap.
 PRE_TO_POST = {
     "iit3_sia": "iit3_sia",
     "iit4_phi_structure": "iit4_sia_2023",
