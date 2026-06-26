@@ -10,10 +10,6 @@ from pyphi.conf import presets
 
 from . import example_substrates
 
-# Disable JSON version validation for tests
-# Test data may be generated with different pyphi versions than what CI derives
-pyphi.config.validate_json_version = False
-
 # Suppress tqdm progress bars in test output. The global gate cascades
 # to every ``parallel_*_evaluation`` per-site ``progress`` flag (see
 # ``pyphi.conf._helpers.parallel_kwargs``), so this single switch covers

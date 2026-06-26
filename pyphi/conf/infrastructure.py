@@ -103,7 +103,6 @@ class InfrastructureConfig:
 
     validate_system_states: bool = True
     validate_conditional_independence: bool = True
-    validate_json_version: bool = True
 
     # When True (default), a substrate's connectivity matrix is checked against
     # the edges its TPM implies, and an under-specified CM (one that omits a
@@ -151,7 +150,6 @@ class InfrastructureConfig:
         _check_bool(
             "validate_conditional_independence", self.validate_conditional_independence
         )
-        _check_bool("validate_json_version", self.validate_json_version)
         _check_bool("validate_connectivity", self.validate_connectivity)
         _check_bool("validate_phi_bounds", self.validate_phi_bounds)
         _check_bool("validate_config", self.validate_config)

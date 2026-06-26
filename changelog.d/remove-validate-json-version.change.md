@@ -1,0 +1,1 @@
+Removed the dead `validate_json_version` configuration option and the `JSONVersionError` exception. Both were only used by the retired `pyphi.jsonify` layer; the msgspec-based `pyphi.serialize` does not version-gate on load.

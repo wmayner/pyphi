@@ -160,7 +160,6 @@ class TestInfrastructureConfig:
         assert cfg.welcome_off is False
         assert cfg.validate_system_states is True
         assert cfg.validate_conditional_independence is True
-        assert cfg.validate_json_version is True
 
     def test_parallel_evaluation_dict_has_expected_keys(self):
         cfg = InfrastructureConfig()
