@@ -50,6 +50,7 @@ P0 · P1 · P2 · P3 · P4 · P5 · P6 · P6a · **P6b** (graphillion removed; p
 | EMD backend → POT | ✅ landed | 5 | Swapped deprecated `pyemd` for POT (`ot.emd2`) behind `OptionalEMD`; `pyphi[emd]` extra now installs `pot`. Backends agree to machine epsilon (binary + k-ary, 3600 cases); the IIT 3.0 CES-distance EMD was reformulated to proper non-negative OT (the negative-null-mass / signed-φ case), which **reproduces the existing goldens exactly** — no regen needed. |
 | P17 | ⬜ open | 6 | Cross-formalism perf characterization (post-freeze, internal-only) |
 | P18 (+B6) | ⬜ open | 6 | Sparse / treewidth-dispatched exact inference — junction-tree marginals both directions (B6 generalizes the cause-only sparse inversion) |
+| Documentation overhaul (2.0 / IIT 4.0) | ⬜ open | 6 | Comprehensive docs as a first-class project, not a Sphinx rebuild: web-docs tooling overhaul, non-docstring narrative content brought current for 2.0 **and IIT 4.0** (the 4.0 narrative was never written), example notebooks as a curated teaching set, the migration guide, and a final-state docstring sweep. Subsumes the scattered P15 docs bullets + ship-criterion #5. Warrants its own brainstorm; the comprehensive web/notebook work depends on the frozen surface, but the docstring narrative-removal slice can proceed now. See [Documentation overhaul](#documentation-overhaul-20--iit-40). |
 
 ### ⛔ Deferred — out of 2.0 (genuine blocker)
 
@@ -142,6 +143,43 @@ and dropped `ordered-set`; migrated `toolz` to `itertools.chain.from_iterable`,
 
 - **P17 — perf characterization.** Extend the cross-temporal benchmark beyond 5 nodes, find the interactive/batch size thresholds, characterize the mechanism behind the IIT 4.0 speedup (the archive records 19–43× at 4–5 nodes), and synthesize a network that exercises the 2026 ii-cap with non-zero φ. Needs the frozen surface + the P11.8-T2 ASV harness.
 - **P18 (+B6) — sparse / treewidth-dispatched exact inference.** `_cause_tpm_factored` materializes the full `aⁿ` substrate joint; for sparse connectivity it factorizes. Confirm the bottleneck binds (record a negative result if not), then design the inference. **B6 generalizes the original cause-only sparse inversion:** compile the per-node factors into a junction tree and compute repertoire marginals in `O(2^treewidth)` via belief propagation — covering the *effect* repertoires and unconstrained-forward averages too (min-fill treewidth-driven dispatch), not just the cause inversion; treewidth, not node count, is the true exponent, and sparse biological substrates (p53-Mdm2, Gómez) have treewidth far below `n`. Gate behind byte-identical exact parity against the dense oracle. *(This is the sole "P18"; the cluster-backend deferral that once shared the label is folded into Wave 4 / P11.)*
+
+### Documentation overhaul (2.0 / IIT 4.0)
+
+A first-class documentation project, distinct from the minimal docs slice baked
+into P15 (which is only "rebuild the Sphinx site + docstring cleanup + an
+architecture guide"). The goal is to make the documentation a full-fledged,
+comprehensive resource for 2.0 and IIT 4.0, rather than an API dump regenerated
+against a renamed surface. Scope:
+
+- **Web-docs tooling overhaul.** Modernize the Sphinx build itself — apidoc
+  regeneration against the 2.0 module layout, autodoc/napoleon configuration,
+  theme, cross-references, doctest-in-CI, and the readthedocs build — so the
+  site is maintainable, not just rebuilt once.
+- **Non-docstring narrative content, current for 2.0 and 4.0.** The conceptual
+  guides, theory mapping, and usage walkthroughs were written for IIT 3.0; the
+  IIT 4.0 narrative (distinctions, relations, system integration, the
+  `Substrate → System → formalism → φ-structure` layering, equation citations to
+  Albantakis et al. 2023 + the 2026 ii-cap) was never really written. This is
+  the largest gap.
+- **Example notebooks as a curated teaching set.** Rewrite
+  `docs/examples/IIT_4.0_demo.ipynb` as the canonical 2.0 tutorial, plus
+  task-focused notebooks (the new `docs/examples/serialize_demo.ipynb` is one);
+  a coherent set that teaches the library, not scattered scratch.
+- **Migration guide.** `docs/migration-2.0.md` documenting every API change for
+  existing users (the renames, the formalism dispatch, the serialization break).
+- **Final-state docstring sweep.** Rewrite every `pyphi/**` docstring in
+  final-state voice — describe what the thing *is*, not what it *was*, replaces,
+  or how it was built; remove migration-journey phrasing and design-decision
+  narrative. This is the foundation autodoc renders, so it comes first; the
+  **narrative-removal pass is the bounded first slice and can run now**, ahead of
+  the comprehensive web/notebook work (which wants the frozen surface settled).
+
+This is big enough to warrant its own brainstorm → spec → plan when picked up.
+It absorbs the docs bullets currently scattered through P15 (the "Remaining P15"
+line, the archive's "Sphinx site rebuilt" / "docstring cleanup pass" /
+"migration guide" / "demo notebook rewrite") and is the home for ship-criterion
+#5.
 
 ### Ship criterion for 2.0
 
