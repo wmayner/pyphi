@@ -45,7 +45,7 @@ P0 · P1 · P2 · P3 · P4 · P5 · P6 · P6a · **P6b** (graphillion removed; p
 | P11 cluster backends | ⬜ open | 4 | Fill HTCondor / full Dask behind the stable Scheduler Protocol (additive) |
 | Parallel engine unification | ✅ landed | 4 | Collapsed the two coexisting map-reduce implementations into one flat path: replaced the one-shot `MapReduce` class with a `pyphi.parallel.map_reduce()` function over the Scheduler Protocol, migrated all 10 call-sites, deleted the vestigial execution tree (`tree.py`/`test_tree.py` + dead `branch_factor`/`max_*` kwargs), and deduped the ~5 copied helpers. Backend selection (`config.parallel_backend`) is now honored from the public entry. Net ~900 lines removed; result-preserving (N2 + goldens + perf gate green). Prerequisite for B18. Spec/plan: `docs/superpowers/{specs,plans}/2026-06-23-unify-parallel-engine*` |
 | B18 adaptive chunking | ✅ landed | 4 | Activated `ChunkingPolicy.size_func`: a pure `cost_balanced_partition` LPT-packs items into cost-balanced chunks, and the chunk count is floored at `num_workers` (a general core-utilization win, de-risked empirically — 2.8–3× at every per-item cost, no overhead penalty). Cheap `size_func` proxies wired at the heterogeneous sites — relations (`overlap×degree`), purview eval (`2^|purview|`), concept eval (`2^|mechanism|`). Result-preserving (N2 incl. a forced-chunk concept test, goldens, perf gate). `pyphi/parallel/chunking.py`; spec/plan `docs/superpowers/{specs,plans}/2026-06-23-cost-balanced-chunking*` |
-| P15 | 🟡 partial | 5 | Import-surface cleanup landed (eager submodule walk → explicit registry imports + PEP-562 lazy `__getattr__`, guarded by a registry-contents test). jsonify→msgspec landed (`pyphi.serialize` replaces `pyphi.jsonify`; the per-class `to_json`/`from_json` hooks removed) **plus its loading surface** (path-based `serialize.save`/`load`, top-level `pyphi.save`/`pyphi.load`, `.save()`/`.load()` on the result types via a delegation-only `Serializable` mixin, deferred type registration, `substrate.from_json` removed, transparent gzip on `.gz` paths). pandas-extend done (display → B21). Remaining: test reorg, docstring sweep, PR triage, changelog condense |
+| P15 | 🟡 partial | 5 | Import-surface cleanup landed (eager submodule walk → explicit registry imports + PEP-562 lazy `__getattr__`, guarded by a registry-contents test). jsonify→msgspec landed (`pyphi.serialize` replaces `pyphi.jsonify`; the per-class `to_json`/`from_json` hooks removed) **plus its loading surface** (path-based `serialize.save`/`load`, top-level `pyphi.save`/`pyphi.load`, `.save()`/`.load()` on the result types via a delegation-only `Serializable` mixin, deferred type registration, `substrate.from_json` removed, transparent gzip on `.gz` paths). pandas-extend done (display → B21). Project-stage markers stripped from `pyphi/` + a docstring narrative-removal slice landed. PR triage done (audit against `main`: nothing left to absorb; closes pending a maintainer). Remaining: test reorg, the comprehensive docstring/docs sweep (now its own [Documentation overhaul](#documentation-overhaul-20--iit-40) project), changelog condense |
 | B17 drop dead deps | ✅ landed | 5 | Removed the declared-but-unused `tblib`; deleted the unused `OrderedSet`/`HashableOrderedSet` types (a sorted tuple is the better unit representation) and dropped `ordered-set`; migrated `toolz` to stdlib `itertools.chain.from_iterable`, `more_itertools.unique_everseen`, and `functools.partial`. Landed with the import-surface cleanup; spec/plan `docs/superpowers/{specs,plans}/2026-06-24-import-surface-cleanup*` |
 | EMD backend → POT | ✅ landed | 5 | Swapped deprecated `pyemd` for POT (`ot.emd2`) behind `OptionalEMD`; `pyphi[emd]` extra now installs `pot`. Backends agree to machine epsilon (binary + k-ary, 3600 cases); the IIT 3.0 CES-distance EMD was reformulated to proper non-negative OT (the negative-null-mass / signed-φ case), which **reproduces the existing goldens exactly** — no regen needed. |
 | P17 | ⬜ open | 6 | Cross-formalism perf characterization (post-freeze, internal-only) |
@@ -135,7 +135,7 @@ and dropped `ordered-set`; migrated `toolz` to `itertools.chain.from_iterable`,
 
 **jsonify → msgspec serialization — landed (2026-06-25).** A typed `msgspec`-based `pyphi.serialize` package replaces the custom `pyphi/jsonify.py` JSON layer, which is **deleted** along with every per-class `to_json`/`from_json` hook (58 methods) and the tie-peer serialization contextvars. The new package: one frozen `msgspec.Struct` per result type in a tag-discriminated union (`serialize/schema.py`), centralized `to_schema`/`from_schema` converters keyed by type (`serialize/convert.py`), numpy arrays stored as their `.npy` bytes (`serialize/arrays.py`; base64 in JSON, raw in msgpack, `allow_pickle=False`), and a `dumps`/`loads` (bytes) plus `save`/`load` (path or file object, format inferred from the extension) API over a single top-level `format_version` with both JSON and msgpack from one schema. The cause-effect-structure schema is **normalized**: distinctions are stored once in a table and each relation references its members by index, removing the dominant redundancy of embedding every distinction in every relation. Tie-peer graphs (RIA, SIA, AcRIA, state-spec, CausalLink) are reconstructed on decode. Validated two ways: ~94 synthetic round-trip tests (every type, JSON + msgpack) and a one-time migration that loaded all 27 jsonify-format reference fixtures the suite consumes with the legacy serializer and asserted the new serializer round-trips each to an equal object in both formats — the migration's output is the committed new-format goldens (the old jsonify format remains recoverable from git history). Measured compaction on the rule154 phi-structure: 1.31 MB → 56 KB JSON (23×), 43 KB msgpack (31×). It is a **format break**: results saved in the old jsonify format must be recomputed (no standalone converter ships). The ergonomic loading surface also landed: path-based `serialize.save`/`load` with format inferred from the extension, top-level `pyphi.save`/`pyphi.load`, and `.save()`/`.load()` methods on the user-facing result types via a delegation-only `Serializable` mixin (`pyphi/serializable.py`); type registration is deferred to first use (`_ensure_registered`) so importing `pyphi.serialize` performs no domain imports; the redundant `substrate.from_json` loader was removed. *(Config-as-Struct and domain-level generative-relations compression stay deferred; the dead `validate_json_version` config option is a separate follow-up cleanup.)*
 
-**Remaining P15:** mirror `pyphi/` structure in `test/` + split mixed test files; **docstring sweep** (rewrite to final-state voice; remove planning-artifact leaks like `pre-P11.9` and project-stage markers); extend `to_pandas` (object-display unification is **B21**, scheduled pre-freeze in Wave 2); open-PR triage (#114/#116/#130/#134/#117); condense changelog fragments to first-encounter voice.
+**Remaining P15:** mirror `pyphi/` structure in `test/` + split mixed test files; the comprehensive **docstring sweep** (rewrite to final-state voice — project-stage markers already stripped and a keyword-driven narrative-removal slice landed; the exhaustive pass is folded into the [Documentation overhaul](#documentation-overhaul-20--iit-40) project); condense changelog fragments to first-encounter voice. `to_pandas` extend = **B21** (done). Open-PR triage **done** (2026-06-26 audit: every fix PR already resolved in 2.0, rest moot/superseded — see [Open PRs to Absorb](#open-prs-to-absorb); GitHub closes pending a maintainer).
 
 **EMD backend → POT — landed (2026-06-14, ahead of the freeze).** Swapped the deprecated in-house `pyemd` for [POT](https://pythonot.github.io) (`ot.emd2`) behind `OptionalEMD`; the `pyphi[emd]` extra now installs `pot`. The exact-EMD cost is the unique optimal-transport optimum, so the backends agree to **machine epsilon** (≤2e-15 across 3600 random binary + k-ary cases; far inside the 1e-13 golden tolerance) — no golden regeneration or tolerance bump needed. Two divergences surfaced and were resolved: (i) POT returns NaN (divide-by-zero) on the empty/zero-mass case where `pyemd` returned 0 — guarded in `OptionalEMD.compute`; and (ii) the IIT 3.0 CES-distance EMD (`ces_measure="EMD"`) put a *negative* mass on the null concept when a partitioned constellation carried more φ than the whole (the signed-φ / "preventative cause" case), which `pyemd` tolerated out-of-spec but a correct OT solver cannot. Reformulated that construction to assign each side's φ deficit to its *own* null concept (both signatures non-negative, distance symmetric, identical to the old formula when `sum(d1) ≥ sum(d2)`); it **reproduces the prior golden value exactly** (`grid3` SIA φ = 0.020341). (scipy is not an option — its Wasserstein helpers don't take a general ground-cost matrix.) *Pre-existing, unrelated:* `test_invariants.py::test_cache_clearing_option` fails under one multi-file batch ordering on `main` too (global-cache test pollution) — not introduced here.
 
@@ -3479,17 +3479,35 @@ to have any value.
 
 ## Open PRs to Absorb
 
-> **Mostly resolved.** PR #138 (substrate modeler) and PR #105 (implicit/factored TPM) were
-> absorbed (P7 / P12 landed). The remaining minor PRs (#114/#116/#130/#134/#117) are triaged in
-> P15 (Wave 5). Kept for provenance.
+> **Triaged 2026-06-26 (audit against current `main`): nothing left to absorb.** Every fix-type PR
+> is already resolved in 2.0, and the rest are moot or superseded. The actual GitHub closes are the
+> only remaining step (they need a maintainer). Kept for provenance.
 
-- **PR #138 (`feature/substrate_modeler`)** — Reviewed as input to P7. Stateless
-  substrate design, `unit.py`, `substrate.py` may be directly usable.
-- **PR #105 (`feature/tpm-class`)** — Reviewed as input to P7 and P12. `ImplicitTPM`,
-  `state_space.py`, non-binary support. 100 commits, tests passing.
-- **PR #135, #133** — Pre-commit autoupdates. Merge into develop.
-- **PR #137, #136** — Dependabot bumps. Triage for security relevance.
-- **PR #114, #116, #130, #134, #117** — Minor fixes/features. Triage during P15.
+**Fix PRs — already resolved in 2.0 (close as fixed):**
+- **PR #141** (`distribution.unflatten()` argument order) — current `distribution.py` already calls
+  `repertoire_shape(range(N), purview)` (the fix); the buggy `repertoire_shape(purview, N)` is gone.
+- **PR #134** (`np.log2(..., out=…)`) — `pointwise_intrinsic_differentiation` already initializes
+  `out = np.zeros_like(p)`, so the `where=`-masked elements are defined zeros (the real footgun fix;
+  the PR's `out=None` was a no-op).
+- **PR #114** (strong-connectivity short-circuit) — 2.0 already returns a null SIA on
+  non-strong-connectivity in IIT 3.0 (`iit3/__init__.py`), IIT 4.0 (`iit4/__init__.py`), and AC.
+
+**Moot / superseded (close):**
+- **PR #140** (jsonify version tolerance) — jsonify deleted.
+- **PR #142** (importorskip `ray`/`redis`) — `ray` is gone (joblib + loky); largely moot.
+- **PR #130** (limit plotting to 2–3 relations) — contradicted by P14d A-5 (higher-degree relations
+  drawn deliberately).
+- **PR #116** (rename `pandas.py` to dodge a circular import) — `models/pandas.py` exists; no
+  circular import in the suite.
+- **PR #138** (`feature/substrate_modeler`) and **PR #105** (`feature/tpm-class`) — absorbed by P7 /
+  P12. **PR #49** (TPM constructor) and **PR #40** (2021 visualize edits) — superseded.
+- **PR #117** (nodes/time benchmarking notebook) — superseded by the ASV benchmark suite (P11.8).
+
+**Mechanical / maintainer's call:**
+- **PR #133, #135** — pre-commit autoupdates against an old base; pre-commit.ci manages this now.
+- **PR #137, #136** — dependabot bumps (pillow, cryptography), almost certainly transitive
+  doc/build deps; low risk, merge or let dependabot re-issue.
+
 - **Matching research repo (external)** — Research code implementing Mayner, Juel, &
   Tononi 2024 (intrinsic meaning, perception, and matching). ~1500 LOC. Folded into
   PyPhi as P14b. Uses subclassing pattern over PhiStructure/Concept/Relation.
