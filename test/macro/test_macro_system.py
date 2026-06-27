@@ -333,12 +333,12 @@ class TestPaperExample2:
 def test_macro_fingerprint_distinguishes_macro_from_plain_and_is_deterministic():
     """Regression: the macro cause marginal must enter the kernel-cache key.
 
-    The inherited System._math_fingerprint hashes only the (effect-marginal)
+    The inherited System._fingerprint hashes only the (effect-marginal)
     macro substrate, so a macro system and a plain System on that same substrate
     would collide and conflate cause repertoires in the kernel cache.
     """
     m = _cg_macro_system()
     plain = System(m.substrate, m.state)
-    assert m._math_fingerprint != plain._math_fingerprint
+    assert m._fingerprint != plain._fingerprint
     # Re-constructing the identical macro system reproduces the fingerprint.
-    assert m._math_fingerprint == _cg_macro_system()._math_fingerprint
+    assert m._fingerprint == _cg_macro_system()._fingerprint

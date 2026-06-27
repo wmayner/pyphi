@@ -129,7 +129,7 @@ def test_single_node_cause_repertoire_k3() -> None:
             self._index2node = index2node
             # Distinct content -> distinct kernel-cache fingerprint, so the two
             # _CS instances below (differing node state) are not conflated.
-            self._math_fingerprint = repr(
+            self._fingerprint = repr(
                 tuple((i, n.state) for i, n in sorted(index2node.items()))
             ).encode()
 

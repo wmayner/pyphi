@@ -19,7 +19,7 @@ def test_cm_fingerprint_ignores_tpm_weights():
         a = Substrate(tpm_a, cm)
         b = Substrate(tpm_b, cm)
     assert a._cm_fingerprint == b._cm_fingerprint
-    assert a._math_fingerprint != b._math_fingerprint  # TPM differs
+    assert a._fingerprint != b._fingerprint  # TPM differs
 
 
 def test_cm_fingerprint_separates_topologies():
@@ -36,15 +36,15 @@ def test_substrate_fingerprint_ignores_labels():
         s.factored_tpm, cm=s.cm, node_labels=("X", "Y", "Z")
     )
     assert relabeled == s  # same math
-    assert s._math_fingerprint == relabeled._math_fingerprint
+    assert s._fingerprint == relabeled._fingerprint
     assert s._cm_fingerprint == relabeled._cm_fingerprint
 
 
 def test_fingerprint_is_32_bytes_and_deterministic():
     s = examples.basic_substrate()
-    assert len(s._math_fingerprint) == 32
+    assert len(s._fingerprint) == 32
     assert len(s._cm_fingerprint) == 32
-    assert s._math_fingerprint == examples.basic_substrate()._math_fingerprint
+    assert s._fingerprint == examples.basic_substrate()._fingerprint
 
 
 def test_system_fingerprint_ignores_labels_but_tracks_state_and_cut():
@@ -58,22 +58,22 @@ def test_system_fingerprint_ignores_labels_but_tracks_state_and_cut():
     )
     s1 = System(base, (0, 0, 0))
     s2 = System(relabeled, (0, 0, 0))
-    assert s1._math_fingerprint == s2._math_fingerprint  # label-free
+    assert s1._fingerprint == s2._fingerprint  # label-free
 
     s_other_state = System(base, (1, 0, 0))
-    assert s1._math_fingerprint != s_other_state._math_fingerprint
+    assert s1._fingerprint != s_other_state._fingerprint
 
     s_cut = System(
         base, (0, 0, 0), partition=DirectedBipartition(Direction.CAUSE, (0,), (1, 2))
     )
-    assert s1._math_fingerprint != s_cut._math_fingerprint
+    assert s1._fingerprint != s_cut._fingerprint
 
 
 def test_equivalent_systems_share_fingerprint_and_phi():
     s1 = examples.basic_system()
     s2 = examples.basic_system()  # re-constructed, distinct object
     assert s1 is not s2
-    assert s1._math_fingerprint == s2._math_fingerprint
+    assert s1._fingerprint == s2._fingerprint
     assert s1.sia().phi == s2.sia().phi
 
 
@@ -143,7 +143,7 @@ def test_relabeling_collides_and_agrees(arrays):
         relabeled = Substrate(tpm, cm, node_labels=labels, state_space=aliased_space)
     # Relabeling (node names + state-label strings) never changes the math.
     assert base == relabeled
-    assert base._math_fingerprint == relabeled._math_fingerprint
+    assert base._fingerprint == relabeled._fingerprint
     assert base._cm_fingerprint == relabeled._cm_fingerprint
 
 
@@ -155,6 +155,6 @@ def test_math_difference_separates(a, b):
         sb = Substrate(*b)
     # Equal value identity <=> equal fingerprint (no false sharing or splitting).
     if sa == sb:
-        assert sa._math_fingerprint == sb._math_fingerprint
+        assert sa._fingerprint == sb._fingerprint
     else:
-        assert sa._math_fingerprint != sb._math_fingerprint
+        assert sa._fingerprint != sb._fingerprint

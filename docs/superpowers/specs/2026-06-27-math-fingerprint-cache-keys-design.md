@@ -83,13 +83,13 @@ purviews depend only on connectivity. Keying each on its true dependency
 maximizes correct reuse — in particular, a parameter sweep over a fixed topology
 (same `cm`, different TPM weights) shares all of its potential-purview work.
 
-### 1. `Substrate._cm_fingerprint` and `Substrate._math_fingerprint`
+### 1. `Substrate._cm_fingerprint` and `Substrate._fingerprint`
 
 Two `@cached_property` digests (32-byte `blake2b`):
 
 - **`_cm_fingerprint`** — over the connectivity matrix only: `cm.shape` and
   `cm.tobytes()` at a fixed dtype. This is what the purview cache keys on.
-- **`_math_fingerprint`** — over the full label-free substrate content:
+- **`_fingerprint`** — over the full label-free substrate content:
   `alphabet_sizes` (tuple of ints); each factor array's canonical bytes
   (`(factor(i) + 0.0).tobytes()`, matching `FactoredTPM.__hash__`'s normalization
   so `-0.0`/`+0.0` do not diverge), in node order; and `_cm_fingerprint`. This is
@@ -97,11 +97,11 @@ Two `@cached_property` digests (32-byte `blake2b`):
 
 Both exclude `node_labels` and `state_space` label strings.
 
-### 2. `System._math_fingerprint`
+### 2. `System._fingerprint`
 
 A `@cached_property` returning a 32-byte `blake2b` digest over:
 
-- `substrate._math_fingerprint` (the bytes above);
+- `substrate._fingerprint` (the bytes above);
 - `state` as the coerced integer-index tuple;
 - `node_indices` and `external_indices` (tuples of ints);
 - the partition's mathematical content: `tuple(sorted(partition.indices))` and
@@ -148,7 +148,7 @@ unchanged.
 ### 4. Apply to both caches
 
 - **Kernel cache** (`_memoize`): source object = `System`, fingerprint =
-  `System._math_fingerprint`. `_memoize` stays as the ergonomic decorator but
+  `System._fingerprint`. `_memoize` stays as the ergonomic decorator but
   delegates to one `ContentCache` per function; replace `cs_id = id(cs)` with the
   fingerprint and drop the `_observers`/`_evict` pair.
 - **Purview cache** (`Substrate.potential_purviews`): move from the per-instance
@@ -174,7 +174,7 @@ Verification:
 
 1. **Hypothesis — relabeling collides and agrees.** For a random substrate and a
    random relabeling (permuted `node_labels`, aliased `state_space` labels with
-   the same alphabet sizes), assert equal `_math_fingerprint` *and* byte-identical
+   the same alphabet sizes), assert equal `_fingerprint` *and* byte-identical
    cause/effect repertoires and `sia`/`ces` φ.
 2. **Hypothesis — math difference separates.** For two systems differing in any
    mathematical component (a TPM factor entry, `cm`, `state`, `node_indices`, or
@@ -199,11 +199,11 @@ Verification:
 - `pyphi/cache/content.py` (new) — the `ContentCache` class (refcounted,
   fingerprint-keyed); exported from `pyphi/cache/__init__.py`.
 - `pyphi/substrate.py` — `Substrate._cm_fingerprint` and
-  `Substrate._math_fingerprint`; migrate `potential_purviews` to a module-level
+  `Substrate._fingerprint`; migrate `potential_purviews` to a module-level
   `ContentCache` keyed on `_cm_fingerprint`.
-- `pyphi/system.py` — `System._math_fingerprint`.
+- `pyphi/system.py` — `System._fingerprint`.
 - `pyphi/core/repertoire_algebra.py` — re-key `_memoize` onto a `ContentCache`
-  per function using `System._math_fingerprint`; drop `_observers`/`_evict`.
+  per function using `System._fingerprint`; drop `_observers`/`_evict`.
 - `pyphi/cache/__init__.py` — re-export `ContentCache`; the per-instance
   `PurviewCache` is retired (or left unused) once `potential_purviews` moves.
 - `test/cache/`, `test/core/` — `ContentCache` refcount/eviction unit tests;

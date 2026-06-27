@@ -54,7 +54,7 @@ def _memoize(fn: Callable) -> Callable:
 
     @wraps(fn)
     def wrapper(cs: Any, *args: Any) -> Any:
-        fp = cs._math_fingerprint
+        fp = cs._fingerprint
         cache.observe(cs, fp)
         return cache.get_or_compute(fp, args, lambda: fn(cs, *args))
 
@@ -72,7 +72,7 @@ def clear_caches(cs: Any | None = None) -> None:
         for c in _kernel_caches.values():
             c.clear()
         return
-    fp = cs._math_fingerprint
+    fp = cs._fingerprint
     for c in _kernel_caches.values():
         c.evict(fp)
 

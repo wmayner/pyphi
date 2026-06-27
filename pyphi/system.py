@@ -160,7 +160,7 @@ class System(Displayable, Serializable):
         )
 
     @cached_property
-    def _math_fingerprint(self) -> bytes:
+    def _fingerprint(self) -> bytes:
         """blake2b-256 digest of the label-free system math identity.
 
         Serializes exactly the components :meth:`__eq__` compares: the substrate
@@ -170,7 +170,7 @@ class System(Displayable, Serializable):
         systems share entries.
         """
         h = hashlib.blake2b(digest_size=32)
-        h.update(self.substrate._math_fingerprint)
+        h.update(self.substrate._fingerprint)
         h.update(repr(tuple(self.state)).encode())
         h.update(repr(tuple(self.node_indices)).encode())
         h.update(repr(tuple(self.external_indices)).encode())

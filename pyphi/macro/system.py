@@ -207,10 +207,10 @@ class MacroSystem(System):
         )
 
     @cached_property
-    def _math_fingerprint(self) -> bytes:  # type: ignore[override]
+    def _fingerprint(self) -> bytes:  # type: ignore[override]
         """blake2b-256 digest of the macro system's kernel inputs.
 
-        The inherited :attr:`System._math_fingerprint` is unsound for a macro
+        The inherited :attr:`System._fingerprint` is unsound for a macro
         system: it hashes only the (effect-marginal) macro substrate and would
         conflate two groupings that share an effect marginal but differ in their
         cause marginal. This digests both derived marginals the kernel reads —
@@ -221,7 +221,7 @@ class MacroSystem(System):
         assert self.macro_cause_marginal is not None
         ccm = self.macro_cause_marginal
         h = hashlib.blake2b(digest_size=32)
-        h.update(self.substrate._math_fingerprint)
+        h.update(self.substrate._fingerprint)
         h.update(repr(ccm.alphabet_sizes).encode())
         for i in range(ccm.n_nodes):
             h.update((ccm.factor(i) + 0.0).tobytes())

@@ -19,7 +19,7 @@ def test_memoize_caches_results() -> None:
         return x * 2
 
     class FakeCs:
-        _math_fingerprint = b"fake-caches-fp"
+        _fingerprint = b"fake-caches-fp"
 
     cs = FakeCs()
     assert f(cs, 3) == 6
@@ -37,7 +37,7 @@ def test_memoize_evicts_on_gc() -> None:
         return x * 2
 
     class FakeCs:
-        _math_fingerprint = b"fake-evict-fp"
+        _fingerprint = b"fake-evict-fp"
 
     cs = FakeCs()
     f(cs, 1)
@@ -63,7 +63,7 @@ def test_memoize_does_not_poison_on_failure() -> None:
         return x * 2
 
     class FakeCs:
-        _math_fingerprint = b"fake-poison-fp"
+        _fingerprint = b"fake-poison-fp"
 
     cs = FakeCs()
     with pytest.raises(ValueError):

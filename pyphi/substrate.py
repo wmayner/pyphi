@@ -318,7 +318,7 @@ class Substrate(Displayable, Serializable):
         return h.digest()
 
     @cached_property
-    def _math_fingerprint(self) -> bytes:
+    def _fingerprint(self) -> bytes:
         """blake2b-256 digest of the full label-free substrate math identity.
 
         Covers exactly what :meth:`__eq__` compares: alphabet sizes, the factor
