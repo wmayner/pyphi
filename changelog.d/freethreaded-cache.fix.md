@@ -1,0 +1,1 @@
+Made the content-addressed result cache safe for concurrent worker threads, so the thread scheduler (selected automatically on free-threaded Python) no longer races during cache eviction. Added a free-threaded Python 3.14t continuous-integration lane.
