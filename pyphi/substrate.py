@@ -7,8 +7,10 @@ This is the primary object of PyPhi and the context of all |small_phi| and
 
 from __future__ import annotations
 
+import hashlib
 from collections.abc import Iterable
 from collections.abc import Sequence
+from functools import cached_property
 from typing import Any
 
 import numpy as np
@@ -299,6 +301,36 @@ class Substrate(Displayable, Serializable):
         nodes in the substrate.
         """
         return self._cm
+
+    @cached_property
+    def _cm_fingerprint(self) -> bytes:
+        """blake2b-256 digest of the connectivity matrix (label-free).
+
+        The exact dependency of :meth:`potential_purviews`, which reads only
+        ``cm``; substrates that share a topology but differ in TPM weights
+        share this fingerprint and so share their potential-purview results.
+        """
+        cm = np.ascontiguousarray(self._cm).astype(np.int8, copy=False)
+        h = hashlib.blake2b(digest_size=32)
+        h.update(repr(cm.shape).encode())
+        h.update(cm.tobytes())
+        return h.digest()
+
+    @cached_property
+    def _math_fingerprint(self) -> bytes:
+        """blake2b-256 digest of the full label-free substrate math identity.
+
+        Covers exactly what :meth:`__eq__` compares: alphabet sizes, the factor
+        array bytes (``+ 0.0`` folds ``-0.0`` like ``FactoredTPM.__hash__``), and
+        the connectivity. Excludes ``node_labels`` / ``state_space`` labels.
+        """
+        ftpm = self._factored_tpm
+        h = hashlib.blake2b(digest_size=32)
+        h.update(repr(ftpm.alphabet_sizes).encode())
+        for i in range(ftpm.n_nodes):
+            h.update((ftpm.factor(i) + 0.0).tobytes())
+        h.update(self._cm_fingerprint)
+        return h.digest()
 
     def _build_cm(self, cm: ArrayLike | None) -> tuple[ConnectivityMatrix, int]:
         """Convert the passed CM to the proper format, or construct the
