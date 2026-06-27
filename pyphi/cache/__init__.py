@@ -266,6 +266,7 @@ def method(cache_name, key_prefix=None):
 # to avoid spurious ruff F811 against the ``DictCache.clear`` /
 # ``DictCache.info`` instance methods above (different scopes, but the
 # linter conflates them).
+from .content import ContentCache as ContentCache  # noqa: E402
 from .registry import clear as clear  # noqa: E402
 from .registry import clear_all as clear_all  # noqa: E402
 from .registry import info as info  # noqa: E402
