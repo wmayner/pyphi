@@ -93,3 +93,68 @@ def test_potential_purviews_shared_across_same_cm_substrates():
         pb = b.potential_purviews(Direction.CAUSE, (0,))  # hits a's entry
     assert pa == pb
     assert _PURVIEW_CACHE.size == size_after_a  # no new entry for b
+
+
+# ---- Hypothesis soundness invariants ----
+
+from hypothesis import given  # noqa: E402
+from hypothesis import settings  # noqa: E402
+from hypothesis import strategies as st  # noqa: E402
+
+
+@st.composite
+def _small_substrate_arrays(draw):
+    n = draw(st.integers(min_value=2, max_value=3))
+    rows = 2**n
+    tpm = np.array(
+        draw(
+            st.lists(
+                st.lists(
+                    st.floats(0.0, 1.0, allow_nan=False, allow_infinity=False),
+                    min_size=n,
+                    max_size=n,
+                ),
+                min_size=rows,
+                max_size=rows,
+            )
+        )
+    )
+    cm = np.array(
+        draw(
+            st.lists(
+                st.lists(st.integers(0, 1), min_size=n, max_size=n),
+                min_size=n,
+                max_size=n,
+            )
+        )
+    )
+    return tpm, cm
+
+
+@settings(max_examples=150, deadline=None)
+@given(_small_substrate_arrays())
+def test_relabeling_collides_and_agrees(arrays):
+    tpm, cm = arrays
+    n = cm.shape[0]
+    labels = tuple("PQRST"[:n])
+    aliased_space = tuple(tuple(f"s{j}" for j in range(2)) for _ in range(n))
+    with config.override(**_NO_CM_VALIDATION):
+        base = Substrate(tpm, cm)
+        relabeled = Substrate(tpm, cm, node_labels=labels, state_space=aliased_space)
+    # Relabeling (node names + state-label strings) never changes the math.
+    assert base == relabeled
+    assert base._math_fingerprint == relabeled._math_fingerprint
+    assert base._cm_fingerprint == relabeled._cm_fingerprint
+
+
+@settings(max_examples=150, deadline=None)
+@given(_small_substrate_arrays(), _small_substrate_arrays())
+def test_math_difference_separates(a, b):
+    with config.override(**_NO_CM_VALIDATION):
+        sa = Substrate(*a)
+        sb = Substrate(*b)
+    # Equal value identity <=> equal fingerprint (no false sharing or splitting).
+    if sa == sb:
+        assert sa._math_fingerprint == sb._math_fingerprint
+    else:
+        assert sa._math_fingerprint != sb._math_fingerprint
