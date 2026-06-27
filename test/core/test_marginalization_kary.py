@@ -127,6 +127,11 @@ def test_single_node_cause_repertoire_k3() -> None:
     class _CS:
         def __init__(self, index2node: dict[int, _Node]):
             self._index2node = index2node
+            # Distinct content -> distinct kernel-cache fingerprint, so the two
+            # _CS instances below (differing node state) are not conflated.
+            self._math_fingerprint = repr(
+                tuple((i, n.state) for i, n in sorted(index2node.items()))
+            ).encode()
 
     # Per-node cause factor: 2-node substrate, k=3 alphabet, k=3 outputs.
     # Shape (3, 3, 3) -- last axis is this node's output-state distribution.

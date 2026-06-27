@@ -14,7 +14,7 @@ import weakref
 from collections.abc import Callable
 from typing import Any
 
-from pyphi.cache.cache_utils import memory_full
+from pyphi.cache import cache_utils
 from pyphi.cache.policy import _DictCacheAdapter
 from pyphi.cache.registry import register as _register_policy
 
@@ -71,7 +71,7 @@ class ContentCache:
             return self._cache[key]
         self.misses += 1
         result = compute()  # raises propagate; key not added on raise
-        if store and not memory_full():
+        if store and not cache_utils.memory_full():
             self._cache[key] = result
         return result
 

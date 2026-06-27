@@ -13,17 +13,16 @@ process-isolated parallelism assumption.
 from __future__ import annotations
 
 import functools
-import weakref
 from collections.abc import Callable
 from functools import wraps
 from typing import Any
-from weakref import WeakValueDictionary
 
 import numpy as np
 
 from pyphi import distribution as _dist
 from pyphi import utils as _utils
 from pyphi import validate as _validate
+from pyphi.cache.content import ContentCache
 from pyphi.data_structures import FrozenMap
 from pyphi.data_structures import PyPhiFloat
 from pyphi.direction import Direction
@@ -36,81 +35,46 @@ from pyphi.measures.protocols import StateAwareMeasure
 from pyphi.measures.protocols import StatefulDistributionMeasure
 from pyphi.measures.protocols import satisfies_composite_measure
 
-# One cache dict per memoized function name.
-_caches: dict[str, dict[tuple, Any]] = {}
-
-# Per-function ``[hits, misses]`` counters, exposed through the cache
-# registry adapters set up in ``_memoize``.
-_kernel_stats: dict[str, list[int]] = {}
-
-# Live System references keyed by id, with finalizers that purge
-# the corresponding cache entries on GC.
-_observers: WeakValueDictionary[int, Any] = WeakValueDictionary()
-
-
-def _evict(cs_id: int) -> None:
-    """Purge cache entries whose first key element is ``cs_id``."""
-    for fn_cache in _caches.values():
-        for key in [k for k in fn_cache if k and k[0] == cs_id]:
-            del fn_cache[key]
+# One ContentCache per memoized function name.
+_kernel_caches: dict[str, ContentCache] = {}
 
 
 def _memoize(fn: Callable) -> Callable:
-    """Memoize a function over System instances by ``id()``.
+    """Memoize a function over System instances by content fingerprint.
 
-    Uses ``WeakValueDictionary`` + ``weakref.finalize`` so that cache
-    entries are purged when the System is collected. Stops
-    inserting new entries when ``cache_utils.memory_full()`` reports
-    process memory above ``MAXIMUM_CACHE_MEMORY_PERCENTAGE`` — already
-    computed values are still returned, just not cached.
+    Distinct-but-equivalent Systems (re-constructed, or label-distinct) share
+    entries via :class:`~pyphi.cache.content.ContentCache`. A fingerprint's
+    entries are evicted when its last live carrier is garbage-collected. Stops
+    inserting new entries when ``cache_utils.memory_full()`` reports process
+    memory above ``maximum_cache_memory_percentage`` — already-computed values
+    are still returned, just not cached.
     """
-    from pyphi.cache.policy import _DictCacheAdapter
-    from pyphi.cache.registry import register as _register_policy
-
-    cache = _caches.setdefault(fn.__name__, {})
-    stats = _kernel_stats.setdefault(fn.__name__, [0, 0])
-
-    _register_policy(
-        _DictCacheAdapter(
-            name=f"kernel.{fn.__name__}",
-            backing=cache,
-            stats=lambda s=stats: (s[0], s[1]),
-        )
-    )
+    cache = ContentCache(f"kernel.{fn.__name__}")
+    _kernel_caches[fn.__name__] = cache
 
     @wraps(fn)
     def wrapper(cs: Any, *args: Any) -> Any:
-        from pyphi.cache.cache_utils import memory_full
-
-        cs_id = id(cs)
-        key = (cs_id, args)
-        if cs_id not in _observers:
-            _observers[cs_id] = cs
-            weakref.finalize(cs, _evict, cs_id)
-        if key in cache:
-            stats[0] += 1
-            return cache[key]
-        stats[1] += 1
-        result = fn(cs, *args)  # raises propagate; key not added on raise
-        if not memory_full():
-            cache[key] = result
-        return result
+        fp = cs._math_fingerprint
+        cache.observe(cs, fp)
+        return cache.get_or_compute(fp, args, lambda: fn(cs, *args))
 
     return wrapper
 
 
 def cache_info() -> dict[str, dict[str, int]]:
     """Return per-function cache size."""
-    return {name: {"size": len(c)} for name, c in _caches.items()}
+    return {name: {"size": c.size} for name, c in _kernel_caches.items()}
 
 
 def clear_caches(cs: Any | None = None) -> None:
     """Clear cache entries. If ``cs`` given, clear only that instance's entries."""
     if cs is None:
-        for c in _caches.values():
+        for c in _kernel_caches.values():
             c.clear()
         return
-    _evict(id(cs))
+    fp = cs._math_fingerprint
+    for c in _kernel_caches.values():
+        c.evict(fp)
 
 
 # ---- repertoire computation ----

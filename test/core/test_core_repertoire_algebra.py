@@ -19,7 +19,7 @@ def test_memoize_caches_results() -> None:
         return x * 2
 
     class FakeCs:
-        pass
+        _math_fingerprint = b"fake-caches-fp"
 
     cs = FakeCs()
     assert f(cs, 3) == 6
@@ -28,8 +28,8 @@ def test_memoize_caches_results() -> None:
 
 
 def test_memoize_evicts_on_gc() -> None:
-    """When a System is GC'd, its cache entries are evicted."""
-    from pyphi.core.repertoire_algebra import _caches
+    """When the last carrier of a fingerprint is GC'd, its entries are evicted."""
+    from pyphi.core.repertoire_algebra import _kernel_caches
     from pyphi.core.repertoire_algebra import _memoize
 
     @_memoize
@@ -37,16 +37,16 @@ def test_memoize_evicts_on_gc() -> None:
         return x * 2
 
     class FakeCs:
-        pass
+        _math_fingerprint = b"fake-evict-fp"
 
     cs = FakeCs()
-    cs_id = id(cs)
     f(cs, 1)
     f(cs, 2)
-    assert any(k[0] == cs_id for k in _caches[f.__name__])
+    cache = _kernel_caches[f.__name__]
+    assert cache.size == 2
     del cs
     gc.collect()
-    assert not any(k[0] == cs_id for k in _caches[f.__name__])
+    assert cache.size == 0
 
 
 def test_memoize_does_not_poison_on_failure() -> None:
@@ -63,7 +63,7 @@ def test_memoize_does_not_poison_on_failure() -> None:
         return x * 2
 
     class FakeCs:
-        pass
+        _math_fingerprint = b"fake-poison-fp"
 
     cs = FakeCs()
     with pytest.raises(ValueError):
