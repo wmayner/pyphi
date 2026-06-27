@@ -263,6 +263,7 @@ def method(cache_name, key_prefix=None):
 # ``DictCache.info`` instance methods above (different scopes, but the
 # linter conflates them).
 from .content import ContentCache as ContentCache  # noqa: E402
+from .disk import DiskCache as DiskCache  # noqa: E402
 from .registry import clear as clear  # noqa: E402
 from .registry import clear_all as clear_all  # noqa: E402
 from .registry import info as info  # noqa: E402
