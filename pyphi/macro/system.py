@@ -17,8 +17,10 @@ units are perturbed uniformly over their two states like any units.
 
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass
 from dataclasses import field
+from functools import cached_property
 from typing import Any
 
 from pyphi.core.tpm.factored import FactoredTPM
@@ -203,3 +205,29 @@ class MacroSystem(System):
                 self.partition,
             )
         )
+
+    @cached_property
+    def _math_fingerprint(self) -> bytes:  # type: ignore[override]
+        """blake2b-256 digest of the macro system's kernel inputs.
+
+        The inherited :attr:`System._math_fingerprint` is unsound for a macro
+        system: it hashes only the (effect-marginal) macro substrate and would
+        conflate two groupings that share an effect marginal but differ in their
+        cause marginal. This digests both derived marginals the kernel reads —
+        the effect-side macro substrate and the overridden cause marginal
+        (:attr:`macro_cause_marginal`) — plus the state, indices, and partition,
+        so equal fingerprint implies identical repertoires.
+        """
+        assert self.macro_cause_marginal is not None
+        ccm = self.macro_cause_marginal
+        h = hashlib.blake2b(digest_size=32)
+        h.update(self.substrate._math_fingerprint)
+        h.update(repr(ccm.alphabet_sizes).encode())
+        for i in range(ccm.n_nodes):
+            h.update((ccm.factor(i) + 0.0).tobytes())
+        h.update(repr(tuple(self.state)).encode())
+        h.update(repr(tuple(self.node_indices)).encode())
+        h.update(repr(tuple(self.external_indices)).encode())
+        h.update(repr(tuple(sorted(self.partition.indices))).encode())
+        h.update(repr(sorted(self.partition.removed_edges())).encode())
+        return h.digest()
