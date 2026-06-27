@@ -97,24 +97,24 @@ def _config_digest(snapshot: Any) -> bytes:
     return repr(fields).encode()
 
 
-def _code_version() -> str:
-    """The running pyphi code's identity: git sha in a checkout, else version."""
-    sha, _dirty = _git_info()
-    if sha is not None:
-        return f"git:{sha}"
-    return f"v:{importlib.metadata.version('pyphi')}"
-
-
 def result_cache_key(system: Any, kind: str, snapshot: Any) -> str | None:
-    """Hex cache key, or ``None`` (do not cache) when the git tree is dirty."""
-    _sha, dirty = _git_info()
+    """Hex cache key, or ``None`` (do not cache) when the git tree is dirty.
+
+    The code-version component is the git sha in a checkout, else the released
+    pyphi version, so a code change that alters results changes the key.
+    """
+    sha, dirty = _git_info()
     if dirty:
         return None
+    if sha is not None:
+        version = f"git:{sha}"
+    else:
+        version = f"v:{importlib.metadata.version('pyphi')}"
     h = hashlib.blake2b(digest_size=32)
     h.update(system._fingerprint)
     h.update(kind.encode())
     h.update(_config_digest(snapshot))
-    h.update(_code_version().encode())
+    h.update(version.encode())
     return h.hexdigest()
 
 
