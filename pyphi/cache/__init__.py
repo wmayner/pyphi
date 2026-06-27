@@ -3,13 +3,18 @@
 
 Threading
 ---------
-Caches in PyPhi are NOT thread-safe. PyPhi assumes process-isolated
-parallelism (Ray-based), where each worker has its own interpreter and
-its own copy of every cache. Do not share cache instances across
-threads.
+``ContentCache`` (see :mod:`pyphi.cache.content`) is safe for concurrent use
+by worker threads: cached values are correct, eviction is sound, and no
+operation raises under concurrent access. Its ``hits``/``misses`` counters are
+best-effort under free-threaded Python — exact under the GIL and under
+process-isolated parallelism, approximate when threads share one cache — since
+they are diagnostics that nothing computes on, and are deliberately left out of
+the lock to keep the hot path free of contention.
 
-If a future parallelism model uses shared memory (free-threaded Python,
-asyncio with shared state, etc.), this module will need locks.
+The ``cache`` decorator and ``DictCache`` below are oriented to process-isolated
+parallelism (each worker process owns its caches) and are not shared across
+threads by the current schedulers; their counters carry the same best-effort
+caveat under free-threading.
 
 Public surface
 --------------
