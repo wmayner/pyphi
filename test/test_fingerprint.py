@@ -45,3 +45,33 @@ def test_fingerprint_is_32_bytes_and_deterministic():
     assert len(s._math_fingerprint) == 32
     assert len(s._cm_fingerprint) == 32
     assert s._math_fingerprint == examples.basic_substrate()._math_fingerprint
+
+
+def test_system_fingerprint_ignores_labels_but_tracks_state_and_cut():
+    from pyphi import System
+    from pyphi.direction import Direction
+    from pyphi.models.partitions import DirectedBipartition
+
+    base = examples.basic_substrate()
+    relabeled = Substrate.from_factored(
+        base.factored_tpm, cm=base.cm, node_labels=("X", "Y", "Z")
+    )
+    s1 = System(base, (0, 0, 0))
+    s2 = System(relabeled, (0, 0, 0))
+    assert s1._math_fingerprint == s2._math_fingerprint  # label-free
+
+    s_other_state = System(base, (1, 0, 0))
+    assert s1._math_fingerprint != s_other_state._math_fingerprint
+
+    s_cut = System(
+        base, (0, 0, 0), partition=DirectedBipartition(Direction.CAUSE, (0,), (1, 2))
+    )
+    assert s1._math_fingerprint != s_cut._math_fingerprint
+
+
+def test_equivalent_systems_share_fingerprint_and_phi():
+    s1 = examples.basic_system()
+    s2 = examples.basic_system()  # re-constructed, distinct object
+    assert s1 is not s2
+    assert s1._math_fingerprint == s2._math_fingerprint
+    assert s1.sia().phi == s2.sia().phi

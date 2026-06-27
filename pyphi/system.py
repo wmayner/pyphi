@@ -8,6 +8,7 @@ applied. Immutable, hashable. The partition is a constructor argument
 
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass
 from dataclasses import field
 from functools import cached_property
@@ -157,6 +158,25 @@ class System(Displayable, Serializable):
                 self.external_indices,
             )
         )
+
+    @cached_property
+    def _math_fingerprint(self) -> bytes:
+        """blake2b-256 digest of the label-free system math identity.
+
+        Serializes exactly the components :meth:`__eq__` compares: the substrate
+        math fingerprint, the index-coerced state, the node and external indices,
+        and the partition's mathematical content (``indices`` + ``removed_edges``).
+        Used as the repertoire kernel cache key so distinct-but-equivalent
+        systems share entries.
+        """
+        h = hashlib.blake2b(digest_size=32)
+        h.update(self.substrate._math_fingerprint)
+        h.update(repr(tuple(self.state)).encode())
+        h.update(repr(tuple(self.node_indices)).encode())
+        h.update(repr(tuple(self.external_indices)).encode())
+        h.update(repr(tuple(sorted(self.partition.indices))).encode())
+        h.update(repr(sorted(self.partition.removed_edges())).encode())
+        return h.digest()
 
     def __len__(self) -> int:
         return len(self.node_indices)
