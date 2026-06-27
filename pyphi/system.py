@@ -677,21 +677,29 @@ class System(Displayable, Serializable):
         explicitly, so formalism methods are never called without explicit
         measures in normal flow.
         """
-        from pyphi.conf import config as _config
-        from pyphi.formalism import sia as _sia
-        from pyphi.measures.distribution import resolve_mechanism_measure
-        from pyphi.measures.distribution import resolve_system_measure
+        from pyphi.cache.disk import maybe_disk_cached
 
-        if _config.formalism.iit.version != "IIT_3_0":
-            kwargs.setdefault(
-                "system_measure",
-                resolve_system_measure(_config.formalism.iit.system_phi_measure),
-            )
-            kwargs.setdefault(
-                "specification_measure",
-                resolve_mechanism_measure(_config.formalism.iit.specification_measure),
-            )
-        return _sia(self, **kwargs)
+        def _compute() -> Any:
+            from pyphi.conf import config as _config
+            from pyphi.formalism import sia as _sia
+            from pyphi.measures.distribution import resolve_mechanism_measure
+            from pyphi.measures.distribution import resolve_system_measure
+
+            call_kwargs = dict(kwargs)
+            if _config.formalism.iit.version != "IIT_3_0":
+                call_kwargs.setdefault(
+                    "system_measure",
+                    resolve_system_measure(_config.formalism.iit.system_phi_measure),
+                )
+                call_kwargs.setdefault(
+                    "specification_measure",
+                    resolve_mechanism_measure(
+                        _config.formalism.iit.specification_measure
+                    ),
+                )
+            return _sia(self, **call_kwargs)
+
+        return maybe_disk_cached(self, "sia", kwargs, _compute)
 
     def ces(self, **kwargs: Any) -> Any:
         """Return the cause-effect structure of this system (Eq. 57).
@@ -701,28 +709,34 @@ class System(Displayable, Serializable):
         :class:`Distinctions` (IIT 3.0 has no relations, so the CES is
         exactly the set of distinctions).
         """
-        from pyphi.conf import config as _config
+        from pyphi.cache.disk import maybe_disk_cached
 
-        formalism_name = _config.formalism.iit.version
-        if formalism_name == "IIT_3_0":
-            from pyphi.formalism.iit3 import (
-                _compute_distinctions as _ces,  # pyright: ignore[reportPrivateUsage]
+        def _compute() -> Any:
+            from pyphi.conf import config as _config
+
+            call_kwargs = dict(kwargs)
+            formalism_name = _config.formalism.iit.version
+            if formalism_name == "IIT_3_0":
+                from pyphi.formalism.iit3 import (
+                    _compute_distinctions as _ces,  # pyright: ignore[reportPrivateUsage]
+                )
+
+                return _ces(self, **call_kwargs)
+            from pyphi.formalism.iit4 import ces as _ces
+            from pyphi.measures.distribution import resolve_mechanism_measure
+            from pyphi.measures.distribution import resolve_system_measure
+
+            call_kwargs.setdefault(
+                "system_measure",
+                resolve_system_measure(_config.formalism.iit.system_phi_measure),
             )
+            call_kwargs.setdefault(
+                "specification_measure",
+                resolve_mechanism_measure(_config.formalism.iit.specification_measure),
+            )
+            return _ces(self, **call_kwargs)
 
-            return _ces(self, **kwargs)
-        from pyphi.formalism.iit4 import ces as _ces
-        from pyphi.measures.distribution import resolve_mechanism_measure
-        from pyphi.measures.distribution import resolve_system_measure
-
-        kwargs.setdefault(
-            "system_measure",
-            resolve_system_measure(_config.formalism.iit.system_phi_measure),
-        )
-        kwargs.setdefault(
-            "specification_measure",
-            resolve_mechanism_measure(_config.formalism.iit.specification_measure),
-        )
-        return _ces(self, **kwargs)
+        return maybe_disk_cached(self, "ces", kwargs, _compute)
 
     def distinctions(self, **kwargs: Any) -> Any:
         """Return the :class:`Distinctions` of this system.

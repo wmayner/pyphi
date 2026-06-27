@@ -85,6 +85,7 @@ class InfrastructureConfig:
     cache_repertoires: bool = True
     cache_potential_purviews: bool = True
     clear_system_caches_after_computing_sia: bool = False
+    disk_cache_results: bool = False
 
     log_file: str | Path = "pyphi.log"
     log_file_level: str | None = "INFO"
@@ -143,6 +144,7 @@ class InfrastructureConfig:
             "clear_system_caches_after_computing_sia",
             self.clear_system_caches_after_computing_sia,
         )
+        _check_bool("disk_cache_results", self.disk_cache_results)
         _check_bool("progress_bars", self.progress_bars)
         _check_bool("print_fractions", self.print_fractions)
         _check_bool("welcome_off", self.welcome_off)

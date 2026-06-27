@@ -116,3 +116,30 @@ def result_cache_key(system: Any, kind: str, snapshot: Any) -> str | None:
     h.update(_config_digest(snapshot))
     h.update(_code_version().encode())
     return h.hexdigest()
+
+
+_RESULT_DISK_CACHE = DiskCache("disk.results", "results")
+
+
+def maybe_disk_cached(system: Any, kind: str, user_kwargs: dict, compute: Any) -> Any:
+    """Return a disk-cached result for ``compute()`` when it is safe to.
+
+    Bypasses (just calls ``compute()``) when the cache is disabled, when the
+    caller passed result-affecting kwargs the key cannot capture, or when the
+    git tree is dirty (``result_cache_key`` returns ``None``).
+    """
+    from pyphi.conf import config
+
+    if user_kwargs or not config.infrastructure.disk_cache_results:
+        return compute()
+    key = result_cache_key(system, kind, config.snapshot())
+    if key is None:
+        return compute()
+    hit = _RESULT_DISK_CACHE.get(key)
+    if hit is not None:
+        result = _decode_or_none(hit)
+        if result is not None:
+            return result
+    result = compute()
+    _RESULT_DISK_CACHE.put(key, serialize.dumps(result, format="msgpack"))
+    return result
