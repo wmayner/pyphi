@@ -217,15 +217,6 @@ def validate_parent_cache(parent_cache):
         raise ValueError("parent_cache must be from an unpartitioned system")
 
 
-class PurviewCache(DictCache):
-    """A substrate-level cache for possible purviews."""
-
-    def set(self, key, value):
-        """Only set if purview caching is enabled"""
-        if config.infrastructure.cache_potential_purviews:
-            self.cache[key] = value
-
-
 def method(cache_name, key_prefix=None):
     """Caching decorator for object-level method caches.
 

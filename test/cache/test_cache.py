@@ -103,13 +103,20 @@ def test_cache_repertoires_config_option():
 
 @config.override(cache_potential_purviews=True)
 def test_purview_cache(standard):
+    from pyphi.substrate import _PURVIEW_CACHE
+
+    _PURVIEW_CACHE.clear()
     purviews = standard.potential_purviews(Direction.EFFECT, (0,))
-    assert standard.purview_cache.size() == 1
-    assert purviews in standard.purview_cache.cache.values()
+    assert _PURVIEW_CACHE.size == 1
+    again = standard.potential_purviews(Direction.EFFECT, (0,))
+    assert again == purviews
+    assert _PURVIEW_CACHE.hits >= 1
 
 
 @config.override(cache_potential_purviews=False)
-def test_only_cache_purviews_if_configured():
-    c = cache.PurviewCache()
-    c.set(c.key(Direction.CAUSE, (0,)), ("some purview"))
-    assert c.size() == 0
+def test_only_cache_purviews_if_configured(standard):
+    from pyphi.substrate import _PURVIEW_CACHE
+
+    _PURVIEW_CACHE.clear()
+    standard.potential_purviews(Direction.CAUSE, (0,))
+    assert _PURVIEW_CACHE.size == 0  # caching disabled by config

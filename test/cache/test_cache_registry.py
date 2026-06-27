@@ -162,11 +162,10 @@ def test_dict_cache_without_name_does_not_register():
     assert before == after
 
 
-def test_substrate_purview_cache_does_not_register():
-    """Substrate.purview_cache is anonymous — process-level stats would
-    require a per-Substrate closure that holds the PurviewCache alive
-    forever (registry leak). Per-Substrate introspection is available via
-    ``substrate.purview_cache.info()`` directly."""
+def test_substrate_purview_cache_is_a_singleton_registration():
+    """The potential-purview cache is one module-level ``ContentCache``
+    (registered once, at import, as ``substrate.potential_purviews``), not a
+    per-Substrate object — so constructing substrates registers no new keys."""
     from pyphi import cache as cache_module
     from pyphi import examples
 
@@ -174,7 +173,5 @@ def test_substrate_purview_cache_does_not_register():
     examples.basic_substrate()
     examples.basic_substrate()
     after = set(cache_module.info().keys())
-    substrate_keys = {k for k in (after - before) if k.startswith("substrate.")}
-    assert not substrate_keys, (
-        f"Substrate purview caches leaked into registry: {substrate_keys}"
-    )
+    assert not (after - before)  # no per-Substrate registrations
+    assert "substrate.potential_purviews" in before  # the singleton is registered

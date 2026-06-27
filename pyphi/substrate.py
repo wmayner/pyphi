@@ -17,10 +17,10 @@ import numpy as np
 from numpy.typing import ArrayLike
 from numpy.typing import NDArray
 
-from . import cache
 from . import connectivity
 from . import utils
 from . import validate
+from .cache.content import ContentCache
 from .core.tpm import _display
 from .core.tpm.factored import FactoredTPM
 from .core.tpm.factored import StateSpace
@@ -38,6 +38,11 @@ from .types import ConnectivityMatrix
 from .types import Mechanism
 from .types import NodeIndices
 from .types import Purview
+
+# Module-level cache for potential purviews, keyed on the substrate connectivity
+# fingerprint. Shared across every substrate with the same ``cm`` (a single
+# registered instance, not per-Substrate, so no registry leak).
+_PURVIEW_CACHE = ContentCache("substrate.potential_purviews")
 
 
 def _coerce_state_to_indices(
@@ -144,7 +149,6 @@ class Substrate(Displayable, Serializable):
         tpm: JointTPM | NDArray[np.float64] | dict[str, Any] | None = None,
         cm: ArrayLike | None = None,
         node_labels: Sequence[str] | NodeLabels | None = None,
-        purview_cache: cache.PurviewCache | None = None,
         *,
         marginals: Sequence[ArrayLike] | None = None,
         state_space: StateSpace = None,
@@ -181,7 +185,6 @@ class Substrate(Displayable, Serializable):
         # Attach display labels to the canonical TPM so its repr shows node names
         # (the bare TPM otherwise has no knowledge of substrate node names).
         self._factored_tpm._node_labels = tuple(self._node_labels)
-        self.purview_cache = purview_cache or cache.PurviewCache()
 
         validate.substrate(self)
 
@@ -281,7 +284,6 @@ class Substrate(Displayable, Serializable):
         factored: FactoredTPM,
         cm: ArrayLike | None = None,
         node_labels: Sequence[str] | NodeLabels | None = None,
-        purview_cache: cache.PurviewCache | None = None,
     ) -> Substrate:
         """Construct a Substrate from an existing FactoredTPM."""
         s = cls.__new__(cls)
@@ -289,7 +291,6 @@ class Substrate(Displayable, Serializable):
         s._cm, s._cm_hash = s._build_cm(cm)
         s._node_indices = tuple(range(s.size))
         s._node_labels = NodeLabels(node_labels, s._node_indices)
-        s.purview_cache = purview_cache or cache.PurviewCache()
         validate.substrate(s)
         return s
 
@@ -381,9 +382,6 @@ class Substrate(Displayable, Serializable):
         """tuple[str]: The labels of nodes in the substrate."""
         return self._node_labels
 
-    # TODO: this should really be a System method, but we're
-    # interested in caching at the Substrate-level...
-    @cache.method("purview_cache")
     def potential_purviews(
         self, direction: Direction, mechanism: Mechanism
     ) -> list[Purview]:
@@ -397,9 +395,25 @@ class Substrate(Displayable, Serializable):
         Returns:
             list[tuple[int]]: All purviews which are irreducible over
             ``mechanism``.
+
+        Depends only on connectivity, so the result is cached on
+        ``_cm_fingerprint`` and shared across every substrate with the same
+        ``cm`` (a parameter sweep over a fixed topology reuses it).
         """
-        all_purviews = utils.powerset(self._node_indices)
-        return irreducible_purviews(self.cm, direction, mechanism, all_purviews)
+        from pyphi.conf import config as _config
+
+        def compute() -> list[Purview]:
+            all_purviews = utils.powerset(self._node_indices)
+            return irreducible_purviews(self.cm, direction, mechanism, all_purviews)
+
+        fp = self._cm_fingerprint
+        _PURVIEW_CACHE.observe(self, fp)
+        return _PURVIEW_CACHE.get_or_compute(
+            fp,
+            (direction, mechanism),
+            compute,
+            store=_config.infrastructure.cache_potential_purviews,
+        )
 
     # ---- substrate-level analysis ----
     #

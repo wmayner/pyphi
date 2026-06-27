@@ -75,3 +75,21 @@ def test_equivalent_systems_share_fingerprint_and_phi():
     assert s1 is not s2
     assert s1._math_fingerprint == s2._math_fingerprint
     assert s1.sia().phi == s2.sia().phi
+
+
+def test_potential_purviews_shared_across_same_cm_substrates():
+    from pyphi.direction import Direction
+    from pyphi.substrate import _PURVIEW_CACHE
+
+    _PURVIEW_CACHE.clear()
+    cm = np.array([[1, 1], [1, 1]])
+    tpm_a = np.array([[0.1, 0.2], [0.3, 0.4], [0.5, 0.6], [0.7, 0.8]])
+    tpm_b = np.array([[0.9, 0.1], [0.2, 0.8], [0.4, 0.5], [0.6, 0.3]])
+    with config.override(**_NO_CM_VALIDATION):
+        a = Substrate(tpm_a, cm)
+        b = Substrate(tpm_b, cm)  # same topology, different weights
+        pa = a.potential_purviews(Direction.CAUSE, (0,))
+        size_after_a = _PURVIEW_CACHE.size
+        pb = b.potential_purviews(Direction.CAUSE, (0,))  # hits a's entry
+    assert pa == pb
+    assert _PURVIEW_CACHE.size == size_after_a  # no new entry for b
