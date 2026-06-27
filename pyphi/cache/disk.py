@@ -10,6 +10,8 @@ the cache key (its code-version component), not an in-file tag.
 
 from __future__ import annotations
 
+import hashlib
+import importlib.metadata
 import os
 from pathlib import Path
 from typing import Any
@@ -18,6 +20,7 @@ from pyphi import constants
 from pyphi import serialize
 from pyphi.cache.cache_utils import _CacheInfo
 from pyphi.cache.registry import register as _register_policy
+from pyphi.provenance import _git_info
 
 
 def _decode_or_none(data: bytes) -> Any | None:
@@ -76,3 +79,40 @@ class DiskCache:
 
     def info(self) -> _CacheInfo:
         return _CacheInfo(self.hits, self.misses, self.size)
+
+
+def _config_digest(snapshot: Any) -> bytes:
+    """Digest only the configuration fields that change a result value."""
+    iit = snapshot.formalism.iit
+    fields = (
+        iit.version,
+        iit.mechanism_phi_measure,
+        iit.system_phi_measure,
+        iit.specification_measure,
+        iit.ces_measure,
+        iit.mechanism_partition_scheme,
+        iit.system_partition_scheme,
+        snapshot.numerics.precision,
+    )
+    return repr(fields).encode()
+
+
+def _code_version() -> str:
+    """The running pyphi code's identity: git sha in a checkout, else version."""
+    sha, _dirty = _git_info()
+    if sha is not None:
+        return f"git:{sha}"
+    return f"v:{importlib.metadata.version('pyphi')}"
+
+
+def result_cache_key(system: Any, kind: str, snapshot: Any) -> str | None:
+    """Hex cache key, or ``None`` (do not cache) when the git tree is dirty."""
+    _sha, dirty = _git_info()
+    if dirty:
+        return None
+    h = hashlib.blake2b(digest_size=32)
+    h.update(system._fingerprint)
+    h.update(kind.encode())
+    h.update(_config_digest(snapshot))
+    h.update(_code_version().encode())
+    return h.hexdigest()
