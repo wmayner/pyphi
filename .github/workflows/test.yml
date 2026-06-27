@@ -67,3 +67,35 @@ jobs:
 
       - name: Run tests
         run: uv run pytest test/core/test_factored_tpm.py -v
+
+  test-free-threaded:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up free-threaded Python 3.14t
+        run: uv python install 3.14t
+
+      - name: Create free-threaded environment and install
+        # The dev dependency group is omitted on purpose: graphify's
+        # tree-sitter-php has no free-threaded wheel. Install the runtime,
+        # extras, and test tools directly.
+        run: |
+          uv venv --python 3.14t .venv-ft
+          uv pip install --python .venv-ft \
+            -e ".[visualize,caching,emd,xarray]" pytest hypothesis
+
+      - name: Assert the GIL stays disabled after import
+        run: |
+          PYTHON_GIL=0 .venv-ft/bin/python -c \
+            "import sys, pyphi; assert sys._is_gil_enabled() is False, 'GIL re-enabled after import pyphi'"
+
+      - name: Run tests with the GIL disabled
+        run: PYTHON_GIL=0 .venv-ft/bin/python -m pytest --tb=short
