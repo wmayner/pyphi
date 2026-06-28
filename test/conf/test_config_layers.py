@@ -151,8 +151,6 @@ class TestInfrastructureConfig:
         assert cfg.cache_potential_purviews is True
         assert cfg.clear_system_caches_after_computing_sia is False
         assert cfg.maximum_cache_memory_percentage == 50
-        assert cfg.log_file_level == "INFO"
-        assert cfg.log_stdout_level == "WARNING"
         assert cfg.progress_bars is True
         assert cfg.repr_verbosity == 2
         assert cfg.print_fractions is True

@@ -62,3 +62,26 @@ def test_enable_logging_replaces_rather_than_stacks(tmp_path, restore_pyphi_logg
 def test_enable_logging_rejects_unknown_level(restore_pyphi_logging):
     with pytest.raises(ValueError):
         enable_logging(level="NOPE")
+
+
+def test_setting_removed_log_field_raises(restore_pyphi_logging):
+    from pyphi.conf import config
+    from pyphi.conf._field_routing import ConfigurationError
+
+    with pytest.raises(ConfigurationError):
+        config.log_file_level = "INFO"
+
+
+def test_import_writes_no_log_file(tmp_path):
+    import os
+    import subprocess
+    import sys
+
+    env = {"PYPHI_WELCOME_OFF": "1", "PATH": os.environ["PATH"]}
+    subprocess.run(
+        [sys.executable, "-c", "import pyphi"],
+        cwd=tmp_path,
+        check=True,
+        env=env,
+    )
+    assert not (tmp_path / "pyphi.log").exists()

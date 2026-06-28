@@ -37,7 +37,6 @@ from typing import Any
 
 import yaml
 
-from pyphi.conf._callbacks import configure_logging
 from pyphi.conf._callbacks import warn_distinction_phi_normalization_change
 from pyphi.conf._field_routing import FIELD_TO_LAYER
 from pyphi.conf._field_routing import ConfigurationError
@@ -55,8 +54,6 @@ _LAYER_TYPES: dict[str, type] = {
     "infrastructure": InfrastructureConfig,
     "numerics": NumericsConfig,
 }
-_LOG_FIELDS = frozenset({"log_file", "log_file_level", "log_stdout_level"})
-
 _FORMALISM_SUBNAMESPACES: frozenset[str] = frozenset(
     f.name for f in fields(FormalismConfig)
 )
@@ -149,8 +146,6 @@ class _GlobalConfig:
         object.__setattr__(self, "_formalism", FormalismConfig())
         object.__setattr__(self, "_infrastructure", InfrastructureConfig())
         object.__setattr__(self, "_numerics", NumericsConfig())
-        infra = self._infrastructure
-        configure_logging(infra.log_file, infra.log_file_level, infra.log_stdout_level)
 
     @property
     def formalism(self) -> FormalismConfig:
@@ -459,12 +454,7 @@ class _GlobalConfig:
         )
 
     def _fire_field_callback(self, field_name: str, old: Any, new: Any) -> None:
-        if field_name in _LOG_FIELDS:
-            infra = self._infrastructure
-            configure_logging(
-                infra.log_file, infra.log_file_level, infra.log_stdout_level
-            )
-        elif field_name == "distinction_phi_normalization":
+        if field_name == "distinction_phi_normalization":
             warn_distinction_phi_normalization_change(old, new)
 
     def _fire_layer_replacement_callbacks(self, old_layer: Any, new_layer: Any) -> None:

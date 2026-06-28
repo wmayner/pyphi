@@ -10,19 +10,11 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass
 from dataclasses import field
-from pathlib import Path
 from typing import Any
 
 from pyphi.conf._helpers import yaml_repr
 
-_VALID_LOG_LEVELS = frozenset(
-    {None, "CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"}
-)
 _VALID_REPR_VERBOSITY = frozenset({0, 1, 2, 3, 4})
-
-
-def _format_log_levels() -> list[str | None]:
-    return [*sorted(v for v in _VALID_LOG_LEVELS if v is not None), None]
 
 
 def _default_parallel_dict(
@@ -86,10 +78,6 @@ class InfrastructureConfig:
     cache_potential_purviews: bool = True
     clear_system_caches_after_computing_sia: bool = False
     disk_cache_results: bool = False
-
-    log_file: str | Path = "pyphi.log"
-    log_file_level: str | None = "INFO"
-    log_stdout_level: str | None = "WARNING"
 
     progress_bars: bool = True
     repr_verbosity: int = 2
@@ -155,19 +143,6 @@ class InfrastructureConfig:
         _check_bool("validate_connectivity", self.validate_connectivity)
         _check_bool("validate_phi_bounds", self.validate_phi_bounds)
         _check_bool("validate_config", self.validate_config)
-        if not isinstance(self.log_file, (str, Path)):
-            raise ValueError(
-                f"log_file must be str or Path; got {type(self.log_file).__name__}"
-            )
-        if self.log_file_level not in _VALID_LOG_LEVELS:
-            raise ValueError(
-                f"log_file_level={self.log_file_level!r} not in {_format_log_levels()}"
-            )
-        if self.log_stdout_level not in _VALID_LOG_LEVELS:
-            raise ValueError(
-                f"log_stdout_level={self.log_stdout_level!r} not in "
-                f"{_format_log_levels()}"
-            )
         if self.repr_verbosity not in _VALID_REPR_VERBOSITY:
             raise ValueError(
                 f"repr_verbosity={self.repr_verbosity!r} not in "
