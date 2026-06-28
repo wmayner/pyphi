@@ -471,9 +471,11 @@ with pyphi.config.override(precision=10):
 
 #### Debugging & Output (``config.infrastructure``)
 
-- **`log_file`**: Log file path (default: ``"pyphi.log"``)
-- **`log_file_level`**: File logging level (default: ``"INFO"``)
-- **`log_stdout_level`**: Console logging level (default: ``"WARNING"``)
+- **Logging**: PyPhi is silent by default (a ``NullHandler`` on the ``pyphi``
+  logger; the root logger is untouched and no log file is written). Opt in with
+  ``pyphi.enable_logging(level="INFO", file=None)`` — console (progress-bar
+  safe) when ``file`` is omitted, or a file path when given. (Not a config
+  option; not set through ``pyphi_config.yml``.)
 - **`progress_bars`**: Show progress bars (default: true)
 - **`repr_verbosity`**: Detail level in ``repr()`` output (default: 2)
 - **`welcome_off`**: Suppress welcome message (default: false)

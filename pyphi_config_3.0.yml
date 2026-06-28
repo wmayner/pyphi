@@ -53,10 +53,6 @@ infrastructure:
   clear_system_caches_after_computing_sia: false
   # Suppress the welcome message.
   welcome_off: false
-  # Logging.
-  log_stdout_level: WARNING
-  log_file_level: INFO
-  log_file: pyphi.log
   # Progress bars and ``repr``/``__str__`` verbosity.
   progress_bars: true
   repr_verbosity: 2
