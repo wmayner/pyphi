@@ -70,6 +70,11 @@ def inverse_sigmoid(p, sum_w, field):
     return np.log(p / (1 - p)) / (sum_w - field)
 
 
+def map_to_floor_and_ceil(y, floor, ceiling):
+    """Rescale an activation probability ``y`` in [0, 1] to [floor, ceiling]."""
+    return floor + (ceiling - floor) * y
+
+
 def binary2spin(binary_state):
     """Return the Ising spin state corresponding to the given binary state.
 

@@ -203,6 +203,8 @@ max-statements = 100
 "pyphi/substrate_generator/unit_functions.py" = ["ARG001"]
 "pyphi/substrate_generator/ising.py" = ["ARG001"]
 "pyphi/substrate_generator/weights.py" = ["ARG001"]
+"pyphi/substrate_generator/mechanisms.py" = ["ARG001"]
+"pyphi/substrate_generator/mechanism_combinations.py" = ["ARG001"]
 # Allow unused arguments in specific files (interface/callback requirements)
 "pyphi/dynamics.py" = ["ARG001"]
 "pyphi/macro.py" = ["ARG002", "PLW2901"]
