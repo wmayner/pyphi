@@ -67,7 +67,8 @@ def test_ising_energy_and_probability():
 
 
 def test_unit_functions_registry_keys():
-    assert set(UNIT_FUNCTIONS) == {
+    # The original weighted-threshold logical gates and core unit functions.
+    base = {
         "ising",
         "boolean",
         "gaussian",
@@ -79,6 +80,12 @@ def test_unit_functions_registry_keys():
         "nand",
         "nparity",
     }
+    assert base <= set(UNIT_FUNCTIONS)
+    # The ported substrate_modeler mechanisms are also registered (under names
+    # not already taken, so "and"/"or" keep their weighted-threshold meaning).
+    assert {"sigmoid", "resonnator", "sor", "gabor", "mismatch_corrector"} <= set(
+        UNIT_FUNCTIONS
+    )
 
 
 # 2-node ring W[[0,1],[1,0]]: total_weighted_input(0, state)=state[1];
