@@ -26,11 +26,14 @@ All pieces this composes already exist:
 - **Compute entry points** — `System(substrate, state, node_indices=…)`
   (`pyphi/system.py`); `System.sia(**kwargs)` returns a
   `SystemIrreducibilityAnalysis` (IIT 4.0: `pyphi/formalism/iit4/__init__.py:151`)
-  carrying `.phi` and `.normalized_phi` but **not** distinctions/relations;
-  `System.ces(**kwargs)` returns a `CauseEffectStructure`
-  (`pyphi/models/ces.py:59`) carrying `.distinctions` and `.relations` but
-  **not** the system Φ. Both SIA types conform to `SIAInterface`
-  (`pyphi/models/protocols.py:19`, `.phi` / `.normalized_phi`).
+  carrying `.phi` and `.normalized_phi`. `System.ces(**kwargs)` under IIT 4.0
+  returns a `CauseEffectStructure` (`pyphi/models/ces.py:59`) — a full
+  Φ-structure carrying `.sia` (so Φ is `result.sia.phi`), `.distinctions`, and
+  `.relations` (summed via `result.relations.sum_phi()`); one `ces()` call
+  yields Φ *and* the distinction/relation counts, so there is no need to also
+  call `sia()`. Under IIT 3.0, `ces()` returns plain `Distinctions`
+  (`pyphi/formalism/iit3/__init__.py:95`) — no `.sia`, no relations. Both SIA
+  types conform to `SIAInterface` (`pyphi/models/protocols.py:19`).
 - **Axis enumerators** — `utils.all_states(spec)` (states, little-endian),
   `utils.powerset(iterable, nonempty=True)` (node subsets). Formalisms switch
   via `config.override(**presets[name])` with presets `iit3` / `iit4_2023` /
@@ -58,7 +61,7 @@ def sweep(
     states,                       # required: a state, an iterable of states, or "all"
     subsets="full",               # "full" | "all" | iterable of node-index tuples
     formalisms=None,              # None (current) | iterable of version names
-    compute="sia",                # "sia" | "phi_structure" | callable
+    compute="sia",                # "sia" | "ces" | callable
     parallel=None,                # None -> follow config; True/False to force
     progress=None,                # None -> follow config; True/False to force
     seed=None,                    # stamped into each result's provenance
@@ -102,12 +105,16 @@ Exposed as `pyphi.sweep`. The cartesian product of the three axes
 
 **Metric columns by `compute`:**
 
-- `compute="sia"` (default) — `phi`, `normalized_phi`, `is_irreducible`
-  (`utils.is_positive(phi)`). The raw result is the `SystemIrreducibilityAnalysis`.
-- `compute="phi_structure"` — the cell runs **both** `sia()` and `ces()`:
-  `phi` (from the SIA), `n_distinctions` (`len(ces.distinctions)`),
-  `sum_phi_r` (summed relation φ; `0`/NaN under IIT 3.0, which has no
-  relations). The raw result is a small `PhiStructureResult(sia, ces)` pairing.
+- `compute="sia"` (default) — calls `sia()`: `phi`, `normalized_phi`,
+  `is_irreducible` (`utils.is_positive(phi)`). The raw result is the
+  `SystemIrreducibilityAnalysis`.
+- `compute="ces"` — calls `ces()` once (the full Φ-structure): `phi`
+  (`result.sia.phi`), `n_distinctions` (`len(result.distinctions)`),
+  `sum_phi_r` (`result.relations.sum_phi()`). The raw result is the
+  `CauseEffectStructure`. Under IIT 3.0 `ces()` returns plain `Distinctions`,
+  so the extractor reports `n_distinctions` (`len(result)`) with `phi` and
+  `sum_phi_r` left `NaN` (IIT 3.0 has no relations; its Φ is reached via
+  `compute="sia"`).
 - `compute=<callable>` — a function taking a `System` and returning a result;
   the row is the result's scalar `to_pandas()` record if it exposes one, else
   `{"phi": getattr(result, "phi", None)}`. The raw result is whatever the
@@ -181,8 +188,9 @@ near-linear outer speedup.
 - **Parity** — each row's `phi` equals a direct
   `System(substrate, state, node_indices=subset).sia().phi` recompute under the
   same formalism; `.results[i]` aligns with `.df.iloc[i]`.
-- **`phi_structure`** — `n_distinctions` and `sum_phi_r` match a direct `ces()`
-  on a known cell; IIT 3.0 rows report no relations.
+- **`compute="ces"`** — `phi` (`result.sia.phi`), `n_distinctions`, and
+  `sum_phi_r` (`result.relations.sum_phi()`) match a direct `ces()` on a known
+  cell; IIT 3.0 rows report `n_distinctions` with `phi`/`sum_phi_r` as `NaN`.
 - **Parallel ≡ sequential** — the same sweep under `parallel=True` and
   `parallel=False` produces an equal DataFrame (sorted) and equal per-cell φ
   (mirrors the N2 invariant for the outer loop).
