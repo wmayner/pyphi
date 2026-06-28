@@ -101,6 +101,8 @@ from .log import enable_logging as enable_logging
 from .serialize import load
 from .serialize import save
 from .substrate import Substrate
+from .sweep import SweepResult as SweepResult
+from .sweep import sweep as sweep
 from .system import System
 
 # Silent by default: a library attaches only a NullHandler to its own logger

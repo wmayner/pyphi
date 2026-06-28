@@ -100,6 +100,10 @@ Exposed as `pyphi.sweep`. The cartesian product of the three axes
   is discarded. Each result carries its own `.config` snapshot and
   `.provenance` (with the `seed` if supplied), so per-row reproducibility lives
   on the objects, not as DataFrame cells.
+- `.skipped` — a list of the `(formalism, subset, state)` cells dropped because
+  their state is dynamically unreachable (so Φ is undefined and uncomputable).
+  Populated only when an axis was enumerated via `"all"`; the omission is
+  recorded here rather than silently dropped.
 - `.to_pandas()` returns `.df` (so a `SweepResult` itself follows the
   to_pandas convention).
 
@@ -160,10 +164,16 @@ near-linear outer speedup.
   `result.with_provenance(seed=seed)`. Because compute is deterministic this is
   a bookkeeping label, meaningful only if a future version samples states
   rather than enumerating them.
-- **Errors** — fail-loud. A cell that raises (e.g. an invalid state under a
-  formalism's validation) aborts the whole sweep, so a partial table never
-  passes for a complete one. An `on_error="skip"` mode is a noted follow-on,
-  not in v1.
+- **Errors** — fail-loud, with one principled exception. A dynamically
+  unreachable state has no defined cause/effect repertoire, so its Φ is
+  genuinely uncomputable (`System` construction or the marginalization raises
+  `StateUnreachableForwardsError` / `StateUnreachableBackwardsError`). When an
+  axis was enumerated via `"all"`, such cells are skipped and recorded in
+  `.skipped` (the omission is visible, not silent), since "all states" /
+  "all subsets" pragmatically means the computable ones. When every axis is
+  given explicitly, an uncomputable cell fails loud (the caller named it). Any
+  other exception always fails loud. A general `on_error="skip"` mode is a noted
+  follow-on, not in v1.
 - **Out of scope (v1):** sampling axes (random subsets of states); the
   actual-causation `account` as a `compute` preset (a different entry point;
   reachable via a callable); nested/adaptive parallelism that splits cores
