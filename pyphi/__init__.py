@@ -66,6 +66,7 @@ and their defaults.
 """
 
 import importlib
+import logging
 import os
 import pkgutil
 from types import ModuleType
@@ -96,10 +97,15 @@ from .core.tpm import FactoredTPM as FactoredTPM
 from .core.tpm import JointDistribution as JointDistribution
 from .core.tpm.joint_distribution import JointTPM
 from .direction import Direction
+from .log import enable_logging as enable_logging
 from .serialize import load
 from .serialize import save
 from .substrate import Substrate
 from .system import System
+
+# Silent by default: a library attaches only a NullHandler to its own logger
+# and leaves real handlers to the application (or pyphi.enable_logging).
+logging.getLogger("pyphi").addHandler(logging.NullHandler())
 
 # Names of the depth-1 submodules, listed (not imported). Public submodules are
 # available as attributes via the lazy ``__getattr__`` below.
@@ -131,6 +137,7 @@ __all__ = [
     "Transition",
     "TransitionSystem",
     "config",
+    "enable_logging",
     "iit3",
     "iit4_2023",
     "iit4_2026",
