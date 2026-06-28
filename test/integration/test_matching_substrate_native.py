@@ -2,7 +2,7 @@
 layer.
 
 The matching paper's perceptual substrate is built from state-dependent
-``resonnator`` units and ``selective``/``serial`` composites. This test rebuilds
+``resonator`` units and ``selective``/``serial`` composites. This test rebuilds
 that structure natively with :func:`pyphi.substrate_generator.create_substrate`
 (no dependency on the original ``substrate_modeler``), confirms its dynamic TPM
 matches the recorded original (the ``endorsement`` golden), and runs it through

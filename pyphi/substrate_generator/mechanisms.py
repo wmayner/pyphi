@@ -9,14 +9,14 @@ step. This is the contract consumed by :func:`pyphi.substrate_generator.build_tp
 ``dynamic_tpm`` of the original ``substrate_modeler`` (present state = past
 state).
 
-State-dependent mechanisms (the "endorsement" family — :func:`resonnator`,
+State-dependent mechanisms (the "endorsement" family — :func:`resonator`,
 :func:`mismatch_corrector`, :func:`stabilized_sigmoid`, :func:`biased_sigmoid`,
 :func:`modulated_sigmoid`) read the unit's own current state, ``state[element]``.
 They therefore require a self-loop (a nonzero ``weights[element, element]``) so
 that the dependency is represented in the connectivity matrix;
 :func:`pyphi.substrate_generator.create_substrate` inserts it automatically.
 
-``resonnator`` realizes the state-dependent coupling of the matching paper
+``resonator`` realizes the state-dependent coupling of the matching paper
 (Mayner, Juel & Tononi), whose default ``weight_scale_mapping`` is the coupling
 factor ``g(I_j, s_k)`` of that paper's appendix.
 """
@@ -25,7 +25,7 @@ import numpy as np
 
 from .utils import map_to_floor_and_ceil
 
-# Default state-dependent coupling for ``resonnator``, keyed by
+# Default state-dependent coupling for ``resonator``, keyed by
 # ``(unit_state, input_state)`` — the matching paper's coupling factor g.
 DEFAULT_WEIGHT_SCALE_MAPPING = {
     (0, 0): 1.0,
@@ -73,7 +73,7 @@ def sigmoid(
     return map_to_floor_and_ceil(y, floor, ceiling)
 
 
-def resonnator(
+def resonator(
     element,
     weights,
     state,
@@ -378,7 +378,7 @@ def biased_sigmoid(
 # Mechanisms that read the unit's own state and therefore need a self-loop.
 STATE_DEPENDENT = frozenset(
     {
-        "resonnator",
+        "resonator",
         "mismatch_corrector",
         "mismatch_pattern_detector",
         "modulated_sigmoid",
@@ -391,7 +391,7 @@ STATE_DEPENDENT = frozenset(
 WEIGHTED = frozenset(
     {
         "sigmoid",
-        "resonnator",
+        "resonator",
         "weighted_mean",
         "modulated_sigmoid",
         "stabilized_sigmoid",
@@ -401,7 +401,7 @@ WEIGHTED = frozenset(
 
 MECHANISMS = {
     "sigmoid": sigmoid,
-    "resonnator": resonnator,
+    "resonator": resonator,
     "sor": sor_gate,
     "mismatch_pattern_detector": mismatch_pattern_detector,
     "gabor": gabor_gate,

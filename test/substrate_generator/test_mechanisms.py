@@ -38,7 +38,7 @@ def test_every_paper_mechanism_has_a_golden():
         for spec in node_params.values():
             subs = spec.get("composite", [spec])
             used.update(sub["mechanism"] for sub in subs)
-    assert {"sigmoid", "resonnator", "mismatch_corrector", "sor"} <= used
+    assert {"sigmoid", "resonator", "mismatch_corrector", "sor"} <= used
 
 
 def test_mismatch_pattern_detector_intended_behavior():

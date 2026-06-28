@@ -73,11 +73,19 @@ def _bundle_params(mechanism, params):
     return params
 
 
+def _bundle_mechanism(mechanism):
+    """Map a PyPhi mechanism name to the original library's name.
+
+    PyPhi corrected the original's ``resonnator`` spelling to ``resonator``.
+    """
+    return "resonnator" if mechanism == "resonator" else mechanism
+
+
 def _bundle_unit(un, index, mechanism, inputs, params):
     return un.Unit(
         index=index,
         inputs=tuple(inputs),
-        mechanism=mechanism,
+        mechanism=_bundle_mechanism(mechanism),
         params=_bundle_params(mechanism, params),
         state=0,
         input_state=(0,) * len(inputs),

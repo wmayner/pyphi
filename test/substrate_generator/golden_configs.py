@@ -63,7 +63,7 @@ GOLDEN_CONFIGS = {
             "params": {"input_weights": (0.8,), "determinism": 3.0},
         },
     },
-    # The endorsement family: state-dependent resonnator + composites
+    # The endorsement family: state-dependent resonator + composites
     # (selective and serial). This is the matching-paper substrate structure.
     "endorsement": {
         0: {
@@ -74,7 +74,7 @@ GOLDEN_CONFIGS = {
         1: {
             "composite": [
                 {
-                    "mechanism": "resonnator",
+                    "mechanism": "resonator",
                     "inputs": (0, 1, 2),
                     "params": {
                         "input_weights": (0.5, 0.8, 0.3),
@@ -99,7 +99,7 @@ GOLDEN_CONFIGS = {
                     "params": {"pattern_selection": [(1, 0)], "selectivity": 2.0},
                 },
                 {
-                    "mechanism": "resonnator",
+                    "mechanism": "resonator",
                     "inputs": (2,),
                     "params": {
                         "input_weights": (0.7,),

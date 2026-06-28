@@ -83,7 +83,7 @@ def test_unit_functions_registry_keys():
     assert base <= set(UNIT_FUNCTIONS)
     # The ported substrate_modeler mechanisms are also registered (under names
     # not already taken, so "and"/"or" keep their weighted-threshold meaning).
-    assert {"sigmoid", "resonnator", "sor", "gabor", "mismatch_corrector"} <= set(
+    assert {"sigmoid", "resonator", "sor", "gabor", "mismatch_corrector"} <= set(
         UNIT_FUNCTIONS
     )
 

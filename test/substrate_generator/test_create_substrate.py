@@ -55,7 +55,7 @@ def test_state_dependent_mechanism_gets_self_loop():
                 "params": {"input_weights": (1.0,)},
             },
             1: {
-                "mechanism": "resonnator",
+                "mechanism": "resonator",
                 "inputs": (0,),
                 "params": {
                     "input_weights": (1.0,),
@@ -67,7 +67,7 @@ def test_state_dependent_mechanism_gets_self_loop():
         }
     )
     cm = np.asarray(sub.cm)
-    assert cm[1, 1] == 1  # resonnator (state-dependent) -> self-loop inserted
+    assert cm[1, 1] == 1  # resonator (state-dependent) -> self-loop inserted
     assert cm[0, 0] == 0  # sigmoid (not state-dependent) -> no self-loop
 
 
@@ -80,7 +80,7 @@ def test_weighted_subunit_weight_survives_connectivity_marker():
             1: {
                 "composite": [
                     {
-                        "mechanism": "resonnator",
+                        "mechanism": "resonator",
                         "inputs": (0, 1),
                         "params": {
                             "input_weights": (0.3, 0.7),
@@ -99,7 +99,7 @@ def test_weighted_subunit_weight_survives_connectivity_marker():
             },
         }
     )
-    # The resonnator's weight on input 0 (0.3) must remain, not be reset to the
+    # The resonator's weight on input 0 (0.3) must remain, not be reset to the
     # mismatch_corrector's connectivity marker (1.0).
     assert sub.factored_tpm is not None  # builds without conflict
     cm = np.asarray(sub.cm)
