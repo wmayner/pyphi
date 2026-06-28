@@ -175,9 +175,33 @@ def _run_cells_parallel(
     skip: bool,
     progress: Any,
 ) -> list[Any]:
-    # Replaced with the map_reduce path in the next task; sequential fallback.
-    del progress
-    return _run_cells_sequential(substrate, formalism, cells, compute, skip)
+    from functools import partial
+
+    from pyphi.parallel import map_reduce
+
+    show = config.infrastructure.progress_bars if progress is None else progress
+    # partial binds the per-cell args into a picklable callable (a module-level
+    # function + picklable args) for the process backend.
+    cell_fn = partial(_run_cell, substrate=substrate, compute=compute, skip=skip)
+    results: list[Any] = []
+    # Install the formalism and disable inner parallelism in the worker config
+    # snapshot the process backend captures; the outer map_reduce parallelizes
+    # via its explicit parallel=True (one level of parallelism, no oversubscription).
+    with config.override(**_PRESETS[formalism], parallel=False):
+        results = map_reduce(
+            cell_fn,
+            cells,
+            parallel=True,
+            ordered=True,
+            reduce_func=list,
+            progress=show,
+            desc=f"sweep[{formalism}]",
+        )
+    if len(results) != len(cells):
+        raise AssertionError(
+            "map_reduce reducer flattened cell results; expected one per cell"
+        )
+    return results
 
 
 def _build_df(

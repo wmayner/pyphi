@@ -82,3 +82,17 @@ def test_sweep_seed_stamped_on_results():
     with config.override(**presets.iit4_2023):
         result = sweep(substrate, states=[(1, 0, 0)], seed=1234)
     assert result.results[0].provenance.seed == 1234
+
+
+def test_parallel_equals_sequential():
+    import pandas as pd
+
+    substrate = examples.basic_substrate()
+    with config.override(**presets.iit4_2023):
+        seq = sweep(substrate, states="all", parallel=False)
+        par = sweep(substrate, states="all", parallel=True)
+    pd.testing.assert_frame_equal(
+        seq.df.sort_index(), par.df.sort_index(), check_like=True
+    )
+    assert len(par.results) == len(seq.results) == 6
+    assert len(par.skipped) == len(seq.skipped) == 2
