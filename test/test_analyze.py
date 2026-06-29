@@ -127,3 +127,14 @@ def test_analyze_repr_html_renders():
         result = analyze(substrate, state)
     html = result._repr_html_()
     assert "Analysis" in html
+
+
+def test_analyze_to_pandas_one_row_columns():
+    substrate = examples.basic_substrate()
+    state = examples.basic_state()
+    with config.override(**presets.iit4_2023):
+        result = analyze(substrate, state)
+    df = result.to_pandas()
+    assert len(df) == 1
+    assert set(df.columns) == {"phi", "normalized_phi", "n_distinctions", "sum_phi_r"}
+    assert math.isclose(float(df.iloc[0]["phi"]), result.phi)

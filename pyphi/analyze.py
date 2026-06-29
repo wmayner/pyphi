@@ -13,6 +13,8 @@ from contextlib import nullcontext
 from dataclasses import dataclass
 from typing import Any
 
+import pandas as pd
+
 from pyphi.conf import config
 from pyphi.conf import presets
 from pyphi.display import FULL
@@ -53,6 +55,25 @@ class Analysis(Displayable):
             title="Analysis",
             sections=tuple(sections),
             compact=f"Analysis(Φ={format_value(self.phi)})",
+        )
+
+    def to_pandas(self) -> pd.DataFrame:
+        # IIT 4.0: ces carries .distinctions and .relations.
+        # IIT 3.0: ces is the Distinctions sequence itself (no relations).
+        distinctions = getattr(self.ces, "distinctions", self.ces)
+        relations = getattr(self.ces, "relations", None)
+        sum_phi_r = float(relations.sum_phi()) if relations is not None else float("nan")
+        return pd.DataFrame(
+            [
+                {
+                    "phi": float(self.sia.phi),
+                    "normalized_phi": float(
+                        getattr(self.sia, "normalized_phi", float("nan"))
+                    ),
+                    "n_distinctions": len(distinctions),
+                    "sum_phi_r": sum_phi_r,
+                }
+            ]
         )
 
 
