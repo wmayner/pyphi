@@ -111,7 +111,17 @@ iit4_2026: dict[str, Any] = {
     ),
 }
 
+# Map a formalism version-name string (as stored in
+# ``config.formalism.iit.version``) to its preset dict, for callers that select
+# a formalism by name (e.g. ``pyphi.sweep``, ``pyphi.analyze``).
+by_name: dict[str, dict[str, Any]] = {
+    "IIT_3_0": iit3,
+    "IIT_4_0_2023": iit4_2023,
+    "IIT_4_0_2026": iit4_2026,
+}
+
 __all__ = [
+    "by_name",
     "iit3",
     "iit4_2023",
     "iit4_2026",

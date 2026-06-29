@@ -22,12 +22,6 @@ from pyphi.conf import config
 from pyphi.conf import presets
 from pyphi.system import System
 
-_PRESETS: dict[str, dict[str, Any]] = {
-    "IIT_3_0": presets.iit3,
-    "IIT_4_0_2023": presets.iit4_2023,
-    "IIT_4_0_2026": presets.iit4_2026,
-}
-
 # A dynamically-unreachable state has no defined cause/effect repertoire, so its
 # Φ cannot be computed; these are the errors that signals.
 _UNREACHABLE = (
@@ -160,7 +154,7 @@ def _run_cells_sequential(
     substrate: Any, formalism: str, cells: list[Any], compute: Any, skip: bool
 ) -> list[Any]:
     results: list[Any] = []
-    with config.override(**_PRESETS[formalism]):
+    with config.override(**presets.by_name[formalism]):
         results = [
             _run_cell(c, substrate=substrate, compute=compute, skip=skip) for c in cells
         ]
@@ -187,7 +181,7 @@ def _run_cells_parallel(
     # Install the formalism and disable inner parallelism in the worker config
     # snapshot the process backend captures; the outer map_reduce parallelizes
     # via its explicit parallel=True (one level of parallelism, no oversubscription).
-    with config.override(**_PRESETS[formalism], parallel=False):
+    with config.override(**presets.by_name[formalism], parallel=False):
         results = map_reduce(
             cell_fn,
             cells,
