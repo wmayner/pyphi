@@ -209,3 +209,25 @@ def substrate_to_dbn_dict(substrate: Substrate) -> dict:
         cpds[child] = {"parents": parents, "table": table}
         edges.extend((parent, child) for parent in parents)
     return {"variables": variables, "edges": edges, "cpds": cpds}
+
+
+def substrate_to_dbn(substrate: Substrate) -> networkx.DiGraph:
+    """Return the substrate's 2-timeslice DBN as a ``networkx.DiGraph``.
+
+    Each node label ``X`` becomes two variables, ``(X, 0)`` at time ``t`` and
+    ``(X, 1)`` at ``t+1``. The only edges are inter-slice ``(parent, 0) ->
+    (child, 1)`` over the node's inferred parents, so the graph is acyclic even
+    when the substrate is cyclic. Each ``(X, 1)`` node carries ``cpd`` (the CPD
+    ndarray) and ``parents`` (ordered parent labels); every node carries
+    ``time``. Requires the ``visualize`` extra (networkx).
+    """
+    g = nx.DiGraph()
+    for label in substrate.node_labels:
+        g.add_node((label, 0), time=0)
+        g.add_node((label, 1), time=1)
+    for child, parents, table in _dbn_factors(substrate):
+        g.nodes[(child, 1)]["cpd"] = table
+        g.nodes[(child, 1)]["parents"] = parents
+        for parent in parents:
+            g.add_edge((parent, 0), (child, 1))
+    return g

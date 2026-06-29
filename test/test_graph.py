@@ -254,3 +254,45 @@ def test_dbn_dict_kary_cpd_shapes():
         expected_shape = (*(alphabets[a] for a in parents), alphabets[i])
         assert cpds[label]["table"].shape == expected_shape
         np.testing.assert_allclose(cpds[label]["table"].sum(axis=-1), 1.0)
+
+
+def test_dbn_digraph_nodes_edges_and_acyclic():
+    import networkx as nx
+
+    sub = _asymmetric_dbn_substrate()
+    g = graph.substrate_to_dbn(sub)
+    labels = list(sub.node_labels)
+    # All 2N time-indexed nodes present.
+    assert set(g.nodes()) == {(label, t) for label in labels for t in (0, 1)}
+    # Inter-slice edges only; matches inferred parents.
+    expected_edges = {
+        (("A", 0), ("A", 1)),
+        (("A", 0), ("B", 1)),
+        (("C", 0), ("B", 1)),
+    }
+    assert set(g.edges()) == expected_edges
+    # The 2-timeslice unroll is acyclic even though the substrate has a self-loop.
+    assert nx.is_directed_acyclic_graph(g)
+    # Self-loop became an inter-slice edge, not a within-slice loop.
+    assert not g.has_edge(("A", 0), ("A", 0))
+
+
+def test_dbn_digraph_cpd_attrs():
+    sub = _asymmetric_dbn_substrate()
+    g = graph.substrate_to_dbn(sub)
+    assert g.nodes[("B", 1)]["parents"] == ["A", "C"]
+    assert g.nodes[("B", 1)]["cpd"].shape == (2, 2, 2)
+    assert g.nodes[("B", 1)]["time"] == 1
+    assert g.nodes[("A", 0)]["time"] == 0
+    assert "cpd" not in g.nodes[("A", 0)]
+
+
+def test_dbn_digraph_matches_dict():
+    sub = _asymmetric_dbn_substrate()
+    g = graph.substrate_to_dbn(sub)
+    dbn = graph.substrate_to_dbn_dict(sub)
+    # Same edges (as parent->child) and identical CPD tables.
+    assert {(u[0], v[0]) for u, v in g.edges()} == set(dbn["edges"])
+    for label, cpd in dbn["cpds"].items():
+        assert g.nodes[(label, 1)]["parents"] == cpd["parents"]
+        np.testing.assert_array_equal(g.nodes[(label, 1)]["cpd"], cpd["table"])
