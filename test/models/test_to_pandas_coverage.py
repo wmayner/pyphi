@@ -161,3 +161,35 @@ def test_unitstate_to_pandas_series():
     s = us.to_pandas()
     assert isinstance(s, pd.Series)
     assert int(s["state"]) == 1
+
+
+def test_node_to_pandas_series():
+    system = examples.basic_system()
+    s = system.nodes[0].to_pandas()
+    assert isinstance(s, pd.Series)
+    assert set(s.index) >= {"node", "label", "state"}
+
+
+def test_every_displayable_has_to_pandas():
+    import pyphi  # noqa: F401  (ensure all result modules are imported)
+    from pyphi.display.mixin import Displayable
+    from pyphi.models.pandas import ToPandasMixin
+
+    def all_subclasses(cls):
+        out = set()
+        for sub in cls.__subclasses__():
+            out.add(sub)
+            out |= all_subclasses(sub)
+        return out
+
+    hooks = ("to_pandas", "_to_pandas", "_pandas_record")
+    missing = []
+    for cls in all_subclasses(Displayable):
+        if not cls.__module__.startswith("pyphi"):
+            continue  # ignore test-only Displayable fixtures
+        has_export = issubclass(cls, ToPandasMixin) or any(
+            hook in base.__dict__ for base in cls.__mro__ for hook in hooks
+        )
+        if not has_export:
+            missing.append(f"{cls.__module__}.{cls.__name__}")
+    assert not missing, f"Displayable types without to_pandas: {sorted(missing)}"

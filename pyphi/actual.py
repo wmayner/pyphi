@@ -109,6 +109,8 @@ _DELEGATED_TO_SYSTEM: frozenset[str] = frozenset(
         "cache_info",
         "clear_caches",
         "to_networkx",
+        # Labeled export (ToPandasMixin on System):
+        "to_pandas",
         # Serialization (Serializable mixin on System):
         "save",
         "load",

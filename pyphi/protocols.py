@@ -236,6 +236,8 @@ PUBLIC_SYSTEM_ATTRS: frozenset[str] = frozenset(
         "cache_info",
         "clear_caches",
         "to_networkx",
+        # Labeled export (ToPandasMixin)
+        "to_pandas",
         # Serialization (Serializable mixin)
         "save",
         "load",
@@ -341,6 +343,8 @@ class SystemPublicInterface(Protocol):
     cache_info: Callable[..., Any]
     clear_caches: Callable[..., Any]
     to_networkx: Callable[..., Any]
+    # Labeled export (ToPandasMixin)
+    to_pandas: Callable[..., Any]
     # Serialization (Serializable mixin)
     save: Callable[..., Any]
     load: Callable[..., Any]

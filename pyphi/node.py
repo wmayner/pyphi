@@ -12,11 +12,12 @@ from .core.tpm.joint_distribution import JointTPM
 from .display import Description
 from .display import Displayable
 from .labels import NodeLabels
+from .models.pandas import ToPandasMixin
 
 
 # TODO extend to nonbinary nodes
 @functools.total_ordering
-class Node(Displayable):
+class Node(Displayable, ToPandasMixin):
     """A node in a system.
 
     Args:
@@ -155,6 +156,9 @@ class Node(Displayable):
     def label(self):
         """The textual label for this node."""
         return self.node_labels[self.index]
+
+    def _pandas_record(self):
+        return {"node": self.index, "label": self.label, "state": self.state}
 
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         return Description(title="Node", compact=self.label)
