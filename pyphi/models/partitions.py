@@ -65,6 +65,7 @@ from pyphi.display import Row
 from pyphi.display import Section
 from pyphi.display import Table
 from pyphi.labels import NodeLabels
+from pyphi.models.pandas import ToPandasMixin
 
 from . import cmp
 from . import fmt
@@ -135,7 +136,7 @@ def concise_partition(partition: _PartitionBase) -> str:
 
 
 @functools.total_ordering
-class _PartitionBase:
+class _PartitionBase(ToPandasMixin):
     """Base class for partitions and edge cuts.
 
     Concrete subclasses implement :meth:`cut_matrix` and the
@@ -144,6 +145,16 @@ class _PartitionBase:
     """
 
     node_labels: NodeLabels | None
+
+    def _to_pandas(self):
+        import pandas as pd
+
+        indices = list(self.indices)
+        n = (max(indices) + 1) if indices else 0
+        matrix = self.cut_matrix(n)
+        labels = [str(fmt.fmt_nodes((i,), self.node_labels)) for i in indices]
+        sub = matrix[np.ix_(indices, indices)] if indices else matrix
+        return pd.DataFrame(sub, index=pd.Index(labels), columns=pd.Index(labels))
 
     def _concise(self) -> str:
         """One-line shorthand for embedding; overridden by each concrete type."""

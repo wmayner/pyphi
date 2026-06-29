@@ -38,7 +38,7 @@ from .pandas import ToPandasMixin
 
 @total_ordering
 @dataclass(frozen=True, repr=False)
-class UnitState(Displayable):
+class UnitState(Displayable, ToPandasMixin):
     """A node together with its current state value.
 
     Distinct from :class:`pyphi.core.unit.Unit`, which is the
@@ -63,6 +63,10 @@ class UnitState(Displayable):
         if not isinstance(other, UnitState):
             return NotImplemented
         return (self.index, self.state) < (other.index, other.state)
+
+    def _pandas_record(self):
+        label = str(self.index) if self.label is None else self.label
+        return {"unit": label, "state": self.state}
 
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         label = str(self.index) if self.label is None else self.label

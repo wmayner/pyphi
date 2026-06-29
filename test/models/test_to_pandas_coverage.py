@@ -141,3 +141,23 @@ def test_system_to_pandas_per_unit_state():
     assert isinstance(df, pd.DataFrame)
     assert len(df) == len(system.node_indices)
     assert "state" in df.columns
+
+
+def test_partition_to_pandas_cut_grid():
+    substrate = examples.basic_substrate()
+    state = examples.basic_state()
+    with config.override(**presets.iit4_2023):
+        sia = substrate.sia(state)
+    partition = sia.partition
+    df = partition.to_pandas()
+    assert isinstance(df, pd.DataFrame)
+    assert df.shape[0] == df.shape[1]  # square from x to grid
+
+
+def test_unitstate_to_pandas_series():
+    from pyphi.models.state_specification import UnitState
+
+    us = UnitState(index=1, state=1, label="B")
+    s = us.to_pandas()
+    assert isinstance(s, pd.Series)
+    assert int(s["state"]) == 1
