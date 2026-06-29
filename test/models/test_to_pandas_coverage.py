@@ -69,3 +69,48 @@ def test_relations_to_pandas_dataframe():
     assert isinstance(df, pd.DataFrame)
     assert set(df.columns) >= {"phi", "degree"}
     assert len(df) == relations.num_relations()
+
+
+def _or_gate_transition():
+    import numpy as np
+
+    from pyphi import actual
+    from pyphi.substrate import Substrate
+
+    tpm = np.array(
+        [
+            [0, 0.5, 0.5],
+            [0, 0.5, 0.5],
+            [1, 0.5, 0.5],
+            [1, 0.5, 0.5],
+            [1, 0.5, 0.5],
+            [1, 0.5, 0.5],
+            [1, 0.5, 0.5],
+            [1, 0.5, 0.5],
+        ]
+    )
+    cm = np.array([[0, 0, 0], [1, 0, 0], [1, 0, 0]])
+    substrate = Substrate(tpm, cm)
+    return actual.Transition(substrate, (0, 1, 1), (1, 0, 0), (1, 2), (0,))
+
+
+def test_ac_family_to_pandas():
+    from pyphi import actual
+    from pyphi.direction import Direction
+
+    transition = _or_gate_transition()
+    acsia = actual.sia(transition)
+    s = acsia.to_pandas()
+    assert isinstance(s, pd.Series)
+    assert float(s["alpha"]) == float(acsia.alpha)
+
+    account = actual.account(transition, Direction.CAUSE)
+    df = account.to_pandas()
+    assert isinstance(df, pd.DataFrame)
+    assert len(df) == len(account)
+
+    link = account[0]
+    ls = link.to_pandas()
+    assert isinstance(ls, pd.Series)
+    assert float(ls["alpha"]) == float(link.alpha)
+    assert isinstance(link._ria.to_pandas(), pd.Series)

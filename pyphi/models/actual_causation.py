@@ -26,6 +26,8 @@ from . import fmt
 from .diff import Change
 from .diff import ResultDiff
 from .diff import _diff_common
+from .pandas import ToPandasMixin
+from .pandas import records_to_frame
 from .partitions import concise_partition
 
 # TODO(slipperyhank): add second state
@@ -48,7 +50,7 @@ def greater_than_zero(alpha):
     return bool(alpha > 0 and not utils.eq(alpha, 0))
 
 
-class AcRepertoireIrreducibilityAnalysis(Displayable, cmp.Orderable):
+class AcRepertoireIrreducibilityAnalysis(Displayable, cmp.Orderable, ToPandasMixin):
     """A minimum information partition for ac_coef calculation.
 
 
@@ -107,6 +109,14 @@ class AcRepertoireIrreducibilityAnalysis(Displayable, cmp.Orderable):
         )
 
     __slots__ = ()
+
+    def _pandas_record(self):
+        return {
+            "alpha": float(self.alpha),
+            "direction": str(self.direction),
+            "mechanism": tuple(self.mechanism),
+            "purview": tuple(self.purview),
+        }
 
     @property
     def partition_ties(
@@ -251,7 +261,7 @@ def _null_ac_ria(state, direction, mechanism, purview, partition=None, reasons=N
     )
 
 
-class CausalLink(Displayable, cmp.Orderable):
+class CausalLink(Displayable, cmp.Orderable, ToPandasMixin):
     """A maximally irreducible actual cause or effect.
 
     These can be compared with the built-in Python comparison operators (``<``,
@@ -304,6 +314,14 @@ class CausalLink(Displayable, cmp.Orderable):
         maximal.
         """
         return self._ria.purview
+
+    def _pandas_record(self):
+        return {
+            "alpha": float(self.alpha),
+            "direction": str(self.direction),
+            "mechanism": tuple(self.mechanism),
+            "purview": tuple(self.purview),
+        }
 
     @property
     def extended_purview(self):
@@ -407,13 +425,19 @@ class Event(namedtuple("Event", ["actual_cause", "actual_effect"])):
         return self.actual_cause.mechanism
 
 
-class Account(Displayable, cmp.Orderable, Sequence, Serializable):
+class Account(Displayable, cmp.Orderable, Sequence, ToPandasMixin, Serializable):
     """The set of |CausalLinks| with |alpha > 0|. This includes both actual
     causes and actual effects.
     """
 
     def __init__(self, causal_links):
         self.causal_links = tuple(causal_links)
+
+    def _to_pandas(self):
+        rows = [link._pandas_record() for link in self]
+        return records_to_frame(
+            rows, columns=["alpha", "direction", "mechanism", "purview"]
+        )
 
     def __len__(self):
         return len(self.causal_links)
@@ -554,7 +578,7 @@ class DirectedAccount(Account):
 # TODO(slipperyhank): Check if we do the same, i.e. take the bigger system, or
 # take the smaller?
 class AcSystemIrreducibilityAnalysis(
-    HasProvenance, Displayable, cmp.Orderable, Serializable
+    HasProvenance, Displayable, cmp.Orderable, ToPandasMixin, Serializable
 ):
     """An analysis of transition-level irreducibility (|big_alpha|).
 
@@ -622,6 +646,14 @@ class AcSystemIrreducibilityAnalysis(
 
             provenance = Provenance.capture()
         self.provenance = provenance
+
+    def _pandas_record(self):
+        return {
+            "alpha": float(self.alpha),
+            "direction": str(self.direction),
+            "before_state": self.before_state,
+            "after_state": self.after_state,
+        }
 
     def _system_label(self) -> str | None:
         node_indices = self.node_indices
