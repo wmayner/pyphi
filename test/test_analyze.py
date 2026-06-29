@@ -10,6 +10,7 @@ from pyphi.analyze import Analysis
 from pyphi.analyze import analyze
 from pyphi.conf import config
 from pyphi.conf import presets
+from pyphi.display import LOW
 
 
 def test_analyze_bundle_parity_with_substrate_sia():
@@ -96,3 +97,33 @@ def test_analyze_unknown_formalism_raises_valueerror():
         pass
     else:
         raise AssertionError("expected ValueError for unknown formalism")
+
+
+def test_analyze_repr_renders_full_card():
+    substrate = examples.basic_substrate()
+    state = examples.basic_state()
+    with config.override(**presets.iit4_2023):
+        result = analyze(substrate, state)
+    text = repr(result)
+    assert "Analysis" in text
+    assert "Distinctions" in text  # the flat CES card is folded in
+
+
+def test_analyze_repr_compact_at_low_verbosity():
+    substrate = examples.basic_substrate()
+    state = examples.basic_state()
+    with config.override(**presets.iit4_2023):
+        result = analyze(substrate, state)
+        with config.override(repr_verbosity=LOW):
+            compact = repr(result)
+    assert compact.startswith("Analysis(Φ=")
+    assert "\n" not in compact  # one line at LOW
+
+
+def test_analyze_repr_html_renders():
+    substrate = examples.basic_substrate()
+    state = examples.basic_state()
+    with config.override(**presets.iit4_2023):
+        result = analyze(substrate, state)
+    html = result._repr_html_()
+    assert "Analysis" in html

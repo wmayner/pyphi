@@ -15,11 +15,14 @@ from typing import Any
 
 from pyphi.conf import config
 from pyphi.conf import presets
+from pyphi.display import FULL
+from pyphi.display import Description
 from pyphi.display import Displayable
+from pyphi.display.numbers import format_value
 from pyphi.system import System
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Analysis(Displayable):
     """A single system's analysis: its SIA, its CES, and the scalar Φ.
 
@@ -36,6 +39,21 @@ class Analysis(Displayable):
     @property
     def phi(self) -> float:
         return float(self.sia.phi)
+
+    def _describe(self, verbosity: int) -> Description:
+        # Reuse the cause-effect structure's flat rich card. Under IIT 4.0 it
+        # already folds in the embedded SIA; under IIT 3.0 the CES is bare
+        # Distinctions, so append the separately-computed SIA's sections flat
+        # (capped at FULL) so the card still leads with Φ.
+        desc = self.ces._describe(verbosity)
+        sections = list(desc.sections)
+        if getattr(self.ces, "sia", None) is None:
+            sections.extend(self.sia._describe(min(verbosity, FULL)).sections)
+        return Description(
+            title="Analysis",
+            sections=tuple(sections),
+            compact=f"Analysis(Φ={format_value(self.phi)})",
+        )
 
 
 def analyze(
