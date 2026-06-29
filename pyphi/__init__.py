@@ -89,6 +89,8 @@ from . import resolve_ties  # noqa: F401
 # Lift main interfaces to the top-level namespace.
 from .actual import Transition
 from .actual import TransitionSystem
+from .analyze import Analysis as Analysis
+from .analyze import analyze as analyze
 from .conf import config
 from .conf import iit3
 from .conf import iit4_2023
@@ -130,6 +132,7 @@ def __getattr__(name: str) -> ModuleType:
 
 
 __all__ = [
+    "Analysis",
     "Direction",
     "FactoredTPM",
     "JointDistribution",
@@ -138,6 +141,7 @@ __all__ = [
     "System",
     "Transition",
     "TransitionSystem",
+    "analyze",
     "config",
     "enable_logging",
     "iit3",

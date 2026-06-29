@@ -138,3 +138,10 @@ def test_analyze_to_pandas_one_row_columns():
     assert len(df) == 1
     assert set(df.columns) == {"phi", "normalized_phi", "n_distinctions", "sum_phi_r"}
     assert math.isclose(float(df.iloc[0]["phi"]), result.phi)
+
+
+def test_analyze_exported_at_package_root():
+    import pyphi
+
+    assert pyphi.analyze is analyze
+    assert pyphi.Analysis is Analysis
