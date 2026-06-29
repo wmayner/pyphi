@@ -8,6 +8,7 @@ to use the substrate's declared connectivity matrix verbatim.
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -167,3 +168,44 @@ def in_degree(substrate: Substrate, connectivity: str = "inferred") -> dict[int,
 def out_degree(substrate: Substrate, connectivity: str = "inferred") -> dict[int, int]:
     """Out-degree per node index."""
     return dict(_index_digraph(substrate, connectivity).out_degree())
+
+
+def _dbn_factors(
+    substrate: Substrate,
+) -> Iterator[tuple[str, list[str], np.ndarray]]:
+    """Yield ``(child_label, parent_labels, cpd_table)`` per node, index order.
+
+    ``parent_labels`` are the node's TPM-inferred in-neighbours in ascending
+    index order. ``cpd_table`` is ``factor(i)`` reduced to its parent axes
+    (index ``0`` along every non-parent input axis, exact because the factor is
+    constant there), leaving the parent axes in that order followed by the
+    child's own distribution axis last.
+    """
+    ftpm = substrate.factored_tpm
+    labels = list(substrate.node_labels)
+    n = substrate.size
+    cm = np.asarray(ftpm.infer_cm(), dtype=int)
+    for i in range(n):
+        parents = [a for a in range(n) if cm[a, i]]
+        index = tuple(slice(None) if a in parents else 0 for a in range(n))
+        table = np.asarray(ftpm.factor(i))[index]
+        yield labels[i], [labels[a] for a in parents], table
+
+
+def substrate_to_dbn_dict(substrate: Substrate) -> dict:
+    """Return the substrate's 2-timeslice DBN as a plain dict.
+
+    Keys: ``"variables"`` (label -> alphabet size), ``"edges"`` (inter-slice
+    ``(parent, child)`` pairs, implicitly ``t -> t+1``), and ``"cpds"``
+    (label -> ``{"parents": [...], "table": ndarray}``). Pure numpy/dict; does
+    not import networkx.
+    """
+    alphabets = substrate.factored_tpm.alphabet_sizes
+    labels = list(substrate.node_labels)
+    variables = {labels[i]: int(alphabets[i]) for i in range(substrate.size)}
+    edges: list[tuple[str, str]] = []
+    cpds: dict[str, dict] = {}
+    for child, parents, table in _dbn_factors(substrate):
+        cpds[child] = {"parents": parents, "table": table}
+        edges.extend((parent, child) for parent in parents)
+    return {"variables": variables, "edges": edges, "cpds": cpds}

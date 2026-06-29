@@ -149,3 +149,108 @@ def test_topology_helpers_dag_detection():
     assert graph.simple_cycles(sub) == []
     assert graph.in_degree(sub) == {0: 1, 1: 0}
     assert graph.out_degree(sub) == {0: 0, 1: 1}
+
+
+# --- DBN export ---------------------------------------------------------------
+
+
+def _asymmetric_dbn_substrate():
+    """3-node binary substrate with distinct parent sets.
+
+    A' = A          (self-loop; parent {A})
+    B' = A and C    (parents {A, C})
+    C' = 1           (constant; no parents)
+
+    state-by-node, LOLI order: index = A + 2*B + 4*C.
+    """
+    tpm = np.array(
+        [
+            [0.0, 0.0, 1.0],  # A0 B0 C0
+            [1.0, 0.0, 1.0],  # A1 B0 C0
+            [0.0, 0.0, 1.0],  # A0 B1 C0
+            [1.0, 0.0, 1.0],  # A1 B1 C0
+            [0.0, 0.0, 1.0],  # A0 B0 C1
+            [1.0, 1.0, 1.0],  # A1 B0 C1
+            [0.0, 0.0, 1.0],  # A0 B1 C1
+            [1.0, 1.0, 1.0],  # A1 B1 C1
+        ]
+    )
+    sub = Substrate(tpm, node_labels=["A", "B", "C"])
+    # Precondition: inferred parents are A<-{A}, B<-{A,C}, C<-{}.
+    assert np.array_equal(
+        sub.factored_tpm.infer_cm(),
+        np.array([[1, 1, 0], [0, 0, 0], [0, 1, 0]]),
+    )
+    return sub
+
+
+def test_dbn_dict_edges_match_inferred_cm():
+    sub = _asymmetric_dbn_substrate()
+    dbn = graph.substrate_to_dbn_dict(sub)
+    inferred = sub.factored_tpm.infer_cm()
+    labels = list(sub.node_labels)
+    expected = {
+        (labels[a], labels[b])
+        for a in range(sub.size)
+        for b in range(sub.size)
+        if inferred[a, b]
+    }
+    assert set(dbn["edges"]) == expected
+    assert dbn["variables"] == {"A": 2, "B": 2, "C": 2}
+
+
+def test_dbn_dict_cpd_shapes_and_parents():
+    sub = _asymmetric_dbn_substrate()
+    cpds = graph.substrate_to_dbn_dict(sub)["cpds"]
+    # A' = A: one parent (itself), table P(A'|A) shape (2, 2).
+    assert cpds["A"]["parents"] == ["A"]
+    assert cpds["A"]["table"].shape == (2, 2)
+    # B' = A and C: parents in ascending index order [A, C], shape (2, 2, 2).
+    assert cpds["B"]["parents"] == ["A", "C"]
+    assert cpds["B"]["table"].shape == (2, 2, 2)
+    # C' = 1: parentless marginal, shape (2,).
+    assert cpds["C"]["parents"] == []
+    assert cpds["C"]["table"].shape == (2,)
+
+
+def test_dbn_dict_cpd_values_and_normalization():
+    sub = _asymmetric_dbn_substrate()
+    cpds = graph.substrate_to_dbn_dict(sub)["cpds"]
+    # P(A'|A): A=0 -> [1,0], A=1 -> [0,1].
+    np.testing.assert_allclose(cpds["A"]["table"], [[1.0, 0.0], [0.0, 1.0]])
+    # P(B'|A,C): on iff A=1 and C=1.
+    b = cpds["B"]["table"]  # axes (A, C, B')
+    np.testing.assert_allclose(b[1, 1], [0.0, 1.0])
+    np.testing.assert_allclose(b[0, 1], [1.0, 0.0])
+    np.testing.assert_allclose(b[1, 0], [1.0, 0.0])
+    # P(C') = always 1.
+    np.testing.assert_allclose(cpds["C"]["table"], [0.0, 1.0])
+    # Every CPD's last axis (the child distribution) sums to 1.
+    for cpd in cpds.values():
+        np.testing.assert_allclose(cpd["table"].sum(axis=-1), 1.0)
+
+
+def test_dbn_dict_cpd_matches_reduced_factor():
+    sub = _asymmetric_dbn_substrate()
+    ftpm = sub.factored_tpm
+    cm = ftpm.infer_cm()
+    cpds = graph.substrate_to_dbn_dict(sub)["cpds"]
+    labels = list(sub.node_labels)
+    for i, label in enumerate(labels):
+        parents = [a for a in range(sub.size) if cm[a, i]]
+        index = tuple(slice(None) if a in parents else 0 for a in range(sub.size))
+        np.testing.assert_allclose(cpds[label]["table"], ftpm.factor(i)[index])
+
+
+def test_dbn_dict_kary_cpd_shapes():
+    sub = pyphi.examples.gomez_p53_mdm2_substrate()  # k-ary (ternary node)
+    ftpm = sub.factored_tpm
+    cm = ftpm.infer_cm()
+    alphabets = ftpm.alphabet_sizes
+    cpds = graph.substrate_to_dbn_dict(sub)["cpds"]
+    labels = list(sub.node_labels)
+    for i, label in enumerate(labels):
+        parents = [a for a in range(sub.size) if cm[a, i]]
+        expected_shape = (*(alphabets[a] for a in parents), alphabets[i])
+        assert cpds[label]["table"].shape == expected_shape
+        np.testing.assert_allclose(cpds[label]["table"].sum(axis=-1), 1.0)
