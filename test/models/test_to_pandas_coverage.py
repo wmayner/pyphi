@@ -47,3 +47,25 @@ def test_complex_and_excluded_to_pandas_series():
     es = ec.to_pandas()
     assert isinstance(es, pd.Series)
     assert tuple(es["node_indices"]) == (0, 1)
+
+
+def test_ces_to_pandas_dataframe_of_distinctions():
+    substrate = examples.basic_substrate()
+    state = examples.basic_state()
+    with config.override(**presets.iit4_2023):
+        ces = substrate.ces(state)
+    df = ces.to_pandas()
+    assert isinstance(df, pd.DataFrame)
+    assert len(df) == len(ces.distinctions)
+
+
+def test_relations_to_pandas_dataframe():
+    substrate = examples.basic_substrate()
+    state = examples.basic_state()
+    with config.override(**presets.iit4_2023):
+        ces = substrate.ces(state)
+    relations = ces.relations
+    df = relations.to_pandas()
+    assert isinstance(df, pd.DataFrame)
+    assert set(df.columns) >= {"phi", "degree"}
+    assert len(df) == relations.num_relations()

@@ -49,6 +49,7 @@ from .distinctions import DISTINCTION_HEADER_TONES
 from .distinctions import DISTINCTION_HEADERS
 from .distinctions import ResolvedDistinctions
 from .distinctions import distinction_table_row
+from .pandas import ToPandasMixin
 
 if TYPE_CHECKING:
     from pyphi.data_structures import PyPhiFloat
@@ -56,7 +57,9 @@ if TYPE_CHECKING:
 
 
 @dataclass(frozen=True, eq=False, repr=False)
-class CauseEffectStructure(HasProvenance, Displayable, cmp.Orderable, Serializable):
+class CauseEffectStructure(
+    HasProvenance, Displayable, cmp.Orderable, ToPandasMixin, Serializable
+):
     """A Φ-structure: SIA + distinctions + relations.
 
     Access the system-level integrated information value via
@@ -106,6 +109,9 @@ class CauseEffectStructure(HasProvenance, Displayable, cmp.Orderable, Serializab
         if self.distinctions != other.distinctions:
             return False
         return self.relations == other.relations
+
+    def _to_pandas(self):
+        return self.distinctions.to_pandas()
 
     def _describe(self, verbosity: int) -> Description:
         cls = type(self).__name__

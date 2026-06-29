@@ -29,6 +29,8 @@ from .display.numbers import format_value
 from .display.tables import capped_table
 from .models import cmp
 from .models.distinctions import ResolvedDistinctions
+from .models.pandas import ToPandasMixin
+from .models.pandas import records_to_frame
 from .parallel import map_reduce
 from .registry import Registry
 from .serializable import Serializable
@@ -37,7 +39,7 @@ if TYPE_CHECKING:
     from .formalism.iit4 import Distinction  # type: ignore[attr-defined]
 
 
-class RelationFace(Displayable, frozenset):
+class RelationFace(Displayable, ToPandasMixin, frozenset):
     """A set of (potentially) related causes/effects."""
 
     phi: float  # Set in __new__
@@ -106,6 +108,13 @@ class RelationFace(Displayable, frozenset):
     def __bool__(self):
         return bool(self.congruent_overlap)
 
+    def _pandas_record(self):
+        return {
+            "relata": tuple(sorted(self.purview)),
+            "phi": float(self.phi),
+            "degree": len(self),
+        }
+
     def _describe(self, verbosity: int) -> Description:
         cls = type(self).__name__
         return Description(
@@ -131,12 +140,19 @@ class RelationFace(Displayable, frozenset):
         return Displayable._repr_html_(self)
 
 
-class Relation(Displayable, frozenset, cmp.OrderableByPhi):
+class Relation(Displayable, ToPandasMixin, frozenset, cmp.OrderableByPhi):
     """A set of relation faces forming the relation among a set of distinctions."""
 
     @property
     def is_self_relation(self):
         return len(self) == 1
+
+    def _pandas_record(self):
+        return {
+            "relata": tuple(sorted(self.mechanisms)),
+            "phi": float(self.phi),
+            "degree": len(self),
+        }
 
     def _faces(self):
         """Yield faces of the relation."""
@@ -302,13 +318,20 @@ def relations_table(relations: Relations) -> Table | None:
     )
 
 
-class Relations(Displayable, Serializable):
+class Relations(Displayable, ToPandasMixin, Serializable):
     """A set of relations among distinctions."""
 
     def __init__(self, *args, **kwargs):
         self._num_relations_cached = None
         self._sum_phi_cached = None
         self._apportioned_sum_phi_cached = None
+
+    def _to_pandas(self):
+        rows = [
+            r._pandas_record()
+            for r in self  # type: ignore[attr-defined]  # iterable in subclasses
+        ]
+        return records_to_frame(rows, columns=["relata", "phi", "degree"])
 
     def sum_phi(self):
         if self._sum_phi_cached is None:
