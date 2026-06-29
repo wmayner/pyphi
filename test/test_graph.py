@@ -296,3 +296,21 @@ def test_dbn_digraph_matches_dict():
     for label, cpd in dbn["cpds"].items():
         assert g.nodes[(label, 1)]["parents"] == cpd["parents"]
         np.testing.assert_array_equal(g.nodes[(label, 1)]["cpd"], cpd["table"])
+
+
+def test_substrate_to_dbn_methods_delegate():
+    sub = _asymmetric_dbn_substrate()
+    d_method = sub.to_dbn_dict()
+    d_func = graph.substrate_to_dbn_dict(sub)
+    assert d_method["variables"] == d_func["variables"]
+    assert d_method["edges"] == d_func["edges"]
+    assert d_method["cpds"].keys() == d_func["cpds"].keys()
+    for label in d_func["cpds"]:
+        assert d_method["cpds"][label]["parents"] == d_func["cpds"][label]["parents"]
+        np.testing.assert_array_equal(
+            d_method["cpds"][label]["table"], d_func["cpds"][label]["table"]
+        )
+    g_method = sub.to_dbn()
+    g_func = graph.substrate_to_dbn(sub)
+    assert set(g_method.edges()) == set(g_func.edges())
+    assert set(g_method.nodes()) == set(g_func.nodes())

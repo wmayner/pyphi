@@ -578,6 +578,29 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
 
         return graph.to_adjacency(self, connectivity)
 
+    def to_dbn(self) -> Any:
+        """Return the substrate's 2-timeslice DBN as a ``networkx.DiGraph``.
+
+        Each node ``X`` becomes ``(X, 0)`` and ``(X, 1)``; inter-slice edges
+        run ``(parent, 0) -> (child, 1)`` over the node's inferred parents, so
+        the graph is acyclic. ``(X, 1)`` nodes carry ``cpd`` and ``parents``
+        attributes. Requires the ``visualize`` extra (networkx).
+        """
+        from pyphi import graph
+
+        return graph.substrate_to_dbn(self)
+
+    def to_dbn_dict(self) -> dict:
+        """Return the substrate's 2-timeslice DBN as a plain dict.
+
+        Keys ``"variables"``, ``"edges"`` (inter-slice ``(parent, child)``),
+        and ``"cpds"`` (label -> ``{"parents", "table"}``). Pure numpy; no
+        networkx import.
+        """
+        from pyphi import graph
+
+        return graph.substrate_to_dbn_dict(self)
+
 
 def irreducible_purviews(
     cm: ConnectivityMatrix,
