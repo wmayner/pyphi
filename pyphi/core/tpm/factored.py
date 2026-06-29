@@ -29,6 +29,7 @@ from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
 from pyphi.display import Section
+from pyphi.models.pandas import ToPandasMixin
 
 from . import _display
 from ._factored_backends import _make_default_backend
@@ -78,7 +79,7 @@ def _normalize_state_space(
     return tuple(uniform for _ in range(n_factors))
 
 
-class FactoredTPM(Displayable):
+class FactoredTPM(Displayable, ToPandasMixin):
     """Per-node-factored conditional TPM."""
 
     __slots__ = ("_backend", "_node_labels", "_state_space")
@@ -378,6 +379,36 @@ class FactoredTPM(Displayable):
             )
             label = "P(next unit = state | current state)"
         return Section(label=label, body=(grid,))
+
+    def _to_pandas(self):
+        import pandas as pd
+
+        from pyphi import utils
+
+        n = self.n_nodes
+        a = self.alphabet_sizes
+        labels = list(self.unit_labels_for_display())
+        states = list(utils.all_states(a))
+        if all(size == 2 for size in a):
+            data = [[float(self.factor(i)[s][1]) for i in range(n)] for s in states]
+            index = (
+                pd.MultiIndex.from_tuples(states, names=[f"in_{i}" for i in range(n)])
+                if n > 1
+                else pd.Index([s[0] for s in states], name="in_0")
+            )
+            return pd.DataFrame(data, index=index, columns=pd.Index(labels))
+        rows = [
+            {
+                "state": s,
+                "unit": labels[i],
+                "next_state": next_state,
+                "probability": float(p),
+            }
+            for s in states
+            for i in range(n)
+            for next_state, p in enumerate(self.factor(i)[s])
+        ]
+        return pd.DataFrame(rows)
 
     def _describe(self, verbosity: int) -> Description:
         n = self.n_nodes

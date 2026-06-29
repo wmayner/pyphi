@@ -33,6 +33,7 @@ from .display import Displayable
 from .display import Row
 from .display import Section
 from .labels import NodeLabels
+from .models.pandas import ToPandasMixin
 from .serializable import Serializable
 from .types import ConnectivityMatrix
 from .types import Mechanism
@@ -84,7 +85,7 @@ def _coerce_state_to_indices(
     return tuple(indices)
 
 
-class Substrate(Displayable, Serializable):
+class Substrate(Displayable, ToPandasMixin, Serializable):
     """A substrate of nodes.
 
     Represents the substrate under analysis and holds auxiliary data about it.
@@ -489,6 +490,9 @@ class Substrate(Displayable, Serializable):
     def __len__(self) -> int:
         """int: The number of nodes in the substrate."""
         return self.tpm.shape[-1]
+
+    def _to_pandas(self):
+        return self.factored_tpm.to_pandas()
 
     def _describe(self, verbosity: int) -> Description:
         compact = f"Substrate({self.tpm._compact_repr()}, cm={self.cm})"

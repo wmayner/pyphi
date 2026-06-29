@@ -26,6 +26,7 @@ from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
 from pyphi.display import Section
+from pyphi.models.pandas import ToPandasMixin
 from pyphi.models.partitions import DirectedBipartition
 from pyphi.models.partitions import NullCut
 from pyphi.models.partitions import concise_partition
@@ -44,7 +45,7 @@ if TYPE_CHECKING:
 
 
 @dataclass(frozen=True, eq=False, repr=False)
-class System(Displayable, Serializable):
+class System(Displayable, ToPandasMixin, Serializable):
     """A substrate evaluated in a specific state over a node subset, with partition.
 
     The ``external_indices`` field specifies which substrate units are
@@ -186,6 +187,16 @@ class System(Displayable, Serializable):
         return tuple(
             str(label) for label in self.node_labels.coerce_to_labels(self.node_indices)
         )
+
+    def _to_pandas(self):
+        import pandas as pd
+
+        labels = self._unit_labels()
+        rows = [
+            {"node": idx, "label": label, "state": self.state[idx]}
+            for label, idx in zip(labels, self.node_indices, strict=True)
+        ]
+        return pd.DataFrame(rows)
 
     def _describe(self, verbosity: int) -> Description:
         from pyphi.core.tpm import _display

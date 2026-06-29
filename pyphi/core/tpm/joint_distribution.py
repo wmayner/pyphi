@@ -29,6 +29,7 @@ from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
 from pyphi.display import Section
+from pyphi.models.pandas import ToPandasMixin
 from pyphi.utils import all_states
 from pyphi.utils import np_hash
 from pyphi.utils import np_immutable
@@ -301,7 +302,7 @@ class JointDistribution(data_structures.ArrayLike):
         return self._hash
 
 
-class JointTPM(Displayable, JointDistribution):
+class JointTPM(Displayable, ToPandasMixin, JointDistribution):
     """A substrate TPM storing the full joint transition distribution."""
 
     def __init__(self, tpm: ArrayLike, validate: bool = False) -> None:
@@ -467,6 +468,21 @@ class JointTPM(Displayable, JointDistribution):
         """
         unconstrained = np.ones([2] * (self._tpm.ndim - 1) + [self._tpm.shape[-1]])
         return type(self)(self._tpm * unconstrained)
+
+    def _to_pandas(self):
+        import pandas as pd
+
+        multidim = self.to_multidimensional_state_by_node()
+        n = int(multidim.shape[-1])
+        axis_sizes = multidim.shape[:-1]
+        states = list(all_states(axis_sizes))
+        data = [[float(p) for p in multidim[s]] for s in states]
+        index = (
+            pd.MultiIndex.from_tuples(states, names=[f"in_{i}" for i in range(n)])
+            if n > 1
+            else pd.Index([s[0] for s in states], name="in_0")
+        )
+        return pd.DataFrame(data, index=index, columns=pd.Index(range(n)))
 
     def _describe(self, verbosity: int) -> Description:
         if verbosity == LOW:  # one-liner without materializing the grid

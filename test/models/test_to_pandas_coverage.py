@@ -114,3 +114,30 @@ def test_ac_family_to_pandas():
     assert isinstance(ls, pd.Series)
     assert float(ls["alpha"]) == float(link.alpha)
     assert isinstance(link._ria.to_pandas(), pd.Series)
+
+
+def test_factored_tpm_to_pandas_state_by_node():
+    substrate = examples.basic_substrate()
+    tpm = substrate.factored_tpm
+    df = tpm.to_pandas()
+    assert isinstance(df, pd.DataFrame)
+    assert df.shape[1] == tpm.n_nodes  # one column per unit (binary)
+
+
+def test_substrate_to_pandas_delegates_to_tpm():
+    substrate = examples.basic_substrate()
+    df = substrate.to_pandas()
+    assert isinstance(df, pd.DataFrame)
+    assert df.shape[1] == substrate.factored_tpm.n_nodes
+
+
+def test_system_to_pandas_per_unit_state():
+    from pyphi import System
+
+    substrate = examples.basic_substrate()
+    state = examples.basic_state()
+    system = System(substrate, state)
+    df = system.to_pandas()
+    assert isinstance(df, pd.DataFrame)
+    assert len(df) == len(system.node_indices)
+    assert "state" in df.columns
