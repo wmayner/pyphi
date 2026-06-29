@@ -192,6 +192,25 @@ def s_expected_sia():
     return expected
 
 
+@pytest.fixture
+def basic_iit3_s_expected_sia():
+    with open("./test/data/sia/basic_iit3_s.json") as f:
+        expected = serialize.load(f)
+    return expected
+
+
+@pytest.fixture
+def xor_iit3_s():
+    return pyphi.examples.xor_system()
+
+
+@pytest.fixture
+def xor_iit3_s_expected_sia():
+    with open("./test/data/sia/xor_iit3_s.json") as f:
+        expected = serialize.load(f)
+    return expected
+
+
 # Noised standard example and systems
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

@@ -215,18 +215,63 @@ def test_sia_big_substrate_0_thru_3_parallel(
     assert big_subsys_0_thru_3.sia() == big_subsys_0_thru_3_expected_sia
 
 
-# rule152_s ======================================================
-# IIT 3.0 regression: 5-node cellular automaton (rule 152). The substrate
-# has multiple partitions tied at the maximum phi; the fixture stores the
-# full tie set via ``_tie_peers`` so the live winner is verified to be
-# one of the semantically valid MIPs (the cascade's lex tiebreaker may
-# pick different winners across code versions, all of which are correct).
+# basic_iit3_s ======================================================
+# IIT 3.0 full-object golden for the canonical 3-node basic substrate
+# (Φ = 2.3125). Small enough to run in the fast lane, so the IIT 3.0 SIA
+# serialization round-trip and populated distinctions are exercised without
+# the slow ``rule152_s`` case (the only other full-object IIT 3.0 golden).
+
+
+@config.override(parallel=False)
+def test_sia_basic_iit3_sequential(s, basic_iit3_s_expected_sia):
+    """Basic substrate full-object SIA, sequential (IIT 3.0)."""
+    with IIT_3_CONFIG:
+        live = s.sia()
+    assert live == basic_iit3_s_expected_sia
+
+
+def test_sia_basic_iit3_parallel(s, basic_iit3_s_expected_sia):
+    """Basic substrate full-object SIA, parallel (IIT 3.0)."""
+    with IIT_3_CONFIG:
+        live = s.sia()
+    assert live == basic_iit3_s_expected_sia
 
 
 def _live_sia_matches_tied_fixture(live, expected):
     """Whether ``live`` SIA matches any partition in ``expected``'s tie set."""
     candidates = expected.ties or [expected]
     return any(live == candidate for candidate in candidates)
+
+
+# xor_iit3_s ======================================================
+# IIT 3.0 tie-set regression: the symmetric 3-node XOR substrate has six
+# partitions tied at the maximum phi (Φ = 1.875). It is the fast-lane
+# counterpart to the slow ``rule152_s`` case: the live winner must match
+# one of the recorded co-optimal MIPs, exercising the full tie set (every
+# peer carries the unpartitioned distinctions) and serialization round-trip.
+
+
+@config.override(parallel=False)
+def test_sia_xor_iit3_sequential(xor_iit3_s, xor_iit3_s_expected_sia):
+    """XOR substrate tied-MIP computation, sequential (IIT 3.0)."""
+    with IIT_3_CONFIG:
+        live = xor_iit3_s.sia()
+    assert _live_sia_matches_tied_fixture(live, xor_iit3_s_expected_sia)
+
+
+def test_sia_xor_iit3_parallel(xor_iit3_s, xor_iit3_s_expected_sia):
+    """XOR substrate tied-MIP computation, parallel (IIT 3.0)."""
+    with IIT_3_CONFIG:
+        live = xor_iit3_s.sia()
+    assert _live_sia_matches_tied_fixture(live, xor_iit3_s_expected_sia)
+
+
+# rule152_s ======================================================
+# IIT 3.0 regression: 5-node cellular automaton (rule 152). The substrate
+# has multiple partitions tied at the maximum phi; the fixture stores the
+# full tie set via ``_tie_peers`` so the live winner is verified to be
+# one of the semantically valid MIPs (the cascade's lex tiebreaker may
+# pick different winners across code versions, all of which are correct).
 
 
 @pytest.mark.slow
