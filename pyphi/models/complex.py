@@ -16,9 +16,10 @@ from pyphi.display.numbers import format_value
 from pyphi.serializable import Serializable
 
 from . import cmp
+from .pandas import ToPandasMixin
 
 
-class ExcludedCandidate(Displayable):
+class ExcludedCandidate(Displayable, ToPandasMixin):
     """A candidate system excluded from being a complex in favor of an
     overlapping complex with greater-or-equal |big_phi|.
 
@@ -33,6 +34,9 @@ class ExcludedCandidate(Displayable):
     def __init__(self, node_indices: Any, phi: Any) -> None:
         self.node_indices: tuple[int, ...] = tuple(node_indices)
         self.phi: float = float(phi)
+
+    def _pandas_record(self) -> dict[str, Any]:
+        return {"node_indices": self.node_indices, "phi": float(self.phi)}
 
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         cls = type(self).__name__
@@ -53,7 +57,7 @@ class ExcludedCandidate(Displayable):
         return hash(self.node_indices)
 
 
-class Complex(Displayable, cmp.OrderableByPhi, Serializable):
+class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
     """An irreducible system selected as a complex: a local maximum of
     |big_phi| over overlapping candidate systems (the exclusion postulate).
 
@@ -93,6 +97,11 @@ class Complex(Displayable, cmp.OrderableByPhi, Serializable):
     def phi(self) -> Any:  # type: ignore[override]
         """The |big_phi| value of this complex."""
         return self.sia.phi
+
+    def _pandas_record(self) -> dict[str, Any]:
+        record = dict(self.sia._pandas_record())
+        record["is_maximal"] = self.is_maximal
+        return record
 
     def order_by(self) -> Any:
         return self.sia.order_by()

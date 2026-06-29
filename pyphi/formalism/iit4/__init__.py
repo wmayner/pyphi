@@ -49,6 +49,7 @@ from pyphi.models.explanation import Explanation
 from pyphi.models.explanation import Finding
 from pyphi.models.explanation import NullResultReason
 from pyphi.models.explanation import runner_up_from_candidates
+from pyphi.models.pandas import ToPandasMixin
 from pyphi.models.partitions import DirectedBipartition
 from pyphi.models.partitions import EdgeCut
 from pyphi.models.partitions import NullCut
@@ -149,7 +150,7 @@ def _intrinsic_differentiation_eq(a: dict | None, b: dict | None) -> bool:
 
 @dataclass(repr=False)
 class SystemIrreducibilityAnalysis(
-    HasProvenance, Displayable, cmp.OrderableByPhi, Serializable
+    HasProvenance, Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable
 ):
     """System-level integrated information.
 
@@ -307,6 +308,17 @@ class SystemIrreducibilityAnalysis(
         if node_indices is not None:
             return ",".join(str(i) for i in node_indices)
         return None
+
+    def _pandas_record(self):
+        return {
+            "phi": float(self.phi),
+            "normalized_phi": float(self.normalized_phi),
+            "system": self._system_label(),
+            "current_state": self.current_state,
+            "partition": concise_partition(self.partition)
+            if self.partition is not None
+            else None,
+        }
 
     def _describe(self, verbosity: int) -> Description:
         cls = type(self).__name__

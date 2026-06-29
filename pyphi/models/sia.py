@@ -27,12 +27,13 @@ from .distinctions import Distinctions
 from .distinctions import _null_ces
 from .explanation import Explanation
 from .explanation import Finding
+from .pandas import ToPandasMixin
 from .partitions import _cut_grid
 from .partitions import concise_partition
 
 
 class IIT3SystemIrreducibilityAnalysis(
-    HasProvenance, Displayable, cmp.OrderableByPhi, Serializable
+    HasProvenance, Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable
 ):
     """An analysis of system irreducibility (|big_phi|).
 
@@ -118,6 +119,16 @@ class IIT3SystemIrreducibilityAnalysis(
         if node_indices is not None:
             return ",".join(str(i) for i in node_indices)
         return None
+
+    def _pandas_record(self):
+        return {
+            "phi": float(self.phi),
+            "system": self._system_label(),
+            "current_state": self.current_state,
+            "partition": concise_partition(self.partition)
+            if self.partition is not None
+            else None,
+        }
 
     def _describe(self, verbosity: int) -> Description:
         cls = type(self).__name__
