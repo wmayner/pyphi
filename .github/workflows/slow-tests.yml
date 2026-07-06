@@ -1,0 +1,34 @@
+name: slow-tests
+
+# Nightly run of the full suite with the slow tier enabled (--slow). The
+# merge-blocking Tests workflow runs only the fast tier; this lane covers the
+# heavy paper-reproduction pins (IIT 4.0 Figs 6C/6D/7A/7B/7C) and the other
+# slow-marked invariants so a regression there cannot pass silently.
+
+on:
+  schedule:
+    - cron: "0 6 * * *"  # nightly, 06:00 UTC
+  workflow_dispatch: {}  # manual trigger for verification
+
+jobs:
+  slow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python 3.13
+        run: uv python install 3.13
+
+      - name: Install dependencies
+        run: uv sync --python 3.13 --group dev --all-extras
+
+      - name: Run full suite with slow tests
+        run: uv run --all-extras pytest --slow --tb=short -v
