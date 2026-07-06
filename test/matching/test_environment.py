@@ -155,7 +155,11 @@ def _e2(n):
 
 
 def _e1b(n):
-    return env.superpose(env.segment(n, 2, 0.9), env.noise(n, 0.05))
+    # Two independent 2-segment generators (no 3-segment generator); their
+    # overlap forms E1b's "apparent 3-segments".
+    return env.superpose(
+        env.segment(n, 2, 0.6), env.segment(n, 2, 0.6), env.noise(n, 0.05)
+    )
 
 
 def test_paper_environments_normalized_with_full_support():
@@ -177,6 +181,38 @@ def test_e1_all_off_probability_hand_computed():
     e1 = _e1(n)
     expected = (1 - 0.6) * (1 - 0.9) * (0.95**n)
     assert e1[(0, 0, 0, 0, 0)] == pytest.approx(expected)
+
+
+def test_e2_all_off_probability_hand_computed():
+    # All-off: no 3-segment, no point, and the noise background all-off.
+    n = 5
+    e2 = _e2(n)
+    expected = (1 - 0.6) * (1 - 0.9) * (0.95**n)
+    assert e2[(0, 0, 0, 0, 0)] == pytest.approx(expected)
+
+
+def test_e1b_all_off_probability_hand_computed():
+    # All-off: neither 2-segment generator fires, noise background all-off.
+    n = 5
+    e1b = _e1b(n)
+    expected = (1 - 0.6) ** 2 * (0.95**n)
+    assert e1b[(0, 0, 0, 0, 0)] == pytest.approx(expected)
+
+
+def test_e1b_apparent_three_segments_from_overlapping_two_segments():
+    """E1b's defining feature: two 2-segments can overlap into a 3-run.
+
+    An exact (0, 1, 1, 1, 0) stimulus (noise aside) requires the two
+    generators to fire at the adjacent start positions 1 and 2 (either
+    order): 2 * (p / positions)^2 with p = 0.6 over 4 positions. A single
+    2-segment generator can never produce a 3-run.
+    """
+    n = 5
+    apparent_three = (0, 1, 1, 1, 0)
+    two_generators = env.superpose(env.segment(n, 2, 0.6), env.segment(n, 2, 0.6))
+    assert two_generators[apparent_three] == pytest.approx(2 * (0.6 / 4) ** 2)
+    one_generator = env.segment(n, 2, 0.6)
+    assert one_generator.get(apparent_three, 0.0) == 0.0
 
 
 def test_top_level_exports():
