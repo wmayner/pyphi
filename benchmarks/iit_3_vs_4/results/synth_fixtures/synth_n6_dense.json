@@ -52,6 +52,7 @@
   "coupling_mean": 1.0,
   "coupling_sd": 0.5,
   "density": 0.85,
+  "effective_seed": 6002,
   "n": 6,
   "name": "synth_n6_dense",
   "seed": 6002,

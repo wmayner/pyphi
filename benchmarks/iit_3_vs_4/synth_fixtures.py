@@ -20,6 +20,7 @@ import numpy as np
 from benchmarks.iit_3_vs_4.harness import _SYNTH_COUPLING_MEAN
 from benchmarks.iit_3_vs_4.harness import _SYNTH_COUPLING_SD
 from benchmarks.iit_3_vs_4.harness import _SYNTH_TEMPERATURE
+from benchmarks.iit_3_vs_4.harness import _synth_weights
 from benchmarks.iit_3_vs_4.harness import NETWORKS
 
 # Generative parameters, kept in sync with the harness registry entries.
@@ -33,14 +34,6 @@ _SPECS = {
 _OUT_DIR = Path(__file__).parent / "results" / "synth_fixtures"
 
 
-def _rebuild_weights(n: int, density: float, seed: int) -> np.ndarray:
-    """Reproduce the weight matrix ``_synth_system`` draws for this fixture."""
-    rng = np.random.default_rng(seed)
-    mask = rng.random((n, n)) < density
-    np.fill_diagonal(mask, True)
-    return mask * rng.normal(_SYNTH_COUPLING_MEAN, _SYNTH_COUPLING_SD, size=(n, n))
-
-
 def write_fixtures() -> list[Path]:
     """Write every synthesized fixture JSON; return the written paths."""
     _OUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -49,13 +42,16 @@ def write_fixtures() -> list[Path]:
 
     for name, spec in _SPECS.items():
         system = NETWORKS[name].builder()
-        weights = _rebuild_weights(spec["n"], spec["density"], spec["seed"])
+        weights, effective_seed = _synth_weights(
+            spec["n"], spec["density"], spec["seed"]
+        )
         tpm = build_tpm("ising", weights, temperature=_SYNTH_TEMPERATURE)
         record = {
             "name": name,
             "n": spec["n"],
             "density": spec["density"],
             "seed": spec["seed"],
+            "effective_seed": effective_seed,
             "temperature": _SYNTH_TEMPERATURE,
             "coupling_mean": _SYNTH_COUPLING_MEAN,
             "coupling_sd": _SYNTH_COUPLING_SD,

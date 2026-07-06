@@ -135,32 +135,63 @@ _SYNTH_COUPLING_SD = 0.5
 _SYNTH_TEMPERATURE = 0.25
 
 
+def _strongly_connected(mask: Any) -> bool:
+    """Whether the directed graph given by boolean ``mask`` is strongly
+    connected (self-loops included, so ``mask^(n-1)`` reaches everything
+    reachable)."""
+    import numpy as np
+
+    n = mask.shape[0]
+    reach = np.linalg.matrix_power(mask.astype(np.int64), n - 1)
+    return bool((reach > 0).all())
+
+
+def _synth_weights(n: int, density: float, seed: int) -> tuple[Any, int]:
+    """Draw the Ising weight matrix; return ``(weights, effective_seed)``.
+
+    Redraws at ``seed + 1, seed + 2, ...`` until the connectivity mask is
+    strongly connected: a system that is not strongly connected
+    short-circuits the SIA with ``phi = 0`` and never runs the partition
+    search these fixtures exist to exercise. The effective seed is recorded
+    in the committed fixture JSON.
+    """
+    import numpy as np
+
+    effective_seed = seed
+    while True:
+        rng = np.random.default_rng(effective_seed)
+        mask = rng.random((n, n)) < density
+        np.fill_diagonal(mask, True)
+        if _strongly_connected(mask):
+            break
+        effective_seed += 1
+    weights = mask * rng.normal(_SYNTH_COUPLING_MEAN, _SYNTH_COUPLING_SD, size=(n, n))
+    return weights, effective_seed
+
+
 def _synth_system(n: int, density: float, seed: int) -> Any:
     """A seeded n-node Ising substrate at the all-off state.
 
     Connectivity is an Erdős–Rényi mask at the given ``density`` (self-loops
-    forced on); edge weights are drawn from an isolated ``default_rng(seed)``
-    (the seed is saved in the result JSON and in the committed fixture). The
-    TPM is built with the Ising unit function at ``temperature=0.25`` (the
-    sharp-sigmoid k=4 regime of the paper-faithful 4.0 examples); the
+    forced on; redrawn at incremented seeds until strongly connected — see
+    :func:`_synth_weights`); edge weights are drawn from an isolated
+    ``default_rng`` (the effective seed is saved in the committed fixture).
+    The TPM is built with the Ising unit function at ``temperature=0.25``
+    (the sharp-sigmoid k=4 regime of the paper-faithful 4.0 examples); the
     connectivity matrix is derived from the nonzero weights.
 
-    Weights are drawn with a positive (ferromagnetic) mean. With mean-zero
-    weights the all-off state is almost always reducible, so the SIA
-    short-circuits at the first zero-φ partition and never exercises the full
-    partition search; a positive coupling mean makes the system integrate, so
-    the SIA evaluates the full ``DIRECTED_SET_PARTITION`` set — the cost the
-    6-7 node matrix is meant to characterize.
+    Weights are drawn with a positive (ferromagnetic) mean: with mean-zero
+    weights the all-off state is almost always reducible and the SIA
+    short-circuits at the first zero-φ partition. A positive mean makes
+    integration likely but does not guarantee φ > 0 for every draw, so
+    timing runs should disable ``shortcircuit_sia`` — then the SIA evaluates
+    the full ``DIRECTED_SET_PARTITION`` set (the cost the 6-7 node matrix is
+    meant to characterize) regardless of reducibility.
     """
-    import numpy as np
-
     from pyphi import System
     from pyphi.substrate_generator import build_substrate
 
-    rng = np.random.default_rng(seed)
-    mask = rng.random((n, n)) < density
-    np.fill_diagonal(mask, True)
-    weights = mask * rng.normal(_SYNTH_COUPLING_MEAN, _SYNTH_COUPLING_SD, size=(n, n))
+    weights, _effective_seed = _synth_weights(n, density, seed)
     substrate = build_substrate("ising", weights, temperature=_SYNTH_TEMPERATURE)
     return System(substrate, (0,) * n)
 

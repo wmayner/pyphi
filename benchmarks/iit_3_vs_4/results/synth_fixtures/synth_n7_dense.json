@@ -67,6 +67,7 @@
   "coupling_mean": 1.0,
   "coupling_sd": 0.5,
   "density": 0.8,
+  "effective_seed": 7002,
   "n": 7,
   "name": "synth_n7_dense",
   "seed": 7002,
