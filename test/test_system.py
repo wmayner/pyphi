@@ -143,6 +143,18 @@ def test_apply_cut_shares_partition_independent_caches(s):
     assert cut_s.effect_marginal is s.effect_marginal
 
 
+def test_apply_cut_shares_caches_even_when_parent_is_cold(s):
+    """Sharing must not depend on access order: a cut created before the
+    parent's marginals were ever computed still shares them (otherwise
+    every cut in a partition search recomputes its own inversion whenever
+    the unpartitioned repertoires happen to come from a cross-system
+    cache)."""
+    cut = DirectedBipartition(Direction.EFFECT, (0, 1), (2,))
+    cut_s = s.apply_cut(cut)  # no prior marginal access on s
+    assert cut_s.cause_marginal is s.cause_marginal
+    assert cut_s.effect_marginal is s.effect_marginal
+
+
 def test_apply_cut_partition_dependent_state_still_differs(s):
     cut_a = DirectedBipartition(Direction.EFFECT, (0, 1), (2,))
     cut_b = DirectedBipartition(Direction.EFFECT, (0, 2), (1,))

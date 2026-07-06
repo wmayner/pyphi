@@ -259,11 +259,16 @@ class System(Displayable, ToPandasMixin, Serializable):
         ``substrate``, ``state``, and ``node_indices`` are unchanged. The
         cause/effect marginals depend only on those inputs — the cut enters
         downstream through the cut connectivity matrix when node TPMs
-        marginalize out severed inputs — so any already-computed marginal
-        caches are shared with the new instance rather than re-derived.
+        marginalize out severed inputs — so the marginals are materialized
+        on this instance and shared with the new one rather than re-derived.
+        (Materializing here, not just copying-if-present, keeps a partition
+        search at one inversion even when this instance's own repertoires
+        were served by a cross-system cache and never touched its marginals.)
         """
         from dataclasses import replace
 
+        _ = self.cause_marginal
+        _ = self.effect_marginal
         new = replace(self, partition=partition)
         for name in (
             "_typed_tpm",
