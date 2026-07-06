@@ -288,11 +288,11 @@ class CauseEffectStructure(
         )
         b_rels = set(other.relations) if hasattr(other.relations, "__iter__") else set()
         changes.extend(
-            Change("relation_lost", tuple(r.mechanisms()), a_value=r.phi)
+            Change("relation_lost", tuple(sorted(r.mechanisms)), a_value=r.phi)
             for r in a_rels - b_rels
         )
         changes.extend(
-            Change("relation_gained", tuple(r.mechanisms()), b_value=r.phi)
+            Change("relation_gained", tuple(sorted(r.mechanisms)), b_value=r.phi)
             for r in b_rels - a_rels
         )
         return tuple(changes)

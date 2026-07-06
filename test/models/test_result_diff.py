@@ -174,3 +174,29 @@ def test_diff_is_total(s):
         assert rd.level in {"system", "mechanism"}, name
         assert repr(rd)
         rd.to_pandas()
+
+
+def test_ces_diff_with_differing_relation_sets():
+    """Relation gained/lost changes on CESs whose relation sets differ."""
+    from pyphi import examples
+    from pyphi.models.diff import ResultDiff
+
+    substrate = examples.basic_substrate()
+    state_a = examples.basic_state()
+    state_b = tuple(1 - s if i == 0 else s for i, s in enumerate(state_a))
+    with pyphi.config.override(**presets.iit4_2023):
+        a = substrate.ces(state_a)
+        b = substrate.ces(state_b)
+    n_a = a.relations.num_relations()
+    n_b = b.relations.num_relations()
+    assert n_a != n_b  # precondition: the relation sets genuinely differ
+
+    rd = a.diff(b)
+    assert isinstance(rd, ResultDiff)
+    relation_changes = [
+        c for c in rd.changes if c.kind in ("relation_gained", "relation_lost")
+    ]
+    assert len(relation_changes) >= abs(n_b - n_a)
+    for change in relation_changes:
+        # Keys are deterministic: mechanisms in sorted order.
+        assert change.key == tuple(sorted(change.key))
