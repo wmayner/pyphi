@@ -414,3 +414,39 @@ class TestGetNumProcesses:
 
         with config.override(parallel_workers=2):
             assert parallel.get_num_processes() == 2
+
+
+def _scale_kwarg_only(x, *, scale):
+    return x * scale
+
+
+def _add_pair(a, b):
+    return a + b
+
+
+class TestDefaultChunksizeSampling:
+    """Cost-sampling must honor map_kwargs and more_items (no explicit chunksize)."""
+
+    def test_map_kwargs_with_default_chunksize(self):
+        out = parallel.map_reduce(
+            _scale_kwarg_only,
+            [1, 2, 3, 4, 5],
+            map_kwargs={"scale": 10},
+            parallel=True,
+            ordered=True,
+            reduce_func=list,
+            progress=False,
+        )
+        assert list(out) == [10, 20, 30, 40, 50]
+
+    def test_more_items_with_default_chunksize(self):
+        out = parallel.map_reduce(
+            _add_pair,
+            [1, 2, 3, 4, 5],
+            [10, 20, 30, 40, 50],
+            parallel=True,
+            ordered=True,
+            reduce_func=list,
+            progress=False,
+        )
+        assert list(out) == [11, 22, 33, 44, 55]

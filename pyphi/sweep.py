@@ -190,6 +190,9 @@ def _run_cells_parallel(
             reduce_func=list,
             progress=show,
             desc=f"sweep[{formalism}]",
+            # Cells are whole SIA/CES computations: cost-sampling would run
+            # several inline in the parent and discard their results.
+            chunksize=1,
         )
     if len(results) != len(cells):
         raise AssertionError(

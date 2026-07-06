@@ -12,6 +12,7 @@ to workers via closure.
 
 from __future__ import annotations
 
+import functools
 import logging
 import math
 from collections.abc import Callable
@@ -357,10 +358,20 @@ class LocalProcessScheduler:
         items_list = list(items)
         total = len(items_list)
 
+        # The sampler times fn on bare items, so it must see the same call
+        # shape as the real map: bind map_kwargs, and skip sampling entirely
+        # for multi-iterable maps (a single item is not a valid call).
+        if more_items:
+            sampling_fn = None
+        elif map_kwargs:
+            sampling_fn = functools.partial(fn, **map_kwargs)
+        else:
+            sampling_fn = fn
+
         chunksize, sampled_iter = compute_chunksize(
             items_list,
             target_seconds=chunking.target_seconds,
-            fn=fn,
+            fn=sampling_fn,
             sequential_threshold=chunking.sequential_threshold,
             explicit_chunksize=chunking.chunksize,
         )
