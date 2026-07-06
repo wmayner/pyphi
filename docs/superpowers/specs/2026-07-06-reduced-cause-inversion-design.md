@@ -80,7 +80,7 @@ benchmark numbers measure single-inversion cost rather than redundancy.
   differ across two distinct cuts of the same system.
 - Existing golden regressions confirm SIA results unchanged.
 
-### Part 1 — the inversion becomes an einsum contraction
+### Part 1 — the inversion becomes a greedy sum-product contraction
 
 `_cause_marginal_factored` is reimplemented as a sum-product contraction. The
 math is unchanged — per system unit `i`:
@@ -94,40 +94,47 @@ norm            = Σ pr_bg
 Only the evaluation strategy changes:
 
 1. **Likelihood slices.** For each unit `j`, take
-   `factor_j[..., state[j]]` and squeeze it to its real (parent) axes,
-   recording which substrate axes remain. (Validation guarantees alphabet
-   sizes ≥ 2, so a size-1 input axis always means "non-parent".)
+   `factor_j[..., state[j]]`, kept in the full-ndim substrate-global shape:
+   size-1 axes mark non-parents, so broadcasting aligns factors with no
+   explicit axis bookkeeping. (Validation guarantees alphabet sizes ≥ 2, so a
+   size-1 input axis always means "non-parent".)
 2. **Relevant background axes.**
    `R = background ∩ ⋃_{i ∈ system} parents(i)`. Only these axes carry
    weight the outputs can see.
-3. **One einsum for `pr_bg`.** `np.einsum` with the integer-labels interface
-   over all `N` slices, output axes `R`, contraction path from
-   `np.einsum_path(..., optimize="greedy")` (deterministic given shapes).
-   This *is* variable elimination; the optimizer is numpy's, not hand-rolled.
-   Factors of units disconnected from the system collapse to scalars that
-   multiply both `pr_bg` and `norm` and cancel in the division. At `N ≤ 63`
-   the worst-case `norm` is ~1e-19 — no underflow risk in float64 (a
-   500-unit substrate would need log-space; another reason for the ceiling).
+3. **Greedy variable elimination for `pr_bg`.** Repeatedly eliminate the
+   axis (∉ `R`) whose merged product of involved slices is smallest:
+   multiply the involved slices (ufunc broadcasting; valid up to numpy's
+   64-dimension array limit) and `.sum(axis=k, keepdims=True)`. Ties break
+   toward the lowest axis index, so the order is deterministic given shapes.
+   `np.einsum` cannot be used here: its interfaces cap distinct axis labels
+   at 52 and `np.broadcast_shapes` caps at 32 dimensions — both below the
+   63-unit ceiling (verified against numpy 2.4). Factors of units
+   disconnected from the system collapse to scalars that multiply both
+   `pr_bg` and `norm` and cancel in the division. At `N ≤ 63` the worst-case
+   `norm` is ~1e-19 — no underflow risk in float64 (a 500-unit substrate
+   would need log-space; another reason for the ceiling).
 4. **Normalization.** `norm = pr_bg.sum()`; `norm <= 0` raises
    `StateUnreachableBackwardsError` exactly as today.
-5. **Per-unit outputs.** For each system unit `i`, one small einsum
-   contracts `factor_i` (parent axes + output axis) against
-   `weight = pr_bg / norm` (axes `R`), output axes
-   `(parents(i) ∩ system, s_i)`. The result is re-inflated with size-1 axes
-   to the full-ndim substrate-global shape — the exact output shape the
-   dense path produces today (its real extent is also `parents(i) ∩ system`).
-6. **Pre-flight size guard.** `np.einsum_path` reports the largest
-   intermediate before any allocation. Above a module-level constant
+5. **Per-unit outputs.** For each system unit `i`,
+   `factor_i * (pr_bg / norm)` broadcast, summed over the background axes
+   with `keepdims` — the dense path's own final stage, except the weight
+   carries real extent only on `R`. The output keeps the full-ndim
+   substrate-global shape the dense path produces today (its real extent is
+   also `parents(i) ∩ system`).
+6. **Pre-flight size guard.** Each elimination step's merged-product size is
+   known from shapes before any allocation. Above a module-level constant
    (`2**27` elements ≈ 1 GB float64), raise an informative exception naming
    the predicted size — a densely coupled large substrate fails fast with an
    explanation instead of OOM-ing the machine.
 
-**Implementation-time verify items** (resolve during the plan, not after):
-- numpy's einsum operand limit (`NPY_MAXARGS`) with up to 63 operands. If the
-  single-call form is rejected, execute the `einsum_path` steps as pairwise
-  contractions in a short loop — same math, same path.
-- Whether `pyphi.serialize` stores `System.cause_marginal` anywhere
-  (marginals should be derived, never serialized — confirm).
+A useful exactness property: for a **full-substrate system** (no background
+units) the weight is exactly `1.0` (`pr_bg` is `norm`), and multiplying by
+exact `1.0` is a float identity — so full-substrate results are
+**bit-identical** to the dense path. Floating-point drift is possible only
+for systems with background units.
+
+`pyphi.serialize` stores no derived marginals (verified: no encoder touches
+`System.cause_marginal`), so the wire format is unaffected.
 
 ### Part 2 — compute only system-unit outputs (one API change)
 
@@ -143,16 +150,23 @@ Computing background-unit outputs would pull *their* parents into `R` and
 defeat the reduction. Therefore:
 
 - `_cause_marginal_factored(factored, state, node_indices)` returns factors
-  **only for `node_indices`**, as a mapping `{substrate index → full-ndim
-  array}`.
+  **only for `node_indices`**, as a small value type `CauseMarginals` defined
+  in `marginalization.py`: substrate-global full-ndim factors exposed via
+  `.factor(i)` and `.indices`, with array-aware `__eq__`/`__hash__`.
+- The `.factor(i)` accessor is deliberately the same surface `FactoredTPM`
+  exposes, so the two existing consumers need no code change: `Node` reads
+  `cause_marginal.factor(self.index)`, and `MacroSystem`'s override (which
+  returns a `FactoredTPM` — a macro system has no background units) stays
+  duck-type compatible. Both IIT 3.0 and 4.0 route through this one path.
+  Pre-release code: no back-compat shims; annotations and the
+  marginalization dispatch tests are updated in place.
 - `System.cause_marginal` keeps its name and its substrate-global axis
-  convention but its value becomes that mapping (`dict[int, ndarray]`,
-  system units only). `generate_nodes` / `Node` receive the per-node factor
-  directly (both IIT 3.0 and 4.0 route
-  through this one path). The `System` protocol entry is updated. Pre-release
-  code: no back-compat shims, callers are updated in place.
+  convention; its value becomes the system-unit `CauseMarginals`.
 - `proper_cause_marginal` (squeezed, system-local `FactoredTPM`) is unchanged
-  in meaning and shape. Display already uses only the proper marginals.
+  in meaning and shape, but now **derives from** `cause_marginal` instead of
+  running its own inversion — today the two cached properties invert
+  independently, so this removes a duplicate full inversion per system.
+  Display already uses only the proper marginals.
 - `cause_marginal()` in `marginalization.py` (the public dispatcher) keeps
   accepting any `TPM` type; the joint/array branches convert to
   `FactoredTPM` first, as today.
@@ -165,7 +179,7 @@ keeps guarding it through cross-validation.
 
 ## Validation protocol
 
-This touches a correctness-critical hot path. The einsum contraction computes
+This touches a correctness-critical hot path. The greedy contraction computes
 mathematically identical quantities in a different floating-point order, so
 last-ulp differences from the dense path are possible. The risk that matters
 is not drift magnitude (phi comparisons run at `precision=13`; drift is
@@ -183,16 +197,26 @@ differently, silently changing which partition is selected as the MIP.
      deliberately (never silently regenerated).
 2. **Property-based cross-validation.** Hypothesis generates random factored
    TPMs — random parent sets, asymmetric structure, k-ary alphabets, random
-   system subsets — and asserts the einsum result matches the dense oracle
+   system subsets — and asserts the reduced result matches the dense oracle
    within 1e-12 (also recording whether agreement is exact). Symmetric
    fixtures hide axis-order errors; asymmetric and k-ary cases are mandatory.
-3. **New-capability test with an independent reference.** A ~40-unit sparse
-   substrate (dense evaluation impossible: 2^40) with a small embedded
-   system, checked against the *hand-reduced equivalent*: because only the
-   system's relevant closure affects the result, an equivalent small
-   substrate containing just that closure must yield identical
-   `proper_cause_marginal` values. This validates the large-`N` path without
-   trusting the new code.
+3. **New-capability tests with independent references.** Truncating a
+   substrate to the system's ancestor closure is *not* a valid reference:
+   descendants of system units carry evidence about system pasts through
+   their observed states, so removing them changes the background weights.
+   Only whole factor-graph components disconnected from the system cancel
+   exactly (as constants in both `pr_bg` and `norm`). Two large-`N` checks
+   that do not trust the new code:
+   - **Disconnected-block substrate**: an 8-unit block containing the system
+     plus a separate 32-unit block with no cross-edges (40 units total;
+     dense evaluation impossible at 2^40). The reduced result must match the
+     dense oracle run on the 8-unit block alone (the disconnected block's
+     contribution cancels; agreement to ~1e-15, not bit-exact, because the
+     cancellation is a float division).
+   - **Connected 40-unit chain** with a small embedded system, checked
+     against a transfer-matrix computation written directly in the test —
+     an independent sequential evaluation of the same sum-product, valid
+     because a chain's elimination order is trivial.
 4. **Genuine-difference rule.** Every comparison test exercises at least one
    input pair with a real nonzero difference (e.g., two different states
    producing different background weights), so no gate derives its coverage
@@ -206,8 +230,8 @@ differently, silently changing which partition is selected as the MIP.
   argument), with any golden change individually justified per the protocol
   above.
 - `proper_cause_marginal` for a small system in a 40-unit sparse substrate
-  computes in well under a second and matches the reduced-equivalent
-  reference exactly.
+  computes in well under a second and matches the independent references
+  (disconnected-block dense oracle; chain transfer-matrix) within 1e-12.
 - After Part 0, one SIA computes the inversion once (not once per
   partition); after Part 1, the inversion cost no longer scales with `a^N`
   for fixed system size and sparse coupling.
