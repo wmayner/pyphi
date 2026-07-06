@@ -54,3 +54,21 @@ def test_kwargs_bypass_the_cache(tmp_path, monkeypatch):
             )
         )
     assert not any(tmp_path.rglob("*")), "explicit kwargs must not be cached"
+
+
+def test_config_flip_forces_recompute_not_stale_hit(tmp_path, monkeypatch):
+    """A result-affecting config change must miss, not return the previous
+    configuration's cached result."""
+    _fresh_cache(tmp_path, monkeypatch)
+    sub = examples.basic_substrate()
+    state = examples.basic_state()
+    with config.override(
+        **presets.iit4_2023, relation_computation="CONCRETE", disk_cache_results=True
+    ):
+        first = sub.ces(state)
+    with config.override(
+        **presets.iit4_2023, relation_computation="ANALYTICAL", disk_cache_results=True
+    ):
+        second = sub.ces(state)
+    assert type(first.relations).__name__ == "ConcreteRelations"
+    assert type(second.relations).__name__ == "AnalyticalRelations"

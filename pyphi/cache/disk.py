@@ -10,6 +10,7 @@ the cache key (its code-version component), not an in-file tag.
 
 from __future__ import annotations
 
+import dataclasses
 import hashlib
 import importlib.metadata
 import os
@@ -82,19 +83,20 @@ class DiskCache:
 
 
 def _config_digest(snapshot: Any) -> bytes:
-    """Digest only the configuration fields that change a result value."""
-    iit = snapshot.formalism.iit
-    fields = (
-        iit.version,
-        iit.mechanism_phi_measure,
-        iit.system_phi_measure,
-        iit.specification_measure,
-        iit.ces_measure,
-        iit.mechanism_partition_scheme,
-        iit.system_partition_scheme,
-        snapshot.numerics.precision,
-    )
-    return repr(fields).encode()
+    """Digest every formalism and numerics configuration field.
+
+    Complete by construction: any field added to the formalism or numerics
+    layers automatically enters the key. Infrastructure settings are excluded
+    because they must not affect result values. Over-keying costs only cache
+    misses; under-keying silently returns a result computed under a different
+    configuration.
+    """
+    return repr(
+        (
+            dataclasses.asdict(snapshot.formalism),
+            dataclasses.asdict(snapshot.numerics),
+        )
+    ).encode()
 
 
 def result_cache_key(system: Any, kind: str, snapshot: Any) -> str | None:

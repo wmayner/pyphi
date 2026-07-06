@@ -71,3 +71,39 @@ def test_dirty_tree_returns_none(monkeypatch):
     with config.override(**presets.iit4_2023):
         s = examples.basic_system()
         assert disk.result_cache_key(s, "sia", config.snapshot()) is None
+
+
+def test_config_digest_covers_every_formalism_and_numerics_field():
+    """Complete by construction: no result-affecting config field may be
+    missing from the key digest (an omitted field means a config change can
+    silently return the previous configuration's cached result)."""
+    import dataclasses
+
+    from pyphi.conf.formalism import ActualCausationConfig
+    from pyphi.conf.formalism import IITConfig
+    from pyphi.conf.numerics import NumericsConfig
+
+    digest = disk._config_digest(config.snapshot()).decode()
+    for cls in (IITConfig, ActualCausationConfig, NumericsConfig):
+        for f in dataclasses.fields(cls):
+            assert f.name in digest, f"digest omits {cls.__name__}.{f.name}"
+
+
+@pytest.mark.parametrize(
+    ("field", "alternate"),
+    [
+        ("system_partition_include_complete", True),
+        ("relation_computation", "ANALYTICAL"),
+        ("assume_partitions_cannot_create_new_concepts", True),
+        ("shortcircuit_sia", False),
+        ("single_micro_nodes_with_selfloops_have_phi", False),
+        ("precision", 6),
+    ],
+)
+def test_config_separates_result_affecting_fields(field, alternate):
+    with config.override(**presets.iit4_2023):
+        s = examples.basic_system()
+        base = disk.result_cache_key(s, "ces", config.snapshot())
+    with config.override(**presets.iit4_2023, **{field: alternate}):
+        changed = disk.result_cache_key(s, "ces", config.snapshot())
+    assert base != changed, f"key ignores result-affecting field {field!r}"
