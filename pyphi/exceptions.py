@@ -50,6 +50,15 @@ class StateUnreachableBackwardsError(StateUnreachableError):
         super().__init__(state, message)
 
 
+class IntractableCauseInversionError(ValueError):
+    """The cause inversion cannot proceed within the intermediate-size cap.
+
+    Raised when every remaining step of the sum-product contraction would
+    materialize an intermediate array larger than the cap — the substrate's
+    coupling is too dense for the reduced inversion at this size.
+    """
+
+
 class ConditionallyDependentError(ValueError):
     """The TPM is conditionally dependent."""
 
