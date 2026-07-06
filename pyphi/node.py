@@ -21,7 +21,8 @@ class Node(Displayable, ToPandasMixin):
     """A node in a system.
 
     Args:
-        cause_marginal (JointTPM): The cause (backward) TPM of the system.
+        cause_marginal (CauseMarginals): Per-system-unit cause factors; this
+            node reads its own factor via ``cause_marginal.factor(index)``.
         effect_marginal (JointTPM): The effect (forward) TPM of the system.
         cm (np.ndarray): The CM of the system.
         index (int): The node's index in the substrate.
@@ -198,7 +199,8 @@ def generate_nodes(
     """Generate |Node| objects for a system.
 
     Args:
-        cause_marginal (JointTPM): The system's cause (backward) TPM
+        cause_marginal (CauseMarginals): Per-system-unit cause factors; each
+            node reads its own factor via ``cause_marginal.factor(index)``.
         effect_marginal (JointTPM): The system's effect (forward) TPM
         cm (np.ndarray): The corresponding CM.
         substrate_state (tuple): The state of the substrate.

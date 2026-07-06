@@ -308,9 +308,10 @@ def test_proper_cause_marginal_binary_matches_legacy_slice(s) -> None:
     ``proper_cause_marginal`` matches the substrate cause TPM's on-probability
     slice for the same unit."""
     from pyphi.core.tpm.factored import FactoredTPM
+    from pyphi.core.tpm.marginalization import CauseMarginals
 
     substrate_cause = s.cause_marginal
-    assert isinstance(substrate_cause, FactoredTPM)
+    assert isinstance(substrate_cause, CauseMarginals)
     proper = s.proper_cause_marginal
     assert isinstance(proper, FactoredTPM)
     assert proper.n_nodes == len(s.node_indices)

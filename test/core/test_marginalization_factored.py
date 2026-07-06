@@ -6,6 +6,7 @@ import numpy as np
 
 from pyphi.core.tpm.factored import FactoredTPM
 from pyphi.core.tpm.joint import JointTPM
+from pyphi.core.tpm.marginalization import CauseMarginals
 from pyphi.core.tpm.marginalization import cause_marginal
 from pyphi.core.tpm.marginalization import effect_marginal
 
@@ -20,9 +21,9 @@ def test_cause_marginal_factored_dispatch_matches_joint() -> None:
 
     via_joint = cause_marginal(joint, state, node_indices)
     via_factored = cause_marginal(factored, state, node_indices)
-    assert isinstance(via_joint, FactoredTPM)
-    assert isinstance(via_factored, FactoredTPM)
-    for i in range(via_factored.n_nodes):
+    assert isinstance(via_joint, CauseMarginals)
+    assert isinstance(via_factored, CauseMarginals)
+    for i in node_indices:
         np.testing.assert_allclose(
             via_factored.factor(i), via_joint.factor(i), atol=1e-10
         )
@@ -60,19 +61,19 @@ def test_effect_marginal_kary_factored_returns_factored_tpm() -> None:
     assert isinstance(result, FactoredTPM)
 
 
-def test_cause_marginal_returns_factored_tpm_for_jointtpm_input() -> None:
-    """cause_marginal returns a FactoredTPM for JointTPM input."""
+def test_cause_marginal_returns_cause_marginals_for_jointtpm_input() -> None:
+    """cause_marginal returns a CauseMarginals for JointTPM input."""
     rng = np.random.default_rng(2026)
     joint_arr = rng.uniform(size=(2, 2, 2, 3))
     joint = JointTPM(joint_arr)
     result = cause_marginal(joint, state=(0, 1, 0), node_indices=(0, 1, 2))
-    assert isinstance(result, FactoredTPM)
+    assert isinstance(result, CauseMarginals)
 
 
-def test_cause_marginal_returns_factored_tpm_for_factored_input() -> None:
-    """cause_marginal returns a FactoredTPM for FactoredTPM input."""
+def test_cause_marginal_returns_cause_marginals_for_factored_input() -> None:
+    """cause_marginal returns a CauseMarginals for FactoredTPM input."""
     rng = np.random.default_rng(2026)
     joint_arr = rng.uniform(size=(2, 2, 2, 3))
     factored = FactoredTPM.from_joint(joint_arr, state_space=((0, 1), (0, 1), (0, 1)))
     result = cause_marginal(factored, state=(0, 1, 0), node_indices=(0, 1, 2))
-    assert isinstance(result, FactoredTPM)
+    assert isinstance(result, CauseMarginals)

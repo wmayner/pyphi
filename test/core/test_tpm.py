@@ -122,7 +122,7 @@ def test_marginalize_out(s):
         )
     )
     effect_arr = np.asarray(effect_sbn)
-    for i in range(s.cause_marginal.n_nodes):
+    for i in s.cause_marginal.indices:
         np.testing.assert_array_equal(
             s.cause_marginal.factor(i)[..., 1], effect_arr[..., i]
         )

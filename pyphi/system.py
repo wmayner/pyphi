@@ -35,7 +35,7 @@ from pyphi.substrate import Substrate
 from pyphi.substrate import _coerce_state_to_indices
 
 from .core.tpm.factored import FactoredTPM
-from .core.tpm.marginalization import _cause_marginal_factored
+from .core.tpm.marginalization import CauseMarginals
 from .core.tpm.marginalization import _effect_marginal_factored
 from .core.tpm.marginalization import cause_marginal as _marginalize_cause
 
@@ -322,8 +322,8 @@ class System(Displayable, ToPandasMixin, Serializable):
         return self.substrate.factored_tpm
 
     @cached_property
-    def cause_marginal(self) -> FactoredTPM:
-        """Per-output-unit cause factors for the system; see IIT 4.0 Eq. 4."""
+    def cause_marginal(self) -> CauseMarginals:
+        """Per-system-unit cause factors; see IIT 4.0 Eq. 4."""
         return _marginalize_cause(
             self._typed_tpm,
             self.state,
@@ -372,17 +372,13 @@ class System(Displayable, ToPandasMixin, Serializable):
         and dropped from each factor's input dims, so the returned shape
         is ``(*system_alphabet, k_i)`` per system output unit.
         """
-        factored = _cause_marginal_factored(
-            self._typed_tpm,
-            self.state,
-            self.node_indices,
-        )
+        marginals = self.cause_marginal
         background_indices = tuple(
-            i for i in range(factored.n_nodes) if i not in set(self.node_indices)
+            i for i in range(self._typed_tpm.n_nodes) if i not in set(self.node_indices)
         )
         system_factors = []
         for i in self.node_indices:
-            f = factored.factor(i)
+            f = marginals.factor(i)
             if background_indices:
                 f = np.squeeze(f, axis=background_indices)
             system_factors.append(f)

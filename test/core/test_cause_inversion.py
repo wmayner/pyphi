@@ -10,7 +10,8 @@ from pyphi.core.tpm import marginalization
 from pyphi.core.tpm.factored import FactoredTPM
 from pyphi.core.tpm.marginalization import CauseMarginals
 from pyphi.core.tpm.marginalization import _cause_marginal_factored
-from pyphi.core.tpm.marginalization import _cause_marginal_reduced
+
+from .inversion_oracle import dense_cause_marginal_reference as _dense_factors
 
 
 def _normalized(raw: np.ndarray) -> np.ndarray:
@@ -47,16 +48,11 @@ def _kary_factored(seed: int = 7) -> FactoredTPM:
     )
 
 
-def _dense_factors(factored, state, node_indices):
-    dense = _cause_marginal_factored(factored, state, node_indices)
-    return {i: dense.factor(i) for i in node_indices}
-
-
 @pytest.mark.parametrize("state", [(0, 1, 0, 1, 0), (1, 0, 1, 1, 1)])
 @pytest.mark.parametrize("system", [(1, 2), (0, 3, 4), (2,)])
 def test_reduced_matches_dense_asymmetric_binary(state, system):
     factored = _asymmetric_binary_factored()
-    reduced = _cause_marginal_reduced(factored, state, system)
+    reduced = _cause_marginal_factored(factored, state, system)
     dense = _dense_factors(factored, state, system)
     assert reduced.indices == system
     for i in system:
@@ -68,7 +64,7 @@ def test_reduced_matches_dense_asymmetric_binary(state, system):
 @pytest.mark.parametrize("system", [(0, 2), (1,), (1, 2, 3)])
 def test_reduced_matches_dense_kary(state, system):
     factored = _kary_factored()
-    reduced = _cause_marginal_reduced(factored, state, system)
+    reduced = _cause_marginal_factored(factored, state, system)
     dense = _dense_factors(factored, state, system)
     for i in system:
         assert reduced.factor(i).shape == dense[i].shape
@@ -80,8 +76,8 @@ def test_different_states_give_different_marginals():
     vacuously passing on state-independent outputs."""
     factored = _asymmetric_binary_factored()
     system = (1, 2)
-    a = _cause_marginal_reduced(factored, (0, 1, 0, 1, 0), system)
-    b = _cause_marginal_reduced(factored, (1, 0, 1, 1, 1), system)
+    a = _cause_marginal_factored(factored, (0, 1, 0, 1, 0), system)
+    b = _cause_marginal_factored(factored, (1, 0, 1, 1, 1), system)
     assert any(not np.allclose(a.factor(i), b.factor(i)) for i in system)
 
 
@@ -91,7 +87,7 @@ def test_full_substrate_system_is_bit_identical_to_dense():
     factored = _asymmetric_binary_factored()
     state = (0, 1, 1, 0, 1)
     system = (0, 1, 2, 3, 4)
-    reduced = _cause_marginal_reduced(factored, state, system)
+    reduced = _cause_marginal_factored(factored, state, system)
     dense = _dense_factors(factored, state, system)
     for i in system:
         assert np.array_equal(reduced.factor(i), dense[i])
@@ -103,7 +99,7 @@ def test_unreachable_state_raises():
         f[..., 0] = 1.0  # every unit always outputs 0
     factored = FactoredTPM(factors=factors)
     with pytest.raises(exceptions.StateUnreachableBackwardsError):
-        _cause_marginal_reduced(factored, state=(1, 1), node_indices=(0, 1))
+        _cause_marginal_factored(factored, state=(1, 1), node_indices=(0, 1))
 
 
 def test_intractable_contraction_raises(monkeypatch):
@@ -114,7 +110,7 @@ def test_intractable_contraction_raises(monkeypatch):
     factored = FactoredTPM(factors=factors)
     monkeypatch.setattr(marginalization, "_MAX_INTERMEDIATE_ELEMENTS", 8)
     with pytest.raises(exceptions.IntractableCauseInversionError, match=r"\d+"):
-        _cause_marginal_reduced(factored, state=(0,) * n, node_indices=(0, 1))
+        _cause_marginal_factored(factored, state=(0,) * n, node_indices=(0, 1))
 
 
 def test_cause_marginals_value_semantics():

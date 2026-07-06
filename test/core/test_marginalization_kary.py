@@ -9,6 +9,7 @@ from hypothesis import settings
 from hypothesis import strategies as st
 
 from pyphi.core.tpm.factored import FactoredTPM
+from pyphi.core.tpm.marginalization import CauseMarginals
 from pyphi.core.tpm.marginalization import _cause_marginal_factored
 
 
@@ -23,12 +24,12 @@ def _random_binary_factor(n_nodes: int, seed: int) -> np.ndarray:
     return _random_kary_factor(n_nodes, 2, seed)
 
 
-def test_cause_marginal_factored_returns_factored_tpm() -> None:
-    """Returns a FactoredTPM for k-ary substrates."""
+def test_cause_marginal_factored_returns_cause_marginals() -> None:
+    """Returns a CauseMarginals for k-ary substrates."""
     factors = [_random_kary_factor(2, 3, seed=10 + i) for i in range(2)]
     factored = FactoredTPM(factors=factors)
     result = _cause_marginal_factored(factored, state=(0, 0), node_indices=(0, 1))
-    assert isinstance(result, FactoredTPM)
+    assert isinstance(result, CauseMarginals)
 
 
 def test_cause_marginal_factored_per_factor_sums_to_one() -> None:
@@ -37,7 +38,7 @@ def test_cause_marginal_factored_per_factor_sums_to_one() -> None:
     factors = [_random_kary_factor(2, 3, seed=20 + i) for i in range(2)]
     factored = FactoredTPM(factors=factors)
     result = _cause_marginal_factored(factored, state=(1, 2), node_indices=(0, 1))
-    for i in range(result.n_nodes):
+    for i in result.indices:
         f = result.factor(i)
         assert f.shape[-1] == 3
         np.testing.assert_allclose(f.sum(axis=-1), 1.0, atol=1e-10)
@@ -52,7 +53,7 @@ def test_cause_marginal_factored_binary_gives_valid_distribution(seed: int) -> N
     state = (0, 1, 0)
     node_indices = (0, 1, 2)
     result = _cause_marginal_factored(factored, state, node_indices)
-    for i in range(factored.n_nodes):
+    for i in result.indices:
         f = result.factor(i)
         np.testing.assert_allclose(
             f.sum(axis=-1),
