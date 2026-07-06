@@ -133,6 +133,26 @@ def test_apply_cut(s):
     assert np.array_equal(cut_s.cm, cut.apply_cut(s.cm))
 
 
+def test_apply_cut_shares_partition_independent_caches(s):
+    cut = DirectedBipartition(Direction.EFFECT, (0, 1), (2,))
+    # Populate the parent's caches first.
+    _ = s.cause_marginal
+    _ = s.effect_marginal
+    cut_s = s.apply_cut(cut)
+    assert cut_s.cause_marginal is s.cause_marginal
+    assert cut_s.effect_marginal is s.effect_marginal
+
+
+def test_apply_cut_partition_dependent_state_still_differs(s):
+    cut_a = DirectedBipartition(Direction.EFFECT, (0, 1), (2,))
+    cut_b = DirectedBipartition(Direction.EFFECT, (0, 2), (1,))
+    sys_a = s.apply_cut(cut_a)
+    sys_b = s.apply_cut(cut_b)
+    # Genuine difference: the two cuts sever different edges.
+    assert not np.array_equal(sys_a.cm, sys_b.cm)
+    assert sys_a.nodes != sys_b.nodes
+
+
 def test_partition_indices(s, subsys_n1n2):
     assert s.partition_indices == (0, 1, 2)
     assert subsys_n1n2.partition_indices == (1, 2)

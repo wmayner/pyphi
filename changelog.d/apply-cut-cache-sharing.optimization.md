@@ -1,0 +1,1 @@
+`System.apply_cut` now shares the partition-independent cause/effect marginal caches with the cut system, so a SIA's partition search computes the cause-side Bayesian inversion once instead of once per partition.

@@ -256,14 +256,25 @@ class System(Displayable, ToPandasMixin, Serializable):
     def apply_cut(self, partition: DirectedBipartition) -> System:
         """Return a new System with the given partition applied.
 
-        ``substrate``, ``state``, and ``node_indices`` are unchanged.
-        Cached derived properties that don't depend on the partition (``cause_marginal``,
-        ``effect_marginal``) are not re-derived in the new instance until first
-        access, so the new instance shares the same numerical values.
+        ``substrate``, ``state``, and ``node_indices`` are unchanged. The
+        cause/effect marginals depend only on those inputs — the cut enters
+        downstream through the cut connectivity matrix when node TPMs
+        marginalize out severed inputs — so any already-computed marginal
+        caches are shared with the new instance rather than re-derived.
         """
         from dataclasses import replace
 
-        return replace(self, partition=partition)
+        new = replace(self, partition=partition)
+        for name in (
+            "_typed_tpm",
+            "cause_marginal",
+            "effect_marginal",
+            "proper_cause_marginal",
+            "proper_effect_marginal",
+        ):
+            if name in self.__dict__:
+                new.__dict__[name] = self.__dict__[name]
+        return new
 
     @classmethod
     def from_substrate(
