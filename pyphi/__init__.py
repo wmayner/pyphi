@@ -107,6 +107,15 @@ from .sweep import SweepResult as SweepResult
 from .sweep import sweep as sweep
 from .system import System
 
+# The conf bootstrap applies ``pyphi_config.yml`` before the formalism
+# registry exists, so cross-field constraints cannot be checked at load time.
+# Re-validate here, now that formalisms are registered, so an invalid YAML
+# config fails at import rather than at compute time.
+if config.infrastructure.validate_config:
+    from .conf.constraints import check_config_constraints
+
+    check_config_constraints(config)
+
 # Silent by default: a library attaches only a NullHandler to its own logger
 # and leaves real handlers to the application (or pyphi.enable_logging).
 logging.getLogger("pyphi").addHandler(logging.NullHandler())

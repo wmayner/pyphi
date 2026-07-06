@@ -117,3 +117,66 @@ class TestNestedYAMLWriter:
             data["formalism"]["actual_causation"]["alpha_measure"]
             == config.formalism.actual_causation.alpha_measure
         )
+
+
+class TestImportTimeValidation:
+    """The auto-loaded ``pyphi_config.yml`` gets the same eager constraint
+    check as ``override``/``load_yaml`` (subprocess: import-time behavior)."""
+
+    def _import_pyphi(self, cwd):
+        import subprocess
+        import sys
+
+        return subprocess.run(
+            [sys.executable, "-c", "import pyphi"],
+            capture_output=True,
+            text=True,
+            cwd=cwd,
+            timeout=120,
+            check=False,  # tests assert on returncode explicitly
+        )
+
+    def test_invalid_yaml_combo_fails_at_import(self, tmp_path):
+        (tmp_path / "pyphi_config.yml").write_text(
+            textwrap.dedent("""\
+            ---
+            formalism:
+              iit:
+                version: IIT_4_0_2023
+                mechanism_phi_measure: EMD
+            infrastructure:
+              welcome_off: true
+            """)
+        )
+        result = self._import_pyphi(tmp_path)
+        assert result.returncode != 0
+        assert "ConfigurationError" in result.stderr
+
+    def test_valid_yaml_imports_cleanly(self, tmp_path):
+        (tmp_path / "pyphi_config.yml").write_text(
+            textwrap.dedent("""\
+            ---
+            numerics:
+              precision: 10
+            infrastructure:
+              welcome_off: true
+            """)
+        )
+        result = self._import_pyphi(tmp_path)
+        assert result.returncode == 0, result.stderr
+
+    def test_validate_config_opt_out_respected(self, tmp_path):
+        (tmp_path / "pyphi_config.yml").write_text(
+            textwrap.dedent("""\
+            ---
+            formalism:
+              iit:
+                version: IIT_4_0_2023
+                mechanism_phi_measure: EMD
+            infrastructure:
+              validate_config: false
+              welcome_off: true
+            """)
+        )
+        result = self._import_pyphi(tmp_path)
+        assert result.returncode == 0, result.stderr
