@@ -339,7 +339,14 @@ class NullCESSchema(CESSchema, frozen=True, tag="null_ces"):
 
 
 class SubstrateSchema(msgspec.Struct, frozen=True, tag="substrate"):
-    tpm: bytes
+    """Alphabet-general substrate encoding.
+
+    One conditional factor array per node plus the per-node state space, so
+    substrates with any alphabet sizes round-trip.
+    """
+
+    factors: tuple[bytes, ...]
+    state_space: tuple[tuple[int | str, ...], ...]
     cm: bytes
     node_labels: NodeLabelsSchema | None
 

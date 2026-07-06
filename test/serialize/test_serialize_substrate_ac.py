@@ -73,3 +73,12 @@ def test_complex_round_trips(fmt):
     restored = round_trip(obj, fmt)
     assert restored == obj
     assert type(restored) is Complex
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
+def test_kary_substrate_round_trips(fmt):
+    obj = examples.gomez_p53_mdm2_substrate()  # ternary p53 + binary Mdm2 units
+    restored = round_trip(obj, fmt)
+    assert restored == obj
+    assert list(restored.node_labels) == list(obj.node_labels)
+    assert restored.factored_tpm.state_space == obj.factored_tpm.state_space

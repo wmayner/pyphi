@@ -714,18 +714,30 @@ def _register_ces() -> None:
 
 
 def _register_substrate() -> None:
+    from pyphi.core.tpm.factored import FactoredTPM
     from pyphi.substrate import Substrate
 
     _ENCODERS[Substrate] = lambda s: schema.SubstrateSchema(
-        tpm=arrays.array_to_bytes(np.asarray(s._legacy_binary_joint())),
+        factors=tuple(
+            arrays.array_to_bytes(np.asarray(f)) for f in s.factored_tpm.factors
+        ),
+        state_space=tuple(tuple(labels) for labels in s.factored_tpm.state_space),
         cm=arrays.array_to_bytes(np.asarray(s.cm)),
         node_labels=_enc_optional(s.node_labels),
     )
-    _DECODERS[schema.SubstrateSchema] = lambda s: Substrate(
-        tpm=arrays.bytes_to_array(s.tpm),
-        cm=arrays.bytes_to_array(s.cm),
-        node_labels=_dec_optional(s.node_labels),
-    )
+
+    def _decode_substrate(s: schema.SubstrateSchema) -> Substrate:
+        factored = FactoredTPM(
+            factors=tuple(arrays.bytes_to_array(f) for f in s.factors),
+            state_space=s.state_space,
+        )
+        return Substrate.from_factored(
+            factored,
+            cm=arrays.bytes_to_array(s.cm),
+            node_labels=_dec_optional(s.node_labels),
+        )
+
+    _DECODERS[schema.SubstrateSchema] = _decode_substrate
 
 
 def _register_system() -> None:
