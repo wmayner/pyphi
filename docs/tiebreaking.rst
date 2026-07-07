@@ -1,5 +1,5 @@
 Tie-breaking
-===========
+============
 
 At several points during the IIT analysis, ties may arise when integrated
 information values of objects (partitions, purviews, subsystems) are compared.
