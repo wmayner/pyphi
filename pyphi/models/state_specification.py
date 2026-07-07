@@ -83,10 +83,18 @@ class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
     repertoire: ArrayLike
     unconstrained_repertoire: ArrayLike
     _ties: tuple[StateSpecification, ...] = ()
+    runner_up_state: tuple[int, ...] | None = None
+    runner_up_intrinsic_information: PyPhiFloat | DistanceResult | None = None
 
     def __post_init__(self):
         if not isinstance(self.intrinsic_information, DistanceResult):
             self.intrinsic_information = PyPhiFloat(self.intrinsic_information)
+        if self.runner_up_intrinsic_information is not None and not isinstance(
+            self.runner_up_intrinsic_information, DistanceResult
+        ):
+            self.runner_up_intrinsic_information = PyPhiFloat(
+                self.runner_up_intrinsic_information
+            )
 
     def set_ties(self, ties: Iterable[StateSpecification]) -> None:
         object.__setattr__(self, "_ties", tuple(ties))
@@ -94,6 +102,25 @@ class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
     @property
     def ties(self) -> tuple[StateSpecification, ...]:
         return self._ties
+
+    @property
+    def state_margin(self) -> PyPhiFloat | None:
+        """The intrinsic-information gap between this specified state and the
+        best competing state over the same purview.
+
+        Zero when another state ties exactly; ``None`` when there was no
+        competing state. A margin within ``config.numerics.precision`` of
+        zero means the state selection is effectively tied.
+        """
+        if self.runner_up_intrinsic_information is None:
+            return None
+        return PyPhiFloat(
+            max(
+                0.0,
+                float(self.intrinsic_information)
+                - float(self.runner_up_intrinsic_information),
+            )
+        )
 
     def __getitem__(self, i: int) -> int:
         return self.state[i]
