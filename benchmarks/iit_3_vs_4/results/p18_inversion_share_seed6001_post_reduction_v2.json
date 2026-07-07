@@ -1,0 +1,825 @@
+{
+  "seed": 6001,
+  "core_n": 6,
+  "core_density": 0.35,
+  "background_coupling_scale": 0.3,
+  "temperature": 0.25,
+  "substrate_sizes": [
+    6,
+    8,
+    10,
+    12
+  ],
+  "config": {
+    "preset": "iit4_2023",
+    "parallel": false,
+    "shortcircuit_sia": false
+  },
+  "runs": [
+    {
+      "regime": "full_substrate",
+      "substrate_n": 6,
+      "phi": 0.0005960729074898042,
+      "total_seconds": 18.138608236999993,
+      "inversion_cumtime_seconds": 0.000170542,
+      "inversion_ncalls": 1,
+      "inversion_share": 9.402154662126743e-06,
+      "top_functions": [
+        {
+          "cumtime": 18.154698375000002,
+          "tottime": 2.583e-06,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/system.py:695:sia"
+        },
+        {
+          "cumtime": 18.154695792000002,
+          "tottime": 7.000000000000001e-06,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/cache/disk.py:126:maybe_disk_cached"
+        },
+        {
+          "cumtime": 18.1546865,
+          "tottime": 8.040000000000001e-06,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/system.py:705:_compute"
+        },
+        {
+          "cumtime": 18.154651542,
+          "tottime": 1.3459000000000001e-05,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/queries.py:370:sia"
+        },
+        {
+          "cumtime": 18.154612500000002,
+          "tottime": 4.3792000000000004e-05,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/formalism.py:369:evaluate_system"
+        },
+        {
+          "cumtime": 18.154567458000002,
+          "tottime": 0.016688185,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/__init__.py:744:sia"
+        },
+        {
+          "cumtime": 17.365610542000002,
+          "tottime": 0.000209669,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/__init__.py:1027:_find_mip_for_fixed_state"
+        },
+        {
+          "cumtime": 17.272991583,
+          "tottime": 0.0012886100000000001,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/parallel/__init__.py:155:map_reduce"
+        },
+        {
+          "cumtime": 17.271658391000003,
+          "tottime": 0.004114349000000001,
+          "ncalls": 7897,
+          "function": "/Users/will/projects/pyphi/pyphi/parallel/__init__.py:74:shortcircuit"
+        },
+        {
+          "cumtime": 17.237189891,
+          "tottime": 0.031452376000000004,
+          "ncalls": 7897,
+          "function": "/Users/will/projects/pyphi/pyphi/parallel/__init__.py:96:_map_sequential"
+        },
+        {
+          "cumtime": 16.938716460000002,
+          "tottime": 0.034339938,
+          "ncalls": 7896,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/__init__.py:605:evaluate_partition"
+        },
+        {
+          "cumtime": 9.615643644,
+          "tottime": 0.008199041,
+          "ncalls": 15792,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/__init__.py:552:integration_value"
+        },
+        {
+          "cumtime": 9.604221747,
+          "tottime": 0.027015146,
+          "ncalls": 15792,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/__init__.py:512:_integration_value_for_state"
+        },
+        {
+          "cumtime": 8.631756445,
+          "tottime": 0.08014164400000001,
+          "ncalls": 47384,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:55:wrapper"
+        },
+        {
+          "cumtime": 8.303248503,
+          "tottime": 0.160964141,
+          "ncalls": 47384,
+          "function": "/Users/will/projects/pyphi/pyphi/cache/content.py:76:get_or_compute"
+        },
+        {
+          "cumtime": 8.183796644000001,
+          "tottime": 0.042643953000000005,
+          "ncalls": 39611,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:207:effect_repertoire"
+        },
+        {
+          "cumtime": 8.155055487,
+          "tottime": 0.0067608930000000005,
+          "ncalls": 15796,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:387:forward_repertoire"
+        },
+        {
+          "cumtime": 8.031320144,
+          "tottime": 0.013566463,
+          "ncalls": 15792,
+          "function": "/Users/will/projects/pyphi/pyphi/system.py:553:forward_repertoire"
+        },
+        {
+          "cumtime": 7.651870123,
+          "tottime": 0.049525091,
+          "ncalls": 15797,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:59:<lambda>"
+        },
+        {
+          "cumtime": 7.331890268,
+          "tottime": 0.053398076,
+          "ncalls": 15920,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:171:_effect_repertoire_inner"
+        },
+        {
+          "cumtime": 5.025491004,
+          "tottime": 0.013896745,
+          "ncalls": 15856,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:468:forward_cause_probability"
+        },
+        {
+          "cumtime": 4.925614285,
+          "tottime": 0.022526263,
+          "ncalls": 7897,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:341:forward_cause_repertoire"
+        },
+        {
+          "cumtime": 4.767793060000001,
+          "tottime": 0.259760728,
+          "ncalls": 95520,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:113:_single_node_effect_repertoire"
+        },
+        {
+          "cumtime": 4.603215883000001,
+          "tottime": 0.041039211000000006,
+          "ncalls": 31588,
+          "function": "/Users/will/.local/share/uv/python/cpython-3.13.13-macos-aarch64-none/lib/python3.13/functools.py:1009:__get__"
+        },
+        {
+          "cumtime": 4.23556211,
+          "tottime": 0.029407459,
+          "ncalls": 7897,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/__init__.py:184:__post_init__"
+        }
+      ]
+    },
+    {
+      "regime": "embedded",
+      "substrate_n": 6,
+      "phi": 0.0005960729074898042,
+      "total_seconds": 18.40542195300003,
+      "inversion_cumtime_seconds": 0.000191,
+      "inversion_ncalls": 1,
+      "inversion_share": 1.0377376866867622e-05,
+      "top_functions": [
+        {
+          "cumtime": 18.422044292000002,
+          "tottime": 2.583e-06,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/system.py:695:sia"
+        },
+        {
+          "cumtime": 18.422041709000002,
+          "tottime": 3.6670000000000002e-06,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/cache/disk.py:126:maybe_disk_cached"
+        },
+        {
+          "cumtime": 18.422035917000002,
+          "tottime": 9.875000000000001e-06,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/system.py:705:_compute"
+        },
+        {
+          "cumtime": 18.421999166000003,
+          "tottime": 1.3915000000000001e-05,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/queries.py:370:sia"
+        },
+        {
+          "cumtime": 18.421958959,
+          "tottime": 4.8042000000000005e-05,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/formalism.py:369:evaluate_system"
+        },
+        {
+          "cumtime": 18.421909542,
+          "tottime": 0.008140386000000001,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/__init__.py:744:sia"
+        },
+        {
+          "cumtime": 17.865602209000002,
+          "tottime": 0.000211251,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/__init__.py:1027:_find_mip_for_fixed_state"
+        },
+        {
+          "cumtime": 17.774672542,
+          "tottime": 0.001338278,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/parallel/__init__.py:155:map_reduce"
+        },
+        {
+          "cumtime": 17.773214473,
+          "tottime": 0.004272129,
+          "ncalls": 7897,
+          "function": "/Users/will/projects/pyphi/pyphi/parallel/__init__.py:74:shortcircuit"
+        },
+        {
+          "cumtime": 17.737316296,
+          "tottime": 0.033694279,
+          "ncalls": 7897,
+          "function": "/Users/will/projects/pyphi/pyphi/parallel/__init__.py:96:_map_sequential"
+        },
+        {
+          "cumtime": 17.431997034000002,
+          "tottime": 0.036465188,
+          "ncalls": 7896,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/__init__.py:605:evaluate_partition"
+        },
+        {
+          "cumtime": 9.837068909000001,
+          "tottime": 0.008667422000000001,
+          "ncalls": 15792,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/__init__.py:552:integration_value"
+        },
+        {
+          "cumtime": 9.825099893,
+          "tottime": 0.030725864000000002,
+          "ncalls": 15792,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/__init__.py:512:_integration_value_for_state"
+        },
+        {
+          "cumtime": 8.528665526000001,
+          "tottime": 0.08147889900000001,
+          "ncalls": 47384,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:55:wrapper"
+        },
+        {
+          "cumtime": 8.207027165000001,
+          "tottime": 0.014148550000000001,
+          "ncalls": 15792,
+          "function": "/Users/will/projects/pyphi/pyphi/system.py:553:forward_repertoire"
+        },
+        {
+          "cumtime": 8.184688309,
+          "tottime": 0.16088506,
+          "ncalls": 47384,
+          "function": "/Users/will/projects/pyphi/pyphi/cache/content.py:76:get_or_compute"
+        },
+        {
+          "cumtime": 8.183200678,
+          "tottime": 0.00704047,
+          "ncalls": 15796,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:387:forward_repertoire"
+        },
+        {
+          "cumtime": 8.063513011000001,
+          "tottime": 0.043486038000000005,
+          "ncalls": 39483,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:207:effect_repertoire"
+        },
+        {
+          "cumtime": 7.516101296,
+          "tottime": 0.050477854,
+          "ncalls": 15792,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:59:<lambda>"
+        },
+        {
+          "cumtime": 7.231652799000001,
+          "tottime": 0.05500655,
+          "ncalls": 15792,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:171:_effect_repertoire_inner"
+        },
+        {
+          "cumtime": 4.9940379340000005,
+          "tottime": 0.014622363000000001,
+          "ncalls": 15792,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:468:forward_cause_probability"
+        },
+        {
+          "cumtime": 4.890408883,
+          "tottime": 0.02329113,
+          "ncalls": 7896,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:341:forward_cause_repertoire"
+        },
+        {
+          "cumtime": 4.830003995,
+          "tottime": 0.267980841,
+          "ncalls": 94752,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:113:_single_node_effect_repertoire"
+        },
+        {
+          "cumtime": 4.7079000980000005,
+          "tottime": 0.042830959,
+          "ncalls": 31589,
+          "function": "/Users/will/.local/share/uv/python/cpython-3.13.13-macos-aarch64-none/lib/python3.13/functools.py:1009:__get__"
+        },
+        {
+          "cumtime": 4.4091552510000005,
+          "tottime": 0.030514556,
+          "ncalls": 7897,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/__init__.py:184:__post_init__"
+        }
+      ]
+    },
+    {
+      "regime": "embedded",
+      "substrate_n": 8,
+      "phi": 0.0005057066863532108,
+      "total_seconds": 20.373740557000005,
+      "inversion_cumtime_seconds": 0.00022616700000000002,
+      "inversion_ncalls": 1,
+      "inversion_share": 1.110090704096522e-05,
+      "top_functions": [
+        {
+          "cumtime": 20.390765459,
+          "tottime": 2.584e-06,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/system.py:695:sia"
+        },
+        {
+          "cumtime": 20.390762875,
+          "tottime": 3.9590000000000006e-06,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/cache/disk.py:126:maybe_disk_cached"
+        },
+        {
+          "cumtime": 20.390756208000003,
+          "tottime": 9.917e-06,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/system.py:705:_compute"
+        },
+        {
+          "cumtime": 20.390723375,
+          "tottime": 1.8167e-05,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/queries.py:370:sia"
+        },
+        {
+          "cumtime": 20.390673875,
+          "tottime": 4.8042000000000005e-05,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/formalism.py:369:evaluate_system"
+        },
+        {
+          "cumtime": 20.390624333,
+          "tottime": 0.012910563000000002,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/__init__.py:744:sia"
+        },
+        {
+          "cumtime": 19.633761875,
+          "tottime": 0.00025441600000000004,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/__init__.py:1027:_find_mip_for_fixed_state"
+        },
+        {
+          "cumtime": 19.542441417000003,
+          "tottime": 0.0014274840000000001,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/parallel/__init__.py:155:map_reduce"
+        },
+        {
+          "cumtime": 19.540970851,
+          "tottime": 0.00445221,
+          "ncalls": 7897,
+          "function": "/Users/will/projects/pyphi/pyphi/parallel/__init__.py:74:shortcircuit"
+        },
+        {
+          "cumtime": 19.504116346,
+          "tottime": 0.034975964000000005,
+          "ncalls": 7897,
+          "function": "/Users/will/projects/pyphi/pyphi/parallel/__init__.py:96:_map_sequential"
+        },
+        {
+          "cumtime": 19.040060325000002,
+          "tottime": 0.037727606000000004,
+          "ncalls": 7896,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/__init__.py:605:evaluate_partition"
+        },
+        {
+          "cumtime": 10.114343834000001,
+          "tottime": 0.009003857,
+          "ncalls": 15792,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/__init__.py:552:integration_value"
+        },
+        {
+          "cumtime": 10.102095183000001,
+          "tottime": 0.030047200000000003,
+          "ncalls": 15792,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/__init__.py:512:_integration_value_for_state"
+        },
+        {
+          "cumtime": 9.062065908000001,
+          "tottime": 0.08292028800000001,
+          "ncalls": 47384,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:55:wrapper"
+        },
+        {
+          "cumtime": 8.714896407000001,
+          "tottime": 0.168169904,
+          "ncalls": 47384,
+          "function": "/Users/will/projects/pyphi/pyphi/cache/content.py:76:get_or_compute"
+        },
+        {
+          "cumtime": 8.588745292,
+          "tottime": 0.045227706,
+          "ncalls": 39611,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:207:effect_repertoire"
+        },
+        {
+          "cumtime": 8.576912232,
+          "tottime": 0.007204863000000001,
+          "ncalls": 15796,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:387:forward_repertoire"
+        },
+        {
+          "cumtime": 8.460159744,
+          "tottime": 0.014372047,
+          "ncalls": 15792,
+          "function": "/Users/will/projects/pyphi/pyphi/system.py:553:forward_repertoire"
+        },
+        {
+          "cumtime": 8.049327912,
+          "tottime": 0.053043812,
+          "ncalls": 15797,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:59:<lambda>"
+        },
+        {
+          "cumtime": 7.717373702000001,
+          "tottime": 0.056211028,
+          "ncalls": 15920,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:171:_effect_repertoire_inner"
+        },
+        {
+          "cumtime": 5.938727278,
+          "tottime": 0.047391931000000005,
+          "ncalls": 31588,
+          "function": "/Users/will/.local/share/uv/python/cpython-3.13.13-macos-aarch64-none/lib/python3.13/functools.py:1009:__get__"
+        },
+        {
+          "cumtime": 5.334747341,
+          "tottime": 0.015270899000000001,
+          "ncalls": 15856,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:468:forward_cause_probability"
+        },
+        {
+          "cumtime": 5.234615424,
+          "tottime": 0.024446211000000002,
+          "ncalls": 7897,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:341:forward_cause_repertoire"
+        },
+        {
+          "cumtime": 5.052884143,
+          "tottime": 0.27248645400000004,
+          "ncalls": 95520,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:113:_single_node_effect_repertoire"
+        },
+        {
+          "cumtime": 4.515244477,
+          "tottime": 0.030895443,
+          "ncalls": 7897,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/__init__.py:184:__post_init__"
+        }
+      ]
+    },
+    {
+      "regime": "embedded",
+      "substrate_n": 10,
+      "phi": 0.00016882213279106108,
+      "total_seconds": 21.932788725999984,
+      "inversion_cumtime_seconds": 0.000323417,
+      "inversion_ncalls": 1,
+      "inversion_share": 1.4745822067606426e-05,
+      "top_functions": [
+        {
+          "cumtime": 21.949997292000003,
+          "tottime": 5.5420000000000005e-06,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/system.py:695:sia"
+        },
+        {
+          "cumtime": 21.949991750000002,
+          "tottime": 3.2332e-05,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/cache/disk.py:126:maybe_disk_cached"
+        },
+        {
+          "cumtime": 21.949956334000003,
+          "tottime": 3.3877e-05,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/system.py:705:_compute"
+        },
+        {
+          "cumtime": 21.949893958,
+          "tottime": 5.6041e-05,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/queries.py:370:sia"
+        },
+        {
+          "cumtime": 21.949743542,
+          "tottime": 0.000172584,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/formalism.py:369:evaluate_system"
+        },
+        {
+          "cumtime": 21.949569583000002,
+          "tottime": 0.01862754,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/__init__.py:744:sia"
+        },
+        {
+          "cumtime": 21.188654708,
+          "tottime": 0.00034958300000000004,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/__init__.py:1027:_find_mip_for_fixed_state"
+        },
+        {
+          "cumtime": 21.077629667,
+          "tottime": 0.001449965,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/parallel/__init__.py:155:map_reduce"
+        },
+        {
+          "cumtime": 21.074520992,
+          "tottime": 0.0044376780000000005,
+          "ncalls": 7897,
+          "function": "/Users/will/projects/pyphi/pyphi/parallel/__init__.py:74:shortcircuit"
+        },
+        {
+          "cumtime": 21.037417326,
+          "tottime": 0.035972817000000004,
+          "ncalls": 7897,
+          "function": "/Users/will/projects/pyphi/pyphi/parallel/__init__.py:96:_map_sequential"
+        },
+        {
+          "cumtime": 20.568523747,
+          "tottime": 0.037835639000000004,
+          "ncalls": 7896,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/__init__.py:605:evaluate_partition"
+        },
+        {
+          "cumtime": 10.341962816,
+          "tottime": 0.009966694,
+          "ncalls": 15792,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/__init__.py:552:integration_value"
+        },
+        {
+          "cumtime": 10.328583063,
+          "tottime": 0.029813053000000003,
+          "ncalls": 15792,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/__init__.py:512:_integration_value_for_state"
+        },
+        {
+          "cumtime": 9.276405824000001,
+          "tottime": 0.082411237,
+          "ncalls": 47384,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:55:wrapper"
+        },
+        {
+          "cumtime": 8.928776683,
+          "tottime": 0.170562123,
+          "ncalls": 47384,
+          "function": "/Users/will/projects/pyphi/pyphi/cache/content.py:76:get_or_compute"
+        },
+        {
+          "cumtime": 8.797363257,
+          "tottime": 0.045996225,
+          "ncalls": 39611,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:207:effect_repertoire"
+        },
+        {
+          "cumtime": 8.789707522,
+          "tottime": 0.0072145230000000005,
+          "ncalls": 15796,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:387:forward_repertoire"
+        },
+        {
+          "cumtime": 8.673104383,
+          "tottime": 0.014332819,
+          "ncalls": 15792,
+          "function": "/Users/will/projects/pyphi/pyphi/system.py:553:forward_repertoire"
+        },
+        {
+          "cumtime": 8.256850331,
+          "tottime": 0.053271765000000006,
+          "ncalls": 15797,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:59:<lambda>"
+        },
+        {
+          "cumtime": 7.917698026,
+          "tottime": 0.056475744,
+          "ncalls": 15920,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:171:_effect_repertoire_inner"
+        },
+        {
+          "cumtime": 7.182986589,
+          "tottime": 0.046644660000000004,
+          "ncalls": 31588,
+          "function": "/Users/will/.local/share/uv/python/cpython-3.13.13-macos-aarch64-none/lib/python3.13/functools.py:1009:__get__"
+        },
+        {
+          "cumtime": 5.598796910000001,
+          "tottime": 0.016200678,
+          "ncalls": 7896,
+          "function": "/Users/will/projects/pyphi/pyphi/system.py:256:apply_cut"
+        },
+        {
+          "cumtime": 5.582660649,
+          "tottime": 0.006854312,
+          "ncalls": 7897,
+          "function": "/Users/will/.local/share/uv/python/cpython-3.13.13-macos-aarch64-none/lib/python3.13/dataclasses.py:1580:replace"
+        },
+        {
+          "cumtime": 5.571668559,
+          "tottime": 0.017927473000000003,
+          "ncalls": 7897,
+          "function": "/Users/will/.local/share/uv/python/cpython-3.13.13-macos-aarch64-none/lib/python3.13/dataclasses.py:1599:_replace"
+        },
+        {
+          "cumtime": 5.540343315,
+          "tottime": 0.054185196000000005,
+          "ncalls": 7896,
+          "function": "/Users/will/projects/pyphi/pyphi/system.py:65:__post_init__"
+        }
+      ]
+    },
+    {
+      "regime": "embedded",
+      "substrate_n": 12,
+      "phi": 0.0008516037493356461,
+      "total_seconds": 24.190853181000016,
+      "inversion_cumtime_seconds": 0.000553333,
+      "inversion_ncalls": 1,
+      "inversion_share": 2.2873645499803988e-05,
+      "top_functions": [
+        {
+          "cumtime": 24.208058792000003,
+          "tottime": 6.042000000000001e-06,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/system.py:695:sia"
+        },
+        {
+          "cumtime": 24.20805275,
+          "tottime": 5.625e-06,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/cache/disk.py:126:maybe_disk_cached"
+        },
+        {
+          "cumtime": 24.208044375,
+          "tottime": 1.6127e-05,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/system.py:705:_compute"
+        },
+        {
+          "cumtime": 24.208002292,
+          "tottime": 1.8251000000000002e-05,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/queries.py:370:sia"
+        },
+        {
+          "cumtime": 24.207963333000002,
+          "tottime": 5.5292000000000005e-05,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/formalism.py:369:evaluate_system"
+        },
+        {
+          "cumtime": 24.207905833,
+          "tottime": 0.013721919,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/__init__.py:744:sia"
+        },
+        {
+          "cumtime": 23.446996000000002,
+          "tottime": 0.000212625,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/__init__.py:1027:_find_mip_for_fixed_state"
+        },
+        {
+          "cumtime": 23.265606000000002,
+          "tottime": 0.0014244960000000001,
+          "ncalls": 1,
+          "function": "/Users/will/projects/pyphi/pyphi/parallel/__init__.py:155:map_reduce"
+        },
+        {
+          "cumtime": 23.26396317,
+          "tottime": 0.004492341,
+          "ncalls": 7897,
+          "function": "/Users/will/projects/pyphi/pyphi/parallel/__init__.py:74:shortcircuit"
+        },
+        {
+          "cumtime": 23.226301845000002,
+          "tottime": 0.037233782,
+          "ncalls": 7897,
+          "function": "/Users/will/projects/pyphi/pyphi/parallel/__init__.py:96:_map_sequential"
+        },
+        {
+          "cumtime": 22.751516301000002,
+          "tottime": 0.038737468000000004,
+          "ncalls": 7896,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/__init__.py:605:evaluate_partition"
+        },
+        {
+          "cumtime": 10.727988871,
+          "tottime": 0.009004117,
+          "ncalls": 15792,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/__init__.py:552:integration_value"
+        },
+        {
+          "cumtime": 10.715536351,
+          "tottime": 0.030511734000000002,
+          "ncalls": 15792,
+          "function": "/Users/will/projects/pyphi/pyphi/formalism/iit4/__init__.py:512:_integration_value_for_state"
+        },
+        {
+          "cumtime": 9.660953213,
+          "tottime": 0.083987028,
+          "ncalls": 47384,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:55:wrapper"
+        },
+        {
+          "cumtime": 9.302459512,
+          "tottime": 0.169401287,
+          "ncalls": 47384,
+          "function": "/Users/will/projects/pyphi/pyphi/cache/content.py:76:get_or_compute"
+        },
+        {
+          "cumtime": 9.170525645000001,
+          "tottime": 0.007394379,
+          "ncalls": 15796,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:387:forward_repertoire"
+        },
+        {
+          "cumtime": 9.165334306,
+          "tottime": 0.046464536,
+          "ncalls": 39611,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:207:effect_repertoire"
+        },
+        {
+          "cumtime": 9.053660200000001,
+          "tottime": 0.014639942000000001,
+          "ncalls": 15792,
+          "function": "/Users/will/projects/pyphi/pyphi/system.py:553:forward_repertoire"
+        },
+        {
+          "cumtime": 8.954473616000001,
+          "tottime": 0.049925357000000004,
+          "ncalls": 31588,
+          "function": "/Users/will/.local/share/uv/python/cpython-3.13.13-macos-aarch64-none/lib/python3.13/functools.py:1009:__get__"
+        },
+        {
+          "cumtime": 8.623494258000001,
+          "tottime": 0.054895659000000006,
+          "ncalls": 15797,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:59:<lambda>"
+        },
+        {
+          "cumtime": 8.278405976,
+          "tottime": 0.057259049000000006,
+          "ncalls": 15920,
+          "function": "/Users/will/projects/pyphi/pyphi/core/repertoire_algebra.py:171:_effect_repertoire_inner"
+        },
+        {
+          "cumtime": 7.405693753,
+          "tottime": 0.016418972,
+          "ncalls": 7896,
+          "function": "/Users/will/projects/pyphi/pyphi/system.py:256:apply_cut"
+        },
+        {
+          "cumtime": 7.389291322,
+          "tottime": 0.0067955030000000005,
+          "ncalls": 7897,
+          "function": "/Users/will/.local/share/uv/python/cpython-3.13.13-macos-aarch64-none/lib/python3.13/dataclasses.py:1580:replace"
+        },
+        {
+          "cumtime": 7.378272117000001,
+          "tottime": 0.017969997,
+          "ncalls": 7897,
+          "function": "/Users/will/.local/share/uv/python/cpython-3.13.13-macos-aarch64-none/lib/python3.13/dataclasses.py:1599:_replace"
+        },
+        {
+          "cumtime": 7.345156129,
+          "tottime": 0.056581453000000004,
+          "ncalls": 7896,
+          "function": "/Users/will/projects/pyphi/pyphi/system.py:65:__post_init__"
+        }
+      ]
+    }
+  ]
+}

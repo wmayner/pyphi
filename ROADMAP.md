@@ -48,7 +48,7 @@ P0 · P1 · P2 · P3 · P4 · P5 · P6 · **P6a** (free-threaded 3.14t CI lane +
 | B17 drop dead deps | ✅ landed | 5 | Removed the declared-but-unused `tblib`; deleted the unused `OrderedSet`/`HashableOrderedSet` types (a sorted tuple is the better unit representation) and dropped `ordered-set`; migrated `toolz` to stdlib `itertools.chain.from_iterable`, `more_itertools.unique_everseen`, and `functools.partial`. Landed with the import-surface cleanup; spec/plan `docs/superpowers/{specs,plans}/2026-06-24-import-surface-cleanup*` |
 | EMD backend → POT | ✅ landed | 5 | Swapped deprecated `pyemd` for POT (`ot.emd2`) behind `OptionalEMD`; `pyphi[emd]` extra now installs `pot`. Backends agree to machine epsilon (binary + k-ary, 3600 cases); the IIT 3.0 CES-distance EMD was reformulated to proper non-negative OT (the negative-null-mass / signed-φ case), which **reproduces the existing goldens exactly** — no regen needed. |
 | P17 | 🟡 partial | 6 | Cross-formalism perf characterization (post-freeze, internal-only). Wave A (local) complete: 2026-cap cost closed (cap is free); the IIT 4.0 speedup characterized + the earlier "19–43×" corrected as a scope artifact (real gain ~18–20× per SIA partition, ~2× CES); hot-path config sweep clean (no behavior mismatch; both pre-2.0 config bugs — `PARALLEL=False` still spawning, IIT 3.0 + GID raw crash — confirmed fixed); seeded 6–7 node Ising generator + n=6 sizing (full-search ~24 s/trial profiled; partition count grows ~7.8×/node, so n=7 ≈ minutes). Wave C (optimization) closed — no bounded win, the ~18× gain is already realized by the `core/repertoire_algebra.py` rewrite (the remaining lever is the larger N5 Rust-kernel item). Remaining: Wave B 6–7 node matrix, server-gated (blocked on lab SSH). `benchmarks/iit_3_vs_4/README.md` |
-| P18 (+B6) | ✖️ negative result (full-substrate regime) | 6 | Confirmation experiment (seed 6001): in a full-substrate SIA the `aⁿ` cause-inversion is ~6% of wall time and the partition search dominates — no junction-tree inference built for 2.0. Regime-limited: the inversion is recomputed per partition over full-substrate dims, so at fixed system size its share **grows** with substrate size (6-node system: 6%→17% for substrate 6→12; parity extrapolated near ~16) — B6 stays a live post-2.0 candidate for small systems in large substrates. `benchmarks/iit_3_vs_4/p18_inversion_share.py` |
+| P18 (+B6) | ✅ landed (cause side, 2026-07-06) | 6 | The regime-limited constraint identified by the P18 confirmation is resolved: `System.apply_cut` shares/materializes the partition-independent marginals (one inversion per SIA instead of one per partition — 7,897→1 measured), and `_cause_marginal_factored` is now a greedy sum-product contraction over the factored TPM's dependence structure (no `aᴺ` joint; 40-unit substrates tractable; ceiling = numpy's 64-dim limit). Goldens byte-identical; dense implementation retained as test oracle (`test/core/inversion_oracle.py`) with Hypothesis + independent large-N references. Post-fix shares ~0% in all measured regimes (`results/p18_inversion_share_seed6001_post_reduction_v2.json`). Effect-side junction-tree generalization stays research (B6 residue). Spec/plan `docs/superpowers/{specs,plans}/2026-07-06-reduced-cause-inversion*` |
 | Documentation overhaul (2.0 / IIT 4.0) | ⬜ open | 6 | Comprehensive docs as a first-class project, not a Sphinx rebuild: web-docs tooling overhaul, non-docstring narrative content brought current for 2.0 **and IIT 4.0** (the 4.0 narrative was never written), example notebooks as a curated teaching set, the migration guide, and a final-state docstring sweep. Subsumes the scattered P15 docs bullets + ship-criterion #5. Warrants its own brainstorm; the comprehensive web/notebook work depends on the frozen surface, but the docstring narrative-removal slice can proceed now. See [Documentation overhaul](#documentation-overhaul-20--iit-40). |
 | N4 disk-backed result cache | ✅ landed | 6 | Opt-in disk cache (`disk_cache_results`, default off) persisting `System.sia()`/`ces()` under `__pyphi_cache__/results/`, keyed on the P9.5 `_fingerprint` + result-affecting config + result kind + a code-version stamp (git sha, else version); a dirty git tree disables it. A hit equals recomputation. `pyphi/cache/disk.py`. |
 | B12 `pyphi.sweep` | ✅ landed | 6 | Cartesian batch driver `pyphi.sweep(substrate, states=, subsets=, formalisms=, compute=)` → `SweepResult` (tidy DataFrame indexed by the varying axes + raw results aligned 1:1; per-row `ConfigSnapshot`; uncomputable unreachable states under an `"all"` axis recorded in `.skipped`). `compute` is `sia` / `ces` / callable. Outer-loop parallelism across cells (per-formalism batched, inner sequential) via `map_reduce` when parallel. `pyphi/sweep.py`. |
@@ -147,7 +147,7 @@ and dropped `ordered-set`; migrated `toolz` to `itertools.chain.from_iterable`,
 ### Wave 6 — Post-freeze internal optimization *(internal-only; do not reopen the frozen surface)*
 
 - **P17 — perf characterization (Wave A complete; Wave B server-gated; Wave C closed).** Extend the cross-temporal benchmark beyond 5 nodes, find the interactive/batch size thresholds, characterize the mechanism behind the IIT 4.0 speedup, and exercise the 2026 ii-cap with non-zero φ. **Correction (2026-06-26):** the earlier "19–43× IIT 4.0 speedup" was a measurement artifact — it compared pre-refactor `phi_structure` (full structure) against post-refactor `sia` (system-φ only). The de-confounded, like-for-like result is a **~18–20× faster SIA partition evaluation and ~2× faster CES**, driven by the `core/repertoire_algebra.py` kernel rewrite; the cap variant is computationally free. The hot-path config-behavior sweep (`config_sweep.py`) found no documented-versus-actual mismatch and confirmed both pre-2.0 config bugs are fixed (`PARALLEL=False` now truly disables subprocesses via the `parallel_kwargs` global gate; incompatible version/measure combinations raise a clean `ConfigurationError` instead of a raw crash). A seeded 6–7 node Ising generator (`harness._synth_system`, ferromagnetic coupling so the all-off state integrates and the SIA runs the full search rather than short-circuiting) plus committed fixtures land the Part 3 construction; n=6 sizing is ~24 s/trial profiled and the partition count grows ~7.8×/node, so n=7 is batch-only and deferred to the lab server. Wave C (one targeted optimization) is closed with a negative result — no bounded ~1-week win, since the ~18× gain is already realized by the repertoire-algebra rewrite (the remaining lever is the larger N5 Rust-kernel item). Remaining: the Wave B 6–7 node server matrix (blocked on lab SSH). `benchmarks/iit_3_vs_4/README.md`.
-- **P18 (+B6) — sparse / treewidth-dispatched exact inference — negative result for 2.0; regime-limited (measured 2026-07-06).** Task 1 (confirm the bottleneck binds) ran on the seeded 6-node sparse ferromagnetic Ising fixture (density 0.35, seed 6001): a **full-substrate** IIT 4.0 SIA spends ~94% of wall time in the partition search (`evaluate_partition` over the full `DIRECTED_SET_PARTITION` set) and ~6% in `_cause_marginal_factored`. The inversion is **recomputed for every partition of the cut system** (7,897 calls for 7,896 partitions) and builds `pr_joint` over the **full substrate** dimensions, which splits the conclusion by regime. (1) *Full-substrate systems* (system = substrate): growing the system multiplies the partition count ~7.8×/node while the joint grows only `aⁿ` (2×/node binary), so the inversion share shrinks as the analysis grows — the bottleneck does not bind, and no junction-tree inference was built for 2.0. (2) *Fixed system in a growing substrate* (the standard workflow): the search size is constant while each per-partition inversion grows `aᴺ` with substrate size `N`; measured shares for a 6-node system are 6.2% (`N=6`) → 8.2% (`N=8`) → 10.3% (`N=10`) → 17.1% (`N=12`), extrapolating to parity with the search near `N≈16`. **B6 (junction-tree / reduced-dimension repertoire marginals) therefore stays a live post-2.0 candidate for small systems embedded in large substrates**; it stays out of 2.0 because substrates ≤12 nodes keep the share under ~20% and the rewrite touches a correctness-critical hot path. Runner + raw profiles: `benchmarks/iit_3_vs_4/p18_inversion_share.py`, `results/p18_inversion_share_seed6001.json`. **Correction (2026-07-06):** an earlier version of this note described the run as `n=7` on `synth_n7_sparse` with a share that "shrinks toward zero as `n` grows"; that fixture was not strongly connected (its SIA short-circuits with `NO_STRONG_CONNECTIVITY` and never enters the partition search — the generator now redraws seeds until strongly connected), and the shrinking-share argument holds only in the full-substrate regime. *(This was the sole "P18"; the cluster-backend deferral that once shared the label is folded into Wave 4 / P11.)*
+- **P18 (+B6) — sparse / treewidth-dispatched exact inference — negative result for 2.0; regime-limited (measured 2026-07-06).** Task 1 (confirm the bottleneck binds) ran on the seeded 6-node sparse ferromagnetic Ising fixture (density 0.35, seed 6001): a **full-substrate** IIT 4.0 SIA spends ~94% of wall time in the partition search (`evaluate_partition` over the full `DIRECTED_SET_PARTITION` set) and ~6% in `_cause_marginal_factored`. The inversion is **recomputed for every partition of the cut system** (7,897 calls for 7,896 partitions) and builds `pr_joint` over the **full substrate** dimensions, which splits the conclusion by regime. (1) *Full-substrate systems* (system = substrate): growing the system multiplies the partition count ~7.8×/node while the joint grows only `aⁿ` (2×/node binary), so the inversion share shrinks as the analysis grows — the bottleneck does not bind, and no junction-tree inference was built for 2.0. (2) *Fixed system in a growing substrate* (the standard workflow): the search size is constant while each per-partition inversion grows `aᴺ` with substrate size `N`; measured shares for a 6-node system are 6.2% (`N=6`) → 8.2% (`N=8`) → 10.3% (`N=10`) → 17.1% (`N=12`), extrapolating to parity with the search near `N≈16`. **Resolution (2026-07-06): the cause side landed** — `apply_cut` shares/materializes the partition-independent marginals (one inversion per SIA) and `_cause_marginal_factored` is a greedy sum-product contraction over the factored dependence structure (no `aᴺ` joint; post-fix shares ~0% in every measured regime). See the dashboard row and `docs/superpowers/specs/2026-07-06-reduced-cause-inversion-design.md`. Runner + raw profiles: `benchmarks/iit_3_vs_4/p18_inversion_share.py`, `results/p18_inversion_share_seed6001.json` (pre-fix), `results/p18_inversion_share_seed6001_post_reduction_v2.json` (post-fix). **Correction (2026-07-06):** an earlier version of this note described the run as `n=7` on `synth_n7_sparse` with a share that "shrinks toward zero as `n` grows"; that fixture was not strongly connected (its SIA short-circuits with `NO_STRONG_CONNECTIVITY` and never enters the partition search — the generator now redraws seeds until strongly connected), and the shrinking-share argument holds only in the full-substrate regime. *(This was the sole "P18"; the cluster-backend deferral that once shared the label is folded into Wave 4 / P11.)*
 
 ### Documentation overhaul (2.0 / IIT 4.0)
 
@@ -235,7 +235,8 @@ making implicit theory objects named, checkable runtime types (B7/B8/B16).
 - **B3** — Cut-decomposed repertoire reuse. *`research`.* Re-key the kernel cache on `(substrate, base_state, severed-edges-touching-purview, mechanism, purview)` so a repertoire unchanged by a cut is computed once per SIA, not once per partition. Orthogonal to P9.5/N4 (surfaced in 3 lenses).
 - **B4** — 2026 ii(s)-cap oracle + cap-biting generator. *`2.0`.* From-scratch differential reimplementation of `min(φ_uncapped, i_diff, i_spec)` + a search constructing the small TPM where the cap strictly binds with non-zero φ (golden asserts 2026 < 2023). Closes the cap's un-falsifiable blind spot; yields P17/N1's cap-biting network.
 - **B5** — Cross-formalism / pre-refactor differential testing. *`2.0`.* Paired tests asserting cross-formalism invariants (`2026 ≤ 2023`; 3.0/4.0 agree on reducibility) + a byte-match against the `b3aaa3e5` pre-refactor oracle; elevates the cross-temporal benchmark from perf to a correctness gate.
-- **B6** — Junction-tree / treewidth-dispatched exact inference. *`research`.* Compile per-node factors into a junction tree; compute repertoire marginals in `O(2^treewidth)` via belief propagation, covering effect repertoires + unconstrained-forward averages. Generalizes P18 (cause-inversion only). **Scoped by the P18 confirmation (2026-07-06):** for full-substrate systems the partition search dominates and is treewidth-independent, so junction-tree marginals do not move the binding constraint there — nothing built for 2.0. For a fixed small system embedded in a growing substrate the per-partition cause-inversion share grows with substrate size (measured 6%→17% for a 6-node system as the substrate grows 6→12, parity extrapolated near ~16 nodes), so B6 remains a live post-2.0 candidate for that regime; it needs the reduced-dimension factor representation, not just the inference.
+- **B6** — Junction-tree / treewidth-dispatched exact inference. *`research`; cause side landed 2026-07-06.* The cause-inversion half is done: `_cause_marginal_factored` evaluates IIT 4.0 Eq. 4 as a greedy sum-product contraction (variable elimination) over the factored TPM's dependence structure, restricted to system-unit outputs, with `apply_cut` sharing the partition-independent result across the partition search (see the P18 dashboard row). What remains research is the *general* junction-tree machinery: belief-propagation marginals covering effect repertoires + unconstrained-forward averages, and reuse of a compiled tree across queries. Note the standing ceiling: `FactoredTPM` factors carry all N input axes, so substrates cap at 63 units (numpy's 64-dim limit) — see the reduced-dimension factor storage item below.
+- **Reduced-dimension factor storage (lifts the 64-dimension ceiling).** *`research`.* `FactoredTPM` stores every factor with all N input axes (size 1 for non-parents), so substrates are capped at 63 units by numpy's 64-dimension array limit. Lifting the cap means storing each factor over its parent axes only plus an axis map, and threading that convention through `FactoredTPM` (validation, `condition()`, `infer_cm`, serialization), node TPM generation, and the repertoire algebra — the largest remaining representation refactor. The cause inversion is already structured for it: `_sum_product` in `pyphi/core/tpm/marginalization.py` is the single seam whose internals would change (pairwise contraction with explicit axis maps, where `einsum` becomes usable again — its 52-label cap is per-call), and the inversion's validation apparatus (dense oracle, Hypothesis cross-validation, disconnected-block and transfer-matrix references in `test/core/`) is the acceptance harness. Independent prerequisites for very large substrates regardless of storage: log-space likelihoods (float64 underflow near several hundred units) and subset-enumeration costs.
 - **B7** — Unified `PartitionAlgebra` (directed edge-set `Cut`). *`2.0`.* Canonicalize every scheme's output as a directed bipartite edge-set with total `removed_edges()` / `num_connections_cut()`; kills the `except AttributeError: return None` φ-normalization fragility. Realizes the "unified partitioning" debt; highest refactor surface (pre-freeze).
 - **B8** — `result.explain()`. *Landed (2026-06-16); see the dashboard row + archive.* Typed `Explanation` tree of findings (which short-circuit fired; for φ>0 the winning/runner-up partition, the φ-gap, the binding min direction, the driving mechanism/purview) on every top-level result.
 - **B9** — High-precision (mpmath/Fraction) cancellation oracle + condition-number guard. *`2.x`.* Sidecar exact recompute of `information_density`/GID/`intrinsic_information` + a `condition_number(p,q)` estimator + a Hypothesis battery on `p≈q` / 0–1-boundary pairs; opt-in warn when a φ's input is too ill-conditioned to trust `precision` digits.
@@ -250,6 +251,107 @@ making implicit theory objects named, checkable runtime types (B7/B8/B16).
 - **B18** — Adaptive parallel granularity (analytic cost model). *`2.x`.* Activate the dormant `ChunkingPolicy.size_func` with an analytic per-item cost signal and bin-pack into equal-predicted-cost chunks instead of uniform timed-sample extrapolation; eliminates the straggler where one worker draws all the expensive items. Chunking doesn't affect results (guarded by N2).
 
 *Dropped as duplicates (14):* log-space repertoire algebra, low-rank TPM backend, SCC/modularity factorization, analytic/marginal-polytope specified-state search, four relation-face compaction variants, relation-hypergraph isomorphism, checkpoint/resume ledger, half-precision storage, pyemd→POT swap, numba JIT, `to_xarray()` cube, `config.profile()`, notebook gallery, partition φ-spectrum attribute — each folded under the existing P-item or N-item it overlaps (full mapping in the audit record).
+
+### 2026-07-07 gap-analysis sweep — dimensions outside the engineering frame (N12–N24)
+
+> The 2.0 roadmap is near-exhaustive *inside* its engineering frame (architecture, correctness
+> testing, performance, serialization, display, config). The candidates below are whole
+> dimensions outside that frame — surfaced by re-reading the roadmap against the codebase and
+> the primary papers in `papers/`. Their common theme is **scientific reach**: the roadmap
+> perfected the machine and largely did not ask what new science the rebuilt machine should
+> enable. Dispositions: `2.x` · `research` · `quick-win`.
+
+*Empirical grounding & rigor:*
+
+- **N12 — Empirical TPM estimation.** *`research`.* A `pyphi.estimate` surface turning an
+  observed multivariate time series (binarized/discretized recordings) into a `Substrate` +
+  `FactoredTPM`: maximum-likelihood transition counts, regularized / Bayesian estimators,
+  state-binning and lag selection, with the inferred connectivity feeding the B19 consistency
+  check. PyPhi computes Φ only on a hand-specified TPM; this is the missing path from the data
+  a user actually has to a substrate. Interlocks with N13.
+- **N13 — Uncertainty quantification on Φ.** *`research`.* Propagate TPM-estimation error
+  (N12) and stochastic-substrate variance into a sampling distribution over Φ/φ/α — a
+  bootstrap over transition counts, or a posterior over TPMs mapped to a posterior over Φ — so
+  a result carries a confidence interval rather than a bare point value. Extends the N8
+  provenance stamp; generalizes B14's matching standard-error beyond matching.
+- **N17 — External independent-implementation differential validation.** *`research`.* All
+  differential testing today is internal or temporal (2.0 against its own ancestor, formalism
+  against formalism). Add agreement against an independent IIT implementation through a shared
+  golden-exchange format — the one correctness check self-differential testing structurally
+  cannot provide. *(N3 mutation testing remains an unscheduled wishlist candidate worth
+  promoting for the same reason: the plan leans heavily on the golden + property net, which
+  should be proven to bite.)*
+
+*Interactive & dynamical analysis:*
+
+- **N14 — Intervention / counterfactual API.** *`2.x`.* A perturbation surface (lesion /
+  clamp / knockout / forced intervention on units) plus systematic pre/post phi-structure
+  comparison, reusing the landed `result.diff()`. Makes the interventionist content of the
+  theory interactive; today a lesion is a manual `factored_tpm.condition(...)` construction.
+- **N15 — Dynamics ↔ Φ-structure over trajectories.** *`2.x`.* Connect the `dynamics.py`
+  simulator (currently used only by a plotting helper) to phi-structure computation:
+  Φ-structure as a function of time along a simulated trajectory, and a phase-portrait of Φ
+  over the state space — the dynamical counterpart to the combinatorial state sweep (B12).
+- **N16 — Phenomenal-distance analysis surface.** *`2.x`.* Elevate the existing
+  `measures/ces.py` CES-distance from an internal metric to a first-class tool: cluster and
+  compare cause-effect structures across states and systems, and expose relational hypergraph
+  statistics (degree distribution, relation motifs). Treats the Φ-structure, not the scalar Φ,
+  as the object of study.
+
+*Scale & operability:*
+
+- **N18 — Tractability pre-flight / cost oracle.** *`2.x`.* Turn P17's characterized
+  partition-count growth and the `iit4/bounds.py` module into a before-you-run estimate of
+  cost and feasibility ("intractable at this size; use approximation or a cluster"),
+  preventing the launch of an unknowingly intractable run.
+- **N19 — Long-horizon scaling narrative.** *`research`.* The very-large-substrate levers —
+  reduced-dimension factor storage (the 63-unit numpy-dimension ceiling), the Rust/PyO3 kernel
+  (N5), batched/GPU kernels (B11), and the approximation framework (P16) — are parked
+  independently. A single account of which compose, and in what order, to push past ~10 units.
+- **N20 — Checkpoint / resume for long distributed runs.** *`2.x`.* A durable ledger of
+  completed subproblems so a multi-day φ-structure computation is interruptible and resumable
+  — distinct from N4's whole-result disk cache, which caches finished results; this checkpoints
+  *within* one computation. (Reconsiders the "checkpoint/resume ledger" dropped above as a
+  duplicate of N4; the two are not the same.)
+
+*Formalism frontier (from the primary papers):*
+
+- **N21 — Quantum IIT formalism.** *`research`.* A `formalism/quantum/` strategy under the
+  `PhiFormalism` Protocol (Albantakis et al. 2023, "Computing the Integrated Information of a
+  Quantum Mechanism"): density-matrix cause/effect repertoires with entanglement-aware causal
+  marginalization and partitions, and a quantum intrinsic-difference measure (QID, from the von
+  Neumann relative entropy). It reduces to the classical IIT 4.0 measure on classical-basis
+  states, so it is a strict generalization, and a two/three-qubit reference implementation
+  exists to validate against. Extends IIT's compositional causal analysis from classical TPMs
+  to finite-dimensional quantum systems (quantum logic gates, entangled states).
+- **N22 — Intrinsic differentiation / specification as first-class quantities.** *`2.x`.*
+  Expose the Mayner et al. 2026 decomposition — intrinsic information as `min(intrinsic
+  differentiation, intrinsic specification)` — as named result fields rather than only the
+  internal `INTRINSIC_INFORMATION` cap, and add the determinism/indeterminism tradeoff analysis
+  (φ_s as a function of substrate determinism; the monad and inverse-temperature curves).
+  Turns the cap the codebase already computes into an analyzable account of *why* a substrate
+  has the intrinsic cause-effect power it does.
+- **N23 — Φ-explanatory diagnostics.** *`2.x`.* Surface the Marshall et al. 2023 system-φ
+  covariates that explain a Φ value: per-(system, state) **determinism** (effect-state
+  selectivity) and **degeneracy** (cause-state selectivity), the **integrated-fraction /
+  fault-line** ratio (φ_s / ii, the fraction of intrinsic information that is integrated), and
+  the **φ_s landscape** over all candidate subsystems with local-maximum detection. Extends the
+  landed `result.explain()` (B8) from "which partition won" to "what property of the substrate
+  produced this Φ"; the landscape is also a natural display artifact. *(The recursive
+  universe-to-complexes carving that paper also describes already landed as B16 `complexes()`.)*
+- **N24 — Distinction-importance / relation-removal sensitivity.** *`quick-win`.* Add
+  Zaeemzadeh's counting-relations §2 per-purview relation-incidence count and the closed-form
+  `½·|Z|/N` fraction of relations that vanish when a distinction's purview is removed — an exact
+  importance ranking over distinctions, computable from `bounds.py` without enumerating
+  relations, to back a pruning or "which distinctions carry the relational structure"
+  diagnostic.
+
+*Two paper-derived validation directions* (tests/invariants, not user features): the S1 tie
+cascade's **terminal non-existence branches** (systems tied in both φ_s and Φ yield no complex;
+an intrinsic-vs-extrinsic tie must be discriminated) warrant symmetric-by-construction
+substrates that drive each disqualification branch, extending B5; and Marshall's **Theorem 1**
+(φ_s never exceeds the number of connections the partition cuts) is a runtime invariant
+extending B1's bound-certificate assertions.
 
 ## Context
 
@@ -3675,5 +3777,51 @@ to ease transition:
   a third k>2 golden alongside the two synthetic ones. The reference is:
   Gomez et al. (2021), "Integrated information theory predicts …",
   *PLoS Computational Biology* 17(11): e1009585.
+
+- **Ship a `py.typed` marker.** The package has an active typing effort (pyright in
+  standard mode, type stubs in pre-commit) but no `py.typed` file, so downstream projects
+  get no type information from PyPhi. Add the marker and include it in the wheel.
+
+- **Docs build is stale against the 2.0 surface.** `docs/api/*.rst` autodocs modules that
+  no longer exist (`network`, `subsystem`, `compute`, `tpm`, `jsonify`); example prose calls
+  `pyphi.Network(...)` / `pyphi.Subsystem(...)`, which are no longer exported;
+  `.readthedocs.yml` pins Python 3.12 against `requires-python >= 3.13` and references a
+  `docs/requirements.txt` that does not exist; notebook and config links point at a dev
+  branch and a dead `master` branch. Fold into the [Documentation
+  overhaul](#documentation-overhaul-20--iit-40) as its build-plumbing slice.
+
+- **Release automation + changelog build.** `CHANGELOG.md` is frozen at 1.2.0 (2019) with
+  the entire 2.0 body of work sitting unbuilt in ~190 ``changelog.d/`` fragments;
+  `build.yml` only uploads artifacts on a tag with no PyPI publish. Add the towncrier build
+  to the release step and a publish workflow.
+
+- **Community scaffolding.** Missing entirely: `CONTRIBUTING`, `CITATION.cff` (no
+  machine-readable citation despite being scientific software), `SECURITY.md`, issue/PR
+  templates, `dependabot.yml`.
+
+- **Packaging warts.** Remove or ship the dead commented-out `cluster` (Dask) extra; add a
+  numpy floor (currently unpinned) and raise the 2014-era scipy floor; de-duplicate the
+  tracked `justfile` / `Justfile`; add `lint` / `format` / `typecheck` / `changelog`
+  just-recipes (today those exist only via pre-commit and CI).
+
+- **Library-unfriendly import banner.** `import pyphi` prints a welcome message to stdout;
+  consider silent-by-default (matching the logging rework) with an opt-in, so PyPhi imported
+  as a dependency stays quiet.
+
+- **Type-hardening as a named goal.** Only 11 of ~161 source files carry `# pyright:
+  strict`; `pyphi/convert.py` is fully unannotated; `reportUnknown*` is globally disabled
+  for gradual migration. Drive the package toward strict and re-enable the checks
+  incrementally.
+
+- **Structured error taxonomy.** The custom `exceptions.py` surface (~9 typed classes) is
+  bypassed by the bulk of the package's ~200 raw `ValueError` / `TypeError` /
+  `NotImplementedError` raises; route errors through the typed classes for consistent UX.
+
+- **Dead-code / module-fate cleanup.** Delete `pyphi/compositional_state.py` (IIT-3.0-era,
+  imported nowhere, untested) and the source-less stale `pyphi/visualize/ces/*.pyc`; decide
+  the fate of the stranded `pyphi/timescale.py` (tested but unused); drop the committed
+  `pyphi/pyphi.log`; resolve the three `substrate_generator` `NotImplementedError` design
+  stubs (`ising.py` temperature=0, `unit_functions.py`, `utils.py`); pay down `actual.py`'s
+  TODO / deprecation-shim debt (the highest such density in the package).
 
 (Math-fingerprint cache keys was promoted to **P9.5** above.)
