@@ -386,6 +386,8 @@ class _GlobalConfig:
             field_name = name.lower()
             if field_name in FIELD_TO_LAYER:
                 return _read_via_target(self, FIELD_TO_LAYER[field_name], field_name)
+        if name in FIELD_TO_LAYER:
+            return _read_via_target(self, FIELD_TO_LAYER[name], name)
         if name in colliding_formalism_fields():
             raise AttributeError(
                 f"{name!r} is ambiguous (exists in both formalism.iit and "

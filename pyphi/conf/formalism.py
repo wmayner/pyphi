@@ -26,6 +26,9 @@ from pyphi.conf._helpers import yaml_repr
 
 _VALID_DISTINCTION_PHI_NORMALIZATION = frozenset({"NONE", "NUM_CONNECTIONS_CUT"})
 _VALID_RELATION_COMPUTATION = frozenset({"CONCRETE", "ANALYTICAL"})
+_VALID_BACKGROUND_CONDITIONING = frozenset(
+    {"CAUSAL_MARGINALIZATION", "CONDITION_CURRENT_STATE"}
+)
 
 _VALID_PARTITIONED_REPERTOIRE_SCHEMES = frozenset({"PRODUCT"})
 _VALID_BACKGROUND_STRATEGIES = frozenset({"UNIFORM"})
@@ -45,6 +48,7 @@ class IITConfig:
     system_partition_scheme: str = "DIRECTED_SET_PARTITION"
     system_partition_include_complete: bool = False
     distinction_phi_normalization: str = "NUM_CONNECTIONS_CUT"
+    background_conditioning: str = "CAUSAL_MARGINALIZATION"
     relation_computation: str = "CONCRETE"
     assume_partitions_cannot_create_new_concepts: bool = False
     shortcircuit_sia: bool = True
@@ -82,6 +86,11 @@ class IITConfig:
             raise ValueError(
                 f"relation_computation={self.relation_computation!r} "
                 f"not in {sorted(_VALID_RELATION_COMPUTATION)}"
+            )
+        if self.background_conditioning not in _VALID_BACKGROUND_CONDITIONING:
+            raise ValueError(
+                f"background_conditioning={self.background_conditioning!r} "
+                f"not in {sorted(_VALID_BACKGROUND_CONDITIONING)}"
             )
 
 

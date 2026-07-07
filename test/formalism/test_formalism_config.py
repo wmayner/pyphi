@@ -49,3 +49,42 @@ class TestPhiFormalismHasConfig:
             # Frozen field; the captured value does NOT track global changes.
             assert instance.config.iit.mechanism_phi_measure == captured
         assert instance.config.iit.mechanism_phi_measure == captured
+
+
+class TestBackgroundConditioning:
+    def test_default_is_causal_marginalization(self):
+        from pyphi.conf.formalism import IITConfig
+
+        assert IITConfig().background_conditioning == "CAUSAL_MARGINALIZATION"
+
+    def test_invalid_value_rejected(self):
+        import pytest
+
+        from pyphi.conf.formalism import IITConfig
+
+        with pytest.raises(ValueError, match="background_conditioning"):
+            IITConfig(background_conditioning="PAST_STATE")
+
+    def test_flat_access_routes_to_iit_layer(self):
+        import pyphi
+
+        with pyphi.config.override(background_conditioning="CONDITION_CURRENT_STATE"):
+            assert (
+                pyphi.config.formalism.iit.background_conditioning
+                == "CONDITION_CURRENT_STATE"
+            )
+            assert pyphi.config.background_conditioning == "CONDITION_CURRENT_STATE"
+        assert pyphi.config.background_conditioning == "CAUSAL_MARGINALIZATION"
+
+    def test_snapshot_records_and_diffs_the_option(self):
+        import pyphi
+
+        base = pyphi.config.snapshot()
+        with pyphi.config.override(background_conditioning="CONDITION_CURRENT_STATE"):
+            snap = pyphi.config.snapshot()
+        diff = base.diff(snap)
+        assert diff["formalism.iit.background_conditioning"] == (
+            "CAUSAL_MARGINALIZATION",
+            "CONDITION_CURRENT_STATE",
+        )
+        assert snap.as_kwargs()["background_conditioning"] == "CONDITION_CURRENT_STATE"
