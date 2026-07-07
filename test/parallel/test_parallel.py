@@ -2,7 +2,6 @@
 
 from decimal import Decimal
 from unittest.mock import Mock
-from unittest.mock import patch
 
 import pytest
 from hypothesis import HealthCheck
@@ -73,11 +72,9 @@ def test_shortcircuit(list_and_index):
 
 @given(st.lists(everything_except(Decimal)))
 def test_get_local(items):
-    with patch("pyphi.parallel.cancel_all") as mock:
-        expected = list(items)
-        actual = list(parallel.get(items))
-        mock.assert_not_called()
-        assert expected == actual
+    expected = list(items)
+    actual = list(parallel.get(items))
+    assert expected == actual
 
 
 def test_parallel_exception_handling():
@@ -338,16 +335,6 @@ def test_backend_selection():
 
     with pytest.raises(ValueError, match="unknown parallel_backend"):
         parallel.map_reduce(_identity, [1, 2, 3], backend="invalid", chunksize=1)
-
-
-def test_cancel_all_with_futures():
-    """Test cancel_all function with concurrent.futures.Future objects."""
-    from concurrent.futures import Future
-
-    # Create some mock futures
-    futures = [Future() for _ in range(3)]
-    result = parallel.cancel_all(futures)
-    assert len(result) == 3
 
 
 # Tests for get_num_processes

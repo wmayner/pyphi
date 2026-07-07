@@ -15,7 +15,7 @@ is one in which Phi itself is intractable.
 
 from __future__ import annotations
 
-from functools import cache
+from functools import lru_cache
 from itertools import permutations
 from typing import TYPE_CHECKING
 
@@ -96,7 +96,9 @@ def _serialization(substrate: Substrate, perm: tuple[int, ...]) -> tuple:
     return (alpha_p, cm_p.tobytes(), arr_p.tobytes())
 
 
-@cache
+# Bounded: entries pin Substrates (and their TPM arrays) for the cache's
+# lifetime, so an unbounded cache grows without limit across long sweeps.
+@lru_cache(maxsize=64)
 def _canonical(
     substrate: Substrate,
 ) -> tuple[tuple, tuple[tuple[int, ...], ...]]:

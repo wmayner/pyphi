@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import itertools
-from collections import defaultdict
 from collections.abc import Generator
 from collections.abc import Iterable
 from collections.abc import Sequence
@@ -37,38 +36,6 @@ def pairs(seq: Sequence, k: int = 0) -> Generator[tuple[Any, Any]]:
     """
     for i, j in pair_indices(len(seq), k=k):
         yield seq[i], seq[j]
-
-
-def combinations_with_nonempty_intersection_by_order(
-    sets: Sequence[frozenset], min_size: int = 0, max_size: int | None = None
-) -> dict[int, set[frozenset]]:
-    """Return nonempty-intersection combinations grouped by size.
-
-    The same combinations as :func:`combinations_with_nonempty_intersection`,
-    bucketed into ``{size: {combination, ...}}``. Each combination is a set of
-    the indices of the sets in that combination, not the sets themselves. Sizes
-    with no combinations are omitted.
-
-    Arguments:
-        sets (Sequence[frozenset]): The sets to consider. Note that they must be
-            ``frozensets``.
-
-    Keyword Arguments:
-        min_size (int): The minimum size of the combinations to return. Defaults
-            to 0.
-        max_size (int): The maximum size of the combinations to return. Defaults
-            to ``None``, indicating all sizes.
-
-    Returns:
-        dict[int, set[frozenset]]: A mapping from combination size to
-        combinations.
-    """
-    by_order: dict[int, set[frozenset]] = defaultdict(set)
-    for combination in combinations_with_nonempty_intersection(
-        sets, min_size=min_size, max_size=max_size
-    ):
-        by_order[len(combination)].add(combination)
-    return dict(by_order)
 
 
 def combinations_with_nonempty_intersection(

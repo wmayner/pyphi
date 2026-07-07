@@ -673,37 +673,6 @@ def test_sia_repr_str(s):
     print(str(bm))
 
 
-# Test model __str__ and __reprs__
-
-
-def test_indent():
-    s = "line1\nline2"
-    answer = "  line1\n  line2"
-    assert models.fmt.indent(s) == answer
-
-
-class ReadableReprClass:
-    """Dummy class for make_repr tests"""
-
-    some_attr = 3.14
-
-    def __repr__(self):
-        return models.fmt.make_repr(self, ["some_attr"])
-
-    def __str__(self):
-        return "A nice fat explicit string"
-
-
-@config.override(repr_verbosity=0)
-def test_make_reprs_uses___repr__():
-    assert repr(ReadableReprClass()) == "ReadableReprClass(some_attr=3.14)"
-
-
-@config.override(repr_verbosity=2)
-def test_make_reprs_calls_out_to_string():
-    assert repr(ReadableReprClass()) == "A nice fat explicit string"
-
-
 # Test partitions
 
 

@@ -105,15 +105,18 @@ size_args = [(0, None), (2, None), (4, None), (999, None), (0, 4), (3, 4), (0, 9
 def test_combinations_with_nonempty_intersection(
     sets, nonempty_intersection_answer_by_order, min_size, max_size
 ):
-    result = combinatorics.combinations_with_nonempty_intersection_by_order(
-        sets, min_size=min_size, max_size=max_size
+    result = set(
+        combinatorics.combinations_with_nonempty_intersection(
+            sets, min_size=min_size, max_size=max_size
+        )
     )
     if max_size is None:
         max_size = max(nonempty_intersection_answer_by_order)
     answer = {
-        k: v
+        combination
         for k, v in nonempty_intersection_answer_by_order.items()
         if min_size <= k <= max_size
+        for combination in v
     }
     assert answer == result
 

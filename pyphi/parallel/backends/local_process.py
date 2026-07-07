@@ -197,9 +197,7 @@ class LocalMapReduce:
                     self.shortcircuit_callback(collected)
                 break
 
-        self.result = _reduce(
-            collected, self.reduce_func, self.reduce_kwargs, branch=False
-        )
+        self.result = _reduce(collected, self.reduce_func, self.reduce_kwargs)
         self.done = True
         return self.result
 
@@ -216,7 +214,7 @@ class LocalMapReduce:
         chunks = list(self._get_chunks())
 
         if not chunks:
-            self.result = _reduce([], self.reduce_func, self.reduce_kwargs, branch=False)
+            self.result = _reduce([], self.reduce_func, self.reduce_kwargs)
             self.done = True
             return self.result
 
@@ -276,9 +274,7 @@ class LocalMapReduce:
                     break
 
         # Final reduction - apply user's reduce function
-        self.result = _reduce(
-            results, self.reduce_func, self.reduce_kwargs, branch=False
-        )
+        self.result = _reduce(results, self.reduce_func, self.reduce_kwargs)
         self.done = True
         return self.result
 

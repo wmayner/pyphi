@@ -30,7 +30,6 @@ from collections.abc import Callable
 from collections.abc import Iterable
 from typing import Any
 
-from more_itertools import flatten
 from tqdm.auto import tqdm
 
 from pyphi.conf import config
@@ -87,10 +86,8 @@ def shortcircuit(
             return
 
 
-def _flatten(items: Iterable, branch: bool = False) -> list:
-    """Flatten results if branching occurred."""
-    if branch:
-        items = flatten(items)
+def _flatten(items: Iterable) -> list:
+    """Materialize results as a list."""
     return list(items)
 
 
@@ -100,12 +97,10 @@ def _map_sequential(func: Callable, *arglists, **kwargs):
         yield func(*args, **kwargs)
 
 
-def _reduce(
-    results: Iterable, reduce_func: Callable, reduce_kwargs: dict, branch: bool
-) -> Any:
+def _reduce(results: Iterable, reduce_func: Callable, reduce_kwargs: dict) -> Any:
     """Apply reduction function to results."""
     if reduce_func is _flatten:
-        return reduce_func(results, branch=branch)
+        return reduce_func(results)
     return reduce_func(results, **reduce_kwargs)
 
 
@@ -125,29 +120,13 @@ def get(
     )
 
 
-def cancel_all(futures: Iterable, *args, **kwargs) -> list:
-    """Cancel all futures.
-
-    For local backend, attempts to cancel concurrent.futures.Future objects.
-    Returns the list of futures that were processed.
-    """
-    from concurrent.futures import Future
-
-    result = []
-    for future in futures:
-        if isinstance(future, Future) and not future.done():
-            future.cancel()
-        result.append(future)
-    return result
-
-
 def _bind_reducer(
     reduce_func: Callable[..., Any], reduce_kwargs: dict[str, Any] | None
 ) -> Callable[..., Any]:
     """Adapt a ``(reduce_func, reduce_kwargs)`` pair to a 1-arg reducer."""
     reduce_kwargs = reduce_kwargs or {}
     if reduce_func is _flatten:
-        return lambda results: _flatten(results, branch=False)
+        return _flatten
     if reduce_kwargs:
         return lambda results: reduce_func(results, **reduce_kwargs)
     return reduce_func
@@ -201,7 +180,7 @@ def map_reduce(
             shortcircuit_callback=shortcircuit_callback,
             shortcircuit_callback_args=shortcircuit_callback_args,
         )
-        return _reduce(list(results), reduce_func, reduce_kwargs or {}, branch=False)
+        return _reduce(list(results), reduce_func, reduce_kwargs or {})
 
     from .scheduler import ChunkingPolicy
     from .scheduler import ProgressPolicy
