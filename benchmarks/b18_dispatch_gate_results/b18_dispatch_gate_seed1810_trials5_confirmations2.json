@@ -1,0 +1,137 @@
+{
+  "seed": 1810,
+  "trials": 5,
+  "pool_state": "warm (pre-warmed loky executor); cold-pool section separate",
+  "num_workers": 11,
+  "cpu_count": 11,
+  "platform": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
+  "python": "3.13.13",
+  "pyphi_version": null,
+  "iit_version": "IIT_4_0_2023",
+  "levels": [
+    {
+      "level": "sys_partitions_shortcircuit",
+      "option": "parallel_partition_evaluation",
+      "chunksize": 4096,
+      "sequential_threshold": 64,
+      "network": "two decoupled dense ising blocks n=6 (seed 1810, cross couplings zeroed), first zero-phi partition at index 22",
+      "notes": "short-circuit on zero-phi enabled as at the real SIA site; items are randomly sampled so falsy density is realistic for this reducible system",
+      "pool_size": 4096,
+      "cells": [
+        {
+          "size": 512,
+          "fraction_of_chunksize": 0.125,
+          "raw_seconds": {
+            "current": [
+              0.15512308303732425,
+              0.5533102500485256,
+              0.6235412920359522,
+              0.6332648750394583,
+              0.6053595410194248
+            ],
+            "flipped": [
+              0.09360195905901492,
+              0.24624175007920712,
+              0.17766079201828688,
+              0.18475987506099045,
+              0.196145125082694
+            ]
+          },
+          "median_seconds": {
+            "current": 0.6053595410194248,
+            "flipped": 0.18475987506099045
+          },
+          "speedup_current_over_flipped": 0.30520684410103627
+        },
+        {
+          "size": 2048,
+          "fraction_of_chunksize": 0.5,
+          "raw_seconds": {
+            "current": [
+              0.4386858749203384,
+              0.5877850420074537,
+              0.28090170805808157,
+              2.577089500031434,
+              0.45130187505856156
+            ],
+            "flipped": [
+              0.50979779206682,
+              0.342670249985531,
+              0.07188075000885874,
+              1.5800985830137506,
+              0.16678870795294642
+            ]
+          },
+          "median_seconds": {
+            "current": 0.45130187505856156,
+            "flipped": 0.342670249985531
+          },
+          "speedup_current_over_flipped": 0.759292768152283
+        }
+      ],
+      "cold_pool_flipped": null
+    },
+    {
+      "level": "complexes",
+      "option": "parallel_complex_evaluation",
+      "chunksize": 64,
+      "sequential_threshold": 16,
+      "network": "rule154 example substrate (n=5), all candidate systems",
+      "notes": "worker computes a full SIA per candidate, as in complexes()",
+      "pool_size": 31,
+      "cells": [
+        {
+          "size": 16,
+          "fraction_of_chunksize": 0.25,
+          "raw_seconds": {
+            "current": [
+              1.6566410000668839,
+              0.4112065410008654,
+              1.5043671249877661,
+              1.711274707922712,
+              1.9572824169881642
+            ],
+            "flipped": [
+              1.4514034999301657,
+              0.25668108300305903,
+              1.224854625063017,
+              1.409972041961737,
+              1.806076499982737
+            ]
+          },
+          "median_seconds": {
+            "current": 1.6566410000668839,
+            "flipped": 1.409972041961737
+          },
+          "speedup_current_over_flipped": 0.8511029498272782
+        },
+        {
+          "size": 31,
+          "fraction_of_chunksize": 0.484375,
+          "raw_seconds": {
+            "current": [
+              2.0546736660180613,
+              2.0553454590262845,
+              2.283653457998298,
+              2.058641249896027,
+              2.1089456249028444
+            ],
+            "flipped": [
+              1.2705098330043256,
+              1.2688891249708831,
+              1.3271548330085352,
+              1.3365428749239072,
+              1.5173126249574125
+            ]
+          },
+          "median_seconds": {
+            "current": 2.058641249896027,
+            "flipped": 1.3271548330085352
+          },
+          "speedup_current_over_flipped": 0.6446751385534337
+        }
+      ],
+      "cold_pool_flipped": null
+    }
+  ]
+}

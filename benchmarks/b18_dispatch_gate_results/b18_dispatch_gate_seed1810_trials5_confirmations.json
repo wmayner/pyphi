@@ -1,0 +1,100 @@
+{
+  "seed": 1810,
+  "trials": 5,
+  "pool_state": "warm (pre-warmed loky executor); cold-pool section separate",
+  "num_workers": 11,
+  "cpu_count": 11,
+  "platform": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
+  "python": "3.13.13",
+  "pyphi_version": null,
+  "iit_version": "IIT_4_0_2023",
+  "levels": [
+    {
+      "level": "sys_partitions",
+      "option": "parallel_partition_evaluation",
+      "chunksize": 4096,
+      "sequential_threshold": 64,
+      "network": "rule154 ring n=6, IIT 4.0 system partitions",
+      "notes": "sequential_threshold overridden to the proposed 64 in both arms; no short-circuit (irreducible-system shape)",
+      "pool_size": 4096,
+      "cells": [
+        {
+          "size": 64,
+          "fraction_of_chunksize": 0.015625,
+          "raw_seconds": {
+            "current": [
+              0.07716604194138199,
+              0.0771412500180304,
+              0.07648787496145815,
+              0.07851091702468693,
+              0.0765832910547033
+            ],
+            "flipped": [
+              0.030276041012257338,
+              0.029028792050667107,
+              0.034367999993264675,
+              0.026206832961179316,
+              0.029605749994516373
+            ]
+          },
+          "median_seconds": {
+            "current": 0.0771412500180304,
+            "flipped": 0.029605749994516373
+          },
+          "speedup_current_over_flipped": 0.3837862361265413
+        },
+        {
+          "size": 512,
+          "fraction_of_chunksize": 0.125,
+          "raw_seconds": {
+            "current": [
+              0.5869252500124276,
+              0.5179632920771837,
+              0.5906537090195343,
+              0.5674209159333259,
+              0.564119708025828
+            ],
+            "flipped": [
+              0.16388566698879004,
+              0.17090179095976055,
+              0.1609449170064181,
+              0.15974433301016688,
+              0.16736337495967746
+            ]
+          },
+          "median_seconds": {
+            "current": 0.5674209159333259,
+            "flipped": 0.16388566698879004
+          },
+          "speedup_current_over_flipped": 0.2888255656195219
+        },
+        {
+          "size": 2048,
+          "fraction_of_chunksize": 0.5,
+          "raw_seconds": {
+            "current": [
+              2.263321583974175,
+              2.1991251250728965,
+              2.3080885419622064,
+              2.2252286250004545,
+              2.275927291950211
+            ],
+            "flipped": [
+              0.582668416085653,
+              0.6393944580340758,
+              0.5923358330037445,
+              0.6253978330641985,
+              0.6012373330304399
+            ]
+          },
+          "median_seconds": {
+            "current": 2.263321583974175,
+            "flipped": 0.6012373330304399
+          },
+          "speedup_current_over_flipped": 0.2656437941862088
+        }
+      ],
+      "cold_pool_flipped": null
+    }
+  ]
+}
