@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from pyphi import serialize
@@ -22,6 +24,32 @@ def test_provenance_round_trips(fmt):
     obj = Provenance.capture()
     restored = round_trip(obj, fmt)
     assert restored == obj
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
+def test_provenance_round_trips_estimator(fmt):
+    obj = Provenance.capture(
+        estimator={
+            "regime": "perturbational",
+            "model": "counts",
+            "prior": 0.5,
+            "n_transitions": 16,
+            "n_states_observed": 8,
+            "n_states_total": 8,
+            "uncovered_state_count": 0,
+        }
+    )
+    restored = round_trip(obj, fmt)
+    assert restored == obj
+    assert restored.estimator == obj.estimator
+
+
+def test_provenance_decodes_payload_without_estimator():
+    # Payloads written before the estimator field existed decode to None.
+    doc = json.loads(serialize.dumps(Provenance.capture(), format="json"))
+    doc["payload"].pop("estimator", None)
+    restored = serialize.loads(json.dumps(doc).encode(), format="json")
+    assert restored.estimator is None
 
 
 @pytest.mark.parametrize("fmt", FORMATS)

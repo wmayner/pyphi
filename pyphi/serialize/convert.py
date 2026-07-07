@@ -413,6 +413,7 @@ def _register_provenance() -> None:
         wall_time=p.wall_time,
         seed=p.seed,
         note=p.note,
+        estimator=p.estimator,
     )
     _DECODERS[schema.ProvenanceSchema] = lambda s: Provenance(
         **msgspec.structs.asdict(s)

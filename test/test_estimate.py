@@ -153,3 +153,26 @@ def test_full_coverage_report_is_complete():
     assert posterior.coverage.is_complete
     assert posterior.coverage.uncovered_states == ()
     assert posterior.coverage.fraction_covered == pytest.approx(1.0)
+
+
+def test_provenance_records_estimator():
+    substrate = examples.basic_substrate()
+    data = _exhaustive_transitions(substrate, repeats=2)
+    posterior = estimate_substrate(data, regime="perturbational", prior=0.5)
+    record = posterior.provenance.estimator
+    assert record is not None
+    assert record["regime"] == "perturbational"
+    assert record["model"] == "counts"
+    assert record["prior"] == pytest.approx(0.5)
+    assert record["n_transitions"] == 16
+    assert record["n_states_observed"] == 8
+    assert record["n_states_total"] == 8
+    assert record["uncovered_state_count"] == 0
+
+
+def test_provenance_records_observational_assertion():
+    traj = np.array([[0, 0, 0], [1, 0, 0], [0, 0, 0]])
+    posterior = estimate_substrate(traj, regime="observational")
+    record = posterior.provenance.estimator
+    assert record["regime"] == "observational"
+    assert record["uncovered_state_count"] == 6

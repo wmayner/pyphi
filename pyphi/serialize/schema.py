@@ -217,6 +217,7 @@ class ProvenanceSchema(msgspec.Struct, frozen=True, tag="provenance"):
     wall_time: float | None = None
     seed: int | None = None
     note: str | None = None
+    estimator: dict | None = None
 
 
 class ExcludedCandidateSchema(msgspec.Struct, frozen=True, tag="excluded_candidate"):

@@ -226,12 +226,23 @@ def estimate_substrate(
     np.add.at(counts_off, rows, 1 - next_)
     row_counts = np.bincount(rows, minlength=2**n)
 
+    coverage = CoverageReport(counts=row_counts, n_units=n)
+    n_states_observed = int(np.count_nonzero(coverage.counts))
+    estimator = {
+        "regime": regime,
+        "model": model,
+        "prior": float(prior),
+        "n_transitions": int(coverage.counts.sum()),
+        "n_states_observed": n_states_observed,
+        "n_states_total": coverage.n_states,
+        "uncovered_state_count": coverage.n_states - n_states_observed,
+    }
     return SubstratePosterior(
         alpha_on=counts_on + prior,
         alpha_off=counts_off + prior,
         regime=regime,
         prior=prior,
-        coverage=CoverageReport(counts=row_counts, n_units=n),
+        coverage=coverage,
         node_labels=node_labels,
-        provenance=Provenance.capture(),
+        provenance=Provenance.capture(estimator=estimator),
     )
