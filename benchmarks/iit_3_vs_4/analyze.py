@@ -24,7 +24,6 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-
 RESULTS_ROOT = Path(__file__).parent / "results"
 GENERATIONS = ("pre", "post")
 
@@ -119,10 +118,13 @@ def print_wall_time_table(
                     phis.append("-")
                 else:
                     med, lo, hi = stat
-                    row += f"{fmt_seconds(med):>9} [{fmt_seconds(lo)}-{fmt_seconds(hi)}]  "
+                    row += (
+                        f"{fmt_seconds(med):>9} "
+                        f"[{fmt_seconds(lo)}-{fmt_seconds(hi)}]  "
+                    )
                     phi_set = sorted({str(t.get("result_phi")) for t in trials})
                     phis.append(",".join(phi_set))
-            row += " | ".join(f"{m}={p}" for m, p in zip(measurements, phis))
+            row += " | ".join(f"{m}={p}" for m, p in zip(measurements, phis, strict=False))
             print(row)
     print()
 
@@ -136,6 +138,14 @@ def print_cross_generation_table(
     print("=" * 100)
     print("PRE vs POST (median wall-time; speedup = pre/post; >1 means post is faster)")
     print("=" * 100)
+    print(
+        "CAVEAT: the iit4 mapping compares different computation scopes -- pre\n"
+        "`phi_structure` (SIA + distinctions + relations) against post `sia`\n"
+        "(system phi only) -- so its ratios overstate the refactor's speedup.\n"
+        "For the like-for-like comparison (matched entry point and partition\n"
+        "scheme), run `controls.py`: the SIA inner loop is ~19-20x faster per\n"
+        "partition and the CES ~2x."
+    )
     pre = by_gen["pre"]
     post = by_gen["post"]
     networks = sorted({n for n, _ in pre} | {n for n, _ in post})
@@ -262,8 +272,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--top",
         type=int,
         default=0,
-        help="Print top-N cumulative-time functions per (generation, network, measurement). "
-        "Verbose; default 0 (skip).",
+        help="Print top-N cumulative-time functions per (generation, network, "
+        "measurement). Verbose; default 0 (skip).",
     )
     return parser.parse_args(argv)
 
@@ -274,7 +284,8 @@ def main(argv: list[str] | None = None) -> int:
     for gen in GENERATIONS:
         records = load_records(gen)
         by_gen[gen] = group_records(records)
-        print(f"loaded {sum(len(v) for v in by_gen[gen].values())} {gen}-refactor trials")
+        n_trials = sum(len(v) for v in by_gen[gen].values())
+        print(f"loaded {n_trials} {gen}-refactor trials")
     print_wall_time_table(by_gen)
     print_cross_generation_table(by_gen)
     print_phase_breakdown(by_gen, args.network)

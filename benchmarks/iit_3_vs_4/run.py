@@ -3,7 +3,7 @@
 Usage:
     uv run python -m benchmarks.iit_3_vs_4.run
     uv run python -m benchmarks.iit_3_vs_4.run --networks basic,fig4 --trials 5
-    uv run python -m benchmarks.iit_3_vs_4.run --measurements sia_3_0,sia_4_0
+    uv run python -m benchmarks.iit_3_vs_4.run --measurements iit3_sia,iit4_sia_2023
 """
 
 from __future__ import annotations
@@ -13,13 +13,10 @@ import logging
 import sys
 import time
 
-from benchmarks.iit_3_vs_4.harness import (
-    MEASUREMENTS,
-    NETWORKS,
-    run_trial,
-    write_record,
-)
-
+from benchmarks.iit_3_vs_4.harness import MEASUREMENTS
+from benchmarks.iit_3_vs_4.harness import NETWORKS
+from benchmarks.iit_3_vs_4.harness import run_trial
+from benchmarks.iit_3_vs_4.harness import write_record
 
 log = logging.getLogger("iit_3_vs_4.run")
 

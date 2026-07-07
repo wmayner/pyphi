@@ -52,10 +52,10 @@ profiles.
 
 | control | macro (4n) | rule154 (5n) |
 | --- | --- | --- |
-| CES-only (post `System.ces()` vs pre `ces`) | 1.35 → 0.69 s (**1.9×**) | 80.1 → 38.9 s (**2.1×**) |
-| SIA per-partition, matched `DIRECTED_BIPARTITION` | 26.0 → 1.28 ms (**~20×**) | 34.9 → 1.89 ms (**~18×**) |
+| CES-only (post `System.ces()` vs pre `ces`) | 1.41 → 0.69 s (**2.0×**) | 85.8 → 38.9 s (**2.2×**) |
+| SIA per-partition, matched `DIRECTED_BIPARTITION` | 25.1 → 1.28 ms (**~20×**) | 36.6 → 1.89 ms (**~19×**) |
 
-The SIA inner loop is **~18–20× faster per partition** and the CES is **~2×
+The SIA inner loop is **~19–20× faster per partition** and the CES is **~2×
 faster**, driven by the `core/repertoire_algebra.py` kernel rewrite. The
 per-partition figure is the robust one: on rule154 the matched scheme evaluates
 the same 30 partitions in both generations.
@@ -64,7 +64,7 @@ This per-operation gain does **not** always show up as lower wall time. The
 default 2.0 system scheme is the paper-faithful `DIRECTED_SET_PARTITION`, which
 evaluates far more partitions than the pre era's `DIRECTED_BI` (rule154: 1061 vs
 30). Each partition is ~18× cheaper but there are ~35× more of them, so a
-default-config SIA wall time on rule154 is ~2.5× *higher* post-refactor (2.55 s
+default-config SIA wall time on rule154 is ~2.3× *higher* post-refactor (2.46 s
 vs 1.05 s). IIT 4.0 φ also stops matching pre vs post past 3 nodes, because the
 two schemes select different system MIPs (rule154: 1.0 → 2.0).
 
@@ -80,8 +80,8 @@ Medians over 5 trials:
 
 | measurement | φ | wall (median) |
 | --- | --- | --- |
-| `iit4_sia_2023` | 0.03662 | 0.052 s |
-| `iit4_sia_2026` | 0.00323 | 0.052 s |
+| `iit4_sia_2023` | 0.03662 | 0.0485 s |
+| `iit4_sia_2026` | 0.00323 | 0.0469 s |
 
 The 2026 path costs the same as 2023 at every phase. The Eq. 23 cap is a
 post-hoc `min{φ_c, φ_e, ii(s)}` over terms the 2023 partition search already
