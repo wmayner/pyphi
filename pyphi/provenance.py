@@ -71,16 +71,25 @@ class Provenance:
     wall_time: float | None = None
     seed: int | None = None
     note: str | None = None
+    estimator: dict[str, Any] | None = None
+    """Structured record of how an estimated input was produced (data regime,
+    estimator model, prior, sample counts). ``None`` for results computed from
+    an exactly specified substrate."""
 
     @classmethod
     def capture(
-        cls, *, wall_time: float | None = None, seed: int | None = None
+        cls,
+        *,
+        wall_time: float | None = None,
+        seed: int | None = None,
+        estimator: dict[str, Any] | None = None,
     ) -> Provenance:
         """Capture the current environment into a :class:`Provenance`.
 
         ``wall_time`` (seconds) is supplied by the compute entry point; ``seed``
-        is supplied only by code paths that consumed an RNG. Both default to
-        ``None`` for deterministic, directly-constructed results.
+        is supplied only by code paths that consumed an RNG; ``estimator`` is
+        supplied only by estimation entry points. All default to ``None`` for
+        deterministic, directly-constructed results.
         """
         sha, dirty = _git_info()
         return cls(
@@ -94,6 +103,7 @@ class Provenance:
             platform=f"{_platform.system()}/{_platform.machine()}",
             wall_time=wall_time,
             seed=seed,
+            estimator=estimator,
         )
 
     def with_wall_time(self, wall_time: float) -> Provenance:
@@ -122,6 +132,16 @@ class Provenance:
             rows.append(("Seed", str(self.seed)))
         if self.note is not None:
             rows.append(("Note", self.note))
+        if self.estimator is not None:
+            rows.append(
+                (
+                    "Estimator",
+                    ", ".join(
+                        f"{key}={self.estimator.get(key)}"
+                        for key in ("regime", "model", "n_transitions")
+                    ),
+                )
+            )
         return rows
 
 

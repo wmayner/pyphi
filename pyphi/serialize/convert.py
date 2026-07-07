@@ -421,6 +421,7 @@ def _register_provenance() -> None:
         wall_time=p.wall_time,
         seed=p.seed,
         note=p.note,
+        estimator=p.estimator,
     )
     _DECODERS[schema.ProvenanceSchema] = lambda s: Provenance(
         **msgspec.structs.asdict(s)
@@ -943,6 +944,67 @@ def _register_complex() -> None:
     )
 
 
+def _register_coverage_report() -> None:
+    from pyphi.estimate import CoverageReport
+
+    _ENCODERS[CoverageReport] = lambda c: schema.CoverageReportSchema(
+        counts=arrays.array_to_bytes(np.asarray(c.counts)),
+        n_units=c.n_units,
+    )
+    _DECODERS[schema.CoverageReportSchema] = lambda s: CoverageReport(
+        counts=arrays.bytes_to_array(s.counts),
+        n_units=s.n_units,
+    )
+
+
+def _register_substrate_posterior() -> None:
+    from pyphi.estimate import SubstratePosterior
+
+    _ENCODERS[SubstratePosterior] = lambda p: schema.SubstratePosteriorSchema(
+        alpha_on=arrays.array_to_bytes(np.asarray(p.alpha_on)),
+        alpha_off=arrays.array_to_bytes(np.asarray(p.alpha_off)),
+        regime=p.regime,
+        prior=float(p.prior),
+        coverage=to_schema(p.coverage),
+        node_labels=_opt_tuple(p.node_labels),
+        provenance=to_schema(p.provenance),
+    )
+    _DECODERS[schema.SubstratePosteriorSchema] = lambda s: SubstratePosterior(
+        alpha_on=arrays.bytes_to_array(s.alpha_on),
+        alpha_off=arrays.bytes_to_array(s.alpha_off),
+        regime=s.regime,
+        prior=s.prior,
+        coverage=from_schema(s.coverage),
+        node_labels=_opt_tuple(s.node_labels),
+        provenance=from_schema(s.provenance),
+    )
+
+
+def _register_phi_posterior() -> None:
+    from pyphi.estimate import PhiPosterior
+
+    _ENCODERS[PhiPosterior] = lambda p: schema.PhiPosteriorSchema(
+        samples=arrays.array_to_bytes(np.asarray(p.samples)),
+        complex_samples=tuple(tuple(c) for c in p.complex_samples),
+        state=tuple(p.state),
+        subset=_opt_tuple(p.subset),
+        seed=p.seed,
+        regime=p.regime,
+        coverage=to_schema(p.coverage),
+        provenance=to_schema(p.provenance),
+    )
+    _DECODERS[schema.PhiPosteriorSchema] = lambda s: PhiPosterior(
+        samples=arrays.bytes_to_array(s.samples),
+        complex_samples=tuple(tuple(c) for c in s.complex_samples),
+        state=tuple(s.state),
+        subset=_opt_tuple(s.subset),
+        seed=s.seed,
+        regime=s.regime,
+        coverage=from_schema(s.coverage),
+        provenance=from_schema(s.provenance),
+    )
+
+
 _REGISTERED = False
 
 
@@ -992,3 +1054,6 @@ def _ensure_registered() -> None:
     _register_account()
     _register_ac_sia()
     _register_complex()
+    _register_coverage_report()
+    _register_substrate_posterior()
+    _register_phi_posterior()
