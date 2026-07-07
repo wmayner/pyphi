@@ -450,3 +450,29 @@ class TestDefaultChunksizeSampling:
             progress=False,
         )
         assert list(out) == [11, 22, 33, 44, 55]
+
+
+def test_loky_worker_timeout_warning_is_not_escalated():
+    """The loky manager-thread warning must stay non-fatal under this suite's
+    warning filters.
+
+    loky's ``ExecutorManagerThread`` emits this ``UserWarning`` when a
+    worker's idle timeout coincides with pending work
+    (``joblib/externals/loky/process_executor.py::process_result_item``).
+    Under ``filterwarnings = ["error"]`` the escalated warning kills the
+    manager thread *without* flagging the executor as broken; the reusable
+    executor is then reused as a zombie and every subsequent
+    ``future.result()`` blocks forever — a flaky whole-suite deadlock at
+    whatever test next uses the pool. The pyproject filter entry keeps this
+    exact message a warning. (Deliberately not ``pytest.warns``: that swaps
+    in its own filters and would pass even without the exemption.)
+    """
+    import warnings
+
+    warnings.warn(
+        "A worker stopped while some jobs were given to the "
+        "executor. This can be caused by a too short worker "
+        "timeout or by a memory leak.",
+        UserWarning,
+        stacklevel=1,
+    )

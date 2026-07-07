@@ -253,6 +253,12 @@ filterwarnings = [
     # the many tests that change config do not fail on an informational warning;
     # tests that assert it fires still catch it via `pytest.warns`.
     "ignore::pyphi.warnings.PyPhiWarning",
+    # loky's ExecutorManagerThread emits this when a worker's idle timeout
+    # coincides with pending work. Escalating it to an error kills the manager
+    # thread without marking the executor broken, so the reusable executor is
+    # reused as a zombie and the next parallel test deadlocks in
+    # `future.result()`. Keep it a visible warning, never an error.
+    "default:A worker stopped while some jobs were given to the executor:UserWarning",
 ]
 
 [tool.coverage.run]
