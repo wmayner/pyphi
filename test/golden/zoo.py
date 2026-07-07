@@ -43,6 +43,7 @@ import numpy as np
 from pyphi import Substrate
 from pyphi import examples
 from pyphi.conf import presets
+from test.example_substrates import noisy_or_background_substrate
 
 from .fixture import GoldenFixture
 
@@ -318,6 +319,44 @@ def _make_fixtures() -> list[GoldenFixture]:
             config_overrides=IIT_4_2026_CONFIG,
             substrate_factory=_logistic_3node_k8,
             state=(0, 0, 0),
+        )
+    )
+
+    # Proper-subset IIT 3.0 under each background convention. The noisy
+    # background parent C makes the cause side diverge between conventions
+    # (deterministic substrates like basic's (1,2) subset mask it), so this
+    # pair pins both semantics through every layer of the harness.
+    fixtures.append(
+        GoldenFixture(
+            name="noisy_or_subset_iit3_emd",
+            description="Noisy-OR 3-unit substrate, system {A,B}, background "
+            "{C}, state (1,0,0). IIT 3.0 preset semantics: background "
+            "conditioned at its current state (PyPhi 1.x); SIA phi = 0.72 "
+            "matches the genuine 1.2.0 oracle.",
+            config_overrides=IIT_3_CONFIG,
+            substrate_factory=noisy_or_background_substrate,
+            state=(1, 0, 0),
+            node_indices=(0, 1),
+            skip_layers=SKIP_FOR_IIT_3,
+        )
+    )
+    fixtures.append(
+        GoldenFixture(
+            name="noisy_or_subset_iit3_emd_marginalized",
+            description="Same system under IIT 4.0 Eq. 4 causal "
+            "marginalization of the background (SIA phi = 0.41607); "
+            "companion to noisy_or_subset_iit3_emd.",
+            config_overrides={
+                **{k: v for k, v in IIT_3_CONFIG.items() if k != "iit"},
+                "iit": replace(
+                    IIT_3_CONFIG["iit"],
+                    background_conditioning="CAUSAL_MARGINALIZATION",
+                ),
+            },
+            substrate_factory=noisy_or_background_substrate,
+            state=(1, 0, 0),
+            node_indices=(0, 1),
+            skip_layers=SKIP_FOR_IIT_3,
         )
     )
 

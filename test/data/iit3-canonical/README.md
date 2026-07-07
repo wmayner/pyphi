@@ -13,6 +13,22 @@ from the *behavioral snapshots* in `test/data/golden/v1/`.
     `[B, C, AB, ABC]`, MIP cut `[B, C] -/-> [A]`.
   - This is the value PyPhi's test suite has asserted since 2015-05-13.
 
+- `background_conditioning_oracle.json` — anchors the cause-side
+  background-conditioning conventions (`CONDITION_CURRENT_STATE` vs
+  `CAUSAL_MARGINALIZATION`) to a genuine PyPhi 1.2.0 install. Reproduced by
+  `scripts/gen_iit3_background_oracle.py`; consumed by
+  `test/integration/test_background_conditioning_oracle.py`. Records, on
+  the proper-subset system S={A,B} (background W={C}) of a 3-unit
+  noisy-OR substrate in state `(1, 0, 0)`: the observed cause repertoire
+  of mechanism {A} over purview {B} under genuine 1.x semantics
+  (`[0.1, 0.9]`, matching `CONDITION_CURRENT_STATE`) alongside the IIT 4.0
+  Eq. 4 marginalized prediction (`[0.40566..., 0.59434...]`) that 1.x does
+  *not* match; the end-to-end IIT 3.0 SIA phi for that system (`0.72`,
+  matching `CONDITION_CURRENT_STATE`); and SIA phi for every proper
+  subset of the `basic` example network in state `(1, 0, 0)` as
+  independent anchors for the complex-search values (`(0, 1, 2)`: 2.3125,
+  `(1, 2)`: 1.0, `(0, 2)`: 1.0, `(0, 1)`: 0.0).
+
 ## The 1.917 vs 2.3125 history
 
 Both the IIT 3.0 paper (Oizumi 2014, Fig 14/15) and the PyPhi paper (Mayner
