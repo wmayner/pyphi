@@ -67,11 +67,17 @@ dev = [
     "pytest>=9.0.3",
     "pytest-cov",
     "ruff",
-    "sphinx",
-    "sphinx-rtd-theme",
     "towncrier>=24.8.0",
     "twine",
     "watchdog",
+]
+docs = [
+    "jupytext",
+    "myst-nb",
+    "pydata-sphinx-theme",
+    "sphinx",
+    "sphinx-copybutton",
+    "sphinx-design",
 ]
 
 [project.urls]
