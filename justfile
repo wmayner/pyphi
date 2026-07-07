@@ -12,11 +12,9 @@ coverage:
     uv run coverage html
     open htmlcov/index.html
 
-# Build documentation
+# Build documentation (warnings are errors, matching CI)
 docs:
-    cd docs && make html
-    cp docs/_static/*.css docs/_build/html/_static
-    cp docs/_static/*.png docs/_build/html/_static
+    uv run --group docs sphinx-build -W --keep-going -b html docs docs/_build/html
 
 # Serve documentation locally
 serve-docs port="1337": docs
