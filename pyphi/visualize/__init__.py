@@ -125,12 +125,11 @@ def plot_ces(
             triangles). Must be 2, 3, or 4. ``2`` (the default) draws every
             face as a star; ``4`` keeps degree-2 lines and degree-3 triangles.
     """
-    from pyphi.models.ces import PhiFold
-
-    if isinstance(ces_, PhiFold):
+    if not getattr(ces_, "relation_closed", True):
         raise TypeError(
-            "cannot plot a PhiFold directly; use highlight_phi_fold(fold) to "
-            "render a fold against its parent structure"
+            "cannot plot a view that is not relation-closed (e.g. a PhiFold); "
+            "use highlight_phi_fold(fold) to render a fold against its parent "
+            "structure"
         )
     projection = project_ces(ces_, node_labels=node_labels)
     if view == "lattice":
