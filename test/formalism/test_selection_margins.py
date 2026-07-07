@@ -186,3 +186,47 @@ def test_runner_up_surface_unchanged(basic_sia):
     # The existing runner-up record keeps its raw-phi semantics.
     assert basic_sia.runner_up is not None
     assert float(basic_sia.runner_up.phi) > float(basic_sia.phi)
+
+
+def _findings_by_kind(explanation):
+    by_kind: dict[str, list] = {}
+    for finding in explanation.findings:
+        by_kind.setdefault(finding.kind, []).append(finding)
+    return by_kind
+
+
+def test_explain_reports_margins(basic_sia):
+    by_kind = _findings_by_kind(basic_sia.explain())
+    assert float(by_kind["partition_margin"][0].value) == pytest.approx(
+        float(basic_sia.partition_margin)
+    )
+    state_margins = by_kind["state_margin"]
+    assert len(state_margins) == 2
+    assert {f.tone for f in state_margins} == {"cause", "effect"}
+    assert by_kind["effectively_tied"][0].value is False
+
+
+def test_explain_flags_effective_tie(xor_sia):
+    by_kind = _findings_by_kind(xor_sia.explain())
+    assert by_kind["effectively_tied"][0].value is True
+
+
+def test_null_sia_explain_has_no_margin_findings():
+    by_kind = _findings_by_kind(NullSystemIrreducibilityAnalysis().explain())
+    assert "partition_margin" not in by_kind
+    assert "state_margin" not in by_kind
+    assert "effectively_tied" not in by_kind
+
+
+def test_to_pandas_includes_margins(basic_sia):
+    record = basic_sia.to_pandas()
+    assert float(record["partition_margin"]) == pytest.approx(
+        float(basic_sia.partition_margin)
+    )
+    assert float(record["cause_state_margin"]) == pytest.approx(
+        float(basic_sia.state_margins[Direction.CAUSE])
+    )
+    assert float(record["effect_state_margin"]) == pytest.approx(
+        float(basic_sia.state_margins[Direction.EFFECT])
+    )
+    assert bool(record["effectively_tied"]) is False
