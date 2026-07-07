@@ -1,0 +1,71 @@
+{
+  "oracle": "pyphi==1.2.0",
+  "numpy": "2.0.2",
+  "python": "3.9.6 (default, May 22 2026, 11:13:45) \n[Clang 21.0.0 (clang-2100.1.1.101)]",
+  "config": {
+    "MEASURE": "EMD",
+    "PARTITION_TYPE": "BI",
+    "PRECISION": 6,
+    "PICK_SMALLEST_PURVIEW": false,
+    "USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE": false,
+    "CUT_ONE_APPROXIMATION": false
+  },
+  "control_basic_sia_phi": 2.3125,
+  "control_passed": true,
+  "fixture": {
+    "state": [
+      1,
+      0,
+      0
+    ],
+    "system_nodes": [
+      0,
+      1
+    ],
+    "background_nodes": [
+      2
+    ],
+    "mechanism": [
+      0
+    ],
+    "purview": [
+      1
+    ]
+  },
+  "cause_repertoire": {
+    "observed": [
+      0.1,
+      0.9
+    ],
+    "predicted_eq4_marginalized": [
+      0.40566037735849053,
+      0.5943396226415094
+    ],
+    "predicted_legacy_conditioned": [
+      0.1,
+      0.9
+    ],
+    "matches_eq4": false,
+    "matches_legacy": true
+  },
+  "effect_repertoire": {
+    "observed": [
+      0.0,
+      1.0
+    ],
+    "predicted_shared": [
+      0.0,
+      1.0
+    ],
+    "matches": true
+  },
+  "sia": {
+    "phi": 0.72,
+    "cut": "Cut [A] \u2501\u2501/ /\u2501\u2501\u27a4 [B]",
+    "ces_size": 2,
+    "reference_2_0_marginalized_semantics": 0.4160651261,
+    "reference_2_0_legacy_semantics_approx": 0.72,
+    "note": "2.0 references computed under presets.iit3, whose config may differ from the oracle flags; the repertoire-level result is the decisive discriminator."
+  },
+  "verdict": "PyPhi 1.2.0 conditions background units at their CURRENT state on the cause side (legacy convention)"
+}
