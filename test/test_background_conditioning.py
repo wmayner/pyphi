@@ -126,3 +126,31 @@ class TestValueSemantics:
         assert restored.background_conditioning == "CONDITION_CURRENT_STATE"
         plain = _system(substrate)
         assert serialize.loads(serialize.dumps(plain)) == plain
+
+
+class TestActualCausationInsulation:
+    def test_ac_account_invariant_under_the_knob(self, substrate):
+        # A transition over a proper subset of the substrate: background
+        # unit C is outside the transition, the exact situation where the
+        # knob would otherwise leak into AC cause repertoires.
+        from pyphi import actual
+
+        def account_alphas():
+            transition = actual.Transition(
+                substrate,
+                before_state=(1, 0, 0),
+                after_state=(0, 1, 0),
+                cause_indices=(0, 1),
+                effect_indices=(0, 1),
+            )
+            account = actual.account(transition)
+            return sorted(
+                (link.direction, tuple(link.mechanism), float(link.alpha))
+                for link in account
+            )
+
+        baseline = account_alphas()
+        with config.override(background_conditioning="CONDITION_CURRENT_STATE"):
+            flipped = account_alphas()
+        assert flipped == baseline
+        assert len(baseline) > 0

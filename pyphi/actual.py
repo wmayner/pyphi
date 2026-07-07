@@ -69,6 +69,7 @@ _DELEGATED_TO_SYSTEM: frozenset[str] = frozenset(
         "cause_marginal",
         "effect_marginal",
         "background_conditioning",
+        "_resolved_background_conditioning",
         "proper_cause_marginal",
         "proper_effect_marginal",
         "cm",
@@ -138,6 +139,12 @@ class TransitionSystem:
     (forward conditioning on the observed cause). Two
     :class:`TransitionSystem` instances live inside each
     :class:`Transition`, one per direction.
+
+    The underlying System is pinned to ``background_conditioning =
+    "CAUSAL_MARGINALIZATION"``: actual causation's background rule is
+    ``ActualCausationConfig.background_scheme``, not the IIT-formalism
+    ``background_conditioning`` option, so the pin keeps AC results
+    identical regardless of that option's value.
 
     The shared System surface delegated to the underlying System is the
     explicit allow-list :data:`_DELEGATED_TO_SYSTEM`; everything else is
@@ -214,6 +221,7 @@ class TransitionSystem:
                 node_indices=self.node_indices,
                 partition=self.partition,
                 external_indices=external,
+                background_conditioning="CAUSAL_MARGINALIZATION",
             )
 
     @cached_property
