@@ -429,6 +429,10 @@ with pyphi.config.override(precision=10):
 
 - **`version`**: ``"IIT_3_0"`` / ``"IIT_4_0_2023"`` / ``"IIT_4_0_2026"``
 - **`shortcircuit_sia`**: Short-circuit if reducibility detected (default: true)
+- **`background_conditioning`**: cause-side background handling —
+  ``"CAUSAL_MARGINALIZATION"`` (IIT 4.0 Eq. 4; default) or
+  ``"CONDITION_CURRENT_STATE"`` (PyPhi 1.x convention; set by
+  ``presets.iit3``). Only affects proper-subset systems.
 
 #### Numerics (``config.numerics``)
 

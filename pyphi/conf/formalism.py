@@ -37,7 +37,34 @@ _VALID_ALPHA_AGGREGATIONS = frozenset({"SUBTRACTIVE"})
 
 @dataclass(frozen=True)
 class IITConfig:
-    """IIT-formalism configuration sub-namespace."""
+    """IIT-formalism configuration sub-namespace.
+
+    Background conditioning (``background_conditioning``)
+        How substrate units outside the candidate system (the background)
+        enter cause repertoires when the system is a proper subset of its
+        substrate:
+
+        - ``"CAUSAL_MARGINALIZATION"`` (default): the background past is
+          causally marginalized conditional on the current state — the
+          "extended background" of IIT 4.0 (Albantakis et al. 2023, Eq. 4).
+          Definitional for IIT 4.0.
+        - ``"CONDITION_CURRENT_STATE"``: the background is fixed at its
+          observed current state — the convention of PyPhi 1.x and the
+          post-2014 IIT 3.0 literature. Selected by ``presets.iit3`` so
+          that IIT 3.0 analyses of proper-subset systems reproduce
+          published results.
+
+        The IIT 3.0 paper itself (Oizumi et al. 2014, Box 1) fixes the
+        background at its actual *past* state on the cause side. That
+        convention requires the past state as an input, which no PyPhi
+        version has ever taken, and it is not implemented.
+
+        The effect side conditions the background at its current state
+        under every convention, and full-substrate systems have no
+        background, so the setting affects neither. Actual-causation
+        analyses are unaffected: the AC background rule is set by
+        ``ActualCausationConfig.background_scheme``.
+    """
 
     version: str = "IIT_4_0_2023"
     mechanism_phi_measure: str = "GENERALIZED_INTRINSIC_DIFFERENCE"
