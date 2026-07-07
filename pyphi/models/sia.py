@@ -37,8 +37,8 @@ class IIT3SystemIrreducibilityAnalysis(
 ):
     """An analysis of system irreducibility (|big_phi|).
 
-    Contains the |big_phi| value of the |System| and the intermediate
-    results obtained in the course of computing it.
+    Contains the |big_phi| value of the :class:`~pyphi.system.System` and the
+    intermediate results obtained in the course of computing it.
 
     These can be compared with the built-in Python comparison operators (``<``,
     ``>``, etc.). First, |big_phi| values are compared. Then, if these are

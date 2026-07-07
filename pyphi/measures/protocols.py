@@ -11,7 +11,7 @@ Protocols; the registries are typed against the corresponding Protocol.
 - ``StateAwareMeasure``: (p, state) -> float | DistanceResult. Pointwise
   probability at a specified state. INTRINSIC_DIFFERENTIATION returns
   DistanceResult.
-- ``CompositeMeasure``: (forward, partitioned, selectivity, *, state)
+- ``CompositeMeasure``: (forward, partitioned, selectivity, \\*, state)
   -> DistanceResult. Multi-input measure returning rich metadata; used
   by GID / INTRINSIC_INFORMATION / INTRINSIC_SPECIFICATION at the
   system level.

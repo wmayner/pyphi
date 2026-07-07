@@ -199,7 +199,7 @@ class DistanceResult(PyPhiFloat):
     def values_array(
         cls, results: Iterable[DistanceResult], dtype: Any = None
     ) -> np.ndarray:
-        """Return the float values of an iterable of ``DistanceResult``s
+        """Return the float values of an iterable of ``DistanceResult``\\ s
         as a NumPy array.
 
         Auxiliary metadata (``method``, ``state``, etc.) is intentionally

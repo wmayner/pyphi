@@ -107,7 +107,7 @@ def _compute_distinctions(
 
     Args:
         system (System): The system for which to determine the
-            |Distinctions|.
+            :class:`~pyphi.models.distinctions.Distinctions`.
 
     Keyword Args:
         mechanisms (tuple[tuple[int]]): Restrict possible mechanisms to those
@@ -220,10 +220,10 @@ def _any_phi(concepts: Iterable[Any]) -> list[Concept]:
 
 
 def conceptual_info(system: System, **kwargs: Any) -> float:
-    """Return the conceptual information for a |System|.
+    """Return the conceptual information for a :class:`~pyphi.system.System`.
 
-    This is the distance from the system's |Distinctions| to the
-    null concept.
+    This is the distance from the system's
+    :class:`~pyphi.models.distinctions.Distinctions` to the null concept.
     """
     ci = ces_distance(
         _compute_distinctions(system, **kwargs), ResolvedDistinctions(()), system=system
@@ -313,7 +313,8 @@ def sia_partitions(
 
 
 def _ces(system: System, **kwargs: Any) -> Distinctions:
-    """Compute the unpartitioned |Distinctions| using the partition-evaluation
+    """Compute the unpartitioned :class:`~pyphi.models.distinctions.Distinctions`
+    using the partition-evaluation
     parallel settings, on the rationale that no cuts are being evaluated yet
     so the same worker budget is available.
     """

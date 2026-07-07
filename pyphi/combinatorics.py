@@ -91,9 +91,11 @@ def combinations_with_nonempty_intersection(
 def num_subsets_larger_than_one_element(n: int) -> int:
     """Return the number of subsets on N elements with size >1.
 
-    |X| = |P(n)| - |{S ∈ P(n) | |S| = 1}| - |{S ∈ P(n) | |S| = 0}|
-        = 2^n    - (n choose 1)             - |{ø}|
-        = 2^n    - n                        - 1
+    ::
+
+        |X| = |P(n)| - |{S ∈ P(n) | |S| = 1}| - |{S ∈ P(n) | |S| = 0}|
+            = 2^n    - (n choose 1)             - |{ø}|
+            = 2^n    - n                        - 1
     """
     return 2**n - n - 1  # type: ignore[no-any-return]
 

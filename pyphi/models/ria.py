@@ -204,10 +204,10 @@ class RepertoireIrreducibilityAnalysis(
 
     @property
     def phi(self) -> PyPhiFloat:  # type: ignore[override]
-        """PyPhiFloat: Canonical |small_phi| value (|·|+ clamped).
+        """PyPhiFloat: Canonical |small_phi| value (``|·|+`` clamped).
 
         This is ``positive_part(signed_phi)`` — the integrated information
-        value with the |·|+ operator applied (Eqs. 19-20 of the IIT 4.0
+        value with the ``|·|+`` operator applied (Eqs. 19-20 of the IIT 4.0
         paper). Always non-negative. For the raw value before clamping
         (which may be negative under preventative-cause semantics), see
         ``signed_phi``.
@@ -216,7 +216,7 @@ class RepertoireIrreducibilityAnalysis(
 
     @property
     def signed_phi(self) -> PyPhiFloat | DistanceResult:
-        """The raw |small_phi| before the |·|+ clamp.
+        """The raw |small_phi| before the ``|·|+`` clamp.
 
         When negative, flags preventative-cause structure that the
         clamped ``phi`` hides. Surfaced for diagnostic inspection of
@@ -226,12 +226,12 @@ class RepertoireIrreducibilityAnalysis(
 
     @property
     def normalized_phi(self):
-        """float: Canonical normalized |small_phi| (|·|+ clamped)."""
+        """float: Canonical normalized |small_phi| (``|·|+`` clamped)."""
         return self._normalized_phi
 
     @property
     def signed_normalized_phi(self):
-        """float: Raw normalized |small_phi| before the |·|+ clamp."""
+        """float: Raw normalized |small_phi| before the ``|·|+`` clamp."""
         return self._signed_normalized_phi
 
     @property
