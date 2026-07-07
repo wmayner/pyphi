@@ -68,6 +68,7 @@ _DELEGATED_TO_SYSTEM: frozenset[str] = frozenset(
         # TPM / structural surface:
         "cause_marginal",
         "effect_marginal",
+        "background_conditioning",
         "proper_cause_marginal",
         "proper_effect_marginal",
         "cm",

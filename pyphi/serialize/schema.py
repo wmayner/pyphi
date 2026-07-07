@@ -357,6 +357,7 @@ class SystemSchema(msgspec.Struct, frozen=True, tag="system"):
     node_indices: tuple[int, ...]
     partition: PartitionSchema
     external_indices: tuple[int, ...]
+    background_conditioning: str | None = None
 
 
 class TransitionSchema(msgspec.Struct, frozen=True, tag="transition"):

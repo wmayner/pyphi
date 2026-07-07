@@ -20,6 +20,7 @@ import numpy as np
 from pyphi import connectivity
 from pyphi import utils
 from pyphi import validate
+from pyphi.conf.formalism import _VALID_BACKGROUND_CONDITIONING
 from pyphi.display import HIGH
 from pyphi.display import LOW
 from pyphi.display import Description
@@ -37,6 +38,7 @@ from pyphi.substrate import _coerce_state_to_indices
 from .core.tpm.factored import FactoredTPM
 from .core.tpm.marginalization import CauseMarginals
 from .core.tpm.marginalization import _effect_marginal_factored
+from .core.tpm.marginalization import cause_conditioned as _condition_cause
 from .core.tpm.marginalization import cause_marginal as _marginalize_cause
 
 if TYPE_CHECKING:
@@ -54,6 +56,10 @@ class System(Displayable, ToPandasMixin, Serializable):
     ``substrate - node_indices`` — the "extended background" convention
     of IIT 4.0. An explicit override (used by ``TransitionSystem`` for
     actual-causation analysis) may overlap with ``node_indices``.
+
+    The ``background_conditioning`` field pins this System to one
+    cause-side background convention. ``None`` (the default) resolves
+    ``config.formalism.iit.background_conditioning`` at compute time.
     """
 
     substrate: Substrate
@@ -61,6 +67,7 @@ class System(Displayable, ToPandasMixin, Serializable):
     node_indices: NodeIndices = field(default=None)  # type: ignore[assignment]
     partition: DirectedBipartition = field(default=None)  # type: ignore[assignment]
     external_indices: tuple[int, ...] = field(default=None)  # type: ignore[assignment]
+    background_conditioning: str | None = field(default=None)
 
     def __post_init__(self) -> None:
         substrate = self.substrate
@@ -113,6 +120,14 @@ class System(Displayable, ToPandasMixin, Serializable):
                     f"external_indices must not contain duplicates; got {ext}"
                 )
             object.__setattr__(self, "external_indices", ext)
+        if (
+            self.background_conditioning is not None
+            and self.background_conditioning not in _VALID_BACKGROUND_CONDITIONING
+        ):
+            raise ValueError(
+                f"background_conditioning={self.background_conditioning!r} "
+                f"not in {sorted(_VALID_BACKGROUND_CONDITIONING)} (or None)"
+            )
         from pyphi.conf import config as _config
 
         if _config.infrastructure.validate_system_states:
@@ -147,6 +162,7 @@ class System(Displayable, ToPandasMixin, Serializable):
             and self.node_indices == other.node_indices
             and self.partition == other.partition
             and self.external_indices == other.external_indices
+            and self.background_conditioning == other.background_conditioning
         )
 
     def __hash__(self) -> int:
@@ -157,6 +173,7 @@ class System(Displayable, ToPandasMixin, Serializable):
                 self.node_indices,
                 self.partition,
                 self.external_indices,
+                self.background_conditioning,
             )
         )
 
@@ -166,9 +183,11 @@ class System(Displayable, ToPandasMixin, Serializable):
 
         Serializes exactly the components :meth:`__eq__` compares: the substrate
         math fingerprint, the index-coerced state, the node and external indices,
-        and the partition's mathematical content (``indices`` + ``removed_edges``).
-        Used as the repertoire kernel cache key so distinct-but-equivalent
-        systems share entries.
+        the partition's mathematical content (``indices`` + ``removed_edges``),
+        and the pinned background convention. Used as the repertoire kernel
+        cache key so distinct-but-equivalent systems share entries. Changing
+        this digest orphans old disk-cache entries, which the key-addressed
+        disk cache handles by design.
         """
         h = hashlib.blake2b(digest_size=32)
         h.update(self.substrate._fingerprint)
@@ -177,6 +196,7 @@ class System(Displayable, ToPandasMixin, Serializable):
         h.update(repr(tuple(self.external_indices)).encode())
         h.update(repr(tuple(sorted(self.partition.indices))).encode())
         h.update(repr(sorted(self.partition.removed_edges())).encode())
+        h.update(repr(self.background_conditioning).encode())
         return h.digest()
 
     def __len__(self) -> int:
@@ -272,9 +292,8 @@ class System(Displayable, ToPandasMixin, Serializable):
         new = replace(self, partition=partition)
         for name in (
             "_typed_tpm",
-            "cause_marginal",
+            "_cause_marginals",
             "effect_marginal",
-            "proper_cause_marginal",
             "proper_effect_marginal",
         ):
             if name in self.__dict__:
@@ -326,14 +345,44 @@ class System(Displayable, ToPandasMixin, Serializable):
         """The canonical FactoredTPM stored on the substrate."""
         return self.substrate.factored_tpm
 
+    def _resolved_background_conditioning(self) -> str:
+        """The cause-side background convention in effect for this System:
+        the instance pin when set, else the live config value."""
+        if self.background_conditioning is not None:
+            return self.background_conditioning
+        from pyphi.conf import config as _config
+
+        return _config.formalism.iit.background_conditioning
+
     @cached_property
+    def _cause_marginals(self) -> dict[str, CauseMarginals]:
+        """Per-convention cause factors, computed on demand."""
+        return {}
+
+    @property
     def cause_marginal(self) -> CauseMarginals:
-        """Per-system-unit cause factors; see IIT 4.0 Eq. 4."""
-        return _marginalize_cause(
-            self._typed_tpm,
-            self.state,
-            self.node_indices,
-        )
+        """Per-system-unit cause factors under the active background
+        convention: IIT 4.0 Eq. 4 marginalization, or the background
+        conditioned at its observed state (``CONDITION_CURRENT_STATE``).
+        """
+        convention = self._resolved_background_conditioning()
+        if convention not in self._cause_marginals:
+            if convention == "CONDITION_CURRENT_STATE":
+                external_state = utils.state_of(self.external_indices, self.state)
+                background = dict(
+                    zip(self.external_indices, external_state, strict=True)
+                )
+                marginals = _condition_cause(
+                    self._typed_tpm, self.node_indices, background
+                )
+            else:
+                marginals = _marginalize_cause(
+                    self._typed_tpm,
+                    self.state,
+                    self.node_indices,
+                )
+            self._cause_marginals[convention] = marginals
+        return self._cause_marginals[convention]
 
     @cached_property
     def effect_marginal(self) -> FactoredTPM:
@@ -366,7 +415,7 @@ class System(Displayable, ToPandasMixin, Serializable):
             system_factors.append(f)
         return FactoredTPM(factors=system_factors, node_labels=self._unit_labels())
 
-    @cached_property
+    @property
     def proper_cause_marginal(self) -> FactoredTPM:
         """Cause TPM restricted to system units.
 
@@ -427,23 +476,30 @@ class System(Displayable, ToPandasMixin, Serializable):
         return self.substrate.size
 
     @cached_property
+    def _nodes_by_convention(self) -> dict[str, Any]:
+        return {}
+
+    @property
     def nodes(self) -> Any:
         from pyphi.node import generate_nodes
 
-        return generate_nodes(
-            self.cause_marginal,
-            self.effect_marginal,
-            self.cm,
-            self.state,
-            self.node_indices,
-            self.node_labels,
-        )
+        convention = self._resolved_background_conditioning()
+        if convention not in self._nodes_by_convention:
+            self._nodes_by_convention[convention] = generate_nodes(
+                self.cause_marginal,
+                self.effect_marginal,
+                self.cm,
+                self.state,
+                self.node_indices,
+                self.node_labels,
+            )
+        return self._nodes_by_convention[convention]
 
     @cached_property
     def partitioned_mechanisms(self) -> Any:
         return list(self.partition.all_cut_mechanisms())
 
-    @cached_property
+    @property
     def _index2node(self) -> dict[int, Any]:
         return {node.index: node for node in self.nodes}
 

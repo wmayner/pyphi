@@ -1185,10 +1185,10 @@ def test_system_marginals_gated_to_high_verbosity():
         out = repr(sysm)
     assert "Connectivity" in out
     assert "Cause TPM" not in out  # marginals omitted...
-    assert "proper_cause_marginal" not in sysm.__dict__  # ...and not computed
+    assert "_cause_marginals" not in sysm.__dict__  # ...and not computed
     with pyphi.config.override(repr_verbosity=2):  # HIGH (default)
         assert "Cause TPM" in repr(sysm)
-    assert "proper_cause_marginal" in sysm.__dict__  # computed only at HIGH
+    assert sysm.__dict__.get("_cause_marginals")  # computed only at HIGH
 
 
 def test_substrate_tpm_grid_gated_to_high_verbosity():

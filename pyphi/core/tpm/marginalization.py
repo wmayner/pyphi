@@ -197,6 +197,31 @@ def cause_marginal(
     return cause_marginal(factored, state, node_indices)
 
 
+def cause_conditioned(
+    tpm: TPM,
+    node_indices: tuple[int, ...],
+    background: Mapping[int, int],
+) -> CauseMarginals:
+    """Cause factors with background units conditioned at their observed
+    state — the PyPhi 1.x convention.
+
+    Each output unit ``i`` in ``node_indices`` gets the forward factor
+    ``P(s_i,t+1 | s_t)`` with the background input axes fixed at
+    ``background`` (kept as size-1 dims), in the same
+    ``(*alphabet_sizes, k_i)`` substrate-global axis convention as
+    :func:`cause_marginal`. Equivalent to IIT 4.0 Eq. 4 evaluated on the
+    background-conditioned TPM, where the background weight is identically
+    1. Bayesian inversion and normalization happen downstream in the
+    repertoire algebra, exactly as for the marginalized factors.
+    """
+    if isinstance(tpm, JointTPM):
+        tpm = FactoredTPM.from_joint(tpm._inner)
+    elif not isinstance(tpm, FactoredTPM):
+        tpm = FactoredTPM.from_joint(tpm.to_array())
+    conditioned = tpm.condition(dict(background))
+    return CauseMarginals({i: conditioned.factor(i) for i in node_indices})
+
+
 def effect_marginal(
     tpm: TPM,
     background: Mapping[int, int],

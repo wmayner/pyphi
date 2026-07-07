@@ -49,6 +49,11 @@ def _memoize(fn: Callable) -> Callable:
     inserting new entries when ``cache_utils.memory_full()`` reports process
     memory above ``maximum_cache_memory_percentage`` — already-computed values
     are still returned, just not cached.
+
+    Cache keys carry the resolved cause-side background convention, so
+    cause-side entries never cross conventions (effect-side entries are
+    duplicated per convention, which only costs anything when a process
+    actually flips the option).
     """
     cache = ContentCache(f"kernel.{fn.__name__}")
     _kernel_caches[fn.__name__] = cache
@@ -57,7 +62,8 @@ def _memoize(fn: Callable) -> Callable:
     def wrapper(cs: Any, *args: Any) -> Any:
         fp = cs._fingerprint
         cache.observe(cs, fp)
-        return cache.get_or_compute(fp, args, lambda: fn(cs, *args))
+        key_args = (cs._resolved_background_conditioning(), *args)
+        return cache.get_or_compute(fp, key_args, lambda: fn(cs, *args))
 
     return wrapper
 

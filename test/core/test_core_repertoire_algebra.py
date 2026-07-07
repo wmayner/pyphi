@@ -21,6 +21,9 @@ def test_memoize_caches_results() -> None:
     class FakeCs:
         _fingerprint = b"fake-caches-fp"
 
+        def _resolved_background_conditioning(self):
+            return "CAUSAL_MARGINALIZATION"
+
     cs = FakeCs()
     assert f(cs, 3) == 6
     assert f(cs, 3) == 6
@@ -38,6 +41,9 @@ def test_memoize_evicts_on_gc() -> None:
 
     class FakeCs:
         _fingerprint = b"fake-evict-fp"
+
+        def _resolved_background_conditioning(self):
+            return "CAUSAL_MARGINALIZATION"
 
     cs = FakeCs()
     f(cs, 1)
@@ -64,6 +70,9 @@ def test_memoize_does_not_poison_on_failure() -> None:
 
     class FakeCs:
         _fingerprint = b"fake-poison-fp"
+
+        def _resolved_background_conditioning(self):
+            return "CAUSAL_MARGINALIZATION"
 
     cs = FakeCs()
     with pytest.raises(ValueError):

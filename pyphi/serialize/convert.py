@@ -749,6 +749,7 @@ def _register_system() -> None:
         node_indices=tuple(s.node_indices),
         partition=to_schema(s.partition),
         external_indices=tuple(s.external_indices),
+        background_conditioning=s.background_conditioning,
     )
     _DECODERS[schema.SystemSchema] = lambda s: System(
         substrate=from_schema(s.substrate),
@@ -756,6 +757,7 @@ def _register_system() -> None:
         node_indices=tuple(s.node_indices),
         partition=from_schema(s.partition),
         external_indices=tuple(s.external_indices),
+        background_conditioning=s.background_conditioning,
     )
 
 

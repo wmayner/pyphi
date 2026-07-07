@@ -134,6 +134,9 @@ def test_single_node_cause_repertoire_k3() -> None:
                 tuple((i, n.state) for i, n in sorted(index2node.items()))
             ).encode()
 
+        def _resolved_background_conditioning(self) -> str:
+            return "CAUSAL_MARGINALIZATION"
+
     # Per-node cause factor: 2-node substrate, k=3 alphabet, k=3 outputs.
     # Shape (3, 3, 3) -- last axis is this node's output-state distribution.
     factor = _random_kary_factor(2, 3, seed=40)

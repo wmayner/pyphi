@@ -826,3 +826,27 @@ def permuted_system(system, perm):
     cm2 = np.asarray(system.substrate.cm)[np.ix_(perm, perm)]
     state2 = tuple(system.state[p] for p in perm)
     return System(Substrate(arr2, cm=cm2), state=state2, node_indices=tuple(range(n)))
+
+
+def noisy_or_background_substrate():
+    """3-unit substrate whose cause repertoires discriminate background
+    conventions for the proper-subset system {A, B}.
+
+    ``p(A'=1 | b, c) = 0.9 if (b or c) else 0.1`` (parents B, C);
+    ``B' = copy(A)``; ``p(C'=1 | ·) = 0.5`` (no parents). With system
+    S = {A, B} and background W = {C}, the noisy background parent C makes
+    the cause side differ between causal marginalization and current-state
+    conditioning of W.
+    """
+
+    def p_a_on(b, c):
+        return 0.9 if (b or c) else 0.1
+
+    rows = [
+        (p_a_on(b, c), float(a), 0.5) for c in (0, 1) for b in (0, 1) for a in (0, 1)
+    ]
+    return Substrate(
+        np.array(rows),
+        cm=np.array([[0, 1, 0], [1, 0, 0], [1, 0, 0]]),
+        node_labels=("A", "B", "C"),
+    )
