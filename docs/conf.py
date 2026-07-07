@@ -31,6 +31,7 @@ exclude_patterns = [
     "**/.ipynb_checkpoints",
     "examples/IIT_4.0_demo.ipynb",
     "examples/serialize_demo.ipynb",
+    "getting-started/first-computation.ipynb",
 ]
 
 # Substitutions used by the retained reStructuredText pages (conventions,

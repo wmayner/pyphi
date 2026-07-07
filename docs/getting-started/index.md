@@ -5,4 +5,5 @@
 
 ../installation
 ../macos_installation
+first-computation
 ```
