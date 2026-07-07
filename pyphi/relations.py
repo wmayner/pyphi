@@ -257,6 +257,15 @@ def all_relations(distinctions, min_degree=2, max_degree=None, **kwargs):
         distinctions, min_degree=min_degree, max_degree=max_degree
     )
 
+    # ``Relation`` is lazy (phi/faces are cached properties), so each mapped
+    # item is nearly free (~µs) and parallel dispatch cost is dominated by
+    # pickling the relations back — measured never to pay at any size
+    # (benchmarks/b18_dispatch_gate.py), which is what the high
+    # ``parallel_relation_evaluation`` sequential_threshold default encodes.
+    # If relation evaluation gains real per-item cost (e.g. an eager or
+    # expensive phi), force that work inside this worker and remeasure;
+    # note eager phi also caches ~1 kB/relation (phi + purview) on objects
+    # whose count grows combinatorially with the number of distinctions.
     def worker(combination):
         return Relation(distinctions[i] for i in combination)
 
