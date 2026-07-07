@@ -357,6 +357,13 @@ class CauseEffectStructure(
         common = set(self.distinctions) & set(other.distinctions)
         return self.induce(d.mechanism for d in common)
 
+    def relabel(self, mapping, node_labels=None) -> CauseEffectStructure:
+        """Return this structure rewritten through the node-index bijection
+        ``mapping``. See :func:`pyphi.relabel.relabel_ces`."""
+        from pyphi.relabel import relabel_ces
+
+        return relabel_ces(self, mapping, node_labels=node_labels)
+
     def _changes(self, other) -> tuple[Change, ...]:
         from pyphi import utils
 
