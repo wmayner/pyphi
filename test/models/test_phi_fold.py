@@ -127,3 +127,46 @@ def test_analytical_fold_tiles_big_phi(xor_ces_analytical):
         fold.big_phi_contribution for fold in xor_ces_analytical.distinction_folds()
     )
     assert total == pytest.approx(xor_ces_analytical.big_phi)
+
+
+def test_multiseed_fold_contribution_is_additive(xor_ces):
+    # every pair of xor distinctions shares relations, so this discriminates
+    # share-weighting from counting each incident relation once
+    a, b = xor_ces.distinctions[0], xor_ces.distinctions[1]
+    combined = xor_ces.fold([a, b]).big_phi_contribution
+    separate = (
+        xor_ces.fold([a]).big_phi_contribution + xor_ces.fold([b]).big_phi_contribution
+    )
+    assert combined == pytest.approx(separate)
+
+
+def test_fold_partition_tiles_big_phi(xor_ces):
+    ds = list(xor_ces.distinctions)
+    for blocks in ([ds[:2], ds[2:]], [ds[:1], ds[1:]], [ds[:3], ds[3:]]):
+        total = sum(xor_ces.fold(block).big_phi_contribution for block in blocks)
+        assert total == pytest.approx(xor_ces.big_phi)
+
+
+def test_multiseed_contribution_matches_manual_share_weighting(xor_ces):
+    seeds = set(xor_ces.distinctions[:2])
+    fold = xor_ces.fold(list(seeds))
+    expected = sum(d.phi for d in seeds) + sum(
+        r.phi * len(seeds & set(r)) / len(r) for r in xor_ces.relations if seeds & set(r)
+    )
+    assert fold.big_phi_contribution == pytest.approx(expected)
+
+
+def test_analytical_multiseed_contribution_matches_concrete(xor_ces, xor_ces_analytical):
+    mechanisms = [d.mechanism for d in xor_ces.distinctions[:2]]
+    concrete = xor_ces.fold(mechanisms).big_phi_contribution
+    analytical = xor_ces_analytical.fold(mechanisms).big_phi_contribution
+    assert analytical == pytest.approx(concrete)
+
+
+def test_analytical_fold_partition_tiles_big_phi(xor_ces_analytical):
+    ds = list(xor_ces_analytical.distinctions)
+    total = sum(
+        xor_ces_analytical.fold([d.mechanism for d in block]).big_phi_contribution
+        for block in (ds[:2], ds[2:])
+    )
+    assert total == pytest.approx(xor_ces_analytical.big_phi)

@@ -383,16 +383,26 @@ class PhiFold(CauseEffectStructure):
 
     @property
     def sum_phi_relations_contribution(self):
-        """Σ over incident relations of ``φ_r / |r|`` — the relations' share of
-        the fold's contribution to the structure's Φ.
+        """Σ over incident relations of ``φ_r · |r ∩ F| / |r|``, where ``F``
+        is the set of seed distinctions — the seeds' share of each incident
+        relation's φ.
         """
-        return self.relations.apportioned_sum_phi()
+        from pyphi.relations import AnalyticalFoldRelations
+
+        if isinstance(self.relations, AnalyticalFoldRelations):
+            return self.relations.share_weighted_sum_phi()
+        seeds = set(self.distinctions)
+        return sum(
+            relation.phi * len(seeds & set(relation)) / len(relation)
+            for relation in self.relations  # pyright: ignore[reportGeneralTypeIssues]  # Relations base lacks __iter__; folds hold ConcreteRelations here
+        )
 
     @property
     def big_phi_contribution(self):
-        """The fold's additive contribution to the structure's Φ (the paper's
-        Φ_d): the seed distinctions' full φ plus each incident relation's φ
-        apportioned across the distinctions it binds. Summing this over a
-        structure's single-distinction folds recovers its ``big_phi``.
+        """The fold's additive contribution to the structure's Φ: the seed
+        distinctions' full φ plus the seeds' share of each incident
+        relation's φ (``φ_r · |r ∩ F| / |r|``). Summing this over the folds
+        of any partition of the structure's distinctions recovers
+        ``big_phi``.
         """
         return self.sum_phi_distinctions + self.sum_phi_relations_contribution

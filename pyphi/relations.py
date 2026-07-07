@@ -507,6 +507,8 @@ class AnalyticalFoldRelations(AnalyticalRelations):
     def __init__(self, parent_distinctions, seeds):
         super().__init__(parent_distinctions)
         self._full = AnalyticalRelations(parent_distinctions)
+        self._seeds = tuple(seeds)
+        self._share_weighted_cached = None
         seed_mechanisms = {tuple(d.mechanism) for d in seeds}
         from pyphi.models.distinctions import ResolvedDistinctions
 
@@ -523,6 +525,31 @@ class AnalyticalFoldRelations(AnalyticalRelations):
 
     def _apportioned_sum_phi(self):
         return self._full.apportioned_sum_phi() - self._complement.apportioned_sum_phi()
+
+    def share_weighted_sum_phi(self):
+        """Σ over incident relations of ``φ_r · |r ∩ F| / |r|``, where ``F``
+        is the seed set.
+
+        Computed without enumeration: for a single seed ``d``, the incident
+        apportioned total is ``total(D) - total(D\\{d})`` over two closed-form
+        :class:`AnalyticalRelations` sums, and the share-weighted total over
+        ``F`` is the sum of these single-seed incident totals (a relation of
+        degree ``|r|`` binding ``k`` seeds is counted ``k`` times at
+        ``φ_r/|r|``).
+        """
+        if self._share_weighted_cached is None:
+            from pyphi.models.distinctions import ResolvedDistinctions
+
+            total = self._full.apportioned_sum_phi()
+            result = 0
+            for seed in self._seeds:
+                seed_mechanism = tuple(seed.mechanism)
+                others = ResolvedDistinctions(
+                    d for d in self.distinctions if tuple(d.mechanism) != seed_mechanism
+                )
+                result += total - AnalyticalRelations(others).apportioned_sum_phi()
+            self._share_weighted_cached = result
+        return self._share_weighted_cached
 
 
 def relations(
