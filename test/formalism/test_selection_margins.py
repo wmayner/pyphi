@@ -230,3 +230,39 @@ def test_to_pandas_includes_margins(basic_sia):
         float(basic_sia.state_margins[Direction.EFFECT])
     )
     assert bool(record["effectively_tied"]) is False
+
+
+def test_fig1a_2023_state_margins_match_brute_force():
+    """IIT 4.0 (2023) Fig. 1A: the substrate near a specified-state switch
+    reports finite, brute-force-consistent state margins.
+
+    The Fig. 1A substrate is not in ``pyphi.examples``; it is built here from
+    its published Ising weights. Observed values at the published point
+    (default config, IIT_4_0_2023): φ_s = 0.133873, partition_margin =
+    0.026941, cause state margin = 0.003492, effect state margin = 0.030059.
+    All margins are finite and positive, so the selection is not tied.
+    """
+    import numpy as np
+
+    from pyphi.substrate_generator import build_substrate
+    from pyphi.substrate_generator import ising
+
+    weights = np.array(
+        [
+            [-0.2, 0.7, 0.2],
+            [0.7, -0.2, 0.0],
+            [0.0, -0.8, 0.2],
+        ]
+    )
+    substrate = build_substrate([ising.probability] * 3, weights, temperature=0.25)
+    sia = pyphi.analyze(substrate, (1, 0, 0), compute="sia")
+    assert float(sia.phi) > 0
+
+    system = pyphi.System(substrate, state=(1, 0, 0))
+    for direction in Direction.both():
+        values = sorted(_per_state_ii(system, direction).values(), reverse=True)
+        margin = sia.state_margins[direction]
+        assert margin is not None
+        assert float(margin) == pytest.approx(values[0] - values[1])
+    # Its selections are near a boundary but not tied at the published point.
+    assert not sia.effectively_tied
