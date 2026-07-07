@@ -6,8 +6,10 @@ import pytest
 import pyphi
 from pyphi import examples
 from pyphi.estimate import CoverageReport
+from pyphi.estimate import PhiPosterior
 from pyphi.estimate import SubstratePosterior
 from pyphi.estimate import estimate_substrate
+from pyphi.estimate import phi_posterior
 
 
 @pytest.fixture(autouse=True)
@@ -176,3 +178,79 @@ def test_provenance_records_observational_assertion():
     record = posterior.provenance.estimator
     assert record["regime"] == "observational"
     assert record["uncovered_state_count"] == 6
+
+
+@pytest.fixture(scope="module")
+def grid3_posterior():
+    """A seeded posterior over grid3 from sparse perturbational data."""
+    substrate = examples.grid3_substrate()
+    pon = _ground_truth_pon(substrate)
+    rng = np.random.default_rng(20260708)
+    current, nxt = [], []
+    for row in range(8):
+        state = tuple((row >> i) & 1 for i in range(3))
+        for _ in range(5):
+            current.append(state)
+            nxt.append(tuple(rng.random(3) < pon[row]))
+    data = (np.array(current), np.array(nxt, dtype=int))
+    return estimate_substrate(data, regime="perturbational")
+
+
+@pytest.fixture(scope="module")
+def grid3_phi_posterior(grid3_posterior):
+    with pyphi.config.override(progress_bars=False):
+        return phi_posterior(grid3_posterior, (0, 0, 0), n_samples=40, seed=99)
+
+
+def test_phi_posterior_seed_required(grid3_posterior):
+    with pytest.raises(TypeError):
+        phi_posterior(grid3_posterior, (0, 0, 0), n_samples=2)  # pyright: ignore[reportCallIssue]
+
+
+def test_phi_posterior_is_reproducible(grid3_posterior):
+    a = phi_posterior(grid3_posterior, (0, 0, 0), n_samples=5, seed=42)
+    b = phi_posterior(grid3_posterior, (0, 0, 0), n_samples=5, seed=42)
+    np.testing.assert_array_equal(a.samples, b.samples)
+    assert a.complex_samples == b.complex_samples
+    assert a.seed == 42
+
+
+def test_phi_posterior_is_a_mixture(grid3_phi_posterior):
+    pp = grid3_phi_posterior
+    assert isinstance(pp, PhiPosterior)
+    assert pp.samples.shape == (40,)
+    assert 0.0 < pp.p_positive < 1.0  # both mixture components present
+    lo, hi = pp.quantiles([0.025, 0.975])
+    assert lo == pytest.approx(0.0)
+    assert hi > 0.0
+    cond = pp.conditional_quantiles([0.5])
+    assert cond is not None and cond[0] > 0.0
+
+
+def test_phi_posterior_refuses_float_coercion(grid3_phi_posterior):
+    with pytest.raises(TypeError, match="p_positive"):
+        float(grid3_phi_posterior)
+
+
+def test_complex_identity_is_categorical(grid3_phi_posterior):
+    identity = grid3_phi_posterior.complex_identity
+    assert sum(identity.values()) == pytest.approx(1.0)
+    # grid3's exact {0} vs {2} tie at the true TPM is broken randomly by
+    # the data, so more than one identity appears.
+    assert len(identity) > 1
+    assert grid3_phi_posterior.complex_samples[0] in identity
+
+
+def test_phi_posterior_carries_regime_and_coverage(grid3_phi_posterior):
+    assert grid3_phi_posterior.regime == "perturbational"
+    assert grid3_phi_posterior.coverage.is_complete
+
+
+def test_observational_result_reports_partial_coverage():
+    traj = np.array([[0, 0, 0], [1, 0, 0], [0, 0, 0], [1, 0, 0]] * 3)
+    posterior = estimate_substrate(traj, regime="observational")
+    pp = phi_posterior(posterior, (1, 0, 0), n_samples=3, seed=1)
+    assert pp.regime == "observational"
+    assert not pp.coverage.is_complete
+    with pytest.raises(TypeError, match=r"unconstrained|uncovered"):
+        float(pp)

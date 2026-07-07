@@ -27,16 +27,22 @@ data is merely uninformative.
 
 from __future__ import annotations
 
+from collections import Counter
 from collections.abc import Sequence
 from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
+from tqdm.auto import tqdm
 
 from . import convert
+from . import utils
+from .analyze import analyze
+from .conf import config
 from .provenance import Provenance
 from .substrate import Substrate
+from .substrate import maximal_complex
 
 REGIMES = ("perturbational", "observational")
 
@@ -163,6 +169,141 @@ class SubstratePosterior:
         return Substrate(
             tpm=convert.to_multidimensional(p_on), node_labels=self.node_labels
         )
+
+
+@dataclass(frozen=True, eq=False)
+class PhiPosterior:
+    """Posterior distribution over Φ, propagated from a substrate posterior.
+
+    The distribution is generically a mixture: a point mass at zero from
+    samples whose candidate system is reducible (the system does not exist
+    as one entity), and a continuous density over the Φ values of the
+    irreducible samples. Because the mixture's mean describes no possible
+    system, ``float()`` refuses; summarize with :attr:`p_positive`,
+    :meth:`quantiles`, :meth:`conditional_quantiles`, or the raw
+    :attr:`samples`.
+
+    Attributes:
+        samples: Per-draw Φ values, shape ``(n_samples,)``.
+        complex_samples: Per-draw unit indices of the maximal complex;
+            ``()`` when no irreducible candidate exists in that draw.
+        state: The analyzed substrate state.
+        subset: Unit indices of the candidate system, or ``None`` for the
+            whole substrate.
+        seed: Seed that drove all draws.
+        regime: The causal assertion carried from the substrate posterior
+            (``"perturbational"`` or ``"observational"``).
+        coverage: The substrate posterior's :class:`CoverageReport`.
+        provenance: Environment record captured at computation time; its
+            ``estimator`` field carries the substrate posterior's record.
+    """
+
+    samples: NDArray[np.float64]
+    complex_samples: tuple[tuple[int, ...], ...]
+    state: tuple[int, ...]
+    subset: tuple[int, ...] | None
+    seed: int
+    regime: str
+    coverage: CoverageReport
+    provenance: Provenance
+
+    @property
+    def p_positive(self) -> float:
+        """Posterior probability that Φ is positive (the system is integrated)."""
+        return sum(utils.is_positive(phi) for phi in self.samples) / len(self.samples)
+
+    def quantiles(self, qs: Sequence[float]) -> NDArray[np.float64]:
+        """Quantiles of the full mixture (zeros included)."""
+        return np.quantile(self.samples, qs)
+
+    def conditional_quantiles(self, qs: Sequence[float]) -> NDArray[np.float64] | None:
+        """Quantiles of Φ conditional on the system being integrated.
+
+        Returns ``None`` when no sample is positive.
+        """
+        positive = self.samples[[utils.is_positive(phi) for phi in self.samples]]
+        if positive.size == 0:
+            return None
+        return np.quantile(positive, qs)
+
+    @property
+    def complex_identity(self) -> dict[tuple[int, ...], float]:
+        """Categorical distribution over the maximal complex's unit set."""
+        total = len(self.complex_samples)
+        return {
+            units: count / total
+            for units, count in Counter(self.complex_samples).items()
+        }
+
+    def __float__(self) -> float:
+        detail = ""
+        if not self.coverage.is_complete:
+            n = len(self.coverage.uncovered_states)
+            detail = (
+                f" {n} of {self.coverage.n_states} states were never"
+                " observed, so the underlying TPM is unconstrained there"
+                " (uncovered states are unidentified, not merely unsampled)."
+            )
+        raise TypeError(
+            "A PhiPosterior is a distribution over Φ (generically a mixture"
+            " of a point mass at zero and a continuous density) and cannot"
+            " be summarized by one float. Use .p_positive, .quantiles(qs),"
+            " .conditional_quantiles(qs), or .samples." + detail
+        )
+
+
+def phi_posterior(
+    posterior: SubstratePosterior,
+    state: tuple[int, ...],
+    *,
+    n_samples: int,
+    seed: int,
+    subset: Sequence[int] | None = None,
+) -> PhiPosterior:
+    """Propagate a substrate posterior through the SIA by Monte Carlo.
+
+    Each draw samples one substrate from ``posterior``, computes the SIA of
+    the candidate system, and finds the maximal complex. A single generator
+    seeded with ``seed`` drives every draw.
+
+    Args:
+        posterior: The substrate posterior to propagate.
+        state: The substrate state to analyze.
+
+    Keyword Args:
+        n_samples: Number of Monte Carlo draws.
+        seed: Seed for the draws (required; saved on the result).
+        subset: Unit indices of the candidate system; ``None`` uses the
+            whole substrate.
+
+    Returns:
+        A :class:`PhiPosterior` over the per-draw Φ values and complex
+        identities.
+    """
+    rng = np.random.default_rng(seed)
+    draws = range(n_samples)
+    if config.infrastructure.progress_bars:
+        draws = tqdm(draws, desc="Sampling Φ posterior")
+    phis = []
+    complexes = []
+    for _ in draws:
+        sample = posterior.sample(rng=rng)
+        sia = analyze(sample, state, subset=subset, compute="sia")
+        phis.append(float(sia.phi))
+        complex_ = maximal_complex(sample, state)
+        complexes.append(tuple(complex_.node_indices))
+    return PhiPosterior(
+        samples=np.array(phis, dtype=np.float64),
+        complex_samples=tuple(complexes),
+        state=tuple(state),
+        subset=None if subset is None else tuple(subset),
+        seed=seed,
+        regime=posterior.regime,
+        coverage=posterior.coverage,
+        provenance=Provenance.capture(
+            seed=seed, estimator=posterior.provenance.estimator
+        ),
+    )
 
 
 def estimate_substrate(
