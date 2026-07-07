@@ -84,6 +84,11 @@ iit3: dict[str, Any] = {
         # not optimize this away.
         assume_partitions_cannot_create_new_concepts=False,
         distinction_phi_normalization="NONE",
+        # Background units are fixed at their observed current state on the
+        # cause side (the PyPhi 1.x / post-2014-literature convention), so
+        # proper-subset analyses reproduce published IIT 3.0 results. The
+        # global default is IIT 4.0 Eq. 4 causal marginalization.
+        background_conditioning="CONDITION_CURRENT_STATE",
     ),
     "actual_causation": ActualCausationConfig(
         # PMI is the paper-canonical alpha measure for IIT 3.0 actual

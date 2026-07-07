@@ -49,7 +49,10 @@ class TestComplexesIIT30:
         ``s`` fixture has exactly three irreducible candidate systems
         (|big_phi| > 0). Verify their phi values, node indices, and
         ordering (iteration in :func:`possible_complexes` order, not
-        phi-sorted).
+        phi-sorted). These are the PyPhi 1.x values: the ``iit3`` preset
+        conditions background units at their current state, so the
+        ``(0, 2)`` proper subset (background ``{1}``) reproduces the
+        published result rather than the causally-marginalized one.
         """
         sias = s.substrate.irreducible_sias(s.state)
         assert len(sias) == 3
@@ -57,7 +60,7 @@ class TestComplexesIIT30:
         expected = [
             ((0, 1, 2), 2.3125),
             ((1, 2), 1.0),
-            ((0, 2), 0.5),
+            ((0, 2), 1.0),
         ]
         for (got_nodes, got_phi), (exp_nodes, exp_phi) in zip(
             nodes_and_phis, expected, strict=True
@@ -65,11 +68,22 @@ class TestComplexesIIT30:
             assert got_nodes == exp_nodes
             assert got_phi == pytest.approx(exp_phi, rel=1e-6)
 
+    def test_irreducible_sias_standard_marginalized_background(self, s):
+        """The same complex search under Eq. 4 causal marginalization: the
+        ``(0, 2)`` candidate's phi differs from the conditioned convention
+        (the ``(1, 2)`` candidate's value coincides across conventions)."""
+        with config.override(background_conditioning="CAUSAL_MARGINALIZATION"):
+            sias = s.substrate.irreducible_sias(s.state)
+        nodes_and_phis = {c.node_indices: float(c.phi) for c in sias}
+        assert nodes_and_phis[(0, 1, 2)] == pytest.approx(2.3125)
+        assert nodes_and_phis[(1, 2)] == pytest.approx(1.0)
+        assert nodes_and_phis[(0, 2)] == pytest.approx(0.5)
+
     def test_complexes_standard(self, s):
         """Test ``complexes`` (non-overlapping maxima) for standard substrate.
 
         Greedy condensation over the three irreducible systems
-        ``[(0,1,2):2.3125, (1,2):1.0, (0,2):0.5]`` accepts ``(0,1,2)`` first
+        ``[(0,1,2):2.3125, (1,2):1.0, (0,2):1.0]`` accepts ``(0,1,2)`` first
         (highest phi), then rejects both overlapping candidates, leaving
         a single complex — the full substrate.
         """
@@ -83,13 +97,14 @@ class TestComplexesIIT30:
 
         Iterates over ``possible_complexes`` (not all ``2**n - 1`` subsets),
         so for the standard ``s`` fixture it returns 5 systems with phi
-        values ``[0.0, 0.0, 0.5, 1.0, 2.3125]`` — exactly three of which
-        are irreducible.
+        values ``[0.0, 0.0, 1.0, 1.0, 2.3125]`` — exactly three of which
+        are irreducible. These are the PyPhi 1.x values (see
+        ``test_irreducible_sias_standard``).
         """
         sias = s.substrate.all_sias(s.state)
         assert len(sias) == 5
         phis = sorted(float(c.phi) for c in sias)
-        assert phis == pytest.approx([0.0, 0.0, 0.5, 1.0, 2.3125], rel=1e-6)
+        assert phis == pytest.approx([0.0, 0.0, 1.0, 1.0, 2.3125], rel=1e-6)
         assert sum(1 for phi in phis if phi > 0) == 3
 
     def test_maximal_complex(self, s):
@@ -121,7 +136,7 @@ class TestComplexesIIT30:
 
     def test_complexes_excluded_iit3(self, s):
         # The single complex (0,1,2) excludes the overlapping lower-phi
-        # irreducible candidates (1,2):1.0 and (0,2):0.5.
+        # irreducible candidates (1,2):1.0 and (0,2):1.0.
         cx = s.substrate.complexes(s.state)
         assert {e.node_indices for e in cx[0].excluded} == {(1, 2), (0, 2)}
 
