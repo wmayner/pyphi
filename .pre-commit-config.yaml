@@ -44,6 +44,8 @@ repos:
       - id: towncrier-check
 
   - repo: https://github.com/mwouts/jupytext
+    # Must match uv.lock's jupytext version: paired .md front matter embeds
+    # jupytext_version, so a mismatched hook rewrites pairs on every commit.
     rev: v1.19.4
     hooks:
       - id: jupytext

@@ -51,5 +51,4 @@ graphify-out/*
 
 docs/reference/_autosummary/
 
-docs/_build/
 .jupyter_cache/

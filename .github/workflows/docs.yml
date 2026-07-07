@@ -18,6 +18,10 @@ on:
       - "uv.lock"
       - ".github/workflows/docs.yml"
 
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
