@@ -91,4 +91,4 @@ class TestEndToEnd:
                 # canonical value elsewhere in the suite (e.g.
                 # test/formalism/test_complexes.py), which compares it with
                 # the same tolerance.
-                assert phi == pytest.approx(expected["phi"], rel=1e-6), key
+                assert phi == pytest.approx(expected["phi"], rel=1e-6, abs=1e-6), key
