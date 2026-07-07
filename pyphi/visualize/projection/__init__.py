@@ -225,12 +225,12 @@ def _faces(relations, mechanism_to_id) -> tuple[RelationFaceEdge, ...]:
 
 def project_ces(ces, node_labels=None) -> CESProjection:
     """Project a |CauseEffectStructure| into plot-ready data."""
-    from pyphi.models.ces import PhiFold
-
-    if isinstance(ces, PhiFold):
+    if not getattr(ces, "relation_closed", True):
         raise TypeError(
-            "cannot project a PhiFold (its relations may reference distinctions "
-            "outside the fold); use highlight_phi_fold to visualize a fold"
+            "cannot project a view that is not relation-closed (e.g. a PhiFold, "
+            "whose relations may reference distinctions outside it); project "
+            "the parent structure or an induced substructure, or use "
+            "highlight_phi_fold to visualize a fold"
         )
     distinctions = list(ces.distinctions)
     if node_labels is None:

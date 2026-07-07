@@ -162,3 +162,105 @@ def canonical_state(substrate: Substrate, state: tuple[int, ...]) -> tuple[int, 
     """
     _, achievers = _canonical(substrate)
     return min(tuple(state[perm[i]] for i in range(len(perm))) for perm in achievers)
+
+
+def _map_aligned(indices, aligned, mapping):
+    """Map an index tuple through ``mapping`` and re-sort it ascending,
+    reordering the position-aligned tuple ``aligned`` identically."""
+    if aligned is None:
+        return tuple(sorted(mapping[i] for i in indices)), None
+    pairs = sorted(zip((mapping[i] for i in indices), aligned, strict=True))
+    return tuple(i for i, _ in pairs), tuple(s for _, s in pairs)
+
+
+def _distinction_record(distinction, mapping):
+    from pyphi.direction import Direction
+
+    mechanism, mechanism_state = _map_aligned(
+        distinction.mechanism, distinction.mechanism_state, mapping
+    )
+    record = [mechanism, mechanism_state, round(float(distinction.phi), _ROUND)]
+    for direction in Direction.both():
+        mice = distinction.mice(direction)
+        spec = mice.specified_state
+        if spec is None:
+            record.append((tuple(sorted(mapping[i] for i in mice.purview)),))
+        else:
+            purview, state = _map_aligned(spec.purview, spec.state, mapping)
+            record.append((purview, state, round(float(mice.phi), _ROUND)))
+    return tuple(record)
+
+
+def _structure_node_indices(ces):
+    from pyphi.substrate import _sia_node_indices
+
+    indices = _sia_node_indices(ces.sia)
+    if indices is None:
+        raise ValueError("structure's SIA carries no node indices")
+    return indices
+
+
+def structure_signature(ces, mapping=None):
+    """A canonical, order-independent value key for a cause-effect structure
+    under a node-index mapping.
+
+    Covers each distinction's mechanism, mechanism state, cause/effect
+    purviews with their specified states, and φ values (rounded to
+    ``_ROUND`` places), plus each relation's relata mechanisms and φ.
+    Repertoires and partitions are not included. When the relation set is
+    not enumerable (analytical), its rounded aggregates stand in for the
+    per-relation records.
+    """
+    if mapping is None:
+        mapping = {i: i for i in _structure_node_indices(ces)}
+    distinction_records = tuple(
+        sorted(_distinction_record(d, mapping) for d in ces.distinctions)
+    )
+    try:
+        relation_records = tuple(
+            sorted(
+                (
+                    tuple(
+                        sorted(
+                            tuple(sorted(mapping[i] for i in mechanism))
+                            for mechanism in relation.mechanisms
+                        )
+                    ),
+                    round(float(relation.phi), _ROUND),
+                )
+                for relation in ces.relations
+            )
+        )
+    except TypeError:  # analytical relations are not enumerable
+        relation_records = (
+            round(float(ces.relations.sum_phi()), _ROUND),
+            ces.relations.num_relations(),
+        )
+    return (distinction_records, relation_records)
+
+
+def are_structures_isomorphic(ces1, ces2) -> bool:
+    """Whether two cause-effect structures are equal up to a bijection of
+    their node indices, at the resolution of :func:`structure_signature`.
+
+    Exact search over index bijections, with cheap invariant pruning first.
+    Factorial in the number of units; substrates on which Φ is computed are
+    small, so this is tractable (same rationale as
+    :func:`substrate_automorphisms`).
+    """
+    indices1 = _structure_node_indices(ces1)
+    indices2 = _structure_node_indices(ces2)
+    if len(indices1) != len(indices2):
+        return False
+    if len(ces1.distinctions) != len(ces2.distinctions):
+        return False
+    phis1 = sorted(round(float(d.phi), _ROUND) for d in ces1.distinctions)
+    phis2 = sorted(round(float(d.phi), _ROUND) for d in ces2.distinctions)
+    if phis1 != phis2:
+        return False
+    target = structure_signature(ces2)
+    for permuted in permutations(indices2):
+        mapping = dict(zip(indices1, permuted, strict=True))
+        if structure_signature(ces1, mapping) == target:
+            return True
+    return False

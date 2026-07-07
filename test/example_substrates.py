@@ -810,3 +810,19 @@ def symmetric_triple_substrate():
         ]
     )
     return Substrate(tpm, cm=cm, node_labels=NodeLabels(("A", "B", "C"), (0, 1, 2)))
+
+
+def permuted_system(system, perm):
+    """The same system with its units permuted: node ``i`` of the result is
+    node ``perm[i]`` of the input. Structures computed from the result are
+    relabelings of the input's under ``old -> perm.index(old)``.
+
+    Assumes the system spans its whole substrate with binary units (dense
+    TPM array of shape ``(2,) * n + (n, 2)``).
+    """
+    arr = np.asarray(system.substrate.tpm.to_array())
+    n = len(system.node_indices)
+    arr2 = np.transpose(arr, axes=(*perm, n, n + 1))[..., list(perm), :]
+    cm2 = np.asarray(system.substrate.cm)[np.ix_(perm, perm)]
+    state2 = tuple(system.state[p] for p in perm)
+    return System(Substrate(arr2, cm=cm2), state=state2, node_indices=tuple(range(n)))

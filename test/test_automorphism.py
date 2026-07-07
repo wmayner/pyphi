@@ -109,3 +109,44 @@ def test_canonical_state_orbit_invariant(bits):
     s = tuple(bits)
     s_prime = tuple(s[sigma[i]] for i in range(2))
     assert auto.canonical_state(s_ax, s) == auto.canonical_state(s_xa, s_prime)
+
+
+def test_structure_signature_and_isomorphism():
+    import pyphi
+    from pyphi import examples
+
+    with pyphi.config.override(progress_bars=False):
+        system = examples.grid3_system()
+        ces = system.ces()
+        perm = (2, 0, 1)
+        permuted_ces = es.permuted_system(system, perm).ces()
+
+    # equal signatures under the inverse relabeling
+    inverse = {old: perm.index(old) for old in range(3)}
+    assert auto.structure_signature(ces, inverse) == auto.structure_signature(
+        permuted_ces
+    )
+
+    # object equality is index-based and fails across the relabeling...
+    assert ces != permuted_ces
+    # ...but the structures are isomorphic
+    assert auto.are_structures_isomorphic(ces, permuted_ces)
+
+
+def test_non_isomorphic_structures():
+    import pyphi
+    from pyphi import examples
+
+    with pyphi.config.override(progress_bars=False):
+        xor_ces = examples.xor_system().ces()
+        grid3_ces = examples.grid3_system().ces()
+    assert not auto.are_structures_isomorphic(xor_ces, grid3_ces)
+
+
+def test_isomorphism_is_reflexive():
+    import pyphi
+    from pyphi import examples
+
+    with pyphi.config.override(progress_bars=False):
+        ces = examples.xor_system().ces()
+    assert auto.are_structures_isomorphic(ces, ces)

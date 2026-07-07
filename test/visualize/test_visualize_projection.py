@@ -232,3 +232,16 @@ def test_theme_frozen_with_defaults():
         DEFAULT_THEME.colorscale = "Plasma"  # type: ignore[misc]
     dark = dataclasses.replace(DEFAULT_THEME, background="black")
     assert dark.background == "black" and DEFAULT_THEME.background == "white"
+
+
+def test_project_rejects_fold_accepts_induced():
+    from pyphi import examples
+    from pyphi.visualize.projection import project_ces
+
+    ces = examples.xor_system().ces()
+    fold = ces.fold([ces.distinctions[0]])
+    with pytest.raises(TypeError, match="relation-closed"):
+        project_ces(fold)
+    induced = ces.induce(list(ces.distinctions)[:3])
+    projection = project_ces(induced)
+    assert len(projection.nodes) == 3

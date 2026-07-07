@@ -92,6 +92,16 @@ class CauseEffectStructure(
         # Relations is not iterable in base class but subclasses (ConcreteRelations) are
         yield from list(self.relations)  # pyright: ignore[reportArgumentType]
 
+    @property
+    def relation_closed(self) -> bool:
+        """Whether every relation's relata are members of ``distinctions``.
+
+        True for complete structures and induced substructures; False for
+        folds, whose incident relations may reference distinctions outside
+        the seed set.
+        """
+        return True
+
     def order_by(self) -> PyPhiFloat:
         return self.sia.phi
 
@@ -195,6 +205,27 @@ class CauseEffectStructure(
     def big_phi(self):
         return self.sum_phi_distinctions + self.sum_phi_relations
 
+    def _resolve_members(self, items) -> list:
+        """Resolve an iterable of distinctions or mechanism index-tuples to
+        this structure's own distinction objects, raising ``ValueError`` for
+        mechanisms not in the structure."""
+        from .distinction import Distinction
+
+        by_mechanism = {tuple(d.mechanism): d for d in self.distinctions}
+        members = []
+        for item in items:
+            mechanism = (
+                tuple(item.mechanism)  # pyright: ignore[reportArgumentType]  # Distinction.mechanism is an index tuple
+                if isinstance(item, Distinction)
+                else tuple(item)
+            )
+            if mechanism not in by_mechanism:
+                raise ValueError(
+                    f"mechanism {mechanism} not in this cause-effect structure"
+                )
+            members.append(by_mechanism[mechanism])
+        return members
+
     def fold(self, distinctions) -> PhiFold:
         """Return the Φ-fold seeded by the given distinctions.
 
@@ -207,21 +238,7 @@ class CauseEffectStructure(
         from pyphi.relations import ConcreteRelations
         from pyphi.relations import NullRelations
 
-        from .distinction import Distinction
-
-        by_mechanism = {tuple(d.mechanism): d for d in self.distinctions}
-        seeds = []
-        for item in distinctions:
-            mechanism = (
-                tuple(item.mechanism)  # pyright: ignore[reportArgumentType]  # Distinction.mechanism is an index tuple
-                if isinstance(item, Distinction)
-                else tuple(item)
-            )
-            if mechanism not in by_mechanism:
-                raise ValueError(
-                    f"mechanism {mechanism} not in this cause-effect structure"
-                )
-            seeds.append(by_mechanism[mechanism])
+        seeds = self._resolve_members(distinctions)
 
         if isinstance(self.relations, NullRelations):
             raise ValueError(
@@ -255,6 +272,97 @@ class CauseEffectStructure(
         """Yield the single-distinction Φ-fold of each distinction, in order."""
         for distinction in self.distinctions:
             yield self.fold([distinction])
+
+    def induce(self, distinctions) -> InducedSubstructure:
+        """Return the induced substructure on the given distinctions: those
+        distinctions plus exactly the relations whose relata are all among
+        them.
+
+        ``distinctions`` is an iterable of :class:`Distinction` objects or
+        mechanism index-tuples drawn from this structure. Because a
+        relation's φ depends only on its relata, the induced relation set
+        equals what computing relations over the subset from scratch would
+        produce. The result is relation-closed (no dangling relata), so it
+        can be displayed, aggregated, and projected as a self-contained
+        object — but it is a view of this structure, not the cause-effect
+        structure of any system.
+        """
+        from pyphi.relations import AnalyticalRelations
+        from pyphi.relations import ConcreteRelations
+        from pyphi.relations import NullRelations
+
+        members = self._resolve_members(distinctions)
+        member_set = set(members)
+        bag = ResolvedDistinctions(members)
+        if isinstance(self.relations, NullRelations):
+            relations = self.relations
+        elif isinstance(self.relations, ConcreteRelations):
+            relations = ConcreteRelations(
+                r for r in self.relations if member_set.issuperset(r)
+            )
+        elif isinstance(self.relations, AnalyticalRelations):
+            relations = AnalyticalRelations(bag)
+        else:
+            raise TypeError(
+                f"cannot induce a substructure of a structure with "
+                f"{type(self.relations).__name__} relations"
+            )
+        return InducedSubstructure(
+            sia=self.sia,
+            distinctions=bag,
+            relations=relations,
+            config=self.config,
+            parent=self,
+        )
+
+    def _check_same_frame(self, other: CauseEffectStructure) -> None:
+        """Raise unless ``other`` has the same candidate-system node indices
+        and current state.
+
+        Value-based distinction identity is only meaningful within one
+        frame; combining structures across frames would silently produce
+        empty results instead of raising. A structure does not record its
+        substrate, so two structures from *different substrates* with
+        identical node indices and state cannot be detected here; for such
+        pairs the combination degrades safely to an empty intersection,
+        because distinction equality also compares purviews, φ, and
+        repertoires. The config snapshots are not compared.
+        """
+        from pyphi.substrate import _sia_node_indices
+
+        mine = (
+            _sia_node_indices(self.sia),
+            getattr(self.sia, "current_state", None),
+        )
+        theirs = (
+            _sia_node_indices(other.sia),
+            getattr(other.sia, "current_state", None),
+        )
+        if mine != theirs:
+            raise ValueError(
+                "structures are not in the same frame: "
+                f"(node_indices, state) {mine} != {theirs}"
+            )
+
+    def meet(self, other: CauseEffectStructure) -> InducedSubstructure:
+        """The induced substructure on the distinctions common to both
+        structures (value equality).
+
+        Because a relation's φ depends only on its relata, the result's
+        relation set equals the intersection of the two structures'
+        relation sets. Requires both structures to be in the same frame;
+        raises ``ValueError`` otherwise. The result is a view of ``self``.
+        """
+        self._check_same_frame(other)
+        common = set(self.distinctions) & set(other.distinctions)
+        return self.induce(d.mechanism for d in common)
+
+    def relabel(self, mapping, node_labels=None) -> CauseEffectStructure:
+        """Return this structure rewritten through the node-index bijection
+        ``mapping``. See :func:`pyphi.relabel.relabel_ces`."""
+        from pyphi.relabel import relabel_ces
+
+        return relabel_ces(self, mapping, node_labels=node_labels)
 
     def _changes(self, other) -> tuple[Change, ...]:
         from pyphi import utils
@@ -318,7 +426,30 @@ class CauseEffectStructure(
 
 
 @dataclass(frozen=True, eq=False, repr=False)
-class PhiFold(CauseEffectStructure):
+class StructureView(CauseEffectStructure):
+    """A part of a cause-effect structure, carrying the structure it was
+    taken from as ``parent``. Concrete views are :class:`PhiFold`
+    (seeds + incident relations) and :class:`InducedSubstructure`
+    (distinction subset + the relations contained in it)."""
+
+    parent: CauseEffectStructure = field(kw_only=True)
+
+
+@dataclass(frozen=True, eq=False, repr=False)
+class InducedSubstructure(StructureView):
+    """A relation-closed slice of a cause-effect structure: a subset of its
+    distinctions together with exactly the relations whose relata all
+    belong to the subset.
+
+    Every relation endpoint is present (``relation_closed`` is True), so
+    aggregation and projection treat it as self-contained. It is not the
+    cause-effect structure of any system: its distinctions were computed
+    and congruence-resolved in the parent structure's frame.
+    """
+
+
+@dataclass(frozen=True, eq=False, repr=False)
+class PhiFold(StructureView):
     """A slice of a cause-effect structure: a set of seed distinctions and
     the relations incident to them.
 
@@ -330,7 +461,10 @@ class PhiFold(CauseEffectStructure):
     use ``highlight_phi_fold`` to visualize it.
     """
 
-    parent: CauseEffectStructure = field(kw_only=True)
+    @property
+    def relation_closed(self) -> bool:
+        """False: incident relations may reference non-seed distinctions."""
+        return False
 
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         cls = type(self).__name__
@@ -383,16 +517,26 @@ class PhiFold(CauseEffectStructure):
 
     @property
     def sum_phi_relations_contribution(self):
-        """Σ over incident relations of ``φ_r / |r|`` — the relations' share of
-        the fold's contribution to the structure's Φ.
+        """Σ over incident relations of ``φ_r · |r ∩ F| / |r|``, where ``F``
+        is the set of seed distinctions — the seeds' share of each incident
+        relation's φ.
         """
-        return self.relations.apportioned_sum_phi()
+        from pyphi.relations import AnalyticalFoldRelations
+
+        if isinstance(self.relations, AnalyticalFoldRelations):
+            return self.relations.share_weighted_sum_phi()
+        seeds = set(self.distinctions)
+        return sum(
+            relation.phi * len(seeds & set(relation)) / len(relation)
+            for relation in self.relations  # pyright: ignore[reportGeneralTypeIssues]  # Relations base lacks __iter__; folds hold ConcreteRelations here
+        )
 
     @property
     def big_phi_contribution(self):
-        """The fold's additive contribution to the structure's Φ (the paper's
-        Φ_d): the seed distinctions' full φ plus each incident relation's φ
-        apportioned across the distinctions it binds. Summing this over a
-        structure's single-distinction folds recovers its ``big_phi``.
+        """The fold's additive contribution to the structure's Φ: the seed
+        distinctions' full φ plus the seeds' share of each incident
+        relation's φ (``φ_r · |r ∩ F| / |r|``). Summing this over the folds
+        of any partition of the structure's distinctions recovers
+        ``big_phi``.
         """
         return self.sum_phi_distinctions + self.sum_phi_relations_contribution

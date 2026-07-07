@@ -143,6 +143,14 @@ class Distinctions(Displayable, cmp.Orderable, Sequence, ToPandasMixin, Serializ
             return type(self)(self.concepts[value])
         return self.concepts[value]
 
+    def filter(self, predicate) -> Distinctions:
+        """Return the distinctions satisfying ``predicate``.
+
+        Preserves the runtime subtype, so filtering a
+        :class:`ResolvedDistinctions` yields a :class:`ResolvedDistinctions`.
+        """
+        return type(self)(d for d in self if predicate(d))
+
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         cls = type(self).__name__
         num_d = len(self)
