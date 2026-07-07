@@ -88,6 +88,10 @@ def _encode_state_spec(spec: Any, *, include_peers: bool) -> Any:
             np.asarray(spec.unconstrained_repertoire)
         ),
         tie_peers=tuple(_encode_state_spec(p, include_peers=False) for p in peers),
+        runner_up_state=_opt_tuple(spec.runner_up_state),
+        runner_up_intrinsic_information=_enc_optional(
+            spec.runner_up_intrinsic_information
+        ),
     )
 
 
@@ -101,6 +105,10 @@ def _decode_state_spec(struct: Any) -> Any:
         intrinsic_information=from_schema(struct.intrinsic_information),
         repertoire=arrays.bytes_to_array(struct.repertoire),
         unconstrained_repertoire=arrays.bytes_to_array(struct.unconstrained_repertoire),
+        runner_up_state=_opt_tuple(struct.runner_up_state),
+        runner_up_intrinsic_information=_dec_optional(
+            struct.runner_up_intrinsic_information
+        ),
     )
     if struct.tie_peers:
         peers = tuple(_decode_state_spec(p) for p in struct.tie_peers)
@@ -543,6 +551,7 @@ def _encode_iit4_sia(sia: Any, *, include_peers: bool) -> Any:
         config=_enc_config(sia.config),
         provenance=_enc_optional(sia.provenance),
         tie_peers=tuple(_encode_iit4_sia(p, include_peers=False) for p in peers),
+        partition_margin=_enc_optional(sia.partition_margin),
     )
 
 
@@ -568,6 +577,7 @@ def _decode_iit4_sia(struct: Any) -> Any:
         "signed_normalized_phi": _dec_optional(struct.signed_normalized_phi),
         "config": struct.config,
         "provenance": _dec_optional(struct.provenance),
+        "partition_margin": _dec_optional(struct.partition_margin),
     }
     if type(struct) is schema.NullIIT4SIASchema:
         instance = object.__new__(NullSystemIrreducibilityAnalysis)

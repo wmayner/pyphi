@@ -45,6 +45,8 @@ class StateSpecificationSchema(msgspec.Struct, frozen=True, tag="state_specifica
     repertoire: bytes
     unconstrained_repertoire: bytes
     tie_peers: tuple["StateSpecificationSchema", ...] = ()
+    runner_up_state: tuple[int, ...] | None = None
+    runner_up_intrinsic_information: PhiSchema | None = None
 
 
 class SystemStateSpecificationSchema(
@@ -256,6 +258,7 @@ class IIT4SIASchema(msgspec.Struct, frozen=True, tag="iit4_sia"):
     config: dict[str, Any] | None
     provenance: ProvenanceSchema | None
     tie_peers: tuple["IIT4SIASchema", ...] = ()
+    partition_margin: PhiSchema | None = None
 
 
 class NullIIT4SIASchema(IIT4SIASchema, frozen=True, tag="null_iit4_sia"):

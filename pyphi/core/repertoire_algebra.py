@@ -598,6 +598,12 @@ def intrinsic_information(
 
     state_to_information = {state: evaluate_state(state) for state in states}
     max_information = max(state_to_information.values())
+    ranked = sorted(state_to_information.items(), key=lambda kv: kv[1], reverse=True)
+    if len(ranked) > 1:
+        runner_up_state, runner_up_value = ranked[1]
+        runner_up_information = PyPhiFloat(runner_up_value)
+    else:
+        runner_up_state = runner_up_information = None
     ties = [
         StateSpecification(
             direction=direction,
@@ -606,6 +612,8 @@ def intrinsic_information(
             intrinsic_information=PyPhiFloat(information),
             repertoire=rep,
             unconstrained_repertoire=unconstrained_rep,
+            runner_up_state=runner_up_state,
+            runner_up_intrinsic_information=runner_up_information,
         )
         for state, information in state_to_information.items()
         if information == max_information

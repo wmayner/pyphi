@@ -93,6 +93,8 @@ def relabel_state_specification(spec, mapping):
         unconstrained_repertoire=_transpose(  # pyright: ignore[reportArgumentType]  # None only if input is None
             spec.unconstrained_repertoire, order, mapping
         ),
+        runner_up_state=_reorder(spec.runner_up_state, order),
+        runner_up_intrinsic_information=spec.runner_up_intrinsic_information,
     )
 
 
