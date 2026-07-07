@@ -272,6 +272,7 @@ def test_analytical_runs_on_analytical_relations_where_concrete_cannot(perceptio
     assert d_analytical.analytical_differentiation == pytest.approx(
         d_concrete.differentiation
     )
-    # ...while the concrete path cannot walk non-iterable AnalyticalRelations.
-    with pytest.raises(TypeError):
+    # ...while the concrete path refuses non-iterable AnalyticalRelations
+    # with a message that names the alternative.
+    with pytest.raises(TypeError, match="analytical_differentiation"):
         _ = d_analytical.differentiation

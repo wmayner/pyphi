@@ -29,6 +29,16 @@ class Counts:
             raise NotImplementedError
         self.counts = count_calls(partial(run_grain, fixture, grain), FRAMES)
 
+    def track_cause_repertoire(self, fixture_name: str, grain: str) -> int:
+        return self.counts["repertoire_algebra.py:cause_repertoire"]
+
+    track_cause_repertoire.unit = "calls"  # type: ignore[attr-defined]
+
+    def track_effect_repertoire(self, fixture_name: str, grain: str) -> int:
+        return self.counts["repertoire_algebra.py:effect_repertoire"]
+
+    track_effect_repertoire.unit = "calls"  # type: ignore[attr-defined]
+
     def track_find_mip(self, fixture_name: str, grain: str) -> int:
         return self.counts["system.py:find_mip"]
 

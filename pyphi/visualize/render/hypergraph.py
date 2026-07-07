@@ -12,6 +12,9 @@ import plotly.graph_objects as go
 
 from pyphi.visualize.projection import CESProjection
 from pyphi.visualize.render.common import rescale
+from pyphi.visualize.render.embedding import _DIRECTION_WEIGHT
+from pyphi.visualize.render.embedding import _MECHANISM_WEIGHT
+from pyphi.visualize.render.embedding import _PURVIEW_WEIGHT
 from pyphi.visualize.theme import Theme
 
 Point = tuple[float, float, float]
@@ -35,9 +38,9 @@ class HypergraphGeometry:
     purview_jitter: float = 0.1
     endpoint_placement: str = "mechanism_anchored"
     embedding_method: str = "mds"
-    embed_purview_weight: float = 1.0
-    embed_mechanism_weight: float = 0.5
-    embed_direction_weight: float = 0.5
+    embed_purview_weight: float = _PURVIEW_WEIGHT
+    embed_mechanism_weight: float = _MECHANISM_WEIGHT
+    embed_direction_weight: float = _DIRECTION_WEIGHT
     embed_planar: bool = False
 
 

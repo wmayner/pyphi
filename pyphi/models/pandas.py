@@ -10,10 +10,10 @@ import pandas as pd
 
 
 def try_to_dict(obj: object) -> dict[str, Any] | object:
-    try:
-        return obj.to_dict()  # type: ignore[attr-defined]
-    except AttributeError:
-        return obj
+    to_dict = getattr(obj, "to_dict", None)
+    if callable(to_dict):
+        return to_dict()
+    return obj
 
 
 class ToDictFromExplicitAttrsMixin:

@@ -13,9 +13,16 @@ if TYPE_CHECKING:
 
 def _component_perceptions(perception):
     """Yield (component, perception) for each component of one structure."""
+    relations = perception.ces.relations
+    if not hasattr(relations, "__iter__"):
+        raise TypeError(
+            "concrete differentiation requires iterable (materialized) "
+            f"relations; got {type(relations).__name__}. Use "
+            "`analytical_differentiation` for analytical relations."
+        )
     for distinction in perception.ces.distinctions:
         yield distinction, perception.distinction_perception(distinction)
-    for relation in perception.ces.relations:  # pyright: ignore[reportGeneralTypeIssues]  # Relations base lacks __iter__; concrete subclasses provide it
+    for relation in relations:
         yield relation, perception.relation_perception(relation)
 
 
