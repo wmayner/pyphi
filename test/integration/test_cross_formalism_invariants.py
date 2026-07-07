@@ -173,7 +173,7 @@ _BYTE_MATCH_ATOL = 1e-12
 
 
 def _sign(x: float) -> int:
-    """Sign of ``x`` at config precision (sub-tolerance values count as 0)."""
+    """Sign of ``x`` rounded to 12 decimals (sub-tolerance values count as 0)."""
     return int(np.sign(round(x, 12)))
 
 

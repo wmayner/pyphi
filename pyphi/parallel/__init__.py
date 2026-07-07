@@ -2,13 +2,14 @@
 """Provides an interface for parallel computation.
 
 This module provides :func:`map_reduce`, a single parallel map-reduce entry
-point over the Scheduler Protocol with pluggable backends. Currently supports:
+point over the Scheduler Protocol with pluggable backends:
 
-- **local**: Fast single-machine parallelization using a process pool
-  (default, ~1-5ms overhead per task)
-
-Future backends planned:
-- **dask**: Cluster support for large-scale computations
+- **local** / **process**: single-machine process pool (default,
+  ~1-5ms overhead per task)
+- **thread**: thread pool (shared state; the ``auto`` choice on
+  free-threaded runtimes)
+- **dask**: distributed cluster scheduler (optional dependency)
+- **auto**: resolves per runtime
 
 Backend selection:
 - Use `pyphi.config.parallel_backend = "local"` (default)

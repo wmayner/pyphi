@@ -177,6 +177,8 @@ def _section_html(section: Section) -> str:
             parts.append(_table_html(comp))
         elif isinstance(comp, Inline):
             parts.append(comp.html or f"<pre>{escape(comp.text)}</pre>")
+        elif isinstance(comp, Row):
+            parts.append(_kv_html((comp,)))
         elif isinstance(comp, Nested):
             sub = comp.description
             label = sub.compact or sub.title

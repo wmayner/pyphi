@@ -1,9 +1,9 @@
-"""Golden regression harness for PyPhi (P1).
+"""Golden regression harness for PyPhi.
 
 This package provides infrastructure for capturing raw numerical outputs from
 PyPhi computations and comparing them against pinned reference values across
-refactors. The format is intentionally independent of ``pyphi.jsonify`` so that
-fixtures survive any future serialization rewrite.
+refactors. The format is intentionally independent of ``pyphi.serialize`` so
+that fixtures survive any future serialization rewrite.
 
 Usage::
 

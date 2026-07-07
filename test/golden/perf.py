@@ -1,7 +1,7 @@
 """Shared performance-harness helpers.
 
 The single source of truth imported by the perf-counter regression gate
-(``test/test_perf_counters.py``), its regeneration script
+(``test/integration/test_perf_counters.py``), its regeneration script
 (``scripts/gen_perf_counts.py``), and the ASV benchmark suite (via the
 ``benchmarks/benchmarks/_fixtures.py`` path shim). Keeping the FRAMES list and
 the grain dispatch here means they cannot drift between consumers.

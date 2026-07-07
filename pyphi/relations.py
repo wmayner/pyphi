@@ -284,9 +284,12 @@ def _combinations_with_nonempty_congruent_overlap(
     """Return combinations of distinctions with nonempty congruent overlap.
 
     Two distinctions can relate only if their purview-unions share a unit; a
-    combination can relate only if all its members share a common unit, i.e. the
-    intersection of their purview-unions is nonempty. Congruence of the shared
-    state is checked downstream when the :class:`Relation` is constructed.
+    combination can relate only if all its members share a common unit, i.e.
+    the intersection of their purview-unions is nonempty. Because the
+    intersection compares :class:`UnitState` values — ``(index, state)``
+    pairs — congruence of the shared state is enforced here at candidate
+    generation, so the family is exactly the Eq. 49/56 congruent overlaps
+    (not an over-approximation later filtered down).
 
     Arguments:
         components (Distinctions): The distinctions to find overlaps

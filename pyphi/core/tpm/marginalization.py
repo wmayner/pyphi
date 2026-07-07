@@ -201,7 +201,7 @@ def effect_marginal(
     tpm: TPM,
     background: Mapping[int, int],
 ) -> TPM:
-    """Forward TPM conditioned on external state — IIT 4.0 Eq. 4."""
+    """Forward TPM conditioned on external state — IIT 4.0 Eq. 3."""
     if isinstance(tpm, FactoredTPM):
         return _effect_marginal_factored(tpm, background)
     return tpm.condition(background)

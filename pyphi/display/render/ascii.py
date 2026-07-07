@@ -79,6 +79,8 @@ def _section_lines(section: Section) -> list[str]:
             lines.extend(_format_table(comp))
         elif isinstance(comp, Inline):
             lines.extend(comp.text.splitlines())
+        elif isinstance(comp, Row):
+            lines.extend(_format_rows((comp,)))
         elif isinstance(comp, Nested):
             lines.append(_compact(comp.description))
     return lines

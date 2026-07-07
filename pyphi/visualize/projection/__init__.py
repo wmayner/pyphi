@@ -102,9 +102,9 @@ class CESProjection:
 
     ``endpoints`` carries one node per distinction side, interleaved so
     that ``endpoints[2 * d + 0]`` is distinction ``d``'s cause and
-    ``endpoints[2 * d + 1]`` its effect. ``faces`` carries the degree-2 and
-    degree-3 relation faces (the drawable simplices), referencing
-    endpoints by id.
+    ``endpoints[2 * d + 1]`` its effect. ``faces`` carries the relation
+    faces at every degree present, referencing endpoints by id; renderers
+    choose how to draw each degree.
     """
 
     nodes: tuple[DistinctionNode, ...]

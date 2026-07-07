@@ -6,8 +6,9 @@ when the System is garbage-collected.
 
 Threading
 ---------
-The kernel cache is NOT thread-safe — see :mod:`pyphi.cache` for the
-process-isolated parallelism assumption.
+The kernel cache is the thread-safe :class:`pyphi.cache.ContentCache`
+(eviction and refcount bookkeeping locked; the hot read path lock-free) —
+see :mod:`pyphi.cache`.
 """
 
 from __future__ import annotations

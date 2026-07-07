@@ -207,11 +207,12 @@ def _emd(
     #    +~~~~~~~~~~~~~~~~~~~~~+
     #
     # The diagonal blocks marked with an X are set to a value larger than any
-    # pairwise distance between concepts. This ensures that concepts are never
-    # moved to another concept within their own CES; they must always go either
-    # from one CES to another, or to the null concept N. The D block is filled
-    # with the pairwise distances between the two CESs, and Dn is filled with
-    # the distances from each concept to the null concept.
+    # pairwise distance between concepts. The transport marginals already
+    # forbid within-CES moves (each CES's mass sits on its own rows/columns),
+    # so the large value is a numerical safeguard rather than the mechanism.
+    # The D block is filled with the pairwise distances between the two CESs,
+    # and Dn is filled with the distances from each concept to the null
+    # concept.
     N, M = len(unique_C1), len(unique_C2)
     # Add one to the side length for the null concept distances.
     distance_matrix: NDArray[np.float64] = np.empty([N + M + 1] * 2)

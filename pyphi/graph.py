@@ -1,9 +1,11 @@
 # graph.py
-"""Bridge between PyPhi value types and networkx directed graphs.
+"""Bridge between PyPhi value types and graph representations.
 
-Topology only. By default the exported graph uses the TPM-inferred causal
-connectivity (B19 ``FactoredTPM.infer_cm``); pass ``connectivity="declared"``
-to use the substrate's declared connectivity matrix verbatim.
+Exports static structure (directed graphs over the TPM-inferred causal
+connectivity, ``FactoredTPM.infer_cm``; pass ``connectivity="declared"`` to
+use the substrate's declared connectivity matrix verbatim) and dynamics (the
+two-timeslice dynamic Bayesian network export, which carries each unit's
+conditional probability distribution over its inferred parents).
 """
 
 from __future__ import annotations

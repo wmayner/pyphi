@@ -8,8 +8,6 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-# TODO Just use `to_json` instead of `to_dict`?
-
 
 def try_to_dict(obj: object) -> dict[str, Any] | object:
     try:

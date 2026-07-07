@@ -71,9 +71,10 @@ def plot_ces(
             ``"lattice"``: an inclusion partial order over the distinctions
             drawn as a 2-D Hasse diagram, with marker size given by each
             distinction's total relation phi and color by its phi.
-            ``"hypergraph"``: the 3-D view with cause/effect purviews
-            as vertices, degree-2 relation faces as line segments, and
-            degree-3 faces as triangles.
+            ``"hypergraph"``: the 3-D view with cause/effect purviews as
+            vertices and relation faces drawn as star expansions (hub +
+            spokes) by default; raise ``star_min_degree`` to keep degree-2
+            faces as line segments and degree-3 faces as triangles.
             ``"scatter"``: distinctions on a deterministic PCA embedding of
             their unit composition, sized by total relation phi and colored
             by relational role.

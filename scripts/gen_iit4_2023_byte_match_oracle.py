@@ -2,7 +2,7 @@
 
 This script is the *reproducer* for ``test/data/iit4_2023_byte_match_oracle.json``,
 which pins pre-2.0-refactor IIT 4.0 (2023) system-phi values consumed by
-``test/test_cross_formalism_invariants.py::TestPreRefactorByteMatch`` (roadmap
+``test/integration/test_cross_formalism_invariants.py::TestPreRefactorByteMatch`` (roadmap
 item B5).
 
 It MUST be run against a worktree of the oracle commit
@@ -108,9 +108,10 @@ CONFIG = dict(
 
 
 def compute_one(tpm, cm, state, nodes):
-    network = pyphi.Network(np.array(tpm), cm=np.array(cm))
+    # Pre-refactor API: resolves only at the oracle commit (see module docstring).
+    network = pyphi.Network(np.array(tpm), cm=np.array(cm))  # type: ignore[operator]
     try:
-        subsystem = pyphi.Subsystem(network, tuple(state), nodes)
+        subsystem = pyphi.Subsystem(network, tuple(state), nodes)  # type: ignore[operator]
     except pyphi.exceptions.StateUnreachableBackwardsError:
         return None
     result = new_big_phi.sia(subsystem)

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import math
 
+import pytest
+
 from pyphi import System
 from pyphi import examples
 from pyphi.analyze import Analysis
@@ -91,12 +93,8 @@ def test_analyze_subset_analyzes_subsystem():
 def test_analyze_unknown_formalism_raises_valueerror():
     substrate = examples.basic_substrate()
     state = examples.basic_state()
-    try:
+    with pytest.raises(ValueError):
         analyze(substrate, state, formalism="IIT_9_0")
-    except ValueError:
-        pass
-    else:
-        raise AssertionError("expected ValueError for unknown formalism")
 
 
 def test_analyze_repr_renders_full_card():

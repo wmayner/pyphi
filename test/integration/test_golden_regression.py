@@ -1,12 +1,12 @@
-"""Golden regression tests (P1).
+"""Golden regression tests.
 
 Each test parameterization computes a captured set of values for a fixture and
 asserts they match the stored expected values. The format is independent of
-``pyphi.jsonify`` so that fixtures survive any future serialization rewrite.
+``pyphi.serialize`` so that fixtures survive any future serialization rewrite.
 
 Regenerate fixtures after intentional formula changes::
 
-    uv run pytest test/test_golden_regression.py --regenerate-golden
+    uv run pytest test/integration/test_golden_regression.py --regenerate-golden
 
 Regenerate just one::
 

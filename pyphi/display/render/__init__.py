@@ -8,8 +8,5 @@ _BACKENDS = {"ascii": _ascii.render, "html": _html.render}
 
 
 def render(description: Description, backend: str = "ascii", verbosity: int = 2) -> str:
-    """Render ``description`` with the named backend.
-
-    A future ``rich`` backend registers here without touching call sites.
-    """
+    """Render ``description`` with the backend registered under ``backend``."""
     return _BACKENDS[backend](description, verbosity)

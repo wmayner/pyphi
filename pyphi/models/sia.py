@@ -164,7 +164,7 @@ class IIT3SystemIrreducibilityAnalysis(
             Finding(kind="null_result", label="Null result", value=reason)
             for reason in (self.reasons or [])
         ]
-        if self.partition is not None and self.phi is not None and self.phi > 0:
+        if self.partition is not None and self.phi is not None and bool(self):
             findings.append(
                 Finding(
                     kind="winning_partition",
