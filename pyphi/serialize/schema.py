@@ -426,6 +426,35 @@ class ComplexSchema(msgspec.Struct, frozen=True, tag="complex"):
     excluded: tuple[ExcludedCandidateSchema, ...]
 
 
+# --- Estimation-layer posteriors ----------------------------------------------
+
+
+class CoverageReportSchema(msgspec.Struct, frozen=True, tag="coverage_report"):
+    counts: bytes
+    n_units: int
+
+
+class SubstratePosteriorSchema(msgspec.Struct, frozen=True, tag="substrate_posterior"):
+    alpha_on: bytes
+    alpha_off: bytes
+    regime: str
+    prior: float
+    coverage: CoverageReportSchema
+    node_labels: tuple[str, ...] | None
+    provenance: ProvenanceSchema
+
+
+class PhiPosteriorSchema(msgspec.Struct, frozen=True, tag="phi_posterior"):
+    samples: bytes
+    complex_samples: tuple[tuple[int, ...], ...]
+    state: tuple[int, ...]
+    subset: tuple[int, ...] | None
+    seed: int
+    regime: str
+    coverage: CoverageReportSchema
+    provenance: ProvenanceSchema
+
+
 # The tagged union grows one member per serializable type.
 Schema = (
     DirectionSchema
@@ -472,4 +501,7 @@ Schema = (
     | DirectedAccountSchema
     | AcSIASchema
     | ComplexSchema
+    | CoverageReportSchema
+    | SubstratePosteriorSchema
+    | PhiPosteriorSchema
 )

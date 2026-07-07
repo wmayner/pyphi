@@ -41,6 +41,7 @@ from . import utils
 from .analyze import analyze
 from .conf import config
 from .provenance import Provenance
+from .serializable import Serializable
 from .substrate import Substrate
 from .substrate import maximal_complex
 
@@ -53,7 +54,7 @@ def _index_to_state(index: int, n_units: int) -> tuple[int, ...]:
 
 
 @dataclass(frozen=True, eq=False)
-class CoverageReport:
+class CoverageReport(Serializable):
     """Which current states the data constrained, and how often.
 
     In the perturbational regime, uncovered states mark where more trials
@@ -106,7 +107,7 @@ class CoverageReport:
 
 
 @dataclass(frozen=True, eq=False)
-class SubstratePosterior:
+class SubstratePosterior(Serializable):
     """Posterior distribution over substrates given observed transitions.
 
     Each cell of the state-by-node TPM carries an independent Beta
@@ -223,7 +224,7 @@ class SubstratePosterior:
 
 
 @dataclass(frozen=True, eq=False)
-class PhiPosterior:
+class PhiPosterior(Serializable):
     """Posterior distribution over Φ, propagated from a substrate posterior.
 
     The distribution is generically a mixture: a point mass at zero from
