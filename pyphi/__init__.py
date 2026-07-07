@@ -99,6 +99,8 @@ from .core.tpm import FactoredTPM as FactoredTPM
 from .core.tpm import JointDistribution as JointDistribution
 from .core.tpm.joint_distribution import JointTPM
 from .direction import Direction
+from .estimate import estimate_substrate as estimate_substrate
+from .estimate import phi_posterior as phi_posterior
 from .log import enable_logging as enable_logging
 from .serialize import load
 from .serialize import save
@@ -153,10 +155,12 @@ __all__ = [
     "analyze",
     "config",
     "enable_logging",
+    "estimate_substrate",
     "iit3",
     "iit4_2023",
     "iit4_2026",
     "load",
+    "phi_posterior",
     "save",
 ] + [name for name in sorted(_SUBMODULE_NAMES) if not name.startswith("_")]
 

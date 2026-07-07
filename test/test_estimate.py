@@ -346,3 +346,28 @@ def test_epsilon_boundary_sensitivity():
     assert phis[0] > phis[1] > phis[2]
     assert phis[1] == pytest.approx(0.413, abs=0.005)
     assert phis[2] == pytest.approx(0.374, abs=0.01)
+
+
+def test_top_level_exports():
+    assert pyphi.estimate_substrate is estimate_substrate
+    assert pyphi.phi_posterior is phi_posterior
+
+
+@pytest.mark.slow
+def test_grid3_mixture_acceptance(grid3_posterior):
+    """From five perturbational samples per state, the Φ posterior over
+    grid3 at (0,0,0) is a genuine mixture: substantial mass on
+    reducibility, a conditional density that brackets the true Φ, and a
+    contested complex identity concentrated on the symmetric pair."""
+    with pyphi.config.override(progress_bars=False):
+        pp = phi_posterior(grid3_posterior, (0, 0, 0), n_samples=150, seed=2026)
+    # The reference run (300 draws) gave P(phi > 0) = 0.20; a different
+    # counting stream shifts this, so assert the band, not the point.
+    # Observed here (seed=2026, 150 draws): p_positive = 0.24, conditional
+    # 95% interval = [0.0012, 0.111], complex identity split
+    # {0}: 0.39, {2}: 0.35, {1}: 0.25; wall time ~5 s.
+    assert 0.05 < pp.p_positive < 0.5
+    lo, hi = pp.conditional_quantiles([0.025, 0.975])
+    assert lo < 0.024666 < hi  # brackets the true phi
+    identity = pp.complex_identity
+    assert identity[(0,)] + identity.get((2,), 0.0) > 0.5
