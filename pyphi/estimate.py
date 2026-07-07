@@ -332,6 +332,8 @@ def phi_posterior(
         A :class:`PhiPosterior` over the per-draw Φ values and complex
         identities.
     """
+    if n_samples < 1:
+        raise ValueError(f"n_samples must be at least 1, got {n_samples}")
     rng = np.random.default_rng(seed)
     draws = range(n_samples)
     if config.infrastructure.progress_bars:
@@ -394,7 +396,7 @@ def estimate_substrate(
         raise NotImplementedError(f"model={model!r}; only 'counts' is implemented")
     if regime not in REGIMES:
         raise ValueError(f"regime must be one of {REGIMES}, got {regime!r}")
-    if prior <= 0:
+    if not prior > 0:
         raise ValueError(f"prior must be positive, got {prior}")
 
     if isinstance(data, np.ndarray):

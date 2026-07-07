@@ -73,6 +73,12 @@ def test_counts_model_only():
         estimate_substrate(data, regime="perturbational", model="glm")
 
 
+def test_estimate_substrate_rejects_nan_prior():
+    data = (np.zeros((2, 3), dtype=int), np.zeros((2, 3), dtype=int))
+    with pytest.raises(ValueError, match="prior"):
+        estimate_substrate(data, regime="perturbational", prior=float("nan"))
+
+
 def test_posterior_mean_recovers_asymmetric_ground_truth():
     """With exact deterministic transitions and a vanishing prior, the
     posterior concentrates on the true asymmetric TPM (this is also the
@@ -205,6 +211,11 @@ def grid3_phi_posterior(grid3_posterior):
 def test_phi_posterior_seed_required(grid3_posterior):
     with pytest.raises(TypeError):
         phi_posterior(grid3_posterior, (0, 0, 0), n_samples=2)  # pyright: ignore[reportCallIssue]
+
+
+def test_phi_posterior_rejects_zero_samples(grid3_posterior):
+    with pytest.raises(ValueError, match="n_samples"):
+        phi_posterior(grid3_posterior, (0, 0, 0), n_samples=0, seed=1)
 
 
 def test_phi_posterior_is_reproducible(grid3_posterior):
