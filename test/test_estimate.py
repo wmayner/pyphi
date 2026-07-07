@@ -254,3 +254,95 @@ def test_observational_result_reports_partial_coverage():
     assert not pp.coverage.is_complete
     with pytest.raises(TypeError, match=r"unconstrained|uncovered"):
         float(pp)
+
+
+def test_infer_cm_saturates_on_estimated_tpm(grid3_posterior):
+    """The exact-equality connectivity oracle reports every edge present on
+    any continuously-estimated TPM: sampling noise exceeds 10^-precision on
+    every axis. This documents the defect edge_probability replaces."""
+    sample = grid3_posterior.sample(seed=0)
+    inferred = sample.factored_tpm.infer_cm()
+    assert inferred.all()  # including the truly absent edges 0->2 and 2->0
+
+
+def test_edge_probability_discriminates_where_infer_cm_cannot():
+    # grid3's weakest true edges (1->0, 1->2) vary the target's P(ON) by only
+    # ~0.072, so the discrimination threshold must sit below that signal and
+    # above the estimation noise floor. At 0.05 with enough data per state the
+    # separation is exact and seed-robust (present edges fire 1.0, absent 0.0);
+    # a threshold above 0.072 would only let the weak edges fire via noise.
+    substrate = examples.grid3_substrate()
+    pon = _ground_truth_pon(substrate)
+    rng = np.random.default_rng(20260708)
+    current, nxt = [], []
+    for row in range(8):
+        state = tuple((row >> i) & 1 for i in range(3))
+        for _ in range(2000):
+            current.append(state)
+            nxt.append(tuple(rng.random(3) < pon[row]))
+    posterior = estimate_substrate(
+        (np.array(current), np.array(nxt, dtype=int)), regime="perturbational"
+    )
+    prob = posterior.edge_probability(n_samples=200, seed=5, threshold=0.05)
+    true_cm = substrate.cm
+    # Truly absent edges get low probability; present edges get high.
+    assert prob[0, 2] < 0.1 and prob[2, 0] < 0.1
+    assert (prob[true_cm.astype(bool)] > 0.9).all()
+
+
+def test_observational_twin_nonidentifiability():
+    """Two substrates identical on the observed orbit but different on the
+    unvisited rows produce identical observational data yet materially
+    different Φ. Deterministic: basic_substrate's free-running dynamics are
+    deterministic, so no sampling is involved."""
+    from pyphi import Substrate
+    from pyphi import convert
+    from pyphi import dynamics
+
+    substrate = examples.basic_substrate()
+    pon = _ground_truth_pon(substrate)
+    rng = np.random.default_rng(1)  # unused by deterministic dynamics
+    # Simulate from the state-by-node multidimensional form (the form
+    # dynamics.simulate documents); both substrates go through the same path.
+    traj = np.array(
+        dynamics.simulate(
+            convert.to_multidimensional(pon), (1, 0, 0), timesteps=50, rng=rng
+        )
+    )
+    visited = {sum(bit << i for i, bit in enumerate(row)) for row in map(tuple, traj)}
+    assert len(visited) == 3  # the orbit covers 3 of 8 states
+
+    twin_pon = pon.copy()
+    for row in set(range(8)) - visited:
+        twin_pon[row] = 1.0 - twin_pon[row]  # arbitrary but deterministic
+    twin = Substrate(tpm=convert.to_multidimensional(twin_pon))
+
+    twin_traj = np.array(
+        dynamics.simulate(
+            convert.to_multidimensional(twin_pon), (1, 0, 0), timesteps=50, rng=rng
+        )
+    )
+    np.testing.assert_array_equal(traj, twin_traj)  # identical data...
+
+    phi_true = float(pyphi.analyze(substrate, (1, 0, 0), compute="sia").phi)
+    phi_twin = float(pyphi.analyze(twin, (1, 0, 0), compute="sia").phi)
+    assert phi_true == pytest.approx(0.415037, abs=1e-5)
+    assert abs(phi_true - phi_twin) > 0.05  # ...materially different Φ
+
+
+def test_epsilon_boundary_sensitivity():
+    """Pushing a deterministic TPM off the 0/1 boundary by epsilon lowers Φ
+    monotonically: indeterminism (real or estimated) shrinks selectivity."""
+    from pyphi import Substrate
+    from pyphi import convert
+
+    pon = _ground_truth_pon(examples.basic_substrate())
+    phis = []
+    for eps in (0.0, 0.001, 0.02):
+        smoothed = np.clip(pon, eps, 1.0 - eps)
+        substrate = Substrate(tpm=convert.to_multidimensional(smoothed))
+        phis.append(float(pyphi.analyze(substrate, (1, 0, 0), compute="sia").phi))
+    assert phis[0] == pytest.approx(0.415037, abs=1e-5)
+    assert phis[0] > phis[1] > phis[2]
+    assert phis[1] == pytest.approx(0.413, abs=0.005)
+    assert phis[2] == pytest.approx(0.374, abs=0.01)

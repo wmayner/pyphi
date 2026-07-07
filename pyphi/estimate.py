@@ -170,6 +170,57 @@ class SubstratePosterior:
             tpm=convert.to_multidimensional(p_on), node_labels=self.node_labels
         )
 
+    def edge_probability(
+        self, *, n_samples: int, seed: int, threshold: float
+    ) -> NDArray[np.float64]:
+        r"""Graded posterior probability of a causal edge between each unit pair.
+
+        Entry ``(a, b)`` is the fraction of posterior samples in which unit
+        ``b``'s estimated conditional varies by more than ``threshold`` along
+        input axis ``a`` — that is, the maximum absolute difference in
+        ``p(b = ON | current)`` between any two current states differing only
+        in unit ``a`` exceeds ``threshold``. This is the graded analogue of a
+        connectivity matrix: an edge ``a -> b`` is present to the extent the
+        data makes ``b`` depend on ``a``.
+
+        The exact-equality oracle :meth:`FactoredTPM.infer_cm` cannot serve
+        here: on any continuously-estimated TPM every factor varies along
+        every axis by sampling noise, so it saturates to fully connected.
+        This method replaces that oracle for estimated substrates by asking
+        how *much* a factor varies, at a caller-chosen scale.
+
+        ``threshold`` has no default: the scale below which a dependence is
+        treated as absent is a modeling choice the caller must own, exactly
+        the kind of assertion the estimation API refuses to make implicitly.
+
+        Keyword Args:
+            n_samples: Number of posterior draws to average over.
+            seed: Seed for a fresh, isolated generator driving all draws
+                (required; the statistic is otherwise irreproducible).
+            threshold: Variation above which an input axis counts as an edge,
+                on the ``p(ON)`` scale (in ``[0, 1]``).
+
+        Returns:
+            An ``(n, n)`` array of edge-firing fractions in ``[0, 1]``.
+        """
+        n = self.n_units
+        # All draws at once: shape (n_samples, 2**n, n).
+        p_on = np.random.default_rng(seed).beta(
+            self.alpha_on, self.alpha_off, size=(n_samples, self.n_states, n)
+        )
+        # Expose each input bit as its own axis. Under little-endian row order
+        # and C-order reshape, reshaped state axis ``1 + (n - 1 - a)`` = ``n - a``
+        # carries input bit ``a``.
+        grid = p_on.reshape((n_samples, *([2] * n), n))
+        prob = np.zeros((n, n))
+        for a in range(n):
+            axis = n - a
+            diff = np.abs(grid.take(0, axis=axis) - grid.take(1, axis=axis))
+            # Max over the remaining n-1 state axes -> (n_samples, n_target).
+            max_diff = diff.max(axis=tuple(range(1, n)))
+            prob[a] = (max_diff > threshold).mean(axis=0)
+        return prob
+
 
 @dataclass(frozen=True, eq=False)
 class PhiPosterior:
