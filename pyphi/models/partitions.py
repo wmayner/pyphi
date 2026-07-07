@@ -45,7 +45,6 @@ the partition generators.
 
 from __future__ import annotations
 
-import functools
 from collections.abc import Iterator
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -135,7 +134,6 @@ def concise_partition(partition: _PartitionBase) -> str:
     return partition._concise()
 
 
-@functools.total_ordering
 class _PartitionBase(ToPandasMixin):
     """Base class for partitions and edge cuts.
 
@@ -166,12 +164,30 @@ class _PartitionBase(ToPandasMixin):
         This is the deterministic order already used for tie-breaking
         (``PARTITION_LEX``, the SIA sort key). ``__eq__``/``__hash__`` are
         defined per subclass and unchanged; partitions with identical induced
-        cuts but distinct structure sort as equal-rank. For the refinement
-        relation use :meth:`refines`/:meth:`coarsens`, NOT ``<``.
+        cuts but distinct structure sort as equal-rank, so all four
+        comparison operators are defined on ``lex_key`` directly (a
+        ``total_ordering``-derived ``<=`` would combine ``<`` with the
+        structural ``__eq__`` and turn equal-rank pairs incoherent). For the
+        refinement relation use :meth:`refines`/:meth:`coarsens`, NOT ``<``.
         """
         if not isinstance(other, _PartitionBase):
             return NotImplemented
         return self.lex_key() < other.lex_key()
+
+    def __le__(self, other: object) -> bool:
+        if not isinstance(other, _PartitionBase):
+            return NotImplemented
+        return self.lex_key() <= other.lex_key()
+
+    def __gt__(self, other: object) -> bool:
+        if not isinstance(other, _PartitionBase):
+            return NotImplemented
+        return self.lex_key() > other.lex_key()
+
+    def __ge__(self, other: object) -> bool:
+        if not isinstance(other, _PartitionBase):
+            return NotImplemented
+        return self.lex_key() >= other.lex_key()
 
     @property
     def indices(self) -> tuple[int, ...]:

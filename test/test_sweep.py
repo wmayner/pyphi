@@ -100,3 +100,37 @@ def test_parallel_equals_sequential():
     )
     assert len(par.results) == len(seq.results) == 6
     assert len(par.skipped) == len(seq.skipped) == 2
+
+
+def test_sweep_unknown_compute_string_raises_valueerror():
+    """A compute-string typo must raise, not crash opaquely in the cell."""
+    import pytest
+
+    substrate = examples.basic_substrate()
+    with config.override(**presets.iit4_2023):  # noqa: SIM117
+        with pytest.raises(ValueError, match="SIA"):
+            sweep(substrate, states=[(1, 0, 0)], compute="SIA")
+
+
+def test_sweep_progress_false_silences_sequential_path():
+    """progress=False must reach the cells on the sequential path too.
+
+    The documented force semantics: the inner computations see
+    ``progress_bars=False`` regardless of the config default.
+    """
+    substrate = examples.basic_substrate()
+    seen: list[bool] = []
+
+    def probe(system):
+        seen.append(config.infrastructure.progress_bars)
+        return system.sia()
+
+    with config.override(**presets.iit4_2023, progress_bars=True):
+        sweep(
+            substrate,
+            states=[(1, 0, 0)],
+            compute=probe,
+            parallel=False,
+            progress=False,
+        )
+    assert seen == [False]

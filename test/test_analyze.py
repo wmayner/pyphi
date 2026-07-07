@@ -143,3 +143,11 @@ def test_analyze_exported_at_package_root():
 
     assert pyphi.analyze is analyze
     assert pyphi.Analysis is Analysis
+
+
+def test_analyze_unknown_compute_string_raises_valueerror():
+    """A compute-string typo must raise, not silently run the full bundle."""
+    substrate = examples.basic_substrate()
+    state = examples.basic_state()
+    with pytest.raises(ValueError, match="SIA"):
+        analyze(substrate, state, formalism="IIT_4_0_2023", compute="SIA")

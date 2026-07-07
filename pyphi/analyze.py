@@ -118,6 +118,11 @@ def analyze(
             result = system.sia()
         elif compute == "ces":
             result = system.ces()
+        elif compute is not None:
+            raise ValueError(
+                f"unknown compute: {compute!r}; expected 'sia', 'ces', a "
+                "callable, or None for the full Analysis bundle"
+            )
         else:
             ces = system.ces()
             sia = getattr(ces, "sia", None)

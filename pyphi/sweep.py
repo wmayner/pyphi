@@ -90,7 +90,11 @@ def _dispatch_compute(system: System, compute: Any) -> Any:
         return system.sia()
     if compute == "ces":
         return system.ces()
-    return compute(system)
+    if callable(compute):
+        return compute(system)
+    raise ValueError(
+        f"unknown compute: {compute!r}; expected 'sia', 'ces', or a callable"
+    )
 
 
 def _run_cell(cell: tuple[Any, Any], *, substrate: Any, compute: Any, skip: bool) -> Any:
@@ -151,10 +155,18 @@ def _extract_row(result: Any, compute: Any) -> dict[str, Any]:
 
 
 def _run_cells_sequential(
-    substrate: Any, formalism: str, cells: list[Any], compute: Any, skip: bool
+    substrate: Any,
+    formalism: str,
+    cells: list[Any],
+    compute: Any,
+    skip: bool,
+    progress: Any = None,
 ) -> list[Any]:
+    resolved_progress = (
+        config.infrastructure.progress_bars if progress is None else progress
+    )
     results: list[Any] = []
-    with config.override(**presets.by_name[formalism]):
+    with config.override(**presets.by_name[formalism], progress_bars=resolved_progress):
         results = [
             _run_cell(c, substrate=substrate, compute=compute, skip=skip) for c in cells
         ]
@@ -281,7 +293,7 @@ def sweep(
             )
         else:
             results = _run_cells_sequential(
-                substrate, formalism, cells, compute, skip_uncomputable
+                substrate, formalism, cells, compute, skip_uncomputable, progress
             )
         for (subset, state), result in zip(cells, results, strict=True):
             if isinstance(result, _Skipped):

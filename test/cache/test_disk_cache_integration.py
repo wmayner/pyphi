@@ -72,3 +72,23 @@ def test_config_flip_forces_recompute_not_stale_hit(tmp_path, monkeypatch):
         second = sub.ces(state)
     assert type(first.relations).__name__ == "ConcreteRelations"
     assert type(second.relations).__name__ == "AnalyticalRelations"
+
+
+def test_cache_write_failure_does_not_destroy_the_result(monkeypatch):
+    """An OSError while persisting must not propagate: the freshly computed
+    result (potentially hours of work) is returned; only the cache write is
+    lost."""
+    from pyphi.cache import disk as disk_module
+
+    def failing_put(self, key, data):
+        raise OSError("disk full")
+
+    monkeypatch.setattr(disk_module.DiskCache, "put", failing_put)
+    monkeypatch.setattr(disk_module.DiskCache, "get", lambda *_args: None)
+    monkeypatch.setattr(disk_module, "result_cache_key", lambda *_a, **_k: "test-key")
+    monkeypatch.setattr(disk_module.serialize, "dumps", lambda *_a, **_k: b"blob")
+    with config.override(disk_cache_results=True):
+        result = disk_module.maybe_disk_cached(
+            system=None, kind="sia", compute=lambda: "computed", user_kwargs={}
+        )
+    assert result == "computed"

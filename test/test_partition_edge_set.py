@@ -124,6 +124,19 @@ def test_total_order_operators():
     assert not (hi < lo)
 
 
+def test_total_order_coherent_for_equal_key_unequal_structure():
+    """CAUSE and EFFECT cuts over the same nodes share a lex_key but are
+    unequal objects; the comparison operators must still form a coherent
+    equal-rank ordering (<= true both ways, > false both ways)."""
+    a = DirectedBipartition(Direction.CAUSE, (0,), (1,))
+    b = DirectedBipartition(Direction.EFFECT, (0,), (1,))
+    assert a.lex_key() == b.lex_key() and a != b  # the genuine-difference pair
+    assert a <= b <= a
+    assert a >= b >= a
+    assert not (a < b) and not (b < a)
+    assert not (a > b) and not (b > a)
+
+
 def test_nullcut_sorts_first():
     null = NullCut((0, 1))
     cut = DirectedBipartition(Direction.EFFECT, (0,), (1,))

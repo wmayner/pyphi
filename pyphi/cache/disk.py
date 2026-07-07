@@ -13,6 +13,7 @@ from __future__ import annotations
 import dataclasses
 import hashlib
 import importlib.metadata
+import logging
 import os
 from pathlib import Path
 from typing import Any
@@ -22,6 +23,8 @@ from pyphi import serialize
 from pyphi.cache.cache_utils import _CacheInfo
 from pyphi.cache.registry import register as _register_policy
 from pyphi.provenance import _git_info
+
+log = logging.getLogger(__name__)
 
 
 def _decode_or_none(data: bytes) -> Any | None:
@@ -143,5 +146,13 @@ def maybe_disk_cached(system: Any, kind: str, user_kwargs: dict, compute: Any) -
         if result is not None:
             return result
     result = compute()
-    _RESULT_DISK_CACHE.put(key, serialize.dumps(result, format="msgpack"))
+    try:
+        _RESULT_DISK_CACHE.put(key, serialize.dumps(result, format="msgpack"))
+    except OSError:
+        # The write is best-effort: never let a full disk or permission
+        # error destroy a freshly computed result.
+        log.warning(
+            "disk result cache write failed; returning the result uncached",
+            exc_info=True,
+        )
     return result
