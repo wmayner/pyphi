@@ -315,6 +315,48 @@ class CauseEffectStructure(
             parent=self,
         )
 
+    def _check_same_frame(self, other: CauseEffectStructure) -> None:
+        """Raise unless ``other`` has the same candidate-system node indices
+        and current state.
+
+        Value-based distinction identity is only meaningful within one
+        frame; combining structures across frames would silently produce
+        empty results instead of raising. A structure does not record its
+        substrate, so two structures from *different substrates* with
+        identical node indices and state cannot be detected here; for such
+        pairs the combination degrades safely to an empty intersection,
+        because distinction equality also compares purviews, φ, and
+        repertoires. The config snapshots are not compared.
+        """
+        from pyphi.substrate import _sia_node_indices
+
+        mine = (
+            _sia_node_indices(self.sia),
+            getattr(self.sia, "current_state", None),
+        )
+        theirs = (
+            _sia_node_indices(other.sia),
+            getattr(other.sia, "current_state", None),
+        )
+        if mine != theirs:
+            raise ValueError(
+                "structures are not in the same frame: "
+                f"(node_indices, state) {mine} != {theirs}"
+            )
+
+    def meet(self, other: CauseEffectStructure) -> InducedSubstructure:
+        """The induced substructure on the distinctions common to both
+        structures (value equality).
+
+        Because a relation's φ depends only on its relata, the result's
+        relation set equals the intersection of the two structures'
+        relation sets. Requires both structures to be in the same frame;
+        raises ``ValueError`` otherwise. The result is a view of ``self``.
+        """
+        self._check_same_frame(other)
+        common = set(self.distinctions) & set(other.distinctions)
+        return self.induce(d.mechanism for d in common)
+
     def _changes(self, other) -> tuple[Change, ...]:
         from pyphi import utils
 
