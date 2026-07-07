@@ -206,9 +206,9 @@ def test_apply_snapshot_dedup_skips_repeated_identical_snapshot():
     snap = config.snapshot()
     counter, original = _patch_install_snapshot(config)
     try:
-        local_process._apply_snapshot_if_changed(snap)
-        local_process._apply_snapshot_if_changed(snap)
-        local_process._apply_snapshot_if_changed(snap)
+        local_process._apply_snapshot_if_changed(snap, hash(repr(snap)))
+        local_process._apply_snapshot_if_changed(snap, hash(repr(snap)))
+        local_process._apply_snapshot_if_changed(snap, hash(repr(snap)))
     finally:
         _restore_install_snapshot(config, original)
 
@@ -228,9 +228,11 @@ def test_apply_snapshot_dedup_reapplies_when_snapshot_changes():
 
     counter, original = _patch_install_snapshot(config)
     try:
-        local_process._apply_snapshot_if_changed(snap1)
-        local_process._apply_snapshot_if_changed(snap2)  # different
-        local_process._apply_snapshot_if_changed(snap1)  # back to snap1
+        local_process._apply_snapshot_if_changed(snap1, hash(repr(snap1)))
+        local_process._apply_snapshot_if_changed(snap2, hash(repr(snap2)))  # different
+        local_process._apply_snapshot_if_changed(
+            snap1, hash(repr(snap1))
+        )  # back to snap1
     finally:
         _restore_install_snapshot(config, original)
 
@@ -252,8 +254,8 @@ def test_apply_snapshot_skips_when_running_in_parent_pid():
     snap = config.snapshot()
     counter, original = _patch_install_snapshot(config)
     try:
-        local_process._apply_snapshot_if_changed(snap)
-        local_process._apply_snapshot_if_changed(snap)
+        local_process._apply_snapshot_if_changed(snap, hash(repr(snap)))
+        local_process._apply_snapshot_if_changed(snap, hash(repr(snap)))
     finally:
         _restore_install_snapshot(config, original)
         local_process._PARENT_PID = None

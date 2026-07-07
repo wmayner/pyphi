@@ -290,8 +290,12 @@ _LAST_APPLIED_SNAPSHOT_HASH: int | None = None
 _PARENT_PID: int | None = None
 
 
-def _apply_snapshot_if_changed(snapshot: Any) -> None:
+def _apply_snapshot_if_changed(snapshot: Any, snap_hash: int) -> None:
     """Apply ``snapshot`` to the worker's global config; idempotent.
+
+    ``snap_hash`` identifies the snapshot; it is computed once on the
+    parent side (hashing the snapshot repr is ~1 ms, far too slow to pay
+    per item) and compared against the last-applied hash here.
 
     Skips application when running in the parent process (set by the thread
     scheduler before dispatch) — threads share the parent's globals and the
@@ -304,7 +308,6 @@ def _apply_snapshot_if_changed(snapshot: Any) -> None:
     if _PARENT_PID is not None and os.getpid() == _PARENT_PID:
         return
 
-    snap_hash = hash(repr(snapshot))
     if snap_hash == _LAST_APPLIED_SNAPSHOT_HASH:
         return
 
@@ -314,9 +317,10 @@ def _apply_snapshot_if_changed(snapshot: Any) -> None:
 
 def _make_worker_fn(fn: Callable[..., Any], snapshot: Any) -> Callable[..., Any]:
     """Wrap ``fn`` so each worker call applies the parent's snapshot first."""
+    snap_hash = hash(repr(snapshot))
 
     def worker_fn(*args: Any, **kwargs: Any) -> Any:
-        _apply_snapshot_if_changed(snapshot)
+        _apply_snapshot_if_changed(snapshot, snap_hash)
         return fn(*args, **kwargs)
 
     return worker_fn
