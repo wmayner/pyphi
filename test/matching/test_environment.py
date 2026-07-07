@@ -241,3 +241,33 @@ def test_matching_analysis_runs_on_generated_world_distribution():
     analysis = MatchingAnalysis(perceptions=perceptions, world_distribution=world)
     result = analysis.matching(seed=0, n_trials=5, k=3)
     assert result is not None
+
+
+def test_e1_matches_independent_or_convolution_reference():
+    """Pin every E1 per-stimulus probability against an independent reference.
+
+    The reference recomputes the superposition by brute force: enumerate all
+    source-pattern triples, OR them, and accumulate the product probability.
+    Any error in superpose's combination rule (or in a generator's support)
+    shifts some stimulus probability and fails the comparison.
+    """
+    from collections import defaultdict
+    from itertools import product as iterproduct
+
+    n = 5
+    sources = (env.segment(n, 3, 0.6), env.segment(n, 2, 0.9), env.noise(n, 0.05))
+    e1 = env.superpose(*sources)
+
+    reference = defaultdict(float)
+    for combo in iterproduct(*(s.items() for s in sources)):
+        state = tuple(
+            int(any(bits)) for bits in zip(*(c[0] for c in combo), strict=True)
+        )
+        probability = 1.0
+        for _, p in combo:
+            probability *= p
+        reference[state] += probability
+
+    assert set(e1) == {s for s, p in reference.items() if p > 0}
+    for state, probability in reference.items():
+        assert e1.get(state, 0.0) == pytest.approx(probability), state

@@ -84,6 +84,7 @@ from hypothesis import strategies as st
 from pyphi import Substrate
 from pyphi import System
 from pyphi import actual
+from pyphi import exceptions
 from pyphi.conf import config
 from pyphi.conf import presets
 from pyphi.conf.formalism import IITConfig
@@ -123,7 +124,8 @@ class TestCapMonotonicityAcrossVersions:
         try:
             phi_2023 = _iit4_phi(substrate, state, presets.iit4_2023)
             phi_2026 = _iit4_phi(substrate, state, presets.iit4_2026)
-        except Exception:
+        except exceptions.StateUnreachableError:
+            # Randomly drawn state is unreachable for this substrate; skip.
             assume(False)
             return
         assert phi_2026 <= phi_2023 + _ZERO, (
@@ -286,10 +288,16 @@ class TestAcIitSignAgreement:
             )
         )
         try:
-            _check_ac_iit_sign_agreement(transition, direction, mechanism, purview)
+            checked = _check_ac_iit_sign_agreement(
+                transition, direction, mechanism, purview
+            )
         except (ValueError, KeyError):
             # Invalid mechanism/purview combination for this transition.
             assume(False)
+            return
+        # Vacuity guard: a draw whose partitions were all degenerate checked
+        # nothing; skip it so passing examples always exercised the property.
+        assume(checked > 0)
 
 
 def _load_oracle() -> dict:

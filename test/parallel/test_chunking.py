@@ -62,6 +62,11 @@ def test_cost_balanced_partition_property(weights, k):
     flat = [i for b in bins for i in b]
     assert sorted(flat) == list(range(len(weights)))  # exact partition
     assert len([b for b in bins if b]) <= min(k, len(weights))
+    # LPT balance bound (greedy list-scheduling guarantee): the heaviest bin
+    # carries at most the ideal average plus one item's weight. Vacuous for
+    # k=1; a lost-balance regression (e.g. round-robin by index) fails it.
+    bin_costs = [sum(weights[i] for i in b) for b in bins if b]
+    assert max(bin_costs) <= sum(weights) / k + max(weights) + 1e-9
 
 
 def test_relation_size_func_is_overlap_times_degree():

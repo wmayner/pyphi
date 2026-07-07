@@ -63,3 +63,31 @@ def test_evict_purges_only_that_fingerprint():
     cache.evict(b"fp-a")
     assert cache.size == 1
     assert cache.get_or_compute(b"fp-b", (), lambda: 99) == 2  # still cached
+
+
+def test_clear_detaches_finalizers_so_reobservation_counts_once():
+    """clear() must detach the armed finalizers.
+
+    Re-observing the same object after clear() would otherwise register a
+    second finalizer; when the object dies both fire, the refcount
+    over-decrements, and an entry is evicted while another carrier of the
+    same fingerprint is still alive.
+    """
+    cache = ContentCache("test.clear-finalizers")
+    fp = b"fp-clear"
+    a = _Carrier()
+    cache.observe(a, fp)
+
+    cache.clear()
+
+    # Re-observe the same (still-live) object, plus a second live carrier.
+    cache.observe(a, fp)
+    b = _Carrier()
+    cache.observe(b, fp)
+    cache.get_or_compute(fp, (1,), lambda: "value")
+
+    del a
+    gc.collect()
+
+    # b is still a live carrier: the entry must survive a's death.
+    assert cache.get_or_compute(fp, (1,), lambda: "recomputed") == "value"

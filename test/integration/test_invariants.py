@@ -395,8 +395,13 @@ class TestPermutationSymmetry:
         sia_xa = new_big_phi.sia(sub_xa, **_sia_kwargs())
         assert float(sia_ax.phi) == pytest.approx(float(sia_xa.phi))
 
-    def test_sia_per_direction_phi_multiset_symmetric(self):
-        """The multiset ``{phi_c, phi_e}`` is equal for permuted systems."""
+    def test_sia_per_direction_phi_symmetric(self):
+        """Each direction's phi is equal for permuted systems.
+
+        Strict per-direction equality (not multiset equality): a node
+        relabeling maps cause to cause and effect to effect, so the
+        canonical-state tie-break makes each direction's value invariant.
+        """
         sub_ax = System(example_substrates.and_xor_substrate(), (0, 1))
         sub_xa = System(example_substrates.xor_and_substrate(), (1, 0))
         sia_ax = new_big_phi.sia(sub_ax, **_sia_kwargs())
@@ -405,11 +410,8 @@ class TestPermutationSymmetry:
         phi_e_ax = float(sia_ax.effect.phi) if sia_ax.effect else 0.0
         phi_c_xa = float(sia_xa.cause.phi) if sia_xa.cause else 0.0
         phi_e_xa = float(sia_xa.effect.phi) if sia_xa.effect else 0.0
-        ax_pair = sorted((phi_c_ax, phi_e_ax))
-        xa_pair = sorted((phi_c_xa, phi_e_xa))
-        assert ax_pair[0] == pytest.approx(xa_pair[0]) and ax_pair[1] == pytest.approx(
-            xa_pair[1]
-        )
+        assert phi_c_ax == pytest.approx(phi_c_xa)
+        assert phi_e_ax == pytest.approx(phi_e_xa)
 
     def test_system_state_reflects_mip_resolution(self):
         """system_state should reflect the specified state chosen by the MIP.

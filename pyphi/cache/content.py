@@ -34,6 +34,11 @@ class ContentCache:
         self._cache: dict[tuple[bytes, tuple], Any] = {}
         self._live: dict[bytes, int] = {}
         self._observed: set[int] = set()
+        # Finalize handles by source id, so clear() can detach them; a
+        # finalizer left armed across clear() would fire alongside the one
+        # registered by a later re-observation and over-decrement the
+        # refcount, evicting entries that still have live carriers.
+        self._finalizers: dict[int, weakref.finalize] = {}
         # Guards the eviction and refcount bookkeeping only; the hot path
         # (get_or_compute) is lock-free. Reentrant because a weakref finalizer
         # (_on_death) can fire on the thread already holding the lock — e.g. a
@@ -61,11 +66,14 @@ class ContentCache:
                 return
             self._observed.add(sid)
             self._live[fingerprint] = self._live.get(fingerprint, 0) + 1
-            weakref.finalize(source, self._on_death, sid, fingerprint)
+            self._finalizers[sid] = weakref.finalize(
+                source, self._on_death, sid, fingerprint
+            )
 
     def _on_death(self, sid: int, fingerprint: bytes) -> None:
         with self._lock:
             self._observed.discard(sid)
+            self._finalizers.pop(sid, None)
             remaining = self._live.get(fingerprint, 0) - 1
             if remaining <= 0:
                 self._live.pop(fingerprint, None)
@@ -105,6 +113,9 @@ class ContentCache:
 
     def clear(self) -> None:
         with self._lock:
+            for handle in self._finalizers.values():
+                handle.detach()
+            self._finalizers.clear()
             self._cache.clear()
             self._live.clear()
             self._observed.clear()

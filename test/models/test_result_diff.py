@@ -200,3 +200,46 @@ def test_ces_diff_with_differing_relation_sets():
     for change in relation_changes:
         # Keys are deterministic: mechanisms in sorted order.
         assert change.key == tuple(sorted(change.key))
+
+
+def test_mip_reshuffle_and_genuine_change_branches():
+    """Exercise both _mip_changed branches with genuinely different partitions.
+
+    A tie-reshuffle (b picks a co-optimal member of a's tie set) is not a
+    change; a partition outside a's tie set is. The no-ties fallback flags a
+    change only when the partition AND phi both differ.
+    """
+    from types import SimpleNamespace
+
+    from pyphi.direction import Direction
+    from pyphi.models import DirectedBipartition
+    from pyphi.models.diff import _mip_changed
+
+    p1 = DirectedBipartition(Direction.EFFECT, (0, 1), (2,))
+    p2 = DirectedBipartition(Direction.EFFECT, (0, 2), (1,))
+    p3 = DirectedBipartition(Direction.CAUSE, (1, 2), (0,))
+    assert len({p.lex_key() for p in (p1, p2, p3)}) == 3  # genuinely distinct
+
+    def tie(part):
+        return SimpleNamespace(partition=part)
+
+    a = SimpleNamespace(partition=p1, ties=[tie(p1), tie(p2)], phi=1.0)
+    # Reshuffle: b selected the co-optimal p2.
+    assert (
+        _mip_changed(a, SimpleNamespace(partition=p2, ties=[tie(p2)], phi=1.0)) is False
+    )
+    # Genuine change: p3 is outside a's tie set.
+    assert (
+        _mip_changed(a, SimpleNamespace(partition=p3, ties=[tie(p3)], phi=0.5)) is True
+    )
+
+    # Fallback path (no tie set on a): flag only partition + phi both changed.
+    a_no_ties = SimpleNamespace(partition=p1, ties=None, phi=1.0)
+    assert (
+        _mip_changed(a_no_ties, SimpleNamespace(partition=p3, ties=None, phi=0.5))
+        is True
+    )
+    assert (
+        _mip_changed(a_no_ties, SimpleNamespace(partition=p3, ties=None, phi=1.0))
+        is False
+    )

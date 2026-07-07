@@ -171,9 +171,22 @@ def test_node_to_pandas_series():
 
 
 def test_every_displayable_has_to_pandas():
-    import pyphi  # noqa: F401  (ensure all result modules are imported)
+    import importlib
+    import pkgutil
+
+    import pyphi
     from pyphi.display.mixin import Displayable
     from pyphi.models.pandas import ToPandasMixin
+
+    # Import every pyphi module so lazily-imported Displayable subclasses
+    # (e.g. under pyphi.visualize) are registered before the subclass walk;
+    # a bare `import pyphi` misses them. Optional-dependency modules that
+    # are not installed are skipped.
+    for module_info in pkgutil.walk_packages(pyphi.__path__, prefix="pyphi."):
+        try:
+            importlib.import_module(module_info.name)
+        except ImportError:
+            continue
 
     def all_subclasses(cls):
         out = set()

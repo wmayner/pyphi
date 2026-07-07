@@ -45,6 +45,10 @@ def test_sweep_over_formalisms_multiindex():
     result = sweep(substrate, states=[(1, 0, 0)], formalisms=["IIT_4_0_2023", "IIT_3_0"])
     assert list(result.df.index.names) == ["formalism"]  # only formalism varies
     assert set(result.df.index) == {"IIT_4_0_2023", "IIT_3_0"}
+    # Genuine-difference guard: the axis must change the computed value, not
+    # just the index labels (the two formalisms disagree on this substrate).
+    phi_by_formalism = result.df["phi"]
+    assert phi_by_formalism["IIT_4_0_2023"] != phi_by_formalism["IIT_3_0"]
 
 
 def test_sweep_compute_ces_columns():

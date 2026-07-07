@@ -178,13 +178,21 @@ def test_analytical_empty_is_zero():
     assert Differentiation(()).analytical_differentiation == 0.0
 
 
-def _concrete_ces_subset(ces, n_keep):
-    """A CES over the first ``n_keep`` distinctions of ``ces``, concrete relations."""
+def _concrete_ces_subset(ces, n_keep=None, indices=None):
+    """A CES over a subset of ``ces``'s distinctions, concrete relations.
+
+    Selects the first ``n_keep`` distinctions, or the given ``indices``.
+    """
     from pyphi.models.ces import CauseEffectStructure
     from pyphi.models.distinctions import ResolvedDistinctions
     from pyphi.relations import relations as compute_relations
 
-    sub_distinctions = ResolvedDistinctions(list(ces.distinctions)[:n_keep])
+    all_distinctions = list(ces.distinctions)
+    if indices is None:
+        selected = all_distinctions[:n_keep]
+    else:
+        selected = [all_distinctions[i] for i in indices]
+    sub_distinctions = ResolvedDistinctions(selected)
     sub_relations = compute_relations(sub_distinctions, "CONCRETE")
     return CauseEffectStructure(
         sia=ces.sia, distinctions=sub_distinctions, relations=sub_relations
@@ -201,6 +209,46 @@ def test_analytical_partial_overlap_matches_concrete(perceptions):
     d = Differentiation((full, sub))
     assert d.analytical_differentiation == pytest.approx(d.differentiation)
     assert d.analytical_differentiation == pytest.approx(float(full.ces.big_phi))
+
+
+def test_analytical_non_nested_overlap_matches_concrete(perceptions):
+    """Non-nested pair: each structure has distinctions the other lacks.
+
+    The nested case above cannot catch a cross-term sign or restriction
+    error that cancels when one structure contains the other; here the
+    intersection is a strict subset of both.
+    """
+    full = perceptions[(0,)]
+    n = len(full.ces.distinctions)
+    assert n >= 3, "fixture must have >= 3 distinctions for a non-nested pair"
+    ces_a = _concrete_ces_subset(full.ces, indices=range(n - 1))  # drop last
+    ces_b = _concrete_ces_subset(full.ces, indices=range(1, n))  # drop first
+    pa = Perception(ces=ces_a, triggered_tpm=full.triggered_tpm, stimulus=(0,))
+    pb = Perception(ces=ces_b, triggered_tpm=full.triggered_tpm, stimulus=(0,))
+    d = Differentiation((pa, pb))
+    assert d.analytical_differentiation == pytest.approx(d.differentiation)
+
+
+def test_analytical_three_structure_inclusion_exclusion_matches_concrete(perceptions):
+    """Three overlapping structures exercise the |T|=3 inclusion-exclusion
+    term, which the pairwise cases never reach."""
+    full = perceptions[(0,)]
+    n = len(full.ces.distinctions)
+    assert n >= 3
+    subsets = [range(n - 1), range(1, n), [0, n - 1]]
+    ps = tuple(
+        Perception(
+            ces=_concrete_ces_subset(full.ces, indices=idx),
+            triggered_tpm=full.triggered_tpm,
+            stimulus=(0,),
+        )
+        for idx in subsets
+    )
+    d = Differentiation(ps)
+    assert d.analytical_differentiation == pytest.approx(d.differentiation)
+    # Genuine-difference guard: the union differs from every member, so the
+    # cross terms carry real mass.
+    assert d.differentiation > 0
 
 
 def test_analytical_runs_on_analytical_relations_where_concrete_cannot(perceptions):

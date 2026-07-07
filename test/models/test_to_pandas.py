@@ -42,6 +42,24 @@ def test_distribution_rows_binary():
     assert sum(r["probability"] for r in rows) == pytest.approx(1.0)
 
 
+def test_distribution_rows_asymmetric_pins_flatten_order():
+    """Pin state-to-probability pairs on an asymmetric repertoire.
+
+    The binary fixture above is symmetric along axis 0, so a C-order
+    (big-endian) flatten flip would pass it unnoticed; these pins fail
+    for any axis-order or endianness mistake.
+    """
+    rep = np.array([[0.1, 0.2], [0.3, 0.4]])
+    rows = distribution_rows(Direction.CAUSE, "repertoire", (0, 1), rep, None)
+    by_state = {r["state"]: r["probability"] for r in rows}
+    assert by_state == {
+        (0, 0): pytest.approx(0.1),
+        (1, 0): pytest.approx(0.3),  # first purview unit varies fastest
+        (0, 1): pytest.approx(0.2),
+        (1, 1): pytest.approx(0.4),
+    }
+
+
 def test_distribution_rows_kary_states():
     rep = np.arange(6, dtype=float).reshape(3, 2)
     rep = rep / rep.sum()

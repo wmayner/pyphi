@@ -2326,9 +2326,8 @@ test inventory — that a deliberate re-ordering pass is in order.
       ``test_sia_phi_c_symmetric``, ``test_sia_phi_e_symmetric``,
       ``test_system_state_symmetric``, ``test_sia_phi_symmetric``.
       Under P11.95b the per-direction breakdown asymmetry surfaces;
-      under P11.95c the strict per-direction equality is restored.
-      Until P11.95c lands, these tests are relaxed to multiset
-      equality on ``(cause.phi, effect.phi)``.
+      under P11.95c the strict per-direction equality is restored
+      (asserted by ``test_sia_per_direction_phi_symmetric``).
     - Cross-formalism consistency tests benefit similarly:
       canonicalizing the substrate before SIA means the IIT 3.0 and
       IIT 4.0 outputs no longer depend on the arbitrary substrate

@@ -27,7 +27,27 @@ from test.golden.perf import run_grain
 _PINS = json.loads(
     (Path(__file__).parent.parent / "data" / "perf" / "call_counts.json").read_text()
 )
-_GOLDEN_KEYS = [k for k in _PINS if k != "actual_causation::account"]
+
+# The gate's coverage scope, stated independently of the pins file: deleting a
+# pin must fail here rather than silently shrinking the gate.
+GATE_SUBSET = frozenset(
+    {
+        "actual_causation::account",
+        "basic_iit3_emd::sia",
+        "basic_iit4_2023::mechanism_mips",
+        "basic_iit4_2023::phi_structure",
+        "basic_iit4_2023::repertoires",
+        "basic_iit4_2023::sia",
+        "basic_iit4_2026::sia",
+        "multivalued_k3_tiny_iit4_2023::sia",
+        "rule110_iit4_2023::phi_structure",
+    }
+)
+_GOLDEN_KEYS = sorted(GATE_SUBSET - {"actual_causation::account"})
+
+
+def test_pins_file_covers_the_declared_gate():
+    assert set(_PINS) == GATE_SUBSET
 
 
 def _helper(i: int) -> int:
