@@ -149,20 +149,36 @@ class LocalMapReduce:
             yield tuple([it[i] for i in indices] for it in materialized)
 
     def _should_run_parallel(self) -> bool:
-        """Parallelize only when the workload exceeds one chunksize.
+        """Parallelize whenever the chunker would produce more than one chunk.
 
-        The chunksize boundary is the dispatch gate: a workload that fits in
-        a single chunk runs sequentially, and the chunker's ``num_workers``
-        chunk-count floor spreads work across cores only above that
-        boundary. Below it, per-item cost is assumed too small to amortize
-        process dispatch.
+        ``sequential_threshold`` is the dispatch gate: below it, per-item
+        cost is assumed too small to amortize process dispatch. At or above
+        it, the chunker's ``num_workers`` chunk-count floor spreads the
+        workload across cores even when it fits within a single
+        ``chunksize`` — the chunksize governs chunk granularity, not
+        dispatch. (When the chunksize was cost-sampled rather than
+        explicitly configured, the scheduler folds it into
+        ``sequential_threshold``, since a sampled chunksize estimates the
+        number of items per ~1 s of work.)
+
+        Measured basis (``benchmarks/b18_dispatch_gate.py``, 11 workers):
+        warm-pool parallel dispatch beats sequential 3-4x for workloads of
+        expensive items below one chunksize (~13 ms/item purview MIPs at
+        64-230 of chunksize 256; ~1.3 ms/item system partitions at
+        64-2048 of chunksize 4096), and loses only when total work is
+        tens of ms (µs-scale relation construction, ~50 µs mechanism
+        partitions) — which the per-level ``sequential_threshold``
+        defaults now guard against.
         """
         if self.total is None:
             return True  # unknown length; let the executor chunk and dispatch
         if self.total < self.sequential_threshold:
             return False
+        if not self.chunksize:
+            return self.total > 1
+        k = max(math.ceil(self.total / self.chunksize), get_num_processes())
         # a single chunk → no parallel benefit
-        return not (self.chunksize and self.total <= self.chunksize)
+        return min(k, self.total) > 1
 
     def run(self) -> Any:
         """Execute the parallel computation."""
@@ -385,6 +401,14 @@ class LocalProcessScheduler:
         items_list = list(sampled_iter)
         iterables: tuple[Iterable[Any], ...] = (items_list, *more_items)
 
+        # A sampled chunksize estimates the number of items per
+        # ``target_seconds`` of work, so a workload that fits within one
+        # such chunk is not worth dispatching; fold it into the threshold.
+        # An explicitly configured chunksize governs granularity only.
+        sequential_threshold = chunking.sequential_threshold
+        if chunking.chunksize is None:
+            sequential_threshold = max(sequential_threshold, chunksize + 1)
+
         wrapped_fn = _make_worker_fn(fn, snapshot)
 
         def _reduce_wrapper(results: Iterable[Any], **_: Any) -> Any:
@@ -396,7 +420,7 @@ class LocalProcessScheduler:
             reduce_func=_reduce_wrapper,
             reduce_kwargs={},
             chunksize=chunksize,
-            sequential_threshold=chunking.sequential_threshold,
+            sequential_threshold=sequential_threshold,
             size_func=chunking.size_func,
             shortcircuit_func=shortcircuit.func,
             shortcircuit_callback=shortcircuit.callback,

@@ -49,11 +49,21 @@ class InfrastructureConfig:
     """
 
     parallel: bool = False
+    # Each level's sequential_threshold is the dispatch gate (workloads
+    # below it run sequentially) and encodes that level's typical per-item
+    # cost: parallel dispatch amortizes at roughly 0.5-1 s of total work
+    # (measured in benchmarks/b18_dispatch_gate.py). System partitions,
+    # purviews, concepts, and complexes cost ~1 ms - 10 s per item, so
+    # small counts already pay. Mechanism partitions (~50 µs) showed no
+    # parallel benefit below 8192 items, and lazy relation construction
+    # (~µs, cost dominated by pickling results back) none at any measured
+    # size; their thresholds sit at the edge of the measured range. The
+    # chunksize governs chunk granularity only.
     parallel_complex_evaluation: Mapping[str, Any] = field(
         default_factory=lambda: _default_parallel_dict(2**4, 2**6, progress=True)
     )
     parallel_partition_evaluation: Mapping[str, Any] = field(
-        default_factory=lambda: _default_parallel_dict(2**10, 2**12, progress=False)
+        default_factory=lambda: _default_parallel_dict(2**6, 2**12, progress=False)
     )
     parallel_concept_evaluation: Mapping[str, Any] = field(
         default_factory=lambda: _default_parallel_dict(2**6, 2**8, progress=True)
@@ -62,10 +72,10 @@ class InfrastructureConfig:
         default_factory=lambda: _default_parallel_dict(2**6, 2**8, progress=True)
     )
     parallel_mechanism_partition_evaluation: Mapping[str, Any] = field(
-        default_factory=lambda: _default_parallel_dict(2**10, 2**12, progress=True)
+        default_factory=lambda: _default_parallel_dict(2**13, 2**12, progress=True)
     )
     parallel_relation_evaluation: Mapping[str, Any] = field(
-        default_factory=lambda: _default_parallel_dict(2**10, 2**12, progress=True)
+        default_factory=lambda: _default_parallel_dict(2**13, 2**12, progress=True)
     )
     parallel_macro_system_evaluation: Mapping[str, Any] = field(
         default_factory=lambda: _default_parallel_dict(2**4, 2**6, progress=True)
