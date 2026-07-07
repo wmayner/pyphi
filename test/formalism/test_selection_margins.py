@@ -4,10 +4,15 @@ import pytest
 
 import pyphi
 from pyphi import examples
+from pyphi import utils
 from pyphi.conf import config
 from pyphi.core import repertoire_algebra as ra
 from pyphi.direction import Direction
+from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
+from pyphi.formalism.iit4 import evaluate_partition
 from pyphi.measures.distribution import resolve_mechanism_measure
+from pyphi.measures.distribution import resolve_system_measure
+from pyphi.partition import system_partitions
 
 
 @pytest.fixture(autouse=True)
@@ -93,3 +98,91 @@ def test_state_margin_none_when_no_competitor():
     assert spec.runner_up_intrinsic_information is None
     assert spec.runner_up_state is None
     assert spec.state_margin is None
+
+
+def _brute_force_partition_values(system, system_state):
+    measure = resolve_system_measure(config.formalism.iit.system_phi_measure)
+    partitions = system_partitions(
+        system.node_indices,
+        node_labels=system.node_labels,
+        partition_scheme=config.formalism.iit.system_partition_scheme,
+    )
+    return sorted(
+        float(
+            evaluate_partition(
+                partition, system, system_state, system_measure=measure
+            ).normalized_phi
+        )
+        for partition in partitions
+    )
+
+
+def test_partition_margin_matches_brute_force(basic_sia):
+    values = _brute_force_partition_values(
+        examples.basic_system(), basic_sia.system_state
+    )
+    assert float(basic_sia.normalized_phi) == pytest.approx(values[0])
+    assert float(basic_sia.partition_margin) == pytest.approx(values[1] - values[0])
+
+
+def test_partition_margin_zero_for_symmetric_substrate():
+    # grid3's two best partitions are symmetry-related and tie in
+    # normalized phi, so the partition selection is effectively tied.
+    sia = examples.grid3_system().sia()
+    assert float(sia.partition_margin) == pytest.approx(0.0)
+    assert sia.effectively_tied
+
+
+def test_effectively_tied_fires_on_state_tie(xor_sia):
+    assert utils.eq(float(xor_sia.state_margins[Direction.CAUSE]), 0.0)
+    assert xor_sia.effectively_tied
+
+
+def test_untied_system_is_not_flagged(basic_sia):
+    assert basic_sia.partition_margin is not None
+    assert not utils.eq(float(basic_sia.partition_margin), 0.0)
+    assert all(
+        margin is None or not utils.eq(float(margin), 0.0)
+        for margin in basic_sia.state_margins.values()
+    )
+    assert not basic_sia.effectively_tied
+
+
+def test_state_margins_read_through_system_state(basic_sia):
+    for direction in Direction.both():
+        expected = basic_sia.system_state[direction].state_margin
+        assert float(basic_sia.state_margins[direction]) == pytest.approx(
+            float(expected)
+        )
+
+
+def test_null_sia_has_no_margins():
+    sia = NullSystemIrreducibilityAnalysis()
+    assert sia.partition_margin is None
+    assert sia.state_margins == {
+        Direction.CAUSE: None,
+        Direction.EFFECT: None,
+    }
+    assert not sia.effectively_tied
+
+
+def test_2026_cap_does_not_change_margins():
+    # The 2026 formalism selects the MIP exactly as 2023 does and applies
+    # the ii(s) cap afterwards, so both selection margins are identical.
+    with pyphi.config.override(**{"iit.version": "IIT_4_0_2026"}):
+        sia_2026 = examples.basic_system().sia()
+    with pyphi.config.override(**{"iit.version": "IIT_4_0_2023"}):
+        sia_2023 = examples.basic_system().sia()
+    assert float(sia_2026.partition_margin) == pytest.approx(
+        float(sia_2023.partition_margin)
+    )
+    for direction in Direction.both():
+        assert float(sia_2026.state_margins[direction]) == pytest.approx(
+            float(sia_2023.state_margins[direction])
+        )
+
+
+def test_runner_up_surface_unchanged(basic_sia):
+    # The existing runner-up record keeps its raw-phi semantics.
+    assert basic_sia.runner_up is not None
+    assert float(basic_sia.runner_up.phi) > float(basic_sia.phi)

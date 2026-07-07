@@ -163,6 +163,13 @@ class SystemIrreducibilityAnalysis(
     clamped value to ``phi`` while preserving the raw value on
     ``signed_phi``. ``normalized_phi`` and ``signed_normalized_phi``
     follow the same pattern.
+
+    ``partition_margin`` is the gap in (clamped) normalized φ between the
+    MIP and the best competing partition, computed at selection (before
+    the IIT 4.0 2026 ii(s) cap); it is zero when a competitor ties,
+    ``None`` when there was no competitor, and exact whenever φ_s > 0 (a
+    reducibility short-circuit stops the partition sweep early, in which
+    case the margin is over the evaluated subset).
     """
 
     phi: float | DistanceResult
@@ -177,6 +184,7 @@ class SystemIrreducibilityAnalysis(
     intrinsic_differentiation: dict | None = None
     reasons: list | None = None
     runner_up: Any = None
+    partition_margin: PyPhiFloat | None = None
     signed_phi: float | DistanceResult | None = None
     signed_normalized_phi: float | DistanceResult | None = None
     config: ConfigSnapshot | None = None
@@ -232,6 +240,30 @@ class SystemIrreducibilityAnalysis(
 
     def set_ties(self, ties):
         self._ties = ties
+
+    @property
+    def state_margins(self) -> dict[Direction, PyPhiFloat | None]:
+        """Per-direction intrinsic-information gap between the specified
+        system state and the best competing state
+        (:attr:`StateSpecification.state_margin`)."""
+        margins: dict[Direction, PyPhiFloat | None] = {}
+        for direction in Direction.both():
+            spec = (
+                self.system_state[direction] if self.system_state is not None else None
+            )
+            margins[direction] = spec.state_margin if spec is not None else None
+        return margins
+
+    @property
+    def effectively_tied(self) -> bool:
+        """Whether any selection margin is within
+        ``config.numerics.precision`` of zero — i.e. the partition or
+        specified-state selection is effectively tied at the configured
+        precision."""
+        margins = [self.partition_margin, *self.state_margins.values()]
+        return any(
+            margin is not None and utils.eq(float(margin), 0.0) for margin in margins
+        )
 
     def resolve_system_state(self) -> None:
         """Update system_state to reflect the specified states resolved by the MIP.
@@ -1059,6 +1091,12 @@ def _find_mip_for_fixed_state(
     ties = tuple(resolve_ties.sias(candidates))
     mip_sia = ties[0]
     mip_sia.runner_up = runner_up_from_candidates(candidates, mip_sia.phi)
+    others = [candidate for candidate in candidates if candidate is not mip_sia]
+    if others:
+        gap = min(float(c.normalized_phi) for c in others) - float(
+            mip_sia.normalized_phi
+        )
+        mip_sia.partition_margin = PyPhiFloat(max(0.0, gap))
     for tied_mip in ties:
         tied_mip.resolve_system_state()
         tied_mip.set_ties(ties)
