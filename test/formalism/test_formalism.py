@@ -28,6 +28,7 @@ class _DummyFormalism:
 
     name = "DUMMY"
     compatible_measures = frozenset({"EMD"})
+    uses_system_phi_measure = False
     partition_scheme = "JOINT_BIPARTITION"
     compatible_system_partition_schemes = None
 

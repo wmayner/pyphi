@@ -50,6 +50,9 @@ class PhiFormalism(Protocol):
       registered in :data:`FORMALISM_REGISTRY`.
     - ``compatible_measures``: frozenset of measure names that this
       formalism accepts.
+    - ``uses_system_phi_measure``: whether the formalism reads
+      ``config.formalism.iit.system_phi_measure`` (IIT 3.0 derives system
+      phi from the cause-effect-structure distance and never reads it).
     - ``partition_scheme``: name (string) of the partition scheme
       registered in ``pyphi.partition.partition_types`` to use by default.
       May be ``None`` for approximation methods that bypass partitions.
@@ -65,6 +68,7 @@ class PhiFormalism(Protocol):
 
     name: ClassVar[str]
     compatible_measures: ClassVar[frozenset[str]]
+    uses_system_phi_measure: ClassVar[bool]
     partition_scheme: ClassVar[str | None]
     compatible_system_partition_schemes: ClassVar[frozenset[str] | None]
 

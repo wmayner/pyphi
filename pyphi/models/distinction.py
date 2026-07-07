@@ -24,7 +24,7 @@ from . import cmp
 from .diff import ResultDiff
 from .diff import _diff_common
 from .explanation import Explanation
-from .explanation import Finding
+from .explanation import binding_direction_finding
 from .pandas import ToDictFromExplicitAttrsMixin
 from .pandas import ToPandasMixin
 
@@ -153,15 +153,8 @@ class Distinction(
             if float(self.cause.phi) <= float(self.effect.phi)
             else self.effect
         )
-        is_cause = binding is self.cause
         findings = [
-            Finding(
-                kind="binding_direction",
-                label="Binding direction",
-                value="CAUSE" if is_cause else "EFFECT",
-                detail=(("φ_cause", self.cause.phi), ("φ_effect", self.effect.phi)),
-                tone="cause" if is_cause else "effect",
-            ),
+            binding_direction_finding(self.cause.phi, self.effect.phi),
             *binding.explain().findings,
         ]
         return Explanation(

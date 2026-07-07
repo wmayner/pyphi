@@ -82,6 +82,7 @@ class AC2019Formalism:
 
     name: ClassVar[str] = "AC_2019"
     compatible_measures: ClassVar[frozenset[str]] = frozenset({"PMI", "WPMI"})
+    uses_system_phi_measure: ClassVar[bool] = False
 
     config: FormalismConfig = field(default_factory=_default_formalism_config)
 

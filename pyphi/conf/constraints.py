@@ -99,13 +99,6 @@ def check_config_constraints(config: Any) -> None:
             raise ConfigurationError(message)
 
 
-# Set of IIT versions whose formalism consults ``system_phi_measure``. IIT 3.0
-# computes system phi from the cause-effect-structure distance and never reads
-# this field, so it is checked only for the 4.0 family (matching the reactive
-# ``check_measure_compatible`` call sites).
-_VERSIONS_USING_SYSTEM_MEASURE = ("IIT_4_0",)
-
-
 # Sentinel: the formalism registry isn't importable yet (the conf package's
 # bootstrap auto-load of ``pyphi_config.yml`` runs during ``pyphi.conf`` import,
 # before ``pyphi.formalism`` exists). Validation is skipped in that window; every
@@ -166,8 +159,12 @@ def _measure_compatible_with_version(config: Any) -> str | None:
         )
     assert isinstance(compatible, frozenset)
 
+    formalism = _active_formalism(version)
     fields_to_check = ["mechanism_phi_measure"]
-    if version.startswith(_VERSIONS_USING_SYSTEM_MEASURE):
+    # Whether ``system_phi_measure`` applies is a fact about the formalism
+    # (IIT 3.0 derives system phi from the CES distance and never reads it),
+    # so consult its declaration rather than the version-name spelling.
+    if getattr(formalism, "uses_system_phi_measure", False):
         fields_to_check.append("system_phi_measure")
 
     for field_name in fields_to_check:

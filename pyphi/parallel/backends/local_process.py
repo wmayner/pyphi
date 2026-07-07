@@ -149,7 +149,14 @@ class LocalMapReduce:
             yield tuple([it[i] for i in indices] for it in materialized)
 
     def _should_run_parallel(self) -> bool:
-        """Parallelize only when there is more than one chunk of work."""
+        """Parallelize only when the workload exceeds one chunksize.
+
+        The chunksize boundary is the dispatch gate: a workload that fits in
+        a single chunk runs sequentially, and the chunker's ``num_workers``
+        chunk-count floor spreads work across cores only above that
+        boundary. Below it, per-item cost is assumed too small to amortize
+        process dispatch.
+        """
         if self.total is None:
             return True  # unknown length; let the executor chunk and dispatch
         if self.total < self.sequential_threshold:

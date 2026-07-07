@@ -120,6 +120,18 @@ class Finding:
     tone: str | None = None
 
 
+def binding_direction_finding(cause_phi: Any, effect_phi: Any) -> Finding:
+    """The Finding naming which direction binds ``min(phi_c, phi_e)``."""
+    is_cause = float(cause_phi) <= float(effect_phi)
+    return Finding(
+        kind="binding_direction",
+        label="Binding direction",
+        value="CAUSE" if is_cause else "EFFECT",
+        detail=(("φ_cause", cause_phi), ("φ_effect", effect_phi)),
+        tone="cause" if is_cause else "effect",
+    )
+
+
 def _reason_value(value: Any) -> Any:
     """Render a :class:`NullResultReason` by its name; pass other values
     through unchanged."""

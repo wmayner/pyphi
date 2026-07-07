@@ -30,6 +30,7 @@ class IIT3Formalism:
 
     name: ClassVar[str] = "IIT_3_0"
     exact: ClassVar[Literal[True]] = True
+    uses_system_phi_measure: ClassVar[bool] = False
     compatible_measures: ClassVar[frozenset[str]] = frozenset(
         {
             "EMD",

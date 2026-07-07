@@ -173,11 +173,20 @@ class IIT3SystemIrreducibilityAnalysis(
                 )
             )
         if self.runner_up is not None:
+            from pyphi.data_structures.pyphi_float import PyPhiFloat
+
+            findings.append(
+                Finding(
+                    kind="runner_up",
+                    label="Runner-up partition",
+                    value=concise_partition(self.runner_up.partition),
+                )
+            )
             findings.append(
                 Finding(
                     kind="gap",
                     label="Φ-gap to runner-up",
-                    value=float(self.runner_up.phi) - float(self.phi),
+                    value=PyPhiFloat(float(self.runner_up.phi) - float(self.phi)),
                 )
             )
         return tuple(findings)

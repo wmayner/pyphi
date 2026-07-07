@@ -273,6 +273,7 @@ class IIT4_2023Formalism:
 
     name: ClassVar[str] = "IIT_4_0_2023"
     exact: ClassVar[Literal[True]] = True
+    uses_system_phi_measure: ClassVar[bool] = True
     compatible_measures: ClassVar[frozenset[str]] = frozenset(
         {"GENERALIZED_INTRINSIC_DIFFERENCE", "INTRINSIC_INFORMATION"}
     )
@@ -435,6 +436,7 @@ class IIT4_2026Formalism:
 
     name: ClassVar[str] = "IIT_4_0_2026"
     exact: ClassVar[Literal[True]] = True
+    uses_system_phi_measure: ClassVar[bool] = True
     compatible_measures: ClassVar[frozenset[str]] = frozenset(
         {"INTRINSIC_INFORMATION", "GENERALIZED_INTRINSIC_DIFFERENCE"}
     )

@@ -48,6 +48,7 @@ from pyphi.models.distinctions import ResolvedDistinctions
 from pyphi.models.explanation import Explanation
 from pyphi.models.explanation import Finding
 from pyphi.models.explanation import NullResultReason
+from pyphi.models.explanation import binding_direction_finding
 from pyphi.models.explanation import runner_up_from_candidates
 from pyphi.models.pandas import ToPandasMixin
 from pyphi.models.partitions import DirectedBipartition
@@ -418,23 +419,7 @@ class SystemIrreducibilityAnalysis(
                 )
             )
         if self.cause is not None and self.effect is not None:
-            binding = (
-                Direction.CAUSE
-                if float(self.cause.phi) <= float(self.effect.phi)
-                else Direction.EFFECT
-            )
-            findings.append(
-                Finding(
-                    kind="binding_direction",
-                    label="Binding direction",
-                    value=binding.name,
-                    detail=(
-                        ("φ_cause", self.cause.phi),
-                        ("φ_effect", self.effect.phi),
-                    ),
-                    tone="cause" if binding is Direction.CAUSE else "effect",
-                )
-            )
+            findings.append(binding_direction_finding(self.cause.phi, self.effect.phi))
         return tuple(findings)
 
     def explain(self) -> Explanation:
