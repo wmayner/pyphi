@@ -77,3 +77,20 @@ def test_relabel_rejects_non_bijection(grid3_ces):
 def test_relabel_rejects_partial_mapping(grid3_ces):
     with pytest.raises(ValueError, match="cover"):
         grid3_ces.relabel({0: 1, 1: 0})
+
+
+def test_relabel_preserves_selection_margins(grid3_ces, relabeled):
+    original = grid3_ces.sia
+    assert (relabeled.sia.partition_margin is None) == (
+        original.partition_margin is None
+    )
+    if original.partition_margin is not None:
+        assert float(relabeled.sia.partition_margin) == pytest.approx(
+            float(original.partition_margin)
+        )
+    for direction, margin in original.state_margins.items():
+        relabeled_margin = relabeled.sia.state_margins[direction]
+        if margin is None:
+            assert relabeled_margin is None
+        else:
+            assert float(relabeled_margin) == pytest.approx(float(margin))
