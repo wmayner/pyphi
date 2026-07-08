@@ -746,19 +746,24 @@ def test_infer_cm_saturates_on_estimated_tpm(grid3_posterior):
 
 
 def test_edge_probability_discriminates_where_infer_cm_cannot():
+    # grid3's weakest true edges (1->0, 1->2) vary the target's P(ON) by only
+    # ~0.072, so the discrimination threshold must sit below that signal and
+    # above the estimation noise floor. At 0.05 with enough data per state the
+    # separation is exact and seed-robust (present edges fire 1.0, absent 0.0);
+    # a threshold above 0.072 would only let the weak edges fire via noise.
     substrate = examples.grid3_substrate()
     pon = _ground_truth_pon(substrate)
     rng = np.random.default_rng(20260708)
     current, nxt = [], []
     for row in range(8):
         state = tuple((row >> i) & 1 for i in range(3))
-        for _ in range(200):
+        for _ in range(2000):
             current.append(state)
             nxt.append(tuple(rng.random(3) < pon[row]))
     posterior = estimate_substrate(
         (np.array(current), np.array(nxt, dtype=int)), regime="perturbational"
     )
-    prob = posterior.edge_probability(n_samples=200, seed=5, threshold=0.1)
+    prob = posterior.edge_probability(n_samples=200, seed=5, threshold=0.05)
     true_cm = substrate.cm
     # Truly absent edges get low probability; present edges get high.
     assert prob[0, 2] < 0.1 and prob[2, 0] < 0.1

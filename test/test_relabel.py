@@ -94,3 +94,41 @@ def test_relabel_preserves_selection_margins(grid3_ces, relabeled):
             assert relabeled_margin is None
         else:
             assert float(relabeled_margin) == pytest.approx(float(margin))
+
+
+def test_relabel_reorders_runner_up_state():
+    # The retained second-best state is position-aligned to the purview, so
+    # relabeling must reorder it by the same bijection it applies to the
+    # specified state. xor's effect runner-up state (1, 0, 0) is asymmetric
+    # under this permutation, so a wrong-direction or dropped reorder is
+    # detectable; grid3's uniform (1, 1, 1) runner-up state could not detect
+    # one. The oracle is an independent hand-computed reorder, not the
+    # permuted-system recomputation, which uses the inverse convention and so
+    # matches only at the label-invariant signature level.
+    from pyphi.direction import Direction
+
+    mapping = {old: PERM.index(old) for old in range(3)}
+
+    def reorder(state):
+        out = [None] * len(state)
+        for old, value in enumerate(state):
+            out[mapping[old]] = value
+        return tuple(out)
+
+    saw_asymmetric = False
+    with pyphi.config.override(progress_bars=False):
+        original = examples.xor_system().ces()
+        relabeled = original.relabel(mapping)
+
+        for direction in Direction.both():
+            orig_spec = original.sia.system_state[direction]
+            rel_spec = relabeled.sia.system_state[direction]
+            if orig_spec.runner_up_state is None:
+                assert rel_spec.runner_up_state is None
+                continue
+            assert rel_spec.runner_up_state == reorder(orig_spec.runner_up_state)
+            # the runner-up state reorders exactly as the specified state does
+            assert rel_spec.state == reorder(orig_spec.state)
+            if len(set(orig_spec.runner_up_state)) > 1:
+                saw_asymmetric = True
+    assert saw_asymmetric, "test did not exercise an asymmetric runner-up state"
