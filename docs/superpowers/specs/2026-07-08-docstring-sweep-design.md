@@ -126,9 +126,36 @@ Accuracy governs citations as strictly as prose:
   adjectives, long hyphen-joined phrases used as nouns, and stacked modifiers
   that require unpacking. Write the sentence out. (This mirrors the project's
   house prose style.)
-- Follow the existing docstring convention (Google style, as napoleon
-  renders): a one-line summary, then prose, then `Args:`/`Returns:`/`Raises:`
-  sections where they apply. Keep the summary line a real summary.
+### Format: NumPy style
+
+Docstrings use **NumPy style** (rendered by napoleon), the scientific-Python
+standard. A real one-line summary, then prose, then the sections that apply:
+`Parameters`, `Returns`, `Yields`, `Raises`, and — where they add value —
+`Notes` (the home for mathematical insight and non-obvious properties) and
+`References` (numbered literature citations). This is a change from the older
+Google style; the sweep converts each docstring's section syntax as it
+rewrites. Keep the summary line a real summary.
+
+Citations use the `References` section with numbered entries and `[1]_`
+in-text references, the conventional scientific form:
+
+```
+Notes
+-----
+Φ is the minimum over system partitions of the integration measure
+[1]_, Eq. 8.
+
+References
+----------
+.. [1] Albantakis et al. (2023). Integrated information theory (IIT) 4.0.
+       PLoS Comput Biol 19(10): e1011465.
+```
+
+Because each documented object renders on its own page (the recursive
+autosummary layout), citation labels are page-local and do not collide across
+modules. If the `-W` build ever surfaces a duplicate-citation warning, fall
+back to an inline short-form citation ("Albantakis et al. (2023), Eq. 8") for
+that docstring.
 
 ### Preserved verbatim (never altered by this sweep)
 
@@ -143,16 +170,30 @@ Accuracy governs citations as strictly as prose:
 - **Signatures.** This sweep does not touch code, including parameter names
   and type annotations.
 
-### The one mechanical transformation
+### Symbols: Unicode for the common case, `:math:` for real formulae
 
-Replace the `|big_phi|`-style RST substitutions (defined in the `rst_prolog`
-block of `docs/conf.py`) with literal Unicode symbols in docstring prose:
-`|big_phi|` → `Φ`, `|small_phi|` → `φ`, `|small_phi_s|` → `φ_s`, `|big_alpha|`
-→ `𝒜`, `|alpha|` → `α`, and so on for the full substitution table. Unicode
-reads correctly under `help()`, where the substitution markup shows as literal
-`|big_phi|`. Reserve `:math:` for genuinely complex expressions that do not
-have a clean inline Unicode form. After the sweep, no `|…|` substitution
-remains in `pyphi/**`.
+A docstring is a single source string, and no terminal renders LaTeX, so there
+is no automatic way to get typeset math on the web and readable symbols under
+`help()` at once. The strategy is to pick, per expression, the representation
+that is acceptable in both, and fall back to web-only `:math:` solely where
+Unicode cannot express the thing.
+
+- **Simple symbols and moderate super/subscripts → Unicode.** Replace the
+  `|big_phi|`-style RST substitutions (defined in the `rst_prolog` block of
+  `docs/conf.py`) with literal Unicode: `|big_phi|` → `Φ`, `|small_phi|` → `φ`,
+  `|small_phi_s|` → `φₛ`, `|small_phi_max|` → `φᵐᵃˣ`, `|big_alpha|` → `𝒜`,
+  `|alpha|` → `α`, and so on for the full table. Use Unicode super/subscript
+  characters (`φₛ`, `Φᵐᵃˣ`) where they exist — these read well under `help()`
+  and render acceptably on the web, widening the range that is good in both
+  contexts. A lone Greek letter looks essentially the same as its MathJax
+  rendering.
+- **Genuine multi-part formulae → `:math:`.** Fractions, sums, products, and
+  aligned expressions (e.g. `\frac{AB}{DE} \times \frac{\varnothing}{C}`) use
+  the `:math:` role: MathJax typesets them on the web, and the raw LaTeX in the
+  terminal is the accepted cost — these are rare and remain parseable.
+
+After the sweep, no `|…|` substitution markup remains in `pyphi/**`, and the
+`rst_prolog` block can be deleted (the last content plan does so).
 
 ## Verification
 
