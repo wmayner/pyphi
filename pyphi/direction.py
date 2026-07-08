@@ -30,9 +30,30 @@ class Direction(IntEnum):
     ) -> tuple[tuple[int, ...], tuple[int, ...]]:
         """Order the mechanism and purview in time.
 
-        If the direction is ``CAUSE``, then the purview is at |t-1| and the
-        mechanism is at time |t|. If the direction is ``EFFECT``, then the
-        mechanism is at time |t| and the purview is at |t+1|.
+        For ``CAUSE`` the purview lies one step earlier than the mechanism:
+        the purview is at *t* − 1 and the mechanism at *t*. For ``EFFECT`` the
+        purview lies one step later: the mechanism is at *t* and the purview at
+        *t* + 1.
+
+        Parameters
+        ----------
+        mechanism : tuple[int, ...]
+            Node indices of the mechanism (at time *t*).
+        purview : tuple[int, ...]
+            Node indices of the purview.
+
+        Returns
+        -------
+        tuple[tuple[int, ...], tuple[int, ...]]
+            The pair ordered from earlier to later in time: ``(purview,
+            mechanism)`` for ``CAUSE`` and ``(mechanism, purview)`` for
+            ``EFFECT``.
+
+        Raises
+        ------
+        ValueError
+            If the direction is neither ``CAUSE`` nor ``EFFECT`` (for example
+            ``BIDIRECTIONAL``).
         """
         if self is Direction.CAUSE:
             return purview, mechanism

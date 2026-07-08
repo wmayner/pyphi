@@ -1,10 +1,8 @@
 # pyright: strict
 """Type aliases for PyPhi.
 
-This module provides centralized type aliases used throughout the PyPhi codebase.
-These aliases improve consistency, readability, and make refactoring easier.
-
-All new code should import domain-specific types from this module rather than
+Centralized type aliases used throughout the PyPhi codebase, for consistency
+and readability. Import domain-specific types from this module rather than
 using raw primitive types or numpy types directly.
 """
 
@@ -22,7 +20,11 @@ type NodeIndices = tuple[NodeIndex, ...]
 """Tuple of node indices representing a set of nodes."""
 
 type State = tuple[int, ...]
-"""State of a substrate or system as a tuple of binary values (0 or 1)."""
+"""State of a substrate or system, one integer per node.
+
+Each entry is an index into that node's alphabet: ``0`` or ``1`` for a
+binary node, and ``0..k-1`` for a node with a ``k``-valued alphabet.
+"""
 
 type Mechanism = tuple[NodeIndex, ...]
 """A mechanism is a set of nodes, represented as a tuple of node indices."""
@@ -44,7 +46,8 @@ of each node being ON given the state of its inputs.
 type ConnectivityMatrix = NDArray[np.int_]
 """Connectivity matrix defining which nodes are connected.
 
-A binary matrix where cm[i, j] = 1 indicates node j has a causal effect on node i.
+A binary matrix where ``cm[i, j] == 1`` indicates node ``i`` has a causal
+effect on node ``j`` (i.e. ``i`` is an input to ``j``).
 """
 
 type Repertoire = NDArray[np.float64]
