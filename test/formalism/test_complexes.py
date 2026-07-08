@@ -74,6 +74,7 @@ class TestComplexesIIT30:
         (the ``(1, 2)`` candidate's value coincides across conventions)."""
         with config.override(background_conditioning="CAUSAL_MARGINALIZATION"):
             sias = s.substrate.irreducible_sias(s.state)
+        assert len(sias) == 3
         nodes_and_phis = {c.node_indices: float(c.phi) for c in sias}
         assert nodes_and_phis[(0, 1, 2)] == pytest.approx(2.3125)
         assert nodes_and_phis[(1, 2)] == pytest.approx(1.0)

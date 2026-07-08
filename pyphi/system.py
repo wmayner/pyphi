@@ -499,9 +499,18 @@ class System(Displayable, ToPandasMixin, Serializable):
     def partitioned_mechanisms(self) -> Any:
         return list(self.partition.all_cut_mechanisms())
 
+    @cached_property
+    def _index2node_by_convention(self) -> dict[str, dict[int, Any]]:
+        return {}
+
     @property
     def _index2node(self) -> dict[int, Any]:
-        return {node.index: node for node in self.nodes}
+        convention = self._resolved_background_conditioning()
+        if convention not in self._index2node_by_convention:
+            self._index2node_by_convention[convention] = {
+                node.index: node for node in self.nodes
+            }
+        return self._index2node_by_convention[convention]
 
     @cached_property
     def null_distinction(self) -> Any:
