@@ -255,6 +255,15 @@ autodoc_typehints = "description"
 napoleon_use_rtype = False
 napoleon_use_ivar = True
 
+# pyphi.relations defines both a function and a class whose names differ
+# only in case (relation/Relation, relations/Relations). On case-insensitive
+# filesystems the default per-object stub filenames collide, so remap the
+# functions to distinct filenames.
+autosummary_filename_map = {
+    "pyphi.relations.relation": "pyphi.relations.relation-function",
+    "pyphi.relations.relations": "pyphi.relations.relations-function",
+}
+
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "numpy": ("https://numpy.org/doc/stable/", None),

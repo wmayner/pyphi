@@ -37,11 +37,11 @@ welcome.
 Usage
 ~~~~~
 
-The |Substrate| object is the main object on which computations are performed. It
-represents the substrate of interest.
+The :class:`~pyphi.substrate.Substrate` object is the main object on which
+computations are performed. It represents the substrate of interest.
 
-The |System| object is the secondary object; it represents a system of a
-substrate. |big_phi| is a function of systems.
+The :class:`~pyphi.system.System` object is the secondary object; it
+represents a system of a substrate. |big_phi| is a function of systems.
 
 The |compute| module is the main entry-point for the library. It contains
 methods for calculating concepts, cause-effect structures, complexes, etc. See
