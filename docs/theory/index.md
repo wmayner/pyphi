@@ -1,7 +1,19 @@
 # Theory
 
+How IIT 4.0's quantities map onto PyPhi's types and functions, grounded in a
+single worked example. For a broad orientation to the theory itself, see also
+the [IIT wiki](https://iit.wiki); the authoritative source is
+[Albantakis et al. (2023)](https://doi.org/10.1371/journal.pcbi.1011465).
+
 ```{toctree}
 :maxdepth: 1
 
-../examples/conditional_independence
+overview
+substrate-and-system
+system-integration
+distinctions-and-relations
+phi-structure
+formalism-versions
+conditional-independence
+iit-3.0
 ```
