@@ -284,9 +284,17 @@ verdict: Approved | Needs fixes.
 ## Batch table
 
 Each row is one task: dispatch the rewrite prompt with these files and papers,
-commit, dispatch the verify prompt, fix findings, accept. Model tier is a
-floor; dense theory batches use the more capable tier. "Papers" names the
+verify, fix findings, accept. **Both roles run on Opus** — the rewrite for its
+paper-reading and mathematical judgment, the verify because it is the accuracy
+backstop. The `Tier` column below is retained only as a signal of which
+batches are theory-dense (and so warrant the most careful reading and the
+longest paper consultation); it does not lower the model. "Papers" names the
 primary reference(s); the agent still consults the bridge edges.
+
+Execution note: parallel agents **edit only** (no git commits) in the shared
+`docstring-sweep` worktree — safe because batches touch disjoint files. The
+controller commits each batch after its verification passes; the verify agent
+sees its batch via `git diff -- <its files>`.
 
 | # | Batch | Files (under `pyphi/`) | Papers | Tier |
 |---|-------|------------------------|--------|------|
