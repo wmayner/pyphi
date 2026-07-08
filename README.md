@@ -12,165 +12,139 @@
 [![Python 3.13+](https://img.shields.io/pypi/pyversions/pyphi?style=flat-square)](https://pypi.org/project/pyphi/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat-square)](https://www.gnu.org/licenses/gpl-3.0)
 
-PyPhi is a Python library for computing integrated information (𝚽), and the
-associated quantities and objects.
+PyPhi is a Python library for computing integrated information (Φ) and the
+objects and quantities of [Integrated Information Theory
+(IIT)](https://doi.org/10.1371/journal.pcbi.1011465). Given a **substrate** — a
+network of interacting units defined by its transition probabilities — and a
+**state**, PyPhi computes:
 
-**If you use this code, please cite the paper:**
+- **Φ**, the integrated information of a system, by finding the partition that
+  makes the least difference;
+- the **cause–effect structure** (**Φ-structure**): the **distinctions**
+  (irreducible mechanisms) a system specifies and the **relations** that bind
+  them;
+- **actual causation**: which past events actually caused a given present
+  event, and which effects it will actually cause.
 
----
+It implements the current formalism, **IIT 4.0** (Albantakis et al., 2023), and
+retains the earlier **IIT 3.0** formalism, selectable by configuration.
 
-Mayner WGP, Marshall W, Albantakis L, Findlay G, Marchman R, Tononi G. (2018)
-[PyPhi: A toolbox for integrated information
-theory](https://doi.org/10.1371/journal.pcbi.1006343). PLOS Computational
-Biology 14(7): e1006343. <https://doi.org/10.1371/journal.pcbi.1006343>
+> **Release status.** The version on the `main` branch is the in-development
+> **2.0** line, which implements IIT 4.0. The current release on PyPI is the
+> **1.x** line (IIT 3.0). To use the IIT 4.0 code today, install from GitHub
+> (see [Installation](#installation)).
 
----
+## Example
 
-An [illustrated tutorial on how Φ is calculated](https://doi.org/10.1371/journal.pcbi.1006343.s001) is available as a supplement to the paper.
+```python
+import pyphi
 
+# A simple 3-node substrate (the example system from the IIT 4.0 paper).
+substrate = pyphi.examples.basic_substrate()
+state = (1, 0, 0)
 
-## Usage, Examples, and API documentation
+# Analyze the substrate in that state under IIT 4.0.
+analysis = pyphi.analyze(substrate, state)
 
-- [Documentation for the latest stable
-  release](http://pyphi.readthedocs.io/en/stable/)
-- [Documentation for the latest (potentially unstable) development
-  version](http://pyphi.readthedocs.io/en/latest/).
-- Documentation is also available within the Python interpreter with the `help`
-  function.
+print(analysis.phi)  # the system's integrated information, Φ
+```
 
+The result carries the full Φ-structure — its distinctions, relations, and the
+partition that minimizes Φ. See the
+[documentation](http://pyphi.readthedocs.io/) and the
+[IIT 4.0 demo notebook](https://github.com/wmayner/pyphi/blob/main/docs/examples/IIT_4.0_demo.ipynb)
+for a complete walkthrough.
+
+## Documentation
+
+- [Documentation for the latest stable release](http://pyphi.readthedocs.io/en/stable/)
+- [Documentation for the latest development version](http://pyphi.readthedocs.io/en/latest/)
+- Documentation for any object is also available in the interpreter with the
+  `help` function.
 
 ## Installation
 
-### Using uv (Recommended)
+PyPhi requires **Python 3.13+**.
 
-[uv](https://github.com/astral-sh/uv) is a fast Python package manager. Install it with:
+### Using uv (recommended)
+
+[uv](https://github.com/astral-sh/uv) is a fast Python package manager:
 
 ```bash
 # macOS/Linux
 curl -LsSf https://astral.sh/uv/install.sh | sh
-
 # Windows
 powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-Then install PyPhi:
+Install the current PyPI release (1.x, IIT 3.0):
 
 ```bash
 uv pip install pyphi
 ```
 
+Install the in-development 2.0 line (IIT 4.0) from GitHub:
+
+```bash
+uv pip install "git+https://github.com/wmayner/pyphi@main"
+```
+
+Optional features are available as extras: `visualize` (plotting), `caching`
+(Redis-backed caches), `emd` (earth-mover's-distance measures), and `xarray`
+(labeled array export). Install one or more with, e.g.:
+
+```bash
+uv pip install "pyphi[visualize,emd]"
+```
+
 ### Using pip
 
-Set up a Python 3.13+ virtual environment and install with:
-
 ```bash
-pip install pyphi
+pip install pyphi                     # current release (1.x)
+pip install "git+https://github.com/wmayner/pyphi@main"   # 2.0 (IIT 4.0)
 ```
 
-To install the latest development version, which is a work in progress and may
-have bugs, run:
-
-```bash
-pip install "git+https://github.com/wmayner/pyphi@main#egg=pyphi"
-```
-
-### Legacy: Conda (Deprecated)
-
-**Note:** The conda package is deprecated. Please use uv or pip instead.
-
-If you encounter issues on Windows with older systems, you can use the [Anaconda
-Python](https://www.anaconda.com/what-is-anaconda/) distribution and
-[install PyPhi with conda](https://anaconda.org/wmayner/pyphi):
-
-```bash
-conda install -c wmayner pyphi
-```
-
-### Detailed installation guide for Mac OS X
+### Detailed installation guide for macOS
 
 [See here](https://github.com/wmayner/pyphi/blob/main/INSTALLATION.rst).
 
+## Contributing
+
+To help develop PyPhi, fork the project on GitHub, clone your fork, and install
+the runtime extras plus the development tooling with uv:
+
+```bash
+git clone https://github.com/YOUR_USERNAME/pyphi.git
+cd pyphi
+uv sync --all-extras --group dev
+```
+
+Common development tasks are defined in the `justfile` (install
+[just](https://github.com/casey/just)):
+
+```bash
+just test    # run the test suite
+just bench   # run the performance benchmarks
+just docs    # build the HTML documentation
+```
 
 ## User group
 
 For discussion about the software or integrated information theory in general,
-you can join the [pyphi-users
+join the [pyphi-users
 group](https://groups.google.com/forum/#!forum/pyphi-users).
 
-For technical issues with PyPhi or feature requests, please use the [issues
+For bug reports and feature requests, use the [issues
 page](https://github.com/wmayner/pyphi/issues).
-
-
-## Contributing
-
-To help develop PyPhi, fork the project on GitHub and install with uv:
-
-```bash
-# Install uv if you haven't already
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Clone your fork
-git clone https://github.com/YOUR_USERNAME/pyphi.git
-cd pyphi
-
-# Create virtual environment and install with dev dependencies
-uv venv
-uv pip install -e ".[dev,parallel,visualize,graphs,emd,caching]"
-```
-
-The `Makefile` defines some tasks to help with development:
-
-```bash
-make test
-```
-
-runs the unit tests every time you change the source code.
-
-```bash
-make benchmark
-```
-
-runs performance benchmarks.
-
-```bash
-make docs
-```
-
-builds the HTML documentation.
-
-### Developing on Linux
-
-With uv, all dependencies including compiled packages are installed automatically
-from pre-built wheels. If you need system headers for development:
-
-```bash
-sudo apt-get install python3-dev
-```
-
-### Developing on Windows
-
-All dependencies now have pre-built wheels for Windows, so installation should work
-seamlessly with uv:
-
-```bash
-# Install uv
-powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
-
-# Install PyPhi for development
-uv venv
-uv pip install -e ".[dev]"
-```
-
-If you encounter issues, the legacy conda approach is still available (see Installation section above).
 
 ## Credit
 
-### Please cite these papers if you use this code:
+If you use this software in your research, please cite the papers:
 
-Mayner WGP, Marshall W, Albantakis L, Findlay G, Marchman R, Tononi G. (2018)
+Mayner WGP, Marshall W, Albantakis L, Findlay G, Marchman R, Tononi G. (2018).
 [PyPhi: A toolbox for integrated information
 theory](https://doi.org/10.1371/journal.pcbi.1006343). PLOS Computational
-Biology 14(7): e1006343. <https://doi.org/10.1371/journal.pcbi.1006343>
+Biology 14(7): e1006343.
 
 ```
 @article{mayner2018pyphi,
@@ -187,33 +161,55 @@ Biology 14(7): e1006343. <https://doi.org/10.1371/journal.pcbi.1006343>
 }
 ```
 
-Albantakis L, Oizumi M, Tononi G (2014). [From the Phenomenology to the
-Mechanisms of Consciousness: Integrated Information Theory
-3.0](http://www.ploscompbiol.org/article/info%3Adoi%2F10.1371%2Fjournal.pcbi.1003588).
-PLoS Comput Biol 10(5): e1003588. doi: 10.1371/journal.pcbi.1003588.
+For the theory PyPhi 2.0 implements, cite the IIT 4.0 paper:
+
+Albantakis L, Barbosa L, Findlay G, Grasso M, Haun AM, Marshall W, Mayner WGP,
+Zaeemzadeh A, Boly M, Juel BE, Sasai S, Fujii K, David I, Hendren J, Lang JP,
+Tononi G. (2023). [Integrated information theory (IIT) 4.0: Formulating the
+properties of phenomenal existence in physical
+terms](https://doi.org/10.1371/journal.pcbi.1011465). PLOS Computational
+Biology 19(10): e1011465.
 
 ```
-@article{iit3,
-    title={From the Phenomenology to the Mechanisms of Consciousness:
-    author={Albantakis, Larissa AND Oizumi, Masafumi AND Tononi, Giulio},
-    Integrated Information Theory 3.0},
-    journal={PLoS Comput Biol},
-    publisher={Public Library of Science},
-    year={2014},
-    month={05},
-    volume={10},
-    pages={e1003588},
-    number={5},
-    doi={10.1371/journal.pcbi.1003588},
-    url={http://dx.doi.org/10.1371%2Fjournal.pcbi.1003588}
+@article{albantakis2023iit4,
+  title={Integrated information theory (IIT) 4.0: Formulating the properties of phenomenal existence in physical terms},
+  author={Albantakis, Larissa and Barbosa, Leonardo and Findlay, Graham and Grasso, Matteo and Haun, Andrew M and Marshall, William and Mayner, William GP and Zaeemzadeh, Alireza and Boly, Melanie and Juel, Bj{\o}rn E and Sasai, Shuntaro and Fujii, Keiko and David, Isaac and Hendren, Jeremiah and Lang, Jonathan P and Tononi, Giulio},
+  journal={PLoS Computational Biology},
+  volume={19},
+  number={10},
+  pages={e1011465},
+  year={2023},
+  publisher={Public Library of Science},
+  doi={10.1371/journal.pcbi.1011465},
+  url={https://doi.org/10.1371/journal.pcbi.1011465}
+}
+```
+
+For the IIT 3.0 formalism, cite:
+
+Oizumi M, Albantakis L, Tononi G. (2014). [From the Phenomenology to the
+Mechanisms of Consciousness: Integrated Information Theory
+3.0](https://doi.org/10.1371/journal.pcbi.1003588). PLOS Computational Biology
+10(5): e1003588.
+
+```
+@article{oizumi2014iit3,
+  title={From the phenomenology to the mechanisms of consciousness: Integrated Information Theory 3.0},
+  author={Oizumi, Masafumi and Albantakis, Larissa and Tononi, Giulio},
+  journal={PLoS Computational Biology},
+  volume={10},
+  number={5},
+  pages={e1003588},
+  year={2014},
+  publisher={Public Library of Science},
+  doi={10.1371/journal.pcbi.1003588},
+  url={https://doi.org/10.1371/journal.pcbi.1003588}
 }
 ```
 
 This project is inspired by a [previous
-project](https://github.com/albantakis/iit) written in Matlab by L. Albantakis,
+project](https://github.com/albantakis/iit) written in MATLAB by L. Albantakis,
 M. Oizumi, A. Hashmi, A. Nere, U. Olcese, P. Rana, and B. Shababo.
 
-Correspondence regarding this code and the PyPhi paper should be directed to
-Will Mayner, at [<mayner@wisc.edu>](mailto:mayner@wisc.edu). Correspondence
-regarding the Matlab code and the IIT 3.0 paper should be directed to Larissa
-Albantakis, PhD, at [<albantakis@wisc.edu>](mailto:albantakis@wisc.edu).
+Correspondence regarding the PyPhi software should be directed to Will Mayner,
+at [<mayner@wisc.edu>](mailto:mayner@wisc.edu).
