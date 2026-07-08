@@ -62,22 +62,28 @@ class Orderable:
         """
         return True
 
-    def __lt__(self, other: object) -> bool:
+    def _check_orderable(self, other: object) -> None:
         if not self.is_orderable_with(other):
             raise TypeError(
                 f"Unorderable: {type(self).__name__} instances do not satisfy "
                 f"the orderability constraint of this type."
             )
+
+    def __lt__(self, other: object) -> bool:
+        self._check_orderable(other)
         return self.order_by() < other.order_by()  # type: ignore[attr-defined]
 
     def __le__(self, other: object) -> bool:
-        return self < other or self == other
+        self._check_orderable(other)
+        return self.order_by() < other.order_by() or self == other  # type: ignore[attr-defined]
 
     def __gt__(self, other: object) -> bool:
-        return other < self
+        self._check_orderable(other)
+        return self.order_by() > other.order_by()  # type: ignore[attr-defined]
 
     def __ge__(self, other: object) -> bool:
-        return other < self or self == other
+        self._check_orderable(other)
+        return self.order_by() > other.order_by() or self == other  # type: ignore[attr-defined]
 
     def __eq__(self, other: object) -> bool:
         raise NotImplementedError

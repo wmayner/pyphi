@@ -172,6 +172,45 @@ def test_phi_mechanism_ordering():
     assert PhiThang(1.0, (1,), (1,)) < PhiThang(2.0, (1,), (2,))
 
 
+def test_orderable_no_recursion_with_subclass_operands():
+    """Reverse-sort, ``max``, and ``min`` over a mix of a class and its subclass
+    must not recurse.
+
+    Python tries the reflected comparison first when the right operand is a
+    subclass instance, so ``__gt__``/``__ge__`` must compare ``order_by()``
+    values directly rather than delegating to ``other < self`` — otherwise
+    ``concrete < subclass_instance`` bounces between ``<`` and ``__gt__``
+    forever. Regression for the ``SystemIrreducibilityAnalysis`` vs
+    ``NullSystemIrreducibilityAnalysis`` case, where ``max`` over a list of
+    SIAs (which mixes both types) blew the stack.
+    """
+
+    class Thing(models.cmp.OrderableByPhi):
+        def __init__(self, phi):
+            self.phi = phi
+
+        def __eq__(self, other):
+            return isinstance(other, Thing) and self.phi == other.phi
+
+        def __hash__(self):
+            return hash(self.phi)
+
+    class NullThing(Thing):  # a subclass, like NullSystemIrreducibilityAnalysis
+        pass
+
+    # A concrete instance with a subclass instance on the right-hand side.
+    assert (Thing(0.3) < NullThing(0.0)) is False
+    assert (NullThing(0.0) < Thing(0.3)) is True
+    assert (Thing(0.3) > NullThing(0.0)) is True
+    assert (Thing(0.3) >= NullThing(0.0)) is True
+    assert (NullThing(0.0) <= Thing(0.3)) is True
+
+    items = [Thing(0.3), NullThing(0.0), Thing(0.1), NullThing(0.0), Thing(0.2)]
+    assert max(items).phi == 0.3
+    assert min(items).phi == 0.0
+    assert [x.phi for x in sorted(items, reverse=True)] == [0.3, 0.2, 0.1, 0.0, 0.0]
+
+
 def test_sametype_decorator():
     class Thing:
         @models.cmp.sametype
@@ -694,7 +733,7 @@ def test_bipartition_properties(bipartition):
 
 
 def test_bipartition_str(bipartition):
-    assert concise_partition(bipartition) == "A/A,E × ∅/B"  # noqa: RUF001
+    assert concise_partition(bipartition) == "A/A,E × ∅/B"
 
 
 @pytest.fixture
@@ -713,7 +752,7 @@ def test_tripartion_properties(tripartition):
 
 
 def test_tripartion_str(tripartition):
-    assert concise_partition(tripartition) == "A/A,E × ∅/B × C/C"  # noqa: RUF001
+    assert concise_partition(tripartition) == "A/A,E × ∅/B × C/C"
 
 
 def k_partition(node_labels=None):
