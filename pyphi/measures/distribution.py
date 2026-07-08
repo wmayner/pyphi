@@ -62,21 +62,27 @@ class DistanceResult(PyPhiFloat):
     arithmetic, min/max) while preserving metadata. This allows transparent use in
     existing code while providing rich information for analysis.
 
-    Args:
-        value: The numeric value.
-        **kwargs: Arbitrary keyword arguments stored as metadata attributes.
+    Parameters
+    ----------
+    value
+        The numeric value.
+    **kwargs
+        Arbitrary keyword arguments stored as metadata attributes.
 
-    Attributes:
-        All attributes from float and PyPhiFloat are available, plus any metadata
-        passed as keyword arguments.
+    Attributes
+    ----------
+    All attributes from float and PyPhiFloat are available, plus any metadata
+    passed as keyword arguments.
 
-    Note:
-        To build a NumPy float64 array from a collection of ``DistanceResult``
-        objects, use ``DistanceResult.values_array(results)``: it extracts the
-        float values and drops the metadata. The metadata stays available on
-        the individual results.
+    Notes
+    -----
+    To build a NumPy float64 array from a collection of ``DistanceResult``
+    objects, use ``DistanceResult.values_array(results)``: it extracts the
+    float values and drops the metadata. The metadata stays available on
+    the individual results.
 
-    Examples:
+    Examples
+    --------
         Basic usage with metadata:
 
         >>> from pyphi.measures.distribution import DistanceResult
@@ -208,14 +214,20 @@ class DistanceResult(PyPhiFloat):
         boundary, rather than relying on implicit ``np.array(results)``
         coercion, which silently drops metadata.
 
-        Args:
-            results: Iterable of DistanceResult objects.
-            dtype: Optional NumPy dtype for the array (default: float64).
+        Parameters
+        ----------
+        results
+            Iterable of DistanceResult objects.
+        dtype
+            Optional NumPy dtype for the array (default: float64).
 
-        Returns:
-            np.ndarray: 1-D array of the float values.
+        Returns
+        -------
+        np.ndarray
+            1-D array of the float values.
 
-        Examples:
+        Examples
+        --------
             >>> results = [DistanceResult(0.5, method='EMD'),
             ...            DistanceResult(0.3, method='L1')]
             >>> arr = DistanceResult.values_array(results)
@@ -283,7 +295,8 @@ class DistributionMeasureRegistry(Registry):
     computation. The ``asymmetric`` flag attaches to the function as an
     attribute so callers can filter without consulting a parallel list.
 
-    Examples:
+    Examples
+    --------
         >>> @distribution_measures.register('ALWAYS_ZERO')  # doctest: +SKIP
         ... def always_zero(p, q):
         ...    return 0
@@ -301,15 +314,17 @@ class DistributionMeasureRegistry(Registry):
     ) -> Callable[[Callable[..., float]], Callable[..., float]]:
         """Decorator for registering a :class:`DistributionMeasure`.
 
-        Args:
-            name: The name of the measure.
-
-        Keyword Args:
-            asymmetric: ``True`` if the measure is asymmetric. Stored as
-                an attribute on the function.
-            supports_alphabet: Callable ``(alphabet_sizes) -> bool``
-                indicating whether the measure handles the given node
-                cardinalities. Defaults to :data:`_any_alphabet`.
+        Parameters
+        ----------
+        name
+            The name of the measure.
+        asymmetric
+            ``True`` if the measure is asymmetric. Stored as
+            an attribute on the function.
+        supports_alphabet
+            Callable ``(alphabet_sizes) -> bool``
+            indicating whether the measure handles the given node
+            cardinalities. Defaults to :data:`_any_alphabet`.
         """
 
         def register_func(func: Callable[..., float]) -> Callable[..., float]:
@@ -346,13 +361,14 @@ class StateAwareMeasureRegistry(Registry):
     ) -> Callable[[Callable[..., float]], Callable[..., float]]:
         """Decorator for registering a :class:`StateAwareMeasure`.
 
-        Args:
-            name: The name of the measure.
-
-        Keyword Args:
-            supports_alphabet: Callable ``(alphabet_sizes) -> bool``
-                indicating whether the measure handles the given node
-                cardinalities. Defaults to :data:`_any_alphabet`.
+        Parameters
+        ----------
+        name
+            The name of the measure.
+        supports_alphabet
+            Callable ``(alphabet_sizes) -> bool``
+            indicating whether the measure handles the given node
+            cardinalities. Defaults to :data:`_any_alphabet`.
         """
 
         def register_func(func: Callable[..., float]) -> Callable[..., float]:
@@ -392,19 +408,23 @@ class CompositeMeasureRegistry(Registry):
     ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
         """Decorator for registering a :class:`CompositeMeasure`.
 
-        Args:
-            name: The name of the measure.
-
-        Keyword Args:
-            asymmetric: ``True`` if the measure is asymmetric.
-            applies_ii_cap: ``True`` if the measure carries the Eq. 23
-                ``ii(s)`` cap (``INTRINSIC_INFORMATION`` only).
-            partition_measure: The composite measure used to score
-                partitions when this measure is the system measure;
-                ``None`` means "use self".
-            supports_alphabet: Callable ``(alphabet_sizes) -> bool``
-                indicating whether the measure handles the given node
-                cardinalities. Defaults to :data:`_any_alphabet`.
+        Parameters
+        ----------
+        name
+            The name of the measure.
+        asymmetric
+            ``True`` if the measure is asymmetric.
+        applies_ii_cap
+            ``True`` if the measure carries the Eq. 23
+            ``ii(s)`` cap (``INTRINSIC_INFORMATION`` only).
+        partition_measure
+            The composite measure used to score
+            partitions when this measure is the system measure;
+            ``None`` means "use self".
+        supports_alphabet
+            Callable ``(alphabet_sizes) -> bool``
+            indicating whether the measure handles the given node
+            cardinalities. Defaults to :data:`_any_alphabet`.
         """
 
         def register_func(func: Callable[..., Any]) -> Callable[..., Any]:
@@ -445,15 +465,17 @@ class StatefulDistributionMeasureRegistry(Registry):
     ) -> Callable[[Callable[..., float]], Callable[..., float]]:
         """Decorator for registering a :class:`StatefulDistributionMeasure`.
 
-        Args:
-            name: The name of the measure.
-
-        Keyword Args:
-            asymmetric: ``True`` if the measure is asymmetric. Stored as
-                an attribute on the function.
-            supports_alphabet: Callable ``(alphabet_sizes) -> bool``
-                indicating whether the measure handles the given node
-                cardinalities. Defaults to :data:`_any_alphabet`.
+        Parameters
+        ----------
+        name
+            The name of the measure.
+        asymmetric
+            ``True`` if the measure is asymmetric. Stored as
+            an attribute on the function.
+        supports_alphabet
+            Callable ``(alphabet_sizes) -> bool``
+            indicating whether the measure handles the given node
+            cardinalities. Defaults to :data:`_any_alphabet`.
         """
 
         def register_func(func: Callable[..., float]) -> Callable[..., float]:
@@ -483,7 +505,8 @@ class ActualCausationMeasureRegistry(Registry):
 
     Users can define custom measures:
 
-    Examples:
+    Examples
+    --------
         >>> @actual_causation_measures.register('ALWAYS_ZERO')  # doctest: +SKIP
         ... def always_zero(a, b):
         ...    return 0
@@ -507,14 +530,16 @@ class ActualCausationMeasureRegistry(Registry):
     ) -> Callable[[Callable[..., float]], Callable[..., float]]:
         """Decorator for registering an actual causation measure with PyPhi.
 
-        Args:
-            name (string): The name of the measure.
-
-        Keyword Args:
-            asymmetric (boolean): ``True`` if the measure is asymmetric.
-            supports_alphabet: Callable ``(alphabet_sizes) -> bool``
-                indicating whether the measure handles the given node
-                cardinalities. Defaults to :data:`_any_alphabet`.
+        Parameters
+        ----------
+        name : string
+            The name of the measure.
+        asymmetric : boolean
+            ``True`` if the measure is asymmetric.
+        supports_alphabet
+            Callable ``(alphabet_sizes) -> bool``
+            indicating whether the measure handles the given node
+            cardinalities. Defaults to :data:`_any_alphabet`.
         """
 
         def register_func(func: Callable[..., float]) -> Callable[..., float]:
@@ -670,12 +695,17 @@ def effect_emd(p: ArrayLike, q: ArrayLike) -> float:
     the node is OFF (the original binary expression, kept so binary results are
     unchanged).
 
-    Args:
-        p (np.ndarray): The first repertoire.
-        q (np.ndarray): The second repertoire.
+    Parameters
+    ----------
+    p : np.ndarray
+        The first repertoire.
+    q : np.ndarray
+        The second repertoire.
 
-    Returns:
-        float: The EMD between ``p`` and ``q``.
+    Returns
+    -------
+    float
+        The EMD between ``p`` and ``q``.
     """
     p = np.asarray(p)
     q = np.asarray(q)
@@ -736,12 +766,17 @@ def emd(p: ArrayLike, q: ArrayLike, direction: Direction | None = None) -> float
 def l1(p: ArrayLike, q: ArrayLike) -> float:
     """Return the L1 distance between two distributions.
 
-    Args:
-        p (np.ndarray): The first probability distribution.
-        q (np.ndarray): The second probability distribution.
+    Parameters
+    ----------
+    p : np.ndarray
+        The first probability distribution.
+    q : np.ndarray
+        The second probability distribution.
 
-    Returns:
-        float: The sum of absolute differences of ``p`` and ``q``.
+    Returns
+    -------
+    float
+        The sum of absolute differences of ``p`` and ``q``.
     """
     p = np.asarray(p)
     q = np.asarray(q)
@@ -765,9 +800,12 @@ def psq2(p: ArrayLike, q: ArrayLike) -> float:
     .. math::
         f(x) = \sum_{i=0}^{N-1} p_i^2 \log_2 (p_i N)
 
-    Args:
-        p (np.ndarray): The first distribution.
-        q (np.ndarray): The second distribution.
+    Parameters
+    ----------
+    p : np.ndarray
+        The first distribution.
+    q : np.ndarray
+        The second distribution.
     """
     p = np.asarray(p)
     q = np.asarray(q)
@@ -787,12 +825,17 @@ def mp2q(p: ArrayLike, q: ArrayLike) -> float:
         \frac{1}{N}
         \sum_{i=0}^{N-1} \frac{p_i^2}{q_i} \log_2\left(\frac{p_i}{q_i}\right)
 
-    Args:
-        p (np.ndarray): The first distribution.
-        q (np.ndarray): The second distribution.
+    Parameters
+    ----------
+    p : np.ndarray
+        The first distribution.
+    q : np.ndarray
+        The second distribution.
 
-    Returns:
-        float: The distance.
+    Returns
+    -------
+    float
+        The distance.
     """
     p = np.asarray(p)
     q = np.asarray(q)
@@ -811,12 +854,17 @@ def information_density(p: ArrayLike, q: ArrayLike) -> np.ndarray:
     This is also known as the element-wise relative entropy; see
     :func:`scipy.special.rel_entr`.
 
-    Args:
-        p (np.ndarray): The first probability distribution.
-        q (np.ndarray): The second probability distribution.
+    Parameters
+    ----------
+    p : np.ndarray
+        The first probability distribution.
+    q : np.ndarray
+        The second probability distribution.
 
-    Returns:
-        np.ndarray: The information density of ``p`` relative to ``q``.
+    Returns
+    -------
+    np.ndarray
+        The information density of ``p`` relative to ``q``.
     """
     return rel_entr(p, q) / _LN_OF_2
 
@@ -825,12 +873,17 @@ def information_density(p: ArrayLike, q: ArrayLike) -> np.ndarray:
 def kld(p: ArrayLike, q: ArrayLike) -> float:
     """Return the Kullback-Leibler Divergence (KLD) between two distributions.
 
-    Args:
-        p (np.ndarray): The first probability distribution.
-        q (np.ndarray): The second probability distribution.
+    Parameters
+    ----------
+    p : np.ndarray
+        The first probability distribution.
+    q : np.ndarray
+        The second probability distribution.
 
-    Returns:
-        float: The KLD of ``p`` from ``q``.
+    Returns
+    -------
+    float
+        The KLD of ``p`` from ``q``.
     """
     return DistanceResult(information_density(p, q).sum(), method="KLD", asymmetric=True)
 
@@ -841,12 +894,17 @@ def absolute_information_density(p: ArrayLike, q: ArrayLike) -> np.ndarray:
     The information density is also known as the element-wise relative
     entropy; see :func:`scipy.special.rel_entr`.
 
-    Args:
-        p (np.ndarray): The first probability distribution.
-        q (np.ndarray): The second probability distribution.
+    Parameters
+    ----------
+    p : np.ndarray
+        The first probability distribution.
+    q : np.ndarray
+        The second probability distribution.
 
-    Returns:
-        np.ndarray: The absolute information density of ``p`` relative to ``q``.
+    Returns
+    -------
+    np.ndarray
+        The absolute information density of ``p`` relative to ``q``.
     """
     return np.abs(information_density(p, q))
 
@@ -904,13 +962,18 @@ def approximate_specified_state(
 
     Otherwise, we should pick the state ``0`` as the state of node :math:`z`.
 
-    Args:
-        repertoire (np.ndarray): The first probability distribution.
-        partitioned_repertoire (np.ndarray): The second probability distribution.
+    Parameters
+    ----------
+    repertoire : np.ndarray
+        The first probability distribution.
+    partitioned_repertoire : np.ndarray
+        The second probability distribution.
 
-    Returns:
-        np.ndarray: A 2D array where the single row is the approximate
-            :func:`specified_state`.
+    Returns
+    -------
+    np.ndarray
+        A 2D array where the single row is the approximate
+        :func:`specified_state`.
 
     """
 
@@ -921,16 +984,21 @@ def approximate_specified_state(
         """Converts a joint repertoire in multidimensional form to a 2D array of
         single-node marginal repertoires.
 
-        Args:
-            repertoire (np.ndarray): The joint repertoire of a purview in
-                multidimensional form, e.g., as obtained from
-                :mod:`pyphi.system`. Note that `repertoire` is assumed to be
-                a well-formed probability distribution whose sum over all states
-                equals one.
-        Returns:
-            np.ndarray: A 2D array with one row per node in the purview (the
-                marginalized repertoires) and one column per state, in the same
-                order as the argument.
+        Parameters
+        ----------
+        repertoire : np.ndarray
+            The joint repertoire of a purview in
+            multidimensional form, e.g., as obtained from
+            :mod:`pyphi.system`. Note that `repertoire` is assumed to be
+            a well-formed probability distribution whose sum over all states
+            equals one.
+
+        Returns
+        -------
+        np.ndarray
+            A 2D array with one row per node in the purview (the
+            marginalized repertoires) and one column per state, in the same
+            order as the argument.
         """
         # Remove singleton dimensions.
         repertoire = repertoire.squeeze()
@@ -1040,12 +1108,17 @@ def intrinsic_difference(p: ArrayLike, q: ArrayLike) -> float:
         A measure for intrinsic information.
         *Sci Rep*, 10, 18803. https://doi.org/10.1038/s41598-020-75943-4
 
-    Args:
-        p (np.ndarray): The first probability distribution.
-        q (np.ndarray): The second probability distribution.
+    Parameters
+    ----------
+    p : np.ndarray
+        The first probability distribution.
+    q : np.ndarray
+        The second probability distribution.
 
-    Returns:
-        float: The intrinsic difference.
+    Returns
+    -------
+    float
+        The intrinsic difference.
     """
     return DistanceResult(
         np.max(information_density(p, q)), method="ID", asymmetric=True
@@ -1065,12 +1138,17 @@ def absolute_intrinsic_difference(p: ArrayLike, q: ArrayLike) -> float:
     See documentation for :func:`intrinsic_difference` for further details
     and references.
 
-    Args:
-        p (float): The first probability distribution.
-        q (float): The second probability distribution.
+    Parameters
+    ----------
+    p : float
+        The first probability distribution.
+    q : float
+        The second probability distribution.
 
-    Returns:
-        float: The absolute intrinsic difference.
+    Returns
+    -------
+    float
+        The absolute intrinsic difference.
     """
     return DistanceResult(
         np.max(absolute_information_density(p, q)), method="AID", asymmetric=True
@@ -1339,12 +1417,17 @@ def absolute_pointwise_mutual_information(
 
     This is the same as the MI, but with the absolute value.
 
-    Args:
-        p (np.ndarray[float]): The first probability distribution.
-        q (np.ndarray[float]): The second probability distribution.
+    Parameters
+    ----------
+    p : np.ndarray[float]
+        The first probability distribution.
+    q : np.ndarray[float]
+        The second probability distribution.
 
-    Returns:
-        float: The maximum absolute pointwise mutual information.
+    Returns
+    -------
+    float
+        The maximum absolute pointwise mutual information.
     """
     p = np.asarray(p)
     q = np.asarray(q)
@@ -1369,12 +1452,17 @@ def pointwise_mutual_information(p: float, q: float) -> float:
 
     when :math:`p \\neq 0` and :math:`q \\neq 0`, and :math:`0` otherwise.
 
-    Args:
-        p (float): The first probability.
-        q (float): The second probability.
+    Parameters
+    ----------
+    p : float
+        The first probability.
+    q : float
+        The second probability.
 
-    Returns:
-        float: the pointwise mutual information.
+    Returns
+    -------
+    float
+        the pointwise mutual information.
     """
     if p == 0.0 or q == 0.0:
         return 0.0
@@ -1392,12 +1480,17 @@ def weighted_pointwise_mutual_information(p: float, q: float) -> float:
 
     when :math:`p \\neq 0` and :math:`q \\neq 0`, and :math:`0` otherwise.
 
-    Args:
-        p (float): The first probability.
-        q (float): The second probability.
+    Parameters
+    ----------
+    p : float
+        The first probability.
+    q : float
+        The second probability.
 
-    Returns:
-        float: The weighted pointwise mutual information.
+    Returns
+    -------
+    float
+        The weighted pointwise mutual information.
     """
     return p * pointwise_mutual_information(p, q)
 

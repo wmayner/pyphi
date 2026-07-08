@@ -154,10 +154,13 @@ def is_substrate(substrate: object) -> None:
 def node_states(state: Sequence[int], alphabet_sizes: Sequence[int]) -> None:
     """Check that each state entry is a valid index into its node's alphabet.
 
-    Args:
-        state: Per-node state indices.
-        alphabet_sizes: Per-node alphabet sizes; ``state[i]`` must satisfy
-            ``0 <= state[i] < alphabet_sizes[i]``.
+    Parameters
+    ----------
+    state
+        Per-node state indices.
+    alphabet_sizes
+        Per-node alphabet sizes; ``state[i]`` must satisfy
+        ``0 <= state[i] < alphabet_sizes[i]``.
     """
     if len(state) != len(alphabet_sizes):
         raise ValueError(

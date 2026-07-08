@@ -25,7 +25,7 @@ class Node(Displayable, ToPandasMixin):
     cause_marginal : pyphi.core.tpm.marginalization.CauseMarginals
         Per-system-unit cause factors; this node reads its own factor via
         ``cause_marginal.factor(index)``.
-    effect_marginal : FactoredTPM or JointTPM
+    effect_marginal : FactoredTPM or joint_distribution.JointTPM
         The system's effect (forward) TPM. A
         :class:`~pyphi.core.tpm.factored.FactoredTPM` (the per-node-factored
         form, including k-ary substrates) or a
@@ -215,7 +215,7 @@ def generate_nodes(
     cause_marginal : pyphi.core.tpm.marginalization.CauseMarginals
         Per-system-unit cause factors; each node reads its own factor via
         ``cause_marginal.factor(index)``.
-    effect_marginal : FactoredTPM or JointTPM
+    effect_marginal : FactoredTPM or joint_distribution.JointTPM
         The system's effect (forward) TPM. A
         :class:`~pyphi.core.tpm.factored.FactoredTPM` (the per-node-factored
         form, including k-ary substrates) or a

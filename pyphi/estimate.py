@@ -62,10 +62,13 @@ class CoverageReport(Serializable):
     at an unvisited state are unidentified by the data, so any downstream
     quantity that depends on those TPM rows rests on the prior alone.
 
-    Attributes:
-        counts: Number of observed transitions out of each current state,
-            indexed by little-endian state index; shape ``(2**n_units,)``.
-        n_units: Number of units in the substrate.
+    Attributes
+    ----------
+    counts
+        Number of observed transitions out of each current state,
+        indexed by little-endian state index; shape ``(2**n_units,)``.
+    n_units
+        Number of units in the substrate.
     """
 
     counts: NDArray[np.int64]
@@ -118,15 +121,23 @@ class SubstratePosterior(Serializable):
     Draw concrete substrates with :meth:`sample`; every existing PyPhi
     computation applies to the samples unchanged.
 
-    Attributes:
-        alpha_on: Beta ``a`` parameters, shape ``(2**n, n)``.
-        alpha_off: Beta ``b`` parameters, shape ``(2**n, n)``.
-        regime: The caller's assertion about how the data was produced
-            (``"perturbational"`` or ``"observational"``).
-        prior: The symmetric Beta prior pseudocount added to every cell.
-        coverage: Per-state observation counts (see :class:`CoverageReport`).
-        node_labels: Optional labels passed through to sampled substrates.
-        provenance: Environment record captured at estimation time.
+    Attributes
+    ----------
+    alpha_on
+        Beta ``a`` parameters, shape ``(2**n, n)``.
+    alpha_off
+        Beta ``b`` parameters, shape ``(2**n, n)``.
+    regime
+        The caller's assertion about how the data was produced
+        (``"perturbational"`` or ``"observational"``).
+    prior
+        The symmetric Beta prior pseudocount added to every cell.
+    coverage
+        Per-state observation counts (see :class:`CoverageReport`).
+    node_labels
+        Optional labels passed through to sampled substrates.
+    provenance
+        Environment record captured at estimation time.
     """
 
     alpha_on: NDArray[np.float64]
@@ -155,12 +166,16 @@ class SubstratePosterior(Serializable):
         Every TPM cell is drawn independently from its Beta posterior;
         exactly one of ``seed`` or ``rng`` must be given.
 
-        Args:
-            seed: Seed for a fresh, isolated ``np.random.default_rng``.
-            rng: An existing generator to draw from (advances its state).
+        Parameters
+        ----------
+        seed
+            Seed for a fresh, isolated ``np.random.default_rng``.
+        rng
+            An existing generator to draw from (advances its state).
 
-        Returns:
-            An ordinary :class:`~pyphi.substrate.Substrate`.
+        Returns
+        -------
+        An ordinary :class:`~pyphi.substrate.Substrate`.
         """
         if (seed is None) == (rng is None):
             raise ValueError("Provide exactly one of seed= or rng=.")
@@ -194,15 +209,20 @@ class SubstratePosterior(Serializable):
         treated as absent is a modeling choice the caller must own, exactly
         the kind of assertion the estimation API refuses to make implicitly.
 
-        Keyword Args:
-            n_samples: Number of posterior draws to average over.
-            seed: Seed for a fresh, isolated generator driving all draws
-                (required; the statistic is otherwise irreproducible).
-            threshold: Variation above which an input axis counts as an edge,
-                on the ``p(ON)`` scale (in ``[0, 1]``).
+        Parameters
+        ----------
+        n_samples
+            Number of posterior draws to average over.
+        seed
+            Seed for a fresh, isolated generator driving all draws
+            (required; the statistic is otherwise irreproducible).
+        threshold
+            Variation above which an input axis counts as an edge,
+            on the ``p(ON)`` scale (in ``[0, 1]``).
 
-        Returns:
-            An ``(n, n)`` array of edge-firing fractions in ``[0, 1]``.
+        Returns
+        -------
+        An ``(n, n)`` array of edge-firing fractions in ``[0, 1]``.
         """
         n = self.n_units
         # All draws at once: shape (n_samples, 2**n, n).
@@ -235,19 +255,28 @@ class PhiPosterior(Serializable):
     :meth:`quantiles`, :meth:`conditional_quantiles`, or the raw
     :attr:`samples`.
 
-    Attributes:
-        samples: Per-draw Φ values, shape ``(n_samples,)``.
-        complex_samples: Per-draw unit indices of the maximal complex;
-            ``()`` when no irreducible candidate exists in that draw.
-        state: The analyzed substrate state.
-        subset: Unit indices of the candidate system, or ``None`` for the
-            whole substrate.
-        seed: Seed that drove all draws.
-        regime: The causal assertion carried from the substrate posterior
-            (``"perturbational"`` or ``"observational"``).
-        coverage: The substrate posterior's :class:`CoverageReport`.
-        provenance: Environment record captured at computation time; its
-            ``estimator`` field carries the substrate posterior's record.
+    Attributes
+    ----------
+    samples
+        Per-draw Φ values, shape ``(n_samples,)``.
+    complex_samples
+        Per-draw unit indices of the maximal complex;
+        ``()`` when no irreducible candidate exists in that draw.
+    state
+        The analyzed substrate state.
+    subset
+        Unit indices of the candidate system, or ``None`` for the
+        whole substrate.
+    seed
+        Seed that drove all draws.
+    regime
+        The causal assertion carried from the substrate posterior
+        (``"perturbational"`` or ``"observational"``).
+    coverage
+        The substrate posterior's :class:`CoverageReport`.
+    provenance
+        Environment record captured at computation time; its
+        ``estimator`` field carries the substrate posterior's record.
     """
 
     samples: NDArray[np.float64]
@@ -318,19 +347,27 @@ def phi_posterior(
     the candidate system, and finds the maximal complex. A single generator
     seeded with ``seed`` drives every draw.
 
-    Args:
-        posterior: The substrate posterior to propagate.
-        state: The substrate state to analyze.
+    Parameters
+    ----------
+    posterior
+        The substrate posterior to propagate.
+    state
+        The substrate state to analyze.
 
-    Keyword Args:
-        n_samples: Number of Monte Carlo draws.
-        seed: Seed for the draws (required; saved on the result).
-        subset: Unit indices of the candidate system; ``None`` uses the
-            whole substrate.
+    Other Parameters
+    ----------------
+    n_samples
+        Number of Monte Carlo draws.
+    seed
+        Seed for the draws (required; saved on the result).
+    subset
+        Unit indices of the candidate system; ``None`` uses the
+        whole substrate.
 
-    Returns:
-        A :class:`PhiPosterior` over the per-draw Φ values and complex
-        identities.
+    Returns
+    -------
+    A :class:`PhiPosterior` over the per-draw Φ values and complex
+    identities.
     """
     if n_samples < 1:
         raise ValueError(f"n_samples must be at least 1, got {n_samples}")
@@ -370,27 +407,35 @@ def estimate_substrate(
 ) -> SubstratePosterior:
     """Estimate a posterior over substrates from binary transition data.
 
-    Args:
-        data: Either a pair ``(current, next)`` of integer arrays, each of
-            shape ``(T, n)`` with one transition per row (the natural form
-            for perturbational trials), or a single integer array of shape
-            ``(T, n)`` — a trajectory whose transitions are the consecutive
-            row pairs (the natural form for observational recordings). Both
-            forms are accepted under both regimes; values must be 0/1.
+    Parameters
+    ----------
+    data
+        Either a pair ``(current, next)`` of integer arrays, each of
+        shape ``(T, n)`` with one transition per row (the natural form
+        for perturbational trials), or a single integer array of shape
+        ``(T, n)`` — a trajectory whose transitions are the consecutive
+        row pairs (the natural form for observational recordings). Both
+        forms are accepted under both regimes; values must be 0/1.
 
-    Keyword Args:
-        regime: Required assertion about how the data was produced:
-            ``"perturbational"`` (current states set by intervention) or
-            ``"observational"`` (passively recorded trajectory; see the
-            module docstring for the identifiability caveat).
-        prior: Symmetric Beta prior pseudocount added to every TPM cell
-            (default Jeffreys, ``1/2``). Must be positive.
-        node_labels: Optional labels for the substrate units.
-        model: Estimation model; only ``"counts"`` is implemented.
+    Other Parameters
+    ----------------
+    regime
+        Required assertion about how the data was produced:
+        ``"perturbational"`` (current states set by intervention) or
+        ``"observational"`` (passively recorded trajectory; see the
+        module docstring for the identifiability caveat).
+    prior
+        Symmetric Beta prior pseudocount added to every TPM cell
+        (default Jeffreys, ``1/2``). Must be positive.
+    node_labels
+        Optional labels for the substrate units.
+    model
+        Estimation model; only ``"counts"`` is implemented.
 
-    Returns:
-        A :class:`SubstratePosterior` with independent Beta posteriors over
-        every TPM cell and a :class:`CoverageReport`.
+    Returns
+    -------
+    A :class:`SubstratePosterior` with independent Beta posteriors over
+    every TPM cell and a :class:`CoverageReport`.
     """
     if model != "counts":
         raise NotImplementedError(f"model={model!r}; only 'counts' is implemented")

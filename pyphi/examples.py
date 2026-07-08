@@ -1376,17 +1376,29 @@ def frog_example():
         """
         Returns a pyphi substrate (with the specified activation function)
 
-        Args:
-            mech_func: (list) list of mechanism function labels ('g' for Gaussian, 'nr' or 's' for Naka-Rushton, 'l' for LogFunc)
-            weights: (numpy array) matrix of node by node weights (x sends to y)
-            mu = mean (Gauss)
-            si = standard deviation (Gauss)
-            exp = exponent (NR or MvsG)
-            th = threshold (NR) or curve steepness (MvsG)
-            x0 = midpoint value (LogFunc)
-            l = max value (LogFunc)
-            k = growth rate (LogFunc)
-            gridsize = number of substrate nodes in the grid excluded inputs
+        Parameters
+        ----------
+        mech_func
+            List of mechanism function labels ('g' for Gaussian, 'nr' or 's'
+            for Naka-Rushton, 'l' for LogFunc).
+        weights
+            Node-by-node weight matrix (x sends to y).
+        mu
+            Mean (Gauss).
+        si
+            Standard deviation (Gauss).
+        exp
+            Exponent (NR or MvsG).
+        th
+            Threshold (NR) or curve steepness (MvsG).
+        x0
+            Midpoint value (LogFunc).
+        l
+            Max value (LogFunc).
+        k
+            Growth rate (LogFunc).
+        gridsize
+            Number of substrate nodes in the grid excluded inputs.
         """
         weights = weights.T
         node_indices = [n for n in range(len(weights))]
