@@ -331,6 +331,88 @@ class FactoredTPM(Displayable, ToPandasMixin):
                     cm[a, b] = 1
         return cm
 
+    def is_deterministic(self) -> bool:
+        """Whether every transition is deterministic.
+
+        True iff every factor's probabilities are all exactly 0 or 1, so each
+        unit's next state is a deterministic function of the input state.
+        """
+        return all(bool(np.all((f == 0.0) | (f == 1.0))) for f in self.factors)
+
+    def permute_nodes(self, permutation: Sequence[int]) -> FactoredTPM:
+        """Reorder the substrate units by a permutation.
+
+        Unit ``permutation[k]`` takes position ``k`` in the result: the factor
+        list is reordered, each factor's leading input axes are transposed by
+        the same permutation (so axis ``k`` still indexes the unit now at
+        position ``k``), and ``state_space`` / ``node_labels`` follow.
+
+        Parameters
+        ----------
+        permutation : Sequence[int]
+            A permutation of ``range(n_nodes)`` — one entry per unit.
+
+        Returns
+        -------
+        FactoredTPM
+            The relabeled TPM.
+
+        Raises
+        ------
+        ValueError
+            If ``permutation`` does not have length ``n_nodes``.
+        """
+        perm = tuple(permutation)
+        n = self.n_nodes
+        if len(perm) != n:
+            raise ValueError(f"permutation must have length {n}; got {len(perm)}")
+        axes = (*perm, n)  # leading input axes by perm; trailing output axis stays
+        factors = [np.transpose(self.factor(old), axes) for old in perm]
+        state_space = tuple(self._state_space[p] for p in perm)
+        node_labels = (
+            tuple(self._node_labels[p] for p in perm)
+            if self._node_labels is not None
+            else None
+        )
+        return FactoredTPM(
+            factors=factors, state_space=state_space, node_labels=node_labels
+        )
+
+    def subtpm(self, fixed_nodes: Sequence[int], state: Sequence[int]) -> FactoredTPM:
+        """Return the TPM over the free units, conditioned on the fixed units.
+
+        The units in ``fixed_nodes`` are frozen at ``state`` (in the same
+        order) and removed; the result is a :class:`FactoredTPM` over just the
+        remaining (free) units, whose transitions depend only on free-unit
+        inputs.
+
+        Parameters
+        ----------
+        fixed_nodes : Sequence[int]
+            The units to condition on and drop.
+        state : Sequence[int]
+            The state (per-unit integer index) of each fixed unit.
+
+        Returns
+        -------
+        FactoredTPM
+            The conditioned TPM over the free units.
+        """
+        fixed = dict(zip(fixed_nodes, state, strict=True))
+        conditioned = self.condition(fixed)
+        drop = tuple(sorted(fixed))
+        free = [i for i in range(self.n_nodes) if i not in fixed]
+        factors = [np.squeeze(conditioned.factor(i), axis=drop) for i in free]
+        state_space = tuple(self._state_space[i] for i in free)
+        node_labels = (
+            tuple(self._node_labels[i] for i in free)
+            if self._node_labels is not None
+            else None
+        )
+        return FactoredTPM(
+            factors=factors, state_space=state_space, node_labels=node_labels
+        )
+
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, FactoredTPM):
             return NotImplemented
