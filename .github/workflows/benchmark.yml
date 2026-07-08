@@ -53,10 +53,19 @@ jobs:
         id: detect
         working-directory: benchmarks
         run: |
-          if uv run asv continuous --factor 1.5 HEAD~1 HEAD --show-stderr; then
+          # `asv continuous` exits non-zero for BOTH a real regression and a
+          # benchmark build/run failure, so the exit code alone can't tell them
+          # apart. Parse the sentinel line, which asv prints only after a
+          # comparison actually completes.
+          out=$(uv run asv continuous --factor 1.5 HEAD~1 HEAD --show-stderr 2>&1) || true
+          echo "$out"
+          if grep -q "PERFORMANCE DECREASED" <<<"$out"; then
+            echo "regressed=true" >> "$GITHUB_OUTPUT"
+          elif grep -qE "BENCHMARKS NOT SIGNIFICANTLY CHANGED|PERFORMANCE INCREASED" <<<"$out"; then
             echo "regressed=false" >> "$GITHUB_OUTPUT"
           else
-            echo "regressed=true" >> "$GITHUB_OUTPUT"
+            echo "::error::asv continuous did not complete a comparison; benchmark build/run failure (not a regression)"
+            exit 1
           fi
 
       - name: Open/update regression issue
