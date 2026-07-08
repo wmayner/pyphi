@@ -24,6 +24,7 @@ from pyphi import distribution as _dist
 from pyphi import utils as _utils
 from pyphi import validate as _validate
 from pyphi.cache.content import ContentCache
+from pyphi.core.tpm import _node_ops
 from pyphi.data_structures import FrozenMap
 from pyphi.data_structures import PyPhiFloat
 from pyphi.direction import Direction
@@ -114,7 +115,7 @@ def _single_node_cause_repertoire(
     # ``_cause_repertoire_inner`` to broadcast those size-1 axes up to the full
     # purview alphabet. Keeping them size 1 (rather than broadcasting here) is
     # deliberate — the product over mechanism nodes stays cheap.
-    return tpm.marginalize_out(mechanism_node.inputs - purview_set).tpm
+    return _node_ops.marginalize_out(tpm, mechanism_node.inputs - purview_set)
 
 
 @_memoize
@@ -139,14 +140,14 @@ def _single_node_effect_repertoire(
     """
     purview_node = cs._index2node[purview_node_index]
     if direction == Direction.CAUSE:
-        tpm = purview_node.cause_marginal.condition_tpm(condition)
+        tpm = _node_ops.condition(purview_node.cause_marginal, condition)
     elif direction == Direction.EFFECT:
-        tpm = purview_node.effect_marginal.condition_tpm(condition)
+        tpm = _node_ops.condition(purview_node.effect_marginal, condition)
     else:
         _validate.direction(direction)
         raise AssertionError("unreachable")
     nonmechanism_inputs = purview_node.inputs - set(condition)
-    tpm = tpm.marginalize_out(nonmechanism_inputs)
+    tpm = _node_ops.marginalize_out(tpm, nonmechanism_inputs)
     alphabet_sizes = cs.substrate.factored_tpm.alphabet_sizes
     # Unlike the cause builder, the effect builder reshapes to canonical here,
     # so its output is self-describingly canonical (this purview node at full
@@ -157,7 +158,7 @@ def _single_node_effect_repertoire(
             (purview_node_index,),
             alphabet_sizes=alphabet_sizes,
         )
-    ).tpm
+    )
 
 
 @_memoize

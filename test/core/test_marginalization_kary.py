@@ -108,19 +108,17 @@ def test_single_node_cause_repertoire_k3() -> None:
     repertoire shape over the purview's joint state space.
 
     Builds the function's minimal contract directly: a per-node cause
-    factor of shape ``(*alphabet_sizes, k_node)`` wrapped in a
-    :class:`JointTPM`, plus a stub holding ``state``, ``inputs``, and
-    ``cause_marginal``. The returned array is the per-node unnormalized
-    slice produced by indexing ``cause_marginal[..., state]`` and
-    marginalizing out non-purview inputs; normalization happens in
-    ``_cause_repertoire_inner`` after the per-node factors are
-    multiplied.
+    factor ndarray of shape ``(*alphabet_sizes, k_node)``, plus a stub
+    holding ``state``, ``inputs``, and ``cause_marginal``. The returned
+    array is the per-node unnormalized slice produced by indexing
+    ``cause_marginal[..., state]`` and marginalizing out non-purview inputs;
+    normalization happens in ``_cause_repertoire_inner`` after the per-node
+    factors are multiplied.
     """
     from pyphi.core.repertoire_algebra import _single_node_cause_repertoire
-    from pyphi.core.tpm.joint_distribution import JointTPM
 
     class _Node:
-        def __init__(self, state: int, inputs: frozenset[int], cause_marginal: JointTPM):
+        def __init__(self, state: int, inputs: frozenset[int], cause_marginal):
             self.state = state
             self.inputs = inputs
             self.cause_marginal = cause_marginal
@@ -140,7 +138,7 @@ def test_single_node_cause_repertoire_k3() -> None:
     # Per-node cause factor: 2-node substrate, k=3 alphabet, k=3 outputs.
     # Shape (3, 3, 3) -- last axis is this node's output-state distribution.
     factor = _random_kary_factor(2, 3, seed=40)
-    node = _Node(state=0, inputs=frozenset({0, 1}), cause_marginal=JointTPM(factor))
+    node = _Node(state=0, inputs=frozenset({0, 1}), cause_marginal=factor)
     cs = _CS({0: node})
     rep = _single_node_cause_repertoire(cs, 0, frozenset({0}))
     # Purview {0}: node-1 axis marginalized out (size 1); node-0 axis kept.
@@ -152,9 +150,7 @@ def test_single_node_cause_repertoire_k3() -> None:
     # ``cause_marginal[..., state]`` with ``state`` in ``[0, k_node)``.
     # Same query with a different output-state index produces a different
     # slice, confirming the trailing axis is being indexed.
-    node_other = _Node(
-        state=2, inputs=frozenset({0, 1}), cause_marginal=JointTPM(factor)
-    )
+    node_other = _Node(state=2, inputs=frozenset({0, 1}), cause_marginal=factor)
     cs_other = _CS({0: node_other})
     rep_other = _single_node_cause_repertoire(cs_other, 0, frozenset({0}))
     assert not np.allclose(rep, rep_other)
