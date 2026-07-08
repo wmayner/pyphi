@@ -63,8 +63,9 @@ def test_effect_marginal_parity() -> None:
 
     from pyphi.core.tpm.joint_distribution import JointTPM as _LegacyJointTPM
 
-    # Legacy JointTPM expects the (2,...,2,N) shape.
-    joint = substrate._legacy_binary_joint()
+    # Legacy JointTPM expects the (2,...,2,N) shape; for a binary substrate
+    # that is the ON-probability slice of the explicit-alphabet joint.
+    joint = substrate.joint_tpm()[..., 1]
     new_tpm = effect_marginal(JointTPM(joint), background)
     old_tpm = _LegacyJointTPM(joint).condition_tpm(background)
     np.testing.assert_array_equal(new_tpm.to_array(), np.asarray(old_tpm))

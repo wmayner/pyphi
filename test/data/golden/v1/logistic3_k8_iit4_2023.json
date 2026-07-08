@@ -1,12 +1,12 @@
 {
   "fixture_name": "logistic3_k8_iit4_2023",
   "schema_version": 1,
-  "generated_from_commit": "faafa374f0d7c09e2c9e81bc825bee66ad458dcc",
+  "generated_from_commit": "eb1ab31c71b7d88b35984061208b92e175cea954",
   "description": "3-node logistic substrate (sigmoid activation, k=8, weights 0.3) in state (0,0,0). IIT 4.0 (2023). Companion to logistic3_k8_iit4_2026 \u2014 together they exercise the partial ii(s) cap activation regime.",
   "config_overrides": {
-    "version": "IIT_4_0_2023",
+    "iit.version": "IIT_4_0_2023",
     "mechanism_phi_measure": "GENERALIZED_INTRINSIC_DIFFERENCE",
-    "system_partition_scheme": "SET_UNI/BI",
+    "system_partition_scheme": "DIRECTED_SET_PARTITION",
     "progress_bars": false,
     "parallel": false
   },
@@ -21,9 +21,10 @@
       2,
       2,
       2,
-      3
+      3,
+      2
     ],
-    "tpm_sha1": "abb005cfc9199ad2",
+    "tpm_sha1": "a2ee221495b58d86",
     "cm_shape": [
       3,
       3
@@ -4347,8 +4348,8 @@
     }
   ],
   "sia": {
-    "phi": 0.03661738126586076,
-    "signed_phi": 0.03661738126586076,
+    "phi": 0.03661738126586059,
+    "signed_phi": 0.03661738126586059,
     "partition": [
       [
         0,
@@ -4384,7 +4385,7 @@
     }
   },
   "phi_structure": {
-    "big_phi": 45.41420280245964,
+    "big_phi": 45.414202802459656,
     "distinctions": [
       {
         "mechanism": [
@@ -4495,6 +4496,6 @@
     ],
     "num_distinctions": 7,
     "num_relations": 127,
-    "sum_phi_relations": 41.01618537641196
+    "sum_phi_relations": 41.016185376411975
   }
 }

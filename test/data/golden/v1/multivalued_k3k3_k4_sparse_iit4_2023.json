@@ -1,7 +1,7 @@
 {
   "fixture_name": "multivalued_k3k3_k4_sparse_iit4_2023",
   "schema_version": 1,
-  "generated_from_commit": "abec384ef9650a04877470c3a0fc412fb86c6089",
+  "generated_from_commit": "eb1ab31c71b7d88b35984061208b92e175cea954",
   "description": "3-node sparse heterogeneous substrate with alphabet sizes (3,3,4) on a directed 3-cycle (seed 2028). Exercises sparse + mixed-alphabet repertoire and partition paths under IIT 4.0 (2023).",
   "config_overrides": {
     "iit.version": "IIT_4_0_2023",

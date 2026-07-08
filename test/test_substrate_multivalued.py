@@ -54,6 +54,20 @@ def test_heterogeneous_alphabet_sia() -> None:
     assert result.phi >= 0
 
 
+def test_num_states_kary() -> None:
+    """``num_states`` is the product of per-unit alphabet sizes, not ``2**n``."""
+    # Uniform k=3, 2 units → 9 states.
+    assert _k3_two_node_substrate().num_states == 9
+    # Heterogeneous (2, 3) → 6 states.
+    rng = np.random.default_rng(2026)
+    f_binary = rng.uniform(size=(2, 3, 2))
+    f_binary = f_binary / f_binary.sum(axis=-1, keepdims=True)
+    f_ternary = rng.uniform(size=(2, 3, 3))
+    f_ternary = f_ternary / f_ternary.sum(axis=-1, keepdims=True)
+    sub = pyphi.Substrate(marginals=[f_binary, f_ternary])
+    assert sub.num_states == 6
+
+
 def test_kary_account_end_to_end() -> None:
     """Construct a k=3 substrate; compute an Account.
 

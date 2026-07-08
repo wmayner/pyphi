@@ -1,14 +1,15 @@
 {
   "fixture_name": "logistic3_k8_iit4_2026",
   "schema_version": 1,
-  "generated_from_commit": "023a359b082dcb825beaa323c150090d51f454dd",
-  "description": "3-node logistic network (sigmoid activation, k=8, weights 0.3) in state (0,0,0). IIT 4.0 (2026). The 2026 ii(s) cap activates *partially* here: phi_2023 ~ 0.037, phi_2026 ~ 0.003 \u2014 neither no-op nor full collapse. This is the regime that exercises the cap's min() logic at a non-edge point.",
+  "generated_from_commit": "eb1ab31c71b7d88b35984061208b92e175cea954",
+  "description": "3-node logistic substrate (sigmoid activation, k=8, weights 0.3) in state (0,0,0). IIT 4.0 (2026). The 2026 ii(s) cap activates *partially* here: phi_2023 ~ 0.037, phi_2026 ~ 0.003 \u2014 neither no-op nor full collapse. This is the regime that exercises the cap's min() logic at a non-edge point.",
   "config_overrides": {
-    "FORMALISM": "IIT_4_0_2026",
-    "REPERTOIRE_DISTANCE": "INTRINSIC_INFORMATION",
-    "SYSTEM_PARTITION_TYPE": "SET_UNI/BI",
-    "PROGRESS_BARS": false,
-    "PARALLEL": false
+    "iit.version": "IIT_4_0_2026",
+    "mechanism_phi_measure": "GENERALIZED_INTRINSIC_DIFFERENCE",
+    "system_partition_scheme": "DIRECTED_SET_PARTITION",
+    "progress_bars": false,
+    "parallel": false,
+    "system_phi_measure": "INTRINSIC_INFORMATION"
   },
   "state": [
     0,
@@ -21,9 +22,10 @@
       2,
       2,
       2,
-      3
+      3,
+      2
     ],
-    "tpm_sha1": "abb005cfc9199ad2",
+    "tpm_sha1": "a2ee221495b58d86",
     "cm_shape": [
       3,
       3
@@ -4384,7 +4386,7 @@
     }
   },
   "phi_structure": {
-    "big_phi": 45.41420280245964,
+    "big_phi": 45.414202802459656,
     "distinctions": [
       {
         "mechanism": [
@@ -4495,6 +4497,6 @@
     ],
     "num_distinctions": 7,
     "num_relations": 127,
-    "sum_phi_relations": 41.01618537641196
+    "sum_phi_relations": 41.016185376411975
   }
 }

@@ -3743,6 +3743,23 @@ to ease transition:
   ``pyphi/core/repertoire_algebra.py``, plus consumers and ~30 test
   sites. Roughly 1–3 days. Independent of any other in-flight project.
 
+- **Retire the legacy binary `JointTPM`/`JointDistribution` class.** `FactoredTPM` is
+  the canonical k-ary-native TPM everywhere, but the old dense binary-only
+  `JointTPM`/`JointDistribution` (`pyphi/core/tpm/joint_distribution.py`, three
+  `TODO(tpm) remove pending ArrayLike refactor` markers) still survives as a per-node
+  distribution container in `node.py` and a simulation container in `dynamics.py`.
+  **Substrate increment landed** (2026-07-08): `Substrate` no longer touches the legacy
+  class — input coercion (`_coerce_joint_array`) normalizes via `convert.*` directly
+  (conditional-independence check inlined), the binary-only `_legacy_binary_joint()`
+  renderer and test-only `reconstitute_tpm()` are removed (golden hashing re-anchored on
+  the canonical `joint_tpm()`), and the `num_states` `2**n` k-ary bug is fixed. **Remaining:**
+  move `node.py` per-node cause/effect marginals (`marginalize_out`, `condition_tpm`,
+  hashing) and `dynamics.py` simulation off `JointTPM` onto `FactoredTPM` factors (or a
+  light distribution type), drop the dead binary `else` branch in `Node.__init__`
+  (`System.effect_marginal` is always a `FactoredTPM`), then delete the class + the
+  `joint.py` Protocol wrapper and remove/repoint the `pyphi.JointTPM` export. Touches the
+  compute path in `node.py` — verify φ unchanged.
+
 - **~~Retire ``config.numerics.precision`` when IIT 3.0 is dropped.~~ (Moot — 3.0 is kept.)**
   The setting is a holdover from the EMD-era ``pyemd`` C-library noise, and the original idea
   was to remove it once 3.0 support was gone. But IIT 3.0 is being **kept** behind the

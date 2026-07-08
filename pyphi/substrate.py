@@ -8,6 +8,7 @@ This is the primary object of PyPhi and the context of all |small_phi| and
 from __future__ import annotations
 
 import hashlib
+import math
 from collections.abc import Iterable
 from collections.abc import Sequence
 from functools import cached_property
@@ -18,13 +19,13 @@ from numpy.typing import ArrayLike
 from numpy.typing import NDArray
 
 from . import connectivity
+from . import convert
 from . import utils
 from . import validate
 from .cache.content import ContentCache
 from .core.tpm import _display
 from .core.tpm.factored import FactoredTPM
 from .core.tpm.factored import StateSpace
-from .core.tpm.joint_distribution import JointTPM
 from .direction import Direction
 from .display import HIGH
 from .display import LOW
@@ -147,7 +148,7 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
 
     def __init__(
         self,
-        tpm: JointTPM | NDArray[np.float64] | dict[str, Any] | None = None,
+        tpm: NDArray[np.float64] | dict[str, Any] | None = None,
         cm: ArrayLike | None = None,
         node_labels: Sequence[str] | NodeLabels | None = None,
         *,
@@ -191,22 +192,21 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
 
     @staticmethod
     def _coerce_joint_array(
-        tpm: JointTPM | NDArray[np.float64] | dict[str, Any] | Any,
+        tpm: NDArray[np.float64] | dict[str, Any] | Any,
     ) -> NDArray[np.float64]:
         """Coerce supported ``tpm=`` argument forms to a joint ndarray.
 
-        Accepts the same input forms as the legacy ``JointTPM`` constructor
-        (2-D state-by-node, 2-D state-by-state, multidimensional
-        state-by-node) and routes them through the legacy validator so
-        callers don't have to pre-reshape. Also accepts the explicit-alphabet
-        shape ``(*alphabet_sizes, n_nodes, max_alphabet)`` produced by
+        Accepts binary 2-D state-by-node, 2-D state-by-state, and
+        multidimensional state-by-node arrays, normalizing them to
+        multidimensional state-by-node form so callers don't have to
+        pre-reshape. Also accepts the explicit-alphabet shape
+        ``(*alphabet_sizes, n_nodes, max_alphabet)`` produced by
         :meth:`joint_tpm`, which is forwarded as-is to ``FactoredTPM.from_joint``.
+        Probability validation happens downstream in ``FactoredTPM``.
         """
         if isinstance(tpm, dict):
             key = "_tpm" if "_tpm" in tpm else "tpm"
             data: Any = tpm[key]
-        elif isinstance(tpm, JointTPM):
-            return np.asarray(tpm)
         elif hasattr(tpm, "to_array"):
             data = tpm.to_array()  # type: ignore[attr-defined]
         else:
@@ -226,10 +226,28 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
             ):
                 return arr
 
-        # Otherwise route through the legacy joint TPM so 2-D and
-        # state-by-state forms get normalized to multidimensional
-        # state-by-node form.
-        return np.asarray(JointTPM(data, validate=True), dtype=np.float64)
+        # Otherwise normalize 2-D state-by-node / state-by-state / binary
+        # multidimensional forms to multidimensional state-by-node. A square
+        # 2-D array is state-by-state; everything else reshapes directly (the
+        # reshape is idempotent for already-multidimensional input).
+        if arr.ndim == 2 and arr.shape[0] == arr.shape[1]:
+            # State-by-state → state-by-node silently drops any conditional
+            # dependence between nodes; reject dependent TPMs unless opted out.
+            from pyphi import exceptions
+            from pyphi.conf import config as _config
+
+            sbn = convert.state_by_state2state_by_node(arr)
+            check_independence = _config.infrastructure.validate_conditional_independence
+            if check_independence and not np.allclose(
+                arr - convert.state_by_node2state_by_state(sbn), 0.0
+            ):
+                raise exceptions.ConditionallyDependentError(
+                    "TPM is not conditionally independent.\n"
+                    "See the conditional independence example in the "
+                    "documentation for more info."
+                )
+            return sbn.astype(np.float64)
+        return convert.to_multidimensional(arr)
 
     @property
     def tpm(self) -> FactoredTPM:
@@ -257,27 +275,6 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
         callers needing it repeatedly should cache locally.
         """
         return self._factored_tpm.to_joint()
-
-    def _legacy_binary_joint(self) -> NDArray[np.float64]:
-        """Binary-only SBN-form rendering of the substrate's TPM.
-
-        Returns an array of shape ``[a_1, ..., a_N, N]`` where each entry
-        holds ``P(node_i = 1 | s_t)``. Used by AC's ``TransitionSystem``
-        and several tests. Raises
-        ``ValueError`` for k-ary substrates because
-        SBN-form encodes only ``P(node=1|s_t)``, which has no k-ary
-        generalization.
-        """
-        if not all(a == 2 for a in self._factored_tpm.alphabet_sizes):
-            raise ValueError(
-                "legacy binary joint shape is binary-only; "
-                f"alphabet_sizes={self._factored_tpm.alphabet_sizes}"
-            )
-        n = self._factored_tpm.n_nodes
-        return np.stack(
-            [self._factored_tpm.factor(i)[..., 1] for i in range(n)],
-            axis=-1,
-        )
 
     @classmethod
     def from_factored(
@@ -364,11 +361,10 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
         """int: The number of nodes in the substrate."""
         return len(self)
 
-    # TODO extend to nonbinary nodes
     @property
     def num_states(self) -> int:
         """int: The number of possible states of the substrate."""
-        return 2**self.size
+        return math.prod(self._factored_tpm.alphabet_sizes)
 
     @property
     def node_indices(self) -> NodeIndices:

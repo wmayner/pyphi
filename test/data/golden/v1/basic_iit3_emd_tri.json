@@ -1,10 +1,11 @@
 {
   "fixture_name": "basic_iit3_emd_tri",
   "schema_version": 1,
-  "generated_from_commit": "3c767fd64e3e900ff0d7f83a2844966155f1d633",
+  "generated_from_commit": "eb1ab31c71b7d88b35984061208b92e175cea954",
   "description": "basic_substrate IIT 3.0 + EMD with mechanism_partition_scheme=WEDGE_TRIPARTITION. Different combinatorial path than JOINT_BIPARTITION; supports the partition-algebra consolidation in P6.",
   "config_overrides": {
     "actual_causation": {
+      "version": "AC_2019",
       "alpha_measure": "PMI",
       "mechanism_partition_scheme": "JOINT_PARTITION_ALL",
       "partitioned_repertoire_scheme": "PRODUCT",
@@ -23,7 +24,8 @@
       "mechanism_partition_scheme": "WEDGE_TRIPARTITION",
       "system_partition_scheme": "DIRECTED_BIPARTITION",
       "system_partition_include_complete": false,
-      "distinction_phi_normalization": "NUM_CONNECTIONS_CUT",
+      "distinction_phi_normalization": "NONE",
+      "background_conditioning": "CONDITION_CURRENT_STATE",
       "relation_computation": "CONCRETE",
       "assume_partitions_cannot_create_new_concepts": false,
       "shortcircuit_sia": true,
@@ -54,9 +56,10 @@
       2,
       2,
       2,
-      3
+      3,
+      2
     ],
-    "tpm_sha1": "18a77c4af253d5c7",
+    "tpm_sha1": "56312ab8b117bfe5",
     "cm_shape": [
       3,
       3

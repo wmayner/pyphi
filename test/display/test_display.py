@@ -485,7 +485,7 @@ def test_system_compact_matches_expected_label_subset():
     from pyphi.system import System
 
     sub = pyphi.examples.basic_substrate()
-    sub2 = Substrate(sub._legacy_binary_joint(), node_labels=("A", "B", "C"))
+    sub2 = Substrate(sub.joint_tpm(), node_labels=("A", "B", "C"))
     sys = System(sub2, (0, 0, 0), ("B", "C"))
     with pyphi.config.override(repr_verbosity=0):
         assert str(sys) == "System(B, C)"

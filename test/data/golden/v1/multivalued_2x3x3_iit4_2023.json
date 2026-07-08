@@ -1,7 +1,7 @@
 {
   "fixture_name": "multivalued_2x3x3_iit4_2023",
   "schema_version": 1,
-  "generated_from_commit": "9079bcea51607d93c7e855cbede24dbe11e56680",
+  "generated_from_commit": "eb1ab31c71b7d88b35984061208b92e175cea954",
   "description": "3-node heterogeneous substrate with alphabet sizes (2,3,3) (seed 2027). First node is binary; second and third are ternary. Exercises mixed-alphabet repertoire paths under IIT 4.0 (2023).",
   "config_overrides": {
     "iit.version": "IIT_4_0_2023",

@@ -1,7 +1,7 @@
 {
   "fixture_name": "gomez_p53_mdm2_iit3_aid",
   "schema_version": 1,
-  "generated_from_commit": "451be12c480a58f92ab696c8ccf8adb78bbb80df",
+  "generated_from_commit": "eb1ab31c71b7d88b35984061208b92e175cea954",
   "description": "Multi-valued p53-Mdm2 network (alphabet sizes (3,2,2)) from G\u00f3mez et al. 2020 Fig 3A, state (0,0,1). IIT 3.0 with mechanism_phi_measure=AID, ces_measure=SUM_SMALL_PHI, mechanism_partition_scheme=WEDGE_TRIPARTITION. First k>2 golden under IIT 3.0; reproduces the paper's Phi=0.44 over 3 mechanisms.",
   "config_overrides": {
     "actual_causation": {
@@ -25,6 +25,7 @@
       "system_partition_scheme": "DIRECTED_BIPARTITION",
       "system_partition_include_complete": false,
       "distinction_phi_normalization": "NONE",
+      "background_conditioning": "CONDITION_CURRENT_STATE",
       "relation_computation": "CONCRETE",
       "assume_partitions_cannot_create_new_concepts": false,
       "shortcircuit_sia": true,

@@ -1,7 +1,7 @@
 {
   "fixture_name": "basic_subset_iit4_2023",
   "schema_version": 1,
-  "generated_from_commit": "28f8e6943d4b99b51ab05520f6af2045b314d800",
+  "generated_from_commit": "eb1ab31c71b7d88b35984061208b92e175cea954",
   "description": "basic_substrate with system = nodes (1, 2) only (strict subset of the 3-node substrate). Exercises the system-shaped repertoire path that the actual.py audit found buggy. Critical for P7's system rewrite.",
   "config_overrides": {
     "iit.version": "IIT_4_0_2023",
@@ -24,9 +24,10 @@
       2,
       2,
       2,
-      3
+      3,
+      2
     ],
-    "tpm_sha1": "18a77c4af253d5c7",
+    "tpm_sha1": "56312ab8b117bfe5",
     "cm_shape": [
       3,
       3

@@ -1,7 +1,7 @@
 {
   "fixture_name": "basic_subset_iit3_emd",
   "schema_version": 1,
-  "generated_from_commit": "28f8e6943d4b99b51ab05520f6af2045b314d800",
+  "generated_from_commit": "eb1ab31c71b7d88b35984061208b92e175cea954",
   "description": "basic_substrate with system = nodes (1, 2), IIT 3.0 + EMD. Symmetric subset-of-substrate coverage; exercises the IIT 3.0 SIA path on a strict-subset system.",
   "config_overrides": {
     "iit": {
@@ -14,6 +14,7 @@
       "system_partition_scheme": "DIRECTED_BIPARTITION",
       "system_partition_include_complete": false,
       "distinction_phi_normalization": "NONE",
+      "background_conditioning": "CONDITION_CURRENT_STATE",
       "relation_computation": "CONCRETE",
       "assume_partitions_cannot_create_new_concepts": false,
       "shortcircuit_sia": true,
@@ -58,9 +59,10 @@
       2,
       2,
       2,
-      3
+      3,
+      2
     ],
-    "tpm_sha1": "18a77c4af253d5c7",
+    "tpm_sha1": "56312ab8b117bfe5",
     "cm_shape": [
       3,
       3

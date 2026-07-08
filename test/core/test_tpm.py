@@ -5,8 +5,6 @@ import pytest
 from numpy.random import default_rng
 
 from pyphi import JointTPM
-from pyphi import System
-from pyphi.core.tpm.joint_distribution import reconstitute_tpm
 from pyphi.core.tpm.joint_distribution import simulate
 
 
@@ -154,39 +152,6 @@ def test_marginalize_out(s):
 
 def test_infer_cm(rule152):
     assert np.array_equal(rule152.tpm.infer_cm(), rule152.cm)
-
-
-def test_reconstitute_tpm(standard, s_complete, rule152, noised):
-    # Check system and substrate TPM are the same when the system is the
-    # whole substrate. reconstitute_tpm returns the legacy binary shape.
-    assert np.array_equal(reconstitute_tpm(s_complete), standard._legacy_binary_joint())
-
-    # Regression tests
-    # fmt: off
-    answer = np.array([
-        [[[0., 0., 0.],
-          [0., 0., 0.]],
-         [[0., 0., 1.],
-          [0., 1., 0.]]],
-        [[[0., 1., 0.],
-          [0., 0., 0.]],
-         [[1., 0., 1.],
-          [1., 1., 0.]]],
-    ])
-    # fmt: on
-    system = System(rule152, (0,) * 5, (0, 1, 2))
-    assert np.array_equal(answer, reconstitute_tpm(system))
-
-    system = System(noised, (0, 0, 0), (0, 1))
-    # fmt: off
-    answer = np.array([
-        [[0. , 0. ],
-         [0.7, 0. ]],
-        [[0. , 0. ],
-         [1. , 0. ]],
-    ])
-    # fmt: on
-    assert np.array_equal(answer, reconstitute_tpm(system))
 
 
 def test_simulate_tpm_sanity():

@@ -1,7 +1,7 @@
 {
   "fixture_name": "multivalued_k3_tiny_iit3_emd",
   "schema_version": 1,
-  "generated_from_commit": "8c68c8803ce618d59798a838467f63951ee2ca76",
+  "generated_from_commit": "eb1ab31c71b7d88b35984061208b92e175cea954",
   "description": "2-node k=3 substrate (seed 2026), IIT 3.0 with mechanism_phi_measure=EMD (k-ary EMD), ces_measure=SUM_SMALL_PHI, mechanism_partition_scheme=WEDGE_TRIPARTITION. Locks the non-binary EMD ground-metric and effect-EMD paths.",
   "config_overrides": {
     "actual_causation": {
@@ -25,6 +25,7 @@
       "system_partition_scheme": "DIRECTED_BIPARTITION",
       "system_partition_include_complete": false,
       "distinction_phi_normalization": "NONE",
+      "background_conditioning": "CONDITION_CURRENT_STATE",
       "relation_computation": "CONCRETE",
       "assume_partitions_cannot_create_new_concepts": false,
       "shortcircuit_sia": true,

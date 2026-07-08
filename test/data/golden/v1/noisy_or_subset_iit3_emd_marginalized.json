@@ -1,7 +1,7 @@
 {
   "fixture_name": "noisy_or_subset_iit3_emd_marginalized",
   "schema_version": 1,
-  "generated_from_commit": "a4c3c46d257c6d4ab0ef32d16501f1ea09aec6a3",
+  "generated_from_commit": "eb1ab31c71b7d88b35984061208b92e175cea954",
   "description": "Same system under IIT 4.0 Eq. 4 causal marginalization of the background (SIA phi = 0.41607); companion to noisy_or_subset_iit3_emd.",
   "config_overrides": {
     "actual_causation": {
@@ -59,9 +59,10 @@
       2,
       2,
       2,
-      3
+      3,
+      2
     ],
-    "tpm_sha1": "372532e98e81b12c",
+    "tpm_sha1": "ff16f4ca2f4a21d5",
     "cm_shape": [
       3,
       3

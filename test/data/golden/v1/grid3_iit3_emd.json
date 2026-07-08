@@ -1,7 +1,7 @@
 {
   "fixture_name": "grid3_iit3_emd",
   "schema_version": 1,
-  "generated_from_commit": "c34216aeea0d48cfbd1b2d183e38acc8c80fb561",
+  "generated_from_commit": "eb1ab31c71b7d88b35984061208b92e175cea954",
   "description": "Grid3 3-node substrate. Symmetric architecture; useful for catching tie-resolution regressions. Tests the |\u00b7|+ clamp: phi = 0 (paper-faithful) with signed_phi = -0.0729 retained as preventative-cause metadata. IIT 3.0 (Oizumi et al. 2014) + EMD + BI partitions.",
   "config_overrides": {
     "iit": {
@@ -14,6 +14,7 @@
       "system_partition_scheme": "DIRECTED_BIPARTITION",
       "system_partition_include_complete": false,
       "distinction_phi_normalization": "NONE",
+      "background_conditioning": "CONDITION_CURRENT_STATE",
       "relation_computation": "CONCRETE",
       "assume_partitions_cannot_create_new_concepts": false,
       "shortcircuit_sia": true,
@@ -33,6 +34,7 @@
       ]
     },
     "actual_causation": {
+      "version": "AC_2019",
       "alpha_measure": "PMI",
       "mechanism_partition_scheme": "JOINT_PARTITION_ALL",
       "partitioned_repertoire_scheme": "PRODUCT",
@@ -54,9 +56,10 @@
       2,
       2,
       2,
-      3
+      3,
+      2
     ],
-    "tpm_sha1": "4518662e7174ee7b",
+    "tpm_sha1": "5ff342610e80cf93",
     "cm_shape": [
       3,
       3

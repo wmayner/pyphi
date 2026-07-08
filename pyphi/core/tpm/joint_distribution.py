@@ -438,7 +438,7 @@ class JointTPM(Displayable, ToPandasMixin, JointDistribution):
             >>> from pyphi import JointTPM, examples
             >>> # Get the TPM for nodes only 1 and 2, conditioned on node 0 = OFF
             >>> sub = examples.grid3_substrate()
-            >>> result = JointTPM(sub._legacy_binary_joint()).subtpm((0,), (0,))
+            >>> result = JointTPM(sub.joint_tpm()[..., 1]).subtpm((0,), (0,))
             >>> result.shape
             (1, 2, 2, 2)
             >>> result.number_of_units
@@ -531,28 +531,6 @@ class JointTPM(Displayable, ToPandasMixin, JointDistribution):
             coords=coords,
             name="P(next unit on)",
         )
-
-
-def reconstitute_tpm(system: Any) -> NDArray[np.float64]:
-    """Reconstitute the TPM of a system using the individual node TPMs."""
-    # The last axis of the node TPMs correponds to ON or OFF probabilities
-    # (used in the conditioning step when calculating the repertoires); we want
-    # ON probabilities.
-    node_tpms = [node.effect_marginal.tpm[..., 1] for node in system.nodes]
-    # Remove the singleton dimensions corresponding to external nodes
-    node_tpms = [tpm.squeeze(axis=system.external_indices) for tpm in node_tpms]
-    # We add a new singleton axis at the end so that we can use
-    # expand_tpm, which expects a state-by-node TPM (where the last
-    # axis corresponds to nodes.)
-    node_tpms = [np.expand_dims(tpm, -1) for tpm in node_tpms]
-    # Now we expand the node TPMs to the full state space, so we can combine
-    # them all (this uses the maximum entropy distribution).
-    node_tpms = [
-        tpm * np.ones([2] * (tpm.ndim - 1) + [tpm.shape[-1]]) for tpm in node_tpms
-    ]
-    # We concatenate the node TPMs along a new axis to get a multidimensional
-    # state-by-node TPM (where the last axis corresponds to nodes).
-    return np.concatenate(node_tpms, axis=-1)
 
 
 def simulate(
