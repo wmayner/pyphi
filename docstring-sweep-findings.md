@@ -12,31 +12,18 @@ noted under "Code touched").
    (`repertoire_shape`/`max_entropy_distribution` take `alphabet_sizes`), a
    k-ary purview node has dimension > 2 and is silently dropped. Latent bug for
    k-ary repertoires. The docstring now states the binary assumption.
-2. **`pyphi/dynamics.py`** `most_probable_next_state`/`settle` use `> 0.5` for
-   the ON threshold, so P(ON) = 0.5 exactly is treated as OFF. The docstring now
-   states the rule; confirm it is intended.
-3. **`pyphi/actual.py`** (`Transition.repertoire`, ~line 563): user-facing
-   `ValueError` message reads "is no a {direction} mechanism" (should be
-   "is not a"). Code string, not a docstring.
-4. **`pyphi/utils.py:396` `enforce_integer()`**: the raised message is
-   hardcoded "{name} must be a positive integer", but the function checks
-   `i < min` with `min` defaulting to -inf. The message is wrong when `min` is
-   not 0/1.
-5. **`pyphi/core/tpm/joint_distribution.py` `JointDistribution.print()`**
-   (~line 262) is a no-op: it builds a multidimensional TPM then iterates
-   `for _state in ...: pass`, printing nothing.
-6. **`pyphi/models/cmp.py:128`** `numpy_aware_eq`: pre-existing
+2. **`pyphi/models/cmp.py` `numpy_aware_eq`**: pre-existing
    `# TODO: this is broken if the iterables are sets` — the Iterable branch uses
    `len()`/`zip()`, which misbehaves for set inputs.
-7. **Two distinct classes named `JointTPM`, exported inconsistently.**
+3. **Two distinct classes named `JointTPM`, exported inconsistently.**
    `pyphi/core/tpm/joint_distribution.py` defines the full backing `JointTPM`;
    `pyphi/core/tpm/joint.py` defines a thin wrapper class *also* named
    `JointTPM`. The top-level `pyphi.__init__` re-exports the backing class
    (`pyphi.JointTPM`), while `pyphi.core.tpm.__init__` re-exports the wrapper
    (`pyphi.core.tpm.JointTPM`) — so the same name resolves to different classes
    by import path. This is an API-naming footgun (and it makes bare `JointTPM`
-   cross-references ambiguous in the docs). Consider renaming one (e.g. the
-   wrapper) so the public name is unambiguous.
+   cross-references ambiguous in the docs). Deferred to the JointTPM-as-view
+   refactor, which consolidates the two classes; do not rename standalone.
 
 (The 46 docstring-vs-code disagreements the sweep *corrected* — reversed
 connectivity-matrix semantics, wrong equation citations, wrong return types,

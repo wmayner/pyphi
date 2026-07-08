@@ -276,11 +276,6 @@ class JointDistribution(data_structures.ArrayLike):
         """
         raise NotImplementedError(f"{type(self).__name__} must override tpm_indices()")
 
-    def print(self) -> None:
-        tpm = convert.to_multidimensional(self._tpm)
-        for _state in all_states(tpm.shape[-1]):
-            pass
-
     def permute_nodes(self, permutation: tuple[int, ...]) -> JointDistribution:
         """Reorder the nodes of this distribution by a permutation.
 

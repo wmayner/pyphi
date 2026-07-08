@@ -580,7 +580,7 @@ class Transition(Serializable):
 
         if not set(mechanism).issubset(self.mechanism_indices(direction)):
             raise ValueError(
-                f"{fmt.fmt_mechanism(mechanism, node_labels)} is no a "
+                f"{fmt.fmt_mechanism(mechanism, node_labels)} is not a "
                 f"{direction} mechanism in {self}"
             )
 
