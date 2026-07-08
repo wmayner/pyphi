@@ -37,6 +37,32 @@ def test_simulate_reproduces_ising_stationary_distribution():
     assert np.allclose(empirical, analytical, atol=1e-3, rtol=0)
 
 
+def test_simulate_state_by_state_reproduces_ising_stationary_distribution():
+    """The full-joint state-by-state path (a pandas DataFrame) reproduces the
+    analytical Ising stationary distribution.
+
+    Complements the state-by-node test: this exercises the inverse-CDF sampler
+    that draws each next state from the full joint next-state distribution.
+    """
+    import pandas as pd
+
+    rng = np.random.default_rng(0)
+    sbs = np.load("test/data/ising_tpm.npy")
+    analytical = np.load("test/data/ising_stationary_distribution.npy")
+    states = list(utils.all_states(int(np.log2(sbs.shape[0]))))
+    labels = pd.MultiIndex.from_tuples(states)
+    df = pd.DataFrame(sbs, index=labels, columns=labels)
+    timesteps = 2_000_000
+    path = simulate(df, initial_state=states[0], timesteps=timesteps, rng=rng)
+    index_of = {state: i for i, state in enumerate(states)}
+    counts = np.bincount(
+        [index_of[tuple(int(x) for x in state)] for state in path],
+        minlength=sbs.shape[0],
+    )
+    empirical = counts / timesteps
+    assert np.allclose(empirical, analytical, atol=1e-3, rtol=0)
+
+
 def test_apply_clamp():
     # apply_clamp overwrites in place by index (no length change).
     assert apply_clamp({1: 0}, (1, 1, 1)) == (1, 0, 1)

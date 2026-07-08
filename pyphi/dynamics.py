@@ -44,17 +44,16 @@ def simulate(
     rng: np.random.Generator | None = None,
 ):
     """Return a simulated timeseries of system states."""
-    if isinstance(tpm, pd.DataFrame):
-        N = len(tpm.index[0])  # pyright: ignore[reportIndexIssue, reportAttributeAccessIssue]
-        simulate_one_timestep = simulate_one_timestep_from_pandas_state_by_state
-    else:
-        # Assumes state-by-node multidimensional TPM
-        tpm = np.asarray(tpm, dtype=float)
-        N = number_of_units(tpm)
-        simulate_one_timestep = simulate_one_timestep_from_explicit_tpm_state_by_node
-
     if rng is None:
         rng = np.random.default_rng(seed=None)
+
+    if isinstance(tpm, pd.DataFrame):
+        N = len(tpm.index[0])  # pyright: ignore[reportIndexIssue, reportAttributeAccessIssue]
+        step = _state_by_state_stepper(tpm, rng)
+    else:
+        # Assumes state-by-node multidimensional TPM.
+        step = _state_by_node_stepper(np.asarray(tpm, dtype=float), rng)
+        N = number_of_units(np.asarray(tpm))
 
     if clamp is None:
         clamp = {}
@@ -71,32 +70,50 @@ def simulate(
 
     states = [apply_clamp(clamps[0], initial_state)]  # pyright: ignore[reportIndexIssue]
     for current_clamp in clamps[1:]:  # pyright: ignore[reportIndexIssue]
-        current_state = states[-1]
-        next_state = simulate_one_timestep(rng, tpm, current_state)
-        next_state = apply_clamp(current_clamp, next_state)
-        states.append(next_state)
+        states.append(apply_clamp(current_clamp, step(states[-1])))
     return states
 
 
-def simulate_one_timestep_from_pandas_state_by_state(rng, tpm, state):
-    """Simulate one timestep given a DataFrame containing probabilities indexed
-    by state along both dimensions."""
-    state_probabilities = tpm.loc[state]
-    return state_probabilities.sample(weights=state_probabilities).index[0]
+def _state_by_state_stepper(tpm, rng):
+    """Build a one-step sampler for a state-by-state DataFrame.
+
+    Precomputes the per-row cumulative distribution once, so each step samples
+    the next state in ``O(log K)`` via inverse-CDF (``numpy.searchsorted``)
+    rather than re-normalizing and drawing per call. Samples the full joint
+    next state, so correlations between units at ``t+1`` are preserved.
+    """
+    cumulative = tpm.to_numpy().cumsum(axis=1)
+    labels = list(tpm.columns)
+    row_of = {label: i for i, label in enumerate(tpm.index)}
+    last = len(labels) - 1
+
+    def step(state):
+        row = cumulative[row_of[state]]
+        j = int(np.searchsorted(row, rng.random(), side="right"))
+        return labels[min(j, last)]
+
+    return step
 
 
-def simulate_one_timestep_from_explicit_tpm_state_by_node(rng, tpm, state):
-    """Simulate one timestep given a multidimensional state-by-node TPM array."""
-    # Assumes state-by-node multidimensional TPM
-    elementwise_probabilities = tpm[state]
-    thresholds = rng.random(len(elementwise_probabilities))
-    return tuple((elementwise_probabilities > thresholds).astype(int))
+def _state_by_node_stepper(tpm, rng):
+    """Build a one-step sampler for a multidimensional state-by-node TPM.
+
+    Samples each unit independently from its own ``P(on | state)`` — exact for
+    the conditionally-independent TPMs IIT uses, and ``O(N)`` vectorized numpy
+    per step.
+    """
+
+    def step(state):
+        probabilities = tpm[state]
+        return tuple((probabilities > rng.random(len(probabilities))).astype(int))
+
+    return step
 
 
 def most_probable_next_state(tpm, state):
     """Return the deterministic most-probable next state (binary).
 
-    Counterpart of the sampled `simulate_one_timestep_*`: each unit takes its
+    Deterministic counterpart of the sampled step: each unit takes its
     most-probable next value (ON iff P(ON) > 0.5).
     """
     tpm = np.asarray(tpm, dtype=float)
