@@ -71,10 +71,12 @@ theory page is worse than a missing one:
 
 - Every equation, section, theorem, or figure citation is verified against the
   actual paper PDF in `papers/` — never cited from memory. Primary sources:
-  `2023__albantakis-et-al__iit-4.0.pdf` and its supplements S1–S4; the 2026
-  intrinsic-information-cap material for the cap; `2014__oizumi-et-al__iit-3.0.pdf`
-  for the IIT 3.0 page; `2019__albantakis-et-al__what-caused-what.pdf` for the
-  actual-causation mention.
+  `2023__albantakis-et-al__iit-4.0.pdf` and its supplements S1–S4;
+  `2026__mayner-et-al__intrinsic-cause-effect-power.pdf` (Mayner, Marshall &
+  Tononi, Entropy 28) for the 2026 intrinsic-information cap;
+  `2014__oizumi-et-al__iit-3.0.pdf` for the IIT 3.0 page;
+  `2019__albantakis-et-al__what-caused-what.pdf` for the actual-causation
+  mention.
 - Every code claim (a type, a function, an output value, an equation-to-symbol
   mapping) is verified against the implementation, not asserted from the paper
   alone. `graphify-out/bridge-edges.json` provides the concept-to-code starting
