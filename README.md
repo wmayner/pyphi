@@ -14,7 +14,7 @@
 [![DOI](https://img.shields.io/badge/DOI-10.1371%2Fjournal.pcbi.1006343-blue?style=flat-square)](https://doi.org/10.1371/journal.pcbi.1006343)
 
 PyPhi is a Python platform for research in [Integrated Information Theory
-(IIT)](https://doi.org/10.1371/journal.pcbi.1011465). Its core task is computing
+(IIT)](https://www.iit.wiki). Its core task is computing
 **Φ** (integrated information) and the **cause–effect structure** a system
 specifies; around that it provides a broad toolkit for the analyses IIT
 research needs (see [Beyond Φ](#beyond-φ)).
@@ -28,7 +28,7 @@ transition probabilities — and a **state**, PyPhi computes:
   (irreducible mechanisms) a system specifies and the **relations** that bind
   them.
 
-It implements the current formalism, **IIT 4.0** (Albantakis et al., 2023), and
+It implements the current formalism, **IIT 4.0** ([Albantakis et al., 2023](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1011465)), and
 retains the earlier **IIT 3.0** formalism, selectable by configuration.
 
 ## Example
