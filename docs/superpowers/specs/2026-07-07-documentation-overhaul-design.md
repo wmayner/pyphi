@@ -99,11 +99,12 @@ Six top-level sections, mapped to the theme's header navigation:
   scipy, pandas, xarray), sphinx-copybutton, sphinx-design, MathJax 3
   (Sphinx-bundled, replacing the pinned 2.7 CDN).
 - **API reference generated at build time.** The hand-written `docs/api/*.rst`
-  files are deleted. A single curated reference index lists the public
-  subpackages and modules; autosummary recursively generates per-module pages
-  into a gitignored directory during the build. Generated pages cannot
-  reference dead modules without failing the build, which is the property the
-  hand-maintained stubs lacked.
+  files are deleted. A single recursive autosummary entry on the root `pyphi`
+  package drives generation: autosummary walks the package tree and generates
+  one page per object into a gitignored directory during the build, using
+  per-object page templates so re-exports resolve to a single canonical page.
+  No module list is hand-maintained, so a new module appears automatically and
+  a removed one cannot linger — the property the hand-maintained stubs lacked.
 - **Notebook delivery:** each tutorial page's MyST source is jupytext-paired
   with an output-free `.ipynb` committed alongside it (Colab can only open
   notebooks that exist at a GitHub URL, so the notebook artifacts must be in
@@ -144,6 +145,14 @@ the object is and does, not what it was, replaces, or how it came to be.
 Remove migration-journey phrasing and design-decision narrative. This is the
 text autodoc renders, so it is content work for the Reference section, not
 cleanup.
+
+The sweep also removes the `|big_phi|`-style RST substitutions from `pyphi/`
+docstrings, replacing them with literal Unicode symbols (`Φ`, `φ`), which read
+correctly under `help()` where the substitution markup does not and render
+without the `rst_prolog` machinery. Reserve `:math:` for genuinely complex
+expressions. Once the docstrings and the narrative pages (each content plan
+removes them from its own pages) no longer use substitutions, the final
+content plan deletes the `rst_prolog` block from `conf.py`.
 
 ## 6. Migration guide
 

@@ -802,6 +802,38 @@ it now installs the docs dependency group via uv."
 
 ---
 
+## As-built deviations
+
+The landed implementation deviates from the task text above as follows:
+
+- **API reference generation is fully recursive, not a curated list.** Task 3
+  as written used a hand-maintained module list in `api.md` plus five
+  checked-in override pages for the pure re-export packages
+  (`pyphi.formalism`, `pyphi.models`, `pyphi.matching`, `pyphi.macro`,
+  `pyphi.display`) whose `__all__` re-exports collided with recursive
+  autosummary. A follow-up reworked this to the standard recursive
+  per-object autosummary pattern: `api.md` is a single `:recursive:` entry
+  on the root `pyphi` package, per-object page templates
+  (`docs/_templates/autosummary/{module,class}.rst`) render members as
+  autosummary tables so re-exports resolve to one canonical page, and the
+  five override pages are deleted. No hand-maintained module list remains;
+  new modules appear automatically. A `conf.py` `autosummary_filename_map`
+  entry disambiguates the `relation`/`Relation` and `relations`/`Relations`
+  page names, which collide on case-insensitive filesystems.
+- `docs/conf.py` additionally carries the legacy `rst_prolog` substitution
+  block (the retained `.rst` pages and 16 `pyphi/` docstrings depend on
+  `|big_phi|`-style substitutions) and `napoleon_use_ivar = True` (resolves
+  duplicate-attribute warnings from dataclass docstrings under autodoc). The
+  substitutions are slated for removal: the docstring sweep replaces them in
+  `pyphi/` with literal Unicode symbols, each content plan's rewrites remove
+  them from its pages, and the final content plan deletes `rst_prolog`.
+- The jupytext pre-commit hook is pinned to the `uv.lock`-resolved jupytext
+  version (paired-page front matter embeds `jupytext_version`; a mismatched
+  hook rewrites pairs on every commit). The two must move together.
+- The `justfile` docs recipe uses `--all-extras` (CI and RTD already did):
+  the API reference imports `pyphi.visualize`, which raises without the
+  visualize extras.
+
 ## Self-review checklist (run after writing, before execution)
 
 - Spec §2 coverage: conf.py rewrite ✓ (T2), theme ✓ (T2), extensions ✓ (T2), build-time API generation ✓ (T3), notebook delivery/pairing ✓ (T4), docs deps + RTD ✓ (T1, T5), `just docs` ✓ (T5).
