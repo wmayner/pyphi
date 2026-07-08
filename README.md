@@ -12,19 +12,20 @@
 [![Python 3.13+](https://img.shields.io/pypi/pyversions/pyphi?style=flat-square)](https://pypi.org/project/pyphi/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat-square)](https://www.gnu.org/licenses/gpl-3.0)
 
-PyPhi is a Python library for computing integrated information (Φ) and the
-objects and quantities of [Integrated Information Theory
-(IIT)](https://doi.org/10.1371/journal.pcbi.1011465). Given a **substrate** — a
-network of interacting units defined by its transition probabilities — and a
-**state**, PyPhi computes:
+PyPhi is a Python platform for research in [Integrated Information Theory
+(IIT)](https://doi.org/10.1371/journal.pcbi.1011465). Its core task is computing
+**Φ** (integrated information) and the **cause–effect structure** a system
+specifies; around that it provides a broad toolkit for the analyses IIT
+research needs (see [Beyond Φ](#beyond-φ)).
+
+Given a **substrate** — a network of interacting units defined by its
+transition probabilities — and a **state**, PyPhi computes:
 
 - **Φ**, the integrated information of a system, by finding the partition that
   makes the least difference;
 - the **cause–effect structure** (**Φ-structure**): the **distinctions**
   (irreducible mechanisms) a system specifies and the **relations** that bind
-  them;
-- **actual causation**: which past events actually caused a given present
-  event, and which effects it will actually cause.
+  them.
 
 It implements the current formalism, **IIT 4.0** (Albantakis et al., 2023), and
 retains the earlier **IIT 3.0** formalism, selectable by configuration.
@@ -54,6 +55,27 @@ partition that minimizes Φ. See the
 [documentation](http://pyphi.readthedocs.io/) and the
 [IIT 4.0 demo notebook](https://github.com/wmayner/pyphi/blob/main/docs/examples/IIT_4.0_demo.ipynb)
 for a complete walkthrough.
+
+## Beyond Φ
+
+Around the core Φ and cause–effect-structure computations, PyPhi is a broader
+toolkit for IIT research:
+
+- **Actual causation** — which specific past events actually caused a given
+  present event, and which effects it will actually cause (Albantakis et al.,
+  2019).
+- **Macro and micro scales** — coarse-grain or black-box a substrate to
+  analyze integrated information at different spatial and temporal scales.
+- **Substrate generation** — build substrates from a library of unit
+  mechanisms, weight matrices, or Ising models.
+- **Visualization** — plot connectivity, repertoires, and Φ-structures
+  (requires the `visualize` extra).
+- **Labeled export** — export results to pandas DataFrames, xarray, or a
+  two-timeslice dynamic Bayesian network for use with other tools.
+- **Parameter sweeps** — evaluate many substrates, states, or configurations in
+  one call, with optional parallelism.
+- **Estimating substrates from data** — infer a substrate, with epistemic
+  uncertainty, from observed state transitions.
 
 ## Documentation
 
@@ -207,7 +229,7 @@ Mechanisms of Consciousness: Integrated Information Theory
 }
 ```
 
-This project is inspired by a [previous
+The initial version of this project was inspired by a [previous
 project](https://github.com/albantakis/iit) written in MATLAB by L. Albantakis,
 M. Oizumi, A. Hashmi, A. Nere, U. Olcese, P. Rana, and B. Shababo.
 
