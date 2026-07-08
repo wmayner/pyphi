@@ -32,6 +32,9 @@ exclude_patterns = [
     "examples/IIT_4.0_demo.ipynb",
     "examples/serialize_demo.ipynb",
     "getting-started/first-computation.ipynb",
+    # Paired tutorial notebooks are download artifacts; the .md is the rendered
+    # source. Exclude the .ipynb so Sphinx does not see two files per document.
+    "tutorials/*.ipynb",
 ]
 
 # Substitutions used by the retained reStructuredText pages (conventions,
