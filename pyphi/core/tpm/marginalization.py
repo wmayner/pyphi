@@ -11,7 +11,6 @@ from pyphi import exceptions
 
 from .base import TPM
 from .factored import FactoredTPM
-from .joint import JointTPM
 
 # Cap on any single intermediate array in the sum-product contraction
 # (~1 GiB of float64). Densely coupled substrates whose cheapest elimination
@@ -189,11 +188,7 @@ def cause_marginal(
     """
     if isinstance(tpm, FactoredTPM):
         return _cause_marginal_factored(tpm, state, node_indices)
-    if isinstance(tpm, JointTPM):
-        factored = FactoredTPM.from_joint(tpm._inner)
-        return cause_marginal(factored, state, node_indices)
-    arr = tpm.to_array()
-    factored = FactoredTPM.from_joint(arr)
+    factored = FactoredTPM.from_joint(tpm.to_array())
     return cause_marginal(factored, state, node_indices)
 
 
@@ -214,9 +209,7 @@ def cause_conditioned(
     1. Bayesian inversion and normalization happen downstream in the
     repertoire algebra, exactly as for the marginalized factors.
     """
-    if isinstance(tpm, JointTPM):
-        tpm = FactoredTPM.from_joint(tpm._inner)
-    elif not isinstance(tpm, FactoredTPM):
+    if not isinstance(tpm, FactoredTPM):
         tpm = FactoredTPM.from_joint(tpm.to_array())
     conditioned = tpm.condition(dict(background))
     return CauseMarginals({i: conditioned.factor(i) for i in node_indices})
